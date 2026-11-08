@@ -59,6 +59,14 @@ export const DECAY_STAGES = ['fresh', 'stale', 'decomposed', 'spent'] as const;
 
 export type DecayStage = (typeof DECAY_STAGES)[number];
 
+/** What a corpse gives a nose at each stage, in OU of one kilogram. */
+export const DECAY_SMELLS: Record<DecayStage, { aroma: string; ou: number } | null> = {
+  fresh: null,
+  stale: { aroma: '/base-library/aromas/blood', ou: 30 },
+  decomposed: { aroma: '/base-library/aromas/decay', ou: 3000 },
+  spent: { aroma: '/base-library/aromas/decay', ou: 30 },
+};
+
 export const MORTALITY_DEFAULTS = {
   /** Game-seconds a corpse spends in each decay stage. */
   DECAY_STAGE_SEC: 3600,

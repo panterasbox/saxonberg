@@ -7,8 +7,9 @@
 # keratin spreads a blow rather than resisting it), a poor conductor of
 # heat (which is exactly why a horn spoon never scalds a lip), and
 # electrically an insulator when dry.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/hide, strength: 20 }]
   name: horn
   keywords: [keratin, horn]
   appearance: scraped translucent horn, amber where the light comes through

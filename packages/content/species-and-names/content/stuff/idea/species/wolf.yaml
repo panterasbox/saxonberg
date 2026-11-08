@@ -14,6 +14,7 @@
 # wolves, not about this particular animal in this particular wood.
 class: /platform/idea/species/Species
 data:
+  smells: [{ aroma: /base-library/aromas/dog, strength: 10 }]
   binomial: Canis lupus
   commonNames: ["wolf", "grey wolf", "wolfshead", "beast"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
@@ -53,7 +54,7 @@ data:
     A rangy grey wolf, all wire and hunger, its coat matted with the burrs
     of the deep wood. It moves low and certain, the way a thing moves when
     it has never once been the prey.
-  nameBankKeys: []
+  nameBanks: []
   # ⭐ What a carcass yields to a knife. A wolf is lean and stringy and
   # nobody's first choice, but a hungry hunter takes what the wood gives —
   # three cuts off a good clean job, fewer off a bad one.

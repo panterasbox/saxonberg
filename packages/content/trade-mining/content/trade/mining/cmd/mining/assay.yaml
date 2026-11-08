@@ -9,6 +9,7 @@
 # ⚠ An assay CONSUMES the sample. That is why it costs one, why the
 # batch is amortized, and why salting is worth doing.
 verbs: [assay]
+category: mining
 description: "Run samples through an assay and get a number"
 help: |
   Hand samples to an assay bench, or run them on your own kit, and
@@ -82,5 +83,5 @@ args:
     greedy: true
     prepositions: [at, on, with]
     default: "reachable:[capability.assay-scale]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [ToolMixin]

@@ -26,7 +26,7 @@ founding requirement (2026-10-18) and it is why the ash row lives in
 | step | act | mechanism | where it lives |
 |---|---|---|---|
 | fell | `fell beech` | every felling trims **brash** (ten bundles, a fifth of the bole) of the stand entry's `brashMaterialPath` | `FellController.dropStandard` |
-| burn | `stoke brash into pit`, `ignite pit`, `draught wide` | the **ash pit** is simply a big Burner (`AshPit extends Firebox`) | trade-potash |
+| burn | `stoke brash into pit`, `light pit`, `draught wide` | the **ash pit** is simply a big Burner (`AshPit extends Firebox`) | trade-potash |
 | rake | `sweep pit` (a broom) | the grate rule: kg burnt × `ashFraction`, its alkali by `alkaliShare` → heaps of `fire.ash.heapKg` | `Burner.consumeFuel`, `mintAshHeaps` |
 | leach | `put ash in hopper`, `pour pail into hopper` | the liquor PERCOLATES down through the heaps over half a day, each giving up its alkali; heaps leave **spent ash** once it is through; a lye poured back through fresh ash is a second pass | `Ash` (`PercolatingMixin`), `Hopper.leach` |
 | read | `analyze density hopper` (an egg in reach) | the **egg** is the density reading's eye rung; the glass words a lye too | `DensityReading`, `LyeStrength` |

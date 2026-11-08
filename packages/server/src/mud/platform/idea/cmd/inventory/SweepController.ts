@@ -1,6 +1,6 @@
 /**
- * SweepController — `sweep [<floor|hearth>] [with <broom|brush>]`, and
- * `muck` (out the byre) — cleanliness D15, D18, D20.
+ * SweepController — `sweep [<floor|hearth>] [with <broom|brush>]`, the
+ * byre's mucking out included — cleanliness D15, D18, D20.
  *
  * ⭐ Dumb over the things it sweeps: the FLOOR decides what a broom takes
  * up (`FloorMixin.sweepUp` — everything on an earth floor, only the debris

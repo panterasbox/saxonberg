@@ -2,8 +2,9 @@
 # sole or glove breaks the path to ground, so a body standing on it (or
 # shod in it) takes no current even in a live pool — the counterplay the
 # electricity model teaches. Conductivity ~1×10⁻¹³ S/m.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/rubber, strength: 100 }]
   name: rubber
   keywords: [rubber]
   appearance: black vulcanized rubber

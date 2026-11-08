@@ -1,4 +1,5 @@
 verbs: [survey]
+category: perception
 controller: /platform/idea/cmd/perception/SurveyController
 description: "Take stock of the place you're standing in"
 help: |
@@ -28,7 +29,7 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: any
 examples:
   - cmd: survey

@@ -14,11 +14,119 @@
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Charge } from "../../api/banking";
+import type { Fault } from "../../api/crafting";
+import type { ActPlan } from "../craft/ActPlan";
+import type { CraftingFailure } from "../craft/CraftingDecline";
 import { BankingApi } from "../../api/banking";
 import { EmploymentApi, type BusinessStuff } from "../../api/employment";
 import { MixinApi } from "../../api/mixin";
 import { Money } from "../banking/Money";
 import { Currency } from "../banking/Currency";
+
+/**
+ * ⭐ `order`, asked of the board that prices it (controllers-are-io D11): the
+ * subject is a view arg, and the words are the controller's.
+ */
+export interface OrderRequest {
+  /** Who asks — the customer, and the payer (`settle` derives no other). */
+  by: Stuff;
+  /** The whole phrase (`old fashioned`). */
+  phrase: string;
+  /** Its first word, lowercase — a service key (`repair`). */
+  key: string;
+  /** `for <subject>` — what the service acts on. */
+  subject: Stuff | null;
+  /** `with <brand>`. */
+  brand?: string;
+  /** Where it is asked. */
+  location: Stuff | null;
+}
+
+/** Why an order was refused — the note's reason, and the switch's census. */
+export type OrderReason =
+  | 'not-offered'
+  | 'unattended'
+  | 'not-on-menu'
+  | 'no-bank'
+  | 'not-a-body'
+  | 'no-compatible-unit'
+  | 'nothing-to-treat'
+  | 'no-grave'
+  | 'burial-refused'
+  | 'no-subject'
+  | 'no-hand'
+  | 'nothing-mendable'
+  | 'nothing-to-repair'
+  | 'cannot-pay'
+  | 'no-tub'
+  | 'not-hot';
+
+/** What an order refused with needs for its words. */
+export interface OrderRefusalFacts {
+  /** The phrase, for what is not on the menu. */
+  phrase?: string;
+  /** The thing that was refused. */
+  subject?: Stuff;
+  /** The hand who looked it over. */
+  who?: string;
+  /** The hand's findings, when none of them can be mended. */
+  faults?: readonly Fault[];
+  /** The quote already named, when the refusal is that they cannot pay it. */
+  quote?: OrderQuote;
+  /** Why they cannot pay, as the banking surface says it. */
+  line?: string;
+  /** A craft's refusal, or a mend's, in the crafting surface's own terms. */
+  craft?: CraftingFailure;
+  /** Whose refusal `craft` is: the look before a mend, the mend, or a make. */
+  stage?: 'look' | 'mend' | 'make';
+}
+
+/** A refused order. */
+export interface OrderRefusal {
+  ok: false;
+  /** {@link OrderReason}, or a crafting failure's own reason (`facts.craft`). */
+  reason: OrderReason | CraftingFailure['reason'];
+  facts: OrderRefusalFacts;
+}
+
+/** A price the customer must say yes to, named before the money moves. */
+export type OrderQuote =
+  | {
+      kind: 'repair';
+      who: string;
+      faults: readonly Fault[];
+      mendable: readonly Fault[];
+      /** The price of each `mendable` line, in step; null when unpriced. */
+      prices: readonly (number | null)[];
+      total: number;
+    }
+  | { kind: 'wash'; who: string; said: string; total: number };
+
+/** What an order's begin words need (a durative service), or its quote. */
+export type OrderBegin =
+  | { kind: 'now' }
+  | OrderQuote
+  | { kind: 'transfusion' }
+  | { kind: 'bath'; who: string };
+
+/** What came of an order. */
+export type OrderDone = { tail: string } & (
+  | { kind: 'drink'; drink: Stuff }
+  | { kind: 'treatment'; treated: string }
+  | { kind: 'burial'; body: string }
+  | { kind: 'repair'; who: string; item: string; short: boolean }
+  | { kind: 'wash'; who: string; what: string; band: string; ruined: readonly string[]; cover: CoverOutcome | null }
+  | { kind: 'transfusion'; reacted: boolean }
+  | { kind: 'bath' }
+);
+
+/** What the house did about a thing it ruined (`Tariff.payCover`). */
+export type CoverOutcome =
+  | { paid: true; amount: number }
+  | { paid: false; amount: number; reason: string };
+
+/** What an order answers. */
+export type OrderAnswer = ActPlan<OrderBegin, OrderDone, OrderRefusal> | OrderRefusal;
 
 /** What a settled collection reports back. */
 export interface Collected {
@@ -30,6 +138,17 @@ export interface Collected {
 
 /** The public price-list surface a priced-offer venue exposes. */
 export interface PricedOffer {
+  /**
+   * Is `key` an order this board takes? ⭐ What the binder's several tariffs
+   * are narrowed by (blood build D6: two houses share a ward). Default no.
+   */
+  offersOrder(key: string): boolean;
+  /**
+   * ⭐⭐ `order`: what this board does when asked. The default refuses — a
+   * thing that only prices (a shelf, a fare) has no orders to take; `Tariff`
+   * and `CommerceMenu` override it.
+   */
+  orderPlanFor(req: OrderRequest): Promise<OrderAnswer>;
   /** The ask (minor units) for `key`, or null if unpriced — derived by a Stock's stocking rule, authored elsewhere. */
   priceFor(key: string): number | null;
   /** The AUTHORED base price for `key` (what `priceFor` derives from), or null. */
@@ -95,6 +214,16 @@ export function PricedOfferMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public prices: Record<string, number> = {};
 
+    /** See {@link PricedOffer.offersOrder}. */
+    public offersOrder(_key: string): boolean {
+      return false;
+    }
+
+    /** See {@link PricedOffer.orderPlanFor}. */
+    public async orderPlanFor(req: OrderRequest): Promise<OrderAnswer> {
+      return { ok: false, reason: 'not-offered', facts: { phrase: req.phrase } };
+    }
+
     public priceFor(key: string): number | null {
       return this.prices[key] ?? null;
     }
@@ -113,7 +242,7 @@ export function PricedOfferMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * ⭐⭐ **The one settlement path**, lifted out of
-     * `OrderController.charge` so a `Menu` and a `Tariff` share it.
+     * the bar's old `charge` so a `Menu` and a `Tariff` share it.
      *
      * A controller-private that only the bar could reach was why **no
      * shipped priced key resolved to anything but a recipe or a stock

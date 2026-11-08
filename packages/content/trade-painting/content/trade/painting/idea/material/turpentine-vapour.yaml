@@ -3,8 +3,10 @@
 # door clears it (the room's air changes).
 # ⭐ `toxicity` reads as burden per breath at unit fraction (the smoke row's
 # convention): a room a hundredth full of it poisons at a hundredth.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/turpentine, strength: 3000 }]
+  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 1000 }]
   name: turpentine vapor
   keywords: [vapor, fumes, turpentine]
   appearance: a sharp, resinous reek hanging in the air

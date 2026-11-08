@@ -43,7 +43,7 @@ import { fileURLToPath } from 'url';
 /**
  * The depth of an active detection act (D5). `broad` = a whole-room
  * `search` scan; `narrow` = `search <container>` rummaging one scope
- * deeper (a depth bonus); `glance` = the cheap instantaneous `examine`.
+ * deeper (a depth bonus); `glance` = the cheap instantaneous close `look <thing>`.
  * Each maps to a dial-backed attention bonus in {@link PerceptionApi.resolveSearch}.
  */
 export type SearchDepth = 'broad' | 'narrow' | 'glance';
@@ -480,8 +480,8 @@ export class PerceptionApi {
    * the newly-discovered things (already-found and still-hidden ones are
    * omitted). `depth` folds in the dial-backed attention bonus: `broad`
    * (whole-room `search`), `narrow` (`search <container>`, a depth bonus),
-   * or `glance` (the instantaneous `examine`). Pure + deterministic given
-   * the viewer's warmed `awareness` band — no RNG. The `search` / `examine`
+   * or `glance` (the instantaneous close `look <thing>`). Pure + deterministic given
+   * the viewer's warmed `awareness` band — no RNG. The `search` / `look`
    * verbs (and `SearchActivity.onComplete`) call this.
    */
   public static resolveSearch(
@@ -532,6 +532,16 @@ export class PerceptionApi {
    */
   public static visibleContentsOf(viewer: Stuff, target: Stuff): VisibleContents {
     return logic().visibleContentsOf(viewer, target);
+  }
+
+  /**
+   * Whether `target` is a PERSON other than `viewer` — an agent with
+   * slots that is not the viewer. The predicate {@link visibleContentsOf}
+   * reads, named once: what a look may not tell you about somebody else
+   * (their pockets, their weight) is decided here and nowhere else.
+   */
+  public static isAnotherPerson(viewer: Stuff, target: Stuff): boolean {
+    return logic().isAnotherPerson(viewer, target);
   }
 
   /**

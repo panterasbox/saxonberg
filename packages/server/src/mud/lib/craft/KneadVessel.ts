@@ -14,7 +14,9 @@
  *
  * The composer implements `kneadPlanFor` — an {@link ActPlan}, an
  * {@link ActRefusal}, or `null` when this vessel has nothing to say (the
- * default). And the vessel affords `knead`: you stand at a trough or a pit,
+ * default). ⭐ Facts and a reason, never words (controllers-are-io D4): the
+ * `knead` controller words every member of {@link KneadRefusal} and
+ * {@link KneadFacts}. And the vessel affords `knead`: you stand at a trough or a pit,
  * or work a tub on the bench.
  */
 
@@ -28,8 +30,6 @@ const KNEADING = ['platform/cmd/crafting/knead.yaml'];
 export interface KneadRequest {
   /** Who is kneading. */
   actor: Stuff;
-  /** The command text, for a vessel that records it. */
-  commandText: string;
   /**
    * The word the act was asked by — `knead`, or `stir` for a slurry, a
    * powder or a liquid — for the vessel's narration. Absent = `knead`.
@@ -37,15 +37,61 @@ export interface KneadRequest {
   verb?: string;
 }
 
+/** What the matter in a vessel wants doing to it — `knead` or `stir`. */
+export type KneadWork = 'knead' | 'stir';
+
+/** ⭐ Every reason a knead (or a compounding `stir`) is refused. */
+export type KneadRefusal =
+  /** Nothing in the vessel; `wants` names what should go in. */
+  | ActRefusal<'empty', { wants: 'anything' | 'clay' }>
+  /** The trough's build is empty — flour and water first. */
+  | ActRefusal<'empty-build'>
+  /** The matter wants the other work (B101). */
+  | ActRefusal<'wrong-work', { work: KneadWork }>
+  /** Ice is set in the pit. */
+  | ActRefusal<'frozen', { ice: Stuff }>
+  /** Something in the pit will not tread into clay. */
+  | ActRefusal<'not-treadable', { hard: Stuff }>
+  /** The pit holds no water to temper with. */
+  | ActRefusal<'no-water'>
+  /** At completion: there was nothing in it after all. */
+  | ActRefusal<'came-empty', { verb: string }>
+  /** At completion: it is one even mass already. */
+  | ActRefusal<'already-compounded'>
+  /** At completion: the mint failed — a fault in the books. */
+  | ActRefusal<'mint-failed'>
+  /** At completion: the trough's buffer is not a dough. */
+  | ActRefusal<'not-a-dough'>;
+
+/** What the begin words need. */
+export type KneadBegin =
+  /** A compounding vessel worked by `verb` (`knead`, `stir`, …). */
+  | { kind: 'compound'; verb: string }
+  /** Clay trodden in a temper pit. */
+  | { kind: 'tread' }
+  /** A dough worked in a trough. */
+  | { kind: 'dough' };
+
+/** What a knead came to. */
+export type KneadFacts =
+  /** Compounded into one product (`null` = the vessel's own belly). */
+  | { kind: 'compounded'; product: Stuff | null }
+  /** The dough came together in the trough. */
+  | { kind: 'dough' };
+
+/** A knead plan. */
+export type KneadPlan = ActPlan<KneadBegin, KneadFacts, KneadRefusal>;
+
 /** A vessel that plans a knead of what it holds. */
 export interface KneadVessel {
   /** The plan, a refusal, or `null` when this vessel has nothing to say. */
-  kneadPlanFor(req: KneadRequest): Promise<ActPlan | ActRefusal | null>;
+  kneadPlanFor(req: KneadRequest): Promise<KneadPlan | KneadRefusal | null>;
 }
 
 export function KneadVesselMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class KneadVesselMixin extends Base implements KneadVessel {
     static _mixinName = 'KneadVesselMixin';
+    static _mixinKind = 'protocol' as const;
 
     static commandContributions: CommandContributions = {
       environment: KNEADING,
@@ -53,7 +99,7 @@ export function KneadVesselMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
     };
 
     /** @hook The knead this vessel plans — `null` when it has nothing to say. */
-    public async kneadPlanFor(_req: KneadRequest): Promise<ActPlan | ActRefusal | null> {
+    public async kneadPlanFor(_req: KneadRequest): Promise<KneadPlan | KneadRefusal | null> {
       return null;
     }
   };

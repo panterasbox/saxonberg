@@ -41,7 +41,7 @@ const QUARTZ = '/stuff/idea/material/mineral/quartz';
 /** The five acts, and the view file each lives in. */
 const ACTS = [
   'trade/mining/cmd/mining/hew.yaml',
-  'trade/mining/cmd/mining/drive.yaml',
+  'trade/mining/cmd/mining/drift.yaml',
   'trade/mining/cmd/mining/sink.yaml',
   'trade/mining/cmd/mining/raise.yaml',
   'trade/mining/cmd/mining/shore.yaml',
@@ -112,7 +112,7 @@ describe('a hand-authored working', () => {
     // working in the open air and not a field.
     expect(faces.some((f) => f.kind === 'seam')).toBe(true);
 
-    // ⭐ And it declines `drive`, which is right: you do not drive a
+    // ⭐ And it declines `drift`, which is right: you do not drive a
     // heading in the open air. The acts are afforded; the ground refuses.
     expect(surface.getTier()).toBe('spine');
   });

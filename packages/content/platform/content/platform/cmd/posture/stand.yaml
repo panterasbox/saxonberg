@@ -1,4 +1,5 @@
 verbs: [stand]
+category: posture
 controller: /platform/idea/cmd/posture/StandController
 description: "Stand up. With no argument, vacate any current posture-bearing slot."
 help: |

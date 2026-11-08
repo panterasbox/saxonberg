@@ -1,8 +1,9 @@
 # Ale lees — the yeast an ale batch drops under the rack floor. A
 # LIVING material (D13): biologicalSource bridges to S. cerevisiae;
 # the ale-culture profile makes a jar of this a kept culture (D14).
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/yeast, strength: 300 }]
   name: ale lees
   keywords: [ale, lees, barm]
   appearance: "a tan, bready sediment"

@@ -1,5 +1,6 @@
 verbs: [bank]
-controller: /platform/idea/cmd/banking/BankController
+category: banking
+controller: /platform/idea/cmd/banking/BankBalanceController
 description: "Bank here — balance / statement / open / deposit / withdraw / transfer"
 help: |
   Do your banking at the branch you're standing in. Bare `bank` shows your
@@ -30,16 +31,20 @@ validators:
   - /lib/command/validators/requiresConscious
 subcommands:
   open:
+    controller: /platform/idea/cmd/banking/BankOpenController
     description: "Open an account at this branch"
   balance:
+    controller: /platform/idea/cmd/banking/BankBalanceController
     description: "Show your balance here (same as bare `bank`)"
   statement:
+    controller: /platform/idea/cmd/banking/BankStatementController
     description: "List your recent transactions here (running balance)"
     args:
       - name: count
         type: string
         required: false
   deposit:
+    controller: /platform/idea/cmd/banking/BankDepositController
     description: "Deposit a coin stack into your account"
     validators:
       - /lib/command/validators/requiresEmbodied
@@ -50,6 +55,7 @@ subcommands:
         scope: "inventory"
         requires: StackableMixin
   withdraw:
+    controller: /platform/idea/cmd/banking/BankWithdrawController
     description: "Withdraw cash from your account (till-bounded)"
     validators:
       - /lib/command/validators/requiresEmbodied
@@ -58,6 +64,7 @@ subcommands:
         type: string
         required: true
   borrow:
+    controller: /platform/idea/cmd/banking/BankBorrowController
     description: "Borrow for the house you keep — inventory finance, or working capital with --for wages"
     args:
       - name: amount
@@ -69,8 +76,10 @@ subcommands:
         type: string
         description: "What the loan is for: stock (inventory finance, the default) or wages (working capital)."
   book:
+    controller: /platform/idea/cmd/banking/BankBookController
     description: "The paper: loans you owe here; what the bank holds, for its own people"
   transfer:
+    controller: /platform/idea/cmd/banking/BankTransferController
     description: "Transfer money to someone by name"
     validators:
       - /lib/command/validators/requiresEmbodied

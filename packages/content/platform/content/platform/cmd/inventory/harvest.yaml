@@ -1,4 +1,5 @@
-verbs: [harvest, pick]
+verbs: [harvest]
+category: inventory
 controller: /platform/idea/cmd/inventory/HarvestController
 description: "Take the crop off a mature plant, or pick ripe fruit"
 help: |
@@ -8,11 +9,11 @@ help: |
   An ANNUAL — a row of carrots — is spent by it: a harvest ends the
   plant, so there is nothing left in the bed afterwards but a free place
   and poorer soil. A FRUITING plant — a cherry tree, a mint bed — bears
-  in cycles instead: when the fruit has ripened, `pick` takes the whole
+  in cycles instead: when the fruit has ripened, `harvest` takes the whole
   set and the plant keeps its place, flowers again, and fills the next
   crop in its own time. Nothing ripe means nothing to pick.
 
-  Naming the ground works too: `pick the bed` takes from whatever is
+  Naming the ground works too: `harvest the bed` takes from whatever is
   ripe in it.
 
   The crop's quality is read off the plant's WORST stretch, not its
@@ -31,18 +32,18 @@ help: |
   Keep cutting until it is down to the stubble. What you cannot carry
   you leave lying in the row.
 
-  On ground marked into fields, say which: `harvest wheat at the gate
-  end`. Each field's stand is graded by its own worst stretch.
+  On ground marked into fields, say which: `harvest wheat --at "the gate
+  end"`. Each field's stand is graded by its own worst stretch.
 examples:
   - cmd: harvest the carrots
     note: Take the crop; an annual plant is spent
-  - cmd: pick the cherry tree
+  - cmd: harvest the cherry tree
     note: A ripe tree gives its whole set and keeps its place
-  - cmd: pick the bed
-    note: Naming the ground picks its ripest plant
-  - cmd: harvest wheat with sickle
+  - cmd: harvest the bed
+    note: Naming the ground takes its ripest plant
+  - cmd: harvest wheat --with sickle
     note: Cut a swath of a field crop
-  - cmd: harvest wheat at the gate end with sickle
+  - cmd: harvest wheat --at "the gate end" --with sickle
     note: On ground marked into fields, name the field
 validators:
   - /lib/command/validators/requiresAnimate
@@ -54,32 +55,31 @@ args:
   - name: target
     type: object
     required: true
-    scope: "reachable"
+    scope: ["here", "peers", "person"]
     # The plant OR the ground it grows in — naming a bed resolves to its
     # ripest growing occupant (the put.yaml OR-within-an-entry shape).
     requires: [VisibleMixin, GrowingMixin|CultivableMixin]
-  # ⭐ WHICH PART — `at <field>` on a tract marked into fields (field population D5).
-  # Optional: on one-piece ground there is nothing to name, and on a
-  # divided field the GROUND refuses the act without it, listing its parts.
-  # Greedy so `at the top end` binds whole (an article would otherwise eat
-  # a positional); every arg after it is prepositional, so it stops there.
-  - name: part
+options:
+  # ⭐ WHICH PART — `--at <field>` on a tract marked into fields (field
+  # population D5). Optional: on one-piece ground there is nothing to name,
+  # and on a divided field the GROUND refuses the act without it, listing
+  # its parts. Quote a name of several words.
+  at:
     type: object
-    required: false
-    greedy: true
-    scope: ["reachable"]
-    prepositions: [at]
+    field: part
+    scope: ["here", "peers", "person"]
     requires: SoilMixin
-  # ⭐ WHICH TOOL — DECLARED, not hunted for (`lint:instrument-args`).
+    description: "Which field of ground marked into fields"
+  # ⭐ WHICH TOOL — DECLARED, not hunted for (`lint:controller-resolution`).
   # Only a plant that names a `harvestTool` reads it (a coppice stool
   # is cut with a billhook; a carrot is pulled by hand and ignores
   # whatever bound). A field crop is cut with whatever reaps (a sickle,
   # a cane knife, a scythe) and its `swathM2` says how much one act
   # takes; with nothing that reaps, bare hands (cover build D3).
-  - name: tool
+  with:
     type: object
-    required: false
-    prepositions: [with, using]
+    field: tool
     default: "reachable:[capability.reaping],reachable:[capability.cutting]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    description: "The tool to cut with"

@@ -22,7 +22,7 @@ import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import PersistentBusiness from '../../../platform/idea/PersistentBusiness';
-import TransferController from '../../../platform/idea/cmd/system/TransferController';
+import TitleTransferController from '../../../platform/idea/cmd/civics/TitleTransferController';
 import Avatar from '../../../platform/agent/PrimaryAvatar';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
@@ -131,7 +131,7 @@ function makeAvatar(id: string): Avatar {
 
 /** As the `transfer` verb — the one caller the table's moves admit. */
 function asTransfer<T>(fn: () => T): T {
-  return withRootContext(makeStuff(() => new TransferController()), 'execute', fn);
+  return withRootContext(makeStuff(() => new TitleTransferController()), 'execute', fn);
 }
 
 function reset(): void {
@@ -166,7 +166,7 @@ describe('CapTableMixin — a table of owners and their units', () => {
 
   it('⭐ units move only from a holder who has them, only by the transfer verb; a row at nothing comes off', async () => {
     const co = await StuffApi.singleton<PersistentBusiness>(CO);
-    expect(() => co.giveUnits({ from: player(ANN), to: player(BOB), units: 1 })).toThrow(/TransferController/);
+    expect(() => co.giveUnits({ from: player(ANN), to: player(BOB), units: 1 })).toThrow(/TitleTransferController/);
     const stranger = await asTransfer(() => co.giveUnits({ from: player(BOB), to: player(ANN), units: 1 }));
     expect(stranger).toMatchObject({ ok: false, code: 'not-a-holder' });
     expect(await asTransfer(() => co.giveUnits({ from: player(ANN), to: player(BOB), units: 65 }))).toMatchObject({ ok: false, code: 'bad-count' });

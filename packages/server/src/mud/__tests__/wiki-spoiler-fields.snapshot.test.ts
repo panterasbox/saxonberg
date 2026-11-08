@@ -40,6 +40,13 @@
  * next reader can see the question was actually asked rather than the
  * snapshot blessed.
  *
+ * **Client surface (2026-10-31).**
+ *   - ⚠ `Corpse.ofIdentityPath` — **`spoiler: 2`**. Whose body it is: the
+ *     fact a corpse now tells only to whoever knew the dead (#105). A panel
+ *     that printed it would name every stranger's body for free.
+ *   - `VisibleMixin.illustrationShape` — level 0: the picture's declared
+ *     shape (wide / tall / square) says nothing a look does not.
+ *
  * **Cleanliness (the soiling model, the cleansers, the kept places).**
  * Every field level 0 but two, and why:
  *   - ⚠ `SoilableMixin.stains` — **`spoiler: 2`**. A blood stain carries the
@@ -282,7 +289,7 @@
  *   - ⭐⭐ `MaturingMixin.imparts` → **1 (name 0)**. What a cask gives
  *     its contents. The whole cask wave makes a barrel's character
  *     something you learn by **nosing** — competence-banded, in words,
- *     and `DissolvedAromatics.render` is tested to emit no digit at any
+ *     and the nose (`Scent.phrases`) is tested to emit no digit at any
  *     band. A composition panel printing `{vanilla 40, char 120, oak
  *     15}` hands that over for free AND as numbers, which is precisely
  *     what the no-gauge reading rules keep out of the player-facing

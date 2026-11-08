@@ -19,16 +19,19 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { StrataMixin, STRATA_MIXIN } from '../lib/Strata';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 
 class TestGround extends StrataMixin(Location) {}
 
 /** A zone that answers a cell size and a deposit citation, and nothing else. */
 function stubZone(cellSize: number, deposit: string | null) {
-  return {
+  // A CartesianZone-shaped stub: the cell size is asked by `instanceof`
+  // (controllers-are-io D7a), never probed.
+  return Object.assign(Object.create(CartesianZone.prototype), {
     getCellSize: () => cellSize,
     lookupField: async <T,>(f: string): Promise<T | null> =>
       (f === 'deposit' ? (deposit as unknown as T) : null),
-  };
+  });
 }
 
 function room(coords: [number, number, number], zone: unknown): TestGround {

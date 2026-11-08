@@ -68,38 +68,32 @@ const EmploymentApiCallers = SecurityPolicies.FromModule(
 /** The F4 org face (Organization hosts) forwards here as the org. */
 const OrgCallers = SecurityPolicies.AnyOf(
   EmploymentApiCallers,
-  SecurityPolicies.FromMixin('OrganizationMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('/platform/idea/Business', { includeSubclasses: true }),
+      SecurityPolicies.FromModule('/platform/idea/Organization', { includeSubclasses: true }),
+    ),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 /** Org-face methods whose ORG is the second argument. */
 const OrgArg1Callers = SecurityPolicies.AnyOf(
   EmploymentApiCallers,
-  SecurityPolicies.FromMixin('OrganizationMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[1] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('/platform/idea/Business', { includeSubclasses: true }),
+      SecurityPolicies.FromModule('/platform/idea/Organization', { includeSubclasses: true }),
+    ),
+    SecurityPolicies.SelfSubject(1),
+  ),
 );
 /** The F4 actor face (Employed hosts) forwards here as the actor. */
 const EmployedCallers = SecurityPolicies.AnyOf(
   EmploymentApiCallers,
-  SecurityPolicies.FromMixin('EmployedMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('EmployedMixin'),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 
 /**
@@ -1743,6 +1737,8 @@ export class EmploymentLogic extends ApiLogic {
    * not. A cache: empty after a restart, which re-moves once.
    */
   private shiftStations = new Map<string, { slot: number; at: string }>();
+  /** Off-shift rounds parked since this process started (the restart re-park). */
+  private parkedOff = new Set<string>();
 
   /** Rounds whose hand is being fetched to a stop — one load at a time. */
   private fetching = new Set<string>();
@@ -1842,14 +1838,24 @@ export class EmploymentLogic extends ApiLogic {
         !!onSlot &&
         (!was || was.slot !== slotIndex || (!!onSlot.station && was.at !== onSlot.station));
       if (onSlot && !currentlyOn) {
+        this.parkedOff.delete(roundKey);
         business.beginShift(employed, nowRaw);
         moveTo(onSlot);
       } else if (onSlot && currentlyOn && stray) {
         // ⭐ Mid-shift, the hour moved the round to its next stop. A
         // restart re-moves once (the map starts empty).
         moveTo(onSlot);
+        business.showShiftStatus(employed);
+      } else if (desired === 'off-shift' && !currentlyOn && !this.parkedOff.has(roundKey)) {
+        // ⭐ The off-shift twin of the restart re-move: a hand already off
+        // shift is parked once per process. Without it a restart left the
+        // whole cast where the room's `cast:` spawned them — five people
+        // around a bar one of them was working (owner, 2026-11-01).
+        this.parkedOff.add(roundKey);
+        void moveForShift(business, assignment, actor, false);
       } else if (desired === 'off-shift' && currentlyOn) {
         this.shiftStations.delete(roundKey);
+        this.parkedOff.add(roundKey);
         // Settle off the captured record (has `onShiftSince`) at this
         // tick's instant, before the synchronous clear below — no race.
         void settleShiftWageImpl(

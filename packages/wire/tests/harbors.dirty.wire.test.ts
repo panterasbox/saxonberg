@@ -217,7 +217,7 @@ beforeAll(async () => {
   expectOk(await gov.cmd(`reserve override 200 to ${SAILOR} "wire: harbors funding"`));
   // ⭐ The Hesper's master seat is held by nobody (a drive before may have
   // appointed the founder): the line lets her by charter here.
-  await gov.cmd(`dismiss me at ${HESPER_CO}`);
+  await gov.cmd(`house dismiss me at ${HESPER_CO}`);
   gov.close();
   s.close();
   // The office keeps the harbormaster's hours, six till eight.
@@ -289,7 +289,7 @@ suite('A1 — the port', () => {
   it('3. (short · staged) a regular alongside the same quay — two ways, each named for its ship; a third, too long for what is left, is sent to the roads and says so', async () => {
     // The Kittiwake's helm: the founder holds the office that appoints her company.
     let f = await founderAt(KETCH_DECK);
-    await f.cmd(`appoint me to master at ${KETCH_CO}`);
+    await f.cmd(`house appoint me to master at ${KETCH_CO}`);
     await stageShip(KETCH, { at: { node: BAR } });
     const given = await hailUntil(f, /Berth at/);
     expect(given, given).toMatch(/Berth at the Town Quay/);
@@ -304,7 +304,7 @@ suite('A1 — the port', () => {
     // The Corrigan (35 m): 70 − 30 − 20 leaves 20 m on the Town Quay, and the
     // Fish Quay is 25 — sent to the roads by room, once the bar would take her.
     f = await founderAt(COASTER_DECK);
-    await f.cmd(`appoint me to master at ${COASTER_CO}`);
+    await f.cmd(`house appoint me to master at ${COASTER_CO}`);
     await stageShip(COASTER, { at: { node: BAR } });
     const sent = await hailUntil(f, /no berth long enough|Berth at/);
     expect(sent, sent).toMatch(/There is no berth long enough for her — she is 35 m\. Lie in the roads/);
@@ -463,7 +463,7 @@ async function idsHere(s: Session, kw: string): Promise<string[]> {
   return rows.map((r) => String((r as { stuffId?: unknown }).stuffId ?? '')).filter((x) => x !== '');
 }
 
-/** A player's own name, as others see it (what `give … to` and `transfer … from` bind). */
+/** A player's own name, as others see it (what `give … to` and `title transfer … from` bind). */
 async function nameOf(s: Session): Promise<string> {
   const me = await s.query('me', { fields: ['displayName'] });
   return String((me[0] as { displayName?: unknown } | undefined)?.displayName ?? '');
@@ -579,7 +579,7 @@ suite('B1 — owning a ship', () => {
     second = await session(SECOND, SHED);
     // ⭐ Strangers know each other by description only: a key handed and
     // shares sold name their party, so the two buyers meet first (run 3:
-    // `transfer … from <name>` bound nobody — they had never met).
+    // `title transfer … from <name>` bound nobody — they had never met).
     expectOk(await owner.cmd('introduce'));
     expectOk(await second.cmd('introduce'));
     ownerName = await nameOf(owner);
@@ -675,7 +675,7 @@ suite('B1 — owning a ship', () => {
   }, 600_000);
 
   it('13. (instant · player) 16 shares sold to the second player at a price both accept: the money and the shares move together; the register shows both owners', async () => {
-    const { r, said } = await withPrompts(second, `transfer 16 shares of ${NAME1} from "${ownerName}" for 400`, ['yes'], owner);
+    const { r, said } = await withPrompts(second, `title transfer 16 shares of ${NAME1} from "${ownerName}" for 400`, ['yes'], owner);
     expect(r.status, said).toBe('ok');
     expect(said, said).toMatch(new RegExp(`You buy 16 of the ${NAME1}'s shares from .* for [^.]*400`));
     // At the office: both owners on her company's table, beside her register entry.
@@ -686,7 +686,7 @@ suite('B1 — owning a ship', () => {
     expect(reg, reg).toMatch(new RegExp(`The ${NAME1} \\(smack\\)[^.]*48/64`));
     expect(reg, reg).toMatch(new RegExp(`The ${NAME1} \\(smack\\)[^.]*16/64`));
     // Nobody but a shareholder sells: the second player has no shares in hers to sell twice over.
-    const none = await withPrompts(owner, `transfer 16 shares of ${NAME2} from "${ownerName}" for 1`, []);
+    const none = await withPrompts(owner, `title transfer 16 shares of ${NAME2} from "${ownerName}" for 1`, []);
     expect(none.r.status, none.said).not.toBe('ok');
   }, 600_000);
 });

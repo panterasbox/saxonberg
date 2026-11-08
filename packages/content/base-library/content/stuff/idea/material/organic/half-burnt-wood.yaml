@@ -5,8 +5,10 @@
 # ⭐ The first rung of every wood's `char` transition (ceramics ruling A):
 # a material, not a row a burn picks — so a length that went in as hazel
 # comes out as THIS, and it is the same length.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/char, strength: 100 }]
+  burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
   name: half-burnt wood
   keywords: [brands, brand, "half-burnt wood", half-burnt]
   appearance: charred on the outside and still brown at the heart

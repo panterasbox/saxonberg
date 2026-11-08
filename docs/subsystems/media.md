@@ -32,6 +32,18 @@ without touching content. `Species` composes `Visible`, so a *kind*
 carries its portrait the same way an instance does (the char-gen race
 picker reads `species.getIllustration()`).
 
+### ⭐ The declared shape — `illustrationShape`
+
+A picture has a shape, and the client never crops it (client-surface
+D10, AC 10). `VisibleMixin` carries `illustrationShape?:
+IllustrationShape` — `'wide' | 'tall' | 'square'` (`ILLUSTRATION_SHAPES`
+in `@saxonberg/types`), persistent and authorable, validated by its
+setter (an unknown shape throws). `getIllustrationShape()` answers the
+field, else the **branch default** off the host's own branch predicates:
+a place (`isPlace()`) is `wide`, an agent (`isAgent()`) is `tall`,
+anything else `square`. No `MediaAsset` change — the generator is not
+asked for a shape.
+
 ## The wire: it rides the existing projection
 
 `illustration` is one entry in `DETAIL_FIELDS`
@@ -39,6 +51,10 @@ picker reads `species.getIllustration()`).
 `SubscribableFieldDescriptor` exactly as the descriptions do, and it
 lands on `StuffDetailRecord.illustration` (`@saxonberg/types`). The wire
 carries the **key**, same as it carries `longDescription` prose.
+`illustrationShape` rides beside it the same way — a `DETAIL_FIELDS`
+entry, a `subscribableFields` descriptor on `VisibleMixin`, and
+`StuffDetailRecord.illustrationShape?` (present for any Visible
+subject, because the read answers the branch default).
 
 ## The client: key → URL → render
 
@@ -47,10 +63,21 @@ carries the **key**, same as it carries `longDescription` prose.
 bucket) and `mediaUrl(key)`. **Server emits keys; the client prepends the
 base** — one contract for every surface:
 
-- `InspectionCard.tsx` `renderSingle` — `<img src={mediaUrl(detail.illustration)}>`
-  at the top of the body, `onError` hide, `alt` from `shortDescription`.
-- `CharGenStage.tsx` — the race picker's 3:4 portrait slot renders
-  `mediaUrl(option.image)`.
+- `components/cards/InspectionBody.tsx` — the inspection card's plate,
+  at the **aspect of its declared shape** (`wide` 16:9, `tall` 4:5,
+  `square` 1:1) with **`object-fit: contain`**, never `cover`: the picture
+  is letterboxed on paper, never cropped. At unit width a tall or square
+  picture floats beside the prose and a wide one spans the card; cut to
+  fit, the picture collapses to *picture ▸* first (B27). `onError` hides
+  it; `alt` from `shortDescription`.
+- `CharGenStage.tsx` — the race picker's portrait plate is **4:5**,
+  `object-fit: contain`, rendering `mediaUrl(option.image)`.
+
+⚠ The pre-segment subject body in `CardBodies.tsx` (`PlaceIllustration`)
+still crops a room to a 6.5rem band with `object-fit: cover`. It renders
+only for a subject card that carries no segments and is not drilled,
+which no shipped path produces — but it is the one place left that
+breaks the no-crop rule.
 
 ## Provenance: the `MediaAsset` Document
 
@@ -123,3 +150,10 @@ illustration }`) — the dossier from `SpeciesApi`, the illustration from
 - **CloudFront + custom domain**; **in-CMS on-demand generation + a quota
   system** (per-author credit pool — the only place generation cost needs
   metering; offline generation is one-time and self-controlled).
+
+## History
+
+- **Client surface (2026-10-31)** — `illustrationShape` (declared, with
+  a branch default) and a client that letterboxes to that shape instead
+  of cropping. See `docs/plans/client-surface-plan.md` (D10, B27) until
+  it is retired at the sweep.

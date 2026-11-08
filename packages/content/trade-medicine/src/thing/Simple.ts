@@ -3,7 +3,7 @@
  * D10). Extends `Provision`, because a herb IS food-shaped matter: it
  * rots, it can be contaminated. It composes the kernel `SteepableMixin`,
  * which carries the `steepsInto` field (the draught Material `steep`
- * produces) and affords the platform `steep`/`infuse` verb outward — the
+ * produces) and affords the platform `steep` verb outward — the
  * infusion substrate is general and lives in the kernel now, not here.
  */
 

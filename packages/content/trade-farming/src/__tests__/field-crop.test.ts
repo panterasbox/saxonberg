@@ -15,7 +15,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type Field from '../thing/Field';
 import { markedField } from './marked-tract';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import {
   SOIL_MOISTURE_RESERVE_KEY,
   SOIL_NITROGEN_RESERVE_KEY,
@@ -101,7 +101,7 @@ describe('a field holds a crop', () => {
     const f = field();
     const om = f.organicMatterFraction()!;
     expect(f.standingDryMatterKg()).toBeGreaterThan(0);
-    expect(f.sowingRefusal()).toMatch(/not been ploughed/);
+    expect(f.sowingRefusal()).toMatch(/not been plowed/);
     f.turnUnder();
     expect(f.standingDryMatterKg()).toBe(0);
     expect(f.organicMatterFraction()!).toBeGreaterThan(om);

@@ -51,6 +51,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import { NameTakingMixin } from '../description/NameTaking';
 import { Mixins } from '../mixin';
 import type { AnyConstructor } from '../../api/mixin';
 import { MixinApi } from '../../api/mixin';
@@ -478,12 +479,10 @@ function nounOf(line: { part: string; plural?: string }, n: number): string {
 /** The look line: what it is made of, what has failed, what is slack. */
 function assemblyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   if (!MixinApi.isAssembled(host)) return text;
-  // ⭐ A thing with no bill is ONE piece (repair D4) — said, so the lesson
-  // of `fit x to it` refusing is on the look before anyone tries.
-  if (host.isOnePiece()) {
-    const one = 'It is one piece.';
-    return text && text.length > 0 ? `${text}\n\n${one}` : one;
-  }
+  // ⭐ A thing with no bill is ONE piece (repair D4) — and says NOTHING
+  // about it: every knife and cup saying "It is one piece." was noise, and
+  // the `fit` refusal explains itself (client-surface D10).
+  if (host.isOnePiece()) return text;
   const lines = host.getParts();
   if (lines.length === 0) return text;
   const describe = (l: PartLine): string => {
@@ -582,7 +581,7 @@ function failureWordFor(host: Assembled, line: PartLine): string {
 }
 
 export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class AssembledMixin extends Base implements Assembled {
+  return class AssembledMixin extends NameTakingMixin(Base) implements Assembled {
     static _mixinName: string = 'AssembledMixin';
 
     static markupAugmenters: MarkupAugmenter[] = [assemblyAugmenter];
@@ -1172,10 +1171,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
     canBeNamedBy(handPath: string, by?: Stuff | null): boolean {
       // ⭐ Whatever a rule inside this one says (the maker's, ceramics W2) —
       // or the reforge rule: the hand whose mend took the name (repair D18).
-      const inner = (Base.prototype as {
-        canBeNamedBy?: (h: string, b?: Stuff | null) => boolean;
-      }).canBeNamedBy;
-      if (typeof inner === 'function' && inner.call(this, handPath, by) === true) return true;
+      if (super.canBeNamedBy(handPath, by)) return true;
       if (!handPath || this.getName()) return false;
       return this.latestNameLoss()?.by === handPath;
     }

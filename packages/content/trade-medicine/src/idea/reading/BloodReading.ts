@@ -26,7 +26,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 
 const TOPIC = 'sense.reading';
 

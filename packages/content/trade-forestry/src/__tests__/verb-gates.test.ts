@@ -113,7 +113,7 @@ describe('tap.yaml — the arg gates and the three-way contest', () => {
   });
 
   it('⭐ `vessel` is declared with a default — never hunted for', () => {
-    // `lint:instrument-args`: a player must be able to say WHICH pail.
+    // `lint:controller-resolution`: a player must be able to say WHICH pail.
     const vessel = tapArgs().find((a) => a.name === 'vessel')!;
     expect(vessel.required).toBe(false);
     expect(vessel.default).toBe('me:i:[mixin.BulkableMixin]');

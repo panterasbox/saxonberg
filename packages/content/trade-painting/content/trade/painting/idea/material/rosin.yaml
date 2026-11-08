@@ -2,8 +2,10 @@
 # (paint D17): an amber resin, glassy cold and molten warm, that sets as a
 # lump wherever it cools. Dissolved in turpentine it is a varnish; melted it
 # is a cement.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/pine, strength: 200 }]
+  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 1000 }]
   name: rosin
   keywords: [rosin, colophony, resin]
   appearance: a glassy amber resin that smells of a hot pine wood

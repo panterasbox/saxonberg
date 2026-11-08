@@ -29,7 +29,7 @@
 import Good from '../../lib/stuff/Good';
 import { MarkedMixin, type Passage } from '../../lib/description/Marked';
 import { MoistureMixin } from '../../lib/material/Moisture';
-import { ReservedMixin } from '../../lib/reserve';
+import { ReservedMixin } from '../../lib/reserve/Reserved';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { CombustibleMixin } from '../../lib/fire/Combustible';
 import { StackableMixin } from '../../lib/stuff/Stackable';

@@ -2,6 +2,7 @@
 # wax over a letter's fold. A seal shows when it has been broken: opening a
 # sealed thing breaks it, and closing it again never mends it.
 verbs: [seal]
+category: inventory
 controller: /platform/idea/cmd/inventory/SealController
 description: "Seal a letter or an envelope shut, with gum or wax"
 help: |

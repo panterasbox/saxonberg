@@ -13,8 +13,10 @@
 # two species rather than by a rule about either.
 class: /platform/idea/species/Species
 data:
+  smells: [{ aroma: /base-library/aromas/cattle, strength: 20 }]
   binomial: Bos taurus
   commonNames: ["cow", "cattle", "heifer", "bull", "calf", "ox", "beast"]
+  maleNames: [bull, ox]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
@@ -123,4 +125,4 @@ data:
     A deep-bodied cow with a hip bone you could hang a hat on, chewing
     steadily and entirely unbothered by you. Nothing on the farm is
     heavier or, when she has a calf at foot, more dangerous.
-  nameBankKeys: []
+  nameBanks: []

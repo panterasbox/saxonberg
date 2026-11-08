@@ -47,12 +47,12 @@ describe('prompt.format — setting registration', () => {
     ShadowApi._clearAllForTesting();
   });
 
-  it('EnvironmentMixin registers prompt.format with default `{{ focus }}>`', () => {
+  it('EnvironmentMixin registers prompt.format with default `>` (owner, 2026-11-08)', () => {
     const giver = makeStuff(() => new TestGiver());
     const schema = giver.describeSetting('prompt.format');
     expect(schema).toBeDefined();
-    expect(schema!.default).toBe('{{ focus }}>');
-    expect(giver.getSetting('prompt.format')).toBe('{{ focus }}>');
+    expect(schema!.default).toBe('>');
+    expect(giver.getSetting('prompt.format')).toBe('>');
   });
 
   it('setting is mutable via setSetting + round-trips', () => {
@@ -115,10 +115,10 @@ describe('renderPromptRefresh', () => {
     ShadowApi._clearAllForTesting();
   });
 
-  it('renders default `{{ focus }}>` template against giver focus', () => {
+  it('renders the default `>` — the focus no longer shows unless asked for', () => {
     const giver = makeStuff(() => new TestGiver());
     const note = PromptApi.renderPromptRefresh(giver);
-    expect(note).toEqual({ kind: 'prompt-refresh', rendered: 'here>' });
+    expect(note).toEqual({ kind: 'prompt-refresh', rendered: '>' });
   });
 
   it('renders the configured format string', () => {

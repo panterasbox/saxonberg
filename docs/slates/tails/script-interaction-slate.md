@@ -1,19 +1,21 @@
 # Script interaction slate — what happens when a script meets a prompt
 
-> **Status: UNBUILT** — the inbound-sequencing half is fixed and shipped
-> (`ConnectionApi.sequenceInbound`); this half is untouched, so a
-> script's prompting command still silently takes the fallback branch.
-> Code-verified 2026-09-19: `PromptApi` still takes `interactive` as a
-> required parameter with no refusal path; 20 `context.interactive`
-> branches remain in controllers (`WikiController.ts:886` among them);
-> the only no-Interactive policy that exists is the accept-time
-> cardinality degrade (`prompt.md`, *degrades to an ambiguity error*).
-> **Left:** the fail-closed guard when a controller would prompt with no
-> `interactive`, naming the missing input · the sweep of existing
-> fallbacks, one commit per subsystem · scripts declaring their inputs up
-> front (and pre-resolving an MQL disambiguation — a language change) ·
-> the NPC variant, routed to `DiagnosticApi`
-> **Size:** a wave
+> **Status: PARTIAL** — the inbound-sequencing half is fixed and shipped
+> (`ConnectionApi.sequenceInbound`). The fail-closed guard shipped at
+> controllers-are-io (D23, MR !527): `CommandContext.requireInteractive(what)`
+> notes `command-rejected { reason: 'needs-input' }` naming the missing
+> input, every prompt seam asks it (the cardinality policy,
+> `promptForObject`, the confirm/compose callers — 20 files swept), and an
+> NPC's refusal goes to `DiagnosticApi` →
+> [scripting.md § Scripts fail CLOSED](../../subsystems/scripting.md),
+> [command-routing.md § Cardinality policy](../../subsystems/command-routing.md).
+> **Left:** pre-resolving an MQL disambiguation from a script (the open
+> question under *2.* below — ⚠ `verb@source` + MQL's `:[n]` may already
+> answer it) · the residue of `context.interactive` reads that still
+> choose a branch rather than refuse (`BuyController`'s `ask: null`,
+> `PackSyncController`'s unstaffed install, `ReactController`) — decided
+> non-prompts, or fallbacks the sweep missed
+> **Size:** a tail
 
 **Captured 2026-08-04**, out of the wiki build's inbound-sequencing
 fix. The deadlock that started it is fixed and shipped
@@ -31,51 +33,16 @@ chain and `--async`/`--sync`).
 
 ## The finding
 
-A player's command can stop and ask a question. A script's command
-cannot — and today it does not *fail*, it **quietly takes a different
-branch**.
-
-A script dispatches through `CommandGiver._dispatchBound`, which builds
-its `CommandContext` **without an `interactive`**
-(`lib/command/CommandGiver.ts`, the bound-tail `createCommandContext`).
-Controllers are written to tolerate that — the shape is
-
-```ts
-if (context.interactive) {
-  return await PromptApi.compose(context.interactive, label, opts);
-}
-return current === undefined ? '' : null;   // the no-interactive branch
-```
-
-so a script never reaches `PromptApi` at all. There is no hang, no
-error, and no log. The command completes and reports success.
-
-**The concrete case that found it:** `wiki create foo` from a script,
-with no `--body`, takes `resolveBody`'s fallback and **creates an empty
-article**. The script says it worked.
-
-That is worse than hanging. A hang is visible in one run; this is a
-wrong result that looks like a right one, at whatever scale the script
-runs.
-
-> ⚠ The failure is **per-controller**, which is the real problem. Every
-> prompting controller wrote its own fallback, and each one is a
-> separate silent decision nobody reviewed together: empty string here,
-> `null` there, a default elsewhere. There is no policy — there are
-> twenty accidents.
+*Shipped and documented → scripting.md § Scripts fail CLOSED: a script's
+prompting command is refused `needs-input` naming the input (`wiki
+create` from a script with no `--body` is refused, never an empty
+article — `WikiControllerBase.resolveBody`). Cut 2026-11-07.*
 
 ## Why the inbound fix does not address it
 
-Worth stating so the two are not conflated later. The shipped fix is
-about a **socket's** message lanes: a prompt reply must not queue behind
-the command awaiting it. A script has no socket and no reply — its
-dispatch never enters a lane. Different failure, different layer.
-
-The two do share a premise, and it is the useful one:
-
-> **An interrupt is what a prompt is.** Anything that needs to
-> interrupt should go through `PromptApi` — which is exactly why "a
-> caller with nobody to ask" needs an answer rather than a fallback.
+*Two layers, both shipped: the socket lanes → connection.md § Two inbound
+lanes per socket; the no-listener refusal → scripting.md § Scripts fail
+CLOSED. Cut 2026-11-07.*
 
 ## The interaction with `--async` / `--sync`
 
@@ -90,28 +57,15 @@ that cites hanging prompts).
 
 ### 1. Fail closed — one guard, every controller inherits it
 
-`PromptApi` refuses when there is no `interactive`, with a named
-rejection instead of a fallback. The controller stops writing
-`if (context.interactive)` and just asks; the substrate decides what a
-question with no listener means.
-
-The refusal has to **name the missing input** — "`wiki create` needs
-`--body` when run from a script" — or it just relocates the mystery.
-
-Cheapest, and it converts every silent wrong result into a loud one.
-It is also a **breaking change for scripts that currently "work"**,
-which is the point, and needs a sweep of the existing fallbacks rather
-than a flag day.
+*Shipped as `CommandContext.requireInteractive(what)` (controllers-are-io
+D23) → scripting.md § Scripts fail CLOSED; the sweep of the twenty
+fallbacks landed with it. Cut 2026-11-07.*
 
 ### 2. Let the script answer up front
 
-Follows from (1): a script passes what a prompt would have asked for
-(`wiki create foo --body "…"`, already supported), and the (1) refusal
-tells the author exactly which option they omitted.
-
-This makes scripts **declarative about their inputs**, which is a
-property worth having for its own sake — a script whose behaviour
-depends on an interactive answer is not reproducible.
+*The first half shipped with (1): the refusal's `detail` names the option
+the script omitted (`'<verb> needs a body (--body) when run from a
+script'`). Cut 2026-11-07. The open question stands:*
 
 Open question: some prompts have no option equivalent (an MQL
 disambiguation among live objects). Either those commands are simply
@@ -120,30 +74,16 @@ choice (`with <selector>`), which is a real language change.
 
 ### 3. A script-side prompt queue — probably not
 
-The script suspends on its coroutine; the owner is asked next time they
-are online; the run resumes on the answer.
-
-The coroutine substrate already detaches and resumes across game-clock
-frames, so the mechanism *exists*. But a script that pauses for a
-human is no longer a script — it is a workflow, with a lifetime, an
-owner who may never return, and a resume path that has to survive a
-reboot. Large, and the payoff is thin next to (2).
-
-**Recommendation: (1) + (2).** (3) only if a real content need appears.
+*Declined with (1); the why graduated to scripting.md § Scripts fail
+CLOSED. Cut 2026-11-07.*
 
 ---
 
 ## The adjacent question this exposes
 
-NPCs dispatch through the same bound tail. An NPC brain that ran a
-prompting command hits the identical branch — and unlike a script,
-there is no author present to be told they omitted an option.
-
-Whatever (1) does must be phrased so an NPC's refusal is a
-**diagnostic** (the `DiagnosticApi` channel, attributed to the content
-author) rather than a message to a player standing nearby. Worth
-settling in the same pass; it is the same guard with a different
-audience.
+*Shipped: an NPC's `needs-input` is recorded to `DiagnosticApi` against
+the controller (`CommandGiver.emitDispatchResponse`) → scripting.md §
+Scripts fail CLOSED. Cut 2026-11-07.*
 
 ---
 

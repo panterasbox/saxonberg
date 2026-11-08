@@ -1,4 +1,5 @@
 verbs: [smell]
+category: perception
 controller: /platform/idea/cmd/perception/SmellController
 description: "Smell your surroundings or a specific thing"
 help: |

@@ -1,0 +1,6 @@
+# What a byre's gutter runs with: dung, and the cows who made it, even with the
+# herd out at grass.
+class: /platform/idea/material/OdorousMaterial
+data:
+  name: byre muck
+  smells: [{ aroma: /base-library/aromas/dung, strength: 150 }, { aroma: /base-library/aromas/cattle, strength: 60 }]

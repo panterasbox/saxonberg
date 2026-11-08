@@ -351,7 +351,7 @@ suite('⭐ 10 — make firebrick', () => {
     await say('put firebricks in kiln');
     await say('get charcoal');
     await say('stoke charcoal into kiln');
-    const lit = await say('ignite kiln');
+    const lit = await say('light kiln');
     expect(lit).toMatch(/catch|light|burn|alight/i);
     await act('fire kiln for 10 hours', '10 hours');
     await say('douse kiln');
@@ -375,7 +375,7 @@ suite('⭐ 11 — wear a lining', () => {
     for (let firing = 0; firing < 12; firing++) {
       await winAtQuarry('coal', 2, SMELTER);
       await say('stoke coal into furnace');
-      const lit = await run('ignite furnace');
+      const lit = await run('light furnace');
       if (refusedFor(lit.r) !== null && /lining/i.test(lit.said)) {
         refused = lit.said;
         break;
@@ -440,11 +440,11 @@ suite('⭐ 12 — reline it', () => {
     expect(comp).not.toEqual(before);
     // ⚠ Fuel handed (winning coal left the miner too tired to dig — run
     // 29), and the furnace put OUT first: it was already burning (the
-    // smelterman's work), and `ignite` must be what lights it.
+    // smelterman's work), and `light` must be what lights it.
     await say('douse furnace');
     await hand(k, '/trade/fuel/thing/charcoal');
     await say('stoke charcoal into furnace');
-    const lit = await run('ignite furnace');
+    const lit = await run('light furnace');
     expect(refusedFor(lit.r), `relit: ${lit.said}`).toBeNull();
     await say('douse furnace');
   }, 1_800_000);
@@ -491,7 +491,7 @@ suite('⭐ 13 — wear a crucible', () => {
       }
       await hand(k, '/trade/fuel/thing/charcoal');
       await say('stoke charcoal into furnace');
-      await say('ignite furnace');
+      await say('light furnace');
       // ⚠ The bellows is a toggle, and the last melt left it going: a pump
       // that eases it off is pumped again (run 26 smelted cold).
       const pumped = await act('pump bellows');
@@ -513,7 +513,7 @@ suite('⭐ 13 — wear a crucible', () => {
         }
         await hand(k, '/trade/fuel/thing/charcoal');
         await say('stoke charcoal into furnace');
-        await say('ignite furnace');
+        await say('light furnace');
         const again = await act('pump bellows');
         if (/ease off/i.test(again.said)) await act('pump bellows');
         smelt = await act('smelt', '5 minutes');

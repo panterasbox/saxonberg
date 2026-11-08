@@ -457,6 +457,33 @@ and the clinical layer is the [health-vertical](./health-vertical-slate.md).
 
 ---
 
+## ⭐⭐ The 2026-11-08 pass, after organism biology **[DECIDED in principle — the owner]**
+
+The owner: *"I probably wanna do this after foraging ships, which is what we're working towards."* These
+are principles. The roster and the numbers wait for content.
+
+- **One contagion model, three kinds of agent:** a **pathogen** (it grows; the shipped load), a **toxin**
+  (it doesn't), and ⭐ **a binding**, meaning a curse. Lycanthropy and vampirism ride the same routes as
+  disease: drinking from a wolf's pawprint (ingestion), the wolfskin belt (contact with an object), the
+  bite (blood). That's [bestiary-slate](./bestiary-slate.md) § 15's *"a curse spread like a disease,"*
+  made literal. **The cure follows the agent**: medicine for the first two, breaking the binding for the
+  third. Chemistry doesn't cure a curse.
+- **Routes land on organs** ([organism-biology-slate](./organism-biology-slate.md) § 2):
+
+  | route | enters through |
+  |---|---|
+  | airborne | lungs or gills |
+  | ingestion | gut |
+  | contact | integument, especially a wound |
+  | bite or vector | blood |
+
+  So host range comes partly from anatomy (a gill disease can't infect lungs), alongside the clade tree.
+- **Vectors and reservoirs come from the bestiary**: the giant rat as reservoir with its fleas as vector,
+  leaving a cooling host, which is the plague mechanized ([pilot](../../bestiary/pilot.md)); mosquitoes
+  tie disease to wetlands, giving the watershed a disease geography.
+- **Magic healing competes with medicine at a price**: *destroy·body* against a pathogen load is a priced
+  working, a Destroy-guild service ([guild-slate](./guild-slate.md) § 11-07).
+
 ## Open questions
 
 - **Where the growth term lives** — extend `ToxinBehavior` with optional growth

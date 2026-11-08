@@ -37,7 +37,7 @@ import { SlottableMixin } from '../../slot/Slottable';
 import { BlessableMixin } from '../Blessable';
 import { ChargedMixin, CHARGE_DEFAULTS } from '../Charged';
 import { ArcaneMixin } from '../Arcane';
-import { ReservedMixin } from '../../reserve';
+import { ReservedMixin } from '../../reserve/Reserved';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 

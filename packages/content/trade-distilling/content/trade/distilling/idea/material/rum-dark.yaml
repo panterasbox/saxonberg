@@ -2,8 +2,11 @@
 # input slot matches (rum, dark-rum); the brand is the ROW's
 # (`_brandKey`), never the material's. Distilling's, by the generic drain
 # rule: the trade whose PROCESS makes it ships it.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/molasses, strength: 300 }]
+  burning: [{ aroma: /base-library/aromas/smoke, strength: 3 }]
+  tastes: [{ type: sweet, amount: 5 }, { type: bitter, amount: 0.01 }]
   name: dark rum
   keywords: [dark, rum]
   appearance: a dark, molasses-heavy rum

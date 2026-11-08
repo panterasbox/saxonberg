@@ -1,4 +1,5 @@
 verbs: [zap]
+category: magic
 controller: /system/arcana/idea/cmd/magic/ZapController
 description: "Fire the working bound into a charged item"
 help: |

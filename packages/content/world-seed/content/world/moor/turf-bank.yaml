@@ -20,6 +20,7 @@
 # is recorded for the watershed too.
 class: /trade/quarrying/location/Turbary
 data:
+  floor: { material: /stuff/idea/material/organic/peat }
   shortDescription: turf bank
   keywords: [bank, "turf bank", turbary, peat, moss, face]
   register: definite

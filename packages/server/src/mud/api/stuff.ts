@@ -519,7 +519,7 @@ export class StuffApi {
     const made = await this.#cloneStackALS.run([...chain, templatePath], () =>
       this.#cloneInner<T>(templatePath, context, opts)
     );
-    if (opts?.madeFrom !== undefined && MixinApi.isChattel(made)) {
+    if (opts?.madeFrom !== undefined && MixinApi.isMadeFrom(made)) {
       const inputs = Array.isArray(opts.madeFrom)
         ? (opts.madeFrom as readonly Stuff[])
         : [opts.madeFrom as Stuff];

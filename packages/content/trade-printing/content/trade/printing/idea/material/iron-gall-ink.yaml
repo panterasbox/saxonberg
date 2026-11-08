@@ -1,7 +1,8 @@
 # Iron-gall ink — galls steeped to tannin, copperas and gum
 # arabic: purple-grey wet, darkening to black on the page. The pen's ink.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/ink, strength: 60 }]
   name: iron-gall ink
   keywords: [ink, "iron-gall ink", "iron gall ink", "writing ink"]
   appearance: a thin purple-black ink

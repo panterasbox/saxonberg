@@ -2,8 +2,10 @@
 # `transforms` target of the soft-curd profile, and the input of the
 # firm-curd one. ⚠ Not tagged `milk` (a profile and a schedule each match
 # one tag).
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/milk, strength: 60 }]
+  tastes: [{ type: sweet, amount: 40 }]
   name: "renneted milk"
   keywords: [milk, "renneted milk"]
   appearance: white, and just beginning to thicken

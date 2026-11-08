@@ -2,12 +2,15 @@
  * The **pump protocol** — *a thing a person works with their hands, a
  * spell at a time* — and the shape every fluid-at-depth host answers.
  *
- * ⭐⭐ **Declared SHAPES, not mixins** — the `Workable` category one
- * subsystem over (`lib/ground/Workable.ts`), and for its reason. `pump` is
- * the platform's verb; what it talks to is a furnace's bellows, a well's
- * handle or a wellhead's lift, and those three share no mixin. So the
- * kernel declares what it will say and what it expects back, and each
- * host answers. A controller narrows by shape; nothing here is composed.
+ * ⭐⭐ **Protocol mixins** (`_mixinKind = 'protocol'`, controllers-are-io
+ * D8a). `pump` is the platform's verb; what it talks to is a furnace's
+ * bellows, a well's handle or a diver's air pump, and those share no other
+ * mixin. They shipped as bare SHAPES a controller narrowed by `typeof`;
+ * the protocol earned a mixin when it had three implementers in three
+ * places, so each host now COMPOSES {@link PumpableMixin} and the verb asks
+ * `MixinApi.isPumpable`. The two source shapes beside it are their own
+ * protocol mixins — {@link LiftSource} (`./LiftSource`) and
+ * {@link PumpSource} (`./PumpSource`).
  *
  * ## ⭐⭐⭐ Two families, and the ceiling belongs to the MECHANISM
  *
@@ -42,8 +45,8 @@
  */
 
 import type { Stuff } from '../stuff/Stuff';
-import type { Container } from '../spatial/Container';
-import type { Mml } from '../../api/mml';
+import { Mml } from '../../api/mml';
+import type { MixinConstructor } from '../mixin';
 
 /** What one spell at the handle will be, if it happens. No side effects. */
 export interface PumpPlan {
@@ -113,84 +116,38 @@ export interface Pumpable {
 }
 
 /**
- * ⭐⭐ **A fluid stands some way below my draw point, and can be raised
- * into it.** Answered by a well (its authored depth) and by a wellhead
- * (the hole's own depth and its sump).
+ * ⭐ **`PumpableMixin` — the pump protocol, as a mixin.**
  *
- * ⚠ It adds no field anywhere: every number it answers already lived on
- * its host. A tap is NOT one (there is nothing below a tap), and nor is a
- * conduit (it has a *duty* — a head and a capacity — and no draw slot).
+ * IS: something a person works with their hands a spell at a time and that
+ * answers `pump` — a pump's handle (`PumpingMixin`), a furnace's bellows
+ * (`BurnerMixin`), a diver's air pump. IS NOT: a source a pump is set in
+ * (`PumpSourceMixin`), nor anything a bucket raises from
+ * (`LiftSourceMixin`).
  *
- * ⭐ Bucket and displacement machines both raise through
- * {@link LiftSource.liftInto}; only the displacement machine asks the
- * pressure first. That asymmetry IS the lesson, and it is why the ceiling
- * is computed by the pump and never by the source.
+ * ⚠ The defaults REFUSE: a host that composes this and answers nothing
+ * says so in its own words (a lamp is a Burner for its flame, not its
+ * bellows, and has always answered `no-bellows` — the honest "no" made
+ * explicit). `completePump` is never reached without a plan.
  */
-export interface LiftSource {
-  /** Metres from the draw point down to the standing fluid. */
-  standingDepthM(): number;
-  /** Template path of the Material standing below, or `null` (nothing). */
-  standingMaterial(): Promise<string | null>;
-  /** Litres standing below that a lift could take (`Infinity` = a body). */
-  standingAvailableL(): Promise<number>;
-  /** Litres the draw point could still receive before it is full. */
-  receivableL(): number;
-  /**
-   * Raise up to `litres` into the draw point. Returns litres moved.
-   * `by` is whoever worked the handle, when a hand did (a ship's bilge
-   * well credits the pumping to them); a source that does
-   * not care ignores it.
-   */
-  liftInto(litres: number, by?: Stuff): Promise<number>;
-  /** The place whose atmosphere presses on the draw point. */
-  liftScope(): (Stuff & Container) | null;
-  /**
-   * Where what came up GOES, in words, when it is not the source's own
-   * draw point (a bilge pump throws the water over the
-   * side). `what` is the fluid's name, capitalized. Absent: the pump says
-   * it runs into the source.
-   */
-  liftedWords?(what: string): Mml;
-  /**
-   * ⭐ Family A's hooks: `bail` is the BUCKET over any
-   * lift source — a boat's bilge, a ship's well, a village well, a bore —
-   * and the verb reads the source and the tool, nothing else. These two
-   * let the source say what is its own.
-   *
-   * Why a bucket cannot be got down to the fluid here, or `null` — a bore
-   * wants a derrick over it; a boat upside down has nothing to bail.
-   * `tool` is the bucket brought (`null`: bare hands). Absent: nothing
-   * stops a bucket.
-   */
-  bucketRefusal?(by: Stuff, tool: Stuff | null): Promise<{ reason: string; line: Mml } | null>;
-  /**
-   * A bucketful has landed (already lifted through {@link liftInto}, and
-   * tipped into the vessel brought when the draw point holds it): the
-   * source's own words for it, and anything it credits — the bore's
-   * answer. `null` (or absent): the verb's words.
-   */
-  bucketLanded?(by: Stuff, landing: BucketLanding): Promise<Mml | null>;
-}
+export function PumpableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
+  return class PumpableMixin extends Base implements Pumpable {
+    static _mixinName: string = 'PumpableMixin';
+    static _mixinKind = 'protocol' as const;
 
-/** What one bucketful did, for a source's {@link LiftSource.bucketLanded}. */
-export interface BucketLanding {
-  /** Litres the bucket brought up (`0`: it came up empty). */
-  litres: number;
-  /** The vessel it was tipped into, or `null`. */
-  vessel: Stuff | null;
-  /** Litres that went into the vessel. */
-  tipped: number;
-  /** The vessel could not hold it (a gas in an open cask). */
-  escaped: boolean;
-}
+    /** @hook Override to plan a spell; the default refuses. */
+    public async planPump(_by: Stuff): Promise<PumpPrognosis> {
+      return {
+        kind: 'refusal',
+        reason: 'not-pumpable',
+        prose: Mml.compose`There is nothing on ${Mml.thing(this as unknown as Stuff)} to pump.`,
+      };
+    }
 
-/**
- * ⭐ **Something a pump is set IN** — a well, a wellhead, a conduit. Each
- * holds its pump as content and vetoes everything else; this is the one
- * read they share, so a pump can tell being SET from being CARRIED (a pump
- * in a crate is luggage).
- */
-export interface PumpSource {
-  /** The pump set in this source, or `null`. */
-  pumpFitted(): Stuff | null;
+    /** @hook Override with the planned spell's landing. */
+    public async completePump(_by: Stuff, _token: unknown): Promise<PumpResult> {
+      throw new Error(
+        `PumpableMixin.completePump: ${(this as unknown as Stuff).stuffId} planned no spell to land`,
+      );
+    }
+  };
 }

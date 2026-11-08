@@ -1,4 +1,5 @@
 verbs: [scutch]
+category: textiles
 controller: /trade/textiles/idea/cmd/textiles/ScutchController
 description: "Beat the woody boon out of retted flax"
 help: |
@@ -29,7 +30,7 @@ args:
     required: true
     scope: [inventory, reachable]
     requires: BulkableMixin
-  # ⭐ WHICH BOARD — DECLARED, not hunted for (`lint:instrument-args`).
+  # ⭐ WHICH BOARD — DECLARED, not hunted for (`lint:controller-resolution`).
   # Bare, the binder hands over every reachable thing offering
   # `scutching` and the controller takes the best-rated.
   - name: board

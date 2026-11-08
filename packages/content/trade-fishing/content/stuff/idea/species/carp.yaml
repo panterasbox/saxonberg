@@ -6,6 +6,7 @@
 # where a fish stops being wild.
 class: /platform/idea/species/Species
 data:
+  smells: [{ aroma: /base-library/aromas/fish, strength: 30 }]
   binomial: Cyprinus carpio
   commonNames: ["carp"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/fish
@@ -71,4 +72,4 @@ data:
     - { cut: /stuff/thing/items/offal, units: 1 }
   longDescription: >-
     A carp, deep-bodied and bronze-scaled, with a soft mouth that works at the surface when it thinks something is coming.
-  nameBankKeys: []
+  nameBanks: []

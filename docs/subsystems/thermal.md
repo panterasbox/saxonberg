@@ -1087,8 +1087,15 @@ passes under it.
   on the brine hearth never reached saturation — the crystallize arm
   never fired. Boiling down is now the hearth's road to salt, as the sun's
   evaporative window is the pan's.
-- ⭐⭐ **Purification is the plateau's, not a verb's** (2026-10-19, the
-  `boil` verb retired to an alias of `heat`). While a vessel's contents
+- ⭐⭐ **What is IN the boil is held at the boil** (controllers-are-io D8c).
+  The boil arm calls `holdAtHeatFor(bp, vessel)` on each Soilable occupant
+  beside `purifyIfHeld`: the liquid's clock says how long the LIQUID boiled,
+  the occupant's own says how long IT was in it, read off the vessel's
+  trajectory. `ThermalMixin.onContainableAdded`/`Removed` start and stop that
+  clock. See [cleanliness.md](./cleanliness.md).
+- ⭐⭐ **Purification is the plateau's, not a verb's** (2026-10-19, `boil`
+  retired to an alias of `heat`; the alias itself deleted by
+  controllers-are-io). While a vessel's contents
   sit on the boil plateau and their material names a `purifiedByBoiling`
   arrow, `boilHeldSeconds` integrates the time at the boil off the
   vessel's own trajectory (the cocoon stifle idiom; banked on the bulk

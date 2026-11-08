@@ -1,7 +1,9 @@
 # Willow-tea — the analgesic (D10), folk medicine anyone can brew. NOT
 # prescription-only.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/herbal, strength: 60 }]
+  tastes: [{ type: bitter, amount: 0.2 }]
   name: willow-tea
   keywords: [willow-tea, tea, analgesic, willow]
   appearance: a pale bitter tea

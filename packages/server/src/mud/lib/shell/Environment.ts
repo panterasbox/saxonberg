@@ -405,13 +405,16 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
       {
         key: 'prompt.format',
         type: SettingTypes.String,
-        default: '{{ focus }}>',
+        // ⭐ Plain `>` by default (owner, 2026-11-08): `here>`,
+        // `back-bar>`, `dave's>` — the MQL focus — only confused a new
+        // player. `{{ focus }}>` is one setting away for those who want it.
+        default: '>',
         description:
           'Liquid template rendered into the client-side base ' +
-          'prompt area after every command. v1 context exposes ' +
-          'one variable, `focus` (the giver\'s current MQL ' +
-          'focus). Future tokens (posture, location.name, time) ' +
-          'land additively in the prompt-context builder.',
+          'prompt area after every command. Default `>`. The context ' +
+          'exposes `focus` (your current MQL focus — `{{ focus }}>` shows ' +
+          'it). Future tokens (posture, location.name, time) land ' +
+          'additively in the prompt-context builder.',
       },
     ];
 

@@ -131,7 +131,7 @@ the Hydrator; per-field invariants ride accessor pairs.
   Composed by tools, **weapons, and armor alike** (durability is not
   "tool"); narrow via `MixinApi.isDurable`. Its fast-cycling sibling is
   **`KeenMixin`** (`lib/material/Keen.ts`) — the edge axis, on `Weapon`.
-- **`ToolMixin`** (`Tooled.ts`) — the crafting **capabilities** layer:
+- **`ToolMixin`** (`Tool.ts`) — the crafting **capabilities** layer:
   `capabilities: string[]` a recipe requires by kind. A `Tool` composes
   `ToolMixin(DurableMixin(…))` — a tool is a durable good that *also* offers
   capabilities; the durability lives on `DurableMixin`, not here.
@@ -139,7 +139,7 @@ the Hydrator; per-field invariants ride accessor pairs.
   substrate: a solute that gives up an extract when steeped in a solvent
   (water + herb → draught, water + leaves → tea, later spirits/oil →
   tincture/infused oil). Carries `steepsInto: string` (the extract
-  Material path) + the affordance for the **platform** `steep`/`infuse`
+  Material path) + the affordance for the **platform** `steep`
   verb, contributed OUTWARD to whoever carries the solute
   (`commandContributions.environment`). Kernel because cooking, medicine
   and distilling have no common pack ancestor; `trade-medicine`'s `Simple`
@@ -169,10 +169,10 @@ the Hydrator; per-field invariants ride accessor pairs.
   `MixinApi.isBuildVessel`) — the **vessel-as-buffer** for a step-by-step
   build (the shaker / mixing glass). A runtime-only buffer of graded
   `BuildContribution`s (`addContribution`/`getContributions`/`clearBuild`)
-  the `pour`/`add` verbs bank into and `strain` mints from, plus the
-  recorded **command sources** (`recordCommand`/`getCommandSources`) the
-  demonstration capture transcribes (see [scripting.md](./scripting.md)).
-  No persistent fields — a build is transient.
+  the `pour` verb banks into and `strain` mints from. (It also used
+  to record each step's typed command for a silent auto-transcription;
+  that is gone — § The knowledge ladder.) No persistent fields — a build is
+  transient.
 
 > ⭐ **The ingot is not the only faucet; every finished good is one too.**
 > A production chain that stops at the ingot *moves* the faucet without
@@ -474,7 +474,7 @@ used to be a single list copied verbatim onto two rows:
 | hospitality `mix`, `serve`, `garnish` | the STATION — whole-drink acts at the bar | `/trade/hospitality/thing/BarStation` (back-bar, well) |
 | hospitality `muddle` | the MUDDLER | `/trade/hospitality/thing/Muddler` |
 | cooking `cook`, `plate`, platform `heat` | the POT | `/trade/cooking/thing/CookPot` |
-| platform `heat` (alias `boil`) on a plain vessel | the FURNACE — you set it on a lit fire | `BurnerMixin` (oven, kiln, forge) |
+| platform `heat` on a plain vessel | the FURNACE — you set it on a lit fire | `BurnerMixin` (oven, kiln, forge) |
 | smithing `hammer`, `quench`, `forge` + platform `repair`, `salvage` | the ANVIL | `/trade/smithing/thing/Anvil` |
 | platform `repair`, `salvage` | mending capital | `/platform/thing/MendingTool` (sewing kit, sewing machine) |
 | platform `cut` (planned by the target or the tool — § One `cut`) | the SHEARS — and the bench is the same class, faster; the ICE SAW | `/trade/tailoring/thing/CuttingTool` (shears, cutting table) · `/trade/ice/thing/IceSaw` |
@@ -519,14 +519,46 @@ deleted. The controller is dumb and asks two sides in order:
    `CuttingTool` plans any cloth, because the bolt is the weaver's and
    the pattern the tailor's.
 
-A plan is an engaged step — an `ActPlan` (`lib/craft/ActPlan.ts`, the one
-vocabulary every crafting act protocol answers in): `durationMs`,
-`effortW`, `beginSelf`/`beginPeers`, `onComplete` — so **the planner owns its completion
-message and its mint**; an `ActRefusal` is declined in the planner's
-words. Tailoring's three options (`--for`, `--tight`, `--generous`) ride
-the request as an option bag. A second cuttable good (a saddler's hide)
-answers either side with no kernel edit, and the instrument affords the
-verb (`CuttingTool`, `IceSaw`).
+⚠ `CutPlanner` is a kernel protocol mixin (`CutPlannerMixin`), though only
+`CuttingTool` composes it, because a kernel verb reaching a pack's tool
+needs a kernel-declared shape. `cut.yaml`'s target stays `requires: any`:
+cloth is cut by the tool's planner and composes no `CuttableMixin`.
+
+### ⭐⭐ One act convention — the object answers, the controller words (controllers-are-io D4)
+
+`lib/craft/ActPlan.ts` carries no `Mml`. An act answers with a reason and
+the facts:
+
+- `ActRefusal<R, X>` — `{ok: false, reason, facts?}`;
+- `ActOutcome<F>` — `{ok: true, facts}`;
+- `ActPlan<B, F, X>` — `{ok: true, durationMs, effortW, facts, onComplete,
+  onAbort?}`: `facts` is what the begin words need, and `onComplete` lands
+  as an outcome or a late refusal. How long and how hard are the act's.
+
+Each protocol file declares a CLOSED reason union and facts types. The
+controller words them in an exhaustive `switch` with a `never` arm, so the
+compiler is the census of what a verb can say, and an alternate controller
+can word everything differently while changing nothing in the world.
+`ManualBuildController.engagePlan(context, plan, words)` and the
+`EngagedActController.engageAct(context, plan, words)` overload run a plan;
+`words` is `{beginSelf, beginPeers?, onRefused, onDone?}`.
+
+⚠ **The cost, and it is real:** a kernel verb's words are the kernel
+controller's, so a pack host's reasons sit in the kernel's union and its
+sentences in the kernel controller. A new reason for `dip` is a kernel edit,
+or the pack ships its own controller. "A second cuttable thing needs no
+kernel edit" still holds when it reuses reasons.
+
+### ⭐ The cuts plan themselves (controllers-are-io D8c)
+
+The trade cuts ask the same protocol: `cutPlan({verb, …})`, with one entry
+per verb in `CutAnswers` (`cut`, `saw`, `rive`, `crosscut`, `butcher`,
+`scribe`, `snap`, `groze`, `groove`, `scrape`). The answer carries its `verb`
+back and the asking controller narrows on it. Hosts: `Bole`, `Billet`,
+`Corpse`, glass `Sheet`, `IceSheet`, `Rope`, `SugarLoaf`. **The line:** only the
+cut's decision moved. Instrument checks (the saw, the froe, the knife) stay on
+the controller, and so does the saw's timing, because a sawmill's pace is the
+instrument's. `shear` is a tap, not a cut.
 
 ### ⚠⚠ The tool ladder ranks on RATE, and used to rank on luck
 
@@ -544,7 +576,7 @@ is a number nobody sees. It now picks the best rate, held-first on ties,
 so no equal-rung arrangement moves.
 
 ⭐⭐ **And it no longer walks.** `findCapability` was the reachability
-hunt `lint:instrument-args` exists to remove, hoisted into the base so
+hunt `lint:controller-resolution` exists to remove, hoisted into the base so
 that 24 step controllers hunted through one method the census could not
 see. Each step's view now **declares** its instrument as a plural arg —
 `weave.yaml`: `loom`, `default: "reachable:[capability.weaving]"`,
@@ -584,7 +616,7 @@ not making; camp cooking works because reachable heat + a pot IS a
 kitchen).
 
 **Where a crafting verb lives** — with the pack whose content affords
-it: `make`, `heat` (alias `boil`), `pour`, `stir`/`shake`, `repair`, `salvage`,
+it: `heat`, `pour`, `stir`, `repair`, `salvage`,
 `wash` are platform (a pot and a shaker both pour and stir; a furnace
 heats; a basin washes; mending is any trade's); `menu`/`order` are platform
 **retail** (a menu is commerce, any venue); `muddle`, `strain`,
@@ -595,9 +627,10 @@ are `trade-smithing`'s — each a capability pack with its controllers in
 and the cook-pot row are cooking's too (the bundle collects the
 trade's instruments).
 
-`BurnerMixin` statically confers `heat` (with `ignite`/`douse`/`pump`)
-— an appliance mixin, not a `Tooled` host — and `make` is innate on
-`Avatar` (knowledge-driven, no instrument). Capability entries are
+`BurnerMixin` statically confers `heat` (with `light`/`douse`/`pump`)
+— an appliance mixin, not a `Tool` host. (⚠ There is no generic
+`make`: the verb of that name only ever replayed a player's script, and it
+is the shell's `do` now — see § The knowledge ladder.) Capability entries are
 **parameterized**: `{ kind, rate?, control?, technique? }` (a bare
 string = the defaulted spec) — `rate` is a work-rate multiplier (clamped 0.25–10 at read)
 that divides the engaged duration of the steps the kind confers (the
@@ -623,8 +656,8 @@ venue-generic: a smithy with a menu and an on-shift maker just works.
 `content/platform/cmd/crafting/*.yaml` views + `mud/platform/idea/cmd/crafting/*Controller.ts`.
 A `CraftController` base centralizes decline rendering
 (`declineToScene`) **and the can-make deed gate** (`requireDeed` — the
-one gate `forge`/`cook`/`make` share; a non-catalogue ref passes
-ungated, `order` never calls it); all controllers return `void`,
+one gate `forge`/`cook`/`mix`/`serve`/`bake` share; a non-catalogue ref
+passes ungated, `order` never calls it); all controllers return `void`,
 emitting via `ctx.note` + `MessageApi.scene`.
 
 - **`menu`** — render the present Menu's offer.
@@ -730,17 +763,17 @@ the present on-shift maker.
   why there is no laundry vocation: the care loop is not an errand per
   wash.
 
-- **`cure`/`salt`**, **`dry`/`hang`**, **`smoke`** (trade-cooking) — the
+- **`cure`**, **`dry`/`hang`**, **`smoke`** (trade-cooking) — the
   **preserving acts**, one `PreserveController` base and three six-line
   subclasses that name only a recipe id and their prose. Each recipe
   authors a `cure: { moisture?, solute? }` block applied to the output's
   water state as the **stronger** of each axis, so a weaker second
   treatment never un-cures and two separate acts stack (salt it, then dry
   it). ⚠ **Not deed-gated**, unlike `cook`: the can-make deed is earned by
-  a faithful by-hand build, and the cooking branch's by-hand path banks
-  into a pot — the wrong shape for a discrete transform. A gate whose key
-  does not exist is a lock, so these follow `order`.
-- **`butcher`/`dress`** (trade-cooking) — take a dead animal apart. Gated
+  making the thing once, and a gated verb that is the ONLY way to make it
+  can never be satisfied — a gate whose key does not exist is a lock, so
+  these follow `order`.
+- **`butcher`** (trade-cooking) — take a dead animal apart. Gated
   on a reachable `constructionForm: 'bladed'` implement, refused on a
   sentient corpse, and the cuts carry the carcass's AGE (see
   [spoilage.md](./spoilage.md)).
@@ -767,7 +800,8 @@ block with the clock already running, which is exactly the pressure the
 cuts' age model exists to create.
 - **`muddle`** — a `ManualBuild` step like `stir`; needs a reachable
   `muddler` capability; records `BuildMethod` `'muddled'`.
-  `shake` already existed (`stir.yaml` is `verbs: [stir, shake]`); `mix`
+  `shake` already existed then (as a second word on `stir.yaml`; deleted
+  since by one view, one word — the shaker shakes when you `stir` it); `mix`
   is the resolve verb — nothing was renamed.
 
 ## ⭐ The glass pool, the technique, ice, garnish (libations D9/D10)
@@ -852,9 +886,9 @@ Resolution (`Techniques.fromTools`):
 - Among the eligible, highest **`priority`** wins — *the finishing
   instrument names the drink* (a whiskey smash is muddled, then shaken,
   so shaker and mixing-glass outrank muddler).
-- The **hand path** (`stir`/`shake`/`muddle`) names the working by verb
-  but still takes its numbers from the instrument in reach — you cannot
-  shake without a shaker. An unauthored word finishes neutral.
+- The **hand path** (`stir`/`muddle`) takes the working and its numbers
+  from the instrument in reach — `stir shaker` shakes, `stir mixing
+  glass` stirs (the tool is what knows; controllers-are-io D16). An unauthored word finishes neutral.
 
 Hospitality authors the bar's four: shaker (shaken), mixing-glass
 (stirred), muddler (muddled), bar-spoon (built).
@@ -924,23 +958,23 @@ cap included, is threaded alongside it into the three output seams.
 ## The manual build (the by-hand path)
 
 Alongside the one-shot served path, a drink can be **built by hand**, one
-command at a time — the path the scripting build added (its manual-build
-verbs are also the substrate the demonstration-capture records). Each step
+command at a time — the path the scripting build added. Each step
 is an **engaged activity** (`ManualBuildStep`, the `'hands'` slot, the
 activity substrate's first durative-verb consumer — see
 [activity.md](./activity.md)): the effect lands **at completion**, so a
 barge-in `cancel` mid-step leaves partial matter standing.
 
-- **`pour <spirit> into <vessel>`** / **`add <spirit>`** — debit **one
+- **`pour <spirit> into <vessel>`** — debit **one
   serving** of what is poured off the chosen reachable graded bottle (the
   material's `servingKg` at its density, `MaterialApi.servingKgOf` — gin
   60 ml, dry vermouth 10 ml, bitters 2 ml; `--amount 30ml` measures
   instead) to the discard sink — conservation — and bank a graded
   `BuildContribution` into the vessel's buffer. One row field is both the
   nutrition serving and the jigger, so a new spirit needs no code; three
-  pours of sweet vermouth is a negroni's measure. `add` (no vessel) finds
-  the build vessel you're working in.
-- **`stir`** / **`shake <vessel>`** — record the mix method on the build.
+  pours of sweet vermouth is a negroni's measure. (The vessel-less `add`
+  form is deleted: one view, one word.)
+- **`stir <vessel>`** — record the mix method on the build (the vessel
+  names it: a shaker shakes).
 - **`strain [<vessel>] into <glass>`** — the **terminal mint**.
 - **`garnish <glass> with <garnish>`** — the finishing flourish.
 
@@ -1013,7 +1047,7 @@ against it at the mint; reset by `clearBuild`).
   lump** — a re-meltable `/stuff/thing/Casting`, `recipeId ''`, no mark).
 - **Cooking** — the pot is the vessel (`CookPot` — `ManualBuild` +
   `Tool(pot)` + `Crafted`, itself a smithing recipe output): the
-  existing `pour`/`add` verb grew a **discrete-ingredient branch** (a
+  existing `pour` verb grew a **discrete-ingredient branch** (a
   Material-bearing Tangible added to a build vessel is consumed at
   completion and banked as an item-contribution) → `stir` (unchanged)
   → `heat [<pot>]` (the same HeatController) → `plate [<pot>] into
@@ -1034,10 +1068,10 @@ against it at the mint; reset by `clearBuild`).
   pot-luck is a portion of the pot (`outputPortionL`'s rule, the generic
   0.3 L), never its whole mass.
 
-`quench`/`plate` replicate `strain`'s capture tail
-(`ScriptApi.captureManualBuild`) — the first faithful hand build mints
-the can-make **deed** + transcribes the personal recipe-script, the
-same act.
+`strain`/`quench`/`plate` mint through `CraftingApi.mintFromBuild`, which
+records the can-make **deed** like every craft (§ The knowledge ladder)
+and returns `learned: true` the first time — the verb then says *"you've
+worked out how to …"* and names the one-shot verb that now works.
 
 ### ⭐⭐ Smithing's two extra acts (metallurgy, 2026-09)
 
@@ -1211,14 +1245,45 @@ standing job advertisement.
 
 ### Which verbs are gated
 
-`make` · `cook` · `forge` · `bake` through `CraftController.requireDeed`,
-and from this build **`mix` and `serve`** as well. ⚠ Both shipped **ungated**:
-a player who had read the board could `mix` a Negroni they had never made,
-while `make` refused them the same drink. `order` is gated differently and on
+`cook` · `forge` · `bake` through `CraftController.requireDeed`, and
+**`mix` and `serve`** as well. ⚠ Both shipped **ungated**: a player who had
+read the board could `mix` a Negroni they had never made, while the script
+runner (`make` then) refused them the same drink. `order` is gated differently and on
 purpose — the gate applies to the *maker it resolves*, not to the patron.
 
 ⚠ `preserve` stays ungated, by documented design: a gate whose key does not
 exist is a lock. See the Deferred section.
+
+### ⭐⭐ The knowledge ladder — crafting's, not scripting's (2026-10-18)
+
+`unknown → known-of → can-make`, keys in `lib/craft/RecipeKnowledge.ts`.
+Reading a menu (or watching a craft) mints the **known-of** claim; the
+**can-make** deed is minted the first time you MAKE the recipe, by any
+crafting act — `CraftingLogic.recordCraftEvidence` runs on every `craft`
+and `mintFromBuild` (a hand build, a carve, a fit, a grind, a one-shot)
+and returns whether this making taught it (`CraftSuccess.learned`). The
+deed goes to the **maker**, never a patron: an `order` filled by the smith
+teaches the smith.
+
+⚠⚠ **History, because it shaped what is broken.** Until this date the deed
+was minted by the SCRIPT system (`ScriptApi.captureManualBuild`), in the
+same call that silently auto-transcribed the hand build into a
+"recipe-script" — and only from `strain`, `quench` and `plate`. So:
+`knead`, `carve`, `fit` and every one-shot taught nothing; the script
+runner `make` sat behind this crafting gate (and was read, by players and
+by a plan, as the generic crafting verb it never was); the transcript was
+written under the shared lineage `templatePath` while the runner read the
+identity path, so no player's transcript was ever found; and the hand
+build resolved its maker by lineage, so a quench credited whichever Avatar
+the row resolved to (the crafting drive's undiagnosed `it.fails`). Now the
+deed is crafting's, the maker resolves by identity, nothing is transcribed
+behind the player's back, and the runner is the shell's ungated `do`.
+
+⚠ **A gate is only satisfiable where an ungated act makes the recipe
+first.** A recipe whose only maker is a gated one-shot (the loaves, which
+only `bake` makes) can never be learned; the census of those, and of the
+recipes no verb reaches at all, is
+[script-runner-decouple-findings-slate](../slates/tails/script-runner-decouple-findings-slate.md).
 
 ### ⭐ Mixology is a real seat question now
 
@@ -1379,7 +1444,7 @@ that decides the other three.
 
 ### The MEDIUM — why boiling cannot brown, and no table says so
 
-`Recipe.medium` is `water` | `fat` | absent (dry), and it does exactly
+`Recipe.medium` is any material tag, or absent (dry), and it does exactly
 two things:
 
 1. the recipe must actually HAVE an input carrying the medium's **tag**
@@ -1399,7 +1464,7 @@ root-vegetable spine — the same two roots boiled at 373, roasted dry at
 method table anywhere. Syrup's elevated boiling point needs no special
 case: it rides its own row.
 
-An unknown medium word **throws at `Recipe.fromData`**: a typo must not
+A medium no material in reach carries **fails `lint:aromas`**: a typo must not
 silently cook a stew over an uncapped fire. The by-hand `matchBuild`
 clamps identically (`resolveMediumCaps` pre-resolves the banked media so
 the reverse-match stays synchronous), so the same meat banked with water
@@ -1478,7 +1543,7 @@ is out of scope for v1.
 
 ### Cutlery — it reads, it never gates
 
-`lib/bulk/Utensil.ts` is a small enumerated kernel vocabulary (`spoon` ·
+`lib/bulk/Cutlery.ts` is a small enumerated kernel vocabulary (`spoon` ·
 `fork` · `table-knife`, in preference order). `eat` claims the first clean
 one in reach — held kit before the table — dirties it, and says so; with
 nothing to hand you eat with your fingers. ⚠ **Same act, same nutrition,
@@ -1519,10 +1584,11 @@ The competence read is the SYNC digest cache, and a cold cache reads as
 the floor band — honest rather than defective: an unexercised palate IS a
 novice palate. ⚠ Never a gate: every band tastes the food.
 
-⚠⚠ **It lives on `PalatableMixin` (`lib/metabolism/Palatable.ts`),
-composed on `ServingVessel`** — a vessel a made portion reaches a person
-in. It took two wrong hosts to get there, and both were defended with a
-sentence that was true:
+⭐ **That read is the person's now** (`PalateMixin`, [metabolism.md](./metabolism.md)): a
+palate lives on the taster, not the vessel. What follows is why it took three hosts.
+
+It sat on `ServingVessel` first, after two wrong hosts, both defended with a sentence
+that was true:
 
 1. **`BulkableMixin`** — which put a taste-palate augmenter on `Floor`
    (puddles), `GardenBed`, `PlantPot`, `AirTank` and `WateringCan`, made
@@ -1552,7 +1618,7 @@ CraftVessel        + VesselKind + Serviceable   a trade's working vessel
   │                                             wort/must/wash bucket,
   │                                             tallow crock, oil bottle
   │
-  └─ ServingVessel + Palatable        a made portion reaches a person IN it
+  └─ ServingVessel                    a made portion reaches a person IN it
        │                              the 9 glasses, syrup + juice bottles
        ├─ Dish     + NutritionLabel
        └─ CookPot  (trade-cooking)
@@ -1707,7 +1773,7 @@ pieces that attach at the same place and should land together:
   sits beside), [command-routing](./command-routing.md) /
   [command-spec](./command-spec.md), [mixins](./mixins.md),
   [call-security](./call-security.md), [watershed](./watershed.md) (boiling is a
-  temperature: `boil` is an alias of `heat`, a wet recipe is
+  temperature: there is no `boil` verb, a wet recipe is
   `requiresHeatK` + `medium: water`, and `purifiedByBoiling` fires in the
   thermal phase engine once contents are held at the boil).
 - **Seeding slates:** `docs/slates/tails/crafting-slate.md`,
@@ -1822,13 +1888,14 @@ the feed was dropped. It folds the source payload through
 
 ## History — the dairy build (2026-10)
 
-- **`churn`** joins `stir`/`shake` on `stir.yaml` (method `churned`).
+- **`stir churn`** records method `churned` (the `churn` word that once
+  joined `stir.yaml` is deleted: one view, one word).
   ⭐ The view is `requires: any` now and the controller narrows to two arms:
   a build vessel records the method; a hand-worked vessel (the kernel's
   **`HandWorkedMixin`**, `workByHand(method)` → an `ActOutcome` or `null`,
   `lib/craft/HandWorked.ts` since the ceramics review) works its own charge
   and says what came of it. ⚠ Why not a build
-  vessel: a `pour` into a build vessel BANKS the matter as a contribution
+  vessel: a `pour` into a build vessel (`ManualBuildMixin.receivePour`) BANKS the matter as a contribution
   and drains the source, so cream poured into a build-vessel churn would
   vanish. `HandWorkedMixin` confers the view (a static on its class).
 - **`heat`'s placing arm** — a Thermal, Containable, non-build vessel (a
@@ -1847,7 +1914,7 @@ the feed was dropped. It folds the source payload through
 `Recipe.soils` (and `WorkResult.soils`; a tap's is derived — cleanliness B49) name what a
 making deposits and where; the maker lands it (`Hygiene.soilFrom`). A
 Soilable tool short of *sanitised* — and a dirty hand — inoculates the
-perishable inputs before the working's kill. `boil <cloth> in <pot>` and
+perishable inputs before the working's kill. A pot on the boil (what is in it) and
 `heat <instrument>` stamp the heat the clean tiers read. See [cleanliness.md](./cleanliness.md).
 
 ## History — storage-and-ice (MR !378, 2026-10-18)
@@ -1856,3 +1923,17 @@ perishable inputs before the working's kill. `boil <cloth> in <pot>` and
   view over the `Cuttable`/`CutPlanner` protocol (tailoring and the ice
   sheet implement it); salvage and the off-spec lump mint
   `metal-casting` for metal and a composition-only `Casting` otherwise.
+
+## History — controllers-are-io (MR !527, 2026-11)
+
+- **The words came off the object** (W4, `70254af27^..d66b3e15d`):
+  `ActPlan` lost `beginSelf`/`beginPeers` and every `line: Mml`; an act
+  returns a closed `reason` union or facts, and the controller words them
+  (`engagePlan(context, plan, words)`). `boil` folded into `heat` and the
+  vessel's bath (D8c); `scrub` became `wash --hard`; the cuts plan
+  themselves on `CuttableMixin.cutPlan`.
+- **The script runner left crafting** (W6, D18): `make` is deleted and the
+  shell's `do` runs a named script; the craft's can-make deed is minted in
+  `CraftingLogic.recordCraftEvidence`, and `RecipeKnowledge` lives in
+  `lib/craft/`. `lib/craft/Tooled.ts` is `lib/craft/Tool.ts` (W3).
+

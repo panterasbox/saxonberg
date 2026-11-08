@@ -35,10 +35,13 @@
  * affordance cache, which is answered fresh per subject.
  */
 
+import { NavigatorBody } from "./NavigatorBody";
+import { SettingsPanel } from "../settings/SettingsPanel";
 import React from "react";
 import styled from "styled-components";
 import type {
   CardId,
+  CompositionEntry,
   HelpTopic,
   PresenceStatus,
   ReleaseRow,
@@ -55,6 +58,8 @@ import { Figure, EntityName, tokens } from "../ui";
 import { websocketClient } from "../../services/websocket";
 import { mediaUrl } from "../../config";
 import { MmlRenderer } from "../MmlRenderer";
+import { InspectionBody } from "./InspectionBody";
+import { actionCommand, lookCommand, useLinkMode } from "./clickTarget";
 import { CmsExplorer } from "../cms/CmsExplorer";
 import { CmsEditor } from "../cms/CmsEditor";
 import { CmsGitPanel } from "../cms/CmsGitPanel";
@@ -117,7 +122,7 @@ const CardIllustration = styled.img`
   display: block;
   width: 100%;
   max-height: 6.5rem;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   border-radius: ${tokens.radius.sm};
   margin-bottom: ${tokens.space.xs};
@@ -130,10 +135,9 @@ const CardIllustration = styled.img`
  * that you can see more than one thing in it.
  */
 const Label = styled.div`
-  font-family: ${tokens.font.engraved};
-  font-size: ${tokens.font.label};
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  /* Sentence case, plain (#69): a label in capitals shouts. */
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.micro};
   color: ${tokens.color.sectionLabel};
   margin: ${tokens.space.sm} 0 2px;
 `;
@@ -344,6 +348,7 @@ const PLUMBING: ReadonlySet<string> = new Set([
   "Forkable",
   "Shadowable",
   "ClientState",
+  "NameTaking",
 ]);
 
 /**
@@ -359,15 +364,42 @@ export function chipLabel(mixin: string): string {
   return mixin.endsWith("Mixin") ? mixin.slice(0, -"Mixin".length) : mixin;
 }
 
-/** The chips, most-interesting first. */
+/**
+ * The NOUN chips, most-interesting first. A protocol mixin is not among
+ * them — it is the verb it serves, and {@link answeredVerbs} names it.
+ */
 export function orderComposition(
-  composition: readonly string[],
+  composition: readonly CompositionEntry[],
 ): string[] {
-  const labelled = composition.map(chipLabel);
+  const labelled = composition
+    .filter((c) => c.kind !== "protocol")
+    .map((c) => chipLabel(c.name));
   return [
     ...labelled.filter((m) => !PLUMBING.has(m)),
     ...labelled.filter((m) => PLUMBING.has(m)),
   ];
+}
+
+/**
+ * ⭐ The verbs this subject ANSWERS — one word per verb its protocol
+ * mixins serve (controllers-are-io D8b): a dip pot reads *answers: dip*.
+ *
+ * A protocol mixin is a method a verb calls, not a fact about what the
+ * thing is, so a noun chip (`DipBath`) would teach the wrong thing. ⚠ A
+ * protocol no view names yet (its verb's slot is `requires: any`) carries
+ * no verbs and falls back to its own name, rather than vanishing — the
+ * server's answer is true, and hiding part of it is not the client's call.
+ */
+export function answeredVerbs(
+  composition: readonly CompositionEntry[],
+): string[] {
+  const out = new Set<string>();
+  for (const c of composition) {
+    if (c.kind !== "protocol") continue;
+    if (c.verbs && c.verbs.length > 0) for (const v of c.verbs) out.add(v);
+    else out.add(chipLabel(c.name));
+  }
+  return [...out];
 }
 
 /**
@@ -525,17 +557,15 @@ function Measured({
  */
 function ActionRow({
   stuffId,
-  keyword,
   onSendCommand,
   onCommandPreview,
 }: {
   stuffId?: string;
-  /** The subject's own keyword — the word the player would type. */
-  keyword?: string;
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement | null {
   const answer = useStore((s) => (stuffId ? s.affordances[stuffId] : undefined));
+  const mode = useLinkMode();
   if (!answer) return null;
   const afforded = answer.verbs.filter(
     (v) => v.source === "subject" && v.state !== "disabled",
@@ -543,16 +573,11 @@ function ActionRow({
   if (afforded.length === 0) return null;
   return (
     <>
-      <Label>What it affords</Label>
+      <Label>Actions</Label>
       <Chips data-testid="card-action-row">
         {afforded.map((v) => {
-          /*
-           * ⚠ Named with the subject's own KEYWORD, so the command
-           * reads as one the player could have typed — the same rule
-           * the refresh control follows. A verb with no operand slot
-           * sends bare.
-           */
-          const send = keyword ? `${v.verb} ${keyword}` : v.verb;
+          // ⭐ The server's own command (#91) — see `clickTarget.ts`.
+          const send = actionCommand(v, stuffId, mode);
           return (
             <InlineLink
               key={v.verb}
@@ -593,6 +618,7 @@ function Composition({ stuffId }: { stuffId?: string }): React.ReactElement | nu
   }, [stuffId, answer]);
   if (!answer || answer.composition.length === 0) return null;
   const ordered = orderComposition(answer.composition);
+  const answers = answeredVerbs(answer.composition);
   /*
    * ⚠ Collapsed by default, and at the FOOT of the card.
    *
@@ -614,6 +640,16 @@ function Composition({ stuffId }: { stuffId?: string }): React.ReactElement | nu
       */}
       <Label>Interfaces</Label>
       <Chips data-testid="card-composition">
+        {/*
+          ⭐ The protocols first, as the verbs they serve, beside the noun
+          chips — and outside the collapse: what a thing ANSWERS is the
+          most useful line on the row.
+        */}
+        {answers.length > 0 && (
+          <Chip data-testid="card-answers">
+            answers: {answers.join(" · ")}
+          </Chip>
+        )}
         {shown.map((m) => (
           <Chip key={m}>{m}</Chip>
         ))}
@@ -808,6 +844,7 @@ function HereList({
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement | null {
+  const mode = useLinkMode();
   const contents = record?.contents ?? [];
   if (contents.length === 0) return null;
   const preview = onCommandPreview ?? (() => undefined);
@@ -824,8 +861,7 @@ function HereList({
       <Label>Here</Label>
       <Rows>
         {shown.map((row) => {
-          const target = row.primaryKeyword ?? row.displayName;
-          const command = `look ${target}`;
+          const command = lookCommand(row.stuffId, row.primaryKeyword, mode);
           return (
             <div key={row.stuffId}>
               <EntityName
@@ -870,6 +906,7 @@ function PlacedList({
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement | null {
+  const mode = useLinkMode();
   const groups = record?.placed ?? [];
   if (groups.length === 0) return null;
   const preview = onCommandPreview ?? (() => undefined);
@@ -883,8 +920,8 @@ function PlacedList({
             <Label>{group.heading || PLACED_FALLBACK_HEADING}</Label>
             <Rows>
               {shown.map((row) => {
-                const target = row.primaryKeyword ?? row.displayName;
-                const command = `look ${target}`;
+                // ⭐ By id (client-surface D7).
+                const command = lookCommand(row.stuffId, row.primaryKeyword, mode);
                 return (
                   <div key={row.stuffId}>
                     <EntityName
@@ -933,6 +970,7 @@ function WornList({
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement | null {
+  const mode = useLinkMode();
   const worn = record?.worn ?? [];
   if (worn.length === 0) return null;
   const preview = onCommandPreview ?? (() => undefined);
@@ -943,8 +981,7 @@ function WornList({
       <Label>Worn</Label>
       <Rows>
         {shown.map((row) => {
-          const target = row.primaryKeyword ?? row.displayName;
-          const command = `look ${target}`;
+          const command = lookCommand(row.stuffId, row.primaryKeyword, mode);
           return (
             <div key={row.stuffId}>
               <EntityName
@@ -970,6 +1007,8 @@ export interface CardBodyProps {
   card: CardState;
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
+  /** The card is cut to fit — the inspection card collapses its image first. */
+  cut?: boolean;
 }
 
 /**
@@ -1080,6 +1119,16 @@ export function CardBody(props: CardBodyProps): React.ReactElement {
    */
   if (card.payload) return <PayloadBody {...props} />;
   if (card.promptId) return <PromptCardBody card={card} />;
+  // ⭐ Settings are a card (client-surface D10): the editor that was a
+  // docked panel. Closing it is a real command.
+  if (card.cardId === 'settings') {
+    return (
+      <SettingsPanel
+        onSendCommand={props.onSendCommand}
+        onClose={() => props.onSendCommand('cockpit card close settings')}
+      />
+    );
+  }
   if (CLIENT_BODIES[card.cardId]) return <ClientBody card={card} />;
   return <MqlBody {...props} />;
 }
@@ -1206,8 +1255,25 @@ function PayloadBody(props: CardBodyProps): React.ReactElement {
       );
     case 'helpTopic':
       return <HelpTopicBody topic={payload.topic} />;
+    case 'navigation':
+      return (
+        <NavigatorBody
+          where={payload.where}
+          onSendCommand={onSendCommand}
+          {...(onCommandPreview ? { onCommandPreview } : {})}
+        />
+      );
     case 'survey':
       return <SurveyBody survey={payload.survey} />;
+    case 'terminal':
+      // A terminal card's body is the terminal itself; the terminal
+      // column renders it (client-surface D6). In the feed it says what
+      // it shows.
+      return (
+        <Prose data-testid="card-terminal">
+          {payload.filter.channel ? `#${payload.filter.channel}` : payload.filter.view ?? 'All'}
+        </Prose>
+      );
   }
 }
 
@@ -1391,6 +1457,24 @@ function MqlBody(props: CardBodyProps): React.ReactElement {
 
   if (card.closed) return <ReleasedBody />;
 
+  /*
+   * ⭐⭐ **A card born of `look` renders what `look` SAID** (client-surface
+   * D1, AC 6): the segments, by source. The field-projection body below
+   * stays for a subject card with no segments (none ships today) and for
+   * a drilled detail, whose prose the segments do not carry.
+   */
+  if (card.segments && card.segments.length > 0 && detailPath.length === 0) {
+    return (
+      <InspectionBody
+        card={card}
+        cut={props.cut}
+        onSendCommand={onSendCommand}
+        onCommandPreview={onCommandPreview}
+        onProseClick={handleProseClick}
+      />
+    );
+  }
+
   const tail = detailPath[detailPath.length - 1];
   const drilled = tail
     ? record?.details?.find((d) => d.ids.includes(tail))
@@ -1498,7 +1582,6 @@ function MqlBody(props: CardBodyProps): React.ReactElement {
       )}
       <ActionRow
         stuffId={stuffId}
-        keyword={record?.primaryKeyword}
         onSendCommand={onSendCommand}
         onCommandPreview={onCommandPreview}
       />
@@ -1869,8 +1952,12 @@ function splitLabelledRuns(
     buffer = [];
   };
   for (const line of block.split('\n')) {
-    // A bare `Word:` (or `Word: value`) at the left margin heads a section.
-    const head = /^([A-Z][\w '-]*):\s*(.*)$/.exec(line);
+    // A bare `Word:` (or `Word: value`) at the left margin heads a section,
+    // and so does a lowercase `word:` alone on its line (`help dip`'s
+    // *answers:*). ⚠ Alone: `note: this` in lowercase is a sentence.
+    const head =
+      /^([A-Z][\w '-]*):\s*(.*)$/.exec(line) ??
+      /^([a-z][\w '-]*):$/.exec(line);
     if (head && !/^\s/.test(line)) {
       flush();
       out.push({ kind: 'label', text: head[1]! });

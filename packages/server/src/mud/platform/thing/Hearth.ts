@@ -28,7 +28,7 @@
  *
  * Everything else is the mixins': the fuel Reserve that drains against
  * game time, the reconcile-on-read so an unattended fire burns down
- * with nobody watching, the burnout edge, `ignite`/`douse`, and the
+ * with nobody watching, the burnout edge, `light`/`douse`, and the
  * gate that makes a dead hearth dark.
  *
  * A commons object: a second inn's fireplace is a ROW.

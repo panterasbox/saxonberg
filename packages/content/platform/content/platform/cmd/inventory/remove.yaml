@@ -1,6 +1,7 @@
 # The precise act: take ONE worn thing off. `unequip` strips the lot.
-verbs: [remove, doff]
-controller: /platform/idea/cmd/inventory/UnequipController
+verbs: [remove]
+category: inventory
+controller: /platform/idea/cmd/inventory/RemoveController
 description: "Take off a worn item"
 help: |
   Take off something you are wearing.

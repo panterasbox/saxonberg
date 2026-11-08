@@ -6,8 +6,10 @@
 # cold, it will not burn usefully, and the one thing it is unarguably
 # good for is roads — which is a later build's business and a fine
 # reason for this row to exist now, holding the bottom of the barrel.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/asphalt, strength: 1000 }]
+  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 800 }]
   name: asphalt
   keywords: [asphalt, bitumen, tar, pitch, residue]
   appearance: a black tar that holds a thumbprint and smells of hot roads

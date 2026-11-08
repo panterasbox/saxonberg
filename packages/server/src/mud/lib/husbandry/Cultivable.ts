@@ -57,12 +57,19 @@
  * See [docs/subsystems/husbandry.md].
  */
 
-import type { PropSpec, Staged } from "../stuff/Staged";
+import type { PropSpec } from "../stuff/Props";
+import type { Staged } from "../stuff/Staged";
 import type { CommandContributions } from "../../api/command";
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import { MixinApi } from "../../api/mixin";
+import { StuffApi } from "../../api/stuff";
+import { ContainmentApi } from "../../api/containment";
+import { PersistableApi } from "../../api/persistable";
+import type { ActPlan } from "../craft/ActPlan";
+import type { Growing, HarvestAnswer, HarvestRequest } from "./Growing";
+import type { Plantable, PlantBegin, PlantDone, PlantRefusal } from "./Plantable";
 import type { Soil } from "./Soil";
-import type { Reserved } from "../reserve";
+import type { Reserved } from "../reserve/Reserved";
 import type { Slotted } from "../slot/Slotted";
 import type { Slottable } from "../slot/Slottable";
 import type { Bulkable } from "../bulk/Bulkable";
@@ -123,6 +130,23 @@ export interface Cultivable {
   isFixedGround(): boolean;
   /** Square metres of land this draws from the parcel it stands on. */
   getLandRequirementM2(): number;
+  /**
+   * ⭐ `plant <seed> in <this>`: ONE plant in the slot, now (`durationMs: 0`).
+   * The plant goes into the **contents** as well as the **slot** — the
+   * wear/equip pattern, and load-bearing: the Slotted capture slice names its
+   * occupants by index into the container slice, so a slot-only occupant
+   * resolves to -1 and is silently dropped on restore.
+   */
+  plantPlanFor(req: {
+    by: Stuff;
+    seed: Stuff & Plantable;
+  }): Promise<ActPlan<PlantBegin, PlantDone, PlantRefusal> | PlantRefusal>;
+  /**
+   * ⭐ `harvest <this>`: naming the GROUND means what grows in it — the first
+   * harvestable occupant, else the first growing one (so the refusal names
+   * the stage rather than saying "no").
+   */
+  harvestPlanFor(req: HarvestRequest): HarvestAnswer;
 }
 
 /**
@@ -187,6 +211,114 @@ export function CultivableMixin<
       fixedGround: { persistent: true, authorable: true },
       landRequirementM2: { persistent: true, authorable: true },
     };
+
+    /** See {@link Cultivable.harvestPlanFor}. */
+    public harvestPlanFor(req: HarvestRequest): HarvestAnswer {
+      const self = this as unknown as Stuff & Soil & Cultivable;
+      if (req.part) {
+        const r = self.resolvePartFor(req.part);
+        if (!r.ok) {
+          return { ok: false, reason: r.reason, facts: { line: r.line, detail: r.line } };
+        }
+      }
+      const growing = (self.getPlants() as Stuff[]).filter(
+        (p): p is Stuff & Growing => MixinApi.isGrowing(p),
+      );
+      const plant = growing.find((p) => p.isHarvestable()) ?? growing[0] ?? null;
+      if (!plant) {
+        return {
+          ok: false,
+          reason: "nothing-growing",
+          facts: {
+            subject: self,
+            detail: `${self.getPresentation()} holds no growing plant`,
+          },
+        };
+      }
+      // The part was the ground's to check; the plant answers for itself.
+      return plant.harvestPlanFor({ ...req, typed: "", part: null });
+    }
+
+    /** See {@link Cultivable.plantPlanFor}. */
+    public async plantPlanFor(req: {
+      by: Stuff;
+      seed: Stuff & Plantable;
+    }): Promise<ActPlan<PlantBegin, PlantDone, PlantRefusal> | PlantRefusal> {
+      const self = this as unknown as Stuff & Soil & Cultivable & Slotted;
+      const { by, seed } = req;
+      // ⭐ THE LAND-USE GATE. Cultivating GROUND is the parcel's business:
+      // a bed on the Registry's civic floor is refused, and the refusal
+      // names the use rather than saying "no". A POT is exempt — it is
+      // furniture you carry, and a houseplant on a windowsill in a rented
+      // office is not agriculture.
+      if (self.isFixedGround()) {
+        // WHERE the bed stands, not what template it came from: every bed
+        // clones from `/trade/farming/thing/bed/garden`, so the template path would zone
+        // every bed in the world identically. The parcel that governs it
+        // is the one covering the ROOM it is in — by its persistence KEY
+        // when it has one.
+        const site = MixinApi.isContainable(self) ? self.getContainer() : null;
+        const zoned = site ? await self.cultivationZoningAt(site) : null;
+        if (zoned) {
+          return { ok: false, reason: "land-use-forbids-cultivation", facts: { zoned } };
+        }
+      }
+      if (!self.hasSoil()) return { ok: false, reason: "no-soil", facts: { target: self } };
+      if (self.isSlotFull(PLANT_SLOT)) {
+        return { ok: false, reason: "slot-occupied", facts: { target: self } };
+      }
+      const growsInto = seed.getGrowsIntoPath();
+      if (!growsInto) return { ok: false, reason: "seed-names-no-plant", facts: { seed } };
+      return {
+        ok: true,
+        // ⭐ Zero: pressed in now, inside the command frame.
+        durationMs: 0,
+        effortW: 0,
+        facts: { seed, part: null, drill: null },
+        onComplete: async () => {
+          const plant = await StuffApi.clone<Stuff>(growsInto);
+          // Gate on `fitsSlot` even though a seedling fits anything today — so a
+          // future large-seeded species cannot be planted into a thimble.
+          if (!MixinApi.isSlottable(plant) || !plant.fitsSlot(self, PLANT_SLOT)) {
+            void StuffApi.destruct(plant);
+            return { ok: false, reason: "pot-too-small", facts: { target: self } };
+          }
+          // Contents FIRST, then the slot — see the interface.
+          if (MixinApi.isContainable(plant) && MixinApi.isContainer(self)) {
+            ContainmentApi.move(plant, self);
+          }
+          // Settle the ground's water window before the arrival counts toward
+          // its demand — a bed that sat empty must not be billed for the gap.
+          self.reconcileSoil();
+          self.occupy(plant, PLANT_SLOT);
+          void StuffApi.destruct(seed);
+          // The plant is its own host; a failed capture must not fail the verb.
+          try {
+            await PersistableApi.captureHostOf(plant);
+          } catch (err) {
+            console.warn("Cultivable: capture after planting failed:", err);
+          }
+          // Credit the plant's own Discipline (`horticulture` unless the row
+          // says otherwise — an acorn planted as a standard is `silviculture`).
+          // Pressing a seed into soil is the entry act and reads `trivial`,
+          // which is the honest grade AND self-limiting: the estimator treats
+          // a trivial success as unsurprising, so no amount of planting
+          // substitutes for keeping something alive.
+          try {
+            if (MixinApi.isAdvancing(by) && MixinApi.isGrowing(plant)) {
+              await by.creditDeed({
+                discipline: plant.getDiscipline(),
+                difficulty: "trivial",
+                outcome: "success",
+              });
+            }
+          } catch (err) {
+            console.warn("Cultivable: recording the deed failed:", err);
+          }
+          return { ok: true, facts: { kind: "potted", plant, target: self } };
+        },
+      };
+    }
 
     /**
      * Is this ground, or a container of soil?

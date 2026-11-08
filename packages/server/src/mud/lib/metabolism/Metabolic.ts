@@ -35,8 +35,8 @@ import type { CommandContributions } from "../../api/command";
 import type { Stuff } from "../stuff/Stuff";
 import { Quantity } from "../quantity";
 import type { Unit } from "../quantity";
-import type { Reserved } from "../reserve";
-import { Reserve } from "../reserve";
+import type { Reserved } from "../reserve/Reserved";
+import { Reserve } from "../reserve/Reserved";
 import type { Vitals } from "../vitals/Vitals";
 import type { Organism } from "../species/Organism";
 import type { Posed } from "../character/Posed";
@@ -60,9 +60,6 @@ import { MaterialApi } from '../../api/material';
 import { CraftingApi } from '../../api/crafting';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
-import { BulkableApi } from '../../api/bulk';
-import { Freshness } from '../material/Freshness';
-import { UTENSIL_KINDS, type UtensilKind } from '../bulk/Utensil';
 
 /* ─────────────────────────── toxin model (types) ─────────────────────────── */
 //
@@ -198,6 +195,13 @@ interface NutrientRoute {
  * playtest. Times are GAME-seconds / game-minutes.
  */
 export const METABOLIC_DEFAULTS = {
+  /**
+   * Where a mouthful burns. ⚠ A body plan has no mouth part yet, so it sits at
+   * the head; one constant, for the day mouths are real anatomy.
+   */
+  MOUTH_SITE: 'body.head',
+  /** The mouthful a caustic's burn is measured against. */
+  SIP_LITRES: 0.03,
   /** Integration slice (game-seconds). One game-minute. */
   STEP_SEC: 60,
   /** Max fixed slices before collapsing the remainder into one step. */
@@ -418,27 +422,6 @@ export interface CoupledConsumer {
   readonly hydrationCost: number;
 }
 
-/**
- * What `eat` did — or why not. ⭐ The act is the EATER's (review: a
- * controller does input and output, and an alternate `eat` controller — or
- * a brain feeding an animal — must get the same behaviour); the verb only
- * words this.
- */
-export type EatOutcome =
-  | { ok: false; reason: 'not-edible' | 'too-full' | 'airway' }
-  | {
-      ok: true;
-      /** Out of a dish (emptied, kept) or a whole item (eaten, gone). */
-      fromDish: boolean;
-      /** What was eaten, as the sentence wants it (a blend carries its own
-       * article; a material's does not). */
-      what: string;
-      /** The food's presentation, captured before a whole item is gone. */
-      foodName: string;
-      /** The clean utensil used and dirtied, or `null` — the fingers. */
-      utensil: UtensilKind | null;
-    };
-
 export interface Metabolic {
   /**
    * ⭐ Can this body take anything in by mouth now (underwater D29 seam
@@ -446,13 +429,8 @@ export interface Metabolic {
    * — refused before anything is moved, in the body's words.
    */
   canIngest(): { ok: true } | { ok: false; reason: 'airway'; line: string };
-  /**
-   * ⭐ Eat `food`: a whole edible item (all-or-nothing — eaten and gone), or
-   * a portion out of a served dish (the dish emptied, not destroyed). The
-   * first clean utensil among `utensils` is used and dirtied; eating leaves
-   * crumbs on the floor, and grease on bare fingers (cleanliness D6).
-   */
-  eat(food: Stuff, utensils?: readonly Stuff[]): Promise<EatOutcome>;
+  /** The materials in a mouthful that burn on the way down. */
+  corrosivesIn(material: Material, payload: BulkPayload | null): Material[];
   /** The live level a toxin's severity bands are read against (BAC for a
    * `storeRaw` toxin, the raw burden otherwise). */
   toxinLevelFor(type: string): number;
@@ -541,86 +519,6 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = "MetabolicMixin";
 
     /**
-     * The first clean utensil offered — in kind preference order, the
-     * caller's order within a kind — used (dirtied) on the way out.
-     * ⭐ Cutlery READS, it never gates: none is a perfectly good way to eat.
-     */
-    protected claimUtensil(offered: readonly Stuff[]): UtensilKind | null {
-      for (const kind of UTENSIL_KINDS) {
-        for (const candidate of offered) {
-          if (!MixinApi.isCutlery(candidate)) continue;
-          if (candidate.getUtensilKind() !== kind) continue;
-          if (!MixinApi.isServiceable(candidate)) continue;
-          if (!candidate.isClaimable()) continue;
-          candidate.markUsed();
-          return kind;
-        }
-      }
-      return null;
-    }
-
-    /** ⭐ (cleanliness D6) Crumbs on the floor; with the fingers, grease too. */
-    protected leaveCrumbs(withCutlery: boolean): void {
-      const self = this as unknown as Stuff;
-      if (!MixinApi.isHygienic(self)) return;
-      self.soilFrom(
-        withCutlery
-          ? [{ kind: 'crumbs', amount: 0.05, where: 'floor' }]
-          : [
-              { kind: 'crumbs', amount: 0.05, where: 'floor' },
-              { kind: 'grease', amount: 0.03, where: 'hands' },
-            ],
-      );
-    }
-
-    public async eat(food: Stuff, utensils: readonly Stuff[] = []): Promise<EatOutcome> {
-      const self = this as unknown as Stuff;
-      // ⭐ Under the water nothing goes in by mouth but the water (D29).
-      if (!this.canIngest().ok) return { ok: false, reason: 'airway' };
-      const portionL = METABOLIC_DEFAULTS.EAT_PORTION_LITRES;
-      // ⭐ A cooked meal is a bulk blend in a claimed dish: serve from the
-      // slot rather than swallowing the crockery, and EMPTY the dish — a
-      // bowl you have finished is a bowl to wash.
-      if (MixinApi.isBulkable(food) && food.holdsFood()) {
-        const slot = BulkableApi.slotFor(food, undefined);
-        if (!slot) return { ok: false, reason: 'not-edible' };
-        const material = slot.getMaterial();
-        const payload = new Freshness(slot).ingestPayload();
-        const what = CraftingApi.blendAppearance(payload, material) || 'it';
-        const portion = Math.min(portionL, slot.getAmount().rawValue());
-        const accepted = BulkableApi.ingestSolid(
-          self,
-          material,
-          portion,
-          payload,
-          slot.getMassKg(),
-        );
-        if (accepted < portion - 1e-9) return { ok: false, reason: 'too-full' };
-        const utensil = this.claimUtensil(utensils);
-        BulkableApi.transfer(slot, null, { kind: 'measure', litres: accepted, mode: 'lenient' });
-        this.leaveCrumbs(utensil !== null);
-        return { ok: true, fromDish: true, what, foodName: food.getPresentation(), utensil };
-      }
-      const material = MixinApi.isTangible(food) ? food.getMaterial() : null;
-      if (!material || material.getEdibility() !== true) {
-        return { ok: false, reason: 'not-edible' };
-      }
-      // The food synthesizes its own payload (`Fresh.ingestPayload`) — the
-      // same answer for every mouth.
-      const payload = MixinApi.isFresh(food) ? food.ingestPayload() : null;
-      const hostKg = MixinApi.isTangible(food) ? food.getMass().rawValue() : undefined;
-      const accepted = BulkableApi.ingestSolid(self, material, portionL, payload, hostKg);
-      // A discrete item is all-or-nothing: only a full portion consumes it.
-      if (accepted < portionL - 1e-9) return { ok: false, reason: 'too-full' };
-      const what = material.getAppearance() || material.getName() || 'it';
-      const utensil = this.claimUtensil(utensils);
-      this.leaveCrumbs(utensil !== null);
-      const foodName = food.getPresentation();
-      await StuffApi.destruct(food);
-      return { ok: true, fromDish: false, what, foodName, utensil };
-    }
-
-    /**
      * ⭐⭐ **`eat` and `vomit` live on the BODY**, because a body with a
      * digestion buffer is exactly what can do either. `drink`/`sip` are
      * the vessel's (you drink from a thing), and eating is the same act
@@ -638,7 +536,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
      * would have caught it.
      */
     static commandContributions: CommandContributions = {
-      self: ["platform/cmd/bulk/eat.yaml", "platform/cmd/bulk/vomit.yaml"],
+      self: ["platform/cmd/bulk/vomit.yaml"],
     };
 
     static fieldMeta: FieldMeta = {
@@ -1677,11 +1575,57 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (tox.amount <= 0) continue;
         this.recordToxinMaker(tox.type, payload?.maker);
       }
+      // ⭐ A caustic burns on the way down, by the same path for every mouth:
+      // `taste`, `eat`, `drink` and `sip` all arrive here. It is already
+      // inside, so no covering sheds it.
+      for (const caustic of this.corrosivesIn(material, payload)) {
+        caustic.corrodeOnContact(this as unknown as Stuff, {
+          site: METABOLIC_DEFAULTS.MOUTH_SITE,
+          energy: Math.min(1, litres / METABOLIC_DEFAULTS.SIP_LITRES),
+          bare: true,
+        });
+      }
+      this.noteIllnessFrom(material, payload);
       // ⚠⚠ **And the living half.** A toxin is a dose that routes into a
       // pool; a pathogen is a population that has to be handed to the body
       // as something that GROWS. Same seam, one line apart, because this
       // is the one place food becomes body.
       this.exposeToPathogens(payload);
+    }
+
+    public corrosivesIn(material: Material, payload: BulkPayload | null): Material[] {
+      const makeup = payload?.makeup ?? [];
+      const parts = makeup.length > 0
+        ? makeup
+            .map((p) => StuffApi.findByTemplatePath<Material>(p.materialPath))
+            .filter((m): m is Material => !!m)
+        : [material];
+      return parts.filter((m) =>
+        m.getCorrosiveTo().some((t) => t === 'tissue' || t === 'protein'),
+      );
+    }
+
+    /**
+     * ⭐ Food poisoning leaves an aversion that reads once symptoms arrive: a
+     * load past its infectious dose, or a poison the food had already made.
+     * Written here because this is the moment the dose is known to hurt.
+     */
+    private noteIllnessFrom(material: Material, payload: BulkPayload | null): void {
+      const self = this as unknown as Stuff;
+      if (!payload || !MixinApi.isPalate(self)) return;
+      const now = StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)
+        ? WorldClockApi.getNow().rawValue()
+        : 0;
+      const key = payload.recipeId ?? material.getTemplatePath() ?? '';
+      if (!key) return;
+      if ((payload.formedToxins ?? []).some((t) => t.amount > 0)) {
+        self.recordAversion(key, now);
+      }
+      for (const [organism, load] of Object.entries(payload.pathogens ?? {})) {
+        const behavior = MaterialApi.pathogenBehaviorOf(organism);
+        if (!behavior || behavior.reach !== 'infect' || load < behavior.infectiousDose) continue;
+        self.recordAversion(key, now + (behavior.incubationSec ?? 0));
+      }
     }
 
     /**

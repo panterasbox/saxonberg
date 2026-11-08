@@ -225,7 +225,7 @@ describe('a card lives on one axis: pinned or not', () => {
     );
     expect(() => bare.pushCard('who')).not.toThrow();
     expect(bare.pushCard('who')).toBeNull();
-    expect(() => bare.applyCardArrangement(['who', 'news'])).not.toThrow();
+    expect(() => bare.applyCardArrangement([{ cardId: 'who' }, { cardId: 'news' }])).not.toThrow();
     expect(() => CardApi._sweepNowForTesting(FALLBACK)).not.toThrow();
   });
 
@@ -242,7 +242,7 @@ describe('a card lives on one axis: pinned or not', () => {
     const h = await makeHarness();
     openWho(h);
     const { opened, closed } = h.interactive.applyCardArrangement([
-      'news',
+      { cardId: 'news' },
     ]);
     expect(closed).toBe(1);
     expect(opened).toBe(1);
@@ -257,7 +257,7 @@ describe('a card lives on one axis: pinned or not', () => {
     const before = h.interactive.listCards()[0]!.instanceId;
 
     const { opened, closed } = h.interactive.applyCardArrangement([
-      'who',
+      { cardId: 'who' },
     ]);
     expect({ opened, closed }).toEqual({ opened: 0, closed: 0 });
     const after = h.interactive.listCards()[0]!;
@@ -281,7 +281,7 @@ describe('a card lives on one axis: pinned or not', () => {
       'subject',
     );
     const { opened, closed } = h.interactive.applyCardArrangement([
-      'subject',
+      { cardId: 'subject' },
     ]);
     expect({ opened, closed }).toEqual({ opened: 0, closed: 0 });
     // The subject card is still there, untouched by the rearrange.

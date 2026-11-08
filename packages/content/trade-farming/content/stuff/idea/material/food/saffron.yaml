@@ -1,8 +1,10 @@
 # Saffron — ⭐ the most expensive agricultural product by weight in the
 # world, and the reason is entirely LABOUR: roughly 150 flowers per gram,
 # every stigma pulled by hand.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/saffron, strength: 800 }]
+  tastes: [{ type: bitter, amount: 0.1 }]
   name: saffron
   keywords: [threads, saffron]
   appearance: fine red threads with an orange bloom on them

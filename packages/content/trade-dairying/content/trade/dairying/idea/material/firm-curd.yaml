@@ -3,8 +3,10 @@
 # that keeps for months (D9b); unweighted, it stays wetter and keeps
 # less. Nothing enumerates "hard cheese keeps" — the press drove the water
 # out.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/cheese, strength: 200 }]
+  tastes: [{ type: sour, amount: 3 }, { type: salty, amount: 2 }]
   name: "firm curd"
   keywords: [curd, "firm curd"]
   appearance: white, springy and close

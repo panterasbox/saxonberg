@@ -40,7 +40,7 @@ function makeModel(
 
 function stubCommand(verb: string): CommandDefinition {
   return CommandDefinition.fromYaml(
-    `verbs: [${verb}]\ncontroller: NoopController\ndescription: stub\n`,
+    `verbs: [${verb}]\ncontroller: NoopController\ndescription: stub\nopens_card: settings\n`,
     "<test>"
   );
 }

@@ -51,7 +51,7 @@ import { ScriptBuiltins } from "./builtins";
 import { Coroutine } from "./Coroutine";
 import type { Script, Pipeline, Command, Arg } from "./ast";
 import type { Stuff } from "../stuff/Stuff";
-import type { CommandGiver } from "../command/CommandGiver";
+import type { Affordance, CommandGiver } from "../command/CommandGiver";
 import type { CommandDefinition } from "../command/CommandDefinition";
 import type { Note } from "@saxonberg/types";
 import type { ScriptAbortReason } from "./AbortReason";
@@ -76,6 +76,8 @@ export type Effect =
       command: CommandDefinition;
       model: CommandModel;
       prep: Record<string, string>;
+      /** The `verb@source` source the line named, when it named one. */
+      source?: Stuff;
     }
   | { kind: "slice" }
   | { kind: "suspend"; request: SuspendRequest };
@@ -98,11 +100,20 @@ export interface ResourceLimits {
   maxDepth: number;
 }
 
+/** One bound script line — a view, its model, and the `@` source if named. */
+export interface ScriptBinding {
+  command: CommandDefinition;
+  model: CommandModel;
+  prep: Record<string, string>;
+  source?: Stuff;
+}
+
 /** Runs a bound command's resolve→validate→execute tail; returns its ctx. */
 export type DispatchFn = (
   command: CommandDefinition,
   model: CommandModel,
   prep: Record<string, string>,
+  source?: Stuff,
 ) => Promise<CommandContext>;
 
 /** Yields the event loop for one macrotask (the preemption slice). */
@@ -298,17 +309,21 @@ export class Interpreter {
     if (this.defs.has(command.word)) {
       return yield* this.invokeDef(command, scope);
     }
-    const bound = this.bindCommand(command, scope);
-    if (bound === null) return undefined; // unknown verb / bind shape — noted
-    if (++this.dispatches > this.limits.maxDispatch) {
-      throw new ResourceLimitError("dispatch");
+    const bindings = this.bindCommand(command, scope);
+    if (bindings === null) return undefined; // unknown verb / bind shape — noted
+    // ⭐ One binding, or one per source of a plural `verb@source` batch.
+    for (const bound of bindings) {
+      if (++this.dispatches > this.limits.maxDispatch) {
+        throw new ResourceLimitError("dispatch");
+      }
+      yield {
+        kind: "dispatch",
+        command: bound.command,
+        model: bound.model,
+        prep: bound.prep,
+        ...(bound.source ? { source: bound.source } : {}),
+      };
     }
-    yield {
-      kind: "dispatch",
-      command: bound.command,
-      model: bound.model,
-      prep: bound.prep,
-    };
     return undefined; // the command value channel is deferred with piping
   }
 
@@ -605,7 +620,7 @@ export class Interpreter {
   private bindCommand(
     command: Command,
     scope: Scope,
-  ): { command: CommandDefinition; model: CommandModel; prep: Record<string, string> } | null {
+  ): ScriptBinding[] | null {
     const rendered = this.renderCommandLine(command, scope);
     if (rendered === null) return null; // render note already added
 
@@ -632,10 +647,13 @@ export class Interpreter {
     const location = MixinApi.isContainable(this.actor)
       ? this.actor.getContainer()
       : null;
-    const matches = this.actor
-      .getAffordances()
-      .filter((a) => a.command.hasVerb(parsed.verb));
-    if (matches.length === 0) {
+    // ⭐ The dispatcher's own matcher (verb filter + `verb@source`).
+    const matched = this.actor.matchAffordances(parsed);
+    if (!matched.ok) {
+      this.note(matched.note);
+      return null;
+    }
+    if (matched.matches.length === 0) {
       this.note({
         kind: "command-rejected",
         reason: "unknown-verb",
@@ -644,11 +662,53 @@ export class Interpreter {
       return null;
     }
 
+    // Which sources: none (unscoped), one, a batch — or a NAME matching
+    // several, which a script cannot be asked about: it fails closed.
+    let sources: (Stuff | undefined)[] = [undefined];
+    if (matched.scope) {
+      const { sources: named, how } = matched.scope;
+      const q = how.quantity?.value;
+      if (named.length === 1 || how.isSet || q?.kind === "all") {
+        sources = named;
+      } else if (q?.kind === "count") {
+        sources = named.slice(0, Math.max(1, q.n));
+      } else {
+        this.note({
+          kind: "command-rejected",
+          reason: "needs-input",
+          detail: `${parsed.verb} needs a choice of source ('${matched.scope.raw}' could be any of ${named.length}) when run from a script`,
+        });
+        return null;
+      }
+    }
+
+    const out: ScriptBinding[] = [];
+    for (const source of sources) {
+      const bound = this.bindFrom(parsed, matched.matches, source, location);
+      if (bound === null) return null; // noted
+      out.push(bound);
+    }
+    return out;
+  }
+
+  /** Bind one line against the views `source` affords (all, unscoped). */
+  private bindFrom(
+    parsed: ReturnType<typeof CommandLineApi.parsePipeline>["commands"][0],
+    all: Affordance[],
+    source: Stuff | undefined,
+    location: Parameters<typeof CommandApi.assemble>[2]["location"],
+  ): ScriptBinding | null {
+    const actor = this.actor as unknown as Stuff;
+    const matches = source
+      ? all.filter((a) => a.source === source || (source === actor && a.bucket === "self"))
+      : all;
     for (const affordance of matches) {
-      const built = CommandApi.assemble(parsed, affordance.command, {
-        commandGiver: this.actor,
-        location,
-      });
+      const built = CommandApi.assemble(
+        parsed,
+        affordance.command,
+        { commandGiver: this.actor, location },
+        source ? { scopeSource: source } : {},
+      );
       if ("error" in built) {
         if (built.error === "shape") continue; // fall through to next match
         this.note({
@@ -658,17 +718,19 @@ export class Interpreter {
         });
         return null;
       }
-      return {
+      const binding: ScriptBinding = {
         command: affordance.command,
         model: built.model,
         prep: built.prep ?? {},
       };
+      if (source) binding.source = source;
+      return binding;
     }
 
     this.note({
       kind: "command-rejected",
       reason: "shape-fall-through",
-      detail: parsed.verb,
+      detail: [...new Set(matches.map((a) => a.command.getUsage()))].join(" · ") || parsed.verb,
     });
     return null;
   }

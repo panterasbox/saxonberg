@@ -5,7 +5,7 @@
  * In one sentence: *walk up to the silk house and read a tray in words;
  * buy leaf there and eggs, a tray, a reel and a brush in town; set a lot
  * on a tray and feed it; watch the house take its crop off, stifle it and
- * set it on the counter; buy cocoons and reel them at the mill's basin and
+ * set it on the counter; buy cocoons and `unwind` them at the mill's basin and
  * over a pot at home; throw the raw silk; buy the mill's silk cloth at the
  * general store — woven by its reeler, out of the house's cocoons — boil it
  * white in a copper, and dye it; see fishing's `reel` unchanged.*
@@ -53,6 +53,8 @@ import {
   engagementIdOf,
   isOwnedTestWorld,
   advanceWorldClock,
+  worldClockNow,
+  hand,
 } from '../src/harness';
 
 /**
@@ -198,7 +200,12 @@ suite.skipIf(!isOwnedTestWorld())('⭐ 0. the clock to morning — the house and
     // ⭐ Found by the first run: every seat in this chain is on shift
     // 05–19, so at game-time 0 the loft and the basin are EMPTY — no hand,
     // no reeler, nothing to drive. The cast are offstage, which is right.
-    await advance('10 hours');
+    // ⚠ To ten, not by ten hours: the file runs on a world another file left at
+    // any hour (W11: step 1's keeper was offstage after harbors, and read as a defect).
+    const now = await worldClockNow();
+    const into = ((now % 86_400) + 86_400) % 86_400;
+    const wait = into < 36_000 ? 36_000 - into : 86_400 - into + 36_000;
+    await advance(`${Math.max(1, Math.ceil(wait / 60))} minutes`);
   }, 300_000);
 });
 
@@ -359,9 +366,9 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the house takes its crop off, s
   }, 4_200_000);
 });
 
-/* ───────────── 8–9. reel, and throw ───────────── */
+/* ───────────── 8–9. unwind, and throw ───────────── */
 
-suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. reel at the basin, reel over a pot, throw the silk', () => {
+suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. unwind at the basin, unwind over a pot, throw the silk', () => {
   it('⭐⭐ AC 7 — at the mill basin: a skein of raw silk, its fineness in words; pupae left', async () => {
     const s = await at(MILL);
     try {
@@ -369,7 +376,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. reel at the basin, reel over a 
       await say(s, 'stoke charcoal into brazier');
       const lit = await say(s, 'light brazier');
       expect(refusedFor(lit) ?? 'ok', 'the brazier under the basin lights').toMatch(/ok|already/);
-      const started = await say(s, 'reel cocoons --count 6 with basin');
+      const started = await say(s, 'unwind cocoons --count 6 with basin');
       expect(refusedFor(started), 'the basin reels stifled cocoons over a lit fire').toBeNull();
       await settle(s, started);
       const kit = await names(s, 'me:i');
@@ -381,7 +388,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. reel at the basin, reel over a 
       // A second reeling at the same basin and count: skeins reeled alike
       // stack (filament count and evenness are stack identity), and `spin`
       // wants two in one stack.
-      const again = await say(s, 'reel cocoons --count 6 with basin');
+      const again = await say(s, 'unwind cocoons --count 6 with basin');
       expect(refusedFor(again), 'a second reeling at the basin').toBeNull();
       await settle(s, again);
       // ⭐ AC 8 — throw the two alike skeins here, at the mill's wheel,
@@ -403,7 +410,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. reel at the basin, reel over a 
       await say(s, 'stoke log into oven');
       const lit = await say(s, 'light oven');
       expect(refusedFor(lit) ?? 'ok', 'the cookhouse oven lights').toMatch(/ok|already/);
-      const started = await say(s, 'reel cocoons --count 10 with reel');
+      const started = await say(s, 'unwind cocoons --count 10 with reel');
       expect(refusedFor(started), 'a hand reel over a lit oven reels').toBeNull();
       await settle(s, started);
       const kit = await names(s, 'me:i');
@@ -503,6 +510,10 @@ suite('⭐ 19. fishing’s `reel` is unchanged', () => {
   it('⭐ AC 19 — `reel` with no line out says so, as it always did', async () => {
     const s = await at(MILL);
     try {
+      // ⭐ With a rod in hand: `reel` is fishing's alone now (controllers-are-io
+      // W6a — silk's act is `unwind`), afforded by the rod, so at the mill
+      // without one it is no verb at all. With one and no line out, it says so.
+      await hand(s, '/trade/fishing/thing/rod');
       const r = await say(s, 'reel');
       expect(refusedFor(r)).toBe('no-line');
     } finally {

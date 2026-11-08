@@ -14,8 +14,9 @@
 # `/trade/farming`, because marl is a fact about the ground and not about
 # the trade: the mine digs through it and the potter has an opinion about
 # it, whether or not anybody is farming.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/earth, strength: 10 }]
   name: marl
   keywords: [marl]
   density: 1900

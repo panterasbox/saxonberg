@@ -14,8 +14,10 @@
 # tagged `bread` must be on a class that can STALE. A loaf on bare
 # `Provision` would spoil and never go hard — silently, which is exactly
 # the failure `lint:perishable` cannot see, because such a row passes it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/bread, strength: 500 }]
+  tastes: [{ type: sweet, amount: 20 }, { type: salty, amount: 10 }]
   name: bread
   keywords: [bread, loaf, crumb]
   appearance: risen and browned, hollow when you knock it

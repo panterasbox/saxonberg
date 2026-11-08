@@ -17,6 +17,7 @@
 # build a fired pot is the potter's, made by `shape`.)
 class: /platform/idea/species/Species
 data:
+  smells: [{ aroma: /base-library/aromas/bee, strength: 3 }]
   binomial: Apis mellifera
   commonNames: ["bee", "honeybee", "bees"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
@@ -71,4 +72,4 @@ data:
   longDescription: >-
     A honeybee, furred and unbothered, working over a clover head with
     its back legs already loaded orange.
-  nameBankKeys: []
+  nameBanks: []

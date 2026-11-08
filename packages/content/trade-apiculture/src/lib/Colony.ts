@@ -623,11 +623,13 @@ export function ColonyMixin<TBase extends MixinConstructor<ColonyBase>>(
         const asColony = swarm as unknown as {
           strength?: number;
           hasQueen?: boolean;
-          setHandling?(v: number): void;
         };
         asColony.strength = strength;
         asColony.hasQueen = true; // the old queen goes with them
-        asColony.setHandling?.(handling);
+        // ⭐ The swarm takes the colony's temperament (controllers-are-io
+        // D7a: this probed a `setHandling` nobody defined, so every swarm
+        // left at the default; HandlingMixin now has the field's setter).
+        if (MixinApi.isHandling(swarm)) swarm.setHandling(handling);
         ContainmentApi.move(
           swarm as Stuff & Containable,
           env as Stuff & Container,

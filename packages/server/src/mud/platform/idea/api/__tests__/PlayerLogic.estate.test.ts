@@ -168,3 +168,25 @@ describe('the touch at any other moment', () => {
     expect(await PlayerApi.escheat('/test/estate/agent/keeper')).toBe(0);
   });
 });
+
+describe('storedNameOf: the name of someone who is not here', () => {
+  const record = (state: Record<string, unknown>): PersistedRecord => {
+    const r = new PersistedRecord();
+    r.scope = ALICE;
+    (r as unknown as { state: unknown }).state = state;
+    return r;
+  };
+
+  it('reads it off their record, by their identity path', async () => {
+    const find = vi.mocked(PersistedRecord.findByScope);
+    find.mockResolvedValueOnce([record({ NamedMixin: { fields: { name: 'Odile Marsh' } } })]);
+    expect(await PlayerApi.storedNameOf('alice')).toBe('Odile Marsh');
+    expect(find).toHaveBeenLastCalledWith(ALICE);
+  });
+
+  it('is null with no record, and with a record that names nobody', async () => {
+    expect(await PlayerApi.storedNameOf('nobody')).toBeNull();
+    vi.mocked(PersistedRecord.findByScope).mockResolvedValueOnce([record({})]);
+    expect(await PlayerApi.storedNameOf('alice')).toBeNull();
+  });
+});

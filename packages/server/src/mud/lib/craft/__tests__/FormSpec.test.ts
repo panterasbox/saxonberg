@@ -55,11 +55,12 @@ describe('the form grammar', () => {
     expect(f.describe()).toBe('squat open vessel holding 3.5 pints');
   });
 
-  it('⚠ a word it does not know is REFUSED, naming the classes', () => {
+  it('⚠ a word it does not know is REFUSED, carrying the words it knows', () => {
+    // The reply naming the classes is `shape`'s words (D4); the facts carry the form and the list.
     const r = g.parse('teapot');
     expect(r).not.toBeInstanceOf(ParsedForm);
-    expect((r as { reason: string }).reason).toBe('unknown-form');
-    expect((r as { line: string }).line).toMatch(/open vessel.*closed vessel.*block.*cone/);
+    expect(r).toMatchObject({ ok: false, reason: 'unknown-form', facts: { form: 'teapot' } });
+    if (!(r instanceof ParsedForm) && r.reason === 'unknown-form') expect(r.facts.named).toContain('brick');
   });
 
   it('a class with no size is asked how big', () => {

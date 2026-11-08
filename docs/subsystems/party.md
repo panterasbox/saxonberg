@@ -200,8 +200,11 @@ cycle.
 `form` · `invite` · `accept` · `enlist` (the merc-hire path, no accept
 handshake) · `leave` · `kick` · `disband` · `transfer` · `setSide` ·
 `muster` · `standDown` · `partiesOf` · `activePartyOf`. The `party` verb
-(`cmd/social/party.yaml` + `PartyController`, afforded by
-`PartyMemberMixin`) is a thin translator over them.
+(`cmd/social/party.yaml`, afforded by `PartyMemberMixin`) is a thin
+translator over them: one controller per subcommand,
+`Party<Sub>Controller` over `PartyControllerBase` (the member narrowing,
+`refOf`, the reason table; bare `party` is `PartyShowController` —
+controllers-are-io D9).
 
 ## Cross-references
 

@@ -68,7 +68,7 @@ const NORTH_SHORE = '/world/north/shore';
 const BROW = '/world/terminus/estuary/headland/brow';
 /** A vessel the founder may mint: `clone` is gated on held extents, and the commons' pail is no extent of the founder's. */
 const SKIN = '/world/terminus/general-store/thing/waterskin';
-/** The tower as `scan horizon` features it, and its own description. */
+/** The tower as `query horizon` features it, and its own description. */
 const FEATURED_TOWER = /You can see the terminal clock tower/;
 const TOWER_SAYS = /square brick shaft/;
 const LIGHT = /light on Gannet Rock/;
@@ -102,7 +102,7 @@ async function sail(s: Session, hours: string): Promise<string> {
 }
 
 /**
- * `scan horizon` until `want` is in view, waiting out the weather between
+ * `query horizon` until `want` is in view, waiting out the weather between
  * looks (fog and rain shorten sight). The craft must be at anchor or
  * ashore — waiting moves nothing else.
  */
@@ -111,7 +111,7 @@ async function sail(s: Session, hours: string): Promise<string> {
 async function horizonUntil(s: Session, want: RegExp, tries = 9): Promise<string> {
   let said = '';
   for (let i = 0; i < tries; i++) {
-    said = await look(s, 'scan horizon');
+    said = await look(s, 'query horizon');
     if (want.test(said)) return said;
     // A sea or a sky nobody had read yet answers "not yet" once and starts
     // its read — give that a moment of real time before spending game time.
@@ -232,7 +232,7 @@ suite('23 · 24 · the horizon ashore', () => {
     }
     const inside = await Session.open(LANDSMAN, { startLocation: MILL });
     try {
-      expect(await look(inside, 'scan horizon')).toMatch(/You see nothing there/);
+      expect(await look(inside, 'query horizon')).toMatch(/You see nothing there/);
     } finally {
       inside.close();
     }
@@ -283,7 +283,7 @@ suite('4 · 5 · aboard, a course, the reckoning', () => {
     // ⭐ Only her master takes the helm: the founder holds the
     // office that appoints her company, and appoints himself to command her.
     // (Not asserted: a re-run finds him already appointed.)
-    await me.cmd(`appoint me to master at ${OUTFIT}`);
+    await me.cmd(`house appoint me to master at ${OUTFIT}`);
     const plot = squash(await me.prose('course'));
     expect(plot).toMatch(/not under way/);
     expect(plot).toMatch(/by reckoning/);
@@ -376,7 +376,7 @@ suite('27 · 28 · 29 · 30 · looking at many things', () => {
     expect(second).not.toMatch(/You see .*chart.*chart/);
     // `scan` is the same act in the world's words, and `query --ledger`
     // groups a holder's things as `inventory` does.
-    expect(await look(me, 'scan all greywater')).toMatch(/You see .*chart.*chart/);
+    expect(await look(me, 'query all greywater')).toMatch(/You see .*chart.*chart/);
     expect(squash(await me.prose('query --ledger me:i'))).toMatch(/You are (wearing|holding|carrying): /);
   }
 });
@@ -491,8 +491,8 @@ suite('6 · 7 · 8 · finding out where you are', () => {
 });
 
 suite('19 · 20 · 25 · sight at sea', () => {
-  it('19 · `scan horizon` at the Rock shows the light; `look horizon:light` reads it; `hail` it', async () => {
-    const said = await look(me, 'scan horizon');
+  it('19 · `query horizon` at the Rock shows the light; `look horizon:light` reads it; `hail` it', async () => {
+    const said = await look(me, 'query horizon');
     expect(said).toMatch(/You can see the light on Gannet Rock/);
     expect(await look(me, 'look horizon:light')).toMatch(/white tower on a black rock/);
     const r = await me.cmd('hail light');
@@ -503,7 +503,7 @@ suite('19 · 20 · 25 · sight at sea', () => {
   it('19 · ⭐ somebody below decks sees nothing of it', async () => {
     const s = await Session.open(LANDSMAN, { startLocation: HOLD });
     try {
-      expect(await look(s, 'scan horizon')).toMatch(/You see nothing there/);
+      expect(await look(s, 'query horizon')).toMatch(/You see nothing there/);
     } finally {
       s.close();
     }
@@ -519,7 +519,7 @@ suite('19 · 20 · 25 · sight at sea', () => {
     expectOk(await me.cmd('course open sea'));
     for (let i = 0; i < 24; i++) {
       await sail(me, '10 minutes');
-      if (!LIGHT.test(await look(me, 'scan horizon'))) break;
+      if (!LIGHT.test(await look(me, 'query horizon'))) break;
     }
     expectOk(await me.cmd('anchor'));
     const w = await me.cmd('watch horizon');
@@ -538,7 +538,7 @@ suite('19 · 20 · 25 · sight at sea', () => {
     const quiet = squash(await me.listen(35_000));
     expect(quiet).not.toMatch(LIGHT);
     // ⭐ By what she IS, not her name: nobody aboard has been introduced.
-    expectOk(await me.cmd(`appoint deckhand to lookout at ${OUTFIT}`));
+    expectOk(await me.cmd(`house appoint deckhand to lookout at ${OUTFIT}`));
     // She rides the agents' one deliberation beat (20 s by day, two
     // minutes by night): take up the watch on one, call on the next.
     let called = '';
@@ -556,7 +556,7 @@ suite('19 · 20 · 25 · sight at sea', () => {
     let seen = '';
     for (let i = 0; i < 24 && !LIGHT.test(seen); i++) {
       await sail(me, '10 minutes');
-      seen = await look(me, 'scan horizon');
+      seen = await look(me, 'query horizon');
     }
     expect(seen).toMatch(LIGHT);
     // `horizon:light`, explicitly: `measure` tries `$focus` first, and the focus

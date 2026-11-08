@@ -12,6 +12,7 @@ import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { Terms } from "../Terms";
 import BankCounter from "../../../platform/thing/BankCounter";
+import { BankingLogic } from "../../../platform/idea/api/BankingLogic";
 import Coin from "../../../platform/thing/Coin";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../config/AppSettings";
@@ -233,5 +234,26 @@ describe("Fees + corpo royalty — conserved, split to the treasury", () => {
         BankingApi.balanceOf(treasury).minor +
         BankingApi.balanceOf(branch).minor,
     ).toBe(100);
+  });
+});
+
+describe("the bank face is anchored on the counter, not its marker (D25)", () => {
+  /** Declares the marker and composes nothing. The spoof the gate refuses. */
+  class ForgedBank extends Idea {
+    static _mixinName = "BankMixin";
+  }
+
+  it("refuses a class that merely declares `BankMixin`, acting as itself", async () => {
+    const logic = StuffApi.singletonSync(
+      "/platform/idea/api/banking",
+      () => new BankingLogic(),
+    );
+    const forged = makeStuffAtPath(() => new ForgedBank(), "/forged/bank");
+    // As itself, and about itself: the self-subject alone would admit it.
+    await expect(
+      withRootContext(forged, "deposit", async () =>
+        logic.deposit(forged as never, {} as never),
+      ),
+    ).rejects.toThrow(/BankCounter/);
   });
 });

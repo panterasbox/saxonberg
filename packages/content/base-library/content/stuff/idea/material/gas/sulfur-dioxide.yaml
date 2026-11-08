@@ -2,8 +2,9 @@
 # bleacher's fume for wool, which sun yellows and lye destroys. In a shut
 # room it builds until it poisons; a door or a window clears it. ⭐ The
 # `toxicity` is read as burden per breath at unit fraction (smoke's rule).
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/sulfur, strength: 20000 }]
   name: sulfur dioxide
   keywords: [sulfur dioxide, fumes, fume]
   appearance: a sharp, choking fume

@@ -2,8 +2,9 @@
 # a drink and a pig-feed. ⚠ NOT tagged `milk`: a setting pan does not set
 # it again and a vat does not take it for cheese (a skim cheese is real,
 # and is a row for whoever wants one).
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/milk, strength: 30 }]
   name: "skim milk"
   keywords: [skim, "skim milk", skim-milk, milk]
   appearance: thin and faintly blue
@@ -15,7 +16,7 @@ data:
   hardness: 0
   toughness: 0
   edibility: true
-  tastes: [sweet]
+  tastes: [{ type: sweet, amount: 45 }]
   nutrients: ["fat", "protein", "sugar", "water"]
   nutrientAmounts: { fat: 3000, protein: 34000, sugar: 49000, water: 905000 }
   spoilActivationEnergy: 60000

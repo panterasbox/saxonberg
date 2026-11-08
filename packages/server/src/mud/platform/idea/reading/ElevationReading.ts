@@ -21,7 +21,7 @@ import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import type { CommandContext } from '../../../api/command';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { Tooled } from '../../../lib/craft/Tooled';
+import type { Tooled } from '../../../lib/craft/Tool';
 import type { CompetenceBandName } from '../../../lib/advancement/CompetenceBand';
 
 /**

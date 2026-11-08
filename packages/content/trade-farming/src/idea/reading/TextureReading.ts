@@ -23,7 +23,7 @@
 import type { CommandModel } from '@saxonberg/server/mud/api/command';
 import { SoilReading, READING_TOPIC, SOIL_SCIENCE, DIGGING } from '../../lib/SoilReading';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';

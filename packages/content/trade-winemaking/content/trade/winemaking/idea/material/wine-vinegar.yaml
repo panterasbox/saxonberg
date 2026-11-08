@@ -2,8 +2,10 @@
 # converts ethanol to acetic acid, and the failure path still feeds
 # someone (the cook buys it — everything is a business). Homed in
 # winemaking because the process that makes it lives here.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/vinegar, strength: 3000 }]
+  tastes: [{ type: sour, amount: 50 }]
   name: wine vinegar
   keywords: [vinegar, wine]
   appearance: "a sharp, cloudy red-brown vinegar"

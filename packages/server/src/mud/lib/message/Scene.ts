@@ -15,6 +15,7 @@
 
 import type { Stuff } from '../stuff/Stuff';
 import type { Sensor } from './Sensor';
+import type { Containable } from '../spatial/Containable';
 import type { Container } from '../spatial/Container';
 import type { MessageFrame } from '@saxonberg/types';
 import { SecurityApi } from '../../api/security';
@@ -259,6 +260,42 @@ export class Scene {
       ? this.#actor
       : null;
 
+    // ⭐⭐ Two passes (controllers-are-io D29). RENDER every frame for every
+    // recipient under ONE steady-light hold, so a Scene to thirty people walks
+    // the room's light once rather than thirty times; then DELIVER, in the same
+    // order, with the hold released. ⚠ The hold must never span a delivery: a
+    // delivered frame can run a brain that lights a lamp, and a memo that
+    // outlived it would leave a player in the dark they had just lit.
+    const deliveries: { recipient: Stuff & Sensor; frame: MessageFrame }[] = [];
+    const release = this.#frames.some((f) => f.body instanceof Mml)
+      ? PerceptionApi.holdLightSteady()
+      : null;
+    try {
+      this.#render(deliveries, {
+        commandId,
+        causingCommandId,
+        explicitTarget,
+        actorAsContainable,
+        actorAsContainer,
+      });
+    } finally {
+      release?.();
+    }
+    for (const { recipient, frame } of deliveries) recipient.onMessage(frame);
+  }
+
+  /** The render pass: every frame this Scene owes, built and not yet sent. */
+  #render(
+    deliveries: { recipient: Stuff & Sensor; frame: MessageFrame }[],
+    ctx: {
+      commandId: string | undefined;
+      causingCommandId: string | undefined;
+      explicitTarget: (Stuff & Sensor) | undefined;
+      actorAsContainable: (Stuff & Containable) | null;
+      actorAsContainer: (Stuff & Container) | null;
+    },
+  ): void {
+    const { commandId, causingCommandId, explicitTarget, actorAsContainable, actorAsContainer } = ctx;
     for (const af of this.#frames) {
       const tags = [`audience:${af.audience}`, ...this.#sharedTags];
       const payload = af.payload ?? this.#sharedPayload;
@@ -273,23 +310,12 @@ export class Scene {
         if (causingCommandId !== undefined) meta.causingCommandId = causingCommandId;
         if (this.#modality !== null) meta.modality = this.#modality;
         Object.assign(meta, this.#extraMeta);
-        // ⭐ One frame's body is one synchronous READ: hold the light steady
-        // across it, so the room's light is walked once, not once per thing
-        // the body describes. An NPC's `look` over a full room re-walked the
-        // light graph per object, and a long clock advance — every brain's
-        // look rendered in turn — stopped the world answering for minutes
-        // (the ceramics drives, runs 29–30; the silk walk's counter, again).
-        let body: MessageFrame['body'];
-        if (af.body instanceof Mml) {
-          const release = PerceptionApi.holdLightSteady();
-          try {
-            body = af.body.toString(recipient);
-          } finally {
-            release();
-          }
-        } else {
-          body = af.body;
-        }
+        // ⭐ A body is one synchronous READ under the send's hold: an NPC's
+        // `look` over a full room re-walked the light graph per object, and a
+        // long clock advance stopped the world answering for minutes (the
+        // ceramics drives, runs 29–30; the silk walk's counter, again).
+        const body: MessageFrame['body'] =
+          af.body instanceof Mml ? af.body.toString(recipient) : af.body;
         const frame: MessageFrame = {
           id: SecurityApi.uuid(),
           topic: this.#topic!,
@@ -304,12 +330,12 @@ export class Scene {
       switch (af.recipientKind) {
         case 'self': {
           const recipient = af.target!;
-          recipient.onMessage(buildFrame(recipient));
+          deliveries.push({ recipient, frame: buildFrame(recipient) });
           break;
         }
         case 'target': {
           const recipient = af.target!;
-          recipient.onMessage(buildFrame(recipient));
+          deliveries.push({ recipient, frame: buildFrame(recipient) });
           break;
         }
         case 'peers': {
@@ -320,7 +346,7 @@ export class Scene {
           if (explicitTarget) skip.add(explicitTarget);
           for (const sensor of MessageApi.getSensors(env)) {
             if (skip.has(sensor as Stuff)) continue;
-            sensor.onMessage(buildFrame(sensor));
+            deliveries.push({ recipient: sensor, frame: buildFrame(sensor) });
           }
           break;
         }
@@ -328,7 +354,7 @@ export class Scene {
           if (!actorAsContainer) break;
           for (const sensor of MessageApi.getSensors(actorAsContainer)) {
             if ((sensor as Stuff) === this.#actor) continue;
-            sensor.onMessage(buildFrame(sensor));
+            deliveries.push({ recipient: sensor, frame: buildFrame(sensor) });
           }
           break;
         }
@@ -359,7 +385,7 @@ export class Scene {
                 arrival.db,
               ).toString(arrival.sensor);
             }
-            arrival.sensor.onMessage(frame);
+            deliveries.push({ recipient: arrival.sensor, frame });
           }
           break;
         }

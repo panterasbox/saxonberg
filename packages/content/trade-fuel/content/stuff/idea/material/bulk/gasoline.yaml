@@ -19,8 +19,10 @@
 # nothing because it is a `Lamp` with a tank. The third route — down a
 # river — is DEFERRED and recorded on the water design pack: nothing
 # shipped turns a poured liquid into a discharge.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/naphtha, strength: 3000 }]
+  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 800 }]
   name: gasoline
   keywords: [gasoline, petrol, naphtha, benzine, spirit]
   appearance: a clear, restless liquid whose fumes you can see moving over it

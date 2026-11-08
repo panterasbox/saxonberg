@@ -22,6 +22,9 @@ import '../../../../../../test-bootstrap';
 import { describe, it, expect, afterEach } from 'vitest';
 import EquipController from '../EquipController';
 import UnequipController from '../UnequipController';
+import RemoveController from '../RemoveController';
+import WearController from '../WearController';
+import WieldController from '../WieldController';
 import { WearableMixin } from '../../../../../lib/slot/Wearable';
 import { WieldableMixin } from '../../../../../lib/slot/Wieldable';
 import { SlottableMixin } from '../../../../../lib/slot/Slottable';
@@ -271,7 +274,7 @@ describe('`unequip`', () => {
     const { body, loc, plan } = standUp();
     const shirt = garment(plan, 'woven', 'shirt');
     ContainmentApi.move(shirt as never, body as never);
-    const ctrl = makeStuff(() => new EquipController());
+    const ctrl = makeStuff(() => new WearController());
     await ctrl.execute(
       { target: { stuff: shirt as never, raw: 'shirt' } } as never,
       ctx(body, loc, 'wear'),
@@ -305,7 +308,7 @@ describe('`unequip`', () => {
     body.occupyAll(shirt as never, ['torso']);
     const c = ctx(body, loc, 'remove');
     // The binder's shape for a named word that matched nothing.
-    await makeStuff(() => new UnequipController()).execute(
+    await makeStuff(() => new RemoveController()).execute(
       { target: { raw: 'coat', stuff: null } } as never,
       c,
     );
@@ -361,7 +364,7 @@ describe('⭐⭐ the VERB is real input — `wear` vs `wield` on one object', ()
   it('⚠ `wear` runs the covering ladder and refuses under the plate', async () => {
     const { body, loc, gauntlet } = armoured();
     const c = ctx(body, loc, 'wear');
-    await makeStuff(() => new EquipController()).execute(
+    await makeStuff(() => new WearController()).execute(
       { target: { stuff: gauntlet as never, raw: 'gauntlet' } } as never,
       c,
     );
@@ -377,7 +380,7 @@ describe('⭐⭐ the VERB is real input — `wear` vs `wield` on one object', ()
   it('⭐ `wield` skips it — a thing in your hand covers nothing', async () => {
     const { body, loc, gauntlet } = armoured();
     const c = ctx(body, loc, 'wield');
-    await makeStuff(() => new EquipController()).execute(
+    await makeStuff(() => new WieldController()).execute(
       { target: { stuff: gauntlet as never, raw: 'gauntlet' } } as never,
       c,
     );

@@ -6,8 +6,10 @@
 #
 # ⚠ The tag namespace is `antidote:<toxinType>`, and `<toxinType>` is the
 # metabolism burden key it crashes (`venom`, later `botulinum`, `lead`…).
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/herbal, strength: 100 }]
+  tastes: [{ type: bitter, amount: 0.2 }]
   name: antivenin
   keywords: [antivenin, antivenom, serum, remedy]
   appearance: a pale amber serum

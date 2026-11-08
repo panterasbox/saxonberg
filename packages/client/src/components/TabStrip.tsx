@@ -320,7 +320,7 @@ export function TabStrip({
      * ⭐⭐ **One list, one mechanism.** Every tab here is a view the
      * player owns: select it, edit it, rename it, delete it. Some of
      * them arrived pre-made — that is the ONLY thing that was ever
-     * different about `All`, `Aether` and `Diag`, and after seeding it
+     * different about `All`, `Chat` and `Diag`, and after seeding it
      * is not a difference at all.
      *
      * It shipped the other way for one pass: three shipped views that

@@ -3,7 +3,7 @@
  * that is both a furnace and a vessel.**
  *
  * It was the furnace family's composition alone (`Kiln`/`Forge`'s stack —
- * a `BurnerMixin` appliance holding a steady heat, lit with `ignite`) plus
+ * a `BurnerMixin` appliance holding a steady heat, lit with `light`) plus
  * the `still` crafting capability. That was honest as far as it went and
  * it could not run: a pot still is a pot with a fire under it, and this
  * class held no pot.
@@ -34,7 +34,7 @@
  *     (`getBulkAvailable`, `debitBulk`, `getBulkPayloadForDraw`) must
  *     shadow Bulkable's.
  *
- * ⭐ No new verb anywhere. `pour` charges it, `ignite` lights it, `pour`
+ * ⭐ No new verb anywhere. `pour` charges it, `light` lights it, `pour`
  * draws it off, `smell` reads it. The whole of the cut is where you stop.
  *
  * Ships at `/trade/distilling/thing/Still`.
@@ -44,7 +44,7 @@ import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { LightSourceMixin } from '@saxonberg/server/mud/lib/perception/LightSource';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { BurnerMixin } from '@saxonberg/server/mud/lib/fire/Burner';
-import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import { FractionatingMixin } from '@saxonberg/server/mud/lib/fractionation/Fractionating';

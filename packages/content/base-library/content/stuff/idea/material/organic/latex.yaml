@@ -7,8 +7,9 @@
 # same hook, the same numbers — so nothing about latex is new code.
 # ⚠ It sets only in a MOULD (a coagulating pan): a cup of it left
 # standing stays latex. That is a stated abstraction.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/rubber, strength: 60 }]
   name: latex
   keywords: [latex, sap, "rubber sap"]
   appearance: thick white milk that smells faintly of ammonia

@@ -91,12 +91,17 @@ export class ShellLogic extends ApiLogic {
   ): { parsed: ParsedCommand; expansion?: AliasExpansionInfo } {
     // Bypass prefix: `\verb` → run real verb; not an "alias fired" event.
     if (parsed.verb.startsWith("\\")) {
-      return { parsed: stripBypassPrefix(parsed) };
+      return { parsed: carryScope(stripBypassPrefix(parsed), parsed) };
     }
 
     const inflight = new Set<string>();
     const chain: string[] = [];
-    const result = expandRecursive(parsed, giver, inflight, 0, chain);
+    // ⭐ `verb@source` survives the alias: the invocation's scope is
+    // copied onto the result, and it WINS over one written in the body.
+    const result = carryScope(
+      expandRecursive(parsed, giver, inflight, 0, chain),
+      parsed,
+    );
 
     if (chain.length === 0) {
       return { parsed: result };
@@ -149,6 +154,19 @@ export class ShellLogic extends ApiLogic {
 /* ───────────── Alias expansion — file-private helpers ───────────── */
 
 const ALIAS_DEPTH_CEILING = 16;
+
+/**
+ * Copy the invocation's `verb@source` scope onto an expansion result.
+ * The invocation's scope wins over one an alias body carried; with none
+ * typed, the body's own (if any) stands. Returns `result` itself when
+ * there is nothing to carry.
+ */
+function carryScope(result: ParsedCommand, invocation: ParsedCommand): ParsedCommand {
+  if (invocation.scope === undefined || result.scope === invocation.scope) {
+    return result;
+  }
+  return { ...result, scope: invocation.scope };
+}
 
 /** Strip a leading `\` from the verb and rebuild the ParsedCommand. */
 function stripBypassPrefix(parsed: ParsedCommand): ParsedCommand {

@@ -40,6 +40,16 @@ data:
     - { discipline: bartending, asserting: competent }
     - { discipline: mixology, asserting: proficient }
   behaviors:
+    # ⭐ Off shift, a regular here on their nights (the bar's rota: one of
+    # the crew most evenings, two on Friday and Saturday's busy stretch).
+    - brain: /lib/behavior/frequents
+      trigger: candidate
+      config:
+        place: /world/lounge/location/bar
+        sit: stool
+        home: /world/lounge/location/offstage
+        visits:
+          - { days: [5], hours: [19, 22] }
     # Intrinsic auto-introduce: name themselves to newcomers so patrons
     # learn who they are (the NPC half of the auto-introduce feature).
     - brain: /lib/behavior/introduces

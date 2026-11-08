@@ -16,8 +16,10 @@
 # `milk` tag is what every dairy process keys on, so a ewe's or a goat's
 # milk is a material row and a tap line, never a new profile; the
 # `cow-milk` tag says which animal.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/milk, strength: 60 }]
+  tastes: [{ type: sweet, amount: 45 }]
   name: milk
   keywords: [milk]
   appearance: white and faintly warm

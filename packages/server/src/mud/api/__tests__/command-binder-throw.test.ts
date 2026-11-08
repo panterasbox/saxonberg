@@ -65,8 +65,8 @@ class TestGiver extends ContainerMixin(
  * The shipped `throw.yaml`. `itemScope` rewrites the item argument's
  * scope so a test can pin what a *narrower* scope would cost.
  */
-function realThrow(itemScope?: string): CommandDefinition {
-  const path = fileURLToPath(new URL('../../../../../content/platform/content/platform/cmd/inventory/throw.yaml', import.meta.url));
+function realThrow(itemScope?: string, file = 'throw.yaml'): CommandDefinition {
+  const path = fileURLToPath(new URL(`../../../../../content/platform/content/platform/cmd/inventory/${file}`, import.meta.url));
   let text = readFileSync(path, 'utf8');
   if (itemScope !== undefined) {
     text = text.replace(/scope: "reachable"/, `scope: "${itemScope}"`);
@@ -226,7 +226,7 @@ describe('throw.yaml through the whole binder', () => {
     const wolf = makeStuff(() => new TestThing()) as TestThing;
     wolf.setName('wolf');
     move(wolf, location);
-    expect(await drive(realThrow(), 'throw rock at wolf')).toEqual({
+    expect(await drive(realThrow(undefined, 'throw-at.yaml'), 'throw rock at wolf')).toEqual({
       stage: 'ok',
       item: 'rock',
       target: 'wolf',
@@ -235,12 +235,37 @@ describe('throw.yaml through the whole binder', () => {
 
   it('⭐ `throw <thing> to <someone>` binds the thing and leaves the name for it (underwater review)', async () => {
     move(rock, giver);
-    expect(await drive(realThrow(), 'throw rock to mara')).toEqual({
+    expect(await drive(realThrow(undefined, 'throw-to.yaml'), 'throw rock to mara')).toEqual({
       stage: 'ok',
       item: 'rock',
       target: '(absent)',
       recipient: 'mara',
     });
+  });
+
+  it('⭐⭐ the three shapes are disjoint: a line binds exactly one (D17)', async () => {
+    move(rock, giver);
+    const wolf = makeStuff(() => new TestThing()) as TestThing;
+    wolf.setName('wolf');
+    move(wolf, location);
+    const views = {
+      pitch: realThrow(undefined, 'throw.yaml'),
+      to: realThrow(undefined, 'throw-to.yaml'),
+      at: realThrow(undefined, 'throw-at.yaml'),
+    };
+    const binds = async (line: string): Promise<string[]> => {
+      const out: string[] = [];
+      for (const [name, view] of Object.entries(views)) {
+        const r = await drive(view, line);
+        if (r.stage === 'ok' || r.stage === 'refused') out.push(name);
+      }
+      return out;
+    };
+    expect(await binds('throw rock')).toEqual(['pitch']);
+    expect(await binds('throw rock to wolf')).toEqual(['to']);
+    expect(await binds('throw rock at wolf')).toEqual(['at']);
+    // A malformed throw binds nothing, and the all-shapes usage answers it.
+    expect(await binds('throw rock wolf')).toEqual([]);
   });
 
   it('refuses something with no mass', async () => {

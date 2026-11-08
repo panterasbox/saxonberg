@@ -9,7 +9,7 @@
  * document is **per-owner runtime state** — created and edited live, owned
  * by whoever claims its `/home/<self>/` (or other granted) branch:
  *
- *   /home/<player>/scripts/<name>     a player's recorded recipe-script (msh)
+ *   /home/<player>/scripts/<name>     a player's saved script (msh)
  *   /home/<player>/dorm/<room>        (future) dorm customization data
  *   /world/<world>/msh/<name>        managed world content (a pack's msh/)
  *
@@ -74,6 +74,7 @@ export class StoredDocument extends Document {
     const docs = await StoredDocument.find<StoredDocument>({ path });
     return docs[0] ?? null;
   }
+
 
   /** Every document of `kind` — the warm-window rebuild's input. */
   static async findByKind(kind: string): Promise<StoredDocument[]> {

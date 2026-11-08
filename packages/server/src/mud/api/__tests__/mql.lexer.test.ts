@@ -445,4 +445,38 @@ describe('MQL lexer', () => {
       expect(kinds('/obj/*')).toEqual(['path']);
     });
   });
+  describe("apostrophes and escapes — a name like Dave's is typeable", () => {
+    it("⭐ an apostrophe glued to a word is part of it", () => {
+      expect(tokens("dave's")).toMatchObject([{ kind: 'bareword', value: "dave's" }]);
+      expect(tokens("Dave's Bar").map((t) => t.value)).toEqual(["dave's", 'bar']);
+      expect(tokens("don't twins'").map((t) => t.value)).toEqual(["don't", "twins'"]);
+    });
+
+    it("only an apostrophe at the START of a token opens a literal", () => {
+      expect(tokens("'dave bar'")).toMatchObject([{ kind: 'literal', value: 'dave bar' }]);
+      expect(kinds("rose 'red one'")).toEqual(['bareword', 'literal']);
+    });
+
+    it("inside a literal, \\' is a quote and \\\\ a backslash", () => {
+      expect(tokens("'dave\\'s bar'")).toMatchObject([{ kind: 'literal', value: "dave's bar" }]);
+      expect(tokens("'a\\\\b'")).toMatchObject([{ kind: 'literal', value: 'a\\b' }]);
+      // Any other escape is kept verbatim.
+      expect(tokens("'a\\nb'")).toMatchObject([{ kind: 'literal', value: 'a\\nb' }]);
+    });
+
+    it("⭐ a backslash makes ANY next character part of the word", () => {
+      expect(tokens('foo\\,bar')).toMatchObject([{ kind: 'bareword', value: 'foo,bar' }]);
+      expect(tokens('\\#5')).toMatchObject([{ kind: 'bareword', value: '#5' }]);
+      expect(tokens('a\\:b\\ c')).toMatchObject([{ kind: 'bareword', value: 'a:b c' }]);
+    });
+
+    it("an escaped word is always a keyword — never an int or a transform", () => {
+      expect(tokens('\\5')).toMatchObject([{ kind: 'bareword', value: '5' }]);
+      expect(tokens('\\i')).toMatchObject([{ kind: 'bareword', value: 'i' }]);
+    });
+
+    it("a lone trailing backslash is a lex error", () => {
+      expect(() => lex('rose\\')).toThrow(/dangling/);
+    });
+  });
 });

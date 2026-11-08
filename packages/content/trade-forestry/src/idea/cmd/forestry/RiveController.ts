@@ -21,66 +21,41 @@
  *    among them, and with one installed there is nothing to choose. A
  *    second trade that rives something out of a billet is a recipe row.
  *
+ * ⭐ Both arms are the TARGET's own cut (`CuttableMixin.cutPlan`, verb
+ * `rive` — controllers-are-io D8c): `Bole` and `Billet` decide whether the
+ * wood opens, what comes off and what it makes; this controller checks the
+ * froe and words what they answer.
+ *
  * The froe is declared on the view (`reachable:[capability.riving]`) —
  * the capability, never a class, since a froe is a `Tool` row.
  *
  * ⚠ `split` is NOT an alias: a ground protocol owns that word.
  *
- * ⚠⚠ The bole arm's completion is a **module-level function**: the
- * controller clone is destructed when `execute` returns, and an engaged
- * act completes long after.
+ * ⚠⚠ The words are closures over the giver, never `this`: the controller
+ * clone is destructed when `execute` returns, and an engaged act completes
+ * long after.
  */
 
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type Material from '@saxonberg/server/mud/lib/material/Material';
-import type { Recipe } from '@saxonberg/server/mud/lib/craft/Recipe';
-import RecipeCatalogue from '@saxonberg/server/mud/platform/idea/RecipeCatalogue';
-import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
+import type { RiveDone, RiveRefusal } from '@saxonberg/server/mud/lib/craft/Cuttable';
+import { CraftingDecline } from '@saxonberg/server/mud/lib/craft/CraftingDecline';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import Bole, { TIMBER_MASS_KG } from '../../../thing/Bole';
-import Billet from '../../../thing/Billet';
 import { FORESTRY_TOPIC } from './FellController';
+
+type Composed = ReturnType<typeof Mml.compose>;
 
 /** The capability a froe offers, and riving asks for. */
 export const RIVING = 'riving';
-/** The billet row a bole is riven into. */
-export const BILLET_PATH = '/trade/forestry/thing/billet';
-/**
- * Kilograms in one billet — what the billet row authors as its `mass` (a
- * stack's mass is per unit); a test holds the two together. One length
- * off a bole is eight of them.
- */
-export const BILLET_KG = 3;
-/** Game-ms riving one length into billets takes. */
-export const RIVE_MS = 20_000;
 /** Endurance points it costs — the cross-cut's, a mallet being lighter than a saw. */
 export const RIVE_COST = 5;
-/**
- * ⭐ Below this `cleavability` a wood will not open along its grain at
- * all — the fibres interlock (elm) and the froe only bruises it. An
- * author's number, recorded (plan D17).
- */
-export const RIVE_FLOOR = 0.3;
-/**
- * At or above this `cleavability` a length opens clean into its full
- * count of billets; below it the split wanders out of the piece and the
- * yield falls in proportion — the rest goes to kindling.
- */
-export const CLEAN_CLEAVE = 0.8;
 
-const RECIPE_CATALOGUE = '/platform/idea/RecipeCatalogue';
 const ENDURANCE = 'endurance';
 
 export interface RiveModel extends CommandModel {
@@ -94,7 +69,7 @@ export interface RiveModel extends CommandModel {
 
 export default class RiveController extends ManualBuildController<RiveModel> {
   async execute(model: RiveModel, context: CommandContext): Promise<void> {
-
+    const giver = context.commandGiver;
     const target = model.target?.stuff ?? null;
     if (target === null) {
       if (model.target) {
@@ -128,135 +103,106 @@ export default class RiveController extends ManualBuildController<RiveModel> {
       return;
     }
 
-    // ⭐ Whether the wood will open at all is the WOOD's — its
-    // `cleavability`, how straight its fibres run. Elm's interlock, so a
-    // froe will not rive it, and the refusal says why (plan D17).
-    if (target instanceof Bole || target instanceof Billet) {
-      const wood = target.getMaterial();
-      if ((wood?.getCleavability() ?? 0) < RIVE_FLOOR) {
-        const name = wood?.getName() ?? 'this wood';
-        this.turnDown(
-          context,
-          'will-not-rive',
-          Mml.compose`${Mml.thing(target)} will not open along its grain. The froe goes in and only bruises it — the fibres of ${name} interlock, and nothing follows them. Saw it, or burn it.`,
-        );
-        return;
-      }
-    }
-
-    if (target instanceof Bole) {
-      this.riveBole(context, target);
+    // ⭐ The wood decides (D8c): whether it opens, what comes off, what it makes.
+    if (!MixinApi.isCuttable(target)) {
+      this.turnDown(context, 'not-rivable', RiveController.refusalWords({ ok: false, reason: 'not-cuttable' }, target));
       return;
     }
-    if (target instanceof Billet) {
-      await this.riveBillet(context, target, (model.into ?? '').trim().toLowerCase());
+    const out = await target.cutPlan({
+      verb: 'rive',
+      actor: giver,
+      tools: [froe],
+      raw: null,
+      length: null,
+      options: { into: (model.into ?? '').trim().toLowerCase() },
+    });
+    if (out.verb !== 'rive') throw new Error(`RiveController: asked 'rive', answered '${out.verb}'`);
+    if (!out.ok) {
+      this.refuseRive(context, out, target);
+      return;
+    }
+    // A length off a bole is hard work up front — the work was done
+    // whether or not anything came of it.
+    if (out.facts.kind === 'bole') this.spend(giver, RIVE_COST);
+    await this.engagePlan(context, out, {
+      beginSelf: (f) =>
+        f.kind === 'bole'
+          ? Mml.compose`You set the froe to the end of ${Mml.thing(f.bole)} and drive it in. The wood starts to open along its grain.`
+          : Mml.compose``,
+      beginPeers: (f) =>
+        f.kind === 'bole' ? Mml.compose`${Mml.actor(giver)} sets a froe to ${Mml.thing(f.bole)} and starts riving.` : null,
+      onRefused: (r) => RiveController.refusalWords(r, target),
+      onDone: (f) => RiveController.doneWords(f, giver),
+    });
+  }
+
+  /** A refusal: its words, and its note — a craft says it as a craft does. */
+  private refuseRive(context: CommandContext, out: RiveRefusal, target: Stuff): void {
+    if (out.reason === 'craft-refused') {
+      this.declineToScene(context.commandGiver, out.facts.failure, context);
       return;
     }
     this.turnDown(
       context,
-      'not-rivable',
-      Mml.compose`${Mml.thing(target)} is not a thing you rive. A froe goes into the end of a felled bole, or of a billet split off one.`,
+      out.reason === 'not-cuttable' ? 'not-rivable' : out.reason,
+      RiveController.refusalWords(out, target),
     );
   }
 
-  /** `rive bole` — one length off the trunk, split into billets. */
-  private riveBole(context: CommandContext, bole: Bole): void {
-    const giver = context.commandGiver;
-    if (bole.getLengthsLeft() <= 0) {
-      this.turnDown(
-        context,
-        'bole-spent',
-        Mml.compose`There is nothing left in ${Mml.thing(bole)} but the butt.`,
-      );
-      return;
+  /** ⭐ Every reason the wood refuses a riving (D4), in this verb's words. */
+  private static refusalWords(r: RiveRefusal, target: Stuff): Composed {
+    switch (r.reason) {
+      case 'not-cuttable':
+        return Mml.compose`${Mml.thing(target)} is not a thing you rive. A froe goes into the end of a felled bole, or of a billet split off one.`;
+      case 'will-not-rive':
+        return Mml.compose`${Mml.thing(target)} will not open along its grain. The froe goes in and only bruises it — the fibres of ${r.facts.woodName} interlock, and nothing follows them. Saw it, or burn it.`;
+      case 'bole-spent':
+        return Mml.compose`There is nothing left in ${Mml.thing(target)} but the butt.`;
+      case 'not-rivable-into':
+        return Mml.compose`You cannot rive ${Mml.thing(target)} into '${r.facts.word}'. ${r.facts.choices.length > 0 ? `It will split into ${r.facts.choices.join(' or ')}.` : 'Nothing installed here is riven out of one.'}`;
+      case 'nothing-to-rive':
+        return Mml.compose`There is nothing anybody here rives out of ${Mml.thing(target)}.`;
+      case 'which-rive':
+        return Mml.compose`Rive ${Mml.thing(target)} into what — ${r.facts.names.join(' or ')}? Say \`rive billet into <what>\`.`;
+      case 'craft-refused':
+        return Mml.compose`${CraftingDecline.messageFor(r.facts.failure)}`;
+      default: {
+        const never: never = r;
+        return never;
+      }
     }
-    this.spend(giver, RIVE_COST);
-    this.engageStep(context, {
-      durationMs: RIVE_MS,
-      effortW: 550,
-      beginSelf: Mml.compose`You set the froe to the end of ${Mml.thing(bole)} and drive it in. The wood starts to open along its grain.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} sets a froe to ${Mml.thing(bole)} and starts riving.`,
-      onComplete: () => {
-        void finishRiveBole(giver, bole);
-      },
-    });
   }
 
-  /**
-   * `rive billet [into <what>]` — split again, into whichever installed
-   * recipe takes this billet under `riving`. Chosen by the word, or the
-   * only one there is; ambiguous or unknown, the refusal names the choices.
-   */
-  private async riveBillet(
-    context: CommandContext,
-    billet: Billet,
-    word: string,
-  ): Promise<void> {
-    const giver = context.commandGiver;
-    const material = billet.getMaterial();
-    const catalogue = await StuffApi.singleton<RecipeCatalogue>(RECIPE_CATALOGUE);
-
-    let recipe: Recipe | null = null;
-    if (word) {
-      // ⭐ A KEYED read — the player's word through the catalogue's own
-      // index — then the one question this verb asks of the row.
-      const found = catalogue.getRecipe(word) ?? catalogue.findByKeyword(word);
-      recipe = found !== null && rivesFrom(found, material) ? found : null;
-      if (recipe === null) {
-        const choices = rivableNames(catalogue, material);
-        this.turnDown(
-          context,
-          'not-rivable-into',
-          Mml.compose`You cannot rive ${Mml.thing(billet)} into '${word}'. ${choices.length > 0 ? `It will split into ${choices.join(' or ')}.` : 'Nothing installed here is riven out of one.'}`,
-        );
-        return;
+  /** What the actor and the room read when the riving lands. */
+  private static doneWords(f: RiveDone, giver: Stuff): { self: Composed; peers: Composed } | null {
+    switch (f.kind) {
+      case 'gone':
+        return null;
+      case 'piece':
+        return {
+          self: Mml.compose`You drive the froe into the end of ${f.riven} and lever, following the grain down, and it comes apart as ${Mml.thing(f.output)}.`,
+          peers: Mml.compose`${Mml.actor(giver)} rives a billet with a froe and a mallet.`,
+        };
+      case 'billets': {
+        const wandered = f.wandered
+          ? ' The split wanders out of the wood more than once, and the rest of it is kindling.'
+          : '';
+        if (f.left <= 0) {
+          return {
+            self: Mml.compose`You rive the last length of ${f.boleName} into ${GrammarApi.inWords(f.count)} billets.${wandered} What is left is the butt and the brash.`,
+            peers: Mml.compose`${Mml.actor(giver)} rives the last of ${f.boleName} into billets.`,
+          };
+        }
+        return {
+          self: Mml.compose`The length comes away from ${Mml.thing(f.bole)} and opens under the froe into ${GrammarApi.inWords(f.count)} billets.${wandered} ${f.left === 1 ? 'One length left in it.' : `${GrammarApi.cap(GrammarApi.inWords(f.left))} lengths in it yet.`}`,
+          peers: Mml.compose`${Mml.actor(giver)} rives a length off ${Mml.thing(f.bole)} into billets.`,
+        };
       }
-    } else {
-      const choices = rivableRecipes(catalogue, material);
-      if (choices.length === 0) {
-        this.turnDown(
-          context,
-          'nothing-to-rive',
-          Mml.compose`There is nothing anybody here rives out of ${Mml.thing(billet)}.`,
-        );
-        return;
+      default: {
+        const never: never = f;
+        return never;
       }
-      if (choices.length > 1) {
-        const names = choices.map((r) => r.getName().toLowerCase()).sort();
-        this.turnDown(
-          context,
-          'which-rive',
-          Mml.compose`Rive ${Mml.thing(billet)} into what — ${names.join(' or ')}? Say \`rive billet into <what>\`.`,
-        );
-        return;
-      }
-      recipe = choices[0]!;
     }
-
-    // ⚠ Named BEFORE the craft: the craft consumes the billet, and a
-    // reference to a destroyed thing renders as nothing (it threw in the
-    // scene — found by the assembly drive, the first run to rive one).
-    const riven = billet.getPresentation();
-    const outcome = await CraftingApi.craft({
-      recipeRef: recipe.getRecipeId(),
-      makerMode: 'self',
-      // To hand — the Api lands, stamps and captures it.
-      landing: 'hands',
-      target: billet,
-    });
-    if (!outcome.ok) {
-      this.declineToScene(giver, outcome, context);
-      return;
-    }
-    MessageApi.scene(giver)
-      .topic(FORESTRY_TOPIC)
-      .toSelf(
-        Mml.compose`You drive the froe into the end of ${riven} and lever, following the grain down, and it comes apart as ${Mml.thing(outcome.output)}.`,
-      )
-      .toPeers(
-        Mml.compose`${Mml.actor(giver)} rives a billet with a froe and a mallet.`,
-      )
-      .send();
   }
 
   /** Spend endurance. A no-op on a body that carries no reserves. */
@@ -276,109 +222,3 @@ export default class RiveController extends ManualBuildController<RiveModel> {
   }
 }
 
-/**
- * Does this recipe rive something out of one piece of `material`? — it
- * asks for `riving`, takes ONE item, and that item's category is a tag
- * this wood carries. Read off the row, so a pack's own riving recipe
- * qualifies with no edit here.
- */
-function rivesFrom(recipe: Recipe, material: Material | null): boolean {
-  if (!material) return false;
-  if (recipe.getOutputApplication() !== 'tangible') return false;
-  if (!recipe.getToolCapabilities().includes(RIVING)) return false;
-  const slots = recipe.getInputSlots();
-  if (slots.length !== 1) return false;
-  const slot = slots[0]!;
-  return (slot.kind ?? 'bulk') === 'item' && material.hasTag(slot.category);
-}
-
-/**
- * Every installed recipe that rives out of this wood.
- *
- * ⚠ The whole-catalogue walk this verb makes when no word chose for it —
- * the bare `rive billet` must know whether there is exactly one answer.
- * The honest home is a keyed read on `RecipeCatalogue` (the recipes
- * needing a capability), a kernel addition this pack cannot make; the
- * walk is the `PreserveController.recipeFor` shape until it lands.
- */
-function rivableRecipes(catalogue: RecipeCatalogue, material: Material | null): Recipe[] {
-  const out: Recipe[] = [];
-  for (const recipe of catalogue.allRecipes()) {
-    if (rivesFrom(recipe, material)) out.push(recipe);
-  }
-  return out;
-}
-
-/** The refusal's list of choices, by name. */
-function rivableNames(catalogue: RecipeCatalogue, material: Material | null): string[] {
-  return rivableRecipes(catalogue, material)
-    .map((r) => r.getName().toLowerCase())
-    .sort();
-}
-
-/**
- * ⚠⚠ A MODULE function, never a method — see the header.
- *
- * One length off the bole, split into a stack of green billets of the
- * bole's own wood, landed where the bole lies and stamped to the hand
- * that rove them. Consume first: a failure leaves the bole, not double
- * the wood.
- */
-async function finishRiveBole(giver: Stuff, bole: Bole): Promise<void> {
-  if (giver.isDestroyed() || bole.isDestroyed()) return;
-  const room = bole.getContainer();
-  if (room === null || !MixinApi.isContainer(room)) return;
-  const wood = bole.getMaterial();
-
-  const left = bole.takeLength();
-
-  // ⭐ A straight-grained wood opens clean into the full count; one whose
-  // split wanders runs out of the piece, and the rest is kindling.
-  const full = Math.floor(TIMBER_MASS_KG / BILLET_KG);
-  const clean = Math.min(1, (wood?.getCleavability() ?? 0) / CLEAN_CLEAVE);
-  const count = Math.max(1, Math.floor(full * clean));
-  const wandered = count < full
-    ? ' The split wanders out of the wood more than once, and the rest of it is kindling.'
-    : '';
-  const billets = await StuffApi.clone<Stuff & Containable>(BILLET_PATH, undefined, {
-    madeFrom: bole,
-  });
-  if (wood && MixinApi.isTangible(billets)) billets.setMaterial(wood);
-  // ⭐ A bole is green wood, and riving dries nothing.
-  if (MixinApi.isSeasoning(billets)) billets.setSeasonedFraction(0);
-  if (MixinApi.isStackable(billets)) billets.setQuantity(count);
-  const maker = giver.getIdentityPath() ?? '';
-  if (maker && MixinApi.isCrafted(billets)) billets.setMaker(maker);
-  ContainmentApi.move(billets, room as Stuff & Container);
-
-  if (left <= 0) {
-    MessageApi.scene(giver)
-      .topic(FORESTRY_TOPIC)
-      .toSelf(
-        Mml.compose`You rive the last length of ${Mml.thing(bole)} into ${GrammarApi.inWords(count)} billets.${wandered} What is left is the butt and the brash.`,
-      )
-      .toPeers(Mml.compose`${Mml.actor(giver)} rives the last of ${Mml.thing(bole)} into billets.`)
-      .send();
-    await StuffApi.destruct(bole);
-  } else {
-    MessageApi.scene(giver)
-      .topic(FORESTRY_TOPIC)
-      .toSelf(
-        Mml.compose`The length comes away from ${Mml.thing(bole)} and opens under the froe into ${GrammarApi.inWords(count)} billets.${wandered} ${left === 1 ? 'One length left in it.' : `${GrammarApi.cap(GrammarApi.inWords(left))} lengths in it yet.`}`,
-      )
-      .toPeers(Mml.compose`${Mml.actor(giver)} rives a length off ${Mml.thing(bole)} into billets.`)
-      .send();
-    try {
-      await PersistableApi.captureHostOf(bole);
-    } catch (err) {
-      console.warn('RiveController: capture failed:', err);
-    }
-  }
-  if (MixinApi.isAdvancing(giver)) {
-    try {
-      await giver.creditDeed({ discipline: 'silviculture', difficulty: 'easy', outcome: 'success' });
-    } catch (err) {
-      console.warn('RiveController: recording the deed failed:', err);
-    }
-  }
-}

@@ -24,7 +24,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import { SensorMixin } from '../../message/Sensor';
 import { Idea } from '../../stuff/Idea';
 import { AdvancementMixin } from '../../advancement/Advancement';
-import type { Tooled } from '../../craft/Tooled';
+import type { Tooled } from '../../craft/Tool';
 
 const AdvancingIdea = AdvancementMixin(Idea);
 import { CommandApi } from '../../../api/command';

@@ -38,6 +38,7 @@ import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMemb
 import { ShoreMixin } from '@saxonberg/server/mud/lib/location/Shore';
 import { SwimmableMixin } from '@saxonberg/server/mud/lib/locomotion/Swimmable';
 import { WaterPlaceMixin, type WaterPlace, type WaterState } from '@saxonberg/server/mud/lib/location/WaterPlace';
+import { HaulOutMixin } from '@saxonberg/server/mud/lib/location/HaulOut';
 import type { ColumnBand } from '@saxonberg/server/mud/lib/location/WaterColumn';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -56,9 +57,9 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 type SurfaceStuff = Stuff & Container & WaterPlace & Shore;
 
-const BandBase = WaterPlaceMixin(
+const BandBase = HaulOutMixin(WaterPlaceMixin(
   SwimmableMixin(ShoreMixin(PersistableMixin(WarrenMemberMixin(Location)))),
-);
+));
 
 export default class Band extends BandBase {
   static fieldMeta: FieldMeta = {
@@ -206,8 +207,8 @@ export default class Band extends BandBase {
    * to the bed, or up to the surface (D9). A neutral thing, and anything
    * that acts for itself, stays.
    */
-  public onContainableAdded(thing: Stuff & Containable): void {
-    super.onContainableAdded(thing);
+  public onContainableAdded(thing: Stuff & Containable, from?: Stuff | null): void {
+    super.onContainableAdded(thing, from);
     if (this.band === 'bed' || this.sinks(thing) || !this.floats(thing)) return;
     void Promise.resolve().then(() => this.floatUp(thing));
   }

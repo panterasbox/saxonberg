@@ -121,6 +121,25 @@ describe('the spawn sweep — draw until the region declines', () => {
     expect(second.declined).toBe(1);
   });
 
+  it('a mint that stands nowhere counts where its row is, and a second sweep mints nothing', async () => {
+    // As in the world: the real clone places nothing, so the mint's region is its
+    // own template path's, which is not the zone the live stock stands in.
+    vi.spyOn(ZoneApi, 'resolveZoneForPath').mockImplementation((async (path: string) =>
+      path.startsWith('/test/spawn/thing/')
+        ? null
+        : { getTemplatePath: () => REGION, lookupField: async () => undefined }) as never);
+    vi.mocked(StuffApi.clone).mockImplementation((async (path: string) => {
+      const g = makeStuff(() => new TestGood());
+      stampTemplatePathForTest(g, path);
+      g.setCensusKey({ ale: 'keg:ale', gin: 'spirit:gin', volk: 'spirit:vodka' }[path.split('/').pop()!] ?? path);
+      g.regionTarget = 99;
+      return g as unknown as Stuff;
+    }) as never);
+    expect((await ResidencyApi.spawnNow()).placed).toBe(2 + 3 + 4);
+    expect((await ResidencyApi.spawnNow()).placed).toBe(0);
+    expect((await ResidencyApi.spawnNow()).placed).toBe(0);
+  });
+
   it('the per-region cap holds', async () => {
     settings[AppSettingKeys.residencySpawnPerRegionCap] = '5';
     const report = await ResidencyApi.spawnNow();

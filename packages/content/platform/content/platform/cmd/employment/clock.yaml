@@ -1,4 +1,5 @@
 verbs: [clock]
+category: employment
 controller: /platform/idea/cmd/employment/ClockController
 description: "Start or end a shift at a house that employs you"
 help: |

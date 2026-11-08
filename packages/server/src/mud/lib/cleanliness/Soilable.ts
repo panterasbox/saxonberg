@@ -34,6 +34,8 @@
  * "condition" (it means three things already).
  */
 
+import { Aroma } from '../perception/Aroma';
+import type { SmellNote } from '../perception/Smell';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { AugmentOpts, MarkupAugmenter } from '../../api/mml';
@@ -116,6 +118,24 @@ export interface HeatStamp {
   peakK: number;
   heldS: number;
   atS: number;
+}
+
+/**
+ * ⭐ A thing's own clock in a bath (controllers-are-io D8c): when it went
+ * in, how far its time at the bath's heat has been credited, and how long
+ * it has been held there since it went in. The vessel's reconcile credits
+ * it ({@link Soilable.holdAtHeatFor}); the bath's own boil clock is the
+ * LIQUID's and says nothing about when a bandage was dropped into it.
+ */
+export interface BathHold {
+  enteredAtS: number;
+  creditedToS: number;
+  heldS: number;
+}
+
+/** The bath a thing is held in — a vessel whose temperature has a history. */
+export interface HeatBath {
+  temperatureTrajectory(fromS: number, toS: number): { secondsAtOrAbove(k: number): number };
 }
 
 /**
@@ -217,6 +237,21 @@ export interface Soilable {
    * why spores survive one and not the other.
    */
   holdAtHeat(tempK: number, holdS: number, opts: { wet: boolean }): void;
+  /** ⭐ It went into a bath at `atS` — its bath clock starts. */
+  enterBath(atS: number): void;
+  /** It came out of the bath — its bath clock stops. */
+  leaveBath(): void;
+  /** Its clock in the bath it is in, or `null`. */
+  getBathHold(): BathHold | null;
+  /**
+   * ⭐ HELD in `bath` at `tempK` since it went in (D8c) — called by the
+   * vessel's own reconcile while it boils. Credits only the seconds since
+   * the last credit (the bath's trajectory at or above `tempK`), kills
+   * ONCE over that increment, and stamps the heat with the whole time held
+   * since entry — so a bandage in a pot on the boil is disinfected by the
+   * pot, read after read, with no act of anybody's.
+   */
+  holdAtHeatFor(tempK: number, bath: HeatBath): void;
   /**
    * ⭐ Brush it — or beat it — dry (cleanliness, review B46): each kind
    * gives up its `brushLifts` share, scaled by the effort (a beater on a
@@ -281,7 +316,8 @@ export interface Soilable {
    * nothing it carries smells. A body adds what it wears. The smell walk
    * reads it beside a `SmellSource`'s stored emission.
    */
-  soilOdour(): { identity: string; ppm: number } | null;
+  /** What its dirt gives a nose: one note per word, in OU. */
+  soilOdor(): SmellNote[];
 
   // Public so the applier and the persistence spine can reflect into them.
   deposits: Record<string, number>;
@@ -305,6 +341,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       stains: { persistent: true, runtimeState: true, spoiler: 2 },
       washes: { persistent: true, runtimeState: true },
       heat: { persistent: true, runtimeState: true },
+      bath: { persistent: true, runtimeState: true },
     };
 
     static markupAugmenters: MarkupAugmenter[] = [soilAugmenter];
@@ -317,6 +354,8 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
     /** Site → the last wash there. */
     public washes: Record<string, WashStamp> = {};
     public heat: HeatStamp | null = null;
+    /** Its clock in the bath it is in (D8c), or `null` out of one. */
+    public bath: BathHold | null = null;
 
     // ---------- the writer ----------
 
@@ -525,7 +564,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
     protected dirtKind(kind: string): DirtKindDescriptor | null {
       const row = StuffApi.findByTemplatePath<DirtKind>(DIRT_KIND_ROOT + kind);
       if (row) return row.descriptor();
-      void StuffApi.singleton(DIRT_KIND_ROOT + kind).catch(() => {});
+      Aroma.loadRow(DIRT_KIND_ROOT + kind);
       return null;
     }
 
@@ -538,6 +577,47 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
         self.setPathogenLoads(
           Contamination.killOver(self.getPathogenLoads(), tempK, holdS, opts.wet ? 0.99 : 0.3),
         );
+      }
+    }
+
+    public enterBath(atS: number): void {
+      this.bath = { enteredAtS: atS, creditedToS: atS, heldS: 0 };
+    }
+
+    public leaveBath(): void {
+      this.bath = null;
+    }
+
+    public getBathHold(): BathHold | null {
+      return this.bath ? { ...this.bath } : null;
+    }
+
+    public holdAtHeatFor(tempK: number, bath: HeatBath): void {
+      const now = nowS();
+      const hold = this.bath;
+      // ⚠ In a bath with no entry on record (restored into it): the clock
+      // starts now — never credited with time nobody saw it spend there.
+      if (hold === null) {
+        this.enterBath(now);
+        return;
+      }
+      if (!(now > hold.creditedToS)) return;
+      // ⚠ Half a kelvin of slack, as the liquid's own boil clock: the
+      // plateau clamps the contents AT the boiling point.
+      const secs = bath.temperatureTrajectory(hold.creditedToS, now).secondsAtOrAbove(tempK - 0.5);
+      const heldS = hold.heldS + Math.max(0, secs);
+      this.bath = { ...hold, creditedToS: now, heldS };
+      if (!(secs > 0)) return;
+      // A thing boiled in water comes out of it wet (B56).
+      this.wetBy(1);
+      // ⭐ The stamp is the WHOLE hold since entry — `recordHeat` keeps the
+      // longest at a heat, so it grows read by read and is never summed.
+      this.recordHeat(tempK, heldS);
+      // ⭐ The kill runs ONCE, over the increment only — a hold re-killed
+      // from zero every read would count the same minute many times.
+      const self = this as unknown as Stuff;
+      if (MixinApi.isContaminable(self)) {
+        self.setPathogenLoads(Contamination.killOver(self.getPathogenLoads(), tempK, secs, 0.99));
       }
     }
 
@@ -584,25 +664,14 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       return 1;
     }
 
-    public soilOdour(): { identity: string; ppm: number } | null {
-      const byIdentity = new Map<string, number>();
+    public soilOdor(): SmellNote[] {
+      const byAroma = new Map<string, number>();
       for (const [key, load] of Object.entries(this.deposits)) {
-        const kind = splitKey(key)[1];
-        const odour = this.dirtKind(kind)?.odour ?? null;
-        if (!odour || !(load > 0)) continue;
-        byIdentity.set(odour.identity, (byIdentity.get(odour.identity) ?? 0) + load * odour.ppmPerLoad);
+        const odor = this.dirtKind(splitKey(key)[1])?.odor ?? null;
+        if (!odor || !(load > 0)) continue;
+        byAroma.set(odor.aroma, (byAroma.get(odor.aroma) ?? 0) + load * odor.ouPerLoad);
       }
-      let ppm = 0;
-      let identity = '';
-      let strongest = 0;
-      for (const [id, p] of byIdentity) {
-        ppm += p;
-        if (p > strongest) {
-          strongest = p;
-          identity = id;
-        }
-      }
-      return ppm > 0 ? { identity, ppm } : null;
+      return [...byAroma.entries()].map(([aroma, ou]) => ({ aroma, ou }));
     }
 
     public liftedBy(kind: string, site: string = WHOLE_SITE): DirtLift {
@@ -809,17 +878,10 @@ function soilAugmenter(
   opts?: AugmentOpts,
 ): string {
   if (!MixinApi.isSoilable(host)) return text;
-  // ⭐ Each line to its sense (B57): the marks to sight, the smell to the
-  // nose — `smell shirt` reads *stale sweat*, never *greasy*; a bare
-  // `look` (no filter) reads both.
-  const sees = !opts?.filter || opts.filter.includes('vision');
-  const smells = !opts?.filter || opts.filter.includes('smell');
-  const odour = smells ? host.soilOdour() : null;
-  const smellLine =
-    odour && odour.ppm >= dialOf(AppSettingKeys.cleanlinessOdourNoticedPpm, 10)
-      ? `${odour.ppm >= 100 ? 'It reeks' : 'It smells'} of ${odour.identity}.`
-      : '';
-  const line = [sees ? host.soilLookLine(viewer) : '', smellLine].filter((l) => l).join(' ');
+  // The marks are sight's. A nose reads dirt as a source (`soilOdor`), so
+  // `smell shirt` reads *stale sweat* and never *greasy*.
+  if (opts?.filter && !opts.filter.includes('vision')) return text;
+  const line = host.soilLookLine(viewer);
   if (!line) return text;
   // ⚠ Found by the drive: this was gated on `canMakeOutMarks` — the light
   // to read FINE PRINT — so a bloodied apron in a dim cookhouse (≈4 lux at

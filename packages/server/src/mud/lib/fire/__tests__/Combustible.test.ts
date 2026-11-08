@@ -14,7 +14,7 @@ import Material from '../../material/Material';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { WetMixin } from '../../wetness/Wet';
 import { MoistureMixin } from '../../material/Moisture';
-import { ReservedMixin, Reserve } from '../../reserve';
+import { ReservedMixin, Reserve } from '../../reserve/Reserved';
 import { CombustibleMixin } from '../Combustible';
 import { FireApi } from '../../../api/fire';
 import { MixinApi } from '../../../api/mixin';

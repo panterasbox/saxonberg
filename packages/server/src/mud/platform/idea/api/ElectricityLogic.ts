@@ -31,14 +31,10 @@ const ElectricityApiCallers = SecurityPolicies.FromModule(
  */
 const ElectricitySourceCallers = SecurityPolicies.AnyOf(
   ElectricityApiCallers,
-  SecurityPolicies.FromMixin('EnergizedMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('EnergizedMixin'),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 
 /**

@@ -80,6 +80,7 @@ import {
   type ModelData,
   type CommandModel,
   type AffordanceResolution,
+  type CompositionEntry,
   type FieldValidator,
   type CommandValidator,
   type ValidatorPreloads,
@@ -96,8 +97,11 @@ import {
   type CommandSchemaPayload,
   type AssembleSuccess,
   type AssembleResult,
+  type AssembleOptions,
+  type ResolveModelOptions,
 } from '../../../api/command';
 import type { OnFilteredPolicy } from '../../../api/command';
+import { GrammarApi } from '../../../api/grammar';
 import { MessageApi } from '../../../api/message';
 
 const CommandApiCallers = SecurityPolicies.AnyOf(
@@ -278,6 +282,7 @@ class CommandContextImpl implements CommandContext {
   public aliasExpansion?: AliasExpansionInfo;
   public bodyFields?: Record<string, unknown>;
   public barId?: string;
+  public filterPolicy?: OnFilteredPolicy;
 
   private _notes: Note[] = [];
   private _status: Status = 'ok';
@@ -297,6 +302,17 @@ class CommandContextImpl implements CommandContext {
     if (args.interactive !== undefined) this.interactive = args.interactive;
     if (args.bodyFields !== undefined) this.bodyFields = args.bodyFields;
     if (args.barId !== undefined) this.barId = args.barId;
+    if (args.filterPolicy !== undefined) this.filterPolicy = args.filterPolicy;
+  }
+
+  requireInteractive(what: string): Interactive | null {
+    if (this.interactive) return this.interactive;
+    this.note({
+      kind: 'command-rejected',
+      reason: 'needs-input',
+      detail: `${this.verb || 'that'} needs ${what} when run from a script`,
+    });
+    return null;
   }
 
   note(n: Note): void {
@@ -511,6 +527,13 @@ async function walkScopes(
   let firstRaw: MqlMany | null = null;
   let isSet = false;
   const discarded: Stuff[] = [];
+  // ⭐ TIERS ACROSS TRIES (one-resolution § 3 row 11): every try is asked,
+  // and the best keyword tier wins — a whole-name hit in a later try beats
+  // a partial in an earlier one, and a TIE goes to the earlier try (that
+  // is what drill-first means). The first try with any admissible match
+  // used to win at any tier, so a word that merely began some name in the
+  // focus beat the thing named outright in the room.
+  let best: { result: MqlMany; tier: number; discardedUpTo: number } | null = null;
   for (const scope of tries) {
     let got = await scopedMany(raw, giver, scope, field, context);
     if (got.isSet) isSet = true;
@@ -531,17 +554,44 @@ async function walkScopes(
     const keep = got.stuff.map((_, i) => i).filter((i) => admissible(got.stuff[i]!));
     const kept = keep.map((i) => got.stuff[i]!);
     for (const s of got.stuff) if (!kept.includes(s)) discarded.push(s);
-    if (kept.length > 0) {
-      const result: MqlMany = { ...got, stuff: kept };
-      if (got.vias) result.vias = keep.map((i) => got.vias![i]);
-      return { result, discarded };
-    }
+    if (kept.length === 0) continue;
+    // A set (a seed, a pronoun, a path) is asked for whole: top tier.
+    const tier = got.isSet ? TOP_TIER : Math.max(...keep.map((i) => got.tiers?.[i] ?? TOP_TIER));
+    if (best && tier <= best.tier) continue;
+    const result: MqlMany = { ...got, stuff: kept };
+    if (got.vias) result.vias = keep.map((i) => got.vias![i]);
+    if (got.tiers) result.tiers = keep.map((i) => got.tiers![i]!);
+    best = { result, tier, discardedUpTo: discarded.length };
+    // Nothing later can beat the top tier, and a tie goes to this try.
+    if (tier >= TOP_TIER) break;
   }
+  // What the tries AFTER the winner threw away was never in the running.
+  if (best) return { result: best.result, discarded: discarded.slice(0, best.discardedUpTo) };
   if (firstRaw) return { result: firstRaw, discarded: [] };
   // ⭐ An EMPTY set is still a set (`look horizon` from an interior is
   // "you see nothing there", not "you don't see any 'horizon'").
   return { result: isSet ? { stuff: [], isSet: true } : { stuff: [] }, discarded };
 }
+
+/** Everything a name could mean across every try, for `--strict`. */
+async function strictCandidates(
+  raw: string,
+  giver: Stuff & CommandGiver,
+  tries: readonly string[],
+  field: string,
+  context: CommandContext,
+  admissible: (s: Stuff) => boolean,
+): Promise<Stuff[]> {
+  const out = new Set<Stuff>();
+  for (const scope of tries) {
+    const got = await scopedMany(raw, giver, scope, field, context);
+    for (const s of got.stuff) if (admissible(s)) out.add(s);
+  }
+  return [...out];
+}
+
+/** The highest keyword tier a match can reach (`MqlMany.tiers`). */
+const TOP_TIER = 3;
 
 /**
  * Apply a slot's {@link OnFilteredPolicy} to what {@link walkScopes}
@@ -559,7 +609,8 @@ function applyFilteredPolicy(
   raw: string,
   context: CommandContext,
 ): boolean {
-  const policy = def.onFiltered ?? 'take';
+  // `--strict` / `--loose` on the line overrides the slot's own policy.
+  const policy = context.filterPolicy ?? def.onFiltered ?? 'take';
   if (discarded.length === 0 || policy === 'take') return true;
   context.note({
     kind: 'candidates-filtered',
@@ -663,6 +714,12 @@ export class CommandLogic extends ApiLogic {
   @CallSecurity(CommandApiCallers)
   public allDefinitions(): CommandDefinition[] {
     return [...commands.values()];
+  }
+
+  /** See {@link CommandApi.verbsRequiring}. */
+  @CallSecurity(CommandApiCallers)
+  public verbsRequiring(mixinName: string): string[] {
+    return verbsRequiringImpl(mixinName);
   }
 
   /** See {@link CommandApi.invalidate}. */
@@ -926,7 +983,8 @@ export class CommandLogic extends ApiLogic {
   public assemble(
     parsed: ParsedCommand,
     command: CommandDefinition,
-    ctx: { commandGiver: Stuff & CommandGiver; location: (Stuff & Container) | null }
+    ctx: { commandGiver: Stuff & CommandGiver; location: (Stuff & Container) | null },
+    opts: AssembleOptions = {}
   ): AssembleResult {
     const tokens = parsed.rawTokens;
     if (tokens.length === 0 || tokens[0]?.kind !== 'word') {
@@ -944,6 +1002,22 @@ export class CommandLogic extends ApiLogic {
     // never reach `bindOptionToken` (so no "unknown option" error).
     // Only before the stop-options boundary; after `--` they're literals.
     let reservedAsync: 'async' | 'sync' | undefined;
+    // ⭐ `--strict` / `--loose` — reserved the same way, beside
+    // `--async`: they force every slot's `onFiltered` to `error` / `take`
+    // for this one invocation.
+    let reservedFiltered: OnFilteredPolicy | undefined;
+    const reserved = (t: RawToken): boolean => {
+      if (t.kind !== 'long-flag') return false;
+      if (t.name === 'async' || t.name === 'sync') {
+        reservedAsync = t.name;
+        return true;
+      }
+      if (t.name === 'strict' || t.name === 'loose') {
+        reservedFiltered = t.name === 'strict' ? 'error' : 'take';
+        return true;
+      }
+      return false;
+    };
 
     // Phase 1: verb-scope options before any subcommand/positional.
     while (i < tokens.length) {
@@ -955,8 +1029,7 @@ export class CommandLogic extends ApiLogic {
         i++;
         continue;
       }
-      if (t.kind === 'long-flag' && (t.name === 'async' || t.name === 'sync')) {
-        reservedAsync = t.name;
+      if (reserved(t)) {
         i++;
         continue;
       }
@@ -1007,12 +1080,7 @@ export class CommandLogic extends ApiLogic {
         i++;
         continue;
       }
-      if (
-        !stopped &&
-        t.kind === 'long-flag' &&
-        (t.name === 'async' || t.name === 'sync')
-      ) {
-        reservedAsync = t.name;
+      if (!stopped && reserved(t)) {
         i++;
         continue;
       }
@@ -1033,11 +1101,22 @@ export class CommandLogic extends ApiLogic {
     }
 
     // Phase 4: bind positionals against the active args array(s).
+    // ⭐ `verb@source`: the named source fills the slot it fits (D2).
+    const bindPositionals = (
+      ps: WordToken[],
+      args: PositionalDefinition[],
+      p: ParsedCommand,
+      ex: (text: string) => string,
+      exDefault: (text: string) => string,
+    ): ReturnType<typeof bindPositionalsImpl> =>
+      opts.scopeSource
+        ? bindWithSource(ps, args, p, ex, exDefault, opts.scopeSource, ctx.commandGiver)
+        : bindPositionalsImpl(ps, args, p, ex, exDefault);
     let prep: Record<string, string> = {};
     if (subcommand) {
       const sub = command.getSubcommand(subcommand)!;
       const r = bindPositionals(positionals, sub.args ?? [], parsed, expand, expandDefault);
-      if ('error' in r) return r;
+      if (r.error !== undefined) return r;
       Object.assign(fields, r.bound);
       prep = r.prep;
     } else if (fallthroughActive) {
@@ -1075,7 +1154,7 @@ export class CommandLogic extends ApiLogic {
         expand,
         expandDefault
       );
-      if ('error' in r) return r;
+      if (r.error !== undefined) return r;
       Object.assign(fields, r.bound);
       prep = r.prep;
     } else if (command.hasSubcommands()) {
@@ -1091,7 +1170,7 @@ export class CommandLogic extends ApiLogic {
     } else {
       // Flat verb — single bind against the top-level args.
       const r = bindPositionals(positionals, command.args, parsed, expand, expandDefault);
-      if ('error' in r) return r;
+      if (r.error !== undefined) return r;
       Object.assign(fields, r.bound);
       prep = r.prep;
     }
@@ -1107,6 +1186,7 @@ export class CommandLogic extends ApiLogic {
     const out: AssembleSuccess = { model: fields };
     if (Object.keys(prep).length > 0) out.prep = prep;
     if (reservedAsync !== undefined) out.reservedAsync = reservedAsync;
+    if (reservedFiltered !== undefined) out.reservedFiltered = reservedFiltered;
     return out;
   }
 
@@ -1197,6 +1277,34 @@ export class CommandLogic extends ApiLogic {
       // supply the body.
       model[k] = coerced.value;
     }
+  }
+
+  /** See {@link CommandApi.objectCandidates}. */
+  @CallSecurity(CommandApiCallers)
+  public objectCandidates(
+    command: CommandDefinition,
+    field: string,
+    giver: Stuff & CommandGiver,
+  ): Stuff[] {
+    const def = command.args.find((a) => a.name === field) as
+      | { _requirementTerms?: RequirementTerm[]; scope?: string[] }
+      | undefined;
+    const terms = def?._requirementTerms ?? [];
+    // The field's own scope — `drop` offers your inventory, `get` what is
+    // around you. A `$var` scope (the focus chain) has no list of its
+    // own, so it widens to what is in reach.
+    const seeds = (def?.scope ?? []).filter((x) => !x.startsWith('$'));
+    const out = new Map<string, Stuff>();
+    for (const seed of seeds.length > 0 ? seeds : ['reachable']) {
+      try {
+        for (const s of MqlApi.resolveMany(seed, { commandGiver: giver, scope: '' }).stuff) {
+          out.set(s.stuffId, s);
+        }
+      } catch {
+        // A seed this giver cannot resolve offers nothing.
+      }
+    }
+    return [...out.values()].filter((s) => s !== giver && terms.every((t) => t.test(s)));
   }
 
   /** See {@link CommandApi.preloadValidatorDeps}. */
@@ -1330,11 +1438,16 @@ export class CommandLogic extends ApiLogic {
       if (how.quantity) return [stuff[0]!];
       if (policy === 'top') return [stuff[0]!];
       if (policy === 'error') return ambiguous(stuff.length);
-      // 'prompt' — push mqlObject and await the player's pick. If
-      // no Interactive is on the context (e.g. NPC dispatch path),
-      // there's no way to disambiguate; degrade to top with a note.
-      if (!context.interactive) return ambiguous(stuff.length);
-      const picked = await context.interactive.promptMqlObject(
+      // 'prompt' — push mqlObject and await the player's pick. With no
+      // Interactive (a script line, an NPC) nobody can answer: fail
+      // closed, naming the choice it would have asked for.
+      const interactive = context.requireInteractive(
+        how.raw
+          ? `a choice of ${fname} ('${how.raw}' could be any of ${stuff.length})`
+          : `a choice of ${fname} (any of ${stuff.length})`,
+      );
+      if (!interactive) return null;
+      const picked = await interactive.promptMqlObject(
         `which ${fname}?`,
         stuff,
       );
@@ -1367,11 +1480,13 @@ export class CommandLogic extends ApiLogic {
       if (policy === 'error') {
         return tooMany(stuff.length, max);
       }
-      // 'prompt' — push mqlMany with bounds and await.
-      if (!context.interactive) {
-        return tooMany(stuff.length, max);
-      }
-      const picks = await context.interactive.promptMqlMany(
+      // 'prompt' — push mqlMany with bounds and await; fail closed with
+      // nobody to ask.
+      const interactive = context.requireInteractive(
+        `a pick of ${min}-${max} ${fname} (${stuff.length} matched)`,
+      );
+      if (!interactive) return null;
+      const picks = await interactive.promptMqlMany(
         `pick ${min}-${max} ${fname}`,
         stuff,
         { min, max: Number.isFinite(max) ? max : undefined },
@@ -1387,8 +1502,9 @@ export class CommandLogic extends ApiLogic {
   public async resolveModel(
     model: CommandModel,
     context: CommandContext,
-    prep: Record<string, string> = {}
-  ): Promise<{ resolved: CommandModel } | { result: 'failed' }> {
+    prep: Record<string, string> = {},
+    opts: ResolveModelOptions = {}
+  ): Promise<{ resolved: CommandModel; result?: undefined } | { result: 'failed' }> {
     const command = context.command;
     const subcommand =
       typeof model[SUBCOMMAND_FIELD] === 'string'
@@ -1398,7 +1514,9 @@ export class CommandLogic extends ApiLogic {
     const resolved: ModelData = { ...model };
 
     const giver = context.commandGiver;
-    const focused = MixinApi.isFocused(giver) ? giver : null;
+    // ⭐ A speculative resolve (the other-offer probe) leaves the giver
+    // untouched: no focus update, no pronoun memory.
+    const focused = !opts.speculative && MixinApi.isFocused(giver) ? giver : null;
 
     // No MQL permission snapshot (content-packs wave 3): resolving a
     // query is never a permission — the verb's own gate decides what the
@@ -1574,6 +1692,20 @@ export class CommandLogic extends ApiLogic {
             detail: err instanceof Error ? err.message : String(err),
           });
           return { result: 'failed' };
+        }
+        // ⭐ `--strict`: read the name literally. A second thing it could mean
+        // is a question, not a preference the scope order may settle.
+        if (context.filterPolicy === 'error' && !isSet && !quantity && stuff.length > 0) {
+          const named = await strictCandidates(raw, giver, tries, fname, context, admissible);
+          if (named.length > 1) {
+            context.note({
+              kind: 'validator-failed',
+              field: fname,
+              validator: 'cardinality:ambiguous',
+              detail: `'${raw}' could be ${GrammarApi.joinList(named.map((s) => s.describeFor(giver)))} — say which.`,
+            });
+            return { result: 'failed' };
+          }
         }
         // Apply cardinality / onExcess policy.
         const filtered = await this.applyCardinalityPolicy(def, stuff, fname, context, {
@@ -1789,7 +1921,7 @@ export class CommandLogic extends ApiLogic {
     resolved: CommandModel,
     context: CommandContext,
     preloads?: ValidatorPreloads,
-  ): { ok: true } | { result: 'failed' } {
+  ): { ok: true; result?: undefined } | { result: 'failed' } {
     const command = context.command;
     const subcommand =
       typeof resolved[SUBCOMMAND_FIELD] === 'string'
@@ -1924,7 +2056,7 @@ export class CommandLogic extends ApiLogic {
     model: CommandModel,
     context: CommandContext,
     prep: Record<string, string> = {}
-  ): Promise<{ resolved: CommandModel } | { result: 'failed' }> {
+  ): Promise<{ resolved: CommandModel; result?: undefined } | { result: 'failed' }> {
     const resolved = await this.resolveModel(model, context, prep);
     if ('result' in resolved) return resolved;
     const subcommand =
@@ -1939,7 +2071,7 @@ export class CommandLogic extends ApiLogic {
       subcommand,
     );
     const validated = this.runValidators(resolved.resolved, context, preloads);
-    if ('result' in validated) return validated;
+    if (validated.result !== undefined) return validated;
     return resolved;
   }
 
@@ -1947,8 +2079,8 @@ export class CommandLogic extends ApiLogic {
   @CallSecurity(CommandApiCallers)
   public emitSchemaDelta(
     recipient: Stuff,
-    kind: 'added' | 'removed' | 'reset',
-    payload: CommandSchemaPayload | { verb: string } | CommandSchemaPayload[]
+    kind: 'reset',
+    payload: CommandSchemaPayload[]
   ): void {
     if (!MixinApi.isSensor(recipient)) return;
     const meta: MessageFrame['meta'] = { timestamp: Date.now() };
@@ -2068,6 +2200,17 @@ export class CommandLogic extends ApiLogic {
 
 /* ─────────────────── Affordance resolution ─────────────────── */
 
+/** See {@link CommandApi.verbsRequiring}. */
+function verbsRequiringImpl(mixinName: string): string[] {
+  const verbs = new Set<string>();
+  for (const def of commands.values()) {
+    if (!def.getRequiredMixins().includes(mixinName)) continue;
+    const verb = def.getPrimaryVerb();
+    if (verb) verbs.add(verb);
+  }
+  return [...verbs].sort();
+}
+
 /**
  * Execution/command id stamped on a resolution probe's context.
  *
@@ -2095,6 +2238,28 @@ const OBJECT_FIELD_TYPES = new Set(['object', 'objects']);
  * binds to what the verb is ABOUT, and that is a positional. An option
  * is a modifier the player types on purpose.
  */
+/**
+ * ⭐ The exact command an affordance stands for (#91): the verb and the
+ * target by `#id` — never a word, which could quietly resolve to some
+ * other thing in reach. The client sends it only when the player asked
+ * to skip the question (`cockpit style links ids`); by default a click
+ * sends the verb alone and the dispatcher asks "Ring what?".
+ *
+ * Only when the bound field is the verb's FIRST positional: a target in
+ * a later slot (`give <amount> <whom>`) has no correct one-word form, so
+ * the entry carries none rather than one the binder would misread.
+ */
+function affordanceCommand(
+  cmd: CommandDefinition,
+  verb: string,
+  bound: string | undefined,
+  target: Stuff,
+): string | undefined {
+  if (!bound) return verb;
+  if (cmd.args[0]?.name !== bound) return undefined;
+  return `${verb} #${target.stuffId}`;
+}
+
 function objectFields(cmd: CommandDefinition): string[] {
   const names: string[] = [];
   for (const arg of cmd.args) {
@@ -2134,20 +2299,42 @@ async function resolveAffordancesImpl(
   // twice by `getActiveMixins`, and the live drive showed
   // `TangibleMixin` twice on an aether implant. A menu grouping by
   // composition would have painted the group twice.
-  const composition = identified
-    ? [
-        ...new Set(
-          MixinApi.getActiveMixins(target)
-            .map((m) => m._mixinName ?? m.name)
-            .filter((n): n is string => !!n),
-        ),
-      ]
-    : [];
+  //
+  // ⭐ Each entry carries its KIND (controllers-are-io D8b): a protocol
+  // mixin is the verb it serves, so it carries the verbs whose views
+  // require it and the card reads *answers: dip* rather than a noun chip.
+  const composition: CompositionEntry[] = [];
+  if (identified) {
+    const named = new Set<string>();
+    for (const m of MixinApi.getActiveMixins(target)) {
+      const name = m._mixinName ?? m.name;
+      if (!name || named.has(name)) continue;
+      named.add(name);
+      // ⚠ OWN property: a static is inherited down the class chain, so a
+      // mixin composed over a protocol would read as one.
+      const isProtocol =
+        Object.prototype.hasOwnProperty.call(m, '_mixinKind') &&
+        m._mixinKind === 'protocol';
+      composition.push(
+        isProtocol
+          ? { name, kind: 'protocol', verbs: verbsRequiringImpl(name) }
+          : { name, kind: 'mixin' },
+      );
+    }
+  }
 
   const seen = new Set<string>();
   const entries: AffordanceEntry[] = [];
 
-  for (const affordance of viewer.getAffordances()) {
+  // ⭐ The target's OWN affordances first (client-surface D7, slate bug
+  // 5): the dedupe is by verb, so a verb both the subject and the actor
+  // offer was attributed to whichever came first in the viewer's list —
+  // usually the actor's, and the card's action row dropped it. A stable
+  // sort keeps each half in its authored order.
+  const ordered = [...viewer.getAffordances()].sort(
+    (a, b) => Number(b.source === target) - Number(a.source === target),
+  );
+  for (const affordance of ordered) {
     const cmd = affordance.command;
     const verb = cmd.verbs[0];
     if (!verb || seen.has(verb)) continue;
@@ -2178,7 +2365,12 @@ async function resolveAffordancesImpl(
     });
   }
 
-  entries.sort((a, b) => a.verb.localeCompare(b.verb));
+  // The subject's verbs first, so the one a card promises is on the first screen.
+  entries.sort(
+    (a, b) =>
+      Number(a.source === 'actor') - Number(b.source === 'actor') ||
+      a.verb.localeCompare(b.verb),
+  );
   return { verbs: entries, composition };
 }
 
@@ -2220,6 +2412,8 @@ async function evaluateAffordance(
   // typed this binding.
   const binding: MqlOneResult = { stuff: target, raw: AFFORDANCE_PROBE_ID };
   const model: CommandModel = bound ? { [bound]: binding } : {};
+  const command = affordanceCommand(cmd, verb, bound, target);
+  const typed = command ? { command } : {};
 
   // ⚠⚠ The dispatcher runs an ASYNC preload phase between MQL
   // resolution and the sync validator bodies, and it is not optional:
@@ -2235,7 +2429,7 @@ async function evaluateAffordance(
     const note = context
       .getNotes()
       .find((n) => n.kind === 'validator-failed') as
-      | { detail?: string; field?: string }
+      | { detail?: string; field?: string; validator?: string }
       | undefined;
 
     // ⚠⚠ A refusal aimed at an UNBOUND operand is not a refusal.
@@ -2248,6 +2442,7 @@ async function evaluateAffordance(
     if (note?.field && note.field !== bound && fields.includes(note.field)) {
       return {
         verb,
+        ...typed,
         description: cmd.description,
         state: 'pending-operand',
         operand: note.field,
@@ -2255,13 +2450,27 @@ async function evaluateAffordance(
       };
     }
 
-    return {
+    // ⭐ Say WHICH check refused and, when it was the slot's own
+    // `requires:`, the mixin the target was found without — a client can
+    // then name what is missing rather than only that something is.
+    const entry: AffordanceEntry = {
       verb,
+      ...typed,
       description: cmd.description,
       state: 'disabled',
       reason: note?.detail ?? 'You cannot do that here.',
       category: cmd.category,
     };
+    if (note?.validator !== undefined) entry.validator = note.validator;
+    if (bound !== undefined && note?.field === bound) {
+      const slot = cmd.args.find((a) => a.name === bound);
+      const terms = (slot as { _requirementTerms?: RequirementTerm[] } | undefined)?._requirementTerms ?? [];
+      const absent = terms.find(
+        (t) => MqlApi.effectiveTarget(binding, (x): x is Stuff & object => t.test(x)) === null,
+      );
+      if (absent) entry.missing = absent.wants;
+    }
+    return entry;
   }
 
   // ⭐ Passed every check a menu CAN evaluate — but a second object
@@ -2283,6 +2492,7 @@ async function evaluateAffordance(
   if (operand) {
     return {
       verb,
+      ...typed,
       description: cmd.description,
       state: 'pending-operand',
       operand,
@@ -2292,6 +2502,7 @@ async function evaluateAffordance(
 
   return {
     verb,
+    ...typed,
     description: cmd.description,
     state: 'enabled',
     category: cmd.category,
@@ -2558,15 +2769,60 @@ const _compiledStructSchemas = new Map<string, ValidateFunction>();
 
 type WordToken = Extract<RawToken, { kind: 'word' }>;
 
-function bindPositionals(
+/**
+ * ⭐ **The source fills the slot it fits** (`verb@source`, D2). The
+ * first positional object slot whose `requires:` the source satisfies:
+ *
+ *  - nothing typed there → the source is bound (a per-invocation
+ *    `default: "#<id>"`);
+ *  - a typed word that matches the source → the source wins the slot;
+ *  - a typed word that does not → the typed words win.
+ *
+ * A view with no such slot (`say@me hello`) binds exactly as unscoped.
+ */
+function bindWithSource(
+  positionals: WordToken[],
+  args: PositionalDefinition[],
+  parsed: ParsedCommand,
+  expand: (text: string) => string,
+  expandDefault: (text: string) => string,
+  source: Stuff,
+  giver: Stuff & CommandGiver,
+): ReturnType<typeof bindPositionalsImpl> {
+  const idx = args.findIndex((a) => {
+    if (a.type !== 'object' && a.type !== 'objects') return false;
+    const terms = (a as { _requirementTerms?: RequirementTerm[] })._requirementTerms ?? [];
+    return admitsAll(terms)(source);
+  });
+  if (idx < 0) return bindPositionalsImpl(positionals, args, parsed, expand, expandDefault);
+  const slot = args[idx]!;
+  const ref = `#${source.stuffId}`;
+  const withDefault = args.slice();
+  withDefault[idx] = { ...slot, default: ref };
+  const r = bindPositionalsImpl(positionals, withDefault, parsed, expand, expandDefault);
+  if (r.error !== undefined) return r;
+  const typed = r.bound[slot.name];
+  if (typeof typed === 'string' && typed !== ref) {
+    let names: Stuff[] = [];
+    try {
+      names = MqlApi.resolveMany(typed, { commandGiver: giver, scope: 'reachable' }).stuff;
+    } catch {
+      names = [];
+    }
+    if (names.includes(source)) r.bound[slot.name] = ref;
+  }
+  return r;
+}
+
+function bindPositionalsImpl(
   positionals: WordToken[],
   args: PositionalDefinition[],
   parsed: ParsedCommand,
   expand: (text: string) => string,
   expandDefault: (text: string) => string = expand,
 ):
-  | { bound: ModelData; prep: Record<string, string> }
-  | { error: 'shape'; summary: string } {
+  | { bound: ModelData; prep: Record<string, string>; error?: undefined }
+  | { error: 'shape'; summary: string; missing?: string } {
   const bound: ModelData = {};
   const prep: Record<string, string> = {};
   let pi = 0;
@@ -2590,6 +2846,20 @@ function bindPositionals(
       }
     }
 
+    // ⭐ `prepositionRequired`: the slot binds ONLY behind its
+    // preposition. Without it, a required slot is a shape error that
+    // names the preposition (the chain tries the next view — `throw ball
+    // to ann` is not `throw ball at ann`); an optional one stays unbound.
+    if (def.prepositionRequired && def.prepositions && prep[name] === undefined) {
+      if (def.required === true || (def.greedy === true && def.required !== false)) {
+        return {
+          error: 'shape',
+          summary: `missing '${def.prepositions.join("' or '")}' before ${name}`,
+        };
+      }
+      continue;
+    }
+
     if (def.greedy) {
       if (pi >= positionals.length) {
         if (def.default !== undefined) {
@@ -2604,6 +2874,7 @@ function bindPositionals(
               def.type === 'struct'
                 ? `field '${name}' requires structured input; cannot bind from text`
                 : `missing required arg: ${name}`,
+            ...(def.type === 'struct' ? {} : { missing: name }),
           };
         }
         /*
@@ -2741,6 +3012,7 @@ function bindPositionals(
           return {
             error: 'shape',
             summary: `missing required arg: ${name}`,
+            missing: name,
           };
         }
       } else if (loneQuoted !== null) {
@@ -2813,6 +3085,7 @@ function bindPositionals(
             def.type === 'struct'
               ? `field '${name}' requires structured input; cannot bind from text`
               : `missing required arg: ${name}`,
+          ...(def.type === 'struct' ? {} : { missing: name }),
         };
       }
       if (def.type === 'struct') {
@@ -3070,6 +3343,8 @@ function collectActiveOptionDefs(
 interface RequirementTerm {
   test: (s: Stuff) => boolean;
   refusal: string;
+  /** The mixin (or `A|B` alternation, or `class:X`) this term asks for. */
+  wants: string;
 }
 
 /**
@@ -3082,11 +3357,14 @@ interface RequirementTerm {
  * inter-stuff rules — because they are the type hierarchy itself rather
  * than a capability bolted onto it.
  *
- * Exactly one is in use: `class:Agent`, the "is this a person" gate
- * behind `whisper`, `dm`, `give`, `introduce` and sixteen more. A
- * second entry is a design conversation, not a map edit — the pull
- * toward "just add the class" is the pull that made `plant` refuse with
- * `instanceof Seed`, and the answer there was a mixin.
+ * Two are in use: `class:Agent`, the "is this a person" gate behind
+ * `whisper`, `dm`, `give`, `introduce` and sixteen more; and
+ * `class:JobBoard`, `job`'s `board` arg (controllers-are-io W8): the board
+ * is a kernel class composing no capability of its own, and it is an
+ * institution's book, not a capability, so no mixin would say anything
+ * the class does not. Another entry is a design conversation, not a map
+ * edit — the pull toward "just add the class" is the pull that made
+ * `plant` refuse with `instanceof Seed`, and the answer there was a mixin.
  *
  * Loaded by **dynamic import at spec-load**, not a top-level import:
  * `Agent` composes command mixins, so importing the class here would
@@ -3102,7 +3380,46 @@ const CLASS_REQUIREMENTS: Record<
     export: 'Agent',
     refusal: "{} isn't a person",
   },
+  JobBoard: {
+    module: '../../thing/JobBoard',
+    export: 'default',
+    refusal: "{} isn't a job board",
+  },
 };
+
+/** The `requires:` word for {@link affordsView}. */
+const AFFORDS_TERM = 'affords';
+
+/**
+ * ⭐ **Does this candidate itself contribute `view`?** (controllers-are-io
+ * D8d) — its class's `commandContributions` or an ACTIVE mixin's, so a gated
+ * mixin no augment confers offers nothing, in any bucket: which bucket a
+ * verb reached the actor through is where the actor stands, not what the
+ * candidate is. The slot opts in with `requires: [affords]`, for a verb
+ * whose target must be the thing offering it — `wind` the clock that offers
+ * `wind`, never a second clock-shaped thing beside it.
+ */
+function affordsView(s: Stuff, view: CommandDefinition): boolean {
+  const active = new Set<unknown>(MixinApi.getActiveMixins(s));
+  const composed = new Set<unknown>(
+    MixinApi.queryMixins(s.constructor as { prototype: unknown } & ((...args: unknown[]) => unknown)),
+  );
+  // ⚠ OWN statics, walked down the chain: a static is inherited, so reading
+  // the concrete class alone would see a gated mixin's contribution through
+  // it however inactive that mixin is.
+  for (let c: unknown = s.constructor; typeof c === 'function'; c = Object.getPrototypeOf(c)) {
+    if (composed.has(c) && !active.has(c)) continue;
+    if (!Object.prototype.hasOwnProperty.call(c, 'commandContributions')) continue;
+    const contributed = getContributions(c);
+    if (!contributed) continue;
+    for (const bucket of ['self', 'inventory', 'environment', 'peers'] as const) {
+      for (const fname of contributed[bucket] ?? []) {
+        if (CommandApi.getCommand(fname)?.filePath === view.filePath) return true;
+      }
+    }
+  }
+  return false;
+}
 
 /**
  * Parse a `requires:` declaration into its AND-terms.
@@ -3131,16 +3448,17 @@ const CLASS_REQUIREMENTS: Record<
  *
  * An alternation reports its FIRST member's phrase: the alternation
  * exists because the members are the same idea from two directions
- * (`ignite` takes a Combustible or a Burner; "won't burn" is true of
+ * (`light` takes a Combustible or a Burner; "won't burn" is true of
  * failing both), so listing every branch's sentence would be worse copy,
  * not more information.
  *
  * One entry may instead be `class:<Name>` — see
- * {@link CLASS_REQUIREMENTS}, which is closed and has one member.
+ * {@link CLASS_REQUIREMENTS}, which is closed.
  */
 async function parseRequirement(
   requires: MixinRequirement,
   where: string,
+  view?: CommandDefinition,
 ): Promise<RequirementTerm[]> {
   if (requires === 'any') return [];
   const entries = Array.isArray(requires) ? requires : [requires];
@@ -3152,6 +3470,24 @@ async function parseRequirement(
       .filter((n) => n.length > 0);
     if (names.length === 0) {
       throw new Error(`${where}: empty \`requires\` entry`);
+    }
+
+    // ⭐ `affords` (controllers-are-io D8d): the candidate itself contributes
+    // THIS view. An AND-term of its own, never an alternate of a mixin: it
+    // stands beside the protocol mixin, not instead of it.
+    if (names.includes(AFFORDS_TERM)) {
+      if (names.length > 1) {
+        throw new Error(`${where}: \`${AFFORDS_TERM}\` cannot be an alternate — list it as its own term`);
+      }
+      if (view === undefined) {
+        throw new Error(`${where}: \`${AFFORDS_TERM}\` needs the view it is declared on`);
+      }
+      terms.push({
+        test: (s) => affordsView(s, view),
+        refusal: `You can't ${view.getPrimaryVerb()} {}.`,
+        wants: AFFORDS_TERM,
+      });
+      continue;
     }
 
     if (names.length === 1 && names[0]!.startsWith('class:')) {
@@ -3175,6 +3511,7 @@ async function parseRequirement(
       terms.push({
         test: (s) => s instanceof ctor,
         refusal: spec.refusal,
+        wants: `class:${className}`,
       });
       continue;
     }
@@ -3196,6 +3533,7 @@ async function parseRequirement(
       // a mixin with no authored phrase is worse copy, not a broken
       // verb. `lint:arg-kinds` reports the gap.
       refusal: MixinApi.refusalFor(first) ?? `{} isn't the right kind of thing`,
+      wants: mixinNames.join('|'),
     });
   }
   return terms;
@@ -3224,8 +3562,9 @@ async function parseRequirement(
 async function requirementValidator(
   requires: MixinRequirement,
   where: string,
+  view?: CommandDefinition,
 ): Promise<FieldValidator | null> {
-  const terms = await parseRequirement(requires, where);
+  const terms = await parseRequirement(requires, where, view);
   if (terms.length === 0) return null;
 
   const fails = (s: Stuff, term: RequirementTerm): boolean => !term.test(s);
@@ -3318,8 +3657,8 @@ async function resolveCommandValidators(
       // `talk dave` — falls through to the next scope instead of
       // shadowing the barkeep. The validator stays as the post-bind
       // check for a field bound by structured input.
-      target._requirementTerms = await parseRequirement(target.requires, where);
-      const synthesized = await requirementValidator(target.requires, where);
+      target._requirementTerms = await parseRequirement(target.requires, where, cmd);
+      const synthesized = await requirementValidator(target.requires, where, cmd);
       if (synthesized) fns.push(synthesized);
     }
     for (const spec of target.validators ?? []) {

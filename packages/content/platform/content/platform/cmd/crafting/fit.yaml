@@ -18,6 +18,7 @@
 # Taking a thing apart is `salvage` — the shipped verb, whose yield the
 # joint's reversibility decides. Tightening a slack joint is `repair`.
 verbs: [fit]
+category: crafting
 controller: /platform/idea/cmd/crafting/FitController
 description: "Fit a part to a thing made of parts, or raise one from its parts"
 help: |
@@ -63,7 +64,7 @@ args:
     prepositions: [to, on, in, into, onto]
     scope: ["reachable"]
     requires: AssembledMixin|FacedMixin
-  # ⭐ WHICH TOOL — declared, not hunted for (`lint:instrument-args`). Bare,
+  # ⭐ WHICH TOOL — declared, not hunted for (`lint:controller-resolution`). Bare,
   # the binder hands over every reachable tool; the joint decides which
   # capability it wants.
   - name: tool

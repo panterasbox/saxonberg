@@ -138,7 +138,7 @@ describe('LayoutController', () => {
     expect(rejection(refused)).toBe('unknown-arrangement');
 
     await run({ name: 'save', target: 'wide' });
-    expect(saved().play?.wide).toEqual({ cards: [] });
+    expect(saved().explore?.wide).toEqual({ cards: [] });
 
     const ok = await run({ name: 'wide' });
     expect(rejection(ok)).toBeUndefined();
@@ -150,7 +150,7 @@ describe('LayoutController', () => {
    * has that name one door over. The refusal names the mode.
    */
   it('refuses a name from another mode, naming that mode', async () => {
-    // `viewer` ships with watch; the actor is in play.
+    // `viewer` ships with watch; the actor is in explore.
     const ctx = await run({ name: 'viewer' });
     expect(rejection(ctx)).toBe('wrong-mode-arrangement');
     const detail = ctx
@@ -165,6 +165,38 @@ describe('LayoutController', () => {
    * rather than resolved silently at recall time in favour of whichever
    * happened to be checked first.
    */
+  it('⭐ save records each card\'s shape and place, in units — never a subject card (client-surface D5)', async () => {
+    const controller = makeStuff(() => new LayoutController());
+    const ctx = CommandApi.createCommandContext({
+      commandGiver: actor as never,
+      location: location as never,
+      commandText: 'cockpit layout save wide',
+      executionId: 'test',
+      commandId: 'test',
+      verb: 'cockpit',
+      command: stubCommand(),
+      interactive: {
+        listCards: () => [
+          { instanceId: 'c1', cardId: 'who', key: 'who', pinned: true, live: false, size: 'medium', minimized: false, placed: { col: 1, row: 0 } },
+          { instanceId: 'c2', cardId: 'news', key: 'news', pinned: false, live: false, size: 'unit', minimized: true },
+          { instanceId: 'c3', cardId: 'subject', key: 'look', pinned: false, live: true, size: 'unit', minimized: false, role: 'here' },
+          { instanceId: 'c4', cardId: 'terminal', key: 'cockpit terminal All', pinned: true, live: false, size: 'medium', minimized: false, role: 'primary', terminal: { filter: { view: 'All' }, barId: 'bar-1', primary: true } },
+          { instanceId: 'c5', cardId: 'terminal', key: 'cockpit terminal #gossip', pinned: true, live: false, size: 'unit', minimized: false, terminal: { filter: { channel: 'gossip' }, barId: 'bar-2', primary: false } },
+        ],
+      } as never,
+    });
+    await controller.execute({ name: 'save', target: 'wide' } as never, ctx as never);
+    expect(saved().explore?.wide).toEqual({
+      cards: [
+        { cardId: 'who', size: 'medium', pinned: true, placed: { col: 1, row: 0 } },
+        { cardId: 'news', size: 'unit', pinned: false, minimized: true },
+        // ⭐ Every terminal, with its filter and whether it is the primary.
+        { cardId: 'terminal', size: 'medium', pinned: true, terminal: { filter: { view: 'All' }, primary: true } },
+        { cardId: 'terminal', size: 'unit', pinned: true, terminal: { filter: { channel: 'gossip' } } },
+      ],
+    });
+  });
+
   it('never lets a saved name shadow a shipped default', async () => {
     actor.setClientState('cockpit.mode', 'watch');
     const ctx = await run({ name: 'save', target: 'viewer' });
@@ -179,7 +211,7 @@ describe('LayoutController', () => {
     const empty = await run({ name: 'save', target: '   ' });
     expect(rejection(empty)).toBe('missing-arg');
 
-    expect(Object.keys(saved().play ?? {})).toEqual([]);
+    expect(Object.keys(saved().explore ?? {})).toEqual([]);
   });
 
   describe('forget', () => {
@@ -190,7 +222,7 @@ describe('LayoutController', () => {
     it('drops a saved arrangement', async () => {
       const ctx = await run({ name: 'forget', target: 'wide' });
       expect(rejection(ctx)).toBeUndefined();
-      expect(saved().play?.wide).toBeUndefined();
+      expect(saved().explore?.wide).toBeUndefined();
     });
 
     it('falls back to the mode default when forgetting the active one', async () => {
@@ -226,13 +258,13 @@ describe('LayoutController', () => {
   it('keeps saved arrangements scoped per mode', async () => {
     await run({ name: 'save', target: 'wide' });
     actor.setClientState('cockpit.mode', 'chat');
-    // Saved in play, so it must not resolve in chat...
+    // Saved in explore, so it must not resolve in chat...
     const ctx = await run({ name: 'wide' });
     expect(rejection(ctx)).toBe('wrong-mode-arrangement');
     // ...and the same name may be saved independently here.
     await run({ name: 'save', target: 'wide' });
     expect(saved().chat?.wide).toBeDefined();
-    expect(saved().play?.wide).toBeDefined();
+    expect(saved().explore?.wide).toBeDefined();
   });
 
   /*
@@ -249,17 +281,17 @@ describe('LayoutController', () => {
     for (let i = 0; i < MAX_SAVED_ARRANGEMENTS_PER_MODE; i += 1) {
       await run({ name: 'save', target: `layout-${i}` });
     }
-    expect(Object.keys(saved().play ?? {}).length).toBe(
+    expect(Object.keys(saved().explore ?? {}).length).toBe(
       MAX_SAVED_ARRANGEMENTS_PER_MODE,
     );
 
     await run({ name: 'save', target: 'one-too-many' });
-    expect(saved().play?.['one-too-many']).toBeUndefined();
+    expect(saved().explore?.['one-too-many']).toBeUndefined();
 
     // …but the one already there can still be re-saved.
     await run({ name: 'save', target: 'layout-0' });
-    expect(saved().play?.['layout-0']).toBeDefined();
-    expect(Object.keys(saved().play ?? {}).length).toBe(
+    expect(saved().explore?.['layout-0']).toBeDefined();
+    expect(Object.keys(saved().explore ?? {}).length).toBe(
       MAX_SAVED_ARRANGEMENTS_PER_MODE,
     );
   });

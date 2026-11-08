@@ -1,4 +1,5 @@
 verbs: [raise]
+category: mining
 controller: /trade/mining/idea/cmd/mining/RaiseController
 description: "Raise — drive a working upward"
 help: |

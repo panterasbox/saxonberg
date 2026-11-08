@@ -118,26 +118,89 @@ describe('buy — a good whose name is a phrase', () => {
   });
 });
 
-describe('reclaim — the same shape, the same answer', () => {
-  it('`reclaim dog loaf` binds the whole phrase', () => {
-    expect(bind('reclaim dog loaf', 'reclaim').thing).toBe('dog loaf');
+describe('shelf reclaim — the same shape, the same answer', () => {
+  it('`shelf reclaim dog loaf` binds the whole phrase', () => {
+    expect(bind('shelf reclaim dog loaf', 'shelf').thing).toBe('dog loaf');
   });
 
   it('the slice stops at `from`, so the shelf still binds — phrase and all', () => {
-    const m = bind('reclaim lantern from the second shelf', 'reclaim');
+    const m = bind('shelf reclaim lantern from the second shelf', 'shelf');
     expect(m.thing).toBe('lantern');
     expect(m.shelf).toBe('the second shelf');
   });
 
-  it('`reclaim dog loaf from the second shelf` binds BOTH phrases', () => {
-    const m = bind('reclaim dog loaf from the second shelf', 'reclaim');
+  it('`shelf reclaim dog loaf from the second shelf` binds BOTH phrases', () => {
+    const m = bind('shelf reclaim dog loaf from the second shelf', 'shelf');
     expect(m.thing).toBe('dog loaf');
     expect(m.shelf).toBe('the second shelf');
   });
 
   it('a bare good leaves `shelf` to its default', () => {
-    expect(bind('reclaim lantern', 'reclaim').shelf).toBe(
+    expect(bind('shelf reclaim lantern', 'shelf').shelf).toBe(
       'reachable:[mixin.ConsignmentShelfMixin]',
     );
+  });
+});
+
+/**
+ * ⭐ The institution nouns (controllers-are-io W7, D9): a transaction with
+ * a book is a subcommand of the book's noun, and each subcommand binds its
+ * own book — nothing inherits.
+ */
+describe('the book is the operand — shelf / rack / house / job', () => {
+  function viewAt(dir: string, verb: string): CommandDefinition {
+    return CommandDefinition.fromYaml(
+      readFileSync(join(VIEWS, '..', dir, `${verb}.yaml`), 'utf8'),
+      `${verb}.yaml`,
+    );
+  }
+  function bindAt(text: string, dir: string, verb: string): Record<string, unknown> {
+    const parsed = CommandLineApi.parsePipeline(text).commands[0]!;
+    const r = CommandApi.assemble(parsed, viewAt(dir, verb), ctx);
+    if (!('model' in r)) throw new Error(`"${text}" did not bind: ${JSON.stringify(r)}`);
+    return r.model as Record<string, unknown>;
+  }
+
+  it('`shelf consign lantern --ask 12` binds the good, the ask and the shelf in reach', () => {
+    const m = bind('shelf consign lantern --ask 12', 'shelf');
+    expect(m.subcommand).toBe('consign');
+    expect(m.ask).toBe('12');
+    expect(m.shelf).toBe('reachable:[mixin.ConsignmentShelfMixin]');
+  });
+
+  it('⚠ `rack reclaim knife` binds a RACK — the flat reclaim bound only a shelf', () => {
+    const m = bind('rack reclaim knife', 'rack');
+    expect(m.thing).toBe('knife');
+    expect(m.rack).toBe('reachable:[mixin.HeldGoodsMixin] - reachable:[mixin.ConsignmentShelfMixin]');
+    expect(view('rack').controllerForSubcommand('reclaim')).toBe(
+      '/platform/idea/cmd/retail/RackReclaimController',
+    );
+  });
+
+  it('`house appoint alice to keeper at /x` binds through the house', () => {
+    const m = bindAt('house appoint alice to keeper at /x', 'banking', 'house');
+    expect(m.subcommand).toBe('appoint');
+    expect(m.position).toBe('keeper');
+    expect(m.organization).toBe('/x');
+  });
+
+  it('`job claim 3fa on the depot board` binds the id and the named board; bare `job` takes the board in reach', () => {
+    const m = bindAt('job claim 3fa on the depot board', 'work', 'job');
+    expect(m.id).toBe('3fa');
+    expect(m.board).toBe('the depot board');
+    expect(bindAt('job', 'work', 'job').board).toBe('reachable:[class.JobBoard]');
+  });
+
+  it('each noun carries its transactions as subcommands, each with its own controller', () => {
+    const cases: Array<[CommandDefinition, string[]]> = [
+      [viewAt('banking', 'house'), ['appoint', 'dismiss', 'draw']],
+      [viewAt('work', 'job'), ['post', 'claim', 'complete', 'abandon', 'fulfill', 'apply', 'quit']],
+      [view('shelf'), ['consign', 'reclaim']],
+      [view('rack'), ['check', 'reclaim']],
+    ];
+    for (const [def, subs] of cases) {
+      expect(def.getSubcommandNames()).toEqual(expect.arrayContaining(subs));
+      for (const sub of subs) expect(def.controllerForSubcommand(sub)).toMatch(/^\/platform\/idea\/cmd\//);
+    }
   });
 });

@@ -58,5 +58,5 @@ data:
     A small, wiry figure barely waist-high, bright-eyed and quick-fingered,
     with the restless, tinkering attention of someone forever halfway
     through taking something apart to see how it works.
-  nameBankKeys: ["gnomish"]
+  nameBanks: [/species-and-names/name-banks/gnomish]
   facultyProfile: { depth: low, serenity: high, composure: mid }

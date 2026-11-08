@@ -21,14 +21,18 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
-import { Mml, type MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
+import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type {
-  Splittable,
-  WorkPrognosis,
-  WorkResult,
+  SplitBegin,
+  SplitDone,
+  SplitRefusal,
+  WorkLanding,
+  WorkPlan,
 } from '@saxonberg/server/mud/lib/ground/Workable';
+import type { ActDone } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import { SplittableMixin, type Splittable } from '@saxonberg/server/mud/lib/ground/Splittable';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -62,7 +66,7 @@ function madeFromAugmenter(
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
-const WheelBase = RipeningMixin(Provision);
+const WheelBase = SplittableMixin(RipeningMixin(Provision));
 
 export default class Wheel extends WheelBase implements Splittable {
   /**
@@ -88,9 +92,6 @@ export default class Wheel extends WheelBase implements Splittable {
   /** Wedges still in it; `-1` = uncut (the whole of `wedgesPerWheel`). */
   public wedgesLeft = -1;
 
-  /** The declared shape's marker. */
-  public readonly splittable = true as const;
-
   public getWedgesPerWheel(): number {
     return this.wedgesPerWheel;
   }
@@ -104,14 +105,12 @@ export default class Wheel extends WheelBase implements Splittable {
 
   // ───────────────────────── the Splittable shape ─────────────────────────
 
-  public async planWork(
+  public override async planWork(
     by: Stuff,
     tool: (Stuff & Tooled) | null,
     _what: string | null,
-  ): Promise<WorkPrognosis> {
-    if (this.getWedgesLeft() <= 0) {
-      return { kind: 'refusal', reason: 'wheel-spent', prose: 'There is nothing left of it to cut.' };
-    }
+  ): Promise<WorkPlan<SplitBegin, SplitDone, SplitRefusal> | SplitRefusal> {
+    if (this.getWedgesLeft() <= 0) return { ok: false, reason: 'wheel-spent' };
     // ⭐ An EDGE, never a class: a tool that CUTS (a cheese knife, a wire)
     // or anything bladed by construction (the butcher's rule).
     // ⚠ The `split` view's tool arg requires `ToolMixin`, and every knife
@@ -122,36 +121,26 @@ export default class Wheel extends WheelBase implements Splittable {
       tool !== null &&
       (tool.hasCapability('cutting') ||
         (MixinApi.isConstructed(tool) && tool.getConstructionForm() === 'bladed'));
-    if (!edged) {
-      return {
-        kind: 'refusal',
-        reason: 'no-edge',
-        prose: 'You want an edge for that — a knife, or a wire.',
-      };
-    }
+    if (!edged) return { ok: false, reason: 'no-edge' };
     return {
-      kind: 'plan',
+      ok: true,
       durationMs: SPLIT_MS,
-      cost: 1,
-      beginSelf: 'You set the blade at the centre and lean on it.',
-      beginPeers: Mml.compose`${Mml.actor(by)} starts cutting into a wheel of cheese.`.toString(),
-      token: null,
+      effortW: MixinApi.isExerting(by) ? by.wattsForFeltCost(1, SPLIT_MS / 1000) : 0,
+      facts: { kind: 'cheese' },
+      onComplete: () => this.completeSplit(),
     };
   }
 
-  public async completeWork(
-    _by: Stuff,
-    _tool: (Stuff & Tooled) | null,
-    _token: unknown,
-  ): Promise<WorkResult> {
+  /** A wedge comes away; the last of them ends the wheel. */
+  private async completeSplit(): Promise<ActDone<SplitDone & WorkLanding, SplitRefusal>> {
     const left = this.getWedgesLeft();
-    if (left <= 0) return { self: 'There is nothing left of it to cut.' };
+    if (left <= 0) return { ok: false, reason: 'wheel-spent' };
     let wedge: Stuff | null = null;
     try {
       wedge = await StuffApi.clone<Stuff>(WEDGE_ROW);
     } catch {
       console.error(`Wheel: wedge row '${WEDGE_ROW}' did not resolve`);
-      return { self: 'It will not come apart cleanly.' };
+      return { ok: false, reason: 'wedge-failed' };
     }
     const massKg = this.getMass().rawValue() / left;
     this.carryOnto(wedge, massKg);
@@ -161,20 +150,13 @@ export default class Wheel extends WheelBase implements Splittable {
     }
     const remaining = left - 1;
     this.wedgesLeft = remaining;
+    const credit = { discipline: 'dairying', difficulty: 'trivial' } as const;
     if (remaining <= 0) {
       StuffApi.destruct(this as unknown as Stuff);
-      return {
-        self: `The last wedge comes away — ${wedge.getPresentation()}.`,
-        peers: null,
-        credit: { discipline: 'dairying', difficulty: 'trivial' },
-      };
+      return { ok: true, facts: { kind: 'cheese', wedge: wedge.getPresentation(), last: true, credit } };
     }
     this.setMass(Quantity.of(Math.max(0, this.getMass().rawValue() - massKg), 'kg'));
-    return {
-      self: `A wedge comes away clean — ${wedge.getPresentation()}.`,
-      peers: null,
-      credit: { discipline: 'dairying', difficulty: 'trivial' },
-    };
+    return { ok: true, facts: { kind: 'cheese', wedge: wedge.getPresentation(), last: false, credit } };
   }
 
   /**

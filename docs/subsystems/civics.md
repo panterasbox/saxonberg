@@ -175,7 +175,7 @@ deliberate closed scope (re-rooting them is city content), not a bug.
 
 ## The verb
 
-`government` / `gov` (the **`civics`** category — the fiction's
+`government` (the **`civics`** category — the fiction's
 governments; deliberately not `governance`, the Compact's category),
 universal on Persona, public, read-only: bare/`list` renders the
 `subjectTo` chain most-local first (description, departments, seats
@@ -277,7 +277,11 @@ deferred generic office validator); the charter as a readable
 StoredDocument; multi-residence primary-home designation; re-rooting
 the sibling address roots; the University's institutional detail
 (Chancellor, colleges); the realm's ministries; the Compact's capital
-district (staging).
+district (staging); ⭐ **the operating-scale term** — a government's
+operating classes (*smallholding · estate · plantation*) as rows,
+measured by the engine and judged by an officer seat, the third
+dimension of the land-use covenant
+([land-use-covenant-slate § The operating-scale term](../slates/builds/land-use-covenant-slate.md)).
 
 ## Cross-references
 

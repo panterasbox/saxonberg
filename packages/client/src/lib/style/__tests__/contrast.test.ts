@@ -99,6 +99,8 @@ const ON_GROUND_PAIRS: Array<[GroundRole, GroundRole]> = [
   ['white', 'field-press'],
   ['accent-ink', 'accent'],
   ['paper-ink', 'paper'],
+  // The terminal's neutral ground, under the transcript's own text.
+  ['terminal-fg', 'terminal-ground'],
 ];
 
 /**

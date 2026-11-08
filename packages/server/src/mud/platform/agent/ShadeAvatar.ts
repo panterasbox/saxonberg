@@ -115,20 +115,12 @@ export default class ShadeAvatar extends IncorporealMixin(Avatar) {
    * it IS their body — so this deliberately does NOT override
    * `Avatar.onLinkdead`.
    *
-   * That means a deliberate sign-out fires `PlayerLoggedOut` and a bare
-   * drop fires `PlayerDisconnected`, and either way the shade LINGERS the
-   * way a living body does. Reconnecting finds it still holding the
-   * `PlayerApi` slot, so the player returns to the same shade in the same
-   * room rather than being re-minted at the place they died.
-   *
-   * An earlier version reaped it on disconnect — the GUEST behaviour. It
-   * still put you back as a shade (the arc is on the identity, so the
-   * login path re-mints one), but the world never heard you leave and you
-   * came back wherever your body had fallen instead of where your ghost
-   * had walked to.
-   *
-   * Nothing durable rides on the lingering: the shade persists nothing, so
-   * a restart simply drops it and the next login re-mints from the arc.
+   * That means a bare drop fires `PlayerDisconnected` and the shade lingers as
+   * a living body does: reconnecting finds it holding the `PlayerApi` slot, in
+   * the same room. A deliberate sign-out fires `PlayerLoggedOut` and destructs
+   * it, as it does a living body (controllers-are-io D30). Nothing durable rides
+   * on it: the shade persists nothing, so the next login re-mints from the arc,
+   * at the place of death rather than where the ghost had walked to.
    *
    * ⭐ There is no `onDestruct` override here any more. It used to
    * stop the autosave, unregister and detach — and then call `super`,

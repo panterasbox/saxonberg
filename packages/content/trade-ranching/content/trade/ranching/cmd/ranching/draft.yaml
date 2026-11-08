@@ -1,4 +1,5 @@
 verbs: [draft]
+category: ranching
 controller: /trade/ranching/idea/cmd/ranching/DraftController
 description: "Cut one head out of a herd so you can look at it"
 help: |

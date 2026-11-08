@@ -27,7 +27,7 @@ import type { CommandContext } from '../../../api/command';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type Material from '../../../lib/material/Material';
-import type { Tooled } from '../../../lib/craft/Tooled';
+import type { Tooled } from '../../../lib/craft/Tool';
 import type { Concentrate } from '../../../lib/bulk/Concentration';
 import type { CompetenceBandName } from '../../../lib/advancement/CompetenceBand';
 

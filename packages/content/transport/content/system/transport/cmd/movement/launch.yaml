@@ -1,6 +1,7 @@
 # `launch` — put the boat you are sitting in over the side (maritime).
 # Afforded from inside a `Boat`; you are then wherever the boat is.
 verbs: [launch]
+category: movement
 controller: /system/transport/idea/cmd/movement/LaunchController
 description: "Put the boat you are sitting in over the side"
 help: |

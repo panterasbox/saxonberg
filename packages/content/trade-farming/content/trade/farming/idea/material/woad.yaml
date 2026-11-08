@@ -8,8 +8,9 @@
 # ⚠ It takes NO MORDANT. A mordant applied before a woad vat is wasted
 # alum, and the trade refuses it rather than silently ignoring it —
 # because the point is that dyeing is TWO chemistries, not one.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/green, strength: 30 }, { aroma: /base-library/aromas/ammonia, strength: 100 }]
   name: woad
   keywords: [pastel, woad, indigotin]
   appearance: bruised blue-green woad

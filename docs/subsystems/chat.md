@@ -16,7 +16,7 @@ and no `isIC` property; Help is a *mentor frequency*, Global is the
 *common band*, a player-made channel is a *private frequency*. The
 modality stamp on every chat frame is `'verbal-esp'`, so reception
 gates through the same `SensorMixin.filterMessage` modality check that
-governs `tell` — implant-less recipients miss chat without further
+governs `dm` — implant-less recipients miss chat without further
 wiring.
 
 Chat is distinct from `dm` (a single-cohort directed-speech verb that
@@ -337,7 +337,7 @@ subscribers, none of whom are room-peers of the speaker). Going
 through `onMessage` directly keeps chat on the same
 lone delivery chokepoint without abusing Scene's audience shape.
 
-Ad-hoc posts are handled inline in `ChatController.executePost` —
+Ad-hoc posts are handled inline in `ChatPostController` —
 they iterate the `AdHocChannel.members` set and emit one
 `MessageApi.scene(speaker).toTarget(...)` per recipient (the cohort
 is small enough that the Scene API fits cleanly), then append to
@@ -369,13 +369,13 @@ small command-framework extension shipped alongside chat:
 ```yaml
 # content/platform/cmd/social/chat.yaml
 verbs: [chat]
-controller: ChatController
+controller: /platform/idea/cmd/social/ChatPostController   # the bare post
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresVerbalESP
 fallthrough: true
 subcommands:
-  list:   { description: "List channels visible to you" }
+  list:   { description: "List channels visible to you", controller: …/ChatListController }
   join:   { args: [{ name: name, type: string, required: true }] }
   leave:  { args: [{ name: name, type: string, required: true }] }
   mute:   { args: [{ name: name, type: string, required: true }] }
@@ -406,10 +406,13 @@ is opt-in; most subcommanded verbs (`measure`, `prompt`,
 `settings`, `var`) want the `unknown-subcommand` error as their
 failure mode and stay on the original behavior.
 
-`ChatController.execute` decides which grammar matched by reading
-`model.subcommand`: when it's absent the controller treats the
-input as a bare post (`channel` + `message` populated); when it's
-present the controller dispatches per-subcommand.
+⭐ **One controller per subcommand** (controllers-are-io D9): every
+stanza names its own `Chat<Sub>Controller` over `ChatControllerBase`
+(`platform/idea/cmd/social/`; `join`/`leave` share the base's `tune`,
+`mute`/`unmute` its `mute`), and the verb-level controller is
+`ChatPostController` — the dispatcher clones it when no subcommand
+matched (`model.subcommand` absent), so the bare post is that
+controller's whole job (`channel` + `message` populated).
 
 The `chat make` subcommand cross-checks the requested channel name
 against the same reserved set the matcher uses, refusing names that

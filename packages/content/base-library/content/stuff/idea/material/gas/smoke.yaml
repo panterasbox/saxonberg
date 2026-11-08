@@ -13,8 +13,9 @@
 # room one-tenth full of smoke poisons at a tenth of this rate. That is
 # what makes smoke dangerous before it is suffocating, which is the
 # carbon-monoxide lesson and the reason the fiction has chimneys.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/smoke, strength: 300 }]
   name: smoke
   keywords: [smoke, soot, reek]
   appearance: a grey, greasy haze

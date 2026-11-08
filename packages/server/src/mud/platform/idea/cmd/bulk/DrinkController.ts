@@ -29,9 +29,6 @@ interface DrinkModel extends CommandModel {
 }
 
 
-/** A draught from a fixed source, L — one swallow's worth (grain). */
-const DRAUGHT_L = 0.25;
-
 export default class DrinkController extends CommandController<DrinkModel> {
   async execute(model: DrinkModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
@@ -116,10 +113,9 @@ export default class DrinkController extends CommandController<DrinkModel> {
     // in place (a butt, a trough, a cistern, a tap) gives a DRAUGHT — what a
     // person swallows at once — unless a measure says otherwise (the
     // water-supply browser walk: one `drink from butt` took all 180 L).
-    const fixed = MixinApi.isContainable(target) && target.isFixedInPlace();
     const amount = BulkableApi.amountFromOption(
       model.amount,
-      fixed ? { kind: 'measure', litres: DRAUGHT_L, mode: 'lenient' } : { kind: 'all' },
+      MixinApi.isBulkable(target) ? target.drinkMeasure() : { kind: 'all' },
       model.exact === true,
     );
     const result = BulkableApi.transfer(fromSlot, null, amount);

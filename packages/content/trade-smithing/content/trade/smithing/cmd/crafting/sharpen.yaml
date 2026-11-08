@@ -1,4 +1,5 @@
-verbs: [sharpen, hone]
+verbs: [sharpen]
+category: crafting
 controller: /trade/smithing/idea/cmd/crafting/SharpenController
 description: "Sharpen a blade with your whetstone"
 help: |
@@ -23,7 +24,7 @@ args:
   # `[capability.whetstone]` — *the thing that can do this job* — rather than
   # `[mixin.ToolMixin]`, which would resolve any tool at all and then
   # fail this verb's own check. That atom is what let this stop being a
-  # walk (see `lint:instrument-args`).
+  # walk (see `lint:controller-resolution`).
   - name: stone
     type: object
     required: false
@@ -32,5 +33,5 @@ args:
     # declared; a scythe on the ground is picked up first. (`reachable` for a
     # day widened every hand tool to the room. Naming one still reaches it.)
     default: "me:i:[capability.whetstone]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [ToolMixin]

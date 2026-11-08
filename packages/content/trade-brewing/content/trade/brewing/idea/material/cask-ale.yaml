@@ -2,8 +2,10 @@
 # naturally carbonated, medieval-exact. Carbonation is a material-level
 # fact the ferment produced (D11: no kernel code may test how it got
 # fizzy); the `ale` tag keeps every ale recipe serving it.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/beer, strength: 300 }]
+  tastes: [{ type: sweet, amount: 10 }, { type: sour, amount: 0.8 }, { type: bitter, amount: 0.1 }]
   name: cask ale
   keywords: [ale, "cask ale", beer, cask]
   appearance: "a soft-glowing amber ale with a live, fine bead"

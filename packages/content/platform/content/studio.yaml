@@ -8,7 +8,7 @@
 #
 # Provisioning is a GOVERNANCE act with the shipped title verbs: the
 # /studio parcel is owned by `core` (see mud/config/parcels.yaml), so a
-# governor `subdivide`s /studio/<groupId> and `transfer --group`s the
+# governor `title subdivide`s /studio/<groupId> and `title transfer --group`s the
 # child title to the group. Personal space is a right (/home, the
 # self-home rule); group space is a grant. See
 # docs/subsystems/sandbox.md.

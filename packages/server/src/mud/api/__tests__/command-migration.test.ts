@@ -48,9 +48,10 @@ describe('Command-YAML migration parity', () => {
     }
   });
 
-  it('say.yaml has the literal-quote alias verb', () => {
+  it('say.yaml declares the literal-quote default alias', () => {
     const cmd = CommandApi.getCommand('platform/cmd/social/say.yaml');
-    expect(cmd?.verbs).toContain("'");
+    expect(cmd?.verbs).toEqual(['say']);
+    expect(cmd?.defaultAliases.map((a) => a.name)).toEqual(["'"]);
   });
 
   it('var/settings set use a greedy value field', () => {

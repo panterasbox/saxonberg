@@ -57,8 +57,8 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
-import type { Reserved } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
+import type { Reserved } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';

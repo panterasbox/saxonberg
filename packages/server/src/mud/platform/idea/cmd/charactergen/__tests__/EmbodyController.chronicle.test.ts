@@ -104,7 +104,7 @@ describe('EmbodyController.commit → chronicle seeding', () => {
     species.setSexDeterminationSystem('dioecious');
     species.setCommonNames(['human']);
     species.setLongDescription('an ordinary-looking person');
-    species.setNameBankKeys(['common']);
+    species.setNameBanks(['/species-and-names/name-banks/common']);
     vi.spyOn(StuffApi, 'singleton').mockImplementation(async (p: string) =>
       p === SAPIENS ? (species as never) : (undefined as never)
     );

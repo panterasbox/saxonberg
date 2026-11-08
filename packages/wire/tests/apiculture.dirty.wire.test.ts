@@ -265,7 +265,7 @@ suite('⭐⭐ the kit comes from town, because the valley has no supplier', () =
     // money arrived is that the purchases below go through.
     const lamp = await say(k, 'buy lantern');
     expect(refusedFor(lamp)).toBeNull();
-    expectOk(await say(k, 'ignite lantern'));
+    expectOk(await say(k, 'light lantern'));
     expect(await carried(k)).toMatch(/lantern/i);
   }, 300_000);
 
@@ -427,10 +427,10 @@ suite('⭐⭐ the covering decides the sting, and the reading has no number', ()
   }, 120_000);
 
   it('⭐⭐ AC 2 — with smoke, the reading is BANDS: no digit anywhere in it', async () => {
-    // The smoker is lit with the platform's `ignite` and held in a hand,
+    // The smoker is lit with the platform's `light` and held in a hand,
     // because the colony reads the ACTOR's hands — a smoker in your pack
     // is a smoker you did not use.
-    const lit = await say(k, 'ignite smoker');
+    const lit = await say(k, 'light smoker');
     expect(refusedFor(lit)).not.toBe('unknown-verb');
     await say(k, 'wield smoker');
     await k.drainProse();
@@ -540,7 +540,7 @@ suite('⭐ honey goes on the shelf people already buy from', () => {
     // from is standing in the room the hive's keeper walks back into.
     const shelf = await k.query('here:i:shelf', { fields: ['displayName'] });
     expect(shelf.length, "Quist's shelf is in the yard").toBeGreaterThan(0);
-    const bought = await say(k, 'consign jar');
+    const bought = await say(k, 'shelf consign jar');
     // ⚠ Either outcome is honest — a jar has to be carried to be
     // consigned, and whether `rob` produced one is the clock's answer.
     // What this reads is that the verb is AFFORDED where the shelf is.
@@ -643,7 +643,7 @@ suite('⭐⭐ 23. the tail — and the rung that was never built', () => {
       // ⚠⚠ A QUERY, not prose — and the master merge taught it. The fire
       // build made a lamp need fuel and sells the general store's lantern
       // DRY, so this file's own "buy a LIGHT first" checkpoint is red on
-      // master (`ignite lantern` → `no-fuel`) and every session after it
+      // master (`light lantern` → `no-fuel`) and every session after it
       // walks in the dark. A prose read then returns *"it is pitch dark.
       // You can make out no…"*, which tests the light and not the world.
       //

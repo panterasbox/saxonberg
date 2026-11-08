@@ -73,6 +73,12 @@ import type { Energized } from '../electricity/Energized';
 import { TemplatePaths, TemplatePathPrefixes } from '../paths';
 import type { VetoResult } from '../errors';
 import { Suppressions } from '../magic/Suppression';
+import { MqlApi } from '../../api/mql';
+import { CompetenceBand } from '../advancement/CompetenceBand';
+import type { Difficulty, Outcome } from '../advancement/ActSignature';
+import type { ActPlan } from '../craft/ActPlan';
+import type { Dressing } from './Dressing';
+import type ConditionCatalogue from '../../platform/idea/ConditionCatalogue';
 import { MagicGrid } from '../magic/Grid';
 import { MaterialApi } from '../../api/material';
 import { MagicApi } from '../../api/magic';
@@ -322,6 +328,293 @@ function assertVitalQuantity(value: unknown, sign: VitalSign): void {
       `VitalsMixin.setVitalSign('${sign}'): value must be >= 0`,
     );
   }
+}
+
+/**
+ * ⭐ `treat`, asked of the PATIENT (controllers-are-io D11): the body knows
+ * what is wrong with it and what would relieve that; the remedy answers through
+ * what it is (a dressing, a vessel with something in it, or bare hands); the
+ * controller words what comes back.
+ */
+export interface TreatmentRequest {
+  /** The treater. */
+  by: Stuff;
+  /** `--with <thing>`: what they chose. Null: the first thing to hand. */
+  offered: Stuff | null;
+  /** `--for <condition>`: what the medic thinks it is. */
+  named?: string;
+}
+
+/** Why a treatment was refused. */
+export type TreatmentReason = 'no-wound' | 'wound-interior' | 'wrong-treatment';
+
+/** A refused treatment. */
+export interface TreatmentRefusal {
+  ok: false;
+  reason: TreatmentReason;
+  /** `by` offered, `wanted` what the worst of it declares relieves it. */
+  facts: { by?: string; wanted?: string | null };
+}
+
+/** What came of a treatment. */
+export type TreatmentDone =
+  | { kind: 'stabilized' }
+  | { kind: 'lost' }
+  | { kind: 'wound'; fluid: boolean; wound: Trauma }
+  | { kind: 'infection'; cleared: boolean; knocked: boolean }
+  | { kind: 'named-miss'; named: string }
+  | { kind: 'named-remedy-wrong'; offered: string; wanted: string }
+  | { kind: 'named-hit'; named: string };
+
+/** What a treatment answers. */
+export type TreatmentAnswer =
+  | ActPlan<undefined, TreatmentDone, TreatmentRefusal>
+  | TreatmentRefusal;
+
+/** How much a single treatment pours into someone. */
+const TREAT_FLUID_LITRES = 0.25;
+
+/**
+ * ⭐ **What the treater is offering**, matched against what the target's
+ * conditions declare relieves them. The closed vocabulary is
+ * `ResolutionSpec.by`'s; `treat` can supply `dressing`, `fluid` and `medicine`
+ * (bare hands, the load knock — not "nothing"). The rest are things the world
+ * does to you, and asking for them is refused with the reason.
+ */
+type Treatment =
+  | { by: 'dressing'; item: Stuff & Dressing }
+  | { by: 'fluid'; item: Stuff }
+  | { by: 'medicine' };
+
+const TREATER_BAND_SCORE: Record<string, number> = {
+  untrained: 0,
+  novice: 1,
+  competent: 2,
+  proficient: 3,
+  expert: 4,
+};
+
+/**
+ * ⭐⭐ **Is this wound inside a cavity?** (D10) `rupture` announces itself — it
+ * resolves by `surgery`, which nothing offers. But an interior **puncture** or
+ * **laceration** resolves by `dressing` like any other bleed, and without this
+ * a player could bandage a punctured liver. What makes a wound undressable is
+ * WHERE it is, not what type it is.
+ */
+function isInteriorWound(target: Stuff & Vitals, w: Trauma): boolean {
+  if (!MixinApi.isOrganism(target)) return false;
+  return target.getSpecies()?.getBodyPlan()?.isInterior(w.site) ?? false;
+}
+
+/** Pick the most-pressing dressable wound: bleeding first, then severity. */
+function mostPressingWound(target: Stuff & Vitals): Trauma | null {
+  const traumas = target.getConditions().filter((c): c is Trauma => c.kind === 'trauma');
+  const open = traumas.filter((t) => t.bleeding && !t.dressed);
+  const pool = open.length ? open : traumas.filter((t) => !t.dressed && t.severity > 0);
+  if (pool.length === 0) return null;
+  return [...pool].sort((a, b) => b.severity - a.severity)[0]!;
+}
+
+/** Wound severity/site → a world-grounded difficulty (a measurement). */
+function woundDifficulty(w: Trauma): Difficulty {
+  const s = w.severity;
+  let d: Difficulty =
+    s < 0.5 ? 'trivial' : s < 1 ? 'easy' : s < 2 ? 'standard' : s < 3 ? 'hard' : 'formidable';
+  // An avulsion is a step harder to dress than a plain laceration.
+  if (w.type === 'avulsion') {
+    const bump: Record<Difficulty, Difficulty> = {
+      trivial: 'easy',
+      easy: 'standard',
+      standard: 'hard',
+      hard: 'formidable',
+      formidable: 'formidable',
+    };
+    d = bump[d];
+  }
+  return d;
+}
+
+/** Competence band × dressing quality → the graded outcome (deterministic). */
+function treatmentOutcome(band: string, quality: number): Outcome {
+  const score = (TREATER_BAND_SCORE[band] ?? 0) + Math.round(Math.max(0, Math.min(1, quality)) * 2);
+  if (score <= 1) return 'failure';
+  if (score === 2) return 'partial';
+  if (score <= 4) return 'success';
+  return 'critical';
+}
+
+/** What a condition declares relieves it, or null when nothing does. */
+function resolutionOf(c: Trauma | AfflictionRecord): string | null {
+  if (c.kind === 'trauma') return TRAUMA_BEHAVIOR[c.type]?.resolution ?? null;
+  return StuffApi.findByTemplatePath<Condition>(c.templatePath)?.getResolution()?.by ?? null;
+}
+
+/** ⭐ The remedy answers through what it is. */
+function remedyOf(item: Stuff): Treatment | null {
+  if (MixinApi.isDressing(item)) return { by: 'dressing', item };
+  if (MixinApi.isBulkable(item) && item.getBulkAmount('interior').rawValue() > 0) {
+    return { by: 'fluid', item };
+  }
+  return null;
+}
+
+/**
+ * An explicit `--with` wins, even one that treats nothing: it is still what
+ * they chose, and the mismatch is reported against it. Otherwise the first
+ * thing to hand that could treat anything, and failing that the medic's hands.
+ */
+function treatmentFrom(req: TreatmentRequest): Treatment {
+  if (req.offered) return remedyOf(req.offered) ?? { by: 'medicine' };
+  const reachable = MqlApi.resolveMany('reachable', {
+    commandGiver: req.by as never,
+    scope: 'reachable',
+  }).stuff;
+  for (const item of reachable) {
+    const t = remedyOf(item);
+    if (t) return t;
+  }
+  return { by: 'medicine' };
+}
+
+/**
+ * The worst condition this treatment can actually relieve, or null. Bleeding
+ * first, then severity. ⭐ You cannot put pressure on something you cannot
+ * reach: a dressing is the only treatment the interior gate applies to.
+ */
+function worstTreatable(target: Stuff & Vitals, by: string): Trauma | AfflictionRecord | null {
+  const conditions = target.getConditions();
+  const traumas = conditions
+    .filter((c): c is Trauma => c.kind === 'trauma')
+    .filter((t) => !t.dressed && t.severity > 0)
+    .filter((t) => resolutionOf(t) === by)
+    .filter((t) => by !== 'dressing' || !isInteriorWound(target, t));
+  if (traumas.length > 0) {
+    const bleeding = traumas.filter((t) => t.bleeding);
+    const pool = bleeding.length ? bleeding : traumas;
+    return [...pool].sort((a, b) => b.severity - a.severity)[0]!;
+  }
+  const afflictions = conditions
+    .filter((c): c is AfflictionRecord => c.kind === 'affliction')
+    .filter((a) => resolutionOf(a) === by);
+  return [...afflictions].sort((a, b) => b.stage - a.stage)[0] ?? null;
+}
+
+/**
+ * Fluid, drunk. Routed through the shipped `Metabolic.ingest` path so the water
+ * is a real supply that runs out — a medic with an empty skin has nothing to
+ * give, which is the whole point of pricing a treatment.
+ */
+function pourTreatmentInto(target: Stuff & Vitals, vessel: Stuff): void {
+  if (!MixinApi.isBulkable(vessel) || !MixinApi.isMetabolic(target)) return;
+  const material = vessel.getBulkMaterial('interior');
+  if (!material) return;
+  const have = vessel.getBulkAmount('interior').rawValue();
+  const dose = Math.min(have, TREAT_FLUID_LITRES);
+  if (!(dose > 0)) return;
+  const taken = target.ingest(
+    material,
+    Quantity.of(dose, 'L'),
+    'liquid',
+    vessel.getBulkPayload('interior'),
+    (have * material.getDensity().rawValue()) / 1000,
+  );
+  if (taken > 0) vessel.debitBulk('interior', taken);
+}
+
+/**
+ * ⭐ **Tend an illness.** Not a cure and not a coin flip: the medic's competence
+ * knocks the population back, and how far depends on how good they are.
+ *
+ * ⚠ No dressing is spent — you do not bandage dysentery — and no new
+ * pharmacology arrives with it. What a medic changes is which way the race
+ * between growth and clearance is already going: this **creates demand for a
+ * diagnostician and deliberately supplies none.**
+ */
+async function tendInfection(
+  target: Stuff & Vitals,
+  infection: AfflictionRecord,
+  by: Stuff,
+): Promise<TreatmentDone> {
+  const band = MixinApi.isAdvancing(by) ? await by.competenceBandFor('nursing') : CompetenceBand.FLOOR;
+  const score = TREATER_BAND_SCORE[band] ?? 0;
+  const outcome: Outcome =
+    score >= 3 ? 'critical' : score >= 2 ? 'success' : score >= 1 ? 'partial' : 'failure';
+  // Knock the population back by what the hand is worth — ⭐ SCALED BY how
+  // CLEAN the hand is (D11): a filthy hand knocks nothing, and a properly
+  // dirty one re-inoculates as it tends. A failure is a failure.
+  const hands = MixinApi.isHygienic(by) ? by.handCleanliness() : 1;
+  const knock = ([0, 0.35, 0.6, 0.85, 1][score] ?? 0) * hands;
+  let next = (infection.pathogenLoad ?? 0) * (1 - knock);
+  if (hands < HARM_DEFAULTS.SEPSIS_DIRTY_THRESHOLD) {
+    next += HARM_DEFAULTS.SEPSIS_INOCULUM * (1 - hands);
+  }
+  infection.pathogenLoad = Math.min(1, Math.max(0, next));
+  const cleared = infection.pathogenLoad <= 0.01;
+  if (cleared) target.relieve(infection);
+  if (MixinApi.isAdvancing(by)) {
+    await by.creditDeed({ discipline: 'nursing', difficulty: 'standard', outcome });
+  }
+  return { kind: 'infection', cleared, knocked: knock > 0 };
+}
+
+/**
+ * ⭐⭐ **The medic names it, and can be wrong.** `analyze patient` deliberately
+ * returns candidates *plural and unranked*, so choosing between them is the
+ * medic's act rather than a readout. **Difficulty** is the AMBIGUITY — how many
+ * warmed conditions could produce the signs this body is showing; **outcome**
+ * is whether the named condition is one the body actually carries.
+ *
+ * ⚠ A wrong call **spends the supply and changes nothing**, and the body tells
+ * the medic by not getting better. Nothing announces the mistake, because a
+ * game that announced it would be grading the medic instead of letting the
+ * world do it.
+ */
+async function treatNamed(
+  target: Stuff & Vitals,
+  named: string,
+  treatment: Treatment,
+  by: Stuff,
+): Promise<TreatmentDone> {
+  const wanted = named.trim().toLowerCase();
+  const carried = target.getConditions().filter((c): c is AfflictionRecord => c.kind === 'affliction');
+  // What this body is showing, and everything that could show it.
+  const signs = new Set<string>();
+  for (const c of carried) {
+    const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+    for (const sign of row?.getObservableSigns() ?? []) signs.add(sign);
+  }
+  const catalogue = StuffApi.findByTemplatePath<ConditionCatalogue>(TemplatePaths.conditionCatalogue);
+  const candidates = (catalogue?.roster() ?? []).filter((row) =>
+    (row.getObservableSigns() ?? []).some((sign) => signs.has(sign)),
+  );
+  // ⭐ The ambiguity IS the difficulty.
+  const difficulty: Difficulty =
+    candidates.length >= 4
+      ? 'formidable'
+      : candidates.length === 3
+        ? 'hard'
+        : candidates.length === 2
+          ? 'standard'
+          : 'easy';
+  const hit =
+    carried.find((c) => {
+      const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+      return (row?.getName() ?? '').toLowerCase() === wanted;
+    }) ?? null;
+  // The supply is spent either way — that is what makes a wrong call cost.
+  if (treatment.by === 'dressing') await StuffApi.destruct(treatment.item);
+  if (MixinApi.isAdvancing(by)) {
+    await by.creditDeed({ discipline: 'medicine', difficulty, outcome: hit ? 'success' : 'failure' });
+  }
+  if (!hit) return { kind: 'named-miss', named };
+  // Right call: resolve it the way its own row says it resolves.
+  if (hit.pathogenLoad !== undefined) return tendInfection(target, hit, by);
+  const wants = StuffApi.findByTemplatePath<Condition>(hit.templatePath)?.getResolution()?.by ?? null;
+  if (wants && wants !== treatment.by) {
+    return { kind: 'named-remedy-wrong', offered: treatment.by, wanted: wants };
+  }
+  if (treatment.by === 'fluid') pourTreatmentInto(target, treatment.item);
+  return { kind: 'named-hit', named };
 }
 
 /** Inputs to {@link Vitals.applyTreatment} (D5). */
@@ -595,10 +888,16 @@ export interface Vitals {
    * operate), stamp its `careQuality` from `efficacy` (which `mend` reads
    * to scale the treated rate), and seed wound infection when the care was
    * dirty (D11, W-A5). Every consumer — `TreatController`,
-   * `OrderController.treatWorst`, the nurse's brain — calls THIS; the deed
+   * the `order treatment` board, the nurse's brain — calls THIS; the deed
    * credit and the prose stay caller-side, and verbs stay on the body.
    */
   applyTreatment(wound: Trauma, opts: TreatmentOpts): TreatmentResult;
+  /**
+   * ⭐⭐ `treat`: **the patient decides** — what is wrong, which of it this
+   * remedy can relieve, how hard that is, and what comes of it. A plan to run
+   * now (`durationMs: 0`), or the refusal with its reason.
+   */
+  treatmentPlanFor(req: TreatmentRequest): TreatmentAnswer;
   /** The healed-over scars this body keeps (D14) — never a penalty. */
   getScars(): readonly ScarRecord[];
   /** ⭐ D15 — re-break every half-knit fracture under mechanical work
@@ -1016,20 +1315,10 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       const species = MixinApi.isOrganism(self) ? self.getSpecies() : null;
       const alleles = species?.getBloodGroups()?.alleles ?? { O: 1 };
-      const seed = this.seedFromString(self.getIdentityPath() ?? '');
+      const seed = Seeded.ofString(self.getIdentityPath() ?? '');
       const a = this.drawAllele(alleles, Seeded.unit(seed, 0));
       const b = this.drawAllele(alleles, Seeded.unit(seed, 1));
       return a + b;
-    }
-
-    /** FNV-1a fold of an identity path to a 32-bit seed. */
-    private seedFromString(s: string): number {
-      let h = 0x811c9dc5;
-      for (let i = 0; i < s.length; i++) {
-        h ^= s.charCodeAt(i);
-        h = Math.imul(h, 0x01000193);
-      }
-      return h >>> 0;
     }
 
     /** One allele drawn from a cumulative frequency table by a unit draw. */
@@ -3263,6 +3552,111 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // D19 — clearing a condition may remove the pending transition.
       this.rescheduleNotify();
       return true;
+    }
+
+    /** See {@link Vitals.treatmentPlanFor}. */
+    public treatmentPlanFor(req: TreatmentRequest): TreatmentAnswer {
+      const target = this as unknown as Stuff & Vitals;
+      const { by } = req;
+      // A body in the dying window is treatable even with no wound to
+      // dress — the thing killing it may be cold, or a toxin, or blood
+      // already lost. Stabilizing is not the same act as dressing.
+      const dying = target.isDying();
+      const treatment = treatmentFrom(req);
+      const now = (land: () => Promise<TreatmentDone>): TreatmentAnswer => ({
+        ok: true,
+        durationMs: 0,
+        effortW: 0,
+        facts: undefined,
+        onComplete: async () => ({ ok: true, facts: await land() }),
+      });
+      // ⭐⭐ **The judgment loop.** When the medic NAMES what they are
+      // treating, that is the act being graded — not the bandaging.
+      const named = req.named;
+      if (named) return now(() => treatNamed(target, named, treatment, by));
+
+      // ⭐⭐ **Match it against what is wrong**, and refuse, with the reason,
+      // when nothing matches.
+      const treatable = worstTreatable(target, treatment.by);
+      if (!treatable && !dying) {
+        const worst =
+          mostPressingWound(target) ??
+          target.getConditions().find((c): c is AfflictionRecord => c.kind === 'affliction') ??
+          null;
+        if (!worst) return { ok: false, reason: 'no-wound', facts: {} };
+        // ⭐⭐ **The wound is inside** — the player is holding the right thing
+        // for the type of wound it is and it is still no use, which is a
+        // different fact and the one worth teaching.
+        if (
+          treatment.by === 'dressing' &&
+          target
+            .getConditions()
+            .some(
+              (c): c is Trauma =>
+                c.kind === 'trauma' &&
+                !c.dressed &&
+                c.severity > 0 &&
+                resolutionOf(c) === 'dressing' &&
+                isInteriorWound(target, c),
+            )
+        ) {
+          return { ok: false, reason: 'wound-interior', facts: {} };
+        }
+        // Something IS wrong — this is just not what it wants. That refusal
+        // is the teaching.
+        return {
+          ok: false,
+          reason: 'wrong-treatment',
+          facts: { by: treatment.by, wanted: resolutionOf(worst) },
+        };
+      }
+      // An illness wants a medic's hands, not an item.
+      if (treatable && treatable.kind === 'affliction') {
+        return now(() => tendInfection(target, treatable, by));
+      }
+      const wound = treatable as Trauma | null;
+      return now(async () => {
+        const band = MixinApi.isAdvancing(by)
+          ? await by.competenceBandFor('nursing')
+          : CompetenceBand.FLOOR;
+        // Pulling someone back from the edge is the hardest thing this verb
+        // does, whatever the wound looks like.
+        const difficulty: Difficulty = dying ? 'formidable' : woundDifficulty(wound!);
+        // Quality is the dressing's when there is one; fluid and bare hands
+        // are worth a middling article.
+        const quality = treatment.by === 'dressing' ? treatment.item.getDressingQuality() : 0.5;
+        const outcome = treatmentOutcome(band, quality);
+        // A dressing arrests the bleed and begins the clot through the ONE
+        // treatment primitive (D5). Fluid is DRUNK, through the shipped
+        // ingest path.
+        if (wound && treatment.by === 'dressing') {
+          // ⭐ The dressing's clean tier (cleanliness D14): a raw bandage
+          // seeds the wound a boiled one does not.
+          const dressing = treatment.item;
+          target.applyTreatment(wound, {
+            by: 'dressing',
+            efficacy: quality,
+            treater: by,
+            ...(MixinApi.isSoilable(dressing) ? { dressingTier: dressing.cleanTier() } : {}),
+          });
+        } else if (wound && treatment.by === 'fluid') {
+          pourTreatmentInto(target, treatment.item);
+        }
+        // The stabilization: pull them out of the dying window. RESCUED, NOT
+        // HEALED — whatever drove them under is untouched, so a body still
+        // below its threshold re-enters the window on the next reconcile.
+        const stabilized = dying && outcome !== 'failure' ? target.stabilize() : false;
+        // The dressing is spent either way; a vessel is emptied, not destroyed.
+        if (treatment.by === 'dressing') await StuffApi.destruct(treatment.item);
+        // Mint the graded deed into the treater's Transcript.
+        if (MixinApi.isAdvancing(by)) {
+          await by.creditDeed({ discipline: 'nursing', difficulty, outcome });
+        }
+        if (stabilized) return { kind: 'stabilized' };
+        // Dying, and the attempt was not good enough to hold them.
+        if (!wound) return { kind: 'lost' };
+        return { kind: 'wound', fluid: treatment.by === 'fluid', wound };
+      });
     }
 
     /**

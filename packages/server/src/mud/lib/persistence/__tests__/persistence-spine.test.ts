@@ -616,6 +616,8 @@ describe("security (AC #8)", () => {
     // bootstrapper because the registry-wide read is gated on the
     // calling function and a backend class has no dispatched frame to
     // be recognized by. Still no raw record write.
+    // `storedField` (controllers-are-io W11) READS one field of a stored
+    // record — an absent office holder's name — and writes nothing.
     expect(surface.sort()).toEqual(
       [
         "capture",
@@ -631,6 +633,7 @@ describe("security (AC #8)", () => {
         "standUpKeyed",
         "forkRuntimeState",
         "mergeRuntimeState",
+        "storedField",
       ].sort(),
     );
   });

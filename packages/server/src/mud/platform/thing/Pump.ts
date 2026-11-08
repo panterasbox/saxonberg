@@ -32,8 +32,13 @@ import { StagedMixin } from '../../lib/stuff/Staged';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import { PumpingMixin } from '../../lib/pump/Pumping';
 import type { CommandContributions } from '../../api/command';
+import { PumpableMixin } from '../../lib/pump/Pumpable';
 
-const PumpBase = PumpingMixin(StagedMixin(ContainerMixin(CraftedMixin(Good))));
+// ⭐ `PumpableMixin` INSIDE `PumpingMixin`: the protocol's refusing defaults
+// sit under the handle that overrides them (controllers-are-io D8a).
+const PumpBase = PumpingMixin(
+  PumpableMixin(StagedMixin(ContainerMixin(CraftedMixin(Good)))),
+);
 
 export default class Pump extends PumpBase {
   static commandContributions: CommandContributions = {

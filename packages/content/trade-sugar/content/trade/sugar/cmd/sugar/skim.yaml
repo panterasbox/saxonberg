@@ -1,4 +1,5 @@
 verbs: [skim]
+category: sugar
 controller: /trade/sugar/idea/cmd/sugar/SkimController
 description: "Skim the scum off a tempered sugar liquor"
 help: |
@@ -13,7 +14,7 @@ args:
   - name: copper
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [BulkableMixin]
   - name: pail
     type: object

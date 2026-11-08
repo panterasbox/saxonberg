@@ -17,7 +17,7 @@ import Good from '../../../../lib/stuff/Good';
 import Material from '../../../../lib/material/Material';
 import { ThermalMixin } from '../../../../lib/thermal/Thermal';
 import { WetMixin } from '../../../../lib/wetness/Wet';
-import { ReservedMixin, Reserve } from '../../../../lib/reserve';
+import { ReservedMixin, Reserve } from '../../../../lib/reserve/Reserved';
 import { CombustibleMixin } from '../../../../lib/fire/Combustible';
 import { HasInteractiveMixin } from '../../../../lib/connection/HasInteractive';
 import type { HasInteractive } from '../../../../lib/connection/HasInteractive';

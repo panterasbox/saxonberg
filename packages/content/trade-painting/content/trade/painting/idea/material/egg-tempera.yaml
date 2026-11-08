@@ -1,8 +1,9 @@
 # Egg tempera — the yolk of an egg as a binder: broken into a paint pot
 # with water and pigment, it dries in dry air to a hard, bright film that
 # the weather would ruin and a panel indoors keeps for centuries (paint D8).
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/flesh, strength: 60 }]
   name: egg tempera
   keywords: ["egg tempera", tempera, yolk]
   appearance: a thin golden emulsion that smells of egg

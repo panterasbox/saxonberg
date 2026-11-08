@@ -44,6 +44,7 @@ import type {
   MqlQueryErrorEnvelope,
   MqlSubscriptionResultEnvelope,
   MqlSubscriptionErrorEnvelope,
+  AffordanceResultEnvelope,
   ActivityUpdateEnvelope,
   PromptEnvelope,
   Note,
@@ -109,6 +110,21 @@ interface Pending<T> {
   resolve: (value: T) => void;
   reject: (err: Error) => void;
   timer: ReturnType<typeof setTimeout>;
+}
+
+/** How many captured envelopes / frames a session keeps (a ring). */
+const CAPTURE_RING = 500;
+
+/** A non-message envelope as it came off the socket. */
+export type CapturedEnvelope = { type: string } & Record<string, unknown>;
+
+/** A message frame as it came off the socket — not just its body. */
+export interface CapturedFrame {
+  topic: string;
+  body: string;
+  meta: Record<string, unknown> | undefined;
+  payload: unknown;
+  tags: string[] | undefined;
 }
 
 /** A parsed frame off the socket — an envelope or a message frame. */
@@ -262,6 +278,16 @@ async function login(
 export class Session {
   private ws!: WebSocket;
   private readonly proseFrames: string[] = [];
+  /**
+   * Every non-message envelope since the last `cmd()` (a ring of
+   * {@link CAPTURE_RING}) — `card-opened`, `card-touched`,
+   * `client-state-update`… The assertion surface for what the client is
+   * told beyond prose (client-surface W0).
+   */
+  private readonly envelopes: CapturedEnvelope[] = [];
+  /** Every message frame since the last `cmd()`, with topic/meta/payload. */
+  private readonly rawFrames: CapturedFrame[] = [];
+  private readonly envelopeWaiters: (() => void)[] = [];
 
   /** One command in flight per session — correlation is by ORDER (D2). */
   private pendingDispatch: Pending<DispatchResponseEnvelope> | null = null;
@@ -273,6 +299,10 @@ export class Session {
   private readonly pendingQueries = new Map<
     string,
     Pending<MqlQueryResultEnvelope>
+  >();
+  private readonly pendingAffordances = new Map<
+    string,
+    Pending<AffordanceResultEnvelope>
   >();
   private readonly activity: ActivityUpdateEnvelope[] = [];
   private readonly activityWaiters: (() => void)[] = [];
@@ -292,6 +322,9 @@ export class Session {
   /** The handle this session logged in as — for failure messages. */
   public handle = '';
 
+  /** The session cookie, for a wire file that drives a REST surface as this player. */
+  public cookie = '';
+
   /**
    * Open a session and walk the roster handshake into the world.
    *
@@ -308,6 +341,7 @@ export class Session {
     const cookie = await login(handle, opts);
     const s = new Session();
     s.handle = handle;
+    s.cookie = cookie;
     s.ws = new WebSocket(WS_URL(), { headers: { cookie } });
     await new Promise<void>((resolve, reject) => {
       const timer = setTimeout(
@@ -552,6 +586,19 @@ export class Session {
         p.resolve(frame as unknown as SubscribeOutcome);
         continue;
       }
+      if (type === 'affordance-result' || type === 'affordance-error') {
+        const id = typeof (frame as { requestId?: unknown }).requestId === 'string' ? (frame as unknown as { requestId: string }).requestId : '';
+        const p = this.pendingAffordances.get(id);
+        if (!p) continue;
+        this.pendingAffordances.delete(id);
+        clearTimeout(p.timer);
+        if (type === 'affordance-error') {
+          p.reject(new Error(`wire: affordance-resolve refused (${String(frame.reason)})`));
+        } else {
+          p.resolve(frame as unknown as AffordanceResultEnvelope);
+        }
+        continue;
+      }
       if (type === 'activity-update') {
         this.activity.push(frame as unknown as ActivityUpdateEnvelope);
         this.drain(this.activityWaiters);
@@ -562,7 +609,12 @@ export class Session {
         this.drain(this.promptWaiters);
         continue;
       }
-      if (type !== null) continue; // some other envelope; not ours
+      if (type !== null) {
+        // Some other envelope — kept for the assertions that read it.
+        this.pushRing(this.envelopes, frame as CapturedEnvelope);
+        this.drain(this.envelopeWaiters);
+        continue;
+      }
 
       // A message frame. `shell.diagnostic` is the command ECHO — a
       // drive that greps the raw stream matches its own input and reads
@@ -576,7 +628,74 @@ export class Session {
       }
       if (topic === 'shell.diagnostic') continue;
       if (typeof frame.body === 'string') this.proseFrames.push(frame.body);
+      const f = frame as { meta?: unknown; tags?: unknown };
+      this.pushRing(this.rawFrames, {
+        topic,
+        body: typeof frame.body === 'string' ? frame.body : '',
+        meta: (f.meta ?? undefined) as Record<string, unknown> | undefined,
+        payload: frame.payload,
+        tags: Array.isArray(f.tags) ? (f.tags as string[]) : undefined,
+      });
     }
+  }
+
+  private pushRing<T>(ring: T[], item: T): void {
+    ring.push(item);
+    if (ring.length > CAPTURE_RING) ring.splice(0, ring.length - CAPTURE_RING);
+  }
+
+  /** Every captured envelope of `type` since the last `cmd()`, oldest first. */
+  envelopesOf<T = CapturedEnvelope>(type: string): T[] {
+    return this.envelopes.filter((e) => e.type === type) as unknown as T[];
+  }
+
+  /** The newest captured envelope of `type`, or undefined. */
+  lastCard<T = CapturedEnvelope>(type: string): T | undefined {
+    const all = this.envelopesOf<T>(type);
+    return all[all.length - 1];
+  }
+
+  /**
+   * Wait (settling the socket first) for an envelope of `type` matching
+   * `pred`, captured since the last `cmd()`. Throws on timeout, naming
+   * what did arrive.
+   */
+  async awaitEnvelope<T = CapturedEnvelope>(
+    type: string,
+    pred: (e: T) => boolean = () => true,
+    timeoutMs = FRAME_TIMEOUT_MS,
+  ): Promise<T> {
+    const deadline = Date.now() + timeoutMs;
+    for (;;) {
+      const hit = this.envelopesOf<T>(type).filter(pred);
+      if (hit.length > 0) return hit[hit.length - 1]!;
+      const left = deadline - Date.now();
+      if (left <= 0) {
+        throw new Error(
+          `wire: no '${type}' envelope matched within ${timeoutMs}ms ` +
+            `(session '${this.handle}'); captured: ` +
+            this.envelopes.map((e) => e.type).join(', '),
+        );
+      }
+      await new Promise<void>((resolve) => {
+        const t = setTimeout(resolve, Math.min(left, 250));
+        this.envelopeWaiters.push(() => {
+          clearTimeout(t);
+          resolve();
+        });
+      });
+    }
+  }
+
+  /** Every captured message frame on `topic` since the last `cmd()`. */
+  framesOf(topic: string): CapturedFrame[] {
+    return this.rawFrames.filter((f) => f.topic === topic);
+  }
+
+  /** Drop every captured envelope and frame. `cmd()` does this itself. */
+  clearCaptures(): void {
+    this.envelopes.length = 0;
+    this.rawFrames.length = 0;
   }
 
   private drain(waiters: (() => void)[]): void {
@@ -644,6 +763,7 @@ export class Session {
     this.captureLast?.();
     this.captureLast = null;
     this.proseFrames.length = 0;
+    this.clearCaptures();
     const envelope = await new Promise<DispatchResponseEnvelope>(
       (resolve, reject) => {
         const timer = setTimeout(() => {
@@ -761,6 +881,29 @@ export class Session {
       }
     );
     return envelope.result;
+  }
+
+  /**
+   * What this viewer can do with a thing, right now, and what the thing
+   * is composed of: the one-shot frame an inspection card and a radial
+   * send (`affordance-resolve`). The card's *answers:* chip and a greyed
+   * offer's reason are read off this answer.
+   */
+  async affordances(stuffId: string): Promise<AffordanceResultEnvelope> {
+    const requestId = `wire-${++this.queryCounter}-${Date.now().toString(36)}`;
+    return new Promise<AffordanceResultEnvelope>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pendingAffordances.delete(requestId);
+        reject(new Error(`wire: no affordance-result for '${stuffId}' within ${FRAME_TIMEOUT_MS}ms`));
+      }, FRAME_TIMEOUT_MS);
+      this.pendingAffordances.set(requestId, { resolve, reject, timer });
+      this.ws.send(
+        JSON.stringify({
+          type: 'affordance-resolve',
+          payload: { type: 'affordance-resolve', requestId, stuffId },
+        })
+      );
+    });
   }
 
   /**
@@ -928,10 +1071,28 @@ export class Session {
     return !this.closed && this.ws.readyState === WebSocket.OPEN;
   }
 
+  /**
+   * Sign out: the client's deliberate leave (close code `4000`). The body is
+   * saved and leaves the world, and the next login materializes it from what
+   * was saved (controllers-are-io D30). ⭐ This is what a finished test means.
+   */
   close(): void {
+    this.closeSocket(4000);
+  }
+
+  /**
+   * ⚠ Lose the connection without signing out: the body stays where it stands,
+   * linkdead, and a new socket reconnects to it. Only for a test about exactly
+   * that, because each one leaves a body in the world for the rest of the run.
+   */
+  drop(): void {
+    this.closeSocket(1000);
+  }
+
+  private closeSocket(code: number): void {
     if (this.closed) return;
     this.closed = true;
-    this.ws.close();
+    this.ws.close(code);
   }
 }
 

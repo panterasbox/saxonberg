@@ -6,6 +6,7 @@
 # note to yourself is writing on a thing of your own. (`write` was the
 # shell's authoring verb until this review; that is `edit` now.)
 verbs: [write]
+category: inventory
 controller: /platform/idea/cmd/inventory/WriteOnController
 description: "Write some words on a thing"
 help: |

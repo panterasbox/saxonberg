@@ -365,6 +365,7 @@ describe("chattel possession core", () => {
     const stack = makeTorch();
     const alice = makeOwner("alice");
     vi.spyOn(MixinApi, "isStackable").mockImplementation((o) => o === stack);
+    (stack as unknown as { getQuantity(): number }).getQuantity = () => 5;
 
     const stamp = await stack.stampChattel(alice);
     expect(stamp.ok).toBe(false);

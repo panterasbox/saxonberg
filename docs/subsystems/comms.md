@@ -4,7 +4,7 @@ The communication substrate — how beings talk to each other, near
 and far. Comms is the integrating spine over two **honestly distinct
 transports**: an **acoustic** channel (you *hear* it — `say`,
 `whisper`, `shout`) and an **implant / ESP** channel (you *know* it,
-a thought arriving — `dm` / `tell`). It owns the speech verb family
+a thought arriving — `dm`). It owns the speech verb family
 and the directed-message primitive; it hands the rest off — acoustic
 reach to the senses substrate, the channel model to
 [chat](./chat.md), and frame composition / delivery to
@@ -28,7 +28,7 @@ they are *not* the same medium.
 
 | | **Acoustic** | **Implant (ESP)** |
 |---|---|---|
-| comm types | `say`, `whisper`, `shout` | `dm` / `tell` (+ chat channels, remote emote) |
+| comm types | `say`, `whisper`, `shout` | `dm` (+ chat channels, remote emote) |
 | perceived via | the senses — you *hear* it | direct cognition — you *know* it |
 | modality stamp | `meta.modality: 'hearing'` | `meta.modality: 'verbal-esp'` |
 | gated by | sound reach, hearing, language | attribution only; no sensory gate |
@@ -55,7 +55,7 @@ players (see [augmentation.md](./augmentation.md)), which is why
 ⚠ **"Universal" means every Avatar, not every character.** The baseline
 `AetherImplant` is granted only by `Avatar`'s default loadout; no NPC row
 ships one and `NPC`/`Character` compose no Aether. So an NPC without an
-authored implant neither receives nor sends implant comms — `tell` cannot
+authored implant neither receives nor sends implant comms — `dm` cannot
 reach a remote NPC, and remote emotes pass it by (see
 [emotes.md](./emotes.md)). The comms slate's *universal always-on*
 commitment and its remote-NPC scenarios are unbuilt on that side; the
@@ -94,7 +94,7 @@ plus the two Aether pronoun/broadcast verbs that ride alongside.
 | `say` (`'`) | `cmd/say.yaml` | `SayController` | acoustic | `VocalMixin.say` |
 | `whisper` | `cmd/whisper.yaml` | `WhisperController` | acoustic | `VocalMixin.whisper` |
 | `shout` | `cmd/shout.yaml` | `ShoutController` | acoustic | `VocalMixin.shout` |
-| `dm` / `tell` | `cmd/dm.yaml` | `DmController` | implant | `CommsMixin.tell` (on the hosted update) |
+| `dm` | `cmd/dm.yaml` | `DmController` | implant | `CommsMixin.tell` (on the hosted update) |
 | `reply` | `cmd/reply.yaml` | `ReplyController` | implant | cohort replay of `CommsMixin.tell` |
 | `broadcast` | `cmd/broadcast.yaml` | `BroadcastController` | implant | composes its own Scene from the host |
 
@@ -156,9 +156,9 @@ addresses its environment's peers; a pure-Container speaker — a
 haunted room — addresses its own contents). See
 [messaging.md](./messaging.md) for that rule's detail.
 
-### Implant — dm / tell
+### Implant — dm
 
-`dm` (alias `tell`) is the directed-message verb. `dm.yaml` takes a
+`dm` is the directed-message verb (its `tell` alias was deleted by controllers-are-io's one view, one word). `dm.yaml` takes a
 `type: objects` target with `cardinality: { min: 1, max: 10 }` at
 `scope: online`, plus a greedy `message`. It carries the
 `requiresVerbalESP` validator so an unattuned host is turned away
@@ -278,7 +278,7 @@ implant transport.
 ## Deferred
 
 Wave 1 shipped the acoustic say/whisper/shout family, the `say --to`
-directed path, and the `dm`/`tell` implant primitive. The
+directed path, and the `dm` implant primitive. The
 [comms slate](../slates/tails/comms-slate.md) retains the rest of the
 design space. Designed but **not yet built**:
 

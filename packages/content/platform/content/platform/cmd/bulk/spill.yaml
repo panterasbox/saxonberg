@@ -1,4 +1,5 @@
 verbs: [spill]
+category: bulk
 controller: /platform/idea/cmd/bulk/SpillController
 description: "Spill a vessel's contents onto the floor"
 help: |

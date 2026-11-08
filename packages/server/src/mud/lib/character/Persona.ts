@@ -140,7 +140,7 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/social/who.yaml',
         'platform/cmd/social/profile.yaml',
         'platform/cmd/social/score.yaml',
-        // The `office`/`offices` verb is afforded universally here — NOT
+        // The `office` verb is afforded universally here — NOT
         // on AuthorMixin — because its roster is public (governance is
         // transparent by constitutional design, Art. VII): every player
         // can see who holds which office. The privileged `assign`/`vacate`
@@ -149,7 +149,7 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // roster ungated. Homing it on AuthorMixin would wrongly hide the
         // public roster from non-authors.
         'platform/cmd/governance/office.yaml',
-        // The `government`/`gov` verb (civics — the FICTION's governments,
+        // The `government` verb (civics — the FICTION's governments,
         // a different category than the Compact's `governance`) is likewise
         // universal: the jurisdiction chain over where you stand and your
         // residency are public reads.
@@ -158,32 +158,27 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // holding title over a subdivision) — a public read like the two
         // above; the one mutation (channel ensure) is idempotent.
         'platform/cmd/system/committee.yaml',
-        // The `appoint` verb (employment) — fill a position on an
-        // organization's chart. Universal for the same reason `office` is:
-        // the gate is the authority, not the affordance. The
+        // ⭐⭐ The `house` noun (banking) — the house app's reads and its
+        // books' transactions: `house appoint` / `house dismiss` fill and
+        // empty a chart, `house draw` takes the proprietor's draw
+        // (controllers-are-io W7, D9 — the flat `appoint`, `dismiss` and
+        // `draw` verbs until then). Universal for the reason `office` is:
+        // the gate is the authority, not the affordance — the
         // `mustHoldAppointingAuthority` FIELD validator on the
-        // organization argument does the refusing — a verb-level one
-        // cannot, because the authority belongs to the organization the
-        // argument names and `CommandContext` carries no bound model.
-        'platform/cmd/employment/appoint.yaml',
-        // ⭐⭐ The `dismiss` verb (employment) — the EMPLOYER's half of
-        // `quit`, universal for exactly the reasons `appoint` is: same
-        // field validator, same authority, same derivation when the house
-        // is omitted. ⚠ Without this line the verb answers `unknown-verb`
-        // for everybody forever while its controller tests stay green —
-        // which is what it did on its first drive run. *A verb nothing
-        // confers is a verb nobody has*, and the affordance is the one
-        // reachability link no controller test can see.
-        'platform/cmd/employment/dismiss.yaml',
-        // The `quit` verb (employment) — leave a position you hold. Universal
-        // for the same reason: it is your own seat, and the controller
-        // refuses when you hold none.
-        'platform/cmd/employment/quit.yaml',
-        // ⭐ The `apply` verb (employment) — ask for a job that is going
-        // where you stand. Universal for the same reason: asking is a
-        // person's own act, and the ORGANIZATION is what refuses (with a
-        // number, and with what lifts it). The player moves first.
-        'platform/cmd/employment/apply.yaml',
+        // organization argument, the seat `resolveHouse` reads, the
+        // proprietorship a draw is resolved from. ⚠ *A verb nothing
+        // confers is a verb nobody has*: `dismiss` answered `unknown-verb`
+        // for everybody on its first drive run, with its controller tests
+        // green, because nothing afforded it.
+        'platform/cmd/banking/house.yaml',
+        // ⭐ The `job` noun (work) — the job board's book and the
+        // worker's side of a house's roster: `job apply` / `job quit`,
+        // and `job fulfill` at the drop, away from any board (the flat
+        // `apply`, `quit` and `fulfill` verbs until W7). Universal
+        // because asking for work and leaving it are a person's own acts
+        // and the ORGANIZATION is what refuses; the board subcommands bind
+        // the board in reach and refuse where there is none.
+        'platform/cmd/work/job.yaml',
         // The `clock` verb (employment) — start and end a shift at a
         // house that employs you. Universal, and the controller refuses
         // when you hold no job there or are not on their premises. A
@@ -195,26 +190,23 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // own holdings are a self-read, and a plat book is public. The
         // one act that changes anything (`title buy`) gates itself on
         // standing at the Registry counter.
-        'platform/cmd/civics/title.yaml',
-        // ⭐⭐ `transfer` and `subdivide` (system) — the other two acts on
-        // ground you hold, and they were afforded by NOTHING. `title`
-        // right above shows what you own and `ParcelApi` has always
-        // worked, so every doc that said *"subdivide a parcel"* was
-        // describing an Api from the player's side of a verb that did
-        // not exist.
         //
-        // Universal, for `title`'s own stated reason and in its own
-        // words: **your own holdings are a self-read, and the gate is
-        // the authority, not the affordance.** Both controllers refuse
-        // through `AccessApi.can`, which is where the authority lives —
-        // so a player who holds nothing is TOLD that, rather than
-        // meeting a verb the game claims not to understand.
+        // ⭐⭐ `title transfer` and `title subdivide` — the other two acts
+        // on ground you hold (flat verbs until controllers-are-io W8). They
+        // were once afforded by NOTHING: every doc that said *"subdivide a
+        // parcel"* was describing an Api from the player's side of a verb
+        // that did not exist.
+        //
+        // **Your own holdings are a self-read, and the gate is the
+        // authority, not the affordance.** Both controllers refuse through
+        // `AccessApi.can`, which is where the authority lives — so a player
+        // who holds nothing is TOLD that, rather than meeting a verb the
+        // game claims not to understand.
         //
         // ⚠ Deliberately not `AuthorMixin`: that mixin's own comment
         // records the inverse mistake, where `press` sat on the author
         // list and became unaskable by ordinary players.
-        'platform/cmd/system/transfer.yaml',
-        'platform/cmd/system/subdivide.yaml',
+        'platform/cmd/civics/title.yaml',
       ],
       peers: [],
       environment: [],

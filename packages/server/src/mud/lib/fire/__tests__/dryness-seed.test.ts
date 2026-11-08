@@ -9,7 +9,7 @@
  * sodden is that `MoistureMixin`'s sparse default is `_moisture =
  * 1` — *as harvested* — which is right for food and catastrophically
  * wrong for a product of drying. ⚠ Nothing in the game read a fuel's
- * water before this build: `Combustible` reads it for `ignite`, and no
+ * water before this build: `Combustible` reads it for `light`, and no
  * shipped Combustible composes `MoistureMixin`. So the defect was
  * **invisible until something asked the question**.
  *

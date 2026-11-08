@@ -1,8 +1,9 @@
 # Pomace — skins, stems and pips off the press (P11: conservation makes
 # it; the economy consumes it). Tag `compost` is the `feed` verb's gate:
 # the growers buy it back for the nitrogen — and grappa distils from it.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/grape, strength: 300 }]
   name: pomace
   keywords: [marc, pomace]
   appearance: "a pressed cake of grape skins and stems"

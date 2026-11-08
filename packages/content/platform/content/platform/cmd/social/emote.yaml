@@ -1,4 +1,5 @@
 verbs: [emote]
+category: social
 controller: /platform/idea/cmd/social/EmoteController
 description: "Free-form emote — perform any expressive act in your own prose"
 help: |

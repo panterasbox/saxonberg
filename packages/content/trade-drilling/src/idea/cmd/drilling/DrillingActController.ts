@@ -63,7 +63,7 @@ export abstract class DrillingActController<
    * hunted for in the room.
    *
    * ⚠ This was a `getContents().find(c => c instanceof Derrick)` and
-   * `lint:instrument-args` refused it, correctly and with the better
+   * `lint:controller-resolution` refused it, correctly and with the better
    * answer attached: *the query is the MIXIN, never the class — a class
    * check finds one implementation and silently refuses every other.*
    * The views declare `rig` with `default: "reachable:[capability.derrick]"`,

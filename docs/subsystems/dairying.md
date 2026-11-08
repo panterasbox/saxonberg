@@ -17,7 +17,7 @@ no controller, no Api**.
 |---|---|---|
 | `milk cow into pail` | litres of the animal's own milk; the milker's identity stamped on it; unwashed hands put `e-coli` in it and on the pail | `ProducingMixin` (`taps.md`) |
 | `pour pail into pan`, wait, `pour pan into pail` | the charge **stands** (`restDays`), then the skim draws off and **stops at the cream** — a share derived from the milk's fat | `SettingPan` = `FractionatingMixin` (`fractionation.md`), schedule `milk-setting` |
-| `pour pan into churn`, `churn churn` | between ~283 and 291 K the cream **breaks** (churned cream); too cold it will not come; too warm it comes greasy (`fair`) | `Churn` is the kernel's `HandWorkedMixin`; the `stir` view's `churn` verb |
+| `pour pan into churn`, `stir churn` | between ~283 and 291 K the cream **breaks** (churned cream); too cold it will not come; too warm it comes greasy (`fair`) | `Churn` is the kernel's `HandWorkedMixin`; the `stir` view, whose working the churn names (`churned`) |
 | `pour churn into jug` | buttermilk draws off; **butter** is the residue — a `fat`, so every fried recipe takes it | schedule `churning` |
 | `heat vat` | the vat is SET ON the lit fire and warms; the thermometer reads it | `heat`'s placing arm (`crafting.md`) |
 | `pour crock into vat` | a crock of whey IS a living lactic culture: the pour pitches the batch; milk poured into the crock feeds it | profile `whey-starter` (`kind: culture`) |
@@ -27,7 +27,7 @@ no controller, no Api**.
 | `pour vat into hoop`, `get stone`, `put stone on hoop`, wait, `get wheel` | the curd **drains and sets** in the hoop's shape; pressed, it is drier and keeps longer | `Hoop` = a kernel `Mould` (`mould.md`); the curds' `drainSetting` |
 | `cure wheel` | salt binds water — the hard wheel's second hurdle; the same wheel comes back, still what it was made from | trade-cooking's `cure`, which finds dairying's `salt-wheel` recipe by its item slot |
 | `put wheel on rack` (the cheese room) | the wheel **ripens** by its own temperature: young · coming on · ripe · (soft) over · (too warm) dead | `Wheel` = `RipeningMixin(Provision)` (`maturation.md` § the discrete twin) |
-| `split wheel`, `consign wedge` | wedges carrying the wheel's state, sold on the co-op shelf | `Splittable`; `retail.md` |
+| `split wheel`, `shelf consign wedge` | wedges carrying the wheel's state, sold on the co-op shelf | `Splittable`; `retail.md` |
 
 ## Heat, and its cost
 

@@ -207,7 +207,7 @@ The durable slot `(floor, position)` lives on the minted unit
 (`ParcelRecord.slotOfExtent` / `extentForSlot` — zero new field; the extent
 *is* the slot, and already the D1 key + the Warren member key).
 
-`provision <player>` (alias `lease`; the `duncan-hall` content namespace, not `system` — it hardcodes this building): compute the
+`provision <player>` (the `duncan-hall` content namespace, not `system` — it hardcodes this building): compute the
 **lowest-free slot** (`ParcelApi.childParcelsOf(dorms)` → first free
 `f<n>-r<p>` within `DormWarren.ROOMS_PER_FLOOR`, reusing gaps left by
 unprovision before a new floor) → `ParcelApi.subdivide(unitExtent, dorms,
@@ -350,7 +350,7 @@ to your floor's corridor and go through your own door; it opens for whoever
 **presents a matching key** (the sync `opensFor` scan over your implant
 keychain + carried physical key) and blocks the keyless.
 
-`unprovision <player>` (alias `unlease`; `duncan-hall` content namespace, same dorms-agent
+`unprovision <player>` (`duncan-hall` content namespace, same dorms-agent
 authorization as `provision`, so Katie fronts move-out via a `dispatch
 unprovision $player`): resolve the tenant's held unit (`heldUnitOf`, symmetric
 with `provision`) → `ParcelApi.revokeUse` → `DormWarren.dropUnit(unit,
@@ -393,9 +393,12 @@ somebody authored.
 
 ⭐ **The second-instance test still holds**: a new subdivision is a row
 naming its `parentExtent` — nothing else is written — and a second
-desk names its books — no code. ⚠ The kernel still meets the pack's
-classes by SHAPE (the `DeedDesk`/plat-book duck types in
-`TitleController.ts`), never by import.
+desk names its books — no code. ⭐ The `title` controllers that read a
+book (`TitleHoldingsController`, `TitleListController`, `TitleBuyController`
+over `TitleBookControllerBase`) are the pack's own, so they name `PlatBook`,
+`DeedDesk` and `PlatWarren` directly; the desk is a declared arg on the view
+(`at <desk>`, default `reachable:[class.DeedDesk]`). The kernel's duck types
+for these classes are gone (controllers-are-io W8).
 
 ⚠ Three test fixtures had to learn the roster exists, and every one of
 them failed **silently and empty** rather than loudly — which is the

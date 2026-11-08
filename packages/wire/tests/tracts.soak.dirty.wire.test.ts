@@ -175,10 +175,10 @@ suite.skipIf(!isOwnedTestWorld())('a marked field through a season', () => {
     await doing(p, 'mark wheat field as half');
     let said = '';
     for (let i = 0; i < 6 && !/ploughed for the season/i.test(said); i++) {
-      said = (await act(p, 'plough at the wheat field')).said + ' ' + (await read(p, 'look at the wheat field'));
+      said = (await act(p, 'plow at the wheat field')).said + ' ' + (await read(p, 'look at the wheat field'));
     }
     expect(said, 'the wheat field is ploughed').toMatch(/ploughed for the season/i);
-    await doing(p, 'sow wheat at the wheat field');
+    await doing(p, 'plant wheat --at "the wheat field"');
     expect(await read(p, 'look')).toMatch(/stand of wheat grows/i);
   }, 900_000);
 
@@ -189,7 +189,7 @@ suite.skipIf(!isOwnedTestWorld())('a marked field through a season', () => {
     expect(seen).toMatch(/stand of wheat/i);
     let cut = false;
     for (let i = 0; i < 12 && !cut; i++) {
-      const { r, said } = await act(p, 'harvest wheat at the wheat field');
+      const { r, said } = await act(p, 'harvest wheat --at "the wheat field"');
       cut = refusedFor(r) === null && /cut|reap|sheaf|grain/i.test(said);
       if (refusedFor(r) === 'not-ready') await season(10).then(toTheBench);
     }

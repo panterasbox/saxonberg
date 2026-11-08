@@ -8,8 +8,9 @@
 # ⭐ And it is already perishable in a way dry barley is not: a wet bed at
 # the wrong temperature sours, which is the whole reason a maltster's
 # floor is a cold stone one.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/grain, strength: 30 }]
   name: steeped barley
   keywords: [barley, steeped, "steeped barley", grain]
   appearance: a bed of swollen, water-dark barley
@@ -17,7 +18,7 @@ data:
   thermalConductivity: 0.5
   specificHeat: 2600
   edibility: true
-  tastes: [bland]
+  tastes: [{ type: sweet, amount: 5 }]
   spoilActivationEnergy: 55000
   waterActivity: 0.96
   nutrients: [carb]

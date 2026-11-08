@@ -1,7 +1,8 @@
 # Buttermilk — what draws off a churn when the butter has come (dairy D5).
 # Sour-sweet, thin, a drink and a baker's liquid.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/yoghurt, strength: 100 }]
   name: "buttermilk"
   keywords: [buttermilk]
   appearance: thin, white and flecked
@@ -13,7 +14,7 @@ data:
   hardness: 0
   toughness: 0
   edibility: true
-  tastes: [sour]
+  tastes: [{ type: sour, amount: 8 }]
   nutrients: ["fat", "protein", "sugar", "water"]
   nutrientAmounts: { fat: 5000, protein: 33000, sugar: 45000, water: 905000 }
   spoilActivationEnergy: 60000

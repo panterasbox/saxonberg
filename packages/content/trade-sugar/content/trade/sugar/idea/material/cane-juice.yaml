@@ -3,6 +3,7 @@
 # copper's liquor, from much further down.
 extends: /trade/sugar/idea/material/raw-liquor
 data:
+  smells: [{ aroma: /base-library/aromas/green, strength: 30 }]
   name: cane juice
   keywords: [cane-juice, juice]
   appearance: pale green and cloudy, sweet and grassy

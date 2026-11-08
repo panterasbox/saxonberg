@@ -54,5 +54,5 @@ data:
     still, unhurried gravity and a flat, reading gaze that misses
     nothing; plainly a person, for all that strangers flinch from the
     deathly pallor as though from the dead themselves.
-  nameBankKeys: ["common"]
+  nameBanks: [/species-and-names/name-banks/common]
   facultyProfile: { depth: low, serenity: mid, composure: mid }

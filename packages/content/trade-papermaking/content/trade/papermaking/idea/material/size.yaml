@@ -2,8 +2,9 @@
 # and dried takes ink on its face instead of drinking it. ⭐ A COAT on the
 # sheet (`laysCoat`), set by drying like any glue, and the coat is what
 # makes the sheet sized — `write` reads it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/glue, strength: 300 }]
   name: size
   keywords: [size, sizing, "glue size"]
   appearance: a thin amber jelly-water

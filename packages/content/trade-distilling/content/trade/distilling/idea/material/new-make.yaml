@@ -15,8 +15,11 @@
 #
 # FLAMMABLE, like every spirit on the roster (P10): the still
 # concentrates the fire along with the alcohol.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/spirit, strength: 800 }]
+  burning: [{ aroma: /base-library/aromas/smoke, strength: 3 }]
+  tastes: [{ type: bitter, amount: 0.01 }]
   name: new-make spirit
   keywords: [new-make, "new make", spirit, newmake]
   appearance: "a raw, water-clear spirit, hot and grain-sweet"

@@ -2,8 +2,10 @@
 # standing in buttermilk. The `churning` schedule separates it as it is
 # drawn — the buttermilk comes off, the butter stays. Its residue share
 # (the butter) derives from this fat.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/cream, strength: 100 }]
+  tastes: [{ type: sweet, amount: 30 }]
   name: "churned cream"
   keywords: [cream, "churned cream", butter]
   appearance: broken into yellow grains in a thin milk

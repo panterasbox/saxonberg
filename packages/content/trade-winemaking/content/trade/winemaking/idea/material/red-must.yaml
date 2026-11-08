@@ -1,8 +1,10 @@
 # Red must — crushed grapes, skins and all (the crush recipe's output).
 # `red-must` is the ferment-profile category; sugar is the mass balance
 # (g/L — what the hydrometer sees and the ferment converts, D4).
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/grape, strength: 300 }]
+  tastes: [{ type: sweet, amount: 200 }, { type: sour, amount: 6 }]
   name: red must
   keywords: [red, must]
   appearance: "dark crushed must, skins riding the surface"

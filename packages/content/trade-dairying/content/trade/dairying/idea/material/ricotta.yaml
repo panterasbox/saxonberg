@@ -1,8 +1,10 @@
 # Ricotta — "cooked again": the whey's last protein, coaxed out by heat
 # (dairy D15, the `ricotta` recipe). What a cheesemaker does with the whey
 # the pigs would otherwise get.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/milk, strength: 30 }]
+  tastes: [{ type: sweet, amount: 30 }]
   name: "ricotta"
   keywords: [ricotta, curd]
   appearance: soft, white and grainy

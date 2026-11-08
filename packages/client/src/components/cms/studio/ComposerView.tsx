@@ -944,8 +944,10 @@ export const ComposerView: React.FC = () => {
   }, [runScaffold]);
 
   const bases = palette?.bases ?? [];
+  // ⭐ A verb protocol is a mixin you compose like any other — it is only
+  // PRESENTED differently (as the verb it answers, D8b).
   const mixinEntries = (palette?.mixins ?? []).filter(
-    (m: MixinPaletteEntry) => m.kind === "mixin",
+    (m: MixinPaletteEntry) => m.kind !== "base",
   );
   // name → one-line summary, for the inline palette help (tooltips + detail).
   const summaryMap = React.useMemo(() => {
@@ -1051,7 +1053,11 @@ export const ComposerView: React.FC = () => {
             {mixinEntries.map((m) => {
               const on = effectiveSet.has(m.name);
               const implied = composer.base.impliedMixins.includes(m.name);
-              const summary = m.summary;
+              const answers =
+                m.kind === "protocol"
+                  ? `answers: ${m.verbs && m.verbs.length > 0 ? m.verbs.join(" · ") : "a verb"} — `
+                  : "";
+              const summary = m.summary ? answers + m.summary : answers || undefined;
               const title = implied
                 ? `${m.name} is already inherited from ${composer.base.name}`
                 : summary
@@ -1070,7 +1076,9 @@ export const ComposerView: React.FC = () => {
                   onFocus={() => inspect(m.name)}
                   onClick={() => addMixin(m.name)}
                 >
-                  {m.name}
+                  {m.kind === "protocol" && m.verbs && m.verbs.length > 0
+                    ? `${m.name} · answers ${m.verbs.join(" · ")}`
+                    : m.name}
                 </Chip>
               );
             })}

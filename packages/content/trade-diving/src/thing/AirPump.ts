@@ -12,10 +12,11 @@
  */
 
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
-import type {
-  Pumpable,
-  PumpPrognosis,
-  PumpResult,
+import {
+  PumpableMixin,
+  type Pumpable,
+  type PumpPrognosis,
+  type PumpResult,
 } from '@saxonberg/server/mud/lib/pump/Pumpable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
@@ -31,7 +32,7 @@ interface Helmet {
   helmet: Stuff;
 }
 
-export default class AirPump extends Tool implements Pumpable {
+export default class AirPump extends PumpableMixin(Tool) implements Pumpable {
   static commandContributions: CommandContributions = {
     self: [],
     peers: ['platform/cmd/device/pump.yaml'],

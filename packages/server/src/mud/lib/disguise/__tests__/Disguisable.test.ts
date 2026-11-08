@@ -15,7 +15,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { DisguisableMixin } from '../Disguisable';
-import { DisguiseBearingMixin, type Disguise } from '../Disguise';
+import { DisguiseBearingMixin, type Disguise } from '../DisguiseBearing';
 import { RECOGNITION } from '../../belief/BeliefStore';
 import { BeliefStoreMixin } from '../../belief/BeliefStore';
 import { PerceptionMixin } from '../../perception/Perception';

@@ -1,7 +1,12 @@
 /**
  * MQL predicate registry — bareword filters that can appear in chain
  * position (`:living`, `:online`, `:mine`, `:here`, `:visible`,
- * `:here`).
+ * `:loose`, `:worn`, `:carried`).
+ *
+ * ⭐ A predicate DELEGATES; it never owns an algorithm (architecture.md §
+ * *MQL is a VIEW over the model*): each is one line over a method the
+ * model already answers, so anything a query can say a function call can
+ * say too.
  *
  * Each predicate declares its required permission tier and a check
  * function that decides whether a given Stuff passes. Unknown
@@ -104,17 +109,63 @@ function isHere(target: Stuff, giver: Stuff & CommandGiver): boolean {
 }
 
 /**
- * Visible-to-giver — a thing in the giver's neighborhood (location,
- * inventory, or own person) that the giver actually perceives. The
- * neighborhood is the presence prefilter; `PerceptionApi.perceives`
- * refines it with concealment + per-viewer discovery (the refinement this
- * placeholder's comment reserved). `perceives` short-circuits true for an
- * un-concealed thing, so ordinary items stay visible.
+ * ⭐ Visible-to-giver — a thing that presents itself to the eye at all
+ * (composes `Visible`) and that the giver actually perceives
+ * (`PerceptionApi.perceives`: concealment + per-viewer discovery, true at
+ * once for an un-concealed thing). The giver is always visible to itself.
+ *
+ * ⚠ The SCOPE is the neighborhood, not this predicate: `here:i:visible`
+ * is the room's contents as you see them, `me:i:visible` your own. It
+ * used to demand the target stand in the giver's room as well, which made
+ * `me:i:visible` — the grammar's own example — answer nothing.
  */
 function isVisible(target: Stuff, giver: Stuff & CommandGiver): boolean {
   if (target.stuffId === giver.stuffId) return true;
-  if (!isHere(target, giver)) return false;
+  if (!MixinApi.isVisible(target)) return false;
   return PerceptionApi.perceives(giver, target);
+}
+
+/**
+ * ⭐ Loose — listed as its holder's own contents: not placed ON or IN
+ * something else there (the back-bar's bottles), not a crop standing over
+ * the ground. Delegates to the holder's `getLooseContents()`, whose rule
+ * it is (`look`, `sense` and the inspection card all read it).
+ */
+function isLoose(target: Stuff): boolean {
+  if (!MixinApi.isContainable(target)) return false;
+  const holder = target.getContainer();
+  if (!holder || !MixinApi.isContainer(holder)) return false;
+  return holder.getLooseContents().includes(target);
+}
+
+/** Whether `target` occupies a slot on the thing that holds it. */
+function occupiesHolderSlot(target: Stuff): boolean {
+  if (!MixinApi.isContainable(target)) return false;
+  const holder = target.getContainer();
+  if (!holder || !MixinApi.isSlotted(holder)) return false;
+  for (const occupants of holder.getAllOccupants().values()) {
+    for (const o of occupants) if ((o as unknown as Stuff).stuffId === target.stuffId) return true;
+  }
+  return false;
+}
+
+/**
+ * ⭐ Worn — occupies one of its holder's slots (`Slotted.getAllOccupants`):
+ * the coat on a person, the sword in a hand, the coupe in the rack.
+ */
+function isWorn(target: Stuff): boolean {
+  return occupiesHolderSlot(target);
+}
+
+/**
+ * ⭐ Carried — held as contents and in none of the holder's slots. `worn`
+ * and `carried` PARTITION a holder's contents: wearing a shirt never takes
+ * it out of the wearer's contents (the `wear` verb only claims slots), so
+ * without the partition a shirt would list in both.
+ */
+function isCarried(target: Stuff): boolean {
+  if (!MixinApi.isContainable(target) || !target.getContainer()) return false;
+  return !occupiesHolderSlot(target);
 }
 
 /**
@@ -127,6 +178,9 @@ export const MQL_PREDICATES: Readonly<Record<string, MqlPredicate>> = {
   mine: { check: isMine },
   here: { check: isHere },
   visible: { check: isVisible },
+  loose: { check: isLoose },
+  worn: { check: isWorn },
+  carried: { check: isCarried },
 };
 
 /**

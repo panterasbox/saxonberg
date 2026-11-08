@@ -62,7 +62,7 @@
  *
  * A tract holds ONE area crop: a single `Plant` standing loose in its
  * contents with a sown area, rooted in the tract's soil by containment
- * (the kernel's `getBed()`). The rest of the tract is sward. `plough`
+ * (the kernel's `getBed()`). The rest of the tract is sward. `plow`
  * turns the sward under and stamps a SEEDBED good for one season; `sow`
  * asks the tract (`sowingRefusal`) and the tract answers from that
  * stamp. The crop is titled to the business that works the tract
@@ -88,7 +88,7 @@ import {
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
 import { SoilMixin } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import type { Soil } from '@saxonberg/server/mud/lib/husbandry/Soil';
-import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import {
   ImprovableMixin,
   IMPROVEMENT_DONE_AT,
@@ -200,11 +200,11 @@ const TractBase = PersistableMixin(
 
 export default class Tract extends TractBase {
   /**
-   * ⚠⚠ **`plough` is afforded HERE and nowhere else, and it would have
+   * ⚠⚠ **`plow` is afforded HERE and nowhere else, and it would have
    * gone silent without this block.**
    *
    * The improvement acts moved to the platform with `ImprovableMixin`, and
-   * `plough` went with them in the same list — but ploughing is not
+   * `plow` went with them in the same list — but ploughing is not
    * improvement, it is farming's own act on a tract, so it did not belong
    * in a kernel mixin's contributions. A verb nothing affords parses as
    * *"I don't understand 'plough'"*, and **every controller test would
@@ -224,9 +224,9 @@ export default class Tract extends TractBase {
   static commandContributions = {
     // `inventory`: a location's occupants hear it (`self` is a giver's).
     inventory: [
-      'trade/farming/cmd/farming/plough.yaml',
+      'trade/farming/cmd/farming/plow.yaml',
       // ⭐ A tract affords SOWING to whoever stands in it (cover build):
-      // the platform view, named here the way `plough` is. A bed affords
+      // the platform view, named here the way `plow` is. A bed affords
       // it through `CultivableMixin`; ground with no slot had nothing.
       'platform/cmd/inventory/plant.yaml',
       // ⭐ And FEEDING (field population): a tract's ground — or one of
@@ -955,37 +955,11 @@ export default class Tract extends TractBase {
   }
 
   // ---------- ⭐ what grazes loose (tracts build D34) ----------
-
-  /**
-   * Kilograms a game day the animals standing loose in this tract want —
-   * those with no herd line on a field. ⚠ A pure read of authored demand.
-   * (The occupant-shape probe moved here from the old tract sward; it is
-   * a finding for the ranching slate, not this build's to fix.)
-   */
-  public looseGrazingDemandPerGameDay(): number {
-    let demand = 0;
-    for (const occupant of this.getContents()) {
-      const grazer = occupant as unknown as {
-        grazingDemandPerGameDay?(): number;
-      };
-      if (typeof grazer.grazingDemandPerGameDay === 'function') {
-        demand += Math.max(0, grazer.grazingDemandPerGameDay());
-      }
-    }
-    return demand;
-  }
-
-  /**
-   * `field`'s share of the loose grazing: apportioned over the fields
-   * carrying no crop, by area — a field with a crop is never grazed.
-   */
-  public looseGrazingShareOf(field: Stuff & Field): number {
-    const demand = this.looseGrazingDemandPerGameDay();
-    if (!(demand > 0) || field.cropsOn().length > 0) return 0;
-    const grass = this.getFields().filter((f) => f.cropsOn().length === 0);
-    const total = grass.reduce((n, f) => n + f.getAreaM2(), 0);
-    return total > 0 ? (demand * field.getAreaM2()) / total : 0;
-  }
+  // ⚠ Retired at controllers-are-io D7a: the loose-grazing demand probed a
+  // `grazingDemandPerGameDay` that no animal class defines, so it was 0 on
+  // every tract and its share was a branch that never ran. A field's mouths
+  // are the herds whose moves wrote themselves onto it (`Field.grazers`);
+  // animals grazing LOOSE in a tract is the ranching slate's to model.
 
   // ---------- the hooks SoilMixin asks of its host ----------
   // (`soilLeachRate`, `soilCatchmentAreaM2` and the reserves' sizing are

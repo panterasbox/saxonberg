@@ -2,8 +2,9 @@
 # fibre left. Tag `compost` is the `feed` verb's gate — the brewer
 # sells it BACK to the growers (the reverse B2B), and a bed fed with
 # it measurably recovers nitrogen. Real nutrient cycling.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/mash, strength: 300 }]
   name: spent grain
   keywords: [spent, grain, draff]
   appearance: "wet, sweet-smelling spent grain"

@@ -13,7 +13,7 @@
 
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import ApplyController from '../ApplyController';
+import JobApplyController from '../../work/JobApplyController';
 import ClockController from '../ClockController';
 import { Lock } from '../../../../../lib/lock/Lock';
 import BusinessEntity from '../../../Business';
@@ -116,7 +116,7 @@ async function apply(
   const c = ctx(room, 'apply');
   await withRootContext(null, 'apply.test', () => {
     ExecutionContextApi.tagActingAuthor(alice as never);
-    return makeStuff(() => new ApplyController()).execute(model as never, c);
+    return makeStuff(() => new JobApplyController()).execute(model as never, c);
   });
   return c;
 }
@@ -365,13 +365,15 @@ describe('⭐⭐ clock — a shift is something you choose to start', () => {
 
   it('⭐ an unloaded body on shift settles on the way out', async () => {
     await clock('on');
-    const leave = vi.spyOn(alice, 'leaveShifts').mockResolvedValue(undefined);
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const leave = vi.spyOn(alice, 'leaveShifts');
     alice.onDestruct();
     expect(leave).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(alice.isOnShift()).toBe(false));
   });
 
   it('…and a body off shift leaves nothing to settle', () => {
-    const leave = vi.spyOn(alice, 'leaveShifts').mockResolvedValue(undefined);
+    const leave = vi.spyOn(alice, 'leaveShifts');
     alice.onDestruct();
     expect(leave).not.toHaveBeenCalled();
   });

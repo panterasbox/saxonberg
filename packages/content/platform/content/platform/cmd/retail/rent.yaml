@@ -2,13 +2,14 @@
 # house, `n × rate`; she is yours to take out, never yours: the house still
 # owns her. The hire ends when she is put down again on the landing she
 # was let from — paddled in, carried round — so there is no `return`
-# (ranching's). ⛔ Not `hire`: that word is `appoint`'s alias.
+# (ranching's). ⛔ Not `hire`: that word was `appoint`'s alias (gone with the flat verb — `house appoint` — at controllers-are-io W7).
 #
 # Afforded by the shed's hire book (`HireBook`'s peers)
 # — a let is its own book, not a shop counter's: the book's `rates:` says
 # what it lets and for how much a day, and it writes down who has which
 # boat out until when.
 verbs: [rent]
+category: retail
 controller: /platform/idea/cmd/retail/RentController
 description: "Take a boat out by the day from whoever lets them here"
 help: |
@@ -37,7 +38,7 @@ args:
     type: object
     required: true
     greedy: true
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [SmallCraftMixin]
   # ⭐ HOW LONG — `for 2 days`, `for a day`. Optional: a day.
   # ⚠ `greedy: true` — "2 days" is two tokens and one span.
@@ -57,5 +58,5 @@ args:
     greedy: true
     prepositions: [at]
     default: "reachable:[class.HireBook]"
-    scope: [reachable]
+    scope: ["here", "peers", "person"]
     requires: [VisibleMixin]

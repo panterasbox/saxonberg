@@ -1,0 +1,110 @@
+/**
+ * LightController — `light <thing>` / bare `light`.
+ *
+ * Sets fire to any Combustible in reach. The controller narrows the target
+ * with `MixinApi.isCombustible` and routes the actual ignition through the
+ * gated `FireApi.ignite`, which runs the fire-triangle checks (flammable +
+ * dry-enough + fuel) and reports why it didn't catch.
+ */
+
+import { CommandController } from '../../../../lib/command/CommandController';
+import type { CommandContext, CommandModel } from '../../../../api/command';
+import { MqlApi, type MqlOneResult } from '../../../../api/mql';
+import { MixinApi } from '../../../../api/mixin';
+import { MessageApi } from '../../../../api/message';
+import { Mml } from '../../../../api/mml';
+import { FireApi } from '../../../../api/fire';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Combustible } from '../../../../lib/fire/Combustible';
+
+interface LightModel extends CommandModel {
+  target?: MqlOneResult;
+}
+
+export default class LightController extends CommandController<LightModel> {
+  async execute(model: LightModel, context: CommandContext): Promise<void> {
+    const { commandGiver } = context;
+    const target = model.target;
+    if (target === undefined) {
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`Light what?`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'missing-target',
+        detail: 'light what?',
+      });
+      return;
+    }
+    if (target.stuff === null) {
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`You don't see any '${target.raw}' here.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'target', query: target.raw });
+      return;
+    }
+
+    const ignitable = MqlApi.effectiveTarget(
+      target,
+      (s): s is Stuff => MixinApi.isCombustible(s) || MixinApi.isBurner(s),
+    );
+    if (!ignitable) {
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`That won't burn.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'not-flammable',
+        detail: "that won't burn",
+      });
+      return;
+    }
+
+    const outcome = (ignitable as Stuff & Combustible).ignite();
+    if (!outcome.lit) {
+      // ⭐⭐ `no-fuel` is a DIFFERENT refusal from `not-flammable`, and the
+      // difference is the whole progression: a forge with an empty bed is
+      // a fire waiting for somebody to stoke it, and the sentence has to
+      // say so or the player has no way to find out what lifts it.
+      const detail =
+        outcome.reason === 'already-burning'
+          ? 'It is already burning.'
+          : outcome.reason === 'too-wet'
+            ? "It's too wet to catch."
+            : outcome.reason === 'no-fuel'
+              ? 'There is no fuel in it. Stoke it first.'
+              : outcome.reason === 'no-air'
+                ? 'The flame dies as you strike it. There is no air here for a flame.'
+                : outcome.reason === 'lining-burnt-through'
+                  ? 'Its lining has burnt through — the heat would go straight into the casing. Reline it with firebrick first.'
+                  : "That won't burn.";
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`${detail}`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: outcome.reason ?? 'not-flammable',
+        detail,
+      });
+      return;
+    }
+
+    // ⭐ Lighting a burner STARTS its firing: what it sets up at the start
+    // (a clamp's channel, middle and skin) is fixed now, not when somebody
+    // later says `fire`. A clamp lit at noon and fired at dusk had burnt
+    // every brick to one middle body by then (ceramics drive A, run 38).
+    if (MixinApi.isBurner(ignitable)) await ignitable.onFireStart(commandGiver);
+
+    MessageApi.scene(commandGiver)
+      .topic('act.deed')
+      .toSelf(Mml.compose`You set ${Mml.thing(ignitable)} alight.`)
+      .toPeers(
+        Mml.compose`${Mml.actor(commandGiver)} sets ${Mml.thing(ignitable)} alight.`,
+      )
+      .send();
+  }
+}

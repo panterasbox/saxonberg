@@ -1,4 +1,5 @@
 verbs: [garnish]
+category: crafting
 controller: /trade/hospitality/idea/cmd/crafting/GarnishController
 description: "Garnish a finished drink (a thing in the glass)"
 help: |

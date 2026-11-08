@@ -4,8 +4,9 @@
 # ⚠⚠ Edible only after work: a casing is gut that has been scraped,
 # turned and rinsed. The `food` and `meat` tags are what let the shipped
 # cures and recipes see it at all; `raw` is the spoilage seam.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/offal, strength: 300 }]
   name: gut
   keywords: [gut, casing, intestine]
   density: 1050
@@ -16,7 +17,7 @@ data:
   electricalConductivity: 0.2
   waterAbsorptionCapacity: 30
   edibility: true
-  tastes: [umami]
+  tastes: [{ type: umami, amount: 2 }]
   # ⭐ The fastest-spoiling thing off a carcass, and it is the honest
   # figure: gut goes off while you are still holding it.
   spoilActivationEnergy: 50000

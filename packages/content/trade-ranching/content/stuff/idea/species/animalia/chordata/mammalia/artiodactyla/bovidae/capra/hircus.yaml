@@ -13,8 +13,10 @@
 # anybody is ranching.
 class: /platform/idea/species/Species
 data:
+  smells: [{ aroma: /base-library/aromas/goat, strength: 40 }]
   binomial: Capra hircus
   commonNames: ["goat", "nanny", "billy", "kid"]
+  maleNames: [billy]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
@@ -72,4 +74,4 @@ data:
   longDescription: >-
     A rangy brown nanny with a beard, a slot-eyed stare and a working jaw.
     She has already eaten something you were going to need.
-  nameBankKeys: []
+  nameBanks: []

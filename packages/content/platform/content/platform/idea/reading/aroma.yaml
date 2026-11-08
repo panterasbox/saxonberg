@@ -1,0 +1,18 @@
+# aroma — a reading channel.
+#
+# A nose gives you words and an instrument gives you a figure, of one quantity:
+# how far past its own threshold each smell stands. The gas analyzer already
+# carries `gas-analysis`, so it answers this channel with no row of its own.
+class: /platform/idea/reading/AromaReading
+data:
+  channel: aroma
+  kind: fact
+  scope: [here, subject]
+  discipline: ""
+  instrument: gas-analysis
+  instrumentNoun: a gas analyzer
+  eyeCeiling: expert
+  improves: >-
+    how many smells you can pull apart, and how exactly you can name each
+  stakes: >-
+    what has gone off, what is burning, and who has been here

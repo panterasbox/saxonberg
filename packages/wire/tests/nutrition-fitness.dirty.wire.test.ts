@@ -271,7 +271,7 @@ suite('6 · a season of work (H), and a season of nothing (L)', () => {
     // for anvil-work (`insufficient-heat` otherwise — the drive's first
     // run found it cold). Light it and pump it, as the crafting drive
     // does; `already-burning` is fine.
-    expectOkOr(await H.cmd('ignite forge'), 'already-burning');
+    expectOkOr(await H.cmd('light forge'), 'already-burning');
     expectOkOr(await H.cmd('pump forge'), 'already-burning', 'not-lit');
     const ordered = await H.cmd('order barbell');
     expectOk(ordered);

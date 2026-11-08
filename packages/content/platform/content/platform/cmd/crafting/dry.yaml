@@ -10,6 +10,7 @@
 # something. `hang` is still the right word in the PROSE, which is where
 # it belongs: *you hang a cut up to dry.*
 verbs: [dry]
+category: crafting
 controller: /platform/idea/cmd/crafting/DryController
 description: "Hang something up where the air can dry it"
 help: |
@@ -47,7 +48,10 @@ args:
   - name: target
     type: object
     required: true
-    scope: "reachable"
+    # ⭐ What is in hand first. With names just keywords (controllers-are-io W2) a
+    # stranger's worn shirt ties your own, and `dry shirt` answered *no water in
+    # a human* (the cleanliness drive).
+    scope: ["inventory", "reachable"]
     # ⭐ `any`, deliberately, and now for a sharper reason than before: what
     # can dry is decided by whether the thing HAS a water state
     # (`MoistureMixin`), which the controller narrows and refuses in its own

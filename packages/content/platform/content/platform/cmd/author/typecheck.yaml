@@ -1,4 +1,5 @@
 verbs: [typecheck]
+category: author
 controller: /platform/idea/cmd/author/TypecheckController
 description: "Type-check a source file without reloading it"
 help: |

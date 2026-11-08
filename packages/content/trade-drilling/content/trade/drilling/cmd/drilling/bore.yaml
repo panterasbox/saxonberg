@@ -1,4 +1,5 @@
-verbs: [bore, drill]
+verbs: [bore]
+category: drilling
 controller: /trade/drilling/idea/cmd/drilling/BoreController
 description: "Site a hole on your own ground, or work the beam on one"
 help: |
@@ -17,7 +18,7 @@ help: |
 
   ⭐ **You are not meant to do this by hand.** A hole deep enough to be
   worth anything is weeks of beam work, and the way it gets done is a
-  crew: `hire` somebody at the rig and they turn the beam while you are
+  crew: `house appoint` somebody at the rig and they turn the beam while you are
   elsewhere, and send you a bill either way. That is the trade — the
   depth costs wages over time, and the only thing that stops the wages
   is you deciding to stop them.
@@ -28,8 +29,6 @@ help: |
 examples:
   - cmd: bore
     note: Site a rig on ground you have staked, or take a stroke
-  - cmd: drill
-    note: The same verb
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -48,7 +47,7 @@ args:
     type: object
     required: false
     default: "reachable:[mixin.GroundPointMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [GroundPointMixin]
   - name: rig
     type: object
@@ -56,5 +55,5 @@ args:
     prepositions: [at, with, using]
     greedy: true
     default: "reachable:[capability.derrick]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [ToolMixin]

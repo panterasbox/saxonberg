@@ -32,7 +32,7 @@ import Material from '../../../lib/material/Material';
 import Good from '../../../lib/stuff/Good';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { DurableMixin } from '../../../lib/material/Durable';
-import { ToolMixin } from '../../../lib/craft/Tooled';
+import { ToolMixin } from '../../../lib/craft/Tool';
 import { ManualBuildMixin } from '../../../lib/craft/ManualBuild';
 import { CraftedMixin } from '../../../lib/craft/Crafted';
 import Ingot from '../../../platform/thing/Ingot';
@@ -46,7 +46,7 @@ import Tool from '../../../platform/thing/Tool';
 import CommerceMenu from '../../../lib/commerce/Menu';
 import Menu from '../../../platform/thing/Menu';
 import RecipeCatalogue from '../../../platform/idea/RecipeCatalogue';
-import { Reserve } from '../../../lib/reserve';
+import { Reserve } from '../../../lib/reserve/Reserved';
 import { Creature } from '../../../lib/creature/Creature';
 import { Idea } from '../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../lib/spatial/Container';
@@ -378,7 +378,7 @@ describe('the venue menus', () => {
     // `ManualBuildMixin` declares them for every vessel that buffers one
     // — the shaker, the mixing glass, the cook pot.
     const build = ManualBuildMixin(Good).commandContributions;
-    expect(build.peers).toContain('platform/cmd/crafting/pour.yaml');
+    expect(build.peers).toContain('platform/cmd/bulk/pour.yaml');
     expect(build.peers).toContain('platform/cmd/crafting/stir.yaml');
     expect(build.peers).not.toContain('trade/hospitality/cmd/crafting/mix.yaml');
 

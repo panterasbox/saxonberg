@@ -301,8 +301,8 @@ word for a part of a soil stays *part* (`soilParts`, `groundPart`,
   ground. A new field takes the remainder's soil fractions with it;
   unmarking folds a field back in by area.
 - **The grass, the seedbed and the herds are a field's.** The field
-  composes `SwardMixin`; `plough`, `mow` and `sow` name the field on a
-  tract of several (`plough at the gate end`); a herd grazes a field
+  composes `SwardMixin`; `plow`, `mow` and `plant` name the field on a
+  tract of several (`plow at the gate end`); a herd grazes a field
   (ranching.md); a trough on the tract feeds any field's herd. A tract
   with no field marked reads *"Nobody has marked a field on it. It is
   rough ground."*, and nothing is sown on it.
@@ -481,11 +481,11 @@ holds ONE area crop — a single `Plant` loose in its contents with a sown
 area, rooted in the field's soil by containment (`Growing.getBed()`, see
 [husbandry.md](husbandry.md#ground-is-a-bed-by-containment-and-the-area-crop-cover-build-2026-10-28)).
 The crop's ground leaves the sward (`swardAreaM2 = area − crop`), and
-what stands drinks the soil per square metre. `plough` (once the clearing
+what stands drinks the soil per square metre. `plow` (once the clearing
 is done) turns the sward under — the grass into organic matter — and
-stamps a **seedbed good for a season**; `sow` asks the field
-(`sowingRefusal`) and the field answers from that stamp; a second plough
-that season, and a plough under a standing crop, are refused. `grub` ends
+stamps a **seedbed good for a season**; `plant` asks the field
+(`sowingRefusal`) and the field answers from that stamp; a second plowing
+that season, and a plowing under a standing crop, are refused. `grub` ends
 a standing crop. A crop leaving (cut down, grubbed out) leaves
 **stubble**, which reads until the grass comes back over it. The crop is
 **titled to the business that works the field** (`ensureCropTitle`, a

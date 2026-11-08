@@ -1,4 +1,5 @@
 verbs: [shoot]
+category: combat
 controller: /platform/idea/cmd/combat/ShootController
 description: "Shoot at something with a launcher you are wielding"
 help: |
@@ -33,7 +34,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: "reachable"
+    scope: ["here", "peers", "person"]
     requires: VisibleMixin
   - name: launcher
     type: object

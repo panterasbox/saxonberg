@@ -1,7 +1,9 @@
 # Barley grain — ⭐ what `malt.yaml` has been made from all along, with
 # nothing behind it until now.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/grain, strength: 15 }]
+  tastes: [{ type: sweet, amount: 8 }]
   name: barley grain
   keywords: [corn, barley, grain]
   appearance: pale gold, plump and hulled

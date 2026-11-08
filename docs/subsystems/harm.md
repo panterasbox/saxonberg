@@ -168,8 +168,9 @@ in the `HARM_DEFAULTS` const-object (the driver `*_DEFAULTS` convention).
   the game says exactly what is wrong and exactly why the bandage is no
   use. Minted by the depth ladder on a `blunt` channel past
   `response.blunt.ruptureThreshold`.
-- **frostbite** *(reserved — the cold channel)* and **caustic**
-  *(reserved — the corrosion channel)*: see materials-response.md.
+- **caustic** is live: a swallowed caustic lands one at `body.head`, with `bare: true`
+  on its spec so no covering sheds it (the agent is already inside).
+- **frostbite** *(reserved — the cold channel)*: see materials-response.md.
 
 ## ⭐⭐ The sever — losing a part
 
@@ -492,7 +493,7 @@ Each condition now declares what relieves it — a `Condition` row through
 ⚠ **A mismatch is refused with prose that names what the wound wants**,
 rather than silently doing the wrong thing. *That refusal is the
 teaching*: you learn a burn needs fluid by being told a bandage does
-nothing for it. `treat <target> with <item>` chooses explicitly.
+nothing for it. `treat <target> --with <item>` chooses explicitly.
 
 ⭐ Fluid is **drunk**, through the shipped `Metabolic.ingest` path, so
 water is a real supply that runs out — a medic with an empty skin has
@@ -539,7 +540,7 @@ command category plus `assess` in `perception`.
   `instanceof Bandage`**. The instrument (splint/suture → `ToolMixin`) and
   medicine (→ bulk/metabolism) first-aid branches are named-but-deferred
   seams — no sibling mixins in v1.
-- **`treat` / `bind` / `dress`** (`cmd/medical/`, `mustHaveDressing`
+- **`treat`** (`cmd/medical/`, `mustHaveDressing`
   validator) dresses a body's worst bleeding wound, consuming a reachable
   dressing (`StuffApi.destruct`) and calling the trauma's `resolve` (sets
   `dressed`, arrests the bleed); the dressed wound heals to clear on the
@@ -892,3 +893,12 @@ there, with the bleeder recorded on the stain; at
 way and stains nothing. Dressings that stay on the wound and are changed
 when soaked are [dressings-slate](../slates/tails/dressings-slate.md).
 
+## ⭐⭐ The patient decides (controllers-are-io D11)
+
+`VitalsMixin.treatmentPlanFor(req)` holds what `treat` used to: the worst
+condition this remedy can relieve, the interior gate, the graded outcome, the
+tending, the `--for` judgment loop and the fluid dose. The remedy answers through
+what it is (`isDressing`, a Bulkable with something in it, or bare hands);
+`TreatController` words `TreatmentReason` and `TreatmentDone`, and holds the
+mismatch vocabulary. `treat X --with bandage --for salmonellosis`: no preposition
+form is kept.

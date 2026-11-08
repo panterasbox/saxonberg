@@ -1,4 +1,5 @@
 verbs: [affordances]
+category: system
 controller: /platform/idea/cmd/system/AffordancesController
 description: "List your available commands and what affords each"
 help: |

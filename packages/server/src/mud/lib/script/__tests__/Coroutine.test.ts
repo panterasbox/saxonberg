@@ -10,6 +10,7 @@
  * engaged-activity substrate in `coroutine-pacing.test.ts`.)
  */
 
+import type { Affordance, AffordanceMatch } from "../../command/CommandGiver";
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Interpreter } from "../Interpreter";
@@ -44,6 +45,12 @@ function fakeGiver(): Stuff & CommandGiver {
     getAffordances: () => [{ command: ECHO, source: giver, bucket: "self" }],
     getAvailableCommands: () => [ECHO],
     getContainer: () => null,
+    // The dispatcher's shared matcher, unscoped (verb filter only).
+    matchAffordances: (parsed: { verb: string }): AffordanceMatch => ({
+      ok: true,
+      matches: (giver.getAffordances() as unknown as Affordance[]).filter((a) => a.command.hasVerb(parsed.verb)),
+      usage: "",
+    }),
   };
   return giver as unknown as Stuff & CommandGiver;
 }

@@ -19,6 +19,7 @@
  * Harness mirrors DormResidence.test.ts.
  */
 
+import { Aroma } from '@saxonberg/server/mud/lib/perception/Aroma';
 import "@saxonberg/server/test-bootstrap";
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -33,7 +34,7 @@ import Footlocker from '../thing/Footlocker';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import PlantPot, { PLANT_SLOT } from '@saxonberg/server/mud/platform/thing/PlantPot';
 import { SOIL_MOISTURE_RESERVE_KEY } from '@saxonberg/server/mud/lib/husbandry/Cultivable';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Seed from '@saxonberg/server/mud/platform/thing/Seed';
 import WateringCan from '@saxonberg/server/mud/platform/thing/WateringCan';
@@ -133,7 +134,8 @@ function addSeed(path: string, file: string): void {
   col('content').push({
     _id: `d-${++idCounter}`,
     path,
-    class: parsed.class as string,
+    // A child row names its parent rather than a class (an aroma under its root).
+    ...(typeof parsed.extends === 'string' ? { extends: parsed.extends } : { class: parsed.class as string }),
     data: (parsed.data as Record<string, unknown>) ?? {},
   });
 }
@@ -245,6 +247,10 @@ function seedDomain(): void {
     '/stuff/idea/material/alloy/steel',
     `${CONTENT}base-library/content/stuff/idea/material/alloy/steel.yaml`,
   );
+  // The aromas those materials name, which load with them.
+  const earth = Aroma.remember('/base-library/aromas/earth', {}, null);
+  Aroma.remember('/base-library/aromas/loam', {}, earth);
+  Aroma.remember('/base-library/aromas/green', {}, null);
   addSeed(
     '/stuff/idea/material/tissue/plant-tissue',
     `${CONTENT}base-library/content/stuff/idea/material/tissue/plant-tissue.yaml`,
@@ -643,7 +649,7 @@ describe('the dorm houseplant — content and placement', () => {
 
     // `water` the plant. ⚠ The source is what the binder would bind for
     // bare `water` — the carried vessels (`water.yaml`'s `me:i` default);
-    // a controller test skips the binder (`lint:instrument-args`).
+    // a controller test skips the binder (`lint:controller-resolution`).
     const ctx = ctxFor(tenant, 'water');
     await run(
       makeStuff(() => new WaterController()),

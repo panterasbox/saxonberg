@@ -19,7 +19,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Idea } from '../../stuff/Idea';
-import { OrganizationMixin } from '../Organization';
+import OrganizationRow from '../../../platform/idea/Organization';
 import { EmployedMixin, type Employed } from '../Employed';
 import BusinessEntity from '../../../platform/idea/Business';
 import { StuffApi } from '../../../api/stuff';
@@ -31,7 +31,7 @@ import { SecurityError } from '../../security/errors';
 import type { Stuff } from '../../stuff/Stuff';
 
 /** A non-trading organization — a ministry, a press office, a registry. */
-class OrganizationEntity extends OrganizationMixin(Idea) {
+class OrganizationEntity extends OrganizationRow {
   static _mixinName = 'OrganizationEntity';
 
   /**

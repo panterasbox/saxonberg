@@ -64,6 +64,17 @@ class FakeSupply extends Good {
   async supplyReport(): Promise<SupplyReport> {
     return { label: 'the main', state: this.state, lines: ['it is the main'] };
   }
+  /** The chemistry this main says it carries; `null` = it cannot say. */
+  public chemistry: { pH: number; hardnessDgh: number; salinityPpt: number; fouled?: boolean } | null =
+    null;
+  async readWaterChemistry(): Promise<
+    { pH: number; hardnessDgh: number; salinityPpt: number; fouled?: boolean } | null
+  > {
+    return this.chemistry;
+  }
+  async readWaterHardnessDgh(): Promise<number | null> {
+    return this.chemistry?.hardnessDgh ?? null;
+  }
 }
 
 function water(): Material {
@@ -395,13 +406,7 @@ describe('⭐ a piped outlet has a valve (step 11, the officer)', () => {
 describe('⭐ a fouled supply pours fouled water (step 11)', () => {
   it('the tap delivers the fouled material while the main is fouled, and clean water after', async () => {
     const main = mainAt();
-    let fouled = true;
-    (main as unknown as { readWaterChemistry: () => Promise<unknown> }).readWaterChemistry = async () => ({
-      pH: 7.5,
-      hardnessDgh: 10,
-      salinityPpt: 0.3,
-      fouled,
-    });
+    main.chemistry = { pH: 7.5, hardnessDgh: 10, salinityPpt: 0.3, fouled: true };
     makeStuffAtPath(() => {
       const m = new Material();
       m.setName('fouled water');
@@ -410,7 +415,7 @@ describe('⭐ a fouled supply pours fouled water (step 11)', () => {
     const t = tap({ suppliedBy: MAIN });
     await t.settleBulk('interior');
     expect(t.getBulkMaterialPath('interior')).toBe('/stuff/idea/material/bulk/fouled-water');
-    fouled = false;
+    main.chemistry = { pH: 7.5, hardnessDgh: 10, salinityPpt: 0.3, fouled: false };
     await t.settleBulk('interior');
     expect(t.getBulkMaterialPath('interior')).toBe('/stuff/idea/material/bulk/water');
   });

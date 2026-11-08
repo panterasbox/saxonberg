@@ -1,0 +1,4 @@
+# Cocoons stifled and boiled.
+parent: /base-library/aromas/silkworm
+discipline: sericulture
+liking: { peak: 1.5, width: 2, valence: -1 }

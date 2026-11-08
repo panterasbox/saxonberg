@@ -1,4 +1,5 @@
 verbs: [eat]
+category: bulk
 controller: /platform/idea/cmd/bulk/EatController
 description: "Eat an edible item, or a meal out of the dish it came in"
 help: |
@@ -30,7 +31,7 @@ args:
     requires: VisibleMixin
     validators:
       - /lib/command/validators/mustBeEdible
-  # ⭐ WHAT WITH — DECLARED, not hunted for (`lint:instrument-args`).
+  # ⭐ WHAT WITH — DECLARED, not hunted for (`lint:controller-resolution`).
   # Bare, the binder hands over every reachable piece of cutlery and the
   # controller takes the first CLEAN one in its preference order; there
   # being none is a perfectly good way to eat. `eat the stew with the

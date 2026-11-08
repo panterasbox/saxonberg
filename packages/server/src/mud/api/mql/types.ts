@@ -226,6 +226,14 @@ export interface MqlMany {
    * every path here; `via` stays the consensus.
    */
   vias?: (MqlMatchVia | undefined)[];
+  /**
+   * ⭐ Each match's keyword TIER, index-aligned with `stuff` (3 a keyword
+   * is the phrase · 2 every word a whole word of one · 1 every word
+   * begins one · 0 a partial). What the binder compares ACROSS scope
+   * tries, so a whole-name hit in a later try beats a partial in an
+   * earlier (`CommandLogic.walkScopes`).
+   */
+  tiers?: number[];
   quantity?: MqlQuantity;
   /** Present only when the run walked the registry — see {@link RegistryScan}. */
   scan?: RegistryScan;

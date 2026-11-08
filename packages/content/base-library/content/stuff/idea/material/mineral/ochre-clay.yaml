@@ -1,8 +1,9 @@
 # Ochre clay — an iron-stained earth, yellow with goethite: dug, dried and
 # ground on the stones it is yellow ochre, the oldest pigment there is
 # (paint D19).
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/wet-clay, strength: 10 }]
   name: ochre clay
   keywords: ["ochre clay", ochre, clay, earth]
   appearance: a crumbly mustard-yellow earth that stains everything it touches

@@ -9,7 +9,7 @@
 # ⭐ `purifiedByBoiling` is the shipped arrow between two authored
 # materials, so boiling tar down to pitch needs no new mechanism and no
 # verb of its own: hold the tar at its boil for a minute (set it on a
-# fire — `heat`, or its alias `boil`) and the phase engine swaps it. The
+# fire — `heat`) and the phase engine swaps it. The
 # word *purified* is a stretch (you are driving off the light fraction,
 # not cleaning it) — recorded as a seam rather than worked around.
 # ⭐ The latent heat is what makes the boil a PLATEAU (the light fraction
@@ -17,8 +17,10 @@
 # flashes a liquid to vapour the instant it reaches its boiling point and
 # there would be no tar left to become pitch. The volume does reduce
 # while it boils, which is what boiling tar down IS.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/pine-tar, strength: 4000 }]
+  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 1500 }]
   name: wood tar
   keywords: [tar, "wood tar", stockholm]
   appearance: a black, sticky, resinous liquid

@@ -36,7 +36,7 @@ function answer(
   useStore.getState().setAffordances({
     stuffId: "anvil",
     verbs,
-    composition,
+    composition: composition.map((name) => ({ name, kind: "mixin" as const })),
     kind,
   });
 }
@@ -157,8 +157,10 @@ describe("the three states", () => {
     expect(screen.getByText("needs target")).toBeTruthy();
   });
 
-  it("sends the verb aimed at the subject, and previews it first", () => {
-    answer([entry({ verb: "look", category: "perception" })]);
+  it("⭐ sends the verb alone — the game asks what — and previews it first (#91)", () => {
+    // A word could resolve to some other thing in reach; the click never
+    // guesses. `look` → the game asks "Look what?".
+    answer([entry({ verb: "look", category: "perception", command: "look #anvil" })]);
     const sent: string[] = [];
     const previews: (string | null)[] = [];
     render(
@@ -172,8 +174,16 @@ describe("the three states", () => {
     const button = screen.getByText("look").closest("button")!;
     fireEvent.mouseEnter(button);
     fireEvent.click(button);
-    expect(previews[0]).toBe("look anvil");
-    expect(sent).toEqual(["look anvil"]);
+    expect(previews[0]).toBe("look");
+    expect(sent).toEqual(["look"]);
+  });
+
+  it("a verb with no one-word command sends the verb alone, so the dispatcher asks", () => {
+    answer([entry({ verb: "give", category: "social" })]);
+    const sent: string[] = [];
+    render(<AffordanceRadial stuffId="anvil" displayName="anvil" onSendCommand={(t) => sent.push(t)} />);
+    fireEvent.click(screen.getByText("give").closest("button")!);
+    expect(sent).toEqual(["give"]);
   });
 });
 

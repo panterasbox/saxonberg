@@ -15,7 +15,7 @@ import type { Publisher } from "../../../lib/press/Publisher";
 import type { Business } from "../Business";
 import { RELEASE_DOCUMENT_KIND } from "../../../lib/press/Release";
 import { CommandApi } from "../../../api/command";
-import type { Registrar } from '../../../lib/document/Register';
+import type { Registrar } from '../../../lib/document/Registrar';
 import type { Berthed } from '../BerthExit';
 import {
   DECLARED_DOCUMENT_KINDS,
@@ -52,7 +52,7 @@ function actingAuthor(): Stuff | null {
 /**
  * True when `path` lies in `actor`'s own `/home/<self>/` branch — keyed on
  * the durable-path basename, so an owner owns exactly the subtree the
- * runtime banks under their name (a player's recorded recipe-scripts, a
+ * runtime banks under their name (a player's saved scripts, a
  * future dorm's customization).
  *
  * Consumes the shared self-home rule via `ParcelApi.selfHomeOwnerOf` (the
@@ -688,6 +688,7 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'map':
     case 'berth-roll':
     case 'berth-book':
+    case 'aroma':
       return null;
     default: {
       const unreachable: never = kind;

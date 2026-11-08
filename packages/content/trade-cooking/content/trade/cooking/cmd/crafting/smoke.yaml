@@ -1,4 +1,5 @@
 verbs: [smoke]
+category: crafting
 controller: /trade/cooking/idea/cmd/crafting/SmokeController
 description: "Hang a cut in the smoke of a low fire"
 help: |

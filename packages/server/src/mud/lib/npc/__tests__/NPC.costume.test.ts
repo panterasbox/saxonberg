@@ -39,7 +39,7 @@ import { makeStuff,
   seedKernelContentStore,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import { CostumedMixin } from '../../stuff/Staged';
+import { CostumedMixin } from '../../stuff/Costumed';
 import { Template } from '../../stuff/Template';
 import GarmentClass from '../../../platform/thing/equipment/Garment';
 import ThingClass from '../../../platform/thing/Thing';

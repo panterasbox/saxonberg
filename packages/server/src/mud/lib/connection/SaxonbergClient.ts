@@ -54,11 +54,36 @@ import {
   FEED_DESTINATIONS,
   CARD_IDS,
   SHIPPED_ARRANGEMENT_CARDS,
+  MODE_PRIMARY_FILTER,
   type ArrangementSpec,
+  type ArrangementCard,
+  WIDTH_CLASSES,
   type CockpitMode,
   type LayoutName,
   type CardId,
 } from '@saxonberg/types';
+
+/**
+ * What is wrong with one saved arrangement card, or null — a catalogue
+ * id, a known width class, a placement of non-negative whole units.
+ * Module-private: the validator below is its only reader.
+ */
+function arrangementCardProblem(c: unknown): string | null {
+  if (typeof c !== 'object' || c === null) return 'every card must be an object';
+  const card = c as Partial<ArrangementCard>;
+  if (typeof card.cardId !== 'string') return 'every card must name a cardId';
+  if (card.size !== undefined && !WIDTH_CLASSES.includes(card.size)) {
+    return `card '${card.cardId}' has an unknown size '${String(card.size)}'`;
+  }
+  if (card.placed !== undefined) {
+    const { col, row } = card.placed as { col?: unknown; row?: unknown };
+    const unit = (n: unknown): boolean => Number.isInteger(n) && (n as number) >= 0;
+    if (!unit(col) || !unit(row)) {
+      return `card '${card.cardId}' must be placed at whole, non-negative units`;
+    }
+  }
+  return null;
+}
 
 /**
  * The tower as this mixin sees it: our own surface, the mechanism
@@ -109,6 +134,17 @@ export interface SaxonbergClient extends ClientState {
   refreshDisplays(): void;
 
   /**
+   * ⭐ After a move (and right after an arrangement opens it), bring the
+   * NAVIGATOR along: every session of this body with the `map` card up
+   * gets its "where you are" body refreshed IN PLACE — no command runs,
+   * nothing is echoed, nothing is printed (owner, 2026-11-08: the docked
+   * slot is chrome, like the top bar, and updates implicitly; it is the
+   * SLOT that is implicit — `map` typed anywhere still reads your map out
+   * in the transcript). A session without one gets nothing.
+   */
+  refreshNavigator(): void;
+
+  /**
    * The active cockpit mode, legacy-migration aware. Prefer this over
    * `getClientState('cockpit.mode')`: a player who last played before
    * the mode axis existed has no `cockpit.mode` at all, only a legacy
@@ -144,7 +180,7 @@ export interface SaxonbergClient extends ClientState {
    * particular person is a statement about a MOMENT and belongs to the
    * pin, which is session-scoped for exactly that reason.
    */
-  arrangementCards(mode: CockpitMode, name: string): readonly CardId[];
+  arrangementCards(mode: CockpitMode, name: string): readonly ArrangementCard[];
 
   /** Error string for a player-supplied arrangement name, or null if fine. */
   validateArrangementName(mode: CockpitMode, raw: string): string | null;
@@ -341,16 +377,16 @@ export function SaxonbergClientMixin<
       },
       {
         key: 'cockpit.mode',
-        // ⚠ `null`, not 'play', so "never set" stays distinguishable
+        // ⚠ `null`, not 'explore', so "never set" stays distinguishable
         // from "deliberately set to the default". A legacy player has
         // no `cockpit.mode` but DOES have a `cockpit.layout` that
         // already names their mode — `getCockpitMode()` reads this null
-        // as its cue to migrate. A 'play' default here would silently
+        // as its cue to migrate. An 'explore' default here would silently
         // answer for them and the migration would never run.
         defaultValue: null,
         description:
           'The cockpit activity mode — the front-door axis (chat | ' +
-          'play | watch | build | govern), answering "what am I here ' +
+          'explore | watch | build | govern), answering "what am I here ' +
           'to do". Set by `cockpit mode`. Null means never set: read ' +
           'through `getCockpitMode()`, which migrates a legacy ' +
           '`cockpit.layout` rather than assuming the default.',
@@ -431,6 +467,13 @@ export function SaxonbergClientMixin<
                 !Array.isArray((spec as { cards?: unknown }).cards)
               ) {
                 return `arrangement '${name}' must carry a cards array`;
+              }
+              // ⭐ Each card records its shape and place in UNITS
+              // (client-surface D5) — validated, because it is player
+              // input that becomes a workspace.
+              for (const c of (spec as { cards: unknown[] }).cards) {
+                const problem = arrangementCardProblem(c);
+                if (problem) return `arrangement '${name}': ${problem}`;
               }
             }
           }
@@ -601,6 +644,28 @@ export function SaxonbergClientMixin<
       environment: [],
     };
 
+    public refreshNavigator(): void {
+      const self = this as unknown as StuffRef & ClientHost;
+      const sessions = [...self.getInteractives()].flatMap((interactive) => {
+        const card = interactive.listCards().find((c) => c.cardId === 'map');
+        return card ? [{ interactive, key: card.key }] : [];
+      });
+      if (sessions.length === 0 || !MixinApi.isPerceiver(self)) return;
+      void self
+        .whereabouts()
+        .then((where) => {
+          if (!where) return;
+          for (const { interactive, key } of sessions) {
+            interactive.touchCard(key, { payload: { kind: 'navigation', where } });
+          }
+        })
+        .catch((err: unknown) => {
+          // ⚠ Loud, not swallowed: a silent catch here once hid a broken
+          // navigator for a whole drive.
+          console.warn(`refreshNavigator: ${(err as Error).message}`);
+        });
+    }
+
     public refreshDisplays(): void {
       const self = this as unknown as StuffRef & ClientHost;
       const current =
@@ -664,7 +729,7 @@ export function SaxonbergClientMixin<
      * The legacy step is scoped to the matching mode on purpose. The
      * two livestream layouts collapse into one `watch` mode with
      * different arrangements, so `livestream-viewer` may answer for
-     * `watch` — but it must not answer for `play`.
+     * `watch` — but it must not answer for `explore`.
      */
     public getCockpitArrangement(mode?: CockpitMode): string {
       const self = this as unknown as ClientHost;
@@ -723,15 +788,15 @@ export function SaxonbergClientMixin<
     public arrangementCards(
       mode: CockpitMode,
       name: string,
-    ): readonly CardId[] {
+    ): readonly ArrangementCard[] {
       const self = this as unknown as ClientHost;
       const saved = self.savedArrangementsFor(mode)[name];
       if (saved) {
         // ⚠ Filter to the catalogue. A saved list is player data that
         // has outlived a rename before, and an unknown name would make
         // the whole arrangement fail to open rather than one card.
-        return saved.cards.filter((p): p is CardId =>
-          (CARD_IDS as readonly string[]).includes(p),
+        return saved.cards.filter((p) =>
+          (CARD_IDS as readonly string[]).includes(p.cardId),
         );
       }
       /*
@@ -740,7 +805,9 @@ export function SaxonbergClientMixin<
        * entry need not be total over the shipped arrangements — an
        * arrangement with no row simply opens nothing.
        */
-      return SHIPPED_ARRANGEMENT_CARDS[mode][name] ?? [];
+      return (SHIPPED_ARRANGEMENT_CARDS[mode][name] ?? []).map((c) =>
+        typeof c === 'string' ? { cardId: c } : c,
+      );
     }
 
     public savedArrangementsFor(
@@ -827,7 +894,7 @@ export function SaxonbergClientMixin<
      * Host-internal: reads `_clientState` directly to tell "stored" from
      * "schema default", which `getClientState` deliberately collapses.
      * The distinction is the whole migration — a host still sitting on
-     * the `world` default must NOT be treated as having chosen `play`,
+     * the `world` default must NOT be treated as having chosen `explore`,
      * because it has chosen nothing.
      */
     private migratedLegacyLayout(): { mode: CockpitMode; arrangement: string } | null {
@@ -877,7 +944,10 @@ export function SaxonbergClientMixin<
       const mode = self.getCockpitMode();
       interactive.applyCardArrangement(
         self.arrangementCards(mode, self.getCockpitArrangement(mode)),
+        MODE_PRIMARY_FILTER[mode],
       );
+      // An arrangement opens the navigator with no body; fill it now.
+      self.refreshNavigator();
     }
   };
 }

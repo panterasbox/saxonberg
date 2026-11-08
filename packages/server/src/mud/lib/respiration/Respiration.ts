@@ -1222,7 +1222,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** The water's lift on this body now, N (positive floats). */
     private netBuoyancyN(medium: { depthM: number; substance: string }): number {
       const self = this as unknown as Stuff;
-      if (!MixinApi.isLoadBearing(self)) return 0;
+      if (!MixinApi.isBuoyant(self)) return 0;
       let rho = 1000;
       try {
         rho = BiomeApi.densityOf('water').rawValue() || 1000;

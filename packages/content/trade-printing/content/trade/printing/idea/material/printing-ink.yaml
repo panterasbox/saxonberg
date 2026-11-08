@@ -1,7 +1,8 @@
 # Printing ink — lampblack ground into boiled linseed oil: a
 # stiff black paste the press's balls beat onto the forme.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/ink, strength: 300 }]
   name: printing ink
   keywords: [ink, "printing ink", "press ink"]
   appearance: a stiff glossy black paste

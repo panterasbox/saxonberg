@@ -11,6 +11,7 @@
 # nodes, and this room is the content behind one of them.
 class: /platform/location/Shore
 data:
+  floor: { material: /stuff/idea/material/earth/tidal-mud }
   shortDescription: mouth of the estuary
   keywords: [mouth, estuary]
   register: definite

@@ -42,13 +42,16 @@ import type Place from '../../lib/stuff/Place';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { VetoResult } from '../../lib/errors';
-import type { LiftSource, PumpSource } from '../../lib/pump/Pumpable';
+import { LiftSourceMixin, type LiftSource } from '../../lib/pump/LiftSource';
+import { PumpSourceMixin, type PumpSource } from '../../lib/pump/PumpSource';
 import type { CommandContributions } from '../../api/command';
 
 /** What lies in a bilge: the water she let in. */
 const WATER_PATH = '/stuff/idea/material/bulk/water';
 
-const BilgeWellBase = StagedMixin(ContainerMixin(Thing));
+const BilgeWellBase = LiftSourceMixin(
+  PumpSourceMixin(StagedMixin(ContainerMixin(Thing))),
+);
 
 export default class BilgeWell extends BilgeWellBase implements LiftSource, PumpSource {
   /** Sideways: anyone at the well can try its brake. */

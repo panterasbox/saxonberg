@@ -33,7 +33,6 @@ import { Grade } from './Grade';
 import { SoilSpecs, type SoilSpec } from '../cleanliness/SoilSpec';
 import { DIFFICULTIES } from '../advancement/ActSignature';
 import {
-  AROMAS,
   DissolvedAromatics,
 } from '../metabolism/DissolvedAromatics';
 import { ThermalDose } from '../thermal/ThermalDose';
@@ -81,21 +80,16 @@ export type OutputApplication = 'bulk' | 'tangible' | 'edible';
  * roars.
  *
  * There is no method table anywhere: `boil`, `simmer`, `poach`, `fry` and
- * `roast` are not engine words. A recipe declares the medium it works
- * through and the heat it needs, and the physics decides what is possible
- * — water pins a wet method at its **boiling point** (373 K), a fat at its
- * **smoke point** (tallow ≈ 478 K), and a dry method has no medium and no
- * cap at all. That one pair of tabulated numbers is the whole reason
- * boiling cannot brown and frying can: a recipe demanding 450 K and
- * declaring `medium: water` declines for want of heat at a forge, because
- * the water is what will not get there.
+ * `roast` are not engine words. A recipe declares the medium it works through
+ * (a material TAG) and the heat it needs, and the physics decides what is
+ * possible: whatever carries the tag sets the ceiling from its own boiling or
+ * smoke point. That one pair of tabulated numbers is the whole reason boiling
+ * cannot brown and frying can, and a poach in wine or a sand roast is a row.
+ * `lint:aromas` refuses a word no material in reach carries.
  *
  * Absent ⇒ dry: the fire reaches the food directly.
  */
-export type RecipeMedium = 'water' | 'fat';
-
-/** The authorable medium words — the `fromData` validation set. */
-export const RECIPE_MEDIA: readonly RecipeMedium[] = ['water', 'fat'];
+const MEDIUM_SHAPE = /^[a-z][a-z0-9-]*$/;
 
 /**
  * A residue output beside the main one (fermentation P11/D12):
@@ -294,7 +288,7 @@ export class Recipe {
 
   /**
    * The heat-carrying medium (`water` / `fat`); empty ⇒ dry. See
-   * {@link RecipeMedium} — it does two things, and only two: the recipe
+   * the medium tag — it does two things, and only two: the recipe
    * must actually HAVE an input carrying the medium's tag (no water, no
    * boiling), and the medium's own phase ceiling caps the effective heat.
    */
@@ -431,10 +425,10 @@ export class Recipe {
       const entry = raw as { type?: unknown; amount?: unknown };
       const type = typeof entry.type === 'string' ? entry.type : '';
       const amount = typeof entry.amount === 'number' ? entry.amount : NaN;
-      if (!DissolvedAromatics.isAroma(type)) {
+      // Whether a document is at the path is `lint:aromas`' to check: this runs at install, sync.
+      if (!DissolvedAromatics.isAromaPath(type)) {
         throw new Error(
-          `Recipe '${recipeId}': 'imparts' names '${type}', which is not ` +
-            `an aroma (${AROMAS.map((a) => a.type).join(' · ')}).`,
+          `Recipe '${recipeId}': 'imparts' names '${type}', which is not an aroma path.`,
         );
       }
       if (!(amount > 0)) {
@@ -664,11 +658,9 @@ export class Recipe {
    */
   private static mediumFrom(v: unknown, id: string): string {
     if (v === undefined || v === null || v === '') return '';
-    if (typeof v === 'string' && (RECIPE_MEDIA as readonly string[]).includes(v)) {
-      return v;
-    }
+    if (typeof v === 'string' && MEDIUM_SHAPE.test(v)) return v;
     throw new Error(
-      `Recipe '${id}': 'medium' must be ${RECIPE_MEDIA.join(' | ')} (or absent for a dry method)`,
+      `Recipe '${id}': 'medium' must be a material tag (or absent for a dry method)`,
     );
   }
 
@@ -774,10 +766,8 @@ export class Recipe {
   }
 
   /** The heat-carrying medium, or `null` for a dry method. */
-  getMedium(): RecipeMedium | null {
-    return this.medium === 'water' || this.medium === 'fat'
-      ? this.medium
-      : null;
+  getMedium(): string | null {
+    return this.medium || null;
   }
   getOutputResidue(): RecipeResidue | null {
     return this.outputResidue;

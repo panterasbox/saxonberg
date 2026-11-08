@@ -32,7 +32,23 @@
  */
 
 import Thing from '../../lib/stuff/Thing';
-import { PricedOfferMixin } from '../../lib/commerce/PricedOffer';
+import {
+  PricedOfferMixin,
+  type CoverOutcome,
+  type OrderAnswer,
+  type OrderDone,
+  type OrderRefusal,
+  type OrderRequest,
+} from '../../lib/commerce/PricedOffer';
+import { CraftingApi, NOBODY_TO_WORK, type Fault } from '../../api/crafting';
+import { ConditionApi } from '../../api/condition';
+import { EmploymentApi } from '../../api/employment';
+import { BLOOD_DEFAULTS } from '../../lib/vitals/Blood';
+import { CompetenceBand } from '../../lib/advancement/CompetenceBand';
+import { WashPolicy } from '../../lib/cleanliness/WashPolicy';
+import type { ActDone } from '../../lib/craft/ActPlan';
+import Garment from './equipment/Garment';
+import Tub from './Tub';
 import { MqlApi } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -60,7 +76,7 @@ const REFERENCE_WAGE = 6;
 
 /**
  * ⭐ **The closed vocabulary of what a priced key can DO.** Kernel-owned
- * on purpose: the orchestration for each lives in `OrderController`, so
+ * on purpose: the orchestration for each lives in `orderPlanFor` below, so
  * a venue authors rows and never code.
  *
  * - `repair` — mend a damaged thing the customer is carrying.
@@ -137,10 +153,34 @@ export interface Quote {
 
 const TariffBase = PricedOfferMixin(Thing);
 
-/** What the house's cover came to (worded by the verb). */
-export type CoverOutcome =
-  | { paid: true; amount: number }
-  | { paid: false; amount: number; reason: string };
+/** What a grave looks like from the outside, for the burial arm. */
+const GRAVE_KEYWORDS = /\bgrave\b|\bplot\b|\bcrypt\b|\bniche\b/i;
+
+/**
+ * ⭐ The resolution tokens a fully-stocked clinic can supply (D5) — a
+ * bandage, a splint, a surgeon's kit, water, a fire. `rest` (a bruise
+ * wants time) is deliberately absent: the house cannot sell you time.
+ */
+const CLINIC_SUPPLIES = new Set(['dressing', 'setting', 'surgery', 'fluid', 'warmth', 'rinsing']);
+/** A staffed clinic treats competently — a middling-to-good article. */
+const CLINIC_EFFICACY = 0.7;
+/** How long a bath takes, ms — the water runs at its own rate. */
+const BATH_MS = 12000;
+
+/** The priced line a mendable fault is quoted under (repair D12). */
+function quoteLineFor(f: Fault): QuoteRequestLine {
+  const key =
+    f.action === 'reforged'
+      ? 'reforge'
+      : f.action === 'tightened'
+        ? 'tighten'
+        : f.action === 'refired'
+          ? 'refire'
+          : f.action === 'riveted'
+            ? 'rivet'
+            : 'repair';
+  return { key, label: f.named, qty: 1 };
+}
 
 export default class Tariff extends TariffBase {
   static fieldMeta: FieldMeta = {
@@ -152,7 +192,7 @@ export default class Tariff extends TariffBase {
   /**
    * Offer key → what it does. A key priced but not mapped here is
    * inert — which `lint:unconsumed-seams`' spirit says is worth catching,
-   * so `OrderController` reports an unknown service by name rather than
+   * so `order` reports an unknown service by name rather than
    * silently declining.
    */
   public services: Record<string, string> = {};
@@ -336,6 +376,351 @@ export default class Tariff extends TariffBase {
     const lines: QuoteRequestLine[] = [{ key, label: 'wash', qty: Math.max(1, kinds.length) }];
     if (method.waterK >= 333) lines.push({ key: 'hot-wash', label: 'hot', qty: 1 });
     return this.quoteFor(lines);
+  }
+
+  /** See {@link PricedOffer.offersOrder}: a key this board does as a service. */
+  public override offersOrder(key: string): boolean {
+    return this.serviceFor(key) !== null;
+  }
+
+  /**
+   * ⭐⭐ **Perform one priced service, then collect for it.**
+   *
+   * Keyed by a closed vocabulary precisely so a venue is rows. A clinic that
+   * could define its own service kinds would need pack code, and then a second
+   * clinic would need pack code too, which is the second-instance test failing.
+   *
+   * ⚠ **The customer is the one who asks.** `BankingLogic.settle` derives the
+   * payer from execution context and takes no payer parameter, so a service is
+   * BOUGHT (`order revive`) rather than billed to a bystander mid-`treat`.
+   * That is a real constraint and the right one: letting a player initiate a
+   * debit against another player is a consent question far larger than a
+   * priced clinic.
+   */
+  public override async orderPlanFor(req: OrderRequest): Promise<OrderAnswer> {
+    const kind = this.serviceFor(req.key);
+    if (!kind) return { ok: false, reason: 'not-offered', facts: { phrase: req.phrase } };
+    // Stand the operator up first — the same lazy standup a drink does, so a
+    // cold venue's first customer finds a roster rather than a decline.
+    const venuePath = req.location?.getTemplatePath();
+    if (venuePath) await EmploymentApi.ensureOperatorAt(venuePath);
+    switch (kind) {
+      case 'transfusion':
+        return this.transfusionPlan(req);
+      case 'bath':
+        return this.bathPlan(req);
+      case 'wash':
+        return this.washPlan(req);
+      case 'repair':
+        return this.repairPlan(req);
+      case 'treatment':
+        return this.treatmentPlan(req);
+      case 'burial':
+        return this.burialPlan(req);
+    }
+  }
+
+  /** The note's tail: what was taken, in the settlement's own words. */
+  private static tailOf(note: string | null): string {
+    return note ? ` ${note}` : '';
+  }
+
+  /**
+   * ⭐ The clinic's product: the house treats what is wrong with you. The
+   * customer and the patient are the SAME body, which is the only shape the
+   * payer rule allows. What the house supplies is the thing the condition
+   * wants (`resolution.by`) — that is what you are paying for. It is not a
+   * cure-all: it resolves ONE condition, the worst it can reach, exactly as a
+   * `treat` would.
+   */
+  private treatmentPlan(req: OrderRequest): OrderAnswer {
+    const { by, key } = req;
+    if (!MixinApi.isVitals(by)) return { ok: false, reason: 'not-a-body', facts: {} };
+    return {
+      ok: true,
+      durationMs: 0,
+      effortW: 0,
+      facts: { kind: 'now' },
+      onComplete: async (): Promise<ActDone<OrderDone, OrderRefusal>> => {
+        const treated = ConditionApi.treatWorstResolvable(by, CLINIC_SUPPLIES, CLINIC_EFFICACY);
+        if (!treated) return { ok: false, reason: 'nothing-to-treat', facts: {} };
+        const collected = await this.collect(key, 'a treatment');
+        return { ok: true, facts: { kind: 'treatment', treated, tail: Tariff.tailOf(collected.note) } };
+      },
+    };
+  }
+
+  private burialPlan(req: OrderRequest): OrderAnswer {
+    const body = req.subject;
+    if (!body || !MixinApi.isPostmortem(body)) return { ok: false, reason: 'not-a-body', facts: { subject: body ?? undefined, phrase: 'burial' } };
+    const loc = req.location;
+    const grave =
+      loc && MixinApi.isContainer(loc)
+        ? ((loc as Stuff & Container)
+            .getContents()
+            .find(
+              (s) => MixinApi.isContainer(s) && GRAVE_KEYWORDS.test(s.getPresentation()),
+            ) as (Stuff & Container) | undefined)
+        : undefined;
+    if (!grave) return { ok: false, reason: 'no-grave', facts: {} };
+    return {
+      ok: true,
+      durationMs: 0,
+      effortW: 0,
+      facts: { kind: 'now' },
+      onComplete: async (): Promise<ActDone<OrderDone, OrderRefusal>> => {
+        const name = body.getPresentation();
+        if (!body.interIn(grave)) return { ok: false, reason: 'burial-refused', facts: {} };
+        const collected = await this.collect(req.key, 'a burial');
+        return { ok: true, facts: { kind: 'burial', body: name, tail: Tariff.tailOf(collected.note) } };
+      },
+    };
+  }
+
+  /**
+   * ⭐⭐ The paid mend is somebody's WORK (repair D12): the on-shift hand looks
+   * it over, names each fault and its price BEFORE any money is taken, the
+   * customer says yes or no, and the hand mends it at THEIR band — their name
+   * on the mend, their wage for the piece. Nobody on shift is a refusal, never
+   * a free repair; a quote the customer cannot pay is refused before the work,
+   * not done on the house.
+   */
+  private async repairPlan(req: OrderRequest): Promise<OrderAnswer> {
+    const item = req.subject;
+    if (!item) return { ok: false, reason: 'no-subject', facts: { phrase: 'repair' } };
+    const hand = await CraftingApi.fulfillingHand(req.by, this);
+    if (!hand) return { ok: false, reason: 'no-hand', facts: { line: NOBODY_TO_WORK } };
+    const look = await CraftingApi.diagnose({ item, hand });
+    if (!look.ok) return { ok: false, reason: look.reason, facts: { craft: look, stage: 'look' } };
+    const who = hand.getPresentation() ?? 'They';
+    const mendable = look.faults.filter((f) => f.mendable);
+    if (mendable.length === 0) {
+      return {
+        ok: false,
+        reason: look.faults.length > 0 ? 'nothing-mendable' : 'nothing-to-repair',
+        facts: { who, faults: look.faults },
+      };
+    }
+    const quote = this.quoteFor(mendable.map(quoteLineFor));
+    const named = {
+      kind: 'repair' as const,
+      who,
+      faults: look.faults,
+      mendable,
+      prices: quote.lines.map((l) => l.price),
+      total: quote.total,
+    };
+    const cannotPay = this.payRefusal(quote.total);
+    if (cannotPay) {
+      return { ok: false, reason: 'cannot-pay', facts: { quote: named, line: cannotPay } };
+    }
+    return {
+      ok: true,
+      durationMs: 0,
+      effortW: 0,
+      facts: named,
+      onComplete: async (): Promise<ActDone<OrderDone, OrderRefusal>> => {
+        const outcome = await CraftingApi.repair({ item, hand });
+        if (!outcome.ok) {
+          return { ok: false, reason: outcome.reason, facts: { craft: outcome, stage: 'mend' } };
+        }
+        const collected = await this.collectMinor(quote.total, 'a repair');
+        if (collected.paid) await this.payPiecework(hand);
+        return {
+          ok: true,
+          facts: {
+            kind: 'repair',
+            who,
+            item: item.getPresentation(),
+            short: outcome.mended.some((o) => o.result === 'short'),
+            tail: Tariff.tailOf(collected.note),
+          },
+        };
+      },
+    };
+  }
+
+  /**
+   * ⭐ The laundress (cleanliness D26): the hand reads the garment at her band,
+   * names a price, and — on a yes — washes it HER way, in the water in the room
+   * with the house's soap. What she does decides what it does to the cloth;
+   * when it comes back ruined, the house pays its posted cover (never to one
+   * of its own).
+   */
+  private async washPlan(req: OrderRequest): Promise<OrderAnswer> {
+    const { by, key } = req;
+    const item = req.subject;
+    if (!item || !(item instanceof Garment)) {
+      return { ok: false, reason: 'no-subject', facts: { phrase: 'wash' } };
+    }
+    const hand = await CraftingApi.fulfillingHand(by, this, this.disciplineFor(key));
+    if (!hand) return { ok: false, reason: 'no-hand', facts: { line: NOBODY_TO_WORK } };
+    const band = MixinApi.isAdvancing(hand)
+      ? await hand.competenceBandFor('textiles')
+      : CompetenceBand.FLOOR;
+    // ⭐ The objects' (B48): what the hand reads of the cloth, her method,
+    // the house's quote, its soap and water, the cloth's laundering.
+    const policy = new WashPolicy(band);
+    const look = item.describeForLaundress(policy);
+    const method = policy.methodFor(look.subject);
+    const quote = this.quoteLaundry(key, look.kinds, method);
+    const who = hand.getPresentation() ?? 'They';
+    const named = { kind: 'wash' as const, who, said: look.said, total: quote.total };
+    const cannotPay = this.payRefusal(quote.total);
+    if (cannotPay) {
+      return { ok: false, reason: 'cannot-pay', facts: { quote: named, line: cannotPay } };
+    }
+    return {
+      ok: true,
+      durationMs: 0,
+      effortW: 0,
+      facts: named,
+      onComplete: async (): Promise<ActDone<OrderDone, OrderRefusal>> => {
+        const { outcome, ruined } = await item.launderBy(policy, {
+          hand,
+          customer: by,
+          hardnessDgh: this.houseWaterHardness(),
+          cleansers: this.houseCleansers(method.reachesFor),
+        });
+        const what = item.getPresentation();
+        const collected = await this.collectMinor(quote.total, 'a wash');
+        if (collected.paid) await this.payPiecework(hand);
+        const cover: CoverOutcome | null = ruined.length > 0 ? await this.payCover(by, what) : null;
+        return {
+          ok: true,
+          facts: {
+            kind: 'wash',
+            who,
+            what,
+            band: outcome.band,
+            ruined,
+            cover,
+            tail: Tariff.tailOf(collected.note),
+          },
+        };
+      },
+    };
+  }
+
+  /**
+   * ⭐ The blood window's product (blood build D6), durative (the
+   * time-as-expense pass): the house transfuses the customer from its own bank
+   * over `TRANSFUSE_DURATION_S`, engaging the CUSTOMER — the same game-time as
+   * doing it themselves, since paying must not buy out of the body-time. We
+   * check a match up front (so a no-match refuses at once, not after the wait),
+   * resolve who issued it (the custody deed), then take + give + collect at
+   * completion. A barge-in gives and charges nothing.
+   */
+  private transfusionPlan(req: OrderRequest): OrderAnswer {
+    const { by, key } = req;
+    // Narrowed once and named: the plan's completion runs later, out of `this`'s narrowing.
+    const bank = MixinApi.isDonationBank(this) ? this : null;
+    if (!bank) return { ok: false, reason: 'no-bank', facts: {} };
+    if (!MixinApi.isVitals(by)) return { ok: false, reason: 'not-a-body', facts: { phrase: 'transfusion' } };
+    if (!bank.hasCompatibleUnitFor(by)) return { ok: false, reason: 'no-compatible-unit', facts: {} };
+    const issuer = this.windowIssuerAt(req.location);
+    return {
+      ok: true,
+      durationMs: BLOOD_DEFAULTS.TRANSFUSE_DURATION_S * 1000,
+      effortW: 0,
+      facts: { kind: 'transfusion' },
+      onComplete: async (): Promise<ActDone<OrderDone, OrderRefusal>> => {
+        const outcome = await bank.transfuseInto(by, issuer);
+        // The last match went while they waited — honest, and unbilled.
+        if (!outcome) return { ok: false, reason: 'no-compatible-unit', facts: {} };
+        const collected = await this.collect(key, 'a transfusion');
+        return {
+          ok: true,
+          facts: { kind: 'transfusion', reacted: outcome.reaction > 0, tail: Tariff.tailOf(collected.note) },
+        };
+      },
+    };
+  }
+
+  /**
+   * ⭐ The bathhouse (cleanliness D28): the attendant on shift fills a tub from
+   * the hot copper, and the customer bathes in it — durative on the customer's
+   * body, as a transfusion is. ⭐ Paid at the desk, IN the command (found by the
+   * browser walk: a fee taken in the completion runs outside the command frame
+   * where there is no acting payer). A bath you cannot pay for is refused before
+   * the tub is filled for you.
+   */
+  private async bathPlan(req: OrderRequest): Promise<OrderAnswer> {
+    const { by, key } = req;
+    const hand = await CraftingApi.fulfillingHand(by, this, this.disciplineFor(key));
+    if (!hand) return { ok: false, reason: 'no-hand', facts: { line: NOBODY_TO_WORK } };
+    if (!MixinApi.isAttired(by)) return { ok: false, reason: 'not-a-body', facts: { phrase: 'bath' } };
+    // ⭐ The house's vessels, and the tub's own draw (B48).
+    const copper = this.houseVessel('copper');
+    const tub = this.houseVessel('tub');
+    if (!copper || !tub || !(tub instanceof Tub)) return { ok: false, reason: 'no-tub', facts: { phrase: 'none' } };
+    const price = this.priceFor(key) ?? 0;
+    const cannotPay = this.payRefusal(price);
+    if (cannotPay) return { ok: false, reason: 'cannot-pay', facts: { line: cannotPay } };
+    const drawn = tub.drawFrom(copper, 80);
+    if (!drawn.ok) {
+      return drawn.reason === 'not-hot' || drawn.reason === 'no-water'
+        ? { ok: false, reason: 'not-hot', facts: {} }
+        : { ok: false, reason: 'no-tub', facts: {} };
+    }
+    const collected = await this.collect(key, 'a bath');
+    if (price > 0 && !collected.paid) {
+      return { ok: false, reason: 'cannot-pay', facts: { line: "You haven't the money for that." } };
+    }
+    if (collected.paid) await this.payPiecework(hand);
+    const cleansers = this.houseCleansers('soap');
+    const waterK = drawn.waterK;
+    const hardnessDgh = this.houseWaterHardness();
+    return {
+      ok: true,
+      durationMs: BATH_MS,
+      effortW: 0,
+      facts: { kind: 'bath', who: hand.getPresentation() ?? 'The attendant' },
+      onComplete: () => {
+        if (!by.isDestroyed() && MixinApi.isHygienic(by)) {
+          by.bathe({ waterK, hardnessDgh, cleansers, effort: 2 }, 120);
+        }
+        return { ok: true, facts: { kind: 'bath', tail: Tariff.tailOf(collected.note) } };
+      },
+    };
+  }
+
+  /**
+   * The hand is paid by the seat's basis (repair D12): a piece-rate seat is
+   * paid for this piece, out of the house the fee just went to; a time-wage
+   * seat is paid by the shift and is not paid twice.
+   */
+  private async payPiecework(hand: Stuff): Promise<void> {
+    const house = await this.house();
+    const key = hand.getIdentityPath();
+    if (!house || !key || !MixinApi.isEmployed(hand)) return;
+    const housePath = house.getOrganizationPath();
+    const job = hand.getActiveEmployments().find((e) => e.organizationPath === housePath);
+    if (!job || house.getPosition(job.positionKey)?.basis() !== 'per-settlement') return;
+    try {
+      await EmploymentApi.settlePiecework(house, key, 1);
+    } catch (err) {
+      console.warn('Tariff: piecework not paid:', err);
+    }
+  }
+
+  /**
+   * The on-shift person who runs this window, for the custody deed (D16).
+   * Best-effort: the fixture's operating Business, an employee of it present in
+   * the room. Null → the recipient's deed stands alone (an institutional issue;
+   * a Business keeps no chronicle).
+   */
+  private windowIssuerAt(loc: Stuff | null): Stuff | null {
+    const path = this.getIdentityPath() ?? this.getTemplatePath();
+    const business = path ? EmploymentApi.businessAt(path) : null;
+    const orgPath = business?.getTemplatePath();
+    if (!orgPath || !loc || !MixinApi.isContainer(loc)) return null;
+    const ids = new Set(EmploymentApi.employeesOf(orgPath));
+    for (const occ of (loc as Stuff & Container).getContents() as Stuff[]) {
+      const id = occ.getIdentityPath();
+      if (id && ids.has(id)) return occ;
+    }
+    return null;
   }
 
   /**

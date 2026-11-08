@@ -2,8 +2,9 @@
 # of slaked lime, caustic, and the thing a soap-boiler stirs into a lye to
 # make it strong enough for hard soap. Made in the kettle by pouring water
 # on a lump of lime; it heats as it slakes.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/lime, strength: 60 }]
   name: milk of lime
   keywords: ["milk of lime", "slaked lime", limewash, slurry]
   appearance: a thin white slurry, like watered milk

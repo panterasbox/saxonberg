@@ -1,4 +1,5 @@
 verbs: [press]
+category: system
 controller: /platform/idea/cmd/system/PressController
 opens_card: news
 description: "The news ticker — the staff→player broadcast feed (post / edit / retract)"

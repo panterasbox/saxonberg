@@ -138,7 +138,7 @@ data:
     # `stoke`s rather than a line in an input list — and a `stoke`
     # **can** see moisture. An as-cut turf is refused in the shipped
     # words, *"It is too sodden to catch."*, by the same formula
-    # `ignite` has always used.
+    # `light` has always used.
     #
     # ⛔ The history worth keeping: a `dry-turf` row was written to paper
     # over the gap and then DELETED, because the subsystem was right and
@@ -160,12 +160,9 @@ data:
     # casks standing side by side is what makes "which cask" a decision
     # a player can see rather than a field in a row file.
     - /trade/distilling/thing/charred-cask
-    # ⭐ And the glass to read them with. `PalatableMixin` is on
-    # `ServingVessel` and nowhere else, so `smell cask` reports nothing
-    # of the contents — the way to nose a cask is to pour a dram, which
-    # is how it is done in the trade. Without this row the entire aroma
-    # layer is unreachable at Crowsfoot: the smoke would be in the
-    # spirit and nobody could smell it.
+    # ⭐ And the glass to read them with: an open cask scents the room, and
+    # pouring a dram is how you read one properly, which is how it is done
+    # in the trade.
     - /trade/distilling/thing/nosing-glass
   cast:
     - /world/terminus/goods-yards/crowsfoot/agent/hand

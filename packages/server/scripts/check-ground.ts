@@ -50,8 +50,8 @@
  *   (d) ⚠⚠ every row whose `class:` composes `FloorMixin` carries **both**
  *       `ground` and `floor` in its own `keywords:`. This is not tidiness.
  *       The MQL scope walk pools a thing's own `getKeywords()`, and
- *       `pushDetails` gives a detail the pool `[<its id>]` and never its
- *       authored keyword list — so a floor's `details.floor.keywords:
+ *       a detail answers through its host's `DetailedMixin.getKeywords`
+ *       — by its id, never its authored keyword list — so a floor's `details.floor.keywords:
  *       [ground]` is dead text, and a row that forgets the words up top is
  *       a floor `sit` cannot find. `FloorMixin` unions both onto the class
  *       so the failure is impossible; this clause makes every row read
@@ -190,7 +190,6 @@ export const UNBACKED_GROUND_CLAIMS: readonly string[] = [
   '/world/terminus/delight-road/drove',               // "ground back to EARTH by generations of hooves"
   '/world/terminus/delight-road/ford',                // "SET STONES, laid flat and level"
   '/world/terminus/valley-road/towpath',              // "a made path of rammed GRAVEL"
-  '/world/terminus/estuary/estuary-mouth',            // "a mile of saltings and MUD"
 
   // ── the working city ──
   '/world/terminus/market/bakery',                    // "the floor is STONE and the stone is damp"

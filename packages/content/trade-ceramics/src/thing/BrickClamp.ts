@@ -31,8 +31,6 @@
 
 import Firebox from '@saxonberg/server/mud/lib/fire/Firebox';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
-import { SmellSourceMixin } from '@saxonberg/server/mud/lib/perception/SmellSource';
-import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -73,10 +71,7 @@ function positioned(body: Stuff): (Stuff & Positioned) | null {
   return body instanceof Brick ? (body as unknown as Stuff & Positioned) : null;
 }
 
-/** A burning clamp's smoke, ppm at the clamp — it carries to the next places. */
-const CLAMP_SMOKE_PPM = 400;
-
-const BrickClampBase = SmellSourceMixin(ContainerMixin(Firebox));
+const BrickClampBase = ContainerMixin(Firebox);
 
 export default class BrickClamp extends BrickClampBase {
   static fieldMeta: FieldMeta = {
@@ -88,23 +83,6 @@ export default class BrickClamp extends BrickClampBase {
   public setBy = '';
   /** The wind over the clamp when it was lit, m/s — it cools the skin. */
   public skinWindMs = 0;
-
-  /**
-   * ⭐ A burning clamp smells of what it burns, and the smoke carries to the
-   * places around it (the requirement: *its smoke carries*). Derived from
-   * the fire, never stored: a cold clamp smells of nothing (the ceramics
-   * browser walk — `smell` beside a burning clamp found no smoke at all).
-   */
-  public override getEmittedConcentration(): Quantity<'ppm'> {
-    return Quantity.of(this.isLit() ? CLAMP_SMOKE_PPM : 0, 'ppm');
-  }
-
-  /** `coal smoke`, `wood smoke` — named by the fuel in the bed. */
-  public override getOdorIdentity(): string {
-    if (!this.isLit()) return '';
-    const fuel = this.fuelMaterials()[0]?.getName().toLowerCase() ?? '';
-    return fuel ? `${fuel} smoke` : 'smoke';
-  }
 
   /** Where a body sits in the clamp; `middle` for anything not set. */
   public positionOf(body: Stuff): Position {

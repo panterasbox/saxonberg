@@ -304,7 +304,7 @@ fired, and an attentive player is never hurt.
 The five acts are **engagements over game time**, paced by the face's
 hardness (`paceForGround`) and costing endurance — the cap on a shift is
 the body, the clock and the lamp, not a dial. `hew` takes ore from a face
-of the room you stand in; `drive` · `sink` · `raise` mint **exactly one
+of the room you stand in; `drift` · `sink` · `raise` mint **exactly one
 cell** (10 m at Rejection — a length of drift, several shifts of work),
 which is why there is no per-heading cap to set: the durable limit on how
 much mine you can hold is the timber market, because Held needs shoring.
@@ -644,7 +644,7 @@ input dries up on a quiet night is a demo that only works while somebody
 is watching, so the mine ships an NPC crew: the `delves` brain
 (`trade-mining/src/behavior/delves.ts`) works a face, carries the take to
 the assay shed and consigns it — shore if the ground says so, hew the
-best reachable face, `wallet use house`, `consign` each lot bounded by
+best reachable face, `wallet use house`, `shelf consign` each lot bounded by
 the shelf's headroom. ⭐⭐ **Nothing the brain does is unavailable to a
 player**: every act is a forced literal verb, so the hand is subject to
 exactly the rules a person is — bad ground refuses it, a worked-out face

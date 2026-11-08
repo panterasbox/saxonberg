@@ -1,8 +1,9 @@
 # Ammonia — what stale urine gives off as it works (cleanliness D22): the
 # fuller's and the laundress's alkali, and in a shut laundry it stings the
 # eyes and the chest. A door clears it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/ammonia, strength: 8000 }]
   name: ammonia
   keywords: [ammonia, reek]
   appearance: a pungent, eye-watering reek

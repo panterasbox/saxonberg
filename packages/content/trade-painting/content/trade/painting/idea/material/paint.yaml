@@ -3,8 +3,9 @@
 # the pigments in it, by mass. Its color, its covering, its setting and its
 # weathering are the makeup's, so there is no paint table: a second paint is
 # a pigment row, and nothing here names a color.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/paint, strength: 500 }]
   name: paint
   keywords: [paint]
   appearance: a thick, even paint

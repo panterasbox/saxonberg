@@ -18,7 +18,7 @@ data:
     parcel: /world/terminus/market
   # ⭐ The fishmonger — the market's first hire (fishing D17): a rostered
   # position under the committee, on a shift, replaceable through
-  # `appoint`. The stall is self-service, so the shift decides who is
+  # `house appoint`. The stall is self-service, so the shift decides who is
   # keeping it and never whether it works.
   positions:
     - key: monger

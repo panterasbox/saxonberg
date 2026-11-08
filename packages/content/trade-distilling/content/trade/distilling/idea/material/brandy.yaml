@@ -1,6 +1,9 @@
 # Brandy — wine through the still: the grape lane's own spirit (W6).
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/spirit, strength: 500 }]
+  burning: [{ aroma: /base-library/aromas/smoke, strength: 3 }]
+  tastes: [{ type: sweet, amount: 3 }, { type: bitter, amount: 0.01 }]
   name: brandy
   keywords: [brandy]
   appearance: "a warm amber brandy"

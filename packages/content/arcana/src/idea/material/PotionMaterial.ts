@@ -23,6 +23,7 @@
  * row per *flask*.
  */
 
+import { OdorousMixin } from '@saxonberg/server/mud/lib/material/Odorous';
 import { ConsumableMaterial } from '@saxonberg/server/mud/platform/idea/material/ConsumableMaterial';
 import { PotableMixin } from '@saxonberg/server/mud/lib/magic/Potable';
 import { ArcaneMixin } from '@saxonberg/server/mud/lib/magic/Arcane';
@@ -36,6 +37,6 @@ import { IdentifiableMixin } from '@saxonberg/server/mud/lib/identification/Iden
  * substance — which is the same reason `Potable` is here rather than on
  * the vessel.
  */
-export class PotionMaterial extends PotableMixin(
-  IdentifiableMixin(ArcaneMixin(ConsumableMaterial)),
+export class PotionMaterial extends OdorousMixin(
+  PotableMixin(IdentifiableMixin(ArcaneMixin(ConsumableMaterial))),
 ) {}

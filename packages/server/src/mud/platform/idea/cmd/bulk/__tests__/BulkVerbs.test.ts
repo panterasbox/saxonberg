@@ -10,6 +10,7 @@ import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import FillController from '../FillController';
 import PourController from '../PourController';
+import { PourTargetMixin } from '../../../../../lib/bulk/PourTarget';
 import SpillController from '../SpillController';
 import DrinkController from '../DrinkController';
 import SipController from '../SipController';
@@ -39,6 +40,8 @@ import { DescriptorBank } from '../../../../../lib/identification/DescriptorBank
 import { WorldClockApi } from '../../../../../api/worldclock';
 import '../../../WorldClockRegistry';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
+import { VesselKindMixin } from '../../../../../lib/bulk/VesselKind';
+import { SealableMixin } from '../../../../../lib/spatial/Sealable';
 import {
   CommandApi,
   type CommandContext,
@@ -67,6 +70,11 @@ class TestActor extends PerceptionMixin(
 
 class Receptacle extends BulkableMixin(Good) {
   static _mixinName = 'Receptacle';
+}
+
+/** A stoppered bottle: a vessel kind that seals. */
+class SealedVesselKind extends SealableMixin(VesselKindMixin(BulkableMixin(Good))) {
+  static _mixinName = 'SealedVesselKind';
 }
 
 /** A substance you can learn — the potion case (magic-items D24/D26). */
@@ -113,19 +121,18 @@ function vessel(
 /** Capture what a controller says to the actor, as flat text. */
 function captureSelfLines(): string[] {
   const said: string[] = [];
-  vi.spyOn(MessageApi, 'scene').mockImplementation(
-    () =>
-      ({
-        topic: () => ({
-          toSelf: (m: { toMarkup?: () => string }) => {
-            said.push(
-              typeof m?.toMarkup === 'function' ? m.toMarkup() : String(m),
-            );
-            return { toPeers: () => ({ send: () => undefined }), send: () => undefined };
-          },
-        }),
-      }) as never,
-  );
+  vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
+    const b = {
+      topic: () => b,
+      toSelf: (m: { toMarkup?: () => string }) => {
+        said.push(typeof m?.toMarkup === 'function' ? m.toMarkup() : String(m));
+        return b;
+      },
+      toPeers: () => b,
+      send: () => undefined,
+    };
+    return b as never;
+  });
   return said;
 }
 
@@ -564,22 +571,45 @@ describe('Bulk verbs — look composes Material.appearance', () => {
     expect(markupLong(mug)).toContain('It holds some water.');
   });
 
+  it('⭐ a VESSEL says how full it is and whether it is stopped (client-surface D10)', () => {
+    const v = makeStuff(() => {
+      const x = new SealedVesselKind();
+      x.setShortDescription('a bottle');
+      x.interiorBulk = true;
+      x.setCategory('bottle');
+      x.setInteriorCapacity(Quantity.of(1, 'L'));
+      x.setBulkMaterial('interior', water);
+      x.setBulkAmount('interior', Quantity.of(0.8, 'L'));
+      return x;
+    }) as unknown as Stuff;
+    const sealable = v as unknown as { isOpen(): boolean; setOpen(o: boolean): void };
+    sealable.setOpen(false);
+    expect(markupLong(v)).toContain('It holds some water, nearly full, sealed.');
+    sealable.setOpen(true);
+    expect(markupLong(v)).toContain('open.');
+  });
+
+  it('a plain receptacle (no vessel kind) says no level — Sealable alone would speak for a door', () => {
+    const mug = vessel('a ceramic mug', { material: water, amountL: 0.2, capacityL: 0.35 });
+    expect(markupLong(mug)).toContain('It holds some water.');
+  });
+
   it('an empty holder adds nothing to its description', () => {
     const mug = vessel('a ceramic mug', { capacityL: 0.35 });
     expect(markupLong(mug)).not.toContain('It holds');
   });
 
-  it('a floor puddle surfaces on the floor description and in the room view', () => {
+  it('a floor puddle surfaces on the floor description and in the room view', async () => {
     const src = vessel('a tap', { material: water, unbounded: true });
     ContainmentApi.move(src as never, loc as never);
     const mug = vessel('a ceramic mug', { capacityL: 0.35 });
     ContainmentApi.move(mug as never, actor as never);
     // Fill the mug then spill it onto the floor.
-    makeStuff(() => new PourController()).execute(
+    await makeStuff(() => new PourController()).execute(
       model({ source: one(src, 'water'), target: one(mug, 'mug') }),
       ctxFor(actor, loc, 'pour'),
     );
-    makeStuff(() => new SpillController()).execute(
+    await makeStuff(() => new SpillController()).execute(
       model({ target: one(mug, 'mug') }),
       ctxFor(actor, loc, 'spill'),
     );
@@ -587,5 +617,21 @@ describe('Bulk verbs — look composes Material.appearance', () => {
     expect(BulkableApi.floorPuddleSummary(loc)).toBe(
       'A puddle of some water pools on the floor.',
     );
+  });
+});
+
+describe('⭐ PourTargetMixin (controllers-are-io D12)', () => {
+  it('the default refuses; composed twice, it hands the question down', () => {
+    class Plain extends PourTargetMixin(Idea) {}
+    const plain = makeStuff(() => new Plain());
+    const req = { by: plain, source: plain };
+    expect(plain.receivePour(req)).toMatchObject({ ok: false, reason: 'not-a-pour-target' });
+    class Holder extends PourTargetMixin(Idea) {
+      public override receivePour(): never {
+        throw new Error('the holder was asked');
+      }
+    }
+    class Pot extends PourTargetMixin(Holder) {}
+    expect(() => makeStuff(() => new Pot()).receivePour(req)).toThrow('the holder was asked');
   });
 });

@@ -633,12 +633,11 @@ function lotsOf(items: Stuff[]): ChargeLot[] {
   const out: ChargeLot[] = [];
   for (const item of items) {
     const lump = item as unknown as {
-      getQuantity?(): number;
       getMass?(): Quantity<'kg'>;
       metalFractionOf?(path: string): number;
       getMaterial?(): Material | null;
     };
-    const count = lump.getQuantity?.() ?? 1;
+    const count = MixinApi.isStackable(item) ? item.getQuantity() : 1;
     const each = lump.getMass?.().rawValue() ?? 0;
     const material = lump.getMaterial?.() ?? null;
     const metals: CompositionEntry[] = [];

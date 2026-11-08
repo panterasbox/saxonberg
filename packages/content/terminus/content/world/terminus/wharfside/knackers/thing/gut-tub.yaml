@@ -1,0 +1,12 @@
+# Where the parts nobody buys wait for the cart. It is a thing because it is where
+# the smell comes from, and a nose should be able to find it.
+class: /platform/thing/Thing
+data:
+  shortDescription: gut tub
+  keywords: [tub, gut, guts, offal]
+  register: indefinite
+  longDescription: >-
+    A half-barrel by the wall, black with old blood, waiting on the cart.
+  fixedInPlace: true
+  _materialPath: /world/terminus/wharfside/knackers/idea/material/knackers-muck
+  mass: 60

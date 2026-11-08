@@ -1213,7 +1213,7 @@ export const AppSettingKeys = {
   concealmentHintCutoff: "concealment.hintCutoff",
   /**
    * Detection — the smaller active-attention bonus the instantaneous
-   * `examine <target>` folds in (a cheap close look, weaker than a full
+   * close `look <target>` folds in (a cheap close look, weaker than a full
    * `search`). Read with a seeded-literal fallback.
    */
   concealmentExamineBonus: "concealment.examineBonus",
@@ -1779,7 +1779,7 @@ export const AppSettingKeys = {
    * can catch (the wet-firewood term). */
   fireIgnitionWaterLatentHeatJPerKg: "fire.ignition.waterLatentHeatJPerKg",
   /** Fire — the maximum wetness-elevated ignition headroom (K) a deliberate
-   * hand-flame (`ignite` verb) can dry through. A fuel whose water penalty
+   * hand-flame (`light` verb) can dry through. A fuel whose water penalty
    * exceeds this is "too wet to catch" until it dries. */
   fireIgnitionMaxManualDryingK: "fire.ignition.maxManualDryingK",
   /** Fire — the presence-gated fire-tick interval, in game-seconds (the
@@ -2533,10 +2533,6 @@ export const AppSettingKeys = {
   cleanlinessBandMarkedAt: "cleanliness.band.markedAt",
   cleanlinessBandSoiledAt: "cleanliness.band.soiledAt",
   cleanlinessBandFilthyAt: "cleanliness.band.filthyAt",
-  /** Cleanliness — the ppm of a thing's dirt odour (`Soilable.soilOdour`)
-   * at which its description says it smells (an ordinary nose's
-   * threshold, B57). The smell walk itself thresholds by the nose. */
-  cleanlinessOdourNoticedPpm: "cleanliness.odourNoticedPpm",
   /** Cleanliness — the share of what is on a mover's feet a floor takes
    * at each crossing (and the feet lose). */
   cleanlinessTrafficTrackIn: "cleanliness.traffic.trackIn",
@@ -3228,7 +3224,6 @@ export const AppSettingTiers: Readonly<
   cleanlinessBandMarkedAt: "B",
   cleanlinessBandSoiledAt: "B",
   cleanlinessBandFilthyAt: "B",
-  cleanlinessOdourNoticedPpm: "B",
   cleanlinessTrafficTrackIn: "B",
   cleanlinessDoffTransfer: "B",
   fireFlueSootFraction: "B",

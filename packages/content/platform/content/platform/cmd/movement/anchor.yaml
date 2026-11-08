@@ -1,5 +1,6 @@
 # `anchor` — stop the craft where she is. Afforded by a `Helm`.
 verbs: [anchor]
+category: movement
 controller: /platform/idea/cmd/movement/AnchorController
 description: "Stop the craft where she is"
 help: |

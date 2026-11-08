@@ -38,6 +38,9 @@ import {
 } from "../shell/Environment";
 import { LETHALITIES, STOP_CONDITIONS } from "./CombatTerms";
 import { StuffApi } from "../../api/stuff";
+import { BulkableApi } from "../../api/bulk";
+import { ConditionApi } from "../../api/condition";
+import { ThrownLanding, type ThrownOutcome } from "../material/ThrownLanding";
 import { MixinApi } from "../../api/mixin";
 import { CompetenceBand } from "../advancement/CompetenceBand";
 import type { MoraleBand } from "./Morale";
@@ -55,8 +58,23 @@ import type { CombatInfluence, InfluenceResult } from "./CombatInfluence";
 // eslint-disable-next-line no-restricted-imports -- the G1 combatant face: a combatant's fight verbs forward into the combat logic singleton exactly as the api/combat facade does (the Combustible/Energized precedent)
 import { CombatLogic } from "../../platform/idea/api/CombatLogic";
 
+/**
+ * Where a thrown thing lands on a body, first match wins. Torso first because
+ * it is the biggest target and the one a thrower actually aims at; head and
+ * limbs are the fallbacks for anatomies that lack one. A body with none of these
+ * takes no wound — the graceful no-op, not an error.
+ */
+const IMPACT_SITES = ["body.torso", "body.head", "body.arm.right"] as const;
+
 /** Public method surface for CombatantMixin. */
 export interface Combatant {
+  /**
+   * ⭐ Deliver `item` at `target` (controllers-are-io D10): the arrival (the
+   * delivery profile, one injury through `inflict`). A thing has mass and it
+   * arrives; that is true of a rock, a chair and a flask alike. What then
+   * becomes of the thing is its own (`ThrownLanding`).
+   */
+  deliverThrown(item: Stuff, target: Stuff): Promise<ThrownOutcome>;
   // The combatant face (G1) — forwards into CombatLogic.
   initiateCombat(
     target: Stuff,
@@ -119,6 +137,13 @@ export interface Combatant {
   getStandingStopCondition(): string;
   /** This fighter's live morale band, or null out of combat. */
   moraleBand(): MoraleBand | null;
+  /**
+   * The live combat-state line as `viewer` reads it, or null out of
+   * combat: poise through the fog of the VIEWER's sharpness — a
+   * participant's own, a bystander's at the untrained floor
+   * (client-surface D3). Flags and `down` are visible acts and pass as is.
+   */
+  combatStateLineFor(viewer: Stuff): string | null;
 
   // The participant hook terminals (the combat hook grammar — every
   // combatant, player or NPC, hears the same lifecycle moments). The
@@ -481,6 +506,10 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
       return combatLogic().moraleBand(this as unknown as Stuff);
     }
 
+    public combatStateLineFor(viewer: Stuff): string | null {
+      return combatLogic().combatStateLineFor(this as unknown as Stuff, viewer);
+    }
+
     /** Yield — resolves the fight in the opponent's favour. */
     public yieldFight(): boolean {
       return combatLogic().yieldFight(this as unknown as Stuff);
@@ -554,6 +583,42 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
       shot: Parameters<CombatLogic["resolveShot"]>[2],
     ): ReturnType<CombatLogic["resolveShot"]> {
       return combatLogic().resolveShot(this as unknown as Stuff, target, shot);
+    }
+
+    /** See {@link Combatant.deliverThrown}. */
+    public async deliverThrown(item: Stuff, target: Stuff): Promise<ThrownOutcome> {
+      const slot = BulkableApi.slotFor(item, undefined);
+      const material = slot?.getMaterial() ?? null;
+      const litres = slot?.getAmount().rawValue() ?? 0;
+      // The VESSEL's own Material — what the flask is made of, not what it
+      // holds. A mass that will not read is 0, which lands the arrival under
+      // the inert floor rather than inventing a weight.
+      const vessel = MixinApi.isTangible(item) ? item.getMaterial() : null;
+      const massKg = MixinApi.isTangible(item) ? item.getMass().rawValue() : 0;
+      const plan = combatLogic().resolveThrown(
+        this as unknown as Stuff,
+        target,
+        {
+          litres,
+          massKg,
+          brittle: vessel?.hasTag("brittle") ?? false,
+          hardness: vessel?.getHardness().rawValue(),
+        },
+        CombatApi.splashSetFor(target),
+      );
+      if (plan.placement === "miss") return { arrived: "wide" };
+      // ── The KINETIC half. `null` back is the honest no-op: too little
+      // energy to matter (a thrown coin) or no matching anatomy. The
+      // materials-response grid decides what the energy actually costs.
+      const site = MixinApi.isVitals(target)
+        ? (IMPACT_SITES.find((key) => target.getPart(key) != null) ?? null)
+        : null;
+      const spec = site === null ? null : plan.profile.toInflictSpec(site);
+      if (spec !== null) ConditionApi.inflict(target, spec);
+
+      // ⭐ What becomes of the thing is the thing's: no dynamics here.
+      if (!plan.profile.canShatter()) return { arrived: "hit" };
+      return new ThrownLanding(item, target, plan).land();
     }
 
     public resolveThrown(
@@ -648,16 +713,13 @@ function combatLogic(): CombatLogic {
 function combatStateAugmenter(
   text: string,
   host: Stuff,
-  _viewer: Stuff,
+  viewer: Stuff,
 ): string {
-  const session = CombatApi.sessionFor(host);
-  if (!session) return text;
-  const state = session.getState(host);
-  if (!state) return text;
-  const parts: string[] = [state.poise.band()];
-  for (const flag of state.flags.list()) parts.push(flag);
-  if (state.down) parts.push("down");
-  const line = `In combat — ${parts.join(", ")}.`;
+  // ⛔ Never the TRUE band (client-surface W0): a look at a fighter reads
+  // through the same fog as the fight's narration.
+  if (!MixinApi.isCombatant(host)) return text;
+  const line = host.combatStateLineFor(viewer);
+  if (!line) return text;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 

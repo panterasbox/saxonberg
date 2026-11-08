@@ -33,22 +33,20 @@
  *
  * ## ⭐ And it SMELLS
  *
- * `SmellSourceMixin`, which is the one thing a candle has that a lantern
+ * `its dipped fat`, which is the one thing a candle has that a lantern
  * does not: a tallow candle stinks, and it stank enough that it is why
  * beeswax was worth its price. The smell rides the material too —
- * {@link Candle.adoptMaterialSmell} stamps it out of the dip, so a third
+ * it is simply what the dip's fat smells of, so a third
  * fat is a material row and no code here.
  */
 
 import Lamp from '@saxonberg/server/mud/platform/thing/Lamp';
-import { SmellSourceMixin } from '@saxonberg/server/mud/lib/perception/SmellSource';
+import { Aroma } from '@saxonberg/server/mud/lib/perception/Aroma';
+import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 
-/** How strongly a burning candle scents a room, in ppm. */
-const CANDLE_SMELL_PPM = 40;
-
-export default class Candle extends SmellSourceMixin(Lamp) {
+export default class Candle extends Lamp {
   static fieldMeta: FieldMeta = {};
 
   /**
@@ -82,7 +80,7 @@ export default class Candle extends SmellSourceMixin(Lamp) {
         `A hand-dipped taper of ${look}, with a linen wick down the middle of it.`,
       );
     }
-    const smell = this.getOdorIdentity();
+    const smell = this.smellOfMaterial(material);
     if (smell) {
       lines.push(
         this.isLit()
@@ -102,20 +100,16 @@ export default class Candle extends SmellSourceMixin(Lamp) {
     return (this.getMaterial()?.getName() ?? '').toLowerCase();
   }
 
-  /**
-   * Stamp the odor from the material. Called once by the dip — a candle
-   * minted any other way simply has no smell, which is honest.
-   */
-  public adoptMaterialSmell(): void {
-    const name = this.materialName();
-    if (!name) return;
-    this.setOdorIdentity(name);
-    this.setEmittedConcentration(CANDLE_SMELL_PPM);
+  /** The first thing the fat smells of, in a sentence's words, or `''`. */
+  private smellOfMaterial(material: Material): string {
+    if (!MixinApi.isOdorous(material)) return '';
+    const aroma = material.getSmells()[0]?.aroma;
+    return aroma ? Aroma.phraseOf(aroma) : '';
   }
 
   /**
    * ⭐⭐ Charge the fuel bed with the fat it was dipped in — the sibling
-   * of {@link Candle.adoptMaterialSmell}, called from the same place for
+   * of a candle's smell, set by the same dip for
    * the same reason.
    *
    * A candle is a `Burner` whose fuel is ITSELF, and since the fire

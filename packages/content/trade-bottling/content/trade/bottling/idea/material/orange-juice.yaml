@@ -1,6 +1,8 @@
 # Orange juice — bottling's. Category tag `orange-juice`.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/orange, strength: 100 }]
+  tastes: [{ type: sweet, amount: 80 }, { type: sour, amount: 8 }]
   name: orange juice
   keywords: [orange, orange-juice, juice, oj]
   appearance: "cloudy orange juice"

@@ -126,7 +126,7 @@ args:
     required: true
     greedy: true
 `);
-    expect(extractMessage(assembleText('scan red flower', def), 'query')).toBe(
+    expect(extractMessage(assembleText('query red flower', def), 'query')).toBe(
       'red flower'
     );
   });

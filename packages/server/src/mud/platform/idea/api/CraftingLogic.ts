@@ -21,9 +21,9 @@ import {
   CookingAttempt,
   type CookingMethod,
 } from '../../../lib/butchery/Texture';
-import { RecipeKnowledge } from '../../../lib/script/RecipeKnowledge';
+import { RecipeKnowledge } from '../../../lib/craft/RecipeKnowledge';
 import { Competence } from '../../../lib/advancement/Competence';
-import type { Organization } from '../../../lib/employment/Organization';
+import type { Business } from '../Business';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import {
@@ -41,9 +41,7 @@ import {
 import type { ToxinTag } from '../../../lib/metabolism/Metabolic';
 import {
   Recipe,
-  RECIPE_MEDIA,
   type RecipeInputSlot,
-  type RecipeMedium,
 } from '../../../lib/craft/Recipe';
 import { Template } from '../../../lib/stuff/Template';
 import {
@@ -56,7 +54,7 @@ import { StackableApi } from '../../../api/stackable';
 import type RecipeCatalogue from '../RecipeCatalogue';
 import type { BulkSlot, BulkPayload } from '../../../lib/bulk/Bulkable';
 import type { CompositionEntry } from '../../../lib/material/Material';
-import type { Tooled } from '../../../lib/craft/Tooled';
+import type { Tooled } from '../../../lib/craft/Tool';
 import type { PricedOffer } from '../../../lib/commerce/PricedOffer';
 import type { PartLine, JointState, Assembled, Bill } from '../../../lib/craft/Assembled';
 import type { Durable, MendRecord } from '../../../lib/material/Durable';
@@ -369,12 +367,16 @@ function presentFulfillers(giver: Stuff, discipline?: string): Stuff[] {
   return [];
 }
 
-/** The house a fulfilling candidate is on shift for, or null. */
-function houseOf(candidate: Stuff): (Stuff & Organization) | null {
+/**
+ * The house a fulfilling candidate is on shift for, or null. ⭐ Narrowed on
+ * `isBusiness`, not `isOrganization`: the call rule (`OnCallMixin`) is a
+ * business's, and an organization that does not trade calls nobody.
+ */
+function houseOf(candidate: Stuff): (Stuff & Business) | null {
   if (!MixinApi.isEmployed(candidate)) return null;
   for (const e of candidate.getActiveEmployments()) {
     const org = StuffApi.findByTemplatePath(e.organizationPath);
-    if (org && MixinApi.isOrganization(org)) return org;
+    if (org && MixinApi.isBusiness(org)) return org;
   }
   return null;
 }
@@ -435,7 +437,7 @@ async function resolveMaker(
   if (houses.size > 1) {
     return { ok: false, reason: 'ambiguous-house' };
   }
-  const house = [...houses][0] as unknown as Stuff & Organization;
+  const house = [...houses][0] as unknown as Stuff & Business;
   const verdict = house.callFor({ patron: giver, candidates: able });
   if (!verdict.ok) {
     return {
@@ -879,16 +881,18 @@ function carriesBrand(stuff: Stuff, brandKey: string): boolean {
  * its **smoke point** (past it the fat breaks down, which is a different
  * thing happening, not a hotter version of this one).
  *
- * `0` when the material tabulates none — no cap, the fire wins. Syrup's
+ * The medium is whichever material carries the recipe's tag, and the ceiling
+ * is the lower of the two limits it tabulates, so nothing here knows a medium
+ * word. `0` when it tabulates neither (sand) — no cap, the fire wins. Syrup's
  * elevated boiling point needs no special case: it rides its own row.
  */
-function mediumCapK(medium: RecipeMedium, material: Material | null): number {
+function mediumCapK(material: Material | null): number {
   if (!material) return 0;
-  const cap =
-    medium === 'fat'
-      ? material.getSmokePoint().rawValue()
-      : material.getBoilingPoint().rawValue();
-  return cap > 0 ? cap : 0;
+  const limits = [
+    material.getSmokePoint().rawValue(),
+    material.getBoilingPoint().rawValue(),
+  ].filter((k) => k > 0);
+  return limits.length > 0 ? Math.min(...limits) : 0;
 }
 
 /**
@@ -898,7 +902,7 @@ function mediumCapK(medium: RecipeMedium, material: Material | null): number {
  * at all: you cannot boil without water.
  */
 function findMediumMaterial(
-  medium: RecipeMedium,
+  medium: string,
   matched: readonly MatchedInput[],
   matchedItems: readonly MatchedItemInput[],
 ): Material | null {
@@ -911,10 +915,10 @@ function findMediumMaterial(
 
 /** Whether a medium candidate's phase ceiling clears the recipe's demand. */
 function capClears(
-  floor: { medium: RecipeMedium; minK: number },
+  floor: { medium: string; minK: number },
   material: Material,
 ): boolean {
-  const cap = mediumCapK(floor.medium, material);
+  const cap = mediumCapK(material);
   return cap === 0 || cap >= floor.minK;
 }
 
@@ -923,7 +927,7 @@ function pickCandidate(
   bottles: BottleCandidate[],
   claimed: Map<Stuff, number>,
   brandKey: string | null,
-  mediumFloor: { medium: RecipeMedium; minK: number } | null = null,
+  mediumFloor: { medium: string; minK: number } | null = null,
 ): BottleCandidate | null {
   const minGrade = Grade.of(inSlot.minGrade);
   const need = inSlot.measureL ?? 0;
@@ -2270,7 +2274,7 @@ function matchBuild(
   recipes: readonly Recipe[],
   contributions: readonly BuildContribution[],
   heatedToK = 0,
-  mediumCaps: ReadonlyMap<RecipeMedium, number> = new Map(),
+  mediumCaps: ReadonlyMap<string, number> = new Map(),
   densities: ReadonlyMap<string, number> = new Map(),
 ): BuildMatch | null {
   let best: BuildMatch | null = null;
@@ -2309,14 +2313,13 @@ function matchBuild(
  */
 async function resolveMediumCaps(
   contributions: readonly BuildContribution[],
-): Promise<Map<RecipeMedium, number>> {
-  const caps = new Map<RecipeMedium, number>();
+): Promise<Map<string, number>> {
+  const caps = new Map<string, number>();
   for (const c of contributions) {
     if (!c.materialPath) continue;
     const material = await StuffApi.singleton<Material>(c.materialPath);
-    for (const medium of RECIPE_MEDIA) {
-      if (!material.hasTag(medium)) continue;
-      const cap = mediumCapK(medium, material);
+    for (const medium of material.getTags()) {
+      const cap = mediumCapK(material);
       const seen = caps.get(medium);
       caps.set(medium, seen === undefined ? cap : Math.max(seen, cap));
     }
@@ -2499,9 +2502,26 @@ function proportionBands(d: number): number {
 async function recordCraftEvidence(
   maker: Stuff | null,
   recipe: Recipe,
-): Promise<void> {
+): Promise<boolean> {
+  if (!maker) return false;
+  // ⭐ The can-make DEED — "your own first execution is always the deed".
+  // Crafting's own record (controllers-are-io D18): it used to be minted
+  // by the script system, in the same call that auto-transcribed a
+  // recipe-script, and only by the hand verbs that called it — so knead,
+  // carve, fit and every one-shot taught nothing. Recorded for every
+  // recipe, ladder or not: a deed of a row nobody gates on costs nothing
+  // and is still true.
+  let learned = false;
+  const recipeId = recipe.getRecipeId();
+  if (recipeId && MixinApi.isPersona(maker)) {
+    const key = RecipeKnowledge.madeKey(recipeId);
+    if (!(await maker.hasDone(key))) {
+      await maker.recordChronicleOnce(key, RecipeKnowledge.madeEntry(recipe.getName()));
+      learned = true;
+    }
+  }
   const discipline = recipe.getDiscipline();
-  if (!discipline || !maker) return;
+  if (!discipline) return learned;
   const difficulty: Difficulty = (DIFFICULTIES as readonly string[]).includes(
     recipe.getDifficulty(),
   )
@@ -2513,9 +2533,9 @@ async function recordCraftEvidence(
     difficulty,
     outcome: 'success',
   });
-  if (!MixinApi.isContainable(maker)) return;
+  if (!MixinApi.isContainable(maker)) return learned;
   const location = maker.getContainer();
-  if (!location || !MixinApi.isContainer(location)) return;
+  if (!location || !MixinApi.isContainer(location)) return learned;
   for (const witness of location.getContents()) {
     if (witness === maker) continue;
     if (!MixinApi.isCommandGiver(witness)) continue;
@@ -2526,6 +2546,7 @@ async function recordCraftEvidence(
       RecipeKnowledge.knownEntry(recipe.getName()),
     );
   }
+  return learned;
 }
 
 /** The authored bill on a row, read off its template (no clone). */
@@ -2755,7 +2776,7 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
   const mediumCaps =
     named === null
       ? await resolveMediumCaps(contributions)
-      : new Map<RecipeMedium, number>();
+      : new Map<string, number>();
   const match =
     named === null
       ? matchBuild(
@@ -2799,7 +2820,11 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
   const makerPath = liveMaker?.getIdentityPath() ?? req.makerPath ?? '';
   const makerStuff =
     liveMaker ??
-    (makerPath ? (StuffApi.findByTemplatePath<Stuff>(makerPath) ?? null) : null);
+    // ⚠⚠ By IDENTITY, never lineage: every player Avatar shares one
+    // templatePath, so a lineage lookup credited a hand build to whichever
+    // Avatar that row resolved to (antipatterns.md § Keying a PERSON on
+    // `getTemplatePath()`).
+    (makerPath ? (StuffApi.findByIdentityPath<Stuff>(makerPath)[0] ?? null) : null);
 
   if (req.workpiece) {
     const minted = await mintWorkpiece(
@@ -3122,8 +3147,8 @@ async function mintWorkpiece(
       craftedAt: WorldClockApi.getNow().rawValue(),
     });
     StuffApi.destruct(workpiece);
-    await recordCraftEvidence(makerStuff, recipe);
-    return { ok: true, output, grade, recipeId: recipe.getRecipeId() };
+    const learned = await recordCraftEvidence(makerStuff, recipe);
+    return { ok: true, output, grade, recipeId: recipe.getRecipeId(), learned };
   }
 
   // The generic worked lump (an off-spec build still yields *a* thing):
@@ -3311,8 +3336,8 @@ async function mintVessel(
     });
   }
 
-  if (recipe) await recordCraftEvidence(makerStuff, recipe);
-  return { ok: true, output: vessel, grade, recipeId };
+  const learned = recipe ? await recordCraftEvidence(makerStuff, recipe) : false;
+  return { ok: true, output: vessel, grade, recipeId, learned };
 }
 
 /** The craft-resolve algorithm. See {@link CraftingApi.craft}. */
@@ -3453,7 +3478,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       // ordinary way — no new reason word for "you have no water".
       return { ok: false, reason: 'insufficient-input', detail: medium };
     }
-    const cap = mediumCapK(medium, mediumMaterial);
+    const cap = mediumCapK(mediumMaterial);
     if (cap > 0 && cap < effectiveHeatK) effectiveHeatK = cap;
   }
   const requiresHeatK = recipe.getRequiresHeatK();
@@ -3684,7 +3709,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
 
   // The evidence tail: advancement deed + watch-=-claim for witnesses
   // (a no-op for recipes authoring no discipline — every bar row).
-  await recordCraftEvidence(maker, recipe);
+  const learned = await recordCraftEvidence(maker, recipe);
 
   // ⭐⭐ Land it. A vessel claimed from the pool is already where it
   // belongs (the glass is on the bar), so the Api does not move it unless
@@ -3695,7 +3720,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     req.landing ?? (application === 'tangible' ? 'hands' : 'none'),
   );
 
-  return { ok: true, output, grade, recipeId: recipe.getRecipeId() };
+  return { ok: true, output, grade, recipeId: recipe.getRecipeId(), learned };
 }
 
 /**

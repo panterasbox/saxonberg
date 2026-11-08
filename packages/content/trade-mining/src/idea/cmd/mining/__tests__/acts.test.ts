@@ -1,5 +1,5 @@
 /**
- * The four labour acts (metal chain M3): `hew`, `drive`/`drift`, `sink`,
+ * The four labour acts (metal chain M3): `hew`, `drift`, `sink`,
  * `raise`.
  *
  * The load-bearing assertions, in order:
@@ -26,7 +26,7 @@ import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import HewController from '../HewController';
-import DriveController from '../DriveController';
+import DriftController from '../DriftController';
 import SinkController from '../SinkController';
 import RaiseController from '../RaiseController';
 import MineWarren from '../../../MineWarren';
@@ -41,7 +41,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { ExertingMixin } from '@saxonberg/server/mud/lib/exertion/Exerting';
-import { Reserve, ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve, ReservedMixin } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -325,25 +325,25 @@ describe('the mine’s four labour acts', () => {
 
   // ───────────────────────── drive ─────────────────────────
 
-  it('drive carves the next cell, and the GROUND picks the type row', async () => {
+  it('drift carves the next cell, and the GROUND picks the type row', async () => {
     const here = room([0, 0, -1]);
     warren.addMember(here as unknown as Stuff & Container);
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
-    const ctx = await run(DriveController as never, { direction: 'east' }, here as unknown as Stuff, 'drive east');
+    const ctx = await run(DriftController as never, { direction: 'east' }, here as unknown as Stuff, 'drift east');
     expect(rejected(ctx)).toBeNull();
     await settle(300000);
     expect(warren.isCarved([1, 0, -1])).toBe(true);
     // East is in the seam, so the new cell opens out as a stope.
     expect(warren.getCarved()['1,0,-1']!.type).toBe('stope');
     // North is country rock — an ordinary face.
-    const ctx2 = await run(DriveController as never, { direction: 'north' }, here as unknown as Stuff, 'drive north');
+    const ctx2 = await run(DriftController as never, { direction: 'north' }, here as unknown as Stuff, 'drift north');
     expect(rejected(ctx2)).toBeNull();
     await settle(300000);
     expect(warren.getCarved()['0,1,-1']!.type).toBe('face');
   });
 
   it('⭐ the carve price is the ground: slate is cheaper than granite, and a seam cheaper than barren', async () => {
-    const c = makeStuff(() => new DriveController()) as unknown as {
+    const c = makeStuff(() => new DriftController()) as unknown as {
       paceForGround(base: number, mpa: number): number;
     };
     expect(c.paceForGround(1000, 90)).toBeLessThan(c.paceForGround(1000, 200));
@@ -367,7 +367,7 @@ describe('the mine’s four labour acts', () => {
   it('⭐ a static mine cannot GROW, and says so honestly rather than crashing', async () => {
     const here = room([0, 0, -1]); // no warren
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
-    const ctx = await run(DriveController as never, { direction: 'east' }, here as unknown as Stuff, 'drive east');
+    const ctx = await run(DriftController as never, { direction: 'east' }, here as unknown as Stuff, 'drift east');
     expect(rejected(ctx)).toBe('no-warren');
   });
 
@@ -380,7 +380,7 @@ describe('the mine’s four labour acts', () => {
     }
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
     expect((await here.stabilityAt()).state).toBe('bad');
-    const ctx = await run(DriveController as never, { direction: 'up' }, here as unknown as Stuff, 'drive up');
+    const ctx = await run(DriftController as never, { direction: 'up' }, here as unknown as Stuff, 'drift up');
     expect(rejected(ctx)).toBe('bad-ground');
 
     // Timber it, and the same act goes through.
@@ -431,7 +431,7 @@ describe('the mine’s four labour acts', () => {
     // — a reservoir, a recharge half-life, an act and a credit. No deed
     // gate here either, which is the assertion that matters.
     expect(files.sort()).toEqual([
-      'assay.yaml', 'drain.yaml', 'drive.yaml', 'hew.yaml', 'raise.yaml',
+      'assay.yaml', 'drain.yaml', 'drift.yaml', 'hew.yaml', 'raise.yaml',
       'shore.yaml', 'sink.yaml', 'stake.yaml',
     ]);
     for (const f of files) {
@@ -447,8 +447,8 @@ describe('the mine’s four labour acts', () => {
 
   it('⭐⭐ the cutting act is `drift`, and it no longer claims `drive`', () => {
     const def = CommandDefinition.fromYaml(
-      readFileSync(join(VIEWS, 'drive.yaml'), 'utf8'),
-      'drive.yaml',
+      readFileSync(join(VIEWS, 'drift.yaml'), 'utf8'),
+      'drift.yaml',
     );
     expect(def.hasVerb('drift'), 'the miner has an unambiguous word').toBe(
       true,
@@ -486,8 +486,8 @@ describe('the mine’s four labour acts', () => {
       'drive.yaml',
     );
     const ours = CommandDefinition.fromYaml(
-      readFileSync(join(VIEWS, 'drive.yaml'), 'utf8'),
-      'drive.yaml',
+      readFileSync(join(VIEWS, 'drift.yaml'), 'utf8'),
+      'drift.yaml',
     );
     // Exactly one view claims each word now.
     expect(vehicle.hasVerb('drive')).toBe(true);
@@ -548,8 +548,8 @@ describe('an engaged completion never reaches back into the controller', () => {
   it('…and the completion bodies exist as module functions instead', () => {
     const hew = readFileSync(join(DIR, 'HewController.ts'), 'utf8');
     expect(hew).toMatch(/^async function winOre\(/m);
-    const drive = readFileSync(join(DIR, 'DriveController.ts'), 'utf8');
-    expect(drive).toMatch(/^async function cutHeading\(/m);
+    const drift = readFileSync(join(DIR, 'DriftController.ts'), 'utf8');
+    expect(drift).toMatch(/^async function cutHeading\(/m);
     const shore = readFileSync(join(DIR, 'ShoreController.ts'), 'utf8');
     expect(shore).toMatch(/^async function standTimber\(/m);
   });

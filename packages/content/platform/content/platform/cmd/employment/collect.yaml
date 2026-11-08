@@ -1,4 +1,5 @@
 verbs: [collect]
+category: employment
 controller: /platform/idea/cmd/employment/CollectController
 description: "Collect the tips from the jar (on-shift bartender)"
 help: |

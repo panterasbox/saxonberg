@@ -1,8 +1,10 @@
 # Pine gum — oleoresin: the sticky resin a pine bleeds where its bark is cut
 # (paint D17), gathered in a cup on the face through warm weather. Cut in a
 # still it gives turpentine and leaves rosin.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/pine, strength: 800 }]
+  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 1000 }]
   name: pine gum
   keywords: ["pine gum", gum, resin, oleoresin]
   appearance: a thick, cloudy, honey-colored resin that strings off a stick

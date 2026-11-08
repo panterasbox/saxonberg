@@ -5,8 +5,10 @@
 # grain charge on the malt schedule. Two schedules claiming one matter is
 # the double-match rule's warning case, and the lowest key wins
 # arbitrarily — which is a silent wrong answer rather than an error.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/mash, strength: 200 }, { aroma: /base-library/aromas/alcohol, strength: 60 }]
+  tastes: [{ type: sweet, amount: 5 }, { type: sour, amount: 2 }]
   name: grain wash
   keywords: [wash, grain, "grain wash"]
   appearance: "a pale, sharply sour wash"

@@ -3,8 +3,10 @@
 # (`drainSetting`, D9b): unweighted it gives a soft cheese at nine-tenths
 # its water; pressed, a little drier. Its share of the milk derives from
 # the milk's fat and protein.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/whey, strength: 60 }]
+  tastes: [{ type: sour, amount: 3 }]
   name: "soft curd"
   keywords: [curd, "soft curd"]
   appearance: wet, white and trembling

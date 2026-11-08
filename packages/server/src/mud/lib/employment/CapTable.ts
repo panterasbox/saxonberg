@@ -27,7 +27,7 @@
  * synchronously before the money is awaited (a second sale racing the
  * first sees them gone), the price settles to the seller, and if it does
  * not clear the units go back. {@link CapTable.giveUnits} is the same move
- * with no money (a gift). Both are gated to the `transfer` verb, which
+ * with no money (a gift). Both are gated to `title transfer`, which
  * takes the consents (the seller's, and under `consent` every other
  * holder's) before it asks.
  *
@@ -153,8 +153,8 @@ const FromTheApplier = SecurityPolicies.AnyOf(
   SecurityPolicies.FromTemplate('/platform/idea/TemplateApplier'),
 );
 
-/** The `transfer` verb — it takes the consents before it asks. */
-const FromTheTransfer = SecurityPolicies.FromModule('/platform/idea/cmd/system/TransferController');
+/** `title transfer` — it takes the consents before it asks. */
+const FromTheTransfer = SecurityPolicies.FromModule('/platform/idea/cmd/civics/TitleTransferController');
 
 function sameHolder(a: UnitHolder, b: UnitHolder): boolean {
   return a.kind === b.kind && a.path === b.path;

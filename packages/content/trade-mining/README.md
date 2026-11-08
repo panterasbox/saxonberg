@@ -3,7 +3,7 @@
 The mining trade, a **capability pack**: everything that answers *how
 does a mine work*, and nothing that answers *what is it like here*.
 
-- **The acts** — `hew`, `drive`/`drift`, `sink`, `raise`, `shore`, and
+- **The acts** — `hew`, `drift`, `sink`, `raise`, `shore`, and
   `stake` — as `content/trade/mining/cmd/mining/` views with their
   controllers in `src/idea/cmd/mining/`. ⚠ None carries a deed gate:
   they are labour, and gating labour on a craft deed is the band gate

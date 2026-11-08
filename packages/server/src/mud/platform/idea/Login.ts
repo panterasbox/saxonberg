@@ -120,6 +120,18 @@ const LoginBase = CommandGiverMixin(
 
 export default class Login extends LoginBase {
   /**
+   * The bodies this screen stood up to describe. ⭐ Whichever are not chosen go
+   * back when the screen ends: only a linkdead body stays in the world (D30).
+   */
+  private rosterBodies: Avatar[] = [];
+
+  public override onDestruct(): void {
+    for (const body of this.rosterBodies) body.retireIfSessionless();
+    this.rosterBodies = [];
+    super.onDestruct();
+  }
+
+  /**
    * Verb allowlist for the pre-world phase. The recency stack IS the
    * sandbox — no world verbs (go/say/take) leak because Login composes
    * none of the mixins that contribute them. (`cockpit` rides along
@@ -143,6 +155,8 @@ export default class Login extends LoginBase {
    * only; fuzzy/homoglyph near-misses are out of scope.
    */
   static readonly GUEST_RESERVED_WORD = "Guest";
+  /** The name bank a guest's surname is drawn from. */
+  static readonly GUEST_NAME_BANK = "/species-and-names/name-banks/common";
 
   private readonly interactive: Interactive;
   private characterDraft: CharacterDraft | null = null;
@@ -180,6 +194,7 @@ export default class Login extends LoginBase {
     }
 
     const avatars = await PlayerApi.loadAvatarsForUser(interactive.getUser());
+    this.rosterBodies = avatars;
 
     if (avatars.length === 0) {
       // New user (empty roster) → create a character via char-gen.
@@ -225,7 +240,7 @@ export default class Login extends LoginBase {
   }> {
     let surnames: string[] = [];
     try {
-      surnames = (await SpeciesApi.resolveNamePools(["common"])).surname;
+      surnames = (await SpeciesApi.resolveNamePools([Login.GUEST_NAME_BANK])).surname;
     } catch {
       /* NameBank unavailable (e.g. no DB) — degrade to a bare "Guest" */
     }

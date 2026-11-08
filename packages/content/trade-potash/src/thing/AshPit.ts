@@ -3,7 +3,7 @@
  * to burn wood all the way to ASH (potash D2).
  *
  * ⭐ It is simply a big Burner. Its fuel is the wood — `stoke pit with
- * brash`, `ignite pit`, `draught pit wide`, `sweep pit` — and the shipped
+ * brash`, `light pit`, `draught pit wide`, `sweep pit` — and the shipped
  * grate rule does the rest: every kilogram burnt leaves its wood's ash
  * fraction in the bed, with its alkali, and the sweep rakes it out in heaps
  * whose strength is what burned. No verb, no mixin and no override: the

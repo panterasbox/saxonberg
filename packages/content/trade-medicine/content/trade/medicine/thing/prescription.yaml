@@ -1,5 +1,5 @@
 # A prescription slip — a doctor's authorization for a controlled active,
-# for ONE patient (D9). Cloned by `prescribe`, spent by `administer`.
+# for ONE patient (D9). Cloned by `prescribe`, spent by `dose`.
 # ⚠ _materialPath is linen — no paper material exists yet; a paper Material
 # is a pharma-slate tail.
 class: /platform/thing/Prescription

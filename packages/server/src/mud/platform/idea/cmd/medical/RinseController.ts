@@ -136,7 +136,7 @@ export default class RinseController extends CommandController<RinseModel> {
     // ⭐ A NARROWING, not a search — `rinse.yaml` declares `water` with a
     // `[mixin.BulkableMixin]` default, so what arrives is every reachable
     // vessel and the only question left is what is IN it, which no
-    // predicate asks (`lint:instrument-args`). The same read `wash` makes.
+    // predicate asks (`lint:controller-resolution`). The same read `wash` makes.
     for (const c of bound?.stuff ?? []) {
       // ⭐ A shore's water through the shore's one answer (cleanliness
       // D13): open water, a hole in the ice, or the frozen refusal.

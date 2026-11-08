@@ -20,6 +20,7 @@
 # which is also true and also free.
 class: /system/arcana/idea/material/PotionMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/potion, strength: 300 }]
   name: blistering draught
   keywords: [blistering, draught, potion, caustic]
   density: 1120

@@ -33,12 +33,10 @@ import { ManualBuildController } from '../crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type {
-  Pumpable,
-  PumpPlan,
-  PumpSource,
-} from '../../../../lib/pump/Pumpable';
+import type { Pumpable, PumpPlan } from '../../../../lib/pump/Pumpable';
+import type { PumpSource } from '../../../../lib/pump/PumpSource';
 import { MessageApi } from '../../../../api/message';
+import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 
 const TOPIC = 'act.deed';
@@ -47,18 +45,14 @@ interface PumpModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-/** Does `x` speak the pump protocol? A module-private narrowing, by shape. */
+/** Does `x` speak the pump protocol? The protocol mixin's predicate. */
 function asPumpable(x: Stuff): (Stuff & Pumpable) | null {
-  const p = x as unknown as Partial<Pumpable>;
-  return typeof p.planPump === 'function' && typeof p.completePump === 'function'
-    ? (x as Stuff & Pumpable)
-    : null;
+  return MixinApi.isPumpable(x) ? x : null;
 }
 
 /** Is `x` something a pump is set in? */
 function asSource(x: Stuff): (Stuff & PumpSource) | null {
-  const s = x as unknown as Partial<PumpSource>;
-  return typeof s.pumpFitted === 'function' ? (x as Stuff & PumpSource) : null;
+  return MixinApi.isPumpSource(x) ? x : null;
 }
 
 /**

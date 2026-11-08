@@ -54,8 +54,9 @@ export default class RemodelController extends CommandController<CommandModel> {
       );
     }
 
-    const interactive = context.interactive;
-    if (!interactive) return; // no viewer to prompt
+    // ⭐ Fail closed (D23): a script cannot pick a theme.
+    const interactive = context.requireInteractive('a choice of theme');
+    if (!interactive) return;
 
     const themes = await StuffApi.singleton<DormThemes>(
       DormThemes.CATALOGUE_PATH,

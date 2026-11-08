@@ -496,8 +496,7 @@ sessile plan is the stand-in for organisms with no agency anatomy
 - `shortDescription`, `longDescription` (from `VisibleMixin`) — the
   species' generic appearance, themed per species; subsumed the former
   `defaultDescription`
-- `nameBankKeys` — references to `NameBank` documents (`documents`
-  rows of `kind: 'name-bank'`) that feed the char-gen name suggester
+- `nameBanks` — the paths of `name-bank` documents that feed the char-gen name suggester
   (`suggestName`/`rerollName`). See [char-gen.md](./char-gen.md).
 - `_bodyPlanPath`, `_parentCladePath`, `_defaultMaterialPath` —
   cross-references to BodyPlan, Clade, Material
@@ -599,6 +598,13 @@ biology (the ghoul is the exemplar: the stigmatized death-caste, the
 contempt is the cover). The aesthetic that rides alongside: lean into
 genre convention hard, up to but not including cliché — ride it, then
 swerve before it goes predictable. Source: `species-expansion-slate`.
+
+### What a kind of body smells of, and how it tastes
+
+`Species.smells` is what a living body of this kind gives off ([senses.md](./senses.md#one-smell-source-air-nose)):
+OU of one kilogram, null on plants. `Species.palate` is optional: `spread` multiplies how far
+apart its people are born, and `curves` gives any word its own hedonic curve, which is how a
+realm authors a species with different tastes ([metabolism.md](./metabolism.md)).
 
 ### Why species differ without ranking
 
@@ -1019,7 +1025,7 @@ subsequent dispatches reuse the cached clones. See
 
 v1 tags `requiresAnimate` on self-action verbs:
 
-- `say`, `tell`, `go`, `get`, `drop`, `open`, `close`, `inventory`
+- `say`, `dm`, `go`, `get`, `drop`, `open`, `close`, `inventory`
 
 It does **not** tag passive/meta verbs:
 

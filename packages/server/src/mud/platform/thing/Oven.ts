@@ -2,7 +2,7 @@
  * Oven — a baking / roasting furnace: a {@link BurnerMixin} appliance holding
  * a gentle cooking heat (far below smelting). Same composition as
  * {@link Forge}, a low held temperature + no bellows (authored per seed). Lit
- * with `ignite`.
+ * with `light`.
  */
 
 import Firebox from '../../lib/fire/Firebox';

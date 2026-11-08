@@ -11,7 +11,7 @@
 import BiomeReading from '../../../lib/instrument/BiomeReading';
 import { CompetenceBand } from '../../../lib/advancement/CompetenceBand';
 import type { CompetenceBandName } from '../../../lib/advancement/CompetenceBand';
-import type { Tooled } from '../../../lib/craft/Tooled';
+import type { Tooled } from '../../../lib/craft/Tool';
 import type { CommandContext } from '../../../api/command';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';

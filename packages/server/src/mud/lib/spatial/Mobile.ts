@@ -51,6 +51,7 @@ import { CommandApi, type CommandContributions } from '../../api/command';
 import type { DefaultAliasEntry } from '../shell/Alias';
 import { LocomotionApi } from '../../api/locomotion';
 import type { CommandGiver } from '../command/CommandGiver';
+import type Interactive from '../../platform/idea/Interactive';
 import {
   SettingTypes,
   type SettingsSchemaEntry,
@@ -97,7 +98,7 @@ export interface Mobile {
    * augmenter's filter ∩ sensorium = vision for any room with no
    * `<sense>` regions authored.
    */
-  autoSenseOnArrival(): Promise<void>;
+  autoLookOnArrival(interactive?: Interactive): Promise<void>;
   autoIntroduceOnArrival(): void;
 
   /**
@@ -341,6 +342,16 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
           '(`sneak`, `run`, `climb`, …) override per-call.',
       },
       {
+        key: 'movement.arrivalCommand',
+        type: SettingTypes.String,
+        default: 'look',
+        description:
+          'The command run for you each time you arrive somewhere — what ' +
+          'you see of a place by default. `look` (the default), anything ' +
+          'else you would type, or empty for nothing. It echoes like any ' +
+          'command you run.',
+      },
+      {
         key: 'messages.movement.departSelf',
         type: SettingTypes.String,
         default: 'You leave {{ toward }}.',
@@ -564,10 +575,13 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         // Auto-sense on arrival, same as `traverse`. Fire-and-forget
         // because `teleport` keeps a synchronous signature; failures
         // in the sense (rare — same room rendering) are swallowed.
-        void this.autoSenseOnArrival().catch(() => {});
+        void this.autoLookOnArrival().catch(() => {});
         this.autoIntroduceOnArrival();
       }
-      if (MixinApi.isSaxonbergClient(self)) self.refreshDisplays();
+      if (MixinApi.isSaxonbergClient(self)) {
+        self.refreshDisplays();
+        self.refreshNavigator();
+      }
     }
 
     /**
@@ -615,12 +629,24 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * the player walks into a room with no widget, the auto-sense
      * comes up empty).
      */
-    async autoSenseOnArrival(): Promise<void> {
+    async autoLookOnArrival(interactive?: Interactive): Promise<void> {
       const self = this as unknown as Stuff;
       if (!MixinApi.isCommandGiver(self)) return;
       if (MixinApi.isFocused(self)) self.clearFocus();
       try {
-        await self.forceCommand('sense');
+        // ⭐ `look`, not `sense` (client-surface D10, #52): arriving shows
+        // the room exactly as `look` does — band, notices, presence, the
+        // card — so the first view of a place and every later one agree.
+        // The connection that is entering, when there is one: the card
+        // belongs on THAT session, not the player's first.
+        // ⭐ The player's own choice (`movement.arrivalCommand`, default
+        // `look`); empty runs nothing. It is a command they chose, so it
+        // echoes like one (owner, 2026-11-08).
+        const command = (
+          ShellApi.resolveSetting<string>(self, 'movement.arrivalCommand') ?? 'look'
+        ).trim();
+        if (command.length === 0) return;
+        await self.forceCommand(command, interactive ? { interactive } : {});
       } catch {
         // Swallow — see jsdoc.
       }
@@ -1091,7 +1117,7 @@ async function crossExit(
   // or perceives it, or flies/swims over a ground hazard). Reaching the
   // trap through its `resolveTraversal` *method* honors the inter-Stuff
   // methods-only contract. Fires on walked/ridden/conveyed entry only —
-  // teleport arrival uses `autoSenseOnArrival`, a different path.
+  // teleport arrival uses `autoLookOnArrival`, a different path.
   const hazardSeen = new Set<Stuff>();
   const considerHazard = (cand: Stuff): void => {
     if (hazardSeen.has(cand)) return;
@@ -1122,16 +1148,19 @@ async function crossExit(
   // resulting Command frame is tagged `forced: true` and `sense`'s
   // `updates_focus: extend` re-anchors the mover's focus chain
   // for the new room (the `clearFocus()` call inside
-  // `autoSenseOnArrival` resets the chain to "here" first, so
+  // `autoLookOnArrival` resets the chain to "here" first, so
   // extend simply produces "here" again — focus is well-defined
   // on arrival).
-  await mover.autoSenseOnArrival();
+  await mover.autoLookOnArrival();
   mover.autoIntroduceOnArrival();
   // The display you can see shows X — and the one you left, no
   // longer. One hook, both directions; the viewer owns its own
   // client state, so the viewer is who re-syncs it (display.md).
   const self: Stuff = mover;
-  if (MixinApi.isSaxonbergClient(self)) self.refreshDisplays();
+  if (MixinApi.isSaxonbergClient(self)) {
+    self.refreshDisplays();
+    self.refreshNavigator();
+  }
   return { ok: true };
 }
 

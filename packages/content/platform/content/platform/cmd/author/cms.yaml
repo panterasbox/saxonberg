@@ -1,4 +1,5 @@
 verbs: [cms]
+category: author
 controller: /platform/idea/cmd/author/CmsController
 opens_card: cms
 description: "Open the content editor — the explorer, the tree and Monaco"

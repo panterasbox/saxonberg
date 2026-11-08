@@ -20,14 +20,14 @@
  * instruction is milk's answer and not a second dial.
  *
  * The body of the act is the kernel's {@link TapActController}; the
- * words and the credit are hers (`Livestock.tapTookPhrase`,
+ * words and the credit are hers (`LivestockTapController`,
  * `tapCredit`). This file is the verb and nothing else.
  */
 
-import { TapActController } from '@saxonberg/server/mud/platform/idea/cmd/inventory/TapActController';
+import { LivestockTapController } from '../../../lib/LivestockTapController';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
-export default class MilkController extends TapActController {
+export default class MilkController extends LivestockTapController {
   protected tapKey(): string {
     return 'milk';
   }

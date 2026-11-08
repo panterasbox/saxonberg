@@ -151,6 +151,9 @@ function push<T>(
       // awaiting command, so a button reading only "cancel" is a lie
       // about what it does.
       outcome: { notes: [{ ...note, ...currentAsker() }] },
+      // ⭐ …and which BAR asked (client-surface D6, #97): the prompt is
+      // that terminal's, not every bar's. Absent → the primary takes it.
+      ...askingBar(),
     };
     holder.onEnvelope(template);
 
@@ -216,6 +219,13 @@ function currentAsker(): {
     ...(description ? { askedByDescription: description } : {}),
     askedAt: Date.now(),
   };
+}
+
+/** The bar the innermost running command was typed into, if any. */
+function askingBar(): { barId?: string } {
+  const stack = ExecutionContextApi.getCommandStack();
+  const barId = stack[stack.length - 1]?.context.barId;
+  return barId ? { barId } : {};
 }
 
 /**

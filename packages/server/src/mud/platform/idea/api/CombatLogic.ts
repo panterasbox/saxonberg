@@ -135,38 +135,26 @@ const CombatApiCallers = SecurityPolicies.FromModule("/api/combat#CombatApi");
 /** The G1 combatant face forwards here as the acting instance. */
 const CombatantCallers = SecurityPolicies.AnyOf(
   CombatApiCallers,
-  SecurityPolicies.FromMixin("CombatantMixin", {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin("CombatantMixin"),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 /** Combatant-face methods whose SUBJECT is the second argument. */
 const CombatantArg1Callers = SecurityPolicies.AnyOf(
   CombatApiCallers,
-  SecurityPolicies.FromMixin("CombatantMixin", {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[1] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin("CombatantMixin"),
+    SecurityPolicies.SelfSubject(1),
+  ),
 );
 /** The G1 weapon face (Wieldable hosts) forwards here as the item. */
 const WieldableCallers = SecurityPolicies.AnyOf(
   CombatApiCallers,
-  SecurityPolicies.FromMixin("WieldableMixin", {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin("WieldableMixin"),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 
 /** Default combat brain for a non-player combatant. */
@@ -436,6 +424,12 @@ export class CombatLogic extends ApiLogic {
   @CallSecurity(CombatantCallers)
   public perceive(actor: Stuff): CombatAssessResult {
     return perceiveImpl(actor);
+  }
+
+  /** See {@link Combatant.combatStateLineFor}. */
+  @CallSecurity(CombatantCallers)
+  public combatStateLineFor(target: Stuff, viewer: Stuff): string | null {
+    return combatStateLineForImpl(target, viewer);
   }
 
   @CallSecurity(CombatantCallers)
@@ -5560,6 +5554,37 @@ function perceiveImpl(actor: Stuff): CombatAssessResult {
       ? opp.getConditionBand()
       : undefined,
   };
+}
+
+/**
+ * ⭐ A fighter's state line as `viewer` reads it (client-surface D3). A
+ * participant in the SAME session reads with their own sharpness — the
+ * `fight` status line's fog; anybody else reads at the untrained floor,
+ * which under-reads toward steady and never over-reads. Flags and `down`
+ * are visible acts and pass unfogged.
+ */
+function combatStateLineForImpl(target: Stuff, viewer: Stuff): string | null {
+  const session = sessionForImpl(target);
+  if (!session) return null;
+  const state = session.getState(target);
+  if (!state) return null;
+  const own = viewer.stuffId === target.stuffId;
+  const viewerState = own ? undefined : session.getState(viewer);
+  const sharpness = viewerState
+    ? sharpnessFor(viewerState)
+    : Sharpness.resolve({ competenceBand: "untrained" }, sharpnessConfig());
+  const band = own
+    ? state.poise.band()
+    : CombatFog.perceive(
+        state.poise.band(),
+        sharpness,
+        state.queuedGambit === "feint",
+        fogConfig(),
+      ).band;
+  const parts: string[] = [band];
+  for (const flag of state.flags.list()) parts.push(flag);
+  if (state.down) parts.push("down");
+  return `In combat — ${parts.join(", ")}.`;
 }
 
 function assessImpl(actor: Stuff, _target: Stuff): CombatAssessResult {

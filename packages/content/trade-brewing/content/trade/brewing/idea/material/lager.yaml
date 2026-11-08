@@ -1,6 +1,8 @@
 # Lager — brewing's second line. Category tags `beer`, `lager`.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/beer, strength: 200 }]
+  tastes: [{ type: sweet, amount: 5 }, { type: sour, amount: 0.6 }, { type: bitter, amount: 0.05 }]
   name: lager
   keywords: [lager, beer, brew]
   appearance: "a pale, bright lager"

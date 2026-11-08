@@ -6,7 +6,7 @@
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
-import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';

@@ -66,7 +66,7 @@ export const brain = class {
 
     // ⭐⭐ THE line: the dog's own handling scales what it is worth. A dog
     // nobody has worked with is a dog running about in the sheep.
-    const own = (dog as unknown as { getHandling?(): number }).getHandling?.() ?? 0;
+    const own = MixinApi.isHandling(dog) ? dog.getHandling() : 0;
     if (own <= 0) return;
     const config = (ctx.config ?? {}) as { reach?: number };
     const reach = (config.reach ?? DEFAULT_REACH) * own;

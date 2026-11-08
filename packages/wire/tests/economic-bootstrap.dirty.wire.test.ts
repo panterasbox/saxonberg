@@ -216,7 +216,7 @@ describe('2. the cash-and-carry', () => {
     expect((await a.query('inventory:i:[keyword.limes]')).length).toBe(1);
     // The shop's book, as its keeper: the crates still up are what it owes
     // the farm — and the one just sold is not on it (the farm was paid).
-    expectOk(await founder.cmd(`appoint me to keeper at ${DISTRIBUTOR}`));
+    expectOk(await founder.cmd(`house appoint me to keeper at ${DISTRIBUTOR}`));
     await walk(founder, 'east', 'south');
     const book = await founder.prose('house book');
     expect(book).toMatch(/owed to the farm outfit: \d+ zorkmids on \d+ unsold/);
@@ -240,8 +240,8 @@ describe('3. the first wage discharges the Note', () => {
     // and has no name to appoint.
     expect(await a.prose('look')).toMatch(/banking hall/i);
     expectOk(await a.cmd('introduce'));
-    expectOk(await founder.cmd(`appoint me to officer at ${COUNTING_HOUSES}`));
-    expectOk(await founder.cmd(`appoint ${aName} to teller at ${COUNTING_HOUSES}`));
+    expectOk(await founder.cmd(`house appoint me to officer at ${COUNTING_HOUSES}`));
+    expectOk(await founder.cmd(`house appoint ${aName} to teller at ${COUNTING_HOUSES}`));
     const paid = await founder.prose(`house payroll ${aName} 5`);
     expect(paid).toMatch(/You pay .* a wage of 5 zorkmids/);
     const heard = await a.prose('wallet');

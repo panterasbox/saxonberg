@@ -58,5 +58,5 @@ data:
     A small, scaled figure barely up to the waist, draconic about the snout
     and quick on its feet, with bright dark-adapted eyes and a wary,
     deferent watchfulness that keeps to the edges of a room.
-  nameBankKeys: ["draconic"]
+  nameBanks: [/species-and-names/name-banks/draconic]
   facultyProfile: { depth: low, serenity: low, composure: mid }

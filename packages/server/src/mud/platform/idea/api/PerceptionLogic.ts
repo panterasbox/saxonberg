@@ -597,11 +597,15 @@ export class PerceptionLogic extends ApiLogic {
     const out: VisibleContents = { worn: [], held: [], carried: [], shut: false };
     if (!MixinApi.isContainer(target)) return out;
     if (MixinApi.isSealable(target) && !target.isOpen()) return { ...out, shut: true };
-    const seen = (s: Stuff): boolean => !MixinApi.isConcealable(s) || !s.isConcealed();
+    // ⭐ Concealed things stay concealed — FROM THIS VIEWER: one who has
+    // found the hidden dagger, or whose eye is sharp enough, sees it (the
+    // `perceives` rule, and so MQL's `:visible`). A bare `isConcealed()`
+    // hid a discovered thing again the moment it sat in a listing — and
+    // the room listing reads through here since `look` became one query.
+    const seen = (s: Stuff): boolean =>
+      !MixinApi.isConcealable(s) || !s.isConcealed() || perceivesImpl(viewer, s);
     const own = viewer.stuffId === target.stuffId;
-    // A PERSON is an agent with slots; a rack is slotted and wears
-    // nothing, so it lists like any container.
-    const person = target.isAgent() && MixinApi.isSlotted(target);
+    const person = own || this.isAnotherPerson(viewer, target);
     const slotted = new Set<string>();
     if (person && MixinApi.isSlotted(target)) {
       for (const [slot, occupants] of target.getAllOccupants()) {
@@ -630,6 +634,14 @@ export class PerceptionLogic extends ApiLogic {
     // in view of anybody who can see into it.
     if (own || !person) out.carried.push(...loose);
     return out;
+  }
+
+  /** See {@link PerceptionApi.isAnotherPerson}. */
+  @CallSecurity(PerceptionApiCallers)
+  public isAnotherPerson(viewer: Stuff, target: Stuff): boolean {
+    // A PERSON is an agent with slots; a rack is slotted and wears
+    // nothing, so it lists like any container.
+    return viewer.stuffId !== target.stuffId && target.isAgent() && MixinApi.isSlotted(target);
   }
 
   /** See {@link PerceptionApi.glance}. */
@@ -1157,7 +1169,7 @@ function perceivesImpl(
  * The active-attention bonus a search of the given depth folds in on top of
  * the passive baseline (D5). `broad` = a whole-room scan (`searchBonus`);
  * `narrow` = rummaging one container/detail deeper (`+ searchDepthBonus`);
- * `glance` = the cheap instantaneous `examine` (`examineBonus`, weaker). All
+ * `glance` = the cheap instantaneous close `look` (`examineBonus`, weaker). All
  * dial-backed with seeded-literal fallbacks.
  */
 function activeBonusFor(depth: SearchDepth): number {

@@ -1,20 +1,23 @@
 /**
  * The **worked-act protocol** — *a thing you work at with a tool, a swing
- * at a time* — and the two shapes that speak it.
+ * at a time* — and the two acts that speak it (`split` over `SplittableMixin`,
+ * `dig` over the `Diggable` shape).
  *
- * ⭐⭐ **These are declared SHAPES, not mixins, and nothing in the kernel
- * composes them.** `dig` and `split` are the platform's verbs; what they
+ * ⭐⭐ **The kernel declares the protocol and composes no implementer.**
+ * `dig` and `split` are the platform's verbs; what they
  * talk to is a pack's. So the kernel declares what it will say and what it
  * expects back, and a pack's working, turbary, block or soil answers. Take
  * every pack away and both verbs still do something correct: they refuse,
  * in words, naming the tool.
  *
  * That is the `TravelNode` seam one subsystem over — *the capability is the
- * kernel's and only the implementation is the pack's* — and it is why
- * there is no `Diggables.of()` static holder beside it. `class TravelNodes`
- * is an empty husk today: its only caller inlined the narrowing, and
- * `lint:lib-statics` sits at a ceiling that may fall and never rise. So
- * each controller carries a module-private narrowing instead.
+ * kernel's and only the implementation is the pack's*. ⭐ The split shape
+ * earned a protocol mixin at controllers-are-io D8a (`./Splittable`, three
+ * implementers in three packs) and `split` asks `MixinApi.isSplittable`;
+ * `Diggable` has one host and is a property of it: the `dig` controller
+ * narrows on the quarry pack's `OpenWorkingMixin` BY NAME (a federated
+ * mixin name, not an import), and {@link Diggable} is only the shape it
+ * speaks.
  *
  * ## ⭐ Two phases, because the act takes game time
  *
@@ -22,14 +25,15 @@
  * hands, and a barge-in must leave the ground exactly as it was. So the
  * protocol is *plan, then complete*:
  *
- *   1. **{@link Workable.planWork}** — synchronous-feeling and free of side
- *      effects. It answers either a {@link WorkPlan} (what will be worked,
- *      how long, what it costs) or a {@link WorkRefusal} (a machine reason
- *      and the sentence the actor reads). ⭐ **The refusal is the ground's,
- *      not the verb's** — see below.
- *   2. **{@link Workable.completeWork}** — called once, at completion, with
- *      the plan's own `token` handed back. This is where anything is minted,
- *      decremented or moved.
+ *   1. **{@link Workable.planWork}** — free of side effects. It answers an
+ *      `ActPlan` (how long, how hard, the facts the begin words need) or an
+ *      `ActRefusal` (a machine reason and the facts). ⭐ **The refusal is
+ *      the ground's, not the verb's** — see below; ⭐⭐ and the WORDS are
+ *      the verb's (controllers-are-io D4): the ground answers a reason and
+ *      the facts, and `dig`/`split` say them.
+ *   2. **the plan's `onComplete`** — called once, at completion. This is
+ *      where anything is minted, decremented or moved; what it answers
+ *      (facts, the credit, the soils) is landed and worded by the verb.
  *
  * ## ⭐⭐ Why the TOOL check belongs to the ground
  *
@@ -48,7 +52,7 @@
  *
  * ## ⭐ And the CREDIT belongs to the ground
  *
- * A {@link WorkResult} carries the Discipline. That one field is what lets
+ * A landing's facts carry the Discipline ({@link WorkLanding}). That one field is what lets
  * a **platform** verb earn a **trade's** competence: `dig` credits
  * `quarrying` in a quarry, `agriculture` on a headland and whatever
  * foraging decides in a wood, and the view knows none of their names.
@@ -70,121 +74,142 @@
 
 import type { Stuff } from '../stuff/Stuff';
 import type { SoilSpec } from '../cleanliness/SoilSpec';
-import type { Tooled } from '../craft/Tooled';
+import type { Tooled } from '../craft/Tool';
+import type { ActPlan, ActRefusal, AnyActRefusal } from '../craft/ActPlan';
 
 /** How hard a deed the work counts as, when the ground credits one. */
 export type WorkDifficulty = 'trivial' | 'easy' | 'standard' | 'hard';
 
-/**
- * What one swing will be, if it happens. Free of side effects — nothing is
- * minted or decremented until {@link Workable.completeWork}.
- */
-export interface WorkPlan {
-  /** Discriminates a plan from a {@link WorkRefusal}. */
-  kind: 'plan';
-  /**
-   * Game-ms one swing takes **here**. The ground prices its own pace:
-   * granite is roughly twice slate, and a spade in drift is neither.
-   */
-  durationMs: number;
-  /** Endurance a FRESH body pays, in percentage points. */
-  cost: number;
-  /** `You <begin> …` — what the actor reads as the work starts. */
-  beginSelf: string;
-  /** What the room sees as it starts, or `null` for a quiet act. */
-  beginPeers?: string | null;
-  /**
-   * An opaque token the ground hands back to itself at completion — which
-   * band, which face, which piece. ⚠ The controller never reads it: it is
-   * the ground's own bookkeeping, passed through so nothing has to be
-   * re-resolved and so two swings cannot silently work the same thing.
-   */
-  token: unknown;
-}
-
-/** Why not, in the ground's own words plus a reason a note can carry. */
-export interface WorkRefusal {
-  /** Discriminates a refusal from a {@link WorkPlan}. */
-  kind: 'refusal';
-  /** The machine reason — the controller's `controller-rejected`. */
-  reason: string;
-  /** What the actor is told. ⭐ The ground's sentence, never the verb's. */
-  prose: string;
+/** The Discipline a worked act asks to be credited. */
+export interface WorkCredit {
+  discipline: string;
+  difficulty: WorkDifficulty;
 }
 
 /**
- * A plan or a refusal, discriminated on `kind`.
- *
- * ⚠ A literal discriminant rather than a `isWorkPlan()` helper: an exported
- * free function in `lib/**` is drift by definition (the export-discipline
- * rule), and `p.kind === 'plan'` narrows in TypeScript with nothing to
- * import.
+ * ⭐ What every worked or taken act's LANDING carries beside its own facts
+ * — the host's answer, landed by the verb and never decided by it.
  */
-export type WorkPrognosis = WorkPlan | WorkRefusal;
-
-/** What actually happened, once the swing landed. */
-export interface WorkResult {
-  /** The line the actor reads. */
-  self: string;
-  /** What the room sees, or `null`. */
-  peers?: string | null;
+export interface WorkLanding {
   /**
    * ⭐ The Discipline the GROUND asks to be credited, or `null`. This is
    * what lets a platform verb earn a trade's competence without the verb
    * knowing the trade exists.
    */
-  credit?: { discipline: string; difficulty: WorkDifficulty } | null;
+  credit?: WorkCredit | null;
   /**
    * ⭐ What the work put on the worker (cleanliness D6) — the GROUND's
    * answer, like the credit: a quarry face's earth muddies hands and feet,
-   * a split block dusts the hands, a hive's frames leave nothing. The verb
-   * lands it and never decides it.
+   * a split block dusts the hands, a hive's frames leave nothing.
    */
   soils?: readonly SoilSpec[];
 }
 
-/** The two halves every worked act shares. */
-export interface Workable {
+/**
+ * ⭐ A worked act's plan (controllers-are-io D4): the one `ActPlan` shape,
+ * its landing facts carrying the credit and the soils. ⚠ Free of side
+ * effects until `onComplete` — nothing is minted or decremented before.
+ * The duration and the watts are the GROUND's (D5): granite is roughly
+ * twice slate, and the host converts its felt cost through the body.
+ */
+export type WorkPlan<B, F, X extends AnyActRefusal> = ActPlan<B, F & WorkLanding, X>;
+
+/** The two halves every worked act shares, in one plan. */
+export interface Workable<B = unknown, F = unknown, X extends AnyActRefusal = AnyActRefusal> {
   /** What one swing would be, or why not. No side effects. */
   planWork(
     by: Stuff,
     tool: (Stuff & Tooled) | null,
     what: string | null,
-  ): Promise<WorkPrognosis>;
-  /** Do it. Called once, at engagement completion. */
-  completeWork(
-    by: Stuff,
-    tool: (Stuff & Tooled) | null,
-    token: unknown,
-  ): Promise<WorkResult>;
+  ): Promise<WorkPlan<B, F, X> | X>;
+}
+
+/* ───────────────────────────── dig ───────────────────────────── */
+
+/** ⭐ Every reason `dig` is refused — `DigController` words each. */
+export type DigRefusal =
+  | ActRefusal<'no-face-above'>
+  /** A band in the column not yet uncovered (`band`), or drift over rock. */
+  | ActRefusal<'under-overburden', { band: string | null }>
+  | ActRefusal<'no-such-face', { asked: string }>
+  /** The wrong tool, or none (`held` is the tool in hand's name). */
+  | ActRefusal<'no-spade', { face: string; held: string | null }>
+  | ActRefusal<'no-pick', { face: string; held: string | null }>
+  | ActRefusal<'worked-out', { face: string }>
+  | ActRefusal<'at-the-water'>
+  /** The face changed under the swing. */
+  | ActRefusal<'face-changed'>;
+
+/** What `dig`'s begin words need. */
+export interface DigBegin {
+  face: string;
+  /** Earth is stripped; rock is won. */
+  earth: boolean;
+}
+
+/** What came up. */
+export type DigWon =
+  /** A load worked free with nothing to mint (a missing row). */
+  | { kind: 'load' }
+  /** A thing minted (`called` — named before it moved) and where it went. */
+  | { kind: 'thing'; called: string; toTip: boolean }
+  /** A bulk band, and nothing to carry it in. */
+  | { kind: 'spilled' }
+  /** A bulk band shoveled into a vessel (`into` — its name). */
+  | { kind: 'shoveled'; into: string };
+
+/** What `dig`'s done words need. */
+export interface DigDone {
+  face: string;
+  won: DigWon;
+  /** That was the last of this face. */
+  last: boolean;
 }
 
 /**
- * ⭐ **Ground you can turn over.** Answered by a working (a quarry face, a
- * turbary bank), and — the recorded next consumer — by a `Soil` host, when
- * foraging asks it for what is living in the topsoil.
+ * ⭐ **Ground you can turn over** — the shape `dig` speaks. Answered by an
+ * open working (a quarry face, a turbary bank), and — the recorded next
+ * consumer — by a `Soil` host, when foraging asks it for what is living in
+ * the topsoil.
  *
  * ⚠ The `what` argument is the player's own word and may bind nothing: `dig
  * clay` lands as a raw string because a band is not an object. That is the
  * `fell.yaml` shape and it is why the verb's target is `requires: any`.
+ * ⚠ No marker: the one host is narrowed by its mixin's name.
  */
-export interface Diggable extends Workable {
-  /** Marker: this shape is dug rather than split. Never read for truth. */
-  readonly diggable: true;
+export type Diggable = Workable<DigBegin, DigDone, DigRefusal>;
+
+/* ───────────────────────────── split ───────────────────────────── */
+
+/** ⭐ Every reason `split` is refused — `SplitController` words each. */
+export type SplitRefusal =
+  /** `SplittableMixin`'s default. */
+  | ActRefusal<'not-splittable'>
+  /** A hive: no bees, no queen, too few. */
+  | ActRefusal<'no-colony'>
+  | ActRefusal<'no-queen'>
+  | ActRefusal<'too-weak'>
+  /** A cheese wheel: cut to nothing, no edge, a wedge that will not come. */
+  | ActRefusal<'wheel-spent'>
+  | ActRefusal<'no-edge'>
+  | ActRefusal<'wedge-failed'>
+  /** A block of stone: rubble, nothing to strike with. */
+  | ActRefusal<'block-spent'>
+  | ActRefusal<'no-striker'>;
+
+/** What is being divided — what `split`'s begin and done words key on. */
+export type SplitKind = 'colony' | 'cheese' | 'stone';
+
+/** What `split`'s begin words need. */
+export interface SplitBegin {
+  kind: SplitKind;
 }
 
-/**
- * ⭐ **A thing too big or too aggregated to use, and dividing it.**
- *
- * Named because the pattern already had a second member before this build:
- * `fell bole` cross-cuts a felled trunk a length at a time under a verb
- * that means something else, as its own view admits (*"Fell a standard with
- * an axe, or cross-cut a felled one"*). A `Stackable` is the third
- * candidate. So the mandate is deliberately wider than stone:
- *
- * > **divide an oversized or aggregated thing into usable units.**
- */
-export interface Splittable extends Workable {
-  /** Marker: this shape is split rather than dug. Never read for truth. */
-  readonly splittable: true;
-}
+/** What `split`'s done words need. */
+export type SplitDone =
+  | { kind: 'colony' }
+  | { kind: 'cheese'; wedge: string; last: boolean }
+  | { kind: 'stone'; piece: string | null; last: boolean };
+
+/** The split protocol's answers. */
+export type SplitWorkable = Workable<SplitBegin, SplitDone, SplitRefusal>;

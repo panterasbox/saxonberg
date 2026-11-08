@@ -30,7 +30,7 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { parse } from 'yaml';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import { ReservedMixin, Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { ReservedMixin, Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import {
   SoilMixin,
   SOIL_MOISTURE_RESERVE_KEY,

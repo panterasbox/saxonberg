@@ -1,4 +1,5 @@
 verbs: [wallet]
+category: banking
 controller: /platform/idea/cmd/banking/WalletController
 description: "Your payment wallet — show / use / freeze"
 help: |
@@ -7,7 +8,7 @@ help: |
   that bank). `wallet use house` puts the operating account of the house
   you buy for into your wallet — you need a purchasing position there, or
   to be its proprietor; while it's active, `buy` pays from it and what you
-  buy belongs to the house, and `consign` sells as the house. Leaving the
+  buy belongs to the house, and `shelf consign` sells as the house. Leaving the
   position takes it back out. `wallet freeze <card>` reports a card lost —
   it's frozen and a fresh one is reissued; your balance is untouched.
 validators:

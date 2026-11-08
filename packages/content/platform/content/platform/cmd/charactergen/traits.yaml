@@ -1,4 +1,5 @@
 verbs: [traits]
+category: charactergen
 controller: /platform/idea/cmd/charactergen/TraitsController
 description: "Read your own defining traits — the dispositions you've grown into."
 help: |

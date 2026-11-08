@@ -115,7 +115,7 @@ beforeAll(async () => {
   expectOk(await s.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   expectOk(await gov.cmd(`reserve override 200 to ${SAILOR} "wire: harbors soak funding"`));
-  await gov.cmd(`dismiss me at ${HESPER_CO}`);
+  await gov.cmd(`house dismiss me at ${HESPER_CO}`);
   gov.close();
   s.close();
   await toHour(6);

@@ -12,7 +12,7 @@
  * stays deferred to a real cooking/infusion build.
  *
  * ⭐ The mixin carries the affordance: anything steepable affords the
- * platform `steep`/`infuse` verb outward (the `ManualBuildMixin`
+ * platform `steep` verb outward (the `ManualBuildMixin`
  * precedent — the affordance is named once on the substrate, never
  * copied onto every row). `steepsInto` names the extract Material path;
  * v1 the solvent is water (the controller checks it) and the output is
@@ -38,7 +38,7 @@ export function SteepableMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = "SteepableMixin";
 
     /**
-     * ⭐ A steepable affords `steep`/`infuse` outward — named once on the
+     * ⭐ A steepable affords `steep` outward — named once on the
      * substrate. `environment` flows the affordance up the containment
      * chain to whoever carries the solute (a herb in the hand affords
      * `steep`), which is where the act begins.

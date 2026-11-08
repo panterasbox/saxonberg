@@ -8,6 +8,7 @@
 # does.
 class: /platform/idea/species/Species
 data:
+  smells: [{ aroma: /base-library/aromas/fish, strength: 30 }]
   binomial: Acipenser sturio
   commonNames: ["sturgeon", "royal fish"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/fish
@@ -69,4 +70,4 @@ data:
     - { cut: /stuff/thing/items/offal, units: 2 }
   longDescription: >-
     A sturgeon, long as a man and armoured in bony plates along its back, a fish out of an older river than this one.
-  nameBankKeys: []
+  nameBanks: []

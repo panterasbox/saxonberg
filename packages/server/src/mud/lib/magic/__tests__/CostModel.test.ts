@@ -41,7 +41,7 @@ import { Character } from '../../character/Character';
 import { ArcaneMixin } from '../Arcane';
 import { ChargedMixin } from '../Charged';
 import { IdentifiableMixin } from '../../identification/Identifiable';
-import { ReservedMixin } from '../../reserve';
+import { ReservedMixin } from '../../reserve/Reserved';
 import { Quantity } from '../../quantity';
 import { MANA_RESERVE_KEY } from '../Caster';
 import {

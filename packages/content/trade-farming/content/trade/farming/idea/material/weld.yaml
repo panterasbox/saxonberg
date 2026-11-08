@@ -4,8 +4,9 @@
 # alum gives a bright yellow, iron drops it to olive and khaki. ⭐ Blue
 # over yellow is how green was made, so this is half of every green in
 # the world before synthetics.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/green, strength: 30 }]
   name: weld
   keywords: [luteolin, weld]
   appearance: dusty straw-yellow weld

@@ -66,7 +66,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-import type { Reserved } from '@saxonberg/server/mud/lib/reserve';
+import type { Reserved } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';

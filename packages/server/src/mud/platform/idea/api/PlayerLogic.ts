@@ -26,6 +26,7 @@ import { ZoneApi } from '../../../api/zone';
 import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
 import { PersistableApi } from '../../../api/persistable';
+import { Mixins } from '../../../lib/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { GrammarApi } from '../../../api/grammar';
@@ -271,6 +272,13 @@ export class PlayerLogic extends ApiLogic {
   @CallSecurity(PlayerApiCallers)
   public isAvatarIdentityPath(identityPath: string | null | undefined): boolean {
     return isAvatarIdentityPath(identityPath);
+  }
+
+  /** See {@link PlayerApi.storedNameOf}. */
+  @CallSecurity(PlayerApiCallers)
+  public async storedNameOf(playerId: string): Promise<string | null> {
+    const name = await PersistableApi.storedField(`${AVATAR_IDENTITY_PREFIX}${playerId}`, Mixins.Named, 'name');
+    return typeof name === 'string' && name ? name : null;
   }
 
   /**
@@ -541,7 +549,10 @@ export class PlayerLogic extends ApiLogic {
     for (const playerId of user.playerIds) {
       // Reuse if already in-world (multiplexing).
       let avatar = this.findAvatarByPlayerId(playerId);
-      if (!avatar) {
+      if (avatar) {
+        // A body on its way out comes back: this login has it now (D30).
+        avatar.claimForLogin();
+      } else {
         // Concurrent connections for the same user (multiplexing, or a
         // dev StrictMode double-mount) can reach here before the first
         // clone has registered. Coordinate on a per-playerId in-flight

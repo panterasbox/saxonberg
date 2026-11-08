@@ -380,6 +380,53 @@ it, not before); and the appetite gap. Author it into the pharmacopoeia
 as a substance when it is wanted, with the hook mapping above so nobody
 thinks it needs machinery.
 
+## ⭐⭐⭐ The supply chain, step by step (2026-11-08) **[the owner: "this is all great"]**
+
+⭐ **Sequencing:** *"there's a reason I've not built this stuff yet, and this only confirms my decision.
+I probably wanna do this after foraging ships."*
+
+⛔ **Potions are not drugs** (the owner): *"potions have no chemistry … that's a different thing than
+microbiology and organic chemistry, which is what pharmaceuticals are based on, not magic."* A drug's
+action is chemistry; a potion's is a working in a charged base
+([spellbook-slate](./spellbook-slate.md) § 7c). They share a vial and a market, nothing deeper, and are
+assayed with different instruments.
+
+| step | what happens | disciplines | what ships under it |
+|---|---|---|---|
+| 1 · source | plants (willow bark's salicin, foxglove's digitalis, poppy, ⭐ cinchona's quinine against malaria, belladonna, mint) · animals (castoreum, antivenom serum from horses, ⭐ insulin from pigs' pancreases historically) · minerals (sulfur, zinc oxide, Epsom salt, iodine from seaweed) · molds (penicillin) | herbalism and foraging, the physic garden, mining, mycology | farming, forestry, [organism-biology](./organism-biology-slate.md)'s glands, mining, fermentation |
+| 2 · extract | drying, grinding; infusion, tincture, decoction, distillation; ⭐ **isolation**, pulling one pure compound from a plant | pharmacy, chemistry, distilling | spoilage's drying, the mill, distilling, fractionation |
+| 3 · assay and standardize | measure potency; adjust each batch to a standard dose | analytical chemistry | the instrumentation ladder, `Grade` |
+| 4 · formulate | pills, capsules (⭐ gelatin from biology's cartilage), syrups (sugar), salves (lard from rendering, ⭐ beeswax), tinctures, inhalants, injections | compounding | sugar, rendering, apiculture, glass |
+| 5 · package | the vial or box, a **label** (paper), the **lot**, the brand, ⭐ a **tamper seal** (paper's `seal`) | packaging | paper, glass, corpo marks |
+| 6 · distribute | wholesale, the apothecary, the **prescription** (blood's `Prescription` slip ships), the quack's cart | retail, the law | retail, credit |
+| 7 · administer | diagnose, prescribe, dose | medicine | the medic vertical, metabolism |
+| 8 · dispose | expired and unused drugs; waste into water | sanitation | watershed's contamination by kind |
+
+### The mechanics it reveals
+
+1. ⭐ **Potency varies with the source, and standardizing it is what pharma sells.** Wild willow's salicin
+   depends on the tree, soil and season: a grade from growing conditions farming and forestry already
+   model. Raw herbs are unreliable doses; the assay plus standardization is the value added. **That is why
+   it's a credence good**, and why trust, brands and the pharmacopoeia standard exist.
+2. **The solvent decides what you extract.** Real partition chemistry: a tea and a tincture of the same
+   herb are different drugs.
+3. **The dose makes the poison** (Paracelsus): a therapeutic window with a toxic dose above it, riding
+   the shipped toxin burden. Foxglove heals a heart at one dose and stops it at a few times that.
+4. **Drugs degrade**: shelf life and expiry, so the lot and its date matter.
+5. **The form sets the route, and the route sets the onset.**
+6. **Lots make recalls possible; the seal makes tampering visible.**
+7. ⭐ **Fermentation makes antibiotics, and overuse breeds resistance.** Pathogens are organisms, so drugs
+   that kill them select for survivors. **A second commons**, after wild to cultivated: each prescriber
+   is rational, and the town loses its medicine. Who regulates prescribing is governance.
+8. **Outcomes are the only proof**: the record of who took what and recovered is how anyone learns what
+   works, which is where the game teaches statistics.
+
+**A drug's model** (for the plan): an active compound, a material with pharmacological properties (it fits
+material decomposition's capability shape), with a target (an organ, a condition, a pathogen), a
+dose-response window, a half-life (metabolism's clearance ships), a route, interactions (BAC ships) and
+tolerance (exertion's alcohol-tolerance stock ships and generalizes). Efficacy is invisible except
+through outcomes.
+
 ## Open questions (for requirements)
 
 1. **How many actives, and how distinct?** *Leans: few, strongly

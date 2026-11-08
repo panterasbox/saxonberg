@@ -52,6 +52,7 @@
  * the shipped recognition / identification / regard trio).
  */
 
+import { AVATAR_IDENTITY_PREFIX } from '../character/Estate';
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { Stuff as StuffBase } from '../stuff/Stuff';
@@ -636,6 +637,9 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
       // reap a valid discovery. A found-flag is a cheap, per-viewer world
       // fact worth keeping regardless.
       if (realm === DISCOVERY) return record;
+      // ⭐ Nor a PERSON: a body is not in the world while its player is away
+      // (D30), and they are still somebody you know.
+      if (referent.startsWith(AVATAR_IDENTITY_PREFIX)) return record;
       // Lazy liveness-GC: if nothing in the world carries this referent
       // anymore, the memory is dead. `findByIdentityPath` is the
       // non-throwing lookup for the bucket filed at exactly this referent

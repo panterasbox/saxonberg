@@ -1,0 +1,31 @@
+verbs: [recite]
+category: magic
+controller: /system/arcana/idea/cmd/magic/ReciteController
+description: "Say a scroll aloud, and set off what is bound into it"
+help: |
+  `recite <scroll>` reads it out, and that is what sets it off. `read`
+  tells you what it says and does nothing else.
+
+  A scroll is a focus, not a battery: it supplies the working and YOU pay
+  for it, which is why a scroll of a working beyond you is a gamble. You
+  have to be able to make out the marks to say them, so an inked scroll
+  wants light and an embossed one does not.
+
+  Every scroll affords `recite`, whichever working it carries, so having
+  the word in your list says nothing about what you are holding.
+
+  Some workings need something to act on. Reciting is not aimed — when the
+  working needs a mark it simply asks you which one, and a scroll is never
+  spent on a question you did not answer.
+examples:
+  - cmd: recite scroll
+    note: Say it aloud; it fires, and it is spent
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: scroll
+    type: object
+    required: true
+    scope: ["inventory", "peers"]
+    requires: [ArcaneMixin, MarkedMixin]

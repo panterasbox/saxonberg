@@ -7,8 +7,10 @@
 # ⚠ It is not poison and it is not waste — you can still bake it, and
 # what you get is a flat, sour, close-grained loaf. That is the honest
 # outcome of the mistake: a worse loaf, not a lost one.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/dough, strength: 100 }]
+  tastes: [{ type: salty, amount: 10 }, { type: sour, amount: 2 }]
   name: collapsed dough
   keywords: [dough, collapsed, fallen, over-proofed]
   appearance: fallen and slack, smelling sharply of drink

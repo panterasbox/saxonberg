@@ -3,6 +3,7 @@
 # ⛔ Not `shout`: a hail carries at signal range (twelve miles by
 # default) however high you stand. Afforded by a `Helm`.
 verbs: [hail]
+category: social
 controller: /platform/idea/cmd/social/HailController
 description: "Signal a sail in sight, or the harbor office"
 help: |

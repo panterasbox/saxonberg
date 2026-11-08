@@ -27,7 +27,7 @@ import { useStore } from "../../../store/index";
 import { CardFeed } from "../CardFeed";
 import { websocketClient } from "../../../services/websocket";
 import type { CardState } from "../../../store/cardFeedSlice";
-import { visibleCards, cardedFrameIsCovered } from "../../../store/cardFeedSlice";
+import { visibleCards } from "../../../store/cardFeedSlice";
 import type { CardId } from "@saxonberg/types";
 
 let clock = 1_000;
@@ -192,34 +192,3 @@ describe("⚠⚠ visibleCards — the one rule both render paths call", () => {
  *
  * It carries the card's `instanceId` now, and this is the rule.
  */
-describe("a carded frame is only suppressed if its card is on screen", () => {
-  const cards: Record<string, CardState> = {
-    "i-subject": card("subject", { instanceId: "i-subject" }),
-    "i-roster": card("who", { instanceId: "i-roster" }),
-    "i-husk": card("who", { instanceId: "i-husk", closed: "aged-out" }),
-  };
-
-  it("⭐ covered when the card exists and no view filters it", () => {
-    expect(cardedFrameIsCovered("i-subject", cards, null)).toBe(true);
-  });
-
-  it("⚠ NOT covered when no card by that id exists — the open failed", () => {
-    expect(cardedFrameIsCovered("i-nothing", cards, null)).toBe(false);
-  });
-
-  it("⚠⚠ NOT covered when a named view filters that kind out of the feed", () => {
-    // A view showing only the roster: the inspection card is off screen,
-    // so its prose is the only copy the player has.
-    const onlyRoster = new Set<CardId>(["who"]);
-    expect(cardedFrameIsCovered("i-subject", cards, onlyRoster)).toBe(false);
-    expect(cardedFrameIsCovered("i-roster", cards, onlyRoster)).toBe(true);
-  });
-
-  it("⚠ NOT covered by a HUSK — it shed its body, so the prose is the only copy", () => {
-    expect(cardedFrameIsCovered("i-husk", cards, null)).toBe(false);
-  });
-
-  it("an unmarked frame is never suppressed", () => {
-    expect(cardedFrameIsCovered(undefined, cards, null)).toBe(false);
-  });
-});

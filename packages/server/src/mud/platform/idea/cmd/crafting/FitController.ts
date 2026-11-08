@@ -27,6 +27,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
 import { CraftingApi, type FitReplaced } from '../../../../api/crafting';
 import type { Assembled } from '../../../../lib/craft/Assembled';
+import type { PasteRefusal } from '../../../../lib/material/Faced';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
@@ -66,10 +67,18 @@ export default class FitController extends CraftController<FitModel> {
         return this.refuse(context, TOPIC, `Paste it on with what? Name the pot: \`fit ${raw} to ${whole.getPresentation()} with <pot>\`.`, 'no-glue');
       }
       const out = await whole.pasteOn(part, pot);
-      if (!out.ok) return this.refuse(context, TOPIC, out.line, out.reason);
+      if (!out.ok) {
+        // ⭐ The good answers a reason; the words are this verb's (D4).
+        return this.refuse(context, TOPIC, this.pasteRefusalWords(out, part, pot), out.reason);
+      }
+      const { glue, words } = out.facts;
+      const line =
+        words !== ''
+          ? `You brush ${glue} on the back of the label and smooth it onto ${whole.getPresentation()}: "${words}".`
+          : `You paste the paper onto ${whole.getPresentation()} with ${glue}.`;
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.text(out.line))
+        .toSelf(Mml.text(line))
         .toPeers(Mml.compose`${Mml.actor(giver)} pastes a label onto ${Mml.thing(whole)}.`)
         .send();
       return;
@@ -155,6 +164,23 @@ export default class FitController extends CraftController<FitModel> {
   }
 
   /** Does `word` name one of `whole`'s lines (`lining`, `staves`)? */
+
+  /** The words for a label that will not paste — every reason (D4). */
+  private pasteRefusalWords(out: PasteRefusal, sheet: Stuff, pot: Stuff): string {
+    switch (out.reason) {
+      case 'not-glue':
+        return `What is in ${pot.getPresentation()} will not stick paper to anything.`;
+      case 'source-too-low':
+        return `There is not enough left in ${pot.getPresentation()} to paste with.`;
+      case 'not-paper':
+        return `${sheet.getPresentation()} is not a thing you paste on.`;
+      default: {
+        const never: never = out;
+        return never;
+      }
+    }
+  }
+
   private namesLine(whole: Stuff & Assembled, word: string): boolean {
     const w = word.trim().toLowerCase();
     whole.ensureParts();

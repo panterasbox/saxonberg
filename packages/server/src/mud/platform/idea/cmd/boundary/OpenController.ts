@@ -37,43 +37,6 @@ interface OpenModel extends CommandModel {
   setting?: string;
 }
 
-/**
- * The words a setting may be said in (water-supply D12), or a figure 0..1,
- * or a percent. `null` when the phrase is no setting at all.
- */
-function parseSetting(raw: string): number | null {
-  const t = raw.trim().toLowerCase().replace(/^(a|an|the)\s+/, '').replace(/\s+(open|way)$/, '');
-  const words: Record<string, number> = {
-    quarter: 0.25,
-    'a quarter': 0.25,
-    third: 1 / 3,
-    half: 0.5,
-    halfway: 0.5,
-    'two thirds': 2 / 3,
-    'three quarters': 0.75,
-    full: 1,
-    fully: 1,
-    wide: 1,
-    shut: 0,
-    closed: 0,
-  };
-  if (t in words) return words[t]!;
-  const pct = /^(\d+(?:\.\d+)?)\s*%$/.exec(t);
-  if (pct) return Math.max(0, Math.min(1, Number(pct[1]) / 100));
-  const n = Number(t);
-  if (t !== '' && Number.isFinite(n) && n >= 0 && n <= 1) return n;
-  return null;
-}
-
-/** A setting said back in words. */
-function settingWords(f: number): string {
-  if (f >= 0.999) return 'fully open';
-  if (Math.abs(f - 0.75) < 0.01) return 'three quarters open';
-  if (Math.abs(f - 0.5) < 0.01) return 'half open';
-  if (Math.abs(f - 0.25) < 0.01) return 'a quarter open';
-  return `${Math.round(f * 100)}% open`;
-}
-
 export default class OpenController extends CommandController<OpenModel> {
   execute(model: OpenModel, context: CommandContext): void {
     const { commandGiver } = context;
@@ -146,7 +109,6 @@ export default class OpenController extends CommandController<OpenModel> {
     // or shut, and says so.
     const settingRaw = (model.setting ?? '').trim();
     if (settingRaw !== '') {
-      const fraction = parseSetting(settingRaw);
       const thing = sealable as unknown as Stuff;
       if (!MixinApi.isThrottleable(thing)) {
         MessageApi.scene(commandGiver)
@@ -156,7 +118,8 @@ export default class OpenController extends CommandController<OpenModel> {
         context.note({ kind: 'controller-rejected', reason: 'no-setting', detail: 'open or shut' });
         return;
       }
-      if (fraction === null) {
+      const worked = thing.workOpening(settingRaw, commandGiver);
+      if (worked === null) {
         MessageApi.scene(commandGiver)
           .topic('act.deed')
           .toSelf(Mml.compose`How far? A quarter, half, three quarters or full.`)
@@ -164,13 +127,12 @@ export default class OpenController extends CommandController<OpenModel> {
         context.note({ kind: 'controller-rejected', reason: 'bad-setting', detail: settingRaw });
         return;
       }
-      thing.setOpening(fraction, commandGiver);
       MessageApi.scene(commandGiver)
         .topic('act.deed')
         .toSelf(
-          fraction <= 0
+          worked.shut
             ? Mml.compose`You shut ${Mml.thing(thing)}.`
-            : Mml.compose`You set ${Mml.thing(thing)} ${settingWords(fraction)}.`,
+            : Mml.compose`You set ${Mml.thing(thing)} ${worked.words}.`,
         )
         .toPeers(Mml.compose`${Mml.actor(commandGiver)} works ${Mml.thing(thing)}.`)
         .send();
@@ -190,9 +152,7 @@ export default class OpenController extends CommandController<OpenModel> {
       return;
     }
 
-    const throttled = sealable as unknown as Stuff;
-    if (MixinApi.isThrottleable(throttled)) throttled.setOpening(1, commandGiver);
-    else sealable.open();
+    sealable.open(commandGiver);
 
     // Interact-hazard (a trapped chest): opening it is the touch that
     // springs it. The hazard self-resolves — armed + `trigger: interact`

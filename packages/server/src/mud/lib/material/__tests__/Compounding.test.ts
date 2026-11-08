@@ -158,10 +158,10 @@ describe('⭐ the work is the matter\'s, never the word (B101)', () => {
     await ContainmentApi.move(lumpOf(RAW, 0.97), v);
     await ContainmentApi.move(lumpOf(SULFUR, 0.03), v);
     expect(v.workVerb()).toBe('knead');
-    const stirred = await v.kneadPlanFor({ actor: v as unknown as Stuff, commandText: 'stir tub', verb: 'stir' });
+    const stirred = await v.kneadPlanFor({ actor: v as unknown as Stuff, verb: 'stir' });
     expect(stirred.ok).toBe(false);
     if (!stirred.ok) expect(stirred.reason).toBe('wrong-work');
-    expect((await v.kneadPlanFor({ actor: v as unknown as Stuff, commandText: 'knead tub', verb: 'knead' })).ok).toBe(true);
+    expect((await v.kneadPlanFor({ actor: v as unknown as Stuff, verb: 'knead' })).ok).toBe(true);
   });
 
   it('⭐ clay in a little water is kneaded; drowned past its liquid limit it is a slip, stirred', async () => {
@@ -197,7 +197,7 @@ describe('⭐ the work is the matter\'s, never the word (B101)', () => {
     const v = tub(STOCK_ROW, COMPOUND);
     await ContainmentApi.move(lumpOf(SULFUR, 1), v);
     expect(v.workVerb()).toBe('stir');
-    const kneaded = await v.kneadPlanFor({ actor: v as unknown as Stuff, commandText: 'knead tub', verb: 'knead' });
+    const kneaded = await v.kneadPlanFor({ actor: v as unknown as Stuff, verb: 'knead' });
     expect(kneaded.ok).toBe(false);
   });
 });

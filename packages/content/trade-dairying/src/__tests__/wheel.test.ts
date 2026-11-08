@@ -10,7 +10,7 @@ import Provision from '@saxonberg/server/mud/platform/thing/Provision';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
-import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 import { ConstructedMixin } from '@saxonberg/server/mud/lib/material/Constructed';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -19,7 +19,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import { MAT } from './rows';
 import { standUp, tearDown, at, DAY } from './world';
 
@@ -91,23 +91,26 @@ describe('the wheel', () => {
     at(0);
     const { wheel: w } = wheel(MAT.hardCheese);
     const none = await w.planWork(w, null, null);
-    expect(none.kind === 'refusal' && none.reason).toBe('no-edge');
+    expect(!none.ok && none.reason).toBe('no-edge');
     const blunt = await w.planWork(w, tool('hafted'), null);
-    expect(blunt.kind === 'refusal' && blunt.reason).toBe('no-edge');
+    expect(!blunt.ok && blunt.reason).toBe('no-edge');
     const knife = await w.planWork(w, tool('bladed'), null);
-    expect(knife.kind).toBe('plan');
+    expect(knife.ok).toBe(true);
     // ⭐ A tool that CUTS is an edge too — the cheese room's knife is a
     // cutting Tool, because the `split` view only binds a ToolMixin.
     const cutter = tool('hafted');
     cutter.setCapabilities(['cutting']);
-    expect((await w.planWork(w, cutter, null)).kind).toBe('plan');
+    expect((await w.planWork(w, cutter, null)).ok).toBe(true);
   });
 
   it('a wedge is the wheel, smaller', async () => {
     at(0);
     const { wheel: w, room } = wheel(MAT.hardCheese);
-    const res = await w.completeWork(w, tool('bladed'), null);
-    expect(res.credit?.discipline).toBe('dairying');
+    const plan = await w.planWork(w, tool('bladed'), null);
+    if (!plan.ok) throw new Error(plan.reason);
+    const res = await plan.onComplete();
+    if (!res.ok || res.facts.kind !== 'cheese') throw new Error('expected a wedge');
+    expect(res.facts.credit?.discipline).toBe('dairying');
     expect(w.getWedgesLeft()).toBe(7);
     expect(w.getMass().rawValue()).toBeCloseTo(3.5, 6);
     const wedge = room
@@ -123,8 +126,11 @@ describe('the wheel', () => {
     at(0);
     const { wheel: w, room } = wheel(MAT.hardCheese);
     w.setWedgesPerWheel(1);
-    const res = await w.completeWork(w, tool('bladed'), null);
-    expect(res.self).toMatch(/last wedge/);
+    const plan = await w.planWork(w, tool('bladed'), null);
+    if (!plan.ok) throw new Error(plan.reason);
+    const res = await plan.onComplete();
+    if (!res.ok || res.facts.kind !== 'cheese') throw new Error('expected a wedge');
+    expect(res.facts.last).toBe(true);
     expect(room.getContents().some((c) => c instanceof Wheel)).toBe(false);
     expect(room.getContents().some((c) => c instanceof Provision)).toBe(true);
   });

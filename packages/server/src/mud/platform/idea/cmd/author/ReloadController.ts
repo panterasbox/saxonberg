@@ -7,7 +7,7 @@
  * them, so a reload alone can succeed on code that no longer type-checks;
  * by default the reloaded file is then checked out of process
  * (`DiagnosticApi.typecheck`) and the verdict told to the giver when it
- * lands. `--no-check` skips that; `--strict` checks FIRST and refuses to
+ * lands. `--no-check` skips that; `--force` checks FIRST and refuses to
  * swap code with type errors in. No `-f` / `forceReload`
  * — reload operates on modules and prototypes, not on Stuff
  * targets, so there's no per-target witness to bypass. ⭐ The gate is
@@ -39,7 +39,7 @@ export interface ReloadModel extends CommandModel {
   target?: string;
   mql?: MqlOneResult;
   noCheck?: boolean;
-  strict?: boolean;
+  force?: boolean;
 }
 
 /** How many diagnostics a verdict lists inline before pointing at `errors`. */
@@ -97,13 +97,13 @@ export default class ReloadController extends CommandController<ReloadModel> {
     if (path === null) return;
     if (await this.refusedTitle(model, context, path)) return;
 
-    if (model.strict) {
+    if (model.force) {
       const checked = await this.check(context, path);
       if (checked === null) return;
       if (checked.errors > 0) {
         return this.fail(
           context,
-          `${this.verdict(checked)}\nnot reloaded (--strict)`,
+          `${this.verdict(checked)}\nnot reloaded (--force)`,
           'type-errors',
         );
       }
@@ -116,8 +116,8 @@ export default class ReloadController extends CommandController<ReloadModel> {
     }
     this.tell(context, `\nreloaded ${path}\n`);
 
-    // --strict already checked this exact source; --no-check opts out.
-    if (model.strict || model.noCheck) return;
+    // --force already checked this exact source; --no-check opts out.
+    if (model.force || model.noCheck) return;
     const file = ReloadController.fileOf(path);
     if (file === null) return;
     // The verdict lands after this command has answered: it is told from
