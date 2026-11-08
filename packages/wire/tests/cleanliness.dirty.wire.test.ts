@@ -633,11 +633,11 @@ suite('⭐⭐ drive 16 — the ward: a boiled bandage, a kit in the flame (AC 18
     await act(s, 'get bandage');
     const boiled = await act(s, 'put bandage in pot');
     expect(boiled, `put bandage in pot: ${boiled}`).toMatch(/pot/i);
-    // ⚠ `surgical kit`, not `kit`: names are keywords (controllers-are-io
+    // ⚠ `"surgical kit"` (quoted: one arg), not `kit`: names are keywords (controllers-are-io
     // D22), so the water-test kit this cook carries from the water drive is
     // a kit too, and `heat` looks in the hand first. It bound that and said
     // "Heat what?".
-    const flamed = await act(s, 'heat surgical kit');
+    const flamed = await act(s, 'heat "surgical kit"');
     expect(flamed, `heat the kit: ${flamed}`).toMatch(/flame/i);
     s.close();
   }, 300_000);
