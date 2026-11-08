@@ -80,6 +80,8 @@ export class StoredDocument extends Document {
    * The one document of `kind` whose natural key is `key`: an indexed point
    * read (`{kind, data.<naturalKey>}` is unique, partial on `kind`), never a
    * scan. Null for a kind with no natural key.
+   *
+   * @internal reached through `DocumentApi.readByKey`, which is the surface.
    */
   static async findByKey(kind: string, key: string): Promise<StoredDocument | null> {
     const spec = (DOCUMENT_KINDS as Record<string, { naturalKey: string | null }>)[kind];

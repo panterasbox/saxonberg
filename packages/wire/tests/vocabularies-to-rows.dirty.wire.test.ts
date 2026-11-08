@@ -168,13 +168,14 @@ suite('smell and taste', () => {
       // A faint smell, staged at the distance a person loses it.
       await hand(person, '/trade/distilling/thing/whiskey');
       expect(await evalOn(keen, 'me', 'return this.getSpecies().getOlfactoryProfile().acuity')).toMatch(/keen/);
-      const figure = async (s: Session, word: string) => {
-        const m = new RegExp(`${word}.*`).exec(await say(s, 'analyze aroma'));
-        return m ? m[0] : '';
-      };
-      const a = await figure(person, 'of oak');
-      const b = await figure(keen, 'of oak');
-      expect(a, `${a} vs ${b}`).not.toBe(b);
+      // ⚠ The strength is the word BEFORE "of oak": compare that, or the check
+      // compares a phrase with itself (it once did, and passed by luck).
+      const strength = async (s: Session) =>
+        /(barely|faintly|clearly|strongly|overpoweringly) of oak/.exec(await say(s, 'analyze aroma'))?.[1] ?? 'nothing';
+      const ladder = ['nothing', 'barely', 'faintly', 'clearly', 'strongly', 'overpoweringly'];
+      const a = await strength(person);
+      const b = await strength(keen);
+      expect(ladder.indexOf(b), `${a} vs ${b}`).toBeGreaterThan(ladder.indexOf(a));
     });
 
     it('13. the byre smells of animals as well as dung', async () => {
@@ -466,7 +467,8 @@ suite('smell and taste', () => {
     expect(await evalOn(back, 'me', 'return JSON.stringify(this.getAversions())')).toMatch(/kept-food/);
     expect(await evalOn(back, 'me', 'return JSON.stringify(Object.keys(this.getExposures()))')).toMatch(/salty|sweet/);
     expect(await say(back, 'look --peek me:i:loaf')).toMatch(/taken a bite/);
-  });
+    // ⚠ A reboot is a cold boot: well past the file's five-minute default.
+  }, 1_500_000);
 
   void CHANDLERY;
   void COOKHOUSE;
