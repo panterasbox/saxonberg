@@ -53,6 +53,10 @@ import type {
   StuffDetailRecord,
   StuffKind,
   StuffRefRecord,
+  LookSegment,
+  WidthClass,
+  CardPlacement,
+  CardRole,
 } from "@saxonberg/types";
 
 /** A card's records, whichever projection they came back as. */
@@ -109,8 +113,14 @@ export interface CardState {
   prose?: string;
   records: CardRecord[];
   payload?: CardPayload;
-  /** Arrival / last-touch order. The unpinned block sorts on this. */
+  /** Arrival order. Never moves. */
   openedAt: number;
+  /**
+   * ⭐ The last time the command that made it was RE-RUN (client-surface
+   * D9): in a feed a touched card moves to the bottom; in a workspace it
+   * refreshes in place. Absent = never re-run (its arrival is its touch).
+   */
+  touchedAt?: number;
   /** Set once the card closed: it is a faded husk from here on. */
   closed?: CardCloseReason;
   /**
@@ -123,6 +133,19 @@ export interface CardState {
    * names nothing at all.
    */
   lastTitle?: string;
+  /**
+   * ⭐ What `look` said, by shape and source (client-surface D1) — the
+   * inspection card's body. The same lines the terminal printed.
+   */
+  segments?: LookSegment[];
+  /** Width class; absent reads as `unit` (client-surface D5). */
+  size?: WidthClass;
+  /** Set when the player placed it — units, never pixels. */
+  placed?: CardPlacement;
+  /** In the tray. */
+  minimized?: boolean;
+  /** A role it fills — the `here` room card, the primary terminal. */
+  role?: CardRole;
 }
 
 /**
@@ -209,7 +232,10 @@ export function visibleCards(
        * setting that never claimed to.
        */
       (resultDisplay !== "terminal" || c.prose === undefined) &&
-      (kinds === null || kinds.has(c.cardId)),
+      (kinds === null || kinds.has(c.cardId)) &&
+      // ⭐ The PRIMARY terminal lives in the terminal column, never in the
+      // feed; other terminals are ordinary cards (client-surface D6).
+      !(c.cardId === "terminal" && c.role === "primary"),
   );
 }
 
@@ -221,39 +247,6 @@ export function visibleCards(
  * time you touched something else would be worse than one that sits
  * still — the whole reason to pin is that you want it where you left it.
  */
-/**
- * ⭐⭐ **Is a carded frame's card actually ON SCREEN?**
- *
- * `meta.carded` carries a card's `instanceId`, and the terminal copy of
- * that content is suppressed only when this says yes. As a bare boolean
- * the marker was a PROMISE made before the card opened, and two things
- * cashed it for nothing:
- *
- *  - a controller that TOUCHED an already-open card rather than opening
- *    a new one — `look dave` in Dave's Bar printed its echo and stopped,
- *    because the room card was already there and nothing new appeared;
- *  - a named view filtering that card's KIND out of the feed, which
- *    silenced the prose as well as the card.
- *
- * *Suppressing prose is only safe if something visible replaced it.*
- *
- * ⚠ Extracted rather than left inline in the frame filter, because a
- * rule that lives in one render path is a rule the other path does not
- * have — this build has been bitten by that three times.
- */
-export function cardedFrameIsCovered(
-  carded: string | undefined,
-  cards: Record<string, CardState>,
-  kinds: ReadonlySet<CardId> | null,
-): boolean {
-  if (carded === undefined) return false;
-  const card = cards[carded];
-  if (card === undefined) return false;
-  // A husk has shed its body; the prose is the only copy left.
-  if (card.closed !== undefined) return false;
-  return kinds === null || kinds.has(card.cardId);
-}
-
 export function orderCards(cards: readonly CardState[]): CardState[] {
   /*
    * ⭐⭐ **One column, oldest → newest, exactly like the transcript.**
@@ -277,6 +270,15 @@ export interface CardFeedSlice {
   /** Every card, keyed by instance id. */
   cards: Record<string, CardState>;
   /**
+   * ⭐ The card area's order, as the player dragged it — the client's
+   * alone. A card it does not name follows the named ones, by arrival.
+   */
+  cardOrder: string[];
+  /** Drag `instanceId` to sit just before `beforeId` (or last, with null). */
+  reorderCard: (instanceId: string, beforeId: string | null) => void;
+  /** Set the whole order (the gallery's drop commits what it previewed). */
+  setCardOrder: (order: string[]) => void;
+  /**
    * ⚠ Named `openCard`, not `openPanel` — the store already has an
    * `openPanel` for the summoned settings overlay, and two things
    * called "open" on one flat store is how a call site reaches the
@@ -293,7 +295,18 @@ export interface CardFeedSlice {
     patch: Partial<
       Pick<
         CardState,
-        "takenAt" | "title" | "prose" | "records" | "payload" | "key" | "live"
+        | "takenAt"
+        | "title"
+        | "prose"
+        | "records"
+        | "payload"
+        | "key"
+        | "live"
+        | "segments"
+        | "subjectId"
+        | "subjectKind"
+        | "role"
+        | "touchedAt"
       >
     >,
   ) => void;
@@ -301,6 +314,15 @@ export interface CardFeedSlice {
   setCardRecords: (instanceId: string, records: CardRecord[]) => void;
   /** The server's answer to a pin/dismiss/auto. */
   setCardPinnedState: (instanceId: string, pinned: boolean) => void;
+  /**
+   * ⭐ A `card-arranged` landed (client-surface D8): the server's answer
+   * to a `cockpit card` action. Never set optimistically — the client is
+   * a renderer of where the server says a card is.
+   */
+  arrangeCardState: (
+    instanceId: string,
+    arranged: Pick<CardState, "size" | "placed" | "minimized" | "pinned" | "live" | "role">,
+  ) => void;
   /** The card closed: fade it and say why. */
   closeCard: (instanceId: string, reason: CardCloseReason) => void;
   /** Drop a husk entirely (the player dismissed it). */
@@ -360,6 +382,26 @@ export const createCardFeedSlice = (
   get: () => CardFeedSlice,
 ): CardFeedSlice => ({
   cards: {},
+  cardOrder: [],
+
+  setCardOrder: (order) => set(() => ({ cardOrder: order })),
+
+  reorderCard: (instanceId, beforeId) =>
+    set((s) => {
+      // Start from what is on screen, so the first drag fixes the order
+      // the player was looking at rather than an empty list.
+      const known = Object.values(s.cards)
+        .sort((a, b) => a.openedAt - b.openedAt)
+        .map((c) => c.instanceId);
+      const base = [
+        ...s.cardOrder.filter((id) => s.cards[id]),
+        ...known.filter((id) => !s.cardOrder.includes(id)),
+      ].filter((id) => id !== instanceId);
+      const at = beforeId === null ? -1 : base.indexOf(beforeId);
+      if (at < 0) base.push(instanceId);
+      else base.splice(at, 0, instanceId);
+      return { cardOrder: base };
+    }),
 
   openCard: (card) =>
     set((s) => ({
@@ -411,6 +453,18 @@ export const createCardFeedSlice = (
       const card = s.cards[instanceId];
       if (!card) return {};
       return { cards: { ...s.cards, [instanceId]: { ...card, pinned } } };
+    }),
+
+  arrangeCardState: (instanceId, arranged) =>
+    set((s) => {
+      const card = s.cards[instanceId];
+      if (!card) return {};
+      const next: CardState = { ...card, ...arranged };
+      // An absent placement means it flows again.
+      if (arranged.placed === undefined) delete next.placed;
+      // An absent role means none: a kept room card stepped down.
+      if (arranged.role === undefined) delete next.role;
+      return { cards: { ...s.cards, [instanceId]: next } };
     }),
 
   closeCard: (instanceId, reason) =>

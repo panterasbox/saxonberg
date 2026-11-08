@@ -32,6 +32,7 @@ const Kind = {
   Accessor: 262144,
   TypeAlias: 2097152,
   Reference: 4194304,
+  Function: 64,
 };
 
 function method(
@@ -131,6 +132,28 @@ const FIXTURE: Refl = {
       ],
     },
     {
+      // ⭐ A mixin FACTORY with its own TSDoc (#89).
+      name: "mud/lib/bulk/Bulkable",
+      kind: Kind.Module,
+      children: [
+        {
+          name: "BulkableMixin",
+          kind: Kind.Function,
+          signatures: [
+            {
+              name: "BulkableMixin",
+              kind: 4096,
+              comment: {
+                summary: [
+                  { kind: "text", text: "Holds continuous matter — a liquid, a gas, a powder.\n\nMore detail." },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    },
+    {
       // A face that DOES re-export the foreign type it speaks.
       name: "mud/api/baz",
       kind: Kind.Module,
@@ -153,6 +176,12 @@ describe("projectAuthorSurface", () => {
   const consumerNames = surface.consumer.map((c) => c.qualified);
   const hookNames = surface.extension.map((e) => e.name);
   const typeNames = surface.types.map((t) => t.name);
+
+  it("⭐ emits each mixin's own summary from its factory's TSDoc — the first paragraph (#89)", () => {
+    expect(surface.mixins).toEqual([
+      { name: "Bulkable", summary: "Holds continuous matter — a liquid, a gas, a powder." },
+    ]);
+  });
 
   it("puts Api static methods in consumer", () => {
     expect(consumerNames).toContain("mud/api/foo#FooApi.doThing");

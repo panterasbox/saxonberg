@@ -19,9 +19,13 @@ import { registerReactionHandlers } from "./store/reactionActions";
 import { registerForumHandlers } from "./store/forumActions";
 import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
+import { Rail } from "./components/frame/Rail";
 import { Frame } from "./components/frame/Frame";
+import { PhoneShell } from "./components/phone/PhoneShell";
 import { MobileFrame } from "./components/frame/MobileFrame";
 import { CommandSheet } from "./components/frame/CommandSheet";
+import { PickMode } from "./components/PickMode";
+import { answerPrompt } from "./store/promptAnswer";
 import { ReconnectBanner } from "./components/frame/ReconnectBanner";
 import { SocialNotificationsPanel } from "./components/settings/SocialNotificationsPanel";
 import { StartScreen } from "./components/StartScreen";
@@ -31,13 +35,12 @@ import { StatusBar } from "./components/frame/StatusBar";
 import { SettingsPanel } from "./components/settings/SettingsPanel";
 import { useCardFeed } from "./components/cards/useCardFeed";
 import { activeCardKinds } from "./store/cardViewActions";
-import { cardedFrameIsCovered } from "./store/cardFeedSlice";
+import { framesFor } from "./store/frameFilter";
 import type { LayoutProps } from "./layouts";
 import { resolveMode } from "./layouts/modes";
 import { useGround } from "./lib/style/useGround";
 import { useIsCompact } from "./lib/style/useIsCompact";
 import { tokens } from "./components/ui";
-import { facetFilterPasses } from "./components/FacetFilterPanel";
 import { ALL_VIEW } from "@saxonberg/types";
 import type {
   ConsoleTab,
@@ -164,6 +167,28 @@ const ContentRow = styled.div<{ $compact?: boolean }>`
   ${(p) => (p.$compact ? "overflow-x: auto;" : "")}
 `;
 
+/** The stage beside the rail. */
+const StageColumn = styled.div`
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+`;
+
+/**
+ * ⭐ A mode with no layout SAYS so (client-surface D10): a silent
+ * substitution is how an unbuilt mode comes to look finished.
+ */
+const FallbackNotice = styled.div`
+  flex: none;
+  padding: ${tokens.space.xs} ${tokens.space.md};
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.warning};
+  background: ${tokens.color.surface};
+  border-bottom: 1px solid ${tokens.color.borderMuted};
+`;
+
 /*
  * ⭐⭐ **The paint/clear policy is gone, and so is the parser that fed
  * it.**
@@ -178,62 +203,6 @@ const ContentRow = styled.div<{ $compact?: boolean }>`
  * paint.
  */
 
-/**
- * Render the player-facing label for a prompt response. For chip-
- * driven kinds we resolve the wire response back to the human-
- * readable label so the terminal scrollback reads `Which sword? →
- * rusty sword` instead of `Which sword? → <stuffId>`. Returns
- * `null` when the prompt isn't in the store (already dismissed by
- * the time we render), since the line wouldn't have context.
- */
-function formatResponseEcho(promptId: string, response: string): string | null {
-  const entry = useStore
-    .getState()
-    .prompts.find((p) => p.promptId === promptId);
-  if (!entry) return null;
-  let resolved: string;
-  switch (entry.kind) {
-    case "text":
-    case "compose":
-      resolved = response;
-      break;
-    case "confirm":
-      resolved = response === "yes" ? "Yes" : "No";
-      break;
-    case "choice": {
-      const hit = entry.choices.find((c) => c.response === response);
-      resolved = hit ? hit.label : response;
-      break;
-    }
-    case "mql-object": {
-      const hit = entry.matches.find((m) => m.stuffId === response);
-      resolved = hit ? hit.displayName : response;
-      break;
-    }
-    case "mql-many": {
-      try {
-        const ids: unknown = JSON.parse(response);
-        if (!Array.isArray(ids)) {
-          resolved = response;
-          break;
-        }
-        const names = ids.map((id) => {
-          const hit = entry.matches.find((m) => m.stuffId === id);
-          return hit ? hit.displayName : String(id);
-        });
-        resolved = names.join(", ");
-      } catch {
-        resolved = response;
-      }
-      break;
-    }
-    default: {
-      const _exhaustive: never = entry;
-      resolved = response;
-    }
-  }
-  return `${entry.label} → ${resolved}`;
-}
 
 /**
  * App component.
@@ -338,21 +307,6 @@ function App() {
     (clientState["console.activeTab"] as string | undefined) ?? ALL_VIEW;
   const tabs = (clientState["console.tabs"] as ConsoleTab[] | undefined) ?? [];
   /*
-   * ⚠⚠ **`All` resolves to NOTHING, structurally.**
-   *
-   * It is the absence of a filter, so it is not looked up in
-   * `console.tabs` at all — and deliberately not, rather than merely
-   * not being there: a player who edited `All` before it was locked
-   * still has a stored row with facets on it, and honouring that would
-   * make the locked view quietly filter. The lock has to hold against
-   * state that predates it.
-   */
-  const activeTab =
-    activeTabName === ALL_VIEW
-      ? undefined
-      : tabs.find((t) => t.name === activeTabName);
-  const mutedSet = new Set(activeTab?.muted ?? []);
-  /*
    * ⭐⭐ **Three filters, in the order they answer three different
    * questions.**
    *
@@ -370,68 +324,21 @@ function App() {
    *     prefix operation, so both halves stay.
    */
   const getTopicDescriptor = useStore((state) => state.getTopicDescriptor);
-  const facetFilter = activeTab?.facets;
-  const visibleFrames = frames.filter((f) => {
-    /*
-     * ⭐ No feed check. Every tab is a VIEW over the whole buffer now —
-     * a frame is not placed anywhere at delivery, so there is nothing
-     * to match against. See `WorldLayout`'s strip note for why the
-     * destination model was retired.
-     */
-    const d = getTopicDescriptor(f.topic);
-    if (
-      !facetFilterPasses(facetFilter, {
-        address: d.address,
-        actor: d.actor,
-        weight: d.weight,
-        topic: f.topic,
-      })
-    ) {
-      return false;
-    }
-    if (mutedSet.has(f.topic)) return false;
-    /*
-     * ⭐⭐ `shell.result` — one clause, keyed on the frame's own
-     * `carded` marker rather than on a topic.
-     *
-     * ⚠ **A plan finding.** Decision 10 keyed this on the topic
-     * `shell.result`, on the premise that *every structured command
-     * result already carries it*. The card build falsifies that:
-     * `look`'s two cards ride `sense.survey`, which twelve other verbs
-     * share — `get`, `drop`, `inventory`, `wear`… A topic key would
-     * either miss `look` entirely or silence all twelve. The marker is
-     * exact, because the producer that opens the card is the producer
-     * that stamps the frame.
-     *
-     * ⚠ Nothing is LOST: the frame still arrived and is still in the
-     * frame store, so `recall` finds your history whichever way this is
-     * set. That is the whole reason it is a filter and not a placement.
-     *
-     * ⚠⚠ **And the card has to be ON SCREEN, not merely promised.**
-     * `carded` carries the card's instance id, and the frame is dropped
-     * only when a card with that id is actually visible in the feed —
-     * which means it exists AND survives the active named view's kind
-     * filter. Two ways this bit before: a controller that TOUCHED an
-     * already-open card suppressed its own prose in favour of nothing
-     * new (`look dave` printed its echo and stopped), and a named view
-     * filtering a kind out silenced that kind's prose as well as its
-     * card. *Suppressing prose is only safe if something visible
-     * replaced it.*
-     */
-    if (
-      effectiveResultDisplay === "card" &&
-      cardedFrameIsCovered(f.carded, cards, activeCardKinds())
-    ) {
-      return false;
-    }
-    // `social.react.alwaysAggregate` — hide reaction prose lines (frames
-    // carrying `inReactionTo`); the chip on the target message carries
-    // the aggregate instead.
-    if (reactionPrefs.alwaysAggregate && f.inReactionTo !== undefined) {
-      return false;
-    }
-    return true;
-  });
+  // ⭐ ONE rule for what a terminal shows (`framesFor`, client-surface
+  // D6): the layouts that still read `frames` see the console's active
+  // view through the same filter a terminal card uses.
+  const visibleFrames = framesFor(
+    frames,
+    { view: activeTabName },
+    {
+      tabs,
+      describe: getTopicDescriptor,
+      resultDisplay: effectiveResultDisplay,
+      cards,
+      kinds: activeCardKinds(),
+      alwaysAggregate: reactionPrefs.alwaysAggregate,
+    },
+  );
   // Hover preview lives in the ghost command line (store-backed), not in
   // a command bar — under per-bar mode a moded bar would prepend its
   // prefix, so the preview would lie about what sends. The restore on
@@ -534,6 +441,16 @@ function App() {
         ...(RELAY_TOPICS.has(frame.topic)
           ? { relay: relayFrameFields(frame.payload) }
           : {}),
+        ...(Array.isArray(frame.tags) && frame.tags.length > 0
+          ? { tags: frame.tags }
+          : {}),
+        ...(typeof (frame.payload as { speaker?: { stuffId?: unknown } } | undefined)
+          ?.speaker?.stuffId === "string"
+          ? {
+              speaker: (frame.payload as { speaker: { stuffId: string; displayName?: string } })
+                .speaker,
+            }
+          : {}),
       });
     };
     websocketClient.onAnyTopic(handle);
@@ -621,20 +538,7 @@ function App() {
    * by the time the dismissed envelope round-trips.
    */
   const sendPromptResponse = (promptId: string, response: string) => {
-    if (!websocketClient.isConnected()) {
-      console.warn("Cannot send prompt response: not connected");
-      return;
-    }
-    const echo = formatResponseEcho(promptId, response);
-    if (echo) {
-      useStore.getState().appendFrame({
-        id: `prompt-echo-${nanoid()}`,
-        topic: "shell.diagnostic",
-        body: echo,
-        timestamp: Date.now(),
-      });
-    }
-    websocketClient.sendPromptResponse(promptId, response);
+    answerPrompt(promptId, response);
   };
 
   /**
@@ -813,37 +717,70 @@ function App() {
               two `StatusBar`s in the tree and make "exactly one renders
               above the breakpoint" unassertable. */}
           {isCompact ? (
-            <MobileFrame
-              mode={resolved.mode}
-              arrangement={resolved.arrangement}
-              onCommandClick={handleCommandClick}
-              onCommandPreview={handleCommandPreview}
-              settingsActive={summonedPanel === "settings"}
-              onToggleSettings={() =>
-                summonedPanel === "settings" ? closePanel() : openPanel("settings")
-              }
-            />
+            <>
+              <MobileFrame
+                mode={resolved.mode}
+                arrangement={resolved.arrangement}
+                onCommandClick={handleCommandClick}
+                onCommandPreview={handleCommandPreview}
+                settingsActive={summonedPanel === "settings"}
+                onToggleSettings={() =>
+                  summonedPanel === "settings" ? closePanel() : openPanel("settings")
+                }
+              />
+              <ReconnectBanner />
+              {/* ⭐ The phone is its own shape (client-surface W6): chat
+                  first, explore with a button bar, watch with the video
+                  over the terminal. */}
+              <ContentRow $compact>
+                <PhoneShell
+                  {...layoutProps}
+                  storedMode={(clientState["cockpit.mode"] as CockpitMode | null | undefined) ?? null}
+                />
+                {summonedPanel === "settings" ? (
+                  <SettingsPanel onSendCommand={sendCommand} onClose={closePanel} />
+                ) : null}
+              </ContentRow>
+            </>
           ) : (
-            <Frame
-              mode={resolved.mode}
-              arrangement={resolved.arrangement}
-              onCommandClick={handleCommandClick}
-              onCommandPreview={handleCommandPreview}
-              settingsActive={summonedPanel === "settings"}
-              onToggleSettings={() =>
-                summonedPanel === "settings" ? closePanel() : openPanel("settings")
-              }
-            />
+            /*
+             * The desktop frame: master's top bar (seal, connection,
+             * account, the shelf, Views, Settings) across the top, the mode
+             * rail on the left, the stage beside it, the status bar below.
+             */
+            <>
+              <Frame
+                mode={resolved.mode}
+                arrangement={resolved.arrangement}
+                onCommandClick={handleCommandClick}
+                onCommandPreview={handleCommandPreview}
+                settingsActive={summonedPanel === "settings"}
+                onToggleSettings={() =>
+                  summonedPanel === "settings" ? closePanel() : openPanel("settings")
+                }
+              />
+              <ReconnectBanner />
+              <ContentRow>
+                <Rail
+                  mode={resolved.mode}
+                  onCommandClick={handleCommandClick}
+                  onCommandPreview={handleCommandPreview}
+                />
+                <StageColumn>
+                  {resolved.fallbackFrom ? (
+                    <FallbackNotice data-testid="mode-fallback-notice">
+                      {resolved.fallbackFrom.mode} isn&rsquo;t laid out yet — showing{" "}
+                      {resolved.mode}
+                    </FallbackNotice>
+                  ) : null}
+                  <ActiveLayout {...layoutProps} />
+                </StageColumn>
+                {summonedPanel === "settings" ? (
+                  <SettingsPanel onSendCommand={sendCommand} onClose={closePanel} />
+                ) : null}
+              </ContentRow>
+            </>
           )}
-          <ReconnectBanner />
-          {/* The active layout fills the fluid content area; a summoned
-              card (settings) docks beside it — non-modal, terminal stays. */}
-          <ContentRow $compact={isCompact}>
-            <ActiveLayout {...layoutProps} />
-            {summonedPanel === "settings" ? (
-              <SettingsPanel onSendCommand={sendCommand} onClose={closePanel} />
-            ) : null}
-          </ContentRow>
           {/* The Social / Notifications card (master's notify surface),
               opened from the AccountMenu — independent of the summoned
               settings card above. */}
@@ -864,12 +801,19 @@ function App() {
               and it would cost a row the feed needs. What replaces it
               is the command sheet — the tap that names its command
               before it sends. */}
-          {isCompact ? null : <StatusBar />}
+          {isCompact ? null : (
+            <StatusBar
+              onCommandClick={handleCommandClick}
+              onCommandPreview={handleCommandPreview}
+            />
+          )}
           {/* The command sheet — the phone's replacement for hover.
               Rendered unconditionally: it paints only when the store
               holds a command, and only the compact branch of
               `handleCommandClick` ever puts one there. */}
           <CommandSheet onSend={sendDirect} />
+          {/* While a "Ring what?" prompt is open, any noun on screen answers it. */}
+          <PickMode />
         </AppContainer>
       );
     }

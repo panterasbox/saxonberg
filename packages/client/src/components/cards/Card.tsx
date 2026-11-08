@@ -35,14 +35,18 @@
 import React from "react";
 import styled from "styled-components";
 import type { CardId } from "@saxonberg/types";
-import { tokens } from "../ui";
+import { Icon, tokens } from "../ui";
 import { cardReason, type CardState } from "../../store/cardFeedSlice";
 import { CARD_LABEL } from "./useCardFeed";
+import { KIND_COLOR, KindMark } from "./KindMark";
+import { useStore } from "../../store/index";
 
-const Shell = styled.article<{ $faded: boolean; $pinned: boolean }>`
+const Shell = styled.article<{ $faded: boolean; $pinned: boolean; $kind?: string }>`
   border: 1px solid
     ${(p) =>
       p.$pinned ? tokens.color.fgEmphasis : tokens.color.borderMuted};
+  /* The kind's colour down the left edge — what this card is about. */
+  ${(p) => (p.$kind ? `border-left: 3px solid ${p.$kind};` : "")}
   border-radius: ${tokens.radius.md};
   background: ${tokens.color.surface};
   padding: ${tokens.space.md};
@@ -51,9 +55,10 @@ const Shell = styled.article<{ $faded: boolean; $pinned: boolean }>`
 
 const Head = styled.header`
   display: flex;
-  align-items: baseline;
+  flex-wrap: wrap;
+  align-items: center;
   gap: ${tokens.space.sm};
-  margin-bottom: ${tokens.space.sm};
+  margin-bottom: ${tokens.space.xs};
 `;
 
 const Title = styled.h3`
@@ -62,8 +67,12 @@ const Title = styled.h3`
   font-size: ${tokens.font.title};
   font-weight: 500;
   color: ${tokens.color.fg};
-  min-width: 0;
-  overflow-wrap: anywhere;
+  /* ⚠ A title keeps a readable width; in a narrow column the CONTROLS
+     wrap below it, rather than the title collapsing to one letter a
+     line (the navigator in the panel did exactly that). */
+  flex: 1 1 7rem;
+  min-width: 7rem;
+  overflow-wrap: break-word;
 `;
 
 /**
@@ -73,11 +82,19 @@ const Title = styled.h3`
  * changing without the content changing, which invites the reader to
  * believe recency is the lifetime rule. It is not: pinned-ness is.
  */
-const Taken = styled.span`
+const Taken = styled.button`
   font-family: ${tokens.font.mono};
   font-size: ${tokens.font.label};
   color: ${tokens.color.fgMuted};
   white-space: nowrap;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  &:hover {
+    color: ${tokens.color.fg};
+    text-decoration: underline;
+  }
 `;
 
 /** Right-aligned, small, and never a duration. See the header note. */
@@ -124,13 +141,27 @@ const IconButton = styled.button<{ $on?: boolean }>`
   color: ${(p) => (p.$on ? tokens.color.fgEmphasis : tokens.color.fg)};
   padding: 0 ${tokens.space.sm};
   /* 44px minimum touch target via min-height — never by shrinking the
-     box the glyph sits in. */
+     box the glyph sits in. With a mouse the target is the pointer's,
+     and a 44px row of buttons made the header a fifth of the card. */
   min-height: 44px;
   min-width: 34px;
+  @media (pointer: fine) {
+    min-height: 1.75rem;
+    min-width: 1.75rem;
+  }
 
-  &:hover {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover:not(:disabled) {
     border-color: ${tokens.color.fgEmphasis};
     color: ${tokens.color.fgEmphasis};
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 `;
 
@@ -140,7 +171,39 @@ export interface CardProps {
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
   children?: React.ReactNode;
+  /**
+   * Cut the body to fit (client-surface D9): the header never scrolls;
+   * the body is cut from the bottom and says so, with a way to grow.
+   */
+  cut?: boolean;
+  /**
+   * ⭐ Docked in a layout's panel (explore's navigator): the SLOT is chrome
+   * (owner, 2026-11-08) — kept current for you, never sized, pinned or
+   * closed — so the card shows its title and body and nothing else.
+   */
+  docked?: boolean;
 }
+
+/** The body, cut from the bottom when it does not fit. */
+const Body = styled.div<{ $cut: boolean }>`
+  ${(p) => (p.$cut ? "overflow: hidden; min-height: 0; flex: 1;" : "")}
+`;
+
+const CutNote = styled.button`
+  display: block;
+  margin-top: ${tokens.space.xs};
+  font: inherit;
+  font-size: ${tokens.font.micro};
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: ${tokens.color.fgMuted};
+  cursor: pointer;
+
+  &:hover {
+    color: ${tokens.color.fgEmphasis};
+  }
+`;
 
 /**
  * ⚠⚠ **The card's ref is its KEY, not its catalogue id** — and that is
@@ -174,7 +237,7 @@ function cardRef(card: CardState): string {
 function pinAction(card: CardState): { command: string; label: string } {
   const ref = cardRef(card);
   if (card.pinned) {
-    return { command: `cockpit card auto ${ref}`, label: "⚲" };
+    return { command: `cockpit card unpin ${ref}`, label: "⚲" };
   }
   return { command: `cockpit card pin ${ref}`, label: "⚲" };
 }
@@ -192,26 +255,29 @@ export function Card({
   onSendCommand,
   onCommandPreview,
   children,
+  cut = false,
+  docked = false,
 }: CardProps): React.ReactElement {
   const preview = onCommandPreview ?? (() => undefined);
   const { command, label } = pinAction(card);
   const faded = card.closed !== undefined;
-  const close = `cockpit card dismiss ${cardRef(card)}`;
-  /*
-   * ⭐⭐ **Refresh re-issues the card's own key** — the normalized
-   * command that produced it. Not a new concept, not an API: the
-   * ordinary command bus, previewing exactly what it sends.
-   *
-   * ⚠ **Only on a STATIC card.** See the header note: a refresh on a
-   * live card is a bandage over a wake that does not fire.
-   *
-   * ⚠⚠ **And never on a prompt card**, which is static but is not a
-   * re-issuable READING — it is a question. Its key carries a
-   * `promptId`, so "refresh" would send a uuid at the parser; and the
-   * thing a waiting question wants is an answer, not another copy of
-   * itself.
-   */
-  const refresh = card.live || card.promptId !== undefined ? null : card.key;
+  const ref = cardRef(card);
+  // ⭐ Every control is a real `cockpit card` command (client-surface D8);
+  // the status bar previews it. A husk has no server card left, so its
+  // close is the trail's own.
+  const close = `cockpit card close ${ref}`;
+  const grow = `cockpit card grow ${ref}`;
+  const shrink = `cockpit card shrink ${ref}`;
+  const size = card.size ?? "unit";
+  const dropCard = useStore((s) => s.dropCard);
+  const bodyRef = React.useRef<HTMLDivElement>(null);
+  const [overflowing, setOverflowing] = React.useState(false);
+  React.useLayoutEffect(() => {
+    const el = bodyRef.current;
+    if (!cut || !el) return;
+    const over = el.scrollHeight > el.clientHeight + 1;
+    setOverflowing((prev) => (prev === over ? prev : over));
+  }, [cut, card.records, card.segments, card.prose, card.payload, card.size]);
   /*
    * ⚠ Before the subject arrives, the title falls back to the card's
    * LABEL, not its catalogue id. Found by driving: a freshly-opened
@@ -240,13 +306,26 @@ export function Card({
     <Shell
       $faded={faded}
       $pinned={card.pinned === true}
+      {...(card.subjectKind ? { $kind: KIND_COLOR[card.subjectKind] } : {})}
       data-testid={`card-${card.cardId}`}
       data-card-kind={card.cardId}
       data-card-key={card.key}
       data-card-live={card.live ? "true" : "false"}
       data-card-closed={card.closed ?? ""}
+      data-card-size={size}
+      style={cut ? { display: "flex", flexDirection: "column", minHeight: 0 } : undefined}
     >
-      <Head>
+      <Head
+        draggable={!faded}
+        onDragStart={(e) => {
+          // Drag is INSERTION: the drop target turns this into
+          // `cockpit card move <card> <col> <row>`.
+          e.dataTransfer.setData("application/x-saxonberg-card", ref);
+          // The grid reorders by instance — the client's own order.
+          e.dataTransfer.setData("application/x-saxonberg-card-id", card.instanceId);
+          e.dataTransfer.effectAllowed = "move";
+        }}
+      >
         {/*
           ⚠ No kind chip. Every card is the same kind now — *what I am
           looking at* — so a label saying so on every one is a word that
@@ -254,16 +333,36 @@ export function Card({
           differs between a room and a lamp is the sections in the body,
           which is where the reader can actually see it.
         */}
-        <Title>{title}</Title>
+        {card.subjectKind ? <KindMark kind={card.subjectKind} /> : null}
+        {/* The subject's title names it — it answers a pick (PickMode). */}
+        <Title data-stuff-id={(card.records[0]?.stuffId as string | undefined) || undefined}>
+          {title}
+        </Title>
         {/*
           ⭐ The honesty stamp. A static card says WHEN its answer was
           taken; a live card has no stale answer to stamp, so it says
           nothing here rather than something reassuring.
         */}
-        {!faded && card.takenAt !== undefined && (
-          <Taken data-testid="card-taken">{takenLabel(card.takenAt)}</Taken>
+        {/*
+          ⭐ The stamp IS the refresh: a static card's answer is as old as
+          it says, and clicking the age asks again (the card's own key).
+          One affordance where there were two, so the header keeps the
+          owner's four buttons.
+        */}
+        {!docked && !faded && card.takenAt !== undefined && (
+          <Taken
+            type="button"
+            data-testid="card-refresh"
+            title={`Look again — ${card.key}`}
+            aria-label={card.key}
+            onClick={() => onSendCommand(card.key)}
+            onMouseEnter={() => preview(card.key)}
+            onMouseLeave={() => preview(null)}
+          >
+            <span data-testid="card-taken">{takenLabel(card.takenAt)}</span>
+          </Taken>
         )}
-        <Reason data-testid="card-hold-reason">{cardReason(card)}</Reason>
+        {docked ? null : <Reason data-testid="card-hold-reason">{cardReason(card)}</Reason>}
         {/*
           ⚠ A released husk keeps no controls. Pinning or refreshing
           something the world has already ended would promise to act on
@@ -271,44 +370,92 @@ export function Card({
           do what it says. Close stays, because dismissing the husk is
           still a thing you can do to it.
         */}
+        {/*
+          ⭐ Four controls, the owner's: BIGGER and SMALLER walk one ladder
+          — tray ← card ← medium ← maximized — so there is no separate
+          minimize with rules of its own; smaller from a plain card puts
+          it in the tray. Then pin and close. Each is a real `cockpit card`
+          command the status bar previews. Bigger stays in place, dimmed,
+          at the top of the ladder, so the buttons never shuffle.
+        */}
+        {docked ? null : (
         <Controls>
-          {!faded && refresh && (
+          {!faded && (
             <IconButton
-              data-testid="card-refresh"
-              title={`Click to send: ${refresh}`}
-              aria-label={refresh}
-              onClick={() => onSendCommand(refresh)}
-              onMouseEnter={() => preview(refresh)}
+              data-testid="card-grow"
+              title={size === "full" ? "As big as it gets" : `Bigger — ${grow}`}
+              aria-label={grow}
+              disabled={size === "full"}
+              onClick={() => onSendCommand(grow)}
+              onMouseEnter={() => preview(size === "full" ? null : grow)}
               onMouseLeave={() => preview(null)}
             >
-              ↻
+              <Icon name="card.bigger" label="bigger" size={14} decorative />
+            </IconButton>
+          )}
+          {!faded && card.role !== "primary" && (
+            <IconButton
+              data-testid="card-shrink"
+              title={size === "unit" || size === "line" ? `Smaller — into the tray (${shrink})` : `Smaller — ${shrink}`}
+              aria-label={shrink}
+              onClick={() => onSendCommand(shrink)}
+              onMouseEnter={() => preview(shrink)}
+              onMouseLeave={() => preview(null)}
+            >
+              <Icon name="card.smaller" label="smaller" size={14} decorative />
             </IconButton>
           )}
           {!faded && (
             <IconButton
+              data-testid="card-pin"
               $on={card.pinned}
-              title={`Click to send: ${command}`}
+              title={card.pinned ? `Pinned — ${command}` : `Pin — ${command}`}
               aria-label={command}
               onClick={() => onSendCommand(command)}
               onMouseEnter={() => preview(command)}
               onMouseLeave={() => preview(null)}
             >
-              {label}
+              <Icon name="card.pin" label="pin" size={14} decorative />
             </IconButton>
           )}
-          <IconButton
-            data-testid="card-close"
-            title={`Click to send: ${close}`}
-            aria-label={close}
-            onClick={() => onSendCommand(close)}
-            onMouseEnter={() => preview(close)}
-            onMouseLeave={() => preview(null)}
-          >
-            ×
-          </IconButton>
+          {faded ? (
+            <IconButton
+              data-testid="card-close"
+              title="Clear it from the trail"
+              aria-label="clear"
+              onClick={() => dropCard(card.instanceId)}
+            >
+              <Icon name="card.close" label="close" size={14} decorative />
+            </IconButton>
+          ) : card.role !== "primary" ? (
+            <IconButton
+              data-testid="card-close"
+              title={`Close — ${close}`}
+              aria-label={close}
+              onClick={() => onSendCommand(close)}
+              onMouseEnter={() => preview(close)}
+              onMouseLeave={() => preview(null)}
+            >
+              <Icon name="card.close" label="close" size={14} decorative />
+            </IconButton>
+          ) : null}
         </Controls>
+        )}
       </Head>
-      <CardBodyBoundary cardId={card.cardId}>{children}</CardBodyBoundary>
+      <Body ref={bodyRef} $cut={cut} data-testid="card-body">
+        <CardBodyBoundary cardId={card.cardId}>{children}</CardBodyBoundary>
+      </Body>
+      {cut && overflowing && !faded ? (
+        <CutNote
+          type="button"
+          data-testid="card-cut"
+          onClick={() => onSendCommand(grow)}
+          onMouseEnter={() => preview(grow)}
+          onMouseLeave={() => preview(null)}
+        >
+          Cut to fit · larger ▸
+        </CutNote>
+      ) : null}
     </Shell>
   );
 }

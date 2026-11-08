@@ -2,6 +2,7 @@ verbs: [settings]
 category: shell
 controller: /platform/idea/cmd/shell/SettingsController
 description: "Manage your declared settings"
+opens_card: settings
 help: |
   Settings are the named knobs that tune how the game behaves for
   you — things like which tree your shell verbs default to or how

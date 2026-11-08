@@ -295,12 +295,12 @@ describe('repair W0 — a part carries its own state in and out of a whole', () 
     expect(found.edgedLines().map((l) => l.part)).toEqual(['blade']);
   });
 
-  it('⭐ a thing with no bill is ONE piece, says so, and keeps its name on itself', () => {
+  it('⭐ a thing with no bill is ONE piece, says nothing about it (client-surface D10), and keeps its name on itself', () => {
     const knife = makeStuff(() => new TestPart());
     knife.setShortDescription('a knife');
     expect(knife.isOnePiece()).toBe(true);
     expect(knife.getParts()).toEqual([]);
-    expect(knife.getMarkupLong(knife)).toMatch(/It is one piece\./);
+    expect(knife.getMarkupLong(knife)).not.toMatch(/one piece/);
     knife.setName('Sting');
     expect(knife.getName()).toBe('Sting');
     expect(knife.getPresentation()).toBe('Sting');

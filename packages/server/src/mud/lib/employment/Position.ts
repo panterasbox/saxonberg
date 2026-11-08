@@ -173,6 +173,15 @@ export interface PositionData {
    * check anywhere reads the seat — the LOCK is the gate.
    */
   keys?: readonly SeatKey[];
+  /**
+   * ⭐ What the holder is doing, while on shift — their STATUS line
+   * (`StatusMixin`): *"behind the bar"*, *"at the stove"*, *"at the
+   * window"*. Set when the shift begins and cleared when it ends, so the
+   * room's roll-call reads *"Remy, behind the bar"* for exactly as long as
+   * it is true (owner, 2026-11-01: a status, not a special case for one
+   * venue). Absent = the seat says nothing about its holder.
+   */
+  onShiftStatus?: string;
 }
 
 /** One key a seat carries: the keyway it cuts and the lock technology it fits. */
@@ -205,6 +214,8 @@ export class Position {
     public readonly noun?: string,
     /** The keys a holder is issued at `clock on`. See {@link PositionData.keys}. */
     public readonly keys: readonly SeatKey[] = [],
+    /** The holder's status line while on shift. See {@link PositionData.onShiftStatus}. */
+    public readonly onShiftStatus?: string,
   ) {}
 
   /** Build a Position from an already-typed descriptor. */
@@ -221,6 +232,7 @@ export class Position {
       Position.coerceRequires(data.requires),
       data.noun,
       Position.coerceKeys(data.keys),
+      data.onShiftStatus,
     );
   }
 
@@ -258,6 +270,9 @@ export class Position {
         ? data.noun
         : undefined,
       Position.coerceKeys(data.keys),
+      typeof data.onShiftStatus === 'string' && data.onShiftStatus.trim().length > 0
+        ? data.onShiftStatus.trim()
+        : undefined,
     );
   }
 
@@ -416,6 +431,7 @@ export class Position {
       ...(this.requires ? { requires: { ...this.requires } } : {}),
       ...(this.noun ? { noun: this.noun } : {}),
       ...(this.keys.length > 0 ? { keys: this.keys.map((k) => ({ ...k })) } : {}),
+      ...(this.onShiftStatus ? { onShiftStatus: this.onShiftStatus } : {}),
     };
   }
 }

@@ -32,7 +32,7 @@ const KEY_SEEDED = 'console.seededViews';
  * all treated the same."* One list, one kind of thing.
  */
 /**
- * ⭐ The views a player starts with — **just `Aether`**.
+ * ⭐ The views a player starts with — **just `Chat`**.
  *
  * ⚠ `All` is deliberately absent: it is the absence of a filter, not a
  * member of this list. It renders as a locked structural entry in the
@@ -209,7 +209,7 @@ export function getActiveFacetFilter(): FacetFilter {
  *
  * ⚠⚠ **Additive, once, and it never overwrites.** The previous version
  * re-applied the shipped filter every time you SELECTED the view, which
- * made `Aether` and `Diag` silently un-editable: tune one, click away,
+ * made `Chat` and `Diag` silently un-editable: tune one, click away,
  * click back, and your change was gone. That is the behaviour that made
  * them feel like a different kind of thing from a view you made
  * yourself. They are not, and now nothing treats them as such.

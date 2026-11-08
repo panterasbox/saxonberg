@@ -18,6 +18,11 @@
  *   the alternative is a hex literal loose in `relayTemplate`, and an
  *   evasion is worse than a home.
  *
+ * - **The terminal's ground.** A near-black neutral gray in every theme,
+ *   by the owner's call (2026-10-31): a player who colours their text
+ *   blue should not find it fighting a blue ground. A neutral reads the
+ *   same under any colour; pure black was judged too stark.
+ *
  * Each theme spreads this record into its own `ground`, so a theme
  * *could* override an entry — but doing so is a visible line in a diff
  * that says "this theme repaints the flag", which is the point.
@@ -30,6 +35,13 @@ export const INVARIANT_GROUND = {
   /** Old Glory Red, PMS 193 C. Never touches blue without white. */
   red: "#BF0A30",
   white: "#FFFFFF",
+  /** The terminal's ground — a neutral near-black in every theme. */
+  "terminal-ground": "#121212",
+  /**
+   * ⚠ And so its text is light in every theme: marble's dark ink on a
+   * near-black ground is unreadable (the contrast gate caught it).
+   */
+  "terminal-fg": "#f2f5fa",
   /**
    * ⚠ Google's mark is multicolour; this is its blue, used for the
    * glyph's dominant stroke. The others are single-colour brands.

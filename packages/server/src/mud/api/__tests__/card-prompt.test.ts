@@ -17,7 +17,8 @@
  */
 
 import '../../../test-bootstrap';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { ExecutionContextApi } from '../execution-context';
 import { CardApi } from '../card';
 import { PromptApi } from '../prompt';
 import { StuffApi } from '../stuff';
@@ -155,5 +156,33 @@ describe('a prompt card holds until it is answered', () => {
 
     h.interactive.handlePromptResponse({ promptId, response: 'yes' });
     await answer;
+  });
+});
+
+describe('a prompt belongs to the bar that asked (client-surface D6, #97)', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+    ShadowApi._clearAllForTesting();
+    EventApi._clearAllForTesting();
+    MqlSubscriptionApi._clearAllForTesting();
+    PromptApi._clearAllForTesting();
+    CardApi._clearAllForTesting();
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it('⭐ the prompt envelope carries the asking command\'s barId', async () => {
+    const h = await makeHarness();
+    vi.spyOn(ExecutionContextApi, 'getCommandStack').mockReturnValue([
+      { context: { barId: 'bar-2', commandText: 'buy loaf' }, forced: false },
+    ] as never);
+    void h.interactive.promptConfirm('Proceed?');
+    expect(h.ofType('prompt')[0]!.barId).toBe('bar-2');
+  });
+
+  it('a prompt no bar asked carries none — the primary takes it', async () => {
+    const h = await makeHarness();
+    vi.spyOn(ExecutionContextApi, 'getCommandStack').mockReturnValue([]);
+    void h.interactive.promptConfirm('Proceed?');
+    expect(h.ofType('prompt')[0]!.barId).toBeUndefined();
   });
 });

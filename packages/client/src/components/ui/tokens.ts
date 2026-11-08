@@ -49,6 +49,10 @@ export const tokens = {
     surfaceAlt: SX.raised,
     surfaceMuted: SX.ground,
     surfaceSunken: SX.sunken,
+    /** The terminal's ground: a neutral near-black in every theme. */
+    terminal: SX["terminal-ground"],
+    /** Text on the terminal's ground — light in every theme. */
+    terminalFg: SX["terminal-fg"],
     fg: SX.fg,
     // ⭐ The three-level text hierarchy the chrome build needed:
     // `fg` (what you are reading) → `fgDim` (present, secondary — a
@@ -114,6 +118,17 @@ export const tokens = {
   // `paletteFor(token)` falls back to `neutral` for an unknown token.
   // 1:1 with the ground's `tint-*` tier, which is what keeps the
   // server's token vocabulary and the ground's in step.
+  /**
+   * ⭐ What class of thing a card is about (the client-surface design's
+   * kind colours): location teal, agent blue, thing brass, idea violet —
+   * the ground's own roles, so every theme carries them.
+   */
+  kind: {
+    location: SX.good,
+    agent: SX.info,
+    thing: SX.accent,
+    idea: SX["tint-violet"],
+  },
   palette: {
     amber: SX["tint-amber"],
     teal: SX["tint-teal"],
@@ -216,7 +231,43 @@ export const tokens = {
    * would make two unrelated decisions look like one.
    */
   breakpoint: {
+    /** ⚠ Superseded by `tier.phone` (47.5rem = 760px at 16px); kept for
+     *  the readers that still quote it in pixels. */
     compact: "760px",
+  },
+  /**
+   * ⭐⭐ **Width classes, in rem** (client-surface D9). Every breakpoint
+   * and the terminal cap are rem, so window size, browser zoom and a
+   * future font-size setting are one case: at 150% zoom a 1920 screen IS
+   * a 1280 screen to CSS. Numbers are the slate's (rail 56, panel 240,
+   * terminal 704, unit ≥ 352, gaps 12, at 16px).
+   */
+  width: {
+    /** The nav rail. */
+    rail: 3.5,
+    /** The mode panel — a region of cards. */
+    panel: 15,
+    /** A card-area column: stretches from min to max to absorb slack. */
+    unit: { min: 22, max: 28 },
+    /** The terminal column, padding included. */
+    measure: 44,
+    /** The terminal's TEXT — about 90 characters of Newsreader. */
+    textMeasure: 42,
+    /** The gap between columns. */
+    gap: 0.75,
+    /** The terminal strip under a full card: 3–4 lines and the bar. */
+    strip: 8.25,
+  },
+  /**
+   * The tier thresholds, in rem: phone below 47.5 (its own design),
+   * narrow (terminal + a glance strip), feed (one unit), workspace (2–3),
+   * wide (4+).
+   */
+  tier: {
+    phone: 47.5,
+    narrow: 68.75,
+    feed: 103.125,
+    workspace: 143.75,
   },
 } as const;
 

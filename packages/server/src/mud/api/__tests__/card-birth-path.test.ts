@@ -125,7 +125,7 @@ describe('a card is born on the server, or not at all', () => {
       if (rel === 'mud/platform/idea/Interactive.ts') continue;
       const text = readFileSync(file, 'utf8');
       for (const m of text.matchAll(
-        /CardApi\.open\(|\.(pushCard|applyCardArrangement)\(/g,
+        /CardApi\.open\(|\.(pushCard|applyCardArrangement|showInTerminal)\(/g,
       )) {
         sites.push(`${rel}:${m[0].startsWith('CardApi') ? 'open' : m[1]!}`);
       }
@@ -182,9 +182,15 @@ describe('a card is born on the server, or not at all', () => {
         'mud/platform/idea/cmd/author/StudioController.ts:open',
         'mud/platform/idea/cmd/perception/LookController.ts:open',
         'mud/platform/idea/cmd/perception/LookController.ts:open',
+        // ⭐ `map` opens the navigator (client-surface, 2026-11-01).
+        'mud/platform/idea/cmd/perception/MapController.ts:open',
         'mud/platform/idea/cmd/perception/SenseController.ts:open',
         'mud/platform/idea/cmd/shell/CockpitModeController.ts:applyCardArrangement',
+        // ⭐ client-surface D6/D10: a terminal is a card, opened by
+        // `cockpit terminal`; settings are a card, opened by `settings`.
+        'mud/platform/idea/cmd/shell/CockpitTerminalController.ts:showInTerminal',
         'mud/platform/idea/cmd/shell/LayoutController.ts:applyCardArrangement',
+        'mud/platform/idea/cmd/shell/SettingsController.ts:open',
         'mud/platform/idea/cmd/social/WhoController.ts:open',
         'mud/platform/idea/cmd/system/GitController.ts:open',
         'mud/platform/idea/cmd/system/HelpController.ts:open',
@@ -240,7 +246,10 @@ describe('a card is born on the server, or not at all', () => {
         'cms',
         'git',
         'help',
+        // ⭐ `map` opens the navigator (client-surface, 2026-11-01).
+        'map',
         'news',
+        'settings',
         'stock',
         'studio',
         'subject',
@@ -328,7 +337,7 @@ describe('a declared card is a reachable card', () => {
     // Named in a shipped arrangement — pushed at login / mode switch.
     for (const byArrangement of Object.values(SHIPPED_ARRANGEMENT_CARDS)) {
       for (const list of Object.values(byArrangement)) {
-        for (const id of list) born.add(id);
+        for (const c of list) born.add(typeof c === 'string' ? c : c.cardId);
       }
     }
 
@@ -352,6 +361,9 @@ describe('a declared card is a reachable card', () => {
       )) {
         born.add(m[1]!);
       }
+      // ⭐ A terminal is born by `cockpit terminal` and by every mode
+      // entry (the primary) — `showInTerminal` / the mode's filter.
+      if (/\.showInTerminal\(/.test(text)) born.add('terminal');
     }
 
     const orphans = CARD_IDS.filter((id) => !born.has(id));

@@ -123,7 +123,9 @@ export const GROUND_ROLES = [
   "tint-emerald",
   "tint-sky",
   "tint-neutral",
-  // ── Tier 3 — invariant platform marks
+  // ── Tier 3 — invariant: the terminal's ground, then the platform marks
+  "terminal-ground",
+  "terminal-fg",
   "brand-google",
   "brand-twitch",
   "brand-youtube",

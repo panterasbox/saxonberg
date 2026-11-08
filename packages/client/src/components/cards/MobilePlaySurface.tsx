@@ -103,7 +103,9 @@ export function PinnedChipRow({
    * yours to release — and hiding the chip would strand it with no way
    * to un-pin. Verified at 390px.
    */
-  const pinned = Object.values(cards).filter((c) => c.pinned);
+  // ⛔ Not the primary terminal: it is the stage itself, not a pin you
+  // could release (its unpin is refused), so a chip for it was noise.
+  const pinned = Object.values(cards).filter((c) => c.pinned && c.role !== "primary");
   if (pinned.length === 0) return null;
   return (
     <Chips data-testid="pinned-chip-row">
@@ -118,9 +120,9 @@ export function PinnedChipRow({
         return (
           <Chip
             key={card.instanceId}
-            aria-label={`cockpit card auto ${ref}`}
-            title={`Click to send: cockpit card auto ${ref}`}
-            onClick={() => onSendCommand(`cockpit card auto ${ref}`)}
+            aria-label={`cockpit card unpin ${ref}`}
+            title={`Click to send: cockpit card unpin ${ref}`}
+            onClick={() => onSendCommand(`cockpit card unpin ${ref}`)}
           >
             ⚲ {name}
           </Chip>

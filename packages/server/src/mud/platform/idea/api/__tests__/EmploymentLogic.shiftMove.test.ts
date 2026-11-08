@@ -32,6 +32,7 @@ import { Quantity } from '../../../../lib/quantity';
 import BusinessEntity from '../../Business';
 import Offstage from '../../../location/Offstage';
 import { EmployedMixin } from '../../../../lib/employment/Employed';
+import { StatusMixin } from '../../../../lib/status/Status';
 import { MobileMixin } from '../../../../lib/spatial/Mobile';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
@@ -74,7 +75,7 @@ interface World {
 }
 
 function seed(
-  opts: { offstage?: string; station?: string; proprietor?: boolean } = {},
+  opts: { offstage?: string; station?: string; proprietor?: boolean; onShiftStatus?: string } = {},
 ): World {
   const b = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
   b.banksAt = BankingApi.defaultCustodianBank();
@@ -84,6 +85,7 @@ function seed(
       label: 'tending bar',
       wageRate: 12,
       fulfills: ['bartending'],
+      ...(opts.onShiftStatus ? { onShiftStatus: opts.onShiftStatus } : {}),
     },
   ];
   b.rosterSlots = [
@@ -441,4 +443,43 @@ describe('⚠⚠ a FIXTURE in operatingLocations is not a place to stand', () =>
       'and no second counter was minted at that path',
     ).toBe((counter as unknown as Stuff).stuffId);
   });
+
+  it('⭐ the seat\'s status is the holder\'s while on shift, and goes when the shift does', async () => {
+    class StatusWorker extends StatusMixin(EmployedMixin(MobileMixin(ContainableMixin(Idea)))) {
+      static _mixinName = 'StatusWorker';
+    }
+    const { rooms } = seed({ offstage: OFFSTAGE, onShiftStatus: 'behind the bar' });
+    const mara = makeStuffAtPath(() => new StatusWorker(), MARA);
+    ContainmentApi.move(mara as never, rooms.get(OFFSTAGE) as never);
+
+    atClock(2, 10); // on shift
+    EmploymentApi.tickRoster();
+    await settle();
+    expect(mara.getStatus()).toBe('behind the bar');
+
+    atClock(2, 15); // off shift
+    EmploymentApi.tickRoster();
+    await settle();
+    expect(mara.getStatus()).toBe('');
+  });
+
+  it('⭐ a hand already off shift, standing in the bar after a restart, is parked once', async () => {
+    const { rooms } = seed({ offstage: OFFSTAGE });
+    const mara = makeStuffAtPath(() => new Worker(), MARA);
+    // Where the room's `cast:` spawned her at boot — in the bar, off shift.
+    ContainmentApi.move(mara as never, rooms.get(BAR) as never);
+
+    atClock(2, 18); // Wednesday 18:00 — off shift; nothing transitions
+    EmploymentApi.tickRoster();
+    await settle();
+    expect(mara.getContainer()?.stuffId).toBe(rooms.get(OFFSTAGE)!.stuffId);
+
+    // …once: walk her back in and the next tick leaves her be.
+    ContainmentApi.move(mara as never, rooms.get(BAR) as never);
+    atClock(2, 19);
+    EmploymentApi.tickRoster();
+    await settle();
+    expect(mara.getContainer()?.stuffId).toBe(rooms.get(BAR)!.stuffId);
+  });
 });
+

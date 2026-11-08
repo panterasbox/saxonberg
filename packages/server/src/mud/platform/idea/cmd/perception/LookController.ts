@@ -33,6 +33,7 @@ import { MqlApi, type MqlOneResult } from '../../../../api/mql';
 import InventoryController from '../inventory/InventoryController';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
+import { Postures } from '../../../../lib/slot/Postured';
 import { StuffApi } from '../../../../api/stuff';
 import { ChattelApi } from '../../../../api/chattel';
 import { ContainmentApi } from '../../../../api/containment';
@@ -44,6 +45,7 @@ import { PerceptionApi } from '../../../../api/perception';
 import { FireApi } from '../../../../api/fire';
 import { SocialApi } from '../../../../api/social';
 import { Mml } from '../../../../api/mml';
+import type { LookSegment, SegmentItem, SegmentSource } from '@saxonberg/types';
 import type Exit from '../../../../lib/boundary/Exit';
 import {
   LIGHT_BAND_PHRASE,
@@ -74,6 +76,11 @@ const LOOK_INLINE = 4;
 const ROOM_LISTING = 'here:i:visible:[not mixin.AdornmentMixin] - me';
 
 export default class LookController extends CommandController<LookModel> {
+  /** A segment source for one of `look`'s own sections. */
+  private static lookSource(name: string): SegmentSource {
+    return { kind: 'look', name };
+  }
+
   execute(model: LookModel, context: CommandContext): void | Promise<void> {
     const target = model.target;
     const raw = target?.raw ?? '';
@@ -293,18 +300,26 @@ export default class LookController extends CommandController<LookModel> {
     // ride the same pipeline. Re-narrow `location` with
     // `MixinApi.isVisible` here so the call site has the static
     // `Visible` type — `hasVisible` above is just a flag.
-    const longText = MixinApi.isVisible(location)
-      ? location.getMarkupLong(actor).replace(/\s+$/, '')
-      : '';
+    // ⭐ The card's SEGMENTS are built in step with `body` (client-surface
+    // D1/D2): every line appended to the terminal's body pushes the same
+    // line, by shape and source. The name is the card's header, not a
+    // segment.
+    const segments: LookSegment[] = [];
+    const long = MixinApi.isVisible(location)
+      ? location.getSegmentedLong(actor)
+      : { text: '', segments: [] };
+    const longText = long.text.replace(/\s+$/, '');
     let body = Mml.compose`${Mml.location(location)}`;
     if (hasVisible) {
       body = Mml.compose`${body}\n${Mml.fromMarkup(longText)}`;
+      segments.push(...long.segments);
     }
     // Surface-bulk: a puddle pooling on the floor surfaces in the room
     // view (the floor is an Adornment, excluded from the contents list).
     const puddle = BulkableApi.floorPuddleSummary(location);
     if (puddle) {
       body = Mml.compose`${body}\n${puddle}`;
+      segments.push({ shape: 'state', sources: [LookController.lookSource('Floor')], text: puddle });
     }
     // ⭐⭐ The help-wanted sign (trades-and-labor D11). Derived: there is
     // no sign OBJECT and no mixin, so a venue with an open seat CANNOT
@@ -341,6 +356,18 @@ export default class LookController extends CommandController<LookModel> {
       const exitsLine = this.formatExits(perceived);
       if (exitsLine) {
         body = Mml.compose`${body}\n${exitsLine}`;
+        segments.push({
+          shape: 'list',
+          heading: 'Obvious exits',
+          sources: [LookController.lookSource('Obvious exits')],
+          text: this.render(exitsLine, actor),
+          items: perceived.map((exit) => ({
+            stuffId: exit.stuffId,
+            label: exit.getDirection(),
+            keyword: exit.getDirection(),
+            count: 1,
+          })),
+        });
       }
     }
     if (visibleContents.length > 0) {
@@ -357,19 +384,40 @@ export default class LookController extends CommandController<LookModel> {
         // and returns a Mml already resolved for `actor` — the single known
         // viewer of this `toSelf` render.
         const occupants = topLevel.filter((item) => MixinApi.isOrganism(item));
-        const items = topLevel.filter((item) => !MixinApi.isOrganism(item));
-        const segments: Mml[] = [];
+        // ⭐ A seat somebody is sitting on is named in THEIR line
+        // ("Mara, seated on a bar stool"); only the empty ones are things
+        // here, so "+5 more" counts the stools you could take.
+        const seats = new Set(
+          occupants.flatMap((o) => {
+            const rest = MixinApi.isPosed(o) ? o.currentRest() : null;
+            return rest ? [rest.host.stuffId] : [];
+          }),
+        );
+        const items = topLevel.filter((item) => !MixinApi.isOrganism(item) && !seats.has(item.stuffId));
+        /*
+         * ⭐ PEOPLE and THINGS are two lines (owner, 2026-11-01): the bar's
+         * one "You also see" ran five people into thirteen fixtures. Who is
+         * here is its own question — the place-surfaces slate's
+         * presentation tiers (*who is here* · *what is here*) — and the
+         * terminal and the card get the same two lines.
+         */
         if (occupants.length > 0) {
           // ⭐ Both paths render the same FORM now. The rich composer
           // (players) and the plain list (everyone else) used to differ
           // in what they showed — status or no status — because only the
           // eager path could afford it. Which form a surface gets is the
           // surface's choice, not a consequence of who is looking.
-          segments.push(
-            MixinApi.isNotifyPolicy(actor)
-              ? await actor.composeOccupants(occupants, occupants.length)
-              : Mml.list(occupants.map((o) => Mml.actor(o, { form: 'presence' }))),
-          );
+          const who = MixinApi.isNotifyPolicy(actor)
+            ? await actor.composeOccupants(occupants, occupants.length)
+            : Mml.list(occupants.map((o) => Mml.actor(o, { form: 'presence' })));
+          body = Mml.compose`${body}\n── Here: ${who}.`;
+          segments.push({
+            shape: 'list',
+            heading: 'Here',
+            sources: [LookController.lookSource('Here')],
+            text: this.render(Mml.compose`── Here: ${who}.`, actor),
+            items: occupants.map((o) => this.personOf(o, actor)),
+          });
         }
         if (items.length > 0) {
           // ⚠⚠ **Resolved NOW, viewer-blind — and that is not laziness,
@@ -389,14 +437,20 @@ export default class LookController extends CommandController<LookModel> {
           // late binding to add — an inert thing has no recognition.
           // ⭐ The two gates disagreeing is a real finding and is
           // recorded; it is not this build's to settle.
-          segments.push(
-            Mml.fromMarkup(
-              Mml.list(items.map((item) => Mml.thing(item))).toString(),
-            ),
-          );
+          // ⭐ Identical things GROUP (client-surface D2, #71/#76): a shelf
+          // of fourteen bottles is "14 bottles of gin", one chip that
+          // expands, not fourteen words.
+          const grouped = this.groupForList(items, actor, (item) => Mml.thing(item));
+          const seen = Mml.fromMarkup(Mml.list(grouped.parts).toString());
+          body = Mml.compose`${body}\n── You also see: ${seen}.`;
+          segments.push({
+            shape: 'list',
+            heading: 'You also see',
+            sources: [LookController.lookSource('You also see')],
+            text: this.render(Mml.compose`── You also see: ${seen}.`, actor),
+            items: grouped.items,
+          });
         }
-        const seen = Mml.list(segments);
-        body = Mml.compose`${body}\n── You also see: ${seen}.`;
       }
     }
 
@@ -417,12 +471,32 @@ export default class LookController extends CommandController<LookModel> {
       const tell = MixinApi.isConcealable(cand)
         ? cand.getConcealmentHint()
         : undefined;
-      body = Mml.compose`${body}\n${
-        tell
-          ? Mml.fromMarkup(tell)
-          : Mml.compose`Something here doesn't sit quite right.`
-      }`;
+      const hint = tell
+        ? Mml.fromMarkup(tell)
+        : Mml.compose`Something here doesn't sit quite right.`;
+      body = Mml.compose`${body}\n${hint}`;
+      segments.push({ shape: 'notice', sources: [LookController.lookSource('Hints')], text: this.render(hint, actor) });
     }
+
+    // ⭐ The light, the tint and the notices are printed as their own
+    // scenes (below) and are NOTICE segments on the card — every line the
+    // terminal prints, the card says (AC 6), in the order printed.
+    const bandPhrase = band ? LIGHT_BAND_PHRASE[band] : null;
+    const tintLine = this.tintLineAt(location, band);
+    const cardSegments: LookSegment[] = [
+      ...(bandPhrase
+        ? [{ shape: 'notice' as const, sources: [LookController.lookSource('Light')], text: bandPhrase }]
+        : []),
+      ...(tintLine
+        ? [{ shape: 'notice' as const, sources: [LookController.lookSource('Light')], text: this.render(tintLine, actor) }]
+        : []),
+      ...segments,
+      ...notices.map((opening) => ({
+        shape: 'notice' as const,
+        sources: [LookController.lookSource('Notices')],
+        text: this.render(Mml.compose`A notice here: ${opening.describe()}`, actor),
+      })),
+    ];
 
     /*
      * ⚠⚠ **Open the card FIRST, then say whether the frame is carded.**
@@ -435,6 +509,7 @@ export default class LookController extends CommandController<LookModel> {
      */
     const opened = CardApi.open(context, 'subject', {
       prose: body,
+      segments: cardSegments,
       subjectId: location.stuffId,
     });
 
@@ -446,7 +521,6 @@ export default class LookController extends CommandController<LookModel> {
     // folding it in would reach the wire and be invisible in a browser —
     // the defect the trades-and-labor drive found for the help-wanted
     // sign, not repeated here.
-    const bandPhrase = band ? LIGHT_BAND_PHRASE[band] : null;
     if (bandPhrase) {
       MessageApi.scene(actor)
         .topic('sense.survey')
@@ -461,7 +535,6 @@ export default class LookController extends CommandController<LookModel> {
     // (which never renders handed prose) and vanish from a browser.
     // Only when the cast is deep enough to be worth a sentence, and only
     // when the place is light enough to describe at all.
-    const tintLine = this.tintLineAt(location, band);
     if (tintLine) {
       MessageApi.scene(actor).topic('sense.survey').toSelf(tintLine).send();
     }
@@ -624,7 +697,26 @@ export default class LookController extends CommandController<LookModel> {
     // bare `look` ship the same affordance-annotated text. (A
     // consumable's nutrition label rides this augmenter seam via
     // `NutritionLabelMixin`, not a special-case here.)
-    let body = Mml.compose`\n${Mml.actor(target)}\n\n${Mml.fromMarkup(target.getMarkupLong(actor))}\n`;
+    // ⭐ Every section below opens on its own line (`\n── …`): the body
+    // carries no trailing newline, so the first section and the tenth are
+    // joined the same way (slate bug 9 — every `──` after the first ran
+    // onto the previous line).
+    const long = target.getSegmentedLong(actor);
+    let body = Mml.compose`\n${Mml.actor(target)}\n\n${Mml.fromMarkup(long.text)}`;
+    // ⭐ The card's segments, built in step with `body` (client-surface
+    // D1/D2) — the name is the card's header.
+    const segments: LookSegment[] = [...long.segments];
+    const section = (line: Mml, seg: Omit<LookSegment, 'text'>): void => {
+      body = Mml.compose`${body}\n${line}`;
+      segments.push({ ...seg, text: this.render(line, actor) });
+    };
+
+    // ⭐ What a PERSON is doing (client-surface D10, #74) — status, a
+    // posture other than standing, what occupies them, and whether they
+    // are here at all. Composed from what they already say about
+    // themselves; nothing new is stored.
+    const presence = target.isAgent() ? this.presenceLine(target) : null;
+    if (presence) section(Mml.compose`${presence}`, { shape: 'state', sources: [LookController.lookSource('Presence')] });
 
     // Drill-in: examining a placement host reveals what is placed on it
     // (the back-bar's bottles + tools) — the discovery path that keeps them
@@ -634,15 +726,22 @@ export default class LookController extends CommandController<LookModel> {
       for (const member of target.getPlacements()) {
         const placed = target.getPlaced(member);
         if (placed.length === 0) continue;
-        // A person sitting on a stool is placed on a host too.
-        const list = Mml.list(placed.map((r) => Mml.actor(r)));
+        // A person sitting on a stool is placed on a host too. Identical
+        // things group (D2), so a back-bar of fourteen bottles is one chip.
+        const grouped = this.groupForList(placed, actor, (r) => Mml.actor(r));
+        const list = Mml.list(grouped.parts);
         // ⭐ The heading is the MEMBER's, off its own `Placement` row —
         // so a hook says "Hanging from it" where a shelf says "On it",
         // with nothing here knowing the difference. A member with no
         // live row falls back rather than printing nothing.
         const heading =
           ContainmentApi.placement(member)?.getHeading() || 'With it';
-        body = Mml.compose`${body}── ${heading}: ${list}.`;
+        section(Mml.compose`── ${heading}: ${list}.`, {
+          shape: 'list',
+          heading,
+          sources: [LookController.lookSource(heading)],
+          items: grouped.items,
+        });
       }
     }
     // A stamped good says whose it is — the bottle bought for the bar
@@ -655,7 +754,12 @@ export default class LookController extends CommandController<LookModel> {
           ? StuffApi.findByTemplatePath(owner.templatePath)
           : null;
       if (holder) {
-        body = Mml.compose`${body}── Owned by ${holder.getPresentation()}.`;
+        section(Mml.compose`── Owned by ${holder.describeFor(actor)}.`, {
+          shape: 'list',
+          heading: 'Owned by',
+          sources: [LookController.lookSource('Owned by')],
+          items: [this.itemOf(holder, actor)],
+        });
       }
     }
     // A display reads what it shows — the booth's television, the house
@@ -663,9 +767,11 @@ export default class LookController extends CommandController<LookModel> {
     // screen renders itself: `readScreen(viewer)` is the PROSE arm, and
     // it is per-viewer, so a board that annotates against the reader's
     // own credential resolves here rather than being pushed at the room.
+    // ⭐ A screen at rest is a fact too (client-surface B41): "dark" is
+    // what you would see, and the line is there either way.
     if (MixinApi.isDisplay(target)) {
-      const screen = await target.readScreen(actor);
-      if (screen) body = Mml.compose`${body}── ${screen}`;
+      const screen = (await target.readScreen(actor)) ?? Mml.compose`The screen is dark.`;
+      section(Mml.compose`── ${screen}`, { shape: 'state', sources: [LookController.lookSource('Screen')] });
     }
     // ⭐ What you would NOTICE it holding (maritime revision 2) — the ONE
     // visibility rule `inventory` reads too: on a person what they wear
@@ -683,9 +789,17 @@ export default class LookController extends CommandController<LookModel> {
         const shown = xs.slice(0, LOOK_INLINE).map((c) => Mml.actor(c));
         const more = xs.length - shown.length;
         const list = Mml.fromMarkup(Mml.list(shown, { style: 'inline' }).toString());
-        body = more > 0
-          ? Mml.compose`${body}── ${heading}: ${list}, and ${more} more ${more === 1 ? 'thing' : 'things'} — \`inventory ${keyword}\`.`
-          : Mml.compose`${body}── ${heading}: ${list}.`;
+        section(
+          more > 0
+            ? Mml.compose`── ${heading}: ${list}, and ${more} more ${more === 1 ? 'thing' : 'things'} — \`inventory ${keyword}\`.`
+            : Mml.compose`── ${heading}: ${list}.`,
+          {
+            shape: 'list',
+            heading,
+            sources: [LookController.lookSource(heading)],
+            items: xs.map((c) => this.itemOf(c, actor)),
+          },
+        );
       };
       group('Wearing', v.worn);
       group('Holding', v.held);
@@ -707,17 +821,19 @@ export default class LookController extends CommandController<LookModel> {
         if (found.length > 0) {
           // What a search turns up is very often a HIDING PERSON.
           const noticed = Mml.list(found.map((f) => Mml.actor(f)));
-          body = Mml.compose`${body}\nLooking closely, you notice ${noticed}.`;
+          section(Mml.compose`Looking closely, you notice ${noticed}.`, {
+            shape: 'notice',
+            sources: [LookController.lookSource('Hints')],
+          });
         }
         for (const cand of PerceptionApi.hintsFor(actor, contents)) {
           const tell = MixinApi.isConcealable(cand)
             ? cand.getConcealmentHint()
             : undefined;
-          body = Mml.compose`${body}\n${
-            tell
-              ? Mml.fromMarkup(tell)
-              : Mml.compose`Something here almost catches your eye.`
-          }`;
+          section(
+            tell ? Mml.fromMarkup(tell) : Mml.compose`Something here almost catches your eye.`,
+            { shape: 'notice', sources: [LookController.lookSource('Hints')] },
+          );
         }
       }
     }
@@ -726,6 +842,7 @@ export default class LookController extends CommandController<LookModel> {
     const openedSubject = CardApi.open(context, 'subject', {
       subjectId: target.stuffId,
       prose: body,
+      segments,
     });
 
     const subjectScene = MessageApi.scene(actor).topic('sense.survey');
@@ -733,6 +850,118 @@ export default class LookController extends CommandController<LookModel> {
     subjectScene.toSelf(body).send();
 
     return;
+  }
+
+  /** A segment's text: the line, materialized for the one viewer it is for. */
+  private render(line: Mml, actor: Stuff): string {
+    return line.toString(actor as Stuff & Sensor);
+  }
+
+  /** One chip for a list segment — the thing as this viewer names it. */
+  private itemOf(x: Stuff, actor: Stuff): SegmentItem {
+    return {
+      stuffId: x.stuffId,
+      label: x.describeFor(actor),
+      keyword: MixinApi.isPerceptible(x) ? (x.getPrimaryKeyword() ?? '') : '',
+      count: 1,
+    };
+  }
+
+  /**
+   * A person's chip: their name, their status line, and what they rest on
+   * — the seat as its own chip, so both stay clickable.
+   */
+  private personOf(o: Stuff, actor: Stuff): SegmentItem {
+    const item = this.itemOf(o, actor);
+    const status = MixinApi.isStatus(o) ? o.getStatus() : '';
+    const rest = MixinApi.isPosed(o) ? o.currentRest() : null;
+    return {
+      ...item,
+      ...(status ? { status } : {}),
+      ...(rest ? { seat: { posture: rest.phrase, on: this.itemOf(rest.host, actor) } } : {}),
+    };
+  }
+
+  /**
+   * ⭐ Identical things in a list GROUP (client-surface D2, #71/#76): the
+   * same row, holding the same matter, is one entry — "a bottle of gin
+   * +5 more" — carrying its members so the card expands it in place. A
+   * person never groups; every person is somebody.
+   */
+  private groupForList(
+    xs: readonly Stuff[],
+    actor: Stuff,
+    ref: (x: Stuff) => Mml,
+  ): { parts: Mml[]; items: SegmentItem[] } {
+    const groups = new Map<string, Stuff[]>();
+    for (const x of xs) {
+      const tp = x.getTemplatePath();
+      const key =
+        x.isAgent() || !tp
+          ? `#${x.stuffId}`
+          : `${tp}|${MixinApi.isBulkable(x) ? (x.getBulkMaterialPath('interior') ?? '') : ''}`;
+      const g = groups.get(key);
+      if (g) g.push(x);
+      else groups.set(key, [x]);
+    }
+    const parts: Mml[] = [];
+    const items: SegmentItem[] = [];
+    for (const members of groups.values()) {
+      const first = members[0]!;
+      if (members.length === 1) {
+        parts.push(ref(first));
+        items.push(this.itemOf(first, actor));
+        continue;
+      }
+      /*
+       * ⭐ "a bar stool +5 more" (owner, 2026-11-01): ONE of them, by its
+       * own name and still a link, then how many more. A counted plural
+       * ("6 bar stools") named none of them and read like a different
+       * kind of thing.
+       */
+      const [, ...rest] = members;
+      const one = this.itemOf(first, actor);
+      parts.push(Mml.compose`${ref(first)} +${String(rest.length)} more`);
+      items.push({
+        ...one,
+        label: `${one.label} +${rest.length} more`,
+        count: members.length,
+        members: members.map((m) => this.itemOf(m, actor)),
+      });
+    }
+    return { parts, items };
+  }
+
+  /**
+   * ⭐ The presence line (client-surface D10, #74): what a person is doing,
+   * from what they already say — their status, a posture other than
+   * standing, the activities that occupy them, and `away` when linkdead.
+   */
+  private presenceLine(target: Stuff): string | null {
+    const parts: string[] = [];
+    if (MixinApi.isStatus(target)) {
+      const status = target.getStatus();
+      if (status) parts.push(status);
+    }
+    if (MixinApi.isPosed(target)) {
+      const posture = target.getPosture();
+      // ⚠ The stored value is the VERB form (`Postures.Stand` = 'stand'):
+      // comparing to 'standing' never matched, and every person card said
+      // "Now: stand." A resting body says what it rests on instead.
+      const rest = target.currentRest();
+      if (rest) parts.push(`${rest.phrase} ${rest.host.getPresentation()}`);
+      else if (posture && posture !== Postures.Stand) parts.push(posture);
+    }
+    if (MixinApi.isEngaged(target)) {
+      // The engagement's type is its activity, written as words.
+      for (const e of target.getEngagements()) {
+        const word = e.type.replace(/[-_.]+/g, ' ').trim();
+        if (word && !parts.includes(word)) parts.push(word);
+      }
+    }
+    if (MixinApi.isHasInteractive(target) && target.isLinkdead()) parts.push('away');
+    if (parts.length === 0) return null;
+    return `Now: ${parts.join(', ')}.`;
   }
 
   private formatExits(exits: readonly Exit[]): Mml | null {

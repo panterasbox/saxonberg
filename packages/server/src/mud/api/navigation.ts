@@ -29,6 +29,7 @@ import type { MapClaim, MapDocument } from '../lib/location/MapClaim';
 import type { RouteOutcome } from '../lib/location/RoutePlan';
 import type { TravelProfileSpec } from '../lib/location/TravelProfile';
 import type { ReachResult } from '../platform/idea/api/NavigationLogic';
+import type { Stuff } from '../lib/stuff/Stuff';
 
 /** Canonical direction names (long form). */
 /**
@@ -259,6 +260,7 @@ export class NavigationApi {
   public static detachStructure(extent: string, structure: Structure): void {
     logic().detachStructure(extent, structure);
   }
+
 
   /** Every node in one zone. */
   public static nodesInZone(zonePath: string): Promise<PlaceNode[]> {

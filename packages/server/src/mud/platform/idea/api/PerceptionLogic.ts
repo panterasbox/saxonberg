@@ -605,9 +605,7 @@ export class PerceptionLogic extends ApiLogic {
     const seen = (s: Stuff): boolean =>
       !MixinApi.isConcealable(s) || !s.isConcealed() || perceivesImpl(viewer, s);
     const own = viewer.stuffId === target.stuffId;
-    // A PERSON is an agent with slots; a rack is slotted and wears
-    // nothing, so it lists like any container.
-    const person = target.isAgent() && MixinApi.isSlotted(target);
+    const person = own || this.isAnotherPerson(viewer, target);
     const slotted = new Set<string>();
     if (person && MixinApi.isSlotted(target)) {
       for (const [slot, occupants] of target.getAllOccupants()) {
@@ -636,6 +634,14 @@ export class PerceptionLogic extends ApiLogic {
     // in view of anybody who can see into it.
     if (own || !person) out.carried.push(...loose);
     return out;
+  }
+
+  /** See {@link PerceptionApi.isAnotherPerson}. */
+  @CallSecurity(PerceptionApiCallers)
+  public isAnotherPerson(viewer: Stuff, target: Stuff): boolean {
+    // A PERSON is an agent with slots; a rack is slotted and wears
+    // nothing, so it lists like any container.
+    return viewer.stuffId !== target.stuffId && target.isAgent() && MixinApi.isSlotted(target);
   }
 
   /** See {@link PerceptionApi.glance}. */

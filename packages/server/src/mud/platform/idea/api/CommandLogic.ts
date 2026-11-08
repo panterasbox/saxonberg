@@ -1279,6 +1279,34 @@ export class CommandLogic extends ApiLogic {
     }
   }
 
+  /** See {@link CommandApi.objectCandidates}. */
+  @CallSecurity(CommandApiCallers)
+  public objectCandidates(
+    command: CommandDefinition,
+    field: string,
+    giver: Stuff & CommandGiver,
+  ): Stuff[] {
+    const def = command.args.find((a) => a.name === field) as
+      | { _requirementTerms?: RequirementTerm[]; scope?: string[] }
+      | undefined;
+    const terms = def?._requirementTerms ?? [];
+    // The field's own scope — `drop` offers your inventory, `get` what is
+    // around you. A `$var` scope (the focus chain) has no list of its
+    // own, so it widens to what is in reach.
+    const seeds = (def?.scope ?? []).filter((x) => !x.startsWith('$'));
+    const out = new Map<string, Stuff>();
+    for (const seed of seeds.length > 0 ? seeds : ['reachable']) {
+      try {
+        for (const s of MqlApi.resolveMany(seed, { commandGiver: giver, scope: '' }).stuff) {
+          out.set(s.stuffId, s);
+        }
+      } catch {
+        // A seed this giver cannot resolve offers nothing.
+      }
+    }
+    return [...out.values()].filter((s) => s !== giver && terms.every((t) => t.test(s)));
+  }
+
   /** See {@link CommandApi.preloadValidatorDeps}. */
   @CallSecurity(CommandApiCallers)
   public async preloadValidatorDeps(
@@ -2210,6 +2238,28 @@ const OBJECT_FIELD_TYPES = new Set(['object', 'objects']);
  * binds to what the verb is ABOUT, and that is a positional. An option
  * is a modifier the player types on purpose.
  */
+/**
+ * ⭐ The exact command an affordance stands for (#91): the verb and the
+ * target by `#id` — never a word, which could quietly resolve to some
+ * other thing in reach. The client sends it only when the player asked
+ * to skip the question (`cockpit style links ids`); by default a click
+ * sends the verb alone and the dispatcher asks "Ring what?".
+ *
+ * Only when the bound field is the verb's FIRST positional: a target in
+ * a later slot (`give <amount> <whom>`) has no correct one-word form, so
+ * the entry carries none rather than one the binder would misread.
+ */
+function affordanceCommand(
+  cmd: CommandDefinition,
+  verb: string,
+  bound: string | undefined,
+  target: Stuff,
+): string | undefined {
+  if (!bound) return verb;
+  if (cmd.args[0]?.name !== bound) return undefined;
+  return `${verb} #${target.stuffId}`;
+}
+
 function objectFields(cmd: CommandDefinition): string[] {
   const names: string[] = [];
   for (const arg of cmd.args) {
@@ -2276,7 +2326,15 @@ async function resolveAffordancesImpl(
   const seen = new Set<string>();
   const entries: AffordanceEntry[] = [];
 
-  for (const affordance of viewer.getAffordances()) {
+  // ⭐ The target's OWN affordances first (client-surface D7, slate bug
+  // 5): the dedupe is by verb, so a verb both the subject and the actor
+  // offer was attributed to whichever came first in the viewer's list —
+  // usually the actor's, and the card's action row dropped it. A stable
+  // sort keeps each half in its authored order.
+  const ordered = [...viewer.getAffordances()].sort(
+    (a, b) => Number(b.source === target) - Number(a.source === target),
+  );
+  for (const affordance of ordered) {
     const cmd = affordance.command;
     const verb = cmd.verbs[0];
     if (!verb || seen.has(verb)) continue;
@@ -2354,6 +2412,8 @@ async function evaluateAffordance(
   // typed this binding.
   const binding: MqlOneResult = { stuff: target, raw: AFFORDANCE_PROBE_ID };
   const model: CommandModel = bound ? { [bound]: binding } : {};
+  const command = affordanceCommand(cmd, verb, bound, target);
+  const typed = command ? { command } : {};
 
   // ⚠⚠ The dispatcher runs an ASYNC preload phase between MQL
   // resolution and the sync validator bodies, and it is not optional:
@@ -2382,6 +2442,7 @@ async function evaluateAffordance(
     if (note?.field && note.field !== bound && fields.includes(note.field)) {
       return {
         verb,
+        ...typed,
         description: cmd.description,
         state: 'pending-operand',
         operand: note.field,
@@ -2394,6 +2455,7 @@ async function evaluateAffordance(
     // then name what is missing rather than only that something is.
     const entry: AffordanceEntry = {
       verb,
+      ...typed,
       description: cmd.description,
       state: 'disabled',
       reason: note?.detail ?? 'You cannot do that here.',
@@ -2430,6 +2492,7 @@ async function evaluateAffordance(
   if (operand) {
     return {
       verb,
+      ...typed,
       description: cmd.description,
       state: 'pending-operand',
       operand,
@@ -2439,6 +2502,7 @@ async function evaluateAffordance(
 
   return {
     verb,
+    ...typed,
     description: cmd.description,
     state: 'enabled',
     category: cmd.category,
@@ -2758,7 +2822,7 @@ function bindPositionalsImpl(
   expandDefault: (text: string) => string = expand,
 ):
   | { bound: ModelData; prep: Record<string, string>; error?: undefined }
-  | { error: 'shape'; summary: string } {
+  | { error: 'shape'; summary: string; missing?: string } {
   const bound: ModelData = {};
   const prep: Record<string, string> = {};
   let pi = 0;
@@ -2810,6 +2874,7 @@ function bindPositionalsImpl(
               def.type === 'struct'
                 ? `field '${name}' requires structured input; cannot bind from text`
                 : `missing required arg: ${name}`,
+            ...(def.type === 'struct' ? {} : { missing: name }),
           };
         }
         /*
@@ -2947,6 +3012,7 @@ function bindPositionalsImpl(
           return {
             error: 'shape',
             summary: `missing required arg: ${name}`,
+            missing: name,
           };
         }
       } else if (loneQuoted !== null) {
@@ -3019,6 +3085,7 @@ function bindPositionalsImpl(
             def.type === 'struct'
               ? `field '${name}' requires structured input; cannot bind from text`
               : `missing required arg: ${name}`,
+          ...(def.type === 'struct' ? {} : { missing: name }),
         };
       }
       if (def.type === 'struct') {

@@ -977,6 +977,12 @@ export interface PromptEnvelope {
   frameId: number;
   promptId: string;
   outcome: NoteOnlyOutcome;
+  /**
+   * ⭐ The bar that asked (client-surface D6, #97): a prompt belongs to
+   * the terminal whose command raised it. Absent for a command no bar
+   * sent (an affordance click) — the primary terminal takes it then.
+   */
+  barId?: string;
 }
 
 // ============================================================================
@@ -1059,7 +1065,13 @@ export type CardId =
   | "git"
   | "studio"
   | "stock"
-  | "survey";
+  | "survey"
+  /** ⭐ A terminal is a card (client-surface D6): a filtered view of the one frame store. */
+  | "terminal"
+  /** Your settings, as a card (client-surface D10). */
+  | "settings"
+  /** ⭐ Where you are, at zone level — the navigator (map slate, wave-1 stub). */
+  | "map";
 
 /** Every {@link CardId}. The server validates against this; the client picks from it. */
 export const CARD_IDS: readonly CardId[] = [
@@ -1074,6 +1086,9 @@ export const CARD_IDS: readonly CardId[] = [
   "studio",
   "stock",
   "survey",
+  "terminal",
+  "settings",
+  "map",
 ];
 
 /**
@@ -1264,7 +1279,64 @@ export type CardPayload =
   | { kind: 'releases'; rows: ReleaseRow[] }
   | { kind: 'wikiPage'; page: WikiPageFrame }
   | { kind: 'helpTopic'; topic: HelpTopic }
-  | { kind: 'survey'; survey: SurveyFrame };
+  | { kind: 'survey'; survey: SurveyFrame }
+  | { kind: 'terminal'; filter: TerminalFilter; barId: string; primary: boolean }
+  | { kind: 'navigation'; where: Whereabouts };
+
+/**
+ * ⭐ Where you are, at zone level — the navigator card's body (the map
+ * slate's zone navigation card, wave-1 stub). Navigation, not inspection:
+ * nothing here describes what the room LOOKS like.
+ *
+ * Every field is what the server could honestly read; absent means it
+ * could not, and the card says so rather than inventing a value.
+ */
+export interface Whereabouts {
+  /** The room you stand in. */
+  place: { stuffId: string; name: string };
+  /** The Structure the room is part of (a building), innermost. */
+  structure?: { name: string };
+  /** The covering Localities, OUTERMOST first (Terminus › the City › …). */
+  localities: { name: string; address: string }[];
+  /** Your cell in the zone's grid, when the place has coordinates. */
+  coords?: { x: number; y: number; z: number };
+  /** The ways out you can perceive (concealed exits are absent). */
+  exits: WhereaboutsExit[];
+  /** What spans places: the sky over the locality. */
+  conditions: {
+    weather?: string;
+    season?: string;
+    daylight?: 'day' | 'night';
+  };
+  /** The innermost government whose ground this is; null = none claims it. */
+  jurisdiction: string | null;
+}
+
+/** One perceivable way out. */
+export interface WhereaboutsExit {
+  direction: string;
+  /** Where it leads, by name, when the destination has one. */
+  destination?: string;
+  /** ⭐ It leaves this zone's coordinate frame — a list entry, not a compass arm. */
+  crossesZone: boolean;
+  door?: { name: string; open: boolean };
+}
+
+/**
+ * ⭐ What a terminal card shows (client-surface D6): a view by name (the
+ * shipped `console.tabs` vocabulary), a channel, or both; plus the mutes
+ * and facets a view carries. An empty filter is everything.
+ */
+export interface TerminalFilter {
+  /** A `console.tabs` view name (or `All`). */
+  view?: string;
+  /** A chat channel's name — the `channel:<name>` frame tag. */
+  channel?: string;
+  muted?: string[];
+  facets?: FacetFilter;
+  /** What the terminal is called when neither a view nor a channel names it. */
+  label?: string;
+}
 
 /**
  * One measurement a character has taken and remembers.
@@ -1374,6 +1446,84 @@ export const INSPECTION_CARD_IDS: readonly CardId[] = ['subject'];
 
 export type StuffKind = "location" | "agent" | "thing" | "idea";
 
+/**
+ * ⭐ Which interface said a line of `look` (client-surface D1/D2): a
+ * mixin's augmenter (`mixin`, the name minus `Mixin`), a class-level
+ * augmenter (`class`, the class name), or the controller's own section
+ * (`look`, the printed heading — "Owned by", "Obvious exits").
+ */
+export interface SegmentSource {
+  kind: 'mixin' | 'class' | 'look';
+  name: string;
+}
+
+/** The shape a line of `look` takes on the card. */
+export type SegmentShape = 'prose' | 'state' | 'list' | 'notice';
+export const SEGMENT_SHAPES: readonly SegmentShape[] = ['prose', 'state', 'list', 'notice'];
+
+/**
+ * One chip in a `list` segment. A group of identical things is one item
+ * with `count > 1` and its `members` (expandable in place).
+ */
+export interface SegmentItem {
+  stuffId: string;
+  label: string;
+  keyword: string;
+  count: number;
+  members?: SegmentItem[];
+  /** A person's status line ("behind the bar"), read beside their name. */
+  status?: string;
+  /**
+   * ⭐ What a person is resting on — "seated on" + the seat, which is its
+   * own clickable thing ("*Mara*, seated on *a bar stool*").
+   */
+  seat?: { posture: string; on: SegmentItem };
+}
+
+/**
+ * ⭐ One segment of what `look` said — the same text the terminal printed,
+ * split by shape and source, in the same order. Joining the `text`s in
+ * order gives the terminal's lines (AC 6).
+ */
+export interface LookSegment {
+  shape: SegmentShape;
+  sources: SegmentSource[];
+  text: string;
+  /** A `list` segment's printed heading. */
+  heading?: string;
+  /** A `list` segment's chips. */
+  items?: SegmentItem[];
+}
+
+/** A segment of a thing's own description — prose or a state line. */
+export type ProseSegment = LookSegment & { shape: 'prose' | 'state' };
+
+/** The declared shape of an illustration; the client never crops it. */
+export type IllustrationShape = 'wide' | 'tall' | 'square';
+export const ILLUSTRATION_SHAPES: readonly IllustrationShape[] = ['wide', 'tall', 'square'];
+
+/**
+ * ⭐ A card's width class (client-surface D5/D9): `unit` is the card
+ * column, `medium` the slot above the terminal, `full` the stage. A
+ * terminal card may also be a `line` (a ticker). Medium and full hold one
+ * card each.
+ */
+export type WidthClass = 'line' | 'unit' | 'medium' | 'full';
+export const WIDTH_CLASSES: readonly WidthClass[] = ['line', 'unit', 'medium', 'full'];
+
+/** Where a PLACED card sits, in unit columns and rows — never pixels. */
+export interface CardPlacement {
+  col: number;
+  row: number;
+}
+
+/**
+ * A role a card fills (client-surface D10/D6): `here` is the room card,
+ * rebinding as you move; `primary` is the one terminal that cannot close.
+ */
+export type CardRole = 'here' | 'primary';
+export const CARD_ROLES: readonly CardRole[] = ['here', 'primary'];
+
 export interface CardOpenedEnvelope {
   type: 'card-opened';
   /**
@@ -1418,6 +1568,15 @@ export interface CardOpenedEnvelope {
   result?: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
   /** `payload`-source cards. */
   payload?: CardPayload;
+  /** ⭐ What `look` said, by shape and source (client-surface D1). */
+  segments?: LookSegment[];
+  /** The card's width class (client-surface D5). */
+  size: WidthClass;
+  /** Set when the player PLACED it; flowing cards carry none. */
+  placed?: CardPlacement;
+  /** In the tray. */
+  minimized: boolean;
+  role?: CardRole;
 }
 
 /**
@@ -1444,6 +1603,32 @@ export interface CardTouchedEnvelope {
   prose?: string;
   result?: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
   payload?: CardPayload;
+  /** A re-look replaces the segments. */
+  segments?: LookSegment[];
+  /**
+   * ⭐ The `here` card REBOUND to a new subject (client-surface D10,
+   * #53/#92) — the room card follows you; it is never a second card.
+   */
+  subjectId?: string;
+  subjectKind?: StuffKind;
+  role?: CardRole;
+}
+
+/**
+ * ⭐ A card's shape or place changed — every `cockpit card` action reports
+ * here (client-surface D8). The client renders; the server decides.
+ */
+export interface CardArrangedEnvelope {
+  type: 'card-arranged';
+  frameId: number;
+  instanceId: string;
+  size: WidthClass;
+  placed?: CardPlacement;
+  minimized: boolean;
+  pinned: boolean;
+  live: boolean;
+  /** The role it fills now; absent = none (a kept room card stepped down). */
+  role?: CardRole;
 }
 
 /** The card went away, and why. */
@@ -1539,6 +1724,14 @@ export type AffordanceState = 'enabled' | 'disabled' | 'pending-operand';
 /** One verb in an {@link AffordanceResultEnvelope}. */
 export interface AffordanceEntry {
   verb: string;
+  /**
+   * ⭐ The exact command the server validated this verb with — the verb
+   * and the target by `#id`, never a word that could resolve to another
+   * thing. Sent only for the `links ids` shortcut; by default a client
+   * sends the verb alone and the dispatcher asks "Ring what?". Absent
+   * when the target is not the verb's first argument (#91).
+   */
+  command?: string;
   /** Authored one-line description — the menu's label text. */
   description: string;
   state: AffordanceState;
@@ -1728,6 +1921,8 @@ export interface StuffDetailRecord extends StuffRefRecord {
    * client prepends its configured media base URL to render it.
    */
   illustration?: string;
+  /** The illustration's declared shape (client-surface D10). */
+  illustrationShape?: IllustrationShape;
   details?: WireDetailEntry[];
   bulkMaterial?: MaterialSummary | null;
   mass?: { value: number; unit: 'kg' };
@@ -2432,7 +2627,8 @@ export type Envelope =
   | CardOpenedEnvelope
   | CardTouchedEnvelope
   | CardClosedEnvelope
-  | CardPinnedEnvelope;
+  | CardPinnedEnvelope
+  | CardArrangedEnvelope;
 
 /**
  * Envelope shape pre-`frameId`-stamp. Producers build this; the
@@ -2459,7 +2655,8 @@ export type EnvelopeTemplate =
   | Omit<CardOpenedEnvelope, 'frameId'>
   | Omit<CardTouchedEnvelope, 'frameId'>
   | Omit<CardClosedEnvelope, 'frameId'>
-  | Omit<CardPinnedEnvelope, 'frameId'>;
+  | Omit<CardPinnedEnvelope, 'frameId'>
+  | Omit<CardArrangedEnvelope, 'frameId'>;
 
 // ============================================================================
 // Identity Types (Persistent Objects)
@@ -2973,7 +3170,7 @@ export interface ViewDefinition {
  */
 export const DEFAULT_VIEWS: readonly ViewDefinition[] = [
   {
-    name: 'Aether',
+    name: 'Chat',
     /*
      * ⚠ Topics, not facets, and not by choice — see `FacetFilter.topics`.
      * `speech.vocal` is facet-identical to `speech.channel`, so a facet
@@ -3137,7 +3334,7 @@ export const LAYOUT_NAMES: readonly LayoutName[] = [
  * arrangement, flattened into one string (see
  * {@link LEGACY_LAYOUT_MIGRATION}).
  *
- * ⚠ **A mode is a view, never a gate.** Everything runnable in `play`
+ * ⚠ **A mode is a view, never a gate.** Everything runnable in `explore`
  * is runnable in `build`. A mode that forbade a verb would be a
  * permission system wearing a UI costume, with its checks in the wrong
  * layer entirely. A mode owns which arrangements ship, which one you
@@ -3153,8 +3350,8 @@ export const LAYOUT_NAMES: readonly LayoutName[] = [
 export type CockpitMode =
   /** Talking to people — channels, boards, the social surface. */
   | "chat"
-  /** Living in the world. The default. */
-  | "play"
+  /** Living in the world — exploring it. The default. */
+  | "explore"
   /** Watching a stream, as viewer or broadcaster. */
   | "watch"
   /** Making things — the content editor. */
@@ -3166,14 +3363,14 @@ export type CockpitMode =
  *  validator and the client's mode registry both read this one list. */
 export const COCKPIT_MODES: readonly CockpitMode[] = [
   "chat",
-  "play",
+  "explore",
   "watch",
   "build",
   "govern",
 ];
 
 /** The mode a player lands in with nothing stored. */
-export const DEFAULT_COCKPIT_MODE: CockpitMode = "play";
+export const DEFAULT_COCKPIT_MODE: CockpitMode = "explore";
 
 /**
  * The **arrangement axis** — savable card arrangements *inside* a mode.
@@ -3190,7 +3387,7 @@ export const COCKPIT_ARRANGEMENTS: Readonly<
   Record<CockpitMode, readonly string[]>
 > = {
   chat: ["default"],
-  play: ["default"],
+  explore: ["default"],
   watch: ["viewer", "streamer"],
   build: ["default"],
   govern: ["default"],
@@ -3212,22 +3409,52 @@ export const COCKPIT_ARRANGEMENTS: Readonly<
  * {@link COCKPIT_ARRANGEMENTS}: an arrangement with no row here simply
  * opens nothing, which is what `govern` still does.
  */
+const STREAM_CHAT_TERMINAL: ArrangementCard = {
+  cardId: 'terminal',
+  terminal: { filter: { facets: { topics: ['speech.relay'] }, label: 'Stream chat' } },
+};
+
 export const SHIPPED_ARRANGEMENT_CARDS: Readonly<
-  Record<CockpitMode, Readonly<Record<string, readonly CardId[]>>>
+  Record<CockpitMode, Readonly<Record<string, readonly (CardId | ArrangementCard)[]>>>
 > = {
   chat: { default: ['who'] },
   /*
-   * ⚠ **Empty, and it was already empty in effect.** `play` used to name
-   * the room card here, but an arrangement names a card KIND while an
-   * inspection card is ABOUT a subject the arrangement cannot know —
-   * so `applyArrangement` skips subject cards on both sides and this
-   * row had stopped opening anything. Arrival mints the room card; the
-   * arrangement has no business duplicating it.
+   * ⭐ Explore opens the NAVIGATOR (`map`, the map slate's zone navigation
+   * card) — where you are. ⚠ It does not name the room card: an
+   * arrangement names a card KIND, and an inspection card is ABOUT a
+   * subject the arrangement cannot know, so `applyArrangement` skips
+   * subject cards on both sides. Arrival mints the room card (the `here`
+   * role), an ordinary card in the gallery.
+   *
+   * ⭐ No row names the primary TERMINAL either: every mode has one, so
+   * `openArrangement` mints it whenever none is up (client-surface D6),
+   * filtered by {@link MODE_PRIMARY_FILTER}.
    */
-  play: { default: [] },
-  watch: { viewer: [], streamer: [] },
+  explore: { default: ['map'] },
+  /*
+   * ⭐ Watch's stream chat is a TERMINAL CARD (client-surface D6/D9): the
+   * relayed chat at unit width beside the game terminal, with its own
+   * bar — the shape the livestream layouts' second column always was.
+   */
+  watch: {
+    viewer: [STREAM_CHAT_TERMINAL],
+    streamer: [STREAM_CHAT_TERMINAL],
+  },
   build: { default: ['cms', 'git', 'studio'] },
   govern: { default: [] },
+};
+
+/**
+ * ⭐ What each mode's primary terminal shows when the arrangement does not
+ * say (client-surface D6): chat opens on the chat view; everything else
+ * shows everything.
+ */
+export const MODE_PRIMARY_FILTER: Readonly<Record<CockpitMode, TerminalFilter>> = {
+  chat: { view: 'Chat' },
+  explore: {},
+  watch: {},
+  build: {},
+  govern: {},
 };
 
 /**
@@ -3244,7 +3471,7 @@ export const SHIPPED_ARRANGEMENT_CARDS: Readonly<
 export const LEGACY_LAYOUT_MIGRATION: Readonly<
   Record<LayoutName, { mode: CockpitMode; arrangement: string }>
 > = {
-  world: { mode: "play", arrangement: "default" },
+  world: { mode: "explore", arrangement: "default" },
   forum: { mode: "chat", arrangement: "default" },
   "livestream-viewer": { mode: "watch", arrangement: "viewer" },
   streamer: { mode: "watch", arrangement: "streamer" },
@@ -3273,7 +3500,7 @@ export const LEGACY_LAYOUT_FOR: Readonly<
   Record<CockpitMode, Readonly<Record<string, LayoutName>>>
 > = {
   chat: { default: "forum" },
-  play: { default: "world" },
+  explore: { default: "world" },
   watch: { viewer: "livestream-viewer", streamer: "streamer" },
   // No legacy layout ever meant "govern" — the builder frame is the
   // closest thing the current client can paint for it.
@@ -3288,7 +3515,22 @@ export const LEGACY_LAYOUT_FOR: Readonly<
  * it are separate acts.
  */
 export interface ArrangementSpec {
-  cards: string[];
+  cards: ArrangementCard[];
+}
+
+/**
+ * ⭐ One card of a saved arrangement (client-surface D5): which card, and
+ * the shape and place the player gave it. A terminal card also records
+ * its filter and input mode. Positions are units, never pixels.
+ */
+export interface ArrangementCard {
+  cardId: string;
+  size?: WidthClass;
+  placed?: CardPlacement;
+  minimized?: boolean;
+  pinned?: boolean;
+  /** A terminal card's filter, input mode, and whether it is the primary. */
+  terminal?: { filter: TerminalFilter; inputMode?: string; primary?: true };
 }
 
 /**

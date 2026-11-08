@@ -113,7 +113,9 @@ export type CardPayloadKind =
   | 'releases'
   | 'wikiPage'
   | 'helpTopic'
-  | 'survey';
+  | 'survey'
+  | 'terminal'
+  | 'navigation';
 
 /** Everything the server needs to open one named card. */
 export interface CardDefinition {
@@ -199,16 +201,15 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
    * things and ages out of the relevance window, and looking again
    * mints a new one.
    *
-   * ⭐⭐ **Live while it is the newest, silent once it is history.**
-   * While this is the current inspection card it tracks its subject —
-   * someone walks into the room, something is set down, the person you
-   * are watching draws a blade — and it shows without asking. The
-   * moment a newer inspection card arrives, `CardRegistry.demoteLive`
-   * tears its subscription down and it becomes an ordinary snapshot
-   * with a `takenAt` and a refresh. Behind you there is nothing to
-   * track, and a subscription still running would be a wake with no
-   * reader. **Liveness is a property of attention, not of a card kind**
-   * — which is exactly why it cannot be what tells two rows apart.
+   * ⭐⭐ **Live while you are attending to it, a snapshot otherwise**
+   * (client-surface D4). `live: true` here says the KIND can track its
+   * subject; whether a given card does is per instance — the one you
+   * PLACED or PINNED, and the room card (the `here` role), hold a
+   * subscription; one that just flows through the feed is a snapshot with
+   * a `takenAt`. A second look at the same subject touches its card (#50);
+   * a look at the room you stand in rebinds the `here` card (#53/#92).
+   * **Liveness is a property of attention, not of a card kind** — which
+   * is exactly why it cannot be what tells two rows apart.
    *
    * ⚠ This works only because the subscription is bound to the
    * SUBJECT. On the relative `here` it followed the viewer instead of
@@ -336,8 +337,10 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
    * printed — because par is policy on the Business, not a Stuff MQL can
    * enumerate.
    *
-   * Unpinned and live: it is a reading of the rail at the moment you
-   * asked, tracked while it is the newest thing you asked for.
+   * ⭐ PINNED (client-surface B40): a working instrument, like the survey
+   * — the keeper asked for it to watch the rail, and under per-card
+   * liveness (D4) a pinned card is a live one, so a pour moves the sheet
+   * without asking. Dismissing it lets it age out like any reading.
    */
   stock: {
     label: 'the stock sheet',
@@ -347,7 +350,7 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
       cardinality: 'many',
       fields: ['displayName', 'primaryKeyword', 'bulkMaterial', 'bulkAmount'],
     },
-    pinnedByDefault: false,
+    pinnedByDefault: true,
     live: true,
     command: 'house stock',
   },
@@ -369,6 +372,57 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
    * strike row tightens. Nothing accumulates in the card; the card shows
    * what the character knows.
    */
+  /**
+   * ⭐ **A terminal is a card** (client-surface D6): a filtered view of the
+   * one frame store with its own command bar. Its `barId` is minted with
+   * the card (`bar-<uuid>`, B16) and never changes, so the shipped per-bar
+   * input mode is per terminal by construction. The PRIMARY is a role — minted whenever none is up,
+   * never closed. Pinned: a terminal is a workspace, not a reading.
+   */
+  terminal: {
+    label: 'a terminal',
+    source: { kind: 'payload', producer: 'terminal' },
+    pinnedByDefault: true,
+    live: false,
+    command: 'cockpit terminal <subject>',
+    noProse: true,
+  },
+
+  /**
+   * ⭐ **Your settings, as a card** (client-surface D10) — the editor that
+   * used to be a docked panel. Opened by the `settings` verb; one of it.
+   */
+  settings: {
+    label: 'your settings',
+    source: { kind: 'client' },
+    pinnedByDefault: true,
+    live: false,
+    command: 'settings',
+    singleton: true,
+  },
+
+  /**
+   * ⭐ The NAVIGATOR — where you are, at zone level (map slate, the zone
+   * navigation card; wave-1 stub with no map yet). Navigation, not
+   * inspection: the room you look at is an ordinary subject card.
+   *
+   * Born by `map` (the slate's command) with `NavigationApi.whereaboutsFor`
+   * as its payload, or by the explore arrangement into the docked slot.
+   * ⭐ The docked slot is chrome (owner, 2026-11-08): there it is filled
+   * and kept current IN PLACE after every move (`refreshNavigator` →
+   * `touchCard`), with no command run and nothing printed. Typing `map`
+   * anywhere still reads your map out in the transcript.
+   */
+  map: {
+    label: 'where you are',
+    source: { kind: 'payload', producer: 'navigation' },
+    pinnedByDefault: true,
+    live: false,
+    command: 'map',
+    noProse: true,
+    singleton: true,
+  },
+
   survey: {
     label: 'the survey',
     source: { kind: 'payload', producer: 'survey' },

@@ -52,6 +52,7 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { ProseSegment, SegmentSource } from '@saxonberg/types';
 import type { PresentationForm } from '../lib/description/NounPhrase';
 import type { Sensor } from '../lib/message/Sensor';
 import type Exit from '../lib/boundary/Exit';
@@ -190,24 +191,105 @@ function escapeUnknownTags(text: string): string {
   );
 }
 
-function augmentMarkupImpl(
+/** The authored prose's own source: the Visible description. */
+const PROSE_SOURCE: SegmentSource = { kind: 'mixin', name: 'Visible' };
+
+function addSource(list: SegmentSource[], src: SegmentSource): void {
+  if (!list.some((x) => x.kind === src.kind && x.name === src.name)) list.push(src);
+}
+
+/**
+ * ⭐ The ONE fold (client-surface D1). Every augmenter runs exactly as it
+ * always has — `text` is byte-identical to the pre-segment fold — and the
+ * segments are read off the fold by diffing each step:
+ *
+ * - unchanged → quiet, nothing recorded;
+ * - an APPEND (the new text starts with the old) → the suffix is a `state`
+ *   segment sourced by that augmenter's level;
+ * - a TRANSFORM (Detailed's wrap, Visible's strip) → every state recorded
+ *   so far must still be found in the new text; if so the level joins the
+ *   prose's sources, and if not everything collapses into one prose
+ *   segment carrying every source so far. Deterministic, and never lossy:
+ *   the joined segments are always the final text.
+ */
+function augmentSegmentedImpl(
   text: string,
   host: Stuff,
   viewer: Stuff,
   opts?: AugmentOpts,
-): string {
-  if (!text) return text;
+): { text: string; segments: ProseSegment[] } {
+  if (!text) return { text, segments: [] };
   const ctor = (host as { constructor: unknown }).constructor;
-  const augmenters = MixinApi.getAllMarkupAugmenters(
-    ctor as Parameters<typeof MixinApi.getAllMarkupAugmenters>[0],
-  ) as MarkupAugmenter[];
+  const levels = MixinApi.getMarkupAugmenterLevels(
+    ctor as Parameters<typeof MixinApi.getMarkupAugmenterLevels>[0],
+  );
   // Before any augmenter runs: what the author wrote as prose stays
   // prose. Augmenters match on words, which escaping leaves untouched.
   let result = escapeUnknownTags(text);
-  for (const aug of augmenters) {
-    result = aug(result, host, viewer, opts);
+  const proseSources: SegmentSource[] = [PROSE_SOURCE];
+  let states: ProseSegment[] = [];
+  let collapsed = false;
+  const collapse = (src: SegmentSource): void => {
+    for (const st of states) for (const x of st.sources) addSource(proseSources, x);
+    addSource(proseSources, src);
+    states = [];
+    collapsed = true;
+  };
+  for (const level of levels) {
+    for (const fn of level.fns as MarkupAugmenter[]) {
+      const before = result;
+      const after = fn(before, host, viewer, opts);
+      result = after;
+      if (after === before) continue;
+      if (collapsed) {
+        addSource(proseSources, level.source);
+        continue;
+      }
+      if (after.startsWith(before)) {
+        const suffix = after.slice(before.length).replace(/^\s+/, '').replace(/\s+$/, '');
+        if (suffix) states.push({ shape: 'state', sources: [level.source], text: suffix });
+        continue;
+      }
+      if (states.every((st) => after.includes(st.text))) addSource(proseSources, level.source);
+      else collapse(level.source);
+    }
   }
-  return result;
+  // Place the state lines at the end, in order, and take the prose as
+  // what stands before the first of them. Anything but whitespace between
+  // two state lines means a transform moved them — collapse.
+  if (!collapsed && states.length > 0) {
+    let end = result.length;
+    const at: number[] = [];
+    for (let i = states.length - 1; i >= 0; i--) {
+      const idx = result.lastIndexOf(states[i]!.text, end);
+      if (idx < 0) break;
+      at[i] = idx;
+      end = idx - 1;
+    }
+    const placed =
+      at.length === states.length &&
+      states.every((st, i) => {
+        const tailEnd = i + 1 < states.length ? at[i + 1]! : result.length;
+        return result.slice(at[i]! + st.text.length, tailEnd).trim() === '';
+      });
+    if (!placed) {
+      collapse(states[states.length - 1]!.sources[0]!);
+    } else {
+      const prose = result.slice(0, at[0]!).replace(/\s+$/, '');
+      return {
+        text: result,
+        segments: [
+          ...(prose ? [{ shape: 'prose' as const, sources: proseSources, text: prose }] : []),
+          ...states,
+        ],
+      };
+    }
+  }
+  const prose = result.replace(/\s+$/, '');
+  return {
+    text: result,
+    segments: prose ? [{ shape: 'prose', sources: proseSources, text: prose }] : [],
+  };
 }
 
 /**
@@ -865,7 +947,23 @@ export class Mml {
     viewer: Stuff,
     opts?: AugmentOpts,
   ): string {
-    return augmentMarkupImpl(text, host, viewer, opts);
+    return augmentSegmentedImpl(text, host, viewer, opts).text;
+  }
+
+  /**
+   * ⭐ {@link augment}, keeping which interface said which line
+   * (client-surface D1): the same fold, so `text` is exactly what
+   * `augment` returns, plus the `segments` read off it — the prose, then
+   * one `state` segment per augmenter that appended. The inspection card
+   * renders the segments; the terminal renders the text.
+   */
+  static augmentSegmented(
+    text: string,
+    host: Stuff,
+    viewer: Stuff,
+    opts?: AugmentOpts,
+  ): { text: string; segments: ProseSegment[] } {
+    return augmentSegmentedImpl(text, host, viewer, opts);
   }
 
   /**

@@ -9,9 +9,13 @@
 verbs: [map]
 category: perception
 controller: /platform/idea/cmd/perception/MapController
+# ⭐ `map` on its own opens the navigator — where you are, at zone level.
+opens_card: map
 description: "What you know of a place, and when you learned it"
 help: |
-  `map` on its own lists the localities you have a map of.
+  `map` on its own opens the navigator — where you are: the localities
+  around you, the ways out, the sky and whose ground it is — and lists
+  the localities you have a map of.
 
   `map <locality>` shows what you know of one: the places you have been,
   grouped by building where the place says which one it is in, and the

@@ -35,6 +35,8 @@
  * affordance cache, which is answered fresh per subject.
  */
 
+import { NavigatorBody } from "./NavigatorBody";
+import { SettingsPanel } from "../settings/SettingsPanel";
 import React from "react";
 import styled from "styled-components";
 import type {
@@ -56,6 +58,8 @@ import { Figure, EntityName, tokens } from "../ui";
 import { websocketClient } from "../../services/websocket";
 import { mediaUrl } from "../../config";
 import { MmlRenderer } from "../MmlRenderer";
+import { InspectionBody } from "./InspectionBody";
+import { actionCommand, lookCommand, useLinkMode } from "./clickTarget";
 import { CmsExplorer } from "../cms/CmsExplorer";
 import { CmsEditor } from "../cms/CmsEditor";
 import { CmsGitPanel } from "../cms/CmsGitPanel";
@@ -118,7 +122,7 @@ const CardIllustration = styled.img`
   display: block;
   width: 100%;
   max-height: 6.5rem;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   border-radius: ${tokens.radius.sm};
   margin-bottom: ${tokens.space.xs};
@@ -131,10 +135,9 @@ const CardIllustration = styled.img`
  * that you can see more than one thing in it.
  */
 const Label = styled.div`
-  font-family: ${tokens.font.engraved};
-  font-size: ${tokens.font.label};
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  /* Sentence case, plain (#69): a label in capitals shouts. */
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.micro};
   color: ${tokens.color.sectionLabel};
   margin: ${tokens.space.sm} 0 2px;
 `;
@@ -554,17 +557,15 @@ function Measured({
  */
 function ActionRow({
   stuffId,
-  keyword,
   onSendCommand,
   onCommandPreview,
 }: {
   stuffId?: string;
-  /** The subject's own keyword — the word the player would type. */
-  keyword?: string;
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement | null {
   const answer = useStore((s) => (stuffId ? s.affordances[stuffId] : undefined));
+  const mode = useLinkMode();
   if (!answer) return null;
   const afforded = answer.verbs.filter(
     (v) => v.source === "subject" && v.state !== "disabled",
@@ -572,16 +573,11 @@ function ActionRow({
   if (afforded.length === 0) return null;
   return (
     <>
-      <Label>What it affords</Label>
+      <Label>Actions</Label>
       <Chips data-testid="card-action-row">
         {afforded.map((v) => {
-          /*
-           * ⚠ Named with the subject's own KEYWORD, so the command
-           * reads as one the player could have typed — the same rule
-           * the refresh control follows. A verb with no operand slot
-           * sends bare.
-           */
-          const send = keyword ? `${v.verb} ${keyword}` : v.verb;
+          // ⭐ The server's own command (#91) — see `clickTarget.ts`.
+          const send = actionCommand(v, stuffId, mode);
           return (
             <InlineLink
               key={v.verb}
@@ -848,6 +844,7 @@ function HereList({
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement | null {
+  const mode = useLinkMode();
   const contents = record?.contents ?? [];
   if (contents.length === 0) return null;
   const preview = onCommandPreview ?? (() => undefined);
@@ -864,8 +861,7 @@ function HereList({
       <Label>Here</Label>
       <Rows>
         {shown.map((row) => {
-          const target = row.primaryKeyword ?? row.displayName;
-          const command = `look ${target}`;
+          const command = lookCommand(row.stuffId, row.primaryKeyword, mode);
           return (
             <div key={row.stuffId}>
               <EntityName
@@ -910,6 +906,7 @@ function PlacedList({
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement | null {
+  const mode = useLinkMode();
   const groups = record?.placed ?? [];
   if (groups.length === 0) return null;
   const preview = onCommandPreview ?? (() => undefined);
@@ -923,8 +920,8 @@ function PlacedList({
             <Label>{group.heading || PLACED_FALLBACK_HEADING}</Label>
             <Rows>
               {shown.map((row) => {
-                const target = row.primaryKeyword ?? row.displayName;
-                const command = `look ${target}`;
+                // ⭐ By id (client-surface D7).
+                const command = lookCommand(row.stuffId, row.primaryKeyword, mode);
                 return (
                   <div key={row.stuffId}>
                     <EntityName
@@ -973,6 +970,7 @@ function WornList({
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement | null {
+  const mode = useLinkMode();
   const worn = record?.worn ?? [];
   if (worn.length === 0) return null;
   const preview = onCommandPreview ?? (() => undefined);
@@ -983,8 +981,7 @@ function WornList({
       <Label>Worn</Label>
       <Rows>
         {shown.map((row) => {
-          const target = row.primaryKeyword ?? row.displayName;
-          const command = `look ${target}`;
+          const command = lookCommand(row.stuffId, row.primaryKeyword, mode);
           return (
             <div key={row.stuffId}>
               <EntityName
@@ -1010,6 +1007,8 @@ export interface CardBodyProps {
   card: CardState;
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
+  /** The card is cut to fit — the inspection card collapses its image first. */
+  cut?: boolean;
 }
 
 /**
@@ -1120,6 +1119,16 @@ export function CardBody(props: CardBodyProps): React.ReactElement {
    */
   if (card.payload) return <PayloadBody {...props} />;
   if (card.promptId) return <PromptCardBody card={card} />;
+  // ⭐ Settings are a card (client-surface D10): the editor that was a
+  // docked panel. Closing it is a real command.
+  if (card.cardId === 'settings') {
+    return (
+      <SettingsPanel
+        onSendCommand={props.onSendCommand}
+        onClose={() => props.onSendCommand('cockpit card close settings')}
+      />
+    );
+  }
   if (CLIENT_BODIES[card.cardId]) return <ClientBody card={card} />;
   return <MqlBody {...props} />;
 }
@@ -1246,8 +1255,25 @@ function PayloadBody(props: CardBodyProps): React.ReactElement {
       );
     case 'helpTopic':
       return <HelpTopicBody topic={payload.topic} />;
+    case 'navigation':
+      return (
+        <NavigatorBody
+          where={payload.where}
+          onSendCommand={onSendCommand}
+          {...(onCommandPreview ? { onCommandPreview } : {})}
+        />
+      );
     case 'survey':
       return <SurveyBody survey={payload.survey} />;
+    case 'terminal':
+      // A terminal card's body is the terminal itself; the terminal
+      // column renders it (client-surface D6). In the feed it says what
+      // it shows.
+      return (
+        <Prose data-testid="card-terminal">
+          {payload.filter.channel ? `#${payload.filter.channel}` : payload.filter.view ?? 'All'}
+        </Prose>
+      );
   }
 }
 
@@ -1431,6 +1457,24 @@ function MqlBody(props: CardBodyProps): React.ReactElement {
 
   if (card.closed) return <ReleasedBody />;
 
+  /*
+   * ⭐⭐ **A card born of `look` renders what `look` SAID** (client-surface
+   * D1, AC 6): the segments, by source. The field-projection body below
+   * stays for a subject card with no segments (none ships today) and for
+   * a drilled detail, whose prose the segments do not carry.
+   */
+  if (card.segments && card.segments.length > 0 && detailPath.length === 0) {
+    return (
+      <InspectionBody
+        card={card}
+        cut={props.cut}
+        onSendCommand={onSendCommand}
+        onCommandPreview={onCommandPreview}
+        onProseClick={handleProseClick}
+      />
+    );
+  }
+
   const tail = detailPath[detailPath.length - 1];
   const drilled = tail
     ? record?.details?.find((d) => d.ids.includes(tail))
@@ -1538,7 +1582,6 @@ function MqlBody(props: CardBodyProps): React.ReactElement {
       )}
       <ActionRow
         stuffId={stuffId}
-        keyword={record?.primaryKeyword}
         onSendCommand={onSendCommand}
         onCommandPreview={onCommandPreview}
       />

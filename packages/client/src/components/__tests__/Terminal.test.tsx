@@ -18,7 +18,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import { Terminal } from '../Terminal';
 import type { Frame } from '../../store/index';
 
@@ -71,7 +71,7 @@ function renderTerminal(frames: Frame[]) {
   );
 }
 
-/** The transcript container is the root; each FrameRow is a child div;
+/** The transcript container is the root; the measure wraps the rows; each FrameRow is a child div;
  *  within it the gutter is a <span> and the Body is the <div> sibling. */
 function bodyOfRow(row: Element): Element {
   const body = Array.from(row.children).find((c) => c.tagName === 'DIV');
@@ -82,13 +82,13 @@ function bodyOfRow(row: Element): Element {
 describe('Terminal — per-frame font by register', () => {
   it('a say frame body resolves to the narrative serif', () => {
     const { container } = renderTerminal([frame({ topic: 'speech.vocal' })]);
-    const row = container.firstElementChild!.firstElementChild!;
+    const row = container.querySelector('[data-testid="terminal-measure"]')!.firstElementChild!;
     expect(rulesFor(bodyOfRow(row))).toContain('Newsreader');
   });
 
   it('a help frame body resolves to the command mono', () => {
     const { container } = renderTerminal([frame({ topic: 'shell.result' })]);
-    const row = container.firstElementChild!.firstElementChild!;
+    const row = container.querySelector('[data-testid="terminal-measure"]')!.firstElementChild!;
     expect(rulesFor(bodyOfRow(row))).toContain('IBM Plex Mono');
   });
 
@@ -99,7 +99,7 @@ describe('Terminal — per-frame font by register', () => {
         body: 'You see a sign:\n<pre>  ASCII  </pre>',
       }),
     ]);
-    const row = container.firstElementChild!.firstElementChild!;
+    const row = container.querySelector('[data-testid="terminal-measure"]')!.firstElementChild!;
     // The frame body itself is serif (narrative register)...
     expect(rulesFor(bodyOfRow(row))).toContain('Newsreader');
     // ...but the <pre> element carries its own monospace rule, which
@@ -122,7 +122,7 @@ describe('Terminal — removed global mono + rhythm anchor', () => {
   it('line-height is the container rhythm anchor, never on Body [8g]', () => {
     const { container } = renderTerminal([frame({ topic: 'speech.vocal' })]);
     const root = container.firstElementChild!;
-    const row = root.firstElementChild!;
+    const row = root.querySelector("[data-testid=\"terminal-measure\"]")!.firstElementChild!;
     // Container owns line-height (shared cross-register rhythm)...
     expect(rulesFor(root)).toContain('line-height');
     // ...and the per-frame Body owns font-family but NOT line-height,
@@ -130,5 +130,32 @@ describe('Terminal — removed global mono + rhythm anchor', () => {
     const bodyRule = rulesFor(bodyOfRow(row));
     expect(bodyRule).toContain('font-family');
     expect(bodyRule).not.toContain('line-height');
+  });
+});
+
+describe('Terminal — the measure and the scroll rule (client-surface D9, #54)', () => {
+  it('⭐ the text sits in a 42rem measure', () => {
+    const { container } = renderTerminal([frame({ topic: 'speech.vocal' })]);
+    const measure = container.querySelector('[data-testid="terminal-measure"]')!;
+    expect(rulesFor(measure)).toContain('max-width:42rem');
+  });
+
+  it('⭐ a new line while scrolled UP shows a chip instead of dragging you down', () => {
+    const r = renderTerminal([frame({ topic: 'speech.vocal', id: 'a' })]);
+    const el = r.getByTestId('terminal');
+    Object.defineProperty(el, 'scrollHeight', { value: 1000, configurable: true });
+    Object.defineProperty(el, 'clientHeight', { value: 200, configurable: true });
+    el.scrollTop = 100;
+    fireEvent.scroll(el);
+    r.rerender(
+      <Terminal
+        frames={[frame({ topic: 'speech.vocal', id: 'a' }), frame({ topic: 'speech.vocal', id: 'b' })]}
+        onCommandClick={() => {}}
+        onCommandPreview={() => {}}
+      />,
+    );
+    expect(el.scrollTop).toBe(100);
+    fireEvent.click(r.getByTestId('terminal-new-lines'));
+    expect(el.scrollTop).toBe(1000);
   });
 });

@@ -216,9 +216,14 @@ Tricky cases the lexer handles:
 - **Hash.** Shape-dispatched: `#5` lexes as `hashInt` (chain-position
   ordinal); `#abc123` lexes as `hashId` (stuff id seed). A bare `#`
   not glued to digits or an identifier is a lex error.
-- **Single-quoted literals.** `'…'` preserves whitespace and has no
-  escape syntax — closing quote is the only terminator. Unterminated
-  is a lex error.
+- **Single-quoted literals.** `'…'` preserves whitespace; it opens
+  only at the START of a token (`dave's` is one bareword). Inside it
+  `\'` is a quote and `\\` a backslash, other `\X` verbatim.
+  Unterminated is a lex error.
+- **Backslash.** Outside a literal, `\X` makes `X` part of the word
+  whatever it is; an escaped word lexes as a bareword, never an int or
+  transform letter. A dangling trailing `\` is a lex error. `looksFormal`
+  ignores escaped characters and a mid-word `'`.
 - **Paths.** Start with `/`; absorb identifier-shaped characters plus
   `*`, `?`, `-`. Stops at whitespace, `.`, or any reserved character
   that isn't legal inside a path segment.

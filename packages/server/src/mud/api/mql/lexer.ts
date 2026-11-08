@@ -18,9 +18,19 @@
  *   lexes as {@link TokenKind.HashId} (stuff id seed). A bare `#`
  *   not glued to digits or an identifier is a lex error.
  *
- * - **Single-quoted literals** (`'…'`) preserve whitespace and have
- *   no escape syntax — the closing quote is the only terminator. An
- *   unterminated literal is a lex error.
+ * - **Apostrophes** open a single-quoted literal (`'…'`) only at the
+ *   START of a token. Glued to the end of a word they are part of it,
+ *   so `dave's`, `don't` and `twins'` are barewords — a name with an
+ *   apostrophe was untypeable as a target, and a click on "Dave's Bar"
+ *   died with "unterminated string literal".
+ *
+ * - **Single-quoted literals** (`'…'`) preserve whitespace. Inside
+ *   one, `\'` is a quote and `\\` a backslash; any other `\X` is kept
+ *   verbatim. An unterminated literal is a lex error.
+ *
+ * - **Backslash** outside a literal makes the next character part of
+ *   the word, whatever it is: `foo\,bar` is the one bareword `foo,bar`,
+ *   `\#5` is the keyword `#5`. A trailing lone `\` is a lex error.
  *
  * - **Paths** start with `/` and absorb identifier-shaped characters
  *   plus `*`, `?`, and `-`. The path stops at whitespace, `.`, or any
@@ -299,19 +309,25 @@ export function lex(input: string): Token[] {
     if (ch === "'") {
       const start = i;
       let j = i + 1;
-      while (j < n && input[j] !== "'") j += 1;
+      let value = '';
+      while (j < n && input[j] !== "'") {
+        const c = input[j]!;
+        const next = input[j + 1];
+        if (c === '\\' && (next === "'" || next === '\\')) {
+          value += next;
+          j += 2;
+          continue;
+        }
+        value += c;
+        j += 1;
+      }
       if (j >= n) {
         throw new MqlLexError(
           `unterminated string literal starting at position ${start}`,
           start
         );
       }
-      tokens.push({
-        kind: 'literal',
-        value: input.slice(start + 1, j),
-        start,
-        end: j + 1,
-      });
+      tokens.push({ kind: 'literal', value, start, end: j + 1 });
       i = j + 1;
       continue;
     }
@@ -338,7 +354,7 @@ export function lex(input: string): Token[] {
       continue;
     }
 
-    if (isDigit(ch) || isLetter(ch) || ch === '_') {
+    if (isDigit(ch) || isLetter(ch) || ch === '_' || ch === '\\') {
       const { token, end } = scanWord(input, i);
       tokens.push(token);
       i = end;
@@ -357,9 +373,11 @@ export function lex(input: string): Token[] {
 
 /**
  * Scan a word starting at `start`. A word absorbs identifier chars
- * (`[a-zA-Z0-9_]`) and absorbs `-` only when it sits between two
+ * (`[a-zA-Z0-9_]`), absorbs `-` only when it sits between two
  * identifier chars — preserving `oak-door` as a single bareword while
- * leaving `swords - broken` to lex as `swords`, `dash`, `broken`.
+ * leaving `swords - broken` to lex as `swords`, `dash`, `broken` —
+ * absorbs an apostrophe that follows a word char, and takes any
+ * `\X` escape as the literal character `X`.
  *
  * Classifies the result: all-digit body → {@link TokenKind.Int},
  * anything else → {@link TokenKind.Bareword} (lowercased).
@@ -370,9 +388,23 @@ function scanWord(
 ): { token: Token; end: number } {
   let j = start;
   const n = input.length;
+  // Built rather than sliced: an escape contributes the character it
+  // escapes, not the backslash.
+  let raw = '';
+  let escaped = false;
   while (j < n) {
     const ch = input[j]!;
+    if (ch === '\\') {
+      if (j + 1 >= n) {
+        throw new MqlLexError(`dangling '\\' at position ${j} — nothing to escape`, j);
+      }
+      raw += input[j + 1]!;
+      escaped = true;
+      j += 2;
+      continue;
+    }
     if (isWordChar(ch)) {
+      raw += ch;
       j += 1;
       continue;
     }
@@ -383,12 +415,26 @@ function scanWord(
       j > start &&
       isWordChar(input[j - 1]!)
     ) {
+      raw += ch;
+      j += 1;
+      continue;
+    }
+    // An apostrophe glued to a word belongs to it (`dave's`, `twins'`).
+    if (ch === "'" && j > start) {
+      raw += ch;
       j += 1;
       continue;
     }
     break;
   }
-  const raw = input.slice(start, j);
+  // An escaped word is always a keyword: `\5` is not the int 5, `\i`
+  // is not the transform.
+  if (escaped) {
+    return {
+      token: { kind: 'bareword', value: raw.toLowerCase(), start, end: j },
+      end: j,
+    };
+  }
   const allDigits = /^\d+$/.test(raw);
   if (allDigits) {
     return {

@@ -52,7 +52,7 @@ describe("a view you made yourself", () => {
     // thing, and which ones ship with the client is not a distinction
     // the reader has to care about.
     expect(screen.getByTestId("tab-All")).toBeTruthy();
-    expect(screen.getByTestId("tab-Aether")).toBeTruthy();
+    expect(screen.getByTestId("tab-Chat")).toBeTruthy();
   });
 
   it("carries its own derived count", () => {
@@ -150,17 +150,17 @@ describe("⚠⚠ a shipped view is just a view", () => {
     });
   }
 
-  it("offers edit and delete on `Aether` exactly as on your own view", () => {
-    withViews("Aether");
+  it("offers edit and delete on `Chat` exactly as on your own view", () => {
+    withViews("Chat");
     render(<TabStrip presetsOnly onToggleDrawer={() => undefined} />);
-    expect(screen.getByTestId("tab-edit-Aether")).toBeTruthy();
-    expect(screen.getByTestId("tab-delete-Aether")).toBeTruthy();
+    expect(screen.getByTestId("tab-edit-Chat")).toBeTruthy();
+    expect(screen.getByTestId("tab-delete-Chat")).toBeTruthy();
   });
 
   it("⭐ selecting one does NOT overwrite an edit you made to it", () => {
     /*
      * The behaviour that made them feel un-editable: `applyPreset` wrote
-     * the shipped filter back on every select, so tuning `Aether` and
+     * the shipped filter back on every select, so tuning `Chat` and
      * clicking away lost the change silently.
      */
     withViews("All");
@@ -169,19 +169,19 @@ describe("⚠⚠ a shipped view is just a view", () => {
         ...useStore.getState().clientState,
         "console.tabs": [
           { name: "All", muted: [], facets: {} },
-          { name: "Aether", muted: [], facets: { weight: ["consequence"] } },
+          { name: "Chat", muted: [], facets: { weight: ["consequence"] } },
         ],
       },
     });
     render(<TabStrip presetsOnly />);
 
-    fireEvent.click(screen.getByTestId("tab-Aether"));
+    fireEvent.click(screen.getByTestId("tab-Chat"));
 
     const tabs = useStore.getState().clientState["console.tabs"] as Array<{
       name: string;
       facets?: Record<string, unknown>;
     }>;
-    const aether = tabs.find((t) => t.name === "Aether")!;
+    const aether = tabs.find((t) => t.name === "Chat")!;
     expect(aether.facets).toEqual({ weight: ["consequence"] });
   });
 
@@ -214,7 +214,7 @@ describe("⚠⚠ a shipped view is just a view", () => {
     const tabs = useStore.getState().clientState["console.tabs"] as Array<{
       name: string;
     }>;
-    expect(tabs.map((t) => t.name)).toContain("Aether");
+    expect(tabs.map((t) => t.name)).toContain("Chat");
   });
 });
 
@@ -226,7 +226,7 @@ describe("⚠⚠ the unfiltered view", () => {
   it("renders even though it is not in `console.tabs`", () => {
     useStore.setState({
       clientState: {
-        "console.tabs": [{ name: "Aether", muted: [], facets: {} }],
+        "console.tabs": [{ name: "Chat", muted: [], facets: {} }],
         "console.activeTab": "All",
       },
     });
@@ -237,7 +237,7 @@ describe("⚠⚠ the unfiltered view", () => {
   it("carries NO edit and NO delete", () => {
     useStore.setState({
       clientState: {
-        "console.tabs": [{ name: "Aether", muted: [], facets: {} }],
+        "console.tabs": [{ name: "Chat", muted: [], facets: {} }],
         "console.activeTab": "All",
       },
     });
@@ -255,7 +255,7 @@ describe("⚠⚠ the unfiltered view", () => {
       clientState: {
         "console.tabs": [
           { name: "All", muted: [], facets: { weight: ["chatter"] } },
-          { name: "Aether", muted: [], facets: {} },
+          { name: "Chat", muted: [], facets: {} },
         ],
         "console.activeTab": "All",
       },
@@ -330,7 +330,7 @@ describe("⚠⚠ seeding never clobbers", () => {
     const tabs = useStore.getState().clientState["console.tabs"] as Array<{
       name: string;
     }>;
-    expect(tabs.map((t) => t.name)).toContain("Aether");
+    expect(tabs.map((t) => t.name)).toContain("Chat");
     expect(tabs.map((t) => t.name)).toContain("All");
   });
 
@@ -344,7 +344,7 @@ describe("⚠⚠ seeding never clobbers", () => {
           { name: "All", muted: [] },
           { name: "Forge watch", muted: [], facets: {} },
         ],
-        "console.seededViews": ["Aether"],
+        "console.seededViews": ["Chat"],
         "console.activeTab": "All",
       },
     });

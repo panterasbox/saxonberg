@@ -14,6 +14,8 @@ export type {
   QueryRecord,
   SubscribeOutcome,
   SessionOptions,
+  CapturedEnvelope,
+  CapturedFrame,
 } from './session';
 export {
   expectOk,

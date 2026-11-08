@@ -33,6 +33,7 @@ import { ContainmentApi } from '../../../../api/containment';
 import { installCorpseMintStub } from '../../../../lib/mortality/__tests__/corpse-mint-test-helpers';
 import { MixinApi } from '../../../../api/mixin';
 import { PersonaMixin } from '../../../../lib/character/Persona';
+import { NamedMixin } from '../../../../lib/description/Named';
 import { ConditionApi } from '../../../../api/condition';
 import { AccountabilityApi } from '../../../../api/accountability';
 import { StuffApi } from '../../../../api/stuff';
@@ -48,6 +49,7 @@ let corpses: Corpse[] = [];
 let deeds: { tags?: string[] }[] = [];
 
 class StoriedCreature extends PersonaMixin(Creature) {}
+class NamedStoriedCreature extends NamedMixin(PersonaMixin(Creature)) {}
 
 /**
  * A body that can carry a silent population — a fish, in the shipped
@@ -175,6 +177,32 @@ describe('ConditionApi.die — one transition', () => {
     const kw = minted[0]!.getKeywords();
     expect(kw).toContain('ewe');
     expect(kw).toContain('body');
+  });
+
+  it('⛔ a person\'s corpse never answers to their NAME, and names them only to who knew them (#105)', async () => {
+    const minted = corpses;
+    const c = makeStuff(() => new NamedStoriedCreature());
+    Stuff._stampTemplatePath(c, `/stuff/agent/test-named/${++bodySeq}`);
+    c.setLifecycleState('alive');
+    c.setName('Mara');
+    c.setKeywords(['mara', 'woman']);
+    const identity = c.getIdentityPath();
+
+    await ConditionApi.die(c, 'hypothermia');
+
+    const corpse = minted[0]!;
+    const kw = corpse.getKeywords();
+    expect(kw).not.toContain('mara');
+    expect(kw).toContain('woman');
+    expect(kw).toContain('body');
+    expect(corpse.getOfIdentityPath()).toBe(identity);
+    expect(corpse.getPresentation()).not.toMatch(/Mara/);
+
+    const knewHer = { stuffId: 'v1', knownNameOf: (p: string) => (p === corpse.getOfIdentityPath() ? 'Mara' : null) } as unknown as Stuff;
+    const stranger = { stuffId: 'v2', knownNameOf: () => null } as unknown as Stuff;
+    vi.spyOn(MixinApi, 'isBeliefStore').mockImplementation(((x: unknown) => x === knewHer || x === stranger) as never);
+    expect(corpse.describeFor(knewHer)).toBe('the body of Mara');
+    expect(corpse.describeFor(stranger)).toBe(corpse.getPresentation());
   });
 
   it('a silent contamination load moves onto the corpse', async () => {

@@ -54,6 +54,8 @@ describe('a card owns its subscription handle', () => {
       }),
       'who',
     );
+    const lamp = await StuffApi.create(() => new Locale());
+    lamp.setShortDescription('a lamp');
     CardApi.open(
       makeContext(h, {
         commandText: 'look lamp',
@@ -61,6 +63,7 @@ describe('a card owns its subscription handle', () => {
         opensCard: 'subject',
       }),
       'subject',
+      { subjectId: lamp.stuffId },
     );
     expect(CardApi._getSizeForTesting()).toBe(4);
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
@@ -79,9 +82,13 @@ describe('a card owns its subscription handle', () => {
     room.setShortDescription('the lounge');
     ContainmentApi.move(h.avatar, room);
 
-    // `place` ships pinned; unpin it so the window can reach it.
-    h.interactive.pushCard('subject', { subjectId: room.stuffId });
-    h.interactive.setCardPinned('subject', false);
+    // ⭐ A live card the window can reach: PLACED (so live, D4) but not
+    // pinned and filling no role (the sweep spares those). The room card
+    // is the `here` role, so the subject here is somewhere else.
+    const yard = await StuffApi.create(() => new Locale());
+    yard.setShortDescription('the yard');
+    const id = h.interactive.pushCard('subject', { subjectId: yard.stuffId })!;
+    expect(h.interactive.arrangeCard(id, 'place').refused).toBeNull();
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
 
     /*
@@ -129,7 +136,7 @@ describe('a card owns its subscription handle', () => {
     );
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
 
-    h.interactive.applyCardArrangement(['who']);
+    h.interactive.applyCardArrangement([{ cardId: 'who' }]);
 
     // The arrangement-managed card went; the inspection card stayed.
     expect(h.interactive.listCards().map((c) => c.cardId).sort()).toEqual([

@@ -166,7 +166,7 @@ describe("the panel", () => {
      * Chips named after the shipped views used to sit at the top of
      * this panel and overwrite the filter being edited. Inside an
      * editor titled *Filter — Forge watch*, buttons labelled `All` /
-     * `Aether` / `Diag` are neither the view you are editing nor the
+     * `Chat` / `Diag` are neither the view you are editing nor the
      * strip you selected it from. The shipped views are ordinary views
      * in that strip.
      */
@@ -198,13 +198,13 @@ describe("the panel", () => {
  * ⚠⚠ The `topics` allowlist, and why it had to exist.
  *
  * The whole point of facet filtering is *one rule, not sixty topic
- * paths that drift*. `Aether` is the case where that is not available:
+ * paths that drift*. `Chat` is the case where that is not available:
  * **`speech.vocal` and `speech.channel` carry identical facets** — both
  * `address: broadcast, actor: person` — so no combination of the three
  * axes separates the room from the network.
  */
 describe("the topic allowlist", () => {
-  const aether = DEFAULT_VIEWS.find((p) => p.name === "Aether")!.filter;
+  const aether = DEFAULT_VIEWS.find((p) => p.name === "Chat")!.filter;
 
   const facets = (topic: string) => ({
     address: "broadcast" as const,
@@ -258,6 +258,6 @@ describe("the topic allowlist", () => {
      * list a player owns. Everything the player starts with is
      * editable, and the one thing that is not is not in the list.
      */
-    expect(DEFAULT_VIEWS.map((p) => p.name)).toEqual(["Aether"]);
+    expect(DEFAULT_VIEWS.map((p) => p.name)).toEqual(["Chat"]);
   });
 });

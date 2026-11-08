@@ -47,6 +47,17 @@ data:
     - { discipline: mixology, asserting: competent }
     - { discipline: awareness, asserting: competent }
   behaviors:
+    # ⭐ Off shift, a regular here on their nights (the bar's rota: one of
+    # the crew most evenings, two on Friday and Saturday's busy stretch).
+    - brain: /lib/behavior/frequents
+      trigger: candidate
+      config:
+        place: /world/lounge/location/bar
+        sit: stool
+        home: /world/lounge/location/offstage
+        visits:
+          - { days: [2, 6], hours: [19, 22] }
+          - { days: [4], hours: [20, 22] }
     # ⚠ The `shifts` and `covers` specs used to sit here. Presence is a
     # CONSEQUENCE of employment state, so the move belongs to the roster
     # tick that owns the state — `offstage:` on the house, `station:` on

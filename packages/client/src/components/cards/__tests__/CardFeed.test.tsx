@@ -214,7 +214,7 @@ describe("the pin", () => {
     expect(screen.getByLabelText('cockpit card pin "who --here"')).toBeTruthy();
     expect(screen.getByLabelText("cockpit card pin who")).toBeTruthy();
     expect(
-      screen.getByLabelText('cockpit card dismiss "who --here"'),
+      screen.getByLabelText('cockpit card close "who --here"'),
     ).toBeTruthy();
   });
 
@@ -232,7 +232,7 @@ describe("the pin", () => {
     landCard(opened({ instanceId: "c1", cardId: "who" }));
     useStore.getState().setCardPinnedState("c1", true);
     render(<CardFeed onSendCommand={noop} />);
-    expect(screen.getByLabelText("cockpit card auto who")).toBeTruthy();
+    expect(screen.getByLabelText("cockpit card unpin who")).toBeTruthy();
     expect(screen.getByTestId("card-hold-reason").textContent).toBe(
       "kept",
     );
@@ -291,7 +291,7 @@ describe("⭐ the feed's order", () => {
 });
 
 describe("⚠⚠ the client cannot open a card", () => {
-  it("the hook registers the four card envelopes and opens nothing", () => {
+  it("the hook registers the five card envelopes and opens nothing", () => {
     const on = vi.spyOn(websocketClient, "onEnvelope");
     const subscribe = vi.spyOn(websocketClient, "subscribeMql");
     renderHook(() => useCardFeed());
@@ -301,6 +301,7 @@ describe("⚠⚠ the client cannot open a card", () => {
       "card-touched",
       "card-closed",
       "card-pinned",
+      "card-arranged",
       "mql-subscription-delta",
     ]);
     /*
@@ -365,15 +366,21 @@ describe("⚠⚠ the client cannot open a card", () => {
 });
 
 describe("the card's controls", () => {
-  it("carries refresh, pin and close as commands", () => {
+  it("carries bigger, smaller, pin and close as commands — and the stamp refreshes", () => {
     landCard(opened({ instanceId: "c1", cardId: "who", key: "who" }));
     render(<CardFeed onSendCommand={noop} />);
     expect(screen.getByTestId("card-refresh").getAttribute("aria-label")).toBe(
       "who",
     );
+    expect(screen.getByTestId("card-grow").getAttribute("aria-label")).toBe(
+      "cockpit card grow who",
+    );
+    expect(screen.getByTestId("card-shrink").getAttribute("aria-label")).toBe(
+      "cockpit card shrink who",
+    );
     expect(screen.getByLabelText("cockpit card pin who")).toBeTruthy();
     expect(screen.getByTestId("card-close").getAttribute("aria-label")).toBe(
-      "cockpit card dismiss who",
+      "cockpit card close who",
     );
   });
 
