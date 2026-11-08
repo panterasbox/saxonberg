@@ -1324,6 +1324,33 @@ roster grows**.
 - The supply build itself — capacitors, generation, the grid (this pack's *Left* list).
 - Rune × verb × effect fit, when the roster has grown.
 
+## Part 12 — ⭐⭐ The stone list, and gems' two values (2026-11-07) **[the owner: "I buy this"]**
+
+By Part 11c's rule (capacity borrowed from the real dielectric constant):
+
+| gem | mineral | dielectric constant | as a store |
+|---|---|---|---|
+| quartz, amethyst | silica | ~4.5 | weak |
+| diamond | carbon | ~5.7 | **poor**, for all its beauty |
+| emerald, topaz | beryl, topaz | ~6–8 | modest |
+| ⭐ ruby, sapphire | corundum | ~9–11 | **the best of the classic gems** |
+| ⭐⭐ rutile; rutilated quartz (*Venus hair*) | TiO₂ | ~90–170 | an enchanter's stone |
+| ⭐⭐⭐ **fabulite** | strontium titanate | ~300 | ⭐ **sold in the 1950s as a fake diamond** |
+
+⚠ Titanite (sphene) and benitoite are titanium gems and likely strong. Their values are unverified.
+
+- **Two value systems:** **beauty**, priced in zorkmids by the jewelry market, and **capacity**, from
+  the mineral, the mass and the field it sat in. Diamond is high in the first and low in the second,
+  rutile the reverse, ruby good at both. ⭐ **The best mana stone is the fake diamond.**
+- If capacity depends on **geometry** (open, `C = εA/d`), enchanters cut **layered plates rather than
+  brilliants**, a *plate cut* a jeweler would call ruined.
+- **Charge stays invisible to ordinary senses.** That's drilling's precedent (*whether a trap is charged
+  has no reading*). Only an instrument, an assay or a mana sense tells you, which is what gives
+  counterfeits, assayers and the hallmark their meaning
+  ([spellbook-slate](./spellbook-slate.md) § 7a).
+- **The vocabulary** (stores, conduits, specifications, places, acts) is in spellbook § 7a and the size
+  build's requirements.
+
 ## Open questions
 
 1. **What is the ambient mana density of an ordinary place, and what sets
