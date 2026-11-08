@@ -41,7 +41,10 @@ export function packCards(
   gap: number,
   estimate = 160,
 ): Packing {
-  const columns = columnsFor(width, minWidth, gap);
+  // ⭐ Never more columns than cards: one card on a two-column gallery
+  // spans it, rather than leaving half the screen empty (owner's walk,
+  // 2026-11-02).
+  const columns = Math.max(1, Math.min(columnsFor(width, minWidth, gap), ids.length));
   const colWidth = (width - gap * (columns - 1)) / columns;
   const tops = new Array<number>(columns).fill(0);
   const slots = new Map<string, PackedSlot>();

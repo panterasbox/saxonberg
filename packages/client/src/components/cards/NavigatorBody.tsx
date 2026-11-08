@@ -93,10 +93,8 @@ const Arm = styled.button<{ $door?: boolean }>`
   }
 `;
 
-const Empty = styled.span`
-  border: 1px dotted ${tokens.color.borderMuted};
-  border-radius: ${tokens.radius.sm};
-`;
+/** An arm with no way out: nothing drawn, so a lone exit does not look broken. */
+const Empty = styled.span``;
 
 const You = styled.span`
   display: grid;
@@ -120,15 +118,6 @@ const Unknown = styled.span`
   font-style: italic;
 `;
 
-const MapSpace = styled.div`
-  min-height: 6rem;
-  border: 1px dashed ${tokens.color.borderMuted};
-  border-radius: ${tokens.radius.sm};
-  display: grid;
-  place-items: center;
-  color: ${tokens.color.fgMuted};
-  font-size: ${tokens.font.small};
-`;
 
 export function NavigatorBody({ where, onSendCommand, onCommandPreview }: NavigatorBodyProps): React.ReactElement {
   const preview = onCommandPreview ?? (() => undefined);
@@ -157,11 +146,17 @@ export function NavigatorBody({ where, onSendCommand, onCommandPreview }: Naviga
   };
 
   const { weather, season, daylight } = where.conditions;
+  // "The Lounge › the lounge" reads as a stutter: a room named for its
+  // Locality is shown once.
+  const bare = (n: string): string => n.toLowerCase().replace(/^the\s+/, "");
+  const crumbs = where.localities.filter(
+    (l, i) => !(i === where.localities.length - 1 && bare(l.name) === bare(where.place.name)),
+  );
 
   return (
     <Root data-testid="navigator">
       <Crumbs aria-label="where you are" data-testid="nav-crumbs">
-        {where.localities.map((l) => (
+        {crumbs.map((l) => (
           <React.Fragment key={l.address}>
             <span title={l.address}>{l.name}</span>
             <span aria-hidden="true">›</span>
@@ -223,7 +218,6 @@ export function NavigatorBody({ where, onSendCommand, onCommandPreview }: Naviga
         <Fact>{where.jurisdiction ?? <Unknown>No government claims this ground.</Unknown>}</Fact>
       </div>
 
-      <MapSpace data-testid="nav-map">{"The map isn’t drawn yet."}</MapSpace>
     </Root>
   );
 }

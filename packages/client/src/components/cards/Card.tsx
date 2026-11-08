@@ -176,6 +176,12 @@ export interface CardProps {
    * the body is cut from the bottom and says so, with a way to grow.
    */
   cut?: boolean;
+  /**
+   * ⭐ Docked in a layout's panel (explore's navigator): the SLOT is chrome
+   * (owner, 2026-11-08) — kept current for you, never sized, pinned or
+   * closed — so the card shows its title and body and nothing else.
+   */
+  docked?: boolean;
 }
 
 /** The body, cut from the bottom when it does not fit. */
@@ -250,6 +256,7 @@ export function Card({
   onCommandPreview,
   children,
   cut = false,
+  docked = false,
 }: CardProps): React.ReactElement {
   const preview = onCommandPreview ?? (() => undefined);
   const { command, label } = pinAction(card);
@@ -342,7 +349,7 @@ export function Card({
           One affordance where there were two, so the header keeps the
           owner's four buttons.
         */}
-        {!faded && card.takenAt !== undefined && (
+        {!docked && !faded && card.takenAt !== undefined && (
           <Taken
             type="button"
             data-testid="card-refresh"
@@ -355,7 +362,7 @@ export function Card({
             <span data-testid="card-taken">{takenLabel(card.takenAt)}</span>
           </Taken>
         )}
-        <Reason data-testid="card-hold-reason">{cardReason(card)}</Reason>
+        {docked ? null : <Reason data-testid="card-hold-reason">{cardReason(card)}</Reason>}
         {/*
           ⚠ A released husk keeps no controls. Pinning or refreshing
           something the world has already ended would promise to act on
@@ -371,6 +378,7 @@ export function Card({
           command the status bar previews. Bigger stays in place, dimmed,
           at the top of the ladder, so the buttons never shuffle.
         */}
+        {docked ? null : (
         <Controls>
           {!faded && (
             <IconButton
@@ -432,6 +440,7 @@ export function Card({
             </IconButton>
           ) : null}
         </Controls>
+        )}
       </Head>
       <Body ref={bodyRef} $cut={cut} data-testid="card-body">
         <CardBodyBoundary cardId={card.cardId}>{children}</CardBodyBoundary>

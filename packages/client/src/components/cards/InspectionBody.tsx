@@ -108,6 +108,11 @@ const ItemChip = styled.button`
   }
 `;
 
+/** A group of identical things: a chip like its members, so it reads as clickable. */
+const GroupChip = styled(ItemChip)`
+  color: ${tokens.color.fg};
+`;
+
 const Toggle = styled.button`
   font: inherit;
   font-size: ${tokens.font.micro};
@@ -300,14 +305,14 @@ function ItemChips({
         item.count > 1 && item.members ? (
           <React.Fragment key={item.stuffId}>
             {/* ⭐ A group expands in place (#71/#76). */}
-            <Toggle
+            <GroupChip
               type="button"
               data-testid="segment-group"
               aria-expanded={openGroup === item.stuffId}
               onClick={() => setOpenGroup(openGroup === item.stuffId ? null : item.stuffId)}
             >
               {item.label} {openGroup === item.stuffId ? "▾" : "▸"}
-            </Toggle>
+            </GroupChip>
             {openGroup === item.stuffId ? item.members.map((m) => chip(m, true)) : null}
           </React.Fragment>
         ) : item.status || item.seat ? (
@@ -336,6 +341,8 @@ function ItemChips({
 
 const Person = styled.span`
   display: inline-flex;
+  gap: 0;
+  white-space: pre;
   flex-wrap: wrap;
   align-items: baseline;
   color: ${tokens.color.fgMuted};
@@ -398,7 +405,12 @@ export function InspectionBody({
   const record = card.records[0] as StuffDetailRecord | undefined;
   const stuffId = record?.stuffId;
   const kind: StuffKind = card.subjectKind ?? "thing";
-  const segments = card.segments ?? [];
+  // ⭐ Where the explore navigator is docked it owns the ways out; the room
+  // card does not repeat them (owner, 2026-11-08: exits in one place).
+  const navigatorDocked = useStore((st) => Object.values(st.cards).some((c) => c.cardId === "map" && !c.closed));
+  const segments = (card.segments ?? []).filter(
+    (seg) => !(navigatorDocked && seg.heading === "Obvious exits"),
+  );
   const [openSource, setOpenSource] = React.useState<SegmentSource | null>(null);
   const [quietOpen, setQuietOpen] = React.useState(false);
   const [imageOpen, setImageOpen] = React.useState(false);

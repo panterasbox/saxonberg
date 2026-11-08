@@ -41,4 +41,10 @@ describe("the gallery's packing", () => {
     expect(moveBefore(["a", "b", "c"], "a", null)).toEqual(["b", "c", "a"]);
     expect(moveBefore(["a", "b", "c"], "a", "c")).toEqual(["b", "a", "c"]);
   });
+
+  it("⭐ never more columns than cards — one card spans the gallery", () => {
+    const p = packCards(["only"], new Map(), 700, 320, 20);
+    expect(p.columns).toBe(1);
+    expect(p.slots.get("only")!.width).toBe(700);
+  });
 });

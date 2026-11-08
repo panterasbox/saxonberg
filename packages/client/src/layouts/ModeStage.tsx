@@ -472,7 +472,11 @@ const DesktopStage: React.FC<LayoutProps & { config: StageConfig }> = ({
               ‹ collapse
             </PanelToggle>
           </PanelHead>
-          {config.panel === "navigator" && navigator ? renderCard(navigator) : null}
+          {config.panel === "navigator" && navigator ? (
+            <Card card={navigator} docked onSendCommand={onCommandClick} onCommandPreview={onCommandPreview}>
+              {renderBody(navigator)}
+            </Card>
+          ) : null}
           {config.panel === "subjects" ? (
             <SubjectPanel onCommandClick={onCommandClick} onCommandPreview={onCommandPreview} />
           ) : null}
