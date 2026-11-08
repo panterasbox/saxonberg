@@ -241,10 +241,10 @@ beforeAll(async () => {
   // The aroma words the materials name, read from the shipped documents: a
   // material's setter loads each one, and this test has no document store.
   const aromaDir = join(CONTENT, 'base-library', 'content', 'aromas');
-  const pending = readdirSync(aromaDir).map((f) => ({
-    word: f.replace(/\.yaml$/, ''),
-    data: YAML.parse(readFileSync(join(aromaDir, f), 'utf8')) as AromaData,
-  }));
+  const pending = (readdirSync(aromaDir, { recursive: true }) as string[])
+    .filter((f) => f.endsWith('.yaml'))
+    .map((f) => YAML.parse(readFileSync(join(aromaDir, f), 'utf8')) as AromaData)
+    .map((data) => ({ word: String(data.word), data }));
   while (pending.length > 0) {
     const i = pending.findIndex((p) => !p.data.parent || Aroma.resolveKnown(p.data.parent));
     const [next] = pending.splice(i, 1);

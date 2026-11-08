@@ -1,3 +1,4 @@
 # The light ends of a crude.
+word: naphtha
 parent: petroleum
 liking: { peak: 1.5, width: 2, valence: -1 }

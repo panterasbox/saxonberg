@@ -1,7 +1,8 @@
 /**
  * check-aromas — ⭐ **a word a row names must resolve to a row.**
  *
- * Aroma words are open: any pack can ship one at `/aromas/<word>`,
+ * Aroma words are open: any pack can ship one under `content/aromas/`, keyed by
+ * its `word:`,
  * which means nothing in the kernel can list them. So a misspelled word has no
  * list to fail against, and the failure it would otherwise have is the worst
  * this codebase knows: a smell silently dropped, because the runtime reads a
@@ -10,7 +11,7 @@
  *
  * It refuses, with no exemption list:
  *
- *   1. an aroma word with no `content/aromas/<word>.yaml` document, or whose
+ *   1. an aroma word no pack's `aroma` document carries as its `word:`, or whose
  *      document is in a pack the namer cannot reach through its dependencies,
  *      or a `parent:` that is not a word either;
  *   2. `smells:` or `burning:` on a row whose class cannot hold one (a plain
@@ -39,6 +40,8 @@ import {
 } from './pack-roots';
 
 const AROMA_DIR = 'aromas';
+const WORD_SHAPE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
+const isWordShape = (w: unknown): w is string => typeof w === 'string' && WORD_SHAPE.test(w);
 const BASIC_TASTES = new Set(['sweet', 'sour', 'salty', 'bitter', 'umami']);
 /** The kernel names these itself (rot, decay and a corpse's stale blood). */
 const KERNEL_WORDS = ['rot', 'decay', 'blood'];
@@ -120,10 +123,18 @@ export function checkAromas(
   for (const pack of readdirSync(content)) {
     const dir = join(content, pack, 'content', AROMA_DIR);
     if (!existsSync(dir)) continue;
-    for (const f of readdirSync(dir)) {
-      if (!f.endsWith('.yaml')) continue;
-      const doc = (YAML.parse(readFileSync(join(dir, f), 'utf8')) ?? {}) as { parent?: unknown };
-      words.set(f.replace(/\.yaml$/, ''), { pack, parent: doc.parent });
+    // ⭐ Any depth: a word is keyed by its `word:`, so where its file sits under
+    // `aromas/` is the author's to arrange.
+    for (const file of walkYamlFiles(dir)) {
+      const owner = relative(content, file);
+      const doc = (YAML.parse(readFileSync(file, 'utf8')) ?? {}) as { word?: unknown; parent?: unknown };
+      if (!isWordShape(doc.word)) {
+        findings.push(`${owner}: an aroma document needs a \`word:\` that is a lowercase slug`);
+        continue;
+      }
+      const had = words.get(doc.word);
+      if (had) findings.push(`${owner}: '${doc.word}' is also shipped by '${had.pack}'; a word is one document`);
+      words.set(doc.word, { pack, parent: doc.parent });
     }
   }
   const tagsByPack = new Map<string, Set<string>>();

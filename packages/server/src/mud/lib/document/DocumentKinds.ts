@@ -58,11 +58,12 @@ export const DOCUMENT_KINDS = {
   emote: { kind: 'emote', naturalKey: 'verb', contentDir: 'emotes', ext: 'yaml', onVanish: 'delete' },
   /**
    * An aroma word: what a nose can read, with its threshold, the discipline that
-   * trains a nose to it, its hedonic curve and its `parent:` in the tree. Path-keyed
-   * at `/aromas/<word>`, so a word IS its path and loads when something names it
-   * (`lib/perception/Aroma.ts`). Authored metadata: nothing writes one at runtime.
+   * trains a nose to it, its hedonic curve and its `parent:` in the tree. Keyed by
+   * `word` across every pack (a pack's documents sit under its own root, so a path
+   * cannot name a word any pack may ship), and read by that key when something
+   * names it (`lib/perception/Aroma.ts`). Authored metadata: nothing writes one.
    */
-  aroma: { kind: 'aroma', naturalKey: null, contentDir: 'aromas', ext: 'yaml', onVanish: 'delete' },
+  aroma: { kind: 'aroma', naturalKey: 'word', contentDir: 'aromas', ext: 'yaml', onVanish: 'delete' },
   recipe: { kind: 'recipe', naturalKey: 'recipeId', contentDir: 'recipes', ext: 'yaml', onVanish: 'delete' },
   'name-bank': { kind: 'name-bank', naturalKey: 'key', contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
   blueprint: { kind: 'blueprint', naturalKey: 'blueprintId', contentDir: 'blueprints', ext: 'yaml', onVanish: 'delete' },

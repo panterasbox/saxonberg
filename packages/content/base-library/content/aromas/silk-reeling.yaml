@@ -1,4 +1,5 @@
 # Cocoons stifled and boiled.
+word: silk-reeling
 parent: silkworm
 discipline: sericulture
 liking: { peak: 1.5, width: 2, valence: -1 }

@@ -1,3 +1,4 @@
 # Ethyl acetate high in the heads: the nose saying the cut came too early.
+word: solvent
 threshold: 5.0
 liking: { peak: 1.5, width: 2, valence: -1 }

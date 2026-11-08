@@ -570,12 +570,12 @@ ordinary nose. A nose words it on the log ladder `1 · 30 · 300 · 2000 · 8000
 the gas analyzer prints it, so the quantity survives the epoch and only the reader
 changes.
 
-**Words are documents** of kind `aroma` at `/aromas/<word>` (`lib/perception/Aroma`),
+**Words are documents** of kind `aroma`, keyed by `word:` across every pack (`lib/perception/Aroma`),
 a slug read with its hyphens as spaces. ⭐ A Document and not an Idea: a word is
 authored metadata. Nothing writes one after it loads, nothing acts on one, and
 nothing should find one with MQL. Each document's `parent:` is the tree, and a word
 takes what it leaves unstated from its parent, so a pack adds a word with no kernel
-edit (`content/aromas/<word>.yaml`). A word loads when something naming it loads: the
+edit (`content/aromas/…`, at any depth: the file's place is the author's to arrange). A word loads when something naming it loads: the
 naming row's setter awaits `Aroma.ensure`, which also fails loudly if there is no
 document, and a cold read starts the load that `smell`, `taste` and `analyze` wait out.
 `lint:aromas` catches the same at CI.

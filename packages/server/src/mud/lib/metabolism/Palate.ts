@@ -41,7 +41,6 @@ import type { Stuff } from '../stuff/Stuff';
 const TASTE_LITRES = 0.01;
 /** One bite, off a thing's mass. */
 const TASTE_KG = 0.01;
-const LITRE: 'L' = 'L';
 
 /** The widest a born sensitivity moves a taste, in steps of its own ladder. */
 const BORN_TASTE_SPREAD = 0.5;
@@ -281,7 +280,7 @@ export function PalateMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
 
       // ── a bite off edible matter, or a lick of what would do something ──
       const edible = food.isEdible();
-      const litres = Quantity.of(TASTE_LITRES, LITRE);
+      const litres = Quantity.of(TASTE_LITRES, 'L');
       self.ingest(material, litres, 'solid', payload, TASTE_KG);
       if (edible) await food.takeBite(TASTE_KG);
       this.recordExposure(savor.tastes);

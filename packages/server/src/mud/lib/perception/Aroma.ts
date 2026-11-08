@@ -4,8 +4,9 @@
  *
  * ⭐ A Document and not an Idea: a word is authored metadata. Nothing writes to
  * one after it loads, nothing acts on one, and nothing should find one with MQL.
- * Each lives at `/aromas/<word>` (a pack ships `content/aromas/<word>.yaml`), so a
- * word IS its path: nothing scans for it and nothing warms a roster.
+ * A pack ships one as `content/aromas/<word>.yaml`, keyed by its `word:` across
+ * every pack, so a word is read by that key: nothing scans for it and nothing warms
+ * a roster. Where the file sits under `aromas/` is the author's to arrange.
  *
  * The tree is each document's `parent:`, so `peat-smoke` names `smoke`. A
  * threshold, a discipline and a hedonic curve a word leaves unstated come from
@@ -44,14 +45,14 @@ export interface OdorTag {
 
 /** What an `aroma` document says, before its parent fills the gaps. */
 export interface AromaData {
+  /** The word; the document's natural key. */
+  word?: string;
   parent?: string;
   threshold?: number;
   discipline?: string;
   liking?: HedonicCurve;
 }
 
-/** Where every word's document lives: `AROMA_ROOT + word`. */
-export const AROMA_ROOT = '/aromas/';
 
 /** A word's shape: a lowercase slug, because it is a path leaf. */
 const WORD_SHAPE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
@@ -95,7 +96,7 @@ export class Aroma {
       const load = Aroma.ensure(word)
         .catch((err: unknown) => {
           void DiagnosticApi.record({
-            path: AROMA_ROOT + word,
+            path: `aroma:${word}`,
             severity: 'error',
             message: `Aroma '${word}' is named but has no document: ${String(err)}`,
           }).catch(() => {});
@@ -108,12 +109,13 @@ export class Aroma {
 
   /** The word, read with its parents; throws naming the word if there is none. @internal */
   public static async ensure(word: string, depth = 0): Promise<Aroma> {
+    if (!Aroma.isWord(word)) throw new Error(`'${String(word)}' is not an aroma word`);
     const found = Aroma.known.get(word);
     if (found) return found;
     if (depth > MAX_DEPTH) throw new Error(`Aroma '${word}': the tree is deeper than ${MAX_DEPTH}`);
-    const doc = await DocumentApi.read(AROMA_ROOT + word);
+    const doc = await DocumentApi.readByKey('aroma', word);
     if (!doc || doc.getKind() !== 'aroma') {
-      throw new Error(`Aroma '${word}' has no document at ${AROMA_ROOT}${word}`);
+      throw new Error(`Aroma '${word}' has no aroma document (no pack ships the word)`);
     }
     const data = doc.getData() as AromaData;
     const parent = data.parent ? await Aroma.ensure(data.parent, depth + 1) : null;

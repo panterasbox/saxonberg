@@ -1,4 +1,5 @@
 # Flax or hemp rotting in standing water.
+word: retting
 parent: rot
 discipline: textiles
 liking: { peak: 1.5, width: 2, valence: -1 }

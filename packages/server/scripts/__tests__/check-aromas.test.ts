@@ -31,7 +31,7 @@ function pack(id: string, deps: string[] = []): void {
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), 'aromas-'));
   pack('base-library');
-  write('base-library/content/aromas/tar.yaml', 'threshold: 1\n');
+  write('base-library/content/aromas/tar.yaml', 'word: tar\nthreshold: 1\n');
 });
 afterEach(() => rmSync(root, { recursive: true, force: true }));
 
@@ -76,8 +76,17 @@ describe('lint:aromas', () => {
   });
 
   it('refuses a parent that is not a word', () => {
-    write('base-library/content/aromas/pine-tar.yaml', 'parent: tarr\n');
+    write('base-library/content/aromas/smoke/pine-tar.yaml', 'word: pine-tar\nparent: tarr\n');
     expect(checkAromas(root).join()).toMatch(/parent names 'tarr'/);
+  });
+
+  it('refuses an aroma document with no word, and a word two packs ship', () => {
+    write('base-library/content/aromas/odd.yaml', 'threshold: 1\n');
+    pack('trade-x', ['base-library']);
+    write('trade-x/content/aromas/tar.yaml', 'word: tar\n');
+    const found = checkAromas(root).join();
+    expect(found).toMatch(/needs a `word:`/);
+    expect(found).toMatch(/'tar' is also shipped/);
   });
 
   it('refuses a medium nothing in reach carries, and passes one that is', () => {

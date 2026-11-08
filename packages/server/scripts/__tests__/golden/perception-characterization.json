@@ -524,7 +524,7 @@
     "peakLux": 124.423,
     "db": null,
     "soundSources": 0,
-    "ou": 500,
+    "ou": 516.667,
     "smell": "peat",
     "gather": [
       {
@@ -547,8 +547,8 @@
     "peakLux": 124.423,
     "db": null,
     "soundSources": 0,
-    "ou": 30,
-    "smell": "loam",
+    "ou": 516.667,
+    "smell": "peat",
     "gather": [
       {
         "at": "/world/moor/turf-bank",
@@ -2056,8 +2056,8 @@
     "peakLux": 189.264,
     "db": null,
     "soundSources": 0,
-    "ou": 1.849,
-    "smell": "straw",
+    "ou": 6.667,
+    "smell": "sea",
     "gather": [
       {
         "at": "/world/terminus/estuary/channel",
@@ -2094,8 +2094,8 @@
     "peakLux": 189.264,
     "db": null,
     "soundSources": 0,
-    "ou": 56.015,
-    "smell": "straw",
+    "ou": 200,
+    "smell": "sea",
     "gather": [
       {
         "at": "/world/terminus/estuary/estuary-mouth",
@@ -2177,7 +2177,7 @@
     "peakLux": 189.264,
     "db": null,
     "soundSources": 0,
-    "ou": 31.033,
+    "ou": 31,
     "smell": "loam",
     "gather": [
       {
@@ -2328,7 +2328,7 @@
     "peakLux": 189.264,
     "db": null,
     "soundSources": 0,
-    "ou": 1.067,
+    "ou": 1.033,
     "smell": "loam",
     "gather": [
       {
@@ -2371,7 +2371,7 @@
     "peakLux": 189.264,
     "db": null,
     "soundSources": 0,
-    "ou": 32.133,
+    "ou": 31.133,
     "smell": "loam",
     "gather": [
       {
@@ -2467,7 +2467,7 @@
     "peakLux": 189.264,
     "db": null,
     "soundSources": 0,
-    "ou": 32.067,
+    "ou": 31.067,
     "smell": "loam",
     "gather": [
       {
@@ -2525,7 +2525,7 @@
     "peakLux": 189.264,
     "db": null,
     "soundSources": 0,
-    "ou": 1.067,
+    "ou": 1.033,
     "smell": "loam",
     "gather": [
       {
@@ -2568,7 +2568,7 @@
     "peakLux": 189.264,
     "db": null,
     "soundSources": 0,
-    "ou": 1.067,
+    "ou": 1.033,
     "smell": "loam",
     "gather": [
       {
@@ -2625,7 +2625,7 @@
         "direction": "up"
       },
       {
-        "at": "<unplaced:oNzR63Hz2GxSucd3wsTQ7>",
+        "at": "<unplaced:MwSyZ9LqxBUrMFNLV5zQo>",
         "db": 60,
         "direction": "up"
       },
@@ -2653,7 +2653,7 @@
         "direction": null
       },
       {
-        "at": "<unplaced:oNzR63Hz2GxSucd3wsTQ7>",
+        "at": "<unplaced:MwSyZ9LqxBUrMFNLV5zQo>",
         "db": 80,
         "direction": "field"
       },
@@ -2691,7 +2691,7 @@
         "direction": null
       },
       {
-        "at": "<unplaced:oNzR63Hz2GxSucd3wsTQ7>",
+        "at": "<unplaced:MwSyZ9LqxBUrMFNLV5zQo>",
         "db": 80,
         "direction": "west"
       },
@@ -2719,7 +2719,7 @@
     "smell": "compost",
     "gather": [
       {
-        "at": "<unplaced:oNzR63Hz2GxSucd3wsTQ7>",
+        "at": "<unplaced:MwSyZ9LqxBUrMFNLV5zQo>",
         "db": 100,
         "direction": null
       },
@@ -3039,8 +3039,8 @@
     "peakLux": 40.744,
     "db": null,
     "soundSources": 0,
-    "ou": 459.479,
-    "smell": "peat",
+    "ou": 1659.018,
+    "smell": "mash",
     "gather": [
       {
         "at": "/world/terminus/goods-yards/crowsfoot/location/floor",
@@ -3779,8 +3779,8 @@
     "peakLux": 182.254,
     "db": null,
     "soundSources": 0,
-    "ou": 48.536,
-    "smell": "oak",
+    "ou": 1659.018,
+    "smell": "mash",
     "gather": [
       {
         "at": "/world/terminus/goods-yards/veshko/location/distillery",
@@ -4056,7 +4056,7 @@
     "peakLux": 189.264,
     "db": null,
     "soundSources": 0,
-    "ou": 32.067,
+    "ou": 32.033,
     "smell": "loam",
     "gather": [
       {
@@ -4109,7 +4109,7 @@
     "peakLux": 189.264,
     "db": null,
     "soundSources": 0,
-    "ou": 32.067,
+    "ou": 32.033,
     "smell": "loam",
     "gather": [
       {
@@ -9443,8 +9443,8 @@
     "peakLux": 201.525,
     "db": null,
     "soundSources": 0,
-    "ou": 400,
-    "smell": "wet-hide",
+    "ou": 128.428,
+    "smell": "paint",
     "gather": [
       {
         "at": "/world/terminus/valley-road/towpath",
@@ -10494,8 +10494,8 @@
     "peakLux": 204.154,
     "db": null,
     "soundSources": 0,
-    "ou": 12000,
-    "smell": "wet-hide",
+    "ou": 3852.851,
+    "smell": "paint",
     "gather": [
       {
         "at": "/world/terminus/wharfside/colorman/location/shop",
@@ -10547,8 +10547,8 @@
     "peakLux": 201.525,
     "db": null,
     "soundSources": 0,
-    "ou": 400,
-    "smell": "wet-hide",
+    "ou": 128.428,
+    "smell": "paint",
     "gather": [
       {
         "at": "/world/terminus/wharfside/colorman/location/yard",
@@ -10789,8 +10789,8 @@
     "peakLux": 92.66,
     "db": null,
     "soundSources": 0,
-    "ou": 76.58,
-    "smell": "tan-liquor",
+    "ou": 774.597,
+    "smell": "offal",
     "gather": [
       {
         "at": "/world/terminus/wharfside/knackers/location/yard",

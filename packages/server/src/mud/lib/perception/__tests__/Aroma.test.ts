@@ -10,11 +10,10 @@ import { Aroma } from '../Aroma';
 import { DocumentApi } from '../../../api/document';
 
 function docs(rows: Record<string, Record<string, unknown>>): void {
-  vi.spyOn(DocumentApi, 'read').mockImplementation(async (path: string) => {
-    const word = path.replace('/aromas/', '');
+  vi.spyOn(DocumentApi, 'readByKey').mockImplementation(async (_kind: string, word: string) => {
     const data = rows[word];
     return data
-      ? ({ getKind: () => 'aroma', getData: () => data, getPath: () => path } as never)
+      ? ({ getKind: () => 'aroma', getData: () => ({ word, ...data }), getPath: () => `/base-library/aromas/${word}` } as never)
       : null;
   });
 }
@@ -58,11 +57,11 @@ describe('Aroma', () => {
   });
 
   it('a document of another kind is not a word', async () => {
-    vi.spyOn(DocumentApi, 'read').mockResolvedValue({
+    vi.spyOn(DocumentApi, 'readByKey').mockResolvedValue({
       getKind: () => 'recipe',
       getData: () => ({}),
     } as never);
-    await expect(Aroma.ensure('tar')).rejects.toThrow(/no document/);
+    await expect(Aroma.ensure('tar')).rejects.toThrow(/no aroma document/);
   });
 
   it('a malformed tag fails on its shape', async () => {
