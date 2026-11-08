@@ -368,6 +368,81 @@ what every blue potion in the world is.
 - A sincere crafter can **sell a bad potion in good faith**. **The hallmark and the assay office** (§ 7a)
   are what catch it.
 
+## 7c. ⭐⭐⭐ Every magic item, end to end, and the generator **[DECIDED in principle — the owner, 2026-11-07]**
+
+⚠ The owner: *"we need content to actually decide a lot of this, and we have no hunting or foraging
+model yet."* This is the shape. The particulars wait for content and for the hunting, foraging and magic
+pass.
+
+### Four acts, four trades
+
+1. **Make the blank** (mundane assembly: the metalworker, the silversmith, the jeweler's `fit`).
+2. **Specify it.** The enchanter's working, from a spell she knows, with declared intent. It's a durative
+   act that lengthens with the specification's bits. ⭐ Her competence sets the working's
+   **efficiency, and that is its BUC** (*"blessed means EFFICIENT"*, shipped). She sees the result
+   through her fog (§ 7b).
+3. **Charge it** (a utility, a node, or a reserve through a coupling that loses some).
+4. **Use it.** Each use costs `MagicLogic.costOf`.
+
+### The interop: construction decides the supply, the working decides the draw
+
+| what the item has | its power comes from |
+|---|---|
+| a store (filled sockets, charged ink, a charged base) | itself |
+| only a conduit touching skin (a grip, a band) | the wearer's reserve (*wearing sustains*, shipped) |
+| a line | a socket or utility (`ManaPowered`, shipped) |
+| none of these | nothing: *"it has nothing to draw on"* |
+
+**Uses = capacity ÷ cost per use. Duration = capacity ÷ draw** (rule 5, *a binding's duration is
+E/λ*). No item has authored charges. NetHack's `(0:4)` wand is a 40 τ ruby on a 10 τ firebolt.
+
+### The potion base
+
+Water (ε about 80), or spirit (ε about 24):
+
+| route | how | analogue |
+|---|---|---|
+| draw it | tap a mana spring | spa water, holy wells |
+| concentrate it | evaporate dilute mana-water. It partitions, loses some each pass, and costs energy (the refinery) | brine, syrup |
+| ⭐ charge by residence | a cask of ordinary water left at a node for days | folk *moon water* |
+| extract into spirit | herbs soaked in alcohol; the charge partitions into the solvent and carries the herb's working | tinctures |
+
+### The lines
+
+| class | blank | store | specification | fires |
+|---|---|---|---|---|
+| wand, rod, staff | body: wood or metal · conduit: silver wire or inlay, or a doped body | a stone: mined, lapidary-cut (plate cut), jeweler-set | carved rune | active, a charge per use |
+| ring, amulet | a setting | a stone, **or none** (a doped band draws on the wearer) | engraved rune | passive, held |
+| scroll | paper (the paper build) | ⭐ **charged ink**: titanium white (rutile) in drying oil, charged by residence or with mana-water. The owner's own first thought | the scribe's written working | active, read, once |
+| potion | a vial | the charged base | brewed: reagents plus the brewer's act | active, drunk; the route (draught, drop, vapor, dart) sets the onset |
+| spellbook | paper, uncharged ink | none (knowledge) | copied, with the shipped defective-copy risk | learning |
+| runed weapon or armor | the smith's doped blade or inlay; sockets | stones | runes on its faces | passive, on your strike |
+| talisman | a small worn charm | a stone | a rune keyed to a trigger | reactive |
+| glyph, ward | a face (door, floor, threshold) | an embedded stone, or the line | the rune | placed |
+| stores | ⭐ the **Leyden jar** (glass, foil, mana-water); cells | itself | none | charged at a node or utility |
+
+⚠ **Correction to § 5d:** *mana-oil* contradicts the fat-dielectric rule. The honest coat is a
+**titanium-white paste**, the ink's own pigment spread on the edge.
+
+### What an item carries, and what derives
+
+**Stored:** its construction (assembly's parts: body, conduit, sockets, stones by mineral, mass and cut),
+its specification (the working, who specified it, its efficiency), its **charge**, and its provenance
+(lot and maker, or *an unknown hand*). **Derived:** capacity, uses, duration, BUC (from efficiency),
+appearance (from class and generation), and rarity (from stored labor, shipped).
+
+### The generator: class + effect + distributions
+
+The owner: *"I have no idea how you sample maker competence, what are you sampling from. I think you
+just need distributions."* There is no fictional maker. The generator **chooses** class and effect, as
+before, and fills every construction field **from a distribution on the class's blank row**: body,
+conduit, sockets, stone mineral and mass, efficiency (the shipped *generation odds* are already this
+distribution), charge at spawn (old finds are part-flat), and provenance *an unknown hand*. Everything is
+**seeded, never redrawn** (uncertainty.md's generative provenance). ⭐ **The stone distribution leans on
+the region's own deposits** where it has them, so *the distribution reads the world* reaches materials:
+a fabulite-rich region's ruins yield fabulite wands. It passes through the scale envelope's mint budget.
+Found and crafted are one model, filled two ways.
+
 ## 8. Open
 
 - Clusters 5–12.
