@@ -357,7 +357,7 @@ suite('smell and taste', () => {
     it('22. a peated whisky gives tongue and nose; a nose finds no salt; fouled water is silent', async () => {
       await hand(taster, '/trade/distilling/thing/whiskey');
       expectOk(await taster.cmd('open me:i:whiskey'));
-      await evalOn(taster, 'me:i:whiskey', 'this.getBulk("interior").setPayload({ dissolvedAromatics: [{ type: "peat-smoke", amount: 30 }] })');
+      await evalOn(taster, 'me:i:whiskey', 'this.getBulk("interior").setPayload({ dissolvedAromatics: [{ type: "/base-library/aromas/peat-smoke", amount: 30 }] })');
       const whisky = await say(taster, 'taste me:i:whiskey');
       expect(whisky).toMatch(/It tastes .*It smells .*of smoke/);
       await hand(taster, '/stuff/thing/items/bowl', { interiorMaterial: '/stuff/idea/material/bulk/salt-water', interiorAmount: 0.3 });
