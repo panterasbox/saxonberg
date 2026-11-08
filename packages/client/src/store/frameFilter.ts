@@ -15,7 +15,6 @@ import type { ConsoleTab, FacetFilter, TerminalFilter } from "@saxonberg/types";
 import { ALL_VIEW } from "@saxonberg/types";
 import type { Frame } from "./index";
 import type { CardState } from "./cardFeedSlice";
-import { cardedFrameIsCovered } from "./cardFeedSlice";
 import { facetFilterPasses } from "../components/FacetFilterPanel";
 import type { CardId, TopicActor, TopicAddress, TopicWeight } from "@saxonberg/types";
 
@@ -69,9 +68,13 @@ export function framesFor(
       return false;
     }
     if (muted.has(f.topic)) return false;
-    if (ctx.resultDisplay === "card" && cardedFrameIsCovered(f.carded, ctx.cards, ctx.kinds)) {
-      return false;
-    }
+    /*
+     * ⭐⭐ The transcript is never rewritten (owner, 2026-11-08). A line a
+     * card also shows used to be hidden while the card was on screen and
+     * come back when it closed — a history that changes with what is open
+     * is not a history. The card is the same answer, made clickable; the
+     * line stays.
+     */
     if (ctx.alwaysAggregate && f.inReactionTo !== undefined) return false;
     return true;
   });

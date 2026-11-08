@@ -59,11 +59,11 @@ describe("framesFor", () => {
     expect(framesFor(all, { muted: ["speech.vocal"] }, ctx())).toHaveLength(3);
   });
 
-  it("a carded frame whose card is on screen is not printed twice", () => {
+  it("⭐⭐ the transcript is never rewritten: a carded line shows while its card is on screen", () => {
     const carded = frame("sense.survey", { carded: "card-1" });
     const out = framesFor([carded], {}, ctx({
       cards: { "card-1": { instanceId: "card-1", cardId: "subject", key: "look", live: false, pinned: false, records: [], openedAt: 1 } },
     }));
-    expect(out).toEqual([]);
+    expect(out).toEqual([carded]);
   });
 });
