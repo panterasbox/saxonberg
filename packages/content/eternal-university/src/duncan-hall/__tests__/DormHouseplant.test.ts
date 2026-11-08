@@ -133,7 +133,8 @@ function addSeed(path: string, file: string): void {
   col('content').push({
     _id: `d-${++idCounter}`,
     path,
-    class: parsed.class as string,
+    // A child row names its parent rather than a class (an aroma under its root).
+    ...(typeof parsed.extends === 'string' ? { extends: parsed.extends } : { class: parsed.class as string }),
     data: (parsed.data as Record<string, unknown>) ?? {},
   });
 }
@@ -245,6 +246,10 @@ function seedDomain(): void {
     '/stuff/idea/material/alloy/steel',
     `${CONTENT}base-library/content/stuff/idea/material/alloy/steel.yaml`,
   );
+  // The aroma words those materials name, which load with them.
+  for (const word of ['loam', 'earth', 'green']) {
+    addSeed(`/stuff/idea/aroma/${word}`, `${CONTENT}base-library/content/stuff/idea/aroma/${word}.yaml`);
+  }
   addSeed(
     '/stuff/idea/material/tissue/plant-tissue',
     `${CONTENT}base-library/content/stuff/idea/material/tissue/plant-tissue.yaml`,

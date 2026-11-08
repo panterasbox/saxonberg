@@ -102,6 +102,8 @@ function docsOf(pack: string, dir: string): StoredDocument[] {
 /** Every template row the venue and its stock clone from — the shipped YAML. */
 function contentRows(): Row[] {
   const rows: Row[] = [
+    // The aroma words the materials name: a material's setter loads them.
+    ...yamlDir('base-library', 'stuff/idea/aroma', '/stuff/idea/aroma'),
     ...yamlDir('platform', 'platform/idea/persistence', '/platform/idea/persistence'),
     // ⚠⚠ The template applier's own row, read EXPLICITLY. It lived in
     // `platform/idea/persistence/` until 2026-10-01 and this list picked
@@ -117,6 +119,7 @@ function contentRows(): Row[] {
     ...yamlDir('platform', 'platform/idea/persistence/QuantityMarshaller', '/platform/idea/persistence/QuantityMarshaller'),
     ...yamlDir('platform', 'platform/idea/material', '/platform/idea/material'),
     ...yamlDir('platform', 'platform/location', '/platform/location'),
+    ...yamlDir('base-library', 'stuff/idea/material/wood', '/stuff/idea/material/wood'),
     ...yamlDir('base-library', 'stuff/idea/material/bulk', '/stuff/idea/material/bulk'),
     ...yamlDir('base-library', 'stuff/idea/material/glass', '/stuff/idea/material/glass'),
     ...yamlDir('base-library', 'stuff/idea/material/element', '/stuff/idea/material/element'),

@@ -126,6 +126,8 @@ function recipeDocs(): StoredDocument[] {
 
 function contentRows(): Row[] {
   const rows: Row[] = [
+    // The aroma words the materials name: a material's setter loads them.
+    ...yamlDir('base-library', 'stuff/idea/aroma', '/stuff/idea/aroma'),
     ...yamlDir('platform', 'platform/idea/persistence', '/platform/idea/persistence'),
     // ⚠⚠ The template applier's own row, read EXPLICITLY. It lived in
     // `platform/idea/persistence/` until 2026-10-01 and this list picked
