@@ -434,6 +434,39 @@ describe("release drops the owner's estate entry — the resurrection bug", () =
     expect(col("chattel").find((d) => d.chattelId === chattelId)).toBeUndefined();
     expect(alice.getEstateEntry(chattelId)).toBeNull();
   });
+
+  it("⭐⭐ a capture between the title and the estate entry still keeps the good (the sign-out race)", async () => {
+    // Custody is recorded after a move, asynchronously: the stamp, then the
+    // place, then the estate. A capture landing in between skipped the good
+    // from the contents (it is titled) and found no estate entry, so the
+    // record held it nowhere — and a signed-out body destructed on that record
+    // lost what it was holding (controllers-are-io, the crowd file under load).
+    const alice = makeOwner();
+    const torch = makeTorch();
+    await torch.stampChattel(alice);
+    // Hold the custody record at its row write, as a loaded store does.
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((r) => { release = r; });
+    const realSetPlace = ChattelRegistry.prototype.setPlace;
+    vi.spyOn(ChattelRegistry.prototype, "setPlace").mockImplementationOnce(async function (
+      this: ChattelRegistry,
+      ...args: Parameters<ChattelRegistry["setPlace"]>
+    ) {
+      await held;
+      return realSetPlace.apply(this, args);
+    });
+    ContainmentApi.move(torch, alice as unknown as Stuff & Container);
+    expect(alice.getEstateEntry(torch.getChattelId())).toBeNull();
+    setTimeout(release, 5);
+    await PersistableApi.capture(alice);
+
+    StuffApi.clearAll();
+    await boot();
+    const restored = makeOwner();
+    await PersistableApi.materialize(restored);
+    const contents = (restored as unknown as Container).getContents();
+    expect(contents.map((c) => (c as Stuff).getTemplatePath())).toEqual([TORCH_PATH]);
+  });
 });
 
 /**

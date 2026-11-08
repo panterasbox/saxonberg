@@ -1060,14 +1060,43 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
   // awaits, and a host destructed meanwhile (a warren put to sleep) is
   // inert — but what it owned must still be written.
   const dependents = MixinApi.isPersistable(host) ? host.dependentPersistables() : [];
-  const state = captureState(host);
-  const place = capturePlacement(host);
+  let state = captureState(host);
+  let place = capturePlacement(host);
   // The skip rule's other half: goods this host does not persist because
   // someone else holds title go to their owners' estates, now, before the
   // host's record is written and long before the host destructs.
   const skipped = [...skippedOwnedGoods];
   skippedOwnedGoods.clear();
-  if (skipped.length > 0) await flushSkippedOwnedGoods(skipped);
+  if (skipped.length > 0) {
+    // ⭐⭐ A good the host ITSELF owns, skipped from its contents but not yet
+    // in its estate: custody is recorded after a move, asynchronously (the
+    // title is stamped, then the place, then the estate), so a capture can
+    // land between the stamp and the estate. The snapshot above then has the
+    // good in neither slice, and a body destructed on that record (a
+    // sign-out, D30) lost what it was holding — found by the crowd file under
+    // load. Its custody record is awaited, which puts it in this estate with
+    // the place derived from where it is, and the host is snapshotted again.
+    const own = skipped.filter((g) => {
+      if (!MixinApi.isChattel(g) || !MixinApi.isEstate(host)) return false;
+      const owner = g.stampedOwner();
+      return (
+        owner?.kind === "player" &&
+        owner.templatePath === host.getIdentityPath() &&
+        host.getEstateLive(g.getChattelId()) === null
+      );
+    });
+    await flushSkippedOwnedGoods(skipped.filter((g) => !own.includes(g)));
+    if (own.length > 0) {
+      for (const good of own) {
+        if (!good.isDestroyed() && MixinApi.isChattel(good)) await good.followCustody();
+      }
+      if (!host.isDestroyed()) {
+        state = captureState(host);
+        place = capturePlacement(host);
+      }
+      skippedOwnedGoods.clear();
+    }
+  }
   // ⭐ One write at a time per record: two captures of a host
   // that has no record yet both found none and both INSERTED, and the
   // second died on the unique index — a ship's first commissioning capture
