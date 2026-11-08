@@ -1,4 +1,3 @@
 # Bruised leaf.
-word: leaf
-parent: green
+parent: /base-library/aromas/green
 discipline: agriculture

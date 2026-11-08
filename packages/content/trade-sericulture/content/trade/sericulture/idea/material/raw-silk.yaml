@@ -5,7 +5,7 @@
 # and lustrous. Under-boiled, the gum stops a dye from taking.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: silk-reeling, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/silk-reeling, strength: 30 }]
   name: raw silk
   keywords: [silk, "raw silk"]
   appearance: stiff, lustrous raw silk, harsh with its gum

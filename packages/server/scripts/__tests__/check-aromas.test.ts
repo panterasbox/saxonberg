@@ -31,37 +31,51 @@ function pack(id: string, deps: string[] = []): void {
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), 'aromas-'));
   pack('base-library');
-  write('base-library/content/aromas/tar.yaml', 'word: tar\nthreshold: 1\n');
+  write('base-library/content/aromas/tar.yaml', 'threshold: 1\n');
 });
 afterEach(() => rmSync(root, { recursive: true, force: true }));
 
 const material = (data: string, cls = '/platform/idea/material/OdorousMaterial') =>
   `class: ${cls}\ndata:\n${data}\n`;
+const TAR = '/base-library/aromas/tar';
 
 describe('lint:aromas', () => {
-  it('passes a row whose word resolves in a dependency', () => {
+  it('passes a row whose aroma path resolves in a dependency', () => {
     pack('trade-x', ['base-library']);
     write(
       'trade-x/content/stuff/idea/material/x.yaml',
-      material('  smells: [{ word: tar, strength: 10 }]'),
+      material(`  smells: [{ aroma: ${TAR}, strength: 10 }]`),
     );
     expect(checkAromas(root)).toEqual([]);
   });
 
-  it('refuses a misspelled word', () => {
+  it('refuses a misspelled path, and a bare word', () => {
     pack('trade-x', ['base-library']);
     write(
       'trade-x/content/stuff/idea/material/x.yaml',
-      material('  smells: [{ word: tarr, strength: 10 }]'),
+      material(`  smells: [{ aroma: ${TAR}r, strength: 10 }, { aroma: tar, strength: 10 }]`),
     );
-    expect(checkAromas(root).join()).toMatch(/'tarr', which has no document/);
+    const found = checkAromas(root).join();
+    expect(found).toMatch(/'\/base-library\/aromas\/tarr', which is not an aroma document's path/);
+    expect(found).toMatch(/'tar', which is not an aroma document's path/);
   });
 
-  it('refuses a word in a pack the namer does not depend on', () => {
+  it("an aroma lives at its own pack's root: the same file name in two packs is two aromas", () => {
+    pack('trade-x', ['base-library']);
+    write('trade-x/pack.yaml', 'id: trade-x\nroot: /trade/x\n');
+    write('trade-x/content/aromas/tar.yaml', 'parent: /base-library/aromas/tar\n');
+    write(
+      'trade-x/content/stuff/idea/material/x.yaml',
+      material(`  smells: [{ aroma: /trade/x/aromas/tar, strength: 10 }, { aroma: ${TAR}, strength: 5 }]`),
+    );
+    expect(checkAromas(root)).toEqual([]);
+  });
+
+  it('refuses an aroma in a pack the namer does not depend on', () => {
     pack('trade-x');
     write(
       'trade-x/content/stuff/idea/material/x.yaml',
-      material('  smells: [{ word: tar, strength: 10 }]'),
+      material(`  smells: [{ aroma: ${TAR}, strength: 10 }]`),
     );
     expect(checkAromas(root).join()).toMatch(/does not depend on/);
   });
@@ -70,23 +84,29 @@ describe('lint:aromas', () => {
     pack('trade-x', ['base-library']);
     write(
       'trade-x/content/stuff/idea/material/x.yaml',
-      material('  smells: [{ word: tar, strength: 10 }]', '/platform/idea/material/Material'),
+      material(`  smells: [{ aroma: ${TAR}, strength: 10 }]`, '/platform/idea/material/Material'),
     );
     expect(checkAromas(root).join()).toMatch(/cannot hold one/);
   });
 
-  it('refuses a parent that is not a word', () => {
-    write('base-library/content/aromas/smoke/pine-tar.yaml', 'word: pine-tar\nparent: tarr\n');
-    expect(checkAromas(root).join()).toMatch(/parent names 'tarr'/);
+  it('refuses a parent that is not an aroma path; a directory under aromas/ is part of the path', () => {
+    write('base-library/content/aromas/smoke/pine-tar.yaml', 'parent: /base-library/aromas/tarr\n');
+    write('base-library/content/aromas/smoke/kiln-tar.yaml', 'parent: /base-library/aromas/smoke/pine-tar\n');
+    const found = checkAromas(root);
+    expect(found.join()).toMatch(/parent names '\/base-library\/aromas\/tarr'/);
+    expect(found).toHaveLength(1);
   });
 
-  it('refuses an aroma document with no word, and a word two packs ship', () => {
-    write('base-library/content/aromas/odd.yaml', 'threshold: 1\n');
+  it('refuses a `word:` on an aroma or an odor: the path is the identity', () => {
+    write('base-library/content/aromas/odd.yaml', 'word: odd\n');
     pack('trade-x', ['base-library']);
-    write('trade-x/content/aromas/tar.yaml', 'word: tar\n');
+    write(
+      'trade-x/content/stuff/idea/DirtKind/x.yaml',
+      'class: /platform/idea/DirtKind\ndata:\n  odor: { word: tar, ouPerLoad: 1 }\n',
+    );
     const found = checkAromas(root).join();
-    expect(found).toMatch(/needs a `word:`/);
-    expect(found).toMatch(/'tar' is also shipped/);
+    expect(found).toMatch(/an aroma has no `word:`/);
+    expect(found).toMatch(/odor names an aroma by `aroma:`/);
   });
 
   it('refuses a medium nothing in reach carries, and passes one that is', () => {

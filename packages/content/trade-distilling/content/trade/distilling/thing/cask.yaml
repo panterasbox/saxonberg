@@ -64,5 +64,5 @@ data:
   # 0.07 mg/L, so 25 reads *clearly*; vanilla's is 0.1, so 3 reads
   # *faintly*. The plain cask is a wood note with a hint behind it.
   imparts:
-    - { type: oak, amount: 25 }
-    - { type: vanilla, amount: 3 }
+    - { type: /base-library/aromas/oak, amount: 25 }
+    - { type: /base-library/aromas/vanilla, amount: 3 }

@@ -8,7 +8,7 @@
 # — that is the whole pedagogy claim, stated as a row.
 class: /platform/idea/species/Species
 data:
-  smells: [{ word: fish, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/fish, strength: 30 }]
   binomial: Salmo trutta
   commonNames: ["brown trout", "trout"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/fish
@@ -69,4 +69,4 @@ data:
     - { cut: /stuff/thing/items/offal, units: 1 }
   longDescription: >-
     A trout, spotted brown and gold along its flanks, built for holding station in a current.
-  nameBankKeys: []
+  nameBanks: []

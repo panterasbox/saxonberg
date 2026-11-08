@@ -425,10 +425,10 @@ export class Recipe {
       const entry = raw as { type?: unknown; amount?: unknown };
       const type = typeof entry.type === 'string' ? entry.type : '';
       const amount = typeof entry.amount === 'number' ? entry.amount : NaN;
-      // The word's row is `lint:aromas`' to check: this runs at install, sync.
-      if (!DissolvedAromatics.isAromaWord(type)) {
+      // Whether a document is at the path is `lint:aromas`' to check: this runs at install, sync.
+      if (!DissolvedAromatics.isAromaPath(type)) {
         throw new Error(
-          `Recipe '${recipeId}': 'imparts' names '${type}', which is not an aroma word.`,
+          `Recipe '${recipeId}': 'imparts' names '${type}', which is not an aroma path.`,
         );
       }
       if (!(amount > 0)) {

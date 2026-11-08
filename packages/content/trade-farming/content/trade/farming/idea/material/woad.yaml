@@ -10,7 +10,7 @@
 # because the point is that dyeing is TWO chemistries, not one.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: green, strength: 30 }, { word: ammonia, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/green, strength: 30 }, { aroma: /base-library/aromas/ammonia, strength: 100 }]
   name: woad
   keywords: [pastel, woad, indigotin]
   appearance: bruised blue-green woad

@@ -19,7 +19,7 @@
 # as fodder needs nothing new.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: flesh, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/flesh, strength: 30 }]
   name: bone meal
   keywords: ["bone meal", bonemeal, meal, bone]
   appearance: a fine grey-white meal

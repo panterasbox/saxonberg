@@ -4,7 +4,7 @@
 # ⚠ It lives in the COMMONS. A bird lays whether or not anybody keeps it.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: flesh, strength: 3 }]
+  smells: [{ aroma: /base-library/aromas/flesh, strength: 3 }]
   tastes: [{ type: umami, amount: 2 }]
   name: egg
   keywords: [eggs, egg]

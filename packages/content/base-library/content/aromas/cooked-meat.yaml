@@ -1,4 +1,3 @@
 # Maillard browning over rendering fat.
-word: cooked-meat
-parent: flesh
+parent: /base-library/aromas/flesh
 discipline: cooking

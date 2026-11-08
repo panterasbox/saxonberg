@@ -8,7 +8,7 @@
 # consumer rather than a consumer being invented for it.
 class: /platform/idea/species/Species
 data:
-  smells: [{ word: hog, strength: 40 }]
+  smells: [{ aroma: /base-library/aromas/hog, strength: 40 }]
   binomial: Sus domesticus
   commonNames: ["pig", "sow", "boar", "hog", "piglet", "swine"]
   maleNames: [boar]
@@ -73,4 +73,4 @@ data:
   longDescription: >-
     A long-backed sow with a straight tail and small clever eyes, working
     the ground over with her snout in a way that is clearly systematic.
-  nameBankKeys: []
+  nameBanks: []

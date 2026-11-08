@@ -15,7 +15,7 @@
 # carbon-monoxide lesson and the reason the fiction has chimneys.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: smoke, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/smoke, strength: 300 }]
   name: smoke
   keywords: [smoke, soot, reek]
   appearance: a grey, greasy haze

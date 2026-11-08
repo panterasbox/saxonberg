@@ -1,4 +1,3 @@
 # Berries full of pinene.
-word: juniper
-parent: resin
+parent: /base-library/aromas/resin
 discipline: distilling

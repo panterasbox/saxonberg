@@ -22,6 +22,11 @@
  *       row must not leave a constant pointing at nothing).
  *   (d) A `cast:` entry names a row on an AGENT branch.
  *   (e) ⭐ The PURE-REPEAT ratchet — see {@link PURE_REPEAT_CEILING}.
+ *   (g) ⭐ Every field that names DOCUMENTS by path ({@link
+ *       DOCUMENT_PATH_FIELDS} — a species' `nameBanks`) resolves to a
+ *       document some pack ships: a pack's document is stored at its root
+ *       + the kind's content dir + the file, and a document's path is its
+ *       only identity (owner, 2026-11-08). Aroma paths are `lint:aromas`'.
  *   (f) ⭐⭐ Every field a `fieldMeta` DECLARES on the identity axis
  *       (`ref: 'identity:constituent' | 'identity:relation' |
  *       'identity:kind'`), in the kernel or any pack's `src/`, resolves
@@ -949,6 +954,14 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
  * until somebody decides which it is. Enumerate, never infer.
  */
 const IGNORED_PATH_FIELDS: readonly string[] = [
+  // ⭐ An AROMA's path (a document, not a row): a material's `smells` and
+  // `burning`, an impart's `type`. `lint:aromas` resolves every one against
+  // the aroma documents the packs ship, with the dependency reach checked.
+  'smells',
+  'burning',
+  'imparts',
+  'combustionImparts',
+  'charredImparts',
   // A ledger's PREFIX — a document-tree prefix read by
   // `DocumentApi.list`, not a row: a business's feed, a register's branch.
   'registerPrefix',
@@ -1069,7 +1082,7 @@ function checkPathFieldCoverage(
   }
   const unread: string[] = [];
   for (const k of [...seen].sort()) {
-    if (read.has(k) || IGNORED_PATH_FIELDS.includes(k)) continue;
+    if (read.has(k) || IGNORED_PATH_FIELDS.includes(k) || k in DOCUMENT_PATH_FIELDS) continue;
     if (UNREAD_PATH_FIELDS.includes(k)) { unread.push(k); continue; }
     findings.push({
       clause: 'd', file: '(content)',
@@ -1118,6 +1131,61 @@ function checkFieldRefs(rows: Map<string, string>): number {
           clause: 'b', file,
           detail: `${field}: ${path} resolves to no content row`,
         });
+      }
+    }
+  }
+  return checked;
+}
+
+// ── clause (g): a field naming DOCUMENTS by path resolves ──────────
+/** Field → the document kind's content dir its values are stored under. */
+const DOCUMENT_PATH_FIELDS: Readonly<Record<string, string>> = {
+  // A species' name banks (`/species-and-names/name-banks/common`).
+  nameBanks: 'name-banks',
+};
+
+/** Every document path a pack ships under `contentDir`: its root + the dir + the file. */
+function documentPaths(contentDir: string): Set<string> {
+  const out = new Set<string>();
+  if (!existsSync(CONTENT)) return out;
+  for (const pack of readdirSync(CONTENT)) {
+    const dir = join(CONTENT, pack, 'content', contentDir);
+    if (!existsSync(dir)) continue;
+    let root = `/${pack}`;
+    const manifest = join(CONTENT, pack, 'pack.yaml');
+    if (existsSync(manifest)) {
+      const m = (YAML.parse(readFileSync(manifest, 'utf8')) ?? {}) as { id?: unknown; root?: unknown };
+      root = typeof m.root === 'string' ? m.root : `/${typeof m.id === 'string' ? m.id : pack}`;
+    }
+    for (const f of walk(dir, '.yaml')) {
+      out.add(`${root}/${contentDir}/${relative(dir, f).replace(/\.yaml$/, '').split('\\').join('/')}`);
+    }
+  }
+  return out;
+}
+
+function checkDocumentRefs(rows: Map<string, string>): number {
+  let checked = 0;
+  const shipped = new Map<string, Set<string>>();
+  for (const [, file] of rows) {
+    let parsed: Record<string, unknown> | null;
+    try { parsed = YAML.parse(readFileSync(file, 'utf8')) as Record<string, unknown> | null; }
+    catch { continue; }
+    const data = parsed?.data as Record<string, unknown> | undefined;
+    if (!data || typeof data !== 'object') continue;
+    for (const [field, contentDir] of Object.entries(DOCUMENT_PATH_FIELDS)) {
+      const value = data[field];
+      if (value === undefined) continue;
+      let docs = shipped.get(contentDir);
+      if (!docs) shipped.set(contentDir, (docs = documentPaths(contentDir)));
+      for (const path of Array.isArray(value) ? value : [value]) {
+        checked += 1;
+        if (typeof path !== 'string' || !docs.has(path)) {
+          findings.push({
+            clause: 'g', file,
+            detail: `${field}: ${String(path)} is not the path of a document any pack ships under content/${contentDir}/`,
+          });
+        }
       }
     }
   }
@@ -1375,6 +1443,7 @@ function main(): void {
   const rows = templateRows();
   checkRetiredChannel();
   const fieldRefs = checkFieldRefs(rows);
+  const documentRefs = checkDocumentRefs(rows);
   const declared = declaredIdentityFields();
   const identityRefs = checkDeclaredIdentity(rows, declared);
   checkPathFieldCoverage(rows, declared);
@@ -1408,7 +1477,7 @@ function main(): void {
   } else {
     console.log(
       `check-template-census: every templatePath resolves to a row ` +
-        `(${rows.size} rows; ${fieldRefs} field refs, ` +
+        `(${rows.size} rows; ${fieldRefs} field refs, ${documentRefs} document refs, ` +
         `${identityRefs} declared-identity refs over ${declared.size} field(s), ` +
         `${constants} singleton constants, ` +
         `${castRefs} cast member(s) on agent branches; asTemplatePath retired).`,

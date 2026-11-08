@@ -4,8 +4,8 @@
 # sets a heap of oily rags alight. The binder of every oil paint.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: linseed, strength: 200 }]
-  burning: [{ word: oil-smoke, strength: 800 }]
+  smells: [{ aroma: /base-library/aromas/linseed, strength: 200 }]
+  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 800 }]
   name: linseed oil
   keywords: ["linseed oil", linseed, oil, "drying oil"]
   appearance: a clear amber oil that smells faintly of hay and putty

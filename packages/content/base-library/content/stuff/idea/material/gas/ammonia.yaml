@@ -3,7 +3,7 @@
 # eyes and the chest. A door clears it.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: ammonia, strength: 8000 }]
+  smells: [{ aroma: /base-library/aromas/ammonia, strength: 8000 }]
   name: ammonia
   keywords: [ammonia, reek]
   appearance: a pungent, eye-watering reek

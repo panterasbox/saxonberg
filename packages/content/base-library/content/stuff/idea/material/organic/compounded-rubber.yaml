@@ -14,7 +14,7 @@
 # There is no knowledge gate: anybody may try, and the window is narrow.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: rubber, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/rubber, strength: 60 }]
   name: compounded rubber
   keywords: [rubber, "compounded rubber", compound, stock]
   appearance: tacky, weeping compounded rubber

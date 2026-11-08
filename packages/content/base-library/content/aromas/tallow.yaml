@@ -1,3 +1,2 @@
 # Rendered beef and mutton fat.
-word: tallow
-parent: fat
+parent: /base-library/aromas/fat

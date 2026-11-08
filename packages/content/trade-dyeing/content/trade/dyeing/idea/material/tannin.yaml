@@ -8,7 +8,7 @@
 # you can see anything at all.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: tannin, strength: 800 }]
+  smells: [{ aroma: /base-library/aromas/tannin, strength: 800 }]
   name: tannin
   keywords: [tannin]
   appearance: dark astringent tannin

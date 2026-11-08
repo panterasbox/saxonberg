@@ -2,7 +2,7 @@
 # short lifespan, mostly nocturnal. The non-mammal acceptance entry.
 class: /platform/idea/species/Species
 data:
-  smells: [{ word: frog, strength: 3 }]
+  smells: [{ aroma: /base-library/aromas/frog, strength: 3 }]
   binomial: Lithobates catesbeianus
   commonNames: ["bullfrog", "frog"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped

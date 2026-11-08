@@ -3,7 +3,7 @@
 # a hard bar.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: soap, strength: 200 }]
+  smells: [{ aroma: /base-library/aromas/soap, strength: 200 }]
   name: soap curd
   keywords: [curd, soap, soap-curd]
   appearance: a pale, granular soap curd

@@ -9,4 +9,4 @@ data:
   waterLifts: 0.6
   # What it smells of — OU per unit of load (B57): a soiled thing's
   # odor is derived from what is on it.
-  odor: { word: sour-milk, ouPerLoad: 300 }
+  odor: { aroma: /base-library/aromas/sour-milk, ouPerLoad: 300 }

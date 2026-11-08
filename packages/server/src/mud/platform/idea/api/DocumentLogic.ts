@@ -795,12 +795,6 @@ export class DocumentLogic extends ApiLogic {
     return listImpl(prefix);
   }
 
-  /** See {@link DocumentApi.readByKey}. */
-  @CallSecurity(DocumentApiCallers)
-  public async readByKey(kind: string, key: string): Promise<StoredDocument | null> {
-    return StoredDocument.findByKey(kind, key);
-  }
-
   /** See {@link DocumentApi.listOfKind}. */
   @CallSecurity(DocumentApiCallers)
   public async listOfKind(kind: string): Promise<StoredDocument[]> {

@@ -10,8 +10,8 @@
 # charge of sulfur cures rubber and does not catch.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: sulfur, strength: 300 }]
-  burning: [{ word: sulfur, strength: 20000 }]
+  smells: [{ aroma: /base-library/aromas/sulfur, strength: 300 }]
+  burning: [{ aroma: /base-library/aromas/sulfur, strength: 20000 }]
   name: sulfur
   keywords: [sulfur, sulphur, brimstone]
   appearance: bright yellow crystalline sulfur

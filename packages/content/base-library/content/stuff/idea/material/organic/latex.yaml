@@ -9,7 +9,7 @@
 # standing stays latex. That is a stated abstraction.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: rubber, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/rubber, strength: 60 }]
   name: latex
   keywords: [latex, sap, "rubber sap"]
   appearance: thick white milk that smells faintly of ammonia

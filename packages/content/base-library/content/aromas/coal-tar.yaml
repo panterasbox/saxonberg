@@ -1,4 +1,3 @@
 # Tar from coal, sharper and more medicinal.
-word: coal-tar
-parent: tar
+parent: /base-library/aromas/tar
 discipline: colliery

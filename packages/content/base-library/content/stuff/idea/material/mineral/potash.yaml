@@ -11,7 +11,7 @@
 # from the air and runs to a syrup if it is left open.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: lye, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/lye, strength: 30 }]
   name: potash
   keywords: [potash, "potassium carbonate", "pot ash"]
   appearance: a white, slightly damp alkaline salt

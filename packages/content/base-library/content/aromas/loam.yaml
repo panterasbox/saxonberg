@@ -1,4 +1,3 @@
 # A good soil, rich in the same geosmin.
-word: loam
-parent: earth
+parent: /base-library/aromas/earth
 discipline: soil-science

@@ -11,7 +11,7 @@
 # from honey off cherry blossom with no row written for either.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: floral, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/floral, strength: 100 }]
   tastes: [{ type: sweet, amount: 200 }]
   name: clover nectar
   keywords: [nectar, clover]

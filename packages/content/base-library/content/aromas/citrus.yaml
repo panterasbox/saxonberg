@@ -1,3 +1,2 @@
 # Limonene from the peel.
-word: citrus
-parent: fruit
+parent: /base-library/aromas/fruit

@@ -191,7 +191,7 @@ export function PalateMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
       const notes: TasteNote[] = [
         ...tastes,
         ...(scent && !scent.isEmpty()
-          ? flavor.aromas.notes.map((n) => ({ type: n.word, ou: n.ou }))
+          ? flavor.aromas.notes.map((n) => ({ type: n.aroma, ou: n.ou }))
           : []),
       ];
       const liking = this.liking(notes, opts);
@@ -240,7 +240,7 @@ export function PalateMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
       const modality = PerceptionApi.modalityByName('taste') as TasteModality;
       const foodName = food.getPresentation();
       // A first read after a restart may find a word or an ingredient cold.
-      for (const note of modality.flavorOf(food).aromas.notes) Aroma.resolve(note.word);
+      for (const note of modality.flavorOf(food).aromas.notes) Aroma.resolve(note.aroma);
       await Aroma.settling();
 
       // ── a sip: whatever a vessel holds ──
@@ -335,12 +335,12 @@ export function PalateMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
       return MixinApi.isOrganism(self) ? (self.getSpecies()?.getPalate() ?? null) : null;
     }
 
-    /** The species' curve for a word, else the taste's, else the aroma row's. */
-    private curveFor(word: string): HedonicCurve {
-      const species = this.speciesPalate()?.curves?.[word];
+    /** The species' curve for a taste or an aroma (a path), else the taste's, else the aroma's own. */
+    private curveFor(key: string): HedonicCurve {
+      const species = this.speciesPalate()?.curves?.[key];
       if (species) return species;
       return (
-        TASTE_HEDONICS[word] ?? Aroma.resolve(word)?.getLiking() ?? DEFAULT_AROMA_CURVE
+        TASTE_HEDONICS[key] ?? Aroma.resolve(key)?.getLiking() ?? DEFAULT_AROMA_CURVE
       );
     }
 

@@ -1,4 +1,3 @@
 # Baked crust: Maillard and yeast.
-word: bread
-parent: grain
+parent: /base-library/aromas/grain
 discipline: baking

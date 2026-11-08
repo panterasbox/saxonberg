@@ -11,10 +11,9 @@ Contents:
   as ordinary `domain` rows (the `domain` content kind).
 - `content/name-banks/**` — one file per `NameBank` (`common.yaml`,
   `dwarvish.yaml`, …), each a per-flavor given/surname pool the char-gen
-  name suggester unions by key. Installed into the `name_banks`
-  collection (the `name-banks` content kind). The **file name is the bank
-  key** (`common.yaml` → key `common`), the identity a `Species`
-  references via `nameBankKeys`.
+  name suggester unions. Installed as `name-bank` documents under this
+  pack's root, so `common.yaml` is `/species-and-names/name-banks/common` —
+  the path a `Species` names in its `nameBanks:` list.
 
 Files under `content/lib/` mirror the template-path namespace
 (`content/lib/species/.../sapiens.yaml` → `/lib/species/.../sapiens`).

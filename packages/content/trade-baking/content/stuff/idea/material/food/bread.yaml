@@ -16,7 +16,7 @@
 # the failure `lint:perishable` cannot see, because such a row passes it.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: bread, strength: 500 }]
+  smells: [{ aroma: /base-library/aromas/bread, strength: 500 }]
   tastes: [{ type: sweet, amount: 20 }, { type: salty, amount: 10 }]
   name: bread
   keywords: [bread, loaf, crumb]

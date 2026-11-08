@@ -4,7 +4,7 @@
 # winemaking because the process that makes it lives here.
 class: /platform/idea/material/OdorousConsumableMaterial
 data:
-  smells: [{ word: vinegar, strength: 3000 }]
+  smells: [{ aroma: /base-library/aromas/vinegar, strength: 3000 }]
   tastes: [{ type: sour, amount: 50 }]
   name: wine vinegar
   keywords: [vinegar, wine]

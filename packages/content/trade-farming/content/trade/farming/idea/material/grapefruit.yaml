@@ -1,7 +1,7 @@
 # Grapefruit — produce's food material; tag `grapefruit` is the recipe category (a garnish slot, a press's item slot, the par sheet).
 class: /platform/idea/material/OdorousConsumableMaterial
 data:
-  smells: [{ word: citrus, strength: 200 }]
+  smells: [{ aroma: /base-library/aromas/citrus, strength: 200 }]
   name: grapefruit
   keywords: [grapefruit]
   appearance: "a heavy pink grapefruit"

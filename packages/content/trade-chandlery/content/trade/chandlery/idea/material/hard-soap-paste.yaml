@@ -4,7 +4,7 @@
 # with no salt.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: soap, strength: 200 }]
+  smells: [{ aroma: /base-library/aromas/soap, strength: 200 }]
   name: hard soap paste
   keywords: [paste, soap, "hard soap paste"]
   appearance: a thick, cloudy paste of fat and strong lye

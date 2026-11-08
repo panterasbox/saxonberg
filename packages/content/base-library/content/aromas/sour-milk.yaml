@@ -1,5 +1,4 @@
 # Milk fat and casein turned by bacteria.
-word: sour-milk
-parent: sour
+parent: /base-library/aromas/sour
 discipline: dairying
 liking: { peak: 1.5, width: 2, valence: -1 }

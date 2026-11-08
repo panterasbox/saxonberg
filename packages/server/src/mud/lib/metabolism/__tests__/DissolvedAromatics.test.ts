@@ -23,7 +23,7 @@
 import '../../../../test-bootstrap';
 import { beforeEach, afterEach, describe, it, expect } from 'vitest';
 import { DissolvedAromatics } from '../DissolvedAromatics';
-import { installAromas } from '../../perception/__tests__/aroma-fixtures';
+import { installAromas, aromaPath } from '../../perception/__tests__/aroma-fixtures';
 import { seedKernelContentStore } from '../../security/__tests__/test-setup';
 import { StuffApi } from '../../../api/stuff';
 
@@ -42,14 +42,15 @@ beforeEach(() => {
 });
 afterEach(() => StuffApi.clearAll());
 
-describe('the words', () => {
-  it('a word is a slug; a row says whether anyone ships it', () => {
-    expect(DissolvedAromatics.isAromaWord('peat-smoke')).toBe(true);
-    expect(DissolvedAromatics.isAromaWord('Peat Smoke')).toBe(false);
-    expect(DissolvedAromatics.isAromaWord('')).toBe(false);
+describe('the aromas', () => {
+  it('an aroma is named by its path', () => {
+    expect(DissolvedAromatics.isAromaPath(aromaPath('peat-smoke'))).toBe(true);
+    expect(DissolvedAromatics.isAromaPath('peat-smoke')).toBe(false);
+    expect(DissolvedAromatics.isAromaPath('/base-library/aromas/Peat Smoke')).toBe(false);
+    expect(DissolvedAromatics.isAromaPath('')).toBe(false);
   });
 
-  it('reads a threshold off the row', () => {
-    expect(DissolvedAromatics.thresholdFor('smoke')).toBe(SMOKE);
+  it('reads a threshold off the document', () => {
+    expect(DissolvedAromatics.thresholdFor(aromaPath('smoke'))).toBe(SMOKE);
   });
 });

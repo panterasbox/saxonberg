@@ -1,4 +1,3 @@
 # Hydrocarbons: lamp oil and naphtha.
-word: petroleum
-parent: oil
+parent: /base-library/aromas/oil
 liking: { peak: 1.5, width: 2, valence: -1 }

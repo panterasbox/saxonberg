@@ -1,3 +1,2 @@
 # A faint, musky fur.
-word: cat
-parent: animal
+parent: /base-library/aromas/animal

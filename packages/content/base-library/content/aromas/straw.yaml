@@ -1,4 +1,3 @@
 # Dry stalk, faintly dusty.
-word: straw
-parent: green
+parent: /base-library/aromas/green
 discipline: agriculture

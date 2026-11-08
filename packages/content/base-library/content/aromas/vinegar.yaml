@@ -1,4 +1,3 @@
 # Acetic acid: wine gone right past wrong.
-word: vinegar
-parent: sour
+parent: /base-library/aromas/sour
 discipline: winemaking

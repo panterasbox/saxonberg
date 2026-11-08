@@ -5,7 +5,7 @@
 # profile makes a jar of this a culture you keep alive (D14).
 class: /platform/idea/material/OdorousConsumableMaterial
 data:
-  smells: [{ word: yeast, strength: 300 }, { word: wine, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/yeast, strength: 300 }, { aroma: /base-library/aromas/wine, strength: 60 }]
   name: wine lees
   keywords: [wine, lees, sediment]
   appearance: "a pale, dense sediment smelling of bread and wine"

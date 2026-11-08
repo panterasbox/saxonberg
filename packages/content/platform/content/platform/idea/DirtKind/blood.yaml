@@ -13,4 +13,4 @@ data:
   waterLifts: 0.5
   # What it smells of — OU per unit of load (B57): a soiled thing's
   # odor is derived from what is on it.
-  odor: { word: old-blood, ouPerLoad: 150 }
+  odor: { aroma: /base-library/aromas/old-blood, ouPerLoad: 150 }

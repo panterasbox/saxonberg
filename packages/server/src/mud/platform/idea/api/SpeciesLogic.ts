@@ -234,8 +234,20 @@ export class SpeciesLogic extends ApiLogic {
 
   /** See {@link SpeciesApi.resolveNamePools}. */
   @CallSecurity(SpeciesApiCallers)
-  public resolveNamePools(keys: readonly string[]): Promise<NamePools> {
-    return NameBank.resolve(keys);
+  public async resolveNamePools(paths: readonly string[]): Promise<NamePools> {
+    const pools = await NameBank.resolve(paths);
+    if (pools.missing.length === 0) return pools;
+    // A path with no bank is a content gap an author sees in `errors`.
+    // Imported here: a top-level import closes a cycle through Thing.
+    const { DiagnosticApi } = await import('../../../api/diagnostics');
+    for (const path of pools.missing) {
+      void DiagnosticApi.record({
+        path,
+        severity: 'error',
+        message: `A species names the name bank '${path}', and no name-bank document is there`,
+      }).catch(() => {});
+    }
+    return pools;
   }
 }
 

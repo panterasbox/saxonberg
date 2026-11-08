@@ -57,5 +57,5 @@ data:
     A tall, powerfully built figure sheathed in fine overlapping scales,
     blunt-muzzled and ridge-browed, bearing themselves with the slow,
     proud composure of an elder wyrm taking the measure of lesser things.
-  nameBankKeys: ["draconic"]
+  nameBanks: [/species-and-names/name-banks/draconic]
   facultyProfile: { depth: high, serenity: low, composure: high }

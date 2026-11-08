@@ -2,7 +2,7 @@
 # stiff black paste the press's balls beat onto the forme.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: ink, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/ink, strength: 300 }]
   name: printing ink
   keywords: [ink, "printing ink", "press ink"]
   appearance: a stiff glossy black paste

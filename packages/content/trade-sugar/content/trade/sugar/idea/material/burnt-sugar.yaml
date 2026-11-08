@@ -1,7 +1,7 @@
 # Burnt sugar — the end of the arrows. Nothing comes of it.
 extends: /trade/sugar/idea/material/raw-liquor
 data:
-  smells: [{ word: burnt-sugar, strength: 800 }]
+  smells: [{ aroma: /base-library/aromas/burnt-sugar, strength: 800 }]
   name: burnt sugar
   keywords: [burnt-sugar, burnt, sugar]
   appearance: black and acrid, set hard at the edges

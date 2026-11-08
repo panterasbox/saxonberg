@@ -16,7 +16,7 @@
 # ranches; the husbandry is the trade, the animal is a thing in the world.
 class: /platform/idea/species/Species
 data:
-  smells: [{ word: sheep, strength: 20 }]
+  smells: [{ aroma: /base-library/aromas/sheep, strength: 20 }]
   binomial: Ovis aries
   commonNames: ["sheep", "ewe", "ram", "lamb", "hogget"]
   maleNames: [ram]
@@ -119,4 +119,4 @@ data:
     A blocky ewe with a fleece gone yellow at the tips and a startlingly
     level stare. She keeps one eye on you and both feet pointed at the
     gate.
-  nameBankKeys: []
+  nameBanks: []

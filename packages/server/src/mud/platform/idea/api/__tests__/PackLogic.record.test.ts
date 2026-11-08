@@ -80,7 +80,7 @@ describe('the install record', () => {
     });
     const bank = rec.rows['/name-banks/common']!;
     expect(bank.kind).toBe('document:name-bank');
-    expect(JSON.parse(bank.body)).toEqual({ data: { key: 'common', given: ['A'], surname: ['B'] } });
+    expect(JSON.parse(bank.body)).toEqual({ data: { given: ['A'], surname: ['B'] } });
     // A first install is quiet: nothing to normalize, nothing adopted.
     expect(warn.mock.calls.filter((c) => /adopt|normalized/.test(String(c[0])))).toHaveLength(0);
   });

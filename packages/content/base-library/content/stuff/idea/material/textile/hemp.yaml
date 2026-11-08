@@ -7,8 +7,8 @@
 # for.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: straw, strength: 20 }]
-  burning: [{ word: paper-smoke, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/straw, strength: 20 }]
+  burning: [{ aroma: /base-library/aromas/paper-smoke, strength: 300 }]
   name: hemp
   keywords: [hemp]
   appearance: coarse grey-gold hemp
@@ -27,7 +27,7 @@ data:
   tags: ["textile", "fibre", "organic", "plant", "cellulose", "once-living"]
   heatOfCombustion: 16
   combustionImparts:
-    - type: smoke
+    - type: /base-library/aromas/smoke
       amount: 40
   composition: []
   biologicalSource: null

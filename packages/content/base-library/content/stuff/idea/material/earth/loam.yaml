@@ -12,7 +12,7 @@
 # says only what the stuff IS, which is all a floor needs to name it.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: loam, strength: 3 }]
+  smells: [{ aroma: /base-library/aromas/loam, strength: 3 }]
   name: loam
   keywords: [loam, earth, soil, dirt]
   appearance: dark brown loam

@@ -2,7 +2,7 @@
 # oil. Ground on the stones they give up linseed oil (paint D19).
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: oil, strength: 10 }]
+  smells: [{ aroma: /base-library/aromas/oil, strength: 10 }]
   name: flax seed
   keywords: ["flax seed", linseed, seed]
   appearance: small glossy brown seeds, slippery as if oiled

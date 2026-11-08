@@ -8,8 +8,8 @@
 # it.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: pitch, strength: 300 }]
-  burning: [{ word: oil-smoke, strength: 1500 }]
+  smells: [{ aroma: /base-library/aromas/pitch, strength: 300 }]
+  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 1500 }]
   name: pitch
   keywords: [pitch]
   # ⚠ Not "brittle": `lint:descriptors` reserves that word for the

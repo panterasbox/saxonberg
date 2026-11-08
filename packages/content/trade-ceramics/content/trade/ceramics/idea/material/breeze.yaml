@@ -4,7 +4,7 @@
 # residue of the fuel, kneaded in at the temper pit.
 class: /platform/idea/material/OdorousMaterial
 data:
-  burning: [{ word: coal-smoke, strength: 30 }]
+  burning: [{ aroma: /base-library/aromas/coal-smoke, strength: 30 }]
   name: breeze
   keywords: [breeze, cinders, "coal ash"]
   appearance: gritty black-grey cinders and ash

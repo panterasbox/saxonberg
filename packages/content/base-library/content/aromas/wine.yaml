@@ -1,4 +1,3 @@
 # Fruit esters and alcohol.
-word: wine
-parent: alcohol
+parent: /base-library/aromas/alcohol
 discipline: winemaking

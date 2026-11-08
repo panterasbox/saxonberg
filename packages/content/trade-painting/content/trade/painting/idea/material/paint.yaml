@@ -5,7 +5,7 @@
 # a pigment row, and nothing here names a color.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: paint, strength: 500 }]
+  smells: [{ aroma: /base-library/aromas/paint, strength: 500 }]
   name: paint
   keywords: [paint]
   appearance: a thick, even paint

@@ -1,5 +1,4 @@
 # Goat, whose buck musk is unmistakable.
-word: goat
-parent: animal
+parent: /base-library/aromas/animal
 discipline: stockmanship
 liking: { peak: 1.5, width: 2, valence: -1 }

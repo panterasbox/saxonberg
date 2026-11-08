@@ -3,7 +3,7 @@
 # Dug from a seam inside the clay at Hill Quarry.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: wet-clay, strength: 10 }]
+  smells: [{ aroma: /base-library/aromas/wet-clay, strength: 10 }]
   name: fuller's earth
   keywords: [fuller's earth, fullers earth, fuller, earth]
   appearance: a soft grey-green earth that feels soapy between the fingers

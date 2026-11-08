@@ -3,4 +3,4 @@
 class: /platform/idea/material/OdorousMaterial
 data:
   name: byre muck
-  smells: [{ word: dung, strength: 150 }, { word: cattle, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/dung, strength: 150 }, { aroma: /base-library/aromas/cattle, strength: 60 }]

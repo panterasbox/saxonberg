@@ -1,3 +1,2 @@
 # Smoke off burning paper and cloth.
-word: paper-smoke
-parent: smoke
+parent: /base-library/aromas/smoke

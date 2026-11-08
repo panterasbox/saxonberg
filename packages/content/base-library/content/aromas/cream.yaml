@@ -1,4 +1,3 @@
 # Milk fat with the sugars gone quiet.
-word: cream
-parent: milk
+parent: /base-library/aromas/milk
 discipline: dairying

@@ -8,7 +8,7 @@
 # fortnight is a real loss.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: dough, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/dough, strength: 300 }]
   tastes: [{ type: sour, amount: 6 }]
   name: levain
   keywords: [levain, starter, leaven, sourdough, barm]

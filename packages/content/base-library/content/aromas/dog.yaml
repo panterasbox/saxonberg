@@ -1,3 +1,2 @@
 # Skin oils and damp fur.
-word: dog
-parent: animal
+parent: /base-library/aromas/animal

@@ -4,7 +4,7 @@
 # through its own material.
 extends: /stuff/idea/material/organic/rubber
 data:
-  smells: [{ word: rubber-smoke, strength: 1000 }]
+  smells: [{ aroma: /base-library/aromas/rubber-smoke, strength: 1000 }]
   name: burnt rubber
   keywords: [rubber, "burnt rubber"]
   appearance: blistered, brittle-skinned rubber that smells of burning

@@ -13,8 +13,8 @@
 # exemption needed: a material is not a `Provision`.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: peat, strength: 50 }]
-  burning: [{ word: peat-smoke, strength: 1000 }]
+  smells: [{ aroma: /base-library/aromas/peat, strength: 50 }]
+  burning: [{ aroma: /base-library/aromas/peat-smoke, strength: 1000 }]
   name: peat
   keywords: [peat, turf]
   appearance: dark fibrous peat
@@ -61,7 +61,7 @@ data:
   # peat is smoky, wherever it is burning — a kiln, a hearth, a smoker —
   # and 25 of the 26 fuel materials author nothing here.
   combustionImparts:
-    - type: smoke
+    - type: /base-library/aromas/smoke
       amount: 30
   edibility: false
   nutrients: []

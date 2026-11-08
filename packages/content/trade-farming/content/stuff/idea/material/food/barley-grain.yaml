@@ -2,7 +2,7 @@
 # nothing behind it until now.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: grain, strength: 15 }]
+  smells: [{ aroma: /base-library/aromas/grain, strength: 15 }]
   tastes: [{ type: sweet, amount: 8 }]
   name: barley grain
   keywords: [corn, barley, grain]

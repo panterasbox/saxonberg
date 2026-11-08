@@ -1,3 +1,2 @@
 # The thick cooked residue of a tar.
-word: pitch
-parent: tar
+parent: /base-library/aromas/tar

@@ -60,7 +60,7 @@ describe('EmbodyController step model', () => {
     species.setBinomial('Homo sapiens');
     species.setSexDeterminationSystem('dioecious');
     species.setCommonNames(['human']);
-    species.setNameBankKeys(['common']);
+    species.setNameBanks(['/species-and-names/name-banks/common']);
     species.setLongDescription('an ordinary-looking person');
     // Real fields so the derived dossier is exercised.
     species.setLifespanMax(120);
@@ -88,6 +88,7 @@ describe('EmbodyController step model', () => {
       given: ['Bobalu', 'Bram', 'Cora'],
       surname: ['Ashby', 'Reed'],
       styles: [],
+      missing: [],
     });
 
     frames = [];

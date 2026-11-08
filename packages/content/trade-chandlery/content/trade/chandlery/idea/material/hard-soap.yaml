@@ -3,7 +3,7 @@
 # short is harsh.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: soap, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/soap, strength: 100 }]
   name: hard soap
   keywords: [soap, bar, hard soap]
   appearance: pale hard soap

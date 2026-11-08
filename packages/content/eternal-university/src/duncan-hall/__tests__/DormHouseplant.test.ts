@@ -247,10 +247,10 @@ function seedDomain(): void {
     '/stuff/idea/material/alloy/steel',
     `${CONTENT}base-library/content/stuff/idea/material/alloy/steel.yaml`,
   );
-  // The aroma words those materials name, which load with them.
-  const earth = Aroma.remember('earth', {}, null);
-  Aroma.remember('loam', {}, earth);
-  Aroma.remember('green', {}, null);
+  // The aromas those materials name, which load with them.
+  const earth = Aroma.remember('/base-library/aromas/earth', {}, null);
+  Aroma.remember('/base-library/aromas/loam', {}, earth);
+  Aroma.remember('/base-library/aromas/green', {}, null);
   addSeed(
     '/stuff/idea/material/tissue/plant-tissue',
     `${CONTENT}base-library/content/stuff/idea/material/tissue/plant-tissue.yaml`,

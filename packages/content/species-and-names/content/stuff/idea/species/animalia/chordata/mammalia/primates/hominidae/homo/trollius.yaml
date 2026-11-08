@@ -53,5 +53,5 @@ data:
     of hide and slow in the way of something that has always been here
     and means to stay; immovable, deliberate, with a steady, watchful
     gaze that reads as a dull brute only to those who never look twice.
-  nameBankKeys: ["common"]
+  nameBanks: [/species-and-names/name-banks/common]
   facultyProfile: { depth: mid, serenity: low, composure: low }

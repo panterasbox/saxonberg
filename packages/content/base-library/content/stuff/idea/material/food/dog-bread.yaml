@@ -11,7 +11,7 @@
 # this a *manufactured* feed rather than a scrap thrown on the ground.
 class: /platform/idea/material/OdorousConsumableMaterial
 data:
-  smells: [{ word: bread, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/bread, strength: 60 }]
   name: dog bread
   keywords: ["dog bread", "horse bread", dogbread, loaf]
   appearance: a dense dark crumb with bits in it

@@ -166,7 +166,7 @@ describe('the spoilage gauge on a bulk slot', () => {
     expect(new Freshness(slot).senseLine(['hearing'])).toBeNull();
     // A nose reads rot as a source, not as this sentence.
     expect(new Freshness(slot).senseLine(['smell'])).toBeNull();
-    expect(new Freshness(slot).rotNote()?.word).toBe('rot');
+    expect(new Freshness(slot).rotNote()?.aroma).toBe('/base-library/aromas/rot');
     // An empty vessel says nothing, whatever it once held.
     expect(new Freshness(BulkableApi.slotFor(pot(0, null), undefined)!).senseLine(['vision'])).toBeNull();
   });
