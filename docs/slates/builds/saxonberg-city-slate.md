@@ -7,6 +7,10 @@
 > `Government` rows (`civics.md`), the committee (`access.md § The committee`), parcel title + the
 > closed six land uses, the TPA network, displays (`display.md`), the three-way pack reconcile
 > (`content-packs.md`). The stewardship allowance cascade (the second grant) has not shipped.
+> ⭐ **The name is reserved (2026-11-08, the owner):** *"Saxonberg as an entity to me is reserved for
+> the seat of government which exists in its own dimension separate from the lounge or any other
+> content."* The lounge is the operator's (*Pantera's Box Lounge*), the demo instance is *Pantera's
+> Box running Saxonberg* ([lounge-slate](./lounge-slate.md) § The name).
 > ⚠⚠ **Rewritten 2026-11-07 with the owner.** The 08-01 slate shipped the city *"deliberately
 > unfurnished"* and justified each premise by an office. Both are revised: the prison is load-bearing
 > for launch, so the city is built **now**, as a **demo capital**, and its development is
