@@ -14,6 +14,24 @@
 > framing (evidence in, no rewards out) · emergent-personality Dave
 > **Size:** a build
 
+## ⭐⭐ The name: the operator's brand, never "Saxonberg" **[DECIDED — the owner, 2026-11-08]**
+
+The owner: *"I want to call the lounge the 'Pantera's Box Lounge' and we want an easy way
+for the game to set a brand that gets used wherever it's wanted. the lounge is the only
+one I really care about. but notice I didn't call it the Saxonberg lounge. Saxonberg as
+an entity to me is reserved for the seat of government which exists in its own
+dimension separate from the lounge or any other content."*
+
+- **One operator brand setting**, an app setting (`operator.brand`, the key's spelling
+  is the plan's). Content and the client read it wherever they want: the lounge is
+  *"<brand> Lounge"* (on our server, **Pantera's Box Lounge**); the front door reads
+  *"Pantera's Box running Saxonberg."*
+- **"Saxonberg" names the seat of government** ([saxonberg-city-slate](./saxonberg-city-slate.md)),
+  never the lounge, never a realm, never the demo instance. The demo instance is
+  *Pantera's Box running Saxonberg*.
+- ⚠ Two places call it the "Saxonberg Lounge" today (a comment in
+  `lib/behavior/restocks.ts`, and `logistics.md`); the build renames them.
+
 Working slate for the **lounge** — where every player materializes on
 login, and the game's social lubricant. It's a `LoungeWarren` (a
 [MultiLocation](./multilocation-slate.md) `Warren`) rooted at a persistent
