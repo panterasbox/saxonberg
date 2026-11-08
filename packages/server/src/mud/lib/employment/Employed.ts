@@ -672,9 +672,11 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * — a venue nobody visits makes no sales either.
      */
     public onDestruct(): void {
-      void employedLogic().leaveShifts(this as unknown as Stuff).catch((err) =>
-        console.error('Employed: the leaving settle failed', err),
-      );
+      if (this.shiftState() === 'on-shift') {
+        void this.leaveShifts().catch((err) =>
+          console.error('Employed: the leaving settle failed', err),
+        );
+      }
       const sup = (Base.prototype as { onDestruct?: () => void }).onDestruct;
       if (typeof sup === 'function') sup.call(this);
     }
