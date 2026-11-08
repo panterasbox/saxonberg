@@ -97,10 +97,7 @@ export default class CloseController extends CommandController<CloseModel> {
       return;
     }
 
-    // ⭐ A throttled gate logs who shut it (water-supply D12).
-    const throttled = sealable as unknown as Stuff;
-    if (MixinApi.isThrottleable(throttled)) throttled.setOpening(0, commandGiver);
-    else sealable.close();
+    sealable.close(commandGiver);
 
     MessageApi.scene(commandGiver)
       .topic('act.deed')

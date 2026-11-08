@@ -1,4 +1,5 @@
 verbs: [ping]
+category: system
 controller: /platform/idea/cmd/system/PingController
 description: "Test command - responds with pong"
 help: |

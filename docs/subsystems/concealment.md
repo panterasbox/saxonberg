@@ -337,8 +337,9 @@ No arg = a **broad-shallow** room scan (`'broad'` depth →
 outcome via the `awareness` band.
 
 **`examine` is folded into `look`** — there is **no separate `examine`
-verb or controller**. `look` / `l` / `examine` / `exa` are all aliases of
-`LookController`, and `look <container>` peers in for half-concealed
+verb or controller**. `look` is the one word (`l` its default player
+alias; the `examine`/`exa` synonyms were deleted by controllers-are-io's
+one view, one word), and `look <container>` peers in for half-concealed
 contents via a cheap instantaneous **`'glance'`** depth
 (`concealment.examineBonus`, weaker than `search`), which ties up nothing
 and folds into the same `resolveSearch`. *(The plan specified a distinct

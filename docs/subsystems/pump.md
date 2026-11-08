@@ -55,16 +55,23 @@ row, help text or reading names the air. The why is a law somebody has
 to discover (the inquiry slate's first case), and a force pump on the
 same well simply works.
 
-## The shapes (`lib/pump/`)
+## The protocols (`lib/pump/`)
 
-Declared shapes, the `lib/ground/Workable.ts` category — a controller
-narrows by shape; nothing composes them.
+⭐ **Protocol mixins** (`_mixinKind = 'protocol'`, controllers-are-io D8a) —
+each host COMPOSES one and overrides its refusing defaults; `pump` and
+`bail` narrow on `MixinApi.isPumpable` / `isPumpSource` / `isLiftSource`,
+and the views say `requires: PumpableMixin|PumpSourceMixin` /
+`LiftSourceMixin`. (They shipped as bare shapes narrowed by `typeof`.)
 
-| shape | answered by | says |
-|---|---|---|
-| `Pumpable` (`planPump` → plan \| refusal, `completePump`) | `PumpingMixin`, **`BurnerMixin`** | *a person can work this with their hands* |
-| `LiftSource` (`standingDepthM`, `standingMaterial`, `standingAvailableL`, `receivableL`, `liftInto`, `liftScope`; optional `liftedWords`, `bucketRefusal`, `bucketLanded`) | `platform/thing/Well`, `platform/thing/BilgeWell`, drilling's `Wellhead`, transport's `Boat` | *a fluid stands this far below my draw point* — ⚠ adds no field anywhere |
-| `PumpSource` (`pumpFitted`) | `Well`, `Wellhead`, water's `Conduit` | *a pump is SET in me* — how a pump tells set from carried |
+| protocol | file | composed by | says |
+|---|---|---|---|
+| `PumpableMixin` (`planPump` → plan \| refusal, `completePump`) | `Pumpable.ts` | `platform/thing/Pump` (under `PumpingMixin`), **`BurnerMixin`**, diving's `AirPump` | *a person can work this with their hands* |
+| `LiftSourceMixin` (`standingDepthM`, `standingMaterial`, `standingAvailableL`, `receivableL`, `liftInto`, `liftScope`; optional `liftedWords`, `bucketRefusal`, `bucketLanded`) | `LiftSource.ts` | `platform/thing/Well`, `platform/thing/BilgeWell`, drilling's `Wellhead`, transport's `Boat` | *a fluid stands this far below my draw point* — ⚠ adds no field anywhere |
+| `PumpSourceMixin` (`pumpFitted`) | `PumpSource.ts` | `Well`, `BilgeWell`, `Wellhead`, water's `Conduit` | *a pump is SET in me* — how a pump tells set from carried |
+
+⚠ `PumpableMixin` sits INSIDE `PumpingMixin` at `Pump`'s composition, not
+nested in the factory: nesting it collapsed `ElectricPump`'s deep stack to
+`never`.
 
 ⭐ **A furnace is not a pump.** Its bellows speaks the protocol (an
 INSTANT act, `durationMs: 0`, the toggle) with the three refusals and two
@@ -74,9 +81,9 @@ pinned by `PumpController.test.ts` — the controller had no test before).
 ## ⭐ The bucket — `bail` (harbors review 1)
 
 Family A has a verb: **`bail` is the bucket over ANY `LiftSource`**
-(`platform/cmd/device/bail.yaml`, `BailController`, `requires: any`,
-narrowed by the shape like `pump`). There is no bail protocol: the
-controller reads the SOURCE and the TOOL. A spell is the handling plus the
+(`platform/cmd/device/bail.yaml`, `BailController`, the source slot
+`requires: LiftSourceMixin` — the protocol above, controllers-are-io D8a).
+The controller reads the SOURCE and the TOOL. A spell is the handling plus the
 rope down and back (`20 s + 0.4 s/m` of `standingDepthM`, endurance
 `4 + 0.2/m` — the boat's shipped 20 s and the bore's 30 s at 25 m, one
 rule); a bucketful is the tool's (a vessel's capacity; a bailing tool
@@ -91,9 +98,10 @@ ship's and a boat's hull is one kernel substrate, `lib/expanse/Bilge.ts`
 
 ## The verb
 
-`pump` / `work` — one view (`platform/cmd/device/pump.yaml`), `requires:
-any` (a furnace, a well and a wellhead share no mixin; an alternation
-would delete a check), `greedy: true` (*"pump village well"* fell through
+`pump` — one view (`platform/cmd/device/pump.yaml`), `requires:
+PumpableMixin|PumpSourceMixin` (the two protocols above; until
+controllers-are-io D8a it was `any`, because a furnace, a well and a
+wellhead shared no mixin), `greedy: true` (*"pump village well"* fell through
 the shape without it — found by driving). `PumpController` narrows:
 protocol → work it; pump source → the pump set in it, or *"Nothing is set
 in the well to work."*; anything else → *"There is nothing to pump on the chair."* A spell is an engagement on the hands with `effortW` derived from

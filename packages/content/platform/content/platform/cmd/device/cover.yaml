@@ -26,6 +26,7 @@
 # `banked` survives as the value on the draught scale, so the vocabulary
 # stays in the prose and the help.
 verbs: [cover]
+category: device
 controller: /platform/idea/cmd/device/CoverController
 description: "Bank a fire down so it keeps"
 help: |
@@ -48,7 +49,7 @@ args:
     type: object
     required: false
     greedy: true
-    scope: "reachable"
+    scope: ["here", "peers", "person"]
     default: "reachable:[mixin.BurnerMixin]"
     requires: BurnerMixin
     validators:

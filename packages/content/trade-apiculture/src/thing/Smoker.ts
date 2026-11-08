@@ -3,7 +3,7 @@
  *
  * A tin with smouldering fuel in it and a bellows on the side. It is a
  * `Burner` because that is what it is: a thing that holds a fire and
- * burns fuel, lit with the platform's `ignite` and running out when the
+ * burns fuel, lit with the platform's `light` and running out when the
  * fuel does.
  *
  * ⭐⭐ **No verb, no capability word, no mechanism.** The colony reads the

@@ -1,4 +1,5 @@
 verbs: [pay]
+category: banking
 controller: /platform/idea/cmd/banking/PayController
 description: "Pay someone — by cash or from your account"
 help: |

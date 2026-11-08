@@ -120,7 +120,7 @@ describe('the hand on the milk', () => {
     const who = milker();
     advance(0.5 * DAY);
     const p = pail(() => new PlainPail());
-    await c.completeTap(who, 'milk', null, p, { key: 'milk' });
+    await c.completeTap(who, 'milk', p);
     expect(p.getBulkAmount('interior').rawValue()).toBeGreaterThan(0);
     expect(p.getBulkPayload('interior')?.maker).toBe(who.getIdentityPath());
   });
@@ -131,7 +131,7 @@ describe('the hand on the milk', () => {
     advance(0.5 * DAY);
     who.washHands();
     const p = pail(() => new FoodPail());
-    await c.completeTap(who, 'milk', null, p, { key: 'milk' });
+    await c.completeTap(who, 'milk', p);
     const slot = BulkableApi.slotFor(p, undefined)!;
     expect(new Contamination(slot).loads()['e-coli'] ?? 0).toBe(0);
     expect(p.getPathogenLoad('e-coli')).toBe(0);
@@ -148,7 +148,7 @@ describe('the hand on the milk', () => {
     // unit test, the pail's own reconcile has no organism to grow. That the
     // surface IS dirtied is the seam; what it does next is Contaminable's.
     const onPail = vi.spyOn(p, 'contaminate');
-    await c.completeTap(who, 'milk', null, p, { key: 'milk' });
+    await c.completeTap(who, 'milk', p);
     const slot = BulkableApi.slotFor(p, undefined)!;
     expect(new Contamination(slot).loads()['e-coli'] ?? 0).toBeGreaterThan(0);
     expect(onPail).toHaveBeenCalledWith('e-coli', expect.any(Number));
@@ -163,7 +163,7 @@ describe('the hand on the milk', () => {
     who.soilHands('manure', 0.8);
     advance(0.5 * DAY); // a let-down to draw
     const p = pail(() => new PlainPail());
-    await c.completeTap(who, 'milk', null, p, { key: 'milk' });
+    await c.completeTap(who, 'milk', p);
     const slot = BulkableApi.slotFor(p, undefined)!;
     expect(new Contamination(slot).loads()['e-coli'] ?? 0).toBeGreaterThan(0);
   });
@@ -178,8 +178,8 @@ describe('the hand on the milk', () => {
       v.setInteriorCapacity(Quantity.of(10, 'L'));
       return v;
     });
-    const r = await c.completeTap(who, 'milk', null, p, { key: 'milk' });
-    expect(r.self).not.toMatch(/on the floor/);
+    const r = await c.completeTap(who, 'milk', p);
+    expect(r.ok && r.facts.kind === 'drawn' ? r.facts.kept : 0).toBeGreaterThan(0);
     expect(p.getBulkAmount('interior').rawValue()).toBeGreaterThan(0);
   });
 
@@ -193,7 +193,7 @@ describe('the hand on the milk', () => {
     const who = milker();
     advance(0.5 * DAY);
     const p = pail(() => new FoodPail());
-    await c.completeTap(who, 'milk', null, p, { key: 'milk' });
+    await c.completeTap(who, 'milk', p);
     // The first milk with clean hands is clean…
     const slot = BulkableApi.slotFor(p, undefined)!;
     expect(new Contamination(slot).loads()['e-coli'] ?? 0).toBe(0);
@@ -206,7 +206,7 @@ describe('the hand on the milk', () => {
     const who = milker();
     advance(0.5 * DAY);
     const p = pail(() => new FoodPail());
-    await c.completeTap(who, 'milk', null, p, { key: 'milk' });
+    await c.completeTap(who, 'milk', p);
     const hands = who.handSites().flatMap((h) => who.soilKinds(h));
     expect(hands).not.toContain('manure');
   });

@@ -21,7 +21,7 @@
  */
 
 import Reading from '../../../lib/instrument/Reading';
-import type { Tooled } from '../../../lib/craft/Tooled';
+import type { Tooled } from '../../../lib/craft/Tool';
 import {
   CompetenceBand,
   type CompetenceBandName,

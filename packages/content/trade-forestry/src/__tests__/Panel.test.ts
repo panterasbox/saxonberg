@@ -27,7 +27,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Mixins } from '@saxonberg/server/mud/lib/mixin';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import {
   PLANT_SLOT,

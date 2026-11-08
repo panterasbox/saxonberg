@@ -12,7 +12,7 @@
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
-import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { CombustibleMixin } from '@saxonberg/server/mud/lib/fire/Combustible';
 import { TearableMixin, type TearOutcome } from '@saxonberg/server/mud/lib/material/Tearable';

@@ -68,38 +68,32 @@ const EmploymentApiCallers = SecurityPolicies.FromModule(
 /** The F4 org face (Organization hosts) forwards here as the org. */
 const OrgCallers = SecurityPolicies.AnyOf(
   EmploymentApiCallers,
-  SecurityPolicies.FromMixin('OrganizationMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('/platform/idea/Business', { includeSubclasses: true }),
+      SecurityPolicies.FromModule('/platform/idea/Organization', { includeSubclasses: true }),
+    ),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 /** Org-face methods whose ORG is the second argument. */
 const OrgArg1Callers = SecurityPolicies.AnyOf(
   EmploymentApiCallers,
-  SecurityPolicies.FromMixin('OrganizationMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[1] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('/platform/idea/Business', { includeSubclasses: true }),
+      SecurityPolicies.FromModule('/platform/idea/Organization', { includeSubclasses: true }),
+    ),
+    SecurityPolicies.SelfSubject(1),
+  ),
 );
 /** The F4 actor face (Employed hosts) forwards here as the actor. */
 const EmployedCallers = SecurityPolicies.AnyOf(
   EmploymentApiCallers,
-  SecurityPolicies.FromMixin('EmployedMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('EmployedMixin'),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 
 /**

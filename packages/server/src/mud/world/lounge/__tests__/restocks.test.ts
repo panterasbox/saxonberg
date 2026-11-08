@@ -36,9 +36,9 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain as restocks } from '../../../lib/behavior/restocks';
 import type { BrainContext } from '../../../lib/behavior/brain';
-import JobController from '../../../platform/idea/cmd/work/JobController';
+import JobPostController from '../../../platform/idea/cmd/work/JobPostController';
 import JobBoard from '../../../platform/thing/JobBoard';
-import ConsignController from '../../../platform/idea/cmd/retail/ConsignController';
+import ShelfConsignController from '../../../platform/idea/cmd/retail/ShelfConsignController';
 import WalletController from '../../../platform/idea/cmd/banking/WalletController';
 import StockBase from "../../../lib/retail/Stock";
 import Bottle from '../../../platform/thing/Bottle';
@@ -323,8 +323,8 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
     for (let i = 0; i < n; i++) {
       const b = ginBottle();
       ContainmentApi.move(b as never, hand as never);
-      const cc = ctx(hand, cashAndCarry, counter, `consign gin --ask ${ask}`);
-      await asPrincipal(hand, () => makeStuff(() => new ConsignController()).execute(
+      const cc = ctx(hand, cashAndCarry, counter, `shelf consign gin --ask ${ask}`);
+      await asPrincipal(hand, () => makeStuff(() => new ShelfConsignController()).execute(
         // ⚠ `shelf` is bound by the view; a hand-built model must carry it.
         { thing: bindHeld(hand, 'gin'), ask: String(ask), shelf: { stuff: shelf, raw: 'shelf' } },
         cc,
@@ -364,8 +364,8 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
       if (verb === 'job') {
         // `job post <kw> to <dest> for <n> --kind --bounty --business --from <origin>`
         // — parsed the way the binder would, then straight onto the real
-        // controller with the BOARD as the command source (it affords the
-        // verb to its peers, so that is exactly how a typed line arrives).
+        // controller with the BOARD bound as the view's `board` default
+        // binds it (controllers-are-io W7: the board is an argument).
         // `job post <condition phrase> for <n> [flags]` — the phrase is
         // greedy up to `for`, exactly as the binder hands it over.
         const m = /^job post (.+?) for (\d+)(.*)$/.exec(text);
@@ -373,9 +373,10 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
         const [, condition, reward, flags] = m!;
         const c = ctx(who, here, board, text);
         await asPrincipal(who, () =>
-          makeStuff(() => new JobController()).execute(
+          makeStuff(() => new JobPostController()).execute(
             {
               subcommand: 'post',
+              board: { raw: 'board', stuff: board },
               condition,
               reward,
               bounty: flags!.includes('--bounty'),

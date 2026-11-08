@@ -1197,7 +1197,7 @@ suite('⭐⭐⭐ 14–16. the candle — one act, and the fat decides', () => {
     // the real resolve. What THIS step owns, and all it owns, is the
     // ALIAS: that `melt` reaches the dip controller rather than being a
     // second verb.
-    const melted = await say(k, 'melt');
+    const melted = await say(k, 'dip');
     const reason = refusedFor(melted);
     const said = (await melted.said()).toLowerCase();
     // ⚠ The point is that the word is UNDERSTOOD. `no-recipe` would mean
@@ -1274,7 +1274,7 @@ suite('17–18. the ground and the dog', () => {
     // biting a second time, in a different trade: the determiner widens
     // the match instead of narrowing it, so a room fixture outranked the
     // thing in your hands. ⭐ A finding for the parser, not for milling.
-    const out = await say(k, 'grind bone');
+    const out = await say(k, 'mill bone');
     const reason = refusedFor(out);
     // ⚠ `no-recipe` would mean the verb cannot reach `bone-meal` at all,
     // which is the gap W7 was written to close.
@@ -1396,7 +1396,7 @@ suite('⭐⭐ AC12 — three jobs, and one of them is takeable today', () => {
 
   it('⭐⭐⭐ the CHANDLER\'s seat is takeable with no Discipline at all', async () => {
     await walk(k, ['northeast']);
-    const out = await say(k, 'apply chandler');
+    const out = await say(k, 'job apply chandler');
     const reason = refusedFor(out);
     const said = await out.said();
     // ⭐ The seat the pack deliberately left ungated: dipping a wick in
@@ -1411,7 +1411,7 @@ suite('⭐⭐ AC12 — three jobs, and one of them is takeable today', () => {
 
   it('⚠ and the TANNER\'s refuses — which is the progression UI', async () => {
     await walk(k, ['southwest', 'south']);
-    const out = await say(k, 'apply tanner');
+    const out = await say(k, 'job apply tanner');
     const said = await out.said();
     const reason = refusedFor(out);
     // ⭐⭐ The refusal has to be SAYABLE: the verb exists, the sign is

@@ -7,6 +7,7 @@
 # it until you next look — at which point both claims render and you can
 # see them disagree.
 verbs: [map]
+category: perception
 controller: /platform/idea/cmd/perception/MapController
 description: "What you know of a place, and when you learned it"
 help: |

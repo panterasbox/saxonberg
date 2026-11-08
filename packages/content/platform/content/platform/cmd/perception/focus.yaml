@@ -1,4 +1,5 @@
 verbs: [focus]
+category: perception
 controller: /platform/idea/cmd/perception/FocusController
 description: "Display or set your focus (the anchor your queries are pointed at)"
 help: |

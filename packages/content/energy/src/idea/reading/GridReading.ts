@@ -20,7 +20,7 @@ import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/C
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
@@ -67,7 +67,7 @@ export default class GridReading extends Reading {
 
   /** The premises you stand in, and its locality's derived epoch. */
   private async reportHere(giver: Stuff): Promise<void> {
-    const scope = (giver as Stuff & { getContainer?: () => unknown }).getContainer?.();
+    const scope = MixinApi.isContainable(giver) ? giver.getContainer() : null;
     if (!scope || !MixinApi.isContainer(scope as Stuff)) {
       MessageApi.scene(giver)
         .topic(TOPIC)

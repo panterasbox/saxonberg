@@ -415,11 +415,7 @@ export class EventApi {
     if (!subs) return;
 
     const triggeringContext = this.#snapshotTriggeringContext();
-    subs.recordHistory(name, {
-      payload,
-      timestamp: Date.now(),
-      triggeringContext,
-    });
+    subs.recordHistory(name, { payload, timestamp: Date.now() });
 
     const snapshot = subs.snapshotSubscribers(name);
     if (snapshot === null) return;
@@ -589,17 +585,12 @@ export class EventApi {
   public static history<T = unknown>(
     name: string,
     limit?: number
-  ): ReadonlyArray<{
-    payload: T;
-    timestamp: number;
-    triggeringContext: ListenerContext['triggeringContext'];
-  }> {
+  ): ReadonlyArray<{ payload: T; timestamp: number }> {
     const subs = this.#subs();
     if (!subs) return [];
     return subs.getHistory(name, limit) as unknown as ReadonlyArray<{
       payload: T;
       timestamp: number;
-      triggeringContext: ListenerContext['triggeringContext'];
     }>;
   }
 

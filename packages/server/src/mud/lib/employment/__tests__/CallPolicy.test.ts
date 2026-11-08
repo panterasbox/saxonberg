@@ -20,6 +20,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import { OrganizationMixin } from '../Organization';
+import { OnCallMixin } from '../OnCall';
 import { EngagedMixin } from '../../activity/Engaged';
 import { BeliefStoreMixin } from '../../belief/BeliefStore';
 import { StuffApi } from '../../../api/stuff';
@@ -27,7 +28,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { CALL_POLICIES } from '../CallPolicy';
 
-class House extends OrganizationMixin(Idea) {
+class House extends OnCallMixin(OrganizationMixin(Idea)) {
   static _mixinName = 'House';
 }
 /** A candidate who can be engaged and can know somebody. */

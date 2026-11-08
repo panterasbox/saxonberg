@@ -1,5 +1,5 @@
 /**
- * FieldWorkController — what `plough` and `mow` still need that the
+ * FieldWorkController — what `plow` and `mow` still need that the
  * kernel's ground base does not give them.
  *
  * ⭐⭐ **The body of this file left for the kernel.** `grub`, `ditch` and
@@ -29,7 +29,7 @@ import type { ImprovementCost } from '@saxonberg/server/mud/lib/ground/Improvabl
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import GroundCharacter, { type GroundSample } from '@saxonberg/content-ground/src/idea/GroundCharacter';
-import type Tract from '../../../location/Tract';
+import Tract from '../../../location/Tract';
 import type Field from '../../../thing/Field';
 import type { Soil } from '@saxonberg/server/mud/lib/husbandry/Soil';
 
@@ -37,7 +37,7 @@ import type { Soil } from '@saxonberg/server/mud/lib/husbandry/Soil';
  * ⭐ Re-exported so farming's own acts keep one import.
  *
  * ⚠ `FIELD_TOPIC` is the kernel's `GROUND_TOPIC` under its old name — the
- * same string, kept because `plough` and `mow` narrate on it and renaming
+ * same string, kept because `plow` and `mow` narrate on it and renaming
  * them is churn with no reader.
  */
 export const FIELD_TOPIC = GROUND_TOPIC;
@@ -80,12 +80,9 @@ export abstract class FieldWorkController<
   protected async fieldOf(giver: Stuff): Promise<FieldReading | null> {
     const room = (giver as unknown as { getContainer(): Stuff | null }).getContainer();
     if (!room || !MixinApi.isContainer(room)) return null;
-    const candidate = room as unknown as Partial<Tract> & Stuff & Container;
-    if (typeof candidate.getGroundSpot !== 'function') return null;
-    if (typeof (candidate as unknown as { progressOn?: unknown }).progressOn !== 'function') {
-      return null;
-    }
-    const tract = candidate as Tract & Stuff & Container;
+    // ⭐ A tract, asked by class (controllers-are-io D8a), never probed.
+    if (!(room instanceof Tract)) return null;
+    const tract = room;
     const locality = await AddressApi.resolveLocalityFor(room as Stuff & Container);
     const seed = GroundCharacter.seedFor(locality?.getAddress() ?? '');
     const model = await this.characterAt(room as Stuff & Container);
@@ -94,7 +91,7 @@ export abstract class FieldWorkController<
   }
 
   /**
-   * The field a crop act lands on (`plough at the gate end`): the TRACT
+   * The field a crop act lands on (`plow at the gate end`): the TRACT
    * resolves it — the named field, the only field, or its refusal. ⭐ The
    * grass and the seedbed are a field's since the tracts build, so an act
    * on them must know which.

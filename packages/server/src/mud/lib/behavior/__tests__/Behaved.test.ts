@@ -22,6 +22,7 @@ import { AppApi } from '../../../api/app';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { BehavedMixin } from '../Behaved';
+import { HasInteractiveMixin } from '../../connection/HasInteractive';
 
 const PROBE = '/lib/behavior/__tests__/fixtures/probe';
 const GUARDED = '/lib/behavior/__tests__/fixtures/probe-guarded';
@@ -30,7 +31,12 @@ class TestRoom extends ContainerMixin(Idea) {}
 class TestNPC extends BehavedMixin(
   EngagedMixin(SensorMixin(ContainableMixin(Idea)))
 ) {}
-class TestPlayer extends SensorMixin(ContainableMixin(Idea)) {}
+class TestPlayer extends HasInteractiveMixin(SensorMixin(ContainableMixin(Idea))) {
+  public live = true;
+  override hasLiveSession(): boolean {
+    return this.live;
+  }
+}
 
 type NPC = TestNPC & {
   onCreate(c?: unknown): Promise<void>;
@@ -231,6 +237,70 @@ describe('witness dispatch (arrival)', () => {
     const arrival = fires().find((f) => f.source === 'witness');
     expect(arrival).toBeDefined();
     expect(arrival?.subject).toBe((player as unknown as { stuffId: string }).stuffId);
+  });
+});
+
+describe('the greeting is the arriver\'s frame (controllers-are-io D28)', () => {
+  const stage = async (trigger: string) => {
+    const room = makeStuff(() => new TestRoom());
+    const npc = makeStuff(() => new TestNPC()) as unknown as NPC;
+    npc.behaviors = [{ brain: PROBE, trigger }];
+    ContainmentApi.move(npc as never, room as never);
+    await npc.onCreate();
+    return { room, npc };
+  };
+  const body = (room: unknown, live = true): TestPlayer => {
+    const p = makeStuff(() => new TestPlayer());
+    p.live = live;
+    ContainmentApi.move(p as never, room as never);
+    return p;
+  };
+  const tagged = (tag: string): MessageFrame => ({ ...movementFrame(), tags: [tag] });
+  const greeted = (): number => fires().filter((f) => f.source === 'witness').length;
+
+  it('⭐ the host\'s own move reseeds and greets nobody', async () => {
+    const { room, npc } = await stage('arrival');
+    body(room);
+    body(room);
+    npc.onMessage(tagged('audience:actor'));
+    await vi.waitFor(() => Promise.resolve());
+    expect(greeted()).toBe(0);
+    // ...and those two stay seen: a witness frame now names nobody.
+    npc.onMessage(tagged('audience:witness'));
+    await new Promise((r) => setImmediate(r));
+    expect(greeted()).toBe(0);
+  });
+
+  it('a player\'s arrival greets that player once, and a second frame nobody', async () => {
+    const { room, npc } = await stage('arrival');
+    const p = body(room);
+    npc.onMessage(tagged('audience:witness'));
+    await vi.waitFor(() => expect(greeted()).toBe(1));
+    expect(fires()[0]?.subject).toBe((p as unknown as { stuffId: string }).stuffId);
+    npc.onMessage(tagged('audience:witness'));
+    await new Promise((r) => setImmediate(r));
+    expect(greeted()).toBe(1);
+  });
+
+  it('a departure still fires', async () => {
+    const { room, npc } = await stage('departure');
+    const p = body(room);
+    npc.onMessage(tagged('audience:witness'));
+    await new Promise((r) => setImmediate(r));
+    ContainmentApi.move(p as never, null);
+    npc.onMessage(tagged('audience:witness'));
+    await vi.waitFor(() => expect(greeted()).toBe(1));
+  });
+
+  it('a body with no live session is neither greeted nor an audience', async () => {
+    const { room, npc } = await stage('arrival');
+    body(room, false);
+    npc.onMessage(tagged('audience:witness'));
+    await new Promise((r) => setImmediate(r));
+    expect(greeted()).toBe(0);
+    expect((npc as unknown as { _hasAudience(): boolean })._hasAudience()).toBe(false);
+    body(room, true);
+    expect((npc as unknown as { _hasAudience(): boolean })._hasAudience()).toBe(true);
   });
 });
 

@@ -90,11 +90,14 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { ParcelApi } from '../../api/parcel';
 import type Exit from '../boundary/Exit';
-import type { ActRefusal } from '../craft/ActPlan';
-import { Mml } from '../../api/mml';
+import type { CoatReachRefusal } from '../material/Faced';
 
+// ⭐ `NamedMixin` OUTSIDE `PerceptibleMixin`: a name is one of the words a
+// thing answers to (`Named.getKeywords` folds it onto what lies beneath),
+// so `paint hesper` reaches the ship by her name through the one list MQL
+// scores (one-resolution slate § 4).
 export default class Structure extends DetailedMixin(
-  VisibleMixin(PerceptibleMixin(NamedMixin(Idea))),
+  VisibleMixin(NamedMixin(PerceptibleMixin(Idea))),
 ) {
   static fieldMeta: FieldMeta = {
     extent: { persistent: true, authorable: true },
@@ -354,14 +357,10 @@ export default class Structure extends DetailedMixin(
    * — `null` on a landing (paint D9): *"You cannot reach the outside of
    * the cottage from here."*
    */
-  public landingRefusal(actor: Stuff): ActRefusal | null {
+  public landingRefusal(actor: Stuff): CoatReachRefusal | null {
     const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
     if (room !== null && this.isLandedAt(room)) return null;
-    return {
-      ok: false,
-      reason: 'no-landing',
-      line: Mml.compose`You cannot reach the outside of ${Mml.thing(this as unknown as Stuff)} from here.`,
-    };
+    return { ok: false, reason: 'no-landing' };
   }
 
   /**

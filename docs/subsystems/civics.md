@@ -175,7 +175,7 @@ deliberate closed scope (re-rooting them is city content), not a bug.
 
 ## The verb
 
-`government` / `gov` (the **`civics`** category — the fiction's
+`government` (the **`civics`** category — the fiction's
 governments; deliberately not `governance`, the Compact's category),
 universal on Persona, public, read-only: bare/`list` renders the
 `subjectTo` chain most-local first (description, departments, seats

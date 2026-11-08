@@ -48,9 +48,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 import type { AromaTag } from '../metabolism/DissolvedAromatics';
 import type { MarkupAugmenter } from '../../api/mml';
 import { Paint } from './Paint';
-import type { ActPlan, ActRefusal } from '../craft/ActPlan';
-import { Mml } from '../../api/mml';
-import { MessageApi } from '../../api/message';
+import type { ActOutcome, ActPlan, ActRefusal } from '../craft/ActPlan';
 import { Quantity } from '../quantity';
 import type { PaintMakeup } from './Paint';
 import { BiomeApi } from '../../api/biome';
@@ -131,6 +129,43 @@ export interface CoatAir {
 }
 
 /** What `paint` asks of the thing painted (paint D9). */
+/** Why the painter cannot reach a thing's outside from where they stand. */
+export type CoatReachRefusal = ActRefusal<'no-landing'>;
+
+/**
+ * ⭐ Every reason a brushed coat is refused — `PaintController` words each
+ * (controllers-are-io D4); the thing painted is the controller's target.
+ */
+export type CoatRefusal =
+  | CoatReachRefusal
+  /** Nothing in the pot (`empty`), or what is in it runs off (`runs-off`). */
+  | ActRefusal<'not-paint', { source: Stuff; why: 'empty' | 'runs-off' }>
+  | ActRefusal<'nothing-to-cover'>
+  /** Not enough in the pot; `litres` is what the coat would take. */
+  | ActRefusal<'source-too-low', { source: Stuff; litres: number }>
+  /** The pot ran dry while the coat went on. */
+  | ActRefusal<'pot-ran-dry'>;
+
+/** What a coat's begin words need. */
+export interface CoatBegin {
+  source: Stuff;
+}
+
+/** What a brushed coat came to. */
+export type CoatDone =
+  /** A wet coat of `what` (the paint in words) laid. */
+  | { kind: 'coated'; what: string }
+  /** The thing or the pot was gone when the step landed (nothing said). */
+  | { kind: 'gone' };
+
+export type CoatPlan = ActPlan<CoatBegin, CoatDone, CoatRefusal>;
+
+/** Why a label will not paste. */
+export type PasteRefusal = ActRefusal<'not-glue'> | ActRefusal<'source-too-low'> | ActRefusal<'not-paper'>;
+
+/** A label pasted: the glue's name and the words it carries (`''` — none). */
+export type PasteOutcome = ActOutcome<{ glue: string; words: string }>;
+
 export interface CoatRequest {
   actor: Stuff;
   /** The vessel whose liquid is brushed on. */
@@ -170,7 +205,7 @@ export interface Faced {
    * glue goes on as a coat carrying the sheet's words, and the sheet is
    * gone into it. How long it stays is the glue's own damp-resistance.
    */
-  pasteOn(sheet: Stuff, pot: Stuff): Promise<{ ok: true; line: string } | { ok: false; reason: string; line: string }>;
+  pasteOn(sheet: Stuff, pot: Stuff): Promise<PasteOutcome | PasteRefusal>;
   /**
    * ⭐ The damp lets a weak glue go: on a good that is WET, a
    * glued coat whose glue does not resist damp comes away — and the words
@@ -182,11 +217,11 @@ export interface Faced {
   /**
    * ⭐ Plan one brushed coat from `req.source` (paint D9) — the thing
    * painted decides: how much surface it has, how much paint that takes,
-   * whether the painter can reach it. Refuses in words.
+   * whether the painter can reach it. Refuses with a reason and facts.
    */
-  coatPlanFor(req: CoatRequest): Promise<ActPlan | ActRefusal>;
+  coatPlanFor(req: CoatRequest): Promise<CoatPlan | CoatRefusal>;
   /** Why `actor` cannot reach this thing's outside to paint it, or `null`. */
-  coatReachRefusal(actor: Stuff): ActRefusal | null;
+  coatReachRefusal(actor: Stuff): CoatReachRefusal | null;
   /**
    * ⭐ Advance every wet coat by HEAT-WORK over a window (B100): `integrate`
    * is ∫ rate(T) dt over the window for a kinetic change — the same integral
@@ -392,7 +427,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     /** @hook Why `actor` cannot reach this to paint it — `null` (a good in reach can be). */
-    public coatReachRefusal(_actor: Stuff): ActRefusal | null {
+    public coatReachRefusal(_actor: Stuff): CoatReachRefusal | null {
       return null;
     }
 
@@ -402,36 +437,27 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * stays when it sets is that film × the paint's solids. The pot gives
      * up exactly that many litres; a pot with less coats nothing.
      */
-    public async coatPlanFor(req: CoatRequest): Promise<ActPlan | ActRefusal> {
+    public async coatPlanFor(req: CoatRequest): Promise<CoatPlan | CoatRefusal> {
       const self = this as unknown as Stuff & Faced;
       const reach = this.coatReachRefusal(req.actor);
       if (reach !== null) return reach;
       const src = req.source;
       if (!MixinApi.isBulkable(src) || !src.hasInteriorBulk()) {
-        return { ok: false, reason: 'not-paint', line: Mml.compose`There is nothing in ${Mml.thing(src)} to paint with.` };
+        return { ok: false, reason: 'not-paint', facts: { source: src, why: 'empty' } };
       }
       const material = src.getBulkMaterial('interior');
       if (material === null || !material.getLaysCoat()) {
-        return {
-          ok: false,
-          reason: 'not-paint',
-          line: Mml.compose`What is in ${Mml.thing(src)} will not lay a coat — it runs off and leaves nothing behind.`,
-        };
+        return { ok: false, reason: 'not-paint', facts: { source: src, why: 'runs-off' } };
       }
       const area = this.coatAreaM2();
       if (!(area > 0)) {
-        return { ok: false, reason: 'nothing-to-cover', line: Mml.compose`There is nothing of ${Mml.thing(self)} a brush could cover.` };
+        return { ok: false, reason: 'nothing-to-cover' };
       }
       const film = dial(AppSettingKeys.structurePaintCoatThicknessM, 0.00005);
       const litres = area * film * 1000;
       const held = src.getBulkAmount('interior').rawValue();
       if (held + 1e-9 < litres) {
-        const want = litres >= 1 ? `about ${Math.round(litres)} litres` : 'more than that';
-        return {
-          ok: false,
-          reason: 'source-too-low',
-          line: Mml.compose`There is not enough in ${Mml.thing(src)} to give ${Mml.thing(self)} a coat — it would take ${want}.`,
-        };
+        return { ok: false, reason: 'source-too-low', facts: { source: src, litres } };
       }
       const makeup = src.getBulk('interior').getPayload()?.paint;
       const solids = makeup?.solidsFraction ?? Math.min(0.9, Math.max(0.1, material.getSolidsKgPerL() || 0.4));
@@ -447,14 +473,13 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         ok: true,
         durationMs,
         effortW: 120,
-        beginSelf: Mml.compose`You load the brush from ${Mml.thing(src)} and start laying the coat on ${Mml.thing(self)}.`,
-        beginPeers: Mml.compose`${Mml.actor(giver)} starts painting ${Mml.thing(self)}.`,
+        facts: { source: src },
         onComplete: () => {
-          if (self.isDestroyed() || src.isDestroyed() || !MixinApi.isBulkable(src)) return undefined;
-          const have = src.getBulkAmount('interior').rawValue();
-          if (have + 1e-9 < litres) {
-            return { ok: false, reason: 'source-too-low', line: Mml.compose`The pot runs dry before the coat is on.` };
+          if (self.isDestroyed() || src.isDestroyed() || !MixinApi.isBulkable(src)) {
+            return { ok: true, facts: { kind: 'gone' } };
           }
+          const have = src.getBulkAmount('interior').rawValue();
+          if (have + 1e-9 < litres) return { ok: false, reason: 'pot-ran-dry' };
           // ⭐ Walk the weather UP TO NOW first, so the rain of last week
           // does not fall on a coat laid today.
           self.reconcileWeather();
@@ -468,14 +493,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
               MixinApi.isAttired(giver) && giver.handSites().some((h) => giver.outermostAt(h) !== null);
             giver.addToxinBurden('lead', litres * dial(AppSettingKeys.metabolismLeadSkinDosePerL, 0.6) * (gloved ? 0.5 : 1));
           }
-          if (!giver.isDestroyed()) {
-            MessageApi.scene(giver)
-              .topic('act.deed')
-              .toSelf(Mml.compose`${Mml.thing(self)} stands under a wet coat of ${what}. Let it set; keep the rain off it.`)
-              .toPeers(Mml.compose`${Mml.actor(giver)} finishes a coat on ${Mml.thing(self)}.`)
-              .send();
-          }
-          return undefined;
+          return { ok: true, facts: { kind: 'coated', what } };
         },
       };
     }
@@ -523,18 +541,17 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public async pasteOn(
       sheet: Stuff,
       pot: Stuff,
-    ): Promise<{ ok: true; line: string } | { ok: false; reason: string; line: string }> {
-      const self = this as unknown as Stuff;
+    ): Promise<PasteOutcome | PasteRefusal> {
       const held = MixinApi.isBulkable(pot) && pot.hasInteriorBulk() ? pot.getBulkMaterial('interior') : null;
       if (held === null || held.getAdhesive() === null || !MixinApi.isBulkable(pot)) {
-        return { ok: false, reason: 'not-glue', line: `What is in ${pot.getPresentation()} will not stick paper to anything.` };
+        return { ok: false, reason: 'not-glue' };
       }
       const have = pot.getBulkAmount('interior').rawValue();
       if (have + 1e-9 < PASTE_LITRES) {
-        return { ok: false, reason: 'source-too-low', line: `There is not enough left in ${pot.getPresentation()} to paste with.` };
+        return { ok: false, reason: 'source-too-low' };
       }
       if (!MixinApi.isMarked(sheet)) {
-        return { ok: false, reason: 'not-paper', line: `${sheet.getPresentation()} is not a thing you paste on.` };
+        return { ok: false, reason: 'not-paper' };
       }
       await sheet.refreshMarks(sheet);
       const words = sheet.getMarkText().trim();
@@ -543,12 +560,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const top = this.getCoats('outside')[0];
       if (top !== undefined && words !== '') top.marks = words;
       StuffApi.destruct(sheet);
-      return {
-        ok: true,
-        line: words !== ''
-          ? `You brush ${held.getName()} on the back of the label and smooth it onto ${self.getPresentation()}: "${words}".`
-          : `You paste the paper onto ${self.getPresentation()} with ${held.getName()}.`,
-      };
+      return { ok: true, facts: { glue: held.getName(), words } };
     }
 
     public releaseDampGlue(): number {

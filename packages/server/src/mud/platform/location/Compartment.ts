@@ -49,6 +49,7 @@ import Location from './Location';
 import { ShoreMixin } from '../../lib/location/Shore';
 import { SwimmableMixin } from '../../lib/locomotion/Swimmable';
 import { WaterPlaceMixin, type WaterState } from '../../lib/location/WaterPlace';
+import { HaulOutMixin } from '../../lib/location/HaulOut';
 import { WarrenMemberMixin } from '../../lib/location/WarrenMember';
 import { MixinApi } from '../../api/mixin';
 import { AppApi } from '../../api/app';
@@ -75,9 +76,9 @@ const floodAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 };
 
-export default class Compartment extends WaterPlaceMixin(
+export default class Compartment extends HaulOutMixin(WaterPlaceMixin(
   SwimmableMixin(ShoreMixin(WarrenMemberMixin(Location))),
-) {
+)) {
   static fieldMeta: FieldMeta = {
     floorM: { persistent: true, authorable: true },
   };
@@ -128,10 +129,12 @@ export default class Compartment extends WaterPlaceMixin(
 
   /**
    * ⭐ A ship alongside is seen across her way (master's
-   * `isSeenAcrossExit`): from the landing, `look hesper` describes her
+   * `isSeenAcrossExit`): from the landing, `look deck` describes her
    * DECK — the one room of hers in plain view over the side — while she is
-   * afloat. Her cabin and hold are entered to be seen; a wreck is under the
-   * sea, seen by nobody on the quay.
+   * afloat. `look hesper` is HER: her name, and the words for what she is,
+   * are the ship's keywords, and a deck answers only to phrases with `deck`
+   * in them. Her cabin and hold are entered to be seen; a wreck is under
+   * the sea, seen by nobody on the quay.
    *
    * @hook
    */
@@ -262,13 +265,13 @@ export default class Compartment extends WaterPlaceMixin(
    * arriving or leaving pokes her warren, whose reconcile is what puts her
    * to sleep whole. A no-op before her warren has adopted the room.
    */
-  public override onContainableAdded(thing: Stuff & Containable): void {
-    super.onContainableAdded(thing);
+  public override onContainableAdded(thing: Stuff & Containable, from?: Stuff | null): void {
+    super.onContainableAdded(thing, from);
     this.notePopulation(thing);
   }
 
-  public override onContainableRemoved(thing: Stuff & Containable): void {
-    super.onContainableRemoved(thing);
+  public override onContainableRemoved(thing: Stuff & Containable, to?: Stuff | null): void {
+    super.onContainableRemoved(thing, to);
     this.notePopulation(thing);
     // ⭐ Somebody left her while she settles: out of the count.
     if (MixinApi.isHasInteractive(thing as unknown as Stuff)) this.shipNow()?.noteLeft();

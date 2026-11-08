@@ -36,7 +36,7 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import Hearth from '../../../platform/thing/Hearth';
 import Forge from '../../../platform/thing/Forge';
-import { Reserve } from '../../reserve';
+import { Reserve } from '../../reserve/Reserved';
 import { chargeWood } from '../../fire/__tests__/burner-fuel';
 import type { Burner } from '../../fire/Burner';
 import { ContainmentApi } from '../../../api/containment';

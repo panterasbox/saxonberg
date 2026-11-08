@@ -1,5 +1,5 @@
 # A clean bandage — the canonical first-aid dressing (DressingMixin(Thing)).
-# `treat`/`bind`/`dress` consumes one to dress a bleed. Stocked in the
+# `treat` consumes one to dress a bleed. Stocked in the
 # glass alley (where you get cut) so the treat loop is playable in-world.
 class: /platform/thing/Bandage
 data:

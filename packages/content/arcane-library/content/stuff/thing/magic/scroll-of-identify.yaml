@@ -1,6 +1,6 @@
 # A scroll of identify — the exemplar consumable.
 #
-# It affords `read` and NOTHING ELSE (requirements D34). It used to
+# It affords `read`, `recite` and NOTHING ELSE (requirements D34). It used to
 # carry an `identify` verb of its own; that declaration is deleted, not
 # relocated, because a verb appearing in your affordance list because of
 # what you are holding tells you what you are holding — and the scroll

@@ -54,7 +54,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import {
   RegistrarMixin,
   type Registrar,
-} from '@saxonberg/server/mud/lib/document/Register';
+} from '@saxonberg/server/mud/lib/document/Registrar';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type Discipline from '@saxonberg/server/mud/platform/idea/Discipline';

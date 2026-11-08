@@ -21,7 +21,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SwardMixin, SWARD_RESIDUAL_FRACTION, SWARD_RESERVE_KEY } from '../Sward';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';

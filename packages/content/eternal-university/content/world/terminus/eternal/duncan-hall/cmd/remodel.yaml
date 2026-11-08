@@ -1,4 +1,5 @@
 verbs: [remodel]
+category: crafting
 controller: /world/terminus/eternal/duncan-hall/idea/cmd/RemodelController
 description: "Redo your dorm room's look — pick a style"
 help: |

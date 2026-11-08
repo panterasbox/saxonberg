@@ -263,7 +263,7 @@ async function fireKiln(s: Session, hold: string, extra = ''): Promise<string> {
   await mint(SHOP, CHARCOAL, 4);
   await say(s, 'get 1 charcoal');
   await say(s, 'stoke charcoal into kiln');
-  const lit = await say(s, 'ignite kiln');
+  const lit = await say(s, 'light kiln');
   expect(lit).toMatch(/catch|light|burn|alight/i);
   return (await act(s, `fire kiln ${extra}for ${hold}`.replace(/\s+/g, ' '), hold)).said;
 }
@@ -488,7 +488,7 @@ suite('⭐ 17 — bisque fire, with cones in the spy-hole', () => {
     await mint(SHOP, CHARCOAL, 4);
     await say(potter, 'get 1 charcoal');
     await say(potter, 'stoke charcoal into kiln');
-    await say(potter, 'ignite kiln');
+    await say(potter, 'light kiln');
     await say(novice, 'get 1 cones');
     const plain1 = await say(novice, 'analyze temperature kiln');
     expect(plain1, `the novice at the spy-hole: ${plain1}`).toMatch(/cone/i);
@@ -915,7 +915,7 @@ suite('⭐ 23 — breakage and mending', () => {
     potter = await goTo(potter, SQUARE);
     await say(potter, 'get sherds');
     potter = await goTo(potter, MILL);
-    const ground = await act(potter, 'grind sherds', '30 minutes');
+    const ground = await act(potter, 'mill sherds', '30 minutes');
     expect(ground.said, `grind: ${ground.said}`).toMatch(/grog|grind|mill/i);
     expect(await held(potter), 'grog in hand').toMatch(/grog/i);
   }, 1_800_000);
@@ -941,7 +941,7 @@ suite('⭐ 23 — breakage and mending', () => {
     // ⚠ The tinker QUOTES and waits for a yes (the paid mend's prompt), and
     // the order's reply only comes once it is answered: answer it while the
     // order is still pending (run 38 awaited the reply first and timed out).
-    const pending = run(potter, `order repair #${cracked2.stuffId}`);
+    const pending = run(potter, `order repair for #${cracked2.stuffId}`);
     const answer = await potter.awaitPrompt(30_000).catch(() => null);
     if (answer) {
       const id = (answer as { payload?: { promptId?: string }; promptId?: string }).payload?.promptId ??
@@ -1009,7 +1009,7 @@ suite('⭐ 20 — flame and body', () => {
     await mint(SHOP, CHARCOAL, 2);
     await say(potter, 'get 1 charcoal');
     await say(potter, 'stoke charcoal into campfire');
-    await say(potter, 'ignite campfire');
+    await say(potter, 'light campfire');
     // ⚠ ON, not in: a campfire takes things on it (run 27: "it takes on").
     await say(potter, `put ${crock} on campfire`);
     await say(potter, `put ${bowl} on campfire`);
@@ -1082,7 +1082,7 @@ suite('⭐ 25 — the stall', () => {
     await say(potter, 'get "plant pot" from kiln').catch(() => '');
     expect(await held(potter)).toMatch(/plant pot|pot/i);
     potter = await goTo(potter, SQUARE);
-    const consigned = await say(potter, 'consign "plant pot" --ask 3');
+    const consigned = await say(potter, 'shelf consign "plant pot" --ask 3');
     expect(consigned).toMatch(/consign|stall|ask|for sale/i);
     // ⚠ Not `stall:i`: a consigned piece is a line on the stall's stock, not
     // a thing in it, and the read listed nothing (run 37). What the buyer

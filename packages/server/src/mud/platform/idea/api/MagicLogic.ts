@@ -111,7 +111,7 @@ import type Material from '../../../lib/material/Material';
 import UnboundedReceptacle from '../../thing/UnboundedReceptacle';
 import type { FacultyView } from '../../../lib/magic/Caster';
 import { MANA_RESERVE_KEY, OVERCHANNEL_STRAIN_PATH } from '../../../lib/magic/Caster';
-import type { Reserved } from '../../../lib/reserve';
+import type { Reserved } from '../../../lib/reserve/Reserved';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Combatant } from '../../../lib/combat/Combatant';
 import type { GenerationNow } from '../../../lib/identification/Appearance';
@@ -120,35 +120,25 @@ const MagicApiCallers = SecurityPolicies.FromModule('/api/magic#MagicApi');
 /** The F3 object faces forward here as the subject instance. */
 const CasterCallers = SecurityPolicies.AnyOf(
   MagicApiCallers,
-  SecurityPolicies.FromMixin('CasterMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('CasterMixin'),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 const ArcaneItemCallers = SecurityPolicies.AnyOf(
   MagicApiCallers,
-  SecurityPolicies.FromMixin('ArcaneMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('ArcaneMixin'),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 /** `transferCharge(actor, shell, pt)` — the SHELL hosts the face (arg 1). */
 const ChargeShellCallers = SecurityPolicies.AnyOf(
   MagicApiCallers,
-  SecurityPolicies.FromMixin('ChargedMixin', {
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[1] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('ChargedMixin'),
+    SecurityPolicies.SelfSubject(1),
+  ),
 );
 
 /** The prepare-phase result — gates only, nothing spent. */

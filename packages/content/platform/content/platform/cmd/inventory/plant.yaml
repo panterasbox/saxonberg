@@ -1,4 +1,5 @@
-verbs: [plant, sow]
+verbs: [plant]
+category: inventory
 controller: /platform/idea/cmd/inventory/PlantController
 description: "Plant a seed in a pot of soil, or sow a field"
 help: |
@@ -8,25 +9,25 @@ help: |
 
   From then on it lives on its own clock: it drinks, it wants light, and
   its roots want room. `look` at it to see how it's doing, and `water`
-  it when the soil goes dry. `sow` is an alias for the same verb.
+  it when the soil goes dry.
 
-  On a FIELD you broadcast instead: stand in it and `sow wheat`. Each
+  On a FIELD you broadcast instead: stand in it and `plant wheat`. Each
   cast covers a stretch of ground and spends the seed in proportion, so
   a sack that would sow a third of the field sows a third of it, and you
   sow again until the seed or the ground runs out. The field must be
   ploughed for the season first, and it must be yours to sow — or you
   must be on shift for whoever works it.
 
-  On ground marked into fields, say which: `sow wheat at the gate end`
+  On ground marked into fields, say which: `plant wheat --at "the gate end"`
   fills that field, cast by cast, until it is sown edge to edge.
 examples:
   - cmd: plant the seed in the small pot
     note: Start a plant growing
-  - cmd: sow lily seed into pot
+  - cmd: plant lily seed into pot
     note: Same thing, either preposition
-  - cmd: sow wheat
+  - cmd: plant wheat
     note: Broadcast seed over the field you are standing in
-  - cmd: sow wheat at the gate end
+  - cmd: plant wheat --at "the gate end"
     note: On ground marked into fields, name the field
 validators:
   - /lib/command/validators/requiresAnimate
@@ -37,37 +38,34 @@ args:
     required: true
     scope: "reachable"
     requires: [VisibleMixin, PlantableMixin]
-  # ⭐ WHICH PART — `at <field>` on a tract marked into fields (field population D5).
-  # Optional: on one-piece ground there is nothing to name, and on a
-  # divided field the GROUND refuses the act without it, listing its parts.
-  # Greedy so `at the top end` binds whole (an article would otherwise eat
-  # a positional); every arg after it is prepositional, so it stops there.
-  - name: part
-    type: object
-    required: false
-    greedy: true
-    scope: ["reachable"]
-    prepositions: [at]
-    requires: SoilMixin
   # Optional: with none named, the seed is broadcast over the ground you
   # stand on (cover build D4). A required arg with no default fails
   # closed and silent, so `required: false` is the whole of that wiring.
   - name: pot
     type: object
     required: false
-    scope: "reachable"
+    scope: ["here", "peers", "person"]
     prepositions: [in, into, on, over]
     requires: [VisibleMixin, CultivableMixin|SoilMixin]
+options:
+  # ⭐ WHICH PART — `--at <field>` on a tract marked into fields (field
+  # population D5). Optional: on one-piece ground there is nothing to name,
+  # and on a divided field the GROUND refuses the act without it, listing
+  # its parts. Quote a name of several words.
+  at:
+    type: object
+    field: part
+    scope: ["here", "peers", "person"]
+    requires: SoilMixin
+    description: "Which field of ground marked into fields"
   # ⭐ A SEED DRILL, when one stands within reach (field population, the
   # drill): it lays the seed in rows at its own share of the crop's rate,
   # over its own swath a pass. With none, the seed is broadcast by hand.
   # The default finds it the way `harvest` finds its sickle.
-  - name: drill
+  with:
     type: object
-    required: false
-    # Greedy so `with the seed drill` binds whole (lint:reachability arm G).
-    greedy: true
-    prepositions: [with, using]
+    field: drill
     default: "reachable:[capability.drilling]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    description: "The seed drill to sow with"

@@ -155,7 +155,7 @@ export const brain = class {
         }
         return;
       }
-      await hand.forceCommand(`reel cocoons --count ${count}`);
+      await hand.forceCommand(`unwind cocoons --count ${count}`);
     } else {
       // ⚠ Off the crib by OBJECT: bought cocoons are one titled unit apiece
       // and never stack, so `get 40 cocoons` names forty things the

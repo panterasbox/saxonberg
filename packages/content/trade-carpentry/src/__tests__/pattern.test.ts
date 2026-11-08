@@ -1,5 +1,5 @@
 /**
- * ⭐ The founder's pattern (ceramics D23): `carve pattern of <thing> from
+ * ⭐ The founder's pattern (ceramics D23): `carve pattern --of <thing> from
  * <board> for <metal>` — the BOARD plans it, and what comes out carries the
  * thing's impression cut oversize by the metal's own shrinkage, so a cast
  * from it comes out true.

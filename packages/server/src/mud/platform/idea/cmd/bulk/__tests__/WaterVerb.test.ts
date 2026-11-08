@@ -16,7 +16,7 @@ import WateringCan from '../../../../thing/WateringCan';
 import Plant from '../../../../thing/Plant';
 import PlantPot, { PLANT_SLOT } from '../../../../thing/PlantPot';
 import Material from '../../../../../lib/material/Material';
-import { Reserve, ReservedMixin } from '../../../../../lib/reserve';
+import { Reserve, ReservedMixin } from '../../../../../lib/reserve/Reserved';
 import { SoilMixin } from '../../../../../lib/husbandry/Soil';
 import { Mixins } from '../../../../../lib/mixin';
 import { readFileSync } from 'fs';
@@ -224,7 +224,7 @@ type WaterExecModel = Parameters<WaterController['execute']>[0];
  * when one was named, else every vessel the giver carries (the view's
  * `me:i:[mixin.BulkableMixin]` default). ⚠ A controller test SKIPS the
  * binder, so the carried walk that used to live in the controller is
- * reproduced here, once, as the fixture (`lint:instrument-args`).
+ * reproduced here, once, as the fixture (`lint:controller-resolution`).
  */
 function model(
   target: MqlOneResult,

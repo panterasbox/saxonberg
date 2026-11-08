@@ -18,6 +18,7 @@
 # your CONTAINER, so the affordance reaches you from the environment
 # bucket — the `Ladder`/`climb` shape.
 verbs: [drive]
+category: movement
 controller: /platform/idea/cmd/movement/DriveController
 description: "Drive your vehicle through a named exit (passthrough to the Drivable host)."
 help: |
@@ -31,10 +32,15 @@ help: |
 validators:
   - /lib/command/validators/requiresAnimate
 args:
+  # ⭐ The way you drive it through, as `go` binds a way: an exit, never the
+  # vehicle. (Found by the controllers-are-io drive: this slot asked for
+  # `DrivableMixin`, so `drive north` was refused *you can't drive north* for
+  # the life of the verb. The vehicle is found by the mode's own conveyance
+  # lookup, and the verb is afforded by the vehicle.)
   - name: target
     type: object
-    scope: ["$focus", "reachable"]
+    scope: ["here:exits"]
     required: true
-    requires: DrivableMixin
+    requires: any
     validators:
       - /lib/command/validators/canReach

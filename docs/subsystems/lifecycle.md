@@ -442,14 +442,18 @@ cleanup walk. Its policy for each direct content item:
 
 | Outer container of the destructing Container | Per-item policy |
 |---|---|
-| Non-null (the destructing Container is itself contained) | Re-parent every item to the outer via `ContainmentApi.move`. |
-| Null AND item composes `HasInteractive` (live avatar) | Evacuate to the void singleton (`/world/void`) via `ContainmentApi.move`. Active sessions never end up with a null environment. |
+| Non-null, host NOT dormant (the destructing Container is itself contained) | Re-parent every item to the outer via `ContainmentApi.move`. |
+| Non-null, host **dormant** (it composes `PersistableMixin` and `shouldPersist()` — a signed-out body) | Its record holds its contents, so they are cascade-destructed, not dropped on the floor (an owner-persisted chattel keeps its title through the destruct). A `HasInteractive` it holds still steps out to the outer. |
+| Null AND item composes `HasInteractive` (live avatar) | Evacuate to the `evacuationFallback` app setting (default `/platform/location/void`) via `ContainmentApi.move`. Active sessions never end up with a null environment. |
 | Null AND item is not `HasInteractive` | Cascade-destruct via `StuffApi.destruct(item)`. |
 
-The HI escape leans on `/world/void` being live before any
-container can destruct — bootstrap guarantees that (the
-`{ templatePath: '/world/void' }` entry runs after
-`/platform/idea/EventRegistry`).
+Before the walk, a contained host tells the command stacks around it that it and
+its contents are leaving (`CommandApi.applyContainmentDelta`) — a bystander's
+recency stack otherwise kept every retired body's implant and clothes alive
+(D30's live-heap census, `2c713fbf9`).
+
+The HI escape leans on the void being live before any
+container can destruct — bootstrap guarantees that.
 
 The policy targets only the DIRECT contents of the destructing
 host. A HasInteractive nested inside a non-HasInteractive Container
@@ -463,6 +467,36 @@ Mixin-side overrides chain via `super.onDestruct?.call(this)` — the
 hook is optional, so the chain bottoms out cleanly at any class
 that doesn't declare one. Don't call `super` unless an ancestor
 mixin actually defines `onDestruct`.
+
+## ⭐ A signed-out body is destructed; a linkdead body stays (D30)
+
+Owner, 2026-11-07: *"signed out bodies should get destructed. only linkdead
+bodies stay and they stay where they are."* A deliberate sign-out (close code
+4000 — sign out, switch character) saves the Avatar and then destructs it
+through `StuffApi.destruct`; a return is a fresh login that materializes it
+from its snapshot. A dropped connection leaves the body linkdead where it
+stands, still receiving frames. The edge rules, all in
+`Avatar.retireSignedOutBody` (full table: [connection.md § What survives the
+disconnect](./connection.md#what-survives-the-disconnect)):
+
+- **Save before destruct.** A failed save keeps the body; it retries every
+  `Avatar.SIGN_OUT_RECHECK_MS`.
+- **A login racing the destruct wins** (`claimForLogin`); the retirement stands
+  down when its save lands.
+- **Not an escape.** While `signOutHold` names a reason — `acting`,
+  `fighting`, `dying`, `in-water`, `carried`, `parked` — the body stays and asks
+  again.
+- **Contents go with it** (the dormant row above); what it rode stays; a shade
+  persists nothing and re-mints from its arc.
+- The character-select roster's unchosen bodies take the same path
+  (`Login.onDestruct` → `retireIfSessionless`).
+- **A retired body must become garbage**, not merely unregistered: the event
+  history ring now keeps payloads only, and the containment delta above clears
+  bystanders' stacks.
+
+History: controllers-are-io W10–W11 (`5b0a0f23c..2fa4b0e72`; the destruct,
+the ring and the stacks in `92302b841`, `2c713fbf9`). Before it, a signed-out
+body lingered until restart.
 
 ## Failure Rollback
 

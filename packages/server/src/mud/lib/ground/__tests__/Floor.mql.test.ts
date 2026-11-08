@@ -10,7 +10,7 @@
  *
  * Why it matched nothing: `api/mql/scope-walk.ts` pools a thing's own
  * candidate from `perceivedKeywordsFor(viewer)` →
- * `RecognitionLogic` → `getKeywords()`, and `pushDetails` emits one
+ * `RecognitionLogic` → `getKeywords()`, and `DetailedMixin.getKeywords` folds in one
  * candidate per detail **id** with the pool `[id.toLowerCase()]` —
  * *"keyword pool for a detail is just its id list"*. So `default-floor`'s
  * `details.floor.keywords: [floor, ground, dirt, surface]` was dead text,

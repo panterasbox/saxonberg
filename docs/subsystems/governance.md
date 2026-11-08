@@ -198,13 +198,13 @@ return `[]`, `holderOf` returns `unknown`, and the mutations no-op.
 
 ## The verb
 
-The `office` / `offices` verb (the new `governance` command category —
+The `office` verb (the new `governance` command category —
 controller in `platform/idea/cmd/governance/`, YAML in `cmd/governance/`),
 afforded **universally** on `lib/character/Persona.ts` (every Avatar; the
 `group`-verb precedent — NOT the operator-only `AuthorMixin`, which would
 hide the public roster from non-authors):
 
-- `offices` / `office list` — the **public** roster (any player).
+- `office list` — the **public** roster (any player).
 - `office assign <player> <office>` / `office vacate <office>` — the
   mutating subcommands, each carrying the **`requiresFoundingAuthority`
   subcommand-level validator**. A non-founder sees the verb and the roster
@@ -355,10 +355,10 @@ never been observed end to end. ⭐ **This is now the highest-value thing
 to fix in governance**: two builds have had to route around it.
 
 ⚠⚠ **It is not governance's alone (2026-10-10, the climate drive).**
-`tell <name>` against a second connected session is refused the same
+`dm <name>` against a second connected session is refused the same
 way — `controller-rejected: insufficient`, zero candidates from the
 `online` scope — by the founder's display name as well as the handle.
-`dm`/`tell`, `contacts` and `wizard` all bind through `scope: "online"`,
+`dm`, `contacts` and `wizard` all bind through `scope: "online"`,
 so direct messages to another player do not work over the wire. The
 climate drive routes its comms check through a channel post instead.
 

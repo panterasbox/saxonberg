@@ -7,8 +7,8 @@
 # (`laysCoat`) is the kernel's default. The paint slate's reservation is
 # honored: `dip` is the coat-from-bath primitive.
 #
-# ⭐⭐⭐ **`melt` is an ALIAS, not a second verb** — the same call the
-# milling trade's `grind` lost, for the same reason.
+# ⭐⭐⭐ **Melting is not a second verb** — the same call the milling
+# trade's grinding lost, for the same reason.
 #
 # The chandlery shipped two verbs on the argument that the pot has to be
 # filled before anything can be dipped out of it, and that beeswax
@@ -18,19 +18,17 @@
 # *unify behind an interface*. A trade does not get a second verb because
 # one of its two feedstocks needs warming up.
 #
-# ⚠ `dip` is the survivor rather than `melt` for three reasons, in order:
+# ⚠ `dip` is the word rather than *melt* for three reasons, in order:
 # the trade is a dip (a dipped candle is what a chandler sells, and the
 # word names the finished thing); the dip carries the derived output —
 # the empty `outputMaterial` that is the entire pack — where the melt
-# merely moves wax from a cake into a pot; and a player holding a cake of
-# wax still reaches for *melt* and still gets it. Precedent for the
-# alias: `mill`→`grind`, `pick`→`harvest`, `examine`→`look`.
+# merely moves wax from a cake into a pot. (One view, one word — D16.)
 #
-# ⭐ And the melt is NARRATED, not skipped. `melt the cake` reads *it
+# ⭐ And the melt is NARRATED, not skipped. `dip the cake` reads *it
 # softens, slumps and goes clear* and then *a candle builds up on the
-# wick* — two sentences for one act, so the alias never silently
-# overshoots the word the player typed.
-verbs: [dip, melt, gob]
+# wick* — two sentences for one act.
+verbs: [dip]
+category: crafting
 controller: /platform/idea/cmd/crafting/DipController
 description: "Dip a thing in a bath and draw it out with the bath on it — a candle, a glaze"
 help: |
@@ -47,15 +45,12 @@ help: |
   you `pour` it straight in. Beeswax sets hard and is sold as a cake, so
   it has to be melted down first — and `dip the cake` does that for you,
   in the same act: the wax goes clear, and then the candle builds up.
-  `melt` is the same verb if that is the word that fits what is in your
-  hands.
 
   ⭐ **A glaze is the same act.** `dip crock in tub` lays a wet coat of
   whatever glaze or slip is in the tub on the crock; `dip crock inside in
   tub` coats only the inside (`outside` likewise), and a glaze sets when the
   crock is fired. A bath that does not lay a coat — water — says so.
-  ⭐ **A gather of glass is the same act.** `dip pipe in melt` — or `gob`,
-  the glassblower's word — lowers the blowpipe into a pot of molten glass
+  ⭐ **A gather of glass is the same act.** `dip pipe in melt` lowers the blowpipe into a pot of molten glass
   and turns up a glowing gather on its end; with nothing named, it is the
   empty pipe in your hands and the melt in reach. From the moment you lift
   it the glass is COOLING: `shape` it and `crack` it off before it sets, or
@@ -103,7 +98,7 @@ args:
     required: false
     prepositions: [in, into, from]
     default: "reachable:[mixin.DipBathMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [DipBathMixin]
   # …and the face said after the bath (`dip crock in bucket inside`).
   - name: side

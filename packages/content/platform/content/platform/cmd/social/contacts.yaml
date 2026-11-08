@@ -1,4 +1,5 @@
 verbs: [contacts]
+category: social
 controller: /platform/idea/cmd/social/ContactsController
 description: "Manage personal named lists of other characters (friends, study-group, ignore — labels are free-form)"
 help: |

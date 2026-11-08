@@ -12,7 +12,7 @@ import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
-import { Mml } from '@saxonberg/server/mud/api/mml';
+import type { StrikeOutcome } from '@saxonberg/server/mud/lib/craft/StrikingDie';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { StrikingDieMixin } from '@saxonberg/server/mud/lib/craft/StrikingDie';
@@ -31,9 +31,9 @@ import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/_
 /** A die: an anvil-capable tool that takes a blank's shape from a blow. */
 class TestDie extends StrikingDieMixin(Tool) {
   public struck: { blank: string; blowJ: number }[] = [];
-  public override async strikeWith(blank: Stuff, blowJ: number, _by: Stuff): Promise<Mml> {
+  public override async strikeWith(blank: Stuff, blowJ: number, _by: Stuff): Promise<StrikeOutcome> {
     this.struck.push({ blank: blank.stuffId, blowJ });
-    return Mml.compose`The die bites the blank.`;
+    return { ok: true, facts: { token: blank } };
   }
 }
 

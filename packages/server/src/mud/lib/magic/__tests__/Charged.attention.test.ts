@@ -26,12 +26,12 @@ import Good from '../../stuff/Good';
 import { ChargedMixin } from '../Charged';
 import { ArcaneMixin } from '../Arcane';
 import { BlessableMixin } from '../Blessable';
-import { ReservedMixin } from '../../reserve';
+import { ReservedMixin } from '../../reserve/Reserved';
 import { WearableMixin } from '../../slot/Wearable';
 import { SlottableMixin } from '../../slot/Slottable';
 import { ConstructedMixin } from '../../material/Constructed';
 import { ContainableMixin } from '../../spatial/Containable';
-import { DisguiseBearingMixin } from '../../disguise/Disguise';
+import { DisguiseBearingMixin } from '../../disguise/DisguiseBearing';
 import { Construction } from '../../material/Construction';
 import { StuffApi } from '../../../api/stuff';
 import {

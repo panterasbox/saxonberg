@@ -97,7 +97,8 @@ import type { Difficulty } from '@saxonberg/server/mud/lib/advancement/ActSignat
 import type Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import Corpse from '@saxonberg/server/mud/platform/thing/Corpse';
+import type { ActDone, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import type { ButcherCarcass, ButcherDone } from '@saxonberg/server/mud/lib/craft/Cuttable';
 
 const TOPIC = 'act.deed';
 const DISCIPLINE = 'butchery';
@@ -297,10 +298,6 @@ export default class ButcherController extends CraftController<ButcherModel> {
     // Both are true of real carcasses, and it is the arithmetic the
     // retired stockyard verb already did.
     const liveKg = MixinApi.isTangible(body) ? body.getMass().rawValue() : 0;
-    const fleshPct =
-      body instanceof Corpse
-        ? (body.getConditionAtDeath() ?? UNREMARKABLE_FLESH)
-        : UNREMARKABLE_FLESH;
     // ⭐⭐⭐ **Read what each line CLAIMS off one exemplar per line.** A
     // cut row states its muscles, its depth and its difficulty; the
     // species states what share of the body each muscle is. Cloning one
@@ -326,6 +323,32 @@ export default class ButcherController extends CraftController<ButcherModel> {
         });
       }
     }
+
+    // ⭐⭐ **The carcass answers with its own ledger** (`CuttableMixin.cutPlan`,
+    // verb `butcher` — controllers-are-io D8c): the condition it died in,
+    // which lines are still on it, and the take. A body with no ledger of
+    // its own (not a carcass, or `not-cuttable`) gives up every line at
+    // once and goes when the knife is done.
+    let carcass: ButcherCarcass | null = null;
+    let spentCheck: (() => Promise<ActDone<ButcherDone, ActRefusal<'not-cuttable'>>> | ActDone<ButcherDone, ActRefusal<'not-cuttable'>>) | null = null;
+    if (MixinApi.isCuttable(body)) {
+      const out = await body.cutPlan({
+        verb: 'butcher',
+        actor: giver,
+        tools: [blade],
+        raw: null,
+        length: null,
+        options: {
+          lines: species.getButcheryYield().map((l) => ({ cut: l.cut, tissues: claims.get(l.cut) ?? [] })),
+        },
+      });
+      if (out.verb !== 'butcher') throw new Error(`ButcherController: asked 'butcher', answered '${out.verb}'`);
+      if (out.ok) {
+        carcass = out.facts;
+        spentCheck = out.onComplete;
+      }
+    }
+    const fleshPct = carcass?.fleshPct ?? UNREMARKABLE_FLESH;
 
     // ⭐ The body's age at the kill (dairy D8): a vell comes only off a
     // head young enough to have one worth taking. `getAgeDays` reads the
@@ -376,7 +399,6 @@ export default class ButcherController extends CraftController<ButcherModel> {
       }
     }
 
-    const carcass = body instanceof Corpse ? body : null;
     const lines = wanted ?? dressed;
     const cuts: Stuff[] = [];
     const wantedTool: string[] = [];
@@ -389,9 +411,7 @@ export default class ButcherController extends CraftController<ButcherModel> {
 
       // ⚠ Already off this body — a carcass reduces, so a second
       // butchering cannot take the same muscle twice.
-      const taken = line.tissues.length
-        ? line.tissues.some((t) => carcass && !carcass.hasTissue(t))
-        : !!carcass && !carcass.hasLine(line.cut);
+      const taken = !!carcass && !carcass.stillOn({ cut: line.cut, tissues: line.tissues });
       if (taken) {
         alreadyGone.push(stem);
         continue;
@@ -459,10 +479,7 @@ export default class ButcherController extends CraftController<ButcherModel> {
         cuts.push(cut);
       }
 
-      if (carcass) {
-        if (line.tissues.length) carcass.markTissuesTaken(line.tissues);
-        else carcass.markLineTaken(line.cut);
-      }
+      if (carcass) carcass.take({ cut: line.cut, tissues: line.tissues });
     }
 
     // ⚠ Only the exemplars NOT kept as a unit — a line that was taken
@@ -529,7 +546,8 @@ export default class ButcherController extends CraftController<ButcherModel> {
     // makes a side something you work to order — lift the loin to sell and
     // come back for the rest — and it gives partial breakdown with no
     // second verb.
-    if (!carcass || this.isSpent(carcass, species, claims)) {
+    const left = spentCheck ? await spentCheck() : null;
+    if (left === null || (left.ok && left.facts.spent)) {
       await StuffApi.destruct(body);
     }
   }
@@ -541,23 +559,6 @@ export default class ButcherController extends CraftController<ButcherModel> {
       return CompetenceBand.rank('proficient');
     }
     return CompetenceBand.rank('competent');
-  }
-
-  /** Every line of the species' yield is off this body. */
-  private isSpent(
-    carcass: Corpse,
-    species: Species,
-    claims: ReadonlyMap<string, readonly string[]>,
-  ): boolean {
-    for (const line of species.getButcheryYield()) {
-      const tissues = claims.get(line.cut) ?? [];
-      if (tissues.length) {
-        if (tissues.some((t) => carcass.hasTissue(t))) return false;
-      } else if (carcass.hasLine(line.cut)) {
-        return false;
-      }
-    }
-    return true;
   }
 
   /**
@@ -632,7 +633,7 @@ export default class ButcherController extends CraftController<ButcherModel> {
    * default; the gate is then the CONSTRUCTION, not the class: a clasp
    * knife off the general store's shelf opens a carcass exactly as the
    * kitchen's boning knife does, because both are an edge — and no
-   * predicate reads a form (`lint:instrument-args`).
+   * predicate reads a form (`lint:controller-resolution`).
    */
   private findBlade(bound: MqlManyResult | undefined): Stuff | null {
     for (const candidate of bound?.stuff ?? []) {

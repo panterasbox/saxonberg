@@ -30,7 +30,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Creature } from '../../creature/Creature';
-import { BIOLOGICAL_RESERVE_KEYS } from '../../reserve';
+import { BIOLOGICAL_RESERVE_KEYS } from '../../reserve/Reserved';
 import { METABOLIC_DEFAULTS } from '../Metabolic';
 import { StuffApi } from '../../../api/stuff';
 import { WorldClockApi } from '../../../api/worldclock';

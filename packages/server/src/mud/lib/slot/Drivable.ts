@@ -3,7 +3,7 @@
  * slot a driver can occupy."
  *
  * Composes on `Stuff & Slotted` (default DrivableMixin). The seated
- * variant `SeatedDrivableMixin` composes on `Stuff & Drivable &
+ * variant `SeatedDrivableMixin` (`./SeatedDrivable`) composes on `Stuff & Drivable &
  * Container` and overrides the protected slot-resolution method to
  * point at a Containable seat (e.g., a car's driver-role seat).
  *
@@ -21,13 +21,10 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
-import type { Container } from '../spatial/Container';
 import type { Slottable } from './Slottable';
 import type { Slotted } from './Slotted';
 import type { LocomotionMode } from '../../platform/idea/LocomotionMode';
 import { LocomotionApi } from '../../api/locomotion';
-import { MixinApi } from '../../api/mixin';
-import { Property } from '../stuff/Propertied';
 
 /**
  * Internal SlotRef — naming the (host, slot-name) pair the controller
@@ -179,46 +176,6 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
     public getDriver(): (Stuff & Slottable) | null {
       const ref = this.resolveControllerSlot();
       return ref.host.getOccupant(ref.name);
-    }
-  };
-}
-
-/**
- * The `role` property a `SeatedDrivableMixin` host expects on each
- * seat in its contents. The seat whose role is `'driver'` becomes the
- * controller slot's host.
- */
-const ROLE_PROP = Property.of<string>('role');
-
-/**
- * Sibling override for cross-Stuff Drivables (cars, sedans, carriages
- * with driver-on-box). Looks up the driver-role seat in the host's
- * contents and points at its `sit:1` slot.
- *
- * Composition constraint: `Stuff & Drivable & Container`.
- */
-export function SeatedDrivableMixin<
-  TBase extends MixinConstructor<Stuff & Drivable & Container>
->(Base: TBase) {
-  return class SeatedDrivableMixin extends Base {
-    static _mixinName = 'SeatedDrivableMixin';
-
-    protected resolveControllerSlot(this: Stuff & Drivable & Container): SlotRef {
-      const driverSeat = this.getContents().find(s => {
-        if (!MixinApi.isPropertied(s)) return false;
-        return s.getProp(ROLE_PROP) === 'driver';
-      });
-      if (!driverSeat) {
-        throw new Error(
-          `SeatedDrivable ${this.stuffId}: no driver-role seat in contents`
-        );
-      }
-      if (!MixinApi.isSlotted(driverSeat)) {
-        throw new Error(
-          `SeatedDrivable ${this.stuffId}: driver seat is not Slotted`
-        );
-      }
-      return { host: driverSeat, name: 'sit:1' };
     }
   };
 }

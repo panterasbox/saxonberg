@@ -15,7 +15,7 @@
  */
 
 import Receptacle from "./Receptacle";
-import { ToolMixin } from "../../lib/craft/Tooled";
+import { ToolMixin } from "../../lib/craft/Tool";
 import type { CommandContributions } from "../../api/command";
 
 const WateringCanBase = ToolMixin(Receptacle);

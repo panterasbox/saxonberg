@@ -1,4 +1,5 @@
 verbs: [unhitch]
+category: movement
 controller: /platform/idea/cmd/movement/UnhitchController
 description: "Let go of a cart you (or your mount) are pulling"
 help: |

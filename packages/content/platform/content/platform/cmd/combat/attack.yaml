@@ -1,4 +1,5 @@
 verbs: [attack]
+category: combat
 controller: /platform/idea/cmd/combat/AttackController
 description: "Start a fight with someone present"
 help: |

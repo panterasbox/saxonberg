@@ -18,7 +18,7 @@ import type { MqlManyResult, MqlOneResult } from "../../../../api/mql";
 import { MessageApi } from "../../../../api/message";
 import { MixinApi } from "../../../../api/mixin";
 import { Mml } from "../../../../api/mml";
-import { UTENSIL_PHRASE } from "../../../../lib/bulk/Utensil";
+import { UTENSIL_PHRASE } from "../../../../lib/bulk/Cutlery";
 
 const TOPIC = "act.deed";
 
@@ -39,18 +39,17 @@ export default class EatController extends CommandController<EatModel> {
       context.note({ kind: "empty-result", field: "target", query: model.target.raw });
       return;
     }
-    if (!MixinApi.isMetabolic(giver)) {
+    if (!MixinApi.isEating(giver)) {
       return this.decline(context, Mml.compose`You can't eat.`, "not-an-eater");
     }
-    // ⭐ The ACT is the eater's (`Metabolic.eat`): the edibility, the
+    // ⭐ The ACT is the eater's (`Eating.eat`): the edibility, the
     // portion, the dish arm, the utensil, the crumbs. This verb only reads
     // the request and words what happened.
     const outcome = await giver.eat(target, model.with?.stuff ?? []);
     if (!outcome.ok) {
       if (outcome.reason === "airway") {
         // The body's own words for why (under the water, you would breathe it in).
-        const airway = giver.canIngest();
-        return this.decline(context, Mml.compose`${airway.ok ? "You can't eat that." : airway.line}`, "airway");
+        return this.decline(context, Mml.compose`${outcome.line}`, "airway");
       }
       return outcome.reason === "too-full"
         ? this.decline(context, Mml.compose`You're too full to eat ${Mml.thing(target)}.`, "too-full")
@@ -61,7 +60,7 @@ export default class EatController extends CommandController<EatModel> {
     // ⚠ A blend's appearance carries its own article ("a thick brown
     // stew…"), a material's does not — the live drive read "You eat the a
     // thick brown stew".
-    const wentDown = wentDownLine(outcome.liking?.word, outcome.hungerHelped === true);
+    const wentDown = EatController.wentDownLine(outcome.liking?.word, outcome.hungerHelped === true);
     const self = outcome.fromDish
       ? Mml.compose`You eat ${outcome.what}${withIt}.${wentDown}`
       : Mml.compose`You eat the ${outcome.what}${withIt}.${wentDown}`;
@@ -79,20 +78,20 @@ export default class EatController extends CommandController<EatModel> {
     MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(line).send();
     context.note({ kind: "controller-rejected", reason, detail: reason });
   }
-}
 
-/** How it went down, for this person. It feeds you either way. */
-function wentDownLine(word: string | undefined, hungerHelped: boolean): string {
-  switch (word) {
-    case 'revolting':
-      return hungerHelped ? ' It is revolting, but you are starving and it goes down.' : ' It is revolting.';
-    case 'unpleasant':
-      return hungerHelped ? ' It is unpleasant, but you are hungry and it goes down.' : ' It is unpleasant.';
-    case 'good':
-      return ' It goes down well.';
-    case 'delicious':
-      return ' It is delicious.';
-    default:
-      return '';
+  /** How it went down, for this person. It feeds you either way. */
+  private static wentDownLine(word: string | undefined, hungerHelped: boolean): string {
+    switch (word) {
+      case 'revolting':
+        return hungerHelped ? ' It is revolting, but you are starving and it goes down.' : ' It is revolting.';
+      case 'unpleasant':
+        return hungerHelped ? ' It is unpleasant, but you are hungry and it goes down.' : ' It is unpleasant.';
+      case 'good':
+        return ' It goes down well.';
+      case 'delicious':
+        return ' It is delicious.';
+      default:
+        return '';
+    }
   }
 }

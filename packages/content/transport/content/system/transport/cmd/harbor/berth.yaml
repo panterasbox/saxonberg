@@ -4,6 +4,7 @@
 # the roads. ⭐ The keeper's authority is the NPC's and no more: a quay the
 # posted criteria would refuse is refused, citing the criterion.
 verbs: [berth]
+category: harbor
 controller: /system/transport/idea/cmd/harbor/BerthController
 description: "Give a ship a quay, or send her to the roads — the harbormaster's call"
 help: |
@@ -38,7 +39,7 @@ args:
     greedy: true
     prepositions: [at]
   # ⭐ The book the call is written in — declared, not hunted for: the one
-  # on the desk in front of you (`lint:instrument-args`). Required WITH a
+  # on the desk in front of you (`lint:controller-resolution`). Required WITH a
   # default, so absent means that book (not an optional slot a trailing
   # word could fall into); greedy, so `in the book` binds.
   - name: book
@@ -47,5 +48,5 @@ args:
     greedy: true
     prepositions: [in]
     default: "reachable:[class.HarborBook]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [PayableMixin]

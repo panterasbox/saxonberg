@@ -123,7 +123,7 @@ export abstract class GroundWorkController<
    * `[capability.<x>]`, so the BINDER resolves it — this only confirms the
    * thing it handed back offers what this particular act needs. Walking the
    * giver's contents here instead would mean no player could ever say WHICH
-   * spade (`lint:instrument-args`).
+   * spade (`lint:controller-resolution`).
    */
   protected toolOf(bound: Stuff | null | undefined, capability: string): Stuff | null {
     if (!bound || !MixinApi.isTool(bound)) return null;
@@ -149,7 +149,7 @@ export abstract class GroundWorkController<
    * `execute` returns — while the engagement is still pending — and a
    * method called on a destructed Stuff is a SILENT no-op. Every ground
    * act called `this.finish` from its completion, so none of `grub`,
-   * `ditch`, `lime`, `plough` or `mow` ever banked its work in a live
+   * `ditch`, `lime`, `plow` or `mow` ever banked its work in a live
    * game: the begin prose played and nothing happened (found by the cover
    * build, 2026-10-28). Class statics outlive the instance.
    *

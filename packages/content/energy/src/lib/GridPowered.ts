@@ -44,7 +44,7 @@ import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { PowerBand } from '@saxonberg/server/mud/lib/parcel/PowerBand';
-import type { Powered } from '@saxonberg/server/mud/lib/supply/Powered';
+import { PoweredMixin, type Powered } from '@saxonberg/server/mud/lib/supply/Powered';
 import { Piecewise } from '@saxonberg/server/mud/lib/Trajectory';
 import GridCatalogue, { GRID_CATALOGUE_PATH } from '../idea/GridCatalogue';
 
@@ -82,7 +82,7 @@ export interface GridPowered extends Powered {
 export function GridPoweredMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
-  return class GridPoweredMixin extends Base implements GridPowered {
+  return class GridPoweredMixin extends PoweredMixin(Base) implements GridPowered {
     static _mixinName: string = GRID_POWERED_MIXIN;
     static _mixinRefusal =
       'This is not something that draws grid power.';

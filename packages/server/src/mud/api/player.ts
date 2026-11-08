@@ -154,6 +154,16 @@ export class PlayerApi {
     return logic().isAvatarIdentityPath(identityPath);
   }
 
+  /**
+   * The name a character goes by when they are not here, off their last record;
+   * `null` for no record, or a record with no name. A signed-out body is gone
+   * from the world (controllers-are-io D30), so a roster or a byline naming them
+   * reads this, never their player id.
+   */
+  public static storedNameOf(playerId: string): Promise<string | null> {
+    return logic().storedNameOf(playerId);
+  }
+
   public static absentForDays(identityPath: string): Promise<number> {
     return logic().absentForDays(identityPath);
   }

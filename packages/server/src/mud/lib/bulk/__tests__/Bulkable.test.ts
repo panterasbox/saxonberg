@@ -25,6 +25,7 @@ import { Stuff } from '../../stuff/Stuff';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
+import { ProxyApi } from '../../../api/proxy';
 import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
 import { ExecutionContextApi } from '../../../api/execution-context';
@@ -321,5 +322,32 @@ describe('Bulkable — volume units round-trip', () => {
     const round = Quantity.fromJSON(Quantity.of(1.5, 'L').toJSON());
     expect(round.unit).toBe('L');
     expect(round.rawValue()).toBeCloseTo(1.5);
+  });
+});
+
+describe('Bulkable — a keyword read does not reconcile', () => {
+  beforeEach(() => {
+    ShadowApi._clearAllForTesting();
+    StuffApi.clearAll();
+  });
+
+  it('⭐ what a vessel answers to is read, never brought current; the amount still is', () => {
+    const water = makeMaterial('/stuff/idea/material/bulk/water', 'water', ['water']);
+    const jar = makeVessel({ material: water, amountL: 1, capacityL: 2 });
+    // The two reconcilers a slot read runs (private; wrapped on the raw
+    // target), counted when they are let run rather than stood off.
+    const raw = (jar as unknown as Record<symbol, unknown>)[ProxyApi.RAW_TARGET] as Record<string, () => void>;
+    let reconciled = 0;
+    const seepers = raw['reconcileSeepers']!;
+    const faces = raw['reconcileFaceExchange']!;
+    raw['reconcileSeepers'] = function (this: { _peeking: number }) { if (this._peeking === 0) reconciled++; return seepers.call(this); };
+    raw['reconcileFaceExchange'] = function (this: { _peeking: number }) { if (this._peeking === 0) reconciled++; return faces.call(this); };
+
+    expect(jar.getHeldKeywords('interior')).toContain('water');
+    expect((jar as unknown as { getKeywords(): string[] }).getKeywords()).toContain('water');
+    expect(reconciled, 'a keyword read wrote nothing').toBe(0);
+
+    expect(jar.getBulkAmount('interior').rawValue()).toBeCloseTo(1);
+    expect(reconciled, 'the amount read brings the slot current').toBeGreaterThan(0);
   });
 });

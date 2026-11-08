@@ -8,14 +8,14 @@
  * what captures the consigned goods + their `_chattelId`s into a durable
  * record, so a consigned player-owned good survives a relog / server bounce
  * while in the shop's custody (a transient shelf would drop it). The shelf
- * affords `consign` / `reclaim` and — so listings can be bought where they
+ * affords `shelf` (`consign` / `reclaim`) and — so listings can be bought where they
  * sit — `buy`.
  */
 
 import Holder from "@saxonberg/server/mud/lib/stuff/Holder";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import { PersistableMixin } from "@saxonberg/server/mud/lib/persistence/Persistable";
-import { ConsignmentShelfMixin } from "@saxonberg/server/mud/lib/retail/Consignment";
+import { ConsignmentShelfMixin } from "@saxonberg/server/mud/lib/retail/ConsignmentShelf";
 import type { CommandContributions } from "@saxonberg/server/mud/api/command";
 import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 
@@ -29,7 +29,7 @@ export default class ConsignmentShelf extends ConsignmentShelfBase {
 
   static commandContributions: CommandContributions = {
     self: [],
-    peers: ["platform/cmd/retail/consign.yaml", "platform/cmd/retail/reclaim.yaml", "platform/cmd/retail/buy.yaml"],
-    environment: ["platform/cmd/retail/consign.yaml", "platform/cmd/retail/reclaim.yaml"],
+    peers: ["platform/cmd/retail/shelf.yaml", "platform/cmd/retail/buy.yaml"],
+    environment: ["platform/cmd/retail/shelf.yaml"],
   };
 }

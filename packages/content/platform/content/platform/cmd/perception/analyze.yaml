@@ -9,6 +9,7 @@
 # `trace atmosphere` now (`cmd/system/trace.yaml`) — a free engine read,
 # which is what they always were.
 verbs: [analyze]
+category: perception
 description: "Work a channel of the world out by eye and by training"
 # ⚠ `opens_card` is VERB-level in the schema, so declaring `survey` here
 # licenses every channel to open it — and only the RECORD channels

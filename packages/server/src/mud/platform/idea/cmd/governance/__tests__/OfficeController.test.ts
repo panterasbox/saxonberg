@@ -19,6 +19,8 @@ import OfficeController from '../OfficeController';
 import OfficeRegistry from '../../../OfficeRegistry';
 import Avatar from '../../../../agent/PrimaryAvatar';
 import { CompactApi } from '../../../../../api/compact';
+import { PlayerApi } from '../../../../../api/player';
+import { Mml } from '../../../../../api/mml';
 import { StuffApi } from '../../../../../api/stuff';
 import {
   CommandApi,
@@ -200,6 +202,21 @@ describe('OfficeController', () => {
   function founderGiver(): Avatar {
     return makeAvatar(FOUNDER_PID);
   }
+
+  it('list names a holder who has signed out by the name on their record, never their id', async () => {
+    const roster = await CompactApi.officeRoster();
+    vi.spyOn(CompactApi, 'officeRoster').mockResolvedValue(
+      roster.map((row) => ({ ...row, isFounderDefault: false, holderPlayerId: 'gone-player' })),
+    );
+    const stored = vi.spyOn(PlayerApi, 'storedNameOf').mockResolvedValue('Odile Marsh');
+    const composed = vi.spyOn(Mml, 'fromMarkup');
+    const giver = founderGiver();
+    await run(giver, { subcommand: 'list' } as CommandModel, makeContext(giver));
+    expect(stored).toHaveBeenCalledWith('gone-player');
+    const said = composed.mock.calls.map(([text]) => String(text)).join('\n');
+    expect(said).toContain('Odile Marsh');
+    expect(said).not.toContain('gone-player');
+  });
 
   it('assign seats a player as the explicit holder (target → playerId, office resolved)', async () => {
     const giver = founderGiver();

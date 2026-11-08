@@ -102,6 +102,14 @@ function logic(): StudioLogic {
   );
 }
 
+/** One verb protocol and the classes that answer it (see {@link StudioApi.answerersOf}). */
+export interface ProtocolAnswerers {
+  /** The protocol mixin's `_mixinName` (`DipBathMixin`). */
+  mixin: string;
+  /** The class names that compose it, sorted. */
+  composers: string[];
+}
+
 export class StudioApi {
   /**
    * Describe a backing class for the composer: its effective mixin set
@@ -191,6 +199,22 @@ export class StudioApi {
    */
   public static listMixins(): Promise<MixinPalette> {
     return logic().listMixins();
+  }
+
+  /**
+   * ⭐ **Who answers a verb** (controllers-are-io D8b): for each of the named
+   * mixins that is a verb protocol (`_mixinKind = 'protocol'`), the classes
+   * that compose it — directly, through a mixin that nests it, or by
+   * extending a composer — across the kernel and every registered pack.
+   * Names that are not protocols are left out. `help <verb>` reads it with
+   * the view's `requires:` mixins.
+   *
+   * Read from the same source scan as the palette, LAZILY: the first call
+   * walks the trees and the answer is cached on the logic singleton (a hot
+   * reload drops it) — no boot entry and no build artifact.
+   */
+  public static answerersOf(mixinNames: readonly string[]): ProtocolAnswerers[] {
+    return logic().answerersOf(mixinNames);
   }
 
   /**

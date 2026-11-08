@@ -1,4 +1,5 @@
 verbs: [move]
+category: ranching
 controller: /trade/ranching/idea/cmd/ranching/MoveController
 description: "Put a herd onto one of its fields"
 help: |

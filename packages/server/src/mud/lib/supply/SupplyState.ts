@@ -166,6 +166,12 @@ export interface SupplyServing {
  * pack's `Conduit` and `StorageNode`, the kernel's `WaterStore` and `Well`.
  */
 export interface WaterSupply extends SupplyServing, SupplyReporting {
+  /** `null` when this supply cannot say. See {@link SupplyServing.readWaterHardnessDgh}. */
+  readWaterHardnessDgh(): Promise<number | null>;
+  /** `null` when this supply cannot say. See {@link SupplyServing.readWaterChemistry}. */
+  readWaterChemistry(): Promise<{ pH: number; hardnessDgh: number; salinityPpt: number; fouled?: boolean } | null>;
+  /** Everything worth saying about this supply right now. */
+  supplyReport(nowS: number): Promise<SupplyReport>;
   /**
    * The elevation of the water's SURFACE, metres above sea level — what a
    * tap's head is measured from. `null` when unknown (the tap then runs

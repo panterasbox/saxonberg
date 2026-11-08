@@ -21,6 +21,7 @@ import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMemb
 import { ShoreMixin } from '@saxonberg/server/mud/lib/location/Shore';
 import { SwimmableMixin } from '@saxonberg/server/mud/lib/locomotion/Swimmable';
 import { WaterPlaceMixin } from '@saxonberg/server/mud/lib/location/WaterPlace';
+import { HaulOutMixin } from '@saxonberg/server/mud/lib/location/HaulOut';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { PositionedMixin } from '@saxonberg/server/mud/lib/expanse/Positioned';
 import { MovingMixin } from '@saxonberg/server/mud/lib/expanse/Moving';
@@ -39,9 +40,9 @@ const WARREN_PATH = '/system/water/idea/SeaWarren';
 
 export default class SeaStop extends WreckSiteMixin(
   MovingPlaceMixin(
-    WaterPlaceMixin(
+    HaulOutMixin(WaterPlaceMixin(
       SwimmableMixin(ShoreMixin(PersistableMixin(MovingMixin(PositionedMixin(WarrenMemberMixin(Location)))))),
-    ),
+    )),
   ),
 ) {
   /** A stop holds where it is: nothing moves it. */

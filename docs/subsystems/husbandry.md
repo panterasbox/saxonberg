@@ -360,7 +360,7 @@ with *nothing ripe on it yet* (`nothing-ripe`), never "still young".
 `GrowingMixin|CultivableMixin`, and a Cultivable target resolves to its
 first harvestable occupant, else its first growing one (so the refusal
 names the stage), else *nothing is growing* — the `water the pot`
-convention; `pick` is an alias on the same spec.
+convention (the `pick` alias is deleted: one view, one word).
 
 **Dials with homes, shipped OFF** (comment-documented seams on
 `GrowthProfileData`, deliberately no fields): thinning (set count vs
@@ -781,7 +781,7 @@ frozen.
 ---
 ## ⭐ The set-count latch, and pollination (apiculture, 2026-09-30)
 
-`HarvestController` used to re-read `fruitSetCount` off the profile at
+The harvest used to re-read `fruitSetCount` off the profile at
 pick time, so **nothing recorded what a flowering episode actually set**.
 The polycarp branch of `updateFlowering()` now latches two persistent
 fields at the set moment:
@@ -846,10 +846,10 @@ only the grade, and a field sown twice as thick gave twice the crop.
 
 **Seed.** A crop whose harvest is its planting stock is a
 `PlantableCrop` (`PlantableMixin(Crop)`) that names its `growsIntoPath`:
-threshed wheat and barley, and cut cane. `sow` takes the sack off the
+threshed wheat and barley, and cut cane. `plant` takes the sack off the
 harvest exactly as it takes a bought sack of seed, so *eat it or sow it*
 is a decision made with one good, and a farm's shelf is a seed seller at
-scale. A **seed drill** is a `Tool` with the `drilling` capability: `sow`
+scale. A **seed drill** is a `Tool` with the `drilling` capability: `plant`
 uses one within reach, laying the crop in rows over its `swathM2` a pass
 at its `seedFactor` share of the broadcast rate (the drill row: 0.5,
 `industrial`). Crops whose seed is a different part or a different year
@@ -871,7 +871,7 @@ is a row with a bigger number.
 goods minted by the crop row's own mass, the remainder carried on the
 plant, the last swath made up as one short good, nitrogen drawn in
 proportion, and what the harvester cannot carry left lying in the row. A
-monocarp ends at its last swath; a ratoon settles. `sow` with no pot
+monocarp ends at its last swath; a ratoon settles. `plant` with no pot
 named (or naming slotless ground) BROADCASTS: one cast covers
 `husbandry.sowHandM2` (400), spends seed at the rate, makes the crop or
 widens one of the same kind, and refuses a different one. The ground is
@@ -889,7 +889,7 @@ The ground half — fields as soil parts (the "patches" of the field-population 
 is [soil.md](soil.md) § *A soil made of parts*.
 
 **`groundPart`.** An area crop carries the key of the part it is rooted
-in (`groundPart: top-end` on a row; `setGroundPart` before `sow` moves a
+in (`groundPart: top-end` on a row; `setGroundPart` before `plant` moves a
 new stand in). `getBed()` resolves it through `soilPart(key)` — so the
 stand drinks, feeds and is drawn on in ITS field, never the tract's
 aggregate — and falls back to the whole ground when the key names no
@@ -899,14 +899,14 @@ template path OR same `harvestTemplatePath`: the bench's three
 one bed: a ripe stand at the lane end is no substitute for the middle's.
 Only an area crop answers to its field's words (`Plant.getKeywords`).
 
-**The act names its part.** `water`, `feed`, `sow`, `harvest`, `sample`
+**The act names its part.** `water`, `feed`, `plant`, `harvest`, `sample`
 and `label` take `at <field>` (optional, greedy, `SoilMixin`). The GROUND
 decides (`resolvePartFor`): one part needs no name; several refuse
 `part-unnamed` with the names; naming a part a plant does not stand in
 refuses `not-a-part-here`. `water`/`feed` state the amount (*"You tip 2 L
 …"*, *"You work 6.3 kg of compost…"*) and add *"On 1,000 square meters
 it barely shows."* under 0.1 L/m²; a bystander sees the part (*"Maud
-waters a stand of wheat at the far side."*). `sow` fills a part up to its
+waters a stand of wheat at the far side."*). `plant` fills a part up to its
 own area and refuses `part-sown` when it is full; `harvest` cuts that
 part's stand and grades it by ITS `_worstLimiting`. Area crops only — an
 individual is acted on where it stands.
@@ -962,3 +962,31 @@ definite phrase), filling the can at `config.water` (`room` + `from`).
 She is a novice by assertion, so two fields a little apart can fool
 her; a student who reads better sees where she watered wrong. ⚠ A
 successful act leaves no `[dispatch]` line — read the effect.
+
+## ⭐⭐ The plant decides; the controller words (controllers-are-io D11)
+
+`harvest` and `plant` are input and output. `GrowingMixin.harvestPlanFor(req)`
+holds which stand was meant (the label rule, the ripe sibling), the tool gate,
+the unready refusals, the grade, the mint and the bed's debit;
+`CultivableMixin.harvestPlanFor` is naming the ground, which picks the plant and
+asks it. A pick is an `ActPlan` of `durationMs: 0`, which runs inside the command
+frame, so the maker derives from who acts; a swath is `3000 + swathM2 * 60` ms at
+a felt cost of 6, converted through the body (`wattsForFeltCost`). A pot's
+`CultivableMixin.plantPlanFor` presses the seed in and claims the slot, contents
+first. `PlantableMixin` answers the seed's rate (`sowingRateFor`, a drill's share
+of it) and spends itself (`spendSeed`).
+
+⭐ The reasons are closed unions (`HarvestReason`, `PlantReason`), and
+`HarvestController`'s words are three `static` methods (`refusalWords`,
+`beginWords`, `doneWords`) read off the instance's class before the act engages,
+because the controller is destructed when `execute` returns.
+`HarvestWordedController` overrides all three and is the doctrine's exemplar: the
+same harvest in other words. See
+[command-spec.md § Alternate controllers](./command-spec.md#-alternate-controllers--the-same-act-in-other-words).
+
+⚠ A crop's maker is the person, `getIdentityPath()`: every player body shares a
+lineage path, and a crop marked with it was marked by nobody.
+
+⚠ `put plant in pot` takes the slot by the root room it would get
+(`Plant.fitsSlot`). An empty pot has none, so the plant goes in loose: true of the
+world, and what the first record of that step caught.

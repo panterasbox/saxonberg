@@ -1,4 +1,5 @@
 verbs: [open]
+category: boundary
 controller: /platform/idea/cmd/boundary/OpenController
 description: "Open a door (by direction or by name)"
 help: |

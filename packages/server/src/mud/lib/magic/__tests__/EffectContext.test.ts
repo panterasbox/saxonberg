@@ -39,7 +39,7 @@ import Locale from '../../../platform/location/Locale';
 import { ArcaneMixin } from '../Arcane';
 import { ChargedMixin } from '../Charged';
 import { IdentifiableMixin } from '../../identification/Identifiable';
-import { ReservedMixin } from '../../reserve';
+import { ReservedMixin } from '../../reserve/Reserved';
 import { EffectContexts } from '../EffectContext';
 import { Suppressions } from '../Suppression';
 import { MagicGrid } from '../Grid';

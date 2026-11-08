@@ -189,7 +189,7 @@ real YAML through the binder.
 controller reads `model.axe?.stuff` — a billhook → `wrong-tool` (*"It
 will take a stool off at the ankle, and it will not take an oak."*),
 none → `no-axe`. The felling axe row offers `felling`; `lint:capabilities`
-wants every kind consumed and `lint:instrument-args` holds the hunt at
+wants every kind consumed and `lint:controller-resolution` holds the hunt at
 zero. The stand is `giver.getContainer()` narrowed by `isActive(room,
 STAND_MIXIN)` — the mining trade's `workingOf` shape.
 
@@ -382,10 +382,12 @@ off a stool, stamped with the maker and the cycle's grade — it used to be
 a `Provision`, which hung a freshness clock on a stick); timber is a
 `Thing` of the bole's wood; a log is `Firewood`. The `timber-set` recipe
 (`category: wood, minGrade: poor`) matches any of them through the
-material's `wood` tag — ⚠ but has no by-hand path today (no vessel, no
-anvil): `make timber set` answers *"work it by hand first"*, and the mine
-buys its sets as it always has. The set-from-timber is the sawing
-build's.
+material's `wood` tag. It is a `carve` recipe by shape (one wood slot,
+the `cutting` tool, a tangible output, no heat), so `carve set` with two
+timber and a knife should make one — ⚠ not yet driven. (This said *"`make
+timber set` answers 'work it by hand first'"*: `make` was never a crafting
+verb — it replayed scripts, and is `do` now.) The mine still buys its
+sets.
 
 ## Daylight, and no night
 
@@ -495,8 +497,8 @@ when they write a farm where the wood used to be, not a verb.
   `ManualBuildController.engageStep` + a spend; the third copy triggers.
 - **A by-hand path for a tangible recipe with no vessel** (the timber
   set — decided for `trade-sawing`: a recipe with no build steps is its
-  own hand path, so `make` runs craft-resolve directly and the tail
-  mints the deed); **sawing, boards, seasoning** → `trade-sawing`, off
+  own hand path — `carve`-shaped — so the verb runs craft-resolve
+  directly and the tail mints the deed); **sawing, boards, seasoning** → `trade-sawing`, off
   the bole.
 - **Partial yield below ripe**; **night**; **canopy as a light model**;
   **rain delayed under canopy**; **fire on the stand**; multi-product
@@ -530,7 +532,7 @@ when they write a farm where the wood used to be, not a verb.
 | `packages/content/rejection/content/world/terminus/rejection/hanging-wood{.yaml,/}` | the venue: zone, treeline, ride, oak-clearing, hazel-cant, `thing/panel-{north,west}` |
 | `packages/server/src/mud/lib/husbandry/Growing.ts` | `harvestTool`, `discipline` |
 | `packages/server/src/mud/platform/thing/Plant.ts` | `standardMaterialPath` |
-| `packages/server/src/mud/lib/craft/Tooled.ts` | `epoch` |
+| `packages/server/src/mud/lib/craft/Tool.ts` | `epoch` |
 | `packages/server/src/mud/api/grammar.ts` | `GrammarApi.inWords` |
 | `packages/wire/tests/forestry.dirty.wire.test.ts` | the drive |
 

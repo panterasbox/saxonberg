@@ -16,6 +16,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
+import { GrammarApi } from '../../../../api/grammar';
 import type { SmellModality } from '../../modalities/SmellModality';
 import { Aroma } from '../../../../lib/perception/Aroma';
 import { PerceptionApi } from '../../../../api/perception';
@@ -58,7 +59,7 @@ export default class SmellController extends SingleSenseControllerBase {
       });
       MessageApi.scene(actor)
         .topic(this.sceneTopic)
-        .toSelf(Mml.compose`The air smells ${joinPhrases(phrases)}.`)
+        .toSelf(Mml.compose`The air smells ${GrammarApi.joinList(phrases)}.`)
         .send();
       return;
     }
@@ -74,7 +75,7 @@ export default class SmellController extends SingleSenseControllerBase {
       ? actor.nose(this.modality().emissionOf(target, { close: true }), { close: true })
       : Scent.EMPTY;
     if (!scent.isEmpty()) {
-      const said = joinPhrases(scent.phrases());
+      const said = GrammarApi.joinList(scent.phrases());
       MessageApi.scene(actor)
         .topic(this.sceneTopic)
         .toSelf(
@@ -104,10 +105,4 @@ export default class SmellController extends SingleSenseControllerBase {
   private modality(): SmellModality {
     return PerceptionApi.modalityByName('smell') as SmellModality;
   }
-}
-
-/** `a, b and c`. */
-function joinPhrases(words: readonly string[]): string {
-  if (words.length <= 1) return words[0] ?? '';
-  return `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}`;
 }

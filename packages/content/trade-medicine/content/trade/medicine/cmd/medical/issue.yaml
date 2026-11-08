@@ -1,4 +1,5 @@
 verbs: [issue]
+category: medical
 controller: /trade/medicine/idea/cmd/medical/IssueController
 description: "Hand a unit of blood from the window's bank to someone (window staff only)"
 help: |
@@ -28,5 +29,5 @@ args:
     type: object
     required: false
     default: "reachable:[mixin.DonationBankMixin]"
-    scope: "reachable"
+    scope: ["here", "peers", "person"]
     requires: [DonationBankMixin]

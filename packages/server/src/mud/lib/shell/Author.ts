@@ -97,15 +97,15 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // ordinary player could not ask for. It is contributed by
         // `ShelledCharacter` now, and its publishing SUBCOMMANDS carry
         // `requiresPublisher` for themselves.
-        // Banking surface — the reserve (the Governor's: `requiresGovernor`),
-        // the Treasury (the Minister of Finance's, below) and the house P&L
-        // (a venue's seat). Each is gated on a SEAT; none asks the wizard.
+        // Banking surface — the reserve (the Governor's: `requiresGovernor`)
+        // and the Treasury (the Minister of Finance's, below). Each is gated
+        // on a SEAT; none asks the wizard. (`house` is every character's
+        // since controllers-are-io W7 — `Persona` affords it.)
         'platform/cmd/banking/reserve.yaml',
         // The Treasury's surface (economic bootstrap D9) — the Minister of
         // Finance's book and appropriation; `requiresFinanceMinister`
         // gates the act, the affordance sits beside the reserve's.
         'platform/cmd/banking/treasury.yaml',
-        'platform/cmd/banking/house.yaml',
         // The content-pack installer's operator surface — `pack status /
         // install --dry-run / sync / diff / resolve / pin`. Afforded on the
         // operator command surface like the rest of this suite, but

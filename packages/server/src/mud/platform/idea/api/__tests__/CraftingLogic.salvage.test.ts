@@ -31,7 +31,7 @@ import { Stuff } from '../../../../lib/stuff/Stuff';
 import Good from '../../../../lib/stuff/Good';
 import { DetailedMixin } from '../../../../lib/description/Detailed';
 import { DurableMixin } from '../../../../lib/material/Durable';
-import { ToolMixin } from '../../../../lib/craft/Tooled';
+import { ToolMixin } from '../../../../lib/craft/Tool';
 import { ManualBuildMixin } from '../../../../lib/craft/ManualBuild';
 import { CraftedMixin } from '../../../../lib/craft/Crafted';
 import { AlloyedMixin } from '../../../../lib/material/Alloyed';

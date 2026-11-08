@@ -1,6 +1,7 @@
 # ⭐ Read the proof: a share of the turned letters, by the
 # proofreader's band, found and set right. Never how many were missed.
 verbs: [proof]
+category: printing
 controller: ../../idea/cmd/printing/ProofController
 description: "Read the proof of a forme and correct what you catch"
 help: |

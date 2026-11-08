@@ -784,3 +784,11 @@ on, a scale, and `coldStorage` with no default.
   supply job `--from` the ice company's platform. The standing order a
   household puts in the window (the ice card) is
   [standing-instructions-slate](./standing-instructions-slate.md)'s.
+
+## From controllers-are-io (MR !527, 2026-11-07)
+
+- **A vehicle a person sits in and drives through an exit.** `drive` binds a
+  way and refuses today; no shipped vehicle seats a driver (the coach's
+  `driver:1` is an adornment slot, the barge has none, the wagon no slots), and
+  `journey` is what moves a vehicle. Step 21 of that build's drive dropped the
+  claim on 2026-11-07.

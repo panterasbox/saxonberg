@@ -1,10 +1,12 @@
-verbs: [say, "'"]
+verbs: [say]
+category: social
+defaultAliases: [{name: "'"}]
 controller: /platform/idea/cmd/social/SayController
 description: "Say something to everyone in your location"
 help: |
   Speak aloud. Everyone in your location hears it. Speech is
   acoustic — it carries to the room you're standing in, not across
-  the world (use `tell` or a channel for that).
+  the world (use `dm` or a channel for that).
 
   The apostrophe is a shortcut: `'hello` is the same as `say hello`.
   Add `--to <someone>` to address a person directly; everyone still

@@ -1026,7 +1026,7 @@ subsequent dispatches reuse the cached clones. See
 
 v1 tags `requiresAnimate` on self-action verbs:
 
-- `say`, `tell`, `go`, `get`, `drop`, `open`, `close`, `inventory`
+- `say`, `dm`, `go`, `get`, `drop`, `open`, `close`, `inventory`
 
 It does **not** tag passive/meta verbs:
 

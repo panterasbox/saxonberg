@@ -22,7 +22,7 @@ import { Archetype } from '../../lib/archetype/Archetype';
 import RecipeCatalogue from '../idea/RecipeCatalogue';
 import Locale from '../location/Locale';
 import Good from '../../lib/stuff/Good';
-import { ToolMixin } from '../../lib/craft/Tooled';
+import { ToolMixin } from '../../lib/craft/Tool';
 import { PlacingMixin } from '../../lib/spatial/Placing';
 import type { StoredDocument } from '../../lib/document/StoredDocument';
 import type { Stuff } from '../../lib/stuff/Stuff';

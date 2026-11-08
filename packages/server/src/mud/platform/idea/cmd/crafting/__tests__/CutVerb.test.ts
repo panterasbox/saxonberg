@@ -3,7 +3,8 @@
  * protocol. The controller resolves who plans — the target when it is
  * `Cuttable`, else a bound tool that is a `CutPlanner` and knows the
  * target, else (for a bare word) the room's floor — and either engages the
- * plan's step or declines in the planner's words. It names no pack class.
+ * plan's step or declines — the planner answers a reason and facts, the
+ * controller words them (controllers-are-io D4). It names no pack class.
  */
 
 import '../../../../../../test-bootstrap';
@@ -13,8 +14,15 @@ import Good from '../../../../thing/Good';
 import Place from '../../../../../lib/stuff/Place';
 import { StuffApi } from '../../../../../api/stuff';
 import { ContainmentApi } from '../../../../../api/containment';
-import { Mml } from '../../../../../api/mml';
-import type { CutRequest } from '../../../../../lib/craft/Cuttable';
+import { MessageApi } from '../../../../../api/message';
+import {
+  CuttableMixin,
+  type CutAnswer,
+  type CutAnswerFor,
+  type CutBegin,
+  type CutRequest,
+} from '../../../../../lib/craft/Cuttable';
+import { CutPlannerMixin } from '../../../../../lib/craft/CutPlanner';
 import type { CommandContext } from '../../../../../api/command';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
@@ -22,33 +30,37 @@ import { TestActor, makeContext, ref, many } from './branch-fixtures';
 
 let made: string[] = [];
 
-class Block extends Good {
-  public async cutPlan(req: CutRequest) {
-    if (req.tools.length === 0) {
-      return { ok: false as const, reason: 'no-saw', line: Mml.compose`You need a saw.` };
-    }
+const BEGIN: CutBegin = { kind: 'ice', hole: false };
+
+class Block extends CuttableMixin(Good) {
+  public override async cutPlan(req: CutRequest): Promise<CutAnswer> {
+    if (req.tools.length === 0) return { ok: false, verb: 'cut', reason: 'no-knife' };
     return {
-      ok: true as const,
+      ok: true,
+      verb: 'cut',
       durationMs: 50,
       effortW: 100,
-      beginSelf: Mml.compose`You saw.`,
+      facts: BEGIN,
       onComplete: () => {
         made.push('block');
+        return { ok: true, facts: { kind: 'gone' } };
       },
     };
   }
 }
 class Bolt extends Good {}
-class Shears extends Good {
-  public async cutPlanFor(target: Stuff, _req: CutRequest) {
+class Shears extends CutPlannerMixin(Good) {
+  public override async cutPlanFor(target: Stuff, _req: CutRequest<'cut'>): Promise<CutAnswerFor<'cut'> | null> {
     if (!(target instanceof Bolt)) return null;
     return {
-      ok: true as const,
+      ok: true,
+      verb: 'cut',
       durationMs: 50,
       effortW: 100,
-      beginSelf: Mml.compose`You chalk a pattern.`,
+      facts: BEGIN,
       onComplete: () => {
         made.push('pieces');
+        return { ok: true, facts: { kind: 'gone' } };
       },
     };
   }
@@ -88,10 +100,19 @@ describe('one cut — the planner decides', () => {
     expect(made).toEqual(['block']);
   });
 
-  it('a Cuttable target refuses in its own words', async () => {
+  it('⭐ a Cuttable target refuses with a reason, and the controller words it (D4)', async () => {
     const block = makeStuff(() => new Block());
+    const said: string[] = [];
+    const chain = {
+      topic: () => chain,
+      toSelf: (m: unknown) => (said.push(String(m)), chain),
+      toPeers: () => chain,
+      send: () => undefined,
+    };
+    vi.spyOn(MessageApi, 'scene').mockReturnValue(chain as never);
     const ctx = await run({ target: ref(block as unknown as Stuff, 'block'), tools: many() });
-    expect(rejected(ctx)).toBe('no-saw');
+    expect(rejected(ctx)).toBe('no-knife');
+    expect(said.join(' ')).toMatch(/You need a knife to cut/);
     expect(made).toEqual([]);
   });
 
@@ -109,16 +130,21 @@ describe('one cut — the planner decides', () => {
   });
 
   it('a bare word asks the floor underfoot, and with no floor to ask it is "Cut what?"', async () => {
-    const floorPlan = vi.fn(async () => ({
-      ok: true as const,
+    const floorPlan = vi.fn(async (): Promise<CutAnswer> => ({
+      ok: true,
+      verb: 'cut',
       durationMs: 50,
       effortW: 100,
-      beginSelf: Mml.compose`You cut a hole.`,
+      facts: { kind: 'ice', hole: true },
       onComplete: () => {
         made.push('hole');
+        return { ok: true, facts: { kind: 'ice-hole' } };
       },
     }));
-    vi.spyOn(room, 'getFloor').mockReturnValue({ cutPlan: floorPlan } as never);
+    class Floor extends CuttableMixin(Good) {}
+    const floor = makeStuff(() => new Floor());
+    vi.spyOn(floor, 'cutPlan').mockImplementation(floorPlan as never);
+    vi.spyOn(room, 'getFloor').mockReturnValue(floor as never);
     const ctx = await run({ target: ref(null, 'hole'), tools: many() });
     expect(rejected(ctx)).toBeNull();
     expect(floorPlan).toHaveBeenCalledWith(expect.objectContaining({ raw: 'hole' }));

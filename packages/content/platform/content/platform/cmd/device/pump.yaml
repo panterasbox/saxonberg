@@ -1,9 +1,10 @@
-verbs: [pump, work]
+verbs: [pump]
+category: device
 controller: /platform/idea/cmd/device/PumpController
 description: "Work a pump by hand — a well's handle or a furnace's bellows"
 help: |
   Work something by hand that moves a fluid — `pump well`, `pump
-  wellhead`, `pump forge` (or `work bellows`).
+  wellhead`, `pump forge`.
 
   At a well or a wellhead, a spell at the handle raises what stands below
   into the trough, and it is honest work: the deeper the water, the
@@ -20,15 +21,16 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
-  # ⭐ `requires: any` — a furnace, a well and a wellhead share no mixin,
-  # and an alternation would delete a check (the `dig.yaml` reasoning).
-  # The controller narrows by SHAPE — the `Pumpable` protocol, or a pump
-  # source that holds one — and every refusal is the thing's own sentence.
+  # ⭐ The pump PROTOCOL, or a source a pump is set in (controllers-are-io
+  # D8a): a furnace's bellows, a pump's handle and a diver's air pump
+  # compose `PumpableMixin`; a well, a wellhead and a conduit compose
+  # `PumpSourceMixin`. The controller narrows on the same two predicates,
+  # and every refusal is the thing's own sentence.
   - name: target
     type: object
     required: true
-    scope: "reachable"
-    requires: any
+    scope: ["here", "peers", "person"]
+    requires: PumpableMixin|PumpSourceMixin
     # ⚠⚠ `greedy` — found by DRIVING it: `pump village well` answered
     # *"That doesn't match any known command shape"*, because without it
     # the two words are two positionals. The target is the whole tail

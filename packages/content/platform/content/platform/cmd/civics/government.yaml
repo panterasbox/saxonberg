@@ -1,4 +1,5 @@
-verbs: [government, gov]
+verbs: [government]
+category: civics
 controller: /platform/idea/cmd/civics/GovernmentController
 description: "The governments over this place, and your residency"
 help: |
@@ -6,7 +7,7 @@ help: |
   city inside a realm, most local first. These are the fiction's own
   institutions: authored, plural, different from city to city. (They
   are not the Compact — the real body that runs the platform; for its
-  seats, see `offices`.)
+  seats, see `office list`.)
 
   `government` (or `government list`) shows the chain over where you
   are standing — each government's name, its departments, its seats

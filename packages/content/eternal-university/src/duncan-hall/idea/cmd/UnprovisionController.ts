@@ -1,5 +1,5 @@
 /**
- * UnprovisionController — the `unprovision <player>` / `unlease <player>` verb
+ * UnprovisionController — the `unprovision <player>` verb
  * (a Duncan Hall *content* verb — content namespace
  * `world/terminus/eternal/duncan-hall/`, not a core command category). Ends a
  * tenant's dorm lease and reclaims the unit:

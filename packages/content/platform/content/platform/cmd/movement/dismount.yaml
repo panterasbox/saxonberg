@@ -1,4 +1,5 @@
 verbs: [dismount]
+category: movement
 controller: /platform/idea/cmd/movement/DismountController
 description: "Dismount the creature or vehicle you're currently mounted on"
 help: |

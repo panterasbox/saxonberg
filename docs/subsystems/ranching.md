@@ -515,8 +515,8 @@ does, so the sheepdog was butcherable.
 | **pet** | itself | the **bond** ([pets-slate](../slates/builds/pets-slate.md)) |
 
 ⚠⚠ **They overlap, which is why this is not a taxonomy.** The ox is
-livestock *and* a working animal — it ploughs all its life and is beef at
-the end — so it stays a `Livestock` and keeps `butcher`, and `plough`
+livestock *and* a working animal — it plows all its life and is beef at
+the end — so it stays a `Livestock` and keeps `butcher`, and `plow`
 reads its **mass** rather than its class. A collie is a working animal
 and, in most households, also a pet. A prize bull is livestock and
 breeding stock. Exclusive classes would need a fourth one immediately.
@@ -715,8 +715,8 @@ Full model: [butchery.md](./butchery.md).
   the view never declared it; it surfaced the day a room held two books.
   `HerdRegistry.named` also answers to a WORD of a herd's name when exactly
   one herd has it (*from calves*).
-- ⚠ **Finding, recorded not fixed:** a drafted head's keywords are every
-  one of the species' common names, and its short description the first —
-  so a bull calf reads *"a cow"* and answers to `cow`, `bull` and `calf`
-  alike. Names by sex and life stage want structure the `commonNames` list
-  does not have.
+- **A cow is not a bull.** A drafted head's keywords are the species' common
+  names, less `maleNames` for a female, so `milk bull` cannot find a cow in the
+  byre (a hand's cow stands there at milking). ⚠ Still recorded, not fixed: its
+  short description is the first name, so a bull calf reads *"a cow"* and must
+  answer to it. Names by life stage want more structure than this.

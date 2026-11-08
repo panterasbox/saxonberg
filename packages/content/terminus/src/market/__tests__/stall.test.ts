@@ -28,7 +28,7 @@ import PaymentCard from '@saxonberg/server/mud/platform/thing/PaymentCard';
 import Coin from '@saxonberg/server/mud/platform/thing/Coin';
 import ChattelRegistry from '@saxonberg/server/mud/platform/idea/ChattelRegistry';
 import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
-import ConsignController from '@saxonberg/server/mud/platform/idea/cmd/retail/ConsignController';
+import ShelfConsignController from '@saxonberg/server/mud/platform/idea/cmd/retail/ShelfConsignController';
 import HouseShopController from '@saxonberg/content-trade-shopkeeping/src/idea/cmd/banking/HouseShopController';
 import { BankingApi, Money } from '@saxonberg/server/mud/api/banking';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
@@ -312,9 +312,9 @@ describe('a player shop is a rented market stall', () => {
     }, TORCH);
     ContainmentApi.move(torch as never, grower as never);
     await asOwner(grower, () => torch.stampChattel(grower));
-    const consigned = ctx(grower, square, counter, 'consign torch');
+    const consigned = ctx(grower, square, counter, 'shelf consign torch');
     await asOwner(grower, () =>
-      makeStuff(() => new ConsignController()).execute(
+      makeStuff(() => new ShelfConsignController()).execute(
         { thing: { stuff: torch as never, raw: 'torch' }, ask: '8', shelf: { stuff: counter as never, raw: 'stall' } },
         consigned,
       ),

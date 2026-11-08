@@ -1,4 +1,5 @@
 verbs: [scrape]
+category: ice
 controller: /trade/ice/idea/cmd/ice/ScrapeController
 description: "Scrape the snow off the ice so it freezes black"
 help: |

@@ -41,8 +41,10 @@ semantic difference:
   account). `tune off <target>` stops; bare `tune` lists; `tune
   list`/`who`/`history` behave platform-agnostically.
 
-Both are `WatchController` / `TuneController` (`platform/idea/cmd/stream/`) over
-one `StreamApi`.
+Both live at `platform/idea/cmd/stream/` over one `StreamApi`: `WatchController`,
+and `tune`'s one controller per subcommand over `TuneControllerBase`
+(`TuneOff`/`TuneList`/`TuneWho`/`TuneHistory`, and `TuneInController` for the
+fallthrough — bare `tune`, follow, post; controllers-are-io D9).
 
 ## The target grammar — opt, not prefix
 
@@ -302,7 +304,7 @@ reason: what you are following belongs to the live session, and
 a persisted list would outlive the thing it describes.
 
 ⭐ **Derived from the relay after every change, never accumulated.**
-`TuneController.publishTuned` re-reads `tunedTargetsFor` and republishes.
+`TuneControllerBase.publishTuned` re-reads `tunedTargetsFor` and republishes.
 Pushing a row per `tune` would make the client's list a *second* record
 of who follows what, free to drift from the relay's own.
 

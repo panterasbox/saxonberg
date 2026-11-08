@@ -1,4 +1,5 @@
 verbs: [weigh]
+category: perception
 controller: /platform/idea/cmd/perception/WeighController
 description: "Weigh a tangible object on a balance"
 help: |

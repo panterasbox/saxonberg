@@ -38,6 +38,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import { NameTakingMixin } from '../description/NameTaking';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import type { FeedingStyle } from '../../platform/idea/species/Species';
@@ -283,7 +284,7 @@ export interface Bonded {
 }
 
 export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
-  class BondedMixin extends Base implements Bonded {
+  class BondedMixin extends NameTakingMixin(Base) implements Bonded {
     static _mixinName = 'BondedMixin';
 
     /** The bearing line a viewer reads on `look`. */
@@ -632,10 +633,7 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * rather than by the `name` verb (ceramics W2).
      */
     public canBeNamedBy(handPath: string, by?: Stuff | null): boolean {
-      const inner = (Base.prototype as {
-        canBeNamedBy?: (h: string, b?: Stuff | null) => boolean;
-      }).canBeNamedBy;
-      if (typeof inner === 'function' && inner.call(this, handPath, by) === true) return true;
+      if (super.canBeNamedBy(handPath, by)) return true;
       if (!by || !handPath) return false;
       const named = this as unknown as { getName?(): string };
       if (typeof named.getName === 'function' && named.getName() !== '') return false;

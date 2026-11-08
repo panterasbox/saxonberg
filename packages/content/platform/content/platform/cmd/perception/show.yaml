@@ -4,6 +4,7 @@
 # retraction reads as withdrawn. A printed copy of the same release keeps
 # what it said on the day it was printed.
 verbs: [show]
+category: perception
 controller: /platform/idea/cmd/perception/ShowController
 description: "Call up a document on a screen — a news release, a paper of your own"
 help: |

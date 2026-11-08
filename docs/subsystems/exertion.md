@@ -33,7 +33,7 @@ Two design rules carry the whole thing:
   (`Exerting.felt-cost.test.ts`): at each shipped act's reference
   duration on a fresh body, the debit is what it was.
 
-## The stocks — `lib/reserve.ts`, `lib/metabolism/Metabolic.ts`
+## The stocks — `lib/reserve/Reserved.ts`, `lib/metabolism/Metabolic.ts`
 
 Five biological reserves joined `endurance / satiation / hydration /
 flesh` on every `Creature`, installed idempotently by the constructor
@@ -246,7 +246,7 @@ own slate at 14.
 
 - `lib/exertion/Exerting.ts` — the mixin; `__tests__/Exerting.test.ts`,
   `Exerting.felt-cost.test.ts`
-- `lib/reserve.ts`, `lib/metabolism/Metabolic.ts` (steps 6–9, the
+- `lib/reserve/Reserved.ts`, `lib/metabolism/Metabolic.ts` (steps 6–9, the
   routes), `lib/creature/Creature.ts` (readers, bands, the phrase, BMI,
   density, the mass term), `lib/vitals/Vitals.ts` (the floor guard)
 - `api/scheduler.ts` (`effortW`), `platform/idea/SchedulerRegistry.ts`

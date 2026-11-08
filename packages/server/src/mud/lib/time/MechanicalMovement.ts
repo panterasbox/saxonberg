@@ -50,7 +50,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { TimekeepingMixin } from './Timekeeping';
-import { ReservedMixin, Reserve, type Reserved } from '../reserve';
+import { ReservedMixin, Reserve, type Reserved } from '../reserve/Reserved';
 import { Time } from './Time';
 import { Quantity } from '../quantity';
 import { StuffApi } from '../../api/stuff';

@@ -397,7 +397,7 @@ async function brashOf(handle: string, species: string, bundles: number): Promis
 /** Light the pit, burn it down (read from time to time), and rake it out. */
 async function burnAndSweep(handle: string): Promise<{ swept: string; heaps: { longDescription: string; mass?: { value: number } }[] }> {
   let s = await goTo(handle, ASHERY);
-  await say(s, 'ignite pit').catch(() => '');
+  await say(s, 'light pit').catch(() => '');
   await say(s, 'draught wide');
   const burning = await examine(s, 'pit');
   expect(burning, `the pit, lit: ${burning}`).toMatch(/burn|flame|fire|smoke|alight/i);
@@ -642,8 +642,8 @@ suite('⭐ drive 9 — a strong lye and a weak one, boiled on one fire, to black
       await say(s, 'get cordwood');
       await say(s, 'stoke cordwood into hearth');
     }
-    const lit = await say(s, 'ignite hearth');
-    expect(lit, `ignite hearth: ${lit}`).not.toMatch(/no fuel|sodden|can'?t/i);
+    const lit = await say(s, 'light hearth');
+    expect(lit, `light hearth: ${lit}`).not.toMatch(/no fuel|sodden|can'?t/i);
     s.close();
     let hours = 0;
     const setAt: Record<number, number> = {};
@@ -708,7 +708,7 @@ suite('⭐ drive 10–11 — pearl ash by the kiln, and glass fluxed with it (AC
     s = await goTo(ashMaker, ASHERY);
     for (const id of CAKES) await say(s, `put #${id} in kiln`);
     for (let i = 0; i < 4; i++) await say(s, 'stoke cordwood into kiln');
-    await say(s, 'ignite kiln');
+    await say(s, 'light kiln');
     s.close();
     await waitAway(ashMaker, 1, undefined, 1);
     s = await goTo(ashMaker, ASHERY);
@@ -769,7 +769,7 @@ suite('⭐ drive 10–11 — pearl ash by the kiln, and glass fluxed with it (AC
       await say(s, 'get charcoal');
       await say(s, 'stoke charcoal into kiln');
     }
-    await say(s, 'ignite kiln');
+    await say(s, 'light kiln');
     const wrong = await say(s, 'fire kiln');
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ lye in the lime's place (${lye ? 'a flask held' : 'NO flask held'}): ${wrong}`);

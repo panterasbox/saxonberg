@@ -25,8 +25,8 @@ describe('the churn', () => {
   it('cream at a cool-room warmth breaks; buttermilk draws off; butter stays', () => {
     at(0);
     const c = churn(287);
-    const line = String(c.workByHand('churned')?.line);
-    expect(line).toMatch(/butter has come/);
+    // ⭐ The churn answers what came of it; `stir` words it (D4).
+    expect(c.workByHand()?.facts.result).toBe('came');
     // ⭐ Broken: the churning schedule is running, and what the next litre
     // drawn IS (the read a pour stamps a jug with) is the buttermilk.
     expect(c.getRunPhase()).toBe('running');
@@ -50,7 +50,7 @@ describe('the churn', () => {
   it('too cold, it will not come — the cream is unchanged', () => {
     at(0);
     const c = churn(278);
-    expect(String(c.workByHand('churned')?.line)).toMatch(/will not come/);
+    expect(c.workByHand()?.facts.result).toBe('too-cold');
     expect(c.getBulkMaterialPath('interior')).toBe(MAT.cream);
   });
 
@@ -59,16 +59,15 @@ describe('the churn', () => {
     const c = churn(298);
     const g = c as unknown as Graded;
     g.setGrade(Grade.of('fine'));
-    expect(String(c.workByHand('churned')?.line)).toMatch(/greasy/);
+    expect(c.workByHand()?.facts.result).toBe('came-greasy');
     expect(c.getRunSchedule()?.getKey()).toBe('churning');
     expect(g.getGrade().compareTo(Grade.of('fair'))).toBeLessThanOrEqual(0);
   });
 
-  it('only cream churns, and another method does nothing', () => {
+  it('only cream churns', () => {
     at(0);
     const c = vessel(() => new Churn(), 8, 287, { material: mat(MAT.milk), litres: 2 });
-    expect(String(c.workByHand('churned')?.line)).toMatch(/Only cream/);
+    expect(c.workByHand()?.facts.result).toBe('not-cream');
     expect(c.getBulkMaterialPath('interior')).toBe(MAT.milk);
-    expect(churn(287).workByHand('stirred')).toBeNull();
   });
 });

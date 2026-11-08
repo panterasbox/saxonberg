@@ -331,13 +331,19 @@ describe("⚠ a projected default is not a reading", () => {
 });
 
 describe("the composition row", () => {
-  function withComposition(names: string[]) {
+  function withComposition(
+    names: string[],
+    protocols: { name: string; verbs: string[] }[] = [],
+  ) {
     useStore.setState({
       affordances: {
         room: {
           stuffId: "room",
           verbs: [],
-          composition: names,
+          composition: [
+            ...protocols.map((p) => ({ ...p, kind: "protocol" as const })),
+            ...names.map((name) => ({ name, kind: "mixin" as const })),
+          ],
           kind: "thing",
           at: 1,
         },
@@ -383,6 +389,26 @@ describe("the composition row", () => {
     render(<CardBody card={placeCard({})} onSendCommand={() => undefined} />);
     expect(screen.queryByTestId("card-composition-toggle")).toBeNull();
   });
+
+  it("⭐ presents a protocol as the verbs it serves (D8b)", () => {
+    withComposition(
+      ["Visible", "Tangible"],
+      [
+        { name: "DipBathMixin", verbs: ["dip"] },
+        { name: "TurnableMixin", verbs: ["turn"] },
+        { name: "CarvableMixin", verbs: [] },
+      ],
+    );
+    render(<CardBody card={placeCard({})} onSendCommand={() => undefined} />);
+    // One chip, outside the collapse; a protocol no view names reads
+    // its own name rather than vanishing.
+    expect(screen.getByTestId("card-answers").textContent).toBe(
+      "answers: dip · turn · Carvable",
+    );
+    // …and no noun chip for a protocol.
+    expect(screen.queryByText("DipBath")).toBeNull();
+    expect(screen.queryByTestId("card-composition-toggle")).toBeNull();
+  });
 });
 
 describe("⚠⚠ no action row", () => {
@@ -403,7 +429,7 @@ describe("⚠⚠ no action row", () => {
             { verb: "cast", description: "", state: "enabled" },
             { verb: "defend", description: "", state: "enabled" },
           ],
-          composition: ["Visible"],
+          composition: [{ name: "Visible", kind: "mixin" }],
           kind: "thing",
           at: 1,
         },
@@ -816,6 +842,32 @@ describe("the help card's sections", () => {
     const prose = container.querySelector('[data-help-block="prose"]')!;
     // Joined into one line, not carrying the source break.
     expect(prose.textContent).toBe("a sentence that was hard wrapped for a terminal");
+  });
+
+  it("⭐ a lowercase `word:` alone on its line heads a block, one row per line", () => {
+    const { container } = render(
+      <CardBody
+        card={helpCard("answers:\n  DipBathMixin — DipPot, Melt\n  PourableMixin — Jug")}
+        onSendCommand={() => undefined}
+      />,
+    );
+    const el = container.querySelector('[data-testid="card-help-topic"]')!;
+    expect(el.querySelector('[data-help-block="prose"]')).toBeNull();
+    expect(el.querySelector('[data-help-block="pre"]')!.textContent).toBe(
+      "  DipBathMixin — DipPot, Melt\n  PourableMixin — Jug",
+    );
+  });
+
+  it("⚠ a lowercase `word: value` stays a sentence", () => {
+    const { container } = render(
+      <CardBody
+        card={helpCard("note: this is prose")}
+        onSendCommand={() => undefined}
+      />,
+    );
+    expect(container.querySelector('[data-help-block="prose"]')!.textContent).toBe(
+      "note: this is prose",
+    );
   });
 
   it("splits `Label: value` into a heading and its value", () => {

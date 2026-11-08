@@ -6,8 +6,9 @@
 > [command-spec.md § `onFiltered:`](../../subsystems/command-spec.md).
 > ⭐ No migration of the 183 slots was needed: the chain stayed as
 > ordering, the discard became counted and declared.
-> **Left:** the reserved per-invocation `--strict` / `--loose` option ·
-> turning `warn` on where a verb wants a voice (`open` · `close` ·
+> The reserved `--strict` / `--loose` option shipped at controllers-are-io
+> (D23, MR !527) → [command-spec.md § `async:`](../../subsystems/command-spec.md).
+> **Left:** turning `warn` on where a verb wants a voice (`open` · `close` ·
 > `unlock` — a content question, wants a live drive)
 > **Size:** a tail
 
@@ -55,13 +56,10 @@ candidate set is no longer purely syntactic.*
 
 ## The per-invocation override
 
-Precedent exists: `async:` is a verb-level default and a player overrides
-it per invocation with a reserved option. A reserved `--strict` /
-`--loose` (force `error` / force `take`) fits that pattern.
-
-⚠ **One reserved option, one closed vocabulary.** The failure mode is a
-knob per axis, and then the semantics live in the player's fingers
-instead of the command def.
+*Shipped (controllers-are-io D23): `--strict` forces every slot's
+`onFiltered:` to `error`, `--loose` to `take`, reserved beside
+`--async`/`--sync` → command-spec.md § `async:` (the reserved flags).
+Cut 2026-11-07.*
 
 ## The surface this touches
 
@@ -106,8 +104,6 @@ command-routing.md by the 2026-09-19 compaction ledger.*
 
 ## Still deferred
 
-- **The reserved `--strict` / `--loose` option.** One reserved option is
-  its own surface, and the declared policy has to earn its keep first.
 - **Turning `warn` on anywhere.** The mechanism ships silent. Which
   verbs want a voice is a content question and wants a live drive —
   `open`, `close` and `unlock` are the obvious candidates.

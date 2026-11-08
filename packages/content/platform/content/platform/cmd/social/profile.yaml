@@ -1,4 +1,5 @@
-verbs: [profile, finger]
+verbs: [profile]
+category: social
 controller: /platform/idea/cmd/social/ProfileController
 description: "Look someone up — their identity card."
 help: |
@@ -8,7 +9,7 @@ help: |
   name or story until you've been introduced (`introduce`). The more you
   know them, the more the card fills in.
 
-  `finger` is an alias. With no argument, `profile` shows your own card —
+  With no argument, `profile` shows your own card —
   the same as `score`.
 
   What others see of *you* is your choice: `notify` and the privacy

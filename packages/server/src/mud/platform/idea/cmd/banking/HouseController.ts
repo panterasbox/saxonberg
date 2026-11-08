@@ -18,7 +18,7 @@
  * is only ever the wallet's, and the wallet's is the position's.
  */
 
-import { BankingControllerBase } from "./BankingControllerBase";
+import { HouseControllerBase } from "./HouseControllerBase";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import type { MqlOneResult } from "../../../../api/mql";
 import { BankingApi, Money } from "../../../../api/banking";
@@ -38,7 +38,7 @@ interface HouseModel extends CommandModel {
   amount?: string;
 }
 
-export default class HouseController extends BankingControllerBase<HouseModel> {
+export default class HouseController extends HouseControllerBase<HouseModel> {
   async execute(model: HouseModel, context: CommandContext): Promise<void> {
     switch (model.subcommand) {
       case "book":
@@ -52,7 +52,7 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
       default:
         MessageApi.scene(context.commandGiver)
           .topic(TOPIC)
-          .toSelf(Mml.compose`Usage: \`house book\`, \`house pnl\`, \`house payroll <worker> <amount>\` or \`house roster\`. (\`house par\`, \`house price\` and \`house stock\` are the shopkeeper's — trade-shopkeeping.)`)
+          .toSelf(Mml.compose`Usage: \`house book\`, \`house pnl\`, \`house payroll <worker> <amount>\`, \`house roster\`, \`house appoint <person>\`, \`house dismiss <person>\` or \`house draw <amount>\`. (\`house par\`, \`house price\` and \`house stock\` are the shopkeeper's — trade-shopkeeping.)`)
           .send();
         context.note({ kind: "controller-rejected", reason: "unknown-subcommand", detail: model.subcommand ?? "" });
     }

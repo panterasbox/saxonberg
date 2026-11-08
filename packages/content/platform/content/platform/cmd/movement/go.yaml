@@ -1,4 +1,5 @@
 verbs: [go]
+category: movement
 controller: /platform/idea/cmd/movement/GoController
 description: "Move to a named exit or into a named vessel"
 help: |

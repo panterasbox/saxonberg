@@ -40,7 +40,7 @@ import { MarkedMixin, type Passage } from '../../lib/description/Marked';
 import { AssembledMixin } from '../../lib/craft/Assembled';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import { DurableMixin } from '../../lib/material/Durable';
-import { ReservedMixin } from '../../lib/reserve';
+import { ReservedMixin } from '../../lib/reserve/Reserved';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { CombustibleMixin } from '../../lib/fire/Combustible';
 import { TearableMixin, type TearOutcome } from '../../lib/material/Tearable';
@@ -212,7 +212,7 @@ export default class Book extends BookBase {
    * @hook A PRINTED leaf tells the reader of what its edition names
    * (*known-of* — recognition, the recipes slate § 4). A handwritten page
    * teaches nothing by being read: what a notebook holds as a recipe is the
-   * recipes build's (a cook's own recipe, consulted when they `make`), never
+   * recipes build's (a cook's own recipe, consulted when they craft it), never
    * a guess at the words on the page.
    */
   public override async teach(reader: Stuff): Promise<string | null> {

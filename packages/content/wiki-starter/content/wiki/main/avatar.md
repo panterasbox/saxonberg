@@ -69,7 +69,7 @@ deliberate and it is load-bearing: a verb that exists for one exists
 for all three, so the game can always tell you *why* you cannot do
 something instead of pretending the ability was never there.
 
-A shade is refused `take` because it has no hands — not because `take`
+A shade is refused `get` because it has no hands — not because `get`
 was removed from ghosts. The refusal is the thing you can read.
 
 ### Primary

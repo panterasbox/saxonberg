@@ -647,12 +647,12 @@ suite('7. the crew — presence is depth, and depth is wages', () => {
     const here = await read(k, 'look');
     expect(here, `the flat holds: ${here}`).toMatch(/roustabout/i);
 
-    const hired = await say(k, 'hire tall');
+    const hired = await say(k, 'house appoint tall');
     expect(
       refusedFor(hired),
       `the hire said: ${JSON.stringify(hired.notes)}`,
     ).toBeNull();
-    const second = await say(k, 'hire squat');
+    const second = await say(k, 'house appoint squat');
     expect(
       refusedFor(second),
       `the second hire said: ${JSON.stringify(second.notes)}`,
@@ -740,7 +740,7 @@ suite('7. the crew — presence is depth, and depth is wages', () => {
     // is being proved is that paying a hand off takes them off the
     // books, and naming WHICH hand costs that claim nothing; leaving
     // the noun ambiguous cost it the whole run.
-    const off = await say(k, 'dismiss tall');
+    const off = await say(k, 'house dismiss tall');
     expect(
       refusedFor(off),
       `dismiss said: ${JSON.stringify(off.notes)}`,

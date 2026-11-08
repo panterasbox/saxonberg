@@ -48,12 +48,6 @@ const TOPIC = 'act.deed';
 /** Material tag a bulk slot must carry to count as waterable. */
 const WATER_TAG = 'liquid';
 
-/**
- * Below this many litres per square metre of the ground watered, the
- * reply adds that it barely shows — a can on a thousand square meters.
- */
-const BARELY_SHOWS_L_PER_M2 = 0.1;
-
 interface WaterModel extends CommandModel {
   target: MqlOneResult;
   /** `at <patch>` — which part of a divided field (D5). */
@@ -152,22 +146,20 @@ export default class WaterController extends CommandController<WaterModel> {
     // ⭐ Full ground that holds water (a field, an undrained pot) does not
     // refuse a pour: the water STANDS on it (water-supply D15/D16). A
     // drained pot lets it out of its hole, and says the soil is wet through.
-    if (headroom <= 0 && ground.soilAcceptsPonding()) {
-      const litres = fromSlot.available();
-      const salt = fromSlot.getPayload()?.salinityPpt;
-      const poured = BulkableApi.transfer(fromSlot, null, { kind: 'measure', litres, mode: 'lenient' });
-      for (const note of poured.notes) context.note(note);
-      if (poured.applied > 0) {
-        ground.pond(poured.applied);
-        if (typeof salt === 'number' && salt > 0) ground.addSoilSalt((poured.applied * salt) / 1000);
-        MessageApi.scene(giver)
-          .topic(TOPIC)
-          .toSelf(Mml.compose`The water stands on ${Mml.thing(plant ?? ground)} — the soil cannot take any more.`)
-          .send();
-        return;
-      }
-    }
     if (headroom <= 0) {
+      if (ground.soilAcceptsPonding()) {
+        const litres = fromSlot.available();
+        const salt = fromSlot.getPayload()?.salinityPpt;
+        const poured = BulkableApi.transfer(fromSlot, null, { kind: 'measure', litres, mode: 'lenient' });
+        for (const note of poured.notes) context.note(note);
+        if (ground.takeStanding(poured.applied, 0, salt) > 0) {
+          MessageApi.scene(giver)
+            .topic(TOPIC)
+            .toSelf(Mml.compose`The water stands on ${Mml.thing(plant ?? ground)} — the soil cannot take any more.`)
+            .send();
+          return;
+        }
+      }
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
@@ -223,15 +215,9 @@ export default class WaterController extends CommandController<WaterModel> {
     // precisely what changes that state.
     const difficulty =
       plant instanceof Plant ? plant.careDifficulty() : plant ? 'standard' : 'easy';
-    const absorbed = plant
-      ? plant.waterPlant(Math.min(result.applied, headroom))
-      : ground.waterSoil(Math.min(result.applied, headroom));
-    const standing = holds ? result.applied - Math.max(0, absorbed) : 0;
-    if (standing > 0.01) {
-      ground.pond(standing);
-      const salt = payload?.salinityPpt;
-      if (typeof salt === 'number' && salt > 0) ground.addSoilSalt((standing * salt) / 1000);
-    }
+    const soaking = Math.min(result.applied, headroom);
+    const absorbed = plant ? plant.waterPlant(soaking) : ground.waterSoil(soaking);
+    const standing = holds ? ground.takeStanding(result.applied, absorbed, payload?.salinityPpt) : 0;
 
     // Capture the GROUND, not the plant: since phase 2 the litres land in
     // the pot's (or bed's, or patch's) moisture reserve, so capturing only
@@ -276,17 +262,15 @@ export default class WaterController extends CommandController<WaterModel> {
         ? Mml.compose`You tip ${litres} of ${appearance} into the soil at ${Mml.thing(part)}.`
         : Mml.compose`You tip ${litres} of ${appearance} into the soil of ${Mml.thing(ground)}.`;
     const drinks =
-      standing > 0.01
+      standing > 0
         ? ' The soil cannot take it all; the rest stands on top, with nowhere to go.'
         : plant && absorbed > 0
           ? ' It drinks it in.'
           : '';
     // A labeled plant's water went round its own roots, not over the ground.
-    const areaM2 =
-      plant instanceof Plant && plant.hasRootZone() ? 0 : ground.soilCatchmentAreaM2();
     const barely =
-      areaM2 > 0 && result.applied / areaM2 < BARELY_SHOWS_L_PER_M2
-        ? ` On ${areaPhrase(areaM2)} it barely shows.`
+      !(plant instanceof Plant && plant.hasRootZone()) && ground.barelyShows(result.applied)
+        ? ` On ${areaPhrase(ground.soilCatchmentAreaM2())} it barely shows.`
         : '';
     MessageApi.scene(giver)
       .topic(TOPIC)
@@ -377,7 +361,7 @@ export default class WaterController extends CommandController<WaterModel> {
    * The vessel to water from. `water.yaml` declares `source` with a
    * `me:i:[mixin.BulkableMixin]` default, so bare `water` arrives with
    * every carried vessel and the only question left is what is IN it —
-   * contents, which no predicate asks (`lint:instrument-args`). A NAMED
+   * contents, which no predicate asks (`lint:controller-resolution`). A NAMED
    * vessel is taken as named, so "it is empty" can be said about it.
    */
   private async waterSource(bound: MqlManyResult | undefined): Promise<Stuff | null> {

@@ -10,7 +10,7 @@
  * it has gone. Nothing on that ladder makes anybody heal harder.
  *
  * ⚠⚠ **The unranked candidate list is the load-bearing assertion.**
- * Handing back a best guess would turn `treat <target> for <condition>`
+ * Handing back a best guess would turn `treat <target> --for <condition>`
  * into a rubber stamp and the medic into a reader of the engine's
  * answer. The two fixtures below deliberately SHARE a sign, so a
  * competent read is honestly ambiguous and the choice stays the

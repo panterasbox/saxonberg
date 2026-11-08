@@ -1,8 +1,9 @@
-verbs: [treat, bind, dress]
+verbs: [treat]
+category: medical
 controller: /platform/idea/cmd/medical/TreatController
 description: "Treat what is wrong — a dressing, water, or your own hands"
 help: |
-  `treat` (also `bind` or `dress`) treats what is wrong with a body. With
+  `treat` treats what is wrong with a body. With
   no target you treat yourself; name someone to treat them.
 
   ⭐ **What you treat it WITH matters.** Different things want different
@@ -12,12 +13,12 @@ help: |
     an illness                — your own hands; sit with them
     a bruise, a broken bone   — neither. They want time.
 
-  Say `treat <someone> with <thing>` to choose; with nothing named, the
+  Say `treat <someone> --with <thing>` to choose; with nothing named, the
   first thing to hand that could treat anything is used, and failing that
   your hands. A bandage on a burn is refused, and told why — that is how
   you learn what a burn wants.
 
-  ⭐⭐ **`treat <someone> for <something>` is the medic's real act.**
+  ⭐⭐ **`treat <someone> --for <something>` is the medic's real act.**
   `analyze patient` hands you the conditions that could produce what you
   are seeing — plural, and in no order — and this is where you commit to
   one. What is graded is the CALL, not the bandaging: the harder the
@@ -38,11 +39,11 @@ help: |
 examples:
   - cmd: treat
     note: Treat your own worst wound with whatever is to hand
-  - cmd: bind the guard
+  - cmd: treat the guard
     note: Dress a wound on someone else
-  - cmd: treat the smith with my waterskin
+  - cmd: treat the smith --with waterskin
     note: Get fluid onto a burn — a bandage would do nothing for it
-  - cmd: treat the smith for salmonellosis
+  - cmd: treat the smith --for salmonellosis
     note: Commit to a diagnosis — graded on whether you called it right
 validators:
   - /lib/command/validators/requiresAnimate
@@ -56,22 +57,21 @@ args:
     updates_focus: extend
     prepositions: [on]
     requires: [VisibleMixin, VitalsMixin]
+options:
   # ⚠ `any`, deliberately. A treatment can be a dressing OR a vessel of
   # fluid OR (later) an antidote, and an alternation would DELETE the
   # check rather than widen it. More importantly the useful answer is not
-  # "you can't use that" — it is the controller's named mismatch, which
+  # "you can't use that" — it is the patient's named mismatch, which
   # tells you what the wound actually wants. Narrowing here would replace
   # the teaching with a shrug.
-  - name: with
+  with:
     type: object
-    required: false
     scope: ["inventory", "reachable"]
-    prepositions: [with, using]
     requires: any
+    description: "What to treat with; with nothing named, the first thing to hand"
   # What the medic thinks it is — a condition's NAME, typed. Free text on
   # purpose: naming it from what you read is the act, and a picker would
   # hand back the answer.
-  - name: for
+  for:
     type: string
-    required: false
-    prepositions: [for]
+    description: "What you judge it to be, by name"

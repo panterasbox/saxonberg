@@ -684,6 +684,12 @@ export default class Species extends SingletonMixin(
   /** Vernacular synonyms (e.g. `['human', 'man']`). */
   protected commonNames: string[] = [];
 
+  /**
+   * The {@link commonNames} only a male answers to (`bull`, `ram`, `billy`): a cow
+   * is not a bull, and `milk bull` must not find her.
+   */
+  protected maleNames: string[] = [];
+
   /** Path to the BodyPlan singleton. */
   public _bodyPlanPath: string | null = null;
 
@@ -1039,6 +1045,7 @@ export default class Species extends SingletonMixin(
     baseMass: { persistent: true, authorable: true },
     stature: { persistent: true, authorable: true },
     commonNames: { persistent: true },
+    maleNames: { persistent: true },
     _bodyPlanPath: { persistent: true, ref: 'identity:constituent' },
     _parentCladePath: { persistent: true, ref: 'identity:constituent' },
     _defaultMaterialPath: { persistent: true, ref: 'identity:constituent' },
@@ -1152,6 +1159,8 @@ export default class Species extends SingletonMixin(
 
   public getCommonNames(): readonly string[] { return this.commonNames; }
   public setCommonNames(value: string[]): void { this.commonNames = value; }
+  public getMaleNames(): readonly string[] { return this.maleNames; }
+  public setMaleNames(value: string[]): void { this.maleNames = value; }
 
   public isSentient(): boolean { return this.sentient; }
   public setSentient(value: boolean): void { this.sentient = value; }

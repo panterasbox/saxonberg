@@ -29,7 +29,7 @@
  * air go bad — and is the lesson rather than a defect.
  *
  * ⭐ It affords nothing new. `fire`, `stoke`, `draught`, `cover`,
- * `ignite` and `douse` all reach it through `BurnerMixin`.
+ * `light` and `douse` all reach it through `BurnerMixin`.
  */
 
 import Firebox from '@saxonberg/server/mud/lib/fire/Firebox';

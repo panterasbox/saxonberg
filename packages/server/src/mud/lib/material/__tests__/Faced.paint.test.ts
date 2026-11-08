@@ -94,7 +94,7 @@ describe('the thing painted plans the coat', () => {
   it('a board takes paint in proportion to its skin, and the pot gives exactly that', async () => {
     const b = board();
     const p = pot(OIL, 2);
-    const plan = (await b.coatPlanFor({ actor: painter(), source: p, brush: painter() })) as ActPlan;
+    const plan = (await b.coatPlanFor({ actor: painter(), source: p, brush: painter() })) as unknown as ActPlan;
     expect(plan.ok).toBe(true);
     await plan.onComplete();
     const used = 2 - p.getBulkAmount('interior').rawValue();

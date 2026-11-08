@@ -2,7 +2,7 @@
 #
 # ⭐ Her MASTER is a seat: the NPC rostered here keeps it by default, and
 # anybody the appointing authority puts in it holds it beside them —
-# `appoint me to master at /world/terminus/harbor/ships/ketch/idea/company` is how the founder takes
+# `house appoint me to master at /world/terminus/harbor/ships/ketch/idea/company` is how the founder takes
 # her helm in the drive (her voyages are laid by hand this build). Whoever
 # holds the seat answers for her at the harbor office: her dues are theirs
 # to pay (`pay office`). Whoever holds a majority of this company's table
@@ -15,7 +15,7 @@ data:
   # appoints her master (`kind: owners`) — an organization holder through
   # its own authority. Her register entry names this company as her owner;
   # `read register` at the harbor office shows the table beside it, and
-  # `transfer <n> shares of <her> …` moves its units.
+  # `title transfer <n> shares of <her> …` moves its units.
   appointingAuthority:
     kind: owners
   capTable:

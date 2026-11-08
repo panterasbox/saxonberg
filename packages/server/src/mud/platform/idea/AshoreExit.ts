@@ -104,8 +104,8 @@ export default class AshoreExit extends LockableMixin(DeferredDestinationExit) {
     return GrammarApi.properPhrase('the gangway');
   }
 
-  public override getKeywords(): string[] {
-    const out = super.getKeywords();
+  public override getKeywords(viewer?: Stuff): string[] {
+    const out = super.getKeywords(viewer);
     if (this.berthed() !== null && !out.includes('gangway')) out.push('gangway');
     return out;
   }

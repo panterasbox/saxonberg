@@ -24,11 +24,12 @@ export default class MixController extends CraftController<MixModel> {
   async execute(model: MixModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
-    // ⭐ The knowledge gate, same as `make`/`cook`/`forge`/`bake`: you
+    // ⭐ The knowledge gate, same as `cook`/`forge`/`bake`: you
     // cannot mix what you have never made. Reading the menu is a
-    // claim; the first faithful hand build is the deed. ⚠ `mix` shipped
+    // claim; the first making (by any craft) is the deed. ⚠ `mix` shipped
     // UNGATED — so a player who had read the board could mix a Negroni
-    // they had never made, while `make` refused them the same drink.
+    // they had never made, while the script runner (then `make`) refused
+    // them the same drink.
     if (!(await this.requireDeed(context, model.cocktail, 'mix'))) return;
 
     const outcome = await CraftingApi.craft({

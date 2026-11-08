@@ -1,4 +1,5 @@
 verbs: [offer]
+category: inventory
 controller: /platform/idea/cmd/inventory/OfferController
 description: "Hold food out to an animal — and let it decide"
 help: |

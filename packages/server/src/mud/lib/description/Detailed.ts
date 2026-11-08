@@ -32,6 +32,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import { Mixins } from '../mixin';
 import { EventApi } from '../../api/event';
 import { FieldChangedEvent } from '../events/FieldChangedEvent';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
@@ -39,6 +40,7 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { Perceptible } from './Perceptible';
 import { SENSE_CHANNELS, type SenseChannel } from './Perceiver';
 
 export const PATH_DELIM = '.';
@@ -210,9 +212,41 @@ export interface Detailed {
  * Mixin that adds hierarchical detail system to objects.
  */
 export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
+  // Whether the composition beneath answers to words (decided once per
+  // class, lazily — the factory runs at import).
+  let inherits: boolean | undefined;
   return class DetailedMixin extends Base implements Detailed {
     // Mixin marker for detection by MixinApi
     static _mixinName = 'DetailedMixin';
+
+    /**
+     * ⭐ **A detail answers to its id — through its HOST's keywords**
+     * (derived, never stored): the authored keywords, then every top-level
+     * detail id `viewer` may address. `look sigil` binds the wand because
+     * the wand says it answers to `sigil`, not because MQL built a word
+     * from its detail map (one-resolution slate § 5 row 1). MQL attributes
+     * the match to the detail as a fact (`via.detailPath`).
+     *
+     * ⚠ The viewer gates it, as `getDetailIds` does: a key is a targeting
+     * token, so an unidentified wand must not answer to its true sigil.
+     * No viewer is the authoring/system read.
+     */
+    getKeywords(viewer?: Stuff): string[] {
+      inherits ??= MixinApi.hasMixin(Base, Mixins.Perceptible) || MixinApi.hasMixin(Base, Mixins.Named);
+      const out = inherits
+        ? (Base.prototype as unknown as Perceptible).getKeywords.call(this, viewer)
+        : [];
+      const seen = new Set(out);
+      for (const id of this.getDetailIds(undefined, viewer) ?? []) {
+        if (!this.hasDetail(id, undefined, viewer)) continue;
+        const word = id.toLowerCase();
+        if (!seen.has(word)) {
+          seen.add(word);
+          out.push(word);
+        }
+      }
+      return out;
+    }
 
     /**
      * Instruction-field applier roster. `details` is consumed by

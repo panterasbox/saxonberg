@@ -1,4 +1,5 @@
 verbs: [strain]
+category: crafting
 controller: /trade/hospitality/idea/cmd/crafting/StrainController
 description: "Strain a finished build into a glass (the terminal step)"
 help: |
@@ -20,7 +21,7 @@ args:
     scope: "reachable"
     # ⭐ Bare `strain` works the build you are at — DECLARED, so the binder
     # resolves it (held first) instead of the controller walking for it
-    # (`lint:instrument-args`).
+    # (`lint:controller-resolution`).
     default: "reachable:[mixin.ManualBuildMixin]"
     requires: ManualBuildMixin
   - name: glass
@@ -28,4 +29,8 @@ args:
     required: false
     scope: "reachable"
     prepositions: [into, in]
-    requires: ManualBuildMixin
+    # ⭐ What a drink is strained INTO is any vessel, not a build: a coupe holds
+    # the drink and nothing is built in it. (This slot asked for
+    # `ManualBuildMixin`, so no typed strain ever bound a glass; the unit test
+    # hands the controller its model and never met the binder.)
+    requires: BulkableMixin

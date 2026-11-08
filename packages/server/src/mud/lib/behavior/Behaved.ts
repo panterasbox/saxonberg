@@ -734,6 +734,15 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       const current = this._currentPlayers();
       const currentIds = new Set(current.map((p) => p.stuffId));
 
+      // ⭐ The host's OWN move (controllers-are-io D28): the room it walked
+      // into is the baseline, and nobody in it just arrived. A shopkeeper
+      // back from the yard does not greet the room; in a crowd that was N
+      // greetings per errand, each rendered for N people.
+      if (frame.tags?.includes('audience:actor')) {
+        this._seenPlayers = currentIds;
+        return;
+      }
+
       if (arrivals.length) {
         for (const p of current) {
           if (this._seenPlayers.has(p.stuffId)) continue;
@@ -937,7 +946,10 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       return typeof get === 'function' ? (get.call(this) ?? null) : null;
     }
 
-    /** Room occupants that look like players (Sensor, not an NPC/Behaved). */
+    /**
+     * Room occupants a brain may address: a body somebody is playing, or is
+     * coming back to (`hasLiveSession`). A signed-out body is nobody's audience.
+     */
     private _currentPlayers(): (Stuff & Containable)[] {
       const room = this._room();
       if (!room) return [];
@@ -946,7 +958,9 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
         (c) =>
           c.stuffId !== selfId &&
           MixinApi.isSensor(c) &&
-          !MixinApi.hasMixin(c, Mixins.Behaved)
+          !MixinApi.hasMixin(c, Mixins.Behaved) &&
+          MixinApi.isHasInteractive(c) &&
+          c.hasLiveSession()
       );
     }
 

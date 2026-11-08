@@ -14,7 +14,7 @@
 
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import PourController from "@saxonberg/server/mud/platform/idea/cmd/crafting/PourController";
+import PourController from "@saxonberg/server/mud/platform/idea/cmd/bulk/PourController";
 import StrainController from "../StrainController";
 import { CommandApi } from "@saxonberg/server/mud/api/command";
 import type { CommandContext } from "@saxonberg/server/mud/api/command";
@@ -193,7 +193,7 @@ describe("pour as an engaged activity", () => {
 
     const controller = makeStuff(() => new PourController());
     await controller.execute(
-      { spirit: ref(bottle, "gin"), vessel: ref(shaker, "shaker") } as never,
+      { source: ref(bottle, "gin"), target: ref(shaker, "shaker") } as never,
       makeContext(actor, room, "pour"),
     );
 
@@ -226,12 +226,12 @@ describe("pour as an engaged activity", () => {
     const controller = makeStuff(() => new PourController());
 
     await controller.execute(
-      { spirit: ref(bottle, "gin"), vessel: ref(shaker, "shaker") } as never,
+      { source: ref(bottle, "gin"), target: ref(shaker, "shaker") } as never,
       makeContext(actor, room, "pour"),
     );
     const ctx2 = makeContext(actor, room, "pour");
     await makeStuff(() => new PourController()).execute(
-      { spirit: ref(bottle, "gin"), vessel: ref(shaker, "shaker") } as never,
+      { source: ref(bottle, "gin"), target: ref(shaker, "shaker") } as never,
       ctx2,
     );
     expect(
@@ -246,7 +246,7 @@ describe("pour as an engaged activity", () => {
     ContainmentApi.move(shaker, room);
 
     await makeStuff(() => new PourController()).execute(
-      { spirit: ref(bottle, "gin"), vessel: ref(shaker, "shaker") } as never,
+      { source: ref(bottle, "gin"), target: ref(shaker, "shaker") } as never,
       makeContext(actor, room, "pour"),
     );
     // Barge in before the pour completes.
@@ -268,8 +268,8 @@ describe("a pour is one serving (re-plan R1-D4)", () => {
     ContainmentApi.move(shaker, room);
     await makeStuff(() => new PourController()).execute(
       {
-        spirit: ref(bottle, "x"),
-        vessel: ref(shaker, "shaker"),
+        source: ref(bottle, "x"),
+        target: ref(shaker, "shaker"),
         ...(amount ? { amount } : {}),
       } as never,
       makeContext(actor, room, "pour"),
@@ -301,7 +301,7 @@ describe("strain as the terminal mint", () => {
     // Pour gin, then vermouth (two completed engaged steps).
     for (const bottle of [gin, vermouth]) {
       await makeStuff(() => new PourController()).execute(
-        { spirit: ref(bottle, "x"), vessel: ref(shaker, "shaker") } as never,
+        { source: ref(bottle, "x"), target: ref(shaker, "shaker") } as never,
         makeContext(actor, room, "pour"),
       );
       WorldClockApi._advanceForTesting(3000);

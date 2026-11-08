@@ -45,7 +45,7 @@
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { VisibleMixin } from '@saxonberg/server/mud/lib/description/Visible';
 import { AdornmentMixin } from '@saxonberg/server/mud/lib/boundary/Adornment';
-import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { SoilMixin } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import type { Growing } from '@saxonberg/server/mud/lib/husbandry/Growing';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -67,7 +67,7 @@ import {
 } from '../lib/CharacteredSoil';
 import { SwardMixin, SWARD_RESIDUAL_FRACTION, SWARD_RESERVE_KEY } from '../lib/Sward';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import {
   SOIL_MOISTURE_RESERVE_KEY,
   SOIL_NITROGEN_RESERVE_KEY,
@@ -341,8 +341,8 @@ export default class Field extends FieldBase {
     if (this.cropsOn().length > 0) return null;
     if (this.isSeedbedFresh()) return null;
     return this.seedbedStamp > 0
-      ? 'The seedbed has gone back to grass. Plough it again before you sow.'
-      : 'This ground has not been ploughed for a crop. Plough it first.';
+      ? 'The seedbed has gone back to grass. Plow it again before you sow.'
+      : 'This ground has not been plowed for a crop. Plow it first.';
   }
 
   /**
@@ -385,8 +385,11 @@ export default class Field extends FieldBase {
     const stem = spec.name.trim().replace(/^the\s+/i, '') || spec.key.replace(/-/g, ' ');
     this.setShortDescription(stem);
     this.setRegister('definite');
+    // ⚠ The AUTHORED list, not `getKeywords()`: that one also folds in
+    // what is DERIVED (detail ids, what the soil holds), which must not be
+    // baked into the stored keywords on every wake.
     this.setKeywords([
-      ...this.getKeywords(),
+      ...this.keywords,
       stem,
       ...stem.split(/\s+/),
       spec.key,
@@ -530,14 +533,13 @@ export default class Field extends FieldBase {
 
   /**
    * ⭐ **Whether the mouth is standing here**: the herds whose moves wrote
-   * themselves onto this field, plus this field's share of whatever grazes
-   * loose in its tract (D34). ⚠ A pure read of authored demand.
+   * themselves onto this field. ⚠ A pure read of authored demand. (Loose
+   * grazing in the tract was retired at controllers-are-io D7a — it read a
+   * method no animal defines.)
    */
   public override swardGrazingDemandPerGameDay(): number {
     let demand = 0;
     for (const e of Object.values(this.grazers)) demand += e.demandKgPerDay;
-    const tract = this.getTract();
-    if (tract) demand += tract.looseGrazingShareOf(this);
     return demand;
   }
 

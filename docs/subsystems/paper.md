@@ -44,7 +44,7 @@ slate ([printing-slate](../slates/builds/printing-slate.md)).
   handwritten page teaches nothing by being read, and nothing here decides
   how a recipe is held or consulted — that is the
   [recipes slate](../slates/builds/recipes-slate.md)'s (your own recipe in
-  your book, consulted when you `make`).
+  your book, consulted when you craft it).
 - **Ash.** A burnt marked thing (its material swapped to its char) reads
   *"nothing but ash"* — the ink rule's shape.
 

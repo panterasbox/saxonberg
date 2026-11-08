@@ -13,7 +13,7 @@ data:
       wageRate: 4
       fulfills: [ropework]
     # ⭐ The crew-shaped hole: a hand at the jack's wheel so the layer walks
-    # at full pace. One seat, open to a player (`apply`); the keeper turns
+    # at full pace. One seat, open to a player (`job apply`); the keeper turns
     # it herself when nobody holds it.
     - key: wheel-hand
       noun: wheel-hand

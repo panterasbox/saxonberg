@@ -249,7 +249,7 @@ suite('⭐⭐ the pit above the old workings — one face, worked down', () => {
     ).toBeGreaterThan(0);
     expectOk(await q.cmd('get clay'));
     // The limekiln may be cold; light it (an already-lit kiln refuses, fine).
-    await q.cmd('ignite limekiln');
+    await q.cmd('light limekiln');
     expectOk(await q.cmd('put clay in limekiln'));
     const fired = await q.cmd('fire limekiln for 3 hours');
     expectOk(fired);
@@ -345,7 +345,7 @@ suite('⭐⭐ the pit above the old workings — one face, worked down', () => {
     expect(['no-charge', 'not-lit']).toContain(reason);
 
     // ⭐ And `burn` is the same act: a lime-burner burns lime.
-    const burn = await q.cmd('burn kiln');
+    const burn = await q.cmd('fire kiln');
     expect(
       burn.notes.find(
         (n) =>
@@ -486,7 +486,7 @@ suite('⭐⭐ the turf bank — the fuel or the field', () => {
     expectOk(await t.cmd('get turf'));
 
     // 18. It will not light, and the refusal is the shipped one.
-    const lit = await t.cmd('ignite turf');
+    const lit = await t.cmd('light turf');
     expect(
       refusedFor(lit) ?? String(lit.status),
       'an as-cut turf lit — the peat row\u2019s water column or the cured wet ' +

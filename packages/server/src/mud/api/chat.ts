@@ -110,7 +110,7 @@ export class ChatApi {
 
   /**
    * Set of Group `_id`s that back chat channels. Consumed by
-   * `GroupController.executeList` to filter channel-backing Groups
+   * `GroupListController` to filter channel-backing Groups
    * out of the user-facing `group list` view. Groups themselves know
    * nothing about chat; ownership of this bookkeeping lives here.
    */

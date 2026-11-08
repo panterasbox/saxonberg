@@ -4249,7 +4249,7 @@ export class PackLogic extends ApiLogic {
     if ('organization' in m) {
       throw new Error(
         `PackApi: pack '${packId}' is maintained by organization '${m.organization}' — ` +
-          `appoint through the organization, not the pack`,
+          `house appoint through the organization, not the pack`,
       );
     }
     const { ref } = await GroupApi.ensureGroup(m.group, { kind: 'office', office: PRIME_MINISTER });

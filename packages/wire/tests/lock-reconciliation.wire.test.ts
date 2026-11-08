@@ -403,7 +403,7 @@ suite('7–9. the adjudications, read the way a player meets them', () => {
     // *show me* rather than *configure me* — and `player` is
     // subcommanded, which would have made `me set name …` the shape of
     // a bodily-sounding word.
-    const me = await helpFor('me');
+    const me = await helpFor('score');
     expect(me, '`me` must resolve to the identity card').toMatch(
       /identity|standing|renown|species|score/,
     );
@@ -417,7 +417,7 @@ suite('7–9. the adjudications, read the way a player meets them', () => {
     for (const word of ['score', 'me', 'player']) {
       expectUnderstood(await newcomer.cmd(word), word);
     }
-    const mine = plain(await (await newcomer.cmd('me')).said());
+    const mine = plain(await (await newcomer.cmd('score')).said());
     expect(
       mine.length,
       '`me` should render an identity card, not nothing',

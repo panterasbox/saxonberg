@@ -70,8 +70,9 @@ const sealAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
 export interface Sealable {
   isOpen(): boolean;
   setOpen(value: boolean): void;
-  open(): void;
-  close(): void;
+  /** `by` is who did it, for a sealable that keeps a record (`Throttleable`). */
+  open(by?: Stuff | null): void;
+  close(by?: Stuff | null): void;
   /**
    * @hook May `by` open this now? (water-supply D12) The default says yes;
    * a `Door` says no while it is locked, a `Gate` while its padlock holds
@@ -168,7 +169,7 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** Open the sealable. Idempotent — opening an already-open one is a no-op. */
-    open(): void {
+    open(_by?: Stuff | null): void {
       // ⭐ Opening a sealed thing BREAKS the seal; closing it
       // again never mends it.
       if (!this.isOpen() && this.getSeal() !== '') this.sealBroken = true;
@@ -176,7 +177,7 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** Close the sealable. Idempotent — closing an already-closed one is a no-op. */
-    close(): void {
+    close(_by?: Stuff | null): void {
       (this as unknown as BistateInternal).setState(false, 'Sealable.open');
     }
 

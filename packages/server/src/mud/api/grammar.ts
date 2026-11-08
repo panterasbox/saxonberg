@@ -223,14 +223,13 @@ export class GrammarApi {
    *
    * Defers to the host's `getPluralForm()` method when present so
    * irregulars (`mouse` → `mice`, `child` → `children`) can override
-   * the rule. Falls back to the naive `singular + 's'` — good enough
-   * for English-content v1. Real morphology (`-y → -ies`, `-s/-x/-z
-   * /-ch/-sh → -es`, etc.) lands when a Locale or richer
-   * pluralization rule arrives.
+   * the rule. Falls back to the regular English endings (`-y → -ies`,
+   * `-s/-x/-z/-ch/-sh → -es`, else `-s`); anything else is the host's
+   * override to declare.
    *
    * The host-side opt-in shape is a single `getPluralForm(): string`
    * method on the Stuff. Empty / non-string returns fall through to
-   * the naive rule so a misbehaving override doesn't crash the
+   * the regular rule so a misbehaving override doesn't crash the
    * caller.
    */
   static pluralize(stuff: Stuff, singular: string): string {
@@ -248,8 +247,15 @@ export class GrammarApi {
     // spoil` — and it is the measure that counts: two lumps of clay, never
     // two lump of clays (the ceramics drive read "10 lump of clays").
     const partitive = /^(\S+)( of .+)$/.exec(singular);
-    if (partitive) return `${partitive[1]}s${partitive[2]}`;
-    return `${singular}s`;
+    if (partitive) return `${GrammarApi.pluralWord(partitive[1]!)}${partitive[2]}`;
+    return GrammarApi.pluralWord(singular);
+  }
+
+  /** The regular English plural: `watch` → `watches`, `berry` → `berries`. */
+  private static pluralWord(word: string): string {
+    if (/(s|x|z|ch|sh)$/i.test(word)) return `${word}es`;
+    if (/[^aeiou]y$/i.test(word)) return `${word.slice(0, -1)}ies`;
+    return `${word}s`;
   }
 
   /**

@@ -79,12 +79,15 @@ const PLATFORM_CATEGORIES = [
  * and is covered by the "every material verb requires a body" check
  * instead, which only asks that the tag appear somewhere.
  *
+ * ⭐ `house.yaml` is the second (controllers-are-io W7): its reads stay
+ * untagged, and `house draw` — the flat `draw` until then, which was
+ * tagged — carries the tag on its own stanza.
+ *
  * ⚠⚠ If a third mixed view shows up, this set is the wrong shape and
  * the check wants subcommand awareness rather than another exemption.
  */
 const READ_ONLY_IN_MATERIAL = new Set([
   'platform/cmd/banking/wallet.yaml',
-  'platform/cmd/banking/house.yaml',
   'platform/cmd/banking/reserve.yaml',
   'platform/cmd/retail/menu.yaml',
   'platform/cmd/inventory/inventory.yaml',

@@ -1,4 +1,5 @@
 verbs: [forge]
+category: crafting
 controller: /trade/smithing/idea/cmd/crafting/ForgeController
 description: "Forge an item at the anvil"
 help: |

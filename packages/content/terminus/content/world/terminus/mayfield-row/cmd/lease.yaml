@@ -1,4 +1,5 @@
 verbs: [lease]
+category: civics
 controller: /world/terminus/mayfield-row/idea/cmd/LeaseController
 description: "Lease a Seznick House unit to a player"
 help: |

@@ -18,13 +18,14 @@
 import type { CommandModel } from '@saxonberg/server/mud/api/command';
 import { SurveyReading, READING_TOPIC, GEOLOGY } from '../../lib/SurveyReading';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface MeasureDipModel extends CommandModel {
@@ -58,9 +59,8 @@ export default class DipReading extends SurveyReading {
 
     const coords = (place as unknown as { getCoordinates?(): [number, number, number] })
       .getCoordinates?.() ?? [0, 0, 0];
-    const cellSize =
-      (place as unknown as { getZone?(): { getCellSize?(): number } | null }).getZone?.()
-        ?.getCellSize?.() ?? 1;
+    const zone = place.getZone();
+    const cellSize = zone instanceof CartesianZone ? zone.getCellSize() : 1;
     const at: [number, number, number] = [
       coords[0] * cellSize,
       coords[1] * cellSize,

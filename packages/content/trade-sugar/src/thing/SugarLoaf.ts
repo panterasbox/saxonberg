@@ -16,14 +16,12 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-import type { Cuttable, CutRequest } from '@saxonberg/server/mud/lib/craft/Cuttable';
-import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import { CuttableMixin, type Cuttable, type CutAnswer, type CutDone, type CutRefusal, type CutRequest } from '@saxonberg/server/mud/lib/craft/Cuttable';
+import type { ActDone } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import { Grade, type GradeBand } from '@saxonberg/server/mud/lib/craft/Grade';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
-import { Mml } from '@saxonberg/server/mud/api/mml';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 
@@ -56,7 +54,7 @@ const MOLASSES = '/trade/sugar/idea/material/molasses';
 /** The share of a loaf's mass the claying water carries out as molasses. */
 const CLAY_WASHES = 0.12;
 
-export default class SugarLoaf extends PercolatingMixin(Provision) implements Cuttable {
+export default class SugarLoaf extends CuttableMixin(PercolatingMixin(Provision)) implements Cuttable {
   static markupAugmenters: MarkupAugmenter[] = [loafAugmenter];
 
   /**
@@ -149,26 +147,19 @@ export default class SugarLoaf extends PercolatingMixin(Provision) implements Cu
     into.setBulkAmount('interior', Quantity.of(into.getBulkAmount('interior').rawValue() + litres, 'L'));
   }
 
-  public async cutPlan(req: CutRequest): Promise<ActPlan | ActRefusal> {
+  public override async cutPlan(req: CutRequest): Promise<CutAnswer> {
+    if (req.verb !== 'cut') return { ok: false, verb: req.verb, reason: 'not-cuttable' } as CutAnswer;
     const nips = req.tools.find((t) => MixinApi.isTool(t) && t.hasCapability('nipping'));
-    if (!nips) {
-      return {
-        ok: false,
-        reason: 'no-nips',
-        line: Mml.compose`A sugar loaf is too hard to cut with that — it wants sugar nips.`,
-      };
-    }
+    if (!nips) return { ok: false, verb: 'cut', reason: 'no-nips' };
     const loaf = this as unknown as Stuff;
     const actor = req.actor;
     return {
       ok: true,
+      verb: 'cut',
       durationMs: NIP_MS,
       effortW: 300,
-      beginSelf: Mml.compose`You set the nips to ${Mml.thing(loaf)} and start breaking it down.`,
-      beginPeers: Mml.compose`${Mml.actor(actor)} nips at a sugar loaf.`,
-      onComplete: () => {
-        void nipLoaf(loaf as Stuff & SugarLoaf, actor);
-      },
+      facts: { kind: 'loaf', loaf },
+      onComplete: () => nipLoaf(loaf as Stuff & SugarLoaf, actor),
     };
   }
 }
@@ -177,8 +168,8 @@ export default class SugarLoaf extends PercolatingMixin(Provision) implements Cu
  * ⚠ The completion is a module function over the loaf, never `this` on a
  * controller: a cut runs for game-seconds after the verb returned.
  */
-async function nipLoaf(loaf: Stuff & SugarLoaf, actor: Stuff): Promise<void> {
-  if (loaf.isDestroyed()) return;
+async function nipLoaf(loaf: Stuff & SugarLoaf, actor: Stuff): Promise<ActDone<CutDone, CutRefusal>> {
+  if (loaf.isDestroyed()) return { ok: true, facts: { kind: 'gone' } };
   const bands = loaf.getBands();
   const mass = MixinApi.isTangible(loaf) ? loaf.getMass().rawValue() : 0;
   const material = MixinApi.isTangible(loaf) ? loaf.getMaterial() : null;
@@ -187,7 +178,7 @@ async function nipLoaf(loaf: Stuff & SugarLoaf, actor: Stuff): Promise<void> {
     : MixinApi.isContainable(loaf)
       ? (loaf.getContainer() as Stuff | null)
       : null;
-  const pieces: string[] = [];
+  const pieces: { part: string; color: string }[] = [];
   for (let i = 0; i < PARTS.length; i++) {
     const piece = await StuffApi.clone(PIECE).catch(() => null);
     if (!piece) continue;
@@ -199,12 +190,8 @@ async function nipLoaf(loaf: Stuff & SugarLoaf, actor: Stuff): Promise<void> {
     if (into && MixinApi.isContainer(into) && MixinApi.isContainable(piece)) {
       ContainmentApi.move(piece, into);
     }
-    pieces.push(`the ${PARTS[i]} (${colourOf(bands[i]!)})`);
+    pieces.push({ part: PARTS[i]!, color: colourOf(bands[i]!) });
   }
   StuffApi.destruct(loaf);
-  MessageApi.scene(actor)
-    .topic('act.deed')
-    .toSelf(Mml.compose`The loaf breaks into three: ${pieces.join(', ')}.`)
-    .toPeers(Mml.compose`${Mml.actor(actor)} breaks a sugar loaf into pieces.`)
-    .send();
+  return { ok: true, facts: { kind: 'loaf', pieces } };
 }

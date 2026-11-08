@@ -1,4 +1,5 @@
 verbs: [standing]
+category: social
 controller: /platform/idea/cmd/social/StandingController
 description: "See where you stand — your influence across all three stocks."
 help: |

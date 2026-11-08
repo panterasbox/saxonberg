@@ -20,6 +20,8 @@
  * `lint:lib-statics`).
  */
 
+import type { ActRefusal } from './ActPlan';
+
 /** The five form classes. */
 export type FormClass = 'open' | 'closed' | 'flat' | 'block' | 'cone';
 
@@ -82,12 +84,16 @@ export class ParsedForm {
   }
 }
 
-/** A refusal in words. */
-export interface FormRefusal {
-  ok: false;
-  reason: 'no-form' | 'unknown-form' | 'bad-capacity';
-  line: string;
-}
+/**
+ * ⭐ A form phrase that would not parse — a reason and the facts, never
+ * words (controllers-are-io D4); the `shape` controller words it. `named`
+ * is the words this instrument knows, for the reply that lists them.
+ */
+export type FormRefusal =
+  | ActRefusal<'no-form', { named: readonly string[] }>
+  | ActRefusal<'unknown-form', { form: string; named: readonly string[] }>
+  /** No capacity said (or none in a unit): `noun` is the class named, if one was. */
+  | ActRefusal<'bad-capacity', { noun: string | null }>;
 
 /** The class words, and what each says in a refusal. */
 const CLASS_WORDS: Readonly<Record<string, FormClass>> = {
@@ -141,7 +147,7 @@ export class FormGrammar {
     // A trailing instrument phrase the binder left in the form is not the form.
     rest = rest.replace(/\s+(on|at|with|using)\s+.*$/, '').trim();
     if (rest === '') {
-      return { ok: false, reason: 'no-form', line: `Shape it into what? ${this.choices()}` };
+      return { ok: false, reason: 'no-form', facts: { named: this.named() } };
     }
     let capacityL: number | null = null;
     const holding = /\s+holding\s+(\d+(?:\.\d+)?)\s*([a-z]+)\s*$/.exec(rest);
@@ -149,11 +155,7 @@ export class FormGrammar {
       const unit = UNITS[holding[2] ?? ''];
       const n = Number(holding[1]);
       if (unit === undefined || !(n > 0)) {
-        return {
-          ok: false,
-          reason: 'bad-capacity',
-          line: `How much should it hold? Say it in pints, quarts, gallons or litres.`,
-        };
+        return { ok: false, reason: 'bad-capacity', facts: { noun: null } };
       }
       capacityL = n * unit;
       rest = rest.slice(0, holding.index).trim();
@@ -171,20 +173,15 @@ export class FormGrammar {
     const cls = CLASS_WORDS[rest];
     if (cls !== undefined) {
       if (capacityL === null && cls !== 'block' && cls !== 'flat') {
-        return {
-          ok: false,
-          reason: 'bad-capacity',
-          line: `An ${CLASS_NOUNS[cls]} holding how much? Say "holding 2 pints".`,
-        };
+        return { ok: false, reason: 'bad-capacity', facts: { noun: CLASS_NOUNS[cls] } };
       }
       return new ParsedForm(cls, capacityL ?? 0.5, proportion, null);
     }
-    return { ok: false, reason: 'unknown-form', line: `You don't know a form called '${rest}'. ${this.choices()}` };
+    return { ok: false, reason: 'unknown-form', facts: { form: rest, named: this.named() } };
   }
 
-  private choices(): string {
-    const named = this.words.map((w) => w.key);
-    const list = named.length > 0 ? `This will make a ${named.join(', a ')}; or ` : '';
-    return `${list}say an open vessel, a closed vessel, a flat piece, a block or a cone, and how much it holds.`;
+  /** The words this instrument knows, for a refusal that lists them. */
+  private named(): string[] {
+    return this.words.map((w) => w.key);
   }
 }

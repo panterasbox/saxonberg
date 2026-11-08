@@ -15,7 +15,7 @@ data:
   # the city staffs its registry, and the Magistrate seat below is a
   # position on this chart rather than a second apparatus.
   #
-  # ⚠ It stays a BUSINESS, and that is not an oversight: `TitleController`
+  # ⚠ It stays a BUSINESS, and that is not an oversight: `title buy`
   # sells land titles across this counter and settles into its operating
   # account (`ensureOperatorAt` → `operatingAccountOf`). A registry that
   # takes money trades.

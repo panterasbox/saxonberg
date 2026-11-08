@@ -1,4 +1,5 @@
 verbs: [groze]
+category: glass
 controller: /trade/glass/idea/cmd/glass/GrozeController
 description: "Nibble a glass edge to a line with grozing pliers"
 help: |

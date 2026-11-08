@@ -1,4 +1,5 @@
 verbs: [tip]
+category: employment
 controller: /platform/idea/cmd/employment/TipController
 description: "Leave a tip — cash in the jar, or by transfer"
 help: |

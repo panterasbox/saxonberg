@@ -1,4 +1,5 @@
 verbs: [run]
+category: movement
 controller: /platform/idea/cmd/movement/RunController
 description: "Move quickly through an exit, heedless of what you pass."
 help: |

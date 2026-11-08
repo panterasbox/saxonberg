@@ -1,4 +1,5 @@
-verbs: [buy, purchase]
+verbs: [buy]
+category: retail
 controller: /platform/idea/cmd/retail/BuyController
 description: "Buy something offered for sale here"
 help: |
@@ -66,5 +67,5 @@ args:
     greedy: true
     prepositions: [from]
     default: "reachable:[mixin.ForSaleMixin]"
-    scope: [reachable]
+    scope: ["here", "peers", "person"]
     requires: [ForSaleMixin]

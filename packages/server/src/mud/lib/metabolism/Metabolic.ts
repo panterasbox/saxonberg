@@ -30,15 +30,13 @@
  * `docs/subsystems/metabolism.md`.
  */
 
-import type { Liking } from '../perception/Flavor';
-import type { TasteModality } from '../../platform/idea/modalities/TasteModality';
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { CommandContributions } from "../../api/command";
 import type { Stuff } from "../stuff/Stuff";
 import { Quantity } from "../quantity";
 import type { Unit } from "../quantity";
-import type { Reserved } from "../reserve";
-import { Reserve } from "../reserve";
+import type { Reserved } from "../reserve/Reserved";
+import { Reserve } from "../reserve/Reserved";
 import type { Vitals } from "../vitals/Vitals";
 import type { Organism } from "../species/Organism";
 import type { Posed } from "../character/Posed";
@@ -62,9 +60,6 @@ import { MaterialApi } from '../../api/material';
 import { CraftingApi } from '../../api/crafting';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
-import { BulkableApi } from '../../api/bulk';
-import { Freshness } from '../material/Freshness';
-import { UTENSIL_KINDS, type UtensilKind } from '../bulk/Utensil';
 
 /* ─────────────────────────── toxin model (types) ─────────────────────────── */
 //
@@ -199,8 +194,6 @@ interface NutrientRoute {
  * about hunger; the structure is the deliverable, the rates are
  * playtest. Times are GAME-seconds / game-minutes.
  */
-const TASTE_MODALITY_PATH = '/platform/idea/modalities/taste';
-
 export const METABOLIC_DEFAULTS = {
   /**
    * Where a mouthful burns. ⚠ A body plan has no mouth part yet, so it sits at
@@ -429,31 +422,6 @@ export interface CoupledConsumer {
   readonly hydrationCost: number;
 }
 
-/**
- * What `eat` did — or why not. ⭐ The act is the EATER's (review: a
- * controller does input and output, and an alternate `eat` controller — or
- * a brain feeding an animal — must get the same behaviour); the verb only
- * words this.
- */
-export type EatOutcome =
-  | { ok: false; reason: 'not-edible' | 'too-full' | 'airway' }
-  | {
-      ok: true;
-      /** Out of a dish (emptied, kept) or a whole item (eaten, gone). */
-      fromDish: boolean;
-      /** What was eaten, as the sentence wants it (a blend carries its own
-       * article; a material's does not). */
-      what: string;
-      /** The food's presentation, captured before a whole item is gone. */
-      foodName: string;
-      /** How it went down for this person; absent on a body with no palate. */
-      liking?: Liking;
-      /** Whether hunger is what got it down. */
-      hungerHelped?: boolean;
-      /** The clean utensil used and dirtied, or `null` — the fingers. */
-      utensil: UtensilKind | null;
-    };
-
 export interface Metabolic {
   /**
    * ⭐ Can this body take anything in by mouth now (underwater D29 seam
@@ -461,13 +429,6 @@ export interface Metabolic {
    * — refused before anything is moved, in the body's words.
    */
   canIngest(): { ok: true } | { ok: false; reason: 'airway'; line: string };
-  /**
-   * ⭐ Eat `food`: a whole edible item (all-or-nothing — eaten and gone), or
-   * a portion out of a served dish (the dish emptied, not destroyed). The
-   * first clean utensil among `utensils` is used and dirtied; eating leaves
-   * crumbs on the floor, and grease on bare fingers (cleanliness D6).
-   */
-  eat(food: Stuff, utensils?: readonly Stuff[]): Promise<EatOutcome>;
   /** The materials in a mouthful that burn on the way down. */
   corrosivesIn(material: Material, payload: BulkPayload | null): Material[];
   /** The live level a toxin's severity bands are read against (BAC for a
@@ -558,87 +519,6 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = "MetabolicMixin";
 
     /**
-     * The first clean utensil offered — in kind preference order, the
-     * caller's order within a kind — used (dirtied) on the way out.
-     * ⭐ Cutlery READS, it never gates: none is a perfectly good way to eat.
-     */
-    protected claimUtensil(offered: readonly Stuff[]): UtensilKind | null {
-      for (const kind of UTENSIL_KINDS) {
-        for (const candidate of offered) {
-          if (!MixinApi.isCutlery(candidate)) continue;
-          if (candidate.getUtensilKind() !== kind) continue;
-          if (!MixinApi.isServiceable(candidate)) continue;
-          if (!candidate.isClaimable()) continue;
-          candidate.markUsed();
-          return kind;
-        }
-      }
-      return null;
-    }
-
-    /** ⭐ (cleanliness D6) Crumbs on the floor; with the fingers, grease too. */
-    protected leaveCrumbs(withCutlery: boolean): void {
-      const self = this as unknown as Stuff;
-      if (!MixinApi.isHygienic(self)) return;
-      self.soilFrom(
-        withCutlery
-          ? [{ kind: 'crumbs', amount: 0.05, where: 'floor' }]
-          : [
-              { kind: 'crumbs', amount: 0.05, where: 'floor' },
-              { kind: 'grease', amount: 0.03, where: 'hands' },
-            ],
-      );
-    }
-
-    public async eat(food: Stuff, utensils: readonly Stuff[] = []): Promise<EatOutcome> {
-      const self = this as unknown as Stuff;
-      // ⭐ Under the water nothing goes in by mouth but the water (D29).
-      if (!this.canIngest().ok) return { ok: false, reason: 'airway' };
-      const portionL = METABOLIC_DEFAULTS.EAT_PORTION_LITRES;
-      const wentDown = this.readBeforeEating(food);
-      // ⭐ A cooked meal is a bulk blend in a claimed dish: serve from the
-      // slot rather than swallowing the crockery, and EMPTY the dish — a
-      // bowl you have finished is a bowl to wash.
-      if (MixinApi.isBulkable(food) && food.holdsFood()) {
-        const slot = BulkableApi.slotFor(food, undefined);
-        if (!slot) return { ok: false, reason: 'not-edible' };
-        const material = slot.getMaterial();
-        const payload = new Freshness(slot).ingestPayload();
-        const what = CraftingApi.blendAppearance(payload, material) || 'it';
-        const portion = Math.min(portionL, slot.getAmount().rawValue());
-        const accepted = BulkableApi.ingestSolid(
-          self,
-          material,
-          portion,
-          payload,
-          slot.getMassKg(),
-        );
-        if (accepted < portion - 1e-9) return { ok: false, reason: 'too-full' };
-        const utensil = this.claimUtensil(utensils);
-        BulkableApi.transfer(slot, null, { kind: 'measure', litres: accepted, mode: 'lenient' });
-        this.leaveCrumbs(utensil !== null);
-        return { ok: true, fromDish: true, what, foodName: food.getPresentation(), utensil, ...wentDown };
-      }
-      const material = MixinApi.isTangible(food) ? food.getMaterial() : null;
-      if (!material || material.getEdibility() !== true) {
-        return { ok: false, reason: 'not-edible' };
-      }
-      // The food synthesizes its own payload (`Fresh.ingestPayload`) — the
-      // same answer for every mouth.
-      const payload = MixinApi.isFresh(food) ? food.ingestPayload() : null;
-      const hostKg = MixinApi.isTangible(food) ? food.getMass().rawValue() : undefined;
-      const accepted = BulkableApi.ingestSolid(self, material, portionL, payload, hostKg);
-      // A discrete item is all-or-nothing: only a full portion consumes it.
-      if (accepted < portionL - 1e-9) return { ok: false, reason: 'too-full' };
-      const what = material.getAppearance() || material.getName() || 'it';
-      const utensil = this.claimUtensil(utensils);
-      this.leaveCrumbs(utensil !== null);
-      const foodName = food.getPresentation();
-      await StuffApi.destruct(food);
-      return { ok: true, fromDish: false, what, foodName, utensil, ...wentDown };
-    }
-
-    /**
      * ⭐⭐ **`eat` and `vomit` live on the BODY**, because a body with a
      * digestion buffer is exactly what can do either. `drink`/`sip` are
      * the vessel's (you drink from a thing), and eating is the same act
@@ -656,7 +536,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
      * would have caught it.
      */
     static commandContributions: CommandContributions = {
-      self: ["platform/cmd/bulk/eat.yaml", "platform/cmd/bulk/vomit.yaml"],
+      self: ["platform/cmd/bulk/vomit.yaml"],
     };
 
     static fieldMeta: FieldMeta = {
@@ -1603,24 +1483,6 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `result.applied`-style semantics (the `eat` verb consumes a
      * discrete item only on full acceptance).
      */
-    /** How the food reads before it is gone; eating it teaches the palate. */
-    private readBeforeEating(food: Stuff): { liking?: Liking; hungerHelped?: boolean } {
-      const self = this as unknown as Stuff;
-      // Degrades where no modality is loaded (a unit fixture), the file's idiom
-      // for the world clock too.
-      const modality = StuffApi.findByTemplatePath<TasteModality>(TASTE_MODALITY_PATH);
-      if (!modality || !MixinApi.isPalate(self)) return {};
-      const flavor = modality.flavorOf(food);
-      const payload = MixinApi.isBulkable(food) && food.hasInteriorBulk()
-        ? food.getBulkPayload('interior')
-        : null;
-      const material = MixinApi.isTangible(food) ? food.getMaterial() : null;
-      const foodKey = payload?.recipeId ?? material?.getTemplatePath() ?? undefined;
-      const savor = self.tongue(flavor, { foodKey });
-      self.recordExposure(savor.tastes);
-      return { liking: savor.liking, hungerHelped: self.hungerRaises() };
-    }
-
     public canIngest(): { ok: true } | { ok: false; reason: 'airway'; line: string } {
       const self = this as unknown as Stuff;
       const medium = BiomeApi.mediumFor(self);

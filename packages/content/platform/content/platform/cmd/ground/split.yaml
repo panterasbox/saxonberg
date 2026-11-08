@@ -1,4 +1,5 @@
 verbs: [split]
+category: ground
 controller: /platform/idea/cmd/ground/SplitController
 description: "Divide an oversized or aggregated thing into usable units"
 help: |
@@ -24,16 +25,14 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
-  # ⚠ `requires: any`, DECLARED and gating nothing — the `fell.yaml` shape.
-  # What can be split shares no mixin: a block of stone, a bole (which does
-  # this job today under `fell`, as its own view admits), a stack. The
-  # controller narrows to the declared `Splittable` shape and the THING
+  # ⭐ The split PROTOCOL (`SplittableMixin`, controllers-are-io D8a): a
+  # quarried block, a cheese wheel and a hive compose it, and the THING
   # refuses in its own words.
   - name: target
     type: object
     required: true
-    scope: [reachable]
-    requires: any
+    scope: ["here", "peers", "person"]
+    requires: SplittableMixin
     validators:
       - /lib/command/validators/canReach
   # ⭐ WHICH TOOL — declared, not hunted for. Same reasoning as `dig`: what

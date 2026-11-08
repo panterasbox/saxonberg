@@ -183,8 +183,8 @@ export default class Door extends DoorBase {
    * authored keywords; this override folds them in, and MQL reads them
    * only through this Perceptible interface.
    */
-  override getKeywords(): string[] {
-    const base = super.getKeywords();
+  override getKeywords(viewer?: Stuff): string[] {
+    const base = super.getKeywords(viewer);
     const nameTokens = this.shortDescription
       .toLowerCase()
       .split(/\s+/)

@@ -21,10 +21,9 @@ import type { FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Containable } from '../../lib/spatial/Containable';
 import { TurnableMixin } from '../../lib/craft/Turnable';
-import type { ActOutcome, ActRefusal } from '../../lib/craft/ActPlan';
+import type { TurnOutcome, TurnRefusal, TurnTightness } from '../../lib/craft/Turnable';
 import { PersistableApi } from '../../api/persistable';
 import { MixinApi } from '../../api/mixin';
-import { Mml } from '../../api/mml';
 import Sheet from './Sheet';
 
 // ⭐ It is TURNED (`TurnableMixin`), which is also what affords `turn`.
@@ -73,31 +72,18 @@ export default class ScrewPress extends TurnableMixin(PlacingMixin(Good)) {
     return this.getPlaced('on').filter((s) => MixinApi.isMould(s as Stuff)) as Stuff[];
   }
 
-  public override async turnBy(actor: Stuff, back: boolean): Promise<ActOutcome | ActRefusal> {
-    const self = this as unknown as Stuff;
+  public override async turnBy(_actor: Stuff, back: boolean): Promise<TurnOutcome | TurnRefusal> {
     const moulds = this.moulds();
     // ⭐ Bank the set at the OLD load before the load changes — a drain set
     // integrates its progress by the load it was under.
     for (const m of moulds) if (MixinApi.isMould(m)) m.reconcileSetting();
     if (back) {
-      if (this.turns === 0) {
-        return { ok: false, reason: 'already-slack', line: Mml.compose`${Mml.thing(self)} is already slack.` };
-      }
+      if (this.turns === 0) return { ok: false, reason: 'already-slack' };
       this.turns = 0;
       await PersistableApi.captureHostOf(this as unknown as Stuff).catch(() => undefined);
-      return {
-        ok: true,
-        line: Mml.compose`You spin the bar back and the platen lifts clear.`,
-        peers: Mml.compose`${Mml.actor(actor)} slackens off ${Mml.thing(self)}.`,
-      };
+      return { ok: true, facts: { kind: 'slackened' } };
     }
-    if (this.turns >= this.maxTurns) {
-      return {
-        ok: false,
-        reason: 'screwed-down',
-        line: Mml.compose`The screw will go no further — ${Mml.thing(self)} is bearing down as hard as it can.`,
-      };
-    }
+    if (this.turns >= this.maxTurns) return { ok: false, reason: 'screwed-down' };
     this.turns += 1;
     // ⭐ A screw left down is state the room must keep: save the host now
     // (the die's precedent) — a turn made since the room's last save came
@@ -114,33 +100,10 @@ export default class ScrewPress extends TurnableMixin(PlacingMixin(Good)) {
       const out = await m.pressRelease();
       if (out !== null) released.push(out);
     }
-    const tight =
-      this.turns >= this.maxTurns
-        ? 'as tight as it will go'
-        : this.turns > this.maxTurns / 2
-          ? 'hard down'
-          : 'snug';
-    if (squeezed > 0) {
-      return {
-        ok: true,
-        line: Mml.compose`You heave the bar round and the platen bears down on the post, ${tight}; water runs from ${squeezed === 1 ? 'the sheet' : `${squeezed} sheets`} and away down the bed.`,
-        peers: Mml.compose`${Mml.actor(actor)} turns ${Mml.thing(self)} down on a post of paper.`,
-      };
-    }
-    if (released.length > 0) {
-      return {
-        ok: true,
-        line: Mml.compose`You heave the bar round and the platen bears down, ${tight}. ${Mml.thing(released[0]!)} takes the shape and comes free of the mould.`,
-        peers: Mml.compose`${Mml.actor(actor)} turns ${Mml.thing(self)} down.`,
-      };
-    }
-    return {
-      ok: true,
-      line:
-        moulds.length > 0
-          ? Mml.compose`You heave the bar round and the platen bears down on ${Mml.thing(moulds[0]!)}, ${tight}.`
-          : Mml.compose`You heave the bar round. The platen comes down on an empty bed.`,
-      peers: Mml.compose`${Mml.actor(actor)} turns ${Mml.thing(self)} down.`,
-    };
+    const tight: TurnTightness =
+      this.turns >= this.maxTurns ? 'as-tight' : this.turns > this.maxTurns / 2 ? 'hard-down' : 'snug';
+    if (squeezed > 0) return { ok: true, facts: { kind: 'squeezed', tight, sheets: squeezed } };
+    if (released.length > 0) return { ok: true, facts: { kind: 'released', tight, released: released[0]! } };
+    return { ok: true, facts: { kind: 'pressed', tight, mould: moulds[0] ?? null } };
   }
 }

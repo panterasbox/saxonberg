@@ -1,4 +1,5 @@
 verbs: [climb]
+category: movement
 controller: /platform/idea/cmd/movement/ClimbController
 description: "Climb through a named exit (must be Climbable-enabled)."
 help: |

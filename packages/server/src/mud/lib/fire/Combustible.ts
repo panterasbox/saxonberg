@@ -29,7 +29,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Thermal } from '../thermal/Thermal';
-import type { Reserved } from '../reserve';
+import type { Reserved } from '../reserve/Reserved';
 import { Quantity } from '../quantity';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -312,7 +312,7 @@ export function CombustibleMixin<TBase extends MixinConstructor<Stuff>>(
     // ---------- the combustion face (forwards into FireLogic) ----------
 
     /**
-     * Deliberate ignition (the `ignite` verb): a hand-flame lights a
+     * Deliberate ignition (the `light` verb): a hand-flame lights a
      * flammable, dry-enough object. Returns `{lit:true}` on success, or
      * `{lit:false, reason}`. Sealed — the combustion driver is the one
      * writer of Burning state.

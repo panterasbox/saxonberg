@@ -16,7 +16,7 @@ import Good from '../../stuff/Good';
 import Material from '../../material/Material';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { WetMixin } from '../../wetness/Wet';
-import { ReservedMixin, Reserve } from '../../reserve';
+import { ReservedMixin, Reserve } from '../../reserve/Reserved';
 import { CombustibleMixin } from '../../fire/Combustible';
 import { MarkedMixin } from '../../description/Marked';
 import { ContainableMixin } from '../../spatial/Containable';

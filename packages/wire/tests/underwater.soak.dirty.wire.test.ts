@@ -398,10 +398,10 @@ suite('C · the city\'s work', () => {
     await breathe(diver);
     await toTheBed(diver);
     expect(await look(diver)).toMatch(/anchor/i);
-    const one = await say(diver, 'lash bag to anchor');
+    const one = await say(diver, 'tie bag to anchor');
     expect(one).toMatch(/does not stir|needs more air/i);
-    await say(diver, 'lash bag to anchor');
-    const three = await say(diver, 'lash bag to anchor');
+    await say(diver, 'tie bag to anchor');
+    const three = await say(diver, 'tie bag to anchor');
     expect(three).toMatch(/lift off the bottom|go up through the water/i);
     // ⭐ The bags are the anchor's now; the lead is still the diver's, and
     // weight is the one thing that refuses the way up (step 6). A diver

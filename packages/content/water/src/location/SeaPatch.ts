@@ -22,6 +22,7 @@ import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMemb
 import { ShoreMixin } from '@saxonberg/server/mud/lib/location/Shore';
 import { SwimmableMixin } from '@saxonberg/server/mud/lib/locomotion/Swimmable';
 import { WaterPlaceMixin } from '@saxonberg/server/mud/lib/location/WaterPlace';
+import { HaulOutMixin } from '@saxonberg/server/mud/lib/location/HaulOut';
 import { PositionedMixin } from '@saxonberg/server/mud/lib/expanse/Positioned';
 import { MovingMixin } from '@saxonberg/server/mud/lib/expanse/Moving';
 import { MovingPlaceMixin } from '@saxonberg/server/mud/lib/location/MovingPlace';
@@ -33,7 +34,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import SeaPatchExit from '../idea/exits/SeaPatchExit';
 
 export const SeaPatchBase = MovingPlaceMixin(
-  WaterPlaceMixin(SwimmableMixin(ShoreMixin(MovingMixin(PositionedMixin(WarrenMemberMixin(Location)))))),
+  HaulOutMixin(WaterPlaceMixin(SwimmableMixin(ShoreMixin(MovingMixin(PositionedMixin(WarrenMemberMixin(Location))))))),
 );
 
 export default class SeaPatch extends SeaPatchBase {

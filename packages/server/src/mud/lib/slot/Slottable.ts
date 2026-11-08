@@ -25,12 +25,10 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
  * by `stuffId` — the caller may surface as the raw target while the
  * argument is the proxy, or the other way round.
  */
-const BySlottedHost = SecurityPolicies.FromMixin('SlottedMixin', {
-  where: (caller, _target, _method, args) =>
-    (caller as { stuffId?: string }).stuffId !== undefined &&
-    (caller as { stuffId?: string }).stuffId ===
-      (args[0] as { stuffId?: string } | undefined)?.stuffId,
-});
+const BySlottedHost = SecurityPolicies.AllOf(
+  SecurityPolicies.FromMixin('SlottedMixin'),
+  SecurityPolicies.SelfSubject(0),
+);
 
 /**
  * Public shape provided by SlottableMixin.

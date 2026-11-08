@@ -38,6 +38,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { Containable } from '../spatial/Containable';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { Quantity } from '../quantity';
@@ -140,6 +141,20 @@ export function FeederMixin<TBase extends MixinConstructor<Stuff>>(
 
     public noteFilledBy(person: Stuff): void {
       this.lastFilledBy = person.getIdentityPath() ?? '';
+    }
+
+    /**
+     * ⭐ Food arriving from somebody's hands is that person filling it — by
+     * `put`, by a brain's hand, by anything that moves it: this vessel's own
+     * rule, and no verb has to remember it (controllers-are-io D11).
+     */
+    public onContainableAdded(thing: Stuff & Containable, from?: Stuff | null): void {
+      const beneath = (Base.prototype as { onContainableAdded?: (t: unknown, f?: unknown) => void })
+        .onContainableAdded;
+      if (beneath) beneath.call(this, thing, from);
+      if (from && from.isAgent() && MixinApi.isTangible(thing) && thing.isEdible()) {
+        this.noteFilledBy(from);
+      }
     }
 
     public getSuppliedBy(): string {

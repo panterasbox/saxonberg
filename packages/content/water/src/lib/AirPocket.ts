@@ -119,8 +119,8 @@ export function AirPocketMixin<TBase extends MixinConstructor<PocketHost>>(Base:
     }
 
     /** Somebody came in: start the pocket's clock. */
-    public onContainableAdded(thing: Stuff & Containable): void {
-      (Base.prototype as { onContainableAdded?: (t: unknown) => void }).onContainableAdded?.call(this, thing);
+    public onContainableAdded(thing: Stuff & Containable, from?: Stuff | null): void {
+      (Base.prototype as { onContainableAdded?: (t: unknown, f?: unknown) => void }).onContainableAdded?.call(this, thing, from);
       this.emptyOpenAir(thing);
       if (MixinApi.isRespiration(thing)) this.startClock();
     }

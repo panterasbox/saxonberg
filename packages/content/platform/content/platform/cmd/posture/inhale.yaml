@@ -1,4 +1,5 @@
 verbs: [inhale]
+category: posture
 controller: /platform/idea/cmd/posture/InhaleController
 description: "Take a deep breath — fill your lungs before a dive."
 help: |

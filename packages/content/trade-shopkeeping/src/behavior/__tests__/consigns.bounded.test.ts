@@ -14,7 +14,7 @@
  * everything the hand carries to find its house card. An inventory that
  * grows without bound makes each consign slower than the last; a profile
  * of the running server put 54% of the whole process in
- * `ConsignController → activeHouse → activeCredential`.
+ * `ShelfConsignController → activeHouse → activeCredential`.
  *
  * This asserts the SHAPE of the command the beat issues, which is the
  * thing that was wrong. What `get 1 <kw>` does is `GetController`'s own

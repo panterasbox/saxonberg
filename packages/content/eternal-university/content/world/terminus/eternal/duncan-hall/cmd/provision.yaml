@@ -1,4 +1,5 @@
-verbs: [provision, lease]
+verbs: [provision]
+category: civics
 controller: /world/terminus/eternal/duncan-hall/idea/cmd/ProvisionController
 description: "Provision (lease) a Duncan Hall dorm room to a player"
 help: |

@@ -20,7 +20,7 @@
 # ⭐⭐ **RUNG ZERO of the labor market** (trades-and-labor D16). The
 # `labourer` position grants nothing and requires NOTHING — no gigs, no
 # band, no `requires:` at all. A character with an empty wallet in their
-# first session walks up and `apply`s, and the acts they do for the wage
+# first session walks up and `job apply`s, and the acts they do for the wage
 # are the same acts a holder does on their own ground.
 #
 # It matters that this exists BELOW the general store's two-gig hand:

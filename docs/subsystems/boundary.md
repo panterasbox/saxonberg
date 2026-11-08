@@ -33,7 +33,7 @@ Cross-references:
 | `ExitableVessel` | concrete class | A Vessel you can enter. `onCreate(DoorBearingMixin(ExitableMixin(AdornableMixin(AtmosphericMixin(Vessel)))))` — it composes `Adornable` itself (the fixture surface the Door→`BoundaryAnchor` retrofit needs), since the bare `Vessel` base no longer does, and ⭐ **`Atmospheric` too, since the base-class narrowing build: a thing you can go inside is a place with air** (see [biome.md](./biome.md)). Carries the authored `interiorVolume` the envelope runs on, and overrides `envelopeApplies` + `openExteriorOpenings` because a room's version of each is wrong about a vehicle. Synthesizes `'in'`/`'out'` exits. Migrates the `(vessel, environment)` Boundary anchor pair on `setDoor` / `onMoved`, and resets the weather-locality memo there — a place that goes places has a new address. |
 | `DoorBearingMixin` | mixin | Adds a `door: Door | null` field for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
 | `Door` | concrete `Thing` subclass | `LockableMixin(SealableMixin(Boundary))`. Shared open/closed state, plus a **keyway and a bolt**, referenced by exit pairs. Implements all five conduits — `LightConduit`, `LineOfSight`, `MovementConduit`, `SmellConduit`, `SoundConduit` — all gated on `isOpen()`. `attachedTo: Set<Exit>` is the runtime back-reference. |
-| `SwitchableMixin` | mixin | Generic binary on/off toggle (`isOn()` / `setOn()`, `switchOn()` / `switchOff()`). The Sealable of the electrical world — a wall switch, a machine, the crossing `Beacon`. Driven by the `switch` / `toggle` verb (in the `device` category). Registered as `Switchable`, `MixinApi.isSwitchable`. |
+| `SwitchableMixin` | mixin | Generic binary on/off toggle (`isOn()` / `setOn()`, `switchOn()` / `switchOff()`). The Sealable of the electrical world — a wall switch, a machine, the crossing `Beacon`. Driven by the `switch` verb (in the `device` category). Registered as `Switchable`, `MixinApi.isSwitchable`. |
 | `LockableMixin` | mixin | ⭐ **A keyway AND a bolt** (`lib/boundary/Lockable.ts`), composed onto `Door` **beneath** `Sealable` and onto the three keyed Exit subclasses. The bolt is `isLocked()` / `setLocked()` / `lock()` / `unlock()`; the keyway is `getLock()` / `opensFor(mover)` over `lib/lock/Lock`. `canPass = !isLocked() || opensFor(mover)`, so a key-holder passes a locked door and `unlock` is how you let everyone else through. `getLock()` is a policy seam (the keyed family reads its warren's keyway) and `boltedByDefault()` decides the starting state. Registered as `Lockable`, `MixinApi.isLockable`. |
 | `BistateMixin` | mixin (unregistered) | The shared guarded-boolean substrate under `Sealable` (open/closed), `Switchable` (on/off), and `Foldable` (folded/unfolded). One persisted boolean + a `typeof`-boolean guard, reached via protected `getState()` / `setState(value, label)`. Lives at the `lib/` root (`lib/Bistate.ts`), NOT in `lib/boundary/`. **Deliberately carries no `_mixinName` and is not in the `Mixins` registry** — shared implementation, not a queryable capability; consumers narrow on the concrete axis (`isSealable` / `isSwitchable` / `isFoldable`), never an `isBistate`. |
 | `AdornableMixin` | mixin | Container-side surface for non-portable attached Stuff (`getFixtures()` parallel to `getContents()`). Composed onto `Location` and `ExitableVessel` (not the bare `Vessel` base — every fixture consumer narrows on `MixinApi.isAdornable` first). |
@@ -1063,11 +1063,11 @@ the noun form (`on`); only the predicate getter takes the `is` prefix.
 Reads naturally at every site: `beacon.setOn(true)`, `beacon.isOn()`,
 `data: { on: true }`.
 
-The global `switch` / `toggle` verb (`cmd/device/switch.yaml` +
+The global `switch` verb (`cmd/device/switch.yaml` +
 `platform/idea/cmd/device/SwitchController.ts` — the **`device` category**, not
 `boundary`) targets any `Switchable` in reach rather than a specific
-class: `switch beacon on`, `switch lamp off`, or `toggle lamp` to flip to
-the opposite of its current state.
+class: `switch beacon on`, `switch lamp off`, or a bare `switch lamp` to
+flip it (the `toggle` word is deleted: one view, one word).
 
 The shipped consumer is the crossing's `Beacon` (`obj/Beacon.ts`, a
 `Switchable(Propertied(Thing))` pedestrian signal — on = WALK,
@@ -1084,7 +1084,7 @@ idempotent action verbs — differing **only** by name. The one genuinely
 shared piece, the guarded boolean, is factored into `BistateMixin`
 (`lib/Bistate.ts`, at the `lib/` root because the concept spans
 spatial / boundary / slot with no single subsystem home — the
-`lib/reserve.ts` precedent). Each toggle mixin is then a thin naming
+`lib/reserve/Reserved.ts` precedent). Each toggle mixin is then a thin naming
 layer: `class SwitchableMixin extends BistateMixin(Base)` casting `this`
 to the internal `BistateInternal` (`getState()` / `setState(value,
 label)`) shape.

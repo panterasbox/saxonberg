@@ -59,7 +59,7 @@
 
 import Location from "../../lib/location/Location";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
-import { ReservedMixin } from "../../lib/reserve";
+import { ReservedMixin } from "../../lib/reserve/Reserved";
 import { WarrenMemberMixin, type WarrenMember } from "../../lib/location/WarrenMember";
 import { MixinApi } from "../../api/mixin";
 import { CallSecurity, Final } from "../../lib/security/decorators";

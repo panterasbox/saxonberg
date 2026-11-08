@@ -252,7 +252,7 @@ glass** for this to be visible, and both do:
   that contract; identification is the first thing that needed it), so
   every path that renders a long description gets it — see
   [bulk.md](./bulk.md) § `getContentsDescriptionFor`.
-- `read scroll` → the identify effect makes the **same** redirect: the
+- `recite scroll` → the identify effect makes the **same** redirect: the
   flask's *contents* are what gets identified, never the glass. Without
   it the answer is "there is nothing hidden to learn about a stoppered
   glass flask" — true of the glass and useless to the player holding it.
@@ -1221,9 +1221,10 @@ gets the floor.
 
 Three consequences, each of which would otherwise ship as a bug:
 
-- **There is no `identify` verb.** A scroll affords `read` like every
-  written thing, and what happens when you read it is the effect. An
-  `identify` affordance would identify the scroll for free.
+- **There is no `identify` verb.** Every scroll affords `read`, like every
+  written thing, and `recite`, whichever working it carries; what happens
+  when you recite it is the effect. An `identify` affordance would identify
+  the scroll for free.
 - **No per-class verb variation.** Every wand affords the same `zap`; if
   a fire wand afforded `scorch`, the verb list would identify it.
 - **A depleted wand still affords `zap`.** A verb that vanished when the
@@ -1290,12 +1291,12 @@ the seam is in place: unknown scripts are **withheld, never mangled**
 a bug), and the reader-side "which systems do you know?" lookup slots
 into `decode` without disturbing `perceive`.
 
-**A working that needs a mark ASKS for one.** `read scroll` is the only
+**A working that needs a mark ASKS for one.** `recite scroll` is the only
 form; when `item.requiresMark()` says the working demands a target,
 the controller raises a `PromptApi.mqlObject` over reachable candidates
 and spends nothing until one comes back.
 
-> ⚠ It briefly took the mark as a preposition — `read scroll at flask`.
+> ⚠ It briefly took the mark as a preposition — `read scroll at flask`, when `read` still cast.
 > That was wrong and the reason is worth keeping: **reading is not
 > aimed.** You read a scroll; you do not read *at* a flask. The clause
 > existed because the prompt substrate went unused, not because the act
@@ -1348,8 +1349,8 @@ glass, shared by `look` and the identify effect)
 
 **Verbs** (the arcana pack's views + controllers, `arcana/cmd/magic/`) —
 `magic/zap` · `magic/recharge` · `magic/study` · `magic/cast` · `magic/spells` ·
-`perception/read` (+ `at <mark>`) · `inventory/label` · `bulk/drink`
-(+`quaff`)
+`perception/read` · `magic/recite` (a scroll, split off
+`read` by controllers-are-io W5) · `inventory/label` · `bulk/drink`
 
 **Lint** — `pnpm lint:descriptors`
 (`scripts/check-descriptor-banks.ts`), CI-gating, both directions.
@@ -1362,3 +1363,13 @@ glass, shared by `look` and the identify effect)
 [reserve.md](./reserve.md) · [stacks.md](./glob.md) ·
 [chronicle.md](./chronicle.md) · [advancement.md](./advancement.md) ·
 [content-packs.md](./content-packs.md)
+
+## ⭐ `read` never casts (controllers-are-io D10)
+
+`read` tells you what a scroll says. `recite <scroll>` is the arcana pack's
+(`/system/arcana/cmd/magic/recite.yaml`, beside `cast` and `zap`), afforded by
+`Scroll`'s class on inventory and peers with `requires: [ArcaneMixin, MarkedMixin]`,
+and it goes through the same perceive and decode gates before
+`Arcane.dischargeAt`. ⚠ The split also ended a defect: `read`'s tail asked a
+consumed scroll to `teach`, a destroyed proxy answered `undefined`, and every scroll
+that fired from `read` ended in a `controller-error`.

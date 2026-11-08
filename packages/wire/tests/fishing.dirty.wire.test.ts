@@ -496,7 +496,7 @@ suite('11–12 · the stall', () => {
     me = await Session.open(handle, { startLocation: SQUARE, ...ANGLER });
     // `on slab`: the square has two consignment counters and the produce
     // stalls come first in reach.
-    const c = await me.cmd(`consign ${name} on slab --ask 4`);
+    const c = await me.cmd(`shelf consign ${name} on slab --ask 4`);
     expectOk(c);
     expect(await fishCount(me)).toBe(held - 1);
 
@@ -552,7 +552,7 @@ suite('11–12 · the stall', () => {
     // Not a game-day of world clock yet: the band edge is the dial (the
     // Prime Minister's `config` — the founder's).
     expectOk(await asFounder('config freshness.band.taintedAt 0.0001'));
-    const c = await me.cmd(`consign ${name} on slab --ask 4`);
+    const c = await me.cmd(`shelf consign ${name} on slab --ask 4`);
     expectRefused(c);
     expectNote(c, 'controller-rejected', { reason: 'turned' });
     await asFounder('config freshness.band.taintedAt 0.25');

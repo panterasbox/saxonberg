@@ -106,7 +106,7 @@ export default class LimeController extends GroundWorkController {
    *
    * ⚠ It used to walk the giver's contents itself, which meant no player
    * could ever say WHICH sack — and the walk is exactly what
-   * `lint:instrument-args` exists to keep at zero. The view's
+   * `lint:controller-resolution` exists to keep at zero. The view's
    * `[material.liming]` default does the finding now.
    */
   private limingAgent(bound: Stuff | null | undefined): Stuff | null {

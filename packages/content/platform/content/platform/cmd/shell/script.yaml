@@ -1,4 +1,5 @@
 verbs: [script]
+category: shell
 controller: /platform/idea/cmd/shell/ScriptController
 description: "Run a multi-statement script"
 help: |

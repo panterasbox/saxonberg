@@ -18,6 +18,13 @@ is a private method (one caller), and the dials are a module const-object
 
 ## Composition + the lazy time drive
 
+⭐ **Eating is `EatingMixin`'s, digestion is `MetabolicMixin`'s**
+(controllers-are-io D6, `lib/metabolism/Eating.ts`): `eat`, the utensil
+claim, the crumbs and the `eat` verb's contribution left digestion; the
+seven persisted fields, every reconcile/ingest/toxin method and `vomit`
+stayed. Both compose on `Creature`; `EatController` narrows on
+`MixinApi.isEating`, and an `airway` refusal carries the body's own line.
+
 `MetabolicMixin` composes on a `Creature`-shaped host **outer of
 `Vitals` / `Reserved` / `Posed`** (it drives all three) and **inner of
 `LoadBearing`** (the encumbrance gauge keeps reading the reserve surface

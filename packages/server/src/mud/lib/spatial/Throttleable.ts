@@ -32,6 +32,12 @@ export interface WorkRecord {
 export interface Throttleable {
   getOpening(): number;
   setOpening(fraction: number, by?: Stuff | null): void;
+  /**
+   * Set it to what a person said (`quarter`, `half`, `three quarters`, `full`, a
+   * figure 0..1, a percent), and say back what it now is; `null` when the phrase
+   * is no setting, with nothing changed.
+   */
+  workOpening(said: string, by: Stuff): { shut: boolean; words: string } | null;
   /** The opening over `[fromS, toS]` as a trajectory — integrated, never sampled. */
   openingTrajectory(fromS: number, toS: number): Piecewise;
   /** The worked record, oldest first. */
@@ -49,6 +55,22 @@ export interface Throttleable {
    */
   settleOpening(nowS: number): Promise<void>;
 }
+
+/** The words a setting may be said in. */
+const SETTING_WORDS: Readonly<Record<string, number>> = {
+  quarter: 0.25,
+  'a quarter': 0.25,
+  third: 1 / 3,
+  half: 0.5,
+  halfway: 0.5,
+  'two thirds': 2 / 3,
+  'three quarters': 0.75,
+  full: 1,
+  fully: 1,
+  wide: 1,
+  shut: 0,
+  closed: 0,
+};
 
 /** How many worked settings a gate's record keeps. */
 const WORK_LOG_DEPTH = 24;
@@ -89,12 +111,35 @@ export function ThrottleableMixin<TBase extends MixinConstructor<Stuff & Sealabl
       while (this.workLog.length > WORK_LOG_DEPTH) this.workLog.shift();
     }
 
-    public open(): void {
-      this.setOpening(1);
+    public workOpening(said: string, by: Stuff): { shut: boolean; words: string } | null {
+      const t = said.trim().toLowerCase().replace(/^(a|an|the)\s+/, '').replace(/\s+(open|way)$/, '');
+      const pct = /^(\d+(?:\.\d+)?)\s*%$/.exec(t);
+      const n = Number(t);
+      const f =
+        SETTING_WORDS[t] ??
+        (pct ? Math.min(1, Number(pct[1]) / 100) : t !== '' && Number.isFinite(n) && n >= 0 && n <= 1 ? n : null);
+      if (f === null) return null;
+      this.setOpening(f, by);
+      const near = (x: number): boolean => Math.abs(f - x) < 0.01;
+      const words =
+        f >= 0.999
+          ? 'fully open'
+          : near(0.75)
+            ? 'three quarters open'
+            : near(0.5)
+              ? 'half open'
+              : near(0.25)
+                ? 'a quarter open'
+                : `${Math.round(f * 100)}% open`;
+      return { shut: f <= 0, words };
     }
 
-    public close(): void {
-      this.setOpening(0);
+    public open(by: Stuff | null = null): void {
+      this.setOpening(1, by);
+    }
+
+    public close(by: Stuff | null = null): void {
+      this.setOpening(0, by);
     }
 
     public setOpen(value: boolean): void {

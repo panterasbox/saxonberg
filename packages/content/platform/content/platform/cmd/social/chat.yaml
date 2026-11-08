@@ -1,5 +1,8 @@
 verbs: [chat]
-controller: /platform/idea/cmd/social/ChatController
+category: social
+# ⭐ One controller per subcommand (controllers-are-io D9); the fallthrough
+# bare post (`chat <channel> <message>`) is the verb-level controller.
+controller: /platform/idea/cmd/social/ChatPostController
 description: "Post to a chat channel, or manage channel membership (list / join / leave / mute / unmute / who / make / rename / disband / history / promote / anonymity)"
 help: |
   Talk on a named channel that reaches everyone tuned in, wherever
@@ -20,12 +23,14 @@ validators:
 fallthrough: true
 subcommands:
   list:
+    controller: /platform/idea/cmd/social/ChatListController
     description: "List channels visible to you"
     help: |
       Show every channel you're allowed to see, including the ones
       you've already joined. Start here when you're new to find out
       what conversations exist.
   join:
+    controller: /platform/idea/cmd/social/ChatJoinController
     description: "Subscribe (tune in) to a channel"
     help: |
       Tune in to a channel so you start receiving its posts. You
@@ -38,6 +43,7 @@ subcommands:
         type: string
         required: true
   leave:
+    controller: /platform/idea/cmd/social/ChatLeaveController
     description: "Unsubscribe from a channel"
     help: |
       Drop a channel entirely — you stop receiving its posts and it
@@ -48,6 +54,7 @@ subcommands:
         type: string
         required: true
   mute:
+    controller: /platform/idea/cmd/social/ChatMuteController
     description: "Mute a channel (subscription kept; no frames delivered)"
     help: |
       Silence a channel without leaving it. You stay subscribed, but
@@ -58,6 +65,7 @@ subcommands:
         type: string
         required: true
   unmute:
+    controller: /platform/idea/cmd/social/ChatUnmuteController
     description: "Unmute a channel"
     help: |
       Start hearing a channel you previously muted. Delivery resumes
@@ -67,6 +75,7 @@ subcommands:
         type: string
         required: true
   who:
+    controller: /platform/idea/cmd/social/ChatWhoController
     description: "Show tuned-in members of a channel"
     help: |
       List who is currently tuned in to a channel, so you know your
@@ -76,6 +85,7 @@ subcommands:
         type: string
         required: true
   make:
+    controller: /platform/idea/cmd/social/ChatMakeController
     description: "Create a new player-created channel (you become the owner)"
     help: |
       Start your own channel and become its owner. Pick a name that
@@ -86,6 +96,7 @@ subcommands:
         type: string
         required: true
   on:
+    controller: /platform/idea/cmd/social/ChatOnController
     description: "Attach a chat surface to an existing subject you own (default free)"
     options:
       ordered:
@@ -97,6 +108,7 @@ subcommands:
         type: string
         required: true
   rename:
+    controller: /platform/idea/cmd/social/ChatRenameController
     description: "Rename a player-created channel you own"
     help: |
       Change the name of a channel you own. Members stay subscribed;
@@ -109,6 +121,7 @@ subcommands:
         type: string
         required: true
   disband:
+    controller: /platform/idea/cmd/social/ChatDisbandController
     description: "Disband a player-created channel you own"
     help: |
       Permanently remove a channel you own. Everyone is unsubscribed
@@ -118,6 +131,7 @@ subcommands:
         type: string
         required: true
   history:
+    controller: /platform/idea/cmd/social/ChatHistoryController
     description: "Show recent posts in a channel"
     help: |
       Catch up on what was said recently on a channel — useful after
@@ -127,6 +141,7 @@ subcommands:
         type: string
         required: true
   anonymity:
+    controller: /platform/idea/cmd/social/ChatAnonymityController
     description: "Permit or forbid anonymous posts on a channel you own"
     help: |
       Decide whether people may speak on your channel without being
@@ -152,6 +167,7 @@ subcommands:
         type: string
         required: true
   promote:
+    controller: /platform/idea/cmd/social/ChatPromoteController
     description: "Promote an ad-hoc DM channel into a persistent player-created channel"
     help: |
       Turn a throwaway group-DM thread into a real, named channel

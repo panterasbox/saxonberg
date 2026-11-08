@@ -11,8 +11,8 @@
  */
 
 import CompoundingVessel from '@saxonberg/server/mud/platform/thing/CompoundingVessel';
-import { DipBathMixin, type DipRequest } from '@saxonberg/server/mud/lib/craft/DipBath';
-import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import { DipBathMixin, type DipDone, type DipPlan, type DipRefusal, type DipRequest } from '@saxonberg/server/mud/lib/craft/DipBath';
+import type { ActDone } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Placing } from '@saxonberg/server/mud/lib/spatial/Placing';
@@ -21,7 +21,6 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { Mml } from '@saxonberg/server/mud/api/mml';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Sheet from '@saxonberg/server/mud/platform/thing/Sheet';
 import WatercourseCatalogue, { WATERCOURSE_CATALOGUE_PATH } from '@saxonberg/content-water/src/idea/WatercourseCatalogue';
@@ -79,19 +78,15 @@ export default class PulpVat extends DipBathMixin(CompoundingVessel) {
     if (s instanceof Stamper) await s.beatInto(this as unknown as Stuff & PulpVat);
   }
 
-  public override async dipPlanFor(req: DipRequest): Promise<ActPlan | ActRefusal | null> {
+  public override async dipPlanFor(req: DipRequest): Promise<DipPlan | DipRefusal | null> {
     const self = this as unknown as Stuff;
     const mould = req.target;
     if (mould === null) return null;
-    if (!(mould instanceof PaperMould)) {
-      return { ok: false, reason: 'not-a-mould', line: Mml.compose`You lift sheets out of ${Mml.thing(self)} on a paper mould, not ${Mml.thing(mould)}.` };
-    }
-    if (mould.sheetOnWire() !== null) {
-      return { ok: false, reason: 'mould-full', line: Mml.compose`There is a wet sheet on ${Mml.thing(mould)} already — couch it first.` };
-    }
+    if (!(mould instanceof PaperMould)) return { ok: false, reason: 'not-a-mould', facts: { bath: self, mould } };
+    if (mould.sheetOnWire() !== null) return { ok: false, reason: 'mould-full', facts: { mould } };
     await this.settleStamper();
     if (!MixinApi.isBulkable(self) || self.getBulkAmount('interior').rawValue() + 1e-9 < SHEET_LITRES) {
-      return { ok: false, reason: 'no-pulp', line: Mml.compose`There is not enough stuff in ${Mml.thing(self)} to lift a sheet. The stamper makes it.` };
+      return { ok: false, reason: 'no-pulp', facts: { bath: self } };
     }
     const actor = req.actor;
     const band: CompetenceBandName = MixinApi.isAdvancing(actor) ? await actor.competenceBandFor('papermaking') : 'untrained';
@@ -100,18 +95,17 @@ export default class PulpVat extends DipBathMixin(CompoundingVessel) {
       ok: true,
       durationMs: 20_000,
       effortW: 90,
-      beginSelf: Mml.compose`You dip ${Mml.thing(mould)} into ${Mml.thing(self)} and lift it level, shaking the wire so the fibres lie every way at once.`,
-      beginPeers: Mml.compose`${Mml.actor(actor)} dips a mould into ${Mml.thing(self)} and lifts it, streaming.`,
-      onComplete: async () => {
-        if (!MixinApi.isBulkable(self)) return undefined;
+      facts: { kind: 'sheet', bath: self, mould },
+      onComplete: async (): Promise<ActDone<DipDone, DipRefusal>> => {
+        if (!MixinApi.isBulkable(self)) return { ok: true, facts: { kind: 'gone' } };
         const have = self.getBulkAmount('interior').rawValue();
-        if (have + 1e-9 < SHEET_LITRES) return { ok: false, reason: 'no-pulp', line: Mml.compose`The vat ran short before the sheet formed.` };
+        if (have + 1e-9 < SHEET_LITRES) return { ok: false, reason: 'vat-ran-short' };
         self.setBulkAmount('interior', Quantity.of(have - SHEET_LITRES, 'L'));
         const sheet = await StuffApi.clone<Stuff>(this.sheetTemplate || '/platform/thing/sheet');
-        if (!(sheet instanceof Sheet)) return undefined;
+        if (!(sheet instanceof Sheet)) return { ok: true, facts: { kind: 'gone' } };
         sheet.formAt(color, EVENNESS[band] ?? EVENNESS.untrained);
         ContainmentApi.move(sheet, mould as unknown as Stuff & Placing, 'on');
-        return undefined;
+        return { ok: true, facts: { kind: 'sheet' } };
       },
     };
   }

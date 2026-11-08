@@ -1,0 +1,9 @@
+// lint:controller-resolution fixture — self-resolution shapes, one per line.
+// FOUND (4):
+await MqlApi.resolveOne(g, "x");
+StuffApi.findByTemplatePath("/a");
+StuffApi.singleton(X);
+room.getContents();
+// CLEAN (a bound arg; a comment):
+const t = args.target;
+// MqlApi.resolveOne(g, "x")

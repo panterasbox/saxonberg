@@ -19,7 +19,9 @@
 import "@saxonberg/server/test-bootstrap";
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import TitleController from '@saxonberg/server/mud/platform/idea/cmd/civics/TitleController';
+import TitleHoldingsController from '../idea/cmd/civics/TitleHoldingsController';
+import TitleListController from '../idea/cmd/civics/TitleListController';
+import TitleBuyController from '../idea/cmd/civics/TitleBuyController';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import PlatWarren from '../idea/PlatWarren';
 import PlatBook from '../idea/PlatBook';
@@ -311,9 +313,15 @@ function ctxFor(giver: TestGiver, loc: Place): CommandContext {
     command: stubCommand(),
   });
 }
-type TitleExec = Parameters<TitleController['execute']>[0];
+type TitleExec = Parameters<TitleBuyController['execute']>[0];
 function model(subcommand?: string, lot?: string): TitleExec {
   return { subcommand, lot } as ModelData as unknown as TitleExec;
+}
+/** The controller the view routes a subcommand to (bare = the holdings). */
+function controllerFor(sub: string | undefined) {
+  if (sub === 'buy') return new TitleBuyController();
+  if (sub === 'list') return new TitleListController();
+  return new TitleHoldingsController();
 }
 function reasons(ctx: CommandContext): string[] {
   return ctx.getNotes().map((n) => (n as { reason?: string }).reason ?? '');
@@ -325,10 +333,14 @@ async function run(
   m: TitleExec,
 ): Promise<CommandContext> {
   const ctx = ctxFor(giver, loc);
-  const ctrl = makeStuff(() => new TitleController());
+  const ctrl = makeStuff(() => controllerFor(m.subcommand));
+  // A controller test skips the binder and hands the desk in the binder's
+  // shape: the view's default is `reachable:[class.DeedDesk]`.
+  const desk = (loc as unknown as Container).getContents().find((c) => c instanceof DeedDesk);
+  const bound = desk ? { ...m, desk: { stuff: desk } } : m;
   await withRootContext(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(giver as unknown as Stuff);
-    await ctrl.execute(m, ctx);
+    await ctrl.execute(bound as TitleExec, ctx);
   });
   return ctx;
 }

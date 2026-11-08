@@ -70,16 +70,30 @@ facade, not here.
 
 One `HelpTopic` per loaded `CommandDefinition`: `id = command.<primaryVerb>`,
 `title` = primary verb, `summary` = `def.description`, `keywords` =
-`[...verbs, 'command']`, and **`body` = `def.getHelpText()` verbatim** —
+`[verb, ...defaultAliases, 'command']`, and **`body` = `def.getHelpText()` verbatim** —
 the single source that already assembles verb / aliases / syntax /
 options / subcommands / examples. Commands are flat this wave (`relations
-= []`).
+= []`). ⭐ The catalogue indexes them by `def.category` (D24) —
+`commandCategories()` and `listCommandCategory()`, surfaced as
+`HelpApi.commandCategories` / `commandCategory`.
 
 A command view may carry a co-located **`help:` block** — multi-line,
 player-facing prose ([command-spec.md](./command-spec.md) § the YAML
 shape). `getHelpText()` renders it *below* the synthesized syntax, so the
 command topic's body carries the authored prose without a second source,
 and authored prose never restates what the syntax line already says.
+
+⭐ **`help <verb>` lists who ANSWERS it** (controllers-are-io D8b). A command
+topic whose view's slots `requires:` a verb protocol (`_mixinKind =
+'protocol'`, [mixins.md](./mixins.md)) gains an *answers:* section — each
+protocol, and under it the classes that compose it (`help dip`: `DipBathMixin
+— DipPot, GlazeTub, Melt, PaintPot, PulpVat`), from `StudioApi.answerersOf`.
+It is filled on the topic's **first read** and cached until the index is
+rebuilt: the warm keeps only each view's required-mixin list
+(`CommandDefinition.getRequiredMixins`), so the source scan never runs at
+boot and no build artifact exists. ⚠ A verb whose object slot is `requires:
+any` (narrowed in its controller — `turn`, `carve`) lists nothing until its
+view names the protocol; a noun mixin a slot requires is not an answer.
 
 ### API projector — first-class mixins, graded kinds, complete roster
 
@@ -255,12 +269,14 @@ the uniform fields.
 `HelpController` renders every form off the index through `HelpApi`, on
 the existing `shell.result` topic:
 
-- bare `help` → the landing/index (categories + counts + a hint line);
+- bare `help` → the landing: the verb categories with counts, then the
+  rulebook's other kinds, then a hint line;
+- `help <category>` → that category's verbs, one line each;
 - `help <word>` → the **bare fallthrough** (the YAML gained
   `fallthrough: true` + a top-level optional `topic` positional, so the
   common case no longer needs the `verb` subcommand word), resolved in
-  the order a player means the word: **verb → concept → collection →
-  api**. ⚠⚠ The concept rung was missing until 2026-09-17: authored
+  the order a player means the word: **verb → category → concept →
+  collection → api**. ⚠⚠ The concept rung was missing until 2026-09-17: authored
   `HelpConcept` rows were indexed and searchable from the farmstead
   build on, and `help extraction` answered *"no help topic"* — four
   packs' concepts were reachable only through `help search`. The

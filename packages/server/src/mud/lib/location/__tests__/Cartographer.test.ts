@@ -305,7 +305,9 @@ describe('⭐⭐ a place claim banks the tokens it answered to', () => {
     guide.recordSurroundings(hall_ as unknown as Stuff, []);
     await new Promise((r) => setTimeout(r, 0));
     const place = recorded.flatMap((r) => r.claims).find((c) => c.kind === 'place');
-    expect(place?.keywords).toEqual(['hall', 'entry']);
+    // ⭐ Its name is one of the words it answers to (`NamedMixin.getKeywords`
+    // folds it in — the name is not special), so the map banks it too.
+    expect(place?.keywords).toEqual(['hall', 'entry', 'the hall']);
     // ⚠ And the short description too — it is what a prompt shows to
     // tell two rooms with the same keyword apart.
     expect(place?.name).toBe('the hall');
@@ -313,7 +315,8 @@ describe('⭐⭐ a place claim banks the tokens it answered to', () => {
 
   it('⚠ leaves them ABSENT when the place answers to nothing', async () => {
     const guide = makeStuffAtPath(() => new Guide(), GUIDE_ROW, GUIDE_ID);
-    const bare = hall() as unknown as Stuff & { setKeywords(k: string[]): void };
+    // Unnamed and unkeyworded: nothing to call it by.
+    const bare = makeStuffAtPath(() => new Hall(), HALL) as unknown as Stuff & { setKeywords(k: string[]): void };
     bare.setKeywords([]);
     guide.recordSurroundings(bare as unknown as Stuff, []);
     await new Promise((r) => setTimeout(r, 0));

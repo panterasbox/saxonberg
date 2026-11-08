@@ -77,9 +77,8 @@ describe('a tap has a sex and a rest', () => {
     advance(0.5);
     expect(bull.givesTap('milk')).toBe(false);
     const plan = await bull.planTap(bull, 'milk', null, null, null);
-    expect(plan.kind).toBe('refusal');
-    expect(plan.kind === 'refusal' && plan.reason).toBe('wrong-sex');
-    expect(plan.kind === 'refusal' && plan.prose).not.toMatch(/\d/);
+    expect(plan.ok).toBe(false);
+    expect(!plan.ok && plan.reason).toBe('wrong-sex');
   });
 
   it('a female is refused nothing for her sex; a sexless tap serves either', async () => {

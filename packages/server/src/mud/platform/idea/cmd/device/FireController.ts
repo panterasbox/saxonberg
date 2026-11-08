@@ -23,9 +23,9 @@
  * chamber to settle (`Burner.settleFiring`) — each piece reads itself — and
  * says what came out by reading each piece's record.
  *
- * ## ⚠ `fire` is not `ignite`
+ * ## ⚠ `fire` is not `light`
  *
- * *"Fire the kiln"* ambiguously means *light it* — which `ignite` owns — so
+ * *"Fire the kiln"* ambiguously means *light it* — which `light` owns — so
  * the chamber must already be lit, and the refusal says so (the smelt's
  * own hard-won distinction: an unlit furnace is a *cold* one). **And a
  * lime-burner burns lime**, which is why `burn` is on the same view.

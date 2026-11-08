@@ -42,6 +42,7 @@ import { CallSecurity, Final, Unshadowable } from "../../lib/security/decorators
 import { Currency } from "../../lib/banking/Currency";
 import { Quantity } from "../../lib/quantity";
 import type { FieldMeta } from "../../lib/mixin";
+import type { Stuff } from "../../lib/stuff/Stuff";
 
 const CoinBase = StackableMixin(Good);
 
@@ -219,8 +220,8 @@ export default class Coin extends CoinBase {
    * runtime from its denomination**, so there is no row an author could
    * write them in. This override is where they come from instead.
    */
-  public override getKeywords(): string[] {
-    const base = super.getKeywords();
+  public override getKeywords(viewer?: Stuff): string[] {
+    const base = super.getKeywords(viewer);
     if (!this.currency || !Currency.has(this.currency)) return base;
     const record = Currency.of(this.currency);
     const described = this.getShortDescription()

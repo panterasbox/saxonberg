@@ -1,4 +1,5 @@
 verbs: [snap]
+category: glass
 controller: /trade/glass/idea/cmd/glass/SnapController
 description: "Part a scored sheet of glass in two"
 help: |

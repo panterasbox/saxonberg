@@ -544,20 +544,39 @@ function perceivedKeywordsImpl(viewer: Stuff, target: Stuff): string[] {
     // form) even though the prose (`describe`) drops them, so `look vest`
     // resolves a stranger the roll-call prose names only "a crossing
     // guard". Status is not a targeting handle, so `withStatus` stays off.
-    const perceived = GrammarApi.tokenize(
-      describeCore(viewer, target, 'distinguishing'),
-    );
+    // ⭐ What you may call somebody is the WHOLE of what you perceive them as,
+    // as phrases and never loose words: the scorer already answers a single word
+    // of a phrase, one tier down. So `mary-jane` and `o'brien` answer whole (the
+    // tokenizer splits on punctuation), `mary` and `vest` still find them, and
+    // the jumper in your hand outranks the stranger who is wearing one (the
+    // drive: `order wash for jumper` bound a person).
+    const plain = describeCore(viewer, target, 'concise');
+    const worn = describeCore(viewer, target, 'distinguishing');
+    const perceived = [
+      ...new Set(
+        [
+          plain.toLowerCase().trim(),
+          worn.toLowerCase().trim(),
+          GrammarApi.tokenize(plain).join(' '),
+          GrammarApi.tokenize(worn).join(' '),
+        ].filter((k) => k.length > 0),
+      ),
+    ];
     // ⭐ An ANIMAL keeps its authored keywords too: a named cat is still a
     // cat, and `pet cat` must reach Mouse. A person does not — what you
     // may target somebody by is exactly what you perceive them as, which
     // is the whole of disguise (found live: `look cat` found nothing the
     // moment she had a name).
     if (!MixinApi.isPersona(target) && MixinApi.isPerceptible(target)) {
-      return [...new Set([...perceived, ...target.getKeywords()])];
+      return [...new Set([...perceived, ...target.getKeywords(viewer)])];
     }
     return perceived;
   }
-  return MixinApi.isPerceptible(target) ? target.getKeywords() : [];
+  // ⭐ A thing answers to its own keyword face for `viewer` — its name
+  // among them (`NamedMixin`), its details as `viewer` may address them.
+  if (MixinApi.isPerceptible(target)) return target.getKeywords(viewer);
+  if (MixinApi.isNamed(target)) return target.getKeywords(viewer);
+  return [];
 }
 
 /** The `learnIdentity` face — see the object surface (Stuff/BeliefStore). */

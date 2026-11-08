@@ -44,7 +44,7 @@ import { StuffApi } from "../../../api/stuff";
 import { WorldClockApi } from "../../../api/worldclock";
 import "../../../platform/idea/WorldClockRegistry";
 import { Quantity } from "../../../lib/quantity";
-import { Reserve } from "../../../lib/reserve";
+import { Reserve } from "../../../lib/reserve/Reserved";
 import type Interactive from "../../../platform/idea/Interactive";
 import {
   makeStuff,

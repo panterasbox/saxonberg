@@ -10,7 +10,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { Archetype } from '../Archetype';
 import { ParcelApi } from '../../../api/parcel';
 import { SoilMixin } from '../../husbandry/Soil';
-import { ReservedMixin } from '../../reserve';
+import { ReservedMixin } from '../../reserve/Reserved';
 import { ContainerMixin } from '../../spatial/Container';
 import { Idea } from '../../stuff/Idea';
 import type { Stuff } from '../../stuff/Stuff';

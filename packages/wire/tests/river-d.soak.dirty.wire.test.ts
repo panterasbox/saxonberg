@@ -147,7 +147,7 @@ suite('stage D — a ship on the river', () => {
     const name = String((me[0] as { displayName?: unknown } | undefined)?.displayName ?? '');
     const gov = await Session.open('founder', { startLocation: BANK_HALL });
     try {
-      expectOk(await gov.cmd(`appoint "${name}" to master at /world/terminus/ostrander/idea/outfit`));
+      expectOk(await gov.cmd(`house appoint "${name}" to master at /world/terminus/ostrander/idea/outfit`));
     } finally {
       gov.close();
     }

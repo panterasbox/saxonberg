@@ -488,13 +488,13 @@ suite.skipIf(!isOwnedTestWorld())(
       ).toBe('shape-fall-through');
     }, 180_000);
 
-    it('`stoke` then `ignite still` reaches the burner', async () => {
+    it('`stoke` then `light still` reaches the burner', async () => {
       // ⭐ The still is stoked first now. Before the fire build it ran on
       // a `%` fuel reserve its row authored once and nothing refilled.
       const fed = await say(k, 'stoke log into still');
       understood(fed, 'stoke log into still');
-      const r = await say(k, 'ignite still');
-      understood(r, 'ignite still');
+      const r = await say(k, 'light still');
+      understood(r, 'light still');
     }, 120_000);
   },
 );

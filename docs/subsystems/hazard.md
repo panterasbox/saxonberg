@@ -177,7 +177,7 @@ nothing — an unlucky pit is not a crime. See
 **`device`** category = "operating a mechanism"). The controller keeps
 **only** the command machinery: target resolution, the **found gate**
 (`PerceptionApi.hasDiscovered` — you must perceive a trap to defuse it, so
-`search`/`examine` it first), the armed gate, the costed `HazardActivity`
+`search`/`look` it first), the armed gate, the costed `HazardActivity`
 (`HAZARD_DISARM_TYPE`, warming the `awareness` band so the completion reads
 a live snapshot), and the disarmer's `awareness`-graded `ActSignature` deed.
 The **interaction itself** — the state flip and the narration — is

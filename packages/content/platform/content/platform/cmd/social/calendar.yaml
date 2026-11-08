@@ -1,4 +1,5 @@
 verbs: [calendar]
+category: social
 controller: /platform/idea/cmd/social/CalendarController
 description: "Read your personal calendar (dated reminders on your aether implant)"
 help: |

@@ -1,5 +1,5 @@
 /**
- * BrushController — `brush <thing> [with <brush>]`, alias `beat`
+ * BrushController — `brush <thing> [with <brush>]`
  * (cleanliness, review B46): the loose dirt out of a thing, dry. The act is
  * the thing's own (`Soilable.brushOff`); this picks the target and the
  * tool, times the work, and words what came out.

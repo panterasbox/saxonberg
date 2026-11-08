@@ -256,12 +256,11 @@ async function chooseLoaf(
 function offersOn(counter: Stuff): Offer[] {
   const priced = counter as unknown as {
     priceFor?(key: string): number | null;
-    getContents?(): Stuff[];
   };
-  if (typeof priced.getContents !== 'function') return [];
+  if (!MixinApi.isContainer(counter)) return [];
   const out: Offer[] = [];
   const seen = new Set<string>();
-  for (const item of priced.getContents()) {
+  for (const item of counter.getContents()) {
     if (!isLoaf(item)) continue;
     const path = item.getTemplatePath() ?? '';
     if (!path || seen.has(path)) continue;

@@ -1,5 +1,5 @@
 /**
- * GovernmentController — the `government` / `gov` verb, the read surface
+ * GovernmentController — the `government` verb, the read surface
  * of the civics substrate (the new `civics` command category — the
  * FICTION's governments, deliberately not `governance`, which is the
  * Compact's category). Subcommands:

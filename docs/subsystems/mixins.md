@@ -171,10 +171,87 @@ cared-about`). A protocol mixin costs one class layer and buys all three.
 ⚠ It must not break TypeScript: a deep composition chain has collapsed
 inference before (`Atmospheric`) — a protocol mixin is thin, but check.
 
-The shipped bare shapes predate the rule — `Workable` / `Diggable` /
-`Splittable`, `Pumpable`, `Tappable`, `Cuttable` (and `Reelable`, which
-the reel undo removes) — and are swept by
-[verb-interfaces-slate.md](../slates/builds/verb-interfaces-slate.md).
+⭐ **A protocol mixin says so: `static _mixinKind = 'protocol'`**
+(controllers-are-io D8a), beside its `_mixinName`, so a presentation
+surface (the card's chips, Studio's palette, `help <verb>`'s *answers:*) can
+show it as the verb it serves rather than as a noun. The kernel's:
+`PumpableMixin`, `LiftSourceMixin`, `PumpSourceMixin` (`lib/pump/`),
+`SplittableMixin` (`lib/ground/`), `CuttableMixin` and `CutPlannerMixin`
+(`lib/craft/`), `PourTargetMixin` (`lib/bulk/`, the one `pour`),
+`TravelNodeMixin` (`lib/travel/`), each with a `MixinApi.isX`; and the
+craft protocols with a null-or-refusing default (`lib/craft/`): `DipBathMixin`
+(`dip`), `CarvableMixin`, `ShapeableMixin`, `KneadVesselMixin`,
+`TurnableMixin`, `ImpressibleMixin`, `HandWorkedMixin`, `StrikingDieMixin`.
+⚠ `FormingMixin` is NOT one — it carries authored state (`forms`,
+`formTemplates`) beside its `shapePlanFor`, so it is a fact about the
+instrument as well as a verb's protocol.
+
+**How it is presented** (D8b): the affordance resolver's `composition` is
+`{ name, kind, verbs? }[]` — a protocol carries the verbs whose views
+`requires:` it (`CommandApi.verbsRequiring`) and the card reads *answers: dip*
+beside the noun chips; Studio's palette offers it as `kind: 'protocol'`; and
+`help <verb>` lists, under each protocol its view requires, the classes that
+compose it ([help.md](./help.md), [studio.md](./studio.md)). ⚠ The marker is
+read as an OWN static — a mixin composed over a protocol inherits the static
+and must not read as one.
+
+⭐ **Three markers are not protocols** (D7a) — no verb calls them, so they carry
+no `_mixinKind`; they exist because a reader across a pack line must narrow on
+something. `PoweredMixin` (`lib/supply/`): draws a supply — `GridPowered`,
+`Comminuting`, `Sawmill`. ⚠ `Sawmill.isPowered()` meant *runs on water*, a fact
+about the rung; it is `runsOnWater()` now, so the word has one meaning.
+`WaterPoweredMixin` (`lib/supply/`): turns a reach's flow into watts —
+`ControlStructure` only. ⚠ NOT `Conduit`: it has a `getReachRef` and no
+generation, and a mill walking its room for a power take would have picked the
+conduit and read 0 W beside a turning wheel — the plan's second host, dropped
+on that finding. One host earns it because its readers (the mills) cannot
+import it. `NameTakingMixin` (`lib/description/`): who may write a name —
+`Named`, `Crafted`, `Assembled`, `Bonded`, each saying
+`super.canBeNamedBy(h, by) || <rule>`. ⚠ It composes more than once on one
+class by design (the rules stack in any order), and each layer hands to what is
+beneath; the one prototype look lives in it.
+
+The bare shapes the sweep (controllers-are-io D8a) disposed of: the six
+above **converted** (each had three implementers, or a kernel verb and a
+pack network); `Tappable` **deleted** — its one implementer was
+`ProducingMixin`, so the take is `Producing`'s own surface; `Reelable`
+died with the `reel` undo; `CutPlanner` became the kernel protocol
+`CutPlannerMixin` (`lib/craft/CutPlanner.ts`; one composer, tailoring's
+`CuttingTool`, but the kernel `cut` asks a pack tool, so the shape must be
+kernel-declared — [crafting.md](./crafting.md)). ⚠ Still bare, recorded:
+`Workable` itself (the ground protocol; its `WorkPlan` is now the one
+`ActPlan` shape, D4) and `Diggable` (one host, the quarry's
+`OpenWorkingMixin`, but asked by a KERNEL verb's room/floor ladder —
+demoting it needs `dig` to move to the pack).
+
+### ⭐ The split test — when one mixin is two
+
+A mixin is two when its members fall into two clusters that never touch
+(`lint:mixin-clusters` counts them), and **the test is who composes it and
+which imports leave**, beside co-use (the Slotted → Attired precedent,
+[slot.md](./slot.md)). The original idea keeps the name and the file; the
+later-added idea leaves to a new file named for it; no composite; the
+carved half composes only on its honest hosts; every reader narrows on the
+new predicate; persisted field names do not change (restore is
+key-agnostic). controllers-are-io D6 made five:
+
+| original (keeps name) | carved | hosts of the carved half | why |
+|---|---|---|---|
+| `OrganizationMixin` | `OnCallMixin` | the concrete Business only | a government calls nobody |
+| `WaterPlaceMixin` | `HaulOutMixin` | all seven water places | co-use split; its own imports |
+| `MetabolicMixin` | `EatingMixin` | `Creature` | eating is how food reaches digestion |
+| `LoadBearingMixin` | `BuoyantMixin` | `Creature` | the water's question, not the burden's |
+| `ChattelMixin` | `MadeFromMixin` | `Good`, `Vessel` only | an animal is a chattel nobody made |
+
+### ⭐ The file rule — a factory `FooMixin` lives in `Foo.ts`
+
+One factory, one file, named for it, without the suffix — in the kernel's
+`lib/**` and `world/**` and every pack's `src/lib/**`.
+`lint:mixin-files` holds it at 0 (controllers-are-io D7b moved the twelve
+that broke it: `Tooled.ts` → `Tool.ts`, `reserve.ts` →
+`reserve/Reserved.ts`, the two-factory `Consignment.ts` → `HeldGoods.ts` +
+`ConsignmentShelf.ts`, `Staged.ts`'s `PropsMixin`/`CostumedMixin` →
+`Props.ts`/`Costumed.ts`, and the rest).
 
 Five conventions. Skip any of them and other subsystems silently treat
 the mixin as if it weren't there.
@@ -1182,3 +1259,14 @@ contribute or whether one wins.
   `canX` / `onX` hooks declared on existing mixin interfaces; the
   rationale for why composing-a-mixin-on-a-shadow no longer
   auto-enrols every method.
+
+## History
+
+- **controllers-are-io (2026-11, `5b0a0f23c..2fa4b0e72`, MR !527).** The
+  mixin layer took the verbs' decisions off the controllers: five splits
+  (D6, the table above), twelve file moves under `lint:mixin-files` (D7b),
+  three markers (D7a), and the bare verb shapes converted to protocol
+  mixins carrying `_mixinKind = 'protocol'` (D8a), presented as
+  *answers: <verb>* on the card, in Studio and in `help <verb>` (D8b).
+  Every view that used to say `requires: any` for want of a shared mixin
+  now names its protocol, except `cut`, `dig`, `tap` and `teleport`.

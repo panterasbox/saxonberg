@@ -31,14 +31,17 @@
  * failure the `mx` digest was cut to avoid.
  */
 
-import type { AffordanceEntry } from "@saxonberg/types";
+import type { AffordanceEntry, CompositionEntry } from "@saxonberg/types";
 
 /** What the server answered for one subject. */
 export interface AffordanceAnswer {
   stuffId: string;
   verbs: AffordanceEntry[];
-  /** The subject's ACTIVE mixin composition — never its declared one. */
-  composition: string[];
+  /**
+   * The subject's ACTIVE mixin composition — never its declared one. Each
+   * entry says whether it is a noun mixin or a verb protocol.
+   */
+  composition: CompositionEntry[];
   /**
    * What the subject IS, to this viewer — the centre chip's middle
    * term. Viewer-aware server-side (`RecognitionApi.kindOf`), so a

@@ -11,8 +11,10 @@
  *     ally onto yourself (join the fight if needed, then redirect the
  *     foe's threat edge onto you).
  *
- * `intervene`/`stay` and `fight defend` remain as aliases for their
- * respective cardinalities; `defend` is the canonical surface.
+ * `intervene`/`stay` remain as aliases for their cardinalities; `fight
+ * defend` names this controller in `fight.yaml` (controllers-are-io W7 —
+ * the one same-act subcommand), binding no target, so it is the cover-up.
+ * `defend` is the canonical surface.
  */
 
 import { CommandController } from "../../../../lib/command/CommandController";

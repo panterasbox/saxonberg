@@ -1,4 +1,5 @@
 verbs: [competence]
+category: charactergen
 controller: /platform/idea/cmd/charactergen/CompetenceController
 description: "Read competence — the bands somebody has reached."
 help: |

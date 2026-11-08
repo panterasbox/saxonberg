@@ -515,10 +515,9 @@ unchanged (a mug moving from one desk to another in the same room), so
 nothing would restamp — and a member that encloses means the thing's
 ambient scope just changed.
 
-`place` throws `ContainmentError` on programmatic-contract violations
+`move` to a placing destination throws `ContainmentError` on programmatic-contract violations
 (no environment; `canPlace` vetoes). User-input failures are handled
-upstream by `PutController`, which reads the veto's `reason` into
-prose.
+upstream by `put`, which reads the veto's `reason` into prose.
 
 ### `Placing.getPlaced(name?)`
 
@@ -616,8 +615,10 @@ the inspection card is a FIELD PROJECTION rather than a query, so the
 rule has to be callable without MQL. See
 [architecture.md § MQL is a VIEW over the model](../architecture.md) —
 *anything expressible in MQL must also be expressible by function
-call.* A `:loose` predicate is welcome as one line that calls this;
-it may not replace it.
+call.* The `:loose` predicate (controllers-are-io W2) is one line that
+calls this; it does not replace it — the three callers resolve their
+visible set by one MQL query and still hand it here, which keeps the
+guard below ([perception.md § The room listing](./perception.md)).
 
 ⚠ One clause of it is filed as a question rather than defended: the
 `ids.has(host)` guard is set-relative and fires only when the caller
@@ -846,8 +847,8 @@ vehicle carrying passengers might not be); `toPeers` always.
 | `canMove(to)` | item | `ContainmentApi.move` (pre) — ⚠ class invariants only, see below |
 | `canRemoveContainable(item)` | source container | `ContainmentApi.move` (pre) |
 | `canAddContainable(item)` | dest container | `ContainmentApi.move` (pre) |
-| `onContainableRemoved(item)` | source container | `ContainmentApi.move` (post) |
-| `onContainableAdded(item)` | dest container | `ContainmentApi.move` (post) |
+| `onContainableRemoved(item, to)` | source container | `ContainmentApi.move` (post); `to` is where it went |
+| `onContainableAdded(item, from)` | dest container | `ContainmentApi.move` (post); `from` is where it was |
 | `onMoved(from, to)` | item | `ContainmentApi.move` (post) |
 
 The traversal layer fires from `Mobile.traverse` and is exit-aware.
@@ -1160,3 +1161,19 @@ widening it needs (the mixin's base constraint is `Stuff & Container`
 and a compartment is not a Container), was graduated into
 [fridge-design-pack](../slates/builds/fridge-design-pack.md) at this
 build's sweep — written against the shipped tree and executable cold.
+
+## ⭐ What a word means on a host (controllers-are-io D11)
+
+`put` asks the target. `PlacingMixin.placementFor(word)` and
+`ContainerMixin.placementFor(word)` answer the same way, over the
+`PlacementOffers` value object (they compose in either order on a
+desk-with-a-drawer): region zero first when the host is a plain container, then
+one offer per member; a typed word means the member whose primary word it is,
+else any member that answers to it; no word means the only offer, or *which of
+them*. `SlottedMixin.openSlotFor(item, word)` is the slot rule (a slot is more
+specific than a container, and a body never answers), and `seatInSlot` is the
+move and then the occupancy. `ContainmentApi.move` stays the one primitive.
+
+⭐ The witnesses are told the other end of the move, a second argument and never
+a search of the frame: a feeder notes who filled it (`from`), a tanpit lifts a
+hide for the hand it went to (`to`). A forwarder forwards both.

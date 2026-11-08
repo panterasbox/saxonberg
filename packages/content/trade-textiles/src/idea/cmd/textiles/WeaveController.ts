@@ -195,13 +195,10 @@ async function outcomeBand(
   // the weaver. See ScutchController's `bandOf`.
   const base = Grade.isBand(raw) ? raw : 'fair';
   if (form !== CLOSE) return base;
-  const asActor = giver as unknown as {
-    competenceBandFor?(key: string): Promise<CompetenceBandName>;
-  };
   let band: CompetenceBandName = 'untrained';
-  if (typeof asActor.competenceBandFor === 'function') {
+  if (MixinApi.isAdvancing(giver)) {
     try {
-      band = await asActor.competenceBandFor('textiles');
+      band = await giver.competenceBandFor('textiles');
     } catch {
       /* untrained */
     }

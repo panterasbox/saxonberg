@@ -63,6 +63,13 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import { Quantity } from '../quantity';
 import type { Light } from '../perception/Light';
+import { ContainmentApi } from '../../api/containment';
+import { PersistableApi } from '../../api/persistable';
+import { ExecutionContextApi } from '../../api/execution-context';
+import { Grade, type GradeBand } from '../craft/Grade';
+import type { ActDone, ActPlan } from '../craft/ActPlan';
+import type { Tooled } from '../craft/Tool';
+import type { Containable } from '../spatial/Containable';
 import Place from '../stuff/Place';
 import type { MarkupAugmenter } from '../../api/mml';
 import { Seeded } from '../Seeded';
@@ -317,7 +324,141 @@ function ramp(x: number, lo: number, hi: number): number {
   return clamp01((x - lo) / (hi - lo));
 }
 
+/**
+ * ⭐ The harvest protocol (controllers-are-io D11): `harvest` asks the plant
+ * (or the ground, which asks the plant) and words what comes back.
+ */
+export interface HarvestRequest {
+  /** Who cuts. */
+  by: Stuff;
+  /** What they called it — a labeled plant is cut when named by its label. */
+  typed: string;
+  /** `--at <part>`: which part of a divided field. */
+  part: (Stuff & Soil) | null;
+  /** The instrument the view's default bound, or the one named. */
+  tool: Stuff | null;
+}
+
+/** Why a harvest was refused — the note's reason, and the switch's census. */
+export type HarvestReason =
+  | 'nothing-growing'
+  | 'part-unnamed'
+  | 'not-a-part-here'
+  | 'nothing-sown-there'
+  | 'not-harvestable'
+  | 'needs-tool'
+  | 'plant-dead'
+  | 'nothing-ripe'
+  | 'not-mature'
+  | 'mint-failed'
+  | 'walked-off'
+  | 'nothing-left';
+
+/** A refused harvest: the reason, and what its words need. */
+export interface HarvestRefusal {
+  ok: false;
+  reason: HarvestReason;
+  facts: {
+    /** The record's sentence (the note's `detail`). */
+    detail: string;
+    /** The plant, or the ground that holds none. */
+    subject?: Stuff;
+    /** A part of the ground the refusal is about. */
+    part?: Stuff;
+    /** The ground's own sentence, when it refused (`resolvePartFor`). */
+    line?: string;
+    /** The stage in the words the plant is read in. */
+    stageWord?: string;
+  };
+}
+
+/** What the begin words of a swath need. */
+export interface HarvestBegin {
+  plant: Stuff & Growing;
+  presentation: string;
+  tool: (Stuff & Tooled) | null;
+}
+
+/** What came of a harvest. */
+export type HarvestDone =
+  | { kind: 'pick'; sample: Stuff; presentation: string; count: number }
+  | { kind: 'annual'; sample: Stuff; presentation: string }
+  | {
+      kind: 'swath';
+      presentation: string;
+      /** ` at the gate end`, or empty. */
+      at: string;
+      crops: readonly Stuff[];
+      /** How many of them were left lying in the row. */
+      dropped: number;
+      /** This swath cut the last of the crop. */
+      last: boolean;
+      polycarp: boolean;
+      /** Fraction of the sown area still standing. */
+      standing: number;
+    };
+
+/** What a harvest answers: a plan (a pick is `durationMs: 0`), or no. */
+export type HarvestAnswer =
+  | ActPlan<HarvestBegin, HarvestDone, HarvestRefusal>
+  | HarvestRefusal;
+
+/** Felt cost of one swath, percentage points of a fresh body (D5). */
+const SWATH_FELT_COST = 6;
+
+/**
+ * Map the worst limiting satisfaction to a quality band. Ascending floors,
+ * so a plant that was never meaningfully short of anything earns
+ * `masterful` and one bad fortnight costs a band permanently.
+ */
+function harvestBandFor(worst: number): GradeBand {
+  if (worst >= dial(AppSettingKeys.husbandryGradeMasterfulAt, 0.95)) {
+    return 'masterful';
+  }
+  if (worst >= dial(AppSettingKeys.husbandryGradeExceptionalAt, 0.8)) {
+    return 'exceptional';
+  }
+  if (worst >= dial(AppSettingKeys.husbandryGradeFineAt, 0.6)) return 'fine';
+  if (worst >= dial(AppSettingKeys.husbandryGradeFairAt, 0.35)) return 'fair';
+  return 'poor';
+}
+
+/** Game-seconds now, or 0 when no clock is running (tests / pre-boot). */
+function harvestNowSeconds(): number {
+  try {
+    return WorldClockApi.getNow().rawValue();
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Stamp a fresh crop with the window's verdict. ⭐ The maker is a PERSON,
+ * so her identity path — every player body shares one lineage path, and a
+ * crop marked with it is marked by nobody (W0's before-record caught it).
+ */
+function stampCrop(crop: Stuff, by: Stuff, band: GradeBand, cropPath: string): void {
+  const maker = (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? by;
+  if (MixinApi.isCrafted(crop)) {
+    crop.stamp({
+      maker: maker.getIdentityPath() ?? '',
+      grade: Grade.of(band),
+      recipe: cropPath,
+      craftedAt: harvestNowSeconds(),
+    });
+  } else if (MixinApi.isGraded(crop)) {
+    // A merely-graded crop (no maker's mark) still carries the verdict.
+    crop.setGrade(Grade.of(band));
+  }
+}
+
 export interface Growing {
+  /**
+   * ⭐ `harvest <plant>`: which stand was meant, whether it may be taken,
+   * and the take itself — a pick now, or a swath over time (D5). The plant
+   * decides; the controller words the answer. See {@link HarvestAnswer}.
+   */
+  harvestPlanFor(req: HarvestRequest): HarvestAnswer;
   /** Current vigor `[0, 1]` — the condition score (reconciles on read). */
   getVigor(): number;
   /** Current banded condition (presentation). */
@@ -897,6 +1038,249 @@ function conditionAugmenter(text: string, host: Stuff, viewer: Stuff): string {
   return text && text.length > 0 ? `${text}\n\n${suffix}` : suffix;
 }
 
+/**
+ * A plant taken whole, now: a polycarp's set, or an annual's crop.
+ *
+ * The three halves stay in order, because the ordering matters: the verdict
+ * BEFORE anything changes (the window closes with the pick, and an ended
+ * annual takes its reading with it); mint and stamp; debit the bed, settle or
+ * end the plant, then capture, so the capture records the finished state.
+ */
+function growingPickPlan(
+  plant: Stuff & Growing,
+  by: Stuff,
+  cropPath: string,
+): ActPlan<HarvestBegin, HarvestDone, HarvestRefusal> {
+  return {
+    ok: true,
+    // ⭐ Zero: the pick runs inside the command frame, as a craft does.
+    durationMs: 0,
+    effortW: 0,
+    facts: { plant, presentation: plant.getPresentation(), tool: null },
+    onComplete: async () => {
+      const band = harvestBandFor(plant.getWorstLimiting());
+      const discipline = plant.getDiscipline();
+      const bed = plant.getBed();
+      const polycarp = plant.isPolycarp();
+      // ⭐ The count comes from the LATCH, not the profile: what was set
+      // is a fact about this episode (and about whether anything worked
+      // the bloom), and the pick is weeks after the set.
+      const count = polycarp ? plant.getFruitSetCount() : 1;
+      const crops: Stuff[] = [];
+      try {
+        for (let i = 0; i < count; i++) {
+          // Made FROM the plant: a gardener's crop is the gardener's.
+          const crop = await StuffApi.clone<Stuff>(cropPath, undefined, { madeFrom: plant });
+          stampCrop(crop, by, band, cropPath);
+          if (MixinApi.isContainable(crop) && MixinApi.isContainer(by)) {
+            ContainmentApi.move(crop as Stuff & Containable, by as Stuff & Container);
+          }
+          crops.push(crop);
+        }
+      } catch (err) {
+        console.warn(`Growing: could not mint '${cropPath}':`, err);
+        return {
+          ok: false,
+          reason: 'mint-failed',
+          facts: { detail: `could not clone ${cropPath}` },
+        };
+      }
+      // A ripe pick takes the FULL authored draw — the whole set comes off
+      // at once, so there is nothing to pro-rate under ripe-only picking.
+      const draw = plant.getNutrientDraw();
+      if (bed && draw > 0) bed.drawNutrient(draw);
+      // A routine pick must never grade `hard` — that would be a levelling
+      // mill riding the fruit cycle. The annual keeps the root-disturbance
+      // scale (ending a mature plant is real work).
+      const difficulty = polycarp ? 'easy' : plant.transplantDifficulty();
+      const presentation = plant.getPresentation();
+      if (polycarp) {
+        // The plant SURVIVES: settle the cycle so the next thriving
+        // reconcile opens a fresh window (which re-seeds the verdict).
+        plant.settleCycle();
+      } else {
+        await StuffApi.destruct(plant);
+      }
+      try {
+        await PersistableApi.captureHostOf(bed ?? crops[0]!);
+        // A polycarp is its own persistence host and just changed state.
+        if (polycarp) await PersistableApi.captureHostOf(plant);
+      } catch (err) {
+        console.warn('Growing: capture after harvesting failed:', err);
+      }
+      try {
+        if (MixinApi.isAdvancing(by)) {
+          await by.creditDeed({ discipline, difficulty, outcome: 'success' });
+        }
+      } catch (err) {
+        console.warn('Growing: recording the deed failed:', err);
+      }
+      const sample = crops[0]!;
+      return {
+        ok: true,
+        facts: polycarp
+          ? { kind: 'pick', sample, presentation, count }
+          : { kind: 'annual', sample, presentation },
+      };
+    },
+  };
+}
+
+/**
+ * ⭐ **The area crop: one act cuts one swath** (cover build D3). The swath
+ * belongs to the TOOL (`swathM2`), bare hands cut the `husbandry.handSwathM2`
+ * dial, and the act occupies the hands for a time that grows with the ground
+ * worked. Everything lands at completion — a barge-in leaves the crop
+ * standing.
+ */
+function growingSwathPlan(
+  plant: Stuff & Growing,
+  by: Stuff,
+  cropPath: string,
+  bound: Stuff | null,
+): ActPlan<HarvestBegin, HarvestDone, HarvestRefusal> {
+  const tool: (Stuff & Tooled) | null = bound && MixinApi.isTool(bound) ? bound : null;
+  const hand = dial(AppSettingKeys.husbandryHandSwathM2, 2);
+  const swathM2 = tool && tool.getSwathM2() > 0 ? tool.getSwathM2() : hand;
+  const durationMs = Math.round(3000 + swathM2 * 60);
+  return {
+    ok: true,
+    durationMs,
+    effortW: MixinApi.isExerting(by)
+      ? by.wattsForFeltCost(SWATH_FELT_COST, durationMs / 1000)
+      : 0,
+    facts: { plant, presentation: plant.getPresentation(), tool },
+    onComplete: () => landSwath(plant, by, cropPath, swathM2),
+  };
+}
+
+/**
+ * The swath landed. The cut is re-checked here because the world moved while
+ * the hands worked: the harvester may have walked off, or somebody else may
+ * have cut the last of it.
+ */
+async function landSwath(
+  plant: Stuff & Growing,
+  by: Stuff,
+  cropPath: string,
+  swathM2: number,
+): Promise<ActDone<HarvestDone, HarvestRefusal>> {
+  const where = MixinApi.isContainable(by) ? by.getContainer() : null;
+  const gone: HarvestRefusal = {
+    ok: false,
+    reason: 'nothing-left',
+    facts: { detail: 'nothing left standing' },
+  };
+  if (by.isDestroyed() || plant.isDestroyed()) return gone;
+  const bed = plant.getBed();
+  // ⭐ Compare where the crop STANDS, not its bed: a crop in a patched
+  // field is rooted in its patch (field population D4), which nobody
+  // stands inside — the field holds both the harvester and the crop.
+  const standsIn = MixinApi.isContainable(plant) ? plant.getContainer() : null;
+  if (!where || (standsIn as Stuff | null) !== where) {
+    return {
+      ok: false,
+      reason: 'walked-off',
+      facts: { detail: 'no longer standing in the crop' },
+    };
+  }
+  if (!plant.isHarvestable()) return gone;
+  // ⭐ Whose crop it is is settled by the ground BEFORE anything is
+  // minted — the take follows `madeFrom: plant`, so the plant's title
+  // must already be right (cover build D6). Never a look path.
+  try {
+    if (bed && MixinApi.isSoil(bed)) await (bed as Stuff & Soil).ensureCropTitle();
+  } catch (err) {
+    console.warn('Growing: settling the crop title failed:', err);
+  }
+  if (by.isDestroyed() || plant.isDestroyed()) return gone;
+
+  // (1) The verdict and the Discipline BEFORE anything changes.
+  const band = harvestBandFor(plant.getWorstLimiting());
+  const discipline = plant.getDiscipline();
+  const presentation = plant.getPresentation();
+  // ⭐ Which part of the field it was cut at, when the crop is rooted in
+  // one (its bed is a part, not the place it stands in).
+  const at =
+    bed && (bed as Stuff) !== (standsIn as Stuff | null)
+      ? ` at ${bed.presentationPhrase().definite()}`
+      : '';
+  const sownM2 = plant.getSownAreaM2();
+  const cut = plant.takeSwath(swathM2);
+  if (cut.areaCut <= 0) return gone;
+
+  // (2) Mint by the crop row's own mass; the remainder is carried on
+  // the plant to the next swath, and the LAST swath makes up whatever
+  // is left as one short good, so nothing is lost to rounding.
+  let total = cut.kg + plant.getHarvestCarryKg();
+  const crops: Stuff[] = [];
+  let dropped = 0;
+  try {
+    while (total > 0) {
+      const crop = await StuffApi.clone<Stuff>(cropPath, undefined, { madeFrom: plant });
+      const unit = MixinApi.isTangible(crop) ? crop.getMass().rawValue() : 0;
+      if (!(unit > 0) || total < unit) {
+        if (!cut.last) {
+          await StuffApi.destruct(crop);
+          break;
+        }
+        // The last of it: a short good of what is left.
+        if (MixinApi.isTangible(crop) && unit > 0) crop.setMass(Quantity.of(total, 'kg'));
+        total = 0;
+      } else {
+        total -= unit;
+      }
+      stampCrop(crop, by, band, cropPath);
+      // ⭐ What the harvester cannot carry is left lying where they
+      // stand — cut cane is piled in the row for the cart, not carried
+      // off one armful per stroke.
+      const carry =
+        MixinApi.isContainer(by) && !(MixinApi.isLoadBearing(by) && by.wouldExceedCeiling(crop));
+      if (MixinApi.isContainable(crop)) {
+        ContainmentApi.move(
+          crop as Stuff & Containable,
+          (carry ? by : where) as Stuff & Container,
+        );
+      }
+      if (!carry) dropped++;
+      crops.push(crop);
+    }
+  } catch (err) {
+    console.warn(`Growing: could not mint '${cropPath}':`, err);
+  }
+  plant.setHarvestCarryKg(cut.last ? 0 : total);
+
+  // (3) The nitrogen goes with the crop, in proportion to what was cut.
+  const draw = plant.getNutrientDraw();
+  if (bed && draw > 0 && sownM2 > 0) {
+    bed.drawNutrient((draw * cut.areaCut) / sownM2);
+  }
+  const polycarp = plant.isPolycarp();
+  if (cut.last) {
+    if (polycarp) plant.settleRatoon();
+    else await StuffApi.destruct(plant);
+  }
+  const standing =
+    !plant.isDestroyed() && sownM2 > 0 ? plant.standingAreaM2() / sownM2 : 0;
+  try {
+    if (bed) await PersistableApi.captureHostOf(bed);
+    if (!plant.isDestroyed()) await PersistableApi.captureHostOf(plant);
+  } catch (err) {
+    console.warn('Growing: capture after a swath failed:', err);
+  }
+  try {
+    if (MixinApi.isAdvancing(by)) {
+      await by.creditDeed({ discipline, difficulty: 'easy', outcome: 'success' });
+    }
+  } catch (err) {
+    console.warn('Growing: recording the deed failed:', err);
+  }
+  return {
+    ok: true,
+    facts: { kind: 'swath', presentation, at, crops, dropped, last: cut.last, polycarp, standing },
+  };
+}
+
 export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
@@ -1182,6 +1566,107 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
     public standingYieldKg(): number {
       if (!this.isAreaCrop() || !this.isHarvestable()) return 0;
       return this.standingAreaM2() * this.yieldPerM2();
+    }
+
+    /** See {@link Growing.harvestPlanFor}. */
+    public harvestPlanFor(req: HarvestRequest): HarvestAnswer {
+      const named = this as unknown as Stuff & Growing;
+      const { part } = req;
+      let stand: Stuff & Growing = named;
+      // ⭐ `harvest wheat --at "the gate end"` means the STAND rooted there
+      // (field population, the final drive): the binder handed us the
+      // labeled plant standing in that patch, which "wheat" names as well
+      // as it names the stand, and the trial plant was cut instead of the
+      // crop. A labeled plant is cut when it is named by its label
+      // (`harvest trial`) — the rule `sample` and `label` already keep.
+      if (!named.isAreaCrop() && part && MixinApi.isLabelled(named)) {
+        const label = named.getLabel().toLowerCase();
+        const typed = req.typed.toLowerCase();
+        const byLabel = label !== '' && label.split(/\s+/).some((w) => typed.includes(w));
+        const here = MixinApi.isContainable(req.by) ? req.by.getContainer() : null;
+        const ground = here && MixinApi.isSoil(here) ? here : part;
+        const there = byLabel ? null : ground.rootedAreaCrop(part);
+        if (there && there.isSameKindAs(named)) stand = there;
+      }
+      const holder = MixinApi.isContainable(stand) ? stand.getContainer() : null;
+      if (stand.isAreaCrop() && holder && MixinApi.isSoil(holder)) {
+        // ⭐ The GROUND says which part, or refuses in its own words.
+        const r = holder.harvestPartFor({ stand, part });
+        if (!r.ok) return r;
+        stand = r.stand;
+      } else if (part && part !== stand.getBed()) {
+        return {
+          ok: false,
+          reason: 'not-a-part-here',
+          facts: {
+            subject: named,
+            part,
+            detail: `${named.getPresentation()} is not rooted in ${part.getPresentation()}`,
+          },
+        };
+      }
+      // ⭐ The ground's rule, for a named plant: `harvest cane` in a field of
+      // stands means a RIPE stand when one stands there. The binder takes
+      // the first match, and it refused "has not filled its set" while
+      // ripe cane stood beside it (the sugar drive: an estate's cutters,
+      // seventy-eight times). Only the same KIND, rooted in the same bed,
+      // is a substitute.
+      const plant = stand.isHarvestable() ? stand : (stand.ripeSibling() ?? stand);
+      const cropPath = plant.getHarvestTemplatePath();
+      if (!cropPath) {
+        return {
+          ok: false,
+          reason: 'not-harvestable',
+          facts: { subject: plant, detail: `${plant.getPresentation()} yields no crop` },
+        };
+      }
+      // A plant that names its tool is cut with it — a coppice stool comes
+      // off with a billhook, not by hand. The plant says WHICH capability;
+      // the view's default found the candidate; this only checks it.
+      const need = plant.getHarvestTool();
+      // ⭐ A FIELD crop — a stand, or one plant labeled out of it — is cut
+      // by hand or with a tool, never refused for want of one: the tool sets
+      // the swath, bare hands cut a little (cover build D3). The browser walk
+      // found a labeled wheat plant asking for "a billhook, or an axe".
+      if (need && !plant.growsByFieldRule()) {
+        const tool = req.tool;
+        if (!tool || !MixinApi.isTool(tool) || !tool.hasCapability(need)) {
+          return {
+            ok: false,
+            reason: 'needs-tool',
+            facts: {
+              subject: plant,
+              detail: `${plant.getPresentation()} is cut with a '${need}' tool`,
+            },
+          };
+        }
+      }
+      // Refuse an unready plant NAMING what it is waiting for: the stage
+      // for an immature one, the ripening for a mature polycarp between
+      // cycles, and the plain fact for a dead one.
+      if (!plant.isHarvestable()) {
+        const stage = plant.getGrowthStage();
+        const dead = plant.getConditionBand() === 'dead';
+        const unripe = !dead && plant.isPolycarp() && stage === 'mature';
+        return {
+          ok: false,
+          reason: dead ? 'plant-dead' : unripe ? 'nothing-ripe' : 'not-mature',
+          facts: {
+            subject: plant,
+            // In the words the plant is read in: the field said "in ear",
+            // and the refusal said "still established" (the browser walk).
+            stageWord: plant.stageWord(),
+            detail: dead
+              ? `${plant.getPresentation()} is dead`
+              : unripe
+                ? `${plant.getPresentation()} has not filled its set`
+                : `${plant.getPresentation()} is ${stage}, not mature`,
+          },
+        };
+      }
+      return plant.isAreaCrop()
+        ? growingSwathPlan(plant, req.by, cropPath, req.tool)
+        : growingPickPlan(plant, req.by, cropPath);
     }
 
     public takeSwath(areaM2: number): SwathTaken {

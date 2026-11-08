@@ -1,5 +1,5 @@
 /**
- * DouseController — `douse <thing>` / `extinguish` / `snuff`.
+ * DouseController — `douse <thing>`.
  *
  * Puts out any burning Combustible in reach. The controller narrows the
  * target with `MixinApi.isCombustible` and routes the extinguish through the

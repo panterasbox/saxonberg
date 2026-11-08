@@ -10,7 +10,7 @@ yet.
 
 Source: `lib/vitals/Vitals.ts` (the `VitalsMixin`),
 `platform/idea/Condition.ts` (the condition type system),
-`lib/reserve.ts` (the reserve substrate — see [reserve.md](./reserve.md)),
+`lib/reserve/Reserved.ts` (the reserve substrate — see [reserve.md](./reserve.md)),
 plus `Species.vitalProfile` and `BodyPlan.bodyParts`.
 
 ## The load-bearing decision: no stored health scalar
@@ -402,7 +402,7 @@ build shipped only the **seams** (metabolism is the first consumer):
 ## Reserves
 
 Endurance / satiation / hydration are biological instances of the
-generalized **`Reserve`** substrate (`lib/reserve.ts`) — see
+generalized **`Reserve`** substrate (`lib/reserve/Reserved.ts`) — see
 [reserve.md](./reserve.md). A floored biological reserve feeds the
 derived `getConditionBand` (a derived reading, like consciousness reads
 vitals).

@@ -1,4 +1,5 @@
-verbs: [repair, mend]
+verbs: [repair]
+category: crafting
 controller: /platform/idea/cmd/crafting/RepairController
 description: "Repair a worn or broken durable good"
 help: |
@@ -22,12 +23,12 @@ args:
   - name: item
     type: object
     required: true
-    scope: "reachable"
+    scope: ["here", "peers", "person"]
     # The article defect (the water-supply browser walk): `repair lead run`
     # bound `lead` and took `run` for the kit.
     greedy: true
     requires: DurableMixin
-  # ⭐ WHICH KIT — DECLARED, not hunted for (`lint:instrument-args`).
+  # ⭐ WHICH KIT — DECLARED, not hunted for (`lint:controller-resolution`).
   # A mending kit, an anvil or an edge (wood is mended with a cutting
   # tool) all serve; bare, the binder hands over every reachable thing
   # offering any and the controller takes the best-rated, kit first.

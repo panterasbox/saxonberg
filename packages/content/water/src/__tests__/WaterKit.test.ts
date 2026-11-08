@@ -20,7 +20,7 @@ import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import type { SupplyReport } from '@saxonberg/server/mud/lib/supply/SupplyState';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import WaterReading from '../idea/reading/WaterReading';
