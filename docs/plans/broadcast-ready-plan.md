@@ -1067,4 +1067,35 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)*
+**Wire drive** — `packages/wire/tests/broadcast-ready.dirty.wire.test.ts` against a standing test world on
+2016 (dropped `saxonberg_build3`, `SAXONBERG_BUILD_SHA/AT` set), 2026-11-09. Final run: **14/14 green**
+(steps 1–7, 9–11, 14–16; 11 is one real minute of outro).
+
+What the drive found, each a commit on the MR:
+
+1. **`stream agenda a; b; c` ran `b` and `c` as verbs** — `;` is the shell's command separator. The
+   agenda splits on commas (B-D16).
+2. **A busy world's panel listing outlasted the overlay's first-snapshot window** (run 3 heard nothing
+   for 15 s): the feed now sends the snapshot at once with the last-listed rows and re-sends when the
+   fresh listing moves.
+3. Harness facts, not defects: there is no `tell` verb (it is `dm`); a test character's name is its handle,
+   which no keyword reads — the drive addresses the streamer by `#stuffId` and re-reads it after the staged
+   restart (a reloaded body is a new Stuff).
+
+B2 (each checkpoint can fail): runs 1–3 went red on steps 1, 2, 7, 9 and 14 for the reasons above before
+the fixes, and the feed/control/redaction checks are unit-proved red-able (`BroadcastFeed.test.ts`
+cross-talk, `ControlCommand.test.ts` refusals, `onAir.test.ts` stamps). Not separately broken on purpose:
+step 15's build stamp (asserted against the env the world was started with).
+
+Unproven on the wire (rehearsal): step 8 (Elgato), step 12 (real Twitch/YouTube chat — routing and the
+zero-`search.list` path unit-proved), OBS scenes, a real process restart (step 5 is staged as
+logout → login).
+
+**Browser walk** — `e2e/tests/broadcast-ready-walk.spec.ts`, Chromium against the same world + vite:
+**2/2 green** — `stream` opens the controls card; Start and Go live from its chips; the root font grows on
+air; a DM reads *[private message]* on air, in full in standby, redacted again on `back`; the guest sees
+*"A broadcast reaches this place."* and *"Now: broadcasting."*; the card pops out (a PiP window or the
+honest note) and comes home; `stream off` restores the size and the text; Rodney's `?mock` preview cycles
+the lower third with no server (step 13). ⚠ The shared `enterWorld` helper flaked twice at world entry
+(roster/input never visible) on a loaded world — the helper, not this build; the third run was clean.
+

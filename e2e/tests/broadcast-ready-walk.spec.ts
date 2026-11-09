@@ -51,8 +51,28 @@ test.describe('broadcast-ready, in a browser', () => {
       // ⭐ On air the type grows (~140%).
       await expect.poll(() => rootFontPx(page)).toBeGreaterThan(baseFont * 1.3);
 
-      // ⭐ A tell reads *[private message]* on air — the words never render.
-      await runCommand(guest.page, `tell ${host.handle} the secret plans`);
+      // The streamer's own id, off the card `look me` opens (a test
+      // character's name is its handle, which no keyword reads); the
+      // guest addresses them by it.
+      await runCommand(page, 'look me');
+      let hostId = '';
+      await expect
+        .poll(
+          async () => {
+            hostId = await page.evaluate(() => {
+              // The card `look me` opened is keyed by that command.
+              const cards = [...document.querySelectorAll('[data-testid="card-subject"]')];
+              const mine = cards.find((c) => /^look me$/i.test(c.getAttribute('data-card-key') ?? ''));
+              return mine?.querySelector('[data-stuff-id]')?.getAttribute('data-stuff-id') ?? '';
+            });
+            return hostId;
+          },
+          { timeout: 20_000 },
+        )
+        .not.toBe('');
+
+      // ⭐ A DM reads *[private message]* on air — the words never render.
+      await runCommand(guest.page, `dm #${hostId} the secret plans`);
       await expect(page.getByTestId('redacted-frame').first()).toBeVisible({ timeout: 20_000 });
       expect(await transcript(page)).not.toContain('the secret plans');
 
@@ -61,7 +81,7 @@ test.describe('broadcast-ready, in a browser', () => {
       await expect
         .poll(async () => guest.page.locator('body').innerText(), { timeout: 20_000 })
         .toContain('A broadcast reaches this place.');
-      await runCommand(guest.page, `look ${host.handle}`);
+      await runCommand(guest.page, `look #${hostId}`);
       await expect
         .poll(async () => guest.page.locator('body').innerText(), { timeout: 20_000 })
         .toMatch(/broadcasting/);
@@ -85,6 +105,12 @@ test.describe('broadcast-ready, in a browser', () => {
       await expect(
         controlsCard.getByTestId('card-popped').or(controlsCard.getByTestId('card-popout-note')),
       ).toBeVisible({ timeout: 15_000 });
+
+      // A popped card is in its own window; closing it brings it home.
+      if (await controlsCard.getByTestId('card-popped').isVisible()) {
+        await controlsCard.getByTestId('card-popout').click();
+        await expect(controlsCard.getByTestId('stream-controls')).toBeVisible({ timeout: 15_000 });
+      }
 
       // Off the air: the type and the tell come back.
       await runCommand(page, 'stream off');
