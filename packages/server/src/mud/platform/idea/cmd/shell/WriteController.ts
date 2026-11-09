@@ -57,16 +57,14 @@
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
-import {
-  CommandApi,
-  type CommandContext,
-  type CommandModel,
+import type {
+  CommandContext,
+  CommandModel,
 } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../../../api/source-tree';
-import { StuffApi } from '../../../../api/stuff';
 import { TemplateApi } from '../../../../api/template';
 import { Template } from '../../../../lib/stuff/Template';
 import { AccessApi } from '../../../../api/access';
@@ -83,16 +81,6 @@ interface WriteModel extends CommandModel {
   source?: boolean;
   class?: string;
   extends?: string;
-}
-
-/**
- * Optional schema-bearing shape: a class can declare
- * `static dataSchema: Record<string, unknown>` (JSON Schema fragment)
- * to opt into write-side `data` validation. Classes without it
- * accept any object.
- */
-interface SchemaBearingClass {
-  dataSchema?: Record<string, unknown>;
 }
 
 const DEFAULT_CONTENT_CLASS = TemplatePaths.idea;
@@ -143,24 +131,13 @@ export default class WriteController extends CommandController<WriteModel> {
       const parentPath = model.extends;
       const classPath =
         model.class ?? (parentPath === undefined ? DEFAULT_CONTENT_CLASS : undefined);
-      // Class-attached schema check: classes opt in by exporting
-      // `static dataSchema`. Async load goes through the cache after
-      // the first hit, so the typical path is cheap.
-      // The schema check runs on the EFFECTIVE class — a child states
-      // none, so the class to validate against is its parent's.
-      let effectiveClass = classPath;
-      if (effectiveClass === undefined && parentPath !== undefined) {
-        const parent = await Template.findByPath(parentPath);
-        if (!parent) {
-          return this.fail(context, `no template at ${parentPath} to extend`);
-        }
-        effectiveClass = parent.class;
+      // A named parent must exist (the row's own `_save` refuses one that
+      // does not too; this keeps the verb's words). ⚠ The class-attached
+      // `dataSchema` check that stood here was dead — no class in the tree
+      // declares one — and was a per-backend rule the CMS's write skipped.
+      if (parentPath !== undefined && !(await Template.findByPath(parentPath))) {
+        return this.fail(context, `no template at ${parentPath} to extend`);
       }
-      const schemaErr = await this._validateAgainstClassSchema(
-        effectiveClass ?? DEFAULT_CONTENT_CLASS,
-        model.data,
-      );
-      if (schemaErr !== null) return this.fail(context, schemaErr);
       try {
         // The title gate is the write's own (`writeTemplate`, D9); the
         // authoring act is attributed inside it from the dispatched
@@ -229,29 +206,6 @@ export default class WriteController extends CommandController<WriteModel> {
     await SourceTreeApi.write(abs, model.body);
     this.tell(context, `\nwrote ${SourceTreeApi.toDisplayPath(abs)}\n`);
     return;
-  }
-
-  /**
-   * Resolve `classPath`, read its optional `static dataSchema`, and
-   * validate `data` against it. Returns `null` when the class has
-   * no schema or the value satisfies it; a friendly error string
-   * otherwise. Class-load errors propagate to the caller's catch
-   * and surface through `this.fail`.
-   */
-  private async _validateAgainstClassSchema(
-    classPath: string,
-    data: Record<string, unknown>,
-  ): Promise<string | null> {
-    let cls: unknown;
-    try {
-      cls = await StuffApi.loadClassByPath(classPath);
-    } catch (err) {
-      return (err as Error).message;
-    }
-    const schema = (cls as SchemaBearingClass | undefined)?.dataSchema;
-    if (!schema) return null;
-    const err = CommandApi.validateAgainstJsonSchema(schema, data);
-    return err === null ? null : `data: ${err}`;
   }
 
   /**

@@ -127,6 +127,16 @@ export interface Haulable {
    * @hook Override to tighten (an owned rig, a team's own wagon).
    */
   canUnhitch(hauler: Stuff, actor: Stuff): VetoResult;
+  /**
+   * The hitch SLIPS — this cart is being moved somewhere its hauler is not
+   * going (a teleport, an author's relocation). Uncoupled as the hauler's
+   * own act, so no third party's veto applies; the hauler's presentation
+   * is returned for the telling, or null when nobody was pulling.
+   * ⭐ The cart side of `Mobile.teleport`'s release (controller-liquidity
+   * C24): a cart that is not Mobile never teleports, and a raw move used
+   * to leave its hauler hitched to it from another room.
+   */
+  slipHitch(): string | null;
 }
 
 export function HaulableMixin<
@@ -284,6 +294,14 @@ export function HaulableMixin<
         return { ok: false, reason: 'held-by-another' };
       }
       return { ok: true };
+    }
+
+    /** See {@link Haulable.slipHitch}. */
+    public slipHitch(): string | null {
+      const hauler = this.getHauledBy();
+      if (!hauler) return null;
+      const name = hauler.getPresentation();
+      return hauler.unhitch(hauler).ok ? name : null;
     }
 
   };

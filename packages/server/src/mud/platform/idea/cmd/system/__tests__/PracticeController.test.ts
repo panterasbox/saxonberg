@@ -141,6 +141,17 @@ describe("PracticeController", () => {
     );
     expect(store.size).toBe(0);
   });
+
+  it("C84: a body with no Transcript is REFUSED, never a silent no-op", async () => {
+    const actor = makeStuffAtPath(() => new Idea(), "/platform/agent/Avatar/prac-none-advancing");
+    const ctrl = makeStuff(() => new PracticeController());
+    await ctrl.execute({ discipline: "darts" } as PracticeArgs, ctxFor(actor));
+
+    expect(note).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "controller-rejected", reason: "not-advancing" })
+    );
+    expect(store.size).toBe(0);
+  });
 });
 
 describe("practice is a test-world verb (wizard-axis D8)", () => {

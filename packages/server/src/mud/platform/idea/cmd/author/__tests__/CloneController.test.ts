@@ -145,6 +145,24 @@ describe('CloneController.execute — hydrate-first', () => {
     expect(tells[0]).toMatch(/not Containable, left unplaced/);
   });
 
+  it('C28: copies 2..N that cannot be placed are REPORTED by id, never dropped in silence', async () => {
+    const loc = makeStuff(() => new Place());
+    const giver = makeStuff(() => new TestGiver());
+    ContainmentApi.move(giver, loc);
+    stubClone(() => makeStuffAtPath(() => new TestNonContainable(), '/test/non-containable'));
+
+    const tells = captureTells();
+    const controller = makeStuff(() => new CloneController());
+    await controller.execute(
+      makeModel({ template: '/test/non-containable', count: 3 }),
+      makeContext(giver, loc)
+    );
+
+    const unplaced = tells.find((t) => /left unplaced: /.test(t));
+    expect(unplaced).toBeDefined();
+    expect(unplaced!.match(/not Containable/g)?.length).toBe(2);
+  });
+
   it('places in --into when explicit override provided', async () => {
     const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());

@@ -10,6 +10,7 @@ import { ContainmentApi } from "../../../api/containment";
 import { MixinApi } from "../../../api/mixin";
 import { DiagnosticApi } from "../../../api/diagnostics";
 import { AppApi } from "../../../api/app";
+import { ExecutionContextApi } from "../../../api/execution-context";
 import { TOMBSTONE_ROW } from "../../location/Tombstone";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Container } from "../../../lib/spatial/Container";
@@ -26,6 +27,7 @@ import type { LandUse } from "../../../lib/parcel/LandUse";
 import type { PowerBand } from "../../../lib/parcel/PowerBand";
 import type { GroupRef } from "../../../lib/social/GroupProvider";
 import type ParcelRegistry from "../ParcelRegistry";
+import type { PublishAnswer } from "../../../api/parcel";
 
 const REGISTRY_PATH = TemplatePaths.parcelRegistry;
 
@@ -222,18 +224,27 @@ export class ParcelLogic extends ApiLogic {
   public async setPublished(
     extent: string,
     value: boolean,
-  ): Promise<ParcelRecord | null> {
+  ): Promise<PublishAnswer> {
     const reg = lookupRegistry();
-    if (!reg) return null;
+    if (!reg) return { ok: false, reason: "untitled" };
     // ⚠ `coveringParcelOf` is LONGEST-PREFIX, so an extent with no row
     // of its own answers with its parent's. Require the exact extent,
     // or a child of a dark parcel would read as "was live" and evict
     // people the parent already evicted.
     const before = reg.coveringParcelOf(extent);
-    const wasLive =
-      before?.extent === extent ? before.isPublished() : true;
+    if (before?.extent !== extent) return { ok: false, reason: "untitled" };
+    // The title gate is the flip's own (W8): the acting principal, read
+    // from context — never an argument — and an unattributable chain is
+    // nobody's. Lazy: the access layer reaches parcels (a cycle risk).
+    const actor = (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
+    const { AccessApi } = await import("../../../api/access");
+    if (!(await AccessApi.canAtPath(actor, "write-template", extent))) {
+      return { ok: false, reason: "not-yours" };
+    }
+    const wasLive = before.isPublished();
+    if (wasLive === value) return { ok: false, reason: "no-change" };
     const record = await reg.setPublished(extent, value);
-    if (!record) return null;
+    if (!record) return { ok: false, reason: "untitled" };
     // The graph denormalises `published`, so the flip has to reach it —
     // the record stays the source of truth and this is the projection
     // catching up.
@@ -244,7 +255,7 @@ export class ParcelLogic extends ApiLogic {
     // the two lives of the field, and it is a fact about whether
     // anybody was there rather than a second field.
     if (wasLive && !value) await this.offlineExtent(extent, record);
-    return record;
+    return { ok: true, record };
   }
 
   /**

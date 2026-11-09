@@ -190,13 +190,4 @@ export abstract class BankingControllerBase<
     const mine = MixinApi.isEmployed(giver) ? await giver.buysFor() : [];
     return mine[0] ?? null;
   }
-
-  /** A present bartender (whoever is on shift and fulfilling here) — the house's rep. */
-  protected presentBartender(context: CommandContext): Stuff | null {
-    return (
-      this.peers(context).find(
-        (s) => MixinApi.isEmployed(s) && s.isFulfilling(),
-      ) ?? null
-    );
-  }
 }

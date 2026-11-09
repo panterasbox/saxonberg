@@ -37,7 +37,7 @@ import { AddressApi } from "../../../api/address";
 // here has no dispatched frame, so it re-enters through the face to
 // acquire one before the registry-wide read.
 import { BankingApi } from "../../../api/banking";
-import type { IndemnifyRequest, IndemnifyResult } from "../../../api/banking";
+import type { DrawResult, IndemnifyRequest, IndemnifyResult } from "../../../api/banking";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import { WorldClockApi } from "../../../api/worldclock";
 import { PersistApi } from "../../../api/persist";
@@ -1697,26 +1697,25 @@ async function payDrawImpl(
   businessAccountId: string,
   proprietorKey: string,
   amount: Money,
-): Promise<void> {
+): Promise<DrawResult> {
   if (amount.minor <= 0) {
     throw new Error("BankingLogic.payDraw: amount must be positive");
   }
-  {
-    const frozen = await frozenReasonOf(businessAccountId);
-    if (frozen) throw new Error(`BankingLogic.payDraw: ${frozen}`);
+  // Every refusal before the post, as a reason (C32 — the verb used to
+  // pick its words by regex on a thrown sentence).
+  if (await frozenReasonOf(businessAccountId)) {
+    return { ok: false, reason: "frozen" };
   }
   if (
     active() &&
     balanceMinor(businessAccountId) < amount.minor
   ) {
-    throw new Error(
-      `BankingLogic.payDraw: the business holds less than ${amount.render()}`,
-    );
+    return { ok: false, reason: "business-short" };
   }
   const owned = await accountsOfImpl(proprietorKey);
   const drawAccount = (owned.find((a) => a.isPrimary) ?? owned[0])?.accountId;
   if (!drawAccount) {
-    throw new Error("BankingLogic.payDraw: the proprietor has no account");
+    return { ok: false, reason: "no-account" };
   }
   await postTransaction("draw", [
     {
@@ -1728,6 +1727,7 @@ async function payDrawImpl(
       memo: "proprietor draw",
     },
   ]);
+  return { ok: true };
 }
 
 /**
@@ -3004,7 +3004,7 @@ export class BankingLogic extends ApiLogic {
     businessAccountId: string,
     proprietorKey: string,
     amount: Money,
-  ): Promise<void> {
+  ): Promise<DrawResult> {
     return payDrawImpl(businessAccountId, proprietorKey, amount);
   }
 

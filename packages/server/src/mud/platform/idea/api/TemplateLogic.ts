@@ -27,6 +27,9 @@ import { ProvenanceApi } from '../../../api/provenance';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import TemplateApplier from '../TemplateApplier';
 
+/** The content tree's folder row: what `mkdir` makes. */
+const FOLDER_CLASS = '/platform/idea/FolderZone';
+
 const TemplateApiCallers = SecurityPolicies.FromModule('/api/template#TemplateApi'
 );
 
@@ -76,6 +79,19 @@ export class TemplateLogic extends ApiLogic {
       return { ok: false, reason: 'access-denied', path };
     }
     await this._save(path, spec);
+    return { ok: true, paths: [path] };
+  }
+
+  /** See {@link TemplateApi.makeFolder}. */
+  @CallSecurity(TemplateApiCallers)
+  public async makeFolder(
+    path: string,
+    data: Record<string, unknown>,
+  ): Promise<TemplateWrite> {
+    if (!(await this._mayWrite(path))) {
+      return { ok: false, reason: 'access-denied', path };
+    }
+    await this._save(path, { class: FOLDER_CLASS, data });
     return { ok: true, paths: [path] };
   }
 

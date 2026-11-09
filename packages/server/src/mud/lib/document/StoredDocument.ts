@@ -32,6 +32,23 @@ import { Document } from "../persistence/Document";
 import type { FieldMeta } from "../mixin";
 import { Collections } from '../persistence/Collections';
 
+/**
+ * A document write the store refused for TITLE — the acting principal holds
+ * no title over the path (controller-liquidity W8). A reason-carrying
+ * error, like `BoardRefusal`, so a verb words the refusal by its type and
+ * never by matching the message; the message is unchanged for every caller
+ * that only reads it.
+ */
+export class DocumentRefusal extends Error {
+  constructor(
+    public readonly reason: 'access-denied',
+    message: string,
+  ) {
+    super(message);
+    this.name = 'DocumentRefusal';
+  }
+}
+
 export class StoredDocument extends Document {
   static collectionName = Collections.Documents;
   static fieldMeta: FieldMeta = {

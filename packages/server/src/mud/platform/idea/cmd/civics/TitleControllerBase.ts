@@ -21,7 +21,6 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { ParcelApi } from '../../../../api/parcel';
-import { AccessApi } from '../../../../api/access';
 import { StuffApi } from '../../../../api/stuff';
 import { Zone } from '../../../../lib/zone/Zone';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
@@ -52,8 +51,9 @@ export abstract class TitleControllerBase<
    *
    * ⭐ Taking live content down evicts the people inside to a tombstone
    * that names the extent and its holder, and tells the author of every
-   * room that pointed in. `ParcelApi.setPublished` owns both halves;
-   * this controller is the authority check and the prose.
+   * room that pointed in. `ParcelApi.setPublished` owns both halves and
+   * the title gate (as the acting principal); this controller is the
+   * prose.
    */
   protected async declareLive(
     model: TitleModel,
@@ -79,35 +79,36 @@ export abstract class TitleControllerBase<
         `'${extent}' is not a path`,
       );
     }
-    const record = ParcelApi.coveringParcelOfSync(extent);
-    if (!record || record.extent !== extent) {
-      return this.reject(
-        context,
-        Mml.compose`Nobody holds title to ${extent}, so there is nothing to ${word}.`,
-        'untitled',
-        `no parcel claims ${extent}`,
-      );
+    // Every refusal is the flip's own, as the acting principal (W8 — the
+    // title gate moved off this verb onto the write it protects).
+    const flipped = await ParcelApi.setPublished(extent, live);
+    if (!flipped.ok) {
+      switch (flipped.reason) {
+        case 'untitled':
+          return this.reject(
+            context,
+            Mml.compose`Nobody holds title to ${extent}, so there is nothing to ${word}.`,
+            'untitled',
+            `no parcel claims ${extent}`,
+          );
+        case 'not-yours':
+          return this.reject(
+            context,
+            Mml.compose`${extent} is not yours to ${word}.`,
+            'not-yours',
+            `${word} refused at ${extent}`,
+          );
+        case 'no-change':
+          return this.reject(
+            context,
+            live
+              ? Mml.compose`${extent} is already open.`
+              : Mml.compose`${extent} is already dark.`,
+            'no-change',
+            `${extent} is already ${live ? 'published' : 'offline'}`,
+          );
+      }
     }
-    if (!(await AccessApi.canAtPath(giver, 'write-template', extent))) {
-      return this.reject(
-        context,
-        Mml.compose`${extent} is not yours to ${word}.`,
-        'not-yours',
-        `${word} refused at ${extent}`,
-      );
-    }
-    if (record.isPublished() === live) {
-      return this.reject(
-        context,
-        live
-          ? Mml.compose`${extent} is already open.`
-          : Mml.compose`${extent} is already dark.`,
-        'no-change',
-        `${extent} is already ${live ? 'published' : 'offline'}`,
-      );
-    }
-
-    await ParcelApi.setPublished(extent, live);
 
     MessageApi.scene(giver)
       .topic(TOPIC)

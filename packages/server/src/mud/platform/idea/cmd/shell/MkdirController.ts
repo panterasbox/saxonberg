@@ -43,13 +43,10 @@ export default class MkdirController extends CommandController<MkdirModel> {
 
     if (tree === 'content') {
       const target = SourceTreeApi.joinLogical(cwd, model.path, { home });
-      // The title gate is the write's own (`writeTemplate`, D9): the
-      // covering title at the new folder's path.
+      // What a folder IS, and the title gate at its path, are the
+      // tree's own (`makeFolder`, D9).
       try {
-        const wrote = await TemplateApi.writeTemplate(target, {
-          class: '/platform/idea/FolderZone',
-          data: {},
-        });
+        const wrote = await TemplateApi.makeFolder(target);
         if (!wrote.ok) {
           return this.fail(
             context,

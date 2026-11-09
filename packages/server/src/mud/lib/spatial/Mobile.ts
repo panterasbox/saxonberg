@@ -488,17 +488,6 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * "appearing out of thin air" before a player has even seen the
      * location.
      */
-    /**
-     * D14 — what this mover is *attached* to such that a teleport would
-     * silently separate them, as a presentation phrase; `null` when the
-     * ride is clean.
-     *
-     * On the object rather than in a controller because it is a
-     * question about the mover, and because three verbs need the same
-     * answer: `teleport`'s free-move and ride forks, and the wizard
-     * `goto`. ⚠ The wizard path refuses too — an honest wizard path is
-     * the point of the fix, not an exemption from it.
-     */
     teleport(destination: Stuff & Container, opts?: TeleportOptions): void {
       const silent = opts?.silent ?? false;
       const self = this as unknown as Stuff;
@@ -1202,6 +1191,11 @@ function detachForTeleport(mover: Stuff): string | null {
     const name = cart ? cart.getPresentation() : 'the cart';
     mover.unhitch(mover);
     return name;
+  }
+  // The cart side: a Mobile cart (a boat hauled out) leaves its hauler.
+  if (MixinApi.isHaulable(mover)) {
+    const hauler = mover.slipHitch();
+    if (hauler !== null) return hauler;
   }
   if (MixinApi.isSlottable(mover)) {
     // ⚠ A mover can hold several slots on ONE host (a rider in a seat

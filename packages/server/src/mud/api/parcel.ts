@@ -65,6 +65,11 @@ export {
 } from "../lib/parcel/LandUse";
 export type { LandUse, CultivationScale } from "../lib/parcel/LandUse";
 
+/** What declaring an extent published or dark answers (`ParcelApi.setPublished`). */
+export type PublishAnswer =
+  | { ok: true; record: ParcelRecord }
+  | { ok: false; reason: "untitled" | "not-yours" | "no-change" };
+
 export class ParcelApi {
   /**
    * The total three-rung title chain — explicit parcel title → self-home
@@ -294,12 +299,16 @@ export class ParcelApi {
    * camera*, and which one this is is a fact about whether anybody was
    * there rather than a second field.
    *
-   * Returns the updated record, or null when no parcel claims `extent`.
+   * ⭐ Asked AS the acting principal (controller-liquidity W8 — the gate
+   * moved off `title publish`/`title offline` onto the write it protects):
+   * every refusal is a reason, before any write — `untitled` (no parcel
+   * claims exactly `extent`), `not-yours` (the actor holds no title there;
+   * an unattributable chain is nobody's), `no-change` (already so).
    */
   public static async setPublished(
     extent: string,
     value: boolean,
-  ): Promise<ParcelRecord | null> {
+  ): Promise<PublishAnswer> {
     return logic().setPublished(extent, value);
   }
 

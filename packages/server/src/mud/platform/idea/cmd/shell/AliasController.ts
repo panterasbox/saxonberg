@@ -151,7 +151,7 @@ export default class AliasController extends CommandController<AliasModel> {
     if (!name) return this.fail(context, 'name required', 'name-required');
     const removed = avatar.removeAlias(name, avatar);
     if (!removed) {
-      return this.fail(context, `no such alias: ${name}`);
+      return this.fail(context, `no such alias: ${name}`, 'no-such-alias');
     }
     this.send(context, Mml.fromMarkup(`\n${name} cleared.\n`));
     return;
@@ -187,7 +187,7 @@ export default class AliasController extends CommandController<AliasModel> {
   private fail(
     context: CommandContext,
     detail: string,
-    reason: string = 'unspecified',
+    reason: string,
   ): void {
     this.send(context, Mml.fromMarkup(`\n${detail}\n`));
     context.note({ kind: 'controller-rejected', reason, detail });

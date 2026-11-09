@@ -120,6 +120,23 @@ describe('TemplateApi.writeTemplate — the write gates itself', () => {
   });
 });
 
+describe('TemplateApi.makeFolder — what a folder is, gated (W8)', () => {
+  it('refuses another player\'s path and writes nothing', async () => {
+    const r = await as(bob, () => TemplateApi.makeFolder('/home/alice/dir'));
+    expect(r).toEqual({ ok: false, reason: 'access-denied', path: '/home/alice/dir' });
+    expect(saved).toEqual([]);
+  });
+
+  it('writes the tree\'s folder row for the title-holder', async () => {
+    const pm = PersistenceManager.get();
+    const r = await as(alice, () => TemplateApi.makeFolder('/home/alice/dir'));
+    expect(r.ok).toBe(true);
+    expect(saved).toEqual(['/home/alice/dir']);
+    const doc = vi.mocked(pm.save).mock.calls[0]![1] as { class?: string };
+    expect(doc.class).toBe('/platform/idea/FolderZone');
+  });
+});
+
 describe('TemplateApi.move — refusals before the first write (C66)', () => {
   it('refuses a source that others extend, leaving NO copy at the destination', async () => {
     const src = row('/home/alice/parent');

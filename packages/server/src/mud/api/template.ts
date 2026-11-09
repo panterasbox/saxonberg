@@ -137,6 +137,19 @@ export class TemplateApi {
   }
 
   /**
+   * Make a FOLDER at `path` as the acting principal — {@link writeTemplate}
+   * of the content tree's folder row (a `FolderZone`), so no verb carries
+   * the tree's rule for what a folder is (controller-liquidity W8:
+   * `mkdir` named the class itself).
+   */
+  public static async makeFolder(
+    path: string,
+    data: Record<string, unknown> = {},
+  ): Promise<TemplateWrite> {
+    return logic().makeFolder(path, data);
+  }
+
+  /**
    * Move the row at `src` to `dst` as the acting principal — title over both ends, and
    * every refusal (no row, a parent with descendants or extenders) before
    * the first write, so a refused move leaves nothing behind.
