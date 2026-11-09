@@ -38,8 +38,6 @@ import { ScriptApi } from '../../../../api/script';
 import { ShellApi } from '../../../../api/shell';
 import type { EvalLateError } from '../../EvalScript';
 import { SandboxApi } from '../../../../api/sandbox';
-import { ParcelApi } from '../../../../api/parcel';
-import { GroupApi } from '../../../../api/group';
 import { AccessApi } from '../../../../api/access';
 import { ZoneApi } from '../../../../api/zone';
 import { ProvenanceApi } from '../../../../api/provenance';
@@ -72,10 +70,10 @@ export default class EvalController extends CommandController<EvalModel> {
     const playerKey = giver instanceof Avatar ? giver.getPlayerId() : giver.stuffId;
     const parcel = this.normalizeParcel(model.parcel) ?? `/home/${playerKey}`;
 
-    // The gate: authority over the parcel — title-holder / group
-    // membership / the core default — via the shipped owner-kind
-    // dispatch. Your own self-home passes by the pure rule.
-    if (!(await this.holdsAuthority(giver, parcel))) {
+    // The gate: authority over the parcel — the access layer's own dispatch (controller-liquidity D9, C87):
+    // player title incl. the self-home root, group membership,
+    // organization staff-or-head — never a hand copy here.
+    if (!(await AccessApi.canAtPath(giver, 'eval', parcel))) {
       return this.fail(
         context,
         `you hold no authority over ${parcel}`,
@@ -248,57 +246,6 @@ export default class EvalController extends CommandController<EvalModel> {
     return rooted.endsWith('/') && rooted !== '/'
       ? rooted.slice(0, -1)
       : rooted;
-  }
-
-  /**
-   * Authority over `parcel` via the shipped owner-kind dispatch:
-   * player title (incl. the self-home pure rule), group membership,
-   * or the core-default `AccessApi.can` walk.
-   */
-  private async holdsAuthority(
-    giver: Stuff,
-    parcel: string,
-  ): Promise<boolean> {
-    const identityPath = giver.getIdentityPath();
-    const identityKey = identityPath?.split('/').filter(Boolean).pop();
-    // The self-home rule, applied to the home ROOT as well as paths
-    // under it: `ParcelRecord.selfHomeOwnerOf` matches only
-    // `/home/<key>/…` (something *inside* your home), but a circle's
-    // parcel path IS `/home/<key>` exactly — so without this, nobody
-    // owns their own circle and eval refuses you your own sandbox.
-    if (identityKey && parcel === `/home/${identityKey}`) return true;
-    try {
-      const owner = await ParcelApi.ownerOf(parcel);
-      if (owner?.kind === 'player') {
-        // Mirror `AccessRegistry.subjectOwnsAsPlayer`: a player title
-        // is stored EITHER at the avatar's own identity path (a
-        // transferred title) or in the self-home form `/home/<key>`
-        // (the pure rule, which is how your own circle is yours).
-        // Comparing only against the identity path silently refuses
-        // every player their own circle — including in the field.
-        const identity = giver.getIdentityPath();
-        if (!identity) return false;
-        if (owner.templatePath === identity) return true;
-        const key = identity.split('/').filter(Boolean).pop();
-        return key !== undefined && owner.templatePath === `/home/${key}`;
-      }
-      if (owner?.kind === 'organization') {
-        // Staff-or-head, resolved by the access layer's own dispatch.
-        return AccessApi.canAtPath(giver, 'write-template', parcel);
-      }
-      if (owner?.kind === 'group' && owner.ref) {
-        // Groups key on the member PATH (`/platform/agent/Avatar/<id>`), not the
-        // bare playerId — the same key `AccessRegistry.memberKeyOf`
-        // builds. Passing the raw id silently never matches.
-        return identityPath
-          ? GroupApi.isMember(identityPath, owner.ref)
-          : false;
-      }
-    } catch {
-      // registry offline / no row — fall through to the core dispatch
-    }
-    const resource = StuffApi.findByTemplatePath(parcel) ?? null;
-    return AccessApi.can(giver, 'eval', resource);
   }
 
   private tell(context: CommandContext, text: string): void {

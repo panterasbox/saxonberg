@@ -14,6 +14,7 @@ import {
   type SettingTier,
 } from '../../../lib/config/AppSettings';
 import { Office } from '../../../lib/governance/Office';
+import { ExecutionContextApi } from '../../../api/execution-context';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { SettingWrite } from '../../../api/app';
 
@@ -94,11 +95,12 @@ export class AppLogic extends ApiLogic {
   /**
    * See {@link AppApi.setSetting}. ⭐ The tier rule lives HERE, on the
    * write (controller-liquidity D9): the key must be `seat`'s to set and
-   * `actor` must hold `seat`. Every refusal comes before the write.
+   * the acting principal — derived from the dispatched context, never
+   * passed, so it cannot be spoofed — must hold `seat`. Every refusal
+   * comes before the write.
    */
   @CallSecurity(AppApiCallers)
   public async setSetting(
-    actor: Stuff | null,
     key: string,
     value: string,
     seat: string = PRIME_MINISTER
@@ -120,6 +122,7 @@ export class AppLogic extends ApiLogic {
     // Lazy: AppApi loads at boot ahead of the Compact (the BankingLogic →
     // EmploymentApi precedent); a static import is a module cycle.
     const { CompactApi } = await import('../../../api/compact');
+    const actor = (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
     if (!actor || !(await CompactApi.holdsOffice(actor, seat))) {
       return { ok: false, reason: 'not-seated', tier, whoSets: seat };
     }

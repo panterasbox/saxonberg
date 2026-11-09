@@ -16,12 +16,9 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../../../api/source-tree';
-import { StuffApi } from '../../../../api/stuff';
 import { TemplateApi } from '../../../../api/template';
 import { AccessApi } from '../../../../api/access';
 import { Template } from '../../../../lib/stuff/Template';
-import { Zone } from '../../../../lib/zone/Zone';
-import type { Stuff } from '../../../../lib/stuff/Stuff';
 
 interface CpModel extends CommandModel {
   src?: string;
@@ -48,39 +45,27 @@ export default class CpController extends CommandController<CpModel> {
     if (tree === 'content') {
       const src = SourceTreeApi.joinLogical(cwd, model.src, { home });
       const dst = SourceTreeApi.joinLogical(cwd, model.dst, { home });
-      // Source endpoint is a READ (slice walk only). Dest endpoint
-      // is a WRITE (Zone-target detection routes to canMutateZone).
-      const srcResource = StuffApi.findByTemplatePath<Stuff>(src) ?? null;
-      if (!(await AccessApi.can(giver, 'read', srcResource))) {
-        return this.fail(
-          context,
-          "you don't have permission to read the source",
-          'access-denied',
-        );
-      }
-      const dstResource = StuffApi.findByTemplatePath<Stuff>(dst) ?? null;
-      const dstAllowed =
-        dstResource instanceof Zone
-          ? await AccessApi.canMutateZone(giver, dstResource)
-          : await AccessApi.can(giver, 'write', dstResource);
-      if (!dstAllowed) {
-        return this.fail(
-          context,
-          "you don't have permission to write to the destination",
-          'access-denied',
-        );
-      }
+      // The source is a READ, and reading the content tree is open (`cat`
+      // reads any row); the destination is a write, gated by the write
+      // itself (`writeTemplate`, D9 — C62's always-false `can(…, null)`).
       const tpl = await Template.findByPath(src);
       if (!tpl) return this.fail(context, `no template at ${src}`);
       try {
         // ⭐ The RAW row travels, never the effective one: a copy of a
         // child is a child, and a `cp` that flattened the chain would
         // silently fork the content away from its parent.
-        await TemplateApi.saveTemplate(dst, {
+        const wrote = await TemplateApi.writeTemplate(dst, {
           class: tpl.own.class,
           extends: tpl.extends,
           data: tpl.own.data ?? {},
         });
+        if (!wrote.ok) {
+          return this.fail(
+            context,
+            "you don't have permission to write to the destination",
+            'access-denied',
+          );
+        }
       } catch (err) {
         return this.fail(context, (err as Error).message);
       }

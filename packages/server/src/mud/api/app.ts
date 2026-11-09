@@ -31,7 +31,6 @@ import { AppLogic } from "../platform/idea/api/AppLogic";
 import type { SettingTier } from "../lib/config/AppSettings";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
-import type { Stuff } from "../lib/stuff/Stuff";
 
 /**
  * What {@link AppApi.setSetting} answers: the value it replaced, or a
@@ -133,18 +132,18 @@ export class AppApi {
 
   /**
    * Set a setting AS `seat` (default the Prime Minister): the key must be
-   * that seat's to set and `actor` must hold it (controller-liquidity D9 —
+   * that seat's to set and the acting principal (derived from the
+   * dispatched context) must hold it (controller-liquidity D9 —
    * the tier rule is the write's, so a replaced `config` cannot skip it).
    * Writes the key into the bag, persists the row and refreshes the cache.
    * Open namespace — an unregistered key is Tier B.
    */
   static async setSetting(
-    actor: Stuff | null,
     key: string,
     value: string,
     seat?: string
   ): Promise<SettingWrite> {
-    return logic().setSetting(actor, key, value, seat);
+    return logic().setSetting(key, value, seat);
   }
 
   /**

@@ -13,6 +13,7 @@ import ReserveController from "../ReserveController";
 import { AppApi } from "../../../../../api/app";
 import { AppSettings } from "../../../../../lib/config/AppSettings";
 import { CompactApi } from "../../../../../api/compact";
+import { ExecutionContextApi } from "../../../../../api/execution-context";
 import { PersistenceManager } from "../../../../../../backend/PersistenceManager";
 import { MixinApi } from "../../../../../api/mixin";
 import { MessageApi } from "../../../../../api/message";
@@ -53,6 +54,8 @@ beforeEach(async () => {
     },
   };
   vi.spyOn(MixinApi, "isPersona").mockReturnValue(true);
+  // The seat rule reads the ACTING principal from the dispatched context.
+  vi.spyOn(ExecutionContextApi, "getActingAuthor").mockReturnValue(officer);
   note = vi.fn();
   ctx = { commandGiver: officer, note } as unknown as CommandContext;
 });
@@ -119,13 +122,13 @@ describe("reserve set — the Governor's dials", () => {
 describe("⭐ the seat rule is the WRITE's own (controller-liquidity D9)", () => {
   it("a direct call by someone who does not hold the seat is refused, nothing written", async () => {
     seated = false;
-    const r = await AppApi.setSetting(ctx.commandGiver, "banking.withdrawalDailyCap", "1", "central-bank-governor");
+    const r = await AppApi.setSetting("banking.withdrawalDailyCap", "1", "central-bank-governor");
     expect(r).toMatchObject({ ok: false, reason: "not-seated" });
     expect(values["banking.withdrawalDailyCap"]).toBe("500");
   });
 
   it("the Prime Minister cannot set a Tier C dial by a direct call", async () => {
-    const r = await AppApi.setSetting(ctx.commandGiver, "banking.salesTaxRate", "0.5");
+    const r = await AppApi.setSetting("banking.salesTaxRate", "0.5");
     expect(r).toMatchObject({ ok: false, reason: "wrong-seat" });
     expect(values["banking.salesTaxRate"]).toBe("0.08");
   });

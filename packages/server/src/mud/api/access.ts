@@ -96,7 +96,8 @@ export type TreeAction =
   | 'broadcast'
   | 'teleport'
   | 'clone'
-  | 'reload';
+  | 'reload'
+  | 'eval';
 
 /**
  * The source-tree actions {@link AccessApi.sourceWriteRefusal} asks about —

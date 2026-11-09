@@ -8,6 +8,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { CompactApi } from "../compact";
+import { ExecutionContextApi } from "../execution-context";
 import { AppApi } from "../app";
 import { AppLogic } from "../../platform/idea/api/AppLogic";
 import { SecurityError } from "../../lib/security/errors";
@@ -82,7 +83,8 @@ describe("AppApi", () => {
     const savesBefore = pm.saves.length;
 
     vi.spyOn(CompactApi, "holdsOffice").mockResolvedValue(true as never);
-    const wrote = await AppApi.setSetting({} as never, AppSettingKeys.defaultStartLocation, "/world/new");
+    vi.spyOn(ExecutionContextApi, "getActingAuthor").mockReturnValue({} as never);
+    const wrote = await AppApi.setSetting(AppSettingKeys.defaultStartLocation, "/world/new");
     expect(wrote).toEqual({ ok: true, before: "/world/lounge/idea/warren" });
 
     expect(AppApi.setting(AppSettingKeys.defaultStartLocation)).toBe(

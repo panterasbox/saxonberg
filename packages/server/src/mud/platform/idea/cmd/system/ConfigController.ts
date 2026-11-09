@@ -77,7 +77,7 @@ export default class ConfigController extends CommandController<ConfigModel> {
   ): Promise<void> {
     // The tier rule is the write's own (AppLogic.setSetting, D9): `config`
     // sets as the Prime Minister; a Tier C dial refuses `wrong-seat`.
-    const wrote = await AppApi.setSetting(context.commandGiver, key, value);
+    const wrote = await AppApi.setSetting(key, value);
     if (!wrote.ok) {
       const detail =
         wrote.reason === "wrong-seat"

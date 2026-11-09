@@ -19,8 +19,10 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../../../api/source-tree';
-import { AccessApi } from '../../../../api/access';
 import { Template } from '../../../../lib/stuff/Template';
+
+/** The content-tree grep's match cap (the code tree's is `SourceTreeApi.search`'s). */
+const TEMPLATE_MATCH_CAP = 200;
 
 interface GrepModel extends CommandModel {
   pattern?: string;
@@ -42,15 +44,11 @@ export default class GrepController extends CommandController<GrepModel> {
     if (!model.pattern) {
       return this.fail(context, 'grep needs a <pattern>');
     }
-    const flags = model.ignore ? 'i' : '';
-    let regex: RegExp;
-    try {
-      regex = new RegExp(model.pattern, flags);
-    } catch (err) {
-      return this.fail(
-        context,
-        `invalid pattern: ${(err as Error).message}`,
-      );
+    // The pattern's safety and the walk's limits are the search's own
+    // (`SourceTreeApi.search`, controller-liquidity D9 — C86).
+    const compiled = SourceTreeApi.compilePattern(model.pattern, !!model.ignore);
+    if (!compiled.ok) {
+      return this.fail(context, `invalid pattern: ${compiled.detail}`, compiled.reason);
     }
     const tree = giver.pickTree(model);
     const home = giver.getHome();
@@ -61,11 +59,12 @@ export default class GrepController extends CommandController<GrepModel> {
     // code is the reveal model's job (wizard-axis-cleanup-slate W4).
 
     const lines: string[] = [];
+    let truncated: string | null = null;
     if (tree === 'content') {
       const base = model.path
         ? SourceTreeApi.joinLogical(cwd, model.path, { home })
         : cwd;
-      await this.grepTemplates(regex, base, !!model.recursive, lines);
+      truncated = await this.grepTemplates(compiled.regex, base, !!model.recursive, lines);
     } else {
       let abs: string;
       try {
@@ -76,7 +75,26 @@ export default class GrepController extends CommandController<GrepModel> {
         }
         throw err;
       }
-      await this.grepCode(regex, abs, !!model.recursive, lines);
+      const found = await SourceTreeApi.search(abs, model.pattern, {
+        recursive: !!model.recursive,
+        ignoreCase: !!model.ignore,
+      });
+      if (!found.ok) {
+        return this.fail(context, `invalid pattern: ${found.detail}`, found.reason);
+      }
+      for (const m of found.matches) {
+        lines.push(`${SourceTreeApi.toDisplayPath(m.absolutePath)}:${m.line}: ${m.text}`);
+      }
+      truncated = found.truncated;
+    }
+    if (truncated) {
+      lines.push(
+        truncated === 'matches'
+          ? '(stopped at the match limit — narrow the pattern or the path)'
+          : truncated === 'bytes'
+            ? '(stopped after reading the size limit — narrow the path)'
+            : '(stopped at the time limit — narrow the path)',
+      );
     }
 
     if (lines.length === 0) {
@@ -92,7 +110,7 @@ export default class GrepController extends CommandController<GrepModel> {
     basePath: string,
     recursive: boolean,
     lines: string[],
-  ): Promise<void> {
+  ): Promise<'matches' | null> {
     const all = await Template.findDescendants(basePath);
     const baseSegments = basePath === '/' ? 0 : basePath.split('/').length;
     for (const tpl of all) {
@@ -103,39 +121,12 @@ export default class GrepController extends CommandController<GrepModel> {
       for (let i = 0; i < tplLines.length; i++) {
         const ln = tplLines[i]!;
         if (regex.test(ln)) {
+          if (lines.length >= TEMPLATE_MATCH_CAP) return 'matches';
           lines.push(`${tpl.path}:${i + 1}: ${ln}`);
         }
       }
     }
-  }
-
-  private async grepCode(
-    regex: RegExp,
-    absPath: string,
-    recursive: boolean,
-    lines: string[],
-  ): Promise<void> {
-    if (await SourceTreeApi.isFile(absPath)) {
-      const content = await SourceTreeApi.read(absPath);
-      const display = SourceTreeApi.toDisplayPath(absPath);
-      const fileLines = content.split('\n');
-      for (let i = 0; i < fileLines.length; i++) {
-        const ln = fileLines[i]!;
-        if (regex.test(ln)) {
-          lines.push(`${display}:${i + 1}: ${ln}`);
-        }
-      }
-      return;
-    }
-    if (!(await SourceTreeApi.isDir(absPath))) return;
-    const entries = await SourceTreeApi.list(absPath);
-    for (const ent of entries) {
-      if (ent.isFile) {
-        await this.grepCode(regex, ent.absolutePath, recursive, lines);
-      } else if (ent.isDir && recursive) {
-        await this.grepCode(regex, ent.absolutePath, true, lines);
-      }
-    }
+    return null;
   }
 
   private tell(context: CommandContext, text: string): void {

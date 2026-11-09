@@ -87,7 +87,7 @@ export abstract class BankingControllerBase<
     }
     // Whose row it is and whether the giver holds the seat are the write's
     // own rules (AppLogic.setSetting, controller-liquidity D9).
-    const wrote = await AppApi.setSetting(giver, row, value, seat);
+    const wrote = await AppApi.setSetting(row, value, seat);
     if (!wrote.ok) {
       const detail =
         wrote.reason === "wrong-seat"

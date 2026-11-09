@@ -10,7 +10,19 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { SourceTreeSandboxError } from '../../../lib/shell/SourceTreeSandboxError';
 import YAML from 'yaml';
-import type { DirEntry } from '../../../api/source-tree';
+
+/** Search limits (controller-liquidity C86): the defaults a caller may lower. */
+const SEARCH_MAX_MATCHES = 200;
+const SEARCH_MAX_BYTES = 8 * 1024 * 1024;
+const SEARCH_DEADLINE_MS = 2000;
+const SEARCH_MAX_PATTERN = 200;
+import type {
+  DirEntry,
+  SearchMatch,
+  SearchOptions,
+  SearchPattern,
+  SearchResult,
+} from '../../../api/source-tree';
 
 const SourceTreeApiCallers = SecurityPolicies.FromModule('/api/source-tree#SourceTreeApi'
 );
@@ -230,6 +242,98 @@ export class SourceTreeLogic extends ApiLogic {
       isFile: ent.isFile(),
       isDir: ent.isDirectory(),
     }));
+  }
+
+  /** See {@link SourceTreeApi.compilePattern}. */
+  @CallSecurity(SourceTreeApiCallers)
+  public compilePattern(pattern: string, ignoreCase: boolean): SearchPattern {
+    return this._compile(pattern, ignoreCase);
+  }
+
+  /**
+   * See {@link SourceTreeApi.search}. ⭐ The limits are the search's own
+   * (controller-liquidity D9, C86): a pattern that could backtrack
+   * catastrophically is refused before it runs, and the walk stops at the
+   * first of a match cap, a byte budget and a wall-clock deadline, saying
+   * which.
+   */
+  @CallSecurity(SourceTreeApiCallers)
+  public async search(
+    absolutePath: string,
+    pattern: string,
+    opts: SearchOptions = {},
+  ): Promise<SearchResult> {
+    const compiled = this._compile(pattern, opts.ignoreCase === true);
+    if (!compiled.ok) return compiled;
+    const regex = compiled.regex;
+    const maxMatches = opts.maxMatches ?? SEARCH_MAX_MATCHES;
+    const maxBytes = opts.maxBytes ?? SEARCH_MAX_BYTES;
+    const deadline = Date.now() + (opts.deadlineMs ?? SEARCH_DEADLINE_MS);
+    const matches: SearchMatch[] = [];
+    let bytes = 0;
+    let truncated: 'matches' | 'bytes' | 'deadline' | null = null;
+    const visitFile = async (file: string): Promise<void> => {
+      const content = await fs.readFile(file, 'utf8');
+      bytes += content.length;
+      if (bytes > maxBytes) {
+        truncated = 'bytes';
+        return;
+      }
+      const lines = content.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        if (!regex.test(lines[i]!)) continue;
+        if (matches.length >= maxMatches) {
+          truncated = 'matches';
+          return;
+        }
+        matches.push({ absolutePath: file, line: i + 1, text: lines[i]! });
+      }
+    };
+    const walk = async (dir: string, descend: boolean): Promise<void> => {
+      const ents = await fs.readdir(dir, { withFileTypes: true });
+      for (const ent of ents) {
+        if (truncated) return;
+        if (Date.now() > deadline) {
+          truncated = 'deadline';
+          return;
+        }
+        const abs = path.join(dir, ent.name);
+        if (ent.isFile()) await visitFile(abs);
+        else if (ent.isDirectory() && descend) await walk(abs, true);
+      }
+    };
+    let stat;
+    try {
+      stat = await fs.stat(absolutePath);
+    } catch {
+      return { ok: true, matches, truncated };
+    }
+    if (stat.isFile()) await visitFile(absolutePath);
+    else if (stat.isDirectory()) await walk(absolutePath, opts.recursive === true);
+    return { ok: true, matches, truncated };
+  }
+
+  /**
+   * Compile a search pattern, refusing one that is invalid, too long, or
+   * shaped for catastrophic backtracking — a quantified group that itself
+   * contains a quantifier (`(a+)+`, `(.*)*`, `(x|y+){2,}`) or a
+   * backreference. Conservative by design: a refusal says which.
+   */
+  private _compile(pattern: string, ignoreCase: boolean): SearchPattern {
+    if (pattern.length > SEARCH_MAX_PATTERN) {
+      return { ok: false, reason: 'unsafe-pattern', detail: `the pattern is longer than ${SEARCH_MAX_PATTERN} characters` };
+    }
+    if (/\\[1-9]/.test(pattern)) {
+      return { ok: false, reason: 'unsafe-pattern', detail: 'backreferences are not searched (they can run without bound)' };
+    }
+    if (/\((?:[^()\\]|\\.)*[+*}](?:[^()\\]|\\.)*\)\s*(?:[+*]|\{\d+,)/.test(pattern)) {
+      return { ok: false, reason: 'unsafe-pattern', detail: 'a repeated group that itself repeats can run without bound — simplify it' };
+    }
+    try {
+      return { ok: true, regex: new RegExp(pattern, ignoreCase ? 'i' : '') };
+    } catch (err) {
+      return { ok: false, reason: 'bad-pattern', detail: (err as Error).message };
+    }
   }
 
   /** See {@link SourceTreeApi.write}. */

@@ -163,6 +163,12 @@ export default class AccessRegistry extends AccessRegistryBase {
     if (subject === null) return false;
     const memberKey = this.memberKeyOf(subject);
     if (memberKey === null) return false;
+    // ⭐ The self-home ROOT (controller-liquidity D9, lifted from `eval`):
+    // `ParcelRecord.selfHomeOwnerOf` matches only `/home/<key>/…` —
+    // something INSIDE your home — but a circle's parcel path IS
+    // `/home/<key>` exactly, so without this nobody holds their own circle.
+    const key = memberKey.split('/').filter(Boolean).pop();
+    if (key !== undefined && path === `/home/${key}`) return true;
     const owner = await ParcelApi.ownerOf(path);
     if (
       owner !== null &&

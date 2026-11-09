@@ -11,6 +11,7 @@ import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ErrorsController from '../ErrorsController';
 import { DiagnosticApi } from '../../../../../api/diagnostics';
+import { ExecutionContextApi } from '../../../../../api/execution-context';
 import { CompactApi } from '../../../../../api/compact';
 import { MessageApi } from '../../../../../api/message';
 import { Mml } from '../../../../../api/mml';
@@ -142,8 +143,14 @@ describe('ErrorsController', () => {
 
   it('the ring refuses a non-PM reader on a DIRECT call (no controller in the way)', async () => {
     vi.mocked(DiagnosticApi.rawTail).mockRestore();
-    expect(await DiagnosticApi.rawTail(null)).toBeNull();
-    expect(await DiagnosticApi.rawTail(ctx.commandGiver)).toBeNull();
+    // No acting principal → refused without asking.
+    expect(await DiagnosticApi.rawTail()).toBeNull();
+    // An acting non-PM → refused by the read itself.
+    const r = await ExecutionContextApi.runRoot(null, 'direct', async () => {
+      ExecutionContextApi.tagActingAuthor(ctx.commandGiver);
+      return DiagnosticApi.rawTail();
+    });
+    expect(r).toBeNull();
     expect(CompactApi.holdsOffice).toHaveBeenCalledWith(
       ctx.commandGiver,
       'prime-minister'
@@ -155,7 +162,7 @@ describe('ErrorsController', () => {
       { level: 'error', text: 'boom', ts: 1 },
     ]);
     await run({ subcommand: 'raw', grep: 'boo' });
-    expect(DiagnosticApi.rawTail).toHaveBeenCalledWith(ctx.commandGiver, {
+    expect(DiagnosticApi.rawTail).toHaveBeenCalledWith({
       grep: 'boo',
       limit: 30, // default short tail
     });

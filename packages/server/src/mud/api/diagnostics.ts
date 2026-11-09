@@ -43,7 +43,6 @@ import type {
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { DiagnosticLogic } from '../platform/idea/api/DiagnosticLogic';
-import type { Stuff } from '../lib/stuff/Stuff';
 import {
   DiagnosticChannel,
   type SubscribeContext,
@@ -142,14 +141,14 @@ export class DiagnosticApi {
   /**
    * Newest-first tail of the raw console ring (the `ConsoleTap`).
    * Unattributed engine output, other players' lines included — the
-   * Prime Minister's read. `reader` is the person asking; the gate is the
-   * logic's (controller-liquidity D9). `null` = refused (not the PM).
+   * Prime Minister's read. The reader is the acting principal, derived
+   * from the dispatched context; the gate is the logic's
+   * (controller-liquidity D9). `null` = refused (not the PM).
    */
   public static async rawTail(
-    reader: Stuff | null,
     filter: RawConsoleFilter = {}
   ): Promise<RawConsoleLine[] | null> {
-    return logic().rawTail(reader, filter);
+    return logic().rawTail(filter);
   }
 
   /**

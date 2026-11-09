@@ -92,7 +92,7 @@ export default class ErrorsController extends CommandController<ErrorsModel> {
     // Default to a short tail — the ring holds the whole session's console
     // (boot included), so an unbounded dump is a wall of text. The PM gate
     // is the read's own (DiagnosticLogic.rawTail); null = refused.
-    const lines = await DiagnosticApi.rawTail(actor, {
+    const lines = await DiagnosticApi.rawTail({
       grep: model.grep,
       limit: model.limit ?? 30,
     });

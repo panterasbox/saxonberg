@@ -427,14 +427,15 @@ export class DiagnosticLogic extends ApiLogic {
   /**
    * See {@link DiagnosticApi.rawTail}. ⭐ The console ring carries other
    * players' lines, so reading it is the Prime Minister's — decided HERE,
-   * on the read, with the reader as an argument (controller-liquidity D9),
-   * so a replaced `errors` controller cannot skip it. `null` = refused.
+   * on the read (controller-liquidity D9), so a replaced `errors`
+   * controller cannot skip it. The reader is the CONTEXT-derived acting
+   * principal (the `clear` precedent) — unspoofable. `null` = refused.
    */
   @CallSecurity(DiagnosticApiCallers)
   public async rawTail(
-    reader: Stuff | null,
     filter: RawConsoleFilter = {}
   ): Promise<RawConsoleLine[] | null> {
+    const reader = actor();
     if (!reader) return null;
     if (!(await CompactApi.holdsOffice(reader, 'prime-minister'))) return null;
     return ConsoleTap.get().tail(filter);

@@ -70,7 +70,6 @@ import { StuffApi } from '../../../../api/stuff';
 import { TemplateApi } from '../../../../api/template';
 import { Template } from '../../../../lib/stuff/Template';
 import { AccessApi } from '../../../../api/access';
-import { Zone } from '../../../../lib/zone/Zone';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { MqlOneResult } from '../../../../api/mql';
 import { TemplatePaths } from '../../../../lib/paths';
@@ -136,8 +135,6 @@ export default class WriteController extends CommandController<WriteModel> {
         return this.fail(context, 'write -c needs payload `data` (struct)');
       }
       const target = SourceTreeApi.joinLogical(cwd, model.path, { home });
-      const contentErr = await this._gateContentWrite(giver, target);
-      if (contentErr) return this.fail(context, contentErr, 'access-denied');
       // ⭐⭐ `--extends` is the protowizard's door. With a parent named,
       // `--class` defaults to ABSENT rather than to the engine's generic
       // Idea: the whole point of *like that one, but different* is that
@@ -165,15 +162,17 @@ export default class WriteController extends CommandController<WriteModel> {
       );
       if (schemaErr !== null) return this.fail(context, schemaErr);
       try {
-        // The authoring act is attributed inside saveTemplate from the
-        // dispatched execution context (this verb's command giver) — the
-        // controller passes no author; it can't be spoofed. The access check
-        // above already gated this write.
-        await TemplateApi.saveTemplate(target, {
+        // The title gate is the write's own (`writeTemplate`, D9); the
+        // authoring act is attributed inside it from the dispatched
+        // execution context — the controller passes no author.
+        const wrote = await TemplateApi.writeTemplate(target, {
           class: classPath,
           extends: parentPath,
           data: model.data,
         });
+        if (!wrote.ok) {
+          return this.fail(context, "you don't have permission to write there", 'access-denied');
+        }
       } catch (err) {
         return this.fail(context, (err as Error).message);
       }
@@ -253,32 +252,6 @@ export default class WriteController extends CommandController<WriteModel> {
     if (!schema) return null;
     const err = CommandApi.validateAgainstJsonSchema(schema, data);
     return err === null ? null : `data: ${err}`;
-  }
-
-  /**
-   * Content-tree write gate. If the resolved path corresponds to an
-   * extant Zone Template (live FolderZone or live SpatialZone),
-   * route to `canMutateZone`. Otherwise consult the slice walk on
-   * the target's Stuff (or null when no live instance — the walk
-   * then fails closed — untitled is nobody's).
-   *
-   * Returns null on allow, a human-readable error string on deny.
-   */
-  private async _gateContentWrite(
-    giver: Stuff,
-    target: string,
-  ): Promise<string | null> {
-    const liveAtTarget = StuffApi.findByTemplatePath<Stuff>(target) ?? null;
-    if (liveAtTarget instanceof Zone) {
-      if (!(await AccessApi.canMutateZone(giver, liveAtTarget))) {
-        return "you don't have permission to mutate that zone";
-      }
-      return null;
-    }
-    if (!(await AccessApi.can(giver, 'write', liveAtTarget))) {
-      return "you don't have permission to write there";
-    }
-    return null;
   }
 
   /**

@@ -19,10 +19,8 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../../../api/source-tree';
-import { StuffApi } from '../../../../api/stuff';
 import { TemplateApi } from '../../../../api/template';
 import { AccessApi } from '../../../../api/access';
-import type { Stuff } from '../../../../lib/stuff/Stuff';
 
 interface MkdirModel extends CommandModel {
   path?: string;
@@ -45,21 +43,20 @@ export default class MkdirController extends CommandController<MkdirModel> {
 
     if (tree === 'content') {
       const target = SourceTreeApi.joinLogical(cwd, model.path, { home });
-      // mkdir is creation-under-parent (flat slice-walk check) in
-      // this build — sub-zone creation is a member-level op until
-      // consumers ask for tighter gating.
-      const parentLogical =
-        target.slice(0, Math.max(target.lastIndexOf('/'), 0)) || '/';
-      const parentResource = StuffApi.findByTemplatePath<Stuff>(parentLogical) ?? null;
-      if (!(await AccessApi.can(giver, 'mkdir', parentResource))) {
-        return this.fail(
-          context,
-          "you don't have permission to create folders there",
-          'access-denied',
-        );
-      }
+      // The title gate is the write's own (`writeTemplate`, D9): the
+      // covering title at the new folder's path.
       try {
-        await TemplateApi.saveTemplate(target, { class: '/platform/idea/FolderZone', data: {} });
+        const wrote = await TemplateApi.writeTemplate(target, {
+          class: '/platform/idea/FolderZone',
+          data: {},
+        });
+        if (!wrote.ok) {
+          return this.fail(
+            context,
+            "you don't have permission to create folders there",
+            'access-denied',
+          );
+        }
       } catch (err) {
         return this.fail(context, (err as Error).message);
       }

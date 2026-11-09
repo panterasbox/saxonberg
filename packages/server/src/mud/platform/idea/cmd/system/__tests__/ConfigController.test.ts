@@ -20,6 +20,7 @@ import { PersistenceManager } from "../../../../../../backend/PersistenceManager
 import { makeStuff } from "../../../../../lib/security/__tests__/test-setup";
 import requiresPrimeMinister from "../../../../../lib/command/validators/requiresPrimeMinister";
 import { CompactApi } from "../../../../../api/compact";
+import { ExecutionContextApi } from "../../../../../api/execution-context";
 import type { CommandContext, CommandModel } from "../../../../../api/command";
 import { AuthorMixin } from "../../../../../lib/shell/Author";
 import { Idea } from "../../../../../lib/stuff/Idea";
@@ -56,6 +57,8 @@ describe("ConfigController", () => {
 
     ctrl = makeStuff(() => new ConfigController());
     vi.spyOn(CompactApi, "holdsOffice").mockResolvedValue(true as never);
+    // The tier rule reads the ACTING principal from the dispatched context.
+    vi.spyOn(ExecutionContextApi, "getActingAuthor").mockReturnValue({} as never);
 
     // Capture rendered markup; let fromMarkup still build a real Mml.
     output = [];
@@ -131,14 +134,14 @@ describe("ConfigController", () => {
   });
 
   it("the listing marks a Tier C key with its seat", async () => {
-    await AppApi.setSetting(ctx.commandGiver, AppSettingKeys.bankingWithdrawalDailyCap, "500", "central-bank-governor");
+    await AppApi.setSetting(AppSettingKeys.bankingWithdrawalDailyCap, "500", "central-bank-governor");
     await run({});
     expect(output.join("\n")).toContain("banking.withdrawalDailyCap = 500  [C: central-bank-governor]");
   });
 
   it("⭐ a direct write by a non-PM is refused on the model, nothing written (D9)", async () => {
     vi.mocked(CompactApi.holdsOffice).mockResolvedValue(false as never);
-    const r = await AppApi.setSetting(ctx.commandGiver, AppSettingKeys.defaultStartLocation, "/x");
+    const r = await AppApi.setSetting(AppSettingKeys.defaultStartLocation, "/x");
     expect(r).toMatchObject({ ok: false, reason: "not-seated" });
     expect(AppApi.setting(AppSettingKeys.defaultStartLocation)).toBe("/world/lounge/idea/warren");
   });
