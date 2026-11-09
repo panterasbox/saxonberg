@@ -1099,3 +1099,11 @@ honest note) and comes home; `stream off` restores the size and the text; Rodney
 the lower third with no server (step 13). ⚠ The shared `enterWorld` helper flaked twice at world entry
 (roster/input never visible) on a loaded world — the helper, not this build; the third run was clean.
 
+**Full suite** — `tools/suite`, once, 2026-11-09 (56 packages; the first pass was cut at package 28 by
+the build's own `timeout`, the rest resumed with `--from trade-farming`): **54 packages green**; `client`
+1054/1054; `server` 15 368 passed with one file red — `wiki-spoiler-fields.snapshot` (the composition
+panel now lists `BroadcastMixin`'s ten fields; snapshot updated, a commit on the MR). ⚠ **`trade-dairying`
+22 red, pre-existing and outside this diff**: its test fixture hydrates material rows whose `smells`
+reach `Aroma.ensure` → `DocumentApi.read` with no database (`Odorous.setSmells`, from the smell & taste
+build) — nothing in the stack is this build's. Left for that subsystem's owner.
+
