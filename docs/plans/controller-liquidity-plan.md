@@ -104,12 +104,12 @@ durations.
 The 44 protocol candidates (Appendix B) are rung 1 by definition and change
 no words.
 
-### 5. The owner's calls this plan could not make (see § Risks & opens)
+### 5. The owner's calls — decided 2026-11-09
 
-1. **`house` / `job` on `Persona`** — the plan recommends keeping them on
-   self and says why; the owner asked for a revisit.
-2. **`spud` and `paste`** — the two rung-5 words, if the owner would rather
-   have one of them stay a head.
+1. **`house` / `job` stay on `Persona`** (self). Decided by the owner (D15).
+2. **`spud` and `paste` are accepted** as the two rung-5 words.
+3. **`heat` loses the set-it-on-the-fire arm** — the owner did not
+   object; `put <pot> on <hearth>` is the act.
 
 ---
 
@@ -658,8 +658,8 @@ and `length`-as-string (`length` becomes a `quantity` the binder parsed —
 `type: number` with the unit in the view, or the existing measure grammar).
 `FellController` stops crosscutting; `cut <bole>` answers it.
 
-**D15 — The `house` / `job` affordance stays on `Persona`** (recommended;
-the owner's call — § Risks & opens). The direction prefers verbs from
+**D15 — The `house` / `job` affordance stays on `Persona`** (decided by
+the owner, 2026-11-09). The direction prefers verbs from
 portable objects *for acts on things*; `house` and `job` are a person's
 transactions with an institution's book, and the principal is the seat, not
 a thing in hand. The board subcommands already bind the board in reach
@@ -1444,7 +1444,7 @@ why in the plan rather than moving the target silently.
 
 ## Risks & opens
 
-**For the owner (genuinely the owner's calls):**
+**The owner's calls — decided 2026-11-09:** (1) keep `house`/`job` on self; (2) accept `spud` and `paste`; (3) `heat` loses the set-on-fire arm (not objected to). The reasoning below is kept for review.
 
 1. **`house` / `job` on `Persona` (D15).** The plan keeps them on self and
    says why; the direction asked for a revisit. The alternative (afford

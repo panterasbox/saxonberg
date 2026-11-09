@@ -269,6 +269,9 @@ None: nothing here waits on the clock.
   state, durations and refusals for every act on the worklist.
 - A replaced controller that only calls the object cannot get past any
   protection the survey listed.
+  (Bleeding another person is made tool-gated, capacity-checked and
+  recorded; a *consent* gate does not exist to move and is the
+  compulsion-gate security build's, not this one.)
 - No command takes an unquoted multi-word object name; prose still reads
   whole.
 - `reachable` and the three rungs behave as above; MQL addresses things
