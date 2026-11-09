@@ -16,7 +16,7 @@ function roster(): Group {
   const g = new Group();
   g.addMember('/platform/agent/Avatar/p-alice', 'owner');
   g.addMember('/platform/agent/Avatar/p-bob');
-  g.addMember('/world/x/agent/Smith');
+  g.addMember('/test/agent/Smith');
   return g;
 }
 
@@ -29,7 +29,7 @@ describe('Group.memberByName', () => {
       id === 'p-bob' ? 'Bob' : id === 'p-alice' ? 'Alice' : null,
     );
     const g = roster();
-    expect(await g.memberByName('/world/x/agent/Smith')).toBe('/world/x/agent/Smith');
+    expect(await g.memberByName('/test/agent/Smith')).toBe('/test/agent/Smith');
     expect(await g.memberByName('p-alice')).toBe('/platform/agent/Avatar/p-alice');
     expect(await g.memberByName('bob')).toBe('/platform/agent/Avatar/p-bob');
     expect(await g.memberByName('carol')).toBeNull();

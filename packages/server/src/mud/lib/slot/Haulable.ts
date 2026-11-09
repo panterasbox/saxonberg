@@ -117,15 +117,16 @@ export interface Haulable {
    */
   canHitch(hauler: Stuff, actor: Stuff): VetoResult | Promise<VetoResult>;
   /**
-   * May `actor` uncouple me from whoever pulls me? ⭐ Asked by
-   * `Hauler.unhitch(by)` itself, so every caller meets it. The default
+   * May `actor` uncouple me from `hauler`, who pulls me? ⭐ Asked by
+   * `Hauler.unhitch(by)` itself (passing itself, as `canHitch` is passed
+   * the hauler), so every caller meets it. The default
    * refuses only a cart another PERSON is pulling by hand — you do not
    * take a cart out of somebody's hands; a draft animal's cart is anybody's
    * to unhitch, as a horse's harness is.
    *
    * @hook Override to tighten (an owned rig, a team's own wagon).
    */
-  canUnhitch(actor: Stuff): VetoResult;
+  canUnhitch(hauler: Stuff, actor: Stuff): VetoResult;
 }
 
 export function HaulableMixin<
@@ -277,9 +278,8 @@ export function HaulableMixin<
     }
 
     /** See {@link Haulable.canUnhitch}. */
-    public canUnhitch(actor: Stuff): VetoResult {
-      const hauler = this._hauledBy;
-      if (!hauler || hauler.stuffId === actor.stuffId) return { ok: true };
+    public canUnhitch(hauler: Stuff, actor: Stuff): VetoResult {
+      if (hauler.stuffId === actor.stuffId) return { ok: true };
       if (MixinApi.isCommandGiver(hauler)) {
         return { ok: false, reason: 'held-by-another' };
       }

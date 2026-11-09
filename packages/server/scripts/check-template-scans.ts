@@ -60,13 +60,12 @@ export const ALLOWLIST: AllowEntry[] = [
   { file: "packages/server/src/mud/platform/idea/LocationGraphRegistry.ts", count: 1, reason: "the location graph — the one index the world keeps of its own shape" },
   // ── author tooling ──
   { file: "packages/server/src/mud/platform/idea/cmd/shell/LsController.ts", count: 2, reason: TOOL },
-  { file: "packages/server/src/mud/platform/idea/cmd/shell/RmController.ts", count: 1, reason: TOOL },
   { file: "packages/server/src/mud/platform/idea/cmd/shell/GrepController.ts", count: 1, reason: TOOL },
   { file: "packages/server/src/mud/platform/idea/api/CmsLogic.ts", count: 1, reason: TOOL },
   { file: "packages/server/src/mud/platform/idea/api/SandboxLogic.ts", count: 1, reason: TOOL },
   { file: "packages/server/src/mud/lib/wiki/components/composition.ts", count: 1, reason: "the wiki composition page — " + TOOL },
   // ── the installer ──
-  { file: "packages/server/src/mud/platform/idea/api/TemplateLogic.ts", count: 2, reason: "the template installer — reconciling the table is its job" },
+  { file: "packages/server/src/mud/platform/idea/api/TemplateLogic.ts", count: 1, reason: "the template installer — its one descendant read (`_descendantsOf`), shared by the folder/leaf validators and the mv/rm writes that moved here from the shell (controller-liquidity W3)" },
   { file: "packages/server/src/backend/BootstrapManager.ts", count: 1, reason: "the boot sequencer expanding a prefix entry — boot itself, which lint:boot-entries holds" },
   // ── lazy dictionaries ──
   { file: "packages/server/src/mud/platform/idea/ReadingCatalogue.ts", count: 1, reason: LAZY_DICT },

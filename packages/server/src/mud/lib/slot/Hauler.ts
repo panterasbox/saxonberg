@@ -39,7 +39,7 @@ export interface Hauler {
   hitch(cart: Stuff & Haulable): void;
   /**
    * Release the hitched cart, as `by` (clears both sides). ⭐ Asks the
-   * cart's `canUnhitch(by)` first (controller-liquidity D9); the hauler
+   * cart's `canUnhitch(this, by)` first (controller-liquidity D9); the hauler
    * letting go of its own cart always may. Nothing hitched → `{ok: true}`.
    */
   unhitch(by: Stuff): VetoResult;
@@ -83,7 +83,7 @@ export function HaulerMixin<TBase extends MixinConstructor>(Base: TBase) {
     public unhitch(by: Stuff): VetoResult {
       const cart = this._hauling;
       if (!cart) return { ok: true };
-      const veto = cart.canUnhitch(by);
+      const veto = cart.canUnhitch(this as unknown as Stuff, by);
       if (!veto.ok) return veto;
       this._hauling = null;
       cart.setHauledBy(null);

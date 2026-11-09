@@ -99,7 +99,7 @@ export class TemplateLogic extends ApiLogic {
     }
     const tpl = await Template.findByPath(src);
     if (!tpl) return { ok: false, reason: 'no-template', path: src };
-    if ((await Template.findDescendants(src)).length > 0) {
+    if ((await this._descendantsOf(src)).length > 0) {
       return { ok: false, reason: 'has-descendants', path: src };
     }
     if ((await this._extendersOf(src)).length > 0) {
@@ -129,8 +129,12 @@ export class TemplateLogic extends ApiLogic {
   ): Promise<TemplateWrite> {
     const tpl = await Template.findByPath(path);
     if (!tpl) return { ok: false, reason: 'no-template', path };
-    const descendants = recursive ? await Template.findDescendants(path) : [];
-    const doomed = [tpl, ...descendants];
+    // One read of what is beneath: `-r` takes it, a bare delete refuses it.
+    const descendants = await this._descendantsOf(path);
+    if (!recursive && descendants.length > 0) {
+      return { ok: false, reason: 'has-descendants', path };
+    }
+    const doomed = recursive ? [tpl, ...descendants] : [tpl];
     const doomedPaths = new Set(doomed.map((t) => t.path));
     for (const t of doomed) {
       if (!(await this._mayWrite(t.path))) {
@@ -144,9 +148,6 @@ export class TemplateLogic extends ApiLogic {
       if (outside.length > 0) {
         return { ok: false, reason: 'extended', path: t.path };
       }
-    }
-    if (!recursive && (await Template.findDescendants(path)).length > 0) {
-      return { ok: false, reason: 'has-descendants', path };
     }
     doomed.sort(
       (a, b) => b.path.split('/').length - a.path.split('/').length,
@@ -292,7 +293,7 @@ export class TemplateLogic extends ApiLogic {
     }
 
     if (!isZone) {
-      const children = await Template.findDescendants(path);
+      const children = await this._descendantsOf(path);
       if (children.length > 0) {
         throw new TemplateError(
           `Cannot save leaf template at '${path}'; ${children.length} child template(s) already exist beneath it.`
@@ -379,6 +380,16 @@ export class TemplateLogic extends ApiLogic {
       .filter((p): p is string => typeof p === 'string');
   }
 
+  /**
+   * The rows beneath `path` — the installer's ONE descendant read, shared by
+   * every write that must know whether a row is a parent (`move`,
+   * `deleteSubtree`, the folder/leaf validators), as {@link _extendersOf}
+   * is the one extender read. Ungated for the same 0-self-call reason.
+   */
+  private async _descendantsOf(path: string): Promise<Template[]> {
+    return Template.findDescendants(path);
+  }
+
   /** See {@link TemplateApi.validateFolderLeafDelete}. */
   @CallSecurity(TemplateApiCallers)
   public async validateFolderLeafDelete(id: string): Promise<void> {
@@ -397,7 +408,7 @@ export class TemplateLogic extends ApiLogic {
       );
     }
     if (!(await ZoneApi.isFolderClass(tpl.class))) return;
-    const children = await Template.findDescendants(tpl.path);
+    const children = await this._descendantsOf(tpl.path);
     if (children.length > 0) {
       throw new TemplateError(
         `Cannot delete zone template at '${tpl.path}'; ${children.length} descendant template(s) still reference it.`
