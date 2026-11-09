@@ -4,7 +4,6 @@
  * that rope and renders.
  */
 
-import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
@@ -15,13 +14,14 @@ import { MixinApi } from '../../../../api/mixin';
 import { SchedulerApi } from '../../../../api/scheduler';
 import { Mml } from '../../../../api/mml';
 import Rope from '../../../thing/Rope';
+import { TieControllerBase } from '../inventory/TieControllerBase';
 
 interface BelayModel extends CommandModel {
   person: MqlOneResult;
   rope?: MqlOneResult;
 }
 
-export default class BelayController extends CommandController<BelayModel> {
+export default class BelayController extends TieControllerBase<BelayModel> {
   async execute(model: BelayModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver as unknown as Stuff;
     const word = (model.person?.raw ?? '').trim().toLowerCase();
@@ -38,7 +38,7 @@ export default class BelayController extends CommandController<BelayModel> {
     const rope = bound instanceof Rope ? bound : null;
     if (rope === null) return this.refuse(context, 'act.deed', 'You are holding no rope to belay with.', 'no-rope');
     const out = rope.belayFor(giver, person);
-    if (!out.ok) return this.refuse(context, 'act.deed', out.line, out.reason);
+    if (!out.ok) return this.declineTie(context, out, giver);
     const scene = MessageApi.scene(giver).topic('act.deed').toSelf(Mml.compose`${out.line}`);
     if (out.peers) scene.toPeers(Mml.compose`${Mml.actor(giver)} ${out.peers}`);
     scene.send();

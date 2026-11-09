@@ -310,7 +310,10 @@ export default class WaterController extends CommandController<WaterModel> {
       // ⭐ A field crop: the GROUND says which part, or refuses.
       if (named.isAreaCrop() && holder && MixinApi.isSoil(holder)) {
         const r = holder.resolvePartFor(patch);
-        if (!r.ok) return refuse(Mml.fromMarkup(r.line), r.reason, r.line);
+        if (r.ok !== true) {
+          const line = this.partLine(r);
+          return refuse(Mml.fromMarkup(line), r.reason, line);
+        }
         const plant = r.part ? named.standIn(r.part) : named;
         const ground = plant?.getBed() ?? r.part ?? holder;
         return { plant, ground, part: r.part };
@@ -335,7 +338,10 @@ export default class WaterController extends CommandController<WaterModel> {
 
     if (MixinApi.isSoil(named)) {
       const r = named.resolvePartFor(patch);
-      if (!r.ok) return refuse(Mml.fromMarkup(r.line), r.reason, r.line);
+      if (r.ok !== true) {
+        const line = this.partLine(r);
+        return refuse(Mml.fromMarkup(line), r.reason, line);
+      }
       // Naming either half of the assembly works — a player types both.
       if (MixinApi.isCultivable(named)) {
         const occupant = named.getPlant();

@@ -213,7 +213,14 @@ export const BESPOKE_RESOLUTION_CEILING = 4;
  * ⭐ Self-resolution — the census-then-ratchet half (controllers-are-io
  * W0). Pinned at this gate's own W0 count; may fall, never rise.
  */
-export const SELF_RESOLUTION_CEILING = 107; // controller-liquidity W3: the shell and unhitch stopped looking things up themselves
+// ⚠ 107 → 108 (controller-liquidity W4, D8c) — a RISE, with its caller
+// audit: the one new site is `CommandController.pickByWords`, the base's
+// answer to an object's `ActChoices` by the player's words (`admits` = the
+// object's own choices; it addresses nothing the object did not offer). Its
+// one caller is `HarvestController.choose` (`stand-or-labeled`), replacing
+// `Growing.harvestPlanFor`'s substring match on `typed` — resolution moved
+// OUT of the model into MQL. No controller surface the gate protects grew.
+export const SELF_RESOLUTION_CEILING = 108;
 
 /** A controller resolving its own target: the MQL facade, a store find, a contents walk. */
 const SELF_RESOLUTION =

@@ -30,10 +30,16 @@ export default class ClayController extends CommandController<ClayModel> {
     }
     if (!clay) return this.refuse(context, TOPIC, 'Clay it with what? Wet clay.', 'no-clay');
     const out = loaf.clay(clay);
-    if (!out.ok) return this.refuse(context, TOPIC, out.line, 'refused');
+    if (!out.ok) {
+      const line =
+        out.reason === 'not-clay' ? 'That is not clay.' : 'It has been clayed already.';
+      return this.refuse(context, TOPIC, line, 'refused', out.reason);
+    }
     MessageApi.scene(actor)
       .topic(TOPIC)
-      .toSelf(Mml.compose`${out.line}`)
+      .toSelf(
+        Mml.compose`You pack wet clay on the base of the loaf. Its water will work down through it over the days to come.`,
+      )
       .toPeers(Mml.compose`${Mml.actor(actor)} packs clay on the base of a sugar loaf.`)
       .send();
   }

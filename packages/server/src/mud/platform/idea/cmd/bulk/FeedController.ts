@@ -334,8 +334,9 @@ export default class FeedController extends CommandController<FeedModel> {
       const holder = MixinApi.isContainable(named) ? named.getContainer() : null;
       if (named.isAreaCrop() && holder && MixinApi.isSoil(holder)) {
         const r = holder.resolvePartFor(patch);
-        if (!r.ok) {
-          return { ok: false, reason: r.reason, line: Mml.fromMarkup(r.line), detail: r.line };
+        if (r.ok !== true) {
+          const line = this.partLine(r);
+          return { ok: false, reason: r.reason, line: Mml.fromMarkup(line), detail: line };
         }
         part = r.part;
         const stand = part ? named.standIn(part) : named;
@@ -353,8 +354,9 @@ export default class FeedController extends CommandController<FeedModel> {
       }
     } else if (MixinApi.isSoil(named)) {
       const r = named.resolvePartFor(patch);
-      if (!r.ok) {
-        return { ok: false, reason: r.reason, line: Mml.fromMarkup(r.line), detail: r.line };
+      if (r.ok !== true) {
+        const line = this.partLine(r);
+        return { ok: false, reason: r.reason, line: Mml.fromMarkup(line), detail: line };
       }
       part = r.part;
       ground = part ?? named;

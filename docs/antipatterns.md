@@ -6384,7 +6384,7 @@ return { ok: false, reason: 'too-green', facts: { moisture } };
 An object PLANS an act (`ActPlan` / `ActRefusal` / `ActOutcome` in
 `lib/craft/ActPlan.ts`): a closed reason union and the facts per protocol,
 no `Mml` anywhere. The words live on the controller, which is the I/O
-layer — `ManualBuildController.engagePlan(context, plan, words)` takes
+layer — `CommandController.engagePlan(context, plan, words)` takes
 `beginSelf`/`beginPeers`/`onRefused`/`onDone`, and the wording switch is
 exhaustive (a `never` arm), so a new reason fails to compile until
 somebody words it. The decision itself (durations, effort, grade, what

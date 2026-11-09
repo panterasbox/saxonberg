@@ -106,7 +106,9 @@ export abstract class FieldWorkController<
     }
     const part = named && MixinApi.isSoil(named) ? (named as Stuff & Soil) : null;
     const resolved = tract.resolvePartFor(part);
-    if (!resolved.ok) return { ok: false, reason: resolved.reason, line: resolved.line };
+    if (resolved.ok !== true) {
+      return { ok: false, reason: resolved.reason, line: this.partLine(resolved) };
+    }
     const field = resolved.part ?? tract.getFields()[0]!;
     return { ok: true, field: field as unknown as Field & Stuff };
   }

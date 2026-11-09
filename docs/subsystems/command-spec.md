@@ -228,7 +228,7 @@ answers an `ActOutcome` (`{ ok: true, facts }`) or an `ActRefusal`.
 ⭐ **No `Mml` on any of them** (controllers-are-io D4): each protocol
 declares a closed reason union, and the controller words it in an
 exhaustive `switch`. Every controller engages a plan through ONE routine,
-`ManualBuildController.engagePlan(context, plan, words)`. Each protocol is a registered marker
+`CommandController.engagePlan(context, plan, words)`. Each protocol is a registered marker
 mixin named for what the object IS — `DipBathMixin`, `KneadVesselMixin`,
 `ShapeableMixin` (and `FormingMixin` for an instrument), `CarvableMixin`,
 `ImpressibleMixin`, `TurnableMixin`, `HandWorkedMixin`, `StrikingDieMixin`

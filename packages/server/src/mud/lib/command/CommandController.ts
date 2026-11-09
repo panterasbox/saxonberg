@@ -35,6 +35,16 @@ import { StuffApi } from '../../api/stuff';
 import type { Display } from '../display/Display';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandGiver } from '../command/CommandGiver';
+import { SchedulerApi } from '../../api/scheduler';
+import { ManualBuildStep } from '../craft/ManualBuildStep';
+import type { ActDone, ActPlan, AnyActRefusal } from '../craft/ActPlan';
+import type { ActWords } from './EngagedActController';
+import type { PartChoices, PartRefusal } from '../husbandry/Soil';
+
+type Composed = ReturnType<typeof Mml.compose>;
+
+/** The topic an engaged plan narrates on — `EngagedActController`'s `ACT_TOPIC`. */
+const PLAN_TOPIC = 'act.deed';
 
 /**
  * Abstract base class for command controllers.
@@ -140,6 +150,203 @@ export abstract class CommandController<
       // Cancelled, timed out, or the host dropped — all "no target".
       return null;
     }
+  }
+
+  /**
+   * ⭐⭐ **Engage a plan an object handed back** (`ActPlan` — `knead`,
+   * `shape`, `carve`, `cut`, `dip`, `harvest`, a tap): the ONE
+   * engage-a-plan routine, so every controller runs an act protocol the
+   * same way. The object answered facts; `words` is this controller's
+   * wording of them (controllers-are-io D4) — begin, a late refusal, and
+   * the landing.
+   *
+   * ⭐ Hoisted here by controller-liquidity W4 (D8) from
+   * `ManualBuildController` (and folded with `EngagedActController`'s plan
+   * overload, the same routine twice): those two bases share no ancestor
+   * below this one, so this is the only place both — and every controller
+   * that is neither — can reach it.
+   *
+   *  - A zero-length plan runs NOW, inside the command frame: an act that
+   *    is a craft resolved from the actor's reach (the chandler's candle)
+   *    needs the acting author the engaged completion would lose; a
+   *    refusal it returns declines the command. Await it: that frame is
+   *    the promise.
+   *  - Otherwise the body is checked for the work (`canExert`), and the
+   *    step runs as an engaged activity on the giver's `hands` slot; a
+   *    refusal its completion returns (the world changed under the step)
+   *    is told to the actor when it lands.
+   *
+   * ⚠ The word functions run at COMPLETION, after the dispatcher has
+   * destructed this controller — so they must not call its instance
+   * methods (`lint:completion-this`); `protected static` words are the
+   * pattern.
+   */
+  protected async engagePlan<B, F, X extends AnyActRefusal>(
+    context: CommandContext,
+    plan: ActPlan<B, F, X>,
+    words: ActWords<B, F, X>,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    const turnDown = (prose: Composed, reason: string, detail = reason): void => {
+      MessageApi.scene(giver).topic(PLAN_TOPIC).toSelf(prose).send();
+      context.note({ kind: 'controller-rejected', reason, detail });
+    };
+    const say = (out: ActDone<F, X>): void => {
+      if (giver.isDestroyed()) return;
+      if (!out.ok) {
+        MessageApi.scene(giver).topic(PLAN_TOPIC).toSelf(words.onRefused(out)).send();
+        return;
+      }
+      const done = words.onDone?.(out.facts) ?? null;
+      if (done === null || (!done.self && !done.peers)) return;
+      const scene = MessageApi.scene(giver).topic(PLAN_TOPIC);
+      if (done.self) scene.toSelf(done.self);
+      if (done.peers) scene.toPeers(done.peers);
+      scene.send();
+    };
+    if (plan.durationMs <= 0) {
+      const out = await plan.onComplete();
+      if (!out.ok) {
+        turnDown(words.onRefused(out), out.reason);
+        return;
+      }
+      say(out);
+      return;
+    }
+    const durationS = plan.durationMs / 1000;
+    if (MixinApi.isExerting(giver) && !giver.canExert(plan.effortW, durationS)) {
+      turnDown(Mml.fromMarkup(giver.exhaustionRefusal()), 'too-tired');
+      return;
+    }
+    const land = (): void => {
+      // ⚠ The scheduler's completion is synchronous, so an async plan's
+      // throw would land after its root returned — an unhandled rejection
+      // nobody sees. Caught and said here, as the scheduler says a sync one.
+      Promise.resolve()
+        .then(() => plan.onComplete())
+        .then(say)
+        .catch((err: unknown) => {
+          console.error('CommandController: a planned act failed at completion', err);
+        });
+    };
+    if (!MixinApi.isEngaged(giver)) {
+      land();
+      return;
+    }
+    const step = new ManualBuildStep({
+      actor: giver,
+      slots: ['hands'],
+      durationMs: plan.durationMs,
+      effortW: plan.effortW,
+      onComplete: land,
+      onAbort: plan.onAbort,
+    });
+    const result = SchedulerApi.start(step);
+    if (result.ok && (result.status === 'started' || result.status === 'replaced')) {
+      context.note(result.note);
+      const scene = MessageApi.scene(giver).topic(PLAN_TOPIC).toSelf(words.beginSelf(plan.facts));
+      const peers = words.beginPeers?.(plan.facts) ?? null;
+      if (peers) scene.toPeers(peers);
+      scene.send();
+      return;
+    }
+    if (result.ok && result.status === 'completed-sync') return;
+    if (!result.ok && result.reason === 'engagement-conflict') {
+      turnDown(Mml.compose`Your hands are busy with something else.`, 'engagement-conflict', 'busy');
+      return;
+    }
+    turnDown(
+      Mml.compose`You can't manage that just now.`,
+      'start-rejected',
+      !result.ok && result.reason === 'start-rejected' ? result.error.message : '',
+    );
+  }
+
+  /**
+   * ⭐ **Ask the player which** — the asking answer to an object's
+   * `ActChoices` (controller-liquidity D8). Prompts with the choices when
+   * the giver can be asked; returns the pick, or `null` when there is
+   * nobody to ask (`needs-input` is noted — script-interaction's
+   * fail-closed rule), nothing to offer, or the player cancels. The caller
+   * words its own refusal on `null`; a pick outside the set is `null` too.
+   */
+  protected async chooseAmong<C extends Stuff>(
+    context: CommandContext,
+    choices: readonly C[],
+    label: string,
+  ): Promise<C | null> {
+    const picked = await this.promptForObject(context, label, [...choices]);
+    return picked ? (choices.find((c) => c === picked) ?? null) : null;
+  }
+
+  /**
+   * ⭐ **Which of an object's choices the player's own words name** — the
+   * picking answer to `ActChoices`, scored by the binder's tiers over the
+   * choices alone (`admits`): the choice the words name best wins, and a
+   * tie (or no hit) goes to `preferred`. It replaces a planner reading the
+   * typed text itself (`Growing.harvestPlanFor`'s substring match on a
+   * label, controller-liquidity D8): what a thing answers to is its keyword
+   * face, and MQL is what reads it.
+   */
+  protected pickByWords<C extends Stuff>(
+    giver: Stuff & CommandGiver,
+    words: string,
+    choices: readonly C[],
+    preferred: C,
+  ): C {
+    const text = words.trim();
+    if (text === '') return preferred;
+    let scored: { stuff: Stuff[]; tiers?: number[] };
+    try {
+      scored = MqlApi.resolveMany(text, {
+        commandGiver: giver,
+        scope: 'reachable',
+        admits: (s) => choices.includes(s as C),
+      });
+    } catch {
+      return preferred;
+    }
+    const tiers = scored.tiers ?? [];
+    let best: C | null = null;
+    let bestTier = -1;
+    let tied = false;
+    for (let i = 0; i < scored.stuff.length; i += 1) {
+      const c = choices.find((x) => x === scored.stuff[i]);
+      if (!c) continue;
+      const tier = tiers[i] ?? 0;
+      if (tier > bestTier) {
+        best = c;
+        bestTier = tier;
+        tied = false;
+      } else if (tier === bestTier) {
+        tied = true;
+      }
+    }
+    return best === null || tied ? preferred : best;
+  }
+
+  /**
+   * ⭐ The default words for a choice nobody asked about: *"Which field?
+   * Name one: the top end or the lane end."* — the list, in the order the
+   * object gave it. `noun` is the object's word for one of them.
+   */
+  protected choiceLine(choices: readonly Stuff[], noun: string): string {
+    const names = choices.map((p) => p.presentationPhrase().definite());
+    const last = names.pop() ?? '';
+    const list = names.length > 0 ? `${names.join(', ')} or ${last}` : last;
+    return `Which ${noun}? Name one: ${list}.`;
+  }
+
+  /**
+   * ⭐ The words for ground that would not take the part named, or wants
+   * one named (`Soil.resolvePartFor`) — the sentence the ground used to
+   * write itself. A controller that would rather ask calls
+   * {@link chooseAmong} with the choices instead.
+   */
+  protected partLine(r: PartChoices | PartRefusal): string {
+    if (r.ok === 'choose') return this.choiceLine(r.choices, r.facts.noun);
+    const what = r.facts.part.presentationPhrase().definite();
+    return `${what.charAt(0).toUpperCase()}${what.slice(1)} is not a part of ${r.facts.ground.presentationPhrase().definite()}.`;
   }
 
   /**

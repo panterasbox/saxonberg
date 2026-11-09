@@ -197,7 +197,9 @@ export default class MoveController extends CommandController<MoveModel> {
     if (fields.length === 1) return fields[0]!;
     const grass = fields.filter((f) => f.cropsOn().length === 0);
     if (grass.length === 1) return grass[0]!;
-    return fields.length === 0 ? null : tract.soilPartRefusal();
+    if (fields.length === 0) return null;
+    const r = tract.resolvePartFor(null);
+    return r.ok === true ? (r.part as Field | null) : this.partLine(r);
   }
 
   /** Decline diegetically, and file the structured reason. */

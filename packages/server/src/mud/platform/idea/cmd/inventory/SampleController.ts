@@ -119,9 +119,10 @@ export default class SampleController extends CommandController<SampleModel> {
     let part: (Stuff & Soil) | null = null;
     if (ground && MixinApi.isSoil(ground)) {
       const r = ground.resolvePartFor(patch);
-      if (!r.ok) {
-        MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.fromMarkup(r.line)).send();
-        context.note({ kind: 'controller-rejected', reason: r.reason, detail: r.line });
+      if (r.ok !== true) {
+        const line = this.partLine(r);
+        MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.fromMarkup(line)).send();
+        context.note({ kind: 'controller-rejected', reason: r.reason, detail: line });
         return;
       }
       part = r.part;

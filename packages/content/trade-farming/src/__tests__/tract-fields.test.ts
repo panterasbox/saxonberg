@@ -196,7 +196,12 @@ describe('a tract divided into fields', () => {
     const top = field(f, 'top-end');
     expect(top.presentationPhrase().definite()).toBe('the top end');
     expect(top.getKeywords()).toEqual(expect.arrayContaining(['top end', 'top', 'end', 'top-end']));
-    expect(f.soilPartRefusal()).toBe('Which field? Name one: the top end or the lane end.');
+    const r = f.resolvePartFor(null);
+    expect(r.ok === 'choose' && r.choices.map((p) => p.presentationPhrase().definite())).toEqual([
+      'the top end',
+      'the lane end',
+    ]);
+    expect(r.ok === 'choose' && r.facts.noun).toBe('field');
   });
 
   it("⭐ the tract's moisture is the area-weighted mean of its fields", async () => {
@@ -400,7 +405,7 @@ describe('a tract divided into fields', () => {
     expect(f.hasReserve(SOIL_MOISTURE_RESERVE_KEY)).toBe(true);
     const p = crop(f, 300);
     expect(p.getBed()).toBe(f);
-    expect(f.soilPartRefusal()).toBeNull();
+    expect(f.resolvePartFor(null)).toEqual({ ok: true, part: null });
   });
 });
 

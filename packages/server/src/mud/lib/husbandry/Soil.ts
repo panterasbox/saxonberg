@@ -70,7 +70,7 @@ import type { Reserved } from "../reserve/Reserved";
 import type { Stuff } from "../stuff/Stuff";
 import type { Growing, HarvestRefusal } from "./Growing";
 import type { Plantable, PlantBegin, PlantDone, PlantRefusal, ZonedAgainst } from "./Plantable";
-import type { ActDone, ActPlan } from "../craft/ActPlan";
+import type { ActChoices, ActDone, ActPlan } from "../craft/ActPlan";
 import type { Tooled } from "../craft/Tool";
 import type { Throttleable } from "../spatial/Throttleable";
 import type { Irrigating } from "./Irrigating";
@@ -213,16 +213,39 @@ function clamp01(x: number): number {
 /**
  * What a ground answers when a verb names (or does not name) a part of it
  * — *at the top end* (field population D5). `part` is `null` on one-piece
- * ground. A refusal carries its own line: the ground decides and says
- * why, the controller only sends it.
+ * ground.
+ *
+ * ⭐⭐ The ground decides and says nothing (controller-liquidity D8): naming
+ * no part of a divided field is a CHOICE ({@link PartChoices} — the parts,
+ * and the ground's word for one), never a sentence. The controller refuses
+ * with the list (`CommandController.partLine`), or asks
+ * (`CommandController.chooseAmong`) and asks the ground again with the pick.
+ * The ground used to write *"Which field? Name one: …"* itself, which is
+ * why no controller could make `harvest` ask.
  */
 export type PartResolution =
   | { ok: true; part: (Stuff & Soil) | null }
-  | {
-      ok: false;
-      reason: "part-unnamed" | "not-a-part-here";
-      line: string;
-    };
+  | PartChoices
+  | PartRefusal;
+
+/** No part named on ground marked into several: the parts to choose among. */
+export type PartChoices = ActChoices<
+  Stuff & Soil,
+  "part-unnamed",
+  {
+    /** The ground the parts are of. */
+    ground: Stuff & Soil;
+    /** The ground's word for one of its parts (`soilPartNoun`) — *field*. */
+    noun: string;
+  }
+>;
+
+/** A part named that is not one of this ground's. */
+export interface PartRefusal {
+  ok: false;
+  reason: "not-a-part-here";
+  facts: { part: Stuff & Soil; ground: Stuff & Soil };
+}
 
 /** ⭐ `sow`: broadcast `seed` over this ground (controllers-are-io D11). */
 export interface SowRequest {
@@ -364,15 +387,16 @@ export interface Soil {
    */
   sowPlanFor(
     req: SowRequest,
-  ): Promise<ActPlan<PlantBegin, PlantDone, PlantRefusal> | PlantRefusal>;
+  ): Promise<ActPlan<PlantBegin, PlantDone, PlantRefusal> | PlantRefusal | PartChoices>;
   /**
    * ⭐ Which stand a harvest of `stand` means on this ground, given the part
-   * named: the ground decides whether one must be named, and says so.
+   * named: the ground decides whether one must be named, and answers the
+   * parts as a choice when it must (controller-liquidity D8).
    */
   harvestPartFor(req: {
     stand: Stuff & Growing;
     part: (Stuff & Soil) | null;
-  }): { ok: true; stand: Stuff & Growing } | HarvestRefusal;
+  }): { ok: true; stand: Stuff & Growing } | HarvestRefusal | PartChoices;
   /**
    * ⭐ The parcel's verdict on cultivating at `site`, or null: a site on a
    * use that admits no cultivation. ⚠ UNPARCELLED GROUND IS NOT POLICED —
@@ -569,17 +593,13 @@ export interface Soil {
    */
   soilRemainderAreaM2(): number;
   /**
-   * @hook The word for one of this ground's parts in a refusal — *"Which
-   * part? Name one: …"*. Default `'part'`; a tract answers `'field'`.
+   * @hook The word for one of this ground's parts — what a controller says
+   * when it asks or refuses *"Which part? Name one: …"*. Default `'part'`;
+   * a tract answers `'field'`.
    */
   soilPartNoun(): string;
   /** The part whose key is `key`, or `null` (an empty key is whole ground). */
   soilPart(key: string): (Stuff & Soil) | null;
-  /**
-   * Why an act on this ground must name a part, in words, or `null` when
-   * it need not (one piece, or a single part).
-   */
-  soilPartRefusal(): string | null;
   /**
    * Resolve the part an act names — or, naming none, whether that is
    * enough here. See {@link PartResolution}.
@@ -966,10 +986,20 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     public harvestPartFor(req: {
       stand: Stuff & Growing;
       part: (Stuff & Soil) | null;
-    }): { ok: true; stand: Stuff & Growing } | HarvestRefusal {
+    }): { ok: true; stand: Stuff & Growing } | HarvestRefusal | PartChoices {
       const r = this.resolvePartFor(req.part);
+      if (r.ok === "choose") return r;
       if (!r.ok) {
-        return { ok: false, reason: r.reason, facts: { line: r.line, detail: r.line } };
+        const { part, ground } = r.facts;
+        return {
+          ok: false,
+          reason: r.reason,
+          facts: {
+            part,
+            ground,
+            detail: `${part.getPresentation()} is not a part of ${ground.getPresentation()}`,
+          },
+        };
       }
       if (!r.part) return { ok: true, stand: req.stand };
       const there = req.stand.standIn(r.part);
@@ -989,7 +1019,7 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     /** See {@link Soil.sowPlanFor}. */
     public async sowPlanFor(
       req: SowRequest,
-    ): Promise<ActPlan<PlantBegin, PlantDone, PlantRefusal> | PlantRefusal> {
+    ): Promise<ActPlan<PlantBegin, PlantDone, PlantRefusal> | PlantRefusal | PartChoices> {
       const self = this as unknown as Stuff & Soil;
       if (!MixinApi.isContainer(self)) {
         return { ok: false, reason: "no-ground", facts: {} };
@@ -1009,8 +1039,13 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       // Which part of the ground — the GROUND decides whether one must be
       // named, and says so in its own words.
       const resolved = this.resolvePartFor(req.part);
+      if (resolved.ok === "choose") return resolved;
       if (!resolved.ok) {
-        return { ok: false, reason: resolved.reason, facts: { line: resolved.line } };
+        return {
+          ok: false,
+          reason: resolved.reason,
+          facts: { part: resolved.facts.part, target: resolved.facts.ground },
+        };
       }
       const part = resolved.part;
       // What already stands here decides what may be added to it — the
@@ -1130,34 +1165,23 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       return this.soilParts().find((p) => p.soilPartKey() === key) ?? null;
     }
 
-    /** See {@link Soil.soilPartRefusal}. */
-    public soilPartRefusal(): string | null {
-      const parts = this.soilParts();
-      if (parts.length <= 1) return null;
-      const names = parts.map((p) => p.presentationPhrase().definite());
-      const last = names.pop() ?? "";
-      const list = names.length > 0 ? `${names.join(", ")} or ${last}` : last;
-      return `Which ${this.soilPartNoun()}? Name one: ${list}.`;
-    }
-
     /** See {@link Soil.resolvePartFor}. */
     public resolvePartFor(named: (Stuff & Soil) | null): PartResolution {
       const parts = this.soilParts();
+      const self = this as unknown as Stuff & Soil;
       if (named === null) {
-        const refusal = this.soilPartRefusal();
-        if (refusal !== null) {
-          return { ok: false, reason: "part-unnamed", line: refusal };
+        if (parts.length > 1) {
+          return {
+            ok: "choose",
+            reason: "part-unnamed",
+            choices: parts,
+            facts: { ground: self, noun: this.soilPartNoun() },
+          };
         }
         return { ok: true, part: parts[0] ?? null };
       }
       if (parts.includes(named)) return { ok: true, part: named };
-      const self = this as unknown as Stuff;
-      const what = named.presentationPhrase().definite();
-      return {
-        ok: false,
-        reason: "not-a-part-here",
-        line: `${what.charAt(0).toUpperCase()}${what.slice(1)} is not a part of ${self.presentationPhrase().definite()}.`,
-      };
+      return { ok: false, reason: "not-a-part-here", facts: { part: named, ground: self } };
     }
 
     /** See {@link Soil.rootedAreaCrop}. */
