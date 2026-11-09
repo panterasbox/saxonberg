@@ -154,7 +154,8 @@ export default class StreamController extends CommandController<StreamModel> {
     context: CommandContext,
   ): void {
     const text = (model.items ?? '').trim();
-    const items = text === 'clear' ? [] : text.split(';');
+    // `;` is the shell's command separator, so the list splits on commas.
+    const items = text === 'clear' ? [] : text.split(',');
     giver.planAgenda(items);
     const count = giver.show().agenda.length;
     return this.tell(context, count === 0 ? 'agenda cleared' : `agenda: ${count} items`);

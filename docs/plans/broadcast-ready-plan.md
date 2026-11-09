@@ -483,6 +483,8 @@ carries.
 - **B-D12** `?from=stream` survives OAuth via `sessionStorage`. *(requirements step 14)*
 - **B-D13** Rodney switches OBS only on a page opened with `?switch`. *(fail closed — one writer)*
 - **B-D14** The `stream` card is `noProse`. *(card-surface's catalogue rule — the card IS the controls)*
+- **B-D16** `stream agenda` splits on COMMAS, not `;` — the drive found `;` is the shell's command
+  separator, so `stream agenda a; b` ran `b` as a verb. *(nearest pattern — the parser owns `;`)*
 - **B-D15** A test-login `streamer: true` option (TestHooks, the harness, e2e helpers) stages the axis.
   *(workflow — a state you cannot stage is a tool the build owes)*
 

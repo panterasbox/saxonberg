@@ -83,7 +83,7 @@ subcommands:
         required: true
         greedy: true
   agenda:
-    description: "Set the agenda, items split by `;` (`stream agenda glass; paper; Q&A`), or `stream agenda clear`"
+    description: "Set the agenda, items split by commas (`stream agenda glass, paper, Q&A`), or `stream agenda clear`"
     args:
       # ⚠ Greedy by design: the whole rest of the line is the list.
       - name: items

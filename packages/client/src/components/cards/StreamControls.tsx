@@ -255,7 +255,7 @@ export function StreamControls({
           <Field
             aria-label="agenda"
             value={agenda}
-            placeholder="glass; paper; Q&A"
+            placeholder="glass, paper, Q&A"
             onChange={(e) => setAgenda(e.target.value)}
           />
           {agenda.trim() !== "" && control("Set", `stream agenda ${agenda.trim()}`)}

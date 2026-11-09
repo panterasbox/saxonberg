@@ -144,6 +144,7 @@ async function issueToken(s: Session, control = false): Promise<string> {
 }
 
 let hostHandle: string;
+let hostName: string; // the streamer's character name, as others address them
 let host: Session; // the founder, streaming
 let guest: Session; // another player in the bar
 let second: Session; // a second streamer
@@ -154,6 +155,9 @@ beforeAll(async () => {
   hostHandle = uniqueHandle('br-host');
   host = await Session.open(hostHandle, { startLocation: BAR, streamer: true });
   guest = await Session.open(uniqueHandle('br-guest'), { startLocation: BAR });
+  const me = await host.queryOne('me', ['displayName']);
+  hostName = String((me as { displayName?: string } | null)?.displayName ?? '').split(/\s+/)[0] ?? '';
+  expect(hostName, 'the streamer has a name').not.toBe('');
 }, 120_000);
 
 afterAll(() => {
@@ -173,7 +177,7 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
     expect(first.phase).toBe('offline');
     expect(first.panels.length, 'the lower third rows ride the feed').toBeGreaterThan(0);
 
-    expectOk(await host.cmd('stream agenda the glass trade; paper; questions'));
+    expectOk(await host.cmd('stream agenda the glass trade, paper, questions'));
     expectOk(await host.cmd('stream segment This week in Saxonberg'));
     const mark = feed.heard.length;
     expectOk(await host.cmd('stream start in 2m'));
@@ -190,7 +194,7 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
 
   it('step 2 — a tell to the streamer carries the server’s privacy stamp', async () => {
     host.clearCaptures();
-    const r = await guest.cmd(`tell ${hostHandle} meet me at the docks`);
+    const r = await guest.cmd(`dm ${hostName} meet me at the docks`);
     expectOk(r);
     await host.listen(2_000);
     const tells = host.framesOf('speech.comms');
@@ -281,7 +285,7 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
     const roomText = plain(await room.said()) + JSON.stringify(guest.envelopesOf('card-opened'));
     expect(roomText).toContain('A broadcast reaches this place.');
 
-    const person = await guest.cmd(`look ${hostHandle}`);
+    const person = await guest.cmd(`look ${hostName}`);
     expectOk(person);
     const personText = plain(await person.said()) + JSON.stringify(guest.envelopesOf('card-opened'));
     expect(personText).toMatch(/broadcasting/);
@@ -309,7 +313,8 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
 
   it('step 14 — a new player’s first arrival reaches the ticker, “straight from the stream”', async () => {
     const mark = feed.heard.length;
-    const name = `Iffy${Date.now().toString(36).slice(-4)}`;
+    // Letters only: a character name keeps no digits.
+    const name = `Iffy${Date.now().toString(36).slice(-4).replace(/[^a-z]/g, '')}x`;
     const newcomer = await Session.embody(uniqueHandle('br-new'), { name }, { from: 'stream' });
     try {
       const ev = await feed.await((e) => e.type === 'stream-event' && e.kind === 'new-player', mark, 30_000);
@@ -349,7 +354,7 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
     const room = await guest.cmd('look');
     const roomText = plain(await room.said()) + JSON.stringify(guest.envelopesOf('card-opened'));
     expect(roomText).not.toContain('A broadcast reaches this place.');
-    const person = await guest.cmd(`look ${hostHandle}`);
+    const person = await guest.cmd(`look ${hostName}`);
     const personText = plain(await person.said()) + JSON.stringify(guest.envelopesOf('card-opened'));
     expect(personText).not.toMatch(/broadcasting/);
   }, 150_000);

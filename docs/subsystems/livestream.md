@@ -141,7 +141,7 @@ browser source: no code.
 ## The `stream` verb
 
 `start [in <dur>]` · `live` · `away <reason> [<dur>]` / `away <dur>` ·
-`back` · `end` · `off` · `segment <title>` · `agenda <a; b; …>` / `agenda
+`back` · `end` · `off` · `segment <title>` · `agenda <a, b, …>` / `agenda
 clear` · `next` · `rotation pin|skip <panel>` / `rotation clear` ·
 `channel <twitch|youtube|kick> [<handle>]` · `token [--control]`. Bare
 `stream` prints the phase and opens the controls card (`opens_card:
