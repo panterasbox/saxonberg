@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
 import type { ShowProfile } from '../show/profiles';
+import type { StreamFeed } from './useStreamState';
+import type { StreamPanelRow, StreamRotation } from '../show/wire';
 import type { Platform } from '../scenes/shared/ServiceGlyph';
 
 /**
- * What the show knows besides the stream state and the chat: the topic and
- * agenda, the world right now, who is in it, and the crawl.
+ * What the show knows besides the chat: the topic and agenda, who is in the
+ * world, the build, the client's facts, the crawl, and the panel rows.
  *
- * ⚠ The broadcast feed does not carry any of this yet — the broadcast-ready
- * build adds it (docs/requirements/broadcast-ready-requirements.md, § One
- * token per streamer: the allowlist). Until then every field is empty unless
- * the page has `?mock`, and each panel that reads one hides while it is empty.
+ * ⭐ From the broadcast feed when it is connected (broadcast-ready D14 —
+ * the allowlisted `StreamShow`); the mock under `?mock` otherwise. The
+ * world-now, money, community tallies and the wiki article are not on the
+ * feed yet (their builds: giving, budget, wiki-content) — each stays null
+ * and its panel's `when` hides it.
  */
 export interface AgendaItem {
   title: string;
@@ -115,10 +118,13 @@ export interface WikiArticle {
  * points at whatever is live.
  */
 export interface ClientFacts {
-  /** Saxonberg in front, another tab in that window, or another app. */
-  foreground: 'saxonberg' | 'other-tab' | 'other-app';
-  /** The client's mode: explore, chat, watch, build, govern. */
-  mode: 'explore' | 'chat' | 'watch' | 'build' | 'govern';
+  /**
+   * Saxonberg in front, another tab in that window, or another app — null
+   * before the client has said (never guessed).
+   */
+  foreground: 'saxonberg' | 'other-tab' | 'other-app' | null;
+  /** The client's mode: explore, chat, watch, build, govern — or null. */
+  mode: string | null;
   /** The verb of the streamer's last command, e.g. "look". */
   lastVerb: string | null;
 }
@@ -143,6 +149,13 @@ export interface Show {
   community: Community | null;
   wikiOfDay: WikiArticle | null;
   client: ClientFacts | null;
+  /**
+   * The lower third's rows from the game (`lower-third-panel` documents),
+   * or null — then the overlay's built-in table stands (the mock, offline).
+   */
+  panels: StreamPanelRow[] | null;
+  /** The controls card's steering: a pinned panel, panels skipped. */
+  rotation: StreamRotation;
 }
 
 const EMPTY: Show = {
@@ -157,6 +170,8 @@ const EMPTY: Show = {
   community: null,
   wikiOfDay: null,
   client: null,
+  panels: null,
+  rotation: { pinned: null, skip: [] },
 };
 
 /** The money is the channel's, so every profile's mock carries it. */
@@ -230,9 +245,67 @@ const MOCK_SAXONBERG: Show = {
       'explore') as ClientFacts['mode'],
     lastVerb: new URLSearchParams(window.location.search).get('verb') ?? 'look',
   },
+  panels: null,
+  rotation: { pinned: null, skip: [] },
 };
 
-export default function useShow(profile: ShowProfile): Show {
+/** The ticker's welcome for a first arrival. */
+export function welcomeLine(name: string, fromStream: boolean): string {
+  return fromStream ? `Welcome, ${name} — straight from the stream!` : `Welcome, ${name}!`;
+}
+
+/**
+ * The feed's show on Rodney's `Show` shape: the allowlist only — nothing
+ * here can show what the feed did not send.
+ */
+export function showFromFeed(feed: StreamFeed, profile: ShowProfile): Show | null {
+  const s = feed.state;
+  if (!s) return null;
+  const at = s.build ? Date.parse(s.build.at) : NaN;
+  const arrivals = feed.arrivals;
+  return {
+    ...EMPTY,
+    topic: s.topic,
+    agenda: s.agenda.map((a) => ({ title: a.title, done: a.done })),
+    current: s.current,
+    playersOnline: s.playersOnline,
+    build: Number.isFinite(at) ? { at } : null,
+    client: s.client
+      ? {
+          foreground: s.client.foreground,
+          mode: s.client.mode,
+          lastVerb: s.client.lastVerb,
+        }
+      : null,
+    crawl: profile.crawl ? arrivals.map((a) => welcomeLine(a.name, a.fromStream)) : [],
+    // New Saxonberg players are people the community card can name; the
+    // platform tallies wait on the giving build's intake.
+    community:
+      arrivals.length > 0
+        ? {
+            newPlayers: arrivals.length,
+            newFollowers: 0,
+            subsAndGifts: 0,
+            goal: null,
+            recent: [...arrivals].reverse().map((a) => ({ who: a.name, kind: 'player' as const })),
+          }
+        : null,
+    panels: s.panels,
+    rotation: s.rotation,
+  };
+}
+
+/**
+ * The show: the feed's when it has said anything (kept across a drop —
+ * the last word stands), else the mock under `?mock`, else empty.
+ */
+export default function useShow(profile: ShowProfile, feed?: StreamFeed): Show {
+  const fromFeed = feed ? showFromFeed(feed, profile) : null;
+  const mocked = useMockShow(profile);
+  return fromFeed ?? mocked;
+}
+
+function useMockShow(profile: ShowProfile): Show {
   const [show] = useState<Show>(() => {
     if (!new URLSearchParams(window.location.search).has('mock')) return EMPTY;
     return profile.key === 'saxonberg' ? MOCK_SAXONBERG : EMPTY;

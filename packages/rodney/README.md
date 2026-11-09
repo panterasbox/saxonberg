@@ -22,7 +22,7 @@ day a second streamer runs Rodney. See
 | Page | Purpose |
 | --- | --- |
 | `/standby.html` | Standby / AFK: the monastery archive, two hanging banners (the Pantera's Box hex, the Saxonberg rings), the unified chat between them, the countdown and an inscription below. |
-| `/live.html` | Live: the frame around the desktop — the sidebar (brand, topic and agenda, chat) and the lower third (a weighted rotation over a crawl). Transparent where OBS's display capture and camera show through. The rotation's panels are rows in `src/scenes/live/panels.tsx`. |
+| `/live.html` | Live: the frame around the desktop — the sidebar (brand, topic and agenda, chat) and the lower third (a weighted rotation over a crawl). Transparent where OBS's display capture and camera show through. The rotation's panel ROWS come from the game (`lower-third-panel` documents in the platform pack, sent on the feed); `src/scenes/live/panels.tsx` keeps the bespoke renderers by key, and a row with none renders its title and body. |
 
 ## Run
 
@@ -41,9 +41,38 @@ is the frame and the left banner. The *person* (Bobalu Smallberries,
 Box*, flush right so the studio's hex meets the word BOX — on the camera in
 Live, in the corner on standby. A new show is a profile row.
 
+## The feed
+
+Each overlay reads ONE streamer's feed. In the game, a streamer types
+**`stream token`** and gets a token, shown once; set it as
+`VITE_BROADCAST_TOKEN` with `VITE_SAXONBERG_WS` (e.g. `ws://localhost:2010`)
+in `packages/rodney/.env.local`. Issuing again rotates it — the old one stops
+working. The server's env `BROADCAST_TOKEN` still opens the founder's feed
+during the changeover (it names the first id in `STREAMER_PLAYER_IDS`); move
+to `stream token` the first week.
+
+The feed carries the streamer's own show — the phase (offline, starting,
+live, standby, ending), the standby reason, the timers, the topic and agenda,
+the client's foreground and mode and the VERB of the last command (never its
+arguments) — plus players online, the build's date, the panel rows, the
+streamer's own Twitch/YouTube/Kick chat, and *"Welcome, <name>!"* for every
+new player (*"straight from the stream"* when they came by the Saxonberg
+card's link, which carries `?from=stream`). ⭐ When the feed drops the page
+holds its last scene; it never infers *live*.
+
+**Scene switching.** `src/show/rules.ts` is the table: starting → Starting,
+live → Live, standby → Away, ending → Ending, offline → Away; a reason row's
+`scene` overrides; live with Saxonberg not in front adds the game-summary
+layer. A page with `?switch` applies the scene through OBS itself
+(`window.obsstudio`, the browser source's **Advanced access to OBS**), else
+through obs-websocket (`VITE_OBS_WS_URL`, `VITE_OBS_WS_PASSWORD`), else it
+switches nothing and says why in its top-left corner. Put `?switch` on one
+source per page (see `docs/obs-setup.md`).
+
 Set the countdown target with `?until=<epoch_ms>` when no feed is configured.
-Add `?mock` to feed the chat canned lines, so the page can be looked at with no
-server. Every scene lays out on a fixed 1920×1080 stage scaled to the window.
+Add `?mock` to feed the chat and the show canned data (`?fg=`, `?mode=`,
+`?verb=` vary the client facts; `?pin=<panel>` holds the rotation), so the
+page can be looked at with no server. Every scene lays out on a fixed 1920×1080 stage scaled to the window.
 
 The banners' faces are painted at runtime from the brand SVGs
 (`src/scenes/standby/bannerTexture.ts`), so a change to a mark in

@@ -29,7 +29,7 @@ const MOVE_VERBS = new Set(['north', 'south', 'east', 'west', 'up', 'down', 'go'
 /** Which regions are live, and the line that says why — from the client's facts. */
 function liveState(client: ClientFacts | null): { live: Region[]; line: string | null } {
   if (!client) return { live: [], line: null };
-  if (client.foreground !== 'saxonberg') {
+  if (client.foreground !== null && client.foreground !== 'saxonberg') {
     return {
       live: [],
       line: 'Right now he’s in another window — usually the code. The game is the one with the map.',

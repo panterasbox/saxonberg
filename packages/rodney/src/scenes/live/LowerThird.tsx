@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { Show } from '../../hooks/useShow';
 import { palette } from '../../tokens/palette';
 import { FACE_STACKS } from '../../tokens/faces';
-import { PANELS, type PanelRow } from './panels';
+import { rowsFor, type PanelRow } from './panels';
 import type { ShowProfile } from '../../show/profiles';
 
 /** The lower third's box: 1520 × 225 under the content area. */
@@ -38,11 +38,12 @@ function Rotation({
   profile: ShowProfile;
   height: number;
 }) {
-  // `?pin=<key>` holds the rotation on one panel — for previewing a panel.
-  const pin = new URLSearchParams(window.location.search).get('pin');
-  const ofShow = PANELS.filter((p) => (pin ? p.key === pin : profile.panels.includes(p.key)));
+  // The game's rows (or the built-in table offline), with the controls
+  // card's pin/skip — and `?pin=<key>` for previewing one panel.
+  const ofShow = rowsFor(show, profile);
   const eligible = ofShow.filter((p) => p.when(show));
-  const eligibleKeys = eligible.map((p) => p.key).join(',');
+  // A changed row (weight, seconds) re-plans as well as a changed set.
+  const eligibleKeys = eligible.map((p) => `${p.key}:${p.weight}:${p.seconds}`).join(',');
   const [turn, setTurn] = useState<{ row: PanelRow; started: number } | null>(null);
 
   useEffect(() => {

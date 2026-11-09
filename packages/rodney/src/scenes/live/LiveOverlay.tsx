@@ -1,5 +1,8 @@
 import useStreamState from '../../hooks/useStreamState';
-import useShow from '../../hooks/useShow';
+import useShow, { type Show } from '../../hooks/useShow';
+import useObsScene from '../../hooks/useObsScene';
+import { layersFor } from '../../show/rules';
+import SceneNotice from '../shared/SceneNotice';
 import Stage from '../shared/Stage';
 import Nameplate from '../shared/Nameplate';
 import { currentProfile } from '../../show/profiles';
@@ -41,6 +44,43 @@ function SourceStandIn({ label, size }: { label: string; size: string }) {
 }
 
 /**
+ * The rules' `game-summary` layer: live, with the streamer's Saxonberg not
+ * in front — a strip across the top of the content area keeps the world on
+ * screen while the desktop shows the code.
+ */
+function GameSummary({ show }: { show: Show }) {
+  const facts = [
+    show.topic,
+    show.playersOnline === null
+      ? null
+      : `${show.playersOnline} ${show.playersOnline === 1 ? 'player' : 'players'} in Saxonberg now`,
+  ].filter(Boolean);
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: CONTENT.width,
+        height: 56,
+        boxSizing: 'border-box',
+        padding: '0 24px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 18,
+        background: 'linear-gradient(to bottom, rgba(4,11,23,0.9), rgba(4,11,23,0.65))',
+        fontFamily: FACE_STACKS.chrome,
+        fontSize: 24,
+        color: palette.text.fg,
+      }}
+    >
+      <span style={{ color: palette.accent, fontWeight: 600 }}>The game is in another window</span>
+      {facts.length > 0 && <span style={{ color: palette.text.dim }}>{facts.join(' · ')}</span>}
+    </div>
+  );
+}
+
+/**
  * The Live scene's overlay: a frame around the desktop.
  *
  *   ┌──────────────────────────────┬─────────┐
@@ -57,9 +97,18 @@ function SourceStandIn({ label, size }: { label: string; size: string }) {
 export default function LiveOverlay() {
   const feed = useStreamState();
   const profile = currentProfile();
-  const show = useShow(profile);
+  const show = useShow(profile, feed);
+  const notice = useObsScene(feed);
   const mock = new URLSearchParams(window.location.search).has('mock');
-  const live = mock || (feed.connected && feed.state?.mode === 'live');
+  // ⭐ From the last thing the server said — a dropped feed holds it.
+  const live = mock || feed.state?.phase === 'live';
+  const layers = feed.state
+    ? layersFor({
+        phase: feed.state.phase,
+        reason: feed.state.reason,
+        foreground: feed.state.client?.foreground ?? null,
+      })
+    : [];
 
   return (
     <Stage>
@@ -80,6 +129,8 @@ export default function LiveOverlay() {
           </div>
         </>
       )}
+
+      {layers.includes('game-summary') && <GameSummary show={show} />}
 
       <div style={{ position: 'absolute', left: CONTENT.width, top: 0 }}>
         <Sidebar show={show} profile={profile} chat={feed.chat} live={live} />
@@ -123,6 +174,7 @@ export default function LiveOverlay() {
           pointerEvents: 'none',
         }}
       />
+      <SceneNotice text={notice} />
     </Stage>
   );
 }

@@ -10,19 +10,30 @@ import repoStats from 'virtual:repo-stats';
 import useGitLab, { GITLAB_PROJECT } from '../../hooks/useGitLab';
 import { palette } from '../../tokens/palette';
 import { FACE_STACKS } from '../../tokens/faces';
+import type { ShowProfile } from '../../show/profiles';
+import type { StreamPanelWhen } from '../../show/wire';
 
 /** Where people join — the live public host (docs/deployment.md). */
 export const JOIN_URL = 'https://mud.panterasbox.com';
+
+/**
+ * ⭐ The link the Saxonberg card shows and its QR encodes — tagged
+ * `?from=stream`, so a player who arrives by it is welcomed *"straight
+ * from the stream"* (broadcast-ready D7). The printed URL stays bare.
+ */
+export const JOIN_LINK = `${JOIN_URL}/?from=stream`;
 
 /**
  * The lower third's rotation, as rows. Each row says what it shows, how long
  * a turn lasts, how heavily it is weighted, and when it may take a turn at
  * all — so an empty panel never takes one, and adding a panel is a row.
  *
- * ⭐ The owner: "I might tell you one thing and then totally hate it once I
- * see it" — this table is the thing to edit. The rows move into the game as
- * content when the broadcast-ready build lands (reasons and panels are rows
- * there too); until then they live here.
+ * ⭐ The rows live in the GAME now (broadcast-ready D14: `lower-third-panel`
+ * documents in the platform pack, sent on the feed): weight, seconds,
+ * `when` and copy come from there, and this table keeps only the bespoke
+ * RENDERERS by key. A game row with no renderer here renders its title and
+ * body — a new copy-only panel is a pack file and nothing else. This table's
+ * own weights and `when`s stand only offline and under `?mock`.
  */
 export interface PanelRow {
   key: string;
@@ -207,7 +218,7 @@ function buildAge(at: number): string {
  * The shared world is implied by the count, not sold.
  */
 function JoinPanel({ show }: { show: Show }) {
-  const qr = useQr(JOIN_URL);
+  const qr = useQr(JOIN_LINK);
 
   const count =
     show.playersOnline === null
@@ -1005,3 +1016,56 @@ function CompactPanel() {
   );
 }
 
+
+
+/**
+ * The `when` vocabulary a game row names, evaluated against the show —
+ * a closed table, mirroring the server's `STREAM_PANEL_WHENS`.
+ */
+export const WHEN: Readonly<Record<StreamPanelWhen, (show: Show) => boolean>> = {
+  always: () => true,
+  world: (show) => show.world !== null,
+  money: (show) => show.money !== null,
+  community: (show) => show.community !== null,
+  wiki: (show) => show.wikiOfDay !== null,
+  client: (show) => show.client !== null,
+};
+
+/** A game row with no bespoke renderer: its title and body. */
+function GenericPanel({ title, body }: { title?: string; body?: string }) {
+  return <Panel title={title ?? ''} body={body} />;
+}
+
+/**
+ * The rows the rotation runs: the game's when the feed sent them (each
+ * paired with its bespoke renderer, else the generic one), the built-in
+ * table for the profile otherwise. ⭐ The controls card's steering applies
+ * either way: a pinned panel holds the rotation, skipped ones sit out —
+ * `?pin=` on the page wins for previewing.
+ */
+export function rowsFor(show: Show, profile: ShowProfile): PanelRow[] {
+  const bespoke = new Map(PANELS.map((p) => [p.key, p]));
+  const rows: PanelRow[] = show.panels
+    ? show.panels.map((r) => {
+        const own = bespoke.get(r.key);
+        return {
+          key: r.key,
+          weight: r.weight,
+          seconds: r.seconds,
+          when: WHEN[r.when] ?? (() => false),
+          render: own
+            ? own.render
+            : () => <GenericPanel title={r.title} body={r.body} />,
+        };
+      })
+    : PANELS.filter((p) => profile.panels.includes(p.key));
+  const pin = new URLSearchParams(window.location.search).get('pin') ?? show.rotation.pinned;
+  if (pin) {
+    const pinned = rows.filter((r) => r.key === pin);
+    if (pinned.length > 0) return pinned;
+    const builtIn = bespoke.get(pin);
+    if (builtIn) return [builtIn];
+  }
+  const skip = new Set(show.rotation.skip);
+  return rows.filter((r) => !skip.has(r.key));
+}

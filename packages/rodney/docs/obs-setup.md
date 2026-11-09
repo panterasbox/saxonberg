@@ -51,8 +51,25 @@ scene shares the same source and its settings).
 
 Both browser sources: **Shutdown source when not visible: off**; **Refresh
 browser when scene becomes active: off**; **Page permissions: Advanced access
-to OBS** (lets the overlay switch scenes later). Add `?mock` to either URL to
-see it filled with canned chat and show data and no server.
+to OBS** — ⭐ this is what lets the overlay switch scenes. Add `?mock` to
+either URL to see it filled with canned chat and show data and no server.
+
+**The feed.** Both URLs need your token: in the game type `stream token`
+and put the token it shows (once) in `packages/rodney/.env.local` as
+`VITE_BROADCAST_TOKEN`, with `VITE_SAXONBERG_WS`. The old shared
+`BROADCAST_TOKEN` still works for the founder during the changeover.
+
+**Scene switching.** Add `&switch` to the **Rodney Standby** URL only (it is
+in Starting, Away and Ending, and with *Shutdown source when not visible*
+off it keeps running under Live): the overlay then follows the game —
+`stream start` → Starting, `stream live`/`back` → Live, `stream away …` →
+Away, `stream end` → Ending, and a reason row may name its own scene. If
+the source lacks Advanced access, set obs-websocket instead (Tools →
+WebSocket Server Settings) and give Rodney `VITE_OBS_WS_URL`
+(`ws://localhost:4455`) and `VITE_OBS_WS_PASSWORD`; with neither, the page
+switches nothing and says so in its top-left corner. ⭐ A dropped feed
+changes nothing: the scene holds, and Rodney never goes Live on its own —
+the Elgato Privacy button still cuts with the server down.
 
 **Show profiles.** `?show=<key>` picks the show (default `saxonberg`, the only
 one so far). A music stream — a Keysight capture, the camera on the player,
@@ -102,8 +119,10 @@ work with the game server down:
 | Mic | Mute → `Mic` |
 | Go live | Start/Stop Stream |
 
-The game-command buttons (`stream away bathroom`, `stream back`,
-`stream segment`) come later through pblive.
+The game-command buttons (`stream away bathroom`, `stream away privacy`,
+`stream back`, `stream next`) go through pblive with a control token
+(`stream token --control` in the game) — they run `stream …` as you and
+nothing else.
 
 ## 5. Before the first show
 

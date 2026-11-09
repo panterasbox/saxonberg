@@ -1,44 +1,32 @@
 import { useEffect, useRef, useState } from 'react';
 
+import type {
+  ChatService,
+  RelayChatEnvelope,
+  StreamEventEnvelope,
+  StreamShow,
+  StreamStateEnvelope,
+} from '../show/wire';
+
+export type { ChatService } from '../show/wire';
+
 /**
- * The broadcast feed — saxonberg's read-only overlay projection over
- * WebSocket. Connects to `${VITE_SAXONBERG_WS}/?broadcast=<token>` and
- * tracks the pushed `StreamState` and the owner's relay chat. The
- * countdown, scene, chat, lower third, etc. all derive from this one source.
+ * The broadcast feed — ONE streamer's read-only overlay projection over
+ * WebSocket (broadcast-ready D5). Connects to
+ * `${VITE_SAXONBERG_WS}/?broadcast=<token>`, where the token is the one
+ * `stream token` issued in game, and tracks that streamer's pushed show,
+ * their own relay chat, and the world's arrivals.
  *
- * Mirrors the server's `StreamStateSnapshot` and `RelayChatEnvelope`
- * (`@saxonberg/types`), inlined until the overlay pulls in the shared types.
+ * ⭐ Fail closed: when the socket drops, `connected` goes false and the
+ * last `state` is KEPT — the overlay holds its scene; nothing here ever
+ * infers `live`.
  */
-export interface StreamStateSnapshot {
-  mode: 'live' | 'standby';
-  awayUntil: number | null; // epoch ms; null when live
-}
 
-export type ChatService = 'twitch' | 'youtube' | 'kick';
-
-type RelaySpeaker =
-  | { kind: 'in-game'; ref: { stuffId: string; displayName?: string } }
-  | { kind: 'external'; service: ChatService; externalName: string }
-  | {
-      kind: 'external-linked';
-      service: ChatService;
-      externalName: string;
-      ref: { stuffId: string; displayName?: string };
-    };
-
-interface StreamStateEnvelope {
-  type: 'stream-state';
-  frameId: number;
-  state: StreamStateSnapshot;
-}
-
-interface RelayChatEnvelope {
-  type: 'relay-chat';
-  frameId: number;
-  service: ChatService;
-  channelHandle: string;
-  speaker: RelaySpeaker;
-  text: string;
+/** A new player's first arrival, as the ticker tells it. */
+export interface Arrival {
+  id: number;
+  name: string;
+  fromStream: boolean;
 }
 
 /** One chat line as the overlay renders it. */
@@ -55,14 +43,22 @@ export interface ChatLine {
 export interface StreamFeed {
   /** True while a WS connection is open. */
   connected: boolean;
-  /** Latest pushed state, or null before the first snapshot arrives. */
-  state: StreamStateSnapshot | null;
+  /**
+   * Latest pushed show, or null before the first snapshot arrives. Kept
+   * across a drop — the last thing the server said stands.
+   */
+  state: StreamShow | null;
   /** The most recent chat lines, oldest first. */
   chat: ChatLine[];
+  /** New players' first arrivals this session, oldest first. */
+  arrivals: Arrival[];
 }
 
 /** How many chat lines the overlay keeps. */
 const CHAT_KEEP = 40;
+
+/** How many arrivals the overlay keeps. */
+const ARRIVALS_KEEP = 20;
 
 function toChatLine(env: RelayChatEnvelope): Omit<ChatLine, 'id'> {
   const s = env.speaker;
@@ -130,9 +126,11 @@ export default function useStreamState(): StreamFeed {
     connected: false,
     state: null,
     chat: [],
+    arrivals: [],
   });
   const wsRef = useRef<WebSocket | null>(null);
   const nextChatId = useRef(1);
+  const nextArrivalId = useRef(1);
 
   const pushChat = useRef((line: Omit<ChatLine, 'id'>) => {
     const id = nextChatId.current++;
@@ -169,12 +167,22 @@ export default function useStreamState(): StreamFeed {
         try {
           const msg = JSON.parse(ev.data as string) as
             | Partial<StreamStateEnvelope>
-            | Partial<RelayChatEnvelope>;
+            | Partial<RelayChatEnvelope>
+            | Partial<StreamEventEnvelope>;
           if (msg?.type === 'stream-state' && 'state' in msg && msg.state) {
             const state = msg.state;
             setFeed((f) => ({ ...f, connected: true, state }));
           } else if (msg?.type === 'relay-chat' && 'speaker' in msg && msg.speaker) {
             pushChat(toChatLine(msg as RelayChatEnvelope));
+          } else if (msg?.type === 'stream-event' && 'kind' in msg && msg.kind === 'new-player') {
+            const ev2 = msg as StreamEventEnvelope;
+            const id = nextArrivalId.current++;
+            setFeed((f) => ({
+              ...f,
+              arrivals: [...f.arrivals, { id, name: ev2.name, fromStream: ev2.fromStream }].slice(
+                -ARRIVALS_KEEP,
+              ),
+            }));
           }
         } catch {
           // Ignore non-JSON / unexpected frames — the feed is tolerant.
@@ -183,6 +191,7 @@ export default function useStreamState(): StreamFeed {
 
       const scheduleReconnect = () => {
         if (disposed) return;
+        // ⭐ Hold the scene: only `connected` changes; `state` stays.
         setFeed((f) => ({ ...f, connected: false }));
         reconnectTimer = setTimeout(connect, RECONNECT_MS);
       };

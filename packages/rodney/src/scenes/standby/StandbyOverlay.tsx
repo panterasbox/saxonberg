@@ -9,6 +9,9 @@ import { currentProfile } from '../../show/profiles';
 import ErrorBoundary from './ErrorBoundary';
 import useAwayTimer from '../../hooks/useAwayTimer';
 import useStreamState from '../../hooks/useStreamState';
+import useObsScene from '../../hooks/useObsScene';
+import SceneNotice from '../shared/SceneNotice';
+import type { StreamShow } from '../../show/wire';
 import { palette } from '../../tokens/palette';
 import { FACE_STACKS } from '../../tokens/faces';
 
@@ -72,13 +75,73 @@ function BannerScene() {
   );
 }
 
+/** What the caption says for the phase the feed is in. */
+interface Caption {
+  /** The engraved heading over the timer. */
+  heading: string;
+  /** The countdown's target (epoch ms), or null for no countdown at all. */
+  countTo: number | null;
+  /** What shows when the countdown has run out, or with no countdown. */
+  idle: string | null;
+  /** The line under the timer — the reason's copy; else the aphorisms. */
+  line: string | null;
+  /** The agenda, on Starting. */
+  agenda: { title: string; done: boolean }[];
+}
+
+/**
+ * ⭐ One page, every non-live phase (broadcast-ready D14): Starting counts
+ * to `startsAt` with the agenda; Away shows the reason and counts to
+ * `awayUntil` — ⚠ and for a PRIVACY reason shows no countdown at all (a
+ * timer tells the audience how long the private thing takes); Ending is
+ * the outro. With no feed at all, the shipped demo countdown stands.
+ */
+function captionFor(state: StreamShow | null): Caption | null {
+  if (!state) return null;
+  switch (state.phase) {
+    case 'starting':
+      return {
+        heading: state.topic ? `Starting soon · ${state.topic}` : 'Starting soon',
+        countTo: state.startsAt,
+        idle: 'any moment',
+        line: null,
+        agenda: state.agenda,
+      };
+    case 'standby': {
+      const r = state.reason;
+      const timed = r !== null && !r.privacy && state.awayUntil !== null;
+      return {
+        heading: r ? r.label : 'Stepped away',
+        countTo: timed ? state.awayUntil : null,
+        idle: timed ? 'any moment' : 'back shortly',
+        line: r ? r.copy : null,
+        agenda: [],
+      };
+    }
+    case 'ending':
+      return {
+        heading: "That's the show",
+        countTo: null,
+        idle: 'Thanks for watching',
+        line: 'Saxonberg is open all week — what you watched, you can play.',
+        agenda: [],
+      };
+    case 'live':
+      return { heading: 'Live', countTo: null, idle: 'on air', line: null, agenda: [] };
+    case 'offline':
+      return { heading: 'Off the air', countTo: null, idle: 'see you next week', line: null, agenda: [] };
+  }
+}
+
 export default function StandbyOverlay() {
-  // When the broadcast feed is connected, drive the countdown off
-  // saxonberg's StreamState.awayUntil; otherwise fall back to ?until=
-  // / demo (undefined override).
+  // The feed's last word stands across a drop (fail closed); with no feed
+  // at all, the countdown falls back to ?until= / the demo.
   const feed = useStreamState();
-  const override = feed.connected ? (feed.state?.awayUntil ?? null) : undefined;
+  const notice = useObsScene(feed);
+  const caption = captionFor(feed.state);
+  const override = caption === null ? undefined : caption.countTo;
   const timer = useAwayTimer(override);
+  const counting = caption === null || caption.countTo !== null;
   const [quote, setQuote] = useState(APHORISMS[0]);
 
   useEffect(() => {
@@ -186,7 +249,7 @@ export default function StandbyOverlay() {
               marginBottom: 6,
             }}
           >
-            {timer.expired ? 'Resuming' : 'Stream resumes in'}
+            {caption ? caption.heading : timer.expired ? 'Resuming' : 'Stream resumes in'}
           </div>
 
           <div
@@ -198,8 +261,29 @@ export default function StandbyOverlay() {
               lineHeight: 1,
             }}
           >
-            {timer.expired ? 'any moment' : timer.label}
+            {counting && !timer.expired
+              ? timer.label
+              : caption?.idle ?? 'any moment'}
           </div>
+
+          {caption && caption.agenda.length > 0 && (
+            <div
+              style={{
+                fontFamily: FACE_STACKS.chrome,
+                fontSize: 26,
+                color: palette.text.dim,
+                marginTop: 14,
+                textAlign: 'center',
+              }}
+            >
+              {caption.agenda.map((a) => (
+                <span key={a.title} style={{ margin: '0 14px', opacity: a.done ? 0.55 : 1 }}>
+                  {a.done ? '✓ ' : ''}
+                  {a.title}
+                </span>
+              ))}
+            </div>
+          )}
 
           <div
             style={{
@@ -210,7 +294,7 @@ export default function StandbyOverlay() {
               textAlign: 'center',
             }}
           >
-            {quote}
+            {caption?.line ?? quote}
           </div>
         </div>
 
@@ -218,6 +302,7 @@ export default function StandbyOverlay() {
         <div style={{ position: 'absolute', right: 40, bottom: 36 }}>
           <Nameplate size="large" />
         </div>
+        <SceneNotice text={notice} />
       </div>
     </Stage>
   );
