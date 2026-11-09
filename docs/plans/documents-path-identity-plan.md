@@ -644,10 +644,10 @@ the catalogue's third tier (a derived descriptor + a diagnostic), with
 for the owner** as the one engine-wired load in this build: not a `boot:`
 entry (nothing is read at boot; the first scene of the process pays one
 indexed read of 38 documents), but the loader is the pipeline, not a host.
-The alternative — a boot-time `await Topic.warm()` in `BootstrapManager`
-before the first session can connect — is named in § Risks if the queue
-proves awkward in tests; it is still engine wiring, so the owner's call
-either way.
+✅ **Owner, 2026-11-09: the queue.** (*"queue is fine."*) The boot-time
+`await Topic.warm()` in `BootstrapManager` was the alternative and is not
+taken; if the queue proves awkward in tests, re-plan W4 in place and say so
+in the MR rather than switching silently.
 
 **D14 — The aroma folder is the tree.** A child aroma lives in its parent's
 directory (`aromas/smoke/peat-smoke.yaml`); its parent is the aroma document
@@ -946,7 +946,7 @@ Isolated on purpose; if the premise fails, this wave is re-planned alone.
   `placed` projection call `require`; the word is resolved against the host's
   own documents; 14 rows + 3 code defaults + 3 literals → paths;
   `ContentPlacement` persists the path; `check-placement-words` follows the
-  rows. ⚠ `ContainerMixin.onCreate` gaining an `await` is the widest change
+  rows. ⚠ `ContainerMixin.onCreate` gaining an `await` is the widest change (✅ owner, 2026-11-09: *"generally content enters the game room by room so this makes some sense"* — measure and record, no further sign-off needed)
   in the build — the build measures boot time before and after (one cache
   hit per container after the first).
 - **Topic** (D13): `lib/message/Topic.ts`; `TopicCatalogue` over `Topic`
@@ -1160,8 +1160,8 @@ render in words. Runs once at code-complete beside the drive.
    fixture-warm shape every modality test already uses. If the queue proves
    awkward, the named alternative is `BootstrapManager` awaiting
    `TopicCatalogue.warm()` before the first session can connect — not a
-   `boot:` entry but still engine wiring; **either way it is the owner's call**
-   (D13 flags it), and the build records which shipped.
+   `boot:` entry but still engine wiring. ✅ The owner chose the queue
+   (2026-11-09); switching needs a re-plan line in the MR.
 4. **`BlueprintCatalogue.rebuild()` at first studio use** — a seconds-long
    first request, and class modules loading under a request rather than at
    boot. If the studio's first request times out in the walk, the honest
