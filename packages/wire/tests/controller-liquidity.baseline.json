@@ -1,0 +1,1759 @@
+{
+  "note": "controller-liquidity: the before-record of every act whose logic moves (plan W0, D17). Written by CLIQ_RECORD=1 against HEAD before W1; compared on every other run. Do not hand-edit — a wave that fixes a recorded defect re-records its row and says so.",
+  "acts": {
+    "anchor": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "not-aboard"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "assay": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "cannot-pay"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {
+          "ore": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/world/terminus/rejection/thing/copper-ore"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "assess.self": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "assess.ward": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "berth": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "not-keeper"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "bore": {
+      "status": "ok",
+      "notes": [
+        {
+          "kind": "engagement-started"
+        }
+      ],
+      "duration": 16667,
+      "state": {
+        "handed": {
+          "rig": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/trade/drilling/thing/derrick"
+        ],
+        "newMine": [],
+        "completion": [
+          "engagement-completed"
+        ]
+      }
+    },
+    "butcher": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/trade/cooking/thing/boning-knife"
+        ],
+        "newMine": [
+          "/stuff/thing/items/offal",
+          "/stuff/thing/items/prime-cut",
+          "/stuff/thing/items/stew-meat"
+        ],
+        "completion": null
+      }
+    },
+    "carve": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {
+          "hook": {
+            "in": "me",
+            "placement": null
+          },
+          "blank": {
+            "gone": true
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/trade/carpentry/thing/peg",
+          "/trade/forestry/thing/billhook"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "cat": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "char": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "empty-clamp"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "chronicle": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "cool": {
+      "status": "error",
+      "notes": [
+        {
+          "kind": "controller-error"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "course": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "not-aboard"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "cp": {
+      "status": "error",
+      "notes": [
+        {
+          "kind": "controller-error"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "dose": {
+      "status": "error",
+      "notes": [
+        {
+          "kind": "controller-error"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "drift": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "no-warren"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {
+          "pick": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/trade/mining/thing/pick"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "dry.hang": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "not-dryable"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {
+          "rag": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/stuff/thing/rag"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "dry.rub": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "not-dryable"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {
+          "rag": {
+            "in": "me",
+            "placement": null
+          },
+          "cloth": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/stuff/thing/rag",
+          "/stuff/thing/rag"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "dye": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "empty-bath"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {
+          "bolt": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/trade/textiles/thing/bolt"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "edit": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "unspecified"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "feed": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "empty-result"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {
+          "sack": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/stuff/thing/vessel/compost-sack"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "fell": {
+      "status": "ok",
+      "notes": [
+        {
+          "kind": "engagement-started"
+        }
+      ],
+      "duration": 30000,
+      "state": {
+        "handed": {
+          "axe": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/trade/forestry/thing/felling-axe"
+        ],
+        "newMine": [],
+        "completion": [
+          "engagement-completed"
+        ]
+      }
+    },
+    "fish": {
+      "status": "ok",
+      "notes": [
+        {
+          "kind": "engagement-started"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {
+          "rod": {
+            "in": "me",
+            "placement": null
+          },
+          "worm": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/trade/fishing/thing/rod",
+          "/trade/fishing/thing/worm"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "fit": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "insufficient-input"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "grep": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "hammer": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "insufficient-heat"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {
+          "ingot": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/trade/smithing/thing/iron-ingot"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "harvest": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/trade/forestry/thing/billhook",
+          "/trade/forestry/thing/cordwood",
+          "/trade/forestry/thing/cordwood",
+          "/trade/forestry/thing/cordwood",
+          "/trade/forestry/thing/cordwood",
+          "/trade/forestry/thing/cordwood",
+          "/trade/forestry/thing/cordwood",
+          "/trade/forestry/thing/cordwood",
+          "/trade/forestry/thing/cordwood"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "heat.build": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "insufficient-heat"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "heat.tool": {
+      "status": "ok",
+      "notes": [
+        {
+          "kind": "engagement-started"
+        }
+      ],
+      "duration": 4000,
+      "state": {
+        "handed": {
+          "kit": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/trade/medicine/thing/surgical-kit"
+        ],
+        "newMine": [],
+        "completion": [
+          "engagement-completed"
+        ]
+      }
+    },
+    "hew": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "no-tool"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "hitch": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "empty-result"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "journey": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "no-destination"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "label": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "validator-failed",
+          "validator": "field"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {
+          "crate": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/trade/farming/thing/crate"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "launch": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "command-rejected",
+          "reason": "unknown-verb"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "lie": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "no-posture-slot"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "ls": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "maintain": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "already-sound"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {
+          "kit": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/system/residence/thing/householders-kit"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "menu": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "mill": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {
+          "wheat": {
+            "gone": true
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [
+          "/trade/milling/thing/bran-sack",
+          "/trade/milling/thing/flour-sack"
+        ],
+        "completion": null
+      }
+    },
+    "mkdir": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "access-denied"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "mv": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "access-denied"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "name": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "not-nameable"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {
+          "jug": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/trade/ceramics/thing/jug"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "order": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "insufficient-input"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "pay": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "empty-result"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "plant": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {
+          "pot": {
+            "in": "me",
+            "placement": null
+          },
+          "seed": {
+            "gone": true
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/trade/farming/thing/pot/small"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "plow": {
+      "status": "ok",
+      "notes": [
+        {
+          "kind": "engagement-started"
+        }
+      ],
+      "duration": 14560,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": [
+          "engagement-completed"
+        ]
+      }
+    },
+    "print": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/platform/thing/ream",
+          "/platform/thing/ream",
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "pump": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "not-lit"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "put": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {
+          "crate": {
+            "in": "/world/terminus/market/square",
+            "placement": null
+          },
+          "rag": {
+            "in": "crate",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "quench": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "empty-build"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {
+          "ingot": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/trade/smithing/thing/iron-ingot"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "read": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {
+          "book": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/platform/thing/book",
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "read.display": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "recover": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "command-rejected",
+          "reason": "unknown-verb"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "ring": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "rinse": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "nothing-to-rinse"
+        },
+        {
+          "kind": "other-offer"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "rm": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "access-denied"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "sample": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [
+          "/world/terminus/rejection/thing/copper-ore"
+        ],
+        "completion": null
+      }
+    },
+    "saw": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {
+          "bole": {
+            "in": "/world/terminus/hearts-delight/location/sawmill",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "shore": {
+      "status": "ok",
+      "notes": [
+        {
+          "kind": "engagement-started"
+        }
+      ],
+      "duration": 20000,
+      "state": {
+        "handed": {
+          "set": {
+            "in": "/world/terminus/rejection/ferrow/timbered-drift",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [
+          "/trade/mining/thing/timber-set"
+        ],
+        "completion": [
+          "engagement-completed"
+        ]
+      }
+    },
+    "smelt": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "no-fuel"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {
+          "ore1": {
+            "in": "/trade/smelting/thing/furnace",
+            "placement": null
+          },
+          "ore2": {
+            "in": "/trade/smelting/thing/furnace",
+            "placement": null
+          },
+          "coal": {
+            "in": "/trade/smelting/thing/furnace",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "split": {
+      "status": "ok",
+      "notes": [
+        {
+          "kind": "engagement-started"
+        }
+      ],
+      "duration": 3000,
+      "state": {
+        "handed": {
+          "wheel": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/trade/dairying/thing/wedge",
+          "/trade/dairying/thing/wheel",
+          "/world/terminus/hearts-delight/creamery/thing/cheese-knife"
+        ],
+        "newMine": [],
+        "completion": [
+          "engagement-completed"
+        ]
+      }
+    },
+    "stake": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "already-claimed"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "stall.rent": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "no-bank"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "stir": {
+      "status": "ok",
+      "notes": [
+        {
+          "kind": "engagement-started"
+        }
+      ],
+      "duration": 120000,
+      "state": {
+        "handed": {
+          "sand1": {
+            "gone": true
+          },
+          "sand2": {
+            "gone": true
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": [
+          "engagement-completed"
+        ]
+      }
+    },
+    "survey": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "sweep": {
+      "status": "ok",
+      "notes": [
+        {
+          "kind": "engagement-started"
+        }
+      ],
+      "duration": 8000,
+      "state": {
+        "handed": {
+          "broom": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/stuff/thing/gear/broom"
+        ],
+        "newMine": [],
+        "completion": [
+          "engagement-completed"
+        ]
+      }
+    },
+    "swim": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "tan": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {
+          "hide": {
+            "in": "/trade/tanning/thing/tanpit",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "teleport.free": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "tie": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "handed": {
+          "crate": {
+            "in": "/world/terminus/market/square",
+            "placement": null
+          },
+          "rope": {
+            "in": "/world/terminus/market/square",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [
+          "/trade/cordage/thing/rope"
+        ],
+        "completion": null
+      }
+    },
+    "tip": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "recipient-no-account"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "title.buy": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "unknown-lot"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "title.transfer": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "no-parcel"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "transfuse": {
+      "status": "ok",
+      "notes": [
+        {
+          "kind": "engagement-started"
+        }
+      ],
+      "duration": 45000,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/trade/medicine/thing/syringe",
+          "/trade/medicine/thing/syringe"
+        ],
+        "newMine": [],
+        "completion": [
+          "engagement-completed"
+        ]
+      }
+    },
+    "unhitch": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "not-hitched"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "warm": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "validator-failed",
+          "validator": "field"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    },
+    "wash": {
+      "status": "ok",
+      "notes": [
+        {
+          "kind": "engagement-started"
+        }
+      ],
+      "duration": 3000,
+      "state": {
+        "handed": {},
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/stuff/thing/cutlery/table-knife"
+        ],
+        "newMine": [],
+        "completion": [
+          "engagement-completed"
+        ]
+      }
+    },
+    "water": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "no-water-source"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "handed": {
+          "can": {
+            "in": "me",
+            "placement": null
+          }
+        },
+        "held": [
+          "/stuff/thing/AetherImplant",
+          "/stuff/thing/clothes/canvas-shoes",
+          "/stuff/thing/clothes/student-shirt",
+          "/stuff/thing/clothes/student-trousers",
+          "/stuff/thing/vessel/watering-can"
+        ],
+        "newMine": [],
+        "completion": null
+      }
+    }
+  }
+}
