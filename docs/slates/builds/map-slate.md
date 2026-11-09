@@ -1,9 +1,10 @@
 # Map / spatial-visualization slate (working doc)
 
-> **Status: UNBUILT — design resolved 2026-10-01, ⛔ BLOCKED on
-> [location-graph-slate](../tails/location-graph-slate.md).** The renderer has
-> nothing to read until the index exists; once it does, **this is 100% a
-> client build.**
+> **Status: UNBUILT — revised 2026-11-09** (the owner, after !509 shipped a
+> first navigator): the pane's job, its scope and the illustrated map are
+> settled in [§ The navigation pane, revised](#-the-navigation-pane-revised-2026-11-09-the-owner);
+> the minimap's exact design is still to be iterated. Unblocked since
+> 2026-10-05 (location-graph shipped).
 > ⭐⭐⭐ **Resolved: SVG for 2D, not canvas and not the box model** — the
 > `viewBox` is the lattice and the camera. three.js for 3D, **lazy-loaded**.
 > ⭐⭐⭐ **And it is a ZONE NAVIGATION card, not a map card** — the grid, a
@@ -427,7 +428,13 @@ affordance even when the exit *is* cardinal.
 > where it is a road. **The interzone affordance and the departures board
 > are one thing**, and `renderDepartures` already shapes it.
 
-### 4. ⭐⭐⭐ Zone metadata — the honest-state panel
+### 4. ~~Zone metadata — the honest-state panel~~ — superseded 2026-11-09
+
+> ⛔ **Superseded** by [§ The navigation pane, revised](#-the-navigation-pane-revised-2026-11-09-the-owner):
+> the pane says where you are, never what kind of place you are in. The
+> honest-state facts below need another home (the status bar for outdoor
+> conditions; the place's own inspection card for the rest).
+
 
 What rules apply *here*:
 
@@ -467,6 +474,105 @@ surface."*
 be labelled), `blocked` / locked / covenant-refused as distinct from
 *absent*, and whether an exit **crosses a zone** (so it routes to the list
 rather than the rose). All of it reads off the index.
+
+## ⭐⭐⭐ The navigation pane, revised (2026-11-09, the owner)
+
+!509 shipped a first navigator in Explore's docked slot: a breadcrumb, a text
+compass, a "Leaving this area" list, outside conditions and whose ground.
+This conversation settled what the pane is for; the minimap's exact look is
+still to be iterated against real play.
+
+### What the pane is for **[DECIDED]**
+
+> *"It's to help you get around and tell you about your relative position in
+> the game. It shouldn't ever care about what specific type of place you're
+> in, or it's probably doing too much."*
+
+- ⭐⭐ **Position, not place.** The pane never does the inspection card's
+  job. Nothing on it reads a place's kind, contents or state — no "lit",
+  "open", "whose ground", no biome. Outdoor conditions (weather, time, light)
+  belong in the status bar; everything about the place itself belongs on its
+  inspection card. This supersedes § 4's honest-state panel.
+- ⭐⭐ **Scope is the current zone, at most.** The map never draws beyond the
+  zone you are in. A picture of how zones relate to one another is a
+  different thing, later, and not this pane.
+- **Responsive like everything else, optimized for Explore's docked slot.**
+- **The map is the main input.** Clicking a place on it is how you move; the
+  owner expects players to use the map rather than a compass. The compass
+  rose (§ 2) is an experiment kept only if players use it. **Interactivity
+  is not pre-designed** — see what the map ends up doing and let the rest
+  turn up.
+
+### The exit list stays — for the exits that leave the zone **[DECIDED]**
+
+An exit to another zone has no direction to draw: its destination is in
+another coordinate frame. Those exits are a **named list** beside the map —
+§ 3's widget. Exits inside the zone are drawn on the map, not listed.
+
+### Two scales, both inside the zone **[DECIDED, the rendering to iterate]**
+
+- **Cartesian zones:** one cell per room, always — nothing is larger than a
+  cell in the Cartesian system. The grid follows you, with § 1's corner
+  glyph for up and down.
+- **Spherical zones:** a different render, done as well as the data allows.
+  ⭐ **An expanse is a 2D surface**, so its map is a chart in latitude and
+  longitude ([expanse.md](../../subsystems/expanse.md)) — the one place a
+  map can be geometrically exact. A spherical zone that is not an expanse is
+  foci and radii, and is the hard case.
+
+### ⭐⭐⭐ The illustrated map — the broad picture, as an object you own **[DECIDED]**
+
+The pane is exact and zone-sized. The broad picture of a Locality — larger
+than any zone map — is a different artifact:
+
+- **An authored bitmap in any art style.** No rooms, no exits, not a graph:
+  it shows roughly where things are in the world.
+- ⭐⭐ **You must own it.** A map is a thing in the world, on paper
+  ([paper.md](../../subsystems/paper.md)) — bought, found or given; the map
+  document's `bought` channel already exists. **The library keeps copies of
+  the maps of known territory** (what "copy" means there is the libraries
+  design's).
+- **Its picture is `Visible.illustration`** ([media.md](../../subsystems/media.md))
+  — an illustrated map is a map object whose illustration is the art.
+- **It opens on its own inspection card** — the card lays out by kind, and a
+  map is one more kind, picture first. No new slot and no new card type
+  (the exact modeling on the server decides this; the card is the lean).
+- ⭐ **This is what a breadcrumb opens.** A crumb is a Locality coarser than
+  the zone; clicking it shows that Locality's illustrated map *if you own
+  one* — the broad picture behind each crumb, so the pane never has to zoom
+  out past the zone. What a crumb does when you own no map is open (see
+  [locality-knowledge-slate](./locality-knowledge-slate.md): the Locality as
+  your map document knows it).
+
+### "You are here" on an illustrated map **[OPEN — modeling to discuss]**
+
+A pin on a bitmap is only as honest as what the author told the picture.
+Three rungs, cheapest first:
+
+1. **Anchors per Locality** — the author marks a point on the art for each
+   Locality the map covers; the pin sits on the most specific anchored
+   Locality in your breadcrumb. Coarse, never wrong (*somewhere in
+   Wharfside*).
+2. **Control points onto coordinates** — three or more known places, and an
+   affine transform lays a Cartesian zone's coordinates onto the art. Works
+   only where the art is roughly to scale; lies where it is not.
+3. **Charts for expanses** — latitude and longitude make a true position.
+
+Lean (not decided): rung 1 as the rule and optional per map (art without
+anchors is just art), rung 3 for expanse charts, rung 2 when an author wants
+it. The owner: *"'you are here' would be cool but I don't know how reliable
+it is with your basic bitmap — we'd have to talk about how all that is
+actually modeled."*
+
+### Still open
+
+- The minimap's exact visual design — to iterate with the owner against
+  real play.
+- What the pane shows in modes other than Explore (it is optimized for the
+  docked Explore slot).
+- What a breadcrumb does when you own no map of that Locality.
+- The illustrated map's server model (a map kind, its anchors) and whether
+  the inspection card is its home.
 
 ## The card integration is already decided by doctrine
 
