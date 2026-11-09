@@ -339,6 +339,8 @@ export const Mixins = {
   AroundDeleteHook: 'AroundDeleteHookMixin',
   HasInteractive: 'HasInteractiveMixin',
   ClientState: 'ClientStateMixin',
+  /** ⭐ The stream a played body is running (broadcast-ready D1, D17). */
+  Broadcast: 'BroadcastMixin',
   SaxonbergClient: 'SaxonbergClientMixin',
   Environment: 'EnvironmentMixin',
   Alias: 'AliasMixin',

@@ -77,14 +77,9 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // list. Gated identically to the rest of the AuthorMixin suite:
         // non-authors don't see the verb in their recency stack.
         'platform/cmd/social/soul.yaml',
-        // Livestream control plane (PLAN §3). Afforded to the operator
-        // command surface like the rest of this suite, but *authorized*
-        // on the orthogonal streamer axis — `stream.yaml` carries
-        // `requiresStreamer`, so an author who isn't in the `streamers`
-        // group sees the verb but can't run it. The split lets a future
-        // dedicated streamer-mode affordance narrow visibility without
-        // touching the authorization gate.
-        'platform/cmd/stream/stream.yaml',
+        // ⚠ `platform/cmd/stream/stream.yaml` LEFT this list (broadcast-ready
+        // D1): the stream is every played body's own, so `BroadcastMixin`
+        // affords it; `requiresStreamer` still gates who may run it.
         // Wizard conferral — `wizard grant/revoke <player>`. Afforded on
         // the operator command surface like the rest of this suite, but
         // *authorized* on the orthogonal archwizard axis: `wizard.yaml`

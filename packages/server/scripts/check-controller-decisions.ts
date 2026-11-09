@@ -40,7 +40,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const CONTROLLER_DECISIONS_CEILING = 1176; // W5: the kernel acts moved onto their objects
+export const CONTROLLER_DECISIONS_CEILING = 1161; // broadcast-ready W0: the stream verb's duration grammar moved off the controller onto StreamApi
 export const DURATION_DECLS_CEILING = 100; // W5: harvest, plant, the bath, the pour
 
 export type DecisionKind = "math" | "arithmetic" | "threshold" | "constant" | "act-literal";

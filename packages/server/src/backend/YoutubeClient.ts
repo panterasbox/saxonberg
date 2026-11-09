@@ -133,6 +133,8 @@ export class YoutubeClient {
   private readonly refreshToken: string;
 
   private token: { value: string; expiresAt: number } | null = null;
+  /** Streamers' own access tokens, keyed by their refresh token (D12). */
+  private readonly userTokens = new Map<string, { value: string; expiresAt: number }>();
   /** handle → channelId (stable; memoized so repeat resolves cost nothing). */
   private readonly handleCache = new Map<string, string>();
   private readonly streams = new Map<string, LiveChatStreamHandle>();
@@ -246,6 +248,105 @@ export class YoutubeClient {
       if (!videoId) return 'not-live';
     }
     return this.liveChatIdOfVideo(videoId, token);
+  }
+
+  /**
+   * ⭐ An access token for a STREAMER'S own YouTube authorization — the
+   * `youtube.readonly` step-up on their Google link (broadcast-ready
+   * D12). Refreshed against the Google login app's client (the one that
+   * issued it), cached per refresh token until near expiry.
+   */
+  public async userToken(refreshToken: string): Promise<string | null> {
+    const cached = this.userTokens.get(refreshToken);
+    if (cached && cached.expiresAt > Date.now() + 60_000) return cached.value;
+    const clientId = process.env.GOOGLE_CLIENT_ID ?? '';
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET ?? '';
+    if (!clientId || !clientSecret || !refreshToken) return null;
+    const res = await this.transport.fetch(GOOGLE_TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: clientId,
+        client_secret: clientSecret,
+      }),
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { access_token?: string; expires_in?: number };
+    if (!json.access_token) return null;
+    this.userTokens.set(refreshToken, {
+      value: json.access_token,
+      expiresAt: Date.now() + (json.expires_in ?? 0) * 1000,
+    });
+    return json.access_token;
+  }
+
+  /** The authorized user's own channel id (`channels.list?mine=true`, 1 unit). */
+  public async myChannelId(accessToken: string): Promise<string | null> {
+    const url = new URL(`${YOUTUBE_API_BASE}/channels`);
+    url.searchParams.set('part', 'id');
+    url.searchParams.set('mine', 'true');
+    const res = await this.transport.fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { items?: Array<{ id?: string }> };
+    return json.items?.[0]?.id ?? null;
+  }
+
+  /**
+   * ⭐ The authorized user's OWN active broadcast
+   * (`liveBroadcasts.list?broadcastStatus=active`, 1 unit) — its video id
+   * and live chat id, or null when nothing is live. This is what replaces
+   * the ~100-unit `search.list` for a linked streamer (D12).
+   */
+  public async liveBroadcastOfUser(
+    accessToken: string,
+  ): Promise<{ videoId: string; liveChatId: string } | null> {
+    const url = new URL(`${YOUTUBE_API_BASE}/liveBroadcasts`);
+    url.searchParams.set('part', 'snippet');
+    url.searchParams.set('broadcastStatus', 'active');
+    url.searchParams.set('broadcastType', 'all');
+    const res = await this.transport.fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as {
+      items?: Array<{ id?: string; snippet?: { liveChatId?: string } }>;
+    };
+    const item = json.items?.[0];
+    if (!item?.id || !item.snippet?.liveChatId) return null;
+    return { videoId: item.id, liveChatId: item.snippet.liveChatId };
+  }
+
+  /**
+   * A live video's concurrent viewers and actual start
+   * (`videos.list?part=liveStreamingDetails`, 1 unit), or null.
+   */
+  public async liveNumbersOf(
+    videoId: string,
+    accessToken: string,
+  ): Promise<{ viewers: number; startedAt: number } | null> {
+    const url = new URL(`${YOUTUBE_API_BASE}/videos`);
+    url.searchParams.set('part', 'liveStreamingDetails');
+    url.searchParams.set('id', videoId);
+    const res = await this.transport.fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as {
+      items?: Array<{
+        liveStreamingDetails?: { concurrentViewers?: string; actualStartTime?: string };
+      }>;
+    };
+    const d = json.items?.[0]?.liveStreamingDetails;
+    if (!d) return null;
+    const startedAt = d.actualStartTime ? Date.parse(d.actualStartTime) : NaN;
+    return {
+      viewers: Number(d.concurrentViewers ?? 0) || 0,
+      startedAt: Number.isNaN(startedAt) ? Date.now() : startedAt,
+    };
   }
 
   /** Open a per-liveChatId read; delivered lines + end ride the transport. */

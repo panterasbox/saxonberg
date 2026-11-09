@@ -220,6 +220,8 @@ export interface SessionOptions {
   committees?: string[];
   offices?: string[];
   parcels?: string[];
+  /** Join the `streamers` group (broadcast-ready) — the `stream` verb's axis. */
+  streamer?: boolean;
 }
 
 async function login(
@@ -247,6 +249,7 @@ async function login(
       ...(opts.parcels?.length ? { parcels: opts.parcels } : {}),
       ...(opts.committees?.length ? { committees: opts.committees } : {}),
       ...(opts.offices?.length ? { offices: opts.offices } : {}),
+      ...(opts.streamer ? { streamer: true } : {}),
     }),
   });
   let res: Response | null = null;
@@ -430,13 +433,17 @@ export class Session {
    */
   static async embody(
     handle: string,
-    picks: { species?: string; name?: string; pronouns?: string; aspiration?: string } = {}
+    picks: { species?: string; name?: string; pronouns?: string; aspiration?: string } = {},
+    door: { from?: 'stream' } = {}
   ): Promise<Session> {
     await assertPacksPresent();
     const cookie = await login(handle, { withCharacter: false });
     const s = new Session();
     s.handle = handle;
-    s.ws = new WebSocket(WS_URL(), { headers: { cookie } });
+    // `from` is the door the client came in by — the show's tagged link
+    // (broadcast-ready D7) — carried on the socket URL as the client does.
+    const url = door.from ? `${WS_URL()}/?from=${door.from}` : WS_URL();
+    s.ws = new WebSocket(url, { headers: { cookie } });
     await new Promise<void>((resolve, reject) => {
       const timer = setTimeout(
         () => reject(new Error(`wire: socket never opened at ${WS_URL()}`)),
@@ -1064,6 +1071,15 @@ export class Session {
     const heard = plain(this.proseFrames.join('\n'));
     this.proseFrames.length = 0;
     return heard;
+  }
+
+  /**
+   * Write a client-state key the way the client does (`client-state-write`)
+   * — e.g. `stream.foreground` on a focus change (broadcast-ready D6). No
+   * reply: the server validates, stores and moves whatever reads the key.
+   */
+  writeClientState(key: string, value: unknown): void {
+    this.ws.send(JSON.stringify({ type: 'client-state-write', payload: { key, value } }));
   }
 
   /** Still connected — `close()` has not been called and the socket is open. */

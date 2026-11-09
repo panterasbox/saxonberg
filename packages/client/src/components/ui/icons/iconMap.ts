@@ -22,6 +22,7 @@ import {
   MapPin,
   Maximize2,
   Minimize2,
+  PictureInPicture2,
   Pin,
   Square,
   User,
@@ -35,6 +36,8 @@ export const ICONS = {
   "card.smaller": Minimize2,
   "card.pin": Pin,
   "card.close": X,
+  /** Pop a card out into its own window (broadcast-ready D13). */
+  "card.popout": PictureInPicture2,
   /** A card in the tray with no kind of its own. */
   "card.tray": Square,
   // ── the four branches (placeholders until the marks are drawn) ─

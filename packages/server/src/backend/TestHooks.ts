@@ -123,7 +123,8 @@ export class TestHooks {
     wizard = false,
     parcels: readonly string[] = [],
     committees: readonly string[] = [],
-    offices: readonly string[] = []
+    offices: readonly string[] = [],
+    streamer = false
   ): Promise<void> {
     if (process.env.AUTH_MODE !== 'test') {
       done(new Error('TestHooks: test authentication is disabled'));
@@ -148,7 +149,8 @@ export class TestHooks {
               wizard,
               parcels,
               committees,
-              offices
+              offices,
+              streamer
             );
           }
           return id;
@@ -193,7 +195,8 @@ export class TestHooks {
     wizard = false,
     parcels: readonly string[] = [],
     committees: readonly string[] = [],
-    offices: readonly string[] = []
+    offices: readonly string[] = [],
+    streamer = false
   ): Promise<void> {
     TestHooks.#assertTestMode('provisionCharacter');
     const user = await User.findById(userId);
@@ -215,6 +218,7 @@ export class TestHooks {
     const playerId = user.playerIds[0];
     if (playerId === undefined) return;
     if (wizard) await TestHooks.#joinGroup(playerId, 'wizards', 'member');
+    if (streamer) await TestHooks.#joinGroup(playerId, 'streamers', 'member');
     if (committees.length > 0) await TestHooks.#seatOnCommittees(playerId, committees);
     for (const office of offices) {
       const r = await CompactApi.assignOfficeForTest(playerId, office);

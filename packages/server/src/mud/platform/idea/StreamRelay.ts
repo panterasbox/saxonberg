@@ -76,13 +76,25 @@ const StreamRelayBase = Idea;
 
 export default class StreamRelay extends StreamRelayBase {
   /**
-   * The overlay-owner sentinel "player" — `addTuned`ed to the `OVERLAY_*`
-   * channels so the reader opens (reusing the presence edge) without any
-   * real player tuned. Guarded out of `whoTuned` / `tunedChannelsFor` (it
-   * isn't an Avatar); it still counts toward the presence edge + keeps the
-   * channel entry alive so `deliver` fans + emits.
+   * The overlay sentinel "players" — one per streamer whose overlay is
+   * open, `overlay:<playerId>` (broadcast-ready D5), `addTuned`ed to that
+   * streamer's own channels so the reader opens (reusing the presence
+   * edge) without any real player tuned. Guarded out of `whoTuned` /
+   * `tunedChannelsFor` (none is an Avatar); each still counts toward the
+   * presence edge and keeps the channel entry alive so `deliver` fans +
+   * emits.
    */
-  static readonly OVERLAY_SENTINEL = 'overlay:broadcast';
+  static readonly OVERLAY_SENTINEL_PREFIX = 'overlay:';
+
+  /** The sentinel that holds `playerId`'s overlay channels open. */
+  public overlaySentinelFor(playerId: string): string {
+    return `${StreamRelay.OVERLAY_SENTINEL_PREFIX}${playerId}`;
+  }
+
+  /** Is this tuned id an overlay sentinel rather than a player? */
+  public isOverlaySentinel(id: string): boolean {
+    return id.startsWith(StreamRelay.OVERLAY_SENTINEL_PREFIX);
+  }
 
   /** composite `channelKey(service,key)` -> ChannelEntry. Memory-only. */
   private channels = new Map<string, ChannelEntry>();
@@ -194,7 +206,7 @@ export default class StreamRelay extends StreamRelayBase {
 
   /** The channels a player is tuned in to (overlay sentinel excluded). */
   public tunedChannelsFor(playerId: string): RelayChannelRef[] {
-    if (playerId === StreamRelay.OVERLAY_SENTINEL) return [];
+    if (this.isOverlaySentinel(playerId)) return [];
     const out: RelayChannelRef[] = [];
     for (const entry of this.channels.values()) {
       if (entry.tuned.has(playerId)) {
@@ -212,7 +224,7 @@ export default class StreamRelay extends StreamRelayBase {
   public whoTuned(service: Service, key: string): string[] {
     const entry = this.channels.get(StreamRelay.channelKey(service, key));
     if (!entry) return [];
-    return [...entry.tuned].filter((p) => p !== StreamRelay.OVERLAY_SENTINEL);
+    return [...entry.tuned].filter((p) => !this.isOverlaySentinel(p));
   }
 
   /**
@@ -225,7 +237,7 @@ export default class StreamRelay extends StreamRelayBase {
     const entry = this.channels.get(composite);
     if (!entry) return [];
     const players = [...entry.tuned].filter(
-      (p) => p !== StreamRelay.OVERLAY_SENTINEL,
+      (p) => !this.isOverlaySentinel(p),
     );
     this.channels.delete(composite);
     this.handleToKey.delete(this.handleKey(service, entry.handle));

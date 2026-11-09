@@ -11,6 +11,7 @@ import { Document } from '../persistence/Document';
 import type { GoogleProfile as IGoogleProfile } from '@saxonberg/types';
 import type { FieldMeta } from '../mixin';
 import { Collections } from '../persistence/Collections';
+import { EncryptedStringMarshaller } from '../../platform/idea/persistence/EncryptedStringMarshaller';
 
 /**
  * Google OAuth profile data (persistent). A Document — plain persisted
@@ -33,6 +34,8 @@ export class GoogleProfile extends Document implements IGoogleProfile {
     familyName: { persistent: true },
     photoUrl: { persistent: true },
     rawProfile: { persistent: true },
+    youtubeRefreshToken: { persistent: true, marshaller: EncryptedStringMarshaller.templatePath },
+    youtubeChannelId: { persistent: true },
   };
 
   /**
@@ -69,6 +72,23 @@ export class GoogleProfile extends Document implements IGoogleProfile {
    * Raw profile data from Google (for future use).
    */
   rawProfile: Record<string, unknown> = {};
+
+  /**
+   * ⭐ The `youtube.readonly` step-up (broadcast-ready D12): a refresh
+   * token for this Google identity's own YouTube, granted at
+   * `/auth/google/youtube`. Encrypted at rest (the `TwitchProfile` token
+   * precedent). Empty when never stepped up. It is what finds a streamer's
+   * own live broadcast for one quota unit instead of a hundred.
+   */
+  youtubeRefreshToken: string = '';
+
+  /** The stepped-up identity's own channel id (`channels.list?mine=true`). */
+  youtubeChannelId: string = '';
+
+  /** Has this identity granted its YouTube to the overlay? */
+  public hasYoutube(): boolean {
+    return this.youtubeRefreshToken !== '';
+  }
 
   /**
    * Find profile by Google ID.

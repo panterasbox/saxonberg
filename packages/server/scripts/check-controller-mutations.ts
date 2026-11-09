@@ -35,7 +35,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const CONTROLLER_MUTATIONS_CEILING = 318; // W5: the kernel acts moved onto their objects
+export const CONTROLLER_MUTATIONS_CEILING = 317; // broadcast-ready W0: the stream verb calls BroadcastMixin transitions, not setters
 
 /** Mutator-shaped method names: one of these prefixes, then an uppercase letter. */
 const MUTATOR =

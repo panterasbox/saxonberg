@@ -25,6 +25,7 @@ import { useStore } from '../store';
 import type { Frame } from '../store/index';
 import { parseMml } from '../lib/mml/parseMml';
 import { pickTemplate } from '../lib/templates/TemplateRegistry';
+import { isPrivateFrame, useOnAir } from '../lib/stream/onAir';
 import { useStylesheet } from '../lib/style/useStylesheet';
 import { tokens } from './ui';
 import { EmoteSheet } from './social/EmoteSheet';
@@ -291,6 +292,7 @@ function TranscriptRow({
   onLongPress,
   onLineMenu,
 }: TranscriptRowProps) {
+  const onAir = useOnAir();
   const reactable = useStore((s) => s.reactableTopics);
   const mine = useStore((s) =>
     frame.commandId ? (s.reactions[frame.commandId]?.mine ?? []) : [],
@@ -306,6 +308,10 @@ function TranscriptRow({
     () => (onLineMenu ? onLineMenu(frame) : onLongPress({ frameId: frame.frameId!, mine })),
     onLineMenu ? true : canReact,
   );
+
+  // On air the overlay's sidebar shows the stream chat, so the client's
+  // own copy hides (broadcast-ready § The client on air).
+  if (onAir && frame.topic.startsWith('speech.relay')) return null;
 
   return (
     <FrameRow {...press}>
@@ -345,6 +351,13 @@ function FrameBody({
   stylesheet,
 }: FrameBodyProps) {
   const tree = useMemo(() => parseMml(frame.body), [frame.body]);
+  const onAir = useOnAir();
+  // ⭐ On air, a private frame reads as a placeholder — the server's stamp
+  // decides, never the topic (broadcast-ready D8). A backfilled line
+  // keeps its tags, so it redacts too.
+  if (onAir && isPrivateFrame(frame.tags)) {
+    return <span data-testid="redacted-frame">[private message]</span>;
+  }
   const template = pickTemplate(frame.topic);
   return template({
     frame,

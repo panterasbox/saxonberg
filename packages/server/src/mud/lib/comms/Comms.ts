@@ -179,6 +179,8 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         .topic("speech.comms")
         .modality("verbal-esp")
         .meta(channelMeta)
+        // ⭐ Private by the server's word (broadcast-ready D8).
+        .tags([MessageApi.Tags.Privacy.Private])
         .toSelf(selfBody)
         .payload(
           isMulti
@@ -216,6 +218,7 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           .topic("speech.comms")
           .modality("verbal-esp")
           .meta(channelMeta)
+          .tags([MessageApi.Tags.Privacy.Private])
           .toTarget(t, targetBody)
           .payload(
             isMulti

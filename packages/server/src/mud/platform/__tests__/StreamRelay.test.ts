@@ -106,11 +106,11 @@ describe('StreamRelay (pure-mutator, in-memory)', () => {
   it('the overlay sentinel counts for the edge but hides from queries', () => {
     // Sentinel opens the channel (0->1 edge) with no real player.
     expect(
-      relay.addTuned(StreamRelay.OVERLAY_SENTINEL, 'twitch', 'b9', 'owner'),
+      relay.addTuned(relay.overlaySentinelFor('p-owner'), 'twitch', 'b9', 'owner'),
     ).toBe(true);
     // ...but is invisible to who / list.
     expect(relay.whoTuned('twitch', 'b9')).toEqual([]);
-    expect(relay.tunedChannelsFor(StreamRelay.OVERLAY_SENTINEL)).toEqual([]);
+    expect(relay.tunedChannelsFor(relay.overlaySentinelFor('p-owner'))).toEqual([]);
     // A real player joining does NOT re-fire the edge (already open).
     expect(relay.addTuned('p1', 'twitch', 'b9', 'owner')).toBe(false);
     expect(relay.whoTuned('twitch', 'b9')).toEqual(['p1']);

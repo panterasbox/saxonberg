@@ -1,0 +1,8 @@
+# ⭐ A privacy reason shows NO countdown: a timer tells the audience how
+# long the private thing takes and pushes the streamer back before they are
+# ready (broadcast-ready § Reasons). The Away scene holds no desktop, camera
+# or microphone — the cover is the absence of a source.
+label: Privacy
+copy: Taking a moment. Back shortly.
+defaultDurationMs: null
+privacy: true

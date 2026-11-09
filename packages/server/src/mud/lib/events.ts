@@ -18,7 +18,7 @@
 
 import type {
   RelaySpeaker,
-  StreamStateSnapshot,
+  StreamShowCore,
   DiagnosticEvent,
 } from '@saxonberg/types';
 
@@ -50,7 +50,9 @@ export const Events = {
   ModuleRolledBack: 'module.rolledBack',
   ModuleUnloaded: 'module.unloaded',
   ModuleReloadFailed: 'module.reloadFailed',
-  StreamStateChanged: 'stream.stateChanged',
+  StreamShowChanged: 'stream.showChanged',
+  /** A player's body arrived in the world for the first time (broadcast-ready D7). */
+  PlayerFirstArrival: 'player.firstArrival',
   RelayMessage: 'stream.relayMessage',
   Diagnostic: 'diagnostic.recorded',
 } as const;
@@ -114,13 +116,19 @@ export interface EventPayloads {
   [Events.ModuleUnloaded]: ReloadEvent;
   [Events.ModuleReloadFailed]: ReloadEvent;
   /**
-   * Full overlay-state snapshot, fired whenever `StreamState` mutates
-   * (the `stream` verb is the v1 emitter). The `BroadcastFeed`
-   * projection listens and re-pushes to broadcast connections. Carries
-   * the whole snapshot so the listener never has to re-read the
-   * singleton.
+   * One streamer's show moved (broadcast-ready D5) — fired by every
+   * `BroadcastMixin` transition and by a show-relevant client fact. The
+   * `BroadcastFeed` routes it to the sockets opened with THIS player's
+   * token only. Carries the allowlisted projection, never a frame.
    */
-  [Events.StreamStateChanged]: StreamStateSnapshot;
+  [Events.StreamShowChanged]: { playerId: string; show: StreamShowCore };
+  /**
+   * A player's body arrived for the first time — character creation's
+   * commit (`Avatar.enter` with `firstArrival`). `arrivedFrom` is the
+   * connection's door (`'stream'` when it came by the show's tagged link).
+   * The feed puts *"Welcome, <name>!"* on every streamer's ticker.
+   */
+  [Events.PlayerFirstArrival]: { playerId: string; name: string; arrivedFrom: string | null };
   /**
    * One relay-chat line delivered by `StreamRelay.deliver` (inbound read or
    * outbound mirror), emitted per delivered line so the backend

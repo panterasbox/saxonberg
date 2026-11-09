@@ -192,6 +192,30 @@ export class PassportConfig {
       )
     );
 
+    // ⭐ The YouTube step-up (broadcast-ready D12) — NOT a fourth
+    // provider: a `youtube.readonly` scope on the CURRENT user's Google
+    // identity, so a streamer's own live broadcast is found for one quota
+    // unit instead of a `search.list`'s hundred. The verify callback hands
+    // back the identity and the offline refresh token; the route binds it.
+    const youtubeCallbackURL = callbackURL.replace(
+      '/auth/google/callback',
+      '/auth/google/youtube/callback'
+    );
+    passport.use(
+      'google-youtube',
+      new GoogleStrategy(
+        { clientID, clientSecret, callbackURL: youtubeCallbackURL, state: true },
+        async (
+          _accessToken: string,
+          refreshToken: string,
+          profile: PassportGoogleProfile,
+          done: (error: unknown, grant?: { googleId: string; refreshToken: string }) => void
+        ) => {
+          done(null, { googleId: profile.id, refreshToken: refreshToken ?? '' });
+        }
+      )
+    );
+
     console.info('PassportConfig: Configured Google OAuth2 strategies');
   }
 

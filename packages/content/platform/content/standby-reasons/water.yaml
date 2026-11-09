@@ -1,0 +1,5 @@
+# A glass of water — three minutes.
+label: Water
+copy: Refilling. Back in a moment.
+defaultDurationMs: 180000
+privacy: false

@@ -1,0 +1,4 @@
+# One true thing a player can do here, steered by the last verb.
+weight: 2
+seconds: 18
+when: always

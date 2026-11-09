@@ -7,7 +7,7 @@
  * **no Interactive** — without the registry knowing anything about
  * broadcast sockets. `BroadcastFeed` lazily installs a listener and
  * forwards scope-filtered deltas, exactly as it taps
- * `Events.StreamStateChanged`.
+ * `Events.StreamShowChanged`.
  *
  * The carried act-states are the **server-numbers** projection: buckets
  * + total + aggregated, with an empty per-recipient `sample` (the

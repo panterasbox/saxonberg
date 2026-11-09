@@ -69,7 +69,6 @@ boot:
   - { template: /platform/idea/CentralBank, role: sync-read, reason: "the monetary mint/sink anchor BankingApi resolves; postRegister warms the balance + supply caches and runs the custodian restamp (self-warming — no Api.boot)" }
   - { template: /platform/idea/SubjectCatalogue, role: sync-read, reason: the Subject-layer runtime view ChannelCatalogue resolves synchronously }
   - { template: /platform/idea/ChannelCatalogue, role: sync-read, reason: the chat substrate's byName/byHandle maps, dependsOn: [/platform/idea/SubjectCatalogue] }
-  - { template: /platform/idea/StreamState, role: sync-read, reason: the livestream overlay state the stream verb mutates }
   - { template: /platform/idea/AccessRegistry, role: sync-read, reason: every access predicate resolves it; seeds the axis groups at postRegister, dependsOn: [/platform/idea/GroupRegistry] }
   - { template: /platform/idea/ParcelRegistry, role: sync-read, reason: the title coverage trie every ownerOf read walks, dependsOn: [/platform/idea/GroupRegistry] }
   - { template: /platform/idea/ChattelRegistry, role: sync-read, reason: the chattelId→owner index ChattelApi reads }

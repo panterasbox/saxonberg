@@ -29,8 +29,35 @@ function resolveWsUrl(): string {
 /** HTTP origin for auth links and REST calls (no trailing slash). */
 export const SERVER_URL = resolveServerUrl();
 
-/** WebSocket origin for the game connection. */
-export const WS_URL = resolveWsUrl();
+/**
+ * ⭐ The door the player came in by (broadcast-ready D7): `?from=stream`
+ * on the landing URL — the show's tagged link — is remembered for the
+ * tab (it must survive the OAuth round trip, which drops the query) and
+ * carried onto the game socket, where the server stamps it on the
+ * connection. A first arrival through it reads *"straight from the
+ * stream"* on every streamer's ticker. Closed vocabulary: `stream`.
+ */
+function arrivalDoor(): string | null {
+  const KEY = 'saxonberg.arrivedFrom';
+  try {
+    if (new URLSearchParams(window.location.search).get('from') === 'stream') {
+      window.sessionStorage.setItem(KEY, 'stream');
+    }
+    return window.sessionStorage.getItem(KEY) === 'stream' ? 'stream' : null;
+  } catch {
+    // Storage blocked (a private window): the door is unknown, not wrong.
+    return null;
+  }
+}
+
+function withArrivalDoor(url: string): string {
+  const door = arrivalDoor();
+  if (!door) return url;
+  return `${url}${url.includes('?') ? '&' : '?'}from=${door}`;
+}
+
+/** WebSocket origin for the game connection (with the arrival door). */
+export const WS_URL = withArrivalDoor(resolveWsUrl());
 
 /**
  * Base URL for content media (illustrations). Content carries only a

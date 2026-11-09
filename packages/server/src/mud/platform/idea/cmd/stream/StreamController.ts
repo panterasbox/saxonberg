@@ -1,145 +1,244 @@
 /**
- * StreamController — single dispatch-on-subcommand controller for the
- * `stream` verb, the v1 sliver of the livestream control plane (PLAN
- * §3 / Phase 3). Mutates the `/platform/idea/StreamState` singleton; the mutation
- * fires `Events.StreamStateChanged`, which the backend-layer
- * `BroadcastFeed` re-pushes to broadcast (overlay) connections.
+ * StreamController — the `stream` verb (broadcast-ready D10).
  *
- * Gated to the streamer axis declaratively — see stream.yaml's
- * `validators: requiresStreamer`. The dispatcher rejects the command
- * before this controller runs when the giver isn't a streamer.
+ * ⭐ Controllers are IO: this parses the line, resolves the reason row,
+ * calls ONE method on the caller's own `BroadcastMixin`, and renders the
+ * answer — including a refusal BY NAME when the mixin says the move is
+ * illegal. It decides nothing about a stream; the mixin does (P5).
  *
- * Subcommands:
- *   - `away <duration>` — enter standby; the standby overlay counts down
- *     to `now + duration`. Duration is shell-style (`15m`, `1h`,
- *     `1h30m`, `90s`); a bare number is minutes.
- *   - `back` — clear standby, go live.
+ * Gated to the streamer axis declaratively — `stream.yaml` carries
+ * `requiresStreamer`, so the dispatcher refuses before this runs.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import { StuffApi } from '../../../../api/stuff';
-import StreamState from '../../StreamState';
+import { MixinApi } from '../../../../api/mixin';
+import { CardApi } from '../../../../api/card';
+import { StreamApi } from '../../../../api/stream';
+import {
+  BROADCAST_SERVICES,
+  type BroadcastHost,
+  type BroadcastResult,
+  type BroadcastService,
+} from '../../../../lib/livestream/Broadcast';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
 
 interface StreamModel extends CommandModel {
+  rest?: string;
+  first?: string;
+  second?: string;
+  reason?: string;
   duration?: string;
+  title?: string;
+  items?: string;
+  action?: string;
+  panel?: string;
+  service?: string;
+  handle?: string;
+  control?: boolean;
 }
+
+/** What each refusal word says to the streamer. */
+const REFUSALS: Readonly<Record<string, string>> = {
+  'not-streaming': "you aren't streaming — `stream start` first",
+  ending: 'the stream is ending — `stream off` to end it now',
+  'already-on-air': 'the stream is already on air',
+  'no-agenda': 'there is no agenda — `stream agenda <item; item; …>`',
+  'agenda-done': 'the agenda is finished',
+  'unknown-panel': 'name a panel: `stream rotation pin <panel>`',
+};
 
 export default class StreamController extends CommandController<StreamModel> {
   async execute(model: StreamModel, context: CommandContext): Promise<void> {
+    const giver = context.commandGiver as Stuff;
+    if (!MixinApi.isBroadcastHost(giver)) {
+      return this.fail(context, 'you have no stream to run', 'no-broadcast-host');
+    }
     switch (model.subcommand) {
-      case 'away':
-        return this.executeAway(model, context);
+      case undefined:
+      case null:
+      case '':
+        return this.executeStatus(giver, context);
+      case 'start':
+        return this.executeStart(giver, model, context);
+      case 'live':
       case 'back':
-        return this.executeBack(context);
+        return this.answer(context, giver.goLive(), 'live — the desktop is on air');
+      case 'away':
+        return this.executeAway(giver, model, context);
+      case 'end':
+        return this.answer(context, giver.endStream(), 'ending — the outro is on; offline when it finishes');
+      case 'off':
+        return this.answer(context, giver.goOffline(), 'offline');
+      case 'segment':
+        giver.nameTopic(model.title ?? null);
+        return this.tell(context, `topic: ${model.title ?? '(none)'}`);
+      case 'agenda':
+        return this.executeAgenda(giver, model, context);
+      case 'next':
+        return this.answer(context, giver.advanceStreamAgenda(), 'agenda: next');
+      case 'rotation':
+        return this.executeRotation(giver, model, context);
+      case 'channel':
+        return this.executeChannel(giver, model, context);
+      case 'token':
+        return this.executeToken(giver, model, context);
       default:
         return this.fail(
           context,
-          `Unknown stream subcommand: ${model.subcommand ?? '(none)'}`,
+          `Unknown stream subcommand: ${model.subcommand}`,
           'unknown-subcommand',
         );
     }
   }
 
-  private executeAway(model: StreamModel, context: CommandContext): void {
-    const raw = (model.duration ?? '').trim();
-    const ms = StreamController.parseDurationMs(raw);
-    if (ms === null || ms <= 0) {
+  /** Bare `stream`: where the stream is, and the controls card. */
+  private async executeStatus(
+    giver: Stuff & BroadcastHost,
+    context: CommandContext,
+  ): Promise<void> {
+    const show = giver.show();
+    const reason = show.reason ? ` (${show.reason.label})` : '';
+    this.tell(context, `stream: ${show.phase}${reason}`);
+    // The picker's rows ride the card's state (the streamer's own).
+    giver.loadControls({
+      reasons: (await StreamApi.standbyReasons()).map((r) => ({
+        ...r.toView(),
+        defaultDurationMs: r.defaultDurationMs,
+      })),
+    });
+    CardApi.open(context, 'stream');
+  }
+
+  private executeStart(
+    giver: Stuff & BroadcastHost,
+    model: StreamModel,
+    context: CommandContext,
+  ): void {
+    // `stream start in 10m` and `stream start 10m` read alike.
+    const word = model.first === 'in' ? model.second : model.first;
+    let atMs: number | null = null;
+    if (word !== undefined && word !== '') {
+      const ms = StreamApi.parseDuration(word);
+      if (ms === null) {
+        return this.fail(context, `can't parse duration '${word}' (try 10m, 1h, 90s)`, 'bad-duration');
+      }
+      atMs = Date.now() + ms;
+    }
+    const label = word ? `starting — in ${word}` : 'starting';
+    return this.answer(context, giver.startStream(atMs), label);
+  }
+
+  private async executeAway(
+    giver: Stuff & BroadcastHost,
+    model: StreamModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const reading = await StreamApi.interpretAway(model.reason ?? '', model.duration);
+    if (!reading.ok) return this.fail(context, reading.detail, reading.refusal);
+    const { reason, durationMs } = reading;
+    const when =
+      durationMs === null ? 'back shortly' : `back in ${StreamApi.formatDuration(durationMs)}`;
+    return this.answer(
+      context,
+      giver.goStandby(reason, durationMs),
+      `standby — ${reason.label}, ${when}`,
+    );
+  }
+
+  private executeAgenda(
+    giver: Stuff & BroadcastHost,
+    model: StreamModel,
+    context: CommandContext,
+  ): void {
+    const text = (model.items ?? '').trim();
+    // `;` is the shell's command separator, so the list splits on commas.
+    const items = text === 'clear' ? [] : text.split(',');
+    giver.planAgenda(items);
+    const count = giver.show().agenda.length;
+    return this.tell(context, count === 0 ? 'agenda cleared' : `agenda: ${count} items`);
+  }
+
+  private executeRotation(
+    giver: Stuff & BroadcastHost,
+    model: StreamModel,
+    context: CommandContext,
+  ): void {
+    const action = model.action;
+    if (action !== 'pin' && action !== 'skip' && action !== 'clear') {
+      return this.fail(context, 'rotation: pin <panel>, skip <panel> or clear', 'bad-rotation');
+    }
+    return this.answer(
+      context,
+      giver.steerRotation(action, model.panel ?? null),
+      `rotation: ${action}${model.panel ? ` ${model.panel}` : ''}`,
+    );
+  }
+
+  private async executeChannel(
+    giver: Stuff & BroadcastHost,
+    model: StreamModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const service = (model.service ?? '').toLowerCase();
+    if (!(BROADCAST_SERVICES as readonly string[]).includes(service)) {
       return this.fail(
         context,
-        `can't parse duration '${raw}' (try 15m, 1h, 1h30m, 90s)`,
-        'bad-duration',
+        `service must be one of ${BROADCAST_SERVICES.join(', ')}`,
+        'unknown-service',
       );
     }
-    const state = this.resolveState();
-    if (!state) {
-      return this.fail(context, 'stream state unavailable', 'no-stream-state');
-    }
-    const awayUntil = Date.now() + ms;
-    state.setAway(awayUntil);
-    this.tell(
+    giver.nameChannel(service as BroadcastService, model.handle ?? null);
+    const playerId = giver.getPlayerId();
+    if (playerId) await StreamApi.refreshOverlayReading(playerId);
+    return this.tell(
       context,
-      `\nstandby — back in ${StreamController.formatMs(ms)}.\n`,
+      model.handle ? `${service}: ${model.handle}` : `${service}: cleared`,
     );
   }
 
-  private executeBack(context: CommandContext): void {
-    const state = this.resolveState();
-    if (!state) {
-      return this.fail(context, 'stream state unavailable', 'no-stream-state');
-    }
-    state.goLive();
-    this.tell(context, `\nlive — standby cleared.\n`);
-  }
-
-  private resolveState(): StreamState | null {
-    return (
-      StuffApi.findByTemplatePath<StreamState>(StreamState.TEMPLATE_PATH) ??
-      null
+  private async executeToken(
+    giver: Stuff & BroadcastHost,
+    model: StreamModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const scope = model.control === true ? 'control' : 'overlay';
+    const token = await StreamApi.issueToken(giver, scope);
+    const use =
+      scope === 'control'
+        ? "pblive's SAXONBERG_CONTROL_TOKEN"
+        : 'your overlay URL: ?broadcast=<token>';
+    // Shown once; never stored in clear and never put on a frame's tags.
+    return this.tell(
+      context,
+      `${scope} token (shown once — any earlier one no longer works):\n${token}\nUse it as ${use}`,
     );
   }
 
-  /**
-   * Parse a shell-style duration into milliseconds. Accepts a chain of
-   * `<number><unit>` segments (`1h30m`, `90s`, `2h`), a single unit, or
-   * a bare number interpreted as minutes. Units: `s`/`m`/`h`/`d`.
-   * Returns `null` on anything it can't read.
-   */
-  private static parseDurationMs(input: string): number | null {
-    const text = input.trim().toLowerCase();
-    if (text.length === 0) return null;
-    if (/^\d+$/.test(text)) return Number(text) * 60_000; // bare → minutes
-    const unitMs: Record<string, number> = {
-      s: 1_000,
-      m: 60_000,
-      h: 3_600_000,
-      d: 86_400_000,
-    };
-    const re = /(\d+)\s*([smhd])/g;
-    let total = 0;
-    let matched = false;
-    let consumed = 0;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(text)) !== null) {
-      matched = true;
-      consumed += m[0].length;
-      total += Number(m[1]) * unitMs[m[2] as string]!;
+  /** Render a transition: the success line, or the refusal by name. */
+  private answer(context: CommandContext, result: BroadcastResult, success: string): void {
+    if (result.ok) {
+      // On air, the streamer's own numbers start coming to their card (D16).
+      const playerId = (context.commandGiver as Stuff).getPlayerId();
+      if (playerId) StreamApi.watchNumbers(playerId);
+      return this.tell(context, success);
     }
-    // Reject trailing/embedded junk (e.g. "15x", "1h?"): every char must
-    // belong to a matched segment (whitespace aside).
-    if (!matched || consumed !== text.replace(/\s/g, '').length) return null;
-    return total;
-  }
-
-  /** Compact human label for a millisecond span (e.g. `1h 30m`). */
-  private static formatMs(ms: number): string {
-    const totalSec = Math.round(ms / 1000);
-    const h = Math.floor(totalSec / 3600);
-    const min = Math.floor((totalSec % 3600) / 60);
-    const s = totalSec % 60;
-    const parts: string[] = [];
-    if (h > 0) parts.push(`${h}h`);
-    if (min > 0) parts.push(`${min}m`);
-    if (s > 0 && h === 0) parts.push(`${s}s`);
-    return parts.length > 0 ? parts.join(' ') : '0s';
+    return this.fail(context, REFUSALS[result.refusal] ?? result.refusal, result.refusal);
   }
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
       .topic('shell.result')
-      .toSelf(Mml.fromMarkup(text))
+      // Every line here carries the streamer's own words (a topic, a
+      // handle, a token) — escaped whole, never read as markup.
+      .toSelf(Mml.fromMarkup(`\n${Mml.escape(text)}\n`))
       .send();
   }
 
-  private fail(
-    context: CommandContext,
-    detail: string,
-    reason: string = 'unspecified',
-  ): void {
-    this.tell(context, `\n${detail}\n`);
+  private fail(context: CommandContext, detail: string, reason: string): void {
+    this.tell(context, detail);
     context.note({ kind: 'controller-rejected', reason, detail });
-    return;
   }
 }
