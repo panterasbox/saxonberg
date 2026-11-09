@@ -134,7 +134,7 @@ async function finish(
       (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? giver;
     if (MixinApi.isCrafted(garment)) {
       garment.stamp({
-        maker: maker.getTemplatePath() ?? '',
+        maker: maker.getIdentityPath() ?? '',
         grade: Grade.of(
           MixinApi.isGraded(pieces) ? pieces.getGradeBand() : 'fair',
         ),

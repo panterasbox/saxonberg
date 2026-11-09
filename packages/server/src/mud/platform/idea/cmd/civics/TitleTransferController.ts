@@ -153,7 +153,11 @@ export default class TitleTransferController extends TitleControllerBase<Transfe
         "self-transfer",
       );
     }
-    const receiverPath = receiver.getTemplatePath();
+    // ⚠ The PERSON (`getIdentityPath()`): every player shares one lineage,
+    // so a title keyed on the template path was every player's
+    // (controller-liquidity D11; `AccessRegistry.subjectOwnsAsPlayer`
+    // compares against the identity).
+    const receiverPath = receiver.getIdentityPath();
     if (!receiverPath) {
       return this.fail(
         context,

@@ -21,6 +21,32 @@ import type { FieldMeta } from '../mixin';
 
 export type BoardOrganizer = 'open' | 'ordered';
 
+/**
+ * ⭐ Why a board refused a contribution (controller-liquidity D9): the
+ * gate is the forum logic's, asked of the actor, so a replaced
+ * controller cannot skip it.
+ *
+ *  - `no-subject` — the board's Subject does not resolve; fail closed.
+ *  - `not-member` — the actor is not in the board's audience.
+ *  - `not-author` — an edit by neither the entry's author nor the
+ *    board's owner.
+ */
+export type BoardRefusalReason = 'no-subject' | 'not-member' | 'not-author';
+
+/**
+ * A board's refusal, thrown by the forum logic (whose writes throw on a
+ * refusal) and carrying its machine reason so the controller words it.
+ */
+export class BoardRefusal extends Error {
+  constructor(
+    public readonly reason: BoardRefusalReason,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'BoardRefusal';
+  }
+}
+
 export default class Board extends Document {
   static collectionName = Collections.ForumBoards;
   static fieldMeta: FieldMeta = {

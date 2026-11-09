@@ -283,8 +283,10 @@ function sideOfImpl(combatant: Stuff): string {
   // Rung 2 — the owner's side (de facto: pet/companion). Seam only; pets
   // are unbuilt this cycle, so nothing hits this rung yet.
   // Rung 3 — a side of one, keyed by durable id (two distinct solos never
-  // ally; today's 1v1 is the degenerate case).
-  return `solo:${combatant.getTemplatePath() ?? memberIdOf(combatant)}`;
+  // ally; today's 1v1 is the degenerate case). ⚠ The PERSON, not the
+  // lineage — every player shares one template path, so keyed on it every
+  // unpartied player was one side (controller-liquidity D11).
+  return `solo:${combatant.getIdentityPath() ?? memberIdOf(combatant)}`;
 }
 
 function activePartyOfImpl(member: Stuff): Party | null {
@@ -502,17 +504,20 @@ async function disbandImpl(captain: Stuff): Promise<PartySimpleResult> {
     return { ok: false, reason: "not-the-captain" };
   }
   const path = party.getIdentityPath();
+  // The channel first, while the captain still holds the party's `owner`
+  // role — the catalogue asks it of the actor (controller-liquidity D9),
+  // and a captain who inherited the party is not the channel's founder.
+  if (party.getChannelRef()) {
+    try {
+      await ChatApi.disbandPlayerChannel(captain, party.getChannelRef());
+    } catch {
+      /* channel teardown best-effort */
+    }
+  }
   // Stand every online member down (their pointer, the party acting).
   for (const id of [...party.getMemberIds()]) {
     const m = resolveMember(id);
     if (m && MixinApi.isPartyMember(m)) party.dismiss(m);
-  }
-  if (party.getChannelRef()) {
-    try {
-      await ChatApi.disbandPlayerChannel(party.getChannelRef());
-    } catch {
-      /* channel teardown best-effort */
-    }
   }
   if (party.isDurable() && path) {
     const rec = (await PartyRecord.find<PartyRecord>({ path }))[0];

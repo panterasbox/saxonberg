@@ -32,12 +32,12 @@ export default class ChatOnController extends ChatControllerBase {
     if (!subject) {
       return this.fail(context, `No subject '${title}'.`, 'no-such-subject');
     }
-    if (subject.getOwner() !== actor.getPlayerId()) {
-      return this.fail(context, 'Only the subject owner may attach a surface.', 'not-owner');
-    }
     try {
-      const c = await ChatApi.attachChatToSubject(subject, 'open');
-      this.send(context, Mml.compose`\nAttached chat to '${c.name}'.\n`);
+      const res = await ChatApi.attachChatToSubject(actor, subject, 'open');
+      if (!res.ok) {
+        return this.fail(context, this.refusalLine(res.reason, title), res.reason);
+      }
+      this.send(context, Mml.compose`\nAttached chat to '${res.channel.name}'.\n`);
     } catch (err) {
       return this.fail(context, (err as Error).message, 'attach-failed');
     }

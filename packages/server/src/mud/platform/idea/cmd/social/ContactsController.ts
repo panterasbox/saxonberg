@@ -93,9 +93,12 @@ export default class ContactsController extends CommandController<ContactsModel>
     }
     const now = Date.now();
 
-    // NPC entries store the templatePath, since NPCs are runtime clones.
+    // NPC entries store the durable PERSON key — `getIdentityPath()`, a
+    // Cast member's minted identity (falling back to the row for an Extra);
+    // never the lineage, which every clone of the row shares
+    // (controller-liquidity D11).
     if (!PlayerApi.isAvatarStuff(target)) {
-      const tplPath = target.getTemplatePath();
+      const tplPath = target.getIdentityPath();
       if (!tplPath) {
         return this.fail(
           context,

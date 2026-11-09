@@ -565,7 +565,7 @@ async function saveImpl(
   // Persist (find-or-create). Owner = the acting author's durable path.
   const doc = existing ?? new StoredDocument();
   doc.path = path;
-  doc.owner = actor?.getTemplatePath() ?? "";
+  doc.owner = actor?.getIdentityPath() ?? "";
   doc.kind = kind;
   doc.data = data;
   await doc.save();

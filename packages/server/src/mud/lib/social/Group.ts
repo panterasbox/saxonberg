@@ -23,6 +23,7 @@
 import { Document } from '../persistence/Document';
 import type { FieldMeta } from '../mixin';
 import { Collections } from '../persistence/Collections';
+import { PlayerApi } from '../../api/player';
 
 export type GroupRole = 'owner' | 'admin' | 'member';
 
@@ -152,5 +153,28 @@ export class Group extends Document {
 
   isMember(id: string): boolean {
     return this.memberIds.includes(id);
+  }
+
+  /**
+   * ⭐ The member key a player TYPED names — matched against the roster,
+   * never taken as the key itself (controller-liquidity D11: the roster
+   * holds identity paths, so a raw string matched nobody). In order: the
+   * key itself; a key whose last segment is it (a player id); a player
+   * member whose stored name is it, case-insensitive. Null when none.
+   */
+  async memberByName(typed: string): Promise<string | null> {
+    const want = typed.trim();
+    if (want === '') return null;
+    if (this.memberIds.includes(want)) return want;
+    const bySegment = this.memberIds.find((id) => id.endsWith(`/${want}`));
+    if (bySegment !== undefined) return bySegment;
+    const lower = want.toLowerCase();
+    for (const id of this.memberIds) {
+      if (!PlayerApi.isAvatarIdentityPath(id)) continue;
+      const playerId = id.slice(id.lastIndexOf('/') + 1);
+      const name = await PlayerApi.storedNameOf(playerId);
+      if (name !== null && name.toLowerCase() === lower) return id;
+    }
+    return null;
   }
 }

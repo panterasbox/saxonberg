@@ -35,7 +35,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 
-export const LINEAGE_KEYS_CEILING = 7;
+export const LINEAGE_KEYS_CEILING = 0;
 
 const PERSON_WORDS = new Set([
   "holder",
