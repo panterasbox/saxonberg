@@ -275,6 +275,9 @@ function respirationDial(key: string, fallback: number): number {
  */
 type RespirationHost = Stuff & Vitals & Organism;
 
+/** ⭐ Why a body cannot float — a closed set the verbs word (controller-liquidity W8). */
+export type FloatRefusalReason = 'not-at-surface' | 'cannot-float' | 'too-heavy';
+
 export interface Respiration {
   /** Game-time (seconds) of the last drain/recovery tick; 0 = unseeded. */
   respirationClockStamp: number;
@@ -312,7 +315,7 @@ export interface Respiration {
   /** Lying back on the water at no cost (`float`). */
   isFloating(): boolean;
   /** Float on your back — or refuse, in words, when you cannot. */
-  float(): Promise<{ ok: true } | { ok: false; reason: string; line: string }>;
+  float(): Promise<{ ok: true } | { ok: false; reason: FloatRefusalReason; line: string }>;
   /**
    * ⭐ How long swimming `meters` straight up (or down) takes this body,
    * in REAL seconds: its swimming, and its weight in the water — ballast
@@ -1353,7 +1356,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       return 'passive';
     }
 
-    public async float(): Promise<{ ok: true } | { ok: false; reason: string; line: string }> {
+    public async float(): Promise<{ ok: true } | { ok: false; reason: FloatRefusalReason; line: string }> {
       const self = this as unknown as Stuff;
       const medium = BiomeApi.mediumFor(self);
       if (!(medium.immersed && medium.atSurface && medium.tag === 'water')) {

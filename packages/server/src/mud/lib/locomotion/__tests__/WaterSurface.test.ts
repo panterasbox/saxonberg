@@ -172,17 +172,31 @@ describe('the water surface is a pool\'s floor (D12)', () => {
     expect(p.mediumFor(b as unknown as Stuff).immersed).toBe(true);
   });
 
-  it('⭐ the SURFACE decides bare `swim` — its refusals returned in its words', async () => {
+  it('⭐ the WATER decides bare `swim` (WaterEntry) — the model refuses with the actor', async () => {
     await LocomotionApi.loadMode('swim').catch(() => null);
     const { pool: p, floor } = await pool();
     const b = walker();
     ContainmentApi.move(b as unknown as Stuff & never, p as unknown as Stuff & never);
-    expect(floor.goIn(b as unknown as Stuff)).toMatchObject({ ok: false, reason: 'already-in-water' });
+    await expect(p.wayIntoWater(b as unknown as Stuff)).resolves.toMatchObject({ ok: false, reason: 'already-in-water' });
     const bearing = vi.spyOn(floor, 'bears').mockReturnValue(true);
     floor.occupy(b as never, 'ground:1');
     bearing.mockReturnValue(false);
-    expect(floor.goIn(b as unknown as Stuff)).toEqual({ ok: true });
+    await expect(p.wayIntoWater(b as unknown as Stuff)).resolves.toEqual({ ok: true, facts: { exit: null } });
     expect(floor.supports(b as unknown as Stuff)).toBe(false);
+  });
+
+  it('⭐ the SURFACE decides what lying on it is (acceptPosture): held up, at rest; in the water, a float', async () => {
+    const { pool: p, floor } = await pool();
+    const b = walker();
+    ContainmentApi.move(b as unknown as Stuff & never, p as unknown as Stuff & never);
+    // In the water, it is a float — and an untrained body cannot (the body's own answer).
+    await expect(floor.acceptPosture(b as unknown as Stuff, 'lie')).resolves.toEqual({ ok: false, reason: 'cannot-float' });
+    // Sitting is not floating, wherever you are.
+    await expect(floor.acceptPosture(b as unknown as Stuff, 'sit')).resolves.toEqual({ ok: true, facts: { as: 'rest' } });
+    const bearing = vi.spyOn(floor, 'bears').mockReturnValue(true);
+    floor.occupy(b as never, 'ground:1');
+    void bearing;
+    await expect(floor.acceptPosture(b as unknown as Stuff, 'lie')).resolves.toEqual({ ok: true, facts: { as: 'rest' } });
   });
 
   it('⭐ a body in the water may leave only by swimming; one held up walks off', async () => {

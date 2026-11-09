@@ -269,7 +269,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
   public async installBankWay(shore: Stuff): Promise<void> {
     if (!MixinApi.isExitable(shore) || !MixinApi.isShore(shore)) return;
     const ex = shore as unknown as Stuff & Container & Exitable;
-    if (!('exit' in shore.wayIntoWater()) && !shore.getExit('river')) {
+    if (!('exit' in shore.exitIntoWater()) && !shore.getExit('river')) {
       await this.installWay(ex, 'river', 'enter');
     }
     // ⭐ Along the bank (D25): the bank between places is walkable.

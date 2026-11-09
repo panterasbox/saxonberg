@@ -713,6 +713,9 @@ export const Mixins = {
   Butcherable: 'ButcherableMixin',
   // ⭐ A thing you can read — screens, marks, books (controller-liquidity W8).
   Readable: 'ReadableMixin',
+  // ⭐ Water in reach, and a way into it (controller-liquidity W8).
+  WaterDrawable: 'WaterDrawableMixin',
+  WaterEntry: 'WaterEntryMixin',
   // Markers a pack's reader narrows on (controllers-are-io D7a): the supply
   // a thing draws, the generator that makes it, who may write a name.
   Powered: 'PoweredMixin',
@@ -1112,6 +1115,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   RivableMixin: "{} isn't wood you could rive",
   ButcherableMixin: "{} isn't a carcass",
   ReadableMixin: "there is nothing written on {}",
+  WaterDrawableMixin: "there is no water to be had from {}",
+  WaterEntryMixin: "there is no way into the water from {}",
   PourTargetMixin: "you can't pour anything into {}",
   ArcaneMixin: "there is nothing bound into {}",
   ImpressibleMixin: "{} is not soft enough to take an impression",

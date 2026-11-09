@@ -28,6 +28,10 @@ import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { LocomotionApi } from '../../api/locomotion';
 import { Mml } from '../../api/mml';
+import { Postures, type PostureAnswer } from '../../lib/slot/Postured';
+
+/** Water running at least this fast takes a body that lies back in it, m/s. */
+const MOVING_WATER_MPS = 0.2;
 
 /** The posture-bearing slot a floor offers. */
 export const GROUND_SLOT = 'ground:1';
@@ -108,19 +112,25 @@ export default class WaterSurface extends FloorBase {
   }
 
   /**
-   * ⭐ Bare `swim` here: go into the water ON PURPOSE. The surface decides
-   * — open water to go into, and you on it to go in from — and returns
-   * its refusal in its own words; the verb only renders.
+   * ⭐ `lie` on the water (underwater review; controller-liquidity W8): a
+   * surface that is not holding you up, or moving water (river D13 — lying
+   * back takes your feet off the bottom; a patch carried with the current
+   * is moving water too), is FLOATING, and the water floats you. Anywhere
+   * else this floor takes a body at rest like any ground.
    */
-  public goIn(actor: Stuff): { ok: true } | { ok: false; reason: string; line: string } {
-    if (!(this.openWaterAreaM2() > 0)) {
-      return { ok: false, reason: 'no-open-water', line: 'There is no open water here to swim in.' };
-    }
-    if (!this.supports(actor)) {
-      return { ok: false, reason: 'already-in-water', line: 'You are already in the water.' };
-    }
-    this.giveWay(actor, true);
-    return { ok: true };
+  public override async acceptPosture(actor: Stuff, posture: string): Promise<PostureAnswer> {
+    if (posture !== Postures.Lie) return super.acceptPosture(actor, posture);
+    const water = this.waterPlace();
+    const moving = water !== null && (
+      (MixinApi.isMovingPlace(water) && water.isUnderWay()) ||
+      (MixinApi.isMovingWater(water) && Math.abs(water.currentFor(actor)) >= MOVING_WATER_MPS)
+    );
+    const held = this.supports(actor);
+    if (held && !moving) return super.acceptPosture(actor, posture);
+    if (!MixinApi.isRespiration(actor)) return { ok: false, reason: 'not-a-swimmer' };
+    if (held) this.giveWay(actor, true);
+    if (water === null) return { ok: false, reason: 'not-at-surface' };
+    return water.floatHere(actor);
   }
 
   public override reconcileSupport(): void {

@@ -22,6 +22,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slotted } from './Slotted';
 import { MixinApi } from '../../api/mixin';
+import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
 
 /**
  * Posture vocabulary — frozen constants module. Mod-introduced
@@ -38,7 +39,38 @@ export const Postures = Object.freeze({
 
 export type Posture = typeof Postures[keyof typeof Postures];
 
+/**
+ * ⭐ Why a body could not take a posture on this host — the float's, since
+ * a resting posture's refusals are the body's own (`transferPosture`).
+ *  - `not-a-swimmer` — nothing that breathes (a body with no airway) floats.
+ *  - `not-at-surface` · `cannot-float` · `too-heavy` — the body's `float()`.
+ */
+export type PostureRefusal =
+  | ActRefusal<'not-a-swimmer'>
+  | ActRefusal<'not-at-surface'>
+  | ActRefusal<'cannot-float'>
+  | ActRefusal<'too-heavy'>;
+
+/**
+ * ⭐ What taking a posture on this host comes to (controller-liquidity W8):
+ * `rest` — the host takes the body as it is (the body's `transferPosture`
+ * is the act, and nothing has happened yet); `float` — the host is water
+ * that will not hold you up, so lying on it is floating, and that is done
+ * (`feetFirst` in moving water).
+ */
+export type PostureAnswer =
+  | ActOutcome<{ as: 'rest' }>
+  | ActOutcome<{ as: 'float'; feetFirst: boolean }>
+  | PostureRefusal;
+
 export interface Postured extends Slotted {
+  /**
+   * ⭐ **The host decides what `posture` on it means for `actor`**
+   * (controller-liquidity W8): a bed or a floor takes a body at rest; the
+   * surface of deep or moving water does not hold you, and lying on it is
+   * floating. Default `rest`.
+   */
+  acceptPosture(actor: Stuff, posture: string): Promise<PostureAnswer>;
   /** Postures the named slot accepts. Empty array if not posture-bearing. */
   getAcceptedPostures(slot: string): readonly string[];
   /** Slots accepting the given posture (across the whole universe). */
@@ -188,6 +220,11 @@ export function PosturedMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
         );
       }
       this.warmth = value;
+    }
+
+    /** @hook What `posture` on this host comes to; the default takes a body at rest. */
+    public async acceptPosture(_actor: Stuff, _posture: string): Promise<PostureAnswer> {
+      return { ok: true, facts: { as: 'rest' } };
     }
 
     getAcceptedPostures(

@@ -23,8 +23,9 @@ args:
   # Bare default: every reachable combustible; the controller keeps the
   # first that is actually BURNING (a cold hearth warms nothing) — state,
   # which no predicate asks (`lint:controller-resolution`).
+  # Every fire in reach; the controller takes the one that is burning.
   - name: source
-    type: object
+    type: objects
     required: false
     prepositions: [by, at, over]
     default: "reachable:[mixin.CombustibleMixin]"

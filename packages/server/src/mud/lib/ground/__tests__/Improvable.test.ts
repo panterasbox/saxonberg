@@ -42,8 +42,10 @@ import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
+import { StackableMixin } from '../../stuff/Stackable';
 
 class TestGround extends ImprovableMixin(Idea) {}
+class TestLumps extends StackableMixin(Idea) {}
 
 const DAY = 86_400;
 
@@ -238,5 +240,26 @@ describe('⭐⭐ it goes back (D58)', () => {
     work(g, 'clearing', b);
     advance(2_000);
     expect(g.progressOn('clearing', b)).toBe(0);
+  });
+});
+
+describe('⭐ lime is spent a dose at a time (controller-liquidity W8, C48)', () => {
+  it('one spreading takes ONE lump off a stack, and the last one goes', async () => {
+    const g = make();
+    const b = bill({ liming: 3 });
+    const lumps = makeStuff(() => new TestLumps());
+    lumps.setQuantity(3);
+    await g.spreadLime(lumps as never, 1, b);
+    expect(lumps.getQuantity()).toBe(2);
+    expect(lumps.isDestroyed()).toBe(false);
+    expect(g.workDoneOn('liming')).toBe(1);
+    lumps.setQuantity(1);
+    await g.spreadLime(lumps as never, 1, b);
+    expect(lumps.isDestroyed()).toBe(true);
+  });
+
+  it('the ground says what limes it — a thing with no material does not', () => {
+    expect(make().limesWith(null)).toBe(false);
+    expect(make().limesWith(makeStuff(() => new TestLumps()) as never)).toBe(false);
   });
 });

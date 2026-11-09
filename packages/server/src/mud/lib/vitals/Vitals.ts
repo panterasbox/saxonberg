@@ -356,6 +356,8 @@ export interface TreatmentRequest {
   offered: Stuff | null;
   /** `--for <condition>`: what the medic thinks it is. */
   named?: string;
+  /** Never set on `treat` — the element token is {@link ElementTreatmentRequest}'s. */
+  element?: undefined;
 }
 
 /** Why a treatment was refused. */
@@ -383,6 +385,58 @@ export type TreatmentDone =
 export type TreatmentAnswer =
   | ActPlan<undefined, TreatmentDone, TreatmentRefusal>
   | TreatmentRefusal;
+
+/**
+ * ⭐ What the world itself relieves, brought to a body by hand
+ * (controller-liquidity W8): water on a burn (`cooling`), a fire for a frozen
+ * part (`warmth`), water over a caustic still eating the skin (`rinse`).
+ * The verbs `cool`/`warm`/`rinse` find the water or the fire; the BODY
+ * decides what it has that the element would help, and what it comes to.
+ */
+export type ElementTreatment = 'cooling' | 'warmth' | 'rinse';
+
+/** `cool` / `warm` / `rinse`, asked of the patient. */
+export interface ElementTreatmentRequest {
+  /** The treater. */
+  by: Stuff;
+  /** What they are bringing to it. */
+  element: ElementTreatment;
+}
+
+/** ⭐ The body has nothing the element would help — one reason per verb. */
+export type ElementTreatmentRefusal =
+  | ActRefusal<'nothing-to-cool'>
+  | ActRefusal<'nothing-to-warm'>
+  | ActRefusal<'nothing-to-rinse'>;
+
+/** What an element treatment answers: a plan to run now, or the refusal. */
+export type ElementTreatmentAnswer =
+  | ActPlan<undefined, { element: ElementTreatment }, ElementTreatmentRefusal>
+  | ElementTreatmentRefusal;
+
+/**
+ * How well each element treats what it relieves — the wound's `careQuality`.
+ * Cooling with water is competent, not expert; a fire warms better than a
+ * splash of water cools. A caustic is not graded: rinsing removes the cause.
+ */
+const ELEMENT_EFFICACY: Readonly<Record<'cooling' | 'warmth', number>> = {
+  cooling: 0.7,
+  warmth: 0.75,
+};
+
+/** The trauma each element relieves by hand. */
+const ELEMENT_TRAUMA: Readonly<Record<ElementTreatment, string>> = {
+  cooling: 'burn',
+  warmth: 'frostbite',
+  rinse: 'caustic',
+};
+
+/** Each element's refusal when nothing on the body wants it. */
+const ELEMENT_NOTHING: Readonly<Record<ElementTreatment, ElementTreatmentRefusal['reason']>> = {
+  cooling: 'nothing-to-cool',
+  warmth: 'nothing-to-warm',
+  rinse: 'nothing-to-rinse',
+};
 
 /** How much a single treatment pours into someone. */
 const TREAT_FLUID_LITRES = 0.25;
@@ -927,6 +981,15 @@ export interface Vitals {
    * now (`durationMs: 0`), or the refusal with its reason.
    */
   treatmentPlanFor(req: TreatmentRequest): TreatmentAnswer;
+  /**
+   * ⭐ The element token (controller-liquidity W8): `cool`, `warm`, `rinse`
+   * — what this body has that water or a fire would relieve, and the act
+   * that relieves it, run now. A burn or frostbite is treated through
+   * {@link applyTreatment} at the element's efficacy and an affliction that
+   * declares the element relieved; a caustic still working has its cause
+   * washed off.
+   */
+  treatmentPlanFor(req: ElementTreatmentRequest): ElementTreatmentAnswer;
   /** The healed-over scars this body keeps (D14) — never a penalty. */
   getScars(): readonly ScarRecord[];
   /** ⭐ D15 — re-break every half-knit fracture under mechanical work
@@ -3639,7 +3702,60 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** See {@link Vitals.treatmentPlanFor}. */
-    public treatmentPlanFor(req: TreatmentRequest): TreatmentAnswer {
+    public treatmentPlanFor(req: TreatmentRequest): TreatmentAnswer;
+    public treatmentPlanFor(req: ElementTreatmentRequest): ElementTreatmentAnswer;
+    public treatmentPlanFor(
+      req: TreatmentRequest | ElementTreatmentRequest,
+    ): TreatmentAnswer | ElementTreatmentAnswer {
+      if (req.element !== undefined) return this.elementPlanFor(req.by, req.element);
+      return this.remedyPlanFor(req);
+    }
+
+    /** The element token: what the element relieves on this body, run now. */
+    private elementPlanFor(by: Stuff, element: ElementTreatment): ElementTreatmentAnswer {
+      const target = this as unknown as Stuff & Vitals;
+      const type = ELEMENT_TRAUMA[element];
+      const wounds = this
+        .getConditions()
+        .filter(
+          (c): c is Trauma =>
+            c.kind === 'trauma' &&
+            c.type === type &&
+            // A caustic wants its cause removed while it is still working;
+            // a burn or a frozen part wants treating until it is dressed.
+            (element === 'rinse' ? c.agentActive === true : c.dressed !== true),
+        );
+      const afflictions =
+        element === 'rinse'
+          ? []
+          : this
+              .getConditions()
+              .filter((c): c is AfflictionRecord => c.kind === 'affliction' && resolutionOf(c) === element);
+      if (wounds.length === 0 && afflictions.length === 0) {
+        return { ok: false, reason: ELEMENT_NOTHING[element] };
+      }
+      return {
+        ok: true,
+        durationMs: 0,
+        effortW: 0,
+        facts: undefined,
+        onComplete: () => {
+          for (const wound of wounds) {
+            // ⭐ `resolve` on a caustic means *remove the cause*, not *arrest
+            // the bleed* — the same interface, a different act.
+            if (element === 'rinse') TRAUMA_BEHAVIOR.caustic.resolve(target, wound);
+            else this.applyTreatment(wound, { by: element, efficacy: ELEMENT_EFFICACY[element], treater: by });
+          }
+          // A body running too hot (or gone cold) is brought back; if it is
+          // still in the heat it will climb again on the next reconcile.
+          for (const a of afflictions) this.relieve(a);
+          return { ok: true, facts: { element } };
+        },
+      };
+    }
+
+    /** `treat`: the remedy offered, against what is wrong. */
+    private remedyPlanFor(req: TreatmentRequest): TreatmentAnswer {
       const target = this as unknown as Stuff & Vitals;
       const { by } = req;
       // A body in the dying window is treatable even with no wound to

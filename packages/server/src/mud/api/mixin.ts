@@ -281,6 +281,8 @@ import type { TravelNode } from '../lib/travel/TravelNode';
 import type { Cuttable } from '../lib/craft/Cuttable';
 import type { CutPlanner } from '../lib/craft/CutPlanner';
 import type { Sawable } from '../lib/craft/Sawable';
+import type { WaterDrawable } from '../lib/bulk/WaterDrawable';
+import type { WaterEntry } from '../lib/location/WaterEntry';
 import type { Rivable } from '../lib/craft/Rivable';
 import type { Butcherable } from '../lib/craft/Butcherable';
 import type { Readable } from '../lib/description/Readable';
@@ -2459,6 +2461,16 @@ export class MixinApi {
   /** ⭐ A thing you can read — a screen, marks, a book — `read` (`ReadableMixin`, a protocol; W8). */
   public static isReadable(obj: Stuff): obj is Stuff & Readable {
     return this.hasMixin(obj, Mixins.Readable);
+  }
+
+  /** ⭐ Water can be drawn from it — `cool`/`rinse` (`WaterDrawableMixin`, a protocol; controller-liquidity W8). */
+  public static isWaterDrawable(obj: Stuff): obj is Stuff & WaterDrawable {
+    return this.hasMixin(obj, Mixins.WaterDrawable);
+  }
+
+  /** ⭐ Knows the way into its water — bare `swim` (`WaterEntryMixin`, a protocol; W8). */
+  public static isWaterEntry(obj: Stuff): obj is Stuff & WaterEntry {
+    return this.hasMixin(obj, Mixins.WaterEntry);
   }
 
   /** Draws a supply that can be on or off (`PoweredMixin`). */
