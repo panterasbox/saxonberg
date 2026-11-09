@@ -30,7 +30,7 @@ law and becomes a lie. So:
 - a pump row names its **mechanism** (`mechanism:
   /platform/idea/PumpMechanism/suction`) and never whether it has a
   ceiling;
-- a mechanism is a **row** (`platform/idea/PumpMechanism`, `pulls:
+- a mechanism is a **document** (`content/pump-mechanisms/<word>.yaml`, `lib/pump/PumpMechanism`, `pulls:
   true|false`) — `suction` and `force` ship; a third (`centrifugal`,
   `sucker-rod`) is a row with `pulls:` set honestly and no code;
 - the ceiling is **arithmetic over the place**:

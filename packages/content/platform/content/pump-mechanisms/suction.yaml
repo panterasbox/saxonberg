@@ -7,10 +7,7 @@
 # of water at sea level, less on a hill, less again for brine. The row
 # says none of that: the pressure is the place's, and the arithmetic is
 # BiomeApi.suctionHeadFor.
-class: /platform/idea/PumpMechanism
-data:
-  name: suction
-  pulls: true
-  description: >-
-    It draws: the plunger lifts, a flap closes under it, and whatever
-    stands in the pipe follows it up.
+name: suction
+pulls: true
+description: 'It draws: the plunger lifts, a flap closes under it, and whatever
+  stands in the pipe follows it up.'

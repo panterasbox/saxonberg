@@ -1355,6 +1355,7 @@ StoreMixin.receiptPaper = 0
 StoreMixin.stackShapeFactor = 0
 StoreMixin.terms = 0
 StoredDocument.data = 0
+StoredDocument.keys = 0
 StoredDocument.kind = 0
 StoredDocument.owner = 0
 StoredDocument.path = 0

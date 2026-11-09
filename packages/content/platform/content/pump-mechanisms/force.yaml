@@ -5,10 +5,7 @@
 # as high as its own build and the arm on the handle will carry, which a
 # row states as `liftM` on the PUMP. Nothing here explains why that works
 # where a suction pump fails — the machine simply does.
-class: /platform/idea/PumpMechanism
-data:
-  name: force
-  pulls: false
-  description: >-
-    It drives: the plunger presses down on what stands under it and sends
-    it up the pipe ahead.
+name: force
+pulls: false
+description: 'It drives: the plunger presses down on what stands under it and sends
+  it up the pipe ahead.'

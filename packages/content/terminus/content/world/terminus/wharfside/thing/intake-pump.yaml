@@ -35,7 +35,7 @@ data:
   mass: 1200
   _materialPath: /stuff/idea/material/alloy/cast-iron
   fixedInPlace: true
-  mechanism: /platform/idea/PumpMechanism/force
+  mechanism: /platform/pump-mechanisms/force
   liftM: 30
   # The intake's own capacity, in litres a second — and more than the
   # line will power at this head.

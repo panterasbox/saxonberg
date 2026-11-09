@@ -28,6 +28,7 @@ import {
   type DocumentVanishPolicy,
 } from '../../../lib/document/DocumentKinds';
 import { StoredDocument } from '../../../lib/document/StoredDocument';
+import { PumpMechanism } from '../../../lib/pump/PumpMechanism';
 import { DocumentCache } from '../../../lib/document/DocumentCache';
 import { TOPIC_ROOTS } from '@saxonberg/types';
 import Topic from '../Topic';
@@ -174,6 +175,7 @@ const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>, path: 
   emote: (d, p) => void Emote.fromData(d, p),
   recipe: (d, p) => void Recipe.fromData(d, p),
   archetype: (d, p) => void Archetype.fromData(d, p),
+  'pump-mechanism': (d, p) => void PumpMechanism.fromData(d, p),
   'command-view': (d) => {
     const trail = CommandApi.validateCommandView(d);
     if (trail !== null) throw new Error(`does not conform to the command schema:\n${trail}`);

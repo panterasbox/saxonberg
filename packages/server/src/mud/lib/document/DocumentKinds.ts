@@ -115,6 +115,12 @@ export const DOCUMENT_KINDS = {
    */
   aroma: { kind: 'aroma', contentDir: 'aromas', ext: 'yaml', onVanish: 'delete' },
   recipe: { kind: 'recipe', words: leafWord, keys: { output: recipeOutput }, contentDir: 'recipes', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **pump mechanism** — how a displacement machine moves its fluid, and
+   * whether it `pulls` (and so meets the atmosphere's wall). Authored
+   * metadata a pump cites by path (`lib/pump/PumpMechanism.ts`).
+   */
+  'pump-mechanism': { kind: 'pump-mechanism', contentDir: 'pump-mechanisms', ext: 'yaml', onVanish: 'delete' },
   'name-bank': { kind: 'name-bank', contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
   blueprint: { kind: 'blueprint', contentDir: 'blueprints', ext: 'yaml', onVanish: 'delete' },
   'command-view': { kind: 'command-view', contentDir: 'cmd', ext: 'yaml', onVanish: 'delete' },

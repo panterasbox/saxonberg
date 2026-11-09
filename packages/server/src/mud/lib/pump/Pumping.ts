@@ -52,6 +52,7 @@ import { AppApi } from '../../api/app';
 import { Mml } from '../../api/mml';
 import { Quantity } from '../quantity';
 import { AppSettingKeys } from '../config/AppSettings';
+import { PumpMechanism } from './PumpMechanism';
 
 /** The capability a packing offers, and the only thing a pump will hold. */
 export const PACKING = 'packing';
@@ -130,15 +131,25 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName: string = 'PumpingMixin';
 
     static fieldMeta: FieldMeta = {
-      mechanism: { persistent: true, authorable: true, ref: 'identity:constituent' },
+      mechanism: { persistent: true, authorable: true },
       liftM: { persistent: true, authorable: true },
       throughputLps: { persistent: true, authorable: true },
       strokeS: { persistent: true, authorable: true },
       runStamp: { persistent: true },
     };
 
-    /** Path of the `PumpMechanism` row this pump is built on. */
+    /** Path of the `pump-mechanism` document this pump is built on. */
     public mechanism: string = '';
+
+    /**
+     * ⭐ Loads the mechanism the row names, so a pump is live only when its
+     * mechanism is (documents D7) — and a row naming a path with no
+     * mechanism fails here, where it is named.
+     */
+    public async setMechanism(path: string): Promise<void> {
+      if (path) await PumpMechanism.ensure(path);
+      this.mechanism = path;
+    }
 
     /** Most head this pump will push against, in metres. */
     public liftM: number = 8;
@@ -178,18 +189,10 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     // ---------- what it is, and where ----------
 
-    /** The mechanism row, resolved by path on use. `null` = unauthored. */
+    /** The mechanism this pump is built on (resident with the pump). `null` = unauthored. */
     public async mechanismRow(): Promise<PumpMechanismView | null> {
       if (this.mechanism === '') return null;
-      try {
-        return await StuffApi.singleton<Stuff & PumpMechanismView>(this.mechanism);
-      } catch (err) {
-        console.error(
-          `PumpingMixin: mechanism '${this.mechanism}' did not resolve`,
-          err,
-        );
-        return null;
-      }
+      return PumpMechanism.need(this.mechanism);
     }
 
     /** What the pump is set in, or `null` (a loose pump on a floor). */

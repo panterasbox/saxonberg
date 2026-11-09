@@ -24,7 +24,7 @@ data:
     plunger, is a cup of leather that seals it.
   mass: 35
   _materialPath: /stuff/idea/material/alloy/cast-iron
-  mechanism: /platform/idea/PumpMechanism/suction
+  mechanism: /platform/pump-mechanisms/suction
   liftM: 8
   throughputLps: 0.5
   strokeS: 20
