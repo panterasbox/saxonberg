@@ -1257,6 +1257,12 @@ ship it):
 Living things settle faster and **concentrate** what they eat — hyperaccumulation in plants (Part 3's
 phytomining), **biomagnification** up food chains (so the long-lived apex predator — the **whale** —
 is the richest biological store). Processing passes lose some (retention factors); time decays it.
+⭐ **Where in the body (ruled 2026-11-09):** a store holds charge by its dielectric, and **fat holds
+almost none** (ε ≈ 2–3), against ≈ 80 for the water-rich blood and muscle. So a whale's charge is in
+its **fresh tissue**, and the try-pot boils it off: **rendered oil is dead oil**. Its value is in
+working the carcass fresh, at sea or on ice. Capacity also depends on **geometry** (`C = εA/d`), which
+is why an electric organ is a stack of thin plates. See the
+[organism-biology slate](./organism-biology-slate.md) § 12.
 
 - **What makes a magic mine magical: two factors** (drilling's precedent) — a **field** at the place, and
   **rock that can hold it**. A titanate seam in a strong field is saturated; iron in the same field holds
@@ -1287,7 +1293,7 @@ is the richest biological store). Processing passes lose some (retention factors
 | ranching · taps | charged feed + residence | meat, fat, milk, eggs, wool | eaten (bacon), rendered (tallow) |
 | apiculture | bees forage **other people's land** | honey **averaging the field over the forage radius** | eaten, mead |
 | forestry | decades of residence | ⭐ **heartwood**; seasoning may partition some out with the water | built, carved, burned |
-| fishing · whaling | aquatic biomagnification | ⭐⭐ **whale oil and blubber** | burned in lamps |
+| fishing · whaling | aquatic biomagnification | ⭐⭐ **fresh whale tissue**: blood, muscle, the spermaceti organ. Oil and blubber hold little (fat's ε) | worked fresh or iced. Rendering boils the charge off |
 | sericulture | worms on charged leaf | silk, holding little | worn |
 | potash · ash | burning partitions it, ash vs smoke | lye | its usual uses |
 | magic's own rung | the caster settles toward the field | the reserve | casting |

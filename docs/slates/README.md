@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**423 slates.** 149 greenfield · 117 continuations · 71 waves · 86 tails.
+**423 slates.** 148 greenfield · 118 continuations · 71 waves · 86 tails.
 
-## ⭐ Greenfield — nothing shipped yet (149)
+## ⭐ Greenfield — nothing shipped yet (148)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -127,7 +127,6 @@ respect.
 | [map](./builds/map-slate.md) | the SVG grid + up/down corner glyphs + the pinned card · the |
 | [markets](./builds/markets-slate.md) | **dealing** — a BID on any counter's stock line, bid and ask from the business's own book, a `sell` verb · **public spending** as the primary faucet, through escrowed public-works gigs · **imports** — the engine's backstop supply named honestly, a per-commodity per-town ceiling and a possible sink · the **levers** as rows and settings … |
 | [masonry-and-concrete](./builds/masonry-and-concrete-slate.md) | ⭐ the two set chemistries (carbonation, hydration) · the binder ladder (air lime → hydraulic → Roman pozzolanic → Portland → reinforced) · concrete as moulding into formwork, and curing · compression and tension as material properties … |
-| [material-decomposition](./builds/material-decomposition-slate.md) | ✅ decomposition shipped !555; open: § 7 Idea-tree pass, § 8 data-gap burn-down · the base keeps only what every material has · chemical identity as the class axis (element · compound · mixture) … |
 | [matter-model-overlaps](./builds/matter-model-overlaps-slate.md) | all seven overlaps below — each is a design decision, not a mechanical merge. |
 | [mind](./builds/mind-slate.md) | the equanimity Reserve + the stress equilibrium (the deferred `traits-stress` build named in trait.md) · the start/stop axis on `AbortReason` · emotes as evidence about the ACTOR (rate · range … |
 | [mirror](./builds/mirror-slate.md) | the inbound assertion channel · what is admissible (the INTRINSIC/SOCIAL firewall — condition, never character) · claim, corroboration and decay · the density threshold … |
@@ -138,7 +137,7 @@ respect.
 | [odometer](./builds/odometer-slate.md) | the counter roster (editorial, chosen against observed play) + the authoring surface (Q1) · the subject-scoped derive over chronicle/participation/advancement + the projection map (Q2) + whether participation shares the store (Q5) · the aggregate headline + its weighting (Q4) · milestones → recognition via belief (Q3) … |
 | [off-grid](./builds/off-grid-slate.md) | the phone as the starting carrier, the implant elective · the corrected ladder (the implant is future, the cell phone modern) · what each carrier addresses · coverage as field strength, built by relays and nodes … |
 | [optics](./builds/optics-slate.md) | the derivable power model (focal length from index × curvature) · the grind as the shaping act · **Half A** additive detail instruments (loupe/microscope/telescope/burning-glass) · **Half B** visual acuity as a NUMERIC perception modifier + the corrective lens … |
-| [organism-biology](./builds/organism-biology-slate.md) | everything below · ⚠ three physics rulings still with the owner (§ 12) |
+| [organism-biology](./builds/organism-biology-slate.md) | everything below. Every ruling is decided (§ 12, 2026-11-09), so this is ready for requirements. |
 | [organized-religion](./builds/organized-religion-slate.md) | the charter readout (structure derived, the vibe a claim) · the three polities on the Organization substrate · territorial vs gathered · title decides the schism … |
 | [pace](./builds/pace-slate.md) | the pace ruling (encounter · session · absence · calendar) … |
 | [paper-and-printing](./builds/paper-and-printing-slate.md) | the printed thing as the **static rung of a display** (never a special class) · the honest dynamics per rung (frozen, unpowered, costly to copy, irrevocable) · paper from rags (beat, form, couch, press, dry, size), the watermark, parchment · iron-gall and printing ink … |
@@ -194,7 +193,7 @@ respect.
 | [wizardry-curriculum](./builds/wizardry-curriculum-slate.md) | the kind-of-content intake · the eight topics of W101 as lessons · the exemplar set (one per kind) · the detail-density mirror … |
 | [worlds](./builds/worlds-slate.md) | bodies as biomes under a space root · re-parenting today's world under a home-planet biome · the radius inheritable, gravity derived from mass and radius · the celestial profile on the planet biome … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (117)
+## ⭐ Continuations — substrate shipped, a build's worth remains (118)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -267,6 +266,7 @@ are the named remainders.
 | [lounge](./builds/lounge-slate.md) | the flavor tag-set + `route` matchmaking + `seedMember` (the pizza-as-consensus toy: the served pie, the ordered slice, the standing order, the robot last mile + the pass + the pizza line, the published menu) · start-a-table growth · the departure ceremony · the lounge furniture (the contested screen + the remote as a standing signal, the info screen, the derived channel lineup + broadcasting as a business, the notice board, the window, the lost-and-found + the bin, unbuckling) … |
 | [malting-and-extract](./builds/malting-and-extract-slate.md) | malt **extract** (the hinge — it rides the shipped `evaporative` mechanism) · **specialty malts + diastatic power** (the range that makes malt a product rather than an ingredient) · malted milk, which gives dairy its first sink · malt vinegar as a feedstock for the acid hurdle preservation already owns … |
 | [mana-economy-design-pack](./builds/mana-economy-design-pack.md) | the two Material fields (mana density · mana conductivity — canon in arcane-science.md, no field on `Material` yet) · mana deposits + prospecting/refining (partition + volatility, purity as a `Grade`) · ambient mana density of place driving recovery … |
+| [material-decomposition](./builds/material-decomposition-slate.md) | (the decomposition shipped in !555) § 7, the next Idea-tree pass: species split into person, kept and aquatic; maturation split by mechanism; the dead fields removed (condition `contagion`, discipline `conferrals`, sentinel `lifespanMin`) · § 8, the data-gap burn-down per trade (`lint:material-kinds --gaps`) |
 | [medic-judgment](./builds/medic-judgment-slate.md) | stop auto-selecting (player picks target + modality) · cues without names on `assess`/`analyze` · triage under the deterioration clocks · decision-graded `ActSignature` sub-checks … |
 | [metal-chain](./builds/metal-chain-slate.md) | Stage B, below the water table — shaft/hoist/pump · the drainage commons, the district as an Organization + the hoist toll · sulfides, roasting and flux · beneficiation (the dressing floor + tailings) … |
 | [mining](./builds/mining-slate.md) | everything below the water table — shaft/hoist/pump (`LiftMixin`, the called cage) · the drainage commons + hoist toll · sulfides and roasting · collapse entrapment + the rescue clock + the timberman + sounding/convergence … |
@@ -283,7 +283,7 @@ are the named remainders.
 | [personal-calendar](./builds/personal-calendar-slate.md) | the full feature — recurring events, per-event reminders/snooze, shared/other-people's calendars, the **carried physical-device / paper alternative** (the RP manifestation), rich author tooling, and the write-authorisation rule (who may put a date on whose calendar). |
 | [pets](./builds/pets-slate.md) | ⚠⚠ **a dead pet's body is butcherable, twice over** (handed over by the carcass chain + the butchery build, 2026-10-05) — the mint carries no name stamp, so a named animal's corpse is not refused by the name check; and `ButcherController`'s name check sits behind an `isAlive()` guard, so the refusal that protects a named animal stops protecting it the moment it is one. ⭐ Both are *who may take this apart* questions, which is this slate's axis rather than butchery's · ⚠ **orphan `holder_snapshots` rows after a pet's death** — a `PersistableApi.retire(host)` or a sweep over records with no chattel row · ⚠ **an animal whose keeper's estate passes** (handed over by the economic bootstrap, 2026-09-23 — escheat moves titles, balances and a kept house's counters, and says nothing about a living thing that was being fed; the pound keeper is the shape, and it is a *who feeds it now* question before it is a property one) · the fear/threat axis + the wild taming encounter (Wave 2) … |
 | [physiology](./builds/physiology-slate.md) | per-individual stature (BMI itself shipped; stature is still a **species** figure, so two bodies of one species cannot differ in height — § Anthropometrics) · pain as a derived reader · the alarm-clock optimization over `reconcileConditions` (today it is pure reconcile-on-read with no booked next-interesting-time) · substances (the topical route, inhalation, the liver clearance multiplier) … |
-| [place-taxonomy](./builds/place-taxonomy-slate.md) | the `/…/location/` path segment (branch folder + content trees) · ✅ `VoidLocation` → `Void` (B53). |
+| [place-taxonomy](./builds/place-taxonomy-slate.md) | the `/…/location/` path segment (branch folder + content trees) · ⭐ **the material folder sweep rides with it** (§ The material folders, below — one path sweep, not two) · ✅ `VoidLocation` → `Void` (B53). |
 | [policing](./builds/policing-slate.md) | Terminus as Peelers + the Tiebout spread of policing modes · the police bundle and the department roster (constable · sergeant · inspector … |
 | [power-utility](./builds/power-utility-slate.md) | ⭐ **street lighting's missing goods leg** (see § below — the first demand case, and it is already live and calibrated) · the supply reference on `Energized` fixtures · outage propagation + directional network failure over exit edges · gas as the second conduit commodity … |
 | [press](./builds/press-slate.md) | the newsroom roster (publisher → editor-in-chief → editor → reporter, layered on the shipped organization substrate) · bylines · subscription / push distribution (the aether as delivery) · the credibility track record and whether a correction repairs standing … |

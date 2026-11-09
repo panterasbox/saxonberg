@@ -774,13 +774,25 @@ nucleon. That is a factor of roughly **10⁶**.
 - **Elemental transformation is off by six orders of magnitude.** Lead
   into gold is a nuclear operation. A caster's entire reserve, spent
   perfectly, is not within a millionth of the cost.
-- **Transformation of a living body** means breaking and reforming
-  every bond in it, in a specified arrangement, without killing the
-  occupant. The energy is prohibitive and the specification is worse.
+- **Transformation of a living body** — ⭐ **amended 2026-11-09 (owner):
+  never forbidden, only priced.** Rebuilding a body bond by bond is still
+  out of reach. But a body that changes SHAPE at the same mass (a 70 kg
+  person into a 70 kg wolf) moves its structure, not its chemistry, and
+  that is a working the affordable band can pay for. Going smaller costs
+  more: the excess mass is held in a pocket place for as long as the
+  working lasts, and when it lapses you snap back to full size wherever you
+  are. Going bigger needs the matter to come from somewhere, as feedstock,
+  so it is nearly impossible on the fly. The price list and the mechanism
+  (one identity, a timed swap of body plan and species, capability that
+  follows the organs) are the
+  [organism-biology slate](./slates/builds/organism-biology-slate.md) §§ 10–11.
+  ⚠ There is **no permanent polymorph**: a change of species after
+  character creation is an administrative procedure, not a working.
 
-So the shipped state — Transform has no working spell — is not a gap
-in the game. **It is the correct answer to a calculation a first-year
-student can do on one page.**
+So the shipped state (Transform has no working spell for matter) is not a
+gap in the game. **It is the correct answer to a calculation a first-year
+student can do on one page.** The one exception is a living body's same-mass
+change of shape, priced as above.
 
 **What this settles about polymorph** (magic-items D18, built 2026-08-03).
 The question "can a working turn one thing into another?" has two

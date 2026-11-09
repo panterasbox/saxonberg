@@ -7,7 +7,7 @@
 > axis (a wound costs a capacity); the depth ladder; the sever (`missing`, the only instance delta);
 > `sensoryPorts`, `locomotionModes`, `breathableMedia` and `thermalStrategy` on the plan;
 > `Species.production[]` (read by taps); `SexedMixin`; age as a date; the anatomical faculty.
-> **Left:** everything below · ⚠ three physics rulings still with the owner (§ 12)
+> **Left:** everything below. Every ruling is decided (§ 12, 2026-11-09), so this is ready for requirements.
 > **Size:** a build, and the substrate of the bestiary catalog, hunting, foraging and the
 > concealment-by-channel build
 > ⭐ **The owner on compatibility:** *"you don't necessarily need to try so hard to be backwards compat.
@@ -252,16 +252,32 @@ plan change, the choreography around `setSpecies`).
 - **A permanent polymorph is a setter** — a real change of species, a great working, and a values call (the
   race-allegory stance).
 
-## 12. Open — with the owner
+## 12. The rulings **[DECIDED, 2026-11-09]**
 
-1. ⚠ **Whale oil against the fat dielectric** (pilot Part I.1) — does mana partition into lipids, or is the
-   mana pack's whale-oil row wrong?
-2. **Does capacity depend on geometry** (`C = εA/d`)? — the plate cut and the stacked electric organ hang on
-   it.
-3. **The werewolf against arcane-science** — largely settled by § 10–11 (a same-mass swap is priced, not
-   forbidden), pending the owner's word and the arcane-science amendment.
-4. **The values items in the pilot** (§ 10 above's permanent polymorph; animating a player's corpse; the
-   dragon's breath families).
+1. **Whale oil vs the fat dielectric: fix the row.** Lenses 1 and 2 decided it: one rule, derivable from a
+   real number. Charge sits where ε is high (water-rich blood and muscle, ε ≈ 80), not in fat (ε ≈ 2–3), so
+   **rendered oil is dead oil**. The economy lens agrees: the value is fresh tissue worked at sea or on ice, a
+   cold-chain trade, which beats a barrel. The mana pack's table is corrected.
+2. **Capacity depends on geometry: `C = εA/d`.** A stack of thin, wide plates stores more than a lump of the
+   same stuff. That is why an electric organ is a stack, and it makes the plate cut a real butchery choice.
+3. **The werewolf: priced, not forbidden.** By the owner's standing rule (never forbidden, only priced), a
+   same-mass change of shape is affordable (§§ 10–11); arcane-science is amended. ⚠ **There is no permanent
+   polymorph.** A change of species after character creation is an administrative procedure for now,
+   outside the fiction.
+4. **Animating a player's corpse: no special rule.** A player's corpse is meat like any other (mortality: a
+   corpse is a Thing that never gets agency back, and it decomposes), so nothing about using one touches
+   player state. A binding may move any corpse.
+5. **The dragon's breath families: all five.** Lenses 1 and 2 decided it.
+   - **Fire, acid and gas** are anatomy: a gland makes the substance and it is breathed out.
+   - **Lightning** is a binding on a real **electric organ** (the eel's physics). It discharges by contact,
+     or at range through a conductive spray.
+   - **Cold** is a binding that pumps heat out, with a mana price derivable from the heat moved.
+
+   Nothing is cut and nothing is fake; the chemical dragon is the easiest one to read.
+
+Still open, and not this build's: the remaining pilot items (how lycanthropy is caught, the mana unit, the
+living-culture calls, the realm-lore suggestions, the goblin pick). They belong to the
+[bestiary slate](./bestiary-slate.md) and to the realm authors.
 
 ## Cross-references
 
