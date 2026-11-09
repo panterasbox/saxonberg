@@ -317,8 +317,14 @@ export default class TeleportController extends CommandController<TeleportModel>
     }
 
     const target = hit.stuff;
+    // ⚠ The completion lands after the dispatcher has destructed this
+    // controller: it closes over the CLASS (a static, reached through the
+    // instance's class so a worded replacement's override runs), never
+    // over `this` — a destroyed controller answers every call with a
+    // silent no-op, and the hop would never arrive.
+    const words = this.constructor as typeof TeleportController;
     const onComplete = (): void => {
-      void this.resolveAnchoredCast(caster, target, context);
+      void words.resolveAnchoredCast(caster, target);
     };
     // No engagement capacity (a bare fixture) → resolve now, the
     // degenerate-fallback pattern `CastController` uses. AWAITED here,
@@ -326,7 +332,7 @@ export default class TeleportController extends CommandController<TeleportModel>
     // nothing to fire-and-forget, and a caller that awaited `execute`
     // should see the arrival.
     if (!MixinApi.isEngaged(giver)) {
-      return this.resolveAnchoredCast(caster, target, context);
+      return words.resolveAnchoredCast(caster, target);
     }
     const activity = new CastActivity({
       actor: giver,
@@ -362,11 +368,13 @@ export default class TeleportController extends CommandController<TeleportModel>
     );
   }
 
-  /** The completion body — resolve and render. */
-  private async resolveAnchoredCast(
+  /**
+   * The completion body — resolve and render. `static`: it runs at
+   * completion, on a controller already destructed.
+   */
+  protected static async resolveAnchoredCast(
     caster: Stuff & Caster,
     target: Stuff,
-    _context: CommandContext,
   ): Promise<void> {
     const out = await caster.resolveCast(TELEPORT_SPELL, target);
     MessageApi.scene(caster as unknown as Stuff)

@@ -67,7 +67,12 @@ export default class SearchController extends CommandController<SearchModel> {
     const { scope, depth, subject } = this.buildScope(actor, targetStuff);
 
     const durationMs = this.searchSeconds() * 1000;
-    const onComplete = (): void => this.resolveAndRender(actor, scope, depth);
+    // ⚠ The completion lands after the dispatcher has destructed this
+    // controller: it closes over the CLASS (a static, reached through the
+    // instance's class so a worded replacement's override is the one that
+    // runs), never over `this`.
+    const words = this.constructor as typeof SearchController;
+    const onComplete = (): void => words.resolveAndRender(actor, scope, depth);
 
     // No engagement capacity (bare test fixture / sessile NPC) → resolve
     // now (the ManualBuild degenerate-fallback pattern).
@@ -168,8 +173,11 @@ export default class SearchController extends CommandController<SearchModel> {
     return { scope, depth: 'broad', subject: Mml.compose`your surroundings` };
   }
 
-  /** Resolve the search and render discovered secrets + lingering hints. */
-  private resolveAndRender(
+  /**
+   * Resolve the search and render discovered secrets + lingering hints.
+   * `static`: it runs at completion, on a controller already destructed.
+   */
+  protected static resolveAndRender(
     actor: Stuff,
     scope: readonly Stuff[],
     depth: SearchDepth,
@@ -179,7 +187,7 @@ export default class SearchController extends CommandController<SearchModel> {
 
     let body: Mml;
     if (found.length > 0) {
-      const list = Mml.list(found.map((f) => this.render(f)));
+      const list = Mml.list(found.map((f) => SearchController.render(f)));
       body = Mml.compose`Your search turns up: ${list}.`;
     } else {
       body = Mml.compose`You search, but turn up nothing you hadn't already.`;
@@ -224,7 +232,7 @@ export default class SearchController extends CommandController<SearchModel> {
   }
 
   /** Render one discovered thing — an exit by its direction, else by name. */
-  private render(found: Stuff): Mml {
+  protected static render(found: Stuff): Mml {
     if (found instanceof Exit) return Mml.exit(found);
     return Mml.thing(found);
   }

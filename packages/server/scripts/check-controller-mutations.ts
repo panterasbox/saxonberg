@@ -19,7 +19,12 @@
  *   - `this` / `super` (the controller's own surface);
  *   - an `*Api` class (orchestration through the gated facade is the
  *     sanctioned path — `ContainmentApi.move`, `StuffApi.destruct`);
- *   - `context` / `ctx` (the dispatch envelope: `ctx.note`).
+ *   - `context` / `ctx` (the dispatch envelope: `ctx.note`);
+ *   - the controller's own CLASS — a name bound to `this.constructor`
+ *     (`const words = this.constructor as typeof X`, the static-words
+ *     pattern a completion must use, controller-liquidity D12) or a class
+ *     declared in the same module. A static word method is the
+ *     controller's own surface exactly as `this.<method>` is.
  *
  * ⚠ A SHAPE census (docs/lint-family.md § Four ways a census lies, 1): a
  * mutator-named call on a local scene builder counts the same as one on a
@@ -62,14 +67,37 @@ function rootOf(e: ts.Expression): string {
   return ts.isIdentifier(x) ? x.text : "<expr>";
 }
 
+/** The names that stand for the module's own controller class (`this.constructor` bindings, declared classes). */
+function ownClassNames(sf: ts.SourceFile): Set<string> {
+  const own = new Set<string>();
+  const visit = (n: ts.Node): void => {
+    if (ts.isClassDeclaration(n) && n.name) own.add(n.name.text);
+    if (ts.isVariableDeclaration(n) && ts.isIdentifier(n.name) && n.initializer) {
+      let x: ts.Expression = n.initializer;
+      while (ts.isAsExpression(x) || ts.isParenthesizedExpression(x) || ts.isNonNullExpression(x)) x = x.expression;
+      if (
+        ts.isPropertyAccessExpression(x) &&
+        x.name.text === "constructor" &&
+        x.expression.kind === ts.SyntaxKind.ThisKeyword
+      ) {
+        own.add(n.name.text);
+      }
+    }
+    ts.forEachChild(n, visit);
+  };
+  visit(sf);
+  return own;
+}
+
 export function mutationsIn(sf: ts.SourceFile): Array<{ call: string; line: number }> {
   const out: Array<{ call: string; line: number }> = [];
+  const own = ownClassNames(sf);
   const visit = (n: ts.Node): void => {
     if (ts.isCallExpression(n) && ts.isPropertyAccessExpression(n.expression)) {
       const name = n.expression.name.text;
       if (MUTATOR.test(name) || BARE_WRITERS.has(name)) {
         const root = rootOf(n.expression.expression);
-        if (root !== "this" && root !== "super" && !root.endsWith("Api") && !NOT_WORLD.has(root)) {
+        if (root !== "this" && root !== "super" && !root.endsWith("Api") && !NOT_WORLD.has(root) && !own.has(root)) {
           out.push({
             call: `${root}….${name}(`,
             line: sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1,

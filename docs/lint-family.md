@@ -1333,6 +1333,48 @@ kernel and pack controller; ceiling = the census (8), may only fall. The
 fix is to resolve what the completion needs before engaging, or call a
 module function or a `static`.
 
+⚠⚠ **It read one FORM, and three completions hid in the others**
+(controller-liquidity W0, 2026-11-09). The regex matched only the inline
+block-bodied `onComplete: (…) => {`, so a hoisted `const onComplete = () =>
+this.x()` passed as `onComplete,` (`SearchController` — a timed `search`
+never resolved and never recorded `searched`), the same passed as
+`onComplete: <name>` (`TeleportController` — an engaged anchored cast never
+arrived) and a completion passed in as a PARAMETER (`TransfuseController.
+runOrEngage(…, () => { this.credit(); … })` — the blood moved and nothing
+else happened) all sat at a green 0. The gate is an AST walk now (D12): the
+inline closure (block or expression), the method shorthand, a named
+reference resolved to its `const`/`function` in the same file, a parameter
+resolved to the arrow every caller in the file passes at that position, and
+a bound `this.<method>` reference — over `onComplete`, `onRefused` and
+`onDone`. The three sites became `protected static` word methods reached
+through `this.constructor` (so a worded replacement's override still runs),
+and the ceiling stayed **0**. ⭐ The convention: *word methods are
+`protected static`; a completion closes over values and the class, never
+over `this`.*
+
+### The controller-liquidity censuses (2026-11-09)
+
+Opened at W0 of controller-liquidity on the tree it lands on (up to date
+with `origin/master`), each from the `check-controller-functions` template
+with a fixture test that sees it FAIL. Census, then ratchet.
+
+| gate | what it counts | W0 ceiling | falls in | at merge |
+|---|---|---|---|---|
+| `lint:greedy-object` | `greedy: true` on a `type: object\|objects` arg, top level and in every subcommand stanza, across `commandViews()` (prose `type: string` greedy is NOT counted — it stays) | **133** (107 object + 26 objects, 93 views) | W5 | **0**, then the schema refuses the key |
+| `lint:multi-act` | one finding per controller module (bases included) showing (a) a `switch`/comparison on `model.subcommand`, (b) a dispatch on a positional's typed word (`switch (model.x)` with word cases, `model.x[.raw] === '…'`), or (c) ≥ 2 `if` arms that test one target by `MixinApi.isX`/`instanceof` and then call DIFFERENT mutators on it (a read — `get`/`is`/`has`/`can`/`describe`/… — is input, not an act) | **41** (subcommand 15 · arg-word 6 · target-kind 22, two modules showing two; the survey's 75 is a reading classifier's, this a syntax census) | W7–W13 | — |
+| `lint:controller-gates` | in a controller (comments stripped): `AccessApi.can*` · `CompactApi.holdsOffice` · `AppApi.seatFor` · `.isAudienceMemberOf` · `.isFulfilling` · `.opensFor` · `.considerApplicant` · `.mayMove` · `.mayKeep` · `getOwner() !== … getPlayerId()` — a permission decided in a controller. The view's `requires*` validators are not counted | **44** (`AccessApi.can*` 28) | W3 | — |
+| `lint:lineage-keys` | AST over all mud code: a zero-arg `getTemplatePath()` as the VALUE (through `??`/`\|\|`/a conditional/`await`) of a property, variable or assignment whose name is a person-word (`holder · maker · owner · member · party · receiver · recipient · by · author · keeper` as the whole name or its first/last camelCase word), or compared with one. An identity-first fallback (`getIdentityPath() ?? getTemplatePath()`) and a template path passed INTO a lookup are not counted; structural reads are exempted in the script with a reason each (FloorplanWarren · ShipWarren plan owners, `LotGateExit.holderPath`, a business/publisher party, a diagnostic label) | **7** | W3 | **0** |
+| `lint:completion-this` (extended) | every form a completion can be written in (above) | **0** | — | **0** |
+
+⚠ **What `lint:lineage-keys` cannot see**, said here so nobody reads its
+zero as the disease cured: a template path passed POSITIONALLY into a
+person slot (`CraftingLogic`'s `maker.getTemplatePath()` argument,
+`MineWarren.promote(cell, giver.getTemplatePath())`), returned from a
+helper (`PartyControllerBase`, `DriftController`), or held under a
+non-person name (`referent`, `tplPath`). Those are D11's confirmed list and
+W3 switches them by hand; `MineWarren` taking a `ParcelOwner` puts the
+mining pair where `lint:person-keys` sees them.
+
 ### `lint:get-or-create` — `singleton` already does it (2026-09)
 
 ⭐ **`StuffApi.singleton(path)` IS the get-or-create** — index read

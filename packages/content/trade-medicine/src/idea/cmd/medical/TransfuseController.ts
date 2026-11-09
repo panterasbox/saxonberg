@@ -50,6 +50,11 @@ interface TransfuseModel extends CommandModel {
 export default class TransfuseController extends CommandController<TransfuseModel> {
   async execute(model: TransfuseModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
+    // ⚠ The effect lands at completion, after the dispatcher has destructed
+    // this controller: it closes over the CLASS (statics, reached through the
+    // instance's class so a worded replacement's override runs), never over
+    // `this` — a destroyed controller answers every call with a silent no-op.
+    const words = this.constructor as typeof TransfuseController;
     const named = model.patient?.stuff as Stuff | undefined;
     const patient: Stuff = named ?? (giver as unknown as Stuff);
     const self = named === undefined;
@@ -77,8 +82,8 @@ export default class TransfuseController extends CommandController<TransfuseMode
       return this.runOrEngage(context, giver, () => {
         patient.receiveBlood({ litres, blood: null, expander: true });
         slot.setAmount(Quantity.of(slot.getAmount().rawValue() - litres, 'L'));
-        void this.credit(giver);
-        this.narrate(context, self, patient, 0, true);
+        void words.credit(giver);
+        words.narrate(giver, self, patient, 0, true);
       });
     }
 
@@ -135,20 +140,20 @@ export default class TransfuseController extends CommandController<TransfuseMode
         },
       });
       slot.setAmount(Quantity.of(slot.getAmount().rawValue() - litres, 'L'));
-      void this.credit(giver);
-      this.narrate(context, self, patient, result.reaction, false);
+      void words.credit(giver);
+      words.narrate(giver, self, patient, result.reaction, false);
       // ⭐ The accountability trail: transfusing a REACTING unit into
       // someone else is harm done to them (the trap's producer shape) —
       // recorded, non-consented, so forcing bad blood into a body is a
       // crime on the record. A compatible transfusion (reaction 0) heals
       // and records nothing; self-use never records.
       if (!self && result.reaction > 0) {
-        this.recordHarm(giver as unknown as Stuff, patient);
+        words.recordHarm(giver as unknown as Stuff, patient);
       }
       // The revival deed (D8): if the patient was dying and is not now, the
       // chronicle remembers whose blood brought them back.
       if (!self && wasDying && !patient.isDying()) {
-        void this.recordRevival(patient, donorIdentityPath);
+        void words.recordRevival(patient, donorIdentityPath);
       }
     });
   }
@@ -157,7 +162,7 @@ export default class TransfuseController extends CommandController<TransfuseMode
    * A reacting unit forced into another body is NON-consented harm: a
    * transfusion just works, so there is no consent ladder, and a body
    * turning against bad blood is damage done to it, on the record. */
-  private recordHarm(giver: Stuff, patient: Stuff): void {
+  protected static recordHarm(giver: Stuff, patient: Stuff): void {
     const victimId = AccountabilityEvent.partyIdOf(patient);
     const giverId = AccountabilityEvent.partyIdOf(giver);
     if (!victimId || !giverId) return;
@@ -181,7 +186,7 @@ export default class TransfuseController extends CommandController<TransfuseMode
   }
 
   /** The recipient's chronicle remembers a transfusion that revived them. */
-  private async recordRevival(
+  protected static async recordRevival(
     patient: Stuff,
     donorIdentityPath: string,
   ): Promise<void> {
@@ -239,7 +244,8 @@ export default class TransfuseController extends CommandController<TransfuseMode
     context.note({ kind: 'controller-rejected', reason: 'engagement-conflict', detail: 'busy' });
   }
 
-  private async credit(giver: Stuff): Promise<void> {
+  /** `static`: it runs at completion, on a controller already destructed. */
+  protected static async credit(giver: Stuff): Promise<void> {
     if (MixinApi.isAdvancing(giver)) {
       await giver.creditDeed({
         discipline: 'nursing',
@@ -249,14 +255,14 @@ export default class TransfuseController extends CommandController<TransfuseMode
     }
   }
 
-  private narrate(
-    context: CommandContext,
+  /** `static`: it runs at completion, on a controller already destructed. */
+  protected static narrate(
+    giver: Stuff,
     self: boolean,
     patient: Stuff,
     reaction: number,
     saline: boolean,
   ): void {
-    const giver = context.commandGiver;
     const who = self ? 'yourself' : patient.getPresentation();
     const line =
       reaction > 0

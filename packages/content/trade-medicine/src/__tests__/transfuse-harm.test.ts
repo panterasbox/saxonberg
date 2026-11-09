@@ -25,6 +25,12 @@ import {
   stampTemplatePathForTest,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { EventApi } from '@saxonberg/server/mud/api/event';
+import EventRegistry from '@saxonberg/server/mud/platform/idea/EventRegistry';
+import { Stuff as StuffBase } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -170,5 +176,54 @@ describe('transfuse — the harm row', () => {
       ctxFor(giver),
     );
     expect(record).not.toHaveBeenCalled();
+  });
+});
+
+describe('transfuse — the engaged give lands after its controller is gone (controller-liquidity D12)', () => {
+  beforeEach(async () => {
+    WorldClockApi._resetForTesting();
+    WorldClockApi.setScale(1);
+    WorldClockApi._setNowProviderForTesting(() => 1000);
+    SchedulerApi._clearAllForTesting();
+    // The scheduler subscribes to StuffDestructed on start → EventRegistry.
+    const reg = await StuffApi.create(() => {
+      const r = new EventRegistry();
+      StuffBase._stampTemplatePath(r, '/platform/idea/EventRegistry');
+      return r;
+    });
+    StuffApi.unregister(reg);
+    StuffApi.register(reg);
+    EventApi._setRegistryForTesting(reg);
+  });
+  afterEach(() => {
+    SchedulerApi._clearAllForTesting();
+    WorldClockApi._resetForTesting();
+  });
+
+  it('⭐ the scheduled give narrates and records after the dispatcher has destructed the controller', async () => {
+    const giver = npc();
+    expect(MixinApi.isEngaged(giver), 'an engaged giver takes the scheduled path').toBe(true);
+    const patient = npc(); // O; a 'B' unit mismatches → reaction 1
+    const record = vi.spyOn(AccountabilityApi, 'record').mockImplementation(() => {});
+    const bag = bloodBag(giver, 'B');
+
+    const ctrl = makeStuff(() => new TransfuseController());
+    await ctrl.execute(
+      {
+        patient: { stuff: patient } as unknown as MqlOneResult,
+        vessel: { stuff: bag } as unknown as MqlOneResult,
+        syringe: undefined,
+      },
+      ctxFor(giver),
+    );
+    expect(note).toHaveBeenCalledWith(expect.objectContaining({ kind: 'engagement-started' }));
+    // The dispatcher's `finally`: the controller is gone before the give lands.
+    await StuffApi.destruct(ctrl);
+    selfLines = [];
+    expect(record).not.toHaveBeenCalled();
+    WorldClockApi._advanceForTesting(120_000);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(record).toHaveBeenCalledWith(expect.objectContaining({ kind: 'harm', consented: false }));
+    expect(selfLines.some((l) => /does not match/.test(l)), selfLines.join(' | ')).toBe(true);
   });
 });
