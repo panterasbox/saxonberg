@@ -63,6 +63,9 @@ export class BroadcastFeed {
   /** The panel rows each overlay socket was given at connect (P7). */
   private panelsBySocket: Map<string, StreamPanelRow[]> = new Map();
 
+  /** The panel rows the last listing returned (sent ahead of a re-list). */
+  private knownPanels: StreamPanelRow[] = [];
+
   /** Each streamer's last show — re-sent when a world fact moves. */
   private lastShow: Map<string, StreamShowCore> = new Map();
 
@@ -108,9 +111,20 @@ export class BroadcastFeed {
     );
     // 0→1 edge for THIS streamer: open their own channel reads.
     if (firstForPlayer) void StreamApi.setOverlayReading(playerId, true);
-    this.panelsBySocket.set(socketId, await StreamApi.lowerThirdPanels());
+    // ⭐ The snapshot goes FIRST — an overlay must not wait on a document
+    // listing to learn its phase (the drive found a busy world taking
+    // longer than a browser source's patience). It carries the rows the
+    // feed last listed; the fresh listing follows and re-sends if it moved.
+    this.panelsBySocket.set(socketId, this.knownPanels);
     const show = this.residentShow(playerId);
     if (show) this.pushShowTo(socketId, show);
+    const panels = await StreamApi.lowerThirdPanels();
+    if (!this.connections.has(socketId)) return;
+    const moved = JSON.stringify(panels) !== JSON.stringify(this.knownPanels);
+    this.knownPanels = panels;
+    this.panelsBySocket.set(socketId, panels);
+    const latest = this.residentShow(playerId);
+    if (moved && latest) this.pushShowTo(socketId, latest);
   }
 
   /** Register a control socket (pblive) for `playerId`. */

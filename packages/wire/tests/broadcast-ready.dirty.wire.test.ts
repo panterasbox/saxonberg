@@ -155,9 +155,11 @@ beforeAll(async () => {
   hostHandle = uniqueHandle('br-host');
   host = await Session.open(hostHandle, { startLocation: BAR, streamer: true });
   guest = await Session.open(uniqueHandle('br-guest'), { startLocation: BAR });
-  const me = await host.queryOne('me', ['displayName']);
-  hostName = String((me as { displayName?: string } | null)?.displayName ?? '').split(/\s+/)[0] ?? '';
-  expect(hostName, 'the streamer has a name').not.toBe('');
+  // Address the streamer by stuffId (`#id`): a test character's name is
+  // its handle, which no keyword match reads.
+  const me = await host.queryOne('me', 'ref');
+  hostName = `#${String((me as { stuffId?: string } | null)?.stuffId ?? '')}`;
+  expect(hostName, 'the streamer has an id').not.toBe('#');
 }, 120_000);
 
 afterAll(() => {
@@ -173,9 +175,10 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
     const token = await issueToken(host);
     feed = await TokenSocket.open('broadcast', token);
     // The streamer is resident: the overlay gets its snapshot at once.
-    const first = await feed.show(() => true);
+    const first = await feed.show(() => true, 0, 30_000);
     expect(first.phase).toBe('offline');
-    expect(first.panels.length, 'the lower third rows ride the feed').toBeGreaterThan(0);
+    const withRows = await feed.show((s) => s.panels.length > 0, 0, 30_000);
+    expect(withRows.panels.map((p) => p.key), 'the lower third rows ride the feed').toContain('join');
 
     expectOk(await host.cmd('stream agenda the glass trade, paper, questions'));
     expectOk(await host.cmd('stream segment This week in Saxonberg'));
@@ -249,6 +252,8 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
     host.close();
     await new Promise((r) => setTimeout(r, 1_500));
     host = await Session.open(hostHandle, { startLocation: BAR, streamer: true });
+    // A reloaded body is a new Stuff: re-read the id others address.
+    hostName = `#${String(((await host.queryOne('me', 'ref')) as { stuffId?: string } | null)?.stuffId ?? '')}`;
     const back = await feed.show((s) => s.phase === 'standby', mark);
     expect(back.reason?.key).toBe('privacy');
     expect(back.awayUntil).toBeNull();

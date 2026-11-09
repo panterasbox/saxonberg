@@ -120,9 +120,12 @@ describe('BroadcastFeed — one feed per streamer', () => {
   it('sends a resident streamer a snapshot on connect, with the panels and the player count', async () => {
     resident.pa = show('standby');
     await BroadcastFeed.get().addConnection('a1', 'pa');
-    const [first] = of('a1', 'stream-state');
-    expect(first).toBeDefined();
-    const state = (first!.envelope as Extract<Envelope, { type: 'stream-state' }>).state;
+    const states = of('a1', 'stream-state');
+    // The snapshot goes first (no rows listed yet), then the listed rows.
+    expect(states.length).toBe(2);
+    const firstState = (states[0]!.envelope as Extract<Envelope, { type: 'stream-state' }>).state;
+    expect(firstState.phase).toBe('standby');
+    const state = (states[1]!.envelope as Extract<Envelope, { type: 'stream-state' }>).state;
     expect(state.phase).toBe('standby');
     expect(state.panels.map((p) => p.key)).toEqual(['join']);
     expect(typeof state.playersOnline).toBe('number');
@@ -196,7 +199,7 @@ describe('BroadcastFeed — one feed per streamer', () => {
     process.env.SAXONBERG_BUILD_AT = '2026-11-08T12:00:00Z';
     resident.pa = show('live');
     await BroadcastFeed.get().addConnection('a1', 'pa');
-    const state = (of('a1', 'stream-state')[0]!.envelope as Extract<Envelope, { type: 'stream-state' }>).state;
+    const state = (of('a1', 'stream-state').at(-1)!.envelope as Extract<Envelope, { type: 'stream-state' }>).state;
     expect(state.build).toEqual({ sha: 'abc1234', at: '2026-11-08T12:00:00Z' });
   });
 
