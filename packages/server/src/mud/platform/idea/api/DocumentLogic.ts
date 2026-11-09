@@ -8,7 +8,10 @@ import { AccessApi } from "../../../api/access";
 import { ParcelApi } from "../../../api/parcel";
 import { ProvenanceApi } from "../../../api/provenance";
 import { ExecutionContextApi } from "../../../api/execution-context";
-import { StoredDocument } from "../../../lib/document/StoredDocument";
+import {
+  StoredDocument,
+  type DocumentKeyQuery,
+} from "../../../lib/document/StoredDocument";
 import { MixinApi } from "../../../api/mixin";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Publisher } from "../../../lib/press/Publisher";
@@ -93,12 +96,63 @@ async function readImpl(path: string): Promise<StoredDocument | null> {
   return StoredDocument.findByPath(path);
 }
 
+/** The upper bound of a path subtree range: every path under `p/` sorts below it. */
+const PATH_RANGE_END = '\uffff';
+
+/** The path range a subtree `prefix/…` occupies — served by the unique path index. */
+function subtreeRange(prefix: string): { $gte: string; $lt: string } {
+  const under = prefix.endsWith('/') ? prefix : `${prefix}/`;
+  return { $gte: under, $lt: under + PATH_RANGE_END };
+}
+
+/**
+ * Every document whose path is `prefix` or lies under `prefix/` — a range
+ * over the unique path index, never a collection scan.
+ */
+async function documentsUnder(prefix: string): Promise<StoredDocument[]> {
+  const bare = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
+  return StoredDocument.find<StoredDocument>({
+    $or: [{ path: bare }, { path: subtreeRange(prefix) }],
+  });
+}
+
 async function listImpl(prefix: string): Promise<StoredDocument[]> {
-  return StoredDocument.findByPrefix(prefix);
+  return documentsUnder(prefix);
 }
 
 async function listOfKindImpl(kind: string): Promise<StoredDocument[]> {
   return StoredDocument.findByKind(kind);
+}
+
+/**
+ * ⭐ Documents of `kind` found by one key of their catalogue card. One
+ * query shape, served by the `{kind, 'keys.$**'}` wildcard index:
+ * equality, or an inclusive range, on `keys.<key>`; an ordered read with no
+ * bound still constrains the key (`$exists`) so the sort runs on the index
+ * (and a document with no value for the key is not returned); a prefix is a
+ * path range, never a regex.
+ */
+async function findByKeyImpl(
+  kind: string,
+  key: string,
+  q: DocumentKeyQuery,
+): Promise<StoredDocument[]> {
+  const field = `keys.${key}`;
+  let cond: unknown;
+  if (q.eq !== undefined) {
+    cond = q.eq;
+  } else {
+    const range: Record<string, unknown> = {};
+    if (q.min !== undefined) range.$gte = q.min;
+    if (q.max !== undefined) range.$lte = q.max;
+    cond = Object.keys(range).length > 0 ? range : { $exists: true };
+  }
+  const query: Record<string, unknown> = { kind, [field]: cond };
+  if (q.prefix) query.path = subtreeRange(q.prefix);
+  const options: { sort?: Record<string, 1 | -1>; limit?: number } = {};
+  if (q.order) options.sort = { [field]: q.order === 'asc' ? 1 : -1 };
+  if (q.limit !== undefined) options.limit = q.limit;
+  return StoredDocument.find<StoredDocument>(query, options);
 }
 
 /**
@@ -444,7 +498,7 @@ async function readMapsImpl(
   const base = prefix.length > 0
     ? `${owner}/${MAPS_DIR}/${prefix}`
     : `${owner}/${MAPS_DIR}`;
-  const rows = await StoredDocument.findByPrefix(base);
+  const rows = await documentsUnder(base);
   return rows
     .filter((d) => d.kind === 'map')
     .map((d) => ({ path: d.path, data: d.data as Record<string, unknown> }));
@@ -717,7 +771,7 @@ async function freezeEditionImpl(req: EditionRequest): Promise<string> {
   const sourceDoc = await StoredDocument.findByPath(source);
   const owner =
     sourceDoc?.getOwner() ??
-    (await StoredDocument.findByPrefix(`${source}/`)).find((d) => d.getOwner() !== '')?.getOwner() ??
+    (await documentsUnder(`${source}/`)).find((d) => d.getOwner() !== '')?.getOwner() ??
     '';
   if (owner === '') {
     throw new TypeError(`DocumentApi.freezeEdition: ${source} names no document to print from`);
@@ -762,7 +816,7 @@ async function callUpImpl(reader: Stuff, word: string): Promise<{ path: string; 
   if (release !== undefined) return { path: release.getPath(), title: `"${release.getHeadline()}"` };
   const key = (reader.getIdentityPath() ?? '').split('/').filter(Boolean).pop() ?? '';
   if (key === '') return null;
-  for (const d of await StoredDocument.findByPrefix(`/home/${key}/`)) {
+  for (const d of await documentsUnder(`/home/${key}/`)) {
     const pages = await pagesOfImpl(d.getPath());
     if (pages !== null && pages.title.toLowerCase().includes(w)) return { path: d.getPath(), title: pages.title };
   }
@@ -799,6 +853,16 @@ export class DocumentLogic extends ApiLogic {
   @CallSecurity(DocumentApiCallers)
   public async listOfKind(kind: string): Promise<StoredDocument[]> {
     return listOfKindImpl(kind);
+  }
+
+  /** See {@link DocumentApi.findByKey}. */
+  @CallSecurity(DocumentApiCallers)
+  public async findByKey(
+    kind: string,
+    key: string,
+    q: DocumentKeyQuery = {},
+  ): Promise<StoredDocument[]> {
+    return findByKeyImpl(kind, key, q);
   }
 
   /**

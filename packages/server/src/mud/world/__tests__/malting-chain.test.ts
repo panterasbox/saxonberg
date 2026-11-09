@@ -71,6 +71,7 @@ function recipeOf(pack: string, id: string): Recipe {
     parse(
       readFileSync(join(pack, 'content', 'recipes', `${id}.yaml`), 'utf8'),
     ) as Record<string, unknown>,
+    `/test/recipes/${id}`,
   );
 }
 

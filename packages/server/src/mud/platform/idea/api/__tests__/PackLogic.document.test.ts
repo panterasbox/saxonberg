@@ -272,10 +272,10 @@ describe('the domain walk skips cmd/ under content/world/', () => {
   });
 });
 
-/* ───────────── the flat-key exemplar: emote ───────────── */
+/* ───────────── the typed-word exemplar: emote ───────────── */
 
-const GRIN = { verb: 'grin', grammar: { slots: {}, template: '{{ actor }} grins.' }, tags: [] as string[] };
-const grinRow = () => rowsOfKind('emote').find((r) => (r.data as { verb: string }).verb === 'grin');
+const GRIN = { grammar: { slots: {}, template: '{{ actor }} grins.' }, tags: [] as string[] };
+const grinRow = () => rowsOfKind('emote').find((r) => String(r.path).endsWith('/emotes/grin'));
 
 async function installEmote(): Promise<string> {
   const packRoot = writePack('p', [], { root: '/expression' });
@@ -284,33 +284,19 @@ async function installEmote(): Promise<string> {
   return packRoot;
 }
 
-describe('the emote document kind (flat-key) — matrix', () => {
-  it('installs at /expression/emotes/grin with data.verb from the file', async () => {
+describe('the emote document kind (a typed word, named by its path) — matrix', () => {
+  it('installs at /expression/emotes/grin; its word is the leaf, on the card', async () => {
     await installEmote();
     expect(grinRow()).toMatchObject({
       path: '/expression/emotes/grin',
       owner: '/expression',
       kind: 'emote',
       sourcePack: 'p',
-      data: { verb: 'grin', valence: 0 },
+      data: { valence: 0 },
+      keys: { word: 'grin' },
     });
+    expect((grinRow()!.data as { verb?: string }).verb).toBeUndefined();
     expect(recordOf('p')!.rows['/emotes/grin']!.kind).toBe('document:emote');
-  });
-
-  it('a file omitting the natural key gets it from the basename', async () => {
-    const packRoot = writePack('p', [], { root: '/expression' });
-    writeDocumentFile(packRoot, 'emotes', 'grin', { grammar: GRIN.grammar });
-    await PackApi.install([packRoot]);
-    expect((grinRow()!.data as { verb: string }).verb).toBe('grin');
-  });
-
-  it('a file whose verb ≠ basename fails the pack at read', async () => {
-    const packRoot = writePack('p', [], { root: '/expression' });
-    writeDocumentFile(packRoot, 'emotes', 'grin', { ...GRIN, verb: 'smirk' });
-    const [r] = await PackApi.install([packRoot]);
-    expect(r!.failure?.step).toBe('read');
-    expect(r!.failure?.error).toMatch(/basename IS the key/);
-    expect(documentRows()).toHaveLength(0);
   });
 
   it('file changed / DB same → update; file same / DB changed → kept', async () => {
@@ -348,12 +334,12 @@ describe('the emote document kind (flat-key) — matrix', () => {
   });
 });
 
-describe('a flat-key kind is keyed by its natural key', () => {
-  it('an unstamped row with the same natural key at ANY path is refused, never adopted', async () => {
+describe('a document is keyed by its PATH — for every kind', () => {
+  it('an unstamped row at the same path is refused, never adopted', async () => {
     store.rows.push({
       _id: 'stray-grin',
       __col: 'documents',
-      path: '/emotes/grin',
+      path: '/expression/emotes/grin',
       owner: '',
       kind: 'emote',
       data: { ...GRIN, valence: 0 },
@@ -364,15 +350,34 @@ describe('a flat-key kind is keyed by its natural key', () => {
     expect(r!.failure?.step).toBe('reconcile');
     expect(r!.failure?.error).toMatch(/no sourcePack stamp/);
     expect(rowsOfKind('emote')).toHaveLength(1);
-    expect(grinRow()).toMatchObject({ _id: 'stray-grin', path: '/emotes/grin' });
+    expect(grinRow()).toMatchObject({ _id: 'stray-grin', path: '/expression/emotes/grin' });
   });
 
-  it('refuses a row another pack stamped', async () => {
+  it('a row of the same kind and leaf at ANOTHER path is another document — not adopted, not touched', async () => {
+    store.rows.push({
+      _id: 'elsewhere',
+      __col: 'documents',
+      path: '/home/x/emotes/grin',
+      owner: '/home/x',
+      kind: 'emote',
+      data: { ...GRIN },
+    });
+    const packRoot = writePack('p', [], { root: '/expression' });
+    writeDocumentFile(packRoot, 'emotes', 'stare', { ...GRIN });
+    const [r] = await PackApi.install([packRoot]);
+    expect(r!.failure).toBeNull();
+    expect(r!.inserted).toEqual(['/emotes/stare']);
+    expect(rowsOfKind('emote').find((x) => x._id === 'elsewhere')).toMatchObject({
+      path: '/home/x/emotes/grin',
+    });
+  });
+
+  it('refuses a row another pack stamped at the same path', async () => {
     store.rows.push({
       _id: 'theirs',
       __col: 'documents',
-      path: '/q/emotes/grin',
-      owner: '/q',
+      path: '/expression/emotes/grin',
+      owner: '/expression',
       kind: 'emote',
       data: { ...GRIN },
       sourcePack: 'q',
@@ -397,14 +402,15 @@ describe('the recipe document kind', () => {
     outputTemplate: '/trade/hospitality/thing/coupe',
   };
 
-  it('installs at /generic-objects/recipes/<recipeId> and updates on a file change', async () => {
+  it('installs at /generic-objects/recipes/<word> with its word and output on the card, and updates on a file change', async () => {
     const packRoot = writePack('g', [], { root: '/generic-objects' });
     writeDocumentFile(packRoot, 'recipes', 'martini', MARTINI);
     const [r] = await PackApi.install([packRoot]);
     expect(r!.inserted).toEqual(['/recipes/martini']);
     expect(rowsOfKind('recipe')[0]).toMatchObject({
       path: '/generic-objects/recipes/martini',
-      data: { recipeId: 'martini', name: 'Gin Martini' },
+      data: { name: 'Gin Martini' },
+      keys: { word: 'martini', output: '/trade/hospitality/thing/coupe' },
     });
     writeDocumentFile(packRoot, 'recipes', 'martini', { ...MARTINI, name: 'Dry Martini' });
     const s = await PackApi.sync('g', packRoot);
@@ -424,7 +430,7 @@ describe('the recipe document kind', () => {
 /* ───────────── the blueprint kind: one cell ───────────── */
 
 describe('the blueprint document kind', () => {
-  it('installs a curated blueprint at /platform/blueprints/<id>; a player-minted blueprint with the same id is refused, not clobbered', async () => {
+  it('installs a curated blueprint at /platform/blueprints/<id>; a player-minted blueprint at the same path is refused, not clobbered', async () => {
     const packRoot = writePack('platform', [], { root: '/platform' });
     writeDocumentFile(packRoot, 'blueprints', 'coin', { name: 'Coin', kind: 'concrete', baseClass: 'Thing', classPath: '/stuff/thing/Coin' });
     const [r] = await PackApi.install([packRoot]);
@@ -433,18 +439,18 @@ describe('the blueprint document kind', () => {
       path: '/platform/blueprints/coin',
       owner: '/platform',
       sourcePack: 'platform',
-      data: { blueprintId: 'coin', classPath: '/stuff/thing/Coin' },
+      data: { classPath: '/stuff/thing/Coin' },
     });
-    // The same blueprintId minted by a player elsewhere: the unique index
-    // says one row per id, and the pack does not take it over.
+    // A blueprint minted by a player at the same PATH: the unique path
+    // index says one row per path, and the pack does not take it over.
     store.rows = store.rows.filter((x) => x.kind !== 'blueprint');
     store.rows.push({
       _id: 'minted',
       __col: 'documents',
-      path: '/blueprints/coin',
+      path: '/platform/blueprints/coin',
       owner: '/platform/agent/Avatar/x',
       kind: 'blueprint',
-      data: { blueprintId: 'coin', name: 'Coin', baseClass: 'Thing' },
+      data: { name: 'Coin', baseClass: 'Thing' },
     });
     const [r2] = await PackApi.install([packRoot]);
     expect(r2!.failure?.step).toBe('reconcile');

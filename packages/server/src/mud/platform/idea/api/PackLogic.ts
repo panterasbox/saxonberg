@@ -27,6 +27,7 @@ import {
   type DocumentKindSpec,
   type DocumentVanishPolicy,
 } from '../../../lib/document/DocumentKinds';
+import { StoredDocument } from '../../../lib/document/StoredDocument';
 import { TOPIC_ROOTS } from '@saxonberg/types';
 import Topic from '../Topic';
 import { PersistApi } from '../../../api/persist';
@@ -168,10 +169,10 @@ const GATED_DOCUMENT_KINDS: ReadonlySet<DeclaredDocumentKind> = new Set<Declared
  * before inserting, moved to the pack boundary so a malformed file fails
  * the pack before any write. A kind with no entry is stored as parsed.
  */
-const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>) => void> = {
-  emote: (d) => void Emote.fromData(d),
-  recipe: (d) => void Recipe.fromData(d),
-  archetype: (d) => void Archetype.fromData(d),
+const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>, path: string) => void> = {
+  emote: (d, p) => void Emote.fromData(d, p),
+  recipe: (d, p) => void Recipe.fromData(d, p),
+  archetype: (d, p) => void Archetype.fromData(d, p),
   'command-view': (d) => {
     const trail = CommandApi.validateCommandView(d);
     if (trail !== null) throw new Error(`does not conform to the command schema:\n${trail}`);
@@ -857,9 +858,10 @@ function readYamlObject(pack: ResolvedPack, file: string, what: string): Record<
 
 /**
  * Read one declared document kind's files from `content/<contentDir>/`.
- * A `.yaml` file's object becomes `data` (a flat-key kind whose file
- * omits the natural key gets it from the basename; a key that disagrees
- * with the basename fails at `read`); an `.msh` file becomes
+ * A `.yaml` file's object becomes `data` (the file's place under the
+ * kind's dir IS its name — `aromas/smoke/peat-smoke.yaml` is stored at
+ * `<root>/aromas/smoke/peat-smoke`; nothing in the file names it); an
+ * `.msh` file becomes
  * `data: { source }` verbatim (the retired ScriptSeeder's shape). Never a
  * glob over `content/` — each kind's dir is enumerated by the table.
  */
@@ -895,22 +897,12 @@ function readDocumentKind(pack: ResolvedPack, spec: DocumentKindSpec): DocumentF
     const name = basename(relKey);
     const key =
       spec.kind === 'command-view' ? commandViewPathOf(relKey) : `/${spec.contentDir}/${relKey}`;
+    const path = spec.kind === 'command-view' ? commandViewPathOf(relKey) : root + key;
     let data: Record<string, unknown>;
     if (spec.ext === 'yaml') {
       data = readYamlObject(pack, file, `${spec.kind} document`);
-      const nk = spec.naturalKey;
-      if (nk !== null) {
-        if (data[nk] === undefined) data[nk] = name;
-        else if (String(data[nk]) !== name) {
-          throw new Error(
-            `PackApi: pack '${pack.manifest.id}': ${spec.kind} document at ${file} ` +
-              `declares ${nk} '${String(data[nk])}' but its file name says '${name}' ` +
-              `— the basename IS the key`,
-          );
-        }
-      }
       try {
-        DOCUMENT_VALIDATORS[spec.kind]?.(data);
+        DOCUMENT_VALIDATORS[spec.kind]?.(data, path);
       } catch (err) {
         throw new Error(
           `PackApi: pack '${pack.manifest.id}': ${spec.kind} document at ${file}: ${(err as Error).message}`,
@@ -921,7 +913,7 @@ function readDocumentKind(pack: ResolvedPack, spec: DocumentKindSpec): DocumentF
     }
     out.push({
       key,
-      path: spec.kind === 'command-view' ? commandViewPathOf(relKey) : root + key,
+      path,
       data,
       relFile: relative(pack.root, file),
     });
@@ -1709,7 +1701,7 @@ function rowKeyOf(spec: DocumentKindSpec, root: string, r: Record<string, unknow
  * `{ data }` only — `owner`/`path`/`kind`/`sourcePack` are bookkeeping.
  */
 function documentStrategy(spec: DocumentKindSpec, root: string): KindStrategy<DocumentFile> {
-  const nk = spec.naturalKey;
+  const words = spec.words;
   return {
     kind: 'document',
     documentKind: spec.kind,
@@ -1720,19 +1712,23 @@ function documentStrategy(spec: DocumentKindSpec, root: string): KindStrategy<Do
     ext: spec.ext,
     recordKeyOf: (f) => f.key,
     recordKeyOfRow: (r) => rowKeyOf(spec, root, r),
-    // A flat-key kind's identity IS its natural key (the unique partial
-    // index says so): a row with this key at ANY path is this row.
-    dbKeyQuery: (f) => (nk ? { kind: spec.kind, [`data.${nk}`]: f.data[nk] } : { kind: spec.kind, path: f.path }),
+    // ⭐ A document's identity is its PATH — for every kind (the unique
+    // path index says so). Nothing adopts a row at another path.
+    dbKeyQuery: (f) => ({ kind: spec.kind, path: f.path }),
     stampedQuery: () => ({ kind: spec.kind }),
     rowOf: (f, packId) => ({
       path: f.path,
       owner: root,
       kind: spec.kind,
       data: f.data,
+      // The catalogue card, derived here as `StoredDocument.save` derives
+      // it: the installer writes before any persistence hook is loaded.
+      keys: StoredDocument.cardOf(spec.kind, f.path, f.data),
       sourcePack: packId,
     }),
     canonicalBody: (r) => canonical({ data: r.data ?? {} }),
-    flatKeyOf: nk ? (f) => String(f.data[nk]) : undefined,
+    // A typed word means one thing across the install set (D3).
+    flatKeysOf: words ? (f) => words({ path: f.path, data: f.data }) : undefined,
     exportBody: (r) => (r.data ?? {}) as Record<string, unknown>,
   };
 }

@@ -21,24 +21,51 @@
  * kinds with their own target collections; their strategies are
  * hand-written in `PackLogic`).
  *
- * Imports nothing — `PersistenceManager` reads it lazily to build the
- * kind-scoped indexes, and the reset policy reads it statically.
+ * Imports nothing — the reset policy and the schema generator read it
+ * statically. A document's PATH is its only identity (no kind carries a
+ * second name); a kind's `keys` and `words` are how it is FOUND otherwise.
  */
 
 /** What the installer does when a kind's file vanishes from its pack. */
 export type DocumentVanishPolicy = 'delete' | 'archive' | 'keep';
 
+/** A value a document's catalogue card may hold — what one index can order and compare. */
+export type DocumentKeyValue = string | number | boolean | Array<string | number>;
+
+/** The slice of a document a key derivation reads: its identity and its body. */
+export interface DocumentKeySource {
+  path: string;
+  data: Record<string, unknown>;
+}
+
+/**
+ * How a kind derives one key of its card. `undefined` means *this document
+ * has no value for that key* — it is left off the card, so the index holds
+ * nothing for it.
+ */
+export type DocumentKeyDerivation = (doc: DocumentKeySource) => DocumentKeyValue | undefined;
+
 export interface DocumentKindSpec {
   /** The `kind` string stored on the row. */
   kind: string;
   /**
-   * Dotted field under `data` that is the natural key (`verb`,
-   * `recipeId`, `key`, `blueprintId`), or null for a path-keyed kind.
-   * Non-null ⇒ the installer adopts by `{kind, 'data.<naturalKey>'}` and
-   * the flat-key check covers it; PersistenceManager creates
-   * `{kind:1, 'data.<naturalKey>':1}` unique, partial on `kind`.
+   * ⭐ The **catalogue card**: the keys every document of this kind can be
+   * found by besides its path, each DERIVED from the document's own data —
+   * never authored, so it can never drift from the value it repeats.
+   * `StoredDocument.cardOf` writes them to the row's `keys`; one wildcard
+   * index (`{kind, 'keys.$**'}`) serves equality, a range and an order on
+   * any of them, whatever the kind's shape. A key nobody reads is a
+   * declaration to delete. Absent ⇒ an empty card.
    */
-  naturalKey: string | null;
+  keys?: Readonly<Record<string, DocumentKeyDerivation>>;
+  /**
+   * The **typed words** of a kind a player names by a word (`smile`,
+   * `carve stool`). Stored on the card as `keys.word`; a word means one
+   * thing, so a second pack claiming one is refused at install, naming
+   * both (`PackLogic` `wordFailures`, `lint:typed-words`). Absent ⇒ the
+   * kind's documents are named by path only.
+   */
+  words?: (doc: DocumentKeySource) => string[];
   /** The pack subdir the kind's files live under (`emotes`). */
   contentDir: string;
   /** File extension the reader accepts. */
@@ -46,16 +73,33 @@ export interface DocumentKindSpec {
   onVanish: DocumentVanishPolicy;
 }
 
+/** The last segment of a document's path — the word a typed-word kind is named by. */
+const leafWord = (doc: DocumentKeySource): string[] => {
+  const leaf = doc.path.slice(doc.path.lastIndexOf('/') + 1);
+  return leaf ? [leaf] : [];
+};
+
+/** A recipe's `outputTemplate` — `recipeFor(output)` reads it. */
+const recipeOutput: DocumentKeyDerivation = (doc) =>
+  typeof doc.data.outputTemplate === 'string' ? doc.data.outputTemplate : undefined;
+
+/** A release's publication instant (epoch-ms) — the press reads newest first by it. */
+const releasePublishedAt: DocumentKeyDerivation = (doc) =>
+  typeof doc.data.publishedAt === 'number' ? doc.data.publishedAt : undefined;
+
+/** Whether a release is pinned — the ticker reads its pins by it. */
+const releasePinned: DocumentKeyDerivation = (doc) => doc.data.pinned === true;
+
 export const DOCUMENT_KINDS = {
   /**
    * `msh` scripts — the language's name is the kind (was `'script'`
    * before wave 2; a boot migration renames the rows once). The stored
    * value is the source text verbatim in `data.source`.
    */
-  msh: { kind: 'msh', naturalKey: null, contentDir: 'msh', ext: 'msh', onVanish: 'delete' },
+  msh: { kind: 'msh', contentDir: 'msh', ext: 'msh', onVanish: 'delete' },
   /** Press-owned; no pack ships one this wave. */
-  release: { kind: 'release', naturalKey: null, contentDir: 'releases', ext: 'yaml', onVanish: 'delete' },
-  emote: { kind: 'emote', naturalKey: 'verb', contentDir: 'emotes', ext: 'yaml', onVanish: 'delete' },
+  release: { kind: 'release', keys: { publishedAt: releasePublishedAt, pinned: releasePinned }, contentDir: 'releases', ext: 'yaml', onVanish: 'delete' },
+  emote: { kind: 'emote', words: leafWord, contentDir: 'emotes', ext: 'yaml', onVanish: 'delete' },
   /**
    * An aroma: what a nose can read, with its threshold, the discipline that
    * trains a nose to it, its hedonic curve and its `parent:` in the tree. Named
@@ -63,13 +107,13 @@ export const DOCUMENT_KINDS = {
    * that path when something names it (`lib/perception/Aroma.ts`). Authored
    * metadata: nothing writes one.
    */
-  aroma: { kind: 'aroma', naturalKey: null, contentDir: 'aromas', ext: 'yaml', onVanish: 'delete' },
-  recipe: { kind: 'recipe', naturalKey: 'recipeId', contentDir: 'recipes', ext: 'yaml', onVanish: 'delete' },
-  'name-bank': { kind: 'name-bank', naturalKey: null, contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
-  blueprint: { kind: 'blueprint', naturalKey: 'blueprintId', contentDir: 'blueprints', ext: 'yaml', onVanish: 'delete' },
-  'command-view': { kind: 'command-view', naturalKey: null, contentDir: 'cmd', ext: 'yaml', onVanish: 'delete' },
+  aroma: { kind: 'aroma', contentDir: 'aromas', ext: 'yaml', onVanish: 'delete' },
+  recipe: { kind: 'recipe', words: leafWord, keys: { output: recipeOutput }, contentDir: 'recipes', ext: 'yaml', onVanish: 'delete' },
+  'name-bank': { kind: 'name-bank', contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
+  blueprint: { kind: 'blueprint', contentDir: 'blueprints', ext: 'yaml', onVanish: 'delete' },
+  'command-view': { kind: 'command-view', contentDir: 'cmd', ext: 'yaml', onVanish: 'delete' },
   /** The venue archetype — an industry's floor in capabilities (content-packs A13/A14). */
-  archetype: { kind: 'archetype', naturalKey: 'archetypeId', contentDir: 'archetypes', ext: 'yaml', onVanish: 'delete' },
+  archetype: { kind: 'archetype', words: leafWord, contentDir: 'archetypes', ext: 'yaml', onVanish: 'delete' },
   /**
    * A **water right** — a volume per window plus a priority date.
    *
@@ -90,7 +134,7 @@ export const DOCUMENT_KINDS = {
    * validated save that decides what a legitimate right looks like is
    * the water pack's.
    */
-  'water-right': { kind: 'water-right', naturalKey: null, contentDir: 'water-rights', ext: 'yaml', onVanish: 'keep' },
+  'water-right': { kind: 'water-right', contentDir: 'water-rights', ext: 'yaml', onVanish: 'keep' },
   /**
    * A **map** — one player's knowledge of one locality: the places they
    * have been, and the edges they used (location-graph B3).
@@ -110,8 +154,8 @@ export const DOCUMENT_KINDS = {
    * (`map terminus` lists every map under it) — and copying one
    * locality's map hands over nothing about any other.
    *
-   * `naturalKey: null` because a map is not named by its content; it is
-   * named by whose it is and where it is of.
+   * A map has no card: it is not named by its content; it is named by
+   * whose it is and where it is of.
    *
    * ⚠ `onVanish: 'keep'`, for `water-right`'s reason exactly: a map is a
    * record of where somebody went, and no absent pack file should be
@@ -123,7 +167,7 @@ export const DOCUMENT_KINDS = {
    * right, nothing authors a map by hand. It is written by the
    * perception seams and read by one verb.
    */
-  map: { kind: 'map', naturalKey: null, contentDir: 'maps', ext: 'yaml', onVanish: 'keep' },
+  map: { kind: 'map', contentDir: 'maps', ext: 'yaml', onVanish: 'keep' },
   /**
    * A **herd** — a register naming these head, this composition, this
    * age structure, on this ground (farmstead D20).
@@ -159,7 +203,7 @@ export const DOCUMENT_KINDS = {
    * is code and the installer needs a go-live hook); what a legitimate
    * herd looks like is the ranching pack's.
    */
-  herd: { kind: 'herd', naturalKey: null, contentDir: 'herds', ext: 'yaml', onVanish: 'keep' },
+  herd: { kind: 'herd', contentDir: 'herds', ext: 'yaml', onVanish: 'keep' },
   /**
    * A **fishery** — what a reach has been drawn down by, and when it was
    * last reconciled (fishing D1). Everything else about a reach's fish —
@@ -177,7 +221,7 @@ export const DOCUMENT_KINDS = {
    * The KIND is the platform's; what a legitimate record looks like is
    * the water pack's (`FisheryRegistry`).
    */
-  fishery: { kind: 'fishery', naturalKey: null, contentDir: 'fisheries', ext: 'yaml', onVanish: 'keep' },
+  fishery: { kind: 'fishery', contentDir: 'fisheries', ext: 'yaml', onVanish: 'keep' },
   /**
    * A **fluid body's withdrawal** — how many litres have come out of one
    * reservoir, and by whose straw (drilling D2).
@@ -207,7 +251,7 @@ export const DOCUMENT_KINDS = {
    * The KIND is the platform's; what a legitimate record looks like is
    * the ground pack's (`BodyRegister`).
    */
-  body: { kind: 'body', naturalKey: null, contentDir: 'bodies', ext: 'yaml', onVanish: 'keep' },
+  body: { kind: 'body', contentDir: 'bodies', ext: 'yaml', onVanish: 'keep' },
   /**
    * A **bore log** — what one hole went through, metre by metre, and
    * what was found at the bottom of it (drilling D4).
@@ -237,7 +281,7 @@ export const DOCUMENT_KINDS = {
    * The KIND is the platform's; what a legitimate entry looks like is
    * the drilling pack's (`BoreRegistry`).
    */
-  bore: { kind: 'bore', naturalKey: null, contentDir: 'bores', ext: 'yaml', onVanish: 'keep' },
+  bore: { kind: 'bore', contentDir: 'bores', ext: 'yaml', onVanish: 'keep' },
   /**
    * A **bill of lading** — what, how much, from where, to where, whose,
    * and at what declared value, filed by a completed carriage.
@@ -255,14 +299,14 @@ export const DOCUMENT_KINDS = {
    * prove what they took, and it happens to be the datum every freight
    * statistic in the design reads from.
    */
-  'bill-of-lading': { kind: 'bill-of-lading', naturalKey: null, contentDir: 'bills-of-lading', ext: 'yaml', onVanish: 'keep' },
+  'bill-of-lading': { kind: 'bill-of-lading', contentDir: 'bills-of-lading', ext: 'yaml', onVanish: 'keep' },
   /**
    * A **warehouse receipt** — a bailee's acknowledgement that it holds
    * named goods for a named depositor. A document of TITLE: you transfer
    * the receipt instead of moving anything. Runtime-written, path-keyed,
    * `keep` — same three reasons as the bill of lading.
    */
-  'warehouse-receipt': { kind: 'warehouse-receipt', naturalKey: null, contentDir: 'warehouse-receipts', ext: 'yaml', onVanish: 'keep' },
+  'warehouse-receipt': { kind: 'warehouse-receipt', contentDir: 'warehouse-receipts', ext: 'yaml', onVanish: 'keep' },
   /**
    * An **instrument** — the readable paper behind a claim on the
    * `contracts` collection: the Arrival Note, a loan, an unclaimed-
@@ -280,7 +324,7 @@ export const DOCUMENT_KINDS = {
    * `DocumentApi.saveInstrument`. The contract row is the live claim; the
    * paper is what a person reads.
    */
-  instrument: { kind: 'instrument', naturalKey: null, contentDir: 'papers', ext: 'yaml', onVanish: 'keep' },
+  instrument: { kind: 'instrument', contentDir: 'papers', ext: 'yaml', onVanish: 'keep' },
   /**
    * A **rate card** — a carrier's published charges by route, weight and
    * commodity.
@@ -290,7 +334,7 @@ export const DOCUMENT_KINDS = {
    * card is exactly the row an antitrust argument needs. Publishing a
    * new one writes a new path; nothing overwrites the old.
    */
-  'rate-card': { kind: 'rate-card', naturalKey: null, contentDir: 'rate-cards', ext: 'yaml', onVanish: 'keep' },
+  'rate-card': { kind: 'rate-card', contentDir: 'rate-cards', ext: 'yaml', onVanish: 'keep' },
   /**
    * ⭐ An **edition** — what a printing froze: the pages of a document AS
    * SET on the day it was run. The document is the truth;
@@ -307,7 +351,7 @@ export const DOCUMENT_KINDS = {
    * the source's edit or retraction never reaches it — that is the
    * point of paper.
    */
-  edition: { kind: 'edition', naturalKey: null, contentDir: 'editions', ext: 'yaml', onVanish: 'keep' },
+  edition: { kind: 'edition', contentDir: 'editions', ext: 'yaml', onVanish: 'keep' },
   /**
    * A **ship's register entry** — her name in this register, her kind, her
    * identity, her flag, when she was entered, and the company that owns
@@ -330,7 +374,7 @@ export const DOCUMENT_KINDS = {
    * The KIND is the platform's; what a legitimate entry looks like is
    * the register's (`ShipRegister`).
    */
-  ship: { kind: 'ship', naturalKey: null, contentDir: 'ships', ext: 'yaml', onVanish: 'keep' },
+  ship: { kind: 'ship', contentDir: 'ships', ext: 'yaml', onVanish: 'keep' },
   /**
    * A **berth roll** — the ships a landing has lying at it, by durable
    * handle, in the order they came. A landing
@@ -355,7 +399,7 @@ export const DOCUMENT_KINDS = {
    * nothing authors one by hand. `onVanish: 'keep'` for the declared
    * kinds' reason — a night going by must not cast a ship adrift.
    */
-  'berth-roll': { kind: 'berth-roll', naturalKey: null, contentDir: 'berth-rolls', ext: 'yaml', onVanish: 'keep' },
+  'berth-roll': { kind: 'berth-roll', contentDir: 'berth-rolls', ext: 'yaml', onVanish: 'keep' },
   /**
    * ⭐ A **berth book**'s record — a harbor's lines (berths given, ships
    * alongside, debts with their dues stamped paid) and the last hail each
@@ -368,7 +412,7 @@ export const DOCUMENT_KINDS = {
    * One document per harbor, at `<registerPrefix>/record`. Runtime-written;
    * no pack ships one. `onVanish: 'keep'` — a debt outlives a night.
    */
-  'berth-book': { kind: 'berth-book', naturalKey: null, contentDir: 'berth-books', ext: 'yaml', onVanish: 'keep' },
+  'berth-book': { kind: 'berth-book', contentDir: 'berth-books', ext: 'yaml', onVanish: 'keep' },
 } as const satisfies Record<string, DocumentKindSpec>;
 
 export type DeclaredDocumentKind = keyof typeof DOCUMENT_KINDS;
@@ -376,7 +420,3 @@ export type DeclaredDocumentKind = keyof typeof DOCUMENT_KINDS;
 export const DECLARED_DOCUMENT_KINDS = Object.keys(
   DOCUMENT_KINDS,
 ) as DeclaredDocumentKind[];
-
-/** The kinds that carry a natural key (the flat-key kinds). */
-export const FLAT_KEY_DOCUMENT_KINDS: DeclaredDocumentKind[] =
-  DECLARED_DOCUMENT_KINDS.filter((k) => DOCUMENT_KINDS[k].naturalKey !== null);

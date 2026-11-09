@@ -22,7 +22,10 @@
  * *owned-JSON-in-the-tree* concept this Api stores.
  */
 
-import type { StoredDocument } from "../lib/document/StoredDocument";
+import type {
+  DocumentKeyQuery,
+  StoredDocument,
+} from "../lib/document/StoredDocument";
 import type { Publisher } from "../lib/press/Publisher";
 import type { Business } from "../platform/idea/Business";
 import type { Stuff } from "../lib/stuff/Stuff";
@@ -154,8 +157,8 @@ export class DocumentApi {
   }
 
   /**
-   * Every document at or under `prefix` (the CMS tree's listing input).
-   * Filtered in JS over a full scan in v1 — fine for the small store.
+   * Every document at or under `prefix` (the CMS tree's listing input) — a
+   * range over the unique path index.
    */
   static list(prefix: string): Promise<StoredDocument[]> {
     return logic().list(prefix);
@@ -164,6 +167,24 @@ export class DocumentApi {
   /** Every document of `kind` — e.g. every release, for a warm rebuild. */
   static listOfKind(kind: string): Promise<StoredDocument[]> {
     return logic().listOfKind(kind);
+  }
+
+  /**
+   * ⭐ Documents of `kind` found by one key of their **catalogue card** —
+   * the keys a kind declares, derived from each document's own data
+   * (`DocumentKinds`). `q.eq` for equality, `q.min`/`q.max` for an
+   * inclusive range, `q.order` to read in the key's order (the index serves
+   * it), `q.prefix` to stay under one path, `q.limit` to cap. Not a second
+   * identity: the path is the only name a document has; this is how it is
+   * FOUND otherwise (`findByKey('release', 'publishedAt', {order: 'desc',
+   * limit: 30})` — the press, newest first).
+   */
+  static findByKey(
+    kind: string,
+    key: string,
+    q: DocumentKeyQuery = {},
+  ): Promise<StoredDocument[]> {
+    return logic().findByKey(kind, key, q);
   }
 
   /**

@@ -404,7 +404,7 @@ describe('the fermentation venue archetypes', () => {
       const raw = YAML.parse(
         readFileSync(join(PACKS, pack, 'content', 'archetypes', `${id}.yaml`), 'utf8'),
       ) as Record<string, unknown>;
-      const archetype = Archetype.fromData(raw);
+      const archetype = Archetype.fromData(raw, `/${pack}/archetypes/${id}`);
       expect(archetype.getArchetypeId()).toBe(id);
       // industry stays null — the shared `fermenting` discipline would
       // cross-derive the sibling trade's tools (the authored-residue rule).
@@ -423,7 +423,7 @@ describe('the fermentation venue archetypes', () => {
       archetypeId: 'vessel-probe',
       label: 'a probe',
       capabilities: [{ key: 'ferment', needs: { vesselKind: 'vat' } }],
-    });
+    }, '/test/archetypes/vessel-probe');
     const room = makeStuff(() => new Locale());
     const bare = archetype.satisfies(room);
     expect(bare.satisfied).toBe(false);

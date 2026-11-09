@@ -33,6 +33,7 @@ import { Idea } from '../../lib/stuff/Idea';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 import { AccessApi } from '../access';
+import { matchesDocumentQuery } from '../../lib/document/__tests__/document-query';
 
 class TestClerk extends Idea {
   static _mixinName = 'TestClerk';
@@ -54,9 +55,7 @@ function installStore(): void {
   vi.spyOn(pm, 'find').mockImplementation(
     async (col: string, query: Record<string, unknown>) => {
       if (col !== 'documents') return [] as never;
-      return [...store.values()].filter((d) =>
-        Object.entries(query).every(([k, v]) => d[k] === v),
-      ) as never;
+      return [...store.values()].filter((d) => matchesDocumentQuery(d, query)) as never;
     },
   );
   vi.spyOn(pm, 'save').mockImplementation(

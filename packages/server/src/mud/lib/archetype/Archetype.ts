@@ -292,14 +292,18 @@ export class Archetype {
   private constructor(private readonly data: ArchetypeData) {}
 
   static fromDocument(doc: StoredDocument): Archetype {
-    return Archetype.fromData(doc.getData());
+    return Archetype.fromData(doc.getData(), doc.getPath());
   }
 
-  /** The same validation over a bare `data` object (the pack reader's use). */
-  static fromData(data: Record<string, unknown>): Archetype {
-    const id = data.archetypeId;
-    if (typeof id !== 'string' || id.length === 0) {
-      throw new Error("archetype: 'archetypeId' must be a non-empty string");
+  /**
+   * The same validation over a bare `data` object at `path` (the pack
+   * reader's use). ⭐ The archetype's id is its path's LEAF — the path is its
+   * only name.
+   */
+  static fromData(data: Record<string, unknown>, path: string): Archetype {
+    const id = path.slice(path.lastIndexOf('/') + 1);
+    if (id.length === 0) {
+      throw new Error(`archetype: document at '${path}' has no leaf to be its id`);
     }
     const label = typeof data.label === 'string' && data.label.length > 0 ? data.label : id;
     // Optional: a room archetype derives nothing (no recipes make a

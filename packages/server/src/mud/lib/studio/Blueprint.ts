@@ -110,18 +110,20 @@ export class Blueprint extends Document {
    * introspecting `classPath` when no `mixinNames` are declared).
    */
   static curatedDataOf(doc: StoredDocument): CuratedBlueprintData {
-    return Blueprint.curatedData(doc.getData());
+    return Blueprint.curatedData(doc.getData(), doc.getPath());
   }
 
-  private static curatedData(data: Record<string, unknown>): CuratedBlueprintData {
-    if (typeof data.blueprintId !== 'string' || !data.blueprintId) {
-      throw new Error(`Blueprint: curated document is missing 'blueprintId'`);
+  /** ⭐ A curated blueprint's id is its path's LEAF — the path is its only name. */
+  private static curatedData(data: Record<string, unknown>, path: string): CuratedBlueprintData {
+    const blueprintId = path.slice(path.lastIndexOf('/') + 1);
+    if (!blueprintId) {
+      throw new Error(`Blueprint: curated document at '${path}' has no leaf to be its id`);
     }
     if (typeof data.baseClass !== 'string' || !data.baseClass) {
-      throw new Error(`Blueprint '${data.blueprintId}' missing 'baseClass'`);
+      throw new Error(`Blueprint '${blueprintId}' missing 'baseClass'`);
     }
     const str = (v: unknown): string | undefined => (typeof v === 'string' ? v : undefined);
-    const out: CuratedBlueprintData = { blueprintId: data.blueprintId, baseClass: data.baseClass };
+    const out: CuratedBlueprintData = { blueprintId, baseClass: data.baseClass };
     const name = str(data.name);
     if (name !== undefined) out.name = name;
     if (data.kind === 'composition' || data.kind === 'concrete') out.kind = data.kind;

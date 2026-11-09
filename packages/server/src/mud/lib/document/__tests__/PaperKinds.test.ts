@@ -16,7 +16,6 @@ import { describe, it, expect } from 'vitest';
 import {
   DOCUMENT_KINDS,
   DECLARED_DOCUMENT_KINDS,
-  FLAT_KEY_DOCUMENT_KINDS,
 } from '../DocumentKinds';
 import { Collections } from '../../persistence/Collections';
 import { RESET_DISPOSITIONS } from '../../persistence/ResetPolicy';
@@ -31,12 +30,11 @@ describe('the freight paper kinds', () => {
       expect(spec.kind).toBe(kind);
       // Path-keyed: a depot's coverage is `list(prefix)`, so the branch
       // has to be in the path rather than in an index.
-      expect(spec.naturalKey).toBeNull();
+      expect((spec as { words?: unknown }).words).toBeUndefined();
       expect(spec.onVanish).toBe('keep');
       expect(spec.ext).toBe('yaml');
       expect(DECLARED_DOCUMENT_KINDS).toContain(kind);
       // Path-keyed ⇒ no unique flat-key index is minted for it.
-      expect(FLAT_KEY_DOCUMENT_KINDS).not.toContain(kind);
     }
   });
 
@@ -65,11 +63,10 @@ describe('the freight paper kinds', () => {
   it('the fishery kind (fishing A1) is path-keyed and kept, and not flat-keyed', () => {
     const spec = DOCUMENT_KINDS.fishery;
     expect(spec.kind).toBe('fishery');
-    expect(spec.naturalKey).toBeNull();
+    expect((spec as { words?: unknown }).words).toBeUndefined();
     expect(spec.onVanish).toBe('keep');
     expect(spec.contentDir).toBe('fisheries');
     expect(DECLARED_DOCUMENT_KINDS).toContain('fishery');
-    expect(FLAT_KEY_DOCUMENT_KINDS).not.toContain('fishery');
     const names = Object.values(Collections) as string[];
     expect(names).not.toContain('fishery');
     expect(names).not.toContain('fisheries');
@@ -84,12 +81,11 @@ describe('the freight paper kinds', () => {
     // pack file may refill a reservoir.
     const spec = DOCUMENT_KINDS.body;
     expect(spec.kind).toBe('body');
-    expect(spec.naturalKey).toBeNull();
+    expect((spec as { words?: unknown }).words).toBeUndefined();
     expect(spec.onVanish).toBe('keep');
     expect(spec.contentDir).toBe('bodies');
     expect(spec.ext).toBe('yaml');
     expect(DECLARED_DOCUMENT_KINDS).toContain('body');
-    expect(FLAT_KEY_DOCUMENT_KINDS).not.toContain('body');
     const names = Object.values(Collections) as string[];
     expect(names).not.toContain('body');
     expect(names).not.toContain('bodies');

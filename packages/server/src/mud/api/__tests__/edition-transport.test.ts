@@ -14,6 +14,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DocumentApi } from '../document';
 import { StuffApi } from '../stuff';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
+import { matchesDocumentQuery } from '../../lib/document/__tests__/document-query';
 
 let store: Map<string, Record<string, unknown>>;
 let idCounter = 0;
@@ -31,7 +32,7 @@ beforeEach(() => {
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'find').mockImplementation(async (col: string, query: Record<string, unknown>) => {
     if (col !== 'documents') return [] as never;
-    return [...store.values()].filter((d) => Object.entries(query).every(([k, v]) => d[k] === v)) as never;
+    return [...store.values()].filter((d) => matchesDocumentQuery(d, query)) as never;
   });
   vi.spyOn(pm, 'save').mockImplementation(async (col: string, doc: Record<string, unknown>) => {
     const id = (doc._id as string | undefined) ?? `id-${idCounter++}`;

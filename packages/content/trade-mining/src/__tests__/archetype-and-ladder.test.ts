@@ -46,6 +46,7 @@ function archetype(): Archetype {
       string,
       unknown
     >,
+    '/trade/mining/archetypes/mining',
   );
 }
 

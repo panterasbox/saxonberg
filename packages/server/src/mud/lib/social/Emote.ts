@@ -77,23 +77,26 @@ export class Emote {
    * lowercases the verb and the search terms.
    */
   static fromDocument(doc: StoredDocument): Emote {
-    const data = doc.getData();
-    const e = Emote.fromData(data);
-    e.path = doc.getPath();
-    return e;
+    return Emote.fromData(doc.getData(), doc.getPath());
   }
 
-  /** The same validation over a bare `data` object (the pack reader's use). */
-  static fromData(data: Record<string, unknown>): Emote {
-    if (typeof data.verb !== 'string' || data.verb.length === 0) {
-      throw new Error(`Emote: document is missing a string 'verb'`);
+  /**
+   * The same validation over a bare `data` object at `path` (the pack
+   * reader's use). ⭐ The verb is the path's LEAF — a document's path is its
+   * only name (`/expression/emotes/smile` is `smile`); no field repeats it.
+   */
+  static fromData(data: Record<string, unknown>, path: string): Emote {
+    const verb = path.slice(path.lastIndexOf('/') + 1);
+    if (verb.length === 0) {
+      throw new Error(`Emote: document at '${path}' has no leaf to be its verb`);
     }
     const grammar = data.grammar as EmoteGrammar | undefined;
     if (!grammar || typeof grammar !== 'object' || typeof grammar.template !== 'string') {
-      throw new Error(`Emote '${data.verb}' is missing required 'grammar.template'`);
+      throw new Error(`Emote '${verb}' is missing required 'grammar.template'`);
     }
     const e = new Emote();
-    e.verb = data.verb.toLowerCase();
+    e.path = path;
+    e.verb = verb.toLowerCase();
     e.searchTerms = stringList(data.searchTerms).map((t) => t.toLowerCase());
     e.grammar = { slots: grammar.slots ?? {}, template: grammar.template };
     const echo = data.echo;
@@ -108,7 +111,6 @@ export class Emote {
   /** The inverse — the `data` the catalogue writes for this emote. */
   toData(): Record<string, unknown> {
     const data: Record<string, unknown> = {
-      verb: this.verb,
       grammar: this.grammar,
       echo: this.echo,
       tags: [...this.tags],

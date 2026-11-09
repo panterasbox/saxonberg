@@ -801,6 +801,41 @@ are isolated so a wrong premise re-plans one wave in place.
 
 ### W0 — the catalogue card: keys, the one index, the path is unique (D1, D2, D4)
 
+> ✅ **Done (build).** What changed from the plan, and why:
+> - **No `DocumentHook` (D1 re-planned).** `AppBootstrap` runs
+>   `PackApi.install()` *before* `loadHooks()` — the hook is a template the
+>   installer installs — so a hook can never see an installer row and is not
+>   the chokepoint. The card is derived by one static,
+>   `StoredDocument.cardOf(kind, path, data)`, called by the two writers that
+>   exist: `StoredDocument.save()` (every `DocumentLogic` write) and the
+>   installer's `rowOf`. One derivation, two call sites, no hook, no
+>   `hooks.yaml` entry, no row template. (P1: one fewer new substrate.)
+> - **An undeclared kind gets an empty card, not a throw.** Runtime code
+>   files kinds outside `DOCUMENT_KINDS` (`venue-eighty-six` from the
+>   enforces brain, CMS saves of arbitrary kinds); the store stays
+>   kind-agnostic and only the pack-installable vocabulary is closed. An
+>   empty path still throws.
+> - **The word from the leaf moved into W0** (from W1): with `naturalKey`
+>   gone the installer no longer injects `data.verb`, so `Emote/Recipe/
+>   Archetype.fromData(data, path)` and `Blueprint.curatedDataOf` read the
+>   word from the path's leaf now (validators get the path). `Emote.toData`
+>   and `Recipe.toData` stop writing the id. The content files still carry
+>   their key lines (ignored); W1 strips them.
+> - **`findByKey` / the prefix range live in `DocumentLogic`, not on
+>   `StoredDocument`** — `lint:lib-statics` (ceiling 340) refuses new public
+>   statics on a lib class nobody but the logic calls; `StoredDocument` keeps
+>   three statics (`findByPath`, `findByKind`, `cardOf` — `findByPrefix`
+>   went into the logic as `documentsUnder`).
+> - **Test fakes**: the in-memory `pm.find` fakes matched equality only; a
+>   shared test-only matcher `lib/document/__tests__/document-query.ts`
+>   (`matchesDocumentQuery`, `applyFindOptions`) answers ranges, `$or`,
+>   dotted keys and sort/limit. Fakes are pointed at it as they meet the new
+>   queries.
+> - The installer's install-set word check rides the existing
+>   `flatKeysOf` (fed by `spec.words`); W1 adds the store claimant.
+> - The `explain` check of D2 is deferred to the drive (it needs a booted
+>   world); recorded in the drive record.
+
 Goal: every document carries a derived `keys` card, one index serves every
 key, the path is unique, prefix reads use the path index.
 
