@@ -49,6 +49,20 @@ export class ThrownLanding {
     private readonly arrival: ThrownArrival,
   ) {}
 
+  /**
+   * ⭐ The thing comes to rest by the target — wherever the target stands
+   * (controller-liquidity W8, C50: a throw that went wide or struck and did
+   * not break left the thing in the thrower's hand). A target that is
+   * nowhere leaves it where it is.
+   */
+  settle(): void {
+    const { item, target } = this;
+    const landing = MixinApi.isContainable(target) ? target.getContainer() : null;
+    if (landing !== null && MixinApi.isContainer(landing) && MixinApi.isContainable(item)) {
+      ContainmentApi.move(item, landing);
+    }
+  }
+
   /** Break it or not, and hand back the contents' landing if it broke. */
   async land(): Promise<ThrownOutcome> {
     const { item, target, arrival } = this;
@@ -60,10 +74,7 @@ export class ThrownLanding {
       const impact = { energyJ: arrival.profile.energyJ, surface: struck, cause: 'throw' as const };
       if (item.impactVerdict(impact) !== 'break') {
         // It survives the arrival (perhaps cracked); it lands by the target.
-        const landing = MixinApi.isContainable(target) ? target.getContainer() : null;
-        if (landing !== null && MixinApi.isContainer(landing)) {
-          ContainmentApi.move(item as never, landing as never);
-        }
+        this.settle();
         await item.sufferImpact(impact);
         return { arrived: 'survived', flawed: item.getFlaws().length > flawedBefore };
       }

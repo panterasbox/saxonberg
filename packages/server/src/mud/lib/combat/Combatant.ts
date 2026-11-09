@@ -606,7 +606,13 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
         },
         CombatApi.splashSetFor(target),
       );
-      if (plan.placement === "miss") return { arrived: "wide" };
+      // ⭐ Every arrival puts the thing somewhere (C50): wide or struck, it
+      // comes to rest by the target; shattered, it is gone.
+      const landing = new ThrownLanding(item, target, plan);
+      if (plan.placement === "miss") {
+        landing.settle();
+        return { arrived: "wide" };
+      }
       // ── The KINETIC half. `null` back is the honest no-op: too little
       // energy to matter (a thrown coin) or no matching anatomy. The
       // materials-response grid decides what the energy actually costs.
@@ -617,8 +623,11 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (spec !== null) ConditionApi.inflict(target, spec);
 
       // ⭐ What becomes of the thing is the thing's: no dynamics here.
-      if (!plan.profile.canShatter()) return { arrived: "hit" };
-      return new ThrownLanding(item, target, plan).land();
+      if (!plan.profile.canShatter()) {
+        landing.settle();
+        return { arrived: "hit" };
+      }
+      return landing.land();
     }
 
     public resolveThrown(
