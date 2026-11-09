@@ -69,6 +69,11 @@ which ratchets toward MORE greedy). Both are retired in W1/W5 (D3).
 | `PackSyncController` (`pack sync`) | `pack sync <id>` then **prompts for a name** to staff the pack with (and passes the raw text as a member path, so the member never matches) | 3 | `pack sync <id>` syncs; `pack staff <id> <person>` staffs (an object arg, keyed by identity) | the prompt |
 | `WatchController` | `watch <stream> [on <screen>]`; `watch horizon` (a ship's lookout, a different act) decided inside the controller | 3 + 4 | `watch horizon` is a declared subcommand; `watch <stream>` and `watch <stream> on <screen>` are two shapes (prepositionRequired) with their own controllers | nothing — the typed forms are the same; only an unknown second word is now refused by the view |
 
+⚠ **Renamed by the build (W1, D4a) — not in the table above.** Reserving
+the depth rungs as option names took three shipped options:
+`forum make --open` and `subject make --open` → **`--public`**; `weave
+--open` → **`--coarse`**. Same act, same field, a new flag word.
+
 Behavior changes a player will notice without a word changing (D5–D7):
 `here` in a boat/cart/bed means the **place** (`look here` on the river
 describes the river; `look me:e` the boat); `reachable` now finds the apple
@@ -739,6 +744,43 @@ not field names**, and three shipped options collided:
 changed). A player-visible word change the owner's read did not list. The
 rung is carried to `CommandContext.depth` now; nothing reads it until W2.
 
+**D9a (build, W3) — `setLocked` stays an ungated setter.** The hydrator
+writes `locked` through it, and the berth/ashore exits and the water gate
+use it structurally; the player-facing gate is on `lock(by)`/`unlock(by)`,
+and the no-arg `lock()`/`unlock()` were removed instead of gating the setter.
+
+**D9b (build, W3) — `Organization.apply` is sealed with no caller gate**, as
+`appoint` is: the caller is the controller, and no policy can prove who the
+applicant is.
+
+**D9c (build, W3) — `mayDisposeOf` also accepts the shelf's own record** of
+who left the good; `shelf consign` still accepts an unowned good and stamps
+it to the principal.
+
+**D9d (build, W3) — unhitching refuses only taking a cart out of another
+PERSON's hands**; a draft animal's cart is anybody's to unhitch, as a
+horse's harness is. `Haulable.canUnhitch(hauler, actor)` takes the hauler
+as `canHitch` does (the green pass: reading `_hauledBy` had split the mixin
+into a second co-use cluster).
+
+**D9e (build, W3) — `bleed`'s `with` is optional** so the body says *You need
+a syringe*; a draw from another body is recorded `consented: false` (consent
+stays the deferred seam); the bag check counts the room left.
+
+**D9f (build, W3) — ranching:** the keeper check runs before a kill in
+`Livestock.cullRefusal`; `graze`/`update`/`returnHead` stay ungated (authored
+grazing); the draft is written before the mint, and a failed mint is healed
+at the next draft.
+
+**D9g (build, W3) — `Ship.steer` refuses for people in the water only when
+she is under way**; `leaveThem` is protected.
+
+**D9h (build, W3) — bare `equip --from` still brings out layer-blocked
+pieces**; the ladder dresses them next.
+
+For later waves (W3): the river-bar steer ordering is W8/W12's; there is no
+unit test for `breedRefusal` yet.
+
 ---
 
 ## ⭐⭐ Host placement
@@ -1394,6 +1436,10 @@ rebase cleanly.
 - The MR opens READY at code-complete (workflow.md § the user's time);
   the drive and the full suite run alongside review.
 - Commit: `drive(controller-liquidity): <what driving found>`.
+- ⚠ **Baseline rows to re-record on purpose** (behavior changed by a wave,
+  not a regression): `unhitch`, `water`, `course`, `offer` (W3 cluster B);
+  `cp`, `mv`, `rm`, `grep`, `mkdir` (W3 cluster A — the shell writes moved
+  onto `TemplateApi` with every refusal before the first write).
 
 ---
 
