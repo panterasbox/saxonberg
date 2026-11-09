@@ -15,8 +15,21 @@
  */
 
 import { Vessel } from '../../lib/stuff/Vessel';
-import { MqlApi } from '../../api/mql';
-import type { CommandContext, CommandContributions } from '../../api/command';
+import { ContainmentApi } from '../../api/containment';
+import { EmploymentApi, type BusinessStuff } from '../../api/employment';
+import { MixinApi } from '../../api/mixin';
+import type { CommandContributions } from '../../api/command';
+import type { ActOutcome, ActRefusal } from '../../lib/craft/ActPlan';
+import type { Stuff } from '../../lib/stuff/Stuff';
+import Coin from './Coin';
+
+/** Why `collectBy` refused. */
+export type CollectRefusalReason = 'no-house' | 'not-on-shift';
+
+/** The answer to {@link TipJar.collectBy}: the minor units taken, or a refusal. */
+export type CollectAnswer =
+  | ActOutcome<{ took: number }>
+  | ActRefusal<CollectRefusalReason>;
 
 const TipJarBase = Vessel;
 
@@ -33,4 +46,42 @@ export default class TipJar extends TipJarBase {
     environment: [],
   };
 
+  /**
+   * ⭐ The house this jar is kept for — DERIVED, never stored: the business
+   * operating the jar itself (a fixture a house names), else the business
+   * operating the place it stands in. The fixture-first rule
+   * `PricedOffer.houseAndVenue` and `EmploymentApi.operatorsAt` already use.
+   * `null` = a jar no house keeps, and nobody's to empty (fail closed).
+   */
+  public houseOf(): BusinessStuff | null {
+    const own = EmploymentApi.operatorsAt(this as unknown as Stuff)[0];
+    if (own) return own;
+    const here = this.getContainer();
+    return EmploymentApi.operatorsAt(here)[0] ?? null;
+  }
+
+  /**
+   * ⭐⭐ Scoop the jar out, as `actor` (controller-liquidity D9, C45): the
+   * gate is the JAR's — only somebody on shift for the house that keeps
+   * it. A replaced `collect` controller, a brain or a script meets the same
+   * rule; before this the verb alone checked, and it asked *on shift for
+   * anybody here*, so any jar on your own premises was yours.
+   */
+  public collectBy(actor: Stuff): CollectAnswer {
+    const house = this.houseOf();
+    if (!house) return { ok: false, reason: 'no-house' };
+    if (!MixinApi.isEmployed(actor) || !actor.isOnShiftFor(house.getIdentityPath())) {
+      return { ok: false, reason: 'not-on-shift' };
+    }
+    let took = 0;
+    if (MixinApi.isContainer(actor)) {
+      for (const c of [...this.getContents()]) {
+        if (c instanceof Coin) {
+          took += c.getQuantity();
+          ContainmentApi.move(c, actor);
+        }
+      }
+    }
+    return { ok: true, facts: { took } };
+  }
 }

@@ -12,7 +12,7 @@ import TipController from '../TipController';
 import CollectController from '../CollectController';
 import TipJar from '../../../../thing/TipJar';
 import Coin from '../../../../thing/Coin';
-import { EmploymentApi } from '../../../../../api/employment';
+import { EmploymentApi, type BusinessStuff } from '../../../../../api/employment';
 import { BankingApi, Money } from '../../../../../api/banking';
 import { EmployedMixin } from '../../../../../lib/employment/Employed';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
@@ -65,7 +65,15 @@ class Bartender extends EmployedMixin(
   isFulfilling(): boolean {
     return true;
   }
+  // ⭐ On shift for the bar's house only (the jar's gate, C45).
+  onShiftAt = '/test/house/bar';
+  isOnShiftFor(organizationPath: string): boolean {
+    return organizationPath === this.onShiftAt;
+  }
 }
+
+/** The house that keeps the jar — what `TipJar.houseOf` derives. */
+const BAR_HOUSE = { getIdentityPath: () => '/test/house/bar' } as unknown as BusinessStuff;
 
 function makeContext(giver: Stuff, location: Place, verb: string): CommandContext {
   return CommandApi.createCommandContext({
@@ -117,6 +125,9 @@ describe('tips — the tip jar', () => {
     installV1QuantityMarshallers();
     installBankingHarness();
     stubCoinClone();
+    vi.spyOn(EmploymentApi, 'operatorsAt').mockImplementation((here) =>
+      here instanceof Place ? [BAR_HOUSE] : [],
+    );
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -227,6 +238,23 @@ describe('tips — the tip jar', () => {
       }),
     );
     expect(coinIn(jar)).toBe(4);
+  });
+
+  it('⭐ D9: the JAR refuses a hand on shift for another house — called direct', async () => {
+    const { bartender, jar } = scene();
+    giveCoin(jar, 6);
+    bartender.onShiftAt = '/test/house/smithy';
+    expect(jar.collectBy(bartender)).toEqual({ ok: false, reason: 'not-on-shift' });
+    expect(coinIn(jar)).toBe(6);
+    bartender.onShiftAt = '/test/house/bar';
+    expect(jar.collectBy(bartender)).toEqual({ ok: true, facts: { took: 6 } });
+  });
+
+  it('⭐ a jar no house keeps is nobody\'s to empty (fail closed)', async () => {
+    const { bartender, jar } = scene();
+    vi.mocked(EmploymentApi.operatorsAt).mockReturnValue([]);
+    expect(jar.houseOf()).toBeNull();
+    expect(jar.collectBy(bartender)).toEqual({ ok: false, reason: 'no-house' });
   });
 
   it('the jar is a container that shows what it holds', async () => {

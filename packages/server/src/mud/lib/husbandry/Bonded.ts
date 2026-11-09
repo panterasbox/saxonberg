@@ -260,8 +260,14 @@ export interface Bonded {
   getTrail(): readonly string[];
   /** Note where it is now. Revisiting a remembered place rewinds to it. */
   rememberPlace(placeId: string): void;
-  /** Why it would not eat `food`, or `null` if it would. */
-  wouldEat(food: Stuff): FoodRefusal | null;
+  /** Is `food` food at all to it? A fact of the material, anybody's to know. */
+  canEat(food: Stuff): boolean;
+  /**
+   * Would it eat `food` now? ⚠ A boolean on purpose (controller-liquidity
+   * C49): WHY it would not is the animal's and never leaves it — a
+   * not-hungry dog and one that smelled the rot look the same.
+   */
+  wouldEat(food: Stuff): boolean;
   /** Eat it. Credits `offerer` when it came from a hand. */
   eatFood(food: Stuff, offerer: Stuff | null): Promise<boolean>;
   /** Does this animal's species feed by `style`? */
@@ -671,10 +677,19 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
      *     keen enough. ⚠ And the refusal sentence is the same as (2)
      *     and (3), so the animal never tells you what it knows.
      */
-    public wouldEat(food: Stuff): FoodRefusal | null {
-      const self = this as unknown as Stuff;
+    public canEat(food: Stuff): boolean {
       const material = MixinApi.isTangible(food) ? food.getMaterial() : null;
-      if (!material || material.getEdibility() !== true) return 'not-edible';
+      return !!material && material.getEdibility() === true;
+    }
+
+    public wouldEat(food: Stuff): boolean {
+      return this.foodRefusal(food) === null;
+    }
+
+    /** Why it would not eat `food` — the animal's own, never surface. */
+    private foodRefusal(food: Stuff): FoodRefusal | null {
+      const self = this as unknown as Stuff;
+      if (!this.canEat(food)) return 'not-edible';
 
       if (MixinApi.isReserved(self)) {
         // ⚠ The surplus line, not "full": an animal in maintenance is

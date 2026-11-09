@@ -203,13 +203,6 @@ export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
       .catch((err) => console.warn(`BerthExit: her gangway could not be ${value ? 'locked' : 'unlocked'} while she slept:`, err));
   }
 
-  public override lock(): void {
-    this.setLocked(true);
-  }
-
-  public override unlock(): void {
-    this.setLocked(false);
-  }
 
   /** ⭐ The keyway is hers, not this way's. */
   public override getLock(): Lock {

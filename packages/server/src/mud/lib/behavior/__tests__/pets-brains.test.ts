@@ -104,7 +104,7 @@ function animal(o: AnimalOpts = {}) {
     isWaiting: () => o.waiting ?? false,
     getHome: () => o.home ?? '',
     isStamped: () => o.stamped ?? false,
-    wouldEat: () => o.refusal ?? null,
+    wouldEat: () => (o.refusal ?? null) === null,
     feedsBy: (style: string) =>
       (o.styles ?? ['bowl', 'ground', 'hand']).includes(style),
     eatFood: async (food: Stuff, offerer: Stuff | null) => {

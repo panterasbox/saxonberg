@@ -165,8 +165,7 @@ export const brain = class {
     }
     host.setAskingOf(null);
 
-    const refusal = host.wouldEat(food);
-    if (refusal) {
+    if (!host.wouldEat(food)) {
       // ⭐ ONE sentence. Four reasons. Never says which.
       MessageApi.scene(host)
         .topic('act.deed')

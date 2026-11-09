@@ -38,15 +38,22 @@ describe('LockableMixin', () => {
     expect(s.isLocked()).toBe(false);
   });
 
-  it('lock() and unlock() flip state idempotently', async () => {
+  it('⭐ lock(by)/unlock(by): visible state first, the keyway second (D9)', async () => {
     const s = makeStuff(() => new TestLockable());
-    s.lock();
-    expect(s.isLocked()).toBe(true);
-    s.lock();
-    expect(s.isLocked()).toBe(true);
-    s.unlock();
+    s.setKeyway('front');
+    const stranger = makeStuff(() => new TestMover());
+    const holder = makeStuff(() => new TestMover());
+    holder.ensureCredential('key').addKey('front', 'pin-tumbler');
+    // Unlocked: unlocking says so to anybody — a character can see it.
+    expect(s.unlock(stranger)).toEqual({ ok: false, reason: 'already-unlocked' });
+    // The secret is asked only once the act would go through.
+    expect(s.lock(stranger)).toEqual({ ok: false, reason: 'no-key' });
     expect(s.isLocked()).toBe(false);
-    s.unlock();
+    expect(s.lock(holder).ok).toBe(true);
+    expect(s.isLocked()).toBe(true);
+    expect(s.lock(stranger)).toEqual({ ok: false, reason: 'already-locked' });
+    expect(s.unlock(stranger)).toEqual({ ok: false, reason: 'no-key' });
+    expect(s.unlock(holder).ok).toBe(true);
     expect(s.isLocked()).toBe(false);
   });
 
@@ -260,7 +267,7 @@ describe('Exit.canTraverse — the keyway, not just the bolt', () => {
     // The capability the old keyed-exit model could not express at all:
     // leaving your own door open for everybody else.
     const door = await keyedDoor();
-    door.unlock();
+    door.setLocked(false);
     expect((await exitWith(door).canTraverse(mover)).ok).toBe(true);
   });
 
