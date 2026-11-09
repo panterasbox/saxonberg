@@ -23,6 +23,8 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { tokens } from "../ui";
+import { useStore } from "../../store";
+import { SERVER_URL } from "../../config";
 import { PromptFormatBar } from "../PromptFormatBar";
 
 const Card = styled.aside`
@@ -189,6 +191,9 @@ export function SettingsPanel({
 }: SettingsPanelProps): JSX.Element {
   const [settingKey, setSettingKey] = useState("");
   const [settingValue, setSettingValue] = useState("");
+  // A streamer is whoever the server has handed the stream controls'
+  // state (`stream` ran this session); nobody else needs the link.
+  const isStreamer = useStore((st) => st.clientState["stream.state"] != null);
   const [varName, setVarName] = useState("");
   const [varValue, setVarValue] = useState("");
 
@@ -249,6 +254,22 @@ export function SettingsPanel({
         ping you* is a real question that wants exactly this shape. The
         UI returns when there is something for it to drive.
       */}
+      {/*
+        ⭐ The streamer's YouTube (broadcast-ready D12): a `youtube.readonly`
+        step-up on the Google login you already have, so the stream overlay
+        finds your own live broadcast without spending the day's search
+        quota. A plain link — the server owns the OAuth round trip — shown
+        to streamers only (whoever has the stream controls' state).
+      */}
+      {isStreamer ? (
+        <Section>
+          <SectionTitle>Streaming</SectionTitle>
+          <a href={`${SERVER_URL}/auth/google/youtube`} data-testid="link-youtube">
+            Link YouTube — let the overlay find your live broadcast
+          </a>
+        </Section>
+      ) : null}
+
       <Section>
         <SectionTitle>Notifications</SectionTitle>
         {notificationsAvailable ? (

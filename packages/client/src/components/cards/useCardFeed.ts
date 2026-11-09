@@ -62,6 +62,7 @@ export const CARD_LABEL: Readonly<Record<CardId, string>> = {
   terminal: "a terminal",
   settings: "your settings",
   map: "where you are",
+  stream: "the stream controls",
 };
 
 /**
@@ -134,6 +135,7 @@ export function useCardFeed(): void {
         ...(env.placed ? { placed: env.placed } : {}),
         ...(env.minimized ? { minimized: true } : {}),
         ...(env.role ? { role: env.role } : {}),
+        ...(env.private !== undefined ? { private: env.private } : {}),
       });
     };
 
@@ -157,6 +159,7 @@ export function useCardFeed(): void {
         ...(env.subjectId ? { subjectId: env.subjectId } : {}),
         ...(env.subjectKind ? { subjectKind: env.subjectKind } : {}),
         ...(env.role ? { role: env.role } : {}),
+        ...(env.private !== undefined ? { private: env.private } : {}),
         // ⭐ A terminal's role IS its payload's `primary` flag: a demoted
         // terminal's touch carries no role, and must still lose it.
         ...(env.payload?.kind === "terminal"
