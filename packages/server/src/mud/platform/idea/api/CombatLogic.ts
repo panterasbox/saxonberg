@@ -1390,11 +1390,13 @@ function resolveFormationFor(state: CombatantState): FormationPolicy {
 /** The combatant-keyed half of the total consult (also serves the
  * out-of-session `formationStandingOf` read). */
 function resolvePolicyFor(combatant: Stuff): FormationPolicy {
-  // ⭐ A combatant with no party fights by the built-in default; a party's
-  // formation is resident with the party (documents D7) — a sync read that
-  // throws if it is not, never a quiet default.
-  if (!PartyApi.activePartyOf(combatant)) return Formation.DEFAULT_POLICY;
-  return Formation.need(PartyApi.formationPathOf(combatant));
+  // ⭐ A combatant with no party — or a party that never chose — fights by
+  // the built-in default (value-equal to the shipped `default` preset). A
+  // CHOSEN formation is resident with its party (documents D7: the act
+  // that adopted it, or the restore, loaded it) — a sync read that throws
+  // if it is not, never a quiet default.
+  const chosen = PartyApi.activePartyOf(combatant)?.getFormationPath() ?? '';
+  return chosen ? Formation.need(chosen) : Formation.DEFAULT_POLICY;
 }
 
 /**

@@ -41,7 +41,7 @@ import type { SubscribableFieldDescriptor } from "../../api/mql-subscription";
 import { CallSecurity } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { PartyRecord } from "../../lib/party/PartyRecord";
-import { Formation, DEFAULT_FORMATION_PATH } from "../../lib/combat/Formation";
+import { Formation } from "../../lib/combat/Formation";
 import type { PartyMember } from "../../lib/party/PartyMember";
 import type { FieldMeta } from "../../lib/mixin";
 
@@ -285,15 +285,6 @@ export class Party extends Idea {
     this.formationPath = path;
   }
 
-  /**
-   * ⭐ A party is live only when its formation is — the default preset
-   * included (documents D7, mechanism 4), so combat's per-beat consult is a
-   * synchronous read.
-   */
-  public override async onCreate(context?: unknown): Promise<void> {
-    await super.onCreate(context);
-    await Formation.ensure(DEFAULT_FORMATION_PATH);
-  }
 
   /** A member's assigned role, `''` when unassigned (vacant is inert,
    * never an error). Roles are sets, not seats — any number of members
