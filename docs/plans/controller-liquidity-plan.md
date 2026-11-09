@@ -778,6 +778,48 @@ she is under way**; `leaveThem` is protected.
 **D9h (build, W3) — bare `equip --from` still brings out layer-blocked
 pieces**; the ladder dresses them next.
 
+**D8a (build, W4) — `engagePlan` lands on `CommandController`, not
+`EngagedActController`.** `ManualBuildController` descends `CraftController →
+CommandController`, never `EngagedActController`, so the only common ancestor
+is `CommandController`; the routine lives there, `EngagedActController`'s plan
+overload of `engageAct` forwards to it, and ManualBuild's copy is deleted (no
+override needed). Making `CraftController` extend `EngagedActController`
+instead would have clashed with W6's controllers' `private decline`. The busy
+line is ManualBuild's (*"Your hands are busy with something else."*); reasons
+unchanged.
+
+**D8b (build, W4) — no `onChoices` on `ActWords`; choices are answered BEFORE
+a plan exists.** A planner's answer is `ActPlan | X | ActChoices | null`
+(`ActAnswer`); the controller narrows `ok === 'choose'` and either refuses with
+the list (`CommandController.partLine` / `choiceLine`), asks
+(`chooseAmong` → `promptForObject`, fail-closed `needs-input`), or picks — then
+asks the object again with the pick. `ActChoices.ok` is the string `'choose'`,
+so the compiler refuses a choice handed to `engagePlan`.
+
+**D8c (build, W4) — the label is scored by the binder, through
+`CommandController.pickByWords`.** `Growing.harvestPlanFor` lost `typed`; a
+labeled plant at a part where its kind's stand roots answers
+`stand-or-labeled` (`preferred: stand`), and the controller re-scores the
+player's words over the two choices with `MqlApi.resolveMany(words, {scope:
+'reachable', admits})` — `harvest trial` names only the labeled plant (its
+label is a keyword: `label` adds it), `harvest wheat` names both and the
+preferred stand wins. `ripe-elsewhere` is a declared choice too
+(`preferred: ripe sibling`); `HarvestRequest.chosen` = "cut as named, no
+substitution". ⚠ This is +1 on `controller-resolution` self (the base's one
+MQL call), stated with its caller audit below.
+
+**D8d (build, W4) — refusals lose `line:` where W4 was told to look; done
+lines stay.** `PartResolution`/`harvestPartFor`/`sowPlanFor` (choices +
+`{part, ground}` facts), `HarvestRefusal.facts.line` (gone; `ground` added),
+`Tieable` (`TieRefusal`: a closed 23-reason union + `{gear, load, on, knot}`;
+worded by `TieControllerBase.refusalWords` (a base, so the words are protected statics — `lint:lib-statics` refused public ones), shared by `tie`/`untie`/`belay`; LineEnd /
+AirBag / WaterHose wording unified — *"is not tied to anything"* for a bag
+that was *"not lashed"*), `SugarLoaf.clay` (`not-clay` | `clayed-already`;
+note reason stays `refused`). `soilPartRefusal()` is deleted (ranching's
+`MoveController` and farming's `FieldWorkController` word the choice
+themselves). ⚠ Tieable's DONE limb still carries `line`/`peers` — the pack
+lanes' (Appendix B Tieable row).
+
 For later waves (W3): the river-bar steer ordering is W8/W12's; there is no
 unit test for `breedRefusal` yet.
 
@@ -1147,7 +1189,32 @@ controller (drive step 3's shape).
 - Commit: `build(controller-liquidity W3): every gate on the read or write
   it protects; persons keyed on identity; refusals before writes`.
 
-### W4 — the act convention's third limb and the Harvest correction (D8)
+### W4 — the act convention's third limb and the Harvest correction (D8) ✅ done
+
+> **Done.** `ActChoices`/`ActAnswer` in `ActPlan.ts`; `engagePlan` hoisted to
+> **`CommandController`** (D8a — ManualBuild is not under EngagedAct);
+> `chooseAmong` / `pickByWords` / `choiceLine` / `partLine` beside it.
+> `Soil.resolvePartFor` answers `PartChoices` (no prose; `soilPartRefusal`
+> deleted), `Growing.harvestPlanFor` lost `typed` (choices `part-unnamed` ·
+> `stand-or-labeled` · `ripe-elsewhere`, `chosen` to cut as named);
+> `HarvestAskingController` asks (fails closed to the list). Tieable refusals
+> and `SugarLoaf.clay` are reasons + facts (`TieControllerBase` words tie /
+> untie / belay). Ceilings: `controller-resolution` self **107 → 108** (a
+> rise, audited in the gate: `pickByWords`, D8c); every other gate unchanged.
+> W6's controllers needed no edit — `this.engagePlan` resolves to the base.
+> **Prose-refusal audit (left for the lanes):** `Store` 14, `Line` 14 (incl.
+> `LineEnd.tug`), `Book` 13, `Marked` 10, `Tariff` 7, `Respiration` 7, Rope
+> splice/coil 6, `HaulOut` 6, `Sealable` 5, `Sheet` 4, `WaterSurface` 3,
+> `Metabolic` 3, `Vocal` 3, `Capstan`/`Tossable`/`Spliceable`/`Pullable`/
+> `Palate`/`Eating`/`Tearable` 2 each, `Garment`/`Stock`/`ForSale`/`Reading`/
+> `SmallCraft` 1, `Soil.sowingRefusal` (a hook); packs: transport `Boat` 11,
+> sugar `Copper` 8, printing `Forme` 7 / `Pen` 5 / `Printing` 4, diving
+> `Spear` 5, farming `Tract` 4 (mark), water `ReachWarren` 3, papermaking 3,
+> fishing 4, diving `Hoist` 2, energy `LineAccess` 2; the magic Apis'
+> `refusal` prose untouched. Tieable's DONE limb keeps `line`. Record rows
+> that may differ in wording only (none in reasons): tie/untie/belay refusal
+> sentences for LineEnd/AirBag/WaterHose.
+
 
 - `$L/craft/ActPlan.ts`: `ActChoices<C>`; `ActAnswer<B,F,X,C> = ActPlan |
   X | ActChoices<C> | null`. `EngagedActController.engagePlan` moved up
