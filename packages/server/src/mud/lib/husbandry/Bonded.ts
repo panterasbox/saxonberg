@@ -47,6 +47,10 @@ import type { CommandContributions } from '../../api/command';
 import { BulkableApi } from '../../api/bulk';
 import { StuffApi } from '../../api/stuff';
 import { PersistableApi } from '../../api/persistable';
+import { PlayerApi } from '../../api/player';
+import { SecurityApi } from '../../api/security';
+import { MessageApi } from '../../api/message';
+import type { Named, NameRefusal, NameTaken } from '../description/Named';
 import { METABOLIC_DEFAULTS } from '../metabolism/Metabolic';
 
 /**
@@ -644,6 +648,60 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
       const named = this as unknown as { getName?(): string };
       if (typeof named.getName === 'function' && named.getName() !== '') return false;
       return this.hasChosen(by);
+    }
+
+    /**
+     * ⭐⭐ An animal's naming is its **promotion** — identity and durability
+     * arrive together (pets; moved off the `name` verb, controller-liquidity
+     * W8): the name (public to everybody from here), the title and chain of
+     * title (⚠ and so the metabolic clock starts integrating its owner's
+     * absences — *yes iff somebody owns it*), an explicit persistence key
+     * and a recorded place, its first capture, and every witness who can
+     * perceive it learning the name (the `introduce` shape — a neighbour can
+     * return it). Every refusal before any write.
+     */
+    public async takeName(
+      name: string,
+      by: Stuff,
+    ): Promise<NameRefusal | NameTaken> {
+      const self = this as unknown as Stuff & Named;
+      const wanted = name.trim();
+      if (!wanted) return { ok: false, reason: 'no-name-given' };
+      if (self.getName()) return { ok: false, reason: 'already-named' };
+      // ⚠ Every gate, one answer: the bond, the following, the earned home.
+      if (!this.canBeNamedBy(by.getIdentityPath() ?? '', by)) {
+        return { ok: false, reason: 'not-chosen' };
+      }
+      // ⚠ Partial name defence — a connected player's name may not be
+      // taken. The live-`Cast` half wants a name index nobody has built;
+      // the naming slate owns the real defence (Defence B).
+      const clash = PlayerApi.connectedAvatars().some(
+        (a) => (a.getName() ?? '').toLowerCase() === wanted.toLowerCase(),
+      );
+      if (clash) return { ok: false, reason: 'name-taken' };
+
+      // ── the promotion, in order ──
+      self.setName(wanted);
+      if (MixinApi.isChattel(self)) await self.stampChattel(by);
+      if (MixinApi.isPersistable(self)) {
+        // The key BEFORE the place: the place write stamps the residency
+        // pin onto the chattel row, and the pin is `(scope, key)`.
+        self.setPersistenceKey(SecurityApi.uuid(), true);
+      }
+      if (MixinApi.isChattel(self)) {
+        await self.setChattelPlace(PersistableApi.placeIdOf(self));
+      }
+      if (MixinApi.isPersistable(self)) await PersistableApi.capture(self);
+      // ⭐ Witnessed: everybody who can PERCEIVE it learns the name — the
+      // same set a scene reaches (never the room's crockery).
+      const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+      if (room) {
+        for (const witness of MessageApi.getSensors(room)) {
+          if (witness.stuffId === self.stuffId) continue;
+          if (MixinApi.isBeliefStore(witness)) witness.learnIdentityOf(self, wanted);
+        }
+      }
+      return { ok: true, facts: { promoted: true } };
     }
 
     public hasChosen(person: Stuff): boolean {
