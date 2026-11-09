@@ -402,6 +402,24 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
   },
 
   /**
+   * ⭐ **The stream controls** (broadcast-ready D10) — the phase, a reason
+   * picker, the timer, *Back*, the topic and agenda, and the streamer's
+   * own numbers. Opened by bare `stream`; its body is the `stream.state`
+   * client-state key, so it needs no payload and no subscription. One of it.
+   */
+  stream: {
+    label: 'the stream controls',
+    source: { kind: 'client' },
+    pinnedByDefault: true,
+    live: false,
+    command: 'stream',
+    // The card IS the controls; the status line `stream` prints goes to
+    // the transcript on its own, so there is no prose to degrade to.
+    noProse: true,
+    singleton: true,
+  },
+
+  /**
    * ⭐ The NAVIGATOR — where you are, at zone level (map slate, the zone
    * navigation card; wave-1 stub with no map yet). Navigation, not
    * inspection: the room you look at is an ordinary subject card.

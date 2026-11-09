@@ -360,3 +360,13 @@ which is a guard.
 [identity](./identity.md) (the rungs) · [chat](./chat.md) ·
 [naming slate](../slates/tails/naming-slate.md) (minimal-distinguishing
 rendering — claimed in a docstring for years, **never built**).
+
+## ⭐ `broadcasting` — the on-air marker (broadcast-ready D9)
+
+While a player is on air (`BroadcastMixin.isOnAir()`), `look`'s presence
+line adds `broadcasting` beside `away`, the person chip's status says so,
+and the room's look adds a state line — *"A broadcast reaches this
+place."* (source label `Broadcast`) — when anyone in it is on air. A
+thing's state lives in its status or a line reading its own state, never
+a second voice bolted onto the description. A statement, not a gate.
+

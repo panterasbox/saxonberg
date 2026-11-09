@@ -50,6 +50,7 @@ import { PersistableApi } from "../../api/persistable";
 import { CartographerMixin } from "../location/Cartographer";
 import { HasInteractiveMixin } from "../connection/HasInteractive";
 import { ClientStateMixin } from "../connection/ClientState";
+import { BroadcastMixin } from "../livestream/Broadcast";
 import { SaxonbergClientMixin } from "../connection/SaxonbergClient";
 import { AetherMixin } from "../message/Aether";
 import { ContactsMixin } from "../social/Contacts";
@@ -178,6 +179,11 @@ const AvatarBase = PersistableMixin(
   EstateMixin(
     ForkableMixin(
       SaxonbergClientMixin(
+        // ⭐ The stream this body is running (broadcast-ready D1): inside
+        // the spine, so its phase, reason, timers and agenda ride the
+        // snapshot; directly outside ClientStateMixin, because it reads
+        // the streamer's own client facts and re-emits when they move.
+        BroadcastMixin(
         ClientStateMixin(
           HasInteractiveMixin(
             AetherMixin(
@@ -216,6 +222,7 @@ const AvatarBase = PersistableMixin(
         ),
       ),
     ),
+  ),
   ),
   ),
 );
@@ -830,6 +837,8 @@ export default abstract class Avatar extends AvatarBase {
     // Schedules are never persisted, so a body re-books its reminders.
     // A no-op for a body with no entries, which is every vessel today.
     this.rescheduleCalendarPing();
+    // …and its stream's outro, the one deadline that moves the phase.
+    this.rearmBroadcast();
   }
 
   /**
@@ -946,6 +955,26 @@ export default abstract class Avatar extends AvatarBase {
     await this.autoLookOnArrival(interactive);
     this.openArrangementGuarded(interactive);
     this.markSessionStarted(interactive);
+    if (opts.firstArrival === true) this.announceFirstArrival(interactive);
+  }
+
+  /**
+   * ⭐ A new player arrived (broadcast-ready D7): every streamer's ticker
+   * says *"Welcome, <name>!"*, and *"straight from the stream"* when this
+   * connection came in by the show's tagged link. The character's name
+   * only — the owner: *"it's not their real name."* A guest is nobody's
+   * news.
+   */
+  private announceFirstArrival(interactive: Interactive): void {
+    if (this.isGuest) return;
+    const playerId = this.getPlayerId();
+    const name = this.getName();
+    if (!playerId || !name) return;
+    EventApi.emit(Events.PlayerFirstArrival, {
+      playerId,
+      name,
+      arrivedFrom: interactive.getArrivedFrom(),
+    });
   }
 
   /**

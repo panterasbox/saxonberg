@@ -357,6 +357,16 @@ The cockpit groups and routes by `meta.channelId`. Topic strings
 stay channel-agnostic — the topic is the *kind* of event ("a chat
 post"); the channel identity is metadata.
 
+### ⭐ Which posts are private (broadcast-ready D8)
+
+A post on a **`player-created`** channel (the private frequency) and on an
+ad-hoc group handle carries `privacy:private` beside its `channel:<name>`
+tag, on the live frames and in the history ring; an **`open-join`**
+channel is a common band and stays in the clear. A terminal card filtered
+to a private channel or handle is flagged `private` on its
+`card-opened`/`card-touched`. Both are what a streamer's client redacts on
+air — the server says which; the client never guesses from a topic.
+
 ## Verb shape and the fallthrough flag
 
 `chat` is one verb with two grammars. Management subcommands

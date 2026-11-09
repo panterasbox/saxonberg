@@ -167,3 +167,72 @@ describe('YoutubeClient (injected transport)', () => {
     expect(streams[0]!.close).toHaveBeenCalled();
   });
 });
+
+describe('YoutubeClient — the streamer’s own login (broadcast-ready D12)', () => {
+  const prev = { id: process.env.GOOGLE_CLIENT_ID, secret: process.env.GOOGLE_CLIENT_SECRET };
+  beforeEach(() => {
+    process.env.GOOGLE_CLIENT_ID = 'gid';
+    process.env.GOOGLE_CLIENT_SECRET = 'gsecret';
+  });
+  afterEach(() => {
+    process.env.GOOGLE_CLIENT_ID = prev.id;
+    process.env.GOOGLE_CLIENT_SECRET = prev.secret;
+  });
+
+  function linkedRoutes(url: string): Response {
+    if (url.includes('oauth2.googleapis.com/token')) return res(TOKEN_BODY);
+    if (url.includes('/liveBroadcasts')) {
+      return res({ items: [{ id: 'vid-live', snippet: { liveChatId: 'chat-live' } }] });
+    }
+    if (url.includes('/channels')) return res({ items: [{ id: 'UC-mine' }] });
+    if (url.includes('/videos')) {
+      return res({
+        items: [
+          { liveStreamingDetails: { concurrentViewers: '42', actualStartTime: '2026-11-09T10:00:00Z' } },
+        ],
+      });
+    }
+    return res({}, false);
+  }
+
+  it("finds the streamer's own live chat with ZERO search.list calls", async () => {
+    const { transport, fetchMock } = makeTransport(linkedRoutes);
+    const yt = YoutubeClient.forTest(transport);
+    const token = await yt.userToken('refresh-1');
+    expect(token).toBe('tok');
+    const live = await yt.liveBroadcastOfUser(token!);
+    expect(live).toEqual({ videoId: 'vid-live', liveChatId: 'chat-live' });
+    const urls = fetchMock.mock.calls.map((c) => String(c[0]));
+    expect(urls.some((u) => u.includes('/search'))).toBe(false);
+    expect(urls.some((u) => u.includes('broadcastStatus=active'))).toBe(true);
+  });
+
+  it('refreshes against the Google login app and caches the token', async () => {
+    const { transport, fetchMock } = makeTransport(linkedRoutes);
+    const yt = YoutubeClient.forTest(transport);
+    await yt.userToken('refresh-1');
+    await yt.userToken('refresh-1');
+    const tokenCalls = fetchMock.mock.calls.filter((c) => String(c[0]).includes('oauth2'));
+    expect(tokenCalls).toHaveLength(1);
+    const body = String((tokenCalls[0]![1] as { body: URLSearchParams }).body);
+    expect(body).toContain('client_id=gid');
+  });
+
+  it("reads the authorizing user's channel and a live video's numbers", async () => {
+    const { transport } = makeTransport(linkedRoutes);
+    const yt = YoutubeClient.forTest(transport);
+    expect(await yt.myChannelId('tok')).toBe('UC-mine');
+    expect(await yt.liveNumbersOf('vid-live', 'tok')).toEqual({
+      viewers: 42,
+      startedAt: Date.parse('2026-11-09T10:00:00Z'),
+    });
+  });
+
+  it('answers null when nothing is live', async () => {
+    const { transport } = makeTransport((u) =>
+      u.includes('/liveBroadcasts') ? res({ items: [] }) : linkedRoutes(u),
+    );
+    const yt = YoutubeClient.forTest(transport);
+    expect(await yt.liveBroadcastOfUser('tok')).toBeNull();
+  });
+});

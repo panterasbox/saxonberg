@@ -48,8 +48,8 @@ import { isForumSurface } from "../components/social/surfaces";
 import { ForumView } from "../components/ForumView";
 import { openForumBoard } from "../store/forumActions";
 import { TunedRail } from "../components/social/TunedRail";
+import { useOnAir } from "../lib/stream/onAir";
 import { StreamEmbed } from "../components/embed/StreamEmbed";
-import { StreamerDeck } from "../components/StreamerDeck";
 
 const Stage = styled.div`
   display: flex;
@@ -237,14 +237,16 @@ export function usePanelOpen(): { open: boolean; units: number } {
  */
 export interface StageConfig {
   panel: "navigator" | "subjects" | "tuned" | null;
-  focal: "video" | "deck" | "subject" | null;
+  focal: "video" | "subject" | null;
 }
 
 const CONFIG = {
   explore: { panel: "navigator", focal: null },
   chat: { panel: "subjects", focal: "subject" },
   watchViewer: { panel: "tuned", focal: "video" },
-  watchStreamer: { panel: "tuned", focal: "deck" },
+  // ⭐ The streamer's controls are a CARD now (broadcast-ready D10) —
+  // the arrangement opens `stream`; the dead deck scaffold is gone.
+  watchStreamer: { panel: "tuned", focal: null },
   build: { panel: null, focal: null },
 } satisfies Record<string, StageConfig>;
 
@@ -274,6 +276,8 @@ const DesktopStage: React.FC<LayoutProps & { config: StageConfig }> = ({
   resultDisplay,
 }) => {
   const [viewEditorOpen, setViewEditorOpen] = React.useState(false);
+  // On air the overlay's sidebar shows the stream chat; ours hides.
+  const onAir = useOnAir();
   /** A card is being dragged over the maximized one (the swap target). */
   const [swapOver, setSwapOver] = React.useState(false);
   const tabsLoaded = useStore((s) => Array.isArray(s.clientState["console.tabs"]));
@@ -480,7 +484,7 @@ const DesktopStage: React.FC<LayoutProps & { config: StageConfig }> = ({
           {config.panel === "subjects" ? (
             <SubjectPanel onCommandClick={onCommandClick} onCommandPreview={onCommandPreview} />
           ) : null}
-          {config.panel === "tuned" ? (
+          {config.panel === "tuned" && !onAir ? (
             <TunedRail onSendCommand={onCommandClick} onCommandPreview={onCommandPreview} />
           ) : null}
         </Panel>
@@ -618,7 +622,6 @@ function Focal({
   );
   const selected = useStore((s) => s.stageSubject);
   if (kind === "video") return <StreamEmbed target={target} />;
-  if (kind === "deck") return <StreamerDeck onCommandPreview={onCommandPreview} />;
   // A forum subject's board, over the terminal (chat).
   if (!selected || !selected.surface || !isForumSurface(selected.surface)) return null;
   return (

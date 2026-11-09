@@ -62,8 +62,12 @@ export const CENSUS_AT_LANDING = { entries: 128, uncited: 71 };
  * and the house hand keeps the house with nobody present, and the stack
  * melts by its own physics — the unobserved economy, both `reason`s say
  * so. No sibling build adds a boot entry.
+ *
+ * ⭐ 85 → 84 on 2026-11-09 (broadcast-ready W0): the `StreamState`
+ * singleton retired — the stream is state on each streamer's own body
+ * now, loaded with them, so nothing about it boots.
  */
-export const BOOT_ENTRY_CEILING = 85;
+export const BOOT_ENTRY_CEILING = 84;
 
 /**
  * ⭐ Content entries whose reason does not cite the unobserved economy —

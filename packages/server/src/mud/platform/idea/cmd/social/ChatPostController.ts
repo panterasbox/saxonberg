@@ -53,7 +53,7 @@ export default class ChatPostController extends ChatControllerBase {
             .meta({ channelId: ad.handle })
             // ⭐ The channel in a field the record layer keeps (D6): a
             // backfilled frame filters into its channel's terminal too.
-            .tags([`channel:${ad.handle}`])
+            .tags([`channel:${ad.handle}`, MessageApi.Tags.Privacy.Private])
             .toTarget(m, Mml.compose`[${ad.handle}] ${Mml.actor(speaker)}: ${body}`)
             .payload({
               channelId: ad.handle,
@@ -68,7 +68,7 @@ export default class ChatPostController extends ChatControllerBase {
           .topic('speech.channel')
           .modality('verbal-esp')
           .meta({ channelId: ad.handle })
-          .tags([`channel:${ad.handle}`])
+          .tags([`channel:${ad.handle}`, MessageApi.Tags.Privacy.Private])
           .toSelf(Mml.compose`[${ad.handle}] You: ${body}`)
           .payload({
             channelId: ad.handle,
@@ -81,7 +81,7 @@ export default class ChatPostController extends ChatControllerBase {
         cat.appendToHistory(ad.handle, {
           id: SecurityApi.uuid(),
           topic: 'speech.channel',
-          tags: ['audience:witness'],
+          tags: ['audience:witness', MessageApi.Tags.Privacy.Private],
           body: `[${ad.handle}] ${speaker.getPresentation()}: ${body}`,
           meta: { timestamp: Date.now(), modality: 'verbal-esp', channelId: ad.handle },
           payload: {

@@ -105,6 +105,15 @@ export class TwitchRelayReader {
     return u ? { broadcasterId: u.id, login: u.login } : null;
   }
 
+  /** A login's live stream numbers (viewer count, start), or null. */
+  public async streamOf(
+    login: string
+  ): Promise<{ viewers: number; startedAt: number } | null> {
+    const token = await this.readerToken();
+    if (!token) return null;
+    return TwitchClient.get().streamOf(login, token);
+  }
+
   /** Stateless Helix Send Chat Message as the poster. */
   public async send(opts: {
     broadcasterId: string;

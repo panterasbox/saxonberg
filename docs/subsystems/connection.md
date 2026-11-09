@@ -293,15 +293,18 @@ The session middleware runs against the upgrade request **before**
 the socket. Otherwise, it calls `wss.handleUpgrade` and on success
 delegates to `Backend.handleWebSocketConnect(ws, userId, sessionId)`.
 
-**Broadcast principal short-circuit.** Before the session check,
-`handleUpgrade` looks for a `?broadcast=<token>` query param (OBS
-browser sources can't set WS headers). On a constant-time match
-against `BROADCAST_TOKEN`, the upgrade is accepted as the sentinel
-`service:broadcast` principal —
-`handleWebSocketConnect(ws, 'service:broadcast', …, isBroadcast=true)`
-— which routes to the read-only `BroadcastFeed` with **no
-`Interactive`** (a pure push target; commands rejected by
-construction). See [livestream.md](./livestream.md).
+**Token principals short-circuit.** Before the session check,
+`handleUpgrade` looks for a `?broadcast=<token>` or `?control=<token>`
+query param (OBS browser sources can't set WS headers). The token is
+hashed and its record read at `/platform/stream-tokens/<sha256>`; a
+match with the right scope is accepted as the per-streamer principal
+`broadcast:<playerId>` (the read-only `BroadcastFeed`, a pure push
+target with **no `Interactive`**) or `control:<playerId>` (pblive's
+Stream Deck, whose only accepted message is one `stream` command run as
+the streamer). The env `BROADCAST_TOKEN` still opens the first
+`STREAMER_PLAYER_IDS` streamer's feed during the changeover. A bad,
+revoked or wrong-scope token is a 401 — never a fallback to a shared
+feed. See [livestream.md § Tokens and the two doors](./livestream.md).
 
 The `WebSocketServer` is configured with `noServer: true` and
 `maxPayload: 50MB` (`WebSocketService.ts:44-48`). `ws` does not bind

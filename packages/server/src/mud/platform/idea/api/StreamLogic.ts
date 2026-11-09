@@ -12,8 +12,13 @@ import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { ScheduleApi } from '../../../api/schedule';
 import type { ScheduleHandle } from '../../../api/schedule';
-import StreamRelayClass from '../StreamRelay';
 import { User } from '../../../lib/identity/User';
+import { GoogleProfile } from '../../../lib/identity/GoogleProfile';
+import { YoutubeClient } from '../../../../backend/YoutubeClient';
+import { EventApi } from '../../../api/event';
+import { Events } from '../../../lib/events';
+import type { RelayMessageEvent } from '../../../lib/events';
+import { SocialApi } from '../../../api/social';
 import { TwitchProfile } from '../../../lib/identity/TwitchProfile';
 import { KickProfile } from '../../../lib/identity/KickProfile';
 import { StreamerTarget } from '../../../lib/streaming/StreamerTarget';
@@ -25,6 +30,19 @@ import type { RelayChannelRef } from '../StreamRelay';
 import type { MessageFrame, RelaySpeaker } from '@saxonberg/types';
 import { TWITCH_SCOPE_WRITE_CHAT } from '@saxonberg/types';
 import { TwitchRelayReader } from '../../../../backend/TwitchRelayReader';
+import { createHash, randomBytes } from 'node:crypto';
+import { DocumentApi } from '../../../api/document';
+import { StandbyReason } from '../../../lib/livestream/StandbyReason';
+import { LowerThirdPanel } from '../../../lib/livestream/LowerThirdPanel';
+import type { StandbyReading } from '../../../lib/livestream/StandbyReason';
+import type { StreamPanelRow } from '@saxonberg/types';
+import { BROADCAST_TOKEN_SCOPES, BROADCAST_SERVICES } from '../../../lib/livestream/Broadcast';
+import type {
+  BroadcastChannels,
+  BroadcastHost,
+  BroadcastTokenScope,
+} from '../../../lib/livestream/Broadcast';
+import { MixinApi } from '../../../api/mixin';
 import { YoutubeRelayReader } from '../../../../backend/YoutubeRelayReader';
 import { KickRelayReader } from '../../../../backend/KickRelayReader';
 import type {
@@ -288,22 +306,176 @@ export class StreamLogic extends ApiLogic {
    * broadcast + starts a light live-status poll to catch a stream
    * restart. Idempotent on the current on/off state.
    */
+  /**
+   * ⭐ Issue (or rotate) one streamer's token for `scope` (broadcast-ready
+   * D4): 32 random bytes, returned ONCE in base64url; only the sha256 is
+   * stored, at `/platform/stream-tokens/<hex>`, naming the player. The
+   * previous token of that scope is revoked first, so issuing again
+   * rotates. The streamer's body remembers the live hash per scope.
+   */
   @CallSecurity(StreamApiCallers)
-  public async setOverlayReading(on: boolean): Promise<void> {
-    if (on === overlayReading) return;
-    overlayReading = on;
-    const relay = await requireRelay();
-    if (on) {
-      await openOverlayTwitch(relay);
-      await openOverlayKick(relay);
-      await openOverlayYoutube(relay);
-      startOverlayYoutubePoll();
-    } else {
-      stopOverlayYoutubePoll();
-      closeOverlayTwitch(relay);
-      closeOverlayKick(relay);
-      closeOverlayYoutube(relay);
+  public async issueToken(
+    host: Stuff & BroadcastHost,
+    scope: BroadcastTokenScope,
+  ): Promise<string> {
+    const playerId = host.getPlayerId();
+    if (!playerId) throw new Error('StreamApi.issueToken: the host has no player');
+    const previous = host.getStreamTokenHash(scope);
+    if (previous) await DocumentApi.deleteStreamToken(previous);
+    const raw = randomBytes(32).toString('base64url');
+    const hash = hashToken(raw);
+    await DocumentApi.saveStreamToken(hash, { playerId, scope, issuedAt: Date.now() });
+    host.setStreamTokenHash(scope, hash);
+    return raw;
+  }
+
+  /**
+   * Resolve a raw token to the player and scope it names — a hash and a
+   * path READ, never a search. Null for an unknown, revoked or malformed
+   * token (the upgrade answers 401).
+   */
+  @CallSecurity(StreamApiCallers)
+  public async resolveToken(
+    raw: string,
+  ): Promise<{ playerId: string; scope: BroadcastTokenScope } | null> {
+    if (raw.length < 16 || raw.length > 256) return null;
+    const doc = await DocumentApi.read(`/platform/stream-tokens/${hashToken(raw)}`);
+    if (!doc || doc.getKind() !== 'stream-token') return null;
+    const { playerId, scope } = doc.getData();
+    if (typeof playerId !== 'string' || playerId === '') return null;
+    if (!(BROADCAST_TOKEN_SCOPES as readonly unknown[]).includes(scope)) return null;
+    return { playerId, scope: scope as BroadcastTokenScope };
+  }
+
+  /**
+   * Open (or close) ONE streamer's own channel reads — the sentinel-tune
+   * presence edge, per streamer (broadcast-ready D5/D15). Driven by the
+   * feed as that streamer's first overlay socket connects and their last
+   * one leaves. Idempotent per player.
+   */
+  @CallSecurity(StreamApiCallers)
+  public async setOverlayReading(playerId: string, on: boolean): Promise<void> {
+    if (on) await openOverlayFor(playerId, channelsOf(playerId));
+    else await closeOverlayFor(playerId);
+  }
+
+  /**
+   * ⭐ Read a `stream away` operand (D10): a bare duration is the
+   * `generic` reason for that long (the shipped `stream away 15m`); a word
+   * is a reason row, optionally followed by a duration overriding its
+   * default. A privacy reason never carries a countdown. An unknown word
+   * that is not a duration refuses naming both readings.
+   */
+  @CallSecurity(StreamApiCallers)
+  public async interpretAway(first: string, second?: string): Promise<StandbyReading> {
+    const word = first.trim().toLowerCase();
+    const asDuration = parseDurationMs(word);
+    if (asDuration !== null && (second ?? '').trim() === '') {
+      const generic = await readReason(GENERIC_REASON);
+      if (!generic) {
+        return { ok: false, refusal: 'unknown-reason', detail: `no '${GENERIC_REASON}' standby reason is installed` };
+      }
+      return { ok: true, reason: generic, durationMs: generic.privacy ? null : asDuration };
     }
+    const reason = await readReason(word);
+    if (!reason) {
+      return {
+        ok: false,
+        refusal: 'unknown-reason',
+        detail: `'${first}' is neither a standby reason nor a duration (try 15m, 1h, 1h30m, 90s)`,
+      };
+    }
+    const overrideWord = (second ?? '').trim();
+    if (overrideWord === '') return { ok: true, reason, durationMs: reason.defaultDurationMs };
+    const override = parseDurationMs(overrideWord);
+    if (override === null) {
+      return { ok: false, refusal: 'bad-duration', detail: `can't parse duration '${overrideWord}' (try 15m, 1h, 1h30m, 90s)` };
+    }
+    return { ok: true, reason, durationMs: reason.privacy ? null : override };
+  }
+
+  /** Every installed standby reason, for the controls card's picker. */
+  @CallSecurity(StreamApiCallers)
+  public async standbyReasons(): Promise<StandbyReason[]> {
+    const docs = await DocumentApi.list(REASONS_PREFIX);
+    const out: StandbyReason[] = [];
+    for (const doc of docs) {
+      if (doc.getKind() !== REASON_KIND) continue;
+      try {
+        out.push(StandbyReason.fromData(doc.getPath().slice(REASONS_PREFIX.length), doc.getData()));
+      } catch (err) {
+        console.warn(`StreamApi.standbyReasons: skipping a malformed row — ${String(err)}`);
+      }
+    }
+    return out.sort((a, b) => a.key.localeCompare(b.key));
+  }
+
+  /** Every installed lower-third panel row, malformed rows skipped. */
+  @CallSecurity(StreamApiCallers)
+  public async lowerThirdPanels(): Promise<StreamPanelRow[]> {
+    const docs = await DocumentApi.list(LOWER_THIRD_PREFIX);
+    const rows: StreamPanelRow[] = [];
+    for (const doc of docs) {
+      if (doc.getKind() !== LOWER_THIRD_KIND) continue;
+      try {
+        rows.push(LowerThirdPanel.fromData(doc.getPath().slice(LOWER_THIRD_PREFIX.length), doc.getData()));
+      } catch (err) {
+        console.warn(`StreamApi.lowerThirdPanels: skipping a malformed row — ${String(err)}`);
+      }
+    }
+    return rows.sort((a, b) => a.key.localeCompare(b.key));
+  }
+
+  /** A shell-style duration (`15m`, `1h30m`, `90s`; bare = minutes) in ms. */
+  @CallSecurity(StreamApiCallers)
+  public parseDuration(word: string): number | null {
+    return parseDurationMs(word);
+  }
+
+  /** A compact label for a span (`1h 30m`, `5m`, `45s`). */
+  @CallSecurity(StreamApiCallers)
+  public formatDuration(ms: number): string {
+    const totalSec = Math.max(0, Math.round(ms / 1000));
+    const h = Math.floor(totalSec / 3600);
+    const min = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    const parts: string[] = [];
+    if (h > 0) parts.push(`${h}h`);
+    if (min > 0) parts.push(`${min}m`);
+    if (s > 0 && h === 0) parts.push(`${s}s`);
+    return parts.length > 0 ? parts.join(' ') : '0s';
+  }
+
+  /**
+   * Keep a streamer's own numbers coming while they are on air (D16) —
+   * viewer counts, uptime, chat rate, who is online — to their controls
+   * card only. Idempotent; the poll stops itself off air.
+   */
+  @CallSecurity(StreamApiCallers)
+  public watchNumbers(playerId: string): void {
+    watchNumbersOf(playerId);
+  }
+
+  /**
+   * Re-open a streamer's channel reads after their channels changed
+   * (`stream channel …`) — a no-op when no overlay of theirs is open.
+   */
+  @CallSecurity(StreamApiCallers)
+  public async refreshOverlayReading(playerId: string): Promise<void> {
+    if (!overlayReads.has(playerId)) return;
+    await closeOverlayFor(playerId);
+    await openOverlayFor(playerId, channelsOf(playerId));
+  }
+
+  /**
+   * ⭐ The chat channels a streamer's overlay shows: the channels their
+   * body names (`stream channel …`), else — for the founder, the first id
+   * in `STREAMER_PLAYER_IDS` — the `OVERLAY_*` env (D15: nothing changes
+   * for the founder on day one). Handles lower-cased for matching.
+   */
+  @CallSecurity(StreamApiCallers)
+  public channelsFor(playerId: string): BroadcastChannels {
+    return channelsOf(playerId);
   }
 
   // ---- resolution helpers (private) --------------------------------------
@@ -433,19 +605,88 @@ function unsubscribeReader(service: Service, key: string): void {
   else KickRelayReader.get().unsubscribe(key);
 }
 
-// ---- overlay-owner reading -----------------------------------------------
-// The owner's own external channels are env config (single-owner model). The
-// sentinel is `addTuned` to them so the reader opens via the presence edge;
-// delivered lines carry the configured handle, which `BroadcastFeed` filters
-// to before forwarding. State is module-level (the overlay is a global,
-// single-feed / single-owner concern) — note it resets on HMR (orphaning the
-// poll handle + sentinel tune), but a broadcast reconnect re-drives
-// `setOverlayReading`, which re-establishes both.
+// ---- per-streamer overlay reading -----------------------------------------
+// Each streamer's own channels (their body's, else the founder's env seed)
+// are `addTuned` under that streamer's sentinel so the reader opens via the
+// presence edge; delivered lines carry the channel handle, which
+// `BroadcastFeed` matches against each streamer's channels before
+// forwarding. Module-level (it resets on HMR, orphaning a poll and the
+// sentinel tunes; a broadcast reconnect re-drives `setOverlayReading`).
 
-let overlayReading = false;
-let overlayYoutubePoll: ScheduleHandle | null = null;
-/** The liveChatId the sentinel is currently reading for the owner's YouTube. */
-let overlayYoutubeKey: string | null = null;
+/** One streamer's open overlay reads. */
+interface OverlayRead {
+  playerId: string;
+  sentinel: string;
+  channels: BroadcastChannels;
+  /** The liveChatId the sentinel is reading for this streamer's YouTube. */
+  youtubeKey: string | null;
+  poll: ScheduleHandle | null;
+}
+
+const overlayReads = new Map<string, OverlayRead>();
+
+// ---- standby reasons + lower-third panels (pack documents, D2) ---------
+
+/** Where the platform pack installs the reason rows (root + content dir). */
+const REASONS_PREFIX = '/platform/standby-reasons/';
+const REASON_KIND = 'standby-reason';
+/** The reason a bare duration means. */
+const GENERIC_REASON = 'generic';
+/** Where the platform pack installs the panel rows. */
+const LOWER_THIRD_PREFIX = '/platform/lower-third-panels/';
+const LOWER_THIRD_KIND = 'lower-third-panel';
+
+/** Milliseconds per duration unit. */
+const UNIT_MS: Readonly<Record<string, number>> = {
+  s: 1_000,
+  m: 60_000,
+  h: 3_600_000,
+  d: 86_400_000,
+};
+
+/** The reason row at `key`, read by path on use (P7), or null. */
+async function readReason(key: string): Promise<StandbyReason | null> {
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(key)) return null;
+  const doc = await DocumentApi.read(`${REASONS_PREFIX}${key}`);
+  if (!doc || doc.getKind() !== REASON_KIND) return null;
+  return StandbyReason.fromData(key, doc.getData());
+}
+
+/**
+ * Parse a shell-style duration into milliseconds: a chain of
+ * `<number><unit>` segments, or a bare number read as minutes. Null on
+ * anything else, and on zero.
+ */
+function parseDurationMs(input: string): number | null {
+  const text = input.trim().toLowerCase();
+  if (text.length === 0) return null;
+  if (/^\d+$/.test(text)) {
+    const minutes = Number(text);
+    return minutes > 0 ? minutes * UNIT_MS.m! : null;
+  }
+  const re = /(\d+)\s*([smhd])/g;
+  let total = 0;
+  let consumed = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    consumed += m[0].length;
+    total += Number(m[1]) * UNIT_MS[m[2] as string]!;
+  }
+  // Every character must belong to a segment (whitespace aside).
+  if (consumed === 0 || consumed !== text.replace(/\s/g, '').length) return null;
+  return total > 0 ? total : null;
+}
+
+/** sha256 hex of a raw stream token — what is stored and looked up. */
+function hashToken(raw: string): string {
+  return createHash('sha256').update(raw, 'utf8').digest('hex');
+}
+
+/** The founder: the first id in `STREAMER_PLAYER_IDS` (D4, D15). */
+function founderPlayerId(): string | null {
+  const first = (process.env.STREAMER_PLAYER_IDS ?? '').split(',')[0]?.trim();
+  return first ? first : null;
+}
 
 function overlayTwitchLogin(): string {
   return (process.env.OVERLAY_TWITCH_LOGIN ?? '').trim().toLowerCase();
@@ -459,10 +700,61 @@ function overlayKickChannel(): string {
   return (process.env.OVERLAY_KICK_CHANNEL ?? '').trim().toLowerCase();
 }
 
-const OVERLAY_SENTINEL = StreamRelayClass.OVERLAY_SENTINEL;
+/** See {@link StreamLogic.channelsFor}. */
+function channelsOf(playerId: string): BroadcastChannels {
+  // An open overlay read knows its channels — including a YouTube channel
+  // found through the streamer's own login (D12) rather than named.
+  const open = overlayReads.get(playerId);
+  if (open) return { ...open.channels };
+  const avatar = PlayerApi.findAvatarByPlayerId(playerId);
+  const own = avatar && MixinApi.isBroadcastHost(avatar) ? avatar.getStreamChannels() : {};
+  const out: BroadcastChannels = {};
+  for (const service of BROADCAST_SERVICES) {
+    const h = own[service]?.trim();
+    if (h) out[service] = h;
+  }
+  if (Object.keys(out).length > 0 || playerId !== founderPlayerId()) return out;
+  const twitch = overlayTwitchLogin();
+  const youtube = overlayYoutubeChannel();
+  const kick = overlayKickChannel();
+  if (twitch) out.twitch = twitch;
+  if (youtube) out.youtube = youtube;
+  if (kick) out.kick = kick;
+  return out;
+}
 
-async function openOverlayTwitch(relay: StreamRelay): Promise<void> {
-  const login = overlayTwitchLogin();
+/** Open one streamer's channel reads. Idempotent per player. */
+async function openOverlayFor(playerId: string, channels: BroadcastChannels): Promise<void> {
+  if (overlayReads.has(playerId)) return;
+  const relay = await requireRelay();
+  const read: OverlayRead = {
+    playerId,
+    sentinel: relay.overlaySentinelFor(playerId),
+    channels,
+    youtubeKey: null,
+    poll: null,
+  };
+  overlayReads.set(playerId, read);
+  await openOverlayTwitch(relay, read);
+  await openOverlayKick(relay, read);
+  await openOverlayYoutube(relay, read);
+  startOverlayYoutubePoll(playerId, read);
+}
+
+/** Close one streamer's channel reads. A no-op when none are open. */
+async function closeOverlayFor(playerId: string): Promise<void> {
+  const open = overlayReads.get(playerId);
+  if (!open) return;
+  overlayReads.delete(playerId);
+  const relay = await requireRelay();
+  stopOverlayYoutubePoll(open);
+  closeOverlayTwitch(relay, open);
+  closeOverlayKick(relay, open);
+  closeOverlayYoutube(relay, open);
+}
+
+async function openOverlayTwitch(relay: StreamRelay, read: OverlayRead): Promise<void> {
+  const login = read.channels.twitch?.toLowerCase();
   if (!login) return;
   const reader = TwitchRelayReader.get();
   if (!reader.isConfigured()) return;
@@ -472,20 +764,20 @@ async function openOverlayTwitch(relay: StreamRelay): Promise<void> {
     if (!r) return;
     key = r.broadcasterId;
   }
-  if (relay.addTuned(OVERLAY_SENTINEL, 'twitch', key, login)) {
+  if (relay.addTuned(read.sentinel, 'twitch', key, login)) {
     reader.subscribe(key);
   }
 }
 
-function closeOverlayTwitch(relay: StreamRelay): void {
-  const login = overlayTwitchLogin();
+function closeOverlayTwitch(relay: StreamRelay, read: OverlayRead): void {
+  const login = read.channels.twitch?.toLowerCase();
   if (!login) return;
-  const res = relay.removeTuned(OVERLAY_SENTINEL, 'twitch', login);
+  const res = relay.removeTuned(read.sentinel, 'twitch', login);
   if (res.emptied && res.key) TwitchRelayReader.get().unsubscribe(res.key);
 }
 
-async function openOverlayKick(relay: StreamRelay): Promise<void> {
-  const slug = overlayKickChannel();
+async function openOverlayKick(relay: StreamRelay, read: OverlayRead): Promise<void> {
+  const slug = read.channels.kick?.toLowerCase();
   if (!slug) return;
   const reader = KickRelayReader.get();
   if (!reader.isConfigured()) return;
@@ -495,81 +787,202 @@ async function openOverlayKick(relay: StreamRelay): Promise<void> {
     if (r === 'unknown') return;
     key = r.broadcasterId;
   }
-  if (relay.addTuned(OVERLAY_SENTINEL, 'kick', key, slug)) {
+  if (relay.addTuned(read.sentinel, 'kick', key, slug)) {
     await reader.subscribe(key);
   }
 }
 
-function closeOverlayKick(relay: StreamRelay): void {
-  const slug = overlayKickChannel();
+function closeOverlayKick(relay: StreamRelay, read: OverlayRead): void {
+  const slug = read.channels.kick?.toLowerCase();
   if (!slug) return;
-  const res = relay.removeTuned(OVERLAY_SENTINEL, 'kick', slug);
+  const res = relay.removeTuned(read.sentinel, 'kick', slug);
   if (res.emptied && res.key) KickRelayReader.get().unsubscribe(res.key);
 }
 
-async function openOverlayYoutube(relay: StreamRelay): Promise<void> {
-  const chan = overlayYoutubeChannel();
-  if (!chan) return;
+async function openOverlayYoutube(relay: StreamRelay, read: OverlayRead): Promise<void> {
   const reader = YoutubeRelayReader.get();
   if (!reader.isConfigured()) return;
+  // ⭐ The streamer's own login first (D12): their active broadcast for one
+  // quota unit. The named channel's `search.list` is the fallback, for a
+  // streamer who has not stepped up yet.
+  const linked = await linkedYoutubeLive(read.playerId);
+  if (linked) {
+    const chan = read.channels.youtube ?? linked.channelId;
+    read.channels.youtube = chan;
+    if (relay.addTuned(read.sentinel, 'youtube', linked.liveChatId, chan)) {
+      await reader.subscribe(linked.liveChatId);
+    }
+    read.youtubeKey = linked.liveChatId;
+    return;
+  }
+  const chan = read.channels.youtube;
+  if (!chan) return;
   const resolved = await reader.resolveChannel(chan);
   if (typeof resolved === 'string') return; // not-live / unknown → poll catches it
   const key = resolved.liveChatId;
-  if (relay.addTuned(OVERLAY_SENTINEL, 'youtube', key, chan)) {
+  if (relay.addTuned(read.sentinel, 'youtube', key, chan)) {
     await reader.subscribe(key);
   }
-  overlayYoutubeKey = key;
+  read.youtubeKey = key;
 }
 
-function closeOverlayYoutube(relay: StreamRelay): void {
-  overlayYoutubeKey = null;
-  const chan = overlayYoutubeChannel();
+/**
+ * The streamer's own live YouTube broadcast through their stepped-up
+ * Google login, or null (not resident, not linked, not live). One quota
+ * unit — never a search.
+ */
+async function linkedYoutubeLive(
+  playerId: string,
+): Promise<{ liveChatId: string; videoId: string; channelId: string; token: string } | null> {
+  const avatar = PlayerApi.findAvatarByPlayerId(playerId);
+  const user = avatar?.getUser();
+  if (!user?.googleProfileId) return null;
+  const profile = await GoogleProfile.findById<GoogleProfile>(user.googleProfileId);
+  if (!profile?.hasYoutube()) return null;
+  const token = await YoutubeClient.get().userToken(profile.youtubeRefreshToken);
+  if (!token) return null;
+  const live = await YoutubeClient.get().liveBroadcastOfUser(token);
+  if (!live) return null;
+  return { ...live, channelId: profile.youtubeChannelId || playerId, token };
+}
+
+function closeOverlayYoutube(relay: StreamRelay, read: OverlayRead): void {
+  read.youtubeKey = null;
+  const chan = read.channels.youtube;
   if (!chan) return;
-  const res = relay.removeTuned(OVERLAY_SENTINEL, 'youtube', chan);
+  const res = relay.removeTuned(read.sentinel, 'youtube', chan);
   if (res.emptied && res.key) YoutubeRelayReader.get().unsubscribe(res.key);
 }
 
 /**
- * A light live-status poll re-resolving the owner's YouTube channel to catch
- * a stream restart (a new `activeLiveChatId`). Single channel; a `search.list`
- * is quota-costly, so the interval is deliberately slow (AppSetting).
+ * A light live-status poll re-resolving a streamer's YouTube channel to
+ * catch a stream restart (a new `activeLiveChatId`). A `search.list` is
+ * quota-costly, so the interval is deliberately slow (AppSetting).
  */
-function startOverlayYoutubePoll(): void {
-  if (overlayYoutubePoll) return;
-  const chan = overlayYoutubeChannel();
-  if (!chan) return;
-  overlayYoutubePoll = ScheduleApi.recurring(overlayPollIntervalMs(), () => {
-    void reresolveOverlayYoutube();
+function startOverlayYoutubePoll(playerId: string, read: OverlayRead): void {
+  if (read.poll || !YoutubeRelayReader.get().isConfigured()) return;
+  read.poll = ScheduleApi.recurring(overlayPollIntervalMs(), () => {
+    void reresolveOverlayYoutube(playerId);
   });
 }
 
-function stopOverlayYoutubePoll(): void {
-  if (!overlayYoutubePoll) return;
-  ScheduleApi.cancel(overlayYoutubePoll);
-  overlayYoutubePoll = null;
+function stopOverlayYoutubePoll(read: OverlayRead): void {
+  if (!read.poll) return;
+  ScheduleApi.cancel(read.poll);
+  read.poll = null;
 }
 
-async function reresolveOverlayYoutube(): Promise<void> {
-  if (!overlayReading) return;
-  const chan = overlayYoutubeChannel();
+async function reresolveOverlayYoutube(playerId: string): Promise<void> {
+  const read = overlayReads.get(playerId);
   const reader = YoutubeRelayReader.get();
-  if (!chan || !reader.isConfigured()) return;
+  if (!read || !reader.isConfigured()) return;
   const relay = await requireRelay();
-  const resolved = await reader.resolveChannel(chan);
-  const newKey = typeof resolved === 'string' ? null : resolved.liveChatId;
-  if (newKey === overlayYoutubeKey) return; // unchanged
-  // The owner restarted (or went offline). Drop the sentinel from the old
-  // stream (by exact key — the handle cache may have moved), then bind the new.
-  if (overlayYoutubeKey) {
-    const res = relay.removeTunedByKey(OVERLAY_SENTINEL, 'youtube', overlayYoutubeKey);
-    if (res.emptied) YoutubeRelayReader.get().unsubscribe(overlayYoutubeKey);
+  const linked = await linkedYoutubeLive(playerId);
+  let chan = read.channels.youtube;
+  let newKey: string | null;
+  if (linked) {
+    chan = chan ?? linked.channelId;
+    read.channels.youtube = chan;
+    newKey = linked.liveChatId;
+  } else {
+    if (!chan) return;
+    const resolved = await reader.resolveChannel(chan);
+    newKey = typeof resolved === 'string' ? null : resolved.liveChatId;
   }
-  overlayYoutubeKey = newKey;
-  if (newKey) {
-    if (relay.addTuned(OVERLAY_SENTINEL, 'youtube', newKey, chan)) {
-      await reader.subscribe(newKey);
+  if (newKey === read.youtubeKey) return; // unchanged
+  // The streamer restarted (or went offline). Drop the sentinel from the
+  // old stream (by exact key — the handle cache may have moved), then bind
+  // the new.
+  if (read.youtubeKey) {
+    const res = relay.removeTunedByKey(read.sentinel, 'youtube', read.youtubeKey);
+    if (res.emptied) YoutubeRelayReader.get().unsubscribe(read.youtubeKey);
+  }
+  read.youtubeKey = newKey;
+  if (newKey && chan && relay.addTuned(read.sentinel, 'youtube', newKey, chan)) {
+    await reader.subscribe(newKey);
+  }
+}
+
+// ---- the streamer's own numbers (D16) --------------------------------------
+// Viewer counts, uptime, chat rate and who is online go to the STREAMER'S
+// client only (`stream.state` via `loadControls`), never to the feed. One
+// poll per streamer while they are on air; it stops itself when they are not.
+
+const numberPolls = new Map<string, ScheduleHandle>();
+/** Relay-line timestamps per streamer, the last five minutes (chat rate). */
+const chatLines = new Map<string, number[]>();
+let chatListening = false;
+const CHAT_WINDOW_MS = 5 * 60_000;
+
+function statsPollMs(): number {
+  try {
+    const n = Number(AppApi.setting(AppSettingKeys.streamStatsPollMs));
+    return Number.isFinite(n) && n > 0 ? n : 60_000;
+  } catch {
+    return 60_000;
+  }
+}
+
+/** Count each relayed line against every streamer whose channel it is. */
+function listenForChat(): void {
+  if (chatListening) return;
+  chatListening = true;
+  EventApi.on<RelayMessageEvent>(Events.RelayMessage, (m) => {
+    const handle = m.channelHandle.trim().toLowerCase();
+    for (const playerId of numberPolls.keys()) {
+      const own = channelsOf(playerId)[m.service];
+      if (!own || own.trim().toLowerCase() !== handle) continue;
+      const now = Date.now();
+      const lines = (chatLines.get(playerId) ?? []).filter((t) => t > now - CHAT_WINDOW_MS);
+      lines.push(now);
+      chatLines.set(playerId, lines);
     }
+  });
+}
+
+/** Start a streamer's numbers poll if they are on air and none runs. */
+function watchNumbersOf(playerId: string): void {
+  const avatar = PlayerApi.findAvatarByPlayerId(playerId);
+  if (!avatar || !MixinApi.isBroadcastHost(avatar) || !avatar.isOnAir()) return;
+  if (numberPolls.has(playerId)) return;
+  listenForChat();
+  numberPolls.set(
+    playerId,
+    ScheduleApi.recurring(statsPollMs(), () => {
+      void pushNumbers(playerId);
+    }),
+  );
+  void pushNumbers(playerId);
+}
+
+function stopNumbersOf(playerId: string): void {
+  const handle = numberPolls.get(playerId);
+  if (handle) ScheduleApi.cancel(handle);
+  numberPolls.delete(playerId);
+  chatLines.delete(playerId);
+}
+
+async function pushNumbers(playerId: string): Promise<void> {
+  const avatar = PlayerApi.findAvatarByPlayerId(playerId);
+  if (!avatar || !MixinApi.isBroadcastHost(avatar) || !avatar.isOnAir()) {
+    stopNumbersOf(playerId);
+    return;
   }
+  const channels = channelsOf(playerId);
+  const twitch = channels.twitch ? await TwitchRelayReader.get().streamOf(channels.twitch) : null;
+  const linked = await linkedYoutubeLive(playerId);
+  const youtube = linked ? await YoutubeClient.get().liveNumbersOf(linked.videoId, linked.token) : null;
+  const now = Date.now();
+  const lines = (chatLines.get(playerId) ?? []).filter((t) => t > now - CHAT_WINDOW_MS);
+  const starts = [twitch?.startedAt, youtube?.startedAt].filter(
+    (t): t is number => typeof t === 'number',
+  );
+  avatar.loadControls({
+    viewers: { twitch: twitch?.viewers ?? null, youtube: youtube?.viewers ?? null },
+    startedAt: starts.length > 0 ? Math.min(...starts) : null,
+    chatRate: lines.length / (CHAT_WINDOW_MS / 60_000),
+    online: SocialApi.online().map((a) => a.getName() || a.getPresentation()),
+  });
 }
 
 function overlayPollIntervalMs(): number {

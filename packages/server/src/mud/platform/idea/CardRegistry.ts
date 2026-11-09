@@ -71,6 +71,7 @@ import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import { ShellApi } from '../../api/shell';
 import { Mml } from '../../api/mml';
 import { MqlApi } from '../../api/mql';
+import { ChatApi } from '../../api/chat';
 import { PerceptionApi } from '../../api/perception';
 import {
   MqlSubscriptionApi,
@@ -157,6 +158,13 @@ export interface CardState {
   role?: CardRole;
   records?: CardRecord[];
   payload?: CardPayload;
+  /**
+   * ⭐ The server's word that this card is ABOUT something private
+   * (broadcast-ready D8) — a terminal filtered to a player-made channel
+   * or a group handle. A streamer's client shows it as a husk (title
+   * only) while on air. Its frames carry their own privacy tag.
+   */
+  private?: boolean;
 }
 
 /** One open card as `cockpit card list` and `cockpit layout save` see it. */
@@ -525,6 +533,7 @@ export default class CardRegistry extends CardRegistryBase {
       ...(state.payload ? { payload: state.payload } : {}),
       ...(state.subjectKind ? { subjectKind: state.subjectKind } : {}),
       ...(state.segments ? { segments: state.segments } : {}),
+      ...(state.private ? { private: true } : {}),
     };
     holder.onEnvelope(template);
     return state.instanceId;
@@ -761,6 +770,8 @@ export default class CardRegistry extends CardRegistryBase {
     if (id === null) return null;
     const mode = spec?.terminal?.inputMode;
     if (mode) this.setInputMode(interactive, barId, mode);
+    const opened = this.cards.get(interactive)?.get(id);
+    if (opened) void this.markTerminalPrivacy(opened);
     return id;
   }
 
@@ -819,6 +830,7 @@ export default class CardRegistry extends CardRegistryBase {
     state.title = this.terminalTitle(filter);
     state.lastTouchedAt = Date.now();
     this.pushTerminal(state);
+    void this.markTerminalPrivacy(state);
   }
 
   private pushTerminal(state: CardState): void {
@@ -831,8 +843,31 @@ export default class CardRegistry extends CardRegistryBase {
       ...(state.title !== undefined ? { title: state.title } : {}),
       ...(state.payload ? { payload: state.payload } : {}),
       ...(state.role ? { role: state.role } : {}),
+      private: state.private === true,
     };
     holder.onEnvelope(template);
+  }
+
+  /**
+   * ⭐ Resolve whether a terminal's channel is private (D8): a player-made
+   * channel or an ad-hoc group handle is; an open-join band is not. Async
+   * (the channel lookup is), so it lands as a `card-touched` — the frames
+   * inside already carry their own privacy tag, so nothing private is
+   * shown in the moment before it arrives.
+   */
+  private async markTerminalPrivacy(state: CardState): Promise<void> {
+    const channel = state.payload?.kind === 'terminal' ? state.payload.filter.channel : undefined;
+    let isPrivate = false;
+    if (channel) {
+      const cat = await ChatApi.catalogue();
+      const named = await cat.resolveByName(channel);
+      isPrivate = named
+        ? named.kind === 'player-created'
+        : cat.resolveHandle(channel) !== null;
+    }
+    if ((state.private === true) === isPrivate) return;
+    state.private = isPrivate;
+    this.pushTerminal(state);
   }
 
   /** The command that reproduces a terminal — what its refresh says. */

@@ -72,6 +72,7 @@ import type { AroundSaveHook } from '../lib/persistence/AroundSaveHook';
 import type { AroundDeleteHook } from '../lib/persistence/AroundDeleteHook';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
 import type { ClientState } from '../lib/connection/ClientState';
+import type { BroadcastHost } from '../lib/livestream/Broadcast';
 import type { SaxonbergClient } from '../lib/connection/SaxonbergClient';
 import type { Environment } from '../lib/shell/Environment';
 import type { Alias } from '../lib/shell/Alias';
@@ -1339,6 +1340,15 @@ export class MixinApi {
    */
   public static isClientState(obj: Stuff): obj is Stuff & ClientState {
     return this.hasMixin(obj, Mixins.ClientState);
+  }
+
+  /**
+   * Narrows to *this body carries a stream* (broadcast-ready D1, D17).
+   * ⚠ Composition, not the streamer AXIS — every Avatar is a broadcast
+   * host; whether one may RUN `stream` is `AccessApi.isStreamer`.
+   */
+  public static isBroadcastHost(obj: Stuff): obj is Stuff & BroadcastHost {
+    return this.hasMixin(obj, Mixins.Broadcast);
   }
 
   /**

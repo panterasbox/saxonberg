@@ -1,0 +1,82 @@
+/**
+ * "What can you do here?" — one true thing about a trade or system per turn,
+ * each from the subsystem doc (or pack README) that says it SHIPS; `source`
+ * is where to check it. `verbs` steer the pick: when the streamer just typed
+ * one, that trade comes up next. `strong` marks the openers.
+ */
+export interface Fact {
+  trade: string;
+  text: string;
+  strong: boolean;
+  source: string;
+  verbs: string[];
+}
+
+export const FACTS: Fact[] = [
+  { trade: "Glass", text: "Its color comes from the iron in the sand — dirtier sand makes a greener bottle.", strong: true, source: "glass.md § Colour is a grade", verbs: ["gob", "shape", "reheat", "glaze"] },
+  { trade: "Glass", text: "A blown gather cools as you work it; dawdle and it sets and is lost to scrap.", strong: false, source: "glass.md § The hot-work window", verbs: ["gob", "shape", "reheat"] },
+  { trade: "Glass", text: "One green shard in the remelt pot tints the whole batch — recycled glass only gets greener.", strong: false, source: "glass.md § Cullet goes one way", verbs: ["gob"] },
+  { trade: "Glass", text: "A stained window really tints the light in the room it's set in.", strong: false, source: "glass.md § Kernel seams", verbs: ["glaze"] },
+  { trade: "Brewing", text: "Beer spoils in the light, so a brown bottle protects it and a clear one doesn't.", strong: false, source: "spoilage.md § Light-strike", verbs: [] },
+  { trade: "Ceramics", text: "Leave dug clay outside over winter and frost breaks it into a more workable clay.", strong: false, source: "ceramics.md § Clay has a year", verbs: ["shape", "fire"] },
+  { trade: "Ceramics", text: "Fire a pot that's still damp and the steam inside shatters it.", strong: false, source: "ceramics.md § Green ware", verbs: ["fire", "shape"] },
+  { trade: "Ceramics", text: "The iron in the clay decides the color it fires — red, buff or white.", strong: false, source: "ceramics.md § Clay is a composition", verbs: ["fire"] },
+  { trade: "Salt", text: "A brine pan dries in the sun, and a rainy week puts water back — the batch is behind, not spoiled.", strong: false, source: "maturation.md § evaporative", verbs: [] },
+  { trade: "Bees", text: "Your hive pollinates the neighbor's orchard — and a second hive on the valley halves each one's forage.", strong: true, source: "apiculture.md § The range", verbs: [] },
+  { trade: "Bees", text: "Robbing honey in autumn is taking the colony's winter food, and nothing warns you.", strong: false, source: "apiculture.md § The take", verbs: [] },
+  { trade: "Bees", text: "Honey tastes of whatever was blooming within the bees' flight range.", strong: false, source: "apiculture.md § The take", verbs: [] },
+  { trade: "Rubber", text: "It won't cure without sulfur, and too much sulfur turns it into hard black ebonite.", strong: false, source: "rubber.md § The cure", verbs: [] },
+  { trade: "Rubber", text: "Wet leather boots conduct electricity; rubber boots don't.", strong: false, source: "rubber.md § The four corrections", verbs: [] },
+  { trade: "Silk", text: "You have about ten days to heat-kill the cocoons before the moths break the thread getting out.", strong: false, source: "sericulture.md § The cocoon's deadline", verbs: ["reel", "stifle"] },
+  { trade: "Silk", text: "Cheap silkworm eggs can carry a disease nothing reveals until dark specks appear and the tray dies.", strong: false, source: "sericulture.md § The disease nobody can see", verbs: [] },
+  { trade: "Silk", text: "Keep the heaviest cocoons for breeding and the next generation spins heavier ones.", strong: false, source: "sericulture.md § Selection", verbs: [] },
+  { trade: "Dairying", text: "Warm milk turns in about a day — every butter and cheese is a way of making it keep.", strong: false, source: "dairying.md", verbs: ["milk", "churn"] },
+  { trade: "Butter", text: "Churn cream too cold and it won't come; too warm and it comes greasy.", strong: false, source: "dairying.md § The chain", verbs: ["churn"] },
+  { trade: "Cheese", text: "Pasteurizing around 63 °C is safe, but boil the milk and the curd comes out poor.", strong: false, source: "dairying.md § Heat, and its cost", verbs: [] },
+  { trade: "Cheese", text: "Ewe's milk gives about twice the curd of cow's milk.", strong: false, source: "dairying.md § The species", verbs: [] },
+  { trade: "Potash", text: "Beech ash makes strong lye and pine makes weak — you test it by how high an egg floats.", strong: false, source: "potash.md § The numbers", verbs: ["calcine"] },
+  { trade: "Mining", text: "Blackdamp has no smell — the only free warning is a canary that stops singing.", strong: true, source: "mining.md § Air", verbs: ["hew", "drive", "drift", "sink", "raise", "shore", "stake"] },
+  { trade: "Mining", text: "Firedamp ignites at a naked flame, so an enclosed safety lamp lets you work where a torch can't.", strong: false, source: "mining.md § Firedamp", verbs: ["hew", "drive", "sink"] },
+  { trade: "Mining", text: "A dead-end tunnel's air goes bad as you dig, and clears the moment you break through.", strong: false, source: "mining.md § Air", verbs: ["drive", "drift"] },
+  { trade: "Mining", text: "Ore never grows back — the coppice next door regrows, the vein doesn't.", strong: false, source: "mining.md § The body is finite", verbs: ["hew"] },
+  { trade: "Smelting", text: "How much copper comes out depends on the ore's real grade, not a recipe.", strong: false, source: "mining.md § Ore, grade and the smelt", verbs: ["smelt"] },
+  { trade: "Smithing", text: "Quench steel and it hardens; quench cast iron and it cracks in two.", strong: false, source: "crafting.md § Smithing", verbs: ["forge", "hammer", "quench", "sharpen"] },
+  { trade: "Charcoal", text: "Give the burn too much air and it's ash, too little and it's half-burnt — you can lose a whole burn.", strong: false, source: "mining.md § Fuel", verbs: ["char"] },
+  { trade: "Drilling", text: "A survey maps the shape of a trap underground, but nothing can tell you if it's full — every well is a bet.", strong: true, source: "drilling.md § Charge", verbs: ["bore", "drill"] },
+  { trade: "Drilling", text: "Bore over a trap's crest and you hit about forty meters of it; at the rim, one.", strong: false, source: "drilling.md § The trap", verbs: ["bore", "drill"] },
+  { trade: "Fishing", text: "Nobody stocks the rivers — each stretch holds the fish its temperature, oxygen and chemistry suit.", strong: false, source: "fishing.md § The record is derived", verbs: ["cast", "fish", "reel"] },
+  { trade: "Fishing", text: "A frozen lake can only be fished through a hole you cut in the ice.", strong: false, source: "fishing.md § The shore", verbs: ["cast", "fish"] },
+  { trade: "Swimming", text: "A drowning person can't call for help — they go silent with their head tipped back, as in real life.", strong: true, source: "underwater.md § Drowning by cost", verbs: ["swim", "dive"] },
+  { trade: "Diving", text: "Breathe out and you sink, breathe in and you float — the air in your lungs is part of your buoyancy.", strong: false, source: "underwater.md § Buoyancy", verbs: ["swim", "dive"] },
+  { trade: "Diving", text: "Weight never stops you sinking, only rising — drop your belt to swim up.", strong: false, source: "underwater.md § Buoyancy", verbs: ["dive"] },
+  { trade: "Forestry", text: "A felled oak drops tanning bark and a birch drops none, so the tannery runs on oak.", strong: false, source: "forestry.md § Bark", verbs: ["fell"] },
+  { trade: "Carpentry", text: "Plain-sawn boards come out wider but warp; quarter-sawn gives fewer boards that stay flat.", strong: false, source: "trade-carpentry README", verbs: ["saw", "rive"] },
+  { trade: "Milling", text: "How much of the grain you keep is your call — whiter flour keeps longer, darker is more nourishing.", strong: false, source: "trade-milling README", verbs: ["mill", "grind"] },
+  { trade: "Syrup", text: "Maple sap boils down about 25 to 1 and birch about 50 to 1 — and a pan boiled dry is ruined.", strong: false, source: "maturation.md § sap → syrup", verbs: [] },
+  { trade: "Baking", text: "The icebox is the worst place for bread — it goes stale fastest just above freezing.", strong: true, source: "spoilage.md § Staling", verbs: ["bake"] },
+  { trade: "Baking", text: "Put a stale loaf back in the oven and it comes back to life — a few times.", strong: false, source: "spoilage.md § Staling", verbs: ["bake"] },
+  { trade: "Food", text: "Germs from a dirty knife have no smell, taste or look — you only know by how the food was handled.", strong: false, source: "spoilage.md § What a player sees", verbs: ["cook", "butcher"] },
+  { trade: "Curing", text: "Salt stops the rot but kills nothing — a cured ham from dirty meat is still poison next winter.", strong: false, source: "spoilage.md § Curing preserves the contamination", verbs: ["cure"] },
+  { trade: "Butchery", text: "A hard-working shoulder wants a slow braise and a loin a fast sear — swap them and it costs you.", strong: false, source: "butchery.md § The cooking law", verbs: ["butcher", "cook"] },
+  { trade: "Distilling", text: "The first drops off the still are poison — you decide by smell where to start and stop keeping.", strong: false, source: "fractionation.md § The read", verbs: ["distill"] },
+  { trade: "Whiskey", text: "The same spirit in a plain cask and in a charred cask becomes two different whiskies.", strong: false, source: "maturation.md § imparts", verbs: [] },
+  { trade: "Mead", text: "A crock left open catches wild yeast from the air; one sealed from the start never ferments.", strong: false, source: "maturation.md § Two spontaneous profiles", verbs: [] },
+  { trade: "Dyeing", text: "Yellow weld over blue woad makes green — dyes mix like real dyes, not like screen pixels.", strong: true, source: "textiles.md § The colour is subtractive", verbs: ["dye"] },
+  { trade: "Tailoring", text: "Gain or lose weight and your clothes stop fitting — they let out only as far as the seams allow.", strong: false, source: "trade-tailoring README", verbs: ["tailor", "fit"] },
+  { trade: "Ranching", text: "Hay baled wet can heat up and burn the barn down weeks later.", strong: true, source: "ranching.md § Hazard", verbs: [] },
+  { trade: "Ranching", text: "Leave a full clutch under a hen and she stops laying; take the eggs and she starts again.", strong: false, source: "ranching.md § The feedback law", verbs: [] },
+  { trade: "Farming", text: "A crop nursed back from drought looks healthy but is still graded by its worst moment.", strong: false, source: "smallholding.md § Quality", verbs: ["plant", "harvest", "pick"] },
+  { trade: "Pets", text: "To tame a wary animal, offer food and keep still — move and it won't come.", strong: false, source: "pets.md § The offer", verbs: ["offer"] },
+  { trade: "Water", text: "Boiling makes sewage-fouled water safe but not lead — boiled lead water is just hot lead water.", strong: true, source: "watershed.md § Boiling is a temperature", verbs: ["boil", "drink", "fill", "pour"] },
+  { trade: "Rivers", text: "A river cleans itself of sewage downstream, but never of lead from a smelter.", strong: false, source: "watershed.md § Contamination", verbs: ["paddle"] },
+  { trade: "Pumps", text: "A suction pump can't lift water past about ten meters — less on a hill; a bucket has no limit.", strong: false, source: "pump.md § The ceiling", verbs: ["pump"] },
+  { trade: "Death", text: "A fatal wound starts a dying clock, and logging off doesn't pause it — only a rescuer can.", strong: false, source: "mortality.md § The dying clock", verbs: [] },
+  { trade: "Medicine", text: "A bleeding patient's blood pressure looks normal right up until it crashes.", strong: false, source: "harm.md § Circulation", verbs: ["assess", "bandage", "transfuse"] },
+  { trade: "Medicine", text: "A dwarf can take a human's blood; an elf can't.", strong: false, source: "blood.md § The type", verbs: ["transfuse", "bleed"] },
+  { trade: "Combat", text: "Onlookers push a fight to break up — a taproom brawl ends, an alley fight doesn't.", strong: false, source: "combat.md § Onlookers", verbs: ["attack", "kill", "fight"] },
+  { trade: "Stealth", text: "Hiding in a hi-vis vest goes worse than hiding in grey.", strong: false, source: "stealth.md § What you are wearing", verbs: ["hide", "sneak"] },
+  { trade: "Magic", text: "A teleport wand set to a mountaintop holds fewer charges than one set to a valley.", strong: true, source: "magic.md § relocate", verbs: ["cast", "zap"] },
+  { trade: "Magic", text: "A firebolt is real heat — whatever catches fire then burns by ordinary fire rules.", strong: false, source: "magic.md", verbs: ["cast"] },
+  { trade: "Shops", text: "A store that's short of something pays more when you sell it one.", strong: false, source: "retail.md § The house buys", verbs: ["buy", "sell", "consign"] },
+  { trade: "World", text: "The planet is a third of Earth's size, so the sea horizon is closer.", strong: false, source: "expanse.md § The planet is a setting", verbs: [] },
+];
