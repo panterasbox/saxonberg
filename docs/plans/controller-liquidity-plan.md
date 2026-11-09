@@ -820,6 +820,55 @@ note reason stays `refused`). `soilPartRefusal()` is deleted (ranching's
 themselves). ⚠ Tieable's DONE limb still carries `line`/`peers` — the pack
 lanes' (Appendix B Tieable row).
 
+**D5a (build, W2) — the one reach walk is `Container.getReachableContents(rung)`,
+not a `scope-walk.ts` export.** `PerceptionLogic` may not import
+`api/mql/**` (the sealed-subdir ESLint rule) and MqlApi stays two
+functions, so the walk lives on the model, where both MQL's pools and
+`canReach`/`reachableAmong` read it (*MQL is a view over the model*).
+`open` descends a BODY's open vessels all the way down and anything
+else's one level (the holder decides); breadth-first, so what is at hand
+outranks what is in a bag; `deep` never enters another body. `inventory`
+honors the rung too; a mid-chain anchor (`bob:inventory`) is read at
+`top`. `canReach`'s holders are the actor, its location/immediate
+container and its place, plus doors, ways and fixtures of each.
+
+**D5b (build, W2) — `peers` takes the place AND the vessel you sit in**
+(the passenger beside you in a shut coach is to hand); `:here` agrees.
+`:held` = in a body's Wieldable slot, or loose on a body in no slot; a
+rack is not a body.
+
+**D6a (build, W2) — the deeper rung is a REFUSAL probe, never a bind.**
+A bare name that finds nothing at the slot's rung is resolved once at
+`deep`; a find behind a lid refuses the line `validator-failed
+reach:enclosed-shut` (*"A box is shut."*) and nothing binds. Binding it
+would have handed every verb without a reach check (eat has none) a
+thing inside a shut box. A typed rung is never probed past (`--top` →
+none at hand). The explicit-chain case (`eat me:I:apple`) is the new
+`mustNotBeShutAway` validator on get/eat/drink/sip/fill/pour/read, and
+`canReach` words the lid — so "the controllers word it" (D6) became the
+view's validators; no controller changed.
+
+**D6b (build, W2) — the retune.** `depth: top` on the slots that carry
+`mustBeInInventory` (drop, give, put, hang, remove, wear, wield, unwield) —
+a bag's contents would bind and then be refused *you don't have it*.
+Everything else stays `open`. ⚠ Diverges from the plan's `look`/`search`/
+`find` → `deep`: lens 3a — a bare `look sword` would describe a sword in a
+shut chest you never opened; the probe already says the chest is shut,
+and `look here:I:sword` addresses it on purpose.
+
+**D7a (build, W2) — `getEnclosingPlace` returns the immediate container
+when no Place is up the chain**; `roomOf` keeps its null (it asks for a
+place), and `Scene.enclosingLocation` reads the method.
+
+**D7b (build, W2) — the ways out are what HOLDS you: the eight movement
+views scope `me:e:exits`, not `here:exits`.** With `here` the place, `go
+out` from inside a wardrobe or a coach found the room's ways and not the
+vessel's (GoController's vessel test caught it), and `go north` from a
+shut coach would have reached the road's exit. `me:e` is exactly the old
+`here`, so movement is unchanged. The `here` scope POOL and `reachable`
+add the vessel's own surface (its door, its `out`) beside the place's;
+the `here` PRONOUN is the place alone (`look here` in a boat = the river).
+
 For later waves (W3): the river-bar steer ordering is W8/W12's; there is no
 unit test for `breedRefusal` yet.
 
@@ -1076,7 +1125,21 @@ Kernel only; no view changes beyond the schema admitting the new keys.
 - Commit: `build(controller-liquidity W1): values, durations, nested
   subcommands, depth rungs; the article fold and the quote hint`.
 
-### W2 — reach (D4-walk, D5, D6, D7)
+### W2 — reach (D4-walk, D5, D6, D7) ✅ done
+
+> **Done (`fd81f87e2`).** `getEnclosingPlace`/`reachRefusal` on Containable;
+> `Container.getReachableContents(rung)` is the one reach walk (MQL's four
+> giver pools + `canReach`/`reachableAmong`); `here`/`peers`/`:here` take
+> the place; `MqlContext.depth` from the binder; `:i`/`:I` through shut
+> things of yours or the room's; `:held`; the lid refusal; views retuned.
+> Decisions D5a–D7b. ⚠ D7b: the movement views now scope `me:e:exits`. ⚠ Surprises: the plan's home for the walk
+> (`scope-walk.ts` exported to `PerceptionLogic`) is unreachable — the
+> sealed-subdir rule forbids importing `api/mql/**` and MqlApi is two
+> functions — so it is a Container method (D5a); and a deep probe that
+> BINDS would have let every verb with no reach check act inside shut
+> boxes, so the probe only refuses (D6a). No ceiling moved; no controller
+> touched. For W15: drive steps 4–5 should pass as written.
+
 
 - `$L/spatial/Containable.ts`: `getEnclosingPlace()`; `PerceptionLogic.roomOf`
   and `Scene.enclosingLocation` call it.
