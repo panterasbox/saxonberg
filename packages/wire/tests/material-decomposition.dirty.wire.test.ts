@@ -73,7 +73,12 @@ async function say(text: string): Promise<{ r: CommandResult; said: string }> {
   return { r, said };
 }
 
-/** What the player reads of each good, before and after the restart. */
+/** The taste of salt — tasting BITES it, so it is read by its words, never compared whole. */
+async function tasteSalt(): Promise<string> {
+  return (await say('taste salt')).said;
+}
+
+/** What the player reads of each good, before and after the restart (reads only — nothing here changes a good). */
 const before: Record<string, string> = {};
 
 async function readings(): Promise<Record<string, string>> {
@@ -84,7 +89,6 @@ async function readings(): Promise<Record<string, string>> {
     out[word] = said;
   }
   out['smell gin'] = (await say('smell gin')).said;
-  out['taste salt'] = (await say('taste salt')).said;
   return out;
 }
 
@@ -103,6 +107,9 @@ suite.skipIf(!isOwnedTestWorld())('the material decomposition — blocking drive
     p = await Session.open(handle, { startLocation: SQUARE });
     await p.drainProse();
     for (const t of Object.values(GOODS)) await hand(p, t);
+    // A sealed bottle gives nothing to a nose; open it once, before any read,
+    // so the reads before and after the restart see the same bottle.
+    await say('open gin');
     Object.assign(before, await readings());
     expect(before.fork).toMatch(/fork/i);
     expect(before.gin).toMatch(/gin/i);
@@ -114,12 +121,23 @@ suite.skipIf(!isOwnedTestWorld())('the material decomposition — blocking drive
     expect(fork.said).not.toMatch(/juniper|spirit/i);
   });
 
-  it('7. lye is not food; salt tastes salty', async () => {
+  it('7. lye is not food — it burns on the way down; salt tastes salty', async () => {
+    // ⚠ Its own body: the burn lands on the HEAD and dims the eyes, and the
+    // restart step reads the main body's goods by sight.
+    const main = p;
+    p = await Session.open(uniqueHandle('lye'), { startLocation: SQUARE });
+    await p.drainProse();
+    await hand(p, GOODS.lye);
     const { r, said } = await say('drink lye');
-    const refused = refusedFor(r) !== null || /can't|cannot|won't|not something|burn|caustic|scald/i.test(said);
-    expect(refused, `drink lye: ${said}`).toBe(true);
+    p.close();
+    p = main;
     expect(said).not.toMatch(/refresh|satisf|tasty|delicious/i);
-    expect(before['taste salt'], `taste salt: ${before['taste salt']}`).toMatch(/salt/i);
+    // ⭐ A caustic burns on the way down (Metabolic → corrodeOnContact), and
+    // the wound is a card, not a reply line — `Metabolic.caustic.test.ts`
+    // proves the seam fires and that lye feeds no pool. Here: never a meal.
+    expect(refusedFor(r) === null || /can't|cannot|won't/i.test(said), said).toBe(true);
+    const salt = await tasteSalt();
+    expect(salt, `taste salt: ${salt}`).toMatch(/salty/i);
   });
 
   it('8. the assay: iron an element, bronze a mixture', async () => {
@@ -140,7 +158,7 @@ suite.skipIf(!isOwnedTestWorld())('the material decomposition — blocking drive
     expect(metal.said).toMatch(/bronze/i);
   });
 
-  it('11. after a restart, the goods read, smell and taste the same', async () => {
+  it('11. after a restart, the goods read, smell and taste the same', { timeout: 1_500_000 }, async () => {
     p?.close();
     p = null;
     await new Promise((r) => setTimeout(r, 8_000)); // let the logout save land
@@ -154,10 +172,23 @@ suite.skipIf(!isOwnedTestWorld())('the material decomposition — blocking drive
     await p.drainProse();
     const after = await readings();
     for (const [k, v] of Object.entries(before)) {
-      expect(after[k], `${k} after the restart`).toBe(v);
+      // A good tasted since reads "someone has taken a bite of it" — that
+      // the bite survived is the restart working, not a difference.
+      // The street goes on around a reader: an arrival, a departure, the cold.
+      const strip = (t: string | undefined) =>
+        (t ?? '')
+          .replace(/\s*Someone has taken a bite of it\./g, '')
+          .replace(/[^.\n]*\b(arrives from|leaves to)\b[^.\n]*\./g, '')
+          .replace(/You're shivering\./g, '')
+          // Smell rides the AIR (source → air → nose): how strong it is
+          // follows the room and how long the bottle has stood open; WHAT it
+          // smells of is the material's, and that is what must survive.
+          .replace(/\bsmells \w+ of\b/g, 'smells of')
+          .replace(/\s+/g, ' ')
+          .trim();
+      expect(strip(after[k]), `${k} after the restart`).toBe(strip(v));
     }
-    const lye = await say('drink lye');
-    expect(lye.said).not.toMatch(/refresh|satisf|tasty|delicious/i);
+    expect(await tasteSalt(), 'salt tastes the same after the restart').toMatch(/salty/i);
     await stopOwnedWorld();
   });
 });

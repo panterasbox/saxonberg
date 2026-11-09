@@ -333,7 +333,7 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * ⚠ Edibility is a fact about the MATERIAL, not the class — the same
      * class is an anvil or a cut of stew meat depending on its
      * `_materialPath`. So every caller was writing
-     * `MixinApi.isTangible(s) ? s.getMaterial()?.getEdibility() === true
+     * `MixinApi.isTangible(s) ? MixinApi.hasEdibility(s.getMaterial())
      * : false` by hand: the `eat` validator, the feeding brain, the
      * feeding vessel. Three spellings of one question. The thing knows
      * what it is made of; it can answer.

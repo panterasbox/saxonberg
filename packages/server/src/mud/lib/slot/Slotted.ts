@@ -182,14 +182,19 @@ export interface Slotted {
    * Place `candidate` in `slot`. Throws on programmatic violation
    * (unknown slot, full, double-occupy, type mismatch).
    */
-  occupy(candidate: Stuff & Slottable, slot: string): void;
+  /** `restoring`: re-seat what was already worn — fit only, no body-state gate. */
+  occupy(candidate: Stuff & Slottable, slot: string, opts?: { readonly restoring?: boolean }): void;
 
   /**
    * Remove a SPECIFIC candidate from the slot's occupant set; returns
    * the candidate or null if it wasn't present. Throws on unknown slot.
    */
   vacate(slot: string, candidate: Stuff & Slottable): (Stuff & Slottable) | null;
-  occupyAll(candidate: Stuff & Slottable, slots: readonly string[]): void;
+  occupyAll(
+    candidate: Stuff & Slottable,
+    slots: readonly string[],
+    opts?: { readonly restoring?: boolean },
+  ): void;
   findOpenSlotFor(candidate: Stuff & Slottable): string | null;
   resolveSlot(by: SlotResolutionQuery): string | null;
   walkOccupants(
@@ -402,6 +407,21 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       ) {
         return false;
       }
+      return this.fitsSlotSpec(candidate, slot);
+    }
+
+    /**
+     * Parts 1–2 of {@link canOccupy} — does the candidate FIT the slot, by
+     * the slot's `accepts` and its own per-slot test — without Part 0's
+     * question of whether the body can put something there NOW (a missing,
+     * fractured or burned part; a folded chair). A restore asks only this:
+     * what was already worn is re-seated, not put on again (found by the
+     * material decomposition's restart drive — a burned head refused the
+     * implant it already carried, and the login failed).
+     */
+    private fitsSlotSpec(candidate: Stuff & Slottable, slot: string): boolean {
+      const spec = this.getSlotSpec(slot);
+      if (!spec) return false;
       // Part 1 — slot-side mixin check. `accepts` is validated to be
       // a Mixins-registry value at setStaticSlots() time; safe cast.
       if (!MixinApi.hasMixin(candidate, spec.accepts as MixinName)) {
@@ -412,7 +432,11 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       return candidate.fitsSlot(this as unknown as Stuff & Slotted, slot);
     }
 
-    public occupy(candidate: Stuff & Slottable, slot: string): void {
+    public occupy(
+      candidate: Stuff & Slottable,
+      slot: string,
+      opts?: { readonly restoring?: boolean },
+    ): void {
       if (!this.getSlotNames().includes(slot)) {
         throw new Error(
           `Slotted.occupy: unknown slot '${slot}' on host`
@@ -431,7 +455,10 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
           `Slotted.occupy: slot '${slot}' is full (capacity ${cap})`
         );
       }
-      if (!this.canOccupy(candidate, slot)) {
+      const fits = opts?.restoring
+        ? this.fitsSlotSpec(candidate, slot)
+        : this.canOccupy(candidate, slot);
+      if (!fits) {
         throw new Error(
           `Slotted.occupy: candidate does not fit slot '${slot}' ` +
           `(accepts '${spec?.accepts ?? '?'}')`
@@ -539,11 +566,12 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
     public occupyAll(
       candidate: Stuff & Slottable,
       slots: readonly string[],
+      opts?: { readonly restoring?: boolean },
     ): void {
       const claimed: string[] = [];
       try {
         for (const slot of slots) {
-          this.occupy(candidate, slot);
+          this.occupy(candidate, slot, opts);
           claimed.push(slot);
         }
       } catch (err) {

@@ -17,7 +17,7 @@ function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
   return obj;
 }
 
-describe('RadioactivityMixin / RadioactiveMaterial', () => {
+describe('RadioactivityMixin / RadioactiveMetal', () => {
   beforeEach(() => {
     StuffApi.clearAll();
   });
