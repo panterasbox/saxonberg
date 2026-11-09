@@ -328,10 +328,13 @@ two authored indexes in `documents.yaml`, D2.
 singleton; no new Mongo collection; no new module category; no free exported
 helper; no `boot:` entry anywhere (nine are removed). The catalogues that
 survive (`SoulCatalogue`, `RecipeCatalogue`, `ArchetypeCatalogue`,
-`BlueprintCatalogue`, `HelpCatalogue`, `TopicCatalogue`, `PlacementCatalogue`,
-`JointCatalogue`, `OperationCatalogue`, `DisciplineCatalogue`,
+`BlueprintCatalogue`, `HelpCatalogue`, `TopicCatalogue`, `DisciplineCatalogue`,
 `SpellCatalogue`, `CorpoCatalogue`) are the existing singletons, each kept
-only for the job it still has (D9). `GovernmentCatalogue` is deleted.
+only for the job it still has (D9). `GovernmentCatalogue`, `OperationCatalogue`,
+`PlacementCatalogue` and `JointCatalogue` are deleted. One typed error class,
+**`DocumentNotResidentError`**, joins `lib/errors.ts` (the existing home for
+the kernel's typed errors): the by-construction rule's tripwire (D7) — an
+engine defect named by path, never shown to a player.
 
 ## Plan-level decisions
 
@@ -436,21 +439,79 @@ are), every citation a path, the Idea class deleted, and the go-live through
 | Joint | `joint` · `joints` | `lib/craft/Joint.ts` (beside `Assembled`) | ~50 bill `joints[].method` → paths; `Rope.KNOTS` literals → paths; `JointState.method` persists the path | none |
 | CombatFormation | `formation` · `formations` | `lib/combat/Formation.ts` (`policy()` + `DEFAULT_POLICY`) | `DEFAULT_FORMATION_PATH` → `/platform/formations/default`; Party/PartyRecord/AccountabilityEvent persist the new path | yes (`party adopt <word>`) |
 
-**D7 — A holder loads what it cites; a sync read is served from the cache
-and never silent.** Every value class exposes `ensure(path)` (async),
-`resolve(path)` (sync; `null` and a load started when cold; a **diagnostic
-error** when the document is missing — the `Aroma.resolve` shape),
-`resolveWord`/`byWord` for typed-word kinds, and `settling()`. Authored
-citations are awaited by the applier through the field's setter (`smells`
-precedent — `await X.ensure(path)`); runtime state that cites a document
-(`BulkPayload.recipe`, `Crafted.recipe`, a thermal item's dose recipe,
-`deposits`, `ContentPlacement`, `JointState.method`, `formationPath`) starts
-the load when it is **restored** (`DocumentCache.loadRow` ↔ `Aroma.loadRow`).
-A sync reader that finds the cache cold **skips** (reads nothing this tick —
-`BlendIdentity` names the material, `ThermalDose` leaves the dose where it
-is, `Assembled.jointRow` uses its defaults as today) and the next read
-catches up; it never defaults to a made-up value, and a missing document is
-an author-visible error, not a skip.
+**D7 — ⭐⭐ A cited document (or Idea) is resident whenever the thing that
+cites it is resident — true by construction, so a synchronous read always
+finds it.** (Owner, 2026-11-09: *"you're responsible for loading objects into
+the game when they're needed; you can't just say 'they're not loaded yet'
+and give up."*) Nobody above the model — not a controller, not a pack author
+— ever warms anything. Four mechanisms carry the rule, each chosen per
+family in D6/D12/D13 and in the waves:
+
+1. **Authored citations** load through the field's **async setter**, which
+   the applier awaits in both clone and restore mode
+   (`TemplateApplier.ts:196`; `PersistableLogic.ts:836-845` runs the same
+   applier with `mode: 'restore'`) — `await X.ensure(path)` inside
+   `set<Field>`, the `smells`/`Aroma.ensure` precedent — or through
+   `ref: 'identity:constituent'` for an Idea (D10). A row is not live until
+   what it cites is.
+2. **Runtime state that cites a document** — `deposits`/`stains` (dirt),
+   `ContentPlacement`, `JointState.method`, `formationPath`,
+   `BulkPayload.recipe`, `Crafted.recipe`, a thermal dose recipe, a
+   character's transcript disciplines — is **restored through the same awaited
+   setters** (`materialize` is async), so a restored host is live only when
+   its citations are. `ContentPlacement` is restored by `PersistableLogic`'s
+   own placement pass (`Containable.ts:98`), which awaits `Placement.ensure`
+   per restored item. Nothing "starts a load and reads cold."
+3. **A runtime write** of such state happens in an act that already holds
+   the document (a word was resolved to a document to make the write; a
+   payload is copied from a resident payload; a craft had its recipe in
+   hand), so the written path is resident by induction. The setter asserts
+   it synchronously (`require`, below).
+4. **A class's own built-in citations** load **with that class's content**,
+   in the host's own `onCreate`/registration path — never a `boot:` entry:
+   `PlacingMixin.onCreate` ensures every path in its `placements` (the
+   `['on']` default included); `ContainerMixin.onCreate` ensures
+   `Placement.IN` (every container has an inside — `PlacementOffers`
+   already says so); `Chamber` likewise; `SoilableMixin.onCreate` ensures the
+   kernel's dirt vocabulary (`/platform/dirt/*`, one prefix read, cached for
+   the process — the ~25 kernel literals are all platform kinds; a pack
+   soiling with its own kind, `trade-mining`'s `dust`, awaits
+   `DirtKind.ensure` in its own async act, which is content it owns);
+   `Party.onCreate` ensures its formation (the default one included);
+   `Rope.onCreate` ensures its `KNOTS`; `AdvancementMixin.onCreate` warms the
+   discipline dictionary and stands up the stock-bearing disciplines
+   (D11); `FreshnessMixin.onCreate` and the corpse's arc ensure `rot`,
+   `decay`, `blood` (the kernel aroma literals, W6). ⭐ The one place this
+   is **engine machinery rather than a host**: message topics (D13).
+
+Every value class exposes `ensure(path)` (async), **`require(path)`** (sync;
+returns the value or throws **`DocumentNotResidentError`**, a typed internal
+error naming the path and the kind — an engine defect, loud for us, never a
+player-facing refusal and never a skip), `byWord`/`all` where a dictionary is
+needed, `remember` for fixtures, and the static `invalidate` go-live. There is
+**no nullable `resolve`** on the new classes. Every sync reader named in the
+Grounding (`BlendIdentity.recipeOf`, `ThermalDose.doseRecipeFor`,
+`Soilable.dirtKind`, `Assembled.jointRow`, `CombatLogic.resolvePolicyFor`,
+`Containable.getEnclosingScope`, `ContainmentLogic.placeOn`, the MQL
+`placed` projection, the discipline digest) calls `require`. A **missing
+document** (a path no pack ships) fails at the setter — the row or the
+restore refuses, naming the path — and `lint:census` (g) / `lint:aromas`
+catch it before merge. `Aroma` keeps its !541 surface (`resolve` +
+`settling`): the nose is the engine waiting out a load it started itself
+inside the verb, with no caller involvement — the D13 clause — and its kernel
+literals move onto their hosts' `onCreate` in W6.
+
+**How the build proves the by-construction claim** — a test per mechanism,
+then the drive: (1) per family, *clone a row citing a path → `require` succeeds
+immediately after the clone, before any read*; (2) per runtime field, *materialize
+a snapshot carrying a path → `require` succeeds immediately after
+`materialize`*; (3) per host default, *stand the host up → its built-in paths
+are resident*; (4) the negative, *`require` on a path nothing loaded throws
+`DocumentNotResidentError` naming it*; (5) the drive on a fresh world and
+after the restart, with the server log grepped for `DocumentNotResident` —
+it must be empty — and the drive's first `put`, `fit`, `party adopt`,
+`smell` of a soiled shirt and `competence` deliberately being the **first**
+such reads of the boot.
 
 **D8 — The four flat-key kinds: the leaf is the word.** `Emote.fromData`,
 `Recipe.fromData`, `Archetype.fromData` and the blueprint read take the word
@@ -474,16 +535,17 @@ roster a verb lists, warmed on its first async use and never booted:
 `SoulCatalogue` (verb), `RecipeCatalogue` (word, output), `ArchetypeCatalogue`
 (the `survey` roster), `BlueprintCatalogue` (the studio roster),
 `HelpCatalogue` (`help <word>` — unchanged shape), `TopicCatalogue` (the
-dotted key; now over `Topic` documents), `PlacementCatalogue` (the
-preposition; over `Placement` documents), `JointCatalogue` (kept for
-`warmed`/`peek` callers; over `Joint` documents — or folded into `Joint`'s
-cache if the build finds every caller can take the value class directly),
+dotted key; now over `Topic` documents, with the dispatch queue of D13),
 `SpellCatalogue` (word → path, and `spells`), `CorpoCatalogue`
 (`craft … with <brand>` word), `DisciplineCatalogue` (key → path, and the
 conditioning roster — D11). Deleted: `OperationCatalogue` (its one reader
 lists the kind through `Operation.all()`), `GovernmentCatalogue` (no word, no
-roster reader). Every surviving catalogue drops its `boot:` line, warms in
-`ensureCache` on first use, and keeps `canEvict`/`canDestruct` refusals.
+roster reader), **`PlacementCatalogue`** (the word is resolved against the
+host's own `placements`, D12), **`JointCatalogue`** (every caller takes
+`Joint.require`/`Joint.ensure` on a path the bill or the rope already names;
+`peek`'s cold default is exactly what D7 forbids). Every surviving catalogue
+drops its `boot:` line, warms in `ensureCache` on first use, and keeps
+`canEvict`/`canDestruct` refusals.
 `lint:template-scans` entries for the document-backed ones go (they read
 documents now); `Spell`/`Discipline`/`Corpo` keep one `findByClass`/
 `findDescendants` each with the reason `LAZY_DICT`.
@@ -523,42 +585,69 @@ sync digest (`competenceDigestCached` and its ten callers) is per character:
 transcript cites plus the dictionary's **stock-bearing** entries (the
 dictionary keeps `{key, path, hasStock}` per row — the one roster fact
 `withConditioning` needs, so no live-Idea scan), after which every sync read
-is a `findByTemplatePath`. A cold digest omits the conditioning overlay and
-the next read includes it (D7). ⚠ **Owner's eye:** a discipline key is a flat
-namespace across five roots — two packs could ship `smithing` — the exact
-defect `naturalKey` had, left as found; the slate records it.
+is a `findByTemplatePath` that **must** find the Idea — a miss throws
+`DocumentNotResidentError` (D7); there is no cold digest. The dictionary
+itself is warmed in `AdvancementMixin.onCreate` (D7 mechanism 4), so a
+character is live only when its disciplines are. ✅ **Accepted by the owner
+(2026-11-09):** a discipline key is a flat namespace across five roots today;
+*"if we end up needing custom disciplines we'll namespace shit. it should
+already be hierarchical even though probably its mostly flat right now. but
+we want a deep skill tree in the game."* So: keys stay bare, the dictionary
+stays, and **namespacing arrives when a custom discipline needs it** (the
+tree is the intended shape; `specializes:` edges already exist). The slate
+keeps the finding as the attach point, not as a defect.
 
-**D12 — Placement: every async act above a move awaits the warm; a cold
-move throws.** `ContainmentApi.move` is synchronous and cannot be made
-otherwise this build (it is the one movement primitive with ~200 callers).
-So `Placement.warm()` (the whole kind — three platform documents plus any
-pack's; one `listOfKind`) is awaited at each **act-shaped** seam the survey
-found above a placement read: `PutController`, `DryController`,
-`LookController`, `SenseController` (the typed word and the enclosing-scope
-read), `HeatController:176`, `PaperMould:51`, `PulpVat:107` (the literal
-`'on'`), the `TemplateApplier` when it applies a `placements:` field or a
-fixture's `seatIn:`, and `ResidencyWarden`'s pin roll before it stands goods
-back up. `ContainmentLogic.placeOn` with a placement word whose cache is cold
-**throws a typed error** naming the word and the rule (*code asked the
-impossible, checked first* — P3), so any seam the list missed fails loudly in
-a test or the drive rather than refusing a player quietly. `Containable.getEnclosingScope`
-and the MQL `placed` projection read the item's own persisted placement
-path through `Placement.resolve` (cold → the open-scope default, as a missing
-placement reads today, and a load starts). ⚠ Behavior change to verify: the
-first `put` after boot does one indexed read before moving.
+**D12 — Placement: the host that offers a way of sitting loads it; the
+word is resolved against the host.** `ContainmentApi.move` is synchronous
+and stays so (the one movement primitive, ~200 callers). No controller
+warms anything. A placement document is resident by construction through
+D7's mechanisms: a `placements:` field's **async setter** awaits
+`Placement.ensure` per path (authored rows and restores alike);
+`PlacingMixin.onCreate` ensures its `placements` so the `['on']` default is
+covered; `ContainerMixin.onCreate` and `Chamber` ensure `Placement.IN`
+(every container's inside — `PlacementOffers` defaults to it today); the
+`PersistableLogic` placement pass awaits `Placement.ensure` for each restored
+item's `ContentPlacement`. A typed word (`put X on Y`) is resolved **against
+the host's own `placements`** — `wordsFor`/`resolvePlacement` read the host's
+documents' `prepositions` — exactly as a form word is resolved against a
+wheel's `forms:`; so there is **no global placement dictionary** and
+`PlacementCatalogue` is **deleted**, not kept lazy. The three code literals
+(`HeatController:176`, `PaperMould:51`, `PulpVat:107`) become
+`Placement.ON` and are resident because the host they place onto is a
+Placing host. `ContainmentLogic.placeOn`, `Containable.getEnclosingScope`,
+`PlacementOffers`, `Placing.canPlace`/`wordsFor`/`resolvePlacement` and the
+MQL `placed` projection call `Placement.require(path)`: a miss is
+`DocumentNotResidentError` (an engine defect — loud for us), never a refusal
+and never the open-scope default. `lint:placement-words` keeps its two rules
+(every member lists a preposition; no two members share a primary word) over
+the documents, and `placement` stays a typed-word kind for the install check
+(D3) for the same reason that lint exists.
 
-**D13 — Topic: the first message waits for the dictionary; the caller
-never does.** `Scene.send()` stays synchronous for its caller. Internally,
-when `TopicCatalogue` (over `Topic` documents) is cold, the scene's dispatch
-is **deferred until the warm resolves** (`DocumentCache.waitFor`), so no
-frame is ever classified by a cold cache — `isCommunicative` and `feedsFor`
-read a warm dictionary on every path they are reached by. `Avatar.buildWelcomePayload`
-(async) awaits the warm before sending the snapshot. A `.topic()` key with no
-document keeps the catalogue's third tier (a derived descriptor + diagnostic
-— `lint:topics` holds the vocabulary total). ⚠ Risk named in § Risks: a unit
-test that asserts synchronous delivery of the **first** scene in a cold
-fixture must pre-warm (`Topic.remember`) — the fixture-warm shape every
-modality test already uses.
+**D13 — Topic: the engine-machinery exception, and why it is one.** A
+topic is **named by code** (`.topic('combat.hit')`, ~1217 sites) and cited by
+no holder, so no host can carry its load under D7's mechanisms 1–4 — there
+is no row whose setter could await it and no class whose content it is. The
+message pipeline is engine machinery (true whether anyone plays), which is
+the class of thing scan-sweep lets stay engine-wired (wardens, not content).
+So the engine loads it **transparently, with no caller involvement and no
+message lost**: `Scene.send()` stays synchronous for its caller; internally,
+while the topic dictionary (`TopicCatalogue` over `Topic` documents) is
+cold, dispatch is **queued in order** behind the one warm the first scene
+starts (`TopicCatalogue.warming(): Promise | null`), and every queued scene
+dispatches, in order, when it resolves — no frame is ever classified cold and
+no frame is dropped. `Avatar.buildWelcomePayload` (async) awaits the same
+warm before sending the client its snapshot. Any `isCommunicative`/`feedsFor`
+read that still finds the dictionary cold (a frame that bypassed `Scene.send`)
+throws `DocumentNotResidentError`. A `.topic()` key with no document keeps
+the catalogue's third tier (a derived descriptor + a diagnostic), with
+`lint:topics` holding the authored vocabulary total before merge. ⭐ **Flagged
+for the owner** as the one engine-wired load in this build: not a `boot:`
+entry (nothing is read at boot; the first scene of the process pays one
+indexed read of 38 documents), but the loader is the pipeline, not a host.
+The alternative — a boot-time `await Topic.warm()` in `BootstrapManager`
+before the first session can connect — is named in § Risks if the queue
+proves awkward in tests; it is still engine wiring, so the owner's call
+either way.
 
 **D14 — The aroma folder is the tree.** A child aroma lives in its parent's
 directory (`aromas/smoke/peat-smoke.yaml`); its parent is the aroma document
@@ -633,6 +722,7 @@ and the wave's acceptance is the census lint, not the script.
 | `Placement.ON/IN/FROM` path constants | the `Placement` value class | the kernel's own three ways of sitting are named in one place | n/a |
 | value classes `DirtKind`, `Form`, `HelpConcept`, `Placement`, `PumpMechanism`, `Operation`, `Topic`, `Joint`, `Formation` | `lib/<owning subsystem>/` — substrate only ever read, never instanced as Stuff (the `/lib/` invariant holds: no template row names one) | nothing composes them; they are read | n/a |
 | `DocumentCache<T>` | a `private static readonly` on each value class (composition, not inheritance — a static cache inherited by subclasses is shared, which is the trap) | each family owns its memory of what it has read | n/a |
+| an awaited `ensure` in `onCreate` (D7 mechanism 4) | `PlacingMixin` (its `placements`), `ContainerMixin` + `Chamber` (`Placement.IN`), `SoilableMixin` (the kernel's dirt kinds), `Party` (its formation), `Rope` (its knots), `AdvancementMixin` (the discipline dictionary + the stock-bearing disciplines), `FreshnessMixin` (`rot`), the corpse arc (`blood`, `decay`) | a host is live only when its own built-in vocabulary is — one awaited cache hit per host after the first; no guard narrows any of these sets | passes on each: every container has an inside; every placing host offers a way of sitting; every soilable thing can take the kernel's dirt; every party has a formation; every rope ties the kernel's knots; every character has the conditioning stocks; everything that rots smells of rot. ⚠ `ContainerMixin` is the widest host in the game — the claim is exactly `PlacementOffers`' existing default, made resident |
 
 Nothing in this build puts a field on `Thing`, `Idea`, `Stuff`, `Location`
 or any base class. The `Freshness off every Thing` shape does not arise: the
@@ -671,9 +761,11 @@ Checked at plan time against the current tree:
   `formationPath`, `deposits`) were already persisted and now hold paths.
   Identity keys survive a restart because they are paths.
 - **P3 refuse / skip / throw** — the hook throws on an unknown kind; the
-  installer refuses a second word claimant naming both; a cold placement
-  move throws a typed error; a cold sync read skips and a missing document
-  records a diagnostic (D7); the press query has no silent fallback (an
+  installer refuses a second word claimant naming both; a missing document
+  **refuses at the setter** (the row or the restore fails naming the path);
+  a sync read that finds a document not resident is an engine defect and
+  throws `DocumentNotResidentError` (D7) — never a player refusal, never a
+  skip, never a default; the press query has no silent fallback (an
   unindexed sort is a logged *NOT built* at boot and an `explain` in W0).
 - **P4 no duck typing** — a pack reads a document through `DocumentApi` and
   a value class the kernel exports; `trade-medicine` reads `Operation.all()`
@@ -755,14 +847,20 @@ recipe/archetype/blueprint load on use.
   the 34 + 195 + 21 + 9 files lose their key lines (a sed per kind; the
   basename already equals the key in every file).
 - `lib/document/DocumentCache.ts` is **extracted here** from `Aroma`
-  (`known`/`loading`/`resolve`/`ensure`/`remember`/`waitFor`/`loadRow`/
-  `settling`/`forgetAll`, plus `byWord`/`resolveWord`/`all`/`warm` and the
-  static `invalidate(kind, changed, deleted)` registry); `Aroma` delegates to
-  it with its public surface unchanged (every Aroma test passes untouched).
+  (`known`/`loading`/`ensure`/`remember`/`forgetAll`, plus **`require`**
+  (sync, throws `DocumentNotResidentError`), `byWord`/`all`/`warm` and the
+  static `invalidate(kind, changed, deleted)` registry; `Aroma` alone keeps
+  its shipped `resolve`/`waitFor`/`loadRow`/`settling` on its own class, over
+  the shared cache — D7); `Aroma` delegates to it with its public surface
+  unchanged (every Aroma test passes untouched). `DocumentNotResidentError`
+  lands in `lib/errors.ts`.
 - `SoulCatalogue`: cache by leaf (no other change). `RecipeCatalogue`:
   `ensureCache` awaits `warm()`; `Recipe` composes a `DocumentCache`; `getRecipe(path)`;
-  `BlendIdentity.recipeOf`/`ThermalDose.doseRecipeFor` → `Recipe.resolve(path)`
-  with the skip rule (D7); `BulkPayload.recipeId` → `recipe` path,
+  `BlendIdentity.recipeOf`/`ThermalDose.doseRecipeFor` → `Recipe.require(path)`
+  (D7 — resident by construction: the Bulkable slot / `Crafted.recipe` /
+  thermal-dose setters await `Recipe.ensure` at restore, and a runtime
+  `setPayload` or craft mint writes a path the act already resolved, asserted
+  by `require` in the setter); `BulkPayload.recipeId` → `recipe` path,
   `Crafted.recipe` path, `offeredRecipes:` (6 rows), `hand.yaml:57`,
   `DipPot.ts:78,108` paths; `Menu.getOfferedRecipeIds` → paths.
   `ArchetypeCatalogue`, `BlueprintCatalogue`: lazy `ensureCache`;
@@ -773,7 +871,10 @@ recipe/archetype/blueprint load on use.
   `check-untitled-paths.ts` `DOCUMENT_DIRS` derived.
 - Tests: `PackLogic.flatkey.test.ts` → `PackLogic.words.test.ts` (install set;
   store claimant via the harness's `documentRows`); `PackLogic.threeway/record`
-  updated; `RecipeCatalogue.lazy.test.ts`; `BlendIdentity` cold-skip test;
+  updated; `RecipeCatalogue.lazy.test.ts`; the D7 proof tests for recipes
+  (a materialized vessel holding a blend has its recipe resident before any
+  `getHeldKeywords`; a thermal item likewise; `require` on an unloaded path
+  throws by name);
   `ArchetypeCatalogue.test.ts`, `BlueprintCatalogue.test.ts` for the lazy warm.
 - Commit: `build(documents W1): emote, recipe, archetype, blueprint are named by their path`.
 
@@ -789,17 +890,27 @@ recipe/archetype/blueprint load on use.
 
 ### W3a — path-cited families → documents: DirtKind, PumpMechanism, Joint, Form (D6, D7, D15)
 
-No typed word, no sync-primitive hazard. Per family, the D6 recipe and the
-D18 codemod; `lib/cleanliness/DirtKind.ts` (path constants for the ~25 TS
-literals; the `dust` defect closes by construction — `/trade/mining/dirt/dust`
-is just a path), `lib/pump/PumpMechanism.ts`, `lib/craft/Joint.ts`
-(`JointCatalogue` over documents or folded — decide by its callers),
-`lib/craft/FormSpec.ts` `Form`. Delete the four Idea classes. Lints:
-census (g) fields, `check-bills`, `check-capabilities`, boundary-roles
-ceiling, field-meta golden. Tests: the surveyed test files per family
-(`Soilable`, `Wash`, `Pumping`, `PumpReading`, `Assembled*`, `CraftingLogic.assembly/fit/mend`,
-`Rope*`, `ShapeController`, `shape.test.ts`, `blowpipe-forms`) move to
-document fixtures (`DocumentCache.remember`). Commit:
+No typed word, no sync-primitive hazard. Per family, the D6 recipe, the
+D18 codemod and the D7 mechanisms: `lib/cleanliness/DirtKind.ts` (path
+constants for the ~25 kernel literals; `SoilableMixin.onCreate` ensures the
+kernel's dirt kinds; `deposits`/`stains` restore through an awaited setter;
+`soil()` and `dirtKind()` use `require`; the four `dust` sites in
+`trade-mining`/`trade-quarrying`/`trade-textiles` await `DirtKind.ensure`
+in their own async acts — the `dust` defect closes because
+`/trade/mining/dirt/dust` is a path a pack owns), `lib/pump/PumpMechanism.ts`
+(`mechanism` setter awaits `ensure`; `mechanismRow` → `require`),
+`lib/craft/Joint.ts` (`JointCatalogue` deleted; the bill's `joints` setter
+and `JointState.method`'s setter await `Joint.ensure`; `Rope.onCreate`
+ensures `KNOTS`; `Assembled.jointRow` → `require`), `lib/craft/FormSpec.ts`
+`Form` (`forms` setter awaits `ensure`; `formWords` → `require`). Delete the
+four Idea classes. Lints: census (g) fields, `check-bills`,
+`check-capabilities`, boundary-roles ceiling, field-meta golden. Tests: the
+surveyed test files per family (`Soilable`, `Wash`, `Pumping`, `PumpReading`,
+`Assembled*`, `CraftingLogic.assembly/fit/mend`, `Rope*`, `ShapeController`,
+`shape.test.ts`, `blowpipe-forms`) move to document fixtures
+(`DocumentCache.remember`), plus the D7 proof tests for each family:
+clone-then-`require`, materialize-then-`require`, host-default-then-`require`,
+and the negative `DocumentNotResidentError`. Commit:
 `build(documents W3a): dirt, pump mechanisms, joints and forms are documents`.
 
 ### W3b — typed-word families with async readers → documents: Operation, HelpConcept, CombatFormation (D3, D6)
@@ -807,38 +918,55 @@ document fixtures (`DocumentCache.remember`). Commit:
 `lib/vitals/Operation.ts` + `Operation.all()` (`OperationCatalogue` deleted;
 `OperateController` reads the kind); `lib/help/HelpConcept.ts` + `seeAlso`
 paths (`HelpCatalogue.loadConceptTopics` reads `listOfKind('help-concept')`);
-`lib/combat/Formation.ts` + `DEFAULT_FORMATION_PATH`, `PartyLogic.setFormationImpl`
-→ `Formation.byWord`, `CombatLogic.resolvePolicyFor` → `Formation.resolve(path)`
-(cold → `DEFAULT_POLICY`, as today, and a load starts), `warmFormationsImpl`
-→ `ensure`; `formationPath` persists the new path. Three typed-word kinds
-declare `words`. Delete the three Idea classes. Tests per the survey.
+`lib/combat/Formation.ts` + `DEFAULT_FORMATION_PATH`; `Party.onCreate` and
+`formationPath`'s awaited setter ensure the party's formation (so
+`PartyLogic.setFormationImpl` resolves the word with `Formation.byWord` and
+writes a resident path; a restore awaits it); `CombatLogic.resolvePolicyFor`
+→ `Formation.require(party.formationPath)` for a party, and `DEFAULT_POLICY`
+**only** for a combatant with no party (the no-formation case, not a cold
+case); `assignRoleImpl` reads a resident formation and can no longer answer
+`unknown-role` for coldness; `warmFormationsImpl` goes (nothing to warm —
+every party is resident with its formation). Three typed-word kinds declare
+`words`. Delete the three Idea classes. Tests per the survey plus the D7
+proof tests.
 Commit: `build(documents W3b): operations, help concepts and formations are documents`.
 
 ### ⚠ W4 — the two families beneath synchronous primitives: Placement and Topic (D12, D13)
 
 Isolated on purpose; if the premise fails, this wave is re-planned alone.
 
-- **Placement**: `lib/spatial/Placement.ts` (`ON/IN/FROM`, `warm()`,
-  `resolve`, `resolveWord`); `PlacementCatalogue` over documents, lazy, boot
-  line removed; the enumerated seams of D12 await `Placement.warm()`;
-  `ContainmentLogic.placeOn` throws typed on a cold word;
-  `Containable.getEnclosingScope`, `PlacementOffers`, `Placing.canPlace/
-  wordsFor/resolvePlacement`, the MQL `placed` projection read by path; 14
-  rows + 3 code defaults + 3 literals → paths; `ContentPlacement` persists the
-  path; `check-placement-words` follows the rows.
-- **Topic**: `lib/message/Topic.ts`; `TopicCatalogue` over `Topic` documents,
-  lazy, boot line removed, `pruneRetiredRoots` deleted, `validatePackTopics`
-  over the kind's files; `Scene.send()` defers dispatch on a cold dictionary
-  (`DocumentCache.waitFor`); `Avatar.buildWelcomePayload` awaits the warm;
-  `check-topic-keys` `TOPIC_SEEDS` from `content/platform/content/topics/`;
-  `ORPHAN_DATA_KEY_CEILING` lowered.
+- **Placement** (D12): `lib/spatial/Placement.ts` (`ON/IN/FROM`, `ensure`,
+  `require`, `wordsOf`); `PlacementCatalogue` **deleted** with its boot line;
+  `Placing.setPlacements` becomes async and awaits `Placement.ensure` per
+  path; `PlacingMixin.onCreate`, `ContainerMixin.onCreate` and `Chamber`
+  ensure their built-in placements; the `PersistableLogic` placement pass
+  awaits `Placement.ensure` per restored `ContentPlacement`;
+  `ContainmentLogic.placeOn`, `Containable.getEnclosingScope`,
+  `PlacementOffers`, `Placing.canPlace/wordsFor/resolvePlacement` and the MQL
+  `placed` projection call `require`; the word is resolved against the host's
+  own documents; 14 rows + 3 code defaults + 3 literals → paths;
+  `ContentPlacement` persists the path; `check-placement-words` follows the
+  rows. ⚠ `ContainerMixin.onCreate` gaining an `await` is the widest change
+  in the build — the build measures boot time before and after (one cache
+  hit per container after the first).
+- **Topic** (D13): `lib/message/Topic.ts`; `TopicCatalogue` over `Topic`
+  documents, lazy, boot line removed, `pruneRetiredRoots` deleted,
+  `validatePackTopics` over the kind's files; `Scene.send()` queues dispatch
+  in order behind `TopicCatalogue.warming()` while cold and flushes the queue
+  when it resolves; `Avatar.buildWelcomePayload` awaits the same warm;
+  `isCommunicative`/`feedsFor` throw `DocumentNotResidentError` on a cold read
+  (unreachable through `Scene.send`); `check-topic-keys` `TOPIC_SEEDS` from
+  `content/platform/content/topics/`; `ORPHAN_DATA_KEY_CEILING` lowered.
 - Boot entries −2 (`PlacementCatalogue`, `TopicCatalogue`) → ceiling 80.
 - Tests: `PutController`, `Dry`, `Containable`, `Chamber`, `Seasoning.chamber`,
-  `perception.can-reach` on document fixtures; a new `Placement.cold.test.ts`
-  (a move on a cold cache throws by name; after `warm()` it moves);
-  `TopicCatalogue*` tests over documents; a `Scene.cold.test.ts` (the first
-  scene in a cold fixture is delivered after the warm, classified correctly).
-- Commit: `build(documents W4): placements and topics are documents, warmed at the act`.
+  `perception.can-reach` on document fixtures; the D7 proof tests for
+  placement (a Placing host, a Container and a restored placed item are
+  resident with their placements before any read; `require` on an unloaded
+  path throws by name); `TopicCatalogue*` tests over documents; a
+  `Scene.queue.test.ts` (three scenes sent on a cold fixture arrive in order,
+  all classified correctly, none lost; a scene sent after the warm is
+  delivered synchronously as today).
+- Commit: `build(documents W4): placements and topics are documents, resident by construction`.
 
 ### W5a — the Ideas that stay Ideas, by path: Spell, Corpo/Brand, Government (D9, D10)
 
@@ -865,15 +993,20 @@ Boot entries −3 → ceiling 77. Tests per the survey (`SpellCatalogue`,
 `SingletonMixin` + veto on `Discipline`; coercion onto setters;
 `DisciplineCatalogue` → the lazy `key → {path, hasStock}` dictionary (one
 `findByClass` on first use, `LAZY_DICT`), standing Ideas up on reach;
-`Advancement.restore`/`armSession` load the transcript's disciplines + the
-stock-bearing ones; `withConditioning` reads the dictionary's `hasStock` rows
-and the live Ideas' `getStock()`; `Employed.fulfils` reads `getSpecializes()`
-off live Ideas (its async seam two frames up awaits the dictionary);
-`refreshConferrals` keeps the catalogue as command source. Boot entry −1 →
-ceiling **76**. Tests: `DisciplineCatalogue`, `Discipline`,
-`Advancement.conditioning/conferral`, `isFulfilling.specializes`, plus a
-cold-digest test (a restored character's first digest after the arm includes
-the conditioning overlay). Commit:
+`AdvancementMixin.onCreate` warms the dictionary and stands up the
+stock-bearing disciplines (D7 §4); the transcript's restore runs through an
+awaited setter that stands up every discipline it cites, and a conferral at
+runtime has the discipline in hand; `withConditioning` and the digest read
+resident Ideas with `findByTemplatePath` and throw `DocumentNotResidentError`
+on a miss (no cold digest); `Employed.fulfils` reads `getSpecializes()` off a
+resident Idea (a position's `fulfills:` setter awaits the stand-up, so a
+business is live only when its disciplines are); `refreshConferrals` keeps
+the catalogue as command source. Boot entry −1 → ceiling **76**. Tests:
+`DisciplineCatalogue`, `Discipline`, `Advancement.conditioning/conferral`,
+`isFulfilling.specializes`, plus the D7 proof tests (a materialized character
+has its transcript's disciplines and the stock-bearing ones resident before
+any digest; a business with `fulfills:` has them resident after clone).
+Commit:
 `build(documents W5b): disciplines load when a character reaches them`.
 
 ### W6 — the aroma library in directories (D14)
@@ -884,8 +1017,16 @@ the mapping, not a merge by hand. `Aroma.ensure` folder-parent derivation;
 89 `parent:` removals, the 417-file citation rewrite (the mapping is `old →
 new` for the 89 children; a depth-2 child's new path is
 `/base-library/aromas/<grandparent>/<parent>/<child>`), the four kernel
-literals, the test fixtures. `docs/subsystems/senses.md` § aromas updated.
-Commit: `build(documents W6): the aroma folders are the tree`.
+literals, the test fixtures. The kernel's own aroma citations become
+resident with their hosts (D7 §4): `FreshnessMixin.onCreate` awaits
+`Aroma.ensure(ROT_AROMA)` and the corpse's arc (`MortalArc`/`Corpse.onCreate`)
+awaits `blood` and `decay`, so `Freshness.rotNote()` and `decayNote()` read a
+resident aroma; the nose's `settling()` wait stays for the loads it starts
+itself. `docs/subsystems/senses.md` § aromas updated. Tests: folder-parent
+derivation; the lint's folder rule (an explicit `parent:` equal to the folder
+parent is refused; a cross-pack one is allowed); a fresh `FreshnessMixin`
+host and a fresh corpse have their aromas resident before any read. Commit:
+`build(documents W6): the aroma folders are the tree`.
 
 ### W7 — the drive and the walk
 
@@ -908,13 +1049,13 @@ code-complete and the drive runs beside review. Commit:
 | recipe by word | `carve`, `make`, menu `order` | the station's `offeredRecipes:` paths / the bench | recipe documents + `keys.word/output` | `RecipeCatalogue.ensureCache` awaited by `requireCatalogue`; a payload restore starts `Recipe.resolve` | `recipeId` arg → word (existing) |
 | `survey` archetypes | `survey` | existing | archetype documents | `ArchetypeCatalogue` awaited in `execute` | n/a |
 | `shape <form>` | `shape` | the instrument's `forms:` paths | form documents | `FormingMixin.formWords` awaits `Form.ensure` per path | word matched against the holder's list (existing) |
-| `put X on Y` | `put`, `dry` | `PlacingMixin` (existing) | placement documents; `placements:` paths | `Placement.warm()` at the enumerated seams; a cold move throws | `prepositions:` on the view (existing, `lint:placement-words`) |
+| `put X on Y` | `put`, `dry` | `PlacingMixin` (existing) | placement documents; `placements:` paths | the host's `placements` setter and `PlacingMixin`/`ContainerMixin.onCreate` (D7 §4); the restore pass awaits `ContentPlacement`; `require` at the read | `prepositions:` on the view (existing, `lint:placement-words`) |
 | `pump` ceiling | `pump` | existing | pump-mechanism documents; `mechanism:` paths | `PumpingMixin.mechanismRow` awaits `PumpMechanism.ensure` | n/a |
 | `operate … for <word>` | `operate` (trade-medicine) | existing | operation documents | `Operation.all()` at the verb | word matched against the kind (existing) |
-| `fit` with a joint | `fit`, `tie` | the bill's `method` paths; `Rope.KNOTS` paths | joint documents | awaited `jointCatalogue()`/`Joint.ensure`; `Assembled.jointRow` cold → defaults + load | n/a |
+| `fit` with a joint | `fit`, `tie` | the bill's `method` paths; `Rope.KNOTS` paths | joint documents | the bill's `joints` setter awaits `Joint.ensure`; `JointState.method` restores through its setter; `Rope.onCreate` ensures its knots; `Assembled.jointRow` → `Joint.require` | n/a |
 | `party adopt <word>` | `party adopt`, `party assign` | existing | formation documents | `Formation.byWord` at the verb; `warmFormationsImpl` at initiate | word shape regex (existing) |
 | `help <concept>` | `help` | existing | help-concept documents; `seeAlso` paths | `HelpApi.ready()` (existing) | n/a |
-| message topics | every scene | n/a | topic documents | `Scene.send` defers on a cold dictionary; login awaits the warm | `lint:topics` totality |
+| message topics | every scene | n/a | topic documents | the pipeline's own queued warm (D13, the engine-machinery exception); login awaits the same warm | `lint:topics` totality |
 | `cast <word>` | `cast`, `spells` (arcana) | `Caster.refreshCastingAffordance` (existing) | Spell rows (Ideas) | `SpellCatalogue` lazy dictionary → `singleton(path)`; a wand's `carriedSpellPath` is a constituent | word → path (existing) |
 | `competence` | `competence` | existing | Discipline rows (Ideas) | the character's `Advancement` loads its disciplines at arm; the dictionary on first use | n/a |
 | `government` | `government` | existing | Government rows (Ideas) | the Locality's `government` constituent | n/a |
@@ -929,7 +1070,7 @@ column is the shipped wiring the survey verified.
 
 | requirements AC | wave(s) |
 |---|---|
-| a fresh world boots with every pack; every drive step reads as written before and after a restart | W7 (steps 0, 20); every wave's own acceptance |
+| a fresh world boots with every pack; every drive step reads as written before and after a restart | W7 (steps 0, 20); every wave's own acceptance; ⭐ the **D7 proof** — per-mechanism tests in W3–W6 and a server log with no `DocumentNotResident` on the fresh boot or after the restart |
 | no document shares its path with another | W0 (unique `{path}`; `dbKeyQuery` by path) |
 | every citation names a path a pack ships; a misspelled one is caught before merge | W1, W3a/b, W4, W5a (citations), D15 lints (`lint:census` (g)/(b), `lint:aromas`, `lint:bills`) |
 | two packs ship the same name under their own roots and both are found; two packs claiming one typed word are refused, naming both | W1 (`wordFailures`, `lint:typed-words`), drive step 19 |
@@ -947,10 +1088,13 @@ untouched and their slates named in § Deferred seams.
 
 **Unit** (per wave, `test:near` + touched packs): the derivation and hook
 (W0); the install word check against set and store (W1); `DocumentCache`
-and the press query shape (W2); each value class's `fromData` refusals and
-cold-skip behavior (W3–W5); the typed throw on a cold placement move and the
-deferred first scene (W4); the cold digest (W5b); `Aroma` folder-parent
-derivation and the lint's folder rule (W6). ⚠ Index selection, the unique
+(`ensure`/`require`/`byWord`/`invalidate`) and the press query shape (W1/W2);
+each value class's `fromData` refusals (W3–W5); **the D7 proof tests per
+mechanism per family** — clone-then-`require`, materialize-then-`require`,
+host-default-then-`require`, and the negative `DocumentNotResidentError` —
+(W3–W5); the ordered scene queue (W4); `Aroma` folder-parent derivation,
+the lint's folder rule, and the kernel aroma literals resident with
+`FreshnessMixin`/the corpse arc (W6). ⚠ Index selection, the unique
 path index and boot-order effects **cannot be unit-tested** (tests touch no
 Mongo); they are W0's `explain` check and the drive.
 
@@ -1001,24 +1145,34 @@ render in words. Runs once at code-complete beside the drive.
 1. **The wildcard index may not serve the ordered read** on the deployed
    planner. Bounded by W0's `explain` check and D2's named fallback; the
    build decides at W0 and records it. Not a stop.
-2. **A first move on a cold placement cache** at a seam the survey missed
-   throws (D12). Intentional — loud — but a throw in a brain or a scheduler
-   path would surface in the drive as a dead act. The enumerated seams are
-   the survey's; the build greps `ContainmentApi.move(` with a third argument
-   and `placements:` setters before committing W4.
-3. **Deferring the first scene's dispatch** (D13) changes timing for exactly
-   one message per boot; a unit test asserting synchronous first delivery in
-   a cold fixture must pre-warm. If more than a handful need it, the
-   alternative is `BootstrapManager` awaiting `Topic.warm()` before the first
-   session can connect — still not a `boot:` entry, but a boot-time act;
-   record which.
+2. **The by-construction claim has a coverage edge**: a runtime write that
+   sets a document-citing field from a path **not** obtained by resolving a
+   document (a literal the survey missed, a pack's own kind soiled without
+   its `ensure`) throws `DocumentNotResidentError` at the setter. Intentional
+   and loud, but a throw in a brain or a scheduler path surfaces in the drive
+   as a dead act. Before committing W3a/W4 the build greps every
+   `ContainmentApi.move(` with a third argument, every `soil`/`soilFrom`
+   literal, every `formationPath`/`method`/`recipe` writer, and lists them in
+   the wave's acceptance as covered by mechanism 3 or 4.
+3. **The ordered scene queue** (D13) changes timing for the first scenes of
+   a process only; a unit test asserting synchronous delivery of the first
+   scene in a cold fixture must pre-warm (`Topic.remember`) — the
+   fixture-warm shape every modality test already uses. If the queue proves
+   awkward, the named alternative is `BootstrapManager` awaiting
+   `TopicCatalogue.warm()` before the first session can connect — not a
+   `boot:` entry but still engine wiring; **either way it is the owner's call**
+   (D13 flags it), and the build records which shipped.
 4. **`BlueprintCatalogue.rebuild()` at first studio use** — a seconds-long
    first request, and class modules loading under a request rather than at
    boot. If the studio's first request times out in the walk, the honest
    answer is the tiering slate's (the `blueprints` cache should not persist),
    not a boot entry.
-5. **Discipline keys stay a flat namespace** (D11). Recorded for the owner;
-   not solvable inside this scope without a 700-site sweep.
+5. **An awaited `ensure` in `ContainerMixin.onCreate`** is one more awaited
+   promise on the widest host in the game. After the first container it is a
+   resolved cache hit, but the build measures a cold boot before and after W4
+   and records the delta; a measurable regression means the IN placement
+   should be ensured by `PlacementOffers`' first construction instead, which
+   is still the host's own path.
 6. **Material decomposition** rewrites the same material files W6 touches.
    W6 is last and scripted so a rebase is a re-run; if build-1 merges first,
    `check-aromas.ts:177` already has their `Odor`/`Combustion` split and the
@@ -1041,10 +1195,11 @@ Clean attach points, each with the slate it leaves as:
   FractionSchedule, Fabric, Dyestuff) — the D6 recipe applies unchanged once
   material decomposition merges; `documents-path-identity-slate` stays
   **PARTIAL** for them, and the slate's § 4 table is the to-do.
-- **Discipline keys as a flat namespace across five roots** — a finding for
-  `documents-path-identity-slate` (new row: *the Idea with a second name*);
-  the attach point is `DisciplineCatalogue`'s dictionary, which already maps
-  key → path.
+- **Discipline keys as a flat namespace across five roots** — accepted by
+  the owner (D11): namespace when a custom discipline needs it; the tree is
+  the intended shape. The slate keeps the finding as the attach point
+  (`DisciplineCatalogue`'s dictionary already maps key → path), not as a
+  defect.
 - **`release` → `onVanish: 'keep'`, `descriptor-bank` as a kind, the
   `blueprints` collection cache** — `document-store-tiering-slate` items 2–3
   and the audit; the press index (item 1) is done here.
