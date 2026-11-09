@@ -27,7 +27,6 @@ import type { MendRecord } from '../../../../lib/material/Durable';
 import { ConstructedMixin } from '../../../../lib/material/Constructed';
 import { NamedMixin } from '../../../../lib/description/Named';
 import RecipeCatalogue from '../../RecipeCatalogue';
-import JointCatalogue from '../../JointCatalogue';
 import { Template } from '../../../../lib/stuff/Template';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
@@ -38,6 +37,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '../../../../lib/security/__tests__/test-setup';
+import { rememberJoint } from '../../../../lib/craft/__tests__/joint-fixtures';
 
 /** A family-shaped part: an edge, a name seat, mends, a recipe mark. */
 class TestPart extends AssembledMixin(
@@ -93,7 +93,7 @@ function axeRow(): TestPart {
       { part: 'head', template: HEAD, count: 1, role: 'structural', material: IRON, form: 'bladed' },
       { part: 'haft', template: HAFT, count: 1, role: 'structural', material: ASH },
     ],
-    joints: [{ key: 'hafting', method: 'wedged', members: ['head', 'haft'] }],
+    joints: [{ key: 'hafting', method: '/platform/joints/wedged', members: ['head', 'haft'] }],
   });
   return t;
 }
@@ -151,12 +151,10 @@ beforeEach(async () => {
     if (path === HAFT) return part(HAFT, ASH, ['axe-haft', 'haft']) as never;
     throw new Error(`unexpected clone ${path}`);
   });
-  vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-    cls === '/platform/idea/Joint'
-      ? ([
+  for (const r of [
           {
-            path: '/platform/idea/Joint/wedged',
-            class: cls,
+            path: '/platform/joints/wedged',
+            class: "/platform/idea/Joint",
             data: {
               key: 'wedged',
               portability: 'hand',
@@ -169,15 +167,12 @@ beforeEach(async () => {
               failure: 'parted',
             },
           },
-        ] as never)
-      : ([] as never),
-  );
+        ] as unknown as Array<{ path: string; data: Record<string, unknown> }>) rememberJoint(r.path, r.data);
   vi.spyOn(Template, 'findByPath').mockImplementation(async (p: string) => {
     if (p === HAFT || p === HEAD) return { path: p, class: '/x/TestPart', data: { mass: 1 } } as never;
     if (p === AXE) return { path: p, class: '/x/TestPart', data: { bill: axeRow().getBill() } } as never;
     return null as never;
   });
-  makeStuffAtPath(() => new JointCatalogue(), TemplatePaths.jointCatalogue);
   recipes = [
     {
       recipeId: 'axe',

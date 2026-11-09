@@ -20,10 +20,11 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import type { PartLine } from '../Assembled';
-import JointCatalogue from '../../../platform/idea/JointCatalogue';
 import { Template } from '../../stuff/Template';
 import { TemplatePaths } from '../../paths';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
+import { rememberJoint } from './joint-fixtures';
+import { rememberShippedJoints } from './joint-fixtures';
 
 function material(path: string, hardness: number, toughness: number): Material {
   const m = makeStuff(() => new Material());
@@ -55,12 +56,13 @@ function pick(): Tool {
   const t = makeStuff(() => new Tool());
   t.recordAssembly(
     [line('head', IRON), line('haft', ASH)],
-    [{ key: 'hafting', method: 'wedged', members: ['head', 'haft'], tension: 1, maker: '' }],
+    [{ key: 'hafting', method: '/platform/joints/wedged', members: ['head', 'haft'], tension: 1, maker: '' }],
   );
   return t;
 }
 
 beforeEach(() => {
+  rememberShippedJoints();
   StuffApi.clearAll();
   material(IRON, 600, 200);
   material(ASH, 40, 60);
@@ -111,7 +113,7 @@ describe('AssembledMixin', () => {
     const cask = makeStuff(() => new Assembly());
     cask.recordAssembly(
       [line('stave', ASH, { count: 30, failed: 2, condition: 0.8, plural: 'staves' })],
-      [{ key: 'hooping', method: 'hooped', members: ['stave'], tension: 0.4, maker: '/cooper' }],
+      [{ key: 'hooping', method: '/trade/coopering/joints/hooped', members: ['stave'], tension: 0.4, maker: '/cooper' }],
     );
     cask.replaceMembers('stave', 2, { material: ASH, grade: 'poor', maker: '/me' });
     const staves = cask.getLine('stave')!;
@@ -140,7 +142,7 @@ describe('AssembledMixin', () => {
         { part: 'head', template: '/x/thing/head', count: 1, role: 'structural', material: IRON },
         { part: 'haft', template: '/x/thing/haft', count: 1, role: 'structural', material: ASH },
       ],
-      joints: [{ key: 'hafting', method: 'wedged', members: ['head', 'haft'] }],
+      joints: [{ key: 'hafting', method: '/platform/joints/wedged', members: ['head', 'haft'] }],
     });
     expect(t.getParts().map((l) => l.part)).toEqual(['head', 'haft']);
     t.wear(0.2, 'shock');
@@ -182,7 +184,7 @@ describe('AssembledMixin', () => {
     const cask = makeStuff(() => new Assembly());
     cask.recordAssembly(
       [line('stave', ASH, { count: 30, plural: 'staves', green: true, greenAt: t0 })],
-      [{ key: 'hooping', method: 'hooped', members: ['stave'], tension: 1, maker: '' }],
+      [{ key: 'hooping', method: '/trade/coopering/joints/hooped', members: ['stave'], tension: 1, maker: '' }],
     );
     expect(cask.failedLines()).toEqual([]);
     // Push the game clock well past a tenth of the seasoning time.
@@ -218,12 +220,7 @@ describe('⭐ a glue line needs FLAT faces — a cupped board under it never hol
     failure: 'parted',
   };
   beforeEach(async () => {
-    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-      cls === '/platform/idea/Joint'
-        ? ([{ path: '/platform/idea/Joint/glued', class: cls, data: glued }] as never)
-        : ([] as never),
-    );
-    await makeStuffAtPath(() => new JointCatalogue(), TemplatePaths.jointCatalogue).allWarmed();
+    for (const r of [{ path: '/platform/joints/glued', data: glued }] as unknown as Array<{ path: string; data: Record<string, unknown> }>) rememberJoint(r.path, r.data);
     StuffApi.findByTemplatePath<Material>(ASH)!.greenShrinkage = 0.1;
   });
   afterEach(() => vi.restoreAllMocks());
@@ -235,7 +232,7 @@ describe('⭐ a glue line needs FLAT faces — a cupped board under it never hol
         line('shield-board', ASH, { form: 'sawn', ...boardOver }),
         line('hide-face', IRON, { role: 'facing' }),
       ],
-      [{ key: 'facing', method: 'glued', members: ['hide-face', 'shield-board'], tension: 1, maker: '' }],
+      [{ key: 'facing', method: '/platform/joints/glued', members: ['hide-face', 'shield-board'], tension: 1, maker: '' }],
     );
     return s;
   }
@@ -265,7 +262,7 @@ describe('⭐ a glue line needs FLAT faces — a cupped board under it never hol
     const t = makeStuff(() => new Tool());
     t.recordAssembly(
       [line('head', IRON), line('haft', ASH, { form: 'sawn', cupped: true })],
-      [{ key: 'hafting', method: 'wedged', members: ['head', 'haft'], tension: 1, maker: '' }],
+      [{ key: 'hafting', method: '/platform/joints/wedged', members: ['head', 'haft'], tension: 1, maker: '' }],
     );
     expect(t.slackJoints()).toEqual([]);
   });
@@ -290,7 +287,7 @@ describe('⭐ a glue line needs FLAT faces — a cupped board under it never hol
         line('shield-board', ASH, { form: 'sawn' }),
         line('hide-face', IRON, { role: 'facing', failed: 1, empty: true }),
       ],
-      [{ key: 'facing', method: 'glued', members: ['hide-face', 'shield-board'], tension: 1, maker: '' }],
+      [{ key: 'facing', method: '/platform/joints/glued', members: ['hide-face', 'shield-board'], tension: 1, maker: '' }],
     );
     const look = s.getMarkupLong(s);
     expect(look).toMatch(/It wants a hide-face\./);

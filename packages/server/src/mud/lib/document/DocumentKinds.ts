@@ -128,6 +128,12 @@ export const DOCUMENT_KINDS = {
    * resolved against that list, so two instruments may each know a `brick`.
    */
   form: { kind: 'form', contentDir: 'forms', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **joint** — one way parts are joined (a wedge, a mortise, a knot):
+   * portability, competence, how it comes apart, its strength
+   * (`lib/craft/Joint.ts`). A bill cites a joint by path.
+   */
+  joint: { kind: 'joint', contentDir: 'joints', ext: 'yaml', onVanish: 'delete' },
   'name-bank': { kind: 'name-bank', contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
   blueprint: { kind: 'blueprint', contentDir: 'blueprints', ext: 'yaml', onVanish: 'delete' },
   'command-view': { kind: 'command-view', contentDir: 'cmd', ext: 'yaml', onVanish: 'delete' },

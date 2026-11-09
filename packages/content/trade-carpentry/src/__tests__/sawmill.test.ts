@@ -286,7 +286,7 @@ describe('the rows the verbs lean on', () => {
       expect(slot, p.part).toBeDefined();
       expect(slot!.count ?? 1, p.part).toBe(p.count);
     }
-    expect(bill.joints[0]!.method).toBe('pegged');
+    expect(bill.joints[0]!.method).toBe('/trade/carpentry/joints/pegged');
     expect(bill.joints[0]!.fastener).toBe('peg');
     // The pegged joint is driven — and the trade carves the mallet.
     expect(recipe.toolCapabilities).toEqual(['driving']);
@@ -304,7 +304,7 @@ describe('the rows the verbs lean on', () => {
       '/trade/carpentry/thing/handle',
       '/trade/smithing/thing/froe-blade',
     ]);
-    expect(bill.joints[0]!.method).toBe('wedged');
+    expect(bill.joints[0]!.method).toBe('/platform/joints/wedged');
     // No tool: wedged is the by-hand joint.
     expect(recipes().find((r) => r.recipeId === 'froe')!.toolCapabilities).toEqual([]);
   });

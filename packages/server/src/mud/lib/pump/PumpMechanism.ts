@@ -26,10 +26,12 @@ import type { StoredDocument } from '../document/StoredDocument';
 
 export class PumpMechanism {
   /** Every mechanism read, by path. */
-  private static readonly cache = new DocumentCache<PumpMechanism>(
-    'pump-mechanism',
-    (doc) => PumpMechanism.fromDocument(doc),
-  );
+  /** The memory of what has been read — built on first use (a static built at
+   *  module load would race an import cycle through the document store). */
+  private static memo: DocumentCache<PumpMechanism> | null = null;
+  private static get cache(): DocumentCache<PumpMechanism> {
+    return (PumpMechanism.memo ??= new DocumentCache<PumpMechanism>('pump-mechanism', (doc) => PumpMechanism.fromDocument(doc)));
+  }
 
   /**
    * The fields as authored. ⭐ `pulls` is `spoiler: 1` — the one fact the

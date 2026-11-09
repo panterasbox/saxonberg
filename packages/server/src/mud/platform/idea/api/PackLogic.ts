@@ -30,6 +30,7 @@ import {
 import { StoredDocument } from '../../../lib/document/StoredDocument';
 import { PumpMechanism } from '../../../lib/pump/PumpMechanism';
 import { Form } from '../../../lib/craft/FormSpec';
+import { Joint } from '../../../lib/craft/Joint';
 import { DocumentCache } from '../../../lib/document/DocumentCache';
 import { TOPIC_ROOTS } from '@saxonberg/types';
 import Topic from '../Topic';
@@ -178,6 +179,7 @@ const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>, path: 
   archetype: (d, p) => void Archetype.fromData(d, p),
   'pump-mechanism': (d, p) => void PumpMechanism.fromData(d, p),
   form: (d, p) => void Form.fromData(d, p),
+  joint: (d, p) => void Joint.fromData(d, p),
   'command-view': (d) => {
     const trail = CommandApi.validateCommandView(d);
     if (trail !== null) throw new Error(`does not conform to the command schema:\n${trail}`);

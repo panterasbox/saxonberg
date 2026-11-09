@@ -3,16 +3,16 @@
 # most of the staves come back and many of the hoops do not survive the
 # driving. ⭐ The three cooper's joints differ by how tight the hoops are
 # driven — which is what decides what the vessel can hold.
-class: /platform/idea/Joint
-data:
-  key: hooped
-  label: hooped
-  portability: tool
-  instrument: driving
-  competence: { discipline: coopering, band: competent }
-  reversible: effort
-  strength: 0.55
-  structuralRecovery: 0.8
-  fastenerRecovery: 0.5
-  tightenable: true
-  failure: slack
+key: hooped
+label: hooped
+portability: tool
+instrument: driving
+competence:
+  discipline: coopering
+  band: competent
+reversible: effort
+strength: 0.55
+structuralRecovery: 0.8
+fastenerRecovery: 0.5
+tightenable: true
+failure: slack

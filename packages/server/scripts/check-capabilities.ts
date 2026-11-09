@@ -156,7 +156,7 @@ function scanYaml(doc: unknown, site: string, declared: Sites, consumed: Sites):
   // kind (assembly D11). `fit` and `repair` read it to decide whether the
   // cooper's driver is in reach, so `driving` is wanted by the `hooped`
   // row and by nothing in source. Gated on the site, as the reading arm is.
-  if (site.includes('/idea/Joint/')) {
+  if (site.includes('/content/joints/')) {
     const want = o['instrument'];
     if (typeof want === 'string' && want !== '') add(consumed, want, site);
   }

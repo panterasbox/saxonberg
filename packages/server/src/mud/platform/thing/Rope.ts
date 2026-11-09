@@ -66,7 +66,7 @@ import type { CompetenceBandName } from '../../lib/advancement/CompetenceBand';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { FaceName, CoatLayer } from '../../lib/material/Faced';
 import type { CommandContributions } from '../../api/command';
-import type JointCatalogue from '../idea/JointCatalogue';
+import { Joint } from '../../lib/craft/Joint';
 import { Quantity, type Quantity as Q } from '../../lib/quantity';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { TemplatePaths } from '../../lib/paths';
@@ -96,6 +96,9 @@ const ROPE_ROW = '/platform/thing/rope';
 
 /** The knots a rope can be TIED in (a splice is made, never tied). */
 const KNOTS = ['bowline', 'clove-hitch', 'sheet-bend', 'reef-knot'] as const;
+
+/** Where the kernel's knot (and splice) joints live — `joint` documents, by path. */
+const KNOT_ROOT = '/platform/joints/';
 
 /** Fibers pack into a rope at about this share of its section (D4). */
 const PACKING = 0.6;
@@ -681,9 +684,9 @@ export default class Rope extends CuttableMixin(
     if (!(KNOTS as readonly string[]).includes(key)) {
       return { ok: false, reason: 'no-such-knot', line: `You know no knot called a ${asked ?? key}.` };
     }
-    const cat = await StuffApi.singleton<JointCatalogue>(TemplatePaths.jointCatalogue).catch(() => null);
-    const row = cat ? await cat.warmed(key) : null;
-    if (row === null) return { ok: false, reason: 'no-such-knot', line: `You know no knot called a ${asked ?? key}.` };
+    // The act loads the knot it ties (documents D7: the act holds it). A
+    // listed knot with no document is a defect, thrown — never "no such knot".
+    const row = await Joint.ensure(KNOT_ROOT + key);
     let band: CompetenceBandName = 'untrained';
     if (MixinApi.isAdvancing(by)) {
       band = await by.competenceBandFor('ropework').catch(() => 'untrained' as CompetenceBandName);
@@ -1009,14 +1012,13 @@ export default class Rope extends CuttableMixin(
 
   /** A splice's share and the splicer's dressing, credited to `ropework`. */
   private async dressed(by: Stuff): Promise<{ strength: number; dressing: number }> {
-    const cat = await StuffApi.singleton<JointCatalogue>(TemplatePaths.jointCatalogue).catch(() => null);
-    const row = cat ? await cat.warmed('splice') : null;
+    const row = await Joint.ensure(KNOT_ROOT + 'splice');
     let band: CompetenceBandName = 'untrained';
     if (MixinApi.isAdvancing(by)) {
       band = await by.competenceBandFor('ropework').catch(() => 'untrained' as CompetenceBandName);
       void by.creditSignature({ discipline: [{ discipline: 'ropework', difficulty: 'standard', outcome: 'success' }] }).catch(() => {});
     }
-    return { strength: row?.strength ?? 0.9, dressing: DRESSING[band] };
+    return { strength: row.strength, dressing: DRESSING[band] };
   }
 
   /** ⭐ `coil rope` (D10): a moment for every two meters, then it throws clean. */

@@ -202,9 +202,12 @@ const FORM_PROPORTIONS: readonly FormProportion[] = ['tall', 'squat', 'wide', 'n
  * @internal the forming substrate's; an author names a path on a row.
  */
 export class Form {
-  private static readonly cache = new DocumentCache<FormWord>('form', (doc) =>
-    Form.fromData(doc.getData(), doc.getPath()),
-  );
+  /** The memory of what has been read — built on first use (a static built at
+   *  module load would race an import cycle through the document store). */
+  private static memo: DocumentCache<FormWord> | null = null;
+  private static get cache(): DocumentCache<FormWord> {
+    return (Form.memo ??= new DocumentCache<FormWord>('form', (doc) => Form.fromData(doc.getData(), doc.getPath())));
+  }
 
   /** Validate a form document at `path` (the installer's validator too). */
   public static fromData(data: Record<string, unknown>, path: string): FormWord {

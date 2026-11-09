@@ -69,9 +69,12 @@ export class Aroma {
    * also what a pack sync's go-live clears). Aroma keeps its own `ensure`
    * because it walks the parent chain with a depth guard.
    */
-  private static readonly known = new DocumentCache<Aroma>('aroma', (doc) =>
-    Aroma.ensure(doc.getPath()),
-  );
+  private static memo: DocumentCache<Aroma> | null = null;
+  private static get known(): DocumentCache<Aroma> {
+    // Built on first use: a static built at module load races an import
+    // cycle through the document store.
+    return (Aroma.memo ??= new DocumentCache<Aroma>('aroma', (doc) => Aroma.ensure(doc.getPath())));
+  }
   /** Loads in flight, by path. */
   private static readonly loading = new Map<string, Promise<unknown>>();
 

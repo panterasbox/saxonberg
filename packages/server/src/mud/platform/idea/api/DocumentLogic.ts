@@ -745,6 +745,7 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'aroma':
     case 'pump-mechanism':
     case 'form':
+    case 'joint':
       return null;
     default: {
       const unreachable: never = kind;

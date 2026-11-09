@@ -6,18 +6,14 @@
 #
 # ⭐ A handle much wetter than its body shrinks more as they dry, and the
 # join cracks (`green.joinMismatch`).
-class: /platform/idea/Joint
-data:
-  key: slip
-  label: slipped
-  portability: hand
-  instrument: ''
-  # No band: anybody can score and slip a handle on; the join's worth is
-  # its timing (leather-hard) and its match (the two pieces equally dry).
-  competence: null
-  reversible: never
-  strength: 0.6
-  structuralRecovery: 0.0
-  fastenerRecovery: 0.0
-  tightenable: false
-  failure: parted
+key: slip
+label: slipped
+portability: hand
+instrument: ''
+competence: null
+reversible: never
+strength: 0.6
+structuralRecovery: 0.0
+fastenerRecovery: 0.0
+tightenable: false
+failure: parted

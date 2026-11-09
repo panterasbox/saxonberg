@@ -4,7 +4,7 @@
  * cushion leaves you on the bare frame.
  */
 import '../../../test-bootstrap';
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import Lamp from '../thing/Lamp';
 import Chair from '../thing/Chair';
 import Vat from '../thing/Vat';
@@ -15,6 +15,7 @@ import { StuffApi } from '../../api/stuff';
 import { Quantity } from '../../lib/quantity';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { PartLine } from '../../lib/craft/Assembled';
+import { rememberShippedJoints } from '../../lib/craft/__tests__/joint-fixtures';
 
 function line(part: string, role: PartLine['role'], failed = 0, condition = 1): PartLine {
   return { part, template: `/x/${part}`, count: 1, role, material: '', grade: 'fair', condition, failed, makers: [] };
@@ -23,6 +24,10 @@ function line(part: string, role: PartLine['role'], failed = 0, condition = 1): 
 afterEach(() => {
   vi.restoreAllMocks();
   StuffApi.clearAll();
+});
+
+beforeEach(() => {
+  rememberShippedJoints();
 });
 
 describe('a part moves another subsystem', () => {
@@ -54,7 +59,7 @@ describe('a part moves another subsystem', () => {
     const cask = makeStuff(() => new Vat());
     cask.recordAssembly(
       [line('stave', 'structural')],
-      [{ key: 'hooping', method: 'hooped', members: ['stave'], tension: 1, maker: '' }],
+      [{ key: 'hooping', method: '/trade/coopering/joints/hooped', members: ['stave'], tension: 1, maker: '' }],
     );
     expect(cask.getClosure()).toBe('liquidTight'); // first empty read starts the clock
     const t0 = WorldClockApi.getNow().rawValue();

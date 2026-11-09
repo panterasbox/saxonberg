@@ -24,10 +24,10 @@ import { ContainmentApi } from '../../../api/containment';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { WorldClockApi } from '../../../api/worldclock';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
-import JointCatalogue from '../../idea/JointCatalogue';
 import { Template } from '../../../lib/stuff/Template';
 import { TemplatePaths } from '../../../lib/paths';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../../lib/security/__tests__/test-setup';
+import { rememberJoint } from '../../../lib/craft/__tests__/joint-fixtures';
 
 class Firebricks extends StackableMixin(Good) {
   static _mixinName = 'LiningTestFirebricks';
@@ -51,7 +51,7 @@ function furnace(): Oven {
     chargeHot(o as unknown as Stuff & Burner, 200);
     o.setBill({
       parts: [{ part: 'lining', template: BRICK, count: 8, role: 'wear', material: REFRACTORY }],
-      joints: [{ key: 'lining', method: 'dry-laid', members: ['lining'] }],
+      joints: [{ key: 'lining', method: '/platform/joints/dry-laid', members: ['lining'] }],
     });
     o.ensureParts();
     o._setLit(false);
@@ -71,12 +71,10 @@ beforeEach(() => {
     m.setMeltingPoint(Quantity.of(1950, 'K'));
     return m;
   }, REFRACTORY);
-  vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-    cls === '/platform/idea/Joint'
-      ? ([
+  for (const r of [
           {
-            path: '/platform/idea/Joint/dry-laid',
-            class: cls,
+            path: '/platform/joints/dry-laid',
+            class: "/platform/idea/Joint",
             data: {
               key: 'dry-laid',
               portability: 'hand',
@@ -90,11 +88,8 @@ beforeEach(() => {
               failure: 'parted',
             },
           },
-        ] as never)
-      : ([] as never),
-  );
+        ] as unknown as Array<{ path: string; data: Record<string, unknown> }>) rememberJoint(r.path, r.data);
   vi.spyOn(Template, 'findByPath').mockResolvedValue(null as never);
-  makeStuffAtPath(() => new JointCatalogue(), TemplatePaths.jointCatalogue);
   const room = makeStuff(() => new Room());
   mason = makeStuffAtPath(() => new Mason(), '/platform/agent/Avatar/mason-1');
   ContainmentApi.move(mason, room);

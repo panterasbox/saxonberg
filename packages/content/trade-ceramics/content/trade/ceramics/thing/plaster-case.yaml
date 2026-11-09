@@ -30,4 +30,4 @@ data:
     parts:
       - { part: half, plural: halves, template: /trade/ceramics/thing/case-half, count: 2, role: structural, material: /stuff/idea/material/wood/pine }
     joints:
-      - { key: keying, method: seated, members: [half] }
+      - { key: keying, method: /platform/joints/seated, members: [half] }

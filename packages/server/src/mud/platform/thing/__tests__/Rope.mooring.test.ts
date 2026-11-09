@@ -21,6 +21,7 @@ import { ContainmentApi } from '../../../api/containment';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { makeStuff, makeStuffAtPath, seedKernelContentStore } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { rememberShippedJoints } from '../../../lib/craft/__tests__/joint-fixtures';
 
 class Body extends Character {}
 
@@ -32,9 +33,9 @@ class Hull extends Structure {
   }
 }
 
-const KNOTS = { warmed: async () => ({ label: 'made fast with a clove hitch', strength: 0.6 }) };
 
 beforeEach(() => {
+  rememberShippedJoints();
   StuffApi.clearAll();
   installV1QuantityMarshallers();
   seedKernelContentStore();
@@ -45,7 +46,6 @@ beforeEach(() => {
   }) as unknown as typeof StuffApi.clone);
   const realSingleton = StuffApi.singleton.bind(StuffApi);
   vi.spyOn(StuffApi, 'singleton').mockImplementation((async (path: string, ...rest: unknown[]) => {
-    if (path === TemplatePaths.jointCatalogue) return KNOTS;
     return (realSingleton as (...a: unknown[]) => unknown)(path, ...rest);
   }) as unknown as typeof StuffApi.singleton);
 });

@@ -17,4 +17,4 @@ data:
       - { part: stave, template: /trade/coopering/thing/stave, count: 2, role: structural }
       - { part: dowel, template: /trade/carpentry/thing/dowel, count: 4, role: fastener }
     joints:
-      - { key: doweling, method: pegged, members: [stave], fastener: dowel }
+      - { key: doweling, method: /trade/carpentry/joints/pegged, members: [stave], fastener: dowel }

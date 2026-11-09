@@ -990,6 +990,29 @@ clone-then-`require`, materialize-then-`require`, host-default-then-`require`,
 and the negative `DocumentNotResidentError`. Commit:
 `build(documents W3a): dirt, pump mechanisms, joints and forms are documents`.
 
+> **W3a progress (build).** Done so far — pump mechanisms (`f77215657`),
+> forms (`b81f29b25`), joints (this step). Decisions on the way:
+> - The value-class door is named **`need(path)`**, not `require` —
+>   `lint:imports` reads a `require(` declaration as a dynamic require.
+>   `DocumentCache.need` / `<Family>.need` throw `DocumentNotResidentError`.
+> - A reusable row-move codemod (lift `data`, drop `class`, write under
+>   `content/<dir>/`, rewrite every citation of the old template path) ran
+>   per family; it lives in the build's shell, per D18.
+> - Census clause (g) gains `SHARED_FIELD_NAMES` — a field name another
+>   family uses for a WORD (`mechanism: microbial` on a maturation profile,
+>   a potter brain's `forms: [mug]`) is checked only where it holds a path.
+> - **Joints:** `JointCatalogue` and the Idea class are deleted; bills name
+>   `method: <root>/joints/<key>`; `AssembledMixin.setBill` validates and
+>   assigns synchronously and RETURNS the joints' load (the applier awaits
+>   it — tests that never await still see the bill), plus a `setJoints`
+>   restore door; `jointRow` is `Joint.need` (no defaults). Rope ensures its
+>   knot in the act that ties it (`Joint.ensure(KNOT_ROOT + word)`) — knots
+>   are only read asynchronously, so no `onCreate` is needed. `check-bills`
+>   indexes joint documents (an optional parameter for its tests);
+>   `check-capabilities` reads `/content/joints/`. Test fixture
+>   `lib/craft/__tests__/joint-fixtures.ts` (`rememberShippedJoints`,
+>   `rememberJoint`).
+
 ### W3b — typed-word families with async readers → documents: Operation, HelpConcept, CombatFormation (D3, D6)
 
 `lib/vitals/Operation.ts` + `Operation.all()` (`OperationCatalogue` deleted;

@@ -48,4 +48,4 @@ data:
     parts:
       - { part: lining, template: /stuff/thing/firebrick, count: 24, role: wear }
     joints:
-      - { key: lining, method: dry-laid, members: [lining] }
+      - { key: lining, method: /platform/joints/dry-laid, members: [lining] }

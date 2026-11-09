@@ -7,16 +7,16 @@
 #
 # ⭐ Not `riveted`: a rivet is `reversible: never` (you do not take a
 # shield apart, you break it). A peened tang is undone on purpose.
-class: /platform/idea/Joint
-data:
-  key: peened
-  label: peened
-  portability: tool
-  instrument: striking
-  competence: { discipline: smithing, band: novice }
-  reversible: effort
-  strength: 0.8
-  structuralRecovery: 1.0
-  fastenerRecovery: 0.0
-  tightenable: false
-  failure: parted
+key: peened
+label: peened
+portability: tool
+instrument: striking
+competence:
+  discipline: smithing
+  band: novice
+reversible: effort
+strength: 0.8
+structuralRecovery: 1.0
+fastenerRecovery: 0.0
+tightenable: false
+failure: parted

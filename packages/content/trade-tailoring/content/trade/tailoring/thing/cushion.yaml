@@ -22,4 +22,4 @@ data:
       - { part: cover, plural: covers, template: /trade/tailoring/thing/cushion-cover, count: 2, role: structural, material: /stuff/idea/material/textile/linen }
       - { part: stuffing, plural: stuffing, template: /trade/tailoring/thing/stuffing, count: 1, role: structural, material: /stuff/idea/material/textile/wool }
     joints:
-      - { key: closing, method: stitched, members: [cover, stuffing] }
+      - { key: closing, method: /trade/tailoring/joints/stitched, members: [cover, stuffing] }

@@ -29,7 +29,6 @@ import Tool from '../../../thing/Tool';
 import Timber from '../../../thing/Timber';
 import Ingot from '../../../thing/Ingot';
 import RecipeCatalogue from '../../RecipeCatalogue';
-import JointCatalogue from '../../JointCatalogue';
 import { Template } from '../../../../lib/stuff/Template';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
@@ -44,6 +43,7 @@ import {
   makeStuffAtPath,
   stampTemplatePathForTest,
 } from '../../../../lib/security/__tests__/test-setup';
+import { rememberJoint } from '../../../../lib/craft/__tests__/joint-fixtures';
 
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoomMend';
@@ -125,7 +125,7 @@ function pick(): Tool {
       { part: 'head', template: HEAD, count: 1, role: 'structural', material: IRON, name: 'Old Bess' },
       { part: 'haft', template: HAFT, count: 1, role: 'structural', material: ASH },
     ],
-    joints: [{ key: 'hafting', method: 'wedged', members: ['head', 'haft'] }],
+    joints: [{ key: 'hafting', method: '/platform/joints/wedged', members: ['head', 'haft'] }],
   });
   t.ensureParts();
   for (const l of t.getParts()) l.grade = 'fine';
@@ -160,27 +160,22 @@ beforeEach(async () => {
   WorldClockApi._setNowProviderForTesting(() => 1000);
   registerMaterial(IRON, 'iron', ['metal', 'ferrous']);
   registerMaterial(ASH, 'ash', ['wood', 'organic']);
-  vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-    cls === '/platform/idea/Joint'
-      ? ([
+  for (const r of [
           {
-            path: '/platform/idea/Joint/wedged',
-            class: cls,
+            path: '/platform/joints/wedged',
+            class: "/platform/idea/Joint",
             data: {
               key: 'wedged', portability: 'hand', competence: null, reversible: 'effort',
               strength: 0.6, structuralRecovery: 1, fastenerRecovery: 0, tightenable: true,
               failure: 'parted',
             },
           },
-        ] as never)
-      : ([] as never),
-  );
+        ] as unknown as Array<{ path: string; data: Record<string, unknown> }>) rememberJoint(r.path, r.data);
   vi.spyOn(Template, 'findByPath').mockImplementation(async (p: string) => {
     if (p === HEAD) return { path: p, class: '/platform/thing/Tool', data: { mass: 1.8 } } as never;
     if (p === HAFT) return { path: p, class: '/platform/thing/Timber', data: { mass: 0.8 } } as never;
     return null as never;
   });
-  makeStuffAtPath(() => new JointCatalogue(), TemplatePaths.jointCatalogue);
   const item = (slot: string, category: string) => ({ slot, category, minGrade: 'poor', kind: 'item', count: 1 });
   recipes = [
     { recipeId: 'pick', name: 'pick', keywords: ['pick'], discipline: 'mining', inputSlots: [item('head', 'metal'), item('haft', 'wood')], toolCapabilities: [], outputTemplate: PICK, outputApplication: 'tangible' },

@@ -11,16 +11,16 @@
 # being driven out; a joiner makes new ones, which is why a peg is a
 # thing somebody carves for a living. When it fails it PARTS — the
 # tenon pulls out of the mortise and the frame racks.
-class: /platform/idea/Joint
-data:
-  key: pegged
-  label: pegged
-  portability: tool
-  instrument: driving
-  competence: { discipline: carpentry, band: novice }
-  reversible: effort
-  strength: 0.7
-  structuralRecovery: 0.9
-  fastenerRecovery: 0.3
-  tightenable: true
-  failure: parted
+key: pegged
+label: pegged
+portability: tool
+instrument: driving
+competence:
+  discipline: carpentry
+  band: novice
+reversible: effort
+strength: 0.7
+structuralRecovery: 0.9
+fastenerRecovery: 0.3
+tightenable: true
+failure: parted

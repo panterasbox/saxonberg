@@ -45,4 +45,4 @@ data:
       - { part: bedstead, template: /trade/carpentry/thing/frame, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
       - { part: mattress, template: /trade/tailoring/thing/mattress, count: 1, role: wear, material: /stuff/idea/material/textile/linen }
     joints:
-      - { key: bedding, method: seated, members: [mattress, bedstead] }
+      - { key: bedding, method: /platform/joints/seated, members: [mattress, bedstead] }

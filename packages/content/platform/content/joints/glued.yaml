@@ -8,18 +8,16 @@
 # apart with heat and steam and lets go in the damp; casein holds in the
 # damp and never comes apart. The strength and reversibility below are
 # the defaults a glue overrides; the line is weak until the glue has set.
-class: /platform/idea/Joint
-data:
-  key: glued
-  label: glued
-  portability: hand
-  instrument: ''
-  competence: null
-  reversible: never
-  strength: 0.7
-  structuralRecovery: 0.0
-  fastenerRecovery: 0.0
-  tightenable: false
-  needsFlat: true
-  failure: parted
-  takes: glue
+key: glued
+label: glued
+portability: hand
+instrument: ''
+competence: null
+reversible: never
+strength: 0.7
+structuralRecovery: 0.0
+fastenerRecovery: 0.0
+tightenable: false
+needsFlat: true
+failure: parted
+takes: glue

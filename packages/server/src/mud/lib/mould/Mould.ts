@@ -1090,7 +1090,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       }
 
       if (fromImpression && imp !== null) {
-        if (MixinApi.isAssembled(cast)) cast.setBill(null); // one piece
+        if (MixinApi.isAssembled(cast)) void cast.setBill(null); // one piece (nothing to load)
         if (MixinApi.isCrafted(cast)) {
           cast.setCastFrom({
             kindPath: imp.getKindPath(),

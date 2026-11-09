@@ -8,7 +8,6 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Assembly from '../../../platform/thing/Assembly';
 import Material from '../../material/Material';
-import JointCatalogue from '../../../platform/idea/JointCatalogue';
 import { StuffApi } from '../../../api/stuff';
 import { WorldClockApi } from '../../../api/worldclock';
 import { BiomeApi } from '../../../api/biome';
@@ -23,6 +22,7 @@ import type { PartLine } from '../Assembled';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
 import type { Containable } from '../../spatial/Containable';
+import { rememberJoint } from './joint-fixtures';
 
 const HIDE = '/stuff/idea/material/_glue/hide-glue';
 const CASEIN = '/stuff/idea/material/_glue/casein-glue';
@@ -60,7 +60,7 @@ function box(g: string): Assembly {
   ContainmentApi.move(a as unknown as Stuff & Containable, room as unknown as Stuff & Container);
   a.recordAssembly(
     [line('side'), line('end')],
-    [{ key: 'corner', method: 'glued', members: ['side', 'end'], tension: 1, maker: '' }],
+    [{ key: 'corner', method: '/platform/joints/glued', members: ['side', 'end'], tension: 1, maker: '' }],
   );
   expect(a.glueJoints(g)).toBe(1);
   return a;
@@ -70,15 +70,10 @@ beforeEach(async () => {
   nowS = 1_000_000;
   rh = 50;
   vi.spyOn(WorldClockApi, 'getNow').mockImplementation(() => Quantity.of(nowS, 's'));
-  vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-    cls === '/platform/idea/Joint'
-      ? ([{ path: '/platform/idea/Joint/glued', class: cls, data: glued }] as never)
-      : ([] as never),
-  );
+  for (const r of [{ path: '/platform/joints/glued', data: glued }] as unknown as Array<{ path: string; data: Record<string, unknown> }>) rememberJoint(r.path, r.data);
   vi.spyOn(BiomeApi, 'airSegmentsFor').mockImplementation((_s, t0, t1) => [
     { air: new Evaporation(rh, 0, 293), durationS: t1 - t0, rainMmPerH: 0 },
   ]);
-  await makeStuffAtPath(() => new JointCatalogue(), TemplatePaths.jointCatalogue).allWarmed();
   glue(HIDE, 0.1);
   glue(CASEIN, 0.7);
 });
