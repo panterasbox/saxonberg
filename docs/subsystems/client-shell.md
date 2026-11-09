@@ -1522,6 +1522,33 @@ is how the primitive learned it needed the variant axis at all. (The
 prior note here read "ships with no consumer" — the accepted Wave 1 risk
 that a primitive with no consumer can drift. Build B closed it.)
 
+## ⭐ On air, and popped-out cards (broadcast-ready)
+
+**The client on air.** While the client's own `stream.state` phase is
+`starting`, `live` or `ending` (`lib/stream/onAir.ts`): a frame tagged
+`privacy:private` renders as *[private message]* and a card the server
+flagged `private` renders as a husk (title only) — on the server's stamps
+only, never a topic guess; the root font size goes to 140% (every width
+class is rem, so the layout follows); the tuned rail and `speech.relay`
+lines hide (the overlay's sidebar shows the chat). While any stream is up
+the client reports `stream.foreground` — `saxonberg`, `other-tab` or
+`other-app` — on visibility and focus changes, and nothing about what is
+showing. `?from=stream` on the landing URL is kept for the tab (it must
+survive the OAuth round trip) and carried onto the game socket.
+
+**Pop-out (D13).** Any card's *pop out* control moves its body into a
+**Document Picture-in-Picture** window through a React portal: the same
+realm, socket and store, so it stays the server's card and keeps
+updating; styled-components inject into the window's own head, the global
+sheets and the theme variables are copied over, and closing the window
+returns the card in place. Where the API is missing (it is Chrome 116+),
+the card stays put and says why. ⚠ **Verified, and not the PWA.** An
+installed app's standalone window is a separate document with its own
+WebSocket — a second `Interactive` — and a card belongs to one
+Interactive, so a popped card cannot live there. The client still ships
+`public/manifest.webmanifest` (`display: standalone`) so the MAIN client
+can run chromeless under a display capture.
+
 ## What this build does NOT add
 
 - **No client-side persistence / localStorage.** Everything that matters

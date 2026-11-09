@@ -461,6 +461,31 @@ Avatar composes it, so a `MixinApi.isStreamer` true for every player would sit b
 same word (P8, names). "Streamer" means the group; the mixin is the broadcast state a body
 carries.
 
+**Decisions the build made (B-D1…B-D13), each with the limb that chose it:**
+
+- **B-D1** `BroadcastMixin` sits directly outside `ClientStateMixin` — D1's own reason (it reads and
+  re-emits on the client's facts); the plan's "between Aether and Calendar" put it inside. *(plan D1)*
+- **B-D2** The standby reason persists whole, not as a key. *(lens 3/4 — the overlay must show the same
+  words after a restart with no read that could fail)*
+- **B-D3** Row paths are the installer's rule (`/platform/standby-reasons/…`). *(nearest pattern)*
+- **B-D4** `stream away` is legal from offline. *(lens 5, continuity — requirements § Collisions)*
+- **B-D5** The away grammar and the row reads are `StreamApi` statics. *(CLAUDE.md: a controller-facing
+  read belongs on an Api; `lint:lib-statics`)*
+- **B-D6** Token records through a narrow `DocumentApi` transport gated to `StreamLogic`. *(the map/berth
+  transport precedent — you file, you do not hold the pen)*
+- **B-D7** `ExecuteCommandOpts.onOutcome` reports the dispatch status to a non-client caller. *(nearest
+  pattern — the opts bag; no new hook)*
+- **B-D8** The control door refuses an alias named `stream`. *(D11's "no alias expansion", made structural)*
+- **B-D9** The verb is noted at parse time. *(requirements step 16 — "type `smelt`", refused or not)*
+- **B-D10** No `session.arrivedFrom` key — nothing reads it. *(P1)*
+- **B-D11** Ad-hoc group handle posts are private. *(lens 4, values — a group DM did not consent to an
+  audience either)*
+- **B-D12** `?from=stream` survives OAuth via `sessionStorage`. *(requirements step 14)*
+- **B-D13** Rodney switches OBS only on a page opened with `?switch`. *(fail closed — one writer)*
+- **B-D14** The `stream` card is `noProse`. *(card-surface's catalogue rule — the card IS the controls)*
+- **B-D15** A test-login `streamer: true` option (TestHooks, the harness, e2e helpers) stages the axis.
+  *(workflow — a state you cannot stage is a tool the build owes)*
+
 ---
 
 ## ⭐⭐ Host placement
@@ -563,6 +588,21 @@ pblive. Commit titles are suggestions in the repo's voice.
 
 ### W0 — The stream belongs to the streamer (kernel)
 
+> ✅ **Done (build, 2026-11-09).** `BroadcastMixin` composes directly OUTSIDE `ClientStateMixin` (inside
+> `SaxonbergClientMixin`), not between Aether and Calendar — D1's own stated reason ("outside the client
+> state it reads") needs it there, and it overrides `setClientState` to re-emit on a show key (B-D1). The
+> reason is persisted WHOLE (`StreamReason`), not just its key, so a restart needs no document read (B-D2).
+> Reason/panel paths follow the installer's one rule: `/platform/standby-reasons/<key>` and
+> `/platform/lower-third-panels/<key>`, not `/platform/stream/…` (B-D3). `stream away` is legal from
+> `offline` (continuity: the shipped `stream away 15m` worked with nothing started) (B-D4). The away
+> grammar, the reason/panel reads and the duration words live on `StreamApi`/`StreamLogic` — the
+> `lint:lib-statics` ratchet refused six statics on a `lib/` value object, and an Api is where a
+> controller-facing read belongs (B-D5); `StandbyReason`/`LowerThirdPanel` keep only `fromData` and are
+> `@internal`. Mixin methods are verbs (`nameTopic`, `planAgenda`, `steerRotation`, `nameChannel`,
+> `loadControls`) — `lint:controller-mutations` reads `set*` on a non-`this` receiver as a field write.
+> Ceilings lowered: boot-entries 85→84, controller-decisions 1176→1161, controller-mutations 318→317.
+
+
 **Goal:** `BroadcastMixin` on the Avatar, five phases, reasons as documents, the full `stream`
 grammar, the ending timer, persistence across a restart; the singleton retired. Implements
 **D1, D2, D3, D10, D15**.
@@ -613,6 +653,16 @@ stream belongs to the streamer — BroadcastMixin, five phases, reasons as rows;
 
 ### W1 — One token per streamer, one feed per token (kernel + backend)
 
+> ✅ **Done.** Landed with W0 in one commit (the feed and the token verb could not compile apart). Token
+> records go through a new narrow `DocumentApi.saveStreamToken`/`deleteStreamToken` transport gated to
+> `StreamLogic` — a player may not hold the pen on `/platform/stream-tokens/` (B-D6). The relay sentinel is
+> per streamer (`overlay:<playerId>`, instance methods on `StreamRelay`). The control result rides a new
+> `ExecuteCommandOpts.onOutcome` callback (B-D7); the control gate also refuses an alias named `stream`
+> (B-D8). The verb is noted at PARSE time in `executeCommand` so a refused/unknown verb still lights the
+> guide (B-D9). `session.arrivedFrom` was not built — nothing reads it; the door rides
+> `Interactive.arrivedFrom` (B-D10). A waiting overlay gets its snapshot when the streamer logs in.
+
+
 **Goal:** per-streamer tokens and routing, the allowlisted snapshot, client facts, player count,
 build stamp, welcomes, per-streamer chat, the pblive control principal. Implements **D4–D7, D11,
 D15**.
@@ -656,6 +706,15 @@ per-player feeds, the allowlist, the control principal, the build stamp`.
 
 ### W2 — Nobody is broadcast without being told (kernel)
 
+> ✅ **Done.** Stamp sites: `CommsMixin.tell` self+target (which is what `dm`/`reply`/`tell` all route
+> through — the controllers' own lines are refusals with no private content), `HailController`,
+> `ChannelCatalogue.postToChannel` for `player-created`, and ⭐ the ad-hoc group handle posts in
+> `ChatPostController` (a group DM is private too — B-D11). The card flag is resolved async after open and
+> sent as a `card-touched` (the frames carry their own stamp meanwhile). The room line reads the online
+> roster, not `getContents()` (a `lint:controller-resolution` read). Look lines are proved by the wire drive
+> step 9, not a unit test.
+
+
 **Goal:** the privacy stamp and the on-air marker. Implements **D8, D9**.
 
 **Files:** `api/message.ts` (`Tags.Privacy`); `lib/comms/Comms.ts`, `cmd/social/DmController.ts`,
@@ -672,6 +731,13 @@ line; both clear on `stream off`); `docs/subsystems/comms.md`, `chat.md`, `card-
 `feat(livestream): the privacy stamp and the on-air marker`.
 
 ### W3 — YouTube under the streamer's own login; the streamer's numbers (backend)
+
+> ✅ **Done.** `google-youtube` strategy + `/auth/google/youtube[/callback]`; `Application.storeYoutubeStepUp`
+> refuses a grant from any Google identity but the user's own linked one. The user token refreshes against
+> the GOOGLE login app's client (it issued the token), not the reader's. `liveBroadcasts.list` uses
+> `broadcastStatus=active` alone (the API takes one filter). The numbers poll starts on any successful
+> `stream` transition and stops itself off air. Unit-proved with the fake transport (zero `search.list`).
+
 
 **Goal:** the scope step-up, own-broadcast detection, viewer counts to the streamer's client.
 Implements **D12, D16**.
@@ -690,6 +756,13 @@ the injected transports (one unit per call; the `search.list` path exercised onl
 `feat(streaming): YouTube live detection under the streamer's own login; the streamer's numbers`.
 
 ### W4 — The client on air (client)
+
+> ✅ **Done.** `StreamControls` card; `lib/stream/onAir.ts` (predicates + `useOnAirClient`: 140% root font,
+> the foreground report); redaction in `Terminal`'s `FrameBody` and a husk in `CardBody`; the tuned rail
+> and `speech.relay` rows hide on air. `?from=stream` is kept in `sessionStorage` (it must survive the OAuth
+> round trip) and appended to `WS_URL` (B-D12). The streamer arrangement opens `['stream', chat terminal]`.
+> *Link YouTube* shows when `stream.state` is present (a streamer ran `stream`).
+
 
 **Goal:** the controls card, the dead deck deleted, redaction rendering, the on-air type size, the
 relay panel hidden, the foreground report, `?from=`. Implements **D6, D8 (client half), D13's
@@ -725,6 +798,11 @@ and the on-air size; the dead deck goes`.
 
 ### W5 — Pop-out (client)
 
+> ✅ **Done.** `PopOut.tsx`: a portal into `documentPictureInPicture.requestWindow`, styled-components
+> injected into the PiP head via `StyleSheetManager`, global sheets copied rule by rule, theme vars carried;
+> the card's own control on every card; the honest note where the API is missing. Manifest + an SVG icon.
+
+
 **Goal:** any card in its own chromeless window. Implements **D13**.
 
 **Files:** `components/cards/PopOut.tsx` (the portal into `documentPictureInPicture.requestWindow`,
@@ -741,6 +819,13 @@ place on close. **Commit:** `feat(client): any card pops out — Document Pictur
 the client installs`.
 
 ### W6 — Rodney on the real feed (overlay)
+
+> ✅ **Done** (a parallel fork, committed by the build). Wire types mirrored in `src/show/wire.ts` (a
+> workspace dep would need a lockfile change outside the package). Scene switching is opt-in per page
+> (`?switch`, on the Standby source only, so two pages cannot fight over the scene — B-D13). When the feed
+> sends panel rows they ARE the rotation (a copy-only row needs no code). obs-websocket v5 is spoken over a
+> raw WebSocket (no new dependency). `rules.ts` verified by a throwaway script; Rodney has no test runner.
+
 
 **Goal:** wire, not rebuild. Implements **D14**.
 
@@ -760,6 +845,11 @@ the four scenes follow the phases; a feed drop holds the scene. **Commit:** `fea
 overlay on the real feed — scenes by phase, the rules table, OBS switching, rows from the game`.
 
 ### W7 — pblive's game buttons (its own repo, its own MR)
+
+> ✅ **Done.** pblive MR !1 and — it turned out to be its own repo — pblive-streamdeck MR !1. The AWS path
+> is kept behind `PBLIVE_CONFIG=ssm`; lighting and the Saxonberg controller are each optional on missing
+> config; a press with no answer in 10 s lights ⚠. Smoke-tested against a mock control server.
+
 
 **Goal:** config from `.env`, a `saxonberg` controller behind the control token.
 

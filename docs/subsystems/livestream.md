@@ -1,174 +1,164 @@
 # Livestream
 
-The livestream subsystem is the server half of the **Rodney**
-overlay integration (`packages/rodney`) — the read-only **broadcast feed** that pushes
-public stream state to OBS browser-source overlays, plus the
-`stream` operator verb that drives it. Phase 1 is deliberately minimal:
-the smallest end-to-end proof of the overlay↔saxonberg loop (auth +
-feed + `StreamState`), driving the standby-overlay countdown off the
-server instead of a demo URL param.
+The livestream subsystem is the server half of the **Rodney** overlay
+(`packages/rodney`) and of a streamer's own controls: **the stream a
+played body is running** (`BroadcastMixin`), the `stream` verb that runs
+it, the per-streamer **broadcast feed** that pushes an allowlisted show to
+the streamer's OBS browser sources, the **control door** pblive's Stream
+Deck uses, and the two things that protect the people a broadcast shows —
+**redaction** and the **on-air marker**. Built by broadcast-ready
+(2026-11); Phase 1 (MR !72) was the single in-memory `StreamState`, which
+retired.
 
 > **Not to be confused with the `broadcast` verb.** The in-world
 > `broadcast` verb ([comms.md](./comms.md) / one-to-many ESP) sends a
 > message to every online player — a comms concept. The "broadcast"
-> here is the **livestream broadcast feed**: an out-of-band, read-only
-> projection to overlay clients. They share an English word, not a
-> namespace (`BroadcastController` vs the backend `BroadcastFeed`
-> service).
+> here is the **livestream**: an out-of-band, read-only projection to
+> overlay clients. They share an English word, not a namespace — which is
+> also why the mixin is `BroadcastMixin` (the stream a body carries) and
+> the streamer AXIS is `AccessApi.isStreamer` (the `streamers` group).
 
 ## The pieces
 
 | Piece | Where | Role |
 |---|---|---|
-| `StreamState` | `obj/StreamState.ts` (singleton Idea) | Session-wide overlay state (`mode` + `awayUntil`). |
-| `Events.StreamStateChanged` | `lib/events.ts` | Well-known event carrying the full snapshot on every mutation. |
-| `BroadcastFeed` | `backend/BroadcastFeed.ts` (singleton) | Read-only projection: snapshot-on-connect, re-push-on-change. |
-| `StreamStateEnvelope` | `@saxonberg/types` | Dedicated wire frame (`{ type: 'stream-state', state }`). |
-| broadcast principal | `WebSocketService` + `Backend` + `Application` | `?broadcast=<token>` upgrade path; a pure push target. |
-| `requiresStreamer` / `streamers` | `lib/command/validators` + `AccessRegistry` | Authorization axis for the control plane. |
-| `stream` verb | `cmd/stream/` + `StreamController` | `stream away <dur>` / `stream back`. |
+| `BroadcastMixin` | `lib/livestream/Broadcast.ts`, composed on every `Avatar` inside the spine | The stream's state and every transition; the allowlisted `show()`. `Mixins.Broadcast`, `MixinApi.isBroadcastHost`. |
+| `StandbyReason` · `LowerThirdPanel` | `lib/livestream/` (`@internal` value objects) | A reason row and a panel row, validated. |
+| `standby-reason` · `lower-third-panel` · `stream-token` | `DocumentKinds` | Reasons and panels are platform-pack rows (`/platform/standby-reasons/<key>`, `/platform/lower-third-panels/<key>`); tokens are runtime-written (`/platform/stream-tokens/<sha256>`, `onVanish: keep`). |
+| `StreamApi` ↔ `StreamLogic` | `api/stream.ts`, `platform/idea/api/StreamLogic.ts` | Tokens (`issueToken`/`resolveToken`), the away grammar (`interpretAway`, `parseDuration`), the rows (`standbyReasons`, `lowerThirdPanels`), per-streamer channel reads, the streamer's numbers. |
+| `Events.StreamShowChanged` · `Events.PlayerFirstArrival` | `lib/events.ts` | `{ playerId, show }` on every change; a first arrival for the ticker. |
+| `BroadcastFeed` | `backend/BroadcastFeed.ts` | Routes each streamer's show to the sockets opened with THEIR token; adds the world facts; remembers control sockets. |
+| token doors | `WebSocketService` + `Backend` + `Application` | `?broadcast=<token>` (overlay) and `?control=<token>` (pblive); neither becomes an `Interactive`. |
+| `handleControlCommand` | `backend/inbound/command.ts` | The control principal's one verb. |
+| `privacy:private` | `MessageApi.Tags.Privacy.Private` | The server's word that a frame is private. |
+| `stream` card | `Cards.ts` (client source) + client `StreamControls` | The controls; body is the `stream.state` client-state key. |
 
-## The read-only broadcast principal
+## The stream on the streamer's body
 
-OBS browser sources can't set WebSocket headers, so the broadcast
-connection authenticates with a `?broadcast=<token>` query param.
-`WebSocketService.handleUpgrade` checks it **before** the normal
-session-auth path (so a cookieless overlay isn't 401'd):
+`BroadcastMixin` fields, all persistent (they ride the Avatar's
+`holder_snapshots` record): `streamPhase` (`offline · starting · live ·
+standby · ending`), `streamReason` (the reason row as resolved at `stream
+away` — stored whole, so a restart needs no read to show it),
+`streamStartsAt` / `streamAwayUntil` / `streamEndsAt` (epoch ms),
+`streamTopic`, `streamAgenda` + `streamAgendaIndex`, `streamChannels`
+(`{ twitch?, youtube?, kick? }`), `streamTokenHashes` (the live token per
+scope). Transient: the outro timer, the last verb, the rotation's
+pin/skip, the controls card's extras.
 
-- `BROADCAST_TOKEN` (env) enables the feed iff set and **≥ 16 chars**;
-  a set-but-weak token logs an error and leaves the feed disabled
-  (fail-loud, not open). Enabled state is resolved once at
-  `initialize()`; per-upgrade work is a constant-time compare
-  (`crypto.timingSafeEqual`).
-- On match, the upgrade is accepted as the sentinel principal
-  `service:broadcast` and threaded through
-  `Backend.handleWebSocketConnect(ws, userId, sessionId, isBroadcast=true)`
-  → `Application.handleUserConnect(..., isBroadcast)`.
+**On air** = `starting`, `live` or `ending` — the phases redaction covers.
+Every transition refuses BY NAME on an illegal move (`not-streaming`,
+`ending`, `already-on-air`, `no-agenda`, `agenda-done`, `unknown-panel`);
+the controller renders the refusal. ⭐ `stream away` is legal from
+`offline` too, so the shipped `stream away 15m` still means what it meant.
 
-The broadcast connection has **no `Interactive` at all** — stronger
-than "no Avatar / no CommandGiver". It's registered straight with the
-`BroadcastFeed` as a pure push target and is absent from the connection
-registry, so `processUserMessage` finds no holder and commands are
-rejected by construction. It is never routed game traffic (DMs, private
-channels). Disconnect flows through `Application.handleUserDisconnect`,
-which calls `BroadcastFeed.removeConnection` (a cheap no-op for normal
-sockets).
+⏱ **Wall time, deliberately.** Deadlines are epoch ms and the outro is
+`ScheduleApi` milliseconds (`stream.outroMs`, default 60 s): the stream is
+interface tier and its minutes are the audience's. ⭐ **Only `ending →
+offline` happens on a timer.** An Away or Starting countdown that runs out
+changes nothing — only the streamer returns the desktop to the air (fail
+closed). `rearmBroadcast()` runs at every body's `onCreate` (after
+materialize for the body of record): an overdue outro goes offline at
+once, a running one is re-booked, nothing else moves.
 
-Security note: the token rides in the OBS source URL (private to the
-streamer) and grants only public, read-only data — acceptable for the
-query-param delivery. Rotate via the env secret.
+Every change emits `StreamShowChanged`, pushes `stream.state` to the
+streamer's own client, and saves the body (the overlay must find the
+state after a crash, and the autosave is minutes away). A show-relevant
+client fact (`stream.foreground`, `cockpit.mode`, `cockpit.layout`)
+re-emits while a stream is up; the VERB of each typed command is noted at
+parse time (`CommandGiver`, never a forced command, never the arguments).
 
-## `StreamState`
+## The show — an allowlist
 
-A `Idea` singleton at `/platform/idea/StreamState`
-(a platform-pack `boot:` entry; row `{ class: /platform/idea/StreamState, data: {} }`).
-Two transient fields:
+`show()` builds the wire `StreamShowCore` field by field: phase, reason,
+the three timers, topic, agenda (`{ title, done }`) and `current`, the
+client facts (`foreground`, `mode`, `layout`, `lastVerb`) while a stream
+is up, and the rotation's pin/skip. The feed adds `playersOnline`
+(`SocialApi.online()`), `build` (`SAXONBERG_BUILD_SHA` +
+`SAXONBERG_BUILD_AT`, stamped into `.env` by `deploy/dev/update.sh`; unset
+→ `null`, and the overlay hides the line) and the `panels` rows (listed
+once per socket at connect). **Nothing of another player, no frame body,
+no card content, no argument of any command.** The streamer-only numbers
+(viewer counts, uptime, chat rate, who is online) go to `stream.state`
+via `loadControls`, never to the feed.
 
-```ts
-mode: 'live' | 'standby';   // 'standby' = countdown running
-awayUntil: number | null;   // absolute epoch-ms; null when live
-```
+## Tokens and the two doors
 
-Mutation goes through `setAway(awayUntil)` / `goLive()`; both emit
-`Events.StreamStateChanged` with the full `snapshot()`. `canDestruct`
-refuses (system singleton). **In-memory only in Phase 1** — a reboot
-resets to `live`; durable round-trip is deferred (no persistent fields,
-mirroring `TopicCatalogue`).
+`stream token` mints 32 random bytes, shows them once, and stores only the
+sha256 at `/platform/stream-tokens/<hex>` (`{ playerId, scope, issuedAt }`)
+through the narrow `DocumentApi.saveStreamToken` transport (gated to
+`StreamLogic`); issuing again revokes the previous one (rotation).
+`stream token --control` does the same for the `control` scope.
 
-Routing change through the event bus (rather than a direct
-`StreamState → BroadcastFeed` call) keeps the mutator decoupled from
-the feed and lets future mutators (Phase 3 scene / lower-third / afk
-commands) reach the feed for free.
+- `?broadcast=<token>` — hash, read the path, require `scope: overlay` →
+  principal `broadcast:<playerId>`; the feed sends the resident streamer's
+  snapshot at once, or **nothing** until they load (never a synthesized
+  phase). The env `BROADCAST_TOKEN` still opens the founder's feed during
+  the changeover — the first id in `STREAMER_PLAYER_IDS` — and is refused
+  loudly when that list is empty.
+- `?control=<token>` — `scope: control` → principal `control:<playerId>`.
+  Its only accepted message is a `command` whose line parses to ONE
+  command with the verb literally `stream` (no `verb@source`, no emote),
+  never `stream token`, never through an alias named `stream`; the
+  streamer's body must be online; it runs as them through the ordinary
+  dispatcher (`requiresStreamer` still gates) and every answer is echoed
+  as `control-result` so the Stream Deck lights ✓ or ⚠.
 
-## `BroadcastFeed`
+A bad, revoked or wrong-scope token is a 401 with a warning — never a
+fallback to a shared feed.
 
-A `backend/` singleton, peer to `ConnectionManager`. Owns the set of
-broadcast `socketId`s + a per-socket frame counter (broadcast
-connections have no `Interactive`, so the feed owns the ordering
-primitive `Interactive.nextFrameId` provides for normal connections).
+## Chat on the overlay
 
-- `addConnection(socketId)` — installs the `StreamStateChanged`
-  listener lazily on first connect (well after boot, so the
-  `EventRegistry` is live), then pushes the current snapshot.
-- On `StreamStateChanged` → re-push the full snapshot to every
-  connection (the state is tiny — no diffing).
-- Reaches the wire via `Backend.sendEnvelopeToSocket` directly. The
-  "game objects reach Backend only through Application" chokepoint
-  governs mud/ objects; `BroadcastFeed` is a backend service at the
-  same layer.
+Each streamer's own channels — `stream channel <service> <handle>`, else
+for the founder the `OVERLAY_*` env — are read under a per-streamer relay
+sentinel (`overlay:<playerId>`), opened on that streamer's first overlay
+socket and closed on their last. A relayed line reaches the overlays of
+the streamer whose channel it is and no other. YouTube is found under the
+streamer's own login when they have stepped up (see
+[streaming.md](./streaming.md)), one quota unit instead of a search.
 
-Beyond `StreamState`, the feed also forwards the **overlay owner's own
-relay chat** (both platforms, unified) — the reaction-delta seam's sibling.
-See [streaming.md](./streaming.md) for the full picture; the wire seam is:
+## Nobody is broadcast without being told
 
-- The relay ([`StreamRelay`](./streaming.md)) stays **mud-pure** — on every
-  delivered line it emits `Events.RelayMessage` (`{service, channelKey,
-  channelHandle, speaker, text}`) via `EventApi.emit`, never importing
-  `backend/`. `BroadcastFeed.ensureSubscribed` installs an
-  `EventApi.on(Events.RelayMessage)` listener (beside the reaction-delta
-  one) that **filters to the owner's `OVERLAY_TWITCH_LOGIN` /
-  `OVERLAY_YOUTUBE_CHANNEL`** (matched by the configured handle — a viewer
-  tuning a *different* channel never matches, so nothing leaks) and pushes a
-  **`RelayChatEnvelope`** (`{type:'relay-chat', frameId, service,
-  channelHandle, speaker, text}` in `@saxonberg/types`) to every broadcast
-  socket. The Rodney overlay renders it; this repo ships only the
-  wire contract + the forwarding.
-- The read is **overlay-presence-gated**: `addConnection`'s 0→1 edge calls
-  `StreamApi.setOverlayReading(true)` (1→0 → `false`), which sentinel-tunes
-  (`overlay:broadcast`) the owner's configured channels through the same
-  readers used for viewer tuning — reusing the presence edge to open/close
-  the owner reads independent of any player `tune`. YouTube re-resolves the
-  owner's current live broadcast on a slow single-channel live-status poll
-  (`youtube.overlayPollIntervalMs`, default 15 min — `search.list` is
-  quota-costly) to catch a stream restart. One token / one feed / one owner
-  is preserved — the owner's channels are env config, no per-overlay
-  `StreamState` keying (the deferred multi-streamer non-goal).
+- **Redaction.** Tells, DMs, replies, hails, posts on a player-made
+  channel and group handles carry `privacy:private`; a terminal card on a
+  player-made channel or a group handle is flagged `private`. The
+  streamer's client renders such a frame as *[private message]* and such a
+  card as a husk **only** on those stamps and **only** while its own
+  `stream.state` phase is on air. Standby and offline show everything —
+  which is what a privacy standby is for. The record layer keeps tags, so
+  a backfilled line redacts too.
+- **The on-air marker.** `look`'s presence line and the person chip say
+  `broadcasting`; the room says *"A broadcast reaches this place."* when
+  anyone in it is on air. A statement, not a gate.
 
 ## Authorization — the streamer axis
 
-The control plane is gated on the orthogonal **streamer axis**, distinct
-from the developer axis (a streamer drives the overlay without holding
-TypeScript-escape capability). See [access.md](./access.md):
-`AccessApi.isStreamer` + the bootstrap-seeded `streamers` managed group
-+ the `requiresStreamer` validator.
-
-Membership is seeded from the `STREAMER_PLAYER_IDS` env var
-(comma-separated Avatar playerIds) at `AccessRegistry.onCreate` —
-additive + idempotent (never removes), deploy-time config alongside
-`BROADCAST_TOKEN`. Drop a member via the `group` verb.
+The verb is afforded by `BroadcastMixin` (every played body) and gated by
+`requiresStreamer` — `AccessApi.isStreamer`, membership of the
+`streamers` managed group, seeded from `STREAMER_PLAYER_IDS`. A second
+streamer is `group add streamers <player>`, a token, and their own Rodney
+browser source: no code.
 
 ## The `stream` verb
 
-`cmd/stream/stream.yaml` + `StreamController` — one verb, two
-subcommands (the `chat`/`alias` subcommand-dispatch shape):
+`start [in <dur>]` · `live` · `away <reason> [<dur>]` / `away <dur>` ·
+`back` · `end` · `off` · `segment <title>` · `agenda <a; b; …>` / `agenda
+clear` · `next` · `rotation pin|skip <panel>` / `rotation clear` ·
+`channel <twitch|youtube|kick> [<handle>]` · `token [--control]`. Bare
+`stream` prints the phase and opens the controls card (`opens_card:
+stream`). Shipped reasons: `bathroom` 5m, `food` 15m, `water` 3m,
+`privacy` (no timer, ever), `technical` (no timer), `generic` (what a
+bare duration means).
 
-- `stream away <duration>` — enter standby; the overlay counts down to
-  `now + duration`. Duration is shell-style (`15m`, `1h30m`, `90s`; a
-  bare number is minutes).
-- `stream back` — clear standby, go live.
+## The client and the overlay
 
-**Affordance vs authorization split:** the verb rides `AuthorMixin`'s
-self command bucket (the operator command surface, like `eval`/`reload`),
-but authorization is the `requiresStreamer` gate — an author who isn't a
-streamer sees the verb but can't run it. The split lets a future
-dedicated streamer-mode affordance narrow visibility without touching
-the gate.
-
-## What's NOT in this build (Phase 1)
-
-- **Durable `StreamState`** across reboots (in-memory only).
-- **Scene / lower-third / camera-focus / alert-queue** fields on
-  `StreamState` (the rest of the control plane — Phase 3).
-- **Public chat forwarding** over the feed (Phase 2 — taps only public
-  channels).
-- **The CLI / React streamer-mode / Stream Deck remotes** for the
-  control plane (Phase 3).
-- **`@saxonberg/mml` extraction** for prose-rich overlays (Phase 5).
-
-The overlay (client) half is **Rodney**, `packages/rodney` — imported
-from the sibling `pbox-stream` repo with its history on 2026-10-17. Its
-`PLAN.md` and `docs/phase-1-server-spec.md` are the historical roadmap;
-the live design is [broadcast-ready-slate](../slates/builds/broadcast-ready-slate.md).
+The client (W4/W5): the `stream` card (`StreamControls`), redaction, type
+at 140% on air, the relay chat hidden on air, the foreground report
+(`stream.foreground` on visibility/focus), `?from=stream` carried onto the
+socket, *Link YouTube* in settings, and pop-out — see
+[client-shell.md](./client-shell.md). Rodney reads the feed, maps phases
+to OBS scenes by its own rules table, holds its scene when the feed
+drops, and renders the panel rows (`packages/rodney/README.md`,
+`docs/obs-setup.md`).
 
 ## Cross-references
 
@@ -179,7 +169,10 @@ the live design is [broadcast-ready-slate](../slates/builds/broadcast-ready-slat
 - [comms.md](./comms.md) — the in-world `broadcast` ESP verb (the
   distinct concept this subsystem is *not*).
 - [response-envelope.md](./response-envelope.md) — the `Envelope` wire
-  union `StreamStateEnvelope` joins.
+  union `StreamStateEnvelope`, `StreamEventEnvelope` and
+  `ControlResultEnvelope` join.
+- [streaming.md](./streaming.md) — the relay transports and the YouTube
+  step-up the overlay's chat reads through.
 
 ## History
 
@@ -188,3 +181,8 @@ the live design is [broadcast-ready-slate](../slates/builds/broadcast-ready-slat
   + the `stream` verb. saxonberg `feature/broadcast-feed` (commit
   `532725ce`, MR !72). The overlay side shipped in `pbox-stream`
   `feature/phase-1-broadcast`.
+- **broadcast-ready (2026-11)** — the stream moves onto the streamer's
+  body (`BroadcastMixin`, five phases, reasons and panels as rows,
+  durable), per-streamer tokens and feeds, the control door for pblive,
+  redaction and the on-air marker, the YouTube step-up, the controls card
+  and pop-out, Rodney on the real feed. `StreamState` retired.
