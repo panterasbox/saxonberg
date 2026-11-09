@@ -168,7 +168,7 @@ export default class Sheet extends SheetBase {
   }
 
   /** @hook The words, with each hand named as this reader knows its writer. */
-  public override readFor(viewer: Stuff): string {
+  public override textFor(viewer: Stuff): string {
     const shown = this.getMarkText();
     // The ink ran, or it burnt: what the reading fails at, it fails at whole.
     if (this.passages.length === 0 || shown !== this.markText) return shown;

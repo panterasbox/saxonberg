@@ -283,6 +283,7 @@ import type { CutPlanner } from '../lib/craft/CutPlanner';
 import type { Sawable } from '../lib/craft/Sawable';
 import type { Rivable } from '../lib/craft/Rivable';
 import type { Butcherable } from '../lib/craft/Butcherable';
+import type { Readable } from '../lib/description/Readable';
 import type { LiftSource } from '../lib/pump/LiftSource';
 import type { PumpSource } from '../lib/pump/PumpSource';
 import type { CapTable } from '../lib/employment/CapTable';
@@ -2453,6 +2454,11 @@ export class MixinApi {
   /** ⭐ A body that keeps a carcass ledger — `butcher` (`ButcherableMixin`, a protocol; D14). */
   public static isButcherable(obj: Stuff): obj is Stuff & Butcherable {
     return this.hasMixin(obj, Mixins.Butcherable);
+  }
+
+  /** ⭐ A thing you can read — a screen, marks, a book — `read` (`ReadableMixin`, a protocol; W8). */
+  public static isReadable(obj: Stuff): obj is Stuff & Readable {
+    return this.hasMixin(obj, Mixins.Readable);
   }
 
   /** Draws a supply that can be on or off (`PoweredMixin`). */

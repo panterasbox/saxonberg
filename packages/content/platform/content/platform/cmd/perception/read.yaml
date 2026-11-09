@@ -33,7 +33,7 @@ args:
     greedy: true
     scope: ["$focus", "reachable"]
     updates_focus: extend
-    requires: [VisibleMixin, MarkedMixin|DisplayMixin]
+    requires: [VisibleMixin, ReadableMixin]
     validators:
       - /lib/command/validators/mustNotBeShutAway
   # ⭐ A book reads at a page: `read notebook page 3` opens it

@@ -37,6 +37,7 @@
 
 import Good from '../../lib/stuff/Good';
 import { MarkedMixin, type Passage } from '../../lib/description/Marked';
+import type { ReadDone, ReadRefusal } from '../../lib/description/Readable';
 import { AssembledMixin } from '../../lib/craft/Assembled';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import { DurableMixin } from '../../lib/material/Durable';
@@ -198,8 +199,20 @@ export default class Book extends BookBase {
     this.setMarkText(`Page ${n} of ${total}: ${leaf.passages.map((p) => p.text).join(' / ')}`);
   }
 
+  /**
+   * @hook ⭐ A book is read at the page it lies open at; naming a page opens
+   * it there first (the open page is the book's state — it stays open).
+   */
+  public override async readFor(viewer: Stuff, page?: number): Promise<ReadDone | ReadRefusal> {
+    if (page !== undefined) {
+      const opened = this.openTo(page);
+      if (!opened.ok) return { ok: false, reason: 'no-such-page', facts: { pages: this.getPageCount() } };
+    }
+    return super.readFor(viewer);
+  }
+
   /** @hook The open page as this reader reads it: each hand named as they know its writer. */
-  public override readFor(viewer: Stuff): string {
+  public override textFor(viewer: Stuff): string {
     const shown = this.getMarkText();
     const leaf = this.ensureLeaves()[this.openPage - 1];
     if (shown !== this.markText || leaf === undefined || leaf.torn || leaf.boundTo !== '' || leaf.passages.length === 0) {
@@ -236,6 +249,15 @@ export default class Book extends BookBase {
    * ⭐ Write on a page: whoever holds the book writes on the leaf, in
    * their own hand. A printed or torn leaf takes no writing.
    */
+  /** @hook ⭐ A book is written on a page — the one named, else the open one. */
+  public override async inscribe(
+    by: Stuff,
+    words: string,
+    opts?: { page?: number; medium?: Stuff },
+  ): Promise<PageOutcome> {
+    return this.writePage(by, words, opts?.page ?? this.getOpenPage(), opts?.medium);
+  }
+
   public async writePage(by: Stuff, words: string, page: number, medium?: Stuff): Promise<PageOutcome> {
     const self = this as unknown as Stuff;
     const text = words.trim();
