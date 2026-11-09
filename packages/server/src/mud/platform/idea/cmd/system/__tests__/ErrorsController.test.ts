@@ -57,7 +57,7 @@ describe('ErrorsController', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.spyOn(DiagnosticApi, 'list').mockResolvedValue([]);
-    vi.spyOn(DiagnosticApi, 'rawTail').mockReturnValue([]);
+    vi.spyOn(DiagnosticApi, 'rawTail').mockResolvedValue(null);
     vi.spyOn(DiagnosticApi, 'clear').mockResolvedValue(0);
     vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(false);
 
@@ -132,21 +132,30 @@ describe('ErrorsController', () => {
     expect(output.join('\n')).toContain('No diagnostics match');
   });
 
-  it('raw is the Prime Minister\'s (refuses anyone else, a wizard included)', async () => {
+  it('raw words the read\'s own refusal (the PM gate lives on DiagnosticLogic)', async () => {
     await run({ subcommand: 'raw' });
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ kind: 'controller-rejected', reason: 'pm-only' })
     );
-    expect(DiagnosticApi.rawTail).not.toHaveBeenCalled();
+    expect(CompactApi.holdsOffice).not.toHaveBeenCalled();
+  });
+
+  it('the ring refuses a non-PM reader on a DIRECT call (no controller in the way)', async () => {
+    vi.mocked(DiagnosticApi.rawTail).mockRestore();
+    expect(await DiagnosticApi.rawTail(null)).toBeNull();
+    expect(await DiagnosticApi.rawTail(ctx.commandGiver)).toBeNull();
+    expect(CompactApi.holdsOffice).toHaveBeenCalledWith(
+      ctx.commandGiver,
+      'prime-minister'
+    );
   });
 
   it('raw tails the ring for the Prime Minister', async () => {
-    vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(true);
-    vi.mocked(DiagnosticApi.rawTail).mockReturnValue([
+    vi.mocked(DiagnosticApi.rawTail).mockResolvedValue([
       { level: 'error', text: 'boom', ts: 1 },
     ]);
     await run({ subcommand: 'raw', grep: 'boo' });
-    expect(DiagnosticApi.rawTail).toHaveBeenCalledWith({
+    expect(DiagnosticApi.rawTail).toHaveBeenCalledWith(ctx.commandGiver, {
       grep: 'boo',
       limit: 30, // default short tail
     });

@@ -31,9 +31,6 @@ import { Mml } from "../../../../api/mml";
 
 const TOPIC = "act.deed";
 
-/** The Schedule prefix this seat may write. */
-const RESERVE_PREFIX = "reserve.";
-
 interface ReserveModel extends CommandModel {
   row?: string;
   value?: string;
@@ -120,9 +117,7 @@ export default class ReserveController extends BankingControllerBase<ReserveMode
    * is refused `wrong-seat`, naming who sets it (wizard-axis D11).
    */
   private async set(model: ReserveModel, context: CommandContext): Promise<void> {
-    await this.setSeatDial(context, model.row, model.value, "central-bank-governor", (row) =>
-      row.startsWith(RESERVE_PREFIX),
-    );
+    await this.setSeatDial(context, model.row, model.value, "central-bank-governor");
   }
 
   /**

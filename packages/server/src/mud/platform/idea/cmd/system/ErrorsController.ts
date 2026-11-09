@@ -22,7 +22,6 @@
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
-import { CompactApi } from '../../../../api/compact';
 import { Mml } from '../../../../api/mml';
 import { DiagnosticApi } from '../../../../api/diagnostics';
 import type {
@@ -90,7 +89,14 @@ export default class ErrorsController extends CommandController<ErrorsModel> {
     context: CommandContext
   ): Promise<void> {
     const actor = context.commandGiver;
-    if (!(await CompactApi.holdsOffice(actor, 'prime-minister'))) {
+    // Default to a short tail — the ring holds the whole session's console
+    // (boot included), so an unbounded dump is a wall of text. The PM gate
+    // is the read's own (DiagnosticLogic.rawTail); null = refused.
+    const lines = await DiagnosticApi.rawTail(actor, {
+      grep: model.grep,
+      limit: model.limit ?? 30,
+    });
+    if (lines === null) {
       context.note({
         kind: 'controller-rejected',
         reason: 'pm-only',
@@ -99,12 +105,6 @@ export default class ErrorsController extends CommandController<ErrorsModel> {
       });
       return;
     }
-    // Default to a short tail — the ring holds the whole session's console
-    // (boot included), so an unbounded dump is a wall of text.
-    const lines = DiagnosticApi.rawTail({
-      grep: model.grep,
-      limit: model.limit ?? 30,
-    });
     if (lines.length === 0) {
       MessageApi.scene(actor)
         .topic(TOPIC)

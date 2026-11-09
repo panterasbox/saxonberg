@@ -55,6 +55,7 @@ describe("ConfigController", () => {
     await AppSettings.warm();
 
     ctrl = makeStuff(() => new ConfigController());
+    vi.spyOn(CompactApi, "holdsOffice").mockResolvedValue(true as never);
 
     // Capture rendered markup; let fromMarkup still build a real Mml.
     output = [];
@@ -130,9 +131,16 @@ describe("ConfigController", () => {
   });
 
   it("the listing marks a Tier C key with its seat", async () => {
-    await AppApi.setSetting(AppSettingKeys.bankingWithdrawalDailyCap, "500");
+    await AppApi.setSetting(ctx.commandGiver, AppSettingKeys.bankingWithdrawalDailyCap, "500", "central-bank-governor");
     await run({});
     expect(output.join("\n")).toContain("banking.withdrawalDailyCap = 500  [C: central-bank-governor]");
+  });
+
+  it("⭐ a direct write by a non-PM is refused on the model, nothing written (D9)", async () => {
+    vi.mocked(CompactApi.holdsOffice).mockResolvedValue(false as never);
+    const r = await AppApi.setSetting(ctx.commandGiver, AppSettingKeys.defaultStartLocation, "/x");
+    expect(r).toMatchObject({ ok: false, reason: "not-seated" });
+    expect(AppApi.setting(AppSettingKeys.defaultStartLocation)).toBe("/world/lounge/idea/warren");
   });
 
   it("sets an unregistered key (open namespace) with a soft prose note, status ok", async () => {

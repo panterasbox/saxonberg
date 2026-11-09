@@ -58,7 +58,8 @@ export default class ConfigController extends CommandController<ConfigModel> {
     for (const k of keys) {
       // '*' flags an ad-hoc key (not a known setting); ' ' a blessed one.
       const marker = KNOWN_KEYS.has(k) ? " " : "*";
-      const seat = AppApi.seatFor(k);
+      const tier = AppApi.tierOf(k);
+      const seat = tier.startsWith("C:") ? tier.slice(2) : null;
       lines.push(`  ${marker} ${k} = ${all[k]}${seat ? `  [C: ${seat}]` : ""}`);
     }
     lines.push("");
@@ -74,13 +75,22 @@ export default class ConfigController extends CommandController<ConfigModel> {
     value: string,
     context: CommandContext,
   ): Promise<void> {
-    if (AppApi.seatFor(key) !== null) {
-      const detail = `\`${key}\` is a Tier C dial: ${AppApi.whoSets(key)}.`;
+    // The tier rule is the write's own (AppLogic.setSetting, D9): `config`
+    // sets as the Prime Minister; a Tier C dial refuses `wrong-seat`.
+    const wrote = await AppApi.setSetting(context.commandGiver, key, value);
+    if (!wrote.ok) {
+      const detail =
+        wrote.reason === "wrong-seat"
+          ? `\`${key}\` is a Tier C dial: ${wrote.whoSets}.`
+          : "You do not hold the Prime Minister's office.";
       this.send(context, Mml.fromMarkup(`\n${detail}\n`));
-      context.note({ kind: "controller-rejected", reason: "tier-c", detail });
+      context.note({
+        kind: "controller-rejected",
+        reason: wrote.reason === "wrong-seat" ? "tier-c" : "not-seated",
+        detail,
+      });
       return;
     }
-    await AppApi.setSetting(key, value);
     const lines = ["", `${key} set to ${value}.`];
     if (!KNOWN_KEYS.has(key)) {
       lines.push(`(note: "${key}" is not a known setting — it was still saved.)`);

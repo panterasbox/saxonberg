@@ -14,6 +14,15 @@ import {
   type SettingTier,
 } from '../../../lib/config/AppSettings';
 import { Office } from '../../../lib/governance/Office';
+import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { SettingWrite } from '../../../api/app';
+
+/** The Prime Minister's seat — Tier B's setter (wizard-axis D12). */
+const PRIME_MINISTER = 'prime-minister';
+/** The Governor's seat — the Schedule's `reserve.*` rows are its own. */
+const GOVERNOR = 'central-bank-governor';
+/** The Schedule rows the Governor sets though their tier is B. */
+const RESERVE_PREFIX = 'reserve.';
 
 const AppApiCallers = SecurityPolicies.FromModule('/api/app#AppApi');
 
@@ -82,11 +91,42 @@ export class AppLogic extends ApiLogic {
     return AppSettings.getCached().getValues();
   }
 
-  /** See {@link AppApi.setSetting}. */
+  /**
+   * See {@link AppApi.setSetting}. ⭐ The tier rule lives HERE, on the
+   * write (controller-liquidity D9): the key must be `seat`'s to set and
+   * `actor` must hold `seat`. Every refusal comes before the write.
+   */
   @CallSecurity(AppApiCallers)
-  public async setSetting(key: string, value: string): Promise<void> {
+  public async setSetting(
+    actor: Stuff | null,
+    key: string,
+    value: string,
+    seat: string = PRIME_MINISTER
+  ): Promise<SettingWrite> {
+    const tier = tierIndex().get(key) ?? 'B';
+    const setters = tier.startsWith('C:')
+      ? [tier.slice(2)]
+      : key.startsWith(RESERVE_PREFIX)
+        ? [PRIME_MINISTER, GOVERNOR]
+        : [PRIME_MINISTER];
+    if (!setters.includes(seat)) {
+      const office = Office.byKey(tier.startsWith('C:') ? tier.slice(2) : PRIME_MINISTER);
+      const who =
+        tier === 'B'
+          ? "the Prime Minister's — `config`"
+          : `the ${office?.getDisplayName() ?? tier.slice(2)}'s — \`${SettingTierVerbs[tier]}\``;
+      return { ok: false, reason: 'wrong-seat', tier, whoSets: who };
+    }
+    // Lazy: AppApi loads at boot ahead of the Compact (the BankingLogic →
+    // EmploymentApi precedent); a static import is a module cycle.
+    const { CompactApi } = await import('../../../api/compact');
+    if (!actor || !(await CompactApi.holdsOffice(actor, seat))) {
+      return { ok: false, reason: 'not-seated', tier, whoSets: seat };
+    }
     const row = AppSettings.getCached();
+    const before = row.getValue(key) ?? '';
     row.setValue(key, value);
     await row.save();
+    return { ok: true, before };
   }
 }
