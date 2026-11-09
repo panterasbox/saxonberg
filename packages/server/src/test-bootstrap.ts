@@ -44,6 +44,11 @@
 
 import { BootstrapManager } from "./backend/BootstrapManager";
 import { PackApi } from "./mud/api/pack";
+import { readdirSync, readFileSync, existsSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+import YAML from "yaml";
+import { DirtKind } from "./mud/lib/cleanliness/DirtKind";
 
 let installed = false;
 
@@ -124,7 +129,29 @@ export function ensureFrameworkWiring(): boolean {
   // a pack class gets `/arcana/…` resolved without an install. A disk
   // read of the shipped manifests; no database.
   PackApi.registerSources();
+  rememberKernelDocuments();
   return true;
+}
+
+/**
+ * ⭐ The kernel's own document vocabulary, resident as a running world has
+ * it — the platform pack's `content/dirt/` (documents path identity, D7:
+ * every Soilable host loads it in `onCreate`). A suite has no document
+ * store behind it, so the installer's half is stood in for here, from the
+ * shipped files: a disk read, no database.
+ */
+function rememberKernelDocuments(): void {
+  const dir = join(
+    dirname(fileURLToPath(import.meta.url)),
+    "../../content/platform/content/dirt",
+  );
+  if (!existsSync(dir)) return;
+  for (const f of readdirSync(dir)) {
+    if (!f.endsWith(".yaml")) continue;
+    const path = `/platform/dirt/${f.slice(0, -".yaml".length)}`;
+    const data = (YAML.parse(readFileSync(join(dir, f), "utf8")) ?? {}) as Record<string, unknown>;
+    DirtKind.remember(path, DirtKind.fromData(data, path));
+  }
 }
 
 ensureFrameworkWiring();

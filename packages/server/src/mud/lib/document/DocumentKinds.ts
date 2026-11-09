@@ -134,6 +134,13 @@ export const DOCUMENT_KINDS = {
    * (`lib/craft/Joint.ts`). A bill cites a joint by path.
    */
   joint: { kind: 'joint', contentDir: 'joints', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **dirt** kind — blood, grease, mud: its word, whether it is a film,
+   * a debris or a stain, what lifts it, what sets it, what it smells of
+   * (`lib/cleanliness/DirtKind.ts`). A deposit, a recipe's `soils[]` and
+   * the kernel's own `DirtKinds` constants name it by path.
+   */
+  dirt: { kind: 'dirt', contentDir: 'dirt', ext: 'yaml', onVanish: 'delete' },
   'name-bank': { kind: 'name-bank', contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
   blueprint: { kind: 'blueprint', contentDir: 'blueprints', ext: 'yaml', onVanish: 'delete' },
   'command-view': { kind: 'command-view', contentDir: 'cmd', ext: 'yaml', onVanish: 'delete' },

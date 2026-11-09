@@ -13,17 +13,23 @@ import {
   makeStuffAtPath,
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
-import DirtKind, { DIRT_KIND_ROOT } from '../../../platform/idea/DirtKind';
+import { DirtKind } from '../DirtKind';
+import { readdirSync, readFileSync, existsSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import YAML from 'yaml';
 
 /**
- * Stand the dirt-kind rows up where the engine loads them from — BY PATH
- * (`DIRT_KIND_ROOT + key`, cleanliness B50), the way `soil()` does in play.
+ * Keep the dirt documents as a Soilable host (or the act soiling with them)
+ * would have loaded them — by PATH. A row's `key` is its word: a bare word
+ * is the kernel's (`/platform/dirt/<word>`), a path is taken as given.
  */
 export function installDirtKinds(rows: readonly Record<string, unknown>[]): void {
   for (const data of rows) {
     const key = String(data.key ?? '');
     if (!key) continue;
-    makeStuffAtPath(() => Object.assign(new DirtKind(), data), DIRT_KIND_ROOT + key);
+    const path = key.startsWith('/') ? key : `/platform/dirt/${key}`;
+    DirtKind.remember(path, DirtKind.fromData(data, path));
   }
 }
 
@@ -77,4 +83,28 @@ export function wear(body: Creature, slot: 'torso' | 'hands' | 'feet'): Garment 
   g.setSlotClaim(planPaths.get(body) ?? '', [slot]);
   body.occupyAll(g, [slot]);
   return g;
+}
+
+/**
+ * Keep every `dirt` document the packs ship, by path — as a Soilable host's
+ * `onCreate` (the kernel's) and the acts that soil (a pack's own) would have
+ * loaded them. For a test with no document store behind it.
+ */
+export function rememberShippedDirt(): void {
+  const content = join(dirname(fileURLToPath(import.meta.url)), '../../../../../../content');
+  for (const pack of readdirSync(content)) {
+    const dir = join(content, pack, 'content', 'dirt');
+    if (!existsSync(dir)) continue;
+    const m = (YAML.parse(readFileSync(join(content, pack, 'pack.yaml'), 'utf8')) ?? {}) as {
+      id?: string;
+      root?: string;
+    };
+    const root = m.root ?? `/${m.id ?? pack}`;
+    for (const f of readdirSync(dir)) {
+      if (!f.endsWith('.yaml')) continue;
+      const path = `${root}/dirt/${f.slice(0, -'.yaml'.length)}`;
+      const data = (YAML.parse(readFileSync(join(dir, f), 'utf8')) ?? {}) as Record<string, unknown>;
+      DirtKind.remember(path, DirtKind.fromData(data, path));
+    }
+  }
 }

@@ -37,6 +37,7 @@ import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 import type Ore from '../../../thing/Ore';
 import type { Face, Working } from '../../../lib/Working';
 import type { Chattel } from '@saxonberg/server/mud/lib/chattel/Chattel';
+import { DirtKind } from '@saxonberg/server/mud/lib/cleanliness/DirtKind';
 
 /** Reference time for one cut, in game ms, at reference hardness. */
 const HEW_MS = 9000;
@@ -242,9 +243,11 @@ async function winOre(
   // pack ships under its own root, read by the platform with no code.
   const hewer = context.commandGiver;
   if (MixinApi.isHygienic(hewer)) {
+    // The act loads the pack's own dirt it lands (documents D7).
+    await DirtKind.ensure('/trade/mining/dirt/dust');
     hewer.soilFrom([
-      { kind: 'dust', amount: 0.2, where: 'hands' },
-      { kind: 'dust', amount: 0.1, where: 'apron' },
+      { kind: '/trade/mining/dirt/dust', amount: 0.2, where: 'hands' },
+      { kind: '/trade/mining/dirt/dust', amount: 0.1, where: 'apron' },
     ]);
   }
     const giver = context.commandGiver;

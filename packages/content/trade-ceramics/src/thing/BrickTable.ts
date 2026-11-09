@@ -79,7 +79,7 @@ export default class BrickTable extends BrickTableBase {
         // ⭐ As many as the day allows — the clay stops it sooner if it runs out.
         const count = Math.max(1, Math.floor(rate * hours));
         const made = await clay.yieldPieces({ actor, form, product, hand, count, into: room });
-        if (!actor.isDestroyed() && MixinApi.isSoilable(actor)) actor.soil('mud', 0.4);
+        if (!actor.isDestroyed() && MixinApi.isSoilable(actor)) actor.soil('/platform/dirt/mud', 0.4);
         return dayDone(actor, made, discipline);
       },
     };

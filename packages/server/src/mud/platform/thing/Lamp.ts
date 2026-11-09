@@ -83,6 +83,7 @@ import { AssembledMixin } from '../../lib/craft/Assembled';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
+import { DirtKinds } from '../../lib/cleanliness/DirtKind';
 
 /** Numeric AppSetting read with the seeded fallback. */
 function lampDial(key: string, fallback: number): number {
@@ -165,7 +166,7 @@ export default class Lamp extends LampBase {
     super.exhaustTick(dtS);
     if (!this.isLit() || !(dtS > 0)) return;
     const smoky = Math.max(0, 1 - this.completeness());
-    if (smoky > 0) this.soil('soot', (dtS / 3600) * 0.1 * smoky);
+    if (smoky > 0) this.soil(DirtKinds.SOOT, (dtS / 3600) * 0.1 * smoky);
   }
 
   protected override fuelSlot(): BulkSlot | null {

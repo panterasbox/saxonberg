@@ -27,6 +27,7 @@ import { Quantity } from '../../../lib/quantity';
 import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
+import { rememberShippedDirt } from '../../cleanliness/__tests__/soil-fixtures';
 
 const DAY = 86_400;
 const SPECIES_PATH = '/stuff/idea/species/_test/pour-cow';
@@ -85,6 +86,7 @@ describe('the hand on the milk', () => {
     makeStuffAtPath(() => new Creature(), `/platform/agent/Avatar/_milker-${++seq}`) as Creature;
 
   beforeEach(() => {
+  rememberShippedDirt();
     installV1QuantityMarshallers();
     makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
     makeStuffAtPath(() => {
@@ -141,7 +143,7 @@ describe('the hand on the milk', () => {
     const c = cow();
     const who = milker();
     // ⭐ Dirt is put there by an act, never by the clock (cleanliness D4).
-    who.soilHands('manure', 0.8);
+    who.soilHands('/platform/dirt/manure', 0.8);
     advance(0.5 * DAY); // a let-down to draw
     const p = pail(() => new FoodPail());
     // ⚠ Spied rather than read back: with no pathogen roster standing in a
@@ -160,7 +162,7 @@ describe('the hand on the milk', () => {
   it('a plain vessel carries no surface load — only the milk is dirtied', async () => {
     const c = cow();
     const who = milker();
-    who.soilHands('manure', 0.8);
+    who.soilHands('/platform/dirt/manure', 0.8);
     advance(0.5 * DAY); // a let-down to draw
     const p = pail(() => new PlainPail());
     await c.completeTap(who, 'milk', p);
@@ -189,7 +191,7 @@ describe('the hand on the milk', () => {
     ContainmentApi.move(c as never, byre as never);
     const floor = makeStuff(() => new Floor());
     vi.spyOn(byre, 'getFloor').mockReturnValue(floor as never);
-    floor.soil('manure', 1); // a fouled byre
+    floor.soil('/platform/dirt/manure', 1); // a fouled byre
     const who = milker();
     advance(0.5 * DAY);
     const p = pail(() => new FoodPail());
@@ -198,7 +200,7 @@ describe('the hand on the milk', () => {
     const slot = BulkableApi.slotFor(p, undefined)!;
     expect(new Contamination(slot).loads()['e-coli'] ?? 0).toBe(0);
     // …and the hands are dung-spattered now, from the floor she stood in.
-    expect(who.soilKinds('body.arm.left.hand').concat(who.soilKinds())).toContain('manure');
+    expect(who.soilKinds('body.arm.left.hand').concat(who.soilKinds())).toContain('/platform/dirt/manure');
   });
 
   it('⭐ a cow from a clean byre leaves the hands clean (only the pail splashes)', async () => {
@@ -208,6 +210,6 @@ describe('the hand on the milk', () => {
     const p = pail(() => new FoodPail());
     await c.completeTap(who, 'milk', p);
     const hands = who.handSites().flatMap((h) => who.soilKinds(h));
-    expect(hands).not.toContain('manure');
+    expect(hands).not.toContain('/platform/dirt/manure');
   });
 });

@@ -130,6 +130,7 @@ import type {
   RangeStanding,
   FormationStanding,
 } from "../../../api/combat";
+import { DirtKinds } from '../../../lib/cleanliness/DirtKind';
 
 const CombatApiCallers = SecurityPolicies.FromModule("/api/combat#CombatApi");
 /** The G1 combatant face forwards here as the acting instance. */
@@ -2574,9 +2575,9 @@ function commitInflict(
     if (BLEED_FAMILY.has(outcome.trauma.type)) {
       const amount = Math.min(0.6, 0.15 * Math.max(0.5, outcome.trauma.severity));
       if (MixinApi.isHygienic(target) && site) {
-        target.soilBodyPart(site, 'blood', amount, target);
+        target.soilBodyPart(site, DirtKinds.BLOOD, amount, target);
       }
-      if (MixinApi.isHygienic(attacker)) attacker.soilHands('blood', amount / 2, target);
+      if (MixinApi.isHygienic(attacker)) attacker.soilHands(DirtKinds.BLOOD, amount / 2, target);
     }
   }
   // Drain the augment ctx's queued consequences — the sequence position

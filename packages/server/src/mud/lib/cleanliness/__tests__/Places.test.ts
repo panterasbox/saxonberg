@@ -25,6 +25,7 @@ import { Quantity } from '../../quantity';
 import '../../../platform/idea/WorldClockRegistry';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { rememberShippedDirt } from './soil-fixtures';
 
 const HOUR = 3600;
 const BASE = 1_000_000;
@@ -34,6 +35,7 @@ const setNow = (s: number): void => {
 };
 
 beforeEach(() => {
+  rememberShippedDirt();
   installV1QuantityMarshallers();
   WorldClockApi._resetForTesting();
   setNow(0);
@@ -68,7 +70,7 @@ describe('a floor is cleaned by its kind (D15)', () => {
   it('a floor that takes no soil refuses the deposit and the wash', () => {
     const f = floorOf('boards');
     vi.spyOn(f, 'takesSoil').mockReturnValue(false);
-    f.soil('mud', 1);
+    f.soil('/platform/dirt/mud', 1);
     expect(f.soilAt()).toBe(0);
     expect(f.washRefusal()).not.toBeNull();
   });
@@ -86,26 +88,26 @@ describe('strewing and sweeping (D15)', () => {
 
   it('a broom on a scrubbed floor takes the crumbs and leaves the blood', () => {
     const f = floorOf('boards');
-    f.soil('crumbs', 0.5);
-    f.soil('blood', 0.5);
+    f.soil('/platform/dirt/crumbs', 0.5);
+    f.soil('/platform/dirt/blood', 0.5);
     const { kinds } = f.sweepUp();
-    expect(kinds.crumbs).toBeGreaterThan(0);
-    expect(kinds.blood).toBeUndefined();
-    expect(f.soilLoad('blood', '')).toBeGreaterThan(0);
+    expect(kinds['/platform/dirt/crumbs']).toBeGreaterThan(0);
+    expect(kinds['/platform/dirt/blood']).toBeUndefined();
+    expect(f.soilLoad('/platform/dirt/blood', '')).toBeGreaterThan(0);
   });
 
   it('strewn on boards, the blood goes up with the sawdust', () => {
     const f = floorOf('boards');
-    f.soil('blood', 0.5);
+    f.soil('/platform/dirt/blood', 0.5);
     f.strew('/stuff/idea/material/bulk/sawdust', 1);
     const { kinds } = f.sweepUp();
-    expect(kinds.blood).toBeGreaterThan(0);
+    expect(kinds['/platform/dirt/blood']).toBeGreaterThan(0);
   });
 
   it('on an earth floor the broom takes everything', () => {
     const f = floorOf('earth');
-    f.soil('mud', 0.5);
-    f.soil('crumbs', 0.5);
+    f.soil('/platform/dirt/mud', 0.5);
+    f.soil('/platform/dirt/crumbs', 0.5);
     f.sweepUp();
     expect(f.soilAt()).toBe(0);
   });
@@ -161,7 +163,7 @@ describe('pests (D17)', () => {
 
   it('crumbs alone, with no food about, bring none', () => {
     const f = floorOf('boards');
-    f.soil('crumbs', 1);
+    f.soil('/platform/dirt/crumbs', 1);
     expect(f.hasPests()).toBe(false);
   });
 });
@@ -171,7 +173,7 @@ describe('the window a room is lit by (D19, B18)', () => {
     const w = makeStuff(() => new Window());
     w.setOpen(true);
     const clean = w.transmissivity('A', 'A');
-    w.soil('soot', 3);
+    w.soil('/platform/dirt/soot', 3);
     expect(w.transmissivity('A', 'A')).toBeLessThan(clean * 0.7);
   });
 
@@ -185,7 +187,7 @@ describe('the window a room is lit by (D19, B18)', () => {
     w.setOpen(true);
     ContainmentApi.move(w, room);
     const bright = room.openingTransmissivity();
-    w.soil('soot', 3);
+    w.soil('/platform/dirt/soot', 3);
     expect(room.openingTransmissivity()).toBeLessThan(bright);
     w.setOpen(false);
     expect(room.openingTransmissivity()).toBe(0);
@@ -213,7 +215,7 @@ describe('a `clean` contract (D30)', () => {
     const room = makeStuff(() => new Location());
     const f = floorOf('boards');
     vi.spyOn(room, 'getFloor').mockReturnValue(f as never);
-    f.soil('crumbs', 1);
+    f.soil('/platform/dirt/crumbs', 1);
     expect(clause.cleanHolds(room)).toBe(false);
     f.sweepUp();
     expect(clause.cleanHolds(room)).toBe(true);
@@ -270,7 +272,7 @@ describe('the stalls (D20)', () => {
     f.reconcileStalls(); // stamps
     setNow(2 * 24 * HOUR);
     f.reconcileStalls();
-    expect(f.soilLoad('manure', '')).toBeCloseTo(6 * 2 * 0.15, 5);
+    expect(f.soilLoad('/platform/dirt/manure', '')).toBeCloseTo(6 * 2 * 0.15, 5);
   });
 });
 
@@ -279,10 +281,10 @@ describe('rest as kept (D16)', () => {
     const bed = makeStuff(() => new Chair());
     bed.setRestQuality(2);
     const kept = bed.restQualityAsKept();
-    bed.soil('mud', 5);
+    bed.soil('/platform/dirt/mud', 5);
     const room = makeStuff(() => new Location());
     const f = floorOf('boards');
-    f.soil('mud', 5);
+    f.soil('/platform/dirt/mud', 5);
     vi.spyOn(room, 'getFloor').mockReturnValue(f as never);
     ContainmentApi.move(bed, room);
     const filthy = bed.restQualityAsKept();

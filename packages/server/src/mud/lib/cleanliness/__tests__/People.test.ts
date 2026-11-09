@@ -106,7 +106,7 @@ describe("the hand's band chooses the method (D26)", () => {
 
   it('⭐ she names the fibre and the dirt only at a band that reads cloth', () => {
     const shirt = garment(material('linen', ['textile', 'fibre', 'plant']));
-    shirt.soil('mud', 1);
+    shirt.soil('/platform/dirt/mud', 1);
     const read = shirt.describeForLaundress(new WashPolicy('competent'));
     expect(read.said.toLowerCase()).toContain('linen');
     const blind = shirt.describeForLaundress(new WashPolicy('untrained'));
@@ -156,7 +156,7 @@ describe('the doorman says why (D29)', () => {
     const body = soilBody();
     const coat = wear(body, 'torso');
     coat.setKeywords(['coat']);
-    coat.soil('mud', 5);
+    coat.soil('/platform/dirt/mud', 5);
     expect(doorman.judge(onShift(), body, config, door).admit).toBe(false);
   });
 });
@@ -164,19 +164,19 @@ describe('the doorman says why (D29)', () => {
 describe('a bath (D28)', () => {
   it('⭐ washes the whole body and soaks what it has on', () => {
     const body = soilBody();
-    body.soil('mud', 1, null, 'body.leg.left.foot');
+    body.soil('/platform/dirt/mud', 1, null, 'body.leg.left.foot');
     const shirt = wear(body, 'torso');
     body.bathe({ waterK: 315, hardnessDgh: 4, cleansers: [SOAP], effort: 2 }, 120);
-    expect(body.soilLoad('mud', 'body.leg.left.foot')).toBeLessThan(0.3);
+    expect(body.soilLoad('/platform/dirt/mud', 'body.leg.left.foot')).toBeLessThan(0.3);
     expect(shirt.getWetness()).toBeGreaterThan(0.5);
   });
 
   it('⭐ a hot bath does not SET blood on the skin (the drive: bathed from the copper, hands still bloodied)', () => {
     const body = soilBody();
     const hand = body.handSites()[0]!;
-    body.soil('blood', 1, null, hand);
+    body.soil('/platform/dirt/blood', 1, null, hand);
     body.bathe({ waterK: 330, hardnessDgh: 4, cleansers: [SOAP], effort: 2 }, 120);
-    expect(body.isSoilSet('blood', hand)).toBe(false);
-    expect(body.soilLoad('blood', hand)).toBeLessThan(0.3);
+    expect(body.isSoilSet('/platform/dirt/blood', hand)).toBe(false);
+    expect(body.soilLoad('/platform/dirt/blood', hand)).toBeLessThan(0.3);
   });
 });

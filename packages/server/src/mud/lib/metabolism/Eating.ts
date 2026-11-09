@@ -27,6 +27,7 @@ import { BulkableApi } from "../../api/bulk";
 import { Freshness } from "../material/Freshness";
 import { UTENSIL_KINDS, type UtensilKind } from "../bulk/Cutlery";
 import { METABOLIC_DEFAULTS, type Metabolic } from "./Metabolic";
+import { DirtKinds } from '../cleanliness/DirtKind';
 
 const TASTE_MODALITY_PATH = '/platform/idea/modalities/taste';
 
@@ -102,10 +103,10 @@ export function EatingMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!MixinApi.isHygienic(self)) return;
       self.soilFrom(
         withCutlery
-          ? [{ kind: 'crumbs', amount: 0.05, where: 'floor' }]
+          ? [{ kind: DirtKinds.CRUMBS, amount: 0.05, where: 'floor' }]
           : [
-              { kind: 'crumbs', amount: 0.05, where: 'floor' },
-              { kind: 'grease', amount: 0.03, where: 'hands' },
+              { kind: DirtKinds.CRUMBS, amount: 0.05, where: 'floor' },
+              { kind: DirtKinds.GREASE, amount: 0.03, where: 'hands' },
             ],
       );
     }
