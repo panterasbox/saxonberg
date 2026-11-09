@@ -1198,7 +1198,39 @@ controller (drive step 3's shape).
 - Commit: `build(controller-liquidity W5): no greedy object anywhere; a
   phrase is quoted and the refusal teaches it`.
 
-### W6 — cutting is several acts (D14)
+### W6 — cutting is several acts (D14) ✅ done
+
+> **W6 note (build).** `Cuttable` keeps `cut` only (no verb tag;
+> `CutRequest.raw` → `part`); kernel `SawableMixin` (Bole), `RivableMixin`
+> (Bole, Billet), `ButcherableMixin` (Corpse; default = no ledger, spent at
+> once); ice `groovePlan`/`scrapePlan` and glass `scribePlan`/`snapPlan`/
+> `grozePlan` are host methods with their types in the host's file. The
+> cross-cut is a `cut` (`Bole.cutPlan`, felling axe among the tools; the bole
+> affords `cut.yaml`); `fell bole` refuses `not-a-tree` naming `cut`. C2 and
+> C12 (Fell + Rive) fixed here. Ceiling: controller-decisions 1170 → 1167.
+> **Decisions (build, W6):** (a) **no `Crosscuttable`** — once `fell` stops
+> cross-cutting the only verb that crosscuts is `cut`, whose protocol is
+> `Cuttable`; a fourth protocol would have no verb of its own (and no `Log`
+> class exists). (b) `Sawable` has one host (Bole): every other wood is
+> weighed as it is by `SawController`'s `chargeOf` (W11 folds that into
+> `Sawmill`); Billet does not saw. (c) **`butcher.yaml` keeps
+> `requires: any`** — binding on `ButcherableMixin` would refuse a live
+> animal at the binder and lose the *"it is alive — slaughter it"* teaching
+> refusal the controller orders last. (d) **cloth options stay on
+> `cut.yaml`** — a pack cannot contribute options to a kernel view, and a
+> `cut pattern` stanza would change what a tailor types, a break the
+> owner's read does not list; `help cut` still lists them (acceptance item
+> unmet on purpose). (e) **`length` stays a string the rope parses** — a
+> `type: length` binder type is grammar growth in `CommandLogic`, which W2
+> was editing concurrently; left for a grammar wave (W14). (f) `part`
+> replaces `raw`: the ice's `cut hole`/`cut marked` need the part word.
+> No baseline row re-recorded: `butcher`/`saw`/`fell oak` are unchanged in
+> state (C2 changes only the wording of a `for <cut>` match and the stems;
+> C12 moves endurance, which the record does not hold).
+> Not mine in lint:family at commit: lint:duck-typing (fell to 535),
+> lint:lib-statics (342 > 340), lint:controller-resolution (108 > 107) —
+> sibling work in flight. C3 (butcher's dead `vessel` arg) and C6 (pit saw
+> `setSawing`) left to W10/W11.
 
 - `$L/craft/`: `Sawable.ts`, `Rivable.ts`, `Crosscuttable.ts`,
   `Butcherable.ts` (each `_mixinKind = 'protocol'`, a closed reason union,
@@ -1855,7 +1887,7 @@ Current lines at `2ce973dfb`. **52 confirmed and fixed, 2 reclassified,
 | # | where (current) | finding | verdict | wave |
 |---|---|---|---|---|
 | C1 | residence `TitleBuyController` settle L147 → `ParcelApi.subdivide` L161 (registry throws L325/349) | money before a refusable write | confirmed | W13 (`PlatBook.sell`) |
-| C2 | cooking `ButcherController` L310–316/L358/L388/L409 | exemplar index misaligned with `dressOut`'s dropped lines → wrong cut | confirmed | W10 |
+| C2 | cooking `ButcherController` L310–316/L358/L388/L409 | exemplar index misaligned with `dressOut`'s dropped lines → wrong cut | confirmed | ✅ W6 (exemplar by cut path) |
 | C3 | `ButcherController` L154; `butcher.yaml` L117–123; L84/L109 | dead `vessel` arg; blade/tools share prepositions | confirmed | W10 |
 | C4 | eternal-university `UnprovisionController` L90/L92 vs `UnleaseController` L85 | no `evictToStorage` before the unit is dropped | confirmed (loss mode by drive) | W13 (`DormWarren.endLet`) |
 | C5 | terminus `StallController` L251–256/L264 | counter destructed with the goods when the giver is not a Container | confirmed | W13 |
@@ -1865,7 +1897,7 @@ Current lines at `2ce973dfb`. **52 confirmed and fixed, 2 reclassified,
 | C9 | dyeing `MordantController` L50/L64/L95 | mordant is a free string; nothing consumed | confirmed | W11 |
 | C10 | medicine `BleedController` L43–45; no tool; L80–81/L105–108 | no consent gate; tool never required; no capacity | confirmed (consent predicate absent → D9) | W3 |
 | C11 | fuel `CharController` L64; L70–71; L155–158 | draught written before refusals; any attention engagement = adjusting; non-engaged completes instantly | confirmed | W9 |
-| C12 | forestry `FellController` L210/L230/L298; `RiveController` L126 | endurance spent before the engagement can refuse | confirmed (Rive partial) | W11 |
+| C12 | forestry `FellController` L210/L230/L298; `RiveController` L126 | endurance spent before the engagement can refuse | confirmed (Rive partial) | ✅ W6 (spent in the completions) |
 | C13 | fishing `LayController` L24/L64–66 | trap filled with fresh water whatever the reach | confirmed | W12 |
 | C14 | glass `GlazeController` L40 | overwrites existing glazing | confirmed | W12 (`Window.canGlaze`) |
 | C15 | medicine `DonateController` L68/L75 | "your blood" for anyone's unit | confirmed | W13 |
