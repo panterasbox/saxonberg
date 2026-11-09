@@ -225,7 +225,7 @@ The reuse ledger the slate lacked, built here. Each row: what it reuses or gener
 
 | new piece | kind | reuses / generalizes | ledger |
 |---|---|---|---|
-| `StreamerMixin` (`lib/livestream/Streamer.ts`) | kernel mixin | **generalizes** the `StreamState` singleton to one state per player; rides `PersistableMixin`'s default slice (no `captureSlice`); the deadline re-arm is `CalendarMixin.rescheduleCalendarPing`'s shape | the singleton retires in the same wave |
+| `BroadcastMixin` (`lib/livestream/Broadcast.ts`) | kernel mixin | **generalizes** the `StreamState` singleton to one state per player; rides `PersistableMixin`'s default slice (no `captureSlice`); the deadline re-arm is `CalendarMixin.rescheduleCalendarPing`'s shape | the singleton retires in the same wave |
 | `standby-reason` · `lower-third-panel` · `stream-token` | document kinds (`DocumentKinds.ts`) | the `aroma` kind (authored metadata nothing writes, read by path when named) and `map` / `water-right` (runtime-written, `onVanish: keep`); `DocumentApi.read/list/save/delete` | genuinely new **kinds**, no new mechanism; no new Mongo collection |
 | `Events.PlayerFirstArrival`, `Events.StreamShowChanged` (replaces `StreamStateChanged`'s payload) | event names | the `Events` table + payload map | one new name; one payload gains `playerId` |
 | `broadcast:<playerId>` and `control:<playerId>` principals | WS principals | **generalizes** the `service:broadcast` sentinel (same `?param=` pre-session path, same `timingSafeEqual`, same no-`Interactive` push target); the control principal is the deliberate second writer the slate named | no new service module; `WebSocketService` + `Backend` + `Application` grow a branch each |
@@ -239,7 +239,7 @@ The reuse ledger the slate lacked, built here. Each row: what it reuses or gener
 | pblive `src/lib/SaxonbergController.ts` + `.env` config | pblive | `LightingController`'s controller shape; `ws` already a dependency | own repo |
 
 **What is deliberately NOT new:** no new Api and no new logic singleton — the `stream` verb's
-reads and mutations are methods on `StreamerMixin`, the feed is `BroadcastFeed` grown, token and
+reads and mutations are methods on `BroadcastMixin`, the feed is `BroadcastFeed` grown, token and
 YouTube work live in `StreamLogic` behind `StreamApi` (P1: *an Api with one concept in it is a
 method in the wrong place*). No new hook: `onCreate` (re-arm) and `captureSlice` are existing
 hooks, and the default slice means we do not even implement the latter. No new module category,
@@ -250,7 +250,7 @@ no free helper, no eslint exception.
 ## Plan-level decisions
 
 **D1 — The stream's state is a mixin on the Avatar family root, inside the spine.**
-`StreamerMixin` composes in `Avatar.ts`'s stack between `AetherMixin` and `CalendarMixin` (inside
+`BroadcastMixin` composes in `Avatar.ts`'s stack between `AetherMixin` and `CalendarMixin` (inside
 `PersistableMixin`, so its persistent fields ride the `holder_snapshots` record the Avatar already
 writes; outside `HasInteractiveMixin`, which it reads for the on-air client). Fields: `phase`
 (`offline | starting | live | standby | ending`), `reason` (a reason row's key or `null`),
@@ -308,7 +308,7 @@ read.
 **D5 — The feed is routed per streamer and carries an allowlisted snapshot.** `BroadcastFeed`
 keeps `connections: Map<socketId, playerId>`. `Events.StreamShowChanged` carries `{ playerId,
 show }`; the feed pushes to that player's sockets only. The `stream-state` envelope's `state` is
-the allowlist, built by `StreamerMixin.show()`:
+the allowlist, built by `BroadcastMixin.show()`:
 
 ```ts
 interface StreamShow {
@@ -333,7 +333,7 @@ already world-public).
 `stream.foreground` (transient key, validator: `saxonberg | other-tab | other-app`) through
 `client-state-write` on `visibilitychange` / `focus` / `blur`; `cockpit.mode` and `cockpit.layout`
 are already there. **The verb is recorded server-side**: at the end of a dispatch in
-`CommandGiver.run` (`lib/command/CommandGiver.ts`), `if (MixinApi.isStreamer(giver) &&
+`CommandGiver.run` (`lib/command/CommandGiver.ts`), `if (MixinApi.isBroadcastHost(giver) &&
 giver.isOnAir()) giver.noteVerb(ctx.verb)` — the parsed verb only. The mixin's `show()` reads those
 keys off `this.getClientState(...)`. Any change to a show-relevant key (`stream.foreground`,
 `cockpit.mode`, `cockpit.layout`, `lastVerb`) re-emits `StreamShowChanged` only while
@@ -363,7 +363,7 @@ backfilled tell redacts too. *This answers the slate's open question 4:* private
 `player-created` kind, and the server now says so on the frame.
 
 **D9 — The on-air marker has two homes, both already status homes.** `LookController.presenceLine`
-adds `broadcasting` when `MixinApi.isStreamer(target) && target.isOnAir()` (beside `away`); the
+adds `broadcasting` when `MixinApi.isBroadcastHost(target) && target.isOnAir()` (beside `away`); the
 same read feeds the person chip's `status`. The room gets a `state` segment after the long
 description — *"A broadcast reaches this place."* — when any occupant is on air (the floor-puddle
 line's shape and position). Per `perception-output-slate` § the rule, a thing's **state** lives in
@@ -449,13 +449,25 @@ and YouTube `videos.list?part=liveStreamingDetails` (concurrentViewers) every
 `{ ...show, viewers: { twitch, youtube }, startedAt, chatRate, online: RosterRow[] }`. Chat rate is
 lines per minute over the last five minutes from the relay events for that streamer's channels.
 
+
+**D17 — Settled at /build (2026-11-09).** (a) **Pop-out is Document Picture-in-Picture (D13 stands).**
+The requirements themselves decided it: *"the build verifies [the PWA window], with Document
+Picture-in-Picture the fallback"* — verification found the standalone window is a second
+`Interactive` that cannot host the session's card, so the fallback is the mechanism. Risk #2 is
+closed; the build does not stop for it. (b) **The mixin is `BroadcastMixin` (`lib/livestream/
+Broadcast.ts`, `Mixins.Broadcast`, `MixinApi.isBroadcastHost`), not `StreamerMixin`.** Every
+Avatar composes it, so a `MixinApi.isStreamer` true for every player would sit beside
+`AccessApi.isStreamer` (membership of the `streamers` group) and mean something else under the
+same word (P8, names). "Streamer" means the group; the mixin is the broadcast state a body
+carries.
+
 ---
 
 ## ⭐⭐ Host placement
 
 | new field / mixin / class | host | what composing it claims about everything else on that host |
 |---|---|---|
-| `StreamerMixin` — `phase`, `reason`, `startsAt`, `awayUntil`, `endsAt`, `topic`, `agenda`, `agendaIndex`, `channels`, `tokenHashes` | `Avatar` (the family root, `lib/character/Avatar.ts`), inside `PersistableMixin` | *every played body may run a stream of its own.* True by construction: the streamer axis is a managed **group over players** (`streamers`), so any Avatar can be in it and there is no narrower class. ⭐ **P2, the quiet form:** most Avatars will read `phase: 'offline'` forever. That is not a pool with no current — a pool is a different KIND of water from a river, while a player who is not streaming is the same kind of thing as one who is, in the state the verb hasn't moved. The test is *could this host ever honestly answer yes*; every Avatar can, by one `group add`. The default costs nine `null`/`offline` fields in a snapshot that already carries a calendar, contacts, a wardrobe and a map most players never fill. No guard re-narrows the set (`requiresStreamer` gates the VERB, as `requiresWizard` gates `eval` on the same `AuthorMixin` host — the shipped split in livestream.md). **Not** on `Character` (an NPC never streams; a `Cast` with a `phase` field would be the paintable peak) and not on `HasInteractive` (a `Login` has no character to carry it). |
+| `BroadcastMixin` — `phase`, `reason`, `startsAt`, `awayUntil`, `endsAt`, `topic`, `agenda`, `agendaIndex`, `channels`, `tokenHashes` | `Avatar` (the family root, `lib/character/Avatar.ts`), inside `PersistableMixin` | *every played body may run a stream of its own.* True by construction: the streamer axis is a managed **group over players** (`streamers`), so any Avatar can be in it and there is no narrower class. ⭐ **P2, the quiet form:** most Avatars will read `phase: 'offline'` forever. That is not a pool with no current — a pool is a different KIND of water from a river, while a player who is not streaming is the same kind of thing as one who is, in the state the verb hasn't moved. The test is *could this host ever honestly answer yes*; every Avatar can, by one `group add`. The default costs nine `null`/`offline` fields in a snapshot that already carries a calendar, contacts, a wardrobe and a map most players never fill. No guard re-narrows the set (`requiresStreamer` gates the VERB, as `requiresWizard` gates `eval` on the same `AuthorMixin` host — the shipped split in livestream.md). **Not** on `Character` (an NPC never streams; a `Cast` with a `phase` field would be the paintable peak) and not on `HasInteractive` (a `Login` has no character to carry it). |
 | `Interactive.arrivedFrom` (runtime, not persisted) | `Interactive` (`platform/idea/Interactive.ts`) | *a connection may know which door it came in by.* A connection concept; nothing in-world reads it. |
 | `GoogleProfile.youtubeRefreshToken` · `youtubeChannelId` | `GoogleProfile` Document | *a Google identity may carry a YouTube authorization.* Every `GoogleProfile` is a Google account and every Google account has (or can have) a YouTube channel; empty when not stepped up. |
 | `stream.state` · `stream.foreground` · `session.arrivedFrom` (transient clientState) | `SaxonbergClientMixin` | *our client speaks these words* — one client's vocabulary, where every `cockpit.*` key already lives. |
@@ -466,7 +478,7 @@ lines per minute over the last five minutes from the relay events for that strea
 
 No new class. No mixin on a base class. The two things the plan **refused** to host:
 `lastVerb` on `CommandGiver` (every NPC brain's dispatch would carry a field one host reads — it is
-transient on `StreamerMixin`, written by one seam), and a `Streamer` Document per player (the
+transient on `BroadcastMixin`, written by one seam), and a `Streamer` Document per player (the
 requirements chose the spine, and the presence line needs the person in the room to answer
 `isOnAir()` without a document read).
 
@@ -489,13 +501,13 @@ Checked at plan time against the current tree, not recalled:
 - **Api/Logic split kept** — `StreamApi` ↔ `StreamLogic` already exist; token resolve, YouTube
   link reads and stat polls are methods there, gated `FromModule('/api/stream#StreamApi')`.
 - **Inter-Stuff methods only** — `isOnAir()`, `show()`, `noteVerb()`, `getChannels()`; LookController
-  narrows with `MixinApi.isStreamer`.
+  narrows with `MixinApi.isBroadcastHost`.
 - **Persistence** — `fieldMeta` on the mixin; a `string[]` agenda and a `Record` of channels are
   plain JSON (⚠ never a bare `Map` field).
-- **Kernel mixin registry** — `Mixins.Streamer: 'StreamerMixin'` in `lib/mixin.ts`;
-  `MixinApi.isStreamer` predicate (`lint:mixin-names`). ⚠ `AccessApi.isStreamer(subject)` (axis
-  membership) and `MixinApi.isStreamer(obj)` (composition) answer different questions; the plan
-  keeps both names because the pair mirrors `AccessApi.isWizard` / `AuthorMixin`.
+- **Kernel mixin registry** — `Mixins.Broadcast: 'BroadcastMixin'` in `lib/mixin.ts`;
+  `MixinApi.isBroadcastHost` predicate (`lint:mixin-names`). ⚠ `AccessApi.isStreamer(subject)` (axis
+  membership) and `MixinApi.isBroadcastHost(obj)` (composition) answer different questions; D17 names
+  the mixin apart (`isBroadcastHost`) so the word *streamer* means only the group.
 - **One view, one word** — `stream` only; subcommands are words of the noun (`lint:one-word`,
   `lint:subcommand-words`: none of `start live away back end off segment agenda next token channel`
   is a flat verb with a different controller — `start` and `end` are checked by the gate).
@@ -511,11 +523,11 @@ Checked at plan time against the current tree, not recalled:
   a control command whose first word is not `stream` is refused and echoed as `control-result`;
   an unset build stamp is `null` (the overlay hides the line) — never a fabricated date; a
   `requestWindow` that throws (no PiP support) falls back to the card in place with a notice.
-- **P4 no duck typing** — every narrowing is `MixinApi.isStreamer` / `isHasInteractive` /
+- **P4 no duck typing** — every narrowing is `MixinApi.isBroadcastHost` / `isHasInteractive` /
   `isStatus`; Rodney types the envelopes from `@saxonberg/types`-mirrored interfaces (it already
   inlines them) and switches on `type`.
 - **P5 the mixin decides** — phase legality, timer arming, the on-air predicate, the show
-  projection and the allowlist are `StreamerMixin`'s; `StreamController` parses and renders;
+  projection and the allowlist are `BroadcastMixin`'s; `StreamController` parses and renders;
   `BroadcastFeed` routes what the event carries and computes nothing about a stream.
 - **P6 persistence per content** — the mixin's fields persist because they are the streamer's
   own state; the three transient keys are declared `transient`; token documents are
@@ -525,7 +537,7 @@ Checked at plan time against the current tree, not recalled:
 - **P7 load on use** — a reason is read by path when `stream away <reason>` names it; panels are
   listed by prefix when a feed socket connects (once per connection, not at boot); tokens are read
   by their hash path at upgrade; the singleton's boot entry is **removed**. Zero new boot entries.
-- **P8 names** — `StreamerMixin` (the person who streams; not `StreamingMixin`, which names an
+- **P8 names** — `BroadcastMixin` (the person who streams; not `StreamingMixin`, which names an
   activity, and not `BroadcasterMixin`, which collides with the in-world `broadcast` ESP verb
   livestream.md already warns about); `stream` the verb keeps the common word; the card is `stream`
   (what you type); `StreamShow` for the wire shape, matching Rodney's `Show`.
@@ -537,7 +549,7 @@ Checked at plan time against the current tree, not recalled:
 `lint:subcommand-words`, `lint:closed-vocabularies` (the phase vocabulary and `when` words are
 declared with their validation arrays), `lint:duck-typing`, `lint:controller-decisions` (durations
 live on the mixin / AppSettings, not the controller), `lint:reachability` (`stream` afforded by
-`StreamerMixin`'s `self` bucket — moved off `AuthorMixin`), `lint:test-bootstrap`, `lint:envelope`
+`BroadcastMixin`'s `self` bucket — moved off `AuthorMixin`), `lint:test-bootstrap`, `lint:envelope`
 (new envelope members in both unions), `lint:schema` (unchanged collections; `DocumentKinds` is not
 a collection), `lint:wizard-axis` (no `isWizard`). Plus `pnpm lint`, `pnpm wire` for the drive
 file, and Rodney's own `tsc`.
@@ -551,23 +563,23 @@ pblive. Commit titles are suggestions in the repo's voice.
 
 ### W0 — The stream belongs to the streamer (kernel)
 
-**Goal:** `StreamerMixin` on the Avatar, five phases, reasons as documents, the full `stream`
+**Goal:** `BroadcastMixin` on the Avatar, five phases, reasons as documents, the full `stream`
 grammar, the ending timer, persistence across a restart; the singleton retired. Implements
 **D1, D2, D3, D10, D15**.
 
 **Files:**
-- new `packages/server/src/mud/lib/livestream/Streamer.ts` (`StreamerMixin`; `fieldMeta`;
+- new `packages/server/src/mud/lib/livestream/Broadcast.ts` (`BroadcastMixin`; `fieldMeta`;
   `commandContributions.self: ['platform/cmd/stream/stream.yaml']`; `onCreate` re-arm; methods:
   `getPhase`, `isOnAir` (= phase ∈ starting/live/ending), `startStream(at|null)`, `goLive()`,
   `goStandby(reason: StandbyReason, until|null)`, `endStream(at)`, `goOffline()`, `setTopic`,
   `setAgenda(items)`, `clearAgenda`, `advanceAgenda`, `setChannel(service, handle)`,
   `getChannels`, `noteVerb(verb)`, `show(): StreamShow`; every mutator emits
-  `Events.StreamShowChanged { playerId, show }`); `__tests__/Streamer.test.ts`.
+  `Events.StreamShowChanged { playerId, show }`); `__tests__/Broadcast.test.ts`.
 - new `packages/server/src/mud/lib/livestream/StandbyReason.ts` — the named value object read
   off a `standby-reason` document (`fromDocument(doc)`, throws on a malformed row; `isPrivacy`,
   `defaultDurationMs`).
-- `packages/server/src/mud/lib/mixin.ts` (+`Streamer`), `api/mixin.ts` (+`isStreamer`).
-- `packages/server/src/mud/lib/character/Avatar.ts` — compose `StreamerMixin` between `AetherMixin`
+- `packages/server/src/mud/lib/mixin.ts` (+`Broadcast`), `api/mixin.ts` (+`isBroadcastHost`).
+- `packages/server/src/mud/lib/character/Avatar.ts` — compose `BroadcastMixin` between `AetherMixin`
   and `CalendarMixin`; remove the `AuthorMixin` affordance of `stream.yaml` (grep `stream.yaml`
   in `lib/author/Author.ts`).
 - `packages/server/src/mud/lib/document/DocumentKinds.ts` (+`standby-reason`, `lower-third-panel`,
@@ -597,7 +609,7 @@ materialize with `endsAt` in the past → `offline`; `onCreate` with `endsAt` in
 (fake timers) and fires `goOffline`; `awayUntil` expiry changes nothing; capture → materialize
 round-trips every field (the avatar-family wire test's pattern, in a unit test over
 `PersistableApi`). `pnpm -C packages/server lint:family` green. **Commit:** `feat(livestream): the
-stream belongs to the streamer — StreamerMixin, five phases, reasons as rows; the singleton retires`.
+stream belongs to the streamer — BroadcastMixin, five phases, reasons as rows; the singleton retires`.
 
 ### W1 — One token per streamer, one feed per token (kernel + backend)
 
@@ -781,7 +793,7 @@ run the blocking drive against the real stack with OBS open and append § Drive 
 
 | capability | verb | affordance | data | load | arg gate |
 |---|---|---|---|---|---|
-| the `stream` grammar | `stream` + subcommands (`stream.yaml`) | `StreamerMixin.commandContributions.self` — every Avatar sees it; `requiresStreamer` gates (the shipped split) | — | the view is a `command-view` document the platform pack installs | `reason` and `duration` are **string args** parsed by the controller (a required arg with no default fails closed — `away` requires one; `start` has none required); `agenda` is `greedy` by design (the whole rest is the list) — ⚠ the only greedy arg in the grammar, deliberately |
+| the `stream` grammar | `stream` + subcommands (`stream.yaml`) | `BroadcastMixin.commandContributions.self` — every Avatar sees it; `requiresStreamer` gates (the shipped split) | — | the view is a `command-view` document the platform pack installs | `reason` and `duration` are **string args** parsed by the controller (a required arg with no default fails closed — `away` requires one; `start` has none required); `agenda` is `greedy` by design (the whole rest is the list) — ⚠ the only greedy arg in the grammar, deliberately |
 | a standby reason | `stream away <reason>` | — | `/platform/stream/reasons/<key>` documents | read by path on use (`DocumentApi.read`) | an unknown key that is not a duration → `unknown-reason` refusal naming both readings |
 | the panels | — (the feed) | — | `/platform/stream/panels/*` documents | `DocumentApi.list('/platform/stream/panels/')` once per feed connection | malformed row → the row is skipped with a warn and the others ship |
 | the overlay token | `stream token` | the grammar | `/platform/stream/tokens/<sha256>` | read by path at upgrade | wrong scope / revoked → 401 |
@@ -900,8 +912,8 @@ scope token, push a tell without the tag.
     streamer's own client (they are the giver); only the status is echoed to pblive. Good for the
     show; noted so nobody expects prose on the Stream Deck.
 
-**The build should stop and ask only for #2** if the owner has not answered it before `/build`;
-everything else is decided here with its limb.
+**#2 is closed by D17** — the build does not stop for it; everything else is decided here with
+its limb.
 
 ---
 
@@ -909,7 +921,7 @@ everything else is decided here with its limb.
 
 Clean attach points, each with the slate it leaves as:
 
-- **The registry** (`streamer-registry-slate`) — `StreamerMixin.channels` and the token documents
+- **The registry** (`streamer-registry-slate`) — `BroadcastMixin.channels` and the token documents
   are the fields the registry's claim-by-proof will own; the `streamers` group stays the gate.
 - **Giving / money and community cards** (`giving-slate`, `budget-slate`) — `stream-event` is the
   envelope their arrivals ride (`kind: 'sub' | 'gift' | 'member' | 'patron'`); `money` stays `null`
