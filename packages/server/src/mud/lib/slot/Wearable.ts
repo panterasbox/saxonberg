@@ -157,6 +157,14 @@ export interface FitReading {
   wrongBody: boolean;
   /** Whether the measurements resolved at all (a plan-less host). */
   measurable: boolean;
+  /**
+   * ⭐ The fit refuses this body outright — it will not go on: the wrong
+   * body plan, or a distance past `textiles.fit.refuseAbove` (a coat cut
+   * for a halfling fails on a NUMBER). The garment obeys the dial; the
+   * dressing verbs read this (controller-liquidity W8 — `equip` read the
+   * dial itself).
+   */
+  refused: boolean;
 }
 
 /** The neutral reading — a garment nobody can be measured against. */
@@ -168,6 +176,7 @@ const UNMEASURABLE: FitReading = Object.freeze({
   tightness: 0,
   wrongBody: false,
   measurable: false,
+  refused: false,
 });
 
 /** Thermal conductivity of still air, W/(m·K). */
@@ -405,6 +414,9 @@ export function WearableMixin<
         tightness: signed > 0 ? signed : 0,
         wrongBody: !stock && cutPlan !== planPath,
         measurable: true,
+        refused:
+          (!stock && cutPlan !== planPath) ||
+          distance > dial(AppSettingKeys.textilesFitRefuseAbove, 0.35),
       };
     }
 

@@ -76,7 +76,7 @@ import { Suppressions } from '../magic/Suppression';
 import { MqlApi } from '../../api/mql';
 import { CompetenceBand } from '../advancement/CompetenceBand';
 import type { Difficulty, Outcome } from '../advancement/ActSignature';
-import type { ActPlan, ActOutcome, ActRefusal } from '../craft/ActPlan';
+import type { ActPlan, ActOutcome, ActRefusal, ActChoices } from '../craft/ActPlan';
 import { AccountabilityApi } from '../../api/accountability';
 import AccountabilityEvent from '../accountability/AccountabilityEvent';
 import { SpeciesApi } from '../../api/species';
@@ -408,6 +408,17 @@ export type ElementTreatmentRefusal =
   | ActRefusal<'nothing-to-cool'>
   | ActRefusal<'nothing-to-warm'>
   | ActRefusal<'nothing-to-rinse'>;
+
+/**
+ * ⭐ `undress` (controller-liquidity W8): the dressed wound off, or why not.
+ * `no-dressing` — nothing is dressed; a CHOICE when several are (the
+ * `preferred` is the worst, the shipped default); done — which wound, whether
+ * it had been stitched, and whether it opened again (it had not knitted).
+ */
+export type UndressAnswer =
+  | ActRefusal<'no-dressing'>
+  | ActChoices<Trauma, 'which-wound', { preferred: Trauma }>
+  | ActOutcome<{ wound: Trauma; sutured: boolean; reopened: boolean }>;
 
 /** What an element treatment answers: a plan to run now, or the refusal. */
 export type ElementTreatmentAnswer =
@@ -990,6 +1001,12 @@ export interface Vitals {
    * washed off.
    */
   treatmentPlanFor(req: ElementTreatmentRequest): ElementTreatmentAnswer;
+  /**
+   * ⭐ Take the dressing off a wound — `chosen`, or the only dressed one; a
+   * choice when several are. The wound's own `reopen` decides: a wound above
+   * the clot threshold bleeds again. The bandage is spent, not recovered.
+   */
+  undressWound(chosen?: Trauma): UndressAnswer;
   /** The healed-over scars this body keeps (D14) — never a penalty. */
   getScars(): readonly ScarRecord[];
   /** ⭐ D15 — re-break every half-knit fracture under mechanical work
@@ -3866,6 +3883,25 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `mend` heals it at the graded treated rate, and returns what
      * happened. The infection seed (D11) lands in W-A5; the seam is here.
      */
+    /** See {@link Vitals.undressWound}. */
+    public undressWound(chosen?: Trauma): UndressAnswer {
+      const dressed = this.getConditions().filter(
+        (c): c is Trauma => c.kind === 'trauma' && c.dressed === true,
+      );
+      if (dressed.length === 0) return { ok: false, reason: 'no-dressing' };
+      const wound = chosen && dressed.includes(chosen) ? chosen : dressed.length === 1 ? dressed[0]! : null;
+      if (wound === null) {
+        const worst = [...dressed].sort((a, b) => b.severity - a.severity)[0]!;
+        return { ok: 'choose', reason: 'which-wound', choices: dressed, facts: { preferred: worst } };
+      }
+      // ⭐ Stitches read differently from a bandage (D8) — read before
+      // `reopen` clears the flag.
+      const sutured = wound.sutured === true;
+      TRAUMA_BEHAVIOR[wound.type].reopen(this as unknown as Vitals, wound);
+      // A re-opened bleed drains again on the next read (reconcile-on-read).
+      return { ok: true, facts: { wound, sutured, reopened: wound.bleeding === true } };
+    }
+
     public applyTreatment(
       wound: Trauma,
       opts: TreatmentOpts,
