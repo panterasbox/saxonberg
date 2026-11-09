@@ -121,6 +121,13 @@ export const DOCUMENT_KINDS = {
    * metadata a pump cites by path (`lib/pump/PumpMechanism.ts`).
    */
   'pump-mechanism': { kind: 'pump-mechanism', contentDir: 'pump-mechanisms', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **form word** — what a potter's (or a glassblower's) `shape` makes:
+   * five classes × a capacity × a proportion (`lib/craft/FormSpec.ts`
+   * `Form`). An instrument cites the words it makes by path; the word is
+   * resolved against that list, so two instruments may each know a `brick`.
+   */
+  form: { kind: 'form', contentDir: 'forms', ext: 'yaml', onVanish: 'delete' },
   'name-bank': { kind: 'name-bank', contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
   blueprint: { kind: 'blueprint', contentDir: 'blueprints', ext: 'yaml', onVanish: 'delete' },
   'command-view': { kind: 'command-view', contentDir: 'cmd', ext: 'yaml', onVanish: 'delete' },

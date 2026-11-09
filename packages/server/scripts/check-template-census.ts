@@ -299,12 +299,8 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       }
     }
   }
-  // ⭐ An instrument's `forms:` (the Form rows it makes, by path) and a
-  // `formTemplates:` map by form class (ceramics D16) — loaded on use when a
-  // `shape` asks.
-  if (Array.isArray(data.forms)) {
-    for (const v of data.forms as unknown[]) push('forms', v);
-  }
+  // ⭐ An instrument's `formTemplates:` map by form class (ceramics D16).
+  // (Its `forms:` are DOCUMENT paths now — clause (g).)
   if (data.formTemplates && typeof data.formTemplates === 'object') {
     for (const v of Object.values(data.formTemplates as Record<string, unknown>)) push('formTemplates', v);
   }
@@ -1137,7 +1133,7 @@ function checkFieldRefs(rows: Map<string, string>): number {
 // ── clause (g): a field naming DOCUMENTS by path resolves ──────────
 /** Field → the document kind's content dir its values are stored under. */
 /** Clause (g) field names another family also uses for a non-path word. */
-const SHARED_FIELD_NAMES: ReadonlySet<string> = new Set(['mechanism']);
+const SHARED_FIELD_NAMES: ReadonlySet<string> = new Set(['mechanism', 'forms']);
 
 const DOCUMENT_PATH_FIELDS: Readonly<Record<string, string>> = {
   // A species' name banks (`/species-and-names/name-banks/common`).
@@ -1147,6 +1143,9 @@ const DOCUMENT_PATH_FIELDS: Readonly<Record<string, string>> = {
   // A pump's mechanism (`/platform/pump-mechanisms/suction`) — a rowless one
   // is a pump with no law: it would lift from any depth.
   mechanism: 'pump-mechanisms',
+  // An instrument's form words (`/trade/ceramics/forms/mug`); a potter
+  // brain's `forms:` are WORDS, so only path-shaped values are checked.
+  forms: 'forms',
 };
 
 /** Every document path a pack ships under `contentDir`: its root + the dir + the file. */

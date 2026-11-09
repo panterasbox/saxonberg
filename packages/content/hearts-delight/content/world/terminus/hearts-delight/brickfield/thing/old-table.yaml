@@ -16,6 +16,6 @@ data:
   fixedInPlace: true
   capabilities: [brick-table]
   forms:
-    - /world/terminus/hearts-delight/brickfield/idea/form/old-brick
+    - /world/terminus/hearts-delight/forms/old-brick
   formTemplates:
     block: /trade/ceramics/thing/block

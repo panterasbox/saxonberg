@@ -1,0 +1,8 @@
+# `cylinder` — the muff blown for window glass: a long open cylinder, later
+# split down its length and flattened into a pane (`flatten`).
+key: cylinder
+formClass: open
+capacityL: 2
+proportion: tall
+product: /trade/glass/thing/cylinder
+discipline: glasswork

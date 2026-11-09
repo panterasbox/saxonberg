@@ -1,0 +1,7 @@
+# The `firebrick` form (ceramics S4): the statute block in fireclay.
+key: firebrick
+formClass: block
+capacityL: 0
+product: /trade/ceramics/thing/firebrick
+greenScale: 1.08
+discipline: brickmaking

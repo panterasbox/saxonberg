@@ -28,7 +28,7 @@ inherits a 10 m cap that is physically false — the lesson stops being a
 law and becomes a lie. So:
 
 - a pump row names its **mechanism** (`mechanism:
-  /platform/idea/PumpMechanism/suction`) and never whether it has a
+  /platform/pump-mechanisms/suction`) and never whether it has a
   ceiling;
 - a mechanism is a **document** (`content/pump-mechanisms/<word>.yaml`, `lib/pump/PumpMechanism`, `pulls:
   true|false`) — `suction` and `force` ship; a third (`centrifugal`,

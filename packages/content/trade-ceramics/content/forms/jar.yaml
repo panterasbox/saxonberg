@@ -1,0 +1,7 @@
+# The `jar` form (ceramics S4): a closed vessel of about two litres.
+key: jar
+formClass: closed
+capacityL: 2
+product: /trade/ceramics/thing/jar
+greenScale: 1.0
+discipline: pottery

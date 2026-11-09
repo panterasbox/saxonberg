@@ -16,11 +16,12 @@
  * on use; nothing scans). ⚠ A word it does not know REFUSES naming the five
  * classes — it never binds silently.
  *
- * Value objects with instance methods only (no public statics —
- * `lint:lib-statics`).
+ * Value objects with instance methods only — save `Form`, the document
+ * reader, whose statics are `@internal`.
  */
 
 import type { ActRefusal } from './ActPlan';
+import { DocumentCache } from '../document/DocumentCache';
 
 /** The five form classes. */
 export type FormClass = 'open' | 'closed' | 'flat' | 'block' | 'cone';
@@ -183,5 +184,64 @@ export class FormGrammar {
   /** The words this instrument knows, for a refusal that lists them. */
   private named(): string[] {
     return this.words.map((w) => w.key);
+  }
+}
+
+const FORM_CLASSES: readonly FormClass[] = ['open', 'closed', 'flat', 'block', 'cone'];
+const FORM_PROPORTIONS: readonly FormProportion[] = ['tall', 'squat', 'wide', 'narrow'];
+
+/**
+ * Form — ⭐ a form WORD as a `form` document (ceramics S4, D16; a document
+ * since the path-identity build): `mug` is an open vessel of about a pint
+ * with a handle seat. An author adds a word with a file under a pack's
+ * `content/forms/`; an instrument lists the words it makes by PATH
+ * (`forms:` on the wheel's and the brick table's rows), and the instrument's
+ * `forms` setter loads them — so an instrument is live only when its words
+ * are, and `shape` reads them synchronously. Nothing scans the kind.
+ *
+ * @internal the forming substrate's; an author names a path on a row.
+ */
+export class Form {
+  private static readonly cache = new DocumentCache<FormWord>('form', (doc) =>
+    Form.fromData(doc.getData(), doc.getPath()),
+  );
+
+  /** Validate a form document at `path` (the installer's validator too). */
+  public static fromData(data: Record<string, unknown>, path: string): FormWord {
+    const formClass = (data.formClass ?? 'open') as FormClass;
+    if (!FORM_CLASSES.includes(formClass)) {
+      throw new RangeError(`form '${path}': formClass '${String(formClass)}' is not one of ${FORM_CLASSES.join(', ')}`);
+    }
+    const proportion = (data.proportion ?? null) as FormProportion | null;
+    if (proportion !== null && !FORM_PROPORTIONS.includes(proportion)) {
+      throw new RangeError(`form '${path}': proportion '${String(proportion)}' is not one of ${FORM_PROPORTIONS.join(', ')}`);
+    }
+    const word = typeof data.key === 'string' && data.key ? data.key : path.slice(path.lastIndexOf('/') + 1);
+    const greenScale = typeof data.greenScale === 'number' && data.greenScale > 0 ? data.greenScale : 1;
+    return {
+      key: word,
+      formClass,
+      capacityL: typeof data.capacityL === 'number' ? data.capacityL : 0.5,
+      proportion,
+      product: typeof data.product === 'string' ? data.product : '',
+      seats: Array.isArray(data.seats) ? data.seats.filter((x): x is string => typeof x === 'string') : [],
+      greenScale,
+      discipline: typeof data.discipline === 'string' && data.discipline ? data.discipline : 'pottery',
+    };
+  }
+
+  /** The form at `path`, read if it is not resident; throws naming a path with none. */
+  public static ensure(path: string): Promise<FormWord> {
+    return Form.cache.ensure(path);
+  }
+
+  /** The resident form at `path`; `DocumentNotResidentError` if its instrument never loaded it. */
+  public static need(path: string): FormWord {
+    return Form.cache.need(path);
+  }
+
+  /** Keep a form (a unit fixture with no store behind it). */
+  public static remember(path: string, word: FormWord): FormWord {
+    return Form.cache.remember(path, word);
   }
 }

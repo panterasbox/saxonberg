@@ -1,0 +1,7 @@
+# The `cone` form (ceramics S4): a tall cone open at its tip — the sugar mould.
+key: cone
+formClass: cone
+capacityL: 3
+product: /trade/ceramics/thing/cone
+greenScale: 1.0
+discipline: pottery

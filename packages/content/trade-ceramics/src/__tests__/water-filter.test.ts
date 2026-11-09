@@ -38,7 +38,8 @@ describe('the water filter', () => {
   });
 
   it('a potter can throw one — the `filter` form names the row', () => {
-    const form = data(join(pack, 'content/trade/ceramics/idea/form/filter.yaml'));
+    // A form is a document: the file IS its data.
+    const form = parse(readFileSync(join(pack, 'content/forms/filter.yaml'), 'utf8')) as Record<string, unknown>;
     expect(form.key).toBe('filter');
     expect(form.product).toBe(FILTER);
   });

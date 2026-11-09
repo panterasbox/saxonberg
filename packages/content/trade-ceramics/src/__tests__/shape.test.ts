@@ -9,7 +9,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
-import Form from '@saxonberg/server/mud/platform/idea/Form';
+import { Form, type FormClass } from '@saxonberg/server/mud/lib/craft/FormSpec';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
@@ -29,24 +29,21 @@ class Shed extends Place {}
 
 let clayMat: Material;
 let seq = 0;
-const forms = new Map<string, Form>();
-
-function form(key: string, formClass: Form['formClass'], capacityL: number, product: string, discipline = 'pottery'): string {
-  const path = `/trade/ceramics/idea/form/${key}`;
-  const f = makeStuff(() => new Form());
-  f.key = key;
-  f.formClass = formClass;
-  f.capacityL = capacityL;
-  f.product = product;
-  f.discipline = discipline;
-  f.greenScale = formClass === 'block' ? 1.08 : 1;
-  forms.set(path, f);
+/** A form document, kept as the instrument citing it would have loaded it. */
+function form(key: string, formClass: FormClass, capacityL: number, product: string, discipline = 'pottery'): string {
+  const path = `/trade/ceramics/forms/${key}`;
+  Form.remember(
+    path,
+    Form.fromData(
+      { key, formClass, capacityL, product, discipline, greenScale: formClass === 'block' ? 1.08 : 1 },
+      path,
+    ),
+  );
   return path;
 }
 
 beforeEach(() => {
   installV1QuantityMarshallers();
-  forms.clear();
   seq += 1;
   clayMat = makeStuffAtPath(() => {
     const m = new Material();
@@ -55,7 +52,6 @@ beforeEach(() => {
     m.setDensity(Quantity.of(1800, 'kg/m³'));
     return m;
   }, `/stuff/idea/material/_shape/clay-${seq}`) as unknown as Material;
-  vi.spyOn(StuffApi, 'singleton').mockImplementation((async (p: string) => forms.get(p) ?? null) as never);
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (row: string) => {
     if (row.endsWith('/brick')) {
       const b = makeStuff(() => new Brick());
