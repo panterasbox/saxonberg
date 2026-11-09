@@ -1,0 +1,1102 @@
+# Documents — the path is the identity — implementation plan
+
+Executes [documents-path-identity-requirements](../requirements/documents-path-identity-requirements.md)
+(kind **refactor/sweep**, leads from the **kernel**). Three things become true
+of the document store: a document's **path is its only name** (the four
+flat-key kinds lose their second name; the store refuses two documents at one
+path); every document carries **one catalogue-card shape** (`keys`, declared by
+its kind, derived from its data, served by one index — the press archive is the
+first reader); and the **metadata Idea families become documents** while the
+referent Ideas (disciplines, spells, corporations, brands, governments) stay
+Ideas that **load when something reaches them**, with nine boot entries gone.
+The aroma library is rearranged so its folders are its tree. Seeded by
+[documents-path-identity-slate](../slates/builds/documents-path-identity-slate.md);
+the precursor is MR !541 (`a4fe4550a`), which did this for aromas and name banks.
+
+## ⚠ Requirements problems (not reopened — for the owner before commit)
+
+1. **The committed requirements file ends in a stray transcript fragment.**
+   Lines 230–251 (from the `</content>` line through the `git add … &&
+   git commit … && git push` line, with an `<invoke>` block and a Python
+   heredoc between) are not product text; the document proper ends at the
+   `In flight:` cross-reference on line 229. Delete the tail before this plan
+   is committed. Nothing in the plan depends on it.
+2. *"A word-to-document index already exists for command views"* — true as a
+   product statement, but the engineering fact is `CommandLogic.preloadAll`
+   (`platform/idea/api/CommandLogic.ts:752-776`) loading **every** command view
+   at boot through `DocumentApi.listOfKind('command-view')`. It is a boot scan,
+   not a lazy word index, so this plan does not model typed words on it; it
+   models them on `SoulCatalogue`, which is already lazy (Grounding § 7).
+3. *"recipe-by-cuisine needs equality"* — no shipped recipe carries a
+   `cuisine` field. The mechanism is general; this plan declares keys only
+   where a reader exists today (D1). Nothing is lost: adding a key is one line
+   on the kind.
+4. Two of the catalogues the acceptance criteria name as *not loaded at
+   startup* — **placements** and **topics** — are read synchronously beneath
+   two synchronous primitives (`ContainmentApi.move`, `Scene.send`). The plan
+   meets the criterion (W4, D12–D13) but it is the build's riskiest wave and
+   is isolated as such.
+
+## Grounding
+
+Verified this cycle by opening the files. Paths are under
+`packages/server/src/mud/` unless they start with `packages/`.
+
+### 1. The store
+
+- `lib/document/StoredDocument.ts:36-42` — fields `path · owner · kind ·
+  data`, all persistent. `findByPath` (:73) is `find({path})[0]`;
+  `findByKind` (:80) is `find({kind})`; ⚠ **`findByPrefix` (:89-93) is
+  `find({})` plus a JS `startsWith` filter — a full-collection scan on every
+  prefix read**, including `callUp`'s `/home/<key>/` walk
+  (`platform/idea/api/DocumentLogic.ts:765`) and `list`.
+- `lib/document/DocumentKinds.ts` — `DocumentKindSpec {kind, naturalKey,
+  contentDir, ext, onVanish}` (:37-50); 24 kinds; four carry a `naturalKey`:
+  `emote:'verb'` (:58), `recipe:'recipeId'` (:67), `blueprint:'blueprintId'`
+  (:69), `archetype:'archetypeId'` (:73). `FLAT_KEY_DOCUMENT_KINDS` (:381) has
+  **no consumer**. The module imports nothing (the PM reads it lazily).
+- Readers of the spec shape: `PackLogic.ts:25,208-210,901,1712`;
+  `backend/PersistenceManager.ts:1466-1484` (`#createDocumentKindIndexes`:
+  one `{kind:1, data.<nk>:1}` unique partial index per flat-key kind, called
+  at :1574-1580 as the one derived loop outside `plannedIndexes()`);
+  `lib/paths.ts:269` (`NON_TEMPLATE_DIRS` derives every yaml `contentDir`);
+  `lib/persistence/ResetPolicy.ts:47,105` and `scripts/gen-schema.ts:146-149`
+  (reset keeps `release` + every declared kind); `DocumentLogic.ts:21,531`.
+  ⚠ `scripts/check-untitled-paths.ts:43` is a **hand copy** —
+  `DOCUMENT_DIRS = ["emotes","recipes","blueprints","name-banks","releases"]`
+  — already stale (no `aromas`).
+- `packages/server/src/schema/documents.yaml` declares `{path:1}` (**not
+  unique**, on purpose: *"a unique index that a live row violates fails at
+  BOOT"*) and `{kind:1}`; its `purpose` lists seven kinds (stale). Indexes are
+  **authored there and planned from there** (`PersistenceManager.plannedIndexes`,
+  :1600); every index is attempted independently (:1537-1590) and a failure
+  logs `index … NOT built` and continues.
+- The write funnel: every `StoredDocument.save()` (`lib/persistence/Document.ts:256-263`)
+  and every installer row (`PersistApi.save(collection, row)`,
+  `PackLogic.ts:2529` region) goes through `PersistenceManager.save` (:622),
+  whose `dispatchSave` runs the **per-collection `aroundSave` hook chain**
+  (:859) loaded from `platform/idea/hooks/hooks.yaml`. One hook exists:
+  `DomainHook` on `content` save/delete (`platform/idea/hooks/DomainHook.ts`),
+  whose header says it is *"the real template write chokepoint"* precisely
+  because the installer bypasses `TemplateApi.saveTemplate`. The same is true
+  of `documents`: `DocumentLogic`'s eleven `doc.save()` sites (:158, :243,
+  :311, :357, :412, :540, :571, :742, …) and the installer's `rowOf` are two
+  writers with one chokepoint beneath them.
+- `api/document.ts` surface: `read · list · listOfKind · save · delete ·
+  saveRelease · saveToRegister · saveBerth · berthRollOf · saveAsBusiness ·
+  pagesOf · callUp · freezeEdition · saveInstrument · saveMap · readMaps`.
+  `readByKey` is gone (!541). No key query exists.
+- Tests touch no Mongo: `src/test-bootstrap.ts` names none, and
+  `platform/idea/api/__tests__/pack-harness.ts` stubs persistence
+  (`stubPersist`, :128). Index shape is therefore provable only against a
+  running world (the drive) — see § Test & gate strategy.
+
+### 2. The installer
+
+- `PackLogic.readDocumentKind` (:866-931): `walkFiles` **recurses**
+  (:817-840, `yield* walkFiles`), `rel` keeps subdirectories, `key =
+  /${contentDir}/${relKey}` (:897), `path = root + key` (:925). ⭐ **A
+  subdirectory already becomes a path segment** — `aromas/smoke/peat-smoke.yaml`
+  is stored at `/base-library/aromas/smoke/peat-smoke` today with no code
+  change. The natural-key injection + basename check is :901-911.
+- `documentStrategy` (:1711-1740): `dbKeyQuery` adopts by `{kind,
+  data.<nk>}` **at any path** for a flat-key kind, else `{kind, path}`;
+  `flatKeyOf` (:1735) feeds the install-set check.
+- `flatKeyFailures` (:2919-2956): iterates the **install set only**, naming
+  both `(packId, relFile)` claimants; a second claimant fails. `sync`
+  (:3935-3950) with an explicit `packRoot` and no `packRoots` has an **empty
+  sibling set** — a pack synced live from a directory is checked against
+  nothing already installed.
+- `invalidateDocumentKind` (:3536-3583): the per-kind go-live switch —
+  `emote` drops a resident SoulCatalogue's cache; `recipe`/`archetype`
+  re-warm a resident catalogue; `blueprint` invalidates; `name-bank` clears
+  `NameBank`'s cache. `DocumentLogic.saveImpl` does **not** call it (only the
+  command-view save has a go-live), so a CMS edit of any other kind reaches
+  no cache.
+- `DOCUMENT_VALIDATORS` (:171-179): `emote → Emote.fromData`, `recipe →
+  Recipe.fromData`, `archetype → Archetype.fromData`, `command-view`.
+  `GATED_DOCUMENT_KINDS` is empty (:164).
+- `PackApi.sync(packId, packRoot?, packRoots?)` (`api/pack.ts:409-416`) is
+  the live install an operator runs; the founder can reach it through `eval`.
+  Packs are discovered from the deployment root's `@saxonberg/content-*`
+  dependencies (`PackLogic.ts:783-801`); an explicit `packRoot` overrides
+  discovery.
+
+### 3. The press archive (first consumer of keys)
+
+- `platform/idea/PressBoard.ts:131-142` `warm()` → `listOfKind('release')`
+  → every release into a map; `recentWindow` (:83-101) sorts pins first and
+  caps the window in JS. Booted as `producer` (`packages/content/platform/pack.yaml:60`)
+  because `PressApi.recent()` is read **synchronously** at session entry
+  (`lib/character/Avatar.ts:1067`) and by the `press` verb
+  (`cmd/system/PressController.ts:115`).
+- `platform/idea/api/PressLogic.ts:311-327` `archiveImpl`: full `listOfKind`,
+  JS filter on realm (derived from the live publisher — **not stored**), kind
+  and `before`, JS sort by `publishedAt` desc, slice; cursor = epoch-ms
+  `before`; limit default 30, max 100. REST at `backend/PressRoutes.ts:66-103`.
+  `callUpImpl` (`DocumentLogic.ts:753-770`) does the same scan again.
+- `lib/press/Release.ts:93-115` `ReleaseData {releaseId, kind, headline, body,
+  author, publishedAt (epoch-ms), expiresAt, pinned, retracted, visibility,
+  source}`; `publishedByOwner` (:267-272) re-verifies the transport's
+  guarantee on every read.
+
+### 4. Aromas (the precedent, and the directory move)
+
+- `lib/perception/Aroma.ts` — the value class over a document: `known`
+  cache + `loading` map (:68-70); `resolve` sync-with-load-started +
+  diagnostic on a missing document (:103-117); `ensure` async, follows
+  `data.parent` (:119-131); `remember` (:138-148); `waitFor`/`loadRow`/
+  `settling` (:188-214) so a cold read is waited out by `smell`/`taste`/
+  `analyze` (`SmellController.ts:43`, `AromaReading.ts:88`, `Palate.ts:244`).
+  `PATH_SHAPE` (:61) already accepts several segments after `/aromas`;
+  `MAX_DEPTH = 8` (:63); `wordOf` is the last segment (:84).
+- 132 aromas, **flat**, in `packages/content/base-library/content/aromas/`;
+  43 roots, 89 children, **max depth 2**; every `parent:` is a base-library
+  path; no other pack ships an aroma. Children: alcohol 3 · animal 11 (+ wet-wool,
+  silk-reeling at depth 2) · blood 1 · earth 5 · fat 2 · flesh 4 · floral 1 ·
+  fruit 3 (+ lemon, orange) · grain 4 · green 4 · hide 3 · lye 1 · milk 2 ·
+  oil 3 (+ naphtha) · rancid 1 · rot 1 (decay) · smoke 9 · sour 5 · spice 1 ·
+  sugar 2 (+ burnt-sugar) · sulfur 1 · sweat 1 · tannin 1 · tar 4 · wax 2 ·
+  wood 2 (+ juniper, pine, turpentine) · yeast 1.
+- Citations of `/base-library/aromas/`: **504 occurrences in 417 files** —
+  `smells[].aroma` 336 (37 packs), `parent` 89, `burning[].aroma` 64,
+  `odor.aroma` 5 (the platform DirtKind rows), `imparts[].type` 4,
+  `charredImparts[].type` 3, `combustionImparts[].type` 3. Kernel literals:
+  `lib/mortality/MortalArc.ts:65-67` (`blood`, `decay`),
+  `lib/material/Freshness.ts:176` (`rot`), `scripts/check-aromas.ts:46-50`
+  (`KERNEL_AROMAS`). Server tests name paths in `Aroma.test.ts`,
+  `aroma-fixtures.ts`, `CraftingLogic.medium`/`blend-payload`,
+  `malting-chain`, `BulkFreshness`, `DissolvedAromatics`, `Smell`, `Palate`;
+  pack tests in `trade-cooking/roster`, `trade-hospitality/menu`,
+  `trade-ceramics/BrickClamp`, `eternal-university/DormHouseplant`.
+- `scripts/check-aromas.ts` (`lint:aromas`) already walks any depth under
+  `aromas/` (:133-153), requires every segment to be a slug, resolves every
+  `AROMA_FIELDS` path + `odor.aroma` + `parent`, checks dependency reach.
+  `scripts/check-template-census.ts:1142-1145` clause (g)
+  `DOCUMENT_PATH_FIELDS = { nameBanks: 'name-banks' }` — the one entry;
+  `documentPaths()` (:1148-1164) walks recursively.
+
+### 5. The four flat-key kinds and their readers
+
+- **emote** (34 rows, `packages/content/expression/content/emotes/`,
+  `/expression/emotes/<verb>`). `platform/idea/SoulCatalogue.ts` is **not
+  booted** and **already lazy and async**: every method is async, `ensureCache`
+  (:357-361) awaits `warmCache()` → `listOfKind('emote')`. Dispatch:
+  `lib/command/CommandGiver.ts:1222-1236` — only when no affordance matched,
+  `await SoulApi.resolve(verb)`. Author verbs `soul make/edit/disable/delete`
+  write through (`mint` into `/expression/emotes`, :60,:284).
+- **recipe** (195 rows, `/<root>/recipes/<id>`). `platform/idea/RecipeCatalogue.ts`
+  booted `sync-read` (`pack.yaml:55`); `onCreate → warm()` (:102,:118); sync
+  surface `getRecipe · findByKeyword · recipeFor(outputTemplate) ·
+  allRecipes · knows`; `ensureCache` (:154) installs an empty map — **no lazy
+  load**. `CraftingLogic.requireCatalogue()` (:219) is an async
+  `StuffApi.singleton`; 36 `CraftingApi.*` production call sites are awaited.
+  ⚠ **Sync readers with no seam, all resolving a recipe cited by RUNTIME
+  state**: `lib/craft/BlendIdentity.ts:43-50` `recipeOf()` (from
+  `Bulkable.getHeldKeywords` :726/:738 — the MQL scope walk
+  `api/mql/scope-walk.ts:357`; `SmellModality.addInterior` :341;
+  `Metabolic.ingest` :1518; `SipController.execute` :87) and
+  `lib/thermal/ThermalDose.ts:735-750` `doseRecipeFor()` (reconcile-on-read
+  from `getDoseSeconds`/`getScorchSeconds` :584/:589 and the `donenessAugmenter`
+  :179-187). `recipeFor(outputTemplate)` has three callers, all under
+  awaited `requireCatalogue` (`CraftingLogic.ts:4145, 4313, 5131`).
+  Citations: `offeredRecipes:` (6 rows, `lib/commerce/Menu.ts:61`), brain
+  config `lagerLeg.recipe` (`terminus/.../brewing/agent/hand.yaml:57`),
+  pack TS `recipeRef` (`trade-chandlery/src/thing/DipPot.ts:78,108`); runtime
+  `Crafted.getRecipe()` and `BulkPayload.recipeId`.
+- **archetype** (21 rows, 13 packs). `ArchetypeCatalogue.ts` booted
+  `sync-read` (`pack.yaml:56`). **One** production reader:
+  `cmd/perception/SurveyController.ts:274-282` `roomArchetypes()` (sync,
+  inside `async execute` :69). `Archetype.effectiveRows`
+  (`lib/archetype/Archetype.ts:440-441`) also reads `allRecipes()`. No row
+  cites an archetype; the 109 `archetype:` fields are `Cast` roles
+  (`lib/npc/Cast.ts:85,164`) and stay untouched. The pack.yaml reason text
+  (*"ArchetypeApi reads"*) is stale — that Api was retired (:15-17).
+- **blueprint** (9 curated rows, `/platform/blueprints/<id>`).
+  `BlueprintCatalogue.ts` booted `producer` (`pack.yaml:57`); `onCreate` runs
+  `rebuild()` (reads the `blueprints` collection, `TemplateApi.distinctClasses()`,
+  **loads every class module**, writes derived rows) then `warm()`. Every
+  reader is `StudioLogic.requireCatalogue()` (:1342-1347, async) over REST
+  (`backend/StudioRoutes.ts:127,145,189`). No row cites a blueprint.
+
+### 6. The metadata families (→ documents)
+
+| family | class (`platform/idea/`) | rows · roots | cited by | readers | sync with no seam? |
+|---|---|---|---|---|---|
+| `DirtKind` | `DirtKind.ts:69`, `extends Idea`; `DIRT_KIND_ROOT` :163; `setOdor` awaits `Aroma.ensure` | 11 — platform 10 at `/platform/idea/DirtKind/<key>`, ⚠ trade-mining 1 at `/trade/mining/idea/DirtKind/dust` | bare keys: recipe `soils[].kind` (8 rows); ~25 TS literals (`soil('grease')` — `StokeController:138`, `FireLogic:607`, `Vitals:3744`, `Freshness:1173`, `Exerting:252`, `Floor.ts:119,892,946`, `ButcherController:123`, `Tanning.ts:168`, …); persisted in `deposits` keys + `stains[].kind` | **no catalogue**; `Soilable.dirtKind(kind)` (`lib/cleanliness/Soilable.ts:564-569`) = `findByTemplatePath(ROOT+key)` else `Aroma.loadRow` | yes — every Soilable method; already served by the loadRow/`settling` shape. ⚠ **Latent defect:** `dust` can never resolve (wrong root); four sites soil with it |
+| `Form` | `Form.ts:18`; `lib/craft/FormSpec.ts` `FormWord` | 19 — ceramics 15, glass 2, dairying 1, hearts-delight 1, all under lowercase `idea/form/` on **non-platform** roots; keys repeat (`brick` ×2) and contain spaces (`plant pot`) | `forms:` **full paths** on 4 instrument rows (17 entries); potter brain config `forms: [mug, …]` (words) | `FormingMixin.formWords()` (`lib/craft/Forming.ts:170-180`) awaits `StuffApi.singleton` per path | no — all async (`ShapeController.execute`) |
+| `HelpConcept` | `HelpConcept.ts:35` | 17 — seven trades at `/trade/<x>/idea/HelpConcept/<key>` | `seeAlso:` bare keys (34, cross-pack) | `HelpCatalogue.loadConceptTopics` (:1080-1124) `findByClass` on first `HelpApi.ready()` (async); not booted | no |
+| `Placement` | `Placement.ts:60`, `SingletonMixin(Idea)` | 3 — platform `on · in · from` | `placements:` bare names on 14 rows; code defaults `Placing.ts:252` `['on']`, `thing/Chamber.ts:52` `['in']`, `PlacementOffers.ts:53` `'in'`; literal `move(…, 'on')` at `HeatController:176`, `PaperMould:51`, `PulpVat:107`; persisted per item (`ContentPlacement`) | `PlacementCatalogue` booted `sync-read` (`pack.yaml:79`); every read via `ContainmentLogic.placement(name)` (:133-138) | ⚠⚠ **yes, beneath a sync primitive**: `ContainmentApi.move` is sync (`api/containment.ts:148-154`) → `placeOn` (:177-209) → `resolvePlacement`/`canPlace`; `Containable.getEnclosingScope` (:417); `PlacementOffers` ctor; MQL `placed` projection |
+| `PumpMechanism` | `PumpMechanism.ts:27`, `SingletonMixin(Idea)` | 2 — platform `suction · force` | `mechanism:` **full paths** on 4 rows | `PumpingMixin.mechanismRow()` (`lib/pump/Pumping.ts:182-193`) awaits `singleton` | no |
+| `Operation` | `Operation.ts:66` | 5 — trade-medicine | none in content; typed `operate <who> for <key>` | `OperationCatalogue` lazy, not booted; one reader `OperateController.ts:70-73` (async) | no |
+| `Topic` | `Topic.ts:27`; rows carry **undeclared** facet keys (`communicative`, `address`, …) parsed by the catalogue | 38 — platform at `/platform/idea/Topic/<dotted.key>` | none in content; ~1217 code emitters `.topic('<dotted>')` | `TopicCatalogue` booted `sync-read` (`pack.yaml:54`); `pruneRetiredRoots` (:241-259) **deletes Content rows at load** | ⚠⚠ **yes, beneath a sync primitive**: `MessageLogic.isCommunicative` (:118-123) from `lib/message/Sensor.ts:62` on receive; `feedsFor` (:127-142) from `Avatar.sendMessage` :1446/:1501; `Scene.send()` is sync (`lib/message/Scene.ts:242`) |
+| `Joint` | `Joint.ts:83` | 21 — platform 14, carpentry 1, coopering 3, plumbing 2, tailoring 1 | bill `joints[].method` bare keys (~50 in 43 rows); `Rope.ts:98` `KNOTS` literals; persisted `JointState.method` | `JointCatalogue` lazy, not booted; async readers await `jointCatalogue()` (`CraftingLogic.ts:4715`); `Assembled.jointRow` (`lib/craft/Assembled.ts:417-428`) uses sync `peek` (starts a warm when cold, defaults meanwhile) | partly — `peek` already degrades honestly |
+| `CombatFormation` | `CombatFormation.ts:82`, `SingletonMixin(Idea)`; `DEFAULT_POLICY` :99 | 4 — platform | none in content; Party persists `formationPath` (`Party.ts:86,108`, `PartyRecord.ts:32`, `AccountabilityEvent.ts:281`); path built from the typed word at `PartyLogic.ts:575` | `CombatLogic.resolvePolicyFor` (:1394-1405) sync `findByTemplatePath` else `DEFAULT_POLICY`; `warmFormationsImpl` (:4497) awaits at `initiateImpl`; `setFormationImpl` awaits | yes, with a fallback already; `assignRoleImpl` on a cold formation answers `unknown-role` |
+
+Common to all nine: no subclass, no `extends:`, nothing targets a member by
+MQL or shadow, no runtime write (the Topic prune aside). Boot lines:
+`pack.yaml:54` (Topic) and `:79` (Placement); Operation/Joint/Help are not
+booted anywhere.
+
+### 7. The Ideas that stay Ideas
+
+| family | class | rows · roots | cited by | catalogue warm | sync readers with no seam |
+|---|---|---|---|---|---|
+| `Discipline` | `Discipline.ts:78`, pure data | 99 — platform 42, arcana 18, base-library 1, water 1, **37 trade packs** (five roots) | **bare keys everywhere**: `discipline:` 442 lines/439 files, dossier `competence:` 190, `fulfills:` 37, `specializes:`/`synergizes:` edges; transcript rows store bare keys; the only path form is `FisheryRegistry.ts:93` | `DisciplineCatalogue.onCreate → Template.findByClass` (:126,:161); booted `pack.yaml:62`; cache `key → descriptor` | `Advancement.withConditioning()` (:170-175) reads `allDisciplines()` for rows with a `stock` (2 rows) → `competenceDigestCached` (:716) → `Login.rosterFigures` :527, `Olfactory.rankIn` :236, `Palate.bandIn` :328, `Fractionating.bandFor` :225, `FisheryRegistry.readForViewer` :334, `Waters.bandOf` :130, `OpenWorking.bandOf` :219, `Growing.conditionAugmenter` :993, `Field.fieldLines` :788, `Tract.bandOf` :1468; `Employed.fulfils()` (:123-148, async two frames up). The catalogue is also the **command source** for conferred verbs (`Advancement.ts:435-459`) |
+| `Spell` | `magic/Spell.ts:147`, pure data | 22 — all `/stuff/idea/magic/Spell/<id>` (arcane-library) | **full paths**: `carriedSpellPath` 13, `teachesSpellPath` 2; runtime `Memorized.spellPath` | `SpellCatalogue.onCreate → findByClass` (:132,:160), validates every row (`CastingProfiles`, `MagicEffects`, grid); booted `pack.yaml:67`; caches by path + `byName` (:73,:84) | `Arcane.getArcaneFootprint` (:205-209) on the item; `MagicLogic.requiresMark` (:349); `Caster.refreshCastingAffordance` (:207) uses the catalogue as the command source from `Avatar.armSession` :988. `cast <word>` → `getSpellNamed` (`MagicLogic.ts:431,713`); `spells` → `allSpells` (:1039) |
+| `Corpo`/`Brand` | `corpo/Corpo.ts:52`, `corpo/Brand.ts:58` | 6 / 11 under `/stuff/idea/corpo/{Corpo,Brand}/` | **bare keys**: `_brandKey` 12, `corpoKey` 1, Brand `owner` 11, `rivals` 6, Brand `government` 1 | `CorpoCatalogue.onCreate → findDescendants ×2` (:162-172); booted `pack.yaml:65` | `Branded.getBrand/getCorpo` (`lib/corpo/Branded.ts:80,85`) → MQL projection (:96-104), `brandMarkAugmenter` (:121-136), `Attired.impressionClauses` :335, `Flag.colorsOf` :20 → `Ship.flagAugmenter` :2385; `CraftingLogic.resolveBrandKey` (:844) scans `listBrands()` for `craft … with <brand>` (async one frame up) |
+| `Government` | `Government.ts:104` | 5 — platform 2, world-seed 3 | **bare keys**: Locality `_governmentKey` 5, ShipRegister `government` 1, Brand `government` 1, ship `flag` 4 | `GovernmentCatalogue.onCreate → findDescendants` over two roots (:123-125); booted `pack.yaml:66` | `Branded.brandMarkAugmenter` :128, `Ship.flagAugmenter` :2386; `GovernmentLogic.chainForAddress` (:47-60) is sync beneath the async `Locality.resolveTreasury` :456 and the `government` verb. `requiresGovernor` reads offices, not governments. `listGovernments` has no caller |
+
+The one load-on-use precedent for these Ideas already exists:
+`packages/content/water/src/idea/FisheryRegistry.ts:314` does
+`await StuffApi.singleton<Discipline>(path)` then `row.getKey()`.
+
+### 8. Load-on-use machinery and gates
+
+- `StuffApi.singleton(path)` (`api/stuff.ts:831-910`): cache-or-clone,
+  coalesces concurrent first loads; `findByTemplatePath` (:1624) is the sync
+  index read. `TemplateApplier.ts:163-165`: a field whose `fieldMeta.ref` is
+  `'identity:constituent'` is loaded with its holder through
+  `StuffApi.ensureConstituent`. `SingletonMixin` (`Mixins.Singleton`) makes a
+  bare `clone()` throw.
+- `BootstrapManager.ts:186` runs `await StuffApi.singleton(path)` per boot
+  entry (the hook is `onCreate`, not `postRegister` — the pack.yaml wording
+  is stale). The platform boot list is `packages/content/platform/pack.yaml:47-89`.
+- `scripts/check-boot-entries.ts:66` `BOOT_ENTRY_CEILING = 85` — **at the
+  ceiling** (platform 46, terminus 33, hearthworks 2, hollow-mere 2,
+  base-library 1, lounge 1). `scripts/check-template-scans.ts:72-93`
+  ALLOWLIST names every catalogue above with its count and reason;
+  `TEMPLATE_SCAN_CEILING` is the list's total and may only fall.
+  `check-boundary-roles.ts:73` `COMMONS_CEILING = 27` counts Placement,
+  PlacementCatalogue, CombatFormation and the catalogues.
+  `check-instanceable-placement.ts:323` `ORPHAN_DATA_KEY_CEILING = 306`
+  includes ~161 Topic facet keys.
+- Row lints that locate these families by directory: `check-placement-words.ts:93`
+  (`/idea/Placement/`), `check-topic-keys.ts:71,227-233` (`TOPIC_SEEDS` from
+  the platform Topic dir), `check-bills.ts:171-177,271-290` (Joint rows by
+  class; `method` must name one), `check-capabilities.ts:159`
+  (`/idea/Joint/` instruments), `check-template-census.ts:305-310` (`forms`
+  as template paths), `:193-200` (`mechanism`), `:1051-1057`
+  (`carriedSpellPath`, `teachesSpellPath`, `treasury`, `departments`, `seats`
+  listed as unread path fields).
+- `lint:family --list`: 101 gates (roster in `packages/server/package.json`).
+- The wire tier: `packages/wire/src/runner/boot.ts` (`WIRE_PORT`,
+  `bootOwnedWorld`, `WIRE_BOOT_TIMEOUT`); a restart from inside a test is the
+  `restartWorld()` precedent at `packages/wire/tests/sugar.soak.dirty.wire.test.ts:404-421`
+  (preflight with `PREFLIGHT_GRACE_MS=60000`, then `bootOwnedWorld()`);
+  `Session.open(handle, {parcels, committees, offices})` stages authority.
+  Browser-walk precedent: `e2e/tests/paint-walk.spec.ts`.
+- Collision: `origin/reqs/material-decomposition` (build-1) W0 is pushed
+  (`fc5fcfb04`): it splits `OdorousMixin` into `Odor`/`Combustion`, edits
+  `check-aromas.ts:177`, and its D4 codemod rewrites `class:` on all 386
+  material rows — the same files whose `smells:`/`burning:` lines the aroma
+  move rewrites. It touches no `DocumentKinds`, `PackLogic`, census clause
+  (g), PM index or boot-list line. Cleanser stays on the material base there
+  (its W0 message reverses the Detergency plan), which changes nothing here:
+  Cleanser is out of this build.
+
+## ⭐⭐ New substrate
+
+Each row cites the slate's reuse ledger or says *genuinely new*.
+
+| new | kind | ledger row | note |
+|---|---|---|---|
+| `DocumentKindSpec.keys` + `DocumentKindSpec.words` (replacing `naturalKey`) | two fields on the existing spec | row 1 (*a document kind*) | declarations, not substrate; `naturalKey` and `FLAT_KEY_DOCUMENT_KINDS` are deleted |
+| `StoredDocument.keys` | one persistent field | row 9 (*index creation*) generalized | the catalogue card; derived, never authored |
+| `platform/idea/hooks/DocumentHook.ts` | PM `aroundSave` hook on `documents` | **genuinely new as an instance** — the hook mixin and the `hooks.yaml` slot exist (`DomainHook` is the one implementer today) | the single chokepoint both writers share (Grounding § 1); a second implementer of a shipped hook, not a new hook kind |
+| `DocumentApi.findByKey` (+ `StoredDocument.findByKey`, `DocumentLogic` impl) | one method on the existing Api | row 2 (*read by path*) generalized | not new substrate |
+| `lib/document/DocumentCache.ts` | value object (the "named value-object / registry" category) | row 3 (*a value class over a document*) — the pattern extracted FROM `Aroma`, not a class every family extends | nine consumers plus Aroma and Recipe; the promote-at-the-third-consumer rule is met three times over. Also the go-live registry: `invalidateDocumentKind` calls one static instead of growing a switch |
+| nine document kinds: `dirt · form · help-concept · placement · pump-mechanism · operation · topic · joint · formation` | `DOCUMENT_KINDS` entries + `DOCUMENT_VALIDATORS` | row 1 | each with a value class in the `lib/` folder that owns the concern (table in D6) |
+| `scripts/check-typed-words.ts` (`lint:typed-words`) | lint script | rows 6–7 (the aroma lint is the precedent for a per-kind citation gate) | the derived roster picks it up; see D4 |
+
+**The slate's reuse ledger, row by row:** (1) *a document kind* — nine new
+entries, D6; (2) *read by path* — kept as the only identity read; `findByKey`
+is the finder beside it, D4; (3) *a value class over a document* — the
+pattern extracted into `DocumentCache`, with `Aroma` as its first delegating
+consumer, D7/W2; (4) *a word → document index* (`CommandLogic`'s verb
+resolution) — **accounted for and not generalized**: it is a boot preload of
+every view (§ Requirements problems 2), so the typed-word index generalizes
+`SoulCatalogue`'s lazy `ensureCache` instead, D9; (5) *lazy dictionary*
+(ruling 1, `ReadingCatalogue`) — the shape of every surviving catalogue, D9;
+(6) *document-path citation check* (census clause (g)) — extended with every
+converted field, D15; (7) *aroma citation check* — the precedent for the
+folder rule and for `lint:typed-words`, D3/D14; (8) *boot-entry ratchet* —
+85 → 76, W1/W4/W5; (9) *index creation* — the PM's derived loop replaced by
+two authored indexes in `documents.yaml`, D2.
+
+**Not new, and deliberately so:** no new mixin; no new Api or logic
+singleton; no new Mongo collection; no new module category; no free exported
+helper; no `boot:` entry anywhere (nine are removed). The catalogues that
+survive (`SoulCatalogue`, `RecipeCatalogue`, `ArchetypeCatalogue`,
+`BlueprintCatalogue`, `HelpCatalogue`, `TopicCatalogue`, `PlacementCatalogue`,
+`JointCatalogue`, `OperationCatalogue`, `DisciplineCatalogue`,
+`SpellCatalogue`, `CorpoCatalogue`) are the existing singletons, each kept
+only for the job it still has (D9). `GovernmentCatalogue` is deleted.
+
+## Plan-level decisions
+
+**D1 — The kind declares its keys; the hook derives them.**
+`DocumentKindSpec` gains `keys?: Record<string, (doc: {path; data}) => KeyValue | undefined>`
+(`KeyValue = string | number | boolean | Array<string|number>`) and
+`words?: (doc) => string[]` (the typed words, D3). `naturalKey` is deleted.
+`StoredDocument.keys: Record<string, KeyValue>` is a persistent field,
+**written only by `DocumentHook.aroundSave`** on the `documents` collection:
+it looks the kind up, derives every declared key, writes `doc.keys`, and
+refuses (throws) a write whose `kind` is not in the vocabulary or whose
+`path` is empty — the store's one invariant, enforced at the one place both
+writers pass. Declared this build, each with the reader that needs it:
+`release → {publishedAt, pinned}` (the press, D5); `recipe → {output}`
+(`recipeFor`, Grounding § 5); every typed-word kind → `word` (D3). Nothing
+else, by rule 3 of § Requirements problems. A key written separately would
+be the two-copies defect; a key no reader uses is a declaration to delete.
+
+**D2 — One index: `{kind: 1, 'keys.$**': 1}` (compound wildcard), and
+`{path: 1}` unique.** Both authored in `schema/documents.yaml` and planned
+from it; the PM's derived natural-key loop (`#createDocumentKindIndexes`,
+`runDocumentKindIndexesForTest`, the `attempt('documents (declared kinds)')`
+call) is **deleted** — the store's indexes become authored facts like every
+other collection's. Why the wildcard over the `[{k, v}]` attribute pattern:
+the first consumer is an **order** (newest first), and a sort on a multikey
+array value (`keys.v`) orders by the array's extreme element, not the
+matched attribute's value, so the moment a release carries a second key the
+press reads in the wrong order; a wildcard index keys each path natively and
+`sort({'keys.publishedAt': -1})` is a real index order. It also stores the
+card as authored (`keys: {publishedAt: …}`), with no transform on the way in
+or out, and the kind prefix lets the install word check and the press query
+be equality-on-kind first. Query shape (every `findByKey` emits it):
+`{kind, 'keys.<k>': <eq | {$gte,$lte}>, [path: {$gte: prefix, $lt: prefix+'￿'}]}` with an
+optional `sort({'keys.<k>': ±1})` and `limit`; an ordered read with no bound
+passes an open range (`{$gte: MinKey}`-shaped) so the sort predicate is on
+the indexed field. **Verification is part of W0's acceptance**: against the
+worktree's Atlas database (Mongo 8.0.37), `explain()` on the press shape must
+show an IXSCAN over the wildcard index for both the equality and the ordered
+read; if it does not, the **named fallback** is one derived partial index per
+declared `(kind, key)` — `{kind:1, 'keys.<k>':1}` partial on kind — which is
+the loop being deleted, minus `unique`. The build records which shipped in the
+drive record. `findByPrefix` becomes the path range above (served by the
+unique path index) — the full-collection scan goes. ⚠ A worktree database
+booted before this wave holds the non-unique `path_1`; `createIndex` on a
+different option set throws, the PM logs *NOT built* and continues. The rule
+is drop-and-boot (no migrations; dev databases are mine to drop), and W0's
+acceptance says so.
+
+**D3 — A typed word is a declared key, unique at install.** A kind whose
+documents a player names by a word declares `words` (emote: the path leaf;
+recipe: the leaf; placement: `data.prepositions`; operation, help-concept,
+topic, formation: the leaf). The hook stores them in `keys.word`. The
+installer's `flatKeyFailures` stays for the non-document flat kinds
+(descriptor banks, subjects, settings — out of scope) and gains a
+document-kind arm `wordFailures(packs)`: for every typed-word kind, each word
+is claimed once across the **install set**, **and** once against the
+**store** — `findByKey(kind, 'word', {eq})` for a row whose `sourcePack` is
+not in the install set (the `sync`-from-a-directory case, Grounding § 2) —
+and a second claimant fails the claiming pack naming the kind, the word and
+**both** claimants (`(packId, relFile)` from the set, or `(sourcePack, path)`
+from the store). Never first-wins, never silent. The in-memory word index
+(D9) is built from `listOfKind` on first use, so it never needs to be unique
+itself. ⚠ Not typed-word kinds: `form` (the word is resolved against the
+instrument's own `forms:` list, so two wheels may each have a `brick`),
+`joint` (resolved against the bill's `method` or the rope's knot list),
+`aroma`, `dirt`, `pump-mechanism`, `archetype`, `blueprint`, the records,
+`command-view` (which has `lint:verb-collisions`). A new gate
+`lint:typed-words` runs the same check over the shipped packs before merge.
+
+**D4 — `DocumentApi.findByKey(kind, key, q)`.** `q: {eq?, min?, max?,
+prefix?, order?: 'asc'|'desc', limit?}`; returns `StoredDocument[]`; a read,
+ungated like `read`. The only query surface added; `list`/`listOfKind` stay.
+Not `find` — the store has one identity and this is a finder over a card.
+
+**D5 — The press reads newest first by key.** `archiveImpl` → `findByKey('release',
+'publishedAt', {max: before, order: 'desc', limit})`, then the existing
+realm/kind/retracted/`publishedByOwner` filter over the **page** (realm is
+derived from the live publisher and cannot be a key); `callUpImpl` → the same
+ordered read over a bounded page instead of a full scan; `PressBoard.warm` →
+two bounded reads (`pinned` eq true; newest `tickerWindow`) instead of the
+whole kind. `PressBoard`'s `producer` boot entry **stays**: `PressApi.recent()`
+is read synchronously at session entry (`Avatar.ts:1067`); the window is now
+two indexed reads, which is the tiering slate's sequencing item 1 done.
+
+**D6 — The nine families become documents, each the aroma recipe.** For
+each: a `DOCUMENT_KINDS` entry (`onVanish: 'delete'`, `ext: 'yaml'`), a
+`DOCUMENT_VALIDATORS` entry (`<Value>.fromData(data, path)`), a value class
+in `lib/` composing a `DocumentCache`, rows moved to `content/<contentDir>/`
+with `class:` dropped and `data:` lifted (the file IS the data, as aromas
+are), every citation a path, the Idea class deleted, and the go-live through
+`DocumentCache.invalidate(kind, changed, deleted)`.
+
+| family | kind · contentDir | value class (new home) | path citations the build writes | typed word |
+|---|---|---|---|---|
+| DirtKind | `dirt` · `dirt` | `lib/cleanliness/DirtKind.ts` (the descriptor + `setsAbove`, moved from `platform/idea`) | 8 recipe `soils[].kind`; ~25 kernel/pack TS literals (`DirtKinds.GREASE = '/platform/dirt/grease'`-style constants on the value class, so a literal is one place); `Floor.ABSORBED_KINDS`; `deposits` keys and `stains[].kind` persist the **path** (`depositKey(site, kind)` must use a separator a path cannot contain — check it) | none |
+| Form | `form` · `forms` | `lib/craft/FormSpec.ts` gains `Form` (loads a `FormWord` from a document) | 17 `forms:` entries (new paths); potter brain `forms:` words unchanged | resolved against the holder's list — no install check |
+| HelpConcept | `help-concept` · `concepts` | `lib/help/HelpConcept.ts` (new folder `lib/help/` — the help subsystem has no `lib/` home today; `HelpCatalogue` keeps its harvest) | 34 `seeAlso:` → paths | yes (`help <word>`) |
+| Placement | `placement` · `placements` | `lib/spatial/Placement.ts` (beside `Placing`/`PlacementOffers`; ⚠ the `Placement` *type* in `lib/combat/AimResolution.ts` is a different module and stays) | 14 `placements:` rows → paths; the three code defaults and three `move(…, 'on')` literals → `Placement.ON/IN/FROM` path constants; `ContentPlacement` persists the path | yes (`put X on|in|from Y`, `dry`) |
+| PumpMechanism | `pump-mechanism` · `pump-mechanisms` | `lib/pump/PumpMechanism.ts` | 4 `mechanism:` → new paths | none |
+| Operation | `operation` · `operations` | `lib/vitals/Operation.ts` (the medic substrate's folder; `OperationCatalogue` goes — its one reader lists the kind) | none | yes (`operate … for <word>`) |
+| Topic | `topic` · `topics` | `lib/message/Topic.ts` (the descriptor + facets the catalogue parses today, validated in `fromData`) | none (code emitters stay dotted keys) | yes (the dotted key; `validatePackTopics` moves onto the kind's files; `pruneRetiredRoots`' runtime delete goes) |
+| Joint | `joint` · `joints` | `lib/craft/Joint.ts` (beside `Assembled`) | ~50 bill `joints[].method` → paths; `Rope.KNOTS` literals → paths; `JointState.method` persists the path | none |
+| CombatFormation | `formation` · `formations` | `lib/combat/Formation.ts` (`policy()` + `DEFAULT_POLICY`) | `DEFAULT_FORMATION_PATH` → `/platform/formations/default`; Party/PartyRecord/AccountabilityEvent persist the new path | yes (`party adopt <word>`) |
+
+**D7 — A holder loads what it cites; a sync read is served from the cache
+and never silent.** Every value class exposes `ensure(path)` (async),
+`resolve(path)` (sync; `null` and a load started when cold; a **diagnostic
+error** when the document is missing — the `Aroma.resolve` shape),
+`resolveWord`/`byWord` for typed-word kinds, and `settling()`. Authored
+citations are awaited by the applier through the field's setter (`smells`
+precedent — `await X.ensure(path)`); runtime state that cites a document
+(`BulkPayload.recipe`, `Crafted.recipe`, a thermal item's dose recipe,
+`deposits`, `ContentPlacement`, `JointState.method`, `formationPath`) starts
+the load when it is **restored** (`DocumentCache.loadRow` ↔ `Aroma.loadRow`).
+A sync reader that finds the cache cold **skips** (reads nothing this tick —
+`BlendIdentity` names the material, `ThermalDose` leaves the dose where it
+is, `Assembled.jointRow` uses its defaults as today) and the next read
+catches up; it never defaults to a made-up value, and a missing document is
+an author-visible error, not a skip.
+
+**D8 — The four flat-key kinds: the leaf is the word.** `Emote.fromData`,
+`Recipe.fromData`, `Archetype.fromData` and the blueprint read take the word
+from the path leaf; `verb`/`recipeId`/`archetypeId`/`blueprintId` leave the
+files (the installer's basename injection and mismatch check go with the
+key). `SoulCatalogue` keys its cache by the leaf and changes nothing else (it
+is already lazy, D9). `RecipeCatalogue` keeps its word and output indexes and
+becomes lazy; `Recipe` composes a `DocumentCache` so the sync readers resolve
+by **path**: `BulkPayload.recipeId` → `recipe` (a path), `Crafted.recipe` a
+path, `offeredRecipes:`/`recipeRef`/`lagerLeg.recipe` paths. `ArchetypeCatalogue`
+and `BlueprintCatalogue` become lazy (`ensureCache` awaits the warm, the
+SoulCatalogue shape); `SurveyController` awaits the singleton it already
+resolves; `StudioLogic.requireCatalogue` already awaits. ⚠ `BlueprintCatalogue.rebuild()`
+(every class module loaded, rows written) moves from boot to the **first
+studio request** — a seconds-long first request, recorded in the drive. The
+`blueprints` collection's status as a cache stays the tiering slate's.
+
+**D9 — Which catalogues survive, and as what.** A catalogue stays only as a
+**lazy dictionary** (scan-sweep ruling 1) for a word a player types or a
+roster a verb lists, warmed on its first async use and never booted:
+`SoulCatalogue` (verb), `RecipeCatalogue` (word, output), `ArchetypeCatalogue`
+(the `survey` roster), `BlueprintCatalogue` (the studio roster),
+`HelpCatalogue` (`help <word>` — unchanged shape), `TopicCatalogue` (the
+dotted key; now over `Topic` documents), `PlacementCatalogue` (the
+preposition; over `Placement` documents), `JointCatalogue` (kept for
+`warmed`/`peek` callers; over `Joint` documents — or folded into `Joint`'s
+cache if the build finds every caller can take the value class directly),
+`SpellCatalogue` (word → path, and `spells`), `CorpoCatalogue`
+(`craft … with <brand>` word), `DisciplineCatalogue` (key → path, and the
+conditioning roster — D11). Deleted: `OperationCatalogue` (its one reader
+lists the kind through `Operation.all()`), `GovernmentCatalogue` (no word, no
+roster reader). Every surviving catalogue drops its `boot:` line, warms in
+`ensureCache` on first use, and keeps `canEvict`/`canDestruct` refusals.
+`lint:template-scans` entries for the document-backed ones go (they read
+documents now); `Spell`/`Discipline`/`Corpo` keep one `findByClass`/
+`findDescendants` each with the reason `LAZY_DICT`.
+
+**D10 — The Ideas that stay Ideas load as live Ideas.** `Discipline`, `Spell`,
+`Corpo`, `Brand`, `Government` compose `SingletonMixin`, veto eviction (a
+vocabulary once read stays read — the catalogues' own rule), and their
+catalogues' `build*Descriptor` coercion moves onto the Idea's **setters**
+(per-field invariants belong on setters) with cross-field checks in
+`onCreate` (`SpellCatalogue`'s effect/grid validation becomes `Spell.onCreate`,
+so an invalid spell **throws at stand-up** and `cast` refuses it by name
+instead of the row being silently dropped at warm). A reader that has the
+**path** reaches the Idea with `await StuffApi.singleton(path)` (async) or
+`StuffApi.findByTemplatePath(path)` (sync — resident because its holder
+loaded it). Authored path citations get `ref: 'identity:constituent'` so the
+applier stands the Idea up with its holder: `Arcane.carriedSpellPath`,
+`Spellbook.teachesSpellPath`; and the bare-key citations of the three small
+families become paths with the same ref: `Branded._brandKey` → `brand`
+(12 rows), `BankMixin.corpoKey` → `corpo` (1), Brand `owner` (11) and
+`rivals` (6) → paths, `Locality._governmentKey` → `government` (5),
+`ShipRegister.government` (1), Brand `government` (1), ship `flag` (4) →
+government paths. The sync readers (`Branded.getBrand/getCorpo`,
+`Flag.colorsOf`, `GovernmentLogic.chainForAddress`, `Arcane.getArcaneFootprint`)
+then read a resident Idea by path. `TemplatePathPrefixes.corpo/brand/government`
+and `TemplatePathRosters.government` go with the scans.
+
+**D11 — Discipline keeps bare keys and a lazy dictionary; this is the one
+exception and it is named.** 700+ bare-key citations across five roots
+(Grounding § 7) make path citation a sweep of its own, and the keys are the
+vocabulary the new document kinds themselves cite (`aroma.discipline`,
+`form.discipline`, `operation.competence`). So `DisciplineCatalogue` stays as
+the lazy `key → path` dictionary (one `findByClass` on first use), standing a
+`Discipline` up (`singleton(path)`) when something reaches one and reading
+`getStock()`/`getConferrals()`/`getSpecializes()` **off the live Idea**. The
+sync digest (`competenceDigestCached` and its ten callers) is per character:
+`Advancement` loads, at `restore`/`armSession` (async), every discipline its
+transcript cites plus the dictionary's **stock-bearing** entries (the
+dictionary keeps `{key, path, hasStock}` per row — the one roster fact
+`withConditioning` needs, so no live-Idea scan), after which every sync read
+is a `findByTemplatePath`. A cold digest omits the conditioning overlay and
+the next read includes it (D7). ⚠ **Owner's eye:** a discipline key is a flat
+namespace across five roots — two packs could ship `smithing` — the exact
+defect `naturalKey` had, left as found; the slate records it.
+
+**D12 — Placement: every async act above a move awaits the warm; a cold
+move throws.** `ContainmentApi.move` is synchronous and cannot be made
+otherwise this build (it is the one movement primitive with ~200 callers).
+So `Placement.warm()` (the whole kind — three platform documents plus any
+pack's; one `listOfKind`) is awaited at each **act-shaped** seam the survey
+found above a placement read: `PutController`, `DryController`,
+`LookController`, `SenseController` (the typed word and the enclosing-scope
+read), `HeatController:176`, `PaperMould:51`, `PulpVat:107` (the literal
+`'on'`), the `TemplateApplier` when it applies a `placements:` field or a
+fixture's `seatIn:`, and `ResidencyWarden`'s pin roll before it stands goods
+back up. `ContainmentLogic.placeOn` with a placement word whose cache is cold
+**throws a typed error** naming the word and the rule (*code asked the
+impossible, checked first* — P3), so any seam the list missed fails loudly in
+a test or the drive rather than refusing a player quietly. `Containable.getEnclosingScope`
+and the MQL `placed` projection read the item's own persisted placement
+path through `Placement.resolve` (cold → the open-scope default, as a missing
+placement reads today, and a load starts). ⚠ Behavior change to verify: the
+first `put` after boot does one indexed read before moving.
+
+**D13 — Topic: the first message waits for the dictionary; the caller
+never does.** `Scene.send()` stays synchronous for its caller. Internally,
+when `TopicCatalogue` (over `Topic` documents) is cold, the scene's dispatch
+is **deferred until the warm resolves** (`DocumentCache.waitFor`), so no
+frame is ever classified by a cold cache — `isCommunicative` and `feedsFor`
+read a warm dictionary on every path they are reached by. `Avatar.buildWelcomePayload`
+(async) awaits the warm before sending the snapshot. A `.topic()` key with no
+document keeps the catalogue's third tier (a derived descriptor + diagnostic
+— `lint:topics` holds the vocabulary total). ⚠ Risk named in § Risks: a unit
+test that asserts synchronous delivery of the **first** scene in a cold
+fixture must pre-warm (`Topic.remember`) — the fixture-warm shape every
+modality test already uses.
+
+**D14 — The aroma folder is the tree.** A child aroma lives in its parent's
+directory (`aromas/smoke/peat-smoke.yaml`); its parent is the aroma document
+at the containing directory's path (`/base-library/aromas/smoke`). `Aroma.ensure`
+derives `parent` as `data.parent ?? parentFromPath(path)` where
+`parentFromPath` is the path one segment up **if that path is itself an
+aroma document** (a root at `/…/aromas/<word>` has none); an explicit
+`parent:` is permitted only when it names a path **outside the document's own
+pack**, and `lint:aromas` refuses an explicit parent that equals (or
+contradicts) the folder parent — two copies of one fact. The move: 89 files
+into 27 directories (max depth 2; roots stay flat), every `parent:` line
+removed, and every citation rewritten by a one-off mapping (old path → new
+path, 89 entries) over the 417 citing files, the four kernel literals
+(`MortalArc.ts:65-67`, `Freshness.ts:176`, `check-aromas.ts:46-50`) and the
+test fixtures. Collisions are only visual (`earth/peat` vs `smoke/peat-smoke`;
+`green/straw` vs `smoke/straw-smoke`) — distinct paths.
+
+**D15 — The lints follow the rows.** `check-template-census` clause (g)
+`DOCUMENT_PATH_FIELDS` gains every converted citation field (`soils[].kind →
+dirt`, `forms → forms`, `placements → placements`, `mechanism →
+pump-mechanisms`, `joints[].method → joints`, `seeAlso → concepts`,
+`offeredRecipes → recipes`, `recipe → recipes`) and drops `forms`/`mechanism`
+from the template-path clauses; `carriedSpellPath`, `teachesSpellPath`,
+`brand`, `corpo`, `owner`, `rivals`, `government`, `flag` are read by clause
+(b) as template paths (they name Ideas). `check-placement-words` walks
+`content/*/content/placements/`; `check-topic-keys` reads `TOPIC_SEEDS` from
+`content/platform/content/topics/`; `check-bills` indexes Joint documents and
+checks `method` as a path; `check-capabilities:159` follows; `check-untitled-paths`
+derives `DOCUMENT_DIRS` from `DOCUMENT_KINDS`; `check-aromas` gains the folder
+rule (D14); `check-boot-entries` ceiling 85 → **76**; `check-template-scans`
+allowlist loses the document-backed catalogues and `GovernmentCatalogue`;
+`check-boundary-roles` `COMMONS_CEILING` falls by the classes deleted;
+`check-instanceable-placement` `ORPHAN_DATA_KEY_CEILING` falls by the Topic
+facet keys that leave the template tree; `scripts/__fixtures__/field-meta-golden.json`
+is regenerated; `schema/documents.yaml` carries the new indexes and a
+`purpose` that names the populations; `lint:schema` must agree.
+`lint:typed-words` is added (D3).
+
+**D16 — The CMS edit reaches the cache.** `DocumentLogic.saveImpl`/`deleteImpl`
+call the kind's go-live (`DocumentCache.invalidate(kind, [path])` and the
+surviving catalogue's drop) — the same hook the installer calls — so an edited
+dirt kind or joint reads on the next use without a restart, as command views
+already do.
+
+**D17 — Drive mechanics.** The blocking drive is
+`packages/wire/tests/documents-path-identity.dirty.wire.test.ts` (WIRE_PORT
+2019, `WIRE_BOOT_TIMEOUT=840000`); the restart (step 20) is the sugar
+`restartWorld()` precedent; the two fixture packs of step 19 are written by
+the test into a temp directory and installed through the founder's
+`eval` → `PackApi.sync('<id>', '<tmp root>')` (Grounding § 2), so no test pack
+ships in `packages/content`. Dirty because step 19 installs packs the world
+does not remove and step 18 publishes releases.
+
+**D18 — Row relocation is a scripted codemod the build runs, not a file it
+commits.** For each family: read every `<root>/idea/<Family>/*.yaml`, drop
+`class:`, lift `data:` to the top level, write to
+`content/<contentDir>/<same relative leaf>.yaml` under the same pack, delete
+the source, then rewrite citations from the (old key → new path) map. The
+plan lists the map's shape; the build keeps the script in its shell history,
+and the wave's acceptance is the census lint, not the script.
+
+## ⭐⭐ Host placement
+
+| new field / class / composition | host | what composing it claims about every other composer | honest-default test |
+|---|---|---|---|
+| `StoredDocument.keys` | `StoredDocument` (every document) | every document has a catalogue card; most cards are **empty** `{}` — but the card is the store's uniform shape the owner asked for, derived and never authored, and an empty card costs one field and nothing in the index (the wildcard indexes only present keys). No guard anywhere narrows the host set | passes — "has a card" is true of every document; "has a key" is per kind, declared |
+| `DocumentKindSpec.keys` / `words` | the kind spec | a kind may declare keys; most declare none. Declarations, not behavior | n/a |
+| `DocumentHook` | the `documents` collection's save slot | every document write derives its card; nothing is skipped | n/a |
+| `SingletonMixin` + eviction veto on `Discipline`, `Spell`, `Corpo`, `Brand`, `Government` | those five Idea classes | one live instance per row, kept resident once read — true of every row of every one of them (they are reference vocabulary, like `Material`) | passes — every row answers yes |
+| `ref: 'identity:constituent'` on `carriedSpellPath`, `teachesSpellPath`, `brand`, `corpo`, Brand `owner`/`rivals`, `government`, `flag`, ShipRegister `government` | the fields that already exist on `Arcane`, `Spellbook`, `Branded`, `BankMixin`, `Brand`, `Locality`, `Ship`, `ShipRegister` | the holder loads the Idea it names — true wherever the field is set; a holder with the field unset loads nothing | passes |
+| `Placing.placements` as paths | `PlacingMixin` (existing field) | no change of host; the value's shape changes | n/a |
+| `Placement.ON/IN/FROM` path constants | the `Placement` value class | the kernel's own three ways of sitting are named in one place | n/a |
+| value classes `DirtKind`, `Form`, `HelpConcept`, `Placement`, `PumpMechanism`, `Operation`, `Topic`, `Joint`, `Formation` | `lib/<owning subsystem>/` — substrate only ever read, never instanced as Stuff (the `/lib/` invariant holds: no template row names one) | nothing composes them; they are read | n/a |
+| `DocumentCache<T>` | a `private static readonly` on each value class (composition, not inheritance — a static cache inherited by subclasses is shared, which is the trap) | each family owns its memory of what it has read | n/a |
+
+Nothing in this build puts a field on `Thing`, `Idea`, `Stuff`, `Location`
+or any base class. The `Freshness off every Thing` shape does not arise: the
+only base-wide field is on `StoredDocument`, which is a record, not a world
+object.
+
+## Convention conformance
+
+Checked at plan time against the current tree:
+
+- **`props:`/`cast:`** — untouched; no place changes. **Locations, not rooms**
+  — no new place. **`<root>/<branch>/` path pattern** — documents sit at
+  `<pack root>/<contentDir>/<leaf>` (the aroma precedent), never under a
+  `<branch>/` segment; the Idea rows that stay keep their `<root>/idea/<Class>/`
+  paths.
+- **Module scope declares; lifecycles initialize** — the `DOCUMENT_KINDS`
+  table gains function values (`keys`, `words`), which are declarations, not
+  executable statements; every `DocumentCache` is a `static readonly` value
+  construction; warms happen in `ensureCache`/`onCreate`/first use. `lint:module-scope`.
+- **Import boundary** — `DocumentHook` imports only mudlib; `DocumentKinds`
+  keeps importing nothing (the derivations are pure); value classes import
+  `DocumentApi`/`DiagnosticApi` as `Aroma` does. `lint:imports`.
+- **Module categories** — one hook (an existing category, `platform/idea/hooks/`),
+  one value object in `lib/document/`, nine value classes in existing or
+  new `lib/<subsystem>/` folders (`lib/help/` is the one new folder, a
+  subsystem that has none; it is not a new category), one lint script. No
+  Api, no logic singleton, no free exported helper. `lint:lib-statics`,
+  `lint:mixin-files`, `lint:instanceable` (no template names a `/lib/` module;
+  the deleted Idea classes leave no row behind — the census catches a
+  straggler).
+- **Verbs on objects** — no `XApi.verb(host, …)`; `findByKey` is a store read,
+  not a verb on a world object. `lint:object-verbs`.
+- **Persistence per content (P6)** — nothing new persists per class; the
+  documents are installed content (`onVanish: 'delete'`); the runtime fields
+  that change shape (`recipe`, `ContentPlacement`, `JointState.method`,
+  `formationPath`, `deposits`) were already persisted and now hold paths.
+  Identity keys survive a restart because they are paths.
+- **P3 refuse / skip / throw** — the hook throws on an unknown kind; the
+  installer refuses a second word claimant naming both; a cold placement
+  move throws a typed error; a cold sync read skips and a missing document
+  records a diagnostic (D7); the press query has no silent fallback (an
+  unindexed sort is a logged *NOT built* at boot and an `explain` in W0).
+- **P4 no duck typing** — a pack reads a document through `DocumentApi` and
+  a value class the kernel exports; `trade-medicine` reads `Operation.all()`
+  instead of `StuffApi.singleton(TemplatePaths.operationCatalogue)`;
+  `FisheryRegistry` keeps `StuffApi.singleton<Discipline>`. `lint:duck-typing`.
+- **P5 the mixin decides** — `Placing`/`Containable` decide placement from
+  the value class; controllers only await the warm (D12) and bind the word.
+- **P7 load on use** — nine boot entries removed, none added; every load
+  follows an authored reference (a path on a row, a constituent ref) or a
+  typed word through a lazy dictionary (ruling 1); the two template scans
+  that remain are lazy dictionaries with reasons. `lint:boot-entries`,
+  `lint:template-scans`.
+- **P8 names** — classes named for what they are (`Formation`, not
+  `CombatFormation`, since a formation is a party's and a fight's; `DirtKind`
+  keeps its name — a dirt *kind* is what the rows are); kind strings are
+  nouns (`dirt`, `joint`, `topic`); `findByKey` reads as a finder, not an
+  identity. American English throughout (`color`, `catalog` is NOT used — the
+  shipped `*Catalogue` identifiers are kept, not renamed piecemeal).
+- **Gates this build must pass** (all of `lint:family`, naming the ones it
+  changes): `lint:aromas`, `lint:census`, `lint:boot-entries`,
+  `lint:template-scans`, `lint:placement-words`, `lint:topics`, `lint:bills`,
+  `lint:capabilities`, `lint:untitled`, `lint:schema`, `lint:boundary-roles`,
+  `lint:instanceable`, `lint:field-meta`, `lint:closed-vocabularies` (prose
+  cites Placement), `lint:whole-table` (the press no longer hands back its
+  table), `lint:test-bootstrap`, and the new `lint:typed-words`.
+
+## Waves
+
+Each wave lands green on `pnpm test:near` + every touched pack's vitest +
+`pnpm -C packages/server lint:family`, and ends at one commit. The riskiest
+pieces — the two sync-primitive families (W4) and the disciplines (W5b) —
+are isolated so a wrong premise re-plans one wave in place.
+
+### W0 — the catalogue card: keys, the one index, the path is unique (D1, D2, D4)
+
+Goal: every document carries a derived `keys` card, one index serves every
+key, the path is unique, prefix reads use the path index.
+
+- `lib/document/DocumentKinds.ts`: `naturalKey` → `keys?`/`words?` on the
+  spec; the four flat kinds keep working for one wave by declaring
+  `words: leaf` (their key fields are still in the files until W1); delete
+  `FLAT_KEY_DOCUMENT_KINDS`; `release` declares `{publishedAt, pinned}`.
+- `lib/document/StoredDocument.ts`: `keys` field + `fieldMeta`; `findByPrefix`
+  → the path range query; `findByKey(kind, key, q)`.
+- `platform/idea/hooks/DocumentHook.ts` + `hooks.yaml` entry on `documents`
+  save; derives `keys` from the spec, throws on an undeclared kind or empty
+  path. Row template `packages/content/platform/content/platform/idea/hooks/DocumentHook.yaml`
+  mirroring `DomainHook`'s.
+- `api/document.ts` + `DocumentLogic.ts`: `findByKey`.
+- `backend/PersistenceManager.ts`: delete `#createDocumentKindIndexes`,
+  `#indexTarget`, `runDocumentKindIndexesForTest`, the `attempt('documents
+  (declared kinds)')`; `schema/documents.yaml`: `{path:1}` **unique**,
+  `{kind:1, 'keys.$**':1}`, keep `{kind:1}`; purpose text. `pnpm gen:schema`.
+- `PackLogic.ts`: `documentStrategy.dbKeyQuery` is `{kind, path}` for every
+  kind (the adopt-by-key-at-any-path rule goes); `rowOf` leaves `keys` to the
+  hook.
+- Tests: `lib/document/__tests__/DocumentKinds.keys.test.ts` (derivation per
+  declared kind), `platform/idea/hooks/__tests__/DocumentHook.test.ts`
+  (card written; unknown kind throws), `StoredDocument.findByKey` query shape
+  (the query object, not Mongo), `PersistenceManager.documentKinds.test.ts`
+  retired, `gen-schema.test.ts` updated.
+- **Acceptance**: drop the worktree database, boot; the PM boot line reports
+  0 `NOT built`; `explain()` against the worktree's Atlas database (the
+  `mongosh` one-liner recorded in the plan's drive record) shows IXSCAN on
+  the wildcard index for `{kind:'release','keys.publishedAt':{$lte: now}}`
+  sorted desc — or the fallback of D2 is adopted and recorded. Commit:
+  `build(documents W0): the catalogue card — keys, one index, the path is unique`.
+
+### W1 — the four flat-key kinds are named by their path (D3, D8, D9)
+
+Goal: no kind carries a second name; typed words are unique at install;
+recipe/archetype/blueprint load on use.
+
+- `DocumentKinds.ts`: `emote`, `recipe`, `archetype` declare `words: leaf`;
+  `recipe` declares `keys: {output}`. `PackLogic.ts:901-911` injection and
+  mismatch check deleted; `wordFailures` added beside `flatKeyFailures`
+  (install set + store, D3); `sync` runs it with the explicit root's set.
+- `Emote.fromData`/`Recipe.fromData`/`Archetype.fromData` take `(data, path)`;
+  the 34 + 195 + 21 + 9 files lose their key lines (a sed per kind; the
+  basename already equals the key in every file).
+- `lib/document/DocumentCache.ts` is **extracted here** from `Aroma`
+  (`known`/`loading`/`resolve`/`ensure`/`remember`/`waitFor`/`loadRow`/
+  `settling`/`forgetAll`, plus `byWord`/`resolveWord`/`all`/`warm` and the
+  static `invalidate(kind, changed, deleted)` registry); `Aroma` delegates to
+  it with its public surface unchanged (every Aroma test passes untouched).
+- `SoulCatalogue`: cache by leaf (no other change). `RecipeCatalogue`:
+  `ensureCache` awaits `warm()`; `Recipe` composes a `DocumentCache`; `getRecipe(path)`;
+  `BlendIdentity.recipeOf`/`ThermalDose.doseRecipeFor` → `Recipe.resolve(path)`
+  with the skip rule (D7); `BulkPayload.recipeId` → `recipe` path,
+  `Crafted.recipe` path, `offeredRecipes:` (6 rows), `hand.yaml:57`,
+  `DipPot.ts:78,108` paths; `Menu.getOfferedRecipeIds` → paths.
+  `ArchetypeCatalogue`, `BlueprintCatalogue`: lazy `ensureCache`;
+  `SurveyController` awaits the singleton. Boot entries −3
+  (`RecipeCatalogue`, `ArchetypeCatalogue`, `BlueprintCatalogue`);
+  `BOOT_ENTRY_CEILING` 85 → 82. `invalidateDocumentKind` cases updated.
+- `scripts/check-typed-words.ts` + `package.json` `lint:typed-words`;
+  `check-untitled-paths.ts` `DOCUMENT_DIRS` derived.
+- Tests: `PackLogic.flatkey.test.ts` → `PackLogic.words.test.ts` (install set;
+  store claimant via the harness's `documentRows`); `PackLogic.threeway/record`
+  updated; `RecipeCatalogue.lazy.test.ts`; `BlendIdentity` cold-skip test;
+  `ArchetypeCatalogue.test.ts`, `BlueprintCatalogue.test.ts` for the lazy warm.
+- Commit: `build(documents W1): emote, recipe, archetype, blueprint are named by their path`.
+
+### W2 — the press reads by key (D5)
+
+- `PressLogic.archiveImpl`, `DocumentLogic.callUpImpl`, `PressBoard.warm` →
+  `findByKey` (D5). `check-whole-table` sees no `.find/.filter` after a
+  whole read in the press any more.
+- Tests: `PressLogic.archive.test.ts` asserts the query shape (`max: before`,
+  `order: desc`, `limit`) and the page filter; `PressBoard` window test over
+  the two bounded reads.
+- Commit: `build(documents W2): the press reads newest first by key`.
+
+### W3a — path-cited families → documents: DirtKind, PumpMechanism, Joint, Form (D6, D7, D15)
+
+No typed word, no sync-primitive hazard. Per family, the D6 recipe and the
+D18 codemod; `lib/cleanliness/DirtKind.ts` (path constants for the ~25 TS
+literals; the `dust` defect closes by construction — `/trade/mining/dirt/dust`
+is just a path), `lib/pump/PumpMechanism.ts`, `lib/craft/Joint.ts`
+(`JointCatalogue` over documents or folded — decide by its callers),
+`lib/craft/FormSpec.ts` `Form`. Delete the four Idea classes. Lints:
+census (g) fields, `check-bills`, `check-capabilities`, boundary-roles
+ceiling, field-meta golden. Tests: the surveyed test files per family
+(`Soilable`, `Wash`, `Pumping`, `PumpReading`, `Assembled*`, `CraftingLogic.assembly/fit/mend`,
+`Rope*`, `ShapeController`, `shape.test.ts`, `blowpipe-forms`) move to
+document fixtures (`DocumentCache.remember`). Commit:
+`build(documents W3a): dirt, pump mechanisms, joints and forms are documents`.
+
+### W3b — typed-word families with async readers → documents: Operation, HelpConcept, CombatFormation (D3, D6)
+
+`lib/vitals/Operation.ts` + `Operation.all()` (`OperationCatalogue` deleted;
+`OperateController` reads the kind); `lib/help/HelpConcept.ts` + `seeAlso`
+paths (`HelpCatalogue.loadConceptTopics` reads `listOfKind('help-concept')`);
+`lib/combat/Formation.ts` + `DEFAULT_FORMATION_PATH`, `PartyLogic.setFormationImpl`
+→ `Formation.byWord`, `CombatLogic.resolvePolicyFor` → `Formation.resolve(path)`
+(cold → `DEFAULT_POLICY`, as today, and a load starts), `warmFormationsImpl`
+→ `ensure`; `formationPath` persists the new path. Three typed-word kinds
+declare `words`. Delete the three Idea classes. Tests per the survey.
+Commit: `build(documents W3b): operations, help concepts and formations are documents`.
+
+### ⚠ W4 — the two families beneath synchronous primitives: Placement and Topic (D12, D13)
+
+Isolated on purpose; if the premise fails, this wave is re-planned alone.
+
+- **Placement**: `lib/spatial/Placement.ts` (`ON/IN/FROM`, `warm()`,
+  `resolve`, `resolveWord`); `PlacementCatalogue` over documents, lazy, boot
+  line removed; the enumerated seams of D12 await `Placement.warm()`;
+  `ContainmentLogic.placeOn` throws typed on a cold word;
+  `Containable.getEnclosingScope`, `PlacementOffers`, `Placing.canPlace/
+  wordsFor/resolvePlacement`, the MQL `placed` projection read by path; 14
+  rows + 3 code defaults + 3 literals → paths; `ContentPlacement` persists the
+  path; `check-placement-words` follows the rows.
+- **Topic**: `lib/message/Topic.ts`; `TopicCatalogue` over `Topic` documents,
+  lazy, boot line removed, `pruneRetiredRoots` deleted, `validatePackTopics`
+  over the kind's files; `Scene.send()` defers dispatch on a cold dictionary
+  (`DocumentCache.waitFor`); `Avatar.buildWelcomePayload` awaits the warm;
+  `check-topic-keys` `TOPIC_SEEDS` from `content/platform/content/topics/`;
+  `ORPHAN_DATA_KEY_CEILING` lowered.
+- Boot entries −2 (`PlacementCatalogue`, `TopicCatalogue`) → ceiling 80.
+- Tests: `PutController`, `Dry`, `Containable`, `Chamber`, `Seasoning.chamber`,
+  `perception.can-reach` on document fixtures; a new `Placement.cold.test.ts`
+  (a move on a cold cache throws by name; after `warm()` it moves);
+  `TopicCatalogue*` tests over documents; a `Scene.cold.test.ts` (the first
+  scene in a cold fixture is delivered after the warm, classified correctly).
+- Commit: `build(documents W4): placements and topics are documents, warmed at the act`.
+
+### W5a — the Ideas that stay Ideas, by path: Spell, Corpo/Brand, Government (D9, D10)
+
+`SingletonMixin` + eviction veto on the four classes; descriptor coercion onto
+setters/`onCreate`; `carriedSpellPath`/`teachesSpellPath` →
+`ref: 'identity:constituent'`; `_brandKey → brand`, `corpoKey → corpo`, Brand
+`owner`/`rivals`, `_governmentKey → government`, `flag`, ShipRegister/Brand
+`government` → paths with the constituent ref (23 content sites +
+`authorPicker` on `brand`); sync readers by `findByTemplatePath(path)`;
+`SpellCatalogue` → lazy word dictionary (`byName`, `spells` roster);
+`CorpoCatalogue` → lazy brand-word dictionary; `GovernmentCatalogue` deleted,
+`GovernmentLogic` reads by path; `TemplatePathPrefixes`/`Rosters` entries
+removed; `check-template-scans` allowlist updated (Spell 1, Corpo 1 as
+`LAZY_DICT`; Government 0); census clause (b) reads the new path fields.
+Boot entries −3 → ceiling 77. Tests per the survey (`SpellCatalogue`,
+`MagicLogic`, `Caster.*`, `CastController`, `StudyController`, `library.test`,
+`CorpoCatalogue`, `CorpoLogic`, `Branded`, `Creature.branded`,
+`livestock-branded`, `GovernmentCatalogue` → deleted, `GovernmentLogic*`,
+`Locality.government`, `Ship.register`, `Authority`). Commit:
+`build(documents W5a): spells, corporations, brands and governments load when something reaches them`.
+
+### ⚠ W5b — disciplines load when a character reaches them (D11)
+
+`SingletonMixin` + veto on `Discipline`; coercion onto setters;
+`DisciplineCatalogue` → the lazy `key → {path, hasStock}` dictionary (one
+`findByClass` on first use, `LAZY_DICT`), standing Ideas up on reach;
+`Advancement.restore`/`armSession` load the transcript's disciplines + the
+stock-bearing ones; `withConditioning` reads the dictionary's `hasStock` rows
+and the live Ideas' `getStock()`; `Employed.fulfils` reads `getSpecializes()`
+off live Ideas (its async seam two frames up awaits the dictionary);
+`refreshConferrals` keeps the catalogue as command source. Boot entry −1 →
+ceiling **76**. Tests: `DisciplineCatalogue`, `Discipline`,
+`Advancement.conditioning/conferral`, `isFulfilling.specializes`, plus a
+cold-digest test (a restored character's first digest after the arm includes
+the conditioning overlay). Commit:
+`build(documents W5b): disciplines load when a character reaches them`.
+
+### W6 — the aroma library in directories (D14)
+
+Late and mechanical so a rebase onto material decomposition is a re-run of
+the mapping, not a merge by hand. `Aroma.ensure` folder-parent derivation;
+`lint:aromas` folder rule + `KERNEL_AROMAS` paths; the 89 moves (git mv), the
+89 `parent:` removals, the 417-file citation rewrite (the mapping is `old →
+new` for the 89 children; a depth-2 child's new path is
+`/base-library/aromas/<grandparent>/<parent>/<child>`), the four kernel
+literals, the test fixtures. `docs/subsystems/senses.md` § aromas updated.
+Commit: `build(documents W6): the aroma folders are the tree`.
+
+### W7 — the drive and the walk
+
+`packages/wire/tests/documents-path-identity.dirty.wire.test.ts` and
+`e2e/tests/documents-path-identity-walk.spec.ts` (D17); subsystem docs
+(`document-store.md` — the card, `findByKey`, the index, the kinds table;
+`content-packs.md` — `words`, the store claimant; `senses.md`; `topics.md`;
+`spatial.md` § Placement; `assembly.md`; `cleanliness.md`; `press.md`;
+`advancement.md`; `magic.md`; `corpo.md`; `civics.md`); the MR opens READY at
+code-complete and the drive runs beside review. Commit:
+`drive(documents): the path-identity drive and walk`.
+
+## Reachability wiring
+
+| capability | verb | affordance | data | load | arg gate |
+|---|---|---|---|---|---|
+| find by key (press) | `press` (existing), REST `/api/press/archive` | none new | `release.keys.publishedAt/pinned` derived by the hook | the index planned from `documents.yaml` at boot; a `NOT built` line is the failure | `before` numeric, `limit` ≤ 100 (existing) |
+| typed-word uniqueness | `pack sync` / boot | `requiresPackInstaller` (existing) | `keys.word` on every typed-word document | the install set + the store query | n/a |
+| emote by word | any unmatched verb (`smile`) | `CommandGiver._runChain` → `SoulApi.resolve` (existing) | `/expression/emotes/<verb>` | `SoulCatalogue.ensureCache` on first use (existing) | n/a |
+| recipe by word | `carve`, `make`, menu `order` | the station's `offeredRecipes:` paths / the bench | recipe documents + `keys.word/output` | `RecipeCatalogue.ensureCache` awaited by `requireCatalogue`; a payload restore starts `Recipe.resolve` | `recipeId` arg → word (existing) |
+| `survey` archetypes | `survey` | existing | archetype documents | `ArchetypeCatalogue` awaited in `execute` | n/a |
+| `shape <form>` | `shape` | the instrument's `forms:` paths | form documents | `FormingMixin.formWords` awaits `Form.ensure` per path | word matched against the holder's list (existing) |
+| `put X on Y` | `put`, `dry` | `PlacingMixin` (existing) | placement documents; `placements:` paths | `Placement.warm()` at the enumerated seams; a cold move throws | `prepositions:` on the view (existing, `lint:placement-words`) |
+| `pump` ceiling | `pump` | existing | pump-mechanism documents; `mechanism:` paths | `PumpingMixin.mechanismRow` awaits `PumpMechanism.ensure` | n/a |
+| `operate … for <word>` | `operate` (trade-medicine) | existing | operation documents | `Operation.all()` at the verb | word matched against the kind (existing) |
+| `fit` with a joint | `fit`, `tie` | the bill's `method` paths; `Rope.KNOTS` paths | joint documents | awaited `jointCatalogue()`/`Joint.ensure`; `Assembled.jointRow` cold → defaults + load | n/a |
+| `party adopt <word>` | `party adopt`, `party assign` | existing | formation documents | `Formation.byWord` at the verb; `warmFormationsImpl` at initiate | word shape regex (existing) |
+| `help <concept>` | `help` | existing | help-concept documents; `seeAlso` paths | `HelpApi.ready()` (existing) | n/a |
+| message topics | every scene | n/a | topic documents | `Scene.send` defers on a cold dictionary; login awaits the warm | `lint:topics` totality |
+| `cast <word>` | `cast`, `spells` (arcana) | `Caster.refreshCastingAffordance` (existing) | Spell rows (Ideas) | `SpellCatalogue` lazy dictionary → `singleton(path)`; a wand's `carriedSpellPath` is a constituent | word → path (existing) |
+| `competence` | `competence` | existing | Discipline rows (Ideas) | the character's `Advancement` loads its disciplines at arm; the dictionary on first use | n/a |
+| `government` | `government` | existing | Government rows (Ideas) | the Locality's `government` constituent | n/a |
+| branded `look` | `look` | `Branded` (existing) | Brand/Corpo rows | the good's `brand` constituent | n/a |
+| `smell` depth | `smell`, `taste`, `analyze` | existing | aroma documents in folders | `Aroma.ensure` through the setters (existing) + folder parent | n/a |
+| install a twin aroma / refuse a twin emote | `eval PackApi.sync(id, root)` (drive) | founder's `eval` | the fixture packs | the installer | n/a |
+
+Each link that is **new** this build is in the *load* column; every other
+column is the shipped wiring the survey verified.
+
+## Acceptance-criteria coverage
+
+| requirements AC | wave(s) |
+|---|---|
+| a fresh world boots with every pack; every drive step reads as written before and after a restart | W7 (steps 0, 20); every wave's own acceptance |
+| no document shares its path with another | W0 (unique `{path}`; `dbKeyQuery` by path) |
+| every citation names a path a pack ships; a misspelled one is caught before merge | W1, W3a/b, W4, W5a (citations), D15 lints (`lint:census` (g)/(b), `lint:aromas`, `lint:bills`) |
+| two packs ship the same name under their own roots and both are found; two packs claiming one typed word are refused, naming both | W1 (`wordFailures`, `lint:typed-words`), drive step 19 |
+| any kind found by a declared key by equality, range and order; the press newest first | W0 (`findByKey`, the index), W2 (the press), drive step 18 |
+| none of the converted families can be found or targeted by MQL as a thing | W3a/b, W4 — the Idea classes are deleted; the census refuses a straggler row |
+| no catalogue of the thirteen named families is loaded at startup; each is there when reached | W1 (−3), W4 (−2), W5a (−3), W5b (−1), plus Operation/Joint/Help never booted; `lint:boot-entries` ceiling 76 |
+| an aroma's folder determines its parent; the nose's depth is unchanged on shipped content | W6; drive step 1 |
+
+Nothing unmapped. The non-goals (the five material-adjacent families,
+Material/Biome/Condition/Address, `MATURATION_MECHANISMS`, the two meanings
+of *archetype*, `release`'s vanish policy, the `blueprints` collection) are
+untouched and their slates named in § Deferred seams.
+
+## Test & gate strategy
+
+**Unit** (per wave, `test:near` + touched packs): the derivation and hook
+(W0); the install word check against set and store (W1); `DocumentCache`
+and the press query shape (W2); each value class's `fromData` refusals and
+cold-skip behavior (W3–W5); the typed throw on a cold placement move and the
+deferred first scene (W4); the cold digest (W5b); `Aroma` folder-parent
+derivation and the lint's folder rule (W6). ⚠ Index selection, the unique
+path index and boot-order effects **cannot be unit-tested** (tests touch no
+Mongo); they are W0's `explain` check and the drive.
+
+**Lint**: `pnpm -C packages/server lint:family` every wave; the gates named
+in § Convention conformance; ceilings move only down (`BOOT_ENTRY_CEILING`
+85 → 76 across W1/W4/W5; `TEMPLATE_SCAN_CEILING`, `COMMONS_CEILING`,
+`ORPHAN_DATA_KEY_CEILING` as computed at each wave).
+
+**The blocking drive** — every step `instant` and asserted as a `player`
+unless tagged; no span steps, so no soak drive and no staged twins owed:
+
+| step | pace | assertion | where |
+|---|---|---|---|
+| 0 | staged | drop + boot; the boot log has no `index … NOT built`, every pack `installed`; `explain` of the press shape recorded | wire boot + `WIRE_SERVER_LOG` |
+| 1 | instant | tannery yard `smell` names the yard's words; a trained tanner (staged competence through the harness's conferral seam) reads a deeper word, and that word's path lies **under** the shallower one's folder | player |
+| 2 | instant | a sweat-soaked shirt (staged `soil` through `eval`) — another's `smell` names stale sweat | player |
+| 3 | instant | `smile`, `agree` | player |
+| 4 | instant | `carve <word>` at a bench | player |
+| 5 | instant | `survey` in a bedroom lists met and unmet archetypes | player |
+| 6 | instant | `enroll` suggests a name | player (char-gen flow) |
+| 7 | instant | `help <concept>` | player |
+| 8 | instant | `shape mug` at a wheel | player |
+| 9 | instant | `put X on <shelf>`; `look` shows it there — the **first** `put` of the boot is this one, on purpose | player |
+| 10 | instant | `pump` on a hill reports its ceiling in words | player |
+| 11 | staged | a wound staged by `eval`; `operate … for <word>` | staged |
+| 12 | instant | `fit` two parts with a bill naming a joint path | player |
+| 13 | instant | `party adopt vanguard`, `party assign <role> <who>` | player |
+| 14 | instant | `cast <known spell>` — and the boot log carries no `SpellCatalogue` line before this step | player |
+| 15 | instant | `competence` lists disciplines by name | player |
+| 16 | instant | `government` in a locality | player |
+| 17 | instant | `look` at a branded good shows the brand | player |
+| 18 | short | publish two releases a game hour apart (clock jump of one hour between); `press` lists the later first; REST `/api/press/archive` the same | player + REST |
+| 19 | staged | `eval PackApi.sync('twin-aromas', <tmp>)` installs; both `smoke`s read; `eval PackApi.sync('twin-emote', <tmp>)` is refused naming `expression` and `twin-emote` | staged |
+| 20 | instant | `restartWorld()`; steps 1, 3, 5, 14, 18 re-read the same | player |
+
+**B2 before trusting green**: each checkpoint is made to fail once (a wrong
+word, a missing path) and the failure named in the drive record.
+
+**The browser walk** `e2e/tests/documents-path-identity-walk.spec.ts`: a
+person types `smell`, `smile`, `shape mug`, `put … on …`, `help <concept>`,
+`government`, and reads the press ticker — the forms parse and the cards
+render in words. Runs once at code-complete beside the drive.
+
+`pnpm test` runs exactly twice: before the MR and at `/finalize`.
+
+## Risks & opens
+
+1. **The wildcard index may not serve the ordered read** on the deployed
+   planner. Bounded by W0's `explain` check and D2's named fallback; the
+   build decides at W0 and records it. Not a stop.
+2. **A first move on a cold placement cache** at a seam the survey missed
+   throws (D12). Intentional — loud — but a throw in a brain or a scheduler
+   path would surface in the drive as a dead act. The enumerated seams are
+   the survey's; the build greps `ContainmentApi.move(` with a third argument
+   and `placements:` setters before committing W4.
+3. **Deferring the first scene's dispatch** (D13) changes timing for exactly
+   one message per boot; a unit test asserting synchronous first delivery in
+   a cold fixture must pre-warm. If more than a handful need it, the
+   alternative is `BootstrapManager` awaiting `Topic.warm()` before the first
+   session can connect — still not a `boot:` entry, but a boot-time act;
+   record which.
+4. **`BlueprintCatalogue.rebuild()` at first studio use** — a seconds-long
+   first request, and class modules loading under a request rather than at
+   boot. If the studio's first request times out in the walk, the honest
+   answer is the tiering slate's (the `blueprints` cache should not persist),
+   not a boot entry.
+5. **Discipline keys stay a flat namespace** (D11). Recorded for the owner;
+   not solvable inside this scope without a 700-site sweep.
+6. **Material decomposition** rewrites the same material files W6 touches.
+   W6 is last and scripted so a rebase is a re-run; if build-1 merges first,
+   `check-aromas.ts:177` already has their `Odor`/`Combustion` split and the
+   folder rule lands beside it.
+7. **A worktree database that predates W0** holds the non-unique `path_1`
+   and the four natural-key uniques; the unique path index fails to build
+   and is logged. Drop and boot (no migrations). The four stale uniques are
+   harmless and vanish with the drop.
+8. **`depositKey(site, kind)`** — a dirt path contains `/`; the key's
+   separator must not. Checked in W3a before the persist shape changes.
+9. **Build-time stops** — none expected. A new module category, a new
+   `eslint-disable`, a new collection: none is needed; the compliant path
+   exists for every piece above.
+
+## Deferred seams
+
+Clean attach points, each with the slate it leaves as:
+
+- **The five material-adjacent families** (Cleanser, MaturationProfile,
+  FractionSchedule, Fabric, Dyestuff) — the D6 recipe applies unchanged once
+  material decomposition merges; `documents-path-identity-slate` stays
+  **PARTIAL** for them, and the slate's § 4 table is the to-do.
+- **Discipline keys as a flat namespace across five roots** — a finding for
+  `documents-path-identity-slate` (new row: *the Idea with a second name*);
+  the attach point is `DisciplineCatalogue`'s dictionary, which already maps
+  key → path.
+- **`release` → `onVanish: 'keep'`, `descriptor-bank` as a kind, the
+  `blueprints` collection cache** — `document-store-tiering-slate` items 2–3
+  and the audit; the press index (item 1) is done here.
+- **Material / Biome / Condition / AddressRegistry load on use** —
+  `scan-sweep-slate` Part 2.
+- **`PressBoard`'s `producer` boot entry** — stays because `PressApi.recent()`
+  is read synchronously at session entry; its window is two indexed reads
+  now. Making session entry await the window is a `connection.md` question,
+  not this build's; note it on the scan-sweep slate's booted-wardens list.
+- **The two meanings of "archetype"** — recorded in the seeding slate; not
+  touched.
+- **Keys beyond this build's three declarations** (`recipe.cuisine` and
+  friends) — one line on the kind when a reader arrives; no slate needed.
+
+## Critical files
+
+Read first, in this order:
+
+1. `docs/requirements/documents-path-identity-requirements.md` (minus its
+   stray tail) and `docs/slates/builds/documents-path-identity-slate.md`.
+2. `packages/server/src/mud/lib/document/DocumentKinds.ts`,
+   `lib/document/StoredDocument.ts`, `api/document.ts`,
+   `platform/idea/api/DocumentLogic.ts`, `platform/idea/hooks/DomainHook.ts`
+   + `hooks.yaml`, `backend/PersistenceManager.ts:1421-1600`,
+   `src/schema/documents.yaml`.
+3. `platform/idea/api/PackLogic.ts:160-215, 860-931, 1700-1760, 2900-2960,
+   3530-3590, 3935-3950`.
+4. `lib/perception/Aroma.ts` (the pattern), `platform/idea/SoulCatalogue.ts`
+   (the lazy catalogue shape), `platform/idea/RecipeCatalogue.ts`,
+   `lib/craft/BlendIdentity.ts`, `lib/thermal/ThermalDose.ts:720-750`.
+5. `platform/idea/PressBoard.ts`, `platform/idea/api/PressLogic.ts:300-330`,
+   `lib/press/Release.ts`.
+6. The nine family classes under `platform/idea/` and their readers named in
+   Grounding § 6; `lib/spatial/Placing.ts`, `platform/idea/api/ContainmentLogic.ts:82-209`,
+   `lib/message/Scene.ts:236-300`, `platform/idea/api/MessageLogic.ts:110-145`.
+7. `lib/advancement/Advancement.ts:140-240, 420-560, 700-730`,
+   `platform/idea/SpellCatalogue.ts`, `lib/magic/Arcane.ts:170-240`,
+   `lib/corpo/Branded.ts`, `platform/idea/api/GovernmentLogic.ts:40-130`.
+8. `packages/server/scripts/check-template-census.ts:1130-1200`,
+   `check-aromas.ts`, `check-boot-entries.ts`, `check-template-scans.ts`,
+   `check-placement-words.ts`, `check-topic-keys.ts`, `check-bills.ts:160-300`,
+   `check-untitled-paths.ts:38-50`.
+9. `packages/wire/tests/sugar.soak.dirty.wire.test.ts:400-421`
+   (`restartWorld`), `packages/wire/tests/agent-coordination.dirty.wire.test.ts`
+   (the harness shape), `e2e/tests/paint-walk.spec.ts`.
+10. `docs/subsystems/document-store.md`, `content-packs.md` § The boot union,
+    `senses.md` § One smell, `docs/lint-family.md` § boot-entries,
+    `docs/antipatterns.md` § Searching (or Booting) for What a Reference
+    Should Name, § A Stuff whose only job is to hold a record.
+
+## Drive record
+
+*(appended at build time)* — the blocking drive's output, step by step, with
+each checkpoint's forced failure (B2), the `explain` result that decided D2,
+the first-studio-request timing (D8), and the lint ceilings as landed.
