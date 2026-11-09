@@ -112,7 +112,9 @@ export default function LiveOverlay() {
 
   return (
     <Stage>
-      {mock && (
+      {/* The stand-ins are for judging the frame in a plain browser; inside OBS
+          the real display and camera are underneath and must show through. */}
+      {mock && !window.obsstudio && (
         <>
           <div style={{ position: 'absolute', left: 0, top: 0, ...CONTENT }}>
             <SourceStandIn label="Display capture" size="1520 × 855" />
