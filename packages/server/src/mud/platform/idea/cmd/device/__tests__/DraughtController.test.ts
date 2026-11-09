@@ -224,6 +224,30 @@ describe('the draught', () => {
       );
     });
 
+    it('⭐ W8: the burner banks itself and refuses, from a direct call', () => {
+      expect(forge.bank()).toEqual({ ok: true, facts: undefined });
+      expect(forge.getDraught()).toBeCloseTo(0.05);
+      expect(forge.douse()).toBe(true);
+      expect(forge.bank()).toEqual({ ok: false, reason: 'not-lit' });
+    });
+
+    it('⭐ W8: one draught vocabulary on the burner', () => {
+      expect(forge.draughtFor(' Wide ')).toBe(1);
+      expect(forge.draughtFor('half')).toBe(0.5);
+      expect(forge.draughtFor('medium')).toBeNull();
+    });
+
+    it('⭐ W8: the burner answers light and douse — a refusal from a direct call', async () => {
+      const plan = await forge.ignitePlanFor(avatar as unknown as Stuff);
+      expect(await plan.onComplete()).toEqual({ ok: false, reason: 'already-burning' });
+      const out = await forge.extinguishPlanFor(avatar as unknown as Stuff);
+      expect(await out.onComplete()).toEqual({ ok: true, facts: undefined });
+      expect(await (await forge.extinguishPlanFor(avatar as unknown as Stuff)).onComplete()).toEqual({
+        ok: false,
+        reason: 'not-burning',
+      });
+    });
+
     it('⭐ `draught banked` and `cover` are the same act', async () => {
       await cover();
       const byCover = forge.getDraught();

@@ -203,6 +203,14 @@ export interface Integrity {
    * into its material's `brokenTemplate` and what it held spills.
    */
   sufferImpact(spec: ImpactSpec): Promise<ImpactOutcome>;
+  /**
+   * ⭐ Let go of, it FALLS onto `place`'s floor (ceramics M5; controller-
+   * liquidity W8 moved it off `drop`): `m·g·h` with `h` the
+   * `impact.dropHeightM` dial, against the floor's material. `null` when
+   * nothing landed — it has no mass, or it merged into a stack and is gone.
+   * `put` and `get` never call this: nothing breaks from being handled.
+   */
+  fallOnto(place: Stuff): Promise<ImpactOutcome | null>;
   /** What a blow would do, without doing it: `none`, a `crack`, or `break`. */
   impactVerdict(spec: ImpactSpec): 'none' | 'crack' | 'break';
   /**
@@ -471,6 +479,20 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       const own = Math.max(1, this.body().getMaterial()?.getHardness().rawValue() ?? 1);
       const floor = spec.surface !== null ? spec.surface.getHardness().rawValue() : own;
       return spec.energyJ * Math.min(1, Math.max(0, floor) / own);
+    }
+
+    public async fallOnto(place: Stuff): Promise<ImpactOutcome | null> {
+      const self = this as unknown as Stuff;
+      // ⭐ A dropped piece can MERGE into a like stack on the floor and be
+      // gone by now (a brick onto the hacks' brick stack): the stack it
+      // joined did not fall, so there is nothing to land.
+      if (self.isDestroyed()) return null;
+      const kg = this.body().getMass()?.rawValue();
+      if (typeof kg !== 'number' || !(kg > 0)) return null;
+      const floor = (MixinApi.isAdornable(place) ? place.getFloor() : null) as Stuff | null;
+      const surface = floor !== null && MixinApi.isTangible(floor) ? floor.getMaterial() : null;
+      const heightM = integrityDial(AppSettingKeys.impactDropHeightM, 1);
+      return this.sufferImpact({ energyJ: kg * 9.81 * heightM, surface, cause: 'drop' });
     }
 
     public async sufferImpact(spec: ImpactSpec): Promise<ImpactOutcome> {

@@ -70,6 +70,8 @@ import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 // eslint-disable-next-line no-restricted-imports -- the F1 object face: a Burner's ignite()/douse()/advanceBurn() forward into the fire logic singleton exactly as the api/fire facade does (the Combustible/Energized precedent)
 import { FireLogic } from '../../platform/idea/api/FireLogic';
 import type { IgniteOutcome } from '../../api/fire';
+import type { ActDone, ActOutcome, ActPlan, ActRefusal } from '../craft/ActPlan';
+import type { IgnitePlan, ExtinguishPlan } from './Combustible';
 
 /** Resolve the HMR-able FireLogic singleton (the combustion driver). */
 function burnerFireLogic(): FireLogic {
@@ -233,6 +235,27 @@ export interface Burner extends Pumpable {
   // The combustion face (F1) — forwards into the FireLogic driver.
   /** Light the furnace; `{lit:false, reason}` on refusal (no fuel / lit). */
   ignite(): IgniteOutcome;
+  /**
+   * ⭐ `light` asks this (controller-liquidity W8): Combustible's lighting,
+   * and ⭐ lighting a burner STARTS its firing — what it sets up at the
+   * start (a clamp's channel, middle and skin) is fixed now, not when
+   * somebody later says `fire` (ceramics drive A, run 38).
+   */
+  ignitePlanFor(by: Stuff): Promise<IgnitePlan>;
+  /** ⭐ `douse` asks this (W8): the furnace put out and wetted. */
+  extinguishPlanFor(by: Stuff): Promise<ExtinguishPlan>;
+  /**
+   * ⭐ The draught a named setting stands for — `wide`/`open`/`half`/`low`/
+   * `banked` — or `null` for a word that is not one (controller-liquidity
+   * W8: the one vocabulary `draught` and `fire --draught` read).
+   */
+  draughtFor(word: string): number | null;
+  /**
+   * ⭐ `cover` (W8): bank the fire to the banked floor (the
+   * `fire.draught.banked` dial the burner reads itself); `not-lit` when it
+   * is out.
+   */
+  bank(): BankRefusal | ActOutcome<undefined>;
   /** Put the furnace out (and wet it); returns whether it was lit. */
   douse(): boolean;
   /** Advance one burning tick (fuel drain; self-extinguish at empty). */
@@ -394,6 +417,24 @@ function burnerAugmenter(
 
 /** At or below this draught a fire reads as banked. */
 const BANKED_LOOK_THRESHOLD = 0.1;
+
+/**
+ * ⭐ The draught ladder's words, and what each is worth — ONE vocabulary on
+ * the host (controller-liquidity W8), read by `draught` and by `fire
+ * --draught`. The words are the ones a person says; the fuel trade's `char
+ * <n>` is where a FIGURE is worth having. ⚠ The `draught` view's words
+ * mirror these keys: a word here the view does not offer is unreachable.
+ */
+const DRAUGHT_WORDS: Readonly<Record<string, number>> = {
+  wide: 1,
+  open: 1,
+  half: 0.5,
+  low: 0.2,
+  banked: 0.05,
+};
+
+/** ⭐ The one reason `cover` refuses — `CoverController` words it. */
+export type BankRefusal = ActRefusal<'not-lit'>;
 
 export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
@@ -1202,6 +1243,16 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       return this.draught;
     }
 
+    public draughtFor(word: string): number | null {
+      return DRAUGHT_WORDS[word.trim().toLowerCase()] ?? null;
+    }
+
+    public bank(): BankRefusal | ActOutcome<undefined> {
+      if (!this.isLit()) return { ok: false, reason: 'not-lit' };
+      this.setDraught(burnerDial(AppSettingKeys.fireDraughtBanked, 0.05));
+      return { ok: true, facts: undefined };
+    }
+
     public setDraught(value: number): void {
       if (!Number.isFinite(value)) return;
       this.settleRoomAir();
@@ -1597,6 +1648,31 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
     @Unshadowable
     public douse(): boolean {
       return burnerFireLogic().douse(this as unknown as Stuff);
+    }
+
+    public async ignitePlanFor(by: Stuff): Promise<IgnitePlan> {
+      return this.instantFirePlan(async () => {
+        const out = this.ignite();
+        if (!out.lit) return { ok: false, reason: out.reason ?? 'not-flammable' };
+        await this.onFireStart(by);
+        return { ok: true, facts: undefined };
+      });
+    }
+
+    public async extinguishPlanFor(_by: Stuff): Promise<ExtinguishPlan> {
+      // Read now as well as at completion (the fire may have gone out
+      // between): a fire that is out is not doused.
+      const burning = this.isLit();
+      return this.instantFirePlan(() =>
+        burning && this.douse() ? { ok: true, facts: undefined } : { ok: false, reason: 'not-burning' },
+      );
+    }
+
+    /** An instant act at the fire: no time, no effort, its verdict at completion. */
+    private instantFirePlan<X extends ActRefusal<string>>(
+      run: () => ActDone<undefined, X> | Promise<ActDone<undefined, X>>,
+    ): ActPlan<undefined, undefined, X> {
+      return { ok: true, durationMs: 0, effortW: 0, facts: undefined, onComplete: run };
     }
 
     /** Advance one burning tick (fuel drain; self-extinguish at empty). */

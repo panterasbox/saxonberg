@@ -35,24 +35,6 @@ interface DraughtModel extends CommandModel {
   subcommand?: string;
 }
 
-/**
- * What each named setting is worth. ⭐ A closed vocabulary, and the words
- * are the ones a person says — *wide*, *half*, *low*, *banked*. The fuel
- * trade's `char <n>` is where a FIGURE is worth having, because the
- * charring band is narrow and a collier works in tenths.
- *
- * ⚠ The keys mirror the view's subcommands exactly; a word here that the
- * view does not offer is unreachable, and one the view offers and this
- * does not falls through to the read.
- */
-const NAMED: Readonly<Record<string, number>> = {
-  wide: 1,
-  open: 1,
-  half: 0.5,
-  low: 0.2,
-  banked: 0.05,
-};
-
 /** How a fire at this draught reads, in words. */
 function describe(value: number): string {
   if (value >= 0.9) {
@@ -104,7 +86,8 @@ export default class DraughtController extends CommandController<DraughtModel> {
       return;
     }
 
-    const value: number | null = NAMED[raw] ?? null;
+    // ⭐ The ladder's words are the burner's one vocabulary (W8).
+    const value: number | null = burner.draughtFor(raw);
     if (value === null) {
       // ⚠ Unreachable through the view, which offers exactly these five
       // words — kept because a controller that trusted its matcher and
