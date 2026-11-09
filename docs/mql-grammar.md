@@ -34,13 +34,15 @@ flower                    a flower (in the giver's reachable scope)
 the second rose           the 2nd rose match (1-based)
 'lyon's mane'             literal keyword match (whitespace preserved)
 me                        the command-giver
-here                      the giver's current location
+here                      the place you are in (past a boat, a cart,
+                          a bed) — `me:e` is what immediately holds you
 peers                     everything in the room except the giver
-inventory                 the giver's contents
+inventory                 the giver's contents (and inside open bags)
 person                    everything on your person (you, your implant
                           apps, installed gear + its apps, carried
                           items + their apps)
-reachable                 person ∪ here ∪ peers (your own gear first)
+reachable                 what you could lay hands on now: person ∪
+                          here ∪ peers (your own gear first)
 me:i                      the giver's inventory (immediate contents)
 me:I                      everything reachable through inventory
                           recursively (apple in pouch in pack…)
@@ -87,7 +89,7 @@ These identifiers have reserved meanings and aren't free for use as
 keywords:
 
 - **Pronouns:** `me`, `here`, `it`, `them`, `him`, `her`
-- **Predicates:** `living`, `online`, `mine`, `here`, `visible`, `loose`, `worn`, `carried`
+- **Predicates:** `living`, `online`, `mine`, `here`, `visible`, `loose`, `worn`, `carried`, `held`
 - **Boolean ops** (inside `[…]`): `and`, `or`, `not`
 - **Existence** (inside `[…]`): `has`
 - **Transforms:** `i`, `e` (one-letter chain pivots — inventory,
@@ -154,11 +156,11 @@ seed yields a list of Stuff (possibly empty).
 | `bareword` | keyword search in the field's declared scope (default) |
 | `'literal name'` | a keyword that IS the phrase (whitespace preserved) — a name is a keyword |
 | `me` | the command-giver |
-| `here` | the giver's current location |
-| `peers` | the location's contents minus the giver, each with its details |
+| `here` | the **place** you are in — the first container up your chain that is a place, past a boat, a cart or a bed (`getEnclosingPlace`); what immediately holds you is `me:e` |
+| `peers` | the place's contents minus the giver, one level into open things there, and the vessel you sit in |
 | `person` | everything on your person: you, your own attunement-hosted apps, installed slot occupants (+ their apps), carried items (+ their apps). Never the room's contents |
-| `reachable` | `person` ∪ `here` ∪ `peers`, your own gear emitted first (you can reach yourself) |
-| `inventory` | the giver's contents (the giver itself is `me`) |
+| `reachable` | `person` ∪ `here` ∪ `peers`, your own gear emitted first (you can reach yourself) — **what you could lay hands on now**: held, worn, inside the open vessels you carry (all the way down), the room's top level and one level into open things here; never inside a shut thing. `PerceptionApi.canReach` reads the same walk (`Container.getReachableContents`) |
+| `inventory` | the giver's contents, and inside the open vessels among them (the giver itself is `me`) |
 | `horizon` | what the giver can see from where they stand that is NOT in their room — structures and craft in view (a fixed pool, like `here`). `horizon:tower` drills to one. A bare `horizon` names the whole set — `query horizon` / `scan horizon` lists it; `look` takes one thing. See [expanse.md § Perception at range](./subsystems/expanse.md) |
 | `online` | every connected command-giver |
 | `it` / `him` / `her` | last single match of matching gender |
@@ -166,6 +168,27 @@ seed yields a list of Stuff (possibly empty).
 | `$$` | result of the previous query |
 | `/platform/thing/Sword/*` | template path lookup (instances of matching templates) |
 | `#abc123` | direct stuff id lookup |
+
+### ⭐ Reach rungs — `--top` · `--open` · `--deep`
+
+The giver-anchored pools (`inventory`, `person`, `peers`, `reachable`)
+walk at a **rung**. The grammar has **no word** for it — a plain word
+inside a query is always a name — so the rung is a reserved per-command
+flag and each argument's `depth:` in its view (default `open`):
+
+| Rung | Reaches |
+|---|---|
+| `--top` | what you hold and wear, and the room's top level |
+| `--open` *(default)* | and inside the open vessels you carry, all the way down, and one level into open things here |
+| `--deep` | everything, shut or not — never another person's pockets |
+
+A bare name that finds nothing at its rung is asked once more at `deep`;
+when what answers is behind a shut lid the command says so (*"The box is
+shut."*) rather than *nothing named that*, and binds nothing. A rung you
+type is taken at its word: `eat apple --top` with the apple in your bag
+finds none at hand. The chain transforms are not rungs: `me:I:apple`
+**addresses** the apple wherever it is (below), and the verb decides
+whether a hand can get at it.
 
 ### ⭐⭐ There is no `world` seed
 
@@ -235,7 +258,7 @@ alias `n` is `go n`, the word untouched).
 A hidden exit is in nobody's pool until the viewer perceives it
 (`obviousExitsFor(viewer)`, on both the fast and the slow scope paths).
 A verb that acts only on ways says so in its scope with the grammar —
-the movement verbs declare `scope: ["here:exits", …]`, so `go hesper`
+the movement verbs declare `scope: ["me:e:exits", …]` (the ways out of what holds you — `here` is the place since controller-liquidity W2, and a coach's way `out` is the coach's), so `go hesper`
 can only mean the way, whatever else answers to the word.
 
 > **Doors and exits aren't the same thing — yet.** A door is a Stuff
@@ -312,8 +335,8 @@ Stuff-containment context:
 
 | Operator | No via | Via set |
 |---|---|---|
-| `:i` | immediate contents (Container) | one match per child detail at the current path tip |
-| `:I` | every Stuff in the contents subtree (`getDeepContents()`) | every detail descendant from the current tip (DFS) |
+| `:i` | immediate contents (Container) — **through a shut lid** when the container is yours or the room's; another person shows only what they wear and hold | one match per child detail at the current path tip |
+| `:I` | every Stuff in the contents subtree, by the `:i` rule at each level | every detail descendant from the current tip (DFS) |
 | `:e` | environment (Containable) | pop one detail level |
 | `:E` | walk to the root container (topmost non-null environment) | drop the entire detail path (anchor stays on the same Stuff) |
 
@@ -322,7 +345,7 @@ me:i              giver's inventory (immediate)
 me:I              everything reachable through the giver's contents
                   recursively (apple, anything inside the apple, …)
 me:i:sword        a sword in inventory
-me:e              giver's location
+me:e              what immediately holds the giver (the boat, not the river)
 me:E              the root container (walks giver → location → zone → …
                   to the topmost non-null environment)
 here:bookcase:i   child details of the bookcase
@@ -330,6 +353,11 @@ here:bookcase:I   every detail nested anywhere under the bookcase
 here:bookcase:e   pops back to (room, no via)
 here:bookcase:E   pops the whole detail path (same Stuff, no via)
 ```
+
+⭐ **MQL addresses; it never decides possibility.** `look me:I:apple`
+finds the apple in your shut box and describes it; `eat me:I:apple` is
+refused by the verb — *"The box is shut."* (`Containable.reachRefusal`,
+read by the `mustNotBeShutAway` / `canReach` validators).
 
 Objects without the relevant mixin contribute nothing — the chain
 silent-filters rather than erroring. A Stuff already at the root
@@ -367,11 +395,12 @@ A reserved predicate name keeps members where the predicate holds:
 | `living` | object is a Mobile (or has the appropriate "alive" mixin) |
 | `online` | object is connected |
 | `mine` | object is yours — stamped to you as chattel, or standing on an extent you hold title to. ⚠ Not things you *wrote* (authorship is not ownership) and not things your *group* holds; `mine` is first person singular. ⭐ It says **what** is yours, never **where** it is. |
-| `here` | object is in (or is) the giver's location |
+| `here` | object is (or stands in) the giver's place, or is in the vessel the giver sits in |
 | `visible` | object presents to the eye (composes Visible) and the giver perceives it — concealed-and-undiscovered things are not; the scope says *where* |
 | `loose` | object is its holder's own loose contents — not placed on or in something else there (the back-bar's bottles), not a crop standing over the ground |
 | `worn` | object occupies one of its holder's slots (a coat on a person, a coupe in a rack) |
 | `carried` | object is held as contents and occupies none of its holder's slots — `worn` and `carried` partition a holder |
+| `held` | object is in hand: in a body's slot that accepts a Wieldable, or loose in a body's contents in no slot (today's carrying model — the carrying build retunes it). A coupe in a rack is not held |
 
 ```
 peers:living              only Mobile peers
@@ -379,6 +408,7 @@ peers:online              only connected peers
 me:i:visible              visible items in inventory
 me:i:worn                 what you are wearing (and holding)
 me:i:carried              what is in your pockets and pack
+me:i:held                 what is in your hands (today: anything loose on you)
 here:i:visible:loose:[not mixin.AdornmentMixin] - me
                           the room as `look` lists it
 ```

@@ -527,6 +527,7 @@ async function walkScopes(
   field: string,
   context: CommandContext,
   admissible: (s: Stuff) => boolean,
+  depth: ReachDepth,
 ): Promise<{ result: MqlMany; discarded: Stuff[] }> {
   let firstRaw: MqlMany | null = null;
   let isSet = false;
@@ -539,7 +540,7 @@ async function walkScopes(
   // focus beat the thing named outright in the room.
   let best: { result: MqlMany; tier: number; discardedUpTo: number } | null = null;
   for (const scope of tries) {
-    let got = await scopedMany(raw, giver, scope, field, context);
+    let got = await scopedMany(raw, giver, scope, field, context, depth);
     if (got.isSet) isSet = true;
     if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
     // ⭐ Nothing of the kind survived the name tiers: ask again with the
@@ -550,7 +551,7 @@ async function walkScopes(
     // discarded, and a second empty answer leaves the 0-of-N fallback.
     if (got.stuff.length > 0 && !got.stuff.some(admissible)) {
       for (const s of got.stuff) discarded.push(s);
-      const narrowed = await scopedMany(raw, giver, scope, field, context, admissible);
+      const narrowed = await scopedMany(raw, giver, scope, field, context, depth, admissible);
       if (narrowed.stuff.length === 0) continue;
       got = narrowed;
     }
@@ -585,13 +586,63 @@ async function strictCandidates(
   field: string,
   context: CommandContext,
   admissible: (s: Stuff) => boolean,
+  depth: ReachDepth,
 ): Promise<Stuff[]> {
   const out = new Set<Stuff>();
   for (const scope of tries) {
-    const got = await scopedMany(raw, giver, scope, field, context);
+    const got = await scopedMany(raw, giver, scope, field, context, depth);
     for (const s of got.stuff) if (admissible(s)) out.add(s);
   }
   return [...out];
+}
+
+/**
+ * ⭐ **The slot's reach rung** (controller-liquidity D4): the line's
+ * `--top` / `--open` / `--deep`, else the slot's own `depth:`, else `open`.
+ */
+function rungFor(def: object, context: CommandContext): ReachDepth {
+  return context.depth ?? (def as { depth?: ReachDepth }).depth ?? 'open';
+}
+
+/**
+ * ⭐ **The box is shut** (controller-liquidity D6). A name that found
+ * nothing at the slot's rung is asked once more at `deep`; when what
+ * answers is behind a shut lid (`Containable.reachRefusal`), the binder
+ * says so instead of *you have no apple*. It never binds the deeper find —
+ * MQL addressed it, the act is not possible — and a rung the player typed
+ * (`--top`) is taken at its word, so `eat apple --top` stays *none at
+ * hand*. Returns `true` when it refused.
+ */
+async function refuseIfShutAway(
+  raw: string,
+  giver: Stuff & CommandGiver,
+  tries: readonly string[],
+  field: string,
+  context: CommandContext,
+  admissible: (s: Stuff) => boolean,
+  rung: ReachDepth,
+): Promise<boolean> {
+  if (context.depth !== undefined || rung === 'deep') return false;
+  let found: Stuff[];
+  try {
+    found = (await walkScopes(raw, giver, tries, field, context, admissible, 'deep')).result.stuff;
+  } catch {
+    return false;
+  }
+  for (const s of found) {
+    if (!MixinApi.isContainable(s)) continue;
+    const refusal = s.reachRefusal(giver);
+    if (refusal === null) continue;
+    const by = refusal.facts.by.describeFor(giver);
+    context.note({
+      kind: 'validator-failed',
+      field,
+      validator: 'reach:enclosed-shut',
+      detail: `${GrammarApi.cap(by)} is shut.`,
+    });
+    return true;
+  }
+  return false;
 }
 
 /** The highest keyword tier a match can reach (`MqlMany.tiers`). */
@@ -633,10 +684,11 @@ async function scopedMany(
   scope: string,
   field: string,
   context: CommandContext,
+  depth: ReachDepth,
   admits?: (s: Stuff) => boolean,
 ): Promise<MqlMany> {
   try {
-    return MqlApi.resolveMany(raw, { commandGiver: giver, scope, ...(admits ? { admits } : {}) });
+    return MqlApi.resolveMany(raw, { commandGiver: giver, scope, depth, ...(admits ? { admits } : {}) });
   } catch (err) {
     const wide = await worldRetry(err, raw, giver, scope, field, context);
     if (wide) return wide;
@@ -651,9 +703,10 @@ async function scopedOne(
   scope: string,
   field: string,
   context: CommandContext,
+  depth: ReachDepth,
 ): Promise<MqlOne> {
   try {
-    return MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+    return MqlApi.resolveOne(raw, { commandGiver: giver, scope, depth });
   } catch (err) {
     const wide = await worldRetry(err, raw, giver, scope, field, context);
     if (!wide) throw err;
@@ -1587,6 +1640,7 @@ export class CommandLogic extends ApiLogic {
         (def as { _requirementTerms?: RequirementTerm[] })._requirementTerms ?? [];
       const admissible = admitsAll(terms);
 
+      const rung = rungFor(def, context);
       if (def.type === 'objects') {
         let r: MqlMany;
         try {
@@ -1597,8 +1651,15 @@ export class CommandLogic extends ApiLogic {
             fname,
             context,
             admissible,
+            rung,
           );
           r = walked.result;
+          if (
+            r.stuff.length === 0 &&
+            (await refuseIfShutAway(raw, giver, tries, fname, context, admissible, rung))
+          ) {
+            return { result: 'failed' };
+          }
           if (
             !applyFilteredPolicy(
               def,
@@ -1656,7 +1717,7 @@ export class CommandLogic extends ApiLogic {
             // ⭐ The cheap path, unchanged: with no `requires:` there is
             // nothing to discard, so nothing to have a policy about.
             for (const scope of tries) {
-              const r: MqlOne = await scopedOne(raw, giver, scope, fname, context);
+              const r: MqlOne = await scopedOne(raw, giver, scope, fname, context, rung);
               if (r.stuff !== null) {
                 stuff = [r.stuff];
                 via = r.via;
@@ -1676,6 +1737,7 @@ export class CommandLogic extends ApiLogic {
               fname,
               context,
               admissible,
+              rung,
             );
             const got = walked.result;
             if (got.stuff.length > 0) {
@@ -1712,10 +1774,16 @@ export class CommandLogic extends ApiLogic {
           });
           return { result: 'failed' };
         }
+        if (
+          stuff.length === 0 &&
+          (await refuseIfShutAway(raw, giver, tries, fname, context, admissible, rung))
+        ) {
+          return { result: 'failed' };
+        }
         // ⭐ `--strict`: read the name literally. A second thing it could mean
         // is a question, not a preference the scope order may settle.
         if (context.filterPolicy === 'error' && !isSet && !quantity && stuff.length > 0) {
-          const named = await strictCandidates(raw, giver, tries, fname, context, admissible);
+          const named = await strictCandidates(raw, giver, tries, fname, context, admissible, rung);
           if (named.length > 1) {
             context.note({
               kind: 'validator-failed',
@@ -1801,6 +1869,7 @@ export class CommandLogic extends ApiLogic {
         (def as { _requirementTerms?: RequirementTerm[] })._requirementTerms ?? [];
       const admissible = admitsAll(terms);
 
+      const rung = rungFor(def, context);
       if (def.type === 'objects') {
         let r: MqlMany;
         try {
@@ -1811,8 +1880,15 @@ export class CommandLogic extends ApiLogic {
             fname,
             context,
             admissible,
+            rung,
           );
           r = walked.result;
+          if (
+            r.stuff.length === 0 &&
+            (await refuseIfShutAway(raw, giver, tries, fname, context, admissible, rung))
+          ) {
+            return { result: 'failed' };
+          }
           if (
             !applyFilteredPolicy(
               def,
@@ -1861,7 +1937,7 @@ export class CommandLogic extends ApiLogic {
             // ⭐ The cheap path, unchanged: with no `requires:` there is
             // nothing to discard, so nothing to have a policy about.
             for (const scope of tries) {
-              const r: MqlOne = await scopedOne(raw, giver, scope, fname, context);
+              const r: MqlOne = await scopedOne(raw, giver, scope, fname, context, rung);
               if (r.stuff !== null) {
                 stuff = [r.stuff];
                 via = r.via;
@@ -1881,6 +1957,7 @@ export class CommandLogic extends ApiLogic {
               fname,
               context,
               admissible,
+              rung,
             );
             const got = walked.result;
             if (got.stuff.length > 0) {
@@ -1909,6 +1986,12 @@ export class CommandLogic extends ApiLogic {
             stage: 'resolve',
             detail: err instanceof Error ? err.message : String(err),
           });
+          return { result: 'failed' };
+        }
+        if (
+          stuff.length === 0 &&
+          (await refuseIfShutAway(raw, giver, tries, fname, context, admissible, rung))
+        ) {
           return { result: 'failed' };
         }
         const filtered = await this.applyCardinalityPolicy(def, stuff, fname, context, {

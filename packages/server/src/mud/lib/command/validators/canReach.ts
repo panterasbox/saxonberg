@@ -33,6 +33,8 @@ import type { Stuff } from '../../stuff/Stuff';
 import type { FieldValidator } from '../../../api/command';
 import { MqlApi } from '../../../api/mql';
 import { PerceptionApi } from '../../../api/perception';
+import { MixinApi } from '../../../api/mixin';
+import { GrammarApi } from '../../../api/grammar';
 
 const validator: FieldValidator = (value, field, context) => {
   const stuffs = MqlApi.extractStuffs(value);
@@ -50,6 +52,13 @@ const validator: FieldValidator = (value, field, context) => {
         location: context.location ?? null,
       })
     ) {
+      // ⭐ A lid is the honest reason when there is one (D6).
+      if (MixinApi.isContainable(stuff)) {
+        const shut = stuff.reachRefusal(giver as Stuff);
+        if (shut !== null) {
+          return `${GrammarApi.cap(shut.facts.by.describeFor(giver as Stuff))} is shut.`;
+        }
+      }
       return `you can't reach ${stuff.getPresentation()}`;
     }
   }

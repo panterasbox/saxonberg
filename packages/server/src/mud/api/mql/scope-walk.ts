@@ -21,6 +21,7 @@ import { MixinApi } from '../mixin';
 import { PerceptionApi } from '../perception';
 import Place from '../../lib/stuff/Place';
 import type { MqlMatch, MqlMatchVia } from './types';
+import type { ReachDepth } from '../command';
 
 /**
  * One search target inside a scope. Each candidate represents a
@@ -123,7 +124,10 @@ export function candidatesForHere(
 }
 
 /**
- * Build the candidate pool for the giver's inventory.
+ * Build the candidate pool for the giver's inventory — what it carries, at
+ * the reach rung (`Container.getReachableContents`): `top` its own
+ * contents, `open` (the default) and inside the open vessels among them,
+ * all the way down; `deep` everything, shut or not.
  *
  * v1 covers the items themselves; details on inventory items are
  * deferred (typical inventory item descriptions are short, and the
@@ -132,10 +136,11 @@ export function candidatesForHere(
 export function candidatesForInventory(
   giver: Stuff,
   attention?: number,
+  depth?: ReachDepth,
 ): ScopeCandidate[] {
   if (!MixinApi.isContainer(giver)) return [];
   const out: ScopeCandidate[] = [];
-  for (const item of giver.getContents()) {
+  for (const item of giver.getReachableContents(depth ?? 'open')) {
     pushDirect(out, item, giver, attention);
   }
   return out;
@@ -159,28 +164,40 @@ export function candidatesForInventory(
 export function candidatesForPeers(
   giver: Stuff,
   attention?: number,
+  depth?: ReachDepth,
 ): ScopeCandidate[] {
   if (!MixinApi.isContainable(giver)) return [];
-  const env = giver.getContainer();
-  if (!env || !MixinApi.isContainer(env)) return [];
-  const out: ScopeCandidate[] = [];
-  for (const item of env.getContents()) {
-    if (item.stuffId === giver.stuffId) continue;
-    pushDirect(out, item, giver, attention);
-    // One level into an OPEN container standing in the room — the glass
-    // rack's coupes, the floor stock's kegs, a crate's limes. The pool
-    // this scope offers must agree with what `PerceptionApi.canReach`
-    // grants, so both ask `MixinApi.isOpenContainer` rather than each
-    // carrying its own notion of "exposed".
-    if (MixinApi.isOpenContainer(item)) {
-      for (const inner of item.getContents()) {
-        pushDirect(out, inner, giver, attention);
-      }
+  // ⭐ Anchored on the PLACE (controller-liquidity D7) — in a boat on the
+  // river, what stands on the river — and on the vessel the giver sits in
+  // when that is not the place: the passenger beside you in a shut coach
+  // is to hand though the coach's lid is between you and the road.
+  const place = giver.getEnclosingPlace();
+  const immediate = giver.getContainer();
+  const holders: (Stuff & Container)[] = [];
+  for (const h of [place, immediate]) {
+    if (h && MixinApi.isContainer(h) && !holders.some((x) => x.stuffId === h.stuffId)) {
+      holders.push(h);
     }
   }
-  if (MixinApi.isAdornable(env)) {
-    for (const fixture of env.getFixtures()) {
-      pushDirect(out, fixture, giver, attention);
+  const out: ScopeCandidate[] = [];
+  const seen = new Set<string>([giver.stuffId]);
+  for (const env of holders) {
+    // One level into an OPEN container standing in the room — the glass
+    // rack's coupes, the floor stock's kegs, a crate's limes — at the
+    // default rung: the ONE walk (`Container.getReachableContents`) that
+    // `PerceptionApi.canReach` reads too, so what this scope offers is
+    // what a hand can take.
+    for (const item of env.getReachableContents(depth ?? 'open')) {
+      if (seen.has(item.stuffId)) continue;
+      seen.add(item.stuffId);
+      pushDirect(out, item, giver, attention);
+    }
+    if (MixinApi.isAdornable(env)) {
+      for (const fixture of env.getFixtures()) {
+        if (seen.has(fixture.stuffId)) continue;
+        seen.add(fixture.stuffId);
+        pushDirect(out, fixture, giver, attention);
+      }
     }
   }
   return out;
@@ -216,6 +233,7 @@ export function candidatesForPeers(
 export function candidatesForPerson(
   giver: Stuff,
   attention?: number,
+  depth?: ReachDepth,
 ): ScopeCandidate[] {
   const out: ScopeCandidate[] = [];
   pushDirect(out, giver, giver, attention);
@@ -228,7 +246,7 @@ export function candidatesForPerson(
       }
     }
   }
-  for (const c of candidatesForInventory(giver, attention)) out.push(c);
+  for (const c of candidatesForInventory(giver, attention, depth)) out.push(c);
   if (MixinApi.isContainer(giver)) {
     for (const item of giver.getContents()) {
       pushHostedUpdates(out, item, giver, attention);
@@ -240,23 +258,30 @@ export function candidatesForPerson(
 export function candidatesForReachable(
   giver: Stuff,
   attention?: number,
+  depth?: ReachDepth,
 ): ScopeCandidate[] {
   // ⭐ Its light is walked once per place by the resolution that calls it
   // (`MqlLogic` runs every resolution as a steady read).
   //
   // ON-PERSON-FIRST emission order (the former `findReachable`
   // contract, now the seed's): the whole `person` pool, then the
-  // surrounding location, then peers. First-match consumers (`.find`
+  // surrounding place, then peers. First-match consumers (`.find`
   // over the pool) and tie-broken keyword targeting both prefer your
   // own gear over the floor's.
-  const out = candidatesForPerson(giver, attention);
+  const out = candidatesForPerson(giver, attention, depth);
   if (MixinApi.isContainable(giver)) {
-    const env = giver.getContainer();
-    if (env) {
-      for (const c of candidatesForHere(env, giver, attention)) out.push(c);
+    // The place's surface, and the vessel's you sit in when that is not
+    // the place (a coach's door and its way `out`).
+    const place = giver.getEnclosingPlace();
+    if (place) {
+      for (const c of candidatesForHere(place, giver, attention)) out.push(c);
+    }
+    const immediate = giver.getContainer();
+    if (immediate && place && immediate.stuffId !== place.stuffId) {
+      for (const c of candidatesForHere(immediate, giver, attention)) out.push(c);
     }
   }
-  for (const c of candidatesForPeers(giver, attention)) out.push(c);
+  for (const c of candidatesForPeers(giver, attention, depth)) out.push(c);
   return out;
 }
 

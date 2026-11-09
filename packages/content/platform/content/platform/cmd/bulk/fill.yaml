@@ -28,6 +28,7 @@ args:
     requires: VisibleMixin
     validators:
       - /lib/command/validators/mustHaveBulkSlot
+      - /lib/command/validators/mustNotBeShutAway
   - name: source
     type: object
     required: true

@@ -34,6 +34,8 @@ args:
     scope: ["$focus", "reachable"]
     updates_focus: extend
     requires: [VisibleMixin, MarkedMixin|DisplayMixin]
+    validators:
+      - /lib/command/validators/mustNotBeShutAway
   # ⭐ A book reads at a page: `read notebook page 3` opens it
   # there. A positional number reaches the controller raw; it parses.
   - name: page

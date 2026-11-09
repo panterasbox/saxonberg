@@ -8,18 +8,35 @@ mixin or Api. Concrete users (light, hearing, display-name
 composition, language understanding, faction visibility, vendor
 pricing) reference this doc rather than re-derive the rule.
 
-## ⭐ `canReach` — the ONE definition of reach, and its one-level bound
+## ⭐ `canReach` — the ONE definition of reach, at a rung
 
-An actor reaches: itself; what it carries; what stands in its location;
-a door attached to one of that location's exits; and — **one level** —
-what stands inside an **open container** on either side (the glass
-rack's coupe, the floor stock's keg, a crate's limes, a coin in the open
-pouch you are carrying).
+An actor reaches: itself; what it carries; what stands in its place and
+in the vessel it sits in (`getEnclosingPlace` — in a boat on the river,
+both); a door attached to one of those places' exits, the way itself,
+and the fixtures; and what stands inside **open containers** — on its
+own body all the way down (the coin in the open pouch in your open
+pack), anywhere else **one level** (the glass rack's coupe, a crate's
+limes). That is the `open` rung; `top` stops at the holders' own
+contents and `deep` goes through every lid but never into another body
+(controller-liquidity D4/D5).
 
-**One level, deliberately.** Reach into the open crate, yes; a box
-*inside* that crate must be opened or taken out first. Without a bound,
-"reachable" would mean "anywhere in the room's transitive contents",
-which is not what a hand does.
+⭐⭐ **It is ONE walk** — `Container.getReachableContents(rung)` — read by
+`canReach`, `reachableAmong` and MQL's `inventory` / `person` / `peers` /
+`reachable` pools. Before W2 the seed reached the person's top level only
+while `canReach` went one level into an open pouch, so a name could bind
+what reach refused; that asymmetry is gone by construction.
+
+**One level in the room, deliberately.** Reach into the open crate, yes;
+a box *inside* that crate must be opened or taken out first. Without a
+bound, "reachable" would mean "anywhere in the room's transitive
+contents", which is not what a hand does. What you carry is different:
+an open bag in an open pack is to hand.
+
+**A lid is a refusal with a name.** `Containable.reachRefusal(actor)`
+returns `{reason: 'enclosed-shut', facts: {by}}` for the innermost shut
+thing between a thing and the actor (never a lid that also holds the
+actor, never another person's pockets). MQL *addresses* through shut
+things (`me:I:apple`); the verb asks this and says *the box is shut*.
 
 The openness test is **`MixinApi.isOpenContainer`**, and it is the single
 rule four things ask — `canReach`, the MQL `peers` scope walk,

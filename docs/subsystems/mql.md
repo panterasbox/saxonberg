@@ -333,7 +333,7 @@ permission](#resolving-is-not-permission).
 | `bareword` (or multi-word `red rose`) | `KeywordsNode` | scope-walk + scoring |
 | `'literal'` | `LiteralNode` | exact name/keyword match (whitespace preserved) |
 | `me` | `PronounNode` | the giver |
-| `here` | `PronounNode` | the giver's location |
+| `here` | `PronounNode` | the giver's **place** — `Containable.getEnclosingPlace()` (past a boat, a cart, a bed; controller-liquidity D7). `me:e` keeps `getContainer()` |
 | `peers` / `reachable` / `person` / `inventory` / `online` | name-promoted `KeywordsNode` | the corresponding scope-walk pool |
 | `world` | name-promoted `KeywordsNode` | ⚠ **refused** unless the run carries a registry-read grant — see *The registry-read grant* |
 | `it` / `him` / `her` / `them` | `PronounNode` | pronoun memory read |
@@ -354,7 +354,8 @@ Seed-shaped chain elements split by whether the seed is
   prior set. `reachable:online` is "of the giver's reachable set,
   which are online."
 
-⭐ **`peers` descends ONE level into an open container** standing in the
+⭐ **`peers` descends ONE level into an open container** (at the default
+`open` rung — see § Reach is one walk) standing in the
 room — the glass rack's coupes, the floor stock's kegs, a crate's limes —
 so a bare noun can name what is plainly in front of you without a
 `from <holder>` clause. The openness test is `MixinApi.isOpenContainer`,
@@ -601,13 +602,42 @@ Built-in scopes:
 | Scope | Members |
 |---|---|
 | `me` | `[giver]` |
-| `here` | location (its details among its keywords) + exits/doors |
-| `peers` | location's contents, minus the giver |
-| `inventory` | giver's contents (Container check) |
+| `here` | the giver's place (its details among its keywords) + exits/doors |
+| `peers` | the place's contents and the vessel the giver sits in, minus the giver, at the rung |
+| `inventory` | giver's contents at the rung (Container check) |
 | `person` | the **on-person** pool: the giver + their own attunement-hosted updates + installed slot occupants (+ each occupant's hosted updates) + carried inventory (+ each carried attuned host's hosted updates). Bearer semantics — no location leg; the anchor for `presentsKey` / payment-credential / hosted-app resolution (a matching key on the floor is never "presented") |
 | `reachable` | `person` + `here` + `peers`, emitted **on-person-first** (the former `ContainmentApi.findReachable` contract, absorbed into the seed): first-match consumers and tie-broken targeting prefer your own gear over the floor's |
 | `online` | every connected interactive's holder Stuff |
 | `world` | every Stuff — ⚠ gated; see below |
+
+### ⭐⭐ Reach is one walk, at a rung (controller-liquidity W2)
+
+`inventory` · `person` · `peers` · `reachable` read
+`Container.getReachableContents(rung)` — and so do
+`PerceptionApi.canReach` / `reachableAmong`, so what a pool names is what
+a hand can touch (the old seed reached top-level only on the person and
+`canReach` one level on both sides; the asymmetry is gone). The rung is
+`MqlContext.depth`, set only by the binder (the line's `--top` /
+`--open` / `--deep`, else the slot's `depth:`, else `open`):
+
+- `top` — the holder's own contents;
+- `open` — and inside every open vessel among them: on a **body** all the
+  way down (the apple in the open bag in your pack), anywhere else one
+  level (the crate's limes, not a box in the crate);
+- `deep` — everything, shut or not, never into another body.
+
+Breadth-first, so what is at hand outranks what is in a bag. A thing
+placed under an enclosing member of a shut host is behind that lid. A
+mid-chain anchor (`bob:inventory`) is read at `top` — the rung is the
+giver's question, not bob's.
+
+**The lid refusal.** A bare name that binds nothing at its rung is asked
+once more at `deep` (`CommandLogic.refuseIfShutAway`); a find behind a
+shut lid (`Containable.reachRefusal`) refuses the line with *"The box is
+shut."* and binds nothing. A typed rung is never second-guessed.
+**Addressing is not reaching**: `:i`/`:I` walk through a shut container
+of the giver's own or the room's (`visibleInside`), so `look me:I:apple`
+works; the verbs that put a hand on a thing carry `mustNotBeShutAway`.
 
 ### ⭐⭐ The registry-read grant
 

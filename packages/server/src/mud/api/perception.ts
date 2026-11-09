@@ -31,6 +31,7 @@ import type { SenseChannel } from '../lib/description/Perceiver';
 import type { CompetenceBandName } from '../lib/advancement/CompetenceBand';
 import type { ConcealmentLevel } from '../lib/concealment/ConcealmentLevel';
 import type { Container } from '../lib/spatial/Container';
+import type { ReachDepth } from './command';
 import type { Sensor } from '../lib/message/Sensor';
 import { Modality } from '../lib/perception/Modality';
 import type { Percept } from '../lib/perception/Modality';
@@ -316,12 +317,20 @@ export class PerceptionApi {
    * Answering it by resolving the whole room and testing for inclusion
    * would be the wrong shape and the wrong cost.
    *
+   * ⭐ Controller-liquidity D5: reach is ONE walk, shared with MQL's
+   * `reachable` pool — `Container.getReachableContents(rung)` over the
+   * actor's person, the vessel it sits in and the place around it
+   * (`getEnclosingPlace`), plus doors and ways and fixtures. At the
+   * default rung (`open`) it descends every open vessel you carry and
+   * one level into open things here; never into a shut thing.
+   *
    * @param opts.location defaults to the actor's own container.
+   * @param opts.depth the rung (`top` · `open` · `deep`); default `open`.
    */
   public static canReach(
     actor: Stuff,
     target: Stuff,
-    opts?: { location?: Stuff | null },
+    opts?: { location?: Stuff | null; depth?: ReachDepth },
   ): boolean {
     return logic().canReach(actor, target, opts);
   }
@@ -340,7 +349,7 @@ export class PerceptionApi {
   public static reachableAmong(
     actor: Stuff,
     candidates: readonly Stuff[],
-    opts?: { location?: Stuff | null },
+    opts?: { location?: Stuff | null; depth?: ReachDepth },
   ): Stuff[] {
     return logic().reachableAmong(actor, candidates, opts);
   }

@@ -408,26 +408,15 @@ function capitalize(s: string): string {
 }
 
 /**
- * The room a Stuff sits in: walk up the container chain while each hop
- * is Containable, returning the first Container that is not (a
- * Location). Resolves the true source room even when the emitter is a
- * carried object (a whistle in a hand propagates from the room, not the
- * hand). Mirrors the container-chain walk in `Containable.canEvict`.
- * Returns the actor itself when it is already a non-Containable
- * Container (a humming room). `null` when placeless.
+ * The room a Stuff sits in — `Containable.getEnclosingPlace()`, the one
+ * walk up the container chain (controller-liquidity D7): a whistle in a
+ * hand propagates from the room, not the hand; a shout in a boat from the
+ * river. Returns the actor itself when it is a non-Containable Container
+ * (a humming room). `null` when placeless.
  */
 function enclosingLocation(start: Stuff): (Stuff & Container) | null {
-  let cur: Stuff | null = start;
-  while (cur !== null) {
-    if (MixinApi.isContainable(cur)) {
-      cur = cur.getContainer();
-    } else if (MixinApi.isContainer(cur)) {
-      return cur;
-    } else {
-      return null;
-    }
-  }
-  return null;
+  if (MixinApi.isContainable(start)) return start.getEnclosingPlace();
+  return MixinApi.isContainer(start) ? start : null;
 }
 
 /**

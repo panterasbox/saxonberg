@@ -37,6 +37,7 @@ import { LIGHT_BANDS } from '../../../lib/perception/Light';
 // subsystem into this module's eval.
 import type { VisionModality } from '../modalities/VisionModality';
 import type { SearchDepth } from '../../../api/perception';
+import type { ReachDepth } from '../../../api/command';
 import type {
   HorizonView, HorizonSighting, HorizonTraffic, VisibleContents,
 } from '../../../api/perception';
@@ -315,151 +316,35 @@ export class PerceptionLogic extends ApiLogic {
   public canReach(
     actor: Stuff,
     target: Stuff,
-    opts?: { location?: Stuff | null },
+    opts?: { location?: Stuff | null; depth?: ReachDepth },
   ): boolean {
-    const id = target.stuffId;
-    if (id === actor.stuffId) return true;
-
-    const location =
-      opts?.location !== undefined
-        ? opts.location
-        : MixinApi.isContainable(actor)
-          ? actor.getContainer()
-          : null;
-
-    // ⭐ ONE LEVEL into an open container, on both sides. Reach into the
-    // open crate standing here, or into the open pouch you are carrying;
-    // a box INSIDE that crate must be opened or taken out first. The
-    // openness test is `MixinApi.isOpenContainer` — the single rule the
-    // `peers` scope walk, `mustBeInLocation` and `VisionModality` also
-    // ask, so what you can name, see and touch can never diverge.
-    //
-    // ⚠ This clause is why reach could not stay flat: with only the two
-    // direct scans below, a coupe standing in a glass rack — or any good
-    // in an open Stock counter, or a lime in a crate — was unreachable
-    // by every verb in the game, and each caller grew its own bespoke
-    // descent instead.
-    // ⭐ And a sibling placed in a region with its OWN air is reached
-    // through that region's lid, not the room's. A thing placed under
-    // an enclosing member (`in`) on a shut host is inside something
-    // shut, even though its container is the room and it is right
-    // there in the contents list — the same lid the `peers` walk and
-    // `gatherMatter` read, asked on the placement rather than the
-    // container. A non-enclosing member (a ham on a hook on a shut
-    // box) is untouched: the hook is on the outside.
-    const enclosedShut = (c: Stuff): boolean => {
-      if (!MixinApi.isContainable(c)) return false;
-      const scope = c.getEnclosingScope();
-      if (scope === null || scope.stuffId === c.getContainer()?.stuffId) {
-        return false;
-      }
-      return MixinApi.isSealable(scope) && !scope.isOpen();
-    };
-
-    const reachesInto = (holder: Stuff): boolean => {
-      if (!MixinApi.isContainer(holder)) return false;
-      for (const c of holder.getContents()) {
-        if (c.stuffId === id) return !enclosedShut(c);
-        if (MixinApi.isOpenContainer(c)) {
-          for (const inner of c.getContents()) {
-            if (inner.stuffId === id) return !enclosedShut(inner);
-          }
-        }
-      }
-      return false;
-    };
-
-    if (MixinApi.isContainer(actor) && reachesInto(actor)) return true;
-    if (location && reachesInto(location)) return true;
-    // ⚠ Attached doors are in NO container — they ride `exit.getDoor()`
-    // — so a containment-only test misses every door in the game. This
-    // clause is the entire reason reach could not stay hand-rolled: the
-    // card hold that omitted it released `out-of-reach` on doors the
-    // `open` verb worked on perfectly well.
-    if (location && MixinApi.isExitable(location)) {
-      // ⭐ The ways the ACTOR can see — the list MQL names them from
-      // (`obviousExitsFor`), so what you can name is what you can touch.
-      // Never the physics list (`getObviousExits`), which skips a way whose
-      // far side is not standing: the rope's way down off the Sunken
-      // Delve's lip bound, and was "you can't reach down" (harbors sibling
-      // drives, 2026-11-04).
-      for (const exit of location.obviousExitsFor(actor)) {
-        // ⭐ The way itself (a direction binds the exit)
-        // or the door hung in it.
-        if (exit.stuffId === id || exit.getDoor()?.stuffId === id) return true;
-      }
-    }
-    // ⚠ ...and neither are fixtures. A hung sconce, a wall TV, a neon
-    // sign lives in `getFixtures()`, in no container — so the two
-    // containment scans above miss it exactly as they missed doors. The
-    // `here` scope offers them; reach must agree, or what you can name is
-    // not what you can touch.
-    if (location && MixinApi.isAdornable(location)) {
-      for (const f of location.getFixtures()) {
-        if (f.stuffId === id) return true;
-      }
-    }
-    return false;
+    if (target.stuffId === actor.stuffId) return true;
+    return reachIds(actor, opts).has(target.stuffId);
   }
 
   /**
    * ⭐⭐ **The same rule, once, for a whole candidate list.**
    *
-   * `canReach` is O(room contents + one level into each open container)
-   * per call AND it is gated, so a caller that asks it per candidate
-   * pays that walk N times and a call-security stack capture N times.
-   * That is quadratic, and it is not theoretical: `get produce` on a
-   * farm floor binds every produce item in the open floor stock —
-   * hundreds — and `GetController` asked `canReach` for each. A live
-   * drive found **96.5% of the whole server's CPU inside
-   * `GetController.executeWholeSet`**, with a trivial HTTP GET taking
-   * 17 seconds behind it.
+   * `canReach` is a walk of everything to hand per call AND it is gated,
+   * so a caller that asks it per candidate pays that walk N times and a
+   * call-security stack capture N times. That is quadratic, and it is
+   * not theoretical: `get produce` on a farm floor binds every produce
+   * item in the open floor stock — hundreds — and `GetController` asked
+   * `canReach` for each. A live drive found **96.5% of the whole
+   * server's CPU inside `GetController.executeWholeSet`**, with a
+   * trivial HTTP GET taking 17 seconds behind it.
    *
    * One walk, one gate, O(1) per candidate afterwards. The RULE is not
-   * duplicated — this is the walk, and `canReach` is the single-target
-   * question asked of the same descent.
+   * duplicated — both read {@link reachIds}.
    */
   @CallSecurity(PerceptionApiCallers)
   public reachableAmong(
     actor: Stuff,
     candidates: readonly Stuff[],
-    opts?: { location?: Stuff | null },
+    opts?: { location?: Stuff | null; depth?: ReachDepth },
   ): Stuff[] {
     if (candidates.length === 0) return [];
-    const location =
-      opts?.location !== undefined
-        ? opts.location
-        : MixinApi.isContainable(actor)
-          ? actor.getContainer()
-          : null;
-
-    // The reachable id set: everything directly in the actor or the
-    // room, plus one level into each open container on either side —
-    // the same descent `canReach` walks, and the same
-    // `MixinApi.isOpenContainer` the `peers` scope asks.
-    const ids = new Set<string>([actor.stuffId]);
-    const collect = (holder: Stuff | null): void => {
-      if (!holder || !MixinApi.isContainer(holder)) return;
-      for (const c of holder.getContents()) {
-        ids.add(c.stuffId);
-        if (MixinApi.isOpenContainer(c)) {
-          for (const inner of c.getContents()) ids.add(inner.stuffId);
-        }
-      }
-    };
-    collect(MixinApi.isContainer(actor) ? actor : null);
-    collect(location);
-    // Attached doors ride their exit, in no container at all.
-    if (location && MixinApi.isExitable(location)) {
-      for (const exit of location.getObviousExits()) {
-        const door = exit.getDoor();
-        if (door) ids.add(door.stuffId);
-      }
-    }
-    // ...and fixtures ride the room's fixture map, likewise uncontained.
-    if (location && MixinApi.isAdornable(location)) {
-      for (const f of location.getFixtures()) ids.add(f.stuffId);
-    }
+    const ids = reachIds(actor, opts);
     return candidates.filter((c) => ids.has(c.stuffId));
   }
 
@@ -1428,10 +1313,59 @@ function horizonAshore(viewer: Stuff): HorizonView {
 
 /** The room `who` stands in — through any vessel (a boat) to the Place. */
 function roomOf(who: Stuff): (Stuff & Container) | null {
-  let cur: Stuff | null = MixinApi.isContainable(who) ? who.getContainer() : null;
-  for (let i = 0; cur !== null && i < 8; i++) {
-    if (cur.isPlace() && MixinApi.isContainer(cur)) return cur;
-    cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+  if (!MixinApi.isContainable(who)) return null;
+  const place = who.getEnclosingPlace();
+  return place !== null && place.isPlace() ? place : null;
+}
+
+/**
+ * ⭐⭐ **Everything `actor` can lay hands on, as ids** — the one definition
+ * of reach (controller-liquidity D5), read by `canReach` and
+ * `reachableAmong`. The holders are the actor's own person, the vessel
+ * it sits in, and the place around it (`getEnclosingPlace` — in a boat
+ * on the river, both the boat and the river); each is walked by
+ * `Container.getReachableContents(rung)`, the walk MQL's `reachable`
+ * pool reads too, so what you can name is what you can touch. Then the
+ * two things in no container at all:
+ *
+ * ⚠ Attached doors ride `exit.getDoor()` — a containment-only test misses
+ * every door in the game (the card hold that omitted them released
+ * `out-of-reach` on doors `open` worked on perfectly well); and the way
+ * itself binds a direction. The ways are the ones the ACTOR can see
+ * (`obviousExitsFor`), never the physics list — the rope's way down off
+ * the Sunken Delve's lip bound and was "you can't reach down" (harbors
+ * sibling drives, 2026-11-04).
+ *
+ * ⚠ ...and fixtures ride the room's fixture map, likewise uncontained.
+ */
+function reachIds(
+  actor: Stuff,
+  opts?: { location?: Stuff | null; depth?: ReachDepth },
+): Set<string> {
+  const rung = opts?.depth ?? 'open';
+  const ids = new Set<string>([actor.stuffId]);
+  const holders: Stuff[] = [actor];
+  const immediate = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+  const place = MixinApi.isContainable(actor) ? actor.getEnclosingPlace() : null;
+  const location = opts?.location !== undefined ? opts.location : immediate;
+  for (const h of [location, immediate, place]) {
+    if (h && !holders.some((x) => x.stuffId === h.stuffId)) holders.push(h);
   }
-  return null;
+  for (const h of holders) {
+    if (!MixinApi.isContainer(h)) continue;
+    for (const c of h.getReachableContents(rung)) ids.add(c.stuffId);
+  }
+  for (const room of holders.slice(1)) {
+    if (MixinApi.isExitable(room)) {
+      for (const exit of room.obviousExitsFor(actor)) {
+        ids.add(exit.stuffId);
+        const door = exit.getDoor();
+        if (door) ids.add(door.stuffId);
+      }
+    }
+    if (MixinApi.isAdornable(room)) {
+      for (const f of room.getFixtures()) ids.add(f.stuffId);
+    }
+  }
+  return ids;
 }

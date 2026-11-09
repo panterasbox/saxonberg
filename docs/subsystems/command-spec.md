@@ -728,9 +728,33 @@ the view's job (`StyleController`, `CockpitShelfController`).
 default reach rung (`open` when omitted); the player overrides it for one
 invocation with the reserved `--top` / `--open` / `--deep` flags, which
 join `--async`/`--sync`/`--strict`/`--loose` (no view may name an option
-or arg any of them). ⚠ Since W1 the key and the flags are GRAMMAR only —
-the binder strips the flag onto `CommandContext.depth`; the seed walks
-obey it from W2 (see the plan's D5).
+or arg any of them). The binder resolves the slot at `context.depth ??
+def.depth ?? 'open'` (`MqlContext.depth`), and the `inventory` / `person`
+/ `peers` / `reachable` pools walk at it — the one reach walk
+(`Container.getReachableContents`, [mql.md § Reach is one
+walk](./mql.md)):
+
+| rung | reaches |
+|---|---|
+| `top` | held, worn, the room's top level |
+| `open` | and inside open vessels you carry, and one level into open things here |
+| `deep` | everything, shut or not — never another person's pockets |
+
+A bare name that finds nothing at the slot's rung is probed once at
+`deep`; a find behind a shut lid refuses the line with *"The box is
+shut."* (`validator-failed`, `reach:enclosed-shut`) and binds nothing. A
+rung typed on the line is never second-guessed. Which slots set what:
+
+- **`depth: top`** — a slot whose act needs the thing at hand and carries
+  `mustBeInInventory` (`drop`, `give`, `put`, `hang`, `remove`, `wear`,
+  `wield`, `unwield`): what is in a bag would bind and then be refused as
+  *you don't have it*.
+- **`open` (omitted)** — every other slot, inspection verbs included:
+  `look apple` with the apple in a shut box says the box is shut;
+  `look me:I:apple` addresses it.
+- **`mustNotBeShutAway`** — the validator on the verbs that put a hand on
+  what they name (`get`, `eat`, `drink`, `sip`, `fill`, `pour`, `read`):
+  an explicit chain addresses through a lid, the verb refuses it.
 
 ### `type: struct` — structured-input-only fields
 
@@ -1017,7 +1041,7 @@ So a verb whose target is a room-level thing (a direction, an exit) must
 "north" inside it, finds no exit, and fails with "you can't walk that
 way." The movement verbs (`go`/`walk`/`climb`/`swim`/`fly`/`ride`/
 `drive`, joining `mount`) therefore scope to WAYS — `go.yaml` declares
-`scope: ["here:exits", "reachable:[class.ExitableVessel]"]` (harbors
+`scope: ["me:e:exits", "reachable:[class.ExitableVessel]"]` (harbors
 review 3; the seven locomotion views share it) — so a direction word can
 only mean a way and a focused object never swallows it. (They declared
 `["$focus", "reachable"]` before that; the drill-first form is still

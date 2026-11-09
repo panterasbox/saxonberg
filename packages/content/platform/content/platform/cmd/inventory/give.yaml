@@ -23,6 +23,7 @@ args:
     required: true
     scope: "inventory"
     requires: ContainableMixin
+    depth: top
     validators:
       - /lib/command/validators/mustBeInInventory
   - name: recipient

@@ -29,6 +29,7 @@ args:
     requires: [VisibleMixin, ContainableMixin]
     validators:
       - /lib/command/validators/mustBeInLocation
+      - /lib/command/validators/mustNotBeShutAway
   # ⭐ WHERE FROM — optional. `peers` already reaches one level into an
   # open container standing here, so the targets bind without it; naming
   # the holder narrows them to what is IN it or ON it (`get block from
