@@ -123,6 +123,7 @@
     "lint:thin-forwarder": "tsx scripts/check-thin-forwarder.ts",
     "lint:topics": "tsx scripts/check-topic-keys.ts --lint",
     "lint:unconsumed-seams": "tsx scripts/check-unconsumed-seams.ts",
+    "lint:typed-words": "tsx scripts/check-typed-words.ts",
     "lint:untitled": "tsx scripts/check-untitled-paths.ts --lint",
     "lint:verb-collisions": "tsx scripts/check-verb-collisions.ts",
     "lint:water-citations": "tsx scripts/check-water-citations.ts",

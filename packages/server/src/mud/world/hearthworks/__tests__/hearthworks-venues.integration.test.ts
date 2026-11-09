@@ -301,7 +301,12 @@ beforeEach(async () => {
     readdirSync(dir)
       .filter((f) => f.endsWith('.yaml'))
       .sort()
-      .map((f) => YAML.parse(readFileSync(dir + f, 'utf-8')) as Record<string, unknown>),
+      // The file's name IS the recipe's word (its path's leaf); the
+      // fixture carries it only to build the row's path below.
+      .map((f) => ({
+        ...(YAML.parse(readFileSync(dir + f, 'utf-8')) as Record<string, unknown>),
+        recipeId: f.slice(0, -'.yaml'.length),
+      })),
   );
   store = { recipes };
 

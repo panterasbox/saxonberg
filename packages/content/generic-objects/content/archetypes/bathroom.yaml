@@ -10,7 +10,6 @@
 #
 # Water is the real read: `bulkSource: water` is the same need the bar's
 # wash station states, and the basin and the tub both answer it.
-archetypeId: bathroom
 label: a bathroom
 capabilities:
   - { key: water, needs: { bulkSource: water }, default: /stuff/thing/fixture/basin }

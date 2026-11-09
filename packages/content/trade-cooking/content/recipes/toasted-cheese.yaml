@@ -1,6 +1,5 @@
 # Toasted cheese (dairy D15) — bread and a wedge of cheese held to the
 # fire until the cheese runs. Any cheese (`category: cheese`), any bread.
-recipeId: toasted-cheese
 name: Toasted Cheese
 keywords:
 - toasted-cheese

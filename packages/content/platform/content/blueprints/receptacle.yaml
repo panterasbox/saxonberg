@@ -1,4 +1,3 @@
-blueprintId: receptacle
 name: Receptacle
 kind: composition
 baseClass: Thing

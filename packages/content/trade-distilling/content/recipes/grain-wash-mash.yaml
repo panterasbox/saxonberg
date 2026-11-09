@@ -15,7 +15,6 @@
 # whole line runs off the quern on the floor: grind wheat for the bulk,
 # grind malt for the enzymes, mash the two. Both grinds were impossible
 # until the mill learned to make what it is fed.
-recipeId: grain-wash-mash
 name: Grain mash
 keywords: [grain-wash-mash, "grain mash"]
 discipline: fermenting

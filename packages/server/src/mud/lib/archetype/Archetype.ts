@@ -36,6 +36,7 @@ import type { BulkAffordance } from '../bulk/Bulkable';
 import type { Quantity } from '../quantity';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { DocumentNotResidentError } from '../errors';
 import { ContainmentApi } from '../../api/containment';
 import { PerceptionApi } from '../../api/perception';
 import { ParcelApi } from '../../api/parcel';
@@ -441,8 +442,12 @@ export class Archetype {
     // down; skipping the walk is the whole of "industry is optional".
     const industry = this.getIndustry();
     if (industry === null) return order.map((k) => rows.get(k)!);
-    const recipes = StuffApi.findByTemplatePath<RecipeCatalogue>(RECIPES_PATH) ?? null;
-    for (const r of recipes?.allRecipes() ?? []) {
+    // ⭐ The industry's recipes come from the recipe dictionary, which
+    // whatever asks (`survey`, the scaffold) loaded before asking — a miss
+    // throws rather than deriving an empty floor.
+    const recipes = StuffApi.findByTemplatePath<RecipeCatalogue>(RECIPES_PATH);
+    if (!recipes) throw new DocumentNotResidentError('recipe', RECIPES_PATH);
+    for (const r of recipes.allRecipes()) {
       if (r.getDiscipline() !== industry) continue;
       for (const cap of r.getToolCapabilities()) add({ tool: cap }, r.getRecipeId());
       const heat = r.getRequiresHeatK();

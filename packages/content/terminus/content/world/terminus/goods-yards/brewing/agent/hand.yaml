@@ -54,7 +54,7 @@ data:
         crushes: [mash]
         pitchJar: true
         lagerLeg:
-          recipe: lager-mash
+          recipe: /trade/brewing/recipes/lager-mash
           room: /world/terminus/goods-yards/brewing/location/cold-store
         buyKeyword: malt
         inputMin: 1

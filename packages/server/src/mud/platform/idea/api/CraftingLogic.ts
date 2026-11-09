@@ -5239,11 +5239,17 @@ async function lookupImpl(ref: string): Promise<RecipeView | null> {
 
 async function offeredImpl(menu: Stuff): Promise<RecipeView[]> {
   const catalogue = await requireCatalogue();
-  const ids = menu instanceof CommerceMenu ? menu.getOfferedRecipeIds() : [];
+  const paths = menu instanceof CommerceMenu ? menu.getOfferedRecipeIds() : [];
   const out: RecipeView[] = [];
-  for (const id of ids) {
-    const recipe = catalogue.getRecipe(id);
-    if (recipe) out.push(toView(recipe));
+  for (const path of paths) {
+    const recipe = catalogue.getRecipeAt(path);
+    // ⚠ A menu citing a path no pack ships is caught by `lint:census` (g)
+    // before merge; at runtime it is skipped loudly, never silently.
+    if (!recipe) {
+      console.warn(`CraftingLogic: menu ${menu.getTemplatePath()} offers '${path}', which is no recipe`);
+      continue;
+    }
+    out.push(toView(recipe));
   }
   return out;
 }

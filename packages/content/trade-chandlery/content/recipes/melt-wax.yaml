@@ -11,7 +11,6 @@
 # ⭐ `outputMaterial` is authored here and that is right: melting does not
 # change what the wax IS. Only the dip derives, because only the dip has
 # two possible feedstocks.
-recipeId: melt-wax
 name: Melted wax
 keywords: ["melt-wax", "melt", "wax"]
 inputSlots:

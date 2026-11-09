@@ -26,27 +26,19 @@
  * exactly as they did.
  */
 
-import { StuffApi } from '../../api/stuff';
 import type { BulkPayload } from '../bulk/Bulkable';
 import type Material from '../material/Material';
-import type { Recipe } from './Recipe';
-import type { Stuff } from '../stuff/Stuff';
-
-/** Where the warmed catalogue lives — the same constant the craft uses. */
-const CATALOGUE_PATH = '/platform/idea/RecipeCatalogue';
-
-interface RecipeLookup {
-  getRecipe(recipeId: string): Recipe | null;
-}
+import { Recipe } from './Recipe';
 
 export class BlendIdentity {
   /** The recipe that made this blend, or `null` — most bulk has none. */
   private static recipeOf(payload: BulkPayload | null): Recipe | null {
     const id = payload?.recipeId;
     if (!id) return null;
-    const catalogue = StuffApi.findByTemplatePath<Stuff>(CATALOGUE_PATH);
-    if (!catalogue) return null;
-    return (catalogue as unknown as RecipeLookup).getRecipe(id) ?? null;
+    // ⭐ Resident by construction: the payload's setter loaded the
+    // dictionary at restore, and a craft wrote it holding the recipe. A
+    // miss throws (`DocumentNotResidentError`) — never a quiet fallback.
+    return Recipe.dictionary().getRecipe(id);
   }
 
   /**

@@ -17,6 +17,7 @@ import { ParcelApi } from '../../../../api/parcel';
 import type { PackInstallRecord } from '../../../../api/pack';
 import type { ParcelOwner, TitleClaim } from '../../../../lib/parcel/ParcelRecord';
 import type { GroupOwner } from '../../../../lib/social/Group';
+import { matchesDocumentQuery } from '../../../../lib/document/__tests__/document-query';
 
 export const MATERIAL = '/platform/idea/material/Material';
 export const HYDRATOR = '/platform/idea/TemplateApplier';
@@ -136,7 +137,7 @@ export function stubPersist(): void {
         .filter(
           (r) =>
             (r.__col ?? 'content') === col &&
-            Object.entries(query).every(([k, v]) => getPath(r, k) === v),
+            matchesDocumentQuery(r, query),
         )
         .map((r) => structuredClone(r)) as never,
   );

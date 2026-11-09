@@ -9,7 +9,6 @@
 # `isItemCandidate` admits it — verified, because a Crafted non-food sack
 # would have been refused at the slot and the chain would have failed
 # closed and silent.
-recipeId: steep-barley
 name: Steep barley
 keywords: [steep, "steep barley"]
 discipline: malting

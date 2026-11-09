@@ -913,6 +913,40 @@ recipe/archetype/blueprint load on use.
   `ArchetypeCatalogue.test.ts`, `BlueprintCatalogue.test.ts` for the lazy warm.
 - Commit: `build(documents W1): emote, recipe, archetype, blueprint are named by their path`.
 
+> ✅ **W1 done (build).** What changed from the plan, and why:
+> - ⚠ **Runtime recipe references keep the recipe's WORD (D8 narrowed).**
+>   `BulkPayload.recipeId`, `Crafted.recipe` and the thermal dose name the
+>   recipe by its word — the path's leaf, which the install check (D3) keeps
+>   unique — rather than by path. *Authored* citations name paths
+>   (`offeredRecipes:` on the six menus, the brewing hand's `lagerLeg.recipe`,
+>   `DipPot`'s two literals), and `RecipeCatalogue.findByKeyword` /
+>   `getRecipeAt` resolve a path. Why: the word is not a second stored name
+>   (it is derived from the path), a player types it, and converting every
+>   runtime field to a path was ~170 production + ~300 test references for no
+>   behavior a player could see. Lens 2 (authors cite paths) is met; flagged
+>   for the owner in the MR.
+> - **Residency (D7) for recipes is the dictionary, not a per-path cache.**
+>   `Recipe.dictionary()` (sync; `DocumentNotResidentError` if the lazy
+>   `RecipeCatalogue` is not resident) is what `BlendIdentity`, `ThermalDose`
+>   and `Archetype.effectiveRows` read; `Recipe.loadDictionary()` is what the
+>   restore doors return for the applier to await — `Crafted.setRecipe` (now
+>   returns the load), and two new restore setters on `Bulkable`,
+>   `setInteriorPayload` / `setSurfacePayload`. `ArchetypeCatalogue.onCreate`
+>   loads the recipe dictionary first (an industry archetype derives from it).
+>   The three catalogues' `ensureCache` throw instead of reading as empty.
+> - The three boot lines went (85 → 82). Lazy = reached only through
+>   `StuffApi.singleton`, whose `onCreate` warms (`survey` now awaits it).
+> - `DocumentCache` + `DocumentNotResidentError` landed; `Aroma` keeps its own
+>   parent-walking `ensure` and stores into the shared cache. The go-live
+>   calls `DocumentCache.invalidate(kind, paths)` for every kind.
+> - `wordFailures` is `storeWordFailures` (one `$in` read per kind) beside the
+>   install-set check, run by both `install` and `sync`. `lint:typed-words`
+>   added (proved red on a planted twin). `check-untitled-paths` derives its
+>   dirs; census (g) gains `offeredRecipes`.
+> - Found and fixed on the way: `trade-dairying`'s row fixture still read
+>   `smells[].word` (a !541 leftover); `trade-mining`'s archetype test asserted
+>   the cold "authored residue" floor D7 forbids — it now asserts the throw.
+
 ### W2 — the press reads by key (D5)
 
 - `PressLogic.archiveImpl`, `DocumentLogic.callUpImpl`, `PressBoard.warm` →

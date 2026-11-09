@@ -14,7 +14,6 @@
 # ⭐ The needs are existing vocabulary, and the proof that it already
 # reaches conveyances is that it was already being used for them: the
 # mining archetype's `haulage: { presence: pony }`.
-archetypeId: haulage-rig
 label: a haulage rig
 materializesOnto: /system/transport/thing/wagon
 surveyScope: off-room

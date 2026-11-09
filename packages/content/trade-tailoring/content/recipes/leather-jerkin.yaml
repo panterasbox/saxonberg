@@ -46,7 +46,6 @@
 # does **not** carry that tag, so the slot means what it always said it
 # meant: *tanned hide*. The recipe is unchanged because it was never the
 # thing that was wrong.
-recipeId: leather-jerkin
 name: Leather Jerkin
 keywords:
 - jerkin

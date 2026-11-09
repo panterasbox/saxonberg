@@ -51,6 +51,7 @@ import type Locality from '../Locality';
 import { PersistenceManager } from '../../../lib/persistence/__tests__/backend-store';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
+import { matchesDocumentQuery } from '../../../lib/document/__tests__/document-query';
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -81,6 +82,11 @@ function col(name: string): Doc[] {
 }
 
 function matches(d: Doc, q: Record<string, unknown>): boolean {
+  // The document store's own query shapes (a path range, `$or`, a card key).
+  const hasRegex = Object.values(q).some(
+    (v) => v !== null && typeof v === 'object' && '$regex' in (v as object),
+  );
+  if (!hasRegex) return matchesDocumentQuery(d as Record<string, unknown>, q);
   return Object.keys(q).every((k) => {
     const want = q[k];
     const stored = d[k];

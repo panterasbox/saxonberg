@@ -66,8 +66,8 @@ export async function hydrate<T extends Stuff>(path: string): Promise<T> {
   // by anything these tests prove.
   const { composition: _c, electricalConductivity: _e, ...data } = row.data;
   // The words a smell names load with it; stand each up where a setter finds it.
-  for (const tag of [...((data.smells as { word: string }[]) ?? []), ...((data.burning as { word: string }[]) ?? [])]) {
-    if (!Aroma.resolveKnown(tag.word)) Aroma.remember(tag.word, {}, null);
+  for (const tag of [...((data.smells as { aroma: string }[]) ?? []), ...((data.burning as { aroma: string }[]) ?? [])]) {
+    if (!Aroma.resolveKnown(tag.aroma)) Aroma.remember(tag.aroma, {}, null);
   }
   await makeStuff(() => new TemplateApplier()).apply(s, data, { mode: 'mint' });
   return s;

@@ -46,9 +46,9 @@ import Candle from './Candle';
 
 /** The platform's one view — `dip`. */
 const DIP_VIEW = 'platform/cmd/crafting/dip.yaml';
-const RECIPE = 'candle';
+const RECIPE = '/trade/chandlery/recipes/candle';
 /** The step that fills the pot when what you have is a cake. */
-const MELT_RECIPE = 'melt-wax';
+const MELT_RECIPE = '/trade/chandlery/recipes/melt-wax';
 
 export default class DipPot extends DipBathMixin(CraftVessel) {
   /**

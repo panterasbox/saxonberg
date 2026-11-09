@@ -1,5 +1,4 @@
 # A frame leg — squared and mortised. Run by `carve`.
-recipeId: leg
 name: Frame Leg
 keywords: [leg]
 inputSlots:

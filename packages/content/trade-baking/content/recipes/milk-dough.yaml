@@ -2,7 +2,6 @@
 # makes the same dough (`outputMaterial: dough`), so it proves and bakes
 # into the shipped loaf with nothing else edited; milk only makes it
 # softer, which is a cook's knowledge and not a new loaf.
-recipeId: milk-dough
 name: Milk dough
 keywords:
 - milk-dough

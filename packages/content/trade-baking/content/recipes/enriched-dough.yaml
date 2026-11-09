@@ -16,7 +16,6 @@
 # and keeps a day longer, which is why every festival bread in every
 # cuisine is enriched and every daily loaf is not. The baker's ratio is
 # the same flour and rather less water, because the egg brings its own.
-recipeId: enriched-dough
 name: Enriched dough
 keywords:
 - enriched dough

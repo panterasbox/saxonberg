@@ -47,6 +47,7 @@ import { Mixins } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Perceptible } from '../description/Perceptible';
 import { BlendIdentity } from '../craft/BlendIdentity';
+import { Recipe } from '../craft/Recipe';
 import type { CommandContributions } from '../../api/command';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
@@ -1440,6 +1441,24 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       } else {
         this.surfacePayload = copy;
       }
+    }
+
+    /**
+     * The restore door for the interior payload (the applier's
+     * `set<Field>`): a payload that names the recipe that made it is live
+     * only when that recipe's dictionary is — the returned load is awaited
+     * by the applier. Runtime writes go through `setBulkPayload`, inside an
+     * act that already held the recipe.
+     */
+    public setInteriorPayload(payload: BulkPayload | null): Promise<void> | undefined {
+      this.interiorPayload = payload;
+      return payload?.recipeId ? Recipe.loadDictionary() : undefined;
+    }
+
+    /** The restore door for the surface payload — see {@link setInteriorPayload}. */
+    public setSurfacePayload(payload: BulkPayload | null): Promise<void> | undefined {
+      this.surfacePayload = payload;
+      return payload?.recipeId ? Recipe.loadDictionary() : undefined;
     }
 
     /**

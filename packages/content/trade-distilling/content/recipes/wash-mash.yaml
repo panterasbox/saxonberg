@@ -12,7 +12,6 @@
 # which is the whole of what the retrofit adds.
 # Wash mash — bought malt and liquor to the still-house's rough wort
 # (fermentation W6; the brewer's shape, the distiller's grist).
-recipeId: wash-mash
 name: Wash mash
 keywords: [wash-mash]
 discipline: fermenting

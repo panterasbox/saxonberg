@@ -18,7 +18,6 @@
 # trade genuinely owns the row — the tools any mine needs. Haulage, air
 # and support are bound by the venue, because whose pony and whose timber
 # is a fact about the place.
-archetypeId: mining
 label: a working mine
 industry: mining
 capabilities:

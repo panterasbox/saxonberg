@@ -38,6 +38,20 @@ import {
 import { ThermalDose } from '../thermal/ThermalDose';
 import type { FieldMeta } from '../mixin';
 import type { StoredDocument } from '../document/StoredDocument';
+import { StuffApi } from '../../api/stuff';
+import type { Stuff } from '../stuff/Stuff';
+import { DocumentNotResidentError } from '../errors';
+
+/** Where the recipe dictionary (the lazy `RecipeCatalogue`) lives. */
+const RECIPE_DICTIONARY = '/platform/idea/RecipeCatalogue';
+
+/** The slice of the recipe dictionary a synchronous reader uses. */
+export interface RecipeDictionary {
+  /** A recipe by its word (the path's leaf — unique by the install check). */
+  getRecipe(word: string): Recipe | null;
+  /** A recipe by its document path. */
+  getRecipeAt(path: string): Recipe | null;
+}
 
 /**
  * One input slot, by constraint. `category` is a Material classification tag
@@ -390,6 +404,35 @@ export class Recipe {
    * `RecipeSeeder` validated — a non-empty `inputSlots` and a string
    * `outputTemplate` — so a malformed pack file fails at `read`.
    */
+  /**
+   * ⭐ The recipe dictionary, synchronously — for a reader beneath runtime
+   * state that cites a recipe (a blend's name, a dose's hold). Resident by
+   * construction: whatever holds a recipe reference loaded the dictionary
+   * when the reference was set ({@link Recipe.loadDictionary}), and a craft
+   * had its recipe in hand. ⚠ Throws `DocumentNotResidentError` if it is
+   * not — an engine defect, never a quiet "no recipe".
+   *
+   * @internal the craft substrate's; an author names a recipe on a row.
+   */
+  static dictionary(): RecipeDictionary {
+    const found = StuffApi.findByTemplatePath<Stuff>(RECIPE_DICTIONARY);
+    if (!found) throw new DocumentNotResidentError('recipe', RECIPE_DICTIONARY);
+    return found as unknown as RecipeDictionary;
+  }
+
+  /**
+   * Load the recipe dictionary (a resolved promise when it is already
+   * resident — the runtime case, where the act that wrote a reference held
+   * the recipe). A setter that stores a recipe reference returns this, and
+   * the applier awaits it at a restore.
+   *
+   * @internal the recipe-citing setters' own.
+   */
+  static loadDictionary(): Promise<void> {
+    return StuffApi.singleton<Stuff>(RECIPE_DICTIONARY).then(() => undefined);
+  }
+
+
   static fromDocument(doc: StoredDocument): Recipe {
     return Recipe.fromData(doc.getData(), doc.getPath());
   }

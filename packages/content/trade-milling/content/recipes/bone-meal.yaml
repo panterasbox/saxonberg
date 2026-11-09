@@ -18,7 +18,6 @@
 #
 # ⭐ No `discipline` and no `difficulty`: turning a handle is not a skill.
 # The skill in this chain was the butchering.
-recipeId: bone-meal
 name: Bone meal
 keywords: ["bone-meal", "bonemeal", "bone", "grind-bone"]
 inputSlots:

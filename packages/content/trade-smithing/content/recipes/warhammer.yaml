@@ -1,7 +1,6 @@
 # A war-hammer — a face and a beak on a long straight haft, WEDGED. Run
 # by `fit war-hammer`. It is not subtle and it does not need to be: all
 # of its subtlety is in the forging of the head (`forge warhammer-head`).
-recipeId: warhammer
 name: War-hammer
 keywords: [war-hammer, warhammer]
 inputSlots:

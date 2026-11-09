@@ -30,6 +30,7 @@
 import { DocumentApi } from '../../api/document';
 import { DiagnosticApi } from '../../api/diagnostics';
 import { StuffApi } from '../../api/stuff';
+import { DocumentCache } from '../document/DocumentCache';
 
 /** How one person's liking moves with a note's strength: a hump, in log10 OU. */
 export interface HedonicCurve {
@@ -63,8 +64,14 @@ const PATH_SHAPE = /^(\/[a-z0-9][a-z0-9._-]*)*\/aromas(\/[a-z][a-z0-9]*(-[a-z0-9
 const MAX_DEPTH = 8;
 
 export class Aroma {
-  /** Every aroma read so far, by path. */
-  private static readonly known = new Map<string, Aroma>();
+  /**
+   * Every aroma read so far, by path — the shared `DocumentCache` (which is
+   * also what a pack sync's go-live clears). Aroma keeps its own `ensure`
+   * because it walks the parent chain with a depth guard.
+   */
+  private static readonly known = new DocumentCache<Aroma>('aroma', (doc) =>
+    Aroma.ensure(doc.getPath()),
+  );
   /** Loads in flight, by path. */
   private static readonly loading = new Map<string, Promise<unknown>>();
 
@@ -98,7 +105,7 @@ export class Aroma {
    * @internal the nose's and the setters' own; an author names a path on a row.
    */
   public static resolve(path: string): Aroma | null {
-    const found = Aroma.known.get(path);
+    const found = Aroma.known.peek(path);
     if (found) return found;
     if (!Aroma.loading.has(path)) {
       const load = Aroma.ensure(path)
@@ -118,7 +125,7 @@ export class Aroma {
   /** The aroma at `path`, read with its parents; throws naming the path if there is none. @internal */
   public static async ensure(path: string, depth = 0): Promise<Aroma> {
     if (!Aroma.isAromaPath(path)) throw new Error(`'${String(path)}' is not an aroma path`);
-    const found = Aroma.known.get(path);
+    const found = Aroma.known.peek(path);
     if (found) return found;
     if (depth > MAX_DEPTH) throw new Error(`Aroma '${path}': the tree is deeper than ${MAX_DEPTH}`);
     const doc = await DocumentApi.read(path);
@@ -142,18 +149,17 @@ export class Aroma {
       data.discipline ?? parent?.discipline ?? '',
       data.liking ?? parent?.liking ?? null,
     );
-    Aroma.known.set(path, row);
-    return row;
+    return Aroma.known.remember(path, row);
   }
 
   /** An aroma already read, or `null`; starts nothing. @internal */
   public static resolveKnown(path: string): Aroma | null {
-    return Aroma.known.get(path) ?? null;
+    return Aroma.known.peek(path);
   }
 
   /** Forget every aroma read, so a test starts clean. @internal */
   public static forgetAll(): void {
-    Aroma.known.clear();
+    Aroma.known.forgetAll();
   }
 
   /**

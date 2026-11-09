@@ -1,7 +1,6 @@
 # A froe — ⭐⭐ a smith's forged blade on a carved handle, WEDGED: the
 # by-hand joint, no tool and no competence. The by-hand rung makes the
 # hand-tool rung's tools (assembly AC 21). Run by `fit froe`.
-recipeId: froe
 name: Froe
 keywords: [froe]
 inputSlots:

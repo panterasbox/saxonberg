@@ -1,6 +1,5 @@
 # ⭐ Tools make tools: you cannot smelt without something to hold the hot
 # thing with, and the something is forged.
-recipeId: tongs
 name: Tongs
 keywords: [tongs]
 # ⭐⭐ The stock slot asks for `forgeable`, and that one tag is the whole

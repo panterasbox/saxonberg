@@ -20,7 +20,6 @@
 # the pithead store's pick because the town happens to have a mine in it; a
 # chalk pit in a town with no mine answers with its own row and nothing here
 # changes.
-archetypeId: quarrying
 label: a working quarry
 industry: quarrying
 capabilities:

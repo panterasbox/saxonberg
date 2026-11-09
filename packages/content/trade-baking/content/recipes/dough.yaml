@@ -9,7 +9,6 @@
 # dough is buildable — and what comes out of it is flat, because barley
 # flour has no `gluten` tag and there is no sheet to hold the gas.
 # Nothing refuses it; the physics is the refusal.
-recipeId: dough
 name: Dough
 keywords:
 - dough

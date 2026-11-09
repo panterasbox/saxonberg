@@ -19,7 +19,8 @@
 import { Idea } from '../../lib/stuff/Idea';
 import { Archetype } from '../../lib/archetype/Archetype';
 import { DocumentApi } from '../../api/document';
-import type { VetoResult } from '../../lib/errors';
+import { DocumentNotResidentError, type VetoResult } from '../../lib/errors';
+import { Recipe } from '../../lib/craft/Recipe';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
 const ArchetypeCatalogueBase = Idea;
@@ -46,6 +47,9 @@ export default class ArchetypeCatalogue extends ArchetypeCatalogueBase {
   }
 
   public override async onCreate(_context?: unknown): Promise<void> {
+    // ⭐ An industry archetype's floor derives from its industry's recipes,
+    // so the archetypes are live only when the recipe dictionary is.
+    await Recipe.loadDictionary();
     await this.warm();
   }
 
@@ -66,7 +70,11 @@ export default class ArchetypeCatalogue extends ArchetypeCatalogueBase {
   }
 
   private ensureCache(): void {
-    if (this.cache === null) this.cache = new Map();
+    // Never "empty": reached only through `StuffApi.singleton`, whose
+    // `onCreate` warms it. A cold sync read is an engine defect.
+    if (this.cache === null) {
+      throw new DocumentNotResidentError('archetype', '/platform/idea/ArchetypeCatalogue');
+    }
   }
 
   /** Singleton refusal (mirrors RecipeCatalogue). */

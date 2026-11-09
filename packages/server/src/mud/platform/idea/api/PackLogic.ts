@@ -28,6 +28,7 @@ import {
   type DocumentVanishPolicy,
 } from '../../../lib/document/DocumentKinds';
 import { StoredDocument } from '../../../lib/document/StoredDocument';
+import { DocumentCache } from '../../../lib/document/DocumentCache';
 import { TOPIC_ROOTS } from '@saxonberg/types';
 import Topic from '../Topic';
 import { PersistApi } from '../../../api/persist';
@@ -2935,11 +2936,64 @@ function flatKeyFailures(packs: ReadPack[]): Map<string, PackFailure> {
             error:
               `PackApi: pack '${rp.pack.manifest.id}' claims ${k.strategy.noun} ` +
               `key '${key}' (${relFile}) which pack '${first.packId}' ` +
-              `already claims (${first.relFile}). Keys are unique across ` +
-              `the install set; the second claimant fails.`,
+              `already claims (${first.relFile}). Keys (and a typed word) are ` +
+              `unique across the install set; the second claimant fails.`,
             file: relFile,
           });
         }
+        }
+      }
+    }
+  }
+  return failures;
+}
+
+/**
+ * ⭐ The STORE half of the typed-word check (documents D3): a word one of
+ * `packs` ships must not already be claimed in the store by a document no
+ * pack in this install set ships — the live `sync` of a pack from a
+ * directory, whose install set does not hold the packs already installed.
+ * A second claimant fails the claiming pack, naming the kind, the word and
+ * both claimants. Never first-wins, never silent.
+ */
+async function storeWordFailures(packs: ReadPack[]): Promise<Map<string, PackFailure>> {
+  const failures = new Map<string, PackFailure>();
+  const inSet = new Set(packs.map((rp) => rp.pack.manifest.id));
+  for (const spec of activeDocumentKinds()) {
+    if (!spec.words) continue;
+    const claims = new Map<string, Array<{ packId: string; file: DocumentFile }>>();
+    for (const rp of packs) {
+      for (const f of (rp.content.documents.get(spec.kind) ?? []) as DocumentFile[]) {
+        for (const word of spec.words({ path: f.path, data: f.data })) {
+          const list = claims.get(word) ?? [];
+          list.push({ packId: rp.pack.manifest.id, file: f });
+          claims.set(word, list);
+        }
+      }
+    }
+    if (claims.size === 0) continue;
+    // One indexed read per kind: every store row claiming any shipped word.
+    const rows = (await PersistApi.find(Collections.Documents, {
+      kind: spec.kind,
+      'keys.word': { $in: [...claims.keys()] },
+    })) as Array<Record<string, unknown>>;
+    for (const row of rows) {
+      if (inSet.has(String(row.sourcePack ?? ''))) continue;
+      const card = (row.keys ?? {}) as { word?: string | string[] };
+      const rowWords = Array.isArray(card.word) ? card.word : card.word ? [card.word] : [];
+      for (const word of rowWords) {
+        for (const { packId, file } of claims.get(word) ?? []) {
+          if (row.path === file.path || failures.has(packId)) continue;
+          failures.set(packId, {
+            step: 'flat-key',
+            error:
+              `PackApi: pack '${packId}' ships ${spec.kind} '${word}' (${file.relFile}) ` +
+              `but '${String(row.path)}'` +
+              (row.sourcePack ? ` (pack '${String(row.sourcePack)}')` : '') +
+              ` already claims that word. A typed word means one thing; ` +
+              `the second claimant fails.`,
+            file: file.relFile,
+          });
         }
       }
     }
@@ -3534,6 +3588,9 @@ async function invalidateDocumentKind(
   changedPaths: string[] = [],
   deletedPaths: string[] = [],
 ): Promise<void> {
+  // ⭐ Every value class's memory of the kind forgets the touched paths,
+  // so the next use re-reads (aroma, and each family that is a document).
+  DocumentCache.invalidate(kind, [...changedPaths, ...deletedPaths]);
   switch (kind) {
     case 'command-view':
       // Per path: a changed view re-reads from the store; a deleted one
@@ -3894,6 +3951,7 @@ export class PackLogic extends ApiLogic {
       }
     }
     const flat = flatKeyFailures(read);
+    for (const [id, f] of await storeWordFailures(read)) if (!flat.has(id)) flat.set(id, f);
     const set = installSetOf(read);
 
     // One read window for the whole install: every pack's stamped rows
@@ -3940,6 +3998,7 @@ export class PackLogic extends ApiLogic {
     // explicit install set, or nothing.
     const siblings = packRoot && !packRoots ? [] : siblingsOf(pack, packRoots);
     const flat = flatKeyFailures([...siblings, rp]);
+    for (const [id, sf] of await storeWordFailures([...siblings, rp])) if (!flat.has(id)) flat.set(id, sf);
     const f = flat.get(packId);
     if (f) throw new PackStepError(f.step, f.error, f.file);
     // An operator at the keyboard: sync throws rather than recording.

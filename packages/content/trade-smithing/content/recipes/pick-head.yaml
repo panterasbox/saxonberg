@@ -5,7 +5,6 @@
 # ⭐ A SMITH's recipe now (assembly AC 18): it moved here from the mining
 # trade, and its discipline with it. The head is forged by somebody whose
 # trade is forging; the miner fits it to a haft.
-recipeId: pick-head
 name: Pick Head
 keywords: [pick-head, head]
 # ⭐⭐ The stock slot asks for `forgeable`, and that one tag is the whole

@@ -63,7 +63,12 @@ export const CENSUS_AT_LANDING = { entries: 128, uncited: 71 };
  * melts by its own physics — the unobserved economy, both `reason`s say
  * so. No sibling build adds a boot entry.
  */
-export const BOOT_ENTRY_CEILING = 85;
+/*
+ * ⭐ 85 → 82 by the documents path-identity build (W1): the recipe,
+ * archetype and blueprint dictionaries load on first use through
+ * `StuffApi.singleton` (whose `onCreate` warms them), never at boot.
+ */
+export const BOOT_ENTRY_CEILING = 82;
 
 /**
  * ⭐ Content entries whose reason does not cite the unobserved economy —

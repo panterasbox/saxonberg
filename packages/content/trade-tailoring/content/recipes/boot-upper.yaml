@@ -1,6 +1,5 @@
 # A boot's UPPER (repair D16) — cut and closed over the last. `sew
 # boot-upper`; it credits tailoring.
-recipeId: boot-upper
 name: Boot Upper
 keywords: [boot-upper, upper, uppers]
 inputSlots:

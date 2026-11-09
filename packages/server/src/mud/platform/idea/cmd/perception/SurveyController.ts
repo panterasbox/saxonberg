@@ -101,7 +101,7 @@ export default class SurveyController extends CommandController {
       return;
     }
 
-    const archetypes = this.roomArchetypes();
+    const archetypes = await this.roomArchetypes();
     const holding = this.holdingOf(room);
     const spaces: (Stuff & Container)[] = holding
       ? holding.warren.getMembers().filter((m): m is Stuff & Container =>
@@ -271,10 +271,9 @@ export default class SurveyController extends CommandController {
    * The room archetypes: the ones that derive nothing from an industry.
    * A bedroom has no trade; a bar does.
    */
-  private roomArchetypes(): Archetype[] {
-    const catalogue =
-      StuffApi.findByTemplatePath<ArchetypeCatalogue>(CATALOGUE_PATH);
-    if (!catalogue) return [];
+  private async roomArchetypes(): Promise<Archetype[]> {
+    // The archetype dictionary loads on first use (never at boot).
+    const catalogue = await StuffApi.singleton<ArchetypeCatalogue>(CATALOGUE_PATH);
     return catalogue
       .allArchetypes()
       .filter((a) => a.getIndustry() === null)

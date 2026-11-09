@@ -4,7 +4,6 @@
 # fire and no fuel — just the two cutting tools and a bench — which is the
 # whole difference between the hot shop and the cold one, written down.
 # Makes the pack's `scribing` and `grozing` capabilities CONSUMED ones.
-archetypeId: cold-bench
 label: a glazier's cold bench
 industry: glass
 capabilities:

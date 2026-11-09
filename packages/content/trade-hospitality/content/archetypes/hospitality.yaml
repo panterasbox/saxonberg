@@ -5,7 +5,6 @@
 # tap; the syrup's 340 K) are DERIVED from the trade's recipes by
 # `Archetype.describe()` and never repeated here. Reported, never
 # enforced — a venue missing a slot is short on the checklist, not refused.
-archetypeId: hospitality
 label: a bar
 industry: bartending
 capabilities:

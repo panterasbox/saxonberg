@@ -14,7 +14,6 @@
 # — the `order` surface, not a capability the kernel checks over
 # contents — and inventing a need kind for it would make a checklist
 # tidy at the price of a fake mechanic (the bathroom rule).
-archetypeId: winery
 label: a winery
 capabilities:
   - { key: crush, needs: { tool: press }, default: /trade/winemaking/thing/press }

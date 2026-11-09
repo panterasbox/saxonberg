@@ -12,7 +12,6 @@
 # ⭐ The face is GLUED, and a glue line needs flat faces: a through-sawn
 # board cups as it dries and the facing over it never holds. Build it on
 # a QUARTERED board (`saw bole --quarter`, or the yard's dearer stack).
-recipeId: shield
 name: Faced Shield
 keywords: [shield]
 inputSlots:

@@ -64,8 +64,8 @@ const ARCHETYPE_DIR = fileURLToPath(
 function roomArchetypeDocs(): StoredDocument[] {
   return readdirSync(ARCHETYPE_DIR)
     .filter((f) => f.endsWith('.yaml'))
-    .map((f) => readFileSync(join(ARCHETYPE_DIR, f), 'utf8'))
-    .map((raw) => {
+    .map((f) => ({ raw: readFileSync(join(ARCHETYPE_DIR, f), 'utf8'), id: f.slice(0, -'.yaml'.length) }))
+    .map(({ raw, id }) => {
       const lines = raw.split('\n').filter((l) => !l.trimStart().startsWith('#'));
       const capabilities = lines
         .filter((l) => l.trimStart().startsWith('- { key:'))
@@ -82,10 +82,6 @@ function roomArchetypeDocs(): StoredDocument[] {
           return { key, needs: { [nk!]: nv }, default: null };
         });
       const data = {
-        archetypeId: lines
-          .find((l) => l.startsWith('archetypeId:'))!
-          .slice('archetypeId:'.length)
-          .trim(),
         label: lines
           .find((l) => l.startsWith('label:'))!
           .slice('label:'.length)
@@ -93,7 +89,7 @@ function roomArchetypeDocs(): StoredDocument[] {
         capabilities,
       };
       return {
-        getPath: () => `/generic-objects/archetypes/${data.archetypeId}`,
+        getPath: () => `/generic-objects/archetypes/${id}`,
         getData: () => data as Record<string, unknown>,
         getKind: () => 'archetype',
       } as unknown as StoredDocument;
@@ -112,7 +108,6 @@ function scopedDoc(
   surveyScope: string,
 ): StoredDocument {
   const data = {
-    archetypeId,
     label,
     surveyScope,
     capabilities: [{ key: 'shelter', needs: { seating: 1 }, default: null }],

@@ -33,7 +33,7 @@
  * buys?: { keyword: string, count?: number }[], inputKeyword?: string,
  * inputMin?: number, crushes?: string[], compounds?: string[],
  * vesselCategory?: string, vesselKeyword?: string, pitchJar?: boolean,
- * lagerLeg?: { recipe: string, room: string },
+ * lagerLeg?: { recipe: string (a recipe document PATH), room: string },
  * distills?: { igniteKeyword?: string, chargeKeyword?: string,
  * slopKeyword?: string, vesselKeyword?: string, stepL?: number,
  * maxDraws?: number, compounds?: string[] } }`
@@ -356,7 +356,9 @@ export const brain = class {
   ): Promise<void> {
     const cold = StuffApi.findByTemplatePath(leg.room);
     if (!cold || !MixinApi.isContainer(cold)) return;
-    await hand.forceCommand(`order ${leg.recipe}`);
+    // The row cites the recipe by PATH; the hand orders it the way a
+    // player would, by its word (the path's leaf).
+    await hand.forceCommand(`order ${leg.recipe.slice(leg.recipe.lastIndexOf('/') + 1)}`);
     hand.teleport(cold as Stuff & Container);
     try {
       await hand.forceCommand(`pour bucket into vat`);

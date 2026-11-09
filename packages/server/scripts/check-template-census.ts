@@ -1142,6 +1142,8 @@ function checkFieldRefs(rows: Map<string, string>): number {
 const DOCUMENT_PATH_FIELDS: Readonly<Record<string, string>> = {
   // A species' name banks (`/species-and-names/name-banks/common`).
   nameBanks: 'name-banks',
+  // A menu's offered recipes (`/trade/hospitality/recipes/martini`).
+  offeredRecipes: 'recipes',
 };
 
 /** Every document path a pack ships under `contentDir`: its root + the dir + the file. */

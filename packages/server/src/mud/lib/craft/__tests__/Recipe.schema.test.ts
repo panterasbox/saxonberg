@@ -195,7 +195,8 @@ describe('RecipeCatalogue.invalidateCache + warm', () => {
     expect(catalogue.knows('new-thing')).toBe(false);
     store.documents!.push(asDocument({ ...OLD_ROW, recipeId: 'new-thing', name: 'New', keywords: ['new'] }));
     catalogue.invalidateCache();
-    expect(catalogue.allRecipes()).toEqual([]); // dropped; the read surface is sync
+    // ⭐ A dropped dictionary is never read as empty: a cold sync read throws.
+    expect(() => catalogue.allRecipes()).toThrow(/not resident/);
     await catalogue.warm();
     expect(catalogue.knows('new-thing')).toBe(true);
     expect(catalogue.findByKeyword('new')?.getRecipeId()).toBe('new-thing');

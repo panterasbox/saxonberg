@@ -2,7 +2,6 @@
 # simple-syrup shape). The press is the gate (emergent reachability);
 # the bucket is the landing vessel; the pomace cake is conservation's
 # residue (P11).
-recipeId: crush
 name: Crush
 keywords: [crush, must]
 discipline: fermenting

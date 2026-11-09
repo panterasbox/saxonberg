@@ -56,7 +56,11 @@ const row = (name: string): Row =>
 const recipes = (): RecipeRow[] =>
   readdirSync(RECIPES)
     .filter((f) => f.endsWith('.yaml'))
-    .map((f) => YAML.parse(readFileSync(join(RECIPES, f), 'utf8')) as RecipeRow);
+    .map((f) => ({
+      ...(YAML.parse(readFileSync(join(RECIPES, f), 'utf8')) as RecipeRow),
+      // The file name IS the recipe's word (its path's leaf).
+      recipeId: f.replace(/\.yaml$/, ''),
+    }));
 
 /** A room sibling that answers the power shape — never a ControlStructure. */
 class FakeRace extends WaterPoweredMixin(Good) {

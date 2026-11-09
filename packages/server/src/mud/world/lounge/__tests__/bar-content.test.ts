@@ -130,7 +130,8 @@ describe("Dave's Bar — the rail is bought, never populated (libations D14)", (
 
   it("the menu offers every one of the 24 libation lines, each priced", () => {
     const menu = loadLounge("thing/bar-menu.yaml").data ?? {};
-    const offered = menu.offeredRecipes as string[];
+    // Offered by PATH; priced by the recipe's word (the path's leaf).
+    const offered = (menu.offeredRecipes as string[]).map((p) => p.slice(p.lastIndexOf("/") + 1));
     const prices = menu.prices as Record<string, number>;
     expect(offered.length).toBeGreaterThanOrEqual(24);
     for (const id of offered) expect(prices[id], id).toBeGreaterThan(0);

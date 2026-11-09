@@ -7,7 +7,6 @@
 # `lint:bills`, and here because a plough with no share is a sledge. It
 # is the line the ground wears, and `fit share to plough` replaces it
 # every season with the beam, the mouldboard and the stilts untouched.
-recipeId: plough
 name: Plough
 keywords: [plough, plow]
 inputSlots:

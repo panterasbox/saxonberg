@@ -10,7 +10,13 @@ data:
   register: indefinite
   longDescription: |
     A slate board chalked with the smith's standing offers, prices in a firm hand.
-  offeredRecipes: [fire-poker, cook-pot, smiths-hammer, belt-knife, leather-jerkin, barbell]
+  offeredRecipes:
+    - /trade/smithing/recipes/fire-poker
+    - /trade/smithing/recipes/cook-pot
+    - /trade/smithing/recipes/smiths-hammer
+    - /trade/smithing/recipes/belt-knife
+    - /trade/tailoring/recipes/leather-jerkin
+    - /trade/smithing/recipes/barbell
   prices:
     fire-poker: 4
     cook-pot: 8

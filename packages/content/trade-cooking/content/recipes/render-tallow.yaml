@@ -9,7 +9,6 @@
 # litre of water in would come out as half a litre of extra tallow. That
 # is a conservation lie for a nicety, so the shipped recipe renders the
 # way a cook with one pot actually does it: low and dry.
-recipeId: render-tallow
 name: Render Tallow
 keywords:
 - render-tallow
