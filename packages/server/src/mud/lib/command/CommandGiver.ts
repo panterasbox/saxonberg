@@ -936,6 +936,11 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             originInteractiveId,
             location: outer.location,
           });
+          // ⭐ A streamer on air: the overlay hears the VERB they typed —
+          // refused or not — and never its arguments (broadcast-ready D6).
+          // A forced command (the arrival `look`) is the runtime's, not
+          // the streamer's, so it does not count.
+          if (!opts.forced && MixinApi.isBroadcastHost(giver)) giver.noteVerb(parsed.verb);
           claimingCtx = await this._runChain(parsed, outer);
         } else if (parseResult.bound) {
           // Parser already chose the command and built the model;
@@ -1086,6 +1091,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // fire nothing here at accept-time.
       if (!detachedContexts.has(claimingCtx)) {
         emitDispatchResponse(claimingCtx);
+        // The caller's own read of the outcome (pblive's control socket
+        // echoes ✓/⚠, broadcast-ready D11) — the same status the
+        // envelope carries.
+        if (opts.onOutcome) opts.onOutcome(claimingCtx.getStatus());
       }
     }
 

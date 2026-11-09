@@ -18,6 +18,8 @@ import { PromptApi } from '../../mud/api/prompt';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
 import type { CommandGiver } from '../../mud/lib/command/CommandGiver';
 import type { InboundClientMessage, InboundHandler } from './index';
+import { CommandLineApi } from '../../mud/api/command-line';
+import { BroadcastFeed } from '../BroadcastFeed';
 
 export const handleCommand: InboundHandler = async (ctx, message) => {
   const { interactive, backend, application, socketId } = ctx;
@@ -110,3 +112,62 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
 };
 
 export type { InboundClientMessage };
+
+/**
+ * ⚠⚠ **The control principal's one verb** (broadcast-ready D11).
+ *
+ * A `?control=<token>` socket (pblive's Stream Deck) has no Interactive;
+ * it may run `stream …` as the player its token names and NOTHING else —
+ * the deliberate second writer the slate named, bounded to one verb. The
+ * gate is literal and runs before any parse the dispatcher would do:
+ *
+ * - the message must be a `command`;
+ * - the line must parse to ONE command whose verb is literally `stream`
+ *   (no `verb@source` scope, no emote sigil);
+ * - `stream token` is refused — a control token must not mint tokens;
+ * - a streamer alias named `stream` is refused (no alias expansion may
+ *   turn the one verb into another);
+ * - the streamer must be ONLINE (their body resident); the command then
+ *   runs as them through the ordinary dispatcher, so `requiresStreamer`
+ *   still gates.
+ *
+ * Every answer goes back as `control-result` so the deck lights ✓ or ⚠.
+ */
+export async function handleControlCommand(
+  socketId: string,
+  playerId: string,
+  message: InboundClientMessage,
+): Promise<void> {
+  const feed = BroadcastFeed.get();
+  const payload = (message.payload ?? {}) as { command?: unknown; text?: unknown };
+  const raw = typeof payload.command === 'string' ? payload.command : payload.text;
+  const text = typeof raw === 'string' ? raw.trim() : '';
+  const refuse = (reason: string): void => feed.sendControlResult(socketId, text, false, reason);
+  if (message.type !== 'command') return refuse('commands-only');
+  if (text === '') return refuse('empty');
+  let verb: string;
+  let sub: string | null = null;
+  try {
+    const pipeline = CommandLineApi.parsePipeline(text);
+    const only = pipeline.commands.length === 1 ? pipeline.commands[0] : undefined;
+    if (!only || only.emotePrefixed || only.scope) return refuse('stream-only');
+    verb = only.verb;
+    const second = only.rawTokens[1];
+    sub = second && second.kind === 'word' ? second.value.toLowerCase() : null;
+  } catch {
+    return refuse('unparseable');
+  }
+  if (verb !== 'stream') return refuse('stream-only');
+  if (sub === 'token') return refuse('no-token-minting');
+  const avatar = PlayerApi.findAvatarByPlayerId(playerId);
+  if (!avatar) return refuse('streamer-offline');
+  if (MixinApi.isAlias(avatar) && avatar.getAlias('stream')) return refuse('alias-shadows-stream');
+  let status: string | null = null;
+  await avatar.executeCommand(text, {
+    onOutcome: (s) => {
+      status = s;
+    },
+  });
+  if (status === null) return refuse('no-outcome');
+  feed.sendControlResult(socketId, text, status === 'ok', status === 'ok' ? undefined : status);
+}

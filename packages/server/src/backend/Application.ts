@@ -37,6 +37,7 @@ import { User } from '../mud/lib/identity/User';
 import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
 import { KickProfile } from '../mud/lib/identity/KickProfile';
 import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
+import { YoutubeClient } from './YoutubeClient';
 import { StuffApi } from '../mud/api/stuff';
 import { CallSecurity } from '../mud/lib/security/decorators';
 import { SecurityPolicies } from '../mud/lib/security/SecurityPolicies';
@@ -45,12 +46,25 @@ import {
   inboundHandlers,
   type InboundClientMessage,
 } from './inbound';
+import { handleControlCommand } from './inbound/command';
 
 /**
  * The OAuth profile shapes the provider-parameterized find-or-create /
  * link paths accept — one per provider. The spine branches on the
  * `provider` argument, narrowing the union at the profile-upsert seam.
  */
+/**
+ * How a socket connected (broadcast-ready D4/D7/D11): a player's session,
+ * an overlay's token or a control token, with the player a token names,
+ * the client IP and the door the client came in by (`?from=`).
+ */
+export interface ConnectOptions {
+  kind?: 'player' | 'broadcast' | 'control';
+  playerId?: string;
+  clientIp?: string;
+  arrivedFrom?: string | null;
+}
+
 export type ProviderProfile =
   | PassportGoogleProfile
   | PassportTwitchProfileWithTokens
@@ -239,19 +253,27 @@ export class Application {
     userId: string,
     sessionId: string,
     socketId: string,
-    isBroadcast = false,
-    clientIp?: string
+    opts: ConnectOptions = {}
   ): Promise<void> {
     if (!this.backend) {
       console.error('Application: Backend not initialized');
       return;
     }
+    const { kind = 'player', playerId, clientIp, arrivedFrom = null } = opts;
 
-    if (isBroadcast) {
+    // ⭐ Token sockets (broadcast-ready D4/D11) never become an
+    // Interactive: an overlay is a push target for ONE streamer's feed,
+    // a control socket may run that streamer's `stream` and nothing else.
+    if (kind === 'broadcast' || kind === 'control') {
+      if (!playerId) {
+        console.error(`Application: ${kind} connection with no player - socketId=${socketId}`);
+        return;
+      }
       console.info(
-        `Application: broadcast connection - userId=${userId}, socketId=${socketId}`,
+        `Application: ${kind} connection - player=${playerId}, socketId=${socketId}`,
       );
-      BroadcastFeed.get().addConnection(socketId);
+      if (kind === 'broadcast') await BroadcastFeed.get().addConnection(socketId, playerId);
+      else BroadcastFeed.get().addControl(socketId, playerId);
       return;
     }
 
@@ -286,6 +308,9 @@ export class Application {
       // country is derived HERE — the backend owns the raw request, and
       // the geoip import may not cross into the mudlib's object tier.
       interactive.recordOrigin(clientIp, geolocateCountry(clientIp));
+      // The door this connection came in by (D7) — `stream` when the
+      // client was opened from the show's tagged link.
+      interactive.setArrivedFrom(arrivedFrom);
 
       const login = await StuffApi.create(() => new Login(interactive));
       await login.enter();
@@ -354,6 +379,13 @@ export class Application {
     socketId: string,
     message: InboundClientMessage,
   ): Promise<void> {
+    // ⭐ A control socket (pblive) has no Interactive — its one verb is
+    // gated in the inbound layer, keyed on the principal (D11).
+    const controlPlayer = BroadcastFeed.get().controlPlayerOf(socketId);
+    if (controlPlayer !== null) {
+      await handleControlCommand(socketId, controlPlayer, message);
+      return;
+    }
     const interactive = ConnectionManager.get().getInteractive(socketId);
     if (!interactive) {
       console.warn(`Application: No Interactive found for socket ${socketId}`);
@@ -625,6 +657,30 @@ export class Application {
     );
     const first = existing[0];
     return first ? (first._id as string) : null;
+  }
+
+  /**
+   * ⭐ The YouTube step-up's write (broadcast-ready D12): the refresh
+   * token (encrypted at rest) and the channel it authorizes, onto the
+   * user's OWN linked `GoogleProfile`. Refuses a grant from any other
+   * Google identity (`not-linked`) and a grant with no offline token.
+   */
+  public async storeYoutubeStepUp(
+    userId: string,
+    googleId: string,
+    refreshToken: string,
+  ): Promise<'success' | 'not-linked' | 'no-token'> {
+    const user = await User.findById(userId);
+    if (!user?.googleProfileId) return 'not-linked';
+    const profile = await GoogleProfile.findById<GoogleProfile>(user.googleProfileId);
+    if (!profile || profile.googleId !== googleId) return 'not-linked';
+    if (!refreshToken) return 'no-token';
+    profile.youtubeRefreshToken = refreshToken;
+    const access = await YoutubeClient.get().userToken(refreshToken);
+    profile.youtubeChannelId = (access ? await YoutubeClient.get().myChannelId(access) : null) ?? '';
+    await profile.save();
+    console.info(`Application: YouTube step-up stored for user ${userId}`);
+    return 'success';
   }
 
   /**

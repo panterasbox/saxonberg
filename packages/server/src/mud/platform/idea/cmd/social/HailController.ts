@@ -77,7 +77,12 @@ export default class HailController extends CommandController<HailModel> {
 
   private say(who: Stuff, text: string): void {
     if (!MixinApi.isSensor(who)) return;
-    MessageApi.scene(who).topic('speech.comms').toSelf(Mml.fromMarkup(text)).send();
+    MessageApi.scene(who)
+      .topic('speech.comms')
+      // A hail is ship-to-ship comms: private by the server's word (D8).
+      .tags([MessageApi.Tags.Privacy.Private])
+      .toSelf(Mml.fromMarkup(text))
+      .send();
   }
 
   /** The craft the giver is aboard — their root container's craft. */

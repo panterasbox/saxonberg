@@ -28,6 +28,7 @@ const EVENTSUB_WS_URL = 'wss://eventsub.wss.twitch.tv/ws';
 const HELIX_EVENTSUB_URL = 'https://api.twitch.tv/helix/eventsub/subscriptions';
 const HELIX_CHAT_MESSAGES_URL = 'https://api.twitch.tv/helix/chat/messages';
 const HELIX_USERS_URL = 'https://api.twitch.tv/helix/users';
+const HELIX_STREAMS_URL = 'https://api.twitch.tv/helix/streams';
 const TWITCH_TOKEN_URL = 'https://id.twitch.tv/oauth2/token';
 
 /**
@@ -406,6 +407,37 @@ export class TwitchClient {
     const u = json.data?.[0];
     if (!u?.id) return null;
     return { id: u.id, login: u.login ?? login };
+  }
+
+  /**
+   * A channel's live stream (Helix `/streams?user_login=`) — its viewer
+   * count and start time, or null when it is not live (broadcast-ready
+   * D16). The streamer's own numbers, for their controls card only.
+   */
+  public async streamOf(
+    login: string,
+    token: string
+  ): Promise<{ viewers: number; startedAt: number } | null> {
+    const res = await this.transport.fetch(
+      `${HELIX_STREAMS_URL}?user_login=${encodeURIComponent(login)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Client-Id': this.clientId,
+        },
+      }
+    );
+    if (!res.ok) return null;
+    const json = (await res.json()) as {
+      data?: Array<{ viewer_count?: number; started_at?: string }>;
+    };
+    const s = json.data?.[0];
+    if (!s) return null;
+    const startedAt = s.started_at ? Date.parse(s.started_at) : NaN;
+    return {
+      viewers: typeof s.viewer_count === 'number' ? s.viewer_count : 0,
+      startedAt: Number.isNaN(startedAt) ? Date.now() : startedAt,
+    };
   }
 
   /**

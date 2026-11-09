@@ -123,6 +123,33 @@ export const DOCUMENT_KINDS = {
    * right, nothing authors a map by hand. It is written by the
    * perception seams and read by one verb.
    */
+  /**
+   * A **standby reason** — why a streamer stepped away: a label, the
+   * overlay's copy, a default duration or none, whether it is a privacy
+   * reason, and the OBS scene it wants (broadcast-ready D2). Authored
+   * metadata nothing writes, read by its path
+   * (`/platform/standby-reasons/<key>`) when `stream away <key>` names it.
+   */
+  'standby-reason': { kind: 'standby-reason', naturalKey: null, contentDir: 'standby-reasons', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **lower-third panel** — one row of the overlay's rotation: weight,
+   * hold, the `when` it is eligible, and a title/body for a copy-only
+   * panel (broadcast-ready D2, D14). Listed by prefix when a broadcast
+   * socket connects.
+   */
+  'lower-third-panel': { kind: 'lower-third-panel', naturalKey: null, contentDir: 'lower-third-panels', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **stream token** — one streamer's overlay or control credential,
+   * stored as its sha256 at `/platform/stream-tokens/<hex>` with the
+   * player it names and its scope (broadcast-ready D4). The raw token is
+   * shown once and never stored; the upgrade resolves it by hashing and
+   * reading the path — a read, never a search.
+   *
+   * ⚠ Runtime-written, and `onVanish: 'keep'` for `map`'s reason: no pack
+   * ships one, and no absent pack file may revoke somebody's credential.
+   * The writer is `StreamLogic` alone, through the token transport.
+   */
+  'stream-token': { kind: 'stream-token', naturalKey: null, contentDir: 'stream-tokens', ext: 'yaml', onVanish: 'keep' },
   map: { kind: 'map', naturalKey: null, contentDir: 'maps', ext: 'yaml', onVanish: 'keep' },
   /**
    * A **herd** — a register naming these head, this composition, this

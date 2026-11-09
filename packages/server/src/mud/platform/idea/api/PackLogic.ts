@@ -42,6 +42,8 @@ import { CommandApi } from '../../../api/command';
 import { NON_TEMPLATE_DIRS, TemplatePaths } from '../../../lib/paths';
 import { Emote } from '../../../lib/social/Emote';
 import { Recipe } from '../../../lib/craft/Recipe';
+import { StandbyReason } from '../../../lib/livestream/StandbyReason';
+import { LowerThirdPanel } from '../../../lib/livestream/LowerThirdPanel';
 import { AppSettings } from '../../../lib/config/AppSettings';
 import { GroupApi } from '../../../api/group';
 import { ParcelApi } from '../../../api/parcel';
@@ -172,6 +174,8 @@ const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>) => voi
   emote: (d) => void Emote.fromData(d),
   recipe: (d) => void Recipe.fromData(d),
   archetype: (d) => void Archetype.fromData(d),
+  'standby-reason': (d) => void StandbyReason.fromData('(row)', d),
+  'lower-third-panel': (d) => void LowerThirdPanel.fromData('(row)', d),
   'command-view': (d) => {
     const trail = CommandApi.validateCommandView(d);
     if (trail !== null) throw new Error(`does not conform to the command schema:\n${trail}`);

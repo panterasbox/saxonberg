@@ -1,0 +1,4 @@
+# The wiki article of the day — hidden until the public route ships.
+weight: 1
+seconds: 20
+when: wiki

@@ -1,0 +1,5 @@
+# A bathroom break — five minutes, counted down on the Away scene.
+label: Bathroom break
+copy: Back in a few minutes.
+defaultDurationMs: 300000
+privacy: false

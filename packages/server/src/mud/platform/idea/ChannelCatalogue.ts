@@ -373,11 +373,17 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     // frame's shape, so a backfilled line can only find its channel's
     // terminal by this.
     const channelTag = `channel:${channel.name}`;
+    // ⭐ A player-made channel is a private frequency (chat.md); an
+    // open-join channel is a common band and stays in the clear
+    // (broadcast-ready D8 — the server says which, the client never
+    // guesses).
+    const privacyTags =
+      channel.kind === 'player-created' ? [MessageApi.Tags.Privacy.Private] : [];
     MessageApi.scene(speaker)
       .topic('speech.channel')
       .modality('verbal-esp')
       .meta({ channelId })
-      .tags([channelTag])
+      .tags([channelTag, ...privacyTags])
       .toSelf(selfBody)
       .payload({
         channelId,
@@ -424,7 +430,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       a.onMessage({
         id: SecurityApi.uuid(),
         topic: 'speech.channel',
-        tags: ['audience:witness', channelTag],
+        tags: ['audience:witness', channelTag, ...privacyTags],
         body: peerBody.toString(a),
         meta: { ...baseMeta },
         payload: basePayload,
@@ -434,7 +440,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     this.appendToHistory(channelId, {
       id: SecurityApi.uuid(),
       topic: 'speech.channel',
-      tags: ['audience:witness', channelTag],
+      tags: ['audience:witness', channelTag, ...privacyTags],
       body: selfBody.toString(speaker),
       meta: { ...baseMeta },
       payload: basePayload,

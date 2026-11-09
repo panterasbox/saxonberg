@@ -1,0 +1,13 @@
+# stream — application settings shipped by the platform pack for the
+# broadcast surface (broadcast-ready D3, D16). Wall-time milliseconds,
+# deliberately: the stream is interface tier, outside the fiction.
+settings:
+  # How long `stream end` holds the Ending scene (the outro) before the
+  # stream goes offline on its own. `stream off` ends it sooner.
+  - key: stream.outroMs
+    value: "60000"
+
+  # How often the streamer's own viewer counts and uptime are re-read
+  # while on air. Pushed to the streamer's client only, never the feed.
+  - key: stream.statsPollMs
+    value: "60000"

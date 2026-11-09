@@ -1,38 +1,127 @@
 verbs: [stream]
 category: stream
 controller: /platform/idea/cmd/stream/StreamController
-description: "Drive the livestream overlay (standby countdown / go live)"
+opens_card: stream
+description: "Run your stream: start, live, away for a reason, back, the agenda, the end"
 help: |
-  Control what the livestream overlay shows to viewers watching the
-  broadcast. Use `stream away` to drop into a standby screen with a
-  countdown when you step away, and `stream back` to clear it and go
-  live again.
+  Run the show your broadcast overlay presents. The stream is yours — it
+  lives on your character, survives a server restart, and nothing anyone
+  else does moves your overlay.
 
-  This verb is restricted to streamers — if you aren't one, the game
-  won't offer it. It changes only the overlay, not anything in the
-  world around you.
+  `stream` on its own says where your stream is and opens the controls
+  card. A stream moves through five phases: offline, starting (the
+  Starting Soon countdown), live (the desktop on air), standby (Away, for
+  a reason) and ending (the outro, after which it goes offline by
+  itself).
+
+  While you are on air — starting, live or ending — your own client hides
+  private messages, and anyone in the room with you can see a broadcast
+  reaches them.
+
+  This verb is restricted to streamers. It changes only your overlay,
+  never anything in the world.
+examples:
+  - cmd: stream start in 10m
+    note: Starting Soon, counting down ten minutes
+  - cmd: stream away bathroom
+    note: Away for five minutes, with the reason on screen
+  - cmd: stream away 15m
+    note: Away for fifteen minutes (the generic reason)
 validators:
   - /lib/command/validators/requiresStreamer
+fallthrough: true
+# Bare `stream` falls through here → the status line and the controls card.
+args:
+  - name: rest
+    type: string
+    required: false
 subcommands:
-  away:
-    description: "Enter standby with a countdown (e.g. `stream away 15m`)"
+  start:
+    description: "Starting Soon, optionally counting down (`stream start in 10m`)"
     help: |
-      Put the overlay into standby and start a countdown to when you
-      expect to be back. Viewers see a "back soon" screen ticking down
-      instead of a frozen feed.
-
-      The duration is shell-style: `15m`, `1h`, `1h30m`, or `90s`. A
-      bare number is read as minutes, so `away 10` means ten minutes.
-    examples:
-      - cmd: stream away 1h30m
-        note: Set a longer standby of an hour and a half
+      Put the overlay on the Starting Soon scene, with your agenda. Give a
+      time to count down to — `stream start in 10m`, or just
+      `stream start 10m` — or none for no countdown.
     args:
-      - name: duration
+      - name: first
+        type: string
+        required: false
+      - name: second
+        type: string
+        required: false
+  live:
+    description: "Put the desktop on air"
+  away:
+    description: "Away for a reason (`stream away food`, `stream away privacy 20m`, `stream away 15m`)"
+    help: |
+      Drop the overlay to the Away scene with a reason's words and a
+      countdown. A reason has a default length (bathroom 5m, food 15m,
+      water 3m); give a duration after it to override. A bare duration —
+      `stream away 15m` — is the generic reason.
+
+      ⭐ `privacy` shows no countdown at all, and Away holds no desktop,
+      camera or microphone. Off the air, your own screen shows everything
+      again.
+    args:
+      - name: reason
         type: string
         required: true
+      - name: duration
+        type: string
+        required: false
   back:
-    description: "Clear standby and go live"
+    description: "Back from Away — the desktop returns to the air"
+  end:
+    description: "The outro; the stream goes offline when it finishes"
+  "off":
+    description: "Offline now"
+  segment:
+    description: "Set the topic the sidebar shows (`stream segment the glass trade`)"
+    args:
+      - name: title
+        type: string
+        required: true
+        greedy: true
+  agenda:
+    description: "Set the agenda, items split by `;` (`stream agenda glass; paper; Q&A`), or `stream agenda clear`"
+    args:
+      # ⚠ Greedy by design: the whole rest of the line is the list.
+      - name: items
+        type: string
+        required: true
+        greedy: true
+  next:
+    description: "Tick the current agenda item and move to the next"
+  rotation:
+    description: "Steer the lower third: `stream rotation pin <panel>`, `skip <panel>`, `clear`"
+    args:
+      - name: action
+        type: string
+        required: true
+      - name: panel
+        type: string
+        required: false
+  channel:
+    description: "Name your chat channel on a service (`stream channel twitch mylogin`)"
     help: |
-      Clear the standby screen and return the overlay to live. Reach
-      for this the moment you're back at the keyboard so viewers stop
-      seeing the countdown.
+      Tell the overlay which chat to show: your channel on twitch, youtube
+      or kick. Give no handle to clear one.
+    args:
+      - name: service
+        type: string
+        required: true
+      - name: handle
+        type: string
+        required: false
+  token:
+    description: "Issue (or rotate) your overlay token, shown once; `--control` for the Stream Deck's"
+    help: |
+      Issue a new token for your overlay's browser source and show it
+      once. Issuing again rotates it: the old one stops working. With
+      `--control`, issue the Stream Deck's control token instead — it can
+      run `stream …` as you and nothing else.
+    options:
+      control:
+        type: boolean
+        field: control
+        description: "Issue the Stream Deck's control token instead"

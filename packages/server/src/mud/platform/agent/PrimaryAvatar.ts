@@ -165,6 +165,12 @@ export default class PrimaryAvatar extends Avatar {
     // restored entries. An entry that came due while offline pings once
     // here (deferred-not-skipped). No-op for a fresh body with no entries.
     this.rescheduleCalendarPing();
+
+    // ⭐ Re-arm the stream's outro (broadcast-ready D3): an `ending` whose
+    // deadline passed while the world was down goes offline now; the
+    // restored phase, reason and timers are otherwise left exactly as
+    // they were, so the overlay finds what it was showing.
+    this.rearmBroadcast();
   }
 
   /**

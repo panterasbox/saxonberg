@@ -1,95 +1,81 @@
 /**
- * BroadcastFeed - the outbound, read-only livestream projection.
+ * BroadcastFeed — the outbound, read-only livestream projection, one feed
+ * per streamer (broadcast-ready D5, D7, D11).
  *
- * Serves `service:broadcast` connections (OBS browser sources). These
- * connections never become an Interactive/Login/Avatar — they're pure
- * push targets, so by construction they can't run commands and are
- * never routed DMs or private channels. The feed is the single place
- * the broadcast principal receives data.
+ * Serves two kinds of token socket, neither of which ever becomes an
+ * Interactive/Login/Avatar:
  *
- * Phase 1 taps exactly one source: the `/platform/idea/StreamState` singleton.
- * On connect it sends a snapshot; on every `Events.StreamStateChanged`
- * it re-pushes the full snapshot to all broadcast connections (the
- * state is tiny — no diffing). Later phases extend this to forward
- * *public* chat and world events (always public-by-construction).
+ * - **overlay** sockets (`?broadcast=<token>`, OBS browser sources) — pure
+ *   push targets keyed by the player the token names. ⭐ A streamer's show
+ *   reaches ONLY the sockets opened with that streamer's token: two
+ *   streamers never move each other's overlay.
+ * - **control** sockets (`?control=<token>`, pblive's Stream Deck) — may
+ *   run `stream …` as their player and nothing else (the inbound layer
+ *   decides); the feed only remembers whose they are and echoes results.
+ *
+ * What crosses is an ALLOWLIST: the streamer's own `BroadcastMixin.show()`
+ * plus three world facts this feed adds — the player count, the build
+ * stamp, the panel rows. Nothing of another player, no frame, no card.
+ *
+ * ⭐ **Fail closed.** A socket whose streamer is not resident gets NO
+ * snapshot — it waits (holding its last scene) until the streamer's body
+ * loads or moves. The feed never synthesizes a phase.
  *
  * Layer: backend/ infrastructure, peer to ConnectionManager. It reaches
- * the wire via `Backend.sendEnvelopeToSocket` directly (same layer);
- * the "game objects reach Backend only through Application" chokepoint
- * governs mud/ objects, not backend services.
- *
- * This is a singleton - only one instance exists per application.
+ * the wire via `Backend.sendEnvelopeToSocket` directly (same layer).
  */
 
 import type {
-  StreamStateSnapshot,
+  StreamShow,
+  StreamShowCore,
   StreamStateEnvelope,
+  StreamEventEnvelope,
+  ControlResultEnvelope,
   ReactionDeltaEnvelope,
   RelayChatEnvelope,
+  StreamPanelRow,
+  StreamBuild,
+  Envelope,
+  EnvelopeTemplate,
 } from '@saxonberg/types';
 import { Backend } from './Backend';
 import { EventApi } from '../mud/api/event';
 import { Events } from '../mud/lib/events';
 import type { RelayMessageEvent } from '../mud/lib/events';
-import { StuffApi } from '../mud/api/stuff';
 import { StreamApi } from '../mud/api/stream';
-import StreamState from '../mud/platform/idea/StreamState';
+import { PlayerApi } from '../mud/api/player';
+import { SocialApi } from '../mud/api/social';
+import { MixinApi } from '../mud/api/mixin';
 import {
   ReactionScopeDeltaEvent,
   type ReactionScopeDeltaPayload,
 } from '../mud/lib/events/ReactionScopeDeltaEvent';
 
-/** The overlay owner's configured Twitch login (env). */
-function overlayTwitchLogin(): string {
-  return (process.env.OVERLAY_TWITCH_LOGIN ?? '').trim().toLowerCase();
-}
-
-/** The overlay owner's configured YouTube channel ref (env). */
-function overlayYoutubeChannel(): string {
-  return (process.env.OVERLAY_YOUTUBE_CHANNEL ?? '').trim().toLowerCase();
-}
-
-/** The overlay owner's configured Kick channel slug (env). */
-function overlayKickChannel(): string {
-  return (process.env.OVERLAY_KICK_CHANNEL ?? '').trim().toLowerCase();
-}
-
-/**
- * Whether a relayed line belongs to the overlay owner's OWN configured
- * channel — the filter that keeps a viewer's unrelated tune off the feed.
- * Matches the configured handle (the sentinel tunes each channel by exactly
- * that handle), never a resolved transport key.
- */
-function isOverlayOwnChannel(payload: RelayMessageEvent): boolean {
-  const handle = payload.channelHandle.trim().toLowerCase();
-  if (payload.service === 'twitch') {
-    const login = overlayTwitchLogin();
-    return login !== '' && handle === login;
-  }
-  if (payload.service === 'kick') {
-    const slug = overlayKickChannel();
-    return slug !== '' && handle === slug;
-  }
-  const chan = overlayYoutubeChannel();
-  return chan !== '' && handle === chan;
-}
-
-const LIVE_DEFAULT: StreamStateSnapshot = { mode: 'live', awayUntil: null };
-
 export class BroadcastFeed {
   private static instance: BroadcastFeed;
 
-  /** Active broadcast socketIds. */
-  private connections: Set<string> = new Set();
+  /** Overlay sockets → the player whose show they receive. */
+  private connections: Map<string, string> = new Map();
+
+  /** Control sockets → the player whose `stream` they may run. */
+  private controls: Map<string, string> = new Map();
+
+  /** The panel rows each overlay socket was given at connect (P7). */
+  private panelsBySocket: Map<string, StreamPanelRow[]> = new Map();
+
+  /** Each streamer's last show — re-sent when a world fact moves. */
+  private lastShow: Map<string, StreamShowCore> = new Map();
 
   /**
-   * Per-socket monotonic frame counter. Broadcast connections have no
-   * Interactive, so the feed owns the ordering primitive that
-   * `Interactive.nextFrameId` provides for normal connections.
+   * Per-socket monotonic frame counter. Token sockets have no
+   * Interactive, so the feed owns the ordering primitive.
    */
   private frameCounters: Map<string, number> = new Map();
 
-  /** One-shot guard for the EventApi subscription (installed lazily on
+  /** The build stamp, read once from env (D7). `undefined` = unread. */
+  private build: StreamBuild | null | undefined = undefined;
+
+  /** One-shot guard for the EventApi subscriptions (installed lazily on
    *  first connection, well after boot — so the EventRegistry is live). */
   private subscribed = false;
 
@@ -108,121 +94,212 @@ export class BroadcastFeed {
   }
 
   /**
-   * Register a broadcast connection and push the current snapshot.
-   * Idempotent for a given socketId.
+   * Register an overlay socket for `playerId` and send the snapshot when
+   * the streamer is resident. Idempotent for a given socketId.
    */
-  public addConnection(socketId: string): void {
+  public async addConnection(socketId: string, playerId: string): Promise<void> {
     this.ensureSubscribed();
-    const wasEmpty = this.connections.size === 0;
-    this.connections.add(socketId);
+    const firstForPlayer = !this.hasSocketsFor(playerId);
+    this.connections.set(socketId, playerId);
     this.frameCounters.set(socketId, 0);
     console.info(
-      `BroadcastFeed: connection added - socketId=${socketId}, total=${this.connections.size}`,
+      `BroadcastFeed: overlay added - socketId=${socketId}, player=${playerId}, ` +
+        `total=${this.connections.size}`,
     );
-    this.pushTo(socketId, this.currentSnapshot());
-    // 0→1 edge: open the overlay owner's own-channel reads (presence-gated).
-    if (wasEmpty) void StreamApi.setOverlayReading(true);
+    // 0→1 edge for THIS streamer: open their own channel reads.
+    if (firstForPlayer) void StreamApi.setOverlayReading(playerId, true);
+    this.panelsBySocket.set(socketId, await StreamApi.lowerThirdPanels());
+    const show = this.residentShow(playerId);
+    if (show) this.pushShowTo(socketId, show);
+  }
+
+  /** Register a control socket (pblive) for `playerId`. */
+  public addControl(socketId: string, playerId: string): void {
+    this.controls.set(socketId, playerId);
+    this.frameCounters.set(socketId, 0);
+    console.info(`BroadcastFeed: control added - socketId=${socketId}, player=${playerId}`);
+  }
+
+  /** The player a control socket acts for, or null for any other socket. */
+  public controlPlayerOf(socketId: string): string | null {
+    return this.controls.get(socketId) ?? null;
+  }
+
+  /** Is this socket one of the feed's (overlay or control)? */
+  public owns(socketId: string): boolean {
+    return this.connections.has(socketId) || this.controls.has(socketId);
+  }
+
+  /** Echo a control command's outcome to the Stream Deck (✓ / ⚠). */
+  public sendControlResult(
+    socketId: string,
+    command: string,
+    ok: boolean,
+    reason?: string,
+  ): void {
+    const envelope: Omit<ControlResultEnvelope, 'frameId'> = {
+      type: 'control-result',
+      command,
+      ok,
+      ...(reason ? { reason } : {}),
+    };
+    this.send(socketId, envelope);
   }
 
   /**
-   * Drop a broadcast connection. No-op (cheap) when the socket isn't a
-   * broadcast connection — Application calls this for every disconnect.
+   * Drop a token socket. No-op (cheap) for any other socket —
+   * Application calls this for every disconnect.
    */
   public removeConnection(socketId: string): void {
-    if (!this.connections.delete(socketId)) return;
+    if (this.controls.delete(socketId)) {
+      this.frameCounters.delete(socketId);
+      return;
+    }
+    const playerId = this.connections.get(socketId);
+    if (playerId === undefined) return;
+    this.connections.delete(socketId);
+    this.panelsBySocket.delete(socketId);
     this.frameCounters.delete(socketId);
     console.info(
-      `BroadcastFeed: connection removed - socketId=${socketId}, total=${this.connections.size}`,
+      `BroadcastFeed: overlay removed - socketId=${socketId}, total=${this.connections.size}`,
     );
-    // 1→0 edge: close the overlay owner's own-channel reads.
-    if (this.connections.size === 0) void StreamApi.setOverlayReading(false);
+    // 1→0 edge for THIS streamer: close their channel reads.
+    if (!this.hasSocketsFor(playerId)) {
+      this.lastShow.delete(playerId);
+      void StreamApi.setOverlayReading(playerId, false);
+    }
   }
 
   public getConnectionCount(): number {
     return this.connections.size;
   }
 
-  /** Install the StreamState + reaction-delta listeners exactly once. */
+  /** Install the listeners exactly once. */
   private ensureSubscribed(): void {
     if (this.subscribed) return;
-    EventApi.on<StreamStateSnapshot>(Events.StreamStateChanged, (snapshot) => {
-      this.pushToAll(snapshot);
+    EventApi.on<{ playerId: string; show: StreamShowCore }>(
+      Events.StreamShowChanged,
+      ({ playerId, show }) => {
+        this.lastShow.set(playerId, show);
+        this.pushShowToPlayer(playerId, show);
+      },
+    );
+    // The player count is on every feed: re-send each open show. A
+    // streamer whose overlay is waiting gets their snapshot on login.
+    EventApi.on<{ playerId: string }>(Events.PlayerLoggedIn, ({ playerId }) => {
+      if (this.hasSocketsFor(playerId)) {
+        const show = this.residentShow(playerId);
+        if (show) this.lastShow.set(playerId, show);
+        // Their own channels (and their YouTube login) are readable now.
+        void StreamApi.refreshOverlayReading(playerId);
+      }
+      this.repushAll();
     });
-    // Overlay-ready reaction seam: the registry's fixed-cadence flush
-    // fires one ReactionScopeDeltaEvent per moved scope (server-numbers
-    // projection — buckets/total, no per-viewer sample). Forward each as
-    // a reaction-delta to every broadcast socket. v1 forwards all scopes;
-    // per-scope overlay filtering is a later refinement.
+    EventApi.on<{ playerId: string }>(Events.PlayerLoggedOut, () => {
+      this.repushAll();
+    });
+    // A first arrival goes on every streamer's ticker (D7).
+    EventApi.on<{ playerId: string; name: string; arrivedFrom: string | null }>(
+      Events.PlayerFirstArrival,
+      ({ name, arrivedFrom }) => {
+        const envelope: Omit<StreamEventEnvelope, 'frameId'> = {
+          type: 'stream-event',
+          kind: 'new-player',
+          name,
+          fromStream: arrivedFrom === 'stream',
+        };
+        for (const socketId of this.connections.keys()) this.send(socketId, envelope);
+      },
+    );
+    // Reactions are world-public already: every overlay gets them.
     EventApi.on<ReactionScopeDeltaPayload>(
       ReactionScopeDeltaEvent.KIND,
       (payload) => {
-        this.pushReactionDeltaToAll(payload);
+        const envelope: Omit<ReactionDeltaEnvelope, 'frameId'> = {
+          type: 'reaction-delta',
+          acts: payload.acts,
+        };
+        for (const socketId of this.connections.keys()) this.send(socketId, envelope);
       },
     );
-    // Overlay-owner chat: the relay emits one RelayMessage per delivered
-    // line; forward ONLY the owner's own configured channels (Twitch +
-    // YouTube, unified) as a relay-chat envelope. A viewer tuning some other
-    // channel never matches the filter, so nothing leaks onto the feed.
+    // Chat: a relayed line goes to the overlays of the streamers whose
+    // OWN channel it is — a viewer's unrelated tune never matches.
     EventApi.on<RelayMessageEvent>(Events.RelayMessage, (payload) => {
-      if (!isOverlayOwnChannel(payload)) return;
-      this.pushRelayChatToAll(payload);
+      this.pushRelayChat(payload);
     });
     this.subscribed = true;
   }
 
-  private pushRelayChatToAll(payload: RelayMessageEvent): void {
-    if (this.connections.size === 0) return;
-    for (const socketId of this.connections) {
-      const frameId = (this.frameCounters.get(socketId) ?? 0) + 1;
-      this.frameCounters.set(socketId, frameId);
-      const envelope: RelayChatEnvelope = {
-        type: 'relay-chat',
-        frameId,
-        service: payload.service,
-        channelHandle: payload.channelHandle,
-        speaker: payload.speaker,
-        text: payload.text,
-      };
-      Backend.get().sendEnvelopeToSocket(socketId, envelope);
+  private pushRelayChat(payload: RelayMessageEvent): void {
+    const handle = payload.channelHandle.trim().toLowerCase();
+    const envelope: Omit<RelayChatEnvelope, 'frameId'> = {
+      type: 'relay-chat',
+      service: payload.service,
+      channelHandle: payload.channelHandle,
+      speaker: payload.speaker,
+      text: payload.text,
+    };
+    for (const playerId of new Set(this.connections.values())) {
+      const own = StreamApi.channelsFor(playerId)[payload.service];
+      if (!own || own.trim().toLowerCase() !== handle) continue;
+      for (const [socketId, pid] of this.connections) {
+        if (pid === playerId) this.send(socketId, envelope);
+      }
     }
   }
 
-  private pushReactionDeltaToAll(payload: ReactionScopeDeltaPayload): void {
-    if (this.connections.size === 0) return;
-    for (const socketId of this.connections) {
-      const frameId = (this.frameCounters.get(socketId) ?? 0) + 1;
-      this.frameCounters.set(socketId, frameId);
-      const envelope: ReactionDeltaEnvelope = {
-        type: 'reaction-delta',
-        frameId,
-        acts: payload.acts,
-      };
-      Backend.get().sendEnvelopeToSocket(socketId, envelope);
+  /** The resident streamer's show, or null — never a synthesized one. */
+  private residentShow(playerId: string): StreamShowCore | null {
+    const avatar = PlayerApi.findAvatarByPlayerId(playerId);
+    if (!avatar || !MixinApi.isBroadcastHost(avatar)) return null;
+    return avatar.show();
+  }
+
+  private repushAll(): void {
+    for (const [playerId, show] of this.lastShow) {
+      this.pushShowToPlayer(playerId, show);
     }
   }
 
-  /** Read the live StreamState, defaulting to `live` before boot. */
-  private currentSnapshot(): StreamStateSnapshot {
-    const state = StuffApi.findByTemplatePath<StreamState>(
-      StreamState.TEMPLATE_PATH,
-    );
-    return state ? state.snapshot() : LIVE_DEFAULT;
-  }
-
-  private pushToAll(snapshot: StreamStateSnapshot): void {
-    for (const socketId of this.connections) {
-      this.pushTo(socketId, snapshot);
+  private pushShowToPlayer(playerId: string, show: StreamShowCore): void {
+    for (const [socketId, pid] of this.connections) {
+      if (pid === playerId) this.pushShowTo(socketId, show);
     }
   }
 
-  private pushTo(socketId: string, snapshot: StreamStateSnapshot): void {
+  private pushShowTo(socketId: string, core: StreamShowCore): void {
+    const state: StreamShow = {
+      ...core,
+      playersOnline: SocialApi.online().length,
+      build: this.buildStamp(),
+      panels: this.panelsBySocket.get(socketId) ?? [],
+    };
+    const envelope: Omit<StreamStateEnvelope, 'frameId'> = { type: 'stream-state', state };
+    this.send(socketId, envelope);
+  }
+
+  /**
+   * The running build (D7): `SAXONBERG_BUILD_SHA` + `SAXONBERG_BUILD_AT`,
+   * written by the deploy. Unset → null, and the overlay hides the line —
+   * never a fabricated date.
+   */
+  private buildStamp(): StreamBuild | null {
+    if (this.build !== undefined) return this.build;
+    const sha = (process.env.SAXONBERG_BUILD_SHA ?? '').trim();
+    const at = (process.env.SAXONBERG_BUILD_AT ?? '').trim();
+    this.build = sha && at && !Number.isNaN(Date.parse(at)) ? { sha, at } : null;
+    return this.build;
+  }
+
+  private hasSocketsFor(playerId: string): boolean {
+    for (const pid of this.connections.values()) if (pid === playerId) return true;
+    return false;
+  }
+
+  /** Stamp the socket's next frame id and send. */
+  private send(socketId: string, template: EnvelopeTemplate): void {
     const frameId = (this.frameCounters.get(socketId) ?? 0) + 1;
     this.frameCounters.set(socketId, frameId);
-    const envelope: StreamStateEnvelope = {
-      type: 'stream-state',
-      frameId,
-      state: snapshot,
-    };
-    Backend.get().sendEnvelopeToSocket(socketId, envelope);
+    Backend.get().sendEnvelopeToSocket(socketId, { ...template, frameId } as Envelope);
   }
 }

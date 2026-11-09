@@ -91,6 +91,8 @@ export async function mintSession(
     committees?: string[];
     /** Seat the character in each office (the seat moves). */
     offices?: string[];
+    /** Join the `streamers` group — the `stream` verb's axis (broadcast-ready). */
+    streamer?: boolean;
   } = {}
 ): Promise<{ state: SessionState; handle: string }> {
   const handle = opts.handle ?? uniqueHandle('user');
@@ -108,6 +110,7 @@ export async function mintSession(
           ...(opts.wizard ? { wizard: true } : {}),
           ...(opts.committees?.length ? { committees: opts.committees } : {}),
           ...(opts.offices?.length ? { offices: opts.offices } : {}),
+          ...(opts.streamer ? { streamer: true } : {}),
         },
         headers: TEST_AUTH_TOKEN ? { 'x-test-auth': TEST_AUTH_TOKEN } : {},
       });
@@ -246,6 +249,8 @@ export async function openWorldAs(
     wizard?: boolean;
     committees?: string[];
     offices?: string[];
+    /** Join the `streamers` group (broadcast-ready). */
+    streamer?: boolean;
     /** Reuse a handle already minted by `mintSession` (the seat-then-enter
      *  flow: a character must EXIST before the founder can seat it). */
     handle?: string;
@@ -269,6 +274,7 @@ export async function openWorldAs(
     wizard: opts.wizard,
     committees: opts.committees,
     offices: opts.offices,
+    streamer: opts.streamer,
   });
   const { context, page } = await enterWorld(
     browser,

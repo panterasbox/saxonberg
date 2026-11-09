@@ -144,32 +144,21 @@ export class WebSocketService {
     socket: Socket,
     head: Buffer
   ): void {
-    // Broadcast principal: a `?broadcast=<token>` query param (OBS
-    // browser sources can't set WS headers). Checked BEFORE session
-    // auth so a cookieless overlay connection isn't 401'd. Accepts as
-    // the read-only broadcast principal — no Avatar, no CommandGiver.
+    // ⭐ Token principals (broadcast-ready D4/D11): `?broadcast=<token>`
+    // (an OBS browser source — it can't set WS headers) and
+    // `?control=<token>` (pblive's Stream Deck). Checked BEFORE session
+    // auth so a cookieless token socket isn't 401'd. Each token names ONE
+    // player; neither becomes an Avatar or a CommandGiver.
     const broadcastToken = this.readQueryParam(request.url, 'broadcast');
-    if (broadcastToken !== null) {
-      if (this.matchesBroadcastToken(broadcastToken)) {
-        this.wss!.handleUpgrade(request, socket, head, (ws) => {
-          console.info(
-            'WebSocketService: broadcast upgrade successful - ' +
-              `principal=${BROADCAST_PRINCIPAL}`
-          );
-          this.backend.handleWebSocketConnect(
-            ws,
-            BROADCAST_PRINCIPAL,
-            `broadcast:${BROADCAST_PRINCIPAL}`,
-            true
-          );
-        });
-      } else {
-        console.warn(
-          'WebSocketService: broadcast upgrade rejected - bad/disabled token'
-        );
-        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
-        socket.destroy();
-      }
+    const controlToken = this.readQueryParam(request.url, 'control');
+    if (broadcastToken !== null || controlToken !== null) {
+      void this.acceptTokenSocket(
+        request,
+        socket,
+        head,
+        broadcastToken !== null ? 'broadcast' : 'control',
+        (broadcastToken ?? controlToken)!,
+      );
       return;
     }
 
@@ -202,9 +191,72 @@ export class WebSocketService {
         `WebSocketService: WebSocket upgrade successful - userId=${userId}, sessionId=${sessionId}`
       );
 
-      // Delegate to Backend
-      this.backend.handleWebSocketConnect(ws, userId, sessionId, false, clientIp);
+      // Delegate to Backend. `?from=stream` is the show's tagged link
+      // (D7) — a closed vocabulary, anything else is no door at all.
+      const from = this.readQueryParam(request.url, 'from');
+      this.backend.handleWebSocketConnect(ws, userId, sessionId, {
+        kind: 'player',
+        clientIp,
+        arrivedFrom: from === 'stream' ? 'stream' : null,
+      });
     });
+  }
+
+  /**
+   * Resolve a token socket to its player and accept or refuse it.
+   *
+   * ⭐ Fail loud, never open: an unknown, revoked or wrong-scope token is
+   * a 401 with a warning — never a fallback to some shared feed. The env
+   * `BROADCAST_TOKEN` (the changeover) still matches by constant-time
+   * compare and names the founder, the first id in `STREAMER_PLAYER_IDS`.
+   */
+  private async acceptTokenSocket(
+    request: IncomingMessage,
+    socket: Socket,
+    head: Buffer,
+    kind: 'broadcast' | 'control',
+    token: string,
+  ): Promise<void> {
+    const refuse = (why: string): void => {
+      console.warn(`WebSocketService: ${kind} upgrade rejected - ${why}`);
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      socket.destroy();
+    };
+    let playerId: string | null = null;
+    if (kind === 'broadcast' && this.matchesBroadcastToken(token)) {
+      playerId = this.founderPlayerId();
+      if (!playerId) {
+        console.error(
+          'WebSocketService: BROADCAST_TOKEN matched but STREAMER_PLAYER_IDS is empty — ' +
+            'the env token names nobody; refusing',
+        );
+        return refuse('env token with no streamer');
+      }
+    } else {
+      let resolved: { playerId: string; scope: string } | null = null;
+      try {
+        resolved = await this.backend.resolveStreamToken(token);
+      } catch (err) {
+        console.error('WebSocketService: stream token lookup failed', err);
+        return refuse('token lookup failed');
+      }
+      const wanted = kind === 'broadcast' ? 'overlay' : 'control';
+      if (!resolved) return refuse('unknown or revoked token');
+      if (resolved.scope !== wanted) return refuse(`a ${resolved.scope} token on the ${kind} door`);
+      playerId = resolved.playerId;
+    }
+    const principal = `${kind}:${playerId}`;
+    const pid = playerId;
+    this.wss!.handleUpgrade(request, socket, head, (ws) => {
+      console.info(`WebSocketService: ${kind} upgrade successful - principal=${principal}`);
+      this.backend.handleWebSocketConnect(ws, principal, principal, { kind, playerId: pid });
+    });
+  }
+
+  /** The founder — the first id in `STREAMER_PLAYER_IDS`, or null. */
+  private founderPlayerId(): string | null {
+    const first = (process.env.STREAMER_PLAYER_IDS ?? '').split(',')[0]?.trim();
+    return first ? first : null;
   }
 
   /**

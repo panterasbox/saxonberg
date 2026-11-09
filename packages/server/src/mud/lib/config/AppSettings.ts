@@ -714,6 +714,18 @@ export const AppSettingKeys = {
   youtubeOverlayPollIntervalMs: "youtube.overlayPollIntervalMs",
 
   /**
+   * The stream's outro (broadcast-ready D3) — how long `stream end` holds
+   * the Ending scene before the stream goes offline on its own. Wall-time
+   * milliseconds: the stream is interface tier, outside the fiction.
+   */
+  streamOutroMs: "stream.outroMs",
+  /**
+   * How often the streamer's own numbers (viewer counts, uptime) are
+   * re-read while on air (broadcast-ready D16). Wall-time milliseconds.
+   */
+  streamStatsPollMs: "stream.statsPollMs",
+
+  /**
    * Kick relay (read-only, webhook transport) dials. `replayWindowSec` is
    * the accept window around a webhook delivery's signed timestamp;
    * `dedupTtlSec`/`dedupMaxSize` bound the message-id idempotency ring
@@ -2726,6 +2738,8 @@ export const AppSettingTiers: Readonly<
   retailConsignmentCommissionRate: "C:minister-of-finance",
   youtubePollIntervalMs: "B",
   youtubeOverlayPollIntervalMs: "B",
+  streamOutroMs: "B",
+  streamStatsPollMs: "B",
   kickReplayWindowSec: "B",
   kickDedupTtlSec: "B",
   kickDedupMaxSize: "B",
