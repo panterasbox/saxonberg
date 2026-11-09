@@ -6,8 +6,8 @@ help: |
   `weave <yarn>` warps a loom and throws the shuttle until there is
   cloth to cut off.
 
-  ⭐ The decision is how close to set it. `--open` gets the most cloth
-  out of the thread and makes sackcloth — it breathes, which is what a
+  ⭐ The decision is how close to set it. `--coarse` sets it open: the
+  most cloth out of the thread, and sackcloth — it breathes, which is what a
   sack is for. `--close` gets the least and makes fine linen, which
   breaks a wind and outlasts the other two. Plain is the middle and the
   default.
@@ -40,6 +40,9 @@ options:
   close:
     type: boolean
     description: "Set it close — less cloth, finer, windproof, longer-wearing"
-  open:
+  # ⚠ `--coarse`, not `--open`: `--open` is the reserved reach rung
+  # (controller-liquidity D4). The field keeps its name.
+  coarse:
     type: boolean
+    field: open
     description: "Set it open — more cloth, coarser; sackcloth"

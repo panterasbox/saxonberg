@@ -4,7 +4,7 @@
  *
  * | | cloth per yarn | the cloth |
  * |---|---|---|
- * | `--open` | most | sackcloth — breathes, and a sack is what it is for |
+ * | `--coarse` | most | sackcloth — breathes, and a sack is what it is for |
  * | ordinary | middling | plain linen |
  * | `--close` | least | fine linen: breaks a wind, wears far longer |
  *

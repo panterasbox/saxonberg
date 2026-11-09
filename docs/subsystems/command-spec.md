@@ -683,8 +683,9 @@ Three load-time invariants enforced by `CommandDefinition.validate`:
 
 | Type | Bound value | Notes |
 |---|---|---|
-| `string` | the raw token text | no coercion |
-| `number` | `Number(token)` | non-finite input fails the bind |
+| `string` | the raw token text | no coercion — unless `values:` closes the set |
+| `number` | `Number(token)` | coerced for options AND positionals (since controller-liquidity W1); a required one refuses a non-number at bind, an optional one leaves the word for the next slot |
+| `duration` | milliseconds | ⭐ written `90s` · `15m` · `2h` · `1h30m` · `3d` · `90 seconds` · `2 hours`; a bare number is NOT a duration (seconds or minutes? the view refuses to guess) |
 | `boolean` | `true` / `false` | usually used on options, not positionals |
 | `object` | an `MqlOneResult` wrapper around a single Stuff | runs `MqlApi.resolveOne` |
 | `objects` | an `MqlManyResult` wrapper around a Stuff list | runs `MqlApi.resolveMany` |
@@ -700,6 +701,36 @@ means in its domain (see the example controllers).
 `multiple: true` is for non-MQL fields where repeated occurrences
 should accumulate. Don't combine it with `type: objects` — the
 plurality is the type.
+
+### ⭐ `values:` — a closed word set (controller-liquidity D1)
+
+An arg or option of `type: string` may declare the words it accepts:
+
+```yaml
+options:
+  width:
+    type: string
+    values: [wide, open, half, low, banked]
+```
+
+The match is case-insensitive and the canonical spelling written here is
+what binds. Anything else is refused **by the view**, before a controller
+is cloned, with the set named — *option --width: 'medium' is not one of
+wide, open, half, low, banked*. `default:` must be one of the values
+(load-time). `help` renders the set in place of the placeholder
+(`--width <wide|open|half|low|banked>`). A controller that refuses an
+out-of-set word itself, or keeps a word→value table for one, is carrying
+the view's job (`StyleController`, `CockpitShelfController`).
+
+### ⭐ `depth:` — how deep an object slot reaches (controller-liquidity D4)
+
+`depth: top | open | deep` on an `object` / `objects` slot sets its
+default reach rung (`open` when omitted); the player overrides it for one
+invocation with the reserved `--top` / `--open` / `--deep` flags, which
+join `--async`/`--sync`/`--strict`/`--loose` (no view may name an option
+or arg any of them). ⚠ Since W1 the key and the flags are GRAMMAR only —
+the binder strips the flag onto `CommandContext.depth`; the seed walks
+obey it from W2 (see the plan's D5).
 
 ### `type: struct` — structured-input-only fields
 
@@ -787,118 +818,71 @@ was unreachable from the moment it was written. If the controller has a
 sentence for the empty case, the binder must be able to reach it. See
 [antipatterns.md § A required arg with no default](../antipatterns.md).
 
-### `greedy:` — slurp the remainder
+### `greedy:` — slurp the remainder — PROSE only
 
 `greedy: true` consumes everything from the field's first token to
 end-of-input verbatim — whitespace runs, escapes, single-quote
-literals all preserved. Common for chat verbs (`say`, `dm`) and
-scope-shaped verbs (`focus`).
+literals all preserved. It is for **prose**: chat verbs (`say`, `dm`),
+`press post`, a forum body, `def`, and scope-shaped verbs (`focus`).
 
-⭐⭐ **THE ARTICLE DEFECT — every object arg a player may put an article
-in front of needs this, INCLUDING plural and prepositional ones.**
-Without it `measure temperature the kettle` binds `the` and `kettle` as
-two positionals, answers *"too many arguments"*, falls through the chain
-and dies as an unknown shape; `assay the ore` binds the literal token
-`the` on a **plural** arg and refuses about an object nobody mentioned;
-`assay the ore at the bench` does the same on a **prepositional** one.
-⚠ 45 shipped views already carry it and `look` shipped without it —
-nobody noticed until somebody drove it.
+⛔ **No greedy object args (controller-liquidity D3).** An `object` /
+`objects` slot takes ONE word, and a name with a space in it is quoted
+(`buy "dog loaf"`). `lint:greedy-object` ratchets the greedy object args
+down (133 at W0) to zero, after which the schema refuses one. ⚠ This
+REVERSES the rule this section used to state — *"every object arg a
+player may put an article in front of needs `greedy`"* — and the binder
+now does that job itself, below.
 
-⚠ A second binder defect lived beside it: the greedy branch `return`ed
+⚠ A binder defect lived beside the old rule: the greedy branch `return`ed
 when the positional list ran out instead of `continue`ing, so **any
 greedy arg that was not last silently lost its default**. `measure light`
 simply had no instrument.
 
 When a *later* field declares `prepositions:`, the greedy field
-**stops at the boundary**: `give the red flower to bob` slices `gift`
-at `to` because `recipient.prepositions: [to]`. See
+**stops at the boundary**: `press post Some headline --as …` slices at
+the option, and a greedy body stops at a later field's preposition. See
 [Multi-positional verbs](#multi-positional-verbs) below.
 
 ⭐ **A preposition that opens only `number` fields ends the span only when a
-number follows it** (the paper build, 2026-11-05). `read`'s target is
-greedy, bounded by `page <n>`: `read notebook page 3` binds `notebook` and
-page 3, while `read torn-out page` binds the whole name, because "page" is
-a word in names too. Before this rule a trailing number field turned its
-preposition into a word no name could end in (`collectNumericOnlyPrepositions`
-in `CommandLogic`).
+number follows it** (the paper build, 2026-11-05). `read notebook page 3`
+binds `notebook` and page 3, while `read torn-out page` binds the whole
+name, because "page" is a word in names too
+(`collectNumericOnlyPrepositions` in `CommandLogic`).
 
-### ⭐⭐⭐ The phrase ladder — a name with a space in it
+### ⭐⭐⭐ Names with a space in them — one word binds bare, a phrase is quoted, prose is greedy
 
-A good's name is a **phrase**, not a word. Thirty-four of the ninety-three
-stock goods carry an authored multi-word keyword, and for most of them it
-is the only name they answer to: the dog loaf is `[loaf, "dog loaf", "dog
-bread", "horse bread", dogbread]`, the seed packets answer to `orange
-seed`, the cell to `mana cell`. `Stock.resolveBuy` →
-`Perceptible.hasKeyword` is an exact `includes`, so the phrase **is** the
-purchase name.
+A good's name is often a **phrase** (`dog loaf`, `orange seed`, `mana
+cell`). The ladder this section used to carry — make the field greedy,
+bound it with a preposition, change the syntax so a preposition applies,
+and quote only as a last resort — collapsed in controller-liquidity W1 to
+three sentences:
 
-A non-greedy positional takes **exactly one token**, and the binder
-consumes that token *before* `default:` is considered. So `buy dog loaf`
-bound `thing = "dog"`, handed `loaf` to the optional `counter` slot, and
-threw that slot's MQL default away on the way past — and then refused the
-player in the name of a counter they had never mentioned.
+1. **One word binds bare.** An object slot takes one token: `buy loaf`,
+   `get apple`.
+2. **A phrase is quoted.** `buy "dog loaf"`, `get "latex cup" from kiln`.
+   Quoting is the tokenizer's (`command-parsing.md` § quoting) and a
+   non-greedy positional binds the token's unquoted value.
+3. **Prose is greedy.** Only a `string` field that is the rest of the
+   line.
 
-⚠ **`greedy:` is not the universal remedy, and quoting already exists.**
-`command-parsing.md:84-96` documents `"…"` as the way to make one token
-out of several, and it works: `mill "sack of wheat"` binds the whole
-phrase today. The question a view has to answer is which rung it is on.
+Two binder rules make rule 1 livable, both for a **non-greedy object
+positional**:
 
-**Rung 1 — the syntax already says where the name ends.** A greedy field
-whose every later field declares a `prepositions:` boundary. The
-load-time invariant (`validateArgOrdering`) permits greedy before other
-args only in this case, and it is the common one: `buy`/`shelf reclaim` stop at
-`from`, `bake` at `at`/`in`/`on`, `ship` at `to`, `order` at `from`.
-Nothing is ambiguous, so nothing needs quoting — `buy dog loaf` just
-works. **Reach for this first.**
+- ⭐ **The article fold.** A leading unquoted `the` / `a` / `an` / `some`
+  with a word after it folds away before the slot binds — `eat the apple`,
+  `throw the rock`, `put the apple in the box`. (Before W1 the slot bound
+  the literal `the` and the line died as *"too many arguments"*: the
+  ARTICLE DEFECT, which `greedy` used to paper over.)
+- ⭐ **The quote hint.** A line with words left over is retried with each
+  run of two or more words joined into one quoted name; when one join
+  binds an object slot to it, and no other view of the word claims the
+  line, the player is told exactly that:
+  *too many words — quote a name with a space in it: buy "dog loaf"*.
+  Lists (`get apple and pear`) are out of scope (the lists conversation).
 
-**Rung 2 — one argument, and the rest of the line is it.** A trailing
-greedy field: `say`, `dm`, `focus`, `press post`. Dialogue and free
-text live here. The field is last, so there is nothing to collide with.
-
-**Rung 3 — change the syntax so rung 1 applies.** A preposition or a
-subcommand added deliberately, to give the greedy field something to stop
-at. This is a real option and sometimes the best one; `order`'s `from`
-exists for it.
-
-**Rung 4 — quote it, and SAY SO in `help:`.** When a later field declares
-no preposition the binder can see, the name has to mark its own end.
-`mill` is the shipped case: its `extraction` is a bare `number`, so
-`greedy` on `grain` is **refused at load time**, and
-`mill "sack of wheat"` is the only form that can work. ⚠⚠ Quoting is a
-power-user feature and a burden on the player, so a view on this rung
-owes them a sentence in its `help:` — and an honest one. Unquoted,
-`mill sack of wheat` does not refuse: it reads `sack` as the grain, `of`
-as the extraction and `wheat` as the stones, because the binder applies
-**no type gate to a positional**. A help text that says *"you will get an
-error"* would be the second lie on top of the first.
-
-⛔ **Not a rung: leave it and hope.** A view in the
-`string`-then-optional-`object`-with-a-`default` shape is counted by
-`lint:reachability`'s arm G and the count may fall, never rise.
-
-#### ⭐⭐ And the other half: every prepositional object arg wants `greedy`
-
-The article defect above is the same problem wearing the other hat. A
-player who *does* name the instrument types an article with it, and a
-non-greedy prepositional arg has one slot for `the brick oven`:
-
-```
-buy torch from the counter      → "that doesn't match any known command shape"
-bake at the brick oven          → the same
-mill wheat at the quern         → the same
-```
-
-⚠⚠ **All three of those were promised by the view's own help text or its
-own arg comment.** A help text that documents a form the binder refuses
-is the same failure class as a verb nothing confers — closed, silent, and
-discovered only by a player who believed the documentation. The four
-views this ladder was written for are greedy on both arms now, and
-`lint:reachability`'s arm G ratchets the hundred-odd that are not
-(`ARTICLE_SHAPE_CEILING`).
-
-⭐ The rule for a new verb, then: **a prepositional object arg is born
-`greedy: true`.** There is no case where you want the article to be a
-separate argument.
+`lint:reachability` arm G keeps its **phrase shape** ratchet (a `string`
+positional followed by an optional defaulted `object`); its article-shape
+ratchet (`ARTICLE_SHAPE_CEILING`) was retired with the rule it enforced.
 
 #### Quoting and greedy, together
 
@@ -1787,6 +1771,39 @@ matcher detail and [chat.md](./chat.md) for the worked example.
 A YAML that declares both fields without the flag is a load-time
 schema error; a YAML that declares the flag without both fields
 is also a schema error.
+
+### ⭐⭐ Nested subcommands (controller-liquidity D2)
+
+A stanza may carry `subcommands:` of its own, so a second word stops
+riding a string arg the controller switches on:
+
+```yaml
+subcommands:
+  layout:
+    description: Arrangements you have saved
+    fallthrough: true            # `cockpit layout <name>` still recalls
+    args:
+      - { name: name, type: string, required: true }
+    subcommands:
+      save:   { controller: …/LayoutSaveController, args: [{ name: name, type: string, required: true }] }
+      forget: { controller: …/LayoutForgetController, args: [{ name: name, type: string, required: true }] }
+      list:   { controller: …/LayoutListController }
+```
+
+- The binder walks words **while they match**. `model.subcommand` is the
+  **leaf** word (every existing `switch (model.subcommand)` keeps
+  working) and `model.subcommandPath` the full list (`['layout',
+  'save']`); the dispatcher and every per-stanza lookup key on the path.
+- **Options bind lexically per level**: a word's options are its own plus
+  every enclosing level's, the innermost winning a name.
+- `controller:` resolves at the **deepest stanza that names one**; a view
+  with no verb-level controller needs every stanza covered by itself or an
+  ancestor.
+- Validators run outermost first: verb → each stanza on the path → fields.
+- `fallthrough: true` works at any level, with the verb-level rule one
+  level down (args + nested subcommands only together).
+  `unknown-subcommand` names the valid words **at that level**.
+- `help` renders the tree, each nested stanza indented under its parent.
 
 ## Options (`options:`)
 

@@ -575,7 +575,7 @@ reaches one body field three ways:
 Identity + audience own a `subject` verb; surfaces light up separately.
 
 - `subject make <name>` — mint a subject. Default mints a managed group
-  (curated); `--group <ref>` binds an existing ref; `--open` leaves the
+  (curated); `--group <ref>` binds an existing ref; `--public` leaves the
   audience open. `subject list` — visible subjects + their lit surfaces.
   (`platform/idea/cmd/social/SubjectController.ts` + the platform pack's `content/platform/cmd/social/subject.yaml`.)
   The three standing subjects (Help / Global / Chat) are the platform

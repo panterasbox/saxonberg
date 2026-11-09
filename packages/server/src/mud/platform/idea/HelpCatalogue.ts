@@ -501,25 +501,44 @@ export default class HelpCatalogue extends HelpCatalogueBase {
     this.buildIndexes();
   }
 
-  /** One `HelpTopic` per command, preserving `getHelpText()` verbatim. */
+  /**
+   * One `HelpTopic` per command WORD. A word with one view keeps
+   * `getHelpText()` verbatim; ⭐ a word whose shapes live in several views
+   * (`throw`, `throw … at`, `throw … to`) gets them merged
+   * (`getHelpText(siblings)`) — before controller-liquidity W1 the
+   * topics map was keyed by verb and the last view registered won.
+   */
   private projectCommands(defs: CommandDefinition[]): HelpTopic[] {
     const out: HelpTopic[] = [];
     this.requiredMixins = new Map();
     this.commandCategory = new Map();
+    const byVerb = new Map<string, CommandDefinition[]>();
     for (const def of defs) {
       const verb = def.getPrimaryVerb();
       if (!verb) continue;
-      this.requiredMixins.set(`command.${verb}`, def.getRequiredMixins());
-      this.commandCategory.set(`command.${verb}`, def.category);
+      const list = byVerb.get(verb);
+      if (list) list.push(def);
+      else byVerb.set(verb, [def]);
+    }
+    for (const [verb, views] of byVerb) {
+      const first = views[0]!;
+      this.requiredMixins.set(`command.${verb}`, [
+        ...new Set(views.flatMap((v) => v.getRequiredMixins())),
+      ]);
+      this.commandCategory.set(`command.${verb}`, first.category);
       out.push({
         id: `command.${verb}`,
         kind: "command",
         title: verb,
-        summary: def.description ?? "",
-        keywords: [verb, ...def.defaultAliases.map((a) => a.name), "command"].map((k) =>
-          k.toLowerCase(),
-        ),
-        body: def.getHelpText(),
+        summary: first.description ?? "",
+        keywords: [
+          ...new Set(
+            [verb, ...views.flatMap((v) => v.defaultAliases.map((a) => a.name)), "command"].map((k) =>
+              k.toLowerCase(),
+            ),
+          ),
+        ],
+        body: first.getHelpText(views.slice(1)),
         relations: [],
         spoiler: false,
         source: { subdivision: "commands", ref: verb },

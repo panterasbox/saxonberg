@@ -56,29 +56,19 @@
  *   `commandContributions` static somewhere, or declares `unreachable:`.
  *   A **zero invariant**: a new view costs its author one static or one
  *   key, and the figure does not scale with content.
- * - **Arm G — grammar.** TWO shapes, two ratchets, one arm — both are
- *   the binder cutting a phrase a player typed into pieces:
- *   - the **phrase shape**: a `string` positional followed by an
- *     optional `object` carrying a `default`, in which the binder gives
- *     word two of a two-word name to the trailing slot and discards
- *     that slot's default (`CommandLogic.bindPositionals`). `buy dog
- *     loaf` bound `thing = "dog"` and then refused in the name of a
- *     counter the player never mentioned.
- *   - the **article shape**: an `object`/`objects` arg that declares
- *     `prepositions:` and is NOT greedy.
- *     `docs/subsystems/command-spec.md:507-515` already calls this
- *     *"THE ARTICLE DEFECT — every object arg a player may put an
- *     article in front of needs this, INCLUDING plural and
- *     prepositional ones"*, and 45 shipped views carry `greedy` for
- *     exactly that reason. The other hundred-odd do not, so `buy torch
- *     from the counter`, `bake at the brick oven` and `mill wheat at
- *     the quern` were all shape errors — each of them a form the
- *     view's OWN help text promises.
- *
- *   Both are **ratchets**: a verb's phrase shape is a per-view
- *   authoring decision, not content volume, and a new prepositional
- *   object arg should be born greedy — so neither ceiling ever needs
- *   to rise.
+ * - **Arm G — grammar.** The **phrase shape**: a `string` positional
+ *   followed by an optional `object` carrying a `default`, in which the
+ *   binder gives word two of a two-word name to the trailing slot and
+ *   discards that slot's default (`CommandLogic.bindPositionals`). `buy
+ *   dog loaf` bound `thing = "dog"` and then refused in the name of a
+ *   counter the player never mentioned. A **ratchet**: a verb's phrase
+ *   shape is a per-view authoring decision, not content volume.
+ *   ⛔ Its second ratchet, the **article shape** (a prepositional object
+ *   arg that was not greedy), was RETIRED by controller-liquidity W1 (D3):
+ *   the rule it enforced — *a prepositional object arg is born greedy* —
+ *   is reversed. The binder folds a leading article before an object
+ *   slot's one word, a multi-word name is quoted, and `lint:greedy-object`
+ *   ratchets the other way.
  * - **Arm R — rows.** Every `thing`-branch row is reachable by one of
  *   five mechanisms, or declares `unreachable:`. A **zero invariant**
  *   for the same reason as arm A.
@@ -477,38 +467,6 @@ export function phraseShapeOf(doc: {
   return null;
 }
 
-/**
- * The article shape: an object-ish arg that declares `prepositions:` and
- * is not greedy, so it takes exactly one token and an article or an
- * ordinary noun phrase after the preposition is *"too many arguments"*.
- *
- * Reads subcommand arg lists as well as the flat ones — a subcommanded
- * verb's args are just as bindable and were being missed.
- */
-export function articleShapesOf(doc: {
-  args?: unknown;
-  subcommands?: unknown;
-}): string[] {
-  const out: string[] = [];
-  const scan = (args: unknown, label: string): void => {
-    if (!Array.isArray(args)) return;
-    for (const a of args as ArgSpec[]) {
-      if (!a || typeof a !== "object") continue;
-      if (a.type !== "object" && a.type !== "objects") continue;
-      if (!Array.isArray(a.prepositions) || a.prepositions.length === 0) continue;
-      if (a.greedy === true) continue;
-      out.push(label ? `${label}.${String(a.name)}` : String(a.name));
-    }
-  };
-  scan(doc.args, "");
-  if (doc.subcommands && typeof doc.subcommands === "object") {
-    for (const [sub, spec] of Object.entries(doc.subcommands as Record<string, unknown>)) {
-      scan((spec as { args?: unknown } | null)?.args, sub);
-    }
-  }
-  return out;
-}
-
 // ──────────────────────────────────────────────────────────────────────
 // Arm R — the row census
 // ──────────────────────────────────────────────────────────────────────
@@ -856,35 +814,6 @@ export interface RowVerdict {
 export const PHRASE_SHAPE_CEILING = 6;
 
 /**
- * ⭐ Arm G's second ratchet — the article shape. Opened at the figure
- * measured after this build's four views were fixed, so it is already
- * four below what master carried. Every one of these is a form a player
- * may reasonably type with an article in it; `command-spec.md:507-515`
- * says they all want `greedy: true`, and the only reason this is a
- * ceiling rather than a zero is that fixing a hundred views' grammar in
- * one commit is a blast radius nobody should take on the way past.
- *
- * ⚠ Lower it, never raise it. A NEW prepositional object arg declaring
- * no `greedy` is an author about to ship `at the brick oven` as a shape
- * error, which is the defect, not a style.
- *
- * ⚠⚠ **Opened at 106 and re-pinned to 122 before it ever merged**, and
- * the reason is worth more than the number. The sweep measured 106
- * against a tree that was 53 commits stale; `trade-glass` (eight views)
- * and the fire build's device verbs (`draught`, `fire`, `lift`) merged
- * while this gate was being written, and their authors had no way to know
- * the rule existed. ⭐ So this is an **opening census against the tree the
- * gate actually lands on**, not a rise in the ratchet's sense — the
- * distinction being that a rise asks to tolerate growth the gate was
- * already watching, and there was no gate.
- *
- * ⭐⭐ The lesson for the next census-then-ratchet: **a ceiling opened on a
- * stale tree is opened at the wrong number.** Measure at the merge, not
- * at the branch point, and say which you did.
- */
-export const ARTICLE_SHAPE_CEILING = 110;
-
-/**
  * ⭐ The naming ratchet — stocked goods whose printed name is a phrase
  * they do not answer to. Opened at the figure after this build fixed the
  * two it put on a shelf itself — 71 across EVERY counter in the realm,
@@ -896,8 +825,8 @@ export const ARTICLE_SHAPE_CEILING = 110;
  * worse than a verb nobody can say: the verb teaches you it is not there,
  * and this teaches you something false.
  *
- * ⚠ 71 → 72 at the master merge, for the reason `ARTICLE_SHAPE_CEILING`
- * gives at length: the figure was measured on a stale tree and re-pinned
+ * ⚠ 71 → 72 at the master merge, for the reason the retired article-shape
+ * ceiling gave at length: the figure was measured on a stale tree and re-pinned
  * against the one the gate lands on. The one addition is
  * `/trade/fishing/thing/fish-bowl`, which prints *"glass fish bowl"*.
  *
@@ -950,7 +879,6 @@ export interface Report {
   views: Array<{ key: string; conferred: boolean; disposition: string | null }>;
   rows: RowVerdict[];
   phrase: Array<{ key: string; string: string; object: string }>;
-  article: Array<{ key: string; arg: string }>;
   unnameable: Array<{ path: string; name: string }>;
 }
 
@@ -967,7 +895,6 @@ export function run(
   // ── Arm A + Arm G ────────────────────────────────────────────────
   const views: Report["views"] = [];
   const phrase: Report["phrase"] = [];
-  const article: Report["article"] = [];
   for (const file of commandViewFiles(contentDir)) {
     const key = viewKey(file, contentDir);
     let doc: Record<string, unknown> | null = null;
@@ -1012,7 +939,6 @@ export function run(
     }
     const shape = phraseShapeOf(doc);
     if (shape) phrase.push({ key, ...shape });
-    for (const arg of articleShapesOf(doc)) article.push({ key, arg });
   }
 
   // ── Arm R ────────────────────────────────────────────────────────
@@ -1179,7 +1105,7 @@ export function run(
   }
 
   const unnameable = unnameableGoodsIn(idx.rows, idx);
-  return { findings, views, rows, phrase, article, unnameable };
+  return { findings, views, rows, phrase, unnameable };
 }
 
 // ──────────────────────────────────────────────────────────────────────
@@ -1204,12 +1130,6 @@ function main(): void {
     for (const p of report.phrase.slice().sort((a, b) => a.key.localeCompare(b.key))) {
       console.info(`  ${p.string} then ${p.object} (optional, defaulted)  ${p.key}`);
     }
-    console.info("\n── arm G — article-shape args ────────────────────────");
-    for (const a of report.article
-      .slice()
-      .sort((x, y) => (x.key + x.arg).localeCompare(y.key + y.arg))) {
-      console.info(`  ${a.arg.padEnd(24)} ${a.key}`);
-    }
     console.info("\n── stocked goods that cannot be named ────────────────");
     for (const g of report.unnameable) {
       console.info(`  ${JSON.stringify(g.name).padEnd(28)} ${g.path}`);
@@ -1227,7 +1147,6 @@ function main(): void {
   ).length;
   const undeclared = report.rows.filter((r) => r.how === null).length;
   const phrase = report.phrase.length;
-  const article = report.article.length;
   const unnameable = report.unnameable.length;
 
   const over: string[] = [];
@@ -1251,13 +1170,6 @@ function main(): void {
         `of a thing standing right there. Ceiling ${UNNAMEABLE_GOOD_CEILING}`,
     );
   }
-  if (article > ARTICLE_SHAPE_CEILING) {
-    over.push(
-      `arm G: ${article} article-shape arg(s) — a prepositional object arg ` +
-        `that is not greedy takes ONE token, so 'at the brick oven' is a ` +
-        `shape error. Ceiling ${ARTICLE_SHAPE_CEILING}`,
-    );
-  }
   // ⭐ The ratchet's other direction: a ceiling that is now slack is a
   // ceiling nobody lowered, and it stops meaning anything.
   const slack: string[] = [];
@@ -1274,9 +1186,6 @@ function main(): void {
     slack.push(
       `naming is at ${unnameable} — lower UNNAMEABLE_GOOD_CEILING to it`,
     );
-  }
-  if (article < ARTICLE_SHAPE_CEILING) {
-    slack.push(`arm G is at ${article} article shape(s) — lower ARTICLE_SHAPE_CEILING to it`);
   }
 
   // Findings that are NOT the per-item census lines (those are counted by
@@ -1295,8 +1204,7 @@ function main(): void {
         `(${unconferred} unconferred, ceiling ${UNCONFERRED_CEILING}); ` +
         `${report.rows.length} thing row(s) (${undeclared} unreached, ceiling ` +
         `${UNDECLARED_ROW_CEILING}); ${phrase} phrase-shape view(s), ceiling ` +
-        `${PHRASE_SHAPE_CEILING}; ${article} article-shape arg(s), ceiling ` +
-        `${ARTICLE_SHAPE_CEILING}; ${unnameable} unnameable good(s), ceiling ` +
+        `${PHRASE_SHAPE_CEILING}; ${unnameable} unnameable good(s), ceiling ` +
         `${UNNAMEABLE_GOOD_CEILING}.`,
     );
     return;

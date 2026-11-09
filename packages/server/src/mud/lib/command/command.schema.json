@@ -200,7 +200,18 @@
           "items": {
             "$ref": "#/$defs/validatorSpec"
           },
-          "description": "Subcommand-level validators that fire AFTER the verb-level validators and BEFORE field validators with `context.commandGiver` populated, only when this subcommand is the one invoked. The subcommand-scoped equivalent of verb-level `validators` \u2014 authority/precondition gates that apply to one subcommand (e.g. a founder-only `assign`) without blocking the verb's other, public subcommands."
+          "description": "Subcommand-level validators that fire AFTER the verb-level validators and BEFORE field validators with `context.commandGiver` populated, only when this subcommand is the one invoked. The subcommand-scoped equivalent of verb-level `validators` \u2014 authority/precondition gates that apply to one subcommand (e.g. a founder-only `assign`) without blocking the verb's other, public subcommands. A nested stanza's validators run after every enclosing stanza's."
+        },
+        "subcommands": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/subcommand"
+          },
+          "description": "\u2b50 Nested subcommands (`cockpit layout save <name>`). The binder walks words while they match; `model.subcommand` is the LEAF word and `model.subcommandPath` the full list. Options bind lexically per level (a level sees its own options and every enclosing level's). `controller:` resolves at the deepest stanza that names one. Mutually exclusive with this stanza's `args` unless `fallthrough: true`."
+        },
+        "fallthrough": {
+          "type": "boolean",
+          "description": "As the verb-level flag, one level down: this stanza's `args:` and nested `subcommands:` coexist; an unknown word falls through to bind against the stanza's `args:`."
         }
       }
     },
@@ -221,12 +232,13 @@
           "enum": [
             "string",
             "number",
+            "duration",
             "boolean",
             "object",
             "objects",
             "struct"
           ],
-          "description": "Field value type. `object` runs `MqlApi.resolveOne` (single-cardinality MQL); `objects` runs `MqlApi.resolveMany` (plural-cardinality MQL); `struct` is a structured-input-only blob (Record<string, unknown>) \u2014 text input cannot bind it."
+          "description": "Field value type. `number` and `duration` are coerced at bind (a duration's written forms \u2014 `90s`, `15m`, `2h`, `1h30m`, `3d`, `90 seconds`, `2 hours` \u2014 bind as MILLISECONDS) and refused by the view when they do not read. `object` runs `MqlApi.resolveOne` (single-cardinality MQL); `objects` runs `MqlApi.resolveMany` (plural-cardinality MQL); `struct` is a structured-input-only blob (Record<string, unknown>) \u2014 text input cannot bind it."
         },
         "schema": {
           "type": "object",
@@ -289,6 +301,17 @@
           "type": "boolean",
           "description": "The slot binds ONLY when one of its `prepositions:` is present. Absent, a required slot is a shape error naming the preposition (the chain tries the next view); an optional one stays unbound. Requires `prepositions:`."
         },
+        "values": {
+          "$ref": "#/$defs/values"
+        },
+        "depth": {
+          "enum": [
+            "top",
+            "open",
+            "deep"
+          ],
+          "description": "How deep an `object` / `objects` slot reaches by default: `top` (held, worn, the place's top level) \u00b7 `open` (also inside open vessels you carry and open things here \u2014 the default) \u00b7 `deep` (everything, shut or not). The player overrides it per invocation with the reserved `--top` / `--open` / `--deep`."
+        },
         "cardinality": {
           "$ref": "#/$defs/cardinality"
         },
@@ -317,6 +340,16 @@
           "description": "Policy when a match was discarded for failing this slot's `requires:`. Default 'take' (silent, today's behaviour). See command-spec.md."
         }
       }
+    },
+    "values": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "\u2b50 The closed set of words this slot accepts. Matched case-insensitively; the canonical spelling (as written here) is what binds. Anything else is refused by the VIEW, before a controller is cloned, with the list named. `default:` must be one of them."
     },
     "cardinality": {
       "type": "object",
@@ -356,10 +389,14 @@
             "boolean",
             "string",
             "number",
+            "duration",
             "object",
             "objects",
             "struct"
           ]
+        },
+        "values": {
+          "$ref": "#/$defs/values"
         },
         "schema": {
           "type": "object",

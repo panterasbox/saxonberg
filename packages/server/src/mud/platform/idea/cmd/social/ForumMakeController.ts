@@ -1,5 +1,5 @@
 /**
- * ForumMakeController — `forum make <name>` — create a subject + board (sugar); `--open`/`--group` pick the audience, `--ordered` lights the ordered organizer (over {@link ForumControllerBase}).
+ * ForumMakeController — `forum make <name>` — create a subject + board (sugar); `--public`/`--group` pick the audience, `--ordered` lights the ordered organizer (over {@link ForumControllerBase}).
  */
 
 import type { CommandContext } from '../../../../api/command';

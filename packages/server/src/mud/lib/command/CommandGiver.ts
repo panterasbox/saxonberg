@@ -1287,6 +1287,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       let firstRefused: CommandContext | undefined;
       /** The first view whose only problem is a missing object — askable. */
       let askable: { command: CommandDefinition; field: string } | undefined;
+      /** ⭐ The first view that would have fit with one name quoted (D3). */
+      let quoteHint: string | undefined;
       for (const affordance of matches) {
         const command = affordance.command;
         const built = CommandApi.assemble(
@@ -1312,6 +1314,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             if (!askable && def && (def.type === 'object' || def.type === 'objects')) {
               askable = { command, field: def.name };
             }
+            quoteHint ??= built.quoteHint;
             continue; // fall through
           }
           if (firstRefused) return this._otherOffer(parsed, allMatches, firstRefused);
@@ -1360,6 +1363,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           barId: outer.barId,
           // `--strict` / `--loose` on the line (D23).
           ...(built.reservedFiltered ? { filterPolicy: built.reservedFiltered } : {}),
+          // `--top` / `--open` / `--deep` on the line (D4).
+          ...(built.reservedDepth ? { depth: built.reservedDepth } : {}),
         });
         if (outer.aliasExpansion !== undefined) {
           attempt.aliasExpansion = outer.aliasExpansion;
@@ -1455,6 +1460,13 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         const line = `${CommandLineApi.format(parsed)} ${prep ? `${prep} ` : ''}#${picked.stuffId}`;
         const reparsed = CommandLineApi.parsePipeline(line).commands[0];
         if (reparsed) return this._runChain(reparsed, outer);
+      }
+      // ⭐ Every match returned a shape error, and one of them would have
+      // fit with a multi-word name quoted: say THAT (D3) — it is the
+      // player's actual mistake, and the fix is in the sentence.
+      if (quoteHint !== undefined) {
+        outer.note({ kind: 'command-rejected', reason: 'bind-failed', detail: quoteHint });
+        return outer;
       }
       // Every match returned a shape error: say every shape the verb has
       // (`throw <item> · throw <item> to <person> · …`), the player's
@@ -1691,7 +1703,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // Controller resolution stays synchronous — a subcommand with no
       // resolvable controller rejects here, never detaching a phantom
       // body (and its envelope fires the normal sync way).
-      const sub = (model as { subcommand?: string }).subcommand;
+      // ⭐ Nested subcommands resolve by PATH, the deepest stanza that
+      // names a controller winning (controller-liquidity D2).
+      const sub = command.subcommandKey(model);
       const controllerPath = sub
         ? command.controllerForSubcommand(sub)
         : command.resolvedController;

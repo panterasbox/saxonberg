@@ -996,19 +996,19 @@ to — which is the one structural thing this gate does differently from
   `commandContributions` static, or declares `unreachable:`. A **zero
   invariant**. Opened at 15; W2 of the sweep drove it to 0 and deleted the
   constant.
-- **Arm G — grammar.** Two shapes, two ratchets:
+- **Arm G — grammar.** One ratchet now:
   - the **phrase shape** — a `string` positional followed by an optional
     `object` carrying a `default`, where the binder gives word two of a
     two-word name to the trailing slot and throws that slot's default
     away. `buy dog loaf` bound `thing = "dog"` and then refused the
     player in the name of a counter they had never mentioned. 9 → 6.
-  - the **article shape** — an `object`/`objects` arg declaring
-    `prepositions:` and not greedy, so it takes exactly one token and
-    `from the second counter` is *"too many arguments"*.
-    `command-spec.md:507-515` already called this *"THE ARTICLE DEFECT…
-    every object arg a player may put an article in front of needs
-    [greedy], INCLUDING plural and prepositional ones"*, with 45 views
-    carrying it for that reason — and **106** that do not. Ceiling 106.
+  - ⛔ the **article shape** (an `object`/`objects` arg declaring
+    `prepositions:` and not greedy; ceiling 110) was **retired by
+    controller-liquidity W1** with the rule it enforced. Its premise —
+    *every object arg a player may put an article in front of needs
+    `greedy`* — is reversed (D3): the binder folds a leading article
+    before an object slot's one word, a multi-word name is quoted, and
+    `lint:greedy-object` ratchets greedy object args DOWN to zero.
 - **Arm R — rows.** Every `thing`-branch row is reached by one of five
   mechanisms, or declares `unreachable:`. A **zero invariant**. Opened at
   45; W3 drove it to 0.

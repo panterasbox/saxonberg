@@ -6,7 +6,7 @@
  * Subcommands:
  *   - `make <name>` — create a subject. Default mints a managed group
  *     (curated); `--group <ref>` binds an existing
- *     `guild:`/`mql:`/`contacts:`/`managed:` ref; `--open` leaves the
+ *     `guild:`/`mql:`/`contacts:`/`managed:` ref; `--public` leaves the
  *     audience open.
  *   - `list` — subjects visible to you (open always; ref-backed to
  *     members), each with its lit surfaces.

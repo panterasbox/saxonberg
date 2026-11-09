@@ -39,13 +39,15 @@ subcommands:
     help: |
       Spin up a new board and the subject that owns it in one step,
       with you as owner. The audience is your contacts by default;
-      `--open` makes it world-visible, or `--group` binds an existing
+      `--public` makes it world-visible, or `--group` binds an existing
       ref. Add `--ordered` for a claim-graph board instead of a feed.
     examples:
       - cmd: forum make proposals --ordered Town charter debate
         note: Create an ordered (claim-graph) board with a description
     options:
-      open:
+      # ⚠ `--public`, not `--open`: `--open` is the reserved reach rung
+      # (controller-liquidity D4). The field keeps its name.
+      public:
         type: boolean
         field: open
         description: "Leave the audience open to every player"

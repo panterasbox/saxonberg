@@ -68,6 +68,7 @@ import {
   collectPhaseEffects,
   validatePhaseEffect,
   SUBCOMMAND_FIELD,
+  SUBCOMMAND_PATH_FIELD,
   HOOKABLE_PHASES,
   IMPLEMENTED_REPLACE_HANDLERS,
   type ExecuteCommandOpts,
@@ -93,6 +94,7 @@ import {
   type PhaseEffect,
   type FieldDefinition,
   type PositionalDefinition,
+  type SubcommandDefinition,
   type OptionDefinition,
   type CommandSchemaPayload,
   type AssembleSuccess,
@@ -100,7 +102,7 @@ import {
   type AssembleOptions,
   type ResolveModelOptions,
 } from '../../../api/command';
-import type { OnFilteredPolicy } from '../../../api/command';
+import type { OnFilteredPolicy, ReachDepth } from '../../../api/command';
 import { GrammarApi } from '../../../api/grammar';
 import { MessageApi } from '../../../api/message';
 
@@ -283,6 +285,7 @@ class CommandContextImpl implements CommandContext {
   public bodyFields?: Record<string, unknown>;
   public barId?: string;
   public filterPolicy?: OnFilteredPolicy;
+  public depth?: ReachDepth;
 
   private _notes: Note[] = [];
   private _status: Status = 'ok';
@@ -303,6 +306,7 @@ class CommandContextImpl implements CommandContext {
     if (args.bodyFields !== undefined) this.bodyFields = args.bodyFields;
     if (args.barId !== undefined) this.barId = args.barId;
     if (args.filterPolicy !== undefined) this.filterPolicy = args.filterPolicy;
+    if (args.depth !== undefined) this.depth = args.depth;
   }
 
   requireInteractive(what: string): Interactive | null {
@@ -1006,6 +1010,9 @@ export class CommandLogic extends ApiLogic {
     // `--async`: they force every slot's `onFiltered` to `error` / `take`
     // for this one invocation.
     let reservedFiltered: OnFilteredPolicy | undefined;
+    // ⭐ `--top` / `--open` / `--deep` — the reach rung for this one
+    // invocation (controller-liquidity D4), reserved the same way.
+    let reservedDepth: ReachDepth | undefined;
     const reserved = (t: RawToken): boolean => {
       if (t.kind !== 'long-flag') return false;
       if (t.name === 'async' || t.name === 'sync') {
@@ -1014,6 +1021,10 @@ export class CommandLogic extends ApiLogic {
       }
       if (t.name === 'strict' || t.name === 'loose') {
         reservedFiltered = t.name === 'strict' ? 'error' : 'take';
+        return true;
+      }
+      if (t.name === 'top' || t.name === 'open' || t.name === 'deep') {
+        reservedDepth = t.name;
         return true;
       }
       return false;
@@ -1038,38 +1049,64 @@ export class CommandLogic extends ApiLogic {
       i = r.nextIndex;
     }
 
-    // Phase 2: subcommand (if the verb has them).
-    let subcommand: string | undefined;
+    // Phase 2: subcommand words (if the verb has them), walked while they
+    // match — ⭐ nested stanzas (controller-liquidity D2). Options between
+    // the words bind lexically at the level reached so far.
+    const path: string[] = [];
     let scope: 'verb' | string = 'verb';
+    // The node the walk stopped at — the verb, or the deepest stanza.
+    let nodeArgs: PositionalDefinition[] = command.args;
+    let nodeSubs: Record<string, SubcommandDefinition> = command.subcommands;
+    let nodeFallthrough = command.fallthrough;
     // Phase 3a fallthrough bookkeeping. When set, Phase 4 binds against
-    // `command.args` instead of erroring; `fallthroughCandidate`
+    // the node's `args` instead of erroring; `fallthroughCandidate`
     // surfaces in the unknown-subcommand error if Phase 4 bind fails.
     let fallthroughActive = false;
     let fallthroughCandidate: string | undefined;
-    if (command.hasSubcommands() && i < tokens.length && !stopped) {
+    while (Object.keys(nodeSubs).length > 0 && i < tokens.length && !stopped) {
       const t = tokens[i]!;
-      if (t.kind === 'word') {
-        const sName = t.value;
-        const sDef = command.getSubcommand(sName);
-        if (sDef) {
-          subcommand = sName;
-          scope = sName;
-          i++;
-        } else if (command.fallthrough && command.args.length > 0) {
-          // Phase 3a: opt-in fallthrough. Don't consume the token —
-          // leave it for Phase 3 to collect as a positional. Remember
-          // it for the bind-failure → unknown-subcommand error surface.
-          fallthroughActive = true;
-          fallthroughCandidate = sName;
-        } else {
-          return {
-            error: 'unknown-subcommand',
-            subcommand: sName,
-            available: command.getSubcommandNames(),
-          };
-        }
+      if (t.kind === 'stop-options') {
+        stopped = true;
+        i++;
+        break;
       }
+      if (t.kind !== 'word') {
+        if (path.length === 0) break; // Phase 1 already bound the verb's.
+        if (reserved(t)) {
+          i++;
+          continue;
+        }
+        const r = bindOptionToken(command, scope, tokens, i, fields);
+        if (!r.ok) return { error: 'bind', summary: r.summary };
+        i = r.nextIndex;
+        continue;
+      }
+      const sDef = nodeSubs[t.value];
+      if (sDef) {
+        path.push(t.value);
+        scope = path.join(' ');
+        nodeArgs = sDef.args ?? [];
+        nodeSubs = sDef.subcommands ?? {};
+        nodeFallthrough = sDef.fallthrough === true;
+        i++;
+        continue;
+      }
+      if (nodeFallthrough && nodeArgs.length > 0) {
+        // Phase 3a: opt-in fallthrough. Don't consume the token —
+        // leave it for Phase 3 to collect as a positional. Remember
+        // it for the bind-failure → unknown-subcommand error surface.
+        fallthroughActive = true;
+        fallthroughCandidate = t.value;
+        break;
+      }
+      // ⭐ The valid words AT THIS LEVEL, not the verb's.
+      return {
+        error: 'unknown-subcommand',
+        subcommand: path.length > 0 ? `${path.join(' ')} ${t.value}` : t.value,
+        available: Object.keys(nodeSubs),
+      };
     }
+    const subcommand = path.length > 0 ? path[path.length - 1] : undefined;
 
     // Phase 3: collect positionals / bind sub-scope options.
     const positionals: WordToken[] = [];
@@ -1100,7 +1137,7 @@ export class CommandLogic extends ApiLogic {
       i++;
     }
 
-    // Phase 4: bind positionals against the active args array(s).
+    // Phase 4: bind positionals against the node's args.
     // ⭐ `verb@source`: the named source fills the slot it fits (D2).
     const bindPositionals = (
       ps: WordToken[],
@@ -1113,63 +1150,41 @@ export class CommandLogic extends ApiLogic {
         ? bindWithSource(ps, args, p, ex, exDefault, opts.scopeSource, ctx.commandGiver)
         : bindPositionalsImpl(ps, args, p, ex, exDefault);
     let prep: Record<string, string> = {};
-    if (subcommand) {
-      const sub = command.getSubcommand(subcommand)!;
-      const r = bindPositionals(positionals, sub.args ?? [], parsed, expand, expandDefault);
-      if (r.error !== undefined) return r;
-      Object.assign(fields, r.bound);
-      prep = r.prep;
-    } else if (fallthroughActive) {
-      // Phase 3a — verb opted into fallthrough. Bind the un-consumed
-      // candidate + remaining tokens against the top-level args. On
+    const nodeHasSubs = Object.keys(nodeSubs).length > 0;
+    if (fallthroughActive) {
+      // Phase 3a — the node opted into fallthrough. Bind the un-consumed
+      // candidate + remaining tokens against the node's args. On
       // bind failure, surface the ORIGINAL unknown-subcommand error
       // pointing at the candidate — the slate's required behavior.
-      const r = bindPositionals(positionals, command.args, parsed, expand, expandDefault);
+      const r = bindPositionals(positionals, nodeArgs, parsed, expand, expandDefault);
       if ('error' in r) {
         return {
           error: 'unknown-subcommand',
           subcommand: fallthroughCandidate ?? '',
-          available: command.getSubcommandNames(),
+          available: Object.keys(nodeSubs),
         };
       }
       Object.assign(fields, r.bound);
       prep = r.prep;
-    } else if (command.fallthrough && command.args.length > 0) {
-      // ⭐⭐ The ZERO-TOKEN fallthrough case, and the fire drive is why
-      // it exists. Phase 3a only fires when there IS a first word to
-      // fall through WITH, so a bare `draught` reached the branch below
-      // and bound nothing at all — not even its top-level args'
-      // `default:`. The verb opted into the flat path; with no
-      // subcommand matched, the flat path owns the invocation, and
-      // binding an empty positional list against `command.args` is
-      // exactly how a defaulted slot gets filled.
-      //
-      // ⚠ Inert for every other fallthrough verb today (`equip`,
-      // `forum`, `git`, `help`, `errors`, `watch`) — none declares a
-      // top-level `default:`, so an empty bind adds nothing.
-      const r = bindPositionals(
-        positionals,
-        command.args,
-        parsed,
-        expand,
-        expandDefault
-      );
-      if (r.error !== undefined) return r;
-      Object.assign(fields, r.bound);
-      prep = r.prep;
-    } else if (command.hasSubcommands()) {
-      // Subcommanded verb without a subcommand — still legal; the
-      // controller decides what to do with `model.subcommand ===
-      // undefined`. Leftover positionals fail shape.
+    } else if (nodeHasSubs && !(nodeFallthrough && nodeArgs.length > 0)) {
+      // A node with subcommands and no word for one — still legal; the
+      // controller decides what `model.subcommand` (absent, or the
+      // enclosing word) means. Leftover positionals fail shape.
       if (positionals.length > 0) {
         return {
           error: 'shape',
-          summary: `${command.getPrimaryVerb()} requires a subcommand. Use: ${command.getUsage()}`,
+          summary: `${[command.getPrimaryVerb(), ...path].join(' ')} requires a subcommand. Use: ${command.getUsage()}`,
         };
       }
     } else {
-      // Flat verb — single bind against the top-level args.
-      const r = bindPositionals(positionals, command.args, parsed, expand, expandDefault);
+      // ⭐⭐ A leaf stanza, a flat verb, or a fallthrough node with no
+      // word to fall through WITH — the fire drive is why the last one
+      // binds: a bare `draught` reached the subcommand branch and bound
+      // nothing at all, not even its top-level args' `default:`. The
+      // node opted into the flat path; with no subcommand matched it
+      // owns the invocation, and binding an empty positional list
+      // against its args is exactly how a defaulted slot gets filled.
+      const r = bindPositionals(positionals, nodeArgs, parsed, expand, expandDefault);
       if (r.error !== undefined) return r;
       Object.assign(fields, r.bound);
       prep = r.prep;
@@ -1177,16 +1192,19 @@ export class CommandLogic extends ApiLogic {
 
     // Apply option defaults that didn't fire.
     applyOptionDefaults(command.verbOptions, fields);
-    if (subcommand) {
-      const subDef = command.getSubcommand(subcommand);
-      applyOptionDefaults(subDef?.options ?? {}, fields);
+    if (subcommand !== undefined) {
+      for (const st of command.getSubcommandChain(path) ?? []) {
+        applyOptionDefaults(st.options ?? {}, fields);
+      }
       fields[SUBCOMMAND_FIELD] = subcommand;
+      fields[SUBCOMMAND_PATH_FIELD] = [...path];
     }
 
     const out: AssembleSuccess = { model: fields };
     if (Object.keys(prep).length > 0) out.prep = prep;
     if (reservedAsync !== undefined) out.reservedAsync = reservedAsync;
     if (reservedFiltered !== undefined) out.reservedFiltered = reservedFiltered;
+    if (reservedDepth !== undefined) out.reservedDepth = reservedDepth;
     return out;
   }
 
@@ -1222,12 +1240,15 @@ export class CommandLogic extends ApiLogic {
     applyOptionDefaults(command.verbOptions, fields);
     applyOptionDefaults(command.payload, fields);
     if (payload.subcommand) {
-      const subDef = command.getSubcommand(payload.subcommand);
-      if (!subDef) {
+      // ⭐ A nested stanza is named by its path (`layout save`).
+      const chain = command.getSubcommandChain(payload.subcommand);
+      if (!chain || chain.length === 0) {
         return { error: `unknown subcommand: ${payload.subcommand}` };
       }
-      applyOptionDefaults(subDef.options ?? {}, fields);
-      fields[SUBCOMMAND_FIELD] = payload.subcommand;
+      for (const st of chain) applyOptionDefaults(st.options ?? {}, fields);
+      const words = payload.subcommand.split(/\s+/).filter((w) => w.length > 0);
+      fields[SUBCOMMAND_FIELD] = words[words.length - 1]!;
+      fields[SUBCOMMAND_PATH_FIELD] = words;
     }
 
     // Required-payload check: structured-form-only fields with
@@ -1251,10 +1272,7 @@ export class CommandLogic extends ApiLogic {
     fields: Record<string, unknown>,
     command: CommandDefinition,
   ): void {
-    const subcommand =
-      typeof model[SUBCOMMAND_FIELD] === 'string'
-        ? (model[SUBCOMMAND_FIELD] as string)
-        : undefined;
+    const subcommand = command.subcommandKey(model);
     for (const [k, v] of Object.entries(fields)) {
       // Structural narrowness: `fields` may ONLY reach the command's
       // `payload:`-block fields (structured-only) or a designated body
@@ -1344,9 +1362,13 @@ export class CommandLogic extends ApiLogic {
       }
     };
 
+    // ⭐ The model's own path wins over a caller's leaf-word hint (nested).
+    subcommand = command.subcommandKey(resolved) ?? subcommand;
     collectCmd(command._resolvedValidators);
     if (subcommand) {
-      collectCmd(command.getSubcommand(subcommand)?._resolvedValidators);
+      for (const st of command.getSubcommandChain(subcommand) ?? []) {
+        collectCmd(st._resolvedValidators);
+      }
     }
     const fieldDefs = collectActiveFieldDefs(subcommand, command);
     for (const [fname, def] of Object.entries(fieldDefs)) {
@@ -1361,7 +1383,7 @@ export class CommandLogic extends ApiLogic {
       collectField(opt._resolvedValidators, fname);
     }
     if (subcommand) {
-      const subOpts = command.getSubcommand(subcommand)?.options ?? {};
+      const subOpts = command.getSubcommandOptions(subcommand);
       for (const [name, opt] of Object.entries(subOpts)) {
         const fname = opt.field ?? name;
         collectField(opt._resolvedValidators, fname);
@@ -1506,10 +1528,7 @@ export class CommandLogic extends ApiLogic {
     opts: ResolveModelOptions = {}
   ): Promise<{ resolved: CommandModel; result?: undefined } | { result: 'failed' }> {
     const command = context.command;
-    const subcommand =
-      typeof model[SUBCOMMAND_FIELD] === 'string'
-        ? (model[SUBCOMMAND_FIELD] as string)
-        : undefined;
+    const subcommand = command.subcommandKey(model);
     const fieldDefs = collectActiveFieldDefs(subcommand, command);
     const resolved: ModelData = { ...model };
 
@@ -1923,10 +1942,7 @@ export class CommandLogic extends ApiLogic {
     preloads?: ValidatorPreloads,
   ): { ok: true; result?: undefined } | { result: 'failed' } {
     const command = context.command;
-    const subcommand =
-      typeof resolved[SUBCOMMAND_FIELD] === 'string'
-        ? (resolved[SUBCOMMAND_FIELD] as string)
-        : undefined;
+    const subcommand = command.subcommandKey(resolved);
     const fieldDefs = collectActiveFieldDefs(subcommand, command);
 
     // Verb-level validators run BEFORE field validators. They guard
@@ -1954,9 +1970,8 @@ export class CommandLogic extends ApiLogic {
     // scoped to the invoked subcommand). They let one subcommand carry
     // an authority gate the verb's other subcommands don't — e.g. a
     // founder-only `assign` under a verb whose bare roster is public.
-    if (subcommand) {
-      const subValidators = command.getSubcommand(subcommand)
-        ?._resolvedValidators;
+    for (const st of subcommand ? command.getSubcommandChain(subcommand) ?? [] : []) {
+      const subValidators = st._resolvedValidators;
       if (subValidators) {
         for (const v of subValidators) {
           const err = v(
@@ -2031,7 +2046,7 @@ export class CommandLogic extends ApiLogic {
       }
     }
     if (subcommand) {
-      const subOpts = command.getSubcommand(subcommand)?.options ?? {};
+      const subOpts = command.getSubcommandOptions(subcommand);
       for (const [name, opt] of Object.entries(subOpts)) {
         const fname = opt.field ?? name;
         const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context, preloads);
@@ -2059,11 +2074,7 @@ export class CommandLogic extends ApiLogic {
   ): Promise<{ resolved: CommandModel; result?: undefined } | { result: 'failed' }> {
     const resolved = await this.resolveModel(model, context, prep);
     if ('result' in resolved) return resolved;
-    const subcommand =
-      typeof (resolved.resolved as { subcommand?: unknown }).subcommand ===
-      'string'
-        ? ((resolved.resolved as { subcommand?: string }).subcommand)
-        : undefined;
+    const subcommand = context.command.subcommandKey(resolved.resolved);
     const preloads = await this.preloadValidatorDeps(
       context.command,
       context,
@@ -2562,7 +2573,7 @@ function bindOptionToken(
         value = next.value;
         nextI = i + 2;
       }
-      const coerced = coerceOptionValue(opt.def.type, value);
+      const coerced = coerceOptionValue(opt.def, value);
       if (!coerced.ok) {
         return { ok: false, summary: `option -${ch}: ${coerced.error}` };
       }
@@ -2588,13 +2599,22 @@ function bindOptionToken(
     if (!next || next.kind !== 'word') {
       return { ok: false, summary: `option --${t.name} requires a value` };
     }
-    const coerced = coerceOptionValue(opt.def.type, next.value);
+    // ⭐ A duration may be written as two words (`--for 2 hours`): a
+    // number followed by a unit is one value.
+    const unit = tokens[i + 2];
+    const twoWord =
+      opt.def.type === 'duration' &&
+      isNumericToken(next.value) &&
+      unit?.kind === 'word' &&
+      CommandDefinition.isDurationUnit(unit.value);
+    const text = twoWord ? `${next.value} ${(unit as WordToken).value}` : next.value;
+    const coerced = coerceOptionValue(opt.def, text);
     if (!coerced.ok) {
       return { ok: false, summary: `option --${t.name}: ${coerced.error}` };
     }
     const r = applyOptionValue(fields, fname, opt.def, coerced.value, opt.name);
     if (!r.ok) return r;
-    return { ok: true, nextIndex: i + 2 };
+    return { ok: true, nextIndex: i + (twoWord ? 3 : 2) };
   }
 
   if (t.kind === 'long-with-value') {
@@ -2609,7 +2629,7 @@ function bindOptionToken(
         summary: `boolean option --${t.name} cannot take a value`,
       };
     }
-    const coerced = coerceOptionValue(opt.def.type, t.value);
+    const coerced = coerceOptionValue(opt.def, t.value);
     if (!coerced.ok) {
       return { ok: false, summary: `option --${t.name}: ${coerced.error}` };
     }
@@ -2659,11 +2679,14 @@ interface CoerceErr {
 }
 
 function coerceOptionValue(
-  type: OptionDefinition['type'],
+  def: Pick<OptionDefinition, 'type' | 'values'>,
   raw: string
 ): CoerceOk | CoerceErr {
-  switch (type) {
+  switch (def.type) {
     case 'string':
+      // ⭐ A closed word set is the VIEW's refusal (D1), naming the set.
+      if (def.values && def.values.length > 0) return coerceValues(def.values, raw);
+      return { ok: true, value: raw };
     case 'object':
     case 'objects':
       // object/objects keep the raw text — the matcher's
@@ -2674,8 +2697,18 @@ function coerceOptionValue(
       return { ok: true, value: raw };
     case 'number': {
       const n = Number(raw);
-      if (!Number.isFinite(n)) return { ok: false, error: `not a number: ${raw}` };
+      if (raw.trim() === '' || !Number.isFinite(n)) return { ok: false, error: `not a number: ${raw}` };
       return { ok: true, value: n };
+    }
+    case 'duration': {
+      const ms = CommandDefinition.parseDuration(raw);
+      if (ms === null) {
+        return {
+          ok: false,
+          error: `'${raw}' is not a duration (write it like 90s, 15m, 2h, 1h30m or 2 hours)`,
+        };
+      }
+      return { ok: true, value: ms };
     }
     case 'boolean':
       // Boolean options never take a value via this path (long-with-
@@ -2690,6 +2723,13 @@ function coerceOptionValue(
         error: 'requires structured input; cannot bind from text',
       };
   }
+}
+
+/** ⭐ A typed word against a `values:` list: the canonical spelling, or the refusal naming the list. */
+function coerceValues(values: readonly string[], raw: string): CoerceOk | CoerceErr {
+  const hit = CommandDefinition.matchValue(values, raw);
+  if (hit !== undefined) return { ok: true, value: hit };
+  return { ok: false, error: `'${raw}' is not one of ${values.join(', ')}` };
 }
 
 function coerceStructuredValue(
@@ -2713,6 +2753,12 @@ function coerceStructuredValue(
       return { ok: false, error: `expected number, got ${typeof raw}` };
     }
     return { ok: true, value: raw };
+  }
+  if (type === 'duration') {
+    // A structured client may send milliseconds or the written form.
+    if (typeof raw === 'number' && Number.isFinite(raw)) return { ok: true, value: raw };
+    if (typeof raw === 'string') return coerceOptionValue({ type: 'duration' }, raw);
+    return { ok: false, error: `expected duration, got ${typeof raw}` };
   }
   if (type === 'boolean') {
     if (typeof raw !== 'boolean') {
@@ -2820,12 +2866,34 @@ function bindPositionalsImpl(
   parsed: ParsedCommand,
   expand: (text: string) => string,
   expandDefault: (text: string) => string = expand,
+  hint = true,
 ):
   | { bound: ModelData; prep: Record<string, string>; error?: undefined }
-  | { error: 'shape'; summary: string; missing?: string } {
+  | { error: 'shape'; summary: string; missing?: string; quoteHint?: string }
+  | { error: 'bind'; summary: string } {
   const bound: ModelData = {};
   const prep: Record<string, string> = {};
   let pi = 0;
+  /**
+   * ⭐ A typed slot's value (controller-liquidity D1): a `number` or
+   * `duration` is coerced, a `values:` word canonicalized — the same
+   * coercion an option gets. Everything else binds as typed.
+   */
+  const typed = (
+    def: PositionalDefinition,
+    text: string
+  ): CoerceOk | CoerceErr =>
+    def.type === 'number' ||
+    def.type === 'duration' ||
+    (def.values !== undefined && def.values.length > 0)
+      ? coerceOptionValue({ type: def.type ?? 'string', values: def.values }, text)
+      : { ok: true, value: text };
+  /** A defaulted value, coerced like a typed one (a default is the author's word). */
+  const defaulted = (def: PositionalDefinition): FieldValue => {
+    const text = expandDefault(def.default!);
+    const c = typed(def, text);
+    return c.ok ? c.value : text;
+  };
 
   for (let ai = 0; ai < args.length; ai++) {
     const def = args[ai]!;
@@ -3064,6 +3132,16 @@ function bindPositionalsImpl(
       continue;
     }
 
+    // ⭐⭐ The article fold (controller-liquidity D3): an object slot
+    // takes ONE word, and `eat the apple` must not bind `the`. A leading
+    // unquoted article with a word after it folds away — MQL strips one
+    // inside a name anyway, so the slot loses nothing it could use.
+    const isObject = def.type === 'object' || def.type === 'objects';
+    if (isObject && pi + 1 < positionals.length) {
+      const head = positionals[pi]!;
+      if (head.raw === head.value && FOLDED_ARTICLES.has(head.value.toLowerCase())) pi++;
+    }
+
     // Boundary lookahead extends to non-greedy fields too: if the
     // next available token belongs to a later field's `prepositions`
     // list, this field has no input — apply the default (or fail
@@ -3073,10 +3151,26 @@ function bindPositionalsImpl(
       pi < positionals.length &&
       laterPreps.has(positionals[pi]!.value.toLowerCase());
 
+    // ⭐ A duration may be written as two words (`2 hours`): a number
+    // followed by a unit is one value.
+    const tokenText = (): { text: string; width: number } => {
+      const tok = positionals[pi]!;
+      const unit = positionals[pi + 1];
+      if (
+        def.type === 'duration' &&
+        isNumericToken(tok.value) &&
+        unit !== undefined &&
+        CommandDefinition.isDurationUnit(unit.value)
+      ) {
+        return { text: `${tok.value} ${unit.value}`, width: 2 };
+      }
+      return { text: tok.value, width: 1 };
+    };
+
     if (def.required) {
       if (pi >= positionals.length || nextBelongsToLater) {
         if (def.default !== undefined) {
-          bound[name] = expandDefault(def.default);
+          bound[name] = defaulted(def);
           continue;
         }
         return {
@@ -3094,8 +3188,11 @@ function bindPositionalsImpl(
           summary: `field '${name}' requires structured input; cannot bind from text`,
         };
       }
-      bound[name] = expand(positionals[pi]!.value);
-      pi++;
+      const { text, width } = tokenText();
+      const c = typed(def, expand(text));
+      if (!c.ok) return { error: 'bind', summary: `${name}: ${c.error}` };
+      bound[name] = c.value;
+      pi += width;
       continue;
     }
 
@@ -3107,20 +3204,79 @@ function bindPositionalsImpl(
           summary: `field '${name}' requires structured input; cannot bind from text`,
         };
       }
-      bound[name] = expand(positionals[pi]!.value);
-      pi++;
+      const { text, width } = tokenText();
+      const c = typed(def, expand(text));
+      if (c.ok) {
+        bound[name] = c.value;
+        pi += width;
+      } else if (def.values !== undefined && def.values.length > 0) {
+        // A closed word set refuses, naming the set.
+        return { error: 'bind', summary: `${name}: ${c.error}` };
+      } else if (def.default !== undefined) {
+        // ⭐ An optional NUMBER that is not one leaves the word for the
+        // next slot (`mill wheat quern` — the extraction is not given).
+        bound[name] = defaulted(def);
+      }
     } else if (def.default !== undefined) {
-      bound[name] = expandDefault(def.default);
+      bound[name] = defaulted(def);
     }
   }
 
   if (pi < positionals.length) {
     // Leftover positionals — this verb's grammar didn't fit, let
-    // the chain try another match.
-    return { error: 'shape', summary: 'too many arguments' };
+    // the chain try another match. ⭐ If quoting one multi-word name
+    // would have made it fit, say so (D3) — said only when no other
+    // view claims the line.
+    const quoteHint = hint ? quoteHintFor(positionals, args, parsed, expand, expandDefault) : undefined;
+    return {
+      error: 'shape',
+      summary: 'too many arguments',
+      ...(quoteHint !== undefined ? { quoteHint } : {}),
+    };
   }
 
   return { bound, prep };
+}
+
+/** The words the article fold drops before an object slot's name (D3). */
+const FOLDED_ARTICLES: ReadonlySet<string> = new Set([...GrammarApi.ARTICLES, 'some']);
+
+/**
+ * ⭐ The quote hint (controller-liquidity D3). A line that left words over
+ * is tried again with each run of two or more words joined into ONE quoted
+ * name; the first that binds an OBJECT slot to the joined name is the line
+ * the player meant, and the hint says it: `too many words — quote a name
+ * with a space in it: buy "dog loaf"`. Undefined when no join fits — the
+ * line is wrong some other way, and the plain shape error stands.
+ */
+function quoteHintFor(
+  positionals: WordToken[],
+  args: PositionalDefinition[],
+  parsed: ParsedCommand,
+  expand: (text: string) => string,
+  expandDefault: (text: string) => string,
+): string | undefined {
+  if (!args.some((a) => (a.type === 'object' || a.type === 'objects') && !a.greedy)) return undefined;
+  const n = positionals.length;
+  for (let start = 0; start < n - 1; start++) {
+    // Shortest join first: the fewest words quoted that make the line fit.
+    for (let end = start + 2; end <= n; end++) {
+      const span = positionals.slice(start, end);
+      const joined = span.map((t) => t.value).join(' ');
+      const merged: WordToken = { kind: 'word', value: joined, raw: `"${joined}"`, pos: span[0]!.pos };
+      const tried = [...positionals.slice(0, start), merged, ...positionals.slice(end)];
+      const r = bindPositionalsImpl(tried, args, parsed, expand, expandDefault, false);
+      if (r.error !== undefined) continue;
+      const named = args.some(
+        (a) => (a.type === 'object' || a.type === 'objects') && r.bound[a.name] === expand(joined)
+      );
+      if (!named) continue;
+      const head = parsed.source.substring(0, positionals[0]!.pos - parsed.start).trimEnd();
+      const line = [head, ...tried.map((t) => t.raw)].filter((x) => x.length > 0).join(' ');
+      return `too many words — quote a name with a space in it: ${line}`;
+    }
+  }
+  return undefined;
 }
 
 /**
@@ -3241,8 +3397,7 @@ function lookupOptionDefinition(
     if ((def.field ?? name) === fname) return def;
   }
   if (subcommand) {
-    const sub = command.getSubcommand(subcommand);
-    for (const [name, def] of Object.entries(sub?.options ?? {})) {
+    for (const [name, def] of Object.entries(command.getSubcommandOptions(subcommand))) {
       if ((def.field ?? name) === fname) return def;
     }
   }
@@ -3328,7 +3483,7 @@ function collectActiveOptionDefs(
     out[def.field ?? name] = def;
   }
   if (subcommand) {
-    const subOpts = command.getSubcommand(subcommand)?.options ?? {};
+    const subOpts = command.getSubcommandOptions(subcommand);
     for (const [name, def] of Object.entries(subOpts)) {
       out[def.field ?? name] = def;
     }
@@ -3668,7 +3823,7 @@ async function resolveCommandValidators(
   };
 
   for (const a of cmd.args) await resolveOne(a, `${yamlPath} arg \`${a.name}\``);
-  for (const [subName, sub] of Object.entries(cmd.subcommands)) {
+  for (const [subName, sub] of cmd.allSubcommands()) {
     for (const a of sub.args ?? []) {
       await resolveOne(a, `${yamlPath} ${subName} arg \`${a.name}\``);
     }
@@ -3745,7 +3900,7 @@ function validateCommandEffects(cmd: CommandDefinition): void {
   };
   checkOptions(cmd.verbOptions, cmd.filePath);
   checkOptions(cmd.payload, `${cmd.filePath} (payload)`);
-  for (const [subName, sub] of Object.entries(cmd.subcommands)) {
+  for (const [subName, sub] of cmd.allSubcommands()) {
     if (sub.options) {
       checkOptions(sub.options, `${cmd.filePath}#${subName}`);
     }

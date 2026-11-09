@@ -156,6 +156,13 @@ export interface CommandContext {
   filterPolicy?: OnFilteredPolicy;
 
   /**
+   * ⭐ The per-invocation reach rung (`--top` / `--open` / `--deep`,
+   * controller-liquidity D4). Absent: each slot's own `depth:` applies.
+   * ⚠ Carried, not yet consumed — the seed walks obey it from W2.
+   */
+  depth?: ReachDepth;
+
+  /**
    * ⭐⭐ **The one guard every prompt seam uses.** Returns the
    * Interactive to ask, or — when nobody is there to answer (a script
    * line, an NPC) — notes `command-rejected { reason: 'needs-input',
@@ -210,6 +217,8 @@ export interface CreateCommandContextArgs {
   barId?: string;
   /** `--strict` / `--loose`; see {@link CommandContext.filterPolicy}. */
   filterPolicy?: OnFilteredPolicy;
+  /** `--top` / `--open` / `--deep` on the line. */
+  depth?: ReachDepth;
 }
 
 /**
@@ -235,6 +244,8 @@ export interface AliasExpansionInfo {
  * invariant in `CommandDefinition.validate` enforces this.
  */
 export const SUBCOMMAND_FIELD = 'subcommand';
+/** The model key carrying the walked subcommand words (nested subcommands). */
+export const SUBCOMMAND_PATH_FIELD = 'subcommandPath';
 
 /**
  * Parser-side context — what a parser may look at to decide intent.
@@ -432,6 +443,12 @@ export type CommandModel = ModelData & {
    * without a subcommand (the controller decides what that means).
    */
   subcommand?: string;
+  /**
+   * Every subcommand word the matcher walked, outermost first
+   * (`['layout', 'save']`); `subcommand` is its last entry. Stamped
+   * whenever `subcommand` is (controller-liquidity D2).
+   */
+  subcommandPath?: string[];
 };
 
 /**
@@ -814,6 +831,28 @@ export function collectPhaseEffects(
   return out;
 }
 
+/**
+ * A slot's value type. `duration` is a written span (`90s`, `15m`, `2h`,
+ * `1h30m`, `3d`, `90 seconds`, `2 hours`) bound as **milliseconds**
+ * (controller-liquidity D1); `number` is coerced at bind for options and
+ * positionals alike.
+ */
+export type FieldType =
+  | 'string'
+  | 'number'
+  | 'duration'
+  | 'boolean'
+  | 'object'
+  | 'objects'
+  | 'struct';
+
+/**
+ * The three reach rungs (controller-liquidity D4): `top` = held, worn and
+ * the place's top level; `open` = also inside open vessels you carry and
+ * open things here; `deep` = everything, shut or not.
+ */
+export type ReachDepth = 'top' | 'open' | 'deep';
+
 export interface FieldDefinition {
   /**
    * What this slot accepts, by mixin composition. Required on every
@@ -838,7 +877,22 @@ export interface FieldDefinition {
    *   `assembleFromStructured`. Validated against the optional
    *   `schema` (JSON Schema) before user-defined validators fire.
    */
-  type?: 'string' | 'number' | 'boolean' | 'object' | 'objects' | 'struct';
+  type?: FieldType;
+  /**
+   * ⭐ The closed set of words this slot accepts (controller-liquidity
+   * D1). Matched case-insensitively; the canonical spelling written here
+   * is what binds. Anything else is refused by the VIEW (a `bind` error
+   * naming the list) before a controller is cloned. `default:` must be one
+   * of them (load-time).
+   */
+  values?: string[];
+  /**
+   * ⭐ How deep an `object` / `objects` slot reaches by default
+   * (controller-liquidity D4): `top` · `open` (the default) · `deep`. The
+   * player overrides it per invocation with the reserved `--top` /
+   * `--open` / `--deep` flags ({@link AssembleSuccess.reservedDepth}).
+   */
+  depth?: ReachDepth;
   /**
    * Cardinality constraint for `objects` fields. Ignored on other
    * field types. Defaults to `{ min: 0, max: Infinity }`.
@@ -1094,7 +1148,9 @@ export interface OptionDefinition {
    * resolution (see `scope` below); the controller receives an
    * `MqlOneResult` / `MqlManyResult` wrapper, not the raw string.
    */
-  type: 'boolean' | 'string' | 'number' | 'object' | 'objects' | 'struct';
+  type: 'boolean' | FieldType;
+  /** The closed set of words this option accepts — see `FieldDefinition.values`. */
+  values?: string[];
   /** Optional JSON Schema fragment — see `FieldDefinition.schema`. */
   schema?: Record<string, unknown>;
   /** Cardinality / onExcess / onShortage — see `FieldDefinition`. */
@@ -1206,6 +1262,17 @@ export interface SubcommandDefinition {
    * parallels `validators`. @internal
    */
   _resolvedValidators?: CommandValidator[];
+  /**
+   * ⭐ Nested subcommands (controller-liquidity D2) — `cockpit layout
+   * save <name>`. The binder walks words while they match:
+   * `model.subcommand` is the LEAF word, `model.subcommandPath` the full
+   * list. Options bind lexically per level; `controller:` resolves at the
+   * deepest stanza that names one. Exclusive with this stanza's `args:`
+   * unless {@link fallthrough}.
+   */
+  subcommands?: Record<string, SubcommandDefinition>;
+  /** As {@link CommandView.fallthrough}, one level down. */
+  fallthrough?: boolean;
 }
 
 /**
@@ -1377,6 +1444,14 @@ export interface AssembleSuccess {
    * the attempt's {@link CommandContext.filterPolicy}.
    */
   reservedFiltered?: OnFilteredPolicy;
+  /**
+   * ⭐ The reserved `--top` / `--open` / `--deep` flag consumed from the
+   * token stream (last wins) — the reach rung for this one invocation,
+   * over every object slot's `depth:` (controller-liquidity D4). Stripped
+   * like `--async`, so it works on any verb; carried onto
+   * {@link CommandContext.depth}.
+   */
+  reservedDepth?: ReachDepth;
 }
 
 /**
@@ -1409,7 +1484,13 @@ export type AssembleResult =
    * `missing` names the required field the line left out, when that is
    * why it failed — the dispatcher asks for an object it is missing.
    */
-  | { error: 'shape'; summary: string; missing?: string }
+  /**
+   * `quoteHint` — ⭐ the line had too many words for this view and quoting
+   * one multi-word name would have made it fit (controller-liquidity D3):
+   * the sentence to say, `too many words — quote a name with a space in
+   * it: buy "dog loaf"`. Said only when no other view claims the line.
+   */
+  | { error: 'shape'; summary: string; missing?: string; quoteHint?: string }
   | { error: 'bind'; summary: string }
   | { error: 'unknown-subcommand'; subcommand: string; available: string[] };
 
