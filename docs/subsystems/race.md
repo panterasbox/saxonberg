@@ -1088,5 +1088,58 @@ than a loin in a fight. See [butchery.md](./butchery.md).
   split the class into the capabilities and the kinds above, re-homed all 389 rows, retired the
   `edibility` flag (composing `Edibility` is the fact), the platform `Material` twin and the four
   combination classes, and fixed the defects the census found (lye and saltpeter "edible", two
-  `iron`s, metals holding water, `chemistry:` never applied). The decisions it made against the
-  plan are D12–D23 in `docs/plans/material-decomposition-plan.md` until the sweep.
+  `iron`s, metals holding water, `chemistry:` never applied). MR !555; the census and the tree's
+  first draft are [material-decomposition-slate](../slates/builds/material-decomposition-slate.md)
+  §§ 7¾–7⅞, and where the build departed from that draft is below.
+
+### The decisions the build made (!555)
+
+- **D12 (W0) `cleanser` stays on the BASE; no Detergency.** The census found sand, chalk,
+  vitriol, neutral spirit, naphtha, buttermilk and vinegar all naming a cleanser — cleaning is a
+  role many substances play, not one physics. Lens 1: a capability is a property a student can look
+  up; "is a cleanser" is not one.
+- **D13 (W0) `leaches` → Toxicity** (a toxin release through a face), **`drainSetting` → Kinetic**
+  (a timed set). Neither is Acidity's / Fusion's physics.
+- **D14 (W1 folded into W2b)** No separate narrowing wave: while the base composed everything, a
+  predicate was always true, so W1 would have been the same edit twice. The cut's compile errors
+  were the census (286 production sites in 83 files), each narrowed behavior-identically — the
+  branch the absent field's old default took.
+- **D15 (W2a/W2b one commit)** The deleted platform `Material` twin had ~60 test users that
+  needed the FINAL compositions to pick their kind, so the placeholder state was never landable.
+- **D16 the tree, re-measured.** The planned tree left ~100 (kind, capability) gaps on the
+  current 389 rows. Resolved by rule 4 — a capability most members use, or every member physically
+  has, moves up; a real minority is a named child: Stone gains Fusion + Kinetic (every mineral melts
+  and changes in a fire — so Ceramic carries Kinetic too, contrary to "kinetics on the clay, not the
+  brick"); Food gains Perishability, Toxicity, Acidity, Tissue (Toxicity on Food replaces a
+  per-drink Brew kind: metabolism reads a toxin list on whatever is eaten); Drink gains Solution +
+  Volatility (D11's recorded move-up); Lye, Gas, Water, Salt, Soap, FatOilWax, Polymer, SolidFuel,
+  PigmentPaint gain what most members author. New children: `NonMetal` (carbon, sulfur), `Crystal`
+  (quartz), `Soil`, `Plaster`, `Acid` (vitriol), `FuelGas`, `ToxicAlloy` (pewter), `Pulp`,
+  `EdibleHerb`, `Hide`, `Horn`, `Blood`, `SolidFood`, `Syrup`, `Fat`, `CoatingOil`, `Resin`.
+  `RadioactiveMetal` extends `ToxicMetal`. `Ore` is Stone + Mixture (its composition is what a smelt
+  reads; the mineral formula was dropped — exclusive identity). `Soap` is Organic (a salt of a fat)
+  and keeps `Shrinkage`: **the "soap borrows wood's seasoning" defect was not one** — `SoapBar`
+  cures by drying over the water model, which is what seasoning is. `PigmentPaint`/`Glue` sit
+  outside the organic/mineral split (ochre and lead white are mineral). The final table is
+  `platform/idea/material/*.ts`, each class's header naming what it composes.
+- **D17 minority values stripped (recorded):** metals' `waterAbsorptionCapacity` (the planned
+  defect); `nutrients` on non-foods (wood "cellulose", ores "copper", potash "potassium" — no reader
+  but metabolism); `tastes` on lye, glycerin, saltpeter, skimmings→(moved to Syrup); blood
+  hardness; slip's boiling point; leaf-fat and chalk water absorption; plaster-slurry's smell; the
+  ores' formulas. Latex's water share moved from `nutrientAmounts` to `composition` (the mould
+  drain reads either) and Polymer composes Mixture. Zero-amount toxin entries are sentinels (every
+  reader skips them).
+- **D18 `chemistry:` was dead on every row** — not a persistent field, so the applier dropped it;
+  the 4 rows with real values were flattened to `formula`/`molarMass`. A defect fixed in passing:
+  linen, alum, copperas now report their chemistry.
+- **D19 one iron:** the dyeing pack's `iron` is copperas (FeSO₄) — renamed `copperas`, kind
+  `Salt`; the dyer's word stays "iron" and `MordantController` maps it.
+- **D20 identity** — Element and Compound each carry their own `molarMass` + `getChemistry()`
+  (no shared helper; exclusive by construction). Readers ask `hasElement || hasCompound`.
+- **D21 sentinel refusal in setters is NOT built.** Gate arm (c) refuses an authored sentinel at
+  lint time; a runtime throw would also refuse a test or a child override clearing a parent's
+  value. One place, the gate.
+- **D22** `description:` on vitriol and quicklime was an orphan key (materials read by
+  `appearance`) — kept as a YAML comment.
+- **D23 gate (d)** measured 6,057 composed-but-unauthored fields at the cut; ceiling pinned there.
+

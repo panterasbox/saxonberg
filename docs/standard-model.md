@@ -216,8 +216,10 @@ Under `Idea`:
   - **`FolderZone`** — an organizational scope with no spatial topology.
   - **`Clade`** — a taxonomic scope whose members are `Species`.
 - Reference singletons (one instance per template path):
-  - **`Material`** — a substance (density, molar mass, …);
-    **`RadioactiveMaterial`** adds decay.
+  - **`Material`** — a substance; its class is its KIND (`Metal`, `Food`,
+    `Wood`, …), which composes the capabilities its members have
+    (`Fusion`, `Combustion`, `Edibility`, … — see race.md § Material
+    substrate); `RadioactiveMetal` adds decay.
   - **`Species`** / **`BodyPlan`** — organism and body-structure
     templates.
   - **`LocomotionMode`** — a way of moving (walk / swim / climb / fly …).

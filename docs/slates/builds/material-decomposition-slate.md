@@ -1,6 +1,13 @@
 # Material decomposition slate — a material composes the capabilities it has (and the Idea-tree audit)
 
-> **Status: UNBUILT** — designed at high level 2026-10-30 with the owner; census run the same day.
+> ⭐ **Status: the decomposition SHIPPED (MR !555, 2026-11-09)** — capabilities, kinds, every row
+> re-homed, `lint:material-kinds`; the live reference is [race.md § Material
+> substrate](../../subsystems/race.md) (with the build's departures from §§ 7¾–7⅞ under its History).
+> **Still open here:** § 7 (species, maturation by mechanism, dead fields — the next Idea-tree pass)
+> and § 8 (the data-gap burn-down, which `lint:material-kinds --gaps` now counts per pack). The
+> folder sweep rides the place-taxonomy slate.
+>
+> **Status at design (kept for history):** UNBUILT — designed at high level 2026-10-30 with the owner; census run the same day.
 > What ships: one `Material` class (`lib/material/Material.ts`, 2,209 lines) carrying ~72 authored
 > properties, of which a row authors what it needs and leaves the rest at sentinels; the
 > capability-mixin pattern already proven by `RadioactiveMaterial` and `Muscle`, and `PotionMaterial`

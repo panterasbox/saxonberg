@@ -87,7 +87,7 @@ Whether `/platform/location/` → `/platform/place/` (and every
 ## ⭐ The material folders — the same sweep (owner, 2026-11-07)
 
 The material decomposition build
-([material-decomposition-requirements](../../requirements/material-decomposition-requirements.md),
+(shipped in MR !555 — [race.md § Material substrate](../../subsystems/race.md);
 [slate](./material-decomposition-slate.md) § 7¾) gives every material a KIND — organic or mineral,
 then metal, stone, wood, food and the rest — and **defers moving the rows into folders that match
 their kind** to this sweep. The owner: *"we'll do em together so it's less expensive"* — both are
