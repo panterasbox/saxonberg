@@ -3,7 +3,6 @@
  * kernel's own `TemplateApplier` — so these tests prove the rows, not a
  * hand-written copy of them.
  */
-import { Aroma } from '@saxonberg/server/mud/lib/perception/Aroma';
 import { readFileSync, existsSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -61,12 +60,11 @@ export async function hydrate<T extends Stuff>(path: string): Promise<T> {
   const s = makeStuffAtPath(make, path) as unknown as T;
   // ⚠ `composition` and `electricalConductivity` reach the clone pipeline
   // at apply time, which a unit test has no store behind; neither is read
-  // by anything these tests prove.
-  const { composition: _c, electricalConductivity: _e, ...data } = row.data;
-  // The words a smell names load with it; stand each up where a setter finds it.
-  for (const tag of [...((data.smells as { word: string }[]) ?? []), ...((data.burning as { word: string }[]) ?? [])]) {
-    if (!Aroma.resolveKnown(tag.word)) Aroma.remember(tag.word, {}, null);
-  }
+  // by anything these tests prove. Nor is `smells`: an aroma is a Document
+  // the setter reads from the store, and since the material decomposition
+  // every dairy row's kind composes Odor (a ConsumableMaterial row's smell
+  // used to be dropped silently). The smell is the senses suite's to prove.
+  const { composition: _c, electricalConductivity: _e, smells: _s, burning: _b, ...data } = row.data;
   await makeStuff(() => new TemplateApplier()).apply(s, data, { mode: 'mint' });
   return s;
 }
