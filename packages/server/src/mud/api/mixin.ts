@@ -286,6 +286,8 @@ import type { WaterEntry } from '../lib/location/WaterEntry';
 import type { Rivable } from '../lib/craft/Rivable';
 import type { Butcherable } from '../lib/craft/Butcherable';
 import type { Readable } from '../lib/description/Readable';
+import type { Anchoring } from '../lib/expanse/Anchoring';
+import type { Launchable } from '../lib/location/Launchable';
 import type { LiftSource } from '../lib/pump/LiftSource';
 import type { PumpSource } from '../lib/pump/PumpSource';
 import type { CapTable } from '../lib/employment/CapTable';
@@ -2471,6 +2473,16 @@ export class MixinApi {
   /** ⭐ Knows the way into its water — bare `swim` (`WaterEntryMixin`, a protocol; W8). */
   public static isWaterEntry(obj: Stuff): obj is Stuff & WaterEntry {
     return this.hasMixin(obj, Mixins.WaterEntry);
+  }
+
+  /** ⭐ A craft that lets go an anchor — `anchor` (`AnchoringMixin`, a protocol; controller-liquidity W8). */
+  public static isAnchoring(obj: Stuff): obj is Stuff & Anchoring {
+    return this.hasMixin(obj, Mixins.Anchoring);
+  }
+
+  /** ⭐ Water a boat goes into / comes out of — `launch`/`recover` (`LaunchableMixin`, a protocol; W8). */
+  public static isLaunchable(obj: Stuff): obj is Stuff & Launchable {
+    return this.hasMixin(obj, Mixins.Launchable);
   }
 
   /** Draws a supply that can be on or off (`PoweredMixin`). */

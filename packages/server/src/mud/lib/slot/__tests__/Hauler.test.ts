@@ -69,6 +69,35 @@ describe('HaulerMixin — hauler side', () => {
     });
   });
 
+  describe('hitchPlanFor — the hauler decides (controller-liquidity W8)', () => {
+    it('refuses with the actor, from a direct call: already pulling something', async () => {
+      const bearer = haulingBearer();
+      bearer.hitch(cart());
+      const answer = await bearer.hitchPlanFor(cart(), bearer);
+      expect(answer).toEqual({ ok: false, reason: 'already-hitched' });
+    });
+
+    it("carries the cart's own veto", async () => {
+      const bearer = haulingBearer();
+      const c = cart();
+      vi.spyOn(c, 'canHitch').mockReturnValue({ ok: false, reason: 'Too big a rig for you.' });
+      const answer = await bearer.hitchPlanFor(c, bearer);
+      expect(answer).toEqual({ ok: false, reason: 'hitch-refused', facts: { veto: 'Too big a rig for you.' } });
+    });
+
+    it('plans an instant hitch that couples at completion, by hand when the actor is the hauler', async () => {
+      const bearer = haulingBearer();
+      const c = cart();
+      const answer = await bearer.hitchPlanFor(c, bearer);
+      if (!answer.ok) throw new Error(answer.reason);
+      expect(answer.durationMs).toBe(0);
+      expect(answer.facts.byHand).toBe(true);
+      expect(bearer.isHitched()).toBe(false);
+      await answer.onComplete();
+      expect(bearer.getHauledCart()).toBe(c);
+    });
+  });
+
   describe('getHaulDraft', () => {
     it('is zero when not hitched', () => {
       expect(haulingBearer().getHaulDraft().rawValue()).toBe(0);

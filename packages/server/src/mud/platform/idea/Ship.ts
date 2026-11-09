@@ -55,6 +55,7 @@ import ShipWarren, { AUTHORED_SHIP_WARREN } from './ShipWarren';
 import type { Positioned } from '../../lib/expanse/Positioned';
 import Rope from '../thing/Rope';
 import { BilgeMixin } from '../../lib/expanse/Bilge';
+import { AnchoringMixin, type AnchorPlan, type AnchorRefusal } from '../../lib/expanse/Anchoring';
 import type { Exitable } from '../../lib/boundary/Exitable';
 import type { Berthing } from '../../lib/expanse/Berthing';
 import type { LineFrame } from '../../lib/expanse/LineFrame';
@@ -240,9 +241,9 @@ export interface BilgeState {
 
 export const SHIP_CLASS_PATH = '/platform/idea/Ship';
 
-export default class Ship extends BilgeMixin(PersistableMixin(
+export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
   VoyagingMixin(MovingMixin(EngagedMixin(PositionedMixin(DurableMixin(FacedMixin(Structure)))))),
-)) {
+))) {
   static fieldMeta: FieldMeta = {
     deckHeightM: { persistent: true, authorable: true },
     mastheadHeightM: { persistent: true, authorable: true },
@@ -1137,6 +1138,25 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    */
   public override mayBeSteeredBy(who: Stuff): boolean {
     return this.isChartererOf(who) || this.holdsMasterSeat(who);
+  }
+
+  /**
+   * ⭐ `anchor` aboard her (controller-liquidity W8): only her master takes
+   * the helm, and she must be under way; then she stops where she lies.
+   */
+  public override async anchorPlanFor(actor: Stuff): Promise<AnchorPlan | AnchorRefusal> {
+    if (!this.mayBeSteeredBy(actor)) return { ok: false, reason: 'not-her-master' };
+    if (this.getCourse() === null) return { ok: false, reason: 'not-under-way' };
+    return {
+      ok: true,
+      durationMs: 0,
+      effortW: 0,
+      facts: undefined,
+      onComplete: async () => {
+        await this.anchorHere();
+        return { ok: true, facts: { line: null } };
+      },
+    };
   }
 
   /** Does `who` hold her company's `master` seat? */

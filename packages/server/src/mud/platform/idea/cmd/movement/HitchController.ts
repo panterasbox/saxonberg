@@ -23,17 +23,24 @@ import type {
 } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Haulable } from '../../../../lib/slot/Haulable';
+import type { HitchFacts, HitchRefusal } from '../../../../lib/slot/Hauler';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
-import { Mixins } from '../../../../lib/mixin';
+
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface HitchModel extends CommandModel {
   target: MqlOneResult;
   mount?: MqlOneResult;
 }
 
+/**
+ * ⭐ The hauler decides (controller-liquidity W8): the cart's veto, whether
+ * it already pulls something and whether the hands are free are all
+ * `Hauler.hitchPlanFor`'s. This binds who pulls — the named beast, or the
+ * giver — and words the answer.
+ */
 export default class HitchController extends CommandController<HitchModel> {
   async execute(model: HitchModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
@@ -48,8 +55,9 @@ export default class HitchController extends CommandController<HitchModel> {
       );
     }
 
-    // --- Harness path: hitch the cart to a named draft animal. ---
+    let hauler: Stuff;
     if (model.mount && (model.mount.stuff || model.mount.raw)) {
+      // Harness: the named draft animal pulls; the giver's hands stay free.
       const mount = model.mount.stuff;
       if (!mount) {
         this.notFound(context, model.mount.raw);
@@ -60,123 +68,61 @@ export default class HitchController extends CommandController<HitchModel> {
           `HitchController: mustBeHauler should have caught ${mount.stuffId}`,
         );
       }
-      const vetoed = await HitchController.vetoOf(cart, mount as unknown as Stuff, giver);
-      if (vetoed) {
-        MessageApi.scene(giver)
-          .topic('act.deed')
-          .toSelf(Mml.text(vetoed))
-          .send();
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'hitch-refused',
-          detail: vetoed,
-        });
+      hauler = mount;
+    } else {
+      // Self-haul: the giver grips the handle by hand.
+      if (!MixinApi.isHauling(giver)) {
+        this.refuse(context, 'act.deed', "You can't pull a cart.", 'cannot-haul', 'giver does not compose HaulerMixin');
         return;
       }
-      if (mount.isHitched()) {
-        MessageApi.scene(giver)
-          .topic('act.deed')
-          .toSelf(Mml.compose`${Mml.thing(mount)} is already pulling something.`)
-          .send();
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'already-hitched',
-          detail: `${mount.getPresentation()} already hauls a cart`,
-        });
-        return;
-      }
-      mount.hitch(cart);
-      MessageApi.scene(giver)
-        .topic('act.deed')
-        .toSelf(Mml.compose`You hitch ${Mml.thing(cart)} to ${Mml.thing(mount)}.`)
-        .toPeers(
-          Mml.compose`${Mml.actor(giver)} hitches ${Mml.thing(cart)} to ${Mml.thing(mount)}.`,
-        )
-        .send();
-      return;
+      hauler = giver;
     }
+    if (!MixinApi.isHauling(hauler)) return;
 
-    // --- Self path: the giver grips the handle by hand. ---
-    const selfVeto = await HitchController.vetoOf(cart, giver, giver);
-    if (selfVeto) {
+    const answer = await hauler.hitchPlanFor(cart, giver);
+    if (!answer.ok) {
       MessageApi.scene(giver)
         .topic('act.deed')
-        .toSelf(Mml.text(selfVeto))
+        .toSelf(HitchController.refusalWords(answer, hauler, giver))
         .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'hitch-refused',
-        detail: selfVeto,
-      });
+      context.note({ kind: 'controller-rejected', reason: answer.reason, detail: answer.reason });
       return;
     }
-    if (!MixinApi.isHauling(giver)) {
-      MessageApi.scene(giver)
-        .topic('act.deed')
-        .toSelf(Mml.compose`You can't pull a cart.`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'cannot-haul',
-        detail: 'giver does not compose HaulerMixin',
-      });
-      return;
-    }
-    if (giver.isHitched()) {
-      MessageApi.scene(giver)
-        .topic('act.deed')
-        .toSelf(Mml.compose`You're already pulling something.`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'already-hitched',
-        detail: 'giver already hauls a cart',
-      });
-      return;
-    }
-    if (this.handsOccupied(giver)) {
-      MessageApi.scene(giver)
-        .topic('act.deed')
-        .toSelf(Mml.compose`Your hands are full.`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'hands-occupied',
-        detail: 'cannot hand-hitch while wielding',
-      });
-      return;
-    }
-    giver.hitch(cart);
-    MessageApi.scene(giver)
-      .topic('act.deed')
-      .toSelf(Mml.compose`You take hold of ${Mml.thing(cart)}.`)
-      .toPeers(Mml.compose`${Mml.actor(giver)} takes hold of ${Mml.thing(cart)}.`)
-      .send();
+    await this.engagePlan(context, answer, {
+      beginSelf: (f) => HitchController.selfLine(f),
+      onRefused: (r) => HitchController.refusalWords(r, hauler, giver),
+      onDone: (f) => ({ self: HitchController.selfLine(f), peers: HitchController.peersLine(giver, f) }),
+    });
   }
 
-  /** True if the giver currently wields anything (a held slot is full). */
-  private handsOccupied(giver: Stuff): boolean {
-    if (!MixinApi.isSlotted(giver)) return false;
-    for (const [slotName, occupants] of giver.getAllOccupants()) {
-      if (occupants.size === 0) continue;
-      if (giver.getSlotSpec(slotName)?.accepts === Mixins.Wieldable) {
-        return true;
+  /** ⭐ Every refusal a hitch can say. */
+  protected static refusalWords(r: HitchRefusal, hauler: Stuff, giver: Stuff): Composed {
+    switch (r.reason) {
+      case 'hitch-refused':
+        return Mml.text(r.facts.veto);
+      case 'already-hitched':
+        return hauler.stuffId === giver.stuffId
+          ? Mml.compose`You're already pulling something.`
+          : Mml.compose`${Mml.thing(hauler)} is already pulling something.`;
+      case 'hands-occupied':
+        return Mml.compose`Your hands are full.`;
+      default: {
+        const never: never = r;
+        return never;
       }
     }
-    return false;
   }
 
-  /**
-   * The cart's own veto, worded — `Haulable.canHitch` is declared on the
-   * interface (D9), so this asks it directly. The refusal text, or `null`.
-   */
-  protected static async vetoOf(
-    cart: Stuff & Haulable,
-    hauler: Stuff,
-    actor: Stuff,
-  ): Promise<string | null> {
-    const veto = await cart.canHitch(hauler, actor);
-    return veto.ok ? null : veto.reason || 'It will not couple.';
+  protected static selfLine(f: HitchFacts): Composed {
+    return f.byHand
+      ? Mml.compose`You take hold of ${Mml.thing(f.cart)}.`
+      : Mml.compose`You hitch ${Mml.thing(f.cart)} to ${Mml.thing(f.hauler)}.`;
+  }
+
+  protected static peersLine(giver: Stuff, f: HitchFacts): Composed {
+    return f.byHand
+      ? Mml.compose`${Mml.actor(giver)} takes hold of ${Mml.thing(f.cart)}.`
+      : Mml.compose`${Mml.actor(giver)} hitches ${Mml.thing(f.cart)} to ${Mml.thing(f.hauler)}.`;
   }
 
   private notFound(context: CommandContext, raw: string): void {

@@ -716,6 +716,10 @@ export const Mixins = {
   // ⭐ Water in reach, and a way into it (controller-liquidity W8).
   WaterDrawable: 'WaterDrawableMixin',
   WaterEntry: 'WaterEntryMixin',
+  // ⭐ A craft that lets go an anchor, and water a boat is launched into or
+  // recovered from — protocols (controller-liquidity W8).
+  Anchoring: 'AnchoringMixin',
+  Launchable: 'LaunchableMixin',
   // Markers a pack's reader narrows on (controllers-are-io D7a): the supply
   // a thing draws, the generator that makes it, who may write a name.
   Powered: 'PoweredMixin',
@@ -1117,6 +1121,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   ReadableMixin: "there is nothing written on {}",
   WaterDrawableMixin: "there is no water to be had from {}",
   WaterEntryMixin: "there is no way into the water from {}",
+  AnchoringMixin: "{} has no anchor to let go",
+  LaunchableMixin: "{} isn't water you could put a boat into",
   PourTargetMixin: "you can't pour anything into {}",
   ArcaneMixin: "there is nothing bound into {}",
   ImpressibleMixin: "{} is not soft enough to take an impression",

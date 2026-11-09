@@ -28,6 +28,7 @@
 import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
+import { LaunchableMixin } from '@saxonberg/server/mud/lib/location/Launchable';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AppApi } from '@saxonberg/server/mud/api/app';
@@ -63,7 +64,7 @@ const NM_M = 1852;
 /** A ship as the sea's warren asks of her: a structure that voyages. */
 type ShipShape = Structure & Voyaging & Positioned;
 
-export default class SeaWarren extends SingletonMixin(RoomWarren) {
+export default class SeaWarren extends LaunchableMixin(SingletonMixin(RoomWarren)) {
   /** The patches standing now. Runtime: a sea patch is never persisted. */
   private _patches = new Set<SeaPatch>();
   private _serial = 0;
@@ -126,14 +127,14 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
   /* ───────────────────────── boats ───────────────────────── */
 
   /** ⭐ Where a boat goes in off a ship's deck (D30): the water beside her. */
-  public async launchPlaceFor(from: Stuff): Promise<(Stuff & Container) | null> {
+  public override async launchPlaceFor(from: Stuff): Promise<(Stuff & Container) | null> {
     const ship = await this.shipOf(from);
     if (ship === null || !this.stopped(ship)) return null;
     return (await this.patchAlongside(ship)) as unknown as Stuff & Container;
   }
 
   /** ⭐ Where a boat in the water comes out (D30): onto the deck of a ship lying here. */
-  public async recoverPlaceFor(from: Stuff): Promise<(Stuff & Container) | null> {
+  public override async recoverPlaceFor(from: Stuff): Promise<(Stuff & Container) | null> {
     const patch = [...this._patches].find((r) => (r as unknown) === (from as unknown)) ?? null;
     if (patch === null || !MixinApi.isExitable(patch)) return null;
     for (const exit of (patch as unknown as Exitable).getExits().values()) {

@@ -40,6 +40,7 @@ import type { FramePos } from '@saxonberg/server/mud/lib/expanse/Frame';
 import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
+import { LaunchableMixin } from '@saxonberg/server/mud/lib/location/Launchable';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { Drift } from '@saxonberg/server/mud/lib/location/Drift';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
@@ -118,7 +119,7 @@ interface StopRecord {
   side: RiverSide | 'mid';
 }
 
-export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWarren)) {
+export default class ReachWarren extends LaunchableMixin(SingletonMixin(PersistableMixin(RoomWarren))) {
   /** Where the singleton lives. */
   static readonly PATH = '/system/water/idea/ReachWarren';
 
@@ -1111,7 +1112,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
    * bank on a river's line, into the water at its edge, held there (a stop
    * at the bank) — `paddle` pushes off. `null` anywhere else.
    */
-  public async launchPlaceFor(from: Stuff): Promise<(Stuff & Container) | null> {
+  public override async launchPlaceFor(from: Stuff): Promise<(Stuff & Container) | null> {
     // ⭐ A ship's deck on a river (D28, D30): her boat goes into the water
     // where she lies — and comes back up onto her deck while she is within hail.
     // The deck is asked: a keyed deck's ship is its warren's.
@@ -1136,7 +1137,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
    * beside an authored bank within hail, up onto that bank. `null` anywhere
    * else — a boat in the stream of the river has nowhere to be lifted onto.
    */
-  public async recoverPlaceFor(from: Stuff): Promise<(Stuff & Container) | null> {
+  public override async recoverPlaceFor(from: Stuff): Promise<(Stuff & Container) | null> {
     const pos = this.ownPosition(from);
     const cat = this.catalogue();
     if (pos === null || cat === null) return null;

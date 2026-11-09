@@ -28,6 +28,30 @@ import { Quantity } from '../quantity';
 import type { Stuff } from '../stuff/Stuff';
 import type { Haulable } from './Haulable';
 import type { VetoResult } from '../errors';
+import type { ActPlan, ActRefusal } from '../craft/ActPlan';
+import { MixinApi } from '../../api/mixin';
+import { Mixins } from '../mixin';
+
+/**
+ * ⭐ Every reason a hitch refuses — `HitchController` words each
+ * (controller-liquidity W8). `hitch-refused` carries the cart's own veto
+ * (`Haulable.canHitch`), which is the cart's sentence.
+ */
+export type HitchRefusal =
+  | ActRefusal<'hitch-refused', { veto: string }>
+  | ActRefusal<'already-hitched'>
+  | ActRefusal<'hands-occupied'>;
+
+/** What a hitch's words need: the cart, who pulls it, and whether by hand. */
+export interface HitchFacts {
+  cart: Stuff & Haulable;
+  hauler: Stuff & Hauler;
+  /** The actor took the handle themselves (no beast between). */
+  byHand: boolean;
+}
+
+/** A hitch: instant (`durationMs: 0`); the coupling is made at completion. */
+export type HitchPlan = ActPlan<HitchFacts, HitchFacts, HitchRefusal>;
 
 /** The public surface added by HaulerMixin. */
 export interface Hauler {
@@ -37,6 +61,15 @@ export interface Hauler {
   isHitched(): boolean;
   /** Hitch a cart — becomes this creature's hauled cart (atomic pair). */
   hitch(cart: Stuff & Haulable): void;
+  /**
+   * ⭐ May `actor` couple `cart` to me, and if so the hitch (controller-
+   * liquidity W8): the cart's own veto first (`canHitch`), then whether I
+   * already pull something, then — when the actor is taking the handle
+   * themselves — whether their hands are free (hauling and wielding are
+   * mutually exclusive; a harnessed beast claims no hands). Overload never
+   * refuses here: the cost surfaces at move time.
+   */
+  hitchPlanFor(cart: Stuff & Haulable, actor: Stuff): Promise<HitchPlan | HitchRefusal>;
   /**
    * Release the hitched cart, as `by` (clears both sides). ⭐ Asks the
    * cart's `canUnhitch(this, by)` first (controller-liquidity D9); the hauler
@@ -78,6 +111,42 @@ export function HaulerMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.unhitch(this as unknown as Stuff);
       this._hauling = cart;
       cart.setHauledBy(this as unknown as Stuff & Hauler);
+    }
+
+    public async hitchPlanFor(
+      cart: Stuff & Haulable,
+      actor: Stuff,
+    ): Promise<HitchPlan | HitchRefusal> {
+      const self = this as unknown as Stuff & Hauler;
+      const veto = await cart.canHitch(self, actor);
+      if (!veto.ok) {
+        return { ok: false, reason: 'hitch-refused', facts: { veto: veto.reason || 'It will not couple.' } };
+      }
+      if (this.isHitched()) return { ok: false, reason: 'already-hitched' };
+      const byHand = self.stuffId === actor.stuffId;
+      if (byHand && this.handsOccupied()) return { ok: false, reason: 'hands-occupied' };
+      const facts: HitchFacts = { cart, hauler: self, byHand };
+      return {
+        ok: true,
+        durationMs: 0,
+        effortW: 0,
+        facts,
+        onComplete: () => {
+          self.hitch(cart);
+          return { ok: true, facts };
+        },
+      };
+    }
+
+    /** True if this body wields anything (a held slot is full). */
+    private handsOccupied(): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isSlotted(self)) return false;
+      for (const [slotName, occupants] of self.getAllOccupants()) {
+        if (occupants.size === 0) continue;
+        if (self.getSlotSpec(slotName)?.accepts === Mixins.Wieldable) return true;
+      }
+      return false;
     }
 
     public unhitch(by: Stuff): VetoResult {

@@ -200,6 +200,15 @@ describe('⭐ only her master takes the helm (P12)', () => {
     expect(ship.mayBeSteeredBy(person('/test/lookout', { positionKey: 'lookout', onShift: true }))).toBe(false);
   });
 
+  it('⭐ W8: `anchor` asks her — a stranger is refused at her helm, the master is told she is not under way', async () => {
+    expect(MixinApi.isAnchoring(ship)).toBe(true);
+    expect(await ship.anchorPlanFor(person('/test/stranger'))).toEqual({ ok: false, reason: 'not-her-master' });
+    const master = person('/test/master', { positionKey: 'master', onShift: false });
+    if (ship.getCourse() === null) {
+      expect(await ship.anchorPlanFor(master)).toEqual({ ok: false, reason: 'not-under-way' });
+    }
+  });
+
   it('⭐ chartered, the charterer takes her helm and answers for her; nobody else does', async () => {
     const me = person('/test/charterer');
     expect(await ship.charterTo(me, 2, DESK)).toBeNull();

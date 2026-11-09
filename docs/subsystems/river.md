@@ -190,7 +190,8 @@ test refuses a venue's). It carries what drives it:
   refused becalmed or on water narrower than three hull lengths.
 - **The killick** affords `anchor`: it holds in slack water (the boat's spot
   becomes a stop) and drags in quick. The boat lets it go
-  (`SmallCraft.letGoAnchor`). ⚠ An affordance from something in the boat
+  (`Anchoring.anchorPlanFor`, the protocol a ship answers `anchor` through
+  too). ⚠ An affordance from something in the boat
   beside you survives the boat being carried (the browser walk found
   `anchor` gone once she was launched — a moving container dropped what its
   insides afforded each other).
