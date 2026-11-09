@@ -114,3 +114,20 @@ describe('ChronicleController render', () => {
     expect(body).toContain('just beginning');
   });
 });
+
+describe('the chronicle says who may read it (W8)', () => {
+  it("a player's record refuses another reader; an authored one reads to anyone", async () => {
+    const player = makeStuffAtPath(() => new Actor(), '/platform/agent/Avatar/pc');
+    const reader = makeStuffAtPath(() => new Actor(), '/platform/agent/Avatar/reader');
+    vi.spyOn(player, 'getPlayerId').mockReturnValue('pc' as never);
+    expect(await player.recordFor(reader)).toEqual({ ok: false, reason: 'their-own' });
+    const own = await player.recordFor(player);
+    expect(own.ok && own.facts.self).toBe(true);
+
+    const npc = makeStuffAtPath(() => new Actor(), '/world/x/agent/dave');
+    await npc.recordDeed({ text: 'poured a pint', when: 1 });
+    const read = await npc.recordFor(reader);
+    expect(read.ok && read.facts.deeds.map((d) => d.text)).toEqual(['poured a pint']);
+    expect(read.ok && read.facts.self).toBe(false);
+  });
+});
