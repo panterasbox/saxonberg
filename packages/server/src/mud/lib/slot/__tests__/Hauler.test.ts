@@ -4,7 +4,7 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
@@ -34,10 +34,27 @@ describe('HaulerMixin — hauler side', () => {
       const bearer = haulingBearer();
       const c = cart();
       bearer.hitch(c);
-      bearer.unhitch();
+      bearer.unhitch(bearer);
       expect(bearer.isHitched()).toBe(false);
       expect(bearer.getHauledCart()).toBeNull();
       expect(c.getHauledBy()).toBeNull();
+    });
+
+    it('⭐ D9: the cart refuses a stranger uncoupling it from a PERSON pulling it', () => {
+      const bearer = haulingBearer();
+      const stranger = haulingBearer();
+      const c = cart();
+      bearer.hitch(c);
+      const isPerson = vi
+        .spyOn(MixinApi, 'isCommandGiver')
+        .mockImplementation(((s: { stuffId: string }) => s.stuffId === bearer.stuffId) as never);
+      expect(bearer.unhitch(stranger)).toEqual({ ok: false, reason: 'held-by-another' });
+      expect(c.getHauledBy()).toBe(bearer);
+      // A draft animal's cart is anybody's to unhitch.
+      isPerson.mockReturnValue(false);
+      expect(bearer.unhitch(stranger)).toEqual({ ok: true });
+      expect(c.getHauledBy()).toBeNull();
+      isPerson.mockRestore();
     });
 
     it('hitching a second cart drops the first', () => {

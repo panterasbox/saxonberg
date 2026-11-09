@@ -76,7 +76,20 @@ import { Suppressions } from '../magic/Suppression';
 import { MqlApi } from '../../api/mql';
 import { CompetenceBand } from '../advancement/CompetenceBand';
 import type { Difficulty, Outcome } from '../advancement/ActSignature';
-import type { ActPlan } from '../craft/ActPlan';
+import type { ActPlan, ActOutcome, ActRefusal } from '../craft/ActPlan';
+import { AccountabilityApi } from '../../api/accountability';
+import AccountabilityEvent from '../accountability/AccountabilityEvent';
+import { SpeciesApi } from '../../api/species';
+
+/**
+ * Why a body will not give a unit of blood — the BODY's refusals, in the
+ * order it applies them (controller-liquidity D9). ⚠ Consent is NOT among
+ * them: nothing in vitals decides consent before the act; that gate is a
+ * separate security build (the deferred seam).
+ */
+export type BloodDrawRefusal = ActRefusal<
+  'no-tool' | 'no-blood' | 'not-conscious' | 'too-low' | 'wan'
+>;
 import type { Dressing } from './Dressing';
 import type ConditionCatalogue from '../../platform/idea/ConditionCatalogue';
 import { MagicGrid } from '../magic/Grid';
@@ -837,9 +850,25 @@ export interface Vitals {
    * shared system, or (unauthored) the species' own path. Compatibility is
    * judged on this, not the species. */
   bloodSystemOf(): string;
-  /** Draw a unit of blood: spend volume + marrow reserve; return the
-   * stored unit's payload (true type + whether labelled + donor). */
-  drawBlood(litres: number): BloodUnit;
+  /**
+   * Would this body give `litres` of blood to `by`, drawing with `tool`?
+   * `null` when it would; else the body's refusal. A phlebotomy tool is
+   * required; the body must be conscious, above the donor floor and not
+   * wan (the marrow reserve).
+   */
+  bloodDrawRefusal(by: Stuff, tool: Stuff | null): BloodDrawRefusal | null;
+  /**
+   * ⭐⭐ Draw a unit of blood, as `by` with `tool` (controller-liquidity
+   * D9, C10): asks {@link bloodDrawRefusal} itself, spends volume + the
+   * marrow reserve, and — when `by` is not the donor — writes the
+   * accountability harm record (`consented: false` until the consent seam
+   * exists). Returns the stored unit's payload, or the refusal.
+   */
+  drawBlood(
+    litres: number,
+    by: Stuff,
+    tool: Stuff | null,
+  ): ActOutcome<BloodUnit> | BloodDrawRefusal;
   /** Receive blood or a saline expander. Compatible closes the gap to
    * baseline; saline caps at the plasma ceiling; incompatible delivers
    * plasma only and inflicts the graded transfusion reaction. */
@@ -1369,8 +1398,62 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       return species?.getBloodGroups()?.system || this.speciesPathOf();
     }
 
-    public drawBlood(litres: number): BloodUnit {
+    public bloodDrawRefusal(
+      _by: Stuff,
+      tool: Stuff | null,
+    ): BloodDrawRefusal | null {
       const self = this as unknown as Stuff;
+      if (!tool || !MixinApi.isTool(tool) || !tool.hasCapability('phlebotomy')) {
+        return { ok: false, reason: 'no-tool' };
+      }
+      if (this.bloodType() === null) return { ok: false, reason: 'no-blood' };
+      if (this.getConsciousness() !== 'conscious') {
+        return { ok: false, reason: 'not-conscious' };
+      }
+      const baseline = this.getVitalBand('bloodVolume').baseline;
+      const frac = baseline > 0 ? this._bloodVolume.rawValue() / baseline : 0;
+      if (frac < BLOOD_DEFAULTS.DONOR_MIN_FRAC) return { ok: false, reason: 'too-low' };
+      const marrow = MixinApi.isReserved(self)
+        ? (self.getReserve('marrow')?.current.rawValue() ?? 0)
+        : 0;
+      if (marrow < BLOOD_DEFAULTS.DONATION_MIN_MARROW) return { ok: false, reason: 'wan' };
+      return null;
+    }
+
+    public drawBlood(
+      litres: number,
+      by: Stuff,
+      tool: Stuff | null,
+    ): ActOutcome<BloodUnit> | BloodDrawRefusal {
+      const refused = this.bloodDrawRefusal(by, tool);
+      if (refused) return refused;
+      const self = this as unknown as Stuff;
+      if (by.stuffId !== self.stuffId) {
+        // ⭐ What `transfuse` does after the fact: blood taken from another
+        // body is on the ledger, named to the hand that took it. ⚠
+        // `consented: false` — nothing decides consent yet (deferred seam).
+        const victimId = AccountabilityEvent.partyIdOf(self);
+        const byId = AccountabilityEvent.partyIdOf(by);
+        if (victimId && byId) {
+          let sentient = false;
+          try {
+            sentient = SpeciesApi.isSentient(self);
+          } catch {
+            sentient = false;
+          }
+          AccountabilityApi.record({
+            kind: 'harm',
+            sessionId: `phlebotomy:${by.stuffId}:${self.stuffId}`,
+            initiator: byId,
+            opponent: victimId,
+            victim: victimId,
+            killer: byId,
+            consented: false,
+            sentient,
+            victimFor: AccountabilityEvent.partyForOf(self),
+          });
+        }
+      }
       const bv = this._bloodVolume.rawValue();
       this.setVitalSign('bloodVolume', Quantity.of(Math.max(0, bv - litres), 'L'));
       if (MixinApi.isReserved(self) && self.hasReserve('marrow')) {
@@ -1379,7 +1462,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           Quantity.of(-BLOOD_DEFAULTS.MARROW_COST_PCT_PER_L * litres, '%'),
         );
       }
-      return {
+      const unit: BloodUnit = {
         speciesPath: this.speciesPathOf(),
         system: this.bloodSystemOf(),
         type: (this.bloodType() ?? 'O') as BloodTypeLabel,
@@ -1387,6 +1470,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         donorIdentityPath:
           self.getIdentityPath() ?? self.getTemplatePath() ?? '',
       };
+      return { ok: true, facts: unit };
     }
 
     public receiveBlood(spec: {

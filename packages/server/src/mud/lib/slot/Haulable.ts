@@ -102,28 +102,30 @@ export interface Haulable {
   setHauledBy(hauler: (Stuff & Hauler) | null): void;
 
   /**
-   * Optional pre-hitch veto: *may this hauler, coupled by this actor,
-   * take me?*
+   * Pre-hitch veto: *may this hauler, coupled by this actor, take me?*
    *
    * ⭐ **On the CART, because refusing to be coupled is a question about
-   * the cart.** Nothing in the kernel implements it; `HitchController`
-   * consults it by shape (the `callTraverseHook` idiom) so any
-   * `Haulable` may refuse without a mixin change anywhere.
+   * the cart.** Declared on the interface (controller-liquidity D9, Appendix
+   * D 16e) — it was consulted by shape before; the default takes anybody.
    *
-   * The haulage trade's rig uses it to band-gate rig size on
-   * `teamstering` — *competence is access*, the magic `requiredBand`
-   * precedent. ⚠ It is the ACTOR's competence that decides, not the
-   * hauler's: a horse has no transcript, and the person putting it in
-   * the shafts is the one who does or does not know how.
+   * The haulage trade's rig band-gates rig size on `teamstering` through
+   * it — *competence is access*. ⚠ It is the ACTOR's competence that
+   * decides, not the hauler's: a horse has no transcript. ⚠ It may be
+   * **async** (the band read is).
    *
-   * ⚠ It may be **async**: the band read behind the trade's own use of
-   * it is, and `HitchController` awaits. A veto that has to consult
-   * anything durable would otherwise have to fail open.
-   *
-   * @hook Consulted by `HitchController` before coupling. Return
-   *   `{ ok: false, reason }` to refuse with an honest message.
+   * @hook Override to refuse with an honest `{ ok: false, reason }`.
    */
-  canHitch?(hauler: Stuff, actor: Stuff): VetoResult | Promise<VetoResult>;
+  canHitch(hauler: Stuff, actor: Stuff): VetoResult | Promise<VetoResult>;
+  /**
+   * May `actor` uncouple me from whoever pulls me? ⭐ Asked by
+   * `Hauler.unhitch(by)` itself, so every caller meets it. The default
+   * refuses only a cart another PERSON is pulling by hand — you do not
+   * take a cart out of somebody's hands; a draft animal's cart is anybody's
+   * to unhitch, as a horse's harness is.
+   *
+   * @hook Override to tighten (an owned rig, a team's own wagon).
+   */
+  canUnhitch(actor: Stuff): VetoResult;
 }
 
 export function HaulableMixin<
@@ -264,6 +266,24 @@ export function HaulableMixin<
 
     public setHauledBy(hauler: (Stuff & Hauler) | null): void {
       this._hauledBy = hauler;
+    }
+
+    /** See {@link Haulable.canHitch} — the default takes anybody. */
+    public canHitch(
+      _hauler: Stuff,
+      _actor: Stuff,
+    ): VetoResult | Promise<VetoResult> {
+      return { ok: true };
+    }
+
+    /** See {@link Haulable.canUnhitch}. */
+    public canUnhitch(actor: Stuff): VetoResult {
+      const hauler = this._hauledBy;
+      if (!hauler || hauler.stuffId === actor.stuffId) return { ok: true };
+      if (MixinApi.isCommandGiver(hauler)) {
+        return { ok: false, reason: 'held-by-another' };
+      }
+      return { ok: true };
     }
 
   };

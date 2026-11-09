@@ -1200,7 +1200,7 @@ function detachForTeleport(mover: Stuff): string | null {
   if (MixinApi.isHauling(mover) && mover.isHitched()) {
     const cart = mover.getHauledCart();
     const name = cart ? cart.getPresentation() : 'the cart';
-    mover.unhitch();
+    mover.unhitch(mover);
     return name;
   }
   if (MixinApi.isSlottable(mover)) {

@@ -8,10 +8,11 @@
  * ownership). A brokerage `ConsignmentListing` records the ask + payout
  * target; ownership is never on the listing.
  *
- * Gates (anti-grief + honesty): you must own the good (`ChattelApi.ownerOf`,
- * not the listing); you must hold a bank account (the payout target — nudge
- * to Goodkin otherwise); and you must be under the per-consignor listing cap
- * (the shared-shelf guard, the withdrawal-quota sibling).
+ * Gates (anti-grief + honesty) — ⭐ all the SHELF's, `ConsignmentShelf.
+ * consignBy` (controller-liquidity D9): you must hold title (the rule
+ * reclaim shares, `HeldGoods.mayDisposeOf`); you must hold a bank account
+ * (the payout target — nudge to Goodkin otherwise); and you must be under
+ * the per-consignor listing cap (the shared-shelf guard).
  *
  * ⭐⭐ **A stack goes up ONE UNIT at a time.** A stack is
  * owned-by-possession and cannot bear title, but a lot of one can (see
@@ -85,9 +86,7 @@ export default class ShelfConsignController extends HeldGoodsControllerBase<Cons
 
     // ⭐ Read, never hunted. `scope: [inventory]` on the view is what
     // "you must be carrying it" means, and the binder enforces it.
-    const item = (model.thing?.stuff ?? null) as
-      | (Stuff & Containable & { getChattelId(): string })
-      | null;
+    const item = (model.thing?.stuff ?? null) as (Stuff & Containable) | null;
     if (!item) {
       this.reject(giver, context, Mml.compose`You aren't carrying "${model.thing?.raw ?? ""}".`, {
         kind: "controller-rejected",
@@ -97,165 +96,47 @@ export default class ShelfConsignController extends HeldGoodsControllerBase<Cons
       return;
     }
 
-    /*
-     * ⭐⭐ **A stack goes up ONE UNIT at a time.**
-     *
-     * This used to refuse every `Stackable` outright — a true statement
-     * about a STACK and the wrong conclusion about a SALE. A bolt of
-     * cloth is a stack on purpose (two dye lots must never merge), so the
-     * rule meant a mill could weave cloth it could never sell: a live
-     * drive of the textile chain ended on
-     * `controller-rejected:fungible(bolt)`.
-     *
-     * The resolution is upstream, in the chattel rule itself: a STACK
-     * cannot bear title, a LOT OF ONE can, and a titled lot does not
-     * merge. So consigning takes one unit off, titles it, and leaves the
-     * rest of the stack in the seller's hands owned-by-possession.
-     *
-     * ⚠ The split happens LAST, after every gate — ownership, account,
-     * cap. A stack divided by a consignment that then refuses is a stack
-     * the caller has to put back together.
-     */
-    const stack = MixinApi.isStackable(item) ? item : null;
-    if (stack && !stack.canSplit(1)) {
-      // The veto seam's own reasons — a shadowed or adorned stack has
-      // per-instance state that does not divide.
-      this.reject(
-        giver,
-        context,
-        Mml.compose`${Mml.thing(item)} won't divide into lots.`,
-        { kind: "controller-rejected", reason: "unsplittable", detail: model.thing?.raw ?? "" },
-      );
-      return;
+    // ⭐⭐ Every gate is the SHELF's (controller-liquidity D9, C63): the
+    // title rule it shares with reclaim, the payout account, the cap, the
+    // turned good — all asked before the split, the stamp or the move. A
+    // stack goes up one unit at a time (`ConsignmentShelf.consignBy`).
+    const raw = model.thing?.raw ?? "";
+    const answer = await shelf.consignBy(giver, item, ask);
+    if (!answer.ok) {
+      switch (answer.reason) {
+        case "unsplittable":
+          return this.reject(giver, context, Mml.compose`${Mml.thing(item)} won't divide into lots.`, {
+            kind: "controller-rejected", reason: answer.reason, detail: raw,
+          });
+        case "not-owner":
+          return this.reject(giver, context, Mml.compose`${Mml.thing(item)} isn't yours to sell.`, {
+            kind: "controller-rejected", reason: answer.reason, detail: raw,
+          });
+        case "no-account":
+          return this.reject(
+            giver,
+            context,
+            Mml.compose`Open a bank account first — the Goodkin counting-house will set you up.`,
+            { kind: "controller-rejected", reason: answer.reason, detail: raw },
+          );
+        case "over-cap":
+          return this.reject(
+            giver,
+            context,
+            Mml.compose`You've reached your consignment limit here (${String(answer.facts.cap)}). Reclaim one first.`,
+            { kind: "controller-rejected", reason: answer.reason, detail: String(answer.facts.cap) },
+          );
+        case "turned":
+          return this.reject(giver, context, Mml.compose`${Mml.thing(item)} has turned; nobody will list that.`, {
+            kind: "controller-rejected", reason: answer.reason, detail: raw,
+          });
+        default: {
+          const never: never = answer;
+          return never;
+        }
+      }
     }
-
-    // The principal you consign as: the business whose account is active in
-    // your wallet (and that you buy for), else yourself.
-    const house = await this.activeHouse(giver);
-    const principal: Stuff = house ?? giver;
-    const consignorKey = principal.getIdentityPath();
-
-    // You consign what you own (authoritative via ownerOf, not custody) —
-    // the house's goods when acting as the house, your own otherwise.
-    // An unstamped good in your hands that resolves to you (or to nobody)
-    // is stamped to the principal below — a hand consigning the house's
-    // floor stock titles it to the house, never to themselves.
-    const owner = MixinApi.isChattel(item)
-      ? await item.chattelOwner()
-      : null;
-    const ownedBy = (key: string | null): boolean =>
-      (owner?.kind === "player" || owner?.kind === "organization") &&
-      owner.templatePath === key;
-    // Title to sell: the principal's stamp, the giver's own, or NO stamp
-    // at all — a good nobody has ever owned (a floor bottle the spawn
-    // sweep stood in the outfit's stock) is the possessor's to put up,
-    // and consigning stamps it to the principal. A chattel id alone is
-    // identity, not ownership.
-    // (`ChattelApi.ownerOf` DERIVES an unstamped good's owner from the
-    // parcel over its template — a `group`, the trade's title. Only a
-    // player or an organization is ever stamped, so a group owner is
-    // never a stamp: the good is nobody's in particular.)
-    // A corpo's yard sells the corpo's liquid: a good titled to an
-    // organization ABOVE the acting house (Veshko's bottles, the parcel
-    // held by /corpo/veshko; the yard's parentOrganization) is the
-    // house's to put up.
-    const chain = house
-      ? (await (house as Stuff & Organization).organizationChain()).map(
-          (o) => o.getOrganizationPath(),
-        )
-      : [];
-    // ⭐ And UNSTAMPED means nobody's, whatever the parcel derives: since
-    // the trades' extents are held by the Ministry of Trade (economic
-    // bootstrap W2, an organization rather than a group), every floor
-    // crate the sweep stood in an outfit's stock derived to the Ministry
-    // and no hand in the realm could consign — the drive found six
-    // producers refused `not-owner` on every beat.
-    const unstamped = MixinApi.isChattel(item) && !item.isStamped();
-    const ownedByPrincipal =
-      ownedBy(consignorKey) ||
-      owner === null ||
-      unstamped ||
-      owner.kind === "group" ||
-      (owner.kind === "organization" && chain.includes(owner.templatePath)) ||
-      ownedBy(giver.getIdentityPath());
-    if (!ownedByPrincipal) {
-      this.reject(giver, context, Mml.compose`${Mml.thing(item)} isn't yours to sell.`, {
-        kind: "controller-rejected",
-        reason: "not-owner",
-        detail: model.thing?.raw ?? "",
-      });
-      return;
-    }
-
-    // Payout target — a bank account is required (nudge otherwise).
-    if (!consignorKey || (await BankingApi.primaryAccountIdOf(consignorKey)) == null) {
-      this.reject(
-        giver,
-        context,
-        Mml.compose`Open a bank account first — the Goodkin counting-house will set you up.`,
-        { kind: "controller-rejected", reason: "no-account", detail: consignorKey ?? undefined },
-      );
-      return;
-    }
-
-    // Per-consignor cap — the shared-shelf anti-grief guard (0 disables).
-    // The shelf's authored override wins (the market stall's generous
-    // cap); every other shelf rides the global dial.
-    const cap = shelf.getListingCapOverride() ?? this.listingCap();
-    if (cap > 0 && shelf.activeListingCount(consignorKey) >= cap) {
-      this.reject(
-        giver,
-        context,
-        Mml.compose`You've reached your consignment limit here (${String(cap)}). Reclaim one first.`,
-        { kind: "controller-rejected", reason: "over-cap", detail: String(cap) },
-      );
-      return;
-    }
-
-    // ⭐ No shelf lists what has TURNED (fishing D11) — a provision past
-    // its freshness band, or a carcass whose flesh has (a dead fish is a
-    // body, not food, and `Postmortem.freshnessLoad` is the same law).
-    // A rule of every shelf, not the fish stall's: no shopkeeper lists a
-    // turned loaf either. A state read of the good, never a host
-    // narrowing; a live body is fresh.
-    if (this.hasTurned(item)) {
-      this.reject(giver, context, Mml.compose`${Mml.thing(item)} has turned; nobody will list that.`, {
-        kind: "controller-rejected",
-        reason: "turned",
-        detail: model.thing?.raw ?? "",
-      });
-      return;
-    }
-
-    // Take one unit off the stack. `split` short-circuits to the source
-    // when the lot IS the whole stack, so a one-unit stack and a
-    // discrete good travel the same path from here.
-    const listed = stack
-      ? ((await stack.split(1)) as unknown as Stuff &
-          Containable & { getChattelId(): string })
-      : item;
-
-    // Establish the title if the good is unstamped (author-owned) — a
-    // consignment needs a durable chattel id to key the listing on. A
-    // freshly split lot is always unstamped: identity is per-instance
-    // and is not among the stack-identity fields a split copies.
-    if (!listed.getChattelId()) {
-      await (listed as unknown as Stuff & Chattel).stampChattel(principal);
-    }
-
-    // ⭐ The BASIS is the counter's policy (economic bootstrap D11): at a
-    // `terms` counter the `--ask` is the supplier's PRICE — what the
-    // consignor is owed at sale — and the SHOP sets the ask on the shelf
-    // and keeps the margin; at a consignment counter it is the
-    // consignor's own ask, and the shop takes a commission. Title stays
-    // with the consignor either way until the good sells.
-    const basis = shelf instanceof Stock ? shelf.getPurchasing() : "consignment";
-
-    // Custody → the shop's shelf; the owner-stamp stays put.
-    ContainmentApi.move(listed, shelf as unknown as Stuff & Container);
-    shelf.recordListing(listed.getChattelId(), consignorKey, ask, basis);
-
-    const kept = stack && listed !== item ? stack.getQuantity() : 0;
+    const { listed, kept, basis } = answer.facts;
     const money = Money.of(ask, BankingApi.compactCurrency()).render();
     MessageApi.scene(giver)
       .topic(TOPIC)
@@ -270,28 +151,5 @@ export default class ShelfConsignController extends HeldGoodsControllerBase<Cons
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} sets ${Mml.thing(listed)} on the ${basis === "terms" ? "counter" : "consignment shelf"}.`)
       .send();
-  }
-
-  /**
-   * Whether the good has turned — its freshness band is past `fresh`
-   * (`Bonded.wouldEat`'s rule, so an animal and a shelf refuse the same
-   * thing): a provision's own gauge, or a dead body's flesh.
-   */
-  private hasTurned(item: Stuff): boolean {
-    if (MixinApi.isFresh(item)) return item.getFreshnessBand() !== "fresh";
-    if (MixinApi.isPostmortem(item) && item.sinceDeath() !== null) {
-      return Freshness.bandFor(item.freshnessLoad()) !== "fresh";
-    }
-    return false;
-  }
-
-  private listingCap(): number {
-    try {
-      const raw = AppApi.setting(AppSettingKeys.retailConsignmentListingCap);
-      const n = raw ? Number(raw) : NaN;
-      return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 5;
-    } catch {
-      return 5;
-    }
   }
 }

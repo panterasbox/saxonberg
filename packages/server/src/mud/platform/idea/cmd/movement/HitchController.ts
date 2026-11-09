@@ -23,6 +23,7 @@ import type {
 } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Haulable } from '../../../../lib/slot/Haulable';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
@@ -59,7 +60,7 @@ export default class HitchController extends CommandController<HitchModel> {
           `HitchController: mustBeHauler should have caught ${mount.stuffId}`,
         );
       }
-      const vetoed = await hitchVeto(cart, mount as unknown as Stuff, giver);
+      const vetoed = await HitchController.vetoOf(cart, mount as unknown as Stuff, giver);
       if (vetoed) {
         MessageApi.scene(giver)
           .topic('act.deed')
@@ -96,7 +97,7 @@ export default class HitchController extends CommandController<HitchModel> {
     }
 
     // --- Self path: the giver grips the handle by hand. ---
-    const selfVeto = await hitchVeto(cart, giver, giver);
+    const selfVeto = await HitchController.vetoOf(cart, giver, giver);
     if (selfVeto) {
       MessageApi.scene(giver)
         .topic('act.deed')
@@ -165,6 +166,19 @@ export default class HitchController extends CommandController<HitchModel> {
     return false;
   }
 
+  /**
+   * The cart's own veto, worded — `Haulable.canHitch` is declared on the
+   * interface (D9), so this asks it directly. The refusal text, or `null`.
+   */
+  protected static async vetoOf(
+    cart: Stuff & Haulable,
+    hauler: Stuff,
+    actor: Stuff,
+  ): Promise<string | null> {
+    const veto = await cart.canHitch(hauler, actor);
+    return veto.ok ? null : veto.reason || 'It will not couple.';
+  }
+
   private notFound(context: CommandContext, raw: string): void {
     MessageApi.scene(context.commandGiver)
       .topic('act.deed')
@@ -172,35 +186,4 @@ export default class HitchController extends CommandController<HitchModel> {
       .send();
     context.note({ kind: 'empty-result', field: 'target', query: raw });
   }
-}
-
-/**
- * The cart's own optional veto — *may this hauler, coupled by this
- * actor, take me?* Consulted by SHAPE (the `callTraverseHook` idiom), so
- * a `Haulable` that wants to refuse needs no mixin change anywhere and
- * one that does not costs a `typeof`.
- *
- * ⭐ The haulage trade band-gates rig size on `teamstering` through it —
- * *competence is access* rather than *the same act done better*. ⚠ The
- * ACTOR decides, not the hauler: a horse has no transcript, and the
- * person putting it in the shafts is the one who does or does not know
- * how.
- *
- * Returns the refusal text, or `null` when the coupling is fine.
- */
-async function hitchVeto(
-  cart: Stuff,
-  hauler: Stuff,
-  actor: Stuff,
-): Promise<string | null> {
-  const asked = cart as unknown as {
-    canHitch?: (
-      h: Stuff,
-      a: Stuff,
-    ) => { ok: boolean; reason?: string } | Promise<{ ok: boolean; reason?: string }>;
-  };
-  if (typeof asked.canHitch !== 'function') return null;
-  const veto = await asked.canHitch.call(cart, hauler, actor);
-  if (!veto || veto.ok) return null;
-  return veto.reason ?? 'It will not couple.';
 }

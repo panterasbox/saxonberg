@@ -27,6 +27,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Quantity } from '../quantity';
 import type { Stuff } from '../stuff/Stuff';
 import type { Haulable } from './Haulable';
+import type { VetoResult } from '../errors';
 
 /** The public surface added by HaulerMixin. */
 export interface Hauler {
@@ -36,8 +37,12 @@ export interface Hauler {
   isHitched(): boolean;
   /** Hitch a cart — becomes this creature's hauled cart (atomic pair). */
   hitch(cart: Stuff & Haulable): void;
-  /** Release the hitched cart, if any (clears both sides). */
-  unhitch(): void;
+  /**
+   * Release the hitched cart, as `by` (clears both sides). ⭐ Asks the
+   * cart's `canUnhitch(by)` first (controller-liquidity D9); the hauler
+   * letting go of its own cart always may. Nothing hitched → `{ok: true}`.
+   */
+  unhitch(by: Stuff): VetoResult;
   /** Effective-kg draft this creature bears for its hitched cart (0 if none). */
   getHaulDraft(): Quantity<'kg'>;
 }
@@ -70,15 +75,19 @@ export function HaulerMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public hitch(cart: Stuff & Haulable): void {
       // Drop any existing cart first (one hauler pulls one cart in v1).
-      this.unhitch();
+      this.unhitch(this as unknown as Stuff);
       this._hauling = cart;
       cart.setHauledBy(this as unknown as Stuff & Hauler);
     }
 
-    public unhitch(): void {
+    public unhitch(by: Stuff): VetoResult {
       const cart = this._hauling;
+      if (!cart) return { ok: true };
+      const veto = cart.canUnhitch(by);
+      if (!veto.ok) return veto;
       this._hauling = null;
-      if (cart) cart.setHauledBy(null);
+      cart.setHauledBy(null);
+      return { ok: true };
     }
 
     public getHaulDraft(): Quantity<'kg'> {

@@ -69,8 +69,9 @@ export default class TipJar extends TipJarBase {
    */
   public collectBy(actor: Stuff): CollectAnswer {
     const house = this.houseOf();
-    if (!house) return { ok: false, reason: 'no-house' };
-    if (!MixinApi.isEmployed(actor) || !actor.isOnShiftFor(house.getIdentityPath())) {
+    const housePath = house?.getIdentityPath();
+    if (!housePath) return { ok: false, reason: 'no-house' };
+    if (!MixinApi.isEmployed(actor) || !actor.isOnShiftFor(housePath)) {
       return { ok: false, reason: 'not-on-shift' };
     }
     let took = 0;

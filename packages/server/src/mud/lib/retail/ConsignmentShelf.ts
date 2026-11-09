@@ -35,6 +35,19 @@ import { ForSaleMixin } from "./ForSale";
 import type { ForSale, SaleOutcome, SaleRequest } from "./ForSale";
 import { HeldGoodsMixin } from "./HeldGoods";
 import type { HeldGood, HeldGoodsShelf } from "./HeldGoods";
+import { Freshness } from "../material/Freshness";
+import type { Chattel } from "../chattel/Chattel";
+import type { ActOutcome, ActRefusal } from "../craft/ActPlan";
+
+/** Why `consignBy` refused — each a gate of the shelf's, in order. */
+export type ConsignRefusal =
+  | ActRefusal<"unsplittable" | "not-owner" | "no-account" | "turned">
+  | ActRefusal<"over-cap", { cap: number }>;
+
+/** What `consignBy` did: the lot listed, what stayed in hand, the basis. */
+export type ConsignAnswer =
+  | ActOutcome<{ listed: Stuff & Containable; kept: number; basis: ListingBasis }>
+  | ConsignRefusal;
 
 /**
  * The basis a good sits on a counter under (economic bootstrap D11).
@@ -83,6 +96,15 @@ export interface ConsignmentShelf extends HeldGoodsShelf, ForSale {
   activeListingCount(consignorKey: string): number;
   /** A shelf good, matched by keyword, that carries a live listing. */
   resolveConsigned(keyword: string): (Stuff & Containable) | null;
+  /**
+   * ⭐⭐ `actor` lists one unit of `item` at `askMinor` (controller-
+   * liquidity D9, C63): every gate is the shelf's — the title rule shared
+   * with reclaim (`mayDisposeOf`), the payout account, the cap, the turned
+   * good — and every refusal comes before the split, the stamp or the move.
+   */
+  consignBy(actor: Stuff, item: Stuff & Containable, askMinor: number): Promise<ConsignAnswer>;
+  /** What an ask means here — the consignor's own price, or the supplier's terms. @hook */
+  listingBasis(): ListingBasis;
 }
 
 /** Any fixture that brokers listings — a `ConsignmentShelf`, or a `Stock` counter. */
@@ -112,6 +134,8 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
     declare holdingsOf: HeldGoodsShelf["holdingsOf"];
     declare countHeld: HeldGoodsShelf["countHeld"];
     declare resolveHeld: HeldGoodsShelf["resolveHeld"];
+    declare actingHouseOf: HeldGoodsShelf["actingHouseOf"];
+    declare mayDisposeOf: HeldGoodsShelf["mayDisposeOf"];
     declare purchaserOf: ForSale["purchaserOf"];
     declare sellerFor: ForSale["sellerFor"];
 
@@ -196,6 +220,81 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
      * bare shelf sells every listing at the consignor's ask. `Stock`
      * answers its own price.
      */
+    /** @hook A plain shelf is a consignment shelf; `Stock` reads its own policy. */
+    public listingBasis(): ListingBasis {
+      return "consignment";
+    }
+
+    public async consignBy(
+      actor: Stuff,
+      item: Stuff & Containable,
+      askMinor: number,
+    ): Promise<ConsignAnswer> {
+      // ⭐ A stack goes up ONE UNIT at a time (a stack cannot bear title, a
+      // lot of one can) — the split comes LAST, after every gate.
+      const stack = MixinApi.isStackable(item) ? item : null;
+      if (stack && !stack.canSplit(1)) return { ok: false, reason: "unsplittable" };
+
+      const house = await this.actingHouseOf(actor);
+      const principal: Stuff = house ?? actor;
+      const consignorKey = principal.getIdentityPath();
+
+      // Title to sell: the shared rule — or NO title at all. A good nobody
+      // has ever owned (unstamped, or one the parcel derives to a group or
+      // nobody) is the possessor's to put up, and is stamped to the
+      // principal below, so the same principal can take it back down.
+      const owner = MixinApi.isChattel(item) ? await item.chattelOwner() : null;
+      const nobodys =
+        owner === null || owner.kind === "group" || (MixinApi.isChattel(item) && !item.isStamped());
+      if (!nobodys && !(await this.mayDisposeOf(actor, item))) {
+        return { ok: false, reason: "not-owner" };
+      }
+      if (!consignorKey || (await BankingApi.primaryAccountIdOf(consignorKey)) == null) {
+        return { ok: false, reason: "no-account" };
+      }
+      const cap = this.getListingCapOverride() ?? ConsignmentShelfMixin.globalListingCap();
+      if (cap > 0 && this.activeListingCount(consignorKey) >= cap) {
+        return { ok: false, reason: "over-cap", facts: { cap } };
+      }
+      // ⭐ No shelf lists what has TURNED (fishing D11).
+      if (ConsignmentShelfMixin.hasTurned(item)) return { ok: false, reason: "turned" };
+
+      const listed = stack
+        ? ((await stack.split(1)) as unknown as Stuff & Containable)
+        : item;
+      // Stamp the title to the principal when nobody's name is on it — a
+      // freshly split lot is always unstamped (identity is per-instance).
+      if (MixinApi.isChattel(listed) && (!listed.getChattelId() || !listed.isStamped())) {
+        await (listed as unknown as Stuff & Chattel).stampChattel(principal);
+      }
+      const chattelId = MixinApi.isChattel(listed) ? listed.getChattelId() : "";
+      const basis = this.listingBasis();
+      ContainmentApi.move(listed, this as unknown as Stuff & Container);
+      this.recordListing(chattelId, consignorKey, askMinor, basis);
+      const kept = stack && listed !== item ? stack.getQuantity() : 0;
+      return { ok: true, facts: { listed, kept, basis } };
+    }
+
+    /** The global per-consignor cap (the shared-shelf guard; 0 disables). */
+    private static globalListingCap(): number {
+      try {
+        const raw = AppApi.setting(AppSettingKeys.retailConsignmentListingCap);
+        const n = raw ? Number(raw) : NaN;
+        return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 5;
+      } catch {
+        return 5;
+      }
+    }
+
+    /** Past `fresh` — a provision's own gauge, or a dead body's flesh. */
+    private static hasTurned(item: Stuff): boolean {
+      if (MixinApi.isFresh(item)) return item.getFreshnessBand() !== "fresh";
+      if (MixinApi.isPostmortem(item) && item.sinceDeath() !== null) {
+        return Freshness.bandFor(item.freshnessLoad()) !== "fresh";
+      }
+      return false;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public termsAskFor(_item: Stuff, _listing: ConsignmentListing): number | null {
       return null;
