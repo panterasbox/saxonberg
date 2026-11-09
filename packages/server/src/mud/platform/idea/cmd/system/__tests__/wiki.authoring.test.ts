@@ -34,7 +34,7 @@ import { TemplatePaths } from '../../../../../lib/paths';
 import { Collections } from '../../../../../lib/persistence/Collections';
 import { Sections } from '../../../../../lib/wiki/Section';
 import { installWikiTestDb, type WikiTestDb } from '../../../../../lib/wiki/__tests__/wiki-test-db';
-import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import type { Note, WikiEditConflictNote } from '@saxonberg/types';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 
@@ -106,7 +106,8 @@ beforeEach(() => {
     b.send = () => {};
     return b as never;
   });
-  registry = makeStuff(() => new WikiRegistry());
+  // At its template path: the renderer's gate admits the registry by it.
+  registry = makeStuffAtPath(() => new WikiRegistry(), TemplatePaths.wikiRegistry);
   renderer = makeStuff(() => new WikiRenderer());
   zone = makeStuff(() => new WikiNamespaceZone());
   giver = makeStuff(() => new Principal()) as unknown as Stuff;
@@ -323,6 +324,20 @@ describe('⭐ section editing (35)', () => {
     // author can act on and one they have to go read the page for.
     expect(body).toContain('uses');
     expect(body).toContain('working');
+  });
+
+  it('⭐ a refused section edit writes NO frontmatter (controller-liquidity D10, C81)', async () => {
+    await seedArticle();
+    const before = String(row().title);
+    const { notes } = await run({
+      subcommand: 'edit',
+      page: 'oak',
+      section: 'nope',
+      title: 'Renamed',
+      body: 'x',
+    });
+    expect(reasons(notes)).toContain('no-such-section');
+    expect(String(row().title)).toBe(before);
   });
 
   it('a section-scoped conflict names the section', async () => {

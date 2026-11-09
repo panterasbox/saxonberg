@@ -327,7 +327,7 @@ describe('⭐ no game model is touched (7)', () => {
 describe('revisions (8, 10, 11)', () => {
   it('creation appends a revision with the context-derived author (8)', async () => {
     const page = await create('oak', { body: 'first' });
-    const revs = await registry.history(page._id!);
+    const revs = await WikiRevision.findForPage(page._id!);
     expect(revs).toHaveLength(1);
     expect(revs[0]!.getKind()).toBe('create');
     expect(revs[0]!.getBody()).toBe('first');
@@ -339,14 +339,14 @@ describe('revisions (8, 10, 11)', () => {
     const page = await create('oak', { body: 'v1' });
     await asActor(() => raw().editPage(page, 'v2'));
     await asActor(() => raw().editPage(page, 'v3'));
-    const revs = await registry.history(page._id!);
+    const revs = await WikiRevision.findForPage(page._id!);
     expect(revs.map((r) => r.getBody())).toEqual(['v3', 'v2', 'v1']);
   });
 
   it('history is newest-first (9)', async () => {
     const page = await create('oak', { body: 'v1' });
     await asActor(() => raw().editPage(page, 'v2'));
-    const revs = await registry.history(page._id!);
+    const revs = await WikiRevision.findForPage(page._id!);
     expect(revs.map((r) => r.getRev())).toEqual([2, 1]);
   });
 
@@ -358,7 +358,7 @@ describe('revisions (8, 10, 11)', () => {
     const page = await create('oak', { body: 'v1' });
     await asActor(() => raw().editPage(page, 'v2'));
     await asActor(() => raw().editPage(page, 'v3'));
-    const bodies = (await registry.history(page._id!)).map((r) => r.getBody());
+    const bodies = (await WikiRevision.findForPage(page._id!)).map((r) => r.getBody());
     expect(new Set(bodies)).toEqual(new Set(['v1', 'v2', 'v3']));
   });
 
@@ -367,7 +367,7 @@ describe('revisions (8, 10, 11)', () => {
     await asActor(() => raw().editPage(page, 'v2'));
     await asActor(() => raw().rollback(page, 1));
     expect(page.getBody()).toBe('v1');
-    const revs = await registry.history(page._id!);
+    const revs = await WikiRevision.findForPage(page._id!);
     expect(revs).toHaveLength(3);
     expect(revs[0]!.getKind()).toBe('rollback');
     expect(revs[0]!.getRestoredFrom()).toBe(1);
@@ -666,7 +666,7 @@ describe('deletion (61, 62)', () => {
     const page = await create('oak', { body: 'v1' });
     await asActor(() => raw().editPage(page, 'v2'));
     await asActor(() => raw().deletePage(page));
-    expect(await registry.history(page._id!)).toHaveLength(2);
+    expect(await WikiRevision.findForPage(page._id!)).toHaveLength(2);
   });
 
   it('delete is moderator-only', async () => {
@@ -804,7 +804,7 @@ describe('revision queries', () => {
     expect(page.getBody()).toBe('published');
     expect((await registry.resolve('oak'))?.page.getBody()).toBe('published');
     // …and the proposed text IS on the log, in the same collection.
-    const revs = await registry.history(page._id!);
+    const revs = await WikiRevision.findForPage(page._id!);
     expect(revs[0]!.getBody()).toBe('draft');
     expect(revs[0]!.isPublished()).toBe(false);
   });

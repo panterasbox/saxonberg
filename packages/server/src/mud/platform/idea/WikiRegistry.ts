@@ -60,6 +60,25 @@ import {
 } from '../../lib/wiki/WikiPage';
 import { WikiRevision, type RevisionKind } from '../../lib/wiki/WikiRevision';
 import { Sections } from '../../lib/wiki/Section';
+import { SourceDiff } from '../../lib/wiki/SourceDiff';
+import type WikiRenderer from './WikiRenderer';
+
+/**
+ * One revision as a reader may see it ({@link WikiRegistry.historyFor}):
+ * the body already filtered to the reader's ceiling, never the row.
+ */
+export interface RevisionView {
+  rev: number;
+  kind: RevisionKind;
+  published: boolean;
+  author: string;
+  at: number;
+  summary: string;
+  /** The source, redacted to the reader's ceiling. */
+  body: string;
+  /** False when the only change from the previous revision is above the ceiling. */
+  visibleChange: boolean;
+}
 
 const WikiRegistryBase = Idea;
 
@@ -232,17 +251,77 @@ export default class WikiRegistry extends WikiRegistryBase {
     return rows.filter((p) => !p.isDeleted());
   }
 
-  /** A page's revisions, newest first (criterion 9). */
-  public async history(pageId: string): Promise<WikiRevision[]> {
-    return WikiRevision.findForPage(pageId);
+  /**
+   * A page's revisions, newest first (criterion 9), **as `reader` may see
+   * them** (criteria 67, 68; controller-liquidity D9). Each body is the
+   * source filtered to the reader's ceiling (`WikiRenderer.redactSource`),
+   * and `visibleChange` is false for a revision whose ONLY change was
+   * above it — a caller lists only the visible ones, because listing the
+   * rest would tell the reader THAT something they cannot see changed.
+   * The rows themselves never leave: the unredacted body is not on the
+   * view.
+   */
+  public async historyFor(
+    reader: Stuff | null,
+    pageId: string,
+  ): Promise<RevisionView[]> {
+    const renderer = await this.renderer();
+    const rows = await WikiRevision.findForPage(pageId);
+    const oldestFirst = [...rows].reverse();
+    const out: RevisionView[] = [];
+    let previous: string | null = null;
+    for (const row of oldestFirst) {
+      const body = await renderer.redactSource(row.getBody(), reader);
+      const visibleChange =
+        previous === null || SourceDiff.changed(previous, body);
+      previous = body;
+      out.push({
+        rev: row.getRev(),
+        kind: row.getKind(),
+        published: row.isPublished(),
+        author: row.getAuthor(),
+        at: row.getAt(),
+        summary: row.getSummary(),
+        body,
+        visibleChange,
+      });
+    }
+    return out.reverse();
   }
 
-  /** One revision by number, or null — the diff and conflict input. */
-  public async revisionAt(
-    pageId: string,
+  /**
+   * The page's source at `rev` as `reader` may see it — the revision
+   * row's, or the page's own when `rev` is the current one and no row
+   * carries it; `null` when there is no such revision. The diff and
+   * conflict input (controller-liquidity D9).
+   */
+  public async revisionAtFor(
+    reader: Stuff | null,
+    page: WikiPage,
     rev: number,
-  ): Promise<WikiRevision | null> {
-    return WikiRevision.findRev(pageId, rev);
+  ): Promise<string | null> {
+    const row = await WikiRevision.findRev(page._id ?? '', rev);
+    const raw = row
+      ? row.getBody()
+      : rev === page.getRev()
+        ? page.getBody()
+        : null;
+    if (raw === null) return null;
+    return (await this.renderer()).redactSource(raw, reader);
+  }
+
+  /**
+   * Any source as `reader` may see it — the page's current body, or text
+   * the reader submitted, for a revision-facing surface (the edit
+   * conflict) that must not read past the ceiling.
+   */
+  public async redactFor(reader: Stuff | null, body: string): Promise<string> {
+    return (await this.renderer()).redactSource(body, reader);
+  }
+
+  /** The renderer singleton — the one reveal gate (its `RenderCallers` admit this registry). */
+  private async renderer(): Promise<WikiRenderer> {
+    return StuffApi.singleton<WikiRenderer>(TemplatePaths.wikiRenderer);
   }
 
   // ── Maintenance reports (the four that keep a wiki from rotting) ──
