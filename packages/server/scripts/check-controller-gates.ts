@@ -30,7 +30,7 @@ import { resolve } from "path";
 import { pathToFileURL } from "url";
 import { controllerFiles, ratchet, stripComments } from "./pack-roots";
 
-export const CONTROLLER_GATES_CEILING = 44;
+export const CONTROLLER_GATES_CEILING = 16;
 
 /** The permission predicates, each a pattern over comment-stripped source. */
 export const GATE_PATTERNS: ReadonlyArray<{ name: string; re: RegExp }> = [

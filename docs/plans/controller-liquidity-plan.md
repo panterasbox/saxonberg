@@ -706,6 +706,39 @@ is a payload), so its row records the refusal.
 methods `protected static`*) wins, so a worded replacement controller can
 override them and its override is the one that runs at completion.
 
+**D1a (build, W1) — a duration needs its unit; `values:` is for word
+slots.** `90` is refused as a duration (seconds or minutes? the view will
+not guess) — this diverges from `StreamController`/`PressController`'s
+bare-number-is-minutes, which W7b must decide when `stream away` moves onto
+`type: duration`. `parseDuration` is a static on `CommandDefinition`, not
+`CommandLogic`: load-time validation checks a duration `default:` with it.
+`values:` is refused on a non-`string` slot. A REQUIRED `number`/`duration`
+positional that does not read is a `bind` refusal; an OPTIONAL one leaves
+the word for the next slot (`mill wheat quern`); a `values:` slot always
+refuses, naming the set.
+
+**D2a (build, W1) — nested stanzas are addressed by PATH.** Every per-stanza
+lookup (`getSubcommand`, `getOptions`, validators, the dispatcher's
+controller) keys on the space-joined path (`layout save`), read from the
+model by `CommandDefinition.subcommandKey(model)`; `allSubcommands()` is the
+one walk every per-stanza pass uses. A structured caller names a nested
+stanza by its path. A fallthrough node's bind error still reports
+`unknown-subcommand` (unchanged).
+
+**D3a (build, W1) — the quote hint rides a SHAPE error.** A `bind` error
+stops the chain, so `throw rock at wolf` would have been refused by
+`throw.yaml` before `throw-at.yaml` was tried. The hint is
+`AssembleResult.quoteHint` on the shape error, and the dispatcher says it
+(`bind-failed`) only when every view shape-failed. The search is the
+shortest run of words whose join binds an OBJECT slot to the joined name.
+
+**D4a (build, W1) — `--top`/`--open`/`--deep` are reserved as option NAMES,
+not field names**, and three shipped options collided:
+`forum make --open` and `subject make --open` → **`--public`**, `weave
+--open` → **`--coarse`** (each keeps `field: open`, so no controller
+changed). A player-visible word change the owner's read did not list. The
+rung is carried to `CommandContext.depth` now; nothing reads it until W2.
+
 ---
 
 ## ⭐⭐ Host placement
@@ -907,7 +940,20 @@ the build will lower is pinned.
 - Commit: `build(controller-liquidity W0): the before-record and five
   censuses; completions off the controller`.
 
-### W1 — the grammar grows (D1, D2, D3-schema, D4-tokens)
+### W1 — the grammar grows (D1, D2, D3-schema, D4-tokens) ✅ done
+
+> **Done.** `values:`, `type: duration` (ms), `depth:`, nested
+> `subcommands:` (leaf + `subcommandPath`, path-keyed lookups), the
+> `--top/--open/--deep` tokens (carried, inert), positional `number`
+> coercion (fixes `house draw`'s `mustBeNumber`, which never passed), the
+> article fold, the quote hint, merged `help` shapes; arm G's article
+> ratchet retired (110 → gone). Decisions D1a–D4a. ⚠ Surprises: the
+> reserved `--open` collided with three options (renamed, D4a); and **for
+> W5**: an OPTIONAL prepositioned object slot that is not
+> `prepositionRequired` silently takes word two of an unquoted name
+> (`buy dog loaf` → counter `loaf`) — no leftover, so no hint. When W5
+> drops `greedy`, such a slot after an object slot wants
+> `prepositionRequired: true`. No view uses the new keys yet (W7 first).
 
 Kernel only; no view changes beyond the schema admitting the new keys.
 
@@ -980,7 +1026,9 @@ Kernel only; no view changes beyond the schema admitting the new keys.
 - Commit: `build(controller-liquidity W2): here is the place; reachable is
   what you can lay hands on; MQL addresses through shut things`.
 
-### W3 — the gates move onto what they protect (D9, D10, D11)
+### W3 — the gates move onto what they protect (D9, D10, D11) ✅ done (cluster B's D10 ordering may land after this note)
+
+> **Done** (`06aea6818`, `b3e494451`, `4fae95aa4`, `61c2bfdbd`, `50db4f1d0`, `a88f15774`, `55ef3f6cf`). Ceilings: `controller-gates` 44 → **16**, `lineage-keys` 7 → **0** (Sew included; D11's hand list — Introduce, TitleTransfer, Crafting ×2, Document owner, ad-hoc channels, group providers, Contacts NPC, party refs and the solo combat side — all on `getIdentityPath()`). (build, W3) decisions: chat answers are `ActRefusal`s from `ChannelCatalogue` (owner = Subject owner OR the audience group's `owner` role, so a party captain disbands); forum writes throw `BoardRefusal` (reason-carrying), fail-closed on no Subject; `rawTail`/`setSetting`/template writes read the acting principal from context, not an argument (an argument raised `object-verbs`); wiki redacts at min(reader, acting) ceiling; cp's source is an open read. ⚠ The 16 residue are OUTSIDE Appendix D (clone, destruct ×2, goto ×2, reload, title publish/subdivide/transfer, arm, get, broadcast, soul's pre-check of a model-gated write, BankingControllerBase's presence read, eval's target call, drilling) — W7/W8 decide each (most protect engine primitives with no actor). Forum edit/reply now prompt for the body before the model refuses (no read-only pre-check added). Record rows `cp`/`mv`/`rm`/`grep`/`mkdir` change on purpose — W15 re-records them.
 
 Kernel and pack, by Appendix D. Each row: delete the controller's check,
 add the model method's refusal with the actor, keep or add the participant
