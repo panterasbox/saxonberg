@@ -34,7 +34,7 @@ export default function ChatPanel({
         display: 'flex',
         flexDirection: 'column',
         ...(d.chrome && {
-          background: 'rgba(13, 28, 56, 0.82)',
+          background: 'rgba(13, 28, 56, 0.5)',
           border: `1px solid ${palette.line}`,
           boxShadow: '0 18px 60px rgba(4, 11, 23, 0.55)',
         }),
