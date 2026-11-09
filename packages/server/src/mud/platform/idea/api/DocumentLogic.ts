@@ -804,10 +804,18 @@ async function freezeEditionImpl(req: EditionRequest): Promise<string> {
  * `public` filter is the anonymous web's), else a paper of the reader's own
  * whose title does. Never a search of anyone else's papers.
  */
+/** How many of the newest releases `callUp` searches by word. */
+const CALL_UP_RELEASE_WINDOW = 200;
+
 async function callUpImpl(reader: Stuff, word: string): Promise<{ path: string; title: string } | null> {
   const w = word.trim().toLowerCase();
   if (w === '') return null;
-  const releases = (await StoredDocument.findByKind(RELEASE_DOCUMENT_KIND))
+  // Newest first by the release card's `publishedAt`, over a bounded page
+  // — the word picks the most recent match, never a scan of every release.
+  const releases = (await findByKeyImpl(RELEASE_DOCUMENT_KIND, 'publishedAt', {
+    order: 'desc',
+    limit: CALL_UP_RELEASE_WINDOW,
+  }))
     .map((d) => Release.fromDocument(d))
     .filter((r) => !r.isRetracted() && Release.publishedByOwner(r))
     .filter((r) => r.getHeadline().toLowerCase().includes(w) || r.owner.toLowerCase().includes(w))

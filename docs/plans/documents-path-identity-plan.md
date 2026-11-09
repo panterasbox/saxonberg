@@ -957,6 +957,14 @@ recipe/archetype/blueprint load on use.
   the two bounded reads.
 - Commit: `build(documents W2): the press reads newest first by key`.
 
+> ✅ **W2 done (build).** `archiveImpl` is one ordered `findByKey` on
+> `publishedAt` (`max: before − 1`, `order: desc`, `limit × 4` over-fetch —
+> realm/kind/retraction filter the page); `loadImpl` reads `keys.releaseId`
+> (a third release key, added for that reader); `callUp` searches the newest
+> 200 by word; `PressBoard.warm` is two bounded reads (`pinned` eq true, the
+> newest window ×4). No `listOfKind('release')` remains in the press. Test
+> fakes use the shared `findDocuments` (cards derived for hand-inserted rows).
+
 ### W3a — path-cited families → documents: DirtKind, PumpMechanism, Joint, Form (D6, D7, D15)
 
 No typed word, no sync-primitive hazard. Per family, the D6 recipe, the

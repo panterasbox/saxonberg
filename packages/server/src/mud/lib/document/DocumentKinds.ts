@@ -90,6 +90,12 @@ const releasePublishedAt: DocumentKeyDerivation = (doc) =>
 /** Whether a release is pinned — the ticker reads its pins by it. */
 const releasePinned: DocumentKeyDerivation = (doc) => doc.data.pinned === true;
 
+/** A release's id — the press loads one by it (a permalink, a retraction). */
+const releaseIdOf: DocumentKeyDerivation = (doc) =>
+  typeof doc.data.releaseId === 'string' && doc.data.releaseId !== ''
+    ? doc.data.releaseId
+    : undefined;
+
 export const DOCUMENT_KINDS = {
   /**
    * `msh` scripts — the language's name is the kind (was `'script'`
@@ -98,7 +104,7 @@ export const DOCUMENT_KINDS = {
    */
   msh: { kind: 'msh', contentDir: 'msh', ext: 'msh', onVanish: 'delete' },
   /** Press-owned; no pack ships one this wave. */
-  release: { kind: 'release', keys: { publishedAt: releasePublishedAt, pinned: releasePinned }, contentDir: 'releases', ext: 'yaml', onVanish: 'delete' },
+  release: { kind: 'release', keys: { publishedAt: releasePublishedAt, pinned: releasePinned, releaseId: releaseIdOf }, contentDir: 'releases', ext: 'yaml', onVanish: 'delete' },
   emote: { kind: 'emote', words: leafWord, contentDir: 'emotes', ext: 'yaml', onVanish: 'delete' },
   /**
    * An aroma: what a nose can read, with its threshold, the discipline that

@@ -39,6 +39,7 @@ import { SecurityError } from '../../lib/security/errors';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 import { AccessApi } from '../access';
+import { findDocuments } from '../../lib/document/__tests__/document-query';
 
 class TestAuthor extends Idea {
   static _mixinName = 'TestAuthor';
@@ -56,11 +57,9 @@ function installStore(): void {
   const pm = PersistenceManager.get();
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'find').mockImplementation(
-    async (col: string, query: Record<string, unknown>) => {
+    async (col: string, query: Record<string, unknown>, options?: { sort?: Record<string, 1 | -1>; limit?: number }) => {
       if (col === 'app_settings') return [] as never;
-      return [...store.values()].filter((d) =>
-        Object.entries(query).every(([k, v]) => d[k] === v),
-      ) as never;
+      return findDocuments(store.values(), query, options) as never;
     },
   );
   vi.spyOn(pm, 'save').mockImplementation(

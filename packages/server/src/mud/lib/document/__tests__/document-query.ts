@@ -10,6 +10,8 @@
  * Lives under `__tests__/`, which the export-discipline lint exempts.
  */
 
+import { StoredDocument } from '../StoredDocument';
+
 function valueAt(row: Record<string, unknown>, dotted: string): unknown {
   let cur: unknown = row;
   for (const part of dotted.split('.')) {
@@ -105,4 +107,29 @@ export function applyFindOptions<T extends Record<string, unknown>>(
   if (options?.skip) out = out.slice(options.skip);
   if (options?.limit !== undefined) out = out.slice(0, options.limit);
   return out;
+}
+
+/**
+ * A store fake's whole `find`: the rows that match, each carrying the
+ * catalogue card its kind derives (a fixture row inserted by hand has
+ * none — the real writers always stamp it), ordered and capped by the
+ * options. Never mutates the rows it is given.
+ */
+export function findDocuments(
+  rows: Iterable<Record<string, unknown>>,
+  query: Record<string, unknown>,
+  options?: { sort?: Record<string, 1 | -1>; limit?: number; skip?: number },
+): Record<string, unknown>[] {
+  const carded = [...rows].map((r) =>
+    r.keys === undefined && typeof r.kind === 'string' && typeof r.path === 'string' && r.path
+      ? {
+          ...r,
+          keys: StoredDocument.cardOf(r.kind, r.path, (r.data ?? {}) as Record<string, unknown>),
+        }
+      : r,
+  );
+  return applyFindOptions(
+    carded.filter((r) => matchesDocumentQuery(r, query)),
+    options,
+  );
 }

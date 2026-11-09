@@ -32,6 +32,7 @@ import type { Publisher } from '../../../lib/press/Publisher';
 import { PressApi } from '../../../api/press';
 import type PressBoard from '../PressBoard';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { StoredDocument } from '../../../lib/document/StoredDocument';
 import type {
   PublishRequest,
   ReleasePatch,
@@ -54,6 +55,12 @@ const PRESS_ROOM_MAX_LIMIT = 50;
 const ARCHIVE_DEFAULT_LIMIT = 30;
 /** Hard cap on an archive page (a malformed `limit` can't pull the world). */
 const ARCHIVE_MAX_LIMIT = 100;
+/**
+ * How many releases an archive page reads per row it returns: realm, kind
+ * and retraction filter the page after the ordered read, so a page asks for
+ * a bounded multiple rather than an unbounded scan.
+ */
+const ARCHIVE_OVERFETCH = 4;
 
 /** The live PressBoard singleton, or `null` before it warms. */
 function board(): PressBoard | null {
@@ -109,19 +116,25 @@ function fanFeedImpl(frame: ReleaseFeedFrame): void {
  * a `kind: 'release'` document nobody published is not a release. Same
  * filter the warm window applies, in one place.
  */
-async function allReleasesImpl(): Promise<Release[]> {
-  const docs = await DocumentApi.listOfKind(RELEASE_DOCUMENT_KIND);
+/** Releases as the press reads them: only those a publisher actually owns. */
+function ownedReleases(docs: readonly StoredDocument[]): Release[] {
   return docs
     .map((doc) => Release.fromDocument(doc))
     .filter((r) => Release.publishedByOwner(r));
 }
 
-/** Load a release by id from the warm window, falling back to the tree. */
+/**
+ * Load a release by id from the warm window, falling back to the store's
+ * catalogue card (`keys.releaseId`) — one indexed read, never a scan.
+ */
 async function loadImpl(releaseId: string): Promise<Release | null> {
   const cached = board()?.getRelease(releaseId);
   if (cached) return cached;
-  const all = await allReleasesImpl();
-  return all.find((r) => r.getReleaseId() === releaseId) ?? null;
+  const docs = await DocumentApi.findByKey(RELEASE_DOCUMENT_KIND, 'releaseId', {
+    eq: releaseId,
+    limit: 1,
+  });
+  return ownedReleases(docs)[0] ?? null;
 }
 
 /**
@@ -303,27 +316,31 @@ function recentImpl(limit?: number): Release[] {
 }
 
 /**
- * The paged archive. Filtering moved from a Mongo query to a JS filter
- * over the tree read — the same `documents` full-scan `findByPrefix`
- * already does for a store this size, and the filter/ordering/clamp
- * semantics are unchanged.
+ * ⭐ The paged archive, **newest first, by key** — one ordered read over
+ * the release card's `publishedAt` (the `{kind, keys.$**}` index serves the
+ * order), bounded above by the `before` cursor. Realm, kind and retraction
+ * are filtered over the page (realm derives from the live publisher and
+ * cannot be a key), so the read over-fetches a bounded multiple of the
+ * page and stops there — never a scan of every release.
  */
 async function archiveImpl(query: ArchiveQuery): Promise<Release[]> {
-  const rows = (await allReleasesImpl()).filter((r) => {
-    if (r.isRetracted()) return false;
-    if (query.realm && r.getRealm() !== query.realm) return false;
-    if (query.kind && r.getKind() !== query.kind) return false;
-    if (typeof query.before === 'number' && r.getPublishedAt() >= query.before) {
-      return false;
-    }
-    return true;
-  });
-  rows.sort((a, b) => b.getPublishedAt() - a.getPublishedAt());
   const limit =
     typeof query.limit === 'number' && query.limit > 0
       ? Math.min(Math.floor(query.limit), ARCHIVE_MAX_LIMIT)
       : ARCHIVE_DEFAULT_LIMIT;
-  return rows.slice(0, limit);
+  const docs = await DocumentApi.findByKey(RELEASE_DOCUMENT_KIND, 'publishedAt', {
+    ...(typeof query.before === 'number' ? { max: query.before - 1 } : {}),
+    order: 'desc',
+    limit: limit * ARCHIVE_OVERFETCH,
+  });
+  return ownedReleases(docs)
+    .filter((r) => {
+      if (r.isRetracted()) return false;
+      if (query.realm && r.getRealm() !== query.realm) return false;
+      if (query.kind && r.getKind() !== query.kind) return false;
+      return true;
+    })
+    .slice(0, limit);
 }
 
 /**
