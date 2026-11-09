@@ -224,20 +224,13 @@ Condition, AddressRegistry) stay the scan-sweep slate's.
 
 ## Open questions
 
-1. **`keys` authoring.** May a document author any key, or only the keys its
-   kind declares (the kind projecting from `data`)? Free keys are the more
-   expressive (lens 2); declared keys make the index's contents knowable.
-2. **What `keys` must answer.** Equality only, or ranges and sort too (the
-   press archive's `publishedAt` wants a time-ordered page)? That decides
-   between the attribute pattern and a compound wildcard index.
-3. **Where the typed-word collision check lives** once the installer stops
-   enforcing a flat key — the installer, a lint, or the word index itself
-   refusing at first build.
-4. **Does any scope need uniqueness on a key**, beyond the path?
-5. **`CombatFormation`** — a preset is data, but a party *adopts* one and a
-   change of formation runs through governance (the coup). Is it a link a
-   governance query goes through (stay an Idea) or vocabulary (document)?
-6. **Order against material decomposition** (above).
-7. **Aroma directories** — in this build or not?
-</content>
-</invoke>
+All seven were answered at requirements (owner, 2026-11-09) — see
+[documents-path-identity-requirements](../../requirements/documents-path-identity-requirements.md)
+§ Surface decisions: keys are declared by the kind and derived from data ·
+equality, range and order on one key · typed-word uniqueness checked at
+install · uniqueness only on path and typed words · CombatFormation is a
+document · the five material-adjacent families wait for material
+decomposition · aroma directories are in, the folder is the tree.
+
+**Recorded, not decided:** an NPC's `archetype:` (a role) and an archetype
+document (a room) are two meanings of one word.
