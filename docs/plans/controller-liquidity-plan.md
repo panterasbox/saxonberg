@@ -686,6 +686,26 @@ measures every new gate at HEAD after the merge-base catch-up and pins it
 there (lint-family.md's stale-tree lesson). Each wave's acceptance names
 the ceilings it lowers (§ Test & gate strategy).
 
+**D17a (build, W0) — the record is data-driven and honest.** The
+before-record is one ROW per act (where, what is handed, the line typed) run
+by one generic runner on a fresh wizard stager per act; `state` is generic
+(where each handed thing is, the kinds the actor holds, the kinds that
+appeared in the place, how the engagement ended) so a row costs a line, not a
+suite. An act the world refuses for want of staging records the refusal —
+still a before-record (the reason may not drift). A row whose staging is
+not repeatable on one world (a free claim coordinate, a single horse clone)
+is staged so that it refuses the same way every run (`stake 5,7,0`, a taken
+coordinate). `fight assess` does not exist yet (fight has no `assess`
+subcommand), so the combat read is not recordable; `assess` (self, at the
+hub and at the ward) stands for it. `feed` is the compost verb, not an
+animal's (animals take `offer`). `edit` cannot be driven by text (its body
+is a payload), so its row records the refusal.
+
+**D12a (build, W0) — word methods are `protected static`, reached through
+`this.constructor`.** D12 said `private static`; the brief's rule (*word
+methods `protected static`*) wins, so a worded replacement controller can
+override them and its override is the one that runs at completion.
+
 ---
 
 ## ⭐⭐ Host placement
@@ -812,7 +832,27 @@ Every wave is independently landable and ends at a commit titled
 `pnpm test:near`, the touched packs' own vitest, `lint:family` green, and
 the named ceilings lowered.
 
-### W0 — the before-record and the censuses (D17, D12)
+### W0 — the before-record and the censuses (D17, D12) ✅ done
+
+> **Done (`193962942` censuses + completions; `e9f6330ff` the before-record).**
+> Ceilings opened: `greedy-object` **133** · `multi-act` **41** (subcommand
+> 15 · arg-word 6 · target-kind 22) · `controller-gates` **44** ·
+> `lineage-keys` **7** · `completion-this` **0** (now an AST walk over every
+> form; it found Search/Teleport/Transfuse, fixed as `protected static`
+> words, D12a). `controller-mutations` learned that a `this.constructor`
+> binding is the controller's own surface (318 holds). The record: **78
+> rows**, recorded on one freshly reset world and compared equal on a second
+> (78/78); generic state (D17a), `CLIQ_ONLY=a,b` runs a subset. ⚠ For later
+> waves: the record runs against a FRESH world (`reset:db`, boot kept on
+> 2013 — a cold boot outruns the harness's 420 s, so boot with
+> `WIRE_KEEP_WORLD=1` and attach with `WIRE_REUSE=1`); it is not idempotent
+> on a world it already ran on (stock, a used mill hopper). Three rows record
+> a thrown **controller-error** — `cool`, `dose`, `cp` — and `QuenchController`
+> logs `Grade.of: unknown band 'good'` on its mint; `pay office` (the bills
+> arm) errors intermittently, so `pay founder 1` is the row. The wave that
+> fixes any of these re-records its row. `lineage-keys` cannot see a
+> template path passed positionally or returned (lint-family.md says which);
+> W3 switches D11's list by hand.
 
 Goal: nothing moves until the world's answers are recorded and every count
 the build will lower is pinned.
