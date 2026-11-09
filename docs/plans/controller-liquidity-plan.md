@@ -942,7 +942,7 @@ the build will lower is pinned.
 
 ### W1 — the grammar grows (D1, D2, D3-schema, D4-tokens) ✅ done
 
-> **Done.** `values:`, `type: duration` (ms), `depth:`, nested
+> **Done (`e21135a65`; this note and D1a–D4a rode in on W3's plan commit `876f0be80`).** `values:`, `type: duration` (ms), `depth:`, nested
 > `subcommands:` (leaf + `subcommandPath`, path-keyed lookups), the
 > `--top/--open/--deep` tokens (carried, inert), positional `number`
 > coercion (fixes `house draw`'s `mustBeNumber`, which never passed), the
