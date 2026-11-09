@@ -54,7 +54,7 @@ channelId), a display name, a short handle, and a state:
 | state | who makes it | what it affords |
 |---|---|---|
 | **listed** | anyone — a viewer, unprompted | a short name · cross-platform unification · persisted tunes · resolvable by anyone who types it |
-| **claimed** | the streamer, **by proof** | the control plane: their own overlay token, their own `StreamState`, their own chat forwarded to their own overlay |
+| **claimed** | the streamer, **by proof** | the control plane: their own overlay token, their own stream state, their own chat forwarded to their own overlay (✅ token, state and feed scope shipped by broadcast-ready, 2026-11 — the record will own them) |
 | **consenting** | the claimant, explicitly | appears in the public directory |
 
 ⭐⭐ **Claiming is a proof, not a request.** The OAuth links already
@@ -106,11 +106,11 @@ Every environment variable becomes a field on the claimed record:
 
 | today (one owner, by env) | per-streamer |
 |---|---|
-| `BROADCAST_TOKEN` | a rotatable token on the record |
+| `BROADCAST_TOKEN` | a rotatable token on the record — ✅ `stream token` mints one per streamer (broadcast-ready); the env var survives only as the changeover |
 | `OVERLAY_TWITCH_LOGIN` / `_YOUTUBE_CHANNEL` / `_KICK_CHANNEL` | the record's own platform identities |
 | `STREAMER_PLAYER_IDS` → the `streamers` managed group + `requiresStreamer` | **do you own the record you are addressing** |
-| the `StreamState` singleton Idea (`mode`, `awayUntil`) | per-streamer state |
-| `BroadcastFeed` pushes to every broadcast socket | the feed scoped by the token's streamer |
+| ~~the `StreamState` singleton Idea~~ | ✅ per-streamer state — `BroadcastMixin` on the body (broadcast-ready) |
+| ~~`BroadcastFeed` pushes to every broadcast socket~~ | ✅ the feed scoped by the token's streamer (broadcast-ready) |
 
 ⭐ **The gate stops being a role and becomes ownership**, which is the
 standing "a seat or no check" shape — and it means self-service
@@ -242,9 +242,9 @@ Then, in order:
 
 1. **The record + claim-by-proof.** The collection, self-service
    registration, the OAuth proof, the listed/claimed/consenting ladder.
-2. **The per-streamer control plane.** Token, feed scope, `StreamState`
-   per streamer, the four env vars retired, `requiresStreamer` replaced
-   by ownership.
+2. **The per-streamer control plane.** ~~Token, feed scope, per-streamer
+   state~~ (✅ broadcast-ready); the four env vars retired,
+   `requiresStreamer` replaced by ownership.
 3. **The portal.** Registry-first resolve, persisted tunes, platform
    preference, the consenting directory, and the documented REST read
    for third-party overlays — `PressRoutes`-shaped: its own route,
