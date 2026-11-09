@@ -1,9 +1,8 @@
 /**
- * OdorousMaterial — a `Material` with a smell of its own (`OdorousMixin`),
- * the `RadioactiveMaterial` pattern: a row opts in by naming this class, and a
- * plain `Material` holds no smell data at all.
+ * OdorousMaterial — ⚠ scaffold (material decomposition W0): the base
+ * `Material` now composes `OdorMixin` itself, so this adds nothing. Its rows
+ * are re-homed onto their kinds, and this class deleted, in W2a.
  */
-import { OdorousMixin } from '../../../lib/material/Odorous';
 import Material from '../../../lib/material/Material';
 
-export class OdorousMaterial extends OdorousMixin(Material) {}
+export class OdorousMaterial extends Material {}

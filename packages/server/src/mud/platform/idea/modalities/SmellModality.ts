@@ -311,7 +311,7 @@ export class SmellModality extends Modality {
   }
 
   private addMaterial(material: Material | null, kg: number, heat: number, into: Notes): void {
-    if (!material || !MixinApi.isOdorous(material)) return;
+    if (!material || !MixinApi.hasOdor(material)) return;
     for (const tag of material.getSmells()) {
       addNote(into, tag.aroma, tag.strength * amountFactor(kg) * heat);
     }

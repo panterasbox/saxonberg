@@ -13,7 +13,7 @@
  * nowhere.
  *
  * So the kernel declares the *capability* and the pack implements it, the
- * `SkyExposedMixin` / `RadioactiveMixin` shape: a trait narrowed through
+ * `SkyExposedMixin` / `RadioactivityMixin` shape: a trait narrowed through
  * `MixinApi.isGroundSource` with one method behind it.
  *
  * ## What crosses the seam

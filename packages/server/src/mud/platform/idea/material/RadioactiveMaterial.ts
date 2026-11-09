@@ -15,7 +15,7 @@
  * needs more than one capability mixin, compose them in the subclass
  * definition (`class TwoMix extends FooMixin(BarMixin(Material)) {}`).
  */
-import { RadioactiveMixin } from '../../../lib/material/Radioactive';
+import { RadioactivityMixin } from '../../../lib/material/Radioactivity';
 import Material from '../../../lib/material/Material';
 
-export class RadioactiveMaterial extends RadioactiveMixin(Material) {}
+export class RadioactiveMaterial extends RadioactivityMixin(Material) {}

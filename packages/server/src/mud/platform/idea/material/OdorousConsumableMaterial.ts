@@ -1,9 +1,8 @@
 /**
- * OdorousConsumableMaterial — a `ConsumableMaterial` with a smell of its own,
- * for the same reason as {@link OdorousMaterial}: the capability is opted into
- * by the row's class.
+ * OdorousConsumableMaterial — ⚠ scaffold (material decomposition W0): the
+ * base `Material` now composes `OdorMixin` itself, so this adds nothing. Its
+ * rows are re-homed onto their kinds, and this class deleted, in W2a.
  */
-import { OdorousMixin } from '../../../lib/material/Odorous';
 import { ConsumableMaterial } from './ConsumableMaterial';
 
-export class OdorousConsumableMaterial extends OdorousMixin(ConsumableMaterial) {}
+export class OdorousConsumableMaterial extends ConsumableMaterial {}

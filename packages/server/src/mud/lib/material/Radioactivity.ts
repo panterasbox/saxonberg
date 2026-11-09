@@ -1,5 +1,5 @@
 /**
- * RadioactiveMixin — capability for Materials whose nuclei undergo
+ * RadioactivityMixin — capability for Materials whose nuclei undergo
  * spontaneous decay.
  *
  * **Why a mixin and not a tag.** Most material classification —
@@ -8,8 +8,8 @@
  * different: it carries a non-trivial behavioral surface (half-life
  * arithmetic, decay-product cross-references, decay-mode taxonomy)
  * that's only meaningful for a sparse minority of Materials. A
- * `RadioactiveMixin` lets those Materials carry the full surface;
- * narrowing via `MixinApi.isRadioactive(m)` threads the typed methods
+ * `RadioactivityMixin` lets those Materials carry the full surface;
+ * narrowing via `MixinApi.hasRadioactivity(m)` threads the typed methods
  * into the call site without contaminating the base `Material` class
  * with fields that are meaningless for everything else.
  *
@@ -24,11 +24,11 @@
  * as a subclass declaration:
  *
  * ```typescript
- * export class RadioactiveMaterial extends RadioactiveMixin(Material) {}
+ * export class RadioactiveMetal extends RadioactivityMixin(Material) {}
  * ```
  *
  * Templates that need the capability use `class:
- * /platform/idea/material/RadioactiveMaterial`. Templates that don't stay on
+ * /platform/idea/material/RadioactiveMetal`. Templates that don't stay on
  * plain `class: /platform/idea/material/Material`. Future capability mixins
  * (`SuperconductorMixin`, `PiezoelectricMixin`, …) layer the same
  * way — one subclass per composed combination.
@@ -57,7 +57,7 @@ export type DecayMode =
   | 'spontaneous-fission'
   | 'electron-capture';
 
-export interface Radioactive {
+export interface Radioactivity {
   /** Half-life in years. Use the more readable unit for very-short-lived materials at the presentation layer. */
   getHalfLife(): number;
   setHalfLife(value: number): void;
@@ -73,9 +73,9 @@ export interface Radioactive {
   setDecayProduct(value: Material | null): void;
 }
 
-export function RadioactiveMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class RadioactiveMixin extends Base {
-    static _mixinName = 'RadioactiveMixin';
+export function RadioactivityMixin<TBase extends MixinConstructor>(Base: TBase) {
+  return class RadioactivityMixin extends Base {
+    static _mixinName = 'RadioactivityMixin';
     static fieldMeta: FieldMeta = {
       halfLife: { persistent: true, authorable: true },
       decayMode: { persistent: true, authorable: true },

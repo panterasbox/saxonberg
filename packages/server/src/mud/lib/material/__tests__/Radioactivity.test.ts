@@ -17,7 +17,7 @@ function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
   return obj;
 }
 
-describe('RadioactiveMixin / RadioactiveMaterial', () => {
+describe('RadioactivityMixin / RadioactiveMaterial', () => {
   beforeEach(() => {
     StuffApi.clearAll();
   });
@@ -32,15 +32,15 @@ describe('RadioactiveMixin / RadioactiveMaterial', () => {
     expect(u).toBeInstanceOf(RadioactiveMaterial);
   });
 
-  it('is detected by MixinApi.isRadioactive', () => {
+  it('is detected by MixinApi.hasRadioactivity', () => {
     const u = makeStuff(() => new RadioactiveMaterial());
-    expect(MixinApi.isRadioactive(u)).toBe(true);
-    expect(MixinApi.hasMixin(u, Mixins.Radioactive)).toBe(true);
+    expect(MixinApi.hasRadioactivity(u)).toBe(true);
+    expect(MixinApi.hasMixin(u, Mixins.Radioactivity)).toBe(true);
   });
 
   it('plain Material is NOT detected as radioactive', () => {
     const m = makeStuff(() => new Material());
-    expect(MixinApi.isRadioactive(m)).toBe(false);
+    expect(MixinApi.hasRadioactivity(m)).toBe(false);
   });
 
   it('round-trips halfLife and decayMode', () => {

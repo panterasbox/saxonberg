@@ -13,7 +13,7 @@
  * subsystems. Today the mixin is a trait stamp — its presence is
  * the entire substrate.
  *
- * Parallels `RadioactiveMixin` on `Material`: a capability seam
+ * Parallels `RadioactivityMixin` on `Material`: a capability seam
  * narrowed via `MixinApi.isSkyExposed(biome)` for downstream code
  * that wants to branch on the trait.
  */

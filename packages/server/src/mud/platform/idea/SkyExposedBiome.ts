@@ -5,7 +5,7 @@
  * /stuff/idea/biome/SkyExposedBiome`; indoor and underground biomes use
  * plain `class: /stuff/idea/biome/Biome`.
  *
- * Parallels `RadioactiveMaterial extends RadioactiveMixin(Material)`
+ * Parallels `RadioactiveMetal extends RadioactivityMixin(ElementalMetal)`
  * in the Material substrate.
  */
 

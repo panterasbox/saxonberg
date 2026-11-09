@@ -67,7 +67,11 @@ function rowData(rel: string): Record<string, unknown> {
   const parsed = YAML.parse(readFileSync(join(CONTENT, rel), 'utf8')) as {
     data?: Record<string, unknown>;
   };
-  return parsed.data ?? {};
+  // ⚠ `smells` resolves each aroma's ROW (load on use), which needs the
+  // store; this test is about the corrosion chemistry, so it hydrates the
+  // row without its smell. The smell's own hydration is the senses suite's.
+  const { smells: _smells, ...data } = parsed.data ?? {};
+  return data;
 }
 
 async function hydrate(rel: string): Promise<Material> {
@@ -89,16 +93,16 @@ describe("the injury MR's material rows hydrate cleanly", () => {
     });
   }
 
-  it('⭐ lead names a well-formed ToxinTag — the exact bug this guards', async () => {
+  it('⭐ lead poisons through its FACE — a well-formed leach, never a bare string', async () => {
+    // A zero-amount toxicity entry (`[{ type: lead, amount: 0 }]`) was a
+    // sentinel every reader skipped; the material decomposition retired it.
+    // What lead gives a body is what its face gives the contents it holds.
     const lead = await hydrate(
       'base-library/content/stuff/idea/material/element/lead.yaml',
     );
-    const tox = lead.getToxicity();
-    expect(tox.length).toBeGreaterThan(0);
-    // A `{type, amount}` object, never a bare string.
-    expect(tox[0]).toMatchObject({
-      type: expect.any(String),
-      amount: expect.any(Number),
+    expect(lead.getLeaches()[0]).toMatchObject({
+      toxin: 'lead',
+      mgPerLPerDay: expect.any(Number),
     });
   });
 

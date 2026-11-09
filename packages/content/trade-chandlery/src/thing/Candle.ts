@@ -102,7 +102,7 @@ export default class Candle extends Lamp {
 
   /** The first thing the fat smells of, in a sentence's words, or `''`. */
   private smellOfMaterial(material: Material): string {
-    if (!MixinApi.isOdorous(material)) return '';
+    if (!MixinApi.hasOdor(material)) return '';
     const aroma = material.getSmells()[0]?.aroma;
     return aroma ? Aroma.phraseOf(aroma) : '';
   }

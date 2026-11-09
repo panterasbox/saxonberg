@@ -15,7 +15,6 @@
  * than a `Material` field or a reuse of `toughness`.
  */
 import { MuscleMixin } from '../../../lib/butchery/Muscle';
-import { OdorousMixin } from '../../../lib/material/Odorous';
 import Material from '../../../lib/material/Material';
 
-export default class Muscle extends OdorousMixin(MuscleMixin(Material)) {}
+export default class Muscle extends MuscleMixin(Material) {}

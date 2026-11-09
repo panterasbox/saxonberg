@@ -933,7 +933,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       }
       const out: SmellNote[] = [];
       for (const [material, kg] of beds) {
-        if (!MixinApi.isOdorous(material)) continue;
+        if (!MixinApi.hasCombustion(material)) continue;
         for (const tag of material.getBurning()) {
           out.push({ aroma: tag.aroma, ou: tag.strength * Math.sqrt(kg) });
         }
