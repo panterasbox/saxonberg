@@ -40,7 +40,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const CONTROLLER_DECISIONS_CEILING = 1170; // controller-liquidity W1+W3: values, durations and refusals moved onto their objects
+export const CONTROLLER_DECISIONS_CEILING = 1167; // controller-liquidity W1+W3: values, durations and refusals moved onto their objects. W6: −3, the cutting answers stopped carrying a verb tag to narrow on, and `fell` stopped cross-cutting
 export const DURATION_DECLS_CEILING = 100; // W5: harvest, plant, the bath, the pour
 
 export type DecisionKind = "math" | "arithmetic" | "threshold" | "constant" | "act-literal";

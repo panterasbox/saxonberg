@@ -76,8 +76,8 @@ describe('rive — through the binder', () => {
 });
 
 describe('rive — who affords it', () => {
-  it('⭐ the bole affords riving as it affords felling', () => {
-    expect(Bole.commandContributions.peers).toContain('trade/forestry/cmd/forestry/fell.yaml');
+  it('⭐ the bole affords riving as it affords its cross-cut (the kernel `cut`, D14)', () => {
+    expect(Bole.commandContributions.peers).toContain('platform/cmd/crafting/cut.yaml');
     expect(Bole.commandContributions.peers).toContain(RIVE);
   });
 

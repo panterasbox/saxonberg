@@ -707,6 +707,10 @@ export const Mixins = {
   TravelNode: 'TravelNodeMixin',
   Cuttable: 'CuttableMixin',
   CutPlanner: 'CutPlannerMixin',
+  // ⭐ The cutting acts that are not `cut` (controller-liquidity D14).
+  Sawable: 'SawableMixin',
+  Rivable: 'RivableMixin',
+  Butcherable: 'ButcherableMixin',
   // Markers a pack's reader narrows on (controllers-are-io D7a): the supply
   // a thing draws, the generator that makes it, who may write a name.
   Powered: 'PoweredMixin',
@@ -1102,6 +1106,9 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   KneadVesselMixin: "{} isn't something you could knead in",
   ShapeableMixin: "{} won't take a shape in your hands",
   CarvableMixin: "{} isn't something you could carve",
+  SawableMixin: "{} isn't wood in the round",
+  RivableMixin: "{} isn't wood you could rive",
+  ButcherableMixin: "{} isn't a carcass",
   PourTargetMixin: "you can't pour anything into {}",
   ArcaneMixin: "there is nothing bound into {}",
   ImpressibleMixin: "{} is not soft enough to take an impression",

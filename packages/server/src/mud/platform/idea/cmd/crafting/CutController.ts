@@ -1,6 +1,10 @@
 /**
  * CutController — the ONE `cut` (storage-and-ice D16).
  *
+ * ⭐ ONE act (controller-liquidity D14): sawing, riving and butchering are
+ * their own protocols with their own verbs; a felled bole's cross-cut IS a
+ * cut, and the bole answers here (`fell bole` retired into `cut bole`).
+ *
  * ⚠ Dumb by design. It resolves who plans the cut — the TARGET when it is
  * `Cuttable` (the room's floor when the target was a bare word for part of
  * it: `cut marked`, `cut hole`), else the first bound tool that is a
@@ -17,14 +21,8 @@ import { ManualBuildController } from './ManualBuildController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type {
-  CutAnswer,
-  CutAnswerFor,
-  CutBegin,
-  CutDone,
-  CutRefusal,
-  CutRequest,
-} from '../../../../lib/craft/Cuttable';
+import type { CutAnswer, CutBegin, CutDone, CutRefusal, CutRequest } from '../../../../lib/craft/Cuttable';
+import { GrammarApi } from '../../../../api/grammar';
 import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
 
@@ -45,11 +43,10 @@ export default class CutController extends ManualBuildController<CutModel> {
     const target = (model.target?.stuff ?? null) as Stuff | null;
     const raw = model.target?.raw?.trim() || null;
     const tools = (model.tools?.stuff ?? []) as Stuff[];
-    const req: CutRequest<'cut'> = {
-      verb: 'cut',
+    const req: CutRequest = {
       actor,
       tools,
-      raw: target === null ? raw : null,
+      part: target === null ? raw : null,
       length: (model.length ?? '').trim() || null,
       options: {
         for: (model.for?.stuff ?? null) as Stuff | null,
@@ -92,10 +89,7 @@ export default class CutController extends ManualBuildController<CutModel> {
       );
       return;
     }
-    if (answer.verb !== 'cut') {
-      throw new TypeError(`CutController: a planner answered '${answer.verb}' to a cut`);
-    }
-    const plan: CutAnswerFor<'cut'> = answer;
+    const plan = answer;
     const thing = asked;
     if (!plan.ok) {
       this.declineStep(context, CutController.refusalWords(plan, thing), plan.reason);
@@ -150,6 +144,10 @@ export default class CutController extends ManualBuildController<CutModel> {
         return Mml.compose`Mark a grid on the ice first, then cut along it.`;
       case 'open':
         return Mml.compose`That is open water.`;
+      case 'no-felling-axe':
+        return Mml.compose`${Mml.thing(thing)} is cross-cut with a felling axe, and you have none to hand.`;
+      case 'bole-spent':
+        return Mml.compose`There is nothing left in ${Mml.thing(thing)} but the butt.`;
       default: {
         const never: never = out;
         return never;
@@ -176,6 +174,8 @@ export default class CutController extends ManualBuildController<CutModel> {
         return f.hole
           ? Mml.compose`You set the saw to the ice and begin cutting a hole.`
           : Mml.compose`You set the ice saw into the grid line and begin to cut.`;
+      case 'length':
+        return Mml.compose`You start cross-cutting ${Mml.thing(f.bole)}.`;
       default: {
         const never: never = f;
         return never;
@@ -194,6 +194,8 @@ export default class CutController extends ManualBuildController<CutModel> {
         return Mml.compose`${Mml.actor(actor)} chalks a pattern out on a length of cloth.`;
       case 'ice':
         return Mml.compose`${Mml.actor(actor)} saws at the ice.`;
+      case 'length':
+        return Mml.compose`${Mml.actor(actor)} starts cross-cutting ${Mml.thing(f.bole)}.`;
       default: {
         const never: never = f;
         return never;
@@ -236,6 +238,16 @@ export default class CutController extends ManualBuildController<CutModel> {
           peers: Mml.compose`${Mml.actor(actor)} levers ${f.block.getPresentation()} up out of the water.`,
         };
       }
+      case 'length':
+        return {
+          self: Mml.compose`You cut ${Mml.thing(f.timber)} off ${Mml.thing(f.bole)}. ${f.left === 1 ? 'One length left in it.' : `${GrammarApi.cap(GrammarApi.inWords(f.left))} lengths in it yet.`}`,
+          peers: Mml.compose`${Mml.actor(actor)} cuts a length off ${Mml.thing(f.bole)}.`,
+        };
+      case 'last-length':
+        return {
+          self: Mml.compose`You cut the last length off ${f.boleName}. What is left is a knotted butt and a heap of brash, and the wood can have it back.`,
+          peers: Mml.compose`${Mml.actor(actor)} cuts the last length off ${f.boleName}.`,
+        };
       case 'gone':
         return null;
       default: {

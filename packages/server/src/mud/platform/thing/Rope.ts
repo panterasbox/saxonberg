@@ -900,8 +900,7 @@ export default class Rope extends CuttableMixin(
    * to both, and a knot goes with the end it was on.
    */
   public override async cutPlan(req: CutRequest): Promise<CutAnswer> {
-    if (req.verb !== 'cut') return { ok: false, verb: req.verb, reason: 'not-cuttable' } as CutAnswer;
-    const refuse = (r: CutRefusal): CutAnswer => ({ ...r, verb: 'cut' });
+    const refuse = (r: CutRefusal): CutAnswer => r;
     const knife = req.tools.find((t) => MixinApi.isTool(t) && t.hasCapability('cutting'));
     if (!knife) return refuse({ ok: false, reason: 'no-knife' });
     if (this.isTied()) return refuse({ ok: false, reason: 'tied' });
@@ -912,7 +911,6 @@ export default class Rope extends CuttableMixin(
     const actor = req.actor;
     return {
       ok: true,
-      verb: 'cut',
       durationMs: 5_000,
       effortW: 60,
       facts: { kind: 'rope', rope: this as unknown as Stuff, takeM: take },

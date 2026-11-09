@@ -1,17 +1,25 @@
 /**
  * IceActController — the shared shape of `scrape` and `groove` (storage-and-ice
- * D19). ⚠ Dumb: it takes the room's floor, asks it — a `Cuttable` floor —
- * for its plan of this act (`cutPlan({verb})`, controllers-are-io D8c; the
- * water pack's `IceSheet` answers), lands the instant plan, and words what
- * comes back. The sheet decides: it refuses an actor it is not holding up,
- * a patch that is open, a plough with no horse. A base class only.
+ * D19). ⚠ Dumb: it takes the room's floor — the water pack's `IceSheet` —
+ * asks it for its plan of this act (its own method: `groovePlan` /
+ * `scrapePlan`; one
+ * host each, so a method and not a protocol — controller-liquidity D14),
+ * and words what comes back. The sheet decides: it refuses an actor it is
+ * not holding up, a patch that is open, a plough with no horse. A base
+ * class only.
  */
 
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlManyResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { CutAnswerFor, CutAnswers } from '@saxonberg/server/mud/lib/craft/Cuttable';
+import type { ActPlan } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import IceSheet, {
+  type GrooveDone,
+  type GrooveRefusal,
+  type ScrapeDone,
+  type ScrapeRefusal,
+} from '@saxonberg/content-water/src/thing/IceSheet';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
@@ -26,18 +34,27 @@ export interface IceActModel extends CommandModel {
   tool?: MqlManyResult;
 }
 
-/** The two ice acts. */
-export type IceVerb = 'groove' | 'scrape';
+/** The two ice acts: what each lands as, and every reason it refuses. */
+export interface IceActs {
+  groove: { done: GrooveDone; refusal: GrooveRefusal };
+  scrape: { done: ScrapeDone; refusal: ScrapeRefusal };
+}
+export type IceVerb = keyof IceActs;
 
 export abstract class IceActController<V extends IceVerb> extends CommandController<IceActModel> {
-  /** The act this controller asks the sheet for. */
-  protected abstract verb(): V;
+  /** ⭐ The sheet's plan of this act — its own method; the sheet decides. */
+  protected abstract planOn(
+    sheet: IceSheet,
+    actor: Stuff,
+    tool: Stuff,
+    patch: string | null,
+  ): ActPlan<undefined, IceActs[V]['done'], IceActs[V]['refusal']>;
   /** The capability the act's tool offers. */
   protected abstract capability(): string;
   /** ⭐ The words for every reason the sheet refuses this act (D4). */
-  protected abstract refusalWords(out: CutAnswers[V]['refusal']): string;
+  protected abstract refusalWords(out: IceActs[V]['refusal']): string;
   /** What the actor reads when it is done. */
-  protected abstract doneWords(facts: CutAnswers[V]['done']): string;
+  protected abstract doneWords(facts: IceActs[V]['done']): string;
   /** What the peers see. */
   protected abstract peersLine(actor: Stuff): Composed;
 
@@ -53,29 +70,11 @@ export abstract class IceActController<V extends IceVerb> extends CommandControl
     }
     const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
     const floor = room ? (MixinApi.isAdornable(room) ? room.getFloor() : null) : null;
-    if (floor === null || !MixinApi.isCuttable(floor)) {
+    if (!(floor instanceof IceSheet)) {
       return this.refuse(context, ICE_TOPIC, 'There is no ice here to work.', 'no-ice');
     }
-    const verb = this.verb();
-    const answer = await floor.cutPlan({
-      verb,
-      actor,
-      tools: [tool],
-      raw: model.patch?.trim() || null,
-      length: null,
-      options: {},
-    });
-    if (answer.verb !== verb) {
-      throw new TypeError(`IceActController: the floor answered '${answer.verb}' to a ${verb}`);
-    }
-    const plan = answer as CutAnswerFor<V>;
-    // `not-cuttable` is the floor that is no ice at all (the protocol's default).
-    if (!plan.ok) {
-      if (plan.reason === 'not-cuttable') return this.refuse(context, ICE_TOPIC, 'There is no ice here to work.', 'no-ice');
-      return this.refuse(context, ICE_TOPIC, this.refusalWords(plan), plan.reason);
-    }
-    // ⭐ An instant act: the plan lands now, inside the command frame.
-    const out = await plan.onComplete();
+    // ⭐ An instant act: it lands now, inside the command frame.
+    const out = await this.planOn(floor, actor, tool, model.patch?.trim() || null).onComplete();
     if (!out.ok) return this.refuse(context, ICE_TOPIC, this.refusalWords(out), out.reason);
     MessageApi.scene(actor)
       .topic(ICE_TOPIC)

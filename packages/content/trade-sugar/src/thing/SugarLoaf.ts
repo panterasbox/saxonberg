@@ -148,14 +148,12 @@ export default class SugarLoaf extends CuttableMixin(PercolatingMixin(Provision)
   }
 
   public override async cutPlan(req: CutRequest): Promise<CutAnswer> {
-    if (req.verb !== 'cut') return { ok: false, verb: req.verb, reason: 'not-cuttable' } as CutAnswer;
     const nips = req.tools.find((t) => MixinApi.isTool(t) && t.hasCapability('nipping'));
-    if (!nips) return { ok: false, verb: 'cut', reason: 'no-nips' };
+    if (!nips) return { ok: false, reason: 'no-nips' };
     const loaf = this as unknown as Stuff;
     const actor = req.actor;
     return {
       ok: true,
-      verb: 'cut',
       durationMs: NIP_MS,
       effortW: 300,
       facts: { kind: 'loaf', loaf },

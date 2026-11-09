@@ -280,6 +280,9 @@ import type { Splittable } from '../lib/ground/Splittable';
 import type { TravelNode } from '../lib/travel/TravelNode';
 import type { Cuttable } from '../lib/craft/Cuttable';
 import type { CutPlanner } from '../lib/craft/CutPlanner';
+import type { Sawable } from '../lib/craft/Sawable';
+import type { Rivable } from '../lib/craft/Rivable';
+import type { Butcherable } from '../lib/craft/Butcherable';
 import type { LiftSource } from '../lib/pump/LiftSource';
 import type { PumpSource } from '../lib/pump/PumpSource';
 import type { CapTable } from '../lib/employment/CapTable';
@@ -2435,6 +2438,21 @@ export class MixinApi {
   /** ⭐ Plans the cut of a thing it knows — `cut` (`CutPlannerMixin`, a protocol). */
   public static isCutPlanner(obj: Stuff): obj is Stuff & CutPlanner {
     return this.hasMixin(obj, Mixins.CutPlanner);
+  }
+
+  /** ⭐ Answers the saw — `saw` (`SawableMixin`, a protocol; controller-liquidity D14). */
+  public static isSawable(obj: Stuff): obj is Stuff & Sawable {
+    return this.hasMixin(obj, Mixins.Sawable);
+  }
+
+  /** ⭐ Opens along its grain — `rive` (`RivableMixin`, a protocol; D14). */
+  public static isRivable(obj: Stuff): obj is Stuff & Rivable {
+    return this.hasMixin(obj, Mixins.Rivable);
+  }
+
+  /** ⭐ A body that keeps a carcass ledger — `butcher` (`ButcherableMixin`, a protocol; D14). */
+  public static isButcherable(obj: Stuff): obj is Stuff & Butcherable {
+    return this.hasMixin(obj, Mixins.Butcherable);
   }
 
   /** Draws a supply that can be on or off (`PoweredMixin`). */

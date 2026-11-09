@@ -97,8 +97,8 @@ import type { Difficulty } from '@saxonberg/server/mud/lib/advancement/ActSignat
 import type Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import type { ActDone, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
-import type { ButcherCarcass, ButcherDone } from '@saxonberg/server/mud/lib/craft/Cuttable';
+import type { ActDone } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import type { ButcherCarcass, ButcherDone } from '@saxonberg/server/mud/lib/craft/Butcherable';
 
 const TOPIC = 'act.deed';
 const DISCIPLINE = 'butchery';
@@ -324,29 +324,20 @@ export default class ButcherController extends CraftController<ButcherModel> {
       }
     }
 
-    // ⭐⭐ **The carcass answers with its own ledger** (`CuttableMixin.cutPlan`,
-    // verb `butcher` — controllers-are-io D8c): the condition it died in,
-    // which lines are still on it, and the take. A body with no ledger of
-    // its own (not a carcass, or `not-cuttable`) gives up every line at
-    // once and goes when the knife is done.
+    // ⭐⭐ **The carcass answers with its own ledger** (`ButcherableMixin.
+    // butcherPlanFor` — controller-liquidity D14): the condition it died
+    // in, which lines are still on it, and the take. A body with no ledger
+    // of its own (not `Butcherable`) gives up every line at once and goes
+    // when the knife is done.
     let carcass: ButcherCarcass | null = null;
-    let spentCheck: (() => Promise<ActDone<ButcherDone, ActRefusal<'not-cuttable'>>> | ActDone<ButcherDone, ActRefusal<'not-cuttable'>>) | null = null;
-    if (MixinApi.isCuttable(body)) {
-      const out = await body.cutPlan({
-        verb: 'butcher',
-        actor: giver,
-        tools: [blade],
-        raw: null,
-        length: null,
-        options: {
-          lines: species.getButcheryYield().map((l) => ({ cut: l.cut, tissues: claims.get(l.cut) ?? [] })),
-        },
-      });
-      if (out.verb !== 'butcher') throw new Error(`ButcherController: asked 'butcher', answered '${out.verb}'`);
-      if (out.ok) {
-        carcass = out.facts;
-        spentCheck = out.onComplete;
-      }
+    let spentCheck: (() => Promise<ActDone<ButcherDone, never>> | ActDone<ButcherDone, never>) | null = null;
+    if (MixinApi.isButcherable(body)) {
+      const out = await body.butcherPlanFor(
+        giver,
+        species.getButcheryYield().map((l) => ({ cut: l.cut, tissues: claims.get(l.cut) ?? [] })),
+      );
+      carcass = out.facts;
+      spentCheck = out.onComplete;
     }
     const fleshPct = carcass?.fleshPct ?? UNREMARKABLE_FLESH;
 
@@ -384,8 +375,12 @@ export default class ButcherController extends CraftController<ButcherModel> {
     const asked = (model.cut ?? '').trim().toLowerCase();
     let wanted: typeof dressed | null = null;
     if (asked) {
-      wanted = dressed.filter((line, i) => {
-        const ex = exemplars[i];
+      // ⚠ By the line's own cut path, never by index: `dressOut` drops
+      // lines (a vell off an old head), so `dressed[i]` is not
+      // `exemplars[i]` — matching by index took the wrong cut
+      // (controller-liquidity C2).
+      wanted = dressed.filter((line) => {
+        const ex = exemplarFor.get(line.cut);
         if (!ex || !MixinApi.isPerceptible(ex)) return false;
         return ex.getKeywords().some((k) => k.toLowerCase() === asked);
       });
@@ -406,7 +401,7 @@ export default class ButcherController extends CraftController<ButcherModel> {
     const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
 
     for (const line of lines) {
-      const stem = this.stemOf(exemplars[dressed.indexOf(line)]);
+      const stem = this.stemOf(exemplarFor.get(line.cut));
       const depth = spec.get(line.cut)?.cutting ?? 'boneless';
 
       // ⚠ Already off this body — a carcass reduces, so a second

@@ -539,7 +539,7 @@ Each protocol file declares a CLOSED reason union and facts types. The
 controller words them in an exhaustive `switch` with a `never` arm, so the
 compiler is the census of what a verb can say, and an alternate controller
 can word everything differently while changing nothing in the world.
-`ManualBuildController.engagePlan(context, plan, words)` and the
+`CommandController.engagePlan(context, plan, words)` and the
 `EngagedActController.engageAct(context, plan, words)` overload run a plan;
 `words` is `{beginSelf, beginPeers?, onRefused, onDone?}`.
 
@@ -549,16 +549,30 @@ sentences in the kernel controller. A new reason for `dip` is a kernel edit,
 or the pack ships its own controller. "A second cuttable thing needs no
 kernel edit" still holds when it reuses reasons.
 
-### ⭐ The cuts plan themselves (controllers-are-io D8c)
+### ⭐ Cutting is several acts (controller-liquidity D14)
 
-The trade cuts ask the same protocol: `cutPlan({verb, …})`, with one entry
-per verb in `CutAnswers` (`cut`, `saw`, `rive`, `crosscut`, `butcher`,
-`scribe`, `snap`, `groze`, `groove`, `scrape`). The answer carries its `verb`
-back and the asking controller narrows on it. Hosts: `Bole`, `Billet`,
-`Corpse`, glass `Sheet`, `IceSheet`, `Rope`, `SugarLoaf`. **The line:** only the
-cut's decision moved. Instrument checks (the saw, the froe, the knife) stay on
-the controller, and so does the saw's timing, because a sawmill's pace is the
-instrument's. `shear` is a tap, not a cut.
+The cuts plan themselves, and **each act is its own small protocol** — the
+target answers an `ActPlan` or a closed refusal, the asking controller words
+it. Until D14 one `cutPlan({verb, …})` answered ten verbs through a
+`CutAnswers` map and every answer carried its `verb` back for the asker to
+narrow on; a verb string on a request is a dispatch nobody can see. Now:
+
+| act | protocol / method | hosts | verb |
+|---|---|---|---|
+| `cut` | `CuttableMixin.cutPlan(req)` | `Rope`, `SugarLoaf`, `IceSheet`, forestry `Bole` (the cross-cut — one length of round timber, a felling axe among the tools); the tool side `CutPlannerMixin` (tailoring `CuttingTool`) | kernel `cut` |
+| saw | `SawableMixin.sawPlanFor(actor, saw)` | `Bole` (one green length); any other wood is weighed as it is by the verb | carpentry `saw` |
+| rive | `RivableMixin.rivePlanFor({actor, froe, into})` | `Bole`, `Billet` | forestry `rive` (`requires: RivableMixin`) |
+| butcher | `ButcherableMixin.butcherPlanFor(actor, lines)` — the carcass ledger; the default is the body with no ledger, spent at once | `Corpse` | cooking `butcher` |
+| groove · scrape |X (methods — one host) | water `IceSheet` | trade-ice |
+| scribe · snap · groze | `Sheet.scribePlan` · `snapPlan` · `grozePlan` (methods — one host) | glass `Sheet` | trade-glass |
+
+`CutRequest` carries `part` (a word naming part of the target — `cut hole`,
+`cut marked` on the ice underfoot), never the raw typed text. **The line:**
+only the cut's decision is the target's. Instrument checks (the saw, the
+froe, the knife) stay on the controller, and so does the saw's timing,
+because a sawmill's pace is the instrument's. A bole spends the endurance a
+length costs when the length LANDS, never before the engagement could refuse.
+`shear` is a tap, not a cut. ⚠ `fell bole` retired: a bole is `cut`.
 
 ### ⚠⚠ The tool ladder ranks on RATE, and used to rank on luck
 
@@ -1931,7 +1945,7 @@ perishable inputs before the working's kill. A pot on the boil (what is in it) a
   returns a closed `reason` union or facts, and the controller words them
   (`engagePlan(context, plan, words)`). `boil` folded into `heat` and the
   vessel's bath (D8c); `scrub` became `wash --hard`; the cuts plan
-  themselves on `CuttableMixin.cutPlan`.
+  themselves (one protocol per act since controller-liquidity D14).
 - **The script runner left crafting** (W6, D18): `make` is deleted and the
   shell's `do` runs a named script; the craft's can-make deed is minted in
   `CraftingLogic.recordCraftEvidence`, and `RecipeKnowledge` lives in
