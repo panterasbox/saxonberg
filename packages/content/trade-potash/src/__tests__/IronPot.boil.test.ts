@@ -10,6 +10,7 @@ import IronPot from '../thing/IronPot';
 import Hearth from '@saxonberg/server/mud/platform/thing/Hearth';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Material from '@saxonberg/server/mud/lib/material/Material';
+import Lye from '@saxonberg/server/mud/platform/idea/material/Lye';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -30,10 +31,10 @@ const advanceGameS = (s: number): void => {
   realMs += (s * 1000) / scale;
 };
 
-function lye(): Material {
+function lye(): Lye {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Lye();
     m.setName(`test lye ${seq}`);
     m.setTags(['liquid', 'caustic', 'alkali', 'lye']);
     m.setDensity(Quantity.of(1100, 'kg/m³'));

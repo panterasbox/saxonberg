@@ -61,7 +61,7 @@ import ts from "typescript";
 import { CONTENT, MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 
 /** All probes (method + member), kernel and packs. */
-export const DUCK_PROBE_CEILING = 539; // finalize self-review: −5 (the pump asks `isSwitchable`; three survey reads call `getZone()` on the Stuff they hold). W3b: the supply, generator and name-rule probes became `MixinApi.isPowered` / `isWaterPowered` / `NameTakingMixin`. (W8: −4, the plat book and the deed desk are named by the pack that owns them.)
+export const DUCK_PROBE_CEILING = 535; // material decomposition: −4 (capability reads narrow with `MixinApi.has<X>`; `isMaterial` is `instanceof`). finalize self-review: −5 (the pump asks `isSwitchable`; three survey reads call `getZone()` on the Stuff they hold). W3b: the supply, generator and name-rule probes became `MixinApi.isPowered` / `isWaterPowered` / `NameTakingMixin`. (W8: −4, the plat book and the deed desk are named by the pack that owns them.)
 /** Method probes on a name nobody in the corpus defines. */
 export const UNDEFINED_PROBE_CEILING = 0;
 

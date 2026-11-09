@@ -7,7 +7,7 @@
 # keratin spreads a blow rather than resisting it), a poor conductor of
 # heat (which is exactly why a horn spoon never scalds a lip), and
 # electrically an insulator when dry.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Horn
 data:
   smells: [{ aroma: /base-library/aromas/hide, strength: 20 }]
   name: horn
@@ -27,10 +27,4 @@ data:
   # Water absorption (% of dry mass): horn takes up water and softens,
   # which is how it is worked in the first place.
   waterAbsorptionCapacity: 12
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["organic", "horn", "keratin", "once-living"]
-  composition: []
-  chemistry: null
-  biologicalSource: null

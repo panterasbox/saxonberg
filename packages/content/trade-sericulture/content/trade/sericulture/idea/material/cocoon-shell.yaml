@@ -11,7 +11,7 @@
 # because the gum is still on it. ⚠ Not perishable: the pupa inside is
 # killed by stifling or leaves as a moth; neither is food going off on a
 # shelf.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/HideHorn
 data:
   smells: [{ aroma: /base-library/aromas/silkworm, strength: 30 }]
   name: spun silk
@@ -22,11 +22,7 @@ data:
   specificHeat: 1400
   hardness: 2
   toughness: 3
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["textile", "fibre", "protein", "sericin", "gummed", "organic", "once-living"]
-  composition: []
   biologicalSource:
     speciesPath: /stuff/idea/species/animalia/arthropoda/insecta/lepidoptera/bombycidae/bombyx/mori
     tissueType: cocoon

@@ -1,5 +1,5 @@
 # Soda water — bottling's. `carbonated`: a drink built on it fizzes (the derived payload carries the tag).
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/Water
 data:
   tastes: [{ type: salty, amount: 1.1 }]
   name: soda water
@@ -8,10 +8,5 @@ data:
   density: 1000
   thermalConductivity: 0.5
   specificHeat: 3800
-  edibility: true
   nutrients: ["water"]
-  toxicity:
-    []
   tags: ["liquid", "beverage", "drinkable", "soda", "soda-water", "mixer", "carbonated"]
-  composition: []
-  biologicalSource: null

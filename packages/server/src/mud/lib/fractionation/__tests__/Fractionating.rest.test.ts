@@ -14,6 +14,7 @@ import { ThermalMixin } from '../../thermal/Thermal';
 import { FractionatingMixin } from '../Fractionating';
 import FractionSchedule from '../FractionSchedule';
 import Material from '../../material/Material';
+import Food from '../../../platform/idea/material/Food';
 import { Quantity } from '../../quantity';
 import { WorldClockApi } from '../../../api/worldclock';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
@@ -48,7 +49,7 @@ function standFixtures(): void {
   stood = true;
   const mat = (path: string, tags: string[], fat = 0): void => {
     makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Food();
       m.setName(path.split('/').pop()!);
       m.setTags(tags);
       if (fat > 0) m.setNutrientAmounts({ fat, protein: 33000 });

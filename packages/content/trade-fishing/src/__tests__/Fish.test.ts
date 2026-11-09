@@ -10,7 +10,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import Species from '@saxonberg/server/mud/platform/idea/species/Species';
-import Material from '@saxonberg/server/mud/lib/material/Material';
+import Flesh from '@saxonberg/server/mud/platform/idea/material/Flesh';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
@@ -73,12 +73,12 @@ describe('sizeWords — never a number', () => {
 describe('the turned line', () => {
   it('a live fish reads no band; a dead one reads the band its flesh has reached, in words', () => {
     const flesh = makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Flesh();
       m.setName('flesh');
       m.setSpoilActivationEnergy(Quantity.of(60_000, 'J/mol'));
       m.setWaterActivity(0.99);
       return m;
-    }, '/stuff/idea/material/_test/flesh') as unknown as Material;
+    }, '/stuff/idea/material/_test/flesh') as unknown as Flesh;
     const f = makeStuff(() => new Fish());
     f.setMaterial(flesh);
     expect(augment(f)).not.toMatch(/dead|turned|rotten/);

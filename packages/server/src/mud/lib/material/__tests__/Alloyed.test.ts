@@ -19,7 +19,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { AlloyedMixin } from '../Alloyed';
-import Material from '../Material';
+import Alloy from '../../../platform/idea/material/Alloy';
 import Good from '../../stuff/Good';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
@@ -38,20 +38,20 @@ class TestBar extends AlloyedMixin(Good) {
 function bar(materialPath?: string): TestBar {
   const b = makeStuff(() => new TestBar());
   if (materialPath) {
-    b.setMaterial(StuffApi.findByTemplatePath<Material>(materialPath) as Material);
+    b.setMaterial(StuffApi.findByTemplatePath<Alloy>(materialPath) as Alloy);
   }
   return b;
 }
 
 beforeEach(() => {
   StuffApi.clearAll();
-  const steel = makeStuffAtPath(() => new Material(), STEEL);
+  const steel = makeStuffAtPath(() => new Alloy(), STEEL);
   steel.setName('steel');
   steel.setComposition([
     { materialPath: IRON, fraction: 0.998 },
     { materialPath: CARBON, fraction: 0.002 },
   ]);
-  const iron = makeStuffAtPath(() => new Material(), IRON);
+  const iron = makeStuffAtPath(() => new Alloy(), IRON);
   iron.setName('iron');
   iron.setComposition([]);
 });

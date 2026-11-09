@@ -27,6 +27,7 @@ import BodyPlan from "../../species/BodyPlan";
 import Weapon from "../../../thing/equipment/Weapon";
 import Garment from "../../../thing/equipment/Garment";
 import Material from "../../../../lib/material/Material";
+import Metal from '../../material/Metal';
 import { Construction } from "../../../../lib/material/Construction";
 import { ContainerMixin } from "../../../../lib/spatial/Container";
 import { ContainmentApi } from "../../../../api/containment";
@@ -49,7 +50,7 @@ class TestFighter extends Character {}
 let seq = 0;
 
 function mat(hardness: number, toughness: number, name: string): Material {
-  const m = makeStuff(() => new Material());
+  const m = makeStuff(() => new Metal());
   m.setHardness(Quantity.of(hardness, "MPa"));
   m.setToughness(Quantity.of(toughness, "MJ/m³"));
   m.setName(name);

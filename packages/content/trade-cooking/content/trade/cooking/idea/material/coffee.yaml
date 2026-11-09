@@ -1,5 +1,5 @@
 # Coffee — cooking's (the brew is a hearth's). The base-library row retires in phase 5. Tag `coffee`.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/coffee, strength: 1000 }]
   name: coffee
@@ -8,7 +8,6 @@ data:
   density: 1000
   thermalConductivity: 0.6
   specificHeat: 4186
-  edibility: true
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
@@ -22,8 +21,4 @@ data:
   spoilActivationEnergy: 50000
   waterActivity: 0.3
   nutrients: ["caffeine", "water"]
-  toxicity:
-    []
   tags: ["liquid", "beverage", "drinkable", "coffee"]
-  composition: []
-  biologicalSource: null

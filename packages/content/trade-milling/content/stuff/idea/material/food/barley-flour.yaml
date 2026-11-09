@@ -10,7 +10,7 @@
 #
 # It still mills, still keeps, still feeds you, and a flatbread made of
 # it is a perfectly good flatbread.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFood
 data:
   smells: [{ aroma: /base-library/aromas/flour, strength: 10 }]
   tastes: [{ type: sweet, amount: 8 }]
@@ -26,11 +26,8 @@ data:
   waterAbsorptionCapacity: 60
   hardness: 1
   toughness: 1
-  edibility: true
   waterActivity: 0.66
   spoilActivationEnergy: 45000
   nutrients: ["carb", "protein"]
   nutrientAmounts: { carb: 795000, protein: 78000 }
-  toxicity: []
   tags: ["food", "flour", "barley-flour", "baking", "granular"]
-  composition: []

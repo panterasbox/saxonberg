@@ -6,7 +6,7 @@
 
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import Material from "@saxonberg/server/mud/platform/idea/material/Material";
+import Glass from "@saxonberg/server/mud/platform/idea/material/Glass";
 import { Quantity } from "@saxonberg/server/mud/lib/quantity";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import {
@@ -18,17 +18,17 @@ import Melt from "../thing/Melt";
 
 const IRON = "/stuff/idea/material/element/iron";
 let seq = 0;
-function glassMaterial(): Material {
+function glassMaterial(): Glass {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Glass();
     m.setName("glass");
     m.setTags(["glass"]);
     m.setSpecificHeat(Quantity.of(840, "J/(kg·K)"));
     m.setThermalConductivity(Quantity.of(1.0, "W/(m·K)"));
     m.setMeltingPoint(Quantity.of(1300, "K"));
     return m;
-  }, `/stuff/idea/material/_test/glass-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/glass-${seq}`) as unknown as Glass;
 }
 
 function melt(tempK: number, kg = 2): Melt {

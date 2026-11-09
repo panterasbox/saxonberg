@@ -2,7 +2,7 @@
 # a drink and a pig-feed. ⚠ NOT tagged `milk`: a setting pan does not set
 # it again and a vat does not take it for cheese (a skim cheese is real,
 # and is a row for whoever wants one).
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/milk, strength: 30 }]
   name: "skim milk"
@@ -12,17 +12,11 @@ data:
   specificHeat: 3900
   thermalConductivity: 0.5
   electricalConductivity: 0.4
-  waterAbsorptionCapacity: 0
-  hardness: 0
-  toughness: 0
-  edibility: true
   tastes: [{ type: sweet, amount: 45 }]
   nutrients: ["fat", "protein", "sugar", "water"]
   nutrientAmounts: { fat: 3000, protein: 34000, sugar: 49000, water: 905000 }
   spoilActivationEnergy: 60000
   waterActivity: 0.99
-  toxicity: []
   # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
   ph: 6.7
   tags: ["food", "dairy", "liquid", "perishable", "skim-milk"]
-  composition: []

@@ -16,6 +16,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Place from '../../stuff/Place';
 import Material from '../../material/Material';
+import Glass from '../../../platform/idea/material/Glass';
 import Oven from '../../../platform/thing/Oven';
 import Casting from '../../../platform/thing/Casting';
 import Receptacle from '../../../platform/thing/Receptacle';
@@ -39,7 +40,7 @@ let seq = 0;
 function glass(): Material {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Glass();
     m.setName('glass');
     m.setTags(['glass']);
     m.setDensity(Quantity.of(2500, 'kg/m³'));

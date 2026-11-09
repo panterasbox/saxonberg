@@ -1,6 +1,6 @@
 # Printing ink — lampblack ground into boiled linseed oil: a
 # stiff black paste the press's balls beat onto the forme.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/PigmentPaint
 data:
   smells: [{ aroma: /base-library/aromas/ink, strength: 300 }]
   name: printing ink
@@ -10,9 +10,4 @@ data:
   specificHeat: 2000
   thermalConductivity: 0.2
   meltingPoint: 250
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [liquid, ink, oil]
-  composition: []
-  biologicalSource: null

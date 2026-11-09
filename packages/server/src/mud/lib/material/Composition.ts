@@ -128,7 +128,7 @@ export function CompositionMixin<TBase extends MixinConstructor>(Base: TBase) {
       const dissolved = minor.reduce((sum, e) => sum + e.fraction, 0);
       const self = this as unknown as Stuff;
       const host = MixinApi.isTangible(self) ? self.getMaterial() : null;
-      const kind = host?.getComposition() ?? [];
+      const kind = host && MixinApi.hasMixture(host) ? host.getComposition() : [];
       const remainder = Math.max(0, 1 - dissolved);
       // ⚠ A pure element authors an EMPTY composition, so there is
       // nothing to scale and the makeup entries are the whole answer

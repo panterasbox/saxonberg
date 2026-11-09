@@ -1,5 +1,5 @@
 # Lager — brewing's second line. Category tags `beer`, `lager`.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/beer, strength: 200 }]
   tastes: [{ type: sweet, amount: 5 }, { type: sour, amount: 0.6 }, { type: bitter, amount: 0.05 }]
@@ -11,7 +11,6 @@ data:
   servingKg: 0.504
   thermalConductivity: 0.5
   specificHeat: 3800
-  edibility: true
   nutrients: ["carb", "water"]
   toxicity:
     - { type: alcohol, amount: 13 }
@@ -22,5 +21,3 @@ data:
   tags: ["liquid", "beverage", "drinkable", "alcoholic", "beer", "lager", "light-sensitive"]
   nutrientAmounts:
     carb: 11000
-  composition: []
-  biologicalSource: null

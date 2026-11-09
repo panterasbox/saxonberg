@@ -12,7 +12,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Rope from '../Rope';
 import RopeEnd from '../RopeEnd';
 import Good from '../Good';
-import Material from '../../idea/material/Material';
+import Material from '../../../lib/material/Material';
+import Fiber from '../../idea/material/Fiber';
 import Location from '../../location/Location';
 import { Character } from '../../../lib/character/Character';
 import { StuffApi } from '../../../api/stuff';
@@ -68,7 +69,7 @@ afterEach(() => {
 function hemp(): Material {
   const have = StuffApi.findByTemplatePath<Material>('/test/material/hemp-climb');
   if (have) return have;
-  const m = makeStuffAtPath(() => new Material(), '/test/material/hemp-climb');
+  const m = makeStuffAtPath(() => new Fiber(), '/test/material/hemp-climb');
   m.setName('hemp');
   m.setToughness(Quantity.of(4, 'MJ/m³'));
   m.setDensity(Quantity.of(1480, 'kg/m³'));

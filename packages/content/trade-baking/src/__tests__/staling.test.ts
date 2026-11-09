@@ -21,6 +21,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Loaf, { branShareOf } from '../thing/Loaf';
 import Material from '@saxonberg/server/mud/lib/material/Material';
+import SolidFood from '@saxonberg/server/mud/platform/idea/material/SolidFood';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -113,10 +114,9 @@ beforeEach(() => {
   ] as const) {
     if (StuffApi.findByTemplatePath(p)) continue;
     makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new SolidFood();
       m.setName(n);
       m.setDensity(Quantity.of(d, 'kg/m³'));
-      m.setEdibility(true);
       m.setSpecificHeat(Quantity.of(2500, 'J/(kg·K)'));
       m.setThermalConductivity(Quantity.of(0.05, 'W/(m·K)'));
       if (p === BREAD) m.setKinetics(BREAD_KINETICS);

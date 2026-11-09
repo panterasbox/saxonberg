@@ -16,7 +16,9 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
-import Material from '../Material';
+import Metal from '../../../platform/idea/material/Metal';
+import Food from '../../../platform/idea/material/Food';
+import type Material from '../Material';
 import Casting from '../../../platform/thing/Casting';
 import MetalCasting from '../../../platform/thing/MetalCasting';
 import IceBlock from '../../../platform/thing/IceBlock';
@@ -79,8 +81,8 @@ describe('the truthful lump — composition off temper', () => {
 });
 
 describe('Material.getCastTemplate — the lump a frozen pool becomes', () => {
-  function mat(tags: string[], castTemplate = ''): Material {
-    const m = makeStuff(() => new Material());
+  function mat(tags: string[], castTemplate = ''): Metal {
+    const m = makeStuff(() => new Metal());
     m.setName('m');
     (m as unknown as { tags: string[] }).tags = tags;
     (m as unknown as { castTemplate: string }).castTemplate = castTemplate;
@@ -104,9 +106,8 @@ describe('⭐ a food is made of parts — the same record, by mass (R1-D1)', () 
 
   function food(path: string, name: string, amounts: Record<string, number>): void {
     makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Food();
       m.setName(name);
-      m.setEdibility(true);
       m.setNutrientAmounts(amounts);
       m.setDensity(Quantity.of(570, 'kg/m³'));
       // The mill's 100 g serving, so a 0.8 kg loaf is eight servings.

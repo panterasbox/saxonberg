@@ -11,7 +11,9 @@
  */
 import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
-import Material from '../Material';
+import Acid from '../../../platform/idea/material/Acid';
+import Water from '../../../platform/idea/material/Water';
+import { MixinApi } from '../../../api/mixin';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
@@ -20,19 +22,20 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import type { Trauma } from '../../../platform/idea/Condition';
+import Metal from '../../../platform/idea/material/Metal';
 
 let seq = 0;
 
-function caustic(corrosiveTo: string[]): Material {
-  const m = makeStuff(() => new Material());
+function caustic(corrosiveTo: string[]): Acid {
+  const m = makeStuff(() => new Acid());
   m.setTags(['caustic']);
   (m as unknown as { corrosiveTo: string[] }).corrosiveTo = corrosiveTo;
   stampTemplatePathForTest(m, `/stuff/idea/material/test/cr-${seq++}`);
   return m;
 }
 
-function inert(): Material {
-  const m = makeStuff(() => new Material());
+function inert(): Water {
+  const m = makeStuff(() => new Water());
   m.setTags(['liquid']);
   stampTemplatePathForTest(m, `/stuff/idea/material/test/in-${seq++}`);
   return m;
@@ -97,5 +100,9 @@ describe('Material.corrodeOnContact — substance-contact corrosion', () => {
     const vitriol = caustic(['metal', 'organic', 'tissue']);
     expect(vitriol.corrodeOnContact(body, { energy: 2 })).toBe(true);
     expect(woundOf(body)!.type).toBe('caustic');
+  });
+
+  it('a material without the acidity capability has no corrosion surface at all', () => {
+    expect(MixinApi.hasAcidity(makeStuff(() => new Metal()))).toBe(false);
   });
 });

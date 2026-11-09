@@ -13,7 +13,7 @@
 #
 # ⚠ As with birch, the wood is not the point of the tree: the sap is
 # (`/stuff/idea/material/food/maple-sap`), and that is the species row's.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Wood
 data:
   smells: [{ aroma: /base-library/aromas/wood, strength: 1 }]
   burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
@@ -35,11 +35,7 @@ data:
   alkaliShare: 0.15
   hardness: 45
   toughness: 70
-  edibility: false
-  nutrients: ["cellulose"]
-  toxicity: []
   tags: ["wood", "mixture", "organic", "flammable", "once-living"]
-  composition: []
   # ⭐ Seasoning (assembly D2): game-days for a 25 mm board to dry in
   # good air, and how much it shrinks getting there — what makes work
   # done green move. Grain: an author's numbers.

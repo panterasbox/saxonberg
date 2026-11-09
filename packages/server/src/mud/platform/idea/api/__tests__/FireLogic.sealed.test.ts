@@ -25,6 +25,7 @@ import Place from '../../../../lib/stuff/Place';
 import Firebox from '../../../../lib/fire/Firebox';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import Material from '../../../../lib/material/Material';
+import Wood from '../../material/Wood';
 import { ThermalMixin } from '../../../../lib/thermal/Thermal';
 import { ReservedMixin, Reserve } from '../../../../lib/reserve/Reserved';
 import { CombustibleMixin } from '../../../../lib/fire/Combustible';
@@ -54,7 +55,7 @@ let seq = 0;
 function wood(): Material {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Wood();
     m.setName(`sealed-wood-${seq}`);
     m.setAutoignitionTemperature(Quantity.of(560, 'K'));
     m.setHeatOfCombustion(Quantity.of(16, 'MJ/kg'));

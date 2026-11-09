@@ -7,7 +7,7 @@
 # adding `/stuff/idea/material/mineral/quartz`, `.../feldspar`, `.../mica` and
 # populating composition entries here. The `igneous` tag carries the
 # rock-cycle classification meanwhile.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Stone
 data:
   name: granite
   keywords: [granite]
@@ -24,10 +24,4 @@ data:
   # does — a granite heading is roughly twice a slate one.
   hardness: 200
   toughness: 35
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["rock", "igneous", "mixture", "crystalline", "felsic"]
-  composition: []
-  chemistry: null
-  biologicalSource: null

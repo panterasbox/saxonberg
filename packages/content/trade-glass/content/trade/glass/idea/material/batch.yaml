@@ -9,7 +9,7 @@
 #
 # ⚠ No `meltingPoint`: a batch does not melt as a batch. It BECOMES glass
 # at its rung, and glass melts from then on.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Stone
 data:
   name: glass batch
   keywords: [batch, "glass batch", frit]
@@ -18,12 +18,7 @@ data:
   specificHeat: 840
   thermalConductivity: 0.3
   waterAbsorptionCapacity: 5
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["granular", "solid", "batch"]
-  composition: []
-  biologicalSource: null
   kinetics:
     - key: melt
       # Above the liquidus — a kiln reaches it with the bellows going.

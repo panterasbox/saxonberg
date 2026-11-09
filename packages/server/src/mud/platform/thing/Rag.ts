@@ -75,7 +75,9 @@ export default class Rag extends SelfHeatingMixin(
     return this.getCoats('outside').filter((c) => {
       if (c.state !== 'wet') return false;
       const m = StuffApi.findByTemplatePath<Material>(c.material);
-      return m?.getKinetics()?.airSet()?.getSets() === 'oxidation';
+      return m && MixinApi.hasKinetic(m)
+        ? m.getKinetics()?.airSet()?.getSets() === 'oxidation'
+        : false;
     });
   }
 

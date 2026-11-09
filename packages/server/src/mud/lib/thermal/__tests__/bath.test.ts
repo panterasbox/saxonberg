@@ -8,7 +8,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
-import Material from '../../material/Material';
+import Water from '../../../platform/idea/material/Water';
 import { ThermalMixin } from '../Thermal';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import { ContainerMixin } from '../../spatial/Container';
@@ -30,17 +30,17 @@ const BASE = 10_000_000;
 let now = BASE;
 let seq = 0;
 
-function water(): Material {
+function water(): Water {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Water();
     m.setName('water');
     m.setDensity(Quantity.of(1000, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
     m.setBoilingPoint(Quantity.of(373, 'K'));
     m.setLatentHeatOfVaporization(Quantity.of(2260000, 'J/kg'));
     return m;
-  }, `/stuff/idea/material/_test/bath-water-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/bath-water-${seq}`) as unknown as Water;
 }
 
 function pin(t: { lastAmbientK: number; stampedTemperatureK: number }, k: number): void {

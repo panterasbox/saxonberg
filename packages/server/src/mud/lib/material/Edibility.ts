@@ -1,8 +1,8 @@
 /**
  * EdibilityMixin — *it can be EATEN.*
  *
- * Composing this is the fact (the authored `edibility` flag is retired at the
- * cut). Carries the five tastes, the dietary nutrients and their amounts, and
+ * Composing this IS the fact: the authored `edibility` flag is retired
+ * (decomposition D9), and "can this be eaten" is `MixinApi.hasEdibility(m)`. Carries the five tastes, the dietary nutrients and their amounts, and
  * what one serving is.
  *
  * A capability of a material, named for the substance's physics, never for
@@ -62,8 +62,6 @@ export const TASTE_HEDONICS: Readonly<Record<string, HedonicCurve>> = {
 };
 
 export interface Edibility {
-  getEdibility(): boolean;
-  setEdibility(value: boolean): void;
   getNutrients(): readonly string[];
   setNutrients(value: string[]): void;
   getNutrientAmounts(): Readonly<Record<string, number>>;
@@ -82,7 +80,6 @@ export function EdibilityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       tastes: { persistent: true, spoiler: 1, spoilerName: 0 },
 
       // ── What it does to you. The most worth finding out. ──
-      edibility: { persistent: true, spoiler: 1, spoilerName: 0 },
       nutrients: { persistent: true, spoiler: 1, spoilerName: 0 },
       nutrientAmounts: { persistent: true, spoiler: 1, spoilerName: 0 },
       // ⭐ What one serving is, kg — the unit of the two rows around it.
@@ -90,8 +87,6 @@ export function EdibilityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       servingKg: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     };
 
-    /** Whether this material can be eaten. v1 has no consumer. */
-    protected edibility: boolean = false;
 
     /**
      * Tagged nutrient categories (`'protein'`, `'water'`, `'sugar'`) —
@@ -147,8 +142,6 @@ export function EdibilityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
      */
     protected tastes: TasteTag[] = [];
 
-    public getEdibility(): boolean { return this.edibility; }
-    public setEdibility(value: boolean): void { this.edibility = value; }
 
     public getNutrients(): readonly string[] { return this.nutrients; }
     public setNutrients(value: string[]): void { this.nutrients = value; }

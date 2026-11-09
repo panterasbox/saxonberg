@@ -28,7 +28,12 @@ import { MixinApi } from '../../../api/mixin';
 import { BulkableApi } from '../../../api/bulk';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { Quantity } from '../../../lib/quantity';
-import Material from '../../../lib/material/Material';
+import Food from '../../../platform/idea/material/Food';
+import Flesh from '../../../platform/idea/material/Flesh';
+import Water from '../../../platform/idea/material/Water';
+import ElementalMetal from '../../../platform/idea/material/ElementalMetal';
+import HideHorn from '../../../platform/idea/material/HideHorn';
+import type Material from '../../../lib/material/Material';
 import Good from '../../../lib/stuff/Good';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { DurableMixin } from '../../../lib/material/Durable';
@@ -154,26 +159,42 @@ class TestPatron extends ThermalMixin(
 }
 
 /** Register a Material at its pack path from the REAL pack row. */
+/** The kinds the rows this test stands up name as their `class:`. */
+const ROW_KINDS: Record<string, new () => Food | Flesh | Water | ElementalMetal | HideHorn> = {
+  '/platform/idea/material/Food': Food,
+  '/platform/idea/material/Flesh': Flesh,
+  '/platform/idea/material/Water': Water,
+  '/platform/idea/material/ElementalMetal': ElementalMetal,
+  '/platform/idea/material/HideHorn': HideHorn,
+};
+
 function loadPackMaterial(rel: string, platform = false): Material {
   const parsed = YAML.parse(
     readFileSync(`${platform ? PLATFORM_MATERIALS : PACK_MATERIALS}${rel}.yaml`, 'utf-8'),
-  ) as { data: Record<string, unknown> };
+  ) as { class: string; data: Record<string, unknown> };
   const d = parsed.data;
+  const Kind = ROW_KINDS[parsed.class];
+  if (!Kind) throw new Error(`loadPackMaterial: no kind for ${parsed.class}`);
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Kind();
     m.setName(d.name as string);
     m.setTags((d.tags as string[]) ?? []);
-    if (d.edibility === true) m.setEdibility(true);
-    if (Array.isArray(d.nutrients)) m.setNutrients(d.nutrients as string[]);
-    if (d.nutrientAmounts) {
-      m.setNutrientAmounts(d.nutrientAmounts as Record<string, number>);
+    // A row authors only what its own class composes.
+    if (d.edibility === true || Array.isArray(d.nutrients) || d.nutrientAmounts) {
+      if (!MixinApi.hasEdibility(m)) throw new Error(`${parsed.class} has no edibility`);
+      if (Array.isArray(d.nutrients)) m.setNutrients(d.nutrients as string[]);
+      if (d.nutrientAmounts) {
+        m.setNutrientAmounts(d.nutrientAmounts as Record<string, number>);
+      }
     }
     // The medium's phase ceiling — a wet recipe's effective heat is capped
     // at the water's boiling point, so this is load-bearing, not colour.
     if (typeof d.boilingPoint === 'number') {
+      if (!MixinApi.hasVolatility(m)) throw new Error(`${parsed.class} has no volatility`);
       m.setBoilingPoint(Quantity.of(d.boilingPoint, 'K'));
     }
     if (typeof d.smokePoint === 'number') {
+      if (!MixinApi.hasCombustion(m)) throw new Error(`${parsed.class} has no combustion`);
       m.setSmokePoint(Quantity.of(d.smokePoint, 'K'));
     }
     return m;

@@ -2,7 +2,7 @@
 # nothing. Hard, chemically stubborn, and the reason a rich-looking
 # lump can assay poor — a quartz-heavy sample is heavy and glassy and
 # carries no metal at all.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Crystal
 data:
   name: quartz
   keywords: [quartz]
@@ -18,11 +18,6 @@ data:
   # Melts far above anything a charcoal furnace reaches; it fluxes off
   # as slag rather than melting, which is the smelt's whole gangue story.
   meltingPoint: 1983
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["mineral", "silicate", "gangue", "crystalline"]
-  composition: []
   formula: SiO2
   molarMass: 60.08
-  biologicalSource: null

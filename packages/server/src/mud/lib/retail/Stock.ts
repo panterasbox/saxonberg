@@ -245,7 +245,7 @@ export default class Stock extends StockBase {
    */
   public lineKeyFor(item: Stuff): string {
     const material = MixinApi.isTangible(item) ? item.getMaterial() : null;
-    const lump = material?.getCastTemplate() ?? "";
+    const lump = material && MixinApi.hasFusion(material) ? material.getCastTemplate() : "";
     if (lump !== "" && this.lineFor(lump) !== null) return lump;
     return item.getTemplatePath() ?? "";
   }

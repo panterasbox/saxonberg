@@ -3,7 +3,7 @@
 # burden. Eating a ration routes its carbs to satiation via the digestion
 # pool. The per-serving amount is declared here; the metabolism rates live on
 # the driver, not the food.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Food
 data:
   smells: [{ aroma: /base-library/aromas/smoke, strength: 30 }]
   name: trail ration
@@ -12,7 +12,6 @@ data:
   density: 850
   thermalConductivity: 0.3
   specificHeat: 2500
-  edibility: true
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
@@ -32,5 +31,3 @@ data:
   nutrientAmounts:
     carb: 40000
   tags: [food, preserved]
-  composition: []
-  biologicalSource: null

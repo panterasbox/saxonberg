@@ -78,7 +78,7 @@ export default class PaintPot extends GlazeTub {
       if (mat === null) continue;
       const kg = c.massKg ?? c.measureL * ((mat.getDensity().rawValue() || 1000) / 1000);
       if (!Number.isFinite(kg)) continue;
-      if (mat.getPigment() !== null && c.kind === 'item') {
+      if (MixinApi.hasCoating(mat) && mat.getPigment() !== null && c.kind === 'item') {
         pigmentKg.set(c.materialPath!, (pigmentKg.get(c.materialPath!) ?? 0) + kg);
         continue;
       }
@@ -93,11 +93,11 @@ export default class PaintPot extends GlazeTub {
         binderKg += kg;
         continue;
       }
-      if (mat.getLaysCoat() && binder === null) {
+      if (MixinApi.hasCoating(mat) && mat.getLaysCoat() && binder === null) {
         binder = c.materialPath ?? null;
         binderKg += kg;
         const density = (mat.getDensity().rawValue() || 1000) / 1000;
-        binderSolids = Math.min(0.95, (mat.getSolidsKgPerL() || 0.4) / density);
+        binderSolids = Math.min(0.95, ((MixinApi.hasSolution(mat) ? mat.getSolidsKgPerL() : 0) || 0.4) / density);
       }
     }
     if (binder === null) return null;

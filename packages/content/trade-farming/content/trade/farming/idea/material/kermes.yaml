@@ -2,7 +2,7 @@
 # oak: "grains" of crimson, the dyestuff a court paid for in silver. A
 # MORDANT dye: on alum a deep crimson, on iron a claret, on tannin a brick.
 # It is an insect, not a plant, and the tag says so.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Herb
 data:
   smells: [{ aroma: /base-library/aromas/animal, strength: 30 }]
   name: kermes
@@ -15,9 +15,5 @@ data:
   specificHeat: 1500
   electricalConductivity: 1.0e-9
   waterAbsorptionCapacity: 40
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["dyestuff", "mordant-dye", "insect", "organic", "once-living"]
-  composition: []
   biologicalSource: { speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/fagaceae/quercus/coccifera, tissueType: gall }

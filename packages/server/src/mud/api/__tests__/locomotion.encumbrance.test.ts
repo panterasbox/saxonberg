@@ -24,7 +24,7 @@ import { ContainmentApi } from '../containment';
 import { StuffApi } from '../stuff';
 import { makeStuff, makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 import { Quantity } from '../../lib/quantity';
-import MaterialClass from '../../platform/idea/material/Material';
+import Metal from '../../platform/idea/material/Metal';
 import { buildMode } from '../../lib/locomotion/__tests__/test-helpers';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import {
@@ -81,11 +81,11 @@ describe('LocomotionApi — load-aware veto', () => {
     // Lead, so the water does not hold it up: 100 kg is still ~91 kg wet.
     const lead = massThing(100);
     lead.setMaterial(makeStuffAtPath(() => {
-      const m = new MaterialClass();
+      const m = new Metal();
       m.setName('test-lead');
       m.setDensity(Quantity.of(11340, 'kg/m³'));
       return m;
-    }, '/stuff/idea/material/_test/test-lead') as unknown as MaterialClass);
+    }, '/stuff/idea/material/_test/test-lead') as unknown as Metal);
     ContainmentApi.move(lead, bearer);
 
     expect(LocomotionApi.checkEnablement(bearer, swim, 'down')).toMatchObject({ ok: true });

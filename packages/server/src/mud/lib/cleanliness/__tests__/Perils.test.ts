@@ -13,6 +13,7 @@ import { join } from 'path';
 import YAML from 'yaml';
 import MaturationProfile from '../../maturation/MaturationProfile';
 import Material from '../../material/Material';
+import FuelGas from '../../../platform/idea/material/FuelGas';
 import { ContainerMixin } from '../../spatial/Container';
 import { Idea } from '../../stuff/Idea';
 import Garment from '../../../platform/thing/equipment/Garment';
@@ -92,7 +93,7 @@ describe('what a ferment breathes (D22)', () => {
 
 describe('the material facts (D22, D24)', () => {
   it('flammable limit, combustion products, vapour and ash round-trip', () => {
-    const m = makeStuff(() => new Material());
+    const m = makeStuff(() => new FuelGas());
     m.setFlammableLimit(0.01);
     m.setCombustionProducts([{ material: '/g/so2', litresPerKg: 700 }, { material: '', litresPerKg: 1 }]);
     m.setVapourLPerLPerHour(40);

@@ -21,7 +21,7 @@
 #
 # ⭐ It lives in the COMMONS: a green skin is a fact about animals, not
 # about the tanning trade. The trade is what does something with it.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Hide
 data:
   smells: [{ aroma: /base-library/aromas/hide, strength: 800 }]
   name: rawhide
@@ -40,9 +40,6 @@ data:
   # A wet skin takes up a great deal more water, which is also why it
   # weighs what it does.
   waterAbsorptionCapacity: 60
-  edibility: false
-  nutrients: []
-  toxicity: []
   # ⚠ NO `hide` tag: the tailor's jerkin matches that, and a jerkin cut
   # from a green skin is the defect this build came to fix. `rawhide` is
   # what the pit and the salt-cure match.
@@ -51,10 +48,3 @@ data:
   # temperatures, which is the pressure the whole trade is played under.
   spoilActivationEnergy: 70000
   waterActivity: 0.98
-  composition: []
-  # ⚠ No `chemistry:` key. `leather.yaml` beside this one authors one and
-  # `Material` declares no such field, so it is one of the 393 orphan data
-  # keys `lint:instanceable` holds a ratchet over — a key the applier
-  # discards SILENTLY. Copying it here would have raised the ceiling,
-  # which is the one direction a ratchet may not move.
-  biologicalSource: null

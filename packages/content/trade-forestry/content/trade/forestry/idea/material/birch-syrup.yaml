@@ -20,7 +20,7 @@
 #
 # ⭐ In the TRADE rather than the commons, unlike the sap: sap is a fact
 # about a tree and syrup is a thing somebody made.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Syrup
 # ⭐ (sugar D1) The syrup is the sap boiled down: it inherits the sap's boil
 # (the latent heat, the curve, the arrows) and states only what differs —
 # including its own strength, for a jar bought rather than boiled.
@@ -34,10 +34,6 @@ data:
   specificHeat: 2800
   thermalConductivity: 0.40
   electricalConductivity: 0.2
-  waterAbsorptionCapacity: 0
-  hardness: 0
-  toughness: 0
-  edibility: true
   tastes: [{ type: sweet, amount: 600 }]
   # Steeply answering to warmth, and it barely matters: the water
   # activity sits low enough that the rate is multiplied by almost
@@ -46,8 +42,6 @@ data:
   waterActivity: 0.70
   nutrients: ["sugar", "water"]
   nutrientAmounts: { sugar: 660000, water: 320000 }
-  toxicity: []
   tags: ["liquid", "food", "syrup", "birch-syrup", "sweetener", "edible"]
-  composition: []
   biologicalSource: null
   solidsKgPerL: 0.88

@@ -1,7 +1,7 @@
 # Plant tissue — soft cellulose-based. Living plant matter (a leaf,
 # a stem); distinct from oak (dead, processed wood). Flammable when
 # dry.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Food
 data:
   smells: [{ aroma: /base-library/aromas/green, strength: 10 }]
   tastes: [{ type: sweet, amount: 10 }, { type: bitter, amount: 0.01 }]
@@ -10,7 +10,6 @@ data:
   density: 600
   specificHeat: 2500
   thermalConductivity: 0.3
-  edibility: true
   # ⭐ Spoilage (docs/subsystems/spoilage.md): the microbial growth rate is
   # `μ_max · f_T(T) · f_aw(a_w)`. `spoilActivationEnergy` (J/mol) is how
   # steeply this food answers to warmth; `waterActivity` is how much of its
@@ -19,8 +18,4 @@ data:
   spoilActivationEnergy: 60000
   waterActivity: 0.95
   nutrients: ["cellulose", "water"]
-  toxicity: []
   tags: ["tissue", "plant", "mixture", "organic", "living", "edible"]
-  composition: []
-  chemistry: null
-  biologicalSource: null

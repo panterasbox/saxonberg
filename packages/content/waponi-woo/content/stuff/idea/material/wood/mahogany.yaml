@@ -1,5 +1,5 @@
 # Mahogany — dense red-brown hardwood, the island's.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Wood
 data:
   smells: [{ aroma: /base-library/aromas/wood, strength: 1 }]
   burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
@@ -15,11 +15,7 @@ data:
   ashFraction: 0.01
   hardness: 35
   toughness: 55
-  edibility: false
-  nutrients: ["cellulose"]
-  toxicity: []
   tags: ["wood", "mixture", "organic", "flammable", "once-living"]
-  composition: []
   seasoningDays: 200
   greenShrinkage: 0.06
   cleavability: 0.6

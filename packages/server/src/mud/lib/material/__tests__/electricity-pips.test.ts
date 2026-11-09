@@ -13,6 +13,7 @@ import Material from '../Material';
 import { Construction } from '../Construction';
 import { StuffApi } from '../../../api/stuff';
 import { Quantity } from '../../quantity';
+import Metal from '../../../platform/idea/material/Metal';
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -21,7 +22,7 @@ import {
 let seq = 0;
 
 function mat(conductivity: number): Material {
-  const m = makeStuff(() => new Material());
+  const m = makeStuff(() => new Metal());
   m.setElectricalConductivity(Quantity.of(conductivity, 'S/m'));
   m.setHardness(Quantity.of(600, 'MPa'));
   m.setToughness(Quantity.of(200, 'MJ/m³'));

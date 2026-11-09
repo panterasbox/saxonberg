@@ -11,7 +11,7 @@
 # Its shrink is DERIVED (`Material.castShrinkage` — expansion × the fall
 # from its melt to a room): about half a percent, the pattern-maker's
 # figure for pewter.
-class: /platform/idea/material/Material
+class: /platform/idea/material/ToxicAlloy
 data:
   name: pewter
   keywords: [pewter]
@@ -25,14 +25,9 @@ data:
   meltingPoint: 500
   latentHeatOfFusion: 55000
   thermalExpansion: 2.3e-05
-  waterAbsorptionCapacity: 0.2
-  edibility: false
-  nutrients: []
-  toxicity: [{ type: lead, amount: 0 }]
   leaches:
     - { toxin: lead, mgPerLPerDay: 0.5 }
   tags: ["alloy", "metal", "non-ferrous", "tin", "lead"]
   composition:
     - { materialPath: /stuff/idea/material/element/tin, fraction: 0.8 }
     - { materialPath: /stuff/idea/material/element/lead, fraction: 0.2 }
-  biologicalSource: null

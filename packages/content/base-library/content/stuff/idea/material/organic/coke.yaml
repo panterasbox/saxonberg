@@ -14,7 +14,7 @@
 # for the hot-short arm — so a material tagged carbon-and-fuel and NOT
 # sulfurous passes every gate charcoal passes, with nothing in
 # `trade-smelting` edited. That is the tag vocabulary paying out.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFuel
 data:
   burning: [{ aroma: /base-library/aromas/coal-smoke, strength: 30 }]
   name: coke
@@ -29,12 +29,7 @@ data:
   waterAbsorptionCapacity: 25
   heatOfCombustion: 29
   autoignitionTemperature: 970
-  edibility: false
-  nutrients: []
-  toxicity: []
   # ⚠ No `sulfurous`, and that absence is the mechanism.
   tags: [organic, carbon, fuel, flammable, porous, once-living]
   composition:
     - { materialPath: /stuff/idea/material/element/carbon, fraction: 0.88 }
-  chemistry: null
-  biologicalSource: null

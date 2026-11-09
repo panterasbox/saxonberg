@@ -418,9 +418,12 @@ export default class WaterReading extends Reading {
     const out: string[] = [];
     const lead = payload?.dissolvedToxins?.find((t) => t.type === 'lead')?.amount ?? 0;
     // What the WATER is: fouled water carries its dose on its material.
+    const fouledMaterial = target.getBulkMaterial('interior');
     const fouled =
       reportedFouled ||
-      (target.getBulkMaterial('interior')?.getToxicity() ?? []).some((t) => t.type !== 'lead');
+      (fouledMaterial && MixinApi.hasToxicity(fouledMaterial) ? fouledMaterial.getToxicity() : []).some(
+        (t) => t.type !== 'lead',
+      );
     // ⭐ The verdict, every time the kit reads (requirements drive 1:
     // "with the kit it reads the water clean") — silence is not "clean".
     if (fouled) {

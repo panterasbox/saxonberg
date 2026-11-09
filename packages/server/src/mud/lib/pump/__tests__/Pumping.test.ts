@@ -31,6 +31,7 @@ import {
 import Location from '../../location/Location';
 import Biome from '../../biome/Biome';
 import Material from '../../material/Material';
+import Polymer from '../../../platform/idea/material/Polymer';
 import Well from '../../../platform/thing/Well';
 import Pump from '../../../platform/thing/Pump';
 import Tool from '../../../platform/thing/Tool';
@@ -406,7 +407,7 @@ describe('⭐ the machine rung — power-limited, and wear INTEGRATED', () => {
 describe('⭐ wear reads the packing\'s MATERIAL (rubber build)', () => {
   function packingOf(toughness: number, elasticity: number): Tool {
     const m = makeStuffAtPath(
-      () => new Material(),
+      () => new Polymer(),
       `/stuff/idea/material/_pump/packing-${toughness}-${elasticity}`,
     );
     m.setName(`packing-stuff-${toughness}`);

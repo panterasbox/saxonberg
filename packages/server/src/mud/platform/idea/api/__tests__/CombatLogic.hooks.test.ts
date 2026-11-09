@@ -25,7 +25,7 @@ import Weapon from "../../../thing/equipment/Weapon";
 import Garment from "../../../thing/equipment/Garment";
 import Shield from "../../../thing/equipment/Shield";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
-import Material from "../../../../lib/material/Material";
+import Metal from "../../material/Metal";
 import { Construction } from "../../../../lib/material/Construction";
 import { ContainerMixin } from "../../../../lib/spatial/Container";
 import { ContainmentApi } from "../../../../api/containment";
@@ -197,8 +197,8 @@ class ElectricEel extends EnergizedMixin(HookedFighter) {}
 
 let seq = 0;
 
-function mat(hardness: number, toughness: number, name: string): Material {
-  const m = makeStuff(() => new Material());
+function mat(hardness: number, toughness: number, name: string): Metal {
+  const m = makeStuff(() => new Metal());
   m.setHardness(Quantity.of(hardness, "MPa"));
   m.setToughness(Quantity.of(toughness, "MJ/m³"));
   m.setName(name);
@@ -215,7 +215,7 @@ function planPathOf(c: Character): string {
 interface FighterOpts {
   natural?: Channel;
   weaponForm?: string;
-  weaponMaterial?: Material;
+  weaponMaterial?: Metal;
   weaponMass?: number;
   weaponLength?: number;
   /** A pre-built weapon instance (a ReactiveTestBlade) to wield. */
@@ -291,7 +291,7 @@ function makeFighter(
 }
 
 /** A pre-built reactive blade wielded via `makeFighter({weapon})`. */
-function reactiveBlade(form = "bladed", material?: Material): ReactiveTestBlade {
+function reactiveBlade(form = "bladed", material?: Metal): ReactiveTestBlade {
   const w = makeStuff(() => new ReactiveTestBlade());
   w.setConstruction(Construction.of(form));
   if (material) w.setMaterial(material);
@@ -303,7 +303,7 @@ function wearArmor(
   fighter: Character,
   armor: Garment,
   form: string,
-  material: Material,
+  material: Metal,
 ): void {
   armor.setMaterial(material);
   armor.setConstruction(Construction.of(form));

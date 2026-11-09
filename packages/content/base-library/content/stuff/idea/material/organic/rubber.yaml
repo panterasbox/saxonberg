@@ -2,7 +2,7 @@
 # sole or glove breaks the path to ground, so a body standing on it (or
 # shod in it) takes no current even in a live pool — the counterplay the
 # electricity model teaches. Conductivity ~1×10⁻¹³ S/m.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Polymer
 data:
   smells: [{ aroma: /base-library/aromas/rubber, strength: 100 }]
   name: rubber
@@ -25,12 +25,7 @@ data:
   elasticity: 500
   # The lump a pour or a cure with no mould comes out as.
   castTemplate: /trade/rubber/thing/rubber-lump
-  edibility: false
-  nutrients: []
-  toxicity: []
   # ⚠ `organic` is kept — rubber IS organic. The corrosives that spare it
   # (vitriol, quicklime) name what they really attack instead (rubber
   # build, D12.4). `polymer` is the honest family tag.
   tags: ["organic", "elastomer", "insulating", "polymer", "synthetic"]
-  composition: []
-  biologicalSource: null

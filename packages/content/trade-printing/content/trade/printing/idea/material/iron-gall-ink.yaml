@@ -1,6 +1,6 @@
 # Iron-gall ink — galls steeped to tannin, copperas and gum
 # arabic: purple-grey wet, darkening to black on the page. The pen's ink.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/PigmentPaint
 data:
   smells: [{ aroma: /base-library/aromas/ink, strength: 60 }]
   name: iron-gall ink
@@ -10,9 +10,4 @@ data:
   specificHeat: 4000
   thermalConductivity: 0.55
   meltingPoint: 271
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [liquid, ink, organic, once-living]
-  composition: []
-  biologicalSource: null

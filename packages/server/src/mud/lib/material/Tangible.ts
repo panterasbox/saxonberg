@@ -339,7 +339,8 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * what it is made of; it can answer.
      */
     public isEdible(): boolean {
-      return this.getMaterial()?.getEdibility() === true;
+      const mat = this.getMaterial();
+      return mat !== null && MixinApi.hasEdibility(mat);
     }
 
     public getMaterial(detailKey?: string): Material | null {
@@ -487,8 +488,9 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       const wetness = self.getWetness();
       if (!(wetness > 0)) return this._mass;
+      const wetMat = this.getMaterial();
       const capacity =
-        this.getMaterial()?.getWaterAbsorptionCapacity().rawValue() ?? 0;
+        wetMat && MixinApi.hasPorosity(wetMat) ? wetMat.getWaterAbsorptionCapacity().rawValue() : 0;
       if (!(capacity > 0)) return this._mass;
       return Quantity.of(
         this._mass.rawValue() * (1 + (wetness * capacity) / 100),
@@ -591,7 +593,10 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public getIgnitionPointK(): number {
       const mat = this.getMaterial();
-      const base = mat === null ? 0 : mat.getAutoignitionTemperature().rawValue();
+      const base =
+        mat !== null && MixinApi.hasCombustion(mat)
+          ? mat.getAutoignitionTemperature().rawValue()
+          : 0;
       if (!(base > 0)) return 0;
       return base + this.getWetIgnitionPenaltyK();
     }
@@ -599,6 +604,7 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     public getWetIgnitionPenaltyK(): number {
       const mat = this.getMaterial();
       if (mat === null) return 0;
+      if (!MixinApi.hasPorosity(mat)) return 0;
       const capacityFraction = mat.getWaterAbsorptionCapacity().rawValue() / 100;
       if (capacityFraction <= 0) return 0;
       const c = mat.getSpecificHeat().rawValue();

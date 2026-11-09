@@ -21,6 +21,8 @@ import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Location from '../../../lib/location/Location';
 import Good from '../../../lib/stuff/Good';
 import Material from '../../../lib/material/Material';
+import Wood from '../../../platform/idea/material/Wood';
+import Metal from '../../../platform/idea/material/Metal';
 import Firewood from '../../../platform/thing/Firewood';
 import Ingot from '../../../platform/thing/Ingot';
 import Forge from '../../../platform/thing/Forge';
@@ -58,7 +60,7 @@ let seq = 0;
 function oak(): Material {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Wood();
     m.setName('oak');
     m.setDensity(Quantity.of(750, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(2000, 'J/(kg·K)'));
@@ -72,7 +74,7 @@ function oak(): Material {
 function iron(): Material {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Metal();
     m.setName('iron');
     m.setDensity(Quantity.of(7874, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(449, 'J/(kg·K)'));

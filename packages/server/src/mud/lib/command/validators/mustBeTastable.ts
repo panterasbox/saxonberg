@@ -26,10 +26,13 @@ function wouldDoSomething(s: Stuff): boolean {
   if (!MixinApi.isTangible(s)) return false;
   const material = s.getMaterial();
   if (!material) return false;
-  return (
-    material.getToxicity().some((t) => t.amount > 0) ||
-    material.getCorrosiveTo().some((t) => t === 'tissue' || t === 'protein')
-  );
+  const toxic =
+    MixinApi.hasToxicity(material) &&
+    material.getToxicity().some((t) => t.amount > 0);
+  const corrosive =
+    MixinApi.hasAcidity(material) &&
+    material.getCorrosiveTo().some((t) => t === 'tissue' || t === 'protein');
+  return toxic || corrosive;
 }
 
 const validator: FieldValidator = (value, field, _context) => {

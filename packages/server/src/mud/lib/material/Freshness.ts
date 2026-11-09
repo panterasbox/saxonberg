@@ -286,6 +286,7 @@ export class Freshness {
     water: WaterState | null = null,
   ): number {
     if (!material) return 0;
+    if (!MixinApi.hasPerishability(material)) return 0;
     const ea = material.getSpoilActivationEnergy().rawValue();
     if (!(ea > 0)) return 0; // inert: nothing tabulated, nothing rots
 
@@ -343,7 +344,7 @@ export class Freshness {
     material: Material,
     water: WaterState | null = null,
   ): number {
-    const tabulated = material.getWaterActivity();
+    const tabulated = MixinApi.hasPerishability(material) ? material.getWaterActivity() : 0;
     const base =
       tabulated > 0
         ? clamp01(tabulated)
@@ -597,7 +598,7 @@ export class Freshness {
    * @internal whether a material spoils at all — read by this module.
    */
   static isPerishable(material: Material | null): boolean {
-    return !!material && material.getSpoilActivationEnergy().rawValue() > 0;
+    return !!material && MixinApi.hasPerishability(material) && material.getSpoilActivationEnergy().rawValue() > 0;
   }
 
   /**
@@ -1071,7 +1072,7 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
 
     public isPerishable(): boolean {
       const mat = this.freshnessMaterial();
-      return mat !== null && mat.getSpoilActivationEnergy().rawValue() > 0;
+      return mat !== null && MixinApi.hasPerishability(mat) && mat.getSpoilActivationEnergy().rawValue() > 0;
     }
 
     // ---------- writes ----------

@@ -23,6 +23,8 @@ import Hide from '../thing/Hide';
 import Tanpit from '../thing/Tanpit';
 import { TANNING } from '../lib/Tanning';
 import Material from '@saxonberg/server/mud/lib/material/Material';
+import Water from '@saxonberg/server/mud/platform/idea/material/Water';
+import HideMaterial from '@saxonberg/server/mud/platform/idea/material/Hide';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -56,9 +58,14 @@ class TestYard extends ContainerMixin(Idea) {
 let now = 1_000_000;
 let yard: TestYard;
 
-function material(path: string, name: string, tags: string[]): Material {
+function material(
+  path: string,
+  name: string,
+  tags: string[],
+  make: () => Material = () => new Material(),
+): Material {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = make();
     m.setName(name);
     m.setTags(tags);
     m.setDensity(Quantity.of(1000, 'kg/m³'));
@@ -123,9 +130,9 @@ beforeEach(() => {
   WorldClockApi._setNowProviderForTesting(() => now);
   // One game second per real second: see `advance`.
   WorldClockApi.setScale(1);
-  material(RAWHIDE, 'rawhide', ['organic', 'skin', 'rawhide', 'once-living']);
-  material(LEATHER, 'leather', ['organic', 'leather', 'hide', 'flexible']);
-  material('/stuff/idea/material/bulk/_test/water', 'water', ['liquid', 'water']);
+  material(RAWHIDE, 'rawhide', ['organic', 'skin', 'rawhide', 'once-living'], () => new HideMaterial());
+  material(LEATHER, 'leather', ['organic', 'leather', 'hide', 'flexible'], () => new HideMaterial());
+  material('/stuff/idea/material/bulk/_test/water', 'water', ['liquid', 'water'], () => new Water());
   yard = makeStuff(() => new TestYard());
 });
 
@@ -380,7 +387,7 @@ describe('the lift is the transform, and it runs once', () => {
     // The material's own activation energy is what makes it fast; what
     // this pins is that the class can carry the clock at all, which is
     // what `lint:perishable` gates on.
-    expect(h.getMaterial()?.getSpoilActivationEnergy).toBeDefined();
+    expect(MixinApi.hasPerishability(h.getMaterial()!)).toBe(true);
   });
 });
 

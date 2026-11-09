@@ -1163,7 +1163,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       const self = this as unknown as Stuff;
       const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
       if (mat === null || !(k > 0)) return 'holds';
-      const melts = mat.getMeltingPoint().rawValue();
+      const melts = MixinApi.hasFusion(mat) ? mat.getMeltingPoint().rawValue() : 0;
       if (melts > 0 && k >= melts) return 'melts';
       // The receiver's own ignition point — a soaked one catches hotter.
       const burns = MixinApi.isTangible(self) ? self.getIgnitionPointK() : 0;
@@ -1302,7 +1302,12 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       // ⭐ The contents' own pH when they carry one — a water's, off its
       // source (water-supply D8) — else the material row's.
       const payloadPh = this.interiorPayload?.pH;
-      const leaches = material.acidAttack(payloadPh) > 0 && (insideFace?.getLeaches().length ?? 0) > 0;
+      const leaches =
+        MixinApi.hasAcidity(material) &&
+        material.acidAttack(payloadPh) > 0 &&
+        insideFace !== null &&
+        MixinApi.hasToxicity(insideFace) &&
+        insideFace.getLeaches().length > 0;
       const porousInside = !self.holdsWater('inside');
       // A liquid against a wall that lets water through (the face's own read,
       // B100 — this was a second copy of it, inline).
@@ -1341,8 +1346,8 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
           typeof dgh === 'number' && Number.isFinite(dgh)
             ? new WaterChemistry(7, dgh, 0).softness()
             : 1;
-        const attack = material.acidAttack(payload.pH) * softness;
-        if (inside !== null && attack > 0) {
+        const attack = (MixinApi.hasAcidity(material) ? material.acidAttack(payload.pH) : 0) * softness;
+        if (inside !== null && MixinApi.hasToxicity(inside) && attack > 0) {
           const toxins = [...(payload.dissolvedToxins ?? [])];
           for (const leach of inside.getLeaches()) {
             const mg = leach.mgPerLPerDay * attack * days;
@@ -1414,7 +1419,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         // committed, so the move sees the vessel as it now is.
         const below = seepL > 0 ? this.seepReceiver() : null;
         if (below !== null) {
-          const through = material.getFilteredTo();
+          const through = MixinApi.hasSolution(material) ? material.getFilteredTo() : '';
           BulkableApi.transfer(
             this.getBulk('interior'),
             below.getBulk('interior'),

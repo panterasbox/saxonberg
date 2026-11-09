@@ -212,7 +212,7 @@ export default class Bole extends BoleBase {
 
   private rivePlan(actor: Stuff): CutAnswerFor<'rive'> {
     const wood = this.getMaterial();
-    if ((wood?.getCleavability() ?? 0) < RIVE_FLOOR) {
+    if ((wood && MixinApi.hasSolidity(wood) ? wood.getCleavability() : 0) < RIVE_FLOOR) {
       return {
         ok: false,
         verb: 'rive',
@@ -239,7 +239,7 @@ export default class Bole extends BoleBase {
         // ⭐ A straight-grained wood opens clean into the full count; one
         // whose split wanders runs out of the piece, and the rest is kindling.
         const full = Math.floor(TIMBER_MASS_KG / BILLET_KG);
-        const clean = Math.min(1, (material?.getCleavability() ?? 0) / CLEAN_CLEAVE);
+        const clean = Math.min(1, (material && MixinApi.hasSolidity(material) ? material.getCleavability() : 0) / CLEAN_CLEAVE);
         const count = Math.max(1, Math.floor(full * clean));
         const billets = await StuffApi.clone<Stuff & Containable>(BILLET_PATH, undefined, {
           madeFrom: bole,

@@ -437,6 +437,7 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
     private wearFactor(part: Stuff): number {
       const mat = MixinApi.isTangible(part) ? part.getMaterial() : null;
       if (!mat) return 1;
+      if (!MixinApi.hasSolidity(mat)) return 1;
       const toughness = mat.getToughness().rawValue();
       if (!(toughness > 0)) return 1;
       const reference = dial(AppSettingKeys.pumpReferenceToughness, 10);

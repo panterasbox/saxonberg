@@ -1,7 +1,7 @@
 # Loaf sugar — what a cone of strike sets into once its molasses has
 # drained (W2). White at the head when it has been clayed, brown at the
 # foot; the grade says which.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/SolidFood
 data:
   name: loaf sugar
   keywords: [loaf-sugar, sugar, loaf]
@@ -10,16 +10,10 @@ data:
   specificHeat: 1250
   thermalConductivity: 0.2
   electricalConductivity: 0
-  waterAbsorptionCapacity: 0
   hardness: 2
-  toughness: 0
-  edibility: true
   tastes: [{ type: sweet, amount: 1000 }]
   spoilActivationEnergy: 90000
   waterActivity: 0.4
   nutrients: ["sugar"]
   nutrientAmounts: { sugar: 995000 }
-  toxicity: []
   tags: ["solid", "food", "sugar", "loaf-sugar", "sweetener"]
-  composition: []
-  biologicalSource: null

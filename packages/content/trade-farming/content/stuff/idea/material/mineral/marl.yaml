@@ -14,7 +14,7 @@
 # `/trade/farming`, because marl is a fact about the ground and not about
 # the trade: the mine digs through it and the potter has an opinion about
 # it, whether or not anybody is farming.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Clay
 data:
   smells: [{ aroma: /base-library/aromas/earth, strength: 10 }]
   name: marl
@@ -28,5 +28,4 @@ data:
   # a poor man's improvement.
   hardness: 5
   toughness: 2
-  edibility: false
   tags: ["mineral", "clay", "calcareous", "liming", "soil-amendment"]

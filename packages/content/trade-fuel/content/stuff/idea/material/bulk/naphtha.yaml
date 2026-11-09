@@ -2,7 +2,7 @@
 # grease and oil water cannot touch. ⭐ VOLATILE: an open dish of it gives off
 # a vapour heavier than air, and a little over one part in a hundred of it by
 # a naked flame is a fire.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Oil
 data:
   smells: [{ aroma: /base-library/aromas/naphtha, strength: 3000 }]
   burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 800 }]
@@ -18,12 +18,7 @@ data:
   heatOfCombustion: 44
   vapourLPerLPerHour: 40
   vapourMaterial: /stuff/idea/material/gas/naphtha-vapour
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [liquid, fuel, volatile, naphtha]
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
   cleanser: /platform/idea/Cleanser/naphtha
-  composition: []
-  biologicalSource: null

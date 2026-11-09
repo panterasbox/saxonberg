@@ -9,7 +9,7 @@
 # ⚠ **Coal → coke is NOT this build's** (`metal-chain-slate` owns the energy
 # transition). So iron keeps needing charcoal off a coppice somebody tends,
 # and the epoch step stays available to be told as the epoch step it is.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFuel
 data:
   smells: [{ aroma: /base-library/aromas/coal-tar, strength: 5 }]
   burning: [{ aroma: /base-library/aromas/coal-smoke, strength: 800 }]
@@ -27,9 +27,6 @@ data:
   autoignitionTemperature: 700
   # MJ/kg. Bituminous coal, and comfortably above charcoal's.
   heatOfCombustion: 28
-  edibility: false
-  nutrients: []
-  toxicity: []
   # ⭐ `coal` is its own tag, added by the fire build. A firing matches
   # its charge by material TAG, and coal shares `fuel` and `carbon` with
   # charcoal and coke — so without a tag that means *this substance* a
@@ -38,9 +35,6 @@ data:
   # existing reads (`fuel`+`carbon` for the reducing charge, `sulfurous`
   # for the hot-short arm) are untouched.
   tags: ["mineral", "solid", "fuel", "carbon", "sulfurous", "coal"]
-  composition: []
-  chemistry: null
-  biologicalSource: null
   # ⭐⭐ Coke is coal's transition (ceramics ruling A): held hot in a
   # starved chamber (a shut retort) the volatiles come off as tar and gas
   # and the carbon stays. Given air, it simply burns.

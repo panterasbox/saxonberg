@@ -646,7 +646,7 @@ function claimCookVessel(
 
 /**
  * Whether a Crafted discrete is EDIBLE MATTER — food by its own material
- * (`ConsumableMaterial.edibility`, the surface `eat`/metabolism already
+ * (`MixinApi.hasEdibility`, the surface `eat`/metabolism already
  * consume). The maker's mark on a lime says who grew it, not what it is:
  * **the distinction is the material, not a flag** (the D3 precedent, the
  * same rule the crafted-bulkable branch applies to a bottle of pressed
@@ -656,7 +656,7 @@ function claimCookVessel(
 function isEdibleMatter(c: Stuff): boolean {
   if (!MixinApi.isTangible(c)) return false;
   const material = c.getMaterial();
-  return material !== null && material.getEdibility();
+  return material !== null && MixinApi.hasEdibility(material);
 }
 
 /**
@@ -889,8 +889,8 @@ function carriesBrand(stuff: Stuff, brandKey: string): boolean {
 function mediumCapK(material: Material | null): number {
   if (!material) return 0;
   const limits = [
-    material.getSmokePoint().rawValue(),
-    material.getBoilingPoint().rawValue(),
+    MixinApi.hasCombustion(material) ? material.getSmokePoint().rawValue() : 0,
+    MixinApi.hasVolatility(material) ? material.getBoilingPoint().rawValue() : 0,
   ].filter((k) => k > 0);
   return limits.length > 0 ? Math.min(...limits) : 0;
 }
@@ -1568,8 +1568,8 @@ async function finishGlass(
       pool.setIce(
         ice.kg,
         ice.form,
-        m.getMeltingPoint().rawValue(),
-        m.getLatentHeatOfFusion().rawValue(),
+        MixinApi.hasFusion(m) ? m.getMeltingPoint().rawValue() : 0,
+        MixinApi.hasFusion(m) ? m.getLatentHeatOfFusion().rawValue() : 0,
       );
     }
   }
@@ -1647,6 +1647,7 @@ function fireImpartsFor(maker: Stuff): AromaTag[] {
   if (!(total > 0)) return [];
   const out: AromaTag[] = [];
   for (const material of fire.fuelMaterials()) {
+    if (!MixinApi.hasCombustion(material)) continue;
     const tags = material.getCombustionImparts();
     if (tags.length === 0) continue;
     const share = fire.fuelShareOf(material);
@@ -2110,7 +2111,7 @@ async function applyEdibleOutput(
   const authored = recipe.getOutputMaterial();
   if (authored) {
     const material = await StuffApi.singleton<Material>(authored);
-    if (!material.getEdibility()) {
+    if (!MixinApi.hasEdibility(material)) {
       throw new Error(
         `CraftingLogic: edible output material '${authored}' is not edible`,
       );
@@ -4050,7 +4051,9 @@ function instrumentFor(
     // fire. The heat a mend asks is bounded by the metal it mends — the
     // water-supply browser walk found a plumber who could mend lead only at
     // a forge.
-    const meltK = material.getMeltingPoint().rawValue();
+    const meltK = MixinApi.hasFusion(material)
+      ? material.getMeltingPoint().rawValue()
+      : 0;
     const needK = Number.isFinite(meltK) && meltK > 0 ? Math.min(heatK, meltK * 0.9) : heatK;
     const reach = MixinApi.isThermal(m.hand) ? m.hand.reachableHeatK() : 0;
     if (reach < needK) return { ok: false, reason: 'insufficient-heat', detail: `${Math.round(needK)}` };
@@ -4493,12 +4496,15 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
   // ⭐⭐ (ceramics S18) FIRED CLAY salvages to SHERDS — its material's
   // authored broken form, whole by mass: breaking a pot loses nothing but
   // the pot. (Grog is the next act, at the millstone.)
-  const brokenRow = piece.material.getBrokenTemplate();
+  const pm = piece.material;
+  const brokenRow = MixinApi.hasSolidity(pm) ? pm.getBrokenTemplate() : '';
+  const pmMeltsAt = MixinApi.hasFusion(pm) ? pm.getMeltingPoint().rawValue() : 0;
+  const pmCastRow = MixinApi.hasFusion(pm) ? pm.getCastTemplate() : '';
   if (
-    !piece.material.hasTag('metal') &&
-    !(piece.material.getMeltingPoint().rawValue() > 0) &&
+    !pm.hasTag('metal') &&
+    !(pmMeltsAt > 0) &&
     brokenRow !== '' &&
-    brokenRow !== piece.material.getCastTemplate()
+    brokenRow !== pmCastRow
   ) {
     const units = Math.floor(pieceKg / Scrap.UNIT_KG);
     if (units >= 1) {
@@ -4526,7 +4532,9 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
   // what alloying joined. One constituent, the whole alloy.
   const comp = piece.material.hasTag('alloy') && piece.material.hasTag('metal')
     ? { direct: [] as { materialPath: string; fraction: number }[] }
-    : piece.material.elementalComposition();
+    : MixinApi.hasMixture(piece.material)
+      ? piece.material.elementalComposition()
+      : { direct: [] as { materialPath: string; fraction: number }[] };
   const constituents: { material: Material; fraction: number }[] = [];
   if (comp.direct.length === 0) {
     constituents.push({ material: piece.material, fraction: 1 });
@@ -4544,7 +4552,10 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
     // back as a re-meltable Casting at its FULL mass, remembering the
     // piece's minor constituents (its iron history) so a re-melt cannot
     // launder a tinted lump clear.
-    const meltable = !metal && c.material.getMeltingPoint().rawValue() > 0;
+    const meltable =
+      !metal &&
+      MixinApi.hasFusion(c.material) &&
+      c.material.getMeltingPoint().rawValue() > 0;
     const branchRate = meltable ? 1.0 : rate;
     const yieldKg = pieceKg * c.fraction * branchRate;
     if (yieldKg < SALVAGE_DUST_FLOOR_KG) continue; // dust — lost
@@ -4752,7 +4763,8 @@ const GLUE_STEAMED_RECOVERY = 0.8;
 
 /** Does `glue` let go of `whole` as it stands — hot enough and wet enough? */
 function glueLetsGo(whole: Stuff, glue: string): boolean {
-  const a = StuffApi.findByTemplatePath<Material>(glue)?.getAdhesive() ?? null;
+  const glueMat = StuffApi.findByTemplatePath<Material>(glue);
+  const a = glueMat && MixinApi.hasCoating(glueMat) ? glueMat.getAdhesive() : null;
   if (a === null || a.reversible === 'never') return false;
   const hot = a.reversible.heatK === undefined ||
     (MixinApi.isThermal(whole) && whole.getTemperature().rawValue() >= a.reversible.heatK);
@@ -4789,7 +4801,7 @@ function glueInReach(
     if (!MixinApi.isBulkable(v) || !v.hasInteriorBulk()) continue;
     if (MixinApi.isSealable(v) && !v.isOpen()) continue;
     const m = v.getBulkMaterial('interior');
-    if (m === null || m.getAdhesive() === null) continue;
+    if (m === null || !MixinApi.hasCoating(m) || m.getAdhesive() === null) continue;
     if (v.getBulkAmount('interior').rawValue() + 1e-9 < litres) continue;
     return { vessel: v, material: m.getTemplatePath() ?? '' };
   }

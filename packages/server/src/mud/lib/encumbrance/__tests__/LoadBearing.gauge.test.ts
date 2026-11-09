@@ -13,7 +13,7 @@ import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { Quantity } from '../../quantity';
 import { LOAD_BEARING_DEFAULTS } from '../LoadBearing';
-import MaterialClass from '../../../platform/idea/material/Material';
+import Metal from '../../../platform/idea/material/Metal';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import {
@@ -171,11 +171,11 @@ describe('LoadBearing — the burden in the water (underwater review)', () => {
   function madeOf(kg: number, rho: number, name: string) {
     const t = massThing(kg);
     const m = makeStuffAtPath(() => {
-      const mat = new MaterialClass();
+      const mat = new Metal();
       mat.setName(name);
       mat.setDensity(Quantity.of(rho, 'kg/m³'));
       return mat;
-    }, `/stuff/idea/material/_test/${name}`) as unknown as MaterialClass;
+    }, `/stuff/idea/material/_test/${name}`) as unknown as Metal;
     t.setMaterial(m);
     return t;
   }

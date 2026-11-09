@@ -3,7 +3,7 @@
 # real Quantity fields, authored bare + marshalled. (The combat
 # material-response — `resistance.<type>` — is deferred until the
 # mechanism-of-injury system lands and can model it honestly.)
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/HideHorn
 data:
   smells: [{ aroma: /base-library/aromas/flesh, strength: 30 }]
   name: bone
@@ -14,7 +14,5 @@ data:
   # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
   hardness: 100
   toughness: 6
-  edibility: false
-  nutrients: ["calcium"]
   # `collagen`: boiled in a glue pot, bone gives bone glue (paint D19).
   tags: ["tissue", "animal", "bone", "mineral", "skeletal", "collagen"]

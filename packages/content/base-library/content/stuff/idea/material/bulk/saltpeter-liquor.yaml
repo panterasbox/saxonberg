@@ -11,7 +11,7 @@
 # ⚠ The curve is approximate — kg per liter of SOLUTION, from the textbook
 # grams-per-100-g-of-water table. Its SHAPE is the lesson: steep where
 # salt's is flat.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Water
 data:
   name: saltpeter liquor
   keywords: [liquor, "saltpeter liquor", "nitre liquor"]
@@ -20,14 +20,9 @@ data:
   thermalConductivity: 0.55
   specificHeat: 3000
   electricalConductivity: 8
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [liquid, liquor, nitrate]
   solidsKgPerL: 0.9
   solubility: [[273, 0.127], [293, 0.28], [313, 0.49], [333, 0.70], [353, 0.89], [373, 1.04]]
   crystallizesTo:
     product: /stuff/idea/material/mineral/saltpeter
     residue: /stuff/idea/material/bulk/saltpeter-liquor
-  composition: []
-  biologicalSource: null

@@ -32,6 +32,7 @@ import { TemplatePathPrefixes } from '@saxonberg/server/mud/lib/paths';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import Material from '@saxonberg/server/mud/lib/material/Material';
+import Flesh from '@saxonberg/server/mud/platform/idea/material/Flesh';
 import Condition from '@saxonberg/server/mud/platform/idea/Condition';
 import Weapon from '@saxonberg/server/mud/platform/thing/equipment/Weapon';
 import ButcherBlock from '../../../../thing/ButcherBlock';
@@ -84,7 +85,7 @@ let matSeq = 0;
 function flesh(): Material {
   matSeq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Flesh();
     m.setName(`butchery-test-flesh-${matSeq}`);
     m.setSpecificHeat(Quantity.of(3200, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.45, 'W/(m·K)'));

@@ -1747,6 +1747,7 @@ async function execConjure(
     // (or any non-caustic) answers `false` and this is a no-op.
     const burned =
       target !== undefined &&
+      MixinApi.hasAcidity(material) &&
       material.corrodeOnContact(target, { energy: Math.min(4, 1 + litres) });
     const result = BulkableApi.transfer(from, to, {
       kind: 'measure',

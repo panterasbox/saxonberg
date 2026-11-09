@@ -10,7 +10,7 @@
 # ⚠ A template-path rename ⇒ **drop the dev DB**. No migration, ever.
 #
 # Salt — the pantry's (base-library has only salt-WATER). Tag `salt`: the rim of a margarita.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/EdibleSalt
 data:
   name: salt
   keywords: [salt]
@@ -18,7 +18,6 @@ data:
   density: 2160
   thermalConductivity: 0.6
   specificHeat: 880
-  edibility: true
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
@@ -34,8 +33,6 @@ data:
   # salting other food works too.
   spoilActivationEnergy: 60000
   waterActivity: 0.15
-  toxicity:
-    []
   tags: ["solid", "food", "salt", "seasoning"]
   # ⭐ Thrown into a kiln at its peak, salt becomes VAPOR in the chamber's
   # air (ceramics ruling B) — and a stoneware body reaching its rung under
@@ -45,5 +42,3 @@ data:
   # ⭐ What salt setting out of a brine looks like when no mold keeps it
   # (ceramics S17): a crust of crystals beside the vessel it set in.
   castTemplate: /stuff/thing/salt-crystals
-  composition: []
-  biologicalSource: null

@@ -2,7 +2,7 @@
 # all through: hard, dense, translucent where thin. ⭐ An IMPORT here
 # (ceramics S1; porcelain and kaolin are pottery-slate § 9): nothing in the
 # realm digs kaolin, so a porcelain streak plate comes from away.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Ceramic
 data:
   name: porcelain
   keywords: [porcelain, china, fired]
@@ -15,12 +15,7 @@ data:
   hardness: 110
   toughness: 7
   thermalExpansion: 4.0e-6
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["ceramic", "mineral", "solid", "brittle", "fired", "vitrified", "porcelain"]
-  composition: []
-  biologicalSource: null
   # ⭐ (ceramics W2) What it breaks into — the commons sherds row, stamped
   # with this body at the break; ground at a millstone, sherds are grog.
   brokenTemplate: /stuff/thing/sherds

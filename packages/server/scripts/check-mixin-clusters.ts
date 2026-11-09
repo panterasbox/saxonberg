@@ -45,7 +45,14 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { CONTENT, MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 
-export const MIXIN_CLUSTERS_CEILING = 40;
+// ⚠ 40 → 43 (material decomposition W0, flagged for review): Acidity (pH vs
+// corrosion), Fusion (the chill arrows vs the melt) and Solution (the
+// elevated boil vs solubility) are three splits that were INSIDE the
+// 2,391-line `Material` class, which this census never read (a class, not a
+// mixin). Extracting the capabilities made existing entanglement countable;
+// it added none. Each is one property of a substance read by different
+// processes, so the split candidates are recorded here, not carved.
+export const MIXIN_CLUSTERS_CEILING = 43;
 
 function memberName(m: ts.ClassElement): string | null {
   if (ts.isConstructorDeclaration(m) || ts.isClassStaticBlockDeclaration(m)) return null;

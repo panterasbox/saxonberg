@@ -1,5 +1,5 @@
 # Sweet vermouth. Category tags `vermouth`, `sweet-vermouth`.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/wine, strength: 300 }, { aroma: /base-library/aromas/herbal, strength: 200 }]
   tastes: [{ type: sweet, amount: 150 }, { type: sour, amount: 5 }, { type: bitter, amount: 0.05 }]
@@ -11,11 +11,8 @@ data:
   servingKg: 0.0303
   thermalConductivity: 0.5
   specificHeat: 3800
-  edibility: true
   toxicity:
     - { type: alcohol, amount: 7 }
   # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
   ph: 3.5
   tags: ["liquid", "beverage", "drinkable", "alcoholic", "vermouth", "sweet-vermouth"]
-  composition: []
-  biologicalSource: null

@@ -190,6 +190,8 @@ import type { Coating } from '../lib/material/Coating';
 import type { Optics } from '../lib/material/Optics';
 import type { Tissue } from '../lib/material/Tissue';
 import type { Mixture } from '../lib/material/Mixture';
+import type { ElementIdentity } from '../lib/material/Element';
+import type { CompoundIdentity } from '../lib/material/Compound';
 import type { Olfactory } from '../lib/perception/Olfactory';
 import type { Palate } from '../lib/metabolism/Palate';
 import type { Muscle } from '../lib/butchery/Muscle';
@@ -2025,11 +2027,19 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Mixture);
   }
 
+  public static hasElement(obj: Stuff): obj is Stuff & ElementIdentity {
+    return this.hasMixin(obj, Mixins.Element);
+  }
+
+  public static hasCompound(obj: Stuff): obj is Stuff & CompoundIdentity {
+    return this.hasMixin(obj, Mixins.Compound);
+  }
+
   /**
    * ⭐ Is this Material MEAT — a muscle that worked, and therefore
    * carries the `work` a cut's texture derives from?
    *
-   * The generic `tissue/muscle` row is NOT one: it is a plain `Material`
+   * The generic `tissue/muscle` row is NOT one: it is plain `Flesh`
    * used by organs and by the plans that name no cuts, so a narrowing
    * here is the difference between "there is muscle here" and "this is
    * the loin".

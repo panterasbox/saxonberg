@@ -10,7 +10,7 @@
 # ⚠ This is a MATERIAL, not a soil model. The four reserves, the texture
 # class, pH and tilth are `SoilMixin`'s and `GroundCharacter`'s; this row
 # says only what the stuff IS, which is all a floor needs to name it.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Soil
 data:
   smells: [{ aroma: /base-library/aromas/loam, strength: 3 }]
   name: loam
@@ -33,10 +33,4 @@ data:
   # hardness — a body lands softly on it, which is the point.
   hardness: 2
   toughness: 1
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["earth", "solid", "soil"]
-  composition: []
-  chemistry: null
-  biologicalSource: null

@@ -18,7 +18,6 @@ data:
   toughness: 1
   electricalConductivity: 0.2
   waterAbsorptionCapacity: 25
-  edibility: true
   tastes: [{ type: umami, amount: 2 }]
   # Spoilage, as `tissue/flesh`: flesh rots, and a cut is a clock as well
   # as a dinner.

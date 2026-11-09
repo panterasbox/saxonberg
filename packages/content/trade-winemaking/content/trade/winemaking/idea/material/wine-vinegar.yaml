@@ -2,7 +2,7 @@
 # converts ethanol to acetic acid, and the failure path still feeds
 # someone (the cook buys it — everything is a business). Homed in
 # winemaking because the process that makes it lives here.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Food
 data:
   smells: [{ aroma: /base-library/aromas/vinegar, strength: 3000 }]
   tastes: [{ type: sour, amount: 50 }]
@@ -12,14 +12,10 @@ data:
   density: 1010
   thermalConductivity: 0.5
   specificHeat: 3900
-  edibility: true
   nutrients: ["water"]
-  toxicity: []
   # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
   ph: 2.5
   tags: ["liquid", "vinegar", "condiment"]
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
   cleanser: /platform/idea/Cleanser/vinegar
-  composition: []
-  biologicalSource: null

@@ -1,6 +1,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { RadioactiveMaterial } from '../../../platform/idea/material/RadioactiveMaterial';
+import RadioactiveMetal from '../../../platform/idea/material/RadioactiveMetal';
 import Material from '../Material';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
@@ -27,13 +27,13 @@ describe('RadioactivityMixin / RadioactiveMaterial', () => {
   });
 
   it('extends Material — both class identities flow', () => {
-    const u = makeStuff(() => new RadioactiveMaterial());
+    const u = makeStuff(() => new RadioactiveMetal());
     expect(u).toBeInstanceOf(Material);
-    expect(u).toBeInstanceOf(RadioactiveMaterial);
+    expect(u).toBeInstanceOf(RadioactiveMetal);
   });
 
   it('is detected by MixinApi.hasRadioactivity', () => {
-    const u = makeStuff(() => new RadioactiveMaterial());
+    const u = makeStuff(() => new RadioactiveMetal());
     expect(MixinApi.hasRadioactivity(u)).toBe(true);
     expect(MixinApi.hasMixin(u, Mixins.Radioactivity)).toBe(true);
   });
@@ -44,7 +44,7 @@ describe('RadioactivityMixin / RadioactiveMaterial', () => {
   });
 
   it('round-trips halfLife and decayMode', () => {
-    const u = makeStuff(() => new RadioactiveMaterial());
+    const u = makeStuff(() => new RadioactiveMetal());
     u.setHalfLife(4.468e9);
     u.setDecayMode('alpha');
     expect(u.getHalfLife()).toBe(4.468e9);
@@ -53,12 +53,12 @@ describe('RadioactivityMixin / RadioactiveMaterial', () => {
 
   it('decayProduct cross-reference resolves lazily', () => {
     const thorium = withTemplatePath(
-      makeStuff(() => new RadioactiveMaterial()),
+      makeStuff(() => new RadioactiveMetal()),
       '/stuff/idea/material/element/thorium'
     );
     thorium.setName('thorium');
 
-    const uranium = makeStuff(() => new RadioactiveMaterial());
+    const uranium = makeStuff(() => new RadioactiveMetal());
     uranium.setHalfLife(4.468e9);
     uranium.setDecayMode('alpha');
     uranium.setDecayProduct(thorium);
@@ -68,14 +68,14 @@ describe('RadioactivityMixin / RadioactiveMaterial', () => {
   });
 
   it('getDecayProduct returns null when path is unset', () => {
-    const u = makeStuff(() => new RadioactiveMaterial());
+    const u = makeStuff(() => new RadioactiveMetal());
     expect(u.getDecayProduct()).toBeNull();
   });
 
   it('setDecayProduct(null) clears the path', () => {
-    const u = makeStuff(() => new RadioactiveMaterial());
+    const u = makeStuff(() => new RadioactiveMetal());
     const product = withTemplatePath(
-      makeStuff(() => new RadioactiveMaterial()),
+      makeStuff(() => new RadioactiveMetal()),
       '/stuff/idea/material/element/thorium'
     );
     u.setDecayProduct(product);
@@ -85,15 +85,13 @@ describe('RadioactivityMixin / RadioactiveMaterial', () => {
   });
 
   it('inherits the full Material surface (tags, composition, chemistry)', () => {
-    const u = makeStuff(() => new RadioactiveMaterial());
+    const u = makeStuff(() => new RadioactiveMetal());
     u.setName('uranium');
     u.setDensity(Quantity.of(19050, 'kg/m³'));
     u.setTags(['element', 'metal', 'actinide', 'radioactive']);
-    u.setChemistry({
-      symbol: 'U',
-      atomicNumber: 92,
-      molarMass: Quantity.of(238.029, 'g/mol'),
-    });
+    u.setSymbol('U');
+    u.setAtomicNumber(92);
+    u.setMolarMass(Quantity.of(238.029, 'g/mol'));
 
     expect(u.getName()).toBe('uranium');
     expect(u.getDensity().rawValue()).toBe(19050);

@@ -24,14 +24,14 @@
  * as a subclass declaration:
  *
  * ```typescript
- * export class RadioactiveMetal extends RadioactivityMixin(Material) {}
+ * export default class RadioactiveMetal extends RadioactivityMixin(ToxicMetal) {}
  * ```
  *
  * Templates that need the capability use `class:
- * /platform/idea/material/RadioactiveMetal`. Templates that don't stay on
- * plain `class: /platform/idea/material/Material`. Future capability mixins
- * (`SuperconductorMixin`, `PiezoelectricMixin`, …) layer the same
- * way — one subclass per composed combination.
+ * /platform/idea/material/RadioactiveMetal`. It is the one
+ * capability only one kind composes; a future one (`SuperconductorMixin`,
+ * `PiezoelectricMixin`, …) goes on the kind whose members have it, or on a
+ * one-step child — never a class per combination (material decomposition).
  *
  * **Cross-reference shape (LOCKED).** `_decayProductPath` is a path
  * string, not a serialized Material. `getDecayProduct()` resolves on

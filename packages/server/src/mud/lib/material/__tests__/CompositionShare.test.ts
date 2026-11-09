@@ -7,6 +7,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import Material from '../Material';
+import Drink from '../../../platform/idea/material/Drink';
 import { CompositionShare } from '../CompositionShare';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 
@@ -14,7 +15,7 @@ let seq = 0;
 function milk(fat: number, protein: number): Material {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Drink();
     m.setName(`share-milk-${seq}`);
     m.setNutrientAmounts({ fat, protein, sugar: 48000, water: 870000 });
     return m;

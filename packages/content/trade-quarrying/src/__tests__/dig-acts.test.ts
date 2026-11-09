@@ -25,7 +25,7 @@ import Block from '../thing/Block';
 import { LIFT_M, type OpenWorking } from '../lib/OpenWorking';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -66,7 +66,7 @@ let seq = 0;
 
 function seedMaterials(): void {
   const mat = (path: string, name: string, tags: string[], mpa: number): void => {
-    const m = makeStuffAtPath(() => new Material(), path) as unknown as Material & {
+    const m = makeStuffAtPath(() => new Stone(), path) as unknown as Stone & {
       hardness: Quantity<'MPa'>;
     };
     m.setName(name);
@@ -296,7 +296,7 @@ describe('⭐⭐ the effect lands when the timer does', () => {
     const real = makeStuff(() => {
       const b = new Block();
       b.setMass(Quantity.of(1375, 'kg'));
-      b.setMaterial(StuffApi.findByTemplatePath<Material>(GRANITE) as Material);
+      b.setMaterial(StuffApi.findByTemplatePath<Stone>(GRANITE) as Stone);
       return b;
     }) as unknown as Block;
     ContainmentApi.move(

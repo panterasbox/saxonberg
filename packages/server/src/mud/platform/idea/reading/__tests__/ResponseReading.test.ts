@@ -6,6 +6,7 @@ import ResponseReading from '../ResponseReading';
 import Garment from '../../../thing/equipment/Garment';
 import Weapon from '../../../thing/equipment/Weapon';
 import Material from '../../../../lib/material/Material';
+import Metal from '../../material/Metal';
 import Good from '../../../../lib/stuff/Good';
 import { Construction } from '../../../../lib/material/Construction';
 import CartesianZone from '../../location/CartesianZone';
@@ -73,7 +74,7 @@ function makeModel(fields: ModelData): CommandModel {
 }
 
 function steel(): Material {
-  const m = makeStuff(() => new Material());
+  const m = makeStuff(() => new Metal());
   m.setName('steel');
   m.setHardness(Quantity.of(600, 'MPa'));
   m.setToughness(Quantity.of(200, 'MJ/m³'));

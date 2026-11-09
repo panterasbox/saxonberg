@@ -6,7 +6,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Clay from '@saxonberg/server/mud/platform/idea/material/Clay';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -17,7 +17,7 @@ import '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import Brick from '../thing/Brick';
 
 const ROW = '/trade/ceramics/thing/_stack-test/brick';
-let clay: Material;
+let clay: Clay;
 
 function brick(moisture: number): Brick {
   const b = makeStuff(() => {
@@ -39,13 +39,13 @@ beforeEach(() => {
   WorldClockApi._resetForTesting();
   WorldClockApi._setNowProviderForTesting(() => 1_000_000);
   clay = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Clay();
     m.setName('clay');
     m.setTags(['earth', 'plastic', 'clay']);
     m.setDensity(Quantity.of(1800, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(900, 'J/(kg·K)'));
     return m;
-  }, '/stuff/idea/material/_stack-test/clay') as unknown as Material;
+  }, '/stuff/idea/material/_stack-test/clay') as unknown as Clay;
 });
 afterEach(() => WorldClockApi._resetForTesting());
 
@@ -72,15 +72,15 @@ describe('green bricks on a stack', () => {
   });
 
   it('⭐ fired bricks of two bodies do not stack — the clamp\'s grades stay apart (run 37)', () => {
-    const fired = (name: string): Material =>
+    const fired = (name: string): Clay =>
       makeStuffAtPath(() => {
-        const m = new Material();
+        const m = new Clay();
         m.setName(name);
         m.setTags(['ceramic', 'fired']);
         m.setDensity(Quantity.of(1900, 'kg/m³'));
         m.setSpecificHeat(Quantity.of(900, 'J/(kg·K)'));
         return m;
-      }, `/stuff/idea/material/_stack-test/${name}`) as unknown as Material;
+      }, `/stuff/idea/material/_stack-test/${name}`) as unknown as Clay;
     const sound = brick(0.1);
     const clinker = brick(0.1);
     sound.setMaterial(fired('earthenware'));

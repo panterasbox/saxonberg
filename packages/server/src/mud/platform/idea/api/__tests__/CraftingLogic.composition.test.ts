@@ -29,6 +29,7 @@ import { WorldClockApi } from '../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
+import Food from '../../material/Food';
 import Provision from '../../../thing/Provision';
 import CraftVessel from '../../../thing/CraftVessel';
 import Receptacle from '../../../thing/Receptacle';
@@ -91,10 +92,9 @@ function material(
   amounts: Record<string, number> = {},
 ): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName(name);
     m.setTags(tags);
-    m.setEdibility(true);
     m.setNutrientAmounts(amounts);
     m.setDensity(Quantity.of(600, 'kg/m³'));
     return m;
@@ -172,10 +172,9 @@ beforeEach(async () => {
   material(DOUGH, 'dough', ['dough', 'food'], { carb: 500 });
   material(BREAD, 'bread', ['bread', 'food'], { carb: 100 });
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName('blend');
     m.setTags(['blend']);
-    m.setEdibility(true);
     return m;
   }, '/platform/idea/material/blend');
 

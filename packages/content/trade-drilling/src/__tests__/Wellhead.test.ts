@@ -24,7 +24,7 @@ import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Location from '@saxonberg/server/mud/lib/location/Location';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -167,10 +167,10 @@ beforeEach(() => {
   // Resident host rocks, so hardness resolves off the material rather
   // than off the documented fallback.
   for (const [path, mpa] of [[SLATE, 90], [GRANITE, 200]] as const) {
-    const m = makeStuffAtPath(() => new Material(), path);
+    const m = makeStuffAtPath(() => new Stone(), path);
     (m as unknown as { hardness: Quantity<'MPa'> }).hardness = Quantity.of(mpa, 'MPa');
   }
-  makeStuffAtPath(() => new Material(), BRINE);
+  makeStuffAtPath(() => new Stone(), BRINE);
   makeStuffAtPath(() => new BodyRegister(), BODY_REGISTER_PATH);
   makeStuffAtPath(() => new BoreRegistry(), BORE_REGISTRY_PATH);
 });

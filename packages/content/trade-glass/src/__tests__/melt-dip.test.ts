@@ -5,7 +5,8 @@
  */
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, afterEach } from "vitest";
-import Material from "@saxonberg/server/mud/platform/idea/material/Material";
+import Glass from "@saxonberg/server/mud/platform/idea/material/Glass";
+import Material from "@saxonberg/server/mud/lib/material/Material";
 import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
@@ -30,7 +31,7 @@ let seq = 0;
 function melt(tempK: number): Melt {
   seq += 1;
   const glass = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Glass();
     m.setName("glass");
     m.setTags(["glass"]);
     m.setSpecificHeat(Quantity.of(840, "J/(kg·K)"));

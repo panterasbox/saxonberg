@@ -21,6 +21,7 @@ import type Material from './Material';
 import { Colour } from '../perception/Colour';
 import type { ColorTag } from '../perception/Light';
 import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
 
 /** One pigment in a paint, by its share of the pigment mass. */
 export interface PaintPigment {
@@ -77,7 +78,7 @@ export class Paint {
     let b = 0;
     let weight = 0;
     for (const p of this.makeup.pigments) {
-      const spec = this.materialAt(p.material)?.getPigment();
+      const spec = this.pigmentOf(this.materialAt(p.material));
       if (!spec || !(p.share > 0)) continue;
       const fade = Math.min(1, Math.max(0, faded)) * (1 - spec.lightfastness);
       // A fading pigment loses its color toward the white of its ground.
@@ -104,10 +105,10 @@ export class Paint {
   public hidingPower(): number {
     let h = 0;
     for (const p of this.makeup.pigments) {
-      const spec = this.materialAt(p.material)?.getPigment();
+      const spec = this.pigmentOf(this.materialAt(p.material));
       if (spec && p.share > 0) h += p.share * spec.hidingPower;
     }
-    const ownBody = this.binder()?.getPigment()?.hidingPower ?? 0;
+    const ownBody = this.pigmentOf(this.binder())?.hidingPower ?? 0;
     return Math.min(1, Math.max(h, ownBody));
   }
 
@@ -115,7 +116,7 @@ export class Paint {
   public lightfastness(): number {
     let least = 1;
     for (const p of this.makeup.pigments) {
-      const spec = this.materialAt(p.material)?.getPigment();
+      const spec = this.pigmentOf(this.materialAt(p.material));
       if (spec && p.share > 0) least = Math.min(least, spec.lightfastness);
     }
     return least;
@@ -123,7 +124,8 @@ export class Paint {
 
   /** The word a look uses for a sound coat — the binder's (*painted*, *limewashed*). */
   public coatWord(): string {
-    return this.binder()?.getCoatWord() ?? 'painted';
+    const binder = this.binder();
+    return (binder && MixinApi.hasCoating(binder) ? binder.getCoatWord() : null) ?? 'painted';
   }
 
   /** Litres it takes to lay a set coat `thicknessM` thick over `areaM2`. */
@@ -158,8 +160,13 @@ export class Paint {
     return `${color} paint: ${list} in ${binder}`;
   }
 
+  /** A material's pigment spec, or `null` when it has none (no Coating). */
+  private pigmentOf(m: Material | null | undefined) {
+    return m && MixinApi.hasCoating(m) ? m.getPigment() : null;
+  }
+
   private binderColour(): Colour {
-    const own = this.binder()?.getPigment();
+    const own = this.pigmentOf(this.binder());
     return own ? Colour.of(own.transmitR, own.transmitG, own.transmitB) : Colour.UNDYED;
   }
 

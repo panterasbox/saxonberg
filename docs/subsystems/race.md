@@ -98,132 +98,93 @@ follow-on builds:
 
 ## Material substrate
 
-`Material` is a singleton-by-templatePath `Idea` carrying physical
-properties — `density` (`Quantity<'kg/m³'>`), `thermalConductivity`
-(`Quantity<'W/(m·K)'>`), and `specificHeat` (`Quantity<'J/(kg·K)'>`,
-added by the thermal build — the C = m·c half of the Thermal
-capability's τ = R·C, seeded with real values across the material tree
-plus new glass / ceramic / wool / down leaves; see
-[thermal.md](./thermal.md)), the real measured quantities — plus three
-orthogonal layers of classification. (The old fake 0–1 `hardness` /
-`flammability` / `opacity` / electrical / magnetic fields and the
-`resistance.<type>` damage seam were removed: normalized scales with
-zero consumers; they return as real Quantities when a consumer — fire,
-electricity, combat — actually lands.) Later builds add more measured
-properties as their consumers land: `hardness`/`toughness` (materials-
-response), `electricalConductivity` (electricity), and
-**`waterAbsorptionCapacity`** (`Quantity<'%'>`; weather Wave 2 — the real
-ASTM-D570 figure for the water a material holds at saturation, as a percent
-of dry mass: wool ≈ 33 %, wood ≈ 28 %, flesh ≈ 25 %, metals / glass ≈ 0.
-The `WetMixin` gauge reads it to derive the dry rate from evaporation
-physics; see [weather.md](./weather.md)). The **fire build** adds six more:
-`autoignitionTemperature` (`Quantity<'K'>`) + `heatOfCombustion`
-(`Quantity<'MJ/kg'>`) drive the combustion driver, and `meltingPoint` /
-`latentHeatOfFusion` (`J/kg`) + `boilingPoint` / `latentHeatOfVaporization`
-(`J/kg`) drive the phase-change layer — real figures (wood 570 K / 16 MJ/kg,
-iron mp 1811 K, water mp 273 / bp 373), `0`-until-authored (an unauthored
-material never ignites, never melts); see [fire.md](./fire.md).
+> ⭐⭐ **Decomposed 2026-11 (the material decomposition build).** A material has exactly the
+> properties it has. The base class carries only what every material has; everything else is a
+> **capability** a **kind** composes. History and the census: § History below;
+> [material-decomposition-slate](../slates/builds/material-decomposition-slate.md) §§ 7¾–7⅞.
 
-- **Tags** (`tags: string[]`) — free-form classification strings
-  (`'metal'`, `'alloy'`, `'igneous'`, `'organic'`, `'fantasy'`).
-  Vocabulary is not centrally registered; content devs introduce new
-  tags as they need them. Used for educational filtering and any
-  orthogonal grouping.
-- **Composition** (`composition: { materialPath, fraction }[]`) — for
-  mixtures and alloys, weight-fraction references to constituent
-  Materials (steel → 0.998 iron + 0.002 carbon). `MaterialApi`
-  recursively expands these to leaf-element symbol fractions, so
-  "does this contain iron?" works regardless of how nested the
-  alloy/mixture chain is.
-- **Chemistry** — atomic-/molecular-level science data, decomposed
-  into four flat scalar persistent fields per the scalar-default
-  rule:
-  - `symbol: string | null` (element-only)
-  - `atomicNumber: number | null` (element-only)
-  - `formula: string | null` (compound-only)
-  - `molarMass: Quantity<'g/mol'> | null` (element-or-compound;
-    round-trips through `QuantityMarshaller.pathFor('g/mol')`)
+`Material` (`lib/material/Material.ts`) is a singleton-by-templatePath `Idea` holding only what
+EVERY material has: `name`, `appearance`, `tags`, `density` (`kg/m³`), `thermalConductivity`
+(`W/(m·K)`), `specificHeat` (`J/(kg·K)`), `electricalConductivity` (`S/m`), the derived
+`getEffusivity()`, and `cleanser` (what it washes as — a role soap, lye, sand, spirit and vinegar
+all play, so not a capability). Nothing instances it directly: **no row names the base class.**
 
-  Elements populate `symbol/atomicNumber/molarMass`; compounds
-  populate `formula/molarMass`; mixtures leave all four unset and
-  rely on the composition layer.
+### Capabilities — named for the physics
 
-  `getChemistry` / `setChemistry` is a convenience aggregate over
-  the four fields — `getChemistry` returns null when none are
-  populated, otherwise returns an `ElementChemistry` view; the
-  setter REPLACES the whole chemistry block (use the per-field
-  setters for partial updates). See
-  [quantities.md](./quantities.md) for the `Quantity<'g/mol'>`
-  substrate.
+Each group of fields a material may or may not have is a mixin in `lib/material/`, named for the
+property as a **noun**, with a `MixinApi.has<X>` predicate:
 
-Plus `biologicalSource: { speciesPath, tissueType } | null` for
-organic materials linking back to a Species template (bidirectional
-with `Species._defaultMaterialPath`).
+| capability | fields |
+|---|---|
+| `Combustion` | heatOfCombustion · autoignitionTemperature · flammableLimit · combustionImparts · combustionProducts · ashFraction · alkaliShare · smokePoint · burning |
+| `Fusion` | meltingPoint (= the freezing point, read both ways) · latentHeatOfFusion · castTemplate · chillsTo · ruinedByFreezing (+ castShrinkage) |
+| `Volatility` | boilingPoint · latentHeatOfVaporization · vapourLPerLPerHour · vapourMaterial · vaporizesAboveK |
+| `Solidity` | hardness · toughness · elasticity · cleavability · thermalExpansion · brokenTemplate |
+| `Porosity` | waterAbsorptionCapacity · wetStrength · soddenTemplate (+ the wet law) |
+| `Edibility` | tastes · nutrients · nutrientAmounts · servingKg — composing it IS "edible" |
+| `Toxicity` | toxicity · leaches (what a face gives its contents) |
+| `Perishability` | spoilActivationEnergy · waterActivity |
+| `Acidity` | ph · corrosiveTo (+ acidAttack, corrodeOnContact) |
+| `Solution` | solubility · crystallizesTo · filteredTo · solidsKgPerL · boilingPointElevation · concentratesTo · purifiedByBoiling |
+| `Kinetic` | kinetics · formTemplates · drainSetting |
+| `Shrinkage` | seasoningDays · greenShrinkage |
+| `Coating` | laysCoat · coatWord · weatheringMPerGameYear · pigment · adhesive |
+| `Optics` | lightAbsorption |
+| `Tissue` | biologicalSource |
+| `Odor` | smells |
+| `Radioactivity` · `Muscle` | halfLife · decayMode · decay product · work |
 
-**Substance identity (Bulk build).** `Material` also composes
-`PerceptibleMixin` (a keyword pool) and carries an `appearance` prose
-phrase. The keywords let a bulk holder be addressed by what it holds
-(`drink coffee`), and `appearance` is the rendered phrase a holder
-speaks / shows. `Material` deliberately does **not** compose
-`Visible` / `Named` — substance identity stays out of the
-perception-target machinery, so material keywords never leak into room
-scope. See [bulk.md](./bulk.md).
+**Chemical identity** is three exclusive capabilities — `Element` (symbol · atomicNumber ·
+molarMass), `Compound` (formula · molarMass), `Mixture` (composition, and the recursive elemental
+composition `MaterialApi` derives) — and no kind composes two. Iron is an element and bronze a
+mixture; both are metals.
 
-### Capability mixins
+⛔ **Consumers depend on capabilities, never on kinds.** Ask `MixinApi.hasFusion(m)` before reading
+a melting point; never whether the material is a `Metal`, and never sort materials by folder.
+`lint:material-kinds` arm (a) holds the count at zero; the wiki's `<materials>` listing is the one
+reader of kinds, by class name.
 
-> ⭐ **2026-10-30 → [material-decomposition-slate](../slates/builds/material-decomposition-slate.md)**
-> (the owner): the pattern below is to be applied across the whole class — the base keeps only what
-> every material has, chemical identity becomes the class axis, capabilities become mixins, and family
-> backing classes compose them. The census found 77 capability combinations across 347 rows.
+### Kinds — what the substance is
 
-Most classification is metadata — flat strings or refs. Some
-classifications carry behavior. **`RadioactiveMixin`**
-(`/stuff/idea/material/Radioactive.ts`) is the v1 demonstration of the
-capability-mixin pattern:
+A material's **class is its kind** (`platform/idea/material/<Kind>.ts`, over the abstract
+`Mineral` / `Organic` / `Plant` / `Animal` in `lib/material/`). Organic or mineral is the first
+split; `PigmentPaint` and `Glue` sit outside it (ochre and lead white are mineral). Each kind
+composes what its members **physically share or most use**; an exception is a one-step child
+(`EdibleSalt`, `ToxicAlloy`, `FuelGas`); a capability most members turn out to need moves up a level.
+Every kind file's header names what it composes — that is the table. The rules the tree keeps
+(owner, 2026-11-07): capabilities describe the substance, not the game · the tree is chemistry, not
+culture (uses and lore live in rows) · the leaves are the fragile, cheap part.
 
-```ts
-export class RadioactiveMaterial extends RadioactiveMixin(Material) {}
-```
+**Absent is absent.** A material without a capability has no such field: there is no
+`edibility: false`, no `meltingPoint: 0` meaning "does not melt". `lint:material-kinds` refuses an
+authored "not applicable" (arm c) and a key the kind does not declare (arm b — the applier drops
+undeclared keys silently, which is how `chemistry:` sat dead on 43 rows). A capability a kind
+composes but a row has not authored yet is a **data gap**, counted per pack by arm (d) and
+ratcheted down by the trades that own the rows.
 
-The mixin adds `getHalfLife()`, `getDecayMode()` (alpha / beta-minus
-/ beta-plus / gamma / spontaneous-fission / electron-capture), and
-`getDecayProduct()` — a lazy cross-reference to the daughter
-Material. Templates that need it use `class:
-/platform/idea/material/RadioactiveMaterial`; everything else stays on
-`class: /platform/idea/material/Material`. `MixinApi.isRadioactive(m)` narrows
-the typed surface.
+**The test for an author** — does a new material need code? No, if an existing kind fits (one
+row); one class in the author's own pack if it needs a capability its kind lacks (arcana's
+`PotionMaterial extends …(Drink)` is the precedent); a kernel change only for a capability that
+does not exist yet.
 
-Why a mixin and not a tag: radioactivity carries non-trivial
-behavioral surface (half-life arithmetic, decay chains, decay-mode
-taxonomy) and is sparse — most materials aren't radioactive, and the
-fields are meaningless on those that aren't. Future capability
-mixins (`SuperconductorMixin`, `PiezoelectricMixin`, …) layer the
-same way: one subclass per composed combination.
+**Substance identity (Bulk build).** `Material` also composes `PerceptibleMixin` (a keyword pool)
+and carries an `appearance` prose phrase. The keywords let a bulk holder be addressed by what it
+holds (`drink coffee`), and `appearance` is the rendered phrase a holder speaks / shows. `Material`
+deliberately does **not** compose `Visible` / `Named` — substance identity stays out of the
+perception-target machinery. See [bulk.md](./bulk.md).
 
-Phase-of-matter (`solid/liquid/gas`) is not a capability mixin —
-it's state, not identity. Iron is solid at room temp, liquid at
-1538 °C; the material's identity is invariant to state.
+Phase-of-matter (`solid/liquid/gas`) is not a capability — it is state, not identity.
 
-### The fixed-vocabulary rule (and `ConsumableMaterial`)
+### The fixed-vocabulary rule
 
-The material library is a **curated, closed vocabulary an author
-selects from** — never an open content catalog. The granularity test
-is *substrate-read properties*: two rows exist only when they differ
-in what the machinery reads (macros, density, hardness, spoilage) —
-eggs and steak are different kinds; ribeye and sirloin are one `meat`
-(that spread is `Grade` + prose on the instance). Growing the library
-is a **vocabulary decision, not a content decision**.
-
-**`ConsumableMaterial`** (`/platform/idea/material/ConsumableMaterial`, the
-capability-subclass pattern with no extra fields — taxonomy) marks the
-ingestible half of the vocabulary: the curated food/drink *kinds*
-(meat, root-vegetable, trail-ration, gin…) whose worth is what a body
-does with them, as distinct from the structural matter the
-response/repair/salvage machinery organizes around.
+The material library is a **curated, closed vocabulary an author selects from** — never an open
+content catalog. Two rows exist only when they differ in what the machinery reads (macros, density,
+hardness, spoilage) — eggs and steak are different rows; ribeye and sirloin are one `meat`. Growing
+the library is a **vocabulary decision, not a content decision**.
 
 **Per-dish / per-drink substances are never material rows.** A mixture
 (a plated stew, a mixed cocktail) is a *derived blend*: its bulk slot
-points at ONE generic ConsumableMaterial (`/platform/idea/material/cooked`,
+points at ONE generic `Food` row (`/platform/idea/material/cooked`,
 `cocktail/mixed` — physics + routing homes) and the blend's identity +
 macros ride the holder's per-instance **`BulkPayload`** (see
 [bulk.md](./bulk.md)), computed from the consumed inputs — macros in =
@@ -284,7 +245,7 @@ all overlay via tags. Path depth varies by branch: shallow where one
 level reads naturally; deeper when content earns it.
 
 - `/stuff/idea/material/element/iron, copper, carbon` — pure elements
-- `/stuff/idea/material/element/uranium` — `RadioactiveMaterial` (the
+- `/stuff/idea/material/element/uranium` — `RadioactiveMetal` (the
   capability-mixin demo)
 - `/stuff/idea/material/alloy/steel` — Fe + C composition
 - `/stuff/idea/material/rock/granite` — igneous; mineral composition unmodeled
@@ -1106,7 +1067,7 @@ replacement of singletons.
 
 ## ⭐ `Muscle` — the Material subclass that is meat
 
-`MuscleMixin` + `platform/idea/material/Muscle` (the `RadioactiveMaterial`
+`MuscleMixin` + `platform/idea/material/Muscle` (the capability-kind
 pattern) carry one field, `work` — *how hard this muscle worked in life*,
 `0..1` — from which a cut's texture derives, and which nothing authors on
 the cut. Rows live at `/stuff/idea/material/tissue/muscles/<name>`, a
@@ -1117,3 +1078,15 @@ have had to guard on a tag. ⚠ Not a reuse of `toughness`, which is the
 blunt channel's MJ·m⁻³ — reusing it would make a shank harder to *bruise*
 than a loin in a fight. See [butchery.md](./butchery.md).
 
+
+## History
+
+- **2026-11 — the material decomposition.** `Material` had grown to ~80 fields over every build that
+  needed a property (a granite row carried heat of combustion, edibility and seasoning days, set to
+  "not applicable"), and each capability pulled out before (`Radioactive`, `Odorous`, `Muscle`)
+  needed a combination class the moment a second met it (`OdorousConsumableMaterial`). The build
+  split the class into the capabilities and the kinds above, re-homed all 389 rows, retired the
+  `edibility` flag (composing `Edibility` is the fact), the platform `Material` twin and the four
+  combination classes, and fixed the defects the census found (lye and saltpeter "edible", two
+  `iron`s, metals holding water, `chemistry:` never applied). The decisions it made against the
+  plan are D12–D23 in `docs/plans/material-decomposition-plan.md` until the sweep.

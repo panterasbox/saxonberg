@@ -2,7 +2,7 @@
 # glued to the hurd. Tagged `retting-hemp`, not `retting`, so the pit
 # runs the hemp profile on it and never the flax one (two profiles matching
 # one material is an authoring error).
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Fiber
 data:
   smells: [{ aroma: /base-library/aromas/straw, strength: 15 }]
   name: hemp straw
@@ -15,9 +15,5 @@ data:
   specificHeat: 1360
   electricalConductivity: 1.0e-11
   waterAbsorptionCapacity: 60
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["plant", "organic", "once-living", "fibre-stock", "retting-hemp"]
-  composition: []
   biologicalSource: { speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/rosales/cannabaceae/cannabis/sativa, tissueType: stem }

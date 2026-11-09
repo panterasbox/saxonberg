@@ -21,6 +21,9 @@ import { fileURLToPath } from 'url';
 import { join } from 'path';
 import YAML from 'yaml';
 import Material from '../Material';
+import Acid from '../../../platform/idea/material/Acid';
+import Lye from '../../../platform/idea/material/Lye';
+import ToxicMetal from '../../../platform/idea/material/ToxicMetal';
 import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { QuantityMarshaller } from '../../../platform/idea/persistence/QuantityMarshaller';
 import type { Unit } from '../../quantity';
@@ -63,10 +66,22 @@ const INJURY_MATERIAL_ROWS = [
   'base-library/content/stuff/idea/material/element/lead.yaml',
 ];
 
-function rowData(rel: string): Record<string, unknown> {
-  const parsed = YAML.parse(readFileSync(join(CONTENT, rel), 'utf8')) as {
+/** A row hydrates into its OWN `class:` kind — the kind is the capabilities. */
+const KIND_OF_CLASS: Readonly<Record<string, () => Material>> = {
+  '/platform/idea/material/Acid': () => new Acid(),
+  '/platform/idea/material/Lye': () => new Lye(),
+  '/platform/idea/material/ToxicMetal': () => new ToxicMetal(),
+};
+
+function parseRow(rel: string): { class?: string; data?: Record<string, unknown> } {
+  return YAML.parse(readFileSync(join(CONTENT, rel), 'utf8')) as {
+    class?: string;
     data?: Record<string, unknown>;
   };
+}
+
+function rowData(rel: string): Record<string, unknown> {
+  const parsed = parseRow(rel);
   // ⚠ `smells` resolves each aroma's ROW (load on use), which needs the
   // store; this test is about the corrosion chemistry, so it hydrates the
   // row without its smell. The smell's own hydration is the senses suite's.
@@ -74,8 +89,10 @@ function rowData(rel: string): Record<string, unknown> {
   return data;
 }
 
-async function hydrate(rel: string): Promise<Material> {
-  const material = makeStuff(() => new Material());
+async function hydrate<T extends Material = Material>(rel: string): Promise<T> {
+  const make = KIND_OF_CLASS[parseRow(rel).class ?? ''];
+  if (!make) throw new Error(`no kind registered for the class of ${rel}`);
+  const material = makeStuff(make) as T;
   const hydrator = makeStuff(() => new TemplateApplier());
   await hydrator.apply(material as never, rowData(rel), { mode: 'mint' });
   return material;
@@ -97,7 +114,7 @@ describe("the injury MR's material rows hydrate cleanly", () => {
     // A zero-amount toxicity entry (`[{ type: lead, amount: 0 }]`) was a
     // sentinel every reader skipped; the material decomposition retired it.
     // What lead gives a body is what its face gives the contents it holds.
-    const lead = await hydrate(
+    const lead = await hydrate<ToxicMetal>(
       'base-library/content/stuff/idea/material/element/lead.yaml',
     );
     expect(lead.getLeaches()[0]).toMatchObject({
@@ -107,7 +124,7 @@ describe("the injury MR's material rows hydrate cleanly", () => {
   });
 
   it('⭐ vitriol carries its corrosive chemistry — the acid eats metal', async () => {
-    const vitriol = await hydrate(
+    const vitriol = await hydrate<Acid>(
       'base-library/content/stuff/idea/material/bulk/vitriol.yaml',
     );
     expect(vitriol.getCorrosiveTo()).toContain('metal');

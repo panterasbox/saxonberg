@@ -4,15 +4,11 @@
  * hand-written copy of them.
  */
 import { Aroma } from '@saxonberg/server/mud/lib/perception/Aroma';
-import { OdorousMaterial } from '@saxonberg/server/mud/platform/idea/material/OdorousMaterial';
-import { OdorousConsumableMaterial } from '@saxonberg/server/mud/platform/idea/material/OdorousConsumableMaterial';
 import { readFileSync, existsSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
-import { ConsumableMaterial } from '@saxonberg/server/mud/platform/idea/material/ConsumableMaterial';
 import MaturationProfile from '@saxonberg/server/mud/platform/idea/maturation/MaturationProfile';
 import FractionSchedule from '@saxonberg/server/mud/platform/idea/fractionation/FractionSchedule';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -28,11 +24,6 @@ export const CONTENT = join(dirname(fileURLToPath(import.meta.url)), '..', '..',
 export const PACK = join(CONTENT, 'trade-dairying');
 
 const CLASSES: Record<string, () => Stuff> = {
-  '/platform/idea/material/Material': () => new Material(),
-  '/platform/idea/material/ConsumableMaterial': () => new ConsumableMaterial(),
-  // A smell's words are stood up beside the row in `hydrate`, below.
-  '/platform/idea/material/OdorousMaterial': () => new OdorousMaterial(),
-  '/platform/idea/material/OdorousConsumableMaterial': () => new OdorousConsumableMaterial(),
   '/platform/idea/maturation/MaturationProfile': () => new MaturationProfile(),
   '/platform/idea/fractionation/FractionSchedule': () => new FractionSchedule(),
 };
@@ -58,7 +49,14 @@ export async function hydrate<T extends Stuff>(path: string): Promise<T> {
   const found = StuffApi.findByTemplatePath<T>(path);
   if (found) return found;
   const row = readRow(path);
-  const make = CLASSES[row.class];
+  // ⭐ A material row names its KIND (material decomposition); every kind is
+  // a module at its class path, so the row's own class is loaded — never a
+  // stand-in that would silently drop the fields its kind declares.
+  let make = CLASSES[row.class];
+  if (!make && row.class.startsWith('/platform/idea/material/')) {
+    const Kind = ((await import(`@saxonberg/server/mud${row.class}`)) as { default: new () => Stuff }).default;
+    make = () => new Kind();
+  }
   if (!make) throw new Error(`rows.ts: no class for ${row.class}`);
   const s = makeStuffAtPath(make, path) as unknown as T;
   // ⚠ `composition` and `electricalConductivity` reach the clone pipeline

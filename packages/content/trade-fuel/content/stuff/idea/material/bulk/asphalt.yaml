@@ -6,7 +6,7 @@
 # cold, it will not burn usefully, and the one thing it is unarguably
 # good for is roads — which is a later build's business and a fine
 # reason for this row to exist now, holding the bottom of the barrel.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Oil
 data:
   smells: [{ aroma: /base-library/aromas/asphalt, strength: 1000 }]
   burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 800 }]
@@ -23,8 +23,4 @@ data:
   latentHeatOfVaporization: 350000
   heatOfCombustion: 40
   autoignitionTemperature: 760
-  edibility: false
-  nutrients: []
   tags: [liquid, tar, flammable]
-  composition: []
-  biologicalSource: null

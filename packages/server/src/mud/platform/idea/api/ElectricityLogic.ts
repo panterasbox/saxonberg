@@ -199,7 +199,7 @@ function effectiveSigma(layer: Stuff, fluidSigma: number): number {
   if (!mat) return 0;
   const dry = mat.getElectricalConductivity().rawValue();
   const saturation = MixinApi.isWet(layer) ? layer.getWetness() : 0;
-  return saturation > 0 ? mat.wetProperty(dry, fluidSigma, saturation) : dry;
+  return saturation > 0 && MixinApi.hasPorosity(mat) ? mat.wetProperty(dry, fluidSigma, saturation) : dry;
 }
 
 function contentsOf(room: Stuff): Stuff[] {

@@ -188,7 +188,9 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const massKg = self.getMass().rawValue();
       const mat = self.getMaterial();
       const pct = mat
-        ? mat.getWaterAbsorptionCapacity().rawValue()
+        ? MixinApi.hasPorosity(mat)
+          ? mat.getWaterAbsorptionCapacity().rawValue()
+          : 0
         : dial(AppSettingKeys.wetnessAbsorptionCapacityDefaultPct, 5);
       return Math.max(0, massKg * pct) / 100;
     }
@@ -323,7 +325,7 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (MixinApi.isTangible(self)) {
         const mat = self.getMaterial();
-        if (mat) capacityPct = mat.getWaterAbsorptionCapacity().rawValue();
+        if (mat) capacityPct = MixinApi.hasPorosity(mat) ? mat.getWaterAbsorptionCapacity().rawValue() : 0;
       }
       const CAPACITY_FLOOR_PCT = 0.1;
       const cap =

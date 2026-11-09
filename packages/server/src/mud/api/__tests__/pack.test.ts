@@ -24,7 +24,7 @@ import { SecurityError } from '../../lib/security/errors';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
-const MATERIAL = '/platform/idea/material/Material';
+const MATERIAL = '/platform/idea/material/Residue';
 const HYDRATOR = '/platform/idea/TemplateApplier';
 
 interface Row extends Record<string, unknown> {

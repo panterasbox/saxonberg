@@ -9,7 +9,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Sheet from '../Sheet';
 import Holder from '../../../lib/stuff/Holder';
 import Good from '../../../lib/stuff/Good';
-import Material from '../../../lib/material/Material';
+import Fiber from '../../idea/material/Fiber';
+import Residue from '../../idea/material/Residue';
 import { BulkableMixin } from '../../../lib/bulk/Bulkable';
 import { Quantity } from '../../../lib/quantity';
 import { StuffApi } from '../../../api/stuff';
@@ -29,7 +30,8 @@ const SHEET_ROW = '/test/thing/sheet';
 
 function material(path: string, tags: string[]): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    // Paper is cellulose (a fibre, which can be sodden); ink and ash are residues.
+    const m = path === PAPER ? new Fiber() : new Residue();
     m.setName(path.split('/').pop()!);
     m.setDensity(Quantity.of(900, 'kg/m³'));
     m.setTags(tags);
@@ -41,7 +43,7 @@ function sheet(opts: { sized?: boolean; quantity?: number } = {}): Sheet {
   const s = makeStuff(() => {
     const x = new Sheet();
     x.setMass(Quantity.of(0.005, 'kg'));
-    x.setMaterial(StuffApi.findByTemplatePath<Material>(PAPER)!);
+    x.setMaterial(StuffApi.findByTemplatePath<Fiber>(PAPER)!);
     x.setWritingRoom(200);
     x.sized = opts.sized ?? true;
     if (opts.quantity) x.setQuantity(opts.quantity);
@@ -57,7 +59,7 @@ function inkPot(litres = 0.05): Pot {
     p.setMass(Quantity.of(0.2, 'kg'));
     p.interiorBulk = true;
     p.setInteriorCapacity(Quantity.of(0.1, 'L'));
-    p.setBulkMaterial('interior', StuffApi.findByTemplatePath<Material>(INK)!);
+    p.setBulkMaterial('interior', StuffApi.findByTemplatePath<Fiber>(INK)!);
     p.setBulkAmount('interior', Quantity.of(litres, 'L'));
     return p;
   });
@@ -75,7 +77,7 @@ beforeEach(() => {
   vi.spyOn(MessageApi, 'scene').mockReturnValue(scene as never);
   material(INK, ['ink']);
   material(PAPER, ['paper', 'cellulose']);
-  StuffApi.findByTemplatePath<Material>(PAPER)!.setWetStrength(0.1);
+  StuffApi.findByTemplatePath<Fiber>(PAPER)!.setWetStrength(0.1);
   material(ASH, ['residue']);
 });
 
@@ -177,7 +179,7 @@ describe('⭐ paper fails', () => {
     s.setMarkText('a secret');
     s.setCharMaterialPath(ASH);
     expect(s.getMarkText()).toBe('a secret');
-    s.setMaterial(StuffApi.findByTemplatePath<Material>(ASH)!);
+    s.setMaterial(StuffApi.findByTemplatePath<Fiber>(ASH)!);
     expect(s.getMarkText()).toMatch(/ash/);
   });
 });

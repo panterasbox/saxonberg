@@ -39,6 +39,7 @@ import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup'
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import type { SenseChannel } from '../../description/Perceiver';
 import '../../../platform/idea/WorldClockRegistry';
+import Food from '../../../platform/idea/material/Food';
 
 const HOUR = 3600;
 const DAY = 24 * HOUR;
@@ -106,7 +107,7 @@ let matSeq = 0;
 function material(aw = 0.99): Material {
   matSeq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName(`contam-test-mat-${matSeq}`);
     m.setSpecificHeat(Quantity.of(3200, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.5, 'W/(m·K)'));

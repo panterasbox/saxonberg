@@ -16,7 +16,7 @@ import Species from '../../species/Species';
 import BodyPlan from '../../species/BodyPlan';
 import Garment from '../../../thing/equipment/Garment';
 import Weapon from '../../../thing/equipment/Weapon';
-import Material from '../../../../lib/material/Material';
+import Metal from '../../material/Metal';
 import { Construction } from '../../../../lib/material/Construction';
 import { StuffApi } from '../../../../api/stuff';
 import { Quantity } from '../../../../lib/quantity';
@@ -30,8 +30,8 @@ import type { Trauma } from '../../Condition';
 // Per-instance unique paths — several bodies / materials coexist in one test.
 let seq = 0;
 
-function mat(hardness: number, toughness: number): Material {
-  const m = makeStuff(() => new Material());
+function mat(hardness: number, toughness: number): Metal {
+  const m = makeStuff(() => new Metal());
   m.setHardness(Quantity.of(hardness, 'MPa'));
   m.setToughness(Quantity.of(toughness, 'MJ/m³'));
   stampTemplatePathForTest(m, `/stuff/idea/material/test/m-${seq++}`);
@@ -42,8 +42,8 @@ const steel = () => mat(600, 200);
 const wool = () => mat(3, 4);
 
 /** A Material with a thermal conductivity — the heat channel's height. */
-function thermalMat(conductivityWmK: number): Material {
-  const m = makeStuff(() => new Material());
+function thermalMat(conductivityWmK: number): Metal {
+  const m = makeStuff(() => new Metal());
   m.setThermalConductivity(Quantity.of(conductivityWmK, 'W/(m·K)'));
   stampTemplatePathForTest(m, `/stuff/idea/material/test/tm-${seq++}`);
   return m;
@@ -104,7 +104,7 @@ function bodied(): Creature {
 }
 
 /** Wear a piece of armor of `material` + `form` on the torso of `c`. */
-function wearTorso(c: Creature, material: Material, form: string): Garment {
+function wearTorso(c: Creature, material: Metal, form: string): Garment {
   const a = makeStuff(() => new Garment());
   a.setMaterial(material);
   a.setConstruction(Construction.of(form));

@@ -11,7 +11,7 @@
 # perishable — milling is what breaks the seed coat and lets the oil out,
 # which is the honest reason flour keeps worse than the grain it came
 # from.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFood
 data:
   smells: [{ aroma: /base-library/aromas/grain, strength: 15 }]
   tastes: [{ type: sweet, amount: 8 }]
@@ -25,13 +25,10 @@ data:
   waterAbsorptionCapacity: 14
   hardness: 22
   toughness: 2
-  edibility: true
   nutrients: ["carb", "protein"]
   # ⭐ On BARLEY'S SCALE deliberately (per-tonne figures), so the two
   # cereals are comparable and the nitrogen ledger reads one unit.
   # Wheat carries more protein and correspondingly more nitrogen off the
   # field — which is why its `nutrientDraw` is higher.
   nutrientAmounts: { carb: 715000, protein: 127000 }
-  toxicity: []
   tags: ["food", "grain", "cereal", "wheat", "feed"]
-  composition: []

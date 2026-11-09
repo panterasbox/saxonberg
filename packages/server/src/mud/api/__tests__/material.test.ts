@@ -4,7 +4,11 @@ import { MaterialApi } from '../material';
 import { MaterialLogic } from '../../platform/idea/api/MaterialLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
-import Material from '../../lib/material/Material';
+import Wood from '../../platform/idea/material/Wood';
+import ElementalMetal from '../../platform/idea/material/ElementalMetal';
+import NonMetal from '../../platform/idea/material/NonMetal';
+import Alloy from '../../platform/idea/material/Alloy';
+import Ore from '../../platform/idea/material/Ore';
 import Good from '../../lib/stuff/Good';
 import { Idea } from '../../lib/stuff/Idea';
 import { MixinApi } from '../mixin';
@@ -39,7 +43,7 @@ describe('Tangible.getMaterial (direct object read)', () => {
   });
 
   it('returns the Material singleton for a Tangible Stuff with a path set', () => {
-    const oak = makeStuff(() => new Material());
+    const oak = makeStuff(() => new Wood());
     oak.setName('oak');
     stampTemplatePathForTest(oak, '/stuff/idea/material/wood/oak');
 
@@ -51,9 +55,9 @@ describe('Tangible.getMaterial (direct object read)', () => {
   });
 
   it('reads per-Detail overrides when detailKey is supplied', () => {
-    const oak = makeStuff(() => new Material());
+    const oak = makeStuff(() => new Wood());
     stampTemplatePathForTest(oak, '/stuff/idea/material/wood/oak');
-    const iron = makeStuff(() => new Material());
+    const iron = makeStuff(() => new ElementalMetal());
     stampTemplatePathForTest(iron, '/stuff/idea/material/element/iron');
 
     const axe = makeStuff(() => new Good());
@@ -83,36 +87,32 @@ describe('MaterialApi v2 — classification queries', () => {
   });
 
   function setupSteel(): {
-    iron: Material;
-    carbon: Material;
-    steel: Material;
+    iron: ElementalMetal;
+    carbon: NonMetal;
+    steel: Alloy;
   } {
     const iron = withTemplatePath(
-      makeStuff(() => new Material()),
+      makeStuff(() => new ElementalMetal()),
       '/stuff/idea/material/element/iron'
     );
     iron.setName('iron');
     iron.setTags(['element', 'metal', 'ferrous']);
-    iron.setChemistry({
-      symbol: 'Fe',
-      atomicNumber: 26,
-      molarMass: Quantity.of(55.845, 'g/mol'),
-    });
+    iron.setSymbol('Fe');
+    iron.setAtomicNumber(26);
+    iron.setMolarMass(Quantity.of(55.845, 'g/mol'));
 
     const carbon = withTemplatePath(
-      makeStuff(() => new Material()),
+      makeStuff(() => new NonMetal()),
       '/stuff/idea/material/element/carbon'
     );
     carbon.setName('carbon');
     carbon.setTags(['element', 'non-metal']);
-    carbon.setChemistry({
-      symbol: 'C',
-      atomicNumber: 6,
-      molarMass: Quantity.of(12.011, 'g/mol'),
-    });
+    carbon.setSymbol('C');
+    carbon.setAtomicNumber(6);
+    carbon.setMolarMass(Quantity.of(12.011, 'g/mol'));
 
     const steel = withTemplatePath(
-      makeStuff(() => new Material()),
+      makeStuff(() => new Alloy()),
       '/stuff/idea/material/alloy/steel'
     );
     steel.setName('steel');
@@ -126,11 +126,11 @@ describe('MaterialApi v2 — classification queries', () => {
   }
 
   describe('compositionOf', () => {
-    it('a pure element credits its own symbol with full weight', () => {
+    it('a pure element credits its own symbol — it is no mixture, so it carries no composition to expand', () => {
       const { iron } = setupSteel();
-      const result = iron.elementalComposition();
-      expect(result.direct).toEqual([]);
-      expect(result.flat).toEqual({ Fe: 1 });
+      expect(MixinApi.hasMixture(iron)).toBe(false);
+      expect(MaterialApi.findByElement('Fe')).toContain(iron);
+      expect(MaterialApi.findByElement('C')).not.toContain(iron);
     });
 
     it('an alloy expands to leaf-element fractions', () => {
@@ -143,7 +143,7 @@ describe('MaterialApi v2 — classification queries', () => {
 
     it('a mixture without composition refs yields an empty flat map', () => {
       const granite = withTemplatePath(
-        makeStuff(() => new Material()),
+        makeStuff(() => new Ore()),
         '/stuff/idea/material/rock/granite'
       );
       granite.setTags(['rock', 'igneous', 'mixture']);
@@ -156,8 +156,9 @@ describe('MaterialApi v2 — classification queries', () => {
   describe('containsElement', () => {
     it('iron contains Fe; not C', () => {
       const { iron } = setupSteel();
-      expect(iron.containsElement('Fe')).toBe(true);
-      expect(iron.containsElement('C')).toBe(false);
+      const containing = (symbol: string): boolean => MaterialApi.findByElement(symbol).includes(iron);
+      expect(containing('Fe')).toBe(true);
+      expect(containing('C')).toBe(false);
     });
 
     it('steel contains both Fe and C', () => {
@@ -232,8 +233,8 @@ describe('MaterialApi.makeupOf / foldMakeup — combining is one rule (ceramics 
   beforeEach(() => StuffApi.clearAll());
   afterEach(() => StuffApi.clearAll());
 
-  function mat(path: string, composition: { materialPath: string; fraction: number }[] = []): Material {
-    const m = makeStuff(() => new Material());
+  function mat(path: string, composition: { materialPath: string; fraction: number }[] = []): Ore {
+    const m = makeStuff(() => new Ore());
     stampTemplatePathForTest(m, path);
     m.setComposition(composition);
     return m;

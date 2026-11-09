@@ -17,6 +17,7 @@ import {
   MATURATION_MECHANISMS,
 } from '../MaturationProfile';
 import Material from '../../material/Material';
+import Drink from '../../../platform/idea/material/Drink';
 import type { Crafted } from '../../craft/Crafted';
 import { WorldClockApi } from '../../../api/worldclock';
 import { ExecutionContextApi } from '../../../api/execution-context';
@@ -49,7 +50,7 @@ function standFixtures(): void {
   if (stood) return;
   stood = true;
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Drink();
     m.setName('test must');
     m.setTags(['liquid', 'must', 'test-must']);
     m.setNutrients(['water', 'sugar']);
@@ -57,13 +58,13 @@ function standFixtures(): void {
     return m;
   }, MUST);
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Drink();
     m.setName('test wine');
     m.setTags(['liquid', 'wine']);
     return m;
   }, WINE);
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Drink();
     m.setName('test vinegar');
     m.setTags(['liquid', 'vinegar']);
     return m;

@@ -7,10 +7,10 @@
 import '../../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../../../lib/security/__tests__/test-setup';
-import Material from '../../../idea/material/Material';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { Quantity } from '../../../../lib/quantity';
 import Weapon from '../Weapon';
+import Metal from '../../../idea/material/Metal';
 
 describe('a weapon leaves a long impression', () => {
   it('carries its length; an unmeasured one reads as compact', () => {
@@ -18,11 +18,11 @@ describe('a weapon leaves a long impression', () => {
     const sword = makeStuff(() => new Weapon());
     stampTemplatePathForTest(sword, '/stuff/thing/_weapon/arming-sword');
     const steel = makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Metal();
       m.setName('steel');
       m.setDensity(Quantity.of(7850, 'kg/m³'));
       return m;
-    }, '/stuff/idea/material/_weapon/steel') as unknown as Material;
+    }, '/stuff/idea/material/_weapon/steel') as unknown as Metal;
     sword.setMaterial(steel);
     sword.setMass(Quantity.of(1, 'kg'));
     expect(sword.leaveImpression(0)).not.toBeNull();

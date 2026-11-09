@@ -31,6 +31,7 @@ import Species from "../../species/Species";
 import BodyPlan from "../../species/BodyPlan";
 import Weapon from "../../../thing/equipment/Weapon";
 import Material from "../../../../lib/material/Material";
+import Metal from "../../material/Metal";
 import { Construction } from "../../../../lib/material/Construction";
 import { ContainerMixin } from "../../../../lib/spatial/Container";
 import { ContainmentApi } from "../../../../api/containment";
@@ -53,7 +54,7 @@ class TestFighter extends Character {}
 let seq = 0;
 
 function steel(): Material {
-  const m = makeStuff(() => new Material());
+  const m = makeStuff(() => new Metal());
   m.setHardness(Quantity.of(600, "MPa"));
   m.setToughness(Quantity.of(200, "MJ/m³"));
   m.setName("steel");

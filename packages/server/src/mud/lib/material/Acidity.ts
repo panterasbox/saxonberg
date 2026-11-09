@@ -20,6 +20,7 @@ export interface Acidity {
   setPh(value: number): void;
   acidAttack(pH?: number): number;
   getCorrosiveTo(): readonly string[];
+  setCorrosiveTo(value: readonly string[] | null): void;
   corrodeOnContact( victim: Stuff, opts?: { readonly energy?: number; readonly site?: string; readonly shieldFacing?: boolean; readonly bare?: boolean; }, ): boolean;
 }
 
@@ -114,6 +115,9 @@ export function AcidityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
      * which for corrosion it does not.
      */
     public getCorrosiveTo(): readonly string[] { return this.corrosiveTo; }
+    public setCorrosiveTo(value: readonly string[] | null): void {
+      this.corrosiveTo = (Array.isArray(value) ? value : []).filter((t) => typeof t === 'string' && t !== '');
+    }
 
     /**
      * ⭐⭐ **A caustic substance in contact with a body burns it** — the

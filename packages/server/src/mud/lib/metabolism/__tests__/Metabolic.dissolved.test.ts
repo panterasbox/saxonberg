@@ -19,6 +19,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import Material from '../../material/Material';
+import Food from '../../../platform/idea/material/Food';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -26,10 +27,9 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 
 function spirit(): Material {
   return makeStuff(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName('new-make spirit');
     m.setNutrients(['water']);
-    m.setEdibility(true);
     return m;
   }) as unknown as Material;
 }

@@ -6,7 +6,7 @@
 #
 # ⚠ The tag namespace is `antidote:<toxinType>`, and `<toxinType>` is the
 # metabolism burden key it crashes (`venom`, later `botulinum`, `lead`…).
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/herbal, strength: 100 }]
   tastes: [{ type: bitter, amount: 0.2 }]
@@ -14,8 +14,6 @@ data:
   keywords: [antivenin, antivenom, serum, remedy]
   appearance: a pale amber serum
   density: 1010
-  edibility: true
-  toxicity: []
   # ⭐ The working tag — `dose` reads `antidote:<toxin>` and crashes that
   # burden. One tag, one toxin countered.
   tags: [antidote:venom, liquid, remedy]

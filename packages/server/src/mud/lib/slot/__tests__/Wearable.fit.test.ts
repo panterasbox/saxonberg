@@ -14,7 +14,7 @@ import { SlottableMixin } from '../Slottable';
 import { ConstructedMixin } from '../../material/Constructed';
 import { ContainableMixin } from '../../spatial/Containable';
 import Good from '../../stuff/Good';
-import Material from '../../material/Material';
+import Fiber from '../../../platform/idea/material/Fiber';
 import { Construction } from '../../material/Construction';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
@@ -81,7 +81,7 @@ function body(opts: {
 
 function garment(planPath: string, massKg = 1.0): TestGarment {
   const g = makeStuff(() => new TestGarment());
-  const m = makeStuff(() => new Material());
+  const m = makeStuff(() => new Fiber());
   m.setName(`wool-${seq}`);
   m.setDensity(Quantity.of(1310, 'kg/m³'));
   m.setThermalConductivity(Quantity.of(0.04, 'W/(m·K)'));

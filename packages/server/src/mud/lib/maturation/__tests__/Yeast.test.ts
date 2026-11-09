@@ -11,7 +11,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../../platform/thing/Vat';
 import MaturationProfile from '../../../platform/idea/maturation/MaturationProfile';
-import Material from '../../material/Material';
+import Food from '../../../platform/idea/material/Food';
 import type { Crafted } from '../../craft/Crafted';
 import { WorldClockApi } from '../../../api/worldclock';
 import { BulkableApi } from '../../../api/bulk';
@@ -51,7 +51,7 @@ function standFixtures(): void {
     sugar = 0,
   ): void => {
     makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Food();
       m.setName(name);
       m.setTags(tags);
       if (sugar > 0) {
@@ -127,7 +127,7 @@ function makeVat(tempK: number, capacityL = 100): Vat {
 }
 
 function fill(vat: Vat, materialPath: string, litres: number): void {
-  const m = StuffApi.findByTemplatePath<Material>(materialPath)!;
+  const m = StuffApi.findByTemplatePath<Food>(materialPath)!;
   vat.setBulkMaterial('interior', m);
   vat.setBulkAmount('interior', Quantity.of(litres, 'L'));
 }

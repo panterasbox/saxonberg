@@ -91,10 +91,10 @@ export default class Die extends StrikingDieMixin(MarkedMixin(ToolMixin(DurableM
     if (mat === null || !mat.hasTag('metal')) {
       return { ok: false, reason: 'not-metal' };
     }
-    const mp = mat.getMeltingPoint().rawValue();
+    const mp = MixinApi.hasFusion(mat) ? mat.getMeltingPoint().rawValue() : 0;
     const t = MixinApi.isThermal(blank) ? blank.getTemperature().rawValue() : 0;
     const ease = mp > 0 && t > 0 ? Math.max(0.1, 1 - t / mp) : 1;
-    const stiffN = mat.getHardness().rawValue() * 1e6 * FACE_M2 * ease;
+    const stiffN = (MixinApi.hasSolidity(mat) ? mat.getHardness().rawValue() : 0) * 1e6 * FACE_M2 * ease;
     const forceN = blowJ / STROKE_M;
     if (forceN < stiffN) {
       return { ok: false, reason: 'too-hard' };

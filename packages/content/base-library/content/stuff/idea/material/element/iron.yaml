@@ -1,7 +1,7 @@
 # Iron — Fe, atomic number 26. Workhorse metal: dense, hard,
 # ferromagnetic, mediocre fire behavior at room temp. Standard
 # slash/blunt resistance baseline for weapon-grade materials.
-class: /platform/idea/material/Material
+class: /platform/idea/material/ElementalMetal
 data:
   name: iron
   keywords: [iron]
@@ -22,17 +22,12 @@ data:
   latentHeatOfFusion: 247000
   boilingPoint: 3134
   latentHeatOfVaporization: 6340000
-  edibility: false
-  nutrients: ["iron"]
-  toxicity: [{ type: iron-poisoning, amount: 0 }]
   # ⭐ `forgeable` is the ANVIL's tag, and it is a stock slot's whole
   # test: an anvil recipe takes `forgeable` stock, and hot iron, steel
   # and copper are exactly what an anvil can work. `ferrous` would admit
   # a cast pig (brittle, and it shatters); `metal` would admit a pig and
   # a bloom. One tag, one rule.
   tags: ["element", "metal", "ferrous", "forgeable", "magnetic", "crystalline", "conductor"]
-  composition: []
   symbol: Fe
   atomicNumber: 26
   molarMass: 55.845
-  biologicalSource: null

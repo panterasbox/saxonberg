@@ -27,6 +27,7 @@ import type { FieldMeta } from '../../lib/mixin';
 import Casting from './Casting';
 import { PoolableMixin, type StoreConditions, type StoreResponse } from '../../lib/storage/Poolable';
 import type { PoolRole } from '../../lib/storage/StoreLine';
+import { MixinApi } from '../../api/mixin';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 
@@ -179,14 +180,15 @@ export default class IceBlock extends IceBlockBase {
 
   private meltingPointK(): number {
     const m = this.getMaterial();
-    const mp = m?.getMeltingPoint().rawValue() ?? 0;
+    const mp = m !== null && MixinApi.hasFusion(m) ? m.getMeltingPoint().rawValue() : 0;
     // The material's own plateau (the one `Thermal` melts a loose block
     // at), so the store and the face can never disagree about it.
     return mp > 0 ? mp : ICE_MP_K;
   }
 
   private latentJPerKg(): number {
-    const l = this.getMaterial()?.getLatentHeatOfFusion?.().rawValue() ?? 0;
+    const m = this.getMaterial();
+    const l = m !== null && MixinApi.hasFusion(m) ? m.getLatentHeatOfFusion().rawValue() : 0;
     return l > 0 ? l : ICE_LATENT_J_PER_KG;
   }
 

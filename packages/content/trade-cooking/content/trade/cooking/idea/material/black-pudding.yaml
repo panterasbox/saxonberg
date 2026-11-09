@@ -1,5 +1,5 @@
 # Black pudding — set blood, grain and fat.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/SolidFood
 data:
   smells: [{ aroma: /base-library/aromas/cooked-meat, strength: 200 }, { aroma: /base-library/aromas/blood, strength: 100 }]
   name: black pudding
@@ -11,7 +11,6 @@ data:
   toughness: 1
   electricalConductivity: 0.2
   waterAbsorptionCapacity: 18
-  edibility: true
   tastes: [{ type: salty, amount: 15 }, { type: umami, amount: 3 }]
   # ⭐ Cooked, so it keeps better than anything it was made of — which is
   # the point of a pudding.

@@ -35,7 +35,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Creature } from '../../creature/Creature';
-import Material from '../../material/Material';
+import Food from '../../../platform/idea/material/Food';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { MaterialApi } from '../../../api/material';
@@ -64,14 +64,13 @@ function eaterAt(path = EATER): Creature {
   return makeStuffAtPath(() => new Creature(), path);
 }
 
-function drink(name: string): Material {
+function drink(name: string): Food {
   return makeStuff(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName(name);
     m.setNutrients(['water']);
-    m.setEdibility(true);
     return m;
-  }) as unknown as Material;
+  }) as unknown as Food;
 }
 
 /** Rows the ledger was asked to record. */
@@ -271,13 +270,12 @@ describe('the bad BOTTLE names the hand that cut it', () => {
     seedToxinRow();
     const eater = eaterAt();
     const boozy = makeStuff(() => {
-      const m = new Material();
+      const m = new Food();
       m.setName('spirit');
       m.setNutrients(['water']);
-      m.setEdibility(true);
       m.setToxicity([{ type: TOXIN, amount: 500 }]);
       return m;
-    }) as unknown as Material;
+    }) as unknown as Food;
     eater.ingest(boozy, Quantity.of(0.75, 'L'), 'liquid', {
       maker: COOK,
     } as never);

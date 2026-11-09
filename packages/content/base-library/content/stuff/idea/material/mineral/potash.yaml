@@ -9,7 +9,7 @@
 # The glassmaker's flux (it drops silica's melting point to what a wood
 # fire can reach) and the soapmaker's alkali. Deliquescent: it pulls water
 # from the air and runs to a syrup if it is left open.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Lye
 data:
   smells: [{ aroma: /base-library/aromas/lye, strength: 30 }]
   name: potash
@@ -21,12 +21,7 @@ data:
   meltingPoint: 1164
   electricalConductivity: 1.0e-6
   waterAbsorptionCapacity: 60
-  edibility: false
-  nutrients: ["potassium"]
-  toxicity: []
   # ⭐ `flux`: the glassmaker's (potash D13). `alkali`: the cleansing family.
   tags: [solid, mineral, alkali, potash, flux]
   # What it washes as — softens hard water and cuts grease (potash D15).
   cleanser: /trade/potash/idea/Cleanser/potash
-  composition: []
-  biologicalSource: null

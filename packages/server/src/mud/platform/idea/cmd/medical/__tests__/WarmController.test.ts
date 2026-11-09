@@ -11,6 +11,7 @@ import WarmController from '../WarmController';
 import { Creature } from '../../../../../lib/creature/Creature';
 import Place from '../../../../../lib/stuff/Place';
 import Material from '../../../../../lib/material/Material';
+import Wood from '../../../material/Wood';
 import Good from '../../../../../lib/stuff/Good';
 import { CombustibleMixin } from '../../../../../lib/fire/Combustible';
 import { WetMixin } from '../../../../../lib/wetness/Wet';
@@ -55,7 +56,7 @@ const ctxFor = (actor: unknown): CommandContext =>
 function burningLog(): Firewood {
   woodSeq += 1;
   const mat = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Wood();
     m.setName(`test-wood-${woodSeq}`);
     m.setAutoignitionTemperature(Quantity.of(570, 'K'));
     m.setHeatOfCombustion(Quantity.of(16, 'MJ/kg'));

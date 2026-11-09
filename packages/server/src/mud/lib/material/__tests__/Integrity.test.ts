@@ -17,6 +17,7 @@ import { StuffApi } from '../../../api/stuff';
 import '../../../platform/idea/WorldClockRegistry';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import Ceramic from '../../../platform/idea/material/Ceramic';
 
 class Jug extends DurableMixin(GradedMixin(Good)) {
   static _mixinName = 'TestIntegrityJug';
@@ -49,7 +50,7 @@ beforeEach(() => {
   WorldClockApi._resetForTesting();
   WorldClockApi._setNowProviderForTesting(() => now);
   stoneware = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Ceramic();
     m.setName('integrity-stoneware');
     m.setTags(['ceramic', 'fired', 'brittle']);
     m.setDensity(Quantity.of(2300, 'kg/m³'));

@@ -9,91 +9,41 @@
  * shared.
  *
  * Tangible Stuff carries a default bulk Material plus optional per-Detail
- * overrides (the wood haft vs the iron head of an axe). Edibility tags
- * (`edibility`, `nutrients`, `toxicity`) are authored here today; the
- * `DietApi` consumer is deferred.
+ * overrides (the wood haft vs the iron head of an axe).
  *
- * **Layered classification.**
+ * ⭐⭐ **Material decomposition (2026-11).** This class holds only what
+ * every material has. Everything else is a CAPABILITY — a mixin named for
+ * the substance's physics (`CombustionMixin`, `FusionMixin`,
+ * `EdibilityMixin`, … in this folder) — and a material's CLASS is its KIND,
+ * what the substance is: `Metal`, `Stone`, `Food`, `Wood`
+ * (`platform/idea/material/`, above the abstract `Mineral`/`Organic`/
+ * `Plant`/`Animal` here). A kind composes the capabilities its members
+ * physically share; an exception is a one-step child. Chemical identity
+ * (`ElementMixin` · `CompoundMixin` · `MixtureMixin`) is exclusive and
+ * rides the kind too.
  *
- * Three orthogonal layers of metadata, all populated as data on the
- * template, queried by `MaterialApi`:
+ * ⛔ **Consumers depend on capabilities, never on kinds**: ask
+ * `MixinApi.hasFusion(m)` before reading a melting point, never whether it
+ * is a `Metal` (`lint:material-kinds`). A material that lacks a capability
+ * simply does not have it — there is no "not applicable" value.
  *
- * 1. **Tags** (`tags: string[]`) — free-form classification strings
- *    (`'metal'`, `'alloy'`, `'igneous'`, `'organic'`, `'fantasy'`).
- *    Vocabulary is not centrally registered — content devs may
- *    introduce new tags as needed. Used for educational filtering
- *    and orthogonal grouping.
- * 2. **Composition** (`composition: CompositionEntry[]`) — for
- *    mixtures and alloys, weight-fraction references to the
- *    constituent Materials. Pure elements / non-mixtures have an
- *    empty list.
- * 3. **Chemistry** — atomic / molecular science data, decomposed
- *    into four flat scalar fields per the scalar-default rule:
- *    `symbol` (element only), `atomicNumber` (element only),
- *    `formula` (compound only), and `molarMass`
- *    (`Quantity<'g/mol'>`; element or compound). The
- *    `getChemistry` / `setChemistry` pair is a convenience aggregate
- *    over those four fields. Mixtures / alloys leave them all
- *    unset and rely on the composition layer.
- *
- * Plus `biologicalSource` for organic Materials with a known parent
- * Species (e.g., wood from a specific tree).
- *
- * ⭐⭐ **Capabilities are mixins, named for the substance's physics**
- * (material decomposition, 2026-11): `CombustionMixin`, `FusionMixin`,
- * `EdibilityMixin` and the rest each carry one group of fields that only
- * some materials have. A consumer narrows with `MixinApi.has<Capability>(m)`
- * before it reads one — never on what kind of material it is.
- *
- * Singleton-by-templatePath: every `/stuff/idea/material/<...>` template resolves
+  * Singleton-by-templatePath: every `/stuff/idea/material/<...>` template resolves
  * to the same instance via `StuffApi.singleton(path)` /
  * `findByTemplatePath`. Cross-references on other Stuff store the path
  * string and re-resolve on each call (HMR-safe — no cached instance).
  */
 
-import { Kinetics, type KineticSpec } from './Kinetics';
-import { DrainSetting, type DrainSettingSpec } from './DrainSetting';
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
-import type { ToxinTag } from '../metabolism/Metabolic';
-import { DissolvedAromatics } from '../metabolism/DissolvedAromatics';
-import type { AromaTag } from '../metabolism/DissolvedAromatics';
-import { Aroma, type HedonicCurve } from '../perception/Aroma';
 import type { VetoResult } from '../errors';
-import { Grade, type GradeBand } from '../craft/Grade';
 import type { EvictionContext, Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import type Cleanser from '../../platform/idea/Cleanser';
 import type { CleanserDescriptor } from '../../platform/idea/Cleanser';
-import { ConditionApi } from '../../api/condition';
-import { MixinApi } from '../../api/mixin';
-import { AppApi } from '../../api/app';
-import { AppSettingKeys } from '../config/AppSettings';
-import type { MaterialComposition } from '../../api/material';
-// eslint-disable-next-line no-restricted-imports -- the F4 material face: a material's composition()/containsElement() forward into the material logic singleton exactly as the api/material facade does (the Combustible/Energized precedent)
-import { MaterialLogic } from '../../platform/idea/api/MaterialLogic';
-
-import { OdorMixin } from './Odor';
-import { CombustionMixin } from './Combustion';
-import { FusionMixin } from './Fusion';
-import { VolatilityMixin } from './Volatility';
-import { SolidityMixin } from './Solidity';
-import { PorosityMixin } from './Porosity';
-import { EdibilityMixin } from './Edibility';
-import { ToxicityMixin } from './Toxicity';
-import { PerishabilityMixin } from './Perishability';
-import { AcidityMixin } from './Acidity';
-import { SolutionMixin } from './Solution';
-import { KineticMixin } from './Kinetic';
-import { ShrinkageMixin } from './Shrinkage';
-import { CoatingMixin } from './Coating';
-import { OpticsMixin } from './Optics';
-import { TissueMixin } from './Tissue';
-import { MixtureMixin } from './Mixture';
 import type { BoundaryRole } from '../security/BoundaryRole';
 
 export type { ChillArrow } from './Fusion';
@@ -104,40 +54,16 @@ export type { ConcentrationArrow, CrystallizesTo } from './Solution';
 export type { PigmentSpec, AdhesiveSpec } from './Coating';
 export type { BiologicalSource } from './Tissue';
 export type { CompositionEntry } from './Mixture';
+export type { ElementChemistry } from './Compound';
 
 /**
- * Atomic / molecular science data — convenience aggregate of
- * Material's chemistry-related fields. Material stores each field
- * as its own scalar (`symbol`, `atomicNumber`, `formula`,
- * `molarMass`) per the scalar-default rule; this interface is the
- * holder shape for the `getChemistry` / `setChemistry` convenience
- * pair. Population convention: elements get
- * `symbol/atomicNumber/molarMass`, compounds get
- * `formula/molarMass`, mixtures leave the chemistry fields unset
- * and carry composition data instead.
- *
- * `molarMass` is strictly `Quantity<'g/mol'>` at the runtime API.
- * Authoring-shape coercion (bare number, tag string, JSON
- * `{value,unit}`) is absorbed by `QuantityMarshaller(g/mol)` at the
- * persistence boundary for the `molarMass` scalar field.
+ * ⭐⭐ The base keeps only what EVERY material has (material decomposition
+ * W2b): name, appearance, tags, density, the thermal and electrical
+ * constants, and what it washes as. Every other property is a capability a
+ * kind composes; nothing may be "just a material", so no row names this
+ * class — it names its kind.
  */
-export interface ElementChemistry {
-  /** Element symbol (e.g. `'Fe'`, `'C'`, `'U'`). Element-only. */
-  symbol?: string;
-  /** Atomic number (Z) — element-only. */
-  atomicNumber?: number;
-  /** Chemical formula (e.g. `'H2O'`, `'SiO2'`, `'(C6H10O5)n'`). Compound-only. */
-  formula?: string;
-  /** Molar mass in g/mol. Element-or-compound. */
-  molarMass?: Quantity<'g/mol'>;
-}
-
-/**
- * The substrate every material shares — name, appearance, tags, density, the
- * thermal and electrical constants, and (until the cut) chemical identity.
- * Every capability composes on top of it.
- */
-class MaterialCore extends SingletonMixin(
+export default class Material extends SingletonMixin(
 // ⭐⭐ **NOT `PropertiedMixin`, and it was here until the base-class
 // narrowing (2026-09-30).** `Propertied` is a per-INSTANCE bag of
 // runtime state — a quest flag, a buff, a circle membership — and this
@@ -307,45 +233,6 @@ class MaterialCore extends SingletonMixin(
    */
   protected tags: string[] = [];
 
-  // ---------- Chemistry — flat scalar fields ----------
-  // Each chemistry field is its own scalar per the scalar-default
-  // rule. The `getChemistry` / `setChemistry` pair below is a
-  // convenience aggregate that decomposes / recomposes from these
-  // fields. Materials with no chemistry data leave all four at
-  // their unset defaults; `getChemistry` returns null in that case.
-
-  /** Element symbol (e.g. `'Fe'`, `'C'`, `'U'`). Element-only. */
-  protected symbol: string | null = null;
-
-  /** Atomic number (Z). Element-only. */
-  protected atomicNumber: number | null = null;
-
-  /** Chemical formula (e.g. `'H2O'`). Compound-only. */
-  protected formula: string | null = null;
-
-  /**
-   * Molar mass as a `Quantity<'g/mol'>`. Element-or-compound. The
-   * QuantityMarshaller for g/mol handles authoring-shape coercion
-   * (numeric / string / JSON-shape) at the persistence boundary;
-   * runtime accessors stay strict on Quantity.
-   */
-  private _molarMass: Quantity<'g/mol'> | null = null;
-
-  protected get molarMass(): Quantity<'g/mol'> | null {
-    return this._molarMass;
-  }
-  protected set molarMass(value: Quantity<'g/mol'> | null) {
-    if (value === null || value === undefined) {
-      this._molarMass = null;
-      return;
-    }
-    if (!(value instanceof Quantity) || value.unit !== 'g/mol') {
-      throw new TypeError(
-        `Material.molarMass must be Quantity<'g/mol'> | null; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
-      );
-    }
-    this._molarMass = value;
-  }
 
   /**
    * Field-marshaller bindings. The persistence pipeline routes
@@ -393,10 +280,6 @@ class MaterialCore extends SingletonMixin(
     name: { persistent: true },
     appearance: { persistent: true },
     tags: { persistent: true },
-    symbol: { persistent: true },
-    atomicNumber: { persistent: true },
-    formula: { persistent: true },
-    molarMass: { persistent: true, marshaller: QuantityMarshaller.pathFor('g/mol') },
     // ⭐ What it washes as — a role many substances play (soap, lye, sand,
     // spirit, vinegar), not one physics, so it is not a capability
     // (material decomposition W2a census).
@@ -479,80 +362,6 @@ class MaterialCore extends SingletonMixin(
   public setTags(value: string[]): void { this.tags = value; }
   public hasTag(tag: string): boolean { return this.tags.includes(tag); }
 
-  // ---------- Chemistry — per-field accessors ----------
-
-  public getSymbol(): string | null { return this.symbol; }
-  public setSymbol(value: string | null): void { this.symbol = value; }
-
-  public getAtomicNumber(): number | null { return this.atomicNumber; }
-  public setAtomicNumber(value: number | null): void {
-    this.atomicNumber = value;
-  }
-
-  public getFormula(): string | null { return this.formula; }
-  public setFormula(value: string | null): void { this.formula = value; }
-
-  /**
-   * Read molar mass. Strict on `Quantity<'g/mol'>`; the
-   * QuantityMarshaller for g/mol absorbs authoring-shape coercion
-   * at the persistence boundary.
-   */
-  public getMolarMass(): Quantity<'g/mol'> | null { return this._molarMass; }
-  /**
-   * Set molar mass. Strict on `Quantity<'g/mol'>` — wrap raw numbers
-   * via `Quantity.of(n, 'g/mol')` at the call site.
-   */
-  public setMolarMass(value: Quantity<'g/mol'> | null): void {
-    this.molarMass = value;
-  }
-
-  // ---------- Chemistry — convenience holder ----------
-
-  /**
-   * Aggregate chemistry view. Returns `null` when none of the
-   * chemistry fields are populated; otherwise returns an object
-   * carrying whichever subset is set. For programmatic chemistry
-   * inspection where reading a few fields at once is more
-   * convenient than four individual getters.
-   */
-  public getChemistry(): ElementChemistry | null {
-    if (
-      this.symbol === null &&
-      this.atomicNumber === null &&
-      this.formula === null &&
-      this._molarMass === null
-    ) {
-      return null;
-    }
-    const out: ElementChemistry = {};
-    if (this.symbol !== null) out.symbol = this.symbol;
-    if (this.atomicNumber !== null) out.atomicNumber = this.atomicNumber;
-    if (this.formula !== null) out.formula = this.formula;
-    if (this._molarMass !== null) out.molarMass = this._molarMass;
-    return out;
-  }
-
-  /**
-   * Bulk-set chemistry. `setChemistry(null)` clears all four
-   * chemistry fields; passing a partial record sets the named
-   * fields and leaves the others at their current values? No —
-   * the convenience setter REPLACES the whole chemistry block to
-   * keep the holder/component contract symmetric. Use the
-   * individual setters for partial updates.
-   */
-  public setChemistry(value: ElementChemistry | null): void {
-    if (value === null || value === undefined) {
-      this.symbol = null;
-      this.atomicNumber = null;
-      this.formula = null;
-      this.molarMass = null;
-      return;
-    }
-    this.symbol = value.symbol ?? null;
-    this.atomicNumber = value.atomicNumber ?? null;
-    this.formula = value.formula ?? null;
-    this.molarMass = value.molarMass ?? null;
-  }
 
   /**
    * ⭐ The CLEANSER this material is (cleanliness B50) — a bar of soap, a
@@ -574,11 +383,3 @@ class MaterialCore extends SingletonMixin(
     this.cleanser = typeof value === 'string' ? value : '';
   }
 }
-
-/**
- * ⚠ **Scaffold (decomposition W0–W2a):** the material still composes every
- * capability, so every row and every consumer behaves exactly as before
- * while consumers learn to narrow. The cut (W2b) moves each capability onto
- * the kinds whose members have it, and this class keeps only the core.
- */
-export default class Material extends OdorMixin(CombustionMixin(FusionMixin(VolatilityMixin(SolidityMixin(PorosityMixin(EdibilityMixin(ToxicityMixin(PerishabilityMixin(AcidityMixin(SolutionMixin(KineticMixin(ShrinkageMixin(CoatingMixin(OpticsMixin(TissueMixin(MixtureMixin(MaterialCore))))))))))))))))) {}

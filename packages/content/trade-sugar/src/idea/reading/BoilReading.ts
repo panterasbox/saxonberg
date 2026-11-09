@@ -97,7 +97,7 @@ export default class BoilReading extends Reading {
     }
     const mat = target.getBulkMaterial('interior');
     const solids =
-      target.getBulkPayload('interior')?.dissolvedSolidsKgPerL ?? mat?.getSolidsKgPerL() ?? 0;
+      target.getBulkPayload('interior')?.dissolvedSolidsKgPerL ?? (mat && MixinApi.hasSolution(mat) ? mat.getSolidsKgPerL() : 0);
     if (!mat || !(solids > 0)) {
       this.decline(
         context,
@@ -106,6 +106,7 @@ export default class BoilReading extends Reading {
       );
       return null;
     }
+    if (!MixinApi.hasSolution(mat)) return null;
     return { pan: target, w: mat.solidsMassFraction(solids), tags: (t) => mat.hasTag(t) };
   }
 

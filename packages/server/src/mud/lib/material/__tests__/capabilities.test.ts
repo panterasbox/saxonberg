@@ -8,6 +8,10 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
 import Material from '../Material';
+import Wood from '../../../platform/idea/material/Wood';
+import Metal from '../../../platform/idea/material/Metal';
+import ElementalMetal from '../../../platform/idea/material/ElementalMetal';
+import Alloy from '../../../platform/idea/material/Alloy';
 import { Idea } from '../../stuff/Idea';
 import { FusionMixin } from '../Fusion';
 import { SolidityMixin } from '../Solidity';
@@ -47,11 +51,17 @@ describe('⭐ every capability is a registered mixin with a predicate', () => {
     }
   });
 
-  it('⚠ scaffold: the base still composes every capability (until the cut)', () => {
+  it('⭐⭐ the base composes NONE of them — a kind composes what its members have', () => {
     for (const cap of CAPABILITIES) {
-      expect(MixinApi.hasMixin(Material, Mixins[cap])).toBe(true);
+      expect(MixinApi.hasMixin(Material, Mixins[cap])).toBe(false);
     }
-    expect(MixinApi.hasMixin(Material, Mixins.Radioactivity)).toBe(false);
+    expect(MixinApi.hasMixin(Wood, Mixins.Combustion)).toBe(true);
+    expect(MixinApi.hasMixin(Wood, Mixins.Shrinkage)).toBe(true);
+    expect(MixinApi.hasMixin(ElementalMetal, Mixins.Element)).toBe(true);
+    expect(MixinApi.hasMixin(Alloy, Mixins.Mixture)).toBe(true);
+    // Chemical identity is exclusive: no kind composes two.
+    expect(MixinApi.hasMixin(Alloy, Mixins.Element)).toBe(false);
+    expect(MixinApi.hasMixin(Metal, Mixins.Edibility)).toBe(false);
   });
 });
 

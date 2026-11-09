@@ -423,6 +423,8 @@ export const Mixins = {
   Optics: 'OpticsMixin',
   Tissue: 'TissueMixin',
   Mixture: 'MixtureMixin',
+  Element: 'ElementMixin',
+  Compound: 'CompoundMixin',
   Olfactory: 'OlfactoryMixin',
   Muscle: 'MuscleMixin',
   Cut: 'CutMixin',

@@ -41,7 +41,7 @@ describe('the shipped fouled water', () => {
     expect(toxicity[0]!.type).toBe('dysentery');
     expect(toxicity[0]!.amount).toBeGreaterThan(0);
     // Water's own row carries none — that contrast IS the mechanism.
-    expect(data(CLEAN).toxicity).toEqual([]);
+    expect(data(CLEAN).toxicity).toBeUndefined();
   });
 
   it('⭐ boiling it names plain water — held a minute at the boil, it IS water', () => {
@@ -60,7 +60,8 @@ describe('the shipped fouled water', () => {
     // water announces itself, which is the entire reason the intake's
     // POSITION is what matters.
     expect(tags).toContain('water');
-    expect(data(FOULED).edibility).toBe(true);
+    // A `Water`: its kind composes Edibility (the kind is the fact).
+    expect(FOULED.class).toBe('/platform/idea/material/Water');
   });
 
   it('it boils at the same temperature as water — it IS water, dirtier', () => {

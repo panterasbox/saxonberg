@@ -4,7 +4,7 @@
 # `whey-starter` culture profile keys on this tag), and the milk sugar it
 # holds is what a feed restores. Backslopping: the drained whey into the
 # crock is next time's starter.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/whey, strength: 100 }]
   name: "whey"
@@ -14,17 +14,11 @@ data:
   specificHeat: 3900
   thermalConductivity: 0.5
   electricalConductivity: 0.4
-  waterAbsorptionCapacity: 0
-  hardness: 0
-  toughness: 0
-  edibility: true
   tastes: [{ type: sweet, amount: 40 }, { type: sour, amount: 6 }]
   nutrients: ["fat", "protein", "sugar", "water"]
   nutrientAmounts: { fat: 3000, protein: 9000, sugar: 48000, water: 935000 }
   spoilActivationEnergy: 60000
   waterActivity: 0.99
-  toxicity: []
   # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
   ph: 6.2
   tags: ["food", "dairy", "liquid", "perishable", "whey"]
-  composition: []

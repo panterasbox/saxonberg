@@ -8,7 +8,7 @@
 # about a quarter of granite's conductivity, which is why a brick
 # building holds its warmth better than a stone one of the same
 # thickness. Repair's building upkeep adds its weathering fields here.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Ceramic
 data:
   name: brick
   keywords: [brick, brickwork]
@@ -26,12 +26,7 @@ data:
   # ⭐ Linear expansion, 1/K (ceramics M6): a glaze that shrinks more
   # than this on cooling crazes.
   thermalExpansion: 5.5e-06
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["ceramic", "mineral", "solid", "brittle", "fired", "masonry"]
-  composition: []
-  biologicalSource: null
   # ⭐ (ceramics W2) What it breaks into — the commons sherds row, stamped
   # with this body at the break; ground at a millstone, sherds are grog.
   brokenTemplate: /stuff/thing/sherds

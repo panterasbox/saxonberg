@@ -9,7 +9,7 @@
 # `mordant-dye`: alizarin needs a metal ion to bind, so the colour is
 # decided at the mordant bath. Alum gives a clear red, iron saddens it
 # to maroon, tannin softens it to brick.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Herb
 data:
   smells: [{ aroma: /base-library/aromas/earth, strength: 30 }]
   name: madder
@@ -22,12 +22,7 @@ data:
   specificHeat: 1400
   electricalConductivity: 1.0e-9
   waterAbsorptionCapacity: 45
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["dyestuff", "mordant-dye", "plant", "organic", "once-living"]
-  composition: []
-  chemistry: null
   # ⚠ A COMPOSITE, not a bare path: `{speciesPath, tissueType}`. Every
   # shipped material left this null, so these are the first rows to
   # populate it — and the census caught the bare-path shape the moment

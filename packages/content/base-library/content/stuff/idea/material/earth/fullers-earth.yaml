@@ -1,7 +1,7 @@
 # Fuller's earth — a soft, greasy-feeling clay that DRINKS oil (cleanliness
 # D25): the fuller's absorbent for wool, the housewife's for a grease spot.
 # Dug from a seam inside the clay at Hill Quarry.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Clay
 data:
   smells: [{ aroma: /base-library/aromas/wet-clay, strength: 10 }]
   name: fuller's earth
@@ -14,12 +14,7 @@ data:
   waterAbsorptionCapacity: 60
   hardness: 2
   toughness: 1
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [earth, mineral, granular, absorbent, fullers-earth]
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
   cleanser: /platform/idea/Cleanser/fullers-earth
-  composition: []
-  biologicalSource: null

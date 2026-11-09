@@ -490,7 +490,8 @@ export default class Clay extends ClayBase implements Formable {
     const parsed = new FormGrammar([]).parse(req.formText);
     if (!(parsed instanceof ParsedForm)) return parsed;
     const form = parsed;
-    const product = this.getMaterial()?.getFormTemplates()[form.formClass] ?? '';
+    const clayMat = this.getMaterial();
+    const product = (clayMat && MixinApi.hasKinetic(clayMat) ? clayMat.getFormTemplates()[form.formClass] : undefined) ?? '';
     if (product === '') return { ok: false, reason: 'no-product', facts: { coiling: self } };
     const hand = await this.formingHand(req.actor, 'pottery');
     if (form.formClass !== 'block' && form.formClass !== 'flat' && form.capacityL > hand.maxL) {

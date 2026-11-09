@@ -9,7 +9,7 @@
 #
 # ⚠ Tagged `earth`, which is what makes it a SPADE's job rather than a
 # pick's — the tool is the constraint, and the ground says so.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Stone
 data:
   name: drift
   keywords: [drift, overburden, spoil, waste]
@@ -21,10 +21,4 @@ data:
   waterAbsorptionCapacity: 25
   hardness: 2
   toughness: 1
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["earth", "mixture", "solid"]
-  composition: []
-  chemistry: null
-  biologicalSource: null

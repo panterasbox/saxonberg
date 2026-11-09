@@ -269,7 +269,7 @@ describe('TemplateApi.validateReservedPath', () => {
     await expect(
       TemplateApi.validateReservedPath({
         path: '/platform/idea/api/material',
-        class: '/platform/idea/material/Material',
+        class: '/platform/idea/material/Residue',
       })
     ).rejects.toThrow(TemplateError);
   });

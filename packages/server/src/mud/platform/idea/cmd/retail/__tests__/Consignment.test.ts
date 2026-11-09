@@ -43,7 +43,7 @@ import { NamedMixin } from "../../../../../lib/description/Named";
 import { Idea } from "../../../../../lib/stuff/Idea";
 import Place from "../../../../../lib/stuff/Place";
 import Provision from "../../../../thing/Provision";
-import Material from "../../../../../lib/material/Material";
+import Food from "../../../material/Food";
 import { Freshness } from "../../../../../lib/material/Freshness";
 import { Creature } from "../../../../../lib/creature/Creature";
 import { KeptAnimal } from "../../../../../lib/creature/KeptAnimal";
@@ -237,15 +237,15 @@ describe("Consignment — sell loop over real ownership", () => {
 
   describe("⭐ no shelf lists what has turned (fishing A4)", () => {
     let fleshSeq = 0;
-    function flesh(): Material {
+    function flesh(): Food {
       fleshSeq += 1;
       return makeStuffAtPath(() => {
-        const m = new Material();
+        const m = new Food();
         m.setName("test-flesh");
         m.setSpoilActivationEnergy(Quantity.of(60_000, "J/mol"));
         m.setWaterActivity(0.99);
         return m;
-      }, `/test/retail/flesh-${fleshSeq}`) as unknown as Material;
+      }, `/test/retail/flesh-${fleshSeq}`) as unknown as Food;
     }
     function provision(owner: Stuff, load: number): Provision {
       const p = makeStuffAtPath(() => {

@@ -421,6 +421,7 @@ export function WearableMixin<
       if (!MixinApi.isTangible(self)) return 0;
       const material = self.getMaterial('waist') ?? self.getMaterial();
       if (!material) return 0;
+      if (!MixinApi.hasSolidity(material)) return 0;
       const elasticity = material.getElasticity().rawValue() / 100;
       if (!(elasticity > 0)) return 0;
       const form = MixinApi.isConstructed(self)
@@ -470,7 +471,7 @@ export function WearableMixin<
       // How much of the loft is water rather than air — the ONE wet law
       // on the material (`Material.wetProperty`, storage-and-ice D9).
       const wetness = MixinApi.isWet(self) ? self.getWetness() : 0;
-      const kVoid = material.wetProperty(K_AIR, K_WATER, wetness);
+      const kVoid = MixinApi.hasPorosity(material) ? material.wetProperty(K_AIR, K_WATER, wetness) : K_AIR;
       const kEff = kFibre * (1 - loft) + kVoid * loft;
       if (!(kEff > 0)) return Quantity.of(0, 'clo');
 

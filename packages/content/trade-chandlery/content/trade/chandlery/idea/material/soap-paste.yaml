@@ -1,6 +1,6 @@
 # Soap paste — fat and lye stirred together in the kettle, before the
 # boil has done its work (cleanliness D24). Still caustic.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Soap
 data:
   smells: [{ aroma: /base-library/aromas/soap, strength: 300 }]
   name: soap paste
@@ -11,10 +11,5 @@ data:
   thermalConductivity: 0.4
   meltingPoint: 300
   boilingPoint: 400
-  edibility: false
-  nutrients: []
-  toxicity: []
   corrosiveTo: [protein, tissue]
   tags: [liquid, caustic, soap-paste]
-  composition: []
-  biologicalSource: null

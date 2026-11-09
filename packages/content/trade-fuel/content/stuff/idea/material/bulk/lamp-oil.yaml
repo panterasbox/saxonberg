@@ -15,7 +15,7 @@
 #
 # ⚠ Fuel value and ignition are the MATERIAL's, read off here and never
 # restated on the good — a lamp burns lamp oil because of what lamp oil is.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Oil
 data:
   smells: [{ aroma: /base-library/aromas/petroleum, strength: 600 }]
   burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 800 }]
@@ -38,13 +38,9 @@ data:
   # It catches from a wick's flame readily — a flammable liquid, not a solid
   # that wants an ember.
   autoignitionTemperature: 490
-  edibility: false
-  nutrients: []
   # Not food, and it makes you sick if you drink it — a small standing dose
   # keyed on the shipped `ptomaine` gut-poisoning condition. Mostly moot
   # (`edibility: false` keeps it off the plate), but honest if someone tries.
   toxicity:
     - { type: ptomaine, amount: 400 }
   tags: [liquid, lamp-oil, fuel, flammable]
-  composition: []
-  biologicalSource: null

@@ -15,7 +15,7 @@
 # `FractionSchedule` — is the distiller's, and refining coal tar is the
 # same mechanism with a different feedstock. Said here so the gap is a
 # recorded seam and not a silence.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Oil
 data:
   smells: [{ aroma: /base-library/aromas/coal-tar, strength: 4000 }]
   burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 1500 }]
@@ -28,17 +28,4 @@ data:
   boilingPoint: 540
   heatOfCombustion: 37
   autoignitionTemperature: 650
-  edibility: false
-  nutrients: []
-  # ⚠ **No `toxicity`, deliberately.** Coal tar is genuinely nasty — it is
-  # what the dye works poisoned their own workers with — but the harm is
-  # CHRONIC (carcinogenic, over years of skin contact), and this game
-  # models an acute toxin dose and a breath. Authoring a dose here would
-  # need a new toxin type and a new `Condition` row to mean anything, and
-  # a toxin with no condition behind it is a number nothing reads. ⭐ The
-  # honest record: the hazard is real, the mechanism for it is not built,
-  # and inventing a fake acute dose would be worse than saying so.
-  toxicity: []
   tags: [bulk, organic, flammable, tar, sulfurous, once-living]
-  composition: []
-  biologicalSource: null

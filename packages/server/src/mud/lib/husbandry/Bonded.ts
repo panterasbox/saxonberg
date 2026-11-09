@@ -674,7 +674,7 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
     public wouldEat(food: Stuff): FoodRefusal | null {
       const self = this as unknown as Stuff;
       const material = MixinApi.isTangible(food) ? food.getMaterial() : null;
-      if (!material || material.getEdibility() !== true) return 'not-edible';
+      if (!material || !MixinApi.hasEdibility(material)) return 'not-edible';
 
       if (MixinApi.isReserved(self)) {
         // ⚠ The surplus line, not "full": an animal in maintenance is

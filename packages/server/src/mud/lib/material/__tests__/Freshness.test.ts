@@ -10,7 +10,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
 import Provision from '../../../platform/thing/Provision';
-import Material from '../Material';
+import Food from '../../../platform/idea/material/Food';
 import { Freshness } from '../Freshness';
 import { MixinApi } from '../../../api/mixin';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -35,21 +35,21 @@ let matSeq = 0;
  * A test Material. `ea` is the spoilage activation energy (J/mol; 0 = the
  * material does not spoil at all); `aw` its water activity.
  */
-function material(ea: number, aw = 0.98): Material {
+function material(ea: number, aw = 0.98): Food {
   matSeq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName(`fresh-test-mat-${matSeq}`);
     m.setSpecificHeat(Quantity.of(3200, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.5, 'W/(m·K)'));
     m.setSpoilActivationEnergy(Quantity.of(ea, 'J/mol'));
     m.setWaterActivity(aw);
     return m;
-  }, `/stuff/idea/material/_test/fresh-${matSeq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/fresh-${matSeq}`) as unknown as Food;
 }
 
 /** A `Provision` (Thermal + Fresh + Crafted) of the given material, held at `tempK`. */
-function food(mat: Material, tempK = 293): Provision {
+function food(mat: Food, tempK = 293): Provision {
   return makeStuff(() => {
     const p = new Provision();
     p.setMass(Quantity.of(1, 'kg'));
@@ -61,7 +61,7 @@ function food(mat: Material, tempK = 293): Provision {
 }
 
 /** A bare `Thing` — ⚠ deliberately NOT Fresh. See the boundary test. */
-function bareThing(mat: Material): Good {
+function bareThing(mat: Food): Good {
   return makeStuff(() => {
     const t = new Good();
     t.setMaterial(mat);

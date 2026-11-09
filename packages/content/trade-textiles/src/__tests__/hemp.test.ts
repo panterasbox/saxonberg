@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { readFileSync } from "node:fs";
 import { parse } from "yaml";
 import TextileStock from "../thing/TextileStock";
-import Material from "@saxonberg/server/mud/platform/idea/material/Material";
+import Material from "@saxonberg/server/mud/platform/idea/material/Residue";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { makeStuff, makeStuffAtPath } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 

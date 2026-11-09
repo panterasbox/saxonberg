@@ -30,6 +30,7 @@ import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import type { TechniqueSpec } from '../../../../lib/craft/Technique';
 import Material from '../../../../lib/material/Material';
+import Water from '../../material/Water';
 import Good from '../../../../lib/stuff/Good';
 import { Idea } from '../../../../lib/stuff/Idea';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
@@ -82,14 +83,15 @@ const BLEND = '/platform/idea/material/blend';
 let store: Record<string, Record<string, unknown>[]>;
 let now = 1000;
 
-function registerMaterial(
+function registerMaterial<K extends Material = Material>(
   path: string,
   name: string,
   tags: string[],
-  extra: (m: Material) => void = () => {},
+  extra: (m: K) => void = () => {},
+  make: () => K = () => new Material() as K,
 ): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = make();
     m.setName(name);
     m.setTags(tags);
     m.setKeywords([name]);
@@ -214,11 +216,17 @@ beforeEach(async () => {
   registerMaterial(OLIVE, 'olive', ['olive', 'garnish']);
   registerMaterial(MINT, 'mint', ['mint', 'herb']);
   registerMaterial(LIME, 'lime', ['lime', 'citrus']);
-  registerMaterial(ICE, 'ice', ['ice'], (m) => {
-    m.setDensity(Quantity.of(917, 'kg/m³'));
-    m.setMeltingPoint(Quantity.of(273, 'K'));
-    m.setLatentHeatOfFusion(Quantity.of(334000, 'J/kg'));
-  });
+  registerMaterial<Water>(
+    ICE,
+    'ice',
+    ['ice'],
+    (m) => {
+      m.setDensity(Quantity.of(917, 'kg/m³'));
+      m.setMeltingPoint(Quantity.of(273, 'K'));
+      m.setLatentHeatOfFusion(Quantity.of(334000, 'J/kg'));
+    },
+    () => new Water(),
+  );
 
   store.recipes!.push(
     {

@@ -12,7 +12,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import Material from '../../material/Material';
+import Water from '../../../platform/idea/material/Water';
 import { ThermalMixin } from '../Thermal';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import { ContainableMixin } from '../../spatial/Containable';
@@ -49,10 +49,10 @@ function liquid(opts: {
   density?: number;
   specificHeat?: number;
   ruined?: boolean;
-}): Material {
+}): Water {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Water();
     m.setName(`freeze-mat-${seq}`);
     m.setKeywords([`freezemat${seq}`]);
     (m as unknown as { meltingPoint: Quantity<'K'> }).meltingPoint = Quantity.of(opts.mp, 'K');
@@ -62,10 +62,10 @@ function liquid(opts: {
     m.setSpecificHeat(Quantity.of(opts.specificHeat ?? 4186, 'J/(kg·K)'));
     if (opts.ruined) m.ruinedByFreezing = true;
     return m;
-  }, `/stuff/idea/material/_freeze/mat-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_freeze/mat-${seq}`) as unknown as Water;
 }
 
-function pan(mat: Material, litres: number, tempK: number): Pan {
+function pan(mat: Water, litres: number, tempK: number): Pan {
   // Placed first, THEN chilled: a pan minted below its pool's melting point
   // would freeze on the move, before it stood anywhere.
   const p = makeStuff(() => {

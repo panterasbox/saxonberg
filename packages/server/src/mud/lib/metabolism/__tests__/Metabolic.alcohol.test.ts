@@ -12,6 +12,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
 import Condition from "../../../platform/idea/Condition";
 import Material from "../../material/Material";
+import Food from "../../../platform/idea/material/Food";
 import type { ToxinBehavior } from "../Metabolic";
 import { Quantity } from "../../quantity";
 import { WorldClockApi } from "../../../api/worldclock";
@@ -80,9 +81,8 @@ function ensureAlcoholCondition(): void {
 
 function ale(): Material {
   return makeStuff(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName("ale");
-    m.setEdibility(true);
     m.setNutrients(["carb", "water"]);
     m.setToxicity([{ type: "alcohol", amount: 14 }]);
     return m;

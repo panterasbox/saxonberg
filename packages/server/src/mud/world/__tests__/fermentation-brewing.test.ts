@@ -20,7 +20,7 @@ import MaturationProfile from '../../platform/idea/maturation/MaturationProfile'
 import GardenBed from '../../platform/thing/GardenBed';
 import Receptacle from '../../platform/thing/Receptacle';
 import FeedController from '../../platform/idea/cmd/bulk/FeedController';
-import Material from '../../lib/material/Material';
+import Food from '../../platform/idea/material/Food';
 import { Reserve } from '../../lib/reserve/Reserved';
 import {
   SOIL_NITROGEN_RESERVE_KEY,
@@ -90,10 +90,10 @@ function standProfile(rel: string): MaturationProfile {
 }
 
 /** Stand a material row's ferment-relevant face. */
-function standMaterial(rel: string, path: string): Material {
+function standMaterial(rel: string, path: string): Food {
   const data = rowData(rel);
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName(data.name as string);
     if (typeof data.primaryKeyword === 'string') {
       m.setPrimaryKeyword(data.primaryKeyword);
@@ -115,13 +115,13 @@ function makeVat(tempK: number): Vat {
   return vat;
 }
 
-function fill(vat: Vat, material: Material, litres: number): void {
+function fill(vat: Vat, material: Food, litres: number): void {
   vat.setBulkMaterial('interior', material);
   vat.setBulkAmount('interior', Quantity.of(litres, 'L'));
 }
 
-let wort!: Material;
-let lagerWort!: Material;
+let wort!: Food;
+let lagerWort!: Food;
 
 beforeEach(() => {
   seq += 1;
@@ -229,7 +229,7 @@ describe('the lager line (D14 on real rows)', () => {
 describe('the cask conditions (P9 on real rows)', () => {
   it('sealed ale referments its residual sugar into carbonated cask ale; open just breathes', () => {
     standProfile('idea/maturation/cask-conditioning.yaml');
-    const ale = StuffApi.findByTemplatePath<Material>(
+    const ale = StuffApi.findByTemplatePath<Food>(
       '/trade/brewing/idea/material/ale',
     )!;
     const caskData = rowData('thing/cask.yaml');
@@ -243,7 +243,7 @@ describe('the cask conditions (P9 on real rows)', () => {
     expect(sealed.getBulkMaterialPath('interior')).toBe(
       '/trade/brewing/idea/material/cask-ale',
     );
-    const caskAle = StuffApi.findByTemplatePath<Material>(
+    const caskAle = StuffApi.findByTemplatePath<Food>(
       '/trade/brewing/idea/material/cask-ale',
     )!;
     expect(caskAle.getTags()).toContain('carbonated');
