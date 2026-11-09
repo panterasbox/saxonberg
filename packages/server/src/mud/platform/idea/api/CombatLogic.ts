@@ -52,10 +52,7 @@ import {
   type CombatantState,
   type CombatResolution,
 } from "../../../lib/combat/CombatSession";
-import {
-  CombatFormation,
-  type FormationPolicy,
-} from "../CombatFormation";
+import { Formation, type FormationPolicy } from "../../../lib/combat/Formation";
 import {
   CombatHookContext,
   type CombatConsequence,
@@ -1379,7 +1376,7 @@ function safeSideOf(combatant: Stuff): string {
  * party's formation → the default preset path) → the resident Idea's
  * frozen `policy()`. When the party subsystem is unbooted or the Idea is
  * not resident (bare unit tests, cold boot), falls back to the built-in
- * `CombatFormation.DEFAULT_POLICY` — value-equal to the seeded default,
+ * `Formation.DEFAULT_POLICY` — value-equal to the seeded default,
  * so the degenerate paths byte-preserve pre-formation combat (the
  * `safeSideOf` tolerance precedent). Deliberately NOT frozen at open
  * (unlike `side`): the per-beat re-read is what makes a mid-fight
@@ -1393,16 +1390,11 @@ function resolveFormationFor(state: CombatantState): FormationPolicy {
 /** The combatant-keyed half of the total consult (also serves the
  * out-of-session `formationStandingOf` read). */
 function resolvePolicyFor(combatant: Stuff): FormationPolicy {
-  let path: string;
-  try {
-    path = PartyApi.formationPathOf(combatant);
-  } catch {
-    return CombatFormation.DEFAULT_POLICY;
-  }
-  const idea = StuffApi.findByTemplatePath(path);
-  return idea instanceof CombatFormation
-    ? idea.policy()
-    : CombatFormation.DEFAULT_POLICY;
+  // ⭐ A combatant with no party fights by the built-in default; a party's
+  // formation is resident with the party (documents D7) — a sync read that
+  // throws if it is not, never a quiet default.
+  if (!PartyApi.activePartyOf(combatant)) return Formation.DEFAULT_POLICY;
+  return Formation.need(PartyApi.formationPathOf(combatant));
 }
 
 /**
@@ -4494,16 +4486,6 @@ function standingTermsImpl(
   return { lethality, stopCondition, stakes: "" };
 }
 
-/** Warm each side's formation Idea into residency (best-effort). */
-async function warmFormationsImpl(combatants: Stuff[]): Promise<void> {
-  for (const c of combatants) {
-    try {
-      await StuffApi.singleton(PartyApi.formationPathOf(c));
-    } catch {
-      // Falls back to CombatFormation.DEFAULT_POLICY at consult time.
-    }
-  }
-}
 
 /** Snapshot melee competence BEFORE opening — the read-fog and poise
  * recovery need it, and `bandFor` is async so it cannot be read mid-beat
@@ -4773,7 +4755,6 @@ async function initiateImpl(
   );
 
   const opts = await snapshotBandsImpl([initiator, target]);
-  await warmFormationsImpl([initiator, target]);
   opts.ambush = await PerceptionApi.resolveAmbush(initiator, target);
 
   // Attacking someone already fighting JOINS their melee; attacking from

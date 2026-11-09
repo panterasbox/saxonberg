@@ -367,11 +367,10 @@ describe('the rows author what the trade needs', () => {
     );
   });
 
-  it('the two HelpConcepts resolve as rows', () => {
+  it('the two help concepts are documents (the file is the data)', () => {
     for (const k of ['extraction', 'head-and-flow']) {
-      const c = row(join(ROWS, 'idea', 'HelpConcept', `${k}.yaml`));
-      expect(c.__class).toBe('/platform/idea/HelpConcept');
-      expect(c.key).toBe(k);
+      const c = YAML.parse(readFileSync(join(PACK, 'content', 'concepts', `${k}.yaml`), 'utf-8')) as Record<string, unknown>;
+      expect(c.class).toBeUndefined();
       expect(String(c.body).length).toBeGreaterThan(400);
     }
   });

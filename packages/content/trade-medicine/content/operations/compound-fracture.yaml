@@ -1,0 +1,15 @@
+key: compound-fracture
+label: compound-fracture setting
+addresses:
+  traumaTypes:
+  - fracture
+  minSeverity: 1.5
+instrument: surgery
+competence:
+  discipline: medicine
+  band: competent
+bloodCostL: 0.2
+baseDurationS: 240
+anaesthesia: required
+resolution: setting
+difficulty: formidable

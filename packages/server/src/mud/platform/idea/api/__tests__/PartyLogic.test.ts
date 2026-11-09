@@ -18,7 +18,7 @@ import { Idea } from "../../../../lib/stuff/Idea";
 import { StuffApi } from "../../../../api/stuff";
 import { PartyApi, DEFAULT_FORMATION_PATH } from "../../../../api/party";
 import { ChatApi } from "../../../../api/chat";
-import { CombatFormation } from "../../CombatFormation";
+import { Formation, type FormationPolicy } from "../../../../lib/combat/Formation";
 import { PartyMemberMixin } from "../../../../lib/party/PartyMember";
 import { AdvancementMixin } from '../../../../lib/advancement/Advancement';
 import { Party } from "../../Party";
@@ -171,12 +171,9 @@ describe("PartyApi — lifecycle", () => {
 
 /** A resident formation Idea the chain can resolve (`StuffApi.singleton`
  * short-circuits to a live instance, so no template DB is needed). */
-function residentFormation(name: string, roles: string[]): CombatFormation {
-  const f = makeStuff(() => new CombatFormation());
-  f.setName(name);
-  if (roles.length) f.setRoles(roles);
-  stampTemplatePathForTest(f, `/platform/idea/CombatFormation/${name}`);
-  return f;
+function residentFormation(name: string, roles: string[]): FormationPolicy {
+  const path = `/platform/formations/${name}`;
+  return Formation.remember(path, Formation.fromData({ roles }, path));
 }
 
 describe("PartyApi — formation resolution (the total chain)", () => {
@@ -203,7 +200,7 @@ describe("PartyApi — formation resolution (the total chain)", () => {
     const res = await cap.setPartyFormation("vanguard");
     expect(res.ok).toBe(true);
     expect(PartyApi.formationPathOf(cap as Stuff)).toBe(
-      "/platform/idea/CombatFormation/vanguard",
+      "/platform/formations/vanguard",
     );
   });
 
@@ -276,12 +273,12 @@ describe("PartyApi — formation resolution (the total chain)", () => {
     stampTemplatePathForTest(party, `/obj/party/test-roundtrip-${seq++}`);
     const raw = ProxyApi.unwrap(party) as Party;
     raw.setDurable(true);
-    raw.setFormationPath("/platform/idea/CombatFormation/vanguard");
+    raw.setFormationPath("/platform/formations/vanguard");
     raw.assignRole("player-1", "front");
     raw.assignRole("merc-2", "back");
 
     const rec = party.toRecord();
-    expect(rec.formationPath).toBe("/platform/idea/CombatFormation/vanguard");
+    expect(rec.formationPath).toBe("/platform/formations/vanguard");
     expect(rec.roleAssignments).toEqual({
       "player-1": "front",
       "merc-2": "back",
@@ -291,7 +288,7 @@ describe("PartyApi — formation resolution (the total chain)", () => {
     stampTemplatePathForTest(revived, `/obj/party/test-roundtrip-${seq++}`);
     (ProxyApi.unwrap(revived) as Party).applyRecord(rec);
     expect(revived.getFormationPath()).toBe(
-      "/platform/idea/CombatFormation/vanguard",
+      "/platform/formations/vanguard",
     );
     expect(revived.roleOfMember("player-1")).toBe("front");
     expect(revived.roleOfMember("merc-2")).toBe("back");

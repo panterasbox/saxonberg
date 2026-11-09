@@ -49,6 +49,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
 import { DirtKind } from "./mud/lib/cleanliness/DirtKind";
+import { Formation } from "./mud/lib/combat/Formation";
 
 let installed = false;
 
@@ -135,23 +136,25 @@ export function ensureFrameworkWiring(): boolean {
 
 /**
  * ⭐ The kernel's own document vocabulary, resident as a running world has
- * it — the platform pack's `content/dirt/` (documents path identity, D7:
- * every Soilable host loads it in `onCreate`). A suite has no document
+ * it — the platform pack's `content/dirt/` and `content/formations/`
+ * (documents path identity, D7: every Soilable host and every party loads
+ * its share in `onCreate`). A suite has no document
  * store behind it, so the installer's half is stood in for here, from the
  * shipped files: a disk read, no database.
  */
 function rememberKernelDocuments(): void {
-  const dir = join(
-    dirname(fileURLToPath(import.meta.url)),
-    "../../content/platform/content/dirt",
-  );
-  if (!existsSync(dir)) return;
-  for (const f of readdirSync(dir)) {
-    if (!f.endsWith(".yaml")) continue;
-    const path = `/platform/dirt/${f.slice(0, -".yaml".length)}`;
-    const data = (YAML.parse(readFileSync(join(dir, f), "utf8")) ?? {}) as Record<string, unknown>;
-    DirtKind.remember(path, DirtKind.fromData(data, path));
-  }
+  const root = join(dirname(fileURLToPath(import.meta.url)), "../../content/platform/content");
+  const each = (dir: string, keep: (path: string, data: Record<string, unknown>) => void): void => {
+    const at = join(root, dir);
+    if (!existsSync(at)) return;
+    for (const f of readdirSync(at)) {
+      if (!f.endsWith(".yaml")) continue;
+      const path = `/platform/${dir}/${f.slice(0, -".yaml".length)}`;
+      keep(path, (YAML.parse(readFileSync(join(at, f), "utf8")) ?? {}) as Record<string, unknown>);
+    }
+  };
+  each("dirt", (path, data) => void DirtKind.remember(path, DirtKind.fromData(data, path)));
+  each("formations", (path, data) => void Formation.remember(path, Formation.fromData(data, path)));
 }
 
 ensureFrameworkWiring();

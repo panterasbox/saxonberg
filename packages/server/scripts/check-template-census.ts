@@ -1146,6 +1146,8 @@ const DOCUMENT_PATH_FIELDS: Readonly<Record<string, string>> = {
   // An instrument's form words (`/trade/ceramics/forms/mug`); a potter
   // brain's `forms:` are WORDS, so only path-shaped values are checked.
   forms: 'forms',
+  // A help concept's further reading (`/trade/farming/concepts/nitrogen`).
+  seeAlso: 'concepts',
 };
 
 /** Every document path a pack ships under `contentDir`: its root + the dir + the file. */

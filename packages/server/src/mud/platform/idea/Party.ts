@@ -41,6 +41,7 @@ import type { SubscribableFieldDescriptor } from "../../api/mql-subscription";
 import { CallSecurity } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { PartyRecord } from "../../lib/party/PartyRecord";
+import { Formation, DEFAULT_FORMATION_PATH } from "../../lib/combat/Formation";
 import type { PartyMember } from "../../lib/party/PartyMember";
 import type { FieldMeta } from "../../lib/mixin";
 
@@ -64,7 +65,7 @@ const PartySurface = SecurityPolicies.AnyOf(
  * formation **paths** only (a ref-shapes identity ref) and never imports
  * `lib/combat`.
  */
-export const DEFAULT_FORMATION_PATH = "/platform/idea/CombatFormation/default";
+export { DEFAULT_FORMATION_PATH } from "../../lib/combat/Formation";
 
 export class Party extends Idea {
   /**
@@ -273,9 +274,25 @@ export class Party extends Idea {
     return this.formationPath;
   }
 
+  /**
+   * Adopt the formation at `path`. ⭐ The formation is resident with the
+   * party (documents D7): the act that adopts it resolved it first, and a
+   * restore loads it in `materializeParty` — so this asserts it.
+   */
   @CallSecurity(PartySurface)
   setFormationPath(path: string): void {
+    if (path) Formation.need(path);
     this.formationPath = path;
+  }
+
+  /**
+   * ⭐ A party is live only when its formation is — the default preset
+   * included (documents D7, mechanism 4), so combat's per-beat consult is a
+   * synchronous read.
+   */
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
+    await Formation.ensure(DEFAULT_FORMATION_PATH);
   }
 
   /** A member's assigned role, `''` when unassigned (vacant is inert,

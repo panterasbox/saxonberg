@@ -32,6 +32,8 @@ import { PumpMechanism } from '../../../lib/pump/PumpMechanism';
 import { Form } from '../../../lib/craft/FormSpec';
 import { Joint } from '../../../lib/craft/Joint';
 import { DirtKind } from '../../../lib/cleanliness/DirtKind';
+import { Operation } from '../../../lib/vitals/Operation';
+import { Formation } from '../../../lib/combat/Formation';
 import { DocumentCache } from '../../../lib/document/DocumentCache';
 import { TOPIC_ROOTS } from '@saxonberg/types';
 import Topic from '../Topic';
@@ -182,6 +184,11 @@ const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>, path: 
   form: (d, p) => void Form.fromData(d, p),
   joint: (d, p) => void Joint.fromData(d, p),
   dirt: (d, p) => void DirtKind.fromData(d, p),
+  operation: (d, p) => void Operation.fromData(d, p),
+  formation: (d, p) => void Formation.fromData(d, p),
+  'help-concept': (d) => {
+    if (typeof d.title !== 'string' || d.title === '') throw new Error('a help concept needs a title');
+  },
   'command-view': (d) => {
     const trail = CommandApi.validateCommandView(d);
     if (trail !== null) throw new Error(`does not conform to the command schema:\n${trail}`);

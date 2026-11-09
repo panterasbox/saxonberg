@@ -141,6 +141,24 @@ export const DOCUMENT_KINDS = {
    * the kernel's own `DirtKinds` constants name it by path.
    */
   dirt: { kind: 'dirt', contentDir: 'dirt', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * An **operation** — one entry of the surgical catalogue: which wound it
+   * addresses, its blood and time, its anaesthesia, how it resolves
+   * (`lib/vitals/Operation.ts`). A surgeon names it by its word.
+   */
+  operation: { kind: 'operation', words: leafWord, contentDir: 'operations', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **help concept** — a player-facing help page about a CONCEPT (what
+   * nitrogen is), not a command or an Api. Read by `HelpCatalogue` into
+   * `concept.<word>` topics; `seeAlso:` cites other concepts by path.
+   */
+  'help-concept': { kind: 'help-concept', words: leafWord, contentDir: 'concepts', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **formation** — a party's policy over the threat graph: roles,
+   * allocation, interception, the coup (`lib/combat/Formation.ts`). A party
+   * names its formation by path; a captain adopts one by its word.
+   */
+  formation: { kind: 'formation', words: leafWord, contentDir: 'formations', ext: 'yaml', onVanish: 'delete' },
   'name-bank': { kind: 'name-bank', contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
   blueprint: { kind: 'blueprint', contentDir: 'blueprints', ext: 'yaml', onVanish: 'delete' },
   'command-view': { kind: 'command-view', contentDir: 'cmd', ext: 'yaml', onVanish: 'delete' },

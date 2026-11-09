@@ -130,13 +130,18 @@ export class DocumentCache<T> {
    * read and kept. Unique by the install check, so at most one is expected;
    * a list because the store, not this read, is what refuses a twin.
    */
-  public async byWord(word: string): Promise<T[]> {
+  public async byWord(word: string): Promise<Array<{ path: string; value: T }>> {
+    // A word is unique at install, so a resident document whose leaf is the
+    // word IS the answer — no read.
+    for (const [path, value] of this.known) {
+      if (path.slice(path.lastIndexOf('/') + 1) === word) return [{ path, value }];
+    }
     const docs = await DocumentApi.findByKey(this.kind, 'word', { eq: word });
-    const out: T[] = [];
+    const out: Array<{ path: string; value: T }> = [];
     for (const doc of docs) {
       const path = doc.getPath();
       const have = this.known.get(path);
-      out.push(have !== undefined ? have : this.remember(path, await this.build(doc)));
+      out.push({ path, value: have !== undefined ? have : this.remember(path, await this.build(doc)) });
     }
     return out;
   }

@@ -1031,6 +1031,39 @@ every party is resident with its formation). Three typed-word kinds declare
 proof tests.
 Commit: `build(documents W3b): operations, help concepts and formations are documents`.
 
+> **W3a dirt + W3b (build).**
+> - **Dirt** (`lib/cleanliness/DirtKind.ts`, `DirtKinds` path constants):
+>   a dirt is named by path everywhere — deposits, stains, a recipe's
+>   `soils[].kind` (SoilSpec now refuses a bare word), the ~50 kernel/pack
+>   literals. `SoilableMixin.onCreate` awaits `DirtKind.ensureKernel()` (one
+>   prefix read; a no-op when every kernel kind is resident); `setDeposits` /
+>   `setStains` are restore doors — the persisted field formerly named
+>   `setDeposits` (the SET deposits) is renamed `fixedDeposits` to free the
+>   applier's `set<Field>` name. A pack's own kind (`/trade/mining/dirt/dust`)
+>   is loaded by the act that lands it (`WorkedActController`, `hew`,
+>   `scutch`). Prose speaks a dirt's word (`DirtKind.wordOf`) — the cleanliness
+>   reading and `sweep`. A tap's apron splash is only a dirt the kernel ships
+>   (`DirtKind.has`). The `dust` latent defect closes.
+> - **Operations** (`lib/vitals/Operation.ts`): `Operation.all()` is the lazy
+>   dictionary `operate` reads; `OperationCatalogue` deleted.
+> - **Help concepts**: no value class (P1) — `HelpCatalogue` is the one reader
+>   and reads `listOfKind('help-concept')`; a concept's word is its leaf;
+>   `seeAlso` cites paths (census (g)).
+> - **Formations** (`lib/combat/Formation.ts`): `DEFAULT_FORMATION_PATH` is
+>   `/platform/formations/default`; `Party.onCreate` loads the default,
+>   `materializeParty` loads a restored party's, `party adopt <word>` resolves
+>   through `Formation.pathOfWord` (resident-first, then `keys.word`);
+>   `resolvePolicyFor` returns `DEFAULT_POLICY` only for a combatant with NO
+>   party, else `Formation.need` — `warmFormationsImpl` is gone.
+>   `DocumentCache.byWord` now returns `{path, value}` and answers from a
+>   resident leaf first (a word is unique at install).
+> - **Test bootstrap** keeps the kernel's `dirt` and `formations` documents
+>   resident (`rememberKernelDocuments`), standing in for the installer the
+>   way `registerSources` does — a suite has no store, and every Soilable
+>   host and party loads its share in `onCreate`.
+> - The row-move codemod now dumps multi-line strings as `|` blocks (the
+>   concept bodies had been flattened to escaped scalars; re-dumped).
+
 ### ⚠ W4 — the two families beneath synchronous primitives: Placement and Topic (D12, D13)
 
 Isolated on purpose; if the premise fails, this wave is re-planned alone.

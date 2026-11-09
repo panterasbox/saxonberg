@@ -12,6 +12,7 @@ import { ChatApi } from "../../../api/chat";
 import { StuffApi } from "../../../api/stuff";
 import { SecurityApi } from "../../../api/security";
 import { Party, DEFAULT_FORMATION_PATH } from "../Party";
+import { Formation } from "../../../lib/combat/Formation";
 import { PartyRecord } from "../../../lib/party/PartyRecord";
 import { PartyGroupProvider } from "../../../lib/party/PartyGroupProvider";
 import type { PartyOpResult, PartySimpleResult } from "../../../api/party";
@@ -225,6 +226,8 @@ async function materializeParty(rec: PartyRecord): Promise<Party> {
     // uuid), but recorded, which is the other half of the rule.
     { asIdentityPath: rec.path },
   );
+  // The party's formation loads with it (documents D7).
+  if (rec.formationPath) await Formation.ensure(rec.formationPath);
   party.applyRecord(rec);
   return party;
 }
@@ -315,11 +318,9 @@ function isCaptainImpl(combatant: Stuff): boolean {
 
 /** The formation Idea's role vocabulary, duck-read structurally so this
  * module never imports `lib/combat` (the one-way combat→party dep). */
-function formationRolesAt(path: string): readonly string[] | null {
-  const idea = StuffApi.findByTemplatePath(path);
-  if (!idea) return null;
-  const withRoles = idea as unknown as { getRoles?: () => readonly string[] };
-  return typeof withRoles.getRoles === "function" ? withRoles.getRoles() : null;
+function formationRolesAt(path: string): readonly string[] {
+  // Resident with the party (documents D7).
+  return Formation.need(path).roles;
 }
 
 async function partiesOfImpl(memberId: string): Promise<readonly Party[]> {
@@ -572,14 +573,11 @@ async function setFormationImpl(
   if (!trimmed || !/^[a-z][a-z-]*$/.test(trimmed)) {
     return { ok: false, reason: "unknown-formation" };
   }
-  const path = `/platform/idea/CombatFormation/${trimmed}`;
-  // Await the Idea resident BEFORE accepting, so a mid-fight switch is
-  // live by its next beat (the beat's consult is sync findByTemplatePath).
-  try {
-    await StuffApi.singleton(path);
-  } catch {
-    return { ok: false, reason: "unknown-formation" };
-  }
+  // ⭐ The captain's word names a formation document (a typed word, unique
+  // at install); resolving it loads it, so a mid-fight switch is live by
+  // its next beat (the beat's consult is a sync read).
+  const path = await Formation.pathOfWord(trimmed);
+  if (!path) return { ok: false, reason: "unknown-formation" };
   party.setFormationPath(path);
   await persistParty(party);
   fireChange(party);
@@ -610,7 +608,7 @@ async function assignRoleImpl(
   if (!formationPath) return { ok: false, reason: "no-formation" };
   const roles = formationRolesAt(formationPath);
   const wanted = role.trim().toLowerCase();
-  if (!roles || !roles.includes(wanted)) {
+  if (!roles.includes(wanted)) {
     return { ok: false, reason: "unknown-role" };
   }
   party.assignRole(targetId, wanted);
