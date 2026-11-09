@@ -1,5 +1,5 @@
 # Tonic water — bottling's. `carbonated`: a drink built on it fizzes (the derived payload carries the tag).
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/citrus, strength: 30 }]
   tastes: [{ type: sweet, amount: 80 }, { type: bitter, amount: 0.06 }]
@@ -9,10 +9,5 @@ data:
   density: 1030
   thermalConductivity: 0.5
   specificHeat: 3800
-  edibility: true
   nutrients: ["water", "sugar"]
-  toxicity:
-    []
   tags: ["liquid", "beverage", "drinkable", "tonic", "mixer", "carbonated"]
-  composition: []
-  biologicalSource: null

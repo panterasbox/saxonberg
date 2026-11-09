@@ -26,7 +26,8 @@ import { ExecutionContextApi } from '../../../../api/execution-context';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
-import Material from '../../../../lib/material/Material';
+import Food from '../../material/Food';
+import Metal from '../../material/Metal';
 import Good from '../../../../lib/stuff/Good';
 import { CraftedMixin } from '../../../../lib/craft/Crafted';
 import Provision from '../../../thing/Provision';
@@ -80,10 +81,10 @@ function registerMaterial(
   edible: boolean,
 ): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    // The kind decides edibility: food is edible, a metal has no edibility.
+    const m = edible ? new Food() : new Metal();
     m.setName(name);
     m.setTags(tags);
-    m.setEdibility(edible);
     return m;
   }, path);
 }
@@ -206,7 +207,7 @@ describe('matter, not mark — the gather predicate', () => {
   it('⭐ a MARKED lime still feeds the press, and its grade rides', async () => {
     const lime = makeStuff(() => new Provision());
     lime.setShortDescription('a lime');
-    lime.setMaterial(StuffApi.findByTemplatePath<Material>(LIME_MAT)!);
+    lime.setMaterial(StuffApi.findByTemplatePath<Food>(LIME_MAT)!);
     lime.setMass(Quantity.of(0.07, 'kg'));
     lime.stamp({
       maker: '/platform/agent/Avatar/somebody',
@@ -244,7 +245,7 @@ describe('matter, not mark — the gather predicate', () => {
     // you were served was indistinguishable from harm you did yourself.
     const lime = makeStuff(() => new Provision());
     lime.setShortDescription('a lime');
-    lime.setMaterial(StuffApi.findByTemplatePath<Material>(LIME_MAT)!);
+    lime.setMaterial(StuffApi.findByTemplatePath<Food>(LIME_MAT)!);
     lime.setMass(Quantity.of(0.07, 'kg'));
     ContainmentApi.move(lime, room);
 
@@ -270,7 +271,7 @@ describe('matter, not mark — the gather predicate', () => {
     // Material row exactly as before.
     const lime = makeStuff(() => new Provision());
     lime.setShortDescription('a lime');
-    lime.setMaterial(StuffApi.findByTemplatePath<Material>(LIME_MAT)!);
+    lime.setMaterial(StuffApi.findByTemplatePath<Food>(LIME_MAT)!);
     lime.setMass(Quantity.of(0.07, 'kg'));
     ContainmentApi.move(lime, room);
 
@@ -292,7 +293,7 @@ describe('matter, not mark — the gather predicate', () => {
   it('a marked KNIFE never does — capital stays capital', async () => {
     const buckle = makeStuff(() => new MarkedGear());
     buckle.setShortDescription('a steel buckle');
-    buckle.setMaterial(StuffApi.findByTemplatePath<Material>(STEEL_MAT)!);
+    buckle.setMaterial(StuffApi.findByTemplatePath<Food>(STEEL_MAT)!);
     ContainmentApi.move(buckle, room);
 
     const outcome = await craftAs(cook, {
@@ -310,7 +311,7 @@ describe('matter, not mark — the gather predicate', () => {
   it('a marked ROAST gathers — leftovers feeding the next dish is deliberate', async () => {
     const roast = makeStuff(() => new Provision());
     roast.setShortDescription('half a roast');
-    roast.setMaterial(StuffApi.findByTemplatePath<Material>(MEAT_MAT)!);
+    roast.setMaterial(StuffApi.findByTemplatePath<Food>(MEAT_MAT)!);
     roast.setGradeBand('exceptional');
     ContainmentApi.move(roast, room);
 

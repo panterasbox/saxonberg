@@ -209,7 +209,7 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
         // drive): a `Provision` is Crafted — it carries a maker. A crafted
         // thing is an ingredient when it is FOOD; a finished tool or good is
         // not.
-        (!MixinApi.isCrafted(source) || source.getMaterial()!.getEdibility())
+        (!MixinApi.isCrafted(source) || MixinApi.hasEdibility(source.getMaterial()!))
       ) {
         return this.ingredientPlan(source);
       }

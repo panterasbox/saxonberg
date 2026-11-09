@@ -8,7 +8,7 @@
 # Highly hygroscopic (a damp sack gains real weight and then spoils what
 # it holds); stiffer and far less springy than wool, and a poorer
 # insulator because the weave is open rather than lofted.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Fiber
 data:
   smells: [{ aroma: /base-library/aromas/straw, strength: 20 }]
   burning: [{ aroma: /base-library/aromas/paper-smoke, strength: 300 }]
@@ -30,9 +30,6 @@ data:
   # Water absorption capacity (% of dry mass, ASTM D570): jute is
   # notoriously thirsty — a wet sack is a heavy sack.
   waterAbsorptionCapacity: 25
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["textile", "fibre", "organic", "plant", "cellulose", "once-living"]
   # ⭐⭐ 16 MJ/kg — dry plant cellulose, and the FIRE BUILD is why a
   # textile authors one. Burlap is jute, and burning sacking is how a
@@ -47,6 +44,3 @@ data:
   combustionImparts:
     - type: /base-library/aromas/smoke
       amount: 40
-  composition: []
-  chemistry: null
-  biologicalSource: null

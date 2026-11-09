@@ -6,7 +6,7 @@
 # calcined cake is the same cake, made of this now. Its `castTemplate` is the
 # lump a counter lists, so a house that buys pearl ash buys the cake as
 # pearl ash. Its purity is the firing's — the cake's potash, concentrated.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Lye
 data:
   smells: [{ aroma: /base-library/aromas/lye, strength: 10 }]
   name: pearl ash
@@ -18,11 +18,6 @@ data:
   meltingPoint: 1164
   electricalConductivity: 1.0e-6
   waterAbsorptionCapacity: 60
-  edibility: false
-  nutrients: ["potassium"]
-  toxicity: []
   tags: [solid, mineral, alkali, potash, flux]
   cleanser: /trade/potash/idea/Cleanser/potash
   castTemplate: /trade/potash/thing/pearl-ash
-  composition: []
-  biologicalSource: null

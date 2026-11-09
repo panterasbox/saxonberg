@@ -13,7 +13,7 @@
 # (`inputCategory: crude`). The tag is the whole wiring: pour crude into
 # a column and the run starts, because the column was authored to look
 # for that word and the material was authored to carry it.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Oil
 data:
   smells: [{ aroma: /base-library/aromas/petroleum, strength: 300 }]
   burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 800 }]
@@ -32,10 +32,6 @@ data:
   # that burning it where you stand is a bad idea.
   heatOfCombustion: 42
   autoignitionTemperature: 500
-  edibility: false
-  nutrients: []
   toxicity:
     - { type: ptomaine, amount: 900 }
   tags: [liquid, crude, fuel, flammable]
-  composition: []
-  biologicalSource: null

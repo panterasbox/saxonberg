@@ -15,7 +15,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Place from '../../stuff/Place';
-import Material from '../../material/Material';
+import Water from '../../../platform/idea/material/Water';
 import Flask from '../../../platform/thing/Flask';
 import { THERMAL_DEFAULTS } from '../Thermal';
 import { ContainmentApi } from '../../../api/containment';
@@ -35,9 +35,9 @@ let CLEAN = '';
 let FOULED = '';
 let LEADED = '';
 
-function water(path: string, purifiedInto: string): Material {
+function water(path: string, purifiedInto: string): Water {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Water();
     m.setName(path.split('/').pop()!);
     m.setDensity(Quantity.of(1000, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
@@ -46,7 +46,7 @@ function water(path: string, purifiedInto: string): Material {
     m.setLatentHeatOfVaporization(Quantity.of(2260000, 'J/kg'));
     m.setPurifiedByBoiling(purifiedInto);
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as Water;
 }
 
 let realMs = 0;
@@ -59,7 +59,7 @@ const advanceGameS = (s: number): void => {
 };
 
 /** A litre of `mat` in a flask, `startK` hot, in a room held at `roomK`. */
-function flaskOf(mat: Material, startK: number, roomK: number): Flask {
+function flaskOf(mat: Water, startK: number, roomK: number): Flask {
   const room = makeStuff(() => new TestRoom());
   const flask = makeStuff(() => new Flask());
   flask.interiorBulk = true;
@@ -90,7 +90,7 @@ describe('purification is the phase engine’s — held at the boil', () => {
   afterEach(() => WorldClockApi._resetForTesting());
 
   it('⭐ a pot held at a rolling boil comes off as what its material names', () => {
-    const flask = flaskOf(StuffApi.findByTemplatePath<Material>(FOULED)!, 373, 400);
+    const flask = flaskOf(StuffApi.findByTemplatePath<Water>(FOULED)!, 373, 400);
     advanceGameS(THERMAL_DEFAULTS.PURIFY_HOLD_S * 3);
     flask.reconcileThermal();
     expect(flask.getBulkMaterialPath('interior')).toBe(CLEAN);
@@ -101,7 +101,7 @@ describe('purification is the phase engine’s — held at the boil', () => {
   });
 
   it('brought just to the boil is not enough — it must be HELD there', () => {
-    const flask = flaskOf(StuffApi.findByTemplatePath<Material>(FOULED)!, 373, 400);
+    const flask = flaskOf(StuffApi.findByTemplatePath<Water>(FOULED)!, 373, 400);
     advanceGameS(THERMAL_DEFAULTS.PURIFY_HOLD_S / 6);
     flask.reconcileThermal();
     expect(flask.getBulkMaterialPath('interior')).toBe(FOULED);
@@ -109,7 +109,7 @@ describe('purification is the phase engine’s — held at the boil', () => {
   });
 
   it('warm is not boiling — a pot that never reaches the boil keeps no clock', () => {
-    const flask = flaskOf(StuffApi.findByTemplatePath<Material>(FOULED)!, 330, 340);
+    const flask = flaskOf(StuffApi.findByTemplatePath<Water>(FOULED)!, 330, 340);
     advanceGameS(THERMAL_DEFAULTS.PURIFY_HOLD_S * 10);
     flask.reconcileThermal();
     expect(flask.getBulkMaterialPath('interior')).toBe(FOULED);
@@ -117,7 +117,7 @@ describe('purification is the phase engine’s — held at the boil', () => {
   });
 
   it('⚠ boiling does not fix everything — no arrow, just hotter', () => {
-    const flask = flaskOf(StuffApi.findByTemplatePath<Material>(LEADED)!, 373, 400);
+    const flask = flaskOf(StuffApi.findByTemplatePath<Water>(LEADED)!, 373, 400);
     advanceGameS(THERMAL_DEFAULTS.PURIFY_HOLD_S * 3);
     flask.reconcileThermal();
     expect(flask.getBulkMaterialPath('interior')).toBe(LEADED);

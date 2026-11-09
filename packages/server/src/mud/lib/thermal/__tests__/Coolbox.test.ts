@@ -26,6 +26,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Good from "../../stuff/Good";
 import Place from "../../stuff/Place";
 import Material from "../../material/Material";
+import Water from "../../../platform/idea/material/Water";
 import Icebox from "../../../platform/thing/Icebox";
 import { ThermalMixin } from "../Thermal";
 import { MeltableMixin } from "../Meltable";
@@ -56,7 +57,7 @@ let matCounter = 0;
 function iceMaterial(): Material {
   matCounter += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Water();
     m.setName(`coolbox-ice-${matCounter}`);
     m.setSpecificHeat(Quantity.of(2100, "J/(kg·K)"));
     m.setThermalConductivity(Quantity.of(2.2, "W/(m·K)"));

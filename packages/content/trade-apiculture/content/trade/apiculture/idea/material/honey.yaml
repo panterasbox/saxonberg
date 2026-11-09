@@ -13,7 +13,7 @@
 # are ONE mechanism (`docs/subsystems/spoilage.md`), and honey is the
 # limiting case — food that preserves itself. Dilute it and the hurdle
 # comes down, which is exactly what mead is.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Food
 data:
   smells: [{ aroma: /base-library/aromas/honey, strength: 200 }]
   name: honey
@@ -22,7 +22,6 @@ data:
   density: 1420
   thermalConductivity: 0.5
   specificHeat: 2300
-  edibility: true
   tastes: [{ type: sweet, amount: 800 }]
   # Steeply answering to warmth, and it does not matter: the water
   # activity is at the floor, so the rate is multiplied by nothing.
@@ -32,7 +31,4 @@ data:
   nutrientAmounts:
     sugar: 16000
     water: 3500
-  toxicity: []
   tags: ["honey", "sweetener", "food", "edible"]
-  composition: []
-  biologicalSource: null

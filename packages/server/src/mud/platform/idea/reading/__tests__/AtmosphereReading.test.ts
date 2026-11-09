@@ -22,7 +22,7 @@ import CartesianZone from '../../location/CartesianZone';
 import Location from '../../../../lib/location/Location';
 import Biome from '../../../../lib/biome/Biome';
 import { BiomeApi } from '../../../../api/biome';
-import Material from '../../../../lib/material/Material';
+import Gas from '../../material/Gas';
 import { Quantity } from '../../../../lib/quantity';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
@@ -100,7 +100,7 @@ function installRootBiome(): Biome {
 /** The smoke row, as content ships it — the reading names it by NAME. */
 function installSmoke(): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Gas();
     m.setName('smoke');
     m.setDensity(Quantity.of(1.1, 'kg/m³'));
     m.setBoilingPoint(Quantity.of(100, 'K'));

@@ -24,7 +24,7 @@ import { join } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 import Ore from '@saxonberg/content-trade-mining/src/thing/Ore';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import OreMaterial from '@saxonberg/server/mud/platform/idea/material/Ore';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
@@ -72,7 +72,7 @@ describe('the smelt', () => {
     StuffApi.clearAll();
     installV1QuantityMarshallers();
     vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const m = makeStuffAtPath(() => new Material(), MALACHITE);
+    const m = makeStuffAtPath(() => new OreMaterial(), MALACHITE);
     // ⭐ Chemistry: two Cu in a 221.114 g/mol formula unit.
     m.setComposition([{ materialPath: COPPER, fraction: 0.5748 }]);
   });

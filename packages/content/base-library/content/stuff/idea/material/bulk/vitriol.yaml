@@ -11,16 +11,17 @@
 # is the whole "acid eats the breastplate AND burns the arm under it"
 # interop case: a steel layer is armour against lime and NO armour against
 # vitriol, and the covering fold reads exactly that off this one list.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Acid
 data:
   smells: [{ aroma: /base-library/aromas/vitriol, strength: 3000 }]
   name: vitriol
   keywords: [vitriol, acid]
   appearance: oily, faintly fuming acid
-  description: >-
-    A dense, oily liquid that fumes where the air is damp. It eats what it
-    touches — cloth, hide, skin, and even iron, given time — and the
-    eating does not stop until it is washed away.
+  # (A material has no `description` field — the substance reads by its
+  # `appearance`; this prose was never applied, and is kept as a note.)
+  # A dense, oily liquid that fumes where the air is damp. It eats what it
+  # touches — cloth, hide, skin, and even iron, given time — and the
+  # eating does not stop until it is washed away.
   density: 1840
   thermalConductivity: 0.4
   specificHeat: 1380
@@ -38,5 +39,3 @@ data:
   # `once-living` is the biological-origin tag every caught row carries;
   # every shipped corrosion outcome is unchanged except the elastomers'.
   corrosiveTo: [metal, tissue, leather, textile, once-living]
-  composition: []
-  biologicalSource: null

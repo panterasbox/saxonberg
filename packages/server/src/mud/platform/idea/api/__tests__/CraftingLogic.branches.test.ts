@@ -20,7 +20,8 @@ import { MixinApi } from '../../../../api/mixin';
 import { BulkableApi } from '../../../../api/bulk';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
-import Material from '../../../../lib/material/Material';
+import Food from '../../material/Food';
+import Metal from '../../material/Metal';
 import Good from '../../../../lib/stuff/Good';
 import Ingot from '../../../thing/Ingot';
 import Forge from '../../../thing/Forge';
@@ -85,22 +86,29 @@ function registerMaterial(
   path: string,
   name: string,
   tags: string[],
-  edible = false,
-): Material {
+): Metal {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Metal();
     m.setName(name);
     m.setTags(tags);
-    if (edible) m.setEdibility(true);
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as Metal;
+}
+
+function registerFood(path: string, name: string, tags: string[]): Food {
+  return makeStuffAtPath(() => {
+    const m = new Food();
+    m.setName(name);
+    m.setTags(tags);
+    return m;
+  }, path) as unknown as Food;
 }
 
 function makeIngot(massKg = 0.5): Ingot {
   const i = makeStuff(() => new Ingot());
   i.setMass(Quantity.of(massKg, 'kg'));
   i.setMaterial(
-    StuffApi.findByTemplatePath<Material>(IRON) as unknown as Material,
+    StuffApi.findByTemplatePath<Food>(IRON) as unknown as Food,
   );
   return i;
 }
@@ -174,22 +182,22 @@ beforeEach(async () => {
   });
 
   registerMaterial(IRON, 'iron', ['metal', 'ferrous']);
-  registerMaterial(VEG, 'root vegetable', ['vegetable'], true);
-  registerMaterial(MEAT, 'stew meat', ['meat'], true);
-  registerMaterial(STEW, 'hearty stew', ['food'], true);
+  registerFood(VEG, 'root vegetable', ['vegetable']);
+  registerFood(MEAT, 'stew meat', ['meat']);
+  registerFood(STEW, 'hearty stew', ['food']);
   // ⭐ Densities and servings as the shipped rows author them (ceramics
   // re-plan R1-D1): a blend records its parts by MASS, and one serving of
   // a spirit is its bar measure — so a martini built at its measures is
   // one serving of each.
-  const gin = registerMaterial(GIN, 'house gin', ['gin'], true);
+  const gin = registerFood(GIN, 'house gin', ['gin']);
   gin.setToxicity([{ type: 'alcohol', amount: 19 }]);
   gin.setDensity(Quantity.of(940, 'kg/m³'));
   gin.setServingKg(0.0564);
-  const vermouth = registerMaterial(VERMOUTH, 'dry vermouth', ['vermouth'], true);
+  const vermouth = registerFood(VERMOUTH, 'dry vermouth', ['vermouth']);
   vermouth.setToxicity([{ type: 'alcohol', amount: 7 }]);
   vermouth.setDensity(Quantity.of(990, 'kg/m³'));
   vermouth.setServingKg(0.0099);
-  registerMaterial(MIXED, 'mixed drink', ['cocktail'], true).setDensity(
+  registerFood(MIXED, 'mixed drink', ['cocktail']).setDensity(
     Quantity.of(950, 'kg/m³'),
   );
 
@@ -265,7 +273,7 @@ describe('the tangible (smithing) branch', () => {
     hammer.setCapabilities(['striking']);
     // The hammer is iron too — a tool must never be consumed as matter.
     hammer.setMaterial(
-      StuffApi.findByTemplatePath<Material>(IRON) as unknown as Material,
+      StuffApi.findByTemplatePath<Food>(IRON) as unknown as Food,
     );
     ContainmentApi.move(hammer, room);
 
@@ -360,13 +368,13 @@ describe('the edible (cooking) branch', () => {
     veg.setQuantity(5);
     veg.setMass(Quantity.of(0.2, 'kg'));
     veg.setMaterial(
-      StuffApi.findByTemplatePath<Material>(VEG) as unknown as Material,
+      StuffApi.findByTemplatePath<Food>(VEG) as unknown as Food,
     );
     ContainmentApi.move(veg, room);
     const meat = makeStuff(() => new Good());
     meat.setMass(Quantity.of(0.3, 'kg'));
     meat.setMaterial(
-      StuffApi.findByTemplatePath<Material>(MEAT) as unknown as Material,
+      StuffApi.findByTemplatePath<Food>(MEAT) as unknown as Food,
     );
     ContainmentApi.move(meat, room);
     return { veg, meat };

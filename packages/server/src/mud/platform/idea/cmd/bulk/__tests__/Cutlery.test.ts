@@ -21,6 +21,7 @@ import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
 import Good from "../../../../../lib/stuff/Good";
 import Place from "../../../../../lib/stuff/Place";
 import Material from "../../../../../lib/material/Material";
+import SolidFood from '../../../material/SolidFood';
 import CraftVessel from "../../../../thing/CraftVessel";
 import Cutlery from "../../../../thing/Cutlery";
 import { MixinApi } from "../../../../../api/mixin";
@@ -151,10 +152,9 @@ describe("eating with cutlery (AC11a)", () => {
     StuffApi.clearAll();
     captureScene();
     makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new SolidFood();
       m.setName("apple");
       m.setAppearance("an apple");
-      m.setEdibility(true);
       m.setNutrients(["sugar"]);
       return m;
     }, APPLE);
@@ -296,10 +296,9 @@ describe('⭐ eating a MEAL out of the dish it came in', () => {
     StuffApi.clearAll();
     captureScene();
     makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new SolidFood();
       m.setName('apple');
       m.setAppearance('an apple');
-      m.setEdibility(true);
       m.setNutrients(['carb']);
       return m;
     }, APPLE);

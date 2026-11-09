@@ -19,7 +19,7 @@ import ClothBolt from "../thing/ClothBolt";
 import { Grade } from "@saxonberg/server/mud/lib/craft/Grade";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
-import Material from "@saxonberg/server/mud/platform/idea/material/Material";
+import Material from "@saxonberg/server/mud/platform/idea/material/Residue";
 import { Construction } from "@saxonberg/server/mud/lib/material/Construction";
 import {
   makeStuff,

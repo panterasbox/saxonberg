@@ -46,7 +46,9 @@ describe('rubber from a field', () => {
     expect(root.tags).toContain('rubber-root');
     // ⭐ Edible, and that is what makes a grown, marked root STOCK to a
     // craft (CraftingLogic.isItemCandidate) — the drive found it refused.
-    expect(root.edibility).toBe(true);
+    const rootRow = doc('trade-farming', `${String(crop._materialPath)}.yaml`) as { class?: string };
+    // Its KIND composes Edibility (material decomposition: the kind is the fact).
+    expect(rootRow.class).toMatch(/^\/platform\/idea\/material\/(Food|SolidFood|Syrup|Drink|Spirit|Flesh|Muscle|Fat|EdibleHerb|EdibleSalt|Water)$/);
 
     const recipe = doc('trade-rubber', '/recipes/dandelion-latex.yaml');
     const cats = (recipe.inputSlots as Array<{ category: string }>).map((sl) => sl.category);

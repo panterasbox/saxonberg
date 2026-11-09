@@ -25,6 +25,7 @@ import { Creature } from '../../../lib/creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import Material from '../../../lib/material/Material';
+import Hide from '../../../platform/idea/material/Hide';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { ElectricityApi } from '../../../api/electricity';
@@ -46,7 +47,7 @@ function installSaltWater(): void {
   stampTemplatePathForTest(m, '/stuff/idea/material/bulk/salt-water');
 }
 function leather(): Material {
-  const m = makeStuff(() => new Material());
+  const m = makeStuff(() => new Hide());
   m.setName('leather');
   m.setElectricalConductivity(Quantity.of(1.0e-9, 'S/m'));
   m.setWaterAbsorptionCapacity(Quantity.of(15, '%'));

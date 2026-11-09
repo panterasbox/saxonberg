@@ -3,7 +3,7 @@
 # as the bulk substrate reads (appearance + keywords). Real formula /
 # molar mass are a capacity, not a mandate — left unset until a consumer
 # (chemistry, electrolysis) actually needs them.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Water
 data:
   name: water
   keywords: [water]
@@ -29,9 +29,7 @@ data:
   # block the iceboxes eat. See docs/subsystems/mould.md and thermal.md §
   # Phase change both ways.
   castTemplate: /stuff/thing/ice-lump
-  edibility: true
   nutrients: [water]
-  toxicity: []
   # ⭐ `water` is the IDENTITY tag — what engine logic asks for when it
   # needs water (rinsing at a basin, the archetype's water-source slot).
   # It is authored here because identity lives on the Material, never on
@@ -43,5 +41,3 @@ data:
   # general check asks a Material `hasTag('solvent')`; only water carries
   # it today (spirits / oil are a later cooking-infusion build).
   tags: [liquid, water, beverage, drinkable, solvent]
-  composition: []
-  biologicalSource: null

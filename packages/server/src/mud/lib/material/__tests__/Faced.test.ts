@@ -23,6 +23,10 @@ import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../secu
 import { StackableMixin } from '../../stuff/Stackable';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
+import Ceramic from '../../../platform/idea/material/Ceramic';
+import PigmentPaint from '../../../platform/idea/material/PigmentPaint';
+import Acid from '../../../platform/idea/material/Acid';
+import Water from '../../../platform/idea/material/Water';
 
 /** A jar that can be mended — a rivet is a mend recorded on a durable good. */
 class MendableJar extends DurableMixin(ThermalMixin(BulkableMixin(Good))) {
@@ -44,10 +48,14 @@ function advance(gameS: number): void {
 }
 
 let seq = 0;
-function mat(name: string, fill: (m: Material) => void): Material {
+function mat<K extends Material>(
+  make: () => K,
+  name: string,
+  fill: (m: K) => void,
+): Material {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = make();
     m.setName(name);
     m.setDensity(Quantity.of(1000, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(900, 'J/(kg·K)'));
@@ -83,18 +91,18 @@ beforeEach(() => {
   WorldClockApi._resetForTesting();
   real = 1_000_000;
   WorldClockApi._setNowProviderForTesting(() => real);
-  terracotta = mat('terracotta', (m) => {
+  terracotta = mat(() => new Ceramic(), 'terracotta', (m) => {
     m.setTags(['ceramic', 'fired', 'porous', 'brittle']);
     m.setWaterAbsorptionCapacity(Quantity.of(15, '%'));
     m.setThermalExpansion(5.5e-6);
   });
-  stoneware = mat('stoneware', (m) => {
+  stoneware = mat(() => new Ceramic(), 'stoneware', (m) => {
     m.setTags(['ceramic', 'fired', 'brittle']);
     m.setWaterAbsorptionCapacity(Quantity.of(1.5, '%'));
     m.setThermalExpansion(6e-6);
   });
   const glaze = (name: string, refK: number, runK: number, alpha: number, leaches: boolean): Material =>
-    mat(name, (m) => {
+    mat(() => new PigmentPaint(), name, (m) => {
       m.setLaysCoat(true);
       m.setCoatWord('glazed');
       m.setThermalExpansion(alpha);
@@ -110,11 +118,11 @@ beforeEach(() => {
     });
   lead = glaze('lead-glaze', 1250, 1400, 7.5e-6, true);
   ash = glaze('ash-glaze', 1250, 1500, 5e-6, false);
-  vinegar = mat('vinegar', (m) => {
+  vinegar = mat(() => new Acid(), 'vinegar', (m) => {
     m.setTags(['liquid']);
     m.setPh(2.4); // vinegar
   });
-  water = mat('water', (m) => m.setTags(['liquid']));
+  water = mat(() => new Water(), 'water', (m) => m.setTags(['liquid']));
 });
 afterEach(() => WorldClockApi._resetForTesting());
 
@@ -284,7 +292,7 @@ describe('the slot — the leach and the weep', () => {
 
   it('⭐ the attack follows pH: tenfold per two units, nothing at or above neutral (B109)', () => {
     const at = (ph: number): number => {
-      const m = makeStuff(() => new Material());
+      const m = makeStuff(() => new Acid());
       m.setPh(ph);
       return m.acidAttack();
     };
@@ -293,7 +301,7 @@ describe('the slot — the leach and the weep', () => {
     expect(at(6.7)).toBeLessThan(0.01); // milk barely
     expect(at(7)).toBe(0);
     expect(at(8.1)).toBe(0); // seawater: alkaline, no lead
-    expect(makeStuff(() => new Material()).getPh()).toBe(7); // unauthored is neutral
+    expect(makeStuff(() => new Acid()).getPh()).toBe(7); // unauthored is neutral
   });
 
   it('water is not acid — it takes nothing from a lead glaze', () => {

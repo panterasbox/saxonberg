@@ -105,9 +105,16 @@ export default class MordantController extends ManualBuildController<MordantMode
   }
 }
 
+/**
+ * The material a mordant key is: the dyer says "iron", and what goes in the
+ * bath is copperas — iron(II) sulfate, a salt, not the metal (material
+ * decomposition W2a: there is one `iron`, and it is the element).
+ */
+const MORDANT_MATERIALS: Readonly<Record<string, string>> = { iron: 'copperas' };
+
 /** The material path a mordant key names. */
 function mordantMaterial(key: string): string {
-  return `/trade/dyeing/idea/material/${key}`;
+  return `/trade/dyeing/idea/material/${MORDANT_MATERIALS[key] ?? key}`;
 }
 
 function dial(key: string, fallback: number): number {

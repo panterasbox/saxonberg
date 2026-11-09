@@ -1,12 +1,10 @@
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Herb
 data:
   smells: [{ aroma: /base-library/aromas/herbal, strength: 60 }]
   name: willow bark
   keywords: [willow, bark, herb]
   appearance: strips of grey willow bark
   density: 650
-  edibility: false
-  toxicity: []
   spoilActivationEnergy: 70000
   waterActivity: 0.85
   tags: [herb, bark, organic, once-living]

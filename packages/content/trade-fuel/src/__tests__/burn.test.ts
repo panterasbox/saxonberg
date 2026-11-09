@@ -25,7 +25,7 @@ import YAML from 'yaml';
 import CharcoalPit from '../thing/CharcoalPit';
 import Crop from '@saxonberg/server/mud/platform/thing/Crop';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
-import Material from '@saxonberg/server/mud/lib/material/Material';
+import Wood from '@saxonberg/server/mud/platform/idea/material/Wood';
 import type { KineticSpec } from '@saxonberg/server/mud/lib/material/Kinetics';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -51,10 +51,10 @@ const CHARCOAL = '/stuff/idea/material/organic/charcoal';
 const BRANDS = '/stuff/idea/material/organic/half-burnt-wood';
 
 /** A material at its REAL path, from its REAL row's numbers. */
-function material(path: string): Material {
+function material(path: string): Wood {
   const data = baseRow(`${path.replace('/stuff/', 'stuff/')}.yaml`).data as Record<string, unknown>;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Wood();
     m.setName(String(data.name));
     const n = (k: string): number => Number(data[k] ?? 0);
     m.setDensity(Quantity.of(n('density'), 'kg/m³'));
@@ -66,7 +66,7 @@ function material(path: string): Material {
     m.setAshFraction(n('ashFraction'));
     if (data.kinetics) m.setKinetics(data.kinetics as KineticSpec[]);
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as Wood;
 }
 
 class Yard extends Place {}
@@ -102,7 +102,7 @@ async function clamp(draught: number): Promise<CharcoalPit> {
 function cordwood(): Crop {
   return makeStuff(() => {
     const c = new Crop();
-    c.setMaterial(StuffApi.findByTemplatePath<Material>(HAZEL)!);
+    c.setMaterial(StuffApi.findByTemplatePath<Wood>(HAZEL)!);
     c.setMass(Quantity.of(3.2, 'kg'));
     c.setKeywords(['cordwood', 'wood', 'length']);
     c.setShortDescription('length of cordwood');

@@ -4,7 +4,7 @@
 # on (`inputCategory`), so the moment a trough holds this, the batch can
 # start. What decides whether it DOES is the trough's cloth: covered, it
 # waits for a pitched culture; open, wild flora settle out of the air.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFood
 data:
   smells: [{ aroma: /base-library/aromas/dough, strength: 100 }]
   tastes: [{ type: salty, amount: 10 }]
@@ -18,13 +18,10 @@ data:
   waterAbsorptionCapacity: 5
   hardness: 1
   toughness: 2
-  edibility: true
   # Wet, and full of everything a microbe wants. Raw dough spoils fast,
   # which is the honest reason you do not leave it three days.
   waterActivity: 0.96
   spoilActivationEnergy: 55000
   nutrients: ["carb", "protein"]
   nutrientAmounts: { carb: 480000, protein: 55000 }
-  toxicity: []
   tags: ["food", "dough", "baking"]
-  composition: []

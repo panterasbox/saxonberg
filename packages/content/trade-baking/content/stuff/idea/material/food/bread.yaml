@@ -14,7 +14,7 @@
 # tagged `bread` must be on a class that can STALE. A loaf on bare
 # `Provision` would spoil and never go hard — silently, which is exactly
 # the failure `lint:perishable` cannot see, because such a row passes it.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFood
 data:
   smells: [{ aroma: /base-library/aromas/bread, strength: 500 }]
   tastes: [{ type: sweet, amount: 20 }, { type: salty, amount: 10 }]
@@ -28,7 +28,6 @@ data:
   waterAbsorptionCapacity: 40
   hardness: 2
   toughness: 2
-  edibility: true
   # Drier than the dough it came from — the oven drove a lot off. Still
   # damp enough to mould in a warm room, which is what a bread box is for.
   waterActivity: 0.94
@@ -66,6 +65,4 @@ data:
       senses: [vision, touch]
   nutrients: ["carb", "protein"]
   nutrientAmounts: { carb: 500000, protein: 85000 }
-  toxicity: []
   tags: ["food", "bread", "baking"]
-  composition: []

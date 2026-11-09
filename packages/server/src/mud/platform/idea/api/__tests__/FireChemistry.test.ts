@@ -20,7 +20,7 @@ import Location from '../../../../lib/location/Location';
 import { SkyExposedBiome } from '../../SkyExposedBiome';
 import Exit from '../../../../lib/boundary/Exit';
 import Good from '../../../../lib/stuff/Good';
-import Material from '../../../../lib/material/Material';
+import SolidFuel from '../../material/SolidFuel';
 import { ThermalMixin } from '../../../../lib/thermal/Thermal';
 import { WetMixin } from '../../../../lib/wetness/Wet';
 import { ReservedMixin, Reserve } from '../../../../lib/reserve/Reserved';
@@ -55,16 +55,16 @@ class TestOccupant extends HasInteractiveMixin(Good) {
 }
 
 let seq = 0;
-function woodMaterial(): Material {
+function woodMaterial(): SolidFuel {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new SolidFuel();
     m.setName(`chem-wood-${seq}`);
     m.setAutoignitionTemperature(Quantity.of(570, 'K'));
     m.setHeatOfCombustion(Quantity.of(16, 'MJ/kg'));
     m.setSpecificHeat(Quantity.of(2000, 'J/(kg·K)'));
     return m;
-  }, `/stuff/idea/material/_test/chem-wood-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/chem-wood-${seq}`) as unknown as SolidFuel;
 }
 
 /**

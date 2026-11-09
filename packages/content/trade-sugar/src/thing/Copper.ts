@@ -92,10 +92,11 @@ export default class Copper extends ContainerMixin(Vat) {
     const held = this.getBulkMaterial('interior');
     const payload = this.getBulkPayload('interior') ?? {};
     const solidsBefore =
-      payload.dissolvedSolidsKgPerL ?? held?.getSolidsKgPerL() ?? 0;
+      payload.dissolvedSolidsKgPerL ??
+      (held !== null && MixinApi.hasSolution(held) ? held.getSolidsKgPerL() : 0);
     const after = litres + kg / SUGAR_KG_PER_L;
     const solids = (solidsBefore * litres + kg) / after;
-    const fresh = held === null || held.getSolidsKgPerL() <= 0;
+    const fresh = held === null || !MixinApi.hasSolution(held) || held.getSolidsKgPerL() <= 0;
     if (fresh) {
       const liquor = StuffApi.findByTemplatePath<Material>(RAW_LIQUOR);
       if (liquor) this.setBulkMaterial('interior', liquor);
@@ -190,7 +191,7 @@ export default class Copper extends ContainerMixin(Vat) {
   private holdsLiquor(): boolean {
     if (this.isBulkEmpty('interior')) return false;
     const mat = this.getBulkMaterial('interior');
-    return mat !== null && mat.getSolidsKgPerL() > 0;
+    return mat !== null && MixinApi.hasSolution(mat) && mat.getSolidsKgPerL() > 0;
   }
 }
 

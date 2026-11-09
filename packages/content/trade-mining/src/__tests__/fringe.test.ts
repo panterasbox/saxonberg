@@ -24,7 +24,7 @@ import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Ore from '@saxonberg/server/mud/platform/idea/material/Ore';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
@@ -88,7 +88,7 @@ beforeEach(() => {
     [MALACHITE, 200],
     [GOETHITE, 450],
   ] as const) {
-    const m = makeStuffAtPath(() => new Material(), path);
+    const m = makeStuffAtPath(() => new Ore(), path);
     (m as unknown as { hardness: Quantity<'MPa'> }).hardness = Quantity.of(mpa, 'MPa');
   }
 });

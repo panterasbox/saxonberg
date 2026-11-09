@@ -1,6 +1,6 @@
 # Grape — produce's food material; tag `grape` is the recipe category (a
 # future press's item slot; the par sheet).
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Food
 data:
   smells: [{ aroma: /base-library/aromas/grape, strength: 60 }]
   name: grape
@@ -9,7 +9,6 @@ data:
   density: 1000
   thermalConductivity: 0.5
   specificHeat: 3600
-  edibility: true
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
@@ -23,8 +22,4 @@ data:
   # mg per kg — real figures; the `vitamin-c` tag fills the body's store.
   nutrients: ["water", "sugar", "vitamin-c"]
   nutrientAmounts: {water: 810000, sugar: 160000, vitamin-c: 30}
-  toxicity:
-    []
   tags: ["solid", "food", "produce", "grape", "grapes", "fruit"]
-  composition: []
-  biologicalSource: null

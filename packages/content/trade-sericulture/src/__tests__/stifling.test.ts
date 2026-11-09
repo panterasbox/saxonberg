@@ -15,7 +15,7 @@ import EggLot from '../thing/EggLot';
 import Strain from '../idea/Strain';
 import Oven from '@saxonberg/server/mud/platform/thing/Oven';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import HideHorn from '@saxonberg/server/mud/platform/idea/material/HideHorn';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -49,7 +49,7 @@ class Shelf extends ContainerMixin(Good) {
 function fixtures(): void {
   if (!StuffApi.findByTemplatePath(SHELL)) {
     makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new HideHorn();
       m.setName('spun silk');
       m.setTags(['fibre', 'protein', 'gummed']);
       return m;
@@ -72,7 +72,7 @@ function fixtures(): void {
 function stack(band: 'heavy' | 'middling' | 'light', count: number, load = 0): Cocoons {
   const c = makeStuff(() => new Cocoons());
   stampTemplatePathForTest(c as unknown as Stuff, '/trade/sericulture/thing/cocoons');
-  c.setMaterial(StuffApi.findByTemplatePath<Material>(SHELL)!);
+  c.setMaterial(StuffApi.findByTemplatePath<HideHorn>(SHELL)!);
   c.setMass(Quantity.of(0.1, 'kg'));
   c.seedFromTray({
     strainPath: STRAIN,

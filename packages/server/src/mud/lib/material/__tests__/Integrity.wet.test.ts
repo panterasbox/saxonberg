@@ -6,7 +6,7 @@
  */
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Material from '../Material';
+import Fiber from '../../../platform/idea/material/Fiber';
 import Holder from '../../stuff/Holder';
 import Good from '../../stuff/Good';
 import Book from '../../../platform/thing/Book';
@@ -23,9 +23,9 @@ import type { Container } from '../../spatial/Container';
 const PAPER = '/stuff/idea/material/_wet/paper';
 const LINEN = '/stuff/idea/material/_wet/linen';
 
-function material(path: string, wetStrength: number | null): Material {
+function material(path: string, wetStrength: number | null): Fiber {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Fiber();
     m.setName(path.split('/').pop()!);
     m.setDensity(Quantity.of(800, 'kg/m³'));
     m.setWetStrength(wetStrength);
@@ -36,7 +36,7 @@ function material(path: string, wetStrength: number | null): Material {
 function made<T extends Stuff>(make: () => T, mat: string, room: Holder): T {
   const t = makeStuff(() => {
     const x = make();
-    (x as unknown as Good).setMaterial(StuffApi.findByTemplatePath<Material>(mat)!);
+    (x as unknown as Good).setMaterial(StuffApi.findByTemplatePath<Fiber>(mat)!);
     return x;
   });
   ContainmentApi.move(t as never, room as unknown as Stuff & Container);

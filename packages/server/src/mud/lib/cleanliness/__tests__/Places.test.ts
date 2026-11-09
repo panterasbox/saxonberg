@@ -16,6 +16,7 @@ import Hearth from '../../../platform/thing/Hearth';
 import Chair from '../../../platform/thing/Chair';
 import { StuffApi } from '../../../api/stuff';
 import Material from '../../material/Material';
+import SolidFood from '../../../platform/idea/material/SolidFood';
 import Location from '../../location/Location';
 import { GROUND_KINDS } from '../../ground/GroundKind';
 import { Condition } from '../../employment/Condition';
@@ -113,7 +114,7 @@ describe('strewing and sweeping (D15)', () => {
 
 function mat(): Material {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new SolidFood();
     m.setName('pest-test-bread');
     m.setSpecificHeat(Quantity.of(3200, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.5, 'W/(m·K)'));

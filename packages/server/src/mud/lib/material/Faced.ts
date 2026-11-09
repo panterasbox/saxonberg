@@ -319,9 +319,9 @@ function materialAt(path: string): Material | null {
 const COAT_WORDS: Record<CoatState, (coat: Material | null, face: FaceName) => string> = {
   wet: (m, f) =>
     `It has a wet coat of ${nameOf(m)} on the ${f}, not yet ${
-      m?.getKinetics()?.setsByHeat() ? 'fired' : 'set'
+      m && MixinApi.hasKinetic(m) && m.getKinetics()?.setsByHeat() ? 'fired' : 'set'
     }.`,
-  set: (m, f) => `It is ${m?.getCoatWord() ?? 'coated'} on the ${f} with ${nameOf(m)}.`,
+  set: (m, f) => `It is ${m && MixinApi.hasCoating(m) ? m.getCoatWord() : 'coated'} on the ${f} with ${nameOf(m)}.`,
   crazed: (m, f) => `The ${nameOf(m)} on its ${f} is crazed with fine cracks.`,
   run: (m, f) => `The ${nameOf(m)} on its ${f} has run and pooled toward the foot.`,
   crawled: (m, f) => `The ${nameOf(m)} on its ${f} has crawled back off bare patches.`,
@@ -446,7 +446,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         return { ok: false, reason: 'not-paint', facts: { source: src, why: 'empty' } };
       }
       const material = src.getBulkMaterial('interior');
-      if (material === null || !material.getLaysCoat()) {
+      if (material === null || !MixinApi.hasCoating(material) || !material.getLaysCoat()) {
         return { ok: false, reason: 'not-paint', facts: { source: src, why: 'runs-off' } };
       }
       const area = this.coatAreaM2();
@@ -460,7 +460,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         return { ok: false, reason: 'source-too-low', facts: { source: src, litres } };
       }
       const makeup = src.getBulk('interior').getPayload()?.paint;
-      const solids = makeup?.solidsFraction ?? Math.min(0.9, Math.max(0.1, material.getSolidsKgPerL() || 0.4));
+      const solids = makeup?.solidsFraction ?? Math.min(0.9, Math.max(0.1, (MixinApi.hasSolution(material) ? material.getSolidsKgPerL() : 0) || 0.4));
       const setM = film * solids;
       // ⭐ A paint's coat is its BINDER's: the binder sets and weathers it;
       // the makeup keeps the pigments for its color (paint D8).
@@ -543,7 +543,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       pot: Stuff,
     ): Promise<PasteOutcome | PasteRefusal> {
       const held = MixinApi.isBulkable(pot) && pot.hasInteriorBulk() ? pot.getBulkMaterial('interior') : null;
-      if (held === null || held.getAdhesive() === null || !MixinApi.isBulkable(pot)) {
+      if (held === null || !MixinApi.hasCoating(held) || held.getAdhesive() === null || !MixinApi.isBulkable(pot)) {
         return { ok: false, reason: 'not-glue' };
       }
       const have = pot.getBulkAmount('interior').rawValue();
@@ -568,7 +568,8 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       if (!MixinApi.isWet(self) || self.getWetness() < DAMP_LETS_GO_AT) return 0;
       const list = this.coats.outside ?? [];
       const kept = list.filter((c) => {
-        const glue = materialAt(c.material)?.getAdhesive() ?? null;
+        const coatMat = materialAt(c.material);
+        const glue = coatMat && MixinApi.hasCoating(coatMat) ? coatMat.getAdhesive() : null;
         return glue === null || glue.resistsDamp >= GLUE_HOLDS_DAMP;
       });
       const gone = list.length - kept.length;
@@ -631,12 +632,12 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         next[face] = (list ?? []).map((coat) => {
           if (coat.state !== 'wet') return coat;
           const mat = materialAt(coat.material);
-          const change = mat?.getKinetics()?.changes()[0];
+          const change = mat && MixinApi.hasKinetic(mat) ? mat.getKinetics()?.changes()[0] : undefined;
           // A coat the AIR sets is `airCoats`'s, never the fire's.
           if (change?.setsByAir()) return coat;
           if (change === undefined) {
             // No heat-work law: the melt point alone decides.
-            const melts = mat?.getMeltingPoint().rawValue() ?? 0;
+            const melts = mat && MixinApi.hasFusion(mat) ? mat.getMeltingPoint().rawValue() : 0;
             if (!(melts > 0) || peakK < melts) return coat;
             fused += 1;
             touched = true;
@@ -667,9 +668,10 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         next[face] = (list ?? []).map((coat) => {
           if (coat.state !== 'wet') return coat;
           const mat = materialAt(coat.material);
-          const change = mat?.getKinetics()?.changes()[0] ?? null;
+          const change = (mat && MixinApi.hasKinetic(mat) ? mat.getKinetics()?.changes()[0] : undefined) ?? null;
           if (change?.setsByAir()) return coat;
-          const fuseK = change?.getReferenceK() ?? mat?.getMeltingPoint().rawValue() ?? 0;
+          const fuseK =
+            change?.getReferenceK() ?? (mat && MixinApi.hasFusion(mat) ? mat.getMeltingPoint().rawValue() : 0);
           if (!(fuseK > 0) || peakK < fuseK) return coat;
           changed += 1;
           return this.fusedCoat(coat, mat ?? null, change, peakK);
@@ -686,8 +688,9 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         next[face] = (list ?? []).map((coat) => {
           if (coat.state !== 'wet') return coat;
           const mat = materialAt(coat.material);
-          if (mat === null || mat.getKinetics()?.setsByHeat() || mat.getKinetics()?.airSet()) return coat;
-          const melts = mat.getMeltingPoint().rawValue();
+          if (mat === null) return coat;
+          if (MixinApi.hasKinetic(mat) && (mat.getKinetics()?.setsByHeat() || mat.getKinetics()?.airSet())) return coat;
+          const melts = MixinApi.hasFusion(mat) ? mat.getMeltingPoint().rawValue() : 0;
           if (!(melts > atK)) return coat;
           changed += 1;
           return this.fusedCoat(coat, mat, null, melts);
@@ -706,7 +709,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         next[face] = (list ?? []).map((coat) => {
           if (coat.state !== 'wet') return coat;
           const mat = materialAt(coat.material);
-          const change = mat?.getKinetics()?.airSet() ?? null;
+          const change = mat && MixinApi.hasKinetic(mat) ? (mat.getKinetics()?.airSet() ?? null) : null;
           if (mat === null || change === null) return coat;
           const sets = change.getSets();
           let extent = coat.progress?.extent ?? 0;
@@ -768,11 +771,11 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     private fusedCoat(coat: CoatLayer, mat: Material | null, change: KineticChange | null, peakK: number): CoatLayer {
       const self = this as unknown as Stuff;
       const body = MixinApi.isTangible(self) ? self.getMaterial() : null;
-      const bodyAlpha = body?.getThermalExpansion() ?? 0;
+      const bodyAlpha = body && MixinApi.hasSolidity(body) ? body.getThermalExpansion() : 0;
       const scorchK = change?.getScorchAboveK() ?? null;
       if (scorchK !== null && peakK > scorchK) return { ...coat, state: 'run' };
       if ((coat.dirtyAtLay ?? 0) > dial(AppSettingKeys.facesCrawlDirt, 0.3)) return { ...coat, state: 'crawled' };
-      const coatAlpha = mat?.getThermalExpansion() ?? 0;
+      const coatAlpha = mat && MixinApi.hasSolidity(mat) ? mat.getThermalExpansion() : 0;
       if (coatAlpha - bodyAlpha > dial(AppSettingKeys.facesCrazeMismatch, 1.5e-6)) return { ...coat, state: 'crazed' };
       return { ...coat, state: 'set' };
     }
@@ -781,6 +784,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const self = this as unknown as Stuff;
       const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
       if (mat === null || !mat.hasTag('porous') && !mat.hasTag('fired')) return 0;
+      if (!MixinApi.hasPorosity(mat)) return 0;
       return Math.max(0, mat.getWaterAbsorptionCapacity().rawValue()) / 100;
     }
 
@@ -797,7 +801,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const top = this.getCoats(face)[0];
       if (top !== undefined && (top.state === 'set' || top.state === 'run')) {
         const coat = materialAt(top.material);
-        if (coat !== null && coat.getWaterAbsorptionCapacity().rawValue() / 100 <= tight) return true;
+        if (coat !== null && (MixinApi.hasPorosity(coat) ? coat.getWaterAbsorptionCapacity().rawValue() : 0) / 100 <= tight) return true;
       }
       return this.porosity() <= tight;
     }
@@ -936,7 +940,9 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           const c = coats[0]!;
           if (c.state === 'wet') break;
           const opened = c.state === 'crazed' || c.state === 'run' ? OPENED_FACTOR : 1;
-          const rate = (materialAt(c.material)?.getWeatheringMPerGameYear() ?? 0) * opened;
+          const weatherMat = materialAt(c.material);
+          const rate =
+            (weatherMat && MixinApi.hasCoating(weatherMat) ? weatherMat.getWeatheringMPerGameYear() : 0) * opened;
           if (!(rate > 0)) break;
           const yearsToGo = c.thicknessM / rate;
           if (yearsToGo > segYears - used) {
@@ -977,7 +983,9 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public weatherCause(): string | null {
       const top = this.getCoats('outside')[0];
       if (top !== undefined && top.state === 'wet') {
-        const sets = top.paint ? new Paint(top.paint).binder()?.getKinetics()?.airSet()?.getSets() : null;
+        const binder = top.paint ? new Paint(top.paint).binder() : null;
+        const sets =
+          binder && MixinApi.hasKinetic(binder) ? binder.getKinetics()?.airSet()?.getSets() : null;
         return sets === 'oxidation'
           ? 'the new oil is still curing, faintly warm to the hand'
           : 'the new coat is still wet';

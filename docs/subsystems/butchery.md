@@ -59,7 +59,7 @@ what a cut weighed.
 ## Muscles are materials
 
 `MuscleMixin` (`lib/butchery/Muscle.ts`) + the twin
-`platform/idea/material/Muscle` — the `RadioactiveMaterial` pattern, one
+`platform/idea/material/Muscle` — the capability-kind pattern, one
 field: **`work`**, `0..1`, *how hard this muscle worked in life*.
 
 The shipped quadruped ladder: `shank .95 · neck .85 · shoulder .80 ·

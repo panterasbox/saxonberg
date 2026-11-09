@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Provision from '../../../platform/thing/Provision';
 import Midden from '../../../platform/thing/Midden';
 import Location from '../../location/Location';
-import Material from '../Material';
+import Food from '../../../platform/idea/material/Food';
 import { WorldClockApi } from '../../../api/worldclock';
 import { ScheduleApi } from '../../../api/schedule';
 import { StuffApi } from '../../../api/stuff';
@@ -29,14 +29,14 @@ let seq = 0;
 function meat(): Provision {
   seq += 1;
   const mat = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName('rot-test-meat');
     m.setSpecificHeat(Quantity.of(3200, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.5, 'W/(m·K)'));
     m.setSpoilActivationEnergy(Quantity.of(80_000, 'J/mol'));
     m.setWaterActivity(0.98);
     return m;
-  }, `/stuff/idea/material/_test/rot-meat-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/rot-meat-${seq}`) as unknown as Food;
   return makeStuff(() => {
     const p = new Provision();
     p.setMass(Quantity.of(1, 'kg'));

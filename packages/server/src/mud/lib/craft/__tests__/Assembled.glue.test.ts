@@ -7,7 +7,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Assembly from '../../../platform/thing/Assembly';
-import Material from '../../material/Material';
+import Glue from '../../../platform/idea/material/Glue';
 import JointCatalogue from '../../../platform/idea/JointCatalogue';
 import { StuffApi } from '../../../api/stuff';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -43,7 +43,7 @@ function line(part: string): PartLine {
 
 function glue(path: string, resistsDamp: number): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Glue();
     m.setName(path.split('/').pop()!);
     m.setAdhesive({ strength: 0.8, reversible: 'never', resistsDamp, softensAtK: 340 });
     m.setKinetics([{ key: 'set', sets: 'drying', order: 0, rate: [[273, 0.01], [293, 0.1]] }]);

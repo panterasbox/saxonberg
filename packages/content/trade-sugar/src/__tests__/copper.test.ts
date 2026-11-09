@@ -8,6 +8,10 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
 import Material from '@saxonberg/server/mud/lib/material/Material';
+import Lye from '@saxonberg/server/mud/platform/idea/material/Lye';
+import SolidFood from '@saxonberg/server/mud/platform/idea/material/SolidFood';
+import Syrup from '@saxonberg/server/mud/platform/idea/material/Syrup';
+import Water from '@saxonberg/server/mud/platform/idea/material/Water';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Provision from '@saxonberg/server/mud/platform/thing/Provision';
@@ -20,9 +24,13 @@ import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/_
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import Copper from '../thing/Copper';
 
-function material(path: string, setup: (m: Material) => void): Material {
+function material<M extends Material>(
+  make: () => M,
+  path: string,
+  setup: (m: M) => void,
+): Material {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = make();
     m.setName(path.split('/').pop()!);
     m.setDensity(Quantity.of(1000, 'kg/m³'));
     setup(m);
@@ -59,11 +67,11 @@ describe('the sugar copper', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     installV1QuantityMarshallers();
-    water = material('/stuff/idea/material/bulk/water', () => undefined);
-    rawSugar = material('/trade/sugar/idea/material/raw-sugar', (m) => m.setTags(['solid', 'raw-sugar']));
-    material('/trade/sugar/idea/material/raw-liquor', (m) => m.setSolidsKgPerL(0.6));
-    material('/trade/sugar/idea/material/skimmings', () => undefined);
-    quicklime = material('/stuff/idea/material/caustic/quicklime', () => undefined);
+    water = material(() => new Water(), '/stuff/idea/material/bulk/water', () => undefined);
+    rawSugar = material(() => new SolidFood(), '/trade/sugar/idea/material/raw-sugar', (m) => m.setTags(['solid', 'raw-sugar']));
+    material(() => new Syrup(), '/trade/sugar/idea/material/raw-liquor', (m) => m.setSolidsKgPerL(0.6));
+    material(() => new Syrup(), '/trade/sugar/idea/material/skimmings', () => undefined);
+    quicklime = material(() => new Lye(), '/stuff/idea/material/caustic/quicklime', () => undefined);
   });
 
   it('⭐ a block dissolves into the water: raw liquor, of the strength you made it', async () => {

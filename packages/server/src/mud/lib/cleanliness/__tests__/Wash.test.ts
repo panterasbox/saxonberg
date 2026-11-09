@@ -12,6 +12,8 @@ import { installDirtKinds } from './soil-fixtures';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Garment from '../../../platform/thing/equipment/Garment';
 import Material from '../../material/Material';
+import Lye from '../../../platform/idea/material/Lye';
+import Fiber from '../../../platform/idea/material/Fiber';
 import { Construction } from '../../material/Construction';
 import type { CleanserDescriptor } from '../../../platform/idea/Cleanser';
 import { Template } from '../../stuff/Template';
@@ -54,10 +56,12 @@ const spec = (over: Partial<WashSpec> = {}): WashSpec => ({
 
 let seq = 0;
 function material(name: string, tags: string[], corrosiveTo: string[] = []): Material {
-  const m = makeStuff(() => new Material());
+  // A caustic is a `Lye` (it has a corrosion list); cloth is a `Fiber`.
+  const m: Material = corrosiveTo.length > 0
+    ? (() => { const l = makeStuff(() => new Lye()); l.setCorrosiveTo(corrosiveTo); return l; })()
+    : makeStuff(() => new Fiber());
   m.setName(name);
   m.setTags(tags);
-  (m as unknown as { corrosiveTo: string[] }).corrosiveTo = corrosiveTo;
   stampTemplatePathForTest(m, `/stuff/idea/material/_test/${name}-${seq++}`);
   return m;
 }

@@ -13,7 +13,7 @@
 # room one-tenth full of smoke poisons at a tenth of this rate. That is
 # what makes smoke dangerous before it is suffocating, which is the
 # carbon-monoxide lesson and the reason the fiction has chimneys.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Gas
 data:
   smells: [{ aroma: /base-library/aromas/smoke, strength: 300 }]
   name: smoke
@@ -26,11 +26,7 @@ data:
   boilingPoint: 100
   thermalConductivity: 0.03
   electricalConductivity: 1.0e-12
-  edibility: false
-  nutrients: []
   toxicity:
     - type: carbonMonoxide
       amount: 50
   tags: [gas, exhaust]
-  composition: []
-  biologicalSource: null

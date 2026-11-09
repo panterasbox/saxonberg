@@ -24,7 +24,7 @@ import '../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MaterialApi } from '../material';
 import { StuffApi } from '../stuff';
-import Material from '../../lib/material/Material';
+import Metal from '../../platform/idea/material/Metal';
 import { Quantity } from '../../lib/quantity';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { Channel } from '../../lib/material/Channel';
@@ -33,8 +33,8 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 /** A Material with just the mechanical props the height function reads. */
-function mkMat(hardness: number, toughness: number): Material {
-  const m = makeStuff(() => new Material());
+function mkMat(hardness: number, toughness: number): Metal {
+  const m = makeStuff(() => new Metal());
   m.setHardness(Quantity.of(hardness, 'MPa'));
   m.setToughness(Quantity.of(toughness, 'MJ/m³'));
   return m;
@@ -73,7 +73,7 @@ describe('the material a weapon is made of', () => {
   });
 
   it('⭐ …and the ladder runs the way the metallurgy says it does', () => {
-    const edge = (m: Material): number => MaterialApi.materialScale(m, 'edge');
+    const edge = (m: Metal): number => MaterialApi.materialScale(m, 'edge');
     // Steel over iron over bronze over copper: the chain's own order,
     // falling out of hardness against the reference and nothing else.
     expect(edge(steel())).toBeGreaterThan(edge(iron()));

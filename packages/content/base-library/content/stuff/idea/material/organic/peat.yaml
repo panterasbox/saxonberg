@@ -11,7 +11,7 @@
 # whose decay has ALREADY stalled — anaerobic, acidic, waterlogged — which
 # is why bog bodies survive millennia in it. So no freshness fields, and no
 # exemption needed: a material is not a `Provision`.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFuel
 data:
   smells: [{ aroma: /base-library/aromas/peat, strength: 50 }]
   burning: [{ aroma: /base-library/aromas/peat-smoke, strength: 1000 }]
@@ -63,9 +63,6 @@ data:
   combustionImparts:
     - type: /base-library/aromas/smoke
       amount: 30
-  edibility: false
-  nutrients: []
-  toxicity: []
   # ⚠ `fuel` and NOT `carbon`: peat in a bloomery is a later question
   # (`metal-chain-slate` owns the energy transition), and the `carbon` tag
   # is what a reduction reads. So a turf heats a hearth and a kiln, and iron
@@ -79,6 +76,3 @@ data:
   # their own names for exactly this reason; this row did not, and the
   # omission is invisible until something asks.
   tags: ["organic", "earth", "solid", "fibrous", "fuel", "peat", "once-living"]
-  composition: []
-  chemistry: null
-  biologicalSource: null

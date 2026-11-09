@@ -5,7 +5,6 @@ import { SmellModality } from '../SmellModality';
 import { MAX_HOPS } from '../../../../lib/perception/Modality';
 import { Smell } from '../../../../lib/perception/Smell';
 import { vi } from 'vitest';
-import { OdorousMaterial } from '../../material/OdorousMaterial';
 import { Quantity } from '../../../../lib/quantity';
 import { AtmosphericMixin } from '../../../../lib/biome/Atmospheric';
 import Location from '../../../../lib/location/Location';
@@ -21,6 +20,7 @@ import {
 import { installV1QuantityTagTables } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
 import { PerceptionApi } from '../../../../api/perception';
+import Soil from '../../material/Soil';
 
 /** The smell modality singleton — `signalAt` is an instance method on it. */
 const smellModality = (): SmellModality =>
@@ -28,7 +28,7 @@ const smellModality = (): SmellModality =>
 
 /** A kilogram of something that smells of `word` at `ou`, at reference heat. */
 function emitter(word: string, ou: number): Good {
-  const material = makeStuff(() => new OdorousMaterial());
+  const material = makeStuff(() => new Soil());
   material.smells = [{ aroma: aromaPath(word), strength: ou }];
   const thing = makeStuff(() => new Good());
   vi.spyOn(thing, 'getMaterial').mockReturnValue(material);

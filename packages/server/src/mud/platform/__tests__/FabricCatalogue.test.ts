@@ -44,7 +44,7 @@ describe('the fabric roster warm', () => {
   it('stands up Fabric rows, skips foreign classes, and registers the forms', async () => {
     vi.spyOn(Template, 'findByPathInfix').mockResolvedValue([
       { path: '/stuff/idea/fabric/woven', class: '/platform/idea/material/Fabric' },
-      { path: '/stuff/idea/fabric/not-a-fabric', class: '/platform/idea/material/ConsumableMaterial' },
+      { path: '/stuff/idea/fabric/not-a-fabric', class: '/platform/idea/material/Food' },
     ] as never);
     vi.spyOn(StuffApi, 'loadClassByPath').mockImplementation(
       async (p: string) =>

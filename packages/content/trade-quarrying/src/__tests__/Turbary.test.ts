@@ -25,7 +25,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Turbary from '../location/Turbary';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import SolidFuel from '@saxonberg/server/mud/platform/idea/material/SolidFuel';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
@@ -59,7 +59,7 @@ let actor: Stuff;
 let bank: Turbary;
 
 function seedMaterials(): void {
-  const peat = makeStuffAtPath(() => new Material(), PEAT) as unknown as Material & {
+  const peat = makeStuffAtPath(() => new SolidFuel(), PEAT) as unknown as SolidFuel & {
     hardness: Quantity<'MPa'>;
   };
   peat.setName('peat');
@@ -67,9 +67,9 @@ function seedMaterials(): void {
   peat.setTags(['organic', 'earth', 'solid', 'fibrous', 'fuel']);
   peat.hardness = Quantity.of(1, 'MPa');
   const granite = makeStuffAtPath(
-    () => new Material(),
+    () => new SolidFuel(),
     GRANITE,
-  ) as unknown as Material & { hardness: Quantity<'MPa'> };
+  ) as unknown as SolidFuel & { hardness: Quantity<'MPa'> };
   granite.setName('granite');
   granite.setTags(['rock', 'igneous']);
   granite.hardness = Quantity.of(200, 'MPa');

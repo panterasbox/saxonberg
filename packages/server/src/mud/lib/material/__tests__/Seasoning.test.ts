@@ -7,7 +7,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Timber from '../../../platform/thing/Timber';
-import Material from '../../material/Material';
+import Wood from '../../../platform/idea/material/Wood';
 import Place from '../../stuff/Place';
 import Good from '../../stuff/Good';
 import { PlacingMixin } from '../../spatial/Placing';
@@ -56,7 +56,7 @@ function advanceGameDays(d: number): void {
 
 function stack(material: string, fraction = 0): Timber {
   const t = makeStuff(() => new Timber());
-  t.setMaterial(StuffApi.findByTemplatePath<Material>(material)!);
+  t.setMaterial(StuffApi.findByTemplatePath<Wood>(material)!);
   ContainmentApi.move(t as never, rack as never, 'on');
   t.setSeasonedFraction(fraction);
   return t;
@@ -78,13 +78,13 @@ beforeEach(() => {
   now = BASE;
   WorldClockApi._setNowProviderForTesting(() => now);
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Wood();
     m.setName('test oak');
     m.seasoningDays = 100;
     m.greenShrinkage = 0.1;
     return m;
   }, OAK);
-  makeStuffAtPath(() => new Material(), IRON);
+  makeStuffAtPath(() => new Wood(), IRON);
   yard = makeStuff(() => new Yard());
   rack = makeStuff(() => {
     const r = new Stickers();

@@ -1,5 +1,5 @@
 # Ale — brewing's, by the generic drain rule (the ferment makes it). The base-library row retires in phase 5. Category tags `beer`, `ale`.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/beer, strength: 300 }]
   tastes: [{ type: sweet, amount: 10 }, { type: sour, amount: 0.8 }, { type: bitter, amount: 0.1 }]
@@ -11,7 +11,6 @@ data:
   servingKg: 0.505
   thermalConductivity: 0.5
   specificHeat: 3800
-  edibility: true
   nutrients: ["carb", "water", "sugar"]
   toxicity:
     - { type: alcohol, amount: 14 }
@@ -26,5 +25,3 @@ data:
     # Residual sugar (g/L) — what cask conditioning referments into
     # the sparkle (P9).
     sugar: 8
-  composition: []
-  biologicalSource: null

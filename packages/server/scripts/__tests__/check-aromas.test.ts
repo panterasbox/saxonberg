@@ -35,7 +35,7 @@ beforeEach(() => {
 });
 afterEach(() => rmSync(root, { recursive: true, force: true }));
 
-const material = (data: string, cls = '/platform/idea/material/OdorousMaterial') =>
+const material = (data: string, cls = '/platform/idea/material/Food') =>
   `class: ${cls}\ndata:\n${data}\n`;
 const TAR = '/base-library/aromas/tar';
 
@@ -84,7 +84,7 @@ describe('lint:aromas', () => {
     pack('trade-x', ['base-library']);
     write(
       'trade-x/content/stuff/idea/material/x.yaml',
-      material(`  smells: [{ aroma: ${TAR}, strength: 10 }]`, '/platform/idea/material/Material'),
+      material(`  smells: [{ aroma: ${TAR}, strength: 10 }]`, '/platform/idea/material/Metal'),
     );
     expect(checkAromas(root).join()).toMatch(/cannot hold one/);
   });
@@ -115,7 +115,7 @@ describe('lint:aromas', () => {
     expect(checkAromas(root).join()).toMatch(/medium 'brine'/);
     write(
       'trade-x/content/stuff/idea/material/salt-water.yaml',
-      'class: /platform/idea/material/Material\ndata:\n  tags: [brine]\n',
+      'class: /platform/idea/material/Metal\ndata:\n  tags: [brine]\n',
     );
     expect(checkAromas(root)).toEqual([]);
   });
@@ -124,7 +124,7 @@ describe('lint:aromas', () => {
     pack('trade-x', ['base-library']);
     write(
       'trade-x/content/stuff/idea/material/x.yaml',
-      'class: /platform/idea/material/Material\ndata:\n  tastes: [sweet]\n',
+      'class: /platform/idea/material/Metal\ndata:\n  tastes: [sweet]\n',
     );
     expect(checkAromas(root).join()).toMatch(/no amount/);
   });

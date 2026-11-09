@@ -38,6 +38,7 @@ import { WorldClockApi } from '../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
+import Drink from '../../material/Drink';
 import Tool from '../../../thing/Tool';
 import CraftVessel from '../../../thing/CraftVessel';
 import RecipeCatalogue from '../../RecipeCatalogue';
@@ -79,10 +80,9 @@ let catalogue: RecipeCatalogue;
 
 function registerMaterial(path: string, name: string, tags: string[]): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Drink();
     m.setName(name);
     m.setTags(tags);
-    m.setEdibility(true);
     m.setAppearance(`${name}, as the material row describes it`);
     return m;
   }, path);

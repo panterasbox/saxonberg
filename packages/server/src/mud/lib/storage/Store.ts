@@ -713,7 +713,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const depthM = packing.amountKg / rhoBulk / surface;
       const kDry = mat.getThermalConductivity().rawValue() || 0.06;
       const saturation = packing.state.saturation ?? 0;
-      return { depthM, kWmK: mat.wetProperty(kDry, K_WATER, saturation) };
+      return { depthM, kWmK: MixinApi.hasPorosity(mat) ? mat.wetProperty(kDry, K_WATER, saturation) : kDry };
     }
 
     /**
@@ -723,7 +723,8 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     private soak(packing: StoreLine, meltwaterKg: number): void {
       const pFace = this.faceFor(packing.poolKey);
       const mat = pFace && MixinApi.isTangible(pFace) ? pFace.getMaterial() : null;
-      const wac = mat?.getWaterAbsorptionCapacity().rawValue() ?? 100;
+      const wac =
+        mat === null ? 100 : MixinApi.hasPorosity(mat) ? mat.getWaterAbsorptionCapacity().rawValue() : 0;
       const holdKg = packing.amountKg * (wac / 100);
       if (!(holdKg > 0)) return;
       const wetKg = meltwaterKg * (1 - clamp01(this.drainage));

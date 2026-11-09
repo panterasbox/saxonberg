@@ -11,7 +11,7 @@
 # candles are brighter than tallow, do not stink, and do not go rancid.
 # The candle trade was transformed by a by-product of the lamp trade,
 # which is joint production paying off rather than costing.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/FatOilWax
 data:
   smells: [{ aroma: /base-library/aromas/paraffin, strength: 3 }]
   burning: [{ aroma: /base-library/aromas/wax-smoke, strength: 100 }]
@@ -31,8 +31,4 @@ data:
   latentHeatOfVaporization: 330000
   heatOfCombustion: 46
   autoignitionTemperature: 520
-  edibility: false
-  nutrients: []
   tags: [solid, wax, candle-stock, flammable]
-  composition: []
-  biologicalSource: null

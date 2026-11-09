@@ -1,7 +1,7 @@
 # Goat's milk — near the cow's in body, a little richer in fat, and with
 # the goaty edge the animal is famous for (dairy D3). The yields derive
 # from the numbers; the goat follows the cow's lactation (`hircus.yaml`).
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/goat, strength: 60 }]
   tastes: [{ type: sweet, amount: 40 }]
@@ -12,16 +12,10 @@ data:
   specificHeat: 3900
   thermalConductivity: 0.53
   electricalConductivity: 0.5
-  waterAbsorptionCapacity: 0
-  hardness: 0
-  toughness: 0
-  edibility: true
   nutrients: ["fat", "protein", "sugar", "water"]
   nutrientAmounts: { fat: 41000, protein: 33000, sugar: 44000, water: 870000 }
   spoilActivationEnergy: 60000
   waterActivity: 0.99
-  toxicity: []
   # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
   ph: 6.6
   tags: ["food", "dairy", "liquid", "perishable", "once-living", "milk", "goat-milk"]
-  composition: []

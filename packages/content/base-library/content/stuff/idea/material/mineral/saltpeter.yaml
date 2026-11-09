@@ -11,7 +11,7 @@
 #
 # The crystals' row: what the liquor sets as. The oxidizer of black powder
 # and a meat cure's pink; neither consumer is this build's.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Salt
 data:
   name: saltpeter
   keywords: [saltpeter, saltpetre, nitre, niter, "potassium nitrate"]
@@ -23,11 +23,4 @@ data:
   hardness: 2
   toughness: 1
   electricalConductivity: 1.0e-10
-  waterAbsorptionCapacity: 0
-  edibility: false
-  nutrients: []
-  toxicity: []
-  tastes: [{ type: salty, amount: 100 }, { type: bitter, amount: 1 }]
   tags: ["mineral", "salt", "nitrate", "oxidizer", "crystalline"]
-  composition: []
-  biologicalSource: null

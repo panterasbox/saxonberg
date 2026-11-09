@@ -1,5 +1,5 @@
 # fish glue — boiled from fish skins: slow to set, very strong, the clearest glue there is, and the damp undoes it.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Glue
 data:
   smells: [{ aroma: /base-library/aromas/fish, strength: 800 }]
   name: fish glue
@@ -9,9 +9,6 @@ data:
   specificHeat: 2500
   thermalConductivity: 0.3
   meltingPoint: 300
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [liquid, glue, animal-glue, organic, once-living]
   # ⭐ A GLUE (paint D11): the strength of a set line, whether heat and
   # steam undo it, how it stands the damp, the heat it lets go at.

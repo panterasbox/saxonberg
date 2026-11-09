@@ -6,8 +6,8 @@
 # the edible routing home. The blend's actual identity + macros ride the
 # holder's per-instance BulkPayload (macros in = macros out) — per-dish
 # material rows are the retired anti-pattern (the fixed-vocabulary rule,
-# see /platform/idea/material/ConsumableMaterial).
-class: /platform/idea/material/ConsumableMaterial
+# see the `Food` kind, /platform/idea/material/Food).
+class: /platform/idea/material/Food
 data:
   name: cooked fare
   keywords: [cooked, food, fare, portion]
@@ -15,7 +15,6 @@ data:
   density: 1000
   thermalConductivity: 0.5
   specificHeat: 3500
-  edibility: true
   # ⭐ Spoilage (docs/subsystems/spoilage.md): the microbial growth rate is
   # `μ_max · f_T(T) · f_aw(a_w)`. `spoilActivationEnergy` (J/mol) is how
   # steeply this food answers to warmth; `waterActivity` is how much of its
@@ -29,5 +28,3 @@ data:
   waterActivity: 0.98
   nutrients: [carb]
   tags: [food, cooked]
-  composition: []
-  biologicalSource: null

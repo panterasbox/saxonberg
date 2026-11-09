@@ -7,7 +7,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Metal from '@saxonberg/server/mud/platform/idea/material/Metal';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Form from '@saxonberg/server/mud/platform/idea/Form';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -27,7 +27,7 @@ import Brick from '../thing/Brick';
 
 class Shed extends Place {}
 
-let clayMat: Material;
+let clayMat: Metal;
 let seq = 0;
 const forms = new Map<string, Form>();
 
@@ -49,12 +49,12 @@ beforeEach(() => {
   forms.clear();
   seq += 1;
   clayMat = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Metal();
     m.setName('clay');
     m.setTags(['earth', 'plastic', 'clay']);
     m.setDensity(Quantity.of(1800, 'kg/m³'));
     return m;
-  }, `/stuff/idea/material/_shape/clay-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_shape/clay-${seq}`) as unknown as Metal;
   vi.spyOn(StuffApi, 'singleton').mockImplementation((async (p: string) => forms.get(p) ?? null) as never);
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (row: string) => {
     if (row.endsWith('/brick')) {

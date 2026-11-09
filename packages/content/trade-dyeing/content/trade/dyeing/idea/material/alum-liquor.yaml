@@ -8,7 +8,7 @@
 #
 # ⚠ The curve is approximate (kg per liter of solution); its STEEPNESS is
 # the lesson, against salt's nearly flat one.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Water
 data:
   smells: [{ aroma: /base-library/aromas/sour, strength: 3 }]
   name: alum liquor
@@ -18,9 +18,6 @@ data:
   thermalConductivity: 0.55
   specificHeat: 3300
   electricalConductivity: 4
-  edibility: false
-  nutrients: []
-  toxicity: []
   ph: 3.5
   tags: [liquid, liquor]
   solidsKgPerL: 0.6
@@ -28,5 +25,3 @@ data:
   crystallizesTo:
     product: /trade/dyeing/idea/material/alum
     residue: /trade/dyeing/idea/material/alum-liquor
-  composition: []
-  biologicalSource: null

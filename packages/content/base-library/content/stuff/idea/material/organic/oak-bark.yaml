@@ -12,7 +12,7 @@
 # has asked for one.
 #
 # ⚠ Lives in the COMMONS: an oak has bark whether or not anybody tans.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Herb
 data:
   smells: [{ aroma: /base-library/aromas/tannin, strength: 100 }]
   name: oak bark
@@ -31,12 +31,7 @@ data:
   toughness: 3
   electricalConductivity: 1.0e-10
   waterAbsorptionCapacity: 80
-  edibility: false
-  nutrients: []
-  toxicity: []
   # ⭐ `tanbark` is the tag the trade matches. `granular` because what
   # goes in a pit is crushed, and `compost` because bark spent in a pit
   # was genuinely spread on fields — a second sink, free, with no row.
   tags: ["organic", "bark", "tanbark", "granular", "compost", "once-living"]
-  composition: []
-  biologicalSource: null

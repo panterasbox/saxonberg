@@ -24,7 +24,8 @@ import { dirname, join } from "path";
 import YAML from "yaml";
 import CartesianZone from "../../../platform/idea/location/CartesianZone";
 import Location from "../../../lib/location/Location";
-import Material from "../../../lib/material/Material";
+import Wood from "../../../platform/idea/material/Wood";
+import Water from "../../../platform/idea/material/Water";
 import Firewood from "../../../platform/thing/Firewood";
 import Floor from "../../../platform/thing/Floor";
 import BodyPlan from "../../../platform/idea/species/BodyPlan";
@@ -105,10 +106,10 @@ async function installCatalogue(): Promise<void> {
   spy.mockRestore();
 }
 
-function oak(): Material {
+function oak(): Wood {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Wood();
     m.setName("oak");
     m.setDensity(Quantity.of(750, "kg/m³"));
     m.setSpecificHeat(Quantity.of(2000, "J/(kg·K)"));
@@ -116,12 +117,12 @@ function oak(): Material {
     m.setAutoignitionTemperature(Quantity.of(570, "K"));
     m.setHeatOfCombustion(Quantity.of(16, "MJ/kg"));
     return m;
-  }, `/stuff/idea/material/_test/practicum-oak-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/practicum-oak-${seq}`) as unknown as Wood;
 }
 
-function saltWater(): Material {
+function saltWater(): Water {
   seq += 1;
-  const m = makeStuff(() => new Material());
+  const m = makeStuff(() => new Water());
   m.setName("salt-water");
   m.setElectricalConductivity(Quantity.of(5, "S/m"));
   stampTemplatePathForTest(m, `/stuff/idea/material/test/practicum-salt-${seq}`);

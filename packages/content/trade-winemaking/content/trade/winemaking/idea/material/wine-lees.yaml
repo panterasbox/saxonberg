@@ -3,7 +3,7 @@
 # of microbes IS bulk matter): `biologicalSource` bridges to the
 # Saccharomyces cerevisiae species row, and the wine-culture ferment
 # profile makes a jar of this a culture you keep alive (D14).
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Residue
 data:
   smells: [{ aroma: /base-library/aromas/yeast, strength: 300 }, { aroma: /base-library/aromas/wine, strength: 60 }]
   name: wine lees
@@ -12,11 +12,7 @@ data:
   density: 1060
   thermalConductivity: 0.5
   specificHeat: 3700
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["liquid", "wine-lees"]
-  composition: []
   biologicalSource:
     speciesPath: /stuff/idea/species/fungi/saccharomycetaceae/saccharomyces/cerevisiae
     tissueType: culture

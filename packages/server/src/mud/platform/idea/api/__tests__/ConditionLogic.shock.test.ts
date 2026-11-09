@@ -16,6 +16,7 @@ import Species from '../../species/Species';
 import BodyPlan from '../../species/BodyPlan';
 import Garment from '../../../thing/equipment/Garment';
 import Material from '../../../../lib/material/Material';
+import Metal from '../../material/Metal';
 import { Construction } from '../../../../lib/material/Construction';
 import { StuffApi } from '../../../../api/stuff';
 import { Quantity } from '../../../../lib/quantity';
@@ -29,7 +30,7 @@ import type { Trauma } from '../../Condition';
 let seq = 0;
 
 function steel(): Material {
-  const m = makeStuff(() => new Material());
+  const m = makeStuff(() => new Metal());
   m.setHardness(Quantity.of(600, 'MPa'));
   m.setToughness(Quantity.of(200, 'MJ/m³'));
   m.setElectricalConductivity(Quantity.of(6.0e6, 'S/m'));

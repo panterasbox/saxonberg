@@ -8,7 +8,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Material from '../../material/Material';
+import PigmentPaint from '../../../platform/idea/material/PigmentPaint';
 import { FacedMixin } from '../../material/Faced';
 import { DurableMixin } from '../../material/Durable';
 import { Idea } from '../../stuff/Idea';
@@ -53,7 +53,7 @@ beforeEach(() => {
   landing = makeStuff(() => new Idea());
   oil = '/stuff/idea/material/_shell/oil';
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new PigmentPaint();
     m.setName('oil paint');
     m.setWeatheringMPerGameYear(0.00001);
     return m;
@@ -106,7 +106,7 @@ describe('the fabric under the coat', () => {
     h.setCoats({
       outside: [{ material: oil, thicknessM: 0.00005, state: 'wet', paint: { binder: oil, pigments: [], solidsFraction: 0.6 } }],
     });
-    const m = StuffApi.findByTemplatePath<Material>(oil)!;
+    const m = StuffApi.findByTemplatePath<PigmentPaint>(oil)!;
     m.setKinetics([{ key: 'set', sets: 'oxidation', order: 0, rate: [[293, 0.05]] }]);
     expect(h.weatherCause()).toMatch(/still curing/);
   });

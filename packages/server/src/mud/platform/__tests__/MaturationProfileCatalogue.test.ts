@@ -36,7 +36,7 @@ describe('the roster warm', () => {
       },
       {
         path: '/stuff/idea/maturation/not-a-profile',
-        class: '/platform/idea/material/ConsumableMaterial',
+        class: '/platform/idea/material/Food',
       },
     ] as never);
     vi.spyOn(StuffApi, 'loadClassByPath').mockImplementation(

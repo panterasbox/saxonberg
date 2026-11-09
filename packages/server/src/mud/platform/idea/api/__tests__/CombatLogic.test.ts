@@ -35,7 +35,7 @@ import Garment from "../../../thing/equipment/Garment";
 import Shield from "../../../thing/equipment/Shield";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { CompetenceBandName } from "../../../../lib/advancement/CompetenceBand";
-import Material from "../../../../lib/material/Material";
+import Metal from "../../material/Metal";
 import { Construction } from "../../../../lib/material/Construction";
 import { ContainerMixin } from "../../../../lib/spatial/Container";
 import { ContainmentApi } from "../../../../api/containment";
@@ -72,8 +72,8 @@ class TestPartyFighter extends PartyMemberMixin(TestFighter) {}
 
 let seq = 0;
 
-function mat(hardness: number, toughness: number, name: string): Material {
-  const m = makeStuff(() => new Material());
+function mat(hardness: number, toughness: number, name: string): Metal {
+  const m = makeStuff(() => new Metal());
   m.setHardness(Quantity.of(hardness, "MPa"));
   m.setToughness(Quantity.of(toughness, "MJ/m³"));
   m.setName(name);
@@ -89,7 +89,7 @@ function planPathOf(c: TestFighter): string {
 interface FighterOpts {
   natural?: Channel;
   weaponForm?: string;
-  weaponMaterial?: Material;
+  weaponMaterial?: Metal;
   /** Authored weapon mass (kg) — drives the derived balance → tempo/poise. */
   weaponMass?: number;
   /** Authored weapon length (m) — drives the derived reach. */
@@ -99,7 +99,7 @@ interface FighterOpts {
   /** Shield armor construction form (default `plate`). */
   shieldForm?: string;
   /** Shield material. */
-  shieldMaterial?: Material;
+  shieldMaterial?: Metal;
   /** A second weapon in the off-hand (dual-wield). */
   offWeaponForm?: string;
   ctor?: new () => TestFighter;
@@ -767,7 +767,7 @@ function makeWeapon(
   form: string,
   massKg: number,
   lengthM: number,
-  material?: Material,
+  material?: Metal,
 ): Weapon {
   const w = makeStuff(() => new Weapon());
   if (material) w.setMaterial(material);

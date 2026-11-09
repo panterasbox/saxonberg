@@ -7,7 +7,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Die from '../Die';
 import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Metal from '@saxonberg/server/mud/platform/idea/material/Metal';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -25,23 +25,23 @@ const PEWTER = '/stuff/idea/material/_die/pewter';
 const STEEL = '/stuff/idea/material/_die/steel';
 const TOKEN = '/trade/smelting/thing/_test/token';
 
-function metal(path: string, hardness: number): Material {
-  const found = StuffApi.findByTemplatePath<Material>(path);
+function metal(path: string, hardness: number): Metal {
+  const found = StuffApi.findByTemplatePath<Metal>(path);
   if (found) return found;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Metal();
     m.setName(path.split('/').pop()!);
     m.setTags(['metal']);
     m.setDensity(Quantity.of(7900, 'kg/m³'));
     m.setHardness(Quantity.of(hardness, 'MPa'));
     m.setMeltingPoint(Quantity.of(1700, 'K'));
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as Metal;
 }
 
 function blank(matPath: string, room: TestRoom): Ingot {
   const b = makeStuff(() => new Ingot());
-  b.setMaterial(StuffApi.findByTemplatePath<Material>(matPath)!);
+  b.setMaterial(StuffApi.findByTemplatePath<Metal>(matPath)!);
   b.setMass(Quantity.of(0.02, 'kg'));
   ContainmentApi.move(b, room);
   return b;

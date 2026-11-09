@@ -592,7 +592,7 @@ already composes. There is no stored emission and no smell mixin on things.
 
 | leg | from | strength |
 |---|---|---|
-| its substance | `OdorousMixin.smells` on the material | OU of one kilogram at 293 K |
+| its substance | `OdorMixin.smells` on the material (`CombustionMixin.burning` when it burns) | OU of one kilogram at 293 K |
 | what a vessel holds | the makeup's or material's smells; dissolved aromas | `amount ÷ threshold`, one band under the glass in a room |
 | rot | `rotNote()`, by band | 30 · 300 · 3000 |
 | dirt | `soilOdor()`, per kind | `load × ouPerLoad` |

@@ -13,7 +13,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Place from '../../stuff/Place';
-import Material from '../../material/Material';
+import Water from '../../../platform/idea/material/Water';
 import CraftVessel from '../../../platform/thing/CraftVessel';
 import Bandage from '../../../platform/thing/Bandage';
 import { ContainmentApi } from '../../../api/containment';
@@ -32,10 +32,10 @@ const advanceGameS = (s: number): void => {
   realMs += (s * 1000) / scale;
 };
 
-function water(): Material {
+function water(): Water {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Water();
     m.setName('water');
     m.setDensity(Quantity.of(1000, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
@@ -43,7 +43,7 @@ function water(): Material {
     m.setBoilingPoint(Quantity.of(373, 'K'));
     m.setLatentHeatOfVaporization(Quantity.of(2260000, 'J/kg'));
     return m;
-  }, `/stuff/idea/material/_test/boil-occupants-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/boil-occupants-${seq}`) as unknown as Water;
 }
 
 /** A pot of water held at `startK` in a room at `roomK`, and a bandage. */

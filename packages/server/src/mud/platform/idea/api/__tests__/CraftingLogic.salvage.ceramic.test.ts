@@ -18,6 +18,9 @@ import { WorldClockApi } from '../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
+import Alloy from '../../material/Alloy';
+import Ceramic from '../../material/Ceramic';
+import Metal from '../../material/Metal';
 import Casting from '../../../thing/Casting';
 import MetalCasting from '../../../thing/MetalCasting';
 import Scrap from '../../../thing/Scrap';
@@ -45,9 +48,13 @@ const SHERDS = '/stuff/thing/_test/sherds';
 let wrecker: TestWrecker;
 let cloned: string[] = [];
 
-function registerMaterial(path: string, setup: (m: Material) => void): Material {
+function registerMaterial<M extends Material>(
+  make: () => M,
+  path: string,
+  setup: (m: M) => void,
+): Material {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = make();
     m.setName(path.split('/').pop()!.replace('svc-', ''));
     setup(m);
     return m;
@@ -68,15 +75,15 @@ beforeEach(async () => {
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'find').mockImplementation(async () => [] as never);
   WorldClockApi._setNowProviderForTesting(() => 1000);
-  registerMaterial(TIN, (m) => {
+  registerMaterial(() => new Metal(), TIN, (m) => {
     m.setTags(['metal']);
     m.setMeltingPoint(Quantity.of(505, 'K'));
   });
-  registerMaterial(LEAD, (m) => {
+  registerMaterial(() => new Metal(), LEAD, (m) => {
     m.setTags(['metal']);
     m.setMeltingPoint(Quantity.of(600, 'K'));
   });
-  registerMaterial(PEWTER, (m) => {
+  registerMaterial(() => new Alloy(), PEWTER, (m) => {
     m.setTags(['alloy', 'metal']);
     m.setMeltingPoint(Quantity.of(500, 'K'));
     m.setComposition([
@@ -84,7 +91,7 @@ beforeEach(async () => {
       { materialPath: LEAD, fraction: 0.2 },
     ]);
   });
-  registerMaterial(EARTHENWARE, (m) => {
+  registerMaterial(() => new Ceramic(), EARTHENWARE, (m) => {
     m.setTags(['ceramic', 'brittle', 'fired']);
     m.setBrokenTemplate(SHERDS);
   });

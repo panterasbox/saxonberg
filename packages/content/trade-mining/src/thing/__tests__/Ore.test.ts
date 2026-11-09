@@ -19,7 +19,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Ore from '../Ore';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import OreMaterial from '@saxonberg/server/mud/platform/idea/material/Ore';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { StackableApi } from '@saxonberg/server/mud/api/stackable';
@@ -71,7 +71,7 @@ describe('the ore lump', () => {
       (o as unknown as { _materialPath: string })._materialPath = MALACHITE;
       return o;
     }) as never);
-    const m = makeStuffAtPath(() => new Material(), MALACHITE);
+    const m = makeStuffAtPath(() => new OreMaterial(), MALACHITE);
     // ⭐ Chemistry, not a dial: two Cu in a 221.114 g/mol formula unit.
     m.setComposition([{ materialPath: COPPER, fraction: 0.5748 }]);
   });

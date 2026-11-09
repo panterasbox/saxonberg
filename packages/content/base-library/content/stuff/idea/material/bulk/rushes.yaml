@@ -1,7 +1,7 @@
 # Rushes — dried rushes for strewing an earth floor (cleanliness D15): they
 # soak up what is spilt and are swept out when they are foul. The honest
 # cleanser of a floor that cannot be scrubbed.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Fiber
 data:
   smells: [{ aroma: /base-library/aromas/straw, strength: 20 }]
   burning: [{ aroma: /base-library/aromas/straw-smoke, strength: 300 }]
@@ -13,9 +13,4 @@ data:
   thermalConductivity: 0.05
   heatOfCombustion: 14
   autoignitionTemperature: 540
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [organic, once-living, plant, granular, absorbent, flammable]
-  composition: []
-  biologicalSource: null

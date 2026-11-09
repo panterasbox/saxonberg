@@ -2,7 +2,7 @@
 # (potash D9). Brown-black with the char and the iron the lye carried, a
 # little damp, and about two parts in three potassium carbonate. The kiln
 # burns the dirt out and leaves pearl ash.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Lye
 data:
   smells: [{ aroma: /base-library/aromas/lye, strength: 100 }]
   name: black salts
@@ -14,13 +14,8 @@ data:
   meltingPoint: 1164
   electricalConductivity: 1.0e-6
   waterAbsorptionCapacity: 40
-  edibility: false
-  nutrients: ["potassium"]
-  toxicity: []
   tags: [solid, mineral, alkali, potash, flux, black-salts]
   cleanser: /trade/potash/idea/Cleanser/potash
-  composition: []
-  biologicalSource: null
   # ⭐⭐ Calcining is the ONE firing rule (ceramics M1), not a recipe: a cake
   # held at a red heat burns its char and water out and whitens to pearl
   # ash, keeping 80 % of its mass — and its potash, which concentrates in

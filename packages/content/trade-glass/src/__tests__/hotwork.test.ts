@@ -10,7 +10,7 @@
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import Good from "@saxonberg/server/mud/lib/stuff/Good";
-import Material from "@saxonberg/server/mud/platform/idea/material/Material";
+import Glass from "@saxonberg/server/mud/platform/idea/material/Glass";
 import Casting from "@saxonberg/server/mud/platform/thing/Casting";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
@@ -33,17 +33,17 @@ class TestRoom extends ContainerMixin(Idea) {
 }
 
 let seq = 0;
-function glassMaterial(): Material {
+function glassMaterial(): Glass {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Glass();
     m.setName("glass");
     m.setTags(["glass"]);
     m.setSpecificHeat(Quantity.of(840, "J/(kg·K)"));
     m.setThermalConductivity(Quantity.of(1.0, "W/(m·K)"));
     m.setMeltingPoint(Quantity.of(1300, "K"));
     return m;
-  }, `/stuff/idea/material/_test/hw-glass-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/hw-glass-${seq}`) as unknown as Glass;
 }
 
 function gather(tempK: number): Gather {

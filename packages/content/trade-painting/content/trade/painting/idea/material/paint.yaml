@@ -3,7 +3,7 @@
 # the pigments in it, by mass. Its color, its covering, its setting and its
 # weathering are the makeup's, so there is no paint table: a second paint is
 # a pigment row, and nothing here names a color.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/PigmentPaint
 data:
   smells: [{ aroma: /base-library/aromas/paint, strength: 500 }]
   name: paint
@@ -13,12 +13,7 @@ data:
   specificHeat: 1600
   thermalConductivity: 0.2
   meltingPoint: 260
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [liquid, paint]
   laysCoat: true
   coatWord: painted
   solidsKgPerL: 0.6
-  composition: []
-  biologicalSource: null

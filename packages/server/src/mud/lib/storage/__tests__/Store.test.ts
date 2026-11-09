@@ -19,7 +19,9 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import Material from '../../material/Material';
+import type Material from '../../material/Material';
+import Water from '../../../platform/idea/material/Water';
+import Wood from '../../../platform/idea/material/Wood';
 import Good from '../../../platform/thing/Good';
 import Holder from '../../stuff/Holder';
 import Stockpile from '../../../platform/thing/Stockpile';
@@ -78,17 +80,17 @@ const advanceDays = (d: number): void => {
   real += ((d * 86400) / 12) * 1000;
 };
 
-function material(path: string, f: (m: Material) => void): Material {
+function material<T extends Material>(Kind: new () => T, path: string, f: (m: T) => void): T {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Kind();
     m.setName(path.split('/').pop()!);
     f(m);
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as T;
 }
 
-function iceMaterial(): Material {
-  return material(ICE, (m) => {
+function iceMaterial(): Water {
+  return material(Water, ICE, (m) => {
     m.setDensity(Quantity.of(917, 'kg/m³'));
     m.setThermalConductivity(Quantity.of(2.2, 'W/(m·K)'));
     m.setSpecificHeat(Quantity.of(2100, 'J/(kg·K)'));
@@ -98,8 +100,8 @@ function iceMaterial(): Material {
   });
 }
 
-function dustMaterial(): Material {
-  return material(DUST, (m) => {
+function dustMaterial(): Wood {
+  return material(Wood, DUST, (m) => {
     m.setDensity(Quantity.of(200, 'kg/m³'));
     m.setThermalConductivity(Quantity.of(0.06, 'W/(m·K)'));
     m.setSpecificHeat(Quantity.of(2000, 'J/(kg·K)'));

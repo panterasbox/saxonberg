@@ -57,10 +57,12 @@ export class TasteModality extends Modality {
 
     const amounts = new Map<string, number>();
     for (const { material, fraction } of parts) {
-      for (const tag of material.getTastes()) {
-        amounts.set(tag.type, (amounts.get(tag.type) ?? 0) + tag.amount * fraction);
+      if (MixinApi.hasEdibility(material)) {
+        for (const tag of material.getTastes()) {
+          amounts.set(tag.type, (amounts.get(tag.type) ?? 0) + tag.amount * fraction);
+        }
       }
-      if (MixinApi.isOdorous(material)) {
+      if (MixinApi.hasOdor(material)) {
         for (const tag of material.getSmells()) add(tag.aroma, tag.strength * fraction);
       }
     }

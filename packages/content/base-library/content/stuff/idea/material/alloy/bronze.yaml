@@ -3,13 +3,11 @@
 # breastplate turns an edge less surely than a steel one (same
 # construction, lower material height) — the materials-response
 # "steel plate > bronze plate" contrast.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Alloy
 data:
   name: bronze
   keywords: [bronze]
   density: 8800
-  # Water absorption capacity (% of dry mass, ASTM D570): metal wets only as a surface film.
-  waterAbsorptionCapacity: 0.2
   specificHeat: 380
   thermalConductivity: 60
   # Mechanical response: softer + less tough than steel (MPa / MJ·m⁻³).
@@ -22,9 +20,6 @@ data:
   meltingPoint: 1220
   latentHeatOfFusion: 200000
   thermalExpansion: 1.8e-05
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["alloy", "metal", "copper", "tin"]
   # ⭐ 88/12 copper–tin, and the fractions SUM TO ONE. It used to name
   # copper alone and leave 12% as nothing, which made every read that
@@ -35,5 +30,3 @@ data:
   composition:
     - { materialPath: /stuff/idea/material/element/copper, fraction: 0.88 }
     - { materialPath: /stuff/idea/material/element/tin, fraction: 0.12 }
-  chemistry: null
-  biologicalSource: null

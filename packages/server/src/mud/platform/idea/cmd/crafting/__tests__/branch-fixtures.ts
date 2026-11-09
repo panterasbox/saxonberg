@@ -26,7 +26,9 @@ import { PersistenceManager } from '../../../../../../backend/PersistenceManager
 import { KERNEL_CONTENT_ROWS } from '../../../../../../test-bootstrap';
 import { installCorpseMintStub } from '../../../../../lib/mortality/__tests__/corpse-mint-test-helpers';
 import { Quantity } from '../../../../../lib/quantity';
+import Food from '../../../material/Food';
 import Material from '../../../../../lib/material/Material';
+import { MixinApi } from '../../../../../api/mixin';
 import Forge from '../../../../thing/Forge';
 import Oven from '../../../../thing/Oven';
 import { Reserve } from '../../../../../lib/reserve/Reserved';
@@ -165,12 +167,12 @@ export function registerMaterial(
   } = {},
 ): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    // Edible IS composing Edibility — an inedible material is the bare base.
+    const m = opts.edible || opts.amounts ? new Food() : new Material();
     m.setName(name);
     m.setTags(tags);
     m.setKeywords(opts.keywords ?? tags.slice(-1));
-    if (opts.edible) m.setEdibility(true);
-    if (opts.amounts) {
+    if (opts.amounts && MixinApi.hasEdibility(m)) {
       m.setNutrients(Object.keys(opts.amounts));
       m.setNutrientAmounts(opts.amounts);
     }
@@ -210,7 +212,7 @@ export function makeStock(materialPath: string, massKg: number): Good {
   const t = makeStuff(() => new Good());
   t.setMass(Quantity.of(massKg, 'kg'));
   t.setMaterial(
-    StuffApi.findByTemplatePath<Material>(materialPath) as unknown as Material,
+    StuffApi.findByTemplatePath<Food>(materialPath) as unknown as Food,
   );
   return t;
 }

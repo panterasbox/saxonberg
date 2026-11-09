@@ -127,7 +127,9 @@ describe("two chemistries, and the rows say which", () => {
     // exactly why linen was worn undyed and wool was the coloured
     // cloth, and why this trade is harder now and easier when wool
     // arrives.
-    expect(mordantKeys().sort()).toEqual(["alum", "iron", "tannin"]);
+    // The iron mordant's material is copperas (iron(II) sulfate, a salt) —
+    // the dyer still says "iron" (MordantController maps the word).
+    expect(mordantKeys().sort()).toEqual(["alum", "copperas", "tannin"]);
     for (const d of dyestuffs().filter((x) => x.chemistry === "mordant")) {
       expect(d.shades.find((s) => s.mordant === "tannin")).toBeDefined();
     }

@@ -21,7 +21,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain as eats } from '../eats';
 import type { BrainContext } from '../brain';
-import Material from '../../material/Material';
+import Food from '../../../platform/idea/material/Food';
 import Provision from '../../../platform/thing/Provision';
 import StockBase from "../../retail/Stock";
 import Place from '../../stuff/Place';
@@ -117,7 +117,7 @@ function stockLoaf(path: string, keyword: string): Provision {
     return p;
   }, path) as Provision;
   l.setMaterial(
-    StuffApi.findByTemplatePath<Material>(BREAD)! as unknown as Material,
+    StuffApi.findByTemplatePath<Food>(BREAD)! as unknown as Food,
   );
   ContainmentApi.move(l as never, counter as never);
   return l;
@@ -132,10 +132,9 @@ beforeEach(async () => {
 
   {
     makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Food();
       m.setName('bread');
       m.setTags(['food', 'bread']);
-      m.setEdibility(true);
       m.setDensity(Quantity.of(280, 'kg/m³'));
       return m;
     }, BREAD);

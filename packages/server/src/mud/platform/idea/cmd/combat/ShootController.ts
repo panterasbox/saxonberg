@@ -142,7 +142,11 @@ export default class ShootController extends CommandController<ShootModel> {
       channel: 'point',
       calibreM: this.calibreOf(ammo),
       brittle: material?.hasTag('brittle') ?? false,
-      hardness: material?.getHardness().rawValue(),
+      hardness: material
+        ? MixinApi.hasSolidity(material)
+          ? material.getHardness().rawValue()
+          : 0
+        : undefined,
     });
 
     this.spendOne(ammo);

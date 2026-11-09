@@ -584,7 +584,7 @@ point — premature abstraction for the three v1 consumers.
 Capability seam for biomes whose Locations look out on the open
 sky. `SkyExposedBiome extends SkyExposedMixin(Biome)` is the
 concrete subclass outdoor biome leaves extend (parallel to
-`RadioactiveMaterial`).
+`RadioactiveMetal`, a kind composing `RadioactivityMixin`).
 
 `isSkyExposed(): boolean` — the predicate is the entire substrate
 in v1. Future `getCelestialBodies()` lands with its consuming

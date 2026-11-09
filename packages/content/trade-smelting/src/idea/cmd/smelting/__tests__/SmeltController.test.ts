@@ -22,6 +22,9 @@ import SmeltingFurnace from '../../../../thing/SmeltingFurnace';
 import Bloom from '../../../../thing/Bloom';
 import Ore from '@saxonberg/content-trade-mining/src/thing/Ore';
 import Material from '@saxonberg/server/mud/lib/material/Material';
+import OreMaterial from '@saxonberg/server/mud/platform/idea/material/Ore';
+import Alloy from '@saxonberg/server/mud/platform/idea/material/Alloy';
+import ElementalMetal from '@saxonberg/server/mud/platform/idea/material/ElementalMetal';
 import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { CompositionMixin } from '@saxonberg/server/mud/lib/material/Composition';
@@ -273,30 +276,30 @@ beforeEach(async () => {
     throw new Error(`unexpected clone ${path}`);
   });
 
-  const malachite = makeStuffAtPath(() => new Material(), MALACHITE);
+  const malachite = makeStuffAtPath(() => new OreMaterial(), MALACHITE);
   // ⭐ Chemistry: two Cu in a 221.114 g/mol formula unit.
   malachite.setComposition([{ materialPath: COPPER, fraction: 0.5748 }]);
   malachite.setTags(['mineral', 'ore', 'copper']);
   // …and one Fe in an 88.851 g/mol formula unit is 0.6285.
-  const goethite = makeStuffAtPath(() => new Material(), GOETHITE);
+  const goethite = makeStuffAtPath(() => new OreMaterial(), GOETHITE);
   goethite.setComposition([{ materialPath: IRON, fraction: 0.6285 }]);
   goethite.setTags(['mineral', 'ore', 'iron']);
-  const copper = makeStuffAtPath(() => new Material(), COPPER);
+  const copper = makeStuffAtPath(() => new ElementalMetal(), COPPER);
   copper.setMeltingPoint(Quantity.of(1358, 'K'));
   copper.setDensity(Quantity.of(8960, 'kg/m³'));
   copper.setSpecificHeat(Quantity.of(385, 'J/(kg·K)'));
   copper.setLatentHeatOfFusion(Quantity.of(205_000, 'J/kg'));
   copper.setTags(['element', 'metal', 'non-ferrous', 'forgeable']);
-  const iron = makeStuffAtPath(() => new Material(), IRON);
+  const iron = makeStuffAtPath(() => new ElementalMetal(), IRON);
   iron.setMeltingPoint(Quantity.of(1811, 'K'));
   iron.setTags(['element', 'metal', 'ferrous', 'forgeable']);
-  const steel = makeStuffAtPath(() => new Material(), STEEL);
+  const steel = makeStuffAtPath(() => new Alloy(), STEEL);
   steel.setTags(['alloy', 'metal', 'ferrous', 'forgeable']);
   steel.setComposition([
     { materialPath: IRON, fraction: 0.998 },
     { materialPath: CARBON, fraction: 0.002 },
   ]);
-  const castIron = makeStuffAtPath(() => new Material(), CAST_IRON);
+  const castIron = makeStuffAtPath(() => new Alloy(), CAST_IRON);
   castIron.setTags(['alloy', 'metal', 'ferrous', 'brittle']);
   castIron.setDensity(Quantity.of(7200, 'kg/m³'));
   makeStuffAtPath(() => new Material(), BLOOM_IRON).setTags(['metal', 'ferrous', 'bloom']);

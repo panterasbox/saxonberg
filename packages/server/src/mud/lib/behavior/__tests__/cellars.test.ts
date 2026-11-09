@@ -27,7 +27,7 @@ import PaymentCard from '../../../platform/thing/PaymentCard';
 import ChattelRegistry from '../../../platform/idea/ChattelRegistry';
 import BusinessEntity from '../../../platform/idea/Business';
 import MaturationProfile from '../../../platform/idea/maturation/MaturationProfile';
-import Material from '../../material/Material';
+import Food from '../../../platform/idea/material/Food';
 import type { Crafted } from '../../craft/Crafted';
 import { EmploymentApi } from '../../../api/employment';
 import { BankingApi } from '../../../api/banking';
@@ -186,7 +186,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
     PROFILE = `${root}/maturation/red`;
     {
       makeStuffAtPath(() => {
-        const m = new Material();
+        const m = new Food();
         m.setName('test must');
         m.setTags(['liquid', 'cellars-must']);
         m.setNutrients(['water', 'sugar']);
@@ -194,7 +194,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
         return m;
       }, MUST);
       makeStuffAtPath(() => {
-        const m = new Material();
+        const m = new Food();
         m.setName('red wine');
         m.setPrimaryKeyword('red');
         m.setKeywords(['red', 'wine']);
@@ -236,7 +236,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
     vat.lastAmbientK = 291;
     vat.stampedTemperatureK = 291;
     ContainmentApi.move(vat as never, floor as never);
-    const must = StuffApi.findByTemplatePath<Material>(MUST)!;
+    const must = StuffApi.findByTemplatePath<Food>(MUST)!;
     vat.setBulkMaterial('interior', must);
     vat.setBulkAmount('interior', Quantity.of(4, 'L'));
     (vat as unknown as Crafted).setMaker(VINTNER); // the founder's mark

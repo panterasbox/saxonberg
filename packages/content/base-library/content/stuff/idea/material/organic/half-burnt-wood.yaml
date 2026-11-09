@@ -5,7 +5,7 @@
 # ⭐ The first rung of every wood's `char` transition (ceramics ruling A):
 # a material, not a row a burn picks — so a length that went in as hazel
 # comes out as THIS, and it is the same length.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFuel
 data:
   smells: [{ aroma: /base-library/aromas/char, strength: 100 }]
   burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
@@ -23,9 +23,4 @@ data:
   ashFraction: 0.015
   hardness: 20
   toughness: 20
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["organic", "fuel", "flammable", "once-living"]
-  composition: []
-  biologicalSource: null

@@ -1,6 +1,6 @@
 # Grappa — pomace through the still (P11): the historically honest
 # byproduct spirit, a margin lesson for a small house.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Spirit
 data:
   smells: [{ aroma: /base-library/aromas/spirit, strength: 800 }]
   burning: [{ aroma: /base-library/aromas/smoke, strength: 3 }]
@@ -13,12 +13,8 @@ data:
   servingKg: 0.0567
   thermalConductivity: 0.17
   specificHeat: 2450
-  edibility: true
   toxicity:
     - { type: alcohol, amount: 42 }
-  nutrients: []
   tags: ["liquid", "beverage", "drinkable", "alcoholic", "spirit", "grappa"]
-  composition: []
-  biologicalSource: null
   autoignitionTemperature: 638
   heatOfCombustion: 26

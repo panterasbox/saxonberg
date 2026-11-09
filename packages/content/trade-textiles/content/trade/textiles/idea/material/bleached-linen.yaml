@@ -12,7 +12,7 @@
 # ⚠⚠ It is still CELLULOSE, so bleaching buys a white ground and buys
 # nothing whatever against the mordant problem. A bleached linen still
 # needs its tannin.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Fiber
 data:
   name: bleached linen
   keywords: [linen, bleached, white, "bleached linen"]
@@ -25,12 +25,7 @@ data:
   specificHeat: 1360
   electricalConductivity: 1.0e-11
   waterAbsorptionCapacity: 20
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["textile", "fibre", "organic", "plant", "cellulose", "bleached", "once-living"]
-  composition: []
-  chemistry:
-    formula: C6H10O5
-    molarMass: 162.14
+  formula: C6H10O5
+  molarMass: 162.14
   biologicalSource: { speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/malpighiales/linaceae/linum/usitatissimum, tissueType: stem }

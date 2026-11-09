@@ -227,13 +227,17 @@ export default class Weapon extends WeaponBase {
         ? (construction.getForm() as DeliveryForm)
         : null;
     const material = MixinApi.isTangible(this) ? this.getMaterial() : null;
-    const hardness = material?.getHardness();
+    const hardnessMpa = !material
+      ? undefined
+      : MixinApi.hasSolidity(material)
+        ? material.getHardness().rawValue()
+        : 0;
     return {
       deliveryForm,
       massKg: MixinApi.isTangible(this) ? this.getMass().rawValue() : 0,
       lengthM: this._length.rawValue(),
       handSlots: this.getHandSlotCount(),
-      materialHardnessMpa: hardness ? hardness.rawValue() : undefined,
+      materialHardnessMpa: hardnessMpa,
     };
   }
 

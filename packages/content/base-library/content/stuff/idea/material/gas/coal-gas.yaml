@@ -18,7 +18,7 @@
 #    somebody had to invent a gas mantle is that the flame alone is a
 #    disappointment, and the game now has that problem without anybody
 #    authoring it.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/FuelGas
 data:
   smells: [{ aroma: /base-library/aromas/coal-tar, strength: 800 }]
   burning: [{ aroma: /base-library/aromas/coal-smoke, strength: 100 }]
@@ -37,8 +37,4 @@ data:
   toxicity:
     - type: carbonMonoxide
       amount: 20
-  edibility: false
-  nutrients: []
   tags: [gas, fuel, flammable]
-  composition: []
-  biologicalSource: null

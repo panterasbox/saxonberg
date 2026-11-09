@@ -22,7 +22,7 @@
 #
 # `brittle` is the tag the refusals read, and it is honest about more
 # than iron: anything that shatters rather than spreading wants it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Alloy
 data:
   name: cast iron
   keywords: [cast-iron, "cast iron", pig, pig-iron]
@@ -31,7 +31,6 @@ data:
   specificHeat: 460
   thermalConductivity: 55
   electricalConductivity: 1.0e6
-  waterAbsorptionCapacity: 0.2
   # Mechanical response: HARDER than steel and barely tough at all, which
   # is the shape of brittleness in two numbers. A cast-iron edge would
   # take a keen edge and then chip out of it on the first parry.
@@ -50,12 +49,7 @@ data:
   chillsTo:
     - { mouldConductivityAbove: 20, becomes: /stuff/idea/material/alloy/white-cast-iron }
     - { mouldConductivityAbove: 0, becomes: /stuff/idea/material/alloy/grey-cast-iron }
-  edibility: false
-  nutrients: ["iron"]
-  toxicity: [{ type: iron-poisoning, amount: 0 }]
   tags: ["alloy", "metal", "ferrous", "magnetic", "brittle"]
   composition:
     - { materialPath: /stuff/idea/material/element/iron, fraction: 0.96 }
     - { materialPath: /stuff/idea/material/element/carbon, fraction: 0.04 }
-  chemistry: null
-  biologicalSource: null

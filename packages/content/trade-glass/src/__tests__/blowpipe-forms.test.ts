@@ -6,7 +6,8 @@
  */
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import Material from "@saxonberg/server/mud/platform/idea/material/Material";
+import Glass from "@saxonberg/server/mud/platform/idea/material/Glass";
+import type Material from "@saxonberg/server/mud/lib/material/Material";
 import Form from "@saxonberg/server/mud/platform/idea/Form";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
@@ -32,7 +33,7 @@ let seq = 0;
 function hotGather(): Gather {
   seq += 1;
   const glass = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Glass();
     m.setName("glass");
     m.setTags(["glass"]);
     m.setSpecificHeat(Quantity.of(840, "J/(kg·K)"));

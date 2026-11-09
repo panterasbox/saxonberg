@@ -21,14 +21,11 @@ data:
   density: 1080
   thermalConductivity: 0.6
   specificHeat: 3900
-  edibility: true
   # The chemistry: water for the hydration leg, sugar for the fast
   # absorb, carb for the slow — both land on satiation, which is what
   # the mana consumer draws down.
   nutrients: [water, sugar, carb]
   tags: [liquid, drinkable]
-  composition: []
-  biologicalSource: null
   deliveryEfficiency: 1
   route: oral
   dose:

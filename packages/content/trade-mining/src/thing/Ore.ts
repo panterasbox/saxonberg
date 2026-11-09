@@ -35,6 +35,7 @@
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { SampledMixin } from '@saxonberg/server/mud/lib/instrument/Sampled';
 import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
@@ -110,6 +111,7 @@ export default class Ore extends OreBase {
   public metalFractionOf(metalPath: string): number {
     const material = this.getMaterial() as Material | null;
     if (!material) return 0;
+    if (!MixinApi.hasMixture(material)) return 0;
     const entry = material
       .getComposition()
       .find((c) => c.materialPath === metalPath);

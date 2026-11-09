@@ -6,7 +6,7 @@
 # nobody — there is no `toxicity` — and that is the point. It kills by
 # displacement, quietly, which is why the cellar needs a trapdoor and the
 # brewer needs to be told.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Gas
 data:
   name: carbon dioxide
   keywords: [carbon dioxide, fixed air, choke damp]
@@ -17,9 +17,4 @@ data:
   boilingPoint: 195
   thermalConductivity: 0.0166
   electricalConductivity: 1.0e-14
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [gas, exhaust]
-  composition: []
-  biologicalSource: null

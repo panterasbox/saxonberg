@@ -26,7 +26,7 @@
  * without anything having to say so.
  *
  * The concrete subclass is `obj/material/PotionMaterial` — the
- * `RadioactiveMaterial` capability-subclass pattern.
+ * capability-mixin pattern (`RadioactivityMixin`, the material capabilities).
  *
  * ⚠ **Route is declared here; delivery is not.** Every potion says
  * whether it acts orally, on contact, or as vapour. The *delivery* half

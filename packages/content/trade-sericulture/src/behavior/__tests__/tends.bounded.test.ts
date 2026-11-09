@@ -20,7 +20,7 @@ import Oven from '@saxonberg/server/mud/platform/thing/Oven';
 import Scrap from '@saxonberg/server/mud/platform/thing/Scrap';
 import { fuelMaterial } from '@saxonberg/server/mud/lib/fire/__tests__/burner-fuel';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import EdibleHerb from '@saxonberg/server/mud/platform/idea/material/EdibleHerb';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -54,11 +54,11 @@ let hand: Hand;
 let said: string[];
 const now = 10_000_000;
 
-function mat(path: string, tags: string[]): Material {
+function mat(path: string, tags: string[]): EdibleHerb {
   return (
-    StuffApi.findByTemplatePath<Material>(path) ??
+    StuffApi.findByTemplatePath<EdibleHerb>(path) ??
     makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new EdibleHerb();
       m.setName(path.split('/').pop()!);
       m.setTags(tags);
       return m;

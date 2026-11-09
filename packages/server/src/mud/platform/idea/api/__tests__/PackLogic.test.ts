@@ -22,7 +22,7 @@ import { PersistApi } from '../../../../api/persist';
 import { StuffApi } from '../../../../api/stuff';
 import { stubRegistries } from './pack-harness';
 
-const MATERIAL = '/platform/idea/material/Material';
+const MATERIAL = '/platform/idea/material/Residue';
 const HYDRATOR = '/platform/idea/TemplateApplier';
 
 interface Row extends Record<string, unknown> {

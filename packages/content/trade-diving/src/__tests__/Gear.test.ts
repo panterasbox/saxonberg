@@ -13,7 +13,7 @@ import RopeEnd from '@saxonberg/server/mud/platform/thing/RopeEnd';
 import LineEnd from '@saxonberg/server/mud/platform/thing/LineEnd';
 import Location from '@saxonberg/server/mud/platform/location/Location';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Gas from '@saxonberg/server/mud/platform/idea/material/Gas';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -55,11 +55,11 @@ async function water(): Promise<{ quay: Location; top: Location; bed: Location }
 
 function anchor(): Good {
   const iron = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Gas();
     m.setName('gear-test-iron');
     m.setDensity(Quantity.of(7870, 'kg/m³'));
     return m;
-  }, '/stuff/idea/material/_test/gear-test-iron') as unknown as Material;
+  }, '/stuff/idea/material/_test/gear-test-iron') as unknown as Gas;
   return makeStuff(() => {
     const g = new Good();
     g.setMass(Quantity.of(300, 'kg'));
@@ -68,13 +68,13 @@ function anchor(): Good {
   });
 }
 
-function air(): Material {
-  return (StuffApi.findByTemplatePath<Material>('/stuff/idea/material/bulk/air') ??
+function air(): Gas {
+  return (StuffApi.findByTemplatePath<Gas>('/stuff/idea/material/bulk/air') ??
     makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Gas();
       m.setName('air');
       return m;
-    }, '/stuff/idea/material/bulk/air')) as unknown as Material;
+    }, '/stuff/idea/material/bulk/air')) as unknown as Gas;
 }
 
 function bag(): AirBag {

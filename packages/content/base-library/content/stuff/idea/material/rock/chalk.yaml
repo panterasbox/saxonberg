@@ -1,6 +1,6 @@
 # Chalk — the soft white top of the limestone (cleanliness D25): rubbed on a
 # grease spot it drinks the oil, and it is the cheaper absorbent.
-class: /platform/idea/material/Material
+class: /platform/idea/material/PigmentPaint
 data:
   name: chalk
   keywords: [chalk]
@@ -9,12 +9,8 @@ data:
   specificHeat: 880
   thermalConductivity: 0.9
   electricalConductivity: 1.0e-8
-  waterAbsorptionCapacity: 20
   hardness: 3
   toughness: 1
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [rock, mineral, granular, absorbent, chalk]
   # ⭐ A white pigment (paint D19): a weak one in oil, the body of a
   # limewash and of gesso.
@@ -22,5 +18,3 @@ data:
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
   cleanser: /platform/idea/Cleanser/chalk
-  composition: []
-  biologicalSource: null

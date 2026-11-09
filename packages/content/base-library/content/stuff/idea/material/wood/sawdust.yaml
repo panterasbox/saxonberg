@@ -9,7 +9,7 @@
 # The tags are what other trades read: `granular, absorbent` is what a
 # floor can be strewn with, `sawdust` is the cleanser key, `flammable`
 # is the shavings fire. Not food: nothing grows in it here.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Wood
 data:
   smells: [{ aroma: /base-library/aromas/sawdust, strength: 30 }]
   burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
@@ -25,9 +25,4 @@ data:
   heatOfCombustion: 16
   hardness: 1
   toughness: 1
-  edibility: false
-  nutrients: ["cellulose"]
-  toxicity: []
   tags: ["wood", "organic", "once-living", "granular", "flammable", "absorbent", "sawdust"]
-  composition: []
-  biologicalSource: null

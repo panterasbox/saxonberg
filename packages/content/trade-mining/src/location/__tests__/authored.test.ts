@@ -22,7 +22,7 @@ import MineRoom from '../MineRoom';
 import { WORKING_MIXIN } from '../../lib/Working';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -64,7 +64,7 @@ describe('a hand-authored working', () => {
       save: async () => '1', find: async () => [], findById: async () => null,
       delete: async () => undefined, isConnected: () => true,
     } as unknown as PersistenceManager);
-    const m = makeStuffAtPath(() => new Material(), SLATE);
+    const m = makeStuffAtPath(() => new Stone(), SLATE);
     (m as unknown as { hardness: Quantity<'MPa'> }).hardness = Quantity.of(90, 'MPa');
     zone = makeStuffAtPath(() => new CartesianZone(), ZONE);
     zone.setCellSize(10);

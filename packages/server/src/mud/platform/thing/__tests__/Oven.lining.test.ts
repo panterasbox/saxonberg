@@ -11,7 +11,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import { chargeHot } from '../../../lib/fire/__tests__/burner-fuel';
 import Oven from '../Oven';
 import Good from '../../../lib/stuff/Good';
-import Material from '../../../lib/material/Material';
+import Stone from '../../idea/material/Stone';
 import { StackableMixin } from '../../../lib/stuff/Stackable';
 import { ContainerMixin } from '../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
@@ -66,7 +66,7 @@ beforeEach(() => {
   vi.spyOn(pm, 'find').mockResolvedValue([] as never);
   WorldClockApi._setNowProviderForTesting(() => 1000);
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Stone();
     m.setName('refractory');
     m.setMeltingPoint(Quantity.of(1950, 'K'));
     return m;
@@ -125,7 +125,7 @@ describe('the lining', () => {
     const bricks = makeStuff(() => {
       const b = new Firebricks();
       b.setMass(Quantity.of(3, 'kg'));
-      b.setMaterial(StuffApi.findByTemplatePath<Material>(REFRACTORY) as unknown as Material);
+      b.setMaterial(StuffApi.findByTemplatePath<Stone>(REFRACTORY) as unknown as Stone);
       b.setQuantity(8);
       b.setKeywords(['firebrick', 'lining']);
       return b;

@@ -7,7 +7,7 @@
 # blend's actual identity + toxins ride the holder's per-instance
 # BulkPayload (macros in = macros out) — per-cocktail material rows are
 # the retired anti-pattern (the fixed-vocabulary rule).
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/Food
 data:
   name: blend
   keywords: [cocktail, blend, drink, mixed]
@@ -15,9 +15,6 @@ data:
   density: 950
   thermalConductivity: 0.2
   specificHeat: 2800
-  edibility: true
   toxicity:
     - { type: alcohol, amount: 18 }
   tags: [liquid, beverage, drinkable, alcoholic, cocktail]
-  composition: []
-  biologicalSource: null

@@ -14,7 +14,7 @@
  * which every fixture here would then be re-testing.
  */
 
-import Material from '../../material/Material';
+import SolidFuel from '../../../platform/idea/material/SolidFuel';
 import { Quantity } from '../../quantity';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 import type { Stuff } from '../../stuff/Stuff';
@@ -23,17 +23,17 @@ import type { Burner } from '../Burner';
 let seq = 0;
 
 /** A fuel material at `mjPerKg`, at its own test path. */
-export function fuelMaterial(mjPerKg: number, name = 'test-fuel'): Material {
+export function fuelMaterial(mjPerKg: number, name = 'test-fuel'): SolidFuel {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new SolidFuel();
     m.setName(`${name}-${seq}`);
     m.setDensity(Quantity.of(700, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(2000, 'J/(kg·K)'));
     m.setHeatOfCombustion(Quantity.of(mjPerKg, 'MJ/kg'));
     m.setAutoignitionTemperature(Quantity.of(570, 'K'));
     return m;
-  }, `/stuff/idea/material/_test/fuel-${name}-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/fuel-${name}-${seq}`) as unknown as SolidFuel;
 }
 
 /** Lay `kg` of a fuel at `mjPerKg` in `burner`'s bed. Returns the material. */
@@ -41,7 +41,7 @@ export function chargeBurner(
   burner: Stuff & Burner,
   kg: number,
   mjPerKg: number,
-): Material {
+): SolidFuel {
   const material = fuelMaterial(mjPerKg);
   const path = material.getTemplatePath();
   if (path === null) throw new Error('chargeBurner: material has no path');
@@ -54,11 +54,11 @@ export function chargeBurner(
 }
 
 /** Charcoal-grade: hot enough for a smelting ceiling. */
-export function chargeHot(burner: Stuff & Burner, kg = 20): Material {
+export function chargeHot(burner: Stuff & Burner, kg = 20): SolidFuel {
   return chargeBurner(burner, kg, 30);
 }
 
 /** Oak-grade: will not reach a smelting ceiling, which is the point. */
-export function chargeWood(burner: Stuff & Burner, kg = 20): Material {
+export function chargeWood(burner: Stuff & Burner, kg = 20): SolidFuel {
   return chargeBurner(burner, kg, 16);
 }

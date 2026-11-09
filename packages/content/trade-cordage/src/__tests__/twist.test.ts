@@ -16,7 +16,7 @@ import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefi
 import TextileStock from '@saxonberg/content-trade-textiles/src/thing/TextileStock';
 import Rope from '@saxonberg/server/mud/platform/thing/Rope';
 import Location from '@saxonberg/server/mud/platform/location/Location';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Muscle from '@saxonberg/server/mud/platform/idea/material/Muscle';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -28,13 +28,13 @@ import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persiste
 
 class Body extends Character {}
 
-let hemp: Material;
+let hemp: Muscle;
 
 beforeEach(() => {
   StuffApi.clearAll();
   installV1QuantityMarshallers();
   seedKernelContentStore();
-  hemp = makeStuffAtPath(() => new Material(), '/test/material/hemp-twist');
+  hemp = makeStuffAtPath(() => new Muscle(), '/test/material/hemp-twist');
   hemp.setName('hemp');
   hemp.setToughness(Quantity.of(4, 'MJ/m³'));
   hemp.setDensity(Quantity.of(1480, 'kg/m³'));

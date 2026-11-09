@@ -196,7 +196,7 @@ export default class SurveyController extends CommandController {
     } else {
       const paint = top.paint ? new Paint(top.paint) : null;
       const mat = StuffApi.findByTemplatePath<Material>(top.material) ?? null;
-      const word = paint?.coatWord() ?? mat?.getCoatWord() ?? 'coated';
+      const word = paint?.coatWord() ?? (mat && MixinApi.hasCoating(mat) ? mat.getCoatWord() : 'coated');
       const color = paint ? ` ${paint.colorTag(top.faded ?? 0)}` : '';
       const what = paint ? paint.words(top.faded ?? 0) : mat?.getName() || 'a coat';
       out.push(

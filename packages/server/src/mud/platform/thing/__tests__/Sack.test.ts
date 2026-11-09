@@ -14,6 +14,7 @@ import Sack from "../Sack";
 import Bottle from "../Bottle";
 import GradedReceptacle from "../GradedReceptacle";
 import Material from "../../../lib/material/Material";
+import Food from "../../idea/material/Food";
 import { MixinApi } from "../../../api/mixin";
 import { StuffApi } from "../../../api/stuff";
 import { Quantity } from "../../../lib/quantity";
@@ -29,10 +30,9 @@ beforeEach(() => {
   installV1QuantityMarshallers();
   StuffApi.clearAll();
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName("flour");
     m.setDensity(Quantity.of(570, "kg/m³"));
-    m.setEdibility(true);
     return m;
   }, FLOUR);
 });

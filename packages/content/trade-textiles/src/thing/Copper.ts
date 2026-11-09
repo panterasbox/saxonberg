@@ -41,7 +41,8 @@ export default class Copper extends ThermalMixin(ContainerMixin(BulkableMixin(Go
   private boilingPointK(): number | null {
     if (!this.hasInteriorBulk()) return null;
     if (!(this.getBulkAmount('interior').rawValue() > 0)) return null;
-    const bp = this.getBulkMaterial('interior')?.getBoilingPoint().rawValue() ?? 0;
+    const water = this.getBulkMaterial('interior');
+    const bp = water && MixinApi.hasVolatility(water) ? water.getBoilingPoint().rawValue() : 0;
     return bp > 0 ? bp : null;
   }
 

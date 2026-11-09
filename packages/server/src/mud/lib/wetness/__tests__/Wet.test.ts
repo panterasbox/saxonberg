@@ -19,6 +19,7 @@ import Place from '../../stuff/Place';
 import { Idea } from '../../stuff/Idea';
 import { ThermalMixin } from '../../thermal/Thermal';
 import Material from '../../material/Material';
+import Fiber from '../../../platform/idea/material/Fiber';
 import { MixinApi } from '../../../api/mixin';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
@@ -53,7 +54,7 @@ let matCounter = 0;
 function material(): Material {
   matCounter += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Fiber();
     m.setName(`wet-test-mat-${matCounter}`);
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.6, 'W/(m·K)'));
@@ -67,7 +68,7 @@ let absSeq = 0;
 function capacityThing(capacityPct: number): WetThing {
   absSeq += 1;
   const mat = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Fiber();
     m.setName(`cap-mat-${absSeq}`);
     m.setWaterAbsorptionCapacity(Quantity.of(capacityPct, '%'));
     return m;

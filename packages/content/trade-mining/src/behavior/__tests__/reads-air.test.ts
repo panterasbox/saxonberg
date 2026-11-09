@@ -21,7 +21,7 @@ import { brain as readsAir } from '../reads-air';
 import MineRoom from '../../location/MineRoom';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import Biome from '@saxonberg/server/mud/platform/idea/Biome';
 import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
@@ -102,7 +102,7 @@ describe('the canary', () => {
     // back through. Its absence is what a room with foul air never asks.
     const universe = makeStuffAtPath(() => new Biome(), '/stuff/idea/biome/universe');
     universe.setDefaultAtmosphere('air');
-    const m = makeStuffAtPath(() => new Material(), SLATE);
+    const m = makeStuffAtPath(() => new Stone(), SLATE);
     (m as unknown as { hardness: Quantity<'MPa'> }).hardness = Quantity.of(90, 'MPa');
     zone = makeStuffAtPath(() => new CartesianZone(), ZONE);
     zone.setCellSize(10);

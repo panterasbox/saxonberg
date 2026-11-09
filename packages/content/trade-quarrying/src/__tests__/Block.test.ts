@@ -12,7 +12,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import Block, { BLOCK_PIECES, PIECE_MASS_KG } from '../thing/Block';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import Location from '@saxonberg/server/mud/lib/location/Location';
@@ -35,15 +35,15 @@ const GRANITE = '/stuff/idea/material/rock/granite';
 let actor: Stuff;
 let room: Location;
 
-let graniteRow: Material | null = null;
+let graniteRow: Stone | null = null;
 
-function granite(): Material {
+function granite(): Stone {
   // ⚠ ONE row per test: a second `makeStuffAtPath` at the same path leaves
   // two instances in the index and every later `findByTemplatePath` throws
   // *"expected singleton, found 2"* — a failure with nothing to do with what
   // the test is about.
   if (graniteRow !== null) return graniteRow;
-  const m = makeStuffAtPath(() => new Material(), GRANITE) as unknown as Material & {
+  const m = makeStuffAtPath(() => new Stone(), GRANITE) as unknown as Stone & {
     hardness: Quantity<'MPa'>;
   };
   m.setName('granite');
@@ -159,9 +159,9 @@ describe('a block of stone', () => {
     const hard = block();
     const soft = block();
     const chalky = makeStuffAtPath(
-      () => new Material(),
+      () => new Stone(),
       '/stuff/idea/material/rock/_test-soft',
-    ) as unknown as Material & { hardness: Quantity<'MPa'> };
+    ) as unknown as Stone & { hardness: Quantity<'MPa'> };
     chalky.setName('chalk');
     chalky.hardness = Quantity.of(20, 'MPa');
     soft.setMaterial(chalky);

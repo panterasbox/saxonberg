@@ -8,7 +8,7 @@
 # ⭐ `heatOfCombustion` and `autoignitionTemperature` are honest: the
 # works' oven held with the bellows (≈ 482 K) stays below 505 K, so a
 # charge of sulfur cures rubber and does not catch.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/NonMetal
 data:
   smells: [{ aroma: /base-library/aromas/sulfur, strength: 300 }]
   burning: [{ aroma: /base-library/aromas/sulfur, strength: 20000 }]
@@ -28,11 +28,6 @@ data:
   hardness: 20
   toughness: 1
   electricalConductivity: 1.0e-15
-  waterAbsorptionCapacity: 0
-  edibility: false
-  nutrients: []
-  toxicity: []
   # `sulfur` is the cure's agent tag; `fuel` is deliberately absent — it
   # burns, but no hearth is fired with it.
   tags: ["sulfur", "mineral", "element", "crystalline"]
-  composition: []

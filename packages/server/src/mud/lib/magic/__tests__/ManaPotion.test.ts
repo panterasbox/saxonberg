@@ -15,7 +15,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WorldClockApi } from '../../../api/worldclock';
 import '../../../platform/idea/WorldClockRegistry';
 import Species from '../../../platform/idea/species/Species';
-import { ConsumableMaterial } from '../../../platform/idea/material/ConsumableMaterial';
+import Drink from '../../../platform/idea/material/Drink';
 import { Character } from '../../character/Character';
 import { Quantity } from '../../quantity';
 import { Postures } from '../../slot/Postured';
@@ -47,12 +47,11 @@ function makeCaster(caster = true): TestCharacter {
 }
 
 /** The mana draught's chemistry: water + sugar + carb, no spell. */
-function manaDraught(): ConsumableMaterial {
-  const m = makeStuff(() => new ConsumableMaterial());
+function manaDraught(): Drink {
+  const m = makeStuff(() => new Drink());
   stampTemplatePathForTest(m, `/obj/test/mana-draught-${seq++}`);
   m.setName('mana draught');
   m.setNutrients(['water', 'sugar', 'carb']);
-  m.setEdibility(true);
   return m;
 }
 

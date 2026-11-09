@@ -16,6 +16,7 @@ import SapStandard from '@saxonberg/content-trade-forestry/src/thing/SapStandard
 import Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import type { TapSpec } from '@saxonberg/server/mud/platform/idea/species/Species';
 import Material from '@saxonberg/server/mud/lib/material/Material';
+import Polymer from '@saxonberg/server/mud/platform/idea/material/Polymer';
 import Mould from '@saxonberg/server/mud/platform/thing/Mould';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
@@ -77,11 +78,10 @@ function stem(): SapStandard {
 function latex(): Material {
   const d = row('trade-rubber/../base-library/content/stuff/idea/material/organic/latex.yaml');
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Polymer();
     m.setName('latex');
     m.setDensity(Quantity.of(Number(d.density), 'kg/m³'));
-    m.setNutrients(['water']);
-    m.setNutrientAmounts(d.nutrientAmounts as Record<string, number>);
+    m.setComposition(d.composition as { materialPath: string; fraction: number }[]);
     m.setDrainSetting(d.drainSetting as never);
     return m;
   }, LATEX);

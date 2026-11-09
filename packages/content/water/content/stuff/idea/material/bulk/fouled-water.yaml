@@ -23,7 +23,7 @@
 # contamination.
 #
 # Everything else is water's own row: it is the same substance, dirtier.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Water
 data:
   name: fouled-water
   # ⭐ Nothing about fouled water announces itself (watershed.md § W8):
@@ -43,7 +43,6 @@ data:
   latentHeatOfFusion: 334000
   boilingPoint: 373
   latentHeatOfVaporization: 2260000
-  edibility: true
   nutrients: [water]
   # The shipped toxin route, keyed on the `dysentery` Condition. It is
   # ORGANIC contamination — which is why boiling answers it, and why the
@@ -83,5 +82,3 @@ data:
   # call rather than an accident, and it is currently LATENT: nothing in
   # shipped content fills a vessel from a fouled reach yet.
   tags: [liquid, water, beverage, drinkable]
-  composition: []
-  biologicalSource: null

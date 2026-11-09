@@ -10,7 +10,7 @@
 # Warm blood can't be hoarded; cold blood buys the autarkist a hunt.
 #
 # ⚠ Not edible — you do not drink a blood unit; `transfuse` reads it.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Blood
 data:
   smells: [{ aroma: /base-library/aromas/blood, strength: 300 }]
   name: blood
@@ -18,12 +18,8 @@ data:
   density: 1060
   specificHeat: 3600
   thermalConductivity: 0.5
-  hardness: 1
-  toughness: 1
   # Moist tissue conducts.
   electricalConductivity: 0.7
-  waterAbsorptionCapacity: 0
-  edibility: false
   # Spoilage (docs/subsystems/spoilage.md): μ_max · f_T · f_aw. Tuned so a
   # unit reads spoiled after ~3 game-days at 293 K and ~4 game-weeks in a
   # cold larder — verified in Freshness.blood.test.ts against the shipped
@@ -35,9 +31,4 @@ data:
   # not the fridge) is stamped ruined and `transfuse` refuses it. Blood banks
   # at 1–6 °C, which is why it belongs in the FRIDGE, not the freezer.
   ruinedByFreezing: true
-  nutrients: []
-  toxicity: []
   tags: ["tissue", "blood", "liquid", "organic"]
-  composition: []
-  chemistry: null
-  biologicalSource: null

@@ -4,7 +4,7 @@
 # draws the water out of the clay against its walls until a skin of firm
 # clay stands there, and it does it more slowly each time until it has been
 # let dry out.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Plaster
 data:
   name: plaster
   keywords: [plaster, "cast plaster"]
@@ -17,10 +17,6 @@ data:
   waterAbsorptionCapacity: 40
   hardness: 8
   toughness: 1
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["mineral", "sulphate", "plaster"]
   composition:
     - { materialPath: /stuff/idea/material/rock/gypsum, fraction: 1.0 }
-  biologicalSource: null

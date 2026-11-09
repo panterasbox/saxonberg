@@ -1,7 +1,7 @@
 # Silkworm eggs — "seed", the growers called them. A card or a twist of
 # paper of them weighs next to nothing. ⚠ Not perishable: an egg is a
 # dormant animal, not food going off, and it keeps through a winter.
-class: /platform/idea/material/Material
+class: /platform/idea/material/HideHorn
 data:
   name: silkworm egg
   keywords: [eggs, seed, graine]
@@ -9,11 +9,7 @@ data:
   density: 1100
   thermalConductivity: 0.3
   specificHeat: 3000
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["organic", "animal", "egg", "once-living"]
-  composition: []
   biologicalSource:
     speciesPath: /stuff/idea/species/animalia/arthropoda/insecta/lepidoptera/bombycidae/bombyx/mori
     tissueType: egg

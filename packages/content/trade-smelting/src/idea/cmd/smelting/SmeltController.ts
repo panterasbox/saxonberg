@@ -642,7 +642,7 @@ function lotsOf(items: Stuff[]): ChargeLot[] {
     const material = lump.getMaterial?.() ?? null;
     const metals: CompositionEntry[] = [];
     if (material) {
-      const composition = material.getComposition();
+      const composition = MixinApi.hasMixture(material) ? material.getComposition() : [];
       if (composition.length > 0) {
         for (const entry of composition) {
           const metal = StuffApi.findByTemplatePath<Material>(entry.materialPath);
@@ -896,7 +896,12 @@ async function hearthLump(
   madeFrom: readonly Stuff[],
 ): Promise<void> {
   // Shaped BEFORE it moves, so the capture the move takes is of the lump.
-  await pour(furnace, metal.getCastTemplate(), kg, madeFrom, (lump) => {
+  const castTemplate = MixinApi.hasFusion(metal)
+    ? metal.getCastTemplate()
+    : metal.hasTag('metal')
+      ? '/stuff/thing/metal-casting'
+      : '/stuff/thing/Casting';
+  await pour(furnace, castTemplate, kg, madeFrom, (lump) => {
     const t = lump as unknown as {
       getMaterial?(): Material | null;
       setMaterial?(m: Material): void;
@@ -933,8 +938,7 @@ async function pour(
 
 /** A material's melting point in K, off the material's own row. */
 function meltingPointKOf(metal: Material): number {
-  const point = metal.getMeltingPoint?.();
-  const value = typeof point === 'number' ? point : point?.rawValue() ?? 0;
+  const value = MixinApi.hasFusion(metal) ? metal.getMeltingPoint().rawValue() : 0;
   return value > 0 ? value : T_FE;
 }
 
