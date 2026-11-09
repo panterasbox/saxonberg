@@ -121,3 +121,30 @@ her answers to the KEYWORD `hesper` — the scorer's name tier (100) over its ke
 picks the way, and `go`'s ways-only scope is what makes the line unreachable to `go`. Whether the
 name should simply be another keyword is the scorer question in
 [one-resolution-rule](./one-resolution-rule-slate.md) § 4.
+
+## 6. Reuse ledger for the plan (requirements, 2026-11-09)
+
+Every concept the build needs, what already does it, and whether the build reuses or generalizes it.
+Census on master at b06d790b8: 8 authored `door:` ways (all `platform/thing/Door`), 3 `Window` rows (2 with
+`attachedHosts:`), keyed exits mostly code-built (`HoldingWarren`, `BuildingWarren`, `DormWarren`,
+`PlatWarren`, `Ship`), 3 `keyed-door` rows, 5 `ashore` rows, 1 `kept-door` row, 1 `DoorBearingMixin` row.
+
+| concept | already does it | this build |
+|---|---|---|
+| the edge object | `lib/boundary/Boundary` (two-anchor) · `platform/thing/Door` · `platform/thing/Window` | **generalize**: one `Boundary` per edge, Door and Window become its content (rows), the anchor pair retires |
+| open / shut | `SealableMixin` (on Door, Window) | **reuse** on the boundary |
+| lock + keyway | `LockableMixin` — ⚠ rewritten by build-2 (D9: `lock(by)`/`unlock(by)` → `LockAnswer`) | **reuse build-2's contract**; the five keyed exit classes' private locks move to their boundary |
+| channels (movement, light, sight, sound, smell) | Door/Window conduits; `Exit` media | **reuse**, held by the boundary; water added as a channel only where a reader exists (plan decides) |
+| the side | `lib/boundary/Exit` (`Visible` + `Perceptible`, an MQL candidate since !511) | **reuse**; it gains a boundary ref and loses `door` / `attachedTo` |
+| target resolution | `MqlApi.effectiveTarget` (`getDoor()` rung) | **generalize** the rung to "else its boundary" — ⚠ build-2 W2 touches the resolver |
+| keyed ways made by code | `KeyedDoorExit` · `FrontDoorExit` · `DormDoor` · `LotGateExit` · `BerthExit`/`AshoreExit` | **fold**: the warrens and `Ship` hand a keyed boundary to both sides |
+| a vessel's way out | `DoorBearingMixin` (coach) | **fold** into a side |
+| attendant veto | `KeptDoor` | **reuse** as a side behavior |
+| deferred far side | `DeferredDestinationExit` | **reuse** unchanged |
+| zone invariant | `Location.addExit` (cardinal-only intra-zone), `lint:locations` (coords + named doors) | **generalize** to the edge: adjacency, opposite sides, opening ≤ face; threshold across zones |
+| crossing a zone | `crossesZone` on `WhereaboutsExit`, the location graph | **reuse** (derived) |
+| a way's state on the wire | `StuffExitRecord.door {open}` · `WhereaboutsExit.door {name, open}` | **generalize** to one state (open · shut · locked · window · threshold) every screen reads |
+| light through a way | the light walk via `BoundaryAnchor` fixtures | **re-point** to the side's boundary, one hop |
+| window to the sky | enclosure glass (`construction.md` Exposure, Beer–Lambert) | **reuse** — not a boundary |
+
+Genuinely new: the edge-level zone invariants as a gate rule, and the one way-state shape on the wire.
