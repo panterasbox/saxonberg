@@ -30,7 +30,11 @@ import {
   CompetenceBand,
   type CompetenceBandName,
 } from '../../../lib/advancement/CompetenceBand';
-import { LIGHT_BANDS } from '../../../lib/perception/Light';
+import {
+  LIGHT_BANDS,
+  LIGHT_BANDS_TOO_DARK_TO_DESCRIBE,
+  type LightBand,
+} from '../../../lib/perception/Light';
 // Type-only — the vision singleton's class is resolved lazily off its
 // registered clone (the RecognitionLogic `canSeeGate` idiom); a *static*
 // value import of a specific modality would drag the whole modality
@@ -39,7 +43,7 @@ import type { VisionModality } from '../modalities/VisionModality';
 import type { SearchDepth } from '../../../api/perception';
 import type { ReachDepth } from '../../../api/command';
 import type {
-  HorizonView, HorizonSighting, HorizonTraffic, VisibleContents,
+  HorizonView, HorizonSighting, HorizonTraffic, Observation, VisibleContents,
 } from '../../../api/perception';
 import { WorldClockApi } from '../../../api/worldclock';
 import type { SpatialZone } from '../../../lib/zone/SpatialZone';
@@ -479,54 +483,13 @@ export class PerceptionLogic extends ApiLogic {
   /** See {@link PerceptionApi.visibleContentsOf}. */
   @CallSecurity(PerceptionApiCallers)
   public visibleContentsOf(viewer: Stuff, target: Stuff): VisibleContents {
-    const out: VisibleContents = { worn: [], held: [], carried: [], shut: false };
-    if (!MixinApi.isContainer(target)) return out;
-    if (MixinApi.isSealable(target) && !target.isOpen()) return { ...out, shut: true };
-    // ⭐ Concealed things stay concealed — FROM THIS VIEWER: one who has
-    // found the hidden dagger, or whose eye is sharp enough, sees it (the
-    // `perceives` rule, and so MQL's `:visible`). A bare `isConcealed()`
-    // hid a discovered thing again the moment it sat in a listing — and
-    // the room listing reads through here since `look` became one query.
-    const seen = (s: Stuff): boolean =>
-      !MixinApi.isConcealable(s) || !s.isConcealed() || perceivesImpl(viewer, s);
-    const own = viewer.stuffId === target.stuffId;
-    const person = own || this.isAnotherPerson(viewer, target);
-    const slotted = new Set<string>();
-    if (person && MixinApi.isSlotted(target)) {
-      for (const [slot, occupants] of target.getAllOccupants()) {
-        const spec = target.getSlotSpec(slot);
-        const accepts = spec?.accepts ?? '';
-        const kind = accepts.includes('Wieldable')
-          ? 'held'
-          : accepts.includes('Wearable') || spec?.userFacingDetail
-            ? 'worn'
-            : 'inside';
-        for (const o of occupants) {
-          // ⭐ Once, however many slots it covers (found by the underwater
-          // browser walk: a diving dress claims torso and legs and was
-          // listed as worn twice).
-          if (slotted.has(o.stuffId)) continue;
-          slotted.add(o.stuffId);
-          if (!seen(o)) continue;
-          if (kind === 'held') out.held.push(o);
-          else if (kind === 'worn') out.worn.push(o);
-          else if (own) out.carried.push(o);
-        }
-      }
-    }
-    const loose = target.getContents().filter((c) => !slotted.has(c.stuffId) && seen(c));
-    // A person's pockets are theirs to know; a container's contents are
-    // in view of anybody who can see into it.
-    if (own || !person) out.carried.push(...loose);
-    return out;
+    return visibleContentsImpl(viewer, target);
   }
 
   /** See {@link PerceptionApi.isAnotherPerson}. */
   @CallSecurity(PerceptionApiCallers)
   public isAnotherPerson(viewer: Stuff, target: Stuff): boolean {
-    // A PERSON is an agent with slots; a rack is slotted and wears
-    // nothing, so it lists like any container.
-    return viewer.stuffId !== target.stuffId && target.isAgent() && MixinApi.isSlotted(target);
+    return isAnotherPersonImpl(viewer, target);
   }
 
   /** See {@link PerceptionApi.glance}. */
@@ -539,6 +502,15 @@ export class PerceptionLogic extends ApiLogic {
     return `${point}, some ${Math.round(rangeNm)} miles off`;
   }
 
+
+  /** See {@link PerceptionApi.observe}. */
+  @CallSecurity(PerceptionApiCallers)
+  public async observe(actor: Stuff, target: Stuff): Promise<Observation> {
+    await this.preloadForSenseGate(actor);
+    const place = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+    if (place !== null && target === place) return observePlace(actor, place);
+    return observeThing(actor, target);
+  }
 
   /** See {@link PerceptionApi.resolveSearch}. */
   @CallSecurity(PerceptionApiCallers)
@@ -1103,6 +1075,168 @@ function resolveSearchImpl(
     }
   }
   return found;
+}
+
+/** See {@link PerceptionApi.visibleContentsOf}. */
+function visibleContentsImpl(viewer: Stuff, target: Stuff): VisibleContents {
+  const out: VisibleContents = { worn: [], held: [], carried: [], shut: false };
+  if (!MixinApi.isContainer(target)) return out;
+  if (MixinApi.isSealable(target) && !target.isOpen()) return { ...out, shut: true };
+  // ⭐ Concealed things stay concealed — FROM THIS VIEWER: one who has
+  // found the hidden dagger, or whose eye is sharp enough, sees it (the
+  // `perceives` rule, and so MQL's `:visible`). A bare `isConcealed()`
+  // hid a discovered thing again the moment it sat in a listing — and
+  // the room listing reads through here since `look` became one query.
+  const seen = (s: Stuff): boolean =>
+    !MixinApi.isConcealable(s) || !s.isConcealed() || perceivesImpl(viewer, s);
+  const own = viewer.stuffId === target.stuffId;
+  const person = own || isAnotherPersonImpl(viewer, target);
+  const slotted = new Set<string>();
+  if (person && MixinApi.isSlotted(target)) {
+    for (const [slot, occupants] of target.getAllOccupants()) {
+      const spec = target.getSlotSpec(slot);
+      const accepts = spec?.accepts ?? '';
+      const kind = accepts.includes('Wieldable')
+        ? 'held'
+        : accepts.includes('Wearable') || spec?.userFacingDetail
+          ? 'worn'
+          : 'inside';
+      for (const o of occupants) {
+        // ⭐ Once, however many slots it covers (found by the underwater
+        // browser walk: a diving dress claims torso and legs and was
+        // listed as worn twice).
+        if (slotted.has(o.stuffId)) continue;
+        slotted.add(o.stuffId);
+        if (!seen(o)) continue;
+        if (kind === 'held') out.held.push(o);
+        else if (kind === 'worn') out.worn.push(o);
+        else if (own) out.carried.push(o);
+      }
+    }
+  }
+  const loose = target.getContents().filter((c) => !slotted.has(c.stuffId) && seen(c));
+  // A person's pockets are theirs to know; a container's contents are
+  // in view of anybody who can see into it.
+  if (own || !person) out.carried.push(...loose);
+  return out;
+}
+
+/** See {@link PerceptionApi.isAnotherPerson}. */
+function isAnotherPersonImpl(viewer: Stuff, target: Stuff): boolean {
+  // A PERSON is an agent with slots; a rack is slotted and wears
+  // nothing, so it lists like any container.
+  return viewer.stuffId !== target.stuffId && target.isAgent() && MixinApi.isSlotted(target);
+}
+
+/* ───────────────────────── the look (controller-liquidity W8) ───────────────────────── */
+
+/**
+ * The room's listing as the viewer sees it — its contents, perceived
+ * (honest fog: a concealed thing the viewer hasn't discovered is absent
+ * from their world), never the room's structure (an adornment routes
+ * through its host), never the viewer. The same query `sense` reads.
+ */
+const ROOM_LISTING = 'here:i:visible:[not mixin.AdornmentMixin] - me';
+
+/** An observation that took nothing in. */
+function emptyObservation(): Observation {
+  return {
+    band: null, dark: false, indistinct: false,
+    seen: [], exits: [], holds: null, found: [], hints: [],
+  };
+}
+
+/**
+ * The light band at `place` as `viewer` perceives it (envelope D10 — a
+ * night-sighted species and a human in the same room get different
+ * answers), or `null` when the viewer cannot run vision queries or the
+ * vision singleton is not loaded. `null` degrades to describing the room:
+ * a perception gap must never take `look` down.
+ */
+function perceivedBandImpl(viewer: Stuff, place: Stuff): LightBand | null {
+  if (!MixinApi.isSensor(viewer) || !MixinApi.isPerception(viewer)) return null;
+  if (!MixinApi.isContainer(place)) return null;
+  try {
+    const vision = resolveByName('vision') as VisionModality;
+    return vision.perceivedBand(
+      viewer as Stuff & Sensor & Perception,
+      place as unknown as Stuff & Container,
+    );
+  } catch {
+    return null;
+  }
+}
+
+/** See {@link PerceptionApi.observe} — a place observed from inside. */
+async function observePlace(
+  viewer: Stuff,
+  place: Stuff & Container,
+): Promise<Observation> {
+  const band = perceivedBandImpl(viewer, place);
+  const dark = band !== null && LIGHT_BANDS_TOO_DARK_TO_DESCRIBE.includes(band);
+  // Lazily: the MQL pipeline's predicates read perception, so a static
+  // import here would close a module cycle through this singleton.
+  const { MqlApi } = await import('../../../api/mql');
+  const seen = MqlApi.resolveMany(ROOM_LISTING, {
+    commandGiver: viewer as never,
+    scope: 'here',
+  }).stuff;
+  // ⭐ Nothing to perceive teaches nothing — the void on a fresh login
+  // writes no map claim and tracks nobody.
+  const indistinct =
+    !MixinApi.isVisible(place) &&
+    !MixinApi.isExitable(place) &&
+    !MixinApi.isNamed(place) &&
+    seen.length === 0;
+  if (indistinct) return { ...emptyObservation(), band, indistinct, seen };
+  // ⭐⭐ The body runs the perception gate, tells whatever it keeps (a map,
+  // a memory, nothing) and hands back the exits this viewer may know about
+  // — the same ones the verb renders, because computing them twice is how
+  // the transcript and the map could ever disagree. In the dark: the ways
+  // out you can feel along a wall for, never the people you cannot see.
+  const exits = MixinApi.isPerceiver(viewer)
+    ? viewer.learnSurroundings(place, dark ? [] : seen)
+    : [];
+  // Passive hints (honest fog): the full contents + every exit (hidden
+  // ones included), narrowed to the close-but-unperceived. Nothing is
+  // nearly seen in a place too dark to describe.
+  let hints: Stuff[] = [];
+  if (!dark) {
+    const candidates: Stuff[] = [...place.getContents()];
+    if (MixinApi.isExitable(place)) {
+      for (const exit of place.getExits().values()) {
+        candidates.push(exit as unknown as Stuff);
+      }
+    }
+    hints = hintsForImpl(viewer, candidates);
+  }
+  return { ...emptyObservation(), band, dark, seen, exits, hints };
+}
+
+/** See {@link PerceptionApi.observe} — a thing looked at. */
+async function observeThing(viewer: Stuff, target: Stuff): Promise<Observation> {
+  // ⭐ (cleanliness D21) What has been happening to it since it was last
+  // looked at — the sun on a line, the fume in a shut room — settles
+  // before it is described.
+  if (MixinApi.isSoilable(target)) await target.reconcileAiring();
+  // A thing that cannot be seen teaches nothing.
+  if (!MixinApi.isVisible(target)) return emptyObservation();
+  // Repeat-perception: a deliberate look at a being tracks it (the same
+  // coalescing stranger-record write the room listing makes).
+  if (MixinApi.isOrganism(target) && MixinApi.isBeliefStore(viewer)) {
+    viewer.learnIdentityOf(target, null);
+  }
+  if (!MixinApi.isContainer(target)) return emptyObservation();
+  // What it visibly holds is read FIRST: the close look below may turn
+  // something up, and that is told as a finding, not folded into the list.
+  const holds = visibleContentsImpl(viewer, target);
+  const contents = [...target.getContents()];
+  if (contents.length === 0) return { ...emptyObservation(), holds };
+  // The close look: the cheap `glance` depth of the active search, which
+  // records each discovery. Then what is still nearly seen.
+  const found = resolveSearchImpl(viewer, contents, 'glance');
+  const hints = hintsForImpl(viewer, contents);
+  return { ...emptyObservation(), holds, found, hints };
 }
 
 /** See {@link PerceptionApi.hintsFor}. */

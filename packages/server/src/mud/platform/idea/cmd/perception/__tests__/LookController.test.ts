@@ -6,7 +6,7 @@
  */
 
 import "../../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LookController from '../LookController';
 import { MqlApi, type MqlOneResult } from '../../../../../api/mql';
 import {
@@ -21,7 +21,9 @@ import {
   type ModelData,
 } from '../../../../../api/command';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
-import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { makeStuff, withRootContext } from '../../../../../lib/security/__tests__/test-setup';
+import { PerceptionApi } from '../../../../../api/perception';
+import { MessageApi } from '../../../../../api/message';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 
 function stubCommand(verb: string): CommandDefinition {
@@ -128,5 +130,52 @@ describe('LookController — detail rendering', () => {
         reason: 'no-detail-here',
       }),
     );
+  });
+});
+
+describe('LookController — look observes once (controller-liquidity W8)', () => {
+  let world: MqlWorld;
+
+  beforeEach(() => {
+    world = makeWorld();
+    vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
+      const b: Record<string, unknown> = {};
+      b.topic = () => b;
+      b.meta = () => b;
+      b.toSelf = () => b;
+      b.toPeers = () => b;
+      b.send = () => {};
+      return b as never;
+    });
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  const run = (target: MqlOneResult, text: string): Promise<void> =>
+    withRootContext(null, 'look.test', async () => {
+      await makeStuff(() => new LookController()).execute(
+        makeModel(target),
+        makeContext(world, text),
+      );
+    });
+
+  it('⭐ bare `look` makes ONE perception moment, of the place', async () => {
+    const observe = vi.spyOn(PerceptionApi, 'observe');
+    await run({ stuff: world.location as unknown as Stuff, raw: '' }, 'look');
+    expect(observe).toHaveBeenCalledTimes(1);
+    expect(observe).toHaveBeenCalledWith(world.giver, world.location);
+  });
+
+  it('⭐ `look <thing>` makes ONE perception moment, of the thing', async () => {
+    const observe = vi.spyOn(PerceptionApi, 'observe');
+    await run({ stuff: world.apple, raw: 'apple' }, 'look apple');
+    expect(observe).toHaveBeenCalledTimes(1);
+    expect(observe).toHaveBeenCalledWith(world.giver, world.apple);
+  });
+
+  it('a detail and the ledger observe nothing (they write nothing)', async () => {
+    const observe = vi.spyOn(PerceptionApi, 'observe');
+    await run(buildResult(world, 'bookcase', 'here'), 'look bookcase');
+    await run({ stuff: world.apple, raw: 'apple', prep: 'in' }, 'look in apple');
+    expect(observe).not.toHaveBeenCalled();
   });
 });

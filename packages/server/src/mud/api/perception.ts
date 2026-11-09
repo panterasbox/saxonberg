@@ -33,6 +33,8 @@ import type { ConcealmentLevel } from '../lib/concealment/ConcealmentLevel';
 import type { Container } from '../lib/spatial/Container';
 import type { ReachDepth } from './command';
 import type { Sensor } from '../lib/message/Sensor';
+import type { LightBand } from '../lib/perception/Light';
+import type Exit from '../lib/boundary/Exit';
 import { Modality } from '../lib/perception/Modality';
 import type { Percept } from '../lib/perception/Modality';
 import { StuffApi } from './stuff';
@@ -91,6 +93,35 @@ export interface HorizonView {
   traffic: HorizonTraffic[];
   /** `true` at sea (ranges computed), `false` ashore (zones named). */
   atSea: boolean;
+}
+
+/**
+ * ⭐ What one deliberate look took in (controller-liquidity W8) — the
+ * answer {@link PerceptionApi.observe} hands back after it has written
+ * everything the look teaches. The controller words this; it never
+ * observes again.
+ *
+ * A PLACE observed from inside fills `band` · `dark` · `indistinct` ·
+ * `seen` · `exits` · `hints`; a THING fills `holds` · `found` · `hints`.
+ * The fields the other case does not use are empty, never absent.
+ */
+export interface Observation {
+  /** The light at the place as this viewer perceives it; `null` for a thing, or when vision cannot be read. */
+  band: LightBand | null;
+  /** The place is too dark to describe — its prose and its people are withheld. */
+  dark: boolean;
+  /** The place offers nothing to perceive at all (no name, no prose, no ways out, nothing seen); nothing was learned. */
+  indistinct: boolean;
+  /** What the viewer sees here — the place's listing, honest fog applied. Empty for a thing. */
+  seen: Stuff[];
+  /** The ways out this viewer may know about — the same list the map was told. */
+  exits: readonly Exit[];
+  /** What the viewer may see a thing holding, read BEFORE the close look; `null` for a non-container. */
+  holds: VisibleContents | null;
+  /** What the close look turned up — newly discovered, already recorded. */
+  found: Stuff[];
+  /** Concealed things the viewer nearly perceives — their tells may be told, never their names. */
+  hints: Stuff[];
 }
 
 const LOGIC_PATH = '/platform/idea/api/perception';
@@ -240,6 +271,32 @@ export class PerceptionApi {
    */
   public static async preloadForSenseGate(actor: Stuff): Promise<void> {
     return logic().preloadForSenseGate(actor);
+  }
+
+  /**
+   * ⭐⭐ **The perception moment of a deliberate look** (controller-
+   * liquidity W8) — everything a `look` writes to the world, in one call,
+   * so a player rewriting the verb copies none of it:
+   *
+   * 1. warms the viewer's senses ({@link preloadForSenseGate}) — the
+   *    boot link that keeps a fresh world from describing every room at
+   *    midnight;
+   * 2. a THING settles what has been happening to it since it was last
+   *    looked at (`Soilable.reconcileAiring` — cleanliness D21);
+   * 3. a PLACE (the viewer's own container) reads its light, resolves
+   *    what the viewer sees there, and — unless nothing at all is
+   *    perceivable — tells the body (`Perceiver.learnSurroundings`, the
+   *    `seen` channel; in the dark the ways out only, never the people);
+   * 4. a PERSON looked at is tracked (`BeliefStore.learnIdentityOf`);
+   * 5. a CONTAINER with contents gets the close look — the `glance`
+   *    {@link resolveSearch}, which records each discovery — after what
+   *    it visibly holds was read.
+   *
+   * ⚠ A glance records DISCOVERY, never a `searched` map claim: only a
+   * deliberate going-over makes absences evidence (location-graph § 4).
+   */
+  public static observe(actor: Stuff, target: Stuff): Promise<Observation> {
+    return logic().observe(actor, target);
   }
 
   /**

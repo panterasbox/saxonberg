@@ -342,6 +342,28 @@ would be a behavior change no test proves safe. So `:loose` (the
 predicate, typeable) reads the holder's FULL list, and the listing keeps
 the guard by calling the method on what it can see.
 
+### ⭐⭐ `observe` — a look's world writes are ONE moment (controller-liquidity W8)
+
+`PerceptionApi.observe(actor, target)` is everything a deliberate `look`
+writes, called once, so a player rewriting the verb copies none of it:
+the warm (`preloadForSenseGate` — the boot link below), a thing's
+`reconcileAiring` (cleanliness D21), a place's light band, listing and
+`Perceiver.learnSurroundings` (the `seen` channel; in the dark the ways
+out only, and nothing at all for a place with nothing to perceive), a
+person's `learnIdentityOf`, and a container's close look — what it holds
+read FIRST, then the `glance` `resolveSearch` that records each
+discovery, then the hints. It returns an `Observation` the controller
+only words. ⛔ A glance records DISCOVERY, never a `searched` claim —
+only `search`'s resolve writes `searched`, because only a deliberate
+going-over makes absences evidence ([location-graph.md](./location-graph.md) § 4).
+
+⚠ `look`'s per-class self-reports (the floor puddle, the help-wanted
+notices, a placing host's members, a good's owner, a screen) stay in the
+controller: the `markupAugmenters` seam is synchronous, yields only
+`state` segments folded into the long before `look`'s sections, and also
+feeds the card projection and every sense verb — moving them would
+change words and order. → `one-resolution-rule-slate` § 2.
+
 ### `resolveAmbush` — a hiding read is a perception fact
 
 `PerceptionApi.resolveAmbush(attacker, defender)` answers "does this
