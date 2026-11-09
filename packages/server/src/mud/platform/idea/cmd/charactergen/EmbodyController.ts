@@ -710,12 +710,7 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
     // has to be defended against being farmed.
     overlay.bornAt = WorldClockApi.getNow().rawValue();
 
-    // 2. Register ownership — THE atomicity boundary. Nothing before
-    //    this persisted into the user's roster.
-    user.playerIds.push(playerId);
-    await user.save();
-
-    // 3. Clone the runtime Avatar from the SHARED seed, overlaying the
+    // 2. Clone the runtime Avatar from the SHARED seed, overlaying the
     //    picks and minting the identity path (onCreate stamps +
     //    installs the baseline implant + captures the first snapshot).
     const avatar = await StuffApi.clone<Avatar>(
@@ -728,6 +723,24 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
       // namespace, asserted at the mint by `identityNamespace`.
       { dataOverlay: overlay, asIdentityPath: path },
     );
+
+    // 3. Register ownership — THE atomicity boundary, and it comes AFTER
+    //    the body exists (controller-liquidity D10, C35): a clone that
+    //    throws leaves the roster untouched, where the old order left a
+    //    character listed in the select screen with no body to load. A
+    //    roster write that fails takes the fresh body back down.
+    user.playerIds.push(playerId);
+    try {
+      await user.save();
+    } catch (err) {
+      user.playerIds = user.playerIds.filter((id) => id !== playerId);
+      try {
+        StuffApi.destruct(avatar);
+      } catch {
+        /* the roster error is the one worth reporting */
+      }
+      throw err;
+    }
 
     // 4. Sex is species-constrained, so set it on the live avatar after
     //    species is in place (avoids hydration-order coupling).

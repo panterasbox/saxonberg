@@ -48,6 +48,17 @@ export interface CourseRequest {
   direction?: 'upstream' | 'downstream';
   /** On a line: through snag water, no faster than the water can be read. */
   slow?: boolean;
+  /**
+   * Who gives the helm order — the master, named on any record the
+   * departure writes (an abandonment). Absent for the water's own stops.
+   */
+  by?: Stuff;
+  /**
+   * ⭐ Sail with her own people still in the water, on purpose (river D30):
+   * the craft refuses a course under way without it, and writes who was
+   * left when it is given (controller-liquidity D10, C52).
+   */
+  leavingThem?: boolean;
 }
 
 /** Why a course has come to an end, and where she lies. */

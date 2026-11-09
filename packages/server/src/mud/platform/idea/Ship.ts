@@ -35,6 +35,8 @@ import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { VoyagingMixin } from '../../lib/expanse/Voyaging';
 import { MovingMixin } from '../../lib/expanse/Moving';
 import { StuffApi } from '../../api/stuff';
+import { AccountabilityApi } from '../../api/accountability';
+import { SpeciesApi } from '../../api/species';
 import { MixinApi } from '../../api/mixin';
 import { WorldClockApi } from '../../api/worldclock';
 import { DocumentApi } from '../../api/document';
@@ -428,8 +430,12 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     return still;
   }
 
-  /** The master sails without them, on purpose: they are no longer hers to wait for. */
-  public leaveThem(): void {
+  /**
+   * The master sails without them, on purpose: they are no longer hers to
+   * wait for. ⚠ `protected` — only her own departure does it (`steer` with
+   * `leavingThem`), and only after the record is written (D10, C52).
+   */
+  protected leaveThem(): void {
     this.overboard = [];
   }
 
@@ -2291,14 +2297,43 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     const toward = req.toward ?? null;
     const refused = await this.courseRefusal(toward ? await this.landingFor(toward) : null, { admit: this.getLine() !== null });
     if (refused !== null) return { refused };
+    // ⭐⭐ Her own people in the water (river D30) — asked LAST of the
+    // refusals and written only on departure (controller-liquidity D10,
+    // C52): the abandonment record and the cleared list used to be written
+    // by the verb before the heading had even resolved. A stop the water
+    // makes (no way on) is not a departure.
+    const left = req.speedKn > 0 ? await this.peopleInTheWater() : [];
+    if (left.length > 0 && req.leavingThem !== true) {
+      const names = left.map((x) => x.getPresentation()).join(', ');
+      return {
+        refused: `You have people in the water: ${names}. Get them aboard first — or sail \`--leaving-them\`, and own it.`,
+      };
+    }
     this.weighedKg = await this.cargoKg();
     const started = await super.steer(req);
+    if (!('refused' in started) && left.length > 0) this.recordLeaving(left, req.by ?? null);
     // ⭐ Under way from a berth: her lines come in and the way aboard goes.
     if (!('refused' in started) && this.moored) {
       await this.castOff();
       await this.creditHands('easy'); // casting off is seamanship
     }
     return started;
+  }
+
+  /** The abandonment record, one row per soul left in the water — her master named. */
+  private recordLeaving(left: readonly Stuff[], by: Stuff | null): void {
+    const master = by?.getIdentityPath() ?? '';
+    for (const who of left) {
+      AccountabilityApi.record({
+        kind: 'abandonment',
+        sessionId: `abandonment:${this.getIdentityPath() ?? this.getTemplatePath()}:${Date.now()}`,
+        initiator: master,
+        opponent: who.getIdentityPath() ?? '',
+        consented: false,
+        sentient: SpeciesApi.isSentient(who),
+      });
+    }
+    this.leaveThem();
   }
 
   /**

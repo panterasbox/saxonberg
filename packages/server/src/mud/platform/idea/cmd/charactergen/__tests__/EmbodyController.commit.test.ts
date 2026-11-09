@@ -213,6 +213,13 @@ describe('EmbodyController.commit', () => {
     expect(user.save).toHaveBeenCalledTimes(1);
   });
 
+  it('⭐ C35: a clone that throws leaves the roster UNTOUCHED (clone, then roster)', async () => {
+    vi.mocked(StuffApi.clone).mockRejectedValueOnce(new Error('the seed would not clone'));
+    await expect(confirm()).rejects.toThrow(/would not clone/);
+    expect(user.playerIds).toEqual([]);
+    expect(user.save).not.toHaveBeenCalled();
+  });
+
   it('clones the avatar, sets sex, dresses, hands off, and destructs Login', async () => {
     await confirm();
     expect(avatar.setSex).toHaveBeenCalledWith('female');

@@ -252,6 +252,26 @@ describe('⭐ `--from` — dressing out of a container', () => {
     await settle();
     expect(worn(body)).toEqual(['shirt']);
   });
+
+  it('⭐ C42: a piece the body refuses STAYS in the chest — refused before it moves', async () => {
+    const { body, loc } = standUp();
+    const chest = makeStuff(() => new Chest());
+    ContainmentApi.move(chest as never, loc as never);
+    // Cut for a body plan this one does not have: no slot for it.
+    const odd = garment('/stuff/idea/bodyplan/_test/elsewhere', 'woven', 'tabard');
+    ContainmentApi.move(odd as never, chest as never);
+    const c = ctx(body, loc);
+    await makeStuff(() => new EquipController()).execute(
+      {
+        target: { stuff: odd as never, raw: 'tabard' },
+        from: { stuff: chest as never, raw: 'chest' },
+      } as never,
+      c,
+    );
+    await settle();
+    expect(odd.getContainer()).toBe(chest);
+    expect(c.getNotes().map((n) => (n as { reason?: string }).reason)).toEqual(['wrong-fit']);
+  });
 });
 
 describe('`unequip`', () => {

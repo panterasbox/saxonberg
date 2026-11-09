@@ -150,9 +150,12 @@ export default class WaterController extends CommandController<WaterModel> {
       if (ground.soilAcceptsPonding()) {
         const litres = fromSlot.available();
         const salt = fromSlot.getPayload()?.salinityPpt;
-        const poured = BulkableApi.transfer(fromSlot, null, { kind: 'measure', litres, mode: 'lenient' });
-        for (const note of poured.notes) context.note(note);
-        if (ground.takeStanding(poured.applied, 0, salt) > 0) {
+        // ⭐ Ask the ground FIRST (controller-liquidity D10, C30): the can
+        // empties only when the water has somewhere to stand — it used to
+        // pour into the void and then learn the ground kept none of it.
+        if (ground.takeStanding(litres, 0, salt) > 0) {
+          const poured = BulkableApi.transfer(fromSlot, null, { kind: 'measure', litres, mode: 'lenient' });
+          for (const note of poured.notes) context.note(note);
           MessageApi.scene(giver)
             .topic(TOPIC)
             .toSelf(Mml.compose`The water stands on ${Mml.thing(plant ?? ground)} — the soil cannot take any more.`)

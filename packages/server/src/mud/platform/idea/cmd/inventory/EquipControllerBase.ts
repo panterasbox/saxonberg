@@ -733,10 +733,19 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     }
     // ⭐ Draw only what is being asked for: the named thing, or every
     // equippable in there for the bare form.
+    //
+    // ⭐⭐ And only what could go on (controller-liquidity D10, C42): every
+    // refusal before every write. A piece the body refuses outright — no
+    // slot for it, the wrong fit, a hand that cannot grip — stays in the
+    // wardrobe; it used to come out into your hands and THEN be refused.
+    // A piece blocked only by ORDER (the layer under it, a slot a lower
+    // layer frees) still comes out, because the ladder dresses it next.
+    const mode = this.mode();
     const wanted = (source.getContents() as Stuff[]).filter((c) => {
       if (!this.equippable(c)) return false;
-      if (!model.target?.stuff) return true;
-      return c === model.target.stuff;
+      if (model.target?.stuff && c !== model.target.stuff) return false;
+      const skip = EquipControllerBase.canEquip(c, giver, mode);
+      return skip === null || (!model.target?.stuff && (skip === 'layer' || skip === 'slot-full'));
     });
     for (const item of wanted) {
       if (MixinApi.isContainable(item)) {

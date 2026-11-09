@@ -28,8 +28,6 @@ import Ship from '../../Ship';
 import { WorldClockApi } from '../../../../api/worldclock';
 import ExpanseNode from '../../ExpanseNode';
 import { Expanse } from '../../../../lib/expanse/Expanse';
-import { AccountabilityApi } from '../../../../api/accountability';
-import { SpeciesApi } from '../../../../api/species';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type Place from '../../../../lib/stuff/Place';
 import type { Positioned } from '../../../../lib/expanse/Positioned';
@@ -85,7 +83,6 @@ export default class CourseController extends CommandController<CourseModel> {
     const heading = (model.heading ?? '').trim();
     if (heading === '') return this.readout(context, craft, giver);
     if (!this.mayHelm(context, craft, giver)) return;
-    if (!(await this.mayLeave(model, context, craft, giver))) return;
 
     let bearingDeg: number;
     let node: string | null = null;
@@ -153,8 +150,10 @@ export default class CourseController extends CommandController<CourseModel> {
       }
     }
 
-    const started = await craft.steer({ bearingDeg, speedKn: craft.getSpeedKn(), toward: node });
-    if ('refused' in started) return this.decline(context, started.refused, 'course-refused');
+    const left = await CourseController.inTheWater(craft);
+    const started = await craft.steer({ bearingDeg, speedKn: craft.getSpeedKn(), toward: node, by: giver, leavingThem: model.leavingThem === true });
+    if ('refused' in started) return this.decline(context, started.refused, left && model.leavingThem !== true ? 'people-in-the-water' : 'course-refused');
+    if (left) this.tell(context, `You leave ${left} in the water.`);
     if (started.ok && started.status !== 'completed-sync') context.note(started.note);
     this.tell(
       context,
@@ -226,9 +225,10 @@ export default class CourseController extends CommandController<CourseModel> {
       direction = named.km > here.km ? 'upstream' : 'downstream';
       landing = named.path;
     }
-    if (!(await this.mayLeave(model, context, craft, context.commandGiver))) return;
-    const started = await craft.steer({ speedKn: craft.getSpeedKn(), direction, toward: landing, slow });
-    if ('refused' in started) return this.decline(context, started.refused, 'river-refused');
+    const left = await CourseController.inTheWater(craft);
+    const started = await craft.steer({ speedKn: craft.getSpeedKn(), direction, toward: landing, slow, by: context.commandGiver, leavingThem: model.leavingThem === true });
+    if ('refused' in started) return this.decline(context, started.refused, left && model.leavingThem !== true ? 'people-in-the-water' : 'river-refused');
+    if (left) this.tell(context, `You leave ${left} in the water.`);
     if (started.ok && started.status !== 'completed-sync') context.note(started.note);
     const name = landing ? (await StuffApi.singleton<Stuff>(landing).catch(() => null))?.getPresentation() ?? 'the landing' : null;
     this.tell(
@@ -262,33 +262,14 @@ export default class CourseController extends CommandController<CourseModel> {
   }
 
   /**
-   * ⭐ Her own people in the water (river D30): `course` refuses until they
-   * are aboard — or, with `--leaving-them`, sails and records who was left.
-   * `true` when she may go.
+   * ⭐ Her own people in the water (river D30), named — for the WORDS only.
+   * Whether she may sail without them, and the record when she does, are
+   * the ship's (`Ship.steer` with `leavingThem`, controller-liquidity D10).
    */
-  private async mayLeave(model: CourseModel, context: CommandContext, craft: Craft, giver: Stuff): Promise<boolean> {
-    if (!(craft instanceof Ship)) return true;
+  protected static async inTheWater(craft: Craft): Promise<string | null> {
+    if (!(craft instanceof Ship)) return null;
     const left = await craft.peopleInTheWater();
-    if (left.length === 0) return true;
-    const names = left.map((x) => x.getPresentation()).join(', ');
-    if (model.leavingThem !== true) {
-      this.decline(context, `You have people in the water: ${names}. Get them aboard first — or sail \`--leaving-them\`, and own it.`, 'people-in-the-water');
-      return false;
-    }
-    const master = giver.getIdentityPath() ?? giver.getTemplatePath() ?? '';
-    for (const who of left) {
-      AccountabilityApi.record({
-        kind: 'abandonment',
-        sessionId: `abandonment:${craft.getTemplatePath()}:${Date.now()}`,
-        initiator: master,
-        opponent: who.getIdentityPath() ?? who.getTemplatePath() ?? '',
-        consented: false,
-        sentient: SpeciesApi.isSentient(who),
-      });
-    }
-    craft.leaveThem();
-    this.tell(context, `You leave ${names} in the water.`);
-    return true;
+    return left.length > 0 ? left.map((x) => x.getPresentation()).join(', ') : null;
   }
 
   /**
