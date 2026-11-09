@@ -20,6 +20,9 @@ import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import { PersistableMixin } from "@saxonberg/server/mud/lib/persistence/Persistable";
 import { FixtureMixin } from "@saxonberg/server/mud/lib/stuff/Fixture";
 import { HeldGoodsMixin } from "@saxonberg/server/mud/lib/retail/HeldGoods";
+import type { HoldRefusal } from "@saxonberg/server/mud/lib/retail/HeldGoods";
+import { MixinApi } from "@saxonberg/server/mud/api/mixin";
+import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { CommandContributions } from "@saxonberg/server/mud/api/command";
 import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 
@@ -43,6 +46,19 @@ export default class CheckRack extends CheckRackBase {
     await this.seatSelf();
   }
 
+  /**
+   * ⭐ A check rack holds ARMS, and discrete ones: a shield is armor (not a
+   * weapon), and a fungible stack is owned by possession — never checked.
+   * (controller-liquidity W8, C61: the controller asked `isWeapon()` of a
+   * good that was not Wieldable — `rack check lantern` threw.)
+   */
+  accepts(item: Stuff): HoldRefusal | null {
+    if (!MixinApi.isWieldable(item) || !item.isWeapon()) {
+      return { ok: false, reason: "not-a-weapon" };
+    }
+    if (MixinApi.isStackable(item)) return { ok: false, reason: "fungible" };
+    return super.accepts(item);
+  }
 
   static commandContributions: CommandContributions = {
     self: [],
