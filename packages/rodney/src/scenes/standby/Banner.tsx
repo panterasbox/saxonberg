@@ -59,7 +59,7 @@ function HangingCloth({
       pinEdge: Side.TOP,
     });
     const wind = new Wind({
-      speed: 4.0,
+      speed: 5.5,
       directionFn: windModifiers.hangingBannerDirection,
       speedFn: windModifiers.gustySpeed,
     });

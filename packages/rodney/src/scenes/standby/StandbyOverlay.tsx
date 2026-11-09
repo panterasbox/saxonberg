@@ -143,6 +143,27 @@ export default function StandbyOverlay() {
   const timer = useAwayTimer(override);
   const counting = caption === null || caption.countTo !== null;
   const [quote, setQuote] = useState(APHORISMS[0]);
+  // OBS can drop a hidden browser source's WebGL context, and the banners
+  // came back frozen. Rebuild the canvas whenever the page is shown again or
+  // the context is lost — a fresh scene is cheap; a stopped flag is not.
+  const [glEpoch, setGlEpoch] = useState(0);
+  useEffect(() => {
+    const rebuild = () => setGlEpoch((n) => n + 1);
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') rebuild();
+    };
+    const onObs = (e: Event) => {
+      if ((e as CustomEvent<boolean>).detail) rebuild();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('obsSourceVisibleChanged', onObs);
+    window.addEventListener('obsSourceActiveChanged', onObs);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('obsSourceVisibleChanged', onObs);
+      window.removeEventListener('obsSourceActiveChanged', onObs);
+    };
+  }, []);
 
   useEffect(() => {
     let i = 0;
@@ -198,11 +219,16 @@ export default function StandbyOverlay() {
           }
         >
           <Canvas
+            key={glEpoch}
             style={{ position: 'absolute', inset: 0 }}
             camera={{ position: [0, 0.2, 3.6], fov: 36 }}
             gl={{ antialias: true, alpha: true }}
             dpr={[1, 2]}
             onCreated={({ gl }) => {
+              gl.domElement.addEventListener('webglcontextlost', (e) => {
+                e.preventDefault();
+                setGlEpoch((n) => n + 1);
+              });
               // eslint-disable-next-line no-console
               console.log('[rodney] WebGL context OK:', gl.getContext().getParameter(0x1f01));
             }}
