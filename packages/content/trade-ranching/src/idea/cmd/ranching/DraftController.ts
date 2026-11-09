@@ -96,12 +96,24 @@ export default class DraftController extends CommandController<DraftModel> {
     // the head comes out in is the condition the field left it in.
     await registry.foldOpen(herd.herdId);
     const fed = (await registry.read(herd.herdId))?.fed ?? [];
+    // ⭐ The book is written FIRST, and it is the keeper's act (D9, D10):
+    // a stranger is refused before any animal is minted. A mint that then
+    // fails leaves the head marked out with nothing alive — `reapStrays`
+    // heals exactly that on the next draft.
+    const drafted = await registry.draft(herd.herdId, index, giver);
+    if (drafted === 'not-keeper') {
+      this.decline(context, Mml.compose`${herd.name} is not yours to draft from.`, 'not-keeper');
+      return;
+    }
+    if (!drafted) {
+      this.decline(context, Mml.compose`Number ${index} is already out.`, 'already-drafted');
+      return;
+    }
     const animal = await this.mint(herd, index, giver, fed);
     if (!animal) {
       this.decline(context, Mml.compose`You cannot get a rope on it.`, 'mint-failed');
       return;
     }
-    await registry.draft(herd.herdId, index);
 
     MessageApi.scene(giver)
       .topic(RANCHING_TOPIC)

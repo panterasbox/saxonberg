@@ -55,6 +55,15 @@ import type { Bulkable } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import { STOCKMANSHIP } from '../idea/cmd/ranching/HandleController';
 import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
 import { HeadSeed } from '../lib/HeadSeed';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import type HerdRegistry from '../idea/HerdRegistry';
+import { DEFAULT_FEMALE_FRACTION } from '../idea/HerdRegistry';
+
+/** The register this head was drafted out of (the Herdbook's own constant). */
+const HERD_REGISTRY_PATH = '/trade/ranching/idea/HerdRegistry';
+
+/** Why she cannot be put to the male — the animal's own refusals. */
+export type BreedRefusal = 'not-female' | 'no-male';
 
 /**
  * ⭐ **`Perceptible` arrives from `Creature` now, and the argument this
@@ -272,6 +281,48 @@ export default class Livestock extends LivestockBase {
       .find((l) => l !== null);
     if (!line) return null;
     return line.demandKg > 0 ? Math.min(1, line.fedKg / line.demandKg) : 1;
+  }
+
+  /**
+   * ⭐ May `by` cull this head? A head out of a herd is its KEEPER's
+   * (`HerdRegistry.mayKeep`, controller-liquidity D9, C19) — asked before
+   * the kill, because a refusal after it leaves a dead animal nobody may
+   * write out of the book. A head in no herd answers `null` (no book).
+   */
+  public async cullRefusal(by: Stuff): Promise<'not-keeper' | null> {
+    if (!this.herdId) return null;
+    const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
+    const herd = await registry.read(this.herdId);
+    if (!herd) return null;
+    return (await registry.mayKeep(by, herd)) ? null : 'not-keeper';
+  }
+
+  /**
+   * ⭐ Can she be put to the male HERE? (C19.) She must be female — an
+   * unrecorded sex is open, the tri-state rule — and a male of her kind
+   * must be with her: a live one standing where she stands, or the herd's
+   * own males on the field she is grazing with them.
+   */
+  public async breedRefusal(): Promise<BreedRefusal | null> {
+    const sex = this.getSex();
+    if (sex !== null && sex !== 'female') return 'not-female';
+    const here = this.getContainer();
+    const kind = this.getSpecies();
+    if (here && MixinApi.isContainer(here)) {
+      for (const other of here.getContents()) {
+        if (other.stuffId === this.stuffId || !MixinApi.isOrganism(other)) continue;
+        if (other.isAlive() && other.getSex() === 'male' && other.getSpecies() === kind) {
+          return null;
+        }
+      }
+    }
+    if (this.herdId && this.grazedFraction() !== null) {
+      const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
+      const herd = await registry.read(this.herdId);
+      const female = herd?.femaleFraction ?? DEFAULT_FEMALE_FRACTION;
+      if (herd && herd.tally * (1 - female) >= 1) return null;
+    }
+    return 'no-male';
   }
 
   /** Bind this object to the record it was drafted out of. */

@@ -15,7 +15,8 @@
  * ## Who may
  *
  * Whoever holds the herd's home ground, or a hand on shift for a
- * business that works the field — the keeper's gate `sow` has (D6). The
+ * business that works the field — the keeper's gate `sow` has (D6),
+ * asked by the BOOK (`HerdRegistry.mayKeep`, controller-liquidity D9). The
  * criterion is title; the appeal is the record.
  *
  * ## Where to
@@ -33,8 +34,6 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { AccessApi } from '@saxonberg/server/mud/api/access';
-import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
 import type Field from '@saxonberg/content-trade-farming/src/thing/Field';
 import HerdRegistry, { type HerdRecord } from '../../HerdRegistry';
@@ -55,14 +54,6 @@ export default class MoveController extends CommandController<MoveModel> {
         context,
         Mml.compose`Move which herd? Name it — the college herd, the dairy herd.`,
         'no-herd',
-      );
-      return;
-    }
-    if (!(await this.mayMove(giver, herd))) {
-      this.decline(
-        context,
-        Mml.compose`${herd.name} is not yours to move.`,
-        'not-keeper',
       );
       return;
     }
@@ -104,7 +95,16 @@ export default class MoveController extends CommandController<MoveModel> {
       );
       return;
     }
-    await registry.graze(herd.herdId, field);
+    // ⭐ The keeper's gate is the BOOK's (D9): `moveHerd` asks it.
+    const moved = await registry.moveHerd(giver, herd.herdId, field);
+    if (moved === 'not-keeper') {
+      this.decline(
+        context,
+        Mml.compose`${herd.name} is not yours to move.`,
+        'not-keeper',
+      );
+      return;
+    }
     MessageApi.scene(giver)
       .topic(RANCHING_TOPIC)
       .toSelf(
@@ -134,34 +134,6 @@ export default class MoveController extends CommandController<MoveModel> {
     }
     const head = bare.replace(/\s+(herd|flock|book|register|tally)$/i, '');
     return head !== bare ? registry.named(head) : null;
-  }
-
-  /**
-   * ⭐ The keeper's gate: whoever holds the herd's home ground, or a hand
-   * on shift for a business that works it (the operator of the field the
-   * herd is on, or of where the keeper stands).
-   */
-  private async mayMove(giver: Stuff, herd: HerdRecord): Promise<boolean> {
-    const home = herd.homeExtent;
-    if (home) {
-      const held = await AccessApi.heldExtents(giver);
-      if (held.some((e) => home === e || home.startsWith(`${e}/`))) return true;
-    }
-    if (!MixinApi.isEmployed(giver)) return false;
-    const places: Stuff[] = [];
-    const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    if (here) places.push(here);
-    if (herd.grazing) {
-      const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
-      const tract = (await registry.fieldOf(herd.grazing))?.getTract() ?? null;
-      if (tract) places.push(tract as unknown as Stuff);
-    }
-    for (const place of places) {
-      for (const business of EmploymentApi.operatorsAt(place)) {
-        if (giver.isOnShiftFor(business.getOrganizationPath())) return true;
-      }
-    }
-    return false;
   }
 
   /**

@@ -47,7 +47,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import HerdRegistry from '../../HerdRegistry';
 import { RANCHING_TOPIC, HERD_REGISTRY_PATH } from './DraftController';
-import type Livestock from '../../../agent/Livestock';
+import Livestock from '../../../agent/Livestock';
 
 interface BreedModel extends CommandModel {
   target?: MqlOneResult;
@@ -98,7 +98,7 @@ export default class BreedController extends CommandController<BreedModel> {
       return;
     }
 
-    const herdId = animal.getHerdId?.() ?? '';
+    const herdId = animal instanceof Livestock ? animal.getHerdId() : '';
     if (!herdId) {
       this.decline(
         context,
@@ -114,19 +114,33 @@ export default class BreedController extends CommandController<BreedModel> {
       return;
     }
 
+    // ⭐ Her own answer (C19): she must be female, and a male of her kind
+    // must be with her — the record says SERVED only when one was.
+    const breed = await (animal as Livestock).breedRefusal();
+    if (breed === 'not-female') {
+      this.decline(context, Mml.compose`That one is not a female. There is nothing to put to the male.`, breed);
+      return;
+    }
+    if (breed === 'no-male') {
+      this.decline(
+        context,
+        Mml.compose`There is no male here to put her to. Bring her to one, or put her back with the herd.`,
+        breed,
+      );
+      return;
+    }
+
+
     // ⚠⚠ **The TALLY DOES NOT MOVE.** Nothing is born here, because
     // nothing has gestated: what happened is that she was served, and
     // the only honest record of it is the date.
     const index = animal.getHeadIndex();
-    const key = String(index);
-    const nowS = this.nowSeconds();
-    await registry.update({
-      ...herd,
-      overlay: {
-        ...herd.overlay,
-        [key]: { ...(herd.overlay[key] ?? {}), served: nowS },
-      },
-    });
+    // ⭐ The book is the keeper's (D9): `serve` asks before it writes.
+    const served = await registry.serve(giver, herdId, index, this.nowSeconds());
+    if (served === 'not-keeper') {
+      this.decline(context, Mml.compose`${herd.name} is not yours to write in.`, 'not-keeper');
+      return;
+    }
 
     MessageApi.scene(giver)
       .topic(RANCHING_TOPIC)

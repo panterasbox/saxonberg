@@ -60,7 +60,7 @@ import type {
   CommandContext,
   CommandModel,
 } from '@saxonberg/server/mud/api/command';
-import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -75,6 +75,8 @@ import Livestock from '../../../agent/Livestock';
 
 interface SlaughterModel extends CommandModel {
   target?: MqlOneResult;
+  /** ⭐ The edge — declared by the view, not hunted for. */
+  blade?: MqlManyResult;
 }
 
 export default class SlaughterController extends CommandController<SlaughterModel> {
@@ -153,6 +155,18 @@ export default class SlaughterController extends CommandController<SlaughterMode
       return;
     }
 
+    // ⭐ An edge, or no kill (C19): a blade is a CONSTRUCTION, the same
+    // read the kitchen's `butcher` makes of what the view hands over.
+    const blades = model.blade?.stuff ?? [];
+    if (!blades.some((b) => MixinApi.isConstructed(b) && b.getConstructionForm() === 'bladed')) {
+      this.decline(
+        context,
+        Mml.compose`You would need an edge for that — a knife, something bladed.`,
+        'no-blade',
+      );
+      return;
+    }
+
     // ⚠ Read the record's half BEFORE the kill. Afterwards there is no
     // object left to ask.
     // ⚠⚠ These three were `typeof animal.getX === 'function'`, which is
@@ -173,6 +187,18 @@ export default class SlaughterController extends CommandController<SlaughterMode
       ? animal.getHandling()
       : undefined;
     const presentation = animal.getPresentation();
+
+    // ⭐⭐ A head out of somebody's herd is the KEEPER's to cull (D9, C19):
+    // the book is asked BEFORE the kill — a refusal after it would leave a
+    // dead animal nobody may write out.
+    if (animal instanceof Livestock && (await animal.cullRefusal(giver)) === 'not-keeper') {
+      this.decline(
+        context,
+        Mml.compose`${presentation} is out of somebody's herd, and it is not yours to cull.`,
+        'not-keeper',
+      );
+      return;
+    }
 
     // ⭐ ONE lethal call, and it is the same one a fight makes. Everything
     // a death does — the body, the ledger row, the deed, the engagements
@@ -195,20 +221,11 @@ export default class SlaughterController extends CommandController<SlaughterMode
     if (herdId && index >= 0) {
       try {
         const registry = await this.registry();
-        const wrote = await registry.returnHead(herdId, index, {
+        await registry.cull(giver, herdId, index, {
           note: 'slaughtered',
           ...(flesh !== undefined ? { flesh } : {}),
           ...(handling !== undefined ? { handling } : {}),
         });
-        if (wrote) {
-          const back = await registry.read(herdId);
-          if (back) {
-            await registry.update({
-              ...back,
-              tally: Math.max(0, back.tally - 1),
-            });
-          }
-        }
       } catch (err) {
         // ⚠ The animal is already dead and the body is already standing
         // there. An over-counted herd is recoverable; a thrown command on

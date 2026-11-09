@@ -59,6 +59,9 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { AccessApi } from '@saxonberg/server/mud/api/access';
+import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
@@ -412,9 +415,16 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
    *
    * Returns `false` when the head is already out, or out of range.
    */
-  public async draft(herdId: string, index: number): Promise<boolean> {
+  public async draft(
+    herdId: string,
+    index: number,
+    by: Stuff,
+  ): Promise<boolean | 'not-keeper'> {
     const herd = await this.read(herdId);
     if (herd === null) return false;
+    // ⭐ The keeper's act (controller-liquidity D9): asked before the book
+    // moves, and before the controller mints the head.
+    if (!(await this.mayKeep(by, herd))) return 'not-keeper';
     if (!Number.isInteger(index) || index < 0 || index >= herd.tally) return false;
     if (herd.drafted.some((d) => d.index === index)) return false;
     herd.drafted = [...herd.drafted, { index }];
@@ -500,6 +510,88 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     await this.update(herd);
   }
 
+
+  // ---------- ⭐ the keeper (controller-liquidity D9) ----------
+
+  /**
+   * ⭐⭐ **May `actor` keep this herd** — move it, draft from it, cull it,
+   * write it in the book? Whoever holds the herd's home ground, or a hand on
+   * shift for a business that works it (the operator of the field the herd
+   * is on, or of where `actor` stands). Lifted off `move`'s controller,
+   * where it was a private method no other verb asked (Appendix D 13):
+   * `draft`, `moveHerd`, `cull` and `serve` ask it now.
+   */
+  public async mayKeep(actor: Stuff, herd: HerdRecord): Promise<boolean> {
+    const home = herd.homeExtent;
+    if (home) {
+      const held = await AccessApi.heldExtents(actor);
+      if (held.some((e) => home === e || home.startsWith(`${e}/`))) return true;
+    }
+    if (!MixinApi.isEmployed(actor)) return false;
+    const places: Stuff[] = [];
+    const here = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+    if (here) places.push(here);
+    if (herd.grazing) {
+      const tract = (await this.fieldOf(herd.grazing))?.getTract() ?? null;
+      if (tract) places.push(tract as unknown as Stuff);
+    }
+    for (const place of places) {
+      for (const business of EmploymentApi.operatorsAt(place)) {
+        if (actor.isOnShiftFor(business.getOrganizationPath())) return true;
+      }
+    }
+    return false;
+  }
+
+  /** `actor` puts the herd onto `to` — the keeper's {@link graze}. */
+  public async moveHerd(
+    actor: Stuff,
+    herdId: string,
+    to: Field | null,
+  ): Promise<HerdRecord | null | 'not-keeper'> {
+    const herd = await this.read(herdId);
+    if (herd === null) return null;
+    if (!(await this.mayKeep(actor, herd))) return 'not-keeper';
+    return this.graze(herdId, to);
+  }
+
+  /**
+   * ⭐ `actor` writes head `index` out of the book as slaughtered — the
+   * herdbook's half of a cull, asked of the keeper: the head returns with
+   * its overlay and the tally falls by one. `'not-keeper'` writes nothing.
+   */
+  public async cull(
+    actor: Stuff,
+    herdId: string,
+    index: number,
+    overlay: HeadOverlay,
+  ): Promise<boolean | 'not-keeper'> {
+    const herd = await this.read(herdId);
+    if (herd === null) return false;
+    if (!(await this.mayKeep(actor, herd))) return 'not-keeper';
+    if (!(await this.returnHead(herdId, index, overlay))) return false;
+    const back = await this.read(herdId);
+    if (back) await this.update({ ...back, tally: Math.max(0, back.tally - 1) });
+    return true;
+  }
+
+  /** `actor` writes head `index` as served at `atS` — the keeper's column. */
+  public async serve(
+    actor: Stuff,
+    herdId: string,
+    index: number,
+    atS: number,
+  ): Promise<boolean | 'not-keeper'> {
+    const herd = await this.read(herdId);
+    if (herd === null) return false;
+    if (!(await this.mayKeep(actor, herd))) return 'not-keeper';
+    const key = String(index);
+    await this.update({
+      ...herd,
+      overlay: { ...herd.overlay, [key]: { ...(herd.overlay[key] ?? {}), served: atS } },
+    });
+    return true;
+  }
 
   // ---------- ⭐ the herd on a field (cover build D8, D10) ----------
 
