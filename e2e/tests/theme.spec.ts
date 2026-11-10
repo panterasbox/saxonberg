@@ -29,11 +29,17 @@ const GROUNDS = {
   'high-contrast': '#000000',
 } as const;
 
-/** Each theme's `--sx-fg`, resolved to the rgb() a browser reports. */
+/**
+ * The transcript's foreground under each theme, as a browser reports it.
+ * ⚠ The terminal sits on a neutral near-black in EVERY theme, with light
+ * text in every theme (client-surface, e30fc2aea: marble's dark ink did
+ * not read on it): `terminal-fg` is an INVARIANT token (`themes/invariant.ts`),
+ * so the transcript reads the same light ink under all three.
+ */
 const FOREGROUNDS = {
   ink: 'rgb(242, 245, 250)',
-  marble: 'rgb(11, 24, 48)',
-  'high-contrast': 'rgb(255, 255, 255)',
+  marble: 'rgb(242, 245, 250)',
+  'high-contrast': 'rgb(242, 245, 250)',
 } as const;
 
 function customProperty(page: import('@playwright/test').Page, name: string) {
@@ -78,10 +84,8 @@ test('all three themes repaint chrome and transcript, with no reconnect', async 
       });
       expect(missing, `${name}: empty custom properties`).toEqual([]);
 
-      // 3. Transcript repainted through the SAME theme object. This is
-      //    the divergence check: chrome and transcript resolve their
-      //    theme through one `pickTheme`, so a body row's colour must
-      //    track the ground.
+      // 3. Transcript painted through the SAME theme object — light text
+      //    on the neutral terminal ground in every theme (e30fc2aea).
       await expect(transcript).toHaveCSS('color', FOREGROUNDS[name]);
     }
 
@@ -175,8 +179,10 @@ test('`client-style theme default` refuses, naming the three known themes', asyn
 
     // The refusal reaches the player in the machine voice and says what
     // WOULD have worked — "commands refuse honestly" is a convention,
-    // and a refusal that names no alternative is a dead end.
-    const refusal = page.getByText(/unknown theme/i).last();
+    // and a refusal that names no alternative is a dead end. (Since
+    // controller-liquidity W7b the vocabulary is the view's `values:`
+    // list, so the BINDER refuses the word, naming the three.)
+    const refusal = page.getByText(/'default' is not one of/i).last();
     await expect(refusal).toBeVisible({ timeout: 10_000 });
     await expect(refusal).toContainText('ink');
     await expect(refusal).toContainText('marble');

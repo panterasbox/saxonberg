@@ -129,8 +129,10 @@ test('the bar is two rows, and the glance-line holds three', async ({
     await expect(page.getByTestId('mobile-facts-row')).toBeVisible();
     await expect(page.getByTestId('mobile-glance-row')).toBeVisible();
 
-    // The default shelf is the three wired rows.
-    expect(await glanceLabels(page)).toEqual(['Standing', 'Known', 'Skills']);
+    // The default shelf is the four wired rows (`body` joined it in
+    // nutrition-fitness W8, de748bb51); the glance-line holds the first
+    // three, under master's words (PLAY · RENOWN · SKILL — B42, e0d4e6ae7).
+    expect(await glanceLabels(page)).toEqual(['PLAY', 'RENOWN', 'SKILL']);
 
     // ⚠ No status bar: it has no hover to report and would cost the
     // feed a row.
@@ -276,13 +278,13 @@ test('client-shelf first puts a row on the bar, and it survives a reload', async
     await expect(page.getByTestId('mobile-bar')).toBeVisible({
       timeout: 20_000,
     });
-    expect(await glanceLabels(page)).toEqual(['Standing', 'Known', 'Skills']);
+    expect(await glanceLabels(page)).toEqual(['PLAY', 'RENOWN', 'SKILL']);
 
     // `coin` is not on the shelf at all — one command, one intention.
     await runCommand(page, 'client-shelf first coin');
     await expect
       .poll(() => glanceLabels(page), { timeout: 15_000 })
-      .toEqual(['Money', 'Standing', 'Known']);
+      .toEqual(['COIN', 'PLAY', 'RENOWN']);
 
     await page.reload();
     await reenterWorld(page);
@@ -291,7 +293,7 @@ test('client-shelf first puts a row on the bar, and it survives a reload', async
     });
     await expect
       .poll(() => glanceLabels(page), { timeout: 20_000 })
-      .toEqual(['Money', 'Standing', 'Known']);
+      .toEqual(['COIN', 'PLAY', 'RENOWN']);
   } finally {
     await close();
   }
@@ -342,7 +344,7 @@ test('a tap names its command, and the server echoes exactly that', async ({
     });
     await expect
       .poll(() => glanceLabels(page), { timeout: 15_000 })
-      .toEqual(['Status', 'Standing', 'Known']);
+      .toEqual(['STATUS', 'PLAY', 'RENOWN']);
   } finally {
     await close();
   }

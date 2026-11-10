@@ -10,22 +10,32 @@ import { openWorldAs, runCommand, sendUntil } from './helpers';
  * page — so each row of the slate's table is run at its CSS width, which
  * covers the 125% and 150% cases (browser zoom cannot be set by the API).
  *
- * Asserted per width: the card-area column count; the terminal's text
- * measure is at most 42rem; nothing scrolls the page sideways; there is
- * a nav rail and no top bar.
+ * Asserted per width: the card gallery has at least one column and never
+ * loses one as the window widens; the terminal's text measure is at most
+ * 42rem; nothing scrolls the page sideways; there is a mode rail AND
+ * master's top bar.
+ *
+ * ⚠ Two owner reversals on master since this spec was written: the top
+ * bar came back over the stage (B42, e0d4e6ae7), and the column arranger
+ * was retired for a packed gallery whose columns are as many as fit at
+ * the minimum card width (e30fc2aea) — so a column count per width is
+ * the gallery's arithmetic now, not a table, and a card's place is the
+ * client's order, not a server placement.
  */
 
-const WIDTHS: { w: number; h: number; panelShut: number }[] = [
-  { w: 1280, h: 720, panelShut: 1 },
-  { w: 1440, h: 790, panelShut: 1 },
-  { w: 1536, h: 864, panelShut: 2 },
-  { w: 1728, h: 1117, panelShut: 2 },
-  { w: 1920, h: 970, panelShut: 3 },
-  { w: 2560, h: 1440, panelShut: 4 },
+const WIDTHS: { w: number; h: number }[] = [
+  { w: 1280, h: 720 },
+  { w: 1440, h: 790 },
+  { w: 1536, h: 864 },
+  { w: 1728, h: 1117 },
+  { w: 1920, h: 970 },
+  { w: 2560, h: 1440 },
 ];
 
 async function columns(page: Page): Promise<number> {
-  return page.locator('[data-testid="card-column"]').count();
+  const grid = page.getByTestId('card-grid');
+  if ((await grid.count()) === 0) return 0;
+  return Number((await grid.getAttribute('data-columns')) ?? 0);
 }
 
 /**
@@ -54,17 +64,19 @@ test.describe('client-surface layout (rem tiers, rail, feed/workspace)', () => {
     });
     try {
       await expect(page.getByTestId('nav-rail')).toBeVisible();
-      await expect(page.getByTestId('top-bar')).toHaveCount(0);
+      await expect(page.getByTestId('top-bar')).toHaveCount(1);
       // Collapse the panel so the shut-panel row of the table applies.
       await collapsePanel(page);
       // At least one flowing card, so the card area renders columns.
       // The first command after world entry can be dropped (see `sendUntil`).
       await sendUntil(page, 'who', page.locator('[data-card-kind="who"]'));
-      for (const { w, h, panelShut } of WIDTHS) {
+      let previous = 1;
+      for (const { w, h } of WIDTHS) {
         await page.setViewportSize({ width: w, height: h });
         await expect
           .poll(() => columns(page), { message: `${w}px columns` })
-          .toBe(panelShut);
+          .toBeGreaterThanOrEqual(previous);
+        previous = await columns(page);
         const measure = await page
           .getByTestId('terminal-measure')
           .evaluate((el) => el.getBoundingClientRect().width);
@@ -76,7 +88,7 @@ test.describe('client-surface layout (rem tiers, rail, feed/workspace)', () => {
     }
   });
 
-  test('⭐ a placed card returns to its slot after narrowing and widening (AC 2)', async ({ browser }) => {
+  test('⭐ a moved card stays in the gallery after narrowing and widening (AC 2)', async ({ browser }) => {
     const { page, close } = await openWorldAs(browser, 'placed', {
       contextOptions: { viewport: { width: 1920, height: 970 } },
     });
@@ -84,16 +96,20 @@ test.describe('client-surface layout (rem tiers, rail, feed/workspace)', () => {
       await collapsePanel(page);
       // The first command after world entry can be dropped (see `sendUntil`).
       await sendUntil(page, 'who', page.locator('[data-card-kind="who"]'));
+      // The move is still a typed command the server accepts; the gallery
+      // packs by the client's order (e30fc2aea), so what holds across a
+      // resize is that the card is still there, in the gallery.
       await runCommand(page, 'client-card move who 2 0');
-      const third = page.locator('[data-testid="card-column"]').nth(2);
-      // (A server round trip: the move lands when `card-arranged` does.)
-      await expect(third.locator('[data-card-kind="who"]')).toBeVisible({ timeout: 15_000 });
+      const grid = page.getByTestId('card-grid');
+      // (`.first()`: a re-sent `who` under load leaves a second snapshot.)
+      const who = grid.locator('[data-card-kind="who"]').first();
+      await expect(who).toBeVisible({ timeout: 15_000 });
+      const wide = await columns(page);
       await page.setViewportSize({ width: 1440, height: 790 });
-      await expect.poll(() => columns(page)).toBe(1);
+      await expect.poll(() => columns(page)).toBeLessThanOrEqual(wide);
       await page.setViewportSize({ width: 1920, height: 970 });
-      await expect(
-        page.locator('[data-testid="card-column"]').nth(2).locator('[data-card-kind="who"]'),
-      ).toBeVisible();
+      await expect.poll(() => columns(page)).toBe(wide);
+      await expect(who).toBeVisible();
     } finally {
       await close();
     }

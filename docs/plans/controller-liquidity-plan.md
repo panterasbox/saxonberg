@@ -2753,3 +2753,44 @@ concerns. Found: the server's CORS names one client origin, so a walk on
 its own port needs `CLIENT_URL` at boot; and ⚠ OPEN, not this build's — a
 binder prompt sent in a page's first moments reached no chip bar (the
 dispatch waited until the socket closed); after one `look` it shows.
+
+**The cockpit specs, 2026-11-10 (after W16).** Six cockpit e2e specs
+went red against this branch's world (12 failures). Every one was a
+stale assertion, none a regression — each checked against the commit
+that changed the behavior; no code changed:
+
+- `client-surface-layout` › every width — **stale vs master**: the top
+  bar came back (B42, `e0d4e6ae7`) and the column arranger was retired
+  for a packed gallery (`e30fc2aea`, `card-column` gone); now asserts
+  the top bar, `card-grid`'s `data-columns` ≥ 1 and non-decreasing,
+  the measure and no sideways scroll.
+- `client-surface-layout` › placed card returns (AC 2) — **stale vs
+  master** (`e30fc2aea`: the order is the client's, a server placement
+  is not rendered); now asserts the moved card stays in the gallery
+  across narrowing and widening.
+- `mobile-chrome` × 3 (two rows/glance-line · `client-shelf first`
+  through a reload · tap echoes its command) — **stale vs master**: the
+  shelf wears master's words again (PLAY · RENOWN · SKILL, B42).
+- `panes` › settings — **stale vs master** (B42): Settings is the top
+  bar's button toggling master's settings PANEL, closed by its ✕; the
+  rail has no settings and it is not a card.
+- `shelf` × 4 (honest/hatched · server owns pinning · wraps · ＋ menu) —
+  **stale vs master**: the default is four rows (`body`, `de748bb51`),
+  the catalogue ten, MAKE live since `5b53647fd` (hatched five, not six);
+  **stale vs this build** for the unknown-row refusal (W7b `values:` —
+  the binder names the ten). Shelf commands now re-send until the bar
+  changes, because the first command after a world entry can be dropped
+  (the `sendUntil` race — pre-existing, and it cost two retries here).
+- `theme` › all three repaint — **stale vs master** (`e30fc2aea`): the
+  terminal is a neutral near-black with the invariant `terminal-fg` in
+  every theme, so marble's transcript is light.
+- `theme` › `default` refuses — **stale vs this build** (W7b): the binder's
+  `'default' is not one of ink, marble, high-contrast`.
+- `status-bar` — green unchanged (it was named, never red).
+
+Fresh world (`reset:db`, server on 2013 with `CLIENT_URL`, vite on 5183):
+the six specs 33/33 serially (one retry was a world-entry wait under a
+load average of 11–13 from sibling worktrees, not an assertion); the walk
+8/8 on the fresh world. ⚠ The walk's step 5 spends the put-in's canoe
+(`launch` floats it away), so a second walk on the same world fails at
+`go canoe` — run it on a fresh world, as W15 did.
