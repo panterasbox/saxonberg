@@ -106,8 +106,14 @@ export default class TitleTransferController extends TitleControllerBase<Transfe
       );
     }
 
-    const parcelZone = await this.resolveZone(parcel.getZonePath());
-    if (!parcelZone || !(await AccessApi.canMutateZone(giver, parcelZone))) {
+    // ⭐ A person's title is theirs to give: a lot bought off a plat book
+    // has no zone of its own, so the zone's owner role alone refused every
+    // player-held parcel (controller-liquidity W15 — the drive's gift of
+    // land). A group's or the state's parcel still asks the zone.
+    const titled = parcel.getOwner();
+    const holdsIt = titled?.kind === "player" && titled.templatePath === giver.getIdentityPath();
+    const parcelZone = holdsIt ? null : await this.resolveZone(parcel.getZonePath());
+    if (!holdsIt && (!parcelZone || !(await AccessApi.canMutateZone(giver, parcelZone)))) {
       return this.fail(
         context,
         `You don't own ${parcel.getExtent()}.`,
