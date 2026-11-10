@@ -91,11 +91,11 @@ export default class SutureController extends CommandController<SutureModel> {
       by: 'dressing',
       efficacy,
       treater: giver as unknown as Stuff,
+      sutured: true,
       ...(needle && MixinApi.isSoilable(needle)
         ? { instrumentTier: needle.cleanTier() }
         : {}),
     });
-    wound.sutured = true;
 
     // ⭐ The return date — a competent hand's prognosis (D12). Written to
     // the patient's calendar at a bed's rate; a novice writes nothing.

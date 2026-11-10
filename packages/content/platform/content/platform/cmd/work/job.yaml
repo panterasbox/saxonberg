@@ -10,8 +10,9 @@ help: |
   The job board — posted work with the reward held in escrow: the money
   is locked when the gig goes up, so the stakes are real. Bare `job` lists what's open on this board.
 
-  Post work with `job post <what has to be true> for <reward>` — either
-  `deliver <thing> to <place>` or `supply <n> <kind> to <place>` — funded
+  Post work with `job post <what has to be true> for <reward>` —
+  `deliver <thing> to <place>`, `supply <n> <kind> to <place>`, `clean
+  <place>`, `watch <place> for <n> hours` or `recover <body> to <place>` — funded
   from your own account (or your business's with `--business`). Add
   `--bounty` for an open bounty anyone can turn in (the reward escrows
   immediately); otherwise the gig is exclusive — one courier claims it
@@ -67,6 +68,8 @@ subcommands:
         job post supply <n> litres of <what> to <place> for <reward>
         job post clean <place> for <reward>
         job post clean <thing> at <place> for <reward>
+        job post watch <place> for <n> hours for <reward>
+        job post recover <body> to <place> for <reward>
 
       ⭐ `deliver` is one named thing arriving somewhere — point at it,
       and if it is marked as yours the gig means THAT one. `supply` is a
@@ -87,11 +90,17 @@ subcommands:
       see that the floor is clean now, and that is what a cleaner sells.
       A thing that is already clean cannot be posted.
 
+      ⭐ `watch` is a guard contract: the engine cannot check that you
+      protected anything, but it can check that you were THERE, for the
+      term, with your hands full of nothing else — so that is what the
+      gig pays for. `recover` is a delivery of one body by who or what it
+      is (a drowned body has no title to point at).
+
       ⚠ Only work the engine can CHECK can be posted, because the reward
       is real money held in escrow from the moment it goes up. "Deliver
-      this" and "bring me ten of these" are checkable; "guard my shop"
-      and "be nice to Mara" are not, and are refused rather than
-      half-supported.
+      this", "bring me ten of these" and "stand watch at the shop for six
+      hours" are checkable; "keep my shop safe" and "be nice to Mara" are
+      not, and are refused rather than half-supported.
 
       Name a place by the name it is known by — a town or district — or
       point at something you can reach.

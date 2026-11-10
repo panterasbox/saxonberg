@@ -27,7 +27,7 @@ import type { LandUse } from "../../../lib/parcel/LandUse";
 import type { PowerBand } from "../../../lib/parcel/PowerBand";
 import type { GroupRef } from "../../../lib/social/GroupProvider";
 import type ParcelRegistry from "../ParcelRegistry";
-import type { PublishAnswer } from "../../../api/parcel";
+import type { PublishAnswer, SubdivisionRefusal } from "../../../api/parcel";
 
 const REGISTRY_PATH = TemplatePaths.parcelRegistry;
 
@@ -171,6 +171,20 @@ export class ParcelLogic extends ApiLogic {
     const reg = lookupRegistry();
     return reg
       ? reg.subdivide(childPath, parentExtent, owner, area, storeys, landUse)
+      : null;
+  }
+
+  /** See {@link ParcelApi.subdivisionRefusal}. */
+  @CallSecurity(ParcelApiCallers)
+  public async subdivisionRefusal(
+    childPath: string,
+    parentExtent: string,
+    area = 0,
+    landUse: LandUse | null = null,
+  ): Promise<SubdivisionRefusal | null> {
+    const reg = lookupRegistry();
+    return reg
+      ? reg.subdivisionRefusal(childPath, parentExtent, area, landUse)
       : null;
   }
 

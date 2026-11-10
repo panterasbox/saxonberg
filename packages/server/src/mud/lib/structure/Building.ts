@@ -21,8 +21,18 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { Stuff } from '../stuff/Stuff';
 import type { CoatReachRefusal } from '../material/Faced';
+import { MixinApi } from '../../api/mixin';
+import {
+  UPKEEP_KIT_WEAR,
+  type FabricKind,
+  type Maintainable,
+  type MaintainAnswer,
+} from './Maintainable';
 
-export default abstract class Building extends DurableMixin(FacedMixin(StructureBase)) {
+export default abstract class Building
+  extends DurableMixin(FacedMixin(StructureBase))
+  implements Maintainable
+{
   /** A building's outside is always out in the weather, read from a landing. */
   public override weatherScope(): Stuff | null {
     return this.outsideScope();
@@ -69,5 +79,42 @@ export default abstract class Building extends DurableMixin(FacedMixin(Structure
   /** ⭐ A building is painted from where it meets the weather (paint D9). */
   public override coatReachRefusal(actor: Stuff): CoatReachRefusal | null {
     return this.landingRefusal(actor);
+  }
+
+  /** ⭐ A building's fabric is a house's: sills, putty, a nail where one was wanted. */
+  public fabricKind(): FabricKind {
+    return 'house';
+  }
+
+  /** Keeping a house is nobody's Discipline yet. */
+  public upkeepDiscipline(): string | null {
+    return null;
+  }
+
+  /**
+   * ⭐ Make the fabric sound (`maintain`). A sound fabric under a coat that
+   * is gone or going is told so — that is a brush's work, not the kit's —
+   * and the kit is spared.
+   */
+  public maintainWith(kit: Stuff): MaintainAnswer {
+    const before = this.getConditionWord();
+    if (before === 'sound') {
+      const coatWanting = this.coatGone() || this.coatThin(this.coatThinM());
+      return { ok: false, reason: coatWanting ? 'coat-not-fabric' : 'already-sound' };
+    }
+    this.setCondition(1);
+    if (MixinApi.isDurable(kit)) kit.wear(UPKEEP_KIT_WEAR);
+    return { ok: true, before };
+  }
+
+  /** Below this an outside coat reads as going (`structure.coat.thinM`). */
+  private coatThinM(): number {
+    try {
+      const n = Number.parseFloat(AppApi.setting(AppSettingKeys.structureCoatThinM) ?? '');
+      if (Number.isFinite(n) && n > 0) return n;
+    } catch {
+      /* cold cache — the shipped default */
+    }
+    return 0.00001;
   }
 }

@@ -1,51 +1,34 @@
 /**
- * ProvisionController — the `provision <player>` verb
- * (a Duncan Hall *content* verb — it lives in the content namespace
- * `world/terminus/eternal/duncan-hall/`, NOT a core command category, because it
- * hardcodes one content instance's `DormWarren`). The landlord act that grows
- * the elastic dorm
- * building: mint a unit parcel at the lowest-free slot, lease it to the
- * player, and (if that floor is already live) hang its door immediately.
+ * ProvisionController — the `provision <player>` verb (a Duncan Hall
+ * *content* verb — it lives in the content namespace
+ * `world/terminus/eternal/duncan-hall/`, NOT a core command category,
+ * because it names one content instance's `DormWarren`). The landlord act
+ * that grows the elastic dorm building.
  *
- * Flow: compute the **lowest-free slot** over the existing unit parcels
- * (`ParcelApi.childParcelsOf(dorms)` → first free `f<n>-r<p>` within
- * `ROOMS_PER_FLOOR`, reusing gaps left by unprovision before a new floor) →
- * `ParcelApi.subdivide(unitExtent, dorms, owner)` (owner inherited from the
- * dorms parcel; **no backing zone** — the extent is just the D1 + Warren
- * member key string) → `ParcelApi.grantUse(unitExtent, playerPath, null)`
- * (the lease) → `DormWarren.ensureUnitDoor` + `refreshProvisioned` so a live
- * floor shows the door + reachability updates now. The room / floor
- * materialize lazily on first entry (nothing is built here).
+ * ⭐ **The let is the warren's** (controller-liquidity W13):
+ * `DormWarren.let(by, tenant, {theme})` — the residence pack's
+ * `LettingWarren` sequence — decides who may let (staff of the college,
+ * i.e. Katie's `hall-manager` job, or the hall's committee; never "a member
+ * of the landlord group": an NPC is never on a committee), refuses a
+ * double-provision and a full hall, mints the unit at the lowest free slot,
+ * grants it, stamps the domicile, keys it, hangs the door and sets the
+ * move-in style. This controller tells the answer.
  *
- * **Authorization is at `execute()`, and only there** — a dialogue
- * `dispatch` (Katie doing her job) `forceCommand`s this verb, and a forced
- * command runs the view's validators too, so a credential on the view
- * would refuse Katie herself (it did, until the wizard-axis cleanup).
- * Allowed
- * iff the actor holds a position at the college (`duncan-hall/idea/college`
- * — Katie's `hall-manager` job, read off the authored roster) OR sits on
- * the committee over the hall (the owner acting for itself). ⭐ Never
- * "a member of the landlord group": an NPC is never on a committee
- * (economic bootstrap D8). The view carries no credential check: letting a
- * room is a SEAT's act, and a co-located player who types the raw verb is
- * refused with the seat named — the refusal is the progression UI.
+ * The view carries no credential check: letting a room is a SEAT's act
+ * (Katie's dialogue `dispatch` forces this verb), and a co-located player
+ * who types the raw verb is refused with the seat named — the refusal is
+ * the progression UI.
  */
 
-import { HallController } from '../../../lib/HallController';
+import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
-import { Lock } from '@saxonberg/server/mud/lib/lock/Lock';
-import { type ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord';
-import DormWarren from '../DormWarren';
-import DormRoom from '../../location/DormRoom';
-import { Character } from '@saxonberg/server/mud/lib/character/Character';
-import DormThemes from '../DormThemes';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { LetAnswer } from '@saxonberg/content-residence/src/lib/LettingWarren';
+import DormWarren from '../DormWarren';
 
 const TOPIC = 'act.deed';
 
@@ -54,149 +37,47 @@ interface ProvisionModel extends CommandModel {
   theme?: string;
 }
 
-export default class ProvisionController extends HallController<ProvisionModel> {
+export default class ProvisionController extends CommandController<ProvisionModel> {
   async execute(model: ProvisionModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver as Stuff;
-
-    // Inherit the owner from the dorms parcel (the landlord).
-    const dorms = await ParcelApi.coveringParcelOf(DormWarren.DORMS_EXTENT);
-    const owner = dorms?.getOwner();
-    if (!owner) {
-      return this.fail(
-        context,
-        'The dorms wing has no owner to lease under.',
-        'no-dorms-parcel',
-      );
+    const target = model.player?.stuff ?? null;
+    if (!target) {
+      return ProvisionController.fail(context, 'Provision a dorm for whom?', 'no-player');
     }
-
-    // The real authorization boundary (execute-level, so a forced dispatch
-    // can't skip it): staff of the college (Katie), or the hall's committee.
-    if (!(await ProvisionController.mayProvision(actor))) {
-      return this.fail(
-        context,
-        "Only the college's staff or a member of the hall's committee may let Duncan Hall's rooms.",
-        'not-authorized',
-      );
+    const warren = await StuffApi.singleton<DormWarren>(DormWarren.WARREN_PATH);
+    const answer = await warren.let(actor, target, { theme: model.theme });
+    const who = target.getPresentation() ?? target.getIdentityPath() ?? 'them';
+    if (!answer.ok) {
+      return ProvisionController.fail(context, ProvisionController.refusalWords(answer, who), answer.reason);
     }
-
-    const target = model.player?.stuff as Stuff | undefined;
-    const playerPath = target?.getIdentityPath() ?? '';
-    if (!target || !playerPath) {
-      return this.fail(context, 'Provision a dorm for whom?', 'no-player');
-    }
-
-    // One dorm per tenant — refuse a double-provision (keeps Katie's tree
-    // simple: no lease-state guard needed).
-    if (await ParcelApi.heldUnitOf(playerPath)) {
-      const who = target?.getPresentation() ?? playerPath;
-      return this.fail(
-        context,
-        `${who} already holds a dorm.`,
-        'already-housed',
-      );
-    }
-
-    // Lowest-free slot via the plat plan (gap reuse before a new floor;
-    // D10/D13: the per-floor count is the `dorm.roomsPerFloor` dial, the
-    // total the institution's capacity — refused at cap with the reason).
-    const children = await ParcelApi.childParcelsOf(DormWarren.DORMS_EXTENT);
-    const planWarren = await StuffApi.singleton<DormWarren>(DormWarren.WARREN_PATH);
-    if (children.length >= planWarren.capacity()) {
-      return this.fail(
-        context,
-        `Duncan Hall is at capacity: ${children.length} of ` +
-          `${planWarren.capacity()} rooms are taken.`,
-        'at-capacity',
-      );
-    }
-    const taken = new Set(
-      children.map((c) => {
-        const e = c.getExtent();
-        return e.slice(e.lastIndexOf('/') + 1);
-      }),
-    );
-    const leaf = planWarren.getPlatPlan().nextFreeSlot(
-      taken,
-      planWarren.capacity(),
-    );
-    if (!leaf) {
-      return this.fail(context, 'No free room slot.', 'at-capacity');
-    }
-    const unitExtent = `${DormWarren.DORMS_EXTENT}/${leaf}`;
-
-    await ParcelApi.subdivide(unitExtent, DormWarren.DORMS_EXTENT, owner);
-    await ParcelApi.grantUse(unitExtent, playerPath, null);
-
-    // Stamp the tenant's domicile (the civics residency substrate): the
-    // dorm is now their home; the field persists-until-replaced, so a
-    // later unprovision leaves it standing until a new home overwrites
-    // it. Best-effort — a stamp failure never voids the lease.
-    try {
-      if (target instanceof Character) {
-        target.setDomicileAddress(DormRoom.ADDRESS);
-      }
-    } catch {
-      /* best-effort */
-    }
-
-    // Key the unit's lock (a fresh keyway re-keys any prior tenant's key to
-    // dead metal) and issue the tenant their key — a physical brass key in
-    // hand plus an implant-keychain entry. The door checks the KEY, not
-    // identity, so this is what actually lets them in.
-    const keyway = BoundaryApi.mintKeyway();
-    await ParcelApi.setKeyway(unitExtent, keyway);
-    await new Lock(keyway, DormWarren.DORM_LOCK_TECH).issueKeyTo(target);
-
-    // Reflect the new unit into the (possibly-live) building now: hang the
-    // door if its floor is already materialized, and refresh reachability +
-    // the keyway cache.
-    const warren = StuffApi.findByTemplatePath<DormWarren>(DormWarren.WARREN_PATH);
-    if (warren) {
-      await warren.ensureUnitDoor(unitExtent);
-      await warren.refreshProvisioned();
-    }
-
-    // The move-in shell commit: if a style was chosen (Katie's interview
-    // dispatches `provision $player --theme <style>`), set the room's initial
-    // look now, as the institution. Best-effort — a bad style never voids a
-    // provisioned lease; the room is materialized here to seal the overlay.
-    const themeId = (model.theme ?? '').trim();
-    if (themeId) {
-      try {
-        const warren = await StuffApi.singleton<DormWarren>(
-          DormWarren.WARREN_PATH,
-        );
-        const room = await warren.admit(unitExtent);
-        const themes = await StuffApi.singleton<DormThemes>(
-          DormThemes.CATALOGUE_PATH,
-        );
-        await themes.applyTo(room, themeId);
-      } catch (err) {
-        console.warn(
-          `ProvisionController: move-in theme "${themeId}" failed for ` +
-            `${unitExtent}: ${(err as Error).message}`,
-        );
-      }
-    }
-
-    const who = target?.getPresentation() ?? playerPath;
-    this.send(
-      context,
-      Mml.compose`\nProvisioned ${unitExtent} and leased it to ${who}; handed over the key.\n`,
-    );
+    MessageApi.scene(actor)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`\nProvisioned ${answer.unitExtent} and leased it to ${who}; handed over the key.\n`)
+      .send();
   }
 
-  private send(context: CommandContext, body: Mml): void {
-    MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(body).send();
+  /** What a refused let is told as. */
+  protected static refusalWords(answer: Extract<LetAnswer, { ok: false }>, who: string): string {
+    switch (answer.reason) {
+      case 'no-owner':
+        return 'The dorms wing has no owner to lease under.';
+      case 'not-authorized':
+        return "Only the college's staff or a member of the hall's committee may let Duncan Hall's rooms.";
+      case 'no-player':
+        return 'Provision a dorm for whom?';
+      case 'already-housed':
+        return `${who} already holds a dorm.`;
+      case 'at-capacity':
+        return answer.capacity !== undefined && answer.taken !== undefined && answer.taken >= answer.capacity
+          ? `Duncan Hall is at capacity: ${answer.taken} of ${answer.capacity} rooms are taken.`
+          : 'No free room slot.';
+      case 'ascent-condition':
+        return `${who} must put the home they already hold in order first.`;
+    }
   }
 
-  private fail(
-    context: CommandContext,
-    detail: string,
-    reason: string,
-  ): void {
-    this.send(context, Mml.fromMarkup(`\n${detail}\n`));
+  protected static fail(context: CommandContext, detail: string, reason: string): void {
+    MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(Mml.fromMarkup(`\n${detail}\n`)).send();
     context.note({ kind: 'controller-rejected', reason, detail });
   }
-
 }

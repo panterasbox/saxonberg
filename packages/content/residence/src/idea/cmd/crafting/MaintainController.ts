@@ -25,6 +25,12 @@
  *   3. **Is there anything to do?** A sound shell is told so and the
  *      kit is spared.
  *
+ * ⭐ **The fabric answers** (controller-liquidity W13): `maintainWith(kit)`
+ * on the `Maintainable` host — a building or a ship — decides whether there
+ * is anything to do, makes it good and wears the kit; its `fabricKind()` and
+ * `upkeepDiscipline()` are the facts this controller words. It used to
+ * switch on `instanceof Ship` for all three.
+ *
  * ⭐ **Anybody may do this.** The tenure TERM says who *owes* the
  * upkeep, and that is a different question with a different answer
  * surface (`survey`). A tenant who paints their landlord's window
@@ -40,8 +46,7 @@ import type {
 } from "@saxonberg/server/mud/api/command";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
-import type { Tooled } from "@saxonberg/server/mud/lib/craft/Tool";
-import type { Durable } from "@saxonberg/server/mud/lib/material/Durable";
+import type { FabricKind } from "@saxonberg/server/mud/lib/structure/Maintainable";
 import { MessageApi } from "@saxonberg/server/mud/api/message";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { Mml } from "@saxonberg/server/mud/api/mml";
@@ -57,43 +62,30 @@ interface MaintainModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-
 /** The capability a tool must offer to count as a householder's kit. */
 const UPKEEP = "upkeep";
 
-/** Wear per maintenance beat — a season of upkeep costs a kit. */
-const KIT_WEAR = 0.08;
-
-/** Below this an outside coat reads as going — the platform's `structure.coat.thinM` default. */
-const COAT_THIN_M = 0.00001;
-
 /** What there is to keep up: a BUILDING, or a SHIP's hull (a chair is `repair`'s). */
 type Fabric = BuildingBase | Ship;
-
-function kept(s: Stuff): s is Fabric {
-  return s instanceof BuildingBase || s instanceof Ship;
-}
 
 /** The words a fabric is kept in — a house's sills and putty, a hull's seams and pitch. */
 interface UpkeepWords {
   kit: string;
   work: string;
   witnessed: string;
-  /** The Discipline the work exercises; none for a house yet. */
-  discipline?: string;
 }
 
-const HOUSE: UpkeepWords = {
-  kit: "a householder's kit",
-  work: "You work the fabric over — putty into the seams, a sill made good, a nail where a nail was wanted.",
-  witnessed: "works over the fabric of the place with a householder's kit.",
-};
-
-const HULL: UpkeepWords = {
-  kit: "a caulker's kit",
-  work: "You work along her seams, paying in oakum and hot pitch wherever the weather has been at them.",
-  witnessed: "works along her seams with a caulker's kit.",
-  discipline: "seamanship",
+const WORDS: Record<FabricKind, UpkeepWords> = {
+  house: {
+    kit: "a householder's kit",
+    work: "You work the fabric over — putty into the seams, a sill made good, a nail where a nail was wanted.",
+    witnessed: "works over the fabric of the place with a householder's kit.",
+  },
+  hull: {
+    kit: "a caulker's kit",
+    work: "You work along her seams, paying in oakum and hot pitch wherever the weather has been at them.",
+    witnessed: "works along her seams with a caulker's kit.",
+  },
 };
 
 export default class MaintainController extends CommandController {
@@ -104,107 +96,78 @@ export default class MaintainController extends CommandController {
     const named = model.target?.stuff ?? null;
     // ⭐ Named something that is neither a building nor a ship — a peak:
     // the kit has nothing on it to mend (paint B33). Said of the thing named.
-    if (named !== null && named !== room && !kept(named)) {
-      context.note({
-        kind: "controller-rejected",
-        reason: "not-a-building",
-        detail: "not a building",
-      });
-      MessageApi.scene(actor)
-        .topic("sense.survey")
-        .toSelf(
-          Mml.compose`${Mml.thing(named)} is not a building — there are no sills or seams on it for a kit.`,
-        )
-        .send();
+    if (named !== null && named !== room && !MaintainController.kept(named)) {
+      MaintainController.refuse(context, "not-a-building", "not a building",
+        Mml.compose`${Mml.thing(named)} is not a building — there are no sills or seams on it for a kit.`);
       return;
     }
 
-    const building = await this.buildingOf(named, room);
+    const building = await MaintainController.buildingOf(named, room);
     if (!building) {
-      context.note({
-        kind: "controller-rejected",
-        reason: "nothing-to-maintain",
-        detail: "no building here",
-      });
-      MessageApi.scene(actor)
-        .topic("sense.survey")
-        .toSelf(
-          Mml.compose`This isn't anybody's to keep up — there's no house here, only somewhere to be.`,
-        )
-        .send();
+      MaintainController.refuse(context, "nothing-to-maintain", "no building here",
+        Mml.compose`This isn't anybody's to keep up — there's no house here, only somewhere to be.`);
       return;
     }
 
-    const words = building instanceof Ship ? HULL : HOUSE;
-    const kit = this.kitOf(model.kit?.stuff);
-    if (!kit) {
-      context.note({
-        kind: "controller-rejected",
-        reason: "no-upkeep-tool",
-        detail: "no kit in hand",
-      });
-      MessageApi.scene(actor)
-        .topic("sense.survey")
-        .toSelf(
-          Mml.compose`You'd need ${Mml.text(words.kit)} in your hands to do anything about it.`,
-        )
-        .send();
+    const words = WORDS[building.fabricKind()];
+    const kit = model.kit?.stuff ?? null;
+    if (!kit || !MixinApi.isTool(kit) || !kit.hasCapability(UPKEEP)) {
+      MaintainController.refuse(context, "no-upkeep-tool", "no kit in hand",
+        Mml.compose`You'd need ${Mml.text(words.kit)} in your hands to do anything about it.`);
       return;
     }
 
-    const before = building.getConditionWord();
-    if (before === "sound") {
-      const coatWanting = !(building instanceof Ship) && (building.coatGone() || building.coatThin(COAT_THIN_M));
-      context.note({
-        kind: "controller-rejected",
-        reason: coatWanting ? "coat-not-fabric" : "already-sound",
-        detail: coatWanting ? "the coat wants paint, not the kit" : "nothing needs doing",
-      });
-      MessageApi.scene(actor)
-        .topic("sense.survey")
-        .toSelf(
-          coatWanting
-            ? Mml.compose`The fabric is sound. What it wants is a coat, and that is a brush's work, not the kit's.`
-            : Mml.compose`You look the place over and find nothing that needs doing. Put the kit down.`,
-        )
-        .send();
+    const answer = building.maintainWith(kit);
+    if (!answer.ok) {
+      const coat = answer.reason === "coat-not-fabric";
+      MaintainController.refuse(context, answer.reason,
+        coat ? "the coat wants paint, not the kit" : "nothing needs doing",
+        coat
+          ? Mml.compose`The fabric is sound. What it wants is a coat, and that is a brush's work, not the kit's.`
+          : Mml.compose`You look the place over and find nothing that needs doing. Put the kit down.`);
       return;
-    }
-
-    building.setCondition(1);
-    if (MixinApi.isDurable(kit as Stuff)) {
-      (kit as unknown as Durable).wear(KIT_WEAR);
     }
 
     MessageApi.scene(actor)
       .topic("sense.survey")
       .toSelf(
-        Mml.compose`${Mml.text(words.work)} It was ${Mml.text(before)}; it is sound again.`,
+        Mml.compose`${Mml.text(words.work)} It was ${Mml.text(answer.before)}; it is sound again.`,
       )
       .toPeers(
         Mml.compose`${Mml.actor(actor)} ${Mml.text(words.witnessed)}`,
       )
       .send();
 
-    // ⭐ The fabric names the Discipline the work exercises:
-    // caulking a hull is seamanship; keeping a house is nobody's yet.
-    if (words.discipline && MixinApi.isAdvancing(actor)) {
+    // ⭐ The fabric names the Discipline the work exercises.
+    const discipline = building.upkeepDiscipline();
+    if (discipline && MixinApi.isAdvancing(actor)) {
       await actor.creditDeed({
-        discipline: words.discipline,
+        discipline,
         difficulty: "standard",
         outcome: "success",
       });
     }
   }
 
+  /** A building or a ship — the two fabrics a kit keeps up. */
+  protected static kept(s: Stuff): s is Fabric {
+    return s instanceof BuildingBase || s instanceof Ship;
+  }
+
+  protected static refuse(context: CommandContext, reason: string, detail: string, said: Mml): void {
+    context.note({ kind: "controller-rejected", reason, detail });
+    MessageApi.scene(context.commandGiver).topic("sense.survey").toSelf(said).send();
+  }
+
   /**
    * The building to keep up: one named from its landing (it entered the
    * room's pool there), else the building this room is part of.
    */
-  private async buildingOf(
+  protected static async buildingOf(
     named: Stuff | null,
     room: Stuff | null | undefined,
   ): Promise<Fabric | null> {
+    const kept = MaintainController.kept;
     if (named !== null && named !== room) return kept(named) ? named : null;
     if (!room) return null;
     // A ship's room: her warren says she is the ship.
@@ -224,11 +187,5 @@ export default class MaintainController extends CommandController {
     const path = room.getIdentityPath();
     const s = path ? await NavigationApi.structureAt(path) : null;
     return s !== null && kept(s) ? s : null;
-  }
-
-  /** ⭐ The bound kit, if it offers `upkeep`. Resolved by the binder. */
-  private kitOf(bound: Stuff | null | undefined): (Stuff & Tooled) | null {
-    if (!bound || !MixinApi.isTool(bound)) return null;
-    return bound.hasCapability(UPKEEP) ? (bound as Stuff & Tooled) : null;
   }
 }

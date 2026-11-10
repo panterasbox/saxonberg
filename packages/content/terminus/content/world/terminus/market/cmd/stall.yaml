@@ -30,10 +30,40 @@ examples:
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ WHICH SQUARE, declared rather than hunted for (the title desk's
+  # shape): the stalls fixture that manages the pitches.
+  - name: square
+    type: object
+    required: false
+    prepositions: [at]
+    default: "reachable:[class.MarketStalls]"
+    scope: ["here", "peers", "person"]
+    requires: [TangibleMixin]
 subcommands:
   rent:
     controller: /world/terminus/market/idea/cmd/StallRentController
     description: "Rent a stall (or open the one you hold)"
+    args:
+      # ⭐ WHICH SQUARE, declared rather than hunted for (the title desk's
+      # shape): the stalls fixture that manages the pitches.
+      - name: square
+        type: object
+        required: false
+        prepositions: [at]
+        default: "reachable:[class.MarketStalls]"
+        scope: ["here", "peers", "person"]
+        requires: [TangibleMixin]
   give-up:
     controller: /world/terminus/market/idea/cmd/StallGiveUpController
     description: "Pack your stall away; what is on it comes back to you"
+    args:
+      # ⭐ WHICH SQUARE, declared rather than hunted for (the title desk's
+      # shape): the stalls fixture that manages the pitches.
+      - name: square
+        type: object
+        required: false
+        prepositions: [at]
+        default: "reachable:[class.MarketStalls]"
+        scope: ["here", "peers", "person"]
+        requires: [TangibleMixin]

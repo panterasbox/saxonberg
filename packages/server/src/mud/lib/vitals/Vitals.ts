@@ -731,6 +731,12 @@ export interface TreatmentOpts {
    * a kit only washed carries what it last cut into the next wound.
    */
   instrumentTier?: CleanTier;
+  /**
+   * ⭐ The wound is closed with stitches (D8) — it heals at the sutured rate
+   * and reopens as a stitched wound. The body writes the flag
+   * (controller-liquidity W13: `suture` used to set it on the record).
+   */
+  sutured?: boolean;
 }
 
 /** Outcome of {@link Vitals.applyTreatment}. */
@@ -950,11 +956,18 @@ export interface Vitals {
   ): ActOutcome<BloodUnit> | BloodDrawRefusal;
   /** Receive blood or a saline expander. Compatible closes the gap to
    * baseline; saline caps at the plasma ceiling; incompatible delivers
-   * plasma only and inflicts the graded transfusion reaction. */
+   * plasma only and inflicts the graded transfusion reaction.
+   *
+   * ⭐ `by` — the hand giving it (controller-liquidity W13): a REACTING unit
+   * forced into another body is harm on the accountability ledger, and a
+   * transfusion that brings a dying body back writes the revival into its
+   * chronicle, naming the donor. The body records both; `transfuse` only
+   * tells it. Self-use records neither. */
   receiveBlood(spec: {
     litres: number;
-    blood: { speciesPath: string; system?: string; type: string } | null;
+    blood: { speciesPath: string; system?: string; type: string; donorIdentityPath?: string } | null;
     expander?: boolean;
+    by?: Stuff | null;
   }): { accepted: number; reaction: 0 | 1 | 2 };
   /** Is the body under anaesthesia (an active `sedation` effect)? (D10) */
   isSedated(): boolean;
@@ -1021,6 +1034,13 @@ export interface Vitals {
    * the clot threshold bleeds again. The bandage is spent, not recovered.
    */
   undressWound(chosen?: Trauma): UndressAnswer;
+  /**
+   * ⭐ An interrupted operation leaves `wound` OPEN and worse (clinical
+   * medicine D7): `worsenBy` added to its severity, its sepsis clock
+   * restarted, its care and dressing gone. The body writes its own wound
+   * records (controller-liquidity C39 — the controller used to).
+   */
+  leaveWoundOpen(wound: Trauma, worsenBy: number): void;
   /** The healed-over scars this body keeps (D14) — never a penalty. */
   getScars(): readonly ScarRecord[];
   /** ⭐ D15 — re-break every half-knit fracture under mechanical work
@@ -1523,30 +1543,10 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (refused) return refused;
       const self = this as unknown as Stuff;
       if (by.stuffId !== self.stuffId) {
-        // ⭐ What `transfuse` does after the fact: blood taken from another
-        // body is on the ledger, named to the hand that took it. ⚠
-        // `consented: false` — nothing decides consent yet (deferred seam).
-        const victimId = AccountabilityEvent.partyIdOf(self);
-        const byId = AccountabilityEvent.partyIdOf(by);
-        if (victimId && byId) {
-          let sentient = false;
-          try {
-            sentient = SpeciesApi.isSentient(self);
-          } catch {
-            sentient = false;
-          }
-          AccountabilityApi.record({
-            kind: 'harm',
-            sessionId: `phlebotomy:${by.stuffId}:${self.stuffId}`,
-            initiator: byId,
-            opponent: victimId,
-            victim: victimId,
-            killer: byId,
-            consented: false,
-            sentient,
-            victimFor: AccountabilityEvent.partyForOf(self),
-          });
-        }
+        // ⭐ Blood taken from another body is on the ledger, named to the
+        // hand that took it. ⚠ `consented: false` — nothing decides consent
+        // yet (deferred seam).
+        this.recordHarmBy(by, `phlebotomy:${by.stuffId}:${self.stuffId}`);
       }
       const bv = this._bloodVolume.rawValue();
       this.setVitalSign('bloodVolume', Quantity.of(Math.max(0, bv - litres), 'L'));
@@ -1568,6 +1568,72 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public receiveBlood(spec: {
+      litres: number;
+      blood: { speciesPath: string; system?: string; type: string; donorIdentityPath?: string } | null;
+      expander?: boolean;
+      by?: Stuff | null;
+    }): { accepted: number; reaction: 0 | 1 | 2 } {
+      const self = this as unknown as Stuff;
+      const by = spec.by && spec.by.stuffId !== self.stuffId ? spec.by : null;
+      const wasDying = by !== null && this.isDying();
+      const result = this.takeBlood(spec);
+      if (by !== null) {
+        // A reacting unit forced into another body is NON-consented harm (a
+        // transfusion just works — there is no consent ladder).
+        if (result.reaction > 0) this.recordHarmBy(by, `transfusion:${by.stuffId}:${Date.now()}`);
+        // The revival deed (blood D8): whose blood brought them back.
+        if (wasDying && !this.isDying()) {
+          void this.recordRevival(spec.blood?.donorIdentityPath ?? '');
+        }
+      }
+      return result;
+    }
+
+    /** Append a `harm` row naming `by` as the hand (the trap's producer shape). */
+    private recordHarmBy(by: Stuff, sessionId: string): void {
+      const self = this as unknown as Stuff;
+      const victimId = AccountabilityEvent.partyIdOf(self);
+      const byId = AccountabilityEvent.partyIdOf(by);
+      if (!victimId || !byId) return;
+      let sentient = false;
+      try {
+        sentient = SpeciesApi.isSentient(self);
+      } catch {
+        sentient = false;
+      }
+      AccountabilityApi.record({
+        kind: 'harm',
+        sessionId,
+        initiator: byId,
+        opponent: victimId,
+        victim: victimId,
+        killer: byId,
+        consented: false,
+        sentient,
+        victimFor: AccountabilityEvent.partyForOf(self),
+      });
+    }
+
+    /** The chronicle remembers a transfusion that revived this body. */
+    private async recordRevival(donorIdentityPath: string): Promise<void> {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isPersona(self)) return;
+      const live = donorIdentityPath
+        ? StuffApi.findAllByTemplatePath(donorIdentityPath)[0]
+        : undefined;
+      const donorName = live ? live.getPresentation() : 'A donor';
+      await self.recordChronicleOnce(
+        `blood-revival:${donorIdentityPath}:${Date.now()}`,
+        {
+          kind: 'deed',
+          text: `${donorName}'s blood brought you back from the edge.`,
+          tags: ['blood', 'revival'],
+        },
+      );
+    }
+
+    /** The volume and the reaction — the body taking what it is given. */
+    private takeBlood(spec: {
       litres: number;
       blood: { speciesPath: string; system?: string; type: string } | null;
       expander?: boolean;
@@ -3916,12 +3982,22 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       return { ok: true, facts: { wound, sutured, reopened: wound.bleeding === true } };
     }
 
+    /** See {@link Vitals.leaveWoundOpen}. */
+    public leaveWoundOpen(wound: Trauma, worsenBy: number): void {
+      if (!this.getConditions().includes(wound)) return;
+      wound.severity += Math.max(0, worsenBy);
+      wound.openSince = WorldClockApi.getNow().rawValue();
+      wound.careQuality = undefined;
+      wound.dressed = false;
+    }
+
     public applyTreatment(
       wound: Trauma,
       opts: TreatmentOpts,
     ): TreatmentResult {
       TRAUMA_BEHAVIOR[wound.type].resolve(this, wound);
       wound.careQuality = Math.max(0, Math.min(1, opts.efficacy));
+      if (opts.sutured === true) wound.sutured = true;
       // Dressing a wound resets its open-wound sepsis clock (D11).
       wound.openSince = undefined;
       wound.septicSeeded = false;

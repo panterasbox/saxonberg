@@ -21,7 +21,6 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import StallRentController from '../idea/cmd/StallRentController';
 import StallGiveUpController from '../idea/cmd/StallGiveUpController';
-import { STALL_SEED, STALL_BUSINESS_SEED, MARKET_BUSINESS } from '../idea/cmd/StallControllerBase';
 import MarketStalls from '../thing/MarketStalls';
 import Stock from '@saxonberg/content-trade-shopkeeping/src/thing/Stock';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
@@ -54,6 +53,9 @@ import { makeStuff, makeStuffAtPath, withRootContext } from '@saxonberg/server/m
 import { PlayerApi } from '@saxonberg/server/mud/api/player';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { installBankingHarness, teardownBankingHarness } from '@saxonberg/server/mud/lib/banking/__tests__/banking-test-harness';
+const STALL_SEED = MarketStalls.STALL_SEED;
+const STALL_BUSINESS_SEED = MarketStalls.STALL_BUSINESS_SEED;
+const MARKET_BUSINESS = '/world/terminus/market/business';
 
 const BANK = '/test/stall/thing/bank-counter';
 const SQUARE = '/test/stall/location/square';
@@ -129,7 +131,7 @@ async function fundedGiver(path: string, minor: number): Promise<TestGiver> {
 
 async function stall(giver: TestGiver, subcommand: 'rent' | 'give-up'): Promise<CommandContext> {
   const c = ctx(giver, square, stalls, `stall ${subcommand}`);
-  await asOwner(giver, () => makeStuff(() => (subcommand === 'give-up' ? new StallGiveUpController() : new StallRentController())).execute({ subcommand } as never, c));
+  await asOwner(giver, () => makeStuff(() => (subcommand === 'give-up' ? new StallGiveUpController() : new StallRentController())).execute({ subcommand, square: { stuff: stalls } } as never, c));
   return c;
 }
 

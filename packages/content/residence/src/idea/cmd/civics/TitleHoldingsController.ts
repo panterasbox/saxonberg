@@ -27,8 +27,6 @@ export default class TitleHoldingsController extends TitleBookControllerBase {
       {
         const record = await ParcelApi.coveringParcelOf(extent);
         if (!record || record.getExtent() !== extent) continue;
-        const owner = record.getOwner();
-        if (owner?.kind !== 'player' || owner.templatePath !== me) continue;
         const book = await this.bookCovering(extent);
         if (!book) continue;
         const where = book.getLabel();

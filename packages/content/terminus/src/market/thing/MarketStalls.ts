@@ -55,11 +55,50 @@ import Stock from '@saxonberg/content-trade-shopkeeping/src/thing/Stock';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
+import { BankingApi, Money } from '@saxonberg/server/mud/api/banking';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { EmploymentApi, type Business } from '@saxonberg/server/mud/api/employment';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type {
   HydrationSource,
   HydrateOutcome,
 } from '@saxonberg/server/mud/lib/persistence/PersistenceSlice';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+
+/** Why `MarketStalls.let` refused. Each is decided before any money moves. */
+export type StallLetRefusal =
+  | 'no-identity'
+  | 'no-square'
+  | 'no-bank'
+  | 'square-full'
+  | 'cant-afford'
+  | 'no-market-account';
+
+/** What `MarketStalls.let` answers: the renter's counter and house, or why not. */
+export type StallLetAnswer =
+  | {
+      ok: true;
+      counter: Stock;
+      /** A first let (`false` = the stall they already hold, opened). */
+      fresh: boolean;
+      /** The bank the house banks with (the renter's own custodian). */
+      bank: string;
+      /** The house's operating account. */
+      account: string;
+    }
+  | { ok: false; reason: StallLetRefusal; rentMinor: number };
+
+/** What `MarketStalls.giveUp` answers. */
+export type StallGiveUpAnswer =
+  | {
+      ok: true;
+      /** Where the counter's goods went: the keeper's hands, or the square. */
+      goodsTo: 'hands' | 'square';
+    }
+  | { ok: false; reason: 'no-stall' };
 
 export default class MarketStalls extends Stock {
   static fieldMeta: FieldMeta = {
@@ -198,6 +237,160 @@ export default class MarketStalls extends Stock {
     delete this.lets[held];
     await this.captureBook();
     return held;
+  }
+
+  /**
+   * ⭐ **Let `renter` a stall on this square** (controller-liquidity W13) —
+   * or open the one they already hold. Every refusal first (an identity, a
+   * square to stand in, an account whose bank the house will use, a free
+   * pitch); the rent, paid once from their account to the market's, only
+   * for a pitch with no record of theirs; then the counter — minted keyed
+   * to the PITCH and restored if packed away by a restart — and the house,
+   * re-minted from the renter every time (nothing in it is its own).
+   */
+  public async let(renter: Stuff): Promise<StallLetAnswer> {
+    const rent = this.rentMinor;
+    const refuse = (reason: StallLetRefusal): StallLetAnswer => ({ ok: false, reason, rentMinor: rent });
+    const renterKey = renter.getIdentityPath() ?? '';
+    if (!renterKey) return refuse('no-identity');
+    const square = this.getContainer();
+    if (!square || !MixinApi.isContainer(square)) return refuse('no-square');
+
+    // The stall banks where its keeper does.
+    const primary = await BankingApi.primaryAccountIdOf(renterKey);
+    const bank = primary ? await BankingApi.custodianOf(primary) : null;
+    if (!primary || !bank) return refuse('no-bank');
+
+    // Their pitch: the one they hold, else the lowest free one. A full
+    // square refuses before any money moves.
+    const pitch = await this.allocatePitch(renterKey);
+    if (!pitch) return refuse('square-full');
+
+    const ids = this.idsFor(pitch);
+    let counter = StuffApi.findByTemplatePath<Stock>(ids.counter) ?? null;
+    let fresh = false;
+    if (!counter) {
+      // A pitch with a record of theirs is a stall packed away by a
+      // restart — theirs already, not a new let.
+      const held = await PersistableApi.hasRecord(ids.counter, ids.key);
+      const due = held ? 0 : rent;
+      if (due > 0) {
+        // ⚠ Every refusal from here gives the pitch back: the allocation
+        // came first so a full square could refuse without charging.
+        if (BankingApi.balanceOf(primary).minor < due) {
+          await this.releasePitch(renterKey);
+          return refuse('cant-afford');
+        }
+        const market = await EmploymentApi.ensureOperatorAt(this.getTemplatePath() ?? '');
+        const marketAccount = market ? await EmploymentApi.operatingAccountOf(market) : null;
+        if (!marketAccount) {
+          await this.releasePitch(renterKey);
+          return refuse('no-market-account');
+        }
+        await BankingApi.transfer(primary, marketAccount, Money.of(due, BankingApi.compactCurrency()), 'stall rent');
+      }
+      // identity-keyed-by: own-record — the counter's own
+      // `holder_snapshots` record (`restoreOrSeed` just below), plus the
+      // house's `operatingLocations` and `counterPath` round-trips,
+      // which resolve this exact string.
+      counter = await StuffApi.clone<Stock>(MarketStalls.STALL_SEED, undefined, { asIdentityPath: ids.counter });
+      const restored = await PersistableApi.restoreOrSeed(counter, ids.key);
+      // The counter answers to the renter's house — the closed sign, the
+      // attendance point, the operator a customer meets.
+      counter.setBusinessPath(ids.house);
+      if (!restored) {
+        fresh = true;
+        const who = renter.getPresentation() ?? 'someone';
+        const stem = who.replace(/[^A-Za-z]+/g, ' ').trim().split(' ')[0]?.toLowerCase() ?? '';
+        counter.setShortDescription(`${who}'s stall`);
+        counter.setKeywords(['stall', 'counter', 'trestle', ...(stem ? [stem] : [])]);
+        ContainmentApi.move(counter as unknown as Stuff & Containable, square);
+        await PersistableApi.capture(counter, ids.key);
+      } else if (!MixinApi.isContainable(counter) || counter.getContainer() !== square) {
+        ContainmentApi.move(counter as unknown as Stuff & Containable, square);
+      }
+    }
+
+    // The house — derived from the renter, re-minted rather than restored.
+    let house = StuffApi.findByTemplatePath<Stuff & Business>(ids.house) ?? null;
+    if (!house) {
+      house = await StuffApi.clone<Stuff & Business>(MarketStalls.STALL_BUSINESS_SEED, undefined, {
+        // identity-keyed-by: referenced — the house's operating account
+        // keys on this identity (`Business.getAccountPath()`), and
+        // employment records reference it as `organizationPath`.
+        asIdentityPath: ids.house,
+        dataOverlay: {
+          name: `${renter.getPresentation() ?? 'a keeper'}'s stall`,
+          appointingAuthority: { kind: 'entity', path: renterKey },
+          banksAt: bank,
+          operatingLocations: [ids.counter],
+        },
+      });
+    }
+    if (!house.employs(renter)) await house.appoint(renter, 'keeper');
+    // The operator at the counter is the house: the employment memo has to
+    // re-see a business minted outside its own standup path.
+    await EmploymentApi.ensureOperatorAt(ids.counter);
+    const account = await EmploymentApi.operatingAccountOf(house);
+    return { ok: true, counter, fresh, bank, account };
+  }
+
+  /**
+   * ⭐ **Pack `renter`'s stall away** — what is on the counter goes to
+   * their hands (custody only; a supplier's crate is still the supplier's),
+   * or onto the square when they cannot hold things (C5: the goods used to
+   * be destructed with the counter); the pitch's record is DELETED, not
+   * captured empty (a pitch that remembers the last keeper's counter hands
+   * it to the next renter); the house stays with nothing to operate; the
+   * pitch frees last.
+   */
+  public async giveUp(renter: Stuff): Promise<StallGiveUpAnswer> {
+    const renterKey = renter.getIdentityPath() ?? '';
+    // ⭐ The BOOK says which pitch is theirs.
+    const pitch = this.pitchOf(renterKey);
+    if (!pitch) return { ok: false, reason: 'no-stall' };
+    const ids = this.idsFor(pitch);
+    const counter = StuffApi.findByTemplatePath<Stock>(ids.counter) ?? null;
+    if (!counter) return { ok: false, reason: 'no-stall' };
+
+    const square = this.getContainer();
+    const hands = MixinApi.isContainer(renter) ? (renter as Stuff & Container) : null;
+    const to = hands ?? (square && MixinApi.isContainer(square) ? square : null);
+    for (const good of [...counter.getContents()]) {
+      counter.removeListing?.(MixinApi.isChattel(good) ? good.getChattelId() : '');
+      if (to) ContainmentApi.move(good as unknown as Stuff & Containable, to);
+    }
+    // The owner IS the pitch key, so this is one record.
+    await PersistableApi.deleteAllFor(ids.key);
+    const house = StuffApi.findByTemplatePath<Stuff & Business>(ids.house) ?? null;
+    if (house) house.setOperatingLocations([]);
+    await StuffApi.destruct(counter as unknown as Stuff);
+    // Last, so a throw above leaves the let intact rather than orphaning a
+    // standing counter.
+    await this.releasePitch(renterKey);
+    return { ok: true, goodsTo: hands ? 'hands' : 'square' };
+  }
+
+  /** The seed a renter's counter is minted from, and the scope its record is filed under. */
+  static readonly STALL_SEED = '/world/terminus/market/thing/stall';
+  /** The seed a renter's house is minted from. */
+  static readonly STALL_BUSINESS_SEED = '/trade/shopkeeping/idea/business/stall';
+
+  /**
+   * The key and the two identities of the stall on `pitch`. The **key** is
+   * `<this fixture's row>/<pitch>` — the manager's own durable address as
+   * the prefix, exactly as a holding warren keys its rooms `<extent>/<leaf>`.
+   * The two **identities** derive from that key with its leading slash
+   * stripped, so each nests under its own seed row.
+   */
+  public idsFor(pitch: string): { key: string; counter: string; house: string } {
+    const key = `${this.getTemplatePath() ?? ''}/${pitch}`;
+    const leaf = key.replace(/^\/+/, '');
+    return {
+      key,
+      counter: `${MarketStalls.STALL_SEED}/${leaf}`,
+      house: `${MarketStalls.STALL_BUSINESS_SEED}/${leaf}`,
+    };
   }
 
   /** Write the book down. Every mutator above calls it. */

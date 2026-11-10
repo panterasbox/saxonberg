@@ -1,186 +1,89 @@
 /**
  * LeaseController — the `lease <player>` verb (a Mayfield Row *content*
- * verb: it hardcodes Seznick House). The landlord act one rung up the
- * ladder from the dorm's `provision`: mint a unit parcel at the lowest
- * free slot (`f<floor>-u<pos>`), lease it, key it fresh, and hand over
- * the key — the unit comes EMPTY (built-ins only, D9), and the ASCENT
- * GATE (P10) reads the condition of what the tenant already holds.
+ * verb: it names Seznick House). The landlord act one rung up the ladder
+ * from the dorm's `provision`: the unit comes EMPTY (built-ins only, D9),
+ * and the ASCENT GATE (P10) reads the condition of what the tenant already
+ * holds.
  *
- * Authorization is at `execute()` (a dialogue `dispatch` — Walter doing
- * his job — bypasses any validator): the actor holds the `agent`
- * position at Mayfield Holdings (the letting agency — Walter's job), or
- * sits on the building's committee (the owner acting for itself).
- * ⭐ Staff or owner, never "a member of the landlord group": Walter is an
- * NPC, and an NPC is never on a committee (economic bootstrap D8).
+ * ⭐ **The let is the building's** (controller-liquidity W13):
+ * `BuildingWarren.let(by, tenant)` — the residence pack's `LettingWarren`
+ * sequence — asks who may let (the `agent` position at Mayfield Holdings —
+ * Walter's job — or the building's committee; never "a member of the
+ * landlord group": an NPC is never on a committee), refuses a second flat
+ * here, the ascent gate and a full house, then mints the unit at the lowest
+ * free slot, grants it, stamps the domicile and keys it. Who lets, the
+ * domicile and the unit branch are authored on the building row. This
+ * controller tells the answer.
  */
 
-import { LettingController, BUILDING_EXTENT, BUILDING_PATH, HOUSE_ADDRESS, AGENCY_PATH } from '../../../lib/LettingController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
+import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { AppApi } from '@saxonberg/server/mud/api/app';
-import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { Lock } from '@saxonberg/server/mud/lib/lock/Lock';
-import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
-import { Character } from '@saxonberg/server/mud/lib/character/Character';
-import type { ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
+import type BuildingWarren from '@saxonberg/content-residence/src/idea/BuildingWarren';
+import type { LetAnswer } from '@saxonberg/content-residence/src/lib/LettingWarren';
 
 const TOPIC = 'act.deed';
 
-// Seznick House's authored anchors live on the shared base; re-exported
-// so the tests and the sibling verb keep one import site.
-export { BUILDING_EXTENT, BUILDING_PATH, HOUSE_ADDRESS, AGENCY_PATH };
-const LOCK_TECH = 'pin-tumbler' as const;
+/** Seznick House's building row — the warren that lets its flats. */
+export const BUILDING_PATH = '/world/terminus/mayfield-row/seznick-house/building';
 
 interface LeaseModel extends CommandModel {
   player?: MqlOneResult;
 }
 
-/** The building surface this verb drives (the BuildingWarren row). */
-interface BuildingView extends Stuff {
-  capacity(): number;
-  getPlatPlan(): { nextFreeSlot(taken: ReadonlySet<string>, cap: number): string | null };
-  ensureEntry(key: string): Promise<void>;
-  ensureNode(nodeId: string): Promise<unknown>;
-  refreshProvisioned(): Promise<void>;
-}
-
-export default class LeaseController extends LettingController<LeaseModel> {
+export default class LeaseController extends CommandController<LeaseModel> {
   async execute(model: LeaseModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver as Stuff;
-
-    const building = await ParcelApi.coveringParcelOf(BUILDING_EXTENT);
-    const owner = building?.getOwner();
-    if (!owner) {
-      return this.fail(
-        context,
-        'Seznick House has no owner of record to lease under.',
-        'no-building-parcel',
-      );
+    const building = await StuffApi.singleton<BuildingWarren>(BUILDING_PATH).catch(() => null);
+    if (!building) {
+      return LeaseController.fail(context, 'The house ledger is not standing.', 'no-building');
     }
-    if (!(await LeaseController.mayLet(actor))) {
-      return this.fail(
-        context,
-        "Only the letting agency's staff or a member of the building's committee may let Seznick House's rooms.",
-        'not-authorized',
-      );
+    const target = model.player?.stuff ?? null;
+    if (!target) {
+      return LeaseController.fail(context, 'Lease a flat to whom?', 'no-player');
     }
-
-    const target = model.player?.stuff as Stuff | undefined;
-    const playerPath = target?.getIdentityPath() ?? '';
-    if (!target || !playerPath) {
-      return this.fail(context, 'Lease a flat to whom?', 'no-player');
+    const answer = await building.let(actor, target);
+    const who = target.getPresentation() ?? target.getIdentityPath() ?? 'them';
+    if (!answer.ok) {
+      return LeaseController.fail(context, LeaseController.refusalWords(answer, who), answer.reason);
     }
-
-    // One unit per tenant IN THIS BUILDING (the ladder means a dorm or a
-    // lot elsewhere is fine — the scoped check, residences D16).
-    if (await ParcelApi.heldUnitOf(playerPath, BUILDING_EXTENT)) {
-      const who = target.getPresentation() ?? playerPath;
-      return this.fail(context, `${who} already holds a flat here.`, 'already-housed');
-    }
-
-    // The ASCENT GATE (P10): the condition of what they already hold.
-    const refusal = await LeaseController.ascentRefusal(playerPath);
-    if (refusal) {
-      return this.fail(context, refusal, 'ascent-condition');
-    }
-
-    // Lowest free slot from the plan, under the operator's cap (D10).
-    const view = StuffApi.findByTemplatePath<BuildingView>(BUILDING_PATH);
-    if (!view) {
-      return this.fail(context, 'The house ledger is not standing.', 'no-building');
-    }
-    const children = await ParcelApi.childParcelsOf(BUILDING_EXTENT);
-    if (children.length >= view.capacity()) {
-      return this.fail(
-        context,
-        `Seznick House is full: ${children.length} of ${view.capacity()} ` +
-          `units are taken.`,
-        'at-capacity',
-      );
-    }
-    const taken = new Set(
-      children.map((c) => {
-        const e = c.getExtent();
-        return e.slice(e.lastIndexOf('/') + 1);
-      }),
-    );
-    const leaf = view.getPlatPlan().nextFreeSlot(taken, view.capacity());
-    if (!leaf) {
-      return this.fail(context, 'No free unit slot.', 'at-capacity');
-    }
-    const unitExtent = `${BUILDING_EXTENT}/units/${leaf}`;
-
-    await ParcelApi.subdivide(unitExtent, BUILDING_EXTENT, owner);
-    await ParcelApi.grantUse(unitExtent, playerPath, null);
-
-    // The domicile stamp (best-effort; persists-until-replaced).
-    try {
-      if (target instanceof Character) {
-        target.setDomicileAddress(HOUSE_ADDRESS);
-      }
-    } catch {
-      /* best-effort */
-    }
-
-    // Key the unit fresh and hand the tenant the key (D7).
-    const keyway = BoundaryApi.mintKeyway();
-    await ParcelApi.setKeyway(unitExtent, keyway);
-    await new Lock(keyway, LOCK_TECH).issueKeyTo(target);
-
-    // Reflect into the (possibly-live) building now.
-    await view.refreshProvisioned();
-    await view.ensureEntry(unitExtent);
-
-    const who = target.getPresentation() ?? playerPath;
-    this.send(
-      context,
-      Mml.compose`\nLet ${unitExtent} to ${who}; the flat comes empty, and the key is theirs.\n`,
-    );
+    MessageApi.scene(actor)
+      .topic(TOPIC)
+      .toSelf(
+        Mml.compose`\nLet ${answer.unitExtent} to ${who}; the flat comes empty, and the key is theirs.\n`,
+      )
+      .send();
   }
 
-
-  /** The ascent gate's read (P10) — shared with the sale chokepoint's
-   *  shape: any held residential unit below the threshold refuses. */
-  private static async ascentRefusal(holder: string): Promise<string | null> {
-    let min = 0.5;
-    try {
-      const raw = Number.parseFloat(
-        AppApi.setting('residence.ascent.minCondition'),
-      );
-      if (Number.isFinite(raw) && raw > 0) min = raw;
-    } catch {
-      /* cold cache — the shipped default */
-    }
-    for (const record of await ParcelApi.heldUnitsOf(holder)) {
-      const extent = record.getExtent();
-      let cond: { condition: number; band: string } | null = null;
-      try {
-        cond = await CirculationWarren.conditionOf(extent);
-      } catch {
-        cond = null;
-      }
-      if (cond && cond.condition < min) {
-        const leaf = extent.slice(extent.lastIndexOf('/') + 1);
+  /** What a refused let is told as. */
+  protected static refusalWords(answer: Extract<LetAnswer, { ok: false }>, who: string): string {
+    switch (answer.reason) {
+      case 'no-owner':
+        return 'Seznick House has no owner of record to lease under.';
+      case 'not-authorized':
+        return "Only the letting agency's staff or a member of the building's committee may let Seznick House's rooms.";
+      case 'no-player':
+        return 'Lease a flat to whom?';
+      case 'already-housed':
+        return `${who} already holds a flat here.`;
+      case 'ascent-condition':
         return (
           `Walter taps the letting board and doesn't move a tab: the home ` +
-          `you already hold (${leaf}) is ${cond.band}. Put it right first.`
+          `you already hold (${answer.ascent?.leaf ?? ''}) is ${answer.ascent?.band ?? ''}. Put it right first.`
         );
-      }
+      case 'at-capacity':
+        return answer.capacity !== undefined && answer.taken !== undefined && answer.taken >= answer.capacity
+          ? `Seznick House is full: ${answer.taken} of ${answer.capacity} units are taken.`
+          : 'No free unit slot.';
     }
-    return null;
   }
 
-  private send(context: CommandContext, body: Mml): void {
-    MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(body).send();
-  }
-
-  private fail(context: CommandContext, detail: string, reason: string): void {
-    this.send(context, Mml.fromMarkup(`\n${detail}\n`));
+  protected static fail(context: CommandContext, detail: string, reason: string): void {
+    MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(Mml.fromMarkup(`\n${detail}\n`)).send();
     context.note({ kind: 'controller-rejected', reason, detail });
   }
 }

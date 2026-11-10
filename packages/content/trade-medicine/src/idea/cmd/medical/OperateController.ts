@@ -24,10 +24,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Postures } from '@saxonberg/server/mud/lib/slot/Postured';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import { HARM_DEFAULTS } from '@saxonberg/server/mud/platform/idea/Condition';
-import {
-  OperationEngagement,
-  OperationPatientHold,
-} from '@saxonberg/server/mud/lib/vitals/OperationEngagement';
+import { OperationEngagement } from '@saxonberg/server/mud/lib/vitals/OperationEngagement';
 import type OperationCatalogue from '@saxonberg/server/mud/platform/idea/OperationCatalogue';
 import type { OperationDescriptor } from '@saxonberg/server/mud/platform/idea/Operation';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
@@ -194,12 +191,7 @@ export default class OperateController extends CommandController<OperateModel> {
 
     const onAbort = (): void => {
       debitRest();
-      if (match.wound) {
-        match.wound.severity += HARM_DEFAULTS.OPERATION_ABORT_WORSEN;
-        match.wound.openSince = WorldClockApi.getNow().rawValue();
-        match.wound.careQuality = undefined;
-        match.wound.dressed = false;
-      }
+      if (match.wound) body.leaveWoundOpen(match.wound, HARM_DEFAULTS.OPERATION_ABORT_WORSEN);
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`The operation is interrupted — the wound is left open, worse than before.`)
@@ -210,25 +202,19 @@ export default class OperateController extends CommandController<OperateModel> {
       onComplete();
       return;
     }
+    // ⭐ The operation holds the patient still itself (a conscious one may
+    // thrash free, which ends it — C38), and frees them when it finishes.
     const engagement = new OperationEngagement({
       surgeon: giver as unknown as Stuff & Engaged,
       durationMs: Math.max(100, durationS * 1000),
       onComplete,
       onAbort,
+      patient: MixinApi.isEngaged(target) ? (target as unknown as Stuff & Engaged) : null,
+      patientCancelable: conscious,
     });
     const result = SchedulerApi.start(engagement);
     if (result.ok && (result.status === 'started' || result.status === 'replaced')) {
       context.note(result.note);
-      // Hold the patient still (a conscious one may thrash free).
-      if (MixinApi.isEngaged(target) && target !== (giver as unknown as Stuff)) {
-        SchedulerApi.start(
-          new OperationPatientHold({
-            patient: target as unknown as Stuff & Engaged,
-            cancelable: conscious,
-            onAbort: () => {},
-          }),
-        );
-      }
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(

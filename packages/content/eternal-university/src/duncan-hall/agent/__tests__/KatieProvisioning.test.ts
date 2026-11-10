@@ -20,7 +20,9 @@ import Katie from '../Katie';
 import ProvisionController from '../../idea/cmd/ProvisionController';
 import { CompactApi } from '@saxonberg/server/mud/api/compact';
 import OrganizationEntity from '@saxonberg/server/mud/platform/idea/Organization';
-import { HALL_EXTENT, COLLEGE_PATH } from '../../../lib/HallController';
+import DormWarrenForPaths from '../../idea/DormWarren';
+const HALL_EXTENT = DormWarrenForPaths.HALL_EXTENT;
+const COLLEGE_PATH = DormWarrenForPaths.COLLEGE_PATH;
 import { CommandApi } from '@saxonberg/server/mud/api/command';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mixins } from '@saxonberg/server/mud/lib/mixin';
@@ -239,6 +241,9 @@ describe('Katie — the dorms-agent authorization boundary', () => {
       verb: 'provision',
       command: { verbs: ['provision'] } as never,
     });
+    // The let is the warren's now (controller-liquidity W13): it stands, and
+    // it asks who may.
+    makeStuffAtPath(() => new DormWarrenForPaths(), DormWarrenForPaths.WARREN_PATH);
     const ctrl = makeStuffAtPath(() => new ProvisionController(), "/world/terminus/eternal/duncan-hall/idea/cmd/ProvisionController");
     await ctrl.execute({ player: { stuff: tenant } } as never, ctx);
     const notes = ctx.getNotes();

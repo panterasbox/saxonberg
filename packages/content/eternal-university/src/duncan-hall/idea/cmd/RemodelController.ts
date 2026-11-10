@@ -22,11 +22,11 @@ import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { PromptApi } from '@saxonberg/server/mud/api/prompt';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import DormWarren from '../DormWarren';
+import DormRoom from '../../location/DormRoom';
 import DormThemes, {
   DormThemeError,
 } from '../DormThemes';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 
 const TOPIC = 'act.deed';
@@ -35,7 +35,9 @@ export default class RemodelController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver as Stuff;
     const holder = actor.getIdentityPath() ?? '';
-    const unit = holder ? await ParcelApi.heldUnitOf(holder) : null;
+    const unit = holder
+      ? await ParcelApi.heldUnitOf(holder, DormWarren.DORMS_EXTENT)
+      : null;
     if (!unit) {
       return this.fail(context, "You don't hold a dorm lease.", 'no-lease');
     }
@@ -43,10 +45,8 @@ export default class RemodelController extends CommandController<CommandModel> {
 
     // You remodel the room you're STANDING IN (a local commit) — and only
     // your own. Not in it → step inside first.
-    const room = (
-      MixinApi.isContainable(actor) ? actor.getContainer() : null
-    ) as unknown as (Stuff & Container) | null;
-    if (!room || !this.isOwnUnit(room, unitExtent)) {
+    const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+    if (!(room instanceof DormRoom) || !room.isUnit(unitExtent)) {
       return this.fail(
         context,
         'Step into your own room to redo it.',
@@ -88,15 +88,6 @@ export default class RemodelController extends CommandController<CommandModel> {
     this.send(
       context,
       Mml.compose`\nYou redo the room — it takes on ${themes.labelOf(pick)} style.\n`,
-    );
-  }
-
-  /** Whether `room` is the live `DormRoom` for `unitExtent` (the giver's own). */
-  private isOwnUnit(room: Stuff & Container, unitExtent: string): boolean {
-    return (
-      room.getTemplatePath() === DormWarren.DORMROOM_TEMPLATE &&
-      (room as unknown as { getPersistenceKey?: () => string | null })
-        .getPersistenceKey?.() === unitExtent
     );
   }
 

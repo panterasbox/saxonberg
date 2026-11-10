@@ -82,6 +82,12 @@ import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import { Quantity } from '../../lib/quantity';
 import type { FramePos } from '../../lib/expanse/Frame';
 import type { CoatReachRefusal } from '../../lib/material/Faced';
+import {
+  UPKEEP_KIT_WEAR,
+  type FabricKind,
+  type Maintainable,
+  type MaintainAnswer,
+} from '../../lib/structure/Maintainable';
 
 /** A ship's hull (river D28): how deep she floats, how wide, how long. */
 export interface ShipHull {
@@ -243,7 +249,7 @@ export const SHIP_CLASS_PATH = '/platform/idea/Ship';
 
 export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
   VoyagingMixin(MovingMixin(EngagedMixin(PositionedMixin(DurableMixin(FacedMixin(Structure)))))),
-))) {
+))) implements Maintainable {
   static fieldMeta: FieldMeta = {
     deckHeightM: { persistent: true, authorable: true },
     mastheadHeightM: { persistent: true, authorable: true },
@@ -265,6 +271,25 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
     shipRegister: { persistent: true, authorable: true, ref: 'identity:relation' },
     registeredName: { persistent: true, authorable: true },
   };
+
+  /** ⭐ A ship's fabric is her hull: seams, oakum, hot pitch (`maintain`). */
+  public fabricKind(): FabricKind {
+    return 'hull';
+  }
+
+  /** Caulking a hull is seamanship. */
+  public upkeepDiscipline(): string | null {
+    return 'seamanship';
+  }
+
+  /** Make the hull sound with a caulker's kit; a sound hull spares the kit. */
+  public maintainWith(kit: Stuff): MaintainAnswer {
+    const before = this.getConditionWord();
+    if (before === 'sound') return { ok: false, reason: 'already-sound' };
+    this.setCondition(1);
+    if (MixinApi.isDurable(kit)) kit.wear(UPKEEP_KIT_WEAR);
+    return { ok: true, before };
+  }
 
   // ── her hull's outside ───────────────
   // A hull takes coats — tar, paint — and the weather works on them
