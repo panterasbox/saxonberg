@@ -5,6 +5,8 @@
 class: /platform/thing/Door
 extends: /platform/thing/boundaries/door
 data:
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 35
   shortDescription: dorm-room door
   keywords: [door, "dorm door", "dorm-room door"]
   register: definite

@@ -3,6 +3,8 @@
 # (open), it passes everything.
 class: /platform/thing/Boundary
 data:
+  _materialPath: /stuff/idea/material/textile/wool
+  mass: 4
   shortDescription: curtain
   keywords: [curtain]
   register: definite

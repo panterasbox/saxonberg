@@ -5,6 +5,8 @@
 # same from either. The channel table is what it passes, open and shut.
 class: /platform/thing/Door
 data:
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 40
   shortDescription: door
   keywords: [door]
   register: definite

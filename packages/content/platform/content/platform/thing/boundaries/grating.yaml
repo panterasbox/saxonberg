@@ -3,6 +3,8 @@
 # with a hinge and a bolt is a door row instead.
 class: /platform/thing/Boundary
 data:
+  _materialPath: /stuff/idea/material/alloy/cast-iron
+  mass: 30
   shortDescription: grating
   keywords: [grating, grate]
   register: definite

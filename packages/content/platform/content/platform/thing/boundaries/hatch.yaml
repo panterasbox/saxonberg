@@ -2,6 +2,8 @@
 class: /platform/thing/Door
 extends: /platform/thing/boundaries/door
 data:
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 20
   shortDescription: hatch
   keywords: [hatch]
   opening: { width: 1, height: 1 }

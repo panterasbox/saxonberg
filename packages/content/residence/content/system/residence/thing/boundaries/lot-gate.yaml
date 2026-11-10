@@ -4,6 +4,8 @@
 class: /platform/thing/Door
 extends: /platform/thing/boundaries/gate
 data:
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 35
   shortDescription: gate
   keywords: [gate]
   # Standing open: a lot's gate is a way in until somebody shuts it.
