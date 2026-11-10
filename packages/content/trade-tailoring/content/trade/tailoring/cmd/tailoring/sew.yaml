@@ -39,4 +39,5 @@ args:
 options:
   pattern:
     type: string
+    values: [shirt, trousers, coat, apron]
     description: "Which pattern — shirt, trousers, coat or apron"

@@ -8,7 +8,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
@@ -304,3 +304,33 @@ describe("⚠⚠ the instrument affords the verb — and this one did not", () =
   });
 });
 
+
+describe("⭐ the pieces and the garment answer the verbs (controller-liquidity W11)", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  it("sew: an unknown pattern is the pieces' refusal; a failed mint leaves them in hand", async () => {
+    const pieces = makeStuff(() => new CutPieces());
+    const actor = makeStuff(() => new Garment());
+    expect(pieces.sewPlan(actor as never, "kilt", null)).toEqual({
+      ok: false,
+      reason: "unknown-pattern",
+      facts: { pattern: "kilt" },
+    });
+    const plan = pieces.sewPlan(actor as never, "shirt", null);
+    if (!plan.ok) throw new Error("expected a plan");
+    vi.spyOn(StuffApi, "clone").mockRejectedValue(new Error("no row"));
+    expect(await plan.onComplete()).toEqual({ ok: false, reason: "not-made" });
+    expect(pieces.isDestroyed()).toBe(false);
+  });
+
+  it("alter: nobody measurable to fit it to is the garment's refusal", () => {
+    const garment = makeStuff(() => new Garment());
+    expect(garment.alterPlanFor(garment as never, garment as never, null)).toEqual({
+      ok: false,
+      reason: "no-subject",
+    });
+  });
+});
