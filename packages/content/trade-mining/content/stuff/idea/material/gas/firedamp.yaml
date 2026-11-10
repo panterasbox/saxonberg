@@ -33,8 +33,8 @@
 # facts already here.
 class: /platform/idea/material/FuelGas
 data:
-  smells: [{ aroma: /base-library/aromas/firedamp, strength: 3 }]
-  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 3 }]
+  smells: [{ aroma: /base-library/aromas/earth/firedamp, strength: 3 }]
+  burning: [{ aroma: /base-library/aromas/smoke/oil-smoke, strength: 3 }]
   name: firedamp
   keywords: [firedamp, damp, gas, methane, "marsh gas"]
   appearance: nothing you can see

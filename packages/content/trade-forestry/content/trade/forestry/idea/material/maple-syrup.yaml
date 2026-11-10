@@ -26,7 +26,7 @@ class: /platform/idea/material/Syrup
 # including its own strength, for a jar bought rather than boiled.
 extends: /stuff/idea/material/food/maple-sap
 data:
-  smells: [{ aroma: /base-library/aromas/caramel, strength: 200 }]
+  smells: [{ aroma: /base-library/aromas/sugar/caramel, strength: 200 }]
   name: maple syrup
   keywords: [maple-syrup, syrup, maple]
   appearance: clear amber, thick and slow off a spoon

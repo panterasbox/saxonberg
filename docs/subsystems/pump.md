@@ -32,7 +32,11 @@ law and becomes a lie. So:
   ceiling;
 - a mechanism is a **document** (`content/pump-mechanisms/<word>.yaml`, `lib/pump/PumpMechanism`, `pulls:
   true|false`) — `suction` and `force` ship; a third (`centrifugal`,
-  `sucker-rod`) is a row with `pulls:` set honestly and no code;
+  `sucker-rod`) is a file with `pulls:` set honestly and no code. It is
+  resident whenever its pump is: the `mechanism` setter awaits
+  `PumpMechanism.ensure(path)`, so the sync read beneath the stroke is
+  `PumpMechanism.need(path)` and a miss throws `DocumentNotResidentError`
+  ([document-store.md](./document-store.md));
 - the ceiling is **arithmetic over the place**:
   `BiomeApi.suctionHeadFor(scope, fluidDensity?)` = `P_here / (ρ_fluid·g)`
   — ≈ 10.33 m of water at sea level, less on a hill (pressure falls with
@@ -249,3 +253,7 @@ the running-hour wear until a keeper exists.
 Re-drive: `WIRE_BOOT=1 WIRE_PORT=<worktree's> npx vitest run
 tests/drilling.dirty.wire.test.ts tests/pump.dirty.wire.test.ts` from
 `packages/wire` — the two share one world without taking each other's kit.
+
+Documents path identity, 2026-11-09: pump mechanisms moved from Idea
+rows to `pump-mechanism` documents at `content/pump-mechanisms/`, cited
+by path. See git log for the `reqs/documents-path-identity` branch.

@@ -63,7 +63,7 @@ Layout, kinds, the reconcile, `sourcePack` stamps, the `pack` verb:
 ### Path conventions
 
 Singletons live at `/platform/<branch>/<ClassName>` — `/platform/idea/EventRegistry`,
-`/platform/idea/TopicCatalogue`, etc. Multi-instance classes extend
+`/platform/idea/AccessRegistry`, etc. Multi-instance classes extend
 the same namespace with a per-instance suffix:
 `/platform/agent/Avatar/<playerId>`. The `/platform/agent/Avatar` segment is implicit
 (no template at it); the validator's folder/leaf rules treat path
@@ -207,7 +207,6 @@ boot.
 boot:
   - { template: /platform/idea/EventRegistry, role: sync-read, reason: every EventApi emit resolves it synchronously }
   - { template: /world/void, role: producer, reason: the evacuation fallback ContainerMixin resolves synchronously on destruct }
-  - { template: /platform/idea/TopicCatalogue, role: sync-read, reason: topic descriptors resolve synchronously from its lazy cache }
 ```
 
 The `BootstrapEntry` type stays owned by `BootstrapManager` (the

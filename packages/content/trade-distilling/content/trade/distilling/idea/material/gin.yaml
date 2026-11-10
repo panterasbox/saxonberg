@@ -4,7 +4,7 @@
 # rule: the trade whose PROCESS makes it ships it.
 class: /platform/idea/material/Spirit
 data:
-  smells: [{ aroma: /base-library/aromas/juniper, strength: 800 }]
+  smells: [{ aroma: /base-library/aromas/wood/resin/juniper, strength: 800 }]
   burning: [{ aroma: /base-library/aromas/smoke, strength: 3 }]
   tastes: [{ type: bitter, amount: 0.01 }]
   name: house gin

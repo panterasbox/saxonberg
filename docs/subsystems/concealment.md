@@ -350,7 +350,7 @@ and folds into the same `resolveSearch`. *(The plan specified a distinct
 `seeds/lib/advancement/Discipline/awareness.yaml` (`key: awareness`,
 `channel: skill`, `iscedf: "0288"`) is the perception/attention Discipline,
 seeded as **pure data** (the bartending / melee-combat precedent — the
-`DisciplineCatalogue` harvests it at boot). It grades `effectivePerception`
+`DisciplineCatalogue` harvests it when a character first reaches the dictionary). It grades `effectivePerception`
 capacity, `search`, and `disarm`. **No `conferrals`** — `search` / `look` /
 `disarm` are universally afforded; competence only *grades* them, it doesn't
 gate the menu. See [advancement.md](./advancement.md).

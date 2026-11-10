@@ -11,7 +11,7 @@
  * go-live re-warms it in place after a live `pack sync` touches the kind.
  *
  * Read-only reference surface (recipes are public knowledge, like topics), so
- * methods are ungated — the `TopicCatalogue` precedent, not the gated
+ * methods are ungated — the `SoulCatalogue` precedent, not the gated
  * mutation surface of `SoulCatalogue`.
  *
  * Not a persisted record — the seed YAML is `{ class: /platform/idea/RecipeCatalogue,
@@ -177,7 +177,7 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
     }
   }
 
-  /** Singleton refusal (mirrors TopicCatalogue / SoulCatalogue). */
+  /** Singleton refusal (mirrors SoulCatalogue / SoulCatalogue). */
   public canDestruct(): VetoResult {
     return {
       ok: false,

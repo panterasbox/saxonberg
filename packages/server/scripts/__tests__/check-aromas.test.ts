@@ -89,12 +89,35 @@ describe('lint:aromas', () => {
     expect(checkAromas(root).join()).toMatch(/cannot hold one/);
   });
 
-  it('refuses a parent that is not an aroma path; a directory under aromas/ is part of the path', () => {
-    write('base-library/content/aromas/smoke/pine-tar.yaml', 'parent: /base-library/aromas/tarr\n');
-    write('base-library/content/aromas/smoke/kiln-tar.yaml', 'parent: /base-library/aromas/smoke/pine-tar\n');
+  it('a cross-pack parent must be an aroma path', () => {
+    write('trade-x/pack.yaml', 'id: trade-x\nroot: /trade/x\n');
+    write('trade-x/content/aromas/pine-tar.yaml', 'parent: /base-library/aromas/tarr\n');
     const found = checkAromas(root);
     expect(found.join()).toMatch(/parent names '\/base-library\/aromas\/tarr'/);
     expect(found).toHaveLength(1);
+  });
+
+  it('⭐ the folder is the tree: a child in its parent\'s directory passes with no parent: line', () => {
+    write('base-library/content/aromas/tar/pine-tar.yaml', 'threshold: 2\n');
+    write('base-library/content/aromas/tar/pine-tar/kiln-tar.yaml', 'threshold: 3\n');
+    expect(checkAromas(root)).toEqual([]);
+  });
+
+  it('refuses an aroma document that is not a mapping (the installer refuses the pack)', () => {
+    write('base-library/content/aromas/tar/pitch.yaml', '# only a comment\n');
+    expect(checkAromas(root).join()).toMatch(/is a mapping/);
+  });
+
+  it('refuses a directory that is not itself an aroma', () => {
+    write('base-library/content/aromas/smoke/pine-smoke.yaml', 'threshold: 2\n');
+    expect(checkAromas(root).join()).toMatch(/directory '\/base-library\/aromas\/smoke' is not an aroma/);
+  });
+
+  it('refuses a parent: in its own pack — the folder says it (two copies of one fact)', () => {
+    write('base-library/content/aromas/pine-tar.yaml', 'parent: /base-library/aromas/tar\n');
+    write('base-library/content/aromas/tar/kiln-tar.yaml', 'parent: /base-library/aromas/tar\n');
+    const found = checkAromas(root);
+    expect(found.filter((f) => /in its own pack/.test(f))).toHaveLength(2);
   });
 
   it('refuses a `word:` on an aroma or an odor: the path is the identity', () => {

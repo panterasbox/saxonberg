@@ -1,7 +1,7 @@
 # hide glue — collagen boiled out of hide scraps and reduced: the joiner's glue. Strong, quick to grab, set in a day — and the damp undoes it, and so do heat and steam, which is how a joiner takes a joint apart again.
 class: /platform/idea/material/Glue
 data:
-  smells: [{ aroma: /base-library/aromas/glue, strength: 800 }]
+  smells: [{ aroma: /base-library/aromas/hide/glue, strength: 800 }]
   name: hide glue
   keywords: ["hide glue", glue, "animal glue"]
   appearance: a hot brown glue that smells of the tannery and strings off the brush

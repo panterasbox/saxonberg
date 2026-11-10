@@ -14,6 +14,9 @@
  *
  *   1. an aroma path with no `aroma` document there, or one in a pack the namer
  *      cannot reach through its dependencies, or a `parent:` that is neither;
+ *   1b. ⭐ the folder rule (documents D14): a directory under `aromas/` that is
+ *      not itself an aroma, a `parent:` naming an aroma in the SAME pack (the
+ *      folder says it — move the file), or a `parent:` beside a parent folder;
  *   2. `smells:` or `burning:` on a row whose class cannot hold one (a plain
  *      `Material`), because the applier would drop the key silently;
  *   3. a `tastes:` entry in the old word-list shape, or naming a word outside
@@ -45,7 +48,7 @@ const BASIC_TASTES = new Set(['sweet', 'sour', 'salty', 'bitter', 'umami']);
 /** The kernel names these itself (rot, decay and a corpse's stale blood). */
 const KERNEL_AROMAS = [
   '/base-library/aromas/rot',
-  '/base-library/aromas/decay',
+  '/base-library/aromas/rot/decay',
   '/base-library/aromas/blood',
 ];
 /** Where a row's aromas live, and which key carries the path. */
@@ -144,7 +147,14 @@ export function checkAromas(
         findings.push(`${owner}: an aroma's file and directory names are lowercase slugs (its word is the last one)`);
         continue;
       }
-      const doc = (YAML.parse(readFileSync(file, 'utf8')) ?? {}) as { word?: unknown; parent?: unknown };
+      const parsed: unknown = YAML.parse(readFileSync(file, 'utf8'));
+      if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        // The installer refuses the whole pack on this ("malformed aroma
+        // document"); a child that inherits everything is `{}`.
+        findings.push(`${owner}: an aroma document is a mapping — write \`{}\` for one that takes everything from its folder`);
+        continue;
+      }
+      const doc = parsed as { word?: unknown; parent?: unknown };
       if (doc.word !== undefined) {
         findings.push(`${owner}: an aroma has no \`word:\`; its word is its file name and its identity is its path`);
       }
@@ -213,8 +223,29 @@ export function checkAromas(
     }
   }
 
+  // ⭐ The folder is the tree (documents D14): a directory under `aromas/` is
+  // its aroma's children, so the directory must BE an aroma, and an explicit
+  // `parent:` is for a parent in another pack — one in the same pack is
+  // either the folder said twice or the folder contradicted.
   for (const [path, doc] of aromas) {
-    if (doc.parent !== undefined) checkAroma(doc.pack, path, 'parent', doc.parent);
+    const up = path.slice(0, path.lastIndexOf('/'));
+    const folderParent = up.endsWith(`/${AROMA_DIR}`) ? null : up;
+    if (folderParent !== null && !aromas.has(folderParent)) {
+      findings.push(`${path}: its directory '${folderParent}' is not an aroma — a folder under aromas/ is its aroma's children`);
+    }
+    if (doc.parent === undefined) continue;
+    const named = aromas.get(String(doc.parent));
+    if (named && named.pack === doc.pack) {
+      findings.push(
+        `${path}: \`parent: ${String(doc.parent)}\` is in its own pack — move the file into that aroma's folder (the folder is the tree)`,
+      );
+      continue;
+    }
+    if (folderParent !== null) {
+      findings.push(`${path}: a \`parent:\` and a parent folder both — one aroma has one parent`);
+      continue;
+    }
+    checkAroma(doc.pack, path, 'parent', doc.parent);
   }
   if (content === CONTENT) {
     for (const path of KERNEL_AROMAS) {

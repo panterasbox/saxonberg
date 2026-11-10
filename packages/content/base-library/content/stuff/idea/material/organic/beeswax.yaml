@@ -12,8 +12,8 @@
 # phase machinery reads this and nothing else has to.
 class: /platform/idea/material/FatOilWax
 data:
-  smells: [{ aroma: /base-library/aromas/beeswax, strength: 60 }]
-  burning: [{ aroma: /base-library/aromas/wax-smoke, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/wax/beeswax, strength: 60 }]
+  burning: [{ aroma: /base-library/aromas/smoke/wax-smoke, strength: 60 }]
   name: beeswax
   keywords: [wax, beeswax]
   appearance: pale yellow wax, slightly translucent at the edges

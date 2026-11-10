@@ -6,7 +6,7 @@
 # crock is next time's starter.
 class: /platform/idea/material/Drink
 data:
-  smells: [{ aroma: /base-library/aromas/whey, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/sour/whey, strength: 100 }]
   name: "whey"
   keywords: [whey]
   appearance: thin and greenish-yellow

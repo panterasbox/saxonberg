@@ -4,7 +4,7 @@
 # rule: the trade whose PROCESS makes it ships it.
 class: /platform/idea/material/Spirit
 data:
-  smells: [{ aroma: /base-library/aromas/spirit, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/alcohol/spirit, strength: 300 }]
   burning: [{ aroma: /base-library/aromas/smoke, strength: 3 }]
   tastes: [{ type: bitter, amount: 0.01 }]
   name: vodka

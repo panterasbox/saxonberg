@@ -12,5 +12,5 @@ answersTo:
 absorbedBy: true
 waterLifts: 0.05
 odor:
-  aroma: /base-library/aromas/rancid-fat
+  aroma: /base-library/aromas/rancid/rancid-fat
   ouPerLoad: 100

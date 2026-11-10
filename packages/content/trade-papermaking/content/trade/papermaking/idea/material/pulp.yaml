@@ -2,7 +2,7 @@
 # stamper makes and the vat holds. A sheet is lifted out of it on a wire.
 class: /platform/idea/material/Pulp
 data:
-  smells: [{ aroma: /base-library/aromas/retting, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/rot/retting, strength: 60 }]
   name: pulp
   keywords: [pulp, stuff, "paper pulp"]
   appearance: a grey-white milky slurry with fibre hanging in it

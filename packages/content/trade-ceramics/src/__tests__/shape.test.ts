@@ -17,6 +17,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { TestActor } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures';
+import { rememberDisciplines } from '@saxonberg/server/mud/lib/advancement/__tests__/discipline-fixtures';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { ShapePlan, ShapeRefusal } from '@saxonberg/server/mud/lib/craft/Shapeable';
 import Clay from '@saxonberg/content-trade-quarrying/src/thing/Clay';
@@ -42,8 +43,11 @@ function form(key: string, formClass: FormClass, capacityL: number, product: str
   return path;
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   installV1QuantityMarshallers();
+  // A credit refreshes conferrals: the discipline dictionary, resident as a
+  // character's first band read leaves it (documents D11).
+  await rememberDisciplines();
   seq += 1;
   clayMat = makeStuffAtPath(() => {
     const m = new Metal();

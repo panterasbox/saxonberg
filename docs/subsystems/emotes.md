@@ -88,8 +88,12 @@ export class Emote {
 }
 ```
 
-`verb` is the canonical lookup key (unique per kind at the collection
-level — `{kind, data.verb}`) and **the only word that dispatches**.
+`verb` is the canonical lookup key and **the only word that dispatches**.
+⭐ It is the document's **path leaf** (`/expression/emotes/wave` → `wave`),
+not a field in the file (documents path identity, 2026-11-09 — the
+`verb:` line and the `{kind, data.verb}` unique index are gone): the kind
+declares the leaf as its typed word, so a second pack shipping the same
+verb is refused at install, naming both ([content-packs.md](./content-packs.md)).
 `searchTerms` replaced `aliases`: an emote's synonyms (`greet` ← `hi`,
 `hello`) are lookup words for `soul search`, never a second dispatch
 namespace — `;hi` does nothing, `soul search hi` says it is `greet`.
@@ -159,13 +163,13 @@ and the verb-conjugation helpers `s` / `es` / `ies` swap `""` /
 `"s"` and `"y"` / `"ies"`. A wave grammar looks like this:
 
 ```yaml
-- verb: wave
-  emoji: "👋"
-  tags: [greeting]
-  grammar:
-    slots:
-      target: { kind: stuff, optional: true }
-    template: "{{ actor }} wave{{ s }}{% if target %} at {{ target }}{% endif %}."
+# content/emotes/wave.yaml — the verb is the file name
+emoji: "👋"
+tags: [greeting]
+grammar:
+  slots:
+    target: { kind: stuff, optional: true }
+  template: "{{ actor }} wave{{ s }}{% if target %} at {{ target }}{% endif %}."
 ```
 
 Rendered for the self audience with no target: `You wave.` For the
@@ -276,7 +280,7 @@ setting (default off) that opts a player into introducing on arrival. See
 ## `SoulCatalogue` + `SoulApi`
 
 The verb→Emote runtime cache lives on a Stuff singleton,
-`/platform/idea/SoulCatalogue`, sibling to `/platform/idea/TopicCatalogue` and
+`/platform/idea/SoulCatalogue`, sibling to
 `/platform/idea/EventRegistry` per the singleton-in-`obj/` convention. The
 catalogue extends `Idea` composed with `onCreate` —
 the `onCreate` hook warms `cache: Map<string, Emote>` from
@@ -320,8 +324,7 @@ for the wizard `reload` flow. The Api holds **no state of its own** —
 the catalogue Stuff is the live state, and `SoulApi.#catalogueRef`
 is just a cached pointer resolved through
 `StuffApi.findByTemplatePath`. The class ends with
-`SecurityApi.decorateApiClass(SoulApi)`. The shape mirrors
-`TopicCatalogue` exactly: a Stuff singleton owns the data, an Api
+`SecurityApi.decorateApiClass(SoulApi)`. The shape: a Stuff singleton owns the data, an Api
 thin-wraps it for the stable caller-facing surface.
 
 ## Dispatch paths
@@ -388,20 +391,18 @@ resolvable on every dispatch path without restart.
 Emote frames stamp `topic = 'act.emote'`, a single
 leaf for both catalog and free-form emotes; payload distinguishes
 (`{ verb, emoji, tags }` for catalog, `{ freeForm: true, text }` for
-free-form). The leaf is authored as a `Topic` template at
-`seeds/lib/messaging/Topic/act.emote.yaml`:
+free-form). The leaf is authored as a `topic` document at the platform
+pack's `content/topics/act.emote.yaml` (an excerpt):
 
 ```yaml
-class: /lib/messaging/Topic
-hydratorClass: /platform/idea/persistence/PersistentHydrator
-data:
-  topic: act.emote
-  family: act.emote
-  label: Emote
-  description: A character performs an expressive act conveyed via the ESP modality.
+family: "act"
+label: "Expression"
+communicative: true
+description: "A gesture, a glance, a laugh. Body language rather than words."
 ```
 
-`TopicCatalogue` self-loads it at boot; the cockpit's filter
+The message pipeline loads it with the rest of the vocabulary on the
+first scene ([topics.md](./topics.md)); the cockpit's filter
 drawer / gutter tooltip / topic-aware styling all consume the
 descriptor with no further wiring.
 
@@ -571,5 +572,5 @@ later force a migration; the **behavior** doesn't run in v1.
 - [command-routing.md](./command-routing.md) — the dynamic-verb
   resolver branch in `CommandGiver._runChain`, the per-giver
   recency stack, schema delivery.
-- [topics.md](./topics.md) — `TopicCatalogue`, authored topic
+- [topics.md](./topics.md) — the `topic` documents, authored topic
   descriptors, the `act.emote` leaf.

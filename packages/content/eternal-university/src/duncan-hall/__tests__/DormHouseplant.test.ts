@@ -249,7 +249,7 @@ function seedDomain(): void {
   );
   // The aromas those materials name, which load with them.
   const earth = Aroma.remember('/base-library/aromas/earth', {}, null);
-  Aroma.remember('/base-library/aromas/loam', {}, earth);
+  Aroma.remember('/base-library/aromas/earth/loam', {}, earth);
   Aroma.remember('/base-library/aromas/green', {}, null);
   addSeed(
     '/stuff/idea/material/tissue/plant-tissue',

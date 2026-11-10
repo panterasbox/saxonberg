@@ -4,7 +4,7 @@
 # rule: the trade whose PROCESS makes it ships it.
 class: /platform/idea/material/Drink
 data:
-  smells: [{ aroma: /base-library/aromas/spirit, strength: 300 }, { aroma: /base-library/aromas/herbal, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/alcohol/spirit, strength: 300 }, { aroma: /base-library/aromas/herbal, strength: 300 }]
   tastes: [{ type: sweet, amount: 100 }, { type: bitter, amount: 1 }]
   name: bitter liqueur
   keywords: [liqueur, bitter-liqueur, bitter]

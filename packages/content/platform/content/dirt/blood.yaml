@@ -19,5 +19,5 @@ setAnswersTo:
 absorbedBy: true
 waterLifts: 0.5
 odor:
-  aroma: /base-library/aromas/old-blood
+  aroma: /base-library/aromas/blood/old-blood
   ouPerLoad: 150

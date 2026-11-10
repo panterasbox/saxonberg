@@ -10,7 +10,7 @@
 # off an open finished ale: the same shipped mechanism, no new one.
 class: /platform/idea/material/Fiber
 data:
-  smells: [{ aroma: /base-library/aromas/retting, strength: 3000 }]
+  smells: [{ aroma: /base-library/aromas/rot/retting, strength: 3000 }]
   name: rotted flax
   keywords: [flax, rotted-flax, rot, slime, ruin, rotted]
   appearance: grey slimy rotted flax

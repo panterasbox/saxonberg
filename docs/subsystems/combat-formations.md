@@ -36,17 +36,20 @@ tactics is. If a combat sentence ever goes in the README or the
 philosophy docs, it should be this, not arrows. *(Graduated from the
 combat-tactics slate, 2026-09.)*
 
-## The `CombatFormation` Idea
+## The `formation` document
 
-`lib/combat/CombatFormation.ts` — a singleton Idea per preset at
-`/platform/idea/CombatFormation/<name>` (the `LocomotionMode` shape: authored
-data, no registry), seeded from `seeds/lib/combat/CombatFormation/`. The
-Idea carries only **declared shape** — role vocabulary, allocation kind,
-interception rule, coup governance; what a token *means* is combat's
-module-private interpreter in `CombatLogic`, and every magnitude is a
-`combat.formation.*` AppSettings dial (shape in code, magnitudes in
-dials). `policy()` returns a frozen, memoized value (invalidated by every
-setter, so a CMS re-hydrate lands on the next consult).
+A formation is a **`formation` document** — one file per preset at
+`content/formations/<name>.yaml`, stored at `/platform/formations/<name>`
+— with its value class `lib/combat/Formation.ts` (a document since the
+documents path identity build, 2026-11; it was the `CombatFormation`
+Idea). The document carries only **declared shape** — role vocabulary,
+allocation kind, interception rule, coup governance; what a token *means*
+is combat's module-private interpreter in `CombatLogic`, and every
+magnitude is a `combat.formation.*` AppSettings dial (shape in code,
+magnitudes in dials). `Formation.fromData` validates it into a frozen
+`FormationPolicy`; a pack sync of the kind invalidates the cache, so an
+edit lands on the next load. A formation's word (`vanguard`) is its
+path's leaf — a typed word, unique at install.
 
 The four presets:
 
@@ -61,17 +64,22 @@ The four presets:
 
 Formation resolution is **total**: `PartyApi.formationPathOf(combatant)`
 returns the active party's chosen formation path, else
-`DEFAULT_FORMATION_PATH` (`/platform/idea/CombatFormation/default`) — never
+`DEFAULT_FORMATION_PATH` (`/platform/formations/default`) — never
 null, never `''` (the `sideOf` solo-rung / locomotion universe-`walk`
 mirror). A partyless wanderer, a party that never chose, and a party of
-one all resolve through the same read; there is **no `if (formation)`
-branch anywhere in the exchange loop**. Combat resolves the path to its
-Idea per beat (`resolveFormationFor` — deliberately NOT frozen at open,
-unlike `side`, which is what makes a mid-fight `party adopt` land on the
-very next beat with no pending-state machinery); when the Idea is not
-resident (bare tests, cold boot) the built-in
-`CombatFormation.DEFAULT_POLICY` fallback applies, pinned value-equal to
-the seeded default. **The default preset byte-preserves pre-formation
+one all fight by the same policy; there is **no `if (formation)`
+branch anywhere in the exchange loop**. Combat resolves the policy per
+beat (`resolvePolicyFor` — deliberately NOT frozen at open, unlike
+`side`, which is what makes a mid-fight `party adopt` land on the very
+next beat with no pending-state machinery): ⭐ a combatant with no party,
+or whose party never chose, fights by the built-in
+`Formation.DEFAULT_POLICY`, pinned value-equal to the shipped `default`
+document — that is the **no-formation** case, not a cold case. A party
+that CHOSE a formation reads it with `Formation.need(path)`, and it is
+always resident (documents D7): the adopt loaded it in the act, and
+`materializeParty` awaits `Formation.ensure` for a restored party's
+path. A miss is `DocumentNotResidentError`, never a quiet default, and
+there is nothing to warm before a fight. **The default preset byte-preserves pre-formation
 combat** — a gym regression pins four canonical matchups' exact winners
 and beat counts.
 
@@ -174,9 +182,10 @@ the mentored pair does it by the engine's rules instead of around them.
   `formation`, to avoid the `party form` adjacency). Adopting is a
   **witnessed, reactable formation-shift beat** ("the line reforms
   around…", topic `self.group`); a mid-fight adopt acts on the
-  very next beat. `PartyLogic.setFormation` awaits the preset Idea
-  resident before accepting (the beat's consult is sync);
-  `AttackController` warms both sides' formations pre-open.
+  very next beat. `party adopt <word>` resolves the word with
+  `Formation.pathOfWord` (resident first, else the card's `keys.word`),
+  which loads the document in the act, so the path the party records is
+  resident (the beat's consult is sync).
 - **`fight`** (bare) shows your own side's `Formation:` + `Role:`; the
   enemy's formation is deliberately unread (the fog non-goal).
 - **`fight finish`** — the captain's execution directive for a held coup.
@@ -249,3 +258,8 @@ made possible. One as-built discovery reshaped the plan's coup section:
 the coup is engine-initiated (no coup verb exists), so "who may coup"
 landed as executioner re-pointing plus the `fight finish` captain-directive
 hold rather than a permission gate on a verb.
+
+2026-11-09 — documents path identity: the `CombatFormation` Idea became
+the `formation` document kind (`/platform/formations/<name>`, value class
+`lib/combat/Formation.ts`); the pre-fight formation warm is gone. See git
+log for the `reqs/documents-path-identity` branch.

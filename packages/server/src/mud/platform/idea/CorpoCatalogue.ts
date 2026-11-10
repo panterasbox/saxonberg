@@ -3,7 +3,7 @@
  * authored megacorps and their product brands.
  *
  * Lives at `/platform/idea/CorpoCatalogue`, per the singleton-in-`obj/` convention
- * (the `DisciplineCatalogue` / `TopicCatalogue` recipe). The caches are
+ * (the `DisciplineCatalogue` / `SoulCatalogue` recipe). The caches are
  * transient instance state; the source of truth is the per-`Corpo` and
  * per-`Brand` leaf templates under `/stuff/idea/corpo/Corpo/` and
  * `/stuff/idea/corpo/Brand/` in the `content` collection. Both leaves are pure data

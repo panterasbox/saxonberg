@@ -8,7 +8,7 @@
 class: /platform/idea/material/SolidFuel
 data:
   smells: [{ aroma: /base-library/aromas/char, strength: 100 }]
-  burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
+  burning: [{ aroma: /base-library/aromas/smoke/wood-smoke, strength: 300 }]
   name: half-burnt wood
   keywords: [brands, brand, "half-burnt wood", half-burnt]
   appearance: charred on the outside and still brown at the heart

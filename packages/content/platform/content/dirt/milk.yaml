@@ -8,5 +8,5 @@ answersTo:
 - alkali-mild
 waterLifts: 0.6
 odor:
-  aroma: /base-library/aromas/sour-milk
+  aroma: /base-library/aromas/sour/sour-milk
   ouPerLoad: 300

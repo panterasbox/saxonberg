@@ -1,7 +1,7 @@
 # Cherry — produce's food material; tag `cherry` is the recipe category (a garnish slot, a press's item slot, the par sheet).
 class: /platform/idea/material/Food
 data:
-  smells: [{ aroma: /base-library/aromas/cherry, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/fruit/cherry, strength: 100 }]
   name: cherry
   keywords: [cherry]
   appearance: "a dark red cherry, stem on"

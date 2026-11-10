@@ -9,10 +9,11 @@
  * `/platform/idea/Discipline/` in the `content` collection. Discipline
  * templates are pure data (`key` / `channel` / edges / `conferrals`), so
  * the catalogue loads descriptors directly from the template docs — no
- * need to clone them as live Stuff (the `TopicCatalogue` recipe).
+ * need to clone them as live Stuff (the `SoulCatalogue` recipe).
  *
- * **Read-only canon.** Disciplines are authored as templates and warmed at
- * boot; there is no runtime mutation surface this increment. Edges are
+ * **Read-only canon.** Disciplines are authored as templates and warmed on
+ * a character's first band read, never at boot (documents D11); there is no
+ * runtime mutation surface this increment. Edges are
  * stored and queryable; their consumption (prerequisite gating, evidence
  * propagation) is deferred — the catalogue just exposes the graph.
  *
@@ -72,7 +73,7 @@ export default class DisciplineCatalogue extends DisciplineCatalogueBase {
 
   /**
    * The authored descriptor for `key`, or `null` if no such Discipline is
-   * cataloged. (Unlike TopicCatalogue, there is no derived fallback — a
+   * cataloged. (There is no derived fallback — a
    * Discipline either exists in the canon or it does not.)
    */
   public getDiscipline(key: string): DisciplineDescriptor | null {
@@ -133,7 +134,7 @@ export default class DisciplineCatalogue extends DisciplineCatalogueBase {
     this.cache = null;
   }
 
-  /** Singleton refusal — mirrors `TopicCatalogue.canDestruct`. */
+  /** Singleton refusal — mirrors `SoulCatalogue.canDestruct`. */
   public canDestruct(): VetoResult {
     return {
       ok: false,

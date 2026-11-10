@@ -1,7 +1,7 @@
 # Lime — produce's food material; tag `lime` is the recipe category (a garnish slot, a press's item slot, the par sheet).
 class: /platform/idea/material/Food
 data:
-  smells: [{ aroma: /base-library/aromas/citrus, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/fruit/citrus, strength: 100 }]
   name: lime
   keywords: [lime]
   appearance: "a green lime, waxy-skinned"

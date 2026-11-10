@@ -4,7 +4,7 @@
  * The in-game **rulebook** surface: the `help` verb controller and the
  * REST help routes both read through this facade, never the catalogue
  * directly. Help is transparency-by-default, so the catalogue's reads are
- * ungated (the `RecipeCatalogue`/`TopicCatalogue` precedent); the only
+ * ungated (the `RecipeCatalogue` precedent); the only
  * gate is the **capability filter**, and it lives once, here.
  *
  * Thin forwarding shell: the warmed index lives in the {@link

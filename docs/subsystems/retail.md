@@ -485,7 +485,7 @@ Chattel — 0.75 L glass, liquid-tight; presets are ROWS: `keg`, `cask`,
 Sealable so the crafting gather walk finds the limes; the fruit are
 `Provision` rows its `props:` mints). A floor row authors `censusKey`,
 `regionTarget`, `container: <the outfit's Stock>`, `interiorMaterial`,
-`gradeBand`, `_brandKey`.
+`gradeBand`, `brand`.
 
 ## Content: the store on the new-player path
 

@@ -13,7 +13,7 @@
  * A bill names a joint by PATH (`method: /platform/joints/wedged`), and a
  * made assembly records the path on each joint it carries. Resident by
  * construction (D7): the bill's and the joints' setters await
- * {@link Joint.ensure}, a rope stands its knots up in `onCreate`, and a
+ * {@link Joint.ensure}, a rope ensures its knot in the act that ties it, and a
  * synchronous read ({@link Joint.need}) of a joint nothing loaded throws.
  *
  * @internal the assembly substrate's; an author names a path on a row.

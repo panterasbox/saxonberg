@@ -8,5 +8,5 @@ answersTo:
 - alkali-strong
 waterLifts: 0.5
 odor:
-  aroma: /base-library/aromas/stale-sweat
+  aroma: /base-library/aromas/sweat/stale-sweat
   ouPerLoad: 400

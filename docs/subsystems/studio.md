@@ -156,17 +156,23 @@ reads structure, not method bodies; five groups share even their views
 `Bailer`/`Derrick`, `Press`/`Printer`), recorded as true structural duplicates. `kind` is `composition` (a bare recomposable mixin stack) or
 `concrete` (a logic-bearing class pointing at its `classPath`).
 
-- **`BlueprintCatalogue`** (`/platform/idea/BlueprintCatalogue`) is the boot-warmed
-  singleton (the `RecipeCatalogue` shape): `cache` by id + `bySignature`
+- **`BlueprintCatalogue`** (`/platform/idea/BlueprintCatalogue`) is a lazy
+  singleton (the `RecipeCatalogue` shape) — never booted since the
+  documents path identity build (2026-11-09); it stands up on the first
+  studio request, through `StuffApi.singleton` (so that first request
+  pays the rebuild): `cache` by id + `bySignature`
   index, `canEvict`/`canDestruct` refusals. Since content-packs wave 2 it
   owns both layers itself (the former `BlueprintSeeder` is gone):
-  **`rebuild()`** regenerates the **derived skeleton** at every boot
+  **`rebuild()`** (its `onCreate`) regenerates the **derived skeleton**
+  once per process, on that first request
   (every distinct `class` — `TemplateApi.distinctClasses()` → `signatureOf`
   → a `concrete` row in `blueprints`, deduped on signature, drift-safe
   on id, orphans reaped with the `deleteMany` line logged once — *the
   `blueprints` collection is a cache*), and **`warm()`** indexes those
   rows plus the **curated overlay**: `documents {kind: 'blueprint'}`
-  (the `platform` pack's `content/blueprints/<blueprintId>.yaml` — named,
+  (the `platform` pack's `content/blueprints/<blueprintId>.yaml`, whose id
+  is the file name — the path's leaf; the file carries no `blueprintId:`
+  line — named,
   `blessed` compositions and hierarchy). A curated document whose
   signature matches a derived row **blesses it in place** (a cache
   write that fires once, on an un-blessed or drifted row); a

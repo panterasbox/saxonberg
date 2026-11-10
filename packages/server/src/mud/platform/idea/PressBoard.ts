@@ -2,7 +2,7 @@
  * PressBoard — singleton Idea owning the runtime news-ticker window.
  *
  * Lives at `/platform/idea/PressBoard` (the singleton-in-`obj/` convention,
- * sibling to `RecipeCatalogue` / `TopicCatalogue`).
+ * sibling to `RecipeCatalogue` / `SoulCatalogue`).
  *
  * **The source of truth is now the document tree** — every
  * `kind: 'release'` {@link StoredDocument} — rather than a collection of
@@ -164,7 +164,7 @@ export default class PressBoard extends PressBoardBase {
     if (this.cache === null) this.cache = new Map();
   }
 
-  /** Singleton refusal (mirrors RecipeCatalogue / TopicCatalogue). */
+  /** Singleton refusal (mirrors RecipeCatalogue / SoulCatalogue). */
   public canDestruct(): VetoResult {
     return {
       ok: false,

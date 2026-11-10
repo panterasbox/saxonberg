@@ -3,7 +3,7 @@
 # (ceramics W7 gives it its drain set), and the clay a glaze is suspended in.
 class: /platform/idea/material/Clay
 data:
-  smells: [{ aroma: /base-library/aromas/wet-clay, strength: 10 }]
+  smells: [{ aroma: /base-library/aromas/earth/wet-clay, strength: 10 }]
   name: slip
   keywords: [slip, "clay slip"]
   appearance: thick, creamy liquid clay

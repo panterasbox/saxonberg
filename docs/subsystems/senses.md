@@ -577,12 +577,22 @@ by its PATH**, a document's only identity (owner, 2026-11-08): a pack ships
 `content/aromas/<word>.yaml` and the installer stores it under the pack's root, so
 base-library's `smoke` is `/base-library/aromas/smoke` and every reference names
 that — `smells: [{ aroma: /base-library/aromas/smoke, strength: 300 }]`, a dirt's
-`odor: { aroma, ouPerLoad }`, an impart's `type:`, another aroma's `parent:`. Two
-packs may each ship a `smoke` and neither is the other; directories under
-`aromas/` are part of the path. Its **word** is the path's last segment, a slug
-read with its hyphens as spaces. Each document's `parent:` is the tree, and an
-aroma takes what it leaves unstated from its parent, so a pack adds one with no
-kernel edit. An aroma loads when something naming it loads: the naming row's
+`odor: { aroma, ouPerLoad }`, an impart's `type:`, another pack's aroma `parent:`. Two
+packs may each ship a `smoke` and neither is the other. Its **word** is the
+path's last segment, a slug read with its hyphens as spaces.
+
+⭐ **The folder is the tree** (documents path identity, 2026-11). A child lives in
+its parent's directory — `aromas/smoke/peat-smoke.yaml` is
+`/base-library/aromas/smoke/peat-smoke`, and its parent is the aroma one segment
+up (`Aroma.folderParentOf`); an aroma directly under `aromas/` is a root. An aroma
+takes what it leaves unstated (threshold, discipline, liking) from its parent, so
+a child that inherits everything is the empty mapping `{}`. An explicit `parent:`
+is only for a parent in **another** pack (`data.parent ?? folderParentOf(path)`),
+so a pack adds a child to base-library's tree with no kernel edit. `lint:aromas`
+holds the folder rule: a directory under `aromas/` must itself be an aroma, a
+`parent:` naming an aroma in the same pack is refused (move the file — the folder
+says it), and a `parent:` beside a parent folder is refused (one aroma, one
+parent). An aroma loads when something naming it loads: the naming row's
 setter awaits `Aroma.ensure`, which reads the document at that path and fails
 loudly if there is none, and a cold read starts the load that `smell`, `taste` and
 `analyze` wait out. `lint:aromas` catches the same at CI.
@@ -902,3 +912,6 @@ three MR-iteration rounds before the final shape; key shifts:
 
 - **2026-11-07 (vocabularies-to-rows):** smell became one model. `SmellSourceMixin`,
   `ppm` on smell and the flat threshold retired. See [§ One smell](#one-smell-source-air-nose).
+- **2026-11-09 (documents path identity):** the aroma library moved into folders;
+  the folder is the tree and `parent:` survives only for a parent in another pack
+  (`lint:aromas` folder rule). See git log for the `reqs/documents-path-identity` branch.

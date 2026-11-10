@@ -2,7 +2,7 @@
  * HelpCatalogue — singleton Idea owning the boot-warmed help index.
  *
  * Lives at `/platform/idea/HelpCatalogue` (the singleton-in-`obj/` convention,
- * sibling to `TopicCatalogue` / `RecipeCatalogue` / `CorpoCatalogue`).
+ * sibling to `SoulCatalogue` / `RecipeCatalogue` / `CorpoCatalogue`).
  * The index is *harvested*, never registered: `warm()` pulls two
  * projectors — commands (every loaded `CommandDefinition`) and the
  * engine API surface (the enriched `author-surface.json` artifact +
@@ -10,7 +10,7 @@
  * `Map<id, HelpTopic>` plus derived category indexes.
  *
  * Read-only reference surface (help is transparency-by-default), so the
- * read methods are ungated — the `TopicCatalogue`/`RecipeCatalogue`
+ * read methods are ungated — the `SoulCatalogue`/`RecipeCatalogue`
  * precedent. The single read chokepoint + the capability filter live in
  * the {@link HelpApi} facade, not here.
  *
@@ -796,7 +796,7 @@ export default class HelpCatalogue extends HelpCatalogueBase {
     }
   }
 
-  /** Singleton refusal (mirrors RecipeCatalogue / TopicCatalogue). */
+  /** Singleton refusal (mirrors RecipeCatalogue / SoulCatalogue). */
   public canDestruct(): VetoResult {
     return {
       ok: false,

@@ -11,7 +11,7 @@
 # *a fillet spoils on the shipped clock and keeps when smoked* true.
 class: /platform/idea/material/Flesh
 data:
-  smells: [{ aroma: /base-library/aromas/fish, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/flesh/fish, strength: 300 }]
   name: fish flesh
   keywords: [fish, flesh, fillet]
   appearance: pale, close-grained flesh that flakes along its lines

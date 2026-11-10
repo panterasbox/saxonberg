@@ -13,7 +13,7 @@
 # anybody is ranching.
 class: /platform/idea/species/Species
 data:
-  smells: [{ aroma: /base-library/aromas/goat, strength: 40 }]
+  smells: [{ aroma: /base-library/aromas/animal/goat, strength: 40 }]
   binomial: Capra hircus
   commonNames: ["goat", "nanny", "billy", "kid"]
   maleNames: [billy]

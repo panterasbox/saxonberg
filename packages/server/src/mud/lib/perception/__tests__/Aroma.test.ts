@@ -49,6 +49,21 @@ describe('Aroma', () => {
     expect(Aroma.resolveKnown(`${A}tar`)).not.toBeNull();
   });
 
+  it('⭐ the folder is the tree: a child in its parent\'s directory takes it as parent (D14)', async () => {
+    docs({
+      [`${A}fruit`]: { threshold: 2, discipline: 'tasting' },
+      [`${A}fruit/citrus`]: {},
+      [`${A}fruit/citrus/lemon`]: { threshold: 0.2 },
+    });
+    const lemon = await Aroma.ensure(`${A}fruit/citrus/lemon`);
+    expect(lemon.ancestry()).toEqual([`${A}fruit`, `${A}fruit/citrus`, `${A}fruit/citrus/lemon`]);
+    expect(lemon.word()).toBe('lemon');
+    expect(lemon.getThreshold()).toBe(0.2);
+    expect(lemon.disciplineOf()).toBe('tasting');
+    // A root directly under aromas/ has none.
+    expect(Aroma.folderParentOf(`${A}fruit`)).toBeNull();
+  });
+
   it('two packs may each ship the same word, and neither is the other', async () => {
     docs({
       [`${A}smoke`]: { threshold: 1 },

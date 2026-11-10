@@ -4,7 +4,7 @@
 # makes the sheet sized — `write` reads it.
 class: /platform/idea/material/PigmentPaint
 data:
-  smells: [{ aroma: /base-library/aromas/glue, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/hide/glue, strength: 300 }]
   name: size
   keywords: [size, sizing, "glue size"]
   appearance: a thin amber jelly-water

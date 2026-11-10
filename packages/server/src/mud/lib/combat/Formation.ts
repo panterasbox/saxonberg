@@ -9,10 +9,11 @@
  * *means* (how `'called'` allocates, what `high-threat` measures) is
  * combat's interpreter in `CombatLogic`, and every magnitude is a
  * `combat.formation.*` dial. A party names its formation by PATH and is
- * live only when that formation is (documents D7): `Party.onCreate` and the
- * party's restore load it, and `party adopt <word>` resolves the word to a
- * document in the act. A combatant with NO party fights by
- * {@link Formation.DEFAULT_POLICY}, value-equal to the shipped `default`.
+ * live only when that formation is (documents D7): the formation setter
+ * asserts it resident, the party's restore loads it, and `party adopt <word>`
+ * resolves the word to a document in the act. A combatant with no party, or
+ * a party that never chose, fights by {@link Formation.DEFAULT_POLICY},
+ * value-equal to the shipped `default`.
  *
  * **Roles are sets, not seats** — see docs/subsystems/combat-formations.md.
  */

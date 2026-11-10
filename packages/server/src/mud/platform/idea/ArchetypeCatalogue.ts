@@ -10,7 +10,7 @@
  *
  * Read-only reference surface (an archetype is public knowledge — the
  * floor an industry states), so methods are ungated — the
- * `TopicCatalogue` precedent.
+ * `SoulCatalogue` precedent.
  *
  * Not a persisted record — the seed YAML is `{ class:
  * /platform/idea/ArchetypeCatalogue, data: {} }`.

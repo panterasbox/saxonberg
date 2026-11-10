@@ -8,12 +8,14 @@
  * ⭐⭐ **An aroma is named by its PATH**, a document's only identity. A pack
  * ships `content/aromas/<word>.yaml`, the installer stores it under the pack's
  * root (`/base-library/aromas/smoke`), and every reference names that path — a
- * material's `smells:`, a dirt's `odor:`, another aroma's `parent:`. So two packs
+ * material's `smells:`, a dirt's `odor:`, another pack's aroma `parent:`. So two packs
  * may each ship a `smoke` and neither is the other. Nothing scans the kind and
  * nothing warms a roster: a path is read when something names it.
  *
- * The tree is each document's `parent:`, so `peat-smoke` names `smoke`'s path. A
- * threshold, a discipline and a hedonic curve an aroma leaves unstated come from
+ * The tree is the aroma folder: a child lives in its parent's directory
+ * (`aromas/smoke/peat-smoke.yaml` → `/base-library/aromas/smoke/peat-smoke`), so
+ * its parent is the path one segment up; an explicit `parent:` names a parent in
+ * another pack. A threshold, a discipline and a hedonic curve an aroma leaves unstated come from
  * its parent, and how deep a reader can name a smell is how far down the chain
  * their competence reaches. Its WORD is the path's last segment, a lowercase slug,
  * and it reads with its hyphens as spaces (`peat-smoke` → *peat smoke*).
@@ -50,7 +52,7 @@ export interface OdorTag {
 
 /** What an `aroma` document says, before its parent fills the gaps. */
 export interface AromaData {
-  /** The parent aroma's path. */
+  /** A parent aroma in ANOTHER pack; otherwise the folder decides (D14). */
   parent?: string;
   threshold?: number;
   discipline?: string;
@@ -136,8 +138,21 @@ export class Aroma {
       throw new Error(`Aroma '${path}' has no aroma document`);
     }
     const data = doc.getData() as AromaData;
-    const parent = data.parent ? await Aroma.ensure(data.parent, depth + 1) : null;
+    const parentPath = data.parent ?? Aroma.folderParentOf(path);
+    const parent = parentPath ? await Aroma.ensure(parentPath, depth + 1) : null;
     return Aroma.remember(path, data, parent);
+  }
+
+  /**
+   * ⭐ The folder is the tree (documents D14): a child lives in its parent's
+   * directory, so its parent is the path one segment up — or none, for a
+   * root directly under `aromas/`. An explicit `parent:` is for a parent in
+   * ANOTHER pack only; `lint:aromas` refuses one the folder already says.
+   * @internal
+   */
+  public static folderParentOf(path: string): string | null {
+    const up = path.slice(0, path.lastIndexOf('/'));
+    return up.endsWith('/aromas') ? null : up;
   }
 
   /**

@@ -91,7 +91,7 @@ Its *durable* state is mirrored into a dumb **`PartyRecord`** document
 through `addMember`/`removeMember`; the captain is the single source of
 leadership authority (`captainId`). The combat-formations build added the
 **formation state**: `formationPath` (the adopted
-`/platform/idea/CombatFormation/<name>` — a path string, ref-shapes Pattern
+`/platform/formations/<name>` — a `formation` document's path, ref-shapes Pattern
 A; the party side never imports `lib/combat`) and `roleAssignments`
 (member → role; **roles are sets, not seats** — many members may share
 one, a departing member's role is released with them), both mirrored to
@@ -99,7 +99,8 @@ the record. The combat seam grew three pure statics beside
 `sideOf`/`areAllied`: **`formationPathOf`** (the total chain — active
 party's formation, else the default preset path, never null),
 **`roleOf`**, and **`isCaptain`**; the captain surface grew
-**`party adopt <name>`** (awaits the preset Idea resident, mints the
+**`party adopt <name>`** (resolves the word to its document in the act, so
+the recorded path is resident; mints the
 captain's `command` deed, and is a witnessed formation-shift beat) and
 **`party assign <role> <member>`** (role names validated structurally
 against the adopted formation). See

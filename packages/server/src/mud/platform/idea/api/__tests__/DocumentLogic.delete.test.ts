@@ -13,6 +13,7 @@ import { ExecutionContextApi } from '../../../../api/execution-context';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { Stuff } from '../../../../lib/stuff/Stuff';
+import { DocumentCache } from '../../../../lib/document/DocumentCache';
 import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 
 let rows: Record<string, unknown>[];
@@ -70,5 +71,18 @@ describe('DocumentApi.delete', () => {
     vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
     expect(await runAs(() => DocumentApi.delete('/emotes/grin'))).toBe(true);
     expect(await runAs(() => DocumentApi.delete('/emotes/grin'))).toBe(false);
+  });
+});
+
+// ⭐ D16: a CMS edit reaches the cache — the value class forgets the path.
+describe('the CMS edit reaches the cache', () => {
+  it('a delete drops the edited path from its kind\'s cache; a save does too', async () => {
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
+    vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
+    const forget = vi.spyOn(DocumentCache, 'invalidate');
+    await runAs(() => DocumentApi.delete('/emotes/grin'));
+    expect(forget).toHaveBeenCalledWith('emote', ['/emotes/grin']);
+    await runAs(() => DocumentApi.save('/home/test/scripts/b', 'msh', { source: '' }));
+    expect(forget).toHaveBeenCalledWith('msh', ['/home/test/scripts/b']);
   });
 });

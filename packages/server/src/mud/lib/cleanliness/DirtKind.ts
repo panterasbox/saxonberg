@@ -61,7 +61,7 @@ export interface DirtKindDescriptor {
 
 /** A dirt's smell (`DirtKind.odor`). */
 export interface DirtOdor {
-  /** The aroma's path (`/base-library/aromas/stale-sweat`). */
+  /** The aroma's path (`/base-library/aromas/sweat/stale-sweat`). */
   aroma: string;
   /** OU emitted per unit of load. */
   ouPerLoad: number;

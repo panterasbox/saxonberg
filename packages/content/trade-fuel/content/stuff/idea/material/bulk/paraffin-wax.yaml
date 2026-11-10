@@ -13,8 +13,8 @@
 # which is joint production paying off rather than costing.
 class: /platform/idea/material/FatOilWax
 data:
-  smells: [{ aroma: /base-library/aromas/paraffin, strength: 3 }]
-  burning: [{ aroma: /base-library/aromas/wax-smoke, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/wax/paraffin, strength: 3 }]
+  burning: [{ aroma: /base-library/aromas/smoke/wax-smoke, strength: 100 }]
   name: paraffin wax
   keywords: [paraffin, "paraffin wax", wax, candle-wax]
   appearance: a translucent white wax that goes greasy under a thumb

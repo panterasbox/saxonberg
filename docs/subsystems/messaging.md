@@ -220,9 +220,9 @@ MessageApi.scene(speaker)
 The `MessageApi.Topics` constant tree (the earlier shape) was
 **retired** during the message-rendering build — the parallel data
 in code + YAML led to two sources of truth. The authored source of
-truth for the topic vocabulary lives on per-topic YAML leaf Ideas
-under `seeds/lib/messaging/Topic/`. The `TopicCatalogue` singleton
-self-loads them at boot and turns each topic string into a
+truth for the topic vocabulary is one `topic` document per key under
+the platform pack's `content/topics/`. The message pipeline loads them
+on the first scene (`lib/message/Topic.ts`) and turns each topic string into a
 player-facing descriptor (friendly label, description, family for the
 cockpit's filter drawer, gutter tooltips, etc.). See
 [topics.md](./topics.md).
@@ -1269,7 +1269,7 @@ generator taps: after `filterMessage` passes (so it's perception-gated),
 a *communication* command frame fires `CommReceivedEvent` to credit the
 speaker with a small being-heard signal. The gate is
 `MessageApi.isCommunicative(topic)` (forwarding to `MessageLogic` →
-`TopicCatalogue`'s `communicative` set), so only say/whisper/shout/emote/
+the topic dictionary's `communicative` set), so only say/whisper/shout/emote/
 chat frames — not dm/narration/system — reach the bus. Renown recovers
 the speaker from the act registry (`ReactionApi.actInfo`). See
 [renown.md](./renown.md).
@@ -1281,7 +1281,7 @@ the speaker from the act registry (`ReactionApi.actInfo`). See
   pipeline, `AetherMixin`, client-side renderer, stylesheet engine,
   themes, per-message-type templates, the `style` verb, and the
   `client-state-update` push wire
-- [topics.md](./topics.md) — `TopicCatalogue` (authored topic
+- [topics.md](./topics.md) — the `topic` documents (authored topic
   descriptors; the source of truth after the `MessageApi.Topics`
   constant tree retirement)
 - [templates.md](./templates.md) — template clone pipeline that creates

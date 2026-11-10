@@ -142,7 +142,7 @@ until the weather takes the coat and the words with it.
 
 ## 5. Glue — the glued joint takes a real glue
 
-A `Joint` row may `takes: glue` (`glued`). `fit`'s raise arm draws glue from
+A joint document may say `takes: glue` (`glued`). `fit`'s raise arm draws glue from
 an open vessel in reach (`crafting.glueLitresPerJoint`) and marks it on the
 joints; the GLUE decides (`Material.adhesive`): the line sets by the glue's
 air rule and is weak until it has; a knock before it sets costs more; the

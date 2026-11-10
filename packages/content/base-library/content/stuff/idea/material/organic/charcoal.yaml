@@ -15,7 +15,7 @@
 class: /platform/idea/material/SolidFuel
 data:
   smells: [{ aroma: /base-library/aromas/char, strength: 3 }]
-  burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 20 }]
+  burning: [{ aroma: /base-library/aromas/smoke/wood-smoke, strength: 20 }]
   name: charcoal
   keywords: [charcoal]
   # Light: the volatiles and most of the mass left as smoke.

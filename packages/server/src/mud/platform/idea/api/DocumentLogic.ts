@@ -26,6 +26,8 @@ import {
 } from '../../../lib/document/DocumentKinds';
 import { createHash } from 'node:crypto';
 import { Release } from '../../../lib/press/Release';
+import { DocumentCache } from '../../../lib/document/DocumentCache';
+import { Topic } from '../../../lib/message/Topic';
 import {
   EDITIONS_DIR,
   type DocumentPages,
@@ -680,6 +682,17 @@ async function saveImpl(
 
   // Go-live: a command view reaches the dispatcher without a restart.
   if (kind === COMMAND_VIEW_KIND) await CommandApi.reload(path);
+  forgetEdited(kind, path);
+}
+
+/**
+ * ⭐ The CMS edit reaches the cache (documents D16): the value class's
+ * memory of the edited path is dropped, so the next use re-reads it — the
+ * installer's go-live, for one path. A topic re-warms its vocabulary.
+ */
+function forgetEdited(kind: string, path: string): void {
+  DocumentCache.invalidate(kind, [path]);
+  if (kind === 'topic') Topic.invalidate();
 }
 
 /** The document kind a command view is stored under. */
@@ -691,7 +704,9 @@ async function deleteImpl(path: string): Promise<boolean> {
   if (denial !== null) throw new Error(denial);
   const doc = await StoredDocument.findByPath(path);
   if (!doc) return false;
+  const kind = doc.kind;
   await doc.delete();
+  forgetEdited(kind, path);
   return true;
 }
 

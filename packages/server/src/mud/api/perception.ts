@@ -18,7 +18,7 @@
  * by the modality's own `name` to keep `modalityByName` O(1) on hot
  * paths (every `filterMessage`, every single-sense validator);
  * tag invalidation rides on `Events.StuffCreated`/`Events.StuffDestructed`
- * filtered to the prefix — same shape as the `TopicCatalogue` HMR pattern.
+ * filtered to the prefix — the template-event HMR pattern.
  *
  * Thin, security-gated forwarding shell: the dispatch + caches live in
  * the hot-reloadable {@link PerceptionLogic} singleton at

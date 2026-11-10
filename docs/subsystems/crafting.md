@@ -153,7 +153,7 @@ the Hydrator; per-field invariants ride accessor pairs.
   substrate, so it does not poison the well for cooking.
 - **`CraftedMixin`** (`Crafted.ts`, composes `GradedMixin(Base)`) — the
   per-instance **maker's mark**. Own persistent fields `{maker (templatePath),
-  recipe (recipeId), craftedAt (game-seconds)}`, set once via `stamp(spec)`
+  recipe (the recipe's word — its path's leaf), craftedAt (game-seconds)}`, set once via `stamp(spec)`
   at craft-resolve. `renderVerdict()` renders the **DF-style** verdict —
   band-word headline + grade-keyed prose + maker name (resolved via a
   module-private `resolveMakerName` → `getPresentation()`) — **never a
@@ -200,9 +200,11 @@ a **`Document`** managed by a catalogue singleton — the
 `Emote`↔`SoulCatalogue` relationship.
 
 - **`Recipe`** (`lib/craft/Recipe.ts` — since content-packs wave 2 a
-  **value shape** over one `documents` row of `kind: 'recipe'`, unique
-  per kind on `data.recipeId`; `fromDocument` validates what the retired
-  seeder validated, `toData` is the inverse, `fieldMeta` stays as the
+  **value shape** over one `documents` row of `kind: 'recipe'`, named by
+  its path; its word is the path's LEAF (a typed word, unique at install —
+  [content-packs.md](./content-packs.md)), and the card carries `word` and
+  `output` (`recipeFor(output)` reads it); `fromData(data, path)` validates
+  what the retired seeder validated, `toData` is the inverse, `fieldMeta` stays as the
   wiki's spoiler schema) — typed accessors over `name`, `keywords`,
   `inputSlots: RecipeInputSlot[]`, `toolCapabilities: string[]`,
   `outputTemplate` (a **real** cloneable template), `outputMaterial`,
@@ -241,16 +243,26 @@ a **`Document`** managed by a catalogue singleton — the
     absent ⇒ no advancement row (every bar row).
 - **`RecipeCatalogue`** (`obj/RecipeCatalogue.ts`, singleton
   `Idea` at `/platform/idea/RecipeCatalogue`) — caches
-  `DocumentApi.listOfKind('recipe')`, resolves by id + keyword (`order
-  martini` → one recipe), `warm()` on `onCreate`,
-  `invalidateCache()` + `warm()` as the installer's go-live after a live
-  `pack sync`. The `SoulCatalogue` shape. **Read methods
-  are ungated** (the `TopicCatalogue` "public knowledge" precedent — a
+  `DocumentApi.listOfKind('recipe')`, resolves by word + keyword (`order
+  martini` → one recipe) and by path (`getRecipeAt` — an authored
+  citation such as a menu's `offeredRecipes:` names a path), `warm()` on
+  `onCreate`, re-warmed as the installer's go-live after a live
+  `pack sync`. ⭐ A **lazy dictionary**, never booted (documents path
+  identity, 2026-11-09): reached through `StuffApi.singleton`, and the
+  sync readers (`BlendIdentity`, `ThermalDose`, `Archetype.effectiveRows`)
+  go through `Recipe.dictionary()`, which throws
+  `DocumentNotResidentError` when it is cold — `Crafted.setRecipe` and
+  `Bulkable`'s `setInteriorPayload`/`setSurfacePayload` restore doors
+  return `Recipe.loadDictionary()` for the applier to await. ⚠ A runtime
+  record (`BulkPayload.recipeId`, `Crafted.recipe`, a thermal dose) keeps
+  the recipe's WORD, not its path — the word is derived from the path and
+  unique, and a player types it. The `SoulCatalogue` shape. **Read methods
+  are ungated** (the topic vocabulary's "public knowledge" precedent — a
   catalogued recipe is openly resolvable; v1 has no minting verb, so no
   `RecipeApi` and no dangling gate string).
 - **The `generic-objects` pack** (`packages/content/generic-objects/
-  content/recipes/<recipeId>.yaml`, one file per recipe; the basename IS
-  the `recipeId`) — installed by `PackApi.install` and reconciled
+  content/recipes/<word>.yaml`, one file per recipe; the basename IS the
+  word, and the file carries no `recipeId:` line) — installed by `PackApi.install` and reconciled
   three-way; a file with an empty `inputSlots` or no `outputTemplate`
   fails the pack at `read`. The former `RecipeSeeder` +
   `mud/config/recipes.yaml` are gone; the collapse migration carried an
@@ -404,10 +416,10 @@ still deferred — not faked.
 > **you cannot build a factory until you can build a thing from parts**,
 > and the industrial verticals all sit behind it. Three findings worth
 > knowing from here: **the axis is the JOINT** (bespoke → the threaded
-> fastener → irreversible), so a `Joint` **ROW** carries condition ·
+> fastener → irreversible), so a joint **document** carries condition ·
 > operation · strength · reversibility · **signature** — and the
 > row-plus-one-verb-plus-instrument shape is already shipped as
-> `harm.md`'s `Operation` catalogue; **`salvage` is already disassembly**,
+> `harm.md`'s `operation` documents; **`salvage` is already disassembly**,
 > and *reversibility decides whether taking a thing apart yields parts or
 > scrap*, so the verb needs a reader rather than a sibling; and ⚠
 > **`Durable` wear with no parts makes every failure TOTAL** — an axe is a
@@ -1937,3 +1949,8 @@ perishable inputs before the working's kill. A pot on the boil (what is in it) a
   `CraftingLogic.recordCraftEvidence`, and `RecipeKnowledge` lives in
   `lib/craft/`. `lib/craft/Tooled.ts` is `lib/craft/Tool.ts` (W3).
 
+## History — documents path identity (2026-11-09)
+
+A recipe is named by its path (its word the leaf, no `recipeId:` line);
+`RecipeCatalogue` left the boot list and reads cold as an error. See git
+log for the `reqs/documents-path-identity` branch.

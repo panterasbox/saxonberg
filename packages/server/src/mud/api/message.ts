@@ -72,9 +72,9 @@ export interface MessageBroadcastOptions {
 /**
  * Topic strings are emitted as **dotted-path string literals** at
  * call sites (e.g., `.topic('speech.vocal')`). The authored
- * source of truth for the topic vocabulary lives on per-topic YAML
- * leaf Ideas under the platform pack's `content/platform/idea/Topic/` (loaded into the
- * `TopicCatalogue` singleton at boot — see
+ * source of truth for the topic vocabulary is the `topic` documents
+ * under a pack's `content/topics/` (warmed by the first scene, never at
+ * boot — see
  * `docs/subsystems/topics.md`). Keeping a parallel `TOPICS` constant
  * tree in code led to the same data living in two places; the tree
  * has been retired in favor of literals.

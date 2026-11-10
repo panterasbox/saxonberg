@@ -11,23 +11,47 @@ just **one kind** of stored document (`msh`); since content-packs wave 2
 the store also holds the **pack-installed reference data** that used to
 live in per-kind collections — emotes, recipes, name banks, the curated
 blueprints, and every engine verb's command view — each a declared
-kind. Dorm-room customization will be another (the first non-script
+kind; and since the documents path identity build (2026-11) the
+**authored metadata families** that used to be Ideas — aromas, dirt
+kinds, pump mechanisms, joints, forms, operations, help concepts,
+formations, placements and topics. Dorm-room customization will be another (the first non-script
 runtime consumer — see the Warren/lounge work).
 
 ### The closed kind vocabulary
 
 `lib/document/DocumentKinds.ts` declares every **pack-installable** kind
-— its `kind` string, natural key (`verb`, `recipeId`, `key`,
-`blueprintId`, or none for a path-keyed kind), pack subdir, extension
-and vanish policy. Editing it is a platform act: a kind needs a code
-consumer and a go-live hook ([content-packs.md](./content-packs.md)).
-`PersistenceManager` creates one **unique partial index**
-`{kind, data.<naturalKey>}` per flat-key kind (partial on the kind — a
-path-keyed kind never collides), and the nightly reset **keeps** every
-declared kind beside `release` (`ResetPolicy`) — pack-installed rows are
-world content, not player state. `release` is press-owned; `wiki` is
-deliberately not a document kind (a page has a revision log and a CAS
-edit path of its own).
+— its `kind` string, its pack subdir (`contentDir`), extension and vanish
+policy, and optionally the **keys** and **words** of its catalogue card
+(below). Editing it is a platform act: a kind needs a code consumer and a
+go-live hook ([content-packs.md](./content-packs.md)). The nightly reset
+**keeps** every declared kind beside `release` (`ResetPolicy`) —
+pack-installed rows are world content, not player state. `release` is
+press-owned; `wiki` is deliberately not a document kind (a page has a
+revision log and a CAS edit path of its own).
+
+⭐ **The authored metadata kinds** — each cited by path, none with a
+second name; most read through a value class in `lib/` over a
+`DocumentCache` (below — `Topic` keeps a dictionary of its own, and help
+concepts have no value class):
+
+| kind | `contentDir` | value class | named by | typed word |
+|---|---|---|---|---|
+| `aroma` | `aromas` | `lib/perception/Aroma.ts` | path; the folder is the tree ([senses.md](./senses.md)) | — |
+| `dirt` | `dirt` | `lib/cleanliness/DirtKind.ts` | path (`DirtKinds.*` constants for the kernel's) | — |
+| `pump-mechanism` | `pump-mechanisms` | `lib/pump/PumpMechanism.ts` | a pump's `mechanism:` path | — |
+| `joint` | `joints` | `lib/craft/Joint.ts` | a bill's `joints[].method` path | — |
+| `form` | `forms` | `Form` in `lib/craft/FormSpec.ts` | an instrument's `forms:` paths (the word resolves against that list, so two wheels may each know a `brick`) | — |
+| `operation` | `operations` | `lib/vitals/Operation.ts` | `operate … for <word>` | the leaf |
+| `help-concept` | `concepts` | none — `HelpCatalogue` reads the kind | `help <word>`; `seeAlso:` paths | the leaf |
+| `formation` | `formations` | `lib/combat/Formation.ts` | a party's path; `party adopt <word>` | the leaf |
+| `placement` | `placements` | `lib/spatial/Placement.ts` | a host's `placements:` paths | the primary preposition |
+| `topic` | `topics` | `lib/message/Topic.ts` | code (`.topic('act.combat')`); the dotted key is the leaf | the leaf |
+
+`emote`, `recipe` and `archetype` declare the leaf as their typed word;
+a `blueprint` is named by its leaf too. ⭐ None of the four carries a key
+line in its file any more (`verb:`, `recipeId:`, `archetypeId:`,
+`blueprintId:` are gone; `Emote/Recipe/Archetype.fromData(data, path)`
+read the word from the path).
 
 ⭐⭐ **The logistics build added three, all on the `water-right`
 pattern**: `bill-of-lading`, `warehouse-receipt` and `rate-card` — all
@@ -79,7 +103,7 @@ first use and stands up every ship on it that is not loaded
 ⭐ **`water-right` is the worked example of why the vocabulary is closed**
 (water build). A prior-appropriation right is a *record* — dated,
 transferable, and meaningless if it can be quietly lost — so it is
-path-keyed (`naturalKey: null`, `contentDir: 'water-rights'`,
+path-keyed (no card, `contentDir: 'water-rights'`,
 `ext: 'yaml'`) and, critically, `onVanish: 'keep'`: a right survives the
 pack that seeded it going away, because the whole point of recording an
 appropriation is that it outlives the paperwork. A capability pack
@@ -89,19 +113,108 @@ is the gate working, not friction to route around.
 ⭐ **`aroma`** (vocabularies-to-rows, 2026-11): what a nose can read; authored
 metadata ([senses.md](./senses.md#one-smell-source-air-nose)). It was an Idea
 for one build and moved here because nothing writes one, nothing acts on one, and MQL
-should not find one. ⚠ `DirtKind` has the same shape and has not moved yet.
+should not find one. It was the precedent the nine families of the
+documents path identity build followed (the table above).
 
 ⭐⭐ **A document's identity is its PATH** (owner, 2026-11-08). A pack's document is
 stored at `<pack root>/<contentDir>/<rel>`, so a reference names that full path
 (`/base-library/aromas/smoke`, `/species-and-names/name-banks/common`) and is read
 with `DocumentApi.read`; the path is the scoped namespace, and two packs shipping
-the same file name ship two documents. `aroma` shipped for a day keyed by a
-`naturalKey` and read by a cross-pack field lookup (`readByKey`); that was a
-second identity beside the path and is gone, as is `name-bank`'s key. The
-remaining `naturalKey` kinds (emote, recipe, blueprint, archetype) are the
-installer's flat namespaces, slated to go; a uniform secondary-key index over
-every document, separate from `data`, is a separate requirement that slate also
-carries.
+the same file name ship two documents. `naturalKey` — a second identity beside
+the path, with a unique partial index per flat-key kind — is **gone** (documents
+path identity, 2026-11): the path is unique (the `{path: 1}` index is `unique`),
+the installer adopts a row by `{kind, path}` only, and what a document is
+otherwise FOUND by is its derived catalogue card (below).
+
+## ⭐ The catalogue card — `keys`, and `findByKey`
+
+Every document carries a **card**, `keys: Record<string, DocumentKeyValue>`
+(`string | number | boolean | Array<string|number>`): the keys its kind
+declares in `DocumentKinds` (`keys`, plus `words` stored as `keys.word`),
+each **derived from the document's own data and never authored**, so it
+cannot drift from the value it repeats. One static derives it,
+`StoredDocument.cardOf(kind, path, data)`, called by the only two writers
+there are — `StoredDocument.save()` (every `DocumentLogic` write) and the
+pack installer's row builder (the installer writes before any persistence
+hook is loaded, so a hook could not be the chokepoint). A kind outside the
+vocabulary (a runtime-filed one) gets an empty card; an empty path throws.
+
+Declared today, each with its reader: `release → {publishedAt, pinned,
+releaseId}` (the press — [press.md](./press.md)), `recipe → {output}`
+(`recipeFor`), and `word` for every typed-word kind (emote, recipe,
+archetype, operation, help-concept, formation, placement, topic). ⚠ A key
+nobody reads is a declaration to delete.
+
+**One index serves every key**: `{kind: 1, 'keys.$**': 1}`, a compound
+wildcard, authored in `schema/documents.yaml` beside `{path: 1}` (unique)
+and `{kind: 1}`. A wildcard keys each card field natively, so a sort is a
+real index order (an attribute array `[{k, v}]` would sort by the array's
+extreme element). The PM's old derived per-kind index loop is deleted —
+the store's indexes are authored facts like every other collection's.
+
+**`DocumentApi.findByKey(kind, key, q)`** is the one query surface over
+the card — a read, ungated like `read`. `q: {eq?, min?, max?, prefix?,
+order?: 'asc' | 'desc', limit?}`: `eq` for equality, `min`/`max` an
+inclusive range, `order` reads in the key's order (an unbounded ordered
+read constrains the key with `$exists`, so a document with no value for
+it is not returned), `prefix` keeps the read under one path (a path
+range, never a regex), `limit` caps. `findByKey('release', 'publishedAt',
+{order: 'desc', limit: 30})` is the press, newest first.
+
+## ⭐⭐ Resident by construction — `DocumentCache`
+
+⭐ The owner's rule (2026-11-09): *"you're responsible for loading objects
+into the game when they're needed; you can't just say 'they're not loaded
+yet' and give up."* So **a cited document is resident whenever the thing
+that cites it is resident**, and a synchronous read always finds it.
+Nobody above the model — not a controller, not a pack author — ever warms
+anything, and no family is on a `boot:` list.
+
+`lib/document/DocumentCache.ts` is the memory each value class composes
+(a `private static`, never by inheritance — a static a subclass inherits
+is shared). **A memory, never a roster**: a path enters when something
+names it.
+
+| door | what it does |
+|---|---|
+| `ensure(path)` (async) | read and build the document if it is not resident; concurrent first reads share one load; throws naming the path when no document of the kind is there |
+| `need(path)` (sync) | the resident value, or **`DocumentNotResidentError`** (`lib/errors.ts`, naming the kind and the path) — an engine defect, loud for us, never a player-facing refusal and never a skip |
+| `peek(path)` (sync) | resident or `null`, starting nothing — for a reader whose honest answer to "not read" is "not mine to read" |
+| `remember(path, value)` | the one way a value enters (unit fixtures use it too) |
+| `all()` / `byWord(word)` | the lazy dictionary, only for a kind a player names by a typed word or a verb lists: one `listOfKind`, or one `findByKey(kind, 'word', {eq})` (a resident leaf answers first) |
+| `DocumentCache.invalidate(kind, paths?)` | the go-live: every cache of the kind forgets those paths (or all); the installer calls it for every kind a sync touches |
+
+(The sync door is named `need`, not `require`: `lint:imports` reads a
+`require(` declaration as a dynamic require.)
+
+What makes "resident" true, per family:
+
+1. **An authored citation loads through the field's setter**, which
+   returns the load for the template applier to await — in clone and in
+   restore mode alike (`Placing.setPlacements`, `Assembled.setBill`, a
+   pump's `mechanism`, an instrument's `forms`). A row is not live until
+   what it cites is.
+2. **Runtime state that cites a document is restored through the same
+   awaited setters** (`Soilable.setDeposits`/`setStains`,
+   `Assembled.setJoints`, a placed item's `ContentPlacement` in the
+   restore pass, a party's formation in `materializeParty`).
+3. **A runtime write** happens in an act that already holds the document
+   (a word was resolved to it; a pack's own dirt kind is ensured by the
+   act that lands it), so the written path is resident by induction.
+4. **A class's own built-in citations load with the class's content**, in
+   one host's `onCreate`: `Place.onCreate` loads the kernel's placements,
+   `SoilableMixin.onCreate` the kernel's dirt kinds — one prefix read
+   each, once per process.
+
+⚠ **The one engine-wired load is topics**: named by code and cited by no
+holder, so the message pipeline warms the dictionary on the first scene
+and queues dispatch in order behind it ([topics.md](./topics.md)). The
+lazy dictionaries that stay Stuff (`RecipeCatalogue`, `SoulCatalogue`,
+`ArchetypeCatalogue`, `BlueprintCatalogue`, `SpellCatalogue`,
+`CorpoCatalogue`, `GovernmentCatalogue`, `DisciplineCatalogue`) warm on
+their first async use and are never booted; the ones read synchronously
+throw `DocumentNotResidentError` when read cold rather than answering
+empty.
 
 ## What a record is
 
@@ -109,13 +222,15 @@ carries.
 
 | field   | meaning |
 |---|---|
-| `path`  | canonical key; owner/scope encoded in the path — see the namespace taxonomy below |
+| `path`  | canonical key and the only identity (unique index); owner/scope encoded in the path — see the namespace taxonomy below |
 | `owner` | the owner's durable `templatePath` (set from context, never the caller) |
 | `kind`  | **what kind of object lives here** — `'msh'` (a script), `'emote'`, `'recipe'`, `'name-bank'`, `'blueprint'`, `'command-view'`, `'release'`, `'water-right'`, later `'dorm'`, … |
 | `data`  | the arbitrary JSON payload |
+| `keys`  | the catalogue card, derived from `data` by the kind on every write (above) — never authored |
 
 The store is **kind-agnostic**: it persists and serves `{path, owner,
-kind, data}` and never inspects `data`. Each `kind`'s consumer owns the
+kind, data}` and never inspects `data` — except that a declared kind's
+card is derived from it on write. Each `kind`'s consumer owns the
 *meaning* of `data` and any **go-live** behavior (re-parse, re-hydrate).
 
 `StoredDocument extends Document` only for persistence — distinct from the
@@ -179,7 +294,7 @@ and two of those are defects rather than migrations.
 | 1 | **path-addressable** — every read by path or prefix, never *find all X where Y = Z* | the store is a tree |
 | 2 | **grows with things, not actions** | ⚠⚠ a document is **one row**; concurrent appends to one row **fork** |
 | 3 | **no revision log, no compare-and-set** | ⭐ the standing exclusion: *`wiki` is deliberately not a kind — a page has a revision log and a CAS edit path of its own* |
-| 4 | **≤ 1 secondary key** | `PersistenceManager` creates exactly **one** unique partial index per flat-key kind (`{kind, data.<naturalKey>}`) and nothing else |
+| 4 | **secondary keys are a derived card** | anything besides the path a row is found by is a key its kind DERIVES from `data` onto `keys`, served by the one wildcard index — no per-kind index, no authored second name (originally *≤ 1 secondary key*, the `naturalKey` unique partial, retired 2026-11) |
 | 5 | **a titled owner** | `canAtPath` gates on parcel title, and `lint:untitled` says an unclaimed path is one **nobody can ever edit** |
 
 ⚠ **Criterion 2 is the one that does the work, and row counts lie.**
@@ -322,9 +437,11 @@ A thin gated forwarding shell over a hot-reloadable logic singleton at
 
 - `DocumentApi.read(path)` → the `StoredDocument` at `path`, or null.
 - `DocumentApi.list(prefix)` → every doc at/under `prefix` (the CMS tree's
-  input).
-- `DocumentApi.list(prefix)` / `DocumentApi.listOfKind(kind)` — the second
-  is the release window's rebuild input.
+  input) — a range over the unique path index, never a collection scan.
+- `DocumentApi.listOfKind(kind)` — every document of a kind (a lazy
+  dictionary's warm).
+- `DocumentApi.findByKey(kind, key, q)` — documents of a kind found by one
+  key of their card (above).
 - `DocumentApi.save(path, kind, data)` → find-or-create. **Access-gated**,
   **owner-stamped from context**, **provenance-recorded** (below). For
   `kind: 'command-view'` it also runs the schema check and reloads the
@@ -466,3 +583,12 @@ non-script runtime consumer (dorm-room customization data, hydrated onto
 a Warren constituent — base-template + customization-document) all land
 later. The substrate is built to accommodate them; scripts, the
 pack-installed kinds, and releases ride it today.
+
+## History
+
+- 2026-11-09 — documents path identity: `naturalKey` and its per-kind
+  unique partial indexes are gone; the path is unique; every document
+  carries a derived `keys` card served by one wildcard index and read with
+  `findByKey`; the nine metadata families became document kinds over
+  `DocumentCache`, resident by construction. See git log for the
+  `reqs/documents-path-identity` branch.

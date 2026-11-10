@@ -686,7 +686,10 @@ is regenerated; `schema/documents.yaml` carries the new indexes and a
 `purpose` that names the populations; `lint:schema` must agree.
 `lint:typed-words` is added (D3).
 
-**D16 — The CMS edit reaches the cache.** `DocumentLogic.saveImpl`/`deleteImpl`
+**D16 — The CMS edit reaches the cache.** *(Built at W7 — the doc sweep found
+it missing: `DocumentLogic` save/delete now drop the path from the kind's
+`DocumentCache` and re-warm topics; a catalogue's own re-warm stays the
+installer's.)* `DocumentLogic.saveImpl`/`deleteImpl`
 call the kind's go-live (`DocumentCache.invalidate(kind, [path])` and the
 surviving catalogue's drop) — the same hook the installer calls — so an edited
 dirt kind or joint reads on the next use without a restart, as command views
@@ -933,7 +936,9 @@ recipe/archetype/blueprint load on use.
 >   returns the load), and two new restore setters on `Bulkable`,
 >   `setInteriorPayload` / `setSurfacePayload`. `ArchetypeCatalogue.onCreate`
 >   loads the recipe dictionary first (an industry archetype derives from it).
->   The three catalogues' `ensureCache` throw instead of reading as empty.
+>   The recipe and archetype catalogues' `ensureCache` throw instead of
+>   reading as empty; ⚠ `BlueprintCatalogue` keeps its empty cold read (the
+>   studio's resolve surface answers null), corrected at W7.
 > - The three boot lines went (85 → 82). Lazy = reached only through
 >   `StuffApi.singleton`, whose `onCreate` warms (`survey` now awaits it).
 > - `DocumentCache` + `DocumentNotResidentError` landed; `Aroma` keeps its own
@@ -1209,6 +1214,25 @@ derivation; the lint's folder rule (an explicit `parent:` equal to the folder
 parent is refused; a cross-pack one is allowed); a fresh `FreshnessMixin`
 host and a fresh corpse have their aromas resident before any read. Commit:
 `build(documents W6): the aroma folders are the tree`.
+
+> ✅ **W6 done (build).** Rebased first: master merged in (`8e85150f4` —
+> material decomposition and broadcast-ready; ceilings combined, boot 75,
+> duck 533; the broadcast build's three document kinds take no
+> `naturalKey`). Then the mapping: 89 children moved by `git mv` into
+> their parents' folders (9 at depth 2 — `decay` now lives at
+> `rot/decay`), every `parent:` line removed, 243 citing files rewritten
+> by a boundary-aware `old → new` replace (kernel literals in
+> `MortalArc` and `check-aromas`'s `KERNEL_AROMAS` included).
+> `Aroma.ensure` takes `data.parent ?? Aroma.folderParentOf(path)`;
+> `lint:aromas` gains the folder rule (a directory must itself be an aroma;
+> a same-pack `parent:` is refused — move the file; a `parent:` beside a
+> parent folder is refused). ⚠ Decided, not as planned: **no
+> `FreshnessMixin.onCreate` / corpse-arc ensure.** The kernel's aromas are
+> cited as notes (`{aroma, ou}`) and only the nose reads the aroma itself,
+> and it already loads on read and waits (`Aroma.settling`) — so an
+> `onCreate` on every provision would be an async per host for a shared
+> cache, against the `lint:on-create` ratchet, buying nothing a reader
+> lacks (P7: load on use is already true).
 
 ### W7 — the drive and the walk
 

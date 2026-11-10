@@ -24,7 +24,7 @@
 # `a_w = base * moisture * (1 - solute)`.
 class: /platform/idea/material/SolidFood
 data:
-  smells: [{ aroma: /base-library/aromas/flour, strength: 10 }]
+  smells: [{ aroma: /base-library/aromas/grain/flour, strength: 10 }]
   tastes: [{ type: sweet, amount: 8 }]
   name: wheat flour
   keywords: [flour, wheat, meal]
