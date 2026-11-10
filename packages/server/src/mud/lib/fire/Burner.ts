@@ -459,14 +459,13 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
 
     /** @hook `sweep`: the grate raked of its ash, into the raker's hands. */
     public override sweepPlanFor(req: SweepRequest): SweepPlan | SweepRefusal | null {
-      const raker = req.actor;
       return {
         ok: true,
         durationMs: GRATE_RAKE_MS,
         effortW: GRATE_RAKE_W,
         facts: { kind: 'grate' },
         onComplete: async () => {
-          const { ash } = await this.rakeGrate(raker);
+          const { ash } = await this.rakeGrate(req.actor);
           return { ok: true, facts: { kind: 'grate', ash } };
         },
       };

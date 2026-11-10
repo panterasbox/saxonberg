@@ -37,7 +37,7 @@ import type {
 } from '../persistence/PersistenceSlice';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
-import { ExecutionContextApi } from '../../api/execution-context';
+import { ExecutionContextApi, OMNI_SCOPE } from '../../api/execution-context';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
 import { PlacementOffers, type PlacementChoice } from './PlacementOffers';
@@ -538,6 +538,12 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       const out: Stuff[] = [];
       // A body's open vessels are all to hand; a room's, one level.
       const openLevels = self.isAgent() ? 32 : 1;
+      // ⚠ Sandbox hygiene, before anything is asked of an item: a walk in a
+      // circle never reads a field object (or one of another circle) — the
+      // proxy denies any method on it, the lid read included (the
+      // sandbox-escape battery's `reachable`). Omni sees all.
+      const ctxScope = ExecutionContextApi.getCircleScope();
+      const inScope = (c: Stuff): boolean => ctxScope === OMNI_SCOPE || c.getCircleScope() === ctxScope;
       const behindLid = (c: Stuff): boolean => {
         if (!MixinApi.isContainable(c)) return false;
         const scope = c.getEnclosingScope();
@@ -553,6 +559,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         const next: (Stuff & Container)[] = [];
         for (const holder of frontier) {
           for (const item of holder.getContents()) {
+            if (!inScope(item)) continue;
             if (rung !== 'deep' && behindLid(item)) continue;
             out.push(item);
             if (rung === 'deep') {

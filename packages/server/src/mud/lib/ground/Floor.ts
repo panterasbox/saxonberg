@@ -474,17 +474,16 @@ export function FloorMixin<
      */
     public override sweepPlanFor(req: SweepRequest): SweepPlan | SweepRefusal | null {
       if (!this.takesSoil()) return { ok: false, reason: 'nothing-to-sweep' };
-      const sweeper = req.actor;
       return {
         ok: true,
         durationMs: FLOOR_SWEEP_MS * (req.broom ? 1 : 3),
         effortW: FLOOR_SWEEP_W,
         facts: { kind: 'floor', broom: req.broom },
         onComplete: async () => {
-          const { kinds, heap } = await this.sweepInto(sweeper);
-          if (heap !== null && MixinApi.isAdvancing(sweeper)) {
+          const { kinds, heap } = await this.sweepInto(req.actor);
+          if (heap !== null && MixinApi.isAdvancing(req.actor)) {
             // The deed `analyze cleanliness` reads (B57).
-            void sweeper.creditDeed({ discipline: 'domestic-services', difficulty: 'easy', outcome: 'success' });
+            void req.actor.creditDeed({ discipline: 'domestic-services', difficulty: 'easy', outcome: 'success' });
           }
           return { ok: true, facts: { kind: 'floor', kinds, heap } };
         },

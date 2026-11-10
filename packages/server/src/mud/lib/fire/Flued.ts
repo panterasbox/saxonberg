@@ -92,14 +92,13 @@ export function FluedMixin<TBase extends NestingConstructor<Stuff & Burner>>(
      */
     public override sweepPlanFor(req: SweepRequest): SweepPlan | SweepRefusal | null {
       if (!req.brush) return super.sweepPlanFor(req);
-      const sweeper = req.actor;
       return {
         ok: true,
         durationMs: FLUE_SWEEP_MS,
         effortW: FLUE_SWEEP_W,
         facts: { kind: 'flue' },
         onComplete: async () => {
-          const { sootKg, taken } = await this.sweepChimney(sweeper);
+          const { sootKg, taken } = await this.sweepChimney(req.actor);
           return { ok: true, facts: { kind: 'flue', sootKg, taken } };
         },
       };
