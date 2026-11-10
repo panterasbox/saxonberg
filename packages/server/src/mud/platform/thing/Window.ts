@@ -1,77 +1,47 @@
 /**
- * Window — first user of the `Boundary` substrate.
+ * Window — a boundary of glass between two places: it passes light, sight,
+ * sound and smell, and never a body.
  *
- * Composition: `SealableMixin(Boundary)` (Boundary already provides
- * `Visible + Perceptible + Thing`). The `Sealable.open` flag is the
- * shutter state — closing the shutters zeroes both `LightConduit`
- * transmissivity and `LineOfSight`.
+ * ⭐ A window INTO A PLACE is a way like any other (boundary build,
+ * 2026-11): authored as `door:` on a cardinal exit on both sides, so `look
+ * west` sees the hillside through it and `go west` is refused (*the west
+ * window is not a way through*). ⭐ A window onto the SKY is not a boundary
+ * at all — it is glass in the place's `enclosure:` (construction.md). A
+ * window with nothing behind it is prose.
+ *
+ * Composition: `SoilableMixin(platform Boundary)` — the twin's `Sealable`
+ * is the shutter; closing it zeroes everything.
  *
  * State:
- *   - `baseTransmissivity` (default 1.0) — the symmetric, both-directions
- *     pass-through factor when the window is open.
- *   - `directionalOverrides` (optional `{ aToB?, bToA? }`) — one-way
- *     glass. Either side's value, when present, replaces
- *     `baseTransmissivity` for light flowing FROM that side. Set
- *     `bToA = 0` to make a window through which A's light reaches B
- *     but not vice versa.
- *   - `colorTint` (optional ColorTag) — the authored stained-glass
- *     colour, the ordinary case a content row sets by word.
- *   - `glazeR/glazeG/glazeB` (number | null) — the per-channel
- *     transmittance the `glaze` act writes when a blown pane is set in
- *     this window; `null` on each = unglazed. Overrides `colorTint`.
- *     `lightTransmittance()` resolves glazing, then the authored word,
- *     then clear — and the light walk MULTIPLIES it into what passes,
- *     so a stained window colours the room on the far side.
- *
- * Template authoring follows the "option (b)" in the plan: `Window`
- * is template-loadable like `Door` (`class: '/platform/thing/Window'`);
- * seed code
- * calls `BoundaryApi.attachExistingBoundary({ boundary, hostA, hostB })`
- * to wire the per-side anchors after clone time. Mirrors how
- * `addBidirectionalExit({ door })` wires a templated Door.
- *
- * Persistence is hydrate-only — there's no v1 use case for a
- * Window's configuration mutating at runtime; only the
- * `Sealable.open` shutter state changes. Anchors are rebuilt at
- * load time by the seed code.
+ *   - `baseTransmissivity` (default 1.0) — the symmetric pass-through.
+ *   - `directionalOverrides` (`{ aToB?, bToA? }`) — one-way glass: either
+ *     side's value replaces the base for what flows FROM that side.
+ *   - `colorTint` — the authored stained-glass colour, by word.
+ *   - `glazeR/glazeG/glazeB` — the per-channel transmittance the `glaze`
+ *     act writes; overrides `colorTint`. The light walk multiplies
+ *     {@link Window.transmittanceColour} into what passes.
  */
 
-import { Boundary } from '../../lib/boundary/Boundary';
-import { SealableMixin } from '../../lib/spatial/Sealable';
+import Boundary from './Boundary';
 import { SoilableMixin, SOIL_BANDS } from '../../lib/cleanliness/Soilable';
-import { StuffApi } from '../../api/stuff';
-import { BoundaryApi } from '../../api/boundary';
-import { MixinApi } from '../../api/mixin';
-import type { Adornable } from '../../lib/boundary/Adornable';
-import type { Stuff } from '../../lib/stuff/Stuff';
 import type {
-  Conduit,
-  LightConduit,
-  LineOfSight,
+  BoundaryChannel,
   BoundarySide,
+  ChannelTable,
 } from '../../lib/boundary/Conduit';
-import type { SmellConduit } from '../../lib/boundary/SmellConduit';
-import type { SoundConduit } from '../../lib/boundary/SoundConduit';
 import type { ColorTag } from '../../lib/perception/Light';
 import { Colour } from '../../lib/perception/Colour';
 import type { FieldMeta } from '../../lib/mixin';
 
 // ⭐ Soilable (cleanliness D19): every pane may grime — soot from the
 // room's fires, the town's dirt — and a grimed pane passes less light.
-const WindowBase = SoilableMixin(SealableMixin(Boundary));
+const WindowBase = SoilableMixin(Boundary);
 
 interface DirectionalOverrides {
   aToB?: number;
   bToA?: number;
 }
 
-/**
- * Window does not declare `implements LightConduit, LineOfSight` on
- * the class itself because the two interfaces have incompatible
- * `conduitKind` literal-type fields. Instead, the conduit registry
- * exposes them via the lightweight wrappers below — the host Window
- * provides the method implementations the wrappers delegate to.
- */
 export default class Window extends WindowBase {
   static fieldMeta: FieldMeta = {
     baseTransmissivity: { persistent: true },
@@ -81,7 +51,6 @@ export default class Window extends WindowBase {
     glazeR: { persistent: true },
     glazeG: { persistent: true },
     glazeB: { persistent: true },
-    attachedHosts: { persistent: true },
   };
 
   /**
@@ -90,6 +59,12 @@ export default class Window extends WindowBase {
    * clamps the input — the hydrator's bracket-assign reaches it for
    * a templated Window.
    */
+  /** ⭐ A window never passes a body, open or shut; the glass decides the rest. */
+  protected override _channels: ChannelTable = {
+    open: { movement: 0, light: 1, sight: 1, sound: 1, smell: 1 },
+    shut: { movement: 0, light: 0, sight: 0, sound: 0, smell: 0 },
+  };
+
   protected _baseTransmissivity: number = 1.0;
 
   protected get baseTransmissivity(): number {
@@ -274,23 +249,18 @@ export default class Window extends WindowBase {
     return Colour.UNDYED;
   }
 
-  // --- Conduit surface --------------------------------------------------
-
   /**
-   * Conduit registry. A Window advertises both LightConduit and
-   * LineOfSight. The two are surfaced as wrappers that delegate to
-   * `this.transmissivity` / `this.canSeeThrough`.
+   * What the glass passes: the base (or a one-way override for what flows
+   * FROM side A or B), scaled by grime; nothing while the shutter is shut.
    */
-  public override getConduits(): readonly Conduit[] {
-    return [
-      lightConduitFor(this),
-      lineOfSightFor(this),
-      smellConduitFor(this),
-      soundConduitFor(this),
-    ];
-  }
-
-  public transmissivity(from: BoundarySide, to: BoundarySide): number {
+  public override transmissivity(
+    channel: BoundaryChannel,
+    from: BoundarySide,
+    to: BoundarySide,
+  ): number {
+    // ⭐ A window passes sight, light, sound and smell and never a body:
+    // movement reads the table (0 open, 0 shut), the rest the glass.
+    if (channel === 'movement') return super.transmissivity(channel, from, to);
     if (!this.isOpen()) return 0;
     const grime = this.grimeFactor();
     if (from === to) return this._baseTransmissivity * grime;
@@ -310,117 +280,9 @@ export default class Window extends WindowBase {
     return 1 - 0.6 * (Math.max(0, rank) / 3);
   }
 
-  public canSeeThrough(from: BoundarySide, to: BoundarySide): boolean {
-    return this.transmissivity(from, to) > 0;
-  }
-
-  /**
-   * Persistent declarative-content field carrying the templatePaths
-   * of the two hosts this Window connects, identity refs per
-   * ref-shapes.md. The setter resolves both paths via
-   * `StuffApi.singleton` (lazy-clones absent hosts) and installs the
-   * per-side anchors via `BoundaryApi.attachExistingBoundary`.
-   *
-   * Idempotency: if the Window's anchors are already installed AND
-   * their hosts match the declared paths (in either order — the
-   * boundary is undirected), no-op. Mismatch (different hosts or
-   * half-attached corruption) throws with diagnostics.
-   *
-   * NOTE: this field is only meaningful for template-shaped hosts —
-   * `getTemplatePath()`-comparable. Test fixtures created via
-   * `makeStuff` (no template path) MUST use `makeStuffAtPath` so the
-   * idempotency comparison has something stable to match against.
-   *
-   * Per declarative-content-slate § attachedHosts.
-   */
-  protected _attachedHosts: [string, string] | null = null;
-
-  public getAttachedHosts(): [string, string] | null {
-    return this._attachedHosts === null
-      ? null
-      : [this._attachedHosts[0], this._attachedHosts[1]];
-  }
-
-  /**
-   * Setter with side effect. Stores the value, resolves both hosts
-   * via `StuffApi.singleton`, and installs anchors via
-   * `BoundaryApi.attachExistingBoundary`. Idempotent on the happy
-   * path; throws on conflict / half-attach / same-host.
-   */
-  public async setAttachedHosts(value: [string, string]): Promise<void> {
-    if (
-      !Array.isArray(value) ||
-      value.length !== 2 ||
-      typeof value[0] !== 'string' ||
-      typeof value[1] !== 'string'
-    ) {
-      throw new TypeError(
-        `Window.setAttachedHosts: expected [string, string], got ${JSON.stringify(value)}`
-      );
-    }
-    if (value[0] === value[1]) {
-      throw new Error(
-        `Window.setAttachedHosts: hostA path and hostB path must differ ('${value[0]}').`
-      );
-    }
-    // ⚠ Phase 1 runs BEFORE `onCreate`, so the anchor pair may not
-    // exist yet — mint it here rather than assuming the hook has run.
-    await this.ensureAnchors();
-    // Idempotency check via where the anchors are INSTALLED. (It used to
-    // be "are there anchors at all", which stopped meaning anything once
-    // a boundary mints its pair up front and keeps it across detach.)
-    const anchorA = this.getAnchorA();
-    const anchorB = this.getAnchorB();
-    if (anchorA?.getAdornedTo() && anchorB?.getAdornedTo()) {
-      const hostA = anchorA.getAdornedTo();
-      const hostB = anchorB.getAdornedTo();
-      const pathA = (hostA as unknown as Stuff | null)?.getTemplatePath() ?? null;
-      const pathB = (hostB as unknown as Stuff | null)?.getTemplatePath() ?? null;
-      const matchesForward = pathA === value[0] && pathB === value[1];
-      const matchesReverse = pathA === value[1] && pathB === value[0];
-      if (matchesForward || matchesReverse) {
-        this._attachedHosts = [value[0], value[1]];
-        return;
-      }
-      const tag =
-        (this as unknown as Stuff).getTemplatePath() ??
-        (this as unknown as Stuff).stuffId;
-      throw new Error(
-        `Window.setAttachedHosts: ${tag} already attached to ('${pathA}', ` +
-          `'${pathB}'); refusing to re-attach to ('${value[0]}', ` +
-          `'${value[1]}'). Destruct the boundary first via BoundaryApi.`
-      );
-    }
-    if (anchorA?.getAdornedTo() || anchorB?.getAdornedTo()) {
-      const tag =
-        (this as unknown as Stuff).getTemplatePath() ??
-        (this as unknown as Stuff).stuffId;
-      throw new Error(
-        `Window.setAttachedHosts: ${tag} is half-attached ` +
-          `(anchorA=${anchorA ? 'set' : 'null'}, anchorB=${
-            anchorB ? 'set' : 'null'
-          }). This is a corruption; fix by destructing the boundary ` +
-          `and re-cloning.`
-      );
-    }
-    // Fresh attach. Resolve both hosts lazily.
-    const hostA = await StuffApi.singleton<Stuff & Adornable>(value[0]);
-    const hostB = await StuffApi.singleton<Stuff & Adornable>(value[1]);
-    if (
-      !MixinApi.isAdornable(hostA as Stuff) ||
-      !MixinApi.isAdornable(hostB as Stuff)
-    ) {
-      throw new TypeError(
-        `Window.setAttachedHosts: both hosts must compose AdornableMixin ` +
-          `(hostA=${value[0]}, hostB=${value[1]}).`
-      );
-    }
-    BoundaryApi.attachExistingBoundary({
-      boundary: this,
-      hostA,
-      hostB,
-    });
-    this._attachedHosts = [value[0], value[1]];
+  /** The colour the glass gives light passing through it. */
+  public override transmittanceColour(_from: BoundarySide, _to: BoundarySide): Colour {
+    return this.lightTransmittance();
   }
 }
 
@@ -439,53 +301,4 @@ function validateOverrideScalar(
     );
   }
   return value;
-}
-
-/**
- * Wrap the host Window's `transmissivity` in a LightConduit-shaped
- * record. The wrapper rebadges the kind tag at the top of the
- * registry walk so consumers can `find(c => c.conduitKind === 'light')`.
- */
-function lightConduitFor(window: Window): LightConduit {
-  return {
-    conduitKind: 'light',
-    transmissivity(from, to) {
-      return window.transmissivity(from, to);
-    },
-    transmittanceColour() {
-      return window.lightTransmittance();
-    },
-  };
-}
-
-function lineOfSightFor(window: Window): LineOfSight {
-  return {
-    conduitKind: 'sight',
-    canSeeThrough(from, to) {
-      return window.canSeeThrough(from, to);
-    },
-  };
-}
-
-function smellConduitFor(window: Window): SmellConduit {
-  return {
-    conduitKind: 'smell',
-    // Closed shutter blocks smell; open window passes the host's
-    // transmissivity (mirrors the light-side gating).
-    transmissivity(from, to) {
-      return window.transmissivity(from, to);
-    },
-  };
-}
-
-function soundConduitFor(window: Window): SoundConduit {
-  return {
-    conduitKind: 'sound',
-    // Closed shutter blocks sound; open window transmits with the
-    // same factor as light. Acoustic specifics (frequency-dependent
-    // attenuation, glass-vs-paper) are future polish.
-    transmissivity(from, to) {
-      return window.transmissivity(from, to);
-    },
-  };
 }

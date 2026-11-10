@@ -244,8 +244,9 @@ can only mean the way, whatever else answers to the word.
 > from `here`: `oak` matches the door, `north` matches the exit, and a
 > door-verb on the exit (`open north`) reaches the door by MQL's one
 > rule — the bound thing, else the door on a bound way. The
-> [boundary slate](./slates/builds/boundary-slate.md) folds the two
-> into one shared edge whose sides are the exits.
+> boundary build (2026-11) made the door ONE object whose sides are the
+> two exits — locked from one side is locked from the other — see
+> [boundary.md](./subsystems/boundary.md).
 
 ### Path globs
 

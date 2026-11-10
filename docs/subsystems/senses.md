@@ -533,26 +533,28 @@ v1 limitation as *"shared verbatim"* — a comment admitting the
 duplication while making another copy of it.
 
 The walks share structural shape (ambient + contents-side emitters +
-fixture-side emitters + cross-boundary via Conduit + cross-exit at base
-transmissivity, depth-capped via `MAX_HOPS = 2`, cycle-guarded via a
+fixture-side emitters + each way's boundary (`getObviousNeighbours
+({ through: 'all' })`, asking the side's boundary `transmissivityInto
+(channel, exit)`) + each open way at `EXIT_TAU`, depth-capped via `MAX_HOPS = 2`, cycle-guarded via a
 `visited` set, vacuum scope blocks at the recipient):
 
 - **Vision** (relocated from the retired `LightApi.lightAt`):
   lumen-flux accumulator, sources → `Light` value object with lux
   intensity + flux-weighted color temperature + capped 3-entry
-  source list. Door + Window participate via `LightConduit`.
+  source list. Door + Window answer `transmissivityInto('light', …)`.
 - **Smell**: per-word odor units, one band fainter per hop, every source kept.
-  Door + Window participate via `SmellConduit`. See
+  Door + Window answer `transmissivityInto('smell', …)`. See
   [§ One smell](#one-smell-source-air-nose).
 - **Sound**: linear-amplitude accumulator (`10^(dB/10)` terms)
   converted back to dB at wrap — physically correct merge for
   incoherent sources. Two 60 dB sources sum to ~63 dB (not 120).
-  Door + Window participate via `SoundConduit`. Ambient floor seeds
+  Door + Window answer `transmissivityInto('sound', …)`. Ambient floor seeds
   from the universe-root biome's `_defaultAmbientSoundLevel` (full
   async biome-chain integration deferred).
 
-*Walls are silent.* Sound (and smell) propagate only through Conduits
-(`BoundaryAnchor` fixtures) and doorless exits; two scopes separated by a
+*Walls are silent.* Sound (and smell) propagate only through a place's
+ways — a way's boundary at its own channel fraction, an open way at
+`EXIT_TAU`; two scopes separated by a
 bare wall with no boundary between them are isolated. Cross-wall leak is
 authored as a low-transmissivity boundary, never derived from geometric
 adjacency — a known fidelity loss (real walls leak at low levels) whose
@@ -782,8 +784,8 @@ lib/perception/
 └── (Perception.ts, AmbientLit.ts, Scryable.ts — substrate unchanged)
 
 api/perception.ts                  PerceptionApi (single dispatch surface)
-lib/boundary/SmellConduit.ts       Conduit interface
-lib/boundary/SoundConduit.ts       Conduit interface
+lib/boundary/Conduit.ts            BOUNDARY_CHANNELS vocabulary (the per-channel
+                                   Conduit interfaces retired, boundary build 2026-11)
 seeds/lib/perception/modalities/   Seven seed YAMLs
 ```
 

@@ -3,7 +3,8 @@
 How the world's light is modelled, propagates, and is perceived.
 Saxonberg is a text MUD, not a renderer — light here is an abstract
 quantity that flows between rooms through `Boundary` substrate
-(windows, doors, future portals), gets attenuated by exits, and is
+(windows, doors, future portals), gets attenuated by each way's
+boundary, and is
 perceived per-viewer through a `Sensor`-aware query layer that
 threads through the cross-cutting perception pattern.
 
@@ -19,8 +20,9 @@ domain helpers (`bandFor`, `applyBandShift`, `compareBand`,
 `Light.ts` next to the `LightBand` vocabulary. Per-viewer queries
 (`perceivedBand`, `canSee`, `viewerVisionProfile`, `shadowsAt`) are
 static methods on `VisionModality`. The Light value object,
-`AmbientLitMixin`, `LightSourceMixin`, and the conduit interfaces
-ship unchanged. See [senses.md](./senses.md) for the cross-modality
+`AmbientLitMixin` and `LightSourceMixin` ship unchanged (the conduit
+interfaces retired with the boundary build, 2026-11, for the boundary's
+channel table). See [senses.md](./senses.md) for the cross-modality
 substrate and [augmentation.md](./augmentation.md) for the
 augment-conferred ESP modalities.
 
@@ -34,12 +36,13 @@ The subsystem ships:
   singleton, `vision().signalAt(loc)`.)
 - `AmbientLitMixin` and `LightSourceMixin` for inherent ambient and
   for emitter-side contributions.
-- `Boundary`, `BoundaryAnchor`, and the `Conduit` interfaces — the
-  generic abstraction for "anything that connects two `Adornable`
-  containers and gates channels (light, sight, movement, sound,
-  smell) between them."
-- Concrete `Boundary` users: `Window` (new) and the retrofitted
-  `Door` (now also a Boundary).
+- The light walk's half of `Boundary` — the one edge object whose
+  two sides are the exits of a way, gating each channel (light,
+  sight, movement, sound, smell) by a table on its row
+  (`transmissivityInto(channel, side)`). The substrate is
+  [boundary.md](./boundary.md)'s; this doc covers what light does
+  with it.
+- Concrete `Boundary` users: `Window` and `Door`.
 - `Adornable` / `Adornment` mixins, the host-side machinery for
   fixtures that surface in `getFixtures()` (parallel to
   `getContents()`).
@@ -49,10 +52,10 @@ Sibling docs cover related ground without overlap:
 - [perception.md](./perception.md) — the cross-cutting viewer-aware
   query pattern. All Light-side viewer parameters honor it:
   `Stuff & Sensor`, always explicit, no command-giver inference.
-- [spatial.md](./spatial.md) — `Door`, `Exit`, `Sealable`,
+- [spatial.md](./spatial.md) — `Exit`, `Sealable`,
   `ExitableVessel`, `Mobile` — the existing infrastructure this
-  builds on. The Door retrofit details that intersect movement live
-  there.
+  builds on; [boundary.md](./boundary.md) owns `Door`, `Window` and
+  the `Boundary` substrate.
 - [persistence.md](./persistence.md) — the scalar-default rule
   Light value-objects honor (intensity + color stored as named
   scalar fields; getter reconstructs).
@@ -70,14 +73,12 @@ Sibling docs cover related ground without overlap:
 | `LightSourceObserver` | TypeScript interface | The Witness hook contract that `LightSourceMixin` fires. Lives in `lib/perception/LightSource.ts` next to `LightSourceMixin`, so consumer Containers (the receiver side) implement it from the same module. |
 | `VisionModality` | `Modality` singleton | `signalAt(loc)` (the walk), `lightAt(loc)`, `bandAt(loc)`, `shadowsAt(loc)`, `perceivedBand(viewer, loc)`, `canSee(viewer, target, detail?)`, `viewerVisionProfile(viewer)`, `singleton()`. Outside callers reach these directly on the singleton (`vision().signalAt(loc)`). |
 | `bandFor(lux)` | helper in `Light.ts` | Map a lux numeric to a `LightBand` via the registered tag-table. Sits next to `LIGHT_BANDS`. |
-| `Adornable` | mixin | Container-side surface for non-portable attached Stuff (sconces, anchors). Composed onto `Location` and `Vessel`. `addFixture` / `removeFixture` / `getFixtures` plus typed walks `getFixtureBoundaries()` / `getFixtureLightSources()`. |
-| `Adornment` | mixin | Host-side back-reference (`adornedTo`) and not-portable invariant. Concrete users: `BoundaryAnchor`, future fixtures. |
-| `Boundary` | concrete `Thing` subclass | The two-anchor abstraction for cross-room channels. Just `extends Thing` — `Visible` / `Perceptible` come baked into Thing's default composition. Subclasses (`Window`, `Door`) compose `Sealable` for shutter / closed-door state. |
-| `BoundaryAnchor` | concrete `Thing` subclass | `Adornment` Thing — the per-side proxy in each host's `getFixtures()`. Two anchors per Boundary. |
-| `Conduit` | TypeScript interface | Channel-shape — `LightConduit`, `LineOfSight`, `MovementConduit`, `SoundConduit`, `SmellConduit`. Boundary subclasses implement (a subset of) these. |
-| `Window` | concrete `Boundary` subclass (⚠ **no row names it** — the substrate is proven, the world has no window in it; see [boundary.md § Window](./boundary.md)) | `SealableMixin(Boundary)`. Implements `LightConduit` + `LineOfSight` + `SmellConduit` + `SoundConduit`. Configurable `baseTransmissivity`, optional one-way overrides, optional `colorTint`. Shutters via `Sealable.open` (predicate `isOpen()`). |
-| `Door` (retrofitted) | concrete `Boundary` subclass | `SealableMixin(Boundary)`. Implements all five conduits — `LightConduit`, `LineOfSight`, `MovementConduit`, `SoundConduit`, `SmellConduit`, all gated on `isOpen()`. Closed Door now blocks light, not just movement. |
-| `BoundaryApi` | static API | `attachExistingBoundary({ boundary, hostA, hostB })`, `create({ factory, hostA, hostB })`, `destruct(boundary)`. |
+| `Adornable` | mixin | Container-side surface for non-portable attached Stuff (sconces, the floor). Composed onto `Location` and `ExitableVessel`. `addFixture` / `removeFixture` / `getFixtures` plus the typed walk `getFixtureLightSources()`. |
+| `Adornment` | mixin | Host-side back-reference (`adornedTo`) and not-portable invariant. Concrete users: content fixtures (the lounge's `NeonSign`), the floor. |
+| `Boundary` | `lib/boundary/Boundary` + `platform/thing/Boundary` twin | The edge object of a way: two weak sides (the exits), a channel table (`channels: {open, shut}`) read by `transmissivityInto(channel, side)`, and `colourInto(side)` for the light's colour. The twin composes `Sealable`. See [boundary.md § Boundary Substrate](./boundary.md#boundary-substrate). |
+| `Window` | concrete `Boundary` subclass | `SoilableMixin(platform Boundary)`: passes light, sight, sound and smell, never a body. `baseTransmissivity`, one-way overrides, glazing / `colorTint`, grime. Shutters via `Sealable.open`. The glazier's hut's west window is the first row; see [boundary.md § Window](./boundary.md#window). |
+| `Door` | concrete `Boundary` subclass | `LockableMixin(platform Boundary)`: all five channels 1 open, 0 shut by default. A closed door blocks light, not just movement. |
+| `BoundaryApi` | static API | `attach(boundary, ...sides)`, `detach(...sides)`, `mintKeyway()`. |
 
 ## Class Hierarchy
 
@@ -85,21 +86,18 @@ Sibling docs cover related ground without overlap:
 Stuff
   ├── Idea
   ├── Thing                          (Visible + Perceptible + Tangible + Containable)
-  │     ├── Boundary                 (just `extends Thing`)
-  │     │     ├── Window             (Sealable + LightConduit + LineOfSight + SoundConduit + SmellConduit)
-  │     │     └── Door (retrofit)    (Sealable + LightConduit + LineOfSight + MovementConduit + SoundConduit + SmellConduit)
-  │     └── BoundaryAnchor           (Adornment)
-  ├── Location                       (Adornable + Container, was Container only)
-  └── Vessel                         (Adornable + Container + Containable, was Container + Containable)
+  │     └── Boundary                 (lib base → platform twin: + Sealable)
+  │           ├── Window             (Soilable; channel table: all but movement)
+  │           └── Door               (Lockable; all five channels)
+  ├── Location                       (Adornable + Exitable + Container)
+  └── ExitableVessel                 (Adornable + Exitable + Container + Containable)
 ```
 
-The retrofit moves `Door`'s class hierarchy from
-`VisibleMixin(PerceptibleMixin(SealableMixin(Thing)))` to
-`SealableMixin(Boundary)` — Boundary already provides Visible +
-Perceptible via Thing's default composition. The `attachedTo:
-Set<Exit>` field, the `attachExit` / `detachExit` accessors, the
-`Door.detach()` method, `Door.getKeywords()`, all existing `Door`
-templates and call sites keep working unchanged.
+A boundary hangs on nothing: each place's exit is a side of it
+(`exit.getBoundary()`), and the walks reach it through the place's
+ways. (Before the boundary build, 2026-11, a boundary surfaced as a
+`BoundaryAnchor` fixture on each room and answered through `Conduit`
+interfaces; both retired.)
 
 ## The Light Value Object
 
@@ -393,18 +391,20 @@ walkFluxAt(loc, depth, visited) -> { flux, sources }:
         add(acc, fx.getEmittedFlux().rawValue(),
             fx.getEmittedColorTemperature()?.rawValue())
 
-    for anchor in BoundaryAnchors among loc.getFixtures():
-      boundary = anchor.getBoundary()                  // (d) cross-boundary propagation
-      conduit  = boundary.getConduits().find(c => c.kind === 'light')
-      tau = conduit.transmissivity(otherSide, anchor.side)
-      if tau > 0:
-        sub = walkFluxAt(otherHost, depth+1, visited)
-        merge(acc, sub, tau)                            // flux scales by tau
-
   if MixinApi.isExitable(loc):
-    for exit in loc.getObviousExits():                 // (e) cross-exit propagation
-      if exit.getDoor(): continue                      //   (skip — Door's Boundary handles it)
-      sub = walkFluxAt(exit.getDestination(), depth+1, visited)
+    ways = loc.getObviousNeighbours({ through: 'all' })
+
+    for { exit, dest } in ways:                         // (d) through each way's boundary
+      boundary = exit.getBoundary()
+      if !boundary: continue
+      tau = boundary.transmissivityInto('light', exit)  //   open/shut table, glazing, grime
+      if tau > 0:
+        sub = walkFluxAt(dest, depth+1, visited)
+        merge(acc, sub, tau, boundary.colourInto(exit)) // flux scales by tau, tinted
+
+    for { exit, dest } in ways:                         // (e) through each open way
+      if exit.getBoundary(): continue                   //   (taken in (d))
+      sub = walkFluxAt(dest, depth+1, visited)
       merge(acc, sub, EXIT_TAU)
 
   return acc
@@ -430,27 +430,25 @@ Constants:
   from the query origin (one boundary hop + one further-room hop).
   Bounds the walk and matches the v1 "open door / window one room
   over" requirement.
-- `EXIT_TAU = 1.0` — exits don't attenuate by themselves in v1. A
-  future Door subclass that varies on traversal mode could drop
-  this; for now exits leak fully.
+- `EXIT_TAU = 1.0` — an open way (no boundary) doesn't attenuate
+  by itself; a way with a boundary passes the boundary's own
+  `transmissivityInto` instead.
 
 The walk is **fully lazy**. No caches, no event-driven invalidation
 in v1. If profiling later shows the walk is hot, a caching layer
 hangs off the existing `onLightSourceChanged` Witness hook and a
 future `onBoundaryStateChanged`.
 
-### Why doored exits skip the cross-exit branch
+### Why a way is taken once — (d) or (e), never both
 
-Every `Door` is a `Boundary` after the retrofit, and every
-`addBidirectionalExit({ door })` installs a per-side
-`BoundaryAnchor` on each room. The cross-boundary branch (d)
-already routes light through the Door's `LightConduit`. If the
-cross-exit branch (e) also propagated through doored exits, every
-neighbor would count twice when the door is open.
-
-The skip preserves single-counting: doored neighbors flow through
-the boundary; doorless neighbors flow through the exit at
-`EXIT_TAU`.
+Both legs iterate the same list of ways (`getObviousNeighbours
+({ through: 'all' })`), so each neighbor is reached once: a way with
+a boundary flows through the boundary's own fraction (an open door
+1, glass its glazing, a shut door 0); an open way flows at
+`EXIT_TAU`. ⚠ The order — every (d) leg before any (e) leg — is
+behavior: one `visited` set is shared across the walk and the cap
+is not commutative, so the perception characterization golden
+holds it.
 
 ### Eviction defense
 
@@ -583,210 +581,94 @@ v1 — that's content-authoring layered on top of this physics surface.
 
 ## Boundary Substrate
 
-A `Boundary` connects two `Adornable` containers and gates channels
-(light, sight, movement, sound, smell) between them. The runtime
-triple is **boundary + anchorA + anchorB** — the Boundary itself
-plus a `BoundaryAnchor` Thing in each host's `getFixtures()`.
+A `Boundary` is the one edge object standing in a way between two
+places; each place's `Exit` is a SIDE of it (`exit.getBoundary()`,
+`boundary.sideOf` / `otherSide`). What it lets through is a channel
+table on its row (`channels: { open, shut }`, values 0..1 per
+channel), read by `transmissivityInto(channel, side)`; the light walk
+asks it for `'light'` and for `colourInto(side)`. The substrate —
+sides, the table, `BoundaryApi.attach` / `detach`, the kinds as rows
+— is [boundary.md § Boundary Substrate](./boundary.md#boundary-substrate);
+this doc covers only what light does with it.
 
 ### `Adornable` and `Adornment`
 
-`Adornable` (composed on `Location` and `Vessel`) gives any
+`Adornable` (composed on `Location` and `ExitableVessel`) gives any
 Container a `fixtures: Set<Stuff & Adornment>` collection parallel
 to `contents`:
 
 - `addFixture(f)` / `removeFixture(f)` / `hasFixture(f)` / `getFixtures()` — canonical collection vocabulary.
-- `getFixtureBoundaries()` / `getFixtureLightSources()` — typed walks for the propagation walk and MQL queries.
+- `getFixtureLightSources()` — the typed walk the propagation walk's leg (c) reads.
 
-`Adornment` (composed by `BoundaryAnchor`, future sconces) carries
-the host back-reference (`adornedTo`) and the not-portable
-invariant: `ContainmentApi.move` pre-flight rejects any attempt to
-move an attached Adornment as inventory — the host must
-`removeFixture` first (same shape `Door.detach()` uses).
-
-### `BoundaryApi` install / teardown
-
-```ts
-BoundaryApi.attachExistingBoundary({ boundary, hostA, hostB });
-// Constructs the two anchors, wires anchorA/anchorB on the boundary,
-// calls hostA.addFixture(anchorA) and hostB.addFixture(anchorB).
-
-BoundaryApi.create({ factory, hostA, hostB });
-// Convenience: StuffApi.create(factory) + attachExistingBoundary in one call.
-
-BoundaryApi.destruct(boundary);
-// StuffApi.destruct(boundary) → boundary.onDestruct() walks anchors,
-// removes from hosts, destructs anchors → boundary destroys.
-```
-
-Asymmetry guard: `attachExistingBoundary` rejects `hostA === hostB`
-and rejects re-installing on a boundary that already has anchors
-(would silently orphan the previous pair).
-
-### Conduits
-
-A `Conduit` is a TypeScript interface a Boundary subclass implements
-(in v1, via `getConduits()` returning lightweight wrapper objects;
-implementing two interfaces directly on one class collides on
-`conduitKind`). Each conduit is per-channel, with directional
-methods that take `BoundarySide` arguments so one-way channels can
-encode it.
-
-```ts
-interface LightConduit    { conduitKind: 'light';
-  transmissivity(from: BoundarySide, to: BoundarySide): number;
-}
-interface LineOfSight     { conduitKind: 'sight';
-  canSeeThrough(from: BoundarySide, to: BoundarySide): boolean;
-}
-interface MovementConduit { conduitKind: 'movement';
-  canPassThrough(from: BoundarySide, to: BoundarySide, mode: string): boolean;
-}
-interface SoundConduit    { conduitKind: 'sound';
-  transmissivity(from: BoundarySide, to: BoundarySide): number;
-}
-interface SmellConduit    { conduitKind: 'smell';
-  transmissivity(from: BoundarySide, to: BoundarySide): number;
-}
-```
-
-Conduits MUST NOT cache — the boundary's own state (e.g. Sealable
-`open` / `isOpen()`) participates in transmissivity and changes at
-runtime.
-
-### Naming: `BoundaryAnchor` vs `DoorBearing`
-
-The codebase already had a `DoorBearingMixin` (a host-side mixin
-giving `ExitableVessel` a single `door` field for synthesized
-exits). `BoundaryAnchor` is a different concept: a `Thing`
-subclass + Adornment that sits in `getFixtures()`. After the Door
-retrofit, an `ExitableVessel` participates in BOTH — its
-`DoorBearingMixin` field still drives the synthesized `'in'`/`'out'`
-exits, AND a `(vessel, environment)` anchor pair migrates as the
-vessel moves (see "Door retrofit" below). The two roles do not
-overlap; do not unify them.
+`Adornment` (composed by content fixtures and the floor) carries the
+host back-reference (`adornedTo`) and the not-portable invariant:
+`ContainmentApi.move` pre-flight rejects any attempt to move an
+attached Adornment as inventory — the host must `removeFixture`
+first. A boundary is not a fixture: it hangs in the way, not on the
+room.
 
 ## `Window`
 
-> ⭐ **The glass build authored the first windows** (2026-10): Rejection's
-> glazier's hut has two, attached to the sunlit yards either side, and the
+> ⭐ **The glass build authored the first windows** (2026-10), and the
 > `glaze` act writes a blown pane's derived colour onto a window so it
-> colours the light it lets into the room. See [glass.md](./glass.md). The
-> class had stood unexercised by content until then (it was the only
-> exerciser of partial and directional conduit transmissivity, and of the
-> Hydrator's async singleton-resolving applier); now a row names it.
+> colours the light it lets into the room. See [glass.md](./glass.md).
+> Since the boundary build (2026-11) the glazier's hut has one window
+> into a place — the west window onto the hillside (the hut moved to
+> (1,2)); a window onto the sky is enclosure glass, not a boundary
+> ([construction.md](./construction.md)).
 
-The first concrete Boundary user. Composition: `SealableMixin(Boundary)`.
-It implements four conduits — `LightConduit`, `LineOfSight`,
-`SmellConduit`, `SoundConduit` — all gated on its shutter state.
+Composition: `SoilableMixin(platform Boundary)`. It passes light,
+sight, sound and smell and never a body (`movement` reads the
+table: 0 open, 0 shut). Authored as `door: <window row>` on the exit
+facing it, on both sides.
 
 State (all persisted as scalars):
 
 - `baseTransmissivity: number` (default 1.0) — symmetric pass-through factor when open.
-- `aToBOverride: number | null` — one-way override for A→B.
-- `bToAOverride: number | null` — one-way override for B→A.
+- `aToBOverride: number | null` — one-way override for what flows from side A.
+- `bToAOverride: number | null` — one-way override for what flows from side B.
 - `colorTint: ColorTag | null` — the authored stained-glass colour word.
 - `glazeR/glazeG/glazeB: number | null` — the per-channel transmittance the
   `glaze` act writes when a blown pane is set in the window (glass build);
   overrides `colorTint`. `lightTransmittance(): Colour` resolves glazing,
   then the authored word, then clear, and the light walk MULTIPLIES it into
-  what passes (`LightConduit.transmittanceColour`), so a stained window
-  colours the room on the far side. `Light` carries a `colour` (hue, white
-  by default, orthogonal to `colorTemperature`); two windows' colours ADD.
+  what passes (`transmittanceColour`, read through `colourInto(side)`), so a
+  stained window colours the room on the far side. `Light` carries a
+  `colour` (hue, white by default, orthogonal to `colorTemperature`); two
+  windows' colours ADD.
 - `open: boolean` (from `Sealable`, predicate `isOpen()`) — shutter state.
 
-`transmissivity(from, to)`:
+`transmissivity(channel, from, to)` for the four glass channels:
 
 - Returns 0 if `!isOpen()` (shutters closed).
-- Same-side reads (e.g., A→A — not used by the walk but sound
-  semantically): `baseTransmissivity`.
-- Otherwise: the relevant directional override if non-null, else
-  `baseTransmissivity`.
-
-`canSeeThrough(from, to)` — `transmissivity(from, to) > 0`.
+- Otherwise the directional override for what flows FROM that side if
+  non-null, else `baseTransmissivity` — scaled by grime (a filthy pane
+  passes 40%; see [§ Grime](#grime-2026-10-17)).
 
 The structured runtime API `getDirectionalOverrides()` /
 `setDirectionalOverrides()` reconstructs / decomposes the
 `{ aToB?, bToA? } | null` shape from the two stored scalars — same
 pattern Light value objects use, applied to the per-side overrides.
 
-Template authoring: Window is template-loadable like Door
-(`class: '/platform/thing/Window'`,
-`hydratorClass: '/platform/idea/persistence/PersistentHydrator'`). Seed code
-calls `BoundaryApi.attachExistingBoundary({ boundary: clonedWindow,
-hostA: roomA, hostB: roomB })` to install on two rooms — mirrors
-how `addBidirectionalExit({ door })` wires a templated Door.
+## Door
 
-## Door Retrofit
+`Door` is `LockableMixin(platform Boundary)`: the class-default table
+(every channel 1 open, 0 shut), so a closed door blocks light, not
+just movement. `Exit.canTraverse` reads the same boundary
+(`transmissivityInto('movement', exit)`) after the lock. A
+`closesBehind` door passes a body while shut and reads shut to light.
+See [boundary.md § Doors](./boundary.md#doors).
 
-A `Door` is now a Boundary in addition to its prior identity.
-Composition changed from `VisibleMixin(PerceptibleMixin(SealableMixin(Thing)))`
-to `SealableMixin(Boundary)`. Boundary just `extends Thing`, and
-Thing's default composition already bakes in Visible + Perceptible
-+ Tangible + Containable.
+### `ExitableVessel`
 
-Conduit registry: a Door advertises five conduits — `LightConduit`,
-`LineOfSight`, `MovementConduit`, `SoundConduit`, `SmellConduit` —
-all gated on `isOpen()`.
-
-```ts
-public override getConduits(): readonly Conduit[] {
-  return [
-    lightConduitFor(this),
-    lineOfSightFor(this),
-    movementConduitFor(this),
-    smellConduitFor(this),
-    soundConduitFor(this),
-  ];
-}
-
-public transmissivity(_from, _to): number {
-  return this.isOpen() ? 1 : 0;
-}
-public canSeeThrough(_from, _to): boolean { return this.isOpen(); }
-public canPassThrough(_from, _to, _mode): boolean { return this.isOpen(); }
-```
-
-`Exit.canTraverse` is intentionally NOT modified — it already
-consults `door.isOpen()` directly, which returns the same
-answer as the new `MovementConduit.canPassThrough`. Routing
-`canTraverse` through the conduit is deferred to a future Door
-subclass that varies on traversal mode (`'squeeze'`, `'climb'`).
-
-What stays the same:
-
-- `Door.attachedTo: Set<Exit>` and the `attachExit` / `detachExit` /
-  `hasAttached` / `getAttachedExits` accessors.
-- `Door.getKeywords()` override (unions PerceptibleMixin keywords
-  with shortDescription tokens).
-- All existing `Door` templates (`class: '/lib/boundary/Door'`).
-- All existing `addBidirectionalExit({ door })` call sites.
-
-What changes observably: a closed Door now blocks light propagation
-between its two rooms. The Door also appears as a fixture on each
-side via its anchors — MQL fixture walks dedupe by `stuffId`.
-
-`Door.detach()` was extended to clear BOTH the existing
-`attachedTo` Exit references AND the Boundary anchor pair (via
-`super.detach()`). `Door.onDestruct` chains through Boundary's
-which destructs the anchors.
-
-### `ExitableVessel` migration
-
-A vessel-door is a Boundary on the runtime triple `(vessel,
-environment)`. As the vessel moves, the boundary follows.
-
-- `ExitableVessel.onMoved(_from, to)` — destructs the existing
-  anchor pair (via `Boundary._detachAndDestructAnchors()`, the
-  subclass-bypass seam that doesn't touch Door's `attachedTo`),
-  then re-installs the pair on `(vessel, to)`.
-- `ExitableVessel.setDoor(door)` — destructs the old door's anchor
-  pair (if any), updates the door reference, installs the new
-  door's pair on `(vessel, currentEnv)`.
-
-So a wardrobe with an open Door reads room ambient inside; a
-closed Door reads ZERO inside; moving the wardrobe to a different
-room migrates the boundary so the inside reads the new room's
-ambient.
+A vessel's synthesized `in` / `out` carry no boundary: its own
+`Sealable` is its door. A shut vessel drops its `out` from
+`getObviousNeighbours`, so a wardrobe with its door open reads room
+ambient inside, a shut one reads ZERO, and moving it to a different
+room changes what `out` reaches with nothing to migrate. (Before the
+boundary build the vessel-door was a `DoorBearingMixin` field plus a
+`(vessel, environment)` anchor pair re-installed on every move; both
+retired.)
 
 ## Per-Viewer Perception
 
@@ -842,15 +724,12 @@ later.
 
 ## MQL Fixture Exposure
 
-`Adornable.getFixtureLightSources()` and `getFixtureBoundaries()`
-parallel `ExitableMixin.getExitDoors()`. The MQL `here` scope walks
-fixtures (deduped by `stuffId`) so `look candle`, `look window`,
-`open window`, `close window` resolve naturally — same code path
-as inventory items.
-
-Door duplication: the fixture walk surfaces a Door once via
-exit-doors and once via fixture-boundaries. The resolver dedupes
-by `stuffId`. (The exit it hangs in is a separate candidate.)
+The MQL `here` scope walks fixtures (`getFixtures()`) so `look
+candle` resolves the same way an inventory item does, and offers each
+way's boundary as a candidate beside its exit (once — deduped by
+`stuffId`), so `look window`, `open window`, `wash window` bind the
+boundary and `open north` reaches it through `MqlApi.effectiveTarget`.
+See [mql.md § Doors and exits](./mql.md).
 
 Fixtures are NOT auto-listed in `look` room descriptions in v1.
 Authors who want them mentioned write the long description
@@ -870,17 +749,14 @@ Per the [persistence.md](./persistence.md) scalar-default rule:
 - `LightSourceMixin` persists `emittedIntensity` +
   `emittedColorTemperature` with the same shape.
 - `Window` persists `baseTransmissivity` + `aToBOverride` +
-  `bToAOverride` + `colorTint` + (from Sealable) `open`. The
+  `bToAOverride` + `colorTint` + the glazing + (from Sealable) `open`;
+  its grime rides each room's record keyed `way:<direction>`. The
   pre-flatten `directionalOverrides: { aToB?, bToA? }` object is
   reconstructed at the runtime API layer only.
-- `Door` persists nothing new beyond what `Sealable` already had
-  (`open`).
-- `Boundary` itself adds nothing persistent — runtime anchors are
-  rebuilt at load time by seed code calling
-  `BoundaryApi.attachExistingBoundary`.
-- `BoundaryAnchor` carries `side` (`'A'` / `'B'`) but not the
-  boundary back-reference (Stuff cross-references go via custom
-  `persistenceHandler` shape; v1 anchor wiring is hydrate-only).
+- `Door` persists `open` (Sealable) and `locked` (Lockable).
+- `Boundary` persists its channel table and opening; its sides are
+  runtime, re-attached as each place's exits map applies
+  (`BoundaryApi.attach`).
 
 Each setter on a flat scalar field validates its primitive shape
 independently — non-finite or negative intensity throws TypeError
@@ -963,7 +839,9 @@ and run out of.
   the `Candle` class was retired unrowed (see
   [fire.md](./fire.md)).
 - Schedule integration — except `civic:lighting`, the nightly settle.
-- Sound conduit / `Audible` mixin / sound propagation.
+- ~~Sound conduit / `Audible` mixin / sound propagation.~~ Shipped —
+  sound walks the same ways and asks each boundary
+  `transmissivityInto('sound', side)` (see [senses.md](./senses.md)).
 - Eager cache invalidation; v1 is fully lazy.
 - Abstract color tints layered over color temperature (the
   `ColorTag` type alias is reserved for this future surface;
@@ -978,8 +856,10 @@ and run out of.
   `mud/config/quantity-tags.yaml` and loaded via
   `QuantityApi.loadTagTables`.
 - [perception.md](./perception.md) — viewer-aware-query pattern.
-- [spatial.md](./spatial.md) — Door, Exit, Sealable, Vessel,
+- [spatial.md](./spatial.md) — Exit, Sealable, Vessel,
   Adornable composition on Location/Vessel.
+- [boundary.md](./boundary.md) — `Boundary`, `Door`, `Window`, the
+  channel table, `BoundaryApi`.
 - [persistence.md](./persistence.md) — scalar-default rule,
   Marshaller framework.
 - [collections.md](./collections.md) — fixture surface vocabulary.

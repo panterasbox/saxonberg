@@ -4,6 +4,7 @@
 # more heat than any stove gives, and green ware froze on the boards of a
 # shop whose prose said it was warm (the ceramics browser walk).
 class: /platform/thing/Door
+extends: /platform/thing/boundaries/door
 data:
   shortDescription: shop door
   keywords: [door, "shop door", "front door"]

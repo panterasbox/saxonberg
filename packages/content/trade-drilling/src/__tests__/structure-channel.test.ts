@@ -232,15 +232,23 @@ describe('`stake` reaches both sites with no second mechanism', () => {
     }
   });
 
-  it('the two rooms exist, are outdoors, and are reachable from the hillside', () => {
+  it('the two rooms exist, are outdoors, and are reachable from the hillside (by the old workings)', () => {
     for (const file of ['salt-spring.yaml', 'salt-flat.yaml']) {
       const d = data(`${REJECTION}location/${file}`);
       expect(d._biomePath).toBe('/stuff/idea/biome/outdoor/baseline');
       expect(d.coords).toBeDefined();
     }
+    // ⭐ The walk over the shoulder leaves from the old workings now (the
+    // boundary build put the glazier's hut's window in the hillside's
+    // `east`): hillside → old workings → salt spring.
     const hillside = data(`${REJECTION}location/hillside.yaml`);
-    const exits = hillside.exits as Record<string, { destination: string }>;
-    expect(exits.east?.destination).toBe(
+    const hx = hillside.exits as Record<string, { destination: string }>;
+    expect(hx.northeast?.destination).toBe(
+      '/world/terminus/rejection/location/old-workings',
+    );
+    const workings = data(`${REJECTION}location/old-workings.yaml`);
+    const wx = workings.exits as Record<string, { destination: string }>;
+    expect(wx.northeast?.destination).toBe(
       '/world/terminus/rejection/location/salt-spring',
     );
   });

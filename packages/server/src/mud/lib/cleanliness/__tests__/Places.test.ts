@@ -171,9 +171,9 @@ describe('the window a room is lit by (D19, B18)', () => {
   it('a grimed pane passes less, and washed it passes all again', () => {
     const w = makeStuff(() => new Window());
     w.setOpen(true);
-    const clean = w.transmissivity('A', 'A');
+    const clean = w.transmissivity('light', 'A', 'A');
     w.soil('soot', 3);
-    expect(w.transmissivity('A', 'A')).toBeLessThan(clean * 0.7);
+    expect(w.transmissivity('light', 'A', 'A')).toBeLessThan(clean * 0.7);
   });
 
   it("⭐ a sky room's daylight comes through the pane its opening names", () => {

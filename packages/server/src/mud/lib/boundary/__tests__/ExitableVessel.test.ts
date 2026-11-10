@@ -4,7 +4,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import ExitableVessel from '../ExitableVessel';
 import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import Door from '../../../platform/thing/Door';
 import { ContainmentApi, ContainmentError } from '../../../api/containment';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
@@ -47,7 +46,6 @@ describe('ExitableVessel', () => {
     expect(MixinApi.isExitable(wardrobe)).toBe(true);
     expect(MixinApi.isContainer(wardrobe)).toBe(true);
     expect(MixinApi.isContainable(wardrobe)).toBe(true);
-    expect(MixinApi.isDoorBearing(wardrobe)).toBe(true);
   });
 
   it("getExit('out') synthesizes an exit to the environment", async () => {
@@ -191,83 +189,23 @@ describe('ExitableVessel', () => {
     });
   });
 
-  describe('door bearing', () => {
-    it('synthesized out exit picks up the vessel door', async () => {
-      const door = await StuffApi.create(() => new Door());
-      door.setShortDescription('wardrobe door');
-      wardrobe.setDoor(door);
+  describe('the door is the vessel\'s own seal (boundary build D11)', () => {
+    it('the synthesized out and entry exits carry no boundary', async () => {
       ContainmentApi.move(wardrobe, park);
-
-      const out = wardrobe.getExit('out');
-      expect(out!.getDoor()).toBe(door);
-      expect(door.hasAttached(out!)).toBe(true);
+      expect(wardrobe.getExit('out')!.getBoundary()).toBeNull();
+      expect(wardrobe.getEntryExit()!.getBoundary()).toBeNull();
+      expect(wardrobe.getExit('out')!.wayState()).toBe('open');
     });
 
-    it('synthesized entry exit also picks up the vessel door', async () => {
-      const door = await StuffApi.create(() => new Door());
-      door.setShortDescription('wardrobe door');
-      wardrobe.setDoor(door);
-      ContainmentApi.move(wardrobe, park);
-
-      const entry = wardrobe.getEntryExit();
-      expect(entry!.getDoor()).toBe(door);
-      expect(door.hasAttached(entry!)).toBe(true);
-    });
-
-    it('closed door blocks traversal through synthesized exits', async () => {
-      const door = await StuffApi.create(() => new Door());
-      door.setShortDescription('wardrobe door');
-      door.close();
-      wardrobe.setDoor(door);
-      ContainmentApi.move(wardrobe, park);
-
-      const out = wardrobe.getExit('out')!;
-      const guard = (await out.canTraverse(wardrobe as unknown as Stuff & import('../../spatial/Containable').Containable));
-      expect(guard.ok).toBe(false);
-      expect(guard.reason).toMatch(/closed/);
-
-      door.open();
-      const guardOpen = (await out.canTraverse(wardrobe as unknown as Stuff & import('../../spatial/Containable').Containable));
-      expect(guardOpen.ok).toBe(true);
-    });
-
-    it('setDoor invalidates the synth caches and unhooks old door.attachedTo', async () => {
-      const oldDoor = await StuffApi.create(() => new Door());
-      oldDoor.setShortDescription('old door');
-      const newDoor = await StuffApi.create(() => new Door());
-      newDoor.setShortDescription('new door');
-
-      wardrobe.setDoor(oldDoor);
+    it('a move rebinds the same out exit, still with no boundary', async () => {
       ContainmentApi.move(wardrobe, park);
       const firstOut = wardrobe.getExit('out')!;
-      expect(oldDoor.hasAttached(firstOut)).toBe(true);
-
-      wardrobe.setDoor(newDoor);
-      // The SAME exit, rebound onto the new door.
-      const secondOut = wardrobe.getExit('out')!;
-      expect(secondOut).toBe(firstOut);
-      expect(secondOut.getDoor()).toBe(newDoor);
-      expect(newDoor.hasAttached(secondOut)).toBe(true);
-      // Old exit is no longer registered with the old door.
-      expect(oldDoor.hasAttached(firstOut)).toBe(false);
-    });
-
-    it('a move detaches the pair from the door and re-attaches it', async () => {
-      const door = await StuffApi.create(() => new Door());
-      door.setShortDescription('wardrobe door');
-      wardrobe.setDoor(door);
-      ContainmentApi.move(wardrobe, park);
-      const firstOut = wardrobe.getExit('out')!;
-      expect(door.hasAttached(firstOut)).toBe(true);
-
       Stuff._stampZone(wardrobe, zone);
       ContainmentApi.move(wardrobe, park2);
-      // The same exit, detached from the door and re-attached — so the
-      // "unhooks attachedTo" half still holds, and `hasAttached` is
-      // true again afterwards because it is the same object.
       const secondOut = wardrobe.getExit('out')!;
       expect(secondOut).toBe(firstOut);
-      expect(door.hasAttached(secondOut)).toBe(true);
+      expect(secondOut.getDestination()).toBe(park2);
+      expect(secondOut.getBoundary()).toBeNull();
     });
   });
 });

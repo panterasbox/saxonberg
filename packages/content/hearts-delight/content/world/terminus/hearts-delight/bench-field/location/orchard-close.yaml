@@ -36,7 +36,7 @@ data:
     Most of an acre of the best ground on this side of the valley, walled on two sides and hedged on the third, with three old cherry trees standing well apart in it and the ground under them sown to clover. Somebody has kept the scrub off it for years.
 
     In flower the whole close hums, and it is loud enough that you notice it before you have got the gate shut.
-  coords: { x: -20, y: 3, z: 6 }
+  coords: { x: -22, y: 3, z: 6 }
   _biomePath: /stuff/idea/biome/outdoor/meadow
   ambientIntensity: 40000
   ambientColorTemperature: 5800
@@ -59,12 +59,14 @@ data:
   # forage read rests on, and it is authored because nothing writes it.
   legumeFraction: 0.4
   exits:
-    up:
+    northeast:
       destination: /world/terminus/hearts-delight/bench-field/location/upper-bench
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 2
-    down:
+    southeast:
       destination: /world/terminus/hearts-delight/location/farmstead-yard
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 3
   # ⭐ Three beds, each with a cherry in it. `Cultivable.applyProps` seats

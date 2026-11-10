@@ -20,7 +20,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { VetoResult } from '../errors';
-import type Door from '../../platform/thing/Door';
+import type { Boundary } from './Boundary';
 import type { Mobile, MovementBodies } from '../spatial/Mobile';
 import Exit from './Exit';
 import type { ConcealmentLevel } from '../concealment/ConcealmentLevel';
@@ -44,15 +44,16 @@ export interface ObviousNeighbour {
 
 export interface ObviousNeighbourOptions {
   /**
-   * `'skip'` (the default) omits any **doored** exit — what the
-   * propagation walks want, because the boundary-conduit walk carries
-   * those with their own transmissivity. `'open-only'` keeps a doored
-   * exit whose door is open, which is what the two openings counts
-   * mean by an opening. `'all'` keeps every doored exit whatever its
-   * door's state — what the construction's face rule wants, because a
-   * shut door is still a doorway between two places.
+   * Which ways count. `'clear'` (the default) keeps only ways with NO
+   * boundary in them — what a reach (a pull, a line, a bee) wants. `'open'`
+   * adds a way whose boundary is open and passes a body when open (an open
+   * door; never a window) — what the openings counts mean by an opening.
+   * `'all'` keeps every way whatever stands in it — what the propagation
+   * walks want (they ask each side's boundary for its transmissivity) and
+   * what the construction's face rule wants (a shut door is still a
+   * doorway).
    */
-  doors?: 'skip' | 'open-only' | 'all';
+  through?: 'clear' | 'open' | 'all';
 }
 import { BoundaryApi } from '../../api/boundary';
 import { DiagnosticApi } from '../../api/diagnostics';
@@ -126,7 +127,13 @@ export interface Exitable {
    * and not in four copies.
    */
   getObviousNeighbours(opts?: ObviousNeighbourOptions): ObviousNeighbour[];
-  getExitDoors(): Door[];
+  /**
+   * @hook Why the installed way `exit` (and `boundary`, if one stands in
+   * it) is not true to the grid here, or null when it is. The base says
+   * null (nothing is gridded); `Location` answers the zone's edge rules
+   * (boundary build, D8 — every way).
+   */
+  edgeRefusal(exit: Exit, boundary: Boundary | null): string | null;
   /**
    * Install a forward/back exit pair. Async because it internally
    * `await`s the two `addExit` calls — subclass overrides may run
@@ -206,8 +213,8 @@ export interface Exitable {
 }
 
 /**
- * Options for `addBidirectionalExit`. The shared `door` installs the SAME
- * instance on both sides so opening from either side flips one state.
+ * Options for `addBidirectionalExit`. A `boundary` is attached to BOTH
+ * sides, so opening from either side flips one state.
  *
  * `opposite` is inferred from `NavigationApi.invertDirection(direction)`
  * for cardinal directions. For semantic labels (spherical zones, vessels)
@@ -224,7 +231,9 @@ export interface BidirectionalExitOptions {
    */
   kind?: string;
   opposite?: string;
-  door?: Door;
+  boundary?: Boundary;
+  /** The size of the gap both sides pass through. */
+  opening?: { width: number; height: number };
   /**
    * Hold BOTH sides' destinations as within-session live refs (Pattern
    * B) rather than templatePath resolution. Required when the two
@@ -252,7 +261,7 @@ export interface BidirectionalExitOptions {
  *     destination: /narnia/castle/library    # template declares `south` back
  *   portal:
  *     destination: /narnia/dark-wood/clearing
- *     bidirectional: true                    # shares a Door → install both
+ *     bidirectional: true                    # one boundary, both sides
  *     opposite: portal
  * ```
  *
@@ -263,9 +272,11 @@ export interface BidirectionalExitOptions {
  * destination's template (every template self-describes). `bidirectional`
  * defaults to **false**; set it `true` to also install the reciprocal (the
  * inverse is inferred via `NavigationApi.invertDirection` for cardinals, or
- * `opposite` for labels) — used where the two exits share one physical `Door`,
- * whose anchors must be wired once. `door` is the template path of an optional
- * Door whose anchors are installed transitively when present.
+ * `opposite` for labels). `door` is the template path of a BOUNDARY row (a door,
+ * a window, a curtain) standing in the way; each side that authors it attaches
+ * to the one row singleton, so ⭐ a way with a boundary is authored either as
+ * `bidirectional: true` on one side or as the same `door:` on both — a pair
+ * whose sides disagree is walled off with a diagnostic (boundary build).
  *
  * Per declarative-content-slate § exits on ExitableMixin.
  */
@@ -308,6 +319,11 @@ export interface ExitInstruction {
    * inherits the default. See `Exit.wheelPassable`.
    */
   wheelPassable?: boolean;
+  /**
+   * The size of the gap the way passes through, `{ width, height }` in
+   * metres — the way's own, over its kind's (`Exit.getOpening`).
+   */
+  opening?: { width: number; height: number };
   /**
    * Game minutes for one baseline (unloaded, walk-mode) traverse of this
    * edge. Omitted → the `transport.defaultEdgeMinutes` corridor default.
@@ -388,35 +404,10 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         name: 'exits',
         read: (stuff) => {
           const host = stuff as Stuff & Exitable;
-          return host.getObviousExits().map((exit) => {
-            const door = exit.getDoor();
-            const out: { direction: string; door?: unknown } = {
-              direction: exit.getDirection(),
-            };
-            if (door) {
-              const doorOut: {
-                stuffId: string;
-                displayName: string;
-                open: boolean;
-                primaryKeyword?: string;
-              } = {
-                stuffId: door.stuffId,
-                displayName: door.getPresentation(),
-                open: door.isOpen(),
-              };
-              // Door is Perceptible via Boundary; primaryKeyword is
-              // optional (Perceptible's fail-soft default falls back
-              // to the first keyword of the derived pool when no
-              // explicit value is set). Ship only when defined so
-              // the wire shape stays clean.
-              if (MixinApi.isPerceptible(door)) {
-                const kw = door.getPrimaryKeyword();
-                if (kw) doorOut.primaryKeyword = kw;
-              }
-              out.door = doorOut;
-            }
-            return out;
-          });
+          // ⭐ One wire shape (`WayRecord`, boundary build): the way's
+          // state, its boundary and whether it is a threshold — the same
+          // record the whereabouts push carries.
+          return host.getObviousExits().map((exit) => exit.wayRecord());
         },
       },
     ];
@@ -454,19 +445,13 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       if (needsVerification(exit)) {
         this._pendingVerify.add(exit);
       }
-      // Door back-reference: now that we're past construction (the
-      // exit has been wrapped in its proxy), register the proxied
-      // exit in its door's `attachedTo` set so `Door.detach()` can
-      // walk back to clear us.
-      const door = exit.getDoor();
-      if (door) door.attachExit(exit);
       return true;
     }
 
     removeExit(direction: string): boolean {
       const exit = this.exits.get(direction);
-      const door = exit?.getDoor();
-      if (door) door.detachExit(exit!);
+      // A side leaving the map leaves its boundary too.
+      if (exit?.getBoundary()) BoundaryApi.detach(exit);
       if (exit) this._pendingVerify.delete(exit);
       return this.exits.delete(direction);
     }
@@ -536,27 +521,21 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      * my obvious exits reach* is a fact about the exits, not about any
      * caller.
      *
-     * `doorsBlock` is the one axis callers genuinely differ on. The
-     * propagation walks skip a **doored** exit entirely (the boundary
-     * conduit walk handles those, with its own transmissivity);
-     * `Atmospheric`'s two openings counts want a doored exit when the
-     * door is **open**. Neither is a default worth guessing at, so the
-     * option says which — and the propagation walks' choice is the
-     * default, because they are the four callers this was extracted
-     * from.
+     * `through` is the one axis callers genuinely differ on (see
+     * {@link ObviousNeighbourOptions.through}): the propagation walks take
+     * every way and ask each side's boundary; the openings counts want an
+     * open doorway; a reach wants a clear one. The default is the reach's.
      */
     getObviousNeighbours(
       opts: ObviousNeighbourOptions = {},
     ): ObviousNeighbour[] {
       const out: ObviousNeighbour[] = [];
+      const through = opts.through ?? 'clear';
       for (const exit of this.getObviousExits()) {
-        const door = exit.getDoor();
-        if (opts.doors === 'all') {
-          // every doorway, shut or open
-        } else if (opts.doors === 'open-only') {
-          if (door && !door.isOpen()) continue;
-        } else if (door) {
-          continue;
+        const boundary = exit.getBoundary();
+        if (boundary && through !== 'all') {
+          if (through === 'clear') continue;
+          if (!boundary.isOpen() || !boundary.passesBodiesWhenOpen()) continue;
         }
         if (!exit.hasSpatialDestination()) continue;
         const destPath = exit.getDestinationTemplatePath();
@@ -598,14 +577,9 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       return result;
     }
 
-    /** All non-null doors on this location's obvious exits. */
-    getExitDoors(): Door[] {
-      const doors: Door[] = [];
-      for (const exit of this.getObviousExits()) {
-        const door = exit.getDoor();
-        if (door) doors.push(door);
-      }
-      return doors;
+    /** See the interface — nothing is gridded here; `Location` overrides. */
+    edgeRefusal(_exit: Exit, _boundary: Boundary | null): string | null {
+      return null;
     }
 
     /** See {@link Exitable.installExit}. */
@@ -633,9 +607,9 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
     }
 
     /**
-     * Install a forward/back exit pair in one call. Both sides share the
-     * same `Door` reference when one is supplied, so opening from either
-     * side flips a single state.
+     * Install a forward/back exit pair in one call. A `boundary` is
+     * attached to both sides, so opening from either side flips one
+     * state.
      *
      * Reciprocity: the opposite direction is inferred from
      * `NavigationApi.invertDirection(direction)` for cardinal directions.
@@ -660,26 +634,26 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         source: this as unknown as Stuff & Container,
         destination: other,
         keepLiveDestination: opts.keepLiveDestination,
-        door: opts.door ?? null,
         hidden: opts.hidden,
         blocked: opts.blocked,
         muffled: opts.muffled,
         noFollow: opts.noFollow,
         messageIn: opts.messageInForward,
         messageOut: opts.messageOutForward,
+        opening: opts.opening,
       };
       const backOpts = {
         direction: opposite,
         source: other,
         destination: this as unknown as Stuff & Container,
         keepLiveDestination: opts.keepLiveDestination,
-        door: opts.door ?? null,
         hidden: opts.hidden,
         blocked: opts.blocked,
         muffled: opts.muffled,
         noFollow: opts.noFollow,
         messageIn: opts.messageInBack,
         messageOut: opts.messageOutBack,
+        opening: opts.opening,
       };
       // One clone per edge from the kind row, then bind — `bind` is
       // delta-aware, so unset per-site fields keep the kind's authored
@@ -700,33 +674,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       await this.addExit(forward);
       await other.addExit(back);
 
-      // Phase 5 Door retrofit: a Door is a Boundary, so when this
-      // pair carries a shared door, also install the door's
-      // BoundaryAnchors on each room. Idempotent against re-install
-      // — `attachExistingBoundary` rejects a wired boundary, so
-      // callers passing the same door twice (e.g., reinstall after
-      // detach) must `door.detach()` first. The cross-boundary light
-      // walk consumes these anchors; `Exit.canTraverse` keeps using
-      // `door.isOpen()` directly (see plan § Exit.canTraverse).
-      if (opts.door) {
-        // Cast `this` and `other` to plain `Stuff` (sound — both are
-        // Stuff via the mixin chain), then let `MixinApi.isAdornable`
-        // narrow to `Stuff & Adornable` via its type predicate. Don't
-        // pre-assert the Adornable shape with a cast; the predicate is
-        // the verification.
-        const thisStuff = this as unknown as Stuff;
-        const otherStuff = other as unknown as Stuff;
-        if (
-          MixinApi.isAdornable(thisStuff) &&
-          MixinApi.isAdornable(otherStuff)
-        ) {
-          BoundaryApi.attachExistingBoundary({
-            boundary: opts.door,
-            hostA: thisStuff,
-            hostB: otherStuff,
-          });
-        }
-      }
+      if (opts.boundary) BoundaryApi.attach(opts.boundary, forward, back);
     }
 
     /**
@@ -798,9 +746,9 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         await this._installUnbuiltExit(direction, spec);
         return;
       }
-      let doorStuff: Door | undefined;
+      let boundary: Boundary | undefined;
       if (spec.door) {
-        doorStuff = await StuffApi.singleton<Door>(spec.door);
+        boundary = await StuffApi.singleton<Boundary>(spec.door);
       }
       if (existing && existing.isUnbuilt()) {
         /*
@@ -833,10 +781,9 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
           existingDest = null;
         }
         const sameDest = existingDest === (destStuff as unknown as Stuff);
-        const sameDoor =
-          (existing.getDoor() ?? null) ===
-          ((doorStuff as Door | undefined) ?? null);
-        if (sameDest && sameDoor) return;
+        const sameBoundary =
+          (existing.getBoundary() ?? null) === (boundary ?? null);
+        if (sameDest && sameBoundary) return;
         const here = this as unknown as Stuff;
         const tag = here.getTemplatePath() ?? here.stuffId;
         throw new Error(
@@ -850,9 +797,8 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       // Exits are authored explicitly on BOTH sides — an exit creates only
       // its OWN edge; the return trip is a separate declaration on the
       // destination's template. `bidirectional: true` is an explicit opt-in
-      // that also installs the reciprocal (used where the two exits share one
-      // physical `Door`, whose boundary anchors must be wired once — the door
-      // IS the shared "both sides"). No cardinal auto-reciprocity.
+      // that also installs the reciprocal, both sides sharing the boundary.
+      // No cardinal auto-reciprocity.
       // Exit-kind path: clone the kind template (authored defaults
       // hydrate; `class:` may name an Exit subclass), then bind below.
       // A bidirectional entry clones one instance per edge.
@@ -861,7 +807,8 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       if (bidirectional) {
         const opts: BidirectionalExitOptions = {
           kind: kindPath,
-          door: doorStuff,
+          boundary,
+          opening: spec.opening,
           opposite: spec.opposite,
           hidden: spec.hidden,
           blocked: spec.blocked,
@@ -871,13 +818,13 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
           messageOutForward: spec.messageOut,
         };
         await this.addBidirectionalExit(destStuff, direction, opts);
+        await this._refuseIfUntrue(direction, spec, boundary ?? null);
         return;
       }
       const oneWayOpts = {
         direction,
         source: this as unknown as Stuff & Container,
         destination: destStuff,
-        door: doorStuff ?? null,
         hidden: spec.hidden,
         concealment: spec.concealment,
         concealmentHint: spec.hint,
@@ -889,12 +836,91 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         messageOut: spec.messageOut,
         media: spec.media,
         wheelPassable: spec.wheelPassable,
+        opening: spec.opening,
         edgeMinutes: spec.edgeMinutes,
         conditional: spec.conditional,
       };
       const exit = await StuffApi.clone<Exit>(kindPath);
       exit.bind(oneWayOpts);
       await this.addExit(exit);
+      if (boundary) BoundaryApi.attach(boundary, exit);
+      if (await this._refuseIfUntrue(direction, spec, boundary ?? null)) return;
+      await this._reconcileBoundaryPair(exit);
+    }
+
+    /**
+     * ⭐ D8 (boundary build, every way — owner's call 2026-11-10): a way
+     * inside one zone is true to the grid — it joins ADJACENT cells through
+     * opposite sides and its opening fits the face, or it is a `track`
+     * across open ground along its direction (`Location.edgeRefusal`). A way
+     * that breaks it is taken down again and installed UNBUILT, and the
+     * author is told why; across zones it is a threshold and nothing is
+     * checked. Answers whether it refused.
+     */
+    private async _refuseIfUntrue(
+      direction: string,
+      spec: ExitInstruction,
+      boundary: Boundary | null,
+    ): Promise<boolean> {
+      const exit = this.exits.get(direction);
+      if (!exit) return false;
+      const why = this.edgeRefusal(exit, boundary);
+      if (!why) return false;
+      const inverse = exit.getInverse();
+      this.removeExit(direction);
+      await StuffApi.destruct(exit as unknown as Stuff);
+      if (inverse && spec.bidirectional) {
+        const far = inverse.getSource() as unknown as Stuff & Exitable;
+        far.removeExit(inverse.getDirection());
+        await StuffApi.destruct(inverse as unknown as Stuff);
+      }
+      await this._installUnbuiltExit(direction, spec, why);
+      return true;
+    }
+
+    /**
+     * ⭐ D4 (boundary build): **both sides of a way agree on what stands in
+     * it, or the boundary-less side is a wall.** An authored pair installs
+     * one side at a time; whichever installs second checks the other. If one
+     * side carries a boundary and the far place's way back carries none (the
+     * pump house's `out` with no `door:` while the bank's way in has one),
+     * the boundary-less side is BLOCKED and the author is told — never a
+     * silent half-lock where leaving ignores the bolt.
+     *
+     * Runs only when the far place is already live and has exactly ONE way
+     * back here; anything else is ambiguous and left alone.
+     */
+    private async _reconcileBoundaryPair(exit: Exit): Promise<void> {
+      const far = exit.peekDestination() as (Stuff & Container) | null;
+      if (!far || !MixinApi.isExitable(far)) return;
+      const here = this as unknown as Stuff;
+      const backs = [...far.getExits().values()].filter((x) => {
+        if (x.isUnbuilt()) return false;
+        const d = x.peekDestination() as Stuff | null;
+        return d === here;
+      });
+      if (backs.length !== 1) return;
+      const back = backs[0]!;
+      const mine = exit.getBoundary();
+      const theirs = back.getBoundary();
+      if ((mine === null) === (theirs === null)) return;
+      const walled = mine === null ? exit : back;
+      const doored = mine === null ? back : exit;
+      walled.setBlocked(true);
+      const walledHost = walled.getSource();
+      const dooredHost = doored.getSource();
+      const row = (s: Stuff) => s.getTemplatePath() ?? s.stuffId;
+      await DiagnosticApi.record({
+        path: row(walledHost),
+        severity: 'error',
+        message:
+          `exit ${walled.getDirection()} on ${row(walledHost)} has no door, but the ` +
+          `way back (${doored.getDirection()} on ${row(dooredHost)}) has ` +
+          `${doored.getBoundary()?.getTemplatePath() ?? 'one'}. A way is one ` +
+          `boundary with two sides: author the same door: on both, or ` +
+          `bidirectional: true on one. The doorless side is walled until then.`,
+        channel: 'location-graph',
+      });
     }
 
     /**
@@ -909,7 +935,8 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      */
     private async _installUnbuiltExit(
       direction: string,
-      spec: ExitInstruction
+      spec: ExitInstruction,
+      refusal?: string,
     ): Promise<void> {
       const here = this as unknown as Stuff;
       const row = here.getTemplatePath() ?? here.stuffId;
@@ -954,10 +981,13 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       await DiagnosticApi.record({
         path: row,
         severity: 'error',
-        message:
-          `exit ${direction} names ${spec.destination}, which does not ` +
-          `exist. The direction is installed but refuses; create the row ` +
-          `and it heals on the next hydrate.`,
+        message: refusal
+          ? `exit ${direction} to ${spec.destination} is not true to the ` +
+            `grid: ${refusal}. The direction is installed but refuses until ` +
+            `the rows are fixed.`
+          : `exit ${direction} names ${spec.destination}, which does not ` +
+            `exist. The direction is installed but refuses; create the row ` +
+            `and it heals on the next hydrate.`,
         channel: 'location-graph',
       });
     }

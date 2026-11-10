@@ -97,6 +97,22 @@ export default class CloseController extends CommandController<CloseModel> {
       return;
     }
 
+    // ⭐ The mixin decides (as `open` asks `canOpen`): a fixed grating
+    // refuses with its reason.
+    const may = sealable.canClose(commandGiver);
+    if (!may.ok) {
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`${may.reason ?? "It won't close."}`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'cannot-close',
+        detail: may.reason ?? 'cannot close',
+      });
+      return;
+    }
+
     sealable.close(commandGiver);
 
     MessageApi.scene(commandGiver)

@@ -527,8 +527,9 @@ argument about an object's LIFETIME rather than about whether a person
 could author it:
 
 - ~~Live-ref relational~~ — an `Exit` is a clone of a kind row and the
-  live refs arrive through `bind`; a `BoundaryAnchor` is a clone its
-  boundary mints at `onCreate`.
+  live refs arrive through `bind`; a `BoundaryAnchor` was a clone its
+  boundary minted at `onCreate` (the anchors retired with the boundary
+  build, 2026-11).
 - ~~Dynamically-minted uniques~~ — that is the `asIdentityPath`
   channel, not a reason to skip the row: `Party` clones
   `/platform/idea/Party` with `/platform/idea/party/<uuid>` as its
@@ -543,8 +544,10 @@ ceiling 5):
 - **The connection layer** — per-socket objects with no world identity
   (`Interactive`, `Login`).
 - **A framework seam that takes a FACTORY from its caller** —
-  `BoundaryApi.create`, `PersistableLogic`'s shadow follower. There is
-  no path to look up, because the caller supplies the class.
+  `PersistableLogic`'s shadow follower. There is no path to look up,
+  because the caller supplies the class. (`BoundaryApi.create` was the
+  other until the boundary build, 2026-11, retired it: `BoundaryApi`
+  only attaches now, and every boundary is a cloned row.)
 - **Introspection of a CLASS** — `StudioLogic.readClassDefault`
   constructs an instance to ask the class what its defaults are, so a
   row would be answering a question about itself.
@@ -805,7 +808,7 @@ const instructions = MixinApi.getAllInstructionFields(obj.constructor);
 // method names from field names (e.g., `set` + pascalCase('coords')
 // → `setCoords`). Same convention the Hydrator's two-phase dispatch
 // and `Zone.lookupField` use.
-const suffix = MixinApi.pascalCase('attachedHosts'); // → 'AttachedHosts'
+const suffix = MixinApi.pascalCase('coords'); // → 'Coords'
 ```
 
 ### ContainmentApi (movement & containment)
@@ -1281,8 +1284,8 @@ another `Stuff` from outside its owning class.
 const dir = exit.direction;
 exit.direction = 'north';
 
-// `door` is an accessor pair on Exit (invariant maintenance).
-exit.door = newDoor;
+// `_boundary` is the exit's private slot (the side of its way).
+const door = exit._boundary;
 
 // `name` is a field on something composing NamedMixin.
 if (avatar.name === 'Alice') { ... }
@@ -1308,7 +1311,7 @@ inter-stuff contract layer. Specifically:
 const dir = exit.getDirection();
 exit.setDirection('north');
 
-exit.setDoor(newDoor);
+const door = exit.getBoundary();
 
 if (avatar.getName() === 'Alice') { ... }
 ```
@@ -1316,9 +1319,9 @@ if (avatar.getName() === 'Alice') { ... }
 Methods are what shadows hook, what call-security policies gate, and
 what the host gets to refactor freely behind. Fields and accessor
 pairs stay host-internal — accessors are still the right tool for
-invariant maintenance (e.g., `Door.attachedTo` bookkeeping on the
-`door` accessor), but the public method delegates to them rather
-than exposing them to other Stuff.
+invariant maintenance (e.g., `Location.setCoords` registering the
+room on its zone's grid), but the public method delegates to them
+rather than exposing them to other Stuff.
 
 The Hydrator is a deliberate framework carve-out: it reflects
 directly into persistent fields so it can populate them from
@@ -1590,17 +1593,17 @@ the predicate narrow.
 ### BAD (pre-asserted then verified)
 
 ```ts
-// Asserts `Stuff & Adornable` BEFORE the predicate runs. If the
-// predicate returns false the cast is a lie; if it returns true
-// the cast is redundant. Either way the predicate's narrowing
-// flows nowhere.
-const here = this as unknown as Stuff & Adornable;
-const there = other as unknown as Stuff & Adornable;
+// Asserts `Stuff & Containable` / `Stuff & Container` BEFORE the
+// predicate runs. If the predicate returns false the cast is a lie;
+// if it returns true the cast is redundant. Either way the
+// predicate's narrowing flows nowhere.
+const item = this as unknown as Stuff & Containable;
+const box = other as unknown as Stuff & Container;
 if (
-  MixinApi.isAdornable(here as unknown as Stuff) &&
-  MixinApi.isAdornable(there as unknown as Stuff)
+  MixinApi.isContainable(item as unknown as Stuff) &&
+  MixinApi.isContainer(box as unknown as Stuff)
 ) {
-  BoundaryApi.attachExistingBoundary({ boundary, hostA: here, hostB: there });
+  ContainmentApi.move(item, box);
 }
 ```
 
@@ -1609,13 +1612,9 @@ if (
 ```ts
 const thisStuff = this as unknown as Stuff;
 const otherStuff = other as unknown as Stuff;
-if (MixinApi.isAdornable(thisStuff) && MixinApi.isAdornable(otherStuff)) {
-  // After the predicate, both are narrowed to `Stuff & Adornable`.
-  BoundaryApi.attachExistingBoundary({
-    boundary,
-    hostA: thisStuff,
-    hostB: otherStuff,
-  });
+if (MixinApi.isContainable(thisStuff) && MixinApi.isContainer(otherStuff)) {
+  // After the predicate, each is narrowed to its mixin's interface.
+  ContainmentApi.move(thisStuff, otherStuff);
 }
 ```
 
@@ -6140,8 +6139,8 @@ if (!sameVia(m.via, first)) return undefined;
 
 **What happens.** `MqlMatchVia` is an open interface every subsystem
 augments, and `lib/boundary/Exit.ts` augments it with a **live `Exit`**.
-An Exit reaches its `Boundary`, whose `anchorA`/`anchorB` point back at
-it, so the graph has a cycle and `JSON.stringify` throws
+An Exit reaches its `Boundary`, whose `sideA`/`sideB` point back at
+it (`anchorA`/`anchorB` when this was found, before the boundary build), so the graph has a cycle and `JSON.stringify` throws
 `Converting circular structure to JSON`. The caller catches it and
 reports `mql-error`, so a **well-formed query answers "something went
 wrong."**

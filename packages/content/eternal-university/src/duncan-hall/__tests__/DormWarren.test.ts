@@ -83,6 +83,8 @@ function seedDomain(): void {
   domain.push({ _id: `d-${++idCounter}`, path: '/system/residence/idea/holding-building', class: '/system/residence/idea/HoldingBuilding', data: { shortDescription: 'house' } });
   add('/world/terminus/eternal/duncan-hall/idea/exits/floor-stair', '/world/terminus/eternal/duncan-hall/idea/FloorStairExit');
   add('/world/terminus/eternal/duncan-hall/idea/exits/dorm-door', '/world/terminus/eternal/duncan-hall/idea/DormDoor');
+  // The door the warren hangs in each room's way (boundary build, D6).
+  add('/world/terminus/eternal/duncan-hall/thing/dorm-door', '/platform/thing/Door', { shortDescription: 'dorm-room door', keywords: ['door'], locked: true, closesBehind: true });
   add('/stuff/idea/exits/stair', '/platform/idea/Exit');
 
   add(DormWarren.WARREN_PATH, '/world/terminus/eternal/duncan-hall/idea/DormWarren');

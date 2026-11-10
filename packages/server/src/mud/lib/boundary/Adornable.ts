@@ -4,10 +4,10 @@
  *
  * A Container with this mixin gains a separate, non-portable
  * population of Stuff attached *to* it: wall sconces, ceiling lamps,
- * the per-side `BoundaryAnchor` of a Boundary. Fixtures are NOT in
+ * a floor. Fixtures are NOT in
  * `getContents()`; they are surfaced separately via `getFixtures()`
  * and (for channel-shaped consumers) the convenience getters
- * `getFixtureBoundaries()` / `getFixtureLightSources()`.
+ * `getFixtureLightSources()`.
  *
  * Constraint: composed on `Stuff & Container`. Locations compose it
  * for free; every `Location` / `SphericalLocation` ships
@@ -27,9 +27,7 @@
  * cars where authors want `seatbelt:driver` instead of `fixture:1`.
  *
  * Lifecycle: `onDestruct()` destructs every fixture before chaining
- * to super. The fixture's own `onDestruct()` is responsible for
- * unhooking from any Boundary it's an anchor of (see
- * `BoundaryAnchor.onDestruct`).
+ * to super.
  *
  * Containment invariant: an `Adornment` whose `adornedTo` is non-null
  * cannot be moved into a Container's `contents` via
@@ -53,8 +51,6 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { SlottedMixin } from '../slot/Slotted';
 
-import type { Boundary } from './Boundary';
-import { BoundaryAnchor } from './BoundaryAnchor';
 import type {
   CaptureContext,
   FixturesSlice,
@@ -105,7 +101,6 @@ export interface Adornable {
    * dry posture floor is still a floor, and a puddle still needs the slot.
    */
   getFloor(): FloorThing | null;
-  getFixtureBoundaries(): Boundary[];
   getFixtureLightSources(): (Stuff & Adornment)[];
   getFixtureSoundSources(): (Stuff & Adornment)[];
   /**
@@ -115,7 +110,7 @@ export interface Adornable {
    *   `addFixture`; the spec is not retained and there is no paired
    *   getter (the live fixtures are read via `getFixtures()`). Fixtures
    *   are runtime-only, so this re-runs and rebuilds them on every
-   *   hydrate (the `BoundaryAnchor` reconstruction model).
+   *   hydrate.
    *
    *   ⚠ *"Rebuilds"* became true in the ground build. Until then this
    *   only ever ADDED: a CMS go-live (`restoreFromTemplate` re-runs the
@@ -179,10 +174,19 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
         // reaches a booted world. A fixture that persists ITSELF keeps
         // its own `(scope, key)` record and is skipped.
         const slot = adornable.slotOfFixture(f);
-        const target = fixtureStateHolder(f);
-        if (!slot || !target || MixinApi.isPersistable(target)) continue;
-        const fields = runtimeFields(target, ctx);
+        if (!slot || MixinApi.isPersistable(f)) continue;
+        const fields = runtimeFields(f, ctx);
         if (Object.keys(fields).length > 0) fixtures[slot] = fields;
+      }
+      // ⭐ ...and what stands in the host's WAYS: a pane's grime rides the
+      // room's record keyed `way:<direction>` (boundary build — it rode the
+      // retired anchor fixture before). A window is one object with two
+      // sides, so each room's record carries the same state and the last
+      // restored wins, exactly as before.
+      for (const [key, boundary] of waysOf(host)) {
+        if (MixinApi.isPersistable(boundary)) continue;
+        const fields = runtimeFields(boundary, ctx);
+        if (Object.keys(fields).length > 0) fixtures[key] = fields;
       }
       return Object.keys(fixtures).length > 0
         ? { fields: {}, fixtures }
@@ -201,9 +205,13 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
       for (const f of adornable.getFixtures()) {
         const slot = adornable.slotOfFixture(f);
         const fields = slot ? fixtures[slot] : undefined;
-        const target = fixtureStateHolder(f);
-        if (!fields || !target || MixinApi.isPersistable(target)) continue;
-        await ctx.applyFields(target, fields);
+        if (!fields || MixinApi.isPersistable(f)) continue;
+        await ctx.applyFields(f, fields);
+      }
+      for (const [key, boundary] of waysOf(host)) {
+        const fields = fixtures[key];
+        if (!fields || MixinApi.isPersistable(boundary)) continue;
+        await ctx.applyFields(boundary, fields);
       }
     }
 
@@ -337,21 +345,6 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
       return null;
     }
 
-    getFixtureBoundaries(): Boundary[] {
-      const seen = new Set<string>();
-      const out: Boundary[] = [];
-      for (const f of this.fixtureSlots.values()) {
-        if (!BoundaryAnchor.is(f)) continue;
-        const boundary = f.getBoundary();
-        if (!boundary) continue;
-        const id = (boundary as unknown as Stuff).stuffId;
-        if (seen.has(id)) continue;
-        seen.add(id);
-        out.push(boundary);
-      }
-      return out;
-    }
-
     getFixtureLightSources(): (Stuff & Adornment)[] {
       const out: (Stuff & Adornment)[] = [];
       for (const f of this.fixtureSlots.values()) {
@@ -442,9 +435,7 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
     /**
      * Fixture teardown is DECLARED (`fixtureSlots: { ref: 'instance',
      * lifetime: 'owned' }`), so slot 2.5 destructs each fixture and
-     * clears the map. A fixture's own `onDestruct` is still responsible
-     * for unhooking from any Boundary it's an anchor of — see
-     * `BoundaryAnchor`.
+     * clears the map.
      */
     onDestruct(): void {
       super.onDestruct();
@@ -474,17 +465,15 @@ function hasMixinNamed(f: object, mixinName: string): boolean {
   return false;
 }
 
-/**
- * The Stuff whose state a fixture slot keeps: the fixture itself, or —
- * for a boundary's anchor — the boundary it anchors (a Window is one
- * object hung on two rooms; each room's record carries the same state,
- * and the last restored wins).
- */
-function fixtureStateHolder(f: Stuff & Adornment): Stuff | null {
-  if (BoundaryAnchor.is(f)) {
-    return (f.getBoundary() as unknown as Stuff | null) ?? null;
+/** The boundaries standing in `host`'s ways, keyed `way:<direction>`. */
+function waysOf(host: Stuff): Array<[string, Stuff]> {
+  if (!MixinApi.isExitable(host)) return [];
+  const out: Array<[string, Stuff]> = [];
+  for (const [dir, exit] of host.getExits()) {
+    const b = exit.getBoundary();
+    if (b) out.push([`way:${dir}`, b as unknown as Stuff]);
   }
-  return f;
+  return out;
 }
 
 /**

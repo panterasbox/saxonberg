@@ -4,7 +4,7 @@
  *
  * A fixture is a non-portable Stuff that sits in `getFixtures()`
  * rather than `getContents()` of its host Container. Wall sconces,
- * ceiling lamps, and BoundaryAnchors are the canonical users.
+ * ceiling lamps and floors are the canonical users.
  *
  * Composing AdornmentMixin adds the `adornedTo` back-reference (which
  * Adornable updates as part of `addFixture` / `removeFixture`) and

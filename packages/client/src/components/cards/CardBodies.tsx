@@ -817,6 +817,10 @@ function WaysOut({
                 onMouseLeave={() => preview(null)}
               >
                 {exit.direction}
+                {/* ⭐ The way's state, from the one wire shape (boundary
+                    build): `north (locked)`, `west (window)`; an open way
+                    says nothing. */}
+                {exit.state && exit.state !== "open" ? ` (${exit.state})` : ""}
               </InlineLink>
             </React.Fragment>
           );

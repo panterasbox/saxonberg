@@ -78,8 +78,11 @@ export function candidatesForHere(
 
   if (MixinApi.isExitable(location)) {
     const seenDoors = new Set<string>();
-    for (const door of location.getExitDoors()) {
-      if (seenDoors.has(door.stuffId)) continue;
+    // The boundary standing in each way (a door, a window), once — a
+    // candidate beside its way, so object verbs (`wash window`) bind it.
+    for (const exit of location.getObviousExits()) {
+      const door = exit.getBoundary();
+      if (!door || seenDoors.has(door.stuffId)) continue;
       seenDoors.add(door.stuffId);
       pushDirect(out, door, viewer, attention);
     }
