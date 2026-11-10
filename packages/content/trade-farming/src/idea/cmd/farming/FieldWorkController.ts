@@ -27,8 +27,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { ImprovementCost } from '@saxonberg/server/mud/lib/ground/Improvable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { AddressApi } from '@saxonberg/server/mud/api/address';
-import GroundCharacter, { type GroundSample } from '@saxonberg/content-ground/src/idea/GroundCharacter';
+import type { GroundSample } from '@saxonberg/content-ground/src/idea/GroundCharacter';
 import Tract from '../../../location/Tract';
 import type Field from '../../../thing/Field';
 import type { Soil } from '@saxonberg/server/mud/lib/husbandry/Soil';
@@ -82,12 +81,9 @@ export abstract class FieldWorkController<
     if (!room || !MixinApi.isContainer(room)) return null;
     // ⭐ A tract, asked by class (controllers-are-io D8a), never probed.
     if (!(room instanceof Tract)) return null;
-    const tract = room;
-    const locality = await AddressApi.resolveLocalityFor(room as Stuff & Container);
-    const seed = GroundCharacter.seedFor(locality?.getAddress() ?? '');
-    const model = await this.characterAt(room as Stuff & Container);
-    const sample = tract.groundSample(model, seed);
-    return { tract, sample, bill: GroundCharacter.improvementCost(sample) };
+    // ⭐ The tract reads its own ground (controller-liquidity W10).
+    const { sample, bill } = await room.readGround();
+    return { tract: room, sample, bill };
   }
 
   /**
@@ -113,12 +109,4 @@ export abstract class FieldWorkController<
     return { ok: true, field: field as unknown as Field & Stuff };
   }
 
-  /** The authored ground-character model, or `null` (the ordinary case). */
-  protected async characterAt(place: Stuff & Container): Promise<GroundCharacter | null> {
-    return GroundCharacter.forZone(
-      (place as unknown as {
-        getZone?(): { lookupField<T>(f: string): Promise<T | null> } | null;
-      }).getZone?.(),
-    );
-  }
 }

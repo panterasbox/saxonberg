@@ -69,3 +69,5 @@ data:
   residueVessel: /trade/milling/thing/bran-sack
   tollFraction: 0.1
   tollBinPath: /trade/milling/thing/toll-bin
+  # ⭐ The dust a grind throws into a shut room (cleanliness D22).
+  dustMaterial: /stuff/idea/material/gas/flour-dust
