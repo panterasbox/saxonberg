@@ -869,7 +869,9 @@ suite('3. each protected act refuses another player, with nothing but the object
   }, 60_000);
 
   it('3d. a wiki page\'s hidden revision', async () => {
-    const author = await Session.open('founder', { startLocation: SQUARE });
+    // A level-3 reader is an owner of the /wiki root (the encyclopedia's own
+    // capability, never the wizard axis): seated on its committee as owner.
+    const author = await Session.open(uniqueHandle('cliq-wiki-ed'), { startLocation: SQUARE, committees: ['/wiki:owner'] });
     open.push(author);
     await author.drainProse();
     const page = `cliqwiki${Date.now().toString(36)}`;
@@ -1039,7 +1041,7 @@ suite('10–12. the defects, driven', () => {
     const s = await stager(uniqueHandle('cliq-search'), SQUARE);
     const r = await act(s, 'search');
     const done = await finish(s, r);
-    expect(done, notesOf(r)).not.toEqual(['did-not-finish']);
+    expect(done, `the search ran to its end: ${notesOf(r)}`).toEqual(['engagement-completed']);
   }, 300_000);
 
   it('10c. a teleport in an extent you hold arrives', async () => {
