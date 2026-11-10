@@ -263,6 +263,9 @@ that moves from new-substrate to shipped-with-a-tail moves from
 
 ### 5. Validation
 
+`echo suite > .build-phase` first — the guard in `tools/hooks/` refuses the
+full suite and `lint:family` in any other phase.
+
 ⚠⚠ **The full suite costs ~15 minutes, and a green run stays valid
 until a SOURCE file changes.** Read `docs/testing.md` § *A full run
 stays valid until SOURCE changes*. Before starting one, check

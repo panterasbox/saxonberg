@@ -78,6 +78,17 @@ the state unreadable is worse than the thing that caused it.
 
 ### 0. Orient
 
+⛔⛔ **The phase file is enforced, not advice.** `tools/hooks/` (wired in
+the tracked `.claude/settings.json`) reads the worktree's `.build-phase`:
+the full suite and `lint:family` are **refused** unless it says `suite`,
+and in `review` every `git push` is followed by an instruction to report
+and stop. Set it at exactly these moments — `echo <phase> > .build-phase`:
+`build` at Orient, `suite` when the MR opens (§ 4–5½), `review` the moment
+you report the MR (§ 6). Never set `suite` during review to get past the
+guard: that is the escape the owner built the hook to remove (2026-11-10).
+
+Then:
+
 ```bash
 ./tools/wt-status
 ```
@@ -156,6 +167,8 @@ makes them wait** — what it is, why their next step cannot start
 without it, how long. If you cannot write that sentence, hand over now.
 
 ### 4. The full suite — once
+
+`echo suite > .build-phase` first (the guard refuses it otherwise).
 
 The full suite (~15 min) runs at exactly two moments in a cycle:
 **here, after the MR opens and alongside review**, and again at
@@ -240,6 +253,13 @@ Recipe: the server on the worktree's own port with `AUTH_MODE=test` and
 the command input. See `e2e/README.md` and `docs/testing.md`.
 
 ### 6. Report, and stay for review
+
+`echo review > .build-phase` as you report the MR. From here the guard
+refuses the full suite and `lint:family`, and every push says *report and
+stop*. ⭐⭐ **There is no "this change is big" exception** — a large rework
+asked for in review (2026-11-10: a whole wave re-planned at review) still
+ends at typecheck + the touched suites + the gates it moved → push →
+report. The full suite and the lint family wait for `/finalize`.
 
 Review is the user's, and it is a conversation — not a comment-thread
 loop. Stay in this session for it: the build context is what makes

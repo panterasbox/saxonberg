@@ -1,0 +1,21 @@
+#!/bin/sh
+# PreToolUse(Bash): the full suite and lint:family run at exactly two
+# moments — code-complete and /finalize (CLAUDE.md § Build / Test / Quality).
+# They are allowed only while the worktree's `.build-phase` says `suite`;
+# a review round, a build wave, or an unmarked worktree is refused, with
+# the reason. The owner, 2026-11-10: "it wastes a lot of time and it forces
+# me to actually have to go look at what agents are doing".
+cmd=$(jq -r '.tool_input.command // ""')
+root=${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}
+phase=$(cat "$root/.build-phase" 2>/dev/null | tr -d '[:space:]')
+# Invocations only, never a mention: each command segment (split on ; & |
+# and newlines) is checked from its start, past any `VAR=value` prefixes
+# and a `cd …` — so a heredoc or a commit message that NAMES lint:family
+# is not refused.
+if printf '%s\n' "$cmd" | tr ';&|' '\n\n\n' | sed -E 's/^[[:space:]]*//; s/^([A-Za-z_][A-Za-z0-9_]*=[^ ]* +)*//' | grep -Eq '^((\./)?tools/suite|[^ ]*/tools/suite)( |$)|^pnpm( +-[A-Za-z]+( +[^ -][^ ]*)?)* +(-r +)?test( |$)|^pnpm( +-[A-Za-z]+( +[^ -][^ ]*)?)* +lint:family( |$)'; then
+  if [ "$phase" != "suite" ]; then
+    reason="Blocked: the full suite and lint:family run only at code-complete and at /finalize (.build-phase is '${phase:-unset}', not 'suite'). In a review round: typecheck + the touched suites + the gates the change moved, then push and REPORT to the user. Never run these to 'be sure' mid-review."
+    jq -n --arg r "$reason" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'
+  fi
+fi
+exit 0
