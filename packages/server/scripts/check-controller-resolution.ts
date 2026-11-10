@@ -221,7 +221,7 @@ export const BESPOKE_RESOLUTION_CEILING = 4;
 // `Growing.harvestPlanFor`'s substring match on `typed` — resolution moved
 // OUT of the model into MQL. No controller surface the gate protects grew.
 // 108 → 105 (green after W2/W4/W6): sites W2 and W6 moved onto the model.
-export const SELF_RESOLUTION_CEILING = 93; // controller-liquidity W12: −4 (the pilot, the hole, the gather bound by their views). // controller-liquidity W10: −7 (draft, return, breed, plow, mill). // controller-liquidity W7: −1.
+export const SELF_RESOLUTION_CEILING = 92; // controller-liquidity W11: −1 (the print view binds what it prints). // controller-liquidity W12: −4 (the pilot, the hole, the gather bound by their views). // controller-liquidity W10: −7 (draft, return, breed, plow, mill). // controller-liquidity W7: −1.
 
 /** A controller resolving its own target: the MQL facade, a store find, a contents walk. */
 const SELF_RESOLUTION =

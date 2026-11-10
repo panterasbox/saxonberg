@@ -39,7 +39,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const MULTI_ACT_CEILING = 18; // controller-liquidity W12: −1 (glass crack). // controller-liquidity W10: −3 (butcher, mill, slaughter). // controller-liquidity W7: −16, the kernel multi-act controllers split (W7a/b/c). // controller-liquidity W8: −1
+export const MULTI_ACT_CEILING = 11; // controller-liquidity W11: −7 (saw, fell, sew, tan, scutch, spin, weave answer one plan each). // controller-liquidity W12: −1 (glass crack). // controller-liquidity W10: −3 (butcher, mill, slaughter). // controller-liquidity W7: −16, the kernel multi-act controllers split (W7a/b/c). // controller-liquidity W8: −1
 
 export type MultiActShape = "subcommand" | "arg-word" | "target-kind";
 

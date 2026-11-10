@@ -40,7 +40,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const CONTROLLER_MUTATIONS_CEILING = 228; // controller-liquidity W12: −24 (the hole, the glass, the trap, the deed and the fish answer their verbs). // controller-liquidity W10: −30 (the grind, the breakdown, the cut, the draft, the return). // controller-liquidity W7: −20. // controller-liquidity W3: the shell writes and refusals moved onto their objects. W8: −15
+export const CONTROLLER_MUTATIONS_CEILING = 179; // controller-liquidity W11: −49 (the mints moved onto the saw, the tree, the stock, the pieces, the garment, the bath, the pit). // controller-liquidity W12: −24 (the hole, the glass, the trap, the deed and the fish answer their verbs). // controller-liquidity W10: −30 (the grind, the breakdown, the cut, the draft, the return). // controller-liquidity W7: −20. // controller-liquidity W3: the shell writes and refusals moved onto their objects. W8: −15
 
 /** Mutator-shaped method names: one of these prefixes, then an uppercase letter. */
 const MUTATOR =
