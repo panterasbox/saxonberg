@@ -1,8 +1,7 @@
 /**
- * JourneyController — the `journey` verb.
- *
- *   - `journey to <place> [via <lane>]` — plan a route and set off;
- *   - bare `journey` — the status readout.
+ * JourneyController — `journey to <place> [via <lane>]`: plan a route and
+ * set off (over {@link JourneyControllerBase}). Bare `journey`, the status
+ * readout, is a shape of its own ({@link JourneyStatusController}).
  *
  * Thin: resolve the vehicle and the lane, build a `Route`, hand it to
  * the scheduler. Nothing here moves anything — the `Journey` engagement
@@ -14,11 +13,7 @@
  * already does.
  */
 
-import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
-import type {
-  CommandContext,
-  CommandModel,
-} from '@saxonberg/server/mud/api/command';
+import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -31,7 +26,6 @@ import { AppApi } from '@saxonberg/server/mud/api/app';
 import { Route } from '../../../lib/journey/Route';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Engaged } from '@saxonberg/server/mud/lib/activity/Engaged';
 import { Expanse } from '@saxonberg/server/mud/lib/expanse/Expanse';
@@ -40,20 +34,14 @@ import LaneCatalogue, {
   LANE_CATALOGUE_PATH,
   type CompiledLane,
 } from '../../LaneCatalogue';
-import { Journey, JOURNEY_TYPE } from '../../../lib/journey/Journey';
+import { Journey } from '../../../lib/journey/Journey';
+import {
+  JourneyControllerBase,
+  TOPIC,
+  type JourneyModel,
+} from './JourneyControllerBase';
 
-const TOPIC = 'act.move';
-
-/** The kernel's expanse node class — a sea's places, which no road reaches. */
-
-interface JourneyModel extends CommandModel {
-  /** `journey to <place>` — a place name, or a durable path. */
-  destination?: string;
-  /** `via <lane>` — a lane key. */
-  via?: string;
-}
-
-export default class JourneyController extends CommandController<JourneyModel> {
+export default class JourneyController extends JourneyControllerBase {
   async execute(model: JourneyModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isEngaged(giver)) {
@@ -62,7 +50,6 @@ export default class JourneyController extends CommandController<JourneyModel> {
     const driver = giver as Stuff & Engaged;
 
     const raw = (model.destination ?? '').trim();
-    if (raw.length === 0) return this.report(driver, context);
 
     // The vehicle is whatever afforded this verb — a rig beside you, a
     // barge you are aboard. `content affords content`, so the command
@@ -266,40 +253,6 @@ export default class JourneyController extends CommandController<JourneyModel> {
       .send();
   }
 
-  /* ─────────────────────────── the readout ─────────────────────────── */
-
-  /**
-   * Bare `journey`. **Position is free** — the vehicle is really in the
-   * room, so anybody can see where it is. The ETA is computed from the
-   * plan that remains, and is honestly an estimate: competence tightens
-   * the window a teamster is shown, and never shortens the trip.
-   */
-  private async report(
-    driver: Stuff & Engaged,
-    context: CommandContext,
-  ): Promise<void> {
-    const live = driver.getEngagementBySlot('hands');
-    if (!live || live.type !== JOURNEY_TYPE) {
-      return this.fail(context, 'you are not on a journey', 'no-journey');
-    }
-    const journey = live as Journey;
-    const legs = journey.legsRemaining();
-    if (legs === 0) {
-      this.tell(driver, 'You are at the end of the road.');
-      return;
-    }
-    const minutes = await journey.estimateRemainingGameMinutes();
-    const scale = WorldClockApi.getScale();
-    const realMinutes = scale > 0 ? minutes / scale : minutes;
-    this.tell(
-      driver,
-      `You are at ${leafOf(journey.currentNode())}, ${legs} ` +
-        `${legs === 1 ? 'leg' : 'legs'} from the end — roughly ` +
-        `${Math.max(1, Math.round(minutes))} minutes of road left ` +
-        `(about ${Math.max(1, Math.round(realMinutes))} by the clock on the wall).`,
-    );
-  }
-
   /* ─────────────────────────── resolution ─────────────────────────── */
 
   /** The vehicle this verb was afforded by, or a reachable one. */
@@ -350,7 +303,7 @@ export default class JourneyController extends CommandController<JourneyModel> {
     const want = normalizePlace(raw);
     if (want.length > 0) {
       for (const lane of await catalogue.lanesAt(here)) {
-        const match = lane.nodes.find((n) => normalizePlace(leafOf(n)) === want);
+        const match = lane.nodes.find((n) => normalizePlace(JourneyController.leafOf(n)) === want);
         if (match) return match;
       }
     }
@@ -384,7 +337,7 @@ export default class JourneyController extends CommandController<JourneyModel> {
   ): Promise<string[]> {
     const out = new Set<string>();
     for (const lane of await catalogue.lanesAt(here)) {
-      for (const n of lane.nodes) if (n !== here) out.add(leafOf(n));
+      for (const n of lane.nodes) if (n !== here) out.add(JourneyController.leafOf(n));
     }
     return [...out].sort();
   }
@@ -478,27 +431,6 @@ export default class JourneyController extends CommandController<JourneyModel> {
         return 'no way you can take runs from here to there';
     }
   }
-
-  /* ─────────────────────────── prose ─────────────────────────── */
-
-  private tell(who: Stuff & Engaged, text: string): void {
-    MessageApi.scene(who as unknown as Stuff)
-      .topic(TOPIC)
-      .toSelf(Mml.text(`\n${text}\n`))
-      .send();
-  }
-
-  private fail(
-    context: CommandContext,
-    detail: string,
-    reason: string,
-  ): void {
-    MessageApi.scene(context.commandGiver)
-      .topic(TOPIC)
-      .toSelf(Mml.text(`\n${detail}\n`))
-      .send();
-    context.note({ kind: 'controller-rejected', reason, detail });
-  }
 }
 
 /** A thing you can take a journey in: it affords this verb. */
@@ -512,12 +444,6 @@ export default class JourneyController extends CommandController<JourneyModel> {
  */
 function isVehicle(s: Stuff): boolean {
   return MixinApi.isActive(s, VEHICULAR_MIXIN);
-}
-
-/** The last path segment, for prose. */
-function leafOf(path: string): string {
-  const leaf = path.split('/').filter(Boolean).pop() ?? path;
-  return leaf.replace(/-/g, ' ');
 }
 
 /**

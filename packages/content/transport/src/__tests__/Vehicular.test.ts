@@ -20,6 +20,7 @@ import Barge from '../thing/Barge';
 import Coach from '../thing/Coach';
 
 const JOURNEY = 'system/transport/cmd/movement/journey.yaml';
+const JOURNEY_TO = 'system/transport/cmd/movement/journey-to.yaml';
 
 describe('VehicularMixin', () => {
   const kinds = [
@@ -43,6 +44,8 @@ describe('VehicularMixin', () => {
       };
       expect(ctor.commandContributions?.peers, label).toContain(JOURNEY);
       expect(ctor.commandContributions?.environment, label).toContain(JOURNEY);
+      expect(ctor.commandContributions?.peers, label).toContain(JOURNEY_TO);
+      expect(ctor.commandContributions?.environment, label).toContain(JOURNEY_TO);
     }
   });
 
