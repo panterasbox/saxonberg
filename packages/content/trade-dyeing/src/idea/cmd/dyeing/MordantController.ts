@@ -1,5 +1,5 @@
 /**
- * MordantController — `mordant <thing> with <alum>`, and ⭐⭐ **this is
+ * MordantController — `mordant <thing> [in <bath>]`, and ⭐⭐ **this is
  * where the trade's missing failure mode comes from.**
  *
  * Two baths, as it really is, and the skill is front-loaded: you commit
@@ -29,94 +29,79 @@
 
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
-import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { AppApi } from '@saxonberg/server/mud/api/app';
+import DyeBath, { type DyeBathRefusal, type MordantDone, type MordantKey } from '../../../lib/DyeBath';
 
-const TOPIC = 'act.deed';
-
-/** The mordant keys the trade ships, and what each one does. */
-export const MORDANTS: ReadonlyMap<string, string> = new Map([
-  ['alum', 'brightens — the "true" colour'],
-  ['iron', 'saddens — darkens and dulls'],
-  ['tannin', 'the cellulose enabler'],
-]);
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface MordantModel extends CommandModel {
   target: MqlOneResult;
-  mordant?: string;
+  bath?: MqlManyResult;
 }
 
 export default class MordantController extends ManualBuildController<MordantModel> {
-  static readonly BASE_MS_KEY = 'dyeing.mordant.baseMs';
-  static readonly BASE_MS = 30 * 60 * 1000;
-
-  execute(model: MordantModel, context: CommandContext): void {
+  async execute(model: MordantModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const target = model.target?.stuff ?? null;
     if (!target || !MixinApi.isDyed(target)) {
       this.declineStep(context, Mml.compose`Mordant what?`, 'no-target');
       return;
     }
-    const key = (model.mordant ?? '').trim().toLowerCase();
-    if (!MORDANTS.has(key)) {
+    const vessel = MordantController.findBath(model.bath);
+    if (!vessel) {
       this.declineStep(
         context,
-        Mml.compose`Mordant it with what? There is alum, there is iron, and there is tannin.`,
-        'unknown-mordant',
+        Mml.compose`There is no mordant bath here. Alum, iron or tannin in a vessel is what the cloth goes into.`,
+        'no-bath',
       );
       return;
     }
-
-    // ⚠ Already mordanted and not yet dyed — the bath would do nothing.
-    const stack = target.getDyeStack();
-    const pending = stack[stack.length - 1];
-    if (pending && pending.strength === 0) {
-      this.declineStep(
-        context,
-        Mml.compose`${Mml.thing(target)} is already mordanted, and a second bath will not take.`,
-        'already-mordanted',
-      );
+    const plan = DyeBath.of(vessel).mordantPlanFor(giver, target);
+    if (!plan.ok) {
+      this.declineStep(context, MordantController.refusalWords(plan, target, vessel), plan.reason);
       return;
     }
-
-    this.engageStep(context, {
-      durationMs: dial(MordantController.BASE_MS_KEY, MordantController.BASE_MS),
-      effortW: 250,
-      beginSelf: Mml.compose`You set ${Mml.thing(target)} in the ${key} bath.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} sets something in a mordant bath.`,
-      onComplete: () => {
-        if (!MixinApi.isDyed(target)) return;
-        // ⭐ The mordant as a zero-strength application: on the cloth,
-        // below legibility, and a stockpileable intermediate good.
-        target.applyDye({ dyestuff: mordantMaterial(key), mordant: key, strength: 0 });
-        if (giver.isDestroyed()) return;
-        MessageApi.scene(giver)
-          .topic(TOPIC)
-          .toSelf(
-            Mml.compose`${Mml.thing(target)} comes out looking no different at all. That is the whole of it — what you have done is decide the colour before you can see it.`,
-          )
-          .send();
-      },
+    await this.engagePlan(context, plan, {
+      beginSelf: (f: { mordant: MordantKey }) =>
+        Mml.compose`You set ${Mml.thing(target)} in the ${f.mordant} bath.`,
+      beginPeers: () => Mml.compose`${Mml.actor(giver)} sets something in a mordant bath.`,
+      onRefused: () => Mml.compose`The bath came to nothing.`,
+      onDone: (f: MordantDone) =>
+        f.kind === 'gone'
+          ? null
+          : {
+              self: Mml.compose`${Mml.thing(target)} comes out looking no different at all. That is the whole of it — what you have done is decide the colour before you can see it.`,
+            },
     });
   }
-}
 
-/** The material path a mordant key names. */
-function mordantMaterial(key: string): string {
-  return `/trade/dyeing/idea/material/${key}`;
-}
+  /**
+   * The bath — a NARROWING over what the binder bound: a named bath as
+   * named (so the refusal can say what is wrong with it), else the first
+   * vessel in reach holding a mordant.
+   */
+  protected static findBath(bound: MqlManyResult | undefined): Stuff | null {
+    const candidates = (bound?.stuff ?? []).filter((c) => MixinApi.isBulkable(c));
+    if (candidates.length === 0) return null;
+    if (bound?.prep !== undefined) return candidates[0]!;
+    return candidates.find((c) => DyeBath.of(c).mordant() !== null) ?? null;
+  }
 
-function dial(key: string, fallback: number): number {
-  try {
-    const raw = AppApi.setting(key);
-    if (raw === '' || raw == null) return fallback;
-    const n = Number.parseFloat(raw);
-    return Number.isFinite(n) ? n : fallback;
-  } catch {
-    return fallback;
+  protected static refusalWords(r: DyeBathRefusal, target: Stuff, bath: Stuff): Composed {
+    switch (r.reason) {
+      case 'empty-bath':
+        return Mml.compose`${Mml.thing(bath)} is empty.`;
+      case 'not-a-mordant':
+        return Mml.compose`${Mml.thing(bath)} holds no mordant. There is alum, there is iron, and there is tannin.`;
+      case 'already-mordanted':
+        return Mml.compose`${Mml.thing(target)} is already mordanted, and a second bath will not take.`;
+      case 'too-little':
+        return Mml.compose`There is not enough left in ${Mml.thing(bath)} to take a piece.`;
+      default:
+        return Mml.compose`That bath will not mordant anything.`;
+    }
   }
 }
