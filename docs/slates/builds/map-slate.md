@@ -608,10 +608,12 @@ compass's diagonal arms light from the same data.
   cells) draw as an X. Honest, but ambiguous in a dense area: **draw a
   small break where one passes over the other**, so they read as two
   corridors rather than a junction.
-- **An exit is between neighbors.** A diagonal (or any link) that skips a
-  cell breaks the Cartesian rule; it is a data defect for the authoring
-  tools and the location-graph invariant lint to refuse, not something the
-  renderer draws.
+- **An exit is between neighbors — except a track.** Inside a zone the
+  boundary build's edge rules hold every way to the adjacent cell (see
+  § What the boundary build settled), so a malformed way is never built
+  and the renderer can trust the geometry. ⚠ **Corrected 2026-11-10:** a
+  `track` deliberately spans open ground several cells apart — it is a
+  long link, drawn along its bearing, not a defect.
 
 ### The first mockup's other choices **[LEAN — to iterate]**
 
@@ -801,6 +803,45 @@ imposed net lag*; and the lean that movement is **mode + where** — the click
 runs your default pace toward a place. ⭐ The leverage is the client's:
 whatever the click does becomes what most players do, so it must be the
 engine's honest movement, not a client-side loop.
+
+### ⭐⭐ What the boundary build settled for the map **[SHIPPED — !559, 2026-11-10]**
+
+[boundary.md](../../subsystems/boundary.md): a way's boundary (door,
+window, curtain, gate, grating) is ONE object and each place's exit is a
+side of it. What that gives the map:
+
+- ⭐ **`WayRecord` is the edge vocabulary** (`@saxonberg/types`):
+  `{ direction, state: open | shut | locked | window, crossesZone,
+  destination?, boundary? }` — both the room card's exits and the
+  navigator's whereabouts speak it.
+  - **`crossesZone`** decides drawn-on-the-map versus listed under Ways
+    out — this slate's rule, now on the wire.
+  - **`state`** is the door vocabulary the map draws, and the refusal lens
+    reads.
+  - ⭐ **`window`** is a way you can **see through but not cross** — a new
+    kind of edge to draw, and a natural home for a sight-line lens.
+- **One object per door** — a door locked from one side reads locked from
+  both, so a refusal mark is true from either room.
+- ⭐ **The edge rules** (`Location.edgeRefusal`, every way inside a zone):
+  the far place is the **adjacent** cell that way; the way back is the
+  **opposite** direction; the way's **opening** fits the face. A bad way
+  installs unbuilt with a diagnostic; `lint:locations` checks the rows. The
+  renderer trusts the geometry.
+- ⚠⚠ **Tracks — the long walk over open ground**
+  (`/platform/idea/exits/track`, `Exit.spansOpenGround()`). In sparse
+  country (Rejection's outlying claims, Hearts Delight's lanes, Waponi's
+  volcano) rooms stand **several cells apart on purpose, and coords are
+  metres**. A track's far place lies on its bearing (within 22.5°), it may
+  climb, no room stands on the line between, and nothing hangs in it. So:
+  - the map draws **a long link across empty ground** along its bearing;
+  - zones are not all one room per tight cell — **sparse zones are
+    metric**, which the zoom steps and layout must handle (a fit-to-extent
+    *whole zone* step matters more there);
+  - for the [step beat](./step-beat-slate.md) a track's length is real
+    distance, so its beat derives honestly.
+- **The opening belongs to the way** (`Exit.getOpening()`): an archway has
+  a size, so *can I carry this through here* is a question about the way —
+  a possible lens, and haulage's.
 
 ### Still open
 
