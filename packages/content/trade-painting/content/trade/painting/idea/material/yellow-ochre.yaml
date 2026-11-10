@@ -1,5 +1,5 @@
 # yellow ochre — an iron earth, dug and ground: the oldest pigment there is, cheap, fast in the sun, and it covers well. Fired, it reddens (the iron gives up its water).
-class: /platform/idea/material/Material
+class: /platform/idea/material/PigmentPaint
 data:
   name: yellow ochre
   keywords: ["yellow ochre", ochre, pigment]
@@ -7,13 +7,8 @@ data:
   density: 1300
   specificHeat: 800
   thermalConductivity: 0.3
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [granular, solid, pigment, earth-pigment, ochre]
   pigment: { transmitR: 0.86, transmitG: 0.72, transmitB: 0.28, hidingPower: 0.85, lightfastness: 1 }
-  composition: []
-  biologicalSource: null
   # ⭐ Burnt ochre: heated in a pan on a hearth, the iron hydrate gives up
   # its water and the yellow turns red — the ceramics one-rule firing.
   kinetics:

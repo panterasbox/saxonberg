@@ -9,7 +9,8 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ScheduleApi } from '@saxonberg/server/mud/api/schedule';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import Material from '@saxonberg/server/mud/lib/material/Material';
+import Glue from '@saxonberg/server/mud/platform/idea/material/Glue';
+import Fiber from '@saxonberg/server/mud/platform/idea/material/Fiber';
 import Holder from '@saxonberg/server/mud/lib/stuff/Holder';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import Sheet from '@saxonberg/server/mud/platform/thing/Sheet';
@@ -46,7 +47,7 @@ beforeEach(() => {
   installV1QuantityMarshallers();
   for (const [path, resistsDamp] of [[PASTE, 0], [CASEIN, 0.8]] as const) {
     makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Glue();
       m.setName(path.split('/').pop()!);
       m.setDensity(Quantity.of(1100, 'kg/m³'));
       m.setAdhesive({ strength: 0.5, reversible: 'never', resistsDamp });
@@ -54,7 +55,7 @@ beforeEach(() => {
     }, path);
   }
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Fiber();
     m.setName('paper');
     m.setDensity(Quantity.of(800, 'kg/m³'));
     m.setWetStrength(0.1);
@@ -74,7 +75,7 @@ function bagWith(): { room: Holder; bag: Packet; apple: Holder } {
   const room = makeStuff(() => new Holder());
   const bag = makeStuff(() => {
     const b = new Packet();
-    b.setMaterial(StuffApi.findByTemplatePath<Material>(PAPER)!);
+    b.setMaterial(StuffApi.findByTemplatePath<Fiber>(PAPER)!);
     return b;
   });
   ContainmentApi.move(bag, room as unknown as Stuff & Container);
@@ -109,7 +110,7 @@ describe('⭐ a pasted label stands the damp as its glue does', () => {
       const p = new Pot();
       p.interiorBulk = true;
       p.setInteriorCapacity(Quantity.of(1, 'L'));
-      p.setBulkMaterial('interior', StuffApi.findByTemplatePath<Material>(glue)!);
+      p.setBulkMaterial('interior', StuffApi.findByTemplatePath<Glue>(glue)!);
       p.setBulkAmount('interior', Quantity.of(0.5, 'L'));
       return p;
     });
@@ -158,7 +159,7 @@ describe('⭐ `paste` is its own word; `fit` names it (controller-liquidity W7c)
       const p = new Pot();
       p.interiorBulk = true;
       p.setInteriorCapacity(Quantity.of(1, 'L'));
-      p.setBulkMaterial('interior', StuffApi.findByTemplatePath<Material>(PASTE)!);
+      p.setBulkMaterial('interior', StuffApi.findByTemplatePath<Glue>(PASTE)!);
       p.setBulkAmount('interior', Quantity.of(0.5, 'L'));
       return p;
     });

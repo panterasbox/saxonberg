@@ -10,7 +10,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
-import Material from '../Material';
+import PigmentPaint from '../../../platform/idea/material/PigmentPaint';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
@@ -18,11 +18,11 @@ import type { CoatAir } from '../Faced';
 import type { KineticSpec } from '../Kinetics';
 
 let seq = 0;
-function mat(kinetics: KineticSpec[] | null, extra: (m: Material) => void = () => undefined): string {
+function mat(kinetics: KineticSpec[] | null, extra: (m: PigmentPaint) => void = () => undefined): string {
   seq += 1;
   const path = `/stuff/idea/material/_air/m${seq}`;
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new PigmentPaint();
     m.setName(`coat ${seq}`);
     m.setDensity(Quantity.of(930, 'kg/m³'));
     if (kinetics) m.setKinetics(kinetics);

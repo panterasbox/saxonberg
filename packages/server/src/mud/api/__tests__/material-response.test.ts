@@ -5,6 +5,7 @@ import { MaterialLogic } from '../../platform/idea/api/MaterialLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import Material from '../../lib/material/Material';
+import Metal from '../../platform/idea/material/Metal';
 import { Construction } from '../../lib/material/Construction';
 import { Grade } from '../../lib/craft/Grade';
 import { Quantity } from '../../lib/quantity';
@@ -12,7 +13,7 @@ import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 /** A Material with just the mechanical props the response function reads. */
 function mkMat(hardness: number, toughness: number): Material {
-  const m = makeStuff(() => new Material());
+  const m = makeStuff(() => new Metal());
   m.setHardness(Quantity.of(hardness, 'MPa'));
   m.setToughness(Quantity.of(toughness, 'MJ/m³'));
   return m;

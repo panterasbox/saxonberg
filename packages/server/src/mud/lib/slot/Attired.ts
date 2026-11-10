@@ -884,11 +884,11 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
         // rubberized coat and runs off, so the coat is not wetted at all
         // (found by the drive: it read "soaked through"). What reaches the
         // body is unchanged — rubber passed nothing either way.
-        if (MixinApi.isWet(garment) && (mat === null || mat.permeability() > 0)) {
+        if (MixinApi.isWet(garment) && (mat === null || !MixinApi.hasPorosity(mat) || mat.permeability() > 0)) {
           garment.wet(delta * share);
         }
         const saturation = MixinApi.isWet(garment) ? garment.getWetness() : 1;
-        const pass = mat ? mat.permeability() * saturation : 1;
+        const pass = mat ? (MixinApi.hasPorosity(mat) ? mat.permeability() : 0) * saturation : 1;
         toBody += delta * share * pass;
       }
       if (toBody > 0 && MixinApi.isWet(self)) {

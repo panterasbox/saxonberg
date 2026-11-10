@@ -3,9 +3,8 @@
 # water back up and is hard in a quarter of an hour, no act and no heat —
 # the third way a thing sets in a mould (freeze, drain, cure). What it sets
 # as is plaster, in the shape of whatever held it.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Plaster
 data:
-  smells: [{ aroma: /base-library/aromas/wet-clay, strength: 10 }]
   name: plaster slurry
   keywords: [plaster, slurry, "plaster slurry", "wet plaster"]
   appearance: thick white plaster slurry
@@ -14,12 +13,6 @@ data:
   thermalConductivity: 0.5
   electricalConductivity: 1.0e-3
   meltingPoint: 273
-  waterAbsorptionCapacity: 0
-  hardness: 0
-  toughness: 0
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["liquid", "slurry", "plaster"]
   # ⭐ The cure: a quarter of an hour, and it is cast plaster — a kinetic
   # like any other heat-and-time change (review R2-D3): a point curve of
@@ -35,4 +28,3 @@ data:
   composition:
     - { materialPath: /stuff/idea/material/mineral/plaster, fraction: 0.6 }
     - { materialPath: /stuff/idea/material/bulk/water, fraction: 0.4 }
-  biologicalSource: null

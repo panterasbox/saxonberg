@@ -10,7 +10,7 @@
 # It reduces with charcoal at a temperature a bellows-fed pit reaches,
 # which is why oxide copper is the FIRST rung of the smelting ladder and
 # the sulfides below the water table are a later stage.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Ore
 data:
   name: malachite
   keywords: [malachite]
@@ -28,12 +28,6 @@ data:
   # what hand cobbing IS.
   hardness: 200
   toughness: 8
-  edibility: false
-  nutrients: ["copper"]
-  toxicity: [{ type: copper-poisoning, amount: 0 }]
   tags: ["mineral", "carbonate", "ore", "copper", "oxide-zone", "green"]
   composition:
     - { materialPath: /stuff/idea/material/element/copper, fraction: 0.5748 }
-  formula: Cu2CO3(OH)2
-  molarMass: 221.114
-  biologicalSource: null

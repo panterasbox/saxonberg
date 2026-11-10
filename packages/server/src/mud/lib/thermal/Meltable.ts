@@ -87,13 +87,15 @@ export function MeltableMixin<TBase extends MixinConstructor<Stuff>>(
     public getMeltingPointK(): number {
       const self = this as unknown as Stuff;
       const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
-      return mat ? mat.getMeltingPoint().rawValue() : 0;
+      return mat && MixinApi.hasFusion(mat)
+        ? mat.getMeltingPoint().rawValue()
+        : 0;
     }
 
     public getLatentHeatToMeltJ(): number {
       const self = this as unknown as Stuff & { getMass(): { rawValue(): number } };
       const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
-      if (!mat) return 0;
+      if (!mat || !MixinApi.hasFusion(mat)) return 0;
       const lhf = mat.getLatentHeatOfFusion().rawValue();
       const massKg = self.getMass().rawValue();
       return lhf * massKg;

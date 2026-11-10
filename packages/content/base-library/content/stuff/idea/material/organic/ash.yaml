@@ -1,6 +1,6 @@
 # Wood ash — the mineral residue when a burn goes all the way through.
 # Worth something to a farmer (potash) and nothing to a smelter.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFuel
 data:
   smells: [{ aroma: /base-library/aromas/smoke, strength: 3 }]
   name: ash
@@ -10,9 +10,6 @@ data:
   thermalConductivity: 0.1
   electricalConductivity: 1.0e-3
   waterAbsorptionCapacity: 40
-  edibility: false
-  nutrients: ["potassium"]
-  toxicity: []
   # `potash`: the glass batch's flux (glass build W4) — the collier's
   # catastrophe is the glassmaker's soda, dropping silica's melting point
   # to something a wood fire can reach. ⚠ This is the collier's residue
@@ -21,6 +18,3 @@ data:
   # batch, and pearl ash fluxes it better (the grade carry is the
   # difference).
   tags: ["organic", "mineral", "residue", "potash", "flux", "once-living"]
-  composition: []
-  chemistry: null
-  biologicalSource: null

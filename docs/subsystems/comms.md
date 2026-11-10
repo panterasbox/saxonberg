@@ -242,6 +242,15 @@ The target-frame is what marks an NPC as being spoken *to* — the seam
 a future dialogue responder keys on. Without `--to`, only the self
 and peers frames render ("You say, …" / "*X* says, …").
 
+## ⭐ The privacy stamp (broadcast-ready D8)
+
+Every tell / DM / reply frame — self and target — carries the
+framework tag `privacy:private` (`MessageApi.Tags.Privacy.Private`), as
+does a hail. It is the server's word that the frame is private: a
+streamer's client redacts exactly these while on air
+([livestream.md](./livestream.md)), and the record layer keeps tags, so a
+backfilled tell redacts too.
+
 ## Relation to messaging and chat
 
 Comms is a **source** feeding the [messaging](./messaging.md)

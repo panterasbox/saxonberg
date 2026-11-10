@@ -729,14 +729,14 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       for (const line of this.parts) {
         if (!line.green || !line.greenAt) continue;
         const m = materialAt(line.material);
-        const days = m?.getSeasoningDays() ?? 0;
+        const days = m && MixinApi.hasShrinkage(m) ? m.getSeasoningDays() : 0;
         if (days <= 0) continue;
         nowS ??= WorldClockApi.getNow().rawValue();
         if (nowS - line.greenAt < days * WARP_AFTER_SEASONING_FRACTION * 86_400) continue;
         line.green = false;
         line.warped = true;
         if (line.failed < line.count) line.failed += 1;
-        const slack = (m?.getGreenShrinkage() ?? 0) * WARP_SLACK_PER_SHRINKAGE;
+        const slack = (m && MixinApi.hasShrinkage(m) ? m.getGreenShrinkage() : 0) * WARP_SLACK_PER_SHRINKAGE;
         for (const j of this.joints) {
           if (j.members.includes(line.part)) j.tension = Math.max(0, j.tension - slack);
         }
@@ -786,8 +786,8 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         j.glueStampS = now;
         if (!(now > from)) continue;
         const mat = materialAt(j.glue!);
-        const adhesive = mat?.getAdhesive() ?? null;
-        const change = mat?.getKinetics()?.airSet() ?? null;
+        const adhesive = mat && MixinApi.hasCoating(mat) ? mat.getAdhesive() : null;
+        const change = mat && MixinApi.hasKinetic(mat) ? (mat.getKinetics()?.airSet() ?? null) : null;
         const segs =
           room !== null
             ? BiomeApi.airSegmentsFor(room, from, now).map((sg) => ({
@@ -819,7 +819,8 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** A joint's effective strength — its glue's, weak until it has set. */
     private jointStrength(j: JointState): number {
       if (j.glue) {
-        const a = materialAt(j.glue)?.getAdhesive();
+        const glueMat = materialAt(j.glue);
+        const a = glueMat && MixinApi.hasCoating(glueMat) ? glueMat.getAdhesive() : null;
         if (a) return a.strength * Math.max(0.2, j.setProgress ?? 1);
       }
       return jointRow(j.method)?.strength ?? JOINT_DEFAULT.strength;
@@ -850,8 +851,10 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         for (const name of j.members) {
           const line = this.parts.find((l) => l.part === name);
           if (!line?.cupped) continue;
+          const lineMat = materialAt(line.material);
           const slack =
-            (materialAt(line.material)?.getGreenShrinkage() ?? 0) * CUP_SLACK_PER_SHRINKAGE;
+            (lineMat && MixinApi.hasShrinkage(lineMat) ? lineMat.getGreenShrinkage() : 0) *
+            CUP_SLACK_PER_SHRINKAGE;
           j.tension = Math.min(j.tension, Math.max(0, 1 - slack));
         }
       }

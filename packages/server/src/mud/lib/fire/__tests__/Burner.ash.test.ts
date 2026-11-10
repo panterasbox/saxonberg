@@ -9,7 +9,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
-import Material from '../../material/Material';
+import SolidFuel from '../../../platform/idea/material/SolidFuel';
 import { CompositionMixin } from '../../material/Composition';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { BurnerMixin } from '../Burner';
@@ -36,7 +36,7 @@ function wood(ashFraction: number, alkaliShare: number): string {
   seq += 1;
   const path = `/stuff/idea/material/_test/ashwood-${seq}`;
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new SolidFuel();
     m.setName(`ashwood-${seq}`);
     m.setDensity(Quantity.of(700, 'kg/m³'));
     m.setHeatOfCombustion(Quantity.of(17, 'MJ/kg'));

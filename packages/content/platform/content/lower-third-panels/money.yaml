@@ -1,0 +1,4 @@
+# Income at net against the month's budget — hidden until giving's ledger exists.
+weight: 2
+seconds: 18
+when: money

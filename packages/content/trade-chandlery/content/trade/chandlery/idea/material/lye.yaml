@@ -2,9 +2,8 @@
 # grease, fat and protein, and it rots wool and burns skin: its
 # `corrosiveTo` names what (never `organic` or `textile` — rubber gloves
 # stay outside it). In the eyes it blinds until rinsed.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Lye
 data:
-  tastes: [{ type: bitter, amount: 5 }]
   smells: [{ aroma: /base-library/aromas/lye, strength: 300 }]
   name: lye
   # ⚠ Not `potash` (potash build): lye is what potash is leached INTO,
@@ -21,9 +20,6 @@ data:
   # boil and loses water as steam, instead of flashing empty — which is
   # how a lye becomes black salts in an iron pot.
   latentHeatOfVaporization: 2260000
-  edibility: false
-  nutrients: []
-  toxicity: []
   corrosiveTo: [protein, tissue]
   tags: [liquid, caustic, alkali, lye]
   # ⭐ Its strength, kg of alkali per litre — soap strength as stocked
@@ -33,5 +29,3 @@ data:
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
   cleanser: /platform/idea/Cleanser/lye
-  composition: []
-  biologicalSource: null

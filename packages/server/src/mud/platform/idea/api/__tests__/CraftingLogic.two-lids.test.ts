@@ -28,6 +28,8 @@ import { WorldClockApi } from '../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
+import Food from '../../material/Food';
+import Metal from '../../material/Metal';
 import Good from '../../../../lib/stuff/Good';
 import { CraftedMixin } from '../../../../lib/craft/Crafted';
 import Provision from '../../../thing/Provision';
@@ -84,10 +86,9 @@ function registerMaterial(
   edible: boolean,
 ): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m: Material = edible ? new Food() : new Metal();
     m.setName(name);
     m.setTags(tags);
-    m.setEdibility(edible);
     return m;
   }, path);
 }

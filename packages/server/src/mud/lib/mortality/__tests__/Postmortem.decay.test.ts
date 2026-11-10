@@ -19,7 +19,7 @@ import { WorldClockApi } from '../../../api/worldclock';
 import '../../../platform/idea/WorldClockRegistry';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
-import Material from '../../material/Material';
+import Flesh from '../../../platform/idea/material/Flesh';
 import { Quantity } from '../../quantity';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { Freshness } from '../../material/Freshness';
@@ -123,12 +123,12 @@ describe('PostmortemMixin — the corpse clock', () => {
   it('⭐ freshnessLoad — the flesh spoils on the shipped law, from the moment of death (fishing D9)', () => {
     const c = corpse();
     const flesh = makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Flesh();
       m.setName('test-flesh');
       m.setSpoilActivationEnergy(Quantity.of(60_000, 'J/mol'));
       m.setWaterActivity(0.99);
       return m;
-    }, '/test/mortality/flesh') as unknown as Material;
+    }, '/test/mortality/flesh') as unknown as Flesh;
     if (MixinApi.isTangible(c)) c.setMaterial(flesh);
     const material = MixinApi.isTangible(c) ? c.getMaterial() : null;
     expect(material).toBe(flesh);

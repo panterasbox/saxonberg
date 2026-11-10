@@ -161,10 +161,10 @@ createdAt, reactions: Map<reactorId, ReactorReaction>, aggregated }`),
 A normal player's `InteractiveReactionSink` sees a `location:` scope by
 **current container match** (handles walk-in/walk-out for free) and a
 `channel:` scope once the holder has engaged it. The read-only
-`service:broadcast` principal — which has **no Interactive** — is
+`broadcast:<playerId>` principal — which has **no Interactive** — is
 reached not by a sink but by the **`ReactionScopeDeltaEvent`** the flush
 fires per moved scope; `BroadcastFeed` taps it the same way it taps
-`Events.StreamStateChanged`. This keeps the registry sink-agnostic.
+`Events.StreamShowChanged`. This keeps the registry sink-agnostic.
 
 ### GC
 

@@ -9,7 +9,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import ClayMaterial from '@saxonberg/server/mud/platform/idea/material/Clay';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -35,27 +35,27 @@ function advanceDays(days: number): void {
 }
 
 let seq = 0;
-function material(name: string, tags: string[], composition: { materialPath: string; fraction: number }[] = []): Material {
+function material(name: string, tags: string[], composition: { materialPath: string; fraction: number }[] = []): ClayMaterial {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new ClayMaterial();
     m.setName(name);
     m.setTags(tags);
     m.setDensity(Quantity.of(1700, 'kg/m³'));
     m.setComposition(composition);
     return m;
-  }, `/stuff/idea/material/_clay/${name}-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_clay/${name}-${seq}`) as unknown as ClayMaterial;
 }
 
-let mineral: Material;
-let sand: Material;
-let iron: Material;
-let lime: Material;
-let common: Material;
-let fat: Material;
-let fire: Material;
+let mineral: ClayMaterial;
+let sand: ClayMaterial;
+let iron: ClayMaterial;
+let lime: ClayMaterial;
+let common: ClayMaterial;
+let fat: ClayMaterial;
+let fire: ClayMaterial;
 
-function lumpOf(mat: Material, kg = 12): Clay {
+function lumpOf(mat: ClayMaterial, kg = 12): Clay {
   return makeStuff(() => {
     const c = new Clay();
     c.setMass(Quantity.of(kg, 'kg'));
@@ -76,7 +76,7 @@ beforeEach(() => {
   sand = material('sand', ['granular', 'silica']);
   iron = material('goethite', ['mineral', 'iron']);
   lime = material('limestone', ['rock', 'carbonate']);
-  const p = (m: Material) => m.getTemplatePath()!;
+  const p = (m: ClayMaterial) => m.getTemplatePath()!;
   common = material('clay', ['earth', 'clay'], [
     { materialPath: p(mineral), fraction: 0.55 },
     { materialPath: p(sand), fraction: 0.3 },

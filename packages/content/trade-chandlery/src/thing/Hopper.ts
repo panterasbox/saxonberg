@@ -145,7 +145,7 @@ export default class Hopper extends ContainerMixin(Vat) {
     if (!MixinApi.isAttired(by)) return;
     const gloved = by.handSites().some((h) => by.outermostAt(h) !== null);
     if (gloved) return;
-    if (drawn.corrodeOnContact(by, { site: 'body.head' })) {
+    if (MixinApi.hasAcidity(drawn) && drawn.corrodeOnContact(by, { site: 'body.head' })) {
       MessageApi.scene(by)
         .topic('act.deed')
         .toSelf(

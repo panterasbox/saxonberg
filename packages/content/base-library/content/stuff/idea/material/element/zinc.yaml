@@ -5,7 +5,7 @@
 # soaking into the copper before it could get away. Here for what it does
 # in BRASS (ceramics W7): a third part of it turns copper gold-coloured and
 # harder, and lowers the melt by a hundred and fifty degrees.
-class: /platform/idea/material/Material
+class: /platform/idea/material/ElementalMetal
 data:
   name: zinc
   keywords: [zinc, spelter]
@@ -20,12 +20,7 @@ data:
   boilingPoint: 1180
   latentHeatOfVaporization: 1760000
   thermalExpansion: 3.0e-05
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["element", "metal", "non-ferrous", "crystalline", "conductor"]
-  composition: []
   symbol: Zn
   atomicNumber: 30
   molarMass: 65.38
-  biologicalSource: null

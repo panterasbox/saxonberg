@@ -89,7 +89,9 @@ export default class SurveyController extends CommandController {
     if (top === null) {
       out.push(`There is no coat left on ${noun === 'it' ? 'it' : 'the outside'}.`);
     } else {
-      const word = f.paint?.coatWord() ?? f.material?.getCoatWord() ?? 'coated';
+      const word =
+        f.paint?.coatWord() ??
+        (f.material && MixinApi.hasCoating(f.material) ? f.material.getCoatWord() : 'coated');
       const color = f.paint ? ` ${f.paint.colorTag(top.faded ?? 0)}` : '';
       const what = f.paint ? f.paint.words(top.faded ?? 0) : f.material?.getName() || 'a coat';
       out.push(

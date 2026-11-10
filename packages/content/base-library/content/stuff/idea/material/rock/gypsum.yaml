@@ -4,7 +4,7 @@
 # mould-maker's material (ceramics W7 gives it that transition). A commons
 # row (ceramics R4 — gypsum has ONE home): the quarry's lump row names it,
 # and the hill's band stamps it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Stone
 data:
   name: gypsum
   keywords: [gypsum, alabaster, selenite]
@@ -16,11 +16,7 @@ data:
   waterAbsorptionCapacity: 3
   hardness: 20
   toughness: 3
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["rock", "mineral", "sedimentary", "sulphate", "gypsum"]
-  composition: []
   # ⭐⭐ Burning gypsum is the same ONE rule as burning lime (ceramics M1,
   # W7): held at about 420 K for an hour it gives up three-quarters of its
   # water and is PLASTER, which takes the water back and sets again in any
@@ -33,4 +29,3 @@ data:
       ladder:
         - atDegree: 1
           becomes: /stuff/idea/material/mineral/plaster
-  biologicalSource: null

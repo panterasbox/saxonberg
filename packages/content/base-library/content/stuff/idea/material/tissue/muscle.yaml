@@ -3,7 +3,7 @@
 # and `thermalConductivity` (W/(m·K)) are Material's real Quantity fields,
 # authored bare + marshalled; the thermal value feeds algor-mortis
 # cooling when the Thermal capability lands.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Flesh
 data:
   smells: [{ aroma: /base-library/aromas/raw-meat, strength: 60 }]
   name: muscle
@@ -14,7 +14,6 @@ data:
   # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
   hardness: 2
   toughness: 3
-  edibility: true
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.

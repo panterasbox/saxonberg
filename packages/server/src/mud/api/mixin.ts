@@ -74,6 +74,7 @@ import type { AroundSaveHook } from '../lib/persistence/AroundSaveHook';
 import type { AroundDeleteHook } from '../lib/persistence/AroundDeleteHook';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
 import type { ClientState } from '../lib/connection/ClientState';
+import type { BroadcastHost } from '../lib/livestream/Broadcast';
 import type { SaxonbergClient } from '../lib/connection/SaxonbergClient';
 import type { Environment } from '../lib/shell/Environment';
 import type { Alias } from '../lib/shell/Alias';
@@ -174,8 +175,26 @@ import type { Burner } from '../lib/fire/Burner';
 import type { SpaceHeating } from '../lib/thermal/SpaceHeating';
 import type { PublicLighting } from '../lib/perception/PublicLighting';
 import type { Respiration } from '../lib/respiration/Respiration';
-import type { Radioactive } from '../lib/material/Radioactive';
-import type { Odorous } from '../lib/material/Odorous';
+import type { Radioactivity } from '../lib/material/Radioactivity';
+import type { Odor } from '../lib/material/Odor';
+import type { Combustion } from '../lib/material/Combustion';
+import type { Fusion } from '../lib/material/Fusion';
+import type { Volatility } from '../lib/material/Volatility';
+import type { Solidity } from '../lib/material/Solidity';
+import type { Porosity } from '../lib/material/Porosity';
+import type { Edibility } from '../lib/material/Edibility';
+import type { Toxicity } from '../lib/material/Toxicity';
+import type { Perishability } from '../lib/material/Perishability';
+import type { Acidity } from '../lib/material/Acidity';
+import type { Solution } from '../lib/material/Solution';
+import type { Kinetic } from '../lib/material/Kinetic';
+import type { Shrinkage } from '../lib/material/Shrinkage';
+import type { Coating } from '../lib/material/Coating';
+import type { Optics } from '../lib/material/Optics';
+import type { Tissue } from '../lib/material/Tissue';
+import type { Mixture } from '../lib/material/Mixture';
+import type { ElementIdentity } from '../lib/material/Element';
+import type { CompoundIdentity } from '../lib/material/Compound';
 import type { Olfactory } from '../lib/perception/Olfactory';
 import type { Palate } from '../lib/metabolism/Palate';
 import type { Muscle } from '../lib/butchery/Muscle';
@@ -1338,6 +1357,15 @@ export class MixinApi {
   }
 
   /**
+   * Narrows to *this body carries a stream* (broadcast-ready D1, D17).
+   * ⚠ Composition, not the streamer AXIS — every Avatar is a broadcast
+   * host; whether one may RUN `stream` is `AccessApi.isStreamer`.
+   */
+  public static isBroadcastHost(obj: Stuff): obj is Stuff & BroadcastHost {
+    return this.hasMixin(obj, Mixins.Broadcast);
+  }
+
+  /**
    * Narrows to *our client renders this host*. ⭐ The right narrow for
    * any reader of the `cockpit.*` / `console.*` / `cards.*` keyspace:
    * those keys are one client's vocabulary, so a host without this
@@ -1947,19 +1975,95 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Olfactory);
   }
 
-  public static isOdorous(obj: Stuff): obj is Stuff & Odorous {
-    return this.hasMixin(obj, Mixins.Odorous);
+  // ⭐⭐ The material capabilities (material decomposition D1, D3). A
+  // consumer asks whether a material HAS a property before it reads it —
+  // never what kind of material it is (`lint:material-kinds`).
+
+  public static hasOdor(obj: Stuff): obj is Stuff & Odor {
+    return this.hasMixin(obj, Mixins.Odor);
   }
 
-  public static isRadioactive(obj: Stuff): obj is Stuff & Radioactive {
-    return this.hasMixin(obj, Mixins.Radioactive);
+  public static hasRadioactivity(obj: Stuff): obj is Stuff & Radioactivity {
+    return this.hasMixin(obj, Mixins.Radioactivity);
+  }
+
+  public static hasCombustion(obj: Stuff): obj is Stuff & Combustion {
+    return this.hasMixin(obj, Mixins.Combustion);
+  }
+
+  public static hasFusion(obj: Stuff): obj is Stuff & Fusion {
+    return this.hasMixin(obj, Mixins.Fusion);
+  }
+
+  public static hasVolatility(obj: Stuff): obj is Stuff & Volatility {
+    return this.hasMixin(obj, Mixins.Volatility);
+  }
+
+  public static hasSolidity(obj: Stuff): obj is Stuff & Solidity {
+    return this.hasMixin(obj, Mixins.Solidity);
+  }
+
+  public static hasPorosity(obj: Stuff): obj is Stuff & Porosity {
+    return this.hasMixin(obj, Mixins.Porosity);
+  }
+
+  public static hasEdibility(obj: Stuff): obj is Stuff & Edibility {
+    return this.hasMixin(obj, Mixins.Edibility);
+  }
+
+  public static hasToxicity(obj: Stuff): obj is Stuff & Toxicity {
+    return this.hasMixin(obj, Mixins.Toxicity);
+  }
+
+  public static hasPerishability(obj: Stuff): obj is Stuff & Perishability {
+    return this.hasMixin(obj, Mixins.Perishability);
+  }
+
+  public static hasAcidity(obj: Stuff): obj is Stuff & Acidity {
+    return this.hasMixin(obj, Mixins.Acidity);
+  }
+
+  public static hasSolution(obj: Stuff): obj is Stuff & Solution {
+    return this.hasMixin(obj, Mixins.Solution);
+  }
+
+  public static hasKinetic(obj: Stuff): obj is Stuff & Kinetic {
+    return this.hasMixin(obj, Mixins.Kinetic);
+  }
+
+  public static hasShrinkage(obj: Stuff): obj is Stuff & Shrinkage {
+    return this.hasMixin(obj, Mixins.Shrinkage);
+  }
+
+  public static hasCoating(obj: Stuff): obj is Stuff & Coating {
+    return this.hasMixin(obj, Mixins.Coating);
+  }
+
+  public static hasOptics(obj: Stuff): obj is Stuff & Optics {
+    return this.hasMixin(obj, Mixins.Optics);
+  }
+
+  public static hasTissue(obj: Stuff): obj is Stuff & Tissue {
+    return this.hasMixin(obj, Mixins.Tissue);
+  }
+
+  public static hasMixture(obj: Stuff): obj is Stuff & Mixture {
+    return this.hasMixin(obj, Mixins.Mixture);
+  }
+
+  public static hasElement(obj: Stuff): obj is Stuff & ElementIdentity {
+    return this.hasMixin(obj, Mixins.Element);
+  }
+
+  public static hasCompound(obj: Stuff): obj is Stuff & CompoundIdentity {
+    return this.hasMixin(obj, Mixins.Compound);
   }
 
   /**
    * ⭐ Is this Material MEAT — a muscle that worked, and therefore
    * carries the `work` a cut's texture derives from?
    *
-   * The generic `tissue/muscle` row is NOT one: it is a plain `Material`
+   * The generic `tissue/muscle` row is NOT one: it is plain `Flesh`
    * used by organs and by the plans that name no cuts, so a narrowing
    * here is the difference between "there is muscle here" and "this is
    * the loin".

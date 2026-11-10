@@ -15,7 +15,7 @@ import RiveController, { type RiveModel } from '../idea/cmd/forestry/RiveControl
 import Bole, { BILLET_PATH, BILLET_KG, BOLE_LENGTHS, CLEAN_CLEAVE, TIMBER_MASS_KG } from '../thing/Bole';
 import Billet from '../thing/Billet';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
-import Material from '@saxonberg/server/mud/lib/material/Material';
+import Wood from '@saxonberg/server/mud/platform/idea/material/Wood';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
 import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
@@ -48,15 +48,15 @@ const OAK_WOOD = '/stuff/idea/material/wood/oak';
 let seq = 0;
 const fresh = (p: string): string => `${p}-${++seq}`;
 
-function oak(): Material {
+function oak(): Wood {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Wood();
     m.setName('oak');
     m.setTags(['wood']);
     m.setDensity(Quantity.of(750, 'kg/m³'));
     m.cleavability = 0.9; // the row's figure: oak opens the whole length
     return m;
-  }, OAK_WOOD) as unknown as Material;
+  }, OAK_WOOD) as unknown as Wood;
 }
 
 function tool(caps: string[], name: string): Tool {
@@ -93,7 +93,7 @@ const settle = async (): Promise<void> => {
 };
 
 describe('rive', () => {
-  let wood: Material;
+  let wood: Wood;
   let room: Stuff;
   let giver: TestGiver;
   let bole: Bole;

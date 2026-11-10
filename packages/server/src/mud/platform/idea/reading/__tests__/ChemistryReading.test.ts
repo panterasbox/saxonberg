@@ -4,7 +4,9 @@ import { withRow } from './row';
 import { driveAnalyze, instrumentWith } from './drive';
 import ChemistryReading from '../ChemistryReading';
 import { TangibleMixin } from '../../../../lib/material/Tangible';
-import Material from '../../../../lib/material/Material';
+import ElementalMetal from '../../material/ElementalMetal';
+import Clay from '../../material/Clay';
+import Acid from '../../material/Acid';
 import Good from '../../../../lib/stuff/Good';
 import CartesianZone from '../../location/CartesianZone';
 import Location from '../../../../lib/location/Location';
@@ -90,14 +92,12 @@ describe('ChemistryReading', () => {
     // Build a synthetic iron Material via clone-by-template would
     // require installing through the packs; instead construct one
     // directly and stamp its templatePath via the Stuff API surface.
-    const iron = makeStuff(() => new Material());
+    const iron = makeStuff(() => new ElementalMetal());
     iron.setName('iron');
     iron.setDensity(Quantity.of(7874, 'kg/m³'));
-    iron.setChemistry({
-      symbol: 'Fe',
-      atomicNumber: 26,
-      molarMass: Quantity.of(55.845, 'g/mol'),
-    });
+    iron.setSymbol('Fe');
+    iron.setAtomicNumber(26);
+    iron.setMolarMass(Quantity.of(55.845, 'g/mol'));
     // Re-register under a templatePath so Tangible.getMaterial's
     // findByTemplatePath lookup resolves.
     stampTemplatePathForTest(iron, '/stuff/idea/material/element/iron');
@@ -128,11 +128,11 @@ describe('ChemistryReading', () => {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new Location());
     zone.addLocation(room, 0, 0, 0);
-    const clay = makeStuff(() => new Material());
+    const clay = makeStuff(() => new Clay());
     clay.setName('earthenware');
     clay.setDensity(Quantity.of(2000, 'kg/m³'));
     stampTemplatePathForTest(clay, '/stuff/idea/material/_chem/earthenware');
-    const vinegar = makeStuff(() => new Material());
+    const vinegar = makeStuff(() => new Acid());
     vinegar.setName('wine vinegar');
     vinegar.setDensity(Quantity.of(1010, 'kg/m³'));
     stampTemplatePathForTest(vinegar, '/stuff/idea/material/_chem/vinegar');
@@ -175,8 +175,8 @@ describe('ChemistryReading', () => {
   });
 
   it('accepts a Quantity<g/mol> on the strict setter path', async () => {
-    const m = makeStuff(() => new Material());
-    m.setChemistry({ molarMass: Quantity.of(55.845, 'g/mol') });
+    const m = makeStuff(() => new Acid());
+    m.setMolarMass(Quantity.of(55.845, 'g/mol'));
     const chem = m.getChemistry();
     expect(chem!.molarMass).toBeInstanceOf(Quantity);
     expect(chem!.molarMass!.unit).toBe('g/mol');

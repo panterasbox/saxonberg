@@ -42,6 +42,13 @@ import { SecurityApi } from './security';
  */
 export interface ExecuteCommandOpts {
   /**
+   * Called once with the dispatch's outcome status when the envelope
+   * fires synchronously (not for a detached async body). A caller that
+   * is not the giver's own client — pblive's control socket — reads the
+   * result here (broadcast-ready D11).
+   */
+  onOutcome?: (status: Status) => void;
+  /**
    * The connection/session that originated the command. Cascaded /
    * indirect commands (NPC scripting, scheduled triggers) may omit
    * this; controllers must tolerate `context.interactive` being

@@ -87,6 +87,12 @@ export interface CardState {
   /** When the content was resolved. Static cards only — the honesty stamp. */
   takenAt?: number;
   title?: string;
+  /**
+   * ⭐ The server's word that the card is about something private
+   * (broadcast-ready D8). On air the card renders as a husk — its title
+   * only.
+   */
+  private?: boolean;
   subjectId?: string;
   /**
    * ⭐ What the subject IS — one of the four top-level Stuff branches.

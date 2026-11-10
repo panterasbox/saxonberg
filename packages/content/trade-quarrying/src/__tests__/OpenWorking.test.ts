@@ -28,7 +28,7 @@ import OpenWorkingLocation from '../location/OpenWorking';
 import { LIFT_M, OPEN_WORKING_MIXIN, type OpenWorking } from '../lib/OpenWorking';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { AlloyedMixin } from '@saxonberg/server/mud/lib/material/Alloyed';
@@ -64,7 +64,7 @@ let column: Deposit;
 /** Materials, stated rather than loaded — a band is its tags and hardness. */
 function seedMaterials(): void {
   const mat = (path: string, name: string, tags: string[], mpa: number): void => {
-    const m = makeStuffAtPath(() => new Material(), path) as unknown as Material & {
+    const m = makeStuffAtPath(() => new Stone(), path) as unknown as Stone & {
       hardness: Quantity<'MPa'>;
     };
     m.setName(name);
@@ -469,9 +469,9 @@ describe('a won load remembers its assay (glass W3)', () => {
 
   beforeEach(() => {
     const m = makeStuffAtPath(
-      () => new Material(),
+      () => new Stone(),
       SANDMAT,
-    ) as unknown as Material;
+    ) as unknown as Stone;
     m.setName('glass sand');
     m.setTags(['earth', 'granular', 'silica']);
     // A thick sand band, a flat iron lode co-extensive with it, one grade

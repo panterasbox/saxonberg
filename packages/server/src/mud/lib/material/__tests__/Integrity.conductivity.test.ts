@@ -13,6 +13,7 @@ import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import Ceramic from '../../../platform/idea/material/Ceramic';
 
 class Pot extends DurableMixin(Good) {
   static _mixinName = 'TestConductivityPot';
@@ -20,7 +21,7 @@ class Pot extends DurableMixin(Good) {
 
 function brittle(name: string, alpha: number, k: number): Material {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Ceramic();
     m.setName(name);
     m.setTags(['brittle']);
     m.setThermalExpansion(alpha);

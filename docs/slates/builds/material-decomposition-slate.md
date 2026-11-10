@@ -1,6 +1,13 @@
 # Material decomposition slate — a material composes the capabilities it has (and the Idea-tree audit)
 
-> **Status: UNBUILT** — designed at high level 2026-10-30 with the owner; census run the same day.
+> ⭐ **Status: the decomposition SHIPPED (MR !555, 2026-11-09)** — capabilities, kinds, every row
+> re-homed, `lint:material-kinds`; the live reference is [race.md § Material
+> substrate](../../subsystems/race.md) (with the build's departures from §§ 7¾–7⅞ under its History).
+> **Still open here:** § 7 (species, maturation by mechanism, dead fields — the next Idea-tree pass)
+> and § 8 (the data-gap burn-down, which `lint:material-kinds --gaps` now counts per pack). The
+> folder sweep rides the place-taxonomy slate.
+>
+> **Status at design (kept for history):** UNBUILT — designed at high level 2026-10-30 with the owner; census run the same day.
 > What ships: one `Material` class (`lib/material/Material.ts`, 2,209 lines) carrying ~72 authored
 > properties, of which a row authors what it needs and leaves the rest at sentinels; the
 > capability-mixin pattern already proven by `RadioactiveMaterial` and `Muscle`, and `PotionMaterial`
@@ -208,10 +215,114 @@ exclusive axis, like chemical identity) is the natural split.
   so aging whisky and hide glue read alike ("It has broken, and separated"). A class per
   mechanism does not fix this by itself.
 
+## 7¾. ⭐⭐⭐ The census, re-run on the smell-and-taste tree **[EVIDENCE — 2026-11-07]**
+
+Run against `reqs/vocabularies-to-rows` (build-4), so `Odorous` counts as a real capability: **386
+rows, 80 authored properties** (`extends:` resolved; a zero, `false`, empty list or zero-amount
+toxicity is not authored). Classes on that tree: `OdorousMaterial` 182, `OdorousConsumableMaterial`
+107, `Material` 76, `Muscle` 11, `ConsumableMaterial` 6, `PotionMaterial` 3, `RadioactiveMaterial` 1.
+
+**Universal:** density, thermal conductivity, specific heat (369–385 rows). Electrical conductivity is
+missing on 174 rows but physical on all → the base, with real values.
+
+**Clean fault lines** (properties that travel as a block): odorous 298 (the 88 odorless are ceramics,
+salt, water, ice, air, silk) · combustible 70 · fusible 77 · volatile 60 · solution 25 · perishable
+104 · seasonable 18 (wood) · element 8 / compound 7 / mixture 33.
+
+**Blurred, decided:** toxicity is its own capability (22 of 59 toxic rows are not food) · perishable is
+its own (blood, rawhide, three herbs spoil and are not food) · `nutrients` splits — dietary on 140 food
+rows, constituents on 33 non-food rows, folding into composition · absorbency is its own (cloth and
+paper are porous without being strong) · acid-base (pH, leaching, corrosion; 41 rows) · coat (coat,
+pigment, adhesive; 28).
+
+**Combinations:** with these groups, **142 distinct combinations, 84 of them one row each.** A class
+per combination is out.
+
+### Capability rules do not predict the kind
+
+Families derived by rule from capabilities misfired four ways: edible + combustible caught the spirits
+with the fats (ethanol burns) · combustible caught paper, linen and beeswax with coal · coat caught lead,
+tin and salt with paint · the remainder held four coherent kinds (stone and earth, chemicals, residues,
+fibers). ⭐ **So the family is a KIND axis — what the substance is — and capabilities vary within it.**
+
+### The tree, and how each node fits its members **[DECIDED — the owner, 2026-11-07]**
+
+The strongest fault line is **organic / mineral** (the odorless rows are the mineral world; tissue,
+edible, perishable and most combustible rows are organic). Each capability composes at the highest
+node whose members share it; an exception subclasses its nearest node and adds one mixin.
+
+```
+Material (386)       density · thermal k · specific heat · electrical σ
+  Mineral (102)      identity: element | compound | mixture
+    Metal (17)       solid 94% · fusible 88% · volatile 35%      ⚑ toxic 9 · absorbent 11 (a defect)
+    Stone (46)       solid 89% · absorbent 93%
+      Ceramic (16)   kinetic 0% → kinetic moves to the clay, which is what the kiln reads
+      Glass (1)      fusible · optical
+    Chemical (20)    acid-base 35% · solution 15% · cleanser 50% → splits: Salt · Lye · Soap
+    Water (9)        fusible 44% · volatile 55% · solution 44% (data gaps)  ⚑ edible 7
+    Gas (10)         volatile 100%
+  Organic (284)      odorous 92% · biological source (56% / 48% — a data gap)
+    Plant: Wood (18) 100% clean · Fiber (16) · Herb (14)
+    Animal: Flesh (19) 100% clean · Hide and Horn (14)
+    Food (129)       edible 100%
+      Drink (69)     adds nothing measurable yet — kept as a KIND (Residue's precedent)
+        Spirit (13)  combustible · toxic 100%
+    Fat, Oil, Wax (12)  combustible 41% (data gap) → rubber, latex, ebonite leave for Polymer
+    Fuel (18)        → splits: Solid fuel · Oil (+ fusible, volatile)
+    Preparation (29) coat 89% → splits: Pigment and Paint · Glue (+ fusible, kinetic)
+    Residue (12)     nothing added; almost no physics authored (burn-down)
+```
+
+**Two kinds of low number, opposite fixes:** a property every member physically has but the row omits
+is a **data gap** (the node is right; the content owes a burn-down). A node lumping different kinds is a
+**real split** (one more level).
+
+**Defects the full list found:** lye marked edible with no toxicity (and halite, saltpeter, glycerin
+edible) · hard soap borrowing wood's seasoning for its cure · two `iron` rows (`element/iron` and
+trade-dyeing's mordant) · metals authoring water absorption · on liquids "fusible" is the freezing point
+(the capability's name must read both ways) · 23 residues authoring only a smell.
+
+### ⭐⭐ Robustness to consumers nobody has thought of **[DECIDED — the owner, 2026-11-07]**
+
+The content is mostly test cases; there is no lore yet. The tree holds anyway, on five rules:
+
+1. **Consumers depend on capabilities, never on families** — a smelter asks *fusible, at what
+   temperature*, never *a Metal*. Families are for authoring, the folder tree and the wiki. A gate
+   refuses narrowing on a family class.
+2. **Capabilities describe the substance, not the game** — named for physics (fusible = has a melting
+   point), never for a consumer (no *smeltable*). Reality is the spec; a new consumer finds the property
+   there or a real one that was always missing.
+3. **The tree is chemistry, not culture** — true in every epoch and realm (lens 5). Lore, names and
+   uses live in rows.
+4. **The leaves are the fragile part** — shallow, cheap to change: subclass the nearest node (a pack
+   under its own root, as arcana's potion), or move a capability up a level (composition, no migration).
+5. **A node composes what its members physically all have, or most use**; a minority use is a
+   one-mixin subclass.
+
+## 7⅞. Reuse ledger for the plan
+
+| concept | already doing it | this build |
+|---|---|---|
+| a capability pulled off `Material` | `OdorousMixin` (build-4, in flight), `RadioactiveMixin`, `MuscleMixin`, arcana's `PotionMaterial` | reuse the pattern; Odorous becomes one capability among many |
+| a family class | `Muscle`, `ConsumableMaterial` (no fields) | `Muscle` becomes Flesh's class; `ConsumableMaterial`, `OdorousMaterial`, `OdorousConsumableMaterial` are replaced |
+| finding every material | `MaterialCatalogue.warm()` — template-path infix + `extends Material` | unchanged (it already keys on the base) |
+| a capability predicate | `MixinApi.isX` | one per capability; consumers move onto them |
+| chemical identity | `symbol` / `formula` / `composition` on the base | three exclusive identity mixins |
+| dietary vs constituent | `nutrients` (both meanings) | split; constituents fold into composition |
+| curing over time | `kinetics` (firing, staling, calcining) | one cross-cutting capability at the leaves that read it |
+| a mechanism as a class | `MATURATION_MECHANISMS` (closed list) | handed over by build-4 — a class per mechanism |
+| the wiki | per-material pages | pages per capability, per chemical kind, per family |
+
 ## 8. Open
 
-1. **The family list** — derived from the census by the build.
+1. ~~**The family list**~~ — decided, § 7¾ (the build reconciles the leaves against the rows).
 2. **The naming convention** for material-side mixins.
 3. **`nutrients`** — split into dietary nutrients (edible) and constituents (folded into composition?).
 4. **The no-migration doctrine** — a class change for existing rows is a drop-the-database change,
    which the doctrine already allows.
+5. **The folder tree** — 199 rows sit at the top of `/stuff/idea/material/`; moving each into its
+   kind's folder is a path sweep (every reference in every pack), deferred from the build and
+   **recorded in [place-taxonomy-slate](./place-taxonomy-slate.md) § The material folders** — one
+   sweep with the `/location/` → `/place/` rename (owner, 2026-11-07).
+6. **The data-gap burn-down** — biological source on half the plant and animal rows, fats' heat of
+   combustion, water's phase points, the residues' physics; each trade owns its rows.

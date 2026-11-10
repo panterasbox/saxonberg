@@ -37,6 +37,7 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import Material from '../../material/Material';
+import SolidFuel from '../../../platform/idea/material/SolidFuel';
 import { Quantity } from '../../quantity';
 import Provision from '../../../platform/thing/Provision';
 import Forge from '../../../platform/thing/Forge';
@@ -48,7 +49,7 @@ let seq = 0;
 function thirstyFuel(): Material {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new SolidFuel();
     m.setName(`charcoal-${seq}`);
     m.setHeatOfCombustion(Quantity.of(30, 'MJ/kg'));
     m.setWaterAbsorptionCapacity(Quantity.of(30, '%'));

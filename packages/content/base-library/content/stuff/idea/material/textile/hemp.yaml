@@ -5,7 +5,7 @@
 # given thickness holds more than a flax one, and a flax one more than
 # jute. It rots wet, as every plant fiber does, which is what the tar is
 # for.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Fiber
 data:
   smells: [{ aroma: /base-library/aromas/straw, strength: 20 }]
   burning: [{ aroma: /base-library/aromas/paper-smoke, strength: 300 }]
@@ -21,13 +21,8 @@ data:
   specificHeat: 1360
   electricalConductivity: 1.0e-11
   waterAbsorptionCapacity: 20
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["textile", "fibre", "organic", "plant", "cellulose", "once-living"]
   heatOfCombustion: 16
   combustionImparts:
     - type: /base-library/aromas/smoke
       amount: 40
-  composition: []
-  biologicalSource: null

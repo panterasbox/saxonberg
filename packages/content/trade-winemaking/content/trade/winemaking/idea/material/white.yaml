@@ -1,5 +1,5 @@
 # White wine. Category tags `wine`, `white`.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/wine, strength: 300 }]
   tastes: [{ type: sour, amount: 6 }, { type: sweet, amount: 3 }, { type: bitter, amount: 0.01 }]
@@ -11,7 +11,6 @@ data:
   servingKg: 0.1488
   thermalConductivity: 0.5
   specificHeat: 3800
-  edibility: true
   nutrients: ["water", "sugar"]
   # Residual sugar (g/L, demi-sec) — what bottle conditioning converts
   # into the sparkle (fermentation P5).
@@ -23,5 +22,3 @@ data:
   ph: 3.3
   tags: ["liquid", "beverage", "drinkable", "alcoholic", "wine", "white"]
   boilingPoint: 365
-  composition: []
-  biologicalSource: null

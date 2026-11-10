@@ -69,6 +69,21 @@ function row(path: string): Record<string, unknown> {
   throw new Error(`no row at ${path}`);
 }
 
+/** A material row's kind — its `class:`. */
+function kindOf(path: string): string {
+  const rel = `${path.replace(/^\//, '')}.yaml`;
+  for (const pack of readdirSync(PACKS)) {
+    const candidate = join(PACKS, pack, 'content', rel);
+    try {
+      if (!statSync(candidate).isFile()) continue;
+    } catch {
+      continue;
+    }
+    return String((YAML.parse(readFileSync(candidate, 'utf8')) as { class?: string }).class ?? '');
+  }
+  throw new Error(`no row at ${path}`);
+}
+
 function tags(path: string): string[] {
   return (row(path)['tags'] as string[] | undefined) ?? [];
 }
@@ -130,9 +145,8 @@ describe('bone grinds, and what comes out feeds the ground', () => {
   });
 
   it('⚠ bone meal is NOT edible to a person', () => {
-    expect(row('/stuff/idea/material/mineral/bone-meal')['edibility']).toBe(
-      false,
-    );
+    // Its KIND composes no Edibility (material decomposition: the kind is the fact).
+    expect(kindOf('/stuff/idea/material/mineral/bone-meal')).toBe('/platform/idea/material/Soil');
   });
 });
 
@@ -175,7 +189,7 @@ describe('the dog loaf — offal\'s sink, and a manufactured feed', () => {
     // People ate horse-bread when it was the only bread they could
     // afford. Refusing it would be a judgement the world should be
     // making with a price instead.
-    expect(row('/stuff/idea/material/food/dog-bread')['edibility']).toBe(true);
+    expect(kindOf('/stuff/idea/material/food/dog-bread')).toBe('/platform/idea/material/SolidFood');
   });
 
   it('⚠⚠ authors no unrouted nutrient', () => {

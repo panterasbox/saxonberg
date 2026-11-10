@@ -15,7 +15,7 @@
 # ⚠ The WOOD is not what a birch is for. Its sap is
 # (`/stuff/idea/material/food/birch-sap`), which is a fact about the
 # living tree and lives on the species row.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Wood
 data:
   smells: [{ aroma: /base-library/aromas/wood, strength: 1 }]
   burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
@@ -37,11 +37,7 @@ data:
   alkaliShare: 0.12
   hardness: 30
   toughness: 60
-  edibility: false
-  nutrients: ["cellulose"]
-  toxicity: []
   tags: ["wood", "mixture", "organic", "flammable", "once-living"]
-  composition: []
   # ⭐ Seasoning (assembly D2): game-days for a 25 mm board to dry in
   # good air, and how much it shrinks getting there — what makes work
   # done green move. Grain: an author's numbers.

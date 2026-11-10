@@ -1,7 +1,7 @@
 # A root vegetable — raw cooking stock (turnip, carrot, whatever the
 # pantry has). Edible raw in a pinch; its worth is what a pot makes of
 # it. The cooking branch's staple input, matched by the `vegetable` tag.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Food
 data:
   smells: [{ aroma: /base-library/aromas/earth, strength: 10 }]
   name: root vegetable
@@ -10,7 +10,6 @@ data:
   density: 700
   thermalConductivity: 0.5
   specificHeat: 3500
-  edibility: true
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
@@ -28,5 +27,3 @@ data:
   nutrientAmounts:
     carb: 17000
   tags: [food, vegetable, raw]
-  composition: []
-  biologicalSource: null

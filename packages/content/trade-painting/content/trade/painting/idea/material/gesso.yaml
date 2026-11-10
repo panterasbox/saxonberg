@@ -1,6 +1,6 @@
 # Gesso — chalk bound in glue, laid on a panel in thin coats and scraped
 # smooth: the white ground a tempera is painted on.
-class: /platform/idea/material/Material
+class: /platform/idea/material/PigmentPaint
 data:
   name: gesso
   keywords: [gesso, ground]
@@ -8,10 +8,5 @@ data:
   density: 1600
   specificHeat: 900
   thermalConductivity: 0.4
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [ground, chalk]
   pigment: { transmitR: 0.95, transmitG: 0.94, transmitB: 0.9, hidingPower: 0.8, lightfastness: 1 }
-  composition: []
-  biologicalSource: null

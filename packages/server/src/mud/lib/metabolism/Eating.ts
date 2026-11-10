@@ -159,7 +159,7 @@ export function EatingMixin<TBase extends MixinConstructor>(Base: TBase) {
         return { ok: true, fromDish: true, what, foodName: food.getPresentation(), utensil, ...wentDown };
       }
       const material = MixinApi.isTangible(food) ? food.getMaterial() : null;
-      if (!material || material.getEdibility() !== true) {
+      if (!material || !MixinApi.hasEdibility(material)) {
         return { ok: false, reason: 'not-edible' };
       }
       // The food synthesizes its own payload (`Fresh.ingestPayload`) — the

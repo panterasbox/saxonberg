@@ -17,6 +17,8 @@ import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
 import Good from "../../../../../lib/stuff/Good";
 import Place from "../../../../../lib/stuff/Place";
 import Material from "../../../../../lib/material/Material";
+import Stone from '../../../material/Stone';
+import SolidFood from '../../../material/SolidFood';
 import { Stuff } from "../../../../../lib/stuff/Stuff";
 import { StuffApi } from "../../../../../api/stuff";
 import { ContainmentApi } from "../../../../../api/containment";
@@ -43,12 +45,11 @@ class TestEater extends SensorMixin(CommandGiverMixin(NamedMixin(Creature))) {
 
 function material(path: string, name: string, edible: boolean, nutrients: string[]): Material {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m: Material = edible ? new SolidFood() : new Stone();
     m.setName(name);
     m.setKeywords([name]);
     m.setAppearance(`a ${name}`);
-    m.setEdibility(edible);
-    m.setNutrients(nutrients);
+    if (MixinApi.hasEdibility(m)) m.setNutrients(nutrients);
     return m;
   }, path) as unknown as Material;
 }

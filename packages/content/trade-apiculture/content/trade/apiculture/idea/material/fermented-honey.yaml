@@ -8,7 +8,7 @@
 #
 # ⚠ Deliberately worse than mead rather than the same: what distinguishes
 # the product from the defect is that somebody meant it.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/honey, strength: 100 }, { aroma: /base-library/aromas/alcohol, strength: 60 }]
   name: fermented honey
@@ -17,12 +17,9 @@ data:
   density: 1300
   thermalConductivity: 0.5
   specificHeat: 2600
-  edibility: true
   tastes: [{ type: sweet, amount: 500 }, { type: sour, amount: 4 }]
   nutrients: ["sugar", "alcohol"]
   nutrientAmounts:
     sugar: 9000
     alcohol: 2000
   tags: ["liquid", "food", "fermented-honey"]
-  composition: []
-  biologicalSource: null

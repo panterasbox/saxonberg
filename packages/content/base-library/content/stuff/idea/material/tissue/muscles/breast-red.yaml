@@ -18,7 +18,6 @@ data:
   toughness: 1
   electricalConductivity: 0.2
   waterAbsorptionCapacity: 25
-  edibility: true
   tastes: [{ type: umami, amount: 2 }]
   spoilActivationEnergy: 80000
   waterActivity: 0.99

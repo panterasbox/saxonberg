@@ -15,7 +15,7 @@
 # Its figures follow `base-library`'s malt row rather than the cereals'
 # (the two packs disagree on the unit — a finding for whoever owns
 # base-library, not this build's to fix).
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFood
 data:
   smells: [{ aroma: /base-library/aromas/grain, strength: 15 }]
   tastes: [{ type: sweet, amount: 10 }]
@@ -31,13 +31,10 @@ data:
   waterAbsorptionCapacity: 50
   hardness: 5
   toughness: 1
-  edibility: true
   # Drier than flour: malt is kilned before it is ground, which is what
   # makes it keep in a sack at all.
   waterActivity: 0.45
   spoilActivationEnergy: 45000
   nutrients: ["carb", "sugar"]
   nutrientAmounts: { carb: 14000, sugar: 80 }
-  toxicity: []
   tags: ["food", "grist", "brewing", "feed"]
-  composition: []

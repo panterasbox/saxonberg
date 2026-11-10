@@ -22,6 +22,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import Material from '../../material/Material';
+import Food from '../../../platform/idea/material/Food';
 import { BIOLOGICAL_RESERVE_KEYS, Reserve } from '../../reserve/Reserved';
 import { METABOLIC_DEFAULTS } from '../Metabolic';
 import { StuffApi } from '../../../api/stuff';
@@ -52,10 +53,9 @@ class FedCreature extends Creature {
 
 function food(name: string, nutrients: string[]): Material {
   return makeStuff(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName(name);
     m.setNutrients(nutrients);
-    m.setEdibility(true);
     return m;
   }) as unknown as Material;
 }

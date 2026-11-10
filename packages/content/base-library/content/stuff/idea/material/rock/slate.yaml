@@ -9,7 +9,7 @@
 # where the planar fabric comes from. `composition` stays empty for the
 # same reason granite's does — the mineral rows exist now, but a slate
 # is a graded continuum of them, not a recipe.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Stone
 data:
   name: slate
   keywords: [slate]
@@ -25,10 +25,4 @@ data:
   # the carve cost that makes a slate heading the cheap one.
   hardness: 90
   toughness: 25
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["rock", "metamorphic", "mixture", "foliated", "cleavage"]
-  composition: []
-  chemistry: null
-  biologicalSource: null

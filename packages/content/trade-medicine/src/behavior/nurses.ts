@@ -106,7 +106,7 @@ function potOnTheBoil(room: Stuff & Container): (Stuff & Container) | null {
     if (!MixinApi.isContainer(c) || !MixinApi.isBulkable(c) || !MixinApi.isThermal(c)) continue;
     if (!c.hasInteriorBulk() || !(c.getBulkAmount('interior').rawValue() > 0)) continue;
     const mat = c.getBulkMaterial('interior');
-    const bp = mat?.boilingPointAt(0) ?? 0;
+    const bp = mat && MixinApi.hasSolution(mat) ? mat.boilingPointAt(0) : 0;
     if (bp > 0 && c.getTemperature().rawValue() >= bp - 0.5) return c as Stuff & Container;
   }
   return null;

@@ -21,6 +21,7 @@
  * `FractionSchedule.residueShare`.
  */
 import type Material from './Material';
+import { MixinApi } from '../../api/mixin';
 
 /** The authored shape — a row's `leesShare:` / `residueShare:` block. */
 export interface CompositionShareSpec {
@@ -66,7 +67,7 @@ export class CompositionShare {
 
   /** The share of a bulk of `material` this spec names. */
   evaluate(material: Material | null): number {
-    const amounts = material?.getNutrientAmounts() ?? {};
+    const amounts = material && MixinApi.hasEdibility(material) ? material.getNutrientAmounts() : {};
     let sum = 0;
     for (const [n, k] of Object.entries(this.nutrients)) {
       sum += ((amounts[n] ?? 0) / 1e6) * k;

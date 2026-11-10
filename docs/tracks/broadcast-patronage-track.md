@@ -49,7 +49,8 @@ Twitch-flavored starts before it.
 
 The track inherits a real head start:
 
-- **Broadcasting at all (server half).** `StreamState` singleton,
+- **Broadcasting at all (server half).** `StreamState` singleton (since
+  broadcast-ready: per-streamer `BroadcastMixin`),
   `BroadcastFeed` service, the read-only `?broadcast=<token>` principal
   (gated by `BROADCAST_TOKEN`), the `streamers` access axis
   (`AccessApi.isStreamer` / `requiresStreamer`, seeded from
@@ -100,7 +101,14 @@ plumbing. Three phases.
 - **Outcome:** during a broadcast, Twitch chat appears in-game; tuned-in
   players read it. No player tokens spent.
 
-#### Phase 3 — Livestream overlay polish *(parallelizable with Phase 2)*
+#### Phase 3 — Livestream overlay polish *(parallelizable with Phase 2)* — ✅ shipped (broadcast-ready, MR !556, 2026-11)
+
+> The stream's state is now per streamer on the body (`BroadcastMixin`,
+> persisted, five phases), with per-streamer feed and control tokens,
+> chat forwarding, the lower third and Rodney on the real feed. What is
+> left (alerts, a show chosen by command) is on
+> [broadcast-ready-slate](../slates/builds/broadcast-ready-slate.md).
+
 - **Slate/doc:** [livestream.md](../subsystems/livestream.md) (the Phase-1
   "not shipped" list)
 - **Build:** durable `StreamState` (survives reboot), scene / lower-third

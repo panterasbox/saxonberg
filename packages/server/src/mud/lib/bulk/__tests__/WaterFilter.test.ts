@@ -12,6 +12,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
 import Place from '../../stuff/Place';
 import Material from '../../material/Material';
+import Water from '../../../platform/idea/material/Water';
+import Ceramic from '../../../platform/idea/material/Ceramic';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { BulkableMixin } from '../Bulkable';
 import { ContainerMixin } from '../../spatial/Container';
@@ -43,15 +45,15 @@ const TAINTED = '/stuff/idea/material/_filter/tainted-water';
 const BODY = '/stuff/idea/material/_filter/filter-stoneware';
 const GLAZED_BODY = '/stuff/idea/material/_filter/stoneware';
 
-function mat(path: string, fill: (m: Material) => void): Material {
+function mat<T extends Material>(make: () => T, path: string, fill: (m: T) => void): T {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = make();
     m.setName(path.split('/').pop()!);
     m.setDensity(Quantity.of(1000, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
     fill(m);
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as T;
 }
 
 let fouled: Material;
@@ -99,17 +101,17 @@ beforeEach(() => {
     makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
   }
   // Plain water: what fouled water filters TO (resolved by path at the seep).
-  mat(WATER, (m) => m.setTags(['liquid', 'water']));
-  fouled = mat(FOULED, (m) => {
+  mat(() => new Water(), WATER, (m) => m.setTags(['liquid', 'water']));
+  fouled = mat(() => new Water(), FOULED, (m) => {
     m.setTags(['liquid', 'water']);
     m.setFilteredTo(WATER);
   });
-  tainted = mat(TAINTED, (m) => m.setTags(['liquid', 'water']));
-  body = mat(BODY, (m) => {
+  tainted = mat(() => new Water(), TAINTED, (m) => m.setTags(['liquid', 'water']));
+  body = mat(() => new Ceramic(), BODY, (m) => {
     m.setTags(['ceramic', 'fired', 'porous', 'stoneware']);
     m.setWaterAbsorptionCapacity(Quantity.of(12, '%'));
   });
-  tight = mat(GLAZED_BODY, (m) => {
+  tight = mat(() => new Ceramic(), GLAZED_BODY, (m) => {
     m.setTags(['ceramic', 'fired', 'vitrified', 'stoneware']);
     m.setWaterAbsorptionCapacity(Quantity.of(1.5, '%'));
   });

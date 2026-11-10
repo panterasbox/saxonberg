@@ -2,7 +2,7 @@
 # hard, black, glossy, and it rings when you tap it. The over-range end of
 # the cure (rubber build): combs, pipe stems, the insulating panels of
 # an electrical age.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Polymer
 data:
   smells: [{ aroma: /base-library/aromas/rubber, strength: 30 }]
   name: ebonite
@@ -17,8 +17,4 @@ data:
   waterAbsorptionCapacity: 0.1
   elasticity: 2
   castTemplate: /trade/rubber/thing/ebonite-lump
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["organic", "elastomer", "insulating", "polymer", "synthetic", "ebonite"]
-  composition: []

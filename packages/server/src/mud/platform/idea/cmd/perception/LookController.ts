@@ -282,6 +282,14 @@ export default class LookController extends CommandController<LookModel> {
       body = Mml.compose`${body}\n${puddle}`;
       segments.push({ shape: 'state', sources: [LookController.lookSource('Floor')], text: puddle });
     }
+    // ⭐ A broadcast reaches this place (broadcast-ready D9): a statement
+    // of the room's state, never a gate — read off whoever is here and on
+    // air. Nobody in a streamer's room is shown without being told.
+    if (this.anyoneOnAir(location)) {
+      const line = 'A broadcast reaches this place.';
+      body = Mml.compose`${body}\n${line}`;
+      segments.push({ shape: 'state', sources: [LookController.lookSource('Broadcast')], text: line });
+    }
     // ⭐⭐ The help-wanted sign (trades-and-labor D11). Derived: there is
     // no sign OBJECT and no mixin, so a venue with an open seat CANNOT
     // fail to advertise — the notice comes off the same arithmetic that
@@ -787,7 +795,10 @@ export default class LookController extends CommandController<LookModel> {
    */
   private personOf(o: Stuff, actor: Stuff): SegmentItem {
     const item = this.itemOf(o, actor);
-    const status = MixinApi.isStatus(o) ? o.getStatus() : '';
+    const own = MixinApi.isStatus(o) ? o.getStatus() : '';
+    // ⭐ The chip says so too (D9) — the same read as the presence line.
+    const onAir = MixinApi.isBroadcastHost(o) && o.isOnAir() ? 'broadcasting' : '';
+    const status = [own, onAir].filter((p) => p !== '').join(', ');
     const rest = MixinApi.isPosed(o) ? o.currentRest() : null;
     return {
       ...item,
@@ -847,6 +858,17 @@ export default class LookController extends CommandController<LookModel> {
   }
 
   /**
+   * Is anyone in `location` on air right now? (D9) Read off the online
+   * roster — a stream needs a played body, and every played body online
+   * is on it — rather than walking the room's contents.
+   */
+  private anyoneOnAir(location: Stuff): boolean {
+    return SocialApi.online().some(
+      (a) => a.getContainer() === location && MixinApi.isBroadcastHost(a) && a.isOnAir(),
+    );
+  }
+
+  /**
    * ⭐ The presence line (client-surface D10, #74): what a person is doing,
    * from what they already say — their status, a posture other than
    * standing, the activities that occupy them, and `away` when linkdead.
@@ -874,6 +896,8 @@ export default class LookController extends CommandController<LookModel> {
       }
     }
     if (MixinApi.isHasInteractive(target) && target.isLinkdead()) parts.push('away');
+    // ⭐ On air (broadcast-ready D9) — beside `away`, in the same voice.
+    if (MixinApi.isBroadcastHost(target) && target.isOnAir()) parts.push('broadcasting');
     if (parts.length === 0) return null;
     return `Now: ${parts.join(', ')}.`;
   }

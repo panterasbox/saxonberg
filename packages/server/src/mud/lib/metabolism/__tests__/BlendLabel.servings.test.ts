@@ -27,6 +27,7 @@ import { MaterialApi } from '../../../api/material';
 import Good from '../../stuff/Good';
 import { BulkableMixin, type BulkPayload } from '../../bulk/Bulkable';
 import Material from '../../material/Material';
+import Drink from '../../../platform/idea/material/Drink';
 import { Quantity } from '../../quantity';
 import { BlendLabel } from '../BlendLabel';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
@@ -60,9 +61,8 @@ function material(
   servingKg = 0,
 ): Material {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Drink();
     m.setName(path.split('/').pop()!);
-    m.setEdibility(true);
     m.setDensity(Quantity.of(densityKgM3, 'kg/m³'));
     if (alcohol > 0) m.setToxicity([{ type: 'alcohol', amount: alcohol }]);
     if (servingKg > 0) m.setServingKg(servingKg);

@@ -2,7 +2,7 @@
 # of slaked lime, caustic, and the thing a soap-boiler stirs into a lye to
 # make it strong enough for hard soap. Made in the kettle by pouring water
 # on a lump of lime; it heats as it slakes.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/PigmentPaint
 data:
   smells: [{ aroma: /base-library/aromas/lime, strength: 60 }]
   name: milk of lime
@@ -12,13 +12,8 @@ data:
   specificHeat: 3600
   thermalConductivity: 0.6
   meltingPoint: 271
-  edibility: false
-  nutrients: []
-  toxicity: []
   corrosiveTo: [tissue]
   tags: [liquid, caustic, alkali, slaked-lime]
-  composition: []
-  biologicalSource: null
   # ⭐ LIMEWASH (paint build, requirements gap 1): brushed on a wall it
   # lays a white coat that hardens by drinking the air — carbonation, over
   # days, and slowly where the air does not move. Rows only: the kettle that

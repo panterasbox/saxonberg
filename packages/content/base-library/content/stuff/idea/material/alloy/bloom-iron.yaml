@@ -21,7 +21,7 @@
 # Filed with the ferrous alloys because that is where they live and that
 # is where somebody will look for it, though a composite is what it
 # honestly is.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Alloy
 data:
   name: bloom iron
   keywords: [bloom, "bloom iron", sponge]
@@ -30,7 +30,6 @@ data:
   specificHeat: 470
   thermalConductivity: 40
   electricalConductivity: 1.0e6
-  waterAbsorptionCapacity: 0.5
   # Mechanical response: soft and only moderately tough — it is iron with
   # glass and voids through it, and it performs like it. Nothing should
   # ever be made of this; it is an intermediate.
@@ -44,12 +43,7 @@ data:
   # no longer scans the trade's rows for a `_materialPath` match).
   castTemplate: /trade/smelting/thing/iron-bloom
   latentHeatOfFusion: 247000
-  edibility: false
-  nutrients: ["iron"]
-  toxicity: [{ type: iron-poisoning, amount: 0 }]
   tags: ["metal", "ferrous", "bloom", "spongy", "magnetic"]
   composition:
     - { materialPath: /stuff/idea/material/element/iron, fraction: 0.75 }
     - { materialPath: /stuff/idea/material/mineral/quartz, fraction: 0.25 }
-  chemistry: null
-  biologicalSource: null

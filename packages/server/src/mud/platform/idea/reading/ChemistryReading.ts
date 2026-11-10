@@ -97,7 +97,10 @@ export default class ChemistryReading extends Reading {
     );
     lines.push(Mml.compose`  material: ${material.getName()}`);
     lines.push(Mml.compose`  density: ${material.getDensity().formatMml(undefined, undefined, { channel: 'chemistry' })}`);
-    const chem = material.getChemistry();
+    const chem =
+      MixinApi.hasElement(material) || MixinApi.hasCompound(material)
+        ? material.getChemistry()
+        : null;
     if (chem) {
       if (chem.symbol) {
         lines.push(Mml.compose`  symbol: ${chem.symbol}`);
@@ -127,7 +130,9 @@ export default class ChemistryReading extends Reading {
       : null;
     const composition = alloyed
       ? alloyed.effectiveMakeup()
-      : material.getComposition();
+      : MixinApi.hasMixture(material)
+        ? material.getComposition()
+        : [];
     if (composition.length > 0) {
       lines.push(Mml.compose`  composition:`);
       for (const c of composition) {
@@ -140,7 +145,9 @@ export default class ChemistryReading extends Reading {
       // temperature is what annealing IS.
       lines.push(Mml.compose`  temper: ${tempered.getTemper()}`);
     }
-    const bio = material.getBiologicalSource();
+    const bio = MixinApi.hasTissue(material)
+      ? material.getBiologicalSource()
+      : null;
     if (bio) {
       lines.push(
         Mml.compose`  biological source: ${bio.tissueType} from ${bio.speciesPath}`
@@ -194,7 +201,9 @@ export default class ChemistryReading extends Reading {
     const material = sample.getMaterial();
     if (!material) return null;
     const parts: string[] = [`${material.getName()}`];
-    const composition = material.getComposition();
+    const composition = MixinApi.hasMixture(material)
+      ? material.getComposition()
+      : [];
     for (const c of composition) {
       parts.push(`${leafOf(c.materialPath)} ${(c.fraction * 100).toFixed(1)} %`);
     }

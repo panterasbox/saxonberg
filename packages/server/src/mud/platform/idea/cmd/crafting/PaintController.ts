@@ -116,6 +116,6 @@ export default class PaintController extends ManualBuildController<PaintModel> {
   private laysCoat(pot: Stuff): boolean {
     if (!MixinApi.isBulkable(pot) || !pot.hasInteriorBulk()) return false;
     const held = pot.getBulkMaterial('interior');
-    return held !== null && held.getLaysCoat() && pot.getBulkAmount('interior').rawValue() > 0;
+    return held !== null && MixinApi.hasCoating(held) && held.getLaysCoat() && pot.getBulkAmount('interior').rawValue() > 0;
   }
 }

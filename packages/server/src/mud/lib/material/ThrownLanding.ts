@@ -99,9 +99,11 @@ export class ThrownLanding {
           // ⭐ A caustic vial that shatters on a body burns it — the
           // substance-contact corrosion seam, delivered through the one
           // injury door. A mundane splash answers `false` and nothing fires.
-          const burned = contents.corrodeOnContact(share.victim, {
-            energy: Math.min(4, 1 + share.litres),
-          });
+          const burned =
+            MixinApi.hasAcidity(contents) &&
+            contents.corrodeOnContact(share.victim, {
+              energy: Math.min(4, 1 + share.litres),
+            });
           if (burned) {
             out.push({ kind: 'corrosion', material: contents.getName(), victim: share.victim });
           }

@@ -12,6 +12,7 @@ import DoseController from '../DoseController';
 import { Creature } from '../../../../../lib/creature/Creature';
 import Place from '../../../../../lib/stuff/Place';
 import Material from '../../../../../lib/material/Material';
+import Food from '../../../material/Food';
 import Receptacle from '../../../../thing/Receptacle';
 import { ContainmentApi } from '../../../../../api/containment';
 import { Quantity } from '../../../../../lib/quantity';
@@ -187,7 +188,7 @@ function ensureActiveMaterial(
   return (
     StuffApi.findByTemplatePath<Material>(path) ??
     (makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Food();
       m.setName(type);
       m.setTags(['active', 'remedy', 'liquid']);
       m.setToxicity([{ type, amount }]);

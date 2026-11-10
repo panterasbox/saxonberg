@@ -5,7 +5,7 @@
 # `transforms`), whatever the order of rennet and starter.
 #
 # Authors no spoilage constants: a salt extract keeps.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Food
 data:
   smells: [{ aroma: /base-library/aromas/sour, strength: 300 }]
   name: rennet
@@ -15,12 +15,6 @@ data:
   specificHeat: 3900
   thermalConductivity: 0.5
   electricalConductivity: 1.5
-  waterAbsorptionCapacity: 0
-  hardness: 0
-  toughness: 0
-  edibility: false
   nutrients: ["water"]
   nutrientAmounts: { water: 900000 }
-  toxicity: []
   tags: ["liquid", "coagulant", "rennet"]
-  composition: []

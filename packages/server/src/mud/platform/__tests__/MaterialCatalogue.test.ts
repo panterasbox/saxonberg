@@ -27,8 +27,8 @@ describe("the roster warm", () => {
   it("onCreate stands up Material rows and skips the FolderZone folders", async () => {
     vi.spyOn(Template, "findByPathInfix").mockResolvedValue([
       { path: "/stuff/idea/material/wood", class: "/platform/idea/FolderZone" },
-      { path: "/stuff/idea/material/wood/oak", class: "/platform/idea/material/Material" },
-      { path: "/stuff/idea/material/element/uranium", class: "/platform/idea/material/RadioactiveMaterial" },
+      { path: "/stuff/idea/material/wood/oak", class: "/platform/idea/material/Wood" },
+      { path: "/stuff/idea/material/element/uranium", class: "/platform/idea/material/RadioactiveMetal" },
       // ⭐ A `Muscle` row warms for the same reason uranium does: the
       // filter is "its class extends `Material`", never a list of classes
       // or of roots. ⚠ Asserted because the reference-Idea roster has gone
@@ -54,8 +54,8 @@ describe("the roster warm", () => {
 
   it("tolerates a single failed standup and continues (the preloadAnatomy shape)", async () => {
     vi.spyOn(Template, "findByPathInfix").mockResolvedValue([
-      { path: "/stuff/idea/material/bad", class: "/platform/idea/material/Material" },
-      { path: "/stuff/idea/material/good", class: "/platform/idea/material/Material" },
+      { path: "/stuff/idea/material/bad", class: "/platform/idea/material/Residue" },
+      { path: "/stuff/idea/material/good", class: "/platform/idea/material/Residue" },
     ] as unknown as Template[]);
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(StuffApi, "singleton").mockImplementation(async (path: string) => {

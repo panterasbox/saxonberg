@@ -21,6 +21,7 @@ import Condition from "../../../Condition";
 import Provision from "../../../../thing/Provision";
 import Place from "../../../../../lib/stuff/Place";
 import Material from "../../../../../lib/material/Material";
+import Food from "../../../material/Food";
 import { Stuff } from "../../../../../lib/stuff/Stuff";
 import { Quantity } from "../../../../../lib/quantity";
 import { StuffApi } from "../../../../../api/stuff";
@@ -95,11 +96,10 @@ function rationMaterial(): Material {
   const found = StuffApi.findByTemplatePath<Material>(RATION);
   if (found) return found;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName("ration");
     m.setKeywords(["ration"]);
     m.setAppearance("a dry ration");
-    m.setEdibility(true);
     m.setNutrients(["carb"]);
     m.setNutrientAmounts({ carb: 18000 });
     m.setSpecificHeat(Quantity.of(2000, "J/(kg·K)"));

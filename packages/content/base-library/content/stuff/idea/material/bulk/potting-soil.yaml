@@ -7,7 +7,7 @@
 # no N/P/K, no pH, no tilth, no organic matter. The six-reserve soil that
 # makes quality mean something is farming's (phase 2/4). What the growth
 # model reads is only how many litres of it a pot holds: the root ceiling.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Soil
 data:
   smells: [{ aroma: /base-library/aromas/loam, strength: 10 }]
   name: potting soil
@@ -23,9 +23,4 @@ data:
   # Holds a lot of water for its dry mass — that is what a growing medium
   # is for, and it is what makes a watered pot buffer for about a day.
   waterAbsorptionCapacity: 60
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [granular, solid, soil, growing-medium]
-  composition: []
-  biologicalSource: null

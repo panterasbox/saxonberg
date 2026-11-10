@@ -87,6 +87,14 @@ const MODE_READERS_ALLOWED = [
    * resolves identically in every mode.
    */
   'lib/connection/SaxonbergClient.ts',
+  /*
+   * ⭐ A VIEW read (broadcast-ready D6): the streamer's own overlay is
+   * told which mode their client is in, so its screen guide can light the
+   * region the audience is looking at — and a mode change re-sends the
+   * show. It reports the mode; it never asks it whether anything is
+   * permitted, and nothing reads the reported value back into the game.
+   */
+  'lib/livestream/Broadcast.ts',
   'platform/idea/cmd/shell/CockpitController.ts',
   'platform/idea/cmd/shell/CockpitModeController.ts',
   'platform/idea/cmd/shell/LayoutListController.ts',

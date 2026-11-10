@@ -10,7 +10,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../lib/stuff/Good';
 import Place from '../../lib/stuff/Place';
-import Material from '../../lib/material/Material';
+import Metal from '../idea/material/Metal';
 import Floor from '../thing/Floor';
 import Forge from '../thing/Forge';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
@@ -33,17 +33,17 @@ class Ingot extends MeltableMixin(ThermalMixin(Good)) {
 class TestRoom extends Place {}
 
 let seq = 0;
-function ironMaterial(): Material {
+function ironMaterial(): Metal {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Metal();
     m.setName('iron');
     m.setDensity(Quantity.of(7874, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(449, 'J/(kg·K)'));
     m.setMeltingPoint(Quantity.of(1811, 'K'));
     m.setLatentHeatOfFusion(Quantity.of(247000, 'J/kg'));
     return m;
-  }, `/stuff/idea/material/_test/forge-iron-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/forge-iron-${seq}`) as unknown as Metal;
 }
 
 function forge(burnTempK: number, bellowsMult = 1): Forge {

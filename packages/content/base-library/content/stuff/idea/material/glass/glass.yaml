@@ -1,7 +1,7 @@
 # Glass — amorphous silica solid. The inner vessel wall of a vacuum
 # flask; low conductivity, moderate heat capacity. A real, tabulated
 # material consumed by the Thermal capability (the thermos wall term).
-class: /platform/idea/material/Material
+class: /platform/idea/material/Glass
 data:
   name: glass
   keywords: [glass]
@@ -34,10 +34,4 @@ data:
   # layer and the glass trade's remelt (glass build D5).
   meltingPoint: 1300
   latentHeatOfFusion: 150000
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["glass", "amorphous", "solid", "brittle"]
-  composition: []
-  chemistry: null
-  biologicalSource: null

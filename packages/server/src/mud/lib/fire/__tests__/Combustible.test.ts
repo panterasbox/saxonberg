@@ -11,6 +11,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
 import Material from '../../material/Material';
+import Wood from '../../../platform/idea/material/Wood';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { WetMixin } from '../../wetness/Wet';
 import { MoistureMixin } from '../../material/Moisture';
@@ -52,7 +53,7 @@ let matCounter = 0;
 function woodMaterial(): Material {
   matCounter += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Wood();
     m.setName(`test-wood-${matCounter}`);
     m.setAutoignitionTemperature(Quantity.of(570, 'K'));
     m.setHeatOfCombustion(Quantity.of(16, 'MJ/kg'));

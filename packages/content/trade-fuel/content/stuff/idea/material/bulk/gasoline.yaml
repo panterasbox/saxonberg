@@ -19,7 +19,7 @@
 # nothing because it is a `Lamp` with a tank. The third route — down a
 # river — is DEFERRED and recorded on the water design pack: nothing
 # shipped turns a poured liquid into a discharge.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Oil
 data:
   smells: [{ aroma: /base-library/aromas/naphtha, strength: 3000 }]
   burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 800 }]
@@ -41,10 +41,6 @@ data:
   # ⚠ Low, and that is the hazard rather than a flag: it catches from a
   # warm day and a spark, which is why storing it is a decision.
   autoignitionTemperature: 520
-  edibility: false
-  nutrients: []
   toxicity:
     - { type: ptomaine, amount: 1400 }
   tags: [liquid, fuel, flammable, volatile]
-  composition: []
-  biologicalSource: null

@@ -651,7 +651,11 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
           litres,
           massKg,
           brittle: vessel?.hasTag("brittle") ?? false,
-          hardness: vessel?.getHardness().rawValue(),
+          hardness: vessel
+            ? MixinApi.hasSolidity(vessel)
+              ? vessel.getHardness().rawValue()
+              : 0
+            : undefined,
         },
         CombatApi.splashSetFor(target),
       );

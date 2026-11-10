@@ -53,7 +53,7 @@ const ROWS: Doc[] = [
   },
   {
     path: LIMBO_PINK,
-    class: '/platform/idea/material/Material',
+    class: '/platform/idea/material/Residue',
     data: {
       name: 'limbo pink',
       appearance: 'seamless rubbery pink',

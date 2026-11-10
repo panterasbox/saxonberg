@@ -18,7 +18,7 @@
 #
 # ⭐ Nothing announces it either: it looks like water, answers to `water`,
 # and only the gauge on the reach says what is upstream.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Water
 data:
   name: tainted-water
   keywords: [water]
@@ -31,12 +31,9 @@ data:
   latentHeatOfFusion: 334000
   boilingPoint: 373
   latentHeatOfVaporization: 2260000
-  edibility: true
   nutrients: [water]
   # The shipped toxin route: lead, the persistent contaminant the lead
   # glaze's leach already doses with (`leaches` on a lead glaze).
   toxicity:
     - { type: lead, amount: 6 }
   tags: [liquid, water, beverage, drinkable]
-  composition: []
-  biologicalSource: null

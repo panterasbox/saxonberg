@@ -9,7 +9,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Board from '../thing/Board';
 import Pattern from '../thing/Pattern';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Metal from '@saxonberg/server/mud/platform/idea/material/Metal';
+import Wood from '@saxonberg/server/mud/platform/idea/material/Wood';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -34,23 +35,34 @@ const GREEN_OAK = '/stuff/idea/material/_pattern/seasoning-oak';
 const BRONZE = '/stuff/idea/material/_pattern/bronze';
 const SWORD = '/stuff/thing/_pattern/sword';
 
-function material(path: string, setup: (m: Material) => void): Material {
-  const found = StuffApi.findByTemplatePath<Material>(path);
+function wood(path: string, setup: (m: Wood) => void): Wood {
+  const found = StuffApi.findByTemplatePath<Wood>(path);
   if (found) return found;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Wood();
     m.setName(path.split('/').pop()!);
     setup(m);
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as Wood;
+}
+
+function material(path: string, setup: (m: Metal) => void): Metal {
+  const found = StuffApi.findByTemplatePath<Metal>(path);
+  if (found) return found;
+  return makeStuffAtPath(() => {
+    const m = new Metal();
+    m.setName(path.split('/').pop()!);
+    setup(m);
+    return m;
+  }, path) as unknown as Metal;
 }
 
 describe('carve pattern (ceramics D23)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
     WorldClockApi._setNowProviderForTesting(() => 7000);
-    material(OAK, (m) => m.setDensity(Quantity.of(750, 'kg/m³')));
-    material(GREEN_OAK, (m) => {
+    wood(OAK, (m) => m.setDensity(Quantity.of(750, 'kg/m³')));
+    wood(GREEN_OAK, (m) => {
       m.setDensity(Quantity.of(750, 'kg/m³'));
       m.seasoningDays = 100;
     });
@@ -76,12 +88,12 @@ describe('carve pattern (ceramics D23)', () => {
   it('⭐ a board plans a pattern oversize by bronze\'s shrink; the pattern presses the SWORD\'s shape', async () => {
     const hands = makeStuff(() => new TestHands());
     const board = makeStuff(() => new Board());
-    board.setMaterial(StuffApi.findByTemplatePath<Material>(OAK)!);
+    board.setMaterial(StuffApi.findByTemplatePath<Wood>(OAK)!);
     board.setMass(Quantity.of(6, 'kg'));
     ContainmentApi.move(board, hands);
     const sword = makeStuff(() => new Good());
     stampTemplatePathForTest(sword, SWORD);
-    sword.setMaterial(StuffApi.findByTemplatePath<Material>(BRONZE)!);
+    sword.setMaterial(StuffApi.findByTemplatePath<Metal>(BRONZE)!);
     sword.setMass(Quantity.of(1, 'kg'));
     const knife = makeStuff(() => new Tool());
     knife.setCapabilities(['cutting']);
@@ -92,7 +104,7 @@ describe('carve pattern (ceramics D23)', () => {
     const pattern = hands.getContents().find((c) => c instanceof Pattern) as Pattern | undefined;
     expect(pattern).toBeDefined();
     const imp = pattern!.leaveImpression(0)!;
-    const s = StuffApi.findByTemplatePath<Material>(BRONZE)!.castShrinkage();
+    const s = StuffApi.findByTemplatePath<Metal>(BRONZE)!.castShrinkage();
     expect(s).toBeGreaterThan(0.01);
     expect(imp.kindPath).toBe(SWORD);
     expect(imp.allowance).toBeCloseTo(s, 9);
@@ -103,11 +115,11 @@ describe('carve pattern (ceramics D23)', () => {
 
   it('refuses without an edge, and without a metal to cut for', async () => {
     const board = makeStuff(() => new Board());
-    board.setMaterial(StuffApi.findByTemplatePath<Material>(OAK)!);
+    board.setMaterial(StuffApi.findByTemplatePath<Wood>(OAK)!);
     board.setMass(Quantity.of(6, 'kg'));
     const thing = makeStuff(() => new Good());
     stampTemplatePathForTest(thing, SWORD);
-    thing.setMaterial(StuffApi.findByTemplatePath<Material>(OAK)!);
+    thing.setMaterial(StuffApi.findByTemplatePath<Wood>(OAK)!);
     thing.setMass(Quantity.of(1, 'kg'));
     const hands = makeStuff(() => new TestHands());
     const noEdge = await board.carvePlanFor({ actor: hands, word: 'pattern', knife: null, of: thing, forWord: '' });
@@ -123,12 +135,12 @@ describe('carve pattern (ceramics D23)', () => {
   function bench(woodPath = OAK) {
     const hands = makeStuffAtPath(() => new TestHands(), '/platform/agent/Avatar/pattern-maker');
     const board = makeStuff(() => new Board());
-    board.setMaterial(StuffApi.findByTemplatePath<Material>(woodPath)!);
+    board.setMaterial(StuffApi.findByTemplatePath<Wood>(woodPath)!);
     board.setMass(Quantity.of(6, 'kg'));
     ContainmentApi.move(board, hands);
     const sword = makeStuff(() => new Good());
     stampTemplatePathForTest(sword, SWORD);
-    sword.setMaterial(StuffApi.findByTemplatePath<Material>(BRONZE)!);
+    sword.setMaterial(StuffApi.findByTemplatePath<Metal>(BRONZE)!);
     sword.setMass(Quantity.of(1, 'kg'));
     const knife = makeStuff(() => new Tool());
     knife.setCapabilities(['cutting']);

@@ -17,6 +17,7 @@ import { ConstructedMixin } from '../../material/Constructed';
 import { ContainableMixin } from '../../spatial/Containable';
 import Good from '../../stuff/Good';
 import Material from '../../material/Material';
+import Fiber from '../../../platform/idea/material/Fiber';
 import { Construction } from '../../material/Construction';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
@@ -110,7 +111,7 @@ function fibre(
     absorption: number;
   },
 ): Material {
-  const m = makeStuff(() => new Material());
+  const m = makeStuff(() => new Fiber());
   m.setName(name);
   m.setDensity(Quantity.of(opts.density, 'kg/m³'));
   m.setThermalConductivity(Quantity.of(opts.conductivity, 'W/(m·K)'));

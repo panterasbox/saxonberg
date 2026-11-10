@@ -30,7 +30,8 @@ import { WorldClockApi } from '../../../../api/worldclock';
 import { BulkableApi } from '../../../../api/bulk';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
-import Material from '../../../../lib/material/Material';
+import Oil from '../../material/Oil';
+import Spirit from '../../material/Spirit';
 import { Freshness } from '../../../../lib/material/Freshness';
 import Good from '../../../../lib/stuff/Good';
 import Provision from '../../../thing/Provision';
@@ -85,14 +86,16 @@ function registerMaterial(
   name: string,
   tags: string[],
   edible = false,
-): Material {
+): Spirit | Oil {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    // Edible IS composing Edibility; an inedible medium (brine's sibling,
+    // sand) is the nearest kind that has the boiling and smoke ceilings
+    // without it.
+    const m = edible ? new Spirit() : new Oil();
     m.setName(name);
     m.setTags(tags);
-    if (edible) m.setEdibility(true);
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as Spirit | Oil;
 }
 
 /** A hearth at `burnK` — the fire half of the effective-heat pair. */
@@ -121,7 +124,7 @@ function makeMeat(): Good {
   const t = makeStuff(() => new Good());
   t.setMass(Quantity.of(0.4, 'kg'));
   t.setMaterial(
-    StuffApi.findByTemplatePath<Material>(MEAT) as unknown as Material,
+    StuffApi.findByTemplatePath<Spirit>(MEAT) as unknown as Spirit,
   );
   return t;
 }
@@ -608,7 +611,7 @@ describe('the toxin kill is SELECTIVE (AC9)', () => {
     const t = makeStuff(() => new Good());
     t.setMass(Quantity.of(0.3, 'kg'));
     t.setMaterial(
-      StuffApi.findByTemplatePath<Material>(materialPath) as unknown as Material,
+      StuffApi.findByTemplatePath<Spirit>(materialPath) as unknown as Spirit,
     );
     ContainmentApi.move(t, room);
     return t;
@@ -656,7 +659,9 @@ describe('the toxin kill is SELECTIVE (AC9)', () => {
     // produced. This is the honest-microbiology line the whole selective
     // kill exists to draw.
     const meat = item(RANK_MEAT);
-    expect(meat.getMaterial()!.getToxicity()[0]!.labileAtK).toBeUndefined();
+    const meatMaterial = meat.getMaterial()!;
+    if (!MixinApi.hasToxicity(meatMaterial)) throw new Error('expected a toxic material');
+    expect(meatMaterial.getToxicity()[0]!.labileAtK).toBeUndefined();
     ContainmentApi.move(makeBottle(WATER, 2), room);
     const outcome = await craftAs(cook, {
       recipeRef: 'rank-stew',
@@ -676,7 +681,7 @@ describe('the working resets the spoilage load (P4)', () => {
     const t = makeStuff(() => new Provision());
     t.setMass(Quantity.of(0.4, 'kg'));
     t.setMaterial(
-      StuffApi.findByTemplatePath<Material>(materialPath) as unknown as Material,
+      StuffApi.findByTemplatePath<Spirit>(materialPath) as unknown as Spirit,
     );
     t.setMicrobialLoad(load);
     ContainmentApi.move(t, room);

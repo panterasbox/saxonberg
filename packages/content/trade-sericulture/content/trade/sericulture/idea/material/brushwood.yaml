@@ -1,7 +1,7 @@
 # Brushwood — dry twiggy heather or broom, bundled. ⭐ What a wandering
 # worm climbs to spin: the `mounting` tag is what the tray looks for, and
 # a tray with none on it spins a day late, on its own floor, and lighter.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Fiber
 data:
   smells: [{ aroma: /base-library/aromas/wood, strength: 10 }]
   burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
@@ -13,9 +13,4 @@ data:
   specificHeat: 1600
   hardness: 2
   toughness: 2
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["wood", "plant", "organic", "mounting", "once-living"]
-  composition: []
-  biologicalSource: null

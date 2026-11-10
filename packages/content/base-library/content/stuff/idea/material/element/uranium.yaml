@@ -7,26 +7,20 @@
 # `/stuff/idea/material/element/thorium` and pointing this template's
 # `_decayProductPath` at it.
 #
-# This template is the demonstration of `RadioactiveMixin` — only
-# materials whose nuclei genuinely undergo spontaneous decay use
-# `class: /platform/idea/material/RadioactiveMaterial`. Plain elements stay on
-# `class: /platform/idea/material/Material`.
-class: /platform/idea/material/RadioactiveMaterial
+# This template is the demonstration of `RadioactivityMixin` — only
+# materials whose nuclei genuinely undergo spontaneous decay are a
+# `RadioactiveMetal` (a toxic elemental metal that also decays); other
+# elements are `ElementalMetal`, `ToxicMetal` or `NonMetal`.
+class: /platform/idea/material/RadioactiveMetal
 data:
   name: uranium
   keywords: [uranium]
   density: 19050
   specificHeat: 116
   thermalConductivity: 27
-  edibility: false
-  nutrients: []
-  toxicity: [{ type: radiation, amount: 0 }, { type: heavy-metal, amount: 0 }]
   tags: ["element", "metal", "actinide", "radioactive", "heavy"]
-  composition: []
   symbol: U
   atomicNumber: 92
   molarMass: 238.029
-  biologicalSource: null
   halfLife: 4.468e9
   decayMode: alpha
-  _decayProductPath: null

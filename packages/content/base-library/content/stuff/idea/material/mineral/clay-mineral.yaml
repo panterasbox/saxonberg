@@ -4,7 +4,7 @@
 # this is the constituent its plasticity is read from — a fat clay is rich in
 # it, a lean one is mostly sand. A commons row because base-library's own
 # `earth/clay` names it (R4).
-class: /platform/idea/material/Material
+class: /platform/idea/material/Clay
 data:
   name: clay mineral
   keywords: [kaolinite, illite, "clay mineral"]
@@ -16,9 +16,4 @@ data:
   waterAbsorptionCapacity: 40
   hardness: 3
   toughness: 1
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["mineral", "silicate", "clay-mineral", "plastic"]
-  composition: []
-  biologicalSource: null

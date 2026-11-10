@@ -19,6 +19,7 @@ import type {
 import type { ContactWetness } from '../../../api/material';
 import { StuffApi } from '../../../api/stuff';
 import { AppApi } from '../../../api/app';
+import { MixinApi } from '../../../api/mixin';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { Channels } from '../../../lib/material/Channel';
 import type { Channel } from '../../../lib/material/Channel';
@@ -85,6 +86,12 @@ export class MaterialLogic extends ApiLogic {
   @CallSecurity(MaterialSelfCallers)
   public containsElement(material: Material, elementSymbol: string): boolean {
     return containsElementOf(material, elementSymbol);
+  }
+
+  /** See {@link MaterialApi.all}. */
+  @CallSecurity(MaterialApiCallers)
+  public all(): Material[] {
+    return everyMaterial();
   }
 
   /** See {@link MaterialApi.findByTag}. */
@@ -346,7 +353,7 @@ function makeupOfImpl(
   const entries =
     recorded.length > 0
       ? recorded.map((e) => ({ ...e }))
-      : (material?.getComposition() ?? [])
+      : (material && MixinApi.hasMixture(material) ? material.getComposition() : [])
           .filter((e) => e.materialPath && e.fraction > MAKEUP_EPSILON)
           .map((e) => ({ ...e }));
   const sum = entries.reduce((a, e) => a + e.fraction, 0);
@@ -382,7 +389,7 @@ function lerp(a: number, b: number, t: number): number {
 
 /** One serving of `material`, kg — the authored row, else the dial at its density. */
 function servingKg(material: Material): number {
-  const authored = material.getServingKg();
+  const authored = MixinApi.hasEdibility(material) ? material.getServingKg() : 0;
   if (authored > 0) return authored;
   const litres = dial(AppSettingKeys.nutritionServingLitres, 0.25);
   const kg = (litres * material.getDensity().rawValue()) / 1000;
@@ -512,9 +519,14 @@ function materialScale(material: Material | null, channel: Channel): number {
   if (!material) return 0;
   const hardnessRef = dial(AppSettingKeys.responseMaterialHardnessRef, 600);
   const toughnessRef = dial(AppSettingKeys.responseMaterialToughnessRef, 200);
-  const hn = clamp(material.getHardness().rawValue() / hardnessRef, 0, scaleMax);
+  const solid = MixinApi.hasSolidity(material);
+  const hn = clamp(
+    (solid ? material.getHardness().rawValue() : 0) / hardnessRef,
+    0,
+    scaleMax,
+  );
   const tn = clamp(
-    material.getToughness().rawValue() / toughnessRef,
+    (solid ? material.getToughness().rawValue() : 0) / toughnessRef,
     0,
     scaleMax,
   );
@@ -650,7 +662,9 @@ function corrosionAttenuationFraction(
     // Consumed — it is being eaten, so it stops nothing.
     return 0;
   }
-  const absorption = material.getWaterAbsorptionCapacity().rawValue();
+  const absorption = MixinApi.hasPorosity(material)
+    ? material.getWaterAbsorptionCapacity().rawValue()
+    : 0;
   const shedMax = dial(AppSettingKeys.responseCorrosionShedAbsorptionMax, 5);
   if (absorption > shedMax) {
     // Wicks it through — worse than a shed, better than being eaten.
@@ -878,7 +892,7 @@ function previewBandImpl(
  * produce cycles).
  */
 function computeComposition(material: Material): MaterialComposition {
-  const direct = material.getComposition();
+  const direct = MixinApi.hasMixture(material) ? material.getComposition() : [];
   const flat: Record<string, number> = {};
   const visited = new Set<string>();
   expandInto(material, 1, flat, visited);
@@ -910,13 +924,9 @@ function everyMaterial(): Material[] {
 }
 
 function isMaterial(stuff: Stuff): stuff is Material {
-  // Duck-check via the Material surface. Avoids an instanceof import
-  // cycle and tolerates RadioactiveMaterial / future capability
-  // subclasses uniformly.
-  return (
-    typeof (stuff as Partial<Material>).getDensity === 'function' &&
-    typeof (stuff as Partial<Material>).getTags === 'function'
-  );
+  // Every kind extends the base, so the base is the test (no duck
+  // typing — material decomposition P4).
+  return stuff instanceof Material;
 }
 
 // ---------- electricity: circuit internals (module-private free functions) ----------
@@ -992,7 +1002,8 @@ function contactResistanceImpl(
   const dry = material ? material.getElectricalConductivity().rawValue() : 0;
   // ⭐ (rubber build) A CALLER of the wet law — owned by storage-and-ice.
   const sigma =
-    material && wet ? material.wetProperty(dry, wet.fluidSigma, wet.saturation) : dry;
+    material && wet && MixinApi.hasPorosity(material)
+      ? material.wetProperty(dry, wet.fluidSigma, wet.saturation) : dry;
   if (sigma <= 0) return Quantity.of(maxOhms, 'Ω');
   const geo = dial(AppSettingKeys.electricityContactGeometryFactor, 0.01);
   return Quantity.of(clamp(geo / sigma, 0, maxOhms), 'Ω');
@@ -1040,10 +1051,13 @@ function expandInto(
   if (path && visited.has(path)) return;
   if (path) visited.add(path);
 
-  const direct = material.getComposition();
+  const direct = MixinApi.hasMixture(material) ? material.getComposition() : [];
   if (direct.length === 0) {
     // Leaf material — credit its own element symbol if it has one.
-    const symbol = material.getChemistry()?.symbol;
+    const symbol =
+      MixinApi.hasElement(material) || MixinApi.hasCompound(material)
+        ? material.getChemistry()?.symbol
+        : undefined;
     if (symbol) acc[symbol] = (acc[symbol] ?? 0) + weight;
     return;
   }

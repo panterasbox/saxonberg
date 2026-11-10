@@ -5,7 +5,7 @@
 # ⭐ A coat is not a piece: its fuse reads this row's first kinetics change —
 # `rate.referenceK` fuses a wet coat, `scorchAboveK` runs it. The rung
 # names the glaze itself, so the spec stays valid and changes nothing.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/PigmentPaint
 data:
   smells: [{ aroma: /base-library/aromas/lye, strength: 30 }]
   name: ash glaze
@@ -15,7 +15,6 @@ data:
   specificHeat: 840
   thermalConductivity: 1.0
   electricalConductivity: 1.0e-9
-  waterAbsorptionCapacity: 0
   hardness: 55
   toughness: 3
   thermalExpansion: 5.0e-6
@@ -28,9 +27,4 @@ data:
       scorched: /stuff/idea/material/glaze/ash
       ladder:
         - { atDegree: 1, becomes: /stuff/idea/material/glaze/ash }
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["glaze", "mineral", "vitreous"]
-  composition: []
-  biologicalSource: null

@@ -1,7 +1,7 @@
 # Soft soap — the boil's product (cleanliness D24): a brown jelly that
 # lifts grease and dirt, and scums in hard water. Grained with salt it
 # makes a hard bar.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Soap
 data:
   smells: [{ aroma: /base-library/aromas/soap, strength: 300 }]
   name: soft soap
@@ -12,12 +12,7 @@ data:
   thermalConductivity: 0.4
   meltingPoint: 280
   boilingPoint: 380
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [liquid, soap, surfactant, soft-soap, cleanser]
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
   cleanser: /platform/idea/Cleanser/soap
-  composition: []
-  biologicalSource: null

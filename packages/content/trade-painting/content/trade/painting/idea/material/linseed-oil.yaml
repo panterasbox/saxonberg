@@ -2,7 +2,7 @@
 # an oil that, spread thin, takes the AIR into itself and sets to a tough
 # skin over a day or so (paint D4). It warms as it does — the heat that
 # sets a heap of oily rags alight. The binder of every oil paint.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/CoatingOil
 data:
   smells: [{ aroma: /base-library/aromas/linseed, strength: 200 }]
   burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 800 }]
@@ -16,9 +16,6 @@ data:
   boilingPoint: 560
   heatOfCombustion: 39
   autoignitionTemperature: 616
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [liquid, oil, binder, drying-oil, flammable, organic, once-living]
   laysCoat: true
   coatWord: painted
@@ -37,5 +34,3 @@ data:
       order: 0
       rate: [[273, 0], [283, 0.03], [293, 0.055], [303, 0.09], [320, 0.16]]
       exothermicJPerKg: 2500000
-  composition: []
-  biologicalSource: null

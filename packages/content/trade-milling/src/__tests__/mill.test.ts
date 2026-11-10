@@ -30,6 +30,7 @@ import { ComminutingMixin } from '@saxonberg/server/mud/lib/craft/Comminuting';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 import MillController from '../idea/cmd/milling/MillController';
 import Material from '@saxonberg/server/mud/lib/material/Material';
+import Food from '@saxonberg/server/mud/platform/idea/material/Food';
 import Sack from '@saxonberg/server/mud/platform/thing/Sack';
 import Crop from '@saxonberg/server/mud/platform/thing/Crop';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
@@ -121,11 +122,10 @@ function material(
   amounts: Record<string, number> = {},
 ): Material {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName(name);
     m.setTags(tags);
     m.setDensity(Quantity.of(density, 'kg/m³'));
-    m.setEdibility(true);
     m.setNutrientAmounts(amounts);
     return m;
   }, path) as unknown as Material;

@@ -478,7 +478,12 @@ export function OpenWorkingMixin<
         }
       }
 
-      const hardness = face.host?.getHardness().rawValue() ?? REFERENCE_MPA;
+      const host = face.host;
+      const hardness = !host
+        ? REFERENCE_MPA
+        : MixinApi.hasSolidity(host)
+          ? host.getHardness().rawValue()
+          : 0;
       const durationMs = Math.max(1_000, Math.round(ACT_MS * (hardness / REFERENCE_MPA)));
       const hostPath = face.hostPath;
       const floor = face.floor;
@@ -529,7 +534,7 @@ export function OpenWorkingMixin<
             // is the estimator's own anti-grind property rather than a guard.
             difficulty: face.earth
               ? 'easy'
-              : (face.host?.getHardness().rawValue() ?? 0) >= 150
+              : (face.host && MixinApi.hasSolidity(face.host) ? face.host.getHardness().rawValue() : 0) >= 150
                 ? 'hard'
                 : 'standard',
           },

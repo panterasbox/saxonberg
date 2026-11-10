@@ -27,7 +27,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { BulkableApi } from '../../../../api/bulk';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
-import Material from '../../../../lib/material/Material';
+import Food from '../../material/Food';
 import Good from '../../../../lib/stuff/Good';
 import Dish from '../../../thing/Dish';
 import CraftVessel from '../../../thing/CraftVessel';
@@ -75,14 +75,13 @@ let store: Record<string, Record<string, unknown>[]>;
 let room: TestRoom;
 let cook: TestCook;
 
-function registerMaterial(path: string, name: string, tags: string[]): Material {
+function registerMaterial(path: string, name: string, tags: string[]): Food {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName(name);
     m.setTags(tags);
-    m.setEdibility(true);
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as Food;
 }
 
 function hearth(): Oven {
@@ -99,7 +98,7 @@ function hearth(): Oven {
 function meat(): Good {
   const t = makeStuff(() => new Good());
   t.setMass(Quantity.of(0.3, 'kg'));
-  t.setMaterial(StuffApi.findByTemplatePath<Material>(MEAT) as unknown as Material);
+  t.setMaterial(StuffApi.findByTemplatePath<Food>(MEAT) as unknown as Food);
   ContainmentApi.move(t, room);
   return t;
 }

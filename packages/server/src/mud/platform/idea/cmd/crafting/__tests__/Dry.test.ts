@@ -33,7 +33,7 @@ import PlacementCatalogue from '../../../../../platform/idea/PlacementCatalogue'
 import { Template } from '../../../../../lib/stuff/Template';
 import Good from '../../../../../lib/stuff/Good';
 import Provision from '../../../../../platform/thing/Provision';
-import Material from '../../../../../lib/material/Material';
+import Flesh from '../../../material/Flesh';
 import { Agent } from '../../../../../lib/stuff/Agent';
 import { AetherMixin } from '../../../../../lib/message/Aether';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
@@ -67,16 +67,16 @@ class Cook extends AetherMixin(
 }
 
 let matSeq = 0;
-function meat(): Material {
+function meat(): Flesh {
   matSeq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Flesh();
     m.setName(`dry-test-meat-${matSeq}`);
     m.setSpecificHeat(Quantity.of(3200, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.5, 'W/(m·K)'));
     m.setWaterActivity(0.97);
     return m;
-  }, `/stuff/idea/material/_test/dry-${matSeq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/dry-${matSeq}`) as unknown as Flesh;
 }
 
 function ctx(giver: Stuff, location: Stuff): CommandContext {

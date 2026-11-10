@@ -4,7 +4,7 @@
 # (underwater D29 seam 4): it carries more salt than a body can shed, so
 # drinking it makes you thirstier — the `salt` toxin's condition draws on
 # hydration — and enough of it makes you ill.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Water
 data:
   tastes: [{ type: salty, amount: 35 }]
   name: salt water
@@ -16,8 +16,6 @@ data:
   # Electrical conductivity (S/m) — seawater, ~5 (dissolved-ion driven;
   # ~500× fresh water). The reason a shorted pool is deadly.
   electricalConductivity: 5
-  edibility: false
-  nutrients: []
   # ~35 g of salt a liter: the toxin dose per liter drunk.
   toxicity:
     - { type: salt-poisoning, amount: 35 }
@@ -38,5 +36,3 @@ data:
   crystallizesTo:
     product: /stuff/idea/material/food/salt
     residue: /stuff/idea/material/bulk/bittern
-  composition: []
-  biologicalSource: null

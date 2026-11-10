@@ -340,7 +340,8 @@ export default class SmeltingFurnace extends SmeltingFurnaceBase {
       return { ok: true, facts: { ...base, bloom: false, metalKg, run, fluxed: false } };
     }
 
-    const productRow = StuffApi.findByTemplatePath<Material>(productMaterial)?.getCastTemplate() ?? '';
+    const product = StuffApi.findByTemplatePath<Material>(productMaterial) ?? null;
+    const productRow = product && MixinApi.hasFusion(product) ? product.getCastTemplate() : '';
     if (!productRow) {
       // ⚠ An authoring fault, not a game outcome — loud, never a silent
       // bad smelt.
@@ -385,7 +386,7 @@ export default class SmeltingFurnace extends SmeltingFurnaceBase {
       const material = item.getMaterial() as Material | null;
       const metals: CompositionEntry[] = [];
       if (material) {
-        const composition = material.getComposition();
+        const composition = MixinApi.hasMixture(material) ? material.getComposition() : [];
         if (composition.length > 0) {
           for (const entry of composition) {
             const m = StuffApi.findByTemplatePath<Material>(entry.materialPath);
@@ -457,7 +458,7 @@ export default class SmeltingFurnace extends SmeltingFurnaceBase {
 
   /** A material's melting point, K, off the material's own row. */
   protected meltingPointKOf(metal: Material): number {
-    const value = metal.getMeltingPoint().rawValue();
+    const value = MixinApi.hasFusion(metal) ? metal.getMeltingPoint().rawValue() : 0;
     return value > 0 ? value : IronCarbon.T_FE;
   }
 
@@ -550,7 +551,13 @@ export default class SmeltingFurnace extends SmeltingFurnaceBase {
 
   /** A pool on the hearth, set: the metal's own cast, in the furnace. */
   protected async hearthLump(metal: Material, kg: number, madeFrom: readonly Stuff[]): Promise<void> {
-    await this.pour(metal.getCastTemplate(), kg, madeFrom, (lump) => {
+    // A metal with no fusion row still sets as SOMETHING (material decomposition).
+    const castTemplate = MixinApi.hasFusion(metal)
+      ? metal.getCastTemplate()
+      : metal.hasTag('metal')
+        ? '/stuff/thing/metal-casting'
+        : '/stuff/thing/Casting';
+    await this.pour(castTemplate, kg, madeFrom, (lump) => {
       if (!MixinApi.isTangible(lump) || lump.getMaterial()) return;
       lump.setMaterial(metal);
       if (MixinApi.isVisible(lump)) lump.setShortDescription(`cast lump of ${metal.getName()}`);

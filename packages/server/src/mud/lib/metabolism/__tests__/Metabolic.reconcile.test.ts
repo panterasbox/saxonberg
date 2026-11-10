@@ -9,7 +9,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
-import Material from "../../material/Material";
+import Food from "../../../platform/idea/material/Food";
 import { Quantity } from "../../quantity";
 import { WorldClockApi } from "../../../api/worldclock";
 import "../../../platform/idea/WorldClockRegistry"; // register the registry class
@@ -43,14 +43,13 @@ function advance(c: Creature, gameSec: number, chunkSec = 3000): void {
 const Q = (n: number) => Quantity.of(n, "%");
 const L = (n: number) => Quantity.of(n, "L");
 
-function food(name: string, nutrients: string[]): Material {
+function food(name: string, nutrients: string[]): Food {
   return makeStuff(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName(name);
     m.setNutrients(nutrients);
-    m.setEdibility(true);
     return m;
-  }) as unknown as Material;
+  }) as unknown as Food;
 }
 
 function sat(c: Creature): number {

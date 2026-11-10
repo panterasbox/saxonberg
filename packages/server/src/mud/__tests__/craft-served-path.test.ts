@@ -20,6 +20,7 @@ import '../platform/idea/WorldClockRegistry';
 import { PersistenceManager } from '../../backend/PersistenceManager';
 import { Quantity } from '../lib/quantity';
 import Material from '../lib/material/Material';
+import Drink from '../platform/idea/material/Drink';
 import Condition from '../platform/idea/Condition';
 import type { ToxinBehavior } from '../lib/metabolism/Metabolic';
 import { Creature } from '../lib/creature/Creature';
@@ -103,10 +104,9 @@ function registerMaterial(
   alcoholDose?: number,
 ): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Drink();
     m.setName(name);
     m.setTags(tags);
-    m.setEdibility(true);
     if (alcoholDose !== undefined) {
       m.setToxicity([{ type: 'alcohol', amount: alcoholDose }]);
     }

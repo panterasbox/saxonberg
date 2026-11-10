@@ -197,7 +197,7 @@ export function FormingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
       const product =
         parsed.word?.product ||
         this.formTemplates[parsed.formClass] ||
-        material?.getFormTemplates()[parsed.formClass] ||
+        (material && MixinApi.hasKinetic(material) ? material.getFormTemplates()[parsed.formClass] : undefined) ||
         '';
       if (product === '') return { ok: false, reason: 'no-product', facts: { coiling: null } };
       const discipline = parsed.word?.discipline || this.formingDiscipline();

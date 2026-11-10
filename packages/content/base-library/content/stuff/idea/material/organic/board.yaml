@@ -1,7 +1,7 @@
 # Board (paper build) — pasteboard: sheets of paper glued in plies until they
 # stand stiff. A book's covers, a carton's walls. The same cellulose as
 # paper, denser and much stiffer; it burns as paper does, a little slower.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Fiber
 data:
   smells: [{ aroma: /base-library/aromas/wood, strength: 1 }]
   burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
@@ -21,11 +21,6 @@ data:
   wetStrength: 0.1
   soddenTemplate: /stuff/thing/pulp
   autoignitionTemperature: 520
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["organic", "plant", "cellulose", "paper", "once-living"]
-  composition: []
   formula: C6H10O5
   molarMass: 162.14
-  biologicalSource: null

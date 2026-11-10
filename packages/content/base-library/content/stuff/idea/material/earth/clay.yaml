@@ -6,7 +6,7 @@
 # different material with different numbers. This one is the ground; that
 # one is the mug. The two share the keyword `clay` because both honestly
 # answer to it.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Clay
 data:
   smells: [{ aroma: /base-library/aromas/wet-clay, strength: 10 }]
   name: clay
@@ -24,9 +24,6 @@ data:
   waterAbsorptionCapacity: 45
   hardness: 5
   toughness: 2
-  edibility: false
-  nutrients: []
-  toxicity: []
   # ⭐ `clay` added by the extraction build, so a second clay answers to
   # the word. The other four tags are what the ground build authored.
   tags: ["earth", "solid", "soil", "plastic", "clay"]
@@ -80,4 +77,3 @@ data:
         - atDegree: 1
           becomes: /stuff/idea/material/ceramic/stoneware
           reducing: /stuff/idea/material/ceramic/stoneware-reduced
-  biologicalSource: null

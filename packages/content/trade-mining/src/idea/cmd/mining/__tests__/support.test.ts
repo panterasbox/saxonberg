@@ -27,7 +27,7 @@ import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import MineRoom from '../../../../location/MineRoom';
 import Ore from '../../../../thing/Ore';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -154,7 +154,7 @@ describe('ground support', () => {
     for (const [path, mpa] of [
       [SLATE, 90], [GRANITE, 200], [MALACHITE, 200], [QUARTZ, 1100],
     ] as const) {
-      const m = makeStuffAtPath(() => new Material(), path);
+      const m = makeStuffAtPath(() => new Stone(), path);
       (m as unknown as { hardness: Quantity<'MPa'> }).hardness = Quantity.of(mpa, 'MPa');
     }
     vi.spyOn(console, 'warn').mockImplementation(() => {});

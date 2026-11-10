@@ -1,7 +1,7 @@
 # Ceramic — fired clay. The body of a mug; moderate conductivity and
 # heat capacity. A real, tabulated material consumed by the Thermal
 # capability (the open-mug wall term — cools faster than a sealed flask).
-class: /platform/idea/material/Material
+class: /platform/idea/material/Ceramic
 data:
   name: ceramic
   keywords: [clay, ceramic]
@@ -18,13 +18,7 @@ data:
   # saucer always shattered.
   hardness: 50
   toughness: 6
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["ceramic", "mineral", "solid", "brittle", "fired"]
-  composition: []
-  chemistry: null
-  biologicalSource: null
   # ⭐ (ceramics W2) What it breaks into — the commons sherds row, stamped
   # with this body at the break; ground at a millstone, sherds are grog.
   brokenTemplate: /stuff/thing/sherds

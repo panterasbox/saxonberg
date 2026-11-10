@@ -1,6 +1,6 @@
 # Yoghurt — scalded milk a lactic culture has soured warm (dairy D7). The
 # acid is a hurdle: it keeps days where milk keeps a day.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Food
 data:
   smells: [{ aroma: /base-library/aromas/yoghurt, strength: 60 }]
   name: "yoghurt"
@@ -10,15 +10,9 @@ data:
   specificHeat: 3900
   thermalConductivity: 0.5
   electricalConductivity: 0.4
-  waterAbsorptionCapacity: 0
-  hardness: 0
-  toughness: 0
-  edibility: true
   tastes: [{ type: sweet, amount: 30 }, { type: sour, amount: 8 }]
   nutrients: ["fat", "protein", "sugar", "water"]
   nutrientAmounts: { fat: 34000, protein: 40000, sugar: 30000, water: 870000 }
   spoilActivationEnergy: 70000
   waterActivity: 0.97
-  toxicity: []
   tags: ["food", "dairy", "perishable", "yoghurt"]
-  composition: []

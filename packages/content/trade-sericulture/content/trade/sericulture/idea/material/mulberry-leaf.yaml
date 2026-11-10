@@ -5,7 +5,7 @@
 # rearing house stands beside its mulberry walk and why a hand picks twice
 # a day in the fifth age. `silkworm-fodder` is the tag the tray reads; the
 # leaf is a plant tissue and spoils like one, a little faster.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/EdibleHerb
 data:
   smells: [{ aroma: /base-library/aromas/leaf, strength: 30 }]
   tastes: [{ type: sweet, amount: 10 }, { type: bitter, amount: 0.02 }]
@@ -15,15 +15,12 @@ data:
   density: 600
   specificHeat: 2500
   thermalConductivity: 0.3
-  edibility: true
   # ⚠ Tuned so a cut leaf leaves `fresh` within about a game day at room
   # temperature — asserted in src/__tests__/leaf-wilt.test.ts.
   spoilActivationEnergy: 60000
   waterActivity: 0.97
   nutrients: ["cellulose", "water"]
-  toxicity: []
   tags: ["tissue", "plant", "organic", "edible", "silkworm-fodder", "once-living"]
-  composition: []
   biologicalSource:
     speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/rosales/moraceae/morus/alba
     tissueType: leaf

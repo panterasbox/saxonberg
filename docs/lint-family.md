@@ -170,6 +170,15 @@ at **339, three below where the build found it.**
   otherwise have is a smell silently dropped. It also refuses a smell on a material whose
   class cannot hold one, a taste with no amount, and a recipe medium nothing in reach
   carries. No exemption list.
+- ⭐⭐ **`lint:material-kinds`** — *a material has exactly the properties it has, and nothing
+  depends on what kind it is* (material decomposition, 2026-11). Four arms: (a) production code
+  never imports a material KIND except to `extends` it, nor sorts materials by a
+  `/idea/material/<folder>/` prefix — a consumer asks `MixinApi.has<Capability>`; (b) a material
+  row authors no key its kind does not declare (the applier drops it silently — `chemistry:` sat
+  dead on 43 rows); (c) no row authors a capability at "not applicable" (a child clearing its
+  parent's value excepted); (d) **census, then ratchet** on the data gaps — capability fields a
+  kind composes that a row has not authored yet, printed per pack (`--gaps`), may fall and never
+  rise.
 - ⭐⭐ **`lint:closed-vocabularies`** — **the census of kernel words
   content is not allowed to add to.** A closed list in kernel source that
   stands between a pack author and their row breaks *a pack must never

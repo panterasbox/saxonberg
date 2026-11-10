@@ -5,10 +5,9 @@
  * reduces them blue.
  */
 
-import { OdorousMaterial } from '@saxonberg/server/mud/platform/idea/material/OdorousMaterial';
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import SolidFuel from '@saxonberg/server/mud/platform/idea/material/SolidFuel';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import type { Burner } from '@saxonberg/server/mud/lib/fire/Burner';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -50,19 +49,19 @@ const advance = (s: number): void => {
 
 let seq = 0;
 const P = (n: string): string => `/stuff/idea/material/_clamp/${n}-${seq}`;
-function mat(name: string, fill: (m: Material) => void = () => {}): Material {
+function mat(name: string, fill: (m: SolidFuel) => void = () => {}): SolidFuel {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new SolidFuel();
     m.setName(name);
     m.setDensity(Quantity.of(1800, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(900, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(1, 'W/(m·K)'));
     fill(m);
     return m;
-  }, P(name)) as unknown as Material;
+  }, P(name)) as unknown as SolidFuel;
 }
 
-let clay: Material;
+let clay: SolidFuel;
 function setup(): void {
   seq += 1;
   for (const n of ['terracotta', 'grey', 'earthenware', 'blue', 'stoneware', 'celadon', 'clinker']) mat(n);
@@ -115,7 +114,7 @@ async function clampWith(n: number, draught: number): Promise<{ clamp: BrickClam
 function bodies(clamp: BrickClamp): Map<string, string> {
   const out = new Map<string, string>();
   for (const c of clamp.getContents()) {
-    const s = c as unknown as Stuff & { getMaterial(): Material | null };
+    const s = c as unknown as Stuff & { getMaterial(): SolidFuel | null };
     const name = s.getMaterial()?.getName() ?? '?';
     out.set(clamp.positionOf(s), name);
   }
@@ -258,7 +257,7 @@ describe('⭐ the burning clamp\'s smoke (ceramics browser walk)', () => {
     vi.spyOn(clamp, 'isLit').mockReturnValue(false);
     expect(clamp.burningNotes()).toEqual([]);
     vi.spyOn(clamp, 'isLit').mockReturnValue(true);
-    const coal = makeStuff(() => new OdorousMaterial());
+    const coal = makeStuff(() => new SolidFuel());
     coal.burning = [{ aroma: '/base-library/aromas/coal-smoke', strength: 100 }];
     vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(coal);
     clamp.fuelBed = { '/stuff/idea/material/coal': 4 };

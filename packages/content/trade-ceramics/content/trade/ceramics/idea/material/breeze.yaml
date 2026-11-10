@@ -2,7 +2,7 @@
 # the clay: it opens a fat clay so it dries without cracking, and it burns
 # INSIDE the brick in the clamp, firing it from within (ceramics S3). A
 # residue of the fuel, kneaded in at the temper pit.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFuel
 data:
   burning: [{ aroma: /base-library/aromas/coal-smoke, strength: 30 }]
   name: breeze
@@ -17,9 +17,4 @@ data:
   toughness: 1
   autoignitionTemperature: 700
   heatOfCombustion: 8
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["residue", "granular", "breeze", "fuel"]
-  composition: []
-  biologicalSource: null

@@ -40,6 +40,7 @@ import { cardReason, type CardState } from "../../store/cardFeedSlice";
 import { CARD_LABEL } from "./useCardFeed";
 import { KIND_COLOR, KindMark } from "./KindMark";
 import { useStore } from "../../store/index";
+import { PopOutPortal, usePopOut } from "./PopOut";
 
 const Shell = styled.article<{ $faded: boolean; $pinned: boolean; $kind?: string }>`
   border: 1px solid
@@ -250,6 +251,14 @@ function takenLabel(takenAt: number): string {
   return `taken ${hh}:${mm}`;
 }
 
+/** A line in the body saying where the card went, or why it could not. */
+const PopNote = styled.div`
+  padding: ${tokens.space.sm} ${tokens.space.md};
+  font-size: ${tokens.font.small};
+  font-style: italic;
+  color: ${tokens.color.fgMuted};
+`;
+
 export function Card({
   card,
   onSendCommand,
@@ -301,6 +310,11 @@ export function Card({
     card.lastTitle ||
     CARD_LABEL[card.cardId] ||
     "a card";
+  // ⭐ Any card pops out into its own chromeless window (D13) — a
+  // rendering of the same card, client-side only; the server's card is
+  // untouched and keeps updating it.
+  const popOut = usePopOut(title);
+  const [popNote, setPopNote] = React.useState<string | null>(null);
 
   return (
     <Shell
@@ -382,6 +396,22 @@ export function Card({
         <Controls>
           {!faded && (
             <IconButton
+              data-testid="card-popout"
+              title={popOut.win ? "Bring it back into the page" : "Pop out into its own window"}
+              aria-label={popOut.win ? "bring back" : "pop out"}
+              onClick={() => {
+                if (popOut.win) {
+                  popOut.close();
+                  return;
+                }
+                void popOut.open().then(setPopNote);
+              }}
+            >
+              <Icon name="card.popout" label="pop out" size={14} decorative />
+            </IconButton>
+          )}
+          {!faded && (
+            <IconButton
               data-testid="card-grow"
               title={size === "full" ? "As big as it gets" : `Bigger — ${grow}`}
               aria-label={grow}
@@ -443,7 +473,17 @@ export function Card({
         )}
       </Head>
       <Body ref={bodyRef} $cut={cut} data-testid="card-body">
-        <CardBodyBoundary cardId={card.cardId}>{children}</CardBodyBoundary>
+        {popNote ? <PopNote data-testid="card-popout-note">{popNote}</PopNote> : null}
+        {popOut.win ? (
+          <>
+            <PopNote data-testid="card-popped">Popped out into its own window.</PopNote>
+            <PopOutPortal win={popOut.win}>
+              <CardBodyBoundary cardId={card.cardId}>{children}</CardBodyBoundary>
+            </PopOutPortal>
+          </>
+        ) : (
+          <CardBodyBoundary cardId={card.cardId}>{children}</CardBodyBoundary>
+        )}
       </Body>
       {cut && overflowing && !faded ? (
         <CutNote

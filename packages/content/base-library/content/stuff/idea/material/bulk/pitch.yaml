@@ -6,7 +6,7 @@
 # it yet, which is said plainly rather than hidden — the demand is the
 # cooperage and shipbuilding builds', and this is the supply waiting for
 # it.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/CoatingOil
 data:
   smells: [{ aroma: /base-library/aromas/pitch, strength: 300 }]
   burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 1500 }]
@@ -27,13 +27,8 @@ data:
   boilingPoint: 600
   heatOfCombustion: 38
   autoignitionTemperature: 700
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [bulk, organic, flammable, tar, once-living, waterproofing]
   # ⭐ A coat (cordage D13′): dipped hot, it sets on the face as it cools, and
   # keeps the water out of what it coats — a tarred rope does not rot.
   laysCoat: true
   coatWord: tarred
-  composition: []
-  biologicalSource: null

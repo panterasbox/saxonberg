@@ -32,7 +32,7 @@ import { WearableMixin } from '../../slot/Wearable';
 import { SlottableMixin } from '../../slot/Slottable';
 import { ConstructedMixin } from '../../material/Constructed';
 import { Construction } from '../../material/Construction';
-import Material from '../../material/Material';
+import Metal from '../../../platform/idea/material/Metal';
 import { Quantity } from '../../quantity';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
@@ -87,8 +87,8 @@ class DemoBoot extends Boot {
   static _mixinName = 'DemoHazardBoot';
 }
 
-function demoSteel(): Material {
-  const m = makeStuff(() => new Material());
+function demoSteel(): Metal {
+  const m = makeStuff(() => new Metal());
   m.setName('steel');
   m.setHardness(Quantity.of(600, 'MPa'));
   m.setToughness(Quantity.of(200, 'MJ/m³'));

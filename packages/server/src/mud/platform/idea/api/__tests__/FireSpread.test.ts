@@ -15,6 +15,7 @@ import Exit from '../../../../lib/boundary/Exit';
 import Door from '../../../thing/Door';
 import Good from '../../../../lib/stuff/Good';
 import Material from '../../../../lib/material/Material';
+import Wood from '../../material/Wood';
 import { ThermalMixin } from '../../../../lib/thermal/Thermal';
 import { WetMixin } from '../../../../lib/wetness/Wet';
 import { ReservedMixin, Reserve } from '../../../../lib/reserve/Reserved';
@@ -47,7 +48,7 @@ let seq = 0;
 function woodMaterial(): Material {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Wood();
     m.setName(`spread-wood-${seq}`);
     m.setAutoignitionTemperature(Quantity.of(570, 'K'));
     m.setHeatOfCombustion(Quantity.of(16, 'MJ/kg'));

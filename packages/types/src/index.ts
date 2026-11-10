@@ -1077,7 +1077,9 @@ export type CardId =
   /** Your settings, as a card (client-surface D10). */
   | "settings"
   /** ⭐ Where you are, at zone level — the navigator (map slate, wave-1 stub). */
-  | "map";
+  | "map"
+  /** ⭐ The stream controls (broadcast-ready D10) — opened by bare `stream`. */
+  | "stream";
 
 /** Every {@link CardId}. The server validates against this; the client picks from it. */
 export const CARD_IDS: readonly CardId[] = [
@@ -1095,6 +1097,7 @@ export const CARD_IDS: readonly CardId[] = [
   "terminal",
   "settings",
   "map",
+  "stream",
 ];
 
 /**
@@ -1560,6 +1563,12 @@ export interface CardOpenedEnvelope {
    * the refresh control that hides a wake that never fires (AC 6).
    */
   takenAt?: number;
+  /**
+   * ⭐ The server's word that the card is about something private
+   * (broadcast-ready D8) — a terminal on a player-made channel or a group
+   * handle. A streamer's client renders it as a husk (title only) on air.
+   */
+  private?: boolean;
   title?: string;
   subjectId?: string;
   promptId?: string;
@@ -1618,6 +1627,8 @@ export interface CardTouchedEnvelope {
   subjectId?: string;
   subjectKind?: StuffKind;
   role?: CardRole;
+  /** See {@link CardOpenedEnvelope.private}; re-sent when it changes. */
+  private?: boolean;
 }
 
 /**
@@ -2571,27 +2582,173 @@ export interface AffordanceErrorEnvelope {
 }
 
 /**
- * Live broadcast state — the public, read-only overlay projection
- * served to `service:broadcast` connections (OBS browser sources).
- * Deliberately tiny in Phase 1; later gains active scene, lower-third
- * text, camera focus, and the alert queue. `awayUntil` is absolute
- * epoch-ms so the overlay ticks locally and survives reconnects.
+ * The five phases of a stream (broadcast-ready D1). `starting`, `live` and
+ * `ending` are ON AIR — the streamer's client redacts private frames in
+ * them; `standby` and `offline` show nothing of the desktop.
  */
-export interface StreamStateSnapshot {
-  mode: "live" | "standby";
-  awayUntil: number | null; // epoch ms; null when live
+export type StreamPhase = "offline" | "starting" | "live" | "standby" | "ending";
+
+/** The closed phase vocabulary, in lifecycle order. */
+export const STREAM_PHASES: readonly StreamPhase[] = [
+  "offline",
+  "starting",
+  "live",
+  "standby",
+  "ending",
+];
+
+/**
+ * A standby reason as the overlay reads it — a `standby-reason` pack
+ * document resolved at `stream away` (broadcast-ready D2). `privacy` means
+ * the overlay shows no countdown; `scene` is an OBS scene hint.
+ */
+export interface StreamReason {
+  key: string;
+  label: string;
+  copy: string;
+  privacy: boolean;
+  scene: string | null;
+}
+
+/** Where the streamer's Saxonberg client is, as the client reports it. */
+export type StreamForeground = "saxonberg" | "other-tab" | "other-app";
+
+/** The closed foreground vocabulary (the `stream.foreground` validator). */
+export const STREAM_FOREGROUNDS: readonly StreamForeground[] = [
+  "saxonberg",
+  "other-tab",
+  "other-app",
+];
+
+/**
+ * The streamer's own client facts on the feed — ⭐ the VERB of the last
+ * command only, never its arguments (broadcast-ready § One token).
+ */
+export interface StreamClientFacts {
+  foreground: StreamForeground | null;
+  mode: string | null;
+  layout: string | null;
+  lastVerb: string | null;
+}
+
+/** One agenda line as the overlay renders it (Rodney's `Show.agenda`). */
+export interface StreamAgendaItem {
+  title: string;
+  done: boolean;
 }
 
 /**
- * Server→broadcast push of the whole {@link StreamStateSnapshot}. A
- * dedicated lightweight envelope (not modeled as Stuff+MQL): the
- * broadcast principal isn't a normal player, the state is tiny, and
- * re-sending the full snapshot on every change is simpler than diffing.
+ * The lower-third rotation's live steering from the controls card:
+ * a pinned panel key and the keys skipped this pass.
+ */
+export interface StreamRotation {
+  pinned: string | null;
+  skip: string[];
+}
+
+/**
+ * ⭐ The streamer's own half of the show — what `BroadcastMixin.show()`
+ * projects. The allowlist: nothing of another player, no frame body, no
+ * card content, no argument of any command.
+ */
+export interface StreamShowCore {
+  phase: StreamPhase;
+  reason: StreamReason | null;
+  /** Epoch ms the Starting countdown targets; null = no countdown. */
+  startsAt: number | null;
+  /** Epoch ms the Away countdown targets; null = no countdown (privacy). */
+  awayUntil: number | null;
+  /** Epoch ms the Ending outro ends and the stream goes offline. */
+  endsAt: number | null;
+  topic: string | null;
+  agenda: StreamAgendaItem[];
+  /** Index of the current agenda item, or -1 for none. */
+  current: number;
+  client: StreamClientFacts | null;
+  rotation: StreamRotation;
+}
+
+/**
+ * A lower-third panel row (a `lower-third-panel` pack document). `when` is
+ * the closed vocabulary the overlay evaluates against its own show; a row
+ * with no bespoke renderer renders `title` + `body`.
+ */
+export interface StreamPanelRow {
+  key: string;
+  weight: number;
+  seconds: number;
+  when: StreamPanelWhen;
+  title?: string;
+  body?: string;
+}
+
+export type StreamPanelWhen =
+  | "always"
+  | "world"
+  | "money"
+  | "community"
+  | "wiki"
+  | "client";
+
+export const STREAM_PANEL_WHENS: readonly StreamPanelWhen[] = [
+  "always",
+  "world",
+  "money",
+  "community",
+  "wiki",
+  "client",
+];
+
+/** The running build's identity — null when the deploy did not stamp one. */
+export interface StreamBuild {
+  sha: string;
+  at: string;
+}
+
+/**
+ * ⭐ The whole show on a broadcast feed (broadcast-ready D5): the
+ * streamer's own half plus the three world facts the feed adds — the
+ * player count, the build stamp and the panel rows.
+ */
+export interface StreamShow extends StreamShowCore {
+  playersOnline: number;
+  build: StreamBuild | null;
+  panels: StreamPanelRow[];
+}
+
+/**
+ * Server→broadcast push of the whole {@link StreamShow} for the streamer
+ * whose token opened the socket. Re-sent whole on every change.
  */
 export interface StreamStateEnvelope {
   type: "stream-state";
   frameId: number;
-  state: StreamStateSnapshot;
+  state: StreamShow;
+}
+
+/**
+ * Server→broadcast push of a world event worth a ticker line — today a
+ * new player's first arrival (`fromStream` when their connection came in
+ * by the Saxonberg card's tagged link). To every streamer's feed.
+ */
+export interface StreamEventEnvelope {
+  type: "stream-event";
+  frameId: number;
+  kind: "new-player";
+  name: string;
+  fromStream: boolean;
+}
+
+/**
+ * Server→control-socket echo of one `stream …` command a control token
+ * ran (pblive's Stream Deck): ✓ or ⚠ with a reason word.
+ */
+export interface ControlResultEnvelope {
+  type: "control-result";
+  frameId: number;
+  command: string;
+  ok: boolean;
+  reason?: string;
 }
 
 /**
@@ -2629,6 +2786,8 @@ export type Envelope =
   | AffordanceResultEnvelope
   | AffordanceErrorEnvelope
   | StreamStateEnvelope
+  | StreamEventEnvelope
+  | ControlResultEnvelope
   | RelayChatEnvelope
   | CardOpenedEnvelope
   | CardTouchedEnvelope
@@ -2657,6 +2816,8 @@ export type EnvelopeTemplate =
   | Omit<AffordanceResultEnvelope, 'frameId'>
   | Omit<AffordanceErrorEnvelope, 'frameId'>
   | Omit<StreamStateEnvelope, 'frameId'>
+  | Omit<StreamEventEnvelope, 'frameId'>
+  | Omit<ControlResultEnvelope, 'frameId'>
   | Omit<RelayChatEnvelope, 'frameId'>
   | Omit<CardOpenedEnvelope, 'frameId'>
   | Omit<CardTouchedEnvelope, 'frameId'>
@@ -3444,7 +3605,9 @@ export const SHIPPED_ARRANGEMENT_CARDS: Readonly<
    */
   watch: {
     viewer: [STREAM_CHAT_TERMINAL],
-    streamer: [STREAM_CHAT_TERMINAL],
+    // ⭐ The streamer's arrangement opens the stream controls card
+    // (broadcast-ready D10) beside the stream chat, which hides on air.
+    streamer: ['stream', STREAM_CHAT_TERMINAL],
   },
   build: { default: ['cms', 'git', 'studio'] },
   govern: { default: [] },

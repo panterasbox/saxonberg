@@ -14,6 +14,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Timber from '../../../platform/thing/Timber';
 import Chamber from '../../../platform/thing/Chamber';
 import Material from '../../material/Material';
+import Wood from '../../../platform/idea/material/Wood';
 import Place from '../../stuff/Place';
 import type { Stuff } from '../../stuff/Stuff';
 import { Template } from '../../stuff/Template';
@@ -95,7 +96,7 @@ beforeEach(async () => {
   WorldClockApi._setNowProviderForTesting(() => now);
   await warmPlacements();
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Wood();
     m.setName('test oak');
     m.seasoningDays = 100;
     m.greenShrinkage = 0.1;

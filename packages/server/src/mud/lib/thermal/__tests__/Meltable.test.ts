@@ -12,6 +12,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
 import Place from '../../stuff/Place';
 import Material from '../../material/Material';
+import Metal from '../../../platform/idea/material/Metal';
+import Water from '../../../platform/idea/material/Water';
 import Floor from '../../../platform/thing/Floor';
 import Flask from '../../../platform/thing/Flask';
 import Casting from '../../../platform/thing/Casting';
@@ -47,7 +49,7 @@ let seq = 0;
 function ironMaterial(): Material {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Metal();
     m.setName('iron');
     m.setDensity(Quantity.of(7874, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(449, 'J/(kg·K)'));
@@ -59,7 +61,7 @@ function ironMaterial(): Material {
 function waterMaterial(): Material {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Water();
     m.setName('water');
     m.setDensity(Quantity.of(1000, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));

@@ -1,5 +1,5 @@
 # madder lake — the madder dye struck onto alum: where a dye becomes a pigment. A glowing rose red that fades in a sunny window — a fugitive.
-class: /platform/idea/material/Material
+class: /platform/idea/material/PigmentPaint
 data:
   name: madder lake
   keywords: ["madder lake", lake, rose, pigment]
@@ -7,10 +7,5 @@ data:
   density: 1500
   specificHeat: 800
   thermalConductivity: 0.3
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [granular, solid, pigment, lake]
   pigment: { transmitR: 0.82, transmitG: 0.22, transmitB: 0.3, hidingPower: 0.45, lightfastness: 0.15 }
-  composition: []
-  biologicalSource: null

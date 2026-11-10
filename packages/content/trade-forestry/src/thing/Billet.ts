@@ -36,6 +36,7 @@ import {
 import RecipeCatalogue from '@saxonberg/server/mud/platform/idea/RecipeCatalogue';
 import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { RIVE_FLOOR } from './Bole';
 
 /** The capability a froe offers, and a riving recipe asks for. */
@@ -67,7 +68,7 @@ export default class Billet extends RivableMixin(Timber) {
     const material = this.getMaterial();
     // ⭐ Whether the wood will open at all is the WOOD's — its
     // `cleavability`. Elm's interlock, so a froe will not rive it.
-    if ((material?.getCleavability() ?? 0) < RIVE_FLOOR) {
+    if ((material && MixinApi.hasSolidity(material) ? material.getCleavability() : 0) < RIVE_FLOOR) {
       return {
         ok: false,
         reason: 'will-not-rive',

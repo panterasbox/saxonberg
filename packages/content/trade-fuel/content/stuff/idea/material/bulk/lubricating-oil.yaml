@@ -6,7 +6,7 @@
 # tallow and whale oil. A barrel that yields it is a barrel that makes
 # every other machine cheaper to run, which is a far better reason for
 # an oil industry than the lamp.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Oil
 data:
   smells: [{ aroma: /base-library/aromas/petroleum, strength: 100 }]
   burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 800 }]
@@ -37,10 +37,6 @@ data:
   latentHeatOfVaporization: 320000
   heatOfCombustion: 41
   autoignitionTemperature: 620
-  edibility: false
-  nutrients: []
   toxicity:
     - { type: ptomaine, amount: 700 }
   tags: [liquid, lubricant, flammable]
-  composition: []
-  biologicalSource: null

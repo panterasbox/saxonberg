@@ -3,7 +3,7 @@
 # ⚠⚠ `casing` is the tag the sausage slot asks for, and the row carries
 # the gut's spoilage figure unchanged: scraping makes gut USABLE, never
 # safe.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Flesh
 data:
   smells: [{ aroma: /base-library/aromas/offal, strength: 100 }]
   name: casing
@@ -15,7 +15,6 @@ data:
   toughness: 3
   electricalConductivity: 0.2
   waterAbsorptionCapacity: 25
-  edibility: true
   tastes: [{ type: salty, amount: 5 }, { type: umami, amount: 1 }]
   spoilActivationEnergy: 55000
   waterActivity: 0.97

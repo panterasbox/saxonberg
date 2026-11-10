@@ -7,7 +7,7 @@
 # Its shrink derives from its expansion over its fall from the melt:
 # about one and three-quarter percent, against the pattern-maker's rule of
 # a sixty-fourth.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Alloy
 data:
   name: brass
   keywords: [brass]
@@ -21,12 +21,7 @@ data:
   meltingPoint: 1200
   latentHeatOfFusion: 168000
   thermalExpansion: 1.9e-05
-  waterAbsorptionCapacity: 0.2
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["alloy", "metal", "non-ferrous", "copper", "zinc"]
   composition:
     - { materialPath: /stuff/idea/material/element/copper, fraction: 0.67 }
     - { materialPath: /stuff/idea/material/element/zinc, fraction: 0.33 }
-  biologicalSource: null

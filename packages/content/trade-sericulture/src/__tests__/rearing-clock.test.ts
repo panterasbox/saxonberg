@@ -15,7 +15,7 @@ import EggLot from '../thing/EggLot';
 import Cocoons from '../thing/Cocoons';
 import Strain from '../idea/Strain';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import EdibleHerb from '@saxonberg/server/mud/platform/idea/material/EdibleHerb';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -44,7 +44,7 @@ const EGG = '/trade/sericulture/idea/material/silkworm-egg';
 function material(path: string, name: string, tags: string[]): void {
   if (StuffApi.findByTemplatePath(path)) return;
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new EdibleHerb();
     m.setName(name);
     m.setTags(tags);
     return m;
@@ -84,7 +84,7 @@ function tray(k = 298): RearingTray {
 
 function lot(load = 0, count = 300): EggLot {
   const l = makeStuff(() => new EggLot());
-  l.setMaterial(StuffApi.findByTemplatePath<Material>(EGG)!);
+  l.setMaterial(StuffApi.findByTemplatePath<EdibleHerb>(EGG)!);
   l.setStrainPath(STRAIN);
   l.setEggCount(count);
   l.setPebrineLoad(load);
@@ -94,14 +94,14 @@ function lot(load = 0, count = 300): EggLot {
 
 function leaf(kg: number): Good {
   const g = makeStuff(() => new Good());
-  g.setMaterial(StuffApi.findByTemplatePath<Material>(LEAF)!);
+  g.setMaterial(StuffApi.findByTemplatePath<EdibleHerb>(LEAF)!);
   g.setMass(Quantity.of(kg, 'kg'));
   return g;
 }
 
 function brush(): Good {
   const g = makeStuff(() => new Good());
-  g.setMaterial(StuffApi.findByTemplatePath<Material>(BRUSH)!);
+  g.setMaterial(StuffApi.findByTemplatePath<EdibleHerb>(BRUSH)!);
   g.setMass(Quantity.of(0.3, 'kg'));
   return g;
 }

@@ -22,7 +22,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
 import { Agent } from '../../stuff/Agent';
-import Material from '../../material/Material';
+import Polymer from '../../../platform/idea/material/Polymer';
 import Key from '../../../platform/thing/Key';
 import { MouldMixin } from '../Mould';
 import { DurableMixin } from '../../material/Durable';
@@ -98,18 +98,18 @@ const LUMP = '/stuff/thing/_env/lump';
 
 let cloned: string[] = [];
 
-function material(path: string, setup: (m: Material) => void): Material {
-  const found = StuffApi.findByTemplatePath<Material>(path);
+function material(path: string, setup: (m: Polymer) => void): Polymer {
+  const found = StuffApi.findByTemplatePath<Polymer>(path);
   if (found) return found;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Polymer();
     m.setName(path.split('/').pop()!);
     setup(m);
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as Polymer;
 }
 
-function metal(path: string, mp: number, density: number, k = 50, alpha = 2e-5): Material {
+function metal(path: string, mp: number, density: number, k = 50, alpha = 2e-5): Polymer {
   return material(path, (m) => {
     m.setTags(['metal']);
     m.setDensity(Quantity.of(density, 'kg/m³'));
@@ -157,8 +157,8 @@ function mats(): void {
   });
 }
 
-function mat(path: string): Material {
-  return StuffApi.findByTemplatePath<Material>(path)!;
+function mat(path: string): Polymer {
+  return StuffApi.findByTemplatePath<Polymer>(path)!;
 }
 
 function room(): TestRoom {
@@ -191,7 +191,7 @@ function pour(m: TestMould, matPath: string, kg: number, k: number): void {
   const material = mat(matPath);
   const litres = (kg / material.getDensity().rawValue()) * 1000;
   const b = m as unknown as {
-    setBulkMaterial(a: 'interior', x: Material): void;
+    setBulkMaterial(a: 'interior', x: Polymer): void;
     setBulkAmount(a: 'interior', q: Quantity<'L'>): void;
   };
   b.setBulkMaterial('interior', material);
@@ -202,7 +202,7 @@ function pour(m: TestMould, matPath: string, kg: number, k: number): void {
 /** Set it as the freeze would: clear the pool and hand it to the mould. */
 async function set(m: TestMould, matPath: string, kg: number): Promise<Stuff | null> {
   const b = m as unknown as {
-    setBulkMaterial(a: 'interior', x: Material | null): void;
+    setBulkMaterial(a: 'interior', x: Polymer | null): void;
     setBulkAmount(a: 'interior', q: Quantity<'L'>): void;
   };
   b.setBulkAmount('interior', Quantity.of(0, 'L'));
@@ -282,7 +282,7 @@ describe('the mould as an envelope (ceramics W7)', () => {
     const k = makeStuff(() => new Key());
     stampTemplatePathForTest(k, KEY);
     k.ensureCredential('key').addKey('kw-123', 'pin-tumbler');
-    (k as unknown as { setMaterial(m: Material): void }).setMaterial(mat(STEEL));
+    (k as unknown as { setMaterial(m: Polymer): void }).setMaterial(mat(STEEL));
     (k as unknown as { setMass(q: Quantity<'kg'>): void }).setMass(Quantity.of(0.02, 'kg'));
     const wax = sandFlask();
     ContainmentApi.move(wax, room());
@@ -297,7 +297,7 @@ describe('the mould as an envelope (ceramics W7)', () => {
     const k = makeStuff(() => new Key());
     stampTemplatePathForTest(k, KEY);
     k.ensureCredential('key').addKey('kw-456', 'pin-tumbler');
-    (k as unknown as { setMaterial(m: Material): void }).setMaterial(mat(STEEL));
+    (k as unknown as { setMaterial(m: Polymer): void }).setMaterial(mat(STEEL));
     (k as unknown as { setMass(q: Quantity<'kg'>): void }).setMass(Quantity.of(0.02, 'kg'));
     const wax = sandFlask();
     ContainmentApi.move(wax, room());
@@ -335,7 +335,7 @@ describe('the mould as an envelope (ceramics W7)', () => {
     const c = crucible as unknown as {
       interiorBulk: boolean;
       setInteriorCapacity(q: Quantity<'L'>): void;
-      setBulkMaterial(a: 'interior', m: Material): void;
+      setBulkMaterial(a: 'interior', m: Polymer): void;
       setBulkAmount(a: 'interior', q: Quantity<'L'>): void;
       setStampedTemperatureK(k: number): void;
       setLastAmbientK(k: number): void;
@@ -471,7 +471,7 @@ describe('the mould as an envelope (ceramics W7)', () => {
       const b = v as unknown as {
         interiorBulk: boolean;
         setInteriorCapacity(q: Quantity<'L'>): void;
-        setBulkMaterial(a: 'interior', m: Material): void;
+        setBulkMaterial(a: 'interior', m: Polymer): void;
         setBulkAmount(a: 'interior', q: Quantity<'L'>): void;
         setStampedTemperatureK(k: number): void;
         setLastAmbientK(k: number): void;

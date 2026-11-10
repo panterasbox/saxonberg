@@ -13,6 +13,10 @@ import { fileURLToPath } from 'url';
 import { parse } from 'yaml';
 import PaintPot from '../thing/PaintPot';
 import Material from '@saxonberg/server/mud/lib/material/Material';
+import Food from '@saxonberg/server/mud/platform/idea/material/Food';
+import Oil from '@saxonberg/server/mud/platform/idea/material/Oil';
+import CoatingOil from '@saxonberg/server/mud/platform/idea/material/CoatingOil';
+import PigmentPaint from '@saxonberg/server/mud/platform/idea/material/PigmentPaint';
 import { Paint } from '@saxonberg/server/mud/lib/material/Paint';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
@@ -28,9 +32,14 @@ function rowData(rel: string): Record<string, unknown> {
   return (parse(readFileSync(fileURLToPath(url), 'utf8')) as { data: Record<string, unknown> }).data;
 }
 
-function material(path: string, fill: (m: Material) => void): void {
+function rowClass(rel: string): string {
+  const url = new URL(`../../content/trade/painting/idea/material/${rel}.yaml`, import.meta.url);
+  return (parse(readFileSync(fileURLToPath(url), 'utf8')) as { class: string }).class;
+}
+
+function material<M extends Material>(path: string, make: () => M, fill: (m: M) => void): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = make();
     fill(m);
     return m;
   }, path);
@@ -38,7 +47,8 @@ function material(path: string, fill: (m: Material) => void): void {
 
 function fromRow(path: string, rel: string): void {
   const d = rowData(rel);
-  material(path, (m) => {
+  const make = rowClass(rel).endsWith('/CoatingOil') ? () => new CoatingOil() : () => new PigmentPaint();
+  material(path, make, (m) => {
     m.setName(String(d.name));
     if (d.laysCoat) m.setLaysCoat(true);
     if (d.coatWord) m.setCoatWord(String(d.coatWord));
@@ -76,7 +86,7 @@ describe('the paint pot', () => {
 
   it('an egg in the pot binds as tempera', () => {
     fromRow(OCHRE, 'yellow-ochre');
-    material(EGG, (m) => { m.setName('egg'); m.setTags(['food', 'egg']); });
+    material(EGG, () => new Food(), (m) => { m.setName('egg'); m.setTags(['food', 'egg']); });
     const pot = makeStuff(() => new PaintPot());
     const payload = pot.payloadFor([item(EGG, 0.06), item(OCHRE, 0.1)]);
     expect(payload?.paint?.binder).toBe('/trade/painting/idea/material/egg-tempera');
@@ -85,7 +95,7 @@ describe('the paint pot', () => {
   it('a thinner is recorded and lowers the solids', () => {
     fromRow(OIL, 'linseed-oil');
     fromRow(OCHRE, 'yellow-ochre');
-    material(TURPS, (m) => { m.setName('turpentine'); m.setTags(['liquid', 'solvent']); });
+    material(TURPS, () => new Oil(), (m) => { m.setName('turpentine'); m.setTags(['liquid', 'solvent']); });
     const pot = makeStuff(() => new PaintPot());
     const thick = pot.payloadFor([bulk(OIL, 1), item(OCHRE, 0.5)])!.paint!;
     const thin = pot.payloadFor([bulk(OIL, 1), bulk(TURPS, 0.2), item(OCHRE, 0.5)])!.paint!;
@@ -103,7 +113,7 @@ describe('the paint pot', () => {
 describe('the binders, as shipped', () => {
   it('linseed oil sets by oxidation and warms as it does', () => {
     fromRow(OIL, 'linseed-oil');
-    const set = StuffApi.findByTemplatePath<Material>(OIL)!.getKinetics()!.airSet()!;
+    const set = StuffApi.findByTemplatePath<CoatingOil>(OIL)!.getKinetics()!.airSet()!;
     expect(set.getSets()).toBe('oxidation');
     expect(set.getExothermicJPerKg()).toBeGreaterThan(0);
   });

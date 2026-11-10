@@ -18,6 +18,7 @@ import Good from '../../stuff/Good';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import { ThermalMixin } from '../../thermal/Thermal';
 import Material from '../../material/Material';
+import Food from '../../../platform/idea/material/Food';
 import { Freshness } from '../Freshness';
 import { BlendLabel } from '../../metabolism/BlendLabel';
 import type { BulkPayload } from '../../bulk/Bulkable';
@@ -46,10 +47,9 @@ function ensureMaterial(path: string, ea: number): Material {
   const found = StuffApi.findByTemplatePath<Material>(path);
   if (found) return found;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName(path.endsWith('broth') ? 'broth' : 'water');
     m.setAppearance(path.endsWith('broth') ? 'a rich broth' : 'clear water');
-    m.setEdibility(true);
     m.setNutrients(['protein']);
     m.setNutrientAmounts({ protein: 12000 });
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));

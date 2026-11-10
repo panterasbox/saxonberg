@@ -9,7 +9,8 @@
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Good from "@saxonberg/server/mud/lib/stuff/Good";
-import Material from "@saxonberg/server/mud/platform/idea/material/Material";
+import Glass from "@saxonberg/server/mud/platform/idea/material/Glass";
+import Material from "@saxonberg/server/mud/lib/material/Material";
 import { AlloyedMixin } from "@saxonberg/server/mud/lib/material/Alloyed";
 import { ThermalMixin } from "@saxonberg/server/mud/lib/thermal/Thermal";
 import { Quantity } from "@saxonberg/server/mud/lib/quantity";
@@ -28,7 +29,7 @@ let seq = 0;
 function glassMaterial(): Material {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Glass();
     m.setName("glass");
     m.setTags(["glass"]);
     m.setSpecificHeat(Quantity.of(840, "J/(kg·K)"));

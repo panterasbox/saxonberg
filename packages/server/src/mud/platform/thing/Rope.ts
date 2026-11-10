@@ -377,7 +377,8 @@ export default class Rope extends CuttableMixin(
 
   /** ⭐ What it breaks at, new and untied, kg (D6). */
   public breakingKg(): number {
-    const toughness = this.getMaterial()?.getToughness().rawValue() ?? 2;
+    const material = this.getMaterial();
+    const toughness = !material ? 2 : MixinApi.hasSolidity(material) ? material.getToughness().rawValue() : 0;
     const tenacity = toughness * dial(AppSettingKeys.cordageTenacityMPaPerToughness, 25);
     const r = this.diameterMm / 2;
     return (tenacity * Math.PI * r * r) / 9.81;

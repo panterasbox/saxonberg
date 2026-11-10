@@ -178,13 +178,15 @@ export default class Gather extends GatherBase implements Formable {
    * has stiffened and the window has closed.
    */
   public workingFloorK(): number {
-    const mp = this.getMaterial()?.getMeltingPoint().rawValue() ?? 0;
+    const mat = this.getMaterial();
+    const mp = mat !== null && MixinApi.hasFusion(mat) ? mat.getMeltingPoint().rawValue() : 0;
     return dial("glass.hotwork.workingFraction", 0.75) * mp;
   }
 
   /** Still hot enough to work. */
   public isWorkable(): boolean {
-    const mp = this.getMaterial()?.getMeltingPoint().rawValue() ?? 0;
+    const mat = this.getMaterial();
+    const mp = mat !== null && MixinApi.hasFusion(mat) ? mat.getMeltingPoint().rawValue() : 0;
     if (mp <= 0) return false;
     return this.getTemperature().rawValue() >= this.workingFloorK();
   }

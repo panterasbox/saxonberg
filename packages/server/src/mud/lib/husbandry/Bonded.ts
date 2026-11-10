@@ -737,7 +737,7 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public canEat(food: Stuff): boolean {
       const material = MixinApi.isTangible(food) ? food.getMaterial() : null;
-      return !!material && material.getEdibility() === true;
+      return !!material && MixinApi.hasEdibility(material);
     }
 
     public wouldEat(food: Stuff): boolean {

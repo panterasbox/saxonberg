@@ -7,7 +7,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
-import Material from '../Material';
+import Blood from '../../../platform/idea/material/Blood';
 import { Freshness } from '../Freshness';
 import { Quantity } from '../../quantity';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
@@ -20,17 +20,17 @@ const HOUR = 3600;
 const DAY = 24 * HOUR;
 
 let seq = 0;
-function bloodMaterial(): Material {
+function bloodMaterial(): Blood {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Blood();
     m.setName(`blood-test-${seq}`);
     m.setSpecificHeat(Quantity.of(3600, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.5, 'W/(m·K)'));
     m.setSpoilActivationEnergy(Quantity.of(BLOOD_EA, 'J/mol'));
     m.setWaterActivity(BLOOD_AW);
     return m;
-  }, `/stuff/idea/material/_test/blood-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/blood-${seq}`) as unknown as Blood;
 }
 
 /** Game-hours until a unit at `tempK` first reads spoiled (load ≥ 0.6). */

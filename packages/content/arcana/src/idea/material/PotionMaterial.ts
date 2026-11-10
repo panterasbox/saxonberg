@@ -2,7 +2,7 @@
  * PotionMaterial — the `Material` subclass a **potion liquid** authors
  * as (`class: /system/arcana/idea/material/PotionMaterial`).
  *
- * The `RadioactiveMaterial` capability-subclass pattern, composing the
+ * The capability-mixin pattern, composing the
  * two mixins a potion needs: `PotableMixin` (route + dose + the
  * discharge leg) over `ArcaneMixin` (which spell it carries, who made
  * it, how efficiently it delivers).
@@ -11,7 +11,7 @@
  * of the same draught reaches the same singleton, so identification
  * (wave 5) keys on the same object the effect hangs off, and decanting
  * a potion into another vial carries the magic because the *substance*
- * moved. It sits on `ConsumableMaterial` because a potion is, first,
+ * moved. It sits on `Drink` because a potion is, first,
  * something a body takes in — nutrients, toxins, and the digestion
  * buffer all apply to it exactly as they do to soup.
  *
@@ -23,8 +23,7 @@
  * row per *flask*.
  */
 
-import { OdorousMixin } from '@saxonberg/server/mud/lib/material/Odorous';
-import { ConsumableMaterial } from '@saxonberg/server/mud/platform/idea/material/ConsumableMaterial';
+import Drink from '@saxonberg/server/mud/platform/idea/material/Drink';
 import { PotableMixin } from '@saxonberg/server/mud/lib/magic/Potable';
 import { ArcaneMixin } from '@saxonberg/server/mud/lib/magic/Arcane';
 import { IdentifiableMixin } from '@saxonberg/server/mud/lib/identification/Identifiable';
@@ -37,6 +36,6 @@ import { IdentifiableMixin } from '@saxonberg/server/mud/lib/identification/Iden
  * substance — which is the same reason `Potable` is here rather than on
  * the vessel.
  */
-export class PotionMaterial extends OdorousMixin(
-  PotableMixin(IdentifiableMixin(ArcaneMixin(ConsumableMaterial))),
+export class PotionMaterial extends PotableMixin(
+  IdentifiableMixin(ArcaneMixin(Drink)),
 ) {}

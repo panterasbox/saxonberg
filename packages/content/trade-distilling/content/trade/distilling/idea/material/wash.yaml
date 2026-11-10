@@ -1,7 +1,7 @@
 # The wash — fermented distiller's wort, the still's charge (~8% and
 # rough). Flammable only once distilled; the still concentrates the
 # fire along with the spirit (P10).
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/mash, strength: 200 }, { aroma: /base-library/aromas/alcohol, strength: 60 }]
   tastes: [{ type: sweet, amount: 5 }, { type: sour, amount: 2 }]
@@ -13,10 +13,7 @@ data:
   servingKg: 1.01
   thermalConductivity: 0.5
   specificHeat: 3900
-  edibility: true
   toxicity:
     - { type: alcohol, amount: 8 }
   nutrients: ["water"]
   tags: ["liquid", "wash"]
-  composition: []
-  biologicalSource: null

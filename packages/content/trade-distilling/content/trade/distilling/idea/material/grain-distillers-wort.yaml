@@ -14,7 +14,7 @@
 # profile keys on `distillers-wort` — so sharing the tag would have a
 # grain wort fermenting on the malt schedule and both profiles claiming
 # the same matter (the double-match rule's warning case).
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/mash, strength: 300 }]
   tastes: [{ type: sweet, amount: 90 }]
@@ -24,10 +24,7 @@ data:
   density: 1038
   thermalConductivity: 0.5
   specificHeat: 3900
-  edibility: true
   nutrients: ["water", "sugar"]
   nutrientAmounts:
     sugar: 92
   tags: ["liquid", "grain-distillers-wort"]
-  composition: []
-  biologicalSource: null

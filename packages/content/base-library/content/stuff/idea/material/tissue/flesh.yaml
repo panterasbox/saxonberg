@@ -5,7 +5,7 @@
 # pending compound templates; species-specific flesh
 # (`Homo sapiens`-flesh, frog-flesh, …) is a content extension that
 # populates `biologicalSource`.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Flesh
 data:
   smells: [{ aroma: /base-library/aromas/raw-meat, strength: 60 }]
   name: flesh
@@ -21,7 +21,6 @@ data:
   electricalConductivity: 0.2
   # Water absorption capacity (% of dry mass, ASTM D570): skin and flesh hold water.
   waterAbsorptionCapacity: 25
-  edibility: true
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
@@ -34,8 +33,4 @@ data:
   spoilActivationEnergy: 80000
   waterActivity: 0.99
   nutrients: ["protein", "fat", "water"]
-  toxicity: []
   tags: ["tissue", "animal", "mixture", "organic", "living", "edible"]
-  composition: []
-  chemistry: null
-  biologicalSource: null

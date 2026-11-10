@@ -22,7 +22,7 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 import Turf from '../thing/Turf';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import SolidFuel from '@saxonberg/server/mud/platform/idea/material/SolidFuel';
 import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -39,21 +39,21 @@ function rowData(absPath: string): Record<string, unknown> {
   return (parsed.data ?? {}) as Record<string, unknown>;
 }
 
-let peatRow: Material | null = null;
+let peatRow: SolidFuel | null = null;
 
 /**
- * The shipped peat row, as a live Material.
+ * The shipped peat row, as a live SolidFuel.
  *
  * ⚠ Memoised per test: a second `makeStuffAtPath` at the same path leaves TWO
  * instances in the index, and every later `findByTemplatePath` throws
  * *"expected singleton, found 2"* — a failure with nothing to do with the
  * claim under test.
  */
-function peat(): Material {
+function peat(): SolidFuel {
   if (peatRow !== null) return peatRow;
   const d = rowData(`${BASE}content/stuff/idea/material/organic/peat.yaml`);
   peatRow = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new SolidFuel();
     m.setName(String(d.name));
     m.setTags(d.tags as string[]);
     m.setSpecificHeat(Quantity.of(Number(d.specificHeat), 'J/(kg·K)'));
@@ -68,7 +68,7 @@ function peat(): Material {
     );
     m.setHeatOfCombustion(Quantity.of(Number(d.heatOfCombustion), 'MJ/kg'));
     return m;
-  }, PEAT) as unknown as Material;
+  }, PEAT) as unknown as SolidFuel;
   return peatRow;
 }
 

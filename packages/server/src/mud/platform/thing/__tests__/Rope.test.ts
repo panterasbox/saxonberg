@@ -13,7 +13,8 @@ import Rope from '../Rope';
 import RopeEnd from '../RopeEnd';
 import Good from '../Good';
 import Tool from '../Tool';
-import Material from '../../idea/material/Material';
+import Fiber from '../../idea/material/Fiber';
+import Resin from '../../idea/material/Resin';
 import Location from '../../location/Location';
 import WorldClockRegistry from '../../idea/WorldClockRegistry';
 import { Character } from '../../../lib/character/Character';
@@ -43,8 +44,8 @@ const JOINTS: Record<string, Partial<JointDescriptor>> = {
 
 let now = 1_000_000;
 
-function fiber(name: string, toughness: number): Material {
-  const m = makeStuffAtPath(() => new Material(), `/test/material/${name}`);
+function fiber(name: string, toughness: number): Fiber {
+  const m = makeStuffAtPath(() => new Fiber(), `/test/material/${name}`);
   m.setName(name);
   m.setToughness(Quantity.of(toughness, 'MJ/m³'));
   m.setDensity(Quantity.of(1480, 'kg/m³'));
@@ -52,7 +53,7 @@ function fiber(name: string, toughness: number): Material {
   return m;
 }
 
-function rope(material: Material, lengthM = 20, diameterMm = 12): Rope {
+function rope(material: Fiber, lengthM = 20, diameterMm = 12): Rope {
   const r = makeStuffAtPath(() => new Rope(), '/platform/thing/rope');
   r.setMaterial(material);
   r.setLengthM(lengthM);
@@ -69,7 +70,7 @@ beforeEach(() => {
   WorldClockApi._setNowProviderForTesting(() => now);
   WorldClockApi.setScale(1);
   makeStuffAtPath(() => new WorldClockRegistry(), TemplatePaths.worldClockRegistry);
-  const pitch = makeStuffAtPath(() => new Material(), PITCH);
+  const pitch = makeStuffAtPath(() => new Resin(), PITCH);
   pitch.setName('pitch');
   pitch.setTags(['tar', 'waterproofing']);
   pitch.setMeltingPoint(Quantity.of(320, 'K'));

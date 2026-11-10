@@ -8,7 +8,7 @@
 # It is a real good with its own market: feed for pigs and hens (the
 # ranching trade already eats), and the poor man's bread. A mill that
 # threw it away would be throwing away its second income.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFood
 data:
   smells: [{ aroma: /base-library/aromas/grain, strength: 15 }]
   tastes: [{ type: bitter, amount: 0.01 }]
@@ -24,7 +24,6 @@ data:
   waterAbsorptionCapacity: 90
   hardness: 2
   toughness: 1
-  edibility: true
   # ⭐ The oil is why bran keeps badly, and why flour carrying more of it
   # keeps badly too. A higher base water activity and a lower activation
   # energy: it goes off sooner and the cold helps it less.
@@ -32,6 +31,4 @@ data:
   spoilActivationEnergy: 38000
   nutrients: ["carb", "protein", "fibre"]
   nutrientAmounts: { carb: 210000, protein: 155000, fibre: 430000 }
-  toxicity: []
   tags: ["food", "bran", "feed", "fibre"]
-  composition: []

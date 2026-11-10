@@ -207,6 +207,20 @@ export default class Interactive extends Idea {
     this.origin = { ip, country };
   }
 
+  /**
+   * The door this connection came in by (broadcast-ready D7) — `'stream'`
+   * when the client was opened from the show's tagged link (`?from=`),
+   * else null. Runtime only: a connection concept nothing in-world reads.
+   */
+  protected arrivedFrom: string | null = null;
+  public getArrivedFrom(): string | null {
+    return this.arrivedFrom;
+  }
+  /** Closed vocabulary: `'stream'` or null; anything else is dropped. */
+  public setArrivedFrom(value: string | null): void {
+    this.arrivedFrom = value === 'stream' ? value : null;
+  }
+
   constructor(socketId: string, sessionId: string, user: User) {
     super();
 

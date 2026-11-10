@@ -12,7 +12,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { MessageApi } from '../../../api/message';
 import Good from '../../stuff/Good';
-import Material from '../Material';
+import PigmentPaint from '../../../platform/idea/material/PigmentPaint';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import { MarkedMixin } from '../../description/Marked';
 import Building from '../../../platform/idea/Building';
@@ -38,9 +38,9 @@ const OIL = '/stuff/idea/material/_paint/oil';
 const WATER = '/stuff/idea/material/_paint/water';
 const PINE = '/stuff/idea/material/_paint/pine';
 
-function material(path: string, fill: (m: Material) => void): void {
+function material(path: string, fill: (m: PigmentPaint) => void): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new PigmentPaint();
     m.setName(path.split('/').pop()!);
     m.setDensity(Quantity.of(900, 'kg/m³'));
     fill(m);
@@ -54,7 +54,7 @@ function pot(path: string, litres: number): Pot {
     p.setMass(Quantity.of(0.5, 'kg'));
     p.interiorBulk = true;
     p.setInteriorCapacity(Quantity.of(20, 'L'));
-    p.setBulkMaterial('interior', StuffApi.findByTemplatePath<Material>(path)!);
+    p.setBulkMaterial('interior', StuffApi.findByTemplatePath<PigmentPaint>(path)!);
     p.setBulkAmount('interior', Quantity.of(litres, 'L'));
     return p;
   });
@@ -64,7 +64,7 @@ function board(): Board {
   return makeStuff(() => {
     const b = new Board();
     b.setMass(Quantity.of(4, 'kg'));
-    b.setMaterial(StuffApi.findByTemplatePath<Material>(PINE)!);
+    b.setMaterial(StuffApi.findByTemplatePath<PigmentPaint>(PINE)!);
     b.setWritingRoom(80);
     return b;
   });

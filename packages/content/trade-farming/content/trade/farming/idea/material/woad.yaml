@@ -8,7 +8,7 @@
 # ⚠ It takes NO MORDANT. A mordant applied before a woad vat is wasted
 # alum, and the trade refuses it rather than silently ignoring it —
 # because the point is that dyeing is TWO chemistries, not one.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Herb
 data:
   smells: [{ aroma: /base-library/aromas/green, strength: 30 }, { aroma: /base-library/aromas/ammonia, strength: 100 }]
   name: woad
@@ -21,12 +21,7 @@ data:
   specificHeat: 1400
   electricalConductivity: 1.0e-9
   waterAbsorptionCapacity: 55
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["dyestuff", "vat-dye", "plant", "organic", "once-living"]
-  composition: []
-  chemistry: null
   # ⚠ A COMPOSITE, not a bare path: `{speciesPath, tissueType}`. Every
   # shipped material left this null, so these are the first rows to
   # populate it — and the census caught the bare-path shape the moment

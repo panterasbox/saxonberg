@@ -10,7 +10,7 @@ import { MixinApi } from '../../api/mixin';
 import { makeStuff, stampTemplatePathForTest } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import Bottle from '../thing/Bottle';
-import Material from '../idea/material/Material';
+import Water from '../idea/material/Water';
 import { Quantity } from '../../lib/quantity';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 
@@ -19,12 +19,12 @@ let seq = 0;
 /** Fill a bottle with a freshly-registered bulk material. */
 function fill(bottle: Bottle, name: string, amountL = 0.5): void {
   const material = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Water();
     m.setName(name);
     m.setKeywords([name]);
     m.setTags(['liquid']);
     return m;
-  }, `/stuff/idea/material/bulk/${name}-${seq++}`) as unknown as Material;
+  }, `/stuff/idea/material/bulk/${name}-${seq++}`) as unknown as Water;
   bottle.setBulkMaterial('interior', material as never);
   bottle.setBulkAmount('interior', Quantity.of(amountL, 'L'));
 }

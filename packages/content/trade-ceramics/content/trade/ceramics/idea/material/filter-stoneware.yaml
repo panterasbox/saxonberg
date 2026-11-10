@@ -7,7 +7,7 @@
 #
 # Doulton's candle of the cholera years. ⚠ Unglazed by definition — a
 # glaze closes the pores, and a filter that holds water is a jar.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Ceramic
 data:
   name: filter stoneware
   keywords: [stoneware, "filter stoneware", pottery, fired]
@@ -22,10 +22,5 @@ data:
   hardness: 70
   toughness: 4
   thermalExpansion: 6.0e-06
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["ceramic", "mineral", "solid", "brittle", "fired", "porous", "stoneware"]
-  composition: []
-  biologicalSource: null
   brokenTemplate: /stuff/thing/sherds

@@ -13,7 +13,10 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PipeRun from '../PipeRun';
 import Location from '../../location/Location';
-import Material from '../../../lib/material/Material';
+import Metal from '../../idea/material/Metal';
+import ToxicMetal from '../../idea/material/ToxicMetal';
+import Water from '../../idea/material/Water';
+import Fiber from '../../idea/material/Fiber';
 import { StuffApi } from '../../../api/stuff';
 import { WorldClockApi } from '../../../api/worldclock';
 import { ContainmentApi } from '../../../api/containment';
@@ -30,14 +33,24 @@ import {
 const DAY = 86_400;
 let now = 50 * DAY;
 
-function mat(path: string, tags: string[], leachMg = 0): Material {
+function mat(path: string, tags: string[], leachMg = 0): Metal {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    // Only a toxic metal leaches; the capability is the kind's.
+    const m = leachMg > 0 ? new ToxicMetal() : new Metal();
     m.setName(path.split('/').pop()!);
     m.setTags(tags);
-    if (leachMg > 0) m.setLeaches([{ toxin: 'lead', mgPerLPerDay: leachMg }]);
+    if (leachMg > 0) (m as ToxicMetal).setLeaches([{ toxin: 'lead', mgPerLPerDay: leachMg }]);
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as Metal;
+}
+
+/** Cellulose or cloth: a fibre, which is what absorbs water and can be sodden. */
+function fibre(path: string): Fiber {
+  return makeStuffAtPath(() => {
+    const m = new Fiber();
+    m.setName(path.split('/').pop()!);
+    return m;
+  }, path) as unknown as Fiber;
 }
 
 /** A room whose air follows `curveK` — the trajectory a run reads. */
@@ -55,7 +68,7 @@ function room(curveK: (atS: number) => number): Location {
   return r;
 }
 
-function run(material: Material, opts: { unlaid?: boolean } = {}): PipeRun {
+function run(material: Metal, opts: { unlaid?: boolean } = {}): PipeRun {
   return makeStuff(() => {
     const p = new PipeRun();
     p.setMaterial(material);
@@ -70,8 +83,8 @@ function run(material: Material, opts: { unlaid?: boolean } = {}): PipeRun {
   });
 }
 
-let lead: Material;
-let iron: Material;
+let lead: Metal;
+let iron: Metal;
 
 beforeEach(() => {
   StuffApi.clearAll();
@@ -79,7 +92,12 @@ beforeEach(() => {
   vi.spyOn(WorldClockApi, 'getNow').mockImplementation(() => Quantity.of(now, 's'));
   lead = mat('/test/material/lead', ['metal'], 40);
   iron = mat('/test/material/cast-iron', ['metal', 'brittle']);
-  mat('/stuff/idea/material/bulk/water', ['liquid']);
+  makeStuffAtPath(() => {
+    const w = new Water();
+    w.setName('water');
+    w.setTags(['liquid']);
+    return w;
+  }, '/stuff/idea/material/bulk/water');
 });
 afterEach(() => {
   vi.restoreAllMocks();
@@ -174,14 +192,14 @@ describe('⭐⭐ frost: lead bulges, iron cracks, and the thaw leaks', () => {
       fn();
       return {} as never;
     }) as typeof ScheduleApi.schedule);
-    const paper = mat('/stuff/idea/material/_pipe/paper', []);
+    const paper = fibre('/stuff/idea/material/_pipe/paper');
     paper.setWetStrength(0.1);
-    const linen = mat('/stuff/idea/material/_pipe/linen', []);
+    const linen = fibre('/stuff/idea/material/_pipe/linen');
     const r = run(lead);
     const rm = room(frostNight);
     ContainmentApi.move(r, rm);
     vi.spyOn(rm as never, 'getFloor' as never).mockReturnValue(null as never);
-    const goodOf = (m: Material): Good => {
+    const goodOf = (m: Fiber): Good => {
       const g = makeStuff(() => {
         const x = new Good();
         x.setMaterial(m);

@@ -357,6 +357,55 @@ async function saveMapImpl(
   await doc.save();
 }
 
+/** The branch every stream token lives under (the platform pack's root
+ *  joined to the `stream-token` kind's content dir). */
+const STREAM_TOKENS_BRANCH = '/platform/stream-tokens';
+
+/** The document kind a stream token is stored as. */
+const STREAM_TOKEN_KIND = 'stream-token';
+
+/** A token's document path — `null` for anything that is not a sha256 hex. */
+function streamTokenPath(hash: string): string | null {
+  return /^[0-9a-f]{64}$/.test(hash) ? `${STREAM_TOKENS_BRANCH}/${hash}` : null;
+}
+
+/**
+ * ⚠⚠ **The stream-token transport** (broadcast-ready D4) — the token
+ * registry, writing its own book, and nothing else.
+ *
+ * A token names a player, and the WS upgrade has only the raw token: it
+ * hashes it and READS the path. So the record cannot live on the player's
+ * own branch (a path keyed by the player is unfindable from the token),
+ * and no player may hold the pen on `/platform/stream-tokens/` (they could
+ * mint a record naming somebody else). Rails, all structural: the Api face
+ * is gated to `StreamLogic`, the path is pinned to a sha256 hex under the
+ * branch, the kind is pinned, and the record's fields are taken typed.
+ */
+async function saveStreamTokenImpl(
+  hash: string,
+  record: { playerId: string; scope: string; issuedAt: number },
+): Promise<void> {
+  const path = streamTokenPath(hash);
+  if (!path) throw new Error('DocumentApi.saveStreamToken: not a sha256 hex');
+  if (record.playerId.length === 0) throw new Error('DocumentApi.saveStreamToken: no player');
+  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
+  doc.path = path;
+  doc.owner = STREAM_TOKENS_BRANCH;
+  doc.kind = STREAM_TOKEN_KIND;
+  doc.data = { playerId: record.playerId, scope: record.scope, issuedAt: record.issuedAt };
+  await doc.save();
+}
+
+/** Revoke a token by its hash. Returns whether a record existed. */
+async function deleteStreamTokenImpl(hash: string): Promise<boolean> {
+  const path = streamTokenPath(hash);
+  if (!path) return false;
+  const doc = await StoredDocument.findByPath(path);
+  if (!doc || doc.getKind() !== STREAM_TOKEN_KIND) return false;
+  await doc.delete();
+  return true;
+}
+
 /** The branch every landing's berth roll lives under. */
 const BERTHS_BRANCH = '/platform/berths';
 
@@ -689,6 +738,9 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'berth-roll':
     case 'berth-book':
     case 'aroma':
+    case 'standby-reason':
+    case 'lower-third-panel':
+    case 'stream-token': // ⛔ a credential is never paper
       return null;
     default: {
       const unreachable: never = kind;
@@ -862,6 +914,21 @@ export class DocumentLogic extends ApiLogic {
     localityPrefix: string,
   ): Promise<Array<{ path: string; data: Record<string, unknown> }>> {
     return readMapsImpl(ownerKey, localityPrefix);
+  }
+
+  /** See {@link DocumentApi.saveStreamToken}. Rails in `saveStreamTokenImpl`. */
+  @CallSecurity(DocumentApiCallers)
+  public async saveStreamToken(
+    hash: string,
+    record: { playerId: string; scope: string; issuedAt: number },
+  ): Promise<void> {
+    return saveStreamTokenImpl(hash, record);
+  }
+
+  /** See {@link DocumentApi.deleteStreamToken}. */
+  @CallSecurity(DocumentApiCallers)
+  public async deleteStreamToken(hash: string): Promise<boolean> {
+    return deleteStreamTokenImpl(hash);
   }
 
   /** See {@link DocumentApi.saveBerth}. Rails in `saveBerthImpl`. */

@@ -18,6 +18,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Provision from '../../../platform/thing/Provision';
 import Material from '../Material';
+import Food from '../../../platform/idea/material/Food';
 import { Freshness } from '../Freshness';
 import { Piecewise } from '../../Trajectory';
 import { Quantity } from '../../quantity';
@@ -38,7 +39,7 @@ let matSeq = 0;
 function material(ea = 80_000, aw = 0.98): Material {
   matSeq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName(`outage-mat-${matSeq}`);
     m.setSpecificHeat(Quantity.of(3200, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.5, 'W/(m·K)'));

@@ -564,7 +564,7 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
         return { ok: false, reason: 'not-faced', line: `Paint will not take on ${self.getPresentation()}.` };
       }
       const held = MixinApi.isBulkable(medium) && medium.hasInteriorBulk() ? medium.getBulkMaterial('interior') : null;
-      if (held === null || !held.getLaysCoat() || !MixinApi.isBulkable(medium)) {
+      if (held === null || !MixinApi.hasCoating(held) || !held.getLaysCoat() || !MixinApi.isBulkable(medium)) {
         return { ok: false, reason: 'not-paint', line: `What is in ${medium.getPresentation()} will not letter anything.` };
       }
       const litres = Math.max(0.01, text.length * LITRES_PER_LETTER);

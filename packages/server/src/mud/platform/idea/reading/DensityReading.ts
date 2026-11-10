@@ -58,7 +58,7 @@ export default class DensityReading extends Reading {
     }
     const liquor = target.getBulkMaterial('interior');
     const strength = new LyeStrength(
-      target.getBulkPayload('interior')?.dissolvedSolidsKgPerL ?? liquor?.getSolidsKgPerL() ?? 0,
+      target.getBulkPayload('interior')?.dissolvedSolidsKgPerL ?? (liquor && MixinApi.hasSolution(liquor) ? liquor.getSolidsKgPerL() : 0),
     );
     if (!strength.isLye(liquor) && !liquor?.hasTag('water')) {
       await super.analyze(ctx, target, band, handTool, param);
@@ -77,10 +77,10 @@ export default class DensityReading extends Reading {
     // ⭐ A lye is read in WORDS even under the glass (potash D7, AC 12):
     // its strength is a band a soapmaker acts on, never a figure.
     if (subject && MixinApi.isBulkable(subject) && !subject.isBulkEmpty('interior')) {
+      const heldLiquor = subject.getBulkMaterial('interior');
       const strength = new LyeStrength(
         subject.getBulkPayload('interior')?.dissolvedSolidsKgPerL ??
-          subject.getBulkMaterial('interior')?.getSolidsKgPerL() ??
-          0,
+          (heldLiquor && MixinApi.hasSolution(heldLiquor) ? heldLiquor.getSolidsKgPerL() : 0),
       );
       if (strength.isLye(subject.getBulkMaterial('interior'))) {
         this.wordLye(ctx, subject, instrument, strength.glassWords(band));
@@ -122,9 +122,8 @@ export default class DensityReading extends Reading {
     const liquor = target.getBulkMaterial('interior');
     const solids =
       target.getBulkPayload('interior')?.dissolvedSolidsKgPerL ??
-      liquor?.getSolidsKgPerL() ??
-      0;
-    if (liquor && solids > 0) {
+      (liquor && MixinApi.hasSolution(liquor) ? liquor.getSolidsKgPerL() : 0);
+    if (liquor && MixinApi.hasSolution(liquor) && solids > 0) {
       gravity = 1 + 0.52 * liquor.solidsMassFraction(solids);
     } else if (MixinApi.isMaturing(target)) {
       gravity = target.getGravity();

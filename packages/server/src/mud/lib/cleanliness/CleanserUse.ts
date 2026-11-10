@@ -31,7 +31,7 @@ export class CleanserUse {
           const m = slot.getMaterial();
           const room = MixinApi.isContainable(src) ? src.getContainer() : null;
           const outer = room && room.isAgent() && MixinApi.isContainable(room) ? room.getContainer() : room;
-          if (m && m.getVapourMaterial() && outer && MixinApi.isAtmospheric(outer)) {
+          if (m && MixinApi.hasVolatility(m) && m.getVapourMaterial() && outer && MixinApi.isAtmospheric(outer)) {
             outer.addAtmosphereContent(m.getVapourMaterial(), Math.min(per, slot.getAmount().rawValue()) * m.getVapourLPerLPerHour());
           }
           const left = Math.max(0, slot.getAmount().rawValue() - per);

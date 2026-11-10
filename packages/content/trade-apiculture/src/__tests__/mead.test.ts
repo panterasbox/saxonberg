@@ -27,6 +27,9 @@ import YAML from 'yaml';
 import Vat from '@saxonberg/server/mud/platform/thing/Vat';
 import MaturationProfile from '@saxonberg/server/mud/platform/idea/maturation/MaturationProfile';
 import Material from '@saxonberg/server/mud/lib/material/Material';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import Drink from '@saxonberg/server/mud/platform/idea/material/Drink';
+import Food from '@saxonberg/server/mud/platform/idea/material/Food';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -66,11 +69,12 @@ function rowData(file: string): Record<string, unknown> {
 function material(file: string, path: string): Material {
   const data = rowData(file);
   return singleton(path, () => {
-    const m = new Material();
+    const cls = (YAML.parse(readFileSync(file, 'utf-8')) as { class: string }).class;
+    const m: Material = cls.endsWith('/Drink') ? new Drink() : new Food();
     m.setName(String(data.name ?? 'thing'));
     m.setTags((data.tags as string[]) ?? []);
     const amounts = data.nutrientAmounts as Record<string, number> | undefined;
-    if (amounts?.sugar) {
+    if (amounts?.sugar && MixinApi.hasEdibility(m)) {
       m.setNutrients(['water', 'sugar']);
       m.setNutrientAmounts({ sugar: amounts.sugar });
     }

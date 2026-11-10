@@ -6,7 +6,7 @@
 # somebody has bound and dressed reads *set paving*. That precedence is the
 # one place the fold makes a judgement call, and sand is the case it was
 # written for.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Stone
 data:
   name: sand
   keywords: [sand, grit]
@@ -21,15 +21,9 @@ data:
   waterAbsorptionCapacity: 5
   hardness: 1
   toughness: 1
-  edibility: false
-  nutrients: []
-  toxicity: []
   # `silica`: the glass batch's former (glass build W4) — sand is what
   # vitrifies, the ash and lime are the fluxes that drop its melting point.
   tags: ["granular", "solid", "earth", "silica", "sand"]
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
   cleanser: /platform/idea/Cleanser/sand
-  composition: []
-  chemistry: null
-  biologicalSource: null

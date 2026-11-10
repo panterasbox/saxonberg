@@ -31,7 +31,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import type { WaterRead } from '../WaterSource';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import Good from '../../../platform/thing/Good';
-import Material from '../../../platform/idea/material/Material';
+import Metal from '../../../platform/idea/material/Metal';
 import { PartyApi } from '../../../api/party';
 import Exit from '../../boundary/Exit';
 import { SchedulerApi } from '../../../api/scheduler';
@@ -214,11 +214,11 @@ describe('the tide reaches the place (D11, D25)', () => {
   /** A drifting plank: wood floats. */
   function plank(): Stuff {
     const mat = makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Metal();
       m.setName('tide-test-pine');
       m.setDensity(Quantity.of(500, 'kg/m³'));
       return m;
-    }, '/stuff/idea/material/_test/tide-test-pine') as unknown as Material;
+    }, '/stuff/idea/material/_test/tide-test-pine') as unknown as Metal;
     return makeStuff(() => {
       const g = new Good();
       g.setMass(Quantity.of(4, 'kg'));

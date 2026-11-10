@@ -10,6 +10,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
 import Material from "../../material/Material";
+import SolidFood from '../../../platform/idea/material/SolidFood';
 import { Quantity } from "../../quantity";
 import { WorldClockApi } from "../../../api/worldclock";
 import "../../../platform/idea/WorldClockRegistry";
@@ -35,10 +36,9 @@ const hyd = (c: Creature) => c.getReserve("hydration")!.current.rawValue();
 
 function food(nutrients: string[]): Material {
   return makeStuff(() => {
-    const m = new Material();
+    const m = new SolidFood();
     m.setName("rations");
     m.setNutrients(nutrients);
-    m.setEdibility(true);
     return m;
   }) as unknown as Material;
 }

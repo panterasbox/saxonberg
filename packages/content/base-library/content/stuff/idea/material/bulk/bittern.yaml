@@ -10,7 +10,7 @@
 # in the tub under a pan must not start a second evaporation of its own.
 # ⭐ A real by-product rather than a waste: bittern curdles soy milk, and it
 # is where Epsom salt and magnesia come from — a later trade's input.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Water
 data:
   name: bittern
   keywords: [bittern, liquor, "mother liquor", brine]
@@ -19,10 +19,5 @@ data:
   thermalConductivity: 0.55
   specificHeat: 3300
   electricalConductivity: 15
-  edibility: false
-  nutrients: []
-  toxicity: []
   tastes: [{ type: salty, amount: 150 }, { type: bitter, amount: 5 }]
   tags: [liquid, bittern, conductive]
-  composition: []
-  biologicalSource: null

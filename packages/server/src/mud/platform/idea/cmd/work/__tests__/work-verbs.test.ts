@@ -35,7 +35,7 @@ import { PerceptibleMixin } from "../../../../../lib/description/Perceptible";
 import { ChattelMixin } from "../../../../../lib/chattel/Chattel";
 import { BulkableMixin } from "../../../../../lib/bulk/Bulkable";
 import { Quantity } from "../../../../../lib/quantity";
-import Material from "../../../material/Material";
+import Spirit from "../../../material/Spirit";
 import ChattelRegistry from "../../../ChattelRegistry";
 import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
 import { SensorMixin } from "../../../../../lib/message/Sensor";
@@ -127,7 +127,7 @@ describe("work verbs", () => {
   let poster: Person;
   let courier: Person;
   let crate: TestCrate;
-  let ginMaterial: Material;
+  let ginMaterial: Spirit;
 
   beforeEach(async () => {
     installV1QuantityMarshallers();
@@ -144,12 +144,12 @@ describe("work verbs", () => {
     poster = makeStuffAtPath(() => new Person(), POSTER);
     courier = makeStuffAtPath(() => new Person(), COURIER);
     ginMaterial = makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Spirit();
       m.setName("gin");
       m.setTags(["spirit", "gin"]);
       m.setDensity(Quantity.of(940, "kg/m³"));
       return m;
-    }, "/stuff/idea/material/spirit/gin") as unknown as Material;
+    }, "/stuff/idea/material/spirit/gin") as unknown as Spirit;
     crate = makeStuffAtPath(() => new TestCrate(), CRATE);
     crate.setKeywords(["crate"]);
     ContainmentApi.move(board as never, room);

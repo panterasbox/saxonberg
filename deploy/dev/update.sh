@@ -30,6 +30,20 @@ echo "==> fast-forward to $TARGET"
 git fetch --quiet origin
 git merge --ff-only "$TARGET"
 
+# ⭐ The running build's identity (broadcast-ready D7): the overlay's
+# Saxonberg card shows the deployed commit's date and age. CI scp's a
+# fresh `.env` before this runs, so append; strip any previous stamp
+# first so a hand re-run stays idempotent.
+echo "==> stamp the build"
+ENV_FILE="$ROOT/.env"
+if [ -f "$ENV_FILE" ]; then
+  sed -i '/^SAXONBERG_BUILD_SHA=/d; /^SAXONBERG_BUILD_AT=/d' "$ENV_FILE"
+  {
+    echo "SAXONBERG_BUILD_SHA=$(git rev-parse --short HEAD)"
+    echo "SAXONBERG_BUILD_AT=$(git show -s --format=%cI HEAD)"
+  } >> "$ENV_FILE"
+fi
+
 echo "==> pnpm install --frozen-lockfile"
 pnpm install --frozen-lockfile
 

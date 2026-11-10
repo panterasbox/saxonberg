@@ -21,6 +21,7 @@ import { chargeHot } from '../../fire/__tests__/burner-fuel';
 import Good from '../../stuff/Good';
 import Place from '../../stuff/Place';
 import Material from '../../material/Material';
+import Water from '../../../platform/idea/material/Water';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import { ThermalMixin, THERMAL_DEFAULTS } from '../Thermal';
 import { ReservedMixin } from '../../reserve/Reserved';
@@ -56,7 +57,7 @@ let seq = 0;
 function water(): Material {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Water();
     m.setName(`power-water-${seq}`);
     m.setDensity(Quantity.of(1000, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));

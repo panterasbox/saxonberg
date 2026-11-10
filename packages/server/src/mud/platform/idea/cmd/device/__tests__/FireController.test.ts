@@ -27,6 +27,7 @@ import { parse } from 'yaml';
 import FireController from '../FireController';
 import Oven from '../../../../thing/Oven';
 import Material from '../../../../../lib/material/Material';
+import Stone from '../../../../../platform/idea/material/Stone';
 import { ThermalMixin } from '../../../../../lib/thermal/Thermal';
 import Good from '../../../../../lib/stuff/Good';
 import { Quantity } from '../../../../../lib/quantity';
@@ -92,7 +93,7 @@ function declinedFor(context: CommandContext): string | undefined {
   return context.getNotes().find((n) => n.kind === 'controller-rejected')?.reason;
 }
 
-let materials: { stone: Material; burnt: Material };
+let materials: { stone: Stone; burnt: Material };
 
 beforeEach(async () => {
   await standUpBranchHarness();
@@ -106,7 +107,7 @@ beforeEach(async () => {
     return m;
   }, BURNT_M) as unknown as Material;
   const s = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Stone();
     m.setName('test stone');
     m.setSpecificHeat(Quantity.of(800, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(1, 'W/(m·K)'));
@@ -121,7 +122,7 @@ beforeEach(async () => {
       },
     ]);
     return m;
-  }, STONE_M) as unknown as Material;
+  }, STONE_M) as unknown as Stone;
   materials = { stone: s, burnt };
 
   room = makeStuff(() => new TestActor());

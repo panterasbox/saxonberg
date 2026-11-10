@@ -1,5 +1,5 @@
 # Sugar — the pantry's; the syrup's input (tag `sugar`).
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/Food
 data:
   name: sugar
   keywords: [sugar]
@@ -7,7 +7,6 @@ data:
   density: 1600
   thermalConductivity: 0.3
   specificHeat: 1250
-  edibility: true
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
@@ -21,8 +20,4 @@ data:
   spoilActivationEnergy: 55000
   waterActivity: 0.3
   nutrients: ["sugar"]
-  toxicity:
-    []
   tags: ["solid", "food", "sugar", "sweetener"]
-  composition: []
-  biologicalSource: null

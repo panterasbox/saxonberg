@@ -470,7 +470,7 @@ tree mode, etc.) we revisit.
 | `BroadcastController` | `canAtPath(giver, 'broadcast', extent)` for `--at <extent>`; a non-holder's refusal lists `heldExtents(giver)`. |
 | the `pack` controllers | `requiresPackInstaller` (validator) — `canAtPath(giver, 'install', '/compact/executive')`. |
 | `EvalController` | `requiresWizard` (validator) — `isWizard(giver)`; no slice (typing code is authoring TypeScript — one of the two places the axis is asked). |
-| `StreamAwayController` / `StreamBackController` | `requiresStreamer` (validator) — `isStreamer(giver)`; no slice (livestream control plane). |
+| `StreamController` + its subcommand controllers (`StreamControllerBase`) | `requiresStreamer` (validator) — `isStreamer(giver)`; no slice (livestream control plane). |
 | `WizardGrantController` / `WizardRevokeController` | `requiresArchwizard` (validator) — `isArchwizard(giver)`; calls the narrow-entry `setWizardMembership` (wizard grant/revoke). |
 | `CloneController` | `canAtPath(giver, 'clone', path)` — the KIND's own title, by longest prefix. Untitled fails closed. ⚠⚠ It used to walk a live REPRESENTATIVE's zone (whichever copy came first), so whether you could clone a flask depended on where some flask was standing — the first copy a town's props minted put the kind under that town's title for everybody, by load order (the ceramics drives, 2026-10-21; the assembly drive had dodged it). The row-with-no-instance hole (`zoneOf(null)` refused everybody; `/system/transport/thing/coach`) is closed by the same question. |
 | `ReloadController` / `TypecheckController` | `canAtPath(giver, 'reload', path)` over the target's class/template path — the question `clone` asks; refusal `access-denied` listing `heldExtents(giver)`. |

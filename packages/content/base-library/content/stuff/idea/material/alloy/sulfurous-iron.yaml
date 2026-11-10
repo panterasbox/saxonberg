@@ -16,7 +16,7 @@
 #
 # ⚠ It is still IRON: `ferrous`, and a furnace will take it back. What it is
 # not is `forgeable`, which is the one tag a smith's hand reaches for.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Alloy
 data:
   name: hot-short iron
   keywords: [iron, "hot-short", sulfurous, bloom]
@@ -25,7 +25,6 @@ data:
   specificHeat: 450
   thermalConductivity: 50
   electricalConductivity: 1.0e7
-  waterAbsorptionCapacity: 0
   hardness: 120
   # ⚠ Tough enough to look fine, and that is the trap: the failure is at
   # forging heat, not under a cold load.
@@ -35,11 +34,6 @@ data:
   # a hot-short bloom (controller-liquidity W9: the smelt asks the material, it
   # no longer scans the trade's rows for a `_materialPath` match).
   castTemplate: /trade/smelting/thing/hot-short-bloom
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["alloy", "metal", "ferrous", "brittle", "sulfurous"]
   composition:
     - { materialPath: /stuff/idea/material/element/iron, fraction: 0.99 }
-  chemistry: null
-  biologicalSource: null

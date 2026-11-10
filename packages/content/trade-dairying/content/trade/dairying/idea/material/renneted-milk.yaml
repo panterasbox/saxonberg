@@ -2,7 +2,7 @@
 # `transforms` target of the soft-curd profile, and the input of the
 # firm-curd one. ⚠ Not tagged `milk` (a profile and a schedule each match
 # one tag).
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/milk, strength: 60 }]
   tastes: [{ type: sweet, amount: 40 }]
@@ -13,16 +13,10 @@ data:
   specificHeat: 3900
   thermalConductivity: 0.5
   electricalConductivity: 0.4
-  waterAbsorptionCapacity: 0
-  hardness: 0
-  toughness: 0
-  edibility: true
   nutrients: ["fat", "protein", "sugar", "water"]
   nutrientAmounts: { fat: 34000, protein: 33000, sugar: 48000, water: 870000 }
   spoilActivationEnergy: 60000
   waterActivity: 0.99
-  toxicity: []
   # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
   ph: 6.4
   tags: ["food", "dairy", "liquid", "perishable", "renneted-milk"]
-  composition: []

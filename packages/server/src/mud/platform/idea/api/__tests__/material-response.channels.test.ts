@@ -23,6 +23,8 @@ import Species from '../../species/Species';
 import BodyPlan from '../../species/BodyPlan';
 import Garment from '../../../thing/equipment/Garment';
 import Material from '../../../../lib/material/Material';
+import Stone from '../../material/Stone';
+import Fiber from '../../material/Fiber';
 import { Construction } from '../../../../lib/material/Construction';
 import { Channels, FOLDED_CHANNELS } from '../../../../lib/material/Channel';
 import { StuffApi } from '../../../../api/stuff';
@@ -46,7 +48,7 @@ function thermalMat(conductivityWmK: number): Material {
 
 /** A material with tags and an absorption capacity — corrosion's two reads. */
 function chemMat(tags: string[], absorptionPct: number): Material {
-  const m = makeStuff(() => new Material());
+  const m = makeStuff(() => new Stone());
   m.setTags(tags);
   m.setWaterAbsorptionCapacity(Quantity.of(absorptionPct, '%'));
   stampTemplatePathForTest(m, `/stuff/idea/material/test/ch-cm-${seq++}`);
@@ -78,7 +80,7 @@ function realGarment(
 
 /** Wool: light, lofty, a poor conductor, and thirsty. */
 function wool(): Material {
-  const m = makeStuff(() => new Material());
+  const m = makeStuff(() => new Fiber());
   m.setDensity(Quantity.of(300, 'kg/m³'));
   m.setThermalConductivity(Quantity.of(0.04, 'W/(m·K)'));
   m.setWaterAbsorptionCapacity(Quantity.of(30, '%'));

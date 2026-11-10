@@ -907,7 +907,9 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.stampMadeFrom(materialPath);
       const profile = this.matchProfile(material);
       this.maturationProfileKey = profile?.getKey() ?? '';
-      this.startingSugarGPerL = material.getNutrientAmounts()['sugar'] ?? 0;
+      this.startingSugarGPerL = MixinApi.hasEdibility(material)
+        ? (material.getNutrientAmounts()['sugar'] ?? 0)
+        : 0;
       if (profile !== null && profile.getKind() === 'culture') {
         // A culture batch is alive from the fill (harvested lees): its
         // strain is the profile's, its "conversion" is viability, and
@@ -1264,8 +1266,9 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       if (profile.getKind() === 'culture') {
         const sugary =
-          (material.getNutrientAmounts()['sugar'] ?? 0) > 0 ||
-          material.getNutrients().includes('sugar');
+          MixinApi.hasEdibility(material) &&
+          ((material.getNutrientAmounts()['sugar'] ?? 0) > 0 ||
+            material.getNutrients().includes('sugar'));
         return sugary ? 'feed' : null;
       }
       if (
@@ -1457,8 +1460,10 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (!MixinApi.isBulkable(self) || !(fromL > 0) || !(toL > 0)) return;
       const payload = self.getBulkPayload('interior');
+      const heldMat = self.getBulkMaterial('interior');
       const held =
-        payload?.dissolvedSolidsKgPerL ?? self.getBulkMaterial('interior')?.getSolidsKgPerL() ?? 0;
+        payload?.dissolvedSolidsKgPerL ??
+        (heldMat !== null && MixinApi.hasSolution(heldMat) ? heldMat.getSolidsKgPerL() : 0);
       if (!(held > 0) || Math.abs(toL - fromL) < 1e-12) return;
       self.setBulkPayload('interior', {
         ...(payload ?? {}),

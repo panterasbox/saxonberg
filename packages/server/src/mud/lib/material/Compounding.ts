@@ -263,7 +263,10 @@ export function CompoundingMixin<TBase extends NestingConstructor<Stuff>>(Base: 
       if (!MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return 0;
       const slot = self.getBulk('interior');
       const held = slot.getMaterial();
-      return held !== null && held.hasTag('liquid') ? slot.getMassKg() * held.waterShare() : 0;
+      if (held === null || !held.hasTag('liquid')) return 0;
+      // Water itself is all water; a mixture is what its composition says.
+      if (held.hasTag('water')) return slot.getMassKg();
+      return MixinApi.hasMixture(held) ? slot.getMassKg() * held.waterShare() : 0;
     }
 
     public workRefusal(verb: string | undefined): KneadRefusal | null {
@@ -282,7 +285,7 @@ export function CompoundingMixin<TBase extends NestingConstructor<Stuff>>(Base: 
       const self = this as unknown as Stuff;
       if (!MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return;
       const held = self.getBulkMaterial('interior');
-      if (held === null || !(held.getVapourLPerLPerHour() > 0) || held.getVapourMaterial() === '') return;
+      if (held === null || !MixinApi.hasVolatility(held) || !(held.getVapourLPerLPerHour() > 0) || held.getVapourMaterial() === '') return;
       const room = MixinApi.isContainable(self) ? self.getContainer() : null;
       if (room === null || !MixinApi.isAtmospheric(room)) return;
       const litres = self.getBulkAmount('interior').rawValue();

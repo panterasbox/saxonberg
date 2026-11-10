@@ -14,6 +14,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
 import Material from '../../material/Material';
+import Wood from '../../../platform/idea/material/Wood';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { WetMixin } from '../../wetness/Wet';
 import { ReservedMixin, Reserve } from '../../reserve/Reserved';
@@ -42,7 +43,7 @@ const SURFACE: MediumRead = { ...UNDER, atSurface: true, depthM: 0 };
 
 function wood(): Firewood {
   const m = makeStuffAtPath(() => {
-    const mat = new Material();
+    const mat = new Wood();
     mat.setName('medium-test-wood');
     mat.setAutoignitionTemperature(Quantity.of(570, 'K'));
     mat.setHeatOfCombustion(Quantity.of(16, 'MJ/kg'));

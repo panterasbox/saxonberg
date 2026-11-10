@@ -2,7 +2,7 @@
 # same paste as soft soap's in every way the fire reads (its thermal fields
 # are soap paste's exactly), but it boils to a hard curd the frame sets,
 # with no salt.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Soap
 data:
   smells: [{ aroma: /base-library/aromas/soap, strength: 200 }]
   name: hard soap paste
@@ -13,10 +13,5 @@ data:
   thermalConductivity: 0.4
   meltingPoint: 300
   boilingPoint: 400
-  edibility: false
-  nutrients: []
-  toxicity: []
   corrosiveTo: [protein, tissue]
   tags: [liquid, caustic, hard-soap-paste]
-  composition: []
-  biologicalSource: null

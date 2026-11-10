@@ -13,7 +13,7 @@
 # people casting shot in a closed room has the machinery to make that
 # matter. Soft (hardness 38) and not much use for anything you would hit
 # with.
-class: /platform/idea/material/Material
+class: /platform/idea/material/ToxicMetal
 data:
   name: lead
   keywords: [lead]
@@ -30,9 +30,6 @@ data:
   latentHeatOfFusion: 23000
   boilingPoint: 2022
   latentHeatOfVaporization: 858000
-  edibility: false
-  nutrients: []
-  toxicity: [{ type: lead, amount: 0 }]
   # ⭐ What a lead face gives the water it holds (water-supply D8): the lead
   # law, by the WATER's pH and softness. Soft acid upland water through a
   # lead pipe overnight carries a few tenths of a milligram a litre; hard
@@ -40,8 +37,6 @@ data:
   leaches:
     - { toxin: lead, mgPerLPerDay: 40 }
   tags: ["element", "metal", "non-ferrous", "crystalline", "conductor", "toxic"]
-  composition: []
   symbol: Pb
   atomicNumber: 82
   molarMass: 207.2
-  biologicalSource: null

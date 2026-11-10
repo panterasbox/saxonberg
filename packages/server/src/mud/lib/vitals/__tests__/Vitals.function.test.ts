@@ -13,8 +13,9 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Creature } from '../../creature/Creature';
+import Weapon from '../../../platform/thing/equipment/Weapon';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import { StuffApi } from '../../../api/stuff';
@@ -234,6 +235,20 @@ describe('the function axis — the slot consumers', () => {
     expect(c.isSlotImpairedByCondition('hand:left')).toBe(false);
     f.severity = 0.6;
     expect(c.isSlotImpairedByCondition('hand:left')).toBe(true);
+  });
+
+  it('⭐ a wound refuses PUTTING ON, never what a restore re-seats', () => {
+    // A restart re-seats what was already worn: a body hurt since cannot
+    // refuse what it held (the material decomposition's restart drive — a
+    // lye-burned head refused its own implant, and the login failed).
+    const c = person();
+    c.afflict(wound('fracture', 'body.arm.left.hand', 3));
+    const blade = makeStuff(() => new Weapon());
+    // The blade fits the hand by its own test; only the WOUND is in question.
+    vi.spyOn(blade, 'fitsSlot').mockReturnValue(true);
+    expect(() => c.occupy(blade, 'hand:left')).toThrow(/does not fit/);
+    c.occupy(blade, 'hand:left', { restoring: true });
+    expect(c.getOccupant('hand:left')).toBe(blade);
   });
 
   it('a slot with no anatomy behind it is never refused', () => {
