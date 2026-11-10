@@ -158,7 +158,9 @@ subcommands:
         type: object
         required: true
         scope: ["$focus", "reachable"]
-        requires: VisibleMixin
+        # ⭐ The arg gate (controller-liquidity W15, reachability link 5): only
+        # a combatant can be read as one; a chair is refused by the binder.
+        requires: [VisibleMixin, CombatantMixin]
   yield:
     controller: /platform/idea/cmd/combat/FightYieldController
     description: "Concede the fight"

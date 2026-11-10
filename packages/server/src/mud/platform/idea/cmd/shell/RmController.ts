@@ -94,7 +94,7 @@ export default class RmController extends CommandController<RmModel> {
               'access-denied',
             );
           case 'no-template':
-            return this.fail(context, `no template at ${target}`);
+            return this.fail(context, `no template at ${target}`, 'no-template');
           case 'has-descendants':
             return this.fail(
               context,
