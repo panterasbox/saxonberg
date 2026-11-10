@@ -12,9 +12,10 @@ data:
   longDescription: |
     A long smooth swell of hill with the grass combed one way by the wind, and nothing on it at all: no stone, no stain, no water, no reason to stop.
 
-    From the top of it you can see the seep back down to the west, and the smoke of the pithead a long way beyond that.
+    From the top of it you can see the seep back down to the southwest, and the smoke of the pithead a long way beyond that.
   coords: { x: 22, y: 14, z: 0 }
   exits:
-    west:
+    southwest:
       destination: /world/terminus/rejection/location/seep-hollow
+      kind: /platform/idea/exits/track
       edgeMinutes: 5

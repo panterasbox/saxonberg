@@ -9,7 +9,7 @@
  * that same door worked perfectly.
  *
  * ⚠⚠ The door case is the whole point. **An attached door is in no
- * container** — it rides `exit.getDoor()` — so any reach test built out
+ * container** — it rides `exit.getBoundary()` — so any reach test built out
  * of containment alone misses every door in the game, and misses it
  * silently, because a door that is merely unreachable looks like a door
  * that is far away.
@@ -133,7 +133,7 @@ describe('PerceptionApi.canReach', () => {
   it('reaches a door attached to an exit — which is in NO container', async () => {
     const door = await StuffApi.create(() => new Door());
     door.setShortDescription('a heavy oak door');
-    await here.addBidirectionalExit(there, 'north', { door });
+    await here.addBidirectionalExit(there, 'north', { boundary: door });
 
     // The half that makes the other half meaningful.
     const asStuff = s(door);

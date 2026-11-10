@@ -27,6 +27,7 @@ data:
     Somebody built the cairn. Nobody remembers why, and there is nothing under it but more of the hill — which is also true of the hill.
   coords: { x: 14, y: 16, z: 0 }
   exits:
-    south:
+    southeast:
       destination: /world/terminus/rejection/location/seep-hollow
+      kind: /platform/idea/exits/track
       edgeMinutes: 7

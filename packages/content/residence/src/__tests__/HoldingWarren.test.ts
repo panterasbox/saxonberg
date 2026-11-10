@@ -19,6 +19,7 @@ import HoldingWarren from '../idea/HoldingWarren';
 import HouseholdersKit from '../thing/HouseholdersKit';
 import MaintainController from '../idea/cmd/crafting/MaintainController';
 import FrontDoorExit from '../idea/FrontDoorExit';
+import type Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import PersistentLocation from '@saxonberg/server/mud/platform/location/PersistentLocation';
@@ -96,6 +97,10 @@ class TestInstitution extends SingletonMixin(
   protected async wireHostFixtures(): Promise<void> {}
   protected async unwireHostFixtures(): Promise<void> {}
   protected override async wireHubExit(): Promise<void> {}
+  /** The door a real institution hangs in its entry edge (boundary D6). */
+  public async hangFrontDoorOn(key: string, edge: Exit): Promise<void> {
+    await this.hangEntryDoor(key, '/system/residence/thing/boundaries/keyed-door', edge);
+  }
 }
 
 let store: Map<string, Doc[]>;
@@ -127,7 +132,10 @@ function seedDomain(): void {
   });
   add('/system/residence/idea/exits/front-door', '/system/residence/idea/FrontDoorExit');
   add('/system/residence/idea/exits/lot-gate', '/system/residence/idea/LotGateExit');
-  add('/system/residence/idea/exits/keyed-door', '/system/residence/idea/KeyedDoorExit');
+  add('/system/residence/idea/exits/keyed-door', '/platform/idea/Exit');
+  // The doors the warrens hang (boundary build, D6).
+  add('/system/residence/thing/boundaries/keyed-door', '/platform/thing/Door', { shortDescription: 'door', keywords: ['door'], locked: true, closesBehind: true });
+  add('/system/residence/thing/boundaries/lot-gate', '/platform/thing/Door', { shortDescription: 'gate', keywords: ['gate'], open: true });
 
   add(WARREN_PATH, WARREN_PATH.replace('/holder', '/TestInstitution'));
   // ⭐ The house's PLAN is the programme row's own (harbors review 3;
@@ -454,11 +462,14 @@ describe('the residential programme (D16)', () => {
     const street = await StuffApi.singleton<MemberStuff>(STREET);
 
     // The constructor arguments became a `configure` step (the exit is
-    // a clone of `/system/residence/idea/exits/front-door` now).
+    // a clone of `/system/residence/idea/exits/front-door` now). ⭐ The
+    // lock is the DOOR the institution hangs in it (boundary build, D6).
     const door = await StuffApi.clone<FrontDoorExit>(
       '/system/residence/idea/exits/front-door',
     );
     door.configureFrontDoor(w, LOT1);
+    await w.hangFrontDoorOn(LOT1, door as unknown as Exit);
+    expect(w.entryDoorOf(LOT1)).not.toBeNull();
 
     const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
     iris.setPlayerId('iris');

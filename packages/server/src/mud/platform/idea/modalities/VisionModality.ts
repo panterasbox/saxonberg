@@ -8,7 +8,7 @@
  * `perceivedBandModifier` shadow seam.
  *
  * Vision-specific value types stay where they live (Light /
- * LightBand / AmbientLitMixin / LightSourceMixin / LightConduit) —
+ * LightBand / AmbientLitMixin / LightSourceMixin / Boundary) —
  * they're the modality's domain, not Api-shaped. The Api surface is
  * `PerceptionApi`; this file is the modality's implementation.
  */
@@ -35,10 +35,6 @@ import { Quantity } from '../../../lib/quantity';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { PerceptionApi } from '../../../api/perception';
-import type { LightConduit } from '../../../lib/boundary/Conduit';
-import type { Conduit } from '../../../lib/boundary/Conduit';
-import type { Boundary } from '../../../lib/boundary/Boundary';
-import { BoundaryAnchor } from '../../../lib/boundary/BoundaryAnchor';
 import { CelestialApi } from '../../../api/celestial';
 import { Traversal } from '../../../lib/location/Traversal';
 import type { Leg } from '../../../lib/location/Traversal';
@@ -254,8 +250,8 @@ export class VisionModality extends Modality {
     consider(loc, null);
     if (MixinApi.isExitable(loc)) {
       for (const exit of loc.getObviousExits()) {
-        const door = exit.getDoor();
-        if (door && MixinApi.isSealable(door) && !door.isOpen()) continue;
+        const boundary = exit.getBoundary();
+        if (boundary && !(boundary.transmissivityInto('light', exit) > 0)) continue;
         try {
           consider(exit.getDestination(), exit.getDirection());
         } catch {
@@ -297,7 +293,7 @@ export class VisionModality extends Modality {
       if (host && MixinApi.isContainer(host)) env = host;
     }
     // ⭐⭐ An exit's DOOR is in nobody's contents either — it rides
-    // `exit.getDoor()` (the rule `PerceptionLogic.canReach` already
+    // `exit.getBoundary()` (the rule `PerceptionLogic.canReach` already
     // follows) — so every attached door rendered as *"something"*: `open
     // door` said "You open something." and `look door` in a room with two
     // offered "something (1)" / "something (2)". A door is seen in the
@@ -309,7 +305,7 @@ export class VisionModality extends Modality {
       if (
         here &&
         MixinApi.isExitable(here) &&
-        here.getObviousExits().some((x) => x.getDoor()?.stuffId === target.stuffId)
+        here.getObviousExits().some((x) => x.getBoundary()?.stuffId === target.stuffId)
       ) {
         env = here;
       }
@@ -446,8 +442,8 @@ function finalizeSources(sources: LightSourceRef[]): LightSourceRef[] {
 type SpillLeg = { tau: number; area: number; colour: Colour };
 
 /**
- * ⭐ The legs out of `loc`, in the order this walk has always taken
- * them: boundary conduits (d) first, then doorless obvious exits (e).
+ * ⭐ The legs out of `loc`: the ways WITH a boundary first (d), then the open
+ * ways (e) — the order this walk has always taken them.
  *
  * ⚠⚠ **The order is behaviour.** One mutable `visited` set is shared
  * across the whole walk, so whichever leg reaches a room first is the
@@ -455,65 +451,45 @@ type SpillLeg = { tau: number; area: number; colour: Colour };
  * commutative in the presence of the cap. The characterization golden
  * (`scripts/__tests__/golden/perception-characterization.json`) is
  * what holds this.
+ *
+ * ⭐ Boundary build (2026-11): (d) used to walk the anchor fixtures each
+ * boundary hung on both rooms; it walks the place's own ways now and asks
+ * each side's boundary (`transmissivityInto`). A boundary passes its own
+ * fraction (an open door 1, glass its glazing); an open way passes
+ * `EXIT_TAU`. Same numbers, one source of neighbours.
  */
 function lightLegs(loc: Stuff & Container): Array<Leg<Stuff & Container>> {
   const out: Array<Leg<Stuff & Container>> = [];
+  if (!MixinApi.isExitable(loc)) return out;
+  const ways = loc.getObviousNeighbours({ through: 'all' });
 
-  // (d) Cross-boundary propagation. ⭐ Collected, not merged: legs (d)
-  // and (e) are both light from ANOTHER scope, so they share one cap —
-  // see {@link mergeCapped}.
-  if (MixinApi.isAdornable(loc)) {
-    for (const fx of loc.getFixtures()) {
-      if (!BoundaryAnchor.is(fx)) continue;
-      const anchor = fx;
-      const boundary = anchor.getBoundary();
-      if (!boundary) continue;
-      const otherHost = anchor.getOtherHost();
-      if (!otherHost) continue;
-      const conduit = findLightConduit(boundary);
-      if (!conduit) continue;
-      const otherSide = boundary.getOtherSide(anchor);
-      const tau = conduit.transmissivity(otherSide, anchor.getSide());
-      if (!(tau > 0)) continue;
-      // ⭐⭐ The pane's TINT, from the glass build (merged 2026-10-09).
-      // A coloured pane multiplies the sub-walk's channels, so light
-      // through green glass arrives green; an uncoloured boundary is
-      // `UNDYED` and behaves exactly as before.
-      //
-      // ⚠ Asked BY SHAPE (`transmittanceColour?.`) because it is the
-      // conduit's optional half — not every light conduit tints.
-      const colour =
-        conduit.transmittanceColour?.(otherSide, anchor.getSide()) ??
-        Colour.UNDYED;
-      const far = otherHost as unknown as Stuff & Container;
-      out.push({
-        node: far,
-        tau,
-        edge: { tau, area: readSizeScale(far), colour },
-      });
-    }
+  // (d) Through a boundary. ⭐ Collected, not merged: legs (d) and (e) are
+  // both light from ANOTHER scope, so they share one cap — see
+  // {@link mergeCapped}.
+  for (const { exit, dest } of ways) {
+    const boundary = exit.getBoundary();
+    if (!boundary) continue;
+    const tau = boundary.transmissivityInto('light', exit);
+    if (!(tau > 0)) continue;
+    // ⭐⭐ The pane's TINT, from the glass build (merged 2026-10-09). A
+    // coloured pane multiplies the sub-walk's channels, so light through
+    // green glass arrives green; anything else is `UNDYED`.
+    const colour = boundary.colourInto(exit);
+    out.push({ node: dest, tau, edge: { tau, area: readSizeScale(dest), colour } });
   }
 
-  // (e) Cross-exit propagation. Doored exits skip — the boundary walk
-  // handles those. The five hazard guards are
-  // `ExitableMixin.getObviousNeighbours`' now, in ONE copy; this file
-  // is where four of them were first written down, with the dates they
-  // took `look` down for a whole room.
-  if (MixinApi.isExitable(loc)) {
-    for (const { dest } of loc.getObviousNeighbours()) {
-      // ⚠ `UNDYED`: a doorway is not a pane. Only a boundary conduit
-      // can tint, which is why the two legs differ here and nowhere
-      // else.
-      out.push({
-        node: dest,
-        tau: EXIT_TAU,
-        edge: {
-          tau: EXIT_TAU,
-          area: readSizeScale(dest),
-          colour: Colour.UNDYED,
-        },
-      });
-    }
+  // (e) Through an open way. The five hazard guards are
+  // `ExitableMixin.getObviousNeighbours`' now, in ONE copy; this file is
+  // where four of them were first written down, with the dates they took
+  // `look` down for a whole room.
+  for (const { exit, dest } of ways) {
+    if (exit.getBoundary()) continue;
+    // ⚠ `UNDYED`: a doorway is not a pane.
+    out.push({
+      node: dest,
+      tau: EXIT_TAU,
+      edge: { tau: EXIT_TAU, area: readSizeScale(dest), colour: Colour.UNDYED },
+    });
   }
 
   return out;
@@ -796,15 +772,5 @@ function readSizeScale(loc: Stuff & Container): number {
   return loc instanceof Place ? loc.getSizeScale() : 1.0;
 }
 
-function findLightConduit(boundary: Boundary): LightConduit | null {
-  const conduits = boundary.getConduits();
-  for (const c of conduits) {
-    if (isLightConduit(c)) return c;
-  }
-  return null;
-}
 
-function isLightConduit(c: Conduit): c is LightConduit {
-  return c.conduitKind === 'light';
-}
 

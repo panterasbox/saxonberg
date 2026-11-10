@@ -26,6 +26,7 @@ import { FireApi } from '../../../../api/fire';
 import { ContainmentApi } from '../../../../api/containment';
 import { ConnectionManager } from '../../../../../backend/ConnectionManager';
 import { StuffApi } from '../../../../api/stuff';
+import { BoundaryApi } from '../../../../api/boundary';
 import { Quantity } from '../../../../lib/quantity';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { User } from '../../../../lib/identity/User';
@@ -157,11 +158,11 @@ describe('the fire tick — spread', () => {
     const openDoor = await StuffApi.create(() => new Door());
     openDoor.setShortDescription('open door');
     openDoor.setOpen(true);
-    await a1.addExit(
-      makeStuff(
-        () => new Exit({ direction: 'east', source: a1, destination: b1, door: openDoor }),
-      ),
+    const e1 = makeStuff(
+      () => new Exit({ direction: 'east', source: a1, destination: b1 }),
     );
+    await a1.addExit(e1);
+    BoundaryApi.attach(openDoor, e1);
     const fireA = await log(a1);
     const acrossOpen = await log(b1, false, 0.3);
     await occupy(a1);
@@ -176,11 +177,11 @@ describe('the fire tick — spread', () => {
     const shutDoor = await StuffApi.create(() => new Door());
     shutDoor.setShortDescription('shut door');
     shutDoor.setOpen(false);
-    await a2.addExit(
-      makeStuff(
-        () => new Exit({ direction: 'east', source: a2, destination: b2, door: shutDoor }),
-      ),
+    const e2 = makeStuff(
+      () => new Exit({ direction: 'east', source: a2, destination: b2 }),
     );
+    await a2.addExit(e2);
+    BoundaryApi.attach(shutDoor, e2);
     const fireA2 = await log(a2);
     const acrossShut = await log(b2, false, 0.3);
     await occupy(a2);

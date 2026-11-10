@@ -2,6 +2,7 @@
 # night, it keeps the heat in; propped on a summer noon, it lets the
 # overheated house fall back (rubber build, drive step 10).
 class: /platform/thing/Door
+extends: /platform/thing/boundaries/door
 data:
   shortDescription: vent door
   keywords: [vent, "vent door", door]

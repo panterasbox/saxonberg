@@ -40,4 +40,5 @@ data:
   exits:
     southwest:
       destination: /world/terminus/rejection/location/fringe-claim
+      kind: /platform/idea/exits/track
       edgeMinutes: 5

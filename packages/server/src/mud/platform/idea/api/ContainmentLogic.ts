@@ -225,7 +225,7 @@ function moveCore(
     }
     // PRE-FLIGHT (3): Adornments attached to a host cannot be moved
     // into a Container's contents while still adorning. The
-    // not-portable invariant — wall sconces, BoundaryAnchors, and
+    // not-portable invariant — wall sconces, floors, and
     // similar fixtures are reachable through `Adornable.getFixtures()`,
     // not `getContents()`. Detaching first
     // (`host.removeFixture(item)`) is the prerequisite for moving

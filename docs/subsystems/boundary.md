@@ -1,10 +1,12 @@
 # Boundary Subsystem
 
 Everything that *lives on a boundary* — the seams between
-containment scopes. Exits gate movement between rooms. Doors gate
-exits. The `Boundary` substrate gates cross-room channels (light,
-sight, future sound) through a fixture-anchor model. Adornments
-attach non-portable Stuff to a host. Sit in `lib/boundary/`.
+containment scopes. Exits gate movement between rooms. ⭐⭐ **A way's
+boundary is ONE object and each place's exit is a SIDE of it** (the
+boundary build, 2026-11): a door, a window, a curtain, a gate between two
+places is shut, locked and named the same from both, and what it lets
+through is a table of channels on its row. Adornments attach
+non-portable Stuff to a host. Sit in `lib/boundary/`.
 
 The companion subsystem is [spatial.md](./spatial.md) — locations,
 zones, coordinates, containment, locomotion. Spatial defines the
@@ -28,21 +30,19 @@ Cross-references:
 
 | Type | Kind | Role |
 |---|---|---|
-| `Exit` | concrete `Idea` | One-way passage between two `Container & Exitable` endpoints. Carries direction, lazy-resolvable destination, optional door, traversal flags, custom messages. |
-| `ExitableMixin` | mixin | Explicit exit map + zone-delegated lookup; `addExit` wires `Door.attachedTo` and (for doored exits) `BoundaryApi.attachExistingBoundary`. |
-| `ExitableVessel` | concrete class | A Vessel you can enter. `onCreate(DoorBearingMixin(ExitableMixin(AdornableMixin(AtmosphericMixin(Vessel)))))` — it composes `Adornable` itself (the fixture surface the Door→`BoundaryAnchor` retrofit needs), since the bare `Vessel` base no longer does, and ⭐ **`Atmospheric` too, since the base-class narrowing build: a thing you can go inside is a place with air** (see [biome.md](./biome.md)). Carries the authored `interiorVolume` the envelope runs on, and overrides `envelopeApplies` + `openExteriorOpenings` because a room's version of each is wrong about a vehicle. Synthesizes `'in'`/`'out'` exits. Migrates the `(vessel, environment)` Boundary anchor pair on `setDoor` / `onMoved`, and resets the weather-locality memo there — a place that goes places has a new address. |
-| `DoorBearingMixin` | mixin | Adds a `door: Door | null` field for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
-| `Door` | concrete `Thing` subclass | `LockableMixin(SealableMixin(Boundary))`. Shared open/closed state, plus a **keyway and a bolt**, referenced by exit pairs. Implements all five conduits — `LightConduit`, `LineOfSight`, `MovementConduit`, `SmellConduit`, `SoundConduit` — all gated on `isOpen()`. `attachedTo: Set<Exit>` is the runtime back-reference. |
+| `Exit` | concrete `Idea` | One-way passage between two `Container & Exitable` endpoints — and one SIDE of the boundary standing in it (`getBoundary()`, null for an open way). Carries direction, lazy-resolvable destination, traversal flags, custom messages; `wayState()` / `wayRecord()` are what every screen shows. |
+| `ExitableMixin` | mixin | Explicit exit map + zone-delegated lookup; `applyExits` attaches each authored `door:` side to the one boundary row; `removeExit` detaches the side; `edgeRefusal` is the hook `Location` answers with the zone's edge rules. |
+| `ExitableVessel` | concrete class | A Vessel you can enter. `ExitableMixin(AdornableMixin(AtmosphericMixin(Vessel)))` — ⭐ **`Atmospheric` since the base-class narrowing build: a thing you can go inside is a place with air** (see [biome.md](./biome.md)). Carries the authored `interiorVolume` the envelope runs on, and overrides `envelopeApplies` + `openExteriorOpenings` because a room's version of each is wrong about a vehicle. Synthesizes `'in'`/`'out'` exits, which carry no boundary: ⭐ **its own `Sealable` is its door** — a shut vessel drops its `out` from the walks' neighbours (`getObviousNeighbours`), so no light, sound or smell comes in. Resets the weather-locality memo on a move — a place that goes places has a new address. |
+| `Door` | concrete `Thing` (`platform/thing/Door`) | `LockableMixin(platform Boundary)` — a boundary with a **bolt**: a door, a gate, a hatch, a gangway-to-be. `closesBehind` (a door on a weight or a latch); ⭐ `freeFrom` (the place whose side opens with no key). |
 | `SwitchableMixin` | mixin | Generic binary on/off toggle (`isOn()` / `setOn()`, `switchOn()` / `switchOff()`). The Sealable of the electrical world — a wall switch, a machine, the crossing `Beacon`. Driven by the `switch` verb (in the `device` category). Registered as `Switchable`, `MixinApi.isSwitchable`. |
-| `LockableMixin` | mixin | ⭐ **A keyway AND a bolt** (`lib/boundary/Lockable.ts`), composed onto `Door` **beneath** `Sealable` and onto the three keyed Exit subclasses. The bolt is `isLocked()` / `setLocked()` / `lock()` / `unlock()`; the keyway is `getLock()` / `opensFor(mover)` over `lib/lock/Lock`. `canPass = !isLocked() || opensFor(mover)`, so a key-holder passes a locked door and `unlock` is how you let everyone else through. `getLock()` is a policy seam (the keyed family reads its warren's keyway) and `boltedByDefault()` decides the starting state. Registered as `Lockable`, `MixinApi.isLockable`. |
+| `LockableMixin` | mixin | ⭐ **A keyway AND a bolt** (`lib/boundary/Lockable.ts`), composed onto `Door` (over the platform twin's `Sealable`), onto the gangway's `BerthExit`/`AshoreExit` (which delegate to the ship) and water's `Gate`. The bolt is `isLocked()` / `setLocked()` / `lock()` / `unlock()`; the keyway is `getLock()` / `opensFor(mover)` over `lib/lock/Lock`. `canPass = !isLocked() || opensFor(mover)`, so a key-holder passes a locked door and `unlock` is how you let everyone else through. `getLock()` is a policy seam (the keyed family reads its warren's keyway) and `boltedByDefault()` decides the starting state. Registered as `Lockable`, `MixinApi.isLockable`. |
 | `BistateMixin` | mixin (unregistered) | The shared guarded-boolean substrate under `Sealable` (open/closed), `Switchable` (on/off), and `Foldable` (folded/unfolded). One persisted boolean + a `typeof`-boolean guard, reached via protected `getState()` / `setState(value, label)`. Lives at the `lib/` root (`lib/Bistate.ts`), NOT in `lib/boundary/`. **Deliberately carries no `_mixinName` and is not in the `Mixins` registry** — shared implementation, not a queryable capability; consumers narrow on the concrete axis (`isSealable` / `isSwitchable` / `isFoldable`), never an `isBistate`. |
 | `AdornableMixin` | mixin | Container-side surface for non-portable attached Stuff (`getFixtures()` parallel to `getContents()`). Composed onto `Location` and `ExitableVessel` (not the bare `Vessel` base — every fixture consumer narrows on `MixinApi.isAdornable` first). |
-| `AdornmentMixin` | mixin | Host-side back-reference (`adornedTo`) and not-portable invariant. Composed by `BoundaryAnchor` and by content fixtures (e.g. `domain/lounge/NeonSign` = `Adornment(Branded(LightSource(Thing)))`). Attached declaratively via the host's `adornments:` instruction field (see *Declarative adornments* below) or imperatively via `addFixture`. |
-| `Boundary` | concrete `Thing` subclass | The two-anchor abstraction for cross-room channels. Just `extends Thing` — `Visible` / `Perceptible` come baked into Thing's default composition. Subclasses (`Window`, `Door`) compose `Sealable` for shutter / closed state. |
-| `BoundaryAnchor` | concrete `Thing` subclass | `Adornment` Thing — the per-side proxy in each host's `getFixtures()`. Two anchors per Boundary. |
-| `Conduit` | TS interface | Channel-shape: `LightConduit`, `LineOfSight`, `MovementConduit`, `SmellConduit`, `SoundConduit`. Boundary subclasses implement (a subset of) these via `getConduits()`. |
-| `Window` | concrete `Boundary` subclass (⚠ **no row names it** — see § Window) | `SealableMixin(Boundary)` implementing `LightConduit + LineOfSight + SmellConduit + SoundConduit`. `baseTransmissivity`, optional one-way `aToBOverride` / `bToAOverride`, `colorTint`. Shutters via `Sealable.open` gate all four channels. Declarative `attachedHosts: [string, string]` identity refs; `setAttachedHosts` resolves hosts lazily and installs anchors. |
-| `BoundaryApi` | static API | `attachExistingBoundary({ boundary, hostA, hostB })`, `create({ factory, hostA, hostB })`, `destruct(boundary)`. |
+| `AdornmentMixin` | mixin | Host-side back-reference (`adornedTo`) and not-portable invariant. Composed by content fixtures (e.g. `domain/lounge/NeonSign` = `Adornment(Branded(LightSource(Thing)))`) and the floor. Attached declaratively via the host's `adornments:` instruction field (see *Declarative adornments* below) or imperatively via `addFixture`. |
+| `Boundary` | `lib/boundary/Boundary` (base) + `platform/thing/Boundary` (twin) | ⭐ **The edge object.** Two weak sides (`getSides`, `sideOf`, `otherSide`), a channel table (`channels: {open, shut}`) read by `transmissivity(channel, from, to)` / `transmissivityInto(channel, side)`, an `opening`, `stateWord()`, the keyword fold. The twin composes `Sealable` and `fixed` (a grating that never shuts). |
+| `Conduit.ts` | vocabulary | `BoundarySide` (`A`/`B`), the closed `BOUNDARY_CHANNELS` (`movement · light · sight · sound · smell` — one per walk that reads it), `ChannelTable`, `BoundaryOpening`. The five conduit interfaces it used to hold retired with the boundary build. |
+| `Window` | concrete `Boundary` subclass | `SoilableMixin(platform Boundary)`: passes light, sight, sound and smell and **never a body**. `baseTransmissivity`, one-way `aToBOverride` / `bToAOverride`, `colorTint` / glazing (the light walk multiplies `transmittanceColour` in), grime. Authored as `door:` on the exits facing it on both sides. |
+| `BoundaryApi` | static API | `attach(boundary, ...sides)` (refuses a third side, an exit already on another boundary, the same exit twice), `detach(...sides)`, `mintKeyway()`. |
 
 ## Locks & keys (`lib/lock/`)
 
@@ -326,14 +326,10 @@ both sides in one call:
 - For cardinal `direction`, the opposite is inferred via
   `NavigationApi.invertDirection`. For semantic labels the caller
   passes `opts.opposite` explicitly.
-- A shared `door` reference installs on both sides.
+- A `boundary` (opts) is attached to both sides — one door, two sides.
 - `forward.inverse = back` and `back.inverse = forward` wired so
   `Mobile`'s arrival-message resolver can reach
   `exit.inverse?.direction`.
-- **After the Boundary retrofit**: when `opts.door` is non-null,
-  `addBidirectionalExit` also calls
-  `BoundaryApi.attachExistingBoundary({ boundary: opts.door,
-  hostA: this, hostB: other })` to install the door's anchor pair.
 
 One-way exits use `addExit` directly and leave `inverse`
 undefined.
@@ -512,84 +508,56 @@ counting-houses banking-hall → circle-parlor archway.
 
 ## Doors
 
-`lib/boundary/Door.ts`. Composition:
-`LockableMixin(SealableMixin(Boundary))`. Boundary supplies `Visible +
-Perceptible + Thing`. The Containable composition (from Thing) is what
-enables broken / unhinged doors to become inventory items. The two
-boolean fields (`open` from Sealable, `locked` from Lockable) are
-distinct and coexist on the Door.
+`platform/thing/Door.ts`. Composition: `LockableMixin(Boundary)` over the
+platform twin, so `Sealable` (open/shut) and `Lockable` (keyway + bolt)
+coexist on the one object. The Containable composition (from Thing) is what
+lets a broken or unhinged door become an inventory item.
 
-The same physical door is referenced by potentially many Exits
-(canonical case: forward + back). The `attachedTo: Set<Exit>`
-field is the runtime back-reference, populated by:
-
-- `ExitableMixin.addExit` when the exit's `door` is non-null
-- `ExitableMixin.addBidirectionalExit` indirectly
-- `ExitableVessel`'s synthesized exit factories when
-  `vessel.door` is non-null
-
-…and unwired by `removeExit`, `Exit.onDestruct`,
-`vessel.setDoor` cache invalidation, and `Door.detach()`.
+⭐⭐ **One door, two sides.** Each place's exit is a side of the door
+(`exit.getBoundary()`); the door knows its sides (`sideOf`, `otherSide`). An
+authored door is a row singleton: every side that authors `door: <row>`
+attaches to the one instance through `BoundaryApi.attach`. Nothing owns
+across the pair — the sides are weak refs both ways, so a destroyed exit's
+slot heals to empty and a destroyed door reads as an open way.
 
 ### ⭐ A door that swings shut behind you — `closesBehind`
 
-An authored flag on `Door` (persistent, default `false`): a workshop door on
-a weight. Shut, it still lets through anyone who may pass (`Exit.canTraverse`
-and the door's `MovementConduit` admit it), and it is shut again after
-them, so nothing anybody does leaves it open. A **locked** one still
-refuses. Everything else that reads `isOpen()` sees it shut — light, sight,
-smell, sound, and the envelope's open-doorway count — which is the point: a
-warm room keeps its heat without any NPC routine to close it up. The
-potter's shop is the first (the ceramics browser walk: two open doorways
-cost more heat than a stove gives, and its ware froze). A second workshop
-is a row.
+An authored flag (default `false`): a workshop door on a weight, or a
+latched front door. Shut, it lets a body through (`Door.transmissivity
+('movement')` answers 1) and is shut again after them; everything else
+reads it shut — light, sight, smell, sound and the envelope's
+open-doorway count — which is the point: a warm room keeps its heat with no
+routine to close it. ⚠ **The bolt is not read there**: `Exit.canTraverse`
+asks the lock first and refuses whoever the key does not open for, so a
+key-holder walks through their own latched front door and a stranger is
+refused at it. The potter's shop was the first; every keyed door a holding
+or a warren hangs is one.
 
-### Conduit registry
+### ⭐ The free side — `freeFrom`
 
-A Door advertises three conduits — `LightConduit`,
-`LineOfSight`, `MovementConduit` — all gated on `isOpen()`:
+The identity path of the PLACE whose side opens with no key (`''` = keyed
+from both sides). `Door.opensFor(mover)` is *the key fits, or the mover is
+standing in `freeFrom`* — read off where the mover IS, never off which exit
+it asked. A thumb-turn inside, a keyhole out: a guest let into a house is
+never trapped and leaving your own house needs no key; the inside can also
+`lock` and `unlock` keyless. The pump house is authored free from inside;
+the code that mints a holding's doors stamps the inside room. (Owner's call,
+2026-11-09 — before the boundary build the plans got the same effect by
+authoring the way back with no door at all, which left a lock you could walk
+round.)
 
-```ts
-public override getConduits(): readonly Conduit[] {
-  return [lightConduitFor(this), lineOfSightFor(this), movementConduitFor(this)];
-}
+### A fixed grating — `fixed`
 
-public transmissivity(_from, _to): number { return this.isOpen() ? 1 : 0; }
-public canSeeThrough(_from, _to): boolean { return this.isOpen(); }
-public canPassThrough(_from, _to, _mode): boolean { return this.isOpen(); }
-```
-
-A closed Door blocks light, sight, and movement uniformly. The
-Light propagation walk consumes the `LightConduit` via the
-boundary path; `Exit.canTraverse` consults `isOpen()`
-directly (same answer as the `MovementConduit`).
-
-### Detach choreography
-
-`Door.detach()` walks BOTH back-references:
-
-1. Existing `attachedTo` — for each Exit, clear its `door` ref.
-2. `super.detach()` (Boundary) — clear both anchor slots and
-   remove the anchors from each host's `getFixtures()`.
-
-Then `ContainmentApi.move(door, location)` plants the
-broken/removed door somewhere. Reinstall reverses:
-`ContainmentApi.move(door, null)` plus
-`addBidirectionalExit(other, dir, { door })` (which also
-installs the new anchor pair).
-
-`Door.onDestruct` is inherited from Boundary — it calls
-`detach()` (now also clearing attachedTo) and then destructs the
-captured anchors.
-
-### `Door.getKeywords()`
-
-Overrides Perceptible to union the explicit keyword list with
-the tokens of the door's `shortDescription`, so a door authored
-with only `shortDescription: 'heavy oak door'` is targetable as
-`oak` / `door` without re-listing.
+On the platform twin: always open, and `close` refuses with the reason
+(`Sealable.canClose`, the twin of `canOpen`). The `grating` kind row.
 
 ### Locking
+
+> ⚠ **Since the boundary build (2026-11) the keyed exit family below is
+> gone**: `KeyedDoorExit` is deleted and `FrontDoorExit` / `DormDoor` keep
+> only their deferred destination — the lock is the DOOR the holding or the
+> warren hangs in the way (§ Keyed ways). What follows is the lock model,
+> which is unchanged; read "the keyed family" as "the keyed doors".
 
 ⭐⭐⭐ **A lock is a KEYWAY and a BOLT, and for most of this project it
 was neither.** `lib/boundary/Lockable.ts` holds both facts; the lock
@@ -697,44 +665,6 @@ key rather than that the door is already locked.
 > controller. Pinned by
 > `platform/idea/api/__tests__/MqlLogic.circularVia.test.ts`.
 
-### `DoorBearingMixin`
-
-`lib/boundary/DoorBearing.ts`. Adds `door: Door | null`
-(runtime-only, NOT in `fieldMeta`'s persistent entries), `getDoor()`, default
-`setDoor()`. Bound to `Stuff & Exitable`. Composed by
-`ExitableVessel` so its synthesized `'in'`/`'out'` exits can
-pull the carried door at template/clone time.
-
-`ExitableVessel` overrides `setDoor` to invalidate the
-synthesized-exit caches AND to migrate the door's
-`(vessel, environment)` Boundary anchor pair (see "ExitableVessel
-anchor migration" below).
-
-**`DoorBearing` is NOT the same as `BoundaryAnchor`** —
-`DoorBearing` is a host-side mixin holding one Door reference;
-`BoundaryAnchor` is a `Thing` subclass that proxies a Boundary
-on one side. Both can be present on `ExitableVessel` for
-different roles.
-
-### `ExitableVessel` anchor migration
-
-A vessel-door is a Boundary on the runtime triple
-`(vessel, environment)`. As the vessel moves, the boundary
-follows.
-
-- `ExitableVessel.onMoved(_from, to)` — destructs the existing
-  anchor pair via `Boundary._detachAndDestructAnchors()` (the
-  subclass-bypass seam that doesn't touch Door's `attachedTo`),
-  then re-installs the pair on `(vessel, to)`.
-- `ExitableVessel.setDoor(door)` — destructs the old door's
-  anchor pair, updates the door reference, installs the new
-  door's pair on `(vessel, currentEnv)`.
-
-So a wardrobe with an open Door reads room ambient inside; a
-closed Door reads ZERO inside; moving the wardrobe to a different
-room migrates the boundary so the inside reads the new room's
-ambient.
-
 ## Adornable / Adornment
 
 `lib/boundary/Adornable.ts` and `lib/boundary/Adornment.ts`.
@@ -792,9 +722,8 @@ the live fixtures are read through `getFixtures()`; the spec is
 discarded after Phase 2.
 
 Fixtures are runtime-only (not persisted; `addFixture` sets no
-`environment`, matching `BoundaryApi.attachExistingBoundary`), so
-`applyAdornments` re-runs and rebuilds them on every hydrate — the
-same reconstruct-on-boot model the `BoundaryAnchor` wiring uses. This
+`environment`), so
+`applyAdornments` re-runs and rebuilds them on every hydrate. This
 is the declarative seam that retired the imperative-only fixture
 wiring: a seed can now author wall décor (e.g. the `NeonSign` branded
 light-emitting fixtures on Dave's Bar back-bar wall) as pure data.
@@ -815,238 +744,177 @@ Trapdoors-as-Adornments-on-floors compose the existing
 Adornable-of-Adornable pattern — no Boundary-substrate change.
 
 `Adornment` is the host-side back-reference (`adornedTo`) and the
-not-portable invariant. Composed by `BoundaryAnchor`; future
-fixture types (sconces, decorations) compose it too.
+not-portable invariant. Composed by the floor, sconces, signs and
+other fixtures.
 
 `AdornableMixin.onDestruct()` walks `fixtures` and destructs
-each via `StuffApi.destruct`. A `BoundaryAnchor` being destructed
-clears its slot in the boundary; if the host on the other side
-is still alive, that side's anchor stays put and the boundary
-lingers half-attached until explicitly destructed.
+each via `StuffApi.destruct`.
 
 ## Boundary Substrate
 
-`lib/boundary/Boundary.ts`, `lib/boundary/BoundaryAnchor.ts`,
-`lib/boundary/Conduit.ts`.
+`lib/boundary/Boundary.ts` — the base every boundary class extends (nothing
+instances it; rows name the platform twin, `Door` or `Window`).
 
-A `Boundary` connects two `Adornable` containers and gates
-channels (light, sight, movement, future sound) between them.
-The runtime triple is `(boundary, anchorA, anchorB)` — the
-Boundary itself plus a `BoundaryAnchor` Thing in each host's
-`getFixtures()`.
+- **Sides.** `sideA` / `sideB`, weak instance refs to the two exits; A is
+  the side attached first. `getSides()`, `sideOf(exit)`, `otherSide(exit)`.
+  Written only by `BoundaryApi` (the `_attachSide` / `_detachSide` seams
+  are gated to `BoundaryLogic`, as is `Exit._setBoundary`).
+- **Channels.** `channels: { open: {…}, shut: {…} }` on the row, values
+  0..1 per channel; a row names only what differs from the class default
+  (all 1 open, all 0 shut — a door's numbers). ⚠ The vocabulary is CLOSED
+  (`BOUNDARY_CHANNELS`) and an unknown key or an out-of-range value throws
+  at hydrate: a misspelt `ligth:` must not read as dark. A channel exists
+  where a walk reads it; `water` is absent until its first reader.
+- **`transmissivity(channel, from, to)`** — the one question every walk
+  asks; reads the open or shut table by `isOpen()`. `transmissivityInto
+  (channel, side)` asks it for what flows INTO a side's place;
+  `colourInto(side)` for the light's colour (white unless a `Window` is
+  glazed). `passesBodiesWhenOpen()` is the window test.
+- **`opening`** — `{ width, height }` in metres (default 1 × 2): inside a
+  zone it must fit the face (§ The edge rules).
+- **`stateWord()`** — `open` / `closed`; `Door` adds `locked`, which wins
+  because the traverse refuses a locked door before a shut one.
+- **`getKeywords()`** — authored keywords ∪ the short description's
+  tokens (DERIVED, named at the method), so `heavy oak door` answers to
+  `oak`. ⭐ The boundary is a candidate in MQL's `here` pool beside its way
+  (once — deduped), so `wash window` / `open door` bind it and `open
+  north` reaches it through `MqlApi.effectiveTarget`.
+- **`canEvict`** — vetoes while a side's source room lives.
 
-```
-       Boundary
-       /       \
-  anchorA    anchorB
-     |          |
-   hostA      hostB         ← Adornable containers (rooms / exitable vessels)
-```
+### The kinds — rows, not classes
 
-`Boundary` just `extends Thing` — `Visible` and `Perceptible`
-come baked into Thing's default composition, giving it identity,
-a description body, and keyword-addressable status. Because it
-also picks up `Containable` from Thing, a Boundary detached from
-both sides can become inventory (same shape as a salvaged door).
-Subclasses (`Window`, `Door`) compose `Sealable` for shutter /
-closed state.
-
-`BoundaryAnchor` is `AdornmentMixin(Thing)` — sits in
-`getFixtures()`, knows its boundary and side (`'A'` or `'B'`).
-
-### Conduits
-
-A `Conduit` is a TypeScript interface a Boundary subclass
-implements via wrapper objects returned from `getConduits()`.
-Each conduit covers one channel with directional methods that
-take `BoundarySide` arguments:
-
-```ts
-interface LightConduit    { conduitKind: 'light';
-  transmissivity(from: BoundarySide, to: BoundarySide): number;
-}
-interface LineOfSight     { conduitKind: 'sight';
-  canSeeThrough(from: BoundarySide, to: BoundarySide): boolean;
-}
-interface MovementConduit { conduitKind: 'movement';
-  canPassThrough(from: BoundarySide, to: BoundarySide, mode: string): boolean;
-}
-interface SoundConduit    { conduitKind: 'sound'; }   // reserved for v2
-```
-
-Conduits MUST NOT cache — the boundary's own state (e.g.,
-Sealable `isOpen`) participates in transmissivity and changes at
-runtime.
+`/platform/thing/boundaries/{door,gate,hatch,grating,curtain}`: a door
+(all open / all shut, 1 × 2 m), a gate (2 × 2, shut it still shows and
+sounds through), a hatch (1 × 1), a grating (`fixed`, passes all but a
+body), a curtain (drawn, it passes a body, sound and smell and blocks
+sight). An authored boundary `extends:` one; ⭐ **a new kind of way is one
+row and no code.** A window into a place is a `Window` row.
 
 ### `BoundaryApi`
 
-```ts
-BoundaryApi.attachExistingBoundary({ boundary, hostA, hostB });
-// Constructs the two anchors, wires anchorA/anchorB on the boundary,
-// calls hostA.addFixture(anchorA) and hostB.addFixture(anchorB).
+`attach(boundary, ...sides)` takes each exit as a side — refusing a third
+side, an exit already on another boundary, and the same exit twice;
+idempotent for a side already attached. `detach(...sides)` lets each go.
+`mintKeyway()` for a lock. That is all: attaching is the one two-object
+act; everything a boundary does afterwards is a method on it.
 
-BoundaryApi.create({ factory, hostA, hostB });
-// Convenience: StuffApi.create(factory) + attachExistingBoundary.
+## Authoring a way's boundary — `door:`
 
-BoundaryApi.destruct(boundary);
-// StuffApi.destruct(boundary) → boundary.onDestruct()
-// detaches anchors from hosts and destructs them → boundary destroys.
+The exits-map key stays `door:` and names a boundary ROW of any kind. ⭐ A
+way with a boundary is authored **either as `bidirectional: true` on one
+side** (the far side authors nothing for that direction) **or as the same
+`door:` on both**:
+
+```yaml
+# the bank
+exits:
+  pumphouse: { destination: …/pumphouse/location/house, door: …/thing/pump-house-door }
+# the pump house
+exits:
+  out: { destination: …/wharfside/bank, door: …/thing/pump-house-door }
 ```
 
-Asymmetry guards: rejects `hostA === hostB` and rejects
-re-installing on a boundary that already has anchors (would
-silently orphan the previous pair).
+⚠ **D4 — the sides agree, or the doorless side is a wall.** Whichever side
+installs second checks the far place's single way back
+(`_reconcileBoundaryPair`): if one carries a boundary and the other none,
+the boundary-less side is BLOCKED and the author is told through
+`DiagnosticApi` (*a way is one boundary with two sides*). Never a silent
+half-lock where leaving ignores the bolt — the pump house and the foundry
+yard were both that before the build.
 
-### Naming: `BoundaryAnchor` vs `DoorBearing`
+## The edge rules — every way inside a zone is true to the grid
 
-The two roles do not overlap. `DoorBearing` is a host-side
-**mixin** giving an Exitable a single `door` field (used by
-`ExitableVessel` for synthesized exits). `BoundaryAnchor` is a
-`Thing` subclass + `Adornment` that sits in `getFixtures()` as
-the per-side proxy of a `Boundary`. After the Door retrofit,
-`ExitableVessel` participates in BOTH — `DoorBearingMixin` for
-the field, anchor-pair for the runtime fixture installation. Do
-not unify.
+Inside one zone every room is one cell, so every shared face is the same
+size, and a way between two rooms of the zone is where two cells MEET
+(`Location.edgeRefusal`, the `Exitable.edgeRefusal` hook — **every way**,
+owner's call 2026-11-10; it was doored ways only at first):
+
+1. the far place is the **adjacent** cell that way;
+2. the far side's way back, if it has one, is the **opposite** direction;
+3. the way's **opening** fits the face, and a boundary hung in it fits the
+   way.
+
+⭐ **The opening is the WAY's** (`Exit.getOpening()`, from the way's kind
+row or authored per site; `null` = the whole face). An empty archway has a
+size too, and what carries what through a way (size and carrying) asks the
+way. A boundary's own `opening` is the object's size; it must fit.
+
+⭐⭐ **A track — the long walk over open ground** (`kind:
+/platform/idea/exits/track`, `Exit.spansOpenGround()`). The sparse country
+(Rejection's outlying claims, Hearts Delight's lanes, Waponi's volcano)
+places rooms several cells apart on purpose — coords are metres, and the
+drilling geology is laid out on them. A track's far place lies **on its
+bearing** (the ground bearing rounds to its compass point, within 22.5°;
+`up`/`down` move the height that way), it may climb, **no room stands on
+the straight line between**, and **nothing hangs in it** (a boundary needs a
+shared face). The way back is still the opposite word. *A compass word over
+open country is a bearing, never a promise of a straight road.*
+
+Across zones — or between a holding's own frame and another — a way is a
+**threshold**: the grids share no face and nothing is checked. A way that
+breaks a rule installs **unbuilt** (*nothing lies that way yet*) and the
+diagnostic names the row, the direction and the reason. `lint:locations`
+(`wayEdges`) checks rules 1–2 and the track rules from the rows' `coords:`
+and `kind:` in CI; rule 3 needs resolved `extends:` chains and the zone's
+cell size, so it is the runtime's. The sweep that turned the rule on found
+67 ways: ~25 were plain mistakes (a wrong sign on y, an off-by-one cell,
+two rooms on one cell, a way back named the wrong way), fixed; the rest were
+the sparse country, made `track`s on their true bearings (a few direction
+words and three rooms re-aimed — listed in the build's sweep commit).
+
+## Keyed ways — the minter mints the door
+
+A door made by code is minted and **owned** by the code that made it
+(`{ref: 'instance', lifetime: 'owned'}` maps):
+
+- **A holding's interior keyed doors** — the plan names the way in as
+  `kind: /system/residence/idea/exits/keyed-door` (a plain way now);
+  `HoldingWarren.hangKeyedDoors` (after `wake`) mints
+  `/system/residence/thing/boundaries/keyed-door` (bolted, latched), keys it
+  to the parcel, attaches it to that way AND the way back, and makes the
+  inside free. `refreshKeyway` re-keys every door it hung.
+- **An entry door** — `CirculationWarren.hangEntryDoor(key, row, side,
+  freeFrom?)`, called by `BuildingWarren` / `DormWarren` / `PlatWarren` from
+  `entryEdgeFor` (the corridor or lane side) and `wireHubExit` (the entry
+  room's way out, the free side). One door per holding, kept across its
+  sleep; re-stamped with the keyway when `refreshProvisioned` rebuilds the
+  cache. Rows: `residence/thing/boundaries/keyed-door` (a unit's front
+  door), `duncan-hall/thing/dorm-door`, `residence/thing/boundaries/lot-gate`
+  (a gate, standing open).
+- ⚠ **The gangway is not yet a boundary.** `BerthExit` and the deck's
+  `AshoreExit` both delegate their lock to `Ship.gangwayLocked`, so they are
+  already one lock with two faces; making it a minted boundary is the
+  follow-up ([boundary-slate § 1](../slates/tails/boundary-slate.md)). `Exit.wayState()` reads an exit's own lock
+  when it has no boundary, so the screens show it.
+
+## A way's state on the wire — `WayRecord`
+
+`Exit.wayState()`: no boundary → `open`; a boundary that passes no body
+even open → `window`; else the boundary's word, `locked` > `shut` > `open`.
+`Exit.wayRecord()` → `WayRecord { direction, state, crossesZone,
+destination?, boundary?: { stuffId, name, primaryKeyword? } }`
+(`@saxonberg/types`; `StuffExitRecord` and `WhereaboutsExit` are aliases).
+Both producers — the room card's `exits` subscription and the whereabouts
+push — emit it, so the navigator, the chips, the phone bar and `look`'s
+exits line (*north (the oak door, locked)*, *west (the west window)*)
+cannot disagree.
 
 ## Window
 
-`platform/thing/Window.ts`. The first concrete Boundary user beyond Door.
+`platform/thing/Window.ts` — a boundary of glass between two places. A
+window **into a place** is a way: `door:` on the exit that faces it, on
+both sides; `look west` sees the hillside through it, `go west` is refused
+*the west window is not a way through*. ⭐ A window onto the **sky** is not
+a boundary at all — it is glass in the place's `enclosure:`
+([construction.md](./construction.md)); a window with nothing behind it is
+prose. The glazier's hut's west window is the first (the Rejection hut moved
+to (1,2) so its doorway and its window each join adjacent cells).
 
-> ⚠⚠ **Authorable, and unauthored.** In the whole life of the class
-> **no content row has ever named it**, and nothing outside its own
-> tests imports it. This doc, `light.md` and `roadmap.md` all read as
-> though the game has windows in it; it does not. Corrected by the
-> base-class narrowing build, which considered deleting the class and
-> **kept it deliberately** (plan D11) for three reasons: an author's
-> only one-line way to put a window between two rooms; the only
-> exerciser of partial and directional conduit transmissivity (`Door`'s
-> is binary, 0 or 1); and the only end-to-end proof of the Hydrator's
-> **async singleton-resolving `set<Field>` applier**, which
-> `PersistentHydrator.ts` names `setAttachedHosts` as the example of.
->
-> ⭐ So the honest sentence is *the substrate is shipped and proven, and
-> the world has no window in it yet* — which is a content task, not a
-> code one: a row, two host paths, and it exists.
-
- `SealableMixin(Boundary)`. Implements `LightConduit
-+ LineOfSight` via wrapper objects from `getConduits()`.
-
-Persistent state (per the [persistence.md](./persistence.md)
-scalar-default rule):
-
-- `baseTransmissivity: number` (default 1.0) — symmetric
-  pass-through factor when open.
-- `aToBOverride: number | null` — one-way override for A→B (set
-  to `0` for the dark side of one-way glass).
-- `bToAOverride: number | null` — same for B→A.
-- `colorTint: ColorTag | null` — stained glass.
-- `attachedHosts: [string, string] | null` — identity refs. Two
-  templatePaths of the hosts this Window connects. The setter
-  resolves both paths via `StuffApi.singleton` and installs the
-  anchors via `BoundaryApi.attachExistingBoundary`. Per the declarative
-  attachedHosts spec (see [templates.md](./templates.md)).
-- `open: boolean` (from Sealable, was `isOpen`) — shutter state.
-
-The structured runtime API `getDirectionalOverrides()` /
-`setDirectionalOverrides()` reconstructs / decomposes the
-`{ aToB?, bToA? } | null` shape from the two stored scalars.
-
-### Declarative wiring via `attachedHosts`
-
-A templated Window declares the two host paths in its YAML:
-
-```yaml
-class: /platform/thing/Window
-hydratorClass: /platform/idea/persistence/PersistentHydrator
-data:
-  baseTransmissivity: 0.9
-  attachedHosts:
-    - /eternal/duncan-hall/lobby
-    - /eternal/duncan-hall/freshman-dorm-A
-```
-
-`setAttachedHosts([pathA, pathB])` is a setter with side effects (per
-[location.md § The setter-with-side-effects pattern](./location.md#the-setter-with-side-effects-pattern)):
-stores the pair, resolves both hosts lazily, calls
-`BoundaryApi.attachExistingBoundary`. Idempotent on re-set with the
-same pair (in either order — boundaries are undirected). Throws on
-half-attach corruption or mismatched re-attach.
-
-The check `MixinApi.isAdornable(hostA) && MixinApi.isAdornable(hostB)`
-gates the attach so a Window can't be wired to a non-Location host.
-Per `ref-shapes.md` § the identity ref — the runtime keeps the original
-string array; persist-back writes it back unchanged. No marshaller.
-
-### Exit-kind templates (`/stuff/idea/exits/<kind>`)
-
-An **exit kind** is an authored template a room's `exits:` entry
-references via `kind:` — the authorable *nature of the passage*
-(traverse messages, locomotion `media`, `wheelPassable`, concealment
-defaults), distinct from a `Door` (the operable barrier object):
-
-```yaml
-exits:
-  north:
-    destination: /world/terminus/counting-houses/circle-parlor
-    kind: /stuff/idea/exits/archway        # authored defaults for this edge
-    messageOut: "{{ mover }} ducks under the arch."   # per-site override
-```
-
-Mechanics (the identity doctrine's first consumer — see
-[ref-shapes.md § Identity, lineage, and backing](../ref-shapes.md)):
-
-- `applyExits` **clones** the kind (`StuffApi.clone`; the template's
-  `class:` may name an `Exit` subclass) — one instance per edge, two
-  for a `bidirectional` entry. The clone hydrates the kind's authored
-  fields (`Exit.persistentFields` is the hydration allowlist; exits are
-  never actually persisted — no host captures them).
-- The installing room completes identity via **`Exit.bind(opts)`** —
-  participant-gated (`FromMixin(Mixins.Exitable)` + a party-to-the-edge
-  `where`: the caller must be the bind options' source or destination),
-  `@Final @Unshadowable`, one-shot (re-bind throws). `bind` is
-  **delta-aware**: per-site entry fields override the kind's hydrated
-  defaults; unset fields keep them.
-- A bare `new Exit()` (no options) is the **unbound** state the clone
-  pipeline constructs through; `isBound()` reports it, an unbound
-  orphan is ordinary cullable clutter (no live-room residency veto),
-  and its `getDiscoveryKey()` is `undefined`.
-- **Identity payoff:** a kind-cloned exit's `templatePath` IS the kind
-  (`/stuff/idea/exits/archway`) — the population is addressable
-  (`findAllByTemplatePath`, the MQL path seed), and a CMS edit to the
-  kind re-hydrates its clones via the standard content go-live. The
-  *instance* half of an exit's identity stays the relational discovery
-  key (`<sourcePath>#exit:<dir>`).
-- Entries without `kind:` construct a raw `Exit` exactly as before — a
-  bare passage has nothing authored, so it earns no row.
-
-Seeded kinds: `/stuff/idea/exits/archway`, `/stuff/idea/exits/stair`
-(`wheelPassable: false` — the haulage residue). Demonstrator: the
-counting-houses banking-hall → circle-parlor archway.
-
-## Doors are wired transitively, not via `attachedHosts`
-
-`Door` is intentionally NOT extended with `attachedHosts`. Doors are
-wired by `Exitable.applyExits` when an exit declares `door:` — the
-existing `addBidirectionalExit({ door })` path installs the door's
-anchor pair as a side effect. This keeps the door's "I'm part of
-exit topology" identity primary and the boundary anchor pair
-secondary. The slate ratifies the distinction; future Boundary
-subclasses follow Window's shape (declare `attachedHosts` directly)
-unless their identity is tied to an Exit.
-
-`transmissivity(from, to)`:
-
-- Returns 0 if `!isOpen` (shutters closed).
-- Returns the relevant directional override if non-null, else
-  `baseTransmissivity`.
-
-`canSeeThrough(from, to)` — `transmissivity(from, to) > 0`.
-
-Template authoring: Window is template-loadable like Door
-(`class: '/platform/thing/Window'`,
-`hydratorClass: '/platform/idea/persistence/PersistentHydrator'`). Seed
-code calls `BoundaryApi.attachExistingBoundary` to install on
-two rooms.
+Movement is 0 open or shut; the other four channels are the glass —
+`baseTransmissivity`, or a one-way override for what flows FROM side A or
+B, scaled by grime; nothing while the shutter is shut. Glazing / `colorTint`
+colour the light (`transmittanceColour`). A window's grime rides each
+room's record keyed `way:<direction>` (the fixtures capture slice).
 
 ## Switchable
 
@@ -1101,18 +969,17 @@ extending `BistateMixin`.)
 
 ## Persistence Notes
 
-- Exits: `direction`, `destinationPath`, flags. The `door` Stuff
-  reference goes via custom `persistenceHandler`. Every exit is
-  explicit and persisted — the zone no longer derives any.
+- Exits: `direction`, `destinationPath`, flags. The boundary reference
+  is runtime (re-attached as the exits map applies). Every exit is
+  explicit — the zone no longer derives any.
 - Doors: `open` (from Sealable) plus `locked` (from Lockable) — both
-  boolean scalars. The `attachedTo` Set and the anchor pair are
-  runtime-only.
+  boolean scalars, re-seeded from the row (or re-bolted by the minter) at
+  stand-up; only a window's grime (`runtimeState`) rides the room's
+  record, keyed `way:<direction>`.
 - Switchables: `on` (from Switchable, stored via `BistateMixin`'s
   guarded boolean) — a single boolean scalar.
-- Boundaries: subclass-specific (Window's transmissivity +
-  overrides + colorTint). Anchors are runtime-only; v1 anchor
-  wiring is hydrate-only via seed code calling
-  `BoundaryApi.attachExistingBoundary`.
+- Boundaries: the channel table, the opening, and subclass fields
+  (Window's transmissivity, overrides, glazing).
 - Adornments: `adornedTo` is a Stuff cross-reference, follows
   the `Containable.environment` shape (custom
   `persistenceHandler`). Composing classes that need attachment
@@ -1150,6 +1017,30 @@ The harbors build (MR !511) added `BerthExit`/`AshoreExit` (P4–P6), made
 both unmapped in review round 1 (`4cce826da`), and made an exit a Visible
 thing MQL binds directly (review 3); master's `AboardExit` stayed deleted
 at the paint merge (`5cfd1a5db`).
+
+**One shared edge, each side the exit** — the boundary build
+(`reqs/boundary`, 2026-11, MR !559; requirements and plan retired at its
+sweep). The four models of a way — a `Door` hung on an exit, the
+`BoundaryAnchor` pair surfacing a window on each room, exits with a lock of
+their own (`KeyedDoorExit`/`FrontDoorExit`/`DormDoor`), and a `Window` that
+wired its own hosts (`attachedHosts`) — folded into one `Boundary` whose
+sides are the exits. Retired with it: the five conduit interfaces,
+`DoorBearingMixin`, `Door.attachedTo`, `Adornable.getFixtureBoundaries`,
+`Exitable.getExitDoors`. Added: the channel table, `freeFrom`, the edge
+rules, `WayRecord`. Decisions the build made beyond its plan: the boundary
+stays an MQL candidate beside its way (object verbs — `wash window`,
+`glaze` — bind it); keyed doors latch (`closesBehind`, the bolt is the lock
+gate's alone); the lot gate stands open; a direction word in a boundary's
+name is the way's, not folded into its keywords; a way's prose is
+parenthetical (*through the front doors (open)*) because the way cannot know
+its boundary's number; a shut vessel drops its synthesized `out` from the
+walks. Review round 1 (owner): the opening and the edge rules are the WAY's
+and hold for every way, and the `track` kind was added for the sparse
+country (67 ways swept to 0). Verified by the blocking drive
+`packages/wire/tests/boundary.dirty.wire.test.ts` (5/5) and the browser walk
+`e2e/tests/boundary-walk.spec.ts` (3/3), which found `map` crashing on a
+deferred way (fixed in `Perceiver`). Left: the gangway as a minted boundary
+and the rest of [boundary-slate](../slates/tails/boundary-slate.md).
 
 ## Cross-References
 

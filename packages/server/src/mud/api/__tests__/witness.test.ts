@@ -212,7 +212,6 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
       direction: 'north',
       source: source as unknown as Stuff & Container,
       destination: dest as unknown as Stuff & Container,
-      door: null,
     }));
     return { source, dest, mover, exit };
   }

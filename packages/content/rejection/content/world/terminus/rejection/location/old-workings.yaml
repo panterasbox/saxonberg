@@ -30,9 +30,14 @@ data:
   exits:
     southwest:
       destination: /world/terminus/rejection/location/hillside
+      kind: /platform/idea/exits/track
       edgeMinutes: 3
+    # ⭐ Northeast, over the shoulder of the hill, into salt country (and on past
+    # the spring to the fringe claim — the track runs through it). The lode
+    # does not go that way — the walk is a different trade's, and the
+    # same hill. (It left from the hillside until the boundary build.)
     northeast:
-      destination: /world/terminus/rejection/location/fringe-claim
+      destination: /world/terminus/rejection/location/salt-spring
       edgeMinutes: 4
     # ⭐ Uphill to the stone quarry. The old men took the COPPER out of this
     # outcrop and left the hill itself alone, which is exactly the sort of

@@ -79,7 +79,7 @@ function link(r: Room, exits: Array<[string, Stuff, boolean?]>): void {
   (r as unknown as { getObviousNeighbours: () => unknown[] }).getObviousNeighbours =
     () =>
       exits.map(([dir, dest, doored]) => ({
-        exit: { getDirection: () => dir, getDoor: () => (doored ? {} : null) },
+        exit: { getDirection: () => dir, getBoundary: () => (doored ? { isOpen: () => false, passesBodiesWhenOpen: () => true } : null) },
         dest,
       }));
   // The exposure re-checks its neighbours at most once a second; a test

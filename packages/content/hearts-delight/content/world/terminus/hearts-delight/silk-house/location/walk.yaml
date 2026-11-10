@@ -22,6 +22,7 @@ data:
   exits:
     east:
       destination: /world/terminus/hearts-delight/silk-house/location/floor
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 1
   props:

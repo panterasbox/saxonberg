@@ -15,17 +15,20 @@ data:
 
     Somebody has set a flat stone at the edge of the pool to kneel on. It is worn.
 
-    East the ground rises into a long whaleback of a hill. North it rises differently — steeper, barer, and with a cairn on the top of it that somebody built for no reason anybody remembers.
+    Northeast the ground rises into a long whaleback of a hill. Northwest it rises differently — steeper, barer, and with a cairn on the top of it that somebody built for no reason anybody remembers.
   coords: { x: 18, y: 10, z: 0 }
   props:
     - /world/terminus/rejection/thing/oil-seep
   exits:
     southwest:
       destination: /world/terminus/rejection/location/gas-flat
+      kind: /platform/idea/exits/track
       edgeMinutes: 8
-    east:
+    northeast:
       destination: /world/terminus/rejection/location/oil-rise
+      kind: /platform/idea/exits/track
       edgeMinutes: 5
-    north:
+    northwest:
       destination: /world/terminus/rejection/location/dry-rise
+      kind: /platform/idea/exits/track
       edgeMinutes: 7

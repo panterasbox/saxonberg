@@ -1,7 +1,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import ExitableVessel from '../ExitableVessel';
-import Door from '../../../platform/thing/Door';
+import { SealableMixin } from '../../spatial/Sealable';
 import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { VisionModality } from '../../../platform/idea/modalities/VisionModality';
@@ -22,6 +22,9 @@ const vision = (): VisionModality =>
 
 class AmbientLocation extends AmbientLitMixin(Location) {}
 
+/** A wardrobe whose door is its own seal — the coach's shape (`Sealable(… ExitableVessel)`). */
+class Wardrobe extends SealableMixin(ExitableVessel) {}
+
 
 /**
  * ⭐⭐ **These read the room's ILLUMINANCE, not its flux** — amended at the
@@ -41,155 +44,64 @@ class AmbientLocation extends AmbientLitMixin(Location) {}
  * delivers the room's **lux**.
  *
  * ⭐ Every claim these tests make is intact and one is stronger: open
- * leaks, closed reads zero, the anchor migrates. Only the arithmetic the
- * old walk got wrong has changed.
+ * leaks, closed reads zero. Only the arithmetic the old walk got wrong has
+ * changed.
+ *
+ * ⭐ Boundary build (2026-11): a vessel's door is its OWN `Sealable` now —
+ * no door slot, no anchor pair migrating on a move (the coach authors
+ * `open: false` and no `door:`). So these build the wardrobe as
+ * `Sealable(ExitableVessel)`, the coach's composition.
  */
 const ROOM_AREA_M2 = 9; // a 3 m CartesianZone cell
 
-describe('ExitableVessel — door boundary on (vessel, environment)', () => {
+describe('ExitableVessel — its seal is its door (light)', () => {
   beforeEach(() => {
     seedKernelContentStore();
-  });
-
-  beforeEach(() => {
     buildAllModalities();
   });
   afterEach(() => {
     StuffApi.clearAll();
   });
 
-  it('a wardrobe with an open door leaks ambient room light into its interior', async () => {
+  async function wardrobeIn(room: AmbientLocation): Promise<Wardrobe> {
+    const wardrobe = await StuffApi.create(() => new Wardrobe());
+    wardrobe.setShortDescription('oak wardrobe');
+    ContainmentApi.move(wardrobe, room);
+    return wardrobe;
+  }
+
+  function brightRoom(): AmbientLocation {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new AmbientLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(60);
+    return room;
+  }
 
-    const wardrobe = await StuffApi.create(() => new ExitableVessel());
-    wardrobe.setShortDescription('oak wardrobe');
-    const door = await StuffApi.create(() => new Door());
-    door.setShortDescription('wardrobe door');
-    door.open();
-    wardrobe.setDoor(door);
-
-    ContainmentApi.move(wardrobe, room);
-
-    // The (vessel, env) anchor pair is now wired on `wardrobe` and
-    // `room`. With the door open and base transmissivity 1, the
-    // wardrobe interior reads the room's ambient.
+  it('an OPEN wardrobe leaks the room light into its interior', async () => {
+    const wardrobe = await wardrobeIn(brightRoom());
+    wardrobe.setOpen(true);
     expect(vision().lightAt(wardrobe).intensity.rawValue()).toBeCloseTo(
       60 / ROOM_AREA_M2,
       6,
     );
   });
 
-  it('a wardrobe with a closed door reads ZERO inside even when the room is bright', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const room = makeStuff(() => new AmbientLocation());
-    zone.addLocation(room, 0, 0, 0);
-    room.setAmbientFlux(60);
+  it('a SHUT wardrobe reads ZERO inside even when the room is bright', async () => {
+    const wardrobe = await wardrobeIn(brightRoom());
+    wardrobe.setOpen(false);
+    expect(vision().lightAt(wardrobe).intensity.rawValue()).toBe(0);
 
-    const wardrobe = await StuffApi.create(() => new ExitableVessel());
-    wardrobe.setShortDescription('oak wardrobe');
-    const door = await StuffApi.create(() => new Door());
-    door.setShortDescription('wardrobe door');
-    // door starts closed
-    wardrobe.setDoor(door);
-
-    ContainmentApi.move(wardrobe, room);
-
-    expect(vision().lightAt(wardrobe)).toBe(Light.ZERO);
-
-    door.open();
+    wardrobe.setOpen(true);
     expect(vision().lightAt(wardrobe).intensity.rawValue()).toBeCloseTo(
       60 / ROOM_AREA_M2,
       6,
     );
   });
 
-  it('moving the wardrobe migrates the door anchor to the new environment', async () => {
-    // Two rooms in DIFFERENT cartesian zones so cardinal-derived
-    // exits don't bleed light between them — we want to read each
-    // wardrobe-interior contribution independently.
-    const zoneA = makeStuff(() => new CartesianZone());
-    const zoneB = makeStuff(() => new CartesianZone());
-    const dim = makeStuff(() => new Location());
-    const bright = makeStuff(() => new AmbientLocation());
-    zoneA.addLocation(dim, 0, 0, 0);
-    zoneB.addLocation(bright, 0, 0, 0);
-    bright.setAmbientFlux(80);
-
-    const wardrobe = await StuffApi.create(() => new ExitableVessel());
-    wardrobe.setShortDescription('oak wardrobe');
-    const door = await StuffApi.create(() => new Door());
-    door.setShortDescription('wardrobe door');
-    door.open();
-    wardrobe.setDoor(door);
-
-    ContainmentApi.move(wardrobe, dim);
-    expect(vision().lightAt(wardrobe)).toBe(Light.ZERO);
-
-    ContainmentApi.move(wardrobe, bright);
-    expect(vision().lightAt(wardrobe).intensity.rawValue()).toBeCloseTo(
-      80 / ROOM_AREA_M2,
-      6,
-    );
-  });
-
-  it('setDoor swaps the boundary anchor from old door to new', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const room = makeStuff(() => new AmbientLocation());
-    zone.addLocation(room, 0, 0, 0);
-    room.setAmbientFlux(60);
-
-    const wardrobe = await StuffApi.create(() => new ExitableVessel());
-    wardrobe.setShortDescription('oak wardrobe');
-    const oldDoor = await StuffApi.create(() => new Door());
-    oldDoor.setShortDescription('old door');
-    oldDoor.open();
-    wardrobe.setDoor(oldDoor);
-
-    ContainmentApi.move(wardrobe, room);
-    expect(vision().lightAt(wardrobe).intensity.rawValue()).toBeCloseTo(
-      60 / ROOM_AREA_M2,
-      6,
-    );
-
-    // Swap to a closed door — interior should go dark.
-    const newDoor = await StuffApi.create(() => new Door());
-    newDoor.setShortDescription('new door');
-    // newDoor closed
-    wardrobe.setDoor(newDoor);
-
-    expect(vision().lightAt(wardrobe)).toBe(Light.ZERO);
-    // Old door is no longer wired to the wardrobe boundary. ⭐ Its
-    // anchors survive — they are its own, minted once with it — but
-    // they are installed nowhere.
-    expect(oldDoor.getAnchorA()!.getAdornedTo()).toBeNull();
-    expect(oldDoor.getAnchorB()!.getAdornedTo()).toBeNull();
-    // New door owns the boundary.
-    expect(newDoor.getAnchorA()!.getAdornedTo()).not.toBeNull();
-    expect(newDoor.getAnchorB()).not.toBeNull();
-  });
-
-  it('the synthesized "out" exit still uses the door as a Door (attachedTo intact)', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const room = makeStuff(() => new AmbientLocation());
-    zone.addLocation(room, 0, 0, 0);
-    const wardrobe = await StuffApi.create(() => new ExitableVessel());
-    wardrobe.setShortDescription('oak wardrobe');
-    const door = await StuffApi.create(() => new Door());
-    door.setShortDescription('wardrobe door');
-    wardrobe.setDoor(door);
-    ContainmentApi.move(wardrobe, room);
-
-    // 'out' synthesizes; the door's attachedTo should pick up the
-    // synth exit (in addition to whatever boundary-side wiring we
-    // installed for the (vessel, room) pair).
-    const out = wardrobe.getExit('out');
-    expect(out).not.toBeUndefined();
-    expect(door.hasAttached(out!)).toBe(true);
-    // Boundary anchors are also live.
-    expect(door.getAnchorA()).not.toBeNull();
-    expect(door.getAnchorB()).not.toBeNull();
+  it('the synthesized out exit carries no boundary', async () => {
+    const wardrobe = await wardrobeIn(brightRoom());
+    expect(wardrobe.getExit('out')!.getBoundary()).toBeNull();
+    expect(wardrobe.getEntryExit()!.getBoundary()).toBeNull();
   });
 });

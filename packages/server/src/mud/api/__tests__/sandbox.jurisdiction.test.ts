@@ -208,7 +208,7 @@ describe('governed eval — the jurisdiction bound', () => {
    * room holds a `direction → exit` map rather than containing its
    * exits, so rule 1 said no and rule 2 had nothing to walk. A
    * governed `eval --parcel <extent>` was refused on every exit of
-   * every room in its own extent — `getDoor()` included, so not even
+   * every room in its own extent — `getBoundary()` included, so not even
    * a read got through. Found by a browser drive.
    */
 

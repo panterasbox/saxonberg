@@ -108,7 +108,7 @@ number above with a measurement.**
 |---|---|---|
 | **Securities** | wording or terms imply a profit expectation; the units become a security | the wording rules, the operating agreement, a lawyer's read before round 1 |
 | **Platform terms** | Twitch, YouTube or Kick objects to standing offered for subs or bits | ⚠ read each platform's current rules on sub perks and incentives before round 1 |
-| **Copyright** | a takedown on the demo realm's real assets | comply first; the takedown desk ([sponsorship-slate § 9](./slates/builds/sponsorship-slate.md)) |
+| **Copyright** | a takedown notice on something in the demo realm | comply first; the takedown desk ([sponsorship-slate § 9](./slates/builds/sponsorship-slate.md)) |
 | **Sweepstakes** | a brand promotion is an illegal lottery | no purchase necessary; registration where required |
 | **Key person** | the founder is the stream, the maker and the majority | matched-plus-one ends at 1.0 by design; the labor house dilutes as makers join |
 | **Concentration** | one platform or one sponsor is most of revenue | the multi-platform giving design; many small sponsors over one big one |

@@ -91,7 +91,7 @@ function link(r: Room, exits: Array<[string, Stuff, ('open' | 'shut')?]>): void 
       exits.map(([dir, dest, door]) => ({
         exit: {
           getDirection: () => dir,
-          getDoor: () => (door ? { isOpen: () => door === 'open' } : null),
+          getBoundary: () => (door ? { isOpen: () => door === 'open', passesBodiesWhenOpen: () => true } : null),
         },
         dest,
       }));

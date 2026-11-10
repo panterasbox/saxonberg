@@ -1,0 +1,15 @@
+# A CURTAIN across a way — you walk through it and cannot see past it. Drawn
+# (shut), it passes a body, sound and smell and a little light; pulled back
+# (open), it passes everything.
+class: /platform/thing/Boundary
+data:
+  _materialPath: /stuff/idea/material/textile/wool
+  mass: 4
+  shortDescription: curtain
+  keywords: [curtain]
+  register: definite
+  open: false
+  opening: { width: 2, height: 2.5 }
+  channels:
+    open: { movement: 1, light: 1, sight: 1, sound: 1, smell: 1 }
+    shut: { movement: 1, light: 0.2, sight: 0, sound: 1, smell: 1 }

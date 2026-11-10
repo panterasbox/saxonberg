@@ -457,6 +457,90 @@ true ansi art if it's hypertext but sure whatever the format I dont really care.
 format (monospace block in MML, colored by theme tokens rather than raw ANSI codes, per
 [message-rendering.md](../../subsystems/message-rendering.md)) is the plan's.
 
+### 7. ⭐⭐ The public-domain launch catalog **[DECIDED 2026-11-10 — the owner]**
+
+What the base pack ships to stand the feature up: illustrated memes with no rights
+risk, so they go in the **public base pack**, not the private realm pack. The owner,
+on the bar: *"I dont want filler stuff though I mean it actually needs to be meme worth
+and quotable"*, and, as a film major, on the cut: **recognizable beats clever.**
+
+**In:**
+
+| emote (verb is the plan's) | the moment | source | why public domain |
+|---|---|---|---|
+| `;stairs` | Orlok's shadow creeping up the stairs | *Nosferatu* (1922) | published 1930 or earlier |
+| `;bang` | the bandit firing straight at the camera | *The Great Train Robbery* (1903) | published 1930 or earlier |
+| `;itsalive` | *"It's alive! It's alive!"* | *Frankenstein* (1931) | ⭐ **enters the US public domain 2027-01-01** |
+| `;nowine` | *"I never drink… wine."* | *Dracula* (1931) | ⭐ **enters the US public domain 2027-01-01** |
+
+⭐ **January 1, 2027 is public-domain day for 1931, and the day the stream launches.**
+*Frankenstein* and *Dracula* are a ready-made launch-day content drop. Other 1931 films
+worth checking for the same drop: *The Public Enemy* (the grapefruit to the face) and
+*City Lights* (the ending).
+
+**Kept as a deep cut, the owner's favorite:** *A Trip to the Moon* (1902), the rocket
+in the Moon's eye. The owner: *"a favorite of mine but no ones gonna get it."* Ship it
+only if a curated corner suits it.
+
+**Out, too obscure for the owner's taste:** *The Jazz Singer* (*"definitely not the jazz
+singer come on"*), *Safety Last!*, *The Gold Rush*, *The Skeleton Dance*, *Night of the
+Living Dead*, *His Girl Friday*, *Reefer Madness*. Also considered: NASA's own footage
+(*"Houston, we've had a problem"*: the real Apollo 13 line, public domain as a federal
+work; the famous phrasing is the 1995 film's, which is not).
+
+**The rules for using them** (2026-11-10, not legal advice):
+
+- **Original prints, never modern restorations.** Source from the Library of Congress or
+  Internet Archive prints. A restoration's new score or colorization can carry its own
+  copyright; a GIF also drops the music entirely.
+- **A free film is not a free trademark.** Name the verb for the action, never a
+  character a company still holds as a mark (*Steamboat Willie* is public domain;
+  "Mickey" is not). Universal's later monster makeup designs are a trademark issue;
+  use the 1931 films themselves.
+- **Cite each one.** The meme classification records the work and year anyway, and the
+  citation is the proof of public-domain status.
+- **The year moves every January:** each New Year's Day frees another year of film, a
+  standing content drop.
+
+**Emoji sets** need the same choice later: the open sets are Twemoji (CC-BY), Google's
+Noto Emoji (Apache) and OpenMoji (CC BY-SA, share-alike). A licensing-and-style
+decision for when that layer is built.
+
+### 8. ⭐⭐⭐ The rails: quotes, NPCs, and what the platform may encourage **[DECIDED 2026-11-10 — the owner]**
+
+The owner: *"if anyone is reading this I'm really not trying to get around copyright
+just trying to figure out where the rails are."* Informed reasoning, not legal advice;
+a lawyer reads it before launch.
+
+- **A quoted line is fine; a catalog of one work is not.** Short phrases are not
+  copyrightable (Copyright Office Circular 33), and one famous line quoted with
+  attribution as a meme is a strong fair use, so **text-only quotable emotes may ship
+  in the base pack**. The trap is quantity: *Castle Rock v. Carol Publishing* (1998)
+  found a trivia book built from Seinfeld lines infringing. **A few lines per work,
+  never a work mined for dozens.** A catchphrase used to *sell* something can touch a
+  trademark or the right of publicity (*Carson v. Here's Johnny Portable Toilets*);
+  said in play or as an emote, it does not.
+- **NPCs quote lines; they are never a character.** An NPC who says *"I'll be back"*
+  as a wink is quotation. An NPC who *is* a famous character in all but name is a
+  derivative work (well-delineated characters are protected), even with every line
+  original; imitating a real actor raises the right of publicity. NPCs are
+  company-authored, so the user-upload safe harbor never covers them.
+- ⭐⭐ **The platform never encourages uploading other people's work.** The safe harbor
+  covers what users upload on their own; inducement liability (*MGM v. Grokster*,
+  2005) is separate, is not covered by it, and turns on a platform's design and its
+  stated intent. Players making a text emote and someone later attaching an image is
+  ordinary user behavior. What the platform must not do:
+  1. **No "image wanted" prompts**: no list, badge or nudge for meme emotes missing
+     an illustration. A cited film with an empty slot is an invitation, and the kind
+     of specific knowledge that undercuts the safe harbor.
+  2. **No standing for uploading someone else's work.** Labor standing is for
+     original work ([labor-standing-slate](./labor-standing-slate.md) § 9b).
+  3. **Docs say what we do, honestly**: realms may attach images, the platform
+     honors takedowns, and nothing is designed to route around copyright.
+- The citation the meme classification carries (work, year) is for pedagogy and for
+  proving public-domain status; it is never used to solicit images for works still
+  under copyright.
+
 ### Open
 
 1. **What the base pack may ship** — real film/TV clips or not, and how long. The
@@ -505,13 +589,18 @@ format (monospace block in MML, colored by theme tokens rather than raw ANSI cod
    our pack, (c) as the managed host's posture, and the public-domain film catalog
    (US: published 1930 or earlier, as of 2026 — the line moves a year every January) as the base pack's quotable classics. **The owner decides.**
 
-   **Decided (the owner, 2026-11-08):** rely on the safe harbor for what realms' players
-   upload, and give the company's own demo realm (`mud.panterasbox.com`) real assets
-   anyway, at the owner's own risk as its curator. The images live in a **private realm
-   pack** (an org repo, kept out of the public monorepo and its distribution) and a
-   realm-only S3 prefix, so a takedown deletes one object and nothing infringing is
-   distributed to self-hosters. Licensing and sponsorship, the ways rights holders come
-   in by agreement, are the [sponsorship slate](./sponsorship-slate.md).
+   **Decided (the owner, 2026-11-08; wording corrected 2026-11-10):** the company's
+   own packs ship only what is **public domain, original, licensed, or plainly a quoted
+   line** (§ 7, § 8). The demo realm (`mud.panterasbox.com`) has a curator, the owner,
+   who answers for its content like any publisher; anything the owner adds there lives
+   in a **private realm pack** (an org repo, kept out of the open pack distributed to
+   self-hosters), so a takedown removes one object and is honored at once. Players'
+   own uploads to a realm are hosted under the ordinary notice-and-takedown process,
+   and the platform **neither prompts nor rewards** uploading other people's work
+   (§ 8). Rights holders' content comes in **by agreement**: the
+   [sponsorship slate](./sponsorship-slate.md). The owner, 2026-11-10: *"I'm really
+   not trying to get around copyright just trying to figure out where the rails
+   are."*
 
    **Other sources (2026-11-08, informed knowledge, not legal advice):**
    - **Video games:** everything on screen is a copyrighted audiovisual work, cutscene

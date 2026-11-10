@@ -68,6 +68,7 @@ export function ButtonBar({
           onClick={() => onCommandClick(`go ${x.direction}`)}
         >
           {x.direction}
+          {x.state && x.state !== "open" ? ` (${x.state})` : ""}
         </Btn>
       ))}
       {verbs.map((v) => (

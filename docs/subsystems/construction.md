@@ -20,6 +20,9 @@ enclosure:                              # the walls — a sawdust-filled double 
 roof: { material: /stuff/idea/material/glass/glass, thicknessM: 0.004 }
 ```
 
+⭐ **A window onto the sky is enclosure** — glass as a layer here; a
+window onto another place is a way's boundary, [boundary.md § Window](./boundary.md#window)'s.
+
 Author a real material and a thickness; the physics is the material row's.
 There is no U-value, no "insulated", no "roofed" — `lint:envelope` clause
 (e) keeps the spec closed. An awning is `enclosure: none` + a canvas roof;

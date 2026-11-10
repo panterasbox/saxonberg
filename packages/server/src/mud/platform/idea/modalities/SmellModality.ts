@@ -35,10 +35,6 @@ import { StuffApi } from '../../../api/stuff';
 import { CraftingApi } from '../../../api/crafting';
 import type { Sensor } from '../../../lib/message/Sensor';
 import type { Percept } from '../../../lib/perception/Modality';
-import { BoundaryAnchor } from '../../../lib/boundary/BoundaryAnchor';
-import type { Boundary } from '../../../lib/boundary/Boundary';
-import type { Conduit } from '../../../lib/boundary/Conduit';
-import type { SmellConduit } from '../../../lib/boundary/SmellConduit';
 import type { Bulkable, BulkPayload } from '../../../lib/bulk/Bulkable';
 import { PerceptionApi } from '../../../api/perception';
 
@@ -78,17 +74,6 @@ function addNote(into: Notes, aroma: string, ou: number, maker?: string): void {
   into.set(aroma, { ou: (had?.ou ?? 0) + ou, maker: had?.maker ?? maker });
 }
 
-function isSmellConduit(c: Conduit): c is SmellConduit {
-  return c.conduitKind === 'smell';
-}
-
-function findSmellConduit(boundary: Boundary): SmellConduit | null {
-  for (const c of boundary.getConduits()) {
-    if (isSmellConduit(c)) return c;
-  }
-  return null;
-}
-
 
 /**
  * Read the scope's inline `_atmosphere` field if it composes
@@ -110,7 +95,7 @@ function atmosphereBlocks(loc: Stuff & Container): boolean {
 
 /**
  * ⭐ The legs out of `loc`, in the order this walk has always taken
- * them: boundary conduits (d), then doorless obvious exits (e).
+ * them: ways with a boundary (d), then open ways (e).
  *
  * ⚠⚠ This leg list was **character-for-character identical** to
  * `SoundModality`'s, and the two walks STILL differ — smell's
@@ -122,27 +107,22 @@ function atmosphereBlocks(loc: Stuff & Container): boolean {
 function smellLegs(loc: Stuff & Container): Array<Leg<Stuff & Container>> {
   const out: Array<Leg<Stuff & Container>> = [];
 
-  if (MixinApi.isAdornable(loc)) {
-    for (const fx of loc.getFixtures()) {
-      if (!BoundaryAnchor.is(fx)) continue;
-      const anchor = fx;
-      const boundary = anchor.getBoundary();
-      if (!boundary) continue;
-      const otherHost = anchor.getOtherHost();
-      if (!otherHost) continue;
-      const conduit = findSmellConduit(boundary);
-      if (!conduit) continue;
-      const otherSide = boundary.getOtherSide(anchor);
-      const tau = conduit.transmissivity(otherSide, anchor.getSide());
-      if (!(tau > 0)) continue;
-      out.push({ node: otherHost as unknown as Stuff & Container, tau: tau * HOP_TAU });
-    }
+  if (!MixinApi.isExitable(loc)) return out;
+  const ways = loc.getObviousNeighbours({ through: 'all' });
+
+  // (d) Through a boundary — each side's own fraction.
+  for (const { exit, dest } of ways) {
+    const boundary = exit.getBoundary();
+    if (!boundary) continue;
+    const tau = boundary.transmissivityInto('smell', exit);
+    if (!(tau > 0)) continue;
+    out.push({ node: dest, tau: tau * HOP_TAU });
   }
 
-  if (MixinApi.isExitable(loc)) {
-    for (const { dest } of loc.getObviousNeighbours()) {
-      out.push({ node: dest, tau: HOP_TAU });
-    }
+  // (e) Through an open way.
+  for (const { exit, dest } of ways) {
+    if (exit.getBoundary()) continue;
+    out.push({ node: dest, tau: HOP_TAU });
   }
 
   return out;
@@ -241,7 +221,6 @@ export class SmellModality extends Modality {
     }
     if (MixinApi.isAdornable(loc)) {
       for (const fx of loc.getFixtures()) {
-        if (BoundaryAnchor.is(fx)) continue;
         acc = acc.add(this.emissionOf(fx as unknown as Stuff));
       }
     }

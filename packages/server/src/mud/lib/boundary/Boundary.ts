@@ -1,290 +1,316 @@
 /**
- * Boundary — the shared abstraction for "anything that connects two
- * Adornable Containers and gates channels (light, sight, movement,
- * future sound) between them."
+ * Boundary — the ONE thing standing in a way between two places.
  *
- * A Boundary is a `Thing`: it has identity, `Visible` and `Perceptible`
- * surfaces (both inherited from Thing's default composition), and (via
- * `Containable` from Thing) can become inventory if detached from both
- * sides — same shape as a broken Door. It is NOT in either room's
- * `getContents()`. It surfaces on each side via a `BoundaryAnchor`
- * fixture that sits in the host's `Adornable.getFixtures()`.
+ * ⭐⭐ **Each place's exit is a SIDE of it.** A door between the bank and the
+ * pump house is one object: shut it from either side and it is shut on
+ * both, lock it from inside and the bank finds it locked, and both places
+ * call it by the same name. Before the boundary build (2026-11) there were
+ * four models of this — a door hung on an exit, an anchor pair surfacing a
+ * window as a fixture on each room, exits with a lock of their own, and a
+ * window that wired its own hosts — and they did not agree (a door locked
+ * from one side was open from the other). See `docs/subsystems/boundary.md`.
  *
- * Composition: just `Thing` — Visible/Perceptible come baked in.
- * Subclasses that need closed/open state (`Window` shutters, `Door`)
- * compose `Sealable` themselves.
+ * What a boundary passes is DATA: a channel table (`channels:` on the row,
+ * one table open and one shut; vocabulary in `Conduit.ts`) read by
+ * {@link transmissivity}. The light, sound and smell walks iterate a
+ * place's exits and ask each side's boundary; a side with no boundary is an
+ * open way (*an open way has nothing in it*).
  *
- * Conduit registry: a Boundary subclass implements a subset of the
- * Conduit interfaces (LightConduit, LineOfSight, MovementConduit, …)
- * to declare which channels pass through it. The base class returns
- * an empty array; subclasses override `getConduits()` to list their
- * own. The propagation walks consume the registry directly — no
- * caching.
+ * The sides are weak instance refs: a boundary is a row singleton (an
+ * authored `door:`) or owned by the code that minted it (a holding's keyed
+ * door, a ship's gangway), never by either side. When a side's exit dies,
+ * its slot self-heals to null.
  *
- * Anchor model: a Boundary has two slots, `anchorA` / `anchorB`,
- * filled at install time by `BoundaryApi`. The anchors are the
- * per-side proxies in each host's `getFixtures()`. The pair plus the
- * Boundary is the runtime triple `BoundaryApi` manages — the spec
- * calls this the symmetric two-bearing model with the existing
- * `DoorBearingMixin` deliberately kept distinct (see
- * `docs/subsystems/light.md § Naming: BoundaryAnchor vs DoorBearing`).
- *
- * Persistence: Boundary itself is a Thing — its persistent fields are
- * subclass-specific (`Window.baseTransmissivity`, etc.). The two
- * anchors are runtime-only. For v1, anchor wiring is hydrate-only:
- * seed code constructs the Boundary, calls
- * `BoundaryApi.attachExistingBoundary`, and the result lives in
- * memory as long as the host rooms do.
+ * This is the abstract base (`lib/`); rows instance `platform/thing/Boundary`
+ * (a curtain), `Door` (anything with a bolt) or `Window`.
  */
 
 import Thing from '../stuff/Thing';
-import { TemplatePaths } from '../paths';
-import type { Stuff } from '../stuff/Stuff';
-import type { Conduit, BoundarySide } from './Conduit';
-import type { BoundaryAnchor } from './BoundaryAnchor';
-import type { Adornable } from './Adornable';
-import { StuffApi } from '../../api/stuff';
+import type { EvictionContext, Stuff } from '../stuff/Stuff';
+import type { VetoResult } from '../errors';
+import type Exit from './Exit';
+import {
+  BOUNDARY_CHANNELS,
+  type BoundaryChannel,
+  type BoundaryOpening,
+  type BoundarySide,
+  type ChannelTable,
+  type ChannelValues,
+} from './Conduit';
 import type { FieldMeta } from '../mixin';
+import { Colour } from '../perception/Colour';
+import { NavigationApi } from '../../api/navigation';
+import { CallSecurity } from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
 
-/**
- * ⭐ It overrides `onCreate` for ONE reason: a boundary's two anchors are
- * CLONES OF A ROW now (`/platform/thing/BoundaryAnchor`), and a clone is
- * async — while `installBoundary` is sync and must stay so (a vessel's
- * `onMoved` migrates a door's anchors). So the pair is minted here, once,
- * and `installBoundary` only WIRES it.
- *
- * ⚠ Consequence: `StuffApi.createSync(() => new Door())` now throws. No
- * production site does it; `lint:create-sites` names one if it appears.
- */
+const FromBoundaryLogic = SecurityPolicies.FromModule(
+  '/platform/idea/api/BoundaryLogic#BoundaryLogic',
+);
+
+/** All open, nothing shut — a door's numbers, and the base's. */
+const DEFAULT_CHANNELS: ChannelTable = {
+  open: { movement: 1, light: 1, sight: 1, sound: 1, smell: 1 },
+  shut: { movement: 0, light: 0, sight: 0, sound: 0, smell: 0 },
+};
+
+/** A doorway's size when a row names none: a man-sized door. */
+const DEFAULT_OPENING: BoundaryOpening = { width: 1, height: 2 };
+
 const BoundaryBase = Thing;
 
 export class Boundary extends BoundaryBase {
-  /**
-   * The two per-side anchors that surface this Boundary in each
-   * host's `Adornable.getFixtures()`. Filled by
-   * `BoundaryApi.attachExistingBoundary`; cleared by `detach()`.
-   *
-   * Not persistent — anchors are runtime-only; the Stuff-reference
-   * cross-link to a per-side fixture follows the
-   * `Containable.environment` precedent (composing classes wanting
-   * survive-restart anchors would supply a custom `persistenceHandler`,
-   * but v1 has no such use case).
-   *
-   * Public read access goes through `getAnchorA()` / `getAnchorB()` /
-   * `getAnchors()`. Mutation is `BoundaryApi`'s job.
-   */
   static fieldMeta: FieldMeta = {
-    // An anchor exists only to surface THIS boundary on one host; it
-    // has no meaning once the boundary is gone, so the boundary's death
-    // is the anchor's death. The `detach()` policy (removing each
-    // anchor from its host's fixtures) stays hand-written in
-    // `onDestruct` — see the note there for why it must not null these.
-    anchorA: { ref: 'instance', lifetime: 'owned' },
-    anchorB: { ref: 'instance', lifetime: 'owned' },
+    sideA: { ref: 'instance', lifetime: 'weak' },
+    sideB: { ref: 'instance', lifetime: 'weak' },
+    channels: { persistent: true, authorable: true },
+    opening: { persistent: true, authorable: true },
   };
 
-  protected anchorA: BoundaryAnchor | null = null;
-  protected anchorB: BoundaryAnchor | null = null;
+  protected sideA: Exit | null = null;
+  protected sideB: Exit | null = null;
+  protected _channels: ChannelTable = cloneTable(DEFAULT_CHANNELS);
+  protected _opening: BoundaryOpening = { ...DEFAULT_OPENING };
 
-  /**
-   * Marker so `Adornable.getFixtureBoundaries()` can dedupe via a
-   * cheap structural test rather than importing this class. Set on
-   * the BoundaryAnchor side, not here — included as a parallel
-   * doc note for readers wondering why this class lacks the marker.
-   */
-
-  public getAnchorA(): BoundaryAnchor | null {
-    return this.anchorA;
+  /** Host-internal accessor pairs — the Hydrator reflects `channels`/`opening` by name. */
+  protected get channels(): ChannelTable {
+    return this._channels;
+  }
+  protected set channels(value: ChannelTable) {
+    this.setChannels(value);
+  }
+  protected get opening(): BoundaryOpening {
+    return this._opening;
+  }
+  protected set opening(value: BoundaryOpening) {
+    this.setOpening(value);
   }
 
-  public getAnchorB(): BoundaryAnchor | null {
-    return this.anchorB;
+  // --- sides ---------------------------------------------------------------
+
+  /** The two sides, A first; either may be empty. */
+  public getSides(): readonly [Exit | null, Exit | null] {
+    return [this.sideA, this.sideB];
   }
 
-  public getAnchors(): readonly [BoundaryAnchor | null, BoundaryAnchor | null] {
-    return [this.anchorA, this.anchorB];
+  /** Which side `exit` is, or null if it is not one of mine. */
+  public sideOf(exit: Exit): BoundarySide | null {
+    if (exit === this.sideA) return 'A';
+    if (exit === this.sideB) return 'B';
+    return null;
   }
 
-  /**
-   * Side opposite of the supplied anchor's side. Returns 'B' for an
-   * 'A' anchor and vice versa, regardless of whether that anchor is
-   * still wired to this Boundary — pure derivation from the side tag.
-   */
-  public getOtherSide(anchor: BoundaryAnchor): BoundarySide {
-    return anchor.getSide() === 'A' ? 'B' : 'A';
-  }
-
-  /** The other slot's anchor, or null if it isn't wired. */
-  public getOtherAnchor(anchor: BoundaryAnchor): BoundaryAnchor | null {
-    if (anchor === this.anchorA) return this.anchorB;
-    if (anchor === this.anchorB) return this.anchorA;
+  /** The side across from `exit`, or null (not mine, or the far side is unbuilt). */
+  public otherSide(exit: Exit): Exit | null {
+    if (exit === this.sideA) return this.sideB;
+    if (exit === this.sideB) return this.sideA;
     return null;
   }
 
   /**
-   * Convenience: walk through this Boundary from one host to its
-   * counterpart. Returns null if the other side isn't wired or its
-   * anchor has lost its `adornedTo` back-reference.
+   * BoundaryLogic-only seam: take `exit` as a side. Refuses a third side and
+   * a side that is already mine twice over. Idempotent for a side already
+   * attached.
    */
-  public getOtherHost(host: Stuff & Adornable): (Stuff & Adornable) | null {
-    if (this.anchorA?.getAdornedTo() === host) {
-      return this.anchorB?.getAdornedTo() ?? null;
+  @CallSecurity(FromBoundaryLogic)
+  public _attachSide(exit: Exit): void {
+    if (exit === this.sideA || exit === this.sideB) return;
+    if (!this.sideA) {
+      this.sideA = exit;
+      return;
     }
-    if (this.anchorB?.getAdornedTo() === host) {
-      return this.anchorA?.getAdornedTo() ?? null;
+    if (!this.sideB) {
+      this.sideB = exit;
+      return;
     }
-    return null;
-  }
-
-  /**
-   * Conduit registry. Default empty — subclasses override to list
-   * each `Conduit` interface they implement (e.g.
-   * `[this satisfies LightConduit, this satisfies LineOfSight]`).
-   * Walks consume the array directly; no caching.
-   */
-  public getConduits(): readonly Conduit[] {
-    return [];
-  }
-
-  /**
-   * Mint the two anchors from `/platform/thing/BoundaryAnchor`. Once
-   * per boundary, at registration — they then live as long as it does,
-   * migrating between hosts rather than being destroyed and rebuilt.
-   */
-  public override async onCreate(context?: unknown): Promise<void> {
-    await super.onCreate(context);
-    await this.ensureAnchors();
-  }
-
-  /**
-   * Mint the pair if it is not there yet. Idempotent.
-   *
-   * ⚠ Public and callable before `onCreate` because a Boundary can
-   * be asked to WIRE ITSELF during hydration — `Window.setAttachedHosts`
-   * is a Phase-1 setter, and Phase 1 runs before `onCreate`. That
-   * ordering is why this is a separate method and not just the hook's
-   * body: the hook is the normal path, this is the one that is earlier.
-   */
-  public async ensureAnchors(): Promise<void> {
-    if (this.anchorA && this.anchorB) return;
-    const a = await StuffApi.clone<BoundaryAnchor>(
-      TemplatePaths.boundaryAnchor,
+    throw new Error(
+      `Boundary: ${this.tag()} already has two sides; a way has only two.`,
     );
-    const b = await StuffApi.clone<BoundaryAnchor>(
-      TemplatePaths.boundaryAnchor,
-    );
-    a.setSide('A');
-    b.setSide('B');
-    a._setBoundary(this);
-    b._setBoundary(this);
-    this.anchorA = a;
-    this.anchorB = b;
+  }
+
+  /** BoundaryLogic-only seam: let `exit` go. Idempotent. */
+  @CallSecurity(FromBoundaryLogic)
+  public _detachSide(exit: Exit): void {
+    if (exit === this.sideA) this.sideA = null;
+    if (exit === this.sideB) this.sideB = null;
+  }
+
+  // --- channels ------------------------------------------------------------
+
+  public getChannels(): ChannelTable {
+    return cloneTable(this._channels);
   }
 
   /**
-   * BoundaryApi-only seam: install the two anchors. Public so the
-   * Api can call across module boundaries; not intended for
-   * application code (the Api wraps this with the host wiring).
-   *
-   * Idempotent for the no-change case; rejects an attempt to
-   * re-install over already-occupied slots — that would silently
-   * orphan the previous anchors. The Api always destructs first.
+   * Phase-1 setter for `channels:`. Merges over the class's defaults, so a
+   * row names only what differs. ⚠ An unknown channel key, or a value
+   * outside 0..1, throws — a misspelt `ligth:` must not read as dark.
    */
-  public _setAnchors(a: BoundaryAnchor, b: BoundaryAnchor): void {
-    if (this.anchorA && this.anchorA !== a) {
-      throw new Error(
-        'Boundary._setAnchors: side A is already wired; detach first.'
+  public setChannels(value: Partial<Record<'open' | 'shut', ChannelValues>>): void {
+    if (value === null || typeof value !== 'object') {
+      throw new TypeError(`Boundary.channels must be an object with open/shut tables.`);
+    }
+    const next = cloneTable(this._channels);
+    for (const [state, table] of Object.entries(value)) {
+      if (state !== 'open' && state !== 'shut') {
+        throw new TypeError(
+          `Boundary.channels: '${state}' is not a state (open | shut).`,
+        );
+      }
+      if (table === null || typeof table !== 'object') {
+        throw new TypeError(`Boundary.channels.${state} must be a table.`);
+      }
+      for (const [ch, v] of Object.entries(table)) {
+        if (!(BOUNDARY_CHANNELS as readonly string[]).includes(ch)) {
+          throw new TypeError(
+            `Boundary.channels.${state}: '${ch}' is not a channel ` +
+              `(${BOUNDARY_CHANNELS.join(' | ')}).`,
+          );
+        }
+        if (typeof v !== 'number' || !Number.isFinite(v) || v < 0 || v > 1) {
+          throw new RangeError(
+            `Boundary.channels.${state}.${ch} must be a number in [0, 1], got ${String(v)}.`,
+          );
+        }
+        next[state][ch as BoundaryChannel] = v;
+      }
+    }
+    this._channels = next;
+  }
+
+  /**
+   * Open, for a boundary with nothing to shut. The platform twin composes
+   * `Sealable`, whose `isOpen` replaces this.
+   */
+  public isOpen(): boolean {
+    return true;
+  }
+
+  /**
+   * ⭐ How much of `channel` passes from side `from` to side `to`, 0..1 —
+   * the one question every walk asks. Reads the open or shut table by
+   * {@link isOpen}. Subclasses refine it (`Door`: a door on a weight lets
+   * you through shut; `Window`: glazing, grime and one-way glass).
+   */
+  public transmissivity(
+    channel: BoundaryChannel,
+    _from: BoundarySide,
+    _to: BoundarySide,
+  ): number {
+    const table = this.isOpen() ? this._channels.open : this._channels.shut;
+    return table[channel] ?? 0;
+  }
+
+  /**
+   * The colour this boundary gives light passing `from` → `to`. White
+   * (`UNDYED`) here; a stained `Window` answers its glazing.
+   */
+  public transmittanceColour(_from: BoundarySide, _to: BoundarySide): Colour {
+    return Colour.UNDYED;
+  }
+
+  /** The colour of light arriving INTO `nearSide`'s place. */
+  public colourInto(nearSide: Exit): Colour {
+    const near = this.sideOf(nearSide) ?? 'A';
+    return this.transmittanceColour(near === 'A' ? 'B' : 'A', near);
+  }
+
+  /** What passes INTO `nearSide`'s place from across the way. */
+  public transmissivityInto(channel: BoundaryChannel, nearSide: Exit): number {
+    const near = this.sideOf(nearSide) ?? 'A';
+    return this.transmissivity(channel, near === 'A' ? 'B' : 'A', near);
+  }
+
+  /** Whether a body can cross this way while it is open — false for a window. */
+  public passesBodiesWhenOpen(): boolean {
+    return (this._channels.open.movement ?? 0) > 0;
+  }
+
+  /**
+   * ⭐ Whether a way swings shut behind whoever passes (a workshop door on a
+   * weight). False here; `Door` answers its `closesBehind`.
+   */
+  public swingsShut(): boolean {
+    return false;
+  }
+
+  // --- opening -------------------------------------------------------------
+
+  public getOpening(): BoundaryOpening {
+    return { ...this._opening };
+  }
+
+  public setOpening(value: BoundaryOpening): void {
+    if (
+      value === null ||
+      typeof value !== 'object' ||
+      !isPositive(value.width) ||
+      !isPositive(value.height)
+    ) {
+      throw new TypeError(
+        `Boundary.opening must be { width, height } in metres, both positive; got ${JSON.stringify(value)}.`,
       );
     }
-    if (this.anchorB && this.anchorB !== b) {
-      throw new Error(
-        'Boundary._setAnchors: side B is already wired; detach first.'
-      );
-    }
-    this.anchorA = a;
-    this.anchorB = b;
+    this._opening = { width: value.width, height: value.height };
   }
 
+  // --- words ---------------------------------------------------------------
+
   /**
-   * Internal seam used by an anchor's `onDestruct` to clear its
-   * own slot when the anchor is being torn down (e.g., its host is
-   * destructing). Idempotent.
+   * The one word a way's listing uses for this boundary's state. `Door`
+   * adds `locked`, which outranks both because the traverse refuses a
+   * locked door before a shut one.
    */
-  public _clearAnchor(anchor: BoundaryAnchor): void {
-    if (this.anchorA === anchor) this.anchorA = null;
-    if (this.anchorB === anchor) this.anchorB = null;
+  public stateWord(): 'locked' | 'open' | 'closed' {
+    return this.isOpen() ? 'open' : 'closed';
   }
 
   /**
-   * Walk both anchors, removing each from its host's `getFixtures()`.
-   * Idempotent. ⭐ The anchor SLOTS are kept — an anchor is minted once
-   * with its boundary and migrates between hosts; only its host link is
-   * dropped. Mirror of `Door.detach()`.
-   */
-  public detach(): void {
-    this._detachAnchorsOnly();
-  }
-
-  /**
-   * Subclass-bypass seam: same logic as `detach()`, callable from
-   * Stuff that wants to migrate boundary anchors without invoking a
-   * subclass's overridden `detach` (e.g., `ExitableVessel`
-   * relocating a `Door`'s boundary between (vessel, oldEnv) and
-   * (vessel, newEnv) without touching the Door's `attachedTo` set).
+   * Authored keywords plus the tokens of the short description, so a
+   * `heavy oak door` answers to `oak` and `door` without re-listing them.
    *
-   * Public so cross-module callers (the ExitableVessel migration
-   * helpers, BoundaryApi) can reach it; not part of the Boundary's
-   * inter-Stuff contract — application code should always use
-   * `BoundaryApi.attachExistingBoundary` / `BoundaryApi.destruct`.
+   * ⚠ **DERIVED (magic), named here:** the description's tokens are not
+   * authored keywords; this override folds them in, and MQL reads them only
+   * through this Perceptible interface. The boundary is a candidate in its
+   * own right (MQL's `here` pool lists it once, beside its way), so `wash
+   * window` and `open door` bind it, and `open north` reaches it through
+   * `MqlApi.effectiveTarget`.
    */
-  public _detachAnchorsOnly(): void {
-    const a = this.anchorA;
-    const b = this.anchorB;
-    if (a) {
-      const host = a.getAdornedTo();
-      if (host) host.removeFixture(a);
-    }
-    if (b) {
-      const host = b.getAdornedTo();
-      if (host) host.removeFixture(b);
-    }
+  override getKeywords(viewer?: Stuff): string[] {
+    const base = super.getKeywords(viewer);
+    // ⚠ A DIRECTION word in the name (`west window`) is the WAY's, never
+    // the boundary's: folded in, `look west` tied the way and its window at
+    // one tier and prompted *the west window / west* (the boundary drive).
+    // The boundary still answers to `window` and its authored phrases.
+    const nameTokens = this.shortDescription
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((t) => t.length > 0 && !NavigationApi.isCardinalDirection(t));
+    return Array.from(new Set([...base, ...nameTokens]));
   }
 
-  /**
-   * Subclass-bypass seam: migrate the anchor pair off its current
-   * hosts, keeping the pair. Used by `ExitableVessel`'s onMoved /
-   * setDoor migration so a Door survives the vessel relocation.
-   *
-   * ⚠ It used to DESTRUCT the orphaned anchors and let the next
-   * install mint a fresh pair with `createSync`. It cannot any more —
-   * an anchor is a clone of a row, and a clone is async while this path
-   * is sync. Keeping the pair is also the more honest model: an anchor
-   * is the boundary's own per-side proxy, not a per-host one.
-   */
-  public _detachAndDestructAnchors(): void {
-    this._detachAnchorsOnly();
+  // --- residency -----------------------------------------------------------
+
+  /** A boundary lives while a way through it does. */
+  public override canEvict(context: EvictionContext): VetoResult {
+    for (const side of [this.sideA, this.sideB]) {
+      if (!side || side.isDestroyed()) continue;
+      const src = side.getSource() as Stuff | null;
+      if (src && !src.isDestroyed()) {
+        return { ok: false, reason: 'boundary of a live way' };
+      }
+    }
+    return super.canEvict(context);
   }
 
-  /**
-   * Destroy choreography: detach first (back-refs), then destruct
-   * the anchors that were attached. Mirrors Door's `detach()`-then-
-   * cleanup pattern, but Boundary owns the anchors so it also
-   * destructs them.
-   */
-  public onDestruct(): void {
-    // POLICY only: unhook each anchor from the host it adorns.
-    //
-    // This deliberately does NOT call `detach()` any more. The cascade
-    // and the slot-clearing are declared (`anchorA`/`anchorB` are
-    // `{ ref: 'instance', lifetime: 'owned' }`) and belong to slot 2.5 —
-    // and `detach()` nulls both slots, so calling it here would leave
-    // 2.5 nothing to destruct and the anchors would silently survive.
-    // The fixture removal is the genuinely extra work and stays.
-    for (const anchor of [this.anchorA, this.anchorB]) {
-      if (!anchor) continue;
-      const host = anchor.getAdornedTo();
-      if (host) host.removeFixture(anchor);
-    }
-    super.onDestruct();
+  private tag(): string {
+    return this.getTemplatePath() ?? this.stuffId;
   }
+}
+
+function cloneTable(t: ChannelTable): ChannelTable {
+  return { open: { ...t.open }, shut: { ...t.shut } };
+}
+
+function isPositive(v: unknown): v is number {
+  return typeof v === 'number' && Number.isFinite(v) && v > 0;
 }

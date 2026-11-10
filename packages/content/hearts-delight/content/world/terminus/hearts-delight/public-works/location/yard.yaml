@@ -19,6 +19,7 @@ data:
   exits:
     west:
       destination: /world/terminus/hearts-delight/location/valley-gate
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 1
   props:

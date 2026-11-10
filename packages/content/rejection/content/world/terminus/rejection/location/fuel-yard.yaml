@@ -33,7 +33,9 @@ data:
     east:
       destination: /world/terminus/rejection/location/smelter
     # The glazier's hut, added by the glass build — the cold shop, in town.
-    northeast:
+    # North, next door (the boundary build moved it beside the hill so its
+    # doorway and its window each join adjacent cells).
+    north:
       destination: /world/terminus/rejection/location/glaziers-hut
   props:
     - /trade/fuel/thing/clamp

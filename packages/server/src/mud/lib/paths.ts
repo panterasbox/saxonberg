@@ -84,9 +84,6 @@ export const TemplatePaths = {
   quantityMarshaller: "/platform/idea/persistence/QuantityMarshaller",
   encryptedStringMarshaller: "/platform/idea/persistence/EncryptedStringMarshaller",
 
-  /** The per-side proxy a Boundary pre-mints two of. */
-  boundaryAnchor: "/platform/thing/BoundaryAnchor",
-
   // Exit kinds — every exit in the world is a clone of a ROW.
   /**
    * ⭐ The default exit kind: a bare passage, no authored prose. Every
