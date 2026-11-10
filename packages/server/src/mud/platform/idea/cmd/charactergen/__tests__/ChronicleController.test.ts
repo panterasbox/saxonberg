@@ -124,7 +124,7 @@ describe('the chronicle says who may read it (W8)', () => {
     const own = await player.recordFor(player);
     expect(own.ok && own.facts.self).toBe(true);
 
-    const npc = makeStuffAtPath(() => new Actor(), '/world/x/agent/dave');
+    const npc = makeStuffAtPath(() => new Actor(), '/test/agent/dave');
     await npc.recordDeed({ text: 'poured a pint', when: 1 });
     const read = await npc.recordFor(reader);
     expect(read.ok && read.facts.deeds.map((d) => d.text)).toEqual(['poured a pint']);
