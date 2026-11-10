@@ -1001,6 +1001,15 @@ against an all-`prepositionRequired` view — `draught at <fire>` vs
 is required (`press` reads, `press <headline>` posts). (c) The dairying
 pack's row fixture stood up aromas by the retired `word` key; it reads
 `aroma:` paths now (the 22 "Not connected" failures).
+(d) `pack-roots.extendsAny` read every pack manifest on every call (a
+`= packSources()` default, cache hits included) — `lint:locations` took
+minutes and looked hung; it reads them once now (~25 s). (e) Ceilings at
+W7's close: multi-act 22, controller-decisions 1070 (durations 83),
+controller-functions 182, controller-mutations 282, self-resolution 104,
+duck probes 529, mixin-clusters 42 (a stated rise — `Combatant.defend`
+names three lone members together; caller audit in the gate header),
+subcommand-words 44 / builtin 7 (owner ruling). lint:family 105/105;
+test:near green.
 
 ---
 
