@@ -304,7 +304,7 @@ export default class Sawmill extends SawmillBase {
       charge = Sawmill.chargeOf(log);
     }
     if (charge === null) return { ok: false, reason: 'not-sawable' };
-    const boards = Sawmill.boardsFrom(charge.kg, BOARD_KG, quarter);
+    const boards = this.boardsFrom(charge.kg, BOARD_KG, quarter);
     if (boards < 1) return { ok: false, reason: 'too-small', facts: { quarter } };
     // ⚠ A cold water-sawmill answers 0 until its race has been read once,
     // and "will not turn" must be true when it is said.
@@ -360,7 +360,7 @@ export default class Sawmill extends SawmillBase {
    * Boards a log of `kg` gives: its mass over a board's, and two in three
    * of that when it is quartered.
    */
-  public static boardsFrom(kg: number, unitKg: number, quarter: boolean): number {
+  public boardsFrom(kg: number, unitKg: number, quarter: boolean): number {
     if (!(unitKg > 0) || !(kg > 0)) return 0;
     const through = kg / unitKg;
     return Math.floor(quarter ? through * QUARTER_YIELD : through);
@@ -372,7 +372,7 @@ export default class Sawmill extends SawmillBase {
    * width of a board's thickness turned to dust. The boards come out
    * lighter by what is minted, so mass is conserved.
    */
-  public static kerfSawdustKg(boards: number, quarter: boolean, kerfM: number): number {
+  public kerfSawdustKg(boards: number, quarter: boolean, kerfM: number = this.getKerfM()): number {
     if (!(boards > 0) || !(kerfM > 0)) return 0;
     const cuts = boards * (quarter ? 2 : 1);
     return (cuts * kerfM * BOARD_KG) / BOARD_THICKNESS_M;
@@ -442,7 +442,7 @@ export default class Sawmill extends SawmillBase {
     if (maker && MixinApi.isCrafted(board)) board.setMaker(maker);
     // ⭐ The kerf (D18): the boards are lighter by EXACTLY what is minted —
     // whole kilograms, a heap's unit — so the log's mass is conserved.
-    const dustKg = Math.round(Sawmill.kerfSawdustKg(boards, quarter, this.getKerfM()));
+    const dustKg = Math.round(this.kerfSawdustKg(boards, quarter));
     if (dustKg > 0 && boards > 0 && MixinApi.isTangible(board)) {
       board.setMass(Quantity.of(BOARD_KG - dustKg / boards, 'kg'));
     }

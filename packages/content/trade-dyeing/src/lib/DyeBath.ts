@@ -81,17 +81,13 @@ export default class DyeBath {
   static readonly MORDANT_DOSE_L = 1;
   static readonly EFFORT_W = 250;
 
-  private constructor(
-    private readonly vessel: Stuff,
-    private readonly slot: BulkSlot | null,
-    private readonly material: Material | null,
-  ) {}
+  private readonly slot: BulkSlot | null;
+  private readonly material: Material | null;
 
   /** The bath in `vessel` — what is in it is read now. */
-  public static of(vessel: Stuff): DyeBath {
-    const slot = MixinApi.isBulkable(vessel) ? BulkableApi.slotFor(vessel, undefined) : null;
-    const material = slot && !slot.isEmpty() ? slot.getMaterial() : null;
-    return new DyeBath(vessel, slot, material);
+  constructor(private readonly vessel: Stuff) {
+    this.slot = MixinApi.isBulkable(vessel) ? BulkableApi.slotFor(vessel, undefined) : null;
+    this.material = this.slot && !this.slot.isEmpty() ? this.slot.getMaterial() : null;
   }
 
   /** The dyestuff this bath holds, or `null`. */

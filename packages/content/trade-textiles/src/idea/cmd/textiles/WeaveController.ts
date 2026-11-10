@@ -26,11 +26,11 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import TextileStock, {
+import TextileWork, {
   type TextileRefusal,
   type WeaveBegin,
   type WeaveDone,
-} from '../../../thing/TextileStock';
+} from '../../../lib/TextileWork';
 
 type Composed = ReturnType<typeof Mml.compose>;
 
@@ -43,7 +43,7 @@ interface WeaveModel extends CommandModel {
 
 /**
  * ⭐ The charge, the yield against the cloth, the band and the mint are
- * the yarn's (`TextileStock.weavePlan` — controller-liquidity W11); this
+ * the yarn's (`TextileWork.weavePlan` — controller-liquidity W11); this
  * controller picks the weave from the options, the best loom bound, and
  * words the plan.
  */
@@ -59,9 +59,8 @@ export default class WeaveController extends ManualBuildController<WeaveModel> {
       this.declineStep(context, Mml.compose`A web is set close or open, not both.`, 'two-weaves');
       return;
     }
-    const plan = await TextileStock.weavePlan(giver, yarn, {
+    const plan = await new TextileWork(giver, this.bestInstrument(model.loom, 'weaving')).weavePlan(yarn, {
       form: model.close ? 'fine-woven' : model.open ? 'sackcloth' : 'woven',
-      instrument: this.bestInstrument(model.loom, 'weaving'),
     });
     if (!plan.ok) {
       this.declineStep(context, WeaveController.refusalWords(plan, yarn), plan.reason);

@@ -27,11 +27,11 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import TextileStock, {
+import TextileWork, {
   type ScutchBegin,
   type ScutchDone,
   type TextileRefusal,
-} from '../../../thing/TextileStock';
+} from '../../../lib/TextileWork';
 
 type Composed = ReturnType<typeof Mml.compose>;
 
@@ -43,7 +43,7 @@ interface ScutchModel extends CommandModel {
 
 /**
  * ⭐ The fibre gate, the charge, the split into line/tow/shive, the band,
- * the dust and the mint are the stock's (`TextileStock.scutchPlan` —
+ * the dust and the mint are the stock's (`TextileWork.scutchPlan` —
  * controller-liquidity W11); this controller words the plan.
  */
 export default class ScutchController extends ManualBuildController<ScutchModel> {
@@ -54,9 +54,8 @@ export default class ScutchController extends ManualBuildController<ScutchModel>
       this.declineStep(context, Mml.compose`Scutch what?`, 'no-source');
       return;
     }
-    const plan = await TextileStock.scutchPlan(giver, source, {
+    const plan = await new TextileWork(giver, this.bestInstrument(model.board, 'scutching')).scutchPlan(source, {
       hard: model.hard === true,
-      instrument: this.bestInstrument(model.board, 'scutching'),
       room: context.location ?? null,
     });
     if (!plan.ok) {

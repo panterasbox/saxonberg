@@ -83,7 +83,7 @@ export default class DyeController extends ManualBuildController<DyeModel> {
       this.declineStep(context, Mml.compose`There is no bath here to dip it in.`, 'no-bath');
       return;
     }
-    const plan = await DyeBath.of(bath).dyePlanFor(giver, target);
+    const plan = await new DyeBath(bath).dyePlanFor(giver, target);
     if (!plan.ok) {
       this.declineStep(context, DyeController.refusalWords(plan, target, bath), plan.reason);
       return;
@@ -105,7 +105,7 @@ export default class DyeController extends ManualBuildController<DyeModel> {
     const candidates = (bound?.stuff ?? []).filter((c) => MixinApi.isBulkable(c));
     if (candidates.length === 0) return null;
     if (bound?.prep !== undefined) return candidates[0]!;
-    return candidates.find((c) => DyeBath.of(c).dyestuff() !== null) ?? null;
+    return candidates.find((c) => new DyeBath(c).dyestuff() !== null) ?? null;
   }
 
   protected static refusalWords(r: DyeBathRefusal, target: Stuff, bath: Stuff): Composed {

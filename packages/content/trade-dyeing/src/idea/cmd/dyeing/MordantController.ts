@@ -59,7 +59,7 @@ export default class MordantController extends ManualBuildController<MordantMode
       );
       return;
     }
-    const plan = DyeBath.of(vessel).mordantPlanFor(giver, target);
+    const plan = new DyeBath(vessel).mordantPlanFor(giver, target);
     if (!plan.ok) {
       this.declineStep(context, MordantController.refusalWords(plan, target, vessel), plan.reason);
       return;
@@ -87,7 +87,7 @@ export default class MordantController extends ManualBuildController<MordantMode
     const candidates = (bound?.stuff ?? []).filter((c) => MixinApi.isBulkable(c));
     if (candidates.length === 0) return null;
     if (bound?.prep !== undefined) return candidates[0]!;
-    return candidates.find((c) => DyeBath.of(c).mordant() !== null) ?? null;
+    return candidates.find((c) => new DyeBath(c).mordant() !== null) ?? null;
   }
 
   protected static refusalWords(r: DyeBathRefusal, target: Stuff, bath: Stuff): Composed {

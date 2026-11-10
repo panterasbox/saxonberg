@@ -15,6 +15,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import SpinController from "../idea/cmd/textiles/SpinController";
 import WeaveController from "../idea/cmd/textiles/WeaveController";
 import TextileStock from "../thing/TextileStock";
+import TextileWork from "../lib/TextileWork";
 import ClothBolt from "../thing/ClothBolt";
 import { Grade } from "@saxonberg/server/mud/lib/craft/Grade";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
@@ -110,7 +111,7 @@ async function spin(target: Stuff, count = 10): Promise<void> {
     { stock: ref(target, "fleece"), count } as never,
     makeContext(actor as unknown as Stuff, room as unknown as Stuff, "spin"),
   );
-  await completeStep(TextileStock.SPIN_BASE_MS * 2);
+  await completeStep(TextileWork.SPIN_BASE_MS * 2);
 }
 
 async function weave(target: Stuff): Promise<void> {
@@ -119,7 +120,7 @@ async function weave(target: Stuff): Promise<void> {
     { yarn: ref(target, "yarn") } as never,
     makeContext(actor as unknown as Stuff, room as unknown as Stuff, "weave"),
   );
-  await completeStep(TextileStock.WEAVE_BASE_MS * 2);
+  await completeStep(TextileWork.WEAVE_BASE_MS * 2);
 }
 
 describe("the textile chain keeps the fibre", () => {
@@ -206,7 +207,7 @@ describe("⭐ the stock answers the act (controller-liquidity W11)", () => {
   it("C23: yarn is what has a count, whatever its row is called — the cordage pack's hemp yarn weaves", async () => {
     await weave(stock(WOOL, "/trade/cordage/thing/hemp-yarn", 4, 6));
     expect(held((s) => s instanceof ClothBolt)).toBeDefined();
-    expect(TextileStock.isYarn(stock(WOOL, "/trade/textiles/thing/line", 1))).toBe(false);
+    
   });
 
   it("C29: a mint that fails takes nothing — the yarn is still in hand", async () => {

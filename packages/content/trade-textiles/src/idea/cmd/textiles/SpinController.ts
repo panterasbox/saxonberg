@@ -35,7 +35,7 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import TextileStock, { type SpinBegin, type SpinDone, type TextileRefusal } from '../../../thing/TextileStock';
+import TextileWork, { type SpinBegin, type SpinDone, type TextileRefusal } from '../../../lib/TextileWork';
 
 type Composed = ReturnType<typeof Mml.compose>;
 
@@ -47,7 +47,7 @@ interface SpinModel extends CommandModel {
 
 /**
  * ⭐ The draw, the ceiling, the yield and the mint are the stock's
- * (`TextileStock.spinPlan` — controller-liquidity W11); this controller
+ * (`TextileWork.spinPlan` — controller-liquidity W11); this controller
  * picks the best wheel bound and words the plan.
  */
 export default class SpinController extends ManualBuildController<SpinModel> {
@@ -58,9 +58,8 @@ export default class SpinController extends ManualBuildController<SpinModel> {
       this.declineStep(context, Mml.compose`Spin what?`, 'no-stock');
       return;
     }
-    const plan = await TextileStock.spinPlan(giver, stock, {
+    const plan = await new TextileWork(giver, this.bestInstrument(model.wheel, 'spinning')).spinPlan(stock, {
       count: model.count,
-      instrument: this.bestInstrument(model.wheel, 'spinning'),
     });
     if (!plan.ok) {
       this.declineStep(context, SpinController.refusalWords(plan, stock), plan.reason);
