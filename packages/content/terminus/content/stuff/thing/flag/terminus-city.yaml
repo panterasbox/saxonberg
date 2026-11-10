@@ -9,5 +9,5 @@ data:
     A square of gray bunting with a white tower sewn over three wavy bars of
     blue, its hoist bound with tarred line.
   _materialPath: /stuff/idea/material/textile/wool
-  _brandKey: flag-terminus-city
+  brand: flag-terminus-city
   mass: 0.4

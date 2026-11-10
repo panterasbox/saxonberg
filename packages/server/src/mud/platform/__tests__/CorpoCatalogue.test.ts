@@ -104,12 +104,9 @@ describe("CorpoCatalogue", () => {
     expect(cat.allBrands()).toHaveLength(1);
   });
 
-  it("degrades to empty in the cold (un-warmed) state", () => {
+  it("⚠ a cold (un-warmed) read throws — never reads as empty (documents D7)", () => {
     const cat = makeStuff(() => new CorpoCatalogue());
-    expect(cat.getCorpo("veshko")).toBeNull();
-    expect(cat.getBrand("volk")).toBeNull();
-    expect(cat.portfolioOf("veshko")).toEqual([]);
-    expect(cat.allCorpos()).toEqual([]);
+    expect(() => cat.getCorpo("veshko")).toThrow(/not resident/);
   });
 
   it("returns defensive copies callers can't mutate", async () => {

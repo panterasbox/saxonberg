@@ -18,6 +18,7 @@ import type { RosterAssignment } from "../../../lib/employment/Roster";
 import type { SeatView } from "../../../api/government";
 import type GovernmentCatalogue from "../GovernmentCatalogue";
 import type Ship from "../Ship";
+import { DocumentNotResidentError } from '../../../lib/errors';
 
 const GovernmentApiCallers = SecurityPolicies.FromModule(
   "/api/government#GovernmentApi"
@@ -28,13 +29,20 @@ const ACTIVE_STATUSES = new Set(["employed", "on-shift", "off-shift"]);
 /** Explicit-exit statuses — an exit is never resurrected by the roster. */
 const EXIT_STATUSES = new Set(["quit", "fired"]);
 
-/** The live GovernmentCatalogue singleton, or `null` before it warms. */
-function catalogue(): GovernmentCatalogue | null {
-  return (
-    (StuffApi.findByTemplatePath(
-      TemplatePaths.governmentCatalogue
-    ) as GovernmentCatalogue | null) ?? null
-  );
+/**
+ * The government dictionary — resident by construction (documents D7): a
+ * locality, a register or a brand that names a government loaded it with
+ * its row. ⚠ A cold read throws, by path — never "no such government".
+ */
+function catalogue(): GovernmentCatalogue {
+  const cat = StuffApi.findByTemplatePath(TemplatePaths.governmentCatalogue) as GovernmentCatalogue | null;
+  if (!cat) throw new DocumentNotResidentError('government', TemplatePaths.governmentCatalogue);
+  return cat;
+}
+
+/** Load the government dictionary (resolved at once when it is resident). */
+async function readyImpl(): Promise<void> {
+  await StuffApi.singleton<GovernmentCatalogue>(TemplatePaths.governmentCatalogue);
 }
 
 /**
@@ -45,8 +53,8 @@ function catalogue(): GovernmentCatalogue | null {
  * throws.
  */
 function chainForAddress(address: string): GovernmentDescriptor[] {
+  if (address.length === 0) return [];
   const cat = catalogue();
-  if (!cat || address.length === 0) return [];
   const seen = new Set<string>();
   const out: GovernmentDescriptor[] = [];
   for (const locality of AddressApi.coverageChainOf(address)) {
@@ -97,7 +105,7 @@ async function shipChain(ship: Ship): Promise<GovernmentDescriptor[]> {
   }
   // ⭐ Her flag state is her own register's word (she knows her register).
   const flag = await ship.flagState();
-  if (flag) add(catalogue()?.getGovernment(flag));
+  if (flag) add(catalogue().getGovernment(flag));
   return out;
 }
 
@@ -209,7 +217,7 @@ async function holdsSeatImpl(
 
 /** Resolve each seat of a government to its current holder (or `null`). */
 async function seatViewsOf(governmentKey: string): Promise<SeatView[]> {
-  const government = catalogue()?.getGovernment(governmentKey);
+  const government = catalogue().getGovernment(governmentKey);
   if (!government) return [];
   const views: SeatView[] = [];
   for (const seat of government.seats) {
@@ -240,6 +248,12 @@ async function seatViewsOf(governmentKey: string): Promise<SeatView[]> {
  */
 @Unshadowable
 export class GovernmentLogic extends ApiLogic {
+  /** See {@link GovernmentApi.ready}. */
+  @CallSecurity(GovernmentApiCallers)
+  public ready(): Promise<void> {
+    return readyImpl();
+  }
+
   /** See {@link GovernmentApi.governmentAt}. */
   @CallSecurity(GovernmentApiCallers)
   public governmentAt(address: string): GovernmentDescriptor | null {
@@ -293,13 +307,13 @@ export class GovernmentLogic extends ApiLogic {
   /** See {@link GovernmentApi.getGovernment}. */
   @CallSecurity(GovernmentApiCallers)
   public getGovernment(key: string): GovernmentDescriptor | null {
-    return catalogue()?.getGovernment(key) ?? null;
+    return catalogue().getGovernment(key) ?? null;
   }
 
   /** See {@link GovernmentApi.listGovernments}. */
   @CallSecurity(GovernmentApiCallers)
   public listGovernments(): GovernmentDescriptor[] {
-    return catalogue()?.allGovernments() ?? [];
+    return catalogue().allGovernments() ?? [];
   }
 
   /** See {@link GovernmentApi.seatsOf}. */

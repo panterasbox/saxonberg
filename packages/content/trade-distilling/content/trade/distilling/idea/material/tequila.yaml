@@ -1,6 +1,6 @@
 # Tequila — a spirit input. The category tag(s) are what a recipe
 # input slot matches (tequila); the brand is the ROW's
-# (`_brandKey`), never the material's. Distilling's, by the generic drain
+# (`brand`), never the material's. Distilling's, by the generic drain
 # rule: the trade whose PROCESS makes it ships it.
 class: /platform/idea/material/OdorousConsumableMaterial
 data:

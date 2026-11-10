@@ -66,6 +66,7 @@ import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff, EvictionContext } from '../../lib/stuff/Stuff';
 import type { VetoResult } from '../../lib/errors';
 import type { FieldMeta } from '../../lib/mixin';
+import { GovernmentApi } from '../../api/government';
 
 /** The document kind a ship register writes (`DocumentKinds.ship`). */
 export const SHIP_ENTRY_KIND = 'ship';
@@ -116,8 +117,10 @@ export default class ShipRegister extends RegistrarMixin(Idea) {
   public getGovernmentKey(): string {
     return this.government;
   }
-  public setGovernment(value: string): void {
+  /** The register is live only when its polity's dictionary is (D7). */
+  public setGovernment(value: string): Promise<void> | undefined {
     this.government = typeof value === 'string' ? value : '';
+    return this.government ? GovernmentApi.ready() : undefined;
   }
 
   /** A register is the book itself; nothing here is cached, so eviction only costs a re-resolve — vetoed as the herdbook's is. */

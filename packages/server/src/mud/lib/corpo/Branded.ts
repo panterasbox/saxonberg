@@ -8,10 +8,10 @@
  * corpo touches carries — so "every bottle is truthfully owned."
  *
  * **Cross-reference shape (the `Material` / `Radioactive` precedent).**
- * `_brandKey` stores the brand **key**, not a path — a `Brand` is a
+ * `brand` stores the brand **key**, not a path — a `Brand` is a
  * pure-data leaf with no live Stuff to point a path at, and the key is the
  * durable join. `getBrand()` / `getCorpo()` resolve on **each call** via
- * `CorpoApi` (HMR-safe — no cached instance). An empty `_brandKey` is
+ * `CorpoApi` (HMR-safe — no cached instance). An empty `brand` is
  * unbranded; a brand whose `owner` is empty resolves to a `null` corpo (the
  * independent — the absence is itself legible).
  *
@@ -42,7 +42,7 @@ import type { CorpoDescriptor } from "../../platform/idea/corpo/Corpo";
 export interface Branded {
   /** The durable brand `key` this product is marked with (`''` if unbranded). */
   getBrandKey(): string;
-  setBrandKey(value: string): void;
+  setBrandKey(value: string): Promise<void> | undefined;
   /** The marked brand's descriptor, or `null` when unbranded. */
   getBrand(): BrandDescriptor | null;
   /**
@@ -56,51 +56,68 @@ export function BrandedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class BrandedMixin extends Base implements Branded {
     static _mixinName = "BrandedMixin";
     static fieldMeta: FieldMeta = {
-      _brandKey: { persistent: true, authorable: true, authorPicker: 'Brand' },
+      brand: { persistent: true, authorable: true, authorPicker: 'Brand' },
     };
 
     /**
      * The durable brand `key` (e.g. `'volk'`). Empty = unbranded. Resolved
      * to its `Brand` / `Corpo` lazily on each read via `CorpoApi`.
      */
-    public _brandKey: string = "";
+    public brand: string = "";
 
     public getBrandKey(): string {
-      return this._brandKey;
+      return this.brand;
     }
-    public setBrandKey(value: string): void {
+    /**
+     * The applier's door for `brand:` (and the runtime stamp). ⭐ A branded
+     * thing is live only when the brand dictionary is (documents D7): the
+     * returned load is awaited by the applier, so `look`'s mark and the MQL
+     * projection read a resident brand synchronously.
+     */
+    public setBrand(value: string): Promise<void> | undefined {
       if (typeof value !== "string") {
-        throw new TypeError("Branded.brandKey must be a string");
+        throw new TypeError("Branded.brand must be a string");
       }
-      this._brandKey = value;
+      this.brand = value;
+      if (!value) return undefined;
+      // …and a brand that names a polity (the colors a flag flies) loads the
+      // government dictionary too — `look`'s mark names it.
+      return CorpoApi.ready().then(() => {
+        const polity = CorpoApi.getBrand(value)?.government;
+        return polity ? GovernmentApi.ready() : undefined;
+      });
+    }
+
+    public setBrandKey(value: string): Promise<void> | undefined {
+      return this.setBrand(value);
     }
 
     public getBrand(): BrandDescriptor | null {
-      if (!this._brandKey) return null;
-      return CorpoApi.getBrand(this._brandKey);
+      if (!this.brand) return null;
+      return CorpoApi.getBrand(this.brand);
     }
 
     public getCorpo(): CorpoDescriptor | null {
-      if (!this._brandKey) return null;
-      return CorpoApi.corpoOfBrand(this._brandKey);
+      if (!this.brand) return null;
+      return CorpoApi.corpoOfBrand(this.brand);
     }
 
     /**
      * Live-query projection of the mark. Two flat fields — `brand` and
      * `corpo` keys (the `corpo` key is `null` for an independent). Keyed on
-     * `_brandKey` so a re-stamp re-projects. The method-derived surface (no
+     * `brand` so a re-stamp re-projects. The method-derived surface (no
      * `PropertiedMixin` prop), per the inter-Stuff method-only contract.
      */
     static subscribableFields: SubscribableFieldDescriptor[] = [
       {
         name: "brand",
         read: (stuff) => (stuff as unknown as Branded).getBrand()?.key ?? null,
-        dependsOnFields: ["_brandKey"],
+        dependsOnFields: ["brand"],
       },
       {
         name: "corpo",
         read: (stuff) => (stuff as unknown as Branded).getCorpo()?.key ?? null,
-        dependsOnFields: ["_brandKey"],
+        dependsOnFields: ["brand"],
       },
     ];
 

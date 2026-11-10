@@ -829,7 +829,7 @@ async function gatherMatter(
  * ⭐ This is the ONLY place a word is matched, and it is the sanctioned
  * one: a token the player typed, resolved at the command boundary
  * against the brands that actually exist. Everything downstream compares
- * `_brandKey` for equality — identity, not prose.
+ * `brand` for equality — identity, not prose.
  *
  * It replaced `material.getName().toLowerCase().includes(brand)`, which
  * asked whether a MATERIAL's display name contained the token: `with
@@ -859,7 +859,7 @@ function resolveBrandKey(token: string): string | null {
 
 /**
  * Does this candidate carry the mark? The mark lives on the **bottle**
- * (`_brandKey`, `BrandedMixin`) — a brand is a mark somebody owns, not a
+ * (`brand`, `BrandedMixin`) — a brand is a mark somebody owns, not a
  * property of the liquid, which is the whole point of private label:
  * Old Hollis and Veshko's unbranded rail hold the SAME material.
  */
@@ -3396,6 +3396,8 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // the one place a word is matched (see `resolveBrandKey`). A token
   // naming no brand that exists resolves to null and the preference is
   // simply not applied.
+  // A brand named by word: the dictionary loads on first use (D9).
+  if (req.brand) await CorpoApi.ready();
   const brandKey = req.brand ? resolveBrandKey(req.brand) : null;
   const matched: MatchedInput[] = [];
   const matchedItems: MatchedItemInput[] = [];

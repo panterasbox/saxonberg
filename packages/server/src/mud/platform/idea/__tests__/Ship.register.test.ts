@@ -128,7 +128,7 @@ function installStore(): void {
   });
   add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
   add(STAFF, '/platform/thing/Flagstaff', { shortDescription: 'flagstaff' });
-  add(FLAG, '/platform/thing/Flag', { shortDescription: 'test ensign', keywords: ['flag', 'ensign'], _brandKey: 'flag-test-city' });
+  add(FLAG, '/platform/thing/Flag', { shortDescription: 'test ensign', keywords: ['flag', 'ensign'], brand: 'flag-test-city' });
   add(COMPANY, '/platform/idea/PersistentBusiness', {
     name: "a ship's company",
     appointingAuthority: { kind: 'owners' },
@@ -240,6 +240,8 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     installStore();
     await bootGovernments();
     vi.spyOn(Ship.prototype, 'linesAboard').mockImplementation(async () => [fakeLine(), fakeLine()]);
+    // The brand dictionary is a fake here: its load resolves at once.
+    vi.spyOn(CorpoApi, 'ready').mockResolvedValue(undefined);
     vi.spyOn(CorpoApi, 'getBrand').mockImplementation((key: string) =>
       key === 'flag-test-city'
         ? { key, name: 'the colors of the City of Test', owner: '', government: 'test-city', category: 'colors', positioning: '', descriptor: '' }

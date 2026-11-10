@@ -72,7 +72,9 @@ export const CENSUS_AT_LANDING = { entries: 128, uncited: 71 };
  * placements load with it, the kernel's three with every place. */
 /* 81 → 80 (documents W4): the topic vocabulary loads with the message
  * pipeline's first scene (D13), never at boot. */
-export const BOOT_ENTRY_CEILING = 80;
+/* 80 → 78 (documents W5a): the corpo/brand and government dictionaries load
+ * when a holder that cites one does, never at boot. */
+export const BOOT_ENTRY_CEILING = 78;
 
 /**
  * ⭐ Content entries whose reason does not cite the unobserved economy —

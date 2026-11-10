@@ -116,6 +116,16 @@ export class GovernmentApi {
     return logic().holdsSeat(character, governmentKey, seatKey);
   }
 
+  /**
+   * ⭐ Load the government dictionary — a resolved promise once it is resident.
+   * Never booted (documents D9): a holder that cites one returns this from
+   * its setter (the applier awaits it), and a verb that names one by word
+   * awaits it first.
+   */
+  public static ready(): Promise<void> {
+    return logic().ready();
+  }
+
   /** The authored descriptor for government `key`, or `null`. */
   public static getGovernment(key: string): GovernmentDescriptor | null {
     return logic().getGovernment(key);

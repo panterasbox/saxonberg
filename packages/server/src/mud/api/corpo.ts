@@ -70,6 +70,16 @@ export class CorpoApi {
     return logic().brandOf(obj);
   }
 
+  /**
+   * ⭐ Load the corpo/brand dictionary — a resolved promise once it is resident.
+   * Never booted (documents D9): a holder that cites one returns this from
+   * its setter (the applier awaits it), and a verb that names one by word
+   * awaits it first.
+   */
+  public static ready(): Promise<void> {
+    return logic().ready();
+  }
+
   /** The authored descriptor for brand `key`, or `null`. */
   public static getBrand(brandKey: string): BrandDescriptor | null {
     return logic().getBrand(brandKey);

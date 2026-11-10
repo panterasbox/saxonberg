@@ -3,7 +3,7 @@
  * content pass: the corpo marks on the back-bar bottles and the wiring
  * of Dave's office. Pure YAML reads (no clone pipeline) — the same
  * cheap save-gate-parity discipline as cast-content.test: a typo'd
- * `_brandKey` or a dangling office exit is caught here, not silently at
+ * `brand` or a dangling office exit is caught here, not silently at
  * render/traverse time.
  */
 
@@ -197,8 +197,8 @@ describe("Dave's Bar — neon adornments", () => {
     const keys = brandKeys();
     for (const file of SIGNS) {
       const data = loadLounge(file).data ?? {};
-      expect(keys, `${file}: ${String(data._brandKey)}`).toContain(
-        String(data._brandKey)
+      expect(keys, `${file}: ${String(data.brand)}`).toContain(
+        String(data.brand)
       );
       // A sign that doesn't emit wouldn't light the room.
       expect(Number(data.emittedIntensity), file).toBeGreaterThan(0);
