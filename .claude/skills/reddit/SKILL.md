@@ -50,7 +50,7 @@ what has been posted and the owner's latest feedback.
 |---|---|---|
 | **Home** | answer | MUD, gamedesign, RPGdesign, truegaming, worldbuilding, magicbuilding, MMORPG |
 | **Audience** | answer, and watch for openings | dwarffortress, RimWorld, paradoxplaza, CrusaderKings, CitiesSkylines |
-| **Ideas** | answer, carefully | GAMETHEORY, PoliticalScience, edtech, instructionaldesign, education |
+| **Ideas** | answer, carefully | GAMETHEORY, PoliticalScience, edtech, instructionaldesign, education, typescript (architecture questions only) |
 | **Trades** | **ask only** | chosen from what we are designing that week: nursing, Beekeeping, Blacksmith, Homebrewing, Sourdough, Pottery, farming … |
 | **Openings** | answer, a link allowed | "looking for a game like…" posts in MUD, gamingsuggestions, MMORPG |
 
@@ -70,6 +70,28 @@ what has been posted and the owner's latest feedback.
   players run the government"* is a pitch they would hear, but only in an
   Openings thread or when someone asks.
 
+### Architecture threads are in scope
+
+Most of the week's work is systems architecture, and the synthesis has no
+forum, so **give each community the one slice it cares about** (the
+stream and the site carry the whole):
+
+- **MUD builders:** "the world is inspectable and programmable from
+  inside" is LPMud's and MOO's founding idea; we are that tradition with
+  modern tooling (typed code, call-security, generated docs, content
+  packs). r/MUD's Building & Design threads are ours.
+- **Modders:** RimWorld and Factorio modders reverse-engineer and patch a
+  closed codebase; content packs as the platform's front door, not a
+  hack, is a point they feel. Watch the modding threads in the Audience
+  tier.
+- **r/typescript:** worked answers to real questions (typing a mixin
+  factory so narrowing works, Proxy-based call security, sealing a
+  method with a decorator). We did not invent the patterns; share the
+  solution, not a pitch.
+- **Usability is game design too:** how a text game's command vocabulary
+  scales to hundreds of verbs without collisions is a real question, and
+  the verb-collision ladder is an unusual answer.
+
 ## Be a good citizen: a light footprint
 
 The owner: *"I don't want to pile too much onto the browser session, they
@@ -85,9 +107,9 @@ citizen here."*
   |---|---|
   | Mon | RPGdesign, truegaming, MMORPG |
   | Tue | dwarffortress, RimWorld |
-  | Wed | GAMETHEORY, PoliticalScience, edtech |
+  | Wed | GAMETHEORY, PoliticalScience, typescript |
   | Thu | paradoxplaza, CrusaderKings, CitiesSkylines |
-  | Fri | magicbuilding, instructionaldesign, education |
+  | Fri | magicbuilding, edtech, instructionaldesign |
   | Sat | gamingsuggestions (Openings), MMORPG |
   | Sun | Trades, only if the owner names a topic; else RPGdesign, truegaming |
 
@@ -125,8 +147,8 @@ and read the server-rendered posts:
 ```js
 async () => {
   const rotation = {1:["RPGdesign","truegaming","MMORPG"], 2:["dwarffortress","RimWorld"],
-    3:["GAMETHEORY","PoliticalScience","edtech"], 4:["paradoxplaza","CrusaderKings","CitiesSkylines"],
-    5:["magicbuilding","instructionaldesign","education"], 6:["gamingsuggestions","MMORPG"],
+    3:["GAMETHEORY","PoliticalScience","typescript"], 4:["paradoxplaza","CrusaderKings","CitiesSkylines"],
+    5:["magicbuilding","edtech","instructionaldesign"], 6:["gamingsuggestions","MMORPG"],
     0:["RPGdesign","truegaming"]};
   const subs = ["gamedesign","MUD","worldbuilding", ...rotation[new Date().getDay()]];
   const out = {}; const now = Date.now();
