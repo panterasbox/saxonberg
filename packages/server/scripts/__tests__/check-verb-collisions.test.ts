@@ -167,11 +167,37 @@ args:
     expect(collisionsIn(claimsIn(allViews(shapes([one, two])))).has("pour")).toBe(true);
   });
 
-  it("a view with subcommands is never proved disjoint", () => {
+  it("⭐ a subcommand view beside a shape that needs a word is disjoint — its words win by precedence (W7a)", () => {
     const subs = `verbs: [throw]
 controller: /x/S
 subcommands:
   far: { args: [] }
+`;
+    expect(collisionsIn(claimsIn(allViews(shapes([THROW_TO, subs])))).has("throw")).toBe(false);
+  });
+
+  it("⚠ …but not when the shape binds the EMPTY line too", () => {
+    const subs = `verbs: [throw]
+controller: /x/S
+subcommands:
+  far: { args: [] }
+`;
+    const bare = `verbs: [throw]
+controller: /x/B
+args:
+  - { name: item, type: object, required: false }
+`;
+    expect(collisionsIn(claimsIn(allViews(shapes([bare, subs])))).has("throw")).toBe(true);
+  });
+
+  it("a FALLTHROUGH subcommand view is never proved disjoint", () => {
+    const subs = `verbs: [throw]
+controller: /x/S
+fallthrough: true
+subcommands:
+  far: { args: [] }
+args:
+  - { name: item, type: object, required: true }
 `;
     expect(collisionsIn(claimsIn(allViews(shapes([THROW_TO, subs])))).has("throw")).toBe(true);
   });
@@ -186,11 +212,13 @@ describe("⭐ the live tree", () => {
     expect([...collisionsIn(claims).keys()]).toEqual([]);
   });
 
-  it("⚠⚠ `watch` is claimed ONCE — the shadowing is gone", () => {
+  it("⚠⚠ `watch` is claimed only by the stream views — the shadowing is gone", () => {
     // The regression this whole gate exists for. `cmd/work/watch.yaml`
     // was deleted; standing a post accrues from presence and has no verb.
+    // The stream verb's own views (its subcommands and two shapes, W7a) are
+    // the only claimants.
     const watchers = claimsIn(allViews()).filter((c) => c.verb === "watch");
-    expect(watchers).toHaveLength(1);
-    expect(watchers[0]!.file).toContain("stream");
+    expect(watchers).toHaveLength(3);
+    expect(watchers.every((w) => w.file.includes("/cmd/stream/"))).toBe(true);
   });
 });

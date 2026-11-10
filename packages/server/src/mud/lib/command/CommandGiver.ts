@@ -1220,9 +1220,18 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         scopeSource = picked[0];
       }
       const allMatches = matched.matches;
-      const matches = scopeSource
+      const sourced = scopeSource
         ? allMatches.filter((a) => affordsFrom(a, scopeSource!, giverStuff))
         : allMatches;
+      // ⭐ A view of subcommands (no fallthrough) is tried before the
+      // verb's SHAPES (controller-liquidity W7a, build): its words are
+      // claimed first wherever its host listed it, so `watch horizon` is
+      // never a stream called "horizon", and a word it does not know falls
+      // on to the shapes (below). A stable sort: every other view keeps
+      // its contribution order. `lint:verb-collisions` reads the same rule.
+      const subcommandsFirst = (a: Affordance): number =>
+        a.command.hasSubcommands() && !a.command.fallthrough ? 0 : 1;
+      const matches = [...sourced].sort((a, b) => subcommandsFirst(a) - subcommandsFirst(b));
       // ── ② The chain (unchanged below, but for `scopeSource` riding into
       // `assemble` and each refusal handing to ③ `_otherOffer`).
       if (matches.length === 0) {

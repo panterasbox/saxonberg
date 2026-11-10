@@ -188,6 +188,13 @@ args:
     expect(ran).toEqual([b]);
   });
 
+  it('⭐ the subcommand view is tried first wherever its host listed it', async () => {
+    const a = subs();
+    const b = shape();
+    await run([b, a], 'peerish horizon');
+    expect(ran).toEqual([a]);
+  });
+
   it('the LAST view still refuses an unknown word, naming the valid ones', async () => {
     const a = subs();
     const ctx = await run([a], 'peerish shroud');
