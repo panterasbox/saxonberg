@@ -193,7 +193,7 @@ export default class Plant extends PlantBase {
    * trivial success barely move the estimate, which is what stops the easy
    * end from being a levelling-mill.
    */
-  public careDifficulty(): Difficulty {
+  public override careDifficulty(): Difficulty {
     switch (this.getConditionBand()) {
       case "thriving":
         return "trivial";
@@ -250,8 +250,13 @@ export default class Plant extends PlantBase {
    * Whether this plant keeps a root zone of its own — the pocket of ground
    * a player waters and feeds by hand around ONE plant in a field.
    */
-  public hasRootZone(): boolean {
+  public override hasRootZone(): boolean {
     return this._rootZoneStamp > 0 && this.hasReserve(SOIL_MOISTURE_RESERVE_KEY);
+  }
+
+  /** ⭐ Feed aimed at a labeled plant goes into its own root zone, when the zone keeps nitrogen. */
+  public override rootZoneFeeds(): boolean {
+    return this.hasRootZone() && this.hasReserve(SOIL_NITROGEN_RESERVE_KEY);
   }
 
   /**

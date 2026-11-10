@@ -22,8 +22,8 @@ import type { PullOutcome, PullSense } from '../../../../lib/spatial/Pullable';
 import type { WaterPlace } from '../../../../lib/location/WaterPlace';
 import type { HaulOut } from '../../../../lib/location/HaulOut';
 import { MessageApi } from '../../../../api/message';
-import { MixinApi } from '../../../../api/mixin';
 import { MqlApi } from '../../../../api/mql';
+import { MixinApi } from '../../../../api/mixin';
 import { SchedulerApi } from '../../../../api/scheduler';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { ManualBuildStep } from '../../../../lib/craft/ManualBuildStep';
@@ -51,7 +51,7 @@ export default class PullController extends CommandController<PullModel> {
       if (target !== null && inWater !== null && MixinApi.isWaterPlace(inWater) && MixinApi.isHaulOut(inWater) && inWater.depthNow() > 0) {
         return this.run(context, giver, await inWater.pullOut(target, giver));
       }
-      for (const water of watersWithinReach(giver)) {
+      for (const water of PullController.watersWithinReach(giver)) {
         const load = water.loadNamed(giver, named);
         if (load === null) continue;
         return this.run(context, giver, await water.pullOut(load, giver));
@@ -72,11 +72,11 @@ export default class PullController extends CommandController<PullModel> {
   /** Say what the pull did, and run it on the puller's hands if it takes time. */
   private async run(context: CommandContext, giver: Stuff, out: PullOutcome): Promise<void> {
     if (!out.ok) return this.refuse(context, 'act.deed', out.line, out.reason);
-    say(giver, out);
+    PullController.say(giver, out);
     const takes = out.takes;
     if (takes === undefined) return;
     if (!(takes.realS > 0) || !MixinApi.isEngaged(giver)) {
-      land(giver, await takes.finish());
+      PullController.land(giver, await takes.finish());
       return;
     }
     const scale = WorldClockApi.getScale();
@@ -89,7 +89,7 @@ export default class PullController extends CommandController<PullModel> {
       onComplete: () => {
         // ⚠ Outside any command: an unhandled rejection here would take
         // the server down. Log it; the line stays where it was.
-        takes.finish().then((done) => land(giver, done)).catch((err) => {
+        takes.finish().then((done) => PullController.land(giver, done)).catch((err) => {
           console.error('[timed pull] landing failed', err);
         });
       },
@@ -99,35 +99,35 @@ export default class PullController extends CommandController<PullModel> {
       return this.refuse(context, 'act.deed', 'Your hands are already busy.', 'engagement-conflict');
     }
   }
-}
 
-/**
- * The waters a puller can get a hand into: the one they are in, the one
- * their boat floats on, and any one way off. Each answers for its own reach.
- */
-function watersWithinReach(giver: Stuff): Array<Stuff & WaterPlace & HaulOut> {
-  const out: Array<Stuff & WaterPlace & HaulOut> = [];
-  const add = (x: unknown): void => {
-    const s = x as Stuff | null;
-    if (s && MixinApi.isWaterPlace(s) && MixinApi.isHaulOut(s) && s.depthNow() > 0 && !out.includes(s)) out.push(s);
-  };
-  const at = MixinApi.isContainable(giver) ? (giver.getContainer() as unknown as Stuff | null) : null;
-  if (at === null) return out;
-  add(at);
-  if (MixinApi.isContainable(at)) add(at.getContainer());
-  if (MixinApi.isExitable(at)) for (const { dest } of at.getObviousNeighbours()) add(dest);
-  return out;
-}
+  /**
+   * The waters a puller can get a hand into: the one they are in, the one
+   * their boat floats on, and any one way off. Each answers for its own reach.
+   */
+  protected static watersWithinReach(giver: Stuff): Array<Stuff & WaterPlace & HaulOut> {
+    const out: Array<Stuff & WaterPlace & HaulOut> = [];
+    const add = (x: unknown): void => {
+      const s = x as Stuff | null;
+      if (s && MixinApi.isWaterPlace(s) && MixinApi.isHaulOut(s) && s.depthNow() > 0 && !out.includes(s)) out.push(s);
+    };
+    const at = MixinApi.isContainable(giver) ? (giver.getContainer() as unknown as Stuff | null) : null;
+    if (at === null) return out;
+    add(at);
+    if (MixinApi.isContainable(at)) add(at.getContainer());
+    if (MixinApi.isExitable(at)) for (const { dest } of at.getObviousNeighbours()) add(dest);
+    return out;
+  }
 
-/** What the pull said, to the puller and whoever is here. */
-function say(giver: Stuff, out: PullOutcome & { ok: true }): void {
-  const scene = MessageApi.scene(giver).topic('act.deed').toSelf(out.self);
-  if (out.peers) scene.toPeers(out.peers);
-  scene.send();
-}
+  /** What the pull said, to the puller and whoever is here. */
+  protected static say(giver: Stuff, out: PullOutcome & { ok: true }): void {
+    const scene = MessageApi.scene(giver).topic('act.deed').toSelf(out.self);
+    if (out.peers) scene.toPeers(out.peers);
+    scene.send();
+  }
 
-/** How a timed pull came out — landed, or refused at the last by the thing. */
-function land(giver: Stuff, done: PullOutcome): void {
-  if (done.ok) say(giver, done);
-  else MessageApi.scene(giver).topic('act.deed').toSelf(done.line).send();
+  /** How a timed pull came out — landed, or refused at the last by the thing. */
+  protected static land(giver: Stuff, done: PullOutcome): void {
+    if (done.ok) PullController.say(giver, done);
+    else MessageApi.scene(giver).topic('act.deed').toSelf(done.line).send();
+  }
 }

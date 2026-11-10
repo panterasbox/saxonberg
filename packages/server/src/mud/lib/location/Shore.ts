@@ -410,7 +410,7 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * off the edge. A place set on a moving frame (a deck) settles where it
      * stands first, so the way is read off where it is now.
      */
-    public override async wayIntoWater(_actor: Stuff): Promise<WaterEntryAnswer> {
+    public async wayIntoWater(_actor: Stuff): Promise<WaterEntryAnswer> {
       const self = this as unknown as Stuff;
       if (MixinApi.isFrameSited(self)) await self.frameSiteStood();
       const way = this.exitIntoWater();
@@ -423,7 +423,7 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * the one water this place cites, settled, drawn where the actor
      * stands — open water, a hole in the ice, or `frozen`.
      */
-    public override async drawWaterFor(actor: Stuff): Promise<WaterDrawAnswer> {
+    public async drawWaterFor(actor: Stuff): Promise<WaterDrawAnswer> {
       const self = this as unknown as Stuff;
       const pick = this.waterFor();
       if ('refusal' in pick) return { ok: false, reason: 'no-water' };

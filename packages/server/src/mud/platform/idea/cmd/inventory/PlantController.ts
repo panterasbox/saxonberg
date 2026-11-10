@@ -91,12 +91,12 @@ export default class PlantController extends EngagedActController<PlantModel> {
         context.note({ kind: 'empty-result', field: 'patch', query: patchRaw });
         return;
       }
-      const drill = model.drill?.stuff ?? null;
+      // ⭐ The ground decides what it is sown with (a drill's capability).
       plan = await ground.sowPlanFor({
         by: giver,
         seed,
         part: patch && MixinApi.isSoil(patch) ? patch : null,
-        drill: drill && MixinApi.isTool(drill) && drill.hasCapability('drilling') ? drill : null,
+        drill: model.drill?.stuff ?? null,
       });
     } else if (!target) {
       plan = { ok: false, reason: 'no-ground', facts: {} };

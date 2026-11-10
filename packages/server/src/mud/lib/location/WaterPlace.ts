@@ -696,7 +696,7 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
      * leave there is no way in; shallow water is a bank like any other,
      * and its shore names the way off the edge.
      */
-    public override async wayIntoWater(actor: Stuff): Promise<WaterEntryAnswer> {
+    public async wayIntoWater(actor: Stuff): Promise<WaterEntryAnswer> {
       const floor = this.waterFloor();
       if (floor !== null && floor.supportIsSlotted()) {
         if (!(floor.openWaterAreaM2() > 0)) return { ok: false, reason: 'no-open-water' };

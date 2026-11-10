@@ -1,9 +1,11 @@
 /**
  * WaterController — `water <plant> [with <source>]`.
  *
- * `DrinkController` with the plant's moisture reserve in place of
- * `ingest`: resolve a water-bearing bulk slot, transfer out of it into the
- * `null` discard sink, and credit what came out to the plant.
+ * ⭐ Input and output (controller-liquidity W8): the GROUND decides —
+ * what the act is aimed at, which carried vessel waters it, how much it
+ * takes, and what comes of it (`Soil.amendPlanFor`; a plant named asks
+ * its bed through `Growing.amendPlanFor`). This file binds what was named
+ * — a hose stands for the tap it is coupled to — and words the answer.
  *
  * Two deliberate differences from `drink`:
  *
@@ -31,22 +33,17 @@
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
-import { BulkableApi } from '../../../../api/bulk';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
-import { PersistableApi } from '../../../../api/persistable';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Growing } from '../../../../lib/husbandry/Growing';
-import type { Soil } from '../../../../lib/husbandry/Soil';
-import Plant from '../../../thing/Plant';
+import type { AmendDone, AmendRefusal } from '../../../../lib/husbandry/Soil';
 import WaterHose from '../../../thing/WaterHose';
 import { CraftingApi } from '../../../../api/crafting';
 
 const TOPIC = 'act.deed';
 
-/** Material tag a bulk slot must carry to count as waterable. */
-const WATER_TAG = 'liquid';
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface WaterModel extends CommandModel {
   target: MqlOneResult;
@@ -54,17 +51,6 @@ interface WaterModel extends CommandModel {
   part?: MqlOneResult;
   source?: MqlManyResult;
 }
-
-/** What the act is aimed at, once the ground has had its say. */
-interface Aim {
-  /** The plant whose ground takes the water, or `null` for bare ground. */
-  plant: (Stuff & Growing) | null;
-  /** The soil the water lands in. */
-  ground: Stuff & Soil;
-  /** The part of a divided ground, when one was named or resolved. */
-  part: (Stuff & Soil) | null;
-}
-
 
 export default class WaterController extends CommandController<WaterModel> {
   async execute(model: WaterModel, context: CommandContext): Promise<void> {
@@ -93,326 +79,145 @@ export default class WaterController extends CommandController<WaterModel> {
       context.note({ kind: 'empty-result', field: 'patch', query: patchRaw });
       return;
     }
-
-    const aim = this.aim(named, patch && MixinApi.isSoil(patch) ? patch : null, context);
-    if (!aim) return;
-    const { plant, ground, part } = aim;
-
-    // The source: the named one, else the first carried holder with
-    // water in it — a NARROWING over what the binder bound.
-    const source = await this.waterSource(model.source);
-    if (!source) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`You have nothing to water it with.`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'no-water-source',
-        detail: 'no carried holder with water in it',
-      });
-      return;
+    const aimed = MixinApi.isGrowing(named) ? named : MixinApi.isSoil(named) ? named : null;
+    if (aimed === null) {
+      return WaterController.deny(context, Mml.compose`${Mml.thing(named)} isn't a plant.`, 'not-a-plant',
+        `${named.getPresentation()} has no plant to water`);
     }
 
-    const fromSlot = BulkableApi.slotFor(
-      source,
-      model.source?.via,
-    );
-    if (fromSlot === null || fromSlot.isEmpty()) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.thing(source)} is empty.`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'source-empty',
-        detail: 'source slot empty or absent',
-      });
-      return;
-    }
-
-    // Only as much as the soil can take — an explicit measure, never
-    // `{ kind: 'all' }`, so the rest stays in the can. Reading through
-    // the plant first reconciles the elapsed drain — otherwise the
-    // headroom is stale by the whole absence, and a long-neglected plant
-    // would report itself already wet.
-    let headroom: number;
-    if (plant) {
-      plant.getSoilMoisture();
-      headroom = plant.waterHeadroomL();
-    } else {
-      headroom = ground.soilMoistureHeadroomL();
-    }
-    // ⭐ Full ground that holds water (a field, an undrained pot) does not
-    // refuse a pour: the water STANDS on it (water-supply D15/D16). A
-    // drained pot lets it out of its hole, and says the soil is wet through.
-    if (headroom <= 0) {
-      if (ground.soilAcceptsPonding()) {
-        const litres = fromSlot.available();
-        const salt = fromSlot.getPayload()?.salinityPpt;
-        // ⭐ Ask the ground FIRST (controller-liquidity D10, C30): the can
-        // empties only when the water has somewhere to stand — it used to
-        // pour into the void and then learn the ground kept none of it.
-        if (ground.takeStanding(litres, 0, salt) > 0) {
-          const poured = BulkableApi.transfer(fromSlot, null, { kind: 'measure', litres, mode: 'lenient' });
-          for (const note of poured.notes) context.note(note);
-          MessageApi.scene(giver)
-            .topic(TOPIC)
-            .toSelf(Mml.compose`The water stands on ${Mml.thing(plant ?? ground)} — the soil cannot take any more.`)
-            .send();
-          return;
-        }
-      }
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(
-          plant
-            ? Mml.compose`The soil around ${Mml.thing(plant)} is already wet through.`
-            : Mml.compose`The soil of ${Mml.thing(ground)} is already wet through.`,
-        )
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'already-wet',
-        detail: `${(plant ?? ground).getPresentation()} has no room for more water`,
-      });
-      return;
-    }
-
-    // Capture the material BEFORE the transfer empties (and clears) the
-    // slot, for the prose.
-    const material = fromSlot.getMaterial();
-    const payload = fromSlot.getPayload();
-    // ⭐ Ground that HOLDS water (an undrained pot, a field) takes the whole
-    // can: the soil drinks what it can and the rest stands on it. Only a
-    // drained pot is poured to its headroom (the rest would run out of the
-    // hole). The browser walk: an undrained pot drained a sliver between
-    // pours, so its headroom never reached 0 and it could not be overwatered.
-    // A plant with a root zone of its own is the exception: the pour is
-    // aimed at its pocket, and spilling the rest across the patch would
-    // water the stand the trial is measured against.
-    const holds =
-      ground.soilAcceptsPonding() && !(plant instanceof Plant && plant.hasRootZone());
-    const result = BulkableApi.transfer(fromSlot, null, {
-      kind: 'measure',
-      litres: holds ? fromSlot.available() : Math.min(headroom, fromSlot.available()),
-      mode: 'lenient',
+    const answer = await aimed.amendPlanFor({
+      by: giver,
+      amend: 'water',
+      target: named,
+      sources: await WaterController.sourcesFrom(model.source),
+      // A NAMED vessel is taken as named, so "it is empty" can be said.
+      named: model.source?.prep !== undefined,
+      via: model.source?.via,
+      part: patch && MixinApi.isSoil(patch) ? patch : null,
     });
-    for (const note of result.notes) context.note(note);
-
-    if (result.applied <= 0) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`Nothing comes out of ${Mml.thing(source)}.`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'nothing-poured',
-        detail: 'the transfer moved nothing',
-      });
-      return;
+    if (answer.ok === 'choose' || (answer.ok === false && answer.reason === 'not-a-part-here')) {
+      // ⭐ The ground answered its parts (D8): refuse with the list.
+      const line = this.partLine(answer);
+      return WaterController.deny(context, Mml.fromMarkup(line), answer.reason, line);
     }
+    if (!answer.ok) {
+      const [prose, reason] = WaterController.refusalWords(answer);
+      return WaterController.deny(context, prose, reason, reason);
+    }
+    await this.engagePlan(context, answer, {
+      beginSelf: () => Mml.compose``,
+      onRefused: (r) => WaterController.refusalWords(r)[0],
+      onDone: (f) => {
+        for (const note of f.notes) context.note(note);
+        return WaterController.doneWords(f, giver);
+      },
+    });
+  }
 
-    // Read the difficulty BEFORE the water lands — it is a measurement of the
-    // state the plant was in when the act was needed, and watering it is
-    // precisely what changes that state.
-    const difficulty =
-      plant instanceof Plant ? plant.careDifficulty() : plant ? 'standard' : 'easy';
-    const soaking = Math.min(result.applied, headroom);
-    const absorbed = plant ? plant.waterPlant(soaking) : ground.waterSoil(soaking);
-    const standing = holds ? ground.takeStanding(result.applied, absorbed, payload?.salinityPpt) : 0;
-
-    // Capture the GROUND, not the plant: since phase 2 the litres land in
-    // the pot's (or bed's, or patch's) moisture reserve, so capturing only
-    // the plant would durably record everything about this act except the
-    // water. `captureHostOf` walks up to the nearest persistable host — for
-    // a potted plant the room the pot stands in, for a patch the field
-    // whose record carries it.
-    try {
-      // ⭐ A labeled plant's water lands in its OWN root zone (D6) — the
-      // plant's record carries it.
-      if (plant instanceof Plant && plant.hasRootZone()) {
-        await PersistableApi.captureHostOf(plant);
+  /**
+   * The vessels to water from, as the binder bound them. `water.yaml`
+   * declares `source` with a `me:i` default, so bare `water` arrives with
+   * every carried thing; the ground picks the first with water in it. ⭐ A
+   * hose coupled to a tap stands for the tap (settled, so its water is
+   * current); an uncoupled one stands for nothing.
+   */
+  protected static async sourcesFrom(bound: MqlManyResult | undefined): Promise<Stuff[]> {
+    const out: Stuff[] = [];
+    for (const item of bound?.stuff ?? []) {
+      if (!(item instanceof WaterHose)) {
+        out.push(item);
+        continue;
       }
-      await PersistableApi.captureHostOf(ground);
-    } catch (err) {
-      console.warn('WaterController: capture after watering failed:', err);
+      const outlet = item.getOutlet();
+      if (outlet === null) continue;
+      await outlet.settleBulk('interior');
+      out.push(outlet);
     }
+    return out;
+  }
 
-    // Credit `horticulture` — but only when the soil actually took the water.
-    // A plant with no headroom never reaches here (the verb rejected above),
-    // so there is no credit for going through the motions.
-    if (absorbed > 0) {
-      try {
-        if (MixinApi.isAdvancing(giver))
-          await giver.creditDeed({
-          discipline: 'horticulture',
-          difficulty,
-          outcome: 'success',
-        });
-      } catch (err) {
-        console.warn('WaterController: recording the deed failed:', err);
+  /** A refusal's words, and the note's reason. */
+  protected static refusalWords(r: AmendRefusal): [Composed, string] {
+    switch (r.reason) {
+      case 'not-rooted':
+        return [Mml.compose`${Mml.thing(r.facts.plant)} isn't rooted in anything that holds water.`, r.reason];
+      case 'not-standing-at':
+        return [Mml.compose`${Mml.thing(r.facts.plant)} does not stand at ${Mml.thing(r.facts.part)}.`, 'not-a-part-here'];
+      case 'nothing-planted':
+        return [Mml.compose`There's nothing planted in ${Mml.thing(r.facts.ground)}.`, r.reason];
+      case 'not-cultivable':
+        return [Mml.compose`${Mml.thing(r.facts.target)} isn't a plant.`, r.reason];
+      case 'no-water-source':
+      case 'no-compost-source':
+        return [Mml.compose`You have nothing to water it with.`, 'no-water-source'];
+      case 'source-empty':
+        return [Mml.compose`${Mml.thing(r.facts.source)} is empty.`, r.reason];
+      case 'already-wet':
+        return [
+          r.facts.plant
+            ? Mml.compose`The soil around ${Mml.thing(r.facts.plant)} is already wet through.`
+            : Mml.compose`The soil of ${Mml.thing(r.facts.ground)} is already wet through.`,
+          r.reason,
+        ];
+      case 'nothing-poured':
+      case 'nothing-spread':
+        return [Mml.compose`Nothing comes out of ${Mml.thing(r.facts.source)}.`, 'nothing-poured'];
+      case 'no-nutrient-reserve':
+      case 'no-amendment-reserve':
+      case 'already-fed':
+        return [Mml.compose`The soil of ${Mml.thing(r.facts.ground)} is already wet through.`, r.reason];
+      default: {
+        const unworded: never = r;
+        throw new Error(`WaterController: no words for ${String(unworded)}`);
       }
     }
+  }
 
-    const appearance =
-      CraftingApi.blendAppearance(payload, material) || 'water';
-    const litres = litresPhrase(result.applied);
+  /** What the watering came to. */
+  protected static doneWords(f: AmendDone, giver: Stuff): { self: Composed; peers?: Composed } | null {
+    if (f.kind === 'stood') {
+      return { self: Mml.compose`The water stands on ${Mml.thing(f.on)} — the soil cannot take any more.` };
+    }
+    if (f.kind !== 'watered') return null;
+    const { plant, ground, part } = f;
+    const appearance = CraftingApi.blendAppearance(f.payload, f.material) || 'water';
+    const litres = WaterController.litresPhrase(f.litres);
     const where = part ? Mml.compose` at ${Mml.thing(part)}` : Mml.compose``;
     const tipped = plant
       ? Mml.compose`You tip ${litres} of ${appearance} into the soil around ${Mml.thing(plant)}${where}.`
       : part
         ? Mml.compose`You tip ${litres} of ${appearance} into the soil at ${Mml.thing(part)}.`
         : Mml.compose`You tip ${litres} of ${appearance} into the soil of ${Mml.thing(ground)}.`;
-    const drinks =
-      standing > 0
-        ? ' The soil cannot take it all; the rest stands on top, with nowhere to go.'
-        : plant && absorbed > 0
-          ? ' It drinks it in.'
-          : '';
-    // A labeled plant's water went round its own roots, not over the ground.
-    const barely =
-      !(plant instanceof Plant && plant.hasRootZone()) && ground.barelyShows(result.applied)
-        ? ` On ${areaPhrase(ground.soilCatchmentAreaM2())} it barely shows.`
+    const drinks = f.standing
+      ? ' The soil cannot take it all; the rest stands on top, with nowhere to go.'
+      : f.drank
+        ? ' It drinks it in.'
         : '';
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(Mml.compose`${tipped}${drinks}${barely}`)
-      // ⭐ A bystander sees WHERE the water went — which end of the field
-      // a hand is standing at is as plain as the can (field population:
-      // the drive watches the campus hand water the patch her read points
-      // to, and before this the line named only "a stand of wheat").
-      .toPeers(Mml.compose`${Mml.actor(giver)} waters ${Mml.thing(plant ?? ground)}${plant ? where : Mml.compose``}.`)
-      .send();
-  }
-
-  /**
-   * Resolve what the act is aimed at (D18), refusing in the ground's own
-   * words when it cannot say. A plant is watered where it stands — at the
-   * stand of its kind in the named part, on a divided field; a bed or a
-   * pot waters its plant; a patch or a one-piece field waters the crop
-   * rooted there, else the ground itself.
-   */
-  private aim(
-    named: Stuff,
-    patch: (Stuff & Soil) | null,
-    context: CommandContext,
-  ): Aim | null {
-    const giver = context.commandGiver;
-    const refuse = (line: Mml, reason: string, detail: string): null => {
-      MessageApi.scene(giver).topic(TOPIC).toSelf(line).send();
-      context.note({ kind: 'controller-rejected', reason, detail });
-      return null;
+    const barely = f.barelyM2 !== null ? ` On ${WaterController.areaPhrase(f.barelyM2)} it barely shows.` : '';
+    return {
+      self: Mml.compose`${tipped}${drinks}${barely}`,
+      // ⭐ A bystander sees WHERE the water went (field population).
+      peers: Mml.compose`${Mml.actor(giver)} waters ${Mml.thing(plant ?? ground)}${plant ? where : Mml.compose``}.`,
     };
-
-    if (MixinApi.isGrowing(named)) {
-      const holder = MixinApi.isContainable(named) ? named.getContainer() : null;
-      // ⭐ A field crop: the GROUND says which part, or refuses.
-      if (named.isAreaCrop() && holder && MixinApi.isSoil(holder)) {
-        const r = holder.resolvePartFor(patch);
-        if (r.ok !== true) {
-          const line = this.partLine(r);
-          return refuse(Mml.fromMarkup(line), r.reason, line);
-        }
-        const plant = r.part ? named.standIn(r.part) : named;
-        const ground = plant?.getBed() ?? r.part ?? holder;
-        return { plant, ground, part: r.part };
-      }
-      const bed = named.getBed();
-      if (patch && patch !== bed) {
-        return refuse(
-          Mml.compose`${Mml.thing(named)} does not stand at ${Mml.thing(patch)}.`,
-          'not-a-part-here',
-          `${named.getPresentation()} is not rooted in ${patch.getPresentation()}`,
-        );
-      }
-      if (!bed) {
-        return refuse(
-          Mml.compose`${Mml.thing(named)} isn't rooted in anything that holds water.`,
-          'not-rooted',
-          `${named.getPresentation()} has no ground under it`,
-        );
-      }
-      return { plant: named, ground: bed, part: null };
-    }
-
-    if (MixinApi.isSoil(named)) {
-      const r = named.resolvePartFor(patch);
-      if (r.ok !== true) {
-        const line = this.partLine(r);
-        return refuse(Mml.fromMarkup(line), r.reason, line);
-      }
-      // Naming either half of the assembly works — a player types both.
-      if (MixinApi.isCultivable(named)) {
-        const occupant = named.getPlant();
-        if (!occupant || !MixinApi.isGrowing(occupant)) {
-          return refuse(
-            Mml.compose`There's nothing planted in ${Mml.thing(named)}.`,
-            'nothing-planted',
-            `${named.getPresentation()} has no plant to water`,
-          );
-        }
-        return { plant: occupant, ground: named, part: null };
-      }
-      const plant = named.rootedAreaCrop(r.part);
-      const ground = r.part ?? named;
-      return { plant, ground: plant?.getBed() ?? ground, part: r.part };
-    }
-
-    return refuse(
-      Mml.compose`${Mml.thing(named)} isn't a plant.`,
-      'not-a-plant',
-      `${named.getPresentation()} has no plant to water`,
-    );
   }
 
-  /**
-   * The vessel to water from. `water.yaml` declares `source` with a
-   * `me:i:[mixin.BulkableMixin]` default, so bare `water` arrives with
-   * every carried vessel and the only question left is what is IN it —
-   * contents, which no predicate asks (`lint:controller-resolution`). A NAMED
-   * vessel is taken as named, so "it is empty" can be said about it.
-   */
-  private async waterSource(bound: MqlManyResult | undefined): Promise<Stuff | null> {
-    const carried = bound?.stuff ?? [];
-    if (carried.length === 0) return null;
-    if (bound?.prep !== undefined) return this.throughHose(carried[0]!);
-    for (const item of carried) {
-      // ⭐ A hose coupled to a tap waters from the tap.
-      if (item instanceof WaterHose) {
-        const outlet = await this.throughHose(item);
-        if (outlet !== null && !BulkableApi.slotFor(outlet, undefined)?.isEmpty()) return outlet;
-        continue;
-      }
-      if (!MixinApi.isBulkable(item)) continue;
-      const slot = BulkableApi.slotFor(item, undefined);
-      if (!slot || slot.isEmpty()) continue;
-      const tags = slot.getMaterial()?.getTags() ?? [];
-      if (tags.includes(WATER_TAG)) return item;
-    }
-    return null;
+  /** Litres in words a reader takes in at a glance: `2 L`, `0.5 L`, `12 L`. */
+  protected static litresPhrase(litres: number): string {
+    const n = litres >= 10 ? Math.round(litres) : Math.round(litres * 10) / 10;
+    // Something was poured (the transfer moved it): never "0 L".
+    if (n === 0) return 'less than 0.1 L';
+    return `${n.toLocaleString('en-US')} L`;
   }
 
-  /** A hose stands for the tap it is coupled to (settled, so its water is current); anything else for itself. */
-  private async throughHose(item: Stuff): Promise<Stuff | null> {
-    if (!(item instanceof WaterHose)) return item;
-    const outlet = item.getOutlet();
-    if (outlet === null) return null;
-    await outlet.settleBulk('interior');
-    return outlet;
+  /** An area in square meters, as a reader would say it. */
+  protected static areaPhrase(areaM2: number): string {
+    const n = Math.round(areaM2);
+    return n === 1 ? 'a square meter' : `${n.toLocaleString('en-US')} square meters`;
   }
-}
 
-/** Litres in words a reader takes in at a glance: `2 L`, `0.5 L`, `12 L`. */
-function litresPhrase(litres: number): string {
-  const n = litres >= 10 ? Math.round(litres) : Math.round(litres * 10) / 10;
-  // Something was poured (the transfer moved it): never "0 L".
-  if (n === 0) return 'less than 0.1 L';
-  return `${n.toLocaleString('en-US')} L`;
-}
-
-/** An area in square meters, as a reader would say it. */
-function areaPhrase(areaM2: number): string {
-  const n = Math.round(areaM2);
-  return n === 1 ? 'a square meter' : `${n.toLocaleString('en-US')} square meters`;
+  /** Say no, and record why. */
+  protected static deny(context: CommandContext, prose: Composed, reason: string, detail: string): void {
+    MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(prose).send();
+    context.note({ kind: 'controller-rejected', reason, detail });
+  }
 }

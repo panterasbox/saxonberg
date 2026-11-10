@@ -48,7 +48,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
-import type { PartChoices, Soil } from './Soil';
+import type { AmendAnswer, AmendRequest, PartChoices, Soil } from './Soil';
 import type { Difficulty } from '../advancement/ActSignature';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -734,6 +734,27 @@ export interface Growing {
   waterHeadroomL(): number;
   /** Points of nitrogen the ground under this plant can still take. */
   nutrientHeadroom(): number;
+  /**
+   * Whether this plant keeps a root zone of its own — the pocket of ground
+   * watered round ONE plant in a field (field population D6). Default
+   * `false`; a labeled `Plant` answers.
+   */
+  hasRootZone(): boolean;
+  /** Whether feed aimed at this plant goes into its own root zone. Default `false`. */
+  rootZoneFeeds(): boolean;
+  /**
+   * How hard bringing this plant's water back is right now — the
+   * `horticulture` difficulty `water` credits. Default `standard`.
+   */
+  careDifficulty(): Difficulty;
+  /**
+   * ⭐ `water` / `feed` aimed at this plant (controller-liquidity W8): the
+   * ground it stands in takes it — on a divided field the ground of its
+   * kind's stand in the part named (the ground says which, or refuses) —
+   * so this resolves where, and delegates to that ground's
+   * {@link Soil.amendPlanFor}.
+   */
+  amendPlanFor(req: AmendRequest): Promise<AmendAnswer>;
   /**
    * ⭐ The read at `band` — see {@link CropRead}. With a `seed` it also
    * carries the moisture and nutrient as that reader takes them.
@@ -1922,6 +1943,43 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
 
     public nutrientHeadroom(): number {
       return this.getBed()?.soilNutrientHeadroom() ?? 0;
+    }
+
+    public hasRootZone(): boolean {
+      return false;
+    }
+
+    public rootZoneFeeds(): boolean {
+      return false;
+    }
+
+    public careDifficulty(): Difficulty {
+      return 'standard';
+    }
+
+    /** See {@link Growing.amendPlanFor}. */
+    public async amendPlanFor(req: AmendRequest): Promise<AmendAnswer> {
+      const self = this as unknown as Stuff & Growing;
+      const zone = this.rootZoneFeeds() ? self : null;
+      const holder = MixinApi.isContainable(self) ? self.getContainer() : null;
+      // ⭐ A field crop: the GROUND says which part, or refuses.
+      if (this.isAreaCrop() && holder && MixinApi.isSoil(holder)) {
+        const r = holder.resolvePartFor(req.part);
+        if (r.ok !== true) return r;
+        const plant = r.part ? this.standIn(r.part) : self;
+        const ground = plant?.getBed() ?? r.part ?? holder;
+        return ground.amendPlanFor({ ...req, part: r.part, aimed: { plant, zone } });
+      }
+      const bed = this.getBed();
+      if (req.part && req.part !== bed) {
+        return { ok: false, reason: 'not-standing-at', facts: { plant: self, part: req.part } };
+      }
+      if (!bed) {
+        return req.amend === 'water'
+          ? { ok: false, reason: 'not-rooted', facts: { plant: self } }
+          : { ok: false, reason: 'not-cultivable', facts: { target: req.target } };
+      }
+      return bed.amendPlanFor({ ...req, part: null, aimed: { plant: self, zone } });
     }
 
     public readFor(band: CompetenceBandName, seed?: number): CropRead {
