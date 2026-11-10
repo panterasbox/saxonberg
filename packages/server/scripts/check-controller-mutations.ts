@@ -40,7 +40,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const CONTROLLER_MUTATIONS_CEILING = 302; // controller-liquidity W3: the shell writes and refusals moved onto their objects. W8: −15
+export const CONTROLLER_MUTATIONS_CEILING = 282; // controller-liquidity W7: −20. // controller-liquidity W3: the shell writes and refusals moved onto their objects. W8: −15
 
 /** Mutator-shaped method names: one of these prefixes, then an uppercase letter. */
 const MUTATOR =
