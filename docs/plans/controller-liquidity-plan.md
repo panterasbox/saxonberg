@@ -1735,6 +1735,27 @@ rebase cleanly.
   `Working`), `trade-fuel` (Char → `CharcoalPit.lightPlan`; draught via
   `draught`; the engagement matched by host; a non-Engaged actor refused),
   `trade-smithing` (Quench → `Quenchable`; Hammer → `Hammerable`).
+  > **W9: ✅ done.** Smelt → `SmeltingFurnace.smeltPlan` (Ore by the mining
+  > pack's class, flux/sulfur/fuel by tag); `smelt.yaml` `requires: [BurnerMixin,
+  > affords]` turns the clamp away (no `class:` term exists — `affords` is the
+  > sanctioned one). (build, W9) **`IronCarbon` lives in `trade-smithing/src/lib`,
+  > not smelting's** — Hammer, Quench and Bloom read the same Fe–C bands and
+  > smelting depends on smithing, never the reverse. (build, W9) C41: the solid
+  > product is `getCastTemplate()`; `castTemplate` authored on base-library
+  > bloom-iron/sulfurous-iron/steel (the rubber precedent). (build, W9) Hammerable/
+  > Quenchable are hosted by a new smithing `Stock` (= Ingot + both) that the
+  > chain's ingot/bar/pig/blank rows now name, plus `Bloom`; generic-objects'
+  > tin-bar/lead-pigs stay kernel Ingots and lose `hammer`/`quench` (lens 1: cast
+  > metals). Char → `CharcoalPit.lightPlan`; kernel `ActPlan.slots`/`host` (a
+  > watched act holds `attention`) — C11 fixed. Mining: the labour acts' plans on
+  > `Working` (`Stability.cause`, drain checked before the pump — C20),
+  > `MineWarren.secure` + `holder: ParcelOwner` by identity (C16), `Assaying` on
+  > kit+bench (C18, samples handed INTO the instrument), `ClaimsRegister.
+  > stakePlanFor` (C21). Quench's `Grade.of 'good'`: four recipes named a band
+  > that does not exist (`good` → `fine`, incl. drilling's pressure-gauge);
+  > recipe-bands tests guard it; the record row is unchanged (cold ingot →
+  > `empty-build`). W9's share: decisions −141, durations −20, mutations −29,
+  > functions −54, duck −25, multi-act −2, template-scans −1.
 - **W10 — food and land:** `trade-cooking` (Butcher → `Corpse.butcherPlan`
   + `Species` dressing with the exemplar keyed by cut, the blood vessel
   bound or the arg deleted, blade/tools prepositions split; Cook/Plate/Cure/
