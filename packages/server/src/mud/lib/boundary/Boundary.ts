@@ -39,6 +39,7 @@ import {
 } from './Conduit';
 import type { FieldMeta } from '../mixin';
 import { Colour } from '../perception/Colour';
+import { NavigationApi } from '../../api/navigation';
 import { CallSecurity } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 
@@ -276,10 +277,14 @@ export class Boundary extends BoundaryBase {
    */
   override getKeywords(viewer?: Stuff): string[] {
     const base = super.getKeywords(viewer);
+    // ⚠ A DIRECTION word in the name (`west window`) is the WAY's, never
+    // the boundary's: folded in, `look west` tied the way and its window at
+    // one tier and prompted *the west window / west* (the boundary drive).
+    // The boundary still answers to `window` and its authored phrases.
     const nameTokens = this.shortDescription
       .toLowerCase()
       .split(/\s+/)
-      .filter((t) => t.length > 0);
+      .filter((t) => t.length > 0 && !NavigationApi.isCardinalDirection(t));
     return Array.from(new Set([...base, ...nameTokens]));
   }
 

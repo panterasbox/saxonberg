@@ -9,7 +9,7 @@
 class: /platform/thing/Window
 data:
   shortDescription: west window
-  keywords: [window, west, light]
+  keywords: [window, "west window", light]
   register: definite
   longDescription: >-
     A plain window in the west wall, looking up the hillside. The

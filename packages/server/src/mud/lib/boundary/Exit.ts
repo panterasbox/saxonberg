@@ -354,8 +354,10 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
   }
 
   /**
-   * *A way north; the oak door is closed.* — the unauthored description. A
-   * window is named, not stated: *a way west; the west window.*
+   * *A way north, through the oak door (closed).* — the unauthored
+   * description. A window is named, not stated: *a way west, through the
+   * west window.* ⚠ Parenthetical on purpose: *"the front doors is open"*
+   * (the boundary drive) — the way cannot know its boundary's number.
    */
   protected plainWay(): string {
     let said = `A way ${this.direction}`;
@@ -363,8 +365,8 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     if (boundary) {
       const name = boundary.presentationPhrase().withRegister('definite').render();
       said += this.wayState() === 'window'
-        ? `; ${name}`
-        : `; ${name} is ${boundary.stateWord()}`;
+        ? `, through ${name}`
+        : `, through ${name} (${boundary.stateWord()})`;
     } else if (MixinApi.isLockable(this) && this.isLocked()) {
       said += '; it is locked';
     }

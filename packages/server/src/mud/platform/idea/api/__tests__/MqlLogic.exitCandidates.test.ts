@@ -125,7 +125,7 @@ describe('an exit binds as itself', () => {
     const exit = north();
     expect(exit.getPresentation()).toBe('north');
     const said = exit.getLongFor(mover as never);
-    expect(said).toMatch(/^A way north; the iron gate is (closed|open)\.$/);
+    expect(said).toMatch(/^A way north, through the iron gate \((closed|open)\)\.$/);
     expect(said).not.toMatch(/There/);
   });
 
