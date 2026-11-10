@@ -1479,7 +1479,65 @@ disjoint categories):
   subcommand, over a base per noun` · `W7b: the cockpit nest and the
   ladder's word changes` · `W7c: one act behind each kernel word`.
 
-### W8 — the kernel's protocol candidates and the misplaced rules (Appendix B)
+### W8 — the kernel's protocol candidates and the misplaced rules (Appendix B) ✅ done
+
+> **Done** (five parallel slices, `15469c88b`…`5214bc7dd`, ceilings in the
+> last W8 commit). New kernel protocols: `WaterDrawable` (lib/bulk), `WaterEntry`,
+> `Launchable` (lib/location), `Anchoring` (lib/expanse), `Readable`
+> (lib/description); new object methods `Soil.amendPlanFor`, element tokens on
+> `Vitals.treatmentPlanFor`, `PosturedMixin.acceptPosture` (it did not exist),
+> `Hauler.hitchPlanFor`, `Combustible`/`Burner.ignitePlanFor`/`extinguishPlanFor`,
+> `Burner.draughtFor` (the one fire vocabulary), `Integrity.fallOnto`,
+> `TrapKit.armBy`, `ContainmentApi.putPlanFor` (closed `PlaceRefusal`),
+> `Marked.inscribe`, `Named.takeName` (Bonded promotes), `PricedOffer.offerings`,
+> `Persona.recordFor`, `Vitals.undressWound` (ActChoices), `ThrownLanding.settle`,
+> `HeldGoodsMixin.accepts/checkIn`, `Adornment.mayTakeDown`, `Group.rename`,
+> `SoulCatalogue.edit(EmotePatch)`, `ParcelApi.setPublished` → `PublishAnswer`,
+> `BankingApi.payDraw` → `DrawResult`, `Haulable.slipHitch`, and
+> `PerceptionApi.observe` (look's writes + warm, called once). Fixed: C24 C28 C31
+> C32(draw) C33 C36 C40 C43 C44 C48 C50 C51 C53 C54 C61 C71 C72 C84 and the
+> `cool`/`cp` record errors. Ceilings: decisions 1167→**1130**, durations
+> 100→**99**, functions 229→**216**, gates 16→**11**, mutations 317→**302**,
+> duck-typing 536→**534**, multi-act 39→**38**; ⚠ mixin-clusters **40→41**, a
+> stated rise (Haulable's coupling beside its load; every host is both).
+> The plan's targets (decisions ≤ 700, mutations ≤ 200, functions ≤ 150,
+> self ≤ 60, duck ≤ 500) were NOT reached by the kernel slice alone — they
+> are build totals the pack lanes and W14 must carry; self-resolution held at
+> 105. **Decisions (build, W8):** (a) `WaterDrawable`, not `WaterSource` —
+> `WaterSourceMixin` already exists as the water pack's seam; `WaterEntry` lives
+> in `lib/location/` beside Shore/WaterPlace (no `lib/underwater/`). (b) look's
+> self-reports (puddle, notices, placing, owner, screen) stay in the controller
+> as the pre-declared exception: `markupAugmenters` is synchronous and folds into
+> the long text the card and every sense verb share — moving them would change
+> words and order; they are reads (0 mutators), so no row; the async seam is
+> owed to `one-resolution-rule-slate` § 2. (c) A glance records a DISCOVERY,
+> not a `searched` claim (location-graph § 4); `search`'s resolve still writes
+> `searched`, pinned by a test. (d) Transport DOES declare water (its
+> package.json) — `Launchable` is kept as the declared meeting point and the
+> walk lives on `Boat.launch/recover`. (e) Instant acts answer an `ActPlan`
+> with `durationMs: 0`; Anchor runs its completion itself to keep its topics.
+> (f) C60 deferred: at arrival the command frame is gone and the engagement has
+> completed — an abort reason needs a scheduler seam (an engagement whose
+> completion can run an async check and cancel), not a controller edit. (g)
+> W3's leftover gates: arm, get, title publish, soul, the banking presence read
+> moved or went dead; clone, destruct ×2, goto ×2, reload, eval, title
+> subdivide, broadcast STAY — each protects an engine primitive with no actor
+> (`subdivide` is the primitive the plat book/lease/provision/stake call for
+> parcels the actor does not own). (h) `Marked`'s old read is `textFor`
+> (`readFor` is the protocol's); the write verb's method is async `inscribe`.
+> (i) Chronicle's host is `Persona` (no `ChronicleMixin` exists); RackCheck's
+> weapon rule is the pack's `CheckRack.accepts`. (j) Undress's choice is not
+> `chooseAmong` — a wound is a condition record, not a Stuff. **Left for the
+> lanes:** `PullOutcome` still carries words across five Pullable hosts in
+> three packs (Pull is only partly done); `WashController`/`BatheController`
+> keep their own `findWater` (should ask `WaterDrawable`);
+> `LocomotionControllerBase.arriveAfter` pushes off with `instanceof
+> WaterSurface` (→ `room.pushOff`); the killick's `facts.line` and Book/Marked
+> `line` prose. **Record rows changed on purpose (W15 re-records):** `cool`
+> (error → runs), `cp` (error → declined access-denied), `sip` (says why a
+> source is empty), `warm` (arg type), `remove`/`unequip` (each layer's time),
+> bare `equip` (no "leave X" lines), `throw`/`throw at` (the hand empties),
+> `rack check` non-weapon (refusal, not TypeError).
 
 - `Put` (`ContainmentApi.move`'s `canPlace` carries the slot/interior/
   region rule; the controller words `PlaceRefusal`), `Water`/`Feed`
@@ -2082,44 +2140,44 @@ Current lines at `2ce973dfb`. **52 confirmed and fixed, 2 reclassified,
 | C21 | sugar `ClayController` L33; mining `StakeController` L139–143 | reason collapses to `'refused'`; "not yours" for your own block | confirmed | W10 / W9 |
 | C22 | tailoring `SewController` L137 | maker keyed on lineage | confirmed | W11 |
 | C23 | textiles `WeaveController` L79 | `endsWith('/yarn')` path test | confirmed | W11 |
-| C24 | author `GotoController` L84–85/L89/L105–110 | fallback never detaches a hitched mover; broken sentence | confirmed | W8 |
+| C24 | author `GotoController` L84–85/L89/L105–110 | fallback never detaches a hitched mover; broken sentence | confirmed | ✅ W8 |
 | C25 | author `PackSyncController` L35–44 | raw name as member path | confirmed | W7b (`pack staff`) |
 | C26 | author `WizardController` L82–87 | success on `shell.error` | confirmed | W7a |
 | C27 | water `PilotController` L53 → L62 → L68 | fee before the claims | confirmed | W12 |
-| C28 | author `CloneController` L185–187 | copies 2..N swallow a placement error | confirmed | W8 |
+| C28 | author `CloneController` L185–187 | copies 2..N swallow a placement error | confirmed | ✅ W8 |
 | C29 | textiles `ScutchController` L218/L227–228, `SpinController` L219 (consume L171), `WeaveController` L167 (consume L143) | mint failure after consume is a `console.warn`; "You get ." | confirmed | W11 |
 | C30 | bulk `WaterController` L153 → L155 | water to the null sink before the ground is asked | confirmed | W3 |
-| C31 | chargen `TraitsController` L36–40 | bare list bodies (Chronicle fixed the same) | confirmed | W8 |
-| C32 | banking `TreasuryController` L108–115; `HouseDrawController` L61–63 | refusal by regex on a message | confirmed | W7a / W8 |
-| C33 | banking `HouseDismissController` L63 vs `HouseAppointController` L92 | `findByTemplatePath` vs `singleton` | confirmed | W8 |
+| C31 | chargen `TraitsController` L36–40 | bare list bodies (Chronicle fixed the same) | confirmed | ✅ W8 |
+| C32 | banking `TreasuryController` L108–115; `HouseDrawController` L61–63 | refusal by regex on a message | confirmed | W7a / ✅ W8 (draw) |
+| C33 | banking `HouseDismissController` L63 vs `HouseAppointController` L92 | `findByTemplatePath` vs `singleton` | confirmed | ✅ W8 |
 | C34 | banking `WalletController` L234–240 | freeze with no account says a card was issued | confirmed | W7a |
 | C35 | chargen `EmbodyController` L715–716 → L721; L735–739 | roster before clone; `setSex` swallowed | confirmed | W3 / W7c |
-| C36 | bulk `SipController` (no `settle`; Drink L55, Fill L72 do) | unsettled read | confirmed (asymmetry) | W8 |
+| C36 | bulk `SipController` (no `settle`; Drink L55, Fill L72 do) | unsettled read | confirmed (asymmetry) | ✅ W8 |
 | C37 | banking `ReserveController` L78/L83/L96 | `priceIndex()` printed per currency | confirmed | W7a |
 | C38 | medicine `OperateController` L224–230 (`OperationEngagement.ts` L107–119) | patient hold's abort is a no-op; surgery carries on | confirmed | W13 (inside `OperationEngagement`) |
 | C39 | `OperateController` L195–201 | direct `Trauma` field writes | confirmed | W13 |
-| C40 | shell `AliasController` L154 (default L190) | `fail` without a reason | confirmed | W8 |
+| C40 | shell `AliasController` L154 (default L190) | `fail` without a reason | confirmed | ✅ W8 |
 | C41 | smelting `SmeltController` L770–777 (vs `getCastTemplate` L899) | a template scan for what the Material answers | confirmed | W9 |
 | C42 | `EquipControllerBase` L191 → L743 → L199 | `--from` moves before `canEquip` | confirmed | W3 |
-| C43 | `EquipControllerBase` L519 vs L215 | `already-worn` unreachable | confirmed | W8 |
-| C44 | `EquipControllerBase` L721/L303/L465/L367 | bare `equip` pools worn items | confirmed | W8 |
+| C43 | `EquipControllerBase` L519 vs L215 | `already-worn` unreachable | confirmed | ✅ W8 |
+| C44 | `EquipControllerBase` L721/L303/L465/L367 | bare `equip` pools worn items | confirmed | ✅ W8 |
 | C45 | employment `CollectController` L36/L55–58; `TipJar.ts` L21–36 | any jar on your own premises | confirmed (narrower than surveyed) | W3 |
 | C46 | employment `TipController` L69–79/L142–145 | any settle failure → EFT; raw exception text | confirmed | W7c |
 | C47 | governance `OfficeController` L89–95 | every `!ok` is "No such office" | confirmed (one reachable case) | W7a |
-| C48 | ground `LimeController` L91 (quicklime `Lump` is Stackable) | destructs the whole stack | confirmed | W8 |
+| C48 | ground `LimeController` L91 (quicklime `Lump` is Stackable) | destructs the whole stack | confirmed | ✅ W8 |
 | C49 | inventory `OfferController` L119 (`Bonded.ts` L175–178; envelope `CommandGiver.ts` L280–299) | hidden reason reaches the wire | confirmed | W3 |
-| C50 | `ThrowAtController` L78–84; `Combatant.ts` L609/L620/L621 | on wide/hit the item stays in hand | confirmed | W8 |
-| C51 | `ThrowControllerBase` L24–29; `ThrowController` L22 | no slot release | confirmed | W8 |
+| C50 | `ThrowAtController` L78–84; `Combatant.ts` L609/L620/L621 | on wide/hit the item stays in hand | confirmed | ✅ W8 |
+| C51 | `ThrowControllerBase` L24–29; `ThrowController` L22 | no slot release | confirmed | ✅ W8 |
 | C52 | movement `CourseController` L88/L229; `mayLeave` L269–291 (`Ship.ts` L432–433) | abandonment recorded and overboard cleared before the heading resolves | confirmed | W3 |
-| C53 | `UnequipControllerBase` L113–116/L183/L201/L217–224 | the strip's start result ignored; one layer's clock | confirmed | W8 |
-| C54 | medical `CoolController` L114–123 vs `RinseController` L131–160 | drift between copies (no shore branch, no settle) | confirmed | W8 (`WaterSource`) |
+| C53 | `UnequipControllerBase` L113–116/L183/L201/L217–224 | the strip's start result ignored; one layer's clock | confirmed | ✅ W8 |
+| C54 | medical `CoolController` L114–123 vs `RinseController` L131–160 | drift between copies (no shore branch, no settle) | confirmed | ✅ W8 (`WaterDrawable`) |
 | C55 | inventory `LabelController` L184–189 | silent return | confirmed | W7c |
 | C56 | perception `SearchController` L70/L82/L93 | completion on a destroyed controller | confirmed | **W0** |
 | C57 | movement `TeleportController` L320–322/L337/L345 | completion on a destroyed controller | confirmed | **W0** |
 | C58 | `TeleportController` L92–98; `teleport.yaml` L64; `resolveAnchored` L416–430 | free move inside a held extent rarely binds | **design-level — the drive decides** | W7a looks; W15 step 10 |
 | C59 | movement `UnhitchController` L48–49; `unhitch.yaml` L23; `DraftAnimal.ts` L57 | `unhitch horse` refused at bind | confirmed | W3 |
-| C60 | `LocomotionControllerBase` L313–327 | refusal at arrival writes no note | confirmed (minor) | W8 (abort reason) |
-| C61 | retail `RackCheckController` L79; `rack.yaml` L35–36 | TypeError on a non-weapon | confirmed | W8 |
+| C60 | `LocomotionControllerBase` L313–327 | refusal at arrival writes no note | confirmed (minor) | W8 → deferred (scheduler seam, W8 note f) |
+| C61 | retail `RackCheckController` L79; `rack.yaml` L35–36 | TypeError on a non-weapon | confirmed | ✅ W8 |
 | C62 | shell `CpController` L61–65, `MvController` L52–68, `WriteController` L271–278 (`AccessRegistry` L136–148) | `can(…, null)` always false | confirmed | W3 (`canAtPath`) |
 | C63 | retail `ShelfConsignController` L143–180/L242–244 vs `HeldGoodsControllerBase` L82–88 | consignable but never reclaimable (parent-org title; released id) | confirmed (premise corrected) | W3 |
 | C64 | shell `LayoutController` L66–74; `SaxonbergClient.ts` L834–868 | a layout named `list` unrecallable | confirmed | W7b |
@@ -2129,8 +2187,8 @@ Current lines at `2ce973dfb`. **52 confirmed and fixed, 2 reclassified,
 | C68 | social `ChatAnonymityController` L46–56; `ChannelCatalogue` L691–702 | fail-open owner gate; model ungated | confirmed | W3 |
 | C69 | social `ChatRenameController` L78–99; `ChannelCatalogue` L704–731 | no owner/kind check anywhere | confirmed | W3 |
 | C70 | social `GroupRemoveController` L15/L24, `GroupRoleController` L18/L28 vs `GroupAdd` L37 | raw string against identity paths | confirmed | W3 |
-| C71 | social `GroupRenameController` L19–25 | no duplicate check; `matches[0]` | confirmed | W8 |
-| C72 | social `SoulEditController` L25–32; `SoulCatalogue` L317 | grammar slots wiped | confirmed | W8 |
+| C71 | social `GroupRenameController` L19–25 | no duplicate check; `matches[0]` | confirmed | ✅ W8 |
+| C72 | social `SoulEditController` L25–32; `SoulCatalogue` L317 | grammar slots wiped | confirmed | ✅ W8 |
 | C73 | social `ContactsController` L315–328/L238/L176–189 | raw playerIds; remove by name never matches | confirmed | W7a |
 | C74 | social `ForumVoteController` L27–38 (also Reply L23–25, Edit L23–27) | audience gate fail-open | confirmed | W3 |
 | C75 | social `PartyControllerBase` L47–50 | NPCs keyed on lineage; two key schemes | confirmed | W3 |
@@ -2142,7 +2200,7 @@ Current lines at `2ce973dfb`. **52 confirmed and fixed, 2 reclassified,
 | C81 | system `WikiEditController` L48 → L78 → L88/L96 | frontmatter saved before the body prompt | confirmed | W3 |
 | C82 | `WikiRegistry.ts` L235–246; `WikiPage.ts` L190 | ungated unredacted revisions | confirmed (by design, still a leak) | W3 |
 | C83 | work `JobApplyController` L84–93; `Organization.ts` L562–573/L638–650 | criteria separate from `appoint` | confirmed (partial: `appoint` is the governor's) | W3 (`Organization.apply`) |
-| C84 | system `PracticeController` L62 | silent no-op | confirmed | W8 |
+| C84 | system `PracticeController` L62 | silent no-op | confirmed | ✅ W8 |
 | C85 | `job.yaml` L59–70/L91–95 vs `JobPostController` L118–130/L150–180 | help omits `watch`/`recover`; contradicts the template | confirmed (content) | W13 |
 | C86 | `GrepController` L45–54/L95–137 | no limits; raw regex | confirmed | W3 |
 | C87 | `EvalController` L181–224 | a hand copy of the access decision | partial (duplication) | W3 |
