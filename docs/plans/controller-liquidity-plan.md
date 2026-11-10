@@ -1028,6 +1028,42 @@ creditor's repayment share is of what is left, and splits that leave the payee
 less refuse `splits-exceed` before any leg. The alternative — a `BankingApi`
 tax read the employment logic subtracts — puts the rate in two places.
 
+**D-W15a (build, W15) — the merged `stream` verb is one controller per
+subcommand.** broadcast-ready shipped `stream` as one switch; this build's
+`lint:multi-act` holds the subcommand arm at 0, so the merge split it over
+`StreamControllerBase` (status · start · live/back · away · end · off ·
+segment · agenda · next · rotation pin/skip/clear nested · channel with a
+`values:` service · token). `stream start [in] <dur>` reads `in` as the
+duration's preposition. ⚠ W7b's `stream away` `type: duration` is
+superseded by broadcast-ready's reason grammar (`StreamApi.interpretAway`),
+so drive step 7 proves a written duration on `press … --expires`.
+
+**D-W15b (build, W15) — step 3's bare controller is the shipped one.**
+After W3 the seven protected controllers hold no check
+(`lint:controller-gates` names none of them), so a replacement that "only
+calls the object" calls exactly what they call; the step drives each as a
+player the object must refuse.
+
+**D-W15c (build, W15) — step 1's replacements are worded twins.**
+`SmeltWordedController`, `OrderWordedController`, `ButcherWordedController`
+beside `HarvestWordedController`: each calls only the object and words it
+plainly, so an author has a minimal controller to copy for each.
+
+**D-W15d (build, W15) — a premises' pipe is a process mint, nobody's.**
+`Plumbed.plumbingRun` declares its run `recordMadeBy(null)`; the
+`recordMadeBy` gate admits `Plumbed` beside `Mould`. (The drive found the
+bar's iron run titled to the customer whose order first read the tap.)
+
+**D-W15e (build, W15) — a rag rubs a thing dry.** `Rag` affords
+`dry-rub.yaml`, as `Cloth` does.
+
+**D-W15f (build, W15) — a person's parcel is theirs to give.**
+`TitleTransferController` admits the player a parcel is titled to (by
+identity) before asking the zone; a lot off a plat book has no zone.
+
+**D-W15g (build, W15) — reachability link 5.** `fight assess`'s target
+requires `CombatantMixin`; `rm`'s missing-row refusal says `no-template`.
+
 ## ⭐⭐ Host placement
 
 For every new mixin, field and method: which host carries it, and what
@@ -1950,7 +1986,22 @@ rebase cleanly.
   > 26 stale `greedy` YAML comments and `kermes.yaml`. CLAUDE.md left for the
   > sweep.
 
-### W15 — the drive and the walk
+### W15 — the drive and the walk ✅ done
+
+> **Done.** Master merged in (55 commits: material decomposition,
+> broadcast-ready) — 15 conflicts, resolved to this build's structure with
+> master's change re-applied where the logic now lives (SmeltingFurnace,
+> `Metabolic.dosePlanFor`, the outside survey, `Bonded.canEat`); master's
+> new one-controller `stream` verb split one controller per subcommand.
+> Full suite once (`tools/suite`, 46 min): 56 packages, 3 red tests, all
+> fixed (the reach walk in a sandbox circle, the field census's owner
+> scan, a shopkeeping base no row names). The drive is green on all
+> fourteen steps; five record rows re-recorded on purpose; the walk green
+> on its eight concerns. Ceilings: decisions 633 → 620, mutations 138 →
+> 137, duck 483 → 480, material-kinds 6057 → 6054; mixin-clusters 41 →
+> 44 (master's own three, stated). At the end: tsc 0, lint:family 106/106.
+> Decisions are D-W15a–g below.
+
 
 - `packages/wire/tests/controller-liquidity.dirty.wire.test.ts` carries
   all fourteen steps (W0 wrote the record half; each wave added its
@@ -2562,5 +2613,57 @@ one string greedy over a thing's name and becomes a non-greedy object arg.
 
 ## Drive record
 
-*(appended at build time — the output of the blocking drive's fourteen
-steps, the count, and what each failure was; the soak drive is none.)*
+**W15, 2026-11-10 — after the master merge (`af5ec7e3c`).** Fresh worlds
+(`reset:db`, `WIRE_BOOT=1 WIRE_KEEP_WORLD=1 WIRE_PORT=2013`), two of them:
+step 13 and the re-records each need an unused world, and steps 1–2 spend
+the same panel, carcass, bar and furnace step 13 does. The soak drive is
+none.
+
+**Full suite** (`tools/suite`, once, 46 min): 19,576 passed, 3 failed —
+`lookup.escape` (the W2 reach walk asked a field object for its lid inside
+a sandbox circle and threw), `wiki-spoiler-fields` (W7c's `const raker` /
+`const sweeper` above two `fieldMeta`s re-filed their fields), and
+trade-shopkeeping's pack-rows (`HouseShopControllerBase`). All three fixed.
+
+| step | result | what driving found |
+|---|---|---|
+| 1 | ✅ harvest · smelt · order · butcher under worded replacements equal the record | needed `SmeltWorded`/`OrderWorded`/`ButcherWordedController` (D-W15c) |
+| 2 | ✅ shipped refuses `part-unnamed` with both fields; the asking one prompts; answering = naming the field | — |
+| 3 | ✅ a–g: chat rename `not-owner` · `errors raw` `pm-only` · Tier C `tier-c` (even the PM) · a level-3 line absent from a player's `read`/`history`/`diff` · `job apply hand` refused for gigs · `lock north` refused · `forum post` outside the audience refused | the founder holds no wiki seat (a `/wiki` owner authors); the lounge bartender seat has no criteria |
+| 4 | ✅ open bag found · shut chest `reach:enclosed-shut` · `--top` none · `me:I:` found | the shut refusal is the reach validator's, not a reason |
+| 5 | ✅ in a canoe at the put-in, `look here` ≠ `look me:e` (the canoe) | — |
+| 6 | ✅ `buy padded gambeson` → `bind-failed` + the quote hint; quoted, bought; `say` whole | funding finds the holder online |
+| 7 | ✅ `draught forge medium` lists the five words; `--expires 10` refused; `90m`, `2 hours` taken | D-W15a (press, not stream) |
+| 8 | ✅ `notify set/show/move`; `draught forge low`; `dry … with` / `dry … on` each route; `help` lists them | ⚠ `dry #rag with …` was an unknown shape — fixed (D-W15e) |
+| 9 | ✅ `cockpit layout save list` → `recall list` | — |
+| 10 | ✅ transfusion completes · `search` completes · held-extent teleport arrives | — |
+| 11 | ✅ refused `title buy` moves no coin; a pilot refused for coin tells nothing | the paid pilot path is maritime-space step 21 |
+| 12 | ✅ introduced, the receiver sees the name; a bought lot given, the receiver (by identity) owns it | ⚠ a player could not give a lot they bought — fixed (D-W15f) |
+| 13 | ✅ 78 rows equal the record, five re-recorded (below) | ⚠ `order pint` left the bar's new pipe run titled to the customer — fixed (D-W15d); `rm` refused `unspecified` — fixed |
+| 14 | ✅ a real restart mid-smelt and mid-grind: the furnace's charge became its product, the grind its sacks | — |
+
+**Re-recorded on purpose** (CLIQ_RECORD=1 on a fresh world): `dose`
+(error → `nothing-to-counter`, W7c), `cool` (error → `nothing-to-cool`, W8),
+`cp` (error → `access-denied`, W3), `rm` (`access-denied` → `no-template`,
+W3: the path's existence first), `fell` (the acorn reaches the feller's
+hand — the old controller `void`-ed the drop and the record read first).
+Every other listed row (`unhitch`, `water`, `course`, `mv`, `grep`,
+`mkdir`, `tip`, `label`, `wash`, `char`, `berth`, `mill`, `warm`, `journey`,
+`title.buy`) matched its record unchanged. Two typed lines follow the new
+grammar and still match: `feed … at the "far side"`, `mill … at stones`.
+
+**Every checkpoint made to fail once.** Red for real during the drive: 4,
+6, 8, 10a, 11b, 12, 13 (eight rows), 14a, 14b, 3d, 3e. Broken on purpose
+and watched go red (then restored): 2 (the shipped controller installed
+for the asking one), 3a (the owner renames), 3b (the PM reads), 3c (an
+untiered key), 3f (`look` for `lock`), 3g (the owner posts), 5 (`look
+here` twice), 7 (`draught forge wide`), 9 (an unsaved name), 10b (`look`
+for `search`), 10c (no hop), 11a (a coin deposited mid-step). Step 1
+shares step 13's comparison.
+
+**The walk** (`e2e/tests/controller-liquidity-walk.spec.ts`, against the
+kept world with `CLIENT_URL` and vite on 5183): green on all eight
+concerns. Found: the server's CORS names one client origin, so a walk on
+its own port needs `CLIENT_URL` at boot; and ⚠ OPEN, not this build's — a
+binder prompt sent in a page's first moments reached no chip bar (the
+dispatch waited until the socket closed); after one `look` it shows.
