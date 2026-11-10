@@ -203,6 +203,53 @@ server and repaired after a gap. Nothing on the client is invented. Whether
 the copy also lives on the device between sessions is the plan's
 performance call.
 
+## ⚠⚠ The commitments to scrutinize
+
+The owner reviews this build mostly by seeing it, so the decisions that are
+expensive to reverse are named here, biggest first.
+
+1. **The client knowledge model** ([client-knowledge-model-slate](../slates/builds/client-knowledge-model-slate.md))
+   — the revived *shadow model*. This build makes the client hold a copy of
+   your knowledge, kept current by the server, read only through derived
+   views. ⭐ **It is the largest commitment here and outlives the map:**
+   every later client feature that shows anything beyond the room you stand
+   in — the lenses still to come, the illustrated map's *you are here*, a
+   quest journal, the room view — will read through it. Getting its
+   boundary right (a copy of the server's documents about *you*, never a
+   mirror of the world) is what keeps it honest and small. It is the
+   build's foundation, built first.
+2. **Claims carry where the place is.** A change to what your map records —
+   every writer of knowledge (walking, looking, searching, timetables,
+   charts) records the place's zone, coordinates and level from now on.
+   `route` and `map` read the same claims. Reversing it later means
+   unwriting knowledge players have.
+3. **How the copy travels.** A new kind of push from server to client, or
+   the subscriptions that already push live results. A third push path is a
+   standing cost every later feature pays; reusing one is preferred and the
+   plan must say why if it does not.
+4. **The drawn map.** The client's first real renderer (SVG). The lenses,
+   the illustrated map and the room view will all draw on it, so its shape
+   (one renderer, lenses as overlays on it) is set here.
+5. **A zone-facts read.** The first time the server tells a client about a
+   zone rather than a room — kept to the zone's kind, name and cell size,
+   because anything more (its true extent, its levels) would tell you what
+   you have not explored.
+
+## The order **[DECIDED]**
+
+- **Across builds:** this build first; the movement build (step beat,
+  walking to a place) after controller-liquidity merges; then *your map
+  grows* (trail, notes, freshness).
+- **Within this build:** the knowledge model and claims-with-coordinates
+  first — nothing draws without them — then the map, then the Zone tab and
+  Ways out, then the breadcrumb, then the lenses and legend.
+- ⭐ **Seen early.** The owner gives most of his feedback by looking, so a
+  plain map drawn from **real knowledge on a running world** comes before
+  any polish — the first thing after the foundation — and each later piece
+  lands visible on a running world for review, not only at the end.
+- **Starts after controller-liquidity (!561) merges** — it rewrites the
+  same client and movement files.
+
 ## Lens pass
 
 1. **Pedagogy** — the map teaches what you know versus what is: three tiers,
