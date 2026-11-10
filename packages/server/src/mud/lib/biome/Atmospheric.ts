@@ -1153,7 +1153,7 @@ export function AtmosphericMixin<
     public setWeatherPin(value: WeatherPin | null): void {
       SecurityApi.assertNotFromEval(
         'setWeatherPin',
-        'testharness weather pin <kind>',
+        'testharness weather-pin <kind>',
       );
       this._weatherPin = value;
     }

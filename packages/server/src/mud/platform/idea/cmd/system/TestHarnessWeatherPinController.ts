@@ -1,5 +1,5 @@
 /**
- * TestHarnessWeatherPinController — `testharness weather pin <kind>
+ * TestHarnessWeatherPinController — `testharness weather-pin <kind>
  * [--at <place>] [--alive]` — hold the Locality's weather (over {@link
  * TestHarnessControllerBase}).
  */
@@ -21,7 +21,7 @@ export default class TestHarnessWeatherPinController extends TestHarnessControll
         return this.refuse(
           context,
           TOPIC,
-          'testharness weather pin <kind> — clear, overcast, rain, storm, fog or snow.',
+          'testharness weather-pin <kind> — clear, overcast, rain, storm, fog or snow.',
           'test-usage',
         );
       }
@@ -33,7 +33,7 @@ export default class TestHarnessWeatherPinController extends TestHarnessControll
       TestHarnessControllerBase.say(
         context,
         `The weather over ${r.locality} is held at ${model.value}` +
-          `${model.alive ? ' (alive)' : ''} until \`testharness weather unpin\`.`,
+          `${model.alive ? ' (alive)' : ''} until \`testharness weather-unpin\`.`,
       );
     });
   }

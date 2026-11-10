@@ -64,7 +64,7 @@ export interface CardDefinition {
 **Pinned is the whole lifetime.** An unpinned card ages out of a
 relevance window since it was last touched, and **says so** when it
 goes. A pinned card stays until dismissed. The catalogue declares the
-default; the player overrides in both directions with `cockpit card
+default; the player overrides in both directions with `client-card
 pin | dismiss | auto`.
 
 **Live is opt-in in the catalogue and SCOPED BY ATTENTION at runtime.**
@@ -81,7 +81,7 @@ ROLE holds a subscription; a card that just flows through the feed is a
 snapshot.** `CardState.live` is a per-instance fact —
 `CardRegistry.wantsLive` is `def.live && def.source.kind === 'mql' &&
 (placed || role || pinned)`. A subject card opened by `look` arrives as
-a snapshot with a `takenAt`; `cockpit card place` / `move` / `pin`
+a snapshot with a `takenAt`; `client-card place` / `move` / `pin`
 subscribes it (silently, with its `subjectId`) and sends a
 `card-touched { live: true }` carrying the fresh `result`; `unplace` /
 `unpin` / `auto` cancels the subscription, stamps `takenAt` and sends
@@ -392,7 +392,7 @@ for interactive, card in cardSet:
 
 ⚠ **The client's own husk `setInterval` is deleted.** Two clocks
 disagree, and the one the player cannot see is the one that wins
-arguments. The server owns the window, so `cockpit card list` and the
+arguments. The server owns the window, so `client-card list` and the
 client agree by construction.
 
 ⚠ The cadence is not the window. A coarse sweep (~30 s) with a fine
@@ -617,7 +617,7 @@ from the window's height).
 returns A to the size it had before (`sizeBefore`), and both get a
 `card-arranged`.
 
-### `cockpit card` — the actions
+### `client-card` — the actions
 
 `pin` · `unpin` · `dismiss` · `auto` · `close` · `grow` · `shrink` ·
 `minimize` · `restore` · `move <card> <col> <row>` · `place` · `unplace`,
@@ -634,13 +634,13 @@ a `card-arranged` for every card it changed and re-syncs liveness.
   to the bottom of column 0 (B12); `unplace` returns it to the flow.
 - `minimize` / `restore` toggle the tray — the status bar's right end on
   a desktop, the left drawer on a phone. A tray chip restores by sending
-  `cockpit card restore <card>`.
+  `client-card restore <card>`.
 - **Refusals**, each by name: `unknown-card`; `primary-terminal` (the
   primary cannot be closed or minimized). The `here` room card closes
   and unplaces like any card (2026-11-01; `role-card` is retired).
 
 Every card control on the client sends one of these, and dragging a card
-sends `cockpit card move <card> <col> <row>` — the card moves when the
+sends `client-card move <card> <col> <row>` — the card moves when the
 server's `card-arranged` arrives, never before.
 
 ### ⭐⭐ The `here` role — the room card follows you
@@ -710,7 +710,7 @@ whose payload is `{ kind: 'terminal', filter, barId, primary }`.
   renders its own prompt strip.
 - **The primary is a role.** Every mode has one; it is minted whenever
   none is up on a MODE entry (`openArrangement`, `cockpit mode`,
-  `cockpit layout`) and filtered by the mode's `MODE_PRIMARY_FILTER`
+  `client-layout`) and filtered by the mode's `MODE_PRIMARY_FILTER`
   (chat → the `Chat` view, everything else → all) — a bare re-arrange of
   cards touches no terminal (B15). It opens at `medium` and is never
   closed by a rearrange.
@@ -733,7 +733,7 @@ not printed twice; reaction lines can fold into their chips).
 
 `ArrangementSpec` is `{ cards: ArrangementCard[] }`, and an
 `ArrangementCard` is `{ cardId, size?, placed?, minimized?, pinned?,
-terminal?: { filter, inputMode?, primary? } }`. `cockpit layout save`
+terminal?: { filter, inputMode?, primary? } }`. `client-layout save`
 records each open card's shape and place; `applyArrangement` keeps a card
 that is already up (re-shaping it rather than reopening it), opens the
 rest with their recorded placement, and opens the arrangement's terminals
@@ -1593,7 +1593,7 @@ build was written from exactly that kind of stale table.
   `who`, which is real cost for a list one click refreshes.
 - **A card the player can create.** The catalogue is code; a player's
   *arrangement* (which cards, in what order) is clientState. There is
-  no `cockpit card open <query>` and there must not be — the client
+  no `client-card open <query>` and there must not be — the client
   supplies an identity, never a query.
 - **Multi-card / split view inside one card.** One card, one body.
 - **Persistent pins across reconnects** — for a card about a thing. A
@@ -1602,7 +1602,7 @@ build was written from exactly that kind of stale table.
   statement about a workspace and is durable, and since the
   client-surface build it records each workspace card's `pinned`, size
   and place. Cards stay per-Interactive in memory; a new Interactive
-  gets the active arrangement and nothing else, so `cockpit layout save`
+  gets the active arrangement and nothing else, so `client-layout save`
   is the player's answer for keeping a workspace.
 - **Animated card transitions.**
 - **Per-fact revelation gating beyond visible.** Each property is
@@ -1633,7 +1633,7 @@ a test on the path that has it passes.**
 
 1. ⚠⚠ **Two cards of one kind rendered the SAME pin command.** `who`
    and `who --here` are different commands, so different cards — but
-   both controls read `cockpit card pin who`, and the server resolved
+   both controls read `client-card pin who`, and the server resolved
    the catalogue name first and acted on whichever it found. **Two
    controls, identical labels, acting on one thing.** Fixed by making
    the card's ref its KEY (quoted when it contains whitespace, or
@@ -1900,7 +1900,7 @@ moved, all recorded above where it now lives:
   No placed-card cap (B1).
 - **Shape and place are server state** — `size` / `sizeBefore` /
   `placed` (units) / `minimized` / `role` on `CardState`, the
-  `card-arranged` envelope, and `cockpit card` growing `close`, `grow`,
+  `card-arranged` envelope, and `client-card` growing `close`, `grow`,
   `shrink`, `minimize`, `restore`, `move`, `place`, `unplace` and
   `unpin` through one `arrange` door.
 - **Subject cards are keyed on the subject while open** (#50) and the

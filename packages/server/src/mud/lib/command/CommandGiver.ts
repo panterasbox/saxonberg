@@ -1750,9 +1750,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // Controller resolution stays synchronous — a subcommand with no
       // resolvable controller rejects here, never detaching a phantom
       // body (and its envelope fires the normal sync way).
-      // ⭐ Nested subcommands resolve by PATH, the deepest stanza that
-      // names a controller winning (controller-liquidity D2).
-      const sub = command.subcommandKey(model);
+      const sub = model.subcommand;
       const controllerPath = sub
         ? command.controllerForSubcommand(sub)
         : command.resolvedController;

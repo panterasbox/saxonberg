@@ -1,5 +1,5 @@
 /**
- * TestHarnessClockAdvanceController — `testharness clock advance <dur>` —
+ * TestHarnessClockAdvanceController — `testharness clock-advance <dur>` —
  * move the clock, one token (30m, 2h, 1d), a day at most (over {@link
  * TestHarnessControllerBase}).
  */
@@ -28,7 +28,7 @@ export default class TestHarnessClockAdvanceController extends TestHarnessContro
           context,
           TOPIC,
           'testharness clock: read it with `testharness clock`, or move it with ' +
-            '`testharness clock advance <dur>` (30m, 2h, 1d).',
+            '`testharness clock-advance <dur>` (30m, 2h, 1d).',
           'test-usage',
         );
       }

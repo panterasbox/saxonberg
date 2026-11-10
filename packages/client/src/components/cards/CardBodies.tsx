@@ -1138,7 +1138,7 @@ export function CardBody(props: CardBodyProps): React.ReactElement {
     return (
       <SettingsPanel
         onSendCommand={props.onSendCommand}
-        onClose={() => props.onSendCommand('cockpit card close settings')}
+        onClose={() => props.onSendCommand('client-card close settings')}
       />
     );
   }

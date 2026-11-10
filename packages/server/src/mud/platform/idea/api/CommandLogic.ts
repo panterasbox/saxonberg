@@ -68,7 +68,6 @@ import {
   collectPhaseEffects,
   validatePhaseEffect,
   SUBCOMMAND_FIELD,
-  SUBCOMMAND_PATH_FIELD,
   HOOKABLE_PHASES,
   IMPLEMENTED_REPLACE_HANDLERS,
   type ExecuteCommandOpts,
@@ -1103,64 +1102,43 @@ export class CommandLogic extends ApiLogic {
       i = r.nextIndex;
     }
 
-    // Phase 2: subcommand words (if the verb has them), walked while they
-    // match — ⭐ nested stanzas (controller-liquidity D2). Options between
-    // the words bind lexically at the level reached so far.
-    const path: string[] = [];
+    // Phase 2: the subcommand word (if the verb has them). ⛔ ONE level:
+    // a command is `verb target` or `verb subcommand target`, never
+    // deeper (owner rule 2026-11-10 — the nested walk of controller-
+    // liquidity W1 was reversed in W16).
+    let subcommand: string | undefined;
     let scope: 'verb' | string = 'verb';
-    // The node the walk stopped at — the verb, or the deepest stanza.
+    // The node the bind targets — the verb, or the matched stanza.
     let nodeArgs: PositionalDefinition[] = command.args;
-    let nodeSubs: Record<string, SubcommandDefinition> = command.subcommands;
-    let nodeFallthrough = command.fallthrough;
     // Phase 3a fallthrough bookkeeping. When set, Phase 4 binds against
-    // the node's `args` instead of erroring; `fallthroughCandidate`
+    // the verb's `args` instead of erroring; `fallthroughCandidate`
     // surfaces in the unknown-subcommand error if Phase 4 bind fails.
     let fallthroughActive = false;
     let fallthroughCandidate: string | undefined;
-    while (Object.keys(nodeSubs).length > 0 && i < tokens.length && !stopped) {
+    if (command.hasSubcommands() && i < tokens.length && !stopped) {
       const t = tokens[i]!;
-      if (t.kind === 'stop-options') {
-        stopped = true;
-        i++;
-        break;
-      }
-      if (t.kind !== 'word') {
-        if (path.length === 0) break; // Phase 1 already bound the verb's.
-        if (reserved(t)) {
+      if (t.kind === 'word') {
+        const sDef = command.getSubcommand(t.value);
+        if (sDef) {
+          subcommand = t.value;
+          scope = t.value;
+          nodeArgs = sDef.args ?? [];
           i++;
-          continue;
+        } else if (command.fallthrough && command.args.length > 0) {
+          // Phase 3a: opt-in fallthrough. Don't consume the token —
+          // leave it for Phase 3 to collect as a positional. Remember
+          // it for the bind-failure → unknown-subcommand error surface.
+          fallthroughActive = true;
+          fallthroughCandidate = t.value;
+        } else {
+          return {
+            error: 'unknown-subcommand',
+            subcommand: t.value,
+            available: command.getSubcommandNames(),
+          };
         }
-        const r = bindOptionToken(command, scope, tokens, i, fields);
-        if (!r.ok) return { error: 'bind', summary: r.summary };
-        i = r.nextIndex;
-        continue;
       }
-      const sDef = nodeSubs[t.value];
-      if (sDef) {
-        path.push(t.value);
-        scope = path.join(' ');
-        nodeArgs = sDef.args ?? [];
-        nodeSubs = sDef.subcommands ?? {};
-        nodeFallthrough = sDef.fallthrough === true;
-        i++;
-        continue;
-      }
-      if (nodeFallthrough && nodeArgs.length > 0) {
-        // Phase 3a: opt-in fallthrough. Don't consume the token —
-        // leave it for Phase 3 to collect as a positional. Remember
-        // it for the bind-failure → unknown-subcommand error surface.
-        fallthroughActive = true;
-        fallthroughCandidate = t.value;
-        break;
-      }
-      // ⭐ The valid words AT THIS LEVEL, not the verb's.
-      return {
-        error: 'unknown-subcommand',
-        subcommand: path.length > 0 ? `${path.join(' ')} ${t.value}` : t.value,
-        available: Object.keys(nodeSubs),
-      };
     }
-    const subcommand = path.length > 0 ? path[path.length - 1] : undefined;
 
     // Phase 3: collect positionals / bind sub-scope options.
     const positionals: WordToken[] = [];
@@ -1204,10 +1182,10 @@ export class CommandLogic extends ApiLogic {
         ? bindWithSource(ps, args, p, ex, exDefault, opts.scopeSource, ctx.commandGiver)
         : bindPositionalsImpl(ps, args, p, ex, exDefault);
     let prep: Record<string, string> = {};
-    const nodeHasSubs = Object.keys(nodeSubs).length > 0;
+    const nodeHasSubs = subcommand === undefined && command.hasSubcommands();
     if (fallthroughActive) {
-      // Phase 3a — the node opted into fallthrough. Bind the un-consumed
-      // candidate + remaining tokens against the node's args. On
+      // Phase 3a — the verb opted into fallthrough. Bind the un-consumed
+      // candidate + remaining tokens against the verb's args. On
       // bind failure, surface the ORIGINAL unknown-subcommand error
       // pointing at the candidate — the slate's required behavior.
       const r = bindPositionals(positionals, nodeArgs, parsed, expand, expandDefault);
@@ -1215,27 +1193,27 @@ export class CommandLogic extends ApiLogic {
         return {
           error: 'unknown-subcommand',
           subcommand: fallthroughCandidate ?? '',
-          available: Object.keys(nodeSubs),
+          available: command.getSubcommandNames(),
         };
       }
       Object.assign(fields, r.bound);
       prep = r.prep;
-    } else if (nodeHasSubs && !(nodeFallthrough && nodeArgs.length > 0)) {
-      // A node with subcommands and no word for one — still legal; the
-      // controller decides what `model.subcommand` (absent, or the
-      // enclosing word) means. Leftover positionals fail shape.
+    } else if (nodeHasSubs && !(command.fallthrough && command.args.length > 0)) {
+      // A subcommanded verb with no word for one — still legal; the
+      // controller decides what an absent `model.subcommand` means.
+      // Leftover positionals fail shape.
       if (positionals.length > 0) {
         return {
           error: 'shape',
-          summary: `${[command.getPrimaryVerb(), ...path].join(' ')} requires a subcommand. Use: ${command.getUsage()}`,
+          summary: `${command.getPrimaryVerb()} requires a subcommand. Use: ${command.getUsage()}`,
         };
       }
     } else {
-      // ⭐⭐ A leaf stanza, a flat verb, or a fallthrough node with no
-      // word to fall through WITH — the fire drive is why the last one
+      // ⭐⭐ A stanza, a flat verb, or a fallthrough verb with no word
+      // to fall through WITH — the fire drive is why the last one
       // binds: a bare `draught` reached the subcommand branch and bound
       // nothing at all, not even its top-level args' `default:`. The
-      // node opted into the flat path; with no subcommand matched it
+      // verb opted into the flat path; with no subcommand matched it
       // owns the invocation, and binding an empty positional list
       // against its args is exactly how a defaulted slot gets filled.
       const r = bindPositionals(positionals, nodeArgs, parsed, expand, expandDefault);
@@ -1247,11 +1225,8 @@ export class CommandLogic extends ApiLogic {
     // Apply option defaults that didn't fire.
     applyOptionDefaults(command.verbOptions, fields);
     if (subcommand !== undefined) {
-      for (const st of command.getSubcommandChain(path) ?? []) {
-        applyOptionDefaults(st.options ?? {}, fields);
-      }
+      applyOptionDefaults(command.getSubcommandOptions(subcommand), fields);
       fields[SUBCOMMAND_FIELD] = subcommand;
-      fields[SUBCOMMAND_PATH_FIELD] = [...path];
     }
 
     const out: AssembleSuccess = { model: fields };
@@ -1294,15 +1269,12 @@ export class CommandLogic extends ApiLogic {
     applyOptionDefaults(command.verbOptions, fields);
     applyOptionDefaults(command.payload, fields);
     if (payload.subcommand) {
-      // ⭐ A nested stanza is named by its path (`layout save`).
-      const chain = command.getSubcommandChain(payload.subcommand);
-      if (!chain || chain.length === 0) {
+      const subDef = command.getSubcommand(payload.subcommand);
+      if (!subDef) {
         return { error: `unknown subcommand: ${payload.subcommand}` };
       }
-      for (const st of chain) applyOptionDefaults(st.options ?? {}, fields);
-      const words = payload.subcommand.split(/\s+/).filter((w) => w.length > 0);
-      fields[SUBCOMMAND_FIELD] = words[words.length - 1]!;
-      fields[SUBCOMMAND_PATH_FIELD] = words;
+      applyOptionDefaults(subDef.options ?? {}, fields);
+      fields[SUBCOMMAND_FIELD] = payload.subcommand;
     }
 
     // Required-payload check: structured-form-only fields with
@@ -1326,7 +1298,7 @@ export class CommandLogic extends ApiLogic {
     fields: Record<string, unknown>,
     command: CommandDefinition,
   ): void {
-    const subcommand = command.subcommandKey(model);
+    const subcommand = model.subcommand;
     for (const [k, v] of Object.entries(fields)) {
       // Structural narrowness: `fields` may ONLY reach the command's
       // `payload:`-block fields (structured-only) or a designated body
@@ -1416,13 +1388,9 @@ export class CommandLogic extends ApiLogic {
       }
     };
 
-    // ⭐ The model's own path wins over a caller's leaf-word hint (nested).
-    subcommand = command.subcommandKey(resolved) ?? subcommand;
     collectCmd(command._resolvedValidators);
     if (subcommand) {
-      for (const st of command.getSubcommandChain(subcommand) ?? []) {
-        collectCmd(st._resolvedValidators);
-      }
+      collectCmd(command.getSubcommand(subcommand)?._resolvedValidators);
     }
     const fieldDefs = collectActiveFieldDefs(subcommand, command);
     for (const [fname, def] of Object.entries(fieldDefs)) {
@@ -1582,7 +1550,7 @@ export class CommandLogic extends ApiLogic {
     opts: ResolveModelOptions = {}
   ): Promise<{ resolved: CommandModel; result?: undefined } | { result: 'failed' }> {
     const command = context.command;
-    const subcommand = command.subcommandKey(model);
+    const subcommand = model.subcommand;
     const fieldDefs = collectActiveFieldDefs(subcommand, command);
     const resolved: ModelData = { ...model };
 
@@ -2026,7 +1994,7 @@ export class CommandLogic extends ApiLogic {
     preloads?: ValidatorPreloads,
   ): { ok: true; result?: undefined } | { result: 'failed' } {
     const command = context.command;
-    const subcommand = command.subcommandKey(resolved);
+    const subcommand = resolved.subcommand;
     const fieldDefs = collectActiveFieldDefs(subcommand, command);
 
     // Verb-level validators run BEFORE field validators. They guard
@@ -2054,8 +2022,8 @@ export class CommandLogic extends ApiLogic {
     // scoped to the invoked subcommand). They let one subcommand carry
     // an authority gate the verb's other subcommands don't — e.g. a
     // founder-only `assign` under a verb whose bare roster is public.
-    for (const st of subcommand ? command.getSubcommandChain(subcommand) ?? [] : []) {
-      const subValidators = st._resolvedValidators;
+    if (subcommand) {
+      const subValidators = command.getSubcommand(subcommand)?._resolvedValidators;
       if (subValidators) {
         for (const v of subValidators) {
           const err = v(
@@ -2158,7 +2126,7 @@ export class CommandLogic extends ApiLogic {
   ): Promise<{ resolved: CommandModel; result?: undefined } | { result: 'failed' }> {
     const resolved = await this.resolveModel(model, context, prep);
     if ('result' in resolved) return resolved;
-    const subcommand = context.command.subcommandKey(resolved.resolved);
+    const subcommand = resolved.resolved.subcommand;
     const preloads = await this.preloadValidatorDeps(
       context.command,
       context,
@@ -2337,7 +2305,7 @@ const OBJECT_FIELD_TYPES = new Set(['object', 'objects']);
  * ⭐ The exact command an affordance stands for (#91): the verb and the
  * target by `#id` — never a word, which could quietly resolve to some
  * other thing in reach. The client sends it only when the player asked
- * to skip the question (`cockpit style links ids`); by default a click
+ * to skip the question (`client-style links ids`); by default a click
  * sends the verb alone and the dispatcher asks "Ring what?".
  *
  * Only when the bound field is the verb's FIRST positional: a target in

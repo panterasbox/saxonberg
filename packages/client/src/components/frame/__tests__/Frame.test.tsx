@@ -69,7 +69,7 @@ describe('Frame', () => {
    * from the state a player could actually reach. They are not rows
    * with a protection rule — they are not shelf rows at all, which is a
    * stronger guarantee than a rule somebody could edit away. (The verb
-   * side of the same claim: `cockpit shelf unpin identity` is refused by
+   * side of the same claim: `client-shelf unpin identity` is refused by
    * the binder — `row` is a `values:` slot — see `cockpit-shelf.test.ts`.)
    */
   it('⭐ identity and connection survive an EMPTY shelf', () => {

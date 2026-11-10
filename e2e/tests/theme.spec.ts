@@ -4,7 +4,7 @@ import { openWorldAs, runCommand } from './helpers';
 /**
  * > AC: *theme switching is verified by **driving a browser** — all
  * > three themes, chrome and transcript — not by the suite alone.
- * > Controller tests skip the binder, so `cockpit style theme` is
+ * > Controller tests skip the binder, so `client-style theme` is
  * > exercised as a typed command against a running server.*
  *
  * ⭐ This spec exists because the unit suite **structurally cannot**
@@ -16,7 +16,7 @@ import { openWorldAs, runCommand } from './helpers';
  * end to end — server verb → overlay → push → store → `useGround` →
  * `:root` → a painted pixel.
  *
- * It also covers the other half of the criterion: `cockpit style theme`
+ * It also covers the other half of the criterion: `client-style theme`
  * as a **typed command against a running server**. The controller tests
  * call `execute()` directly and skip the command binder entirely, so
  * they cannot catch a YAML view whose slots don't match the controller.
@@ -55,7 +55,7 @@ test('all three themes repaint chrome and transcript, with no reconnect', async 
     await expect(transcript).toBeVisible({ timeout: 20_000 });
 
     for (const name of ['ink', 'marble', 'high-contrast'] as const) {
-      await runCommand(page, `cockpit style theme ${name}`);
+      await runCommand(page, `client-style theme ${name}`);
 
       // 1. Chrome repainted — the custom property really landed on
       //    :root, resolved by a real cascade rather than a jsdom stub.
@@ -111,7 +111,7 @@ test('high-contrast: no chrome control is unreadable against its own field', asy
   // is what this build owns — world prose carries author colour.
   const { page, close } = await openWorldAs(browser, 'theme-contrast');
   try {
-    await runCommand(page, 'cockpit style theme high-contrast');
+    await runCommand(page, 'client-style theme high-contrast');
     await expect
       .poll(() => customProperty(page, '--sx-ground'), { timeout: 10_000 })
       .toBe(GROUNDS['high-contrast']);
@@ -161,17 +161,17 @@ test('high-contrast: no chrome control is unreadable against its own field', asy
   }
 });
 
-test('`cockpit style theme default` refuses, naming the three known themes', async ({
+test('`client-style theme default` refuses, naming the three known themes', async ({
   browser,
 }) => {
   const { page, close } = await openWorldAs(browser, 'theme-refuse');
   try {
-    await runCommand(page, 'cockpit style theme marble');
+    await runCommand(page, 'client-style theme marble');
     await expect
       .poll(() => customProperty(page, '--sx-ground'), { timeout: 10_000 })
       .toBe(GROUNDS.marble);
 
-    await runCommand(page, 'cockpit style theme default');
+    await runCommand(page, 'client-style theme default');
 
     // The refusal reaches the player in the machine voice and says what
     // WOULD have worked — "commands refuse honestly" is a convention,

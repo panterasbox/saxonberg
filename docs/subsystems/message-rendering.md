@@ -467,7 +467,7 @@ Three themes ship, registered in `themes/index.ts`:
 ⚠ **`default` is retired and NOT aliased.** It stopped naming anything
 the moment there were two grounds — the design doc calls the dark ground
 Ink and so does the verb. `pickTheme('default')` falls through to Ink
-like any other unknown string, and `cockpit style theme default` refuses
+like any other unknown string, and `client-style theme default` refuses
 outright. (The S2 precedent: no playerbase to protect, the demo wipes
 nightly, and an alias keeps a dead vocabulary alive for nobody.)
 
@@ -856,23 +856,23 @@ categories are:
 shape is **bounded** — the engine recognizes a fixed set of keys; no
 `position`, no `z-index`, no global escape hatches.
 
-### `cockpit style`
+### `client-style`
 
 The `Style*Controller`s (`mud/platform/idea/cmd/shell/`, over
-`StyleControllerBase`, one per nested stanza) are the player's surface for
+`ClientStyleControllerBase`, one per nested stanza) are the player's surface for
 editing the overlay. Settings:
 
 | Usage | Effect |
 |---|---|
-| `cockpit style show` | Print current overlay as readable JSON |
-| `cockpit style theme <name>` | `ink` \| `marble` \| `high-contrast` |
-| `cockpit style channel <key> color <value>` | Per-channel chip color |
-| `cockpit style channel <key> clear` | Drop all overlay rules for the channel |
-| `cockpit style mention self on\|off` | Own-name highlight toggle |
-| `cockpit style plain on\|off` | Global plain-mode toggle |
-| `cockpit style plain channel <key> on\|off` | Per-channel plain-mode |
-| `cockpit style links words\|ids` | What a click names its target by |
-| `cockpit style reset` | Clear overlay to `{}` |
+| `client-style show` | Print current overlay as readable JSON |
+| `client-style theme <name>` | `ink` \| `marble` \| `high-contrast` |
+| `client-style channel <key> color <value>` | Per-channel chip color |
+| `client-style channel <key> clear` | Drop all overlay rules for the channel |
+| `client-style mention on\|off` | Own-name highlight toggle |
+| `client-style plain on\|off` | Global plain-mode toggle |
+| `client-style plain-channel <key> on\|off` | Per-channel plain-mode |
+| `client-style links words\|ids` | What a click names its target by |
+| `client-style reset` | Clear overlay to `{}` |
 
 ⚠ **`style` was a standalone verb and is not any more.** It was absorbed
 into the one `cockpit` verb along with `layout` and `mode`, because all
@@ -882,7 +882,7 @@ thing.
 
 ⭐ The settings above ARE nested subcommands (controller-liquidity W7b —
 see [cockpit.md](./cockpit.md)); every closed word is a `values:` slot,
-so `cockpit style bogus` or `cockpit style theme default` is refused by
+so `client-style bogus` or `client-style theme default` is refused by
 the binder, naming the set, before any controller runs.
 
 The verb travels with

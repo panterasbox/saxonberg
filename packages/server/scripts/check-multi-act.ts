@@ -44,9 +44,9 @@
  *     off the wearer; one act per subcommand controller.
  *   - `LookController` (target-kind) — a read whose arms call reads the
  *     READ_NAME regex does not know (`readScreen`, `chattelOwner`).
- *   - `StyleChannelController` (arg-word) — `channel <key> color|clear`:
+ *   - `ClientStyleChannelController` (arg-word) — `channel <key> color|clear`:
  *     the second word comes AFTER an argument, so no stanza can carry it,
- *     and the owner's read promised `cockpit style` unchanged (W7b).
+ *     and the owner's read promised `client-style` unchanged (W7b).
  */
 
 import { readFileSync } from "fs";

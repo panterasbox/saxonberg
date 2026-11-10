@@ -25,7 +25,7 @@
  *
  * ## ⚠ The pin sends a command
  *
- * `cockpit card pin <id>` / `dismiss` / `auto`, dispatched through the
+ * `client-card pin <id>` / `dismiss` / `auto`, dispatched through the
  * ordinary affordance path, previewing exactly what it sends. Not a
  * local toggle: the card set is server-authoritative, so a local pin
  * would show the player a state the server had refused, and it would
@@ -212,13 +212,13 @@ const CutNote = styled.button`
  *
  * Two `who` cards can be open at once (`who` and `who --here` are
  * different commands, so they are different cards). Keyed on `cardId`,
- * both rendered `cockpit card pin who` and the server acted on
+ * both rendered `client-card pin who` and the server acted on
  * whichever it found first: **two controls, identical labels, acting on
  * one thing.** A control that does not act on the card it is on is
  * worse than a missing one.
  *
  * The key is quoted when it contains whitespace, because
- * `cockpit card pin who --here` would bind `--here` as an option of
+ * `client-card pin who --here` would bind `--here` as an option of
  * `cockpit` rather than as part of the name.
  */
 function cardRef(card: CardState): string {
@@ -238,9 +238,9 @@ function cardRef(card: CardState): string {
 function pinAction(card: CardState): { command: string; label: string } {
   const ref = cardRef(card);
   if (card.pinned) {
-    return { command: `cockpit card unpin ${ref}`, label: "⚲" };
+    return { command: `client-card unpin ${ref}`, label: "⚲" };
   }
-  return { command: `cockpit card pin ${ref}`, label: "⚲" };
+  return { command: `client-card pin ${ref}`, label: "⚲" };
 }
 
 /** `taken 14:32` — short, local, and never a duration. */
@@ -271,12 +271,12 @@ export function Card({
   const { command, label } = pinAction(card);
   const faded = card.closed !== undefined;
   const ref = cardRef(card);
-  // ⭐ Every control is a real `cockpit card` command (client-surface D8);
+  // ⭐ Every control is a real `client-card` command (client-surface D8);
   // the status bar previews it. A husk has no server card left, so its
   // close is the trail's own.
-  const close = `cockpit card close ${ref}`;
-  const grow = `cockpit card grow ${ref}`;
-  const shrink = `cockpit card shrink ${ref}`;
+  const close = `client-card close ${ref}`;
+  const grow = `client-card grow ${ref}`;
+  const shrink = `client-card shrink ${ref}`;
   const size = card.size ?? "unit";
   const dropCard = useStore((s) => s.dropCard);
   const bodyRef = React.useRef<HTMLDivElement>(null);
@@ -333,7 +333,7 @@ export function Card({
         draggable={!faded}
         onDragStart={(e) => {
           // Drag is INSERTION: the drop target turns this into
-          // `cockpit card move <card> <col> <row>`.
+          // `client-card move <card> <col> <row>`.
           e.dataTransfer.setData("application/x-saxonberg-card", ref);
           // The grid reorders by instance — the client's own order.
           e.dataTransfer.setData("application/x-saxonberg-card-id", card.instanceId);
@@ -388,7 +388,7 @@ export function Card({
           ⭐ Four controls, the owner's: BIGGER and SMALLER walk one ladder
           — tray ← card ← medium ← maximized — so there is no separate
           minimize with rules of its own; smaller from a plain card puts
-          it in the tray. Then pin and close. Each is a real `cockpit card`
+          it in the tray. Then pin and close. Each is a real `client-card`
           command the status bar previews. Bigger stays in place, dimmed,
           at the top of the ladder, so the buttons never shuffle.
         */}

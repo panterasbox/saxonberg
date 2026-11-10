@@ -153,7 +153,7 @@ interface StatusBarProps {
 export function StatusBar({ onCommandClick, onCommandPreview }: StatusBarProps = {}): JSX.Element {
   // ⭐ The tray: minimized cards, restored by a real command whose text
   // the bar previews (client-surface D8). The system never puts a card
-  // here — only `cockpit card minimize` does.
+  // here — only `client-card minimize` does.
   const cards = useStore((s) => s.cards);
   const tray = Object.values(cards).filter((c) => c.minimized && !c.closed);
   const ghostPreview = useStore((s) => s.ghostPreview);
@@ -191,7 +191,7 @@ export function StatusBar({ onCommandClick, onCommandPreview }: StatusBarProps =
       {onCommandClick ? (
         <Tray data-testid="tray" aria-label="minimized cards">
           {tray.map((c) => {
-            const cmd = `cockpit card restore ${quoteKey(c.key)}`;
+            const cmd = `client-card restore ${quoteKey(c.key)}`;
             return (
               <TrayIcon
                 key={c.instanceId}

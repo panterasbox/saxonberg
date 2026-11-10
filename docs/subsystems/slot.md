@@ -186,7 +186,7 @@ the `Chair`/`sit` posture-slot side this gates.
 `isSlotFull(slot)` returns `count >= capacity`. `isSlotOccupied`
 returns `count > 0`.
 
-## ⭐ The wardrobe — `equip set`, and zero verbs of its own
+## ⭐ The wardrobe — `outfit wear`, and zero verbs of its own
 
 `WardrobeMixin` (`lib/slot/Wardrobe.ts`, composed by `Avatar`) holds
 named outfits as `wardrobes: Record<string, string[]>` — a set name to
@@ -213,17 +213,19 @@ innermost-first — so a saved set never trips the covering ladder's
 refusal. ⚠ **Failures are per-item and non-fatal**: a dressing mistake
 has to be survivable and readable, and that starts here.
 
-### ⚠ It is a STANZA, not a verb
+### ⭐ It is a VERB: `outfit`
 
-`equip set <name>` (with the nested `equip set save <name>`) and `equip sets` are `subcommands:`
-on `cmd/inventory/equip.yaml`, alongside its existing `args:` — the
-`measure strike` precedent, second instance. `fallthrough: true` is what
-keeps bare `equip <item>` working once the verb has subcommands: an
-unrecognised first token binds against `args:` instead of erroring.
+`outfit wear <name>`, `outfit save <name>` and `outfit list` (bare
+`outfit` lists) are the three subcommands of `cmd/inventory/outfit.yaml`,
+afforded to the body by `WardrobeMixin` itself (`self`) — an outfit is
+kept whether or not anything wearable is carried.
 
-⚠ It shipped as `wear set` and **moved to `equip` on the same branch**,
-when the orchestrator landed. The stanza is unchanged; it simply rides
-the verb that owns getting your whole kit on. See
+⚠ It shipped as `wear set`, **moved to `equip`** when the orchestrator
+landed (`equip set <name>`, `equip sets`), grew a nested `equip set save
+<name>` in controller-liquidity W7b, and became its own verb in W16 when
+the owner ruled that a command is `verb subcommand target`, never deeper.
+`outfit` is a plain word, not a compound, because putting clothes on is
+an act in the world (command-spec.md § Depth). See
 equip-slate.md *(slate retired 2026-09-06 — fully absorbed)*.
 
 ⚠ **The requirement said *"`dress` is not taken"* and that premise was

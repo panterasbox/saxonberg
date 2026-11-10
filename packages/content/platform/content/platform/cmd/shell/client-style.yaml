@@ -1,0 +1,110 @@
+# ⭐ A NON-DIEGETIC verb, so its name is a hyphenated compound
+# (controller-liquidity W16, owner rule 2026-11-10): what was `cockpit
+# style <sub>` is its own verb, because a command is `verb target` or `verb
+# subcommand target`, never deeper. Every `client-…` verb reaches the
+# interpreter un-prefixed from a scoped bar. The two forms that were a
+# third level flattened: `mention self on|off` → `mention on|off` (self was
+# the only word), `plain channel <key> on|off` → `plain-channel <key>
+# on|off` (a compound subcommand word, the non-diegetic rule again).
+verbs: [client-style]
+category: shell
+controller: /platform/idea/cmd/shell/ClientStyleShowController
+description: "Customize cockpit appearance: theme, per-channel color, plain mode, mention prefs."
+help: |
+  Tune how the cockpit looks and reads. `client-style` collects every
+  visual preference — your overall theme, the color a given chat channel
+  shows in, whether your own name gets highlighted, and whether output
+  drops to plain unstyled text.
+
+  Each preference has its own form:
+
+    client-style show                        print the current overlay
+    client-style theme <ink|marble|high-contrast>
+    client-style channel <key> color <value>
+    client-style channel <key> clear
+    client-style mention <on|off>            highlight your own name
+    client-style plain <on|off>
+    client-style plain-channel <key> <on|off>
+    client-style links <words|ids>           what a click names its target by
+    client-style reset                       wipe the overlay
+
+  Bare `client-style` is the same as `client-style show`. Use
+  `client-style reset` to wipe your overlay back to defaults if you've
+  tangled things up.
+validators:
+  - /lib/command/validators/requiresHasInteractive
+examples:
+  - cmd: client-style show
+    note: Print every style choice currently in effect
+  - cmd: client-style theme marble
+    note: Switch to the Marble (light) ground
+  - cmd: client-style channel gossip color blue
+    note: Tint the gossip channel blue
+  - cmd: client-style plain-channel gossip on
+    note: Drop just the gossip channel to plain text
+# Every closed word is a `values:` slot. `channel <key> color|clear` is the
+# one form whose word follows an argument, so it is a slot, not a stanza.
+subcommands:
+  show:
+    controller: /platform/idea/cmd/shell/ClientStyleShowController
+    description: "Print the current overlay"
+  theme:
+    controller: /platform/idea/cmd/shell/ClientStyleThemeController
+    description: "Switch the ground: ink | marble | high-contrast"
+    args:
+      - name: theme
+        type: string
+        required: true
+        values: [ink, marble, high-contrast]
+  channel:
+    controller: /platform/idea/cmd/shell/ClientStyleChannelController
+    description: "Tint a channel (`color <value>`) or drop its rules (`clear`)"
+    args:
+      - name: key
+        type: string
+        required: true
+      - name: action
+        type: string
+        required: true
+        values: [color, clear]
+      - name: value
+        type: string
+        required: false
+  mention:
+    controller: /platform/idea/cmd/shell/ClientStyleMentionController
+    description: "Highlight your own name: on | off"
+    args:
+      - name: state
+        type: string
+        required: true
+        values: &onOff [on, off]
+  plain:
+    controller: /platform/idea/cmd/shell/ClientStylePlainController
+    description: "Plain unstyled output: on | off"
+    args:
+      - name: state
+        type: string
+        required: true
+        values: *onOff
+  plain-channel:
+    controller: /platform/idea/cmd/shell/ClientStylePlainChannelController
+    description: "One channel in plain mode: on | off"
+    args:
+      - name: key
+        type: string
+        required: true
+      - name: state
+        type: string
+        required: true
+        values: *onOff
+  links:
+    controller: /platform/idea/cmd/shell/ClientStyleLinksController
+    description: "What a click names its target by: words | ids"
+    args:
+      - name: choice
+        type: string
+        required: true
+        values: [words, ids]
+  reset:
+    controller: /platform/idea/cmd/shell/ClientStyleResetController
+    description: "Wipe the overlay back to defaults"

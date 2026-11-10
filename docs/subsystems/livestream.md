@@ -142,10 +142,14 @@ browser source: no code.
 
 `start [in <dur>]` · `live` · `away <reason> [<dur>]` / `away <dur>` ·
 `back` · `end` · `off` · `segment <title>` · `agenda <a, b, …>` / `agenda
-clear` · `next` · `rotation pin|skip <panel>` / `rotation clear` ·
-`channel <twitch|youtube|kick> [<handle>]` · `token [--control]`, one controller per
-subcommand over `StreamControllerBase` (controller-liquidity D13, at
-the merge with broadcast-ready). Bare
+clear` · `next` · `channel <twitch|youtube|kick> [<handle>]` · `token
+[--control]`, one controller per subcommand over `StreamControllerBase`
+(controller-liquidity D13, at the merge with broadcast-ready). The lower
+third is steered by its own verb, **`stream-rotation pin|skip <panel>` /
+`stream-rotation clear`** — a non-diegetic compound name, because a
+command is `verb subcommand target`, never deeper (controller-liquidity
+W16; it was `stream rotation …`). `BroadcastMixin` affords both, and
+both are gated `requiresStreamer`. Bare
 `stream` prints the phase and opens the controls card (`opens_card:
 stream`). Shipped reasons: `bathroom` 5m, `food` 15m, `water` 3m,
 `privacy` (no timer, ever), `technical` (no timer), `generic` (what a

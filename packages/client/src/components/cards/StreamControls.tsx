@@ -266,11 +266,11 @@ export function StreamControls({
         <Heading>Lower third</Heading>
         {rotationNote && <Muted>{rotationNote}</Muted>}
         <Row>
-          {ROTATION_KEYS.map((k) => control(`pin ${k}`, `stream rotation pin ${k}`))}
+          {ROTATION_KEYS.map((k) => control(`pin ${k}`, `stream-rotation pin ${k}`))}
         </Row>
         <Row>
-          {ROTATION_KEYS.map((k) => control(`skip ${k}`, `stream rotation skip ${k}`))}
-          {control("clear", "stream rotation clear")}
+          {ROTATION_KEYS.map((k) => control(`skip ${k}`, `stream-rotation skip ${k}`))}
+          {control("clear", "stream-rotation clear")}
         </Row>
       </div>
 

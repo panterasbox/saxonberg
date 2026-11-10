@@ -1,5 +1,5 @@
 /**
- * StreamRotationClearController — `stream rotation clear`: steer
+ * StreamRotationClearController — `stream-rotation clear`: steer
  * the lower third (over {@link StreamControllerBase}).
  */
 

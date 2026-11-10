@@ -30,7 +30,7 @@ help: |
   while you do it; your voice is not.
 
   ⭐⭐ To get a whole kit on without working out the order yourself, use
-  `equip` — it dresses you innermost-first, and `equip set <name>` puts
+  `equip` — it dresses you innermost-first, and `outfit wear <name>` puts
   back an outfit you saved.
 validators:
   - /lib/command/validators/requiresAnimate

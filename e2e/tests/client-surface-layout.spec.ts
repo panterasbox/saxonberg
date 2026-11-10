@@ -84,7 +84,7 @@ test.describe('client-surface layout (rem tiers, rail, feed/workspace)', () => {
       await collapsePanel(page);
       // The first command after world entry can be dropped (see `sendUntil`).
       await sendUntil(page, 'who', page.locator('[data-card-kind="who"]'));
-      await runCommand(page, 'cockpit card move who 2 0');
+      await runCommand(page, 'client-card move who 2 0');
       const third = page.locator('[data-testid="card-column"]').nth(2);
       // (A server round trip: the move lands when `card-arranged` does.)
       await expect(third.locator('[data-card-kind="who"]')).toBeVisible({ timeout: 15_000 });
@@ -106,15 +106,15 @@ test.describe('client-surface layout (rem tiers, rail, feed/workspace)', () => {
     try {
       // The first command after world entry can be dropped (see `sendUntil`).
       await sendUntil(page, 'who', page.locator('[data-card-kind="who"]'));
-      await runCommand(page, 'cockpit card grow who');
+      await runCommand(page, 'client-card grow who');
       await expect(page.getByTestId('medium-slot').locator('[data-card-kind="who"]')).toBeVisible({
         timeout: 15_000,
       });
-      await runCommand(page, 'cockpit card grow who');
+      await runCommand(page, 'client-card grow who');
       await expect(page.getByTestId('full-stage')).toBeVisible();
       await expect(page.getByTestId('terminal-strip')).toBeVisible();
-      await runCommand(page, 'cockpit card shrink who');
-      await runCommand(page, 'cockpit card shrink who');
+      await runCommand(page, 'client-card shrink who');
+      await runCommand(page, 'client-card shrink who');
       await expect(page.getByTestId('full-stage')).toHaveCount(0);
     } finally {
       await close();
@@ -128,11 +128,11 @@ test.describe('client-surface layout (rem tiers, rail, feed/workspace)', () => {
     try {
       // The first command after world entry can be dropped (see `sendUntil`).
       await sendUntil(page, 'who', page.locator('[data-card-kind="who"]'));
-      await runCommand(page, 'cockpit card minimize who');
+      await runCommand(page, 'client-card minimize who');
       const icon = page.getByTestId('tray-card');
       await expect(icon).toBeVisible();
       await icon.hover();
-      await expect(page.getByTestId('ghost-line')).toContainText('cockpit card restore who');
+      await expect(page.getByTestId('ghost-line')).toContainText('client-card restore who');
       await icon.click();
       await expect(page.getByTestId('tray-card')).toHaveCount(0);
     } finally {

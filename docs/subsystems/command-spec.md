@@ -1604,7 +1604,7 @@ each subcommand can declare its own `args:` and `options:`:
 > ⭐ **A stanza on a shipped view is how you avoid minting a verb.**
 > Two shipped instances now: the metal chain's `measure strike` / `dip`
 > (whose controllers live in a *pack* while the view is the platform's),
-> and textiles' `equip set <name>` / `equip sets`, which put a whole
+> and textiles' `outfit wear <name>` / `outfit list`, which put a whole
 > wardrobe affordance on an existing dressing view and added **zero**
 > verbs. The second one is the pattern to copy when a feature wants a
 > noun-shaped operation on a verb that already exists: reach for
@@ -1827,38 +1827,60 @@ A YAML that declares both fields without the flag is a load-time
 schema error; a YAML that declares the flag without both fields
 is also a schema error.
 
-### ⭐⭐ Nested subcommands (controller-liquidity D2)
+### ⛔⭐⭐ Depth — `verb target` or `verb subcommand target`, never deeper
 
-A stanza may carry `subcommands:` of its own, so a second word stops
-riding a string arg the controller switches on:
+**Owner rule, 2026-11-10.** A command is `verb target` or `verb
+subcommand target`. There is no third level: a subcommand stanza may not
+declare `subcommands:` (nor `fallthrough:` — that key is the verb's).
+Nested stanzas shipped in controller-liquidity W1 (D2: `cockpit layout
+save <name>`, `equip set save <name>`) and were **reversed by the owner**
+in W16. Three readers hold the line, and none has a ceiling to raise:
+
+- the **schema** — `$defs.subcommand` is `additionalProperties: false`
+  and has no `subcommands` key;
+- `CommandDefinition.validate()` — the same refusal for a view built in
+  code;
+- `lint:command-views`' **depth** half — names the nesting stanza in its
+  own finding (hard, zero).
+
+The binder walks exactly one subcommand word; `model.subcommand` is that
+word.
+
+**When a noun wants a second word, it becomes a VERB.** Two cases, and
+the line between them is the fiction:
+
+- ⭐ **A non-diegetic verb takes a hyphenated compound NAME.** A verb that
+  acts on the player's interface or tooling — mostly sent by the client,
+  never an act in the world — is named `<surface>-<noun>`: `client-layout`,
+  `client-card`, `client-shelf`, `client-style` (what were `cockpit
+  layout|card|shelf|style`), `stream-rotation` (was `stream rotation`).
+  The same rule names a non-diegetic **subcommand** word that would
+  otherwise nest: `testharness clock-advance`, `weather-pin`,
+  `weather-unpin`; `client-style plain-channel`. A hyphenated word
+  tokenizes, aliases, binds and shows in `help` as one word (no gate
+  rejected one — `lint:one-word`, `lint:verb-collisions` and
+  `lint:subcommand-words` read the word as a string). Every `client-…`
+  verb is exempt from a bar's input prefix, as `cockpit` is
+  (`CommandApi.applyInputMode`).
+- **A diegetic verb stays a plain word.** An act in the world gets the
+  noun the player groups the acts under: `equip set save <name>` became
+  **`outfit save <name>`** / `outfit wear <name>` / `outfit list`, never
+  `equip-set`.
 
 ```yaml
+verbs: [client-layout]          # was `cockpit layout …`
+controller: …/ClientLayoutRecallController
+fallthrough: true               # `client-layout <name>` still recalls
+args:
+  - { name: name, type: string, required: false }
 subcommands:
-  layout:
-    description: Arrangements you have saved
-    fallthrough: true            # `cockpit layout <name>` still recalls
-    args:
-      - { name: name, type: string, required: true }
-    subcommands:
-      save:   { controller: …/LayoutSaveController, args: [{ name: name, type: string, required: true }] }
-      forget: { controller: …/LayoutForgetController, args: [{ name: name, type: string, required: true }] }
-      list:   { controller: …/LayoutListController }
+  save:   { controller: …/ClientLayoutSaveController, args: [{ name: name, type: string, required: true }] }
+  recall: { controller: …/ClientLayoutRecallController, args: [{ name: name, type: string, required: true }] }
+  list:   { controller: …/ClientLayoutListController }
 ```
 
-- The binder walks words **while they match**. `model.subcommand` is the
-  **leaf** word (every existing `switch (model.subcommand)` keeps
-  working) and `model.subcommandPath` the full list (`['layout',
-  'save']`); the dispatcher and every per-stanza lookup key on the path.
-- **Options bind lexically per level**: a word's options are its own plus
-  every enclosing level's, the innermost winning a name.
-- `controller:` resolves at the **deepest stanza that names one**; a view
-  with no verb-level controller needs every stanza covered by itself or an
-  ancestor.
-- Validators run outermost first: verb → each stanza on the path → fields.
-- `fallthrough: true` works at any level, with the verb-level rule one
-  level down (args + nested subcommands only together).
-  `unknown-subcommand` names the valid words **at that level**.
-- `help` renders the tree, each nested stanza indented under its parent.
+A layout named `list` is recalled with `client-layout recall list` — the
+control word comes first, so a name never hides one.
 
 ## Options (`options:`)
 
@@ -2282,8 +2304,9 @@ that fits**:
 2. **A manner of the same act** → an option (`wash --hard`).
 3. **Different acts the player already groups** → subcommands of a noun, one
    controller each over a shared `<Noun>ControllerBase` (`notify show|set|move|
-   remove`, `fight assess`, `berth roads`, `cockpit layout recall`; nested where
-   the noun nests — `equip set save`).
+   remove`, `fight assess`, `berth roads`, `client-layout recall`). ⛔ Never a
+   second level: a noun that needs one becomes a verb (§ Depth — `outfit
+   save`, `client-layout save`).
 4. **Different shapes of one sentence** → separate shapes of one word, each with
    its own controller (`throw`, `watch <stream>` vs `watch <stream> on <screen>`).
 5. **None fits** → a new word, with the four failures written down (`spud`

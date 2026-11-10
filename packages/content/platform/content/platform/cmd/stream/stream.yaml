@@ -99,26 +99,6 @@ subcommands:
   next:
     controller: /platform/idea/cmd/stream/StreamNextController
     description: "Tick the current agenda item and move to the next"
-  rotation:
-    description: "Steer the lower third: `stream rotation pin <panel>`, `skip <panel>`, `clear`"
-    subcommands:
-      pin:
-        controller: /platform/idea/cmd/stream/StreamRotationPinController
-        description: "Hold one panel in the lower third"
-        args:
-          - name: panel
-            type: string
-            required: true
-      skip:
-        controller: /platform/idea/cmd/stream/StreamRotationSkipController
-        description: "Leave one panel out of the rotation"
-        args:
-          - name: panel
-            type: string
-            required: true
-      clear:
-        controller: /platform/idea/cmd/stream/StreamRotationClearController
-        description: "The rotation as authored again"
   channel:
     controller: /platform/idea/cmd/stream/StreamChannelController
     description: "Name your chat channel on a service (`stream channel twitch mylogin`)"

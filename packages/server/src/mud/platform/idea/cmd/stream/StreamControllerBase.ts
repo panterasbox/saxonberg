@@ -40,7 +40,7 @@ const REFUSALS: Readonly<Record<string, string>> = {
   'already-on-air': 'the stream is already on air',
   'no-agenda': 'there is no agenda — `stream agenda <item, item, …>`',
   'agenda-done': 'the agenda is finished',
-  'unknown-panel': 'name a panel: `stream rotation pin <panel>`',
+  'unknown-panel': 'name a panel: `stream-rotation pin <panel>`',
 };
 
 export abstract class StreamControllerBase extends CommandController<StreamModel> {

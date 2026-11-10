@@ -1,5 +1,5 @@
 /**
- * StreamRotationSkipController — `stream rotation skip <panel>`: steer
+ * StreamRotationSkipController — `stream-rotation skip <panel>`: steer
  * the lower third (over {@link StreamControllerBase}).
  */
 

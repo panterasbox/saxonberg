@@ -1,0 +1,80 @@
+# ⭐ A NON-DIEGETIC verb, so its name is a hyphenated compound
+# (controller-liquidity W16, owner rule 2026-11-10): a command is `verb
+# target` or `verb subcommand target`, never deeper, so what was `cockpit
+# layout <sub>` is its own verb. `client-` names the interface, never the
+# world; every `client-…` verb reaches the interpreter un-prefixed from a
+# scoped bar (`CommandApi.applyInputMode`).
+verbs: [client-layout]
+category: shell
+controller: /platform/idea/cmd/shell/ClientLayoutRecallController
+description: "Recall, save, list or forget a card arrangement in this mode."
+help: |
+  A layout is a named arrangement of cards *inside* the mode you are in.
+  Each mode ships at least one, and you can compose and name your own —
+  so this is not a fixed menu.
+
+    client-layout <name>          switch to an arrangement
+    client-layout recall <name>   the same, said outright
+    client-layout list            what is available here
+    client-layout save <name>     name the current arrangement
+    client-layout forget <name>   drop one you saved
+
+  A layout you named `list` (or `save`, `forget`, `recall`) is recalled
+  with `client-layout recall list` — the control words come first, so a
+  name never hides one.
+
+  Arrangements belong to a mode (`cockpit mode`). If you ask for one that
+  lives in a different mode, you'll be told which mode that is rather
+  than being moved there — recalling a layout is not a mode change.
+
+  Your arrangement is remembered per mode: switch to `chat` and back to
+  `explore` and you land where you left off. It follows you across
+  reconnects and every connection you have open.
+
+  The "Views" menu sends this command for you — typing `client-layout
+  <name>` and clicking a menu item are the same thing.
+validators:
+  - /lib/command/validators/requiresHasInteractive
+examples:
+  - cmd: client-layout list
+    note: List this mode's arrangements, marking the active one
+  - cmd: client-layout streamer
+    note: Switch to the streamer arrangement (in watch mode)
+  - cmd: client-layout save wide
+    note: Name the current arrangement "wide"
+  - cmd: client-layout recall list
+    note: Recall an arrangement you named "list"
+  - cmd: client-layout forget wide
+    note: Drop a saved arrangement
+# Bare `client-layout` reaches the recall with no name and lists; an
+# unknown word is the arrangement name, by fallthrough.
+fallthrough: true
+args:
+  - name: name
+    type: string
+    required: false
+subcommands:
+  list:
+    controller: /platform/idea/cmd/shell/ClientLayoutListController
+    description: "What arrangements this mode has, the active one starred"
+  save:
+    controller: /platform/idea/cmd/shell/ClientLayoutSaveController
+    description: "Name the current arrangement"
+    args:
+      - name: name
+        type: string
+        required: true
+  forget:
+    controller: /platform/idea/cmd/shell/ClientLayoutForgetController
+    description: "Drop an arrangement you saved"
+    args:
+      - name: name
+        type: string
+        required: true
+  recall:
+    controller: /platform/idea/cmd/shell/ClientLayoutRecallController
+    description: "Switch to an arrangement (the same as `client-layout <name>`)"
+    args:
+      - name: name
+        type: string
+        required: true

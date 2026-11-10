@@ -10,7 +10,7 @@ import { openWorldAs, openWorldAsFounder, runCommand } from './helpers';
  * asserts the ENVELOPE. This is a real Chromium against the real client, so
  * it reads what a person reads over the player-facing steps (4–9, 11–12):
  * the quote hint as a sentence with a form you can type back; `help` for the
- * three representatives; the nested cockpit forms; `look here` on the river
+ * three representatives; `client-layout`'s forms; `look here` on the river
  * against `look me:e`; `eat … --top`; a `values:` refusal; a duration taken
  * in its written forms; and the replaced `harvest` controller's own words
  * (step 1's re-point through the CMS, as !527's step 16).
@@ -127,9 +127,9 @@ test.describe('controller liquidity, in a browser', () => {
     const w = await openWorldAs(browser, 'cliq-layout', { startLocation: SQUARE });
     const { page } = w;
     try {
-      await runCommand(page, 'cockpit layout save list');
+      await runCommand(page, 'client-layout save list');
       await expect.poll(async () => transcript(page), { timeout: 30_000 }).toMatch(/list/);
-      const recalled = await sayAwaiting(page, 'cockpit layout recall list', /list/);
+      const recalled = await sayAwaiting(page, 'client-layout recall list', /list/);
       expect(recalled).not.toMatch(/unknown|not a layout|no such/i);
       await page.screenshot({ path: `${SHOTS}/09-layout.png`, fullPage: true });
     } finally {

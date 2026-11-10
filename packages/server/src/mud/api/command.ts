@@ -251,8 +251,6 @@ export interface AliasExpansionInfo {
  * invariant in `CommandDefinition.validate` enforces this.
  */
 export const SUBCOMMAND_FIELD = 'subcommand';
-/** The model key carrying the walked subcommand words (nested subcommands). */
-export const SUBCOMMAND_PATH_FIELD = 'subcommandPath';
 
 /**
  * Parser-side context — what a parser may look at to decide intent.
@@ -450,12 +448,6 @@ export type CommandModel = ModelData & {
    * without a subcommand (the controller decides what that means).
    */
   subcommand?: string;
-  /**
-   * Every subcommand word the matcher walked, outermost first
-   * (`['layout', 'save']`); `subcommand` is its last entry. Stamped
-   * whenever `subcommand` is (controller-liquidity D2).
-   */
-  subcommandPath?: string[];
 };
 
 /**
@@ -1269,17 +1261,10 @@ export interface SubcommandDefinition {
    * parallels `validators`. @internal
    */
   _resolvedValidators?: CommandValidator[];
-  /**
-   * ⭐ Nested subcommands (controller-liquidity D2) — `cockpit layout
-   * save <name>`. The binder walks words while they match:
-   * `model.subcommand` is the LEAF word, `model.subcommandPath` the full
-   * list. Options bind lexically per level; `controller:` resolves at the
-   * deepest stanza that names one. Exclusive with this stanza's `args:`
-   * unless {@link fallthrough}.
-   */
-  subcommands?: Record<string, SubcommandDefinition>;
-  /** As {@link CommandView.fallthrough}, one level down. */
-  fallthrough?: boolean;
+  // ⛔ No `subcommands?:` here, and no `fallthrough?:` — a stanza is a
+  // LEAF. A command is `verb target` or `verb subcommand target`, never
+  // deeper (owner rule 2026-11-10; nesting shipped in controller-liquidity
+  // W1 and was reversed in W16).
 }
 
 /**
@@ -1731,10 +1716,12 @@ export class CommandApi {
    *   1. **No prefix** (the bar is unset) → verbatim no-op.
    *   2. **`/`-escape** → strip the leading slash and run the rest raw
    *      (a one-off un-moded command; `/look` lexes as `look`).
-   *   3. **Cockpit control** → the `cockpit` verb is exempt, so
-   *      `cockpit scope off` / `cockpit mode watch` / `cockpit style …`
-   *      always reach the interpreter un-prefixed regardless of the
-   *      active scope.
+   *   3. **Cockpit control** → the `cockpit` verb and every `client-…`
+   *      verb are exempt, so `cockpit cli --clear` / `cockpit mode watch`
+   *      / `client-style …` always reach the interpreter un-prefixed
+   *      regardless of the active scope. (The `client-` compound names are
+   *      the interface verbs split out of `cockpit` when nesting was
+   *      reversed — controller-liquidity W16.)
    *
    * Rule 3 states one thing: **interface control is not world input.**
    * A bar scoped to a chat channel still steers its own cockpit. The
@@ -1753,7 +1740,8 @@ export class CommandApi {
     if (!modePrefix) return rawText; // (1) unset bar — verbatim no-op
     const t = rawText.trimStart();
     if (t.startsWith('/')) return t.slice(1); // (2) escape → run raw
-    if (t.split(/\s+/)[0]?.toLowerCase() === 'cockpit') return rawText; // (3) exempt
+    const first = t.split(/\s+/)[0]?.toLowerCase() ?? '';
+    if (first === 'cockpit' || first.startsWith('client-')) return rawText; // (3) exempt
     return `${modePrefix} ${rawText}`;
   }
 

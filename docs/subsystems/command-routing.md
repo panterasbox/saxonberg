@@ -1269,11 +1269,10 @@ reads only the resolved form.
 destructs it:
 
 ```ts
-// ⭐ Nested subcommands resolve by PATH (controller-liquidity D2): the
-// model carries `subcommandPath` (`['layout', 'recall']`), and the DEEPEST
-// stanza on that path that names a `controller:` wins; no subcommand →
-// the view's top-level `controller:` (the bare form).
-const sub = command.subcommandKey(model);            // 'layout recall'
+// The subcommand's own `controller:` wins, else the view's top-level one;
+// no subcommand → the view's top-level `controller:` (the bare form).
+// ⛔ One level only — a command is `verb subcommand target`, never deeper.
+const sub = model.subcommand;                        // 'recall'
 const controllerPath = sub
   ? command.controllerForSubcommand(sub)
   : command.resolvedController;
@@ -1286,10 +1285,9 @@ finally { StuffApi.destruct(controller); }
 A `controller:` value is a **template path** — absolute
 (`/platform/idea/cmd/<cat>/<Name>Controller`) or relative to the view —
 resolved once at load (`resolveController`; `lint:controller-rows` holds
-every one to a row). `model.subcommand` is the **leaf** word and
-`model.subcommandPath` the full list; each stanza's options bind lexically
-at its own level, and `fallthrough: true` works at any level
-([command-spec.md § Nested subcommands](./command-spec.md)). One controller
+every one to a row). `model.subcommand` is the one subcommand word; a
+stanza never nests ([command-spec.md § Depth](./command-spec.md) — the
+nested stanzas of controller-liquidity D2 were reversed in W16). One controller
 per subcommand is the rule — a controller reading `model.subcommand` to pick
 an act is what `lint:multi-act` counts (its `subcommand` arm is a hard 0).
 

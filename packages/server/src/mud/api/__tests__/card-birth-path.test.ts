@@ -189,7 +189,7 @@ describe('a card is born on the server, or not at all', () => {
         // ⭐ client-surface D6/D10: a terminal is a card, opened by
         // `cockpit terminal`; settings are a card, opened by `settings`.
         'mud/platform/idea/cmd/shell/CockpitTerminalController.ts:showInTerminal',
-        'mud/platform/idea/cmd/shell/LayoutRecallController.ts:applyCardArrangement',
+        'mud/platform/idea/cmd/shell/ClientLayoutRecallController.ts:applyCardArrangement',
         'mud/platform/idea/cmd/shell/SettingsListController.ts:open',
         'mud/platform/idea/cmd/social/WhoController.ts:open',
         // ⭐ broadcast-ready D10: bare `stream` opens the controls card.

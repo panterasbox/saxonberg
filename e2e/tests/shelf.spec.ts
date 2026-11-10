@@ -5,7 +5,7 @@ import { openWorldAs, reenterWorld, runCommand } from './helpers';
  * > AC: *the shelf renders nine rows … the other six render the
  * > not-wired state — `╌╌`, hatched ground, dashed border — each with
  * > its reason, and a test asserts no digit appears in any of them* …
- * > *`cockpit shelf pin <row>` / `unpin <row>` persist to
+ * > *`client-shelf pin <row>` / `unpin <row>` persist to
  * > `cockpit.shelf` and survive a reconnect.*
  *
  * ⚠ **The nine is the CATALOGUE, not the default shelf.** The AC was
@@ -54,7 +54,7 @@ test('the shelf is honest, and its rows are hatched for real', async ({
 
     // Pin the hatched six and they behave exactly as documented.
     for (const row of ['make', 'coin', 'status', 'time', 'online', 'docket']) {
-      await runCommand(page, `cockpit shelf pin ${row}`);
+      await runCommand(page, `client-shelf pin ${row}`);
     }
     await expect(groups).toHaveCount(9, { timeout: 20_000 });
     await expect(
@@ -110,10 +110,10 @@ test('pinning is a real command, and the SERVER owns the answer', async ({
     const groups = shelfGroups(page);
     await expect(groups).toHaveCount(3, { timeout: 20_000 });
 
-    // ⚠ Through the real binder: `cockpit shelf unpin renown` has to
+    // ⚠ Through the real binder: `client-shelf unpin renown` has to
     // tokenize into two positional slots and reach the controller. A
     // controller test cannot catch a YAML/controller slot mismatch.
-    await runCommand(page, 'cockpit shelf unpin renown');
+    await runCommand(page, 'client-shelf unpin renown');
     await expect(groups).toHaveCount(2, { timeout: 10_000 });
 
     // ⭐ THE assertion. A reload discards every scrap of client state —
@@ -127,13 +127,13 @@ test('pinning is a real command, and the SERVER owns the answer', async ({
     });
     await expect(groups).toHaveCount(2, { timeout: 20_000 });
 
-    await runCommand(page, 'cockpit shelf pin renown');
+    await runCommand(page, 'client-shelf pin renown');
     await expect(groups).toHaveCount(3, { timeout: 10_000 });
 
     // An unknown row refuses in the machine voice, NAMING the known set
     // — a refusal that says only "no" leaves a closed vocabulary a
     // guessing game.
-    await runCommand(page, 'cockpit shelf pin nonesuch');
+    await runCommand(page, 'client-shelf pin nonesuch');
     const transcript = page.getByTestId('terminal');
     await expect(transcript).toContainText("unknown shelf row 'nonesuch'", {
       timeout: 10_000,
@@ -144,7 +144,7 @@ test('pinning is a real command, and the SERVER owns the answer', async ({
 
     // ⭐ Identity and connection cannot be unpinned, from the direction
     // a player would actually attack it: they are not rows at all.
-    await runCommand(page, 'cockpit shelf unpin identity');
+    await runCommand(page, 'client-shelf unpin identity');
     await expect(transcript).toContainText("unknown shelf row 'identity'", {
       timeout: 10_000,
     });
@@ -171,7 +171,7 @@ test('the shelf WRAPS rather than scrolling at a narrow width', async ({
     // Pin everything — wrapping only matters with a full shelf, and the
     // default three fit on one row at any width worth testing.
     for (const row of ['make', 'coin', 'status', 'time', 'online', 'docket']) {
-      await runCommand(page, `cockpit shelf pin ${row}`);
+      await runCommand(page, `client-shelf pin ${row}`);
     }
     await expect(shelfGroups(page)).toHaveCount(9, { timeout: 20_000 });
 

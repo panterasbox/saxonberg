@@ -7,10 +7,10 @@
  * two doors, the same rules.
  *
  *   testharness clock                          read: game time, day, hour, season
- *   testharness clock advance <dur>            30m | 2h | 1d — one token, a day at most
+ *   testharness clock-advance <dur>            30m | 2h | 1d — one token, a day at most
  *   testharness weather [--at <place>]         read: the pin, and the weather here
- *   testharness weather pin <kind> [--at <place>] [--alive]
- *   testharness weather unpin [--at <place>]
+ *   testharness weather-pin <kind> [--at <place>] [--alive]
+ *   testharness weather-unpin [--at <place>]
  *   testharness ship <ship> at node:<path>      stage a ship lying at a sea's node
  *   testharness ship <ship> at <frame> <cite>   …or at a citation on a frame
  *

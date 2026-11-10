@@ -212,10 +212,10 @@ describe('EvalScript', () => {
     it('⛔ a @TestOnly static is a stub that names its door', async () => {
       script.setCode("return WorldClockApi.advance('1 hour');");
       await expect(script.run(receiver)).rejects.toThrow(
-        /WorldClockApi\.advance is a test seam.*testharness clock advance/s,
+        /WorldClockApi\.advance is a test seam.*testharness clock-advance/s,
       );
       script.setCode("return TestHarnessApi.advanceClock('1 hour');");
-      await expect(script.run(receiver)).rejects.toThrow(/testharness clock advance/);
+      await expect(script.run(receiver)).rejects.toThrow(/testharness clock-advance/);
     });
   });
 

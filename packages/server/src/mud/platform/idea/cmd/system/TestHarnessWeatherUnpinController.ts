@@ -1,5 +1,5 @@
 /**
- * TestHarnessWeatherUnpinController — `testharness weather unpin [--at
+ * TestHarnessWeatherUnpinController — `testharness weather-unpin [--at
  * <place>]` — release the Locality's weather (over {@link
  * TestHarnessControllerBase}).
  */

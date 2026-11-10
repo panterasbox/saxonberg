@@ -1,5 +1,5 @@
 /**
- * StreamRotationPinController — `stream rotation pin <panel>`: steer
+ * StreamRotationPinController — `stream-rotation pin <panel>`: steer
  * the lower third (over {@link StreamControllerBase}).
  */
 

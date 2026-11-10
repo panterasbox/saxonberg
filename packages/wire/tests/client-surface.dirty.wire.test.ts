@@ -246,21 +246,21 @@ suite('the card registry (steps 9–11)', () => {
     expect(card.subjectId ?? (card.result?.[0]?.stuffId as string)).toBe(third);
   });
 
-  it('10 · cockpit card actions each change the card and echo; a saved layout restores it', async () => {
+  it('10 · client-card actions each change the card and echo; a saved layout restores it', async () => {
     await a.cmd('who');
     const who = a.lastCard<Card>('card-opened');
     expect(who?.cardId).toBe('who');
     for (const action of ['grow', 'shrink', 'minimize', 'restore', 'pin']) {
-      const r = await a.cmd(`cockpit card ${action} who`);
+      const r = await a.cmd(`client-card ${action} who`);
       expect(r.status, action).toBe('ok');
       expect(a.envelopesOf('card-arranged').length + a.envelopesOf('card-pinned').length, action).toBeGreaterThan(0);
     }
-    const moved = await a.cmd('cockpit card move who 1 0');
+    const moved = await a.cmd('client-card move who 1 0');
     expect(moved.status).toBe('ok');
     expect(a.lastCard<Card>('card-arranged')?.placed).toEqual({ col: 1, row: 0 });
-    expect((await a.cmd('cockpit layout save wide')).status).toBe('ok');
-    expect((await a.cmd('cockpit card close who')).status).toBe('ok');
-    await a.cmd('cockpit layout wide');
+    expect((await a.cmd('client-layout save wide')).status).toBe('ok');
+    expect((await a.cmd('client-card close who')).status).toBe('ok');
+    await a.cmd('client-layout wide');
     const back = a.envelopesOf<Card>('card-opened').find((e) => e.cardId === 'who');
     expect(back?.placed).toEqual({ col: 1, row: 0 });
   });

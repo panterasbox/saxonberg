@@ -236,7 +236,7 @@ export function CardArea({
         <Trail data-testid="glance-strip" style={{ maxHeight: "none" }}>
           {cards.map((card) => {
             // Below one unit a card opens at measure, beside the terminal.
-            const cmd = `cockpit card grow ${quoteRef(card.key)}`;
+            const cmd = `client-card grow ${quoteRef(card.key)}`;
             return (
               <Chip
                 key={card.instanceId}

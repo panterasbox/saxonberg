@@ -126,7 +126,7 @@ suite('the seats are exercised, not bypassed (1–3)', () => {
     // cannot see: bring the clock round to daylight first (2h steps, a
     // day at most — instant).
     for (let i = 0; i < 12 && /pitch dark/i.test(plain(await newcomer.prose('look'))); i++) {
-      expectOk(await newcomer.cmd('testharness clock advance 2h'));
+      expectOk(await newcomer.cmd('testharness clock-advance 2h'));
     }
     let t = await newcomer.cmd('talk katie');
     if (t.status !== 'ok') t = await newcomer.cmd('talk super');

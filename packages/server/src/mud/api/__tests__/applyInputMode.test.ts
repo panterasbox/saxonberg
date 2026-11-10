@@ -40,9 +40,9 @@ describe('CommandApi.applyInputMode', () => {
       'cockpit',
       'cockpit scope off',
       'cockpit scope chat gossip',
-      'cockpit layout world',
-      'cockpit style theme high-contrast',
-      'cockpit style channel gossip color blue',
+      'client-layout world',
+      'client-style theme high-contrast',
+      'client-style channel gossip color blue',
     ]) {
       expect(CommandApi.applyInputMode(line, 'chat')).toBe(line);
     }

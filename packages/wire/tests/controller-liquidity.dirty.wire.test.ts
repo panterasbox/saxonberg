@@ -1011,13 +1011,13 @@ suite('4–9. the player-facing forms', () => {
     expect(await s.prose('help dry')).toMatch(/dry (<|&lt;)target(>|&gt;) with (<|&lt;)cloth(>|&gt;)/);
   }, 180_000);
 
-  it('9. `cockpit layout save list` then `cockpit layout recall list` round-trips', async () => {
+  it('9. `client-layout save list` then `client-layout recall list` round-trips', async () => {
     const s = await player('cliq-cockpit', SQUARE);
-    const saved = await s.cmd('cockpit layout save list');
+    const saved = await s.cmd('client-layout save list');
     expect(saved.status, notesOf(saved)).toBe('ok');
-    const recalled = await s.cmd('cockpit layout recall list');
+    const recalled = await s.cmd('client-layout recall list');
     expect(recalled.status, notesOf(recalled)).toBe('ok');
-    const listed = await s.cmd('cockpit layout list');
+    const listed = await s.cmd('client-layout list');
     expect(await listed.said()).toMatch(/\blist\b/);
   }, 60_000);
 });

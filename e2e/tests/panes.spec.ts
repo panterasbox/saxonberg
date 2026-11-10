@@ -19,7 +19,7 @@ test('settings are a card: the rail opens it with `settings`, close is a command
     await page.getByTestId('rail-settings').click();
     await expect(card).toBeVisible();
     await expect(card.getByText('Preferences')).toBeVisible();
-    await card.getByLabel('cockpit card close settings').click();
+    await card.getByLabel('client-card close settings').click();
     await expect(card).toHaveCount(0);
   } finally {
     await close();

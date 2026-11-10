@@ -314,7 +314,7 @@ const DesktopStage: React.FC<LayoutProps & { config: StageConfig }> = ({
       next.splice(next.indexOf(id), 1, incumbent);
       useStore.getState().setCardOrder(next);
     }
-    onCommandClick(`cockpit card maximize ${ref}`);
+    onCommandClick(`client-card maximize ${ref}`);
   };
   const medium = placeable.find((c) => c.size === "medium");
   /*
@@ -525,7 +525,7 @@ const DesktopStage: React.FC<LayoutProps & { config: StageConfig }> = ({
                 .map((c) => {
                   // ⭐ A chip here is a card waiting off-stage: click it, or
                   // drag it onto the maximized card, and it swaps in.
-                  const cmd = `cockpit card maximize ${quoteRef(c.key)}`;
+                  const cmd = `client-card maximize ${quoteRef(c.key)}`;
                   return (
                     <StripChip
                       key={c.instanceId}

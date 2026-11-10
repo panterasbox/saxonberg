@@ -396,9 +396,11 @@ is just a worse card.
   whatever facts resolve, with phrasing **seeded rather than drawn**.
 - **The authored half stays authored** — bearing, manner, the scar live
   on `PersonaMixin`'s claimed layer, untouched.
-- **Getting dressed is one command**: `equip set <name>`, a **stanza**
-  on a dressing view rather than a verb of its own. It shipped as `wear
-  set` and moved when `equip` landed — see
+- **Getting dressed is one command**: `outfit wear <name>` — the
+  `outfit` verb (save · wear · list). It shipped as `wear set`, moved
+  under `equip` when that landed, and became its own verb in
+  controller-liquidity W16 (a command is never deeper than `verb
+  subcommand target`) — see
   equip-slate.md *(slate retired 2026-09-06 — fully absorbed)* and
   [slot.md](./slot.md).
 

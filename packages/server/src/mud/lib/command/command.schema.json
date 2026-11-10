@@ -163,6 +163,7 @@
     "subcommand": {
       "type": "object",
       "additionalProperties": false,
+      "description": "\u26d4 A subcommand stanza is a LEAF \u2014 it may not declare `subcommands:` (or `fallthrough:`). A command is `verb target` or `verb subcommand target`, never deeper (owner rule 2026-11-10); a non-diegetic verb that wants a second word takes a hyphenated compound name (`client-layout save <name>`).",
       "properties": {
         "description": {
           "type": "string"
@@ -200,18 +201,7 @@
           "items": {
             "$ref": "#/$defs/validatorSpec"
           },
-          "description": "Subcommand-level validators that fire AFTER the verb-level validators and BEFORE field validators with `context.commandGiver` populated, only when this subcommand is the one invoked. The subcommand-scoped equivalent of verb-level `validators` \u2014 authority/precondition gates that apply to one subcommand (e.g. a founder-only `assign`) without blocking the verb's other, public subcommands. A nested stanza's validators run after every enclosing stanza's."
-        },
-        "subcommands": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/$defs/subcommand"
-          },
-          "description": "\u2b50 Nested subcommands (`cockpit layout save <name>`). The binder walks words while they match; `model.subcommand` is the LEAF word and `model.subcommandPath` the full list. Options bind lexically per level (a level sees its own options and every enclosing level's). `controller:` resolves at the deepest stanza that names one. Mutually exclusive with this stanza's `args` unless `fallthrough: true`."
-        },
-        "fallthrough": {
-          "type": "boolean",
-          "description": "As the verb-level flag, one level down: this stanza's `args:` and nested `subcommands:` coexist; an unknown word falls through to bind against the stanza's `args:`."
+          "description": "Subcommand-level validators that fire AFTER the verb-level validators and BEFORE field validators with `context.commandGiver` populated, only when this subcommand is the one invoked. The subcommand-scoped equivalent of verb-level `validators` \u2014 authority/precondition gates that apply to one subcommand (e.g. a founder-only `assign`) without blocking the verb's other, public subcommands."
         }
       }
     },

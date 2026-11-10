@@ -29,6 +29,16 @@
  *    directory, so "equal to its directory" has nothing to agree with
  *    there: they must declare a category some directory-sited view is in
  *    (command-spec.md § category).
+ * 3. **Depth (HARD, zero since controller-liquidity W16).** A command is
+ *    `verb target` or `verb subcommand target`, never deeper (owner rule
+ *    2026-11-10). A subcommand stanza that declares `subcommands:` is
+ *    named here by its own finding, before the schema trail would bury it
+ *    (the schema refuses the key too — `additionalProperties: false` on
+ *    `$defs.subcommand`). A non-diegetic verb that wants a second word
+ *    takes a hyphenated compound NAME (`client-layout save <name>`), never
+ *    a nested stanza. ⭐ The zero is structural: there is no ceiling to
+ *    raise, because nesting is not a census being burned down — it was
+ *    reversed.
  */
 
 import { readFileSync } from "fs";
@@ -94,11 +104,28 @@ export interface ViewsReport {
   category: ViewFinding[];
   /** Views in no `cmd/<category>/` directory that name no real category. */
   noCategoryDir: ViewFinding[];
+  /** Subcommand stanzas that nest a second level (must be none). */
+  nested: ViewFinding[];
+}
+
+/** The stanzas of a parsed view that declare `subcommands:` of their own. */
+export function nestedStanzas(doc: unknown): string[] {
+  const subs = (doc as { subcommands?: unknown } | null)?.subcommands;
+  if (subs === null || typeof subs !== "object") return [];
+  return Object.entries(subs as Record<string, unknown>)
+    .filter(([, st]) => st !== null && typeof st === "object" && "subcommands" in (st as object))
+    .map(([name]) => name);
 }
 
 export function run(contentDir: string = CONTENT): ViewsReport {
   const files = allViews(contentDir);
-  const report: ViewsReport = { views: files.length, schema: [], category: [], noCategoryDir: [] };
+  const report: ViewsReport = {
+    views: files.length,
+    schema: [],
+    category: [],
+    noCategoryDir: [],
+    nested: [],
+  };
   const known = new Set(files.map(categoryDirOf).filter((d): d is string => d !== null));
   for (const file of files) {
     const rel = relative(contentDir, file);
@@ -108,6 +135,12 @@ export function run(contentDir: string = CONTENT): ViewsReport {
     } catch (e) {
       report.schema.push({ file: rel, detail: `  / does not parse: ${(e as Error).message}` });
       continue;
+    }
+    for (const name of nestedStanzas(doc)) {
+      report.nested.push({
+        file: rel,
+        detail: `subcommand '${name}' declares subcommands: — a command is \`verb subcommand target\`, never deeper`,
+      });
     }
     const trail = schemaTrail(doc);
     if (trail !== null) report.schema.push({ file: rel, detail: trail });
@@ -141,9 +174,19 @@ function main(): void {
   console.log(
     `check-command-views: ${r.views} view(s); schema ${r.schema.length} failure(s) (must be 0); ` +
       `category ${r.category.length} disagreement(s) + ${r.noCategoryDir.length} domain-local ` +
-      `with no real category (${CATEGORY_REQUIRED ? "REQUIRED" : "warning"}).`,
+      `with no real category (${CATEGORY_REQUIRED ? "REQUIRED" : "warning"}); ` +
+      `nested ${r.nested.length} (must be 0).`,
   );
   let failed = false;
+  if (r.nested.length > 0) {
+    failed = true;
+    console.error(
+      `\ncheck-command-views: ✗ ${r.nested.length} nested subcommand(s) — a command is ` +
+        "`verb target` or `verb subcommand target`, never deeper; a non-diegetic verb " +
+        "takes a hyphenated compound name instead (command-spec.md § depth):\n",
+    );
+    for (const f of r.nested) console.error(`  ✗ ${f.file}: ${f.detail}`);
+  }
   if (r.schema.length > 0) {
     failed = true;
     console.error(

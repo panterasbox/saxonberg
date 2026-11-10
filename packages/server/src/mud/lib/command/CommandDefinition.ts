@@ -42,7 +42,6 @@ import type {
 import {
   CommandApi,
   SUBCOMMAND_FIELD,
-  SUBCOMMAND_PATH_FIELD,
 } from '../../api/command';
 
 /**
@@ -289,13 +288,9 @@ export class CommandDefinition {
           `Command definition ${this.filePath} must specify a controller`
         );
       }
-      // ⭐ Nested (D2): a stanza resolves its controller at the deepest
-      // level that names one, so a stanza is covered when it or any
-      // enclosing stanza does.
       const missing: string[] = [];
-      for (const [key] of this.allSubcommands()) {
-        const chain = this.getSubcommandChain(key) ?? [];
-        if (!chain.some((st) => st.controller)) missing.push(key);
+      for (const [key, st] of this.allSubcommands()) {
+        if (!st.controller) missing.push(key);
       }
       if (missing.length > 0) {
         throw new Error(
@@ -360,10 +355,8 @@ export class CommandDefinition {
    * undefined when neither is set (load-time validation prevents this
    * for declared subcommands).
    */
-  controllerForSubcommand(path: string | readonly string[]): string | undefined {
-    const chain = this.getSubcommandChain(path) ?? [];
-    let raw = this.controller;
-    for (const st of chain) if (st.controller !== undefined) raw = st.controller;
+  controllerForSubcommand(name: string): string | undefined {
+    const raw = this.subcommands[name]?.controller ?? this.controller;
     if (raw === undefined) return undefined;
     return resolveController(raw, this.filePath);
   }
@@ -372,73 +365,21 @@ export class CommandDefinition {
     return Object.keys(this.subcommands).length > 0;
   }
 
-  /**
-   * The stanza a subcommand PATH names — a top-level word (`list`), or a
-   * nested path, space-joined or as words (`layout save`, D2). Undefined
-   * when any word along it does not match.
-   */
-  getSubcommand(path: string | readonly string[]): SubcommandDefinition | undefined {
-    const chain = this.getSubcommandChain(path);
-    return chain === undefined ? undefined : chain[chain.length - 1];
+  getSubcommand(name: string): SubcommandDefinition | undefined {
+    return this.subcommands[name];
+  }
+
+  getSubcommandNames(): string[] {
+    return Object.keys(this.subcommands);
   }
 
   /**
-   * The stanzas along a subcommand path, outermost first. Undefined when
-   * any word does not match; `[]` for an empty path.
-   */
-  getSubcommandChain(path: string | readonly string[]): SubcommandDefinition[] | undefined {
-    const words = typeof path === 'string' ? path.split(/\s+/).filter((w) => w.length > 0) : path;
-    const out: SubcommandDefinition[] = [];
-    let level: Record<string, SubcommandDefinition> | undefined = this.subcommands;
-    for (const w of words) {
-      const st: SubcommandDefinition | undefined = level?.[w];
-      if (st === undefined) return undefined;
-      out.push(st);
-      level = st.subcommands;
-    }
-    return out;
-  }
-
-  /**
-   * The subcommand words available at a path — the top level for an empty
-   * or absent one.
-   */
-  getSubcommandNames(path: string | readonly string[] = []): string[] {
-    const words = typeof path === 'string' ? path.split(/\s+/).filter((w) => w.length > 0) : path;
-    if (words.length === 0) return Object.keys(this.subcommands);
-    return Object.keys(this.getSubcommand(words)?.subcommands ?? {});
-  }
-
-  /**
-   * ⭐ Every stanza in the subcommand tree, outermost first (pre-order),
-   * each keyed by its space-joined path (`layout`, `layout save`). The one
-   * walk every per-stanza pass uses, so nesting reaches all of them.
+   * Every subcommand stanza, keyed by its word. ⛔ One level only: a
+   * command is `verb target` or `verb subcommand target`, never deeper
+   * (owner rule 2026-11-10; `validate()` refuses a nested stanza).
    */
   allSubcommands(): Array<[string, SubcommandDefinition]> {
-    const out: Array<[string, SubcommandDefinition]> = [];
-    const walk = (level: Record<string, SubcommandDefinition>, prefix: string): void => {
-      for (const [name, st] of Object.entries(level)) {
-        const key = prefix ? `${prefix} ${name}` : name;
-        out.push([key, st]);
-        if (st.subcommands) walk(st.subcommands, key);
-      }
-    };
-    walk(this.subcommands, '');
-    return out;
-  }
-
-  /**
-   * The subcommand PATH a bound model names, space-joined — the
-   * `subcommandPath` the binder stamps, else the bare `subcommand` (a
-   * structured or hand-built model). Undefined for a model with neither.
-   */
-  subcommandKey(model: ModelData): string | undefined {
-    const path = model[SUBCOMMAND_PATH_FIELD];
-    if (Array.isArray(path) && path.length > 0 && path.every((w) => typeof w === 'string')) {
-      return (path as string[]).join(' ');
-    }
-    const sub = model[SUBCOMMAND_FIELD];
-    return typeof sub === 'string' ? sub : undefined;
+    return Object.entries(this.subcommands);
   }
 
   hasVerb(verb: string): boolean {
@@ -465,25 +406,12 @@ export class CommandDefinition {
    */
   getOptions(scope: 'verb' | string): Record<string, OptionDefinition> {
     if (scope === 'verb') return this.verbOptions;
-    // ⭐ Nested (D2): a level sees its own options and every enclosing
-    // level's, the innermost winning — lexical, like the verb's.
-    let out = this.verbOptions;
-    for (const st of this.getSubcommandChain(scope) ?? []) {
-      if (st.options) out = { ...out, ...st.options };
-    }
-    return out;
+    return { ...this.verbOptions, ...(this.subcommands[scope]?.options ?? {}) };
   }
 
-  /**
-   * The options every stanza along a subcommand path declares (not the
-   * verb's), the innermost winning a name.
-   */
-  getSubcommandOptions(path: string | readonly string[]): Record<string, OptionDefinition> {
-    let out: Record<string, OptionDefinition> = {};
-    for (const st of this.getSubcommandChain(path) ?? []) {
-      if (st.options) out = { ...out, ...st.options };
-    }
-    return out;
+  /** The options a subcommand stanza declares (not the verb's). */
+  getSubcommandOptions(name: string): Record<string, OptionDefinition> {
+    return this.subcommands[name]?.options ?? {};
   }
 
   /**
@@ -527,7 +455,6 @@ export class CommandDefinition {
     }
     if (this.hasSubcommands()) {
       names.add(SUBCOMMAND_FIELD);
-      names.add(SUBCOMMAND_PATH_FIELD);
     }
     return names;
   }
@@ -640,19 +567,11 @@ export class CommandDefinition {
       lines.push('Subcommands:');
       const walk = (
         level: Record<string, SubcommandDefinition>,
-        path: string[],
         indent: string
       ): void => {
         for (const [name, sub] of Object.entries(level)) {
-          const words = [...path, name];
-          const nested = Object.keys(sub.subcommands ?? {});
           const rendered = renderArgs(sub.args);
-          const tail = rendered
-            ? ` ${rendered}`
-            : nested.length > 0
-              ? ` <${nested.join('|')}>`
-              : '';
-          lines.push(`${indent}${verb} ${words.join(' ')}${tail}`);
+          lines.push(`${indent}${verb} ${name}${rendered ? ` ${rendered}` : ''}`);
           const body = `${indent}  `;
           if (sub.description) lines.push(`${body}${sub.description}`);
           if (sub.help) {
@@ -662,10 +581,9 @@ export class CommandDefinition {
           }
           renderOptionLines(sub.options, body).forEach((l) => lines.push(l));
           renderExampleLines(sub.examples, body).forEach((l) => lines.push(l));
-          if (sub.subcommands) walk(sub.subcommands, words, `${indent}  `);
         }
       };
-      walk(d.subcommands, [], '  ');
+      walk(d.subcommands, '  ');
       if (d.usesDurations()) lines.push(DURATION_FORMS);
       lines.push('');
 
@@ -1120,35 +1038,27 @@ function validateCardinality(
 }
 
 /**
- * ⭐ A subcommand stanza's own shape (D2), the verb-level rule one level
- * down: `args:` and nested `subcommands:` coexist only under
- * `fallthrough: true`, and `fallthrough` needs both.
+ * ⛔ A subcommand stanza is a LEAF (owner rule 2026-11-10): a command is
+ * `verb target` or `verb subcommand target`, never deeper. A non-diegetic
+ * verb that wants a second word takes a hyphenated compound NAME
+ * (`client-layout save <name>`), never a nested stanza. The schema
+ * refuses the key too; this is the same rule for a view built in code.
  */
 function validateStanzaShape(
   sub: SubcommandDefinition,
   filePath: string,
   key: string
 ): void {
-  const hasArgs = (sub.args ?? []).length > 0;
-  const hasNested = Object.keys(sub.subcommands ?? {}).length > 0;
-  if (sub.fallthrough === true) {
-    if (!hasArgs || !hasNested) {
-      throw new Error(
-        `Command definition ${filePath}: subcommand "${key}" sets fallthrough: true, which requires both args: AND nested subcommands:`
-      );
-    }
-  } else if (hasArgs && hasNested) {
+  const raw = sub as SubcommandDefinition & { subcommands?: unknown; fallthrough?: unknown };
+  if (raw.subcommands !== undefined) {
     throw new Error(
-      `Command definition ${filePath}: subcommand "${key}" cannot have both args and nested subcommands (set fallthrough: true to opt in)`
+      `Command definition ${filePath}: subcommand "${key}" declares subcommands: — a command is \`verb subcommand target\`, never deeper`
     );
   }
-  if (hasNested && sub.fallthrough === true) {
-    const first = sub.args![0]!.name;
-    if (sub.subcommands![first]) {
-      throw new Error(
-        `subcommand "${key}" positional "${first}" collides with a nested subcommand of the same name in ${filePath}`
-      );
-    }
+  if (raw.fallthrough !== undefined) {
+    throw new Error(
+      `Command definition ${filePath}: subcommand "${key}" declares fallthrough: — fallthrough is a verb-level key`
+    );
   }
 }
 
@@ -1259,7 +1169,7 @@ function validateFieldNameUniqueness(def: CommandDefinition): void {
   if (def.hasSubcommands()) {
     const collide = (label: string, names: Iterable<string>): void => {
       for (const n of names) {
-        if (n === SUBCOMMAND_FIELD || n === SUBCOMMAND_PATH_FIELD) {
+        if (n === SUBCOMMAND_FIELD) {
           throw new Error(
             `field name "${n}" is reserved when subcommands are declared (${label}, ${def.filePath})`
           );
@@ -1337,21 +1247,11 @@ function validateFieldNameUniqueness(def: CommandDefinition): void {
     for (const [name, opt] of Object.entries(sub.options ?? {})) {
       subOptionNames.add(opt.field ?? name);
     }
-    // ⭐ Nested (D2): a stanza's options also see every enclosing
-    // stanza's, so a collision with any of them is reportable too.
-    const enclosing = new Set<string>(verbOptionNames);
-    const chain = def.getSubcommandChain(subName) ?? [];
-    for (const outer of chain.slice(0, -1)) {
-      for (const [name, opt] of Object.entries(outer.options ?? {})) {
-        enclosing.add(opt.field ?? name);
-      }
-    }
 
     for (const n of subOptionNames) {
-      if (enclosing.has(n)) {
-        const outerLabel = verbOptionNames.has(n) ? 'verb-scoped option' : 'an enclosing subcommand option';
+      if (verbOptionNames.has(n)) {
         throw new Error(
-          `field name "${n}" collides between ${outerLabel} and subcommand "${subName}" option in ${def.filePath}`
+          `field name "${n}" collides between verb-scoped option and subcommand "${subName}" option in ${def.filePath}`
         );
       }
     }
@@ -1364,7 +1264,7 @@ function validateFieldNameUniqueness(def: CommandDefinition): void {
         );
       }
       seenArg.add(a.name);
-      if (enclosing.has(a.name) || subOptionNames.has(a.name)) {
+      if (verbOptionNames.has(a.name) || subOptionNames.has(a.name)) {
         throw new Error(
           `arg name "${a.name}" collides in subcommand "${subName}" of ${def.filePath}`
         );

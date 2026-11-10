@@ -21,13 +21,24 @@ noticing it.
 ```
 cockpit                       report everything in effect
 cockpit mode <name>           what you are here to do
-cockpit layout <name>         the card arrangement inside that mode
 cockpit cli [id] --prefix …   prefix one command line's bare input
-cockpit shelf list|pin|unpin|first  which figures ride the top bar
-cockpit style <sub> …         appearance
-cockpit card <action> <card>  keep, size, place, tray or close a card
 cockpit terminal <view|#ch>   what a terminal card shows
+
+client-layout <name>          the card arrangement inside that mode
+client-card <action> <card>   keep, size, place, tray or close a card
+client-shelf list|pin|unpin|first <row>   which figures ride the top bar
+client-style <sub> …          appearance
 ```
+
+⛔ **Since controller-liquidity W16 the screen's other controls are
+verbs of their own.** A command is `verb target` or `verb subcommand
+target`, never deeper (owner rule 2026-11-10), so `cockpit
+layout|card|shelf|style <action> …` — a subcommand of a subcommand —
+left `cockpit` for four **non-diegetic compound names**: `client-layout`,
+`client-card`, `client-shelf`, `client-style` (command-spec.md § Depth).
+`cockpit` keeps `mode`, `cli` and `terminal`. The four still write the
+`cockpit.*` keyspace, are afforded by `SaxonbergClientMixin` beside
+`cockpit`, and share its input-mode exemption.
 
 `layout` and `style` are **removed** as standalone verbs, not kept as
 aliases: one name per thing, and two names for one thing is a cost that
@@ -39,13 +50,13 @@ The three controllers survive as **per-subcommand controllers**
 (`controller:` on each subcommand), so the consolidation was wiring, not
 a rewrite.
 
-### `cockpit shelf` — the widget shelf's pin surface
+### `client-shelf` — the widget shelf's pin surface
 
 ```
-cockpit shelf list            the whole catalogue, and what is pinned
-cockpit shelf pin <row>       add a figure, at the end
-cockpit shelf unpin <row>     take one off
-cockpit shelf first <row>     move it to the front
+client-shelf list            the whole catalogue, and what is pinned
+client-shelf pin <row>       add a figure, at the end
+client-shelf unpin <row>     take one off
+client-shelf first <row>     move it to the front
 ```
 
 Rows: `play` `renown` `skill` `make` `coin` `status` `time` `online`
@@ -80,7 +91,7 @@ Naming: `first` over `promote`/`move`, because it names the resulting
 machine voice — *coin moved to the front of the shelf*.
 
 ⚠ It is a fourth **action** on the existing positional slots, not a new
-subcommand: `cockpit shelf` has already spent the one level of nesting
+subcommand: `client-shelf` has already spent the one level of nesting
 the framework has. So the YAML gained help text and an example and
 nothing else, and the refusal that names the known actions had to grow
 to four — an action a refusal does not name is a vocabulary a player
@@ -95,13 +106,13 @@ bar](./client-shell.md).
 are actually wired. *Never default-pin a widget that does not do
 anything yet*: the other six render their honest not-wired state, and a
 new player's first impression should not be six dead boxes. They are one
-`cockpit shelf pin` away, and `cockpit shelf list` is how a player
+`client-shelf pin` away, and `client-shelf list` is how a player
 discovers them — which is why `list` prints the whole catalogue rather
 than only what is pinned.
 
-Mirrors `cockpit card` in every respect — nested stanzas `list` / `pin` /
-`unpin` / `first`, one controller each over `CockpitShelfControllerBase`
-(controller-liquidity W7b), and `row` a `values:` slot equal to
+Mirrors `client-card` in every respect — subcommands `list` / `pin` /
+`unpin` / `first`, one controller each over `ClientShelfControllerBase`
+(controller-liquidity W7b; its own verb since W16), and `row` a `values:` slot equal to
 `SHELF_ROW_IDS` (a test pins the two together), so the binder refuses an
 unknown action or row naming the known set before any controller runs.
 
@@ -128,25 +139,30 @@ observes.
 row `values:`), because they are **not rows** — a stronger guarantee than
 a protection rule.
 
-### ⭐ `card`, `shelf`, `layout` and `style` nest (controller-liquidity W7b)
+### ⭐ `client-card`, `client-shelf`, `client-layout`, `client-style` (controller-liquidity W7b → W16)
 
-`cockpit style theme high-contrast` is a subcommand of a subcommand, and
-since controller-liquidity D2 the grammar says so: `SubcommandDefinition`
-recurses, `model.subcommand` is the leaf and `model.subcommandPath` the
-walk, and each stanza names its own controller (`StyleThemeController`,
-`LayoutSaveController`, `CockpitCardMoveController`, …) over a base per
-noun. Every closed word — themes, `on|off`, `words|ids`, shelf rows — is a
+W7b split each of these into one controller per action and nested them
+under `cockpit` (D2: `cockpit style theme high-contrast`, a subcommand of
+a subcommand). The owner reversed the nesting (W16): each is its own
+**non-diegetic verb with a compound name**, and each action is an
+ordinary subcommand with its own controller (`ClientStyleThemeController`,
+`ClientLayoutSaveController`, `ClientCardMoveController`, …) over a base
+per noun. Every closed word — themes, `on|off`, `words|ids`, shelf rows — is a
 `values:` slot, so an unknown setting, action or value is the binder's
 `unknown-subcommand` / `bind` refusal, naming the set, and never reaches a
 controller (the old explicit `default:` refusals are gone with the
 positional `styleSub`/`a`/`b`/`c` and `action` slots).
 
-Two shapes the nesting could not take, recorded: `cockpit style channel
-<key> color|clear` puts its word AFTER an argument, so `color|clear` is a
-`values:` slot on one `StyleChannelController`; and bare `cockpit layout`
-reaches the recall stanza with no name and lists. `cockpit layout <name>`
+Shapes recorded: `client-style channel <key> color|clear` puts its word
+AFTER an argument, so `color|clear` is a `values:` slot on one
+`ClientStyleChannelController`; the two forms that were a third level
+flattened — `mention self on|off` → **`client-style mention on|off`**
+(`self` was the only word) and `plain channel <key> on|off` →
+**`client-style plain-channel <key> on|off`** (a compound subcommand
+word, the same non-diegetic rule); and bare `client-layout` reaches the
+recall controller with no name and lists. `client-layout <name>`
 still recalls by fallthrough, and a layout NAMED `list` (or `save`,
-`forget`, `recall`) is recalled with `cockpit layout recall list` — the
+`forget`, `recall`) is recalled with `client-layout recall list` — the
 dead end where such a layout could be saved and never recalled is gone.
 
 ### ⭐ The input-mode exemption is now a rule
@@ -220,7 +236,7 @@ rather than silently resolved.
 each card's `cardId` and the shape and place the player gave it —
 `size`, `placed` (**units, never pixels**), `minimized`, `pinned` — and,
 for a terminal card, `terminal: { filter, inputMode?, primary? }`.
-`cockpit layout save` captures it from the open card set; recall opens it
+`client-layout save` captures it from the open card set; recall opens it
 **server-side** (§ *A mode switch opens its arrangement*). The
 `cockpit.savedArrangements` validator in `SaxonbergClient` accepts this
 shape; there is no migration (the keyspace is reset nightly).
@@ -243,7 +259,7 @@ open. Overwriting an existing name is always allowed: it adds no key.
 
 ### The arrangement axis — savable, not a frozen list
 
-⚠⚠ **An arrangement is not a closed vocabulary.** `cockpit layout` used
+⚠⚠ **An arrangement is not a closed vocabulary.** `client-layout` used
 to validate against `LAYOUT_NAMES`; it cannot any more, because
 arrangements are *savable* — a player composes and names one. It
 resolves against **the active mode's shipped defaults plus that player's
@@ -251,10 +267,10 @@ saved arrangements**, which is why `LAYOUT_NAMES` was *replaced* by
 per-mode defaults rather than promoted.
 
 ```
-cockpit layout <name>          recall
-cockpit layout list            what is available here
-cockpit layout save <name>     name the current arrangement
-cockpit layout forget <name>   drop one you saved
+client-layout <name>          recall
+client-layout list            what is available here
+client-layout save <name>     name the current arrangement
+client-layout forget <name>   drop one you saved
 ```
 
 `COCKPIT_ARRANGEMENTS` holds the shipped floor; the first entry of each
@@ -330,11 +346,11 @@ render them and renders the nearest thing it has.
 ## Cards: pinned, or aged out
 
 See [card-surface.md](./card-surface.md) for the card set itself.
-The cockpit's half is the verb: `cockpit card <action> <card>`, where the
+The cockpit's half is the verb: `client-card <action> <card>`, where the
 action is one of `list` · `pin` · `unpin` · `dismiss` · `auto` · `close` ·
 `grow` · `shrink` · `minimize` · `restore` · `move <col> <row>` · `place` ·
-`unplace` (client-surface D8), each a nested stanza. The pin actions are
-`CockpitCardPin`/`Unpin`/`AutoController`'s; every shape-and-place action goes through `Interactive.arrangeCard`
+`unplace` (client-surface D8), each a subcommand. The pin actions are
+`ClientCardPin`/`Unpin`/`AutoController`'s; every shape-and-place action goes through `Interactive.arrangeCard`
 → `CardRegistry.arrange`, echoes on `shell.control` tagged
 `control:card`, and pushes a `card-arranged` for each card it moved.
 Refusals are named: `unknown-card`, `primary-terminal` (the primary
@@ -352,12 +368,12 @@ opens pinned and auto-releases when answered. `auto` hands the decision
 back to the catalogue's own default rather than to a condition.
 
 ⚠ **The pin is a command, and its answer is mirrored, never assumed.**
-`cockpit card pin <id>` can be refused, so the client renders the
+`client-card pin <id>` can be refused, so the client renders the
 server's `pinned` value off the `card-pinned` envelope rather than
 toggling locally — a local toggle shows a pin that is not there, and it
 does not survive the tab.
 
-⭐ `cockpit card list` says which cards are LIVE, and their size and
+⭐ `client-card list` says which cards are LIVE, and their size and
 place. Liveness is the axis a player cannot otherwise observe: a static
 card shows a timestamp and a refresh, a live one shows neither, and
 without the word here the only way to tell them apart is to watch one
@@ -385,7 +401,7 @@ a view must be one of the player's `console.tabs` views or `All`, a
 ⭐ **Every mode has a primary terminal**, and its default filter is the
 mode's `MODE_PRIMARY_FILTER` entry in `@saxonberg/types`: `chat` → the
 `Chat` view, every other mode → everything. It is minted on a MODE entry
-— `openArrangement` at login, `cockpit mode`, `cockpit layout` — when
+— `openArrangement` at login, `cockpit mode`, `client-layout` — when
 none is up, and retargeted when one is; a bare re-arrange of cards
 touches no terminal (B15). It cannot be closed or minimized.
 
@@ -411,7 +427,7 @@ and pushes the card set. The client sends one command and renders what
 arrived.
 
 This is what keeps *the client owns zero command semantics* literally
-true. The alternative — the client replaying `cockpit card open <name>`
+true. The alternative — the client replaying `client-card open <name>`
 per card — puts the meaning of an arrangement, and the card ORDER, in
 the client, and costs a round trip per card.
 
@@ -473,7 +489,7 @@ layouts, `LivestreamPanels` and `ChatSurface` are retired (B39). The
 phone renders `PhoneShell` instead. Geometry, chrome and the phone are
 [client-shell.md](./client-shell.md)'s.
 
-- **No auto-switch.** `cockpit layout` / `cockpit mode` are the *only*
+- **No auto-switch.** `client-layout` / `cockpit mode` are the *only*
   ways to change the mode on screen — typed, or sent by the rail's mode
   buttons (words, not glyphs: B24). No domain verb, URL, NPC or item
   flips it.
@@ -760,7 +776,7 @@ with it. See § The client frame renders from both axes.
 
 ### Client surface — 2026-10-31
 
-`play` became `explore` (with a refusal that names it). `cockpit card`
+`play` became `explore` (with a refusal that names it). `client-card`
 grew `close` · `grow` · `shrink` · `minimize` · `restore` · `move` ·
 `place` · `unplace` · `unpin` through one `arrange` door and the
 `card-arranged` envelope; `cockpit terminal` arrived with terminal cards,

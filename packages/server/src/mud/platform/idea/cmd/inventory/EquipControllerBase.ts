@@ -15,8 +15,8 @@
  * ⭐ Which means the VERB is real input here, not decoration. A gauntlet
  * is wearable and wieldable both; `wear gauntlet` puts it on, `wield
  * gauntlet` takes it up, and bare `equip` prefers the worn reading. See
- * {@link EquipControllerBase.claimAs}. `equip set` / `equip sets` are
- * their own controllers over this base.
+ * {@link EquipControllerBase.claimAs}. The `outfit` verb's three
+ * controllers (`wear`/`save`/`list`) are their own, over this base.
  *
  * ⭐⭐ **The reason the verb exists is ORDERING, not keystrokes.**
  * `wear`'s own help used to say *"a light thing will not go on OVER a
@@ -50,13 +50,13 @@
  * second two-hander — and silently omitting it is worse than any
  * refusal. One line for what went on, one for what did not and why.
  *
- * Grammar (`cmd/inventory/{equip,wear,wield}.yaml`):
+ * Grammar (`cmd/inventory/{equip,wear,wield,outfit}.yaml`):
  *   equip                      everything you carry, inside-out
  *   equip <thing>              one thing, worn or wielded
  *   equip <thing> --from <box> reach into a container you can see
- *   equip set <name>           a saved set
- *   equip set save <name>      record what is on as a set
- *   equip sets                 list them
+ *   outfit wear <name>         a saved outfit
+ *   outfit save <name>         record what is on as an outfit
+ *   outfit list                list them
  *   wear <wearable>            precise: this goes ON
  *   wield <wieldable>          precise: this goes IN HAND
  */
@@ -86,7 +86,7 @@ export interface EquipModel extends CommandModel {
   target?: MqlOneResult;
   /** `--from <container>`: the wardrobe, the chest, the pack. */
   from?: MqlOneResult;
-  /** `equip set <name>` / `equip set save <name>`. */
+  /** `outfit wear <name>` / `outfit save <name>`. */
   name?: string;
 }
 

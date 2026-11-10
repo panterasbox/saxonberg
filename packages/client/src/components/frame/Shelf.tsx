@@ -41,7 +41,7 @@
  *
  * ## Pinning is a command
  *
- * Clicking a catalogue entry sends `cockpit shelf pin <row>` and
+ * Clicking a catalogue entry sends `client-shelf pin <row>` and
  * mutates nothing locally; the server writes `cockpit.shelf` and pushes
  * it back. Hovering previews the identical string in the status bar.
  * ⚠ Preview and send are the SAME string by construction here — they
@@ -225,10 +225,10 @@ export function pinnedShelf(
 /** The command a pin / unpin affordance sends. ONE definition, so the */
 /** preview and the send cannot drift into two strings that agree today. */
 export function pinCommand(row: ShelfRowId): string {
-  return `cockpit shelf pin ${row}`;
+  return `client-shelf pin ${row}`;
 }
 export function unpinCommand(row: ShelfRowId): string {
-  return `cockpit shelf unpin ${row}`;
+  return `client-shelf unpin ${row}`;
 }
 /**
  * ⭐ Move a row to the head of the shelf — and so onto the glance-line,
@@ -237,7 +237,7 @@ export function unpinCommand(row: ShelfRowId): string {
  * unpinned rows too.
  */
 export function firstCommand(row: ShelfRowId): string {
-  return `cockpit shelf first ${row}`;
+  return `client-shelf first ${row}`;
 }
 
 /**

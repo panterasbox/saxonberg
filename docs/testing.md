@@ -129,9 +129,11 @@ with player verbs.
 - **`pinWeather(type, scope)` / `unpinWeather(scope)`** (`/auth/test-weather`) hold the weather of
   the Locality covering `scope`, applied at once as a segment boundary applies it. A drive that
   pins, unpins.
-- **The `testharness` verb** — `testharness clock [advance <dur>]`,
-  `testharness weather [pin <kind> | unpin] [--at <place>] [--alive]` — the same rules in-world, in
-  a test world only.
+- **The `testharness` verb** — `testharness clock`, `testharness clock-advance <dur>`,
+  `testharness weather`, `testharness weather-pin <kind>`, `testharness weather-unpin` (`--at
+  <place>`, `--alive`) — the same rules in-world, in a test world only. The compound subcommand
+  words are the non-diegetic rule (a command is never deeper than `verb subcommand target`;
+  controller-liquidity W16 — they were nested `clock advance` / `weather pin`).
 
 ## How often to run it
 
