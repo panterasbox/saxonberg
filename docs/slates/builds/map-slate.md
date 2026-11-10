@@ -679,6 +679,9 @@ models the server sends down and refreshes when it decides to:
 3. **What you sense now** — sound, smell, party, weather: live events,
    never stored.
 
+The client side of this is its own slate:
+[client-knowledge-model-slate](./client-knowledge-model-slate.md).
+
 ⛔ The evidence firewall holds: only the player's own knowledge goes down,
 never the location-graph index ([location-graph.md](../../subsystems/location-graph.md)).
 A lens that needs the index is a server query (like `route`).

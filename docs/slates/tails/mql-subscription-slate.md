@@ -633,6 +633,12 @@ Shipped → [mql-subscription.md § `focusDependent`, § `locationDependent`](..
 
 ## Shadow model (future)
 
+> ⭐ **2026-11-10:** taken up by
+> [client-knowledge-model-slate](../builds/client-knowledge-model-slate.md)
+> — the pipeline below stays, but the store becomes a **replica of the
+> player's own knowledge documents** rather than a mirror of every object
+> seen.
+
 The v1 client cache is **disjointed pointers** — each
 subscription's `lastResult` lives independently in the cache,
 widgets read from whichever subscription they care about, and
