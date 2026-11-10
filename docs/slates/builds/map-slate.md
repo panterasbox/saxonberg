@@ -699,6 +699,23 @@ cannot share one, which bounds how many are on at once without a rule.
 - **A suggested lens for the situation** — in a mine, air; carrying ore,
   where to sell it; on a contract, its destination; in the dark, light.
 
+**Freshness — how old your knowledge is** **[LEAN, 2026-11-10]**. The
+raw fact exists: every claim carries `firstSeen` / `lastSeen`. What is not
+codified is the scale, and it should not be one age threshold:
+
+- **A staged place has an exact answer** — *has it been restaged since you
+  last saw it?* If so, what you saw inside is stale. A fact, not a guess,
+  once staging records its cadence
+  ([staging-slate](./staging-slate.md)).
+- **A persistent place** has only age: a few bands (*seen today · this
+  week · long ago*) on the **game clock**, never real time.
+- ⭐ **Shape and contents age differently.** Rooms and exits rarely change;
+  what is in a room changes fast. Freshness may be two readings: *is my map
+  of the shape still good* and *can I count on what I saw inside*.
+- Not the same as the location-graph rot rule (a claim older than your
+  latest look at its place reads *not seen when you last looked*) — that is
+  CONFLICT, not age.
+
 **Priority: getting around first** (the owner). The first lenses are the
 ones about moving: the frontier (openings not taken), your trail, your
 active route and its weakest assumption, ways and their refusals,
