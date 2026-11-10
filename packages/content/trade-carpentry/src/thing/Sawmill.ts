@@ -337,7 +337,7 @@ export default class Sawmill extends SawmillBase {
    * mill floor when they come back. Resolves with what came off.
    */
   public runUnattended(plan: SawmillPlan): Promise<ActDone<SawLanded, never>> {
-    plan.onBegin?.();
+    this.setSawing(true);
     return new Promise((resolve) => {
       WorldClockApi.after(
         Quantity.of(plan.durationMs / 1000, 's'),

@@ -204,8 +204,10 @@ export abstract class CommandController<
       if (done.peers) scene.toPeers(done.peers);
       scene.send();
     };
+    // The claim an object holds while its act runs (`ActPlan.onBegin`).
+    const begin = plan.onBegin ?? ((): void => undefined);
     if (plan.durationMs <= 0) {
-      plan.onBegin?.();
+      begin();
       const out = await plan.onComplete();
       if (!out.ok) {
         turnDown(words.onRefused(out), out.reason);
@@ -231,7 +233,7 @@ export abstract class CommandController<
         });
     };
     if (!MixinApi.isEngaged(giver)) {
-      plan.onBegin?.();
+      begin();
       land();
       return;
     }
@@ -248,9 +250,9 @@ export abstract class CommandController<
     // its completion inside `start`, and the claim must already be held
     // for the completion to release it. A refused start aborts nothing,
     // so the claim is handed back below.
-    plan.onBegin?.();
+    begin();
     const result = SchedulerApi.start(step);
-    if (!result.ok) plan.onAbort?.('cancelled');
+    if (!result.ok && plan.onAbort) plan.onAbort('cancelled');
     if (result.ok && (result.status === 'started' || result.status === 'replaced')) {
       context.note(result.note);
       const scene = MessageApi.scene(giver).topic(PLAN_TOPIC).toSelf(words.beginSelf(plan.facts));
