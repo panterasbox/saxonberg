@@ -564,6 +564,74 @@ it. The owner: *"'you are here' would be cool but I don't know how reliable
 it is with your basic bitmap — we'd have to talk about how all that is
 actually modeled."*
 
+### ⭐⭐ The Zone tab — an inspection card for the zone **[DECIDED in shape; rows to iterate]**
+
+> The owner: *"anything we do at the zone level or greater I'd consider in
+> bounds here. This is almost like the inspection card but for zones."*
+
+The pane has a **Zone** tab beside the map: what the zone is, as your map
+knows it. It is the zone's card; the map is its picture. **Facts about one
+room stay on that room's card** — the tab is for what holds over the zone
+as a whole, or what happens to be uniform across it. Three groups in the
+first mockup:
+
+- **Shape** — the kind of space (a grid of rooms), the cell size, the
+  extent you know (*6 × 7 cells, 2 levels*), the levels by z.
+- **Your map of it** — rooms walked; rooms known but not walked; openings
+  not taken; the oldest claim you are relying on (*Delve Survey, a year
+  ago*); the ways out (*3, 1 unconfirmed*).
+- **Over the whole zone** — whatever is zone-wide by how the content falls
+  out: the sky (*none — underground*), climate, jurisdiction, and whether
+  the content is **staged or persistent** (*restaged at dawn*) — which
+  matters to navigation because it says how long your map of the contents
+  stays true.
+
+⚠ **Biome is a placeholder here.** It shows as *Climate* until the biome
+redesign decides what a biome is a claim about
+([biome-normalization-slate](./biome-normalization-slate.md)).
+
+### ⭐⭐ Diagonal exits **[DECIDED]**
+
+A diagonal exit is drawn **corner to corner, through the gap the four
+surrounding cells share** — distinct from an orthogonal corridor, which
+runs edge to edge. It takes the same states as any link (walked solid,
+known dashed, on your trail gold) and scales with every zoom step; the
+compass's diagonal arms light from the same data.
+
+- **Two diagonals crossing** in one gap (NE and NW between the same four
+  cells) draw as an X. Honest, but ambiguous in a dense area: **draw a
+  small break where one passes over the other**, so they read as two
+  corridors rather than a junction.
+- **An exit is between neighbors.** A diagonal (or any link) that skips a
+  cell breaks the Cartesian rule; it is a data defect for the authoring
+  tools and the location-graph invariant lint to refuse, not something the
+  renderer draws.
+
+### The first mockup's other choices **[LEAN — to iterate]**
+
+From the 2026-11-09 mockup (a design canvas, the Sunken Delve's upper
+level as the example):
+
+- **Coordinates always visible** under the place name — `x · y · z ·
+  cell size` — with **z emphasized**, because it is the one players lose.
+  A selected room shows its own coordinates.
+- **A level control** on the map (the z levels you know, yours marked);
+  choosing another level shows that floor of the map, with what you know
+  of it.
+- **Zoom in three fixed steps** — *whole zone · nearby · close* — not
+  fluid: each step changes what is drawn (labels appear at *close*,
+  glyphs drop out at *whole zone*), a semantic zoom that needs defined
+  stops. Scroll and pinch move between the steps; a *me* button recenters.
+- **The compass as a layer**, top-left on the map, on by default while it
+  is an experiment: open, door and no-way arms read differently.
+- **Layers** as toggles under the map: compass · trail · sound ·
+  freshness · boundaries.
+- **Click a room → a sub-pane** under the map with navigation facts only
+  (what you know and from whom, how to get there, *Walk there*, *Pin a
+  note*) — the drill-in the owner described: open the context, then act
+  from it.
+- **Tabs:** Map · Zone · Ways out · Notes.
+
 ### Still open
 
 - The minimap's exact visual design — to iterate with the owner against
