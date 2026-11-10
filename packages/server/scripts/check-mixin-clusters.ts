@@ -45,7 +45,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { CONTENT, MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 
-export const MIXIN_CLUSTERS_CEILING = 40;
+export const MIXIN_CLUSTERS_CEILING = 41; // controller-liquidity W8: +1, a stated rise — HaulableMixin {hauledBy, slipHitch} (the coupling, C24) beside {draftFactor, draftLoad} (the load). Every haulable host is honestly both: a cart is weighed and coupled; a carve would compose two mixins on exactly the same hosts. Caller audit: slipHitch has one caller (GotoController), hauledBy was a lone node until it gained a method
 
 function memberName(m: ts.ClassElement): string | null {
   if (ts.isConstructorDeclaration(m) || ts.isClassStaticBlockDeclaration(m)) return null;

@@ -26,7 +26,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const CONTROLLER_FUNCTIONS_CEILING = 229; // controller-liquidity W1+W3: values and refusals moved onto their objects
+export const CONTROLLER_FUNCTIONS_CEILING = 216; // controller-liquidity W1+W3: values and refusals moved onto their objects. W8: −13, module helpers became protected statics or object methods
 
 /** The names of the module-level functions in one controller module. */
 export function moduleFunctions(sf: ts.SourceFile): Array<{ name: string; line: number }> {
