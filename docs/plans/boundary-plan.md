@@ -689,4 +689,45 @@ Retired: everything in § New substrate's "Retired" list except the Berth/Ashore
 
 ## Drive record
 
-*(appended at build time)*
+**Blocking drive — `packages/wire/tests/boundary.dirty.wire.test.ts`, 2026-11-09, owned world on
+2014: 5/5 green** (steps 1, 2, 5, 6, 7 of the script; final run on a world REBOOTED from the
+previous runs' database, so step 1 also reads the door back after a restart).
+
+- 1 ✓ the bank: *pumphouse (the pump-house door, locked)*; the house: *out (…, locked)*; `go
+  pumphouse` → *The pump-house door is locked.*; `open` refuses *It's locked.* from both sides.
+- 2 ✓ inside, keyless: `unlock door` → ok, `open door` → ok; the bank reads *(…, open)* (one
+  object); a keyless stranger at the bank cannot `lock` it (*no key that fits*) but walks in while
+  it stands open; inside `close` + `lock`; the bank reads *locked* again and is refused; leaving
+  from inside: `go out` refuses *closed*, then `unlock`/`open`/`go out` with no key.
+- 5 ✓ the hut: *south and west (the west window)*; `look west` → *A way west, through the west
+  window.*; `go west` → *The west window is not a way through.*; not pitch dark at midday; the
+  hillside: *east (the west window)*, `go east` refused the same.
+- 6 ✓ Duncan Hall lobby: *south (the front doors, open)*; `look doors` → the doors' own
+  description; `look south` → *A way south, through the front doors (open).* (never where it
+  leads); `go south` passes.
+- 7 ✓ the room card's `exits` (`WayRecord`) and `look`'s word agree for the pump-house way, open
+  and (staged) locked; every record carries `crossesZone`.
+
+**What the drive found (fixed, fb7126249):** `look west` in the hut prompted *the west window /
+west* — a boundary folded its name's direction token into its keywords (now dropped; the row
+answers to `window`/`west window`); *"A way south; the front doors is open."* — number agreement
+the way cannot know (now parenthetical). **Drive-side lessons:** the clock must be brought to
+midday (a door is seen in its room's light — at night the lobby's and the hut's doors were
+*something*, correctly); bare `look` after acting on a thing looks at THAT thing (command
+recency), so the drive reads `look here`; a non-cardinal way is `go pumphouse`, not a bare word.
+**Content finding for terminus:** the pump house has no light of its own — shut, its door is
+*something* from inside (*You unlock something.*). Not this build's.
+
+**Not driven (each says why):** step 3 (a dorm/Seznick tenant's key) — a provisioned holding
+needs the Katie dialogue flow; covered by the residence + eternal-university pack suites (the
+key-holder passes the latched door, a stranger is refused, re-key kills the old key, the master
+key opens). Step 4 (the gangway) — not re-modelled this build (B7). Step 8 (night light through
+the shed door) — the light walk's arithmetic is the modality suites' (1800 green); the hut lit
+through its window at midday is step 5. Step 9 (the parlor arch, the coach) — `KeptDoor` and the
+vessel's synthesized ways are unchanged but for B10, unit-tested. Step 10 (an author's curtain
+and a refused edge) — `Exitable.applyExits`/`Location` unit tests + `lint:locations`. Step 11 —
+see above (the reboot between runs).
+
+**B2 — each checkpoint seen red:** the state checks failed on real defects and on wrong wording
+across runs 1–6 (the dark *something*, the prompt, the agreement, the shut-not-locked `go out`);
+step 7 was red on a genuinely open door before it was made to assert agreement.
