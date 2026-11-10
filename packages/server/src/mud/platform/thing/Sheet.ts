@@ -36,6 +36,7 @@ import { StackableMixin } from '../../lib/stuff/Stackable';
 import { FoldableMixin } from '../../lib/slot/Foldable';
 import { TearableMixin, type TearOutcome } from '../../lib/material/Tearable';
 import type { FieldMeta } from '../../lib/mixin';
+import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -71,6 +72,17 @@ const SheetBase = TearableMixin(
 );
 
 export default class Sheet extends SheetBase {
+  /**
+   * ⭐ A sheet affords `paste` — carried or at your feet (controller-
+   * liquidity W7c): pasting a label is afforded by what is pasted, the way
+   * `fit` is afforded by the parts (it was `fit`'s head until then).
+   */
+  static commandContributions: CommandContributions = {
+    self: [],
+    peers: ['platform/cmd/crafting/paste.yaml'],
+    environment: ['platform/cmd/crafting/paste.yaml'],
+  };
+
   static fieldMeta: FieldMeta = {
     boundTo: { persistent: true, authorable: true, stackIdentity: true },
     page: { persistent: true, authorable: true, stackIdentity: true },

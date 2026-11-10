@@ -71,7 +71,9 @@ args:
     type: objects
     required: false
     prepositions: [in, under, at]
-    default: "reachable:[mixin.BulkableMixin],reachable:[mixin.ShoreMixin]"
+    # ⭐ The water answers for itself (`WaterDrawableMixin`, controller-liquidity
+    # W7c): a basin, a tap, a tub, a pail, a shore — the read `rinse` makes.
+    default: "reachable:[mixin.WaterDrawableMixin]"
     scope: ["reachable"]
     requires: any
   # ⭐ WHAT WITH — a cleanser: anything whose material a Cleanser row's

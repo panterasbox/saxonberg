@@ -50,6 +50,11 @@ import { AppApi } from '../../api/app';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { NavigationApi } from '../../api/navigation';
+import { BiomeApi } from '../../api/biome';
+import { SurveyedMixin, type OutsideSurvey, type SurveyAnswer } from '../spatial/Surveyed';
+import type { Archetype } from '../archetype/Archetype';
+import type { Container } from '../spatial/Container';
+import type ArchetypeCatalogue from '../../platform/idea/ArchetypeCatalogue';
 import type Structure from '../structure/Structure';
 import type { Positioned } from '../expanse/Positioned';
 import type { Floor } from '../ground/Floor';
@@ -178,7 +183,9 @@ export interface FloorDefaults {
 // three description mixins and none of `Exitable`/`Staged`/coordinates.
 // A location is *a place you can see, name and point at*; being a place
 // you can walk BETWEEN is the next rung out.
-const PlaceBase = AddressableMixin(
+// ⭐ `SurveyedMixin` OUTERMOST (controller-liquidity W7c): `survey` asks
+// the place what it is for and how it is kept (the override below).
+const PlaceBase = SurveyedMixin(AddressableMixin(
   AmbientLitMixin(
     AtmosphericMixin(
       AdornableMixin(
@@ -190,7 +197,7 @@ const PlaceBase = AddressableMixin(
       ),
     ),
   ),
-);
+));
 
 export default class Place extends PlaceBase {
 // ⭐ `suppressesMagic` gained `authorable` (base-class narrowing):
@@ -598,6 +605,112 @@ export default class Place extends PlaceBase {
             '/stuff/idea/material/wood/oak',
           ),
     };
+  }
+
+  /**
+   * ⭐ **Take stock of this place** (residences D15/D4, paint D13,
+   * cleanliness D15; moved off `SurveyController`, controller-liquidity
+   * W7c). Four reads, all facts: what the place is FOR — every room
+   * archetype (the industry-less ones: a bedroom derives from no recipes),
+   * met *by what*, over the whole holding when the room is part of one
+   * and over the WAY when a corridor archetype asks and this is outdoor
+   * ground on a lane; the building it is part of, read from outside (asked
+   * of that structure); who owes the upkeep (the holding's tenure term);
+   * how the floor is kept. Nothing is enforced; no multiplier reads this.
+   */
+  public override async surveyFor(viewer: Stuff): Promise<SurveyAnswer> {
+    const self = this as unknown as Stuff & Container;
+    // A place is taken stock of from inside it (aboard a boat in it counts).
+    if (
+      MixinApi.isContainable(viewer) &&
+      viewer.getContainer() !== null &&
+      viewer.getContainer() !== self &&
+      viewer.getEnclosingPlace() !== self
+    ) {
+      return { ok: false, reason: 'not-here' };
+    }
+
+    const warren = MixinApi.isWarrenMember(self) ? self.getWarren() : null;
+    const upkeepTerm = warren?.getUpkeepTerm() ?? null;
+    const spaces: (Stuff & Container)[] =
+      warren && upkeepTerm !== null
+        ? warren.getMembers().filter((m): m is Stuff & Container => MixinApi.isContainer(m))
+        : [self];
+    const wayside = await this.waysideSpaces();
+    const reports = this.roomArchetypes()
+      .filter(
+        (a) => a.getSurveyScope() !== 'off-room' && (a.getSurveyScope() !== 'corridor' || wayside !== null),
+      )
+      .map((a) => a.satisfies(a.getSurveyScope() === 'corridor' && wayside ? wayside : spaces));
+
+    // ⭐ The fabric is the BUILDING's (paint D13): whatever structure this
+    // room is a member of — a shop, a ship, a home — asked for its outside.
+    const path = this.getIdentityPath();
+    const structure = this.structureNow() ?? (path ? await NavigationApi.structureAt(path) : null);
+    let outside: OutsideSurvey | null = null;
+    if (structure && MixinApi.isSurveyed(structure)) {
+      const read = await structure.surveyFor(viewer);
+      if (read.ok && read.facts.kind === 'outside') outside = read.facts;
+    }
+
+    // ⭐ How the place is KEPT (cleanliness D15): a band and the method.
+    let floor: { band: string; method: string } | null = null;
+    const f = this.getFloor() as unknown as Stuff | null;
+    if (f !== null && MixinApi.isFloor(f) && f.takesSoil() && MixinApi.isSoilable(f)) {
+      f.reconcileStalls();
+      floor = { band: f.soilBand(''), method: f.cleaningMethod() };
+    }
+    return {
+      ok: true,
+      facts: { kind: 'place', whole: upkeepTerm !== null, reports, outside, upkeepTerm, floor },
+    };
+  }
+
+  /** The room archetypes — the ones that derive nothing from an industry (a bedroom has no trade; a bar does). */
+  private roomArchetypes(): Archetype[] {
+    const catalogue = StuffApi.findByTemplatePath<ArchetypeCatalogue>('/platform/idea/ArchetypeCatalogue');
+    if (!catalogue) return [];
+    return catalogue
+      .allArchetypes()
+      .filter((a) => a.getIndustry() === null)
+      .sort((a, b) => a.getArchetypeId().localeCompare(b.getArchetypeId()));
+  }
+
+  /**
+   * The rooms a `surveyScope: 'corridor'` archetype reports over, or
+   * `null` when this is not a place a way runs through.
+   *
+   * ⭐ **Outdoors is what makes somewhere a WAY rather than a room**
+   * (`exposureOf(...).isOutside()` — open above and nothing around it), so
+   * a bedroom, a bar and a brewing floor never ask corridor questions.
+   * ⚠⚠ **The way is the LANE, not the zone** — a one-room courtyard is a
+   * spot and a city-sized zone is not a road — and the kernel reaches the
+   * transport pack's lane catalogue BY SHAPE (no import; a realm without
+   * transport has no ways, and standing outdoors on no road answers
+   * `null`). The union of every way through here: a crossroads is on two.
+   */
+  private async waysideSpaces(): Promise<(Stuff & Container)[] | null> {
+    const self = this as unknown as Stuff;
+    if (!(BiomeApi.exposureOf(self)?.isOutside() ?? false)) return null;
+    const here = self.getTemplatePath() ?? '';
+    if (here === '') return null;
+    const catalogue = await StuffApi.singleton<Stuff>('/system/transport/idea/LaneCatalogue').catch(() => null);
+    const asLanes = catalogue as unknown as {
+      lanesAt?: (path: string) => Promise<readonly { nodes: string[] }[]>;
+    } | null;
+    if (!asLanes || typeof asLanes.lanesAt !== 'function') return null;
+    const lanes = await asLanes.lanesAt(here);
+    if (lanes.length === 0) return null;
+    const paths = new Set<string>();
+    for (const lane of lanes) for (const n of lane.nodes) paths.add(n);
+    const rooms: (Stuff & Container)[] = [];
+    for (const p of paths) {
+      // ⚠ The multi-instance form: a shared row stands in many places, and
+      // the singleton lookup THROWS on more than one live instance.
+      const live = StuffApi.findAllByTemplatePath(p)[0];
+      if (live && MixinApi.isContainer(live)) rooms.push(live);
+    }
+    return rooms.length > 0 ? rooms : null;
   }
 
   /**

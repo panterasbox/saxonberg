@@ -34,6 +34,8 @@ help: |
   made of and what has failed. A slack joint is `repair`ed; a thing
   is taken apart with `salvage`, and how much comes back depends on
   how it was joined, and on who is taking it apart.
+
+  A label is not fitted — it is pasted: `paste label on jar with paste`.
 examples:
   - cmd: fit haft to pick
     note: Replace one part and keep the rest
@@ -54,8 +56,9 @@ args:
     required: false
     scope: ["reachable"]
     requires: any
-  # What it is fitted TO. Only an assembly can take a part — ⭐ or a good's
-  # FACE a label (a sheet) is pasted onto.
+  # What it is fitted TO. Only an assembly can take a part. ⚠ `FacedMixin`
+  # stays admitted for ONE build so `fit label on jar` reaches the refusal
+  # that names `paste` (controller-liquidity W7c) — then it narrows.
   - name: whole
     prepositionRequired: true
     type: object
@@ -73,5 +76,4 @@ args:
     prepositions: [with, using]
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]
-    # ⭐ …or the POT a label is pasted from.
-    requires: [ToolMixin|BulkableMixin]
+    requires: [ToolMixin]

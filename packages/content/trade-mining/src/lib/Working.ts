@@ -64,6 +64,8 @@ import { Traversal } from '@saxonberg/server/mud/lib/location/Traversal';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Atmospheric } from '@saxonberg/server/mud/lib/biome/Atmospheric';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import type { SampleAnswer, SampleRequest } from '@saxonberg/server/mud/lib/instrument/Sampleable';
 import { NavigationApi, type CardinalDirection } from '@saxonberg/server/mud/api/navigation';
 import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -474,7 +476,19 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
      * hand-authored mine work.
      */
     /**
-     * ⭐⭐ **A working overrides the ground's `sampleFace`**: it has
+     * ⭐ The `sample` act in a working (controller-liquidity W7c — the
+     * ground's `samplePiece`, overridden): a lump of the face named (or the
+     * richest), set down here; the verb stamps it with where you stand.
+     */
+    public override async samplePiece(actor: Stuff, req: SampleRequest): Promise<SampleAnswer> {
+      const piece = await this.sampleFace(actor, req.face);
+      if (!piece) return { ok: false, reason: 'nothing-to-take' };
+      if (MixinApi.isContainable(piece)) ContainmentApi.move(piece, this as unknown as Stuff & Container);
+      return { ok: true, facts: { piece, from: 'face', at: null, part: null } };
+    }
+
+    /**
+     * ⭐⭐ **A working's lump of its face** (what `samplePiece` takes): it has
      * faces, an ore row and a grade, none of which plain ground knows
      * about. One lump, no engagement, no tool — a sample is a piece you
      * knock off with whatever is in your hand, and the JUDGEMENT is

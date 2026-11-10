@@ -28,15 +28,26 @@ import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
 import type { WaterDraw } from '../location/WaterSource';
 import { MixinApi } from '../../api/mixin';
 import { BulkableApi } from '../../api/bulk';
+import { BiomeApi } from '../../api/biome';
 
-/** The material tag that makes a holder's contents water. */
-const WATER_TAG = 'water';
+/**
+ * The material tags that make a holder's contents water: `water`, and salt
+ * water by its own `brine` tag (a bucket of sea water on a deck) — never by
+ * giving brine the `water` tag.
+ */
+const WATER_TAGS = ['water', 'brine'];
+/** Water nobody has measured: a basin at a cool room's warmth, K. */
+const UNKNOWN_WATER_K = 285;
 
-/** What answered: the thing the water comes from, and (a shore) what it gives. */
+/** What answered: the thing the water comes from, and what it gives. */
 export interface WaterDrawnFacts {
   source: Stuff;
-  /** A shore's draw — the water's own material and temperature. */
-  draw?: WaterDraw;
+  /**
+   * The water's own material, temperature and (when the source says)
+   * hardness — a shore's draw, or what a vessel holds (controller-liquidity
+   * W7c: `wash` reads the heat and the hardness of the water it is given).
+   */
+  draw: WaterDraw;
 }
 
 /**
@@ -47,6 +58,17 @@ export type WaterDrawRefusal = ActRefusal<'no-water'> | ActRefusal<'frozen'>;
 
 /** What a draw answers: the source, or why not. */
 export type WaterDrawAnswer = ActOutcome<WaterDrawnFacts> | WaterDrawRefusal;
+
+/** The air's warmth where a vessel stands — the water's, when nobody measured it. */
+function ambientK(self: Stuff): number {
+  try {
+    const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+    if (room && MixinApi.isContainer(room)) return BiomeApi.airFor(room).tempK;
+  } catch {
+    // fall through
+  }
+  return UNKNOWN_WATER_K;
+}
 
 /** A thing water can be drawn from. */
 export interface WaterDrawable {
@@ -75,8 +97,20 @@ export function WaterDrawableMixin<TBase extends MixinConstructor<Stuff>>(Base: 
       const slot = BulkableApi.slotFor(self, undefined);
       await slot?.settle();
       if (!slot || slot.isEmpty()) return { ok: false, reason: 'no-water' };
-      if (slot.getMaterial()?.hasTag(WATER_TAG) !== true) return { ok: false, reason: 'no-water' };
-      return { ok: true, facts: { source: self } };
+      const material = slot.getMaterial();
+      if (!material || !WATER_TAGS.some((t) => material.hasTag(t))) return { ok: false, reason: 'no-water' };
+      const hardnessDgh = slot.getHardnessDgh();
+      return {
+        ok: true,
+        facts: {
+          source: self,
+          draw: {
+            materialPath: material.getTemplatePath(),
+            temperatureK: slot.getTemperatureK() ?? ambientK(self),
+            ...(hardnessDgh !== null && hardnessDgh !== undefined ? { hardnessDgh } : {}),
+          },
+        },
+      };
     }
   };
 }

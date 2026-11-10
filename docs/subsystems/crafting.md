@@ -1912,11 +1912,20 @@ the feed was dropped. It folds the source payload through
   vessel: a `pour` into a build vessel (`ManualBuildMixin.receivePour`) BANKS the matter as a contribution
   and drains the source, so cream poured into a build-vessel churn would
   vanish. `HandWorkedMixin` confers the view (a static on its class).
-- **`heat`'s placing arm** — a Thermal, Containable, non-build vessel (a
-  cheese vat) is SET ON the lit `Placing` fire in reach
-  (`reachableHeatSource()`), so its contents really warm; `requires: any`
-  with the controller narrowing; *"There's no fire here to set X on"*
-  otherwise.
+- ~~**`heat`'s placing arm**~~ — **retired in controller-liquidity W7c**
+  (the owner's call): a vat is warmed by `put vat on hearth`, `put`'s act;
+  `heat` binds only a `HeatedMixin` thing (below).
+- ⭐ **One act behind each kernel word (controller-liquidity W7c).** `heat`
+  asks `HeatedMixin.heatPlanFor(actor)` (`lib/fire/Heated.ts`): a build
+  (`ManualBuildMixin` composes it) latches the heat it took and a tempered
+  piece anneals; an instrument (the medicine kits, `KitchenTool`) held in
+  the flame takes a dry heat and is sterilized. `stir` asks
+  `AgitatedMixin.agitatePlanFor` (`lib/craft/Agitated.ts`): a compounding
+  vessel answers its knead plan, a churn (`HandWorkedMixin`) works its
+  charge, a build records the method its vessel names — the durations live
+  on the hosts. `dry` is two shapes with two controllers (`dry.yaml` hangs
+  it up, the forecast the thing's `Moist.hoursToDry` / `Wet.dryingHours`;
+  `dry-rub.yaml`, `with` required, rubs it dry).
 - ⭐ **A mould is not a recipe** — the cheese hoop, the ingot mould and the
   ice pan decide the shape of what sets in them with no verb, no recipe
   and no deed; a pour into a mould credits its discipline. See

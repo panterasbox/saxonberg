@@ -46,6 +46,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import { Contamination } from '../material/Contaminable';
+import { WashableMixin } from './Washable';
 import { DIRT_KIND_ROOT } from '../../platform/idea/DirtKind';
 import type DirtKind from '../../platform/idea/DirtKind';
 import type { DirtKindDescriptor } from '../../platform/idea/DirtKind';
@@ -330,7 +331,9 @@ export interface Soilable {
 export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
-  return class SoilableMixin extends Base implements Soilable {
+  // ⭐ A soilable thing is washed (`WashableMixin`, controller-liquidity W7c):
+  // `wash` asks it the plan, and the default washes the load by `washSite`.
+  return class SoilableMixin extends WashableMixin(Base) implements Soilable {
     static _mixinName: string = 'SoilableMixin';
 
     static fieldMeta: FieldMeta = {

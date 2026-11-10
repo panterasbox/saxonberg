@@ -28,6 +28,7 @@ args:
     # resolves it (held first) instead of the controller walking for it
     # (`lint:controller-resolution`).
     default: "reachable:[mixin.ManualBuildMixin],reachable:[mixin.CompoundingMixin]"
-    # ⭐ `any`, narrowed by the controller: a build vessel records the
-    # method; a hand-worked vessel (a churn — dairy D5) works its charge.
-    requires: any
+    # ⭐ The vessel plans the working (`AgitatedMixin`, controller-liquidity
+    # W7c): a build records its method, a churn (dairy D5) works its charge,
+    # a compounding vessel blends what is in it.
+    requires: AgitatedMixin

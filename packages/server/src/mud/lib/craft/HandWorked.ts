@@ -19,6 +19,12 @@ import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandContributions } from '../../api/command';
 import type { ActOutcome } from './ActPlan';
+import { AgitatedMixin, type AgitatePlan, type AgitateRefusal, type AgitateRequest } from './Agitated';
+
+/** Working a charge by hand — a churn takes a while to come, ms. */
+const CHURN_MS = 8000;
+/** What working a charge by hand costs, W. */
+const CHURN_EFFORT_W = 150;
 
 const WORKING = ['platform/cmd/crafting/stir.yaml'];
 
@@ -46,9 +52,22 @@ export interface HandWorked {
 }
 
 export function HandWorkedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
-  return class HandWorkedMixin extends Base implements HandWorked {
+  // ⭐ `stir` asks the vessel's plan (`AgitatedMixin`, controller-liquidity
+  // W7c); this vessel's working is the charge worked by hand.
+  return class HandWorkedMixin extends AgitatedMixin(Base) implements HandWorked {
     static _mixinName = 'HandWorkedMixin';
     static _mixinKind = 'protocol' as const;
+
+    /** @hook `stir`: the charge worked by hand, and what came of it. */
+    public override async agitatePlanFor(_req: AgitateRequest): Promise<AgitatePlan | AgitateRefusal | null> {
+      return {
+        ok: true,
+        durationMs: CHURN_MS,
+        effortW: CHURN_EFFORT_W,
+        facts: { kind: 'hand' },
+        onComplete: () => ({ ok: true, facts: { kind: 'hand-worked', result: this.workByHand()?.facts ?? null } }),
+      };
+    }
 
     static commandContributions: CommandContributions = {
       environment: WORKING,

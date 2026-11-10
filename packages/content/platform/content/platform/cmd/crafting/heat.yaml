@@ -8,16 +8,18 @@
 verbs: [heat]
 category: crafting
 controller: /platform/idea/cmd/crafting/HeatController
-description: "Work a build in the fire (a manual step, both branches)"
+description: "Take a thing to the fire and hold it there until it has taken the heat"
 help: |
   Bring the work to the fire — `heat ingot` at the forge, `heat pot` at
   the hearth (or bare `heat` for the build you're working). Latches the
   hottest heat the build has taken; recipes that need heat check it at
   the finish. Needs a lit fire in reach. Takes a moment.
 
-  Anything else that holds heat — a cheese vat, a pail of milk — is set
-  on the fire in reach (`heat vat`), and warms there until you take it
-  off (`get vat`). A thermometer tells you how far it has come.
+  ⚠ A vessel that is not a build — a cheese vat, a pail of milk, a kettle
+  — is not heated in your hands: SET IT ON the fire, `put vat on hearth`,
+  and it warms there until you take it off (`get vat`). A thermometer
+  tells you how far it has come. (`heat vat` used to do this; it is
+  `put`'s act now.)
 
   A cloth or a tool — a bandage, a board, a knife — put IN a pot of water
   (`put bandage in pot`) is held at the boil for as long as the pot
@@ -44,8 +46,9 @@ args:
     # resolves it (held first) instead of the controller walking for it
     # (`lint:controller-resolution`).
     default: "reachable:[mixin.ManualBuildMixin]"
-    # ⭐ `any`, narrowed by the controller to its two arms: a build vessel
-    # takes the heat into its build; any other vessel is SET ON the lit
-    # fire in reach (dairy D6). A build vessel and a cold vat share no
-    # mixin, so an alternation would delete a check.
-    requires: any
+    # ⭐ The thing says what the heat does to it (`HeatedMixin`,
+    # controller-liquidity W7c): a build latches it, an instrument held in
+    # the flame is sterilized. A vat that is not Heated is refused with the
+    # mixin's sentence, which names `put … on` — setting a vessel on the
+    # fire (dairy D6) is `put`'s act.
+    requires: HeatedMixin

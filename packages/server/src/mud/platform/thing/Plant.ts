@@ -36,12 +36,16 @@ import {
   SOIL_MOISTURE_RESERVE_KEY,
   SOIL_NITROGEN_RESERVE_KEY,
   SOIL_RESERVE_THEME,
+  type Soil,
+  type PartChoices,
+  type PartRefusal,
 } from "../../lib/husbandry/Soil";
+import type { SampleAnswer, SampleRequest } from "../../lib/instrument/Sampleable";
 import { Quantity } from "../../lib/quantity";
-import { GrowingMixin, type GrowthStage } from "../../lib/husbandry/Growing";
+import { GrowingMixin, type GrowthStage, type Growing } from "../../lib/husbandry/Growing";
 import { SlottableMixin } from "../../lib/slot/Slottable";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
-import { LabelledMixin } from "../../lib/description/Labelled";
+import { LabelledMixin, type LabelAnswer, type LabelRequest } from "../../lib/description/Labelled";
 import { SampledMixin } from "../../lib/instrument/Sampled";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
@@ -257,6 +261,112 @@ export default class Plant extends PlantBase {
   /** ⭐ Feed aimed at a labeled plant goes into its own root zone, when the zone keeps nitrogen. */
   public override rootZoneFeeds(): boolean {
     return this.hasRootZone() && this.hasReserve(SOIL_NITROGEN_RESERVE_KEY);
+  }
+
+  /**
+   * ⭐ **The stand a field act means** (field population D6/D7; moved off
+   * the `label` and `sample` controllers, controller-liquidity W7c). A
+   * stand of area crop — or, when a part was NAMED, the stand of this kind
+   * rooted there (the player named the ground, so it wins over a stem in
+   * hand) — and the part of the ground it stands in. `null`: this is not a
+   * crop in a field, and the act is the ordinary one.
+   */
+  private standAt(
+    actor: Stuff,
+    named: (Stuff & Soil) | null,
+  ):
+    | null
+    | { ok: true; stand: Stuff & Growing; part: (Stuff & Soil) | null; ground: Stuff | null }
+    | PartChoices
+    | PartRefusal
+    | { ok: false; reason: "nothing-sown-there"; facts: { part: (Stuff & Soil) | null } } {
+    const self = this as unknown as Stuff & Growing;
+    let crop: (Stuff & Growing) | null = this.isAreaCrop() ? self : null;
+    if (!crop && named) {
+      // Ask the ground you stand on; a part asks the ground it is fixed to.
+      const here = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+      const ground = here && MixinApi.isSoil(here) ? here : named;
+      const there = ground.rootedAreaCrop(named);
+      if (there && there.isSameKindAs(self)) crop = there;
+    }
+    if (!crop) return null;
+    const ground = MixinApi.isContainable(crop) ? crop.getContainer() : null;
+    let stand: (Stuff & Growing) | null = crop;
+    let part: (Stuff & Soil) | null = null;
+    if (ground && MixinApi.isSoil(ground)) {
+      const r = ground.resolvePartFor(named);
+      if (r.ok !== true) return r;
+      part = r.part;
+      if (part) stand = crop.standIn(part);
+    }
+    if (!stand) return { ok: false, reason: "nothing-sown-there", facts: { part } };
+    return { ok: true, stand, part, ground };
+  }
+
+  /**
+   * ⭐ **Sample a crop in a field: pull ONE stem** (field population D7):
+   * a real plant of the crop's own kind, carrying the growth it had there
+   * and the read it had, into the taker's hand — stamped (by the verb)
+   * with the GROUND it came from. The stand keeps its area; the variation
+   * is the stand's seeded one, so the same spot in the same season gives
+   * the same stem. Anything else is the ordinary piece.
+   */
+  public override async samplePiece(actor: Stuff, req: SampleRequest): Promise<SampleAnswer> {
+    const at = this.standAt(actor, req.part);
+    if (at === null) return super.samplePiece(actor, req);
+    if (at.ok !== true) return at;
+    const { stand, part, ground } = at;
+    const piece = await stand.takeSpecimen(stand.specimenVariation());
+    if (MixinApi.isContainable(piece) && MixinApi.isContainer(actor)) ContainmentApi.move(piece, actor);
+    return { ok: true, facts: { piece, from: "stem", at: ground, part } };
+  }
+
+  /**
+   * ⭐ **Label a crop in a field: mark ONE plant out** (field population D6):
+   * one living individual of the stand's kind, left standing where it was
+   * (`takeSpecimen(0, { cut: false })`), named by the label (else the
+   * labeller's name), with a root zone of its own — so water and feed aimed
+   * at it reach it alone. Anything else is the default label.
+   */
+  public override async labelBy(actor: Stuff, req: LabelRequest): Promise<LabelAnswer> {
+    const at = this.standAt(actor, req.part);
+    if (at === null) return super.labelBy(actor, req);
+    if (at.ok !== true) return at;
+    const { stand, part, ground } = at;
+    if (!ground || !MixinApi.isContainer(ground)) return { ok: false, reason: "not-rooted" };
+
+    // ⚠ The noun is read off the STAND before the mint: the individual is
+    // the stand's kind, and its words are the stand's.
+    const noun = stand.getSpecimenNoun();
+    const individual = await stand.takeSpecimen(0, { cut: false });
+    individual.setGroundPart(part ? part.soilPartKey() : stand.getGroundPart());
+    if (MixinApi.isContainable(individual)) ContainmentApi.move(individual, ground);
+    // What it is called before the label goes on — the reply's noun.
+    const called = individual.getPresentation();
+    const text = req.text.trim();
+    // ⭐ With no text, YOUR name goes on it — the verb's own meaning.
+    const label = text.length > 0 ? text : actor.getPresentation();
+    if (MixinApi.isLabelled(individual)) individual.setLabel(label);
+    const written = MixinApi.isLabelled(individual) ? individual.getLabel() : label;
+    if (MixinApi.isVisible(individual)) {
+      const base = noun || individual.getShortDescription();
+      individual.setShortDescription(`${base} labeled "${written}"`);
+    }
+    if (MixinApi.isPerceptible(individual)) {
+      for (const word of written.toLowerCase().split(/[^\p{L}\p{N}'-]+/u)) {
+        if (word) individual.addKeyword(word);
+      }
+      individual.addKeyword(written);
+      individual.addKeyword("labeled");
+    }
+    if (individual instanceof Plant) individual.installRootZone();
+    try {
+      await PersistableApi.captureHostOf(individual);
+      await PersistableApi.captureHostOf(ground);
+    } catch (err) {
+      console.warn("Plant: capture after labeling failed:", err);
+    }
+    return { ok: true, facts: { kind: "marked", called, label: written, part, ground } };
   }
 
   /**

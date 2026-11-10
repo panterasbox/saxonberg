@@ -48,6 +48,8 @@ import type { Persona } from '../lib/character/Persona';
 import type { Dispositioned } from '../lib/trait/Dispositioned';
 import type { Advancing } from '../lib/advancement/Advancement';
 import type { Sampled } from '../lib/instrument/Sampled';
+import type { Sampleable } from '../lib/instrument/Sampleable';
+import type { Surveyed } from '../lib/spatial/Surveyed';
 import type { Visible } from '../lib/description/Visible';
 import type { Perceptible } from '../lib/description/Perceptible';
 import type { Detailed } from '../lib/description/Detailed';
@@ -288,6 +290,10 @@ import type { Butcherable } from '../lib/craft/Butcherable';
 import type { Readable } from '../lib/description/Readable';
 import type { Anchoring } from '../lib/expanse/Anchoring';
 import type { Launchable } from '../lib/location/Launchable';
+import type { Heated } from '../lib/fire/Heated';
+import type { Agitated } from '../lib/craft/Agitated';
+import type { Washable } from '../lib/cleanliness/Washable';
+import type { Sweepable } from '../lib/cleanliness/Sweepable';
 import type { LiftSource } from '../lib/pump/LiftSource';
 import type { PumpSource } from '../lib/pump/PumpSource';
 import type { CapTable } from '../lib/employment/CapTable';
@@ -2460,6 +2466,16 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Butcherable);
   }
 
+  /** ⭐ A piece can be taken from it — `sample` (`SampleableMixin`, a protocol; controller-liquidity W7c). */
+  public static isSampleable(obj: Stuff): obj is Stuff & Sampleable {
+    return this.hasMixin(obj, Mixins.Sampleable);
+  }
+
+  /** ⭐ It can be taken stock of — `survey` (`SurveyedMixin`, a protocol; controller-liquidity W7c). */
+  public static isSurveyed(obj: Stuff): obj is Stuff & Surveyed {
+    return this.hasMixin(obj, Mixins.Surveyed);
+  }
+
   /** ⭐ A thing you can read — a screen, marks, a book — `read` (`ReadableMixin`, a protocol; W8). */
   public static isReadable(obj: Stuff): obj is Stuff & Readable {
     return this.hasMixin(obj, Mixins.Readable);
@@ -2483,6 +2499,26 @@ export class MixinApi {
   /** ⭐ Water a boat goes into / comes out of — `launch`/`recover` (`LaunchableMixin`, a protocol; W8). */
   public static isLaunchable(obj: Stuff): obj is Stuff & Launchable {
     return this.hasMixin(obj, Mixins.Launchable);
+  }
+
+  /** ⭐ Taken to the fire and held there — `heat` (`HeatedMixin`, a protocol; W7c). */
+  public static isHeated(obj: Stuff): obj is Stuff & Heated {
+    return this.hasMixin(obj, Mixins.Heated);
+  }
+
+  /** ⭐ A vessel whose contents are worked by stirring — `stir` (`AgitatedMixin`, a protocol; W7c). */
+  public static isAgitated(obj: Stuff): obj is Stuff & Agitated {
+    return this.hasMixin(obj, Mixins.Agitated);
+  }
+
+  /** ⭐ A thing (or a body's hands) washed at water — `wash` (`WashableMixin`, a protocol; W7c). */
+  public static isWashable(obj: Stuff): obj is Stuff & Washable {
+    return this.hasMixin(obj, Mixins.Washable);
+  }
+
+  /** ⭐ A floor, a grate, a flue — `sweep` (`SweepableMixin`, a protocol; W7c). */
+  public static isSweepable(obj: Stuff): obj is Stuff & Sweepable {
+    return this.hasMixin(obj, Mixins.Sweepable);
   }
 
   /** Draws a supply that can be on or off (`PoweredMixin`). */

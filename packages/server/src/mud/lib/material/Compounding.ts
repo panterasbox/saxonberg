@@ -47,6 +47,7 @@ import { Freshness } from './Freshness';
 import { Contamination } from './Contaminable';
 import type { ActDone } from '../craft/ActPlan';
 import { KneadVesselMixin } from '../craft/KneadVessel';
+import { AgitatedMixin, type AgitatePlan, type AgitateRefusal, type AgitateRequest } from '../craft/Agitated';
 import type { KneadFacts, KneadPlan, KneadRefusal, KneadRequest, KneadVessel } from '../craft/KneadVessel';
 
 /** Milling a compound by hand — a quarter of a game-hour, both hands in it. */
@@ -117,8 +118,15 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
   // as `knead`'s vessel and affords it. ⚠ NOT a dip bath: only a tub of
   // something that lays a coat is one — that is `GlazeTub`, its own kind
   // (B101: the temper pit and the batch pot afforded `dip` and declined it).
-  class CompoundingMixin extends KneadVesselMixin(Base) implements Compounding {
+  // ⭐ And it is stirred (`AgitatedMixin`, controller-liquidity W7c): `stir`
+  // asks this vessel the same knead plan, by the word the matter wants.
+  class CompoundingMixin extends AgitatedMixin(KneadVesselMixin(Base)) implements Compounding {
     static _mixinName = 'CompoundingMixin';
+
+    /** @hook `stir` — the same act as `knead`, asked with `stir` (the slurry, powder and liquid twin). */
+    public override async agitatePlanFor(req: AgitateRequest): Promise<AgitatePlan | AgitateRefusal | null> {
+      return this.kneadPlanFor({ actor: req.actor, verb: 'stir' });
+    }
 
     /**
      * ⭐ The vessel affords `stir` — and `knead` by what it is

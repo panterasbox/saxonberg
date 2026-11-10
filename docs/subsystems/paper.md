@@ -176,7 +176,9 @@ mould's wire, colored by the vat's reach — a persistent load makes brown),
 `PaperMould` + `couch` (onto the post: the press bed), the press squeezes
 the post, the loft dries it, the size tub sizes it. The mill buys clean
 rags; a paint rag is another row. `Packet` (bag, carton); labels pasted
-with `fit <label> to <good> with <pot>` (`Faced.pasteOn`), let go in the
+with `paste <label> on <good> with <pot>` (`Faced.pasteOn`; its own word
+since controller-liquidity W7c — `fit` is assembly only, and a `Sheet`
+affords `paste`), let go in the
 wet unless the glue resists damp (`Faced.releaseDampGlue`).
 
 ## The press (`trade-printing`) — ⚠ a PLACEHOLDER

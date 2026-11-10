@@ -49,6 +49,12 @@ import type { CommandContributions } from '../../api/command';
 import type { MarkupAugmenter } from '../../api/mml';
 import { Mml } from '../../api/mml';
 import { PumpableMixin } from '../pump/Pumpable';
+import { SweepableMixin, type Sweepable, type SweepPlan, type SweepRefusal, type SweepRequest } from '../cleanliness/Sweepable';
+
+/** Raking a grate, real ms. */
+const GRATE_RAKE_MS = 8000;
+/** What raking a grate costs, W. */
+const GRATE_RAKE_W = 200;
 import type { Pumpable, PumpPrognosis, PumpResult } from '../pump/Pumpable';
 import type { Stuff } from '../stuff/Stuff';
 import type { Thermal } from '../thermal/Thermal';
@@ -153,7 +159,7 @@ export type StokeOutcome =
  * worked by hand — but a furnace is NOT a pump: it implements the
  * protocol, never `PumpingMixin`'s capability.
  */
-export interface Burner extends Pumpable {
+export interface Burner extends Pumpable, Sweepable {
   /** Is the furnace currently alight? */
   isLit(): boolean;
   /** Fuel remaining, in **kilograms** (was a `%` of a Reserve). */
@@ -446,8 +452,25 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
 ) {
   // ⭐ Composes the pump PROTOCOL (`PumpableMixin`): a furnace's bellows
   // answers `pump`, and a lamp's honest `no-bellows` is this override.
-  class BurnerMixin extends PumpableMixin(Base) implements Burner {
+  // ⭐ …and the sweep PROTOCOL (`SweepableMixin`, controller-liquidity W7c):
+  // `sweep hearth` rakes the grate — any fire's: a pit, a brazier, a hearth.
+  class BurnerMixin extends SweepableMixin(PumpableMixin(Base)) implements Burner {
     static _mixinName = 'BurnerMixin';
+
+    /** @hook `sweep`: the grate raked of its ash, into the raker's hands. */
+    public override sweepPlanFor(req: SweepRequest): SweepPlan | SweepRefusal | null {
+      const raker = req.actor;
+      return {
+        ok: true,
+        durationMs: GRATE_RAKE_MS,
+        effortW: GRATE_RAKE_W,
+        facts: { kind: 'grate' },
+        onComplete: async () => {
+          const { ash } = await this.rakeGrate(raker);
+          return { ok: true, facts: { kind: 'grate', ash } };
+        },
+      };
+    }
 
     static markupAugmenters: MarkupAugmenter[] = [burnerAugmenter];
 

@@ -89,6 +89,18 @@ dirty glove's load on the bare hand; `remove gloves carefully` puts none.
 
 ## The wash
 
+⭐ **One act (controller-liquidity W7c).** `wash` asks the first thing named
+`WashableMixin.washPlanFor({actor, spec, alongside})`
+(`lib/cleanliness/Washable.ts`, composed by `SoilableMixin`): the default
+washes the whole load by each thing's `washSite` with the rest as its
+co-wash; your own body, asked by you, answers with its hands
+(`HygieneMixin` overrides — bare `wash`). The water is the source's
+answer (`WaterDrawable.drawWaterFor`, its draw carrying heat and hardness —
+`wash`, `bathe`, `rinse` and `cool` share the one read). `sweep` asks
+`SweepableMixin.sweepPlanFor` (`lib/cleanliness/Sweepable.ts`): a `Floor`
+sweeps into its heap, a `Burner` rakes its grate, a `Flued` fire takes the
+brush up its chimney when one is to hand.
+
 `Soilable.washSite(spec, site)` is the chemistry (B8 — not `wash()`, which
 is the vessel service wash). A `WashSpec` is the water's heat and
 hardness, zero or more cleansers, and the effort (`wash --hard` is 3 with a brush, 1.5 by hand; the old

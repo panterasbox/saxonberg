@@ -24,7 +24,8 @@ help: |
   deliberate: you wrote something on that one on purpose, and
   folding it silently into a pile would throw the note away.
 
-  `label <thing>` with no text clears it.
+  `label <thing>` with no text clears it. `at` names a part of a field,
+  so a label with "at" in it is quoted: `label vial "meet at noon"`.
 
   ⭐ In a field, `label wheat trial at the "gate end"` ties your label to
   ONE plant in the stand there and leaves it standing — with no text,
@@ -52,7 +53,9 @@ args:
     required: false
     greedy: true
   # ⭐ WHICH PART — `at <field>` on a tract marked into fields (field population D6).
-  # Optional and greedy; it bounds the greedy `text` before it.
+  # Optional; it bounds the greedy `text` before it. ⚠ It is ONLY a part
+  # of a field (W7c): the controller no longer glues `at …` back onto the
+  # text — a label with "at" in it is quoted.
   - name: part
     type: object
     required: false

@@ -922,6 +922,12 @@ same plant*. `look stem` reads like a pot plant plus *"Its roots …"* and
 *"Taken from the top end of the upper bench."* (`specimenNoun` on the
 row names it).
 
+⭐ Both acts are the PLANT's since controller-liquidity W7c —
+`Plant.samplePiece` (the `Sampleable` protocol) and `Plant.labelBy` (the
+`Labelled` act), over one `standAt` read; the controllers bind and word.
+⚠ `at` on a label names only a part of a field now: a label with "at" in
+it is quoted (`label vial "meet at noon"`).
+
 **The labeled plant.** `label <crop> [text] at <field>` mints an UNCUT
 individual at the part (`_fromStand`), keyworded by its label (a
 bare `label` names it after the labeler — label with text). It has a

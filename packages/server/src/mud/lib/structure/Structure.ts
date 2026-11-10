@@ -81,6 +81,7 @@ import { NamedMixin } from '../description/Named';
 import { VisibleMixin } from '../description/Visible';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { DetailedMixin } from '../description/Detailed';
+import { SurveyedMixin } from '../spatial/Surveyed';
 import type { FieldMeta } from '../mixin';
 import type { EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
@@ -96,9 +97,11 @@ import type { CoatReachRefusal } from '../material/Faced';
 // thing answers to (`Named.getKeywords` folds it onto what lies beneath),
 // so `paint hesper` reaches the ship by her name through the one list MQL
 // scores (one-resolution slate § 4).
-export default class Structure extends DetailedMixin(
+// ⭐ `SurveyedMixin` (controller-liquidity W7c): `survey <building>` asks
+// the structure for its outside; a bare one with no faces says so.
+export default class Structure extends SurveyedMixin(DetailedMixin(
   VisibleMixin(NamedMixin(PerceptibleMixin(Idea))),
-) {
+)) {
   static fieldMeta: FieldMeta = {
     extent: { persistent: true, authorable: true },
     entrance: { persistent: true, authorable: true },

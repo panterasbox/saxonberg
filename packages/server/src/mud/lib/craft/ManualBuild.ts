@@ -40,7 +40,9 @@ import { Freshness } from "../material/Freshness";
 import type Material from "../material/Material";
 import { PourTargetMixin, type PourAnswer, type PourRequest } from "../bulk/PourTarget";
 import { Grade } from "./Grade";
-import type { Technique } from "./Technique";
+import type { Technique, TechniqueSpec } from "./Technique";
+import { HeatedMixin, type HeatTaken } from "../fire/Heated";
+import { AgitatedMixin, type AgitatePlan, type AgitateRefusal, type AgitateRequest } from "./Agitated";
 
 /** How the build was worked — recorded by `stir` / `muddle`. */
 export type BuildMethod = Technique;
@@ -168,21 +170,90 @@ const POUR_MS = 3000;
 const POUR_EFFORT_W = 150;
 const POUR_EPS = 1e-9;
 
-/** ⭐ The pour's pace: the vessel's best work-rate at what it builds. */
-function pourPaceMs(vessel: Stuff): number {
-  if (!MixinApi.isTool(vessel)) return POUR_MS;
+/** Working a build by its method (`stir`), ms; a good instrument paces it. */
+const STIR_MS = 4000;
+/** What working a build costs, W. */
+const STIR_EFFORT_W = 150;
+/** Working a build in the heat (`heat`), ms; a good pot paces it. */
+const HEAT_MS = 4000;
+/** What working a build in the heat costs, W. */
+const HEAT_EFFORT_W = 200;
+/** The capabilities a build vessel is paced by. */
+const BUILD_KINDS = ["shaker", "mixing-glass", "pot"];
+
+/** ⭐ The vessel's pace: `baseMs` over its best work-rate at `kinds`. */
+function pacedMs(vessel: Stuff, baseMs: number, kinds: readonly string[] = BUILD_KINDS): number {
+  if (!MixinApi.isTool(vessel)) return baseMs;
   let best: number | null = null;
-  for (const kind of ["shaker", "mixing-glass", "pot"]) {
+  for (const kind of kinds) {
     if (!vessel.hasCapability(kind)) continue;
     const rate = vessel.capabilityRate(kind);
     best = best === null ? rate : Math.max(best, rate);
   }
-  return Math.round(POUR_MS / (best ?? 1));
+  return Math.round(baseMs / (best ?? 1));
+}
+
+/** ⭐ The working a vessel names — its finishing technique, else stirring (D16). */
+function workingOf(vessel: Stuff): BuildMethod {
+  if (!MixinApi.isTool(vessel)) return "stirred";
+  let best: TechniqueSpec | null = null;
+  for (const { technique } of vessel.capabilityTechniques()) {
+    if (best === null || (technique.priority ?? 0) > (best.priority ?? 0)) best = technique;
+  }
+  return best?.name ?? "stirred";
 }
 
 export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class ManualBuildMixin extends PourTargetMixin(Base) implements Builds {
+  // ⭐ A build is taken to the fire (`heat` — `HeatedMixin`) and worked by
+  // its method (`stir` — `AgitatedMixin`): both protocols, answered here
+  // (controller-liquidity W7c).
+  return class ManualBuildMixin extends AgitatedMixin(HeatedMixin(PourTargetMixin(Base))) implements Builds {
     static _mixinName = "ManualBuildMixin";
+
+    /** @hook `heat`: a build is worked in the heat, paced by the pot. */
+    public override heatManner(): "work" | "hold" {
+      return "work";
+    }
+
+    /** @hook `heat`: the step's time and effort. */
+    public override heatEffort(): { durationMs: number; effortW: number } {
+      return { durationMs: pacedMs(this as unknown as Stuff, HEAT_MS, ["pot"]), effortW: HEAT_EFFORT_W };
+    }
+
+    /**
+     * @hook ⭐ `heat`: the build LATCHES the hottest heat it took (a recipe's
+     * `requiresHeatK` reads it at the finish) — and heat ANNEALS: a hardened
+     * piece taken back above the critical temperature loses its temper. That
+     * is not a penalty the engine chose; it is why a smith quenches LAST.
+     */
+    public override takeHeat(heatK: number): HeatTaken {
+      const self = this as unknown as Stuff;
+      this.noteHeat(heatK);
+      const annealed = MixinApi.isTempered(self) && self.getTemper() !== "none";
+      if (annealed && MixinApi.isTempered(self)) self.setTemper("none");
+      return { heatK, latched: true, annealed };
+    }
+
+    /**
+     * @hook ⭐ `stir`: the build is worked by the method the VESSEL names
+     * (a shaker shakes, a mixing glass stirs), at the vessel's pace, and the
+     * method is recorded on it.
+     */
+    public override async agitatePlanFor(_req: AgitateRequest): Promise<AgitatePlan | AgitateRefusal | null> {
+      const self = this as unknown as Stuff;
+      if (this.isBuildEmpty()) return { ok: false, reason: "empty-build" };
+      const method = workingOf(self);
+      return {
+        ok: true,
+        durationMs: pacedMs(self, STIR_MS),
+        effortW: STIR_EFFORT_W,
+        facts: { kind: "build", method },
+        onComplete: () => {
+          this.setBuildMethod(method);
+          return { ok: true, facts: { kind: "built", method } };
+        },
+      };
+    }
 
     /**
      * ⭐ `pour` into a build: one serving of what is poured (ceramics re-plan
@@ -239,7 +310,7 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
       });
       return {
         ok: true,
-        durationMs: pourPaceMs(target),
+        durationMs: pacedMs(target, POUR_MS),
         effortW: POUR_EFFORT_W,
         facts: { kind: "serving", source, target },
         onComplete: () => {
@@ -280,7 +351,7 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
       const material = MixinApi.isTangible(ingredient) ? ingredient.getMaterial() : null;
       return {
         ok: true,
-        durationMs: pourPaceMs(target),
+        durationMs: pacedMs(target, POUR_MS),
         effortW: POUR_EFFORT_W,
         facts: { kind: "ingredient", source: ingredient, target },
         onComplete: () => {

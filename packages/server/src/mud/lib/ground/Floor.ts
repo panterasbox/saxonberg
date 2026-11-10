@@ -83,6 +83,12 @@ import {
   type GroundMaterialClass,
 } from './GroundKind';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
+import { SweepableMixin, type SweepPlan, type SweepRefusal, type SweepRequest } from '../cleanliness/Sweepable';
+
+/** A floor's sweep with a broom, real ms; bare hands take three times as long. */
+const FLOOR_SWEEP_MS = 8000;
+/** What sweeping a floor costs, W. */
+const FLOOR_SWEEP_W = 250;
 
 const FLOOR_MIXIN = 'FloorMixin';
 
@@ -456,8 +462,34 @@ export function FloorMixin<
   >,
 >(Base: TBase) {
   // Declared-then-returned (the Slotted / Stand shape).
-  class FloorMixin extends Base implements Floor {
+  // ⭐ A floor is swept (`SweepableMixin`, controller-liquidity W7c): `sweep`
+  // asks it the plan; what a broom takes up is the floor's `sweepInto`.
+  class FloorMixin extends SweepableMixin(Base) implements Floor {
     static _mixinName = FLOOR_MIXIN;
+
+    /**
+     * @hook ⭐ `sweep`: a broom does it properly; bare hands take three
+     * times as long. A floor that takes no soil has nothing a broom could
+     * take up.
+     */
+    public override sweepPlanFor(req: SweepRequest): SweepPlan | SweepRefusal | null {
+      if (!this.takesSoil()) return { ok: false, reason: 'nothing-to-sweep' };
+      const sweeper = req.actor;
+      return {
+        ok: true,
+        durationMs: FLOOR_SWEEP_MS * (req.broom ? 1 : 3),
+        effortW: FLOOR_SWEEP_W,
+        facts: { kind: 'floor', broom: req.broom },
+        onComplete: async () => {
+          const { kinds, heap } = await this.sweepInto(sweeper);
+          if (heap !== null && MixinApi.isAdvancing(sweeper)) {
+            // The deed `analyze cleanliness` reads (B57).
+            void sweeper.creditDeed({ discipline: 'domestic-services', difficulty: 'easy', outcome: 'success' });
+          }
+          return { ok: true, facts: { kind: 'floor', kinds, heap } };
+        },
+      };
+    }
 
     /** The derived reading, rendered into the host's `look`. */
     static markupAugmenters: MarkupAugmenter[] = [floorAugmenter, snowAugmenter];

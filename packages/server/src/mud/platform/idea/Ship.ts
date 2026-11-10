@@ -383,6 +383,11 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
     return h.lengthM * (h.beamM + 2 * h.draftM);
   }
 
+  /** What the weather meets on her — `survey` says *hull* (controller-liquidity W7c). */
+  public override weatherSurface(): string {
+    return "hull";
+  }
+
   /** ⭐ Her hull is painted from where she lies — the quay alongside (paint D9). */
   public override coatReachRefusal(actor: Stuff): CoatReachRefusal | null {
     return this.landingRefusal(actor);

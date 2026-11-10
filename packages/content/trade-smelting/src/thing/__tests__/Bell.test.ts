@@ -73,6 +73,14 @@ describe('a bell (ceramics S19)', () => {
     expect(MixinApi.isAudible(b)).toBe(true);
   });
 
+  it('⭐ rung, the bell answers the act as a SIGNAL (`ringBy`, controller-liquidity W7c)', () => {
+    const b = bell(BRONZE, 120);
+    const out = b.ringBy(b);
+    expect(out.ok).toBe(true);
+    expect(out.facts.signal).toBe(true);
+    expect(out.facts.sound.rings).toBe(true);
+  });
+
   it('⚠ a crack dulls it to a clank', () => {
     const cracked = bell(BRONZE, 1);
     cracked.addFlaw('crack', false);

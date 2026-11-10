@@ -48,6 +48,8 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
+import { ContainmentApi } from '../../api/containment';
+import { SampleableMixin, type SampleAnswer, type SampleRequest } from './Sampleable';
 
 /** Where, by whom and when a piece of matter was taken. */
 export interface Sampling {
@@ -77,7 +79,9 @@ const SampleVerbOnly = SecurityPolicies.AnyOf(
 export function SampledMixin<TBase extends MixinConstructor>(Base: TBase) {
   // Declared-then-returned (the `Posed` shape) so method decorators are
   // legal — a class EXPRESSION cannot carry them.
-  class SampledMixin extends Base implements Sampled {
+  // ⭐ Matter that carries a stamp is matter a piece can be taken from —
+  // the `sample` protocol rides it (controller-liquidity W7c).
+  class SampledMixin extends SampleableMixin(Base) implements Sampled {
     static _mixinName: string = 'SampledMixin';
 
     static fieldMeta: FieldMeta = {
@@ -104,6 +108,25 @@ export function SampledMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** Game ms. What the spoiled-sample tell measures the journey from. */
     public sampledOn: number = 0;
+
+    /**
+     * @hook The `sample` act on a piece of matter: a stack gives a piece
+     * (`split(1)`, set down where the taker stands — ⭐ the reading half
+     * was already shipped, `Ore.onSplit` carries the grade); one lump is
+     * sampled whole, where it lies. A loaf is one loaf; you do not cut a
+     * crumb off it to read it. Unstamped: the verb stamps.
+     */
+    public override async samplePiece(actor: Stuff, _req: SampleRequest): Promise<SampleAnswer> {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isStackable(self)) return { ok: true, facts: { piece: self, from: 'piece', at: null, part: null } };
+      const piece = await self.split(1);
+      if (!piece) return { ok: false, reason: 'nothing-to-take' };
+      if (piece !== self) {
+        const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+        if (room && MixinApi.isContainer(room) && MixinApi.isContainable(piece)) ContainmentApi.move(piece, room);
+      }
+      return { ok: true, facts: { piece, from: 'piece', at: null, part: null } };
+    }
 
     public isSample(): boolean {
       return this.sampledAt !== '';

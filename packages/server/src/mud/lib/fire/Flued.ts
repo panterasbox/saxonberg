@@ -21,6 +21,12 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Burner } from './Burner';
+import type { SweepPlan, SweepRefusal, SweepRequest } from '../cleanliness/Sweepable';
+
+/** Brushing a flue, real ms — rod by rod. */
+const FLUE_SWEEP_MS = 24000;
+/** What brushing a flue costs, W. */
+const FLUE_SWEEP_W = 400;
 import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { PersistableApi } from '../../api/persistable';
@@ -78,6 +84,26 @@ export function FluedMixin<TBase extends MixinConstructor<Stuff & Burner>>(
 ) {
   return class FluedMixin extends Base implements Flued {
     static _mixinName: string = 'FluedMixin';
+
+    /**
+     * @hook `sweep` with a flue brush to hand sweeps the CHIMNEY (soot onto
+     * the hearthstone and the sweeper's hands); without one, the fire's
+     * grate is raked as any fire's is (controller-liquidity W7c).
+     */
+    public override sweepPlanFor(req: SweepRequest): SweepPlan | SweepRefusal | null {
+      if (!req.brush) return super.sweepPlanFor(req);
+      const sweeper = req.actor;
+      return {
+        ok: true,
+        durationMs: FLUE_SWEEP_MS,
+        effortW: FLUE_SWEEP_W,
+        facts: { kind: 'flue' },
+        onComplete: async () => {
+          const { sootKg, taken } = await this.sweepChimney(sweeper);
+          return { ok: true, facts: { kind: 'flue', sootKg, taken } };
+        },
+      };
+    }
 
     static fieldMeta: FieldMeta = {
       flueSoot: { persistent: true, runtimeState: true },

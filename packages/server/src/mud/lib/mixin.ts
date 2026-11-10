@@ -720,6 +720,16 @@ export const Mixins = {
   // recovered from — protocols (controller-liquidity W8).
   Anchoring: 'AnchoringMixin',
   Launchable: 'LaunchableMixin',
+  // ⭐ The acts behind `heat`, `stir`, `wash` and `sweep` — protocols, one
+  // act each over several hosts (controller-liquidity W7c).
+  Heated: 'HeatedMixin',
+  Agitated: 'AgitatedMixin',
+  Washable: 'WashableMixin',
+  Sweepable: 'SweepableMixin',
+  // ⭐ A piece can be taken from it — `sample` (controller-liquidity W7c).
+  Sampleable: 'SampleableMixin',
+  // ⭐ It can be taken stock of — `survey` (controller-liquidity W7c).
+  Surveyed: 'SurveyedMixin',
   // Markers a pack's reader narrows on (controllers-are-io D7a): the supply
   // a thing draws, the generator that makes it, who may write a name.
   Powered: 'PoweredMixin',
@@ -1123,6 +1133,12 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   WaterEntryMixin: "there is no way into the water from {}",
   AnchoringMixin: "{} has no anchor to let go",
   LaunchableMixin: "{} isn't water you could put a boat into",
+  HeatedMixin: "{} isn't something you take to the fire — to warm it, set it on one (`put … on hearth`)",
+  AgitatedMixin: "{} isn't something you could stir",
+  WashableMixin: "{} can't be washed",
+  SweepableMixin: "{} isn't something you could sweep",
+  SampleableMixin: "{} is not matter you could take a piece of",
+  SurveyedMixin: "{} is not a place or a building you could take stock of",
   PourTargetMixin: "you can't pour anything into {}",
   ArcaneMixin: "there is nothing bound into {}",
   ImpressibleMixin: "{} is not soft enough to take an impression",

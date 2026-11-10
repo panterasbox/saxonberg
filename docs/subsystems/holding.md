@@ -851,9 +851,10 @@ programme's. ⭐ And `MineWarren` now `extends FloorplanWarren` (review 3,
 the base swap its header planned): it copies no plan, its carve mints keyed members through the base's
 `mintKeyed`, its cells sit on its zone's grid (`laysOutOwnFrame` false)
 and keep their own records; it has no fabric. `CirculationWarren.conditionOf`
-reads the holding's main building (`MixinApi.isDurable`); `SurveyController`
-reads the structure a room is part of (a `Building` or a `Ship`) and the
-term off `FloorplanWarren.getUpkeepTerm`.
+reads the holding's main building (`MixinApi.isDurable`); `survey` asks the
+place (`Surveyed.surveyFor`, `Place`'s override — controller-liquidity W7c),
+which asks the structure it is part of for its outside and reads the term
+off `Warren.getUpkeepTerm` (on the base since W7c; a holding answers).
 
 ## History
 

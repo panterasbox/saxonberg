@@ -49,7 +49,12 @@ where they are painted from. A holding's rooms are keyed clones of shared
 rows, so no path names them (holding.md § Identity): **a place asks its
 warren which building it is in** (`Warren.structureOf`, a hook the holding
 answers from its buildings' room instances; `Place.structureNow` asks it
-first, then the location graph by identity path). So `survey` in a field
+first, then the location graph by identity path). ⭐ `survey` is a
+protocol (`Surveyed.surveyFor`, `lib/spatial/Surveyed.ts` —
+controller-liquidity W7c): a structure answers its outside as facts (coat,
+band, cause, area, litres, *wall and roof* or a ship's *hull*), `Place`
+answers the place read and asks its structure; the controller only words
+them. So `survey` in a field
 reads no fabric and `maintain` there finds nothing to keep. By path, only
 the main building (the first named) answers, at the holding's own extent —
 what the ascent gate reads; the others are kept under

@@ -38,6 +38,7 @@ import type { MarkupAugmenter } from '../../api/mml';
 import type { AudibleEmitOptions } from '../perception/Audible';
 import type { Tangible } from './Tangible';
 import type Material from './Material';
+import type { ActOutcome } from '../craft/ActPlan';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
@@ -221,6 +222,20 @@ export interface Integrity {
    * column and placed by none (underwater C5).
    */
   ringSound(): RingSound;
+  /**
+   * ⭐ The `ring` act (controller-liquidity W7c): tapped by `actor`, it
+   * answers how it sounded and whether it is a SIGNAL — a Ringable bell is
+   * struck (remembered) and sounds from itself; anything else is heard as
+   * the tap. The controller words both; the thing decides which it was.
+   */
+  ringBy(actor: Stuff): ActOutcome<RingFacts>;
+}
+
+/** What `ringBy` answers: the sound, and whether it rang as a signal (a bell struck). */
+export interface RingFacts {
+  sound: RingSound;
+  /** A Ringable signal — struck, remembered, sounded from itself. */
+  signal: boolean;
 }
 
 /**
@@ -554,6 +569,18 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
         db: rings ? 50 + 10 * Math.log10(kg) : 35,
         rings,
       };
+    }
+
+    public ringBy(_actor: Stuff): ActOutcome<RingFacts> {
+      const self = this as unknown as Stuff;
+      const sound = this.ringSound();
+      if (!MixinApi.isRingable(self)) return { ok: true, facts: { sound, signal: false } };
+      // ⭐ A bell is a SIGNAL (review R2-D4): its sound is its own, emitted
+      // through the audible system, and it remembers it was struck so a
+      // listener (a ferryman across the water) can answer (river W16).
+      if (MixinApi.isAudible(self)) self.emit(sound);
+      self.struck();
+      return { ok: true, facts: { sound, signal: true } };
     }
   };
 }

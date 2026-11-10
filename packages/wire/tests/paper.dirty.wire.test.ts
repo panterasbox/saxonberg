@@ -448,7 +448,8 @@ suite('paper — the blocking drive', () => {
     await say(back, 'buy pot of paste');
     await say(back, 'buy label');
     await say(back, 'write ink on me:i:label');
-    const f = await say(back, 'fit me:i:label to me:i:inkpot with "pot of paste"');
+    // ⭐ `paste`, not `fit` (controller-liquidity W7c).
+    const f = await say(back, 'paste me:i:label on me:i:inkpot with "pot of paste"');
     expect(f, f).toMatch(/smooth it onto|paste/i);
     const l = await say(back, 'look me:i:inkpot');
     expect(l, l).toMatch(/label is pasted/i);

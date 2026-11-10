@@ -26,6 +26,7 @@ import { SOIL_BANDS } from './Soilable';
 import type { Soilable, WashSpec } from './Soilable';
 import type { SoilSpec } from './SoilSpec';
 import { CleanserUse } from './CleanserUse';
+import { type Washable, type WashPlan, type WashRefusal, type WashRequest } from './Washable';
 import { MixinApi } from '../../api/mixin';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -97,9 +98,32 @@ function dial(key: string, fallback: number): number {
 }
 
 export function HygieneMixin<
-  TBase extends MixinConstructor<Stuff & Slotted & Attired>,
+  TBase extends MixinConstructor<Stuff & Slotted & Attired & Washable>,
 >(Base: TBase) {
   return class HygieneMixin extends Base {
+    /**
+     * @hook ⭐ `wash` asked of a body BY ITS OWNER washes its hands
+     * (`WashableMixin`, controller-liquidity W7c): the layer at each hand —
+     * the gloves when worn, the bare hands otherwise. Washed by somebody
+     * else, a body is washed as any soilable thing is.
+     */
+    public override washPlanFor(req: WashRequest): WashPlan | WashRefusal {
+      const self = this as unknown as Stuff & Hygiene;
+      if (req.actor !== self) return super.washPlanFor(req);
+      if (this.handSites().length === 0) return { ok: false, reason: 'no-hands' };
+      const gloved = this.handSites().some((h) => this.outermostAt(h) !== null);
+      const spec = req.spec;
+      return {
+        ok: true,
+        ...this.washPaceFor(spec),
+        facts: { kind: 'hands', gloved },
+        onComplete: () => {
+          self.washHands(spec);
+          return { ok: true, facts: { kind: 'hands', gloved, clean: self.handCleanliness() >= 0.9 } };
+        },
+      };
+    }
+
     // ⚠ Widened to `string` — a pinned literal collapses the chain (see
     // `AttiredMixin`).
     static _mixinName = 'HygieneMixin';

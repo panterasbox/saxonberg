@@ -3,9 +3,8 @@
  * D28): a whole body washed at once.
  *
  * ⭐ Dumb over the bath, as `wash` is over the wash: the WATER is the
- * source's (a tub's own water at its own heat, or a shore's — through the
- * one shore answer, so a frozen river refuses unless there is a hole in
- * it); the chemistry and the chill are the BODY's (`Attired.bathe`: every
+ * source's (`WaterDrawable` — a tub's own water at its own heat, or a
+ * shore's, so a frozen river refuses unless there is a hole in it); the chemistry and the chill are the BODY's (`Attired.bathe`: every
  * part washed, the body soaked, the heat exchanged by the one law). This
  * file finds the water and the soap, engages the body and says what
  * happened.
@@ -20,8 +19,6 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { BulkableApi } from '../../../../api/bulk';
-import { StuffApi } from '../../../../api/stuff';
-import { TemplatePaths } from '../../../../lib/paths';
 
 const TOPIC = 'act.deed';
 /** A bath, in game-seconds (D28's `BATHE_S`). */
@@ -51,14 +48,16 @@ export default class BatheController extends WashController {
     const bound = (model.water?.stuff ?? []).filter(
       (c) => MixinApi.isShore(c) || bathVolumeL(c) >= BATH_MIN_L,
     );
-    const water = await this.findWater({ ...model.water, stuff: bound } as MqlManyResult, context);
-    if ('refusal' in water) {
+    // ⭐ The water answers for itself (`WaterDrawable`, controller-liquidity
+    // W7c) — the same read `wash` makes.
+    const water = await this.findWater({ ...model.water, stuff: bound } as MqlManyResult, giver);
+    if ('reason' in water) {
       const none = water.reason === 'no-water';
       this.declineStep(
         context,
         none
           ? Mml.compose`There's nothing here deep enough to bathe in.`
-          : Mml.compose`${water.refusal}`,
+          : WashController.waterWords(water.reason),
         none ? 'no-bath' : water.reason,
       );
       return;

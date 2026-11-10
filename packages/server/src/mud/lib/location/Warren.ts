@@ -208,6 +208,19 @@ export abstract class Warren extends Idea {
   }
 
   /**
+   * Who owes the upkeep of what this warren is, as a tenure term
+   * (`owner-all`, `landlord-shell` …) — what `survey` tells a holder.
+   * On the base since controller-liquidity W7c (the place answers its own
+   * survey and asks whatever warren it is in, with no class test).
+   *
+   * @hook Default: none — a mine's workings and a ship's rooms are owed
+   *   by nobody's tenure (a holding answers its term).
+   */
+  public getUpkeepTerm(): string | null {
+    return null;
+  }
+
+  /**
    * Live members, R2.3-pruned. A destructed member is dropped from the
    * set on read (defends against any destruct path that bypassed the
    * R2.4 cleanup).

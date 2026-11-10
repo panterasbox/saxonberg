@@ -134,6 +134,14 @@ randomness are legal; this is the **epistemic** one.
 claim, not a live reference**: `sampledAt` is a path *string* and is
 never resolved back to an object. Consumers group by the string.
 
+⭐ **Which piece comes off is the thing's** (`Sampleable.samplePiece`,
+`lib/instrument/Sampleable.ts`, a protocol — controller-liquidity W7c):
+`SampledMixin` composes it (a stack gives a piece, one lump is sampled
+whole), `Plant` overrides (a stem out of a standing crop at the part
+named), the ground's `StrataMixin` answers with the face. The STAMP stays
+the verb's — the answer says which place to stamp with and the `sample`
+controller stamps (`stampSampling` is gated to it).
+
 A bench (`AssayBench`, `trade-mining`) is the water mill's shape applied
 to a reading: you leave samples on it, it works through them over
 game-time, and it **holds nothing of yours** — no engagement, no lease.

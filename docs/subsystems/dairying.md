@@ -19,7 +19,7 @@ no controller, no Api**.
 | `pour pail into pan`, wait, `pour pan into pail` | the charge **stands** (`restDays`), then the skim draws off and **stops at the cream** — a share derived from the milk's fat | `SettingPan` = `FractionatingMixin` (`fractionation.md`), schedule `milk-setting` |
 | `pour pan into churn`, `stir churn` | between ~283 and 291 K the cream **breaks** (churned cream); too cold it will not come; too warm it comes greasy (`fair`) | `Churn` is the kernel's `HandWorkedMixin`; the `stir` view, whose working the churn names (`churned`) |
 | `pour churn into jug` | buttermilk draws off; **butter** is the residue — a `fat`, so every fried recipe takes it | schedule `churning` |
-| `heat vat` | the vat is SET ON the lit fire and warms; the thermometer reads it | `heat`'s placing arm (`crafting.md`) |
+| `put vat on hearth` | the vat sits on the lit fire and warms; the thermometer reads it | `put`'s placement + the furnace couple (`heat vat` retired in controller-liquidity W7c) |
 | `pour crock into vat` | a crock of whey IS a living lactic culture: the pour pitches the batch; milk poured into the crock feeds it | profile `whey-starter` (`kind: culture`) |
 | `pour rennet into vat` | the batch **rekeys** to renneted milk — a firm curd — whatever the order of rennet and starter | profile `soft-curd`'s `transforms` (`maturation.md`) |
 | (wait) | the batch sets: the vat holds whey over a curd whose share derives from the milk's fat and protein | profiles `soft-curd` / `firm-curd`, `leesShare` |

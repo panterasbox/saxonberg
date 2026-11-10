@@ -39,6 +39,12 @@ import { AddressApi } from '@saxonberg/server/mud/api/address';
 import type { MixinConstructor } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import {
+  SampleableMixin,
+  type Sampleable,
+  type SampleAnswer,
+  type SampleRequest,
+} from '@saxonberg/server/mud/lib/instrument/Sampleable';
 import Deposit, { type Point, type GroundSample } from '../idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 
@@ -70,7 +76,7 @@ export type MixinCtor<T> = new (...args: any[]) => T;
 export const STRATA_MIXIN = 'StrataMixin';
 
 /** Public shape added by StrataMixin. */
-export interface Strata {
+export interface Strata extends Sampleable {
   /** This room's cell — its persistence key, survey address and MQL atom. */
   getCell(): Cell;
   /** A cell converted to metres through the zone's own `cellSize`. */
@@ -81,31 +87,15 @@ export interface Strata {
   getGroundSeed(): Promise<number>;
   /** Everything the ground says about the cell this room occupies. */
   sampleHere(): Promise<GroundSample | null>;
-  /**
-   * ⭐⭐ **Give me a lump of that.** Mint a piece of the rock in front of
-   * you, stamped by the `sample` verb with where it was taken.
-   *
-   * ⚠⚠ **This is NOT {@link sampleHere}, and the two are one dot
-   * apart.** `sampleHere()` answers *what does the deposit say about
-   * this cell* — a `GroundSample`, a number, a DATA READING, and the
-   * thing `measure strike` already bands. `sampleFace()` answers *give
-   * me a lump of that* and returns **Stuff**. Two meanings of the word
-   * on one host, and neither renames: `sampleHere` is a `Reading`'s
-   * truth source and never a verb; `sampleFace` is the verb's and never
-   * a reading.
-   *
-   * `null` when this ground has nothing to take — which is the honest
-   * answer, and what the verb turns into *"there is nothing here worth
-   * taking a piece of"*.
-   *
-   * ⭐ It lives on the GROUND rather than on mining's `WorkingMixin`
-   * because taking a piece of the rock in front of you is a read of
-   * where you stand, not an act of the mining trade — *reads go to the
-   * ground, cutting belongs to the trade that cuts*. A quarry, a cellar,
-   * a well and a cave can be sampled without depending on a mine, which
-   * is the entire reason this pack exists.
-   */
-  sampleFace(actor: Stuff, direction: string): Promise<Stuff | null>;
+  // ⭐⭐ **Give me a lump of that** is the `sample` protocol's
+  // `samplePiece` (`Sampleable`, which this extends — controller-liquidity
+  // W7c): mint a piece of the rock in front of you, which the verb stamps
+  // with where it was taken. ⚠⚠ It is NOT {@link sampleHere}: that is a
+  // DATA READING (a `GroundSample`, what `measure strike` bands) and never a
+  // verb; `samplePiece` answers with STUFF and never a reading. It lives on
+  // the GROUND rather than on mining's `WorkingMixin` because taking a
+  // piece of the rock in front of you is a read of where you stand — a
+  // quarry, a cellar, a well and a cave can be sampled without a mine.
 }
 
 /**
@@ -125,7 +115,9 @@ export interface Strata {
 export function StrataMixin<TBase extends MixinConstructor<Stuff & Container>>(
   Base: TBase,
 ): TBase & MixinCtor<Strata> {
-  class StrataMixin extends Base implements Strata {
+  // ⭐ Ground is a thing a sample is taken from — the `sample` protocol
+  // (controller-liquidity W7c) answers with the face (a working overrides).
+  class StrataMixin extends SampleableMixin(Base) implements Strata {
     static _mixinName = STRATA_MIXIN;
 
     /** This working's cell. The persistence key, the survey address and the MQL atom are all this. */
@@ -187,21 +179,16 @@ export function StrataMixin<TBase extends MixinConstructor<Stuff & Container>>(
     }
 
     /**
-     * See {@link Strata.sampleFace}. ⚠ The base yields NOTHING: plain
-     * ground is not a face, and a room that can be cut says so by
-     * overriding this. Mining's `WorkingMixin` is the first override —
-     * it has faces, an ore row and a grade, none of which the ground
-     * substrate knows about.
-     *
-     * ⭐ Returning `null` rather than throwing is what lets `sample` be
-     * one verb for the whole world: `sample the north face` in a
-     * drawing-room is a refusal, not an error.
+     * @hook The `sample` act on the ground in front of you. ⚠ The base
+     * yields NOTHING: plain ground is not a face, and a room that can be cut
+     * says so by overriding this — mining's `WorkingMixin` is the first
+     * (faces, an ore row and a grade, none of which the ground knows).
+     * ⭐ Answering `nothing-to-take` rather than throwing is what lets
+     * `sample` be one verb for the whole world: `sample the north face` in
+     * a drawing-room is a refusal, not an error.
      */
-    public async sampleFace(
-      _actor: Stuff,
-      _direction: string,
-    ): Promise<Stuff | null> {
-      return null;
+    public override async samplePiece(_actor: Stuff, _req: SampleRequest): Promise<SampleAnswer> {
+      return { ok: false, reason: 'nothing-to-take' };
     }
   }
   return StrataMixin as unknown as TBase & MixinCtor<Strata>;
