@@ -105,7 +105,10 @@ kind of way need code? No: a boundary row with its material and channels. A new 
 - **The ship** — her gangway becomes one boundary that the berth on shore and her deck share.
 - **The counting-house parlor arch** — the attendant's veto stays a thing a side does.
 - **The coach** — its `out` becomes a side like any other.
-- **The Rejection hut** — its two windows become sides of real ways onto the yard.
+- **The Rejection hut** — its doorway and windows pointed at the same rooms, which are not adjacent on
+  the grid (a pre-existing geometry error). It moves one cell: its doorway runs south to the fuel yard,
+  the west window becomes a real way onto the hillside, and the south window becomes glass in the hut's
+  wall (owner, 2026-11-09).
 - **The light walk** — what lights a room through an open door, and the sight a peek gives, read the side's
   boundary instead of fixtures. Rooms must stay as lit as they are.
 - **The live demo world and every dev database** — rebuilt from the packs (no migration; dev databases are
@@ -148,6 +151,17 @@ something in it — something you can shut, see through, or lock — has one.
 A holding's keyway keys its door's boundary; the ship's gangway lock is her gangway boundary's. Nothing about
 who holds which key changes.
 
+### A door can be free from inside
+
+One lock shared by both sides would trap a guest let into a holding, or a workman in the pump house: today
+the way back carries no lock at all. So a door may name the side that opens with no key, like a thumb-turn
+inside and a keyhole outside (owner, 2026-11-09). A holding's doors are free from inside. A door that names
+no free side stays keyed from both, as every authored door is today.
+
+### A fixed grating never opens
+
+It passes light, sight and sound and never a body, and refuses `close` with the reason (owner, 2026-11-09).
+
 ## Lens pass
 
 **1 pedagogy.** One object and one rule per channel: a learner sees why a window lets light and not a body,
@@ -188,8 +202,8 @@ clock, so **there is no soak drive**. Wizard staging is marked.
    it is unlocked.
 4. `short` `staged` — A ship at her berth: lock the gangway from the deck; from the shore it is locked; unlock
    from the shore; from the deck it is open.
-5. `instant` `player` — At the Rejection hut, `look west` through the window: you see the yard; `go west`:
-   refused — it passes no body. From the yard, the hut's window shows the room inside.
+5. `instant` `player` — At the Rejection hut, `look west` through the window: you see the hillside;
+   `go west`: refused — it passes no body. From the hillside, the hut's window shows the room inside.
 6. `instant` `player` — `look door`, `look north`, `open door`, `go north` at Duncan Hall's front doors all
    find the one way; `look north` describes it from here, never where it leads.
 7. `instant` `player` — Every screen agrees: the navigator, `look`'s exits line and the room card's chips

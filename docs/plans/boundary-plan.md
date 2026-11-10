@@ -216,7 +216,7 @@ until the author fixes it, never a silent half-lock. Content: the pump house, th
 the matching `door:`; the stove-house vent stays one-way (no way back exists). Windows are authored
 as `door:` on the place's exits map in a cardinal direction (W2 re-authors the hut; D14).
 
-**D5 — the free side.** `Door.freeFrom: string` (`ref:'identity:relation'`, persistent, authorable):
+**D5 — the free side.** ✅ Owner approved 2026-11-09. `Door.freeFrom: string` (`ref:'identity:relation'`, persistent, authorable):
 the identity path of the PLACE whose side opens with no key. `Door.opensFor(mover)` = the key fits
 OR the mover's enclosing place's identity path equals `freeFrom`. This is what keeps *a guest let in
 is never trapped* and *leaving your own house needs no key* once the lock is one object both sides
@@ -320,8 +320,7 @@ it): `open door` binds the SIDE by the boundary's keyword and `effectiveTarget` 
 reason `${cap(name)} is not a way through.` No new gate value. `Mobile.traverse`'s `closesBehind`
 read moves to `boundary.swingsShut()` (only `Exit.ts` L1283 reads it today).
 
-**D14 — the Rejection hut (content, rejection pack).** Proposal, pending the owner (§ Requirements
-gaps): move `glaziers-hut` to (1,2); its doorway `south` ↔ `fuel-yard` `north` (replacing the
+**D14 — the Rejection hut (content, rejection pack).** ✅ Owner approved 2026-11-09: move `glaziers-hut` to (1,2); its doorway `south` ↔ `fuel-yard` `north` (replacing the
 mis-authored `west`/`northeast` pair); the west window becomes the side `west` ↔ `hillside` (0,2)
 `east` (both rows author `door: /world/terminus/rejection/thing/hut-window-west`); the south
 window is RETIRED into the hut's `enclosure:` as a glass pane (sky light — the owner's rule) and
@@ -587,20 +586,13 @@ Nothing unmapped.
 - **`FrontDoorExit`/`DormDoor` keep their classes** for `computeDestination`; their `exits/*.yaml`
   `class:` lines stay. If the build finds them reducible to `DeferredDestinationExit` + a kind row
   datum, that is a finding for the sweep, not a wave.
-- **Ask, don't guess:** D14 (the hut's geometry) and the fixed-grating "cannot open" case (a
-  `grating` kind authors `open: true` and refuses `close` — acceptable, or a third twin?).
+- ✅ Decided by the owner, 2026-11-09: D14 (re-coord the hut), D5 (`freeFrom`), and the fixed grating — a
+  `grating` kind authors `open: true` and refuses `close` with the reason (no third twin).
 
 ## Requirements gaps
 
-1. **The Rejection hut** (D14): the requirements' *its two windows become sides of real ways onto the
-   yard* and drive step 5 assume the hut's windows and its doorway face different adjacent cells;
-   the rows put both on the same non-adjacent rooms. The plan proposes one re-coord and one window
-   retired into the enclosure. Needs the owner's yes before W2.
-2. **Leaving through a shared lock**: the requirements say *a tenant's key opens what it opened* and
-   *nothing a player can do today stops working*; today a guest leaves a holding and a workman
-   leaves the pump house because the way back carries no lock. One shared lock makes that a
-   regression unless the inside is free — D5 (`freeFrom`) is the plan's answer; it is a small
-   model addition the requirements did not name. Flagged, not reopened.
+Both closed with the owner on 2026-11-09 and folded back into the requirements: the Rejection hut's
+re-coord (D14), and the free side (D5).
 
 ## Deferred seams
 
