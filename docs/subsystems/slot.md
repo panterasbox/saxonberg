@@ -73,7 +73,7 @@ the universe came from.
 - **Pattern C — Dynamic (Adornable retrofit).** `Adornable` composes
   Slotted and overrides the surface to derive from its live
   fixture-name keying. Locations carry fixtures (wall sconces,
-  ceiling lamps, BoundaryAnchors, floor Adornments) through this
+  ceiling lamps, the floor and other Adornments) through this
   surface.
 
 A new host whose universe is computed differently ships a new

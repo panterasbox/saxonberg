@@ -399,7 +399,7 @@ export default class Location extends LocationBase {
    * (see lifecycle: zone stamp runs before hydrate).
    *
    * Pattern: setter with side effects, parallel to
-   * `SphericalLocation.setFocus` and `Window.setAttachedHosts`.
+   * `SphericalLocation.setFocus`.
    * Per declarative-content-slate § coords on Location.
    */
   public async setCoords(value: {

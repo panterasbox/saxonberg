@@ -138,7 +138,9 @@ this file is the live reference.
   `Exit` with a **stuffId invalidation stamp** (`outCacheEnvId`), which
   is not a reference: it is compared for equality and never resolved.
 - `LoungeWarren._reapTimers`
-- `DormWarren._unitsByKey` / `_corridorsByFloor` / `_doorsByKey`
+- `DormWarren._unitsByKey` / `_corridorsByFloor` (its `_doorsByKey`
+  went with the boundary build: the entry doors are the base's
+  `CirculationWarren._entryDoors`, declared `owned`)
 
 **Held-side R2.4 unhooks not folded into declarations** — `Containable`,
 `Spawned`, `WarrenMember`, `AetherHosted`, `Slottable`, `Slotted`. All
@@ -236,8 +238,9 @@ The **public surface** — the entry in `persistentFields`, the YAML
 key authors write, the `getXxx` / `setXxx` method names — uses the
 **bare conceptual name** without a `Path` / `TemplatePath` suffix.
 
-Examples in current substrate: `container`, `props`, `cast`, `destination`,
-`door`, `attachedHosts`. Not `containerPath`, not `attachedHostPaths`.
+Examples in current substrate: `props`, `cast`, `destination`,
+`door` (the exits-map key naming a boundary row). Not `destinationPath`,
+not `doorPath`.
 
 Reasoning: the identity-ref type signature (`string`) plus the field's
 documentation as a singleton ref already convey "stored as a path";
@@ -247,8 +250,8 @@ naturally in YAML and matches the established convention across the
 substrate.
 
 The backing field MAY drop the `Path` suffix for parallel uniformity
-(`protected _attachedHosts: [string, string] | null`) — internal
-choice, since callers never see backing-field names.
+(the retired `Window._attachedHosts: [string, string] | null` did) —
+internal choice, since callers never see backing-field names.
 
 ### Method surface
 
@@ -471,8 +474,8 @@ static fieldMeta: FieldMeta = {
   throws too. A *cross-class* pair is the whole-tree lint's job —
   registering one host cannot see the other.
 - **All symmetric clears run before all owned cascades** within 2.5, so
-  a host that is both (see `Boundary`) clears back-refs while its owned
-  targets are still alive.
+  a host that is both clears back-refs while its owned targets are
+  still alive.
 - **Exemplars**: `Hauler` ↔ `Haulable` (the hitched-cart coupling —
   `hauler._hauling` ↔ `cart._hauledBy`, runtime-only; see
   [conveyance.md § Haulage](./subsystems/conveyance.md#haulage--pulling-a-cart)),
@@ -487,11 +490,14 @@ static fieldMeta: FieldMeta = {
 > destructs its fixtures anyway. The back-ref only needs to stop
 > dangling when a fixture dies standalone, which is `weak`.
 >
-> **`BoundaryAnchor.boundary` is not expressible.** The reciprocal slot
-> is `anchorA` *or* `anchorB` depending on which side the anchor sits,
-> and `inverse` names exactly one field; `Boundary._clearAnchor` is
-> side-agnostic by design. It stays hand-written rather than acquiring a
-> wrong declaration.
+> **`Exit._boundary` ↔ `Boundary.sideA` / `sideB` is not a symmetric
+> pair either.** The reciprocal slot is `sideA` *or* `sideB` depending on
+> which side the exit is, and `inverse` names exactly one field — so both
+> directions are declared `weak` and heal on read: a destroyed exit leaves
+> an empty side, a destroyed boundary reads as an open way. Only
+> `BoundaryApi.attach` / `detach` write either end. (Until the boundary
+> build, 2026-11, the same shape was `BoundaryAnchor.boundary` against a
+> boundary's `anchorA` / `anchorB`, hand-written; the anchors retired.)
 
 #### R2.3 — Read-side self-heal (declared)
 
@@ -580,12 +586,11 @@ for the static-shape convention.
 | `Adornable` | `fixtureSlots` | `owned` (declared) | Holder destructs each fixture |
 | `Adornment` | `adornedTo` | `weak` (declared) | **Not** the symmetric pair this table used to claim — see below |
 | `Exitable` | `exits` | `owned` (declared) | Holder destructs each outbound Exit; the `setBlocked` pre-pass stays policy |
-| `Boundary` | `anchorA` / `anchorB` | `owned` (declared) | `detach()` deliberately NOT called on destruct — it nulls the slots |
-| `BoundaryAnchor` | `boundary` | hand-written | **Not expressible**: the reciprocal slot is `anchorA` *or* `anchorB` by side, and `inverse` names one field |
-| `Exit` ↔ `Door` | both sides | R2.2 (symmetric) | Convention-based reciprocal clear |
+| `Boundary` | `sideA` / `sideB` | `weak` (declared) | The two exits it stands between; a destroyed exit heals to an empty side. Written only by `BoundaryApi` |
+| `Exit` | `_boundary` | `weak` (declared) | **Not** symmetric with the sides (the reciprocal slot is `sideA` *or* `sideB`); a destroyed boundary reads as an open way |
+| `CirculationWarren` / `HoldingWarren` | `_entryDoors` / `_doors` | `owned` (declared) | A door made by code is owned by the code that minted it ([boundary.md § Keyed ways](./subsystems/boundary.md#keyed-ways--the-minter-mints-the-door)) |
 | `Exit` | `inverse` | `symmetric` (declared) | Was HALF-symmetric — cleared on its own destruct, never on its partner's |
 | `Exit` | `source` / `_destination` | `weak` (declared) | |
-| `DoorBearing` | `door` | `weak` (declared) | The mixin had no destruct hook at all |
 | `Aether` | `_hostedUpdates` | `owned` (declared) | Converted atomically from `cleanupOnDestruct` |
 | `Hauler` ↔ `Haulable` | `_hauling` / `_hauledBy` | R2.2 (symmetric) + R2.3 (declared) | `hitch`/`unhitch` atomic; `onDestruct` reciprocal clear; runtime-only |
 | `Spawner` | `_spawned` | R2.4 (held side via `Spawned`) | Runtime-only; transient |

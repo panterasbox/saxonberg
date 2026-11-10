@@ -65,6 +65,15 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   as a Stuff. Intra-zone non-cardinal exits throw with a diagnostic
   naming both seed paths and the shared zone. Per the
   cardinal-only-intra-zone exit invariant (see [zone.md](./zone.md)).
+  ⭐ **A way with a boundary must also be true to the grid**
+  (`Location.edgeRefusal`, the boundary build, 2026-11): inside one
+  zone the far place is the adjacent cell that way, the far side's way
+  back is the opposite direction, and the boundary's opening fits the
+  face. Across zones (or a holding's own frame) a way is a threshold
+  and nothing is checked; a way that breaks a rule installs **unbuilt**
+  with a diagnostic, and `lint:locations` (`boundaryEdges`) checks the
+  first two from the rows' `coords:`. See
+  [boundary.md § The edge rules](./boundary.md#the-edge-rules--a-boundary-inside-a-zone-is-true-to-the-grid).
 - **`SphericalLocation`** = `Exitable(SphericalCoords(Visible(Location)))`.
   No restrictions on `addExit` direction labels — spherical zones
   have no implicit adjacency, so semantic labels are the only way to
@@ -327,22 +336,19 @@ the barrier-subclass pattern documented in
 
 ### The setter-with-side-effects pattern
 
-`Location.setCoords({x, y, z})`, `SphericalLocation.setFocus({rho, theta, phi, radius})`,
-and `Window.setAttachedHosts([pathA, pathB])` share a single
-declarative-content shape: a public setter that **stores the value
+`Location.setCoords({x, y, z})` and `SphericalLocation.setFocus({rho, theta, phi, radius})`
+share a single declarative-content shape (`Window.setAttachedHosts`
+was the third until the boundary build, 2026-11 — a window is attached
+by the exits that author it now): a public setter that **stores the value
 AND performs cross-object side effects** atomically. The shape is:
 
 1. Validate the input (TypeError on shape mismatch).
-2. Resolve the dependency context (`getZone()` for coords/focus; both
-   hosts via `StuffApi.singleton` for attachedHosts).
-3. Check idempotency (zone already has this room at these coords?
-   anchors already wired to these hosts?). If so, accept and no-op
+2. Resolve the dependency context (`getZone()` for coords/focus).
+3. Check idempotency (zone already has this room at these coords?). If so, accept and no-op
    the side effect — only the storage assignment runs.
-4. Check conflict (already at different coords / attached to
-   different hosts?). If so, throw with a diagnostic naming both
+4. Check conflict (already at different coords?). If so, throw with a diagnostic naming both
    states.
-5. Apply the side effect (`zone.addLocation(this, x, y, z)`,
-   `BoundaryApi.attachExistingBoundary(...)`).
+5. Apply the side effect (`zone.addLocation(this, x, y, z)`).
 6. Store the value.
 
 Idempotency makes re-hydrate / HMR-after-destruct / cycle-loop-self-call
