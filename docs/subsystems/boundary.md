@@ -860,7 +860,7 @@ cell size, so it is the runtime's. The sweep that turned the rule on found
 67 ways: ~25 were plain mistakes (a wrong sign on y, an off-by-one cell,
 two rooms on one cell, a way back named the wrong way), fixed; the rest were
 the sparse country, made `track`s on their true bearings (a few direction
-words and three rooms re-aimed — boundary-plan § Build notes).
+words and three rooms re-aimed — listed in the build's sweep commit).
 
 ## Keyed ways — the minter mints the door
 
@@ -884,7 +884,7 @@ A door made by code is minted and **owned** by the code that made it
 - ⚠ **The gangway is not yet a boundary.** `BerthExit` and the deck's
   `AshoreExit` both delegate their lock to `Ship.gangwayLocked`, so they are
   already one lock with two faces; making it a minted boundary is the
-  follow-up (boundary-plan B7). `Exit.wayState()` reads an exit's own lock
+  follow-up ([boundary-slate § 1](../slates/tails/boundary-slate.md)). `Exit.wayState()` reads an exit's own lock
   when it has no boundary, so the screens show it.
 
 ## A way's state on the wire — `WayRecord`
@@ -1027,9 +1027,20 @@ wired its own hosts (`attachedHosts`) — folded into one `Boundary` whose
 sides are the exits. Retired with it: the five conduit interfaces,
 `DoorBearingMixin`, `Door.attachedTo`, `Adornable.getFixtureBoundaries`,
 `Exitable.getExitDoors`. Added: the channel table, `freeFrom`, the edge
-rules, `WayRecord`. The plan's build notes B1–B13 are summarized above
-(the boundary stays an MQL candidate; keyed doors latch; the gangway is the
-follow-up).
+rules, `WayRecord`. Decisions the build made beyond its plan: the boundary
+stays an MQL candidate beside its way (object verbs — `wash window`,
+`glaze` — bind it); keyed doors latch (`closesBehind`, the bolt is the lock
+gate's alone); the lot gate stands open; a direction word in a boundary's
+name is the way's, not folded into its keywords; a way's prose is
+parenthetical (*through the front doors (open)*) because the way cannot know
+its boundary's number; a shut vessel drops its synthesized `out` from the
+walks. Review round 1 (owner): the opening and the edge rules are the WAY's
+and hold for every way, and the `track` kind was added for the sparse
+country (67 ways swept to 0). Verified by the blocking drive
+`packages/wire/tests/boundary.dirty.wire.test.ts` (5/5) and the browser walk
+`e2e/tests/boundary-walk.spec.ts` (3/3), which found `map` crashing on a
+deferred way (fixed in `Perceiver`). Left: the gangway as a minted boundary
+and the rest of [boundary-slate](../slates/tails/boundary-slate.md).
 
 ## Cross-References
 

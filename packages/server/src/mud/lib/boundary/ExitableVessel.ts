@@ -44,7 +44,7 @@
  *
  * **`Adornable` is declared here, not on the `Vessel` base** — a vessel
  * can carry fixtures. (It was added for the retired door anchors; whether
- * a vessel still needs it is a cleanup finding, boundary-plan § Deferred.)
+ * a vessel still needs it is a cleanup finding, boundary-slate § 6.)
  */
 
 import { Vessel } from '../stuff/Vessel';

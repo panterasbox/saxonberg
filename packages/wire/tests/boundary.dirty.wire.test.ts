@@ -1,7 +1,8 @@
 /**
  * ⭐ The boundary drive — one shared edge, each side the exit.
  *
- * The blocking drive of `docs/requirements/boundary-requirements.md`: a door
+ * The blocking drive of the boundary build (requirements retired at its sweep;
+ * the model is `docs/subsystems/boundary.md`): a door
  * between two places is ONE object, so its state, its words and its lock read
  * the same from both sides; a holding's keyed door is the same door from the
  * corridor and from inside; a window into a place shows the far side and
