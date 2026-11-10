@@ -63,7 +63,6 @@ import {
   CompetenceBand,
   type CompetenceBandName,
 } from '../../../lib/advancement/CompetenceBand';
-import { Joint } from '../../../lib/craft/Joint';
 import type { JointDescriptor } from '../../../lib/craft/Joint';
 import { TemplatePaths } from '../../../lib/paths';
 import { GrammarApi } from '../../../api/grammar';
@@ -104,6 +103,7 @@ import CommerceMenu from '../../../lib/commerce/Menu';
 import type { BuildContribution } from '../../../lib/craft/ManualBuild';
 import type { Compounding } from '../../../lib/material/Compounding';
 import { BlendIdentity } from '../../../lib/craft/BlendIdentity';
+import { CraftingApi } from '../../../api/crafting';
 
 const CraftingApiCallers = SecurityPolicies.FromModule('/api/crafting#CraftingApi',
 );
@@ -4188,7 +4188,7 @@ async function mendAssembly(
   // back down). Never round a member that is still failed.
   for (const j of item.slackJoints()) {
     if (j.members.some((p) => stillFailed.has(p)) || (j.fastener && stillFailed.has(j.fastener))) continue;
-    const row = await Joint.ensure(j.method);
+    const row = await CraftingApi.joints().ensure(j.method);
     if (!row || !row.tightenable) continue;
     const discipline = row.competence?.discipline ?? '';
     const band = discipline ? await bandIn(m.hand, discipline) : UNKNOWN_TRADE_BAND;
@@ -4373,7 +4373,7 @@ async function failedName(
   if (failed.count <= 1) return failed.part;
   let named = lineNoun(failed, failed.count);
   for (const j of jointsOf(item, failed.part)) {
-    const row = await Joint.ensure(j.method);
+    const row = await CraftingApi.joints().ensure(j.method);
     if (row?.competence) {
       const band = await bandIn(hand, row.competence.discipline);
       if (!CompetenceBand.atOrAbove(band, row.competence.band)) {
@@ -4397,7 +4397,7 @@ async function refireGate(
     return { reason: 'missing-tool', detail: 'shaving' };
   }
   for (const j of item.getJoints()) {
-    const row = await Joint.ensure(j.method);
+    const row = await CraftingApi.joints().ensure(j.method);
     if (!row?.competence) continue;
     const band = await bandIn(m.hand, row.competence.discipline);
     if (!CompetenceBand.atOrAbove(band, row.competence.band)) {
@@ -4842,7 +4842,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
     if (!bill) return { ok: false, reason: 'no-line', detail: 'not-raised-from-parts' };
     let gluedJoints = 0;
     for (const j of bill?.joints ?? []) {
-      const row = j.method ? await Joint.ensure(j.method) : null;
+      const row = j.method ? await CraftingApi.joints().ensure(j.method) : null;
       if (!row) continue;
       const gate = await jointGate(maker, row, tools);
       if (gate) return { ok: false, reason: gate.reason, detail: gate.detail };
@@ -4927,7 +4927,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   const castKind = MixinApi.isCrafted(part) ? (part.getCastFrom()?.kindPath ?? '') : '';
   const interchangeable = castKind !== '' && castKind === line.template;
   for (const j of interchangeable ? [] : jointsOf(whole, line.part)) {
-    const row = await Joint.ensure(j.method);
+    const row = await CraftingApi.joints().ensure(j.method);
     if (!row) continue;
     const gate = await jointGate(maker, row, tools);
     if (gate) return { ok: false, reason: gate.reason, detail: gate.detail };
@@ -5003,7 +5003,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   if (MixinApi.isAdvancing(maker) && !interchangeable) {
     const credited = new Set<string>();
     for (const j of jointsOf(whole, line.part)) {
-      const row = await Joint.ensure(j.method);
+      const row = await CraftingApi.joints().ensure(j.method);
       const d = row?.competence?.discipline ?? '';
       if (d === '' || credited.has(d)) continue;
       credited.add(d);
@@ -5173,7 +5173,7 @@ async function salvageByJoints(
     let rec = mine.length === 0 ? 0 : 1;
     let factor = 1;
     for (const j of mine) {
-      const row = await Joint.ensure(j.method);
+      const row = await CraftingApi.joints().ensure(j.method);
       // ⭐ A glue line comes apart as its GLUE does (paint D11): an animal
       // glue softens hot and wet — steam it and it lets go; casein, a
       // resin, a rubber cement never come apart.

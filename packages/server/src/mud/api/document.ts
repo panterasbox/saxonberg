@@ -40,6 +40,7 @@ import type { DocumentPages, EditionRequest } from '../lib/document/Edition';
 import type { Berthed } from '../platform/idea/BerthExit';
 import { SecurityPolicies } from "../lib/security/SecurityPolicies";
 import { SecurityApi } from './security';
+import type { DocumentCatalogue } from '../lib/document/DocumentCatalogue';
 
 /**
  * ⚠⚠ **The release write transport's whole blast radius.** The transport
@@ -172,6 +173,17 @@ export class DocumentApi {
    */
   static list(prefix: string): Promise<StoredDocument[]> {
     return logic().list(prefix);
+  }
+
+  /**
+   * ⭐ The catalogue that SERVES `kind` — the one place its documents are
+   * looked up (`joint` → `CraftingApi.joints()`, `placement` →
+   * `ContainmentApi.placements()`, …), or `null` for a kind read by path
+   * alone. An edit's go-live (the installer, a CMS save) forgets the
+   * edited paths through it.
+   */
+  static catalogueFor(kind: string): DocumentCatalogue<unknown> | null {
+    return logic().catalogueFor(kind);
   }
 
   /** Every document of `kind` — e.g. every release, for a warm rebuild. */

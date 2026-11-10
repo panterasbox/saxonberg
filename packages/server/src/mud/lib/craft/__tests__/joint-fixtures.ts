@@ -10,7 +10,8 @@ import { readdirSync, readFileSync, existsSync, statSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import { Joint, type JointDescriptor } from '../Joint';
+import { type JointDescriptor } from '../Joint';
+import { CraftingApi } from '../../../api/crafting';
 
 const CONTENT = join(dirname(fileURLToPath(import.meta.url)), '../../../../../../content');
 
@@ -33,7 +34,7 @@ export function rememberShippedJoints(): string[] {
       if (!f.endsWith('.yaml')) continue;
       const path = `${root}/joints/${f.slice(0, -'.yaml'.length)}`;
       const data = (YAML.parse(readFileSync(join(dir, f), 'utf8')) ?? {}) as Record<string, unknown>;
-      Joint.remember(path, Joint.fromData(data, path));
+      CraftingApi.joints().remember(path, CraftingApi.joints().parse(data, path));
       out.push(path);
     }
   }
@@ -42,5 +43,5 @@ export function rememberShippedJoints(): string[] {
 
 /** Remember one joint built from `data` at `path` (a test's own joint). */
 export function rememberJoint(path: string, data: Partial<JointDescriptor> & Record<string, unknown>): JointDescriptor {
-  return Joint.remember(path, Joint.fromData(data, path));
+  return CraftingApi.joints().remember(path, CraftingApi.joints().parse(data, path));
 }

@@ -11,17 +11,15 @@
  * ships `pegged` or `hooped` under its own root, and nothing changes.
  *
  * A bill names a joint by PATH (`method: /platform/joints/wedged`), and a
- * made assembly records the path on each joint it carries. Resident by
- * construction (D7): the bill's and the joints' setters await
- * {@link Joint.ensure}, a rope ensures its knot in the act that ties it, and a
- * synchronous read ({@link Joint.need}) of a joint nothing loaded throws.
+ * made assembly records the path on each joint it carries.
  *
- * @internal the assembly substrate's; an author names a path on a row.
+ * ⭐ The joints are SERVED by `JointCatalogue`, reached as
+ * `CraftingApi.joints()` — `ensure(path)` loads one, `need(path)` reads a
+ * resident one (a miss throws: whatever cites a joint loaded it, D7). This
+ * file holds only what a joint IS.
  */
 
-import { CompetenceBand } from "../advancement/CompetenceBand";
 import type { CompetenceBandName } from "../advancement/CompetenceBand";
-import { DocumentCache } from "../document/DocumentCache";
 
 /**
  * Where the means of making the joint live — the ladder a trade climbs.
@@ -81,105 +79,3 @@ export interface JointDescriptor {
    */
   takes?: 'glue';
 }
-
-/**
- * The joint documents, by path — see the module header.
- *
- * @internal the assembly substrate's; an author names a path on a row.
- */
-export class Joint {
-  /** The memory of what has been read — built on first use (a static built at
-   *  module load would race an import cycle through the document store). */
-  private static memo: DocumentCache<JointDescriptor> | null = null;
-  private static get cache(): DocumentCache<JointDescriptor> {
-    return (Joint.memo ??= new DocumentCache<JointDescriptor>('joint', (doc) => Joint.fromData(doc.getData(), doc.getPath())));
-  }
-
-  /** Validate a joint document at `path` (the installer's validator too); throws naming what is wrong. */
-  public static fromData(data: Record<string, unknown>, path: string): JointDescriptor {
-    const word = path.slice(path.lastIndexOf("/") + 1);
-    const d = describe({ key: word, ...data });
-    if (typeof d === "string") throw new Error(`joint '${path}': ${d}`);
-    return d;
-  }
-
-  /** The joint at `path`, read if it is not resident; throws naming a path with none. */
-  public static ensure(path: string): Promise<JointDescriptor> {
-    return Joint.cache.ensure(path);
-  }
-
-  /** The resident joint at `path`; `DocumentNotResidentError` if whatever cites it never loaded it. */
-  public static need(path: string): JointDescriptor {
-    return Joint.cache.need(path);
-  }
-
-  /** Keep a joint (a unit fixture with no store behind it). */
-  public static remember(path: string, d: JointDescriptor): JointDescriptor {
-    return Joint.cache.remember(path, d);
-  }
-
-  /** Every joint any pack ships — the lazy roster a listing reads (one indexed read, first use). */
-  public static all(): Promise<JointDescriptor[]> {
-    return Joint.cache.all();
-  }
-}
-
-/**
- * Validate one joint's data into a descriptor, or the reason it is
- * malformed. `lint:bills` checks the same competence rule at build time.
- */
-function describe(data: unknown): JointDescriptor | string {
-  if (!data || typeof data !== "object") return "no data";
-  const d = data as Record<string, unknown>;
-  if (typeof d.key !== "string" || d.key.length === 0) return "no key";
-  const portability = d.portability ?? "hand";
-  if (!JOINT_PORTABILITIES.includes(portability as JointPortability)) {
-    return `portability '${String(portability)}' is not one of ${JOINT_PORTABILITIES.join("|")}`;
-  }
-  const reversible = d.reversible ?? "effort";
-  if (!JOINT_REVERSIBILITIES.includes(reversible as JointReversibility)) {
-    return `reversible '${String(reversible)}' is not one of ${JOINT_REVERSIBILITIES.join("|")}`;
-  }
-  if (d.takes !== undefined && d.takes !== null && d.takes !== "" && d.takes !== "glue") {
-    return `takes '${String(d.takes)}' is not glue`;
-  }
-  const failure = d.failure ?? "parted";
-  if (!JOINT_FAILURES.includes(failure as JointFailure)) {
-    return `failure '${String(failure)}' is not one of ${JOINT_FAILURES.join("|")}`;
-  }
-  let competence: JointDescriptor["competence"] = null;
-  if (d.competence !== null && d.competence !== undefined) {
-    const c = d.competence as { discipline?: unknown; band?: unknown };
-    if (typeof c.discipline !== "string" || c.discipline.length === 0) {
-      return "competence names no discipline";
-    }
-    if (!CompetenceBand.isBand(c.band)) {
-      return `competence band '${String(c.band)}' is not a band`;
-    }
-    competence = { discipline: c.discipline, band: c.band };
-  } else if (portability !== "hand") {
-    // ⭐ Only the hand rung may be ungated — anything needing an
-    // instrument or a premises is somebody's trade.
-    return "only a `hand` joint may carry no competence";
-  }
-  const frac = (v: unknown, fallback: number): number =>
-    typeof v === "number" && Number.isFinite(v)
-      ? Math.max(0, Math.min(1, v))
-      : fallback;
-  return {
-    key: d.key,
-    label: typeof d.label === "string" && d.label.length > 0 ? d.label : d.key,
-    portability: portability as JointPortability,
-    instrument: typeof d.instrument === "string" ? d.instrument : "",
-    competence,
-    reversible: reversible as JointReversibility,
-    strength: frac(d.strength, 0.5),
-    structuralRecovery: frac(d.structuralRecovery, 0.8),
-    fastenerRecovery: frac(d.fastenerRecovery, 0.5),
-    tightenable: d.tightenable === true,
-    needsFlat: d.needsFlat === true,
-    failure: failure as JointFailure,
-    ...(d.takes === "glue" ? { takes: "glue" as const } : {}),
-  };
-}
-

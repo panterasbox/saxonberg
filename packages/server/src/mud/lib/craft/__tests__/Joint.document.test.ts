@@ -15,6 +15,7 @@ import { DocumentApi } from '../../../api/document';
 import { DocumentNotResidentError } from '../../errors';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { StoredDocument } from '../../document/StoredDocument';
+import { CraftingApi } from '../../../api/crafting';
 
 const PEGGED = '/test/joints/pegged';
 
@@ -41,8 +42,8 @@ describe('Joint — resident with the bill that names it', () => {
     } as unknown as StoredDocument);
     const kind = makeStuff(() => new TestKind());
     await kind.setBill(BILL);
-    expect(Joint.need(PEGGED).strength).toBe(0.7);
-    expect(Joint.need(PEGGED).key).toBe('pegged');
+    expect(CraftingApi.joints().need(PEGGED).strength).toBe(0.7);
+    expect(CraftingApi.joints().need(PEGGED).key).toBe('pegged');
   });
 
   it('a bill naming a path with no joint fails the load, naming it', async () => {
@@ -54,11 +55,11 @@ describe('Joint — resident with the bill that names it', () => {
   });
 
   it('a sync read of a joint nothing loaded throws DocumentNotResidentError', () => {
-    expect(() => Joint.need('/test/joints/never')).toThrow(DocumentNotResidentError);
+    expect(() => CraftingApi.joints().need('/test/joints/never')).toThrow(DocumentNotResidentError);
   });
 
   it('only a hand joint may carry no competence', () => {
-    expect(() => Joint.fromData({ portability: 'tool', competence: null }, '/t/joints/x')).toThrow(
+    expect(() => CraftingApi.joints().parse({ portability: 'tool', competence: null }, '/t/joints/x')).toThrow(
       /competence/,
     );
   });

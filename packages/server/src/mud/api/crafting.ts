@@ -30,6 +30,7 @@ import type { BuildContribution, BuildMethod } from '../lib/craft/ManualBuild';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { CraftingLogic } from '../platform/idea/api/CraftingLogic';
+import JointCatalogue from '../platform/idea/JointCatalogue';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import type { BulkPayload } from '../lib/bulk/Bulkable';
@@ -530,7 +531,19 @@ function logic(): CraftingLogic {
   );
 }
 
+const JOINT_CATALOGUE = '/platform/idea/JointCatalogue';
+
 export class CraftingApi {
+  /**
+   * ⭐ The joints — every way two parts are joined, any pack's
+   * `content/joints/`, served by {@link JointCatalogue}: `ensure(path)`
+   * loads one, `need(path)` reads a resident one (a miss throws — whatever
+   * cites a joint loads it). Stood up on first reach, never at boot.
+   */
+  public static joints(): JointCatalogue {
+    return StuffApi.singletonSync(JOINT_CATALOGUE, () => new JointCatalogue());
+  }
+
   /**
    * Resolve a recipe against the maker's reachable inputs + tools at a fixed
    * control level into a cloned, stamped output Thing, consuming the inputs.

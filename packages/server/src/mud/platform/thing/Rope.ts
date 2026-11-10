@@ -78,6 +78,7 @@ import { MessageApi } from '../../api/message';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { Mml } from '../../api/mml';
+import { CraftingApi } from '../../api/crafting';
 
 /** What whoever holds a rope, or stands by one, can do with it. */
 const HELD = [
@@ -687,7 +688,7 @@ export default class Rope extends CuttableMixin(
     }
     // The act loads the knot it ties (documents D7: the act holds it). A
     // listed knot with no document is a defect, thrown — never "no such knot".
-    const row = await Joint.ensure(KNOT_ROOT + key);
+    const row = await CraftingApi.joints().ensure(KNOT_ROOT + key);
     let band: CompetenceBandName = 'untrained';
     if (MixinApi.isAdvancing(by)) {
       band = await by.competenceBandFor('ropework').catch(() => 'untrained' as CompetenceBandName);
@@ -1013,7 +1014,7 @@ export default class Rope extends CuttableMixin(
 
   /** A splice's share and the splicer's dressing, credited to `ropework`. */
   private async dressed(by: Stuff): Promise<{ strength: number; dressing: number }> {
-    const row = await Joint.ensure(KNOT_ROOT + 'splice');
+    const row = await CraftingApi.joints().ensure(KNOT_ROOT + 'splice');
     let band: CompetenceBandName = 'untrained';
     if (MixinApi.isAdvancing(by)) {
       band = await by.competenceBandFor('ropework').catch(() => 'untrained' as CompetenceBandName);

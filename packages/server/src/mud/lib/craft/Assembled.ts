@@ -73,6 +73,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { BiomeApi } from '../../api/biome';
 import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import { Joint, type JointDescriptor } from './Joint';
+import { CraftingApi } from '../../api/crafting';
 
 // ---------------------------------------------------------------- the bill
 
@@ -404,7 +405,7 @@ const GLUE_DAMP_SLACK_PER_DAY = 0.5;
  * a miss is `DocumentNotResidentError` — never a read from the defaults.
  */
 function jointRow(method: string): JointDescriptor {
-  return Joint.need(method);
+  return CraftingApi.joints().need(method);
 }
 
 function materialAt(path: string): Material | null {
@@ -686,7 +687,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       };
       // The joints load with the kind: the applier awaits this.
       return joints.length > 0
-        ? Promise.all(joints.map((j) => Joint.ensure(j.method))).then(() => undefined)
+        ? Promise.all(joints.map((j) => CraftingApi.joints().ensure(j.method))).then(() => undefined)
         : undefined;
     }
 
@@ -698,7 +699,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     async setJoints(value: JointState[]): Promise<void> {
       const joints = Array.isArray(value) ? value : [];
-      for (const j of joints) await Joint.ensure(j.method);
+      for (const j of joints) await CraftingApi.joints().ensure(j.method);
       this.joints = joints.map((j) => ({ ...j, members: [...j.members] }));
     }
 

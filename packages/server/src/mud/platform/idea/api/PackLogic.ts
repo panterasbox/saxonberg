@@ -30,7 +30,6 @@ import {
 import { StoredDocument } from '../../../lib/document/StoredDocument';
 import { PumpMechanism } from '../../../lib/pump/PumpMechanism';
 import { Form } from '../../../lib/craft/FormSpec';
-import { Joint } from '../../../lib/craft/Joint';
 import { DirtKind } from '../../../lib/cleanliness/DirtKind';
 import { Operation } from '../../../lib/vitals/Operation';
 import { Formation } from '../../../lib/combat/Formation';
@@ -94,6 +93,8 @@ import type {
   PackProvisionReport,
   PackMaintainersInfo,
 } from '../../../api/pack';
+import { CraftingApi } from '../../../api/crafting';
+import { DocumentApi } from '../../../api/document';
 
 const PackApiCallers = SecurityPolicies.FromModule('/api/pack#PackApi');
 
@@ -185,7 +186,7 @@ const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>, path: 
   archetype: (d, p) => void Archetype.fromData(d, p),
   'pump-mechanism': (d, p) => void PumpMechanism.fromData(d, p),
   form: (d, p) => void Form.fromData(d, p),
-  joint: (d, p) => void Joint.fromData(d, p),
+  joint: (d, p) => void CraftingApi.joints().parse(d, p),
   dirt: (d, p) => void DirtKind.fromData(d, p),
   operation: (d, p) => void Operation.fromData(d, p),
   formation: (d, p) => void Formation.fromData(d, p),
@@ -3613,6 +3614,7 @@ async function invalidateDocumentKind(
   // ⭐ Every value class's memory of the kind forgets the touched paths,
   // so the next use re-reads (aroma, and each family that is a document).
   DocumentCache.invalidate(kind, [...changedPaths, ...deletedPaths]);
+  DocumentApi.catalogueFor(kind)?.forget([...changedPaths, ...deletedPaths]);
   switch (kind) {
     case 'topic':
       // The vocabulary re-reads on its next warm (the next scene queues).

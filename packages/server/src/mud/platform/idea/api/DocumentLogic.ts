@@ -35,6 +35,8 @@ import {
   type EditionRequest,
   type EditionTeaching,
 } from '../../../lib/document/Edition';
+import type { DocumentCatalogue } from '../../../lib/document/DocumentCatalogue';
+import { CraftingApi } from '../../../api/crafting';
 
 const DocumentApiCallers = SecurityPolicies.FromModule("/api/document#DocumentApi",
 );
@@ -686,12 +688,27 @@ async function saveImpl(
 }
 
 /**
+ * The catalogue serving `kind` — the one map from a document kind to the
+ * singleton that serves it (documents W5d). A kind read by path alone has
+ * none.
+ */
+function catalogueForImpl(kind: string): DocumentCatalogue<unknown> | null {
+  switch (kind) {
+    case 'joint':
+      return CraftingApi.joints() as DocumentCatalogue<unknown>;
+    default:
+      return null;
+  }
+}
+
+/**
  * ⭐ The CMS edit reaches the cache (documents D16): the value class's
  * memory of the edited path is dropped, so the next use re-reads it — the
  * installer's go-live, for one path. A topic re-warms its vocabulary.
  */
 function forgetEdited(kind: string, path: string): void {
   DocumentCache.invalidate(kind, [path]);
+  catalogueForImpl(kind)?.forget([path]);
   if (kind === 'topic') Topic.invalidate();
 }
 
@@ -931,6 +948,12 @@ export class DocumentLogic extends ApiLogic {
   @CallSecurity(DocumentApiCallers)
   public async list(prefix: string): Promise<StoredDocument[]> {
     return listImpl(prefix);
+  }
+
+  /** See {@link DocumentApi.catalogueFor}. */
+  @CallSecurity(DocumentApiCallers)
+  public catalogueFor(kind: string): DocumentCatalogue<unknown> | null {
+    return catalogueForImpl(kind);
   }
 
   /** See {@link DocumentApi.listOfKind}. */
