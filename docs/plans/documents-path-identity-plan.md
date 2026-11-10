@@ -1508,5 +1508,13 @@ no missing joint (`fit` names no joint; the bill does) — ⚠ weak, a follow-up
 step 19 is unit-proved (no route installs a pack into a running world:
 `PackLogic.flatkey` / `PackLogic.topics`).
 
+**The walk** (`e2e/tests/documents-path-identity-walk.spec.ts`, real Chromium
+against the real client): ✅ first run (16.5 s) — smell at the tannery,
+`smile`/`agree`, `help extraction`, `government`, `party form`/`adopt
+vanguard`/`disband`, `competence`, `survey` in the dorm. ⚠ Recipe note for
+a worktree port: the server needs `CLIENT_URL=http://localhost:<client port>`
+(CORS allows only that origin, default 5173), else the client shows the
+sign-in page with a valid test session.
+
 **Ceilings as landed:** boot entries 75 (85 at plan; −1 is master's), duck
 probes 533, `lint:family` 102 gates green.
