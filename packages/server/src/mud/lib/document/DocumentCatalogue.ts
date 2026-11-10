@@ -48,6 +48,14 @@ export abstract class DocumentCatalogue<T> extends Idea {
    */
   public abstract parse(data: Record<string, unknown>, path: string): T;
 
+  /**
+   * What a read loads WITH the document (a dirt's smell, say) — awaited by
+   * {@link ensure} before the document counts as read. Nothing by default.
+   */
+  protected afterRead(_value: T): Promise<void> | void {
+    void _value;
+  }
+
   /** The document kind this catalogue serves. */
   public getKind(): string {
     return this.kind;
@@ -73,7 +81,9 @@ export abstract class DocumentCatalogue<T> extends Idea {
       if (!doc || doc.getKind() !== this.kind) {
         throw new Error(`${this.kind} '${path}' has no ${this.kind} document`);
       }
-      return this.remember(path, this.parse(doc.getData(), path));
+      const value = this.parse(doc.getData(), path);
+      await this.afterRead(value);
+      return this.remember(path, value);
     })().finally(() => m.loading.delete(path));
     m.loading.set(path, load);
     return load;

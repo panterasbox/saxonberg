@@ -91,7 +91,8 @@ import { HARM_DEFAULTS } from '../../platform/idea/Condition';
 import type { WorkDifficulty, WorkLanding, WorkPlan } from '../ground/Workable';
 import type { ActDone, ActRefusal } from '../craft/ActPlan';
 import type { GradeBand } from '../craft/Grade';
-import { DirtKind, DirtKinds } from '../cleanliness/DirtKind';
+import { DirtKinds } from '../cleanliness/DirtKind';
+import { MaterialApi } from '../../api/material';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
@@ -968,7 +969,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
         // kernel has a dirt of that word (milk is `milk`; sap is no dirt).
         const leaf = (tap.yieldRow ?? '').split('/').pop() ?? '';
         const kind = `/platform/dirt/${leaf}`;
-        if (leaf && DirtKind.has(kind)) specs.push({ kind, amount: 0.1, where: 'apron' });
+        if (leaf && MaterialApi.dirtKinds().has(kind)) specs.push({ kind, amount: 0.1, where: 'apron' });
       }
       if (specs.length > 0) by.soilFrom(specs, self);
     }

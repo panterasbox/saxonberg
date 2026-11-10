@@ -11,7 +11,6 @@ import CraftVessel from '../../../platform/thing/CraftVessel';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
-import { DirtKind } from '../DirtKind';
 import { DocumentNotResidentError } from '../../errors';
 import Cleanser from '../../../platform/idea/Cleanser';
 import Material from '../../material/Material';
@@ -29,6 +28,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { rememberShippedDirt } from './soil-fixtures';
+import { MaterialApi } from '../../../api/material';
 
 const atGameSeconds = (g: number): void => {
   const scale = WorldClockApi.getScale();
@@ -240,18 +240,18 @@ describe('the body — the layer an act reaches (D4, D5)', () => {
 describe('the documents read themselves (D2, AC 23; no catalogue — B50)', () => {
   it('a dirt kind is named by its path, and reads its own document', () => {
     warmDirt([{ key: '/trade/mining/dirt/dust', adjective: 'dusty' }]);
-    const row = DirtKind.need('/trade/mining/dirt/dust');
+    const row = MaterialApi.dirtKinds().need('/trade/mining/dirt/dust');
     expect(row.adjective).toBe('dusty');
     expect(row.form).toBe('film');
   });
 
   it('a malformed document is refused, naming what is wrong (installer + loader)', () => {
-    expect(() => DirtKind.fromData({ form: 'puddle' }, '/t/dirt/bad')).toThrow(/form 'puddle'/);
-    expect(() => DirtKind.fromData({ answersTo: ['magic'] }, '/t/dirt/worse')).toThrow(/magic/);
+    expect(() => MaterialApi.dirtKinds().parse({ form: 'puddle' }, '/t/dirt/bad')).toThrow(/form 'puddle'/);
+    expect(() => MaterialApi.dirtKinds().parse({ answersTo: ['magic'] }, '/t/dirt/worse')).toThrow(/magic/);
   });
 
   it('a sync read of a dirt nothing loaded is an engine defect, thrown by path', () => {
-    expect(() => DirtKind.need('/t/dirt/never-loaded')).toThrow(DocumentNotResidentError);
+    expect(() => MaterialApi.dirtKinds().need('/t/dirt/never-loaded')).toThrow(DocumentNotResidentError);
   });
 
   it('⭐ a cleanser is what its MATERIAL names — no search by tag', () => {

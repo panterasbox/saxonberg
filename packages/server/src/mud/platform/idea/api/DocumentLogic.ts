@@ -40,6 +40,7 @@ import { CraftingApi } from '../../../api/crafting';
 import { BulkableApi } from '../../../api/bulk';
 import { ConditionApi } from '../../../api/condition';
 import { PartyApi } from '../../../api/party';
+import { MaterialApi } from '../../../api/material';
 
 const DocumentApiCallers = SecurityPolicies.FromModule("/api/document#DocumentApi",
 );
@@ -701,6 +702,8 @@ function catalogueForImpl(kind: string): DocumentCatalogue<unknown> | null {
       return CraftingApi.joints() as DocumentCatalogue<unknown>;
     case 'form':
       return CraftingApi.forms() as DocumentCatalogue<unknown>;
+    case 'dirt':
+      return MaterialApi.dirtKinds() as DocumentCatalogue<unknown>;
     case 'formation':
       return PartyApi.formations() as DocumentCatalogue<unknown>;
     case 'operation':
@@ -835,6 +838,8 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'berth-roll':
     case 'berth-book':
     case 'aroma':
+    case 'dirt':
+      return MaterialApi.dirtKinds() as DocumentCatalogue<unknown>;
     case 'formation':
       return PartyApi.formations() as DocumentCatalogue<unknown>;
     case 'operation':
@@ -843,10 +848,14 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'form':
     case 'joint':
     case 'dirt':
+    case 'dirt':
+      return MaterialApi.dirtKinds() as DocumentCatalogue<unknown>;
     case 'formation':
       return PartyApi.formations() as DocumentCatalogue<unknown>;
     case 'operation':
     case 'help-concept':
+    case 'dirt':
+      return MaterialApi.dirtKinds() as DocumentCatalogue<unknown>;
     case 'formation':
     case 'placement':
     case 'topic':

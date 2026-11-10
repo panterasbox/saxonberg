@@ -17,7 +17,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import { DirtKind } from '../../../../lib/cleanliness/DirtKind';
+import { MaterialApi } from '../../../../api/material';
 
 const TOPIC = 'act.deed';
 /** A floor's sweep with a broom; bare hands take three times as long. */
@@ -89,7 +89,7 @@ export default class SweepController extends ManualBuildController<SweepModel> {
       return;
     }
     // A dirt kind is named by its path; the sentence says its word.
-    const what = Object.keys(kinds).slice(0, 3).map((k) => DirtKind.wordOf(k)).join(', ');
+    const what = Object.keys(kinds).slice(0, 3).map((k) => MaterialApi.dirtKinds().wordOf(k)).join(', ');
     if (MixinApi.isAdvancing(giver)) {
       // The deed `analyze cleanliness` reads (B57).
       void giver.creditDeed({ discipline: 'domestic-services', difficulty: 'easy', outcome: 'success' });

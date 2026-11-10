@@ -39,7 +39,7 @@ import { MixinApi } from '../../../api/mixin';
 import { GrammarApi } from '../../../api/grammar';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Mml } from '../../../api/mml';
-import { DirtKind } from '../../../lib/cleanliness/DirtKind';
+import { MaterialApi } from '../../../api/material';
 
 /** A cleanser mechanism, as a person who does the washing would say it. */
 const ACTION_WORDS: Record<CleanserAction, string> = {
@@ -89,7 +89,7 @@ export default class CleanlinessReading extends Reading {
       for (const site of sites) {
         for (const kind of thing.soilKinds(site)) {
           if (thing.liftedBy(kind, site).set) {
-            lines.push(Mml.compose`The ${DirtKind.wordOf(kind)} has set${site ? ` on the ${this.siteWord(site)}` : ''}.`);
+            lines.push(Mml.compose`The ${MaterialApi.dirtKinds().wordOf(kind)} has set${site ? ` on the ${this.siteWord(site)}` : ''}.`);
           }
         }
       }
@@ -156,7 +156,7 @@ export default class CleanlinessReading extends Reading {
     actions: readonly CleanserAction[],
   ): string {
     const words = [...new Set(actions.map((a) => ACTION_WORDS[a]))];
-    const what = set ? `The set ${DirtKind.wordOf(kind)}` : `The ${DirtKind.wordOf(kind)}`;
+    const what = set ? `The set ${MaterialApi.dirtKinds().wordOf(kind)}` : `The ${MaterialApi.dirtKinds().wordOf(kind)}`;
     if (words.length === 0) {
       return `${what} will not come out with anything you have.`;
     }

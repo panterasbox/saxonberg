@@ -13,11 +13,11 @@ import {
   makeStuffAtPath,
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
-import { DirtKind } from '../DirtKind';
 import { readdirSync, readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
+import { MaterialApi } from '../../../api/material';
 
 /**
  * Keep the dirt documents as a Soilable host (or the act soiling with them)
@@ -29,7 +29,7 @@ export function installDirtKinds(rows: readonly Record<string, unknown>[]): void
     const key = String(data.key ?? '');
     if (!key) continue;
     const path = key.startsWith('/') ? key : `/platform/dirt/${key}`;
-    DirtKind.remember(path, DirtKind.fromData(data, path));
+    MaterialApi.dirtKinds().remember(path, MaterialApi.dirtKinds().parse(data, path));
   }
 }
 
@@ -104,7 +104,7 @@ export function rememberShippedDirt(): void {
       if (!f.endsWith('.yaml')) continue;
       const path = `${root}/dirt/${f.slice(0, -'.yaml'.length)}`;
       const data = (YAML.parse(readFileSync(join(dir, f), 'utf8')) ?? {}) as Record<string, unknown>;
-      DirtKind.remember(path, DirtKind.fromData(data, path));
+      MaterialApi.dirtKinds().remember(path, MaterialApi.dirtKinds().parse(data, path));
     }
   }
 }

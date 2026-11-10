@@ -38,7 +38,7 @@ import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 import { Grade, GRADE_BANDS } from '@saxonberg/server/mud/lib/craft/Grade';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import TextileStock from '../../../thing/TextileStock';
-import { DirtKind } from '@saxonberg/server/mud/lib/cleanliness/DirtKind';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 const TOPIC = 'act.deed';
 
@@ -192,7 +192,7 @@ async function finish(
   }
   if (watching && MixinApi.isHygienic(giver)) {
     // The act loads the pack's own dirt it lands (documents D7).
-    await DirtKind.ensure('/trade/mining/dirt/dust');
+    await MaterialApi.dirtKinds().ensure('/trade/mining/dirt/dust');
     giver.soilFrom([{ kind: '/trade/mining/dirt/dust', amount: 0.15, where: 'hands' }]);
   }
 

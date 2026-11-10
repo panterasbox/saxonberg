@@ -48,6 +48,7 @@ import { TemplatePaths } from '../paths';
 import { Contamination } from '../material/Contaminable';
 import { DirtKind, DirtKinds, type DirtKindDescriptor } from './DirtKind';
 import type { CleanserAction, CleanserDescriptor } from '../../platform/idea/Cleanser';
+import { MaterialApi } from '../../api/material';
 
 /** The four soil bands, cleanest first — words, ordinal. */
 export const SOIL_BANDS = ['clean', 'marked', 'soiled', 'filthy'] as const;
@@ -362,20 +363,20 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
      */
     public async onCreate(context?: unknown): Promise<void> {
       await super.onCreate(context);
-      await DirtKind.ensureKernel();
+      await MaterialApi.dirtKinds().ensureKernel();
     }
 
     /** The restore door for the deposits: every dirt kind they name loads with them. */
     public async setDeposits(value: Record<string, number>): Promise<void> {
       const deposits = value ?? {};
-      for (const key of Object.keys(deposits)) await DirtKind.ensure(splitKey(key)[1]);
+      for (const key of Object.keys(deposits)) await MaterialApi.dirtKinds().ensure(splitKey(key)[1]);
       this.deposits = { ...deposits };
     }
 
     /** The restore door for the stains: every dirt kind they name loads with them. */
     public async setStains(value: StainRecord[]): Promise<void> {
       const stains = Array.isArray(value) ? value : [];
-      for (const s of stains) await DirtKind.ensure(s.kind);
+      for (const s of stains) await MaterialApi.dirtKinds().ensure(s.kind);
       this.stains = stains.map((s) => ({ ...s }));
     }
 
@@ -584,7 +585,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
      * pack soiling with its own kind loads it in that act — so a miss throws.
      */
     protected dirtKind(kind: string): DirtKindDescriptor {
-      return DirtKind.need(kind);
+      return MaterialApi.dirtKinds().need(kind);
     }
 
     public holdAtHeat(tempK: number, holdS: number, opts: { wet: boolean }): void {

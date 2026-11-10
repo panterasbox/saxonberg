@@ -28,7 +28,6 @@ import {
   type DocumentVanishPolicy,
 } from '../../../lib/document/DocumentKinds';
 import { StoredDocument } from '../../../lib/document/StoredDocument';
-import { DirtKind } from '../../../lib/cleanliness/DirtKind';
 import { Placement } from '../../../lib/spatial/Placement';
 import { DocumentCache } from '../../../lib/document/DocumentCache';
 import { TOPIC_ROOTS } from '@saxonberg/types';
@@ -94,6 +93,7 @@ import { DocumentApi } from '../../../api/document';
 import { BulkableApi } from '../../../api/bulk';
 import { ConditionApi } from '../../../api/condition';
 import { PartyApi } from '../../../api/party';
+import { MaterialApi } from '../../../api/material';
 
 const PackApiCallers = SecurityPolicies.FromModule('/api/pack#PackApi');
 
@@ -186,7 +186,7 @@ const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>, path: 
   'pump-mechanism': (d, p) => void BulkableApi.pumpMechanisms().parse(d, p),
   form: (d, p) => void CraftingApi.forms().parse(d, p),
   joint: (d, p) => void CraftingApi.joints().parse(d, p),
-  dirt: (d, p) => void DirtKind.fromData(d, p),
+  dirt: (d, p) => void MaterialApi.dirtKinds().parse(d, p),
   operation: (d, p) => void ConditionApi.operations().parse(d, p),
   formation: (d, p) => void PartyApi.formations().parse(d, p),
   placement: (d, p) => void Placement.fromData(d, p),

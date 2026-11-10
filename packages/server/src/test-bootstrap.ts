@@ -48,7 +48,7 @@ import { readdirSync, readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
-import { DirtKind } from "./mud/lib/cleanliness/DirtKind";
+import { MaterialApi } from "./mud/api/material";
 import { PartyApi } from "./mud/api/party";
 import { Placement } from "./mud/lib/spatial/Placement";
 import { Topic } from "./mud/lib/message/Topic";
@@ -183,7 +183,7 @@ function rememberKernelDocuments(): void {
       keep(path, (YAML.parse(readFileSync(join(at, f), "utf8")) ?? {}) as Record<string, unknown>);
     }
   };
-  each("dirt", (path, data) => void DirtKind.remember(path, DirtKind.fromData(data, path)));
+  each("dirt", (path, data) => void MaterialApi.dirtKinds().remember(path, MaterialApi.dirtKinds().parse(data, path)));
   each("formations", (path, data) => void PartyApi.formations().remember(path, PartyApi.formations().parse(data, path)));
   each("placements", (path, data) => void Placement.remember(Placement.fromData(data, path)));
   // The topic vocabulary, as the first scene's warm would leave it — so a
