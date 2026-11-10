@@ -142,9 +142,12 @@ no words.
 - `wash` needs water in reach (a tap, a pump, a shore — a crafted pail no
   longer counts) (W7c).
 - `stir <churn>` → **`churn`** (the dairying pack's own verb) (W18).
-- `stir <compound>` (a glaze tub, a batch pot, a paint pot, a plaster
-  tub) → **`knead`** — the matter still decides a stir's few minutes or a
-  knead's quarter-hour, and the words say which (W18).
+- ⭐ **`stir` what runs, `knead` what is stiff** (owner, 2026-11-10; W19):
+  `stir <runny compound>` (a paint pot, a glaze or slip tub, a plaster
+  tub, a batch pot) stays **`stir`**; `stir <stiff compound>` (clay, raw
+  rubber, a dough) → **`knead`** — refused "too stiff to stir — knead
+  it", and `knead <runny compound>` refused "nothing to knead. Stir it."
+  (W18 had sent every compound to `knead`.)
 - `sweep <grate>` → **`rake`** (`rake hearth`, `rake pit`); `sweep` keeps
   the floor and, with a flue brush, the chimney (W18).
 - ⭐ **`survey` is retired** (owner, 2026-11-10; W17) — the word belongs to
@@ -1179,6 +1182,53 @@ at the glasshouse batch pot) is renamed `knead.compound`, command `knead
 pot`: the same plan (powder → two minutes, `engagement-started`), so the
 recorded outcome is unchanged — the key moved, nothing re-recorded.
 `sweep` (a floor with a broom) is unchanged.
+
+**D-W19a (owner 2026-11-10; build, W19) — the matter routes the verb.**
+`stir` is for runny stuff, `knead` for stiff. The predicate is the one
+that already chose a stir's two minutes or a knead's quarter-hour:
+`Compounding.workVerb()` (any `elastomer` → knead; `plastic` matter →
+knead unless the belly's free water is ≥ 0.4× its mass — a slip; no
+plastic matter → stir). No new field. `Compounding.kneadPlanFor` and the
+new `stirPlanFor` share one private `workPlan(req, work)`, refusing
+`wrong-work` (`facts.work` = the verb wanted) — the refusal W18 deleted,
+restored on the type (`KneadRefusal`) and worded by EACH controller:
+knead's "What is in X is runny — there is nothing to knead. Stir it.",
+stir's "What is in X is too stiff to stir — knead it." Supersedes
+D-W18b's routing (B101 still structural: no word picks the shorter work).
+⚠ The rubber cement pot stays `knead` — rubber never slakes, so
+`workVerb` says knead however much turpentine is in it.
+
+**D-W19b (build, W19) — `stir` has two hosts, no protocol.** A build
+vessel answers `{ method }` (`ManualBuildMixin.stirPlan()`), a compound a
+product (`Compounding.stirPlanFor(req)` → `CompoundPlan`); different
+shapes, so methods, and the controller asks the right object: a
+compounding vessel first, then a knead vessel that compounds nothing (the
+dough trough — a dough is stiff → `wrong-work`, no plan asked), then a
+build vessel. `CompoundingMixin` affords `stir.yaml` again (its own
+`commandContributions`, beside `KneadVesselMixin`'s `knead`); the view's
+arg is `requires: any` with the union default
+`reachable:[mixin.ManualBuildMixin],reachable:[mixin.CompoundingMixin]`.
+
+**D-W19c (build, W19) — the baseline row moves back.** `knead.compound`
+(`knead pot`, the glasshouse batch pot — sand, a powder) is runny, so the
+row is `stir` again (`stir pot`): the same plan (two minutes,
+`engagement-started`), the recorded outcome unchanged — the key moved
+back, nothing re-recorded. Drives moved: paint (`stir me:i:kettle`, wire
++ e2e), glass (`stir pot`), ceramics-c (+soak: `stir "ash tub"`, `stir
+"lead tub"`), ceramics-d (`stir "plaster tub"`, `stir "slip tub"`); the
+temper pit, the rubber tub and the trough stay `knead`. No NPC brain
+typed a runny knead (the moulds brain's `knead pit` stays).
+
+**D-W19d (build, W19) — the `card-terminals` rejections.** The three
+unhandled "Not connected to MongoDB" rejections were a production
+floating promise: `CardRegistry.openTerminal`/`retarget` fired
+`void this.markTerminalPrivacy(...)` with no catch, and the test's
+`#general` terminals reached `ChatApi.catalogue()` (a store read) with
+no store. Fixed both ends: the registry routes the fire-and-forget
+through `resolveTerminalPrivacy`, which `.catch`es and warns (the card
+keeps its privacy; the Ship precedent), and the test supplies a
+catalogue (`#secret` player-made) and gains a case that AWAITS the
+privacy landing (`vi.waitFor`) both ways.
 
 **D-W17a (owner, 2026-11-10) — `survey` retired; its reads are
 channels.** No `survey` verb: `rooms` (`RoomsReading`, scope `here`, an
@@ -2251,6 +2301,19 @@ rebase cleanly.
 > unhandled "Not connected to MongoDB" rejections from
 > `card-terminals.test.ts` (cockpit terminal; it fails the same way when
 > run alone). W18 touched no code it reaches.
+
+### W19 — `stir` what runs, `knead` what is stiff (owner, 2026-11-10; D-W19a–d) ✅ done
+
+> **Done.** `Compounding.workVerb()` — the fact that already chose a
+> stir's two minutes or a knead's quarter-hour — now routes the verb:
+> `stirPlanFor` beside `kneadPlanFor`, each refusing `wrong-work` worded
+> by its own controller; `StirController` asks a compound, refuses a
+> dough trough, then asks a build. Help, docs (crafting, ceramics,
+> command-spec, painting, mixins, architecture), the paint wiki page, the
+> runny pots' row comments and the drives moved to `stir`; the baseline
+> row is `stir` again (same outcome). Separately fixed: the
+> `card-terminals` floating promise (D-W19d) — `test:near` exits 0.
+> Ceilings unchanged.
 
 ---
 
