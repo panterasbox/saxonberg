@@ -478,6 +478,9 @@ describe('RespirationMixin — the crisis core', () => {
     // Hauled out: air again.
     read.mockRestore();
     ContainmentApi.move(c, room('air'));
+    // The move's own re-check (onMoved) is fire-and-forget and now awaits
+    // the swimming band's dictionary: let it land before the explicit one.
+    await settle();
     await c.reassess();
     tick(40);
     expect(c.isDying()).toBe(false);
