@@ -3,6 +3,7 @@
 # founder's key. ⭐ Its keyway is a SHAPE: a key's wards pressed into wax and
 # cast in brass turn it as surely as the key does (M9).
 class: /platform/thing/Door
+extends: /platform/thing/boundaries/door
 data:
   shortDescription: yard door
   keywords: [door, "yard door"]

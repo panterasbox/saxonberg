@@ -110,6 +110,12 @@ export interface Sealable {
    * named. Opening is the touch that springs an interact-hazard.
    */
   openPlanFor(by: Stuff, setting: string | null): OpenAnswer;
+  /**
+   * @hook May `by` close this now? The default says yes; a fixed grating
+   * says no (boundary build — it is always open). The `close` verb asks it
+   * first and renders the refusal, as `open` does `canOpen`.
+   */
+  canClose(by: Stuff): VetoResult;
   /** ⭐ The seal on it (`''` · `gum` · `wax`) — paper D11. */
   getSeal(): SealKind;
   /** ⭐ Has the seal been broken since it was set? */
@@ -234,6 +240,11 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
           return { ok: true, facts };
         },
       };
+    }
+
+    /** May `by` close this? A plain sealable always says yes. */
+    canClose(_by: Stuff): VetoResult {
+      return { ok: true };
     }
   };
 }

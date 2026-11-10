@@ -22,7 +22,7 @@ data:
     A clearing cut back off the ride, the trees kept at a distance from the fire. A stone furnace stands in the middle of it with its glory hole glowing, a marver slab beside it worn smooth, and blowpipes stood in a rack. Baskets of charcoal are stacked under a lean-to out of the weather, with lime and ash beside them.
 
     It is here and not in the town for two reasons, and both are plain from where you stand: the wood it eats is all around it, and the smoke it makes is nobody's business out here.
-  coords: { x: 2, y: 1, z: 0 }
+  coords: { x: 1, y: 2, z: 0 }
   # ⚠ Repeated props carry an `as` identity (the costume/bed shape) so each
   # is addressable and none is a pure-repeat the merge cannot substitute.
   props:
@@ -46,7 +46,7 @@ data:
   cast:
     - /world/terminus/rejection/agent/glassblower
   exits:
-    west:
+    southwest:
       destination: /world/terminus/rejection/hanging-wood/ride
       edgeMinutes: 2
     # The sand pit is just over the rise — you win your own sand there.

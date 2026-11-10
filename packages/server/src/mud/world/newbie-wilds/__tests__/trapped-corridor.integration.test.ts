@@ -380,7 +380,7 @@ describe('The Sunken Delve — real-seed standup', () => {
     // The secret shortcut exit (concealed) + the hidden cache (concealed).
     const secret = (room('corridor-1') as unknown as {
       getExit(d: string): Exit | undefined;
-    }).getExit('east')!;
+    }).getExit('northeast')!;
     expect(secret.isConcealed()).toBe(true);
     expect(cacheIn('corridor-1').getTemplatePath()).toBe(
       '/world/newbie-wilds/delve/hidden-cache',
@@ -417,13 +417,13 @@ describe('The Sunken Delve — content discipline (the required invariant)', () 
     m.setPosture(Postures.Stand); // pick yourself up
 
     // corridor-3 -> the vault: the destination is REACHED
-    await m.traverse(exit('corridor-3', 'north'), 'walk');
+    await m.traverse(exit('corridor-3', 'southeast'), 'walk');
     expect(m.getContainer()).toBe(room('vault'));
 
     // ...and NO secret was discovered along the plainly-visible path.
     const secret = (room('corridor-1') as unknown as {
       getExit(d: string): Exit;
-    }).getExit('east');
+    }).getExit('northeast');
     expect(PerceptionApi.hasDiscovered(m, secret as never)).toBe(false);
     expect(PerceptionApi.hasDiscovered(m, cacheIn('corridor-1') as never)).toBe(
       false,
@@ -543,7 +543,7 @@ describe('The Sunken Delve — search reveals the secrets', () => {
     ContainmentApi.move(m, room('corridor-1') as never);
     const secret = (room('corridor-1') as unknown as {
       getExit(d: string): Exit;
-    }).getExit('east');
+    }).getExit('northeast');
     const cache = cacheIn('corridor-1');
 
     // Before: neither the secret exit nor the cache is in the mover's world.
@@ -554,7 +554,7 @@ describe('The Sunken Delve — search reveals the secrets', () => {
         obviousExitsFor(v: Stuff): Exit[];
       }).obviousExitsFor(m as never),
     ).not.toContain(secret);
-    expect(targetOf(m, 'east').stuff).toBeNull();
+    expect(targetOf(m, 'northeast').stuff).toBeNull();
 
     // Search the corridor — the broad scan (untrained + searchBonus 4 reaches
     // `hidden` = 4) discovers both. Not Engaged → resolves synchronously.
@@ -574,7 +574,7 @@ describe('The Sunken Delve — search reveals the secrets', () => {
       }).obviousExitsFor(m as never),
     ).toContain(secret);
     // The revealed shortcut resolves as a walkable target.
-    expect(targetOf(m, 'east').stuff).not.toBeNull();
+    expect(targetOf(m, 'northeast').stuff).not.toBeNull();
   });
 });
 

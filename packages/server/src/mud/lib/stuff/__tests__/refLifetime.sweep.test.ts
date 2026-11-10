@@ -11,6 +11,7 @@ import "../../../../test-bootstrap";
 import Holder from '../Holder';
 import { describe, it, expect, beforeEach  } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
+import { BoundaryApi } from '../../../api/boundary';
 import { ShadowApi } from '../../../api/shadow';
 import { ContainmentApi } from '../../../api/containment';
 import type { Stuff } from '../Stuff';
@@ -20,7 +21,6 @@ import Exit from '../../boundary/Exit';
 import Door from '../../../platform/thing/Door';
 import { ContainerMixin } from '../../spatial/Container';
 import { ExitableMixin } from '../../boundary/Exitable';
-import { DoorBearingMixin } from '../../boundary/DoorBearing';
 import { AdornableMixin } from '../../boundary/Adornable';
 import { AdornmentMixin } from '../../boundary/Adornment';
 import {
@@ -30,7 +30,6 @@ import {
 
 class Box extends Holder {}
 class ExitRoom extends ExitableMixin(Place) {}
-class Bearer extends DoorBearingMixin(ExitableMixin(Place)) {}
 class Wall extends AdornableMixin(Holder) {}
 class Fixture extends AdornmentMixin(Thing) {}
 
@@ -85,16 +84,19 @@ describe('reference-lifetime sweep (W7)', () => {
     });
   });
 
-  describe('DoorBearing.door — the mixin had no destruct hook at all', () => {
-    it('a destroyed door reads as null', async () => {
-      const bearer = makeStuff(() => new Bearer());
+  describe("Boundary.sideA/sideB — weak, so a dead exit stops being a side", () => {
+    it('a destroyed exit reads as an empty side', async () => {
+      const room = makeStuff(() => new ExitRoom());
+      const exit = makeStuff(
+        () => new Exit({ direction: 'north', source: room, destinationPath: '/z' })
+      );
       const door = await StuffApi.create(() => new Door());
-      bearer.setDoor(door);
-      expect(bearer.getDoor()).toBe(door);
+      BoundaryApi.attach(door, exit);
+      expect(door.sideOf(exit)).toBe('A');
 
-      StuffApi.destruct(asStuff(door));
+      StuffApi.destruct(asStuff(exit));
 
-      expect(bearer.getDoor()).toBeNull();
+      expect(door.getSides()).toEqual([null, null]);
     });
   });
 

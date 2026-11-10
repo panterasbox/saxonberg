@@ -390,7 +390,6 @@ export const Mixins = {
   Voyaging: 'VoyagingMixin',
   // A written thing whose reading writes `charted` claims (a chart).
   Charted: 'ChartedMixin',
-  DoorBearing: 'DoorBearingMixin',
   Adornable: 'AdornableMixin',
   Adornment: 'AdornmentMixin',
   AmbientLit: 'AmbientLitMixin',

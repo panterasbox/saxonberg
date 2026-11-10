@@ -197,7 +197,7 @@ describe('reach is one list — MQL `reachable` ≡ canReach (W20)', () => {
     road.addFixture(sconce);
     const door = await StuffApi.create(() => new Door());
     door.setShortDescription('a gate');
-    await road.addBidirectionalExit(yard, 'north', { door });
+    await road.addBidirectionalExit(yard, 'north', { boundary: door });
     const north = road.getExit('north')!;
     const beyond = apple();
     put(beyond, yard);

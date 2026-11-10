@@ -1129,9 +1129,9 @@ export function AtmosphericMixin<
       // ⭐ The five guards are `ExitableMixin.getObviousNeighbours`'
       // now — this file's own comment said they were copied from the
       // light walk, which is the whole argument for not having a copy.
-      // `open-only`: an opening is a doorway you can stand in, so a
-      // doored exit counts when the door is open.
-      for (const { dest } of self.getObviousNeighbours({ doors: 'open-only' })) {
+      // `open`: an opening is a doorway you can stand in, so a way with
+      // a door counts when the door is open (a window never does).
+      for (const { dest } of self.getObviousNeighbours({ through: 'open' })) {
         if (this.isThreshold(dest)) exterior += 1;
         else interior += 1;
       }
@@ -1203,7 +1203,7 @@ export function AtmosphericMixin<
       // template with many live clones, throw on resolve, or land on
       // something reaped mid-walk, and a neighbour going wrong must
       // not take the temperature down.
-      for (const { dest } of self.getObviousNeighbours({ doors: 'open-only' })) {
+      for (const { dest } of self.getObviousNeighbours({ through: 'open' })) {
         if (this.isThreshold(dest)) open += 1;
       }
       return open;
@@ -1452,7 +1452,7 @@ export function AtmosphericMixin<
         return this._exposure;
       }
       const neighbours = MixinApi.isExitable(self)
-        ? self.getObviousNeighbours({ doors: 'all' })
+        ? self.getObviousNeighbours({ through: 'all' })
         : [];
       let key = head;
       for (const n of neighbours) key += `|${(n.dest as Stuff).stuffId}`;
@@ -1522,7 +1522,7 @@ export function AtmosphericMixin<
           if (!vertical) wallsShared += 1;
           continue;
         }
-        if (vertical || exit.getDoor() !== null) continue;
+        if (vertical || exit.getBoundary() !== null) continue;
         // ⚠ A doorless exit to another ENCLOSED place is not an opening:
         // the face stays a solid exterior wall, as it always has.
         // ⚠ Only a DECLARED place has open sides: an undeclared interior
@@ -1774,8 +1774,9 @@ export function AtmosphericMixin<
       const vThis = this.getVolume()?.rawValue() ?? 0;
       const vFar = n.getVolume()?.rawValue() ?? 0;
       if (!(vThis > 0) || !(vFar > 0)) return 0;
-      const door = face.exit?.getDoor() ?? null;
-      const open = door === null || door.isOpen();
+      // An open doorway mixes the air; a shut door — or glass — conducts.
+      const boundary = face.exit?.getBoundary() ?? null;
+      const open = boundary === null || (boundary.isOpen() && boundary.passesBodiesWhenOpen());
       if (open) {
         return envelopeDial(AppSettingKeys.envelopeOpeningUPerM3, 6) * Math.min(vThis, vFar);
       }

@@ -19,7 +19,7 @@ data:
   longDescription: |
     A fold in the hill where the slope flattens before it climbs again, and the grass in it is the wrong colour — pale, then grey, then gone altogether around a pool the size of a hat.
 
-    Sheep have been here. So has somebody with a cart: there are two ruts coming in from the west and none going out, which means whatever they came for they carried. Beside the pool an old rig stands over a capped hole, and nobody is working it.
+    Sheep have been here. So has somebody with a cart: there are two ruts coming in from the southwest and none going out, which means whatever they came for they carried. Beside the pool an old rig stands over a capped hole, and nobody is working it.
 
     East and down, the hill opens into a long bare flat with nothing growing on it at all.
   coords: { x: 3, y: 5, z: 0 }
@@ -35,9 +35,17 @@ data:
     # office's rack — which a prospector staking new ground needs more.
     - /trade/drilling/thing/bailer
   exits:
-    west:
-      destination: /world/terminus/rejection/location/hillside
+    # On along the same line to the fringe claim (boundary build: the
+    # spring stands on the track from the old workings, so the walk goes
+    # through it).
+    northeast:
+      destination: /world/terminus/rejection/location/fringe-claim
+      kind: /platform/idea/exits/track
+      edgeMinutes: 4
+    southwest:
+      destination: /world/terminus/rejection/location/old-workings
       edgeMinutes: 4
     southeast:
       destination: /world/terminus/rejection/location/salt-flat
+      kind: /platform/idea/exits/track
       edgeMinutes: 3

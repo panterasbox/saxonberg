@@ -38,10 +38,12 @@ data:
   coords: { x: 5, y: 7, z: 0 }
   exits:
     southwest:
-      destination: /world/terminus/rejection/location/old-workings
+      destination: /world/terminus/rejection/location/salt-spring
+      kind: /platform/idea/exits/track
       edgeMinutes: 4
     northeast:
       destination: /world/terminus/rejection/location/far-fringe
+      kind: /platform/idea/exits/track
       edgeMinutes: 5
   cast:
     - /world/terminus/rejection/agent/independent

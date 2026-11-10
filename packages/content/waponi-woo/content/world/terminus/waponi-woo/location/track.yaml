@@ -37,6 +37,7 @@ data:
       edgeMinutes: 6
     northeast:
       destination: /world/terminus/waponi-woo/location/volcano
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 20
     southwest:

@@ -49,25 +49,6 @@ import { Traversal } from '../location/Traversal';
 import type { Leg } from '../location/Traversal';
 import { StuffApi } from '../../api/stuff';
 import { MessageApi } from '../../api/message';
-import type { BoundaryAnchor } from '../boundary/BoundaryAnchor';
-import type { Boundary } from '../boundary/Boundary';
-import type { Conduit } from '../boundary/Conduit';
-import type { SoundConduit } from '../boundary/SoundConduit';
-
-/**
- * Structural narrowing for "this fixture is a BoundaryAnchor" — the
- * same `_isBoundaryAnchor` marker read `BoundaryAnchor.is` uses,
- * inlined so this module keeps a *type-only* import of the boundary
- * class. That matters: `Scene` imports this module and sits on the
- * eager `api/message` load path, so a runtime import of
- * `BoundaryAnchor` (→ `Thing` → `Containable`) here would force that
- * chain to evaluate before it is ready. Mirrors `SoundModality`'s use
- * of `BoundaryAnchor.is`, which is safe there only because that module
- * is off the message path.
- */
-function isBoundaryAnchor(fx: object): fx is BoundaryAnchor {
-  return (fx as { _isBoundaryAnchor?: boolean })._isBoundaryAnchor === true;
-}
 
 /**
  * One reached hearing sensor: the sensor, the delivered sound level in
@@ -111,34 +92,6 @@ function atmosphereBlocks(loc: Stuff & Container): boolean {
   return MixinApi.isAtmospheric(loc) ? loc.atmosphereBlocks() : false;
 }
 
-function isSoundConduit(c: Conduit): c is SoundConduit {
-  return c.conduitKind === 'sound';
-}
-
-function findSoundConduit(boundary: Boundary): SoundConduit | null {
-  for (const c of boundary.getConduits()) {
-    if (isSoundConduit(c)) return c;
-  }
-  return null;
-}
-
-/**
- * Cardinal direction of the exit whose door is `boundary`, or `null`
- * when no obvious exit is wired through it (a bare window between rooms
- * carries no direction). Used to attribute a doored-boundary hop's
- * arrival direction.
- */
-function directionThroughBoundary(
-  loc: Stuff & Container,
-  boundary: Boundary,
-): string | null {
-  if (!MixinApi.isExitable(loc)) return null;
-  for (const exit of loc.getObviousExits()) {
-    if (exit.getDoor() === boundary) return exit.getDirection();
-  }
-  return null;
-}
-
 function linearToDb(sourceDb: number, cumulativeTau: number): number {
   if (cumulativeTau <= 0) return Number.NEGATIVE_INFINITY;
   return sourceDb + 10 * Math.log10(cumulativeTau);
@@ -152,8 +105,7 @@ interface Carry {
 
 /**
  * ⭐ The legs out of `loc`, in the order this walk has always taken
- * them: doored/windowed boundaries (b) first, then doorless obvious
- * exits (c) — mirroring `SoundModality.walkAt`, which is the pull-side
+ * them: ways with a boundary (b) first, then open ways (c) — mirroring `SoundModality.walkAt`, which is the pull-side
  * of the same physics.
  *
  * Each leg carries the tau that applies to it and the direction a
@@ -165,45 +117,29 @@ interface Carry {
 function gatherLegs(loc: Stuff & Container): Array<Leg<Stuff & Container>> {
   const out: Array<Leg<Stuff & Container>> = [];
 
-  // (b) Cross-boundary propagation — doored / windowed boundaries. A
-  // closed Door's SoundConduit returns transmissivity 0 and is dropped.
-  if (MixinApi.isAdornable(loc)) {
-    for (const fx of loc.getFixtures()) {
-      if (!isBoundaryAnchor(fx)) continue;
-      const anchor = fx;
-      const boundary = anchor.getBoundary();
-      if (!boundary) continue;
-      const otherHost = anchor.getOtherHost();
-      if (!otherHost) continue;
-      const conduit = findSoundConduit(boundary);
-      if (!conduit) continue;
-      const otherSide = boundary.getOtherSide(anchor);
-      const tau = conduit.transmissivity(otherSide, anchor.getSide());
-      if (!(tau > 0)) continue;
-      out.push({
-        node: otherHost as unknown as Stuff & Container,
-        tau,
-        dir: directionThroughBoundary(loc, boundary),
-      });
-    }
+  if (!MixinApi.isExitable(loc)) return out;
+  // ⚠ This walk's guard list was always SHORTER than the modalities': it
+  // never checked `hasSpatialDestination`, `isContainer` or `isDestroyed`.
+  // Routing the legs through `ExitableMixin.getObviousNeighbours` gives it
+  // all five — an exit that names no room, or a room reaped mid-walk, no
+  // longer reaches this walk at all.
+  const ways = loc.getObviousNeighbours({ through: 'all' });
+
+  // (b) Through a boundary — a shut door passes 0 and is dropped. The way
+  // is the side, so it names its own direction (boundary build: the anchor
+  // walk had to search the exits for the one whose door this was).
+  for (const { exit, dest } of ways) {
+    const boundary = exit.getBoundary();
+    if (!boundary) continue;
+    const tau = boundary.transmissivityInto('sound', exit);
+    if (!(tau > 0)) continue;
+    out.push({ node: dest, tau, dir: exit.getDirection() });
   }
 
-  // (c) Cross-exit propagation — doorless exits only.
-  //
-  // ⚠ This walk's guard list was always SHORTER than the modalities':
-  // it never checked `hasSpatialDestination`, `isContainer` or
-  // `isDestroyed`. Routing the legs through
-  // `ExitableMixin.getObviousNeighbours` gives it all five, which is a
-  // behaviour change in exactly one direction — an exit that names no
-  // room, or a room reaped mid-walk, no longer reaches this walk at
-  // all. Before, it would have been handed to `MessageApi.getSensors`
-  // and emitted arrivals for a destroyed proxy's contents. Nothing in
-  // today's content exercises it (the golden is unchanged), which is
-  // why it reads as tidying rather than a fix.
-  if (MixinApi.isExitable(loc)) {
-    for (const { exit, dest } of loc.getObviousNeighbours()) {
-      out.push({ node: dest, tau: EXIT_TAU, dir: exit.getDirection() });
-    }
+  // (c) Through an open way.
+  for (const { exit, dest } of ways) {
+    if (exit.getBoundary()) continue;
+    out.push({ node: dest, tau: EXIT_TAU, dir: exit.getDirection() });
   }
 
   return out;

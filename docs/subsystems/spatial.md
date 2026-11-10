@@ -26,11 +26,11 @@ Sibling docs cover related ground without overlap:
   Movement narration sits on top of this.
 - [prose.md](./prose.md) — the Liquid templating used by
   `Exit.messageOut` / `messageIn` and the Mobile default settings.
-- [light.md](./light.md) — the Light & Boundary subsystem that
-  layers on top of this one. `Door` is now a `Boundary` (closed
-  doors block light, not just movement); `Adornable` composed onto
-  `Location` and `ExitableVessel` is what hosts `BoundaryAnchor`
-  fixtures.
+- [light.md](./light.md) — the Light subsystem that layers on top
+  of this one; a closed door blocks light, not just movement, because
+  a way's `Boundary` gates every channel ([boundary.md](./boundary.md)).
+  `Adornable` composed onto `Location` and `ExitableVessel` hosts
+  fixtures (sconces, the floor).
 - [properties.md](./properties.md), [mixins.md](./mixins.md) — the
   general mechanics that let mixins carry persistent fields.
 
@@ -70,13 +70,12 @@ Stuff (one of seven top-level branches — see architecture.md)
   ├── Location                      (Adornable + Container — the container host; concrete rooms in location.md)
   ├── Thing                         (Wet + Visible + Detailed + Perceptible + Tangible + Containable)
   │     ├── Good                    (Chattel + Concealable)            ← portable matter: owned, hidden
-  │     ├── Boundary                (Visible + Perceptible)            ← see light.md
-  │     │     ├── Window            (Sealable + Light/Sight/Smell/Sound Conduits; `attachedHosts` identity refs)
-  │     │     └── Door              (Sealable + Light/Sight/Movement/Sound/Smell Conduits)  ← retrofit
-  │     ├── BoundaryAnchor          (Adornment)                         ← see light.md
+  │     ├── Boundary                (Sealable; two weak sides = the exits)  ← see boundary.md
+  │     │     ├── Window            (Soilable; passes all but a body)
+  │     │     └── Door              (Lockable; all five channels)
   │     └── Holder                  (Container) — holds, and is held
   │           └── Vessel            (Chattel + Concealable) — a holder that is a Good
-  │                 └── ExitableVessel  (Atmospheric + DoorBearing + Exitable + Adornable)
+  │                 └── ExitableVessel  (Atmospheric + Exitable + Adornable; its own Sealable is its door)
   └── Agent                         (Avatar / NPC / vehicle layer Mobile + … on top)
 ```
 
@@ -189,9 +188,8 @@ the right answer — see [state-model.md § Stamped-on-Stuff Fields](./state-mod
 A `Stuff & Containable` whose `environment === null` is **detached**
 — not in any container, not anywhere in the world. Detachment comes
 up in three normal situations: a Stuff just constructed via
-`StuffApi.create` but not yet placed; a door that has been removed
-from its Boundary anchor; an item whose container was destroyed
-mid-frame.
+`StuffApi.create` but not yet placed; a door taken down out of its way;
+an item whose container was destroyed mid-frame.
 
 Detachment is a normal state, not an error. Subsystems that walk
 container chains, route messages, or compute perception MUST handle
@@ -744,16 +742,16 @@ documented in [location.md](./location.md). The base Zone hierarchy
 ## Exits, Doors, Adornable, ExitableVessel
 
 Moved out of `lib/spatial/` and into `lib/boundary/`. The full
-architectural reference for these — exits, doors (now `Boundary`
-subclasses), the `Adornable` / `Adornment` fixture surface, and
-`ExitableVessel` (which composes `DoorBearing` and migrates the
-vessel-door's `(vessel, env)` Boundary anchor pair on `setDoor` /
-`onMoved`) — lives in [boundary.md](./boundary.md). Spatial keeps
+architectural reference for these — exits, the one `Boundary` each
+way's two exits are the sides of (doors, windows, curtains, gates),
+the `Adornable` / `Adornment` fixture surface, and `ExitableVessel`
+(whose synthesized `in` / `out` carry no boundary — its own `Sealable`
+is its door) — lives in [boundary.md](./boundary.md). Spatial keeps
 the containers; boundary holds what connects them.
 
 Locations and `ExitableVessel`s compose `AdornableMixin` so their
-`getFixtures()` collection can host `BoundaryAnchor`s; that is
-the only Boundary detail that lives in this doc. (A bare `Vessel`
+`getFixtures()` collection can host fixtures; that is the only
+boundary-subsystem detail that lives in this doc. (A bare `Vessel`
 is **not** Adornable — fixtures are an `ExitableVessel` concern.)
 ## Locomotion: `MobileMixin`
 

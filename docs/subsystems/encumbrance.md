@@ -192,8 +192,9 @@ added:
 - **`transmissionFactor`** (field, default `1.0`, validated `0..1`) — the
   attenuation the burden walk reads. A bag of holding sets it low.
 - **`Adornable` narrowed off the `Vessel` base onto `ExitableVessel`.**
-  Fixtures (`getFixtures()`) are needed only by the Door →
-  `BoundaryAnchor` retrofit, an `ExitableVessel` concern. Every fixture
+  Fixtures (`getFixtures()`) were needed then only by the Door →
+  `BoundaryAnchor` retrofit (retired with the anchors by the boundary
+  build, 2026-11), an `ExitableVessel` concern. Every fixture
   consumer already narrows on `MixinApi.isAdornable`, so a bare `Vessel`
   being `!isAdornable` is observably identical to the old
   Adornable-with-empty-fixtures state.

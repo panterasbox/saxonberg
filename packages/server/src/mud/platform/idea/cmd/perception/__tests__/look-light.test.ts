@@ -177,7 +177,7 @@ describe('⭐⭐ a dark room withholds its description', () => {
       dark: (LIGHT_BANDS_TOO_DARK_TO_DESCRIBE as readonly string[]).includes(band),
     }));
     const beyond = { getContents: () => things };
-    const exit = { getDoor: () => null, getDestination: () => beyond, getDirection: () => 'east' };
+    const exit = { getBoundary: () => null, getDestination: () => beyond, getDirection: () => 'east' };
     vi.spyOn(MixinApi, 'isExitable').mockReturnValue(true);
     vi.spyOn(MixinApi, 'isLightSource').mockImplementation(
       ((o: { getEmittedFlux?: unknown }) => typeof o?.getEmittedFlux === 'function') as never,

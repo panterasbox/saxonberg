@@ -33,9 +33,11 @@ data:
   exits:
     southwest:
       destination: /world/terminus/rejection/location/salt-flat
+      kind: /platform/idea/exits/track
       edgeMinutes: 6
     # ⭐ On out into oil country — further along the same fold, deeper,
     # and the most expensive ground in the valley.
     northeast:
       destination: /world/terminus/rejection/location/seep-hollow
+      kind: /platform/idea/exits/track
       edgeMinutes: 8

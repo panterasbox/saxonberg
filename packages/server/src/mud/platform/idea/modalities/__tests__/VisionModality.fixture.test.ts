@@ -11,7 +11,7 @@
  * anybody's contents** — it hangs in `Adornable.fixtureSlots` — so a
  * `Containable` fixture answered `null` and the gate read that as *cannot be
  * seen*. `RecognitionLogic` then rendered its `obscured()` form. Every
- * sconce, sign, neon and BoundaryAnchor read as *"something"* anywhere scene
+ * sconce, sign, neon and window anchor read as *"something"* anywhere scene
  * prose named it; the ground build made it universal by giving every room a
  * floor.
  *
@@ -32,6 +32,7 @@ import CartesianZone from '../../location/CartesianZone';
 import Floor from '../../../thing/Floor';
 import { AmbientLitMixin } from '../../../../lib/perception/AmbientLit';
 import { StuffApi } from '../../../../api/stuff';
+import { BoundaryApi } from '../../../../api/boundary';
 import { MixinApi } from '../../../../api/mixin';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityTagTables } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
@@ -112,7 +113,7 @@ describe('a fixture is seen in its host’s light', () => {
  * ⭐⭐ **An exit's DOOR is seen in the light of the room you stand in.**
  *
  * The same class as the fixture, found by driving the rubber build in a
- * browser: a door rides `exit.getDoor()` and is in nobody's contents, so
+ * browser: a door rides `exit.getBoundary()` and is in nobody's contents, so
  * `open door` said *"You open something."* and `look door` in the stove
  * house (a glass door and a vent) offered *"something (1)"* and
  * *"something (2)"* — a prompt nobody could answer.
@@ -140,7 +141,7 @@ describe('an exit door is seen in the light of the room whose exit carries it', 
     );
     await room.addExit(exit);
     door = makeStuff(() => new Door());
-    room.getExit('north')!.setDoor(door);
+    BoundaryApi.attach(door, room.getExit('north')!);
   });
 
   afterEach(() => StuffApi.clearAll());

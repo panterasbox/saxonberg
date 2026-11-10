@@ -20,6 +20,7 @@ data:
   exits:
     east:
       destination: /world/terminus/hearts-delight/location/bench-lane
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 6
     north:
@@ -28,6 +29,7 @@ data:
       edgeMinutes: 1
     up:
       destination: /world/terminus/hearts-delight/bench-field/location/upper-bench
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 4
     west:
@@ -40,6 +42,7 @@ data:
     # is the bench's.
     northwest:
       destination: /world/terminus/hearts-delight/bench-field/location/orchard-close
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 3
   props:

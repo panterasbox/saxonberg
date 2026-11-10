@@ -40,6 +40,11 @@ gets read later by the breadcrumbs."*
    `look` at something out of reach. This is why the `look terminus`
    scope question (should enclosing places count as "around you"?) is
    not needed.
+   ⭐ **Revised 2026-11-09** ([map-slate § The navigation pane, revised](./map-slate.md)):
+   when you **own an illustrated map** of that Locality, the crumb opens
+   that map — the broad picture behind each crumb. This item is what a
+   crumb does when you own none; which of the two wins when you have both
+   is open.
 4. **Locality gets descriptors to copy.** Locality composes
    `NamedMixin` (its `name` field moves there; rows unchanged),
    `PerceptibleMixin` and `VisibleMixin`, so it can carry what a first

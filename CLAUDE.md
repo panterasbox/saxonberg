@@ -195,7 +195,7 @@ behavior. Read the relevant doc before editing in its area.
   - [zone.md](./docs/subsystems/zone.md) — Zone/SpatialZone/FolderZone roots, resolveZoneForPath, field inheritance
   - [spatial.md](./docs/subsystems/spatial.md) — containment/movement substrate: Container/Containable/Mobile/Placing/Sealable, vessels; **Placement** — where inside its container a thing sits (`on`·`in`·`from`, a row-extensible vocabulary), and the two composition refusals
   - [location.md](./docs/subsystems/location.md) — room/coordinate/zone geometry, the Warren elastic graph, lounge content, `startLocation`
-  - [boundary.md](./docs/subsystems/boundary.md) — exits/doors/Adornable, exit-kind templates, DeferredDestinationExit, Switchable/Lockable/Bistate, locks & keys
+  - [boundary.md](./docs/subsystems/boundary.md) — a way's boundary as ONE object whose sides are the exits (channel table, `freeFrom`, `WayRecord`), the edge rules + `track`s, exits/doors/Adornable, exit-kind templates, locks & keys
   - [location-graph.md](./docs/subsystems/location-graph.md) — the world's shape as a collection, and what a player knows of it: the `location_graph` projection + its invariant lint, `published` on the parcel (draft = a wall, offline = a camera), ⭐⭐ the per-player **map** document (channels `walked` · `seen` · `searched` · `published`, claims append and nothing is corrected) and the evidence firewall — ⛔ the index must never reach a client; ⭐⭐⭐ **routing** (`Traversal` — one walk, parameterized; a plan is a hypothesis that states its assumptions; cost per axis with the renderer selecting; the firewall made STRUCTURAL by an import gate) and the `route` verb
   - [bulk.md](./docs/subsystems/bulk.md) — continuous matter and NOTHING else: Bulkable slots, transfer/drain-through, measure grammar, fill/pour/drink; the vessel kind is `VesselKindMixin`, and `BulkPayload` carries only what cannot derive (subsystems declare their own fields onto it)
   - [light.md](./docs/subsystems/light.md) — Light value object, `signalAt`, AmbientLit, LightSource, per-viewer perception
@@ -970,7 +970,7 @@ platform/thing/FoldingChair` is ordinary OO and correct. Only classes that are
 
 **When a substrate class is also cloned generically, split it.** The
 abstract base stays in `lib/`; a thin concrete subclass in `platform/`
-absorbs the clones, and templates name that. Fifteen exist. **Eleven
+absorbs the clones, and templates name that. Sixteen exist. **Twelve
 deliberately share their base's name** (the import aliases it as
 `<Name>Base`; the module registry keys on class identity, not name):
 `platform/thing/Thing`, `platform/thing/Good`, `platform/thing/Vessel`,
@@ -978,7 +978,8 @@ deliberately share their base's name** (the import aliases it as
 `platform/location/Location`,
 `platform/location/Locale`, `platform/idea/Exit`,
 `platform/idea/material/Material`, `platform/idea/Biome`,
-`platform/idea/Structure`, `platform/idea/Building` (`Ship` extends the
+`platform/idea/Structure`, `platform/idea/Building`, `platform/thing/Boundary`
+(a way's curtain or grating; `Door` and `Window` extend it) (`Ship` extends the
 `lib/structure/Structure` base directly). **Four are
 real renames because they are real concepts**: ⭐ `platform/thing/Corpse`
 (← `Creature`), which is also the one twin that changed BRANCH — a corpse
@@ -1028,8 +1029,9 @@ Lowercase content-tree roots under `/stuff/<branch>/` (`gear/`,
 `exits/`, `material/`, `biome/`) are template namespaces whose backing
 classes live elsewhere — that is fine and pre-existing.
 
-**Three named `lib/` residents that are instanced but never stamped**
-— `BoundaryAnchor`, `SandboxCrossingExit`, `LightningStrike` — stay.
+**Two named `lib/` residents that are instanced but never stamped**
+— `SandboxCrossingExit`, `LightningStrike` — stay (`BoundaryAnchor` retired
+with the boundary build).
 The test is *does an instance carry a template-path stamp*, not *is it
 ever `new`'d*. `Shadow` stays for a different reason: it is a framework
 attachment, riding any Stuff, never template-backed. ⚠ `ExitableVessel`

@@ -26,14 +26,17 @@ data:
   exits:
     east:
       destination: /world/terminus/hearts-delight/location/valley-gate
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 9
     west:
       destination: /world/terminus/hearts-delight/location/farmstead-yard
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 6
     south:
       destination: /world/terminus/hearts-delight/location/millsite
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 5
     # ⭐ The valley lane, where the Delight sells its farmsteads (tracts
@@ -45,6 +48,7 @@ data:
     # ⭐ Up the ladder to the silk house loft (silk W5).
     north:
       destination: /world/terminus/hearts-delight/silk-house/location/floor
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 2
   details:

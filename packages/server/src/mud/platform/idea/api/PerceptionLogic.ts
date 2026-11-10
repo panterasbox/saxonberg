@@ -1492,7 +1492,7 @@ function roomOf(who: Stuff): (Stuff & Container) | null {
  * contents are `Container.getReachableContents(rung)` — the per-container
  * walk underneath. Then what lives in no container at all:
  *
- * ⚠ Attached doors ride `exit.getDoor()` — a containment-only test misses
+ * ⚠ Attached doors ride `exit.getBoundary()` — a containment-only test misses
  * every door in the game (the card hold that omitted them released
  * `out-of-reach` on doors `open` worked on perfectly well); and the way
  * itself binds a direction. The ways — and so their doors — are the ones
@@ -1567,7 +1567,7 @@ function reachOf(actor: Stuff, opts?: ReachOptions): Reached[] {
       const ways = holder.obviousExitsFor(actor);
       const doors = new Set<string>();
       for (const way of ways) {
-        const door = way.getDoor();
+        const door = way.getBoundary();
         if (!door || doors.has(door.stuffId)) continue;
         doors.add(door.stuffId);
         push(door, 'here');

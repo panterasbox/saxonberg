@@ -1,0 +1,12 @@
+# A GATE — a door in a fence or a wall: wider, and shut it still lets light,
+# sight, sound and smell through its bars and boards.
+class: /platform/thing/Door
+extends: /platform/thing/boundaries/door
+data:
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 35
+  shortDescription: gate
+  keywords: [gate]
+  opening: { width: 2, height: 2 }
+  channels:
+    shut: { movement: 0, light: 0.5, sight: 0.5, sound: 0.8, smell: 0.8 }

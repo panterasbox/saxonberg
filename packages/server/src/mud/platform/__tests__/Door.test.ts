@@ -7,6 +7,7 @@ import Location from '../../lib/location/Location';
 import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../../lib/mixin';
 import { StuffApi } from '../../api/stuff';
+import { BoundaryApi } from '../../api/boundary';
 import { ContainmentApi } from '../../api/containment';
 import {
   makeStuff,
@@ -113,68 +114,16 @@ describe('Door', () => {
   });
 });
 
-describe('Door attachedTo back-reference + break/install', () => {
+describe('Door — one object, two sides; break/install', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   afterEach(() => {
     StuffApi.clearAll();
   });
 
-  it('addBidirectionalExit populates attachedTo with both exits', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
-
-    const door = await StuffApi.create(() => new Door());
-    door.setShortDescription('oak door');
-
-    await a.addBidirectionalExit(b, 'north', { door });
-
-    expect(door.getAttachedExits().size).toBe(2);
-    expect(door.hasAttached(a.getExits().get('north')!)).toBe(true);
-    expect(door.hasAttached(b.getExits().get('south')!)).toBe(true);
-  });
-
-  it('door.detach() clears every Exit.door and empties attachedTo', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
-
-    const door = await StuffApi.create(() => new Door());
-    door.setShortDescription('oak door');
-    await a.addBidirectionalExit(b, 'north', { door });
-
-    const aNorth = a.getExits().get('north')!;
-    const bSouth = b.getExits().get('south')!;
-
-    door.detach();
-
-    expect(door.getAttachedExits().size).toBe(0);
-    expect(aNorth.getDoor()).toBeNull();
-    expect(bSouth.getDoor()).toBeNull();
-  });
-
-  it('detach + ContainmentApi.move plants the broken door in a location', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
-
-    const door = await StuffApi.create(() => new Door());
-    door.setShortDescription('oak door');
-    await a.addBidirectionalExit(b, 'north', { door });
-
-    door.detach();
-    ContainmentApi.move(door, a);
-
-    expect(a.getContents()).toContain(door);
-    expect(door.getContainer()).toBe(a);
-  });
-
-  it('re-installing a detached door updates attachedTo correctly', async () => {
+  async function rooms(): Promise<[Location, Location, Location]> {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new Location());
     const b = makeStuff(() => new Location());
@@ -182,45 +131,87 @@ describe('Door attachedTo back-reference + break/install', () => {
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     zone.addLocation(c, 1, 0, 0);
+    return [a, b, c];
+  }
 
+  it('addBidirectionalExit attaches both exits as the sides', async () => {
+    const [a, b] = await rooms();
     const door = await StuffApi.create(() => new Door());
     door.setShortDescription('oak door');
-    await a.addBidirectionalExit(b, 'north', { door });
-    expect(door.getAttachedExits().size).toBe(2);
 
-    door.detach();
-    expect(door.getAttachedExits().size).toBe(0);
+    await a.addBidirectionalExit(b, 'north', { boundary: door });
 
-    // Reinstall on a different exit pair.
-    await a.addBidirectionalExit(c, 'east', { door });
-    expect(door.getAttachedExits().size).toBe(2);
-    expect(a.getExits().get('east')!.getDoor()).toBe(door);
-    expect(c.getExits().get('west')!.getDoor()).toBe(door);
+    const aNorth = a.getExits().get('north')!;
+    const bSouth = b.getExits().get('south')!;
+    expect(door.getSides()).toEqual([aNorth, bSouth]);
+    expect(aNorth.getBoundary()).toBe(door);
+    expect(bSouth.getBoundary()).toBe(door);
   });
 
-  it('Exit.onDestruct unhooks itself from door.attachedTo', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
+  it('⭐ locked from one side is locked from the other', async () => {
+    const [a, b] = await rooms();
+    const door = await StuffApi.create(() => new Door());
+    await a.addBidirectionalExit(b, 'north', { boundary: door });
+    door.setLocked(true);
+    expect(a.getExit('north')!.wayState()).toBe('locked');
+    expect(b.getExit('south')!.wayState()).toBe('locked');
+  });
 
+  it('BoundaryApi.detach of both sides frees every exit', async () => {
+    const [a, b] = await rooms();
+    const door = await StuffApi.create(() => new Door());
+    door.setShortDescription('oak door');
+    await a.addBidirectionalExit(b, 'north', { boundary: door });
+
+    const aNorth = a.getExits().get('north')!;
+    const bSouth = b.getExits().get('south')!;
+
+    BoundaryApi.detach(...door.getSides().filter((x): x is Exit => x !== null));
+
+    expect(door.getSides()).toEqual([null, null]);
+    expect(aNorth.getBoundary()).toBeNull();
+    expect(bSouth.getBoundary()).toBeNull();
+    expect(aNorth.wayState()).toBe('open');
+  });
+
+  it('detach + ContainmentApi.move plants the broken door in a location', async () => {
+    const [a, b] = await rooms();
+    const door = await StuffApi.create(() => new Door());
+    door.setShortDescription('oak door');
+    await a.addBidirectionalExit(b, 'north', { boundary: door });
+
+    BoundaryApi.detach(a.getExit('north')!, b.getExit('south')!);
+    ContainmentApi.move(door, a);
+
+    expect(a.getContents()).toContain(door);
+    expect(door.getContainer()).toBe(a);
+  });
+
+  it('re-installing a detached door on another pair moves both sides', async () => {
+    const [a, b, c] = await rooms();
+    const door = await StuffApi.create(() => new Door());
+    door.setShortDescription('oak door');
+    await a.addBidirectionalExit(b, 'north', { boundary: door });
+
+    BoundaryApi.detach(a.getExit('north')!, b.getExit('south')!);
+    await a.addBidirectionalExit(c, 'east', { boundary: door });
+
+    expect(a.getExits().get('east')!.getBoundary()).toBe(door);
+    expect(c.getExits().get('west')!.getBoundary()).toBe(door);
+    expect(a.getExits().get('north')!.getBoundary()).toBeNull();
+  });
+
+  it('a destroyed side self-heals out of the door (weak ref)', async () => {
+    const [a, b] = await rooms();
     const door = await StuffApi.create(() => new Door());
     door.setShortDescription('oak door');
 
-    const exit = makeStuff(() => new Exit({
-      direction: 'east',
-      source: a,
-      destination: b,
-      door,
-    }));
-    // Registration of the exit in the door's attachedTo set is the
-    // job of `addExit` — that's the only way an Exit reaches its
-    // host post-construction (and post-Proxy).
+    const exit = makeStuff(() => new Exit({ direction: 'east', source: a, destination: b }));
     await a.addExit(exit);
-    expect(door.hasAttached(exit)).toBe(true);
+    BoundaryApi.attach(door, exit);
+    expect(door.sideOf(exit)).toBe('A');
 
     StuffApi.destruct(exit);
-    expect(door.hasAttached(exit)).toBe(false);
+    expect(door.getSides()[0]).toBeNull();
   });
 });

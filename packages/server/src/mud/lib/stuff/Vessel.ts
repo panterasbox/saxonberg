@@ -48,8 +48,7 @@
  * transmission read) and still identifies a Vessel — it now extends Thing.
  *
  * **`Adornable` lives on `ExitableVessel`, not here.** Fixtures
- * (`getFixtures()`/`addFixture()`) are needed only by the Door →
- * `BoundaryAnchor` retrofit, which is an `ExitableVessel` concern; a bare
+ * (`getFixtures()`/`addFixture()`) are an `ExitableVessel` concern; a bare
  * Vessel composes no fixture machinery (every fixture consumer narrows on
  * `MixinApi.isAdornable` first). See `docs/subsystems/boundary.md`.
  */

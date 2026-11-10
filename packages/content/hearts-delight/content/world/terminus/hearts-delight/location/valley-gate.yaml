@@ -37,6 +37,7 @@ data:
       edgeMinutes: 10
     west:
       destination: /world/terminus/hearts-delight/location/bench-lane
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 9
     # ⭐ (water-supply W6) The headgate on the Delight, where the ditch is
@@ -47,16 +48,19 @@ data:
       edgeMinutes: 5
     east:
       destination: /world/terminus/hearts-delight/public-works/location/yard
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 1
     # ⭐ (dairy D14) The dairy on the flats south of the gate, and the co-op
     # creamery off the road just inside it.
     south:
       destination: /world/terminus/hearts-delight/dairy/location/yard
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 6
     southwest:
       destination: /world/terminus/hearts-delight/creamery/location/floor
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 4
     # ⭐ (ceramics W6) The brickfield-and-pottery, down on the river flats

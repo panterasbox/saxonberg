@@ -262,15 +262,25 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // ⭐ The perception-gated list: a concealed exit is not here.
       const here = place.getZone();
+      // ⭐ The same `WayRecord` the room card's `exits` subscription emits
+      // (boundary build), plus where the way leads — this push resolves it.
       const exits: WhereaboutsExit[] = MixinApi.isExitable(place)
         ? place.obviousExitsFor(viewer).map((exit) => {
-            const dest = exit.getDestination();
-            const door = exit.getDoor();
+            // ⚠ A deferred way (a berth, a holding's front door) has no
+            // destination until someone crosses it, and `getDestination`
+            // THREW for it — `map` on the bank died with *destination not
+            // materialized* (the boundary browser walk). Resolve as before,
+            // and fall back to what is standing.
+            let dest: Stuff | null;
+            try {
+              dest = exit.getDestination();
+            } catch {
+              dest = exit.peekDestination();
+            }
             return {
-              direction: exit.getDirection(),
+              ...exit.wayRecord(),
               ...(dest ? { destination: dest.getPresentation() } : {}),
               crossesZone: !!dest && dest.getZone() !== here,
-              ...(door ? { door: { name: door.getPresentation(), open: door.isOpen() } } : {}),
             };
           })
         : [];

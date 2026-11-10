@@ -69,7 +69,7 @@ into the right one is almost always the whole design decision.
 | The institution | `lib/location/CirculationWarren` (kernel, abstract) | *Which holdings exist, and how do you get to them?* |
 | The layout | `lib/location/PlatPlan` (kernel, value object) | *Where does the next holding GO?* |
 | The holding | `residence/idea/HoldingWarren` (pack, an `RoomWarren`) | *What rooms is this one made of, and what shape is it in?* |
-| The way in | `residence/idea/FrontDoorExit` (pack) | *May you cross this threshold?* |
+| The way in | `residence/idea/FrontDoorExit` (pack) + the entry door the institution hangs in it | *Where does this threshold lead, and may you cross it?* — the exit answers the first (a deferred destination), the door the second (keyed to the holding, `freeFrom` the inside) |
 
 Two of the four are kernel and two are a capability pack's, and the line
 is not arbitrary: the elastic-graph machinery and the layout algebra are
@@ -132,9 +132,16 @@ protected entryEdgeFor(key: string): Promise<Exit | null>
 ```
 
 `DormWarren` stands a holding up as a programme over the `dormroom`
-row and hangs a `DormDoor`; `BuildingWarren` does the same with
+row and lays a `DormDoor` way; `BuildingWarren` does the same with
 `FrontDoorExit` off a corridor; `PlatWarren` does it with a
-`LotGateExit` off a road segment. Nothing else differs.
+`LotGateExit` off a road segment. Nothing else differs. ⭐ Each then
+hangs ONE entry door in that way through the base's
+`hangEntryDoor(key, row, side, freeFrom?)` — once from `entryEdgeFor`
+(the outside) and once from `wireHubExit` (the entry room's way out,
+the free side) — minted from the row (`residence/thing/boundaries/keyed-door`,
+`duncan-hall/thing/dorm-door`, `residence/thing/boundaries/lot-gate`),
+keyed to the holding, kept across its sleep (boundary build, 2026-11;
+see [boundary.md § Keyed ways](./boundary.md#keyed-ways--the-minter-mints-the-door)).
 
 ---
 
@@ -181,9 +188,10 @@ persistence key.
   rooms. `extent` holds the kind's rooms authored as an ordinary place —
   ordinary rows with ordinary `exits:` between them, the authored
   Hesper's shape — and `entrance` is the way in. A locked threshold is the
-  way's own `kind: /system/residence/idea/exits/keyed-door`; the holding
-  hands it its keyway at mint (`fitExit`). The way back out is a plain
-  passage the plan authors. A tract's `share` is the tract row's own
+  way's own `kind: /system/residence/idea/exits/keyed-door` (a plain way);
+  at wake the holding mints a keyed door into it and the way back
+  (`hangKeyedDoors`). The way back out is a plain passage the plan
+  authors. A tract's `share` is the tract row's own
   field; `footprintM2` is the ground the buildings cover; `buildings:`
   names them, main first. See
   [§ Plans](#-plans--a-kind-of-building-as-an-ordinary-place-on-its-owner-harbors-review-3-2026-11-03).
@@ -200,7 +208,7 @@ plan is stood up as a **keyed instance** — `(scope = the room's row,
 key = <holdingExtent>/<leaf>)`, the leaf being the row's last path
 segment — then each room's authored ways are copied (a way into the
 extent leads to the same room of this copy; a way out stays), the keyed
-doors are fitted, and each room is stamped with its address.
+doors are hung (`hangKeyedDoors`), and each room is stamped with its address.
 
 ### Dormancy is whole-holding, never room-by-room
 
@@ -286,12 +294,19 @@ Lock.mintKeyway() → ParcelApi.setKeyway(extent) → Lock.issueKey(holder, keyw
 
 `FrontDoorExit` is the generic threshold: eager on its face with the
 entry room's **row** (a real template, so the zone resolves and the exit
-reads honestly before anything is minted), `canTraverse` gated on
-`opensFor` against the holding's keyway (a sync read off
-the warren's cache — an empty keyway admits nobody), and
-`computeDestination` faulting the holding in through `admit`.
+reads honestly before anything is minted), and `computeDestination`
+faulting the holding in through `admit`. ⭐ The lock is not the exit's
+(boundary build, 2026-11): it is the entry DOOR the institution hangs in
+the way (`CirculationWarren.hangEntryDoor`), keyed to the holding's
+keyway (a sync read off the warren's cache — an empty keyway admits
+nobody) and re-keyed when the cache refreshes. `Exit.canTraverse` reads
+that door.
 
-Locked in, free out: you need the key to get IN, never to get out.
+Locked in, free out: you need the key to get IN, never to get out — the
+door's `freeFrom` is the entry room, so its inside opens (and locks)
+with no key, and it is `closesBehind` (latched), so it is shut again
+behind whoever passed. A holding's interior keyed doors are the same
+(`HoldingWarren.hangKeyedDoors`, free from the inside room).
 
 ### ⭐ Which way the gate faces — the gate ring
 
@@ -609,8 +624,8 @@ arcana's — *a capability pack holds what other packs' content names*:
 
 - **`residence`** — the substrate classes and the substrate's own verbs,
   settings and goods: `PlatBook`, `PlatWarren`, `LotGateExit`,
-  `HoldingWarren`, `BuildingWarren`, `FrontDoorExit`, `KeyedDoorExit`,
-  `DeedDesk`, `HouseholdersKit`, `maintain`.
+  `HoldingWarren`, `BuildingWarren`, `FrontDoorExit`, `KeyedDoorExit`
+  (deleted by the boundary build, 2026-11), `DeedDesk`, `HouseholdersKit`, `maintain`.
 - **`eternal-university`**, **`terminus`**, **`hinkley-hills`** — the
   three localities, each homed whole (content + its own `src/`).
 
@@ -757,8 +772,9 @@ plan derives none. The shipped plans:
 `(room row, <key>/<leaf>)` with its `exits:` withheld (a way applied by
 the clone would stand the plan's own room up), then ONE rewrite: a way
 whose destination is inside the extent is installed to the same room of
-this copy (its `kind:` honored, `fitExit` the subclass's chance to fit it
-— a keyed door gets its holding); a way out is applied as authored.
+this copy (its `kind:` honored, `fitExit` the subclass's chance to fit it);
+a way out is applied as authored. A keyed way gets its door after the
+copy (`HoldingWarren.hangKeyedDoors`).
 Mirroring is the copy's: every copied direction is reflected, and the
 layout (`layOut`, the entrance at the origin) is read from the copied
 ways. ⚠ **A plan's rows author no `coords:`** — a row's cell registers on
@@ -824,8 +840,8 @@ direction is read through, *only a persistable room restores*,
 now). It speaks through five hooks: `planOf` (whose fields the plan is —
 the warren's own, or a ship kind's row), `reconcile` (who hears a
 population change — still abstract), `fitExit` (what a copied way needs
-from the copy — a keyed door gets its holding's keyway; the base does
-nothing), `addressFor` (the address a woken room is stamped with — a
+from the copy — the base does nothing, and since the boundary build no
+shipped subclass needs it: a keyed door is hung after the copy), `addressFor` (the address a woken room is stamped with — a
 read, not a wake hook: anything a room does on waking is its own
 `WarrenMember.onWarrenWake`, the ONE wake hook since harbors review 2;
 a ship's deck stamps itself a shore of her sea there), and
@@ -834,8 +850,8 @@ answers its term, and `analyze rooms` reads it).
 
 `HoldingWarren extends FloorplanWarren` and keeps only what is
 residential: `addressBase` (answered by `addressFor`), the parcel keyway
-(`refreshKeyway` before the base's wake; the keyed doors fitted in
-`fitExit`), `openGroundM2()` (the PARCEL's workable area less the
+(`refreshKeyway` before the base's wake; the keyed doors hung after it,
+`hangKeyedDoors`), `openGroundM2()` (the PARCEL's workable area less the
 footprints), `reconcile` → the
 institution, `holdingKey()` (= `warrenKey()`), `entryRowOf`, the tenure
 term, and its BUILDINGS (`house()`, `standingBuildings()`,
@@ -852,7 +868,7 @@ the fabric is a STRUCTURE's `Durable` condition, under its coat, on
 `floorplan:` list, with `share`/`footprintM2`/`shareOf`/
 `getFloorplanExits`/`wireLockedEdge`, is gone for the plan (§ Plans):
 ways are the rooms' own `exits:`, a locked edge is a keyed-door `kind:`
-fitted by `fitExit`, `share` is the tract's, the footprint the
+the holding hangs a door in (`hangKeyedDoors`, since the boundary build), `share` is the tract's, the footprint the
 programme's. ⭐ And `MineWarren` now `extends FloorplanWarren` (review 3,
 the base swap its header planned): it copies no plan, its carve mints keyed members through the base's
 `mintKeyed`, its cells sit on its zone's grid (`laysOutOwnFrame` false)

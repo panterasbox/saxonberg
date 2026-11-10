@@ -115,7 +115,10 @@ function seedDomain(): void {
   add('/system/residence/idea/exits/front-door', '/system/residence/idea/FrontDoorExit');
   add('/system/residence/idea/exits/lot-gate', '/system/residence/idea/LotGateExit');
   add('/system/residence/idea/holding-building', '/system/residence/idea/HoldingBuilding', { shortDescription: 'house' });
-  add('/system/residence/idea/exits/keyed-door', '/system/residence/idea/KeyedDoorExit');
+  add('/system/residence/idea/exits/keyed-door', '/platform/idea/Exit');
+  // The doors the warrens hang (boundary build, D6).
+  add('/system/residence/thing/boundaries/keyed-door', '/platform/thing/Door', { shortDescription: 'door', keywords: ['door'], locked: true, closesBehind: true });
+  add('/system/residence/thing/boundaries/lot-gate', '/platform/thing/Door', { shortDescription: 'gate', keywords: ['gate'], open: true });
 
   add(BUILDING, '/system/residence/idea/BuildingWarren', {
     programmePath: PROGRAMME,

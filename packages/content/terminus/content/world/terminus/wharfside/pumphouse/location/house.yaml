@@ -23,5 +23,9 @@ data:
     out:
       destination: /world/terminus/wharfside/bank
       edgeMinutes: 1
+      # ⭐ The same door as the bank's way in (boundary build): one door,
+      # two sides — locked from the bank is locked from in here. It opens
+      # from this side with no key (`freeFrom` on the door's row).
+      door: /world/terminus/wharfside/thing/pump-house-door
   props:
     - /world/terminus/wharfside/thing/city-intake

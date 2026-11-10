@@ -41,7 +41,7 @@ const SRC = join(SERVER_ROOT, 'src');
 const CONTENT = join(REPO_ROOT, 'packages/content');
 
 /** The ceiling. It may fall. It may never rise. */
-const CEILING = 5;
+const CEILING = 4; // boundary build: −1 (BoundaryApi.create retired — a boundary is a row or a minter's clone).
 
 /**
  * The enumerated survivors, `<repo-relative file>` → why. A site not on
@@ -56,10 +56,6 @@ const ALLOWED: ReadonlyMap<string, string> = new Map([
   [
     'packages/server/src/backend/Application.ts',
     'the connection layer: a Login exists before there is a character',
-  ],
-  [
-    'packages/server/src/mud/platform/idea/api/BoundaryLogic.ts',
-    'a framework seam — `BoundaryApi.create` takes a FACTORY from its caller, so there is no path to clone',
   ],
   [
     'packages/server/src/mud/platform/idea/api/PersistableLogic.ts',

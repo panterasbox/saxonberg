@@ -40,6 +40,9 @@ type ExitableContainer = Stuff & Container & Exitable;
 
 const PlatWarrenBase = SingletonMixin(CirculationWarren);
 
+/** The gate a plat hangs in each lot's way in (boundary build, D6). */
+const LOT_GATE_ROW = '/system/residence/thing/boundaries/lot-gate';
+
 export default class PlatWarren extends PlatWarrenBase {
   static fieldMeta: FieldMeta = {
     ...CirculationWarren.fieldMeta,
@@ -284,13 +287,20 @@ export default class PlatWarren extends PlatWarrenBase {
     const leaf = leafOf(key);
     const direction = this.getPlatPlan().gateDirectionOfSlot(leaf) ?? leaf;
     const existing = circulation.getExit(direction);
-    if (existing) return existing as unknown as Exit;
+    if (existing) {
+      await this.hangEntryDoor(key, LOT_GATE_ROW, existing as unknown as Exit);
+      return existing as unknown as Exit;
+    }
     const entryRow = await this.entryRowPath();
     const gate = await circulation.installExit<LotGateExit>(
       '/system/residence/idea/exits/lot-gate',
       { direction, source: circulation, destinationPath: entryRow },
       (e) => e.configureGate(this, key, direction),
     );
+    // ⭐ The lot's gate is ONE gate (boundary build, D6): this way off the
+    // lane is its outside, the yard's way out its inside. It stands open; a
+    // holder may shut and lock it, and their key opens it.
+    await this.hangEntryDoor(key, LOT_GATE_ROW, gate as unknown as Exit);
     return gate as unknown as Exit;
   }
 
@@ -332,14 +342,17 @@ export default class PlatWarren extends PlatWarrenBase {
     // north — so a mirrored house never finds its own hall in the way.
     const gate = this.getPlatPlan().gateDirectionOfSlot(leafOf(key));
     const out = (gate ? NavigationApi.invertDirection(gate) : null) ?? "south";
-    if (entryEx.getExit(out)) return;
-    await entryEx.installExit("/platform/idea/exits/passage", {
-      direction: out,
-      source: entry,
-      destination: nodeRoom as ExitableContainer,
-      keepLiveDestination: true,
-      oneWay: true,
-    });
+    const way =
+      (entryEx.getExit(out) as unknown as Exit | undefined) ??
+      (await entryEx.installExit("/platform/idea/exits/passage", {
+        direction: out,
+        source: entry,
+        destination: nodeRoom as ExitableContainer,
+        keepLiveDestination: true,
+        oneWay: true,
+      }));
+    // The yard's side of the gate: free from inside.
+    await this.hangEntryDoor(key, LOT_GATE_ROW, way, entry as unknown as Stuff);
   }
 
   // ─────────────── Warren policy hooks ────────────────────────────

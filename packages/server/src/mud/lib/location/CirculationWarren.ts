@@ -52,6 +52,8 @@ import { ParcelApi } from '../../api/parcel';
 import { PersistableApi } from '../../api/persistable';
 import { MixinApi } from '../../api/mixin';
 import type Exit from '../boundary/Exit';
+import type Door from '../../platform/thing/Door';
+import { BoundaryApi } from '../../api/boundary';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Exitable } from '../boundary/Exitable';
@@ -98,6 +100,8 @@ export abstract class CirculationWarren extends Warren {
     capacityKey: { persistent: true, authorable: true },
     defaultCapacity: { persistent: true, authorable: true },
     parentExtent: { persistent: true, authorable: true },
+    // The entry doors this warren minted (boundary build, D6) — its own.
+    _entryDoors: { ref: 'instance', lifetime: 'owned' },
   };
 
   /** The authored plat plan data (D13) — parsed on read. Null = a
@@ -123,6 +127,15 @@ export abstract class CirculationWarren extends Warren {
   private _circulationByNode: Map<string, MemberStuff> = new Map();
   /** Live entry edges (doors / gates) by holding key. */
   private _entriesByKey: Map<string, Exit> = new Map();
+  /**
+   * ⭐ The holdings' entry doors by holding key (boundary build, D6): ONE
+   * door per holding, whose sides are the entry edge off the circulation
+   * and the entry room's way out. Minted on first need and kept for the
+   * warren's life, so a door left unlocked stays unlocked while its
+   * holding sleeps and wakes; re-stamped with the holding's keyway
+   * whenever the keyway cache is rebuilt.
+   */
+  private _entryDoors: Map<string, Door> = new Map();
   /** Provisioned holding keys (durable slot set, cached sync). */
   private _provisionedKeys: Set<string> = new Set();
   /** Plan nodes with (or on the way to) a provisioned holding. */
@@ -254,6 +267,41 @@ export abstract class CirculationWarren extends Warren {
     this._provisionedKeys = keys;
     this._provisionedNodes = nodes;
     this._keywayByHolding = keyways;
+    // A re-key re-keys the door.
+    for (const [key, door] of this._entryDoors) {
+      if (!door.isDestroyed()) door.setKeyway(keyways.get(key) ?? '');
+    }
+  }
+
+  /**
+   * ⭐ Hang the holding's entry door on `side` — minting it from `row` the
+   * first time (keyed to the holding, bolted or not as the row says). Called
+   * by the subclass's `entryEdgeFor` with the edge off the circulation, and
+   * again by its `wireHubExit` with the entry room's way out, which also
+   * names the free side (`freeFrom` — the inside opens with no key).
+   * Idempotent: a side already on the door stays.
+   */
+  protected async hangEntryDoor(
+    key: string,
+    row: string,
+    side: Exit,
+    freeFrom?: Stuff,
+  ): Promise<Door> {
+    let door = this._entryDoors.get(key);
+    if (!door || door.isDestroyed()) {
+      door = await StuffApi.clone<Door>(row);
+      door.setKeyway(this.keywayOf(key) ?? '');
+      this._entryDoors.set(key, door);
+    }
+    if (freeFrom) door.setFreeFrom(freeFrom.getIdentityPath());
+    if (side.getBoundary() !== door) BoundaryApi.attach(door, side);
+    return door;
+  }
+
+  /** The holding's entry door, if one has been hung. */
+  public entryDoorOf(key: string): Door | null {
+    const d = this._entryDoors.get(key);
+    return d && !d.isDestroyed() ? d : null;
   }
 
   /**

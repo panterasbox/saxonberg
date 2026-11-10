@@ -735,13 +735,17 @@ split lets `get` declare the surgical scope it actually wants
 
 ##### Doors and exits — both candidates, each as itself
 
-The `here` pool (`PerceptionApi.reach`'s `here` section) emits doors and
-exits through the same generic `pushDirect` path (harbors review 3
-retired the asymmetry; ⚠ since W20 a door is offered only on a way the
+The `here` pool (`PerceptionApi.reach`'s `here` section) emits boundaries
+and exits through the same generic `pushDirect` path (harbors review 3
+retired the asymmetry; ⚠ since W20 a boundary is offered only on a way the
 viewer can see, as `canReach` always had it):
 
-- **Doors are Stuff** with keywords, descriptions and details. A door
-  at the north exit is addressable by its own keywords (`oak`, `door`).
+- **A way's boundary is Stuff** with keywords, descriptions and details
+  — a door, a window, a curtain, a gate. It is emitted beside its way,
+  **once** however many of the room's exits are its sides (deduped by
+  `stuffId` — one boundary, two sides; [boundary.md](./boundary.md)). A
+  door at the north exit is addressable by its own keywords (`oak`,
+  `door`), and `wash window` / `open door` bind the boundary itself.
 - **Exits are candidates in their own right.** Each exit the viewer can
   see (`obviousExitsFor(viewer)` — on the slow path too) is emitted with
   `stuff: exit`, scored over its name and keywords. ⚠ Both are DERIVED
@@ -752,9 +756,10 @@ viewer can see, as `canReach` always had it):
   `look north` describes it (an authored `longDescription`, else *a way
   north; the oak door is closed* — never where it leads).
 
-There is no `via.exit`. A verb that needs the door on a way asks
-`MqlApi.effectiveTarget` (the bound thing, else the door hung in a bound
-exit); movement verbs scope to ways (`here:exits`), so a word can only
+There is no `via.exit`. A verb that needs the boundary on a way asks
+`MqlApi.effectiveTarget` (the bound thing, else — when the bound thing is
+an exit — that exit's boundary, `exit.getBoundary()`), so `open north`
+reaches the door standing in the north way; movement verbs scope to ways (`here:exits`), so a word can only
 mean one. The place steps `:exits` / `:to` / `:from` (`flatMapPlaceStep`,
 reserved chain words like `:members`; `:to` is live-only) are in
 [mql-grammar.md](../mql-grammar.md#places-and-the-ways-between-them).

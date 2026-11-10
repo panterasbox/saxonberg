@@ -20,6 +20,7 @@ import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
 import Exit from '../../boundary/Exit';
 import { BiomeApi } from '../../../api/biome';
 import { StuffApi } from '../../../api/stuff';
+import { BoundaryApi } from '../../../api/boundary';
 import { WorldClockApi } from '../../../api/worldclock';
 import Door from '../../../platform/thing/Door';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
@@ -181,8 +182,8 @@ describe('AtmosphericMixin — what the medium carries', () => {
       );
       const door = makeStuff(() => new Door());
       door.setOpen(false);
-      exit.setDoor(door);
       await a.addExit(exit);
+      BoundaryApi.attach(door, exit);
       expect(a.airChangesPerHour()).toBeCloseTo(0.1);
       door.setOpen(true);
       expect(a.airChangesPerHour()).toBeCloseTo(4.1); // ⭐ opening it airs it

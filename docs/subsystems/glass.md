@@ -152,7 +152,11 @@ imparting into what melts in it, on the heat-work rung.
 Rejection's **glasshouse** sits in a clearing of the Hanging Wood (fuel-
 bound, a LULU outside the walls); the **sand pit** is its own small zone
 with a clean face and a dirty face; the **glazier's cold bench** is a hut
-in town, lit through two windows — the game's first authored windows. A
+in town, lit through the game's first authored windows (two, onto the
+yards either side, until the boundary build, 2026-11, moved the hut to
+(1,2): now a doorway south to the fuel yard and one window west onto the
+hillside — a `Window` boundary whose exits are its sides; see
+[boundary.md § Window](./boundary.md#window)). A
 second glasshouse anywhere is a deposit row, a business and a location,
 with no pack code (the second-instance test).
 

@@ -1,0 +1,17 @@
+# The DOOR kind — a way's boundary with a bolt (boundary build, 2026-11).
+# An authored door `extends:` this and names its own words and material;
+# an exit names the door row as `door:` on BOTH sides (or `bidirectional:
+# true` on one), and the two sides are one door: shut, locked and named the
+# same from either. The channel table is what it passes, open and shut.
+class: /platform/thing/Door
+data:
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 40
+  shortDescription: door
+  keywords: [door]
+  register: definite
+  open: false
+  opening: { width: 1, height: 2 }
+  channels:
+    open: { movement: 1, light: 1, sight: 1, sound: 1, smell: 1 }
+    shut: { movement: 0, light: 0, sight: 0, sound: 0, smell: 0 }

@@ -104,7 +104,7 @@ describe('SmellModality.signalAt — propagation core', () => {
     const door = await StuffApi.create(() => new Door());
     door.setShortDescription('oak door');
     door.setOpen(false);
-    await a.addBidirectionalExit(b, 'north', { door });
+    await a.addBidirectionalExit(b, 'north', { boundary: door });
 
     expect(smellModality().signalAt(a)).toBeNull();
     door.open();

@@ -14,7 +14,8 @@ import { StuffApi } from '../../../api/stuff';
  *
  * Substrate-only Duncan Hall demo: one `CartesianZone` with two
  * `Location` rooms (each with `coords` + `exits`) and one
- * `Window` connecting them via `attachedHosts`. Hydrates lazily on
+ * `Window` standing in the way between them (each side's exit authors
+ * `door:` naming it — one boundary, two sides). Hydrates lazily on
  * first `StuffApi.singleton` access; verifies the entire wiring graph
  * comes out correct end-to-end without TypeScript glue, without
  * content YAML in `bootstrap.ts`, and without any helper class.
@@ -96,7 +97,10 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
         data: {
           coords: { x: 0, y: 0, z: 0 },
           exits: {
-            north: { destination: '/test/declarative/zone/roomB' },
+            north: {
+              destination: '/test/declarative/zone/roomB',
+              door: '/test/declarative/window',
+            },
           },
         },
       },
@@ -109,20 +113,19 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
         data: {
           coords: { x: 0, y: 1, z: 0 },
           exits: {
-            south: { destination: '/test/declarative/zone/roomA' },
+            south: {
+              destination: '/test/declarative/zone/roomA',
+              door: '/test/declarative/window',
+            },
           },
         },
       },
-      // Window — declarative attachedHosts.
+      // Window — the boundary both sides name.
       {
         path: '/test/declarative/window',
         class: '/platform/thing/Window',
         data: {
           baseTransmissivity: 0.9,
-          attachedHosts: [
-            '/test/declarative/zone/roomA',
-            '/test/declarative/zone/roomB',
-          ],
         },
       },
     ]);
@@ -165,27 +168,22 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
     expect(south).toBeDefined();
     expect(south!.getDestination()).toBe(roomA);
 
-    // ── Step 3. Window has NOT been instantiated yet (no setter has
-    // resolved its path).
-    expect(
-      StuffApi.findByTemplatePath('/test/declarative/window')
-    ).toBeFalsy();
-
-    // ── Step 4. Explicitly resolve the Window.
-    const w = await StuffApi.singleton<Window>('/test/declarative/window');
-    expect(w).toBeDefined();
+    // ── Step 3. The Window was resolved by the exits' `door:` — one
+    // singleton, and each room's exit is a side of it.
+    const w = StuffApi.findByTemplatePath('/test/declarative/window') as Window | null;
+    expect(w).toBeTruthy();
     expect(w).toBeInstanceOf(Window);
-    expect(w.getBaseTransmissivity()).toBe(0.9);
-    expect(w.getAttachedHosts()).toEqual([
-      '/test/declarative/zone/roomA',
-      '/test/declarative/zone/roomB',
-    ]);
-    expect(w.getAnchorA()).not.toBeNull();
-    expect(w.getAnchorB()).not.toBeNull();
+    expect(w!.getBaseTransmissivity()).toBe(0.9);
+    expect(north!.getBoundary()).toBe(w);
+    expect(south!.getBoundary()).toBe(w);
+    expect(w!.otherSide(north!)).toBe(south);
+    expect(north!.wayState()).toBe('window');
+    // Both sides agree, so neither is walled (D4).
+    expect(north!.isBlocked()).toBe(false);
+    expect(south!.isBlocked()).toBe(false);
 
-    // The Window appears in both rooms' fixture boundaries.
-    expect(roomA.getFixtureBoundaries()).toContain(w);
-    expect(roomB!.getFixtureBoundaries()).toContain(w);
+    // ── Step 4. Resolving it again is the same instance.
+    expect(await StuffApi.singleton<Window>('/test/declarative/window')).toBe(w);
 
     // ── Step 5. Sanity: second singleton hit returns same instance.
     const roomAAgain = await StuffApi.singleton<Location>(

@@ -17,6 +17,7 @@ import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Location from '../../location/Location';
 import Exit from '../Exit';
 import Door from '../../../platform/thing/Door';
+import Window from '../../../platform/thing/Window';
 import { StuffApi } from '../../../api/stuff';
 import {
   makeStuff,
@@ -55,26 +56,40 @@ describe('getObviousNeighbours', () => {
     expect(here.getObviousNeighbours()).toEqual([]);
   });
 
-  describe('doors — the one axis callers genuinely differ on', () => {
-    it("by default SKIPS a doored exit, open or shut (the boundary walk's)", async () => {
-      await here.addBidirectionalExit(there, 'north');
+  describe("boundaries — `through`, the one axis callers genuinely differ on", () => {
+    it("by default ('clear') SKIPS a way with a boundary, open or shut", async () => {
       const door = makeStuff(() => new Door());
-      here.getExit('north')!.setDoor(door);
+      await here.addBidirectionalExit(there, 'north', { boundary: door });
       door.setOpen(true);
       expect(here.getObviousNeighbours()).toEqual([]);
-      expect(here.getObviousNeighbours({ doors: 'skip' })).toEqual([]);
+      expect(here.getObviousNeighbours({ through: 'clear' })).toEqual([]);
     });
 
-    it("'open-only' keeps an OPEN door and drops a shut one (an opening)", async () => {
-      await here.addBidirectionalExit(there, 'north');
+    it("'open' keeps an OPEN door and drops a shut one (an opening)", async () => {
       const door = makeStuff(() => new Door());
-      here.getExit('north')!.setDoor(door);
+      await here.addBidirectionalExit(there, 'north', { boundary: door });
 
       door.setOpen(true);
-      expect(here.getObviousNeighbours({ doors: 'open-only' })).toHaveLength(1);
+      expect(here.getObviousNeighbours({ through: 'open' })).toHaveLength(1);
 
       door.setOpen(false);
-      expect(here.getObviousNeighbours({ doors: 'open-only' })).toEqual([]);
+      expect(here.getObviousNeighbours({ through: 'open' })).toEqual([]);
+    });
+
+    it("'open' never keeps a WINDOW, even an open one — no body crosses it", async () => {
+      const glass = makeStuff(() => new Window());
+      await here.addBidirectionalExit(there, 'north', { boundary: glass });
+      glass.setOpen(true);
+      expect(here.getObviousNeighbours({ through: 'open' })).toEqual([]);
+    });
+
+    it("'all' keeps every way — the propagation walks ask each boundary", async () => {
+      const door = makeStuff(() => new Door());
+      await here.addBidirectionalExit(there, 'north', { boundary: door });
+      expect(door.isOpen()).toBe(false);
+      const out = here.getObviousNeighbours({ through: 'all' });
+      expect(out).toHaveLength(1);
+      expect(out[0]!.exit.getBoundary()).toBe(door);
     });
   });
 
