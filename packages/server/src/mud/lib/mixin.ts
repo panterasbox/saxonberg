@@ -1008,6 +1008,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // generic sentence, because the useful information is what a launcher
   // IS, not that this thing is not one.
   LauncherMixin: "{} doesn't shoot anything",
+  // `fight assess` reads a combatant (controller-liquidity W15).
+  CombatantMixin: "{} isn't someone you could fight",
 
   // Containment & placement.
   ContainerMixin: "{} isn't a place",
