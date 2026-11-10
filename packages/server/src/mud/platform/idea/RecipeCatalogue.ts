@@ -102,6 +102,27 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
   }
 
   /**
+   * ⭐ **The cure for what the player named** (controller-liquidity W10;
+   * moved off the cooking pack's `PreserveController`): among the recipes
+   * that move `axis` of the water state (`solute` — salting, `moisture` —
+   * drying), one whose ITEM slot the material's own tags satisfy, matched
+   * the way crafting matches. ⚠ `preferred` is checked FIRST and wins
+   * ties, so a second row can never steer an existing act elsewhere; with
+   * nothing better it is the answer.
+   */
+  public curingRecipeFor(axis: 'moisture' | 'solute', tags: readonly string[], preferred: string): string {
+    const satisfies = (recipe: Recipe | null): boolean => {
+      const cure = recipe?.getCure();
+      if (!recipe || !cure || cure[axis] === undefined) return false;
+      return recipe
+        .getInputSlots()
+        .some((slot) => (slot.kind ?? 'bulk') === 'item' && tags.includes(slot.category));
+    };
+    if (satisfies(this.getRecipe(preferred))) return preferred;
+    return this.allRecipes().find((r) => satisfies(r))?.getRecipeId() ?? preferred;
+  }
+
+  /**
    * ⭐ **The generic carving** (controller-liquidity W7c; moved off
    * `CarveController`, whose second engine it was): the word the player
    * said, read through the keyword index, as a CARVING row — one item of
