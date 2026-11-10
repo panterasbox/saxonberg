@@ -17,8 +17,8 @@
  *      this gate's census; may fall, never rise.
  *   2. **⛔ A subcommand word equal to a script builtin (HARD).** `set`,
  *      `if`, `each`, … (`lib/script/builtins.ts` `SCRIPT_BUILTINS`). Today:
- *      the five `set` subcommands (`reserve`/`equip`/`alias`/`settings`/
- *      `var set`). ⚠ A noun-scoped `set` is reachable (the line starts with
+ *      the seven `set` subcommands (`reserve`/`treasury`/`equip`/`alias`/
+ *      `settings`/`var`/`notify set` — the last by owner ruling, W7b). ⚠ A noun-scoped `set` is reachable (the line starts with
  *      the noun), so this is not `lint:verb-collisions`' shadowing — it is
  *      the one place a builtin's word means something else; ceiling = the
  *      census, never rising.
@@ -29,8 +29,8 @@ import { pathToFileURL } from "url";
 import { CONTENT, commandViews, controllerPathOf, ratchet } from "./pack-roots";
 import { SCRIPT_BUILTINS } from "../src/mud/lib/script/builtins";
 
-export const DIFFERENT_ACT_PAIRS_CEILING = 42; // W6b: −2, the synonym flat words gone (D16). // W8: −2, the flat `transfer` is gone (`bank transfer`, `party transfer`). // W7: `fight defend` routes to DefendController.
-export const BUILTIN_SUBCOMMANDS_CEILING = 6;
+export const DIFFERENT_ACT_PAIRS_CEILING = 44; // raised 2026-11-09 by owner ruling (controller-liquidity W7b: notify set, fight assess, notify show/move). // W6b: −2, the synonym flat words gone (D16). // W8: −2, the flat `transfer` is gone (`bank transfer`, `party transfer`). // W7: `fight defend` routes to DefendController.
+export const BUILTIN_SUBCOMMANDS_CEILING = 7; // raised 2026-11-09 by owner ruling (controller-liquidity W7b: notify set, fight assess, notify show/move).
 
 export interface SubcommandReport {
   differentAct: string[];

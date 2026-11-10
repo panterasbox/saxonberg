@@ -111,7 +111,10 @@ describe('the cockpit style controllers', () => {
       verb: 'cockpit',
       command: cockpit,
     });
-    await makeStuff(() => new Ctor()).execute(asm.model as never, ctx as never);
+    await (makeStuff(() => new Ctor() as never) as unknown as { execute(m: never, c: never): unknown }).execute(
+      asm.model as never,
+      ctx as never,
+    );
     return { ctx };
   }
 

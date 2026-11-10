@@ -18,7 +18,7 @@
  * The soot is the ACT's deposit (`consumeFuel`), never a clock.
  */
 
-import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { NestingConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Burner } from './Burner';
 import type { SweepPlan, SweepRefusal, SweepRequest } from '../cleanliness/Sweepable';
@@ -79,7 +79,7 @@ function flueAugmenter(text: string, host: Stuff): string {
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
-export function FluedMixin<TBase extends MixinConstructor<Stuff & Burner>>(
+export function FluedMixin<TBase extends NestingConstructor<Stuff & Burner>>(
   Base: TBase,
 ) {
   return class FluedMixin extends Base implements Flued {

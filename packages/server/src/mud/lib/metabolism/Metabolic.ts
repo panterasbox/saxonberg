@@ -1921,7 +1921,8 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
           const slips = prescriptions.filter(
             (p): p is Stuff & Prescription => MixinApi.isPrescription(p) && p.getActive() === type,
           );
-          slip = slips.find((p) => p.isFor(body.getIdentityPath(), type)) ?? null;
+          const bodyId = body.getIdentityPath();
+          slip = bodyId === null ? null : (slips.find((p) => p.isFor(bodyId, type)) ?? null);
           if (slip === null) {
             return slips.length > 0
               ? { ok: false, reason: 'wrong-patient', facts: { active: type } }

@@ -85,7 +85,7 @@ function reachableK(actor: Stuff): number {
   return MixinApi.isThermal(actor) ? actor.reachableHeatK() : 0;
 }
 
-export function HeatedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
+export function HeatedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class HeatedMixin extends Base implements Heated {
     static _mixinName: string = 'HeatedMixin';
     static _mixinKind = 'protocol' as const;

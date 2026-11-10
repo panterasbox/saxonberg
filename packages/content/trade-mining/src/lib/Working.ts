@@ -67,7 +67,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import type { SampleAnswer, SampleRequest } from '@saxonberg/server/mud/lib/instrument/Sampleable';
 import { NavigationApi, type CardinalDirection } from '@saxonberg/server/mud/api/navigation';
-import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import type { NestingConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Durable } from '@saxonberg/server/mud/lib/material/Durable';
@@ -269,7 +269,7 @@ export interface Working extends Strata {
   refreshAir(): Promise<void>;
 }
 
-export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
+export function WorkingMixin<TBase extends NestingConstructor<Stuff & Container>>(
   Base: TBase,
 ): TBase & MixinCtor<Working> {
   // ⭐ Composed over `StrataMixin` (`/system/ground`), which owns the five

@@ -24,6 +24,7 @@ export default class PackStaffController extends PackControllerBase {
     if (!packId) return this.failUsage(context, 'pack-required');
     const person = model.person?.stuff ?? context.commandGiver;
     const memberPath = person.getIdentityPath();
+    if (memberPath === null) return this.fail(context, 'That one has no identity to staff a pack with.', 'no-identity');
     const name = person === context.commandGiver ? 'You' : person.getPresentation();
     try {
       const added = await PackApi.staff(packId, memberPath);

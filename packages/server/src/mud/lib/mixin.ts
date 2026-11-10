@@ -21,6 +21,21 @@
 export type MixinConstructor<T = object> = (new (...args: any[]) => T) | (abstract new (...args: any[]) => T);
 
 /**
+ * ⭐ The constraint for a mixin that NESTS another mixin call — `class
+ * SoilableMixin extends WashableMixin(Base)` — or that `override`s a member
+ * its base declares. One construct signature (the handbook's mixin
+ * constraint), not {@link MixinConstructor}'s union: when the outer `TBase` is the union,
+ * TypeScript drops the inner mixin's members from the class and refuses
+ * every `override` ("does not extend another class") — the W7c Creature
+ * chain collapsed on it. ⚠ Its base must be a concrete class (every host
+ * of these is). ⚠ `super` is then typed as the
+ * constraint: a member only a deeper base has is reached through
+ * `Base.prototype` (controller-liquidity W7, build).
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type NestingConstructor<T = object> = new (...args: any[]) => T;
+
+/**
  * What ONE field declares about itself.
  *
  * `static fieldMeta` inverts the old arrangement. Field metadata used to

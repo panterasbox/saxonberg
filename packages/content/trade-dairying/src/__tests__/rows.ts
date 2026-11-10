@@ -65,9 +65,10 @@ export async function hydrate<T extends Stuff>(path: string): Promise<T> {
   // at apply time, which a unit test has no store behind; neither is read
   // by anything these tests prove.
   const { composition: _c, electricalConductivity: _e, ...data } = row.data;
-  // The words a smell names load with it; stand each up where a setter finds it.
-  for (const tag of [...((data.smells as { word: string }[]) ?? []), ...((data.burning as { word: string }[]) ?? [])]) {
-    if (!Aroma.resolveKnown(tag.word)) Aroma.remember(tag.word, {}, null);
+  // The aromas a smell names load with it; stand each up where a setter finds it.
+  // A tag names its aroma by PATH (`aroma:`), the key `Aroma.ensure` looks up.
+  for (const tag of [...((data.smells as { aroma: string }[]) ?? []), ...((data.burning as { aroma: string }[]) ?? [])]) {
+    if (!Aroma.resolveKnown(tag.aroma)) Aroma.remember(tag.aroma, {}, null);
   }
   await makeStuff(() => new TemplateApplier()).apply(s, data, { mode: 'mint' });
   return s;

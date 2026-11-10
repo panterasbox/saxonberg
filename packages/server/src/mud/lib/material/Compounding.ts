@@ -35,7 +35,7 @@
  * the sulfur you weighed in.
  */
 
-import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { NestingConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
@@ -113,7 +113,7 @@ export interface Compounding extends KneadVessel {
   payloadFor(charge: readonly BuildContribution[]): BulkPayload | null;
 }
 
-export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
+export function CompoundingMixin<TBase extends NestingConstructor<Stuff>>(Base: TBase) {
   // ⭐ A compounding vessel is a knead VESSEL (`KneadVesselMixin`): it binds
   // as `knead`'s vessel and affords it. ⚠ NOT a dip bath: only a tub of
   // something that lays a coat is one — that is `GlazeTub`, its own kind

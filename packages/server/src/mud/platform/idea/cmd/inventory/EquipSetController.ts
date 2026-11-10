@@ -12,6 +12,7 @@ import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Wardrobe } from '../../../../lib/slot/Wardrobe';
 import type { Attired } from '../../../../lib/slot/Attired';
+import type { Slotted } from '../../../../lib/slot/Slotted';
 import { EquipControllerBase, type EquipModel } from './EquipControllerBase';
 
 export default class EquipSetController extends EquipControllerBase {
@@ -69,10 +70,10 @@ export default class EquipSetController extends EquipControllerBase {
   protected setKeeper(
     model: EquipModel,
     context: CommandContext,
-  ): { giver: Stuff & Wardrobe & Attired; name: string } | null {
+  ): { giver: Stuff & Wardrobe & Slotted & Attired; name: string } | null {
     const giver = context.commandGiver;
     const name = (model.name ?? '').trim();
-    if (!MixinApi.isWardrobe(giver) || !MixinApi.isAttired(giver)) {
+    if (!MixinApi.isWardrobe(giver) || !MixinApi.isSlotted(giver) || !MixinApi.isAttired(giver)) {
       MessageApi.scene(giver)
         .topic(EquipControllerBase.TOPIC)
         .toSelf(Mml.compose`You can't keep sets.`)

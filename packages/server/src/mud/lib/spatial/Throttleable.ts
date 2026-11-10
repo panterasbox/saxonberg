@@ -5,7 +5,7 @@
  * module, as every mixin is (it shared `Sealable.ts` until the review).
  */
 
-import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { NestingConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { TrajectoryLog, type Piecewise, type Breakpoint } from '../Trajectory';
@@ -75,7 +75,7 @@ const SETTING_WORDS: Readonly<Record<string, number>> = {
 /** How many worked settings a gate's record keeps. */
 const WORK_LOG_DEPTH = 24;
 
-export function ThrottleableMixin<TBase extends MixinConstructor<Stuff & Sealable>>(Base: TBase) {
+export function ThrottleableMixin<TBase extends NestingConstructor<Stuff & Sealable>>(Base: TBase) {
   return class ThrottleableMixin extends Base implements Throttleable {
     static _mixinName = 'ThrottleableMixin';
 

@@ -115,6 +115,21 @@ no words.
 2. **`spud` and `paste` are accepted** as the two rung-5 words.
 3. **`heat` loses the set-it-on-the-fire arm** — the owner did not
    object; `put <pot> on <hearth>` is the act.
+4. **`notify set` stays** (ruled 2026-11-09, during W7) — the builtin
+   `set` word on a noun is accepted; `lint:subcommand-words` records it.
+
+### 6. Found in the build — further player-visible changes
+
+- `mill X at <stones>` — the preposition is required (W5, D3c).
+- `stream away 10` is refused — a duration names its unit (`10m`) (W7b).
+- `draught at <fire>` is the read; `draught <fire>` alone is refused (W7b).
+- `berth <ship> roads` is refused — the form is `berth roads <ship>` (W7b).
+- `watch X on <screen>` refuses when the screen is out of reach (W7b).
+- `label X meet at noon` needs quotes — `at` names only a field part
+  (`label X "meet at noon"`) (W7c).
+- `belay off` is gone — `untie` ends the belay (W7c).
+- `wash` needs water in reach (a tap, a pump, a shore — a crafted pail no
+  longer counts) (W7c).
 
 ---
 
@@ -902,6 +917,91 @@ it as a `mudcmd:` link (existing MML link channel, so no client code — the
 renderer already makes it tappable; a client test pins it). Brains name
 keywords through the new `CommandLineApi.word()`.
 
+**W7a decisions (build, W7a).** (a) `CommandGiver`: an unknown subcommand
+word hands the line to the verb's next view; a subcommand view (no
+fallthrough) is tried before the verb's shapes, and `lint:verb-collisions`
+reads the same rule (such a view is disjoint from a shape view that needs a
+word). (b) Bare views declare the other shape's options (inert), so an
+option never errors on the wrong view. (c) The controllers' own "unknown
+subcommand" lines are gone — bare `wizard`/`player`/`subject`/`testharness`
+get the dispatcher's *missing subcommand*; testharness clock/weather junk is
+a shape error. (d) TestHarness is nested stanzas (left in the multi-act
+census). (e) C73 fixed: contacts names come from the live character or
+`PlayerApi.storedNameOf`, and `contacts remove` matches the name. (f)
+Verb-level `--at`/`--alive` bind inside nested stanzas. (g) The
+`setWizardMembership` gate admits exactly `WizardGrant`/`WizardRevoke`
+controllers; wizard success is a `shell.result`. (h) Stale examples naming
+the old controllers (command-routing.md, command-spec.md, contacts.md,
+antipatterns.md, test inline YAML) are W14's docs pass.
+
+**W7b decisions (build, W7b).** (a) A duration names its unit everywhere —
+a bare number is refused (lens 1: the unit is part of the quantity);
+`stream away 10` is refused, `stream away 10m` is not. (b) The binder holds
+an unreadable typed word until a shape fits. (c) The cockpit style channel
+stays one controller (+1 on `lint:multi-act`, counted). (d) Bare `cockpit
+layout` lists. (e) `draught <fire>` with no setting is refused; the read is
+`draught at <fire>`; the charcoal clamp's dial loses tenths (five words).
+(f) `watch X on <out-of-reach screen>` refuses `no-screen`; `watch Horizon`
+(capitalized) is a stream; bare `watch` is *missing subcommand*. (g) `notify
+set` needs a field. (h) **Owner ruling 2026-11-09: keep `notify set`** —
+`lint:subcommand-words` raised builtin 6 → 7 and different-act 42 → 44 (the
+new pairs are `fight assess`, `notify show`, `notify move`, all owner-table
+words; `notify remove` predates the build). (i) `tune off` edge is
+pre-existing, not this build's.
+
+**W7c decisions (build, W7c).** (a) `HeatedMixin` hosts `ManualBuild` (latch
++ anneal) and three soilable tool classes; the placing arm is gone and
+`heat.yaml` requires `HeatedMixin`, its refusal naming `put … on hearth`.
+(b) `AgitatedMixin` in `ManualBuild`, `HandWorked`, `Compounding` (delegates
+`kneadPlanFor`). (c) `WashableMixin` in `Soilable`; `Hygiene` overrides for
+hand-washing. (d) `wash`/`bathe` ask `WaterDrawable`; the answer carries
+`draw` and accepts brine. (e) `SweepableMixin` in `Floor` + `Burner`,
+`Flued` overrides. (f) No `Drying` protocol: the forecast is
+`Moist.hoursToDry()`; the rack arg is `prepositionRequired`, so the two dry
+shapes are disjoint. (g) Ring is `IntegrityMixin.ringBy` (no `Ringable`).
+(h) Label is `Labelled.labelBy` (instant outcome / refusal / field-part
+choices); `at` names only a field part. (i) `SampleableMixin` nests in
+`Sampled` + `Strata` (no Floor `sampleFace`); `Plant` and mining's
+`Working` override; the stamp stays the verb's. (j) `SurveyedMixin` lives
+in `lib/spatial` (no `lib/construction`); the default is on the `Structure`
+base, `Place` overrides; `getUpkeepTerm` moved to the `Warren` base. (k)
+Carve with no named stock asks `RecipeCatalogue.carvingPlanFor`; a craft
+failure reports `craft-refused`. (l) Fit is assembly only
+(`CraftingApi.fit`); `whole` keeps `FacedMixin` one build so `fit label`
+refuses `use-paste`; the tool arg narrowed to `ToolMixin`. (m) `belay off`
+is gone: `untie` ends a belay, a second `untie` casts off. (n) Stand
+decides by `acceptPosture` + `held`. (o) Tip (C46): a typed `SettleRefused`;
+the EFT fallback only on `insufficient-coin`. (p) Dose is
+`Metabolic.dosePlanFor` (instant plan; fixes the record's error row). (q)
+Pay is `Payable.payBillsBy` (left in the multi-act census). (r) Open is
+`Sealable.openPlanFor` (`Throttleable` overrides). (s) Defend is
+`Combatant.defend`. (t) TitleTransfer: `for <price>` decides a share sale,
+refused on a parcel. (u) Embody's confirm stanza is
+`EmbodyConfirmController`; the sex refusal is now told (C35).
+
+**W7 stabilizer decisions (build, W7).** (a) **`NestingConstructor<T>`**
+(`lib/mixin.ts`, `new (...args: any[]) => T`, the handbook's mixin
+constraint) is the constraint for a mixin that nests another mixin call or
+`override`s a member of its base: with the union `MixinConstructor` as the
+outer `TBase`, TypeScript drops the inner mixin's members and refuses every
+`override` — the W7c Creature/Avatar chain collapsed (6,500 errors).
+Applied to `Soilable`, `HandWorked`, `ManualBuild`, `Compounding`,
+`Sampled`, `Burner`, `Floor`, `Hygiene`, `Flued`, `Throttleable`, and the
+packs' `Strata`, `Working`, `OpenWorking`. `super` is then typed as the
+constraint, so `Burner.getTemperature` / `Floor.getKeywords` reach the
+deeper base through `Base.prototype`. The collapse had hidden five real
+errors, fixed: `equip set` asks `isSlotted`; `dry … with` compares as
+`Stuff`; a prescription and `pack staff` refuse a body with no identity
+path; the cockpit-style test's controller table. (b) `lint:verb-collisions` proves
+three more disjointness cases: two views naming the SAME controller (one
+act's shapes — `draught <setting> [at <fire>]` · `draught <fire>
+<setting>`); first words that cannot meet (a required `values:` slot
+against an all-`prepositionRequired` view — `draught at <fire>` vs
+`draught <setting>`); a bare view beside a fallthrough view whose own arg
+is required (`press` reads, `press <headline>` posts). (c) The dairying
+pack's row fixture stood up aromas by the retired `word` key; it reads
+`aroma:` paths now (the 22 "Not connected" failures).
+
 ---
 
 ## ⭐⭐ Host placement
@@ -1431,7 +1531,23 @@ controller (drive step 3's shape).
 - Commit: `build(controller-liquidity W6): one small protocol per cutting
   act`.
 
-### W7 — the kernel's multi-act controllers (D13, Appendix A kernel rows)
+### W7 — the kernel's multi-act controllers (D13, Appendix A kernel rows) ✅ done
+
+> **W7a ✅** (`4261ee0f0`, `a341f4ec5`, `e8a1408f9`, `98cf053a5`, `2cea670c4`,
+> `57e12bc6b`, `bcf73eb27`) — one controller per subcommand over a base per
+> noun; tune/course/teleport/journey bare reads are their own shapes; a
+> subcommand view is tried before the verb's shapes.
+> **W7b ✅** (`fa9e742db`, `6d30fe35d`, `02a7e7f1b`, `5c89db603`, `f79a9aa95`)
+> — watch horizon, notify's five forms, fight assess, berth roads, the
+> cockpit nest, draught's three shapes, equip set save, pack staff, stream
+> and press split. **W7c ✅** (`c3d518a22`, `b0869cda5`) — one act behind
+> each kernel word (Heated, Agitated, Washable, Sweepable, Sampleable,
+> Surveyed; Integrity.ringBy, Labelled.labelBy, Metabolic.dosePlanFor,
+> Payable.payBillsBy, Sealable.openPlanFor, Combatant.defend; `paste`,
+> `dry-rub`). Stabilized after: `NestingConstructor` (below), the dairying
+> fixture, `lint:verb-collisions` taught same-controller / first-word /
+> bare-vs-fallthrough disjointness. Decisions: § Plan-level decisions,
+> "(build, W7a/b/c)".
 
 Three sub-waves a single agent can land in order (or three agents on
 disjoint categories):
@@ -1702,7 +1818,13 @@ rebase cleanly.
 - ⚠ **Baseline rows to re-record on purpose** (behavior changed by a wave,
   not a regression): `unhitch`, `water`, `course`, `offer` (W3 cluster B);
   `cp`, `mv`, `rm`, `grep`, `mkdir` (W3 cluster A — the shell writes moved
-  onto `TemplateApi` with every refusal before the first write).
+  onto `TemplateApi` with every refusal before the first write); `dose`
+  (W7c — the error row is fixed), `tip` (W7c — the typed settle refusal);
+  check and re-record if changed: `label` (W7c — `at` names a field part),
+  `wash` (W7c — needs a `WaterDrawable` source in reach; a crafted pail no
+  longer counts), `char` (W7b — the draught arm moved to `draught`),
+  `berth` (W7b — `berth roads` is its own word), `mill` (W5 — `at` is
+  required).
 
 ---
 

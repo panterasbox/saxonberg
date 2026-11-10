@@ -29,7 +29,7 @@
 import type { CommandContributions } from "../../api/command";
 import type { CompositionEntry } from '../material/Material';
 import type { PathogenLoads } from '../material/Contaminable';
-import type { MixinConstructor } from "../mixin";
+import type { NestingConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { MixinApi } from "../../api/mixin";
 import { BulkableApi } from "../../api/bulk";
@@ -203,7 +203,7 @@ function workingOf(vessel: Stuff): BuildMethod {
   return best?.name ?? "stirred";
 }
 
-export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
+export function ManualBuildMixin<TBase extends NestingConstructor>(Base: TBase) {
   // ⭐ A build is taken to the fire (`heat` — `HeatedMixin`) and worked by
   // its method (`stir` — `AgitatedMixin`): both protocols, answered here
   // (controller-liquidity W7c).

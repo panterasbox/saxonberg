@@ -44,7 +44,7 @@
  */
 
 import type { SmellNote } from '../perception/Smell';
-import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { MixinConstructor, NestingConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { MarkupAugmenter } from '../../api/mml';
 import { Mml } from '../../api/mml';
@@ -447,7 +447,7 @@ const DRAUGHT_WORDS: Readonly<Record<string, number>> = {
 /** ⭐ The one reason `cover` refuses — `CoverController` words it. */
 export type BankRefusal = ActRefusal<'not-lit'>;
 
-export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
+export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
   Base: TBase,
 ) {
   // ⭐ Composes the pump PROTOCOL (`PumpableMixin`): a furnace's bellows
@@ -1398,7 +1398,9 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       if (this.lit && this.fuelRemaining() > 0) {
         return Quantity.of(this.getHeldTemperatureK(), 'K');
       }
-      return (super.getTemperature as () => Quantity<'K'>).call(this);
+      // Through the base's prototype: `NestingConstructor` types `super` as
+      // the constraint, which declares no temperature (Thermal's, beneath).
+      return (Base.prototype as { getTemperature(): Quantity<'K'> }).getTemperature.call(this);
     }
 
     // ---------- stoking ----------

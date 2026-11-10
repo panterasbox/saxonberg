@@ -18,7 +18,7 @@
  * Operational reference: `docs/subsystems/cleanliness.md`.
  */
 
-import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { NestingConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slotted } from '../slot/Slotted';
 import type { Attired } from '../slot/Attired';
@@ -98,7 +98,7 @@ function dial(key: string, fallback: number): number {
 }
 
 export function HygieneMixin<
-  TBase extends MixinConstructor<Stuff & Slotted & Attired & Washable>,
+  TBase extends NestingConstructor<Stuff & Slotted & Attired & Washable>,
 >(Base: TBase) {
   return class HygieneMixin extends Base {
     /**

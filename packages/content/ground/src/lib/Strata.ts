@@ -36,7 +36,7 @@
 
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
-import type { MixinConstructor } from '@saxonberg/server/mud/lib/mixin';
+import type { MixinConstructor, NestingConstructor } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import {
@@ -112,7 +112,7 @@ export interface Strata extends Sampleable {
  * it is what lets `WorkingMixin` keep calling these through `this` with no
  * casts at eight call sites.
  */
-export function StrataMixin<TBase extends MixinConstructor<Stuff & Container>>(
+export function StrataMixin<TBase extends NestingConstructor<Stuff & Container>>(
   Base: TBase,
 ): TBase & MixinCtor<Strata> {
   // ⭐ Ground is a thing a sample is taken from — the `sample` protocol

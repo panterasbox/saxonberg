@@ -60,7 +60,7 @@ export interface Sweepable {
   sweepPlanFor(req: SweepRequest): SweepPlan | SweepRefusal | null;
 }
 
-export function SweepableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
+export function SweepableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class SweepableMixin extends Base implements Sweepable {
     static _mixinName: string = 'SweepableMixin';
     static _mixinKind = 'protocol' as const;

@@ -58,7 +58,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { Quantity } from '../quantity';
 import { WEATHER_DEFAULTS } from '../weather/WeatherType';
 import { AppSettingKeys } from '../config/AppSettings';
-import { Mixins, type MixinConstructor, type FieldMeta } from '../mixin';
+import { Mixins, type NestingConstructor, type FieldMeta } from '../mixin';
 import { UNBOUNDED_CAPACITY, type SlotSpec } from '../slot/Slotted';
 import { Postures } from '../slot/Postured';
 import type { MarkupAugmenter } from '../../api/mml';
@@ -457,7 +457,7 @@ function snowAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
 }
 
 export function FloorMixin<
-  TBase extends MixinConstructor<
+  TBase extends NestingConstructor<
     Stuff & Tangible & Slotted & Bulkable & Adornment & Visible
   >,
 >(Base: TBase) {
@@ -1162,7 +1162,9 @@ export function FloorMixin<
      * cannot forget them.
      */
     public getKeywords(viewer?: Stuff): string[] {
-      const own = super.getKeywords(viewer);
+      // Through the base's prototype: `NestingConstructor` types `super` as
+      // the constraint, which declares no keywords (Perceptible's, beneath).
+      const own = (Base.prototype as { getKeywords(viewer?: Stuff): string[] }).getKeywords.call(this, viewer);
       const seen = new Set(own.map((k: string) => k.toLowerCase()));
       const out = [...own];
       for (const word of FLOOR_KEYWORDS) {

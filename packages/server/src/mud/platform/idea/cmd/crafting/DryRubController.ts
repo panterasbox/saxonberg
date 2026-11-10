@@ -13,6 +13,7 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import { MixinApi } from '../../../../api/mixin';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 
@@ -60,7 +61,7 @@ export default class DryRubController extends CommandController<DryRubModel> {
       context.note({ kind: 'controller-rejected', reason: outcome.reason });
       return;
     }
-    const self = target === giver;
+    const self = (target as Stuff) === (giver as Stuff);
     const left =
       outcome.left === 'dry'
         ? 'dry'

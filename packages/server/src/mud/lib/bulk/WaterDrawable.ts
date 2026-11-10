@@ -99,13 +99,15 @@ export function WaterDrawableMixin<TBase extends MixinConstructor<Stuff>>(Base: 
       if (!slot || slot.isEmpty()) return { ok: false, reason: 'no-water' };
       const material = slot.getMaterial();
       if (!material || !WATER_TAGS.some((t) => material.hasTag(t))) return { ok: false, reason: 'no-water' };
+      const materialPath = material.getTemplatePath();
+      if (!materialPath) return { ok: false, reason: 'no-water' };
       const hardnessDgh = slot.getHardnessDgh();
       return {
         ok: true,
         facts: {
           source: self,
           draw: {
-            materialPath: material.getTemplatePath(),
+            materialPath,
             temperatureK: slot.getTemperatureK() ?? ambientK(self),
             ...(hardnessDgh !== null && hardnessDgh !== undefined ? { hardnessDgh } : {}),
           },

@@ -49,7 +49,9 @@ function tree(views: Array<{ pack: string; where: string; verbs: string[] }>): s
     mkdirSync(dir, { recursive: true });
     writeFileSync(
       join(dir, `v${i}.yaml`),
-      `verbs: [${v.verbs.join(", ")}]\ncontroller: /x/Y\n`,
+      // A distinct controller per view: two views of ONE controller are one
+      // act's shapes, which the gate passes.
+      `verbs: [${v.verbs.join(", ")}]\ncontroller: /x/Y${i}\n`,
     );
   }
   return root;
@@ -222,3 +224,32 @@ describe("⭐ the live tree", () => {
     expect(watchers.every((w) => w.file.includes("/cmd/stream/"))).toBe(true);
   });
 });
+
+describe("controller-liquidity W7 — the shapes the dispatcher can tell apart", () => {
+  const view = (body: string) => body;
+  it("two views of ONE controller are one act's shapes — not a collision", () => {
+    const root = shapes([
+      view(`verbs: [draught]\ncontroller: /x/Set\nargs:\n  - { name: setting, type: string, required: true }\n`),
+      view(`verbs: [draught]\ncontroller: /x/Set\nargs:\n  - { name: fire, type: object, required: true }\n  - { name: setting, type: string, required: true }\n`),
+    ]);
+    expect(collisionsIn(claimsIn(allViews(root))).size).toBe(0);
+  });
+
+  it("⭐ first words that cannot meet — a `values:` word against a preposition-only read", () => {
+    const READ = `verbs: [draught]\ncontroller: /x/Read\nargs:\n  - { name: fire, type: object, required: false, prepositions: [at], prepositionRequired: true }\n`;
+    const SET = `verbs: [draught]\ncontroller: /x/Set\nargs:\n  - { name: setting, type: string, required: true, values: [wide, low] }\n  - { name: fire, type: object, required: false, prepositions: [at], prepositionRequired: true }\n`;
+    expect(collisionsIn(claimsIn(allViews(shapes([READ, SET])))).size).toBe(0);
+    // A `values:` list that holds the preposition meets the read.
+    const BAD = SET.replace("values: [wide, low]", "values: [wide, at]");
+    expect([...collisionsIn(claimsIn(allViews(shapes([READ, BAD])))).keys()]).toEqual(["draught"]);
+  });
+
+  it("a bare view beside a fallthrough view whose own arg is required — bare reads, a word posts", () => {
+    const BARE = `verbs: [press]\ncontroller: /x/Read\n`;
+    const POST = `verbs: [press]\ncontroller: /x/Post\nfallthrough: true\nsubcommands:\n  post: {}\nargs:\n  - { name: headline, type: string, required: true, greedy: true }\n`;
+    expect(collisionsIn(claimsIn(allViews(shapes([BARE, POST])))).size).toBe(0);
+    const LOOSE = POST.replace("required: true, greedy", "required: false, greedy");
+    expect([...collisionsIn(claimsIn(allViews(shapes([BARE, LOOSE])))).keys()]).toEqual(["press"]);
+  });
+});
+

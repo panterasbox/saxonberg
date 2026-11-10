@@ -61,7 +61,7 @@ export interface Agitated {
   agitatePlanFor(req: AgitateRequest): Promise<AgitatePlan | AgitateRefusal | null>;
 }
 
-export function AgitatedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
+export function AgitatedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class AgitatedMixin extends Base implements Agitated {
     static _mixinName: string = 'AgitatedMixin';
     static _mixinKind = 'protocol' as const;

@@ -76,7 +76,7 @@ export interface Washable {
   washPaceFor(spec: WashSpec): { durationMs: number; effortW: number };
 }
 
-export function WashableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
+export function WashableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class WashableMixin extends Base implements Washable {
     static _mixinName: string = 'WashableMixin';
     static _mixinKind = 'protocol' as const;

@@ -15,7 +15,7 @@
  * The vessel affords `stir`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { NestingConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandContributions } from '../../api/command';
 import type { ActOutcome } from './ActPlan';
@@ -51,7 +51,7 @@ export interface HandWorked {
   workByHand(): ActOutcome<HandWorkFacts> | null;
 }
 
-export function HandWorkedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
+export function HandWorkedMixin<TBase extends NestingConstructor<Stuff>>(Base: TBase) {
   // ⭐ `stir` asks the vessel's plan (`AgitatedMixin`, controller-liquidity
   // W7c); this vessel's working is the charge worked by hand.
   return class HandWorkedMixin extends AgitatedMixin(Base) implements HandWorked {

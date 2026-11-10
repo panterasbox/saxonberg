@@ -45,7 +45,7 @@
 
 import { CallSecurity } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
-import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { NestingConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
@@ -76,7 +76,7 @@ const SampleVerbOnly = SecurityPolicies.AnyOf(
   SecurityPolicies.SelfOnly,
 );
 
-export function SampledMixin<TBase extends MixinConstructor>(Base: TBase) {
+export function SampledMixin<TBase extends NestingConstructor>(Base: TBase) {
   // Declared-then-returned (the `Posed` shape) so method decorators are
   // legal — a class EXPRESSION cannot carry them.
   // ⭐ Matter that carries a stamp is matter a piece can be taken from —
