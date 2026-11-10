@@ -110,7 +110,7 @@ async function spin(target: Stuff, count = 10): Promise<void> {
     { stock: ref(target, "fleece"), count } as never,
     makeContext(actor as unknown as Stuff, room as unknown as Stuff, "spin"),
   );
-  await completeStep(SpinController.BASE_MS * 2);
+  await completeStep(TextileStock.SPIN_BASE_MS * 2);
 }
 
 async function weave(target: Stuff): Promise<void> {
@@ -119,7 +119,7 @@ async function weave(target: Stuff): Promise<void> {
     { yarn: ref(target, "yarn") } as never,
     makeContext(actor as unknown as Stuff, room as unknown as Stuff, "weave"),
   );
-  await completeStep(WeaveController.BASE_MS * 2);
+  await completeStep(TextileStock.WEAVE_BASE_MS * 2);
 }
 
 describe("the textile chain keeps the fibre", () => {
@@ -199,5 +199,30 @@ describe("the textile chain keeps the fibre", () => {
   it("line (yarnCount 0) keeps its authored words — it is not yarn yet", () => {
     const line = stock(WOOL, "/trade/textiles/thing/line", 2);
     expect(line.getShortDescription()).toBe("fleece");
+  });
+});
+
+describe("⭐ the stock answers the act (controller-liquidity W11)", () => {
+  it("C23: yarn is what has a count, whatever its row is called — the cordage pack's hemp yarn weaves", async () => {
+    await weave(stock(WOOL, "/trade/cordage/thing/hemp-yarn", 4, 6));
+    expect(held((s) => s instanceof ClothBolt)).toBeDefined();
+    expect(TextileStock.isYarn(stock(WOOL, "/trade/textiles/thing/line", 1))).toBe(false);
+  });
+
+  it("C29: a mint that fails takes nothing — the yarn is still in hand", async () => {
+    const yarn = stock(WOOL, "/trade/textiles/thing/yarn", 4, 12);
+    vi.spyOn(StuffApi, "clone").mockRejectedValue(new Error("no row"));
+    await weave(yarn);
+    expect(yarn.isDestroyed()).toBe(false);
+    expect(yarn.getQuantity()).toBe(4);
+    expect(held((s) => s instanceof ClothBolt)).toBeUndefined();
+  });
+
+  it("C29: spinning that cannot mint leaves the line", async () => {
+    const line = stock(WOOL, "/trade/textiles/thing/line", 4);
+    vi.spyOn(StuffApi, "clone").mockRejectedValue(new Error("no row"));
+    await spin(line);
+    expect(line.isDestroyed()).toBe(false);
+    expect(line.getQuantity()).toBe(4);
   });
 });

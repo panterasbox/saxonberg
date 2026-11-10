@@ -70,8 +70,8 @@ const BOLT = '/trade/textiles/thing/bolt';
 const DEFAULT_BATCH = 4;
 /**
  * The units each act wants, mirroring the controllers' own charges
- * (`SpinController.CHARGE`, `WeaveController.CHARGE`). Read here only to
- * decide WHETHER to issue the act; the controller remains the authority
+ * (`TextileStock.SPIN_CHARGE`, `TextileStock.WEAVE_CHARGE`). Read here only to
+ * decide WHETHER to issue the act; the stock remains the authority
  * on what it then consumes, and a dial change makes this conservative
  * rather than wrong.
  */

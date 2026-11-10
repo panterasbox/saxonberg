@@ -33,23 +33,11 @@
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type Material from '@saxonberg/server/mud/lib/material/Material';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { AppApi } from '@saxonberg/server/mud/api/app';
-import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
-import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
-import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
-import TextileStock from '../../../thing/TextileStock';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import TextileStock, { type SpinBegin, type SpinDone, type TextileRefusal } from '../../../thing/TextileStock';
 
-const TOPIC = 'act.deed';
-const YARN_ROW = '/trade/textiles/thing/yarn';
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface SpinModel extends CommandModel {
   wheel?: MqlManyResult;
@@ -57,236 +45,73 @@ interface SpinModel extends CommandModel {
   count?: number;
 }
 
+/**
+ * ⭐ The draw, the ceiling, the yield and the mint are the stock's
+ * (`TextileStock.spinPlan` — controller-liquidity W11); this controller
+ * picks the best wheel bound and words the plan.
+ */
 export default class SpinController extends ManualBuildController<SpinModel> {
-  /** ⭐ A dial, not a constant — the bench asserts against it. */
-  static readonly BASE_MS_KEY = 'textiles.spin.baseMs';
-  /**
-   * ⚠⚠ The bottleneck, and it is a LESSON rather than a tuning
-   * accident: spinning is roughly six times weaving's labour per unit
-   * of cloth, which is why one weaver kept several spinners busy and
-   * why mechanising spinning first was both so profitable and so
-   * socially disruptive. Do not "balance" this down.
-   */
-  static readonly BASE_MS = 90 * 60 * 1000;
-  /** Units of line one act draws. */
-  static readonly CHARGE_KEY = 'textiles.spin.chargeUnits';
-  static readonly CHARGE = 2;
-  /** The count an untrained hand can reach. */
-  static readonly BASE_COUNT_KEY = 'textiles.spin.baseCount';
-  static readonly BASE_COUNT = 10;
-  /** How much further each competence band reaches. */
-  static readonly COUNT_PER_BAND_KEY = 'textiles.spin.countPerBand';
-  static readonly COUNT_PER_BAND = 8;
-
   async execute(model: SpinModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const stock = model.stock?.stuff ?? null;
-    if (!stock || !MixinApi.isStackable(stock)) {
+    if (!stock) {
       this.declineStep(context, Mml.compose`Spin what?`, 'no-stock');
       return;
     }
-    if (!isSpinnable(stock)) {
-      this.declineStep(
-        context,
-        Mml.compose`${Mml.thing(stock)} is not something you can draw a thread from.`,
-        'not-spinnable',
-      );
+    const plan = await TextileStock.spinPlan(giver, stock, {
+      count: model.count,
+      instrument: this.bestInstrument(model.wheel, 'spinning'),
+    });
+    if (!plan.ok) {
+      this.declineStep(context, SpinController.refusalWords(plan, stock), plan.reason);
       return;
     }
-    const charge = dial(SpinController.CHARGE_KEY, SpinController.CHARGE);
-    // ⭐ Like stacks in hand count together — the stock's own answer
-    // (`TextileStock.quantityInHand`): a player's titled skeins never merge.
-    const inHand = stock instanceof TextileStock ? stock.quantityInHand() : stock.getQuantity();
-    if (inHand < charge) {
-      this.declineStep(
-        context,
-        Mml.compose`There is not enough there to fill a spindle.`,
-        'too-little',
-      );
-      return;
-    }
-
-    const band = await competenceOf(giver);
-    const ceiling =
-      dial(SpinController.BASE_COUNT_KEY, SpinController.BASE_COUNT) +
-      CompetenceBand.rank(band) *
-        dial(SpinController.COUNT_PER_BAND_KEY, SpinController.COUNT_PER_BAND);
-    const wanted = Math.max(
-      1,
-      Math.round(model.count ?? dial(SpinController.BASE_COUNT_KEY, SpinController.BASE_COUNT)),
-    );
-
-    // ⭐⭐ Overreaching does NOT refuse and does NOT make bad yarn. It
-    // makes LESS yarn: the thread parts, and what parted is gone. That
-    // is the shape of every competence answer in this build — competence
-    // buys the top of the range, never more stock.
-    const overreach = Math.max(0, wanted - ceiling);
-    const yieldUnits = Math.max(
-      0,
-      Math.round(charge * Math.max(0, 1 - overreach / Math.max(1, ceiling))),
-    );
-
-    const instrument = this.bestInstrument(model.wheel, 'spinning');
-    const durationMs = this.paceMs(
-      dial(SpinController.BASE_MS_KEY, SpinController.BASE_MS),
-      instrument as Stuff | null,
-      ['spinning'],
-    );
-
-    this.engageStep(context, {
-      durationMs,
-      effortW: 250,
-      beginSelf:
-        overreach > 0
-          ? Mml.compose`You draw ${Mml.thing(stock)} out finer than you have any business doing, and feel the thread thin under your fingers.`
-          : Mml.compose`You set ${Mml.thing(stock)} to the spindle and begin drawing.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} settles in to spin.`,
-      onComplete: () => {
-        void finish(context, stock, charge, wanted, yieldUnits, overreach);
-      },
+    await this.engagePlan(context, plan, {
+      beginSelf: (b: SpinBegin) =>
+        b.overreach
+          ? Mml.compose`You draw ${Mml.thing(b.stock)} out finer than you have any business doing, and feel the thread thin under your fingers.`
+          : Mml.compose`You set ${Mml.thing(b.stock)} to the spindle and begin drawing.`,
+      beginPeers: () => Mml.compose`${Mml.actor(giver)} settles in to spin.`,
+      onRefused: (r: TextileRefusal) => SpinController.refusalWords(r, stock),
+      onDone: (f: SpinDone) => SpinController.doneWords(giver, f),
     });
   }
-}
 
-async function finish(
-  context: CommandContext,
-  stock: Stuff & { getQuantity(): number; setQuantity(n: number): void },
-  charge: number,
-  count: number,
-  yieldUnits: number,
-  overreach: number,
-): Promise<void> {
-  const giver = context.commandGiver;
-  // ⚠⚠ A module function — the controller is destructed by now.
-  const watching = !giver.isDestroyed();
-  // ⚠ Read the fibre BEFORE the input is consumed — an emptied stack is
-  // destructed below.
-  const fibre = MixinApi.isTangible(stock) ? stock.getMaterial() : null;
-  // The stock is consumed WHETHER OR NOT the thread held. That is the
-  // waste, and it is the whole of the failure mode.
-  if (stock instanceof TextileStock) {
-    stock.drawInHand(charge);
-  } else {
-    const left = Math.max(0, stock.getQuantity() - charge);
-    if (left === 0) StuffApi.destruct(stock);
-    else stock.setQuantity(left);
-  }
-
-  if (yieldUnits <= 0) {
-    if (watching) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(
-          Mml.compose`It parts, and parts again, and what is left on the spindle is not worth winding off. The line is gone.`,
-        )
-        .send();
+  protected static refusalWords(r: TextileRefusal, stock: Stuff): Composed {
+    switch (r.reason) {
+      case 'not-spinnable':
+        return Mml.compose`${Mml.thing(stock)} is not something you can draw a thread from.`;
+      case 'too-little':
+        return Mml.compose`There is not enough there to fill a spindle.`;
+      case 'not-made':
+        return Mml.compose`The thread will not take. You stop before you waste the line.`;
+      default:
+        return Mml.compose`You cannot spin that.`;
     }
-    return;
   }
 
-  try {
-    const yarn = await StuffApi.clone<Stuff>(YARN_ROW);
-    if (MixinApi.isStackable(yarn)) yarn.setQuantity(yieldUnits);
-    // ⭐ The band still comes from the STOCK, not from the spinner: the
-    // flax is what the flax is, and no amount of skill lengthens a
-    // staple.
-    if (MixinApi.isGraded(yarn) && MixinApi.isGraded(stock)) {
-      yarn.setGrade(Grade.of(bandOf(stock)));
+  protected static doneWords(
+    giver: Stuff,
+    f: SpinDone,
+  ): { self: Composed; peers?: Composed } | null {
+    switch (f.kind) {
+      case 'gone':
+        return null;
+      case 'parted':
+        return {
+          self: Mml.compose`It parts, and parts again, and what is left on the spindle is not worth winding off. The line is gone.`,
+        };
+      case 'yarn':
+        return {
+          self: f.overreach
+            ? Mml.compose`You wind off ${String(f.units)} of yarn at ${String(f.count)}s. Less than there should be — the rest is on the floor in pieces.`
+            : Mml.compose`You wind off ${String(f.units)} of yarn at ${String(f.count)}s.`,
+          peers: Mml.compose`${Mml.actor(giver)} winds off a length of yarn.`,
+        };
+      default: {
+        const never: never = f;
+        return never;
+      }
     }
-    // ⚠ A hard call, not an optional one through a cast: if the yarn row
-    // ever stops being TextileStock the count must break loudly rather
-    // than be silently dropped.
-    if (yarn instanceof TextileStock) yarn.setYarnCount(count);
-    // ⭐⭐ The yarn is the FIBRE it was drawn from, and the spinner made
-    // it. Before the silk build neither was carried: the row's linen
-    // stood, so spun wool came off the wheel as linen yarn.
-    if (yarn instanceof TextileStock) yarn.adoptFibre(fibre);
-    if (MixinApi.isCrafted(yarn)) yarn.setMaker(giver.getIdentityPath() ?? '');
-    if (MixinApi.isContainable(yarn) && MixinApi.isContainer(giver)) {
-      ContainmentApi.move(yarn as Stuff & Containable, giver as Stuff & Container);
-    }
-    if (!watching) return;
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(
-        overreach > 0
-          ? Mml.compose`You wind off ${String(yieldUnits)} of yarn at ${String(count)}s. Less than there should be — the rest is on the floor in pieces.`
-          : Mml.compose`You wind off ${String(yieldUnits)} of yarn at ${String(count)}s.`,
-      )
-      .toPeers(Mml.compose`${Mml.actor(giver)} winds off a length of yarn.`)
-      .send();
-  } catch (err) {
-    console.warn('SpinController: could not mint yarn:', err);
-  }
-}
-
-/**
- * The band a source carries, or the neutral middle.
- *
- * ⚠⚠ **Validated, because `Grade.of` THROWS on anything else** — and a
- * live drive found what that costs. A `Graded` host whose `gradeBand`
- * is somehow unset reads back `undefined`; `Grade.of(undefined)` raises
- * a `RangeError`; the raise lands inside the try/catch that wraps the
- * whole mint, so the fibre was already consumed, nothing was made, and
- * the actor was told nothing at all. A spinner watched her line vanish
- * eight times in a row with no message and no error a player could see.
- *
- * Carrying a grade is a NICETY; making the thing is the point. So a
- * band that cannot be read falls back to the middle rather than taking
- * the product down with it.
- */
-function bandOf(source: Stuff): string {
-  const raw = MixinApi.isGraded(source) ? source.getGradeBand() : '';
-  return Grade.isBand(raw) ? raw : 'fair';
-}
-
-/**
- * ⭐⭐ **Can you spin it? Ask the MATERIAL.** Line, tow and a fleece all
- * carry `fibre`; shive and cloth do not.
- *
- * ⚠ This was a template-PATH test (`endsWith('/line') ||
- * endsWith('/tow')`) and it was the **third gate behind `spin
- * fleece`** — a verb that shipped and could never run. The first two
- * were the arg's `requires: StackableMixin` against a `Provision`
- * fleece, and the class the row named; fixing those still left this,
- * which would have refused a stackable fleece in the controller with
- * nothing in the envelope to say why.
- *
- * ⭐ The rule it replaces the hard-coded pair with is the one the
- * textiles design already states: **the distinction is the material.**
- * A new fibre is then a material tag and not an edit here — which is
- * exactly the test a second spinnable was always going to apply.
- */
-function isSpinnable(stock: Stuff): boolean {
-  if (!MixinApi.isTangible(stock)) return false;
-  if (stock.getMaterial()?.hasTag('fibre') !== true) return false;
-  // ⚠⚠ …and it must not be spun ALREADY. Yarn's material is linen and
-  // carries `fibre` too, so the material test alone would let you spin
-  // yarn into yarn — which the old path test refused by accident, since
-  // `/yarn` is neither `/line` nor `/tow`. `yarnCount` is the honest
-  // discriminant: it is non-zero iff somebody has already drawn this
-  // out, and it is a CONSTRUCTION fact, which is why no material tag
-  // could ever have carried it.
-  const spun = stock as unknown as { getYarnCount?(): number };
-  return (spun.getYarnCount?.() ?? 0) <= 0;
-}
-
-async function competenceOf(giver: Stuff): Promise<CompetenceBandName> {
-  if (!MixinApi.isAdvancing(giver)) return 'untrained';
-  try {
-    return await giver.competenceBandFor('textiles');
-  } catch {
-    return 'untrained';
-  }
-}
-
-function dial(key: string, fallback: number): number {
-  try {
-    const raw = AppApi.setting(key);
-    if (raw === '' || raw == null) return fallback;
-    const n = Number.parseFloat(raw);
-    return Number.isFinite(n) ? n : fallback;
-  } catch {
-    return fallback;
   }
 }
