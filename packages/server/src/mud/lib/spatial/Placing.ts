@@ -59,6 +59,7 @@ import {
   REF_FIELDS,
   type SubscribableFieldDescriptor,
 } from '../../api/mql-subscription';
+import { Placement } from './Placement';
 
 /**
  * Public shape provided by PlacingMixin.
@@ -76,7 +77,7 @@ export interface Placing {
    * exactly what they all were. Authorable per row.
    */
   getPlacements(): readonly string[];
-  setPlacements(names: readonly string[]): void;
+  setPlacements(paths: readonly string[]): Promise<void>;
 
   /**
    * Items currently placed on this host. Computed lazily by walking the
@@ -197,10 +198,10 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
                 PerceptionApi.perceives(viewer, c),
             );
             if (items.length === 0) continue;
-            const row = ContainmentApi.placement(member);
+            const row = Placement.need(member);
             groups.push({
-              name: member,
-              heading: row?.getHeading() || 'With it',
+              name: row.getName(),
+              heading: row.getHeading() || 'With it',
               items: items.map(
                 (c) =>
                   MqlSubscriptionApi.projectFields(
@@ -248,8 +249,8 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** `[0, 1]` — how much of a placed thing the air reaches. Default airy. */
     public airExposure = 1;
 
-    /** The offered members, primary first. A bare host is a surface. */
-    public placements: string[] = ['on'];
+    /** The offered ways of sitting, by path, primary first. A bare host is a surface. */
+    public placements: string[] = [Placement.ON];
 
     placementFor(word: string | undefined): PlacementChoice {
       return new PlacementOffers(this as unknown as Stuff).choose(word);
@@ -257,12 +258,20 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     getPlacements(): readonly string[] {
       const v = this.placements;
-      if (!Array.isArray(v) || v.length === 0) return ['on'];
+      if (!Array.isArray(v) || v.length === 0) return [Placement.ON];
       return v;
     }
 
-    setPlacements(names: readonly string[]): void {
-      this.placements = [...names];
+    /**
+     * ⭐ Loads every way of sitting the row names (by path), so a host is
+     * live only when its placements are (documents D7) — and a path with no
+     * placement document fails here, where it is named. (The kernel's three
+     * are resident with every place.)
+     */
+    setPlacements(paths: readonly string[]): Promise<void> {
+      this.placements = [...paths];
+      // The applier awaits this: the row is live only when its placements are.
+      return Promise.all(paths.map((p) => Placement.ensure(p))).then(() => undefined);
     }
 
     getPlaced(name?: string): readonly (Stuff & Containable)[] {
@@ -330,7 +339,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
       // shut host refuses it — and says which, because a refusal a
       // player cannot act on teaches nothing. A non-enclosing member
       // (a hook on the outside of a shut box) is unaffected.
-      if (ContainmentApi.placement(name)?.getEncloses() === true) {
+      if (Placement.need(name).getEncloses()) {
         const self = this as unknown as Stuff;
         if (MixinApi.isSealable(self) && !self.isOpen()) {
           return { ok: false, reason: 'shut' };
@@ -350,8 +359,6 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
  * offering a member the catalogue has not warmed still resolves the
  * obvious word rather than becoming unaddressable.
  */
-function wordsFor(name: string): readonly string[] {
-  const member = ContainmentApi.placement(name);
-  const words = member?.getPrepositions() ?? [];
-  return words.length > 0 ? words : [name];
+function wordsFor(path: string): readonly string[] {
+  return Placement.need(path).getPrepositions();
 }

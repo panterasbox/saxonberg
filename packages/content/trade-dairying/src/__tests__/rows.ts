@@ -42,6 +42,16 @@ export function rowFile(path: string): string | null {
   for (const pack of readdirSync(CONTENT)) {
     const f = join(CONTENT, pack, 'content', `${path}.yaml`);
     if (existsSync(f)) return f;
+    // …or a DOCUMENT, stored at the pack's root + its content dir + file
+    // (`/platform/placements/on` → platform's `content/placements/on.yaml`).
+    const manifest = join(CONTENT, pack, 'pack.yaml');
+    if (!existsSync(manifest)) continue;
+    const m = (YAML.parse(readFileSync(manifest, 'utf8')) ?? {}) as { id?: string; root?: string };
+    const root = m.root ?? `/${m.id ?? pack}`;
+    if (path.startsWith(`${root}/`)) {
+      const d = join(CONTENT, pack, 'content', `${path.slice(root.length + 1)}.yaml`);
+      if (existsSync(d)) return d;
+    }
   }
   return null;
 }

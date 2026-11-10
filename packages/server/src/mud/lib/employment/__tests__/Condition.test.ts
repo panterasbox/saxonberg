@@ -21,6 +21,7 @@ import { ContainmentApi } from "../../../api/containment";
 import { StuffApi } from "../../../api/stuff";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
+import { Placement } from '../../spatial/Placement';
 
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = "TestRoom";
@@ -131,7 +132,7 @@ describe("Condition.matchesItem / holdsFor", () => {
     );
     ContainmentApi.move(counter, room);
     const crate = makeStuffAtPath(() => new TestCrate(), CRATE);
-    ContainmentApi.move(crate, counter, 'on');
+    ContainmentApi.move(crate, counter, Placement.ON);
     const toCounter = delivery({ destinationPath: "/world/test/counter" });
     expect(new Condition(toCounter).holdsFor(crate)).toBe(true);
     // …and to the room: the crate is in the room's contents via place().

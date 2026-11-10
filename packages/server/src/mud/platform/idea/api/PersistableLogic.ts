@@ -43,6 +43,7 @@ import type { Placing } from "../../../lib/spatial/Placing";
 import type { Slotted } from "../../../lib/slot/Slotted";
 import type { Slottable } from "../../../lib/slot/Slottable";
 import type { ParcelOwner } from "../../../lib/parcel/ParcelRecord";
+import { Placement } from '../../../lib/spatial/Placement';
 
 const PersistableApiCallers = SecurityPolicies.FromModule(
   "/api/persistable#PersistableApi",
@@ -782,16 +783,20 @@ async function restoreState(
       restored.push(await restoreItem(entry, target, principal));
     }
     // Placement pass — a placed item re-`place`s onto its `Placing`
-    // sibling, under the member name the slice recorded.
-    containerSlice.contents.forEach((entry, i) => {
+    // sibling, under the placement (a path) the slice recorded. ⭐ The
+    // placement loads first (documents D7), so the restored thing's sync
+    // reads — its enclosing scope, `look`'s drill-in — find it.
+    for (const [i, entry] of containerSlice.contents.entries()) {
       const idx = entry.placement.hostIndex;
-      if (idx === undefined) return;
+      if (idx === undefined) continue;
       const item = restored[i];
       const host = restored[idx];
       if (item && host && MixinApi.isPlacing(host)) {
-        ContainmentApi.move(item as Stuff & Containable, host as Stuff & Placing, entry.placement.placement ?? "on");
+        const placement = entry.placement.placement ?? Placement.ON;
+        await Placement.ensure(placement);
+        ContainmentApi.move(item as Stuff & Containable, host as Stuff & Placing, placement);
       }
-    });
+    }
   }
 
   // (3) Slotted occupancy — re-wear each worn item into its slots via the

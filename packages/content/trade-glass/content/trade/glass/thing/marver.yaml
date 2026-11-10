@@ -11,4 +11,4 @@ data:
     A thick, polished steel slab on a low iron stand, scored and dulled
     from years of hot glass rolled across it.
   mass: 60
-  placements: [on]
+  placements: [/platform/placements/on]

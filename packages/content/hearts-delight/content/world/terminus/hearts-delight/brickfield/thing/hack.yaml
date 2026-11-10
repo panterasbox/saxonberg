@@ -18,7 +18,7 @@ data:
     between each, under a strip of tarred canvas. There is room along it
     for more.
   airExposure: 0.85
-  placements: [on]
+  placements: [/platform/placements/on]
   fixedInPlace: true
   # The cover and its poles: the bricks on it are the goods, not the hack.
   _materialPath: /stuff/idea/material/textile/canvas

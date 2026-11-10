@@ -71,6 +71,7 @@ import type { ImpactOutcome, ImpactSpec } from '../material/Integrity';
 // The `hardnessDgh` payload field is declared by WaterHardness's merge.
 import type {} from '../cleanliness/WaterHardness';
 import { SecurityError } from '../security/errors';
+import { Placement } from '../spatial/Placement';
 
 /**
  * Ordered liquid-retention scale on a bulk holder. The vessel retains
@@ -1221,7 +1222,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         // ⚠ Placement words come from a world catalogue, which a sandboxed,
         // jurisdiction-bound eval may not peek at (drive D, run 39).
         try {
-          if (MixinApi.isPlacing(self)) near.push(...self.getPlaced('on'));
+          if (MixinApi.isPlacing(self)) near.push(...self.getPlaced(Placement.ON));
         } catch (err) {
           if (
               !(err instanceof SecurityError) &&

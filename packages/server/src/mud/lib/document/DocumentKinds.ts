@@ -159,6 +159,23 @@ export const DOCUMENT_KINDS = {
    * names its formation by path; a captain adopts one by its word.
    */
   formation: { kind: 'formation', words: leafWord, contentDir: 'formations', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **placement** — a way of sitting (`on`, `in`, `from`): the words a
+   * player types for it, whether it encloses, its sentence and its heading
+   * (`lib/spatial/Placement.ts`). A host names the ways it offers by path.
+   * Its words are typed (`put X on Y`), so a primary preposition claimed by
+   * two packs is refused at install.
+   */
+  placement: {
+    kind: 'placement',
+    words: (doc) => {
+      const p = doc.data.prepositions;
+      return Array.isArray(p) && typeof p[0] === 'string' ? [p[0]] : [];
+    },
+    contentDir: 'placements',
+    ext: 'yaml',
+    onVanish: 'delete',
+  },
   'name-bank': { kind: 'name-bank', contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
   blueprint: { kind: 'blueprint', contentDir: 'blueprints', ext: 'yaml', onVanish: 'delete' },
   'command-view': { kind: 'command-view', contentDir: 'cmd', ext: 'yaml', onVanish: 'delete' },

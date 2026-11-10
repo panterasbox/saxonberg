@@ -50,6 +50,7 @@ import { fileURLToPath } from "url";
 import YAML from "yaml";
 import { DirtKind } from "./mud/lib/cleanliness/DirtKind";
 import { Formation } from "./mud/lib/combat/Formation";
+import { Placement } from "./mud/lib/spatial/Placement";
 
 let installed = false;
 
@@ -136,9 +137,9 @@ export function ensureFrameworkWiring(): boolean {
 
 /**
  * ⭐ The kernel's own document vocabulary, resident as a running world has
- * it — the platform pack's `content/dirt/` and `content/formations/`
- * (documents path identity, D7: every Soilable host and every party loads
- * its share in `onCreate`). A suite has no document
+ * it — the platform pack's `content/dirt/`, `content/formations/` and
+ * `content/placements/` (documents path identity, D7: every Soilable host
+ * and every place loads its share in `onCreate`; a party its chosen one). A suite has no document
  * store behind it, so the installer's half is stood in for here, from the
  * shipped files: a disk read, no database.
  */
@@ -155,6 +156,7 @@ function rememberKernelDocuments(): void {
   };
   each("dirt", (path, data) => void DirtKind.remember(path, DirtKind.fromData(data, path)));
   each("formations", (path, data) => void Formation.remember(path, Formation.fromData(data, path)));
+  each("placements", (path, data) => void Placement.remember(Placement.fromData(data, path)));
 }
 
 ensureFrameworkWiring();

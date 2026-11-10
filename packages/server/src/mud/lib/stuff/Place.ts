@@ -54,6 +54,7 @@ import type Structure from '../structure/Structure';
 import type { Positioned } from '../expanse/Positioned';
 import type { Floor } from '../ground/Floor';
 import type { FieldMeta } from '../mixin';
+import { Placement } from '../spatial/Placement';
 
 /**
  * ⭐ The Place's own say in what its floor is, without authoring a floor
@@ -479,6 +480,11 @@ export default class Place extends PlaceBase {
    */
   public async onCreate(context?: unknown): Promise<void> {
     await super.onCreate(context);
+    // ⭐ A place is live only when the kernel's ways of sitting are
+    // (documents D7, mechanism 4): everything placed sits in some place,
+    // so `move(item, desk, Placement.ON)` and a container's inside always
+    // find theirs. One prefix read for the process.
+    await Placement.ensureKernel();
     await this.ensureFloor();
   }
 

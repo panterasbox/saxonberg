@@ -10,10 +10,7 @@
 # region zero takes its words and its prose from THIS row. A host that
 # offers `in` as a named region arrives with the first real compartment
 # (the fridge pack), not with this build. See the placement plan, D17.
-class: /platform/idea/Placement
-data:
-  name: in
-  prepositions: [in, into]
-  encloses: true
-  prose: "{{ actor }} put{{ s }} {{ item }} in {{ host }}."
-  heading: In it
+prepositions: [in, into]
+encloses: true
+prose: "{{ actor }} put{{ s }} {{ item }} in {{ host }}."
+heading: In it

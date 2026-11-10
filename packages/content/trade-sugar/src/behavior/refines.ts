@@ -39,6 +39,7 @@ import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import Copper from '../thing/Copper';
 import CuringPot from '../thing/CuringPot';
 import SugarLoaf from '../thing/SugarLoaf';
+import { Placement } from '@saxonberg/server/mud/lib/spatial/Placement';
 
 /** Litres of water a refinery batch starts from — a block's worth. */
 const BATCH_WATER = '30L';
@@ -343,7 +344,7 @@ export const brain = class {
     const pots = here.filter((s) => s instanceof CuringPot);
     const readyCone = cones.find((c) => placedOn(c) instanceof CuringPot);
     const looseCone = cones.find((c) => !(placedOn(c) instanceof CuringPot));
-    const potFree = pots.find((p) => MixinApi.isPlacing(p) && p.getPlaced('on').length === 0);
+    const potFree = pots.find((p) => MixinApi.isPlacing(p) && p.getPlaced(Placement.ON).length === 0);
     const coneReady = readyCone !== undefined;
     const freePot = potFree !== undefined;
     const id = (s?: Stuff): string | undefined => (s ? `#${s.stuffId}` : undefined);

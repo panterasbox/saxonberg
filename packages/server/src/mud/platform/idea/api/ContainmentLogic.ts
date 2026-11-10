@@ -16,10 +16,6 @@ import { MixinApi } from '../../../api/mixin';
 import { MqlSubscriptionApi } from '../../../api/mql-subscription';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentError } from '../../../api/containment';
-import PlacementCatalogue, {
-  PLACEMENT_CATALOGUE_PATH,
-} from '../PlacementCatalogue';
-import type Placement from '../Placement';
 import type { MergeOnArrivalHook } from '../../../api/containment';
 
 type ContainerStuff = Stuff & Container;
@@ -126,24 +122,6 @@ export class ContainmentLogic extends ApiLogic {
       );
     }
     item.setContainer(env);
-  }
-
-  /** See {@link ContainmentApi.placement}. */
-  @CallSecurity(ContainmentApiCallers)
-  public placement(name: string): Placement | null {
-    const catalogue = StuffApi.findByTemplatePath<PlacementCatalogue>(
-      PLACEMENT_CATALOGUE_PATH,
-    );
-    return catalogue?.peek(name) ?? null;
-  }
-
-  /** See {@link ContainmentApi.placementForWord}. */
-  @CallSecurity(ContainmentApiCallers)
-  public placementForWord(word: string): Placement | null {
-    const catalogue = StuffApi.findByTemplatePath<PlacementCatalogue>(
-      PLACEMENT_CATALOGUE_PATH,
-    );
-    return catalogue?.peekWord(word) ?? null;
   }
 
   // `findReachable` / `findHostedUpdate` were removed — the reachable

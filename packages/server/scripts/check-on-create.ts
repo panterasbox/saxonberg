@@ -69,14 +69,17 @@ import { MUD, packSources, packSrcFiles } from "./pack-roots";
  * declares legitimate. The number worth watching is still limbs 3 and 4,
  * and this build adds neither.
  */
-export const ON_CREATE_CEILING = 82;
+// 82 → 81 by the documents path-identity build: three catalogues with an
+// onCreate warm left (operations, placements), SoilableMixin gained one
+// (the kernel dirt vocabulary, D7 mechanism 4).
+export const ON_CREATE_CEILING = 81;
 
 /**
  * ⭐⭐ **The loading ceiling** — the subset of those bodies that look like
  * limb 3. This is the number the hydration build drives down, and the one
  * worth reading: a fall here is state that moved onto a declared source.
  */
-export const ON_CREATE_LOADING_CEILING = 35;
+export const ON_CREATE_LOADING_CEILING = 33;
 
 /**
  * ⚠ A fact about the past: the census the day the gate landed. Never edit

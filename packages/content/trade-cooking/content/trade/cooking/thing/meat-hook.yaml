@@ -26,7 +26,7 @@ data:
   register: indefinite
   longDescription: |
     A single iron hook on a short chain, bolted into the beam where the air moves coldest. It turns very slowly when the door opens.
-  placements: [from]
+  placements: [/platform/placements/from]
   airExposure: 1
   _materialPath: /stuff/idea/material/element/iron
   mass: 2

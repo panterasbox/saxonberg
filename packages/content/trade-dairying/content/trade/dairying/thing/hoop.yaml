@@ -20,6 +20,6 @@ data:
   castTemplate: /trade/dairying/thing/wheel
   reusable: true
   discipline: dairying
-  placements: [on]
+  placements: [/platform/placements/on]
   _materialPath: /stuff/idea/material/wood/beech
   mass: 1.5

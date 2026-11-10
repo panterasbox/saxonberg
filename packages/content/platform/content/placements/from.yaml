@@ -9,10 +9,7 @@
 # that only offers `from` — and the response says *hang … from*, which
 # is how the world teaches the word without a tutorial. It never steals
 # `on`'s own key: a primary always wins its word.
-class: /platform/idea/Placement
-data:
-  name: from
-  prepositions: [from, on]
-  encloses: false
-  prose: "{{ actor }} hang{{ s }} {{ item }} from {{ host }}."
-  heading: Hanging from it
+prepositions: [from, on]
+encloses: false
+prose: "{{ actor }} hang{{ s }} {{ item }} from {{ host }}."
+heading: Hanging from it

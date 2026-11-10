@@ -53,6 +53,7 @@ import {
   installV1QuantityMarshallers,
   installV1QuantityTagTables,
 } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { Placement } from '../../../../../lib/spatial/Placement';
 
 class TestActor extends ThermalMixin(
   CommandGiverMixin(
@@ -182,7 +183,7 @@ describe('⭐ heat — the placing arm (dairy D6)', () => {
     const ctx = await run(() => new HeatController(), 'heat', 'target', v);
     expect(refusal(ctx)).toBeNull();
     const placement = v.getPlacement();
-    expect(placement?.name).toBe('on');
+    expect(placement?.name).toBe(Placement.ON);
     expect((placement?.host as Stuff | undefined)?.stuffId).toBe(hearth.stuffId);
   });
 

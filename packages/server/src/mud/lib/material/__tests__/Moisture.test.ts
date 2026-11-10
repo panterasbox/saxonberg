@@ -25,6 +25,7 @@ import { PlacingMixin } from '../../spatial/Placing';
 import { ContainmentApi } from '../../../api/containment';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
+import { Placement } from '../../spatial/Placement';
 
 const HOUR = 3600;
 const DAY = 24 * HOUR;
@@ -317,7 +318,7 @@ describe('MoistureMixin — the water state a treatment changes', () => {
     const cookhouse = room(40, 2);
     const cut = food(material(MEAT_EA));
     const rack = rackIn(cookhouse);
-    ContainmentApi.move(cut as never, rack as never, 'on');
+    ContainmentApi.move(cut as never, rack as never, Placement.ON);
     setNow(0);
     void cut.getWaterState(); // starts the clock
     expect(cut.waterClockStamp).toBeGreaterThan(0);
@@ -334,7 +335,7 @@ describe('MoistureMixin — the water state a treatment changes', () => {
     const steamy = room(100, 3, 300);
     const cut = food(material(MEAT_EA));
     const rack = rackIn(steamy);
-    ContainmentApi.move(cut as never, rack as never, 'on');
+    ContainmentApi.move(cut as never, rack as never, Placement.ON);
     setNow(0);
     void cut.getWaterState();
     expect(cut.waterClockStamp).toBe(0);
@@ -353,7 +354,7 @@ describe('MoistureMixin — the water state a treatment changes', () => {
     racked.setWaterState({ moisture: 0.4, solute: 0 });
     sacked.setWaterState({ moisture: 0.4, solute: 0 });
     const rack = rackIn(cellar);
-    ContainmentApi.move(racked as never, rack as never, 'on');
+    ContainmentApi.move(racked as never, rack as never, Placement.ON);
     setNow(0);
     void racked.getWaterState();
     void sacked.getWaterState();
@@ -376,8 +377,8 @@ describe('MoistureMixin — the water state a treatment changes', () => {
     const cellarMat = material(MEAT_EA, AW);
     const inLoft = food(loftMat);
     const inCellar = food(cellarMat);
-    ContainmentApi.move(inLoft as never, rackIn(dryLoft) as never, 'on');
-    ContainmentApi.move(inCellar as never, rackIn(dampCellar) as never, 'on');
+    ContainmentApi.move(inLoft as never, rackIn(dryLoft) as never, Placement.ON);
+    ContainmentApi.move(inCellar as never, rackIn(dampCellar) as never, Placement.ON);
     setNow(0);
     void inLoft.getWaterState();
     void inCellar.getWaterState();
@@ -400,7 +401,7 @@ describe('MoistureMixin — the water state a treatment changes', () => {
     const yard = room(35, 4);
     const racked = food(material(MEAT_EA));
     const dropped = food(material(MEAT_EA));
-    ContainmentApi.move(racked as never, rackIn(yard) as never, 'on');
+    ContainmentApi.move(racked as never, rackIn(yard) as never, Placement.ON);
     ContainmentApi.move(dropped as never, yard as never);
     setNow(0);
     void racked.getWaterState();
@@ -424,8 +425,8 @@ describe('MoistureMixin — the water state a treatment changes', () => {
     const shed = room(35, 4);
     const airy = food(material(MEAT_EA));
     const stifled = food(material(MEAT_EA));
-    ContainmentApi.move(airy as never, rackIn(shed, 1) as never, 'on');
-    ContainmentApi.move(stifled as never, rackIn(shed, 0.2) as never, 'on');
+    ContainmentApi.move(airy as never, rackIn(shed, 1) as never, Placement.ON);
+    ContainmentApi.move(stifled as never, rackIn(shed, 0.2) as never, Placement.ON);
     setNow(0);
     void airy.getWaterState();
     void stifled.getWaterState();

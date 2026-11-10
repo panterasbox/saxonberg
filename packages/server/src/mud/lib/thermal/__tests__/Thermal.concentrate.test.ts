@@ -33,6 +33,7 @@ import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { Placement } from '../../spatial/Placement';
 
 class TestArch extends BurnerMixin(
   LightSourceMixin(ReservedMixin(PlacingMixin(ThermalMixin(Good)))),
@@ -119,7 +120,7 @@ async function copperOf(f: TestArch, mat: string, litres: number, band = 'fine')
   c.setGrade(Grade.of(band));
   c.setStampedTemperatureK(373);
   c.setLastAmbientK(373);
-  await ContainmentApi.move(c, f, 'on');
+  await ContainmentApi.move(c, f, Placement.ON);
   await c.restamp();
   c.reconcileThermal();
   return c;

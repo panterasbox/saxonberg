@@ -53,6 +53,7 @@ import {
   MqlSubscriptionApi,
   type SubscribableFieldDescriptor,
 } from '../../api/mql-subscription';
+import { Placement } from './Placement';
 
 /**
  * Public shape provided by ContainableMixin.
@@ -230,7 +231,8 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
         name: 'placement',
         read: (stuff) => {
           const p = (stuff as Stuff & Containable).getPlacement();
-          return p ? p.name : undefined;
+          // The wire is shown the placement's own word (its path's leaf).
+          return p ? p.name.slice(p.name.lastIndexOf('/') + 1) : undefined;
         },
       },
     ];
@@ -401,21 +403,20 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     getPlacement(): { host: Stuff & Placing; name: string } | null {
       const host = this._placementHost;
       if (!host) return null;
-      return { host, name: this._placementName || 'on' };
+      return { host, name: this._placementName || Placement.ON };
     }
 
     /**
      * See the interface docstring. Whether a member encloses is the
      * member's own claim, carried on its `Placement` row — so a pack
-     * that ships an enclosing member gets this read for free, and a
-     * cold catalogue degrades to the container, which is the answer
-     * the model gave before the relation had a name.
+     * that ships an enclosing member gets this read for free. The
+     * placement is resident whenever the placed thing is (D7).
      */
     getEnclosingScope(): Stuff | null {
       const placement = this.getPlacement();
       if (placement !== null) {
-        const member = ContainmentApi.placement(placement.name);
-        if (member?.getEncloses() === true) {
+        // Resident with the host and with the restored thing (documents D7).
+        if (Placement.need(placement.name).getEncloses()) {
           return placement.host as unknown as Stuff;
         }
       }
@@ -434,7 +435,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     @Unshadowable
     _setPlacement(host: (Stuff & Placing) | null, name?: string): void {
       this._placementHost = host;
-      this._placementName = host ? (name ?? 'on') : '';
+      this._placementName = host ? (name ?? Placement.ON) : '';
     }
   }
   return ContainableMixin;

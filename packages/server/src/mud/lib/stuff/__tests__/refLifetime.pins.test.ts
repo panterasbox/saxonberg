@@ -68,6 +68,7 @@ import { makeStuff,
 } from '../../security/__tests__/test-setup';
 import { cart, haulingBearer } from '../../slot/__tests__/haulage-fixtures';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { Placement } from '../../spatial/Placement';
 
 // ── Fixtures ────────────────────────────────────────────────────────
 
@@ -134,7 +135,7 @@ describe('reference-lifetime pins', () => {
       const mug = makeStuff(() => new Thing());
       ContainmentApi.move(desk, room);
       ContainmentApi.move(mug, room);
-      ContainmentApi.move(mug, desk, 'on');
+      ContainmentApi.move(mug, desk, Placement.ON);
       expect((mug.getPlacement()?.host ?? null)).toBe(desk);
 
       StuffApi.destruct(desk);

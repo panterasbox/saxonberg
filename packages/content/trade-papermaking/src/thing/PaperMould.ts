@@ -15,6 +15,7 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import Sheet from '@saxonberg/server/mud/platform/thing/Sheet';
+import { Placement } from '@saxonberg/server/mud/lib/spatial/Placement';
 
 const COUCH = ['trade/papermaking/cmd/papermaking/couch.yaml'];
 
@@ -31,7 +32,7 @@ export default class PaperMould extends PlacingMixin(Good) {
 
   /** The wet sheet on the wire, or `null`. */
   public sheetOnWire(): Sheet | null {
-    return (this.getPlaced('on').find((s) => s instanceof Sheet) as Sheet | undefined) ?? null;
+    return (this.getPlaced(Placement.ON).find((s) => s instanceof Sheet) as Sheet | undefined) ?? null;
   }
 
   /**
@@ -48,7 +49,7 @@ export default class PaperMould extends PlacingMixin(Good) {
     if (!MixinApi.isPlacing(post)) {
       return { ok: false, reason: 'not-a-post', line: `You cannot couch a sheet onto ${post.getPresentation()}.` };
     }
-    ContainmentApi.move(sheet, post, 'on');
+    ContainmentApi.move(sheet, post, Placement.ON);
     return { ok: true, line: `You turn ${self.getPresentation()} over onto ${post.getPresentation()} and press it down; the wet sheet lets go of the wire.`, sheet };
   }
 }

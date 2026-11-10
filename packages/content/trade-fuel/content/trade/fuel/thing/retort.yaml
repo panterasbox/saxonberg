@@ -27,7 +27,7 @@ data:
   _materialPath: /stuff/idea/material/ceramic/refractory
   mass: 2200
   fixedInPlace: true
-  placements: [on]
+  placements: [/platform/placements/on]
   # ⚠ Hot enough to coke coal (1100 K) with a margin, which is what makes
   # the coal firing possible at all — and reachable only with a charge of
   # charcoal or coke in the firebox, because oak's flame tops out near

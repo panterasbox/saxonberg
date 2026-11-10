@@ -10,8 +10,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ContainableMixin } from '../Containable';
 import { ContainerMixin } from '../Container';
 import { PlacingMixin } from '../Placing';
-import Placement from '../../../platform/idea/Placement';
-import PlacementCatalogue from '../../../platform/idea/PlacementCatalogue';
 import { Template } from '../../stuff/Template';
 import { SingletonMixin } from '../../stuff/Singleton';
 import { ContainmentApi } from '../../../api/containment';
@@ -23,6 +21,8 @@ import {
 } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
 import type { FieldMeta } from '../../mixin';
+import { Placement } from '../Placement';
+import { DocumentApi } from '../../../api/document';
 
 // Concrete test environment class — needs ContainerMixin to be an environment
 class ConcreteStuff extends ContainerMixin(Idea) {
@@ -132,13 +132,13 @@ describe('ContainableMixin.placement', () => {
   });
 
   it('place sets the pair AND moves into the host\'s environment', () => {
-    ContainmentApi.move(item, surface, 'on');
+    ContainmentApi.move(item, surface, Placement.ON);
     expect(item.getContainer()).toBe(room);
     expect((item.getPlacement()?.host ?? null)).toBe(surface);
   });
 
   it('move() to a different container clears the placement', () => {
-    ContainmentApi.move(item, surface, 'on');
+    ContainmentApi.move(item, surface, Placement.ON);
     expect((item.getPlacement()?.host ?? null)).toBe(surface);
     const elsewhere = makeStuff(() => new ConcreteStuff());
     ContainmentApi.move(item, elsewhere);
@@ -152,16 +152,16 @@ describe('ContainableMixin.placement', () => {
       '/test/other-surface',
     );
     ContainmentApi.move(otherSurface, room);
-    ContainmentApi.move(item, surface, 'on');
+    ContainmentApi.move(item, surface, Placement.ON);
     expect((item.getPlacement()?.host ?? null)).toBe(surface);
     expect(item.getContainer()).toBe(room);
-    ContainmentApi.move(item, otherSurface, 'on');
+    ContainmentApi.move(item, otherSurface, Placement.ON);
     expect((item.getPlacement()?.host ?? null)).toBe(otherSurface);
     expect(item.getContainer()).toBe(room);
   });
 
   it('_setPlacement(null) clears the pair', () => {
-    ContainmentApi.move(item, surface, 'on');
+    ContainmentApi.move(item, surface, Placement.ON);
     expect((item.getPlacement()?.host ?? null)).toBe(surface);
     // Direct _setPlacement(null) is gated by ContainmentApi — invoke
     // through ContainmentApi.move(item, null) and check both fields
@@ -178,7 +178,7 @@ describe('ContainableMixin.placement', () => {
     expect(() => {
       (item as unknown as {
         _setPlacement(h: unknown, n?: string): void;
-      })._setPlacement(surface, 'on');
+      })._setPlacement(surface, Placement.ON);
     }).toThrow();
   });
 });
@@ -204,32 +204,8 @@ describe('ContainableMixin.getEnclosingScope', () => {
   let host: TestSurface;
 
   async function warmMembers(): Promise<void> {
-    const rows = [
-      { name: 'on', prepositions: ['on'], encloses: false },
-      { name: 'in', prepositions: ['in'], encloses: true },
-    ];
-    vi.spyOn(Template, 'findByPathInfix').mockResolvedValue(
-      rows.map((r) => ({
-        path: `/platform/idea/Placement/${r.name}`,
-        class: '/platform/idea/Placement',
-      })) as unknown as Template[],
-    );
-    vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(
-      Placement as unknown as never,
-    );
-    vi.spyOn(StuffApi, 'singleton').mockImplementation(async (path: string) => {
-      const row = rows.find((r) => path.endsWith(`/${r.name}`))!;
-      const m = makeStuff(() => new Placement());
-      m.name = row.name;
-      m.prepositions = row.prepositions;
-      m.encloses = row.encloses;
-      return m as never;
-    });
-    const catalogue = makeStuffAtPath(
-      () => new PlacementCatalogue(),
-      '/platform/idea/PlacementCatalogue',
-    );
-    await catalogue.warm();
+    // The kernel's ways of sitting are resident — the test bootstrap stands
+    // in for every place's onCreate (documents D7).
   }
 
   beforeEach(async () => {
@@ -253,26 +229,25 @@ describe('ContainableMixin.getEnclosingScope', () => {
   });
 
   it('a NON-enclosing member: still the container — a desk encloses nothing', () => {
-    host.setPlacements(['on']);
-    ContainmentApi.move(item, host, 'on');
+    host.setPlacements([Placement.ON]);
+    ContainmentApi.move(item, host, Placement.ON);
     expect(item.getEnclosingScope()).toBe(room);
   });
 
   it('⭐ an ENCLOSING member: the HOST — a region with its own air', () => {
-    host.setPlacements(['in']);
-    ContainmentApi.move(item, host, 'in');
+    host.setPlacements([Placement.IN]);
+    ContainmentApi.move(item, host, Placement.IN);
     expect(item.getEnclosingScope()).toBe(host);
   });
 
-  it('a member with no live row reads as non-enclosing, not as broken', async () => {
-    host.setPlacements(['sideways']);
-    ContainmentApi.move(item, host, 'sideways');
-    expect(item.getEnclosingScope()).toBe(room);
+  it('⚠ a host naming a placement no pack ships fails at the setter, naming it', async () => {
+    vi.spyOn(DocumentApi, 'read').mockResolvedValue(null);
+    await expect(host.setPlacements(['/t/placements/sideways'])).rejects.toThrow(/sideways/);
   });
 
   it('⚠ a destructed host heals to the container, whatever the name said', () => {
-    host.setPlacements(['in']);
-    ContainmentApi.move(item, host, 'in');
+    host.setPlacements([Placement.IN]);
+    ContainmentApi.move(item, host, Placement.IN);
     expect(item.getEnclosingScope()).toBe(host);
     StuffApi.destruct(host);
     expect(item.getPlacement()).toBeNull();

@@ -68,7 +68,9 @@ export const CENSUS_AT_LANDING = { entries: 128, uncited: 71 };
  * archetype and blueprint dictionaries load on first use through
  * `StuffApi.singleton` (whose `onCreate` warms them), never at boot.
  */
-export const BOOT_ENTRY_CEILING = 82;
+/* 82 → 81 (documents W4): the placement catalogue is gone — a host's
+ * placements load with it, the kernel's three with every place. */
+export const BOOT_ENTRY_CEILING = 81;
 
 /**
  * ⭐ Content entries whose reason does not cite the unobserved economy —

@@ -1148,6 +1148,8 @@ const DOCUMENT_PATH_FIELDS: Readonly<Record<string, string>> = {
   forms: 'forms',
   // A help concept's further reading (`/trade/farming/concepts/nitrogen`).
   seeAlso: 'concepts',
+  // A host's ways of sitting (`/platform/placements/from`).
+  placements: 'placements',
 };
 
 /** Every document path a pack ships under `contentDir`: its root + the dir + the file. */

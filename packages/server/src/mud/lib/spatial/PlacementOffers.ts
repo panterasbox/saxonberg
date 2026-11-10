@@ -16,6 +16,7 @@
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
+import { Placement } from './Placement';
 
 /** One way a host offers to be put into or onto. */
 export interface PlacementOffer {
@@ -50,17 +51,12 @@ export class PlacementOffers {
     // lid: a SHUT chest offers region zero and refuses at the verb with a
     // reason, which is a better sentence than pretending it has no inside.
     if (MixinApi.isContainer(host) && !host.isAgent()) {
-      const member = ContainmentApi.placement('in');
-      offers.push({ kind: 'zero', name: 'in', words: member?.getPrepositions() ?? ['in'] });
+      offers.push({ kind: 'zero', name: Placement.IN, words: Placement.need(Placement.IN).getPrepositions() });
     }
     if (MixinApi.isPlacing(host)) {
       for (const name of host.getPlacements()) {
-        // ⚠ A member with no live row still gets offered, answering to
-        // its own name. Dropping it would make a cold catalogue — or a
-        // host naming a member no installed pack ships — silently
-        // unaddressable.
-        const words = ContainmentApi.placement(name)?.getPrepositions() ?? [];
-        offers.push({ kind: 'placement', name, words: words.length > 0 ? words : [name] });
+        // Resident with the host (documents D7): a miss throws by path.
+        offers.push({ kind: 'placement', name, words: Placement.need(name).getPrepositions() });
       }
     }
     this.offers = offers;
@@ -73,7 +69,7 @@ export class PlacementOffers {
    */
   admitsSlot(word: string | undefined): boolean {
     if (word === undefined) return true;
-    const zero = this.offers.find((o) => o.kind === 'zero')?.words ?? ['in'];
+    const zero = this.offers.find((o) => o.kind === 'zero')?.words ?? Placement.need(Placement.IN).getPrepositions();
     return zero.includes(word);
   }
 

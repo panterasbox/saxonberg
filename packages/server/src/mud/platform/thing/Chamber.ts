@@ -42,6 +42,7 @@ import { PlacingMixin } from '../../lib/spatial/Placing';
 import { AtmosphericMixin } from '../../lib/biome/Atmospheric';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { FieldMeta } from '../../lib/mixin';
+import { Placement } from '../../lib/spatial/Placement';
 
 const ChamberBase = AtmosphericMixin(PlacingMixin(ThingBase));
 
@@ -49,7 +50,7 @@ export default class Chamber extends ChamberBase {
   static fieldMeta: FieldMeta = {};
 
   /** A chamber's one way of holding a thing is having it inside. */
-  public placements: string[] = ['in'];
+  public placements: string[] = [Placement.IN];
 
   constructor() {
     super();
@@ -61,6 +62,6 @@ export default class Chamber extends ChamberBase {
    * docstring — this is the whole of the Atmospheric seam's override.
    */
   protected override occupants(): readonly Stuff[] {
-    return this.getPlaced('in');
+    return this.getPlaced(Placement.IN);
   }
 }
