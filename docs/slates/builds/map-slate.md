@@ -699,6 +699,23 @@ cannot share one, which bounds how many are on at once without a rule.
 - **A suggested lens for the situation** — in a mine, air; carrying ore,
   where to sell it; on a contract, its destination; in the dark, light.
 
+**Freshness — how old your knowledge is** **[LEAN, 2026-11-10]**. The
+raw fact exists: every claim carries `firstSeen` / `lastSeen`. What is not
+codified is the scale, and it should not be one age threshold:
+
+- **A staged place has an exact answer** — *has it been restaged since you
+  last saw it?* If so, what you saw inside is stale. A fact, not a guess,
+  once staging records its cadence
+  ([staging-slate](./staging-slate.md)).
+- **A persistent place** has only age: a few bands (*seen today · this
+  week · long ago*) on the **game clock**, never real time.
+- ⭐ **Shape and contents age differently.** Rooms and exits rarely change;
+  what is in a room changes fast. Freshness may be two readings: *is my map
+  of the shape still good* and *can I count on what I saw inside*.
+- Not the same as the location-graph rot rule (a claim older than your
+  latest look at its place reads *not seen when you last looked*) — that is
+  CONFLICT, not age.
+
 **Priority: getting around first** (the owner). The first lenses are the
 ones about moving: the frontier (openings not taken), your trail, your
 active route and its weakest assumption, ways and their refusals,
@@ -764,6 +781,26 @@ few new knowledge records. ⭐ And the landing is a pattern, not a one-off
 — structure faces, forage radii, haulage lanes, fishing reaches and
 parcel lines are geometry the simulation computes and the player never
 sees; the map is where it shows.
+
+### The minimap's look — house style **[DECIDED, 2026-11-10]**
+
+The minimap draws in the client's **house style**. Map styles as options
+(a style that ships with a bought map, say) can come later as content. ⭐ The
+**illustrated maps** usually want the parchment treatment — and keeping the
+minimap in house style is what makes the two read as different kinds of
+thing at a glance: your exact, live knowledge of the zone, versus
+somebody's drawing of the wider world.
+
+### A click on a distant room **[OPEN]**
+
+What the map's click does beyond a neighbor is open, and argued in
+[step-beat-slate](./step-beat-slate.md): the scripted model (steps at
+command speed) against a sustained transit (the shipped Journey,
+[logistics.md](../../subsystems/logistics.md)); the owner's standing *no
+imposed net lag*; and the lean that movement is **mode + where** — the click
+runs your default pace toward a place. ⭐ The leverage is the client's:
+whatever the click does becomes what most players do, so it must be the
+engine's honest movement, not a client-side loop.
 
 ### Still open
 
