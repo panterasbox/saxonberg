@@ -71,7 +71,12 @@ import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { FireLogic } from '../../platform/idea/api/FireLogic';
 import type { IgniteOutcome } from '../../api/fire';
 import type { ActDone, ActOutcome, ActPlan, ActRefusal } from '../craft/ActPlan';
-import type { IgnitePlan, ExtinguishPlan } from './Combustible';
+import type {
+  IgnitePlan,
+  ExtinguishPlan,
+  IgniteRefusal,
+  ExtinguishRefusal,
+} from './Combustible';
 
 /** Resolve the HMR-able FireLogic singleton (the combustion driver). */
 function burnerFireLogic(): FireLogic {
@@ -1651,7 +1656,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public async ignitePlanFor(by: Stuff): Promise<IgnitePlan> {
-      return this.instantFirePlan(async () => {
+      return this.instantFirePlan<IgniteRefusal>(async () => {
         const out = this.ignite();
         if (!out.lit) return { ok: false, reason: out.reason ?? 'not-flammable' };
         await this.onFireStart(by);
@@ -1663,7 +1668,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       // Read now as well as at completion (the fire may have gone out
       // between): a fire that is out is not doused.
       const burning = this.isLit();
-      return this.instantFirePlan(() =>
+      return this.instantFirePlan<ExtinguishRefusal>(() =>
         burning && this.douse() ? { ok: true, facts: undefined } : { ok: false, reason: 'not-burning' },
       );
     }

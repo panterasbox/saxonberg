@@ -9,7 +9,7 @@ import { TemplatePaths } from '../../../lib/paths';
 import type { Emote } from '../../../lib/social/Emote';
 import type { EmoteCatalogueEntry } from '@saxonberg/types';
 import type SoulCatalogue from '../SoulCatalogue';
-import type { EmoteSpec } from '../SoulCatalogue';
+import type { EmotePatch, EmoteSpec } from '../SoulCatalogue';
 
 const CATALOGUE_PATH = TemplatePaths.soulCatalogue;
 
@@ -69,7 +69,7 @@ export class SoulLogic extends ApiLogic {
 
   /** See {@link SoulApi.edit}. */
   @CallSecurity(SoulApiCallers)
-  public async edit(verb: string, patch: Partial<EmoteSpec>): Promise<Emote> {
+  public async edit(verb: string, patch: EmotePatch): Promise<Emote> {
     return (await requireCatalogue()).edit(verb, patch);
   }
 

@@ -342,7 +342,7 @@ export function CombustibleMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public async ignitePlanFor(_by: Stuff): Promise<IgnitePlan> {
-      return this.instantFirePlan(() => {
+      return this.instantFirePlan<IgniteRefusal>(() => {
         const out = this.ignite();
         return out.lit
           ? { ok: true, facts: undefined }
@@ -354,7 +354,7 @@ export function CombustibleMixin<TBase extends MixinConstructor<Stuff>>(
       // Read now as well as at completion (the fire may have gone out
       // between): a fire that is out is not doused.
       const burning = this.isBurning();
-      return this.instantFirePlan(() =>
+      return this.instantFirePlan<ExtinguishRefusal>(() =>
         burning && this.douse() ? { ok: true, facts: undefined } : { ok: false, reason: 'not-burning' },
       );
     }
