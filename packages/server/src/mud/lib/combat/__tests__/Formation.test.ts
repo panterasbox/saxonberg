@@ -10,8 +10,9 @@ import { describe, it, expect } from "vitest";
 import { readdirSync, readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { parse } from "yaml";
-import { Formation, DEFAULT_FORMATION_PATH } from "../Formation";
+import { DEFAULT_FORMATION_PATH, DEFAULT_FORMATION_POLICY } from "../Formation";
 import { DocumentNotResidentError } from "../../errors";
+import { PartyApi } from "../../../api/party";
 
 const DIR = fileURLToPath(
   new URL("../../../../../../content/platform/content/formations/", import.meta.url),
@@ -19,15 +20,15 @@ const DIR = fileURLToPath(
 
 describe("Formation — the documents", () => {
   it("rejects out-of-vocabulary tokens and malformed role lists", () => {
-    expect(() => Formation.fromData({ allocation: "scatter" }, "/t/formations/x")).toThrow(/allocation/);
-    expect(() => Formation.fromData({ interceptTrigger: "sometimes" }, "/t/formations/x")).toThrow(/interceptTrigger/);
-    expect(() => Formation.fromData({ coupCall: "anyone" }, "/t/formations/x")).toThrow(/coupCall/);
-    expect(() => Formation.fromData({ roles: ["a", "a"] }, "/t/formations/x")).toThrow(/duplicate/);
-    expect(() => Formation.fromData({ roles: [""] }, "/t/formations/x")).toThrow(/non-empty/);
+    expect(() => PartyApi.formations().parse({ allocation: "scatter" }, "/t/formations/x")).toThrow(/allocation/);
+    expect(() => PartyApi.formations().parse({ interceptTrigger: "sometimes" }, "/t/formations/x")).toThrow(/interceptTrigger/);
+    expect(() => PartyApi.formations().parse({ coupCall: "anyone" }, "/t/formations/x")).toThrow(/coupCall/);
+    expect(() => PartyApi.formations().parse({ roles: ["a", "a"] }, "/t/formations/x")).toThrow(/duplicate/);
+    expect(() => PartyApi.formations().parse({ roles: [""] }, "/t/formations/x")).toThrow(/non-empty/);
   });
 
   it("a policy is frozen, and named by its path's leaf", () => {
-    const p = Formation.fromData({ roles: ["front"] }, "/t/formations/wall");
+    const p = PartyApi.formations().parse({ roles: ["front"] }, "/t/formations/wall");
     expect(p.name).toBe("wall");
     expect(Object.isFrozen(p)).toBe(true);
     expect(Object.isFrozen(p.roles)).toBe(true);
@@ -35,7 +36,7 @@ describe("Formation — the documents", () => {
 
   it("⭐ DEFAULT_POLICY is value-equal to the shipped default preset", () => {
     const data = parse(readFileSync(DIR + "default.yaml", "utf8")) as Record<string, unknown>;
-    expect(Formation.fromData(data, DEFAULT_FORMATION_PATH)).toEqual(Formation.DEFAULT_POLICY);
+    expect(PartyApi.formations().parse(data, DEFAULT_FORMATION_PATH)).toEqual(DEFAULT_FORMATION_POLICY);
   });
 
   it("every shipped preset reads into its policy", () => {
@@ -43,18 +44,18 @@ describe("Formation — the documents", () => {
     expect(files.length).toBeGreaterThanOrEqual(4);
     for (const file of files) {
       const data = parse(readFileSync(DIR + file, "utf8")) as Record<string, unknown>;
-      const p = Formation.fromData(data, `/platform/formations/${file.slice(0, -5)}`);
+      const p = PartyApi.formations().parse(data, `/platform/formations/${file.slice(0, -5)}`);
       expect(p.allocation).toBe(data.allocation);
       expect(p.roles).toEqual(data.roles ?? []);
     }
   });
 
   it("a sync read of a formation nothing loaded throws DocumentNotResidentError", () => {
-    expect(() => Formation.need("/t/formations/never")).toThrow(DocumentNotResidentError);
+    expect(() => PartyApi.formations().need("/t/formations/never")).toThrow(DocumentNotResidentError);
   });
 
   it("a captain's word finds a resident formation with no store read", async () => {
     // The test bootstrap keeps the kernel's formations resident, as a party's onCreate would.
-    expect(await Formation.pathOfWord("vanguard")).toBe("/platform/formations/vanguard");
+    expect(await PartyApi.formations().pathOfWord("vanguard")).toBe("/platform/formations/vanguard");
   });
 });

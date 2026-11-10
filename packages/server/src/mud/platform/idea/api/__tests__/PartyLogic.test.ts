@@ -18,7 +18,7 @@ import { Idea } from "../../../../lib/stuff/Idea";
 import { StuffApi } from "../../../../api/stuff";
 import { PartyApi, DEFAULT_FORMATION_PATH } from "../../../../api/party";
 import { ChatApi } from "../../../../api/chat";
-import { Formation, type FormationPolicy } from "../../../../lib/combat/Formation";
+import { type FormationPolicy } from "../../../../lib/combat/Formation";
 import { PartyMemberMixin } from "../../../../lib/party/PartyMember";
 import { AdvancementMixin } from '../../../../lib/advancement/Advancement';
 import { Party } from "../../Party";
@@ -173,7 +173,7 @@ describe("PartyApi — lifecycle", () => {
  * short-circuits to a live instance, so no template DB is needed). */
 function residentFormation(name: string, roles: string[]): FormationPolicy {
   const path = `/platform/formations/${name}`;
-  return Formation.remember(path, Formation.fromData({ roles }, path));
+  return PartyApi.formations().remember(path, PartyApi.formations().parse({ roles }, path));
 }
 
 describe("PartyApi — formation resolution (the total chain)", () => {

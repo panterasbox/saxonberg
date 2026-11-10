@@ -44,6 +44,7 @@ import { PartyRecord } from "../../lib/party/PartyRecord";
 import { Formation } from "../../lib/combat/Formation";
 import type { PartyMember } from "../../lib/party/PartyMember";
 import type { FieldMeta } from "../../lib/mixin";
+import { PartyApi } from "../../api/party";
 
 /**
  * The party's own mutation surface: the party acting on itself (its
@@ -281,7 +282,7 @@ export class Party extends Idea {
    */
   @CallSecurity(PartySurface)
   setFormationPath(path: string): void {
-    if (path) Formation.need(path);
+    if (path) PartyApi.formations().need(path);
     this.formationPath = path;
   }
 

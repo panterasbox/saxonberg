@@ -12,10 +12,10 @@ import { ChatApi } from "../../../api/chat";
 import { StuffApi } from "../../../api/stuff";
 import { SecurityApi } from "../../../api/security";
 import { Party, DEFAULT_FORMATION_PATH } from "../Party";
-import { Formation } from "../../../lib/combat/Formation";
 import { PartyRecord } from "../../../lib/party/PartyRecord";
 import { PartyGroupProvider } from "../../../lib/party/PartyGroupProvider";
 import type { PartyOpResult, PartySimpleResult } from "../../../api/party";
+import { PartyApi } from "../../../api/party";
 
 const PartyApiCallers = SecurityPolicies.FromModule("/api/party#PartyApi");
 /** The F3 member face (PartyMember hosts) forwards here as the member. */
@@ -227,7 +227,7 @@ async function materializeParty(rec: PartyRecord): Promise<Party> {
     { asIdentityPath: rec.path },
   );
   // The party's formation loads with it (documents D7).
-  if (rec.formationPath) await Formation.ensure(rec.formationPath);
+  if (rec.formationPath) await PartyApi.formations().ensure(rec.formationPath);
   party.applyRecord(rec);
   return party;
 }
@@ -320,7 +320,7 @@ function isCaptainImpl(combatant: Stuff): boolean {
  * module never imports `lib/combat` (the one-way combat→party dep). */
 function formationRolesAt(path: string): readonly string[] {
   // Resident with the party (documents D7).
-  return Formation.need(path).roles;
+  return PartyApi.formations().need(path).roles;
 }
 
 async function partiesOfImpl(memberId: string): Promise<readonly Party[]> {
@@ -576,7 +576,7 @@ async function setFormationImpl(
   // ⭐ The captain's word names a formation document (a typed word, unique
   // at install); resolving it loads it, so a mid-fight switch is live by
   // its next beat (the beat's consult is a sync read).
-  const path = await Formation.pathOfWord(trimmed);
+  const path = await PartyApi.formations().pathOfWord(trimmed);
   if (!path) return { ok: false, reason: "unknown-formation" };
   party.setFormationPath(path);
   await persistParty(party);

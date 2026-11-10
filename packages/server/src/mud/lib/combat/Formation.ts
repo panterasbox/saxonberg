@@ -12,13 +12,12 @@
  * live only when that formation is (documents D7): the formation setter
  * asserts it resident, the party's restore loads it, and `party adopt <word>`
  * resolves the word to a document in the act. A combatant with no party, or
- * a party that never chose, fights by {@link Formation.DEFAULT_POLICY},
+ * a party that never chose, fights by {@link DEFAULT_FORMATION_POLICY},
  * value-equal to the shipped `default`.
  *
  * **Roles are sets, not seats** — see docs/subsystems/combat-formations.md.
  */
 
-import { DocumentCache } from "../document/DocumentCache";
 
 /** How a member under this formation picks its exchange target. */
 export type AllocationKind = 'sustain' | 'called' | 'primary';
@@ -32,17 +31,17 @@ export type InterceptTrigger = 'none' | 'any' | 'high-threat';
  * the party captain (a hierarchical formation's command call). */
 export type CoupCall = 'engaged' | 'captain';
 
-const ALLOCATION_KINDS: readonly AllocationKind[] = [
+export const ALLOCATION_KINDS: readonly AllocationKind[] = [
   'sustain',
   'called',
   'primary',
 ];
-const INTERCEPT_TRIGGERS: readonly InterceptTrigger[] = [
+export const INTERCEPT_TRIGGERS: readonly InterceptTrigger[] = [
   'none',
   'any',
   'high-threat',
 ];
-const COUP_CALLS: readonly CoupCall[] = ['engaged', 'captain'];
+export const COUP_CALLS: readonly CoupCall[] = ['engaged', 'captain'];
 
 /**
  * The frozen policy value the combat interpreter consumes each beat —
@@ -74,90 +73,18 @@ export interface FormationPolicy {
 export const DEFAULT_FORMATION_PATH = '/platform/formations/default';
 
 /**
- * The formation documents, by path — see the module header.
- *
- * @internal combat's and the party's; a captain names a formation by its word.
+ * The built-in policy of a combatant with no party (or a party that never
+ * chose) — value-equal to the shipped `default` preset (a test pins the
+ * equivalence). Sustained allocation, no interception, engaged coup.
  */
-export class Formation {
-  /**
-   * The built-in policy of a combatant with no party — value-equal to the
-   * shipped `default` preset (a test pins the equivalence). Sustained
-   * allocation, no interception, engaged coup.
-   */
-  static readonly DEFAULT_POLICY: FormationPolicy = Object.freeze({
-    name: 'default',
-    roles: Object.freeze([]) as readonly string[],
-    allocation: 'sustain',
-    primaryRole: '',
-    protectsRoles: Object.freeze([]) as readonly string[],
-    interceptorRoles: Object.freeze([]) as readonly string[],
-    interceptTrigger: 'none',
-    coupRight: 'engaged',
-    coupCall: 'engaged',
+export const DEFAULT_FORMATION_POLICY: FormationPolicy = Object.freeze({
+  name: 'default',
+  roles: Object.freeze([]) as readonly string[],
+  allocation: 'sustain',
+  primaryRole: '',
+  protectsRoles: Object.freeze([]) as readonly string[],
+  interceptorRoles: Object.freeze([]) as readonly string[],
+  interceptTrigger: 'none',
+  coupRight: 'engaged',
+  coupCall: 'engaged',
   });
-
-  private static memo: DocumentCache<FormationPolicy> | null = null;
-  private static get cache(): DocumentCache<FormationPolicy> {
-    // Built on first use: a static built at module load races an import
-    // cycle through the document store.
-    return (Formation.memo ??= new DocumentCache<FormationPolicy>('formation', (doc) =>
-      Formation.fromData(doc.getData(), doc.getPath()),
-    ));
-  }
-
-  /** Validate a formation document at `path` into its frozen policy (the installer's validator too). */
-  public static fromData(data: Record<string, unknown>, path: string): FormationPolicy {
-    const fail = (why: string): never => {
-      throw new TypeError(`formation '${path}': ${why}`);
-    };
-    const list = (v: unknown, field: string): readonly string[] => {
-      const arr = Array.isArray(v) ? v : [];
-      const seen = new Set<string>();
-      for (const x of arr) {
-        if (typeof x !== 'string' || x.length === 0) fail(`${field} entries must be non-empty strings`);
-        if (seen.has(x as string)) fail(`${field} has a duplicate entry '${String(x)}'`);
-        seen.add(x as string);
-      }
-      return Object.freeze([...(arr as string[])]);
-    };
-    const allocation = (data.allocation ?? 'sustain') as AllocationKind;
-    if (!ALLOCATION_KINDS.includes(allocation)) fail(`allocation '${String(allocation)}' is not one of ${ALLOCATION_KINDS.join(', ')}`);
-    const interceptTrigger = (data.interceptTrigger ?? 'none') as InterceptTrigger;
-    if (!INTERCEPT_TRIGGERS.includes(interceptTrigger)) fail(`interceptTrigger '${String(interceptTrigger)}' is not one of ${INTERCEPT_TRIGGERS.join(', ')}`);
-    const coupCall = (data.coupCall ?? 'engaged') as CoupCall;
-    if (!COUP_CALLS.includes(coupCall)) fail(`coupCall '${String(coupCall)}' is not one of ${COUP_CALLS.join(', ')}`);
-    const coupRight = typeof data.coupRight === 'string' && data.coupRight ? data.coupRight : 'engaged';
-    return Object.freeze({
-      name: path.slice(path.lastIndexOf('/') + 1),
-      roles: list(data.roles, 'roles'),
-      allocation,
-      primaryRole: typeof data.primaryRole === 'string' ? data.primaryRole : '',
-      protectsRoles: list(data.protectsRoles, 'protectsRoles'),
-      interceptorRoles: list(data.interceptorRoles, 'interceptorRoles'),
-      interceptTrigger,
-      coupRight,
-      coupCall,
-    });
-  }
-
-  /** The formation at `path`, read if it is not resident; throws naming a path with none. */
-  public static ensure(path: string): Promise<FormationPolicy> {
-    return Formation.cache.ensure(path);
-  }
-
-  /** The resident formation at `path`; `DocumentNotResidentError` if the party never loaded it. */
-  public static need(path: string): FormationPolicy {
-    return Formation.cache.need(path);
-  }
-
-  /** The PATH of the formation a captain's typed word names, or `null` (and it is then resident). */
-  public static async pathOfWord(word: string): Promise<string | null> {
-    const hits = await Formation.cache.byWord(word);
-    return hits[0]?.path ?? null;
-  }
-
-  /** Keep a formation (a unit fixture with no store behind it). */
-  public static remember(path: string, p: FormationPolicy): FormationPolicy {
-    return Formation.cache.remember(path, p);
-  }
-}

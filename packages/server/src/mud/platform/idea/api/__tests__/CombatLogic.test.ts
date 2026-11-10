@@ -56,7 +56,7 @@ import { AccountabilityApi } from "../../../../api/accountability";
 import { COMBAT_COUP_TYPE } from "../../../../lib/combat/Coup";
 import { PartyMemberMixin } from "../../../../lib/party/PartyMember";
 import { Party } from "../../Party";
-import { Formation, type FormationPolicy } from "../../../../lib/combat/Formation";
+import { type FormationPolicy } from "../../../../lib/combat/Formation";
 import type { Channel } from "../../../../lib/material/Channel";
 import EventRegistry from "../../EventRegistry";
 import { EventApi } from "../../../../api/event";
@@ -1380,9 +1380,9 @@ const PRESETS: Record<
 function residentFormation(name: string): FormationPolicy {
   const spec = PRESETS[name]!;
   const path = `/platform/formations/${name}`;
-  return Formation.remember(
+  return PartyApi.formations().remember(
     path,
-    Formation.fromData(
+    PartyApi.formations().parse(
       {
         roles: [...spec.roles],
         allocation: spec.allocation,

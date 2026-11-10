@@ -52,7 +52,7 @@ import {
   type CombatantState,
   type CombatResolution,
 } from "../../../lib/combat/CombatSession";
-import { Formation, type FormationPolicy } from "../../../lib/combat/Formation";
+import { DEFAULT_FORMATION_POLICY, type FormationPolicy } from "../../../lib/combat/Formation";
 import {
   CombatHookContext,
   type CombatConsequence,
@@ -1376,7 +1376,7 @@ function safeSideOf(combatant: Stuff): string {
  * party's formation → the default preset path) → the resident Idea's
  * frozen `policy()`. When the party subsystem is unbooted or the Idea is
  * not resident (bare unit tests, cold boot), falls back to the built-in
- * `Formation.DEFAULT_POLICY` — value-equal to the seeded default,
+ * `DEFAULT_FORMATION_POLICY` — value-equal to the seeded default,
  * so the degenerate paths byte-preserve pre-formation combat (the
  * `safeSideOf` tolerance precedent). Deliberately NOT frozen at open
  * (unlike `side`): the per-beat re-read is what makes a mid-fight
@@ -1396,7 +1396,7 @@ function resolvePolicyFor(combatant: Stuff): FormationPolicy {
   // that adopted it, or the restore, loaded it) — a sync read that throws
   // if it is not, never a quiet default.
   const chosen = PartyApi.activePartyOf(combatant)?.getFormationPath() ?? '';
-  return chosen ? Formation.need(chosen) : Formation.DEFAULT_POLICY;
+  return chosen ? PartyApi.formations().need(chosen) : DEFAULT_FORMATION_POLICY;
 }
 
 /**
