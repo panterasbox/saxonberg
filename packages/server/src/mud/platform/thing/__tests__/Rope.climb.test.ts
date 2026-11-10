@@ -185,4 +185,16 @@ describe('the belay (D12)', () => {
     await rope.takeClimb(climber as unknown as Stuff);
     expect(climber.getContainer()).toBe(pit);
   });
+
+  it('⭐ `untie rope` takes it off the belay; the climber stays tied on (W7c)', async () => {
+    const { rigger, climber, line } = await belayed(null);
+    expect(line.getBelay()).not.toBeNull();
+    const off = await line.untieBy(rigger as unknown as Stuff);
+    expect(off.ok).toBe(true);
+    expect(line.getBelay()).toBeNull();
+    expect(line.getOnEnd()).toBe(climber);
+    // A second untie casts the climber off.
+    expect((await line.untieBy(rigger as unknown as Stuff)).ok).toBe(true);
+    expect(line.getOnEnd()).toBeNull();
+  });
 });

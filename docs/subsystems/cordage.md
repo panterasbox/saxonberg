@@ -42,7 +42,7 @@ Protocols (kernel, `lib/spatial/`): **`Tieable`** (`tieTo(by, load, knot)` /
 | `splice <rope> to <rope>` / `splice` at a pole | `platform/cmd/crafting/splice.yaml` | `Spliceable.spliceBy` |
 | `coil <rope>` | `platform/cmd/inventory/coil.yaml` | `Rope.coilPlan` |
 | `climb down` / `climb up` | `platform/cmd/movement/climb.yaml` | the enablement walk finds the rope / its end |
-| `belay <person> [with <rope>]`, `belay off` | `platform/cmd/movement/belay.yaml` | `Rope.belayFor` → `BelayEngagement` |
+| `belay <person> [with <rope>]`; off the belay = `untie <rope>` | `platform/cmd/movement/belay.yaml` | `Rope.belayFor` → `BelayEngagement`; `Rope.untieBy` ends it (climber stays tied) |
 | `twist <yarn | strands> [--yarns n] [--length m] [--mark c]` | `trade/cordage/cmd/cordage/twist.yaml` | `RopeJack.twistPlan` |
 | `turn jack` / `turn back jack` | the kernel `turn` (`TurnableMixin`) | `RopeJack.turnBy` → `WheelEngagement` |
 | `dip <rope> in <tar tub>` | the kernel `dip` | `GlazeTub` lays a pitch coat |

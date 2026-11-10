@@ -5,7 +5,7 @@
 verbs: [belay]
 category: movement
 controller: /platform/idea/cmd/movement/BelayController
-description: "Hold a rope for a climber — or `belay off`"
+description: "Hold a rope for a climber"
 help: |
   `tie rope to <climber>`, keep hold of your end, then `belay <climber>`:
   while you belay them, a fall they take on a rope at a drop is caught —
@@ -14,7 +14,8 @@ help: |
   alone holds little; three turns round a post in your room holds a horse.
   A climber tied on with a clove hitch is not held — it works loose.
 
-  `belay off` lets them go.
+  `untie rope` takes the rope off the belay (the climber stays tied on;
+  untie again to cast them off). ⚠ `belay off` is gone — it is `untie`.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

@@ -56,10 +56,13 @@ export type PostureRefusal =
  * `rest` — the host takes the body as it is (the body's `transferPosture`
  * is the act, and nothing has happened yet); `float` — the host is water
  * that will not hold you up, so lying on it is floating, and that is done
- * (`feetFirst` in moving water).
+ * (`feetFirst` in moving water); `held` — the host already holds the body
+ * in its slot (standing in the shallows), so only the posture changes
+ * (controller-liquidity W7c: `stand`).
  */
 export type PostureAnswer =
   | ActOutcome<{ as: 'rest' }>
+  | ActOutcome<{ as: 'held' }>
   | ActOutcome<{ as: 'float'; feetFirst: boolean }>
   | PostureRefusal;
 

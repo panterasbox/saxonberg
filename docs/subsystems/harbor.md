@@ -234,8 +234,9 @@ may still go ashore."* People are never gated.
 
 **`pay office`** (or `pay book`): both `HarborOffice` and `HarborBook`
 compose `Payable` (`lib/banking/Payable.ts`) and forward to
-`Harbor.billsFor`/`onPaid`. `pay <it>` with no amount pays every bill the
-thing holds for the payer, in order, each through
+`Harbor.billsFor`/`onPaid`. `pay <it>` with no amount asks the holder to pay
+(`Payable.payBillsBy`, controller-liquidity W7c — the verb words a closed
+`PayBillsRefusal`): every bill the thing holds for the payer, in order, each through
 `EmploymentApi.settleSale` to the venue it names (credential, then cash),
 and stops at the first that cannot be paid. A stated amount at a `Payable`
 is refused. A bill is **derived at the moment of paying**: for every ship

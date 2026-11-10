@@ -19,7 +19,9 @@ to **blame** for a death is derived from an append-only ledger (a consented
 duel is lawful; an imposed lethal attack on the unwilling is a crime), and
 every exchange **advances** the fighter (combat `Discipline`s + a costed
 `assess`). **Cycle 2** turns the 1v1 into an N-party melee — a threat
-graph, join/merge, focus-fire, the `defend` family, fleeing, and the party
+graph, join/merge, focus-fire, the `defend` family (one act the fighter
+decides — `Combatant.defend`: cover up, stay a coup, or interpose;
+controller-liquidity W7c), fleeing, and the party
 friend/foe seam (see [§ Cycle 2](#cycle-2--multi-party-the-threat-graph--the-party-seam)
 + [party.md](./party.md)); the client card and NPC-vs-NPC crews are later.
 Design surface lives in

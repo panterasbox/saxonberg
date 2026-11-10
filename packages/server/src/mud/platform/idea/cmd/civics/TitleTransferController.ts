@@ -92,6 +92,11 @@ export default class TitleTransferController extends TitleControllerBase<Transfe
         "no-parcel",
       );
     }
+    // ⭐ `for <price>` is the sale (controller-liquidity W7c); a parcel's
+    // title moves here as title only — land is sold off the plat book.
+    if (model.price !== undefined) {
+      return this.fail(context, "A parcel's title is handed over here, not sold — land is sold at the plat book.", "no-sale");
+    }
     const parcel = await ParcelApi.coveringParcelOf(parcelPath);
     if (!parcel) {
       return this.fail(
@@ -226,10 +231,13 @@ export default class TitleTransferController extends TitleControllerBase<Transfe
       ref && typeof ref === "object" ? (ref as MqlOneResult).stuff ?? null : null;
     const holderOf = (who: Stuff, path: string): UnitHolder => ({ kind: "player", path, name: who.getPresentation() });
 
-    const holder = person(model.holder);
-    if (holder !== null) {
+    // ⭐ `for <price>` is the sale (controller-liquidity W7c): the giver
+    // buys from the holder named by `from`; without a price it is a gift.
+    if (model.price !== undefined) {
       // ── bought: the giver is the buyer; the holder is asked ──
-      const price = Number((model.price ?? "").trim());
+      const holder = person(model.holder);
+      if (holder === null) return this.fail(context, "Bought from whom? `from <holder> for <price>`.", "no-holder");
+      const price = Number(model.price.trim());
       if (!Number.isInteger(price) || price < 0) {
         return this.fail(context, "Name your price in whole coin — `for 40`.", "bad-price");
       }
@@ -266,6 +274,9 @@ export default class TitleTransferController extends TitleControllerBase<Transfe
       return;
     }
 
+    if (person(model.holder) !== null) {
+      return this.fail(context, "Name your price in whole coin — `for 40`.", "bad-price");
+    }
     const receiver = person(model.recipient);
     if (receiver === null || !PlayerApi.isAvatarStuff(receiver)) {
       return this.fail(context, "Shares to whom — or from whom, and for what?", "no-receiver");

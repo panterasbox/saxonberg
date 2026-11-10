@@ -125,7 +125,9 @@ Units: `m³/s`, `L/s`, `miner-in` (0.7373 L/s).
 
 `Gate` (water pack) is a `ControlStructure` that is Sealable, Lockable and
 Throttleable (kernel `ThrottleableMixin`, `lib/spatial/Throttleable.ts`: `opening`, an opening trajectory,
-and a work log of who set it). `open … to <setting>`. `canOpen` refuses a
+and a work log of who set it). `open … to <setting>` — the thing answers
+(`Sealable.openPlanFor(by, setting)`, which `ThrottleableMixin` overrides to
+work the amount; controller-liquidity W7c). `canOpen` refuses a
 padlocked gate to somebody with no key, and a locked `Door` to everybody.
 The catalogue **credits diversions** into the course a control names, less
 seepage by `lining`. An artificial channel carries only what it is given:

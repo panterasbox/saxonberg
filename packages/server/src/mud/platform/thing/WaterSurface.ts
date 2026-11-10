@@ -119,6 +119,12 @@ export default class WaterSurface extends FloorBase {
    * else this floor takes a body at rest like any ground.
    */
   public override async acceptPosture(actor: Stuff, posture: string): Promise<PostureAnswer> {
+    // ⭐ Standing (controller-liquidity W7c): a bed that already holds you
+    // is only the posture; otherwise it is getting up ONTO it (the slot's
+    // `canOccupy` says whether it bears you, and `occupy` ends the swim).
+    if (posture === Postures.Stand) {
+      return this.supports(actor) ? { ok: true, facts: { as: 'held' } } : super.acceptPosture(actor, posture);
+    }
     if (posture !== Postures.Lie) return super.acceptPosture(actor, posture);
     const water = this.waterPlace();
     const moving = water !== null && (

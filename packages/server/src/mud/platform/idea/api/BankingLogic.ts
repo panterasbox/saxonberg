@@ -31,6 +31,7 @@ import type {
   SettlementMethod,
   SettlementReceipt,
 } from "../../../lib/banking/Charge";
+import { SettleRefused } from "../../../lib/banking/Charge";
 import { AppApi } from "../../../api/app";
 import { AddressApi } from "../../../api/address";
 // The own-Api self-import (the PressLogic precedent): a free function
@@ -1290,7 +1291,7 @@ async function settleImpl(
   method: SettlementMethod,
 ): Promise<SettlementReceipt> {
   const payer = actingPrincipal();
-  if (!payer) throw new Error("BankingLogic.settle: no acting payer");
+  if (!payer) throw new SettleRefused("no-payer", "BankingLogic.settle: no acting payer");
   // ⭐ The payee's creditors take their share of this inflow as rider
   // splits inside the same transaction (economic bootstrap D12).
   const { charge, repayments } = await withRepaymentSplits(original);
@@ -1311,7 +1312,7 @@ async function settleLegs(
 
   if (method.kind === "cash") {
     if (!MixinApi.isContainer(payer)) {
-      throw new Error("BankingLogic.settle: the payer can't hold coin");
+      throw new SettleRefused("cannot-hold-coin", "BankingLogic.settle: the payer can't hold coin");
     }
     // Off-ledger handover to a physical receiver (a till, a person's hand).
     if (charge.payeeContainer) {
@@ -1321,7 +1322,7 @@ async function settleLegs(
         charge.amount.minor,
         charge.amount.currency,
       );
-      if (!ok) throw new Error("BankingLogic.settle: not enough cash on hand");
+      if (!ok) throw new SettleRefused("insufficient-coin", "BankingLogic.settle: not enough cash on hand");
       return { method: "cash" };
     }
     // No physical receiver: bank the coin instantly across the cash bridge
@@ -1330,16 +1331,16 @@ async function settleLegs(
     // the payee has no local till (a global TPA operating-budget account), so
     // a cash fare's city+TPA split still holds (D12 cash bridge).
     if (!charge.payeeAccountId) {
-      throw new Error("BankingLogic.settle: cash needs a payee");
+      throw new SettleRefused("needs-payee", "BankingLogic.settle: cash needs a payee");
     }
     const payerC = payer as Stuff & Container;
     if (cashOnHand(payerC) < charge.amount.minor) {
-      throw new Error("BankingLogic.settle: not enough cash on hand");
+      throw new SettleRefused("insufficient-coin", "BankingLogic.settle: not enough cash on hand");
     }
     const cashSplits = charge.splits ?? [];
     const cashSplitTotal = cashSplits.reduce((s, x) => s + x.amount.minor, 0);
     if (cashSplitTotal > charge.amount.minor) {
-      throw new Error("BankingLogic.settle: splits exceed the charge");
+      throw new SettleRefused("splits-exceed", "BankingLogic.settle: splits exceed the charge");
     }
     // Exact-cash-or-card: consume coins summing to exactly the charge, or
     // refuse before any ledger leg posts (the caller falls back to the card).
@@ -1349,7 +1350,8 @@ async function settleLegs(
       charge.amount.currency,
     );
     if (!drained) {
-      throw new Error(
+      throw new SettleRefused(
+        "inexact-cash",
         "BankingLogic.settle: can't make the exact amount in cash",
       );
     }

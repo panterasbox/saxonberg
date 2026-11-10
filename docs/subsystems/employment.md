@@ -984,7 +984,9 @@ Tips are **physical cash**, two routes, never the bar's P&L:
 - **`tip <amount> [--eft]`** — **cash** (default): `BankingApi.settle` cash
   moves coin patron→jar, off every ledger (anonymous, the under-the-counter
   take). **EFT** (`--eft`, or the automatic fallback when the patron lacks
-  coin): `BankingApi.transfer` patron→the on-shift server's account —
+  coin — and only then: `settle` throws a typed `SettleRefused`, and any
+  other reason is said, never its exception text; C46, controller-liquidity
+  W7c): `BankingApi.transfer` patron→the on-shift server's account —
   recorded on the *server's* ledger, the bar account untouched. The patron
   is never blocked; the cash/EFT choice is the anonymous-vs-recorded story.
 - **`collect`** — the on-shift bartender scoops the whole jar into their

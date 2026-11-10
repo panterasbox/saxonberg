@@ -9,7 +9,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { TrajectoryLog, type Piecewise, type Breakpoint } from '../Trajectory';
-import type { Sealable } from './Sealable';
+import type { Sealable, OpenAnswer, OpenFacts } from './Sealable';
 
 /** One worked opening on a throttled gate: who set it, to what, and when. */
 export interface WorkRecord {
@@ -136,6 +136,23 @@ export function ThrottleableMixin<TBase extends MixinConstructor<Stuff & Sealabl
 
     public open(by: Stuff | null = null): void {
       this.setOpening(1, by);
+    }
+
+    /** ⭐ Opened BY AN AMOUNT (controller-liquidity W7c): a named setting is worked; bare, it opens full. */
+    public override openPlanFor(by: Stuff, setting: string | null): OpenAnswer {
+      if (setting === null) return super.openPlanFor(by, setting);
+      const may = this.canOpen(by);
+      if (!may.ok) return { ok: false, reason: 'cannot-open', facts: { why: may.reason ?? null } };
+      const thing = this as unknown as Stuff;
+      return {
+        ok: true, durationMs: 0, effortW: 0, facts: { kind: 'set', thing, shut: false, words: '' },
+        onComplete: () => {
+          const worked = this.workOpening(setting, by);
+          if (worked === null) return { ok: false, reason: 'bad-setting' };
+          const facts: OpenFacts = { kind: 'set', thing, shut: worked.shut, words: worked.words };
+          return { ok: true, facts };
+        },
+      };
     }
 
     public close(by: Stuff | null = null): void {

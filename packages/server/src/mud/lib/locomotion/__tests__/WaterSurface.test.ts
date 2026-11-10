@@ -199,6 +199,16 @@ describe('the water surface is a pool\'s floor (D12)', () => {
     await expect(floor.acceptPosture(b as unknown as Stuff, 'lie')).resolves.toEqual({ ok: true, facts: { as: 'rest' } });
   });
 
+  it('⭐ standing (W7c): in the water it is getting up onto the floor; held, only the posture', async () => {
+    const { pool: p, floor } = await pool();
+    const b = walker();
+    ContainmentApi.move(b as unknown as Stuff & never, p as unknown as Stuff & never);
+    await expect(floor.acceptPosture(b as unknown as Stuff, 'stand')).resolves.toEqual({ ok: true, facts: { as: 'rest' } });
+    vi.spyOn(floor, 'bears').mockReturnValue(true);
+    floor.occupy(b as never, 'ground:1');
+    await expect(floor.acceptPosture(b as unknown as Stuff, 'stand')).resolves.toEqual({ ok: true, facts: { as: 'held' } });
+  });
+
   it('⭐ a body in the water may leave only by swimming; one held up walks off', async () => {
     const { pool: p, floor } = await pool();
     const b = walker();

@@ -50,7 +50,7 @@ import { SpliceableMixin, type SpliceOutcome } from '../../lib/spatial/Spliceabl
 import { ClimbableMixin } from '../../lib/locomotion/Climbable';
 import { GradedMixin } from '../../lib/craft/Graded';
 import { Grade, type GradeBand } from '../../lib/craft/Grade';
-import { BelayEngagement } from '../../lib/locomotion/BelayEngagement';
+import { BelayEngagement, BELAY_TYPE } from '../../lib/locomotion/BelayEngagement';
 import type { Engaged } from '../../lib/activity/Engaged';
 import type Exit from '../../lib/boundary/Exit';
 import { HazardDelivery } from '../../lib/hazard/HazardDelivery';
@@ -567,6 +567,17 @@ export default class Rope extends CuttableMixin(
    * the free end off whoever is on it.
    */
   public override async untieBy(by: Stuff): Promise<TieOutcome> {
+    // ⭐ Held as a belay, the first `untie` takes the rope off the belay —
+    // the climber stays tied on (controller-liquidity W7c: `belay off`
+    // retired into `untie`); a second casts them off.
+    if (this._belay !== null && this.getHolder() === by && MixinApi.isEngaged(by)) {
+      const belay = this._belay;
+      SchedulerApi.cancelByType(by as Stuff & Engaged, BELAY_TYPE);
+      // Idempotent — the scheduler's terminate has told it already when it
+      // held the engagement; this ends one it did not (a test's bare body).
+      belay.onAbort('cancelled');
+      return { ok: true, line: `You take ${this.getPresentation()} off the belay and let it go slack.` };
+    }
     const anchor = this.getAnchor();
     if (anchor !== null) {
       if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', facts: { gear: this as unknown as Stuff } };

@@ -292,4 +292,26 @@ describe('tips — the tip jar', () => {
     expect(maraAcct).not.toBeNull();
     expect(BankingApi.balanceOf(maraAcct!).minor).toBe(9);
   });
+
+  it('⭐ C46: short of coin, and only then, the tip falls through to the account transfer', async () => {
+    const { loc, patron, bartender, jar } = scene();
+    const patronAcct = await asGiver(patron, () =>
+      BankingApi.openAccount('goodkin', '', BankingApi.compactCurrency()),
+    );
+    await asGiver(bartender, () => BankingApi.openAccount('goodkin', '', BankingApi.compactCurrency()));
+    await BankingApi.mint(patronAcct, Money.of(50, BankingApi.compactCurrency()), "harness");
+    giveCoin(patron, 2);
+
+    await asGiver(patron, () =>
+      makeStuff(() => new TipController()).execute(
+        { amount: '7' } as never,
+        makeContext(patron, loc, 'tip'),
+      ),
+    );
+
+    expect(coinIn(jar)).toBe(0);
+    expect(coinIn(patron)).toBe(2);
+    const maraAcct = await BankingApi.primaryAccountIdOf(MARA);
+    expect(BankingApi.balanceOf(maraAcct!).minor).toBe(7);
+  });
 });

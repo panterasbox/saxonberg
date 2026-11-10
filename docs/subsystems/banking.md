@@ -238,7 +238,11 @@ Settlement is **one primitive** — `BankingApi.settle(charge, method)` — acro
 every transaction kind and every method (the method is a *parameter*, the
 `ContainmentApi.move` uniform-surface / polymorphic-internals pattern). The
 thing owed is a `Charge` (`amount + payee + reason`, **presented** vs
-**stated**); mechanism is polymorphic underneath:
+**stated**); mechanism is polymorphic underneath. A cash settlement refused
+before any leg posts throws `SettleRefused` with a closed `reason`
+(`insufficient-coin` · `inexact-cash` · `needs-payee` · `cannot-hold-coin` ·
+`splits-exceed` · `no-payer`), so a caller switches on the reason, never on
+the sentence (controller-liquidity W7c, C46 — `tip`'s fallback):
 
 - **cash** → coin handover off the governed ledger (coins split from the
   payer to `charge.payeeContainer`; no account touched; supply unchanged).

@@ -438,7 +438,7 @@ suite('cordage — the blocking drive', () => {
     expect(await where(c), after).toBe(await where(belayer));
 
     // Unbelayed: the second strand, and nobody holding.
-    await say(belayer, 'belay off');
+    await say(belayer, 'untie rope'); // off the belay (W7c: `belay off` retired)
     await say(belayer, `untie rope`);
     const tie2 = await say(belayer, 'tie strand to post with bowline');
     expect(tie2, tie2).toMatch(/hangs down/);
