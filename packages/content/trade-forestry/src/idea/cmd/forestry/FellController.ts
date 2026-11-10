@@ -22,100 +22,41 @@
  *
  * ## The target is POLYMORPHIC, so the view gates nothing on it
  *
- * Two things can stand in the slot and they share no mixin: a growing
- * `Plant`, or a bare species word that binds NOTHING — the
- * room is not a bindable target, so `fell oak` lands as
- * `{ stuff: null, raw: 'oak' }` and `raw` is read against the room's
- * stand. The controller narrows.
+ * Two things can stand in the slot: a planted `Standard`, or a bare
+ * species word that binds NOTHING — the room is not a bindable target, so
+ * `fell oak` lands as `{ stuff: null, raw: 'oak' }` and the word is handed
+ * to the room's stand. ⭐ Both answer the same protocol
+ * (`FellableMixin.fellPlanFor` — controller-liquidity W11): the axe, the
+ * species, the stage and what comes down are the tree's; this controller
+ * words the plan and its refusals.
  *
  * ## The axe is an ARGUMENT, never hunted
  *
  * The view's `default: "reachable:[capability.felling]"` binds the first
- * reachable thing offering `felling`; the controller reads
- * `model.axe?.stuff`, checks the capability (a bound billhook →
- * `wrong-tool`, in words), and null → `no-axe`. `lint:controller-resolution`
- * holds the hunt at zero. The stand is found as the giver's container
- * narrowed by `MixinApi.isActive(room, STAND_MIXIN)` — the mining
- * trade's `workingOf` shape, and no kernel list.
- *
- * ## The engaged act
- *
- * Extends the kernel's `ManualBuildController` — `engageStep` is the
- * mining trade's `engageAct`. The effect runs at COMPLETION as a
- * module-level function (the controller is destructed the moment `execute`
- * returns), and every completion opens by checking the actor and the room
- * are still there: an engaged act completes long after dispatch. ⭐ The
- * endurance a felling costs is spent THERE, when the tree comes down —
- * never before the engagement could refuse (controller-liquidity C12).
+ * reachable thing offering `felling`; null → `no-axe`; a bound billhook is
+ * the tree's to refuse (`no-felling-axe`).
  *
  * Refusals are diegetic and noted. No deed gate — felling is labour.
  */
 
-import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
+import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { Growing } from '@saxonberg/server/mud/lib/husbandry/Growing';
-import type Material from '@saxonberg/server/mud/lib/material/Material';
-import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
-import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import { STAND_MIXIN, type Stand, type StandSpecies } from '../../../lib/Stand';
-import Bole, { BOLE_M3, BOLE_LENGTHS, CROSSCUT_COST, CROSSCUT_MS } from '../../../thing/Bole';
+import {
+  FELLABLE_MIXIN,
+  type Fellable,
+  type FellBegin,
+  type FellDone,
+  type FellRefusal,
+} from '../../../lib/Fellable';
+import Bole from '../../../thing/Bole';
 
 export const FORESTRY_TOPIC = 'act.deed';
-
-/** Game-ms a felling takes — 2.5 real seconds at the default 12×. */
-export const FELL_MS = 30_000;
-/** Endurance points a felling costs. */
-export const FELL_COST = 10;
-/** Logs off the crown of a standard. */
-export const LOGS_PER_STANDARD = 4;
-
-/**
- * ⭐⭐ **Bark, and it is a FOURTH yield off a felling rather than a verb.**
- *
- * A standard already drops a bole, four logs and a seed. Bark is the same
- * kind of thing: it comes off the tree you have just put on the ground,
- * by the same act, and a `strip` verb would be ceremony for a step nobody
- * would ever decline. ⚠ Per-species, because **oak tans and ash does
- * not** — the whole point of the tanning trade's feedstock.
- *
- * Four bundles summing to 8 % of the bole's mass, which is roughly the
- * real share of a trunk that is bark, and bundles rather than one heap
- * because a bundle is a thing one person carries.
- */
-export const BARK_BUNDLES_PER_STANDARD = 4;
-export const BARK_FRACTION_OF_BOLE = 0.08;
-/**
- * ⭐⭐ **Brash, the felling's fifth yield and the wood's waste** (potash
- * D18): the crown's twigs and lop, trimmed off where the tree lies. Every
- * felling leaves it — it is not a species fact, as bark is — and it is the
- * richest feed an ash pit has, because twigs carry more ash per kilo than
- * heartwood. Ten bundles summing to a fifth of the bole's mass — about
- * thirteen kilos each off a beech, a load one person carries.
- */
-export const BRASH_BUNDLES_PER_STANDARD = 10;
-export const BRASH_FRACTION_OF_BOLE = 0.2;
-/** Mass of a whole felled tree, by stage — the carryable case. */
-export const FELLED_TREE_KG: Record<string, number> = { young: 8, established: 30 };
-
-const ENDURANCE = 'endurance';
-const FELLING = 'felling';
-
-const BOLE_PATH = '/trade/forestry/thing/bole';
-const LOG_PATH = '/trade/forestry/thing/log';
-const FELLED_TREE_PATH = '/trade/forestry/thing/felled-tree';
-const BRASH_PATH = '/trade/forestry/thing/brash';
 
 export interface FellModel extends CommandModel {
   /** A planted tree, or a bare species word (`stuff: null`). */
@@ -124,9 +65,10 @@ export interface FellModel extends CommandModel {
   axe?: MqlOneResult;
 }
 
-type StandRoom = Stuff & Container & Stand;
+type Composed = ReturnType<typeof Mml.compose>;
+type FellableStuff = Stuff & Fellable;
 
-export default class FellController extends ManualBuildController<FellModel> {
+export default class FellController extends CommandController<FellModel> {
   async execute(model: FellModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
@@ -136,365 +78,125 @@ export default class FellController extends ManualBuildController<FellModel> {
       this.decline(context, 'no-axe', Mml.compose`You have nothing here that will fell a tree.`);
       return;
     }
-    if (!MixinApi.isTool(axe) || !axe.hasCapability(FELLING)) {
-      this.decline(
-        context,
-        'wrong-tool',
-        Mml.compose`That is ${Mml.thing(axe)}. It will take a stool off at the ankle, and it will not take an oak.`,
-      );
-      return;
-    }
 
     const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    const stand: StandRoom | null =
-      room && MixinApi.isActive(room, STAND_MIXIN) ? (room as unknown as StandRoom) : null;
-
+    const stand: FellableStuff | null =
+      room && MixinApi.isActive(room, FELLABLE_MIXIN) ? (room as unknown as FellableStuff) : null;
     const named = model.target?.stuff ?? null;
-
-    // (b) A planted tree — fell it where it stands.
-    if (named && MixinApi.isGrowing(named)) {
-      this.fellPlanted(context, named, stand);
-      return;
-    }
-
-    // (c) A species word, or nothing — the room's stand. ⚠ The WORD comes
-    // first when the stand knows it: in a clearing where an oak has
-    // already come down, `fell oak` binds an oak LOG off the floor (the
-    // binder matches materials), and the player meant the tree. So a
-    // bound thing that is neither a bole nor a plant is noise if the raw
-    // word names a species standing here.
     const word = (model.target?.raw ?? '').trim();
-    if (named && !(stand && word && stand.speciesNamed(word))) {
-      // ⭐ A felled trunk is CUT now (D14) — the refusal says the new word.
-      this.decline(
-        context,
-        'not-a-tree',
-        named instanceof Bole
-          ? Mml.compose`${Mml.thing(named)} is already down. Cross-cut it with \`cut\`.`
-          : Mml.compose`${Mml.thing(named)} is not a tree.`,
-      );
+
+    // Which tree: a named thing that answers the axe (a planted
+    // standard), else the room's stand with the word.
+    let tree: FellableStuff | null = null;
+    if (named && MixinApi.isActive(named, FELLABLE_MIXIN)) {
+      tree = named as unknown as FellableStuff;
+    } else if (named && MixinApi.isGrowing(named)) {
+      // A stool is cut with a billhook, through `harvest`.
+      this.decline(context, 'not-a-standard', Mml.compose`That is a stool — cut it with a billhook.`);
       return;
+    } else if (named) {
+      // ⚠ The WORD comes first when the stand knows it: after a felling,
+      // `fell oak` binds an oak LOG off the floor (the binder matches
+      // materials), and the player meant the tree.
+      const known = stand && word ? await stand.fellPlanFor(giver, axe, word) : null;
+      if (!known || (!known.ok && known.reason === 'no-such-species')) {
+        // ⭐ A felled trunk is CUT now (D14) — the refusal says the new word.
+        this.decline(
+          context,
+          'not-a-tree',
+          named instanceof Bole
+            ? Mml.compose`${Mml.thing(named)} is already down. Cross-cut it with \`cut\`.`
+            : Mml.compose`${Mml.thing(named)} is not a tree.`,
+        );
+        return;
+      }
+      tree = stand;
+    } else {
+      tree = stand;
     }
-    if (!stand) {
+    if (!tree) {
       this.decline(context, 'no-stand', Mml.compose`There is nothing here to fell.`);
       return;
     }
-    const sp = word ? stand.speciesNamed(word) : stand.thickestSpecies();
-    if (!sp) {
-      if (word) {
-        this.decline(context, 'no-such-species', Mml.compose`Nothing called '${word}' stands here.`);
-      } else {
-        this.decline(
-          context,
-          'stand-empty',
-          Mml.compose`There is nothing left here that is worth the axe.`,
-        );
+
+    const plan = await tree.fellPlanFor(giver, axe, word);
+    if (!plan.ok) {
+      this.decline(context, plan.reason, FellController.refusalWords(plan, axe, named));
+      return;
+    }
+    await this.engagePlan(context, plan, {
+      beginSelf: (f: FellBegin) =>
+        f.planted
+          ? Mml.compose`You set to ${f.name} with the axe.`
+          : Mml.compose`You set your feet, sight the ${f.name}, and swing.`,
+      beginPeers: (f: FellBegin) =>
+        f.planted
+          ? Mml.compose`${Mml.actor(giver)} sets to ${f.name} with an axe.`
+          : Mml.compose`${Mml.actor(giver)} sets to ${GrammarApi.articleFor(f.name)} ${f.name} with an axe.`,
+      onRefused: (r: FellRefusal) => FellController.refusalWords(r, axe, named),
+      onDone: (f: FellDone) => FellController.doneWords(giver, f),
+    });
+  }
+
+  /** ⭐ Every reason a tree refuses the axe, in this verb's words. */
+  protected static refusalWords(r: FellRefusal, axe: Stuff, named: Stuff | null): Composed {
+    switch (r.reason) {
+      case 'wrong-tool':
+        return Mml.compose`That is ${Mml.thing(axe)}. It will take a stool off at the ankle, and it will not take an oak.`;
+      case 'no-such-species':
+        return Mml.compose`Nothing called '${r.facts.word}' stands here.`;
+      case 'stand-empty':
+        return r.facts.name
+          ? Mml.compose`There is nothing left here that is worth the axe — the ${r.facts.name} is stumps and brash.`
+          : Mml.compose`There is nothing left here that is worth the axe.`;
+      case 'not-yet-a-tree':
+        return named
+          ? Mml.compose`${Mml.thing(named)} is not yet a tree. Leave it.`
+          : Mml.compose`It is not yet a tree. Leave it.`;
+      default: {
+        const never: never = r;
+        return never;
       }
-      return;
     }
-    if (stand.standingNow(sp) < 1) {
-      this.decline(
-        context,
-        'stand-empty',
-        Mml.compose`There is nothing left here that is worth the axe — the ${sp.name} is stumps and brash.`,
-      );
-      return;
-    }
-
-    const room2: Stuff & Container = stand;
-    this.engageStep(context, {
-      durationMs: FELL_MS,
-      effortW: 700,
-      beginSelf: Mml.compose`You set your feet, sight the ${sp.name}, and swing.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} sets to an ${sp.name} with an axe.`,
-      onComplete: () => {
-        void fellStandard(context, stand, room2, sp);
-      },
-    });
   }
 
-  /** `fell <planted tree>` — a standard in a panel, felled where it stands. */
-  private fellPlanted(
-    context: CommandContext,
-    plant: Stuff & Growing,
-    stand: StandRoom | null,
-  ): void {
-    const giver = context.commandGiver;
-    // A stool is cut with a billhook, through `harvest`; a standard is
-    // the plant that yields no crop and says its keeping is silviculture.
-    if (plant.getHarvestTemplatePath() !== null || plant.getDiscipline() !== 'silviculture') {
-      this.decline(
-        context,
-        'not-a-standard',
-        Mml.compose`That is a stool — cut it with a billhook.`,
-      );
-      return;
+  /** What the feller and the room read when the tree comes down. */
+  protected static doneWords(
+    giver: Stuff,
+    f: FellDone,
+  ): { self: Composed; peers: Composed } | null {
+    switch (f.kind) {
+      case 'gone':
+        return null;
+      case 'whole':
+        return {
+          self: Mml.compose`${f.name} comes away at the ankle, whole, and you take it up.`,
+          peers: Mml.compose`${Mml.actor(giver)} fells ${f.name} and takes it up whole.`,
+        };
+      case 'standard': {
+        const logs = GrammarApi.cap(GrammarApi.inWords(f.logs));
+        if (f.planted) {
+          return {
+            self: Mml.compose`${f.name} goes over with a crack you feel in your feet and lies there, the whole length of it. ${logs} logs come off the crown.`,
+            peers: Mml.compose`${Mml.actor(giver)} brings ${f.name} down.`,
+          };
+        }
+        return {
+          self: f.seed
+            ? Mml.compose`The ${f.name} goes over with a crack you feel in your feet and lies there, the whole length of it, too much for any one back. ${logs} logs come off the crown, and ${Mml.thing(f.seed)}.`
+            : Mml.compose`The ${f.name} goes over with a crack you feel in your feet and lies there, the whole length of it, too much for any one back. ${logs} logs come off the crown.`,
+          peers: Mml.compose`${Mml.actor(giver)} brings ${GrammarApi.articleFor(f.name)} ${f.name} down; ${f.bole ? Mml.thing(f.bole) : 'the trunk'} lies where it fell.`,
+        };
+      }
+      default: {
+        const never: never = f;
+        return never;
+      }
     }
-    const stage = plant.getGrowthStage();
-    if (stage === 'seedling') {
-      this.decline(
-        context,
-        'not-yet-a-tree',
-        Mml.compose`${Mml.thing(plant)} is not yet a tree. Leave it.`,
-      );
-      return;
-    }
-    this.engageStep(context, {
-      durationMs: stage === 'mature' ? FELL_MS : CROSSCUT_MS,
-      effortW: 400,
-      beginSelf: Mml.compose`You set to ${Mml.thing(plant)} with the axe.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} sets to ${Mml.thing(plant)} with an axe.`,
-      onComplete: () => {
-        void fellPlantedTree(context, plant, stand, stage);
-      },
-    });
   }
 
-  private decline(
-    context: CommandContext,
-    reason: string,
-    text: ReturnType<typeof Mml.compose>,
-  ): void {
+  private decline(context: CommandContext, reason: string, text: Composed): void {
     MessageApi.scene(context.commandGiver).topic(FORESTRY_TOPIC).toSelf(text).send();
     context.note({ kind: 'controller-rejected', reason, detail: reason });
   }
-}
-
-/* ─────────────────── completions (module-level: the controller is gone) ─────────────────── */
-
-async function materialAt(path: string): Promise<Material | null> {
-  if (!path) return null;
-  try {
-    return await StuffApi.singleton<Material>(path);
-  } catch {
-    return null;
-  }
-}
-
-/** Mint one bole, the crown's logs and the seed for a standard of `sp`. */
-async function dropStandard(
-  giver: Stuff,
-  room: Stuff & Container,
-  woodMaterialPath: string,
-  seedPath: string | null,
-  barkPath: string | null = null,
-  brashMaterialPath: string | null = null,
-): Promise<Bole | null> {
-  const wood = await materialAt(woodMaterialPath);
-  const density = wood ? wood.getDensity().rawValue() : 750;
-
-  const bole = await StuffApi.clone<Bole>(BOLE_PATH);
-  if (wood) bole.setMaterial(wood);
-  bole.setMass(Quantity.of(Math.round(density * BOLE_M3), 'kg'));
-  bole.setLengthsLeft(BOLE_LENGTHS);
-  ContainmentApi.move(bole, room);
-
-  for (let i = 0; i < LOGS_PER_STANDARD; i += 1) {
-    const log = await StuffApi.clone<Stuff & Containable>(LOG_PATH);
-    if (wood && MixinApi.isTangible(log)) log.setMaterial(wood);
-    ContainmentApi.move(log, room);
-  }
-
-  // ⭐ The bark comes off onto the ground beside the trunk, not into your
-  // arms: a bundle of oak bark is 13 kg and four of them is a cartload.
-  if (barkPath) {
-    const boleKg = bole.getMass().rawValue();
-    const each =
-      (boleKg * BARK_FRACTION_OF_BOLE) / BARK_BUNDLES_PER_STANDARD;
-    for (let i = 0; i < BARK_BUNDLES_PER_STANDARD; i += 1) {
-      try {
-        const bundle = await StuffApi.clone<Stuff & Containable>(barkPath);
-        if (MixinApi.isTangible(bundle)) {
-          bundle.setMass(Quantity.of(Math.round(each * 100) / 100, 'kg'));
-        }
-        ContainmentApi.move(bundle, room);
-      } catch (err) {
-        // ⚠ A missing bark row is a content gap, not a reason to lose the
-        // timber — the bole and the logs are already down.
-        console.warn(`FellController: no bark at '${barkPath}':`, err);
-        break;
-      }
-    }
-  }
-
-  // ⭐ The brash is trimmed off where the tree lies: of the species' own
-  // brash material when the stand names one, else of the wood.
-  {
-    const boleKg = bole.getMass().rawValue();
-    const each = (boleKg * BRASH_FRACTION_OF_BOLE) / BRASH_BUNDLES_PER_STANDARD;
-    const brashMaterial = (brashMaterialPath ? await materialAt(brashMaterialPath) : null) ?? wood;
-    for (let i = 0; i < BRASH_BUNDLES_PER_STANDARD; i += 1) {
-      try {
-        const bundle = await StuffApi.clone<Stuff & Containable>(BRASH_PATH);
-        if (MixinApi.isTangible(bundle)) {
-          if (brashMaterial) bundle.setMaterial(brashMaterial);
-          bundle.setMass(Quantity.of(Math.round(each * 100) / 100, 'kg'));
-        }
-        // ⭐ Named for its wood — beech brash and pine brash are worth
-        // different things to an ash-burner, and a bundle that only said
-        // "brash" could not be told apart (found by the potash drive).
-        const woodName = brashMaterial?.getName() ?? '';
-        const named = bundle as Stuff & { setShortDescription?(s: string): void; getKeywords?(): string[]; setKeywords?(k: string[]): void };
-        if (woodName && named.setShortDescription) {
-          named.setShortDescription(`bundle of ${woodName}`);
-          // The whole name only: a bare `beech` stays the TREE's word.
-          named.setKeywords?.([...(named.getKeywords?.() ?? []), woodName]);
-        }
-        ContainmentApi.move(bundle, room);
-      } catch (err) {
-        console.warn(`FellController: no brash at '${BRASH_PATH}':`, err);
-        break;
-      }
-    }
-  }
-
-  if (seedPath && MixinApi.isContainer(giver)) {
-    try {
-      const seed = await StuffApi.clone<Stuff & Containable>(seedPath);
-      ContainmentApi.move(seed, giver);
-    } catch (err) {
-      console.warn(`FellController: no seed at '${seedPath}':`, err);
-    }
-  }
-  return bole;
-}
-
-
-async function capture(host: Stuff): Promise<void> {
-  try {
-    await PersistableApi.captureHostOf(host);
-  } catch (err) {
-    console.warn('FellController: capture failed:', err);
-  }
-}
-
-async function credit(giver: Stuff, difficulty: 'trivial' | 'easy' | 'standard' | 'hard'): Promise<void> {
-  try {
-    if (MixinApi.isAdvancing(giver)) {
-      await giver.creditDeed({ discipline: 'silviculture', difficulty, outcome: 'success' });
-    }
-  } catch (err) {
-    console.warn('FellController: recording the deed failed:', err);
-  }
-}
-
-/** A standard out of the room's stand: the cut, the bole, the logs, the seed. */
-async function fellStandard(
-  context: CommandContext,
-  stand: StandRoom,
-  room: Stuff & Container,
-  sp: StandSpecies,
-): Promise<void> {
-  // ⚠⚠ The actor may be GONE — an engaged act completes long after
-  // dispatch. Returning is the honest answer, not narrating to nobody.
-  const giver = context.commandGiver;
-  if (giver.isDestroyed() || stand.isDestroyed()) return;
-  const nowS = WorldClockApi.getNow().rawValue();
-  if (!stand.cut(sp.speciesPath, nowS, giver.getIdentityPath() ?? '')) {
-    MessageApi.scene(giver)
-      .topic(FORESTRY_TOPIC)
-      .toSelf(Mml.compose`There is nothing left here that is worth the axe.`)
-      .send();
-    return;
-  }
-  // ⭐ The endurance is spent HERE, when the tree comes down (C12).
-  if (MixinApi.isReserved(giver) && giver.hasReserve(ENDURANCE)) {
-    giver.adjustReserve(ENDURANCE, Quantity.of(-FELL_COST, '%'));
-  }
-  const bole = await dropStandard(
-    giver,
-    room,
-    sp.woodMaterialPath,
-    sp.seedPath,
-    sp.barkPath ?? null,
-    sp.brashMaterialPath ?? null,
-  );
-  await capture(stand);
-  // ⚠ And the FELLER. The room's record never carries a player's goods
-  // (the skip rule); they ride the owner's estate, which a live player
-  // writes only on the residency cadence or at logout. A felling puts
-  // tonnes on the floor, so it writes the owner's record now — a hard
-  // stop inside the window lost a whole clearing's trunks in the browser.
-  await capture(giver);
-
-  const seedWord = sp.seedPath ? sp.seedPath.split('/').pop()?.replace(/-/g, ' ') ?? 'a seed' : null;
-  MessageApi.scene(giver)
-    .topic(FORESTRY_TOPIC)
-    .toSelf(
-      Mml.compose`The ${sp.name} goes over with a crack you feel in your feet and lies there, the whole length of it, too much for any one back. ${GrammarApi.cap(GrammarApi.inWords(LOGS_PER_STANDARD))} logs come off the crown${seedWord ? `, and ${withArticle(seedWord)}` : ''}.`,
-    )
-    .toPeers(
-      Mml.compose`${Mml.actor(giver)} brings ${withArticle(sp.name)} down; ${bole ? Mml.thing(bole) : 'the trunk'} lies where it fell.`,
-    )
-    .send();
-  await credit(giver, 'standard');
-}
-
-/** A planted standard, felled where it stands — the product sized by the tree. */
-async function fellPlantedTree(
-  context: CommandContext,
-  plant: Stuff & Growing,
-  stand: StandRoom | null,
-  stage: string,
-): Promise<void> {
-  const giver = context.commandGiver;
-  if (giver.isDestroyed() || plant.isDestroyed()) return;
-  const panel = MixinApi.isContainable(plant) ? plant.getContainer() : null;
-  const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-  if (!room) return;
-
-  // What a felled one is made of: the room stand's entry for this species
-  // when there is one, else the plant's own `standardMaterialPath`.
-  const speciesPath = MixinApi.isOrganism(plant) ? plant.getSpecies()?.getTemplatePath() ?? '' : '';
-  const entry = stand ? stand.getMix().find((sp) => sp.speciesPath === speciesPath) ?? null : null;
-  const woodPath =
-    entry?.woodMaterialPath ?? (plant instanceof Plant ? plant.getStandardMaterialPath() : null) ?? '';
-  const seedPath =
-    entry?.seedPath ?? (plant instanceof Plant ? plant.getSeedTemplatePath() : null);
-  const plantKey = MixinApi.isPersistable(plant) ? plant.getPersistenceKey() : null;
-  const name = plant.getPresentation();
-
-  // ⭐ The endurance is spent HERE, when the tree comes down (C12).
-  if (MixinApi.isReserved(giver) && giver.hasReserve(ENDURANCE)) {
-    giver.adjustReserve(ENDURANCE, Quantity.of(-(stage === 'mature' ? FELL_COST : CROSSCUT_COST), '%'));
-  }
-  await StuffApi.destruct(plant);
-
-  if (stage === 'mature') {
-    // ⭐ A planted oak that has grown to a standard gives its bark too —
-    // the stand's entry knows, and a planted tree of a species this
-    // ground does not carry gives none, which is honest.
-    await dropStandard(giver, room, woodPath, seedPath, entry?.barkPath ?? null, entry?.brashMaterialPath ?? null);
-    MessageApi.scene(giver)
-      .topic(FORESTRY_TOPIC)
-      .toSelf(
-        Mml.compose`${name} goes over with a crack you feel in your feet and lies there, the whole length of it. ${GrammarApi.cap(GrammarApi.inWords(LOGS_PER_STANDARD))} logs come off the crown.`,
-      )
-      .toPeers(Mml.compose`${Mml.actor(giver)} brings ${name} down.`)
-      .send();
-  } else {
-    const wood = await materialAt(woodPath);
-    const tree = await StuffApi.clone<Stuff & Containable>(FELLED_TREE_PATH);
-    if (wood && MixinApi.isTangible(tree)) tree.setMaterial(wood);
-    if (MixinApi.isTangible(tree)) {
-      tree.setMass(Quantity.of(FELLED_TREE_KG[stage] ?? FELLED_TREE_KG.young!, 'kg'));
-    }
-    if (MixinApi.isContainer(giver)) ContainmentApi.move(tree, giver);
-    else ContainmentApi.move(tree, room);
-    MessageApi.scene(giver)
-      .topic(FORESTRY_TOPIC)
-      .toSelf(Mml.compose`${name} comes away at the ankle, whole, and you take it up.`)
-      .toPeers(Mml.compose`${Mml.actor(giver)} fells ${name} and takes it up whole.`)
-      .send();
-  }
-
-  if (stand && plantKey) stand.removePlanting(plantKey);
-  if (panel) await capture(panel);
-  await capture(room);
-  await capture(giver);
-  await credit(giver, stage === 'mature' ? 'standard' : 'easy');
-}
-
-function withArticle(word: string): string {
-  return /^[aeiou]/i.test(word) ? `an ${word}` : `a ${word}`;
 }

@@ -15,12 +15,13 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import FellController, {
+import FellController, { type FellModel } from '../idea/cmd/forestry/FellController';
+import {
   LOGS_PER_STANDARD,
   BRASH_BUNDLES_PER_STANDARD,
   BRASH_FRACTION_OF_BOLE,
-  type FellModel,
-} from '../idea/cmd/forestry/FellController';
+} from '../lib/Fellable';
+import Standard from '../thing/Standard';
 import Wood from '../location/Wood';
 import CutController from '@saxonberg/server/mud/platform/idea/cmd/crafting/CutController';
 import Bole, { BOLE_LENGTHS } from '../thing/Bole';
@@ -461,7 +462,9 @@ describe('fell', () => {
     }
     function standardIn(panel: Panel, stage: string, opts: { stool?: boolean; standardMaterial?: string } = {}): Plant {
       const p = makeStuffAtPath(() => {
-        const t = new Plant();
+        // ⭐ A standard is its own class now (controller-liquidity W11); a
+        // coppice stool stays a Plant and does not answer the axe.
+        const t = opts.stool ? new Plant() : new Standard();
         t.setShortDescription(opts.stool ? 'hazel stool' : 'oak sapling');
         t.setMaterial(tissue());
         t.setMass(Quantity.of(5, 'kg'));
@@ -544,5 +547,17 @@ describe('fell', () => {
       expect(bole).toBeDefined();
       expect(bole.getMaterial()?.getName()).toBe('oak');
     });
+  });
+});
+
+describe('⭐ the axe has two hosts and they are named (controller-liquidity W11)', () => {
+  it('a planted standard and a sap standard answer the axe; a bare Plant does not', async () => {
+    const { MixinApi } = await import('@saxonberg/server/mud/api/mixin');
+    const { default: SapStandard } = await import('../thing/SapStandard');
+    const { FELLABLE_MIXIN } = await import('../lib/Fellable');
+    expect(MixinApi.isActive(makeStuff(() => new Standard()), FELLABLE_MIXIN)).toBe(true);
+    expect(MixinApi.isActive(makeStuff(() => new SapStandard()), FELLABLE_MIXIN)).toBe(true);
+    expect(MixinApi.isActive(makeStuff(() => new Wood()), FELLABLE_MIXIN)).toBe(true);
+    expect(MixinApi.isActive(makeStuff(() => new Plant()), FELLABLE_MIXIN)).toBe(false);
   });
 });
