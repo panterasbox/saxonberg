@@ -867,7 +867,7 @@ export default class Field extends FieldBase {
         console.warn('Field: capture after mowing failed:', err);
       }
     }
-    await Tract.creditAgriculture(actor, 3);
+    await tract?.creditAgriculture(actor, 3);
     return { ok: true, facts: { takenKg: round2(taken), exported: exported > 0 } };
   }
 }

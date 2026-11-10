@@ -948,13 +948,13 @@ export default class Tract extends TractBase {
           } catch (err) {
             console.warn('Tract: capture after ploughing failed:', err);
           }
-          await Tract.creditAgriculture(actor, 1);
+          await this.creditAgriculture(actor, 1);
           return { ok: true, facts: { kind: 'seedbed', beast } };
         }
         // ⭐⭐ The ox works ground a person cannot, at the same rate — the
         // multiplier is the animal's mass, not a number here.
         const after = this.bankWork('clearing', PLOW_LABOUR_PER_ACT * draught, bill);
-        await Tract.creditAgriculture(actor, bill.clearing + bill.stonePicking);
+        await this.creditAgriculture(actor, bill.clearing + bill.stonePicking);
         return {
           ok: true,
           facts: {
@@ -975,7 +975,7 @@ export default class Tract extends TractBase {
    * A man in the traces is worth about one and an ox about ten, and that
    * ratio is the two animals' masses (D40).
    */
-  public static draughtFor(actor: Stuff): number {
+  private static draughtFor(actor: Stuff): number {
     const massOf = (s: Stuff): number => (MixinApi.isTangible(s) ? s.getMass().rawValue() : 0);
     let kg = massOf(actor);
     const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
@@ -995,7 +995,7 @@ export default class Tract extends TractBase {
    * The improvement deed, by the ground's own difficulty (the estimator's
    * anti-grind property: finishing hard ground is a hard check).
    */
-  public static async creditAgriculture(actor: Stuff, required: number): Promise<void> {
+  public async creditAgriculture(actor: Stuff, required: number): Promise<void> {
     if (!MixinApi.isAdvancing(actor)) return;
     await actor.creditDeed({
       discipline: 'agriculture',
