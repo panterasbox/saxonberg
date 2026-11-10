@@ -61,7 +61,7 @@ import ts from "typescript";
 import { CONTENT, MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 
 /** All probes (method + member), kernel and packs. */
-export const DUCK_PROBE_CEILING = 521; // controller-liquidity W10: −8 (the herdbook by class, the tract reads its own ground). // controller-liquidity W7: −5. // controller-liquidity W8: −2 (Launchable, the Readable read). controller-liquidity W3: −2, shape probes became declared protocol methods (e.g. `canHitch` on Haulable, D9). finalize self-review: −5 (the pump asks `isSwitchable`; three survey reads call `getZone()` on the Stuff they hold). W3b: the supply, generator and name-rule probes became `MixinApi.isPowered` / `isWaterPowered` / `NameTakingMixin`. (W8: −4, the plat book and the deed desk are named by the pack that owns them.) Green after W2/W4/W6: −1.
+export const DUCK_PROBE_CEILING = 517; // controller-liquidity W12: −4 (the outfit seed's seats, fishing's reach pick). // controller-liquidity W10: −8 (the herdbook by class, the tract reads its own ground). // controller-liquidity W7: −5. // controller-liquidity W8: −2 (Launchable, the Readable read). controller-liquidity W3: −2, shape probes became declared protocol methods (e.g. `canHitch` on Haulable, D9). finalize self-review: −5 (the pump asks `isSwitchable`; three survey reads call `getZone()` on the Stuff they hold). W3b: the supply, generator and name-rule probes became `MixinApi.isPowered` / `isWaterPowered` / `NameTakingMixin`. (W8: −4, the plat book and the deed desk are named by the pack that owns them.) Green after W2/W4/W6: −1.
 /** Method probes on a name nobody in the corpus defines. */
 export const UNDEFINED_PROBE_CEILING = 0;
 

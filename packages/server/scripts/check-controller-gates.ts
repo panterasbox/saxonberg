@@ -30,7 +30,7 @@ import { resolve } from "path";
 import { pathToFileURL } from "url";
 import { controllerFiles, ratchet, stripComments } from "./pack-roots";
 
-export const CONTROLLER_GATES_CEILING = 11; // controller-liquidity W8: −5 (arm, get, title publish, soul, the banking presence read moved onto their models or went dead)
+export const CONTROLLER_GATES_CEILING = 10; // controller-liquidity W12: −1 (the siting title gate moved onto the bailer). // controller-liquidity W8: −5 (arm, get, title publish, soul, the banking presence read moved onto their models or went dead)
 
 /** The permission predicates, each a pattern over comment-stripped source. */
 export const GATE_PATTERNS: ReadonlyArray<{ name: string; re: RegExp }> = [

@@ -40,8 +40,8 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const CONTROLLER_DECISIONS_CEILING = 960; // controller-liquidity W10: −110, food and land — the stones, the carcass, the tract, the field, the book and the head answer their verbs. // controller-liquidity W7: −60, the multi-act splits and protocols. // controller-liquidity W1+W3: values, durations and refusals moved onto their objects. W6: −3, the cutting answers stopped carrying a verb tag to narrow on, and `fell` stopped cross-cutting. W8: −37, the kernel objects answer their verbs (water, body, fire, hitch, put, read, name, look observes once)
-export const DURATION_DECLS_CEILING = 80; // controller-liquidity W10: −3 (plow, mow, the quern). // controller-liquidity W7: −16, the paces moved onto the protocols. // W5: harvest, plant, the bath, the pour. W8: −1
+export const CONTROLLER_DECISIONS_CEILING = 929; // controller-liquidity W12: −31 (the swing, the lining, the journey, the hot shop and the pilot on their objects). // controller-liquidity W10: −110, food and land — the stones, the carcass, the tract, the field, the book and the head answer their verbs. // controller-liquidity W7: −60, the multi-act splits and protocols. // controller-liquidity W1+W3: values, durations and refusals moved onto their objects. W6: −3, the cutting answers stopped carrying a verb tag to narrow on, and `fell` stopped cross-cutting. W8: −37, the kernel objects answer their verbs (water, body, fire, hitch, put, read, name, look observes once)
+export const DURATION_DECLS_CEILING = 73; // controller-liquidity W12: −7 (the line, crack, flatten and reheat paces on their objects). // controller-liquidity W10: −3 (plow, mow, the quern). // controller-liquidity W7: −16, the paces moved onto the protocols. // W5: harvest, plant, the bath, the pour. W8: −1
 
 export type DecisionKind = "math" | "arithmetic" | "threshold" | "constant" | "act-literal";
 
