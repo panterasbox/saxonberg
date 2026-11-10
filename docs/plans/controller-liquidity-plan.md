@@ -872,6 +872,36 @@ the `here` PRONOUN is the place alone (`look here` in a boat = the river).
 For later waves (W3): the river-bar steer ordering is W8/W12's; there is no
 unit test for `breedRefusal` yet.
 
+**D3a (build, W5) — five `string` slots are names, not prose, and lose
+`greedy` too:** `buy <thing>`, `order <cocktail>`, `shelf reclaim
+<thing>`, `rack reclaim <thing>`, `store withdraw <what>` (the owner's
+read names `buy dog loaf` → `buy "dog loaf"`; lens 1 — a good's name is
+matched against a keyword, never read as speech). They stay `string` (the
+counter's book matches them, not MQL) and take the article fold when a
+prepositioned object follows. The other greedy strings stay (prose).
+
+**D3b (build, W5) — the determiner fold.** A leading count / measure /
+`all` / ordinal joins the next word into ONE name before an object slot
+binds (`get 1 gin`, `look 2nd greywater`, `get 1 "mooring line"`): MQL
+reads determiners, the greedy slot used to hand them over, and brains emit
+`get 1 ${kw}`. Without it every count broke.
+
+**D3c (build, W5) — after a name, every prepositioned slot is
+`prepositionRequired`.** Applied to every later prepositioned arg in an
+args list that held a de-greedied slot, and to an optional de-greedied
+prepositioned slot right after a name slot (`sell <thing> [to <counter>]`).
+The greedy slot only ever bound those behind their preposition, so no form
+changes meaning. An optional `prepositionRequired` slot now takes its
+`default:` when absent (it was skipped — `buy loaf` lost its counter).
+
+**D3d (build, W5) — the hint's shape.** Shortest join first, an OBJECT slot
+before a string slot; a preposition, article or count is never inside the
+quotes; two names → both quoted; a missing preposition word two took fires
+it too. The fitted line rides the note as `suggestion` and the shell prints
+it as a `mudcmd:` link (existing MML link channel, so no client code — the
+renderer already makes it tappable; a client test pins it). Brains name
+keywords through the new `CommandLineApi.word()`.
+
 ---
 
 ## ⭐⭐ Host placement
@@ -1303,7 +1333,20 @@ controller (drive step 3's shape).
 - Commit: `build(controller-liquidity W4): the object returns choices; the
   controller asks`.
 
-### W5 — the greedy sweep (D3)
+### W5 — the greedy sweep (D3) ✅ done
+
+> **Done** (`ca1547ca8` views, `a64187aee` kernel + tests, `8fa6b1118`, `566ff8ed7` mill; green-up `2c3f47cd4`). `greedy-object` 133 → **0** and the
+> schema refuses `greedy` unless `type: string`; arm G 6 → **5** (a
+> `prepositionRequired` slot is exempt). Five name-`string` slots lost greedy
+> too (D3a); the **determiner fold** (D3b) was the surprise — every brain's
+> `get 1 ${kw}` and every `look 2nd X` would have broken without it; every
+> slot after a name is `prepositionRequired` and an optional one now takes
+> its default (D3c — it was silently skipped). The hint rides the note as
+> `suggestion` and prints as a `mudcmd:` link (D3d; no client code needed,
+> a client test pins the tap). Brains name keywords via the new
+> `CommandLineApi.word()`. ⚠ For W15: ~160 wire/e2e lines were requoted by
+> binding each through the real views; templated names were quoted
+> `"${x}"`. `LabelController`'s `at` re-glue still works for one word only.
 
 - Every row in Appendix E: `greedy: true` removed from the object arg; the
   view's `help:` gains the quoting sentence where the common names are
@@ -2140,7 +2183,7 @@ L1140–1147 — *possession is capability*; the gate prevents calling the
 logic as an object you are not. What D9 adds is the **who-initiates**
 decision on the method, so a replaced controller cannot skip it.
 
-## Appendix E — the 133 greedy object args (W5 removes `greedy:` from each)
+## Appendix E — the 133 greedy object args (W5 removes `greedy:` from each) — ✅ all closed in W5
 
 **platform** (`packages/content/platform/content/platform/cmd/`): paint → pot,
 brush · carve → thing, target, stock · cut → target, tools · dry → cloth ·
