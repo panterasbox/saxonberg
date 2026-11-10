@@ -191,8 +191,8 @@ export interface Row {
   cls: string;
   /** Does the row author a `coords:` block? */
   coords: boolean;
-  /** `[direction, destination, door?]` for every authored exit. */
-  exits: Array<[string, string, string?]>;
+  /** `[direction, destination, door?, kind?]` for every authored exit. */
+  exits: Array<[string, string, string?, string?]>;
   /** The row's authored cell, when it plots one (inline or block form). */
   xyz?: [number, number, number];
 }
@@ -218,7 +218,7 @@ export function shippedRows(contentDir: string = CONTENT): Row[] {
         // exactly the row whose cross-zone pair this gate exists to
         // check. The shape below (four-space key, `destination:` on the
         // next line) is unambiguous on its own.
-        const exits: Array<[string, string, string?]> = [];
+        const exits: Array<[string, string, string?, string?]> = [];
         const re = /^ {4}([A-Za-z0-9_-]+):[^\S\n]*\n[^\S\n]+destination:[^\S\n]*(\S+)/gm;
         let hit: RegExpExecArray | null;
         while ((hit = re.exec(text)) !== null) {
@@ -228,7 +228,8 @@ export function shippedRows(contentDir: string = CONTENT): Row[] {
           const end = rest.search(/^ {0,4}[A-Za-z0-9_-]+:/m);
           const block = end < 0 ? rest : rest.slice(0, end);
           const door = /^ {6}door:[^\S\n]*(\S+)/m.exec(block)?.[1];
-          exits.push(door ? [hit[1]!, hit[2]!, door] : [hit[1]!, hit[2]!]);
+          const kind = /^ {6}kind:[^\S\n]*(\S+)/m.exec(block)?.[1];
+          exits.push([hit[1]!, hit[2]!, door, kind]);
         }
         const inline = /^ {2}coords:\s*\{([^}]*)\}/m.exec(text)?.[1];
         const block = /^ {2}coords:\s*\n((?: {4}[xyz]:.*\n?)+)/m.exec(text)?.[1];
@@ -633,17 +634,18 @@ const OPPOSITE: Readonly<Record<string, string>> = {
 };
 
 /**
- * ⭐⭐ **A boundary inside one zone that is not true to the grid** (boundary
- * build, D8) — the static twin of `Location.edgeRefusal`. Every room of a
- * zone is one cell, so a door, a window or a curtain between two of them
- * must join ADJACENT cells (the far row's coords are this row's plus the
- * direction's offset) and its two sides must be OPPOSITE (the far row names
- * the same `door:` on the inverse direction). Across zones a way is a
- * threshold and nothing is checked. (The third rule — the opening fits the
- * face — needs the boundary row's resolved `extends:` chain and the zone's
- * cell size; the runtime check owns it.)
+ * ⭐⭐ **A way inside one zone that is not true to the grid** (boundary build,
+ * D8 — every way, owner's call 2026-11-10). Every room of a zone is one cell,
+ * so every shared face is the same size and a way between two rooms of one
+ * zone is a place where two cells MEET: the far row's coords are this row's
+ * plus the direction's offset (ADJACENT), and a way back, if the far row
+ * authors one, is the OPPOSITE direction. A door, a window or a curtain in
+ * the way changes nothing about where the cells meet. Across zones a way is
+ * a threshold and nothing is checked. The third rule (the opening fits the
+ * face) is the runtime's — `Location.edgeRefusal` — because it needs the
+ * kind rows' resolved `extends:` chain and the zone's cell size.
  */
-export function boundaryEdges(rows: readonly Row[]): string[] {
+export function wayEdges(rows: readonly Row[]): string[] {
   const zones = new Set(
     rows.filter((r) => isZoneClass(r.cls)).map((r) => templatePathOf(r.file)),
   );
@@ -651,14 +653,22 @@ export function boundaryEdges(rows: readonly Row[]): string[] {
   for (const r of rows) byPath.set(templatePathOf(r.file), r);
   const zoneOf = (templatePath: string): string | null =>
     ancestorsOf(templatePath).find((a) => zones.has(a)) ?? null;
+  // Every plotted room's cell, by zone — what a track may not cross.
+  const cells = new Map<string, Set<string>>();
+  for (const r of rows) {
+    if (!isCartesianClass(r.cls) || !r.xyz) continue;
+    const z = zoneOf(templatePathOf(r.file));
+    if (z === null) continue;
+    if (!cells.has(z)) cells.set(z, new Set());
+    cells.get(z)!.add(r.xyz.join(','));
+  }
   const out: string[] = [];
   for (const r of rows) {
     if (!isCartesianClass(r.cls) || !r.xyz) continue;
     const herePath = templatePathOf(r.file);
     const here = zoneOf(herePath);
     if (here === null) continue;
-    for (const [dir, dest, door] of r.exits) {
-      if (!door) continue;
+    for (const [dir, dest, door, kind] of r.exits) {
       const target = byPath.get(dest);
       if (!target || !isCartesianClass(target.cls) || !target.xyz) continue;
       if (zoneOf(dest) !== here) continue;
@@ -666,26 +676,60 @@ export function boundaryEdges(rows: readonly Row[]): string[] {
       if (!off) continue; // a named way inside a zone is sameZoneNamedExits'
       const [x, y, z] = r.xyz;
       const [tx, ty, tz] = target.xyz;
-      if (tx !== x + off[0] || ty !== y + off[1] || tz !== z + off[2]) {
+      const [dx, dy, dz] = [tx - x, ty - y, tz - z];
+      const where = `${r.file}  '${dir}' → ${dest}`;
+      if (kind === TRACK_KIND) {
+        if (door) {
+          out.push(`${where}: a track crosses open ground, and nothing can hang in it (${door})`);
+          continue;
+        }
+        if (off[2] !== 0) {
+          if (Math.sign(dz) !== Math.sign(off[2])) {
+            out.push(`${where}: a track ${dir} must go ${dir} (the far height is ${dz >= 0 ? '+' : ''}${dz})`);
+            continue;
+          }
+        } else {
+          // A compass word over open country is a BEARING: the ground
+          // bearing to the far cell rounds to it (within 22.5°).
+          const want = Math.atan2(off[1], off[0]);
+          const got = Math.atan2(dy, dx);
+          const diff = Math.abs(((got - want + 3 * Math.PI) % (2 * Math.PI)) - Math.PI);
+          if ((dx === 0 && dy === 0) || diff > Math.PI / 8 + 1e-9) {
+            out.push(`${where}: the far cell (${tx},${ty},${tz}) lies ${Math.round((got * 180) / Math.PI)}° from east of (${x},${y},${z}), not ${dir}`);
+            continue;
+          }
+          const steps = Math.max(Math.abs(dx), Math.abs(dy));
+          for (let i = 1; i < steps; i++) {
+            const cx = x + Math.round((i * dx) / steps);
+            const cy = y + Math.round((i * dy) / steps);
+            const cz = z + Math.round((i * dz) / steps);
+            if ((cx !== tx || cy !== ty) && cells.get(here)?.has(`${cx},${cy},${cz}`)) {
+              out.push(`${where}: a room stands in the way at (${cx},${cy},${cz}) — a track runs over open ground`);
+              break;
+            }
+          }
+        }
+      } else if (dx !== off[0] || dy !== off[1] || dz !== off[2]) {
         out.push(
-          `${r.file}  '${dir}' → ${dest} through ${door}: the far cell is ` +
-            `(${tx},${ty},${tz}), not the cell ${dir} of (${x},${y},${z}) — a door joins adjacent cells`,
+          `${where}: the far cell is (${tx},${ty},${tz}), not the cell ${dir} of (${x},${y},${z}) ` +
+            `(a long walk over open ground is a \`kind: ${TRACK_KIND}\` on both ends)`,
         );
         continue;
       }
-      for (const [bdir, bdest, bdoor] of target.exits) {
-        if (bdest !== herePath || bdoor !== door) continue;
-        if (bdir !== OPPOSITE[dir]) {
-          out.push(
-            `${r.file}  '${dir}' → ${dest} through ${door}: the far side names ` +
-              `it '${bdir}', and the way back must be '${OPPOSITE[dir]}'`,
-          );
-        }
+      const backs = target.exits.filter(([, bdest]) => bdest === herePath);
+      if (backs.length > 0 && !backs.some(([bdir]) => bdir === OPPOSITE[dir])) {
+        out.push(
+          `${where}: the far side's way back is '${backs.map(([d]) => d).join("', '")}', ` +
+            `and it must be '${OPPOSITE[dir]}'`,
+        );
       }
     }
   }
   return out.sort();
 }
+
+/** The exit kind that crosses open ground (`Exit.spansOpenGround`). */
+const TRACK_KIND = '/platform/idea/exits/track';
 
 function main(): void {
   const rows = shippedRows();
@@ -693,7 +737,7 @@ function main(): void {
   const unzoned = unzonedCoords(rows);
   const unplotted = unplottedLocations(rows);
   const namedSameZone = sameZoneNamedExits(rows);
-  const badEdges = boundaryEdges(rows);
+  const badEdges = wayEdges(rows);
   const mint = classifyMinted(rows);
   const { unexpected, missing } = classify(rows);
   if (
@@ -712,17 +756,17 @@ function main(): void {
         `PersistentLocation, every one a room somebody furnishes; ` +
         `${MINTED_ROWS.length} on Location, every one a KIND; ` +
         `every zone row zones something; every cartesian row PLOTS on a ` +
-        `coordinate system; every row's coords and named doors are legal; every door inside a ` +
+        `coordinate system; every row's coords and named doors are legal; every way inside a ` +
         `zone joins adjacent cells through opposite sides.`,
     );
     return;
   }
   if (badEdges.length > 0) {
     console.error(
-      `\ncheck-location-classes: ${badEdges.length} boundary edge(s) inside a ` +
-        `zone are not true to the grid. A door, a window or a curtain between ` +
-        `two rooms of one zone joins ADJACENT cells through OPPOSITE sides — ` +
-        `the runtime installs such a way UNBUILT and tells the author ` +
+      `\ncheck-location-classes: ${badEdges.length} way(s) inside a zone are ` +
+        `not true to the grid. Two rooms of one zone meet where their cells ` +
+        `are ADJACENT, through OPPOSITE sides — the runtime installs such a ` +
+        `way UNBUILT and tells the author ` +
         `(\`Location.edgeRefusal\`). Fix: move a room to the adjacent cell, ` +
         `name the way back the opposite direction, or make it a threshold ` +
         `into another zone:`,

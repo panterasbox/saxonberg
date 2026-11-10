@@ -128,15 +128,12 @@ export interface Exitable {
    */
   getObviousNeighbours(opts?: ObviousNeighbourOptions): ObviousNeighbour[];
   /**
-   * @hook Why `boundary` may NOT stand in a way `direction` from here to
-   * `far`, or null when it may. The base says null (nothing is gridded);
-   * `Location` answers the zone's edge rules (boundary build, D8).
+   * @hook Why the installed way `exit` (and `boundary`, if one stands in
+   * it) is not true to the grid here, or null when it is. The base says
+   * null (nothing is gridded); `Location` answers the zone's edge rules
+   * (boundary build, D8 — every way).
    */
-  edgeRefusal(
-    direction: string,
-    far: Stuff & Container,
-    boundary: Boundary,
-  ): string | null;
+  edgeRefusal(exit: Exit, boundary: Boundary | null): string | null;
   /**
    * Install a forward/back exit pair. Async because it internally
    * `await`s the two `addExit` calls — subclass overrides may run
@@ -235,6 +232,8 @@ export interface BidirectionalExitOptions {
   kind?: string;
   opposite?: string;
   boundary?: Boundary;
+  /** The size of the gap both sides pass through. */
+  opening?: { width: number; height: number };
   /**
    * Hold BOTH sides' destinations as within-session live refs (Pattern
    * B) rather than templatePath resolution. Required when the two
@@ -320,6 +319,11 @@ export interface ExitInstruction {
    * inherits the default. See `Exit.wheelPassable`.
    */
   wheelPassable?: boolean;
+  /**
+   * The size of the gap the way passes through, `{ width, height }` in
+   * metres — the way's own, over its kind's (`Exit.getOpening`).
+   */
+  opening?: { width: number; height: number };
   /**
    * Game minutes for one baseline (unloaded, walk-mode) traverse of this
    * edge. Omitted → the `transport.defaultEdgeMinutes` corridor default.
@@ -574,11 +578,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
     }
 
     /** See the interface — nothing is gridded here; `Location` overrides. */
-    edgeRefusal(
-      _direction: string,
-      _far: Stuff & Container,
-      _boundary: Boundary,
-    ): string | null {
+    edgeRefusal(_exit: Exit, _boundary: Boundary | null): string | null {
       return null;
     }
 
@@ -640,6 +640,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         noFollow: opts.noFollow,
         messageIn: opts.messageInForward,
         messageOut: opts.messageOutForward,
+        opening: opts.opening,
       };
       const backOpts = {
         direction: opposite,
@@ -652,6 +653,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         noFollow: opts.noFollow,
         messageIn: opts.messageInBack,
         messageOut: opts.messageOutBack,
+        opening: opts.opening,
       };
       // One clone per edge from the kind row, then bind — `bind` is
       // delta-aware, so unset per-site fields keep the kind's authored
@@ -800,24 +802,13 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       // Exit-kind path: clone the kind template (authored defaults
       // hydrate; `class:` may name an Exit subclass), then bind below.
       // A bidirectional entry clones one instance per edge.
-      // ⭐ D8 (boundary build): a boundary inside one zone joins ADJACENT
-      // cells through their shared face — the far place is the cell that
-      // way, its way back is the opposite side, and the opening fits the
-      // face. A way that breaks it installs UNBUILT and the author is told
-      // why; across zones it is a threshold and nothing is checked.
-      if (boundary) {
-        const why = this.edgeRefusal(direction, destStuff, boundary);
-        if (why) {
-          await this._installUnbuiltExit(direction, spec, why);
-          return;
-        }
-      }
       const kindPath = spec.kind ?? TemplatePaths.defaultExitKind;
       const bidirectional = spec.bidirectional ?? false;
       if (bidirectional) {
         const opts: BidirectionalExitOptions = {
           kind: kindPath,
           boundary,
+          opening: spec.opening,
           opposite: spec.opposite,
           hidden: spec.hidden,
           blocked: spec.blocked,
@@ -827,6 +818,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
           messageOutForward: spec.messageOut,
         };
         await this.addBidirectionalExit(destStuff, direction, opts);
+        await this._refuseIfUntrue(direction, spec, boundary ?? null);
         return;
       }
       const oneWayOpts = {
@@ -844,6 +836,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         messageOut: spec.messageOut,
         media: spec.media,
         wheelPassable: spec.wheelPassable,
+        opening: spec.opening,
         edgeMinutes: spec.edgeMinutes,
         conditional: spec.conditional,
       };
@@ -851,7 +844,38 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       exit.bind(oneWayOpts);
       await this.addExit(exit);
       if (boundary) BoundaryApi.attach(boundary, exit);
+      if (await this._refuseIfUntrue(direction, spec, boundary ?? null)) return;
       await this._reconcileBoundaryPair(exit);
+    }
+
+    /**
+     * ⭐ D8 (boundary build, every way — owner's call 2026-11-10): a way
+     * inside one zone is true to the grid — it joins ADJACENT cells through
+     * opposite sides and its opening fits the face, or it is a `track`
+     * across open ground along its direction (`Location.edgeRefusal`). A way
+     * that breaks it is taken down again and installed UNBUILT, and the
+     * author is told why; across zones it is a threshold and nothing is
+     * checked. Answers whether it refused.
+     */
+    private async _refuseIfUntrue(
+      direction: string,
+      spec: ExitInstruction,
+      boundary: Boundary | null,
+    ): Promise<boolean> {
+      const exit = this.exits.get(direction);
+      if (!exit) return false;
+      const why = this.edgeRefusal(exit, boundary);
+      if (!why) return false;
+      const inverse = exit.getInverse();
+      this.removeExit(direction);
+      await StuffApi.destruct(exit as unknown as Stuff);
+      if (inverse && spec.bidirectional) {
+        const far = inverse.getSource() as unknown as Stuff & Exitable;
+        far.removeExit(inverse.getDirection());
+        await StuffApi.destruct(inverse as unknown as Stuff);
+      }
+      await this._installUnbuiltExit(direction, spec, why);
+      return true;
     }
 
     /**
@@ -958,9 +982,9 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         path: row,
         severity: 'error',
         message: refusal
-          ? `exit ${direction} to ${spec.destination} cannot carry ` +
-            `${spec.door ?? 'its door'}: ${refusal}. The direction is ` +
-            `installed but refuses until the rows are fixed.`
+          ? `exit ${direction} to ${spec.destination} is not true to the ` +
+            `grid: ${refusal}. The direction is installed but refuses until ` +
+            `the rows are fixed.`
           : `exit ${direction} names ${spec.destination}, which does not ` +
             `exist. The direction is installed but refuses; create the row ` +
             `and it heals on the next hydrate.`,

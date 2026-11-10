@@ -679,10 +679,33 @@ made that the plan did not, each with what decided it:
 - **B13 — the fire walk and the openings count treat glass as a wall** (`isOpen() &&
   passesBodiesWhenOpen()`): a window is a side now, and fire/air never crossed one before.
 
+- **B14 — review round 1 (owner, 2026-11-10): the opening and the edge rules are the WAY's, and
+  they hold for every way.** `Exit.opening` (from the kind row or per site; null = the whole
+  face) — a boundary's own `opening` must fit it. `Location.edgeRefusal(exit, boundary)` now runs
+  for EVERY installed way inside a zone (adjacent · opposite · fits), and a new kind,
+  **`/platform/idea/exits/track`** (`Exit.spansOpenGround`), is the long walk over open ground:
+  the far place on its BEARING (±22.5°; `up`/`down` by height), any height, no room on the
+  straight line between, nothing hung in it. Decided by the lenses (1: geometry stays derivable
+  where re-zoning would hide it; 2: one row on the way, no zone ceremony; 5: a track becomes a
+  road becomes a rail and answers the same `go`). `lint:locations` `boundaryEdges` → `wayEdges`.
+  **The sweep (67 → 0):** plain mistakes fixed — campus-farm pit (0,1,-1)→(0,0,-1); market bakery
+  x −2→−1; infirmary collection x 3→1; estuary salt house (1,1)→(1,−1); falls-landing landing
+  (0,1)→(0,−1); sand-pit dirty face x 2→1; newbie-wilds longmeadow (1,1)→(1,2) (it shared the
+  watchpost's cell) and the watchpost's way back `east`→`west`; the delve vault (0,4)→(1,2), its
+  ways `southeast` from corridor 3 and the hidden `northeast` shortcut from corridor 1 (the only
+  cell adjacent to both; prose re-worded); the Rejection hillside's way to the claims office
+  `southwest`→`south`; the Hanging Wood glasshouse (2,1)→(1,2) (the sugarbush stood between);
+  Waponi's forest (−1,3)→(−1,2) (the store stood between). The sparse country became 42 tracks
+  on their true bearings: Rejection's dry rise/seep hollow `south/north`→`southeast/northwest`,
+  oil rise/seep `west/east`→`southwest/northeast`, and the fringe claim is now reached THROUGH the
+  salt spring (it stood on the line from the old workings); Hearts Delight's orchard close
+  (−20,3,6)→(−22,3,6) with its ways `northeast`/`southeast`/`southwest` (it was `up`/`down` with
+  a `down` that went up). No drilling coordinate moved (the geology is laid out on them).
+
 New substrate as built: `platform/thing/Boundary` (twin), `Boundary` fields/methods (sides,
 channels, opening, `transmissivity`/`transmissivityInto`/`colourInto`/`passesBodiesWhenOpen`),
 `Door.freeFrom`, `Exit.boundary` + `wayState`/`wayRecord`, `WayRecord`/`WayState`,
-`BoundaryApi.attach/detach`, `Exitable.edgeRefusal` hook, `Sealable.canClose`,
+`BoundaryApi.attach/detach`, `Exitable.edgeRefusal` hook, `Exit.opening` + `spansGround`, the `track` exit kind, `Sealable.canClose`,
 `CirculationWarren.hangEntryDoor`, rows `/platform/thing/boundaries/{door,gate,hatch,grating,curtain}`,
 `/system/residence/thing/boundaries/{keyed-door,lot-gate}`, `duncan-hall/thing/dorm-door`.
 Retired: everything in § New substrate's "Retired" list except the Berth/Ashore lock (B7).

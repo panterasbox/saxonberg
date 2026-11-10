@@ -75,13 +75,15 @@ data:
   exits:
     down:
       destination: /world/terminus/hearts-delight/location/farmstead-yard
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 4
     # Over the lip into the close — ⭐ two minutes, which matters: a
     # colony's forage walk prices edges in MINUTES of flight, so the
     # close being next door is what makes a hive on the bench viable.
-    east:
+    southwest:
       destination: /world/terminus/hearts-delight/bench-field/location/orchard-close
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 2
   # ⭐ One stand of wheat per field (field population D15): three crops

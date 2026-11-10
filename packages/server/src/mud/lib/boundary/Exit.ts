@@ -51,6 +51,7 @@ import type { VetoResult } from '../errors';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { Boundary } from './Boundary';
+import type { BoundaryOpening } from './Conduit';
 import type { WayRecord, WayState } from '@saxonberg/types';
 import type Structure from '../structure/Structure';
 import { StuffApi } from '../../api/stuff';
@@ -184,6 +185,8 @@ export interface ExitOptions {
    * haulage terrain gate in `LocomotionApi.canTraverseExit`.
    */
   wheelPassable?: boolean;
+  /** Per-site size of the gap this way passes through (see {@link Exit.getOpening}). */
+  opening?: BoundaryOpening | null;
   /**
    * ⭐⭐ Is this the KIND of way that closes? See
    * {@link Exit.isConditional}.
@@ -271,6 +274,8 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     messageOut: { persistent: true },
     media: { persistent: true },
     wheelPassable: { persistent: true },
+    opening: { persistent: true, authorable: true },
+    spansGround: { persistent: true, authorable: true },
     _conditional: { persistent: true },
     _edgeMinutes: { persistent: true },
     blocked: { persistent: true },
@@ -734,6 +739,53 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
   }
 
   /**
+   * ⭐ **The size of the gap this way passes through** — `{ width, height }`
+   * in metres, from the way's kind row or per site; `null` = the whole face
+   * (open ground between two cells). It is the WAY's, not the door's
+   * (boundary build, owner's call 2026-11-10): an empty archway has a size
+   * too, and what carries what through it (size and carrying) asks here. A
+   * boundary hung in the way must fit it.
+   */
+  protected _opening: BoundaryOpening | null = null;
+
+  public getOpening(): BoundaryOpening | null {
+    return this._opening ? { ...this._opening } : null;
+  }
+  public setOpening(value: BoundaryOpening | null): void {
+    if (value === null || value === undefined) {
+      this._opening = null;
+      return;
+    }
+    if (
+      typeof value !== 'object' ||
+      !(typeof value.width === 'number' && value.width > 0) ||
+      !(typeof value.height === 'number' && value.height > 0)
+    ) {
+      throw new TypeError(
+        `Exit.opening must be { width, height } in metres, both positive; got ${JSON.stringify(value)}.`,
+      );
+    }
+    this._opening = { width: value.width, height: value.height };
+  }
+
+  /**
+   * ⭐ **A way across open ground** — a track, a road (the `track` kind). An
+   * ordinary way joins two ADJACENT cells of its zone through their shared
+   * face; a track runs on along its direction over cells nobody has
+   * authored, to a place that lies that way (the long walk to a remote
+   * claim, the lane up the valley). It has no face, so no boundary can
+   * hang in it. See `Location.edgeRefusal`.
+   */
+  protected _spansGround = false;
+
+  public spansOpenGround(): boolean {
+    return this._spansGround;
+  }
+  public setSpansGround(value: boolean): void {
+    this._spansGround = value === true;
+  }
+
+  /**
    * ⭐⭐ **Is this the kind of way that sometimes is not there?**
    *
    * A ford that floods, a causeway the tide covers. ⚠ This does NOT
@@ -1010,6 +1062,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     if (opts.wheelPassable !== undefined) {
       this._wheelPassable = opts.wheelPassable;
     }
+    if (opts.opening !== undefined) this.setOpening(opts.opening);
     if (opts.edgeMinutes !== undefined) {
       this.setEdgeMinutes(opts.edgeMinutes);
     }

@@ -65,15 +65,15 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   as a Stuff. Intra-zone non-cardinal exits throw with a diagnostic
   naming both seed paths and the shared zone. Per the
   cardinal-only-intra-zone exit invariant (see [zone.md](./zone.md)).
-  ⭐ **A way with a boundary must also be true to the grid**
-  (`Location.edgeRefusal`, the boundary build, 2026-11): inside one
-  zone the far place is the adjacent cell that way, the far side's way
-  back is the opposite direction, and the boundary's opening fits the
-  face. Across zones (or a holding's own frame) a way is a threshold
-  and nothing is checked; a way that breaks a rule installs **unbuilt**
-  with a diagnostic, and `lint:locations` (`boundaryEdges`) checks the
-  first two from the rows' `coords:`. See
-  [boundary.md § The edge rules](./boundary.md#the-edge-rules--a-boundary-inside-a-zone-is-true-to-the-grid).
+  ⭐ **The edge rules** (boundary build, 2026-11 — every way): inside a
+  zone a way joins ADJACENT cells through OPPOSITE sides and its opening
+  (the way's own, `Exit.getOpening`) fits the face — or it is a **track**
+  (`kind: /platform/idea/exits/track`), the long walk over open ground to a
+  place on its bearing with no room between. Across zones (or a holding's
+  own frame) a way is a threshold and nothing is checked; a way that breaks
+  a rule installs **unbuilt** with a diagnostic, and `lint:locations`
+  (`wayEdges`) checks it from the rows' `coords:` and `kind:`. See
+  [boundary.md § The edge rules](./boundary.md#the-edge-rules--every-way-inside-a-zone-is-true-to-the-grid).
 - **`SphericalLocation`** = `Exitable(SphericalCoords(Visible(Location)))`.
   No restrictions on `addExit` direction labels — spherical zones
   have no implicit adjacency, so semantic labels are the only way to

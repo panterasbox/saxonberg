@@ -68,9 +68,11 @@ data:
   exits:
     northwest:
       destination: /world/terminus/rejection/location/salt-spring
+      kind: /platform/idea/exits/track
       edgeMinutes: 3
     # ⭐ Further out along the same fold axis: the gas country, which is
     # the same episode of folding holding something lighter.
     northeast:
       destination: /world/terminus/rejection/location/gas-flat
+      kind: /platform/idea/exits/track
       edgeMinutes: 6

@@ -822,24 +822,45 @@ the boundary-less side is BLOCKED and the author is told through
 half-lock where leaving ignores the bolt — the pump house and the foundry
 yard were both that before the build.
 
-## The edge rules — a boundary inside a zone is true to the grid
+## The edge rules — every way inside a zone is true to the grid
 
 Inside one zone every room is one cell, so every shared face is the same
-size; a boundary standing in a way between two of them must be true to that
-(`Location.edgeRefusal`, the `Exitable.edgeRefusal` hook):
+size, and a way between two rooms of the zone is where two cells MEET
+(`Location.edgeRefusal`, the `Exitable.edgeRefusal` hook — **every way**,
+owner's call 2026-11-10; it was doored ways only at first):
 
-1. the far place is the **adjacent** cell that way (its coords are this
-   room's plus the direction's offset);
-2. the far side's way back is the **opposite** direction;
-3. the **opening fits the face** (width and height ≤ the cell's extent).
+1. the far place is the **adjacent** cell that way;
+2. the far side's way back, if it has one, is the **opposite** direction;
+3. the way's **opening** fits the face, and a boundary hung in it fits the
+   way.
+
+⭐ **The opening is the WAY's** (`Exit.getOpening()`, from the way's kind
+row or authored per site; `null` = the whole face). An empty archway has a
+size too, and what carries what through a way (size and carrying) asks the
+way. A boundary's own `opening` is the object's size; it must fit.
+
+⭐⭐ **A track — the long walk over open ground** (`kind:
+/platform/idea/exits/track`, `Exit.spansOpenGround()`). The sparse country
+(Rejection's outlying claims, Hearts Delight's lanes, Waponi's volcano)
+places rooms several cells apart on purpose — coords are metres, and the
+drilling geology is laid out on them. A track's far place lies **on its
+bearing** (the ground bearing rounds to its compass point, within 22.5°;
+`up`/`down` move the height that way), it may climb, **no room stands on
+the straight line between**, and **nothing hangs in it** (a boundary needs a
+shared face). The way back is still the opposite word. *A compass word over
+open country is a bearing, never a promise of a straight road.*
 
 Across zones — or between a holding's own frame and another — a way is a
 **threshold**: the grids share no face and nothing is checked. A way that
 breaks a rule installs **unbuilt** (*nothing lies that way yet*) and the
 diagnostic names the row, the direction and the reason. `lint:locations`
-(`boundaryEdges`) checks rules 1 and 2 from the rows' `coords:` in CI; rule 3
-needs the resolved `extends:` chain and the zone's cell size, so it is the
-runtime's.
+(`wayEdges`) checks rules 1–2 and the track rules from the rows' `coords:`
+and `kind:` in CI; rule 3 needs resolved `extends:` chains and the zone's
+cell size, so it is the runtime's. The sweep that turned the rule on found
+67 ways: ~25 were plain mistakes (a wrong sign on y, an off-by-one cell,
+two rooms on one cell, a way back named the wrong way), fixed; the rest were
+the sparse country, made `track`s on their true bearings (a few direction
+words and three rooms re-aimed — boundary-plan § Build notes).
 
 ## Keyed ways — the minter mints the door
 

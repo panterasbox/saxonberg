@@ -12,13 +12,10 @@ data:
   longDescription: |
     The corridor opens into a squat, dry chamber with a shelf cut into the far wall. Whatever hoard it once held is long gone; a single offering-bowl of dull metal still sits on the shelf, left for whoever made it this far.
 
-    South, the corridor runs back the way you came.
-  coords:
-    x: 0
-    y: 4
-    z: 0
+    Northwest, the corridor runs back the way you came.
+  coords: { x: 1, y: 2, z: 0 }
   exits:
-    south:
+    northwest:
       destination: /world/newbie-wilds/delve/corridor-3
   # The obvious reward — unconcealed, no search needed. The prize is the
   # plainly-reachable one; the concealed cache in corridor 1 is pure upside.

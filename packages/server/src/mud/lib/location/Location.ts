@@ -263,54 +263,114 @@ export default class Location extends LocationBase {
   }
 
   /**
-   * ⭐⭐ **The edge rules** (boundary build, D8): inside one zone every room is
-   * one cell, so every shared face is the same size — and a boundary (a
-   * door, a window, a curtain) standing in a way must be true to that grid.
-   * The far place is the ADJACENT cell that way, the far side's way back is
-   * the OPPOSITE direction, and the opening is no larger than the face.
-   * Across zones (or between a holding's own frame and another) a way is a
-   * threshold: the two grids do not share a face, and nothing is checked.
+   * ⭐⭐ **The edge rules** (boundary build, D8 — every way, owner's call
+   * 2026-11-10). Inside one zone every room is one cell, so every shared
+   * face is the same size, and a way between two rooms of the zone is where
+   * two cells MEET:
    *
-   * Returns the reason, or null. ⚠ Only when both places stand plotted:
-   * a place with no coords is not on the grid, so there is nothing to be
-   * true to. `lint:locations` checks the same three rules from the rows.
+   *   1. the far place is the ADJACENT cell that way;
+   *   2. the far side's way back, if it has one, is the OPPOSITE direction;
+   *   3. the way's opening fits the face, and a boundary hung in it fits
+   *      the way.
+   *
+   * ⭐ A **track** (`Exit.spansOpenGround`, the `track` kind) is the long
+   * walk across open ground nobody has authored — a remote claim, the lane
+   * up the valley: its far place lies along its direction any number of
+   * cells on (it may climb: the ground is not flat), no room stands
+   * between, and nothing can hang in it — a boundary needs a shared face.
+   *
+   * Across zones (or between a holding's own frame and another) a way is a
+   * THRESHOLD: the grids share no face and nothing is checked. Only places
+   * that stand plotted are judged; a room not yet loaded is not seen
+   * between, which `lint:locations` checks from the rows. Returns the
+   * reason, or null.
    *
    * @hook
    */
-  public override edgeRefusal(
-    direction: string,
-    far: Stuff & Container,
-    boundary: Boundary,
-  ): string | null {
+  public override edgeRefusal(exit: Exit, boundary: Boundary | null): string | null {
     const here = this as unknown as Stuff;
-    const zone = here.getZone();
-    if (zone === null || far.getZone() !== zone) return null;
+    const zone = this.getZone();
+    const far = exit.peekDestination();
+    if (zone === null || far === null || far.getZone() !== zone) return null;
     if (this.holdingFrameOf(here) !== this.holdingFrameOf(far)) return null;
     const a = this.getCoords();
     const b = far instanceof Location ? far.getCoords() : null;
     if (a === null || b === null) return null;
+    const direction = exit.getDirection();
     const off = NavigationApi.directionOffset(direction);
-    if (!off) {
-      return `'${direction}' is not a side of a cell — a way with a door inside one zone runs north, south, east, west, up or down`;
-    }
-    if (b.x !== a.x + off[0] || b.y !== a.y + off[1] || b.z !== a.z + off[2]) {
-      return `the far place is not the cell ${direction} of here — a door joins adjacent cells`;
-    }
-    const back = NavigationApi.invertDirection(direction);
-    if (MixinApi.isExitable(far)) {
-      for (const [dir, x] of far.getExits()) {
-        if (x.getBoundary() !== boundary) continue;
-        if (dir !== back) {
-          return `the far side names it '${dir}', and the way back must be '${back}' — the two sides are opposite`;
+    if (!off) return null; // a named way inside a zone is addExit's to refuse
+    const [dx, dy, dz] = [b.x - a.x, b.y - a.y, b.z - a.z];
+    if (exit.spansOpenGround()) {
+      if (boundary) {
+        return 'a track crosses open ground, and nothing can hang in it — a door or a window needs the shared face of two adjacent cells';
+      }
+      const why = this.trackRefusal(direction, off, dx, dy, dz);
+      if (why) return why;
+      // The cells the straight line crosses, ends excluded: a room standing
+      // on one is in the way (the track would have to go through it).
+      const steps = off[2] !== 0 ? 0 : Math.max(Math.abs(dx), Math.abs(dy));
+      for (let i = 1; i < steps; i++) {
+        const cx = a.x + Math.round((i * dx) / steps);
+        const cy = a.y + Math.round((i * dy) / steps);
+        const cz = a.z + Math.round((i * dz) / steps);
+        if ((cx !== b.x || cy !== b.y) && zone.hasRoomAt(cx, cy, cz)) {
+          return `a room stands in the way at (${cx},${cy},${cz}) — a track runs over open ground`;
         }
+      }
+    } else if (dx !== off[0] || dy !== off[1] || dz !== off[2]) {
+      return `the far place (${b.x},${b.y},${b.z}) is not the cell ${direction} of (${a.x},${a.y},${a.z}) — a way joins adjacent cells (a long walk over open ground is a \`track\`)`;
+    }
+    const backDir = NavigationApi.invertDirection(direction);
+    if (MixinApi.isExitable(far)) {
+      const backs = [...far.getExits().entries()].filter(
+        ([, x]) => x.peekDestination() === here,
+      );
+      if (backs.length > 0 && !backs.some(([d]) => d === backDir)) {
+        return `the far side's way back is '${backs.map(([d]) => d).join("', '")}', and it must be '${backDir}' — the two sides are opposite`;
       }
     }
     const face = this.getLinearExtent();
-    const opening = boundary.getOpening();
-    if (face !== null && (opening.width > face || opening.height > face)) {
-      return `its opening (${opening.width} × ${opening.height} m) is larger than the ${face} m face it stands in — a smaller opening, or a threshold to another zone`;
+    const opening = exit.getOpening();
+    if (!exit.spansOpenGround() && face !== null && opening !== null &&
+        (opening.width > face || opening.height > face)) {
+      return `its opening (${opening.width} × ${opening.height} m) is larger than the ${face} m face it passes through`;
+    }
+    if (boundary) {
+      const room = opening ?? (face !== null ? { width: face, height: face } : null);
+      const size = boundary.getOpening();
+      if (room !== null && (size.width > room.width || size.height > room.height)) {
+        return `${boundary.getPresentation()} (${size.width} × ${size.height} m) is larger than the way it hangs in (${room.width} × ${room.height} m)`;
+      }
     }
     return null;
+  }
+
+  /**
+   * A track's far place lies IN its direction: for a level direction the
+   * ground bearing to it rounds to that compass point (within 22.5°), at
+   * any height (a track climbs); for `up`/`down` the height moves that way.
+   * A compass word over open country is a bearing, never a promise of a
+   * straight road. Null when it does.
+   */
+  private trackRefusal(
+    direction: string,
+    off: readonly [number, number, number],
+    dx: number,
+    dy: number,
+    dz: number,
+  ): string | null {
+    if (off[2] !== 0) {
+      return Math.sign(dz) === Math.sign(off[2])
+        ? null
+        : `a track ${direction} must go ${direction} — the far place is at a height of ${dz >= 0 ? '+' : ''}${dz}`;
+    }
+    if (dx === 0 && dy === 0) return `the far place is not ${direction} of here — it is the same ground`;
+    const want = Math.atan2(off[1], off[0]);
+    const got = Math.atan2(dy, dx);
+    const diff = Math.abs(((got - want + 3 * Math.PI) % (2 * Math.PI)) - Math.PI);
+    return diff <= Math.PI / 8 + 1e-9
+      ? null
+      : `the far place lies ${Math.round((got * 180) / Math.PI)}° from east, not ${direction} — a track's direction is its bearing`;
   }
 
   /**

@@ -27,7 +27,7 @@ data:
     A counter across the front with the day's bread on it. A trough down the side under a window, a crock beside that with a cloth tied over its mouth, and two sacks of flour on a pallet off the floor because the floor is stone and the stone is damp.
 
     Behind the counter somebody has chalked the two prices on the wall and not rubbed them out in a long time.
-  coords: { x: -2, y: 0, z: 0 }
+  coords: { x: -1, y: 0, z: 0 }
   exits:
     east:
       destination: /world/terminus/market/square
