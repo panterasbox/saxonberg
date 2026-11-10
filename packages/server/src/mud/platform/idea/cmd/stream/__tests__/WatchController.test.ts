@@ -1,5 +1,6 @@
 /**
- * WatchController — the `watch` verb writes the per-viewer `cockpit.watch`
+ * The watch controllers (WatchStream / WatchOn / WatchOff, over
+ * WatchControllerBase) — the `watch` verb writes the per-viewer `cockpit.watch`
  * embed target (transient clientState) and pushes it. Mirrors the
  * CliController harness (a HasInteractive TestActor, spied push). Covers
  * embed-shape resolution across platforms, `watch off`, the bare-YouTube-
@@ -10,7 +11,9 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import WatchController from '../WatchController';
+import WatchStreamController from '../WatchStreamController';
+import WatchOnController from '../WatchOnController';
+import WatchOffController from '../WatchOffController';
 import { HasInteractiveMixin } from '../../../../../lib/connection/HasInteractive';
 import { ClientStateMixin } from '../../../../../lib/connection/ClientState';
 import { SaxonbergClientMixin } from '../../../../../lib/connection/SaxonbergClient';
@@ -46,7 +49,7 @@ class TestActor extends SaxonbergClientMixin(ClientStateMixin(HasInteractiveMixi
 
 function stubCommand(): CommandDefinition {
   return CommandDefinition.fromYaml(
-    'verbs: [watch]\ncontroller: WatchController\ndescription: stub\n',
+    'verbs: [watch]\ncontroller: NoopController\ndescription: stub\n',
     '<test>',
   );
 }
@@ -76,7 +79,7 @@ function watched(actor: TestActor): WatchTarget | null {
   return actor.getClientState<WatchTarget | null>('cockpit.watch') ?? null;
 }
 
-describe('WatchController', () => {
+describe('the watch controllers', () => {
   let actor: TestActor;
   let location: Place;
   let pushSpy: ReturnType<typeof vi.spyOn>;
@@ -98,7 +101,15 @@ describe('WatchController', () => {
 
   async function run(model: WatchModel): Promise<CommandContext> {
     const ctx = makeContext(actor, location);
-    await makeStuff(() => new WatchController()).execute(model as never, ctx);
+    // The controller the views route to: `off`'s own, else the shape the
+    // words make (`on <screen>` or not).
+    const make =
+      model.subcommand === 'off'
+        ? () => new WatchOffController()
+        : model.on
+          ? () => new WatchOnController()
+          : () => new WatchStreamController();
+    await makeStuff(make).execute(model as never, ctx);
     return ctx;
   }
 

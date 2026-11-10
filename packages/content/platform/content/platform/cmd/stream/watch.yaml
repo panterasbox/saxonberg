@@ -1,6 +1,10 @@
 verbs: [watch]
 category: stream
-controller: /platform/idea/cmd/stream/WatchController
+# ⭐ `off` and `horizon` are this view's subcommands, one controller each;
+# the stream forms are two more SHAPES of the verb, each its own view and
+# controller (`watch-stream.yaml`, `watch-on.yaml`, controller-liquidity
+# W7a), tried when the first word is neither subcommand. There is no bare
+# form: `watch` alone names nothing to watch.
 description: "Put a livestream's video in the focal embed, or keep a watch on the horizon"
 help: |
   Put a livestream's video in the cockpit's focal embed. Name the
@@ -35,7 +39,6 @@ help: |
   video id otherwise).
 validators:
   - /lib/command/validators/requiresAnimate
-fallthrough: true
 options:
   twitch:
     type: boolean
@@ -50,7 +53,11 @@ options:
     field: kick
     description: "The target is a Kick channel slug"
 subcommands:
+  horizon:
+    controller: /platform/idea/cmd/stream/WatchHorizonController
+    description: "Keep a watch on the horizon — told what comes into view and what drops out of it"
   off:
+    controller: /platform/idea/cmd/stream/WatchOffController
     description: "Clear the focal embed (or a shared screen: `watch off on <screen>`)"
     args:
       - name: on
@@ -59,13 +66,3 @@ subcommands:
         scope: "peers"
         prepositions: [on]
         requires: DisplayMixin
-args:
-  - name: target
-    type: string
-    required: true
-  - name: on
-    type: object
-    required: false
-    scope: "peers"
-    prepositions: [on]
-    requires: DisplayMixin

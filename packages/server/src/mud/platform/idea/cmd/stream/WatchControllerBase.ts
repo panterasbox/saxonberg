@@ -1,29 +1,34 @@
 /**
- * WatchController — the `watch` verb (focal video embed, cardinality 1).
+ * WatchControllerBase — what the `watch` controllers share
+ * (controller-liquidity W7a: one controller per subcommand and per shape,
+ * over a base per noun). `watch` is the focal video embed, cardinality 1:
  *
- * `watch <target>` resolves the *embed* shape and writes it to the
- * server-authoritative per-viewer `cockpit.watch` clientState (transient,
- * the `cockpit.inputModes` / CliController precedent: `setClientState` →
- * `pushClientStateUpdate`, no `save()`), then the client mirrors it and
- * renders the platform's public-player iframe. `watch off` clears it. Most
- * forms resolve with no external call (Twitch handle, YouTube URL / videoId
- * / `UC…` channelId), so watching works even when the chat relay is
- * unconfigured; a bare YouTube `@handle` resolves to a channelId via the
- * YouTube reader (`channels.list`), so that form needs the reader set.
+ *   - `watch <target>` — {@link WatchStreamController}: resolve the *embed*
+ *     shape and write it to the server-authoritative per-viewer
+ *     `cockpit.watch` clientState (transient, the `cockpit.inputModes` /
+ *     CliController precedent: `setClientState` → `pushClientStateUpdate`,
+ *     no `save()`); the client mirrors it and renders the platform's
+ *     public-player iframe. Most forms resolve with no external call
+ *     (Twitch handle, YouTube URL / videoId / `UC…` channelId); a bare
+ *     YouTube `@handle` resolves to a channelId via the YouTube reader
+ *     (`channels.list`), so that form needs the reader set. Watching also
+ *     *implies* following the chat — a best-effort delegation to
+ *     `StreamApi.tune` (Twitch two-way; YouTube read-only).
+ *   - `watch <target> on <screen>` — {@link WatchOnController}: drives a
+ *     SHARED display instead (the booth TV): the screen's own `mayDrive`
+ *     decides (the remote, the seat, reach), and its `show` writes every
+ *     viewer's embed who sees the screen. See docs/subsystems/display.md.
+ *   - `watch off [on <screen>]` — {@link WatchOffController}: clears the
+ *     embed, darkens a screen, or stands down a kept watch.
+ *   - ⭐ `watch horizon` (maritime R6) — {@link WatchHorizonController}:
+ *     keeps a WATCH instead, a sustained engagement on the watcher's
+ *     attention (`HorizonWatch`) that reports what comes into view and what
+ *     drops out of it, and nothing else. It is the one form an NPC may take
+ *     (the hired lookout). `watch off` and `cancel` stand it down.
  *
- * Watching also *implies* following the chat — a best-effort delegation to
- * `StreamApi.tune` (Twitch two-way; YouTube read-only).
- *
- * `watch <target> on <screen>` drives a SHARED display instead (the
- * booth TV): the screen's own `mayDrive` decides (the remote, the seat, reach),
- * and its `show` writes every viewer's embed who sees the screen.
- * `watch off on <screen>` darkens it. See docs/subsystems/display.md.
- *
- * ⭐ `watch horizon` (maritime R6) keeps a WATCH instead: a sustained
- * engagement on the watcher's attention (`HorizonWatch`) that reports
- * what comes into view and what drops out of it, and nothing else. It is
- * the one form an NPC may take (the hired lookout), so it is decided
- * before the player-only checks. `watch off` and `cancel` stand it down.
+ * The two stream forms are two SHAPES of the verb, each its own view
+ * (`watch-stream.yaml`, `watch-on.yaml` with `prepositionRequired` on
+ * `on`); `off` and `horizon` are `watch.yaml`'s subcommands.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -41,14 +46,12 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { ClientState } from '../../../../lib/connection/ClientState';
 import type { SaxonbergClient } from '../../../../lib/connection/SaxonbergClient';
 import type { WatchTarget } from '@saxonberg/types';
-import { SchedulerApi } from '../../../../api/scheduler';
-import { HorizonWatch, HORIZON_WATCH_TYPE } from '../../../../lib/perception/HorizonWatch';
 
-const WATCH_KEY = 'cockpit.watch';
+export const WATCH_KEY = 'cockpit.watch';
 
-type WatchHost = Stuff & ClientState & SaxonbergClient;
+export type WatchHost = Stuff & ClientState & SaxonbergClient;
 
-interface WatchModel extends CommandModel {
+export interface WatchModel extends CommandModel {
   target?: string;
   twitch?: boolean;
   youtube?: boolean;
@@ -57,94 +60,18 @@ interface WatchModel extends CommandModel {
   on?: MqlOneResult;
 }
 
-export default class WatchController extends CommandController<WatchModel> {
-  async execute(model: WatchModel, context: CommandContext): Promise<void> {
+export abstract class WatchControllerBase extends CommandController<WatchModel> {
+  /** The giver as a player client, or `null` after refusing — a stream needs a screen to land on. */
+  protected clientOf(context: CommandContext): WatchHost | null {
     const giver = context.commandGiver;
-    if (!model.on && (model.target ?? '').trim().toLowerCase() === 'horizon') {
-      return this.keepWatch(context);
-    }
-    if (model.subcommand === 'off' && !model.on && this.standDown(giver)) {
-      return this.send(context, Mml.fromMarkup('\nYou stand down from your watch.\n'));
-    }
     if (!MixinApi.isSaxonbergClient(giver)) {
-      return this.fail(
-        context,
-        'Only players can watch a stream.',
-        'no-interactive',
-      );
+      this.fail(context, 'Only players can watch a stream.', 'no-interactive');
+      return null;
     }
-    const host: WatchHost = giver;
-
-    const screen = model.on?.stuff ?? null;
-    if (screen) {
-      if (!MixinApi.isDisplay(screen)) {
-        return this.fail(context, "that isn't a screen.", 'not-display');
-      }
-      if (!(await screen.mayDrive(giver))) {
-        return this.fail(
-          context,
-          `you can't drive ${screen.getPresentation()} — whoever holds the remote can.`,
-          'not-driver',
-        );
-      }
-      if (model.subcommand === 'off') {
-        screen.clear();
-        return this.send(
-          context,
-          Mml.fromMarkup(`\nYou switch ${screen.getPresentation()} off.\n`),
-        );
-      }
-    }
-    if (model.subcommand === 'off') return this.clear(host, context);
-    const target = (model.target ?? '').trim();
-    if (!target) {
-      return this.send(
-        context,
-        Mml.fromMarkup(
-          '\nWatch a stream: `watch <handle> --twitch` / `--youtube` / ' +
-            '`--kick`, a URL, or a character. `watch off` clears it.\n',
-        ),
-      );
-    }
-    return this.watch(model, context, host, screen);
+    return giver;
   }
 
-  /** `watch horizon` — take up a watch (or say you already keep one). */
-  private keepWatch(context: CommandContext): void {
-    const giver = context.commandGiver;
-    if (!MixinApi.isEngaged(giver)) {
-      return this.fail(context, 'You cannot keep a watch.', 'not-engaged');
-    }
-    if (giver.getEngagementByType(HORIZON_WATCH_TYPE)) {
-      return this.send(context, Mml.fromMarkup('\nYou are already keeping a watch.\n'));
-    }
-    const started = SchedulerApi.start(new HorizonWatch(giver));
-    if (!started.ok) {
-      return this.fail(
-        context,
-        'Your attention is taken up — you cannot keep a watch as well.',
-        'engagement-conflict',
-      );
-    }
-    this.send(context, Mml.fromMarkup('\nYou settle to watching the horizon.\n'));
-  }
-
-  /** End a horizon watch the giver keeps; `false` when there is none. */
-  private standDown(giver: Stuff): boolean {
-    if (!MixinApi.isEngaged(giver)) return false;
-    const w = giver.getEngagementByType(HORIZON_WATCH_TYPE);
-    if (!w) return false;
-    SchedulerApi.cancel(w, 'cancelled');
-    return true;
-  }
-
-  private clear(host: WatchHost, context: CommandContext): void {
-    host.setClientState(WATCH_KEY, null);
-    host.pushClientStateUpdate(WATCH_KEY, null);
-    this.send(context, Mml.fromMarkup('\nCleared the focal embed.\n'));
-  }
-
-  private async watch(
+  protected async watchStream(
     model: WatchModel,
     context: CommandContext,
     host: WatchHost,
@@ -225,7 +152,7 @@ export default class WatchController extends CommandController<WatchModel> {
    * `'youtube-handle'` when it's a bare YouTube handle (resolved to a
    * channelId via the YouTube reader).
    */
-  private embedFor(
+  protected embedFor(
     parsed: Extract<ParsedTarget, { form: 'url' | 'handle' }>,
   ): WatchTarget | 'youtube-handle' {
     if (parsed.platform === 'twitch') {
@@ -246,7 +173,7 @@ export default class WatchController extends CommandController<WatchModel> {
     return 'youtube-handle';
   }
 
-  private setWatch(
+  protected setWatch(
     host: WatchHost,
     context: CommandContext,
     target: WatchTarget,
@@ -282,7 +209,7 @@ export default class WatchController extends CommandController<WatchModel> {
     this.send(context, Mml.fromMarkup(`\nWatching ${label}.\n`));
   }
 
-  private rejectParse(
+  protected rejectParse(
     context: CommandContext,
     parsed: Extract<ParsedTarget, { form: 'reject' }>,
   ): void {
@@ -317,12 +244,12 @@ export default class WatchController extends CommandController<WatchModel> {
     }
   }
 
-  private fail(context: CommandContext, detail: string, reason: string): void {
+  protected fail(context: CommandContext, detail: string, reason: string): void {
     this.send(context, Mml.fromMarkup(`\n${detail}\n`));
     context.note({ kind: 'controller-rejected', reason, detail });
   }
 
-  private send(context: CommandContext, body: Mml): void {
+  protected send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
       .topic('shell.result')
       .toSelf(body)

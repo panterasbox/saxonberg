@@ -342,6 +342,10 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         // the stream form refuses anybody without a client, in words.
         // It moved here from Avatar, which is a perceiver too.
         'platform/cmd/stream/watch.yaml',
+        // The stream forms are two more shapes, AFTER `watch.yaml` so
+        // `horizon` and `off` are tried first (controller-liquidity W7a).
+        'platform/cmd/stream/watch-stream.yaml',
+        'platform/cmd/stream/watch-on.yaml',
         'platform/cmd/perception/scry.yaml',
         'platform/cmd/perception/locate.yaml',
         'platform/cmd/shell/find.yaml',
