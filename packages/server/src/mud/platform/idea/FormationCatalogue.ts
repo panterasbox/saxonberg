@@ -12,14 +12,23 @@
 import { DocumentCatalogue } from '../../lib/document/DocumentCatalogue';
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 import {
-  ALLOCATION_KINDS,
-  COUP_CALLS,
-  INTERCEPT_TRIGGERS,
   type AllocationKind,
   type CoupCall,
   type FormationPolicy,
   type InterceptTrigger,
 } from '../../lib/combat/Formation';
+
+const ALLOCATION_KINDS: readonly AllocationKind[] = [
+  'sustain',
+  'called',
+  'primary',
+];
+const INTERCEPT_TRIGGERS: readonly InterceptTrigger[] = [
+  'none',
+  'any',
+  'high-threat',
+];
+const COUP_CALLS: readonly CoupCall[] = ['engaged', 'captain'];
 
 export default class FormationCatalogue extends DocumentCatalogue<FormationPolicy> {
   /** A reference catalogue everyone reads (the commons). */

@@ -186,7 +186,3 @@ export class FormGrammar {
   }
 }
 
-/** The five form classes — the closed vocabulary a form word names one of. */
-export const FORM_CLASSES: readonly FormClass[] = ['open', 'closed', 'flat', 'block', 'cone'];
-/** The proportions a form word may carry. */
-export const FORM_PROPORTIONS: readonly FormProportion[] = ['tall', 'squat', 'wide', 'narrow'];

@@ -31,17 +31,6 @@ export type InterceptTrigger = 'none' | 'any' | 'high-threat';
  * the party captain (a hierarchical formation's command call). */
 export type CoupCall = 'engaged' | 'captain';
 
-export const ALLOCATION_KINDS: readonly AllocationKind[] = [
-  'sustain',
-  'called',
-  'primary',
-];
-export const INTERCEPT_TRIGGERS: readonly InterceptTrigger[] = [
-  'none',
-  'any',
-  'high-threat',
-];
-export const COUP_CALLS: readonly CoupCall[] = ['engaged', 'captain'];
 
 /**
  * The frozen policy value the combat interpreter consumes each beat —

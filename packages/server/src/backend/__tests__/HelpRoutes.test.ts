@@ -13,6 +13,7 @@
  * tests assert only that the route wires query → HelpApi → JSON.
  */
 
+import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import express, { type Express } from "express";
 import session from "express-session";

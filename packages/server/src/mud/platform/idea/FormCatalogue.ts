@@ -8,7 +8,10 @@
 
 import { DocumentCatalogue } from '../../lib/document/DocumentCatalogue';
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
-import { FORM_CLASSES, FORM_PROPORTIONS, type FormClass, type FormProportion, type FormWord } from '../../lib/craft/FormSpec';
+import type { FormClass, FormProportion, FormWord } from '../../lib/craft/FormSpec';
+
+const FORM_CLASSES: readonly FormClass[] = ['open', 'closed', 'flat', 'block', 'cone'];
+const FORM_PROPORTIONS: readonly FormProportion[] = ['tall', 'squat', 'wide', 'narrow'];
 
 export default class FormCatalogue extends DocumentCatalogue<FormWord> {
   /** A reference catalogue everyone reads (the commons). */
