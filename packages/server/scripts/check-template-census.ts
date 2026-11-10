@@ -902,6 +902,9 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   for (const scalar of [
     'roomTemplate', 'holderPath', 'streetPath', 'corridorTemplate',
     'programmePath', 'purifiedByBoiling',
+    // (controller-liquidity W13) The letting agency a building's let asks —
+    // a real Organization row (`LettingWarren.mayLetFor`).
+    'agencyPath',
     // ⭐ (ceramics W8) What a porous wall strains a liquid into — a real
     // material row, the filter's sibling of `purifiedByBoiling`.
     'filteredTo',

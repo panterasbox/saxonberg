@@ -30,6 +30,10 @@ examples:
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresEmbodied
+# Bare `stall` rents, so the verb-level controller is the rent's — and
+# `fallthrough` with a top-level `square` arg is how the bare form binds
+# its fixture (the zero-token fallthrough fills a `default:`; `job`'s shape).
+fallthrough: true
 args:
   # ⭐ WHICH SQUARE, declared rather than hunted for (the title desk's
   # shape): the stalls fixture that manages the pitches.
