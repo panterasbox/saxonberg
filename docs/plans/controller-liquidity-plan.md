@@ -1230,6 +1230,49 @@ keeps its privacy; the Ship precedent), and the test supplies a
 catalogue (`#secret` player-made) and gains a case that AWAITS the
 privacy landing (`vi.waitFor`) both ways.
 
+**D-W20a (owner 2026-11-10; build, W20) — reach is ONE list,
+`PerceptionApi.reach(actor, {depth, location, pools})`.** The owner: *"I
+just don't want two different algos for the same thing."* After W2 the
+per-container walk was single but the assembly (which holders, fixtures,
+ways, doors) was written twice — MQL's pools in `scope-walk.ts` and
+`PerceptionLogic.reachIds`. Now `PerceptionLogic.reachOf` returns
+`{stuff, pool}[]` (`self` · `attached` · `inventory` · `around` · `here` ·
+`peers`)
+in MQL's tie-break order; `canReach`/`reachableAmong` are membership;
+`candidatesForHere`/`Inventory`/`Peers`/`Person`/`Reachable` are filters
+that only build candidates. A `PerceptionApi` static, not an MQL export:
+`PerceptionLogic` may not import `api/mql/**` and MqlApi stays two
+functions. The call-shape types (`ReachPool`, `Reached`, `ReachOptions`)
+live in `api/perception.ts`. `reachIds` is deleted. `attached` is the
+a tag the brief did not name: slot occupants and hosted apps are on the
+`person` pool but not the `inventory` scope. So is `around` (D-W20b).
+
+**D-W20b (build, W20) — where the two disagreed, the merge decides.**
+(1) The place you stand in is NOT in reach though MQL's `here` names it
+(harbors review 3: a direction binds the way, never the room; the
+`validators.test` "rejects the room itself" case). It is in the one list
+as its own pool, `around` — the holders themselves — which `canReach` /
+`reachableAmong` skip and MQL's `here` includes. The exception is a tag
+on the one list, not a second assembly; the vessel you sit in is still
+reached as a peer of the place it stands in. (2) A door is in reach and in MQL's `here` only on a
+way the actor can SEE (`obviousExitsFor`) — MQL used `getExitDoors()`
+(the physics list), `canReach` the seen ways; lens 3a picks the seen
+ways: a hidden way's door names the way it hides. (3) Hosted apps, slot
+occupants, landed structures and open ground seen across a way are now
+`canReach`-true (MQL offered them; nothing refused them by reach).
+(4) `opts.location` adds a holder beside the place and the vessel (it
+used to REPLACE the immediate container in the holder list — the
+immediate was re-added anyway, so the set is unchanged).
+
+**D-W20c (build, W20) — one walk per call, pinned.** `pools` computes
+only the sections asked (an `inventory` scope never walks the room);
+`reachableAmong` builds one id set. `reach.sameSet.test.ts` stages the
+open bag in a pack, the shut box, the boat on the river, the shut-coach
+passenger, a fixture sconce, a door on a way and the three rungs, and
+asserts MQL `reachable` ≡ `canReach` both ways; its last case asserts a
+300-item open floor stock is walked once by `reachableAmong` and once by
+an MQL `peers` resolution.
+
 **D-W17a (owner, 2026-11-10) — `survey` retired; its reads are
 channels.** No `survey` verb: `rooms` (`RoomsReading`, scope `here`, an
 eye rung, **unbanded** — nothing in it is competence-resolved) reads
@@ -2314,6 +2357,18 @@ rebase cleanly.
 > row is `stir` again (same outcome). Separately fixed: the
 > `card-terminals` floating promise (D-W19d) — `test:near` exits 0.
 > Ceilings unchanged.
+
+### W20 — one definition of reach (owner, 2026-11-10; D-W20a–c) ✅ done
+
+> **Done (`985558c4d`).** `PerceptionApi.reach` (backed by `PerceptionLogic.reachOf`)
+> is the one list of what an actor can lay hands on, tagged by MQL's
+> pools; `canReach`/`reachableAmong` test membership, MQL's `here` ·
+> `inventory` · `peers` · `person` · `reachable` filter it, and
+> `reachIds` plus scope-walk's holder/fixture/way/door assembly are gone.
+> Surprises: the two disagreed on the room itself (now the `around` pool:
+> named, not reached) and on doors of unseen ways (D-W20b). `reach.sameSet.test.ts` pins the agreement and the
+> one-walk cost. Docs: perception, mql, mql-grammar, spatial,
+> antipatterns. Ceilings unchanged.
 
 ---
 
