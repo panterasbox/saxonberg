@@ -52,10 +52,21 @@ declare module '@saxonberg/server/mud/lib/bulk/Bulkable' {
   }
 }
 
-/** What a temper or a skim did, or why it did not. */
+/**
+ * What a temper or a skim did, or why it did not — a reason and the
+ * facts, never a sentence (controller-liquidity W10): the `temper` and
+ * `skim` controllers write the words.
+ */
+export type SugarRefusalReason =
+  | 'no-liquor'
+  | 'not-lime'
+  | 'no-pail'
+  | 'already-skimmed'
+  | 'pail-full'
+  | 'no-skimmings';
 export type SugarActResult =
-  | { ok: true; line: string }
-  | { ok: false; reason: string; line: string };
+  | { ok: true; facts: { limed?: number } }
+  | { ok: false; reason: SugarRefusalReason };
 
 const VERBS = ['trade/sugar/cmd/sugar/temper.yaml', 'trade/sugar/cmd/sugar/skim.yaml'];
 
@@ -116,10 +127,10 @@ export default class Copper extends ContainerMixin(Vat) {
   /** Lime into the liquor — one lump. */
   public temper(lime: Stuff): SugarActResult {
     if (!this.holdsLiquor()) {
-      return { ok: false, reason: 'no-liquor', line: 'There is no liquor in the copper to temper.' };
+      return { ok: false, reason: 'no-liquor' };
     }
     if (!isLime(lime)) {
-      return { ok: false, reason: 'not-lime', line: 'That is not lime.' };
+      return { ok: false, reason: 'not-lime' };
     }
     const payload = this.getBulkPayload('interior') ?? {};
     const limed = (payload.limed ?? 0) + 1;
@@ -130,35 +141,29 @@ export default class Copper extends ContainerMixin(Vat) {
       void StuffApi.destruct(lime);
     }
     this.regrade();
-    return {
-      ok: true,
-      line:
-        limed === 1
-          ? 'The lime goes in; the liquor clouds, and a grey scum starts to rise.'
-          : 'More lime goes in. The liquor darkens — that is too much.',
-    };
+    return { ok: true, facts: { limed } };
   }
 
   /** The scum lifted into `pail`. */
   public skim(pail: Stuff): SugarActResult {
     if (!this.holdsLiquor()) {
-      return { ok: false, reason: 'no-liquor', line: 'There is nothing in the copper to skim.' };
+      return { ok: false, reason: 'no-liquor' };
     }
     if (!MixinApi.isBulkable(pail) || pail === (this as unknown as Stuff)) {
-      return { ok: false, reason: 'no-pail', line: 'You need something to skim it into.' };
+      return { ok: false, reason: 'no-pail' };
     }
     const payload = this.getBulkPayload('interior') ?? {};
     if (payload.skimmed) {
-      return { ok: false, reason: 'already-skimmed', line: 'It is skimmed clean already.' };
+      return { ok: false, reason: 'already-skimmed' };
     }
     const into = pail.getBulkMaterial('interior');
     if (into !== null && into.getTemplatePath() !== SKIMMINGS) {
-      return { ok: false, reason: 'pail-full', line: 'That already has something else in it.' };
+      return { ok: false, reason: 'pail-full' };
     }
     const lift = this.getBulkAmount('interior').rawValue() * SKIM_SHARE;
     const skimmings = StuffApi.findByTemplatePath<Material>(SKIMMINGS);
     if (!skimmings) {
-      return { ok: false, reason: 'no-skimmings', line: 'The scum will not come away.' };
+      return { ok: false, reason: 'no-skimmings' };
     }
     this.debitBulk('interior', lift);
     const had = pail.getBulkAmount('interior').rawValue();
@@ -166,7 +171,7 @@ export default class Copper extends ContainerMixin(Vat) {
     pail.setBulkAmount('interior', Quantity.of(had + lift, 'L'));
     this.setBulkPayload('interior', { ...(this.getBulkPayload('interior') ?? {}), skimmed: true });
     this.regrade();
-    return { ok: true, line: 'You lift the scum off into the pail, and the liquor runs clear beneath it.' };
+    return { ok: true, facts: {} };
   }
 
   /**

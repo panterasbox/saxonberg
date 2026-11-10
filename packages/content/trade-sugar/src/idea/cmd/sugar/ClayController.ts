@@ -30,10 +30,13 @@ export default class ClayController extends CommandController<ClayModel> {
     }
     if (!clay) return this.refuse(context, TOPIC, 'Clay it with what? Wet clay.', 'no-clay');
     const out = loaf.clay(clay);
+    // ⭐ The loaf's own reason reaches the envelope (C21) — it used to
+    // collapse to `refused`, so a script could not tell *not clay* from
+    // *clayed already*.
     if (!out.ok) {
       const line =
         out.reason === 'not-clay' ? 'That is not clay.' : 'It has been clayed already.';
-      return this.refuse(context, TOPIC, line, 'refused', out.reason);
+      return this.refuse(context, TOPIC, line, out.reason);
     }
     MessageApi.scene(actor)
       .topic(TOPIC)
