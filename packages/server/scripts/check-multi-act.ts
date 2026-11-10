@@ -39,7 +39,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const MULTI_ACT_CEILING = 41;
+export const MULTI_ACT_CEILING = 39;
 
 export type MultiActShape = "subcommand" | "arg-word" | "target-kind";
 

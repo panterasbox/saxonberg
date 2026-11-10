@@ -220,7 +220,8 @@ export const BESPOKE_RESOLUTION_CEILING = 4;
 // one caller is `HarvestController.choose` (`stand-or-labeled`), replacing
 // `Growing.harvestPlanFor`'s substring match on `typed` — resolution moved
 // OUT of the model into MQL. No controller surface the gate protects grew.
-export const SELF_RESOLUTION_CEILING = 108;
+// 108 → 105 (green after W2/W4/W6): sites W2 and W6 moved onto the model.
+export const SELF_RESOLUTION_CEILING = 105;
 
 /** A controller resolving its own target: the MQL facade, a store find, a contents walk. */
 const SELF_RESOLUTION =
