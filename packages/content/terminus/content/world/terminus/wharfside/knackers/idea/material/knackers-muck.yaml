@@ -1,5 +1,5 @@
 # What a knacker's yard runs with, in the boards and the cobbles.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Residue
 data:
   name: knacker's muck
   smells: [{ aroma: /base-library/aromas/offal, strength: 100 }, { aroma: /base-library/aromas/old-blood, strength: 60 }]

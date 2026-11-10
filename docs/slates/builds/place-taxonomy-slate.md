@@ -2,7 +2,8 @@
 
 > **Status: CLASSES RENAMED (cleanliness MR !380, 2026-10-18).**
 > **Left:** the `/…/location/` path segment (branch folder + content trees)
-> · ✅ `VoidLocation` → `Void` (B53).
+> · ⭐ **the material folder sweep rides with it** (§ The material folders,
+> below — one path sweep, not two) · ✅ `VoidLocation` → `Void` (B53).
 > **Size:** a build — a sweep.
 
 ## The decision (user, 2026-10-18)
@@ -82,3 +83,23 @@ warren plans point at — a different kind of change (directory moves, every
 exit target), and the three sibling builds author rows under those paths.
 Whether `/platform/location/` → `/platform/place/` (and every
 `<root>/location/` content tree with it) is the open question.
+
+## ⭐ The material folders — the same sweep (owner, 2026-11-07)
+
+The material decomposition build
+(shipped in MR !555 — [race.md § Material substrate](../../subsystems/race.md);
+[slate](./material-decomposition-slate.md) § 7¾) gives every material a KIND — organic or mineral,
+then metal, stone, wood, food and the rest — and **defers moving the rows into folders that match
+their kind** to this sweep. The owner: *"we'll do em together so it's less expensive"* — both are
+path renames whose cost is the same thing, rewriting every reference in every pack, so one pass with
+one rewrite tool and one drop-the-database is cheaper than two.
+
+- **What moves:** the material rows under `/stuff/idea/material/` (199 sit at its top, unfoldered) and
+  the packs' own `<root>/idea/material/` rows, each into its kind's folder (`…/material/mineral/metal/
+  iron`, `…/material/organic/plant/wood/oak` — the folder tree mirrors the class tree).
+- **What references them:** every `_materialPath`, `interiorMaterial`, `extends:`, recipe input,
+  composition entry and test that names a material path. `MaterialCatalogue` selects by the
+  `/idea/material/` infix and the class, so the warm itself is unaffected.
+- **Order:** after the material decomposition build has merged (the kinds must exist first), together
+  with the `/location/` → `/place/` segment.
+

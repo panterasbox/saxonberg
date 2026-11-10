@@ -312,8 +312,9 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       const self = this as unknown as Stuff;
       if (this.sodden || !MixinApi.isWet(self) || self.getWetness() < SODDEN_AT) return;
       const mat = this.body().getMaterial();
-      const strength = mat?.getWetStrength() ?? null;
-      if (mat === null || mat === undefined || strength === null || strength >= WEAK_WET) return;
+      if (mat === null || mat === undefined || !MixinApi.hasPorosity(mat)) return;
+      const strength = mat.getWetStrength() ?? null;
+      if (strength === null || strength >= WEAK_WET) return;
       this.sodden = true;
       const residue = mat.getSoddenTemplate();
       ScheduleApi.schedule(0, () => {
@@ -391,7 +392,7 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       const mat = this.body().getMaterial();
       if (mat === null || !mat.hasTag('brittle')) return Number.POSITIVE_INFINITY;
       const density = mat.getDensity().rawValue();
-      const toughness = mat.getToughness().rawValue();
+      const toughness = MixinApi.hasSolidity(mat) ? mat.getToughness().rawValue() : 0;
       if (!(density > 0) || !(toughness > 0)) return 0;
       const v = this.massKg() / density;
       const vRef = integrityDial(AppSettingKeys.impactReferenceVolumeM3, 0.0001);
@@ -407,7 +408,7 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       const self = this as unknown as Stuff;
       const mat = this.body().getMaterial();
       if (mat === null || !mat.hasTag('brittle')) return Number.POSITIVE_INFINITY;
-      const alpha = mat.getThermalExpansion();
+      const alpha = MixinApi.hasSolidity(mat) ? mat.getThermalExpansion() : 0;
       if (!(alpha > 0)) return Number.POSITIVE_INFINITY;
       const porosity = MixinApi.isFaced(self) ? self.porosity() : 0;
       // ⭐ A REFRACTORY body is grog-opened by definition — that is what
@@ -468,8 +469,14 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
      * back; `null` is the body itself.
      */
     private deliveredJ(spec: ImpactSpec): number {
-      const own = Math.max(1, this.body().getMaterial()?.getHardness().rawValue() ?? 1);
-      const floor = spec.surface !== null ? spec.surface.getHardness().rawValue() : own;
+      const ownMat = this.body().getMaterial();
+      const own = Math.max(1, ownMat && MixinApi.hasSolidity(ownMat) ? ownMat.getHardness().rawValue() : 1);
+      const floor =
+        spec.surface !== null
+          ? MixinApi.hasSolidity(spec.surface)
+            ? spec.surface.getHardness().rawValue()
+            : 0
+          : own;
       return spec.energyJ * Math.min(1, Math.max(0, floor) / own);
     }
 
@@ -493,7 +500,7 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       }
       const mat = this.body().getMaterial()!;
       let pieces: Stuff | null = null;
-      const row = mat.getBrokenTemplate();
+      const row = MixinApi.hasSolidity(mat) ? mat.getBrokenTemplate() : '';
       if (row) {
         // ⚠ Not swallowed: a broken form that cannot be minted is a defect
         // in the row, and the pot is not destroyed into nothing.
@@ -515,7 +522,7 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
         sounding &&
         this.flaws.length === 0 &&
         (mat!.hasTag('metal') ||
-          mat!.getHardness().rawValue() >= integrityDial(AppSettingKeys.impactRingsAboveHardness, 55));
+          (MixinApi.hasSolidity(mat!) ? mat!.getHardness().rawValue() : 0) >= integrityDial(AppSettingKeys.impactRingsAboveHardness, 55));
       const description = !sounding
         ? 'a dull knock, and nothing after it'
         : this.flaws.length > 0

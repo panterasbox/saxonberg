@@ -284,7 +284,7 @@ export default class Garment extends GarmentBase {
       const agent = c.materialPath
         ? StuffApi.findByTemplatePath<Material>(c.materialPath)
         : null;
-      const eats = (agent?.getCorrosiveTo() ?? []).some(
+      const eats = (agent && MixinApi.hasAcidity(agent) ? agent.getCorrosiveTo() : []).some(
         (tag) => material?.hasTag(tag) ?? false,
       );
       const bleaches =

@@ -1,5 +1,5 @@
 # Simple syrup — the syrup recipe's output material (1:1 sugar and water, brought to heat). Tag `syrup`.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/sugar, strength: 3 }]
   name: simple syrup
@@ -8,7 +8,6 @@ data:
   density: 1300
   thermalConductivity: 0.4
   specificHeat: 3000
-  edibility: true
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
@@ -22,8 +21,4 @@ data:
   spoilActivationEnergy: 40000
   waterActivity: 0.8
   nutrients: ["sugar", "water"]
-  toxicity:
-    []
   tags: ["liquid", "food", "syrup", "simple-syrup", "sweetener"]
-  composition: []
-  biologicalSource: null

@@ -26,13 +26,7 @@ data:
   density: 1120
   thermalConductivity: 0.6
   specificHeat: 3900
-  # Emphatically NOT edible. Drinking this is its own kind of mistake,
-  # and the metabolism substrate already knows what to do about it.
-  edibility: false
-  nutrients: []
   tags: [liquid, arcane, caustic]
-  composition: []
-  biologicalSource: null
   carriedSpellPath: /stuff/idea/magic/Spell/firebolt
   deliveryEfficiency: 1
   # ── the half this build exists for ──

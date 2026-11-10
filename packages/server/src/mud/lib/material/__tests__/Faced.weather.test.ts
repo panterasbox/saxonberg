@@ -16,6 +16,7 @@ import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { Idea } from '../../stuff/Idea';
 import type { CoatAir } from '../Faced';
+import PigmentPaint from '../../../platform/idea/material/PigmentPaint';
 
 class Board extends Good {}
 class Wall extends FacedMixin(Idea) {
@@ -26,11 +27,11 @@ const YEAR = 360 * 86_400;
 const year = (n = 1): CoatAir => ({ seconds: n * YEAR, kelvin: 285, rh: 0.7, rain: false, airChange: 1 });
 
 let seq = 0;
-function mat(fill: (m: Material) => void): string {
+function mat(fill: (m: PigmentPaint) => void): string {
   seq += 1;
   const path = `/stuff/idea/material/_wx/m${seq}`;
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new PigmentPaint();
     m.setName(`m${seq}`);
     fill(m);
     return m;

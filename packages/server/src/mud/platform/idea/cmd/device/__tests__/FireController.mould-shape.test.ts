@@ -29,6 +29,7 @@ import Casting from '../../../../thing/Casting';
 import Garment from '../../../../thing/equipment/Garment';
 import Mould from '../../../../thing/Mould';
 import Material from '../../../../../lib/material/Material';
+import Polymer from '../../../material/Polymer';
 import { Grade } from '../../../../../lib/craft/Grade';
 import { MixinApi } from '../../../../../api/mixin';
 import { Quantity } from '../../../../../lib/quantity';
@@ -61,9 +62,9 @@ let room: TestActor;
 let actor: TestActor;
 let kiln: Oven;
 
-function material(path: string, tags: string[], extra?: (m: Material) => void): void {
+function material(path: string, tags: string[], extra?: (m: Polymer) => void): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Polymer();
     m.setName(path.split('/').pop()!);
     m.setTags(tags);
     m.setKeywords([path.split('/').pop()!]);

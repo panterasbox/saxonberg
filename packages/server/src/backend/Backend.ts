@@ -29,6 +29,8 @@ import type { InboundClientMessage } from './inbound';
 import { ConnectionApi } from '../mud/api/connection';
 import { ExecutionContextApi } from '../mud/api/execution-context';
 import { SecurityApi } from '../mud/api/security';
+import { StreamApi } from '../mud/api/stream';
+import type { ConnectOptions } from './Application';
 
 /**
  * Backend - Singleton for I/O operations.
@@ -153,8 +155,7 @@ export class Backend implements IBackend {
     ws: WebSocket,
     userId: string,
     sessionId: string,
-    isBroadcast = false,
-    clientIp?: string
+    opts: ConnectOptions = {},
   ): void {
     // Generate socket ID
     const socketId = `socket_${SecurityApi.uuid()}`;
@@ -183,9 +184,22 @@ export class Backend implements IBackend {
     if (this.application) {
       const app = this.application;
       ExecutionContextApi.runRoot(Backend, 'handleUserConnect', () =>
-        app.handleUserConnect(userId, sessionId, socketId, isBroadcast, clientIp)
+        app.handleUserConnect(userId, sessionId, socketId, opts)
       );
     }
+  }
+
+  /**
+   * Resolve a raw stream token (`?broadcast=` / `?control=`) to the player
+   * and scope it names, or null (broadcast-ready D4). A hash and a path
+   * read through `StreamApi`, rooted at this network boundary.
+   */
+  public resolveStreamToken(
+    raw: string,
+  ): Promise<{ playerId: string; scope: 'overlay' | 'control' } | null> {
+    return ExecutionContextApi.runRoot(Backend, 'resolveStreamToken', () =>
+      StreamApi.resolveToken(raw),
+    );
   }
 
   /**
@@ -361,6 +375,23 @@ export class Backend implements IBackend {
       console.error('Backend: Error in handleProviderLink:', error);
       done(error);
     }
+  }
+
+  /**
+   * ⭐ Store a streamer's YouTube step-up on their linked Google identity
+   * (broadcast-ready D12). The grant's Google identity must be the one
+   * already linked to this user — a step-up never links a new account.
+   */
+  public async handleYoutubeStepUp(
+    userId: string,
+    googleId: string,
+    refreshToken: string,
+  ): Promise<'success' | 'not-linked' | 'no-token'> {
+    if (!this.application) throw new Error('Backend: Application not initialized');
+    const app = this.application;
+    return ExecutionContextApi.runRoot(Backend, 'youtubeStepUp', () =>
+      app.storeYoutubeStepUp(userId, googleId, refreshToken),
+    );
   }
 
   /**

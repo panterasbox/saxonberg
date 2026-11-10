@@ -17,7 +17,7 @@
 # ⭐ `feed` as well, because bone meal genuinely was fed to stock — it is
 # in the dog loaf for that reason, and the tag means a row that wants it
 # as fodder needs nothing new.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Soil
 data:
   smells: [{ aroma: /base-library/aromas/flesh, strength: 30 }]
   name: bone meal
@@ -30,11 +30,4 @@ data:
   toughness: 1
   electricalConductivity: 1.0e-10
   waterAbsorptionCapacity: 20
-  # ⚠ Not edible to a PERSON. It goes into a dog loaf as one input among
-  # four and is baked; a sack of it is not food.
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["granular", "solid", "compost", "feed", "bone-meal", "slow-amendment"]
-  composition: []
-  biologicalSource: null

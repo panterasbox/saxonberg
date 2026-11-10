@@ -151,6 +151,15 @@ export class MaterialApi {
   // `stuff.getMaterial(detailKey)` directly.
 
   /**
+   * Every registered Material — the runtime singleton index, as
+   * {@link findByTag} reads it. What the wiki's `<materials>` listing
+   * filters by capability or kind (material decomposition W3).
+   */
+  public static all(): Material[] {
+    return logic().all();
+  }
+
+  /**
    * Every registered Material that carries `tag`. Tag matching is
    * exact-string. The result reflects the runtime singleton index;
    * Materials that haven't been cloned yet aren't there.

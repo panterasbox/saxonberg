@@ -22,7 +22,7 @@ import { ExecutionContextApi } from '../../../../api/execution-context';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
-import Material from '../../../../lib/material/Material';
+import Metal from '../../material/Metal';
 import Scrap from '../../../thing/Scrap';
 import Forge from '../../../thing/Forge';
 import Tool from '../../../thing/Tool';
@@ -68,7 +68,7 @@ let recipes: Record<string, unknown>[];
 
 function registerMaterial(path: string, name: string, tags: string[]): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Metal();
     m.setName(name);
     m.setTags(tags);
     m.setHardness(Quantity.of(tags.includes('metal') ? 600 : 40, 'MPa'));
@@ -77,8 +77,8 @@ function registerMaterial(path: string, name: string, tags: string[]): void {
   }, path);
 }
 
-function mat(path: string): Material {
-  return StuffApi.findByTemplatePath<Material>(path) as unknown as Material;
+function mat(path: string): Metal {
+  return StuffApi.findByTemplatePath<Metal>(path) as unknown as Metal;
 }
 
 function hand(bands: Record<string, CompetenceBandName>, name: string): TestHand {

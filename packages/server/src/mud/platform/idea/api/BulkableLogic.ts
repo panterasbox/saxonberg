@@ -180,7 +180,7 @@ export class BulkableLogic extends ApiLogic {
   @CallSecurity(BulkableApiCallers)
   public requiredClosureFor(material: Material | null): ClosureLevel {
     if (material === null) return 'liquidTight';
-    const boiling = material.getBoilingPoint().rawValue();
+    const boiling = MixinApi.hasVolatility(material) ? material.getBoilingPoint().rawValue() : 0;
     if (boiling > 0 && boiling <= bulkDial(AppSettingKeys.atmosphereStandardK, 293)) {
       return 'sealed';
     }
@@ -717,11 +717,16 @@ export class BulkableLogic extends ApiLogic {
       // be a lie on the molasses.
       const fromSolids =
         fromPayload?.dissolvedSolidsKgPerL ??
-        (set ? material : drawnMaterial).getSolidsKgPerL();
+        (() => {
+          const m = set ? material : drawnMaterial;
+          return MixinApi.hasSolution(m) ? m.getSolidsKgPerL() : 0;
+        })();
       if (!toWasEmpty && (fromSolids > 0 || to.getPayload()?.dissolvedSolidsKgPerL)) {
         const held = to.getPayload();
         const heldMat = to.getMaterial() ?? material;
-        const toSolids = held?.dissolvedSolidsKgPerL ?? heldMat.getSolidsKgPerL();
+        const toSolids =
+          held?.dissolvedSolidsKgPerL ??
+          (MixinApi.hasSolution(heldMat) ? heldMat.getSolidsKgPerL() : 0);
         const total = applied + toAmountBefore;
         if (total > 0) {
           to.setPayload({
@@ -765,6 +770,7 @@ export class BulkableLogic extends ApiLogic {
       applied > 0 &&
       to !== null &&
       toHolder !== null &&
+      MixinApi.hasVolatility(material) &&
       material.getVapourLPerLPerHour() > 0 &&
       material.getVapourMaterial() !== '' &&
       to.getClosure() === 'open'
@@ -860,7 +866,7 @@ function loseReceiver(receiver: Stuff, how: 'melts' | 'burns'): void {
   }
   const mat = MixinApi.isTangible(receiver) ? receiver.getMaterial() : null;
   const massKg = MixinApi.isTangible(receiver) ? receiver.getMass().rawValue() : 0;
-  const row = how === 'melts' && mat !== null ? mat.getBrokenTemplate() : '';
+  const row = how === 'melts' && mat !== null && MixinApi.hasSolidity(mat) ? mat.getBrokenTemplate() : '';
   const where = MixinApi.isContainable(receiver) ? receiver.getContainer() : null;
   // Gone NOW — the pour is on the floor in the same breath.
   StuffApi.destruct(receiver);

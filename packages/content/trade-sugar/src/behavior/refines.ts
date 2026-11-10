@@ -366,7 +366,7 @@ export const brain = class {
       const payload = copper.getBulkPayload('interior') ?? {};
       limed = payload.limed ?? 0;
       skimmed = payload.skimmed ?? false;
-      if (!mat || mat.getSolidsKgPerL() <= 0) liquor = 'water';
+      if (!mat || !MixinApi.hasSolution(mat) || mat.getSolidsKgPerL() <= 0) liquor = 'water';
       else if (mat.hasTag('strike')) liquor = 'struck';
       else if (mat.hasTag('caramel') || mat.hasTag('burnt') || mat.hasTag('blackstrap')) liquor = 'spoilt';
       else liquor = 'liquor';
@@ -391,7 +391,11 @@ export const brain = class {
     // a `fuel` tag: oak carries "wood, flammable" and no such tag, so the
     // island's boiler stood over a cold train beside ten logs (probed).
     const burns = (s: Stuff): boolean =>
-      MixinApi.isTangible(s) && (s.getMaterial()?.getHeatOfCombustion().rawValue() ?? 0) > 0;
+      MixinApi.isTangible(s) &&
+      (() => {
+        const m = s.getMaterial();
+        return m !== null && MixinApi.hasCombustion(m) && m.getHeatOfCombustion().rawValue() > 0;
+      })();
     const dryFuel = (word: string): boolean =>
       here.some(
         (s) =>

@@ -9,7 +9,7 @@
 # tree (the forestry trade's Quercus robur); the species row names its
 # LIVING material (plant tissue) — the wood is what is left when it is
 # felled, and `density` is what a bole is minted at.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Wood
 data:
   smells: [{ aroma: /base-library/aromas/oak, strength: 2 }]
   burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
@@ -43,11 +43,7 @@ data:
   # the whole reason a waster is made of it.
   hardness: 40
   toughness: 60
-  edibility: false
-  nutrients: ["cellulose"]
-  toxicity: []
   tags: ["wood", "mixture", "organic", "flammable", "once-living"]
-  composition: []
   # ⭐ Seasoning (assembly D2): game-days for a 25 mm board to dry in
   # good air, and how much it shrinks getting there — what makes work
   # done green move. Grain: an author's numbers.

@@ -26,7 +26,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
-import Material from '../Material';
+import Food from '../../../platform/idea/material/Food';
 import Condition from '../../../platform/idea/Condition';
 import CraftVessel from '../../../platform/thing/CraftVessel';
 import { Contamination } from '../Contaminable';
@@ -58,18 +58,17 @@ const BUG: PathogenBehavior = {
 
 const STOCK = '/stuff/idea/material/_test/vessel-stock';
 
-function ensureStock(): Material {
-  const found = StuffApi.findByTemplatePath<Material>(STOCK);
+function ensureStock(): Food {
+  const found = StuffApi.findByTemplatePath<Food>(STOCK);
   if (found) return found;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName('stock');
-    m.setEdibility(true);
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
     m.setSpoilActivationEnergy(Quantity.of(80_000, 'J/mol'));
     m.setWaterActivity(0.99);
     return m;
-  }, STOCK) as unknown as Material;
+  }, STOCK) as unknown as Food;
 }
 
 /** A `CraftVessel` holding `amountL` of stock (or empty). */

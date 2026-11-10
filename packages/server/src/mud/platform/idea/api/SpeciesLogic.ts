@@ -29,6 +29,9 @@ interface CladeShape {
 const SpeciesApiCallers = SecurityPolicies.FromModule('/api/species#SpeciesApi'
 );
 
+/** The reveal level of a tissue's "Edible" row — its nutrients' level. */
+const EDIBLE_SPOILER_LEVEL = 1;
+
 /**
  * SpeciesLogic — the hot-reloadable logic singleton behind
  * {@link SpeciesApi}.
@@ -223,8 +226,11 @@ export class SpeciesLogic extends ApiLogic {
       }
       comp.push({
         label: 'Edible',
-        value: material.getEdibility() ? 'yes' : 'no',
-        ...(levelOf('edibility') ? { spoiler: levelOf('edibility') } : {}),
+        value: MixinApi.hasEdibility(material) ? 'yes' : 'no',
+        // ⭐ Whether a thing is food is collapsed like what it gives a body
+        // (its nutrients' level); the retired `edibility` field carried
+        // that level, and composing `Edibility` is the fact now.
+        spoiler: EDIBLE_SPOILER_LEVEL,
       });
       sections.push({ heading: 'Composition', rows: comp });
     }

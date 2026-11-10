@@ -10,7 +10,7 @@
 # well above that, but a candle beside a fire is not), which is the whole
 # reason a wax object behaves differently from a horn one — the shipped
 # phase machinery reads this and nothing else has to.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/FatOilWax
 data:
   smells: [{ aroma: /base-library/aromas/beeswax, strength: 60 }]
   burning: [{ aroma: /base-library/aromas/wax-smoke, strength: 60 }]
@@ -31,14 +31,8 @@ data:
   hardness: 3
   toughness: 1
   electricalConductivity: 1.0e-14
-  waterAbsorptionCapacity: 0
-  edibility: false
-  nutrients: []
-  toxicity: []
   # ⭐ `candle-stock` is what the ONE dip recipe matches — carried by
   # beeswax and by rendered tallow and by nothing else. ⚠ Not `fat`:
   # that is the cooking MEDIUM tag, and a recipe matching it would let a
   # candle be dipped out of the frying pan.
   tags: ["organic", "wax", "beeswax", "candle-stock", "once-living"]
-  composition: []
-  biologicalSource: null

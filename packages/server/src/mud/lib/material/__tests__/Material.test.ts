@@ -1,6 +1,9 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import Material from '../Material';
+import Food from '../../../platform/idea/material/Food';
+import FatOilWax from '../../../platform/idea/material/FatOilWax';
+import Metal from '../../../platform/idea/material/Metal';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { Quantity } from '../../quantity';
@@ -8,20 +11,25 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 
 describe('Material', () => {
   it('round-trips bulk fields through getters/setters', () => {
-    const m = makeStuff(() => new Material());
-    m.setName('iron');
-    m.setDensity(Quantity.of(7874, 'kg/m³'));
-    m.setThermalConductivity(Quantity.of(80, 'W/(m·K)'));
-    m.setEdibility(false);
-    m.setNutrients(['iron']);
+    const m = makeStuff(() => new Food());
+    m.setName('stew');
+    m.setDensity(Quantity.of(1050, 'kg/m³'));
+    m.setThermalConductivity(Quantity.of(0.5, 'W/(m·K)'));
+    m.setNutrients(['protein']);
     m.setToxicity([{ type: 'iron-poisoning', amount: 0 }]);
 
-    expect(m.getName()).toBe('iron');
-    expect(m.getDensity().rawValue()).toBe(7874);
-    expect(m.getThermalConductivity().rawValue()).toBe(80);
-    expect(m.getEdibility()).toBe(false);
-    expect(m.getNutrients()).toEqual(['iron']);
+    expect(m.getName()).toBe('stew');
+    expect(m.getDensity().rawValue()).toBe(1050);
+    expect(m.getThermalConductivity().rawValue()).toBe(0.5);
+    expect(MixinApi.hasEdibility(m)).toBe(true);
+    expect(m.getNutrients()).toEqual(['protein']);
     expect(m.getToxicity()).toEqual([{ type: 'iron-poisoning', amount: 0 }]);
+  });
+
+  it('a metal carries no edibility: the capability is simply absent', () => {
+    const m = makeStuff(() => new Metal());
+    m.setName('iron');
+    expect(MixinApi.hasEdibility(m)).toBe(false);
   });
 
   it('setThermalConductivity is strict on the W/(m·K) unit', () => {
@@ -52,7 +60,7 @@ describe('Material', () => {
   });
 
   it('round-trips hardness and is strict on the MPa unit', () => {
-    const m = makeStuff(() => new Material());
+    const m = makeStuff(() => new FatOilWax());
     m.setHardness(Quantity.of(600, 'MPa'));
     expect(m.getHardness().rawValue()).toBe(600);
     expect(m.getHardness().unit).toBe('MPa');
@@ -62,7 +70,7 @@ describe('Material', () => {
   });
 
   it('round-trips toughness and is strict on the MJ/m³ unit', () => {
-    const m = makeStuff(() => new Material());
+    const m = makeStuff(() => new FatOilWax());
     m.setToughness(Quantity.of(200, 'MJ/m³'));
     expect(m.getToughness().rawValue()).toBe(200);
     expect(m.getToughness().unit).toBe('MJ/m³');
@@ -97,7 +105,7 @@ describe('Material', () => {
   });
 
   it('defaults hardness and toughness to zero Quantities', () => {
-    const m = makeStuff(() => new Material());
+    const m = makeStuff(() => new FatOilWax());
     expect(m.getHardness().rawValue()).toBe(0);
     expect(m.getHardness().unit).toBe('MPa');
     expect(m.getToughness().rawValue()).toBe(0);
@@ -108,15 +116,15 @@ describe('Material', () => {
     // Declarative marshaller binding (the density/specificHeat precedent);
     // the per-unit marshaller absorbs authoring shapes at the persistence
     // boundary. Assert the field→marshaller path is wired for both units.
-    expect(MixinApi.getAllFieldMarshallers(Material).hardness).toBeDefined();
-    expect(MixinApi.getAllFieldMarshallers(Material).toughness).toBeDefined();
-    expect(MixinApi.getAllFieldMarshallers(Material).hardness).not.toBe(
-      MixinApi.getAllFieldMarshallers(Material).toughness,
+    expect(MixinApi.getAllFieldMarshallers(FatOilWax).hardness).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(FatOilWax).toughness).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(FatOilWax).hardness).not.toBe(
+      MixinApi.getAllFieldMarshallers(FatOilWax).toughness,
     );
   });
 
   it('round-trips the fire / phase-change properties, strict on units', () => {
-    const m = makeStuff(() => new Material());
+    const m = makeStuff(() => new FatOilWax());
     m.setAutoignitionTemperature(Quantity.of(570, 'K'));
     m.setHeatOfCombustion(Quantity.of(16, 'MJ/kg'));
     m.setMeltingPoint(Quantity.of(1811, 'K'));
@@ -147,7 +155,7 @@ describe('Material', () => {
   });
 
   it('defaults the fire / phase-change properties to zero Quantities', () => {
-    const m = makeStuff(() => new Material());
+    const m = makeStuff(() => new FatOilWax());
     // An unauthored material never ignites, never melts.
     expect(m.getAutoignitionTemperature().rawValue()).toBe(0);
     expect(m.getAutoignitionTemperature().unit).toBe('K');
@@ -159,12 +167,12 @@ describe('Material', () => {
   });
 
   it('binds QuantityMarshaller paths for the fire / phase-change props', () => {
-    expect(MixinApi.getAllFieldMarshallers(Material).autoignitionTemperature).toBeDefined();
-    expect(MixinApi.getAllFieldMarshallers(Material).heatOfCombustion).toBeDefined();
-    expect(MixinApi.getAllFieldMarshallers(Material).meltingPoint).toBeDefined();
-    expect(MixinApi.getAllFieldMarshallers(Material).latentHeatOfFusion).toBeDefined();
-    expect(MixinApi.getAllFieldMarshallers(Material).boilingPoint).toBeDefined();
-    expect(MixinApi.getAllFieldMarshallers(Material).latentHeatOfVaporization).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(FatOilWax).autoignitionTemperature).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(FatOilWax).heatOfCombustion).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(FatOilWax).meltingPoint).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(FatOilWax).latentHeatOfFusion).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(FatOilWax).boilingPoint).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(FatOilWax).latentHeatOfVaporization).toBeDefined();
   });
 
   it('⭐ composes SingletonMixin and is NOT Propertied', () => {

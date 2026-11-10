@@ -10,7 +10,7 @@
 # One iron in a 115.854 g/mol formula unit is 0.4820 by mass: leaner
 # than the gossan above it, which is the ordinary shape of a weathered
 # cap — the rain took the rock away and left the metal behind.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Ore
 data:
   name: siderite
   keywords: [siderite, spathic-iron]
@@ -23,12 +23,6 @@ data:
   # Mohs 3.5-4.5 — softer than the gossan it underlies.
   hardness: 250
   toughness: 12
-  edibility: false
-  nutrients: ["iron"]
-  toxicity: []
   tags: ["mineral", "carbonate", "ore", "iron", "primary", "below-water-table"]
   composition:
     - { materialPath: /stuff/idea/material/element/iron, fraction: 0.4820 }
-  formula: FeCO3
-  molarMass: 115.854
-  biologicalSource: null

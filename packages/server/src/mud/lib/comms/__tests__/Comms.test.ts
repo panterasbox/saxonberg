@@ -106,6 +106,11 @@ describe('CommsMixin (comms-as-update)', () => {
     );
     expect(bobFrame).toBeDefined();
 
+    // ⭐ Both frames carry the server's privacy stamp (broadcast-ready D8)
+    // — what a streamer's client redacts on air.
+    expect(selfFrame!.tags).toContain('privacy:private');
+    expect(bobFrame!.tags).toContain('privacy:private');
+
     // Cohort: outbound on Alice's update, inbound on Bob's update.
     expect(aliceComms.getLastOutboundCohort()).toEqual([bob]);
     expect(bobComms.getLastInboundCohort()).toEqual([alice]);

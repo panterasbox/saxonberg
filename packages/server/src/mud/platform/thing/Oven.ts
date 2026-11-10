@@ -87,6 +87,7 @@ export default class Oven extends OvenBase {
       const material = item.getBulkMaterial('interior');
       if (!material) continue;
       if (BulkableApi.requiredClosureFor(material) !== 'sealed') continue;
+      if (!MixinApi.hasCombustion(material)) continue;
       if (!(material.getHeatOfCombustion().rawValue() > 0)) continue;
       return item.getBulk('interior');
     }

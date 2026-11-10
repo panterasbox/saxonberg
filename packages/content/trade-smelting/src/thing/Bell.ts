@@ -21,6 +21,7 @@ import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { RingableMixin } from '@saxonberg/server/mud/lib/perception/Ringable';
 import { AudibleMixin } from '@saxonberg/server/mud/lib/perception/Audible';
 import { AppApi } from '@saxonberg/server/mud/api/app';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { RingSound } from '@saxonberg/server/mud/lib/material/Integrity';
 
 /** Bell bronze — the reference metal: hardness ÷ density, MPa per kg/m³. */
@@ -53,7 +54,7 @@ export default class Bell extends RingableMixin(AudibleMixin(CraftedMixin(Therma
     const kg = this.getMass().rawValue();
     if (mat === null || !mat.hasTag('metal') || !(kg > 0)) return 0;
     const density = mat.getDensity().rawValue();
-    const hardness = mat.getHardness().rawValue();
+    const hardness = MixinApi.hasSolidity(mat) ? mat.getHardness().rawValue() : 0;
     const stiffness = density > 0 && hardness > 0 ? hardness / density : BELL_BRONZE_STIFFNESS;
     return pitchRefHz() * Math.pow(kg, -1 / 3) * Math.sqrt(stiffness / BELL_BRONZE_STIFFNESS);
   }

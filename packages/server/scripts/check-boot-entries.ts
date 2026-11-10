@@ -62,6 +62,10 @@ export const CENSUS_AT_LANDING = { entries: 128, uncited: 71 };
  * and the house hand keeps the house with nobody present, and the stack
  * melts by its own physics — the unobserved economy, both `reason`s say
  * so. No sibling build adds a boot entry.
+ *
+ * ⭐ 85 → 84 on 2026-11-09 (broadcast-ready W0): the `StreamState`
+ * singleton retired — the stream is state on each streamer's own body
+ * now, loaded with them, so nothing about it boots.
  */
 /*
  * ⭐ 85 → 82 by the documents path-identity build (W1): the recipe,
@@ -74,7 +78,10 @@ export const CENSUS_AT_LANDING = { entries: 128, uncited: 71 };
  * pipeline's first scene (D13), never at boot. */
 /* 80 → 78 (documents W5a): the corpo/brand and government dictionaries load
  * when a holder that cites one does, never at boot. */
-export const BOOT_ENTRY_CEILING = 76; // documents W5b: −1 (the discipline dictionary).
+/* 78 → 76 (documents W5b): the discipline dictionary loads with a
+ * character's first band read; −1 more on the merge with master (the
+ * broadcast build's StreamState retired, 85 → 84 there). */
+export const BOOT_ENTRY_CEILING = 75;
 
 /**
  * ⭐ Content entries whose reason does not cite the unobserved economy —

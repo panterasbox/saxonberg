@@ -1,6 +1,6 @@
 # Pulp (paper W2) — rag fibre beaten apart and hanging in water: what the
 # stamper makes and the vat holds. A sheet is lifted out of it on a wire.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Pulp
 data:
   smells: [{ aroma: /base-library/aromas/retting, strength: 60 }]
   name: pulp
@@ -10,9 +10,4 @@ data:
   specificHeat: 4100
   thermalConductivity: 0.58
   meltingPoint: 272
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [liquid, pulp, cellulose, organic, once-living]
-  composition: []
-  biologicalSource: null

@@ -3,7 +3,7 @@
 # recipe declaring `medium: fat` matches its fat slot against this tag,
 # and the `smokePoint` below is the ceiling that recipe's heat is capped
 # at. That is the whole of "you can fry hotter than you can boil".
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Fat
 data:
   smells: [{ aroma: /base-library/aromas/tallow, strength: 60 }]
   burning: [{ aroma: /base-library/aromas/tallow-smoke, strength: 400 }]
@@ -37,7 +37,6 @@ data:
   # floor. Rendering is a preservation technique, not only a cooking one.
   spoilActivationEnergy: 45000
   waterActivity: 0.2
-  edibility: true
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
@@ -46,12 +45,9 @@ data:
   nutrients: [fat]
   nutrientAmounts:
     fat: 90000
-  toxicity: []
   # ⭐ `candle-stock` beside `cooking-fat`: rendered tallow is BOTH, and
   # that is the interesting thing about it. A crock of it can be fried in
   # or dipped into, so the chandler and the cook compete for the same
   # commodity — which is why tallow had a price worth arguing about and
   # why the carcass's fat line matters at all.
   tags: [liquid, food, fat, cooking-fat, candle-stock, rendered]
-  composition: []
-  biologicalSource: null

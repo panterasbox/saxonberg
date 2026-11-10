@@ -16,6 +16,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
 import Provision from '../../../platform/thing/Provision';
 import Material from '../../material/Material';
+import Water from '../../../platform/idea/material/Water';
+import Salt from '../../../platform/idea/material/Salt';
 import { MouldMixin } from '../../mould/Mould';
 import { DurableMixin } from '../../material/Durable';
 import { CraftedMixin } from '../../craft/Crafted';
@@ -61,44 +63,48 @@ const ALUM_LIQUOR = '/stuff/idea/material/_crystal/alum-liquor';
 let cloned: string[] = [];
 const now = 1_000_000;
 
-function material(path: string, setup: (m: Material) => void): Material {
-  const found = StuffApi.findByTemplatePath<Material>(path);
+function material<K extends Material>(
+  make: () => K,
+  path: string,
+  setup: (m: K) => void,
+): K {
+  const found = StuffApi.findByTemplatePath<K>(path);
   if (found) return found;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = make();
     m.setName(path.split('/').pop()!);
     m.setDensity(Quantity.of(1000, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
     setup(m);
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as K;
 }
 
-function salt(): Material {
-  return material(SALT, (m) => {
+function salt(): Salt {
+  return material(() => new Salt(), SALT, (m) => {
     m.setDensity(Quantity.of(2160, 'kg/m³'));
     m.castTemplate = LUMP;
   });
 }
-function bittern(): Material {
-  return material(BITTERN, (m) => m.setDensity(Quantity.of(1250, 'kg/m³')));
+function bittern(): Water {
+  return material(() => new Water(), BITTERN, (m) => m.setDensity(Quantity.of(1250, 'kg/m³')));
 }
-function brine(): Material {
+function brine(): Water {
   salt();
   bittern();
-  return material(BRINE, (m) => {
+  return material(() => new Water(), BRINE, (m) => {
     m.setDensity(Quantity.of(1025, 'kg/m³'));
     m.setSolidsKgPerL(0.035);
     m.setSolubility([[273, 0.316], [293, 0.317], [373, 0.329]]);
     m.setCrystallizesTo({ product: SALT, residue: BITTERN });
   });
 }
-function alumLiquor(): Material {
-  material(ALUM, (m) => {
+function alumLiquor(): Water {
+  material(() => new Salt(), ALUM, (m) => {
     m.setDensity(Quantity.of(1750, 'kg/m³'));
     m.castTemplate = LUMP;
   });
-  return material(ALUM_LIQUOR, (m) => {
+  return material(() => new Water(), ALUM_LIQUOR, (m) => {
     m.setDensity(Quantity.of(1300, 'kg/m³'));
     m.setSolidsKgPerL(0.6);
     m.setSolubility([[273, 0.055], [293, 0.12], [333, 0.45], [373, 0.95]]);
@@ -163,7 +169,7 @@ describe('Material.solubilityAt — the curve', () => {
   });
 
   it('refuses a curve that is not ascending in K', () => {
-    const m = makeStuff(() => new Material());
+    const m = makeStuff(() => new Salt());
     expect(() => m.setSolubility([[373, 0.3], [273, 0.2]])).toThrow(/ascending/);
     expect(() => m.setCrystallizesTo({ product: SALT, residue: '' })).toThrow(/residue/);
   });
@@ -237,7 +243,7 @@ describe('⭐⭐ the crystallize arm', () => {
   it('⭐⭐ BOILED, brine concentrates — the steam is water, the salt stays — and sets a crop', async () => {
     // The ceramics drive: a pan of brine on the hearth held twelve-hour fires
     // and set no salt, because the boil took the solids away with the volume.
-    const boiling = material(`${BRINE}-boiling`, (m) => {
+    const boiling = material(() => new Water(), `${BRINE}-boiling`, (m) => {
       m.setDensity(Quantity.of(1025, 'kg/m³'));
       m.setSolidsKgPerL(0.035);
       m.setSolubility([[273, 0.316], [293, 0.317], [373, 0.329]]);

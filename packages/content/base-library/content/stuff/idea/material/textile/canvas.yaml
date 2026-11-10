@@ -8,7 +8,7 @@
 #
 # ⚠ `cellulose`, like linen: it is a plant fibre, and the narrowed
 # vitriol list names cellulose, so acid still eats a canvas awning.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Fiber
 data:
   smells: [{ aroma: /base-library/aromas/straw, strength: 3 }]
   name: canvas
@@ -24,9 +24,4 @@ data:
   # Water absorption capacity (% of dry mass): a heavy weave swells shut
   # as it wets, which is why canvas sheds a shower.
   waterAbsorptionCapacity: 25
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["textile", "fibre", "organic", "plant", "cellulose", "once-living"]
-  composition: []
-  biologicalSource: null

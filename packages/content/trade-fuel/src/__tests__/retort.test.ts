@@ -23,7 +23,9 @@ import YAML from 'yaml';
 import Retort from '../thing/Retort';
 import Condenser from '../thing/Condenser';
 import Gasometer from '../thing/Gasometer';
-import Material from '@saxonberg/server/mud/lib/material/Material';
+import Oil from '@saxonberg/server/mud/platform/idea/material/Oil';
+import FuelGas from '@saxonberg/server/mud/platform/idea/material/FuelGas';
+import CoatingOil from '@saxonberg/server/mud/platform/idea/material/CoatingOil';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Location from '@saxonberg/server/mud/lib/location/Location';
 import { KineticChange, type KineticSpec } from '@saxonberg/server/mud/lib/material/Kinetics';
@@ -57,10 +59,20 @@ function row(rel: string): Record<string, unknown> {
 }
 
 /** The shipped material row, installed at its real path. */
-function installMaterial(rel: string, path: string): Material {
-  const data = (row(rel).data ?? {}) as Record<string, unknown>;
+type Kind = Oil | FuelGas | CoatingOil;
+const KINDS: Record<string, new () => Kind> = {
+  '/platform/idea/material/Oil': Oil,
+  '/platform/idea/material/FuelGas': FuelGas,
+  '/platform/idea/material/CoatingOil': CoatingOil,
+};
+
+function installMaterial(rel: string, path: string): Kind {
+  const r = row(rel);
+  const data = (r.data ?? {}) as Record<string, unknown>;
+  const Row = KINDS[String(r.class)];
+  if (!Row) throw new Error(`no kind for ${String(r.class)}`);
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Row();
     m.setName(String(data.name ?? 'x'));
     if (typeof data.density === 'number') {
       m.setDensity(Quantity.of(data.density, 'kg/m³'));
@@ -69,7 +81,7 @@ function installMaterial(rel: string, path: string): Material {
       m.setBoilingPoint(Quantity.of(data.boilingPoint, 'K'));
     }
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as Kind;
 }
 
 describe('the retort', () => {
@@ -208,7 +220,7 @@ describe('the retort', () => {
       // yard temperature cannot condense it, and a condenser that
       // swallowed it would make a gasworks impossible.
       expect(BulkableApi.requiredClosureFor(
-        StuffApi.findByTemplatePath<Material>(COAL_GAS)!,
+        StuffApi.findByTemplatePath<FuelGas>(COAL_GAS)!,
       )).toBe('sealed');
       const r = retort();
       const c = condenser();

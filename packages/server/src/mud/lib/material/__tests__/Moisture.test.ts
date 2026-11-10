@@ -13,7 +13,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
 import Provision from '../../../platform/thing/Provision';
-import Material from '../Material';
+import Food from '../../../platform/idea/material/Food';
 import { Freshness } from '../Freshness';
 import { Moisture } from '../Moisture';
 import { MixinApi } from '../../../api/mixin';
@@ -37,20 +37,20 @@ function setNow(s: number): void {
 }
 
 let matSeq = 0;
-function material(ea: number, aw = 0.98): Material {
+function material(ea: number, aw = 0.98): Food {
   matSeq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName(`water-test-mat-${matSeq}`);
     m.setSpecificHeat(Quantity.of(3200, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.5, 'W/(m·K)'));
     m.setSpoilActivationEnergy(Quantity.of(ea, 'J/mol'));
     m.setWaterActivity(aw);
     return m;
-  }, `/stuff/idea/material/_test/water-${matSeq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/water-${matSeq}`) as unknown as Food;
 }
 
-function food(mat: Material, tempK = 293): Provision {
+function food(mat: Food, tempK = 293): Provision {
   return makeStuff(() => {
     const p = new Provision();
     p.setMass(Quantity.of(1, 'kg'));
@@ -78,7 +78,7 @@ describe('MoistureMixin — the water state a treatment changes', () => {
 
   // ---- requirement 19: the day-one identity ----
 
-  it('⭐⭐ untreated matter derives the Material\'s tabulated a_w EXACTLY', () => {
+  it('⭐⭐ untreated matter derives the Food\'s tabulated a_w EXACTLY', () => {
     // The single most load-bearing assertion in the build. If this drifts,
     // every row in the Hearthworks pantry, the general store and Dave's
     // Bar changes behaviour on day one.

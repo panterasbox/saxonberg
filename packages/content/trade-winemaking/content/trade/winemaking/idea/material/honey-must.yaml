@@ -9,7 +9,7 @@
 # ⚠ It carries `honey-must` and deliberately **not** `honey`: the double
 # match rule means a profile keyed on `honey` and one keyed on
 # `honey-must` must never both fire on one vessel.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/honey, strength: 300 }]
   tastes: [{ type: sweet, amount: 200 }]
@@ -19,12 +19,9 @@ data:
   density: 1080
   thermalConductivity: 0.55
   specificHeat: 3800
-  edibility: true
   nutrients: ["water", "sugar"]
   nutrientAmounts:
     sugar: 200
   # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
   ph: 3.7
   tags: ["liquid", "must", "honey-must"]
-  composition: []
-  biologicalSource: null

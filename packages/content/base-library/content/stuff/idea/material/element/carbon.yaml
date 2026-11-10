@@ -4,7 +4,7 @@
 # the values here are mid-range. Allotrope-specific carbon
 # (`/stuff/idea/material/element/carbon-graphite`, `.../carbon-diamond`) is a
 # content extension when content needs the distinction.
-class: /platform/idea/material/Material
+class: /platform/idea/material/NonMetal
 data:
   name: carbon
   keywords: [carbon]
@@ -18,12 +18,7 @@ data:
   # shatters, and neither of them bends.
   hardness: 50
   toughness: 5
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["element", "non-metal", "organic-base"]
-  composition: []
   symbol: C
   atomicNumber: 6
   molarMass: 12.011
-  biologicalSource: null

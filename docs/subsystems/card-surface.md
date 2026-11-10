@@ -879,6 +879,19 @@ in force: the server ships both resolved answers on
 without a reconnect) and the client — which genuinely knows its own
 width — picks. Same split as `cockpit.shelf`.
 
+## ⭐ `private` cards and the `stream` card (broadcast-ready)
+
+`CardState.private` (on the wire `card-opened.private` /
+`card-touched.private`) is the server's word that a card is ABOUT
+something private — today a terminal on a player-made channel or a group
+handle, resolved after open (async) and sent as a touch; the frames
+inside carry their own stamp, so nothing private shows in between. A
+streamer's client renders such a card as a husk while on air. The
+`stream` row is a `client`-source pinned singleton opened by bare
+`stream` (`noProse`: the card IS the controls; the status line goes to the
+transcript); its body is the `stream.state` key. The streamer arrangement
+of `watch` opens it. Any card can pop out ([client-shell.md](./client-shell.md)).
+
 ## The card's action row
 
 `AffordanceEntry.source: 'subject' | 'actor'`. The row renders

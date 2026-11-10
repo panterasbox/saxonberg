@@ -9,7 +9,7 @@
 # ⚠ Tagged `grain-new-make`, NOT `new-make` — the whiskey-aging profile
 # keys on `new-make`, and the grain line has its own aging profile. Share
 # the tag and a cask of grain spirit would mature into malt whisky.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Spirit
 data:
   smells: [{ aroma: /base-library/aromas/spirit, strength: 800 }]
   burning: [{ aroma: /base-library/aromas/smoke, strength: 3 }]
@@ -22,13 +22,9 @@ data:
   servingKg: 0.0558
   thermalConductivity: 0.17
   specificHeat: 2400
-  edibility: true
   toxicity:
     - { type: alcohol, amount: 45 }
-  nutrients: []
   tags:
     ["liquid", "beverage", "drinkable", "alcoholic", "spirit", "grain-new-make"]
-  composition: []
-  biologicalSource: null
   autoignitionTemperature: 636
   heatOfCombustion: 27

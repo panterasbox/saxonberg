@@ -1,6 +1,6 @@
 # Buttermilk — what draws off a churn when the butter has come (dairy D5).
 # Sour-sweet, thin, a drink and a baker's liquid.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/yoghurt, strength: 100 }]
   name: "buttermilk"
@@ -10,20 +10,14 @@ data:
   specificHeat: 3900
   thermalConductivity: 0.5
   electricalConductivity: 0.4
-  waterAbsorptionCapacity: 0
-  hardness: 0
-  toughness: 0
-  edibility: true
   tastes: [{ type: sour, amount: 8 }]
   nutrients: ["fat", "protein", "sugar", "water"]
   nutrientAmounts: { fat: 5000, protein: 33000, sugar: 45000, water: 905000 }
   spoilActivationEnergy: 60000
   waterActivity: 0.99
-  toxicity: []
   # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
   ph: 4.5
   tags: ["food", "dairy", "liquid", "perishable", "buttermilk"]
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
   cleanser: /platform/idea/Cleanser/sour-milk
-  composition: []

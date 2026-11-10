@@ -42,7 +42,7 @@ import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Metal from '@saxonberg/server/mud/platform/idea/material/Metal';
 
 let fillSeq = 0;
 
@@ -59,7 +59,7 @@ let fillSeq = 0;
  */
 function fillLikeAClone(bottle: { setBulkMaterial: (a: string, m: never) => void; setBulkAmount: (a: string, q: Quantity<'L'>) => void; setInteriorCapacity: (q: Quantity<'L'>) => void; interiorBulk: boolean }, name: string, litres = 0.75): void {
   const material = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Metal();
     m.setName(name);
     m.setKeywords([name]);
     m.setTags(['liquid']);

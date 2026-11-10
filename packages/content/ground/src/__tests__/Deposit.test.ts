@@ -24,7 +24,7 @@ import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/_
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import Deposit from '../idea/Deposit';
 import type { Point } from '../idea/Deposit';
 
@@ -95,7 +95,7 @@ describe('Deposit — the geology field', () => {
     // The two host rocks, resident so hardness resolves off the material
     // rather than off the fallback.
     for (const [path, mpa] of [[SLATE, 90], [GRANITE, 200]] as const) {
-      const m = makeStuffAtPath(() => new Material(), path);
+      const m = makeStuffAtPath(() => new Stone(), path);
       (m as unknown as { hardness: Quantity<'MPa'> }).hardness = Quantity.of(mpa, 'MPa');
     }
   });

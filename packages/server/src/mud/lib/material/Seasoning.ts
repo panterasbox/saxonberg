@@ -111,9 +111,8 @@ function dial(key: string, fallback: number): number {
  */
 function seasoningAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   if (!MixinApi.isSeasoning(host)) return text;
-  const days = MixinApi.isTangible(host)
-    ? (host.getMaterial()?.getSeasoningDays() ?? 0)
-    : 0;
+  const mat = MixinApi.isTangible(host) ? host.getMaterial() : null;
+  const days = mat !== null && MixinApi.hasShrinkage(mat) ? mat.getSeasoningDays() : 0;
   if (days <= 0) return text;
   const line = host.seasonPhrase(host.getSeasonedFraction());
   const grain = host.seasonGrainLine();
@@ -153,7 +152,7 @@ export function SeasoningMixin<TBase extends MixinConstructor<Stuff & Moist>>(Ba
       const self = this as unknown as Stuff;
       if (!MixinApi.isTangible(self)) return 0;
       const m = self.getMaterial() as Material | null;
-      return m ? m.getSeasoningDays() : 0;
+      return m && MixinApi.hasShrinkage(m) ? m.getSeasoningDays() : 0;
     }
 
     /** The moisture `fraction` of the way from green to seasoned. */

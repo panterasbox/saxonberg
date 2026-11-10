@@ -2,7 +2,7 @@
 # `active` tag + a `toxicity` dose of `anaesthesia` are the whole mechanism
 # (the metabolism/anaesthesia Condition carries the effect + prescription
 # gate). Fiction ours; honest mechanism.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/herbal, strength: 300 }]
   tastes: [{ type: bitter, amount: 0.5 }]
@@ -12,7 +12,6 @@ data:
   density: 1000
   # One serving, kg (the unit of its label and its dose): a 250 ml draught at 1000 kg/m³.
   servingKg: 0.25
-  edibility: true
   toxicity:
     - { type: anaesthesia, amount: 4 }
   tags: [active, remedy, liquid]

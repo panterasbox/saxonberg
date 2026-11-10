@@ -6,7 +6,7 @@
 #
 # ⚠ A season, not a lactation you start: a ewe milks after lambing,
 # through the lengthening days (`aries.yaml`'s photoperiod window).
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/milk, strength: 100 }]
   tastes: [{ type: sweet, amount: 45 }]
@@ -17,16 +17,10 @@ data:
   specificHeat: 3900
   thermalConductivity: 0.53
   electricalConductivity: 0.5
-  waterAbsorptionCapacity: 0
-  hardness: 0
-  toughness: 0
-  edibility: true
   nutrients: ["fat", "protein", "sugar", "water"]
   nutrientAmounts: { fat: 70000, protein: 55000, sugar: 48000, water: 815000 }
   spoilActivationEnergy: 60000
   waterActivity: 0.99
-  toxicity: []
   # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
   ph: 6.7
   tags: ["food", "dairy", "liquid", "perishable", "once-living", "milk", "ewe-milk"]
-  composition: []

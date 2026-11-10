@@ -7,7 +7,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Crop from '@saxonberg/server/mud/platform/thing/Crop';
-import Material from '@saxonberg/server/mud/lib/material/Material';
+import SolidFood from '@saxonberg/server/mud/platform/idea/material/SolidFood';
 import type { KineticSpec } from '@saxonberg/server/mud/lib/material/Kinetics';
 import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -40,7 +40,7 @@ describe('cut cane inverts — the stalk’s kinetics', () => {
     WorldClockApi._setNowProviderForTesting(() => real);
     if (!StuffApi.findByTemplatePath(STALK)) {
       makeStuffAtPath(() => {
-        const m = new Material();
+        const m = new SolidFood();
         m.setName('cane stalk');
         m.setDensity(Quantity.of(1000, 'kg/m³'));
         m.setSpecificHeat(Quantity.of(3500, 'J/(kg·K)'));
@@ -55,7 +55,7 @@ describe('cut cane inverts — the stalk’s kinetics', () => {
   function bundle(tempK: number): Crop {
     const c = makeStuff(() => new Crop());
     c.setMass(Quantity.of(30, 'kg'));
-    c.setMaterial(StuffApi.findByTemplatePath<Material>(STALK)!);
+    c.setMaterial(StuffApi.findByTemplatePath<SolidFood>(STALK)!);
     c.setStampedTemperatureK(tempK);
     c.setLastAmbientK(tempK);
     c.setGrade(Grade.of('fine'));

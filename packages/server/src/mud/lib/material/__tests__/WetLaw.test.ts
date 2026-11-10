@@ -21,13 +21,14 @@ import { parse } from 'yaml';
 import Material from '../Material';
 import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import Fiber from '../../../platform/idea/material/Fiber';
 
 const K_AIR = 0.026;
 const K_WATER = 0.6;
 const REFERENCE = 40;
 
-function withWac(wac: number): Material {
-  const m = makeStuff(() => new Material());
+function withWac(wac: number): Fiber {
+  const m = makeStuff(() => new Fiber());
   m.setName(`wac-${wac}`);
   m.setWaterAbsorptionCapacity(Quantity.of(wac, '%'));
   return m;

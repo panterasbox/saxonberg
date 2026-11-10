@@ -311,8 +311,11 @@ export default class Sheet extends SheetBase {
       return { ok: false, reason: 'printed', line: `${self.getPresentation()} is printed; there is no room to write on it.` };
     }
     // Paint on paper letters as paint does (a poster in paint).
-    if (medium !== undefined && MixinApi.isBulkable(medium) && medium.hasInteriorBulk() && medium.getBulkMaterial('interior')?.getLaysCoat()) {
-      return super.writeOn(by, words, medium);
+    if (medium !== undefined && MixinApi.isBulkable(medium) && medium.hasInteriorBulk()) {
+      const held = medium.getBulkMaterial('interior');
+      if (held && MixinApi.hasCoating(held) && held.getLaysCoat()) {
+        return super.writeOn(by, words, medium);
+      }
     }
     const text = words.trim();
     if (text === '') return { ok: false, reason: 'nothing-to-write', line: 'Write what?' };

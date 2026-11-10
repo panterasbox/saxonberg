@@ -61,6 +61,7 @@ import {
   type CockpitMode,
   type LayoutName,
   type CardId,
+  STREAM_FOREGROUNDS,
 } from '@saxonberg/types';
 
 /**
@@ -587,6 +588,43 @@ export function SaxonbergClientMixin<
           }
           return true;
         },
+      },
+      {
+        key: 'stream.state',
+        // ⭐ The controls card's state (broadcast-ready D10/D16) — the
+        // streamer's own show plus streamer-only extras (the reason rows,
+        // viewer counts). Server-written by `BroadcastMixin`; transient
+        // because the mixin's persisted fields are the truth and this is
+        // their projection for one client.
+        transient: true,
+        defaultValue: null,
+        description:
+          "The stream controls' state — the streamer's own show (phase, " +
+          'reason, timers, topic, agenda) plus streamer-only extras. ' +
+          'Server-written; the client redacts private frames while its ' +
+          '`phase` is starting, live or ending. Transient.',
+        validator: (v) =>
+          v === null || (typeof v === 'object' && !Array.isArray(v))
+            ? true
+            : 'must be null or a stream-state object',
+      },
+      {
+        key: 'stream.foreground',
+        // ⭐ What the client reports about where it is (broadcast-ready D6)
+        // — Saxonberg in front, another tab, another app — and nothing
+        // about what is showing. Client-written on visibility/focus
+        // changes; the overlay's screen guide reads it.
+        transient: true,
+        defaultValue: null,
+        description:
+          "Where the streamer's client is: saxonberg (in front), " +
+          'other-tab or other-app. Written by the client on focus and ' +
+          'visibility changes while a stream is up; read by the overlay. ' +
+          'Transient.',
+        validator: (v) =>
+          v === null || (STREAM_FOREGROUNDS as readonly unknown[]).includes(v)
+            ? true
+            : `must be one of ${STREAM_FOREGROUNDS.join(', ')}`,
       },
       {
         key: 'cockpit.shelf',

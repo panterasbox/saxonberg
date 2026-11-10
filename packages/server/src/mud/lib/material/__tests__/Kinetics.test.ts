@@ -15,6 +15,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Kinetics, KineticChange, type KineticSpec } from '../Kinetics';
 import Material from '../Material';
+import SolidFood from '../../../platform/idea/material/SolidFood';
 import Provision from '../../../platform/thing/Provision';
 import { Grade } from '../../craft/Grade';
 import { Quantity } from '../../quantity';
@@ -230,7 +231,7 @@ describe('the kinetic record — the change on the good', () => {
     ] as const) {
       if (StuffApi.findByTemplatePath(p)) continue;
       makeStuffAtPath(() => {
-        const m = new Material();
+        const m = new SolidFood();
         m.setName(p.split('/').pop()!);
         m.setDensity(Quantity.of(500, 'kg/m³'));
         m.setSpecificHeat(Quantity.of(2500, 'J/(kg·K)'));

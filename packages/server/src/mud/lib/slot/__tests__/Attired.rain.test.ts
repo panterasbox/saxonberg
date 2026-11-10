@@ -11,7 +11,7 @@ import Garment from '../../../platform/thing/equipment/Garment';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
-import Material from '../../material/Material';
+import Fiber from '../../../platform/idea/material/Fiber';
 import { StuffApi } from '../../../api/stuff';
 import { Quantity } from '../../quantity';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
@@ -19,8 +19,8 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 
 let seq = 0;
 
-function cloth(name: string, wac: number): Material {
-  const m = makeStuff(() => new Material());
+function cloth(name: string, wac: number): Fiber {
+  const m = makeStuff(() => new Fiber());
   m.setName(name);
   m.setWaterAbsorptionCapacity(Quantity.of(wac, '%'));
   stampTemplatePathForTest(m, `/stuff/idea/material/_rain/${name}-${seq++}`);
@@ -48,7 +48,7 @@ function body(): Creature {
   return c;
 }
 
-function coat(c: Creature, material: Material): Garment {
+function coat(c: Creature, material: Fiber): Garment {
   const g = makeStuff(() => new Garment());
   g.setMaterial(material);
   g.setSlotClaim(c.getSpecies()!.getBodyPlan()!.getTemplatePath()!, ['body']);

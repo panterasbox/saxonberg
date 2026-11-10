@@ -17,6 +17,10 @@ import { WorldClockApi } from '../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
+import Alloy from '../../material/Alloy';
+import Glass from '../../material/Glass';
+import Hide from '../../material/Hide';
+import Metal from '../../material/Metal';
 import Casting from '../../../thing/Casting';
 import MetalCasting from '../../../thing/MetalCasting';
 import Scrap from '../../../thing/Scrap';
@@ -63,10 +67,14 @@ function registerMaterial(
   composition: { materialPath: string; fraction: number }[] = [],
 ): Material {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m: Material = tags.includes('metal')
+      ? new Metal()
+      : tags.includes('composite')
+        ? new Alloy()
+        : new Hide();
     m.setName(name);
     m.setTags(tags);
-    m.setComposition(composition);
+    if (MixinApi.hasMixture(m)) m.setComposition(composition);
     return m;
   }, path) as unknown as Material;
 }
@@ -202,7 +210,7 @@ describe('CraftingLogic.salvage', () => {
   it('a meltable NON-METAL (glass) comes back WHOLE and remembers its alloying (D7)', async () => {
     const GLASS = '/stuff/idea/material/_test/sv-glass';
     makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Glass();
       m.setName('glass');
       m.setTags(['glass', 'amorphous']); // deliberately NO 'metal'
       m.setMeltingPoint(Quantity.of(1300, 'K'));

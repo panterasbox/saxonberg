@@ -9,6 +9,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Tool from '../../../platform/thing/Tool';
 import Assembly from '../../../platform/thing/Assembly';
 import Material from '../../material/Material';
+import Metal from '../../../platform/idea/material/Metal';
+import Wood from '../../../platform/idea/material/Wood';
 import { MaterialApi } from '../../../api/material';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
@@ -26,8 +28,13 @@ import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { rememberJoint } from './joint-fixtures';
 import { rememberShippedJoints } from './joint-fixtures';
 
-function material(path: string, hardness: number, toughness: number): Material {
-  const m = makeStuff(() => new Material());
+function material(
+  path: string,
+  hardness: number,
+  toughness: number,
+  make: () => Wood | Metal = () => new Wood(),
+): Material {
+  const m = makeStuff(make);
   m.setHardness(Quantity.of(hardness, 'MPa'));
   m.setToughness(Quantity.of(toughness, 'MJ/m³'));
   stampTemplatePathForTest(m, path);
@@ -64,7 +71,7 @@ function pick(): Tool {
 beforeEach(() => {
   rememberShippedJoints();
   StuffApi.clearAll();
-  material(IRON, 600, 200);
+  material(IRON, 600, 200, () => new Metal());
   material(ASH, 40, 60);
 });
 afterEach(() => StuffApi.clearAll());
@@ -175,7 +182,7 @@ describe('AssembledMixin', () => {
   });
 
   it('⭐ green work WARPS once it has dried in place — a member fails and says so', () => {
-    const oak = StuffApi.findByTemplatePath<Material>(ASH)!;
+    const oak = StuffApi.findByTemplatePath<Wood>(ASH)!;
     oak.seasoningDays = 100;
     oak.greenShrinkage = 0.1;
     let nowS = 1_000_000;
@@ -221,7 +228,7 @@ describe('⭐ a glue line needs FLAT faces — a cupped board under it never hol
   };
   beforeEach(async () => {
     for (const r of [{ path: '/platform/joints/glued', data: glued }] as unknown as Array<{ path: string; data: Record<string, unknown> }>) rememberJoint(r.path, r.data);
-    StuffApi.findByTemplatePath<Material>(ASH)!.greenShrinkage = 0.1;
+    StuffApi.findByTemplatePath<Wood>(ASH)!.greenShrinkage = 0.1;
   });
   afterEach(() => vi.restoreAllMocks());
 

@@ -5,7 +5,7 @@
 # kelp burn, the underwater build) or from mineral natron. ⚠ It is NOT
 # boiled-down wood-ash lye: that lye is potassium carbonate, and boiling
 # it gives POTASH (potash D10).
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Lye
 data:
   smells: [{ aroma: /base-library/aromas/lye, strength: 3 }]
   name: washing soda
@@ -15,12 +15,7 @@ data:
   specificHeat: 1000
   thermalConductivity: 0.5
   meltingPoint: 1100
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [solid, mineral, alkali-mild, washing-soda]
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
   cleanser: /platform/idea/Cleanser/washing-soda
-  composition: []
-  biologicalSource: null

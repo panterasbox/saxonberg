@@ -2,7 +2,7 @@
 # the standard for swords/armor. v1 ships a generic carbon steel
 # (~0.2% carbon by weight); higher-carbon steels and alloy steels
 # (stainless, tool steel, …) are content extensions.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Alloy
 data:
   name: steel
   keywords: [steel]
@@ -12,8 +12,6 @@ data:
   # Electrical conductivity (S/m) — carbon steel, ~6×10⁶ (a fine
   # conductor; the low-resistance series path that betrays plate armor).
   electricalConductivity: 6.0e6
-  # Water absorption capacity (% of dry mass, ASTM D570): metal wets only as a surface film.
-  waterAbsorptionCapacity: 0.2
   # ⚠ Phase change. Steel had NO melting point at all, which meant
   # `MeltableMixin.getMeltingPointK()` read 0 and a steel thing could
   # never melt, re-melt or be honestly described as solid — the phase
@@ -27,12 +25,7 @@ data:
   # standard for swords and armor. MPa / MJ·m⁻³, marshalled.
   hardness: 600
   toughness: 200
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["alloy", "metal", "ferrous", "forgeable", "magnetic"]
   composition:
     - { materialPath: /stuff/idea/material/element/iron, fraction: 0.998 }
     - { materialPath: /stuff/idea/material/element/carbon, fraction: 0.002 }
-  chemistry: null
-  biologicalSource: null

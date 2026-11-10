@@ -12,7 +12,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import EdibleHerb from '@saxonberg/server/mud/platform/idea/material/EdibleHerb';
 import { Freshness } from '@saxonberg/server/mud/lib/material/Freshness';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
@@ -22,10 +22,10 @@ const ROW = fileURLToPath(
   new URL('../../content/trade/sericulture/idea/material/mulberry-leaf.yaml', import.meta.url),
 );
 
-function leafMaterial(): Material {
+function leafMaterial(): EdibleHerb {
   const data = (YAML.parse(readFileSync(ROW, 'utf-8')) as { data: Record<string, unknown> }).data;
   return makeStuff(() => {
-    const m = new Material();
+    const m = new EdibleHerb();
     m.setName(String(data.name));
     m.setSpoilActivationEnergy(Quantity.of(Number(data.spoilActivationEnergy), 'J/mol'));
     m.setWaterActivity(Number(data.waterActivity));
@@ -34,7 +34,7 @@ function leafMaterial(): Material {
 }
 
 /** Hours until the load first bands past `fresh`, stepping by the hour. */
-function hoursToWilt(m: Material, tempK: number): number {
+function hoursToWilt(m: EdibleHerb, tempK: number): number {
   let load = 0;
   for (let h = 1; h <= 24 * 30; h++) {
     load = Freshness.advance(load, 3600, m, tempK);

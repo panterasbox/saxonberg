@@ -35,6 +35,10 @@ import MaturationProfile from '../../platform/idea/maturation/MaturationProfile'
 import FractionSchedule from '../../platform/idea/fractionation/FractionSchedule';
 import Condition from '../../platform/idea/Condition';
 import Material from '../../lib/material/Material';
+import Drink from '../../platform/idea/material/Drink';
+import Residue from '../../platform/idea/material/Residue';
+import Spirit from '../../platform/idea/material/Spirit';
+import { MixinApi } from '../../api/mixin';
 import { Creature } from '../../lib/creature/Creature';
 import { AdvancementMixin } from '../../lib/advancement/Advancement';
 import { BulkableApi } from '../../api/bulk';
@@ -71,18 +75,27 @@ function row(pack: string, rel: string): Record<string, unknown> {
   return raw.data;
 }
 
-/** Stand an authored Material row up at its own path. */
+/** Stand an authored Material row up at its own path — its own KIND. */
 function material(rel: string, path: string): Material {
   const data = row(DISTILLING, rel);
+  const cls = (
+    parse(readFileSync(join(DISTILLING, rel), 'utf8')) as { class: string }
+  ).class;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m: Material =
+      cls === '/platform/idea/material/Spirit'
+        ? new Spirit()
+        : cls === '/platform/idea/material/Drink'
+          ? new Drink()
+          : new Residue();
     m.setName(String(data.name));
     m.setTags((data.tags as string[]) ?? []);
-    m.setEdibility(data.edibility === true);
-    if (data.toxicity) {
+    if (MixinApi.hasEdibility(m)) {
+      m.setNutrients((data.nutrients as string[]) ?? []);
+    }
+    if (MixinApi.hasToxicity(m) && data.toxicity) {
       m.setToxicity(data.toxicity as never);
     }
-    m.setNutrients((data.nutrients as string[]) ?? []);
     return m;
   }, path);
 }

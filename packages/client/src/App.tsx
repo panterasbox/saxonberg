@@ -38,6 +38,7 @@ import { activeCardKinds } from "./store/cardViewActions";
 import { framesFor } from "./store/frameFilter";
 import type { LayoutProps } from "./layouts";
 import { resolveMode } from "./layouts/modes";
+import { useOnAirClient } from "./lib/stream/onAir";
 import { useGround } from "./lib/style/useGround";
 import { useIsCompact } from "./lib/style/useIsCompact";
 import { tokens } from "./components/ui";
@@ -215,6 +216,9 @@ function App() {
   // change. The chrome resolves its theme through the same `pickTheme`
   // as the transcript's `useStylesheet` — see `lib/style/useGround`.
   useGround();
+  // ⭐ The client on air (broadcast-ready W4): the stream-size type and
+  // the foreground report. Above the phase switch, like `useGround`.
+  useOnAirClient();
 
   /*
    * ⚠ Above the phase switch for the same reason `useGround` is: the

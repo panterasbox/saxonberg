@@ -1,6 +1,6 @@
 # Juniper — produce's food material; tag `juniper` is the recipe category
 # (the gin still's item slot, when a distilling build learns it).
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/EdibleHerb
 data:
   smells: [{ aroma: /base-library/aromas/juniper, strength: 300 }]
   name: juniper
@@ -9,7 +9,6 @@ data:
   density: 800
   thermalConductivity: 0.5
   specificHeat: 3600
-  edibility: true
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
@@ -25,8 +24,4 @@ data:
   # A juniper berry is not a fruit you eat for its own sake (mg per kg).
   nutrients: ["water"]
   nutrientAmounts: {water: 500000, fibre: 100000}
-  toxicity:
-    []
   tags: ["solid", "food", "produce", "juniper", "berry", "berries"]
-  composition: []
-  biologicalSource: null

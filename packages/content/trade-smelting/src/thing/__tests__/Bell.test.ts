@@ -10,7 +10,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
 import Bell from '../Bell';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Metal from '@saxonberg/server/mud/platform/idea/material/Metal';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
@@ -20,22 +20,22 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 const BRONZE = '/stuff/idea/material/_bell/bronze';
 const PEWTER = '/stuff/idea/material/_bell/pewter';
 
-function metal(path: string, density: number, hardness: number): Material {
-  const found = StuffApi.findByTemplatePath<Material>(path);
+function metal(path: string, density: number, hardness: number): Metal {
+  const found = StuffApi.findByTemplatePath<Metal>(path);
   if (found) return found;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Metal();
     m.setName(path.split('/').pop()!);
     m.setTags(['metal']);
     m.setDensity(Quantity.of(density, 'kg/m³'));
     m.setHardness(Quantity.of(hardness, 'MPa'));
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as Metal;
 }
 
 function bell(matPath: string, kg: number): Bell {
   const b = makeStuff(() => new Bell());
-  b.setMaterial(StuffApi.findByTemplatePath<Material>(matPath)!);
+  b.setMaterial(StuffApi.findByTemplatePath<Metal>(matPath)!);
   b.setMass(Quantity.of(kg, 'kg'));
   return b;
 }

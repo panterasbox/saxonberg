@@ -31,7 +31,7 @@
 # ⚠ No `toxicity`. Methane poisons nobody; it suffocates in quantity and
 # explodes in the right mixture, and both of those are consequences of
 # facts already here.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/FuelGas
 data:
   smells: [{ aroma: /base-library/aromas/firedamp, strength: 3 }]
   burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 3 }]
@@ -44,9 +44,4 @@ data:
   boilingPoint: 112
   heatOfCombustion: 55
   autoignitionTemperature: 810
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [gas, fuel, flammable, damp]
-  composition: []
-  biologicalSource: null

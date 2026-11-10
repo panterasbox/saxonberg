@@ -33,7 +33,7 @@ import { UnboundedSourceMixin } from '../UnboundedSource';
 import { NamedMixin } from '../../description/Named';
 import { ContainableMixin } from '../../spatial/Containable';
 import { Idea } from '../../stuff/Idea';
-import Material from '../../material/Material';
+import Gas from '../../../platform/idea/material/Gas';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Location from '../../location/Location';
 import { Quantity } from '../../quantity';
@@ -82,15 +82,15 @@ class TestSource extends UnboundedSourceMixin(
 let seq = 0;
 
 /** A material at `boilingPoint` K — the one authored number phase reads. */
-function material(name: string, boilingPointK: number): Material {
+function material(name: string, boilingPointK: number): Gas {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Gas();
     m.setName(name);
     m.setDensity(Quantity.of(boilingPointK < 200 ? 0.7 : 1000, 'kg/m³'));
     m.setBoilingPoint(Quantity.of(boilingPointK, 'K'));
     return m;
-  }, `/stuff/idea/material/_test/gas-${name}-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/gas-${name}-${seq}`) as unknown as Gas;
 }
 
 describe('a gas', () => {
@@ -120,7 +120,7 @@ describe('a gas', () => {
     return v;
   }
 
-  function source(m: Material): TestSource {
+  function source(m: Gas): TestSource {
     const s = makeStuff(() => {
       const x = new TestSource();
       x.setName('source');

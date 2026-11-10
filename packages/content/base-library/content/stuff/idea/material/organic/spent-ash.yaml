@@ -2,7 +2,7 @@
 # potash is gone into the lye. ⚠ No `potash` tag, so a hopper will not
 # leach it twice. `liming` because it is mostly lime, for the day a field
 # reads it.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFuel
 data:
   smells: [{ aroma: /base-library/aromas/smoke, strength: 3 }]
   name: spent ash
@@ -12,9 +12,4 @@ data:
   thermalConductivity: 0.2
   electricalConductivity: 1.0e-3
   waterAbsorptionCapacity: 50
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["organic", "mineral", "residue", "liming", "once-living"]
-  composition: []
-  biologicalSource: null

@@ -206,6 +206,7 @@ export default class DoseController extends CommandController<DoseModel> {
       if (!slot || slot.isEmpty()) continue;
       const m = slot.getMaterial();
       if (!m || !m.getTags().includes(ACTIVE_TAG)) continue;
+      if (!MixinApi.hasToxicity(m)) continue;
       const dose = m.getToxicity()[0];
       if (!dose) continue;
       return { vessel: c, slot, type: dose.type, amount: dose.amount };

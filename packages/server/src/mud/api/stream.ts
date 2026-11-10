@@ -24,6 +24,13 @@ import type { MessageFrame } from '@saxonberg/types';
 import type { StreamerTarget, ParsedTarget } from '../lib/streaming/StreamerTarget';
 import type { RelayChannelRef } from '../platform/idea/StreamRelay';
 import { SecurityApi } from './security';
+import type { StandbyReason, StandbyReading } from '../lib/livestream/StandbyReason';
+import type { StreamPanelRow } from '@saxonberg/types';
+import type {
+  BroadcastChannels,
+  BroadcastHost,
+  BroadcastTokenScope,
+} from '../lib/livestream/Broadcast';
 
 const LOGIC_PATH = '/platform/idea/api/stream';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -206,8 +213,75 @@ export class StreamApi {
    * reads via the sentinel-tune presence edge — the overlay chat forwarding
    * seam, driven as broadcast overlays connect / disconnect.
    */
-  static setOverlayReading(on: boolean): Promise<void> {
-    return logic().setOverlayReading(on);
+  static setOverlayReading(playerId: string, on: boolean): Promise<void> {
+    return logic().setOverlayReading(playerId, on);
+  }
+
+  /**
+   * Read a `stream away` operand: a bare duration is the generic reason;
+   * a word is a reason row, optionally followed by an overriding duration.
+   */
+  static interpretAway(first: string, second?: string): Promise<StandbyReading> {
+    return logic().interpretAway(first, second);
+  }
+
+  /** Every installed standby reason (the controls card's picker). */
+  static standbyReasons(): Promise<StandbyReason[]> {
+    return logic().standbyReasons();
+  }
+
+  /** Every installed lower-third panel row (the feed's `panels`). */
+  static lowerThirdPanels(): Promise<StreamPanelRow[]> {
+    return logic().lowerThirdPanels();
+  }
+
+  /** A shell-style duration (`15m`, `1h30m`, `90s`; bare = minutes) in ms, or null. */
+  static parseDuration(word: string): number | null {
+    return logic().parseDuration(word);
+  }
+
+  /** A compact label for a span (`1h 30m`, `5m`, `45s`). */
+  static formatDuration(ms: number): string {
+    return logic().formatDuration(ms);
+  }
+
+  /**
+   * Keep `playerId`'s own numbers (viewers, uptime, chat rate, who is
+   * online) coming to their controls card while they are on air (D16).
+   */
+  static watchNumbers(playerId: string): void {
+    logic().watchNumbers(playerId);
+  }
+
+  /** Re-open `playerId`'s channel reads after `stream channel` changed them. */
+  static refreshOverlayReading(playerId: string): Promise<void> {
+    return logic().refreshOverlayReading(playerId);
+  }
+
+  /**
+   * The chat channels `playerId`'s overlay shows — their body's own, else
+   * (the founder) the `OVERLAY_*` env seed. The feed's relay filter.
+   */
+  static channelsFor(playerId: string): BroadcastChannels {
+    return logic().channelsFor(playerId);
+  }
+
+  /**
+   * Issue (or rotate) `host`'s stream token for `scope` — returned once,
+   * stored only as its hash (broadcast-ready D4). The `stream token` verb.
+   */
+  static issueToken(host: Stuff & BroadcastHost, scope: BroadcastTokenScope): Promise<string> {
+    return logic().issueToken(host, scope);
+  }
+
+  /**
+   * The player and scope a raw stream token names, or null — the WS
+   * upgrade's lookup (a hash and a path read).
+   */
+  static resolveToken(
+    raw: string,
+  ): Promise<{ playerId: string; scope: BroadcastTokenScope } | null> {
+    return logic().resolveToken(raw);
   }
 }
 

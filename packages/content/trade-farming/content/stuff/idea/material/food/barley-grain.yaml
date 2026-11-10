@@ -1,6 +1,6 @@
 # Barley grain — ⭐ what `malt.yaml` has been made from all along, with
 # nothing behind it until now.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFood
 data:
   smells: [{ aroma: /base-library/aromas/grain, strength: 15 }]
   tastes: [{ type: sweet, amount: 8 }]
@@ -14,14 +14,12 @@ data:
   waterAbsorptionCapacity: 14
   hardness: 20
   toughness: 2
-  edibility: true
   nutrients: ["carb", "protein"]
   # ⭐ The protein is what the nitrogen ledger reads: crude protein is
   # nitrogen × 6.25, so a crop carrying this off the field is a crop
   # carrying that much nitrogen off it. Feed value and fertility are the
   # same number seen twice.
   nutrientAmounts: { carb: 730000, protein: 105000 }
-  toxicity: []
   # ⭐ `barley` added by the whiskey build, and the sibling row is the
   # argument: `wheat-grain` carries `"wheat"` — its own name — while this
   # one carried only `"brewing"`, which is a PURPOSE and not an identity.
@@ -31,4 +29,3 @@ data:
   # tagged for the brewhouse. The purpose tag stays: it is still true, and
   # something may yet want to ask for it.
   tags: ["food", "grain", "cereal", "barley", "brewing", "feed"]
-  composition: []

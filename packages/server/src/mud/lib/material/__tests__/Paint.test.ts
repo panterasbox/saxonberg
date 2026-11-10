@@ -7,14 +7,14 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, afterEach } from 'vitest';
-import Material from '../Material';
+import PigmentPaint from '../../../platform/idea/material/PigmentPaint';
 import { Paint } from '../Paint';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 
-function row(path: string, name: string, fill: (m: Material) => void = () => undefined): string {
+function row(path: string, name: string, fill: (m: PigmentPaint) => void = () => undefined): string {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new PigmentPaint();
     m.setName(name);
     fill(m);
     return m;

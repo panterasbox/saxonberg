@@ -41,11 +41,8 @@ data:
   density: 1020
   thermalConductivity: 0.6
   specificHeat: 4100
-  edibility: true
   nutrients: [water]
   tags: [liquid, drinkable, arcane]
-  composition: []
-  biologicalSource: null
   # ── the arcane half: which cell, whose making, how well it delivers ──
   carriedSpellPath: /stuff/idea/magic/Spell/veil
   deliveryEfficiency: 1

@@ -20,6 +20,7 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import Wood from '../../../platform/idea/material/Wood';
 
 /** A wooden tub: what a pour is poured INTO asks whether it survives it. */
 class Tub extends BulkableMixin(WetMixin(ThermalMixin(Good))) {
@@ -32,17 +33,17 @@ class Log extends CombustibleMixin(WetMixin(ThermalMixin(ReservedMixin(Good)))) 
 }
 
 let n = 0;
-function wood(): Material {
+function wood(): Wood {
   n += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Wood();
     m.setName(`ignition-wood-${n}`);
     m.setAutoignitionTemperature(Quantity.of(570, 'K'));
     m.setHeatOfCombustion(Quantity.of(16, 'MJ/kg'));
     m.setSpecificHeat(Quantity.of(2000, 'J/(kg·K)'));
     m.setWaterAbsorptionCapacity(Quantity.of(28, '%'));
     return m;
-  }, `/stuff/idea/material/_test/ignition-wood-${n}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/ignition-wood-${n}`) as unknown as Wood;
 }
 
 function body<T extends Log | Tub>(make: () => T, mat: Material): T {

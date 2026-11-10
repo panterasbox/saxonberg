@@ -12,6 +12,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DipController from '../DipController';
 import GlazeTub from '../../../../thing/GlazeTub';
 import Material from '../../../../../lib/material/Material';
+import PigmentPaint from '../../../material/PigmentPaint';
 import { Quantity } from '../../../../../lib/quantity';
 import { ContainmentApi } from '../../../../../api/containment';
 import { ExecutionContextApi } from '../../../../../api/execution-context';
@@ -37,7 +38,7 @@ function material(path: string, laysCoat: boolean): Material {
   const had = made.get(path);
   if (had && !had.isDestroyed()) return had;
   const m = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new PigmentPaint();
     m.setName(path.split('/').pop()!);
     m.setDensity(Quantity.of(1500, 'kg/m³'));
     m.setLaysCoat(laysCoat);

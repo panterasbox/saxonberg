@@ -1,6 +1,6 @@
 # Rotted hemp (cordage D14) — hemp left in the pit days past ready: the rot
 # is into the fiber itself. Grey, weak, short, and no way back.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Fiber
 data:
   smells: [{ aroma: /base-library/aromas/retting, strength: 3000 }]
   name: rotted hemp
@@ -13,9 +13,5 @@ data:
   specificHeat: 1360
   electricalConductivity: 1.0e-11
   waterAbsorptionCapacity: 70
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["plant", "organic", "once-living", "spoiled"]
-  composition: []
   biologicalSource: { speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/rosales/cannabaceae/cannabis/sativa, tissueType: stem }

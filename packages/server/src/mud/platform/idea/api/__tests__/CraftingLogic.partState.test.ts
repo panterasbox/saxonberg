@@ -17,7 +17,7 @@ import { ExecutionContextApi } from '../../../../api/execution-context';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
-import Material from '../../../../lib/material/Material';
+import Metal from '../../material/Metal';
 import Good from '../../../../lib/stuff/Good';
 import { AssembledMixin } from '../../../../lib/craft/Assembled';
 import { KeenMixin } from '../../../../lib/material/Keen';
@@ -66,7 +66,7 @@ let smith: TestSmith;
 
 function registerMaterial(path: string, name: string, tags: string[]): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Metal();
     m.setName(name);
     m.setTags(tags);
     m.setHardness(Quantity.of(tags.includes('metal') ? 600 : 40, 'MPa'));
@@ -77,7 +77,7 @@ function registerMaterial(path: string, name: string, tags: string[]): void {
 
 function part(path: string, material: string, keywords: string[], form = ''): TestPart {
   const t = makeStuff(() => new TestPart());
-  t.setMaterial(StuffApi.findByTemplatePath<Material>(material) as unknown as Material);
+  t.setMaterial(StuffApi.findByTemplatePath<Metal>(material) as unknown as Metal);
   t.setMass(Quantity.of(1, 'kg'));
   t.setKeywords(keywords);
   if (form) t.setConstructionForm(form);

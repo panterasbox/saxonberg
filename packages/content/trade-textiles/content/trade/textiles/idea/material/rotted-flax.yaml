@@ -8,7 +8,7 @@
 #
 # ⭐ It rides `MaturationProfile.turnedMaterial`, exactly as vinegar does
 # off an open finished ale: the same shipped mechanism, no new one.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Fiber
 data:
   smells: [{ aroma: /base-library/aromas/retting, strength: 3000 }]
   name: rotted flax
@@ -23,10 +23,5 @@ data:
   specificHeat: 1360
   electricalConductivity: 1.0e-11
   waterAbsorptionCapacity: 70
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["plant", "organic", "once-living", "spoiled"]
-  composition: []
-  chemistry: null
   biologicalSource: { speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/malpighiales/linaceae/linum/usitatissimum, tissueType: stem }

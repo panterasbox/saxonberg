@@ -45,6 +45,7 @@ import type { Tangible } from "../material/Tangible";
 import type { AfflictionRecord } from "../../platform/idea/Condition";
 import type Condition from "../../platform/idea/Condition";
 import type Material from "../material/Material";
+import type { Acidity } from "../material/Acidity";
 import type { BulkPayload } from "../bulk/Bulkable";
 import { MixinApi } from "../../api/mixin";
 import { BiomeApi } from "../../api/biome";
@@ -430,7 +431,7 @@ export interface Metabolic {
    */
   canIngest(): { ok: true } | { ok: false; reason: 'airway'; line: string };
   /** The materials in a mouthful that burn on the way down. */
-  corrosivesIn(material: Material, payload: BulkPayload | null): Material[];
+  corrosivesIn(material: Material, payload: BulkPayload | null): (Material & Acidity)[];
   /** The live level a toxin's severity bands are read against (BAC for a
    * `storeRaw` toxin, the raw burden otherwise). */
   toxinLevelFor(type: string): number;
@@ -1593,15 +1594,17 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.exposeToPathogens(payload);
     }
 
-    public corrosivesIn(material: Material, payload: BulkPayload | null): Material[] {
+    public corrosivesIn(material: Material, payload: BulkPayload | null): (Material & Acidity)[] {
       const makeup = payload?.makeup ?? [];
       const parts = makeup.length > 0
         ? makeup
             .map((p) => StuffApi.findByTemplatePath<Material>(p.materialPath))
             .filter((m): m is Material => !!m)
         : [material];
-      return parts.filter((m) =>
-        m.getCorrosiveTo().some((t) => t === 'tissue' || t === 'protein'),
+      return parts.filter(
+        (m): m is Material & Acidity =>
+          MixinApi.hasAcidity(m) &&
+          m.getCorrosiveTo().some((t) => t === 'tissue' || t === 'protein'),
       );
     }
 

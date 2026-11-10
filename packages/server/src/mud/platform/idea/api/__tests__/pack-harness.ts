@@ -19,7 +19,7 @@ import type { ParcelOwner, TitleClaim } from '../../../../lib/parcel/ParcelRecor
 import type { GroupOwner } from '../../../../lib/social/Group';
 import { matchesDocumentQuery } from '../../../../lib/document/__tests__/document-query';
 
-export const MATERIAL = '/platform/idea/material/Material';
+export const MATERIAL = '/platform/idea/material/Residue';
 export const HYDRATOR = '/platform/idea/TemplateApplier';
 
 export interface Row extends Record<string, unknown> {

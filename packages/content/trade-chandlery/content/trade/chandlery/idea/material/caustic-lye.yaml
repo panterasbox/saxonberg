@@ -2,7 +2,7 @@
 # The lime takes the carbonate out of the potash and leaves the potassium
 # hydroxide: a lye that makes HARD soap of fat directly, with no salting
 # out. Stronger and crueller than plain lye; it will take the skin off.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Lye
 data:
   smells: [{ aroma: /base-library/aromas/lye, strength: 300 }]
   name: caustic lye
@@ -13,9 +13,6 @@ data:
   thermalConductivity: 0.6
   meltingPoint: 268
   boilingPoint: 378
-  edibility: false
-  nutrients: []
-  toxicity: []
   corrosiveTo: [protein, tissue]
   tags: [liquid, caustic, alkali, lye, caustic-lye]
   # ⭐ Its strength, kg of alkali per litre — soap strength as stocked
@@ -23,5 +20,3 @@ data:
   # hopper's leach and a boil-down write the liquor's own figure over it.
   solidsKgPerL: 0.04
   cleanser: /platform/idea/Cleanser/lye
-  composition: []
-  biologicalSource: null

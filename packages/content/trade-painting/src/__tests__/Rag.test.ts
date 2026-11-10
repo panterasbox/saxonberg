@@ -8,6 +8,8 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Rag from '@saxonberg/server/mud/platform/thing/Rag';
 import Material from '@saxonberg/server/mud/lib/material/Material';
+import Fiber from '@saxonberg/server/mud/platform/idea/material/Fiber';
+import CoatingOil from '@saxonberg/server/mud/platform/idea/material/CoatingOil';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -41,14 +43,14 @@ beforeEach(() => {
   now = WorldClockApi.getNow().rawValue();
   vi.spyOn(WorldClockApi, 'getNow').mockImplementation(() => Quantity.of(now, 's'));
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new CoatingOil();
     m.setName('linseed oil');
     m.setLaysCoat(true);
     m.setKinetics([{ key: 'set', sets: 'oxidation', order: 0, rate: [[293, 0.055]], exothermicJPerKg: 2.5e6 }]);
     return m;
   }, OIL);
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Fiber();
     m.setName('linen');
     m.setDensity(Quantity.of(1500, 'kg/m³'));
     m.setAutoignitionTemperature(Quantity.of(680, 'K'));

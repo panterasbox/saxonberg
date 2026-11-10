@@ -42,7 +42,13 @@ import Vat from '../../platform/thing/Vat';
 import CraftVessel from '../../platform/thing/CraftVessel';
 import MaturationProfile from '../../platform/idea/maturation/MaturationProfile';
 import FractionSchedule from '../../platform/idea/fractionation/FractionSchedule';
-import Material from '../../lib/material/Material';
+import type Material from '../../lib/material/Material';
+import { MixinApi } from '../../api/mixin';
+import Food from '../../platform/idea/material/Food';
+import SolidFood from '../../platform/idea/material/SolidFood';
+import Drink from '../../platform/idea/material/Drink';
+import Spirit from '../../platform/idea/material/Spirit';
+import Residue from '../../platform/idea/material/Residue';
 import { Recipe } from '../../lib/craft/Recipe';
 import { StuffApi } from '../../api/stuff';
 import { BulkableApi } from '../../api/bulk';
@@ -69,6 +75,12 @@ const BASE = join(PACKS, 'base-library');
 const SCALE = 12;
 let real = 0;
 
+function rowClass(pack: string, rel: string): string {
+  return String(
+    (parse(readFileSync(join(pack, rel), 'utf8')) as { class: string }).class,
+  );
+}
+
 function row(pack: string, rel: string): Record<string, unknown> {
   const raw = parse(readFileSync(join(pack, rel), 'utf8')) as {
     data: Record<string, unknown>;
@@ -85,18 +97,34 @@ function recipeOf(pack: string, id: string): Recipe {
   );
 }
 
+/** The kinds the rows this test stands up name as their `class:`. */
+const ROW_KINDS: Record<string, new () => Food | SolidFood | Drink | Spirit | Residue> = {
+  '/platform/idea/material/Food': Food,
+  '/platform/idea/material/SolidFood': SolidFood,
+  '/platform/idea/material/Drink': Drink,
+  '/platform/idea/material/Spirit': Spirit,
+  '/platform/idea/material/Residue': Residue,
+};
+
 /** Stand an authored Material row up at a path, and return its tags. */
 function material(pack: string, rel: string, path: string): string[] {
   const d = row(pack, rel);
+  const Kind = ROW_KINDS[rowClass(pack, rel)];
+  if (!Kind) throw new Error(`material: no kind for ${rowClass(pack, rel)}`);
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Kind();
     m.setName(String(d.name));
     m.setTags((d.tags as string[]) ?? []);
-    m.setEdibility(d.edibility === true);
-    if (d.toxicity) m.setToxicity(d.toxicity as never);
-    m.setNutrients((d.nutrients as string[]) ?? []);
-    if (d.nutrientAmounts) {
-      m.setNutrientAmounts(d.nutrientAmounts as Record<string, number>);
+    // A row authors only what its own class composes.
+    if (MixinApi.hasEdibility(m)) {
+      m.setNutrients((d.nutrients as string[]) ?? []);
+      if (d.nutrientAmounts) {
+        m.setNutrientAmounts(d.nutrientAmounts as Record<string, number>);
+      }
+    }
+    if (d.toxicity) {
+      if (!MixinApi.hasToxicity(m)) throw new Error(`${rowClass(pack, rel)} has no toxicity`);
+      m.setToxicity(d.toxicity as never);
     }
     return m;
   }, path);

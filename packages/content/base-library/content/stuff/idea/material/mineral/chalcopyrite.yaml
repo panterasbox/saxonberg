@@ -10,7 +10,7 @@
 #
 # Brassy yellow, and it tarnishes iridescent — which is why it is
 # "fool's gold" to everyone who has not weighed it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Ore
 data:
   name: chalcopyrite
   keywords: [chalcopyrite]
@@ -23,13 +23,7 @@ data:
   # mistaken for, which is the field test.
   hardness: 200
   toughness: 15
-  edibility: false
-  nutrients: ["copper"]
-  toxicity: [{ type: copper-poisoning, amount: 0 }]
   tags: ["mineral", "sulfide", "ore", "copper", "primary", "below-water-table"]
   composition:
     - { materialPath: /stuff/idea/material/element/copper, fraction: 0.3463 }
     - { materialPath: /stuff/idea/material/element/iron, fraction: 0.3043 }
-  formula: CuFeS2
-  molarMass: 183.54
-  biologicalSource: null

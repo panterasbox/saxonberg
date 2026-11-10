@@ -2,7 +2,7 @@
 # same mechanism as wine with a different feedstock. ⭐ That is the point:
 # one microbial clock, many products, and nothing about mead is special
 # in the code.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/honey, strength: 200 }, { aroma: /base-library/aromas/alcohol, strength: 100 }]
   name: mead
@@ -11,7 +11,6 @@ data:
   density: 1010
   thermalConductivity: 0.55
   specificHeat: 4000
-  edibility: true
   tastes: [{ type: sweet, amount: 40 }, { type: sour, amount: 3 }]
   nutrients: ["water", "alcohol", "sugar"]
   nutrientAmounts:
@@ -20,5 +19,3 @@ data:
   # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
   ph: 3.7
   tags: ["liquid", "drink", "alcoholic", "mead"]
-  composition: []
-  biologicalSource: null

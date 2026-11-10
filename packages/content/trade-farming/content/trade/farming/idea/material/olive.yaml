@@ -1,5 +1,5 @@
 # Olive — produce's food material; tag `olive` is the recipe category (a garnish slot, a press's item slot, the par sheet).
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Food
 data:
   smells: [{ aroma: /base-library/aromas/olive, strength: 60 }]
   name: olive
@@ -8,7 +8,6 @@ data:
   density: 1050
   thermalConductivity: 0.5
   specificHeat: 3600
-  edibility: true
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
@@ -24,8 +23,4 @@ data:
   # No vitamin C to speak of; an olive is oil and fibre (mg per kg).
   nutrients: ["water", "fat", "fibre"]
   nutrientAmounts: {water: 750000, fat: 110000, fibre: 32000}
-  toxicity:
-    []
   tags: ["solid", "food", "produce", "olive", "fruit"]
-  composition: []
-  biologicalSource: null

@@ -112,6 +112,16 @@ const MAP_TRANSPORT_CALLERS = SecurityPolicies.FromModule(
 );
 
 /**
+ * ⚠⚠ **The stream-token transport's gate** — the token registry
+ * (`StreamLogic`) and nothing else (broadcast-ready D4). A token record
+ * names the player a broadcast or control socket acts for; whoever can
+ * write one can open anybody's feed.
+ */
+const STREAM_TOKEN_TRANSPORT_CALLERS = SecurityPolicies.FromModule(
+  "/platform/idea/api/StreamLogic#StreamLogic",
+);
+
+/**
  * ⚠⚠ **The berth transport — the ship herself, writing her own line, and
  * nothing else**. A landing's roll of the ships lying
  * at it is the landing's, but each line on it is one ship's word about
@@ -388,6 +398,26 @@ export class DocumentApi {
     localityPrefix: string,
   ): Promise<Array<{ path: string; data: Record<string, unknown> }>> {
     return logic().readMaps(ownerKey, localityPrefix);
+  }
+
+  /**
+   * ⚠⚠ Write a stream token's record at `/platform/stream-tokens/<hash>`
+   * — an ownership bypass, narrow by construction: gated to `StreamLogic`,
+   * the path pinned to a sha256 hex, the kind pinned, the fields typed.
+   * The raw token is never stored.
+   */
+  @CallSecurity(STREAM_TOKEN_TRANSPORT_CALLERS)
+  static saveStreamToken(
+    hash: string,
+    record: { playerId: string; scope: string; issuedAt: number },
+  ): Promise<void> {
+    return logic().saveStreamToken(hash, record);
+  }
+
+  /** Revoke a stream token by its hash — the same gate. */
+  @CallSecurity(STREAM_TOKEN_TRANSPORT_CALLERS)
+  static deleteStreamToken(hash: string): Promise<boolean> {
+    return logic().deleteStreamToken(hash);
   }
 
   /**

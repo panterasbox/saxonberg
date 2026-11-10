@@ -821,9 +821,12 @@ async function restoreState(
     for (const { index, slots } of slottedSlice.worn) {
       const item = restored[index];
       if (item && MixinApi.isSlottable(item)) {
+        // Re-seated, not put on: a part wounded since cannot refuse what
+        // it already held (`restoring` skips the body-state gate).
         (target as Stuff & Slotted).occupyAll(
           item as Stuff & Slottable,
           slots,
+          { restoring: true },
         );
       }
     }
@@ -871,9 +874,12 @@ async function restoreState(
     for (const { chattelId, slots } of slottedSlice.wornOwned) {
       const item = target.getEstateLive(chattelId);
       if (item && MixinApi.isSlottable(item)) {
+        // Re-seated, not put on: a part wounded since cannot refuse what
+        // it already held (`restoring` skips the body-state gate).
         (target as Stuff & Slotted).occupyAll(
           item as Stuff & Slottable,
           slots,
+          { restoring: true },
         );
       }
     }

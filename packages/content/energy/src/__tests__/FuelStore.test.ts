@@ -12,7 +12,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import FuelStore from '../thing/FuelStore';
 import Bottle from '@saxonberg/server/mud/platform/thing/Bottle';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Oil from '@saxonberg/server/mud/platform/idea/material/Oil';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -53,7 +53,7 @@ describe('the fuel store', () => {
     StuffApi.clearAll();
     installV1QuantityMarshallers();
     oil = makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Oil();
       m.setName('lamp-oil');
       m.setKeywords(['lamp-oil']);
       m.setTags(['liquid', 'lamp-oil', 'fuel', 'flammable']);

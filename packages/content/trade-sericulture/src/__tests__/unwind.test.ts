@@ -17,7 +17,7 @@ import Good from '@saxonberg/server/mud/platform/thing/Good';
 import Oven from '@saxonberg/server/mud/platform/thing/Oven';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import HideHorn from '@saxonberg/server/mud/platform/idea/material/HideHorn';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -48,7 +48,7 @@ let reeler: Reeler;
 function fixtures(): void {
   if (!StuffApi.findByTemplatePath(SHELL)) {
     makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new HideHorn();
       m.setName('spun silk');
       m.setTags(['fibre', 'protein', 'gummed']);
       return m;
@@ -67,7 +67,7 @@ function fixtures(): void {
 function stack(count: number, opts: { stifled?: boolean; pierced?: boolean } = {}): Cocoons {
   const c = makeStuff(() => new Cocoons());
   stampTemplatePathForTest(c as unknown as Stuff, '/trade/sericulture/thing/cocoons');
-  c.setMaterial(StuffApi.findByTemplatePath<Material>(SHELL)!);
+  c.setMaterial(StuffApi.findByTemplatePath<HideHorn>(SHELL)!);
   c.setMass(Quantity.of(0.1, 'kg'));
   c.seedFromTray({
     strainPath: STRAIN,

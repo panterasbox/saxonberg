@@ -14,7 +14,7 @@ import { BulkableApi } from '../../../api/bulk';
 import Good from '../../stuff/Good';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import { ThermalMixin } from '../../thermal/Thermal';
-import Material from '../../material/Material';
+import Food from '../../../platform/idea/material/Food';
 import { Freshness } from '../Freshness';
 import { Quantity } from '../../quantity';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -45,20 +45,19 @@ const setNow = (s: number): void => {
 
 const MILK = '/stuff/idea/material/_test/hold-milk';
 
-function milk(): Material {
-  const found = StuffApi.findByTemplatePath<Material>(MILK);
+function milk(): Food {
+  const found = StuffApi.findByTemplatePath<Food>(MILK);
   if (found) return found;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName('milk');
-    m.setEdibility(true);
     m.setNutrientAmounts({ fat: 34000, protein: 33000, sugar: 48000, water: 870000 });
     m.setSpecificHeat(Quantity.of(3930, 'J/(kg·K)'));
     // The shipped constants (dairy D2).
     m.setSpoilActivationEnergy(Quantity.of(60_000, 'J/mol'));
     m.setWaterActivity(0.99);
     return m;
-  }, MILK) as unknown as Material;
+  }, MILK) as unknown as Food;
 }
 
 function fill<T extends PlainPot | HeldPot>(make: () => T, tempK: number): T {

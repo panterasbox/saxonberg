@@ -4,7 +4,7 @@
 # alum gives a bright yellow, iron drops it to olive and khaki. ⭐ Blue
 # over yellow is how green was made, so this is half of every green in
 # the world before synthetics.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Herb
 data:
   smells: [{ aroma: /base-library/aromas/green, strength: 30 }]
   name: weld
@@ -17,12 +17,7 @@ data:
   specificHeat: 1400
   electricalConductivity: 1.0e-9
   waterAbsorptionCapacity: 50
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["dyestuff", "mordant-dye", "plant", "organic", "once-living"]
-  composition: []
-  chemistry: null
   # ⚠ A COMPOSITE, not a bare path: `{speciesPath, tissueType}`. Every
   # shipped material left this null, so these are the first rows to
   # populate it — and the census caught the bare-path shape the moment

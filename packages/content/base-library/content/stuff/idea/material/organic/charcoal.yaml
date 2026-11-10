@@ -12,7 +12,7 @@
 # commons): every wood's `char` transition names this row, and base-library
 # may only name base-library. A trade MAKES charcoal; what it IS belongs to
 # everyone.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFuel
 data:
   smells: [{ aroma: /base-library/aromas/char, strength: 3 }]
   burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 20 }]
@@ -41,13 +41,8 @@ data:
   # number charcoal would have burnt COLDER than wood, which is the exact
   # opposite of the reason the material exists.
   heatOfCombustion: 30
-  edibility: false
-  nutrients: []
-  toxicity: []
   # `charcoal`: the amber-glass batch's colourant (glass build W4) — a
   # specific match, so coal and other carbons do not stand in for it.
   tags: ["organic", "carbon", "fuel", "flammable", "porous", "charcoal", "once-living"]
   composition:
     - { materialPath: /stuff/idea/material/element/carbon, fraction: 0.9 }
-  chemistry: null
-  biologicalSource: null

@@ -8,7 +8,7 @@
 # and on grade it is set paving, off grade it is a slab. ⭐ Which is the
 # epoch lens working as intended — the mechanism is the same from a Roman
 # opus caementicium floor to a substation, and only the dynamics differ.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Ceramic
 data:
   name: concrete
   keywords: [concrete, cement]
@@ -27,10 +27,4 @@ data:
   # tension — under granite, well over any earth.
   hardness: 140
   toughness: 15
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["ceramic", "mineral", "solid", "brittle", "cast"]
-  composition: []
-  chemistry: null
-  biologicalSource: null

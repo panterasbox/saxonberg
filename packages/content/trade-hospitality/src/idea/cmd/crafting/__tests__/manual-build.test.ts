@@ -28,7 +28,7 @@ import { BulkableApi } from "@saxonberg/server/mud/api/bulk";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { mockPersistenceStore } from "@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures";
 import { Quantity } from "@saxonberg/server/mud/lib/quantity";
-import Material from "@saxonberg/server/mud/lib/material/Material";
+import Food from "@saxonberg/server/mud/platform/idea/material/Food";
 import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
 import { EventApi } from "@saxonberg/server/mud/api/event";
 import EventRegistry from "@saxonberg/server/mud/platform/idea/EventRegistry";
@@ -69,7 +69,7 @@ function registerMaterial(
   servingKg = 0,
 ): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName(name);
     m.setTags(tags);
     m.setKeywords(tags.slice(-1)); // primary keyword = the category tag

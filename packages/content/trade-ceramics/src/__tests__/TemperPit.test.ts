@@ -6,7 +6,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Alloy from '@saxonberg/server/mud/platform/idea/material/Alloy';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -23,21 +23,21 @@ import { TestActor } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__te
 class Yard extends Place {}
 
 let seq = 0;
-function material(name: string, tags: string[], composition: { materialPath: string; fraction: number }[] = []): Material {
+function material(name: string, tags: string[], composition: { materialPath: string; fraction: number }[] = []): Alloy {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Alloy();
     m.setName(name);
     m.setTags(tags);
     m.setDensity(Quantity.of(1000, 'kg/m³'));
     m.setComposition(composition);
     return m;
-  }, `/stuff/idea/material/_temper/${name}-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_temper/${name}-${seq}`) as unknown as Alloy;
 }
 
-let clayMat: Material;
-let sandMat: Material;
-let water: Material;
+let clayMat: Alloy;
+let sandMat: Alloy;
+let water: Alloy;
 
 beforeEach(() => {
   installV1QuantityMarshallers();
@@ -65,7 +65,7 @@ function pit(withWater: boolean): TemperPit {
   return p;
 }
 
-async function put(into: TemperPit, mat: Material, kg: number, asClay: boolean): Promise<void> {
+async function put(into: TemperPit, mat: Alloy, kg: number, asClay: boolean): Promise<void> {
   const piece = makeStuff(() => (asClay ? new Clay() : new Good()));
   piece.setMass(Quantity.of(kg, 'kg'));
   piece.setMaterial(mat);

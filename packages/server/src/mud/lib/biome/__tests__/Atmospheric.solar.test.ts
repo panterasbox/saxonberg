@@ -17,6 +17,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Material from '../../material/Material';
+import Glass from '../../../platform/idea/material/Glass';
 import Biome from '../Biome';
 import { SkyExposedMixin } from '../SkyExposed';
 import { StuffApi } from '../../../api/stuff';
@@ -46,7 +47,7 @@ class SkyBiome extends SkyExposedMixin(Biome) {}
 
 function material(path: string, k: number, rho: number, c: number, alpha?: number): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Glass();
     m.setName(path.split('/').pop()!);
     m.setThermalConductivity(Quantity.of(k, 'W/(m·K)'));
     m.setDensity(Quantity.of(rho, 'kg/m³'));

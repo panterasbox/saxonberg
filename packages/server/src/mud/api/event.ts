@@ -374,9 +374,12 @@ export class EventApi {
       [Events.ModuleRolledBack]: EventApi.emittableBy(HotReloadApi),
       [Events.ModuleUnloaded]: EventApi.emittableBy(HotReloadApi),
       [Events.ModuleReloadFailed]: EventApi.emittableBy(HotReloadApi),
-      // Open emit — the `stream` verb (StreamController) and StreamState
-      // are the v1 emitters; no tighter allowlist needed in Phase 1.
-      [Events.StreamStateChanged]: EventApi.emittableBy(),
+      // Open emit — every `BroadcastMixin` (one per played body) is an
+      // emitter; the feed routes by the payload's `playerId`, and a body
+      // can only describe its own show.
+      [Events.StreamShowChanged]: EventApi.emittableBy(),
+      // Open emit — `Avatar.enter` on a first arrival.
+      [Events.PlayerFirstArrival]: EventApi.emittableBy(),
       // Open emit — `StreamRelay.deliver` emits one per relayed line; the
       // backend BroadcastFeed filters to the OVERLAY_* channels.
       [Events.RelayMessage]: EventApi.emittableBy(),

@@ -51,6 +51,8 @@ import { CommandApi } from '../../../api/command';
 import { NON_TEMPLATE_DIRS, TemplatePaths } from '../../../lib/paths';
 import { Emote } from '../../../lib/social/Emote';
 import { Recipe } from '../../../lib/craft/Recipe';
+import { StandbyReason } from '../../../lib/livestream/StandbyReason';
+import { LowerThirdPanel } from '../../../lib/livestream/LowerThirdPanel';
 import { AppSettings } from '../../../lib/config/AppSettings';
 import { GroupApi } from '../../../api/group';
 import { ParcelApi } from '../../../api/parcel';
@@ -194,6 +196,8 @@ const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>, path: 
   'help-concept': (d) => {
     if (typeof d.title !== 'string' || d.title === '') throw new Error('a help concept needs a title');
   },
+  'standby-reason': (d, p) => void StandbyReason.fromData(p.slice(p.lastIndexOf('/') + 1), d),
+  'lower-third-panel': (d, p) => void LowerThirdPanel.fromData(p.slice(p.lastIndexOf('/') + 1), d),
   'command-view': (d) => {
     const trail = CommandApi.validateCommandView(d);
     if (trail !== null) throw new Error(`does not conform to the command schema:\n${trail}`);

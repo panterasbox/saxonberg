@@ -124,6 +124,7 @@ export class AuthRoutes {
     AuthRoutes.setupLinkRoutes(app, 'google', 'google-link');
     AuthRoutes.setupLinkRoutes(app, 'twitch', 'twitch-link');
     AuthRoutes.setupLinkRoutes(app, 'kick', 'kick-link');
+    AuthRoutes.setupYoutubeStepUp(app);
 
     // ---- Re-auth (authenticated; broaden Twitch chat scopes) --------
 
@@ -318,6 +319,57 @@ export class AuthRoutes {
             res.redirect(`${process.env.CLIENT_URL}/?link=${code}`);
           }
         );
+      }
+    );
+  }
+
+  /**
+   * ⭐ Wire the YouTube step-up (broadcast-ready D12):
+   * `GET /auth/google/youtube` and its callback. Both authenticated. Asks
+   * Google for `youtube.readonly` with an offline refresh token and a
+   * fresh consent screen, on the CURRENT user's linked Google identity
+   * (`session: false` — the session principal never changes); the
+   * callback stores the token on that `GoogleProfile`. Redirects with
+   * `?youtube=success|not-linked|no-token|failure`.
+   */
+  private static setupYoutubeStepUp(app: Express): void {
+    app.get(
+      '/auth/google/youtube',
+      AuthRoutes.requireConfigured('google', 'link'),
+      AuthMiddleware.requireAuth,
+      passport.authenticate('google-youtube', {
+        scope: ['profile', 'https://www.googleapis.com/auth/youtube.readonly'],
+        accessType: 'offline',
+        prompt: 'consent',
+        session: false,
+      } as passport.AuthenticateOptions)
+    );
+
+    app.get(
+      '/auth/google/youtube/callback',
+      AuthRoutes.requireConfigured('google', 'link'),
+      AuthMiddleware.requireAuth,
+      passport.authenticate('google-youtube', {
+        session: false,
+        failureRedirect: `${process.env.CLIENT_URL}/?youtube=failure`,
+      }),
+      (req: Request, res: Response) => {
+        const session = req.session as unknown as {
+          passport?: { user?: { id?: string } };
+        };
+        const userId = session.passport?.user?.id;
+        const grant = req.user as { googleId?: string; refreshToken?: string } | undefined;
+        if (!userId || !grant?.googleId) {
+          res.redirect(`${process.env.CLIENT_URL}/?youtube=failure`);
+          return;
+        }
+        void Backend.get()
+          .handleYoutubeStepUp(userId, grant.googleId, grant.refreshToken ?? '')
+          .then((result) => res.redirect(`${process.env.CLIENT_URL}/?youtube=${result}`))
+          .catch((err: unknown) => {
+            console.error('AuthRoutes: youtube step-up error:', err);
+            res.redirect(`${process.env.CLIENT_URL}/?youtube=failure`);
+          });
       }
     );
   }

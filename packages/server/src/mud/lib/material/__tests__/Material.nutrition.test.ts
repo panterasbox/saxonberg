@@ -10,7 +10,8 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import Material from "../Material";
+import Food from "../../../platform/idea/material/Food";
+import Stone from "../../../platform/idea/material/Stone";
 import Good from "../../stuff/Good";
 import { NutritionLabelMixin } from "../../metabolism/NutritionLabel";
 import { Stuff } from "../../stuff/Stuff";
@@ -32,13 +33,13 @@ describe("Material — nutrition shape", () => {
   afterEach(() => StuffApi.clearAll());
 
   it("toxicity round-trips as {type, amount}[]", () => {
-    const m = makeStuff(() => new Material());
+    const m = makeStuff(() => new Food());
     m.setToxicity([{ type: "alcohol", amount: 14 }]);
     expect(m.getToxicity()).toEqual([{ type: "alcohol", amount: 14 }]);
   });
 
   it("setToxicity rejects malformed entries", () => {
-    const m = makeStuff(() => new Material());
+    const m = makeStuff(() => new Food());
     expect(() =>
       m.setToxicity([{ type: "x", amount: -1 } as never]),
     ).toThrow(TypeError);
@@ -46,7 +47,7 @@ describe("Material — nutrition shape", () => {
   });
 
   it("nutrientAmounts round-trips and rejects bad values", () => {
-    const m = makeStuff(() => new Material());
+    const m = makeStuff(() => new Food());
     m.setNutrientAmounts({ carb: 20, sugar: 5 });
     expect(m.getNutrientAmounts()).toEqual({ carb: 20, sugar: 5 });
     expect(() => m.setNutrientAmounts({ carb: -3 })).toThrow(RangeError);
@@ -62,20 +63,21 @@ describe("NutritionLabelMixin — the inspectable label", () => {
     edible: boolean,
     nutrientAmounts: Record<string, number>,
     toxicity: { type: string; amount: number }[],
-  ): Material {
+  ): Food | Stone {
     return makeStuffAtPath(() => {
-      const m = new Material();
+      // Edible IS composing Edibility: a food carries the label's facts,
+      // a stone has nowhere to put them.
+      const m = edible ? new Food() : new Stone();
       m.setName(name);
       m.setKeywords([name]);
       m.setAppearance(`a ${name}`);
-      m.setEdibility(edible);
-      m.setNutrientAmounts(nutrientAmounts);
-      m.setToxicity(toxicity);
+      if (MixinApi.hasEdibility(m)) m.setNutrientAmounts(nutrientAmounts);
+      if (MixinApi.hasToxicity(m)) m.setToxicity(toxicity);
       return m;
-    }, path) as unknown as Material;
+    }, path) as unknown as Food | Stone;
   }
 
-  function labelled(label: string, mat: Material): LabelledThing {
+  function labelled(label: string, mat: Food | Stone): LabelledThing {
     return makeStuff(() => {
       const t = new LabelledThing();
       t.setShortDescription(label);

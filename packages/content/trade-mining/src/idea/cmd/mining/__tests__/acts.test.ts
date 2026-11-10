@@ -34,7 +34,7 @@ import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import MineRoom from '../../../../location/MineRoom';
 import Ore from '../../../../thing/Ore';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -96,7 +96,7 @@ function seedMaterials(): void {
   for (const [path, mpa] of [
     [SLATE, 90], [GRANITE, 200], [MALACHITE, 200], [QUARTZ, 1100],
   ] as const) {
-    const m = makeStuffAtPath(() => new Material(), path);
+    const m = makeStuffAtPath(() => new Stone(), path);
     (m as unknown as { hardness: Quantity<'MPa'> }).hardness = Quantity.of(mpa, 'MPa');
   }
 }

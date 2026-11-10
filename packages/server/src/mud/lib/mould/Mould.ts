@@ -494,6 +494,21 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return self.getParts().reduce((n, l) => n + l.count, 0) >= 2;
     }
 
+    /** A material's own cast lump — `''` when it has no fusion to cast from. */
+    private castOf(material: Material): string {
+      return MixinApi.hasFusion(material) ? material.getCastTemplate() : '';
+    }
+
+    /** The drain-set law a material carries, or `null` (no kinetics, no law). */
+    private drainSettingOf(material: Material | null | undefined) {
+      return material && MixinApi.hasKinetic(material) ? material.getDrainSetting() : null;
+    }
+
+    /** The cure a pooled material sets by, or `null`. */
+    private poolSetOf(material: Material | null | undefined) {
+      return (material && MixinApi.hasKinetic(material) ? material.getKinetics()?.poolSet() : null) ?? null;
+    }
+
     public castTemplateFor(material: Material): string {
       const self = this as unknown as Stuff;
       // ⭐ A cracked mould casts a lump — the shape is the mould's only
@@ -502,9 +517,9 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const cracked =
         MixinApi.isIntegrity(self) && self.getFlaws().some((f) => f.kind === 'crack' && !f.mended);
       if ((MixinApi.isDurable(self) && self.isBroken()) || cracked) {
-        return material.getCastTemplate();
+        return this.castOf(material);
       }
-      return this.castTemplate || material.getCastTemplate();
+      return this.castTemplate || this.castOf(material);
     }
 
     /**
@@ -525,7 +540,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const s = c as Stuff;
         if (MixinApi.isCrafted(s) && s.getCastFrom() !== null) return true;
         const m = MixinApi.isTangible(s) ? (s.getMaterial() ?? null) : null;
-        if (m !== null && m.getCastTemplate() === path) return true;
+        if (m !== null && this.castOf(m) === path) return true;
       }
       return false;
     }
@@ -568,7 +583,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         MixinApi.isBulkable(self) && self.getBulkAmount('interior').rawValue() > 0;
       if (pooled) {
         const mat = self.getBulkMaterial('interior');
-        const sets = (mat?.getDrainSetting() ?? null) !== null || (mat?.getKinetics()?.poolSet() ?? null) !== null;
+        const sets = this.drainSettingOf(mat) !== null || this.poolSetOf(mat) !== null;
         return sets && this.setProgress > 0 ? 'setting' : 'filled';
       }
       return this.holdsCast() ? 'set' : null;
@@ -606,8 +621,8 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
         const amountL = self.getBulkAmount('interior').rawValue();
         const material = self.getBulkMaterial('interior');
-        const drain = material?.getDrainSetting() ?? null;
-        const cure = material?.getKinetics()?.poolSet() ?? null;
+        const drain = this.drainSettingOf(material);
+        const cure = this.poolSetOf(material);
         if (!(amountL > 0) || material === null || (drain === null && cure === null)) {
           this.setProgress = 0;
           this.setStamp = 0;
@@ -666,8 +681,10 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         this.setPressed += ratio * step;
         this.setProgress += step;
         const waterFraction =
-          (material.getNutrientAmounts()['water'] ?? 0) / 1e6 ||
-          material.getComposition().find((e) => e.materialPath.endsWith('/water'))?.fraction ||
+          ((MixinApi.hasEdibility(material) ? material.getNutrientAmounts()['water'] : 0) ?? 0) / 1e6 ||
+          (MixinApi.hasMixture(material)
+            ? material.getComposition().find((e) => e.materialPath.endsWith('/water'))?.fraction
+            : 0) ||
           0;
         const overpress = mouldDial(AppSettingKeys.mouldOverpressExponent, 0.15);
         const lostAt = (pressed: number): number =>
@@ -759,13 +776,13 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     public receivedPour(pour: ReceivedPour): void {
       const self = this as unknown as Stuff;
-      const mp = pour.material.getMeltingPoint().rawValue();
+      const mp = MixinApi.hasFusion(pour.material) ? pour.material.getMeltingPoint().rawValue() : 0;
       // ⭐ A drain or a cure starts its clock at the POUR — not at whoever
       // happens to look first (a slip poured and left for three hours has
       // been setting for three hours).
       if (
         this.setStamp === 0 &&
-        (pour.material.getDrainSetting() !== null || pour.material.getKinetics()?.poolSet() != null)
+        (this.drainSettingOf(pour.material) !== null || this.poolSetOf(pour.material) !== null)
       ) {
         this.setStamp = mouldNowSeconds() ?? 0;
       }
@@ -775,8 +792,8 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       if (
         this.absorbent &&
         pour.material.hasTag('liquid') &&
-        pour.material.getDrainSetting() === null &&
-        (pour.material.getKinetics()?.poolSet() ?? null) === null &&
+        this.drainSettingOf(pour.material) === null &&
+        this.poolSetOf(pour.material) === null &&
         MixinApi.isBulkable(self) &&
         MixinApi.isWet(self)
       ) {
@@ -840,7 +857,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         return { ok: false, reason: 'already-impressed', facts: { held: held?.getFormDescription() ?? 'something' } };
       }
       const pooled = MixinApi.isBulkable(self) && self.getBulkAmount('interior').rawValue() > 0;
-      const curing = pooled && MixinApi.isBulkable(self) && (self.getBulkMaterial('interior')?.getKinetics()?.poolSet() ?? null) !== null;
+      const curing = pooled && MixinApi.isBulkable(self) && this.poolSetOf(self.getBulkMaterial('interior')) !== null;
       if ((pooled && !curing) || this.holdsCast()) return { ok: false, reason: 'occupied' };
       const shape = MixinApi.isTangible(pattern) ? pattern.leaveImpression(mouldNowSeconds() ?? 0) : null;
       const imp = shape !== null ? new Impression(shape) : null;
@@ -1025,12 +1042,12 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       if (metal && !blown) {
         const ownMaterial = MixinApi.isTangible(self) ? self.getMaterial() : null;
         const k = ownMaterial?.getThermalConductivity().rawValue() ?? 0;
-        const chilled = material.chilledIn(k);
+        const chilled = MixinApi.hasFusion(material) ? material.chilledIn(k) : '';
         if (chilled) material = StuffApi.findByTemplatePath<Material>(chilled) ?? material;
       }
       const fromImpression = !blown && imp !== null && this.castTemplate === '';
       const template = blown
-        ? material.getCastTemplate()
+        ? this.castOf(material)
         : fromImpression
           ? imp!.getKindPath()
           : this.castTemplateFor(material);
@@ -1039,7 +1056,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       let massKg = pool.massKg;
       let runnerKg = 0;
       let shortPour = false;
-      const shrink = material.castShrinkage();
+      const shrink = MixinApi.hasFusion(material) ? material.castShrinkage() : 0;
       if (fromImpression && imp !== null) {
         // ⭐ The cast shrinks as it cools by its metal's own shrink; a
         // pattern carved oversize for that metal casts true (D23).
@@ -1084,7 +1101,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         cast.setMaterial(material);
         // The material's own fallback shape is a generic lump with no prose
         // of its own; a mould's shape is a row that authored its prose.
-        if (template === material.getCastTemplate()) {
+        if (template === this.castOf(material)) {
           cast.setShortDescription(`cast lump of ${material.getName()}`);
           cast.setKeywords(['lump', 'cast', ...material.getName().split(/\s+/)]);
         }
@@ -1196,9 +1213,9 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     /** The metal that overfilled a cavity, broken off as a lump beside it. */
     private async mintRunner(material: Material, kg: number, scope: Stuff & Container): Promise<void> {
-      const lump = await StuffApi.clone<Stuff>(material.getCastTemplate());
+      const lump = await StuffApi.clone<Stuff>(this.castOf(material));
       if (!(MixinApi.isTangible(lump) && MixinApi.isVisible(lump) && MixinApi.isPerceptible(lump) && MixinApi.isContainable(lump))) {
-        throw new TypeError(`Mould: '${material.getCastTemplate()}' cannot hold a runner`);
+        throw new TypeError(`Mould: '${this.castOf(material)}' cannot hold a runner`);
       }
       lump.setMaterial(material);
       lump.setMass(Quantity.of(kg, 'kg'));

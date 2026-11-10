@@ -2,7 +2,7 @@
 # to vitrify. Still porous unless glazed; the body of most of a household's
 # crocks, jugs and bowls (ceramics S1). The second rung of a common clay's
 # heat history.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Ceramic
 data:
   name: earthenware
   keywords: [earthenware, pottery, clay, fired]
@@ -17,12 +17,7 @@ data:
   # ⭐ Linear expansion, 1/K (ceramics M6): a glaze that shrinks more
   # than this on cooling crazes.
   thermalExpansion: 6.0e-06
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["ceramic", "mineral", "solid", "brittle", "fired", "porous", "earthenware"]
-  composition: []
-  biologicalSource: null
   # ⭐ (ceramics W2) What it breaks into — the commons sherds row, stamped
   # with this body at the break; ground at a millstone, sherds are grog.
   brokenTemplate: /stuff/thing/sherds

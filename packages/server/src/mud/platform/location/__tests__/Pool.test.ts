@@ -21,9 +21,9 @@ import { Mixins } from '../../../lib/mixin';
 import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 import GoodClass from '../../thing/Good';
 import { BuoyMixin } from '../../../lib/location/Buoy';
-import Material from '../../idea/material/Material';
 import { Quantity } from '../../../lib/quantity';
 import { ContainmentApi } from '../../../api/containment';
+import Metal from '../../idea/material/Metal';
 
 const SOURCE = '/test/water/source';
 
@@ -76,11 +76,11 @@ describe('a Pool is the water', () => {
   it('⭐ a dense thing sinks — unless something in the same water buoys it (drive run 34)', () => {
     const room = pool();
     const iron = makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Metal();
       m.setName('pool-test-iron');
       m.setDensity(Quantity.of(7870, 'kg/m³'));
       return m;
-    }, '/stuff/idea/material/_test/pool-test-iron') as unknown as Material;
+    }, '/stuff/idea/material/_test/pool-test-iron') as unknown as Metal;
     const anchor = makeStuff(() => {
       const g = new GoodClass();
       g.setMass(Quantity.of(300, 'kg'));

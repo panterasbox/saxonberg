@@ -13,7 +13,7 @@ function row(path: string, raw: Record<string, unknown>): [string, TemplateRow] 
 }
 
 const SOUND: [string, TemplateRow][] = [
-  row('/stuff/idea/material/wood/ash', { class: '/platform/idea/material/Material', data: {} }),
+  row('/stuff/idea/material/wood/ash', { class: '/platform/idea/material/Residue', data: {} }),
   row('/x/idea/Discipline/mining', { class: '/platform/idea/Discipline', data: { key: 'mining' } }),
   row('/platform/joints/wedged', {
     data: { portability: 'hand', competence: null },

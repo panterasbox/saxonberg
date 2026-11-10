@@ -47,6 +47,7 @@ import type Material from '../material/Material';
 import type { CompositionEntry } from '../material/Material';
 import { StuffApi } from '../../api/stuff';
 import { MaterialApi } from '../../api/material';
+import { MixinApi } from '../../api/mixin';
 
 /**
  * ⭐ **Metabolism's own field on the blend payload, declared here.** A
@@ -94,10 +95,10 @@ export class BlendLabel {
     blend: Material | null,
   ): readonly string[] {
     const ingredients = BlendLabel.ingredientsOf(payload);
-    if (ingredients.length === 0) return blend?.getNutrients() ?? [];
+    if (ingredients.length === 0) return blend && MixinApi.hasEdibility(blend) ? blend.getNutrients() : [];
     const out: string[] = [];
     for (const m of ingredients) {
-      for (const tag of m.getNutrients()) if (!out.includes(tag)) out.push(tag);
+      for (const tag of MixinApi.hasEdibility(m) ? m.getNutrients() : []) if (!out.includes(tag)) out.push(tag);
     }
     return out;
   }
@@ -118,13 +119,14 @@ export class BlendLabel {
   ): Record<string, number> {
     const makeup: readonly CompositionEntry[] = payload?.makeup ?? [];
     if (makeup.length === 0) {
-      return { ...(blend?.getNutrientAmounts() ?? {}) };
+      return { ...(blend && MixinApi.hasEdibility(blend) ? blend.getNutrientAmounts() : {}) };
     }
     const out: Record<string, number> = {};
     for (const part of makeup) {
       const m = StuffApi.findByTemplatePath<Material>(part.materialPath);
       if (!m) continue;
       const servings = MaterialApi.servingsOf(m, part.fraction * hostKg);
+      if (!MixinApi.hasEdibility(m)) continue;
       for (const [tag, mg] of Object.entries(m.getNutrientAmounts())) {
         out[tag] = (out[tag] ?? 0) + mg * servings;
       }
@@ -169,8 +171,8 @@ export class BlendLabel {
     blend: Material | null,
   ): boolean {
     const ingredients = BlendLabel.ingredientsOf(payload);
-    if (ingredients.length === 0) return blend?.getEdibility() ?? false;
-    return ingredients.some((m) => m.getEdibility() === true);
+    if (ingredients.length === 0) return blend !== null && MixinApi.hasEdibility(blend);
+    return ingredients.some((m) => MixinApi.hasEdibility(m));
   }
 
   /**
@@ -203,12 +205,13 @@ export class BlendLabel {
       else out.set(tox.type, { ...tox, amount: tox.amount * servings });
     };
     if (makeup.length === 0) {
-      for (const tox of blend?.getToxicity() ?? []) add(tox, 1);
+      for (const tox of blend && MixinApi.hasToxicity(blend) ? blend.getToxicity() : []) add(tox, 1);
     } else {
       for (const part of makeup) {
         const m = StuffApi.findByTemplatePath<Material>(part.materialPath);
         if (!m) continue;
         const servings = MaterialApi.servingsOf(m, part.fraction * hostKg);
+        if (!MixinApi.hasToxicity(m)) continue;
         for (const tox of m.getToxicity()) {
           if (tox.labileAtK !== undefined && tox.labileAtK <= heatK) continue;
           add(tox, servings);

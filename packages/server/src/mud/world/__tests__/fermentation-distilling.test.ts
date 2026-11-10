@@ -21,6 +21,8 @@ import { parse } from 'yaml';
 import Vat from '../../platform/thing/Vat';
 import MaturationProfile from '../../platform/idea/maturation/MaturationProfile';
 import Material from '../../lib/material/Material';
+import Spirit from '../../platform/idea/material/Spirit';
+import Food from '../../platform/idea/material/Food';
 import { Recipe } from '../../lib/craft/Recipe';
 import { CombustibleMixin } from '../../lib/fire/Combustible';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
@@ -100,7 +102,7 @@ describe('the wash (real rows)', () => {
       'content/trade/distilling/idea/material/distillers-wort.yaml',
     );
     const wort = makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Food();
       m.setName(wortData.name as string);
       m.setTags(wortData.tags as string[]);
       m.setNutrients(wortData.nutrients as string[]);
@@ -289,7 +291,7 @@ describe('the spirit burns (P10)', () => {
       'content/trade/distilling/idea/material/neutral-spirit.yaml',
     );
     const material = makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Spirit();
       m.setName('neutral spirit');
       m.setTags(spiritData.tags as string[]);
       m.setAutoignitionTemperature(

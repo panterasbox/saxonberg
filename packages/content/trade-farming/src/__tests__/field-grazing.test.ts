@@ -20,6 +20,7 @@ import Feeder from '@saxonberg/server/mud/platform/thing/Feeder';
 import Provision from '@saxonberg/server/mud/platform/thing/Provision';
 import Vessel from '@saxonberg/server/mud/platform/thing/Vessel';
 import Material from '@saxonberg/server/mud/lib/material/Material';
+import EdibleHerb from '@saxonberg/server/mud/platform/idea/material/EdibleHerb';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -33,9 +34,8 @@ let seq = 0;
 function hayMaterial(): Material {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new EdibleHerb();
     m.setName('hay');
-    m.setEdibility(true);
     return m;
   }, `/stuff/idea/material/_test/hay-${seq}`) as unknown as Material;
 }

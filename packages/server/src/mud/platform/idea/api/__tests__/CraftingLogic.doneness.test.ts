@@ -30,7 +30,7 @@ import { ExecutionContextApi } from '../../../../api/execution-context';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
-import Material from '../../../../lib/material/Material';
+import Food from '../../material/Food';
 import Provision from '../../../thing/Provision';
 import CraftVessel from '../../../thing/CraftVessel';
 import RecipeCatalogue from '../../RecipeCatalogue';
@@ -87,10 +87,9 @@ let cook: TestCook;
 
 function registerMaterial(path: string, name: string, tags: string[]): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName(name);
     m.setTags(tags);
-    m.setEdibility(true);
     // Perishable — a real spoilage activation energy, so the load moves.
     m.setSpoilActivationEnergy(Quantity.of(60000, 'J/mol'));
     m.setWaterActivity(0.97);
@@ -200,7 +199,7 @@ function spoiledCut(): Provision {
   const cut = makeStuff(() => new Provision());
   cut.setMass(Quantity.of(0.4, 'kg'));
   cut.setMaterial(
-    StuffApi.findByTemplatePath<Material>(MEAT_MAT)! as unknown as Material,
+    StuffApi.findByTemplatePath<Food>(MEAT_MAT)! as unknown as Food,
   );
   cut.setMicrobialLoad(0.5);
   ContainmentApi.move(cut, room);

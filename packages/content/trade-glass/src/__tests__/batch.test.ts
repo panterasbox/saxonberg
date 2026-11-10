@@ -17,7 +17,10 @@ import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { parse } from "yaml";
-import Material from "@saxonberg/server/mud/platform/idea/material/Material";
+import Glass from "@saxonberg/server/mud/platform/idea/material/Glass";
+import SolidFuel from "@saxonberg/server/mud/platform/idea/material/SolidFuel";
+import Stone from "@saxonberg/server/mud/platform/idea/material/Stone";
+import Material from "@saxonberg/server/mud/lib/material/Material";
 import CompoundingVessel from "@saxonberg/server/mud/platform/thing/CompoundingVessel";
 import Oven from "@saxonberg/server/mud/platform/thing/Oven";
 import Good from "@saxonberg/server/mud/lib/stuff/Good";
@@ -51,10 +54,14 @@ const IRON = "/stuff/idea/material/element/iron";
 const CARBON = "/stuff/idea/material/element/carbon";
 
 let seq = 0;
-function mat(name: string, setup: (m: Material) => void = () => undefined): Material {
+function mat<K extends Material = Material>(
+  name: string,
+  setup: (m: K) => void = () => undefined,
+  make: () => K = () => new Material() as K,
+): Material {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = make();
     m.setName(name);
     m.setSpecificHeat(Quantity.of(840, "J/(kg·K)"));
     m.setThermalConductivity(Quantity.of(1, "W/(m·K)"));
@@ -113,25 +120,36 @@ describe("mix, then fire", () => {
     WorldClockApi._resetForTesting();
     real = 1_000_000;
     WorldClockApi._setNowProviderForTesting(() => real);
-    glass = mat("glass", (m) => {
-      m.setTags(["glass"]);
-      m.setMeltingPoint(Quantity.of(1300, "K"));
-    });
-    batchM = mat("glass batch", (m) =>
-      m.setKinetics([
-        {
-          key: "melt",
-          rate: { referenceK: 1400, zK: 60, fullDoseS: 3600 },
-          massRetained: 0.72,
-          discipline: "glasswork",
-          ladder: [{ atDegree: 1, becomes: glass.getTemplatePath()! }],
-        },
-      ]),
+    glass = mat<Glass>(
+      "glass",
+      (m) => {
+        m.setTags(["glass"]);
+        m.setMeltingPoint(Quantity.of(1300, "K"));
+      },
+      () => new Glass(),
+    );
+    batchM = mat<Stone>(
+      "glass batch",
+      (m) =>
+        m.setKinetics([
+          {
+            key: "melt",
+            rate: { referenceK: 1400, zK: 60, fullDoseS: 3600 },
+            massRetained: 0.72,
+            discipline: "glasswork",
+            ladder: [{ atDegree: 1, becomes: glass.getTemplatePath()! }],
+          },
+        ]),
+      () => new Stone(),
     );
     sandM = mat("sand");
     ashM = mat("ash");
     limeM = mat("quicklime");
-    charcoalM = mat("charcoal", (m) => m.setComposition([{ materialPath: CARBON, fraction: 0.9 }]));
+    charcoalM = mat<SolidFuel>(
+      "charcoal",
+      (m) => m.setComposition([{ materialPath: CARBON, fraction: 0.9 }]),
+      () => new SolidFuel(),
+    );
     vi.spyOn(StuffApi, "clone").mockImplementation((async () => makeStuff(() => new Melt())) as never);
   });
   afterEach(() => {

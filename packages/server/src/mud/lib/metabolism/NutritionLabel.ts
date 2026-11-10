@@ -131,13 +131,13 @@ function labelFaceOf(host: Stuff): LabelFace | null {
     const makeup = host.getMakeup();
     if (makeup.length > 0) {
       return {
-        edible: own.getEdibility() === true,
+        edible: MixinApi.hasEdibility(own),
         nutrientAmounts: BlendLabel.amountsOf(
           { makeup: [...makeup] },
           own,
           host.getMass().rawValue(),
         ),
-        toxicity: own.getToxicity(),
+        toxicity: MixinApi.hasToxicity(own) ? own.getToxicity() : [],
       };
     }
   }
@@ -146,9 +146,11 @@ function labelFaceOf(host: Stuff): LabelFace | null {
 
 function faceOfMaterial(material: Material): LabelFace {
   return {
-    edible: material.getEdibility() === true,
-    nutrientAmounts: material.getNutrientAmounts(),
-    toxicity: material.getToxicity(),
+    edible: MixinApi.hasEdibility(material),
+    nutrientAmounts: MixinApi.hasEdibility(material)
+      ? material.getNutrientAmounts()
+      : {},
+    toxicity: MixinApi.hasToxicity(material) ? material.getToxicity() : [],
   };
 }
 

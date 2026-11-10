@@ -318,8 +318,11 @@ connections, so you merge freely and *click* deploy):
   env from SSM, `scp`s it to `/srv/saxonberg/.env`, fast-forwards the box
   to the pipeline's commit, ships the bundle to
   `packages/client/dist.incoming`, and runs `deploy/dev/update.sh`
-  (fast-forward → `pnpm install` → build types → swap the bundle in →
-  `systemctl restart saxonberg`). No image.
+  (fast-forward → stamp `SAXONBERG_BUILD_SHA`/`SAXONBERG_BUILD_AT` into
+  `.env` → `pnpm install` → build types → swap the bundle in →
+  `systemctl restart saxonberg`). No image. The stamp is what the stream
+  overlay's Saxonberg card reads as the build's date and age; unset, the
+  card hides the line.
   ⛔ **The box never builds the client.** It has ~2 GiB and the game runs
   beside the build; on 2026-11-01 an on-box `vite build` thrashed swap
   for two hours and wedged the instance until a reboot ~22 hours later.

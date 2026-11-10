@@ -10,7 +10,7 @@ import SizeReading from '../idea/reading/SizeReading';
 import { driveMeasure, instrumentWith } from '@saxonberg/server/mud/platform/idea/reading/__tests__/drive';
 import { applyRowFrom } from '@saxonberg/server/mud/platform/idea/reading/__tests__/row';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Metal from '@saxonberg/server/mud/platform/idea/material/Metal';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -35,11 +35,11 @@ let said: string[];
 
 async function measureBrick(kg: number, gauger = false): Promise<string> {
   const earthenware = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Metal();
     m.setName('earthenware');
     m.setDensity(Quantity.of(2000, 'kg/m³'));
     return m;
-  }, `/stuff/idea/material/_size/earthenware-${(seq += 1)}`) as unknown as Material;
+  }, `/stuff/idea/material/_size/earthenware-${(seq += 1)}`) as unknown as Metal;
   const yard = makeStuff(() => new Yard());
   const who = makeStuff(() => new Person());
   ContainmentApi.move(who, yard);

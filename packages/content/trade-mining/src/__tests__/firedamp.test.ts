@@ -37,7 +37,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import FuelGas from '@saxonberg/server/mud/platform/idea/material/FuelGas';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -81,13 +81,13 @@ function ferrow(): Deposit {
 }
 
 /** The firedamp material, as the pack ships it. */
-function firedamp(): Material {
+function firedamp(): FuelGas {
   const data = (row(
     join(PACKS, 'trade-mining'),
     'content/stuff/idea/material/gas/firedamp.yaml',
   ).data ?? {}) as Record<string, unknown>;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new FuelGas();
     m.setName(String(data.name));
     m.setDensity(Quantity.of(Number(data.density), 'kg/m³'));
     m.setBoilingPoint(Quantity.of(Number(data.boilingPoint), 'K'));
@@ -95,7 +95,7 @@ function firedamp(): Material {
       Quantity.of(Number(data.heatOfCombustion), 'MJ/kg'),
     );
     return m;
-  }, FIREDAMP) as unknown as Material;
+  }, FIREDAMP) as unknown as FuelGas;
 }
 
 const SEED = Deposit.seedFor('terminus/rejection');
@@ -110,7 +110,7 @@ beforeEach(() => {
     ['/stuff/idea/material/mineral/malachite', 200],
     ['/stuff/idea/material/mineral/goethite', 450],
   ] as const) {
-    const m = makeStuffAtPath(() => new Material(), path);
+    const m = makeStuffAtPath(() => new FuelGas(), path);
     (m as unknown as { hardness: Quantity<'MPa'> }).hardness = Quantity.of(
       mpa,
       'MPa',

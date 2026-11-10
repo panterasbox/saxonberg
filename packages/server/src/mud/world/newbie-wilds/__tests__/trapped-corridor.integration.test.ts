@@ -48,7 +48,7 @@ import { WearableMixin } from '../../../lib/slot/Wearable';
 import { SlottableMixin } from '../../../lib/slot/Slottable';
 import { ConstructedMixin } from '../../../lib/material/Constructed';
 import { Construction } from '../../../lib/material/Construction';
-import Material from '../../../lib/material/Material';
+import Metal from '../../../platform/idea/material/Metal';
 import { Quantity } from '../../../lib/quantity';
 import { Postures } from '../../../lib/slot/Postured';
 import { Stuff } from '../../../lib/stuff/Stuff';
@@ -234,8 +234,8 @@ async function warm(c: Delver, band: string): Promise<void> {
   await PerceptionApi.preloadForSenseGate(c);
 }
 
-function steel(): Material {
-  const m = makeStuff(() => new Material());
+function steel(): Metal {
+  const m = makeStuff(() => new Metal());
   m.setName('steel');
   m.setHardness(Quantity.of(600, 'MPa'));
   m.setToughness(Quantity.of(200, 'MJ/m³'));

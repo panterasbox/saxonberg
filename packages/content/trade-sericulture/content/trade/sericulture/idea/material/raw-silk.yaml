@@ -3,7 +3,7 @@
 # boiled off in the piece (the degumming profile, inputCategory `gummed`)
 # it loses about a quarter of its weight and becomes silk — soft, white
 # and lustrous. Under-boiled, the gum stops a dye from taking.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/HideHorn
 data:
   smells: [{ aroma: /base-library/aromas/silk-reeling, strength: 30 }]
   name: raw silk
@@ -16,11 +16,7 @@ data:
   toughness: 6
   electricalConductivity: 1.0e-12
   waterAbsorptionCapacity: 11
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["textile", "fibre", "protein", "sericin", "gummed", "organic", "once-living"]
-  composition: []
   biologicalSource:
     speciesPath: /stuff/idea/species/animalia/arthropoda/insecta/lepidoptera/bombycidae/bombyx/mori
     tissueType: cocoon

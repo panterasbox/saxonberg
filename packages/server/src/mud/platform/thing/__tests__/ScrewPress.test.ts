@@ -12,6 +12,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../../lib/stuff/Good';
 import Material from '../../../lib/material/Material';
+import SolidFood from '../../idea/material/SolidFood';
 import ScrewPress from '../ScrewPress';
 import { MouldMixin } from '../../../lib/mould/Mould';
 import { DurableMixin } from '../../../lib/material/Durable';
@@ -58,11 +59,11 @@ const setNow = (s: number): void => {
   now = 1_000_000 + s;
 };
 
-function material(path: string, setup: (m: Material) => void): Material {
+function material(path: string, setup: (m: SolidFood) => void): Material {
   const found = StuffApi.findByTemplatePath<Material>(path);
   if (found) return found;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new SolidFood();
     m.setName(path.split('/').pop()!);
     m.setDensity(Quantity.of(1000, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));

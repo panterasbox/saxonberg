@@ -8,7 +8,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CraftVessel from '../CraftVessel';
-import Material from '../../../lib/material/Material';
+import Food from '../../idea/material/Food';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { BulkableApi } from '../../../api/bulk';
@@ -28,19 +28,18 @@ const setNow = (s: number): void => {
 };
 const MILK = '/stuff/idea/material/_test/vessel-milk';
 
-function milk(): Material {
-  const found = StuffApi.findByTemplatePath<Material>(MILK);
+function milk(): Food {
+  const found = StuffApi.findByTemplatePath<Food>(MILK);
   if (found) return found;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName('milk');
     m.setAppearance('white');
-    m.setEdibility(true);
     m.setSpecificHeat(Quantity.of(3930, 'J/(kg·K)'));
     m.setSpoilActivationEnergy(Quantity.of(60_000, 'J/mol'));
     m.setWaterActivity(0.99);
     return m;
-  }, MILK) as unknown as Material;
+  }, MILK) as unknown as Food;
 }
 
 function jug(tempK: number): CraftVessel {

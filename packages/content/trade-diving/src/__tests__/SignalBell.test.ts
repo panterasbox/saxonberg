@@ -7,7 +7,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import SignalBell from '../thing/SignalBell';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Metal from '@saxonberg/server/mud/platform/idea/material/Metal';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -19,12 +19,12 @@ let seq = 0;
 function bellOf(tags: string[]): SignalBell {
   seq += 1;
   const mat = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Metal();
     m.setName('bronze');
     m.setTags(tags);
     m.setDensity(Quantity.of(8800, 'kg/m³'));
     return m;
-  }, `/stuff/idea/material/_signal/bronze-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_signal/bronze-${seq}`) as unknown as Metal;
   return makeStuff(() => {
     const b = new SignalBell();
     b.setMass(Quantity.of(0.3, 'kg'));

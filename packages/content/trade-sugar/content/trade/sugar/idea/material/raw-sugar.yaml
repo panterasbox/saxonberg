@@ -1,7 +1,7 @@
 # Raw sugar — what comes off the island in a hogshead: brown, damp with
 # its own molasses, and the feedstock of every refinery. It is a SOLID;
 # dissolved in water in the copper it becomes raw liquor.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/SolidFood
 data:
   smells: [{ aroma: /base-library/aromas/molasses, strength: 30 }]
   name: raw sugar
@@ -11,16 +11,10 @@ data:
   specificHeat: 1250
   thermalConductivity: 0.2
   electricalConductivity: 0
-  waterAbsorptionCapacity: 0
   hardness: 1
-  toughness: 0
-  edibility: true
   tastes: [{ type: sweet, amount: 950 }, { type: bitter, amount: 0.005 }]
   spoilActivationEnergy: 80000
   waterActivity: 0.6
   nutrients: ["sugar", "water"]
   nutrientAmounts: { sugar: 960000, water: 30000 }
-  toxicity: []
   tags: ["solid", "food", "raw-sugar", "sweetener"]
-  composition: []
-  biologicalSource: null

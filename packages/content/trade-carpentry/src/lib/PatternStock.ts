@@ -89,7 +89,7 @@ export function PatternStockMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       if (metal === null) {
         return { ok: false, reason: 'no-metal', facts: { of } };
       }
-      const allowance = metal.castShrinkage();
+      const allowance = MixinApi.hasFusion(metal) ? metal.castShrinkage() : 0;
       const grow = Math.pow(1 + allowance, 3);
       const wood = MixinApi.isTangible(self) ? self.getMaterial() : null;
       const woodDensity = wood?.getDensity().rawValue() ?? 0;

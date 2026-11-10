@@ -13,7 +13,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import EdibleSalt from '@saxonberg/server/mud/platform/idea/material/EdibleSalt';
 import MaturationProfile from '@saxonberg/server/mud/platform/idea/maturation/MaturationProfile';
 import Location from '@saxonberg/server/mud/lib/location/Location';
 import Provision from '@saxonberg/server/mud/platform/thing/Provision';
@@ -49,20 +49,20 @@ let cloned: string[] = [];
 
 function stand(): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new EdibleSalt();
     m.setName('salt');
     m.setDensity(Quantity.of(2160, 'kg/m³'));
     return m;
   }, SALT);
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new EdibleSalt();
     m.setName('bittern');
     m.setTags(['liquid', 'bittern']);
     m.setDensity(Quantity.of(1250, 'kg/m³'));
     return m;
   }, BITTERN);
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new EdibleSalt();
     m.setName('brine');
     m.setTags(['liquid', 'saltpan-brine']);
     m.setDensity(Quantity.of(1025, 'kg/m³'));
@@ -155,7 +155,7 @@ describe('⭐⭐ the salt pan on its tub', () => {
 
   it('⭐ sea water in dry air: salt crystals set IN the pan, and the bittern runs into the tub beneath', async () => {
     const { pan, tub } = saltern();
-    const brine = StuffApi.findByTemplatePath<Material>(BRINE)!;
+    const brine = StuffApi.findByTemplatePath<EdibleSalt>(BRINE)!;
     pan.setBulkMaterial('interior', brine);
     pan.setBulkAmount('interior', Quantity.of(20, 'L'));
     pan.setBulkPayload('interior', { dissolvedSolidsKgPerL: 0.28 });

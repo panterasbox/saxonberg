@@ -20,6 +20,7 @@ import Forge from '../../../../thing/Forge';
 import Lamp from '../../../../thing/Lamp';
 import Good from '../../../../../lib/stuff/Good';
 import Material from '../../../../../lib/material/Material';
+import Wood from '../../../material/Wood';
 import Place from '../../../../../lib/stuff/Place';
 import { ThermalMixin } from '../../../../../lib/thermal/Thermal';
 import { WetMixin } from '../../../../../lib/wetness/Wet';
@@ -68,7 +69,7 @@ function material(opts: {
 }): Material {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Wood();
     m.setName(opts.name);
     m.setDensity(Quantity.of(700, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(2000, 'J/(kg·K)'));

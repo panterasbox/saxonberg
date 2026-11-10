@@ -14,6 +14,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../platform/thing/Vat';
 import MaturationProfile from '../../platform/idea/maturation/MaturationProfile';
 import Material from '../../lib/material/Material';
+import Food from '../../platform/idea/material/Food';
 import { WorldClockApi } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
 import {
@@ -40,7 +41,7 @@ describe('cider from rows alone (the second-drink test)', () => {
   it('an authored fruit must + profile + product ferments, turns, and grades — zero kernel edits', () => {
     // ── the rows an author would ship (data only) ──
     const must = makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Food();
       m.setName('apple must');
       m.setTags(['liquid', 'must', 'apple-must']);
       m.setNutrients(['water', 'sugar']);

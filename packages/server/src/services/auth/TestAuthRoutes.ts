@@ -63,6 +63,7 @@ export class TestAuthRoutes {
             parcels?: unknown;
             committees?: unknown;
             offices?: unknown;
+            streamer?: unknown;
           }
         | undefined;
       const handle = String(body?.handle ?? 'default');
@@ -144,7 +145,10 @@ export class TestAuthRoutes {
         wizard,
         (parcels as string[] | undefined) ?? [],
         (committees as string[] | undefined) ?? [],
-        (offices as string[] | undefined) ?? []
+        (offices as string[] | undefined) ?? [],
+        // ⭐ The streamer axis (broadcast-ready drive): membership of the
+        // `streamers` group, the same write `group add` makes.
+        body?.streamer === true
       );
     });
 

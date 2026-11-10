@@ -112,10 +112,11 @@ chokepoint (external speakers have no `Stuff` actor, so not `.scene`) on the
 `world.<service>.message` topic — subscription-gated, not implant-gated.
 
 `deliver` also emits `Events.RelayMessage` per line (the overlay-forwarding
-seam — see below). The **overlay sentinel** (`overlay:broadcast`) is
+seam — see below). An **overlay sentinel** (`overlay:<playerId>`, one per
+streamer whose overlay is open — `relay.overlaySentinelFor(pid)`) is
 `addTuned`-able to a channel so a reader opens with no real player tuned; it
 counts toward the presence edge but is guarded out of `whoTuned` /
-`tunedChannelsFor`.
+`tunedChannelsFor` (`relay.isOverlaySentinel`).
 
 ## The transports (per-platform, behind the unified Api)
 
@@ -262,21 +263,48 @@ Twitch-purple / YouTube-red / Kick-green glyph) renders
 message text is escaped plain text, never MML (untrusted external
 input).
 
-## Overlay chat forwarding (the owner's own chat)
+## Overlay chat forwarding (each streamer's own chat)
 
-The single overlay owner's OWN external channels are env config
-(`OVERLAY_TWITCH_LOGIN` / `OVERLAY_YOUTUBE_CHANNEL` /
-`OVERLAY_KICK_CHANNEL`, beside `BROADCAST_TOKEN` /
-`STREAMER_PLAYER_IDS`). While ≥1 `service:broadcast` overlay is connected,
-`BroadcastFeed` drives `StreamApi.setOverlayReading(true/false)` on the
-0→1 / 1→0 presence edge, which **sentinel-tunes** the owner's channels
-through the readers (reusing the presence edge). The relay emits
-`Events.RelayMessage` per delivered line; `BroadcastFeed` filters to the
-`OVERLAY_*` channels (by the configured handle — a viewer tuning a different
-channel never matches) and pushes a **`RelayChatEnvelope`** to the broadcast
-socket. The relay stays mud-pure (event bus only, no backend import); the
-overlay *render* is Rodney (`packages/rodney`). One token / one
-feed / one owner is preserved. Full seam in [livestream.md](./livestream.md).
+⭐ **Per streamer** (broadcast-ready D5/D15). A streamer's channels are the
+handles on their body (`stream channel twitch <login>` etc.); for the
+founder — the first id in `STREAMER_PLAYER_IDS` — the `OVERLAY_TWITCH_LOGIN`
+/ `OVERLAY_YOUTUBE_CHANNEL` / `OVERLAY_KICK_CHANNEL` env seeds them while the
+body names none. `BroadcastFeed` drives `StreamApi.setOverlayReading(playerId,
+on)` on THAT streamer's 0→1 / 1→0 overlay-socket edge (and
+`refreshOverlayReading` when their channels change or their body logs in),
+which **sentinel-tunes** their channels under `overlay:<playerId>`. The relay
+emits `Events.RelayMessage` per delivered line; the feed pushes a
+**`RelayChatEnvelope`** only to the overlays of the streamer whose channel it
+is (by handle — a viewer tuning a different channel never matches). The relay
+stays mud-pure (event bus only); the render is Rodney. Full seam in
+[livestream.md](./livestream.md).
+
+### ⭐ YouTube under the streamer's own login (D12)
+
+`search.list?eventType=live` costs ~100 quota units, most of a day's quota
+for one channel. A streamer who opens **`/auth/google/youtube`** (the
+*Link YouTube* button in settings) grants `youtube.readonly` with an offline
+refresh token on the Google identity they already linked — a **scope
+step-up, not a fourth provider** (connection.md's co-equal rule). The token
+is stored encrypted on that `GoogleProfile` (`youtubeRefreshToken`, the
+`TwitchProfile` precedent) with `youtubeChannelId` (`channels.list?mine=true`).
+The overlay then finds their live chat with
+`liveBroadcasts.list?broadcastStatus=active` — **one unit, no search** —
+refreshed against the Google login app's client; the named channel's
+`search.list` remains the fallback for a streamer who has not stepped up.
+⚠ The Google OAuth client needs the YouTube Data API enabled and the consent
+screen listing `youtube.readonly`; an unverified app is limited to its test
+users (the founder is one).
+
+### The streamer's own numbers (D16)
+
+While a streamer is on air, `StreamApi.watchNumbers` polls every
+`stream.statsPollMs` (60 s): Twitch Helix `/streams?user_login=` (viewer
+count, start) through the reader token, and — linked — YouTube
+`videos.list?part=liveStreamingDetails` (concurrent viewers). With the chat
+rate (relay lines per minute over five minutes) and who is online, they go
+to the streamer's controls card only (`stream.state`), never to the feed.
+The poll stops itself off air.
 
 ## Presence-gating, invariants
 

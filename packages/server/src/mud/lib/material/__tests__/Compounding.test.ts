@@ -22,6 +22,10 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import Polymer from '../../../platform/idea/material/Polymer';
+import NonMetal from '../../../platform/idea/material/NonMetal';
+import Water from '../../../platform/idea/material/Water';
+import Clay from '../../../platform/idea/material/Clay';
 
 let seq = 0;
 let RAW = '';
@@ -31,12 +35,11 @@ let WATER = '';
 let SLIP = '';
 const STOCK_ROW = '/stuff/thing/_mixing/stock';
 
-function material(path: string, density = 1000, composition: { materialPath: string; fraction: number }[] = []): Material {
+function material(path: string, make: () => Material, density = 1000): Material {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = make();
     m.setName(path.split('/').pop()!);
     m.setDensity(Quantity.of(density, 'kg/m³'));
-    m.setComposition(composition);
     return m;
   }, path) as unknown as Material;
 }
@@ -67,11 +70,11 @@ beforeEach(() => {
   COMPOUND = `/stuff/idea/material/_mixing/compound-${seq}`;
   WATER = `/stuff/idea/material/_mixing/water-${seq}`;
   SLIP = `/stuff/idea/material/_mixing/slip-${seq}`;
-  material(RAW, 920);
-  material(SULFUR, 2070);
-  material(COMPOUND, 960);
-  material(WATER, 1000);
-  material(SLIP, 1500);
+  material(RAW, () => new Polymer(), 920);
+  material(SULFUR, () => new NonMetal(), 2070);
+  material(COMPOUND, () => new Polymer(), 960);
+  material(WATER, () => new Water(), 1000);
+  material(SLIP, () => new Clay(), 1500);
   const realClone = StuffApi.clone;
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string, ...rest: unknown[]) => {
     if (path === STOCK_ROW) {
@@ -179,7 +182,7 @@ describe('⭐ the work is the matter\'s, never the word (B101)', () => {
   it('⭐ clay added to a SLIP is stirred into it — the water in the slip slakes it', async () => {
     (StuffApi.findByTemplatePath<Material>(RAW) as unknown as Material).setTags(['plastic']);
     (StuffApi.findByTemplatePath<Material>(WATER) as unknown as Material).setTags(['liquid', 'water']);
-    const slip = StuffApi.findByTemplatePath<Material>(SLIP) as unknown as Material;
+    const slip = StuffApi.findByTemplatePath<Clay>(SLIP) as unknown as Clay;
     slip.setTags(['liquid', 'slip']);
     slip.setComposition([
       { materialPath: RAW, fraction: 0.55 },

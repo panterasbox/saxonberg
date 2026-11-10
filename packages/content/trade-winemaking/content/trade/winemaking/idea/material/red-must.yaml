@@ -1,7 +1,7 @@
 # Red must — crushed grapes, skins and all (the crush recipe's output).
 # `red-must` is the ferment-profile category; sugar is the mass balance
 # (g/L — what the hydrometer sees and the ferment converts, D4).
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/grape, strength: 300 }]
   tastes: [{ type: sweet, amount: 200 }, { type: sour, amount: 6 }]
@@ -11,12 +11,9 @@ data:
   density: 1090
   thermalConductivity: 0.5
   specificHeat: 3700
-  edibility: true
   nutrients: ["water", "sugar"]
   nutrientAmounts:
     sugar: 220
   # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
   ph: 3.5
   tags: ["liquid", "must", "red-must"]
-  composition: []
-  biologicalSource: null

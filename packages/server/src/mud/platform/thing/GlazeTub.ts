@@ -61,7 +61,7 @@ export default class GlazeTub extends DipBathMixin(CompoundingVessel) {
     const target = req.target;
     if (target === null || !MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return null;
     const material = self.getBulkMaterial('interior');
-    if (material === null || !material.getLaysCoat() || !(self.getBulkAmount('interior').rawValue() > 0)) {
+    if (material === null || !MixinApi.hasCoating(material) || !material.getLaysCoat() || !(self.getBulkAmount('interior').rawValue() > 0)) {
       return null;
     }
     if (!MixinApi.isFaced(target)) return { ok: false, reason: 'not-faced', facts: { target } };
@@ -78,7 +78,7 @@ export default class GlazeTub extends DipBathMixin(CompoundingVessel) {
     // (paint D8/B14) — a rag dipped in oil paint is oily.
     const makeup = self.getBulk('interior').getPayload()?.paint;
     const path = makeup?.binder || (material.getTemplatePath() ?? '');
-    const setsByHeat = material.getKinetics()?.setsByHeat() ?? false;
+    const setsByHeat = (MixinApi.hasKinetic(material) ? material.getKinetics()?.setsByHeat() : false) ?? false;
     return {
       ok: true,
       durationMs: DIP_MS,

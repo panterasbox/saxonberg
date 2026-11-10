@@ -90,6 +90,16 @@ const TAGS = {
     Witness: 'audience:witness',
     Bystander: 'audience:bystander',
   },
+  /**
+   * ⭐ **The server's word that a frame is private** (broadcast-ready D8)
+   * — a tell, a DM, a reply, a hail, a post on a player-made channel.
+   * A streamer's client redacts exactly these while on air; it never
+   * guesses from a topic. Stored verbatim by the record layer, so a
+   * backfilled line redacts too.
+   */
+  Privacy: {
+    Private: 'privacy:private',
+  },
 } as const;
 
 /**

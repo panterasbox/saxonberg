@@ -1,5 +1,5 @@
 # Lemon — produce's food material; tag `lemon` is the recipe category (a garnish slot, a press's item slot, the par sheet).
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Food
 data:
   smells: [{ aroma: /base-library/aromas/lemon, strength: 100 }]
   name: lemon
@@ -8,7 +8,6 @@ data:
   density: 930
   thermalConductivity: 0.5
   specificHeat: 3600
-  edibility: true
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
@@ -22,8 +21,4 @@ data:
   # mg per kg — real figures; the `vitamin-c` tag fills the body's store.
   nutrients: ["water", "sugar", "vitamin-c"]
   nutrientAmounts: {water: 890000, sugar: 25000, vitamin-c: 530}
-  toxicity:
-    []
   tags: ["solid", "food", "produce", "lemon", "fruit", "citrus"]
-  composition: []
-  biologicalSource: null

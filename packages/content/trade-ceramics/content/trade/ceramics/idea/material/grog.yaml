@@ -2,7 +2,7 @@
 # clay it opens the body: it dries without cracking and stands a sudden
 # heat, which is why a cooking pot is grogged. The wasters of the last
 # firing are the temper of the next.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Ceramic
 data:
   name: grog
   keywords: [grog, grit, chamotte]
@@ -14,9 +14,4 @@ data:
   waterAbsorptionCapacity: 10
   hardness: 50
   toughness: 1
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["ceramic", "grog", "mineral", "granular"]
-  composition: []
-  biologicalSource: null

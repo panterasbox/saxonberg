@@ -2,7 +2,7 @@
 # input slot matches (whiskey); the brand is the ROW's
 # (`brand`), never the material's. Distilling's, by the generic drain
 # rule: the trade whose PROCESS makes it ships it.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Spirit
 data:
   smells: [{ aroma: /base-library/aromas/spirit, strength: 500 }]
   burning: [{ aroma: /base-library/aromas/smoke, strength: 3 }]
@@ -15,7 +15,6 @@ data:
   servingKg: 0.0564
   thermalConductivity: 0.17
   specificHeat: 2400
-  edibility: true
   # ⚠ Was 19, against `neutral-spirit`'s 45 and `wash`'s 8 — a
   # forty-per-cent spirit at half the dose of an eight-per-cent wash,
   # which made whiskey the safest drink in the house. 40 is the honest
@@ -28,8 +27,6 @@ data:
   # cannot fake a blend out of the cheap half alone. The shared tag is
   # the MARKET; the distinct one is the process.
   tags: [liquid, beverage, drinkable, alcoholic, spirit, whiskey, malt-whisky]
-  composition: []
-  biologicalSource: null
   # Flammable (P10): the combustion substrate reads these off the
   # material — a spilled, ignited spirit burns.
   autoignitionTemperature: 640

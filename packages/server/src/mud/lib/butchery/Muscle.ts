@@ -34,7 +34,7 @@
  * existing field with existing readers, so `NutritionLabel` and
  * `BlendLabel` derive a belly's fat against a loin's for free.
  *
- * The `RadioactiveMaterial` pattern exactly: the instanceable twin is
+ * The capability-mixin pattern: the instanceable kind is
  * `platform/idea/material/Muscle`.
  */
 

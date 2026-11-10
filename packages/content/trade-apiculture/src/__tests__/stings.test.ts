@@ -32,7 +32,7 @@ import { SlottableMixin } from '@saxonberg/server/mud/lib/slot/Slottable';
 import { ConstructedMixin } from '@saxonberg/server/mud/lib/material/Constructed';
 import { Construction } from '@saxonberg/server/mud/lib/material/Construction';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import Material from '@saxonberg/server/mud/lib/material/Material';
+import Metal from '@saxonberg/server/mud/platform/idea/material/Metal';
 import Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import BodyPlan from '@saxonberg/server/mud/platform/idea/species/BodyPlan';
 import Smoker from '../thing/Smoker';
@@ -122,9 +122,9 @@ function keeper(): Keeper {
 }
 
 /** Woven linen — a veil, gloves, a smock. Whatever covers the site. */
-function linen(): Material {
+function linen(): Metal {
   return singleton('/stuff/idea/material/textile/linen-sting-test', () => {
-    const m = new Material();
+    const m = new Metal();
     m.setName('linen');
     m.setHardness(Quantity.of(20, 'MPa'));
     m.setToughness(Quantity.of(30, 'MJ/m³'));

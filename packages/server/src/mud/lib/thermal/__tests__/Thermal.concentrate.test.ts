@@ -15,7 +15,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import { chargeHot } from '../../fire/__tests__/burner-fuel';
 import Good from '../../stuff/Good';
 import Place from '../../stuff/Place';
-import Material from '../../material/Material';
+import Water from '../../../platform/idea/material/Water';
 import type { ConcentrationArrow } from '../../material/Material';
 import { ThermalMixin } from '../Thermal';
 import { BulkableMixin } from '../../bulk/Bulkable';
@@ -65,9 +65,9 @@ function liquor(leaf: string, opts: {
   curve?: boolean;
   arrows?: ConcentrationArrow[];
   latent?: number;
-}): Material {
+}): Water {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Water();
     m.setName(leaf);
     m.setDensity(Quantity.of(1000, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
@@ -78,7 +78,7 @@ function liquor(leaf: string, opts: {
     if (opts.curve !== false) m.setBoilingPointElevation(SUCROSE);
     if (opts.arrows) m.setConcentratesTo(opts.arrows);
     return m;
-  }, path(leaf)) as unknown as Material;
+  }, path(leaf)) as unknown as Water;
 }
 
 function stagedMaterials(): void {
@@ -115,7 +115,7 @@ async function copperOf(f: TestArch, mat: string, litres: number, band = 'fine')
   const c = makeStuff(() => new Copper());
   c.interiorBulk = true;
   c.setInteriorCapacity(Quantity.of(120, 'L'));
-  c.setBulkMaterial('interior', StuffApi.findByTemplatePath<Material>(mat)!);
+  c.setBulkMaterial('interior', StuffApi.findByTemplatePath<Water>(mat)!);
   c.setBulkAmount('interior', Quantity.of(litres, 'L'));
   c.setGrade(Grade.of(band));
   c.setStampedTemperatureK(373);
@@ -200,7 +200,7 @@ describe('⭐⭐ the staged boil (sugar D1)', () => {
   });
 
   it('the mass fraction and the boiling point read the curve', () => {
-    const m = StuffApi.findByTemplatePath<Material>(path('raw-liquor'))!;
+    const m = StuffApi.findByTemplatePath<Water>(path('raw-liquor'))!;
     expect(m.solidsMassFraction(0)).toBe(0);
     // 0.6 kg/L of sucrose in what water it has not displaced.
     expect(m.solidsMassFraction(0.6)).toBeCloseTo(0.6 / (0.6 + 0.625), 6);
@@ -210,7 +210,7 @@ describe('⭐⭐ the staged boil (sugar D1)', () => {
   });
 
   it('refuses a malformed curve or arrow list', () => {
-    const m = StuffApi.findByTemplatePath<Material>(path('raw-liquor'))!;
+    const m = StuffApi.findByTemplatePath<Water>(path('raw-liquor'))!;
     expect(() => m.setBoilingPointElevation([[0.5, 1], [0.4, 2]])).toThrow(RangeError);
     expect(() =>
       m.setConcentratesTo([{ fromW: 0.9, becomes: 'x', minBand: 'fair' } as ConcentrationArrow]),

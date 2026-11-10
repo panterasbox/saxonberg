@@ -99,7 +99,8 @@ export default class Melt extends MeltBase {
   }
 
   public isFluid(): boolean {
-    const mp = this.getMaterial()?.getMeltingPoint().rawValue() ?? 0;
+    const mat = this.getMaterial();
+    const mp = mat && MixinApi.hasFusion(mat) ? mat.getMeltingPoint().rawValue() : 0;
     if (mp <= 0) return false;
     return this.getTemperature().rawValue() >= 0.9 * mp;
   }

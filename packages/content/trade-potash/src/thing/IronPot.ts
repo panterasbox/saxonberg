@@ -78,11 +78,10 @@ export default class IronPot extends IronPotBase {
 
   /** The liquor's dissolved solids, kg/L — the plateau's figure, else its material's own. */
   private strength(): number {
-    return (
-      this.getBulkPayload('interior')?.dissolvedSolidsKgPerL ??
-      this.getBulkMaterial('interior')?.getSolidsKgPerL() ??
-      0
-    );
+    const dissolved = this.getBulkPayload('interior')?.dissolvedSolidsKgPerL;
+    if (dissolved !== undefined && dissolved !== null) return dissolved;
+    const m = this.getBulkMaterial('interior');
+    return m && MixinApi.hasSolution(m) ? m.getSolidsKgPerL() : 0;
   }
 
   /**

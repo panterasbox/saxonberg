@@ -4,6 +4,7 @@ import { StuffApi } from '../../../api/stuff';
 import Garment from '../../../platform/thing/equipment/Garment';
 import Weapon from '../../../platform/thing/equipment/Weapon';
 import Material from '../../material/Material';
+import Metal from '../../../platform/idea/material/Metal';
 import Good from '../../stuff/Good';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
@@ -21,7 +22,7 @@ import {
 afterEach(() => StuffApi.clearAll());
 
 function steel(): Material {
-  const m = makeStuff(() => new Material());
+  const m = makeStuff(() => new Metal());
   m.setName('steel');
   m.setHardness(Quantity.of(600, 'MPa'));
   m.setToughness(Quantity.of(200, 'MJ/m³'));

@@ -339,6 +339,8 @@ export const Mixins = {
   AroundDeleteHook: 'AroundDeleteHookMixin',
   HasInteractive: 'HasInteractiveMixin',
   ClientState: 'ClientStateMixin',
+  /** ⭐ The stream a played body is running (broadcast-ready D1, D17). */
+  Broadcast: 'BroadcastMixin',
   SaxonbergClient: 'SaxonbergClientMixin',
   Environment: 'EnvironmentMixin',
   Alias: 'AliasMixin',
@@ -403,8 +405,28 @@ export const Mixins = {
   // (bandage / gauze / clean rag). The harm build's medic vertical.
   Dressing: 'DressingMixin',
   Reserved: 'ReservedMixin',
-  Radioactive: 'RadioactiveMixin',
-  Odorous: 'OdorousMixin',
+  Radioactivity: 'RadioactivityMixin',
+  Odor: 'OdorMixin',
+  // ⭐ The material capabilities (material decomposition, 2026-11) — each
+  // named for the substance's physics, as a noun (D1).
+  Combustion: 'CombustionMixin',
+  Fusion: 'FusionMixin',
+  Volatility: 'VolatilityMixin',
+  Solidity: 'SolidityMixin',
+  Porosity: 'PorosityMixin',
+  Edibility: 'EdibilityMixin',
+  Toxicity: 'ToxicityMixin',
+  Perishability: 'PerishabilityMixin',
+  Acidity: 'AcidityMixin',
+  Solution: 'SolutionMixin',
+  Kinetic: 'KineticMixin',
+  Shrinkage: 'ShrinkageMixin',
+  Coating: 'CoatingMixin',
+  Optics: 'OpticsMixin',
+  Tissue: 'TissueMixin',
+  Mixture: 'MixtureMixin',
+  Element: 'ElementMixin',
+  Compound: 'CompoundMixin',
   Olfactory: 'OlfactoryMixin',
   Muscle: 'MuscleMixin',
   Cut: 'CutMixin',
@@ -931,7 +953,7 @@ export type MixinName = typeof Mixins[keyof typeof Mixins];
  * there for a constraint about to be written.
  */
 export const MixinRefusals: Partial<Record<MixinName, string>> = {
-  OdorousMixin: '{} has no smell of its own',
+  OdorMixin: '{} has no smell of its own',
   OlfactoryMixin: '{} has no nose',
   PalateMixin: '{} has no palate',
   // ⭐ Ground, not a thing: the useful information is that the target had

@@ -6,7 +6,7 @@
 # falls when it is not fed (`starveDays`), and a dead one is dead. A
 # baker's starter is a thing you keep alive, and forgetting it for a
 # fortnight is a real loss.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFood
 data:
   smells: [{ aroma: /base-library/aromas/dough, strength: 300 }]
   tastes: [{ type: sour, amount: 6 }]
@@ -18,13 +18,8 @@ data:
   thermalConductivity: 0.5
   electricalConductivity: 0.02
   waterAbsorptionCapacity: 5
-  hardness: 0
-  toughness: 0
-  edibility: true
   waterActivity: 0.97
   spoilActivationEnergy: 55000
   nutrients: ["carb", "protein"]
   nutrientAmounts: { carb: 320000, protein: 60000 }
-  toxicity: []
   tags: ["food", "levain", "culture", "baking"]
-  composition: []

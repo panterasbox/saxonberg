@@ -31,7 +31,7 @@ import Oven from '../../../platform/thing/Oven';
 import Flask from '../../../platform/thing/Flask';
 import Firebox from '../Firebox';
 import Receptacle from '../../../platform/thing/Receptacle';
-import Material from '../../../platform/idea/material/Material';
+import FuelGas from '../../../platform/idea/material/FuelGas';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { Quantity } from '../../quantity';
@@ -53,30 +53,30 @@ let seq = 0;
  * which is what makes `requiredClosureFor` answer `sealed`. Nothing here
  * declares "this is a gas".
  */
-function gas(mjPerKg: number): Material {
+function gas(mjPerKg: number): FuelGas {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new FuelGas();
     m.setName(`test-gas-${seq}`);
     m.setDensity(Quantity.of(0.72, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(2200, 'J/(kg·K)'));
     m.setBoilingPoint(Quantity.of(112, 'K'));
     m.setHeatOfCombustion(Quantity.of(mjPerKg, 'MJ/kg'));
     return m;
-  }, `/stuff/idea/material/_test/gas-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/gas-${seq}`) as unknown as FuelGas;
 }
 
 /** A liquid that does not burn — the pail of water. */
-function water(): Material {
+function water(): FuelGas {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new FuelGas();
     m.setName(`test-water-${seq}`);
     m.setDensity(Quantity.of(1000, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(4180, 'J/(kg·K)'));
     m.setBoilingPoint(Quantity.of(373, 'K'));
     return m;
-  }, `/stuff/idea/material/_test/water-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/water-${seq}`) as unknown as FuelGas;
 }
 
 let room: Location;
@@ -106,7 +106,7 @@ function oven(): Stuff & Burner {
 }
 
 /** A sealed bladder holding `litres` of `material`. */
-function bladder(material: Material, litres: number): Stuff & Bulkable {
+function bladder(material: FuelGas, litres: number): Stuff & Bulkable {
   const f = makeStuff(() => new Flask());
   (f as unknown as { interiorBulk: boolean }).interiorBulk = true;
   (f as unknown as { interiorCapacity: Quantity<'L'> | null }).interiorCapacity =

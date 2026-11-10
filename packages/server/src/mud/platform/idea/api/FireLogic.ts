@@ -667,6 +667,7 @@ function flammableMediumCheck(
     // ⭐ (cleanliness D22) A substance's own flammable limit, when it
     // states one — mill dust flashes at a share of the air coal gas would
     // not; the global dial for everything that does not say.
+    if (!MixinApi.hasCombustion(material)) continue;
     const limit = material.getFlammableLimit() > 0 ? material.getFlammableLimit() : ignitesAt;
     if (c.amount < limit) continue;
     if (!(material.getHeatOfCombustion().rawValue() > 0)) continue;

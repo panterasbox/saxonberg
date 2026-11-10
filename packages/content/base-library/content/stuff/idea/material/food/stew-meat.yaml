@@ -1,7 +1,7 @@
 # Stew meat — butcher's cuts for the pot. Edible (you could choke it
 # down raw) but meant to be cooked; the cooking branch's protein input,
 # matched by the `meat` tag.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/Flesh
 data:
   smells: [{ aroma: /base-library/aromas/raw-meat, strength: 60 }]
   name: stew meat
@@ -10,7 +10,6 @@ data:
   density: 1050
   thermalConductivity: 0.45
   specificHeat: 3200
-  edibility: true
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
@@ -28,5 +27,3 @@ data:
   nutrientAmounts:
     protein: 26000
   tags: [food, meat, raw]
-  composition: []
-  biologicalSource: null

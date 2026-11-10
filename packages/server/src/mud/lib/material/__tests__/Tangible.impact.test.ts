@@ -21,6 +21,10 @@ import { WorldClockApi } from '../../../api/worldclock';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
+import Ceramic from '../../../platform/idea/material/Ceramic';
+import Stone from '../../../platform/idea/material/Stone';
+import Wood from '../../../platform/idea/material/Wood';
+import Metal from '../../../platform/idea/material/Metal';
 
 class Pot extends ThermalMixin(BulkableMixin(Good)) {
   static _mixinName = 'ImpactTestPot';
@@ -28,10 +32,14 @@ class Pot extends ThermalMixin(BulkableMixin(Good)) {
 class Room extends Place {}
 
 let seq = 0;
-function mat(name: string, fill: (m: Material) => void): Material {
+function mat<K extends Material>(
+  make: () => K,
+  name: string,
+  fill: (m: K) => void,
+): Material {
   seq += 1;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = make();
     m.setName(name);
     m.setSpecificHeat(Quantity.of(880, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(1.5, 'W/(m·K)'));
@@ -65,7 +73,7 @@ beforeEach(() => {
   real = 1_000_000;
   WorldClockApi._setNowProviderForTesting(() => real);
   const body = (name: string, rho: number, h: number, t: number, wac: number, alpha: number): Material =>
-    mat(name, (m) => {
+    mat(() => new Ceramic(), name, (m) => {
       m.setDensity(Quantity.of(rho, 'kg/m³'));
       m.setHardness(Quantity.of(h, 'MPa'));
       m.setToughness(Quantity.of(t, 'MJ/m³'));
@@ -76,9 +84,9 @@ beforeEach(() => {
   stoneware = body('stoneware', 2300, 90, 7, 1.5, 6e-6);
   terracotta = body('terracotta', 1900, 50, 5, 15, 5.5e-6);
   earthenware = body('earthenware', 2000, 60, 6, 8, 6e-6);
-  granite = mat('granite', (m) => m.setHardness(Quantity.of(200, 'MPa')));
-  earth = mat('earth', (m) => m.setHardness(Quantity.of(5, 'MPa')));
-  oak = mat('oak', (m) => {
+  granite = mat(() => new Stone(), 'granite', (m) => m.setHardness(Quantity.of(200, 'MPa')));
+  earth = mat(() => new Stone(), 'earth', (m) => m.setHardness(Quantity.of(5, 'MPa')));
+  oak = mat(() => new Wood(), 'oak', (m) => {
     m.setHardness(Quantity.of(40, 'MPa'));
     m.setToughness(Quantity.of(60, 'MJ/m³'));
     m.setDensity(Quantity.of(700, 'kg/m³'));
@@ -147,8 +155,8 @@ describe('a blow against strength and floor', () => {
   });
 
   it('a pour at a melting heat melts its receiver; at a burning one it burns', () => {
-    const tin = mat('tin', (m) => m.setMeltingPoint(Quantity.of(505, 'K')));
-    const wood = mat('board', (m) => m.setAutoignitionTemperature(Quantity.of(570, 'K')));
+    const tin = mat(() => new Metal(), 'tin', (m) => m.setMeltingPoint(Quantity.of(505, 'K')));
+    const wood = mat(() => new Wood(), 'board', (m) => m.setAutoignitionTemperature(Quantity.of(570, 'K')));
     const t = pot(tin, 1);
     const w = pot(wood, 1);
     expect(t.canReceiveAtK(1300)).toBe('melts');
@@ -191,12 +199,12 @@ describe('thermal shock — heat too fast', () => {
   });
 
   it('⭐ a REFRACTORY body stands a step the same clay without the tag cracks under (the ceramics drive)', () => {
-    const fill = (tags: string[]) => (m: Material): void => {
+    const fill = (tags: string[]) => (m: Ceramic): void => {
       m.setTags(tags);
       m.setThermalExpansion(5e-6);
     };
-    const plain = pot(mat('fireclay-body', fill(['ceramic', 'fired', 'brittle'])), 4);
-    const refractory = pot(mat('refractory-body', fill(['ceramic', 'fired', 'brittle', 'refractory'])), 4);
+    const plain = pot(mat(() => new Ceramic(), 'fireclay-body', fill(['ceramic', 'fired', 'brittle'])), 4);
+    const refractory = pot(mat(() => new Ceramic(), 'refractory-body', fill(['ceramic', 'fired', 'brittle', 'refractory'])), 4);
     for (const p of [plain, refractory]) {
       p.sufferThermalShock(250, 0);
     }

@@ -13,6 +13,7 @@ import { chargeHot } from '../../../../lib/fire/__tests__/burner-fuel';
 import Oven from '../../../thing/Oven';
 import Good from '../../../../lib/stuff/Good';
 import Material from '../../../../lib/material/Material';
+import Ceramic from '../../material/Ceramic';
 import { StackableMixin } from '../../../../lib/stuff/Stackable';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
@@ -68,7 +69,7 @@ beforeEach(() => {
   vi.spyOn(pm, 'find').mockResolvedValue([] as never);
   WorldClockApi._setNowProviderForTesting(() => 1000);
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Ceramic();
     m.setName('refractory');
     m.setMeltingPoint(Quantity.of(1950, 'K'));
     return m;

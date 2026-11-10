@@ -192,7 +192,9 @@ export function CombustibleMixin<TBase extends MixinConstructor<Stuff>>(
     public getAutoignitionTemperatureK(): number {
       const self = this as unknown as Stuff;
       const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
-      return mat ? mat.getAutoignitionTemperature().rawValue() : 0;
+      return mat && MixinApi.hasCombustion(mat)
+        ? mat.getAutoignitionTemperature().rawValue()
+        : 0;
     }
 
     public getEffectiveAutoignitionK(): number {

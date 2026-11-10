@@ -10,21 +10,20 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
-import Material from "../../material/Material";
+import Food from "../../../platform/idea/material/Food";
 import { Quantity } from "../../quantity";
 import { StuffApi } from "../../../api/stuff";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
 import { METABOLIC_DEFAULTS } from "../Metabolic";
 
-function food(name: string, nutrients: string[]): Material {
+function food(name: string, nutrients: string[]): Food {
   return makeStuff(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName(name);
     m.setNutrients(nutrients);
-    m.setEdibility(true);
     return m;
-  }) as unknown as Material;
+  }) as unknown as Food;
 }
 
 const L = (n: number) => Quantity.of(n, "L");

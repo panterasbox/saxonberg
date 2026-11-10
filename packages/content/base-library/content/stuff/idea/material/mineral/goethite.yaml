@@ -21,7 +21,7 @@
 # And it reduces, it does not melt: solid-state reduction at ~1470 K is
 # the bloomery, and the fuel technology to hold that heat is the rung
 # above copper.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Ore
 data:
   name: goethite
   keywords: [goethite, ironstone, gossan]
@@ -35,12 +35,6 @@ data:
   # quartz 7 -> 1100).
   hardness: 450
   toughness: 10
-  edibility: false
-  nutrients: ["iron"]
-  toxicity: []
   tags: ["mineral", "oxide", "hydroxide", "ore", "iron", "oxide-zone"]
   composition:
     - { materialPath: /stuff/idea/material/element/iron, fraction: 0.6285 }
-  formula: FeO(OH)
-  molarMass: 88.851
-  biologicalSource: null

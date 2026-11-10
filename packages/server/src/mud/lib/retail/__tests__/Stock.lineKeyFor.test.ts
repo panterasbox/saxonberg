@@ -10,6 +10,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import StockBase from "../Stock";
 import Good from "../../stuff/Good";
 import Material from "../../material/Material";
+import Metal from '../../../platform/idea/material/Metal';
 import { StuffApi } from "../../../api/stuff";
 import { AppApi } from "../../../api/app";
 import type { Stuff } from "../../stuff/Stuff";
@@ -22,7 +23,7 @@ const PEARL = "/test/stock-line-key/thing/pearl-ash";
 
 function material(name: string, castTemplate: string): Material {
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Metal();
     m.setName(name);
     m.castTemplate = castTemplate;
     return m;

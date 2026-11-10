@@ -36,6 +36,7 @@
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { GroundSourceMixin } from '@saxonberg/server/mud/lib/ground/GroundSource';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
@@ -1203,6 +1204,6 @@ function normalOf(lode: Lode): [number, number, number] {
 function hardnessOf(materialPath: string): number {
   const m = StuffApi.findByTemplatePath<Material>(materialPath);
   if (!m) return DEFAULT_HARDNESS_MPA;
-  const h = m.getHardness().rawValue();
+  const h = MixinApi.hasSolidity(m) ? m.getHardness().rawValue() : 0;
   return h > 0 ? h : DEFAULT_HARDNESS_MPA;
 }

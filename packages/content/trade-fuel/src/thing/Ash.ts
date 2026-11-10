@@ -164,7 +164,10 @@ class Ash extends AshBase {
       const alkaliKg = this.getMass().rawValue() * this.fractionOf(alkaliPath) * (toReach - fromReach);
       const payload = into.getBulkPayload('interior');
       const kept = Math.max(0, 1 - dial(AppSettingKeys.potashLyeHardnessWastePerDgh, 0.04) * (payload?.hardnessDgh ?? 0));
-      const carried = payload?.dissolvedSolidsKgPerL ?? (into.getBulkMaterial('interior')?.getSolidsKgPerL() ?? 0);
+      const held = into.getBulkMaterial('interior');
+      const carried =
+        payload?.dissolvedSolidsKgPerL ??
+        (held !== null && MixinApi.hasSolution(held) ? held.getSolidsKgPerL() : 0);
       const kgPerL = carried + (alkaliKg / litres) * kept;
       into.setBulkPayload('interior', { ...(payload ?? {}), dissolvedSolidsKgPerL: kgPerL });
       if (MixinApi.isGraded(into)) into.setGrade(Grade.of(new LyeStrength(kgPerL).gradeBand()));

@@ -14,7 +14,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
 import Provision from '../../../platform/thing/Provision';
-import Material from '../../material/Material';
+import Syrup from '../../../platform/idea/material/Syrup';
 import { MouldMixin } from '../Mould';
 import { DurableMixin } from '../../material/Durable';
 import { CraftedMixin } from '../../craft/Crafted';
@@ -80,20 +80,20 @@ const MILK = '/stuff/idea/material/_mould/milk';
 
 let cloned: string[] = [];
 
-function material(path: string, setup: (m: Material) => void): Material {
-  const found = StuffApi.findByTemplatePath<Material>(path);
+function material(path: string, setup: (m: Syrup) => void): Syrup {
+  const found = StuffApi.findByTemplatePath<Syrup>(path);
   if (found) return found;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Syrup();
     m.setName(path.split('/').pop()!);
     m.setDensity(Quantity.of(1000, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
     setup(m);
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as Syrup;
 }
 
-function water(): Material {
+function water(): Syrup {
   return material(WATER, (m) => {
     (m as unknown as { meltingPoint: Quantity<'K'> }).meltingPoint = Quantity.of(273, 'K');
     (m as unknown as { latentHeatOfFusion: Quantity<'J/kg'> }).latentHeatOfFusion =
@@ -101,10 +101,10 @@ function water(): Material {
     m.castTemplate = LUMP;
   });
 }
-function cheese(): Material {
+function cheese(): Syrup {
   return material(CHEESE, () => {});
 }
-function curd(): Material {
+function curd(): Syrup {
   cheese();
   return material(CURD, (m) => {
     m.setNutrientAmounts({ fat: 60000, protein: 60000, water: 800000 });
@@ -121,11 +121,11 @@ function room(): TestRoom {
   return makeStuff(() => new TestRoom());
 }
 
-function fillVessel<T extends Stuff>(v: T, mat: Material, litres: number, tempK: number): T {
+function fillVessel<T extends Stuff>(v: T, mat: Syrup, litres: number, tempK: number): T {
   const b = v as unknown as {
     interiorBulk: boolean;
     setInteriorCapacity(q: Quantity<'L'>): void;
-    setBulkMaterial(a: 'interior', m: Material): void;
+    setBulkMaterial(a: 'interior', m: Syrup): void;
     setBulkAmount(a: 'interior', q: Quantity<'L'>): void;
     setStampedTemperatureK(k: number): void;
     setLastAmbientK(k: number): void;
@@ -299,7 +299,7 @@ describe('moulds — the container decides the shape', () => {
     const STRIKE = '/stuff/idea/material/_mould/strike';
     const LOAF = '/stuff/idea/material/_mould/loaf-sugar';
     const MOLASSES = '/stuff/idea/material/_mould/molasses';
-    function strike(): Material {
+    function strike(): Syrup {
       material(LOAF, () => {});
       material(MOLASSES, (m) => m.setDensity(Quantity.of(1400, 'kg/m³')));
       return material(STRIKE, (m) => {
@@ -359,7 +359,7 @@ describe('moulds — the container decides the shape', () => {
       setNow(5 * DAY);
       for (const m of [hogshead, cone]) m.reconcileSetting();
       await settle();
-      const matOf = (m: Stuff) => (contentsOf(m)[0] as unknown as { getMaterial(): Material }).getMaterial();
+      const matOf = (m: Stuff) => (contentsOf(m)[0] as unknown as { getMaterial(): Syrup }).getMaterial();
       expect(matOf(hogshead)).toBe(raw);
       expect(matOf(cone)?.getTemplatePath()).toBe(LOAF);
     });

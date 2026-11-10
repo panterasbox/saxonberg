@@ -174,8 +174,11 @@ export function checkAromas(
 
     const cls = typeof doc.class === 'string' ? doc.class : '';
     const isSpecies = cls.includes('/species/');
-    if (!isSpecies && ('smells' in data || 'burning' in data) && !composesMixin(cls, 'OdorousMixin', roots)) {
-      findings.push(`${row.path}: authors smells or burning, but its class ${cls || '(none)'} cannot hold one; name an Odorous class`);
+    if (!isSpecies && 'smells' in data && !composesMixin(cls, 'OdorMixin', roots)) {
+      findings.push(`${row.path}: authors smells, but its class ${cls || '(none)'} cannot hold one; name a kind that composes Odor`);
+    }
+    if (!isSpecies && 'burning' in data && !composesMixin(cls, 'CombustionMixin', roots)) {
+      findings.push(`${row.path}: authors burning, but its class ${cls || '(none)'} does not burn; name a kind that composes Combustion`);
     }
     const tastes = data.tastes;
     if (Array.isArray(tastes)) {

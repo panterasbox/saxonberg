@@ -18,6 +18,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
 import Place from '../../stuff/Place';
 import Material from '../../material/Material';
+import Stone from '../../../platform/idea/material/Stone';
 import type { KineticSpec } from '../../material/Kinetics';
 import { ThermalMixin } from '../Thermal';
 import Oven from '../../../platform/thing/Oven';
@@ -58,7 +59,7 @@ function material(name: string, opts: { transitions?: KineticSpec[]; appearance?
   seq += 1;
   const path = `/stuff/idea/material/_heatwork/${name}-${seq}`;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Stone();
     m.setName(name);
     m.setSpecificHeat(Quantity.of(900, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(1, 'W/(m·K)'));

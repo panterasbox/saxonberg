@@ -7,7 +7,7 @@
 # ⚠ It is not poison and it is not waste — you can still bake it, and
 # what you get is a flat, sour, close-grained loaf. That is the honest
 # outcome of the mistake: a worse loaf, not a lost one.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/SolidFood
 data:
   smells: [{ aroma: /base-library/aromas/dough, strength: 100 }]
   tastes: [{ type: salty, amount: 10 }, { type: sour, amount: 2 }]
@@ -21,11 +21,8 @@ data:
   waterAbsorptionCapacity: 5
   hardness: 1
   toughness: 1
-  edibility: true
   waterActivity: 0.96
   spoilActivationEnergy: 55000
   nutrients: ["carb", "protein"]
   nutrientAmounts: { carb: 465000, protein: 54000 }
-  toxicity: []
   tags: ["food", "dough", "collapsed-dough", "baking"]
-  composition: []

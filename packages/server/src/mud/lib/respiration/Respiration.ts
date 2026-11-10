@@ -755,7 +755,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (!(c.amount > 0)) continue;
         const material = StuffApi.findByTemplatePath<Material>(c.type);
         if (!material) continue;
-        for (const toxin of material.getToxicity()) {
+        for (const toxin of MixinApi.hasToxicity(material) ? material.getToxicity() : []) {
           if (!(toxin.amount > 0)) continue;
           self.addToxinBurden(toxin.type, toxin.amount * c.amount);
         }

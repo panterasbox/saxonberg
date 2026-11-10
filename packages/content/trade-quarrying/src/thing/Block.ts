@@ -200,6 +200,7 @@ export default class Block extends BlockBase implements Splittable {
   private hardnessMPa(): number {
     const material = this.getMaterial();
     if (material === null) return REFERENCE_MPA;
+    if (!MixinApi.hasSolidity(material)) return REFERENCE_MPA;
     const h = material.getHardness().rawValue();
     return h > 0 ? h : REFERENCE_MPA;
   }

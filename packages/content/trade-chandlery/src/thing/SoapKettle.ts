@@ -128,7 +128,7 @@ export default class SoapKettle extends MaturingMixin(CraftVessel) {
     if (actor && burnt && MixinApi.isAttired(actor)) {
       const gloved = actor.handSites().some((h) => actor.outermostAt(h) !== null);
       const site = actor.handSites()[0];
-      if (!gloved && site && burnt.corrodeOnContact(actor, { site })) {
+      if (!gloved && site && MixinApi.hasAcidity(burnt) && burnt.corrodeOnContact(actor, { site })) {
         MessageApi.scene(actor)
           .topic('act.deed')
           .toSelf(

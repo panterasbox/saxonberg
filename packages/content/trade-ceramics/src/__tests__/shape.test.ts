@@ -7,7 +7,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Metal from '@saxonberg/server/mud/platform/idea/material/Metal';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import { Form, type FormClass } from '@saxonberg/server/mud/lib/craft/FormSpec';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -27,7 +27,7 @@ import Brick from '../thing/Brick';
 
 class Shed extends Place {}
 
-let clayMat: Material;
+let clayMat: Metal;
 let seq = 0;
 /** A form document, kept as the instrument citing it would have loaded it. */
 function form(key: string, formClass: FormClass, capacityL: number, product: string, discipline = 'pottery'): string {
@@ -46,12 +46,12 @@ beforeEach(() => {
   installV1QuantityMarshallers();
   seq += 1;
   clayMat = makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Metal();
     m.setName('clay');
     m.setTags(['earth', 'plastic', 'clay']);
     m.setDensity(Quantity.of(1800, 'kg/m³'));
     return m;
-  }, `/stuff/idea/material/_shape/clay-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_shape/clay-${seq}`) as unknown as Metal;
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (row: string) => {
     if (row.endsWith('/brick')) {
       const b = makeStuff(() => new Brick());

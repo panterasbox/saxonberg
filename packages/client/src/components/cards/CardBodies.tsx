@@ -37,6 +37,8 @@
 
 import { NavigatorBody } from "./NavigatorBody";
 import { SettingsPanel } from "../settings/SettingsPanel";
+import { StreamControls } from "./StreamControls";
+import { useOnAir } from "../../lib/stream/onAir";
 import React from "react";
 import styled from "styled-components";
 import type {
@@ -1110,6 +1112,17 @@ function DetailTrail({
  */
 export function CardBody(props: CardBodyProps): React.ReactElement {
   const { card } = props;
+  const onAir = useOnAir();
+  // ⭐ On air, a card the server says is private is a HUSK — its title in
+  // the header, no body (broadcast-ready D8). Its frames carry their own
+  // stamp as well, so this is the second fence, not the only one.
+  if (onAir && card.private === true) {
+    return (
+      <Prose data-testid="private-card-husk">
+        <em>private — hidden while on air</em>
+      </Prose>
+    );
+  }
   /*
    * ⭐ **Three sources, three bodies.** An MQL card renders the
    * projected record below; a PAYLOAD card renders what its producing
@@ -1126,6 +1139,16 @@ export function CardBody(props: CardBodyProps): React.ReactElement {
       <SettingsPanel
         onSendCommand={props.onSendCommand}
         onClose={() => props.onSendCommand('cockpit card close settings')}
+      />
+    );
+  }
+  // ⭐ The stream controls (broadcast-ready D10): every chip a real
+  // `stream …` command, the body read off the `stream.state` key.
+  if (card.cardId === 'stream') {
+    return (
+      <StreamControls
+        onSendCommand={props.onSendCommand}
+        {...(props.onCommandPreview ? { onCommandPreview: props.onCommandPreview } : {})}
       />
     );
   }

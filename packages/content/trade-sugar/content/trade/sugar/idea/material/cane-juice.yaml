@@ -2,6 +2,7 @@
 # a sixth sugar. It runs the same curve and the same arrows as the
 # copper's liquor, from much further down.
 extends: /trade/sugar/idea/material/raw-liquor
+class: /platform/idea/material/Drink
 data:
   smells: [{ aroma: /base-library/aromas/green, strength: 30 }]
   name: cane juice

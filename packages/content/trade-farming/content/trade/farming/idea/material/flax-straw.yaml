@@ -10,7 +10,7 @@
 # than by naming this row. ⭐ Which is what lets wool's scouring and
 # cotton's ginning arrive later as their own profiles over their own
 # materials, with the textile trade unchanged.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Fiber
 data:
   smells: [{ aroma: /base-library/aromas/straw, strength: 15 }]
   name: flax straw
@@ -25,12 +25,7 @@ data:
   # Very thirsty, which is exactly what makes retting work: the pit soaks
   # it and the water does the rest.
   waterAbsorptionCapacity: 60
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["plant", "organic", "once-living", "fibre-stock", "retting"]
-  composition: []
-  chemistry: null
   # ⚠ A COMPOSITE, not a bare path: `{speciesPath, tissueType}`. Every
   # shipped material left this null, so these are the first rows to
   # populate it — and the census caught the bare-path shape the moment

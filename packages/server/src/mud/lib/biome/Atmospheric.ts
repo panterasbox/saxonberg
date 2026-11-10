@@ -1333,7 +1333,10 @@ export function AtmosphericMixin<
       const material =
         StuffApi.findByTemplatePath<Material>(materialPath) ?? null;
       // ⭐ Beer–Lambert (D5): e^(−α·t); a material with no α is opaque.
-      const alpha = material?.getLightAbsorption()?.rawValue();
+      const alpha =
+        material !== null && MixinApi.hasOptics(material)
+          ? material.getLightAbsorption()?.rawValue()
+          : undefined;
       return {
         kWmK: Math.max(material?.getThermalConductivity().rawValue() ?? 0, 0.02),
         rhoKgM3: material?.getDensity().rawValue() || 2000,

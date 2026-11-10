@@ -21,7 +21,7 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 import Bottle from '@saxonberg/server/mud/platform/thing/Bottle';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Oil from '@saxonberg/server/mud/platform/idea/material/Oil';
 import { CategoryMeasure } from '@saxonberg/server/mud/lib/employment/CategoryMeasure';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -43,12 +43,13 @@ function row(rel: string): { data: Record<string, unknown>; class: string } {
 describe('lamp oil rows', () => {
   it('the material carries a fuel value, a density, and the market tags', () => {
     const m = row('stuff/idea/material/bulk/lamp-oil.yaml');
-    // Lamp oil smells, so its row names the Odorous material class.
-    expect(m.class).toBe('/platform/idea/material/OdorousMaterial');
+    // Lamp oil is an Oil: it burns, boils and smells (its kind composes each).
+    expect(m.class).toBe('/platform/idea/material/Oil');
     expect(m.data.name).toBe('lamp-oil');
     expect(m.data.density).toBe(820);
     expect(m.data.heatOfCombustion).toBe(43);
-    expect(m.data.edibility).toBe(false);
+    // Not food: an Oil composes no Edibility, so the row says nothing about it.
+    expect('edibility' in m.data).toBe(false);
     expect(m.data.tags).toEqual(
       expect.arrayContaining(['liquid', 'lamp-oil', 'fuel', 'flammable']),
     );
@@ -99,7 +100,7 @@ describe('the tally the market stands on', () => {
 
   it('⭐ CategoryMeasure reads 40 L of lamp-oil off a filled cask', () => {
     const oil = makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Oil();
       m.setName('lamp-oil');
       m.setKeywords(['lamp-oil']);
       m.setTags(['liquid', 'lamp-oil', 'fuel', 'flammable']);

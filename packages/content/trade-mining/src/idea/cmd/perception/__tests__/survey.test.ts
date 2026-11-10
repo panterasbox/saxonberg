@@ -40,7 +40,7 @@ import SurveyInstrument from '../../../../thing/instrument/SurveyInstrument';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import MineRoom from '../../../../location/MineRoom';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -164,7 +164,7 @@ describe('surveying', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     band = 'competent';
 
-    const m = makeStuffAtPath(() => new Material(), SLATE);
+    const m = makeStuffAtPath(() => new Stone(), SLATE);
     (m as unknown as { hardness: Quantity<'MPa'> }).hardness = Quantity.of(90, 'MPa');
 
     surface = makeStuffAtPath(() => new CartesianZone(), SURFACE);

@@ -9,7 +9,7 @@
 # is the most-recycled beverage container on Earth: a used can is back
 # on a shelf as a new can in roughly sixty days. Both facts are the
 # point of this row — see the aluminium-can slate.
-class: /platform/idea/material/Material
+class: /platform/idea/material/ElementalMetal
 data:
   name: aluminium
   keywords: [aluminium]
@@ -25,20 +25,13 @@ data:
   latentHeatOfFusion: 397000
   boilingPoint: 2743
   latentHeatOfVaporization: 10900000
-  # Metal wets only as a surface film.
-  waterAbsorptionCapacity: 0.2
   # Mechanical response (materials-response): soft and ductile — a can
   # dents where steel would ring. MPa / MJ·m⁻³, marshalled. (Pure Al;
   # the 3004 can-body alloy is roughly twice as hard — a content
   # extension, like stainless over steel.)
   hardness: 160
   toughness: 90
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["element", "metal", "non-ferrous", "crystalline", "conductor", "light", "passivating"]
-  composition: []
   symbol: Al
   atomicNumber: 13
   molarMass: 26.982
-  biologicalSource: null

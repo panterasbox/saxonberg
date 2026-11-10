@@ -15,7 +15,7 @@ import { NamedMixin } from "../../../../../lib/description/Named";
 import { SensorMixin } from "../../../../../lib/message/Sensor";
 import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
 import Condition from "../../../Condition";
-import Material from "../../../../../lib/material/Material";
+import Food from "../../../material/Food";
 import type { ToxinBehavior } from "../../../../../lib/metabolism/Metabolic";
 import Place from "../../../../../lib/stuff/Place";
 import { Stuff } from "../../../../../lib/stuff/Stuff";
@@ -81,15 +81,14 @@ function ensure(behavior: ToxinBehavior): void {
   }, path);
 }
 
-function ale(): Material {
+function ale(): Food {
   return makeStuff(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName("ale");
-    m.setEdibility(true);
     m.setNutrients(["water"]);
     m.setToxicity([{ type: "alcohol", amount: 14 }]);
     return m;
-  }) as unknown as Material;
+  }) as unknown as Food;
 }
 
 function ctxFor(actor: Stuff, loc: Stuff): CommandContext {

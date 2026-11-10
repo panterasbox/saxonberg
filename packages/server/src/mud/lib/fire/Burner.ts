@@ -547,7 +547,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       const line = self.getLine('lining');
       if (line === null) return;
       const brick = StuffApi.findByTemplatePath<Material>(line.material);
-      const limitK = brick?.getMeltingPoint().rawValue() || 1950;
+      const limitK = (brick && MixinApi.hasFusion(brick) ? brick.getMeltingPoint().rawValue() : 0) || 1950;
       let units =
         burnerDial(AppSettingKeys.fireLiningWearPerHour, 0.5) *
         (heldS / 3600) *
@@ -639,6 +639,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
         // would hold green cordwood back forever (the fuel pack's burn
         // test). The wet penalty is a POUR's: sudden heat on a cold, wet
         // receiver (`canReceiveAtK`).
+        if (!MixinApi.hasCombustion(mat)) continue;
         const ignK = mat.getAutoignitionTemperature().rawValue();
         if (!(ignK > 0) || !(mat.getHeatOfCombustion().rawValue() > 0)) continue;
         if (body.getTemperature().rawValue() < ignK) continue;
@@ -780,7 +781,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
         }
       }
       for (const [m, share] of shares) {
-        for (const p of m.getCombustionProducts()) {
+        for (const p of MixinApi.hasCombustion(m) ? m.getCombustionProducts() : []) {
           out.push({ material: p.material, litres: p.litresPerKg * kg * share });
         }
       }
@@ -888,7 +889,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       const slot = this.fuelSlot();
       if (slot !== null) {
         const material = slot.getMaterial();
-        if (!material) return 0;
+        if (!material || !MixinApi.hasCombustion(material)) return 0;
         return (
           this.fuelRemaining() * material.getHeatOfCombustion().rawValue() * 1e6
         );
@@ -897,7 +898,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       for (const [path, mass] of Object.entries(this.fuelBed)) {
         if (!(mass > 0)) continue;
         const material = StuffApi.findByTemplatePath<Material>(path);
-        if (!material) continue;
+        if (!material || !MixinApi.hasCombustion(material)) continue;
         joules += mass * material.getHeatOfCombustion().rawValue() * 1e6;
       }
       return joules;
@@ -934,7 +935,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       }
       const out: SmellNote[] = [];
       for (const [material, kg] of beds) {
-        if (!MixinApi.isOdorous(material)) continue;
+        if (!MixinApi.hasCombustion(material)) continue;
         for (const tag of material.getBurning()) {
           out.push({ aroma: tag.aroma, ou: tag.strength * Math.sqrt(kg) });
         }
@@ -1035,7 +1036,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       )) {
         if (!(c.amount > worst)) continue;
         const material = StuffApi.findByTemplatePath<Material>(c.type);
-        if (!material) continue;
+        if (!material || !MixinApi.hasCombustion(material)) continue;
         if (!(material.getHeatOfCombustion().rawValue() > 0)) continue;
         worst = c.amount;
       }
@@ -1113,7 +1114,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       const perMJ = burnerDial(AppSettingKeys.fireFlameKPerMJkg, 65);
       let k = 0;
       for (const { material, share } of shares) {
-        k += share * (base + perMJ * material.getHeatOfCombustion().rawValue());
+        k += share * (base + perMJ * (MixinApi.hasCombustion(material) ? material.getHeatOfCombustion().rawValue() : 0));
       }
       return k;
     }
@@ -1335,7 +1336,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       }
       if (!MixinApi.isTangible(item)) return { ok: false, reason: 'not-matter' };
       const material = item.getMaterial();
-      if (!material) return { ok: false, reason: 'not-fuel' };
+      if (!material || !MixinApi.hasCombustion(material)) return { ok: false, reason: 'not-fuel' };
       if (!(material.getHeatOfCombustion().rawValue() > 0)) {
         return { ok: false, reason: 'not-fuel' };
       }
@@ -1390,11 +1391,11 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
         const mass = this.fuelBed[path] ?? 0;
         // ⭐ What burns leaves its ash in the grate (cleanliness D24).
         const material = StuffApi.findByTemplatePath<Material>(path);
-        const ash = material?.getAshFraction() ?? 0;
+        const ash = material && MixinApi.hasCombustion(material) ? material.getAshFraction() : 0;
         if (ash > 0) {
           this.ashKg += mass * fraction * ash;
           // ⭐ …and the alkali in it, by the same material (potash D1).
-          this.ashAlkaliKg += mass * fraction * ash * (material?.getAlkaliShare() ?? 0);
+          this.ashAlkaliKg += mass * fraction * ash * (material && MixinApi.hasCombustion(material) ? material.getAlkaliShare() : 0);
         }
         const left = mass - mass * fraction;
         if (left > 1e-9) this.fuelBed[path] = left;
@@ -1447,7 +1448,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       const shares = this.fuelShares();
       let mjPerKg = 0;
       for (const { material, share } of shares) {
-        mjPerKg += share * material.getHeatOfCombustion().rawValue();
+        mjPerKg += share * (MixinApi.hasCombustion(material) ? material.getHeatOfCombustion().rawValue() : 0);
       }
       if (!(mjPerKg > 0)) return 0;
       return Math.min(this.fuelRemaining(), joules / (mjPerKg * 1e6));
@@ -1617,6 +1618,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
  * field, and phase stays a consequence of the material and the place.
  */
 function isGasMaterial(material: Material): boolean {
+  if (!MixinApi.hasVolatility(material)) return false;
   const bp = material.getBoilingPoint().rawValue();
   if (!(bp > 0)) return false;
   return bp <= burnerDial(AppSettingKeys.atmosphereStandardK, 293);

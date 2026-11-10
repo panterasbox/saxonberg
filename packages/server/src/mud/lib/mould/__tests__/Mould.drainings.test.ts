@@ -14,7 +14,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
 import Provision from '../../../platform/thing/Provision';
-import Material from '../../material/Material';
+import Syrup from '../../../platform/idea/material/Syrup';
 import { MouldMixin } from '../Mould';
 import { DurableMixin } from '../../material/Durable';
 import { CraftedMixin } from '../../craft/Crafted';
@@ -62,26 +62,26 @@ const CHEESE = '/stuff/idea/material/_drain/cheese';
 const WHEY = '/stuff/idea/material/_drain/whey';
 const MILKER = '/platform/agent/Avatar/milker';
 
-function material(path: string, setup: (m: Material) => void): Material {
-  const found = StuffApi.findByTemplatePath<Material>(path);
+function material(path: string, setup: (m: Syrup) => void): Syrup {
+  const found = StuffApi.findByTemplatePath<Syrup>(path);
   if (found) return found;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Syrup();
     m.setName(path.split('/').pop()!);
     m.setDensity(Quantity.of(1000, 'kg/m³'));
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
     setup(m);
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as Syrup;
 }
 
-function whey(): Material {
+function whey(): Syrup {
   return material(WHEY, (m) => {
     m.setDensity(Quantity.of(1030, 'kg/m³'));
     m.setSolidsKgPerL(0.05);
   });
 }
-function curd(): Material {
+function curd(): Syrup {
   material(CHEESE, () => {});
   whey();
   return material(CURD, (m) => {
@@ -96,11 +96,11 @@ function curd(): Material {
   });
 }
 
-function fill<T extends Stuff>(v: T, mat: Material | null, litres: number): T {
+function fill<T extends Stuff>(v: T, mat: Syrup | null, litres: number): T {
   const b = v as unknown as {
     interiorBulk: boolean;
     setInteriorCapacity(q: Quantity<'L'>): void;
-    setBulkMaterial(a: 'interior', m: Material | null): void;
+    setBulkMaterial(a: 'interior', m: Syrup | null): void;
     setBulkAmount(a: 'interior', q: Quantity<'L'>): void;
     setStampedTemperatureK(k: number): void;
     setLastAmbientK(k: number): void;

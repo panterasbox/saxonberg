@@ -64,6 +64,7 @@ import type {
   KineticRecordData,
 } from "../material/Kinetics";
 import { KineticRecord } from "../material/KineticRecord";
+import type { Fusion } from "../material/Fusion";
 import type { MarkupAugmenter } from "../../api/mml";
 import type { Atmospheric as AtmosphericScope } from "../biome/Atmospheric";
 import type { Composition } from "../material/Composition";
@@ -1386,7 +1387,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     public kineticPhrases(): { key: string; phrase: string; senses?: readonly string[] }[] {
       // ⭐ Inertness BEFORE the clock: a body whose material declares no
       // change reads and writes nothing (a look at a chair costs a lookup).
-      const kinetics = this.kineticSource()?.getKinetics() ?? null;
+      const kinetics = this.kineticsOf(this.kineticSource());
       if (kinetics === null) return [];
       this.reconcileKinetics();
       const rec = this.kineticRecord;
@@ -1419,7 +1420,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!Number.isFinite(value)) return;
       const self = this.thermalHost;
       const source = this.kineticSource();
-      const kinetics = source?.getKinetics() ?? null;
+      const kinetics = this.kineticsOf(source);
       const change = kinetics?.change(key);
       const rec = new KineticRecord(this.kineticRecord);
       rec.beginOn(source?.getTemplatePath() ?? null);
@@ -1448,7 +1449,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     public isPartConverted(): boolean {
       const rec = this.kineticRecord;
       if (rec === null) return false;
-      const kinetics = this.kineticSource()?.getKinetics() ?? null;
+      const kinetics = this.kineticsOf(this.kineticSource());
       if (kinetics === null) return false;
       const laddered = kinetics
         .changes()
@@ -1466,6 +1467,10 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * so a piece keeps climbing its ladder through every rung — else its
      * own. `null` with no material.
      */
+    private kineticsOf(source: Material | null) {
+      return source !== null && MixinApi.hasKinetic(source) ? source.getKinetics() : null;
+    }
+
     private kineticSource(): Material | null {
       const self = this.thermalHost;
       if (!MixinApi.isTangible(self)) return null;
@@ -1536,7 +1541,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** Integrate the record to now — inert when the material declares nothing. */
     private integrateKineticsToNow(): void {
       const source = this.kineticSource();
-      const kinetics = source?.getKinetics() ?? null;
+      const kinetics = this.kineticsOf(source);
       if (source === null || kinetics === null) return;
       const nowS = this.thermalNowSeconds();
       if (nowS === null) return;
@@ -1545,7 +1550,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** Vaporize into the chamber holding this body, if hot enough there. */
     private vaporizeIfHot(mat: Material): boolean {
-      const above = mat.getVaporizesAboveK();
+      const above = MixinApi.hasVolatility(mat) ? mat.getVaporizesAboveK() : 0;
       if (!(above > 0) || !(this.stampedTemperatureK >= above)) return false;
       const self = this.thermalHost;
       const holder = self.getContainer() as unknown as Stuff | null;
@@ -2493,6 +2498,7 @@ function concentrateIfReached(
   aff: BulkAffordance,
   mat: Material,
 ): void {
+  if (!MixinApi.hasSolution(mat)) return;
   const arrows = mat.getConcentratesTo();
   if (arrows.length === 0) return;
   const payload = v.getBulkPayload(aff) ?? {};
@@ -2529,7 +2535,7 @@ function purifyIfHeld(
   mat: Material,
   heldS: number | null,
 ): void {
-  if (mat.getPurifiedByBoiling() === '') return;
+  if (!MixinApi.hasSolution(mat) || mat.getPurifiedByBoiling() === '') return;
   if (heldS === null || heldS < THERMAL_DEFAULTS.PURIFY_HOLD_S) return;
   const into = StuffApi.findByTemplatePath<Material>(
     mat.getPurifiedByBoiling(),
@@ -2606,8 +2612,13 @@ function reconcileBulkPhase(
   // point is the material's at the liquor's own concentration. Water and
   // every other material that authors no elevation boil where they did.
   const solids =
-    v.getBulkPayload(aff)?.dissolvedSolidsKgPerL ?? mat.getSolidsKgPerL();
-  const bp = mat.boilingPointAt(mat.solidsMassFraction(solids));
+    v.getBulkPayload(aff)?.dissolvedSolidsKgPerL ??
+    (MixinApi.hasSolution(mat) ? mat.getSolidsKgPerL() : 0);
+  const bp = MixinApi.hasSolution(mat)
+    ? mat.boilingPointAt(mat.solidsMassFraction(solids))
+    : MixinApi.hasVolatility(mat)
+      ? mat.getBoilingPoint().rawValue()
+      : 0;
   if (bp > 0 && temp >= bp) {
     // ⭐⭐ **A gas does not boil away** — it is ALREADY above its boiling
     // point everywhere anybody stands, which is what makes it a gas, and
@@ -2629,7 +2640,7 @@ function reconcileBulkPhase(
     // made boiling cloth (and anything else) unrepresentable. A material
     // with no latent heat still flashes, as the doc promises (`0` = an
     // instantaneous transition).
-    const latent = mat.getLatentHeatOfVaporization().rawValue();
+    const latent = MixinApi.hasVolatility(mat) ? mat.getLatentHeatOfVaporization().rawValue() : 0;
     // What leaves is WATER: a solution loses a litre of it per kilogram,
     // and keeps every gram of what was dissolved in it.
     const kgPerL = solids > 0 ? 1 : mat.getDensity().rawValue() / 1000;
@@ -2668,8 +2679,8 @@ function reconcileBulkPhase(
     return;
   }
 
-  const mp = mat.getMeltingPoint().rawValue();
-  if (mp > 0 && temp <= mp) {
+  const mp = MixinApi.hasFusion(mat) ? mat.getMeltingPoint().rawValue() : 0;
+  if (MixinApi.hasFusion(mat) && mp > 0 && temp <= mp) {
     // ⭐⭐ **Freezing honours its latent heat, the mirror of melting.** A
     // pool below its melting point does not solidify on the instant: it
     // PLATEAUS at `mp` while the undershoot `(mp − T)·C` is banked into the
@@ -2767,7 +2778,7 @@ function reconcileBulkPhase(
  */
 async function setLump(
   scope: Stuff & Container,
-  mat: Material,
+  mat: Material & Fusion,
   massKg: number,
   setPayload: BulkPayload | null,
 ): Promise<void> {
@@ -2820,6 +2831,7 @@ function crystallizeIfOver(
   mat: Material,
   tempK: number,
 ): boolean {
+  if (!MixinApi.hasSolution(mat)) return false;
   const solubility = mat.solubilityAt(tempK);
   const into = mat.getCrystallizesTo();
   if (solubility === null || into === null) return false;
@@ -2922,7 +2934,9 @@ async function setCrystals(
   if (scope === null || !MixinApi.isContainer(scope as Stuff)) {
     throw new DetachedError(`${self.getPresentation()} has no place for its crystals`);
   }
-  const shape = mould ? mould.castTemplateFor(product) : product.getCastTemplate();
+  const shape = mould ? mould.castTemplateFor(product) : MixinApi.hasFusion(product)
+      ? product.getCastTemplate()
+      : '';
   for (const c of scope.getContents()) {
     const s = c as unknown as Stuff;
     if (s === self || s.isDestroyed() || !MixinApi.isTangible(s)) continue;

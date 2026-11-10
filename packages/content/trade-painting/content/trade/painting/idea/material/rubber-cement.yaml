@@ -1,5 +1,5 @@
 # rubber cement — raw rubber dissolved in turpentine: a flexible glue that sets as the spirit leaves it, stands the damp, and peels away again.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Glue
 data:
   smells: [{ aroma: /base-library/aromas/naphtha, strength: 800 }]
   name: rubber cement
@@ -9,9 +9,6 @@ data:
   specificHeat: 2500
   thermalConductivity: 0.3
   meltingPoint: 230
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [liquid, glue, cement, flammable]
   # ⭐ A GLUE (paint D11): the strength of a set line, whether heat and
   # steam undo it, how it stands the damp, the heat it lets go at.

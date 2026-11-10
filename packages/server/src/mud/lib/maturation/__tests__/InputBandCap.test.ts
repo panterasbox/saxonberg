@@ -22,6 +22,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../../platform/thing/Vat';
 import MaturationProfile from '../../../platform/idea/maturation/MaturationProfile';
 import Material from '../../material/Material';
+import Food from '../../../platform/idea/material/Food';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -51,7 +52,7 @@ class Pail extends CraftedMixin(BulkableMixin(Good)) {
 
 function material(path: string, tags: string[], sugar = 0): void {
   makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Food();
     m.setName(path.split('/').pop()!);
     m.setTags(tags);
     if (sugar > 0) m.setNutrientAmounts({ sugar });

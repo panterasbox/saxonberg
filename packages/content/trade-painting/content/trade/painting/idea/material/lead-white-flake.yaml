@@ -1,5 +1,5 @@
 # Lead white flake — the corroded crust before it is ground (paint D14).
-class: /platform/idea/material/Material
+class: /platform/idea/material/PigmentPaint
 data:
   name: lead white flake
   keywords: ["lead white", "white lead", flake]
@@ -7,11 +7,7 @@ data:
   density: 6000
   specificHeat: 300
   thermalConductivity: 0.5
-  edibility: false
-  nutrients: []
   toxicity:
     - type: lead
       amount: 0.5
   tags: [solid, lead, toxic, lead-white-cake]
-  composition: []
-  biologicalSource: null

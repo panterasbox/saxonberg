@@ -14,7 +14,7 @@
 # was historically worn undyed or bleached and wool was the coloured
 # cloth. The dyeing trade reads this tag; nothing else distinguishes a
 # plant fibre from a protein one.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Fiber
 data:
   burning: [{ aroma: /base-library/aromas/paper-smoke, strength: 300 }]
   name: linen
@@ -44,18 +44,9 @@ data:
   # lower (the rag heap that sets a shed alight).
   heatOfCombustion: 16
   autoignitionTemperature: 680
-  edibility: false
-  nutrients: []
-  toxicity: []
   # ⚠ `greige` is the tag the bleaching green matches on — unbleached,
   # loom-state linen. It is what this row IS until somebody lays it out
   # in the sun for a month.
   tags: ["textile", "fibre", "organic", "plant", "cellulose", "greige", "once-living"]
-  # No constituent rows: a natural polymer is not a mixture of other
-  # shipped materials. The chemistry below is cellulose's REPEAT UNIT,
-  # which is the honest thing to state about a polymer.
-  composition: []
-  chemistry:
-    formula: C6H10O5
-    molarMass: 162.14
-  biologicalSource: null
+  formula: C6H10O5
+  molarMass: 162.14

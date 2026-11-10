@@ -9,7 +9,7 @@
 #
 # ⭐ The `feed` tag is what the pets chain reads, and it is what makes
 # this a *manufactured* feed rather than a scrap thrown on the ground.
-class: /platform/idea/material/OdorousConsumableMaterial
+class: /platform/idea/material/SolidFood
 data:
   smells: [{ aroma: /base-library/aromas/bread, strength: 60 }]
   name: dog bread
@@ -57,7 +57,6 @@ data:
         - [0.8, "It is hard all the way through. You could knock on it."]
       senses: [vision, touch]
   waterActivity: 0.55
-  edibility: true
   # Coarse and savoury, and nothing about it is sweet.
   tastes: [{ type: umami, amount: 1 }, { type: bitter, amount: 0.01 }]
   # ⚠ **No `fibre`**, and the absence is checked rather than assumed.
@@ -71,7 +70,4 @@ data:
     protein: 90000
     fat: 60000
     carb: 110000
-  toxicity: []
   tags: ["food", "bread", "feed", "dog-bread"]
-  composition: []
-  biologicalSource: null

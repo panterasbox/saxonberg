@@ -11,7 +11,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Herb from '@saxonberg/server/mud/platform/idea/material/Herb';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import { DyedMixin } from '@saxonberg/server/mud/lib/material/Dyed';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
@@ -50,11 +50,11 @@ let room: Place;
 let dyer: TestActor;
 let sent: string[];
 
-function material(path: string, name: string, tags: string[]): Material {
+function material(path: string, name: string, tags: string[]): Herb {
   return (
-    StuffApi.findByTemplatePath<Material>(path) ??
+    StuffApi.findByTemplatePath<Herb>(path) ??
     makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Herb();
       m.setName(name);
       m.setTags(tags);
       return m;

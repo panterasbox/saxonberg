@@ -6,7 +6,7 @@
 # a colour BINDS TO, which is why the skill in this trade is
 # front-loaded: you commit to a colour family in the first bath, before
 # you can see anything at all.
-class: /platform/idea/material/Material
+class: /platform/idea/material/Salt
 data:
   name: alum
   keywords: [alum]
@@ -18,12 +18,6 @@ data:
   specificHeat: 900
   electricalConductivity: 1.0e-4
   waterAbsorptionCapacity: 5
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ['mordant', 'mineral', 'brightening']
-  composition: []
-  chemistry:
-    formula: KAl(SO4)2
-    molarMass: 258.19
-  biologicalSource: null
+  formula: "KAl(SO4)2"
+  molarMass: 258.19

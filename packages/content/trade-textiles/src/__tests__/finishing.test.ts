@@ -14,7 +14,7 @@ import ClothBolt from '../thing/ClothBolt';
 import Copper from '../thing/Copper';
 import Oven from '@saxonberg/server/mud/platform/thing/Oven';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
-import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import Water from '@saxonberg/server/mud/platform/idea/material/Water';
 import MaturationProfile from '@saxonberg/server/mud/platform/idea/maturation/MaturationProfile';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -42,10 +42,10 @@ const LINEN = '/stuff/idea/material/textile/linen';
 const WATER = '/stuff/idea/material/bulk/water';
 
 function fixtures(): void {
-  const mat = (path: string, name: string, tags: string[], extra?: (m: Material) => void) => {
+  const mat = (path: string, name: string, tags: string[], extra?: (m: Water) => void) => {
     if (StuffApi.findByTemplatePath(path)) return;
     makeStuffAtPath(() => {
-      const m = new Material();
+      const m = new Water();
       m.setName(name);
       m.setTags(tags);
       extra?.(m);
@@ -80,7 +80,7 @@ function fixtures(): void {
 
 function bolt(material: string): ClothBolt {
   const b = makeStuff(() => new ClothBolt());
-  b.setMaterial(StuffApi.findByTemplatePath<Material>(material)!);
+  b.setMaterial(StuffApi.findByTemplatePath<Water>(material)!);
   b.setMass(Quantity.of(2, 'kg'));
   b.setGrade(Grade.of('fine'));
   (b as unknown as { lastAmbientK: number }).lastAmbientK = 293;
@@ -94,7 +94,7 @@ function copper(litres: number): Copper {
   c.setInteriorCapacity(Quantity.of(12, 'L'));
   c.setMass(Quantity.of(12, 'kg'));
   if (litres > 0) {
-    c.setBulkMaterial('interior', StuffApi.findByTemplatePath<Material>(WATER)!);
+    c.setBulkMaterial('interior', StuffApi.findByTemplatePath<Water>(WATER)!);
     c.setBulkAmount('interior', Quantity.of(litres, 'L'));
   }
   (c as unknown as { lastAmbientK: number }).lastAmbientK = 293;
@@ -190,7 +190,7 @@ describe('finishing in the piece', () => {
   it('a copper is for cloth', () => {
     const c = copper(0);
     expect(c.canAddContainable(bolt(RAW) as never).ok).toBe(true);
-    const stone = makeStuff(() => new Material());
+    const stone = makeStuff(() => new Water());
     expect(c.canAddContainable(stone as never).ok).toBe(false);
   });
 });

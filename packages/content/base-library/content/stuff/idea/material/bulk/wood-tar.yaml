@@ -17,7 +17,7 @@
 # flashes a liquid to vapour the instant it reaches its boiling point and
 # there would be no tar left to become pitch. The volume does reduce
 # while it boils, which is what boiling tar down IS.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/CoatingOil
 data:
   smells: [{ aroma: /base-library/aromas/pine-tar, strength: 4000 }]
   burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 1500 }]
@@ -32,13 +32,8 @@ data:
   heatOfCombustion: 36
   autoignitionTemperature: 680
   purifiedByBoiling: /stuff/idea/material/bulk/pitch
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: [bulk, organic, flammable, tar, once-living, waterproofing]
   # ⭐ A coat (cordage D13′): dipped hot, it sets on the face as it cools, and
   # keeps the water out of what it coats — a tarred rope does not rot.
   laysCoat: true
   coatWord: tarred
-  composition: []
-  biologicalSource: null

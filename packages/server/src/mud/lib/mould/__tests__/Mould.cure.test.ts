@@ -12,7 +12,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
-import Material from '../../material/Material';
+import Plaster from '../../../platform/idea/material/Plaster';
 import { MouldMixin } from '../Mould';
 import { DurableMixin } from '../../material/Durable';
 import { CraftedMixin } from '../../craft/Crafted';
@@ -53,16 +53,16 @@ const setNow = (s: number): void => {
 };
 let cloned: string[] = [];
 
-function material(path: string, setup: (m: Material) => void): Material {
-  const found = StuffApi.findByTemplatePath<Material>(path);
+function material(path: string, setup: (m: Plaster) => void): Plaster {
+  const found = StuffApi.findByTemplatePath<Plaster>(path);
   if (found) return found;
   return makeStuffAtPath(() => {
-    const m = new Material();
+    const m = new Plaster();
     m.setName(path.split('/').pop()!);
     m.setSpecificHeat(Quantity.of(1000, 'J/(kg·K)'));
     setup(m);
     return m;
-  }, path) as unknown as Material;
+  }, path) as unknown as Plaster;
 }
 
 function mats(): void {
@@ -96,8 +96,8 @@ function mats(): void {
   material(PINE, (m) => m.setDensity(Quantity.of(510, 'kg/m³')));
 }
 
-function mat(path: string): Material {
-  return StuffApi.findByTemplatePath<Material>(path)!;
+function mat(path: string): Plaster {
+  return StuffApi.findByTemplatePath<Plaster>(path)!;
 }
 
 function vessel(materialPath: string): TestMould {
@@ -112,7 +112,7 @@ function vessel(materialPath: string): TestMould {
 
 function fill(m: TestMould, path: string, litres: number): void {
   const b = m as unknown as {
-    setBulkMaterial(a: 'interior', x: Material): void;
+    setBulkMaterial(a: 'interior', x: Plaster): void;
     setBulkAmount(a: 'interior', q: Quantity<'L'>): void;
     setStampedTemperatureK(k: number): void;
     setLastAmbientK(k: number): void;

@@ -16,6 +16,7 @@ import { ConstructedMixin } from '../../material/Constructed';
 import { ContainableMixin } from '../../spatial/Containable';
 import Good from '../../stuff/Good';
 import Material from '../../material/Material';
+import Polymer from '../../../platform/idea/material/Polymer';
 import { Construction } from '../../material/Construction';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
@@ -37,7 +38,7 @@ let planPath = '';
 let plan: BodyPlan;
 
 function material(name: string, elasticityPct: number): Material {
-  const m = makeStuff(() => new Material());
+  const m = makeStuff(() => new Polymer());
   m.setName(name);
   m.setDensity(Quantity.of(1200, 'kg/m³'));
   m.setThermalConductivity(Quantity.of(0.05, 'W/(m·K)'));

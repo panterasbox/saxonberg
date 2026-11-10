@@ -12,7 +12,7 @@
 # sulfur in it, ebonite; held past 455 K at any point, scorched. A charge
 # standing in a mould comes out in the mould's shape (the mould seam).
 # There is no knowledge gate: anybody may try, and the window is narrow.
-class: /platform/idea/material/OdorousMaterial
+class: /platform/idea/material/Polymer
 data:
   smells: [{ aroma: /base-library/aromas/rubber, strength: 60 }]
   name: compounded rubber
@@ -43,9 +43,4 @@ data:
       over: /stuff/idea/material/organic/ebonite
       scorched: /stuff/idea/material/organic/rubber-scorched
       discipline: chemistry
-  edibility: false
-  nutrients: []
-  toxicity: []
   tags: ["organic", "elastomer", "compounded", "insulating", "polymer"]
-  composition: []
-  biologicalSource: null

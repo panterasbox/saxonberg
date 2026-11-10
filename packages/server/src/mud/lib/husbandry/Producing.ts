@@ -82,7 +82,7 @@ import {
 import { BulkableApi } from '../../api/bulk';
 import { ContainmentApi } from '../../api/containment';
 import { Quantity } from '../quantity';
-import type Material from '../../platform/idea/material/Material';
+import type Material from '../material/Material';
 import type { Tooled } from '../craft/Tool';
 import type { Bulkable, BulkSlot } from '../bulk/Bulkable';
 import { Contamination } from '../material/Contaminable';
