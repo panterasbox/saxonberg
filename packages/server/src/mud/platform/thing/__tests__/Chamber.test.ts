@@ -34,7 +34,7 @@ import {
   makeStuffAtPath,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { Placement } from '../../../lib/spatial/Placement';
+import { Placement, Placements } from '../../../lib/spatial/Placement';
 
 class Cheese extends ThermalMixin(Good) {
   static _mixinName = 'ChamberTestCheese';
@@ -113,7 +113,7 @@ describe('Chamber', () => {
     expect(MixinApi.isContainable(c)).toBe(true);
     expect(MixinApi.isContainer(c)).toBe(false);
     expect(MixinApi.isExitable(c)).toBe(false);
-    expect(c.getPlacements()).toEqual([Placement.IN]);
+    expect(c.getPlacements()).toEqual([Placements.IN]);
     expect(c.isFixedInPlace()).toBe(true);
   });
 
@@ -124,7 +124,7 @@ describe('Chamber', () => {
     const inside = cheese(281);
     const beside = cheese(295);
     ContainmentApi.move(beside, room);
-    ContainmentApi.move(inside, loft, Placement.IN);
+    ContainmentApi.move(inside, loft, Placements.IN);
 
     expect(loft.probeOccupants()).toEqual([inside]);
     // The placed thing stands in the ROOM, under the chamber.
@@ -146,8 +146,8 @@ describe('Chamber', () => {
 
     const cold = cheese(300);
     const warm = cheese(300);
-    ContainmentApi.move(cold, loft, Placement.IN);
-    ContainmentApi.move(warm, shelf, Placement.ON);
+    ContainmentApi.move(cold, loft, Placements.IN);
+    ContainmentApi.move(warm, shelf, Placements.ON);
     await cold.restamp();
     await warm.restamp();
 
@@ -168,7 +168,7 @@ describe('Chamber', () => {
     const loft = chamber(null);
     ContainmentApi.move(loft, room);
     const c = cheese(300);
-    ContainmentApi.move(c, loft, Placement.IN);
+    ContainmentApi.move(c, loft, Placements.IN);
     await c.restamp();
     expect(c.lastAmbientK).toBeCloseTo(290, 0);
   });
@@ -182,7 +182,7 @@ describe('Chamber', () => {
     const loft = chamber(281);
     ContainmentApi.move(loft, room);
     const c = cheese(281);
-    ContainmentApi.move(c, loft, Placement.IN);
+    ContainmentApi.move(c, loft, Placements.IN);
     await c.restamp();
     expect(c.lastAmbientK).toBeCloseTo(281, 0);
 

@@ -53,7 +53,7 @@ import {
   makeStuffAtPath,
 } from '../../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { Placement } from '../../../../../lib/spatial/Placement';
+import { Placements } from '../../../../../lib/spatial/Placement';
 
 class Cook extends AetherMixin(
   SensorMixin(
@@ -184,7 +184,7 @@ describe('`dry` — hang it where the air can reach it', () => {
     const probe = makeStuff(() => new Probe()) as unknown as Probe;
 
     const dry = scene(40);
-    ContainmentApi.move(dry.cut as never, dry.rack as never, Placement.ON);
+    ContainmentApi.move(dry.cut as never, dry.rack as never, Placements.ON);
     const dryLine = probe.prospect(dry.cut, dry.room);
     expect(dryLine).toMatch(/^In this air it will take about /);
     // ⚠ No figure anywhere in it — the answer is a rate, and a number would
@@ -192,7 +192,7 @@ describe('`dry` — hang it where the air can reach it', () => {
     expect(dryLine).not.toMatch(/\d/);
 
     const wet = scene(100, 0);
-    ContainmentApi.move(wet.cut as never, wet.rack as never, Placement.ON);
+    ContainmentApi.move(wet.cut as never, wet.rack as never, Placements.ON);
     expect(probe.prospect(wet.cut, wet.room)).toBe(
       'Nothing will dry in this air.',
     );
@@ -211,8 +211,8 @@ describe('`dry` — hang it where the air can reach it', () => {
     // That is the ~62 % crossing showing up as a sentence.
     const breezy = scene(30, 6);
     const still = scene(45, 0);
-    ContainmentApi.move(breezy.cut as never, breezy.rack as never, Placement.ON);
-    ContainmentApi.move(still.cut as never, still.rack as never, Placement.ON);
+    ContainmentApi.move(breezy.cut as never, breezy.rack as never, Placements.ON);
+    ContainmentApi.move(still.cut as never, still.rack as never, Placements.ON);
     const fast = probe.prospect(breezy.cut, breezy.room) ?? '';
     const slow = probe.prospect(still.cut, still.room) ?? '';
     expect(fast).not.toBe(slow);
@@ -245,7 +245,7 @@ describe('`dry` — hang it where the air can reach it', () => {
     function hook(): Fitting {
       return makeStuffAtPath(() => {
         const h = new Fitting();
-        h.setPlacements([Placement.FROM]);
+        h.setPlacements([Placements.FROM]);
         h.setAirExposure(1);
         h.setMass(Quantity.of(2, 'kg'));
         return h;
@@ -262,7 +262,7 @@ describe('`dry` — hang it where the air can reach it', () => {
         c,
       );
       expect(MixinApi.isContainable(cut) && cut.getPlacement()?.name).toBe(
-        Placement.FROM,
+        Placements.FROM,
       );
       expect(
         MixinApi.isContainable(cut) && (cut.getPlacement()?.host ?? null),
@@ -284,7 +284,7 @@ describe('`dry` — hang it where the air can reach it', () => {
       // The player typed `on`; the world hung it FROM. That is how the
       // word gets taught, with no tutorial and no code here knowing.
       expect(MixinApi.isContainable(cut) && cut.getPlacement()?.name).toBe(
-        Placement.FROM,
+        Placements.FROM,
       );
     });
 
@@ -302,7 +302,7 @@ describe('`dry` — hang it where the air can reach it', () => {
       const { room, cook, cut } = scene(40);
       const h = hook();
       ContainmentApi.move(h as never, room as never);
-      ContainmentApi.move(cut as never, h as never, Placement.FROM);
+      ContainmentApi.move(cut as never, h as never, Placements.FROM);
       expect(probe.exposure(cut)).toBe(1);
     });
 
@@ -312,7 +312,7 @@ describe('`dry` — hang it where the air can reach it', () => {
         { target: bound(cut, 'cut'), rack: bound(rack, 'rack', 'on') } as DryModel,
         ctx(cook, room),
       );
-      expect(MixinApi.isContainable(cut) && cut.getPlacement()?.name).toBe(Placement.ON);
+      expect(MixinApi.isContainable(cut) && cut.getPlacement()?.name).toBe(Placements.ON);
     });
 
     it('a word the host does not take is refused, naming what it does', async () => {

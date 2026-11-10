@@ -273,7 +273,7 @@ export default class SenseController extends CommandController<SenseModel> {
         // with nothing here knowing the difference. A member with no
         // live row falls back rather than printing nothing.
         const heading =
-          Placement.need(member).getHeading() || 'With it';
+          ContainmentApi.placements().need(member).getHeading() || 'With it';
         body = Mml.compose`${body}── ${heading}: ${list}.`;
       }
     }

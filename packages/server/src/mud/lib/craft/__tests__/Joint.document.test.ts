@@ -7,7 +7,6 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { Joint } from '../Joint';
 import { AssembledMixin } from '../Assembled';
 import { Idea } from '../../stuff/Idea';
 import { DurableMixin } from '../../material/Durable';

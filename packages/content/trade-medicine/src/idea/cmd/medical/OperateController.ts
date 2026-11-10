@@ -26,7 +26,7 @@ import {
   OperationEngagement,
   OperationPatientHold,
 } from '@saxonberg/server/mud/lib/vitals/OperationEngagement';
-import { Operation, type OperationDescriptor } from '@saxonberg/server/mud/lib/vitals/Operation';
+import { type OperationDescriptor } from '@saxonberg/server/mud/lib/vitals/Operation';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';

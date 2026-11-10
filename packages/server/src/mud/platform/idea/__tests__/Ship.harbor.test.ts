@@ -27,7 +27,7 @@ import { makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import { rememberShippedJoints } from '../../../lib/craft/__tests__/joint-fixtures';
-import { Placement } from '../../../lib/spatial/Placement';
+import { Placements } from '../../../lib/spatial/Placement';
 
 /**
  * ⭐ A ship and the harbor, by the kernel's protocols only:
@@ -104,7 +104,7 @@ function lineOn(room: Stuff & Container, length = 30): Rope {
   }
   const l = makeStuffAtPath(() => new Rope(), '/platform/thing/mooring-line');
   l.setLengthM(length);
-  ContainmentApi.move(l, bitts, Placement.ON);
+  ContainmentApi.move(l, bitts, Placements.ON);
   return l;
 }
 

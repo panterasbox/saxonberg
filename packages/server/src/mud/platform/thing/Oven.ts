@@ -15,7 +15,7 @@ import { MixinApi } from '../../api/mixin';
 import { BulkableApi } from '../../api/bulk';
 import type { BulkSlot } from '../../lib/bulk/Bulkable';
 import type { Stuff } from '../../lib/stuff/Stuff';
-import { Placement } from '../../lib/spatial/Placement';
+import { Placements } from '../../lib/spatial/Placement';
 
 // ⭐ `ContainerMixin` INSIDE `ThermalMixin`: an oven is a chamber you put
 // bread in. A `Forge` and a `Kiln` are deliberately NOT containers — a
@@ -75,7 +75,7 @@ export default class Oven extends OvenBase {
   protected override fuelSlot(): BulkSlot | null {
     const self = this as unknown as Stuff;
     if (!MixinApi.isPlacing(self)) return null;
-    for (const item of self.getPlaced(Placement.ON)) {
+    for (const item of self.getPlaced(Placements.ON)) {
       if (!MixinApi.isBulkable(item)) continue;
       // ⚠ The closure FIRST: a fuel bottle is sealed, and the closure is a
       // field. Reading a pan's contents reconciles the pan, and a pan on

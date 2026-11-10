@@ -72,7 +72,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { WorldClockApi } from '../../api/worldclock';
 import { BiomeApi } from '../../api/biome';
 import { MqlSubscriptionApi } from '../../api/mql-subscription';
-import { Joint, type JointDescriptor } from './Joint';
+import { type JointDescriptor } from './Joint';
 import { CraftingApi } from '../../api/crafting';
 
 // ---------------------------------------------------------------- the bill

@@ -34,7 +34,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
-import { Placement } from '../../spatial/Placement';
+import { Placements } from '../../spatial/Placement';
 
 class TestPan extends MouldMixin(
   DurableMixin(CraftedMixin(ThermalMixin(BulkableMixin(ContainerMixin(Good))))),
@@ -200,7 +200,7 @@ describe('⭐⭐ the crystallize arm', () => {
     const t = tub();
     ContainmentApi.move(t, r);
     const p = fill(pan(), brine(), 2, 293, 1.0);
-    ContainmentApi.move(p, t, Placement.ON);
+    ContainmentApi.move(p, t, Placements.ON);
     expect(p.drainsInto()).toBe(t);
 
     p.reconcilePhase();

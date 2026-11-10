@@ -42,6 +42,8 @@ import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { ContainmentLogic } from '../platform/idea/api/ContainmentLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import PlacementCatalogue from '../platform/idea/PlacementCatalogue';
+import { Placements } from '../lib/spatial/Placement';
 // `GotoController` is reached lazily via a string module id to avoid a
 // value-level static-import cycle (api/containment → controller →
 // ContainmentApi).
@@ -104,6 +106,17 @@ export type MergeOnArrivalHook = (
  */
 export class ContainmentApi {
   /**
+   * ⭐ The placements — the ways a thing sits in its container (`on` a
+   * desk, `in` a drawer, `from` a hook), any pack's `content/placements/`,
+   * served by {@link PlacementCatalogue}. Every place loads the kernel's;
+   * a host's `placements` setter loads its own; a typed `put X on Y` is
+   * resolved against the host's own.
+   */
+  public static placements(): PlacementCatalogue {
+    return StuffApi.singletonSync('/platform/idea/PlacementCatalogue', () => new PlacementCatalogue());
+  }
+
+  /**
    * Install (or replace) the merge-on-arrival hook. Called once by
    * `StackableApi` at module load. The `_` prefix marks it
    * framework-internal — same shape as `SecurityApi._registerShadowApi`.
@@ -118,7 +131,7 @@ export class ContainmentApi {
    * ⭐⭐ **The movement primitive — the one way a thing is put somewhere.**
    * `move(item, dest)` moves it into `dest`; `move(item, desk)` puts it ON
    * a placing host (into the host's environment, with the placement pair);
-   * `move(item, loft, Placement.IN)` names the placement (by path, or a
+   * `move(item, loft, Placements.IN)` names the placement (by path, or a
    * typed word the host resolves) when a host offers more
    * than one. `null` detaches it.
    *

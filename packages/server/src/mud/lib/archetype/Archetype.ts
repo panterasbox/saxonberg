@@ -41,7 +41,7 @@ import { ContainmentApi } from '../../api/containment';
 import { PerceptionApi } from '../../api/perception';
 import { ParcelApi } from '../../api/parcel';
 import { GrammarApi } from '../../api/grammar';
-import { Placement } from '../spatial/Placement';
+import { Placements } from '../spatial/Placement';
 
 const RECIPES_PATH = '/platform/idea/RecipeCatalogue';
 /**
@@ -565,7 +565,7 @@ function satisfyingItem(
     // not a work surface; a hook is a `Placing` host and is not one
     // either. What a bench claims is that you can set things ON it.
     const hit = pool.find(
-      (i) => MixinApi.isPlacing(i) && i.getPlacements().includes(Placement.ON),
+      (i) => MixinApi.isPlacing(i) && i.getPlacements().includes(Placements.ON),
     );
     return hit ? hit.getPresentation() : null;
   }

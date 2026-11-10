@@ -29,6 +29,7 @@
 import type { BulkPayload } from '../bulk/Bulkable';
 import type Material from '../material/Material';
 import { Recipe } from './Recipe';
+import { CraftingApi } from '../../api/crafting';
 
 export class BlendIdentity {
   /** The recipe that made this blend, or `null` — most bulk has none. */
@@ -38,7 +39,7 @@ export class BlendIdentity {
     // ⭐ Resident by construction: the payload's setter loaded the
     // dictionary at restore, and a craft wrote it holding the recipe. A
     // miss throws (`DocumentNotResidentError`) — never a quiet fallback.
-    return Recipe.dictionary().getRecipe(id);
+    return CraftingApi.recipes().getRecipe(id);
   }
 
   /**

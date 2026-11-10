@@ -43,7 +43,7 @@ import type { Placing } from "../../../lib/spatial/Placing";
 import type { Slotted } from "../../../lib/slot/Slotted";
 import type { Slottable } from "../../../lib/slot/Slottable";
 import type { ParcelOwner } from "../../../lib/parcel/ParcelRecord";
-import { Placement } from '../../../lib/spatial/Placement';
+import { Placement, Placements } from '../../../lib/spatial/Placement';
 
 const PersistableApiCallers = SecurityPolicies.FromModule(
   "/api/persistable#PersistableApi",
@@ -792,8 +792,8 @@ async function restoreState(
       const item = restored[i];
       const host = restored[idx];
       if (item && host && MixinApi.isPlacing(host)) {
-        const placement = entry.placement.placement ?? Placement.ON;
-        await Placement.ensure(placement);
+        const placement = entry.placement.placement ?? Placements.ON;
+        await ContainmentApi.placements().ensure(placement);
         ContainmentApi.move(item as Stuff & Containable, host as Stuff & Placing, placement);
       }
     }

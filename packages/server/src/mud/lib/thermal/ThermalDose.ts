@@ -56,6 +56,7 @@ import { AppApi } from '../../api/app';
 import { TemplatePaths } from '../paths';
 import { Decay } from '../Decay';
 import type { MarkupAugmenter } from '../../api/mml';
+import { CraftingApi } from '../../api/crafting';
 
 /**
  * ⭐ **The dose's own field on the blend payload, declared here.** The
@@ -739,5 +740,5 @@ function doseRecipeFor(recipeRef: string): Recipe | null {
   if (recipeRef.includes(':')) return null;
   // ⭐ Resident by construction (`Crafted.setRecipe` loads the dictionary at
   // restore; a craft held its recipe). A miss throws — never a quiet null.
-  return Recipe.dictionary().getRecipe(recipeRef);
+  return CraftingApi.recipes().getRecipe(recipeRef);
 }

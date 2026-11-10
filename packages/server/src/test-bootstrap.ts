@@ -50,8 +50,8 @@ import { fileURLToPath } from "url";
 import YAML from "yaml";
 import { MaterialApi } from "./mud/api/material";
 import { PartyApi } from "./mud/api/party";
-import { Placement } from "./mud/lib/spatial/Placement";
 import { Topic } from "./mud/lib/message/Topic";
+import { ContainmentApi } from "./mud/api/containment";
 
 let installed = false;
 
@@ -185,7 +185,7 @@ function rememberKernelDocuments(): void {
   };
   each("dirt", (path, data) => void MaterialApi.dirtKinds().remember(path, MaterialApi.dirtKinds().parse(data, path)));
   each("formations", (path, data) => void PartyApi.formations().remember(path, PartyApi.formations().parse(data, path)));
-  each("placements", (path, data) => void Placement.remember(Placement.fromData(data, path)));
+  each("placements", (path, data) => void ContainmentApi.placements().remember(path, ContainmentApi.placements().parse(data, path)));
   // The topic vocabulary, as the first scene's warm would leave it — so a
   // suite's scenes deliver synchronously, as every scene after a world's
   // first does.

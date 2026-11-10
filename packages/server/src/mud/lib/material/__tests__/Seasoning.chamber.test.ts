@@ -26,7 +26,7 @@ import { Evaporation } from '../../material/Evaporation';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { TemplatePaths } from '../../paths';
-import { Placement } from '../../spatial/Placement';
+import { Placements } from '../../spatial/Placement';
 
 class Yard extends Place {}
 
@@ -106,7 +106,7 @@ afterEach(() => {
 describe('⭐ seasoning in a chamber', () => {
   it("a stack placed IN the loft reads the loft's air — the scope IS the chamber", () => {
     const t = stack();
-    ContainmentApi.move(t, loft, Placement.IN);
+    ContainmentApi.move(t, loft, Placements.IN);
     expect(t.getContainer()).toBe(yard);
     expect(t.getEnclosingScope()).toBe(loft);
 

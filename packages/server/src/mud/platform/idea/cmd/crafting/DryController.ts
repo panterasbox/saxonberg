@@ -43,7 +43,6 @@ import { BiomeApi } from '../../../../api/biome';
 import { AppApi } from '../../../../api/app';
 import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import { Mml } from '../../../../api/mml';
-import { Placement } from '../../../../lib/spatial/Placement';
 
 const TOPIC = 'act.deed';
 const DISCIPLINE = 'cooking';
@@ -183,7 +182,7 @@ export default class DryController extends CommandController<DryModel> {
     const word =
       member === null
         ? ''
-        : Placement.need(member).getPrimaryWord();
+        : ContainmentApi.placements().need(member).getPrimaryWord();
     const self = rack
       ? Mml.compose`You hang ${Mml.thing(target)} up to dry ${word} ${Mml.thing(rack)}.${tail}`
       : Mml.compose`You hang ${Mml.thing(target)} up to dry.${tail}`;

@@ -20,6 +20,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { Idea } from '../../stuff/Idea';
 import { Placement } from '../Placement';
+import { Placements } from '../Placement';
 
 // Concrete Placing test class composed with Containable so the
 // host itself can live in an environment for the lazy walk.
@@ -89,7 +90,7 @@ describe('PlacingMixin', () => {
         '/test/surface-default-canplace',
       );
       const item = makeStuff(() => new TestThing());
-      expect(surface.canPlace(item, Placement.ON)).toEqual({ ok: true });
+      expect(surface.canPlace(item, Placements.ON)).toEqual({ ok: true });
     });
 
     it('refuses a member the host does not offer', () => {
@@ -99,7 +100,7 @@ describe('PlacingMixin', () => {
         '/test/surface-unoffered-member',
       );
       const item = makeStuff(() => new TestThing());
-      expect(surface.canPlace(item, Placement.FROM)).toEqual({
+      expect(surface.canPlace(item, Placements.FROM)).toEqual({
         ok: false,
         reason: 'no-such-placement',
       });
@@ -113,11 +114,11 @@ describe('PlacingMixin', () => {
         () => new TestSurface(),
         '/test/surface-default-placements',
       );
-      expect(surface.getPlacements()).toEqual([Placement.ON]);
-      expect(surface.resolvePlacement('on')).toBe(Placement.ON);
-      expect(surface.resolvePlacement('onto')).toBe(Placement.ON);
+      expect(surface.getPlacements()).toEqual([Placements.ON]);
+      expect(surface.resolvePlacement('on')).toBe(Placements.ON);
+      expect(surface.resolvePlacement('onto')).toBe(Placements.ON);
       expect(surface.resolvePlacement('from')).toBeNull();
-      expect(surface.resolvePlacement()).toBe(Placement.ON);
+      expect(surface.resolvePlacement()).toBe(Placements.ON);
     });
 
     it('⚠ a host naming a way of sitting nothing loaded is an engine defect — thrown by path', () => {
@@ -138,13 +139,13 @@ describe('PlacingMixin', () => {
         () => new TestSurface(),
         '/test/surface-hook-placements',
       );
-      hook.setPlacements([Placement.FROM]);
-      expect(hook.getPlacements()).toEqual([Placement.FROM]);
-      expect(hook.resolvePlacement('from')).toBe(Placement.FROM);
+      hook.setPlacements([Placements.FROM]);
+      expect(hook.getPlacements()).toEqual([Placements.FROM]);
+      expect(hook.resolvePlacement('from')).toBe(Placements.FROM);
       // `from`'s document lists `on` as a secondary word.
-      expect(hook.resolvePlacement('on')).toBe(Placement.FROM);
+      expect(hook.resolvePlacement('on')).toBe(Placements.FROM);
       // With no word and one member, that member.
-      expect(hook.resolvePlacement()).toBe(Placement.FROM);
+      expect(hook.resolvePlacement()).toBe(Placements.FROM);
     });
   });
 
@@ -180,7 +181,7 @@ describe('PlacingMixin', () => {
     });
 
     it('returns items whose placement names this host', () => {
-      ContainmentApi.move(restingItem, surface, Placement.ON);
+      ContainmentApi.move(restingItem, surface, Placements.ON);
       ContainmentApi.move(floatingItem, room);
       const resting = surface.getPlaced();
       expect(resting).toHaveLength(1);
@@ -225,14 +226,14 @@ describe('PlacingMixin', () => {
         '/test/surface-two-members',
       );
       ContainmentApi.move(host, room);
-      host.setPlacements([Placement.ON, Placement.FROM]);
+      host.setPlacements([Placements.ON, Placements.FROM]);
       const onIt = makeStuff(() => new TestThing());
       const fromIt = makeStuff(() => new TestThing());
-      ContainmentApi.move(onIt, host, Placement.ON);
-      ContainmentApi.move(fromIt, host, Placement.FROM);
+      ContainmentApi.move(onIt, host, Placements.ON);
+      ContainmentApi.move(fromIt, host, Placements.FROM);
       expect(host.getPlaced()).toHaveLength(2);
-      expect(host.getPlaced(Placement.ON)).toEqual([onIt]);
-      expect(host.getPlaced(Placement.FROM)).toEqual([fromIt]);
+      expect(host.getPlaced(Placements.ON)).toEqual([onIt]);
+      expect(host.getPlaced(Placements.FROM)).toEqual([fromIt]);
     });
   });
 });

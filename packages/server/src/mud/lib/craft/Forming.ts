@@ -30,7 +30,7 @@ import type { CommandContributions } from '../../api/command';
 import type { CompetenceBandName } from '../advancement/CompetenceBand';
 import type { Grade } from './Grade';
 import type { FormClass, FormWord } from './FormSpec';
-import { Form, FormGrammar, ParsedForm } from './FormSpec';
+import { FormGrammar, ParsedForm } from './FormSpec';
 import type { BeyondHandRefusal, ShapePlan, ShapeRefusal, ShapeRequest } from './Shapeable';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';

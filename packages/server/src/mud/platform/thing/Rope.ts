@@ -66,7 +66,6 @@ import type { CompetenceBandName } from '../../lib/advancement/CompetenceBand';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { FaceName, CoatLayer } from '../../lib/material/Faced';
 import type { CommandContributions } from '../../api/command';
-import { Joint } from '../../lib/craft/Joint';
 import { Quantity, type Quantity as Q } from '../../lib/quantity';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { TemplatePaths } from '../../lib/paths';

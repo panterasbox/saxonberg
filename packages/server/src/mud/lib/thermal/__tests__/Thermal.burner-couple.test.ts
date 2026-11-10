@@ -37,7 +37,7 @@ import {
   makeStuffAtPath,
 } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
-import { Placement } from '../../spatial/Placement';
+import { Placements } from '../../spatial/Placement';
 
 /** The `Oven` composition: Burner over Thermal over Placing + Container. */
 class TestOven extends BurnerMixin(
@@ -227,7 +227,7 @@ describe("the furnace couple — a furnace heats what it holds", () => {
     f.ignite();
 
     const pot = loaf(293);
-    await ContainmentApi.move(pot, f, Placement.ON);
+    await ContainmentApi.move(pot, f, Placements.ON);
     await pot.restamp();
 
     expect((pot.getPlacement()?.host ?? null)).toBe(f);
@@ -241,7 +241,7 @@ describe("the furnace couple — a furnace heats what it holds", () => {
     o.ignite();
 
     const pot = loaf(293);
-    await ContainmentApi.move(pot, o, Placement.ON);
+    await ContainmentApi.move(pot, o, Placements.ON);
     await pot.restamp();
 
     expect((pot.getPlacement()?.host ?? null)).toBe(o);

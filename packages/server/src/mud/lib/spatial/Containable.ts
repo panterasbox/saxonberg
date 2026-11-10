@@ -54,6 +54,7 @@ import {
   type SubscribableFieldDescriptor,
 } from '../../api/mql-subscription';
 import { Placement } from './Placement';
+import { Placements } from './Placement';
 
 /**
  * Public shape provided by ContainableMixin.
@@ -403,7 +404,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     getPlacement(): { host: Stuff & Placing; name: string } | null {
       const host = this._placementHost;
       if (!host) return null;
-      return { host, name: this._placementName || Placement.ON };
+      return { host, name: this._placementName || Placements.ON };
     }
 
     /**
@@ -416,7 +417,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       const placement = this.getPlacement();
       if (placement !== null) {
         // Resident with the host and with the restored thing (documents D7).
-        if (Placement.need(placement.name).getEncloses()) {
+        if (ContainmentApi.placements().need(placement.name).getEncloses()) {
           return placement.host as unknown as Stuff;
         }
       }
@@ -435,7 +436,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     @Unshadowable
     _setPlacement(host: (Stuff & Placing) | null, name?: string): void {
       this._placementHost = host;
-      this._placementName = host ? (name ?? Placement.ON) : '';
+      this._placementName = host ? (name ?? Placements.ON) : '';
     }
   }
   return ContainableMixin;

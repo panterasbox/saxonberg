@@ -36,6 +36,8 @@ import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import type { BulkPayload } from '../lib/bulk/Bulkable';
 import type Material from '../lib/material/Material';
+import type RecipeCatalogue from '../platform/idea/RecipeCatalogue';
+import { DocumentNotResidentError } from '../lib/errors';
 
 /**
  * How the output's maker is resolved — an enum, never a principal:
@@ -534,6 +536,7 @@ function logic(): CraftingLogic {
 
 const JOINT_CATALOGUE = '/platform/idea/JointCatalogue';
 const FORM_CATALOGUE = '/platform/idea/FormCatalogue';
+const RECIPE_CATALOGUE = '/platform/idea/RecipeCatalogue';
 
 export class CraftingApi {
   /**
@@ -544,6 +547,19 @@ export class CraftingApi {
    */
   public static joints(): JointCatalogue {
     return StuffApi.singletonSync(JOINT_CATALOGUE, () => new JointCatalogue());
+  }
+
+  /**
+   * ⭐ The recipes — every way a thing is made, any pack's
+   * `content/recipes/`, served by {@link RecipeCatalogue} (word → recipe,
+   * path → recipe). Loaded on reach, never at boot: whatever holds a recipe
+   * reference loaded it when the reference was set, and a craft has its
+   * recipe in hand — so a cold read throws, never "no recipe".
+   */
+  public static recipes(): RecipeCatalogue {
+    const cat = StuffApi.findByTemplatePath<RecipeCatalogue>(RECIPE_CATALOGUE);
+    if (!cat) throw new DocumentNotResidentError('recipe', RECIPE_CATALOGUE);
+    return cat;
   }
 
   /**

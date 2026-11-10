@@ -35,7 +35,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
-import { Placement } from '../../spatial/Placement';
+import { Placements } from '../../spatial/Placement';
 
 class TestHoop extends MouldMixin(
   DurableMixin(CraftedMixin(ThermalMixin(BulkableMixin(ContainerMixin(Good))))),
@@ -137,7 +137,7 @@ function hoopOnPail(): { hoop: TestHoop; pail: TestPail } {
     freshness: { load: 0.03, stamp: 0 },
     dissolvedSolidsKgPerL: 0.4,
   });
-  ContainmentApi.move(hoop, pail, Placement.ON);
+  ContainmentApi.move(hoop, pail, Placements.ON);
   return { hoop, pail };
 }
 

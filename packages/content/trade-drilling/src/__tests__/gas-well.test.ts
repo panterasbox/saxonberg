@@ -30,7 +30,7 @@ import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-set
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import Reading from '@saxonberg/server/mud/lib/instrument/Reading';
 import HeadReading from '../idea/reading/HeadReading';
-import { Placement } from '@saxonberg/server/mud/lib/spatial/Placement';
+import { Placements } from '@saxonberg/server/mud/lib/spatial/Placement';
 
 const PACK = fileURLToPath(new URL('../../', import.meta.url));
 const CONTENT = fileURLToPath(new URL('../../../', import.meta.url));
@@ -197,6 +197,6 @@ describe('⭐ the gas country is a ROW', () => {
     const hearth = data(
       `${CONTENT}trade-quarrying/content/trade/quarrying/thing/brine-hearth.yaml`,
     );
-    expect((hearth.placements ?? []) as string[]).toContain(Placement.ON);
+    expect((hearth.placements ?? []) as string[]).toContain(Placements.ON);
   });
 });

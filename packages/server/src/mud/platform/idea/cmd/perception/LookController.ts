@@ -744,7 +744,7 @@ export default class LookController extends CommandController<LookModel> {
         // with nothing here knowing the difference. A member with no
         // live row falls back rather than printing nothing.
         const heading =
-          Placement.need(member).getHeading() || 'With it';
+          ContainmentApi.placements().need(member).getHeading() || 'With it';
         section(Mml.compose`── ${heading}: ${list}.`, {
           shape: 'list',
           heading,

@@ -26,7 +26,7 @@ import Sheet from '@saxonberg/server/mud/platform/thing/Sheet';
 import WatercourseCatalogue, { WATERCOURSE_CATALOGUE_PATH } from '@saxonberg/content-water/src/idea/WatercourseCatalogue';
 import PaperMould from './PaperMould';
 import Stamper from './Stamper';
-import { Placement } from '@saxonberg/server/mud/lib/spatial/Placement';
+import { Placements } from '@saxonberg/server/mud/lib/spatial/Placement';
 
 /** Litres of stuff a sheet takes off the vat. */
 const SHEET_LITRES = 1;
@@ -105,7 +105,7 @@ export default class PulpVat extends DipBathMixin(CompoundingVessel) {
         const sheet = await StuffApi.clone<Stuff>(this.sheetTemplate || '/platform/thing/sheet');
         if (!(sheet instanceof Sheet)) return { ok: true, facts: { kind: 'gone' } };
         sheet.formAt(color, EVENNESS[band] ?? EVENNESS.untrained);
-        ContainmentApi.move(sheet, mould as unknown as Stuff & Placing, Placement.ON);
+        ContainmentApi.move(sheet, mould as unknown as Stuff & Placing, Placements.ON);
         return { ok: true, facts: { kind: 'sheet' } };
       },
     };

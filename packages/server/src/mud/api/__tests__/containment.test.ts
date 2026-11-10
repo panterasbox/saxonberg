@@ -19,7 +19,7 @@ import {
   makeStuffAtPath,
 } from '../../lib/security/__tests__/test-setup';
 import { Idea } from "../../lib/stuff/Idea";
-import { Placement } from '../../lib/spatial/Placement';
+import { Placements } from '../../lib/spatial/Placement';
 
 /**
  * Wrap a test-only invocation of an ApiOnly-gated static so the
@@ -50,7 +50,7 @@ describe('Container.getLooseContents', () => {
     const loose = makeStuff(() => new TestItem());
     ContainmentApi.move(surface, room);
     ContainmentApi.move(loose, room);
-    ContainmentApi.move(onSurface, surface, Placement.ON);
+    ContainmentApi.move(onSurface, surface, Placements.ON);
 
     const result = room.getLooseContents([surface, onSurface, loose]);
     expect(result).toContain(surface);
@@ -63,7 +63,7 @@ describe('Container.getLooseContents', () => {
     const surface = makeStuff(() => new TestSurface());
     const onSurface = makeStuff(() => new TestItem());
     ContainmentApi.move(surface, room);
-    ContainmentApi.move(onSurface, surface, Placement.ON);
+    ContainmentApi.move(onSurface, surface, Placements.ON);
 
     // The host isn't in the listing → the placed item stays top-level.
     expect(room.getLooseContents([onSurface])).toContain(onSurface);
@@ -352,14 +352,14 @@ describe('ContainmentApi', () => {
 
     it('places item into the host\'s container AND sets the placement', () => {
       ContainmentApi.move(surface, location1);
-      ContainmentApi.move(item, surface, Placement.ON);
+      ContainmentApi.move(item, surface, Placements.ON);
       expect(item.getContainer()).toBe(location1);
       expect((item.getPlacement()?.host ?? null)).toBe(surface);
     });
 
     it('move() after place clears the placement (container-change invariant)', () => {
       ContainmentApi.move(surface, location1);
-      ContainmentApi.move(item, surface, Placement.ON);
+      ContainmentApi.move(item, surface, Placements.ON);
       expect((item.getPlacement()?.host ?? null)).toBe(surface);
       ContainmentApi.move(item, container1);
       expect(item.getContainer()).toBe(container1);
@@ -369,10 +369,10 @@ describe('ContainmentApi', () => {
     it('place between two hosts in same env: container unchanged, placement updates', () => {
       ContainmentApi.move(surface, location1);
       ContainmentApi.move(otherSurface, location1);
-      ContainmentApi.move(item, surface, Placement.ON);
+      ContainmentApi.move(item, surface, Placements.ON);
       expect(item.getContainer()).toBe(location1);
       expect((item.getPlacement()?.host ?? null)).toBe(surface);
-      ContainmentApi.move(item, otherSurface, Placement.ON);
+      ContainmentApi.move(item, otherSurface, Placements.ON);
       expect(item.getContainer()).toBe(location1);
       expect((item.getPlacement()?.host ?? null)).toBe(otherSurface);
     });
@@ -380,16 +380,16 @@ describe('ContainmentApi', () => {
     it('place between hosts in different envs: both container and placement update', () => {
       ContainmentApi.move(surface, location1);
       ContainmentApi.move(otherSurface, location2);
-      ContainmentApi.move(item, surface, Placement.ON);
+      ContainmentApi.move(item, surface, Placements.ON);
       expect(item.getContainer()).toBe(location1);
-      ContainmentApi.move(item, otherSurface, Placement.ON);
+      ContainmentApi.move(item, otherSurface, Placements.ON);
       expect(item.getContainer()).toBe(location2);
       expect((item.getPlacement()?.host ?? null)).toBe(otherSurface);
     });
 
     it('throws when the host has no environment', () => {
       // surface was never moved into a container; getContainer() is null.
-      expect(() => ContainmentApi.move(item, surface, Placement.ON)).toThrow(
+      expect(() => ContainmentApi.move(item, surface, Placements.ON)).toThrow(
         /no environment/,
       );
     });
@@ -405,7 +405,7 @@ describe('ContainmentApi', () => {
         `/test/place-rejecting-${testIndex}`,
       );
       ContainmentApi.move(rejecting, location1);
-      expect(() => ContainmentApi.move(item, rejecting, Placement.ON)).toThrow(/rejects/);
+      expect(() => ContainmentApi.move(item, rejecting, Placements.ON)).toThrow(/rejects/);
     });
   });
 });

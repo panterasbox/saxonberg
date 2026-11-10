@@ -37,7 +37,6 @@ import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 import type Ore from '../../../thing/Ore';
 import type { Face, Working } from '../../../lib/Working';
 import type { Chattel } from '@saxonberg/server/mud/lib/chattel/Chattel';
-import { DirtKind } from '@saxonberg/server/mud/lib/cleanliness/DirtKind';
 import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 /** Reference time for one cut, in game ms, at reference hardness. */

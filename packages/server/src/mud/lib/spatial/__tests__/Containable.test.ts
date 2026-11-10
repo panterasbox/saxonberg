@@ -23,6 +23,7 @@ import { Idea } from "../../stuff/Idea";
 import type { FieldMeta } from '../../mixin';
 import { Placement } from '../Placement';
 import { DocumentApi } from '../../../api/document';
+import { Placements } from '../Placement';
 
 // Concrete test environment class — needs ContainerMixin to be an environment
 class ConcreteStuff extends ContainerMixin(Idea) {
@@ -132,13 +133,13 @@ describe('ContainableMixin.placement', () => {
   });
 
   it('place sets the pair AND moves into the host\'s environment', () => {
-    ContainmentApi.move(item, surface, Placement.ON);
+    ContainmentApi.move(item, surface, Placements.ON);
     expect(item.getContainer()).toBe(room);
     expect((item.getPlacement()?.host ?? null)).toBe(surface);
   });
 
   it('move() to a different container clears the placement', () => {
-    ContainmentApi.move(item, surface, Placement.ON);
+    ContainmentApi.move(item, surface, Placements.ON);
     expect((item.getPlacement()?.host ?? null)).toBe(surface);
     const elsewhere = makeStuff(() => new ConcreteStuff());
     ContainmentApi.move(item, elsewhere);
@@ -152,16 +153,16 @@ describe('ContainableMixin.placement', () => {
       '/test/other-surface',
     );
     ContainmentApi.move(otherSurface, room);
-    ContainmentApi.move(item, surface, Placement.ON);
+    ContainmentApi.move(item, surface, Placements.ON);
     expect((item.getPlacement()?.host ?? null)).toBe(surface);
     expect(item.getContainer()).toBe(room);
-    ContainmentApi.move(item, otherSurface, Placement.ON);
+    ContainmentApi.move(item, otherSurface, Placements.ON);
     expect((item.getPlacement()?.host ?? null)).toBe(otherSurface);
     expect(item.getContainer()).toBe(room);
   });
 
   it('_setPlacement(null) clears the pair', () => {
-    ContainmentApi.move(item, surface, Placement.ON);
+    ContainmentApi.move(item, surface, Placements.ON);
     expect((item.getPlacement()?.host ?? null)).toBe(surface);
     // Direct _setPlacement(null) is gated by ContainmentApi — invoke
     // through ContainmentApi.move(item, null) and check both fields
@@ -178,7 +179,7 @@ describe('ContainableMixin.placement', () => {
     expect(() => {
       (item as unknown as {
         _setPlacement(h: unknown, n?: string): void;
-      })._setPlacement(surface, Placement.ON);
+      })._setPlacement(surface, Placements.ON);
     }).toThrow();
   });
 });
@@ -229,14 +230,14 @@ describe('ContainableMixin.getEnclosingScope', () => {
   });
 
   it('a NON-enclosing member: still the container — a desk encloses nothing', () => {
-    host.setPlacements([Placement.ON]);
-    ContainmentApi.move(item, host, Placement.ON);
+    host.setPlacements([Placements.ON]);
+    ContainmentApi.move(item, host, Placements.ON);
     expect(item.getEnclosingScope()).toBe(room);
   });
 
   it('⭐ an ENCLOSING member: the HOST — a region with its own air', () => {
-    host.setPlacements([Placement.IN]);
-    ContainmentApi.move(item, host, Placement.IN);
+    host.setPlacements([Placements.IN]);
+    ContainmentApi.move(item, host, Placements.IN);
     expect(item.getEnclosingScope()).toBe(host);
   });
 
@@ -246,8 +247,8 @@ describe('ContainableMixin.getEnclosingScope', () => {
   });
 
   it('⚠ a destructed host heals to the container, whatever the name said', () => {
-    host.setPlacements([Placement.IN]);
-    ContainmentApi.move(item, host, Placement.IN);
+    host.setPlacements([Placements.IN]);
+    ContainmentApi.move(item, host, Placements.IN);
     expect(item.getEnclosingScope()).toBe(host);
     StuffApi.destruct(host);
     expect(item.getPlacement()).toBeNull();

@@ -32,7 +32,7 @@ import {
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import SaltPan from '../thing/SaltPan';
 import Tub from '../thing/Tub';
-import { Placement } from '@saxonberg/server/mud/lib/spatial/Placement';
+import { Placements } from '@saxonberg/server/mud/lib/spatial/Placement';
 
 const DAY = 86_400;
 const BASE = 10_000_000;
@@ -109,7 +109,7 @@ function saltern(): { pan: SaltPan; tub: Tub; room: Location } {
   pan.setClosure('liquidTight');
   pan.setStampedTemperatureK(300);
   pan.setLastAmbientK(300);
-  ContainmentApi.move(pan as never, tub as never, Placement.ON);
+  ContainmentApi.move(pan as never, tub as never, Placements.ON);
   return { pan, tub, room };
 }
 

@@ -45,7 +45,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '../../../../../lib/security/__tests__/test-setup';
-import { Placement } from '../../../../../lib/spatial/Placement';
+import { Placements } from '../../../../../lib/spatial/Placement';
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
@@ -491,7 +491,7 @@ describe('PutController — in/on dispatch', () => {
     }, freshPath('/test/put-tableB'));
     ContainmentApi.move(tableA, loc);
     ContainmentApi.move(tableB, loc);
-    ContainmentApi.move(apple, tableA, Placement.ON);
+    ContainmentApi.move(apple, tableA, Placements.ON);
     expect(apple.getContainer()).toBe(loc);
     expect((apple.getPlacement()?.host ?? null)).toBe(tableA);
 
@@ -529,7 +529,7 @@ describe('PutController — in/on dispatch', () => {
     });
     ContainmentApi.move(table, loc);
     ContainmentApi.move(chest, loc);
-    ContainmentApi.move(apple, table, Placement.ON);
+    ContainmentApi.move(apple, table, Placements.ON);
     expect((apple.getPlacement()?.host ?? null)).toBe(table);
     // Move apple to giver's inventory so the controller path can run.
     ContainmentApi.move(apple, giver);
@@ -581,7 +581,7 @@ describe('PutController — put over N placements', () => {
     const hook = makeStuffAtPath(() => {
       const h = new TestSurface();
       h.setName('hook');
-      h.setPlacements([Placement.FROM]);
+      h.setPlacements([Placements.FROM]);
       return h;
     }, freshPath('/test/put-hook'));
     ContainmentApi.move(hook, loc);
@@ -594,7 +594,7 @@ describe('PutController — put over N placements', () => {
     );
 
     // The player typed `on`; the world hung it FROM.
-    expect(apple.getPlacement()?.name).toBe(Placement.FROM);
+    expect(apple.getPlacement()?.name).toBe(Placements.FROM);
     expect(apple.getPlacement()?.host).toBe(hook);
     expect(apple.getContainer()).toBe(loc);
     expect(
@@ -608,7 +608,7 @@ describe('PutController — put over N placements', () => {
     const hook = makeStuffAtPath(() => {
       const h = new TestSurface();
       h.setName('hook');
-      h.setPlacements([Placement.FROM]);
+      h.setPlacements([Placements.FROM]);
       return h;
     }, freshPath('/test/put-hook-refuse'));
     ContainmentApi.move(hook, loc);
@@ -678,14 +678,14 @@ describe('PutController — put over N placements', () => {
     const compartment = makeStuffAtPath(() => {
       const c = new TestCompartment();
       c.setName('compartment');
-      c.setPlacements([Placement.IN]);
+      c.setPlacements([Placements.IN]);
       c.setOpen(false);
       return c;
     }, freshPath('/test/put-compartment'));
     ContainmentApi.move(compartment, loc);
 
     // The mixin's own veto, directly: `in` encloses, the host is shut.
-    expect(compartment.canPlace(apple, Placement.IN)).toEqual({
+    expect(compartment.canPlace(apple, Placements.IN)).toEqual({
       ok: false,
       reason: 'shut',
     });
@@ -703,12 +703,12 @@ describe('PutController — put over N placements', () => {
     ).toBe('shut');
 
     compartment.setOpen(true);
-    expect(compartment.canPlace(apple, Placement.IN)).toEqual({ ok: true });
+    expect(compartment.canPlace(apple, Placements.IN)).toEqual({ ok: true });
     await controller.execute(
       makeModel(one(apple, 'apple'), one(compartment, 'compartment', 'in')),
       makeContext(giver, loc),
     );
-    expect(apple.getPlacement()?.name).toBe(Placement.IN);
+    expect(apple.getPlacement()?.name).toBe(Placements.IN);
   });
 
   it('a non-enclosing member on a shut host is UNAFFECTED — the hook is on the outside', async () => {
@@ -717,19 +717,19 @@ describe('PutController — put over N placements', () => {
     const box = makeStuffAtPath(() => {
       const b = new TestCompartment();
       b.setName('box');
-      b.setPlacements([Placement.FROM]);
+      b.setPlacements([Placements.FROM]);
       b.setOpen(false);
       return b;
     }, freshPath('/test/put-shut-hook'));
     ContainmentApi.move(box, loc);
 
-    expect(box.canPlace(apple, Placement.FROM)).toEqual({ ok: true });
+    expect(box.canPlace(apple, Placements.FROM)).toEqual({ ok: true });
     const controller = makeStuff(() => new PutController());
     await controller.execute(
       makeModel(one(apple, 'apple'), one(box, 'box', 'from')),
       makeContext(giver, loc),
     );
-    expect(apple.getPlacement()?.name).toBe(Placement.FROM);
+    expect(apple.getPlacement()?.name).toBe(Placements.FROM);
   });
 
   it('a host offering TWO members with no word typed is ambiguous, and names both', async () => {
@@ -738,7 +738,7 @@ describe('PutController — put over N placements', () => {
     const rack = makeStuffAtPath(() => {
       const r = new TestSurface();
       r.setName('rack');
-      r.setPlacements([Placement.ON, Placement.FROM]);
+      r.setPlacements([Placements.ON, Placements.FROM]);
       return r;
     }, freshPath('/test/put-two-members'));
     ContainmentApi.move(rack, loc);
@@ -764,7 +764,7 @@ describe('PutController — put over N placements', () => {
       makeModel(one(apple, 'apple'), one(rack, 'rack', 'from')),
       makeContext(giver, loc),
     );
-    expect(apple.getPlacement()?.name).toBe(Placement.FROM);
+    expect(apple.getPlacement()?.name).toBe(Placements.FROM);
   });
 
   it('⭐ a host whose member has NO live row is still addressable by its own name', async () => {
@@ -774,7 +774,7 @@ describe('PutController — put over N placements', () => {
     const peg = makeStuffAtPath(() => {
       const p = new TestSurface();
       p.setName('peg');
-      p.setPlacements([Placement.FROM]);
+      p.setPlacements([Placements.FROM]);
       return p;
     }, freshPath('/test/put-cold-member'));
     ContainmentApi.move(peg, loc);
@@ -784,7 +784,7 @@ describe('PutController — put over N placements', () => {
       makeModel(one(apple, 'apple'), one(peg, 'peg', 'from')),
       makeContext(giver, loc),
     );
-    expect(apple.getPlacement()?.name).toBe(Placement.FROM);
+    expect(apple.getPlacement()?.name).toBe(Placements.FROM);
   });
 });
 
@@ -833,7 +833,7 @@ describe('⭐ PutController — a count (the ceramics drive: `put 1 clay in tub`
     it('placementFor: a typed word, the only offer, or which of them', () => {
       const desk = makeStuff(() => new TestDeskWithDrawer());
       expect(desk.placementFor('in')).toMatchObject({ ok: true, offer: { kind: 'zero' } });
-      expect(desk.placementFor('on')).toMatchObject({ ok: true, offer: { kind: 'placement', name: Placement.ON } });
+      expect(desk.placementFor('on')).toMatchObject({ ok: true, offer: { kind: 'placement', name: Placements.ON } });
       expect(desk.placementFor(undefined)).toMatchObject({ ok: false, reason: 'preposition-ambiguous' });
       expect(desk.placementFor('over')).toMatchObject({ ok: false, reason: 'wrong-preposition', got: 'over' });
       const chest = makeStuff(() => new TestChest());

@@ -30,7 +30,7 @@ import Avatar from '../../platform/agent/PrimaryAvatar';
 import Good from '../../lib/stuff/Good';
 import Chest from '../../platform/thing/Chest';
 import Place from '../../lib/stuff/Place';
-import { Placement } from '../../lib/spatial/Placement';
+import { Placements } from '../../lib/spatial/Placement';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -103,7 +103,7 @@ describe('MQL subscription — Rung 1 placement/holds projection', () => {
     const apple = await makeThing('a red apple');
     ContainmentApi.move(chest, location);
     // `on` the lid — Chest offers `on` by default.
-    ContainmentApi.move(apple, chest, Placement.ON);
+    ContainmentApi.move(apple, chest, Placements.ON);
 
     const appleRef = MqlSubscriptionApi.projectFields(
       apple,
@@ -118,7 +118,7 @@ describe('MQL subscription — Rung 1 placement/holds projection', () => {
     const chest = await StuffApi.create(() => new Chest());
     const apple = await makeThing('a red apple');
     ContainmentApi.move(chest, location);
-    ContainmentApi.move(apple, chest, Placement.ON);
+    ContainmentApi.move(apple, chest, Placements.ON);
 
     const chestDetail = MqlSubscriptionApi.projectFields(
       chest,
@@ -154,7 +154,7 @@ describe('MQL subscription — Rung 1 placement/holds projection', () => {
     try {
       // Same container (apple already in the location) — `move` is a
       // no-op, so only the explicit placement fire proves the wake.
-      ContainmentApi.move(apple, chest, Placement.ON);
+      ContainmentApi.move(apple, chest, Placements.ON);
     } finally {
       spy.mockRestore();
     }

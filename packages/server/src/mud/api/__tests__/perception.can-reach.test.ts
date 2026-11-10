@@ -42,7 +42,7 @@ import { makeStuff,
   seedKernelContentStore,
 } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
-import { Placement } from '../../lib/spatial/Placement';
+import { Placements } from '../../lib/spatial/Placement';
 
 // ⭐ On the `Agent` branch, because `MixinApi.isOpenContainer` asks the
 // BRANCH now (`Stuff.isAgent`) rather than three mixin proxies for it.
@@ -250,12 +250,12 @@ describe('PerceptionApi.canReach', () => {
         () => new Compartment(),
         '/test/reach-compartment',
       );
-      box.setPlacements([Placement.IN]);
+      box.setPlacements([Placements.IN]);
       box.setOpen(true);
       ContainmentApi.move(box, here as unknown as never);
       const steak = makeStuff(() => new Good());
       ContainmentApi.move(steak, here as unknown as never);
-      ContainmentApi.move(steak, box, Placement.IN);
+      ContainmentApi.move(steak, box, Placements.IN);
 
       // Open: right there, and reachable.
       expect(steak.getContainer()).toBe(here as unknown as never);
@@ -276,12 +276,12 @@ describe('PerceptionApi.canReach', () => {
         () => new Compartment(),
         '/test/reach-shut-hook',
       );
-      box.setPlacements([Placement.FROM]);
+      box.setPlacements([Placements.FROM]);
       box.setOpen(false);
       ContainmentApi.move(box, here as unknown as never);
       const ham = makeStuff(() => new Good());
       ContainmentApi.move(ham, here as unknown as never);
-      ContainmentApi.move(ham, box, Placement.FROM);
+      ContainmentApi.move(ham, box, Placements.FROM);
       // The hook is on the OUTSIDE of the shut box.
       expect(PerceptionApi.canReach(s(actor), s(ham))).toBe(true);
     });
@@ -292,7 +292,7 @@ describe('PerceptionApi.canReach', () => {
       ContainmentApi.move(shelf, here as unknown as never);
       const mug = makeStuff(() => new Good());
       ContainmentApi.move(mug, here as unknown as never);
-      ContainmentApi.move(mug, shelf, Placement.ON);
+      ContainmentApi.move(mug, shelf, Placements.ON);
       expect(PerceptionApi.canReach(s(actor), s(mug))).toBe(true);
     });
   });

@@ -41,7 +41,6 @@ import type { SubscribableFieldDescriptor } from "../../api/mql-subscription";
 import { CallSecurity } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { PartyRecord } from "../../lib/party/PartyRecord";
-import { Formation } from "../../lib/combat/Formation";
 import type { PartyMember } from "../../lib/party/PartyMember";
 import type { FieldMeta } from "../../lib/mixin";
 import { PartyApi } from "../../api/party";

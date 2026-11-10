@@ -31,7 +31,7 @@ import { BiomeApi } from '../../../api/biome';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../idea/WorldClockRegistry';
-import { Placement } from '../../../lib/spatial/Placement';
+import { Placements } from '../../../lib/spatial/Placement';
 
 class TestHoop extends PlacingMixin(
   MouldMixin(DurableMixin(CraftedMixin(ThermalMixin(BulkableMixin(ContainerMixin(Good)))))),
@@ -146,13 +146,13 @@ describe('the screw press (ceramics S16)', () => {
     const stone = makeStuff(() => new Good());
     stone.setMass(Quantity.of(2 * 2.06 * 0.995, 'kg'));
     ContainmentApi.move(stone, room);
-    ContainmentApi.move(stone, stoned, Placement.ON);
+    ContainmentApi.move(stone, stoned, Placements.ON);
 
     const pressed = hoopWithCurd(2);
     const p = press(400);
     ContainmentApi.move(p, room);
     ContainmentApi.move(pressed, room);
-    ContainmentApi.move(pressed, p, Placement.ON);
+    ContainmentApi.move(pressed, p, Placements.ON);
     for (let i = 0; i < 6; i++) await p.turnBy(actor, false);
     expect(pressed.loadN()).toBeCloseTo(6 * 400, 6);
 
@@ -182,7 +182,7 @@ describe('the screw press (ceramics S16)', () => {
     const p = press(1500);
     ContainmentApi.move(p, room);
     ContainmentApi.move(mould, room);
-    ContainmentApi.move(mould, p, Placement.ON);
+    ContainmentApi.move(mould, p, Placements.ON);
     const clay = makeStuff(() => new TestClay());
     clay.setMaterial(StuffApi.findByTemplatePath<Material>(CLAY)!);
     clay.setMass(Quantity.of(1.4, 'kg'));

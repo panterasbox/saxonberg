@@ -46,7 +46,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import { Contamination } from '../material/Contaminable';
-import { DirtKind, DirtKinds, type DirtKindDescriptor } from './DirtKind';
+import { DirtKinds, type DirtKindDescriptor } from './DirtKind';
 import type { CleanserAction, CleanserDescriptor } from '../../platform/idea/Cleanser';
 import { MaterialApi } from '../../api/material';
 

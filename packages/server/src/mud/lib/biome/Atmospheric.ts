@@ -76,6 +76,7 @@ import type { RoomHeatExchange } from '../thermal/RoomHeatExchange';
 import { CelestialApi } from '../../api/celestial';
 import type Exit from '../boundary/Exit';
 import type Structure from '../structure/Structure';
+import { Placements } from '../spatial/Placement';
 
 export interface Atmospheric {
   /** Days since `atS` this place's air crossed freezing; 0 indoors. */
@@ -748,7 +749,7 @@ export function AtmosphericMixin<
      * the one seam that says where a scope's occupants are.
      *
      * @hook Override where the class's air is a PLACEMENT rather than a
-     *   containment — `Chamber` answers `getPlaced(Placement.IN)`. Never branch on
+     *   containment — `Chamber` answers `getPlaced(Placements.IN)`. Never branch on
      *   `isPlacing` here: the class whose air is a placement is the class
      *   that says so.
      */

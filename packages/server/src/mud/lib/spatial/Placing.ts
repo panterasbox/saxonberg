@@ -60,6 +60,7 @@ import {
   type SubscribableFieldDescriptor,
 } from '../../api/mql-subscription';
 import { Placement } from './Placement';
+import { Placements } from './Placement';
 
 /**
  * Public shape provided by PlacingMixin.
@@ -198,7 +199,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
                 PerceptionApi.perceives(viewer, c),
             );
             if (items.length === 0) continue;
-            const row = Placement.need(member);
+            const row = ContainmentApi.placements().need(member);
             groups.push({
               name: row.getName(),
               heading: row.getHeading() || 'With it',
@@ -250,7 +251,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
     public airExposure = 1;
 
     /** The offered ways of sitting, by path, primary first. A bare host is a surface. */
-    public placements: string[] = [Placement.ON];
+    public placements: string[] = [Placements.ON];
 
     placementFor(word: string | undefined): PlacementChoice {
       return new PlacementOffers(this as unknown as Stuff).choose(word);
@@ -258,7 +259,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     getPlacements(): readonly string[] {
       const v = this.placements;
-      if (!Array.isArray(v) || v.length === 0) return [Placement.ON];
+      if (!Array.isArray(v) || v.length === 0) return [Placements.ON];
       return v;
     }
 
@@ -271,7 +272,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
     setPlacements(paths: readonly string[]): Promise<void> {
       this.placements = [...paths];
       // The applier awaits this: the row is live only when its placements are.
-      return Promise.all(paths.map((p) => Placement.ensure(p))).then(() => undefined);
+      return Promise.all(paths.map((p) => ContainmentApi.placements().ensure(p))).then(() => undefined);
     }
 
     getPlaced(name?: string): readonly (Stuff & Containable)[] {
@@ -339,7 +340,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
       // shut host refuses it — and says which, because a refusal a
       // player cannot act on teaches nothing. A non-enclosing member
       // (a hook on the outside of a shut box) is unaffected.
-      if (Placement.need(name).getEncloses()) {
+      if (ContainmentApi.placements().need(name).getEncloses()) {
         const self = this as unknown as Stuff;
         if (MixinApi.isSealable(self) && !self.isOpen()) {
           return { ok: false, reason: 'shut' };
@@ -360,5 +361,5 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
  * obvious word rather than becoming unaddressable.
  */
 function wordsFor(path: string): readonly string[] {
-  return Placement.need(path).getPrepositions();
+  return ContainmentApi.placements().need(path).getPrepositions();
 }

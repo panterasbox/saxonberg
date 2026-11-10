@@ -21,7 +21,7 @@ import { chargeWood } from '@saxonberg/server/mud/lib/fire/__tests__/burner-fuel
 import '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Burner } from '@saxonberg/server/mud/lib/fire/Burner';
-import { Placement } from '@saxonberg/server/mud/lib/spatial/Placement';
+import { Placements } from '@saxonberg/server/mud/lib/spatial/Placement';
 
 class TestRoom extends Place {}
 
@@ -81,7 +81,7 @@ describe('an iron pot of lye on a lit hearth', () => {
     pot.setBulkMaterial('interior', lye());
     pot.setBulkAmount('interior', Quantity.of(6, 'L'));
     pot.setBulkPayload('interior', { dissolvedSolidsKgPerL: 0.05 });
-    ContainmentApi.move(pot, hearth, Placement.ON);
+    ContainmentApi.move(pot, hearth, Placements.ON);
     pot.getContents();
     // ⭐ The world's order: the pot sits on a COLD hearth, then the fire is
     // laid and lit.
