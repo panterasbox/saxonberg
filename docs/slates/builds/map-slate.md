@@ -782,6 +782,26 @@ few new knowledge records. ⭐ And the landing is a pattern, not a one-off
 parcel lines are geometry the simulation computes and the player never
 sees; the map is where it shows.
 
+### The minimap's look — house style **[DECIDED, 2026-11-10]**
+
+The minimap draws in the client's **house style**. Map styles as options
+(a style that ships with a bought map, say) can come later as content. ⭐ The
+**illustrated maps** usually want the parchment treatment — and keeping the
+minimap in house style is what makes the two read as different kinds of
+thing at a glance: your exact, live knowledge of the zone, versus
+somebody's drawing of the wider world.
+
+### A click on a distant room **[OPEN]**
+
+What the map's click does beyond a neighbor is open, and argued in
+[step-beat-slate](./step-beat-slate.md): the scripted model (steps at
+command speed) against a sustained transit (the shipped Journey,
+[logistics.md](../../subsystems/logistics.md)); the owner's standing *no
+imposed net lag*; and the lean that movement is **mode + where** — the click
+runs your default pace toward a place. ⭐ The leverage is the client's:
+whatever the click does becomes what most players do, so it must be the
+engine's honest movement, not a client-side loop.
+
 ### Still open
 
 - The minimap's exact visual design — to iterate with the owner against
