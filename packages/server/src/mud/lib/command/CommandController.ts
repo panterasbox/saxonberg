@@ -205,6 +205,7 @@ export abstract class CommandController<
       scene.send();
     };
     if (plan.durationMs <= 0) {
+      plan.onBegin?.();
       const out = await plan.onComplete();
       if (!out.ok) {
         turnDown(words.onRefused(out), out.reason);
@@ -230,6 +231,7 @@ export abstract class CommandController<
         });
     };
     if (!MixinApi.isEngaged(giver)) {
+      plan.onBegin?.();
       land();
       return;
     }
@@ -241,7 +243,13 @@ export abstract class CommandController<
       onComplete: land,
       onAbort: plan.onAbort,
     });
+    // ⚠ Begun BEFORE the start: a step that completes synchronously runs
+    // its completion inside `start`, and the claim must already be held
+    // for the completion to release it. A refused start aborts nothing,
+    // so the claim is handed back below.
+    plan.onBegin?.();
     const result = SchedulerApi.start(step);
+    if (!result.ok) plan.onAbort?.('cancelled');
     if (result.ok && (result.status === 'started' || result.status === 'replaced')) {
       context.note(result.note);
       const scene = MessageApi.scene(giver).topic(PLAN_TOPIC).toSelf(words.beginSelf(plan.facts));

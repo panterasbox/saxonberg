@@ -92,6 +92,15 @@ export interface ActPlan<
   facts: B;
   /** The effect, at completion: done (its facts), or refused after all. */
   onComplete: () => ActDone<F, X> | Promise<ActDone<F, X>>;
+  /**
+   * The step has begun — called once, when the work is actually under way
+   * (the engagement started, or the effect is about to run at once), and
+   * never for a plan that was turned down before it began (too tired,
+   * hands busy). ⭐ The place for a claim the object holds while the act
+   * runs (a saw with a log on it — controller-liquidity W11): taking it in
+   * the planner would leak it whenever the engage refused.
+   */
+  onBegin?: () => void;
   onAbort?: (reason: AbortReason) => void;
 }
 
