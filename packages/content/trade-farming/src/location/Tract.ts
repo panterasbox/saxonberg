@@ -886,11 +886,7 @@ export default class Tract extends TractBase {
     const self = this as unknown as Stuff & Container;
     const locality = await AddressApi.resolveLocalityFor(self);
     const seed = GroundCharacter.seedFor(locality?.getAddress() ?? '');
-    const model = await GroundCharacter.forZone(
-      (self as unknown as {
-        getZone?(): { lookupField<T>(f: string): Promise<T | null> } | null;
-      }).getZone?.(),
-    );
+    const model = await GroundCharacter.forZone(self.getZone());
     const sample = this.groundSample(model, seed);
     return { sample, bill: GroundCharacter.improvementCost(sample) };
   }
