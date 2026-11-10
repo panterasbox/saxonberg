@@ -1,5 +1,7 @@
 # Navigation — requirements
 
+**Status:** AGREED 2026-11-10.
+
 **Kind:** client (with a server part)
 **Leads from:** kernel. **First consumer:** zones already in the game — the
 Sunken Delve (a small dungeon on two levels with a diagonal), the lounge and
