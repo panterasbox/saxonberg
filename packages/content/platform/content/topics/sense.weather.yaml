@@ -1,0 +1,9 @@
+family: "sense"
+label: "Weather"
+description: "The sky and the air where you are standing."
+address: ambient
+actor: world
+weight: chatter
+audience: player
+durable: false
+affordance: decays

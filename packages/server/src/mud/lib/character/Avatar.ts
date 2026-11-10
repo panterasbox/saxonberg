@@ -72,7 +72,7 @@ import type {
 import { DEFAULT_ROUTING } from "@saxonberg/types";
 import type { CommandContributions } from "../../api/command";
 import type Interactive from "../../platform/idea/Interactive";
-import type TopicCatalogue from "../../platform/idea/TopicCatalogue";
+import { Topic } from "../message/Topic";
 import { TemplatePathPrefixes } from "../paths";
 import { EstateMixin } from "../chattel/Estate";
 import type { FieldMeta } from "../mixin";
@@ -1017,9 +1017,9 @@ export default abstract class Avatar extends AvatarBase {
     // carries the bootstrap payload the client needs.
     // Welcome is the introductory moment — explicitly the formal
     // register, so reach for fullName.
-    const catalogue = StuffApi.findByTemplatePath<TopicCatalogue>(
-      "/platform/idea/TopicCatalogue",
-    );
+    // The client's topic snapshot: the vocabulary loads with the pipeline
+    // (documents D13), so session entry waits out the same first warm.
+    await MessageApi.topicsWarming();
     const portraitUrl = await this.getPortraitUrl();
     /*
      * ⭐ The record layer's backfill — what this player was told, from
@@ -1054,7 +1054,7 @@ export default abstract class Avatar extends AvatarBase {
         portraitUrl,
         isGuest: this.getIsGuest(),
       },
-      topicCatalogue: catalogue?.getSnapshot() ?? [],
+      topicCatalogue: Topic.snapshot(),
 
       // Which topics are reactable, so the client stops keeping its own
       // copy of the answer. Its copy had already drifted — `act.combat`

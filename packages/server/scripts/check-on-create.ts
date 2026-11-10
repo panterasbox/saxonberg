@@ -72,14 +72,14 @@ import { MUD, packSources, packSrcFiles } from "./pack-roots";
 // 82 → 81 by the documents path-identity build: three catalogues with an
 // onCreate warm left (operations, placements), SoilableMixin gained one
 // (the kernel dirt vocabulary, D7 mechanism 4).
-export const ON_CREATE_CEILING = 81;
+export const ON_CREATE_CEILING = 80; // documents W4: the topic catalogue left (its warm is the pipeline's now).
 
 /**
  * ⭐⭐ **The loading ceiling** — the subset of those bodies that look like
  * limb 3. This is the number the hydration build drives down, and the one
  * worth reading: a fall here is state that moved onto a declared source.
  */
-export const ON_CREATE_LOADING_CEILING = 33;
+export const ON_CREATE_LOADING_CEILING = 32;
 
 /**
  * ⚠ A fact about the past: the census the day the gate landed. Never edit

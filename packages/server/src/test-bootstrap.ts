@@ -51,6 +51,7 @@ import YAML from "yaml";
 import { DirtKind } from "./mud/lib/cleanliness/DirtKind";
 import { Formation } from "./mud/lib/combat/Formation";
 import { Placement } from "./mud/lib/spatial/Placement";
+import { Topic } from "./mud/lib/message/Topic";
 
 let installed = false;
 
@@ -157,6 +158,12 @@ function rememberKernelDocuments(): void {
   each("dirt", (path, data) => void DirtKind.remember(path, DirtKind.fromData(data, path)));
   each("formations", (path, data) => void Formation.remember(path, Formation.fromData(data, path)));
   each("placements", (path, data) => void Placement.remember(Placement.fromData(data, path)));
+  // The topic vocabulary, as the first scene's warm would leave it — so a
+  // suite's scenes deliver synchronously, as every scene after a world's
+  // first does.
+  const topics: Array<{ path: string; data: Record<string, unknown> }> = [];
+  each("topics", (path, data) => void topics.push({ path, data }));
+  Topic.install(topics);
 }
 
 ensureFrameworkWiring();

@@ -158,11 +158,22 @@ export class MessageApi {
    * Whether `topic` is a **communication act** (say/whisper/shout/emote/
    * chat — the topic's data-driven `communicative` flag; NOT dm /
    * narration / system). Consulted by the renown reception gate on the
-   * receive path so non-comm frames never hit the bus. `false` before the
-   * `TopicCatalogue` is warmed.
+   * receive path so non-comm frames never hit the bus. The topic
+   * vocabulary is warm before any frame is delivered (`Scene.send` queues
+   * behind its first warm).
    */
   static isCommunicative(topic: string): boolean {
     return logic().isCommunicative(topic);
+  }
+
+  /**
+   * ⭐ The topic vocabulary's first warm, in flight — started if it is cold
+   * — or `null` once it is resident (documents D13). `Scene.send` queues its
+   * dispatch behind this, in order; session entry awaits it before sending
+   * the client its snapshot.
+   */
+  static topicsWarming(): Promise<void> | null {
+    return logic().topicsWarming();
   }
 
   /**

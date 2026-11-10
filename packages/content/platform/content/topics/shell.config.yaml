@@ -1,0 +1,9 @@
+family: "shell"
+label: "Settings"
+description: "Your aliases, variables, and preferences, read back to you."
+address: direct
+actor: system
+weight: diagnostic
+audience: all
+durable: false
+affordance: live

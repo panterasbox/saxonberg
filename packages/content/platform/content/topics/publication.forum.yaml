@@ -1,0 +1,9 @@
+family: "publication"
+label: "Forums"
+description: "Boards, threads, and posts."
+address: personal
+actor: person
+weight: activity
+audience: player
+durable: true
+affordance: permanent

@@ -23,7 +23,7 @@ import { MixinApi } from "../../../api/mixin";
 import { StuffApi } from "../../../api/stuff";
 import { Scene } from "../../../lib/message/Scene";
 import type { MessageBroadcastOptions } from "../../../api/message";
-import type TopicCatalogue from "../TopicCatalogue";
+import { Topic } from "../../../lib/message/Topic";
 
 type SensorStuff = Stuff & Sensor;
 
@@ -116,10 +116,14 @@ export class MessageLogic extends ApiLogic {
   /** See {@link MessageApi.isCommunicative}. */
   @CallSecurity(MessageApiCallers)
   public isCommunicative(topic: string): boolean {
-    const cat = StuffApi.findByTemplatePath<TopicCatalogue>(
-      "/platform/idea/TopicCatalogue"
-    );
-    return cat ? cat.isCommunicative(topic) : false;
+    // Warm before any frame is delivered (Scene.send queues behind it, D13).
+    return Topic.isCommunicative(topic);
+  }
+
+  /** See {@link MessageApi.topicsWarming}. */
+  @CallSecurity(MessageApiCallers)
+  public topicsWarming(): Promise<void> | null {
+    return Topic.warming();
   }
 
   /** See {@link MessageApi.feedsFor}. */
@@ -128,17 +132,10 @@ export class MessageLogic extends ApiLogic {
     topic: string,
     rules: readonly RoutingRule[]
   ): FeedDestination[] {
-    const cat = StuffApi.findByTemplatePath<TopicCatalogue>(
-      "/platform/idea/TopicCatalogue"
-    );
-    /*
-     * ⚠ An unwarmed catalogue is not a reason to drop a frame. Before
-     * boot completes there are no facets to match on, so every rule
-     * falls through to the catch-all — which is precisely the state the
-     * catch-all exists to cover. Failing OPEN here and closed anywhere
-     * else would be backwards: a lost frame is the expensive mistake.
-     */
-    const facets = cat?.getDescriptor(topic);
+    // The vocabulary is warm before any frame is delivered: `Scene.send`
+    // queues behind its first warm (documents D13), so a frame is never
+    // routed cold — and a read that bypassed the queue throws, by name.
+    const facets = Topic.descriptor(topic);
     return routeFrame(topic, facets, rules);
   }
 }

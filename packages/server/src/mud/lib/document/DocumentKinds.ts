@@ -176,6 +176,13 @@ export const DOCUMENT_KINDS = {
     ext: 'yaml',
     onVanish: 'delete',
   },
+  /**
+   * A **topic** — one key of the message vocabulary (`combat.hit`): its
+   * label, description and the six attention facets (`lib/message/Topic.ts`).
+   * Named by code; its dotted key is its path's leaf. Roots are closed —
+   * a pack adds leaves under the seven core roots only.
+   */
+  topic: { kind: 'topic', words: leafWord, contentDir: 'topics', ext: 'yaml', onVanish: 'delete' },
   'name-bank': { kind: 'name-bank', contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
   blueprint: { kind: 'blueprint', contentDir: 'blueprints', ext: 'yaml', onVanish: 'delete' },
   'command-view': { kind: 'command-view', contentDir: 'cmd', ext: 'yaml', onVanish: 'delete' },

@@ -37,7 +37,7 @@ import { Formation } from '../../../lib/combat/Formation';
 import { Placement } from '../../../lib/spatial/Placement';
 import { DocumentCache } from '../../../lib/document/DocumentCache';
 import { TOPIC_ROOTS } from '@saxonberg/types';
-import Topic from '../Topic';
+import { Topic } from '../../../lib/message/Topic';
 import { PersistApi } from '../../../api/persist';
 import { StuffApi, type ClassResolution } from '../../../api/stuff';
 import { ModuleApi } from '../../../api/module';
@@ -188,6 +188,9 @@ const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>, path: 
   operation: (d, p) => void Operation.fromData(d, p),
   formation: (d, p) => void Formation.fromData(d, p),
   placement: (d, p) => void Placement.fromData(d, p),
+  topic: (d) => {
+    if (typeof d.label !== 'string' || d.label === '') throw new Error('a topic needs a label');
+  },
   'help-concept': (d) => {
     if (typeof d.title !== 'string' || d.title === '') throw new Error('a help concept needs a title');
   },
@@ -1447,7 +1450,7 @@ function canonical(value: unknown): string {
  * ⚠ **Gate pack-declared topics before anything is written.**
  *
  * The topic vocabulary is deliberately **open** — a pack adds a topic
- * by shipping a `/platform/idea/Topic/<key>` row like any other content, and no
+ * by shipping a `topic` document (`content/topics/<dotted.key>.yaml`), and no
  * mechanism was needed to allow it. Two things are *not* open:
  *
  *  - **Roots are closed.** A pack-minted root would mean a player's
@@ -1468,16 +1471,14 @@ function canonical(value: unknown): string {
  */
 async function validatePackTopics(
   packId: string,
-  files: DomainFile[],
+  topicFiles: readonly DocumentFile[],
 ): Promise<void> {
-  const topicFiles = files.filter((f) =>
-    f.path.startsWith(Topic.TEMPLATE_PATH_PREFIX),
-  );
   if (topicFiles.length === 0) return;
 
   const roots = new Set<string>(TOPIC_ROOTS);
   for (const f of topicFiles) {
-    const key = f.path.slice(Topic.TEMPLATE_PATH_PREFIX.length);
+    // A topic document's dotted key is its path's leaf.
+    const key = f.path.slice(f.path.lastIndexOf('/') + 1);
     const root = key.split('.')[0] ?? key;
     if (!roots.has(root)) {
       throw new Error(
@@ -3120,7 +3121,7 @@ async function gatePack(
     throw new PackStepError('requires-kernel', (err as Error).message);
   }
   try {
-    await validatePackTopics(packId, rp.content.domain);
+    await validatePackTopics(packId, (rp.content.documents.get('topic') ?? []) as DocumentFile[]);
   } catch (err) {
     throw new PackStepError('topics', (err as Error).message);
   }
@@ -3609,6 +3610,10 @@ async function invalidateDocumentKind(
   // so the next use re-reads (aroma, and each family that is a document).
   DocumentCache.invalidate(kind, [...changedPaths, ...deletedPaths]);
   switch (kind) {
+    case 'topic':
+      // The vocabulary re-reads on its next warm (the next scene queues).
+      Topic.invalidate();
+      return;
     case 'command-view':
       // Per path: a changed view re-reads from the store; a deleted one
       // drops its cache entry (the next getCommand falls to disk).
