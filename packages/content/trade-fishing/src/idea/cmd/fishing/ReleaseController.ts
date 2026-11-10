@@ -28,7 +28,7 @@ export default class ReleaseController extends FishingController<ReleaseModel> {
       return;
     }
     const pick = await this.reachFor(giver, model.shore);
-    if (pick !== null && 'refusal' in pick) {
+    if (pick !== null && !pick.ok) {
       this.decline(context, pick.refusal, pick.reason);
       return;
     }
@@ -37,7 +37,9 @@ export default class ReleaseController extends FishingController<ReleaseModel> {
       this.decline(context, 'There is no water here to release it into.', 'no-water');
       return;
     }
-    const out = await fish.releaseInto(giver, reach);
+    // ⚠ Asked in this frame, before anything awaits: the reconciling read
+    // fires the death a beat later, and the fish must be refused as dead.
+    const out = fish.releaseRefusal() ?? (await fish.releaseInto(giver, reach));
     if (!out.ok) {
       this.decline(context, 'It is dead. The water will not have it back.', out.reason);
       return;

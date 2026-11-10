@@ -85,6 +85,16 @@ export default class Fish extends FishBase {
   }
 
   /**
+   * Will the water have this fish back? Not a dead one — asked
+   * synchronously (the reconciling read), so a verb can ask it in its own
+   * frame before anything else happens to the fish.
+   */
+  public releaseRefusal(): ActRefusal<'dead'> | null {
+    const remaining = this.getDyingRemainingSec();
+    return this.isDead() || (remaining !== null && remaining <= 0) ? { ok: false, reason: 'dead' } : null;
+  }
+
+  /**
    * ⭐ **Back into the water and back into the record** (the `release`
    * verb's act, controller-liquidity W12): the reach's count gets it back,
    * the fish is gone, and releasing an apex is a chronicle deed for `by`.
@@ -95,8 +105,8 @@ export default class Fish extends FishBase {
    * the drive found it (run 23). A window with nothing left IS dead.
    */
   public async releaseInto(by: Stuff, reachRef: string): Promise<ActOutcome<ReleaseDone> | ActRefusal<'dead'>> {
-    const remaining = this.getDyingRemainingSec();
-    if (this.isDead() || (remaining !== null && remaining <= 0)) return { ok: false, reason: 'dead' };
+    const refused = this.releaseRefusal();
+    if (refused !== null) return refused;
     const species = this.getSpecies();
     const speciesPath = species?.getTemplatePath() ?? '';
     const name = species?.getCommonNames()[0] ?? 'fish';

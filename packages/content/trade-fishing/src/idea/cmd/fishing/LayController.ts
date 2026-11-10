@@ -34,7 +34,7 @@ export default class LayController extends FishingController<LayModel> {
     }
     const room = this.roomOf(giver);
     const pick = await this.reachFor(giver, model.shore);
-    if (pick !== null && 'refusal' in pick) {
+    if (pick !== null && !pick.ok) {
       this.decline(context, pick.refusal, pick.reason);
       return;
     }

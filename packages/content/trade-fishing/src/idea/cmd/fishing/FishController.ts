@@ -40,7 +40,7 @@ export default class FishController extends FishingController<FishModel> {
       return;
     }
     const pick = await this.reachFor(giver, model.shore);
-    if (pick !== null && 'refusal' in pick) {
+    if (pick !== null && !pick.ok) {
       this.decline(context, pick.refusal, pick.reason);
       return;
     }

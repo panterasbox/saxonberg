@@ -62,6 +62,7 @@ import Propulsion from './Propulsion';
 import { Propel, type PropelHeading } from '../lib/Propel';
 import Killick from './Killick';
 import type ReachWarren from '@saxonberg/content-water/src/idea/ReachWarren';
+import ReachExit from '@saxonberg/content-water/src/idea/exits/ReachExit';
 import WaterExpanse from '@saxonberg/content-water/src/idea/WaterExpanse';
 import { HirableMixin, type Hirable } from '@saxonberg/server/mud/lib/retail/Hirable';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
@@ -125,6 +126,27 @@ const SAIL_MIN_WIND_MPS = 1.5;
 
 /** Where the river's warren lives — what a boat asks about the water it is in. */
 const WARREN_PATH = '/system/water/idea/ReachWarren';
+
+/** The direction words `paddle` takes. */
+const PADDLE_WORDS: Readonly<Record<string, PropelHeading>> = {
+  downstream: 'downstream',
+  down: 'downstream',
+  on: 'downstream',
+  upstream: 'upstream',
+  up: 'upstream',
+  left: 'left',
+  right: 'right',
+};
+
+/** Why she will not be paddled — worded by `paddle`. */
+export type PaddleRefusal = ActRefusal<
+  'no-propulsion' | 'capsized' | 'not-engaged' | 'no-river' | 'which-way' | 'engagement-conflict'
+>;
+/** Under way: what she is propelled with, and which way. */
+export interface PaddleDone {
+  kind: string;
+  heading: PropelHeading;
+}
 
 /** Where the sea's warren lives. */
 const SEA_PATH = '/system/water/idea/SeaWarren';
@@ -228,6 +250,48 @@ export default class Boat extends LiftSourceMixin(BoatBase) implements LiftSourc
       if (c instanceof Propulsion && c.getNeeds() === 'wind') return c;
     }
     return null;
+  }
+
+  /**
+   * ⭐ **Paddle her** (the `paddle` verb's act, river D21; moved off the
+   * controller in controller-liquidity W12): `word` is a direction
+   * (`downstream`/`down`/`on`, `upstream`/`up`, `left`, `right`), `bar`
+   * (whichever bank is gravel here), or a landing within hail by the way's
+   * own name — ⚠ direction words first, and a landing matched against the
+   * room's own ways, never a scan. The boat and the water decide the rest
+   * (`Propel`, on the paddler's hands).
+   */
+  public async paddleBy(
+    by: Stuff,
+    word: string,
+    manner: { inside: boolean; hard: boolean },
+  ): Promise<ActOutcome<PaddleDone> | PaddleRefusal> {
+    const part = this.propulsion();
+    if (part === null) return { ok: false, reason: 'no-propulsion' };
+    if (this._capsized) return { ok: false, reason: 'capsized' };
+    if (!MixinApi.isEngaged(by)) return { ok: false, reason: 'not-engaged' };
+    const water = await StuffApi.singleton<ReachWarren>(WARREN_PATH).catch(() => null);
+    if (!water) return { ok: false, reason: 'no-river' };
+    const said = word.trim().toLowerCase() || 'downstream';
+    const room = this.getContainer();
+    let heading: PropelHeading | undefined = PADDLE_WORDS[said];
+    let target = '';
+    if (heading === undefined && room !== null && MixinApi.isExitable(room)) {
+      const exit = room.getExit(said);
+      if (exit instanceof ReachExit && exit.getWay() === 'place') {
+        heading = 'place';
+        target = exit.getTarget();
+      } else if (said === 'bar' || said === 'bank' || said === 'ashore') {
+        const river = await water.riverAt(room);
+        heading = river?.barSide ?? (river ? 'left' : undefined);
+      }
+    }
+    if (heading === undefined) return { ok: false, reason: 'which-way' };
+    const started = SchedulerApi.start(
+      new Propel({ actor: by as Stuff & Engaged, boat: this, heading, target, inside: manner.inside, hard: manner.hard, water }),
+    );
+    if (!started.ok) return { ok: false, reason: 'engagement-conflict' };
+    return { ok: true, facts: { kind: part.getPropulsionKind(), heading } };
   }
 
   /**
