@@ -9,6 +9,8 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { Placing } from '../../../lib/spatial/Placing';
+import type { Slotted } from '../../../lib/slot/Slotted';
+import type { Slottable } from '../../../lib/slot/Slottable';
 import type { VetoResult } from '../../../lib/errors';
 import type { Warren } from '../../../lib/location/Warren';
 import { CommandApi } from '../../../api/command';
@@ -20,7 +22,13 @@ import PlacementCatalogue, {
   PLACEMENT_CATALOGUE_PATH,
 } from '../PlacementCatalogue';
 import type Placement from '../Placement';
-import type { MergeOnArrivalHook } from '../../../api/containment';
+import type {
+  MergeOnArrivalHook,
+  PlaceRefusal,
+  PutPlan,
+  PutRoute,
+} from '../../../api/containment';
+import { ContainmentApi } from '../../../api/containment';
 
 type ContainerStuff = Stuff & Container;
 type ContainableStuff = Stuff & Containable;
@@ -126,6 +134,85 @@ export class ContainmentLogic extends ApiLogic {
       );
     }
     item.setContainer(env);
+  }
+
+  /** See {@link ContainmentApi.putPlanFor}. */
+  @CallSecurity(ContainmentApiCallers)
+  public putPlanFor(
+    item: ContainableStuff,
+    target: Stuff,
+    opts: { prep?: string; by: Stuff },
+  ): PutPlan | PlaceRefusal {
+    const { prep, by } = opts;
+    let route: PutRoute;
+    // ⭐ The slot rule stays first: a slot is more specific than a
+    // container, so an item that fits an open slot goes in the slot.
+    const slot = MixinApi.isSlotted(target) ? target.openSlotFor(item, prep) : null;
+    if (slot !== null) {
+      // A part that goes into a machine has to physically BE somewhere.
+      if (!MixinApi.isContainer(target)) return { ok: false, reason: 'slot-host-not-container' };
+      route = { kind: 'slot', slot };
+    } else {
+      const choice =
+        MixinApi.isPlacing(target) || MixinApi.isContainer(target)
+          ? target.placementFor(prep)
+          : ({ ok: false, reason: 'wrong-preposition', takes: [], ...(prep ? { got: prep } : {}) } as const);
+      if (!choice.ok) {
+        return {
+          ok: false,
+          reason: choice.reason,
+          facts: { takes: choice.takes, ...(choice.got !== undefined ? { got: choice.got } : {}) },
+        };
+      }
+      const offer = choice.offer;
+      if (offer.kind === 'zero') {
+        // A shut lid refuses at the verb — never in `move`.
+        if (MixinApi.isSealable(target) && !target.isOpen()) return { ok: false, reason: 'shut' };
+        // ⭐ A container that says what it is FOR refuses in its own words —
+        // the hook `move` asserts, asked first so it is a sentence, not a
+        // thrown ContainmentError.
+        const veto = MixinApi.isContainer(target) ? target.canAddContainable?.(item) : undefined;
+        if (veto && !veto.ok) {
+          return { ok: false, reason: 'refused-by-container', facts: { said: veto.reason ?? null } };
+        }
+        route = { kind: 'zero' };
+      } else {
+        const veto = (target as PlacingStuff).canPlace(item, offer.name);
+        const word = offer.words[0] ?? offer.name;
+        if (!veto.ok) {
+          return veto.reason === 'shut'
+            ? { ok: false, reason: 'shut' }
+            : { ok: false, reason: 'cannot-rest', facts: { word, why: veto.reason ?? '' } };
+        }
+        route = { kind: 'region', name: offer.name, word };
+      }
+    }
+    return {
+      ok: true,
+      durationMs: 0,
+      effortW: 0,
+      facts: { route },
+      onComplete: () => {
+        // **Leaving your inventory means leaving your body first** — the
+        // release gate `remove`/`unwield`/`drop` run: a curse refuses it,
+        // and an unvacated slot would keep a phantom occupant.
+        if (MixinApi.isSlotted(by) && MixinApi.isSlottable(item)) {
+          const release = by.tryReleaseFromSlots(item);
+          if (!release.released) {
+            return { ok: false, reason: 'cursed-will-not-release', facts: { dumpedTau: release.dumpedTau } };
+          }
+        }
+        const named = item.getPresentation();
+        if (route.kind === 'slot') {
+          (target as Stuff & Slotted).seatInSlot(item as ContainableStuff & Slottable, route.slot);
+        } else if (route.kind === 'zero') {
+          ContainmentApi.move(item, target as ContainerStuff);
+        } else {
+          ContainmentApi.move(item, target as PlacingStuff, route.name);
+        }
+        return { ok: true, facts: { route, named } };
+      },
+    };
   }
 
   /** See {@link ContainmentApi.placement}. */
