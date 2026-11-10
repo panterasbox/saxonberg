@@ -26,7 +26,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const CONTROLLER_FUNCTIONS_CEILING = 118; // controller-liquidity W13: −1, MaintainController's `kept` became a protected static. // controller-liquidity W11: −42 (the wood-and-fiber completions became object plans or protected statics). // controller-liquidity W12: −12 (the drilling completions, the glass helpers, the journey and fishing helpers). // controller-liquidity W10: −9 (the mill's completion, round helpers). // controller-liquidity W7: −34. // controller-liquidity W1+W3: values and refusals moved onto their objects. W8: −13, module helpers became protected statics or object methods
+export const CONTROLLER_FUNCTIONS_CEILING = 64; // controller-liquidity W9: −54, the metal chain's module helpers became object methods. // controller-liquidity W13: −1, MaintainController's `kept` became a protected static. // controller-liquidity W11: −42 (the wood-and-fiber completions became object plans or protected statics). // controller-liquidity W12: −12 (the drilling completions, the glass helpers, the journey and fishing helpers). // controller-liquidity W10: −9 (the mill's completion, round helpers). // controller-liquidity W7: −34. // controller-liquidity W1+W3: values and refusals moved onto their objects. W8: −13, module helpers became protected statics or object methods
 
 /** The names of the module-level functions in one controller module. */
 export function moduleFunctions(sf: ts.SourceFile): Array<{ name: string; line: number }> {
