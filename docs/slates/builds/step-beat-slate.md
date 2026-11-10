@@ -3,8 +3,14 @@
 **Status:** slated 2026-11-10, from the navigation-pane conversation
 (what a click on a distant room should do). **Size:** a build, cross-cutting
 — locomotion, the client's command queue, combat's beat, NPC movement.
-**Not decided:** the owner asked for it written up to be argued, not
-adopted; the lens pass below is the case for and against.
+**⭐ LEAN FOR (2026-11-10)** — written up to be argued, then tried in a
+behavior mockup (walking, pace, discovery on the derived beat). The owner:
+*"this is actually great — I was kinda skeptical, but if it's this
+responsive to the user input I think it'll work real well."*
+**The condition is the design:** the beat never delays INPUT (the command
+echoes the moment you act), and the screen always shows MOTION during it
+(the dot moving, the path ahead shrinking, rooms ticking past). Combat's
+clock, NPCs and the rest of § Open stay open.
 
 Related: [pace-slate](./pace-slate.md) (the world clock and whose attention
 a duration must fit) · [locomotion.md](../../subsystems/locomotion.md)
@@ -109,6 +115,24 @@ Run wins races, sneak wins attention, walk is the efficient default.
 7. **Governance — neutral, with one constraint.** The beat is the same for
    everyone at the same pace, load and body — no staff or donor speed-up,
    or it becomes a privilege.
+
+## What the mockup showed (2026-11-10)
+
+A design canvas (private; the owner holds the link) ran the beat at the
+derived figures — a 15 m hall ~0.9 s walking, half at a run — with a
+sneak · walk · run switch and an endurance bar:
+
+- One command per intent: a neighbor click echoes `go east`; a distant
+  click echoes `run to Ossuary`, and the steps play out, each room named
+  briefly, only the last one looked at.
+- **Every stop came from the step itself** — a tripwire (running springs
+  it and stops you in the room; walking notices it and stops short;
+  sneaking steps over it), a locked door (a ✕ on the map), never from a
+  walker's checks. Stop and *Resume to <place>* keep the plan.
+- The walk is where things are found: a new room flashing in through an
+  unknown door; a known-from-the-survey room turning solid, with a conflict
+  when the survey was wrong.
+- Running drains endurance; below a quarter you drop to a walk, winded.
 
 ## Open
 
