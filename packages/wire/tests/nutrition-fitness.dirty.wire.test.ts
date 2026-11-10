@@ -195,8 +195,8 @@ suite('1–3 · two fresh bodies read the same', () => {
   it('⭐ `look <person>` ends with the body line, and it is the species baseline', async () => {
     expectOk(await H.cmd('introduce'));
     expectOk(await L.cmd('introduce'));
-    const hSeen = await L.prose(`look ${hName}`);
-    const lSeen = await H.prose(`look ${lName}`);
+    const hSeen = await L.prose(`look "${hName}"`);
+    const lSeen = await H.prose(`look "${lName}"`);
     expect(hSeen, 'the body line exists on a person').toMatch(/In good flesh\./);
     expect(lSeen).toMatch(/In good flesh\./);
     expect(hSeen).not.toMatch(/\d+ ?%/);
@@ -388,8 +388,8 @@ suite('8–9 · the mirror and the tape', () => {
     L = await Session.open(lName, { startLocation: CROSSROADS });
     expectOk(await L.cmd('introduce'));
     expectOk(await H.cmd('introduce'));
-    const hSeen = await L.prose(`look ${hName}`);
-    const lSeen = await H.prose(`look ${lName}`);
+    const hSeen = await L.prose(`look "${hName}"`);
+    const lSeen = await H.prose(`look "${lName}"`);
     expect(hSeen).toMatch(/hard|wiry|broad|burly|powerful/i);
     expect(hSeen).not.toMatch(/In good flesh\.$/m);
     expect(lSeen).toMatch(/In good flesh\./);

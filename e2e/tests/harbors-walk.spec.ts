@@ -146,7 +146,7 @@ test.describe('the harbors build, in a browser', () => {
     await say(page, 'go west');
     await say(page, 'go south');
     await say(page, 'look');
-    await say(page, 'look hull book');
+    await say(page, 'look "hull book"');
     await say(page, 'buy smack', 5_000);
     await snap(page, 'naming-prompt');
     const name = `Gannet${Math.random().toString(36).slice(2, 6)}`;
@@ -163,7 +163,7 @@ test.describe('the harbors build, in a browser', () => {
     await say(page, 'go up');
     await say(page, 'go ashore');
     // From the quay her way is named for her; aboard, it is `ashore`.
-    await say(page, `lock ${name.toLowerCase()}`);
+    await say(page, `lock "${name.toLowerCase()}"`);
     await snap(page, 'lock-from-quay');
     await say(page, `go ${name.toLowerCase()}`);
     await say(page, 'lock ashore');
@@ -190,7 +190,7 @@ test.describe('the harbors build, in a browser', () => {
     // ── The put-in: a rowboat bought, a canoe hired ──
     await enter(PUT_IN);
     await say(page, 'look');
-    await say(page, 'look hire book');
+    await say(page, 'look "hire book"');
     await snap(page, 'put-in');
     await say(page, 'buy rowboat', 5_000);
     await snap(page, 'rowboat');

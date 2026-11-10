@@ -381,8 +381,8 @@ suite('A1 — the port', () => {
     await stageShip(HESPER, { at: { node: BAR } });
     // (staged) The founder takes her two lines off her bitts.
     const f = await founderAt(HESPER_DECK);
-    expectOk(await f.cmd('get 1 mooring line'));
-    expectOk(await f.cmd('get 1 mooring line'));
+    expectOk(await f.cmd('get "1 mooring line"'));
+    expectOk(await f.cmd('get "1 mooring line"'));
     try {
       const refused = await sailor.cmd('course town-quay');
       expectNote(refused, 'controller-rejected', { reason: 'course-refused' });
@@ -390,8 +390,8 @@ suite('A1 — the port', () => {
     } finally {
       // Her lines back AT HER BITTS whatever happened (a rope
       // loose on her deck is not one of her lines): step 10 makes fast with them.
-      expectOk(await f.cmd('put mooring line on bitts'));
-      expectOk(await f.cmd('put mooring line on bitts'));
+      expectOk(await f.cmd('put "mooring line" on bitts'));
+      expectOk(await f.cmd('put "mooring line" on bitts'));
       f.close();
     }
   }, 300_000);
@@ -615,7 +615,7 @@ suite('B1 — owning a ship', () => {
     expect(said, said).toMatch(new RegExp(`as the ${NAME2}, all sixty-four shares in your name`));
     // ⭐ The yard's hull book had two hulls on the stocks: both are sold, and
     // the yard sells no third (no faucet).
-    const book = await say(second, 'look hull book');
+    const book = await say(second, 'look "hull book"');
     expect(book, book).toMatch(/Every hull in it is sold/);
     expect(book, book).toMatch(new RegExp(`Sold off the far stocks: the smack ${NAME2}`));
     const none = await say(second, 'buy smack');
@@ -661,7 +661,7 @@ suite('B1 — owning a ship', () => {
     // aboard; locked behind them, they still go ashore — and cannot return.
     expectOk(await second.cmd('go ashore'));
     expectOk(await second.cmd(`give key to "${ownerName}"`));
-    expectOk(await owner.cmd(`unlock ${way1}`));
+    expectOk(await owner.cmd(`unlock "${way1}"`));
     expectOk(await second.cmd(`go ${way1}`));
     expectOk(await owner.cmd(`go ${way1}`));
     const locked = await say(owner, 'lock ashore');
@@ -879,7 +879,7 @@ suite('B2 — owning a boat', () => {
     const hired = await say(hirer, `rent #${canoe} for 2 days`);
     expect(hired, hired).toMatch(/You hire (a|the) canoe for 2 days/);
     expect(hired, hired).toMatch(/\([^)]*\b6(\.00)?\b[^)]*\)/);
-    const page = await say(hirer, 'look hire book');
+    const page = await say(hirer, 'look "hire book"');
     expect(page, page).toMatch(/For hire: /);
     expect(await say(hirer, `look #${canoe}`)).toMatch(/hire/i);
     expectOk(await hirer.cmd(`go #${canoe}`));
@@ -890,7 +890,7 @@ suite('B2 — owning a boat', () => {
     const back = await say(hirer, 'recover');
     expect(back, back).toMatch(/comes up out of the water/);
     expectOk(await hirer.cmd('go out'));
-    const after = await say(hirer, 'look hire book');
+    const after = await say(hirer, 'look "hire book"');
     expect(after, after).not.toMatch(/Written under it/);
     expect(await say(hirer, `look #${canoe}`)).not.toMatch(/on hire/i);
     hirer.close();

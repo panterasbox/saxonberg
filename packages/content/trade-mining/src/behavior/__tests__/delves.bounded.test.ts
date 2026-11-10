@@ -39,11 +39,11 @@ describe('the delves beat is bounded and literal', () => {
     expect(SRC).toContain("'shore'");
     expect(SRC).toContain('`hew ${face.direction}`');
     expect(SRC).toContain("'wallet use house'");
-    expect(SRC).toContain('`shelf consign ${kw} --ask ${ask}`');
+    expect(SRC).toContain('`shelf consign ${CommandLineApi.word(kw)} --ask ${ask}`');
   });
 
   it('⚠ its one `get` names WHAT to take — never a bare or counted grab', () => {
-    expect(SRC).toContain('`get ${kw}`');
+    expect(SRC).toContain('`get ${CommandLineApi.word(kw)}`');
     expect(SRC).not.toMatch(/forceCommand\([^)]*['"`]get['"`]\s*\)/);
     expect(SRC).not.toMatch(/`get all/);
   });

@@ -43,6 +43,7 @@ import type { Employed } from '@saxonberg/server/mud/lib/employment/Employed';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
+import { CommandLineApi } from '@saxonberg/server/mud/api/command-line';
 
 /** Cuts per beat — a bound, like every loop here. */
 const DEFAULT_BATCH = 4;
@@ -131,7 +132,7 @@ export const brain = class {
     const lying = (home.getContents() as Stuff[]).filter((c) => isOre(c)).slice(0, batch);
     for (const lump of lying) {
       const kw = keywordOf(lump);
-      if (kw) await hand.forceCommand(`get ${kw}`);
+      if (kw) await hand.forceCommand(`get ${CommandLineApi.word(kw)}`);
     }
 
     const carried = (hand.getContents() as Stuff[]).filter((c) => isOre(c));
@@ -165,7 +166,7 @@ export const brain = class {
       for (const lot of lots) {
         const kw = keywordOf(lot);
         if (!kw) continue;
-        await hand.forceCommand(`shelf consign ${kw} --ask ${ask}`);
+        await hand.forceCommand(`shelf consign ${CommandLineApi.word(kw)} --ask ${ask}`);
       }
     } finally {
       // ⚠ ALWAYS. A beat that dies at the scale must not strand the

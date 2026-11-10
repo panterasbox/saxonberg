@@ -100,7 +100,7 @@ async function sailFor(s: Session, node: string, raised: RegExp, landmark: RegEx
     heard += ' ' + squash(horizon) + ' ' + squash(await s.listen(2_000).catch(() => ''));
     if (raised.test(heard)) break;
     if (landmark.test(horizon)) {
-      heard += ' ' + (await say(s, `measure bearing ${mark}`));
+      heard += ' ' + (await say(s, `measure bearing "${mark}"`));
       const laid = await say(s, `course ${node}`);
       // Lying off it already: its name brings her in (or the keeper wants a hail).
       if (/already|given her a berth|bring her in/i.test(laid)) break;

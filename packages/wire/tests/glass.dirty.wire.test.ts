@@ -199,8 +199,8 @@ suite('⭐⭐ glass — the batch is MIXED in a pot, then FIRED (ceramics W0)', 
       expect(refusedFor(put)).toBeNull();
     }
     for (const thing of ['ash', 'lime']) {
-      expectOk(await b.cmd(`get ${thing}`));
-      const put = await b.cmd(`put ${thing} in pot`);
+      expectOk(await b.cmd(`get "${thing}"`));
+      const put = await b.cmd(`put "${thing}" in pot`);
       expect(verbUnderstood(put)).toBe(true);
       expect(refusedFor(put)).toBeNull();
     }

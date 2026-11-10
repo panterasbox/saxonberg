@@ -33,7 +33,13 @@ const ctx = {
   location: {} as Place,
 };
 
-/** `probe <channel> [<subject...>] [with <tool>]` — the shape `measure` has. */
+/**
+ * `probe <channel> [<subject...>] [with <tool>]` — the shape `measure` had.
+ * ⚠ Greedy is PROSE-only since controller-liquidity D3 (`measure`'s object
+ * slots bind one word now), so the fixture's greedy args are strings: the
+ * binder rule under test — a greedy optional does not eat the args after it
+ * — is the greedy machinery's, whatever the slot holds.
+ */
 const VIEW = `
 verbs: [probe]
 description: a greedy optional followed by a defaulted prepositional
@@ -43,19 +49,15 @@ args:
     type: string
     required: true
   - name: subject
-    type: object
+    type: string
     required: false
     greedy: true
-    scope: ["reachable"]
-    requires: any
   - name: tool
-    type: objects
+    type: string
     required: false
     greedy: true
     prepositions: [with, using]
     default: "reachable:[mixin.ToolMixin]"
-    scope: ["reachable"]
-    requires: [ToolMixin]
 `;
 
 function bind(text: string): Record<string, unknown> {

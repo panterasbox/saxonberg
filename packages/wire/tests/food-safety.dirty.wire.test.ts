@@ -91,7 +91,7 @@ suite('the larder, as shipped', () => {
 
 suite('butchering is the one source of the silent population', () => {
   it('the carcass comes apart into several CUTS — more meat than one meal', async () => {
-    expectOk(await cook.cmd('get boning knife'));
+    expectOk(await cook.cmd('get "boning knife"'));
     const butchered = await cook.cmd('butcher carcass');
     expectOk(butchered);
     const said = await butchered.said();

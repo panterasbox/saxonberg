@@ -33,7 +33,7 @@ const SRC = readFileSync(
 
 describe('the consigns beat bounds its take', () => {
   it('asks for ONE of a keyword, never the whole stack', () => {
-    expect(SRC).toContain('`get 1 ${kw}`');
+    expect(SRC).toContain('`get 1 ${CommandLineApi.word(kw)}`');
     // The bare form is what made `batch` meaningless.
     expect(SRC).not.toMatch(/forceCommand\(hand, `get \$\{kw\}`\)/);
   });

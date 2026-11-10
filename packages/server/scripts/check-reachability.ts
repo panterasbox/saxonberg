@@ -435,6 +435,7 @@ interface ArgSpec {
   greedy?: unknown;
   default?: unknown;
   prepositions?: unknown;
+  prepositionRequired?: unknown;
 }
 
 /**
@@ -445,7 +446,9 @@ interface ArgSpec {
  * consumes that token BEFORE `default:` is considered — so `buy dog loaf`
  * binds `thing = "dog"`, hands `loaf` to the trailing slot, and throws
  * the slot's MQL default away. The player is then refused in the name of
- * a counter they never mentioned.
+ * a counter they never mentioned. A `prepositionRequired` slot is exempt:
+ * it never takes a bare word, so word two is left over and the quote hint
+ * names the fix (controller-liquidity W5).
  */
 export function phraseShapeOf(doc: {
   args?: unknown;
@@ -459,6 +462,10 @@ export function phraseShapeOf(doc: {
     for (let j = i + 1; j < args.length; j++) {
       const b = args[j] as ArgSpec;
       if (!b || typeof b !== "object") continue;
+      // ⭐ A slot that binds ONLY behind its preposition cannot take word
+      // two of the name (controller-liquidity W5): `buy dog loaf` leaves
+      // `loaf` over and the binder says to quote it.
+      if (b.prepositionRequired === true) continue;
       if (b.type === "object" && b.required === false && b.default !== undefined) {
         return { string: String(a.name ?? i), object: String(b.name ?? j) };
       }
@@ -811,7 +818,7 @@ export interface RowVerdict {
  * name the binder will cut in half? — never a bumped number
  * (`docs/lint-family.md` ratchet lesson 4).
  */
-export const PHRASE_SHAPE_CEILING = 6;
+export const PHRASE_SHAPE_CEILING = 5;
 
 /**
  * ⭐ The naming ratchet — stocked goods whose printed name is a phrase

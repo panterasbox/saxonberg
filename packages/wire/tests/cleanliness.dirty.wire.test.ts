@@ -282,7 +282,7 @@ async function buy(s: Session, item: string): Promise<void> {
   // loaded machine that can outlast the harness's 30 s.
   let said = '';
   for (let attempt = 0; attempt < 3 && !/you buy/i.test(said); attempt++) {
-    said = await say(s, `buy ${item}`).catch(async () => {
+    said = await say(s, `buy "${item}"`).catch(async () => {
       await s.drainProse();
       return '';
     });
@@ -404,7 +404,7 @@ suite('⭐⭐ drive 1–3 — the apron takes the blood; the gloves, washed and 
     await cloneHere(COOKHOUSE, '/trade/cooking/thing/boning-knife').catch(() => {});
     // The player's own shirt is the one the drive reads (a fresh avatar
     // dresses in a student shirt, trousers and canvas shoes).
-    await say(cook, 'get boning knife');
+    await say(cook, 'get "boning knife"');
     await say(cook, 'get apron');
     const worn = await body(cook);
     // eslint-disable-next-line no-console -- the drive's own record
@@ -701,7 +701,7 @@ suite('⭐ drive 21 — a bath you draw yourself: cold from the tap, hot from a 
     // The bathhouse's own tubs, its cold tap and its copper — no cloning:
     // a commons fixture row is nobody's title to clone (the run-29 finding).
     const s = await goTo(cookHandle, BATHS);
-    const cold = await act(s, 'fill 1st tub from bath tap');
+    const cold = await act(s, 'fill 1st tub from "bath tap"');
     expect(cold, `fill tub from bath tap: ${cold}`).toMatch(/fill|tub/i);
     expect(cold, `the tap gives water: ${cold}`).not.toMatch(/can't|nothing to fill/i);
     const coldBath = await act(s, 'bathe in 1st tub');

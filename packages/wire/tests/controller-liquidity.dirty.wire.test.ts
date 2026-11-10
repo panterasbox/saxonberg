@@ -382,7 +382,7 @@ const ACTS: Act[] = [
     cmd: () => 'smelt',
   },
   { key: 'order', at: P.bar, cmd: () => 'order pint' },
-  { key: 'butcher', at: P.cookhouse, stage: typed('get boning knife'), cmd: () => 'butcher carcass' },
+  { key: 'butcher', at: P.cookhouse, stage: typed('get "boning knife"'), cmd: () => 'butcher carcass' },
   {
     key: 'mill',
     at: P.millHouse,
@@ -423,7 +423,7 @@ const ACTS: Act[] = [
     ],
     cmd: (id) => `dry #${id.rag} with #${id.cloth}`,
   },
-  { key: 'wash', at: P.cookhouse, stage: typed('get boning knife'), cmd: () => 'wash boning' },
+  { key: 'wash', at: P.cookhouse, stage: typed('get "boning knife"'), cmd: () => 'wash boning' },
   { key: 'fit', at: P.smithy, cmd: () => 'fit pick' },
   // ⚠ A handed, COLD ingot: the smithy's own ingot sits by a forge the
   // other rows light, so its heat is the hour's, and the record must not be.
@@ -440,7 +440,7 @@ const ACTS: Act[] = [
   { key: 'drift', at: P.face, hand: [['pick', '/trade/mining/thing/pick']], cmd: () => 'drift north' },
   { key: 'shore', at: P.drift, hand: [['set', '/trade/mining/thing/timber-set']], cmd: (id) => `shore with #${id.set}` },
   { key: 'char', at: P.fuelYard, cmd: () => 'char' },
-  { key: 'plow', at: P.homeField, cmd: () => 'plow at the far side' },
+  { key: 'plow', at: P.homeField, cmd: () => 'plow at the "far side"' },
   { key: 'bore', at: P.saltSpring, hand: [['rig', '/trade/drilling/thing/derrick']], cmd: () => 'bore' },
   {
     key: 'water',
@@ -454,7 +454,7 @@ const ACTS: Act[] = [
     hand: [['sack', '/stuff/thing/vessel/compost-sack']],
     cmd: (id) => `feed wheat at the far side with #${id.sack}`,
   },
-  { key: 'sample', at: P.face, cmd: () => 'sample the north face' },
+  { key: 'sample', at: P.face, cmd: () => 'sample the "north face"' },
   { key: 'survey', at: P.drift, cmd: () => 'survey' },
   { key: 'sweep', at: P.cookhouse, hand: [['broom', '/stuff/thing/gear/broom']], cmd: (id) => `sweep with #${id.broom}` },
   { key: 'label', at: SQUARE, hand: [['crate', '/trade/farming/thing/crate']], cmd: (id) => `label #${id.crate} trial` },

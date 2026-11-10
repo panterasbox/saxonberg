@@ -421,10 +421,10 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => 
     // Two sacks: the home field's seed drill (field population D22) lays
     // the crop on half the seed, so 50 kg sows about two-thirds of the
     // hectare — the gate end, the far side, and a strip of the middle.
-    for (let i = 0; i < 2; i++) await doing(p, 'buy seed wheat');
+    for (let i = 0; i < 2; i++) await doing(p, 'buy "seed wheat"');
     // ⚠ Two words: the potting-soil sack answers to `compost` too, and a
     // one-word query is not name-ranked (W2's scorer rule).
-    await doing(p, 'buy compost sack');
+    await doing(p, 'buy "compost sack"');
     await goTo(YARD);
     await doing(p, 'job apply for labourer');
     await goTo(HOME_FIELD);
@@ -436,7 +436,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => 
     for (const field of ['the gate end', 'the middle', 'the far side']) {
       let said = '';
       for (let i = 0; i < 5 && !/ploughed for the season/i.test(said); i++) {
-        said = (await work(p, `plow at ${field}`)).said + ' ' + (await read(p, `look at ${field}`));
+        said = (await work(p, `plow at "${field}"`)).said + ' ' + (await read(p, `look at "${field}"`));
       }
       expect(said, field).toMatch(/ploughed for the season/i);
     }
@@ -483,14 +483,14 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => 
 
   it('6. label wheat at the gate end — look lists it, and reads it like a pot plant', async () => {
     // ⚠ With text: a bare label names the plant after the labeler (W4).
-    const tied = await doing(p, 'label wheat trial at the gate end');
+    const tied = await doing(p, 'label wheat trial at the "gate end"');
     expect(tied).toMatch(/tie your label to a stem of wheat at the gate end\s*: trial/i);
     await goTo(HOME_FIELD);
     expect(await read(p, 'look')).toMatch(/You also see:[^]*\btrial\b/i);
     const trial = await freshRead(handle, HOME_FIELD, 'look trial');
     // Stage and condition like a pot plant (the unbanded read).
     expect(trial).toMatch(/It is thriving\.|It looks healthy\.|It looks stressed\.|It is failing\./);
-    expect(await freshRead(handle, HOME_FIELD, 'look at the gate end')).toMatch(/Trial stands here, labeled\./i);
+    expect(await freshRead(handle, HOME_FIELD, 'look at the "gate end"')).toMatch(/Trial stands here, labeled\./i);
   }, 600_000);
 });
 
@@ -515,8 +515,8 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by field', () => 
 
   it('2. the same field, the same moment: the novice reads less, never a different truth', async () => {
     // Back to back, no clock between: an untrained handle and an expert.
-    const plain = await freshRead(novice, BENCH, 'look at the top end');
-    const trained = await freshRead(expert, BENCH, 'look at the top end');
+    const plain = await freshRead(novice, BENCH, 'look at the "top end"');
+    const trained = await freshRead(expert, BENCH, 'look at the "top end"');
     expect(plain).toMatch(/A stand of wheat grows here/i);
     expect(plain, 'the floor band names no cause').not.toMatch(CAUSE);
     expect(trained, 'the expert names the cause').toMatch(CAUSE);
@@ -534,7 +534,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by field', () => 
     }
     expect(flatTrained.length).toBeGreaterThan(plain.replace(/\s+/g, ' ').length);
     // ⭐ And the stand answers to its field's name (amended D13).
-    const stand = await freshRead(expert, BENCH, 'look top end wheat');
+    const stand = await freshRead(expert, BENCH, 'look "top end wheat"');
     expect(stand).toMatch(/It stands at the top end\./);
     expect(stand).toMatch(CAUSE);
   }, 600_000);
@@ -543,7 +543,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by field', () => 
     const x = await Session.open(expert, { startLocation: BENCH });
     try {
       await x.drainProse();
-      expect(await doing(x, 'sample wheat at the top end')).toMatch(/pull a stem of wheat from the top end/i);
+      expect(await doing(x, 'sample wheat at the "top end"')).toMatch(/pull a stem of wheat from the top end/i);
       expect((await x.query('me:i:stem')).length).toBe(1);
       const first = await read(x, 'look me:i:stem:[1]');
       expect(first).toMatch(/It is (in ear|tillering|ripening|ripe|just up) and/);
@@ -551,7 +551,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by field', () => 
       expect(first).toMatch(/Its roots/);
       expect(first).toMatch(/Taken from the top end of the upper bench\./);
       // ⭐ Same spot, same plant.
-      await doing(x, 'sample wheat at the top end');
+      await doing(x, 'sample wheat at the "top end"');
       const second = await read(x, 'look me:i:stem:[2]');
       // The plant's own words (an ambient line — *"You're shivering."* —
       // may lead either read).
@@ -569,10 +569,10 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by field', () => 
       await x.drainProse();
       // Hands empty: two stems in hand make `look me:i:stem` ask which.
       await act(x, 'drop all stem');
-      await doing(x, 'sample wheat at the top end');
+      await doing(x, 'sample wheat at the "top end"');
       const top = await read(x, 'look me:i:stem');
       await act(x, 'drop all stem');
-      await doing(x, 'sample wheat at the lane end');
+      await doing(x, 'sample wheat at the "lane end"');
       const lane = await read(x, 'look me:i:stem');
       expect(lane).toMatch(/Taken from the lane end of the upper bench\./);
       note(`stems: top end ${conditionOf(top)} · lane end ${conditionOf(lane)}`);
@@ -623,7 +623,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by field, and the hand', () 
     await daylight();
     await dryTo({ 'gate-end': 0.1 });
     const trial = await freshRead(expert, HOME_FIELD, 'look trial');
-    const field = await freshRead(expert, HOME_FIELD, 'look at the gate end');
+    const field = await freshRead(expert, HOME_FIELD, 'look at the "gate end"');
     const x = await Session.open(expert, { startLocation: HOME_FIELD });
     let sample = '';
     try {
@@ -631,7 +631,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by field, and the hand', () 
       // Empty hands first: a stem left over from an earlier step would make
       // `look me:i:stem` ask which (drive 1 cascaded from step 4 this way).
       await act(x, 'drop all stem');
-      await doing(x, 'sample wheat at the gate end');
+      await doing(x, 'sample wheat at the "gate end"');
       sample = await read(x, 'look me:i:stem');
       await act(x, 'drop all stem');
     } finally {
@@ -684,7 +684,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by field, and the hand', () 
     // ⚠ One word for the source: a two-word object after the greedy field
     // falls through every command shape (staged W6; W3 saw the same of
     // `fill watering can from …`). The only compost carried is the sack.
-    const said = await doing(p, 'feed wheat at the far side with compost');
+    const said = await doing(p, 'feed wheat at the "far side" with compost');
     const after = byPart(await founderEval(HOME_FIELD, CAMPUS, NITROGEN));
     expect(said).toMatch(/You work (less than )?[0-9.,]+ kg of .* at the far side/i);
     note(`nitrogen: ${JSON.stringify(before)} → ${JSON.stringify(after)}`);
@@ -751,7 +751,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by field, and the hand', () 
     }
     await daylight();
     await dryTo({ 'far-side': 0.25 });
-    await freshRead(expert, HOME_FIELD, 'look at the far side');
+    await freshRead(expert, HOME_FIELD, 'look at the "far side"');
     note(`after the dry spell: ${await founderEval(HOME_FIELD, CAMPUS, WORST)}`);
     const GRADES_EVAL =
       'return self.getContainer().getContents().filter(c => /crop\\/wheat$/.test(c.getTemplatePath() ?? "")).map(c => c.stuffId + ":" + c.getGradeBand()).join(",")';

@@ -95,9 +95,15 @@ import type { LogLevel, Note } from '@saxonberg/types';
  * site (the sweep loop in `executeCommand`), so no broader surface
  * is needed.
  */
-function proseForFrameworkNote(note: Note): string | null {
+function proseForFrameworkNote(note: Note): string | Mml | null {
   switch (note.kind) {
     case 'command-rejected': {
+      // ⭐ The quote hint (controller-liquidity D3): the fitted line is a
+      // link — the player taps the form that would have run.
+      if (note.reason === 'bind-failed' && note.suggestion) {
+        const link = Mml.link(`mudcmd:${encodeURIComponent(note.suggestion)}`, note.suggestion);
+        return Mml.compose`Too many words — quote a name with a space in it: ${link}`;
+      }
       // `reason` is enum; pair with `detail` when present.
       const tail = note.detail ? `: ${note.detail}` : '';
       switch (note.reason) {
@@ -271,7 +277,7 @@ function emitDispatchResponse(ctx: CommandContext): void {
       if (prose === null) continue;
       MessageApi.scene(giverAsStuff as Stuff & Sensor)
         .topic('shell.error')
-        .toSelf(Mml.compose`${prose}`)
+        .toSelf(prose instanceof Mml ? prose : Mml.compose`${prose}`)
         .send();
     }
   }
@@ -1289,6 +1295,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       let askable: { command: CommandDefinition; field: string } | undefined;
       /** ⭐ The first view that would have fit with one name quoted (D3). */
       let quoteHint: string | undefined;
+      let quoteLine: string | undefined;
       for (const affordance of matches) {
         const command = affordance.command;
         const built = CommandApi.assemble(
@@ -1314,7 +1321,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             if (!askable && def && (def.type === 'object' || def.type === 'objects')) {
               askable = { command, field: def.name };
             }
-            quoteHint ??= built.quoteHint;
+            if (quoteHint === undefined && built.quoteHint !== undefined) {
+              quoteHint = built.quoteHint;
+              quoteLine = built.quoteLine;
+            }
             continue; // fall through
           }
           if (firstRefused) return this._otherOffer(parsed, allMatches, firstRefused);
@@ -1465,7 +1475,12 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // fit with a multi-word name quoted: say THAT (D3) — it is the
       // player's actual mistake, and the fix is in the sentence.
       if (quoteHint !== undefined) {
-        outer.note({ kind: 'command-rejected', reason: 'bind-failed', detail: quoteHint });
+        outer.note({
+          kind: 'command-rejected',
+          reason: 'bind-failed',
+          detail: quoteHint,
+          ...(quoteLine !== undefined ? { suggestion: quoteLine } : {}),
+        });
         return outer;
       }
       // Every match returned a shape error: say every shape the verb has

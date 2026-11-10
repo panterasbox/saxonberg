@@ -168,7 +168,7 @@ afterAll(() => {
 
 suite('1 — the ordinary case still works', () => {
   it('⭐ a straight pour is ordered and served', async () => {
-    const { result, said } = await act(patron, `order ${EASY}`);
+    const { result, said } = await act(patron, `order "${EASY}"`);
     // ⭐ The floor is that **the order reaches a maker**. Whether the rail
     // has the matter is a supply question and the realm's own answer; what
     // must never happen is a refusal about NOBODY BEING THERE in a bar with
@@ -215,7 +215,7 @@ suite('3 — being called breaks off what you were doing', () => {
     // `interruptibleBy` is read for real here — the first consumer in the
     // engine's history. Put the barkeep mid-beat, then order.
     await beat('mara', '/lib/behavior/restocks');
-    const { said } = await act(patron, `order ${EASY}`);
+    const { said } = await act(patron, `order "${EASY}"`);
     // The break-off scene is emitted to PEERS at the moment of the call, so
     // the patron is exactly who should read it. ⚠ What is asserted is that
     // ordering mid-task is ANSWERED — the engagement is cut or was never
@@ -234,7 +234,7 @@ suite('4 — the drink nobody can make', () => {
     // the menu's only `hard` cocktail is beyond every band on the rail, so
     // the bar carries a standing vacancy for a skilled mixologist. The gate
     // (`lint:menu-staff`) says so at build time; this says so at the rail.
-    const { result, said } = await act(patron, `order ${UNMAKEABLE}`);
+    const { result, said } = await act(patron, `order "${UNMAKEABLE}"`);
     expectRefused(result);
     expect(
       /nobody here knows how to make that/i.test(said),
@@ -254,7 +254,7 @@ suite('4 — the drink nobody can make', () => {
     // What is hour-independent is the SHAPE: served, or refused as
     // `not-learned` naming who could. Never `no-maker`, and never served
     // by somebody whose band does not license it.
-    const { result, said } = await act(patron, `order ${STANDARD}`);
+    const { result, said } = await act(patron, `order "${STANDARD}"`);
     if (result.status !== 'ok') {
       expect(
         /knows how to make that/i.test(said),
@@ -321,7 +321,7 @@ suite('7 — two on the rail share the work', () => {
     let served = 0;
     let answered = 0;
     for (let i = 0; i < 6; i++) {
-      const { result, said } = await act(patron, `order ${EASY}`);
+      const { result, said } = await act(patron, `order "${EASY}"`);
       if (said.length > 0 || result.status === 'ok') answered++;
       if (result.status !== 'ok') continue;
       served++;
@@ -412,7 +412,7 @@ suite('14 — an empty rail says so, and says who could', () => {
     // Driven by asking for the one drink no present band licenses: the
     // answer must be the NAMING refusal, which is a different answer from
     // "there is no one on hand".
-    const { result, said } = await act(patron, `order ${UNMAKEABLE}`);
+    const { result, said } = await act(patron, `order "${UNMAKEABLE}"`);
     expectRefused(result);
     // ⭐ The two refusals are DIFFERENT answers, and the difference is the
     // mechanism: "nobody is here" versus "somebody is here and none of them

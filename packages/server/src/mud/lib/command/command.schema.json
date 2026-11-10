@@ -220,6 +220,24 @@
       "required": [
         "name"
       ],
+      "if": {
+        "properties": {
+          "greedy": {
+            "const": true
+          }
+        },
+        "required": [
+          "greedy"
+        ]
+      },
+      "then": {
+        "properties": {
+          "type": {
+            "const": "string"
+          }
+        }
+      },
+      "$comment": "\u2b50 `greedy` is for PROSE only (controller-liquidity D3): an `object` / `objects` slot binds ONE word, and a name with a space in it is quoted (`buy \"dog loaf\"`). A greedy arg must be `type: string` (or untyped).",
       "additionalProperties": false,
       "properties": {
         "requires": {"oneOf":[{"type":"string","minLength":1},{"type":"array","items":{"type":"string","minLength":1},"minItems":1}],"description":"What this object-typed slot ACCEPTS, by mixin composition. `any` = deliberately unconstrained (a wizard's `destruct <anything>`, an MQL selector, a perception verb that refuses nothing by kind). Otherwise a mixin name from the Mixins registry — `SealableMixin` — which the bound Stuff must compose; the framework synthesises the check and the refusal sentence. A LIST means ALL of them; `|` inside one entry means EITHER (`CombustibleMixin|FurnaceMixin`). An unknown name is a load-time error, which is the point: `targetKind: any`, its predecessor, was an unverifiable promise and three of its fifty uses were wrong. Kind only — relation (`canReach`) and state (already open, currently lit) stay in validators and controllers."},
@@ -249,7 +267,7 @@
         },
         "greedy": {
           "type": "boolean",
-          "description": "Greedy positional: consumes the remainder of input verbatim. Must be the last arg in its array."
+          "description": "Greedy positional: consumes the remainder of input verbatim (prose \u2014 `say`, a forum body, `def`). `type: string` only: an object's name is quoted, never swallowed (controller-liquidity D3). Must be the last arg in its array, or be followed only by prepositioned args."
         },
         "multiple": {
           "type": "boolean",
@@ -299,7 +317,7 @@
         },
         "prepositionRequired": {
           "type": "boolean",
-          "description": "The slot binds ONLY when one of its `prepositions:` is present. Absent, a required slot is a shape error naming the preposition (the chain tries the next view); an optional one stays unbound. Requires `prepositions:`."
+          "description": "The slot binds ONLY when one of its `prepositions:` is present. Absent, a required slot is a shape error naming the preposition (the chain tries the next view); an optional one takes its `default:` (or stays unbound). Requires `prepositions:`."
         },
         "values": {
           "$ref": "#/$defs/values"

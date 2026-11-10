@@ -427,6 +427,12 @@ export class CommandLineLogic extends ApiLogic {
     return formatCommand(parsed);
   }
 
+  /** See {@link CommandLineApi.word}. */
+  @CallSecurity(CommandLineApiCallers)
+  public word(value: string): string {
+    return quoteIfNeeded(value);
+  }
+
   /** See {@link CommandLineApi.processOutsideEscapes}. */
   @CallSecurity(CommandLineApiCallers)
   public processOutsideEscapes(s: string): string {

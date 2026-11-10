@@ -107,7 +107,7 @@ async function at(where: string | undefined, tag: string): Promise<Session> {
 
 /** What `look <what>` says, as plain prose. */
 async function look(s: Session, what: string): Promise<string> {
-  return plain(await (await s.cmd(`look ${what}`)).said());
+  return plain(await (await s.cmd(`look "${what}"`)).said());
 }
 
 /**

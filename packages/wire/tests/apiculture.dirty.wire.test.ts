@@ -278,8 +278,8 @@ suite('⭐⭐ the kit comes from town, because the valley has no supplier', () =
     // a price is content, and the only instrument that reads content is
     // somebody trying to buy something.
     for (const line of ['hive', 'super', 'smoker', 'veil', 'gloves']) {
-      const out = await say(k, `buy ${line}`);
-      expect(refusedFor(out), `buy ${line}`).toBeNull();
+      const out = await say(k, `buy "${line}"`);
+      expect(refusedFor(out), `buy "${line}"`).toBeNull();
     }
     const kit = await carried(k);
     expect(kit).toMatch(/hive/i);

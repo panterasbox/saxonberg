@@ -263,7 +263,7 @@ async function carried(s: Session): Promise<string> {
 
 /** Read a vessel's temperature off the thermometer, in K. */
 async function kelvinOf(s: Session, what: string): Promise<number> {
-  const line = await read(s, `measure temperature ${what}`);
+  const line = await read(s, `measure temperature "${what}"`);
   const m = /([0-9]+(?:\.[0-9]+)?)\s*K\b/.exec(line);
   expect(m, `no temperature in: ${line}`).toBeTruthy();
   return Number(m![1]);

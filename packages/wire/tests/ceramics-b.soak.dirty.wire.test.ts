@@ -200,7 +200,7 @@ async function drink(): Promise<void> {
   expect(back, 'drink() needs to know where to come back to').not.toBe('');
   await goTo(PITHEAD);
   await say('get 1 pail');
-  await act('pump village well', '1 minute');
+  await act('pump "village well"', '1 minute');
   await say('fill pail from well');
   for (let i = 0; i < 2; i++) await say('drink pail --amount 1L');
   await say('drop pail');
@@ -228,7 +228,7 @@ async function winAtQuarry(band: string, n: number, back: string): Promise<void>
     // out through a night's rest were rained on (`too-wet` to stoke).
     if (why === null) {
       got++;
-      await say(`get 1 ${band}`);
+      await say(`get 1 "${band}"`);
     } else if (why === 'too-tired') await rest();
     else break;
   }
@@ -473,7 +473,7 @@ suite('⭐ 13 — wear a crucible', () => {
       // is the melts, not the mining (B10 drives that).
       await toHour(9, 15);
       await goTo(SMELTER);
-      for (const x of ['coal', 'ore', 'malachite', 'pail', 'firebrick', 'brick', 'clay']) await k.cmd(`drop ${x}`);
+      for (const x of ['coal', 'ore', 'malachite', 'pail', 'firebrick', 'brick', 'clay']) await k.cmd(`drop "${x}"`);
       await k.drainProse();
       await drink();
       // ⚠ Charged COLD, then lit and smelted at once: the smelterman keeps
@@ -557,7 +557,7 @@ suite('⭐ 13 — wear a crucible', () => {
       const poured = await act(`pour ${cr} into mould`, '30 minutes');
       // eslint-disable-next-line no-console -- the drive's own record
       console.log(`  [drive] melt ${melt + 1} pour: ${poured.said.slice(0, 200)}`);
-      await say(`put ${cr} in furnace`);
+      await say(`put "${cr}" in furnace`);
       await say('douse furnace');
       if (melt === 3) expect(look, 'after four melts').toMatch(/worn|crack/i);
     }

@@ -91,7 +91,7 @@ suite('paint — the soak drive', () => {
     const s = await Session.open(handle, { startLocation: SHOP });
     open.push(s);
     await nourish(s).catch(() => {});
-    await say(s, 'buy pot of ochre paint');
+    await say(s, 'buy "pot of ochre paint"');
     for (let i = 0; i < 6; i++) await say(s, 'buy rag');
     await say(s, 'dip rags in ochre paint');
     await say(s, 'north');

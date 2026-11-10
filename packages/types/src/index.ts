@@ -598,6 +598,12 @@ export interface CommandRejectedNote {
      */
     | 'needs-input';
   detail?: string;
+  /**
+   * ⭐ A line that WOULD run — the quote hint's fitted form (`buy "dog
+   * loaf"`, controller-liquidity D3). The shell's prose offers it as a
+   * link the player can tap; a script reads it here.
+   */
+  suggestion?: string;
 }
 
 /**

@@ -398,7 +398,7 @@ async function ram(s: Session, pattern: string, riser: boolean): Promise<void> {
   // One flask on the floor: `impress X in flask` binds the first it finds.
   await clearFloor(/moulding flask/i);
   await mint(FOUNDRY, T.flask);
-  const rammed = await doing(s, `impress ${pattern} in flask`);
+  const rammed = await doing(s, `impress "${pattern}" in flask`);
   expect(rammed, `impress ${pattern}: ${rammed}`).toMatch(/holds the shape of/i);
   if (riser) {
     const cut = await act(s, 'carve riser on flask', '5 minutes');
@@ -1020,7 +1020,7 @@ suite('⭐⭐ 34 — patterns and bells', () => {
     await mint(FOUNDRY, T.board);
     // ⚠ Hands free first: what earlier checkpoints left in them (an ingot,
     // the salt crust) is over a body's load with a board on top.
-    for (const x of ['coal', 'ingot', 'crystals']) await caster.cmd(`drop ${x}`);
+    for (const x of ['coal', 'ingot', 'crystals']) await caster.cmd(`drop "${x}"`);
     await caster.drainProse();
     await doing(caster, 'get board');
     const carved = await act(caster, 'carve pattern from board --of sword --for pewter', '1 hour');

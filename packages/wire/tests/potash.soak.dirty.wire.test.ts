@@ -384,7 +384,7 @@ async function brashOf(handle: string, species: string, bundles: number): Promis
     // bundle in hand later answers to "ash" — MQL's partial match is a
     // substring one, and b-r-ASH (the slate's vocabulary hazard, met).
     // By its wood: the ride still holds the last felling's bundles.
-    await say(r, `get 1 ${species} brash`);
+    await say(r, `get 1 "${species} brash"`);
     r.close();
     const p = await goTo(handle, ASHERY);
     const fed = await say(p, 'stoke brash into pit');
@@ -511,7 +511,7 @@ function eggRank(said: string): number {
 
 /** Read a hopper by egg: the words, and their rank. */
 async function eggOf(s: Session, vessel = 'hopper'): Promise<{ said: string; rank: number }> {
-  const said = await say(s, `analyze density ${vessel}`);
+  const said = await say(s, `analyze density "${vessel}"`);
   expect(said, `the egg in the ${vessel}: ${said}`).toMatch(/egg/i);
   expect(said).not.toMatch(NO_NUMBER);
   return { said, rank: eggRank(said) };

@@ -432,7 +432,7 @@ async function ensureDaylight(s: Session): Promise<void> {
 async function buyOrWait(s: Session, good: string): Promise<string | null> {
   let last = 'no attempt';
   for (let i = 0; i < 3; i += 1) {
-    const bought = await say(s, `buy ${good}`);
+    const bought = await say(s, `buy "${good}"`);
     const kinds = noteKinds(bought);
     const reason = refusedFor(bought);
     const said = (await bought.said()).toLowerCase();
@@ -825,7 +825,7 @@ suite('⭐⭐⭐ 7b. the law is LEGIBLE', () => {
     const candidates = ['neck', 'belly', 'trim', 'loin'];
     let described = '';
     for (const word of candidates) {
-      const text = await read(k, `look ${word}`);
+      const text = await read(k, `look "${word}"`);
       if (!/don't see|do not see/i.test(text)) {
         described = text;
         break;

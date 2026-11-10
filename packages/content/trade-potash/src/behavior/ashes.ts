@@ -80,7 +80,7 @@ export const brain = class {
     if (counter.getContainer() === room) {
       // ⭐ Back at the counter: sell it, with the verb anybody uses.
       if (!MixinApi.isCommandGiver(hand)) return;
-      for (let i = brain.heapsHeld(hand).length; i > 0; i -= 1) await hand.forceCommand('sell wood ash');
+      for (let i = brain.heapsHeld(hand).length; i > 0; i -= 1) await hand.forceCommand('sell "wood ash"');
       return;
     }
 

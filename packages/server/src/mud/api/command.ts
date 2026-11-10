@@ -1489,8 +1489,10 @@ export type AssembleResult =
    * one multi-word name would have made it fit (controller-liquidity D3):
    * the sentence to say, `too many words — quote a name with a space in
    * it: buy "dog loaf"`. Said only when no other view claims the line.
+   * `quoteLine` is the fitted line alone (`buy "dog loaf"`), the
+   * suggestion the client offers to run.
    */
-  | { error: 'shape'; summary: string; missing?: string; quoteHint?: string }
+  | { error: 'shape'; summary: string; missing?: string; quoteHint?: string; quoteLine?: string }
   | { error: 'bind'; summary: string }
   | { error: 'unknown-subcommand'; subcommand: string; available: string[] };
 

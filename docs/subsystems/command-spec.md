@@ -902,10 +902,33 @@ positional**:
   binds an object slot to it, and no other view of the word claims the
   line, the player is told exactly that:
   *too many words — quote a name with a space in it: buy "dog loaf"*.
-  Lists (`get apple and pear`) are out of scope (the lists conversation).
+  The fitted line rides the note as `suggestion` and the shell prints it
+  as a `mudcmd:` link — the player taps the line that would have run.
+  A slot word (`with`, `from`, `at`), an article or a count is never
+  inside the quotes (`paint cottage with "ochre paint"`, `get 1 "mooring
+  line"`); two names in one line are both quoted (`fit the "oak haft" to
+  the "old pick"`); and a missing preposition that word two took says
+  it too (`put "mooring line" on bitts`). Lists (`get apple and pear`)
+  are out of scope (the lists conversation).
+- ⭐ **The determiner fold** (W5). A leading count, measure, `all` or
+  ordinal stays with the name MQL reads: `get 1 gin`, `look 2nd
+  greywater`, `pour 2 cups water into the pot`, `get all coins`, `get 1
+  "mooring line"`. A brain's `get 1 ${kw}` reads as it always did.
+
+⭐ **No greedy object, anywhere (W5).** `command.schema.json` refuses
+`greedy: true` on any arg that is not `type: string`, and
+`lint:greedy-object` holds the census at zero. A `string` slot that names
+a GOOD the next object offers (`buy <thing> from <counter>`, `shelf
+reclaim <thing>`, `order <cocktail>`) is a name too: it is non-greedy and
+takes the article fold. Every slot after a name behind a preposition is
+`prepositionRequired: true`, so word two of an unquoted name is LEFT OVER
+(and the hint fires) instead of being taken for the next slot. A line a
+brain or a controller builds from a keyword names it through
+`CommandLineApi.word(kw)`, which quotes a name with a space in it.
 
 `lint:reachability` arm G keeps its **phrase shape** ratchet (a `string`
-positional followed by an optional defaulted `object`); its article-shape
+positional followed by an optional defaulted `object` that is NOT
+`prepositionRequired`); its article-shape
 ratchet (`ARTICLE_SHAPE_CEILING`) was retired with the rule it enforced.
 
 #### Quoting and greedy, together
@@ -1218,7 +1241,8 @@ args:
 (controllers-are-io D17): the slot binds only when one of its
 `prepositions:` is present. Absent, a required slot is a **shape error
 naming the preposition** (*"missing 'to' before recipient"*), so the
-chain tries the next view of the verb; an optional one stays unbound.
+chain tries the next view of the verb; an optional one takes its
+`default:` (or stays unbound).
 It is what makes two views of one word provably disjoint — `throw ball
 to ann` cannot bind `throw-at`, and `throw ball at ann` cannot bind
 `throw-to`. A load-time error without `prepositions:`. The usage line

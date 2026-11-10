@@ -383,8 +383,8 @@ suite('⭐⭐⭐ 20–25. the third damp, the lamp, and the gas you can carry ou
     // ⭐ The reachability link that makes the hazard a mechanic rather
     // than a prohibition: a remedy nobody can reach is not a remedy, and
     // the hazard would ship with no counter but *do not go in there*.
-    const got = await say(m, 'get safety lamp');
-    understood(got, 'get safety lamp');
+    const got = await say(m, 'get "safety lamp"');
+    understood(got, 'get "safety lamp"');
     expect(refusedFor(got), 'no safety lamp at the lamp station').toBeNull();
 
     const lit = await say(m, 'light lamp');

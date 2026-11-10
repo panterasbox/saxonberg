@@ -201,14 +201,14 @@ suite('paint — the blocking drive', () => {
     const l = await say(s, 'look');
     expect(l, l).toMatch(/colorman/i);
     for (const line of [
-      'buy brush', 'buy paint pot', 'buy oil jar', 'buy flax seed', 'buy ochre clay',
-      'buy pot of ochre paint', 'buy pot of ochre paint', 'buy sign board', 'buy gessoed panel',
+      'buy brush', 'buy "paint pot"', 'buy "oil jar"', 'buy "flax seed"', 'buy "ochre clay"',
+      'buy "pot of ochre paint"', 'buy "pot of ochre paint"', 'buy "sign board"', 'buy "gessoed panel"',
     ]) {
       const b = await say(s, line);
       expect(b, b).not.toMatch(/bare|cannot afford|no one/i);
     }
     await say(s, 'buy rags');
-    for (let i = 0; i < 4; i++) await say(s, 'buy cake of lead white');
+    for (let i = 0; i < 4; i++) await say(s, 'buy "cake of lead white"');
     expect(await carried(s, 'brush')).toBeGreaterThanOrEqual(1);
     expect(await carried(s, 'kettle')).toBe(1);
   }, 600_000);
@@ -271,7 +271,7 @@ suite('paint — the blocking drive', () => {
   it('8. paint the cottage on a dry day: the pot drops, the coat goes on wet and sets', async () => {
     await pinWeather('clear', TOWPATH);
     const s = await session(painter, TOWPATH);
-    const p = await act(s, 'paint cottage with ochre paint');
+    const p = await act(s, 'paint cottage with "ochre paint"');
     expect(p, p).toMatch(/wet coat|start laying/i);
     const wet = await say(s, 'survey cottage');
     expect(wet, wet).toMatch(/wet coat/i);
@@ -284,7 +284,7 @@ suite('paint — the blocking drive', () => {
   it('9. paint again in pinned rain: the coat runs', async () => {
     await pinWeather('rain', TOWPATH);
     const s = await session(painter, TOWPATH);
-    await act(s, 'paint cottage with ochre paint');
+    await act(s, 'paint cottage with "ochre paint"');
     await advanceWorldClock('2 hours');
     const v = await say(s, 'survey cottage');
     // Rain runs a wet coat; frost crazes it — either way it set badly.
@@ -339,7 +339,7 @@ suite('paint — the blocking drive', () => {
 
   it('19. letter a sign board in paint, and anyone reads it', async () => {
     const s = await session(painter, SHOP);
-    const w = await say(s, 'write ROPEWALK on sign board with ochre paint');
+    const w = await say(s, 'write ROPEWALK on "sign board" with "ochre paint"');
     expect(w, w).toMatch(/letter/i);
     const r = await say(s, 'read board');
     expect(r, r).toMatch(/ROPEWALK/);

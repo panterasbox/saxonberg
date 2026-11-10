@@ -104,6 +104,7 @@ import {
 } from '../../../api/command';
 import type { OnFilteredPolicy, ReachDepth } from '../../../api/command';
 import { GrammarApi } from '../../../api/grammar';
+import { QuantityApi } from '../../../api/quantity';
 import { MessageApi } from '../../../api/message';
 
 const CommandApiCallers = SecurityPolicies.AnyOf(
@@ -2952,10 +2953,13 @@ function bindPositionalsImpl(
   hint = true,
 ):
   | { bound: ModelData; prep: Record<string, string>; error?: undefined }
-  | { error: 'shape'; summary: string; missing?: string; quoteHint?: string }
+  | { error: 'shape'; summary: string; missing?: string; quoteHint?: string; quoteLine?: string }
   | { error: 'bind'; summary: string } {
   const bound: ModelData = {};
   const prep: Record<string, string> = {};
+  // The line as typed — the determiner fold rewrites `positionals` as it
+  // binds, and the quote hint must join the words the player typed.
+  const typedWords = positionals;
   let pi = 0;
   /**
    * ⭐ A typed slot's value (controller-liquidity D1): a `number` or
@@ -3003,11 +3007,25 @@ function bindPositionalsImpl(
     // to ann` is not `throw ball at ann`); an optional one stays unbound.
     if (def.prepositionRequired && def.prepositions && prep[name] === undefined) {
       if (def.required === true || (def.greedy === true && def.required !== false)) {
+        // ⭐ `put mooring line on bitts`: the second word of the name took
+        // the preposition's place — say the quoted line (D3).
+        const quoteLine =
+          hint && pi < positionals.length
+            ? quoteHintFor(typedWords, args, parsed, expand, expandDefault)
+            : undefined;
         return {
           error: 'shape',
           summary: `missing '${def.prepositions.join("' or '")}' before ${name}`,
+          ...(quoteLine !== undefined
+            ? { quoteHint: `too many words — quote a name with a space in it: ${quoteLine}`, quoteLine }
+            : {}),
         };
       }
+      // ⭐ Unnamed, an optional slot takes its `default:` — `buy loaf` still
+      // finds the counter in reach (controller-liquidity W5: every slot
+      // after a phrase is `prepositionRequired` now, so this is the path
+      // the bare form walks).
+      if (def.default !== undefined) bound[name] = defaulted(def);
       continue;
     }
 
@@ -3219,10 +3237,32 @@ function bindPositionalsImpl(
     // takes ONE word, and `eat the apple` must not bind `the`. A leading
     // unquoted article with a word after it folds away — MQL strips one
     // inside a name anyway, so the slot loses nothing it could use.
-    const isObject = def.type === 'object' || def.type === 'objects';
+    // ⭐ A `string` slot that names a GOOD the next object offers
+    // (`buy <good> from <counter>`, `shelf reclaim <good> from <shelf>`)
+    // is a name too, and folds the same way (controller-liquidity W5).
+    const isObject = def.type === 'object' || def.type === 'objects' || namesAnOfferedGood(args, ai);
     if (isObject && pi + 1 < positionals.length) {
       const head = positionals[pi]!;
       if (head.raw === head.value && FOLDED_ARTICLES.has(head.value.toLowerCase())) pi++;
+    }
+
+    // ⭐⭐ The determiner fold (W5): a leading count, measure, `all` or
+    // ordinal is part of the NAME MQL reads — `get 1 gin`, `look 2nd
+    // greywater`, `pour 2 cups water into bucket`, `get all coins`. The
+    // greedy slot used to hand MQL the whole phrase; the one-word slot
+    // keeps the determiner with the word it counts, so a brain's `get 1
+    // coupe` and a player's `look first hive` read as they always did.
+    if ((def.type === 'object' || def.type === 'objects') && pi + 1 < positionals.length) {
+      const width = determinerWidth(positionals, pi, collectLaterPrepositions(args, ai));
+      if (width > 1) {
+        const span = positionals.slice(pi, pi + width);
+        const joined = span.map((t) => t.value).join(' ');
+        positionals = [
+          ...positionals.slice(0, pi),
+          { kind: 'word', value: joined, raw: span.map((t) => t.raw).join(' '), pos: span[0]!.pos },
+          ...positionals.slice(pi + width),
+        ];
+      }
     }
 
     // Boundary lookahead extends to non-greedy fields too: if the
@@ -3310,11 +3350,13 @@ function bindPositionalsImpl(
     // the chain try another match. ⭐ If quoting one multi-word name
     // would have made it fit, say so (D3) — said only when no other
     // view claims the line.
-    const quoteHint = hint ? quoteHintFor(positionals, args, parsed, expand, expandDefault) : undefined;
+    const quoteLine = hint ? quoteHintFor(typedWords, args, parsed, expand, expandDefault) : undefined;
     return {
       error: 'shape',
       summary: 'too many arguments',
-      ...(quoteHint !== undefined ? { quoteHint } : {}),
+      ...(quoteLine !== undefined
+        ? { quoteHint: `too many words — quote a name with a space in it: ${quoteLine}`, quoteLine }
+        : {}),
     };
   }
 
@@ -3325,12 +3367,66 @@ function bindPositionalsImpl(
 const FOLDED_ARTICLES: ReadonlySet<string> = new Set([...GrammarApi.ARTICLES, 'some']);
 
 /**
+ * ⭐ How many unquoted words at `pi` are ONE name because they lead with
+ * a determiner MQL reads (W5, D3): `<n> <unit> <name>` (a measure — 3),
+ * `<n> <name>` · `all <name>` · `<ordinal> <name>` (2), else 1. A word
+ * that opens a later slot (`drop 2 in box`) is never swallowed.
+ */
+function determinerWidth(positionals: WordToken[], pi: number, laterPreps: ReadonlySet<string>): number {
+  const at = (k: number): WordToken | undefined => positionals[k];
+  const plain = (t: WordToken | undefined): t is WordToken =>
+    t !== undefined && t.raw === t.value && !laterPreps.has(t.value.toLowerCase());
+  // The name after the determiner may be quoted: `get 1 "mooring line"`.
+  const name = (t: WordToken | undefined): t is WordToken => t !== undefined && (t.raw !== t.value || plain(t));
+  const head = at(pi);
+  if (!head || head.raw !== head.value) return 1;
+  const lower = head.value.toLowerCase();
+  const integer = /^\d+$/.test(lower);
+  if (integer && plain(at(pi + 1)) && QuantityApi.isUnitToken(at(pi + 1)!.value) && name(at(pi + 2))) return 3;
+  return isDeterminer(lower) && name(at(pi + 1)) ? 2 : 1;
+}
+
+/** A count, `all`, or an ordinal — a word MQL reads as counting the name after it. */
+function isDeterminer(lower: string): boolean {
+  return /^\d+$/.test(lower) || lower === 'all' || GrammarApi.ORDINAL_WORDS.has(lower) || GrammarApi.ORDINAL_NUMERIC.test(lower);
+}
+
+/**
+ * ⭐ Does the slot at `ai` take a NAME — one word, or a quoted phrase?
+ * An `object` / `objects` slot always does; so does a non-greedy `string`
+ * slot with no closed `values:` set (a key, a good's name, a variable).
+ * The quote hint joins words into exactly these (controller-liquidity D3).
+ */
+function takesAName(def: PositionalDefinition): boolean {
+  if (def.greedy) return false;
+  if (def.type === 'object' || def.type === 'objects') return true;
+  return (def.type ?? 'string') === 'string' && (def.values === undefined || def.values.length === 0);
+}
+
+/**
+ * ⭐ A non-greedy `string` slot followed by a prepositioned OBJECT slot
+ * names a good that object offers or keeps — `buy <good> from <counter>`,
+ * `order <drink> from <counter>`, `shelf reclaim <good> from <shelf>`,
+ * `store withdraw <good> from <book>`. The good is matched by the
+ * counter's own book, not by MQL, so the slot stays a string; but it is a
+ * name, and an article before it is not part of it (W5, D3). A bare
+ * string slot (`var set a 5`) is not one: `a` may be the name.
+ */
+function namesAnOfferedGood(args: PositionalDefinition[], ai: number): boolean {
+  const def = args[ai]!;
+  if (!takesAName(def) || def.type === 'object' || def.type === 'objects') return false;
+  return args
+    .slice(ai + 1)
+    .some((a) => (a.type === 'object' || a.type === 'objects') && (a.prepositions?.length ?? 0) > 0);
+}
+
+/**
  * ⭐ The quote hint (controller-liquidity D3). A line that left words over
  * is tried again with each run of two or more words joined into ONE quoted
- * name; the first that binds an OBJECT slot to the joined name is the line
- * the player meant, and the hint says it: `too many words — quote a name
- * with a space in it: buy "dog loaf"`. Undefined when no join fits — the
- * line is wrong some other way, and the plain shape error stands.
+ * name; the first that binds a NAME slot to the joined name is the line
+ * the player meant — returned as that line (`buy "dog loaf"`), which the
+ * hint says and the client offers to run. Undefined when no join fits —
+ * the line is wrong some other way, and the plain shape error stands.
  */
 function quoteHintFor(
   positionals: WordToken[],
@@ -3339,25 +3435,66 @@ function quoteHintFor(
   expand: (text: string) => string,
   expandDefault: (text: string) => string,
 ): string | undefined {
-  if (!args.some((a) => (a.type === 'object' || a.type === 'objects') && !a.greedy)) return undefined;
+  if (!args.some(takesAName)) return undefined;
   const n = positionals.length;
-  for (let start = 0; start < n - 1; start++) {
-    // Shortest join first: the fewest words quoted that make the line fit.
-    for (let end = start + 2; end <= n; end++) {
-      const span = positionals.slice(start, end);
-      const joined = span.map((t) => t.value).join(' ');
-      const merged: WordToken = { kind: 'word', value: joined, raw: `"${joined}"`, pos: span[0]!.pos };
-      const tried = [...positionals.slice(0, start), merged, ...positionals.slice(end)];
-      const r = bindPositionalsImpl(tried, args, parsed, expand, expandDefault, false);
-      if (r.error !== undefined) continue;
-      const named = args.some(
-        (a) => (a.type === 'object' || a.type === 'objects') && r.bound[a.name] === expand(joined)
-      );
-      if (!named) continue;
-      const head = parsed.source.substring(0, positionals[0]!.pos - parsed.start).trimEnd();
-      const line = [head, ...tried.map((t) => t.raw)].filter((x) => x.length > 0).join(' ');
-      return `too many words — quote a name with a space in it: ${line}`;
+  // A word that opens a slot (`with`, `from`, `at`) or an article is never
+  // INSIDE the name the hint quotes: `paint cottage with ochre paint` is
+  // `paint cottage with "ochre paint"`, not one long name.
+  const boundary = new Set<string>([...FOLDED_ARTICLES]);
+  for (const a of args) for (const p of a.prepositions ?? []) boundary.add(p.toLowerCase());
+  // Shortest join first, leftmost first: the fewest words quoted that make
+  // the line fit — and a join an OBJECT slot takes before one a string slot
+  // takes (`analyze pump "deep well"`, not `analyze "pump deep" well`).
+  const objectSlot = (a: PositionalDefinition): boolean => a.type === 'object' || a.type === 'objects';
+  for (const lands of [objectSlot, takesAName]) {
+    for (let width = 2; width <= n; width++) {
+      for (let start = 0; start + width <= n; start++) {
+        const end = start + width;
+        const span = positionals.slice(start, end);
+        if (span.some((t) => t.raw === t.value && boundary.has(t.value.toLowerCase()))) continue;
+        // A count or an ordinal stays outside the quotes: `get 1 "mooring line"`.
+        if (span[0]!.raw === span[0]!.value && isDeterminer(span[0]!.value.toLowerCase())) continue;
+        const joined = span.map((t) => t.value).join(' ');
+        const merged: WordToken = { kind: 'word', value: joined, raw: `"${joined}"`, pos: span[0]!.pos };
+        const tried = [...positionals.slice(0, start), merged, ...positionals.slice(end)];
+        const r = bindPositionalsImpl(tried, args, parsed, expand, expandDefault, false);
+        if (r.error !== undefined) continue;
+        // The slot holds the joined name — after a count or an ordinal the
+        // determiner fold put in front of it (`1 "mooring line"`).
+        const holds = (v: unknown): boolean =>
+          v === expand(joined) || (typeof v === 'string' && v.endsWith(` ${expand(joined)}`));
+        const named = args.some((a) => takesAName(a) && lands(a) && holds(r.bound[a.name]));
+        if (!named) continue;
+        const head = parsed.source.substring(0, positionals[0]!.pos - parsed.start).trimEnd();
+        const line = [head, ...tried.map((t) => t.raw)].filter((x) => x.length > 0).join(' ');
+        return line;
+      }
     }
+  }
+  // ⭐ Two names in one line (`fit oak haft to old pick`): quote EVERY run
+  // of two or more words between the slot words at once, and offer that
+  // if it fits.
+  const isWord = (t: WordToken | undefined): boolean =>
+    t !== undefined && !(t.raw === t.value && boundary.has(t.value.toLowerCase()));
+  const runs: WordToken[] = [];
+  let quoted = 0;
+  for (let k = 0; k < n; ) {
+    let e = k;
+    while (e < n && isWord(positionals[e])) e++;
+    if (e - k >= 2) {
+      const span = positionals.slice(k, e);
+      const joined = span.map((t) => t.value).join(' ');
+      runs.push({ kind: 'word', value: joined, raw: `"${joined}"`, pos: span[0]!.pos });
+      quoted++;
+      k = e;
+    } else {
+      runs.push(positionals[k]!);
+      k++;
+    }
+  }
+  if (quoted >= 2 && bindPositionalsImpl(runs, args, parsed, expand, expandDefault, false).error === undefined) {
+    const head = parsed.source.substring(0, positionals[0]!.pos - parsed.start).trimEnd();
+    return [head, ...runs.map((t) => t.raw)].filter((x) => x.length > 0).join(' ');
   }
   return undefined;
 }

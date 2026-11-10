@@ -401,7 +401,7 @@ suite("1. the kit comes off the claims office's hire rack", () => {
       // its keywords DEFENSIVELY for exactly this reason.
       'theodolite',
     ]) {
-      await say(k, `get ${thing}`);
+      await say(k, `get "${thing}"`);
     }
     await k.drainProse();
 
@@ -423,7 +423,7 @@ suite("1. the kit comes off the claims office's hire rack", () => {
     // was funded at the banking hall in `beforeAll`.
     await walk(k, ['south', 'west']);
     for (const line of ['bailer', 'liner']) {
-      const out = await say(k, `buy ${line}`);
+      const out = await say(k, `buy "${line}"`);
       expect(
         refusedFor(out),
         `if this is null the Rejection till is fixed: ${line}`,

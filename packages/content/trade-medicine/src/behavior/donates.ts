@@ -17,6 +17,7 @@ import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
+import { CommandLineApi } from '@saxonberg/server/mud/api/command-line';
 
 function marrowOf(host: Stuff): number {
   if (!MixinApi.isReserved(host) || !host.hasReserve('marrow')) return 0;
@@ -48,7 +49,7 @@ export const brain = class DonatesBrain {
     if (marrowOf(host) >= BLOOD_DEFAULTS.DONATION_MIN_MARROW) {
       // It really gives — through the same verbs a player uses.
       await host.forceCommand(`bleed into ${bag}`);
-      await host.forceCommand(`put ${bag} on ${stock}`);
+      await host.forceCommand(`put ${CommandLineApi.word(bag)} on ${CommandLineApi.word(stock)}`);
       return;
     }
     // Spent for now — the face, not the floor.

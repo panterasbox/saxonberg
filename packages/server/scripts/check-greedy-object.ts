@@ -15,17 +15,19 @@
  * nested or not — with `greedy: true` and `type: object` or `objects`.
  * Prose (`type: string`) greedy args are not counted; they stay.
  *
- * ⭐ Census, then ratchet: opened at 133 (controller-liquidity W0,
- * 2026-11-09, on the merge with master — 107 object + 26 objects across
- * 93 views). It may fall, never rise; W5 drives it to zero and the schema
- * then refuses the key outright.
+ * ⭐ Census, then ratchet, then ZERO: opened at 133 (controller-liquidity
+ * W0, 2026-11-09 — 107 object + 26 objects across 93 views); W5 drove it
+ * to 0 and it is now a zero invariant. `command.schema.json` refuses
+ * `greedy: true` on any arg that is not `type: string` as well, so a
+ * view that tries it fails `lint:command-views` and load before this gate
+ * ever counts it — this census is the belt to the schema's braces.
  */
 
 import { resolve } from "path";
 import { pathToFileURL } from "url";
 import { commandViews, ratchet } from "./pack-roots";
 
-export const GREEDY_OBJECT_CEILING = 133;
+export const GREEDY_OBJECT_CEILING = 0;
 
 /** The greedy object args of one parsed view, as `<arg>` / `<sub> <arg>` labels. */
 export function greedyObjectArgs(doc: Record<string, unknown>): string[] {

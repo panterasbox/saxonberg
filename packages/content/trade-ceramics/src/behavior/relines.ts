@@ -34,6 +34,7 @@ import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behav
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
+import { CommandLineApi } from '@saxonberg/server/mud/api/command-line';
 
 type Keeper = Stuff & Mobile & Containable & Container & CommandGiver;
 type Furnace = Stuff & Burner & Containable;
@@ -108,7 +109,7 @@ export const brain = class {
     // ── the reline: at the furnace, the literal verb.
     if (!(await ctx.goTo(furnaceRoom))) return;
     try {
-      await keeper.forceCommand(`fit lining to ${keywordOf(furnace) ?? 'furnace'}`);
+      await keeper.forceCommand(`fit lining to ${CommandLineApi.word(keywordOf(furnace) ?? 'furnace')}`);
     } finally {
       await ctx.goTo(start);
     }
