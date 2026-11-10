@@ -6,7 +6,8 @@
  * already prints (*soiled, muddy and greasy*); the `domestic-services` band
  * unfolds the rest:
  *
- *   - untrained — the band and its kinds, and whether it is wet;
+ *   - untrained — the band and its kinds, and whether it is wet; on a
+ *     floor, how it is kept (*to scrub it would see to it*);
  *   - novice — where: site by site; and which stains have SET;
  *   - competent — what will lift each kind, read off the dirt's own row
  *     (`Soilable.liftedBy`): derivable, so a player who learns that soap
@@ -70,9 +71,19 @@ export default class CleanlinessReading extends Reading {
     const at = (b: CompetenceBandName): boolean => CompetenceBand.atOrAbove(band, b);
     const lines: Mml[] = [];
 
+    // ⭐ A floor fouls on the calendar (a byre's stalls) — settle it first.
+    const floor = MixinApi.isFloor(thing) && thing.takesSoil() ? thing : null;
+    floor?.reconcileStalls();
+
     // untrained — what anyone sees: the band, its kinds, and the wet.
     const phrase = thing.soilPhrase();
     lines.push(Mml.compose`${GrammarApi.cap(phrase ? `it is ${phrase}.` : 'it is clean to look at.')}`);
+    // …and on a floor, how a floor like it is kept (cleanliness D15; the
+    // line the retired `survey` carried, controller-liquidity W17) — an
+    // earth floor is strewn and swept, boards are scrubbed: anybody knows.
+    if (floor !== null && phrase) {
+      lines.push(Mml.compose`${GrammarApi.cap(`to ${floor.cleaningMethod()} it would see to it.`)}`);
+    }
     if (MixinApi.isWet(thing) && thing.getWetnessBand() !== 'dry') {
       lines.push(Mml.compose`${GrammarApi.cap(`it is ${thing.getWetnessBand()}.`)}`);
     }

@@ -13,7 +13,7 @@
  * wears with use (Law 2 — use, never the clock), and a worn-out kit is
  * a purchase. Anybody may perform maintenance on anything; the tenure
  * TERM says who OWES it, which is a different question and is answered
- * by `survey`.
+ * by `analyze rooms`.
  */
 
 import Tool from "@saxonberg/server/mud/platform/thing/Tool";

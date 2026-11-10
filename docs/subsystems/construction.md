@@ -78,8 +78,8 @@ it answers her while she stands and lies at that landing, else `null`). Derived,
 from the room's side). A closet holds air; a neighbor's parlor is another
 structure's member; a sailed ship's berth has nothing alongside; a member
 courtyard open to the sky is a landing of its own building. The landed
-structures enter the room's `here` pool, so `look cottage`, `survey
-cottage` and `paint cottage` bind from the lane with no new MQL seed.
+structures enter the room's `here` pool, so `look cottage`, `measure
+paint cottage` and `paint cottage` bind from the lane with no new MQL seed.
 
 ⭐ **A structure is not always a building** (paint D1, split in review):
 

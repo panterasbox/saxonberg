@@ -14,6 +14,7 @@ import { driveAnalyze } from './drive';
 import CleanlinessReading from '../CleanlinessReading';
 import Location from '../../../../lib/location/Location';
 import Rug from '../../../thing/Rug';
+import Floor from '../../../thing/Floor';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
@@ -130,5 +131,14 @@ describe('analyze cleanliness', () => {
 
   it('⛔ never the microbes', async () => {
     expect(await read(rug(), 'expert')).not.toMatch(/germ|microb|bacteri|pathogen/i);
+  });
+
+  it('⭐ a floor says how it is kept — the line the retired `survey` carried', async () => {
+    const f = makeStuff(() => new Floor());
+    vi.spyOn(f, 'getGroundKind').mockReturnValue('earth');
+    f.soil('grease', 0.6, null);
+    const body = await read(f, 'untrained');
+    expect(body).toMatch(/It is .*greasy/);
+    expect(body).toMatch(/To strew and sweep it would see to it\./);
   });
 });

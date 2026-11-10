@@ -216,8 +216,9 @@ hygienic one.
   `Litter` (rushes), `Heap`
   (sweepings, muck) and the `Midden` itself, never by the place. ⭐ The acts
   are the objects' (B45): `Floor.sweepInto` / `strewWith`,
-  `Flued.sweepChimney`, `Burner.rakeGrate`, `Midden.takeRefuse`. `survey` reads *the floor is soiled; to
-  scrub it would see to it*.
+  `Flued.sweepChimney`, `Burner.rakeGrate`, `Midden.takeRefuse`. `analyze cleanliness floor` reads *It is
+  soiled… To scrub it would see to it* (the line the retired `survey`
+  carried, controller-liquidity W17); `look` gives the soil sentence.
 - **The stalls** — the ONE calendar accrual: a byre floor row names its
   herd book (`stalls: {herdbook}`) and fouls by head × days, reconciled on
   read, following the authored reference.

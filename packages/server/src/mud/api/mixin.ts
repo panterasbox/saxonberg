@@ -49,7 +49,6 @@ import type { Dispositioned } from '../lib/trait/Dispositioned';
 import type { Advancing } from '../lib/advancement/Advancement';
 import type { Sampled } from '../lib/instrument/Sampled';
 import type { Sampleable } from '../lib/instrument/Sampleable';
-import type { Surveyed } from '../lib/spatial/Surveyed';
 import type { Visible } from '../lib/description/Visible';
 import type { Perceptible } from '../lib/description/Perceptible';
 import type { Detailed } from '../lib/description/Detailed';
@@ -301,9 +300,7 @@ import type { Splittable } from '../lib/ground/Splittable';
 import type { TravelNode } from '../lib/travel/TravelNode';
 import type { Cuttable } from '../lib/craft/Cuttable';
 import type { CutPlanner } from '../lib/craft/CutPlanner';
-import type { Sawable } from '../lib/craft/Sawable';
 import type { WaterDrawable } from '../lib/bulk/WaterDrawable';
-import type { WaterEntry } from '../lib/location/WaterEntry';
 import type { Rivable } from '../lib/craft/Rivable';
 import type { Butcherable } from '../lib/craft/Butcherable';
 import type { Readable } from '../lib/description/Readable';
@@ -2478,7 +2475,6 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Conduit);
   }
 
-
   /**
    * Carries a blessed/uncursed/cursed band — a potency level on the
    * item's own effect axis (D11). **Opt-in per template**: most things
@@ -2554,11 +2550,6 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.CutPlanner);
   }
 
-  /** ⭐ Answers the saw — `saw` (`SawableMixin`, a protocol; controller-liquidity D14). */
-  public static isSawable(obj: Stuff): obj is Stuff & Sawable {
-    return this.hasMixin(obj, Mixins.Sawable);
-  }
-
   /** ⭐ Opens along its grain — `rive` (`RivableMixin`, a protocol; D14). */
   public static isRivable(obj: Stuff): obj is Stuff & Rivable {
     return this.hasMixin(obj, Mixins.Rivable);
@@ -2574,11 +2565,6 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Sampleable);
   }
 
-  /** ⭐ It can be taken stock of — `survey` (`SurveyedMixin`, a protocol; controller-liquidity W7c). */
-  public static isSurveyed(obj: Stuff): obj is Stuff & Surveyed {
-    return this.hasMixin(obj, Mixins.Surveyed);
-  }
-
   /** ⭐ A thing you can read — a screen, marks, a book — `read` (`ReadableMixin`, a protocol; W8). */
   public static isReadable(obj: Stuff): obj is Stuff & Readable {
     return this.hasMixin(obj, Mixins.Readable);
@@ -2587,11 +2573,6 @@ export class MixinApi {
   /** ⭐ Water can be drawn from it — `cool`/`rinse` (`WaterDrawableMixin`, a protocol; controller-liquidity W8). */
   public static isWaterDrawable(obj: Stuff): obj is Stuff & WaterDrawable {
     return this.hasMixin(obj, Mixins.WaterDrawable);
-  }
-
-  /** ⭐ Knows the way into its water — bare `swim` (`WaterEntryMixin`, a protocol; W8). */
-  public static isWaterEntry(obj: Stuff): obj is Stuff & WaterEntry {
-    return this.hasMixin(obj, Mixins.WaterEntry);
   }
 
   /** ⭐ A craft that lets go an anchor — `anchor` (`AnchoringMixin`, a protocol; controller-liquidity W8). */

@@ -75,8 +75,8 @@ Two of the four are kernel and two are a capability pack's, and the line
 is not arbitrary: the elastic-graph machinery and the layout algebra are
 substrate anything could use, while a *residential programme* is content
 vocabulary — a floorplan, a tenure term, a weathering clock. The kernel
-never imports the pack; where it must read a programme (the `survey`
-verb) it does so through the `WarrenMember` back-ref BY SHAPE, or —
+never imports the pack; where it must read a programme (the place
+read `analyze rooms`) it does so through the `WarrenMember` back-ref BY SHAPE, or —
 where it needs an institution — through the location graph's record,
 which attaches each institution to its own `parentExtent` (the scan
 sweep, 2026-10-14; a pack catalogue that scanned the template table was
@@ -423,7 +423,7 @@ condition in the game (paint review; the five residence bands retired):
 
 with a cause line that says what happened in words ("the paint has gone;
 the weather is at what was under it"). No number, no percentage, no gauge —
-`survey`'s suite asserts that no digit reaches the readout.
+`analyze rooms`'s suite asserts that no digit reaches the readout.
 
 ### ⚠ Two clocks, and they must never touch
 
@@ -455,10 +455,16 @@ would be modelling permission where the world models work.
 
 ### The acts
 
-- **`survey`** (platform, perception — afforded actor-side beside
-  `look`): the room archetypes with what met and missed each, and at
-  home the whole holding plus the shell band, its cause and the term in
-  words. Read-only. See [the archetype half](#archetype-satisfaction).
+- **`analyze rooms`** (platform, a `Reading` row — `RoomsReading`, an
+  unbanded eye rung, free and ungated): the room archetypes with what met
+  and missed each, the shell band and its cause, and at home the whole
+  holding plus the term in words. Read-only. ⭐ It was the `survey` verb
+  until controller-liquidity W17 — retired by the owner (*"it isn't worth
+  a verb, and survey doesn't sound like what it does"*; the word belongs
+  to land surveying). A building's outside from its landing is
+  `analyze condition <building>` (the condition word and why) and
+  `measure paint <building>` (the job). See
+  [the archetype half](#archetype-satisfaction).
 - **`maintain`** (residence pack, crafting — conferred by a carried
   householder's kit): restores the shell to sound and wears the kit. The
   kit is a class rather than a row precisely because **an affordance is a
@@ -824,7 +830,7 @@ read, not a wake hook: anything a room does on waking is its own
 `WarrenMember.onWarrenWake`, the ONE wake hook since harbors review 2;
 a ship's deck stamps itself a shore of her sea there), and
 `getUpkeepTerm()` (who owes the upkeep — none by default; a holding
-answers its term, and `survey` reads it).
+answers its term, and `analyze rooms` reads it).
 
 `HoldingWarren extends FloorplanWarren` and keeps only what is
 residential: `addressBase` (answered by `addressFor`), the parcel keyway
@@ -851,10 +857,12 @@ programme's. ⭐ And `MineWarren` now `extends FloorplanWarren` (review 3,
 the base swap its header planned): it copies no plan, its carve mints keyed members through the base's
 `mintKeyed`, its cells sit on its zone's grid (`laysOutOwnFrame` false)
 and keep their own records; it has no fabric. `CirculationWarren.conditionOf`
-reads the holding's main building (`MixinApi.isDurable`); `survey` asks the
-place (`Surveyed.surveyFor`, `Place`'s override — controller-liquidity W7c),
-which asks the structure it is part of for its outside and reads the term
-off `Warren.getUpkeepTerm` (on the base since W7c; a holding answers).
+reads the holding's main building (`MixinApi.isDurable`); `analyze rooms`
+asks the place (`Place.readRooms` — controller-liquidity W7c, a method on
+the host since W17 when the one-host `Surveyed` protocol folded), which
+asks the structure it is part of for its outside (`Structure.readOutside`)
+and reads the term off `Warren.getUpkeepTerm` (on the base since W7c; a
+holding answers).
 
 ## History
 

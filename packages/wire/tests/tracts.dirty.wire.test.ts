@@ -336,8 +336,8 @@ suite.skipIf(!isOwnedTestWorld())('the authored farms, and the house lot', () =>
   it("11. the farm archetype, asked at Quist's farm", async () => {
     const q = await goTo(farmer, QUIST_YARD);
     try {
-      const said = await read(q, 'survey');
-      note(`survey at Quist's yard (D36 — a finding if it names no farm): ${said.slice(0, 300)}`);
+      const said = await read(q, 'analyze rooms');
+      note(`analyze rooms at Quist's yard (D36 — a finding if it names no farm): ${said.slice(0, 300)}`);
     } finally {
       q.close();
     }

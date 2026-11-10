@@ -296,3 +296,31 @@ only from the process record. See [cleanliness.md](./cleanliness.md).
 egg. On a `lye` liquor both rungs speak in words (four bands, a novice
 telling three), never a figure; a ferment still reads its gravity. See
 [potash.md](potash.md).
+
+## The `survey` verb retired into three channels (controller-liquidity W17, 2026-11-10)
+
+The owner retired `survey` — *"it isn't worth a verb, and survey doesn't
+sound like what it does"*; the word belongs to land surveying (the mining
+and soil survey ladders keep it). What it reported moved onto this ladder:
+
+- **`rooms`** (`RoomsReading`, platform; `scope: [here]`, eye rung only,
+  **unbanded** — `discipline: ""`, because nothing in it is
+  competence-resolved): `analyze rooms` reads the place you stand in — the
+  room archetypes met and missed and by what, the shell line (the
+  building's condition word and why), and at home the whole holding and
+  who owes the upkeep. A mirror, never a score: no digit reaches it
+  (its suite holds that). The facts are `Place.readRooms(viewer)`.
+- **`condition`** gained a building: on a structure read from its landing,
+  the condition word carries its cause (*the paint has gone; the weather
+  is at what was under it*) — to every band, because a passer-by sees a
+  coat going. The facts are `Structure.readOutside()`.
+- **`paint`** (`PaintReading`, platform; `scope: [subject]`,
+  `subjectRequires: [FacedMixin, DurableMixin]`, an **instrument** rung —
+  `gauging`, *a rule or a gauging rod* — unbanded): `measure paint
+  <building>` says the area to the weather, what it is (*wall and roof*; a
+  ship's *hull* — `Structure.weatherSurface`) and the litres one coat
+  takes. The coat itself is `look`'s.
+
+The floor line `survey` carried is `analyze cleanliness floor`'s: on a
+floor the untrained line adds how it is kept (*To scrub it would see to
+it.*), off `Floor.cleaningMethod()`.

@@ -81,7 +81,6 @@ import { NamedMixin } from '../description/Named';
 import { VisibleMixin } from '../description/Visible';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { DetailedMixin } from '../description/Detailed';
-import { SurveyedMixin } from '../spatial/Surveyed';
 import type { FieldMeta } from '../mixin';
 import type { EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
@@ -91,17 +90,43 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { ParcelApi } from '../../api/parcel';
 import type Exit from '../boundary/Exit';
-import type { CoatReachRefusal } from '../material/Faced';
+import type { CoatLayer, CoatReachRefusal } from '../material/Faced';
+import type Material from '../material/Material';
+import { Paint } from '../material/Paint';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
+
+/**
+ * ⭐ A structure's outside, as facts (paint D13) — what `analyze condition`
+ * and `measure paint` read off it from where it meets the weather.
+ */
+export interface OutsideRead {
+  structure: Stuff;
+  /** The outermost coat, if any is left. */
+  top: CoatLayer | null;
+  /** The top coat's paint, when it is one. */
+  paint: Paint | null;
+  /** The top coat's material. */
+  material: Material | null;
+  /** The fabric's condition word. */
+  band: string;
+  /** Why it is that way — the weather's work on the coat; `null` while a sound coat holds. */
+  cause: string | null;
+  /** Area to the weather, m². */
+  areaM2: number;
+  /** Litres one coat of paint takes over that area. */
+  paintLitres: number;
+  /** What the weather meets — *wall and roof*, a ship's *hull*. */
+  surface: string;
+}
 
 // ⭐ `NamedMixin` OUTSIDE `PerceptibleMixin`: a name is one of the words a
 // thing answers to (`Named.getKeywords` folds it onto what lies beneath),
 // so `paint hesper` reaches the ship by her name through the one list MQL
 // scores (one-resolution slate § 4).
-// ⭐ `SurveyedMixin` (controller-liquidity W7c): `survey <building>` asks
-// the structure for its outside; a bare one with no faces says so.
-export default class Structure extends SurveyedMixin(DetailedMixin(
+export default class Structure extends DetailedMixin(
   VisibleMixin(NamedMixin(PerceptibleMixin(Idea))),
-)) {
+) {
   static fieldMeta: FieldMeta = {
     extent: { persistent: true, authorable: true },
     entrance: { persistent: true, authorable: true },
@@ -128,6 +153,51 @@ export default class Structure extends SurveyedMixin(DetailedMixin(
   public setEntrance(value: string | null): void { this.entrance = value ?? null; }
 
   public isLandmark(): boolean { return this.landmark; }
+
+  /**
+   * ⭐ **Its outside, read from where it meets the weather** (paint D13;
+   * the retired `survey <building>`, controller-liquidity W17): the top
+   * coat, the fabric's condition word and why, and the job — area to the
+   * weather and the litres one coat takes. `null` for a structure with no
+   * outside to read (a bare one with no faces, a ruin). Stands up the
+   * landings first so the weather has been walked to now.
+   */
+  public async readOutside(): Promise<OutsideRead | null> {
+    const self = this as unknown as Stuff;
+    if (!MixinApi.isFaced(self) || !MixinApi.isDurable(self)) return null;
+    await this.standUpLandings();
+    const top = self.getCoats('outside')[0] ?? null;
+    const paint = top?.paint ? new Paint(top.paint) : null;
+    const material = top ? (StuffApi.findByTemplatePath<Material>(top.material) ?? null) : null;
+    const areaM2 = self.coatAreaM2();
+    const film = Structure.dial(AppSettingKeys.structurePaintCoatThicknessM, 0.00005);
+    return {
+      structure: self,
+      top,
+      paint,
+      material,
+      band: self.getConditionWord(),
+      cause: self.weatherCause(),
+      areaM2,
+      paintLitres: areaM2 * film * 1000,
+      surface: this.weatherSurface(),
+    };
+  }
+
+  /** @hook What the weather meets on this structure. Default *wall and roof*; a ship says *hull*. */
+  public weatherSurface(): string {
+    return 'wall and roof';
+  }
+
+  /** A positive numeric dial, or the fallback. */
+  protected static dial(key: string, fallback: number): number {
+    try {
+      const n = Number.parseFloat(AppApi.setting(key) ?? '');
+      return Number.isFinite(n) && n > 0 ? n : fallback;
+    } catch {
+      return fallback;
+    }
+  }
   public setLandmark(value: boolean): void { this.landmark = value === true; }
 
   public getHeightM(): number { return this.heightM; }
@@ -319,7 +389,7 @@ export default class Structure extends SurveyedMixin(DetailedMixin(
   /**
    * ⭐ How much outside there is, m² — the exterior walls and roof of every
    * resident member (each place's own face rule). What a coat of paint is
-   * spread over, and what the survey says the job is.
+   * spread over, and what `measure paint` says the job is.
    */
   public exteriorAreaM2(): number {
     let a = 0;

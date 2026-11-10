@@ -209,9 +209,9 @@ export abstract class Warren extends Idea {
 
   /**
    * Who owes the upkeep of what this warren is, as a tenure term
-   * (`owner-all`, `landlord-shell` …) — what `survey` tells a holder.
+   * (`owner-all`, `landlord-shell` …) — what `analyze rooms` tells a holder.
    * On the base since controller-liquidity W7c (the place answers its own
-   * survey and asks whatever warren it is in, with no class test).
+   * read and asks whatever warren it is in, with no class test).
    *
    * @hook Default: none — a mine's workings and a ship's rooms are owed
    *   by nobody's tenure (a holding answers its term).

@@ -43,7 +43,29 @@ import { SourceSlot } from '../bulk/SourceSlot';
 import type { CommandContributions } from '../../api/command';
 import type { MqlMatchVia } from '../../api/mql';
 import { WaterDrawableMixin, type WaterDrawable, type WaterDrawAnswer } from '../bulk/WaterDrawable';
-import { WaterEntryMixin, type WaterEntry, type WaterEntryAnswer } from './WaterEntry';
+import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
+
+/** The way in: an exit to cross, or `null` — you are in already, here. */
+export interface WaterEntryFacts {
+  exit: Exit | null;
+}
+
+/**
+ * ⭐ Every reason there is no way into the water — `SwimController` words
+ * each.
+ *  - `no-water` — no water here to go into.
+ *  - `iced-over` — the water the way leads to is frozen; only a hole.
+ *  - `no-open-water` — standing in or on water with no open surface.
+ *  - `already-in-water` — you are in it.
+ */
+export type WaterEntryRefusal =
+  | ActRefusal<'no-water'>
+  | ActRefusal<'iced-over'>
+  | ActRefusal<'no-open-water'>
+  | ActRefusal<'already-in-water'>;
+
+/** What a place answers to bare `swim`. */
+export type WaterEntryAnswer = ActOutcome<WaterEntryFacts> | WaterEntryRefusal;
 
 /** The weather field is memoised per six-game-hour segment; reading more often buys nothing. */
 const SEGMENT_S = 6 * 3600;
@@ -73,7 +95,14 @@ export type WaterRefPick =
   | { refusal: string; reason: 'not-water' | 'which-water' | 'no-water' | 'unread' };
 
 /** Public shape added by ShoreMixin. */
-export interface Shore extends WaterDrawable, WaterEntry {
+export interface Shore extends WaterDrawable {
+  /**
+   * ⭐ The way from here into the water for `actor`, or why there is none
+   * — bare `swim` (controller-liquidity W8; a method on the shore since
+   * W17: every place with a way into water is a shore, and `WaterPlace`,
+   * which composes one, overrides it).
+   */
+  wayIntoWater(actor: Stuff): Promise<WaterEntryAnswer>;
   getWaters(): Record<string, string>;
   setWaters(value: Record<string, string> | null): void;
   waterFor(name?: string): WaterPick;
@@ -95,7 +124,7 @@ export interface Shore extends WaterDrawable, WaterEntry {
   waterSlot(via?: MqlMatchVia): SourceSlot | null;
   /**
    * ⭐ The exit from here whose far side IS the water (underwater review),
-   * or why there is none — the read under {@link WaterEntry.wayIntoWater}
+   * or why there is none — the read under {@link Shore.wayIntoWater}
    * and the edge's depth words. ⚠ Synchronous and actor-free; the verb asks
    * `wayIntoWater(actor)`.
    */
@@ -118,9 +147,11 @@ const DRAW_VERBS = [
 ];
 
 export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
-  // ⭐ Composes the two water protocols (controller-liquidity W8): every
-  // waterside place is a source to draw from and has a way in.
-  return class ShoreMixin extends WaterEntryMixin(WaterDrawableMixin(Base)) implements Shore {
+  // ⭐ Composes the water-draw protocol (controller-liquidity W8): every
+  // waterside place is a source to draw from — and answers the way in
+  // itself (`wayIntoWater`; the one-host `WaterEntry` protocol folded
+  // into this, W17).
+  return class ShoreMixin extends WaterDrawableMixin(Base) implements Shore {
     static _mixinName: string = 'ShoreMixin';
 
     static fieldMeta: FieldMeta = {
@@ -406,7 +437,7 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     /**
-     * ⭐ `swim` with no way named, beside the water (WaterEntry): the way
+     * ⭐ `swim` with no way named, beside the water: the way
      * off the edge. A place set on a moving frame (a deck) settles where it
      * stands first, so the way is read off where it is now.
      */

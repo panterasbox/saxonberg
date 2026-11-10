@@ -377,14 +377,14 @@ describe('archetype satisfaction', () => {
       }
     };
     walk(root);
-    // `lib/spatial/Surveyed.ts` carries it as a FACT of the survey (the
-    // place answers, the verb words it — controller-liquidity W7c); still
-    // reported, never spent.
+    // `lib/stuff/Place.ts` carries it as a FACT of the place read (the
+    // place answers, `analyze rooms` words it — controller-liquidity W7c,
+    // W17); still reported, never spent.
     expect(hits.sort()).toEqual([
       'lib/archetype/Archetype.ts',
-      'lib/spatial/Surveyed.ts',
+      'lib/stuff/Place.ts',
       'platform/__tests__/ArchetypeSatisfaction.test.ts',
-      'platform/idea/cmd/perception/SurveyController.ts',
+      'platform/idea/reading/RoomsReading.ts',
     ]);
   });
 });

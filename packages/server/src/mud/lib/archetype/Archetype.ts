@@ -206,30 +206,31 @@ export interface ArchetypeData {
    * ⚠ **Where this archetype is REPORTED, which is not the same question
    * as where it is checked.**
    *
-   * `survey` reports every industry-less archetype in the room you stand
-   * in. That was right while the industry-less archetypes were the four
-   * furnishing ones; the moment a corridor, a depot, a rig, a coach and a
-   * livery join them, five extra lines land on every `survey` in the
-   * game — in every bedroom, for every player.
+   * `analyze rooms` reports every industry-less archetype in the room you
+   * stand in (the retired `survey`, controller-liquidity W17). That was
+   * right while the industry-less archetypes were the four furnishing
+   * ones; the moment a corridor, a depot, a rig, a coach and a livery join
+   * them, five extra lines land on every reading in the game — in every
+   * bedroom, for every player.
    *
    * | value | reported |
    * |---|---|
    * | `space` | the room you stand in (today's behaviour, the default) |
    * | `corridor` | the rooms of the corridor zone you stand in, at once — and never from a room that is not in one |
-   * | `off-room` | never from a room. A rig and a coach are surveyed by naming them |
+   * | `off-room` | never from a room. A rig and a coach are read by naming them |
    *
    * ⭐ The corridor space set is resolved **by zone**, not by lane, so the
    * kernel controller stays free of any pack import and the shipped
    * `valley-road` zone is READ rather than extended.
    */
-  surveyScope: SurveyScope;
+  roomsScope: RoomsScope;
   capabilities: CapabilitySlot[];
 }
 
-/** See {@link ArchetypeData.surveyScope}. */
-export const SURVEY_SCOPES = ['space', 'corridor', 'off-room'] as const;
+/** See {@link ArchetypeData.roomsScope}. */
+export const ROOMS_SCOPES = ['space', 'corridor', 'off-room'] as const;
 
-export type SurveyScope = (typeof SURVEY_SCOPES)[number];
+export type RoomsScope = (typeof ROOMS_SCOPES)[number];
 
 const NEED_KEYS = [
   'tool',
@@ -323,18 +324,18 @@ export class Archetype {
       typeof rawOnto === 'string' ? rawOnto : VENUE_PATH;
 
     // Where it is REPORTED. Absent ⇒ today's behaviour.
-    const rawScope = data.surveyScope;
+    const rawScope = data.roomsScope;
     if (
       rawScope !== undefined &&
-      !SURVEY_SCOPES.includes(rawScope as SurveyScope)
+      !ROOMS_SCOPES.includes(rawScope as RoomsScope)
     ) {
       fail(
         id,
-        `'surveyScope', when present, must be one of ${SURVEY_SCOPES.join(' | ')}`,
+        `'roomsScope', when present, must be one of ${ROOMS_SCOPES.join(' | ')}`,
       );
     }
-    const surveyScope =
-      typeof rawScope === 'string' ? (rawScope as SurveyScope) : 'space';
+    const roomsScope =
+      typeof rawScope === 'string' ? (rawScope as RoomsScope) : 'space';
 
     const rawCaps = data.capabilities ?? [];
     if (!Array.isArray(rawCaps)) fail(id, "'capabilities' must be a list");
@@ -357,7 +358,7 @@ export class Archetype {
       label,
       industry,
       materializesOnto,
-      surveyScope,
+      roomsScope,
       capabilities,
     });
   }
@@ -367,8 +368,8 @@ export class Archetype {
   getIndustry(): string | null { return this.data.industry; }
   /** See {@link ArchetypeData.materializesOnto}. */
   getMaterializesOnto(): string { return this.data.materializesOnto; }
-  /** See {@link ArchetypeData.surveyScope}. */
-  getSurveyScope(): SurveyScope { return this.data.surveyScope; }
+  /** See {@link ArchetypeData.roomsScope}. */
+  getRoomsScope(): RoomsScope { return this.data.roomsScope; }
   getCapabilities(): readonly CapabilitySlot[] { return this.data.capabilities; }
 
   /** A stable identity for a need, so a derived row merges with an authored one. */
@@ -449,7 +450,7 @@ export class Archetype {
 
   /**
    * **Does this space answer the archetype?** — the third derived read,
-   * and the one a person asks (`survey`).
+   * and the one a person asks (`analyze rooms`).
    *
    * Evaluated over the union of one or more spaces' direct contents AND
    * their fixtures, so a holding answers as a whole (a kitchen counter

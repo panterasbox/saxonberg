@@ -17,7 +17,7 @@
  *    instance is **keyed** (`<claimExtent>/<cell>`, through
  *    `restoreOrSeed`) — a keyless persistable over a permissive base
  *    would silently share ONE `holder_snapshots` scope across every mint.
- *  - **`WarrenMemberMixin`** — the back-ref, and the seam `survey` reads
+ *  - **`WarrenMemberMixin`** — the back-ref, and the seam `analyze rooms` reads
  *    the mine through.
  *  - **`WorkingMixin`** — the three reads, which consult neither of the
  *    two above.

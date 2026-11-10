@@ -27,10 +27,11 @@
  * (controller-liquidity D14). This protocol once answered ten verbs by a
  * verb string on the request; a target narrowed on the string and a
  * controller narrowed on the answer's tag. Now each act that has more than
- * one host is its own small protocol — `SawableMixin` (the saw), `RivableMixin`
- * (the froe), `ButcherableMixin` (the butcher's knife) — and an act with one
- * host is a method on it (the ice sheet's `groovePlan`/`scrapePlan`, the
- * glass sheet's `scribePlan`/`snapPlan`/`grozePlan`). The cross-cut of a
+ * one host is its own small protocol — `RivableMixin` (the froe),
+ * `ButcherableMixin` (the butcher's knife) — and an act with one host is a
+ * method on it (the bole's `sawPlanFor`, the ice sheet's
+ * `groovePlan`/`scrapePlan`, the glass sheet's
+ * `scribePlan`/`snapPlan`/`grozePlan`). The cross-cut of a
  * felled bole IS a cut — one length of round timber off it — so the bole
  * answers here, and `fell` stopped cross-cutting.
  */

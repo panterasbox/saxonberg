@@ -462,7 +462,10 @@ const ACTS: Act[] = [
     cmd: (id) => `feed wheat at the "far side" with #${id.sack}`,
   },
   { key: 'sample', at: P.face, cmd: () => 'sample the "north face"' },
-  { key: 'survey', at: P.drift, cmd: () => 'survey' },
+  // ⭐ `survey` was retired (owner, W17): the place read is `analyze rooms`.
+  // The key stays the before-record's — the same read of the same drift, so
+  // the shape it is compared against (ok, no notes, nothing moved) is too.
+  { key: 'survey', at: P.drift, cmd: () => 'analyze rooms' },
   { key: 'sweep', at: P.cookhouse, hand: [['broom', '/stuff/thing/gear/broom']], cmd: (id) => `sweep with #${id.broom}` },
   { key: 'label', at: SQUARE, hand: [['crate', '/trade/farming/thing/crate']], cmd: (id) => `label #${id.crate} trial` },
   { key: 'dose', at: P.ward, cmd: () => 'dose me with vial' },

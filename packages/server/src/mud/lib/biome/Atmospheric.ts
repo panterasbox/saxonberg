@@ -394,7 +394,7 @@ export interface Atmospheric {
    * A getter over the two fields that already exist, so a reader can
    * ask *how cold is it in here* without reaching into
    * `_temperature` — which is a field, and fields are not the
-   * contract between Stuff. Sync because the archetype survey and the
+   * contract between Stuff. Sync because the archetype read and the
    * thermal reconcile both ask on a hot path.
    */
   getOwnTemperatureK(): number | null;

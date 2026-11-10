@@ -172,7 +172,7 @@ describe('the water surface is a pool\'s floor (D12)', () => {
     expect(p.mediumFor(b as unknown as Stuff).immersed).toBe(true);
   });
 
-  it('⭐ the WATER decides bare `swim` (WaterEntry) — the model refuses with the actor', async () => {
+  it('⭐ the WATER decides bare `swim` (`wayIntoWater`) — the model refuses with the actor', async () => {
     await LocomotionApi.loadMode('swim').catch(() => null);
     const { pool: p, floor } = await pool();
     const b = walker();

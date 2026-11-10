@@ -9,7 +9,7 @@ import type { LocomotionMode } from '../../LocomotionMode';
 import type { TraversalGuard } from '../../../../lib/boundary/Exit';
 import type { CommandModel } from '../../../../api/command';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { WaterEntryRefusal } from '../../../../lib/location/WaterEntry';
+import type { WaterEntryRefusal } from '../../../../lib/location/Shore';
 import { MixinApi } from '../../../../api/mixin';
 
 export default class SwimController extends LocomotionControllerBase {
@@ -19,7 +19,7 @@ export default class SwimController extends LocomotionControllerBase {
 
   /**
    * ⭐ `swim` with no target — *swim here* (storage-and-ice D12): get into
-   * the water. The PLACE answers (`WaterEntry`, controller-liquidity W8):
+   * the water. The PLACE answers (`Shore.wayIntoWater`, controller-liquidity W8):
    * off a pool's open surface you go in where you are; beside a water (a
    * quay, a strand) it is the way off the edge, which this crosses; on dry
    * ground, why not. With a target it is the shipped crossing.
@@ -36,7 +36,7 @@ export default class SwimController extends LocomotionControllerBase {
       if (room !== null && MixinApi.isWaterPlace(room)) room.pushOff(giver);
       return super.execute(model, context);
     }
-    const way = room !== null && MixinApi.isWaterEntry(room)
+    const way = room !== null && MixinApi.isShore(room)
       ? await room.wayIntoWater(giver)
       : ({ ok: false, reason: 'no-open-water' } as const);
     if (!way.ok) return this.refuse(context, 'act.deed', SwimController.noWayWords(way), way.reason);

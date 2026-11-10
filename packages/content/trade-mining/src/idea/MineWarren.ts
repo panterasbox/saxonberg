@@ -461,13 +461,13 @@ export default class MineWarren extends MineWarrenBase {
     }
   }
 
-  // ─────────────────────── the survey seam ───────────────────────
+  // ─────────────────────── the rooms-reading seam ───────────────────────
 
   /**
-   * ⭐ The duck-typed shape `SurveyController` reads through the
+   * ⭐ The shape the place read (`analyze rooms`) reads through the
    * `WarrenMember` back-ref — *"never by import: the residential
    * programme is a capability pack's class and the kernel does not import
-   * packs."* Answering it gets `survey` reporting honestly in a working —
+   * packs."* Answering it gets `analyze rooms` reporting honestly in a working —
    * *a stope, shored, on claim 3* — with **no kernel change, no platform
    * edit and no residence dependency.** The mirror doing its job in a new
    * venue is what it was built for.
@@ -476,7 +476,7 @@ export default class MineWarren extends MineWarrenBase {
     return this.getPresentation();
   }
 
-  /** The parcel extent a member sits under — `survey`'s "whose is this". */
+  /** The parcel extent a member sits under — "whose is this". */
   public extentOfMember(m: MemberStuff): string | null {
     const c = (m as unknown as { getCoordinates?(): [number, number, number] }).getCoordinates?.();
     if (!c) return null;

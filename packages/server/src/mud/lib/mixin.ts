@@ -745,14 +745,13 @@ export const Mixins = {
   Cuttable: 'CuttableMixin',
   CutPlanner: 'CutPlannerMixin',
   // ⭐ The cutting acts that are not `cut` (controller-liquidity D14).
-  Sawable: 'SawableMixin',
   Rivable: 'RivableMixin',
   Butcherable: 'ButcherableMixin',
   // ⭐ A thing you can read — screens, marks, books (controller-liquidity W8).
   Readable: 'ReadableMixin',
-  // ⭐ Water in reach, and a way into it (controller-liquidity W8).
+  // ⭐ Water in reach (controller-liquidity W8; the way into it is
+  // `Shore.wayIntoWater` since W17).
   WaterDrawable: 'WaterDrawableMixin',
-  WaterEntry: 'WaterEntryMixin',
   // ⭐ A craft that lets go an anchor, and water a boat is launched into or
   // recovered from — protocols (controller-liquidity W8).
   Anchoring: 'AnchoringMixin',
@@ -765,8 +764,6 @@ export const Mixins = {
   Sweepable: 'SweepableMixin',
   // ⭐ A piece can be taken from it — `sample` (controller-liquidity W7c).
   Sampleable: 'SampleableMixin',
-  // ⭐ It can be taken stock of — `survey` (controller-liquidity W7c).
-  Surveyed: 'SurveyedMixin',
   // Markers a pack's reader narrows on (controllers-are-io D7a): the supply
   // a thing draws, the generator that makes it, who may write a name.
   Powered: 'PoweredMixin',
@@ -1164,19 +1161,16 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   KneadVesselMixin: "{} isn't something you could knead in",
   ShapeableMixin: "{} won't take a shape in your hands",
   CarvableMixin: "{} isn't something you could carve",
-  SawableMixin: "{} isn't wood in the round",
   RivableMixin: "{} isn't wood you could rive",
   ButcherableMixin: "{} isn't a carcass",
   ReadableMixin: "there is nothing written on {}",
   WaterDrawableMixin: "there is no water to be had from {}",
-  WaterEntryMixin: "there is no way into the water from {}",
   AnchoringMixin: "{} has no anchor to let go",
   LaunchableMixin: "{} isn't water you could put a boat into",
   HeatedMixin: "{} isn't something you take to the fire — to warm it, set it on one (`put … on hearth`)",
   WashableMixin: "{} can't be washed",
   SweepableMixin: "{} isn't something you could sweep",
   SampleableMixin: "{} is not matter you could take a piece of",
-  SurveyedMixin: "{} is not a place or a building you could take stock of",
   PourTargetMixin: "you can't pour anything into {}",
   ArcaneMixin: "there is nothing bound into {}",
   ImpressibleMixin: "{} is not soft enough to take an impression",

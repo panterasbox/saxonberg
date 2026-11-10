@@ -44,7 +44,7 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { ActDone, ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
-import type { SawRefusal } from '@saxonberg/server/mud/lib/craft/Sawable';
+import Bole, { type SawRefusal } from '@saxonberg/content-trade-forestry/src/thing/Bole';
 
 /** The through-sawn board row. */
 export const BOARD_PATH = '/trade/carpentry/thing/board';
@@ -272,7 +272,7 @@ export default class Sawmill extends SawmillBase {
   /**
    * ⭐⭐ **The one sawing engine** (controller-liquidity W11, C6) — both
    * rungs, one plan. The log answers its own charge when its sawing is its
-   * own business (`SawableMixin` — a bole gives one green length and the
+   * own business (a `Bole` answers `sawPlanFor` — one green length and the
    * take); any other piece of wood is weighed as it is. The plan refuses
    * before anything is cut (already sawing, not wood in the round, too
    * small to give a board, no water in the race).
@@ -295,7 +295,7 @@ export default class Sawmill extends SawmillBase {
     const quarter = opts.quarter === true;
     let charge: { kg: number; material: Material | null; seasoned: number } | null = null;
     let take: (() => unknown) | null = null;
-    if (MixinApi.isSawable(log)) {
+    if (log instanceof Bole) {
       const out = await log.sawPlanFor(actor, this as unknown as Stuff);
       if (!out.ok) return out;
       charge = out.facts;

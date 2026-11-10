@@ -12,7 +12,7 @@
 # have to be invented twice.
 archetypeId: livery
 label: a livery
-surveyScope: space
+roomsScope: space
 capabilities:
   - { key: shelter, needs: { rest: 1 } }
   - { key: water, needs: { bulkSource: water } }

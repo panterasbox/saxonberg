@@ -55,7 +55,7 @@ declareFile({
   file: 'paint.dirty.wire.test.ts',
   packs: [
     'terminus', 'rejection', 'residence', 'trade-painting', 'trade-forestry', 'trade-distilling',
-    'trade-chandlery', 'trade-milling', 'trade-farming', 'trade-tanning', 'trade-fishing',
+    'trade-chandlery', 'trade-coopering', 'trade-milling', 'trade-farming', 'trade-tanning', 'trade-fishing',
     'trade-ranching', 'trade-dairying', 'trade-quarrying', 'trade-shopkeeping', 'water',
     'world-seed', 'generic-objects', 'base-library',
   ],
@@ -70,6 +70,8 @@ const TOWPATH = '/world/terminus/valley-road/towpath';
 const COTTAGE_ROOM = '/world/terminus/wharfside/cottage/location/room';
 const COTTAGE = '/world/terminus/wharfside/cottage';
 const KIT = '/system/residence/thing/householders-kit';
+/** What `measure paint` reads a wall with — a rule or a gauging rod. */
+const ROD = '/trade/coopering/thing/gauging-rod';
 
 const squash = (t: string) => plain(t).replace(/\s+/g, ' ').trim();
 const open: Session[] = [];
@@ -238,25 +240,27 @@ suite('paint — the blocking drive', () => {
     expect(l, l).toMatch(/yellow ochre/i);
   }, 600_000);
 
-  it('5. from the towpath the cottage is at hand: look and survey', async () => {
+  // ⭐ `survey` was retired (owner, controller-liquidity W17): the coat is
+  // `look`'s, the why is `analyze condition`'s, the job is `measure paint`'s
+  // (with a rule or a gauging rod), and the place read is `analyze rooms`.
+  it('5. from the towpath the cottage is at hand: look and measure paint', async () => {
     const s = await session(painter, TOWPATH);
     const l = await say(s, 'look cottage');
     expect(l, l).toMatch(/cottage/i);
-    const v = await say(s, 'survey cottage');
-    expect(v, v).toMatch(/from outside/i);
-    expect(v, v).toMatch(/limewash/i);
+    expect(l, l).toMatch(/limewash/i);
+    await hand(s, ROD);
+    const v = await say(s, 'measure paint cottage');
     expect(v, v).toMatch(/square meters/i);
     expect(v, v).toMatch(/litres/i);
   }, 300_000);
 
-  it('6. inside, survey reads the same building', async () => {
+  it('6. inside, `analyze rooms` reads the same building', async () => {
     const s = await session(painter, COTTAGE_ROOM);
-    const v = await say(s, 'survey');
+    const v = await say(s, 'analyze rooms');
     expect(v, v).toMatch(/fabric of the place/i);
-    expect(v, v).toMatch(/limewash/i);
   }, 300_000);
 
-  it("7. (staged) the weather has taken the coat: the survey says so", async () => {
+  it("7. (staged) the weather has taken the coat: `analyze condition` says so", async () => {
     await founderEval(
       TOWPATH,
       '/world/terminus',
@@ -264,8 +268,8 @@ suite('paint — the blocking drive', () => {
       '(self.getConditionWord(), self.setCoats({}), self.setWeatheredToS(self.getWeatheredToS() - 5184000), self.getConditionWord())',
     );
     const s = await session(painter, TOWPATH);
-    const v = await say(s, 'survey cottage');
-    expect(v, v).toMatch(/no coat left|paint has gone/i);
+    const v = await say(s, 'analyze condition cottage');
+    expect(v, v).toMatch(/paint has gone/i);
   }, 300_000);
 
   it('8. paint the cottage on a dry day: the pot drops, the coat goes on wet and sets', async () => {
@@ -273,11 +277,11 @@ suite('paint — the blocking drive', () => {
     const s = await session(painter, TOWPATH);
     const p = await act(s, 'paint cottage with "ochre paint"');
     expect(p, p).toMatch(/wet coat|start laying/i);
-    const wet = await say(s, 'survey cottage');
+    const wet = await say(s, 'look cottage');
     expect(wet, wet).toMatch(/wet coat/i);
     // An oil sets in a day or two of free air, slower in the cold.
     for (let h = 0; h < 72; h += 6) await advanceWorldClock('6 hours');
-    const set = await say(s, 'survey cottage');
+    const set = await say(s, 'look cottage');
     expect(set, set).toMatch(/painted/i);
   }, 1_200_000);
 
@@ -286,9 +290,9 @@ suite('paint — the blocking drive', () => {
     const s = await session(painter, TOWPATH);
     await act(s, 'paint cottage with "ochre paint"');
     await advanceWorldClock('2 hours');
-    const v = await say(s, 'survey cottage');
+    const v = await say(s, 'look cottage');
     // Rain runs a wet coat; frost crazes it — either way it set badly.
-    expect(v, v).toMatch(/ran|crazed/i);
+    expect(v, v).toMatch(/run|crazed/i);
     await unpinWeather(TOWPATH);
   }, 900_000);
 
@@ -297,8 +301,8 @@ suite('paint — the blocking drive', () => {
     await hand(s, KIT);
     const m = await say(s, 'maintain cottage');
     expect(m, m).toMatch(/sound again|nothing that needs doing|brush's work/i);
-    const v = await say(s, 'survey cottage');
-    expect(v, v).toMatch(/fabric of it is sound/i);
+    const v = await say(s, 'analyze condition cottage');
+    expect(v, v).toMatch(/it is sound/i);
   }, 300_000);
 
   it('12. (staged) the staged cottage keeps no record; sold, it would', async () => {

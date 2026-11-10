@@ -7,7 +7,7 @@
 # never enforced.
 archetypeId: depot
 label: a depot
-surveyScope: space
+roomsScope: space
 capabilities:
   # The counter — an attendant queue, so one clerk serves one customer
   # and everybody else is free to mill.

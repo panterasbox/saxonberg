@@ -20,7 +20,7 @@
  *
  * So the work is split three ways and each part is proven where it is
  * cheap and honest:
- *   - the CAUSE, here: the survey flips, and a `measure temperature`
+ *   - the CAUSE, here: `analyze rooms` flips, and a `measure temperature`
  *     reads a different band inside the box than on the counter;
  *   - the ARITHMETIC, in milliseconds, in the unit suite
  *     (`Freshness.test.ts` — 273 K and 293 K land in different bands;
@@ -165,8 +165,8 @@ suite('B — a kitchen gets somewhere cold, for the first time', () => {
     // directions below.** With ice in the box the venue's cold
     // capability is met and NAMES the box — the first time anything in
     // this game has satisfied `coldStorage` at all.
-    const survey = await cook.prose('survey');
-    expect(survey, `survey said:\n${survey}`).toMatch(/cold \([^)]*icebox/i);
+    const survey = await cook.prose('analyze rooms');
+    expect(survey, `analyze rooms said:\n${survey}`).toMatch(/cold \([^)]*icebox/i);
   }, 120_000);
 
   it('5. ⭐⭐ take the ice OUT and the capability LAPSES; put it back and it returns', async () => {
@@ -199,8 +199,8 @@ suite('B — a kitchen gets somewhere cold, for the first time', () => {
     expectOk(taken);
     expectOk(await cook.cmd('close icebox'));
 
-    const without = await cook.prose('survey');
-    expect(without, `survey said:\n${without}`).toMatch(/wants[^\n]*cold/i);
+    const without = await cook.prose('analyze rooms');
+    expect(without, `analyze rooms said:\n${without}`).toMatch(/wants[^\n]*cold/i);
     expect(without).not.toMatch(/cold \([^)]*icebox/i);
 
     // …and putting it back brings the capability back.
@@ -221,12 +221,12 @@ suite('B — a kitchen gets somewhere cold, for the first time', () => {
     const carrying = held
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ');
-    const again = await cook.prose('survey');
+    const again = await cook.prose('analyze rooms');
     const why =
       `\n--- put said ---\n${await placed.said()}` +
       `\n--- look icebox ---\n${boxNow}` +
       `\n--- still carrying ---\n${carrying}` +
-      `\n--- survey ---\n${again}`;
+      `\n--- analyze rooms ---\n${again}`;
     expect(again, why).toMatch(/cold \([^)]*icebox/i);
     expect(again, why).not.toMatch(/wants[^\n]*cold/i);
   }, 180_000);

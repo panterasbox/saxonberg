@@ -18,7 +18,7 @@ help: |
 
   You need a brush in your hand. A coat takes paint in proportion to how
   much surface there is: a board a cupful, a cottage several litres —
-  `survey <building>` says roughly how much before you start. Two coats
+  `measure paint <building>` says roughly how much before you start. Two coats
   last longer than one.
 
   ⭐ **A coat sets by its binder.** An oil paint dries by taking in the air

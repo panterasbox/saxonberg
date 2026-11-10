@@ -733,7 +733,7 @@ suite('B1 — she keeps across a restart (15)', () => {
     await stageShip(NAME1, { hull: 'worn', sleptDays: 60 });
     const held = await say(owner, 'course bar');
     expect(held, held).toMatch(/settled onto the mud/);
-    const survey = await say(owner, 'survey');
+    const survey = await say(owner, 'analyze rooms');
     expect(survey, survey).toMatch(/fabric of the place is worn/);
     const full = await sound(owner);
     expect(full, full).toMatch(/full of water almost to her deck|deeper than a man could stand in/);
@@ -1039,7 +1039,7 @@ suite('B3 — she goes down', () => {
     const done = await act(caulker, 'maintain');
     expect(done.r.status, done.said).toBe('ok');
     expect(done.said, done.said).toMatch(/seams/);
-    const survey = await say(caulker, 'survey');
+    const survey = await say(caulker, 'analyze rooms');
     expect(survey, survey).toMatch(/fabric of the place is sound/);
     const after = await sound(caulker);
     expect(after, after).toMatch(/not rising|dry/);

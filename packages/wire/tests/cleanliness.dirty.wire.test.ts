@@ -357,8 +357,9 @@ suite('⭐ the new places stand (the boot, and the five reachability links)', ()
     const s = await newPlayer('window', COOKHOUSE);
     const w = await examine(s, 'window');
     expect(w, `the cookhouse window: ${w}`).toMatch(/window/i);
-    const survey = await say(s, 'survey');
-    expect(survey, `survey: ${survey}`).toMatch(/floor is/i);
+    // The floor line `survey` carried is `analyze cleanliness floor`'s (W17).
+    const kept = await say(s, 'analyze cleanliness floor');
+    expect(kept, `analyze cleanliness floor: ${kept}`).toMatch(/It is /i);
     s.close();
   }, 300_000);
 });
@@ -564,8 +565,8 @@ suite('⭐⭐ drive 12 — the cookhouse kept: crumbs, the window, the flue (AC 
     for (let i = 0; i < 2; i++) await act(s, 'eat rations');
     const floor = await examine(s, 'floor');
     expect(floor, `the floor after three meals: ${floor}`).toMatch(/crumb/i);
-    const survey = await say(s, 'survey');
-    expect(survey, `survey: ${survey}`).toMatch(/floor is (marked|soiled|filthy)/i);
+    const kept = await say(s, 'analyze cleanliness floor');
+    expect(kept, `analyze cleanliness floor: ${kept}`).toMatch(/would see to it/i);
     await act(s, 'sweep with broom');
     expect(await examine(s, 'floor'), 'swept').not.toMatch(/crumb/i);
     s.close();

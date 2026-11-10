@@ -281,7 +281,7 @@ suite('6 · a season of work (H), and a season of nothing (L)', () => {
 
   it('⭐⭐ a bar on the FLOOR makes the room meet the gym’s load slot — no code, no second archetype', async () => {
     expectOk(await H.cmd('drop barbell'));
-    const said = await H.prose('survey');
+    const said = await H.prose('analyze rooms');
     expect(said).toMatch(/a gym/i);
     expect(said).toMatch(/load \(/i);
   }, 60_000);

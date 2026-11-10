@@ -8,7 +8,7 @@ import { openWorldAs, runCommand } from './helpers';
  * The wire tier (`packages/wire/tests/paint.dirty.wire.test.ts`) asserts the
  * ENVELOPE. This is a real Chromium against the real client: the forms a
  * person types parse at the binder (`mill flax`, `pour … into me:i:kettle`,
- * `stir`, `paint cottage with …`, `survey cottage`, `write … on … with …`,
+ * `knead`, `paint cottage with …`, `analyze condition cottage`, `write … on … with …`,
  * `dip rags in pot`, `maintain cottage`), the card renders a pot of paint, a
  * building seen from its landing, a lettered board and a glued brush in
  * words, and the colorman's counter sells.
@@ -119,21 +119,22 @@ test.describe('the paint build, in a browser', () => {
       await sayAwaiting(page, 'go towpath', /You leave/i);
       const cottage = await lookFor(page, 'cottage', /cottage/i);
       expect(cottage).toMatch(/limewashed|painted|coat/i);
-      const survey = await sayAwaiting(page, 'survey cottage', /from outside[\s\S]*litres/i);
-      expect(survey).toMatch(/square meters/);
-      await page.screenshot({ path: 'test-results/paint-walk/03-survey.png', fullPage: true });
+      // `survey` retired (W17): the why is `analyze condition`'s.
+      const condition = await sayAwaiting(page, 'analyze condition cottage', /It is /i);
+      expect(condition).not.toMatch(NOT_UNDERSTOOD);
+      await page.screenshot({ path: 'test-results/paint-walk/03-condition.png', fullPage: true });
 
       // ── Paint it ──
       const painted = await sayAwaiting(page, 'paint cottage with "ochre paint"', /stands under a wet coat|not enough|cannot|runs dry/i, 600_000);
       expect(painted).not.toMatch(NOT_UNDERSTOOD);
-      expect(await sayAwaiting(page, 'survey cottage', /from outside/i)).toMatch(/wet coat|painted|ran|crazed/i);
+      expect(await lookFor(page, 'cottage', /wet coat|painted|run|crazed/i)).toMatch(/wet coat|painted|run|crazed/i);
 
       // ── maintain from the landing: the fabric, never the coat ──
       expect(await sayAwaiting(page, 'maintain cottage', /sound again|nothing that needs doing|brush's work/i)).not.toMatch(NOT_UNDERSTOOD);
 
-      // ── Inside: survey reads the same building ──
+      // ── Inside: `analyze rooms` reads the same building ──
       await sayAwaiting(page, 'go door', /You leave/i);
-      expect(await sayAwaiting(page, 'survey', /fabric of the place/i)).not.toMatch(NOT_UNDERSTOOD);
+      expect(await sayAwaiting(page, 'analyze rooms', /fabric of the place/i)).not.toMatch(NOT_UNDERSTOOD);
       await sayAwaiting(page, 'go towpath', /You leave/i);
 
       // ── A rag dipped in the pot ──

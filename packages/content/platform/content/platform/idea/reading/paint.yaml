@@ -1,0 +1,25 @@
+# paint — the paint job on a building's outside, read from where it meets
+# the weather (paint D13; the retired `survey <building>`,
+# controller-liquidity W17). `measure paint <building>` from its landing —
+# the lane before a house, the quay a ship lies alongside.
+#
+# ⭐ An instrument rung only: the area to the weather is measured, with a
+# rule or a gauging rod, and the litres one coat takes follow from it.
+# UNBANDED (`discipline: ""`) — the figure is arithmetic off the rule, the
+# same for everybody. What the weather meets is the structure's word:
+# *wall and roof*, a ship's *hull*. The coat and the fabric's condition
+# are `look`'s and `analyze condition`'s.
+class: /platform/idea/reading/PaintReading
+data:
+  channel: paint
+  kind: fact
+  scope: [subject]
+  subjectRequires: [FacedMixin, DurableMixin]
+  discipline: ""
+  instrument: gauging
+  instrumentNoun: a rule or a gauging rod
+  eyeCeiling: expert
+  improves: >-
+    how much paint to buy before you start a job, and what to charge for it
+  stakes: >-
+    a wall left half done when the pot runs dry; a job priced at a loss

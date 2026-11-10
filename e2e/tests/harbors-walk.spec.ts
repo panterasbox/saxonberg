@@ -203,11 +203,11 @@ test.describe('the harbors build, in a browser', () => {
     await say(page, 'maintain', 10_000);
     await snap(page, 'maintain');
 
-    // ── A lot: survey ──
+    // ── A lot: what it answers to (`analyze rooms`; `survey` retired W17) ──
     await enter(HINKLEY);
     await say(page, 'look');
-    await say(page, 'survey', 6_000);
-    await snap(page, 'survey');
+    await say(page, 'analyze rooms', 6_000);
+    await snap(page, 'analyze-rooms');
 
     await expect(page.getByTestId('terminal')).toBeVisible();
     await w.close();

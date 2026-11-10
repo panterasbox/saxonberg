@@ -47,7 +47,7 @@ import type { Slottable } from '../slot/Slottable';
 import type { Floor } from '../ground/Floor';
 import type { VetoResult } from '../errors';
 import type Exit from '../boundary/Exit';
-import type { Shore } from './Shore';
+import type { Shore, WaterEntryAnswer } from './Shore';
 import type { Swimmable } from '../locomotion/Swimmable';
 import type { MediumRead } from '../../api/biome';
 import type { ColumnBand, WaterColumn } from './WaterColumn';
@@ -63,7 +63,6 @@ import { WorldClockApi } from '../../api/worldclock';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import type { WaterRead } from './WaterSource';
-import type { WaterEntryAnswer } from './WaterEntry';
 import type { PostureAnswer } from '../slot/Postured';
 import { CombatApi } from '../../api/combat';
 import { TemplatePaths } from '../paths';
@@ -689,7 +688,7 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     /* ─────────────────────────── swimming ─────────────────────────── */
 
     /**
-     * ⭐ `swim` with no way named, in or on this water (WaterEntry,
+     * ⭐ `swim` with no way named, in or on this water (overriding the shore's,
      * controller-liquidity W8): off a surface with open water you go in
      * where you are (the surface gives way, gently — the drop it does
      * under anybody it stops bearing); on deep water with no surface to

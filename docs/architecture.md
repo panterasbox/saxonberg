@@ -1474,6 +1474,14 @@ registry) lives in `lib/mixin.ts`.
 | `lib/ground/` · `lib/pump/` · `lib/craft/` · `lib/travel/` · `lib/bulk/` | `SplittableMixin` · `PumpableMixin` · `PumpSourceMixin` · `LiftSourceMixin` · `CuttableMixin` · `CutPlannerMixin` · `TravelNodeMixin` · `PourTargetMixin` | **protocol mixins** (`_mixinKind = 'protocol'`, D8) converted from bare interfaces: `split`, `pump` (and its source), `bail`'s lift source, `cut` (the target plans `cutPlan`; the tool plans with `CutPlannerMixin`; `saw`/`rive`/`butcher` are their own `SawableMixin`/`RivableMixin`/`ButcherableMixin` — controller-liquidity D14), `teleport`'s node, `pour`'s target (`receivePour`). See [mixins.md § protocol mixins](./subsystems/mixins.md). |
 | `lib/supply/` · `lib/description/` | `PoweredMixin` · `WaterPoweredMixin` · `NameTakingMixin` | markers a pack's reader narrows on (D7a): the supply a thing draws, the generator that makes it, a thing that takes a name. |
 
+⭐ **A protocol with ONE host is a method on that host** (controller-liquidity
+W17, owner): `SawableMixin` → `Bole.sawPlanFor` (the sawmill asks a `Bole`
+by class), `WaterEntryMixin` → `Shore.wayIntoWater` (`WaterPlace`, which
+composes a shore, overrides it), `SurveyedMixin` → `Place.readRooms` and
+`Structure.readOutside` (its verb retired with it). A protocol earns its
+mixin by its hosts; with one, the mixin is ceremony and `MixinApi.isX`
+narrows on what `instanceof` or the host's own predicate already says.
+
 ### Mixin Composition Constraints
 
 Where a mixin only makes sense on top of another, encode it in the

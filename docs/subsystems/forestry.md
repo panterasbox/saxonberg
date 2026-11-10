@@ -209,7 +209,7 @@ protocol (controller-liquidity D14 retired `fell bole`; `fell` on a bole
 refuses and names `cut`). The bole **affords its own cross-cut**
 (`commandContributions.peers` names `cut.yaml`), so a bole dragged to the
 yard is still a bole there. It answers the froe (`RivableMixin`) and the
-saw (`SawableMixin`) the same way: one length off it per act. The bole on the ground IS the seam
+saw (`Bole.sawPlanFor` — a method on the bole, its one host, since controller-liquidity W17) the same way: one length off it per act. The bole on the ground IS the seam
 `trade-sawing` attaches to (boards, not lengths) and what the transport
 pack's sledge and dray exist to move.
 

@@ -33,7 +33,7 @@
  *
  * ⭐ **Anybody may do this.** The tenure TERM says who *owes* the
  * upkeep, and that is a different question with a different answer
- * surface (`survey`). A tenant who paints their landlord's window
+ * surface (`analyze rooms`). A tenant who paints their landlord's window
  * frames has painted them; a stranger who does it has done the
  * neighborhood a favor. Refusing that would be modeling permission
  * where the world models work.

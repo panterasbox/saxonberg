@@ -355,7 +355,8 @@ merged into harbors). `Ship` composes `DurableMixin(FacedMixin(...))`:
   (Hobb's, 12) caulks her sound, charges the water already in at the old
   rate, and credits **seamanship**. The residence pack's
   `MaintainController` carries both word sets (a house is puttied, a hull
-  is caulked). `survey` aboard reads her like a building.
+  is caulked). `analyze rooms` aboard reads her like a building (the shell line), and
+`analyze condition <ship>` from the quay says why her hull is as it is.
 
 ## The bilge, the pump well, `measure bilge`
 

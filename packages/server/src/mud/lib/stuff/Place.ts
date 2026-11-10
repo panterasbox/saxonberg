@@ -51,11 +51,11 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { NavigationApi } from '../../api/navigation';
 import { BiomeApi } from '../../api/biome';
-import { SurveyedMixin, type OutsideSurvey, type SurveyAnswer } from '../spatial/Surveyed';
-import type { Archetype } from '../archetype/Archetype';
+import type { Archetype, Satisfaction } from '../archetype/Archetype';
 import type { Container } from '../spatial/Container';
 import type ArchetypeCatalogue from '../../platform/idea/ArchetypeCatalogue';
 import type Structure from '../structure/Structure';
+import type { OutsideRead } from '../structure/Structure';
 import type { Positioned } from '../expanse/Positioned';
 import type { Floor } from '../ground/Floor';
 import type { FieldMeta } from '../mixin';
@@ -183,9 +183,22 @@ export interface FloorDefaults {
 // three description mixins and none of `Exitable`/`Staged`/coordinates.
 // A location is *a place you can see, name and point at*; being a place
 // you can walk BETWEEN is the next rung out.
-// ⭐ `SurveyedMixin` OUTERMOST (controller-liquidity W7c): `survey` asks
-// the place what it is for and how it is kept (the override below).
-const PlaceBase = SurveyedMixin(AddressableMixin(
+/**
+ * ⭐ What a place answers to, as facts — `Place.readRooms`, read by
+ * `analyze rooms` (residences D15/D4; controller-liquidity W17).
+ */
+export interface RoomsRead {
+  /** The place as a whole (a holding's every room), or the one room. */
+  whole: boolean;
+  /** Each reported room archetype's verdict, met by what. */
+  reports: Satisfaction[];
+  /** The building this place is part of, read from outside — the shell's condition and why. */
+  shell: OutsideRead | null;
+  /** The holding's tenure term — who owes the upkeep. */
+  upkeepTerm: string | null;
+}
+
+const PlaceBase = AddressableMixin(
   AmbientLitMixin(
     AtmosphericMixin(
       AdornableMixin(
@@ -197,7 +210,7 @@ const PlaceBase = SurveyedMixin(AddressableMixin(
       ),
     ),
   ),
-));
+);
 
 export default class Place extends PlaceBase {
 // ⭐ `suppressesMagic` gained `authorable` (base-class narrowing):
@@ -608,26 +621,26 @@ export default class Place extends PlaceBase {
   }
 
   /**
-   * ⭐ **Take stock of this place** (residences D15/D4, paint D13,
-   * cleanliness D15; moved off `SurveyController`, controller-liquidity
-   * W7c). Four reads, all facts: what the place is FOR — every room
-   * archetype (the industry-less ones: a bedroom derives from no recipes),
-   * met *by what*, over the whole holding when the room is part of one
-   * and over the WAY when a corridor archetype asks and this is outdoor
-   * ground on a lane; the building it is part of, read from outside (asked
-   * of that structure); who owes the upkeep (the holding's tenure term);
-   * how the floor is kept. Nothing is enforced; no multiplier reads this.
+   * ⭐ **What this place answers to** (residences D15/D4, paint D13; the
+   * retired `survey`, read now by `analyze rooms` — controller-liquidity
+   * W17). Facts only: what the place is FOR — every room archetype (the
+   * industry-less ones: a bedroom derives from no recipes), met *by what*,
+   * over the whole holding when the room is part of one and over the WAY
+   * when a corridor archetype asks and this is outdoor ground on a lane;
+   * the shell (the building it is part of — a shop, a ship, a home — read
+   * from outside); at home, who owes the upkeep (the holding's tenure term). Nothing is enforced;
+   * no multiplier reads this. `null` — `viewer` is not standing here.
    */
-  public override async surveyFor(viewer: Stuff): Promise<SurveyAnswer> {
+  public async readRooms(viewer: Stuff): Promise<RoomsRead | null> {
     const self = this as unknown as Stuff & Container;
-    // A place is taken stock of from inside it (aboard a boat in it counts).
+    // A place is read from inside it (aboard a boat in it counts).
     if (
       MixinApi.isContainable(viewer) &&
       viewer.getContainer() !== null &&
       viewer.getContainer() !== self &&
       viewer.getEnclosingPlace() !== self
     ) {
-      return { ok: false, reason: 'not-here' };
+      return null;
     }
 
     const warren = MixinApi.isWarrenMember(self) ? self.getWarren() : null;
@@ -639,31 +652,16 @@ export default class Place extends PlaceBase {
     const wayside = await this.waysideSpaces();
     const reports = this.roomArchetypes()
       .filter(
-        (a) => a.getSurveyScope() !== 'off-room' && (a.getSurveyScope() !== 'corridor' || wayside !== null),
+        (a) => a.getRoomsScope() !== 'off-room' && (a.getRoomsScope() !== 'corridor' || wayside !== null),
       )
-      .map((a) => a.satisfies(a.getSurveyScope() === 'corridor' && wayside ? wayside : spaces));
+      .map((a) => a.satisfies(a.getRoomsScope() === 'corridor' && wayside ? wayside : spaces));
 
     // ⭐ The fabric is the BUILDING's (paint D13): whatever structure this
     // room is a member of — a shop, a ship, a home — asked for its outside.
     const path = this.getIdentityPath();
     const structure = this.structureNow() ?? (path ? await NavigationApi.structureAt(path) : null);
-    let outside: OutsideSurvey | null = null;
-    if (structure && MixinApi.isSurveyed(structure)) {
-      const read = await structure.surveyFor(viewer);
-      if (read.ok && read.facts.kind === 'outside') outside = read.facts;
-    }
-
-    // ⭐ How the place is KEPT (cleanliness D15): a band and the method.
-    let floor: { band: string; method: string } | null = null;
-    const f = this.getFloor() as unknown as Stuff | null;
-    if (f !== null && MixinApi.isFloor(f) && f.takesSoil() && MixinApi.isSoilable(f)) {
-      f.reconcileStalls();
-      floor = { band: f.soilBand(''), method: f.cleaningMethod() };
-    }
-    return {
-      ok: true,
-      facts: { kind: 'place', whole: upkeepTerm !== null, reports, outside, upkeepTerm, floor },
-    };
+    const shell = structure ? await structure.readOutside() : null;
+    return { whole: upkeepTerm !== null, reports, shell, upkeepTerm };
   }
 
   /** The room archetypes — the ones that derive nothing from an industry (a bedroom has no trade; a bar does). */
@@ -677,7 +675,7 @@ export default class Place extends PlaceBase {
   }
 
   /**
-   * The rooms a `surveyScope: 'corridor'` archetype reports over, or
+   * The rooms a `roomsScope: 'corridor'` archetype reports over, or
    * `null` when this is not a place a way runs through.
    *
    * ⭐ **Outdoors is what makes somewhere a WAY rather than a room**

@@ -227,7 +227,7 @@ suite('S1 — the hull clock at her berth', () => {
     expect(bought, bought).toMatch(new RegExp(`as the ${name}`));
     expectOk(await s.cmd('go north'));
     expectOk(await s.cmd(`go ${name.toLowerCase()}`));
-    expect(await say(s, 'survey')).toMatch(/fabric of the place is sound/);
+    expect(await say(s, 'analyze rooms')).toMatch(/fabric of the place is sound/);
     expectOk(await s.cmd('go ashore'));
     s.close();
     // Away forty days: nobody aboard, she sleeps; her hull keeps the house's clock.
@@ -237,7 +237,7 @@ suite('S1 — the hull clock at her berth', () => {
     const quay = squash(await back.prose('look here'));
     expect(quay, quay).toMatch(new RegExp(`Alongside: [^.]*the ${name}`));
     expectOk(await back.cmd(`go ${name.toLowerCase()}`));
-    const survey = await say(back, 'survey');
+    const survey = await say(back, 'analyze rooms');
     expect(survey, survey).toMatch(/fabric of the place is (worn|badly worn)/);
     const held = await say(back, 'course roads');
     expect(held, held).toMatch(/settled onto the mud/);

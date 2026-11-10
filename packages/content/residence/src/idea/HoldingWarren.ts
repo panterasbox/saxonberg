@@ -106,7 +106,7 @@ export default class HoldingWarren extends FloorplanWarren {
     this.addressBase = value;
   }
 
-  /** ⭐ Who owes the upkeep — the term `survey` reads (D5). */
+  /** ⭐ Who owes the upkeep — the term `analyze rooms` reads (D5). */
   public override getUpkeepTerm(): string {
     return this.upkeepTerm;
   }

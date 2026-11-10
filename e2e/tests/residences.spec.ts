@@ -329,7 +329,7 @@ test.describe('the realty office', () => {
 test.describe('the reads a home answers', () => {
   test.skip(restartHalf, 'part A ran before the restart');
 
-  test('⭐ `survey` names the archetypes, the shell and the term', async ({
+  test('⭐ `analyze rooms` names the archetypes, the shell and the term', async ({
     browser,
   }) => {
     test.setTimeout(180_000);
@@ -347,7 +347,7 @@ test.describe('the reads a home answers', () => {
       // number (the D4 no-gauge rule, driven).
       await sendUntil(
         page,
-        'survey',
+        'analyze rooms',
         page.getByText(/take stock of the place as a whole/i).first(),
       );
       await expect(page.getByText(/a bedroom:/i).first()).toBeVisible();

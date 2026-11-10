@@ -315,16 +315,6 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `look` (enumerate without binding focus). Discovery wiring
      * is `look`'s — perception, not focus management.
      *
-     * `survey` rides here too and belongs here: it is the same actor-side
-     * question as `look`, asked of the PLACE rather than of the things
-     * in it. It has to be an actor-side affordance because a verb is
-     * afforded by a CLASS and no class is common to every residential
-     * room — and it is a platform verb rather than the residence pack's
-     * because the archetype substrate it reads is venue-generic (a bar
-     * surveys as readily as a bedsit) and the kernel may not import a
-     * pack. The holding half is read through the WarrenMember back-ref
-     * by shape.
-     *
      * The four single-sense verbs (`smell` / `listen` / `feel` /
      * `taste`) and the gestalt `sense` ride the same actor-side
      * bucket — they're perception verbs in the contact family,
@@ -354,7 +344,6 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/perception/feel.yaml',
         'platform/cmd/perception/sense.yaml',
         'platform/cmd/perception/assess.yaml',
-        'platform/cmd/perception/survey.yaml',
         'platform/cmd/perception/search.yaml',
         'platform/cmd/perception/hide.yaml',
         'platform/cmd/perception/unhide.yaml',

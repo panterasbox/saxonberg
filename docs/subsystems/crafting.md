@@ -560,7 +560,7 @@ narrow on; a verb string on a request is a dispatch nobody can see. Now:
 | act | protocol / method | hosts | verb |
 |---|---|---|---|
 | `cut` | `CuttableMixin.cutPlan(req)` | `Rope`, `SugarLoaf`, `IceSheet`, forestry `Bole` (the cross-cut — one length of round timber, a felling axe among the tools); the tool side `CutPlannerMixin` (tailoring `CuttingTool`) | kernel `cut` |
-| saw | `SawableMixin.sawPlanFor(actor, saw)` | `Bole` (one green length); any other wood is weighed as it is by the verb | carpentry `saw` |
+| saw | `Bole.sawPlanFor(actor, saw)` — a method on its one host since controller-liquidity W17 (`SawableMixin` folded) | `Bole` (one green length); any other wood is weighed as it is by the verb | carpentry `saw` (the sawmill asks a `Bole` by class) |
 | rive | `RivableMixin.rivePlanFor({actor, froe, into})` | `Bole`, `Billet` | forestry `rive` (`requires: RivableMixin`) |
 | butcher | `ButcherableMixin.butcherPlanFor(actor, lines)` — the carcass ledger; the default is the body with no ledger, spent at once | `Corpse` | cooking `butcher` |
 | groove · scrape |X (methods — one host) | water `IceSheet` | trade-ice |

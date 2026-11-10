@@ -408,7 +408,7 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
     return h.lengthM * (h.beamM + 2 * h.draftM);
   }
 
-  /** What the weather meets on her — `survey` says *hull* (controller-liquidity W7c). */
+  /** What the weather meets on her — `measure paint` says *hull* (controller-liquidity W7c, W17). */
   public override weatherSurface(): string {
     return "hull";
   }

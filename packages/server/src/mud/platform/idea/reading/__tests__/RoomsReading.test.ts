@@ -1,5 +1,6 @@
 /**
- * `survey` — the room read (residences D15/D4).
+ * `analyze rooms` — the place read (residences D15/D4; the retired
+ * `survey`, controller-liquidity W17).
  *
  * What it must say, and what it must never do:
  *
@@ -13,49 +14,54 @@
  *     and works identically (the no-enforcement pin lives beside the
  *     value object, in `ArchetypeSatisfaction.test.ts`).
  *
- * The holding half is reached through the `WarrenMember` back-ref BY
- * SHAPE — the residential programme is a capability pack's class and the
- * kernel does not import packs — so the fixture here is a duck, and that
- * is the seam under test as much as the prose is.
+ * Driven through the verb (`driveAnalyze`), so the reading's gate is the
+ * shipped one.
  */
 
-import "../../../../../../test-bootstrap";
+import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
-import SurveyController from '../SurveyController';
-import ArchetypeCatalogue from '../../../ArchetypeCatalogue';
-import Locale from '../../../../location/Locale';
-import CartesianZone from '../../../location/CartesianZone';
-import { BiomeApi } from '../../../../../api/biome';
-import PersistentLocation from '../../../../location/PersistentLocation';
-import { FloorplanWarren } from '../../../../../lib/location/FloorplanWarren';
-import Chair from '../../../../thing/Chair';
-import { DocumentApi } from '../../../../../api/document';
-import { MessageApi } from '../../../../../api/message';
-import { CommandApi } from '../../../../../api/command';
-import { StuffApi } from '../../../../../api/stuff';
-import { ContainmentApi } from '../../../../../api/containment';
-import { Mml } from '../../../../../api/mml';
-import { PerceiverMixin } from '../../../../../lib/description/Perceiver';
+import RoomsReading from '../RoomsReading';
+import { withRow } from './row';
+import { driveAnalyze } from './drive';
+import ArchetypeCatalogue from '../../ArchetypeCatalogue';
+import Locale from '../../../location/Locale';
+import { BiomeApi } from '../../../../api/biome';
+import PersistentLocation from '../../../location/PersistentLocation';
+import { FloorplanWarren } from '../../../../lib/location/FloorplanWarren';
+import Chair from '../../../thing/Chair';
+import { DocumentApi } from '../../../../api/document';
+import { MessageApi } from '../../../../api/message';
+import { CommandApi } from '../../../../api/command';
+import { StuffApi } from '../../../../api/stuff';
+import { ContainmentApi } from '../../../../api/containment';
+import { Mml } from '../../../../api/mml';
+import { PerceiverMixin } from '../../../../lib/description/Perceiver';
+import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
+import { SensorMixin } from '../../../../lib/message/Sensor';
+import { ContainableMixin } from '../../../../lib/spatial/Containable';
+import { ContainerMixin } from '../../../../lib/spatial/Container';
+import { NamedMixin } from '../../../../lib/description/Named';
+import { MobileMixin } from '../../../../lib/spatial/Mobile';
 import {
   makeStuff,
   makeStuffAtPath,
-} from '../../../../../lib/security/__tests__/test-setup';
-import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import type { CommandContext, CommandModel } from '../../../../../api/command';
-import type { StoredDocument } from '../../../../../lib/document/StoredDocument';
-import BuildingBase from '../../../../../lib/structure/Building';
-import { NavigationApi } from '../../../../../api/navigation';
-import type { Stuff } from '../../../../../lib/stuff/Stuff';
-import { Idea } from '../../../../../lib/stuff/Idea';
-import type { Container } from '../../../../../lib/spatial/Container';
-import type { Containable } from '../../../../../lib/spatial/Containable';
+} from '../../../../lib/security/__tests__/test-setup';
+import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import type { CommandContext } from '../../../../api/command';
+import type { StoredDocument } from '../../../../lib/document/StoredDocument';
+import BuildingBase from '../../../../lib/structure/Building';
+import { NavigationApi } from '../../../../api/navigation';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { Idea } from '../../../../lib/stuff/Idea';
+import type { Container } from '../../../../lib/spatial/Container';
+import type { Containable } from '../../../../lib/spatial/Containable';
 
 const ARCHETYPE_DIR = fileURLToPath(
   new URL(
-    '../../../../../../../../content/generic-objects/content/archetypes/',
+    '../../../../../../../content/generic-objects/content/archetypes/',
     import.meta.url,
   ),
 );
@@ -103,18 +109,18 @@ function roomArchetypeDocs(): StoredDocument[] {
 /**
  * A synthetic archetype doc, for the two scopes the shipped rows do not
  * exercise yet. The logistics build adds five industry-less archetypes;
- * without `surveyScope` all five would land on every `survey` in the
+ * without `roomsScope` all five would land on every `analyze rooms` in the
  * game, in every bedroom, for every player.
  */
 function scopedDoc(
   archetypeId: string,
   label: string,
-  surveyScope: string,
+  roomsScope: string,
 ): StoredDocument {
   const data = {
     archetypeId,
     label,
-    surveyScope,
+    roomsScope,
     capabilities: [{ key: 'shelter', needs: { seating: 1 }, default: null }],
   };
   return {
@@ -148,6 +154,12 @@ function ctxFor(actor: unknown, location: unknown): CommandContext {
   } as unknown as CommandContext;
 }
 
+/** A body that can stand in the room it reads. */
+const ReaderBase = CommandGiverMixin(
+  NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
+);
+class Reader extends ReaderBase {}
+
 function bed(): Chair {
   const b = makeStuff(() => new Chair());
   b.setStaticSlots([
@@ -160,7 +172,7 @@ function bed(): Chair {
 
 /** A building whose weather is not walked here — its condition is set by the test. */
 class TestHouse extends BuildingBase {
-  static _mixinName = 'SurveyTestHouse';
+  static _mixinName = 'RoomsTestHouse';
   public override weatherScope(): Stuff | null {
     return null;
   }
@@ -196,19 +208,22 @@ function holding(
   return p;
 }
 
-const survey = async (
-  actor: unknown,
-  room: unknown,
-): Promise<CommandContext> => {
-  const controller = makeStuff(() => new SurveyController());
-  const ctx = ctxFor(actor, room);
-  await controller.execute({} as CommandModel, ctx);
+/** `analyze rooms`, standing in `room` — through the verb. */
+const analyzeRooms = async (room: unknown): Promise<CommandContext> => {
+  const reader = makeStuff(() => new Reader());
+  ContainmentApi.move(
+    reader as unknown as Stuff & Containable,
+    room as unknown as Stuff & Container,
+  );
+  const reading = withRow(await StuffApi.create(() => new RoomsReading()), 'rooms');
+  const ctx = ctxFor(reader, room);
+  await driveAnalyze(reading, ctx);
   return ctx;
 };
 
 /**
  * ⭐ Stand a lane catalogue at the transport pack's own path, answering
- * the one method `survey` asks for. The controller finds it BY SHAPE —
+ * the one method the place read asks for. `Place` finds it BY SHAPE —
  * the kernel imports no pack — so a fixture stands in the same way the
  * real one does.
  */
@@ -226,7 +241,7 @@ function installLane(nodes: (Stuff & Container)[]): void {
   );
 }
 
-describe('survey', () => {
+describe('analyze rooms', () => {
   beforeEach(async () => {
     installV1QuantityMarshallers();
     StuffApi.clearAll();
@@ -248,8 +263,7 @@ describe('survey', () => {
 
   it('reads the bare room against all four, and says no to each', async () => {
     const room = makeStuff(() => new Locale());
-    const actor = makeStuff(() => new Locale()); // any Stuff will do as a giver
-    await survey(actor, room);
+        await analyzeRooms(room);
     expect(captured).toContain('You take stock of the room');
     for (const label of ['a bedroom', 'a kitchen', 'a bathroom', 'a living room']) {
       expect(captured).toContain(`${label}: no`);
@@ -265,13 +279,13 @@ describe('survey', () => {
       b as unknown as Stuff & Containable,
       room as unknown as Stuff & Container,
     );
-    await survey(makeStuff(() => new Locale()), room);
+    await analyzeRooms(room);
     expect(captured).toContain('a bedroom: yes');
     expect(captured).toMatch(/sleeping \(.*bed.*\)/);
   });
 
   it('at home it reads the WHOLE place, and adds the shell and the term', async () => {
-    const hall = makeStuffAtPath(() => new PersistentLocation(), '/world/_survey/house/hall');
+    const hall = makeStuffAtPath(() => new PersistentLocation(), '/world/_rooms/house/hall');
     const bedroom = makeStuff(() => new PersistentLocation());
     ContainmentApi.move(
       bed() as unknown as Stuff & Containable,
@@ -288,7 +302,7 @@ describe('survey', () => {
     vi.spyOn(NavigationApi, 'structureAt').mockResolvedValue(house as never);
 
     // Standing in the HALL, which has nothing in it at all.
-    await survey(makeStuff(() => new Locale()), hall);
+    await analyzeRooms(hall);
     expect(captured).toContain('You take stock of the place as a whole');
     // The bedroom next door answers for the whole holding.
     expect(captured).toContain('a bedroom: yes');
@@ -302,13 +316,13 @@ describe('survey', () => {
   it('bands and words only — no number anywhere in the readout', async () => {
     const hall = makeStuff(() => new PersistentLocation());
     holding([hall], 'sound', null);
-    await survey(makeStuff(() => new Locale()), hall);
+    await analyzeRooms(hall);
     // The one thing D4 forbids: a gauge. `0.87` or `87%` must never appear.
     expect(captured).not.toMatch(/\d+(\.\d+)?\s*%/);
     expect(captured).not.toMatch(/\b0\.\d+\b/);
   });
 
-  /* ── surveyScope (logistics D19 / P6) ────────────────────────── */
+  /* ── roomsScope (logistics D19 / P6) ────────────────────────── */
 
   /** Re-warm the catalogue with the shipped rows PLUS `extra`. */
   const warmWith = async (extra: StoredDocument[]): Promise<void> => {
@@ -321,21 +335,21 @@ describe('survey', () => {
     await catalogue.warm();
   };
 
-  it("an `off-room` archetype never appears in a room survey", async () => {
+  it("an `off-room` archetype never appears in a room reading", async () => {
     await warmWith([scopedDoc('haulage-rig', 'a haulage rig', 'off-room')]);
     const room = makeStuff(() => new Locale());
-    await survey(makeStuff(() => new Locale()), room);
-    // A rig is surveyed by NAMING it, never by standing somewhere.
+    await analyzeRooms(room);
+    // A rig is read by NAMING it, never by standing somewhere.
     expect(captured).not.toContain('a haulage rig');
     // …and the shipped four are untouched.
     expect(captured).toContain('a bedroom: no');
   });
 
-  it("a `corridor` archetype stays off an INDOOR survey", async () => {
+  it("a `corridor` archetype stays off an INDOOR reading", async () => {
     await warmWith([scopedDoc('corridor', 'a way', 'corridor')]);
     const room = makeStuff(() => new Locale());
     vi.spyOn(BiomeApi, 'isSkyExposed').mockReturnValue(false);
-    await survey(makeStuff(() => new Locale()), room);
+    await analyzeRooms(room);
     // ⭐ The whole point of the second field: five new archetypes must not
     // print in every bedroom in the game.
     expect(captured).not.toContain('a way');
@@ -363,7 +377,7 @@ describe('survey', () => {
     );
     vi.spyOn(BiomeApi, 'isSkyExposed').mockReturnValue(true);
 
-    await survey(makeStuff(() => new Locale()), here);
+    await analyzeRooms(here);
     expect(captured).toContain('a way: yes');
   });
 
@@ -376,10 +390,7 @@ describe('survey', () => {
     installLane([here]);
     vi.spyOn(BiomeApi, 'isSkyExposed').mockReturnValue(true);
 
-    const ctx = await survey(
-      makeStuff(() => new Locale()),
-      here,
-    );
+    const ctx = await analyzeRooms(here);
     expect(captured).toContain('a way: no');
     expect(captured).toContain('wants shelter');
     // Reported, never enforced: nothing was rejected and nothing penalised.
@@ -411,19 +422,24 @@ describe('survey', () => {
     ]);
     vi.spyOn(BiomeApi, 'isSkyExposed').mockReturnValue(true);
 
-    await survey(
-      makeStuff(() => new Locale()),
-      courtyard,
-    );
+    await analyzeRooms(courtyard);
     expect(captured).not.toContain('a way');
   });
 
-  it('is afforded actor-side, beside `look`', () => {
+  it('⛔ `survey` is no verb — the place read is a channel of `analyze`', () => {
     class Viewer extends PerceiverMixin(Locale) {}
     const verbs = CommandApi.collectSelfDefs(Viewer)
       .map((d) => d.verbs)
       .flat();
-    expect(verbs).toContain('survey');
+    expect(verbs).not.toContain('survey');
     expect(verbs).toContain('look');
+  });
+
+  it('a reader with nowhere to stand is told so', async () => {
+    const reader = makeStuff(() => new Reader());
+    const reading = withRow(await StuffApi.create(() => new RoomsReading()), 'rooms');
+    const ctx = ctxFor(reader, null);
+    await driveAnalyze(reading, ctx);
+    expect(captured).toContain('nothing here to take stock of');
   });
 });

@@ -445,7 +445,7 @@ that cannot buy the materials leaves its building to weather.
 
 ### Where it surfaces today
 
-- **Shipped:** the holding's shell clock + `survey` / `maintain`
+- **Shipped:** the holding's shell clock + `analyze rooms` / `maintain`
   ([holding.md](./subsystems/holding.md)); `Durable` / `Keen` wear;
   utilities metered on use (Part 3).
 - **In flight:** the repair build — mending by the maker's trade, the

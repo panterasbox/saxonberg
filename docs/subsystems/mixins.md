@@ -177,9 +177,11 @@ surface (the card's chips, Studio's palette, `help <verb>`'s *answers:*) can
 show it as the verb it serves rather than as a noun. The kernel's:
 `PumpableMixin`, `LiftSourceMixin`, `PumpSourceMixin` (`lib/pump/`),
 `SplittableMixin` (`lib/ground/`), `CuttableMixin` and `CutPlannerMixin`
-(`lib/craft/`), `SawableMixin`, `RivableMixin` and `ButcherableMixin`
+(`lib/craft/`), `RivableMixin` and `ButcherableMixin`
 (`lib/craft/` — the cutting acts that are not `cut`, controller-liquidity
-D14), `PourTargetMixin` (`lib/bulk/`, the one `pour`),
+D14; `SawableMixin` folded into `Bole.sawPlanFor` in W17 — one host; ⭐ a
+protocol with one host is a method on it — `WaterEntryMixin` likewise became
+`Shore.wayIntoWater`, see [architecture.md](../architecture.md)), `PourTargetMixin` (`lib/bulk/`, the one `pour`),
 `TravelNodeMixin` (`lib/travel/`), each with a `MixinApi.isX`; and the
 craft protocols with a null-or-refusing default (`lib/craft/`): `DipBathMixin`
 (`dip`), `CarvableMixin`, `ShapeableMixin`, `KneadVesselMixin`,

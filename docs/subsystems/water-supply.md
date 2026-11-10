@@ -215,7 +215,7 @@ Each with where it goes (salvaged from the plan at the sweep, 2026-11-06):
 
 - **The loft** (a tap on an upper storey reading its head) — paint's
   storeys landed; the head rule is unit-tested, the content is not built.
-- **The survey's plumbing line** — `look run` gives the state in words today.
+- **A plumbing line on `analyze rooms`** — `look run` gives the state in words today.
 - **The irrigates / rides brains** (the ditch rider riding, a farmer
   irrigating unwatched by choice) → irrigation-slate.
 - **Water rights as documents**, the turn book → irrigation-slate § 12.

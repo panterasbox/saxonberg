@@ -35,7 +35,6 @@ import { Final } from '@saxonberg/server/mud/lib/security/decorators';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { CuttableMixin, type CutAnswer, type CutRequest } from '@saxonberg/server/mud/lib/craft/Cuttable';
-import { SawableMixin, type SawPlan, type SawRefusal } from '@saxonberg/server/mud/lib/craft/Sawable';
 import {
   RivableMixin,
   type RivePlan,
@@ -46,6 +45,34 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
+import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import type Material from '@saxonberg/server/mud/lib/material/Material';
+
+/** What a length off the bole puts on the saw carriage, and how green it is. */
+export interface SawCharge {
+  kg: number;
+  /** The wood. */
+  material: Material | null;
+  /** Seasoned fraction of what went on (a bole is green: 0). */
+  seasoned: number;
+}
+
+/** What the saw's take left of the bole. */
+export interface SawTaken {
+  /** Lengths still in it; 0 = the butt, and it is gone. */
+  left: number;
+}
+
+/** ⭐ Every reason the saw is refused — `SawController` words each. */
+export type SawRefusal = ActRefusal<'not-sawable'> | ActRefusal<'bole-spent'>;
+
+/**
+ * The saw's plan: the charge, and the take at the moment the cut is
+ * through. ⚠ Never engaged by itself — the SAW paces the cut (a sawmill's
+ * race, a pit saw's two pairs of hands), so the verb drives the plan and
+ * its `onComplete` is the take.
+ */
+export type SawPlan = ActPlan<SawCharge, SawTaken, SawRefusal>;
 
 /** Kilograms one cross-cut length of timber takes off the bole. */
 export const TIMBER_MASS_KG = 24;
@@ -97,9 +124,10 @@ export const RIVE_FLOOR = 0.3;
 export const CLEAN_CLEAVE = 0.8;
 
 // ⭐ It plans its own cuts — one small protocol per act (controller-liquidity
-// D14): the cross-cut is a `cut`, the froe asks `Rivable`, the saw asks
-// `Sawable`; each asks the bole what one length off it comes to.
-const BoleBase = SawableMixin(RivableMixin(CuttableMixin(Good)));
+// D14): the cross-cut is a `cut`, the froe asks `Rivable`, and the saw asks
+// the bole itself (`sawPlanFor` — the one-host `Sawable` protocol folded into
+// its host, W17); each asks the bole what one length off it comes to.
+const BoleBase = RivableMixin(CuttableMixin(Good));
 
 /** *"six lengths in it yet"* / *"one length left"* — appended on `look`. */
 function lengthsAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
@@ -190,7 +218,13 @@ export default class Bole extends BoleBase {
     return this.rivePlan(req.actor);
   }
 
-  public override async sawPlanFor(_actor: Stuff, _saw: Stuff): Promise<SawPlan | SawRefusal> {
+  /**
+   * ⭐ The saw's plan for one length off the bole (controller-liquidity
+   * D14): the charge on the carriage and the take when the cut is through.
+   * The sawmill asks a `Bole` this by class; any other wood it weighs as it
+   * is.
+   */
+  public async sawPlanFor(_actor: Stuff, _saw: Stuff): Promise<SawPlan | SawRefusal> {
     return this.sawPlan();
   }
 
