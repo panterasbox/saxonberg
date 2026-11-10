@@ -1,6 +1,8 @@
 /**
- * CourseController — `course` reads the plot; `course <bearing>` and
- * `course <node>` lay one and get under way (maritime D11).
+ * CourseController — `course <bearing>` and `course <node>` lay a course
+ * and get under way (maritime D11); bare `course` is the readout's, a
+ * shape of its own ({@link CourseReadoutController}) — over {@link
+ * CourseControllerBase}.
  *
  * ⭐ Setting a course, not choosing a destination: the craft steers a
  * bearing at its own speed and the water does the rest. A course for a
@@ -11,33 +13,17 @@
  * The node resolves against the expanse's own node list by its own name,
  * never through MQL (a node is not in the room). Inside a confined linear
  * passage (a channel over a bar) only its two ends are a course.
- *
- * Afforded by the instrument of steering — the `Helm` — so a building,
- * which has none, is never offered it.
  */
 
-import { CommandController } from '../../../../lib/command/CommandController';
-import type { CommandContext, CommandModel } from '../../../../api/command';
-import { MessageApi } from '../../../../api/message';
-import { Mml } from '../../../../api/mml';
+import type { CommandContext } from '../../../../api/command';
 import { MixinApi } from '../../../../api/mixin';
-import { ExpanseApi } from '../../../../api/expanse';
-import { NavigationApi } from '../../../../api/navigation';
 import { StuffApi } from '../../../../api/stuff';
 import Ship from '../../Ship';
 import { WorldClockApi } from '../../../../api/worldclock';
 import ExpanseNode from '../../ExpanseNode';
 import { Expanse } from '../../../../lib/expanse/Expanse';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type Place from '../../../../lib/stuff/Place';
-import type { Positioned } from '../../../../lib/expanse/Positioned';
-import type { Voyaging } from '../../../../lib/expanse/Voyaging';
-
-interface CourseModel extends CommandModel {
-  heading?: string;
-  /** `--leaving-them`: sail with her own people in the water, on purpose. */
-  leavingThem?: boolean;
-}
+import { CourseControllerBase, type Craft, type CourseModel } from './CourseControllerBase';
 
 /** A river's direction words (river D18). */
 const RIVER_WAYS: Record<string, 'upstream' | 'downstream'> = {
@@ -47,32 +33,11 @@ const RIVER_WAYS: Record<string, 'upstream' | 'downstream'> = {
   down: 'downstream',
 };
 
-/** The words for a river's line, in km — a pilot's, not a navigator's. */
-function kmWords(km: number): string {
-  return km < 1 ? `${Math.round(km * 1000)} meters above the mouth` : `${km.toFixed(1)} km above the mouth`;
-}
-
-type Craft = Stuff & Positioned & Voyaging;
-
-/** `070` — a bearing as a navigator writes it. */
-function bearingWords(deg: number): string {
-  return String(Math.round(((deg % 360) + 360) % 360)).padStart(3, '0');
-}
-
-export default class CourseController extends CommandController<CourseModel> {
+export default class CourseController extends CourseControllerBase {
   async execute(model: CourseModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const craft = await this.craftOf(giver);
-    if (craft === null) {
-      // ⭐ A small boat with a sail (river D20): the boat you sit in sails
-      // herself on the river's water (`SmallCraft.sailCourse`).
-      const boat = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-      if (boat !== null && MixinApi.isSmallCraft(boat)) {
-        const out = await boat.sailCourse(model.heading ?? '', giver);
-        return out.ok ? this.tell(context, out.line) : this.decline(context, out.line, 'cannot-sail');
-      }
-      return this.decline(context, 'You are not aboard anything that sails.', 'not-aboard');
-    }
+    if (craft === null) return this.smallBoat(context, model.heading ?? '');
     // ⭐ On a river (D18): a direction, a landing, or the bar — never a bearing.
     if (craft.getLine() !== null) return this.onRiver(model, context, craft);
     const frame = await craft.liveFrame();
@@ -81,7 +46,6 @@ export default class CourseController extends CommandController<CourseModel> {
       return this.decline(context, 'There is no open water under you to lay a course across.', 'no-expanse');
     }
     const heading = (model.heading ?? '').trim();
-    if (heading === '') return this.readout(context, craft, giver);
     if (!this.mayHelm(context, craft, giver)) return;
 
     let bearingDeg: number;
@@ -158,21 +122,9 @@ export default class CourseController extends CommandController<CourseModel> {
     this.tell(
       context,
       node
-        ? `You lay a course ${bearingWords(bearingDeg)} for ${nodeName} and get under way.`
-        : `You lay a course ${bearingWords(bearingDeg)} and get under way.`,
+        ? `You lay a course ${CourseController.bearingWords(bearingDeg)} for ${nodeName} and get under way.`
+        : `You lay a course ${CourseController.bearingWords(bearingDeg)} and get under way.`,
     );
-  }
-
-  /** The craft the giver is aboard — their root container's craft, at sea or on a river. */
-  private async craftOf(giver: Stuff): Promise<Craft | null> {
-    const root = MixinApi.isContainable(giver) ? giver.getRootContainer() ?? giver : giver;
-    // ⭐ The place is asked: a keyed room of a ship kind is answered by its warren.
-    const place = root.isPlace() ? (root as unknown as Place) : null;
-    const path = root.getIdentityPath() ?? '';
-    const craft = place !== null ? await place.craftHere() : await ExpanseApi.craftAt(path);
-    if (craft && MixinApi.isVoyaging(craft)) return craft;
-    const s = place !== null ? await place.structure() : path ? await NavigationApi.structureAt(path) : null;
-    return s && MixinApi.isPositioned(s) && MixinApi.isVoyaging(s) && s.getLine() !== null ? s : null;
   }
 
   /**
@@ -192,19 +144,6 @@ export default class CourseController extends CommandController<CourseModel> {
     // runs at a crawl, slow enough to read the water ahead.
     const slow = /\s+slow$/.test(heading);
     if (slow) heading = heading.replace(/\s+slow$/, '');
-    if (heading === '') {
-      const course = craft.getCourse()?.line ?? null;
-      const at = frame.landingNear(here, 60);
-      const lines = [
-        course
-          ? `Your course: ${course.direction}${course.landing ? `, for ${(await StuffApi.singleton<Stuff>(course.landing).catch(() => null))?.getPresentation() ?? 'a landing'}` : ''}.`
-          : 'You are not under way.',
-        at
-          ? `She lies at ${(await StuffApi.singleton<Stuff>(at).catch(() => null))?.getPresentation() ?? 'a landing'}, ${kmWords(here.km)}.`
-          : `She is ${kmWords(here.km)}.`,
-      ];
-      return this.tell(context, lines.join('\n'));
-    }
     // ⭐ Her helm before her heading: somebody
     // who is not her master is told so whatever they name — not that the
     // river has no such landing, which reads as if naming the right one
@@ -324,40 +263,5 @@ export default class CourseController extends CommandController<CourseModel> {
     if (started.ok && started.status !== 'completed-sync') context.note(started.note);
     const name = (await StuffApi.singleton<Stuff>(landing.path).catch(() => null))?.getPresentation() ?? landing.name;
     this.tell(context, `You take her in over the bar and up the river, for ${name}.`);
-  }
-
-
-  /** The zero-arg readout: the course and the RECKONED position, labelled. */
-  private async readout(context: CommandContext, craft: Craft, giver: Stuff): Promise<void> {
-    const course = craft.getCourse();
-    const reckoned = craft.reckonedNow();
-    const plot = craft.getPlot();
-    const nm = craft.reckoningUncertaintyNm();
-    const band = MixinApi.isAdvancing(giver)
-      ? await giver.competenceBandFor('navigation')
-      : 'untrained';
-    const lines: string[] = [];
-    lines.push(
-      course
-        ? `Your course: ${bearingWords(course.bearingDeg)} at ${course.speedKn} knots.`
-        : 'You are not under way.',
-    );
-    if (reckoned) {
-      const bracket = plot ? plot.statedBracket(nm, band) : 'exactly';
-      lines.push(`Your position, by reckoning: ${reckoned.toString()} — ${bracket}.`);
-    }
-    if (nm >= 1) {
-      lines.push('A sight, a sounding or a landmark would tighten it.');
-    }
-    this.tell(context, lines.join('\n'));
-  }
-
-  private tell(context: CommandContext, text: string): void {
-    MessageApi.scene(context.commandGiver).topic('shell.result').toSelf(Mml.fromMarkup(text)).send();
-  }
-
-  private decline(context: CommandContext, text: string, reason: string): void {
-    this.tell(context, text);
-    context.note({ kind: 'controller-rejected', reason, detail: text });
   }
 }

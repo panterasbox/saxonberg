@@ -9,6 +9,10 @@
  * otherwise, a destination named        → the anchored spell
  * ```
  *
+ * ⭐ The board is the bare shape's — {@link TeleportBoardController}, its
+ * own view (controller-liquidity W7a); this controller is `teleport
+ * <destination>`, over {@link TeleportControllerBase}.
+ *
  * ⭐⭐ **You must not need the Teleport Authority to teleport.** Moving
  * yourself around inside an extent you hold is *authorial authority* —
  * the same authority that lets you edit the place — and casting a
@@ -36,10 +40,8 @@
  * tooling.
  */
 
-import { CommandController } from '../../../../lib/command/CommandController';
-import type { CommandContext, CommandModel } from '../../../../api/command';
+import type { CommandContext } from '../../../../api/command';
 import { MqlApi } from '../../../../api/mql';
-import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
@@ -53,7 +55,7 @@ import type { CommandGiver } from '../../../../lib/command/CommandGiver';
 import type { AetherHosted } from '../../../../lib/augmentation/AetherHosted';
 import type { CredentialWallet } from '../../../../lib/credential/CredentialWallet';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { TravelNode } from '../../../../lib/travel/TravelNode';
+import { TeleportControllerBase, type TeleportModel } from './TeleportControllerBase';
 
 /** The working the anchored front door casts. One spell, two grammars. */
 const TELEPORT_SPELL = 'teleport';
@@ -67,15 +69,7 @@ interface AnchoredHit {
   anchor: Anchor | null;
 }
 
-interface TeleportModel extends CommandModel {
-  destination?: MqlOneResult;
-  /** Channel your OWN reserve into the node for this ride. */
-  channel?: boolean;
-  /** Put it on the node's meter — the explicit opposite of `--channel`. */
-  meter?: boolean;
-}
-
-export default class TeleportController extends CommandController<TeleportModel> {
+export default class TeleportController extends TeleportControllerBase {
   async execute(model: TeleportModel, context: CommandContext): Promise<void> {
     const giver: Stuff = context.commandGiver;
 
@@ -88,7 +82,7 @@ export default class TeleportController extends CommandController<TeleportModel>
 
     // 1 · Free movement inside an extent you hold AUTHORIAL AUTHORITY
     //     over (D11). Needs a named destination — a bare `teleport` is
-    //     always a request to read a board.
+    //     the board's shape (`TeleportBoardController`), never this one.
     if (model.destination?.stuff) {
       const from = context.location?.getTemplatePath() ?? null;
       const to = model.destination.stuff.getTemplatePath() ?? from;
@@ -97,42 +91,9 @@ export default class TeleportController extends CommandController<TeleportModel>
       }
     }
 
-    // 2/3 · A travel node standing here, found BY SHAPE. `teleport` is
-    //       not node-afforded, so this looks for what the actor can
-    //       reach rather than reading `commandSource`.
-    const node =
-      MqlApi.resolveMany('reachable', {
-        commandGiver: context.commandGiver,
-        scope: 'reachable',
-      })
-        .stuff.map((s) => asTravelNode(s))
-        .find((n) => n !== null) ?? null;
+    // 2/3 · A travel node standing here, found BY SHAPE.
+    const node = this.nodeHere(context);
     const raw = model.destination?.raw;
-
-    if (node && !raw) {
-      // ⭐ The board is a PUBLIC TIMETABLE and renders before any
-      // clearance read. Gating it behind a credential made the one verb
-      // that could show you the network refuse the people who most
-      // needed to see it.
-      if (!MixinApi.isSensor(giver)) {
-        return this.fail(context, "you can't read the board", 'cannot-read');
-      }
-      this.tell(context, await node.renderDepartures(giver));
-      // ⭐ Reading a public notice IS learning something. The board's
-      // stops land on the reader's map marked `publication`, so a place
-      // known only from a timetable is distinguishable from one they
-      // walked to — and can be wrong in its own way, when a station
-      // goes dark.
-      //
-      // ⚠ After the render and never before it: the board is a public
-      // timetable, and nothing about recording what somebody read may
-      // become a reason they could not read it.
-      const stops = await node.publishedStops?.();
-      if (stops && MixinApi.isPerceiver(giver)) {
-        giver.learnTimetable(stops);
-      }
-      return;
-    }
 
     if (node && raw) {
       const out = await node.ride(giver, {
@@ -492,28 +453,4 @@ export default class TeleportController extends CommandController<TeleportModel>
     const cred = holder?.getCredential("travel");
     return cred ? [...cred.getRegistered()] : [];
   }
-
-  private tell(context: CommandContext, text: string): void {
-    MessageApi.scene(context.commandGiver)
-      // `teleport`'s player-facing fork (the TPA ride + departures board) is a
-      // diegetic in-world action, not author tooling — same narration channel
-      // as the other movement commands.
-      .topic("act.deed")
-      .toSelf(Mml.fromMarkup(text))
-      .send();
-  }
-
-  private fail(
-    context: CommandContext,
-    detail: string,
-    reason: string = "unspecified",
-  ): void {
-    this.tell(context, `\n${detail}\n`);
-    context.note({ kind: "controller-rejected", reason, detail });
-  }
-}
-
-/** Narrow a Stuff to a travel node — the protocol mixin's predicate. */
-function asTravelNode(o: Stuff | null | undefined): (Stuff & TravelNode) | null {
-  return o && MixinApi.isTravelNode(o) ? o : null;
 }

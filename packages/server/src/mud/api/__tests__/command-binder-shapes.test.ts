@@ -80,3 +80,17 @@ describe('watch — horizon and off, and two shapes by `on`', () => {
     expect(landsOn(WATCH, 'watch shroud tv')).toBeNull();
   });
 });
+
+describe('course and teleport — the bare read is a shape of its own', () => {
+  const COURSE = ['movement/course.yaml', 'movement/course-steer.yaml'];
+  const TELEPORT = ['movement/teleport.yaml', 'movement/teleport-destination.yaml'];
+  it.each([
+    [COURSE, 'course', 'movement/course.yaml'],
+    [COURSE, 'course 070', 'movement/course-steer.yaml'],
+    [COURSE, 'course downstream slow --leaving-them', 'movement/course-steer.yaml'],
+    [TELEPORT, 'teleport', 'movement/teleport.yaml'],
+    [TELEPORT, 'teleport hinkley --channel', 'movement/teleport-destination.yaml'],
+  ])('%#: %s → %s', (files, line, file) => {
+    expect(landsOn(files as string[], line as string)).toBe(file);
+  });
+});

@@ -1,6 +1,8 @@
 # `course` — read the plot, or lay a course and get under way.
 #
-# ⭐ Zero-arg reads, an arg sets (the `cockpit <mode>` shape). A course is
+# ⭐ Zero-arg reads, an arg sets — two SHAPES, each its own view and
+# controller (controller-liquidity W7a): this view is the bare read
+# (`CourseReadoutController`), `course-steer.yaml` lays one. A course is
 # a heading, not a destination: you sail until you stop, and a course for
 # a node is a bearing worked from where you THINK you are.
 #
@@ -8,8 +10,8 @@
 # verb). Afforded by a `Helm`.
 verbs: [course]
 category: movement
-controller: /platform/idea/cmd/movement/CourseController
-description: "Read your course and reckoning, or lay a course"
+controller: /platform/idea/cmd/movement/CourseReadoutController
+description: "Read your course and reckoning"
 help: |
   `course` tells you your course and where you are BY RECKONING — the
   last fix carried along the courses you steered — with how uncertain
@@ -37,11 +39,9 @@ help: |
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
-args:
-  - name: heading
-    type: string
-    required: false
-    greedy: true
+# ⚠ Declared here too, though the read ignores it: an option a view does
+# not declare is a BIND error, which ends the line before the steer's
+# shape (`course-steer.yaml`) is tried.
 options:
   leaving-them:
     type: boolean

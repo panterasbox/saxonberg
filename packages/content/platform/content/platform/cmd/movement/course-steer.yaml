@@ -1,0 +1,35 @@
+# `course <heading>` — lay a course and get under way. The bare read is
+# `course.yaml`'s; a heading is what makes it this shape (W7a).
+verbs: [course]
+category: movement
+controller: /platform/idea/cmd/movement/CourseController
+description: "Lay a course and get under way"
+help: |
+  `course 070` lays a course by bearing (degrees true) and gets under
+  way. `course <place>` lays one for a place you know on this water — a
+  bearing worked from your reckoning, so a stale reckoning misses. On a
+  river: `course upstream`, `course downstream`, `course <landing>`, or
+  `course bar` to go out to sea; add `slow` to run at a crawl. ⭐ One of
+  two shapes of `course`: bare `course` reads your course and reckoning.
+
+  While anybody who went over her side is still in the water, `course`
+  refuses: get them aboard first. `--leaving-them` sails anyway, and the
+  record says who you left.
+examples:
+  - cmd: course 070
+    note: Lay a course by bearing and get under way
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  # Prose-like: a landing's name or `downstream slow` (greedy stays on a
+  # string, D3).
+  - name: heading
+    type: string
+    required: true
+    greedy: true
+options:
+  leaving-them:
+    type: boolean
+    field: leavingThem
+    description: "Sail with your own people still in the water, on purpose — it is recorded"

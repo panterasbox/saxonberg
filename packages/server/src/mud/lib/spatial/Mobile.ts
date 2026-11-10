@@ -273,6 +273,8 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         // travel node. A node adds the ride and the board; it does not
         // grant the verb.
         'platform/cmd/movement/teleport.yaml',
+        // The board read and the hop are two shapes of `teleport` (W7a).
+        'platform/cmd/movement/teleport-destination.yaml',
       ],
       peers: [],
       environment: [],
