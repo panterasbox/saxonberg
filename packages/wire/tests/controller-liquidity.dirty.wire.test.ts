@@ -32,7 +32,10 @@
  * and says so in its commit — the record proves nothing ELSE moved.
  */
 
+import { spawnSync } from 'child_process';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { join } from 'path';
+import { fileURLToPath } from 'url';
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
 import {
   Session,
@@ -44,7 +47,9 @@ import {
   worldClockNow,
   pinWeather,
   unpinWeather,
+  isOwnedTestWorld,
 } from '../src/harness';
+import { bootOwnedWorld, WIRE_PORT } from '../src/runner/boot';
 import type { CommandResult } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -387,7 +392,7 @@ const ACTS: Act[] = [
     key: 'mill',
     at: P.millHouse,
     hand: [['wheat', '/trade/farming/thing/crop/wheat', undefined, true]],
-    cmd: (id) => `mill #${id.wheat} 0.72`,
+    cmd: (id) => `mill #${id.wheat} 0.72 at stones`,
     awaitMine: '/trade/milling/thing/flour-sack',
   },
   { key: 'saw', at: P.sawmill, hand: [['bole', '/trade/forestry/thing/bole', undefined, true]], cmd: (id) => `saw #${id.bole}` },
@@ -452,7 +457,7 @@ const ACTS: Act[] = [
     key: 'feed',
     at: P.homeField,
     hand: [['sack', '/stuff/thing/vessel/compost-sack']],
-    cmd: (id) => `feed wheat at the far side with #${id.sack}`,
+    cmd: (id) => `feed wheat at the "far side" with #${id.sack}`,
   },
   { key: 'sample', at: P.face, cmd: () => 'sample the "north face"' },
   { key: 'survey', at: P.drift, cmd: () => 'survey' },
@@ -585,44 +590,617 @@ afterAll(async () => {
   await unpinWeather(SQUARE).catch(() => undefined);
 });
 
-suite('the before-record: one act per controller whose logic moves', () => {
+/** Run one recorded act from a fresh stager: its answer and its run-stable state. */
+async function runAct(
+  a: Act,
+  handle = `cliq-${a.key.split('.')[0]!.replace(/\W/g, '')}`,
+): Promise<{ r: CommandResult; state: Record<string, unknown>; said: string }> {
+  const s = await stager(uniqueHandle(handle), a.at, a.session);
+  const extent = extentOf(a.at);
+  const id: Record<string, string> = {};
+  for (const [name, template, data, drop] of a.hand ?? []) {
+    id[name] = await hand(s, template, data);
+    if (drop) {
+      const d = await s.cmd(`drop #${id[name]}`);
+      expect(d.status, `staging: drop ${name}`).toBe('ok');
+    }
+  }
+  await s.drainProse();
+  if (a.stage) await a.stage(s, id);
+  const before = await ev<string[]>(s, hereIds, extent);
+  const r = await act(s, a.cmd(id));
+  const said = await r.said();
+  const completion = a.noFinish ? null : await finish(s, r);
+  if (a.awaitMine) {
+    for (let i = 0; i < 30; i++) {
+      const mine = await ev<string[]>(s, newMineKinds(before), extent);
+      if (mine.includes(a.awaitMine)) break;
+      await new Promise((d) => setTimeout(d, 5_000));
+    }
+  }
+  const state: Record<string, unknown> = {
+    handed: Object.keys(id).length ? await ev(s, whereAll(id), extent) : {},
+    held: await ev(s, heldKinds, extent),
+    newMine: await ev(s, newMineKinds(before), extent),
+    completion,
+    ...(a.read ? await a.read(s, id) : {}),
+  };
+  s.close();
+  open.splice(open.indexOf(s), 1);
+  return { r, state, said };
+}
+
+const actNamed = (key: string): Act => {
+  const a = ACTS.find((x) => x.key === key);
+  if (!a) throw new Error(`no act row '${key}'`);
+  return a;
+};
+
+/* ───────────── step 13: before and after (the record) ───────────── */
+
+suite('13. before and after: every act whose logic moved matches the before-record', () => {
   afterAll(parkAll);
   // `CLIQ_ONLY=a,b` runs (and records) only those rows — the record is merged per key.
   const only = (process.env.CLIQ_ONLY ?? '').split(',').filter(Boolean);
   for (const a of ACTS.filter((x) => only.length === 0 || only.includes(x.key))) {
     it(a.key, async () => {
-      const s = await stager(uniqueHandle(`cliq-${a.key.split('.')[0]!.replace(/\W/g, '')}`), a.at, a.session);
-      const extent = extentOf(a.at);
-      const id: Record<string, string> = {};
-      for (const [name, template, data, drop] of a.hand ?? []) {
-        id[name] = await hand(s, template, data);
-        if (drop) {
-          const d = await s.cmd(`drop #${id[name]}`);
-          expect(d.status, `staging: drop ${name}`).toBe('ok');
-        }
-      }
-      await s.drainProse();
-      if (a.stage) await a.stage(s, id);
-      const before = await ev<string[]>(s, hereIds, extent);
-      const r = await act(s, a.cmd(id));
-      const completion = a.noFinish ? null : await finish(s, r);
-      if (a.awaitMine) {
-        for (let i = 0; i < 30; i++) {
-          const mine = await ev<string[]>(s, newMineKinds(before), extent);
-          if (mine.includes(a.awaitMine)) break;
-          await new Promise((d) => setTimeout(d, 5_000));
-        }
-      }
-      const state: Record<string, unknown> = {
-        handed: Object.keys(id).length ? await ev(s, whereAll(id), extent) : {},
-        held: await ev(s, heldKinds, extent),
-        newMine: await ev(s, newMineKinds(before), extent),
-        completion,
-        ...(a.read ? await a.read(s, id) : {}),
-      };
+      const { r, state } = await runAct(a);
       check(a.key, r, state);
-      s.close();
-      open.splice(open.indexOf(s), 1);
     }, 300_000);
   }
+});
+
+/* ───────────────────────── the drive (plan W15) ───────────────────────── */
+
+const reasonOf = (r: CommandResult): string | undefined =>
+  (r.notes.find((n) => typeof (n as { reason?: unknown }).reason === 'string') as { reason?: string } | undefined)
+    ?.reason;
+const notesOf = (r: CommandResult): string => JSON.stringify(r.notes);
+const detailsOf = (r: CommandResult): string =>
+  r.notes.map((n) => String((n as { detail?: unknown }).detail ?? '')).join(' | ');
+
+/** A fresh player (no wizard, no seat), stood somewhere. */
+async function player(handle: string, where: string): Promise<Session> {
+  const s = await Session.open(uniqueHandle(handle), { startLocation: where });
+  open.push(s);
+  await s.drainProse();
+  await nourish(s);
+  return s;
+}
+
+/** The first option of whatever is asked: a choice's first response, an object prompt's first match, else yes. */
+function firstAnswer(p: unknown): unknown {
+  const frame = p as { payload?: { outcome?: { notes?: unknown[] } }; outcome?: { notes?: unknown[] } };
+  const notes = (frame.outcome?.notes ?? frame.payload?.outcome?.notes ?? []) as {
+    kind?: string;
+    choices?: { response?: string }[];
+    matches?: { stuffId?: string }[];
+  }[];
+  const n = notes.find((x) => x.kind?.startsWith('prompt-'));
+  if (n?.kind === 'prompt-choice') return n.choices?.[0]?.response ?? '';
+  if (n?.kind === 'prompt-mql-object') return n.matches?.[0]?.stuffId ?? '';
+  return 'yes';
+}
+
+/** The money a person holds, summed over their accounts (rawValue, in minor units). */
+const moneyOf = `(await BankingApi.accountIdsOf(self.getIdentityPath())).map(a => BankingApi.balanceOf(a).minor).reduce((x, y) => x + y, 0)`;
+
+/** Open an account and have the Governor put `amount` in it (by the name the bank knows). */
+async function fund(handle: string, amount: number): Promise<void> {
+  const hall = await Session.open(handle, { startLocation: BANK_HALL });
+  try {
+    await hall.drainProse();
+    await act(hall, 'bank open');
+    // ⚠ The Governor finds the account's holder ONLINE (river-c's funding
+    // keeps them in the hall while the override runs).
+    const gov = await Session.open('founder', { startLocation: BANK_HALL });
+    try {
+      await gov.drainProse();
+      const r = await gov.cmd(`reserve override ${amount} to ${handle} "wire: controller-liquidity drive"`);
+      expect(r.status, `funding ${handle}: ${await r.said()}`).toBe('ok');
+    } finally {
+      gov.close();
+    }
+  } finally {
+    hall.close();
+  }
+}
+
+const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
+const STORE = '/world/terminus/general-store/shop-floor';
+const PUT_IN = '/world/terminus/rejection/put-in/landing';
+const REALTY = '/world/terminus/realty/office';
+const PILOT_BANK = '/world/terminus/wharfside/bank';
+
+/* ───────────── steps 1–2: a replaced controller (the CMS method of !527 step 16) ───────────── */
+
+suite('1–2. a wizard re-points a view: the same world in other words, and a controller that asks', () => {
+  afterAll(parkAll);
+  const VIEWS: Record<string, string> = {
+    harvest: '/platform/cmd/inventory/harvest',
+    order: '/platform/cmd/retail/order',
+    smelt: '/trade/smelting/cmd/smelting/smelt',
+    butcher: '/trade/cooking/cmd/crafting/butcher',
+  };
+  const SHIPPED: Record<string, string> = {
+    harvest: '/platform/idea/cmd/inventory/HarvestController',
+    order: '/platform/idea/cmd/retail/OrderController',
+    smelt: '/trade/smelting/idea/cmd/smelting/SmeltController',
+    butcher: '/trade/cooking/idea/cmd/crafting/ButcherController',
+  };
+  const WORDED: Record<string, string> = {
+    harvest: '/platform/idea/cmd/inventory/HarvestWordedController',
+    order: '/platform/idea/cmd/retail/OrderWordedController',
+    smelt: '/trade/smelting/idea/cmd/smelting/SmeltWordedController',
+    butcher: '/trade/cooking/idea/cmd/crafting/ButcherWordedController',
+  };
+  /** What the replacement says, which the shipped controller never does. */
+  const WORDS: Record<string, RegExp> = {
+    harvest: /The harvest comes in|will not go that way|You set to/,
+    order: /The order will not go that way|Your order is done/,
+    smelt: /The smelt will not go that way \(no-fuel\)/,
+    butcher: /comes apart into \d+ piece/,
+  };
+  let gov: Session;
+  const titles: { extent: string; owner: string }[] = [];
+
+  /** Re-point a view's controller through the CMS REST surface, as its titleholder. */
+  const install = async (view: string, controller: string): Promise<void> => {
+    const headers = { cookie: gov.cookie };
+    const base = process.env.WIRE_SERVER_URL!;
+    const { token } = (await (await fetch(`${base}/api/cms/csrf`, { headers })).json()) as { token: string };
+    const read = (await (
+      await fetch(`${base}/api/cms/read?backend=document&path=${encodeURIComponent(view)}`, { headers })
+    ).json()) as { content?: string; body?: string };
+    const data = JSON.parse(read.content ?? read.body ?? '') as Record<string, unknown>;
+    const res = await fetch(`${base}/api/cms/write`, {
+      method: 'POST',
+      headers: { ...headers, 'content-type': 'application/json', 'X-CMS-CSRF': token },
+      body: JSON.stringify({ backend: 'document', path: view, body: JSON.stringify({ ...data, controller }) }),
+    });
+    expect(res.status, `the CMS took ${view}: ${await res.clone().text()}`).toBe(200);
+  };
+
+  beforeAll(async () => {
+    const clerk = await stager(uniqueHandle('cliq-clerk'), SQUARE);
+    for (const view of Object.values(VIEWS)) {
+      const t = await ev<{ extent: string; owner: string }>(
+        clerk,
+        `((p) => ({ extent: p.getExtent(), owner: JSON.stringify(p.getOwner()) }))(ParcelApi.coveringParcelOfSync('${view}'))`,
+      );
+      if (!titles.some((x) => x.extent === t.extent)) titles.push(t);
+    }
+    gov = await Session.open(uniqueHandle('cliq-keeper'), {
+      startLocation: SQUARE,
+      wizard: true,
+      committees: [TERMINUS, LOUNGE],
+      parcels: titles.map((t) => t.extent),
+    });
+    open.push(gov);
+    await gov.drainProse();
+  }, 300_000);
+
+  afterAll(async () => {
+    for (const k of Object.keys(VIEWS)) await install(VIEWS[k]!, SHIPPED[k]!);
+    for (const t of titles) await ev(gov, `(await ParcelApi.transfer('${t.extent}', ${t.owner}), true)`, t.extent);
+  });
+
+  for (const key of ['harvest', 'smelt', 'order', 'butcher']) {
+    it(`1. ${key}: a worded replacement ends in the before-record's world, duration and reasons`, async () => {
+      await install(VIEWS[key]!, WORDED[key]!);
+      try {
+        const { r, state, said } = await runAct(actNamed(key), `cliq-l-${key}`);
+        expect({ ...shape(r), state }, `'${key}' under ${WORDED[key]} (${said})`).toEqual(baseline.acts[key]);
+        expect(said, 'and the words are the replacement\'s').toMatch(WORDS[key]!);
+      } finally {
+        await install(VIEWS[key]!, SHIPPED[key]!);
+      }
+    }, 300_000);
+  }
+
+  it('2. a divided field: the shipped controller refuses with the list; the asking one asks; the world is the same', async () => {
+    const shipped = await stager(uniqueHandle('cliq-reap-a'), P.upperBench);
+    const refused = await act(shipped, 'harvest wheat');
+    expect(reasonOf(refused), notesOf(refused)).toBe('part-unnamed');
+    expect(await refused.said(), 'the list').toMatch(/top end/i);
+    expect(await refused.said(), 'the list').toMatch(/lane end/i);
+    const named = await act(shipped, 'harvest wheat --at "top end"');
+    const namedShape = shape(named);
+    await park(shipped);
+
+    await install(VIEWS.harvest!, '/platform/idea/cmd/inventory/HarvestAskingController');
+    try {
+      const asker = await stager(uniqueHandle('cliq-reap-b'), P.upperBench);
+      let asked: unknown = null;
+      const picked = await act(asker, 'harvest wheat', (p) => {
+        asked = p;
+        return firstAnswer(p);
+      });
+      expect(asked, 'the asking controller put the fields to the player').not.toBeNull();
+      expect(JSON.stringify(asked)).toMatch(/top end/i);
+      expect(shape(picked), 'answering the prompt is naming the field').toEqual(namedShape);
+      await park(asker);
+    } finally {
+      await install(VIEWS.harvest!, SHIPPED.harvest!);
+    }
+  }, 300_000);
+});
+
+/** Close a session and drop it from the open list. */
+async function park(s: Session): Promise<void> {
+  s.close();
+  const i = open.indexOf(s);
+  if (i >= 0) open.splice(i, 1);
+}
+
+/* ───────────── step 3: the protection test ───────────── */
+
+/**
+ * ⭐ (build, W15) The bare controller is the SHIPPED one: after W3 the seven
+ * controllers carry no check (`lint:controller-gates` names none of them), so
+ * a replacement that "only calls the object" calls exactly what they call.
+ * Each act is driven as a player the object must refuse.
+ */
+suite('3. each protected act refuses another player, with nothing but the object to stop it', () => {
+  afterAll(parkAll);
+  it('3a. renaming another player\'s chat channel', async () => {
+    const owner = await player('cliq-chan-a', SQUARE);
+    const other = await player('cliq-chan-b', SQUARE);
+    const name = `cliq${Date.now().toString(36)}`;
+    expect((await owner.cmd(`chat make ${name}`)).status).toBe('ok');
+    expect((await other.cmd(`chat join ${name}`)).status).toBe('ok');
+    const r = await other.cmd(`chat rename ${name} ${name}x`);
+    expect(r.status, notesOf(r)).not.toBe('ok');
+    expect(reasonOf(r), notesOf(r)).toMatch(/owner|not-/);
+  }, 120_000);
+
+  it('3b. `errors raw` without the right', async () => {
+    const p = await player('cliq-errs', SQUARE);
+    const r = await p.cmd('errors raw');
+    expect(reasonOf(r), notesOf(r)).toBe('pm-only');
+  }, 60_000);
+
+  it('3c. a Tier C setting, even by the Prime Minister', async () => {
+    const pm = await Session.open('founder', { startLocation: SQUARE });
+    open.push(pm);
+    await pm.drainProse();
+    const r = await pm.cmd('config banking.salesTaxRate 0.5');
+    expect(reasonOf(r), notesOf(r)).toBe('tier-c');
+  }, 60_000);
+
+  it('3d. a wiki page\'s hidden revision', async () => {
+    const author = await Session.open('founder', { startLocation: SQUARE });
+    open.push(author);
+    await author.drainProse();
+    const page = `cliqwiki${Date.now().toString(36)}`;
+    const body = `Open words. <spoiler level="3">CLIQSECRET</spoiler> More open words.`;
+    const made = await act(author, `wiki create ${page} --title "Cliq ${page}"`, () => body);
+    expect(made.status, `${notesOf(made)} ${await made.said()}`).toBe('ok');
+    const own = await author.prose(`wiki read ${page}`);
+    expect(own, 'the author, at level 3, reads the line').toContain('CLIQSECRET');
+    const reader = await player('cliq-wiki', SQUARE);
+    for (const line of [`wiki diff ${page}`, `wiki history ${page}`, `wiki read ${page}`]) {
+      const said = await reader.prose(line);
+      expect(said, `${line}: a player reads past nothing`).not.toContain('CLIQSECRET');
+    }
+  }, 120_000);
+
+  it('3e. hiring past the criteria', async () => {
+    // The general store's hand wants two settled gigs; a newcomer has none.
+    const p = await player('cliq-hire', STORE);
+    const r = await act(p, 'job apply hand');
+    expect(r.status, notesOf(r)).not.toBe('ok');
+    expect(await r.said(), 'the refusal names the number short').toMatch(/gig/i);
+  }, 120_000);
+
+  it('3f. locking a way you hold no key to', async () => {
+    const p = await player('cliq-lock', P.harborOffice);
+    const r = await p.cmd('lock north');
+    expect(r.status, notesOf(r)).not.toBe('ok');
+  }, 60_000);
+
+  it('3g. posting to a board outside its audience', async () => {
+    const owner = await player('cliq-board-a', SQUARE);
+    const other = await player('cliq-board-b', SQUARE);
+    const name = `cliqb${Date.now().toString(36)}`;
+    expect((await owner.cmd(`forum make ${name}`)).status).toBe('ok');
+    const r = await other.cmd(`forum post ${name} hello from outside`);
+    expect(r.status, notesOf(r)).not.toBe('ok');
+    expect(reasonOf(r), notesOf(r)).toMatch(/member|audience|not-/);
+  }, 120_000);
+});
+
+/* ───────────── steps 4–9: reach, here, quoting, values, the new forms ───────────── */
+
+suite('4–9. the player-facing forms', () => {
+  afterAll(parkAll);
+
+  it('4. `eat orange` finds it in the open bag you carry; a shut chest says so; `--top` has none; `me:I:` finds it anywhere', async () => {
+    const s = await stager(uniqueHandle('cliq-eat'), SQUARE);
+    const bag = await hand(s, '/trade/papermaking/thing/bag');
+    const orange = await hand(s, '/trade/farming/thing/orange');
+    expect((await s.cmd(`put #${orange} in #${bag}`)).status).toBe('ok');
+    const top = await s.cmd('eat orange --top');
+    expect(top.status, `--top reaches only what is at hand: ${notesOf(top)}`).not.toBe('ok');
+    const look = await s.cmd('look me:I:orange');
+    expect(look.status, notesOf(look)).toBe('ok');
+    const ate = await act(s, 'eat orange');
+    expect(ate.status, `in the open bag: ${notesOf(ate)}`).toBe('ok');
+    const chest = await hand(s, '/world/terminus/hesper/thing/sea-chest', undefined);
+    expect((await s.cmd(`drop #${chest}`)).status).toBe('ok');
+    const second = await hand(s, '/trade/farming/thing/orange');
+    expect((await s.cmd(`put #${second} in #${chest}`)).status).toBe('ok');
+    expect((await s.cmd(`close #${chest}`)).status).toBe('ok');
+    const shut = await s.cmd('eat orange');
+    expect(
+      shut.notes.some((n) => (n as { validator?: string }).validator === 'reach:enclosed-shut'),
+      `the chest is shut, said by the reach: ${notesOf(shut)}`,
+    ).toBe(true);
+    expect(await shut.said()).toMatch(/shut/i);
+    const anywhere = await s.cmd('look here:I:orange');
+    expect(anywhere.status, `MQL addresses through the lid: ${notesOf(anywhere)}`).toBe('ok');
+  }, 180_000);
+
+  it('5. in a boat on the river, `look here` is the river and `look me:e` is the boat', async () => {
+    const s = await stager(uniqueHandle('cliq-boat'), PUT_IN);
+    const into = await s.cmd('go canoe');
+    expect(into.status, await into.said()).toBe('ok');
+    const launched = await s.cmd('launch');
+    expect(launched.status, await launched.said()).toBe('ok');
+    await s.drainProse();
+    const here = await s.prose('look here');
+    const boat = await s.prose('look me:e');
+    expect(here, 'the place').toMatch(/water|river|current|bank/i);
+    expect(boat, 'the boat').toMatch(/canoe/i);
+    expect(here).not.toEqual(boat);
+  }, 180_000);
+
+  it('6. `buy "padded gambeson"` buys it; unquoted it is refused with the hint; `say` takes a sentence', async () => {
+    const handle = uniqueHandle('cliq-buyer');
+    await fund(handle, 500);
+    const s = await Session.open(handle, { startLocation: STORE });
+    open.push(s);
+    await s.drainProse();
+    const bare = await s.cmd('buy padded gambeson');
+    expect(reasonOf(bare), notesOf(bare)).toBe('bind-failed');
+    expect(detailsOf(bare), 'the hint names the quoting').toMatch(/"padded gambeson"|quote/i);
+    const quoted = await act(s, 'buy "padded gambeson"');
+    expect(quoted.status, `${notesOf(quoted)} ${await quoted.said()}`).toBe('ok');
+    expect(await s.prose('inventory')).toMatch(/gambeson/i);
+    const said = await s.cmd('say the gambeson fits like a dream');
+    expect(said.status).toBe('ok');
+    expect(await said.said()).toMatch(/the gambeson fits like a dream/i);
+  }, 180_000);
+
+  it('7. a bad `values:` word is refused with the list; a duration is taken in its written forms', async () => {
+    const s = await stager(uniqueHandle('cliq-values'), P.smithy);
+    const bad = await s.cmd('draught forge medium');
+    expect(bad.status).not.toBe('ok');
+    expect(detailsOf(bad), notesOf(bad)).toMatch(/wide.*half.*low.*banked/);
+    const notDuration = await s.cmd('press publish cliq --expires 10');
+    expect(detailsOf(notDuration), notesOf(notDuration)).toMatch(/is not a duration/);
+    for (const d of ['90m', '2 hours']) {
+      const ok = await s.cmd(`press publish cliq --expires ${d}`);
+      expect(detailsOf(ok), `${d} is a duration: ${notesOf(ok)}`).not.toMatch(/is not a duration/);
+    }
+  }, 120_000);
+
+  it('8. the three representatives answer in their new forms, and `help` lists them', async () => {
+    const s = await stager(uniqueHandle('cliq-forms'), P.smithy);
+    expect((await s.cmd('notify set friends --login show')).status).toBe('ok');
+    const show = await s.cmd('notify show friends');
+    expect(show.status, notesOf(show)).toBe('ok');
+    expect((await s.cmd('notify move friends --above contacts')).status).not.toBe('error');
+    expect(await s.prose('help notify')).toMatch(/notify set[\s\S]*notify move/);
+    await s.cmd('light forge');
+    const low = await s.cmd('draught forge low');
+    expect(low.notes.every((n) => n.kind !== 'command-rejected'), `draught <fire> <setting> routes: ${notesOf(low)}`).toBe(true);
+    expect(await s.prose('help draught')).toMatch(/draught (<|&lt;)fire(>|&gt;)|draught forge wide/);
+    // The two shapes of `dry`, where a rack stands (it affords the hang).
+    const k = await stager(uniqueHandle('cliq-forms-dry'), P.cookhouse);
+    const wet = await hand(k, '/stuff/thing/gear/towel');
+    const towel = await hand(k, '/stuff/thing/gear/towel');
+    const rub = await k.cmd(`dry #${wet} with #${towel}`);
+    const hang = await k.cmd(`dry #${wet} on rack`);
+    const routed = (r: CommandResult): boolean => r.notes.every((n) => n.kind !== 'command-rejected');
+    expect(routed(rub), `dry … with routes to the rub: ${notesOf(rub)}`).toBe(true);
+    expect(routed(hang), `dry … on routes to the hang: ${notesOf(hang)}`).toBe(true);
+    // (The wire's plain text keeps the markup's entity escapes.)
+    expect(await s.prose('help dry')).toMatch(/dry (<|&lt;)target(>|&gt;) with (<|&lt;)cloth(>|&gt;)/);
+  }, 180_000);
+
+  it('9. `cockpit layout save list` then `cockpit layout recall list` round-trips', async () => {
+    const s = await player('cliq-cockpit', SQUARE);
+    const saved = await s.cmd('cockpit layout save list');
+    expect(saved.status, notesOf(saved)).toBe('ok');
+    const recalled = await s.cmd('cockpit layout recall list');
+    expect(recalled.status, notesOf(recalled)).toBe('ok');
+    const listed = await s.cmd('cockpit layout list');
+    expect(await listed.said()).toMatch(/\blist\b/);
+  }, 60_000);
+});
+
+/* ───────────── steps 10–12: the confirmed defects ───────────── */
+
+suite('10–12. the defects, driven', () => {
+  afterAll(parkAll);
+
+  it('10a. a transfusion narrates, credits and records', async () => {
+    const s = await stager(uniqueHandle('cliq-transfuse'), P.ward);
+    await hand(s, '/trade/medicine/thing/syringe');
+    const bag = await hand(s, '/trade/medicine/thing/saline-bag');
+    const r = await act(s, `transfuse me from #${bag}`);
+    expect(r.notes.some((n) => n.kind === 'engagement-started'), `the line went in: ${notesOf(r)} ${await r.said()}`).toBe(true);
+    const done = await finish(s, r);
+    expect(done, 'and the completion ran to its end').toEqual(['engagement-completed']);
+  }, 300_000);
+
+  it('10b. a `search` finishes and records what it searched', async () => {
+    const s = await stager(uniqueHandle('cliq-search'), SQUARE);
+    const r = await act(s, 'search');
+    const done = await finish(s, r);
+    expect(done, notesOf(r)).not.toEqual(['did-not-finish']);
+  }, 300_000);
+
+  it('10c. a teleport in an extent you hold arrives', async () => {
+    const s = await stager(uniqueHandle('cliq-hop'), SQUARE);
+    const r = await act(s, 'teleport /world/terminus/market/bakery');
+    await finish(s, r);
+    const at = await ev<string>(s, `self.getContainer().getTemplatePath()`);
+    expect(at, notesOf(r)).toBe('/world/terminus/market/bakery');
+  }, 300_000);
+
+  it('11a. a refused land purchase leaves the buyer\'s money untouched', async () => {
+    const handle = uniqueHandle('cliq-lander');
+    await fund(handle, 300);
+    const s = await Session.open(handle, { startLocation: REALTY, wizard: true, committees: [TERMINUS, LOUNGE] });
+    open.push(s);
+    await s.drainProse();
+    const before = await ev<number>(s, moneyOf);
+    const r = await act(s, 'title buy nosuchlot');
+    expect(r.status, notesOf(r)).not.toBe('ok');
+    expect(await ev<number>(s, moneyOf), 'not a coin moved').toBe(before);
+  }, 180_000);
+
+  it('11b. a pilot is paid before she tells: with no coin, nothing is told', async () => {
+    // C27 — the fee used to be taken AFTER the claims were written, so a
+    // refused fee had already told. (The paid path is maritime-space's step 21.)
+    const poor = await stager(uniqueHandle('cliq-pilot-poor'), PILOT_BANK);
+    const before = await poor.prose('map greywater');
+    const unpaid = await act(poor, 'pilot');
+    expect(reasonOf(unpaid), notesOf(unpaid)).toBe('cannot-pay');
+    expect(await poor.prose('map greywater'), 'told nothing').toEqual(before);
+  }, 240_000);
+
+  it('12a + 12b. introducing a player: they know you; a gift of land: the receiver owns it', async () => {
+    const giverHandle = uniqueHandle('cliq-gift-a');
+    await fund(giverHandle, 20_000);
+    const giver = await Session.open(giverHandle, { startLocation: REALTY, wizard: true, committees: [TERMINUS, LOUNGE] });
+    open.push(giver);
+    await giver.drainProse();
+    const receiver = await player('cliq-gift-b', REALTY);
+    const nameOf = async (x: Session): Promise<string> =>
+      String(((await x.query('me', { fields: ['displayName'] }))[0] as { displayName?: unknown } | undefined)?.displayName ?? '');
+    // 12a — the introduction: after it the receiver sees the giver by name.
+    const name = await nameOf(giver);
+    expect(name, 'the giver has a name').toBeTruthy();
+    expect((await giver.cmd('introduce')).status).toBe('ok');
+    await receiver.drainProse();
+    expect(await receiver.prose('look'), 'the receiver knows the giver by name').toContain(name);
+    // 12b — buy a lot, give it away.
+    const book = await giver.prose('title list');
+    let lot = '';
+    for (const line of book.split('\n')) {
+      const m = /^\s*([a-z][a-z-]*-\d+)\s+—\s+(.*)$/.exec(line);
+      if (m && !/sold|held|owned/i.test(m[2]!)) {
+        lot = m[1]!;
+        break;
+      }
+    }
+    expect(lot, `a lot for sale: ${book.slice(0, 400)}`).toBeTruthy();
+    const bought = await act(giver, `title buy ${lot}`);
+    expect(bought.status, `${notesOf(bought)} ${await bought.said()}`).toBe('ok');
+    const extent = (await ev<string[]>(giver, `(await AccessApi.heldExtents(self)).filter(e => e.includes('${lot}'))`))[0];
+    expect(extent, 'the bought lot is a held extent').toBeTruthy();
+    const rName = await nameOf(receiver);
+    expect((await receiver.cmd('introduce')).status).toBe('ok');
+    await giver.drainProse();
+    // ⭐ A title pushed onto a person needs their yes: the receiver answers.
+    const giving = giver.cmd(`title transfer ${extent} to "${rName}"`);
+    const ask = await receiver.awaitPrompt(30_000);
+    const askId = (ask as { promptId?: string; payload?: { promptId?: string } }).promptId ?? (ask as { payload?: { promptId?: string } }).payload?.promptId;
+    expect(askId, 'the receiver is asked').toBeTruthy();
+    receiver.answerPrompt(askId!, 'yes');
+    const gave = await giving;
+    expect(gave.status, `${notesOf(gave)} ${await gave.said()}`).toBe('ok');
+    const owner = await ev<{ kind?: string; templatePath?: string }>(
+      giver,
+      `ParcelApi.coveringParcelOfSync(${JSON.stringify(extent)}).getOwner()`,
+    );
+    expect(owner.kind).toBe('player');
+    expect(owner.templatePath, 'a person, by identity').toMatch(/^\/platform\/agent\/Avatar\/.+/);
+    expect(owner.templatePath, 'not the giver').not.toBe(await ev<string>(giver, 'self.getIdentityPath()'));
+  }, 300_000);
+});
+
+/* ───────────── step 14: a restart mid-act, LAST ───────────── */
+
+/**
+ * A real restart, as !527 steps 17–18 do: an act in progress (a smelt run,
+ * a mill grind) survives it and completes, and the world reads back the
+ * same. Only in a world this run owns.
+ */
+suite.skipIf(!isOwnedTestWorld())('14. a restart mid-act', () => {
+  afterAll(parkAll);
+  const smelter = uniqueHandle('cliq-r-smelt');
+  const miller = uniqueHandle('cliq-r-mill');
+  const opts = { wizard: true, committees: [TERMINUS, LOUNGE] };
+  /** What the furnace here holds, by kind, and whether it is still running. */
+  const inFurnace = `((f) => f ? f.getContents().map(c => c.getTemplatePath()).sort() : null)(self.getContainer().getContents().find(c => /\\/furnace$/.test(c.getTemplatePath() ?? '')))`;
+  let smeltBefore: string[] = [];
+
+  it('14a. start a grind and a smelt run', async () => {
+    const m = await Session.open(miller, { startLocation: P.millHouse, ...opts });
+    open.push(m);
+    await m.drainProse();
+    await nourish(m);
+    const wheat = await hand(m, '/trade/farming/thing/crop/wheat');
+    expect((await m.cmd(`drop #${wheat}`)).status).toBe('ok');
+    const g = await m.cmd(`mill #${wheat} 0.72 at stones`);
+    expect(g.status, `${notesOf(g)} ${await g.said()}`).toBe('ok');
+
+    const s = await Session.open(smelter, { startLocation: P.smelter, ...opts });
+    open.push(s);
+    await s.drainProse();
+    await nourish(s);
+    for (let i = 0; i < 2; i++) {
+      const id = await hand(s, '/world/terminus/rejection/thing/copper-ore', { grade: 0.24 });
+      expect((await s.cmd(`put #${id} in furnace`)).status).toBe('ok');
+    }
+    for (let i = 0; i < 3; i++) {
+      const id = await hand(s, '/trade/fuel/thing/charcoal');
+      expect((await s.cmd(`put #${id} in furnace`)).status).toBe('ok');
+    }
+    // The fire's own fuel, stoked, and lit — then the charge is worked.
+    const kindling = await hand(s, '/trade/fuel/thing/charcoal');
+    await s.cmd(`stoke #${kindling} into furnace`);
+    const lit = await s.cmd('light furnace');
+    expect(lit.status, `the furnace lights: ${notesOf(lit)} ${await lit.said()}`).toBe('ok');
+    const r = await s.cmd('smelt');
+    expect(r.notes.some((n) => n.kind === 'engagement-started'), `the run began: ${notesOf(r)} ${await r.said()}`).toBe(true);
+    smeltBefore = await ev<string[]>(s, inFurnace);
+  }, 300_000);
+
+  it('14b. restart: both complete, and the world reads back', async () => {
+    for (const s of [...open]) await park(s);
+    await new Promise((r) => setTimeout(r, 8_000)); // let the logout saves land
+    const serverDir = fileURLToPath(new URL('../../server', import.meta.url));
+    spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
+      cwd: serverDir,
+      stdio: 'ignore',
+    });
+    process.env.WIRE_SERVER_URL = await bootOwnedWorld();
+
+    const s = await Session.open(smelter, opts);
+    open.push(s);
+    await s.drainProse();
+    const m = await Session.open(miller, opts);
+    open.push(m);
+    await m.drainProse();
+    await advanceWorldClock('2 hours');
+    let after: string[] = [];
+    for (let i = 0; i < 24; i++) {
+      after = await ev<string[]>(s, inFurnace);
+      if (JSON.stringify(after) !== JSON.stringify(smeltBefore)) break;
+      await new Promise((r) => setTimeout(r, 5_000));
+    }
+    expect(after, `the furnace's charge became something (before: ${smeltBefore.join(', ')})`).not.toEqual(smeltBefore);
+    let flour: string[] = [];
+    for (let i = 0; i < 24; i++) {
+      flour = await ev<string[]>(m, `self.getContainer().getContents().map(c => c.getTemplatePath()).filter(t => (t ?? '').endsWith('-sack')).filter(t => t.includes('/milling/'))`);
+      if (flour.length > 0) break;
+      await new Promise((r) => setTimeout(r, 5_000));
+    }
+    expect(flour, 'the grind completed into a sack').not.toEqual([]);
+  }, 900_000);
 });

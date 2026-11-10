@@ -231,10 +231,11 @@
       }
     },
     "cool": {
-      "status": "error",
+      "status": "declined",
       "notes": [
         {
-          "kind": "controller-error"
+          "kind": "controller-rejected",
+          "reason": "nothing-to-cool"
         }
       ],
       "duration": null,
@@ -272,10 +273,11 @@
       }
     },
     "cp": {
-      "status": "error",
+      "status": "declined",
       "notes": [
         {
-          "kind": "controller-error"
+          "kind": "controller-rejected",
+          "reason": "access-denied"
         }
       ],
       "duration": null,
@@ -292,10 +294,11 @@
       }
     },
     "dose": {
-      "status": "error",
+      "status": "declined",
       "notes": [
         {
-          "kind": "controller-error"
+          "kind": "controller-rejected",
+          "reason": "nothing-to-counter"
         }
       ],
       "duration": null,
@@ -491,7 +494,8 @@
           "/stuff/thing/clothes/canvas-shoes",
           "/stuff/thing/clothes/student-shirt",
           "/stuff/thing/clothes/student-trousers",
-          "/trade/forestry/thing/felling-axe"
+          "/trade/forestry/thing/felling-axe",
+          "/trade/forestry/thing/seed/acorn"
         ],
         "newMine": [],
         "completion": [
@@ -1233,7 +1237,7 @@
       "notes": [
         {
           "kind": "controller-rejected",
-          "reason": "access-denied"
+          "reason": "no-template"
         }
       ],
       "duration": null,
