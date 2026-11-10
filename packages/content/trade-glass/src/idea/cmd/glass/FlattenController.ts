@@ -7,107 +7,47 @@
 
 import { ManualBuildController } from "@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController";
 import type { CommandContext, CommandModel } from "@saxonberg/server/mud/api/command";
-import type { MqlOneResult, MqlManyResult } from "@saxonberg/server/mud/api/mql";
-import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
-import type { Burner } from "@saxonberg/server/mud/lib/fire/Burner";
-import { MixinApi } from "@saxonberg/server/mud/api/mixin";
-import { StuffApi } from "@saxonberg/server/mud/api/stuff";
-import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
-import { MessageApi } from "@saxonberg/server/mud/api/message";
+import type { MqlManyResult, MqlOneResult } from "@saxonberg/server/mud/api/mql";
 import { Mml } from "@saxonberg/server/mud/api/mml";
-import { AppApi } from "@saxonberg/server/mud/api/app";
-import { Quantity } from "@saxonberg/server/mud/lib/quantity";
-import type { Container } from "@saxonberg/server/mud/lib/spatial/Container";
-import type { Containable } from "@saxonberg/server/mud/lib/spatial/Containable";
-import Sheet from "../../../thing/Sheet";
-import { GLASSWORK_TOPIC } from "../../../thing/Gather";
-
-const FLATTEN_MS = 6_000;
-const FLATTEN_W = 150;
-const PANE_ROW = "/trade/glass/thing/pane";
-
-function dial(key: string, fallback: number): number {
-  try {
-    const raw = AppApi.setting(key);
-    if (raw === "" || raw == null) return fallback;
-    const n = Number.parseFloat(raw);
-    return Number.isFinite(n) ? n : fallback;
-  } catch {
-    return fallback;
-  }
-}
+import Sheet, { type FlattenRefusal } from "../../../thing/Sheet";
 
 interface FlattenModel extends CommandModel {
   cylinder?: MqlOneResult;
   furnace?: MqlManyResult;
 }
 
-function hotFurnace(bound: MqlManyResult | undefined, minK: number): boolean {
-  for (const f of bound?.stuff ?? []) {
-    if (MixinApi.isBurner(f) && (f as Stuff & Burner).isLit() && (f as Stuff & Burner).getHeldTemperatureK() >= minK) {
-      return true;
-    }
-  }
-  return false;
-}
-
 export default class FlattenController extends ManualBuildController<FlattenModel> {
-  execute(model: FlattenModel, context: CommandContext): void {
+  async execute(model: FlattenModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const cyl = model.cylinder?.stuff ?? null;
-    if (!cyl || !(cyl instanceof Sheet) || cyl.getForm() !== "cylinder") {
-      this.declineStep(context, Mml.compose`Flatten what? You need a scored glass cylinder.`, "no-cylinder");
+    if (!(cyl instanceof Sheet)) {
+      this.declineStep(context, FlattenController.refusalWords({ ok: false, reason: "not-a-cylinder" }), "no-cylinder");
       return;
     }
-    if (!cyl.isScribed()) {
-      this.declineStep(context, Mml.compose`Scribe the cylinder down its length first, so it can open out.`, "unscribed");
+    const plan = cyl.flattenPlanAt(model.furnace?.stuff ?? [], giver);
+    if (!plan.ok) {
+      this.declineStep(context, FlattenController.refusalWords(plan), plan.reason === "not-a-cylinder" ? "no-cylinder" : plan.reason);
       return;
     }
-    const flattenK = dial("glass.cold.flattenK", 900);
-    if (!hotFurnace(model.furnace, flattenK)) {
-      this.declineStep(
-        context,
-        Mml.compose`You need a lit furnace hot enough to soften the glass before it will open flat.`,
-        "no-furnace",
-      );
-      return;
-    }
-
-    this.engageStep(context, {
-      durationMs: FLATTEN_MS,
-      effortW: FLATTEN_W,
-      beginSelf: Mml.compose`You soften ${Mml.thing(cyl)} at the furnace and open it out flat.`,
-      onComplete: () => {
-        if (cyl.isDestroyed()) return;
-        void FlattenController.flatten(cyl, giver);
-      },
+    await this.engagePlan(context, plan, {
+      beginSelf: () => Mml.compose`You soften ${Mml.thing(cyl)} at the furnace and open it out flat.`,
+      onRefused: (r) => FlattenController.refusalWords(r),
+      onDone: () => ({ self: Mml.compose`The cylinder opens out into a flat pane of glass.` }),
     });
   }
 
-  private static async flatten(cyl: Sheet, giver: Stuff): Promise<void> {
-    const mass = cyl.getMass().rawValue();
-    const alloying = cyl.getMakeup().map((e) => ({ ...e }));
-    const where = MixinApi.isContainable(cyl)
-      ? cyl.getContainer()
-      : MixinApi.isContainer(giver)
-        ? (giver as unknown as Stuff & Container)
-        : null;
-    const pane = await StuffApi.clone<Sheet>(PANE_ROW, undefined, {
-      madeFrom: cyl as unknown as Stuff,
-    });
-    pane.setMass(Quantity.of(mass, "kg"));
-    pane.setForm("pane");
-    if (MixinApi.isComposition(pane) && alloying.length > 0) pane.setMakeup(alloying);
-    if (where && MixinApi.isContainer(where) && MixinApi.isContainable(pane)) {
-      ContainmentApi.move(pane as unknown as Stuff & Containable, where as Stuff & Container);
-    }
-    await StuffApi.destruct(cyl);
-    MessageApi.scene(giver)
-      .topic(GLASSWORK_TOPIC)
-      .toSelf(Mml.compose`The cylinder opens out into a flat pane of glass.`)
-      .send();
-    if (MixinApi.isAdvancing(giver)) {
-      void giver.creditDeed({ discipline: "glasswork", difficulty: "standard", outcome: "success" });
+  protected static refusalWords(r: FlattenRefusal): ReturnType<typeof Mml.compose> {
+    switch (r.reason) {
+      case "not-a-cylinder":
+        return Mml.compose`Flatten what? You need a scored glass cylinder.`;
+      case "unscribed":
+        return Mml.compose`Scribe the cylinder down its length first, so it can open out.`;
+      case "no-furnace":
+        return Mml.compose`You need a lit furnace hot enough to soften the glass before it will open flat.`;
+      default: {
+        const never: never = r.reason;
+        return never;
+      }
     }
   }
 }

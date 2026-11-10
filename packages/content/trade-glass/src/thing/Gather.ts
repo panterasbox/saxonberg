@@ -30,6 +30,8 @@ import { Grade } from "@saxonberg/server/mud/lib/craft/Grade";
 import type { Formable, FormingHand } from "@saxonberg/server/mud/lib/craft/Forming";
 import type { BeyondHandRefusal } from "@saxonberg/server/mud/lib/craft/Shapeable";
 import type { Containable } from "@saxonberg/server/mud/lib/spatial/Containable";
+import type { ActPlan, ActRefusal } from "@saxonberg/server/mud/lib/craft/ActPlan";
+import { WorldClockApi } from "@saxonberg/server/mud/api/worldclock";
 
 /**
  * The worked form a gather is in: a fresh `gather`, a `bubble`, or the key of
@@ -50,6 +52,20 @@ export const GLASSWORK_TOPIC = "act.deed";
 export type WorkBand = "runs" | "soft" | "stiffening" | "setting";
 
 const CULLET_ROW = "/stuff/thing/Casting";
+
+/** Cracking the piece off the pipe: a wetted line and a tap. */
+const CRACK_MS = 3_000;
+const CRACK_W = 120;
+/** Back in the glory hole to take up the heat again. */
+const REHEAT_MS = 3_000;
+const REHEAT_W = 120;
+/** The most heat a reheat gives back, K — past it the gather runs off the pipe. */
+const REHEAT_CEILING_K = 1450;
+
+/** What cracking off came to: the piece and its moil, or the gather lost to cullet. */
+export type CrackDone = { kind: "piece"; product: Stuff } | { kind: "lost" };
+/** Why a reheat will not run — worded by `reheat`. */
+export type ReheatRefusal = ActRefusal<"no-furnace" | "gone">;
 
 /** The Detailed/Visible label surface, for naming the minted cullet. */
 interface Labelled {
@@ -190,6 +206,97 @@ export default class Gather extends GatherBase implements Formable {
     if (t >= floor + 200) return "soft";
     if (t >= floor + 50) return "stiffening";
     return "setting";
+  }
+
+  /**
+   * ⭐ **Crack the piece off the pipe** (the `crack` verb's act,
+   * controller-liquidity W12). A formed, still-workable gather becomes its
+   * product — the `Form` row's, recorded when it took the form — carrying
+   * the gather's mass minus the moil and its alloying, so the bottle is the
+   * colour of its sand, and stamped with the blower's hand. The moil comes
+   * away as cullet beside you. Anything else (unformed, or gone cold) is
+   * lost to cullet (`loseToCullet`, which tells it).
+   */
+  public crackPlan(by: Stuff): ActPlan<undefined, CrackDone, ActRefusal<"gone">> {
+    return {
+      ok: true,
+      durationMs: CRACK_MS,
+      effortW: CRACK_W,
+      facts: undefined,
+      onComplete: async () => {
+        if (this.isDestroyed()) return { ok: false, reason: "gone" };
+        const productRow = this.getFormProduct();
+        if (!productRow || !this.isWorkable()) {
+          await this.loseToCullet(by, "There was no formed piece to crack off.");
+          return { ok: true, facts: { kind: "lost" } };
+        }
+        return { ok: true, facts: { kind: "piece", product: await this.crackOff(productRow, by) } };
+      },
+    };
+  }
+
+  /** The piece, cracked free — and the moil beside it; the gather is gone. */
+  private async crackOff(productRow: string, by: Stuff): Promise<Stuff> {
+    const self = this as unknown as Stuff;
+    const moilFrac = dial("glass.hotwork.moilFraction", 0.05);
+    const massKg = this.getMass().rawValue();
+    const alloying = this.getMakeup().map((e) => ({ ...e }));
+    const where = MixinApi.isContainer(by) ? (by as unknown as Stuff & Container) : null;
+    const product = await StuffApi.clone<Stuff>(productRow, undefined, { madeFrom: self });
+    if (MixinApi.isTangible(product)) product.setMass(Quantity.of(massKg * (1 - moilFrac), "kg"));
+    if (MixinApi.isComposition(product) && alloying.length > 0) product.setMakeup(alloying);
+    // ⭐ Stamp the maker — a bottle is Crafted; without this it credits nobody.
+    if (MixinApi.isCrafted(product)) {
+      product.stamp({
+        maker: by.getIdentityPath() ?? "",
+        grade: this.getFormGrade() ?? Grade.of("fair"),
+        recipe: "glass-blow",
+        craftedAt: WorldClockApi.getNow().rawValue(),
+      });
+    }
+    if (where && MixinApi.isContainable(product)) ContainmentApi.move(product as Stuff & Containable, where);
+    try {
+      const moil = await StuffApi.clone<Stuff>(CULLET_ROW, undefined, { madeFrom: self });
+      if (MixinApi.isTangible(moil)) {
+        const mat = this.getMaterial();
+        if (mat) moil.setMaterial(mat);
+        moil.setMass(Quantity.of(massKg * moilFrac, "kg"));
+      }
+      (moil as unknown as Labelled).setShortDescription("scrap of cullet");
+      (moil as unknown as Labelled).setKeywords(["cullet", "moil", "glass"]);
+      if (MixinApi.isComposition(moil) && alloying.length > 0) moil.setMakeup(alloying);
+      if (where && MixinApi.isContainable(moil)) ContainmentApi.move(moil as Stuff & Containable, where);
+    } catch {
+      /* missing cullet row: the moil is simply lost */
+    }
+    await StuffApi.destruct(self);
+    if (MixinApi.isAdvancing(by)) {
+      await by.creditDeed({ discipline: GLASSWORK_TYPE, difficulty: "standard", outcome: "success" });
+    }
+    return product;
+  }
+
+  /**
+   * ⭐ **Back into the glory hole** (the `reheat` verb's act): a short step
+   * whose completion brings the gather up to the furnace's held heat (to a
+   * ceiling) — the one move that buys more time, at the cost of fuel and a
+   * trip to the furnace. Wants a lit, fuelled furnace among `furnaces`.
+   */
+  public reheatPlanAt(furnaces: readonly Stuff[]): ActPlan<{ furnace: Stuff }, undefined, ReheatRefusal> | ReheatRefusal {
+    const furnace = furnaces.find((f) => MixinApi.isBurner(f) && f.isLit() && f.getHeldTemperatureK() > 0) ?? null;
+    if (furnace === null || !MixinApi.isBurner(furnace)) return { ok: false, reason: "no-furnace" };
+    const held = furnace.getHeldTemperatureK();
+    return {
+      ok: true,
+      durationMs: REHEAT_MS,
+      effortW: REHEAT_W,
+      facts: { furnace },
+      onComplete: () => {
+        if (this.isDestroyed()) return { ok: false, reason: "gone" };
+        this.setContentsTemperature(Math.min(held, REHEAT_CEILING_K));
+        return { ok: true, facts: undefined };
+      },
+    };
   }
 
   /**

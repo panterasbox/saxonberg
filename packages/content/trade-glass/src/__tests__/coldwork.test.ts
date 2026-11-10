@@ -130,4 +130,17 @@ describe("the cold shop", () => {
     expect(glazing!.g).toBeGreaterThan(glazing!.b);
     expect(window.lightTransmittance().g).toBeGreaterThan(window.lightTransmittance().r);
   });
+
+  it("⭐ a window already glazed refuses a second pane — its glass is not overwritten (C14)", async () => {
+    const first = sheet("pane", 0.004);
+    const window = makeStuff(() => new Window());
+    window.open();
+    await run(GlazeController, { pane: { stuff: first }, window: { stuff: window } });
+    const before = window.getGlazing();
+    const second = sheet("pane", 0.0001);
+    const ctx = await run(GlazeController, { pane: { stuff: second }, window: { stuff: window } });
+    expect(second.isDestroyed()).toBe(false);
+    expect(window.getGlazing()).toEqual(before);
+    expect(declined(ctx)).toBe("already-glazed");
+  });
 });

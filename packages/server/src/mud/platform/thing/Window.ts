@@ -246,6 +246,16 @@ export default class Window extends WindowBase {
     return Colour.of(this._glazeR, this._glazeG, this._glazeB);
   }
 
+  /**
+   * ⭐ May a pane be set in this window now? Not when it is glazed already
+   * — the `glaze` act overwrote a window's glass without a word (C14,
+   * controller-liquidity W12). A partial glaze reads as unglazed, as
+   * {@link getGlazing} does.
+   */
+  public canGlaze(): boolean {
+    return this.getGlazing() === null;
+  }
+
   /** Set (or clear, with `null`) the glaze colour — the `glaze` act's writer. */
   public setGlazing(colour: Colour | null): void {
     if (colour === null) {
