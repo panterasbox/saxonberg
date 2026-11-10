@@ -24,8 +24,6 @@ import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { ConditionApi } from '../../../../api/condition';
 import { Touch } from '../../../../lib/perception/Touch';
-import { ChattelApi } from '../../../../api/chattel';
-import { AccessApi } from '../../../../api/access';
 import type { Adornment } from '../../../../lib/boundary/Adornment';
 import { PerceptionApi } from '../../../../api/perception';
 import { ProxyApi } from '../../../../api/proxy';
@@ -170,11 +168,7 @@ export default class GetController extends CommandController<GetModel> {
       if (
         MixinApi.isAdornment(t) &&
         t.getAdornedTo() &&
-        !(await this.mayDismount(
-          t,
-          context.commandGiver,
-          t.getAdornedTo() as unknown as Stuff,
-        ))
+        !(await t.mayTakeDown(context.commandGiver))
       ) {
         blocked.push(t);
       } else {
@@ -445,7 +439,7 @@ export default class GetController extends CommandController<GetModel> {
     // authority over the room.
     if (MixinApi.isAdornment(operand) && operand.getAdornedTo()) {
       const host = operand.getAdornedTo()!;
-      if (!(await this.mayDismount(operand, giver, host as unknown as Stuff))) {
+      if (!(await operand.mayTakeDown(giver))) {
         this.declineFixture(operand, operand.getPresentation(), context);
         return false;
       }
@@ -500,34 +494,6 @@ export default class GetController extends CommandController<GetModel> {
     if (merged) return true;
     this.burnOnGrab(operand, giver);
     return true;
-  }
-
-  /**
-   * May the actor take this fixture down? Two ways in, and only two:
-   * they hold title to the good itself (their lamp, on anyone's wall),
-   * or they hold write authority over what it is hung on (the venue
-   * keeper rearranging their own neon).
-   *
-   * `ChattelApi.ownerOf` answers for an unstamped authored fixture too
-   * — it resolves to the covering parcel's owner — so the neon sign
-   * never matches the title arm and falls to the authority arm, which
-   * is exactly the intent.
-   */
-  private async mayDismount(
-    operand: Stuff,
-    giver: Stuff,
-    host: Stuff,
-  ): Promise<boolean> {
-    const owner = MixinApi.isChattel(operand)
-      ? await operand.chattelOwner()
-      : null;
-    if (
-      owner?.kind === 'player' &&
-      owner.templatePath === giver.getIdentityPath()
-    ) {
-      return true;
-    }
-    return AccessApi.can(giver, 'write', host);
   }
 
   /**
