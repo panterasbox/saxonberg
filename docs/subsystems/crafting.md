@@ -1868,6 +1868,15 @@ rest emitted into the scope — so a retort with nothing attached puts its
 volatiles in the room, which is what the clamp does and why the collier
 discards them.
 
+**⭐ A powered grind survives a restart** (controller-liquidity, after
+the master merge). The water path takes the charge into the hopper at the
+start and the stones run on the game clock — so the grind in flight is
+STATE, not a closure: `pendingGrind` (the charge, the extraction, the
+maker, the payload, `dueAtS`) is a persisted runtime field, and its setter
+arms the landing, so the restore re-arms it. Before, a restart mid-grind
+lost the grain outright. The quern's grind is an engagement and still does
+not survive one (the `ManualBuild` rule) — but it took nothing yet.
+
 **⛔⛔ `ComminutingMixin.products[]` — the mill makes what it is fed.**
 `productMaterial` was ONE path per instrument row and both shipped mill
 rows pinned it to **wheat flour**, while `MillController.chargeFrom`

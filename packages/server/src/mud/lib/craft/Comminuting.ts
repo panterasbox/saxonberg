@@ -64,7 +64,7 @@ import { BulkableApi } from '../../api/bulk';
 import { ContainmentApi } from '../../api/containment';
 import { CraftingApi } from '../../api/crafting';
 import type { CraftFailure } from '../../api/crafting';
-import { WorldClockApi } from '../../api/worldclock';
+import { WorldClockApi, type ClockHandle } from '../../api/worldclock';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { AppApi } from '../../api/app';
@@ -88,6 +88,24 @@ interface MillCharge {
   gradeBand: string;
   /** Drain this much from the source, or destruct it when null. */
   drainL: number | null;
+}
+
+/**
+ * ⭐ A powered grind under way — the charge the hopper took and when the
+ * meal comes out. Persisted on the stones, so a restart mid-grind still
+ * lands the sacks (requirements step 14): the grain was taken at the
+ * start, and a closure timer alone lost it with the process.
+ */
+export interface PendingGrind {
+  /** Game-seconds when the stones run empty. */
+  dueAtS: number;
+  kg: number;
+  materialPath: string;
+  gradeBand: string;
+  /** The extraction the grind was set at (already clamped). */
+  extraction: number;
+  makerPath: string;
+  payload: BulkPayload | null;
 }
 
 /** Comminution defaults — playtest numbers, not decisions. */
@@ -321,6 +339,7 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
       products: { persistent: true, authorable: true },
       feedTags: { persistent: true, authorable: true },
       dustMaterial: { persistent: true, authorable: true },
+      pendingGrind: { persistent: true, runtimeState: true },
     };
 
     /** Kilograms per game-minute with no power at all — the hand rung. */
@@ -401,6 +420,49 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
      */
     private _grinding = false;
 
+    /**
+     * ⭐ The powered grind in the hopper, or `null` — persisted (unlike
+     * `_grinding`, which is the quern's held hands): restored through
+     * {@link setPendingGrind}, which re-arms the landing, so a restart
+     * mid-grind still turns the taken grain into its sacks.
+     */
+    public pendingGrind: PendingGrind | null = null;
+    /** The live landing timer — transient, re-armed by the setter. */
+    private _grindHandle: ClockHandle | null = null;
+
+    public getPendingGrind(): PendingGrind | null {
+      return this.pendingGrind;
+    }
+
+    /** Set (or clear) the grind in the hopper and arm its landing. */
+    public setPendingGrind(value: PendingGrind | null): void {
+      this._grindHandle?.cancel();
+      this._grindHandle = null;
+      this.pendingGrind = value ?? null;
+      if (this.pendingGrind === null) return;
+      this._grinding = true;
+      this._grindHandle = WorldClockApi.at(
+        Quantity.of(this.pendingGrind.dueAtS, 's'),
+        () => {
+          void this.landPendingGrind();
+        },
+        { host: this as unknown as Stuff, tag: 'mill-grind' },
+      );
+    }
+
+    /** The timer fired (live or re-armed): the meal comes out. */
+    private async landPendingGrind(): Promise<void> {
+      const p = this.pendingGrind;
+      if (p === null) return;
+      this.pendingGrind = null;
+      this._grindHandle = null;
+      const plan = this.planComminution(
+        { kg: p.kg, materialPath: p.materialPath, gradeBand: p.gradeBand },
+        p.extraction,
+      );
+      await this.landGrind(plan, p.makerPath, p.payload);
+    }
+
     public isGrinding(): boolean {
       return this._grinding;
     }
@@ -477,13 +539,15 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
             if (this._grinding) return refuse('already-milling');
             this._grinding = true;
             const payload = await this.takeCharge(source, charge);
-            WorldClockApi.after(
-              Quantity.of(grindMs / 1000, 's'),
-              () => {
-                void this.landGrind(plan, makerPath, payload);
-              },
-              { host: self, tag: 'mill-grind' },
-            );
+            this.setPendingGrind({
+              dueAtS: WorldClockApi.getNow().rawValue() + grindMs / 1000,
+              kg: charge.kg,
+              materialPath: charge.materialPath,
+              gradeBand: charge.gradeBand,
+              extraction: plan.extraction,
+              makerPath,
+              payload,
+            });
             return { ok: true, facts: { kind: 'set-going', mill: self, sourceName } };
           },
         };
