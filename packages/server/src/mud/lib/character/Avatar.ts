@@ -33,6 +33,7 @@ import CredentialWalletUpdate from "../../platform/idea/CredentialWalletUpdate";
 import ForumsUpdate from "../../platform/idea/ForumsUpdate";
 import CalendarUpdate from "../../platform/idea/CalendarUpdate";
 import { MessageApi } from "../../api/message";
+import { MagicApi } from "../../api/magic";
 import { Mml } from "../../api/mml";
 import { ScheduleApi, type ScheduleHandle } from "../../api/schedule";
 import {
@@ -924,6 +925,8 @@ export default abstract class Avatar extends AvatarBase {
     opts: { firstArrival?: boolean } = {},
   ): Promise<void> {
     const startingLocation = this.assertStartingLocation();
+    // A caster's verbs are afforded by the spell dictionary (D9: never booted).
+    if (this.isCastingCapable()) await MagicApi.ready();
     this.armSession();
     // ⭐⭐ **No belief read here, and its absence is proved rather than
     // assumed.** This used to call `hydrateBeliefs()`, from before the

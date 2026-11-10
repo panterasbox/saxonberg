@@ -70,6 +70,16 @@ function logic(): MagicLogic {
 
 export class MagicApi {
   /**
+   * ⭐ Load the spell dictionary — a resolved promise once it is resident.
+   * Never booted (documents D9): an item that carries a spell and a book
+   * that teaches one return this from their setters (the applier awaits
+   * it); a caster's session and every casting verb await it.
+   */
+  public static ready(): Promise<void> {
+    return logic().ready();
+  }
+
+  /**
    * One authored spell descriptor by id, or `null`. The read a
    * *consumer of a spell* needs — a spellbook resolving what it teaches,
    * an item resolving what it carries — as opposed to the caster-facing
