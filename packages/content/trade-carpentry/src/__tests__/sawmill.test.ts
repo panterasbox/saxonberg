@@ -23,7 +23,9 @@ import LoftedSawmill from '../thing/LoftedSawmill';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import Blank from '../thing/Blank';
 import Board from '../thing/Board';
-import { boardsFrom, kerfSawdustKg, BOARD_KG, QUARTER_YIELD } from '../idea/cmd/carpentry/SawController';
+import { BOARD_KG, QUARTER_YIELD } from '../thing/Sawmill';
+const boardsFrom = (kg: number, u: number, q: boolean): number => Sawmill.boardsFrom(kg, u, q);
+const kerfSawdustKg = (b: number, q: boolean, k: number): number => Sawmill.kerfSawdustKg(b, q, k);
 import Sawdust from '../thing/Sawdust';
 import Timber from '@saxonberg/server/mud/platform/thing/Timber';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
@@ -31,7 +33,9 @@ import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { makeStuff, stampTemplatePathForTest } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import Material from '@saxonberg/server/mud/lib/material/Material';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const PACK = join(here, '..', '..');
@@ -303,5 +307,62 @@ describe('the rows the verbs lean on', () => {
     expect(bill.joints[0]!.method).toBe('wedged');
     // No tool: wedged is the by-hand joint.
     expect(recipes().find((r) => r.recipeId === 'froe')!.toolCapabilities).toEqual([]);
+  });
+});
+
+describe('⭐ the one sawing engine — the saw is claimed on both rungs (controller-liquidity C6)', () => {
+  let oakSeq = 0;
+  function oakLength(kg: number): Good {
+    const wood = makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName('oak');
+      m.setTags(['wood']);
+      return m;
+    }, `/stuff/idea/material/wood/_oak-${++oakSeq}`);
+    const g = makeStuff(() => new Timber());
+    g.setMaterial(wood as never);
+    g.setMass(Quantity.of(kg, 'kg'));
+    return g as unknown as Good;
+  }
+
+  it('the pit saw is held from begin to landing, and a second log is refused while it runs', async () => {
+    const pit = fromRow('pit-saw');
+    await ContainmentApi.move(pit as never, room as never);
+    const sawyer = makeStuff(() => new Place());
+    const log = oakLength(24);
+    await ContainmentApi.move(log as never, room as never);
+    const plan = await pit.sawPlan(sawyer as never, log as never, { quarter: false });
+    expect(plan.ok).toBe(true);
+    if (!plan.ok) return;
+    expect(plan.facts.unattended).toBe(false);
+    expect(plan.facts.boards).toBe(4);
+    expect(pit.isSawing()).toBe(false); // planning claims nothing
+    plan.onBegin?.();
+    expect(pit.isSawing()).toBe(true);
+    const second = await pit.sawPlan(sawyer as never, oakLength(24) as never, { quarter: false });
+    expect(second.ok).toBe(false);
+    if (!second.ok) expect(second.reason).toBe('already-sawing');
+    plan.onAbort?.('cancelled');
+    expect(pit.isSawing()).toBe(false);
+  });
+
+  it('a cut whose log went under it lands as `gone` — said, never silent — and hands the saw back', async () => {
+    const pit = fromRow('pit-saw');
+    await ContainmentApi.move(pit as never, room as never);
+    const log = oakLength(24);
+    await ContainmentApi.move(log as never, room as never);
+    const plan = await pit.sawPlan(makeStuff(() => new Place()) as never, log as never, { quarter: false });
+    if (!plan.ok) throw new Error('expected a plan');
+    plan.onBegin?.();
+    await StuffApi.destruct(log as never);
+    const out = await plan.onComplete();
+    expect(out).toEqual({ ok: true, facts: { kind: 'gone' } });
+    expect(pit.isSawing()).toBe(false);
+  });
+
+  it('too small, quartered: the refusal carries the cut', async () => {
+    const pit = fromRow('pit-saw');
+    const out = await pit.sawPlan(makeStuff(() => new Place()) as never, oakLength(8) as never, { quarter: true });
+    expect(out).toEqual({ ok: false, reason: 'too-small', facts: { quarter: true } });
   });
 });
