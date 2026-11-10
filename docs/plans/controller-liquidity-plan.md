@@ -1775,16 +1775,19 @@ rebase cleanly.
   > runs, taken by `engagePlan` once the work is under way) and
   > `Wearable.alterPlanFor`. Packs: `FellableMixin` (Wood + a new forestry
   > `Standard`; oak/ash rows name it, `SapStandard` extends it),
-  > `Sawmill.sawPlan` (both rungs claim the saw; C6), `TextileStock.
-  > scutch/spin/weavePlan` (mint before consume, C29; `isYarn` by count,
-  > C23), `CutPieces.sewPlan` (`--pattern` a `values:` list), `DyeBath`
+  > `Sawmill.sawPlan` (both rungs claim the saw; C6), `TextileWork.
+  > scutch/spin/weavePlan` (mint before consume, C29; yarn is what has a
+  > count, C23), `CutPieces.sewPlan` (`--pattern` a `values:` list), `DyeBath`
   > (C9: the mordant is the bath's material, a dose spent), `Tanpit.
   > layInPlan` + the pit's `look` carries every skin, `PrintingMixin.
   > printFor`. **Decisions (build, W11):** (a) `Fellable` is a PACK mixin —
   > with the planted standard a forestry class both hosts share a pack
   > ancestor, and kernel `Plant` stays honest; (b) `DyeBath` is a value
   > object, not a protocol — a bath is any bulk vessel, so there is no host
-  > class; (c) `sew` refuses a wearable that is not cut pieces. **Player-
+  > class; (c) `sew` refuses a wearable that is not cut pieces; (d) the
+  > textile plans live on a value object (`TextileWork(actor, instrument)`),
+  > not `TextileStock` statics — `lint:lib-statics` held at 340 (what is
+  > worked is not one class). **Player-
   > visible (add to § 6):** `mordant <cloth> [in <bath>]` (was `with
   > alum`, which cost nothing); `tan hide` on a skin already down refuses
   > and says `look` at the pit; `print "a name" 2` (quoted, `copies` a
