@@ -35,7 +35,8 @@ we have to make this stuff performant."*
   side-effect cache whose only sanctioned reader is `MmlRenderer`'s
   click resolution ([card-surface.md § Client stuff registry](../../subsystems/card-surface.md)).
 - **Server-side personal knowledge** — the per-player `map` document
-  (`/home/<key>/map/<locality address>`), claims with `channel`, `band`,
+  (`/home/<key>/map/<locality address>`), claims with `channel` (`walked · seen · searched · published · charted ·
+  told`; a `band` is a claim kind, water between places),
   `firstSeen`, `lastSeen`, read by `NavigationApi.readMap(viewerKey,
   prefix)` ([location-graph.md](../../subsystems/location-graph.md)).
   It renders as MML today and reaches no client model.

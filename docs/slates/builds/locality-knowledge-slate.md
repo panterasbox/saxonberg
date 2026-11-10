@@ -25,7 +25,9 @@ gets read later by the breadcrumbs."*
 
 1. **A first visit writes the Locality into your map.** The
    `location-graph` map document already takes claims (`perception` ·
-   `publication` · `told` · `bought`, each with `firstSeen` / `lastSeen`).
+   `publication` · `told` · `bought`, each with `firstSeen` / `lastSeen`;
+   ⚠ the shipped channels are `walked · seen · searched · published ·
+   charted · told` — corrected 2026-11-10).
    Entering a Locality you have no claim for appends a **locality claim**
    carrying what you learned there: its name, its description (when it
    has one), its government, and whatever else it declares as

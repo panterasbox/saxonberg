@@ -373,6 +373,13 @@ image, live state, in-place expansion).
 
 ### The navigator (about YOU) and the Zone card (about a zone)
 
+> ⭐ **2026-11-10 (navigation requirements):** in the Explore pane the Zone
+> is a **tab of the docked pane**, not a separate card — the pane is one
+> docked card and the Zone tab is its other face
+> ([map-slate](./map-slate.md), [navigation-requirements](../../requirements/navigation-requirements.md)).
+> Whether a Zone card also exists outside the pane (opened by inspecting a
+> zone elsewhere) is left to this slate.
+
 *Does the Zone card follow movement or inspection?* splits into two
 cards, both properly anchored:
 

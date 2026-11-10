@@ -535,7 +535,7 @@ than any zone map — is a different artifact:
   it shows roughly where things are in the world.
 - ⭐⭐ **You must own it.** A map is a thing in the world, on paper
   ([paper.md](../../subsystems/paper.md)) — bought, found or given; the map
-  document's `bought` channel already exists. **The library keeps copies of
+  document's channels are `walked · seen · searched · published · charted · told` (`bought` was cut; a bought map would arrive as `published` or `charted`). **The library keeps copies of
   the maps of known territory** (what "copy" means there is the libraries
   design's).
 - **Its picture is `Visible.illustration`** ([media.md](../../subsystems/media.md))
@@ -1034,7 +1034,9 @@ document, not a view over the graph.**
   `(player, finest covering locality)`. The address keeps its slashes,
   so a coarser read is a **prefix read with no join**.
 - A claim carries its own `channel` (`perception` · `publication` ·
-  `told` · `bought`), `band`, `firstSeen` and `lastSeen` — **not one
+  `told` · `bought` — as of 2026-11-10 the shipped set is `walked · seen ·
+  searched · published · charted · told`; `band` is a claim KIND, water
+  between places), `firstSeen` and `lastSeen` — **not one
   date per document**.
 - `NavigationApi.readMap(viewerKey, prefix)` is the read, and it
   resolves under the actor's own home and nowhere else.
@@ -1054,3 +1056,27 @@ claim older than the latest look at its place must read as *not seen
 when you last looked*. A renderer that tidied either away would undo
 the knowledge model. See
 [location-graph.md](../../subsystems/location-graph.md).
+
+## Reuse ledger for the plan (navigation build, 2026-11-10)
+
+From the requirements survey ([navigation-requirements](../../requirements/navigation-requirements.md)).
+Every row is one the plan must account for — reuse it, generalize it, or
+say why it is genuinely new.
+
+| concept | what already does it | this build |
+|---|---|---|
+| your knowledge | the `map` document kind, one per player per Locality (`/home/<key>/map/<locality>`); `MapClaim` (`lib/location/MapClaim.ts`); append-only `NavigationLogic.growMap` | **reuse**; the claim **grows** zone, coordinates and level (the firewall decision) |
+| writing knowledge | `Cartographer` (`onTraversed` → `walked`, `recordSurroundings` → `seen`/`searched`, `recordTimetable` → `published`); `Charted` (`charted`/`told`) | **extend** the writers to record where the place is; a place with no handle or no Locality still writes nothing |
+| reading knowledge | `NavigationApi.readMap(viewerKey, prefix)`, the `map` verb (`MapController`) | **reuse** as the replica's source; the zone slice is a filter on the new zone field |
+| routing on your map | `NavigationApi.routeOnMap`, `RoutePlan` (legs, cost, assumptions — plain data) | **reuse**; the latest plan rides to the client for the route lens (session only) |
+| a way's state | `WayRecord` / `WayState` (`open·shut·locked·window`, `crossesZone`), `Exit.wayRecord()`, `spansOpenGround()` (boundary build) | **reuse** as the map's edge vocabulary |
+| where you are now | `Perceiver.whereabouts()`, `Whereabouts`, `refreshNavigator()` after moves | **reuse** as "you are here" and the push trigger; drop its conditions/jurisdiction rows from the pane |
+| the docked slot | the `map` CardId (`Cards.ts`, `payload/navigation`), `ModeStage` explore panel, `NavigatorBody` | **replace** `NavigatorBody`; keep the CardId and slot |
+| a client-side copy | none — `stuffRegistry` is a rendering-metadata map; the store has no selectors | **genuinely new**: the knowledge replica + zone-facts cache + session cache, selectors only ([client-knowledge-model-slate](./client-knowledge-model-slate.md)) — searched the client store, every slice, `stuffRegistry` |
+| replica transport | MQL subscriptions (per-Interactive deltas, `mql-subscription.md`); card pushes (`touchCard`) | **decide in the plan**: a subscription over your map documents, or a delta envelope; generalize, don't add a third push path without saying why |
+| zone facts | `CartesianZone.cellSize`/`getGrid`, `SpatialZone` (kind, sky, epoch ceiling), `GovernmentApi.governmentAt`, `Atmospheric` (biome) | **reuse** the reads; a zone-facts read is **new** (searched: none exists); extent and levels come from your claims, never the zone |
+| Locality facts on first visit | Locality rows (name, government, tier fields) | **extend**: a first-visit claim kind ([locality-knowledge-slate](./locality-knowledge-slate.md)); Locality gaining Named/Perceptible/Visible per that slate |
+| the drawn map | none (no SVG, no map component, no graph-layout dependency) | **genuinely new** — SVG per § The rendering decision |
+| direction glyphs | `components/ui/icons/iconMap.ts` + `<Icon>` (no direction/elevation glyphs) | **extend** the one icon map with the direction tier ([iconography-slate](./iconography-slate.md)) |
+| the status bar | client-shell's status bar | **extend** with the outdoor conditions the navigator used to show |
+| caching documents server-side | `DocumentCache<T>` (documents build, !560 — ⚠ the survey reports that branch later removes it in favour of catalogues) | **check after !560 merges** |
