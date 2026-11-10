@@ -43,6 +43,11 @@ export const FISHERY_REGISTRY = '/system/water/idea/FisheryRegistry';
 export const FISHING_DISCIPLINE = 'fishing';
 /** This singleton's own template path. */
 export const WATERS_PATH = '/trade/fishing/idea/Waters';
+/** The two waters a trap can lie in when no shore has drawn it. */
+const FRESH_WATER = '/stuff/idea/material/bulk/water';
+const SALT_WATER = '/stuff/idea/material/bulk/salt-water';
+/** Salinity at and above which a reach is the sea's water (ppt). */
+const SEA_PPT = 25;
 
 /** What the hour and the weather do to the bite, before the bait. */
 export interface FeedFactors {
@@ -74,6 +79,19 @@ export default class Waters extends Idea {
     if (!MixinApi.isContainer(room)) return null;
     const locality = await AddressApi.resolveLocalityFor(room as Stuff & Container);
     return locality?.getReach() ?? null;
+  }
+
+  /**
+   * ⭐ The water a reach holds, as a material path — what a laid trap
+   * fills with when no shore has drawn it (the Locality's reach): salt
+   * where the reach's own salinity is the sea's, fresh otherwise
+   * (fishing C13 — a pot off a sea filled with fresh water). The line is
+   * the water pack's own: below 25 ppt is brackish, and brackish is
+   * still drawn as the river's water.
+   */
+  public async waterIn(reachRef: string, nowS: number): Promise<string> {
+    const standing = await this.standingFor(reachRef, nowS);
+    return (standing?.water.salinityPpt ?? 0) >= SEA_PPT ? SALT_WATER : FRESH_WATER;
   }
 
   /** The water pack's register, met over its shape. */

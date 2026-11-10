@@ -36,7 +36,7 @@ export abstract class FishingController<M extends CommandModel = CommandModel> e
   protected async reachFor(
     giver: Stuff,
     shore: MqlOneResult | undefined,
-  ): Promise<{ reach: string } | { refusal: string; reason: string } | null> {
+  ): Promise<{ reach: string; water: string | null } | { refusal: string; reason: string } | null> {
     const room = this.roomOf(giver);
     if (shore?.stuff) {
       const name = shore.via?.detailPath?.[0];
@@ -49,13 +49,14 @@ export abstract class FishingController<M extends CommandModel = CommandModel> e
         if ('refusal' in gate && gate.refusal === 'frozen') {
           return { refusal: gate.line, reason: 'frozen' };
         }
-        return { reach: pick.ref };
+        // ⭐ The water the shore draws here — what a laid trap fills with.
+        return { reach: pick.ref, water: 'draw' in gate ? gate.draw.materialPath : null };
       }
       return { refusal: `There is no water in the ${shore.raw ?? 'that'}.`, reason: 'not-water' };
     }
     if (room === null) return null;
     const reach = await (await this.waters()).reachAt(room);
-    return reach === null ? null : { reach };
+    return reach === null ? null : { reach, water: null };
   }
 
   protected async registry(): Promise<FisheryRegistry | null> {
