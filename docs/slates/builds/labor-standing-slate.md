@@ -367,6 +367,18 @@ of day… but published is a different story."*
 | **unpublished** | ⛔ nothing — *wages for speculative work, standing for delivered work* | ⭐⭐ **yes**, so publishing is retroactive for **collaborators**, not just the `authorOf` singleton |
 | **published, under revision** | ⭐ **it is earning now** | ⭐⭐⭐ and this is where § 7's renewal question legitimately lives — **recent completed work is what shifts the share** |
 
+## 9b. ⭐⭐ Standing is for ORIGINAL work **[DECIDED 2026-11-10 — the owner]**
+
+Labor standing accrues for what a contributor **made**: never for uploading or
+attaching someone else's copyrighted work (a movie still on a meme emote, a ripped
+texture, a pasted chapter). Rewarding it would make the platform an inducer of
+infringement, which the user-upload safe harbor does not cover (*MGM v. Grokster*,
+2005; [emotes-slate](./emotes-slate.md) Layer 2b § 8). Public-domain material and work
+used under a license the contributor holds are fine; the contribution is the
+curation, credited as such, not authorship of the work itself. The owner: *"I'm
+really not trying to get around copyright just trying to figure out where the rails
+are."*
+
 ## 10. Open questions
 
 1. ⚠⚠ **Can an omission be appealed after the fact?** A re-split is
