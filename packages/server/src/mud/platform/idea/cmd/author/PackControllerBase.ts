@@ -41,7 +41,8 @@ export interface PackModel extends CommandModel {
 
 const USAGE =
   'usage: pack status [<packId>] | pack install <packId> --dry-run | ' +
-  'pack sync [<packId>] | pack provision <packId> | pack diff <packId> [<path>] | ' +
+  'pack sync [<packId>] | pack staff <packId> [<person>] | ' +
+  'pack provision <packId> | pack diff <packId> [<path>] | ' +
   'pack resolve <packId> <path> --take-pack|--keep --pin|--export | ' +
   'pack pin <packId> <path> | pack unpin <packId> <path>';
 

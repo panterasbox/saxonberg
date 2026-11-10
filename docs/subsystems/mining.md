@@ -237,8 +237,10 @@ verb not existing. See [instrumentation.md](./instrumentation.md).
 ⭐⭐ `survey` is a MIRROR and the mine's read is a MEASUREMENT. The
 geological read is instrument-mediated, competence-banded and the thing a
 player pays for and acts on — the opposite of a read nothing is gated on.
-`MineWarren` answers the duck-typed `WarrenMember` shape `SurveyController`
-reads, so `survey` reports honestly in a working for free.
+`MineWarren` is a `FloorplanWarren`, which the place's own `surveyFor`
+(`Place`, controller-liquidity W7c) reads, so `survey` reports honestly in
+a working for free. `sample` asks the ground the same way: `StrataMixin`
+composes the kernel's `SampleableMixin` and answers with `sampleFace`.
 
 ⭐ **Competence buys resolution and the availability of an inference,
 never outcome.** The error bar IS the competence; the underlying figure is
@@ -784,6 +786,7 @@ catch is somebody who already staked this exact ground.
 Limestone's smelting tag is `smelting-flux` (bare `flux` is the
 glassmaker's, the potash family's); `burn-lime` burns a `carbonate`. The
 clamp's ash is sized to the charge (kg × the wood's ash fraction), in heaps,
-not one fixed drift. ⚠ `char 0.45` binds the number as the clamp (a
-pre-existing view defect the potash drive found); `draught` sets it. See
+not one fixed drift. `char` lights the burn and `draught clamp low`
+sets its air (the `char <n>` figure retired into `draught`,
+controller-liquidity W7b). See
 [potash.md](potash.md).

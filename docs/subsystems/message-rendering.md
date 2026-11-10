@@ -858,8 +858,9 @@ shape is **bounded** — the engine recognizes a fixed set of keys; no
 
 ### `cockpit style`
 
-`StyleController` (`mud/platform/idea/cmd/shell/StyleController.ts`) is the
-player's surface for editing the overlay. Settings:
+The `Style*Controller`s (`mud/platform/idea/cmd/shell/`, over
+`StyleControllerBase`, one per nested stanza) are the player's surface for
+editing the overlay. Settings:
 
 | Usage | Effect |
 |---|---|
@@ -870,6 +871,7 @@ player's surface for editing the overlay. Settings:
 | `cockpit style mention self on\|off` | Own-name highlight toggle |
 | `cockpit style plain on\|off` | Global plain-mode toggle |
 | `cockpit style plain channel <key> on\|off` | Per-channel plain-mode |
+| `cockpit style links words\|ids` | What a click names its target by |
 | `cockpit style reset` | Clear overlay to `{}` |
 
 ⚠ **`style` was a standalone verb and is not any more.** It was absorbed
@@ -878,13 +880,12 @@ three wrote the same `cockpit.*` clientState keyspace — see
 [cockpit.md](./cockpit.md). It is not kept as an alias: one name per
 thing.
 
-⚠ The settings above are **not** command subcommands. `cockpit style` is
-already the subcommand and subcommands are one level deep framework-wide,
-so they ride positional slots and `StyleController` dispatches on them —
-which is why it carries an explicit `default:` that refuses an unknown
-setting. Without it, `cockpit style bogus` would silently succeed.
+⭐ The settings above ARE nested subcommands (controller-liquidity W7b —
+see [cockpit.md](./cockpit.md)); every closed word is a `values:` slot,
+so `cockpit style bogus` or `cockpit style theme default` is refused by
+the binder, naming the set, before any controller runs.
 
-The controller travels with
+The verb travels with
 `HasInteractiveMixin.commandContributions.self`, so wherever the mixin
 composes the verb appears.
 

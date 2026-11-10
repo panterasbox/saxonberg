@@ -1,0 +1,22 @@
+# ⭐ Bare `press` READS — a shape of its own (controller-liquidity W7a,
+# D13: a bare form that reads is its own controller on the bare shape).
+# `press.yaml` holds the publishing forms; this view has no args, so
+# `press <anything>` shape-fails here and binds there, and bare `press`
+# shape-fails there (its headline is required) and binds here.
+#
+# ⚠ Anyone may read the news. It used to be gated with the publishing
+# forms, which made the news the one shipped surface a player could not
+# ask for — found by driving.
+verbs: [press]
+category: system
+controller: /platform/idea/cmd/system/PressReadController
+opens_card: news
+description: "Read the news ticker"
+help: |
+  Bare `press` reads the live ticker window — the releases every
+  connected player sees — and opens the news card. Publishing is
+  `press post <headline> --as <publisher>`; see `help press`.
+examples:
+  - cmd: press
+    note: Read the news
+validators: []

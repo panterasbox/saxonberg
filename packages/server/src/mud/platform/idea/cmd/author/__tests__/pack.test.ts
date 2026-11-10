@@ -13,6 +13,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PackStatusController from '../PackStatusController';
 import PackInstallController from '../PackInstallController';
 import PackSyncController from '../PackSyncController';
+import PackStaffController from '../PackStaffController';
 import PackProvisionController from '../PackProvisionController';
 import PackDiffController from '../PackDiffController';
 import PackResolveController from '../PackResolveController';
@@ -33,6 +34,7 @@ const CONTROLLERS: Record<string, () => PackControllerBase> = {
   status: () => new PackStatusController(),
   install: () => new PackInstallController(),
   sync: () => new PackSyncController(),
+  staff: () => new PackStaffController(),
   provision: () => new PackProvisionController(),
   diff: () => new PackDiffController(),
   resolve: () => new PackResolveController(),
@@ -144,25 +146,38 @@ describe('pack — one controller per subcommand', () => {
     expect(told.join('\n')).toContain('2 template row(s) under no pack: /obj/OldThing, /obj/Older');
   });
 
-  it('sync of an UNSTAFFED pack prompts the installer to staff it (enter = you); a staffed pack does not prompt', async () => {
+  it('⭐ sync of an UNSTAFFED pack names `pack staff` and asks nothing; a staffed pack says nothing', async () => {
     vi.spyOn(PackApi, 'orphans').mockResolvedValue([]);
     const sync = vi.spyOn(PackApi, 'sync').mockResolvedValue({ ...OK, staffed: false });
-    const text = promptTextFn;
     const staff = vi.spyOn(PackApi, 'staff').mockResolvedValue(true);
     await runAs({ subcommand: 'sync', packId: 'world-seed' });
     expect(sync).toHaveBeenCalledWith('world-seed');
-    expect(text).toHaveBeenCalledWith(expect.stringMatching(/no maintainers/));
-    expect(staff).toHaveBeenCalledWith('world-seed', '/platform/agent/Avatar/dev');
-    expect(told.join('\n')).toContain("/platform/agent/Avatar/dev now maintains pack 'world-seed'");
+    // ⚠ No prompt any more — its typed answer went in as a raw member
+    // path and never matched anybody (controller-liquidity W7b).
+    expect(promptTextFn).not.toHaveBeenCalled();
+    expect(staff).not.toHaveBeenCalled();
+    expect(told.join('\n')).toContain('pack staff world-seed');
 
-    text.mockResolvedValue('/platform/agent/Avatar/deputy');
-    await runAs({ subcommand: 'sync', packId: 'world-seed' });
-    expect(staff).toHaveBeenLastCalledWith('world-seed', '/platform/agent/Avatar/deputy');
-
+    told.length = 0;
     sync.mockResolvedValue({ ...OK, staffed: true });
-    text.mockClear();
     await runAs({ subcommand: 'sync', packId: 'world-seed' });
-    expect(text).not.toHaveBeenCalled();
+    expect(told.join('\n')).not.toContain('pack staff');
+  });
+
+  it('⭐ staff <packId> [<person>] adds the person — keyed on IDENTITY — or you', async () => {
+    const staff = vi.spyOn(PackApi, 'staff').mockResolvedValue(true);
+    await runAs({ subcommand: 'staff', packId: 'world-seed' });
+    expect(staff).toHaveBeenCalledWith('world-seed', '/platform/agent/Avatar/dev');
+    expect(told.join('\n')).toContain("You now maintain pack 'world-seed'");
+
+    const deputy = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/deputy');
+    deputy.setPlayerId('deputy');
+    await runAs({
+      subcommand: 'staff',
+      packId: 'world-seed',
+      person: { stuff: deputy },
+    } as PackArgs);
+    expect(staff).toHaveBeenLastCalledWith('world-seed', deputy.getIdentityPath());
   });
 
   it('provision <packId> → PackApi.provision; prints maintainers, groups and titles', async () => {

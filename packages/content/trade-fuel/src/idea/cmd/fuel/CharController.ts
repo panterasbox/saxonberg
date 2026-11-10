@@ -1,10 +1,13 @@
 /**
- * CharController — `char [<draught>]`, the burn.
+ * CharController — `char [at <clamp>]`, the burn.
  *
- * A **watched engagement over game time**: the collier sets the draught,
- * lights the clamp, and three days later breaks it open. Re-issuing `char`
- * while a burn is running RE-SETS the draught rather than starting a second
- * one — which is what watching a burn actually consists of.
+ * A **watched engagement over game time**: the collier lights the clamp
+ * and three days later breaks it open. The AIR is the kernel's device
+ * verb — `draught <clamp> <setting>` — which works the same vents on
+ * any fire; re-issuing `char` while a burn is running points there
+ * rather than starting a second burn. ⚠ `char <n>` set the draught as a
+ * figure and was the second act in this controller; it retired into
+ * `draught` (controller-liquidity W7b, D13 rung 1 → an existing verb).
  *
  * ⭐⭐ **The verb decides nothing about the charge** (ceramics ruling A).
  * It used to read the draught at completion against a threshold table and
@@ -48,7 +51,6 @@ const BRANDS = '/stuff/idea/material/organic/half-burnt-wood';
 interface CharModel extends CommandModel {
   /** ⭐ The clamp, resolved by the BINDER off the view's arg. */
   clamp?: MqlOneResult;
-  draught?: number;
 }
 
 export default class CharController extends CommandController<CharModel> {
@@ -61,11 +63,8 @@ export default class CharController extends CommandController<CharModel> {
       return;
     }
 
-    if (model.draught !== undefined) pit.setDraught(model.draught);
-
-    // ⭐ Re-issuing while a burn runs is ADJUSTING it, which is what
-    // watching a burn consists of. It is not a second burn and it is not
-    // an error.
+    // ⭐ Re-issuing while a burn runs is not a second burn and not an
+    // error: watching a burn is working its vents, and that is `draught`.
     if (
       MixinApi.isEngaged(giver) &&
       giver.getEngagements().some((e) => e.slots.has('attention'))
@@ -73,7 +72,7 @@ export default class CharController extends CommandController<CharModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`You work along the clamp, opening and stopping vents. The draught is ${pit.getDraught().toFixed(2)} now.`,
+          Mml.compose`The clamp is burning. Work its vents with draught — draught clamp low, draught clamp half.`,
         )
         .send();
       return;

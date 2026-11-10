@@ -185,7 +185,7 @@ equip-slate.md *(slate retired 2026-09-06 — fully absorbed)*.
 | `equip` | The whole kit, **innermost-first** |
 | `equip <X>` | `occupyAll` on `X.slotClaims[actor.bodyPlanPath]`, worn or held |
 | `equip <X> --from <box>` | Draw from a container in reach first |
-| `equip set <name>` / `--save` / `equip sets` | The wardrobe stanza |
+| `equip set <name>` / `equip set save <name>` / `equip sets` | The wardrobe stanza |
 | `unequip [<X>]` | Vacate claimed slots, **outermost-first** |
 | `wear <X>` / `remove <X>` | Precise: `requires: WearableMixin` |
 | `wield <X>` / `unwield <X>` | Precise: `requires: WieldableMixin` |

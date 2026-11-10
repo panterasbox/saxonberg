@@ -291,6 +291,8 @@ export default abstract class Avatar extends AvatarBase {
        * everyone opens nothing else.
        */
       "platform/cmd/system/press.yaml",
+      // ⭐ Bare `press` — the read — is a shape of its own (W7a).
+      "platform/cmd/system/press-read.yaml",
       "platform/cmd/system/clear.yaml",
       "platform/cmd/system/affordances.yaml",
       "platform/cmd/author/player.yaml",

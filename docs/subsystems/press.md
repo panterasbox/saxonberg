@@ -217,9 +217,12 @@ cached (reachable by id) and drop out of the window.
 
 ## Publishing — the `press` verb
 
-`cmd/system/press.yaml` + `platform/idea/cmd/system/PressController.ts`.
-Subcommands `post` / `edit <id>` / `retract <id>`, with bare
-`press <headline>` falling through to `post`.
+`cmd/system/press.yaml` + `cmd/system/press-read.yaml`, one controller per
+form over `PressControllerBase` (controller-liquidity W7a). Subcommands
+`post` / `edit <id>` / `retract <id>` (`PressPost`/`PressEdit`/
+`PressRetractController`), with bare `press <headline>` falling through to
+`post`; bare `press` alone is the read (`PressReadController`, its own
+no-arg shape in `press-read.yaml`, ungated, opens the `news` card).
 
 - `--as <organization>` — **required and never defaulted.** Which masthead
   something goes out under is the author's statement; picking one for them
@@ -228,7 +231,7 @@ Subcommands `post` / `edit <id>` / `retract <id>`, with bare
 - `--visibility` — narrows only.
 - `--kind` — `changelog | decision | event | notice | repost`.
 - `--source` — where a `repost`'s substance came from.
-- `--pin`, `--expires` (shell-style `2h` / `7d` / `1h30m`).
+- `--pin`, `--expires` (the view's `type: duration` — `2h` / `7d` / `1h30m`; a bare number is refused, a duration names its unit).
 - ⚠ **No `--realm`.** Derived.
 
 ### ⚠ `requiresPublisher`, and the break it fixes
@@ -419,7 +422,7 @@ publishes without being a news outlet at all.
 | `api/bulletin.ts` / `BulletinApi` | `api/press.ts` / `PressApi` |
 | `platform/idea/api/BulletinLogic.ts` @ `/platform/idea/api/bulletin` | `platform/idea/api/PressLogic.ts` @ `/platform/idea/api/press` |
 | `backend/BulletinRoutes.ts` | `backend/PressRoutes.ts` |
-| `cmd/system/bulletin.yaml` + `BulletinController` | `cmd/system/press.yaml` + `PressController` |
+| `cmd/system/bulletin.yaml` + `BulletinController` | `cmd/system/press.yaml` + the `Press*Controller`s |
 | `BulletinRow` / `BulletinFeedFrame` | `ReleaseRow` / `ReleaseFeedFrame` |
 | `ConnectionEstablishedPayload.bulletinWindow` | `.releaseWindow` |
 | Topic `publication.press` | `publication.press` |

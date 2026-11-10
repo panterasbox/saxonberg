@@ -243,6 +243,7 @@ subcommands:
         description: "Only loads that ended here."
       since:
         type: string
+        values: [season]
         description: "`season` — only the last quarter."
   traffic:
     description: "Which stretches of road your loads crossed most — counted off the bills"
@@ -263,6 +264,7 @@ subcommands:
     options:
       since:
         type: string
+        values: [season]
         description: "`season` — only the last quarter."
   price:
     description: "Set the house's ask for a good and its kind on the counter it operates"

@@ -80,7 +80,8 @@ export abstract class HouseFreightControllerBase extends CommandController<Freig
     const query: FreightQuery = {};
     if (model.from) query.from = model.from;
     if (model.to) query.to = model.to;
-    if (model.since === 'season') {
+    // `--since` is a `values:` option (only `season`), so its presence is the window.
+    if (model.since !== undefined) {
       query.sinceS = Math.max(0, WorldClockApi.getNow().rawValue() - SEASON_S);
     }
     return { house, registry, query };

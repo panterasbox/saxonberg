@@ -1,0 +1,53 @@
+/**
+ * StyleChannelController — `cockpit style channel <key> color <value>` and
+ * `cockpit style channel <key> clear`: a chat channel's overlay rules
+ * (over {@link StyleControllerBase}).
+ *
+ * ⚠ The one style form whose second word comes AFTER an argument, so the
+ * grammar cannot nest it (a stanza's words come before its args): `color`
+ * / `clear` is a `values:` slot and this controller writes or drops the
+ * channel's rules by it (controller-liquidity W7b; the typed form is
+ * unchanged, which the owner's read promised for `cockpit style`).
+ */
+
+import type { CommandContext } from '../../../../api/command';
+import { Mml } from '../../../../api/mml';
+import { StyleControllerBase, type StyleModel } from './StyleControllerBase';
+
+export default class StyleChannelController extends StyleControllerBase {
+  execute(model: StyleModel, context: CommandContext): void {
+    const host = this.hostOf(context);
+    const channelKey = model.key!;
+    const next = this.cloneOverlay(host);
+    const colorKey = `channel.${channelKey}.color`;
+    const plainKey = `plain.channel.${channelKey}`;
+    const value = model.value;
+    const clearing = model.action !== 'color';
+
+    if (clearing) {
+      delete next[colorKey];
+      delete next[plainKey];
+      this.commit(host, next);
+      this.send(
+        context,
+        Mml.fromMarkup(`\nchannel '${Mml.escape(channelKey)}' rules cleared\n`),
+      );
+      return;
+    }
+    if (!value) {
+      return this.fail(
+        context,
+        `usage: cockpit style channel ${channelKey} color <value>`,
+        'missing-arg',
+      );
+    }
+    next[colorKey] = value;
+    this.commit(host, next);
+    this.send(
+      context,
+      Mml.fromMarkup(
+        `\nchannel '${Mml.escape(channelKey)}' color set to ${Mml.escape(value)}\n`,
+      ),
+    );
+  }
+}

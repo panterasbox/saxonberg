@@ -70,17 +70,26 @@ subcommands:
         required: false
 
   layout:
-    controller: /platform/idea/cmd/shell/LayoutController
+    # ⭐ Nested stanzas (controller-liquidity W7b, D2). Bare `cockpit
+    # layout` reaches the recall with no name and lists; an unknown word
+    # is the arrangement name, by fallthrough.
+    controller: /platform/idea/cmd/shell/LayoutRecallController
     description: "Recall, save, list or forget a card arrangement in this mode."
+    fallthrough: true
     help: |
       A layout is a named arrangement of cards *inside* the mode you
       are in. Each mode ships at least one, and you can compose and
       name your own — so this is not a fixed menu.
 
         cockpit layout <name>         switch to an arrangement
+        cockpit layout recall <name>  the same, said outright
         cockpit layout list           what is available here
         cockpit layout save <name>    name the current arrangement
         cockpit layout forget <name>  drop one you saved
+
+      A layout you named `list` (or `save`, `forget`, `recall`) is
+      recalled with `cockpit layout recall list` — the control words
+      come first, so a name never hides one.
 
       Arrangements belong to a mode. If you ask for one that lives in
       a different mode, you'll be told which mode that is rather than
@@ -100,15 +109,39 @@ subcommands:
         note: Switch to the streamer arrangement (in watch mode)
       - cmd: cockpit layout save wide
         note: Name the current arrangement "wide"
+      - cmd: cockpit layout recall list
+        note: Recall an arrangement you named "list"
       - cmd: cockpit layout forget wide
         note: Drop a saved arrangement
     args:
       - name: name
         type: string
         required: false
-      - name: target
-        type: string
-        required: false
+    subcommands:
+      list:
+        controller: /platform/idea/cmd/shell/LayoutListController
+        description: "What arrangements this mode has, the active one starred"
+      save:
+        controller: /platform/idea/cmd/shell/LayoutSaveController
+        description: "Name the current arrangement"
+        args:
+          - name: name
+            type: string
+            required: true
+      forget:
+        controller: /platform/idea/cmd/shell/LayoutForgetController
+        description: "Drop an arrangement you saved"
+        args:
+          - name: name
+            type: string
+            required: true
+      recall:
+        controller: /platform/idea/cmd/shell/LayoutRecallController
+        description: "Switch to an arrangement (the same as `cockpit layout <name>`)"
+        args:
+          - name: name
+            type: string
+            required: true
 
   cli:
     controller: /platform/idea/cmd/shell/CliController
@@ -199,7 +232,10 @@ subcommands:
         required: false
 
   card:
-    controller: /platform/idea/cmd/shell/CockpitCardController
+    # ⭐ Nested stanzas (controller-liquidity W7b, D2): each action is a
+    # word the view knows, so an unknown one is refused by the binder,
+    # naming the actions. Bare `cockpit card` lists.
+    controller: /platform/idea/cmd/shell/CockpitCardListController
     description: "Keep, size, place, tray or close a card."
     help: |
       Every change to which cards are up, and where, is one of these —
@@ -234,22 +270,113 @@ subcommands:
         note: Grow the who card into the medium slot
       - cmd: cockpit card move who 1 0
         note: Place the who card at the top of the second column
-    args:
-      - name: action
-        type: string
-        required: false
-      - name: cardId
-        type: string
-        required: false
-      - name: col
-        type: number
-        required: false
-      - name: row
-        type: number
-        required: false
+    subcommands:
+      list:
+        controller: /platform/idea/cmd/shell/CockpitCardListController
+        description: "What is open: size, place, live"
+      pin:
+        controller: /platform/idea/cmd/shell/CockpitCardPinController
+        description: "Keep it (a pinned card stays live)"
+        args:
+          - name: cardId
+            type: string
+            required: true
+      unpin:
+        controller: /platform/idea/cmd/shell/CockpitCardUnpinController
+        description: "Let it age out again (= dismiss)"
+        args:
+          - name: cardId
+            type: string
+            required: true
+      dismiss:
+        controller: /platform/idea/cmd/shell/CockpitCardUnpinController
+        description: "Let it age out again (= unpin)"
+        args:
+          - name: cardId
+            type: string
+            required: true
+      auto:
+        controller: /platform/idea/cmd/shell/CockpitCardAutoController
+        description: "Hand the decision back to the catalogue"
+        args:
+          - name: cardId
+            type: string
+            required: true
+      close:
+        controller: /platform/idea/cmd/shell/CockpitCardArrangeController
+        description: "Close it now"
+        args:
+          - name: cardId
+            type: string
+            required: true
+      grow:
+        controller: /platform/idea/cmd/shell/CockpitCardArrangeController
+        description: "Tray → unit → medium → full"
+        args:
+          - name: cardId
+            type: string
+            required: true
+      shrink:
+        controller: /platform/idea/cmd/shell/CockpitCardArrangeController
+        description: "Full → medium → unit → tray"
+        args:
+          - name: cardId
+            type: string
+            required: true
+      maximize:
+        controller: /platform/idea/cmd/shell/CockpitCardArrangeController
+        description: "Straight to full"
+        args:
+          - name: cardId
+            type: string
+            required: true
+      minimize:
+        controller: /platform/idea/cmd/shell/CockpitCardArrangeController
+        description: "Put it in the tray"
+        args:
+          - name: cardId
+            type: string
+            required: true
+      restore:
+        controller: /platform/idea/cmd/shell/CockpitCardArrangeController
+        description: "Take it out of the tray (at unit)"
+        args:
+          - name: cardId
+            type: string
+            required: true
+      move:
+        controller: /platform/idea/cmd/shell/CockpitCardMoveController
+        description: "Place it at a column and row; the column's cards below shift down"
+        args:
+          - name: cardId
+            type: string
+            required: true
+          - name: col
+            type: number
+            required: true
+          - name: row
+            type: number
+            required: true
+      place:
+        controller: /platform/idea/cmd/shell/CockpitCardArrangeController
+        description: "Place it where it is"
+        args:
+          - name: cardId
+            type: string
+            required: true
+      unplace:
+        controller: /platform/idea/cmd/shell/CockpitCardArrangeController
+        description: "Let it flow again"
+        args:
+          - name: cardId
+            type: string
+            required: true
 
   shelf:
-    controller: /platform/idea/cmd/shell/CockpitShelfController
+    # ⭐ Nested stanzas (controller-liquidity W7b, D2). `row`'s `values:`
+    # IS `SHELF_ROW_IDS` in @saxonberg/types — a test pins the two
+    # together. Bare `cockpit shelf` lists.
+    controller: /platform/idea/cmd/shell/CockpitShelfListController
     description: "Choose which figures ride the top bar's widget shelf."
     help: |
       The shelf is the row of figures across your top bar. You choose
@@ -260,8 +387,8 @@ subcommands:
         cockpit shelf unpin <row>   take one off
         cockpit shelf first <row>   move it to the front
 
-      Rows: play, renown, skill, make, coin, status, time, online,
-      docket.
+      Rows: play, renown, skill, body, make, coin, status, time,
+      online, docket.
 
       The shelf has an order, and `first` is how you change it. On a
       narrow screen only the head of the shelf rides the bar — the rest
@@ -289,16 +416,40 @@ subcommands:
         note: Put it back, at the end
       - cmd: cockpit shelf first coin
         note: Move it to the front (pinning it there if it was off)
-    args:
-      - name: action
-        type: string
-        required: false
-      - name: row
-        type: string
-        required: false
+    subcommands:
+      list:
+        controller: /platform/idea/cmd/shell/CockpitShelfListController
+        description: "The whole catalogue, and what is pinned"
+      pin:
+        controller: /platform/idea/cmd/shell/CockpitShelfPinController
+        description: "Add a figure, at the end"
+        args:
+          - name: row
+            type: string
+            required: true
+            values: &shelfRows [play, renown, skill, body, make, coin, status, time, online, docket]
+      unpin:
+        controller: /platform/idea/cmd/shell/CockpitShelfUnpinController
+        description: "Take one off"
+        args:
+          - name: row
+            type: string
+            required: true
+            values: *shelfRows
+      first:
+        controller: /platform/idea/cmd/shell/CockpitShelfFirstController
+        description: "Move it to the front (pinning it there if it was off)"
+        args:
+          - name: row
+            type: string
+            required: true
+            values: *shelfRows
 
   style:
-    controller: /platform/idea/cmd/shell/StyleController
+    # ⭐ Nested stanzas (controller-liquidity W7b, D2); every closed word
+    # is a `values:` slot. `channel <key> color|clear` is the one form
+    # whose word follows an argument, so it is a slot, not a stanza.
+    controller: /platform/idea/cmd/shell/StyleShowController
     description: "Customize cockpit appearance: theme, per-channel color, plain mode, mention prefs."
     help: |
       Tune how the cockpit looks and reads. `cockpit style` collects
@@ -330,16 +481,72 @@ subcommands:
         note: Tint the gossip channel blue
       - cmd: cockpit style plain channel gossip on
         note: Drop just the gossip channel to plain text
-    args:
-      - name: styleSub
-        type: string
-        required: false
-      - name: a
-        type: string
-        required: false
-      - name: b
-        type: string
-        required: false
-      - name: c
-        type: string
-        required: false
+    subcommands:
+      show:
+        controller: /platform/idea/cmd/shell/StyleShowController
+        description: "Print the current overlay"
+      theme:
+        controller: /platform/idea/cmd/shell/StyleThemeController
+        description: "Switch the ground: ink | marble | high-contrast"
+        args:
+          - name: theme
+            type: string
+            required: true
+            values: [ink, marble, high-contrast]
+      channel:
+        controller: /platform/idea/cmd/shell/StyleChannelController
+        description: "Tint a channel (`color <value>`) or drop its rules (`clear`)"
+        args:
+          - name: key
+            type: string
+            required: true
+          - name: action
+            type: string
+            required: true
+            values: [color, clear]
+          - name: value
+            type: string
+            required: false
+      mention:
+        description: "Own-name highlight (`mention self on|off`)"
+        subcommands:
+          self:
+            controller: /platform/idea/cmd/shell/StyleMentionController
+            description: "Highlight your own name: on | off"
+            args:
+              - name: state
+                type: string
+                required: true
+                values: &onOff [on, off]
+      plain:
+        controller: /platform/idea/cmd/shell/StylePlainController
+        description: "Plain unstyled output: on | off (or `plain channel <key> on|off`)"
+        fallthrough: true
+        args:
+          - name: state
+            type: string
+            required: true
+            values: *onOff
+        subcommands:
+          channel:
+            controller: /platform/idea/cmd/shell/StylePlainChannelController
+            description: "One channel in plain mode: on | off"
+            args:
+              - name: key
+                type: string
+                required: true
+              - name: state
+                type: string
+                required: true
+                values: *onOff
+      links:
+        controller: /platform/idea/cmd/shell/StyleLinksController
+        description: "What a click names its target by: words | ids"
+        args:
+          - name: choice
+            type: string
+            required: true
+            values: [words, ids]
+      reset:
+        controller: /platform/idea/cmd/shell/StyleResetController
+        description: "Wipe the overlay back to defaults"

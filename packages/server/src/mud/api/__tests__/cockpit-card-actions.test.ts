@@ -1,12 +1,17 @@
 /**
  * `cockpit card <action>` (client-surface D8): each shape-and-place action
  * goes through the registry, echoes on `shell.control` tagged
- * `control:card`, and refuses by name.
+ * `control:card`, and refuses by name. One controller per nested stanza
+ * since controller-liquidity W7b; an unknown action is the view's refusal
+ * (asserted in `cockpit-verb.test.ts`).
  */
 
 import '../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import CockpitCardController from '../../platform/idea/cmd/shell/CockpitCardController';
+import CockpitCardPinController from '../../platform/idea/cmd/shell/CockpitCardPinController';
+import CockpitCardUnpinController from '../../platform/idea/cmd/shell/CockpitCardUnpinController';
+import CockpitCardArrangeController from '../../platform/idea/cmd/shell/CockpitCardArrangeController';
+import CockpitCardMoveController from '../../platform/idea/cmd/shell/CockpitCardMoveController';
 import { CardApi } from '../card';
 import { StuffApi } from '../stuff';
 import { EventApi } from '../event';
@@ -44,9 +49,25 @@ beforeEach(() => {
 });
 afterEach(() => vi.restoreAllMocks());
 
+/** The stanza's controller for an action word, as the view names it. */
+function controllerFor(action: string) {
+  switch (action) {
+    case 'pin':
+      return makeStuff(() => new CockpitCardPinController());
+    case 'unpin':
+    case 'dismiss':
+      return makeStuff(() => new CockpitCardUnpinController());
+    case 'move':
+      return makeStuff(() => new CockpitCardMoveController());
+    default:
+      return makeStuff(() => new CockpitCardArrangeController());
+  }
+}
+
 function run(h: Harness, model: Record<string, unknown>) {
   const ctx = makeContext(h, { commandText: 'cockpit card', verbs: ['cockpit'] });
-  makeStuff(() => new CockpitCardController()).execute(model as never, ctx);
+  const { action, ...rest } = model as { action: string };
+  controllerFor(action).execute({ ...rest, subcommand: action } as never, ctx);
   return ctx.getNotes();
 }
 
@@ -130,16 +151,14 @@ describe('cockpit card — shape and place', () => {
     expect(h.interactive.listCards()[0]!.pinned).toBe(false);
   });
 
-  it('refuses by name — a missing move position, a bad one, an unknown card', async () => {
+  it('refuses by name — a bad move position, an unknown card', async () => {
     const h = await makeHarness();
     openWho(h);
-    expect(run(h, { action: 'move', cardId: 'who' })[0]).toMatchObject({ reason: 'missing-arg' });
+    // The view requires both numbers; handed none, the registry refuses.
+    expect(run(h, { action: 'move', cardId: 'who' })[0]).toMatchObject({ reason: 'bad-position' });
     expect(run(h, { action: 'move', cardId: 'who', col: -1, row: 0 })[0]).toMatchObject({
       reason: 'bad-position',
     });
     expect(run(h, { action: 'grow', cardId: 'nope' })[0]).toMatchObject({ reason: 'unknown-card' });
-    expect(run(h, { action: 'fling', cardId: 'who' })[0]).toMatchObject({
-      reason: 'unknown-card-action',
-    });
   });
 });

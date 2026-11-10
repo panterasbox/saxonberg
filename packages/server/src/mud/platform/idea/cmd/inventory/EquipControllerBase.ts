@@ -54,7 +54,8 @@
  *   equip                      everything you carry, inside-out
  *   equip <thing>              one thing, worn or wielded
  *   equip <thing> --from <box> reach into a container you can see
- *   equip set <name>           a saved set   (`--save` to record one)
+ *   equip set <name>           a saved set
+ *   equip set save <name>      record what is on as a set
  *   equip sets                 list them
  *   wear <wearable>            precise: this goes ON
  *   wield <wieldable>          precise: this goes IN HAND
@@ -85,10 +86,8 @@ export interface EquipModel extends CommandModel {
   target?: MqlOneResult;
   /** `--from <container>`: the wardrobe, the chest, the pack. */
   from?: MqlOneResult;
-  /** `equip set <name>` / `equip sets`. */
+  /** `equip set <name>` / `equip set save <name>`. */
   name?: string;
-  /** `--save`: record what is on right now under `<name>`. */
-  save?: boolean;
 }
 
 /**

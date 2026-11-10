@@ -26,7 +26,7 @@ server instead of a demo URL param.
 | `StreamStateEnvelope` | `@saxonberg/types` | Dedicated wire frame (`{ type: 'stream-state', state }`). |
 | broadcast principal | `WebSocketService` + `Backend` + `Application` | `?broadcast=<token>` upgrade path; a pure push target. |
 | `requiresStreamer` / `streamers` | `lib/command/validators` + `AccessRegistry` | Authorization axis for the control plane. |
-| `stream` verb | `cmd/stream/` + `StreamController` | `stream away <dur>` / `stream back`. |
+| `stream` verb | `cmd/stream/` + `StreamAwayController` / `StreamBackController` | `stream away <dur>` / `stream back`. |
 
 ## The read-only broadcast principal
 
@@ -139,12 +139,13 @@ additive + idempotent (never removes), deploy-time config alongside
 
 ## The `stream` verb
 
-`cmd/stream/stream.yaml` + `StreamController` — one verb, two
-subcommands (the `chat`/`alias` subcommand-dispatch shape):
+`cmd/stream/stream.yaml` — one verb, two subcommands, one controller
+each over `StreamControllerBase` (controller-liquidity W7a):
 
 - `stream away <duration>` — enter standby; the overlay counts down to
-  `now + duration`. Duration is shell-style (`15m`, `1h30m`, `90s`; a
-  bare number is minutes).
+  `now + duration`. The duration is the view's `type: duration`
+  (`15m`, `1h30m`, `90s`, `2 hours`); a bare number is refused — a
+  duration names its unit.
 - `stream back` — clear standby, go live.
 
 **Affordance vs authorization split:** the verb rides `AuthorMixin`'s

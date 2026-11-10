@@ -1,0 +1,37 @@
+# `draught <fire> <setting>` — the same act as draught-set.yaml with the
+# fire named first (controller-liquidity W7b; the owner's read names this
+# form: `draught <clamp> <setting>`). ⚠ Tried BEFORE draught-set.yaml:
+# a `values:` slot refuses rather than falling through, so the shape
+# whose first word may be a fire has to be asked first — `draught low`
+# shape-fails here (no setting after the fire) and binds there.
+verbs: [draught]
+category: device
+controller: /platform/idea/cmd/device/DraughtSetController
+description: "Set a named fire's air: draught <fire> <setting>"
+help: |
+  `draught <fire> <setting>` — `draught clamp low`, `draught forge
+  wide`. The settings are `wide` (or `open`), `half`, `low` and
+  `banked`; anything else is refused with the five.
+examples:
+  - cmd: draught clamp low
+    note: Choke the clamp's vents down
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ `prepositions` without `prepositionRequired`: the fire binds bare
+  # (`draught forge low`) or after its word (`draught low at forge`), so
+  # the second line does not reach the setting slot as `at`.
+  - name: fire
+    type: object
+    required: true
+    prepositions: [on, at, in]
+    scope: ["here", "peers", "person"]
+    default: "reachable:[mixin.BurnerMixin]"
+    requires: BurnerMixin
+    validators:
+      - /lib/command/validators/canReach
+  - name: setting
+    type: string
+    required: true
+    values: [wide, open, half, low, banked]

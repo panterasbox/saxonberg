@@ -485,6 +485,11 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
         'platform/cmd/device/light.yaml',
         'platform/cmd/device/douse.yaml',
         'platform/cmd/device/stoke.yaml',
+        // ⭐ `draught`'s three shapes, in the order the chain must try
+        // them (controller-liquidity W7b): the fire-first set refuses a
+        // bad setting rather than falling through, so it goes first.
+        'platform/cmd/device/draught-fire.yaml',
+        'platform/cmd/device/draught-set.yaml',
         'platform/cmd/device/draught.yaml',
         'platform/cmd/device/cover.yaml',
       ],
@@ -492,6 +497,8 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
         'platform/cmd/device/light.yaml',
         'platform/cmd/device/douse.yaml',
         'platform/cmd/device/stoke.yaml',
+        'platform/cmd/device/draught-fire.yaml',
+        'platform/cmd/device/draught-set.yaml',
         'platform/cmd/device/draught.yaml',
         'platform/cmd/device/cover.yaml',
         'platform/cmd/device/pump.yaml',

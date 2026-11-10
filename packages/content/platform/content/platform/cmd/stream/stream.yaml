@@ -1,6 +1,5 @@
 verbs: [stream]
 category: stream
-controller: /platform/idea/cmd/stream/StreamController
 description: "Drive the livestream overlay (standby countdown / go live)"
 help: |
   Control what the livestream overlay shows to viewers watching the
@@ -15,22 +14,25 @@ validators:
   - /lib/command/validators/requiresStreamer
 subcommands:
   away:
+    controller: /platform/idea/cmd/stream/StreamAwayController
     description: "Enter standby with a countdown (e.g. `stream away 15m`)"
     help: |
       Put the overlay into standby and start a countdown to when you
       expect to be back. Viewers see a "back soon" screen ticking down
       instead of a frozen feed.
 
-      The duration is shell-style: `15m`, `1h`, `1h30m`, or `90s`. A
-      bare number is read as minutes, so `away 10` means ten minutes.
+      The duration names its unit: `15m`, `1h`, `1h30m`, `90s`, or
+      `2 hours`. A bare number is refused — `away 10` could be seconds
+      or minutes, so write `away 10m`.
     examples:
       - cmd: stream away 1h30m
         note: Set a longer standby of an hour and a half
     args:
       - name: duration
-        type: string
+        type: duration
         required: true
   back:
+    controller: /platform/idea/cmd/stream/StreamBackController
     description: "Clear standby and go live"
     help: |
       Clear the standby screen and return the overlay to live. Reach

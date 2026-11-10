@@ -37,7 +37,7 @@ help: |
   `equip <thing> --from <container>` reaches into a chest or a wardrobe
   you can see, so getting dressed at home is one command and not six.
 
-  `equip set <name>` puts on a set you saved; `equip set <name> --save`
+  `equip set <name>` puts on a set you saved; `equip set save <name>`
   records what you have on right now; `equip sets` lists them. A set is
   worth having mostly for the wardrobe — anything it names that you no
   longer own is simply reported as missed.
@@ -62,16 +62,24 @@ options:
 fallthrough: true
 subcommands:
   set:
+    # ⭐ The first nested subcommand (controller-liquidity W7b, D2):
+    # `equip set save <name>` records; any other word is the set to wear,
+    # by fallthrough. It was `equip set <name> --save`.
     controller: /platform/idea/cmd/inventory/EquipSetController
-    description: "Put on a saved set (`--save` to record what you have on)"
+    description: "Put on a saved set (`equip set save <name>` records what you have on)"
+    fallthrough: true
     args:
       - name: name
         type: string
         required: true
-    options:
+    subcommands:
       save:
-        type: boolean
-        description: "Save what you are wearing right now under <name>"
+        controller: /platform/idea/cmd/inventory/EquipSetSaveController
+        description: "Save what you are wearing right now as a set"
+        args:
+          - name: name
+            type: string
+            required: true
   sets:
     controller: /platform/idea/cmd/inventory/EquipSetsController
     description: "List your saved sets"

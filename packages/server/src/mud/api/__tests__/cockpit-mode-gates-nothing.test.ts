@@ -89,7 +89,10 @@ const MODE_READERS_ALLOWED = [
   'lib/connection/SaxonbergClient.ts',
   'platform/idea/cmd/shell/CockpitController.ts',
   'platform/idea/cmd/shell/CockpitModeController.ts',
-  'platform/idea/cmd/shell/LayoutController.ts',
+  'platform/idea/cmd/shell/LayoutListController.ts',
+  'platform/idea/cmd/shell/LayoutRecallController.ts',
+  'platform/idea/cmd/shell/LayoutSaveController.ts',
+  'platform/idea/cmd/shell/LayoutForgetController.ts',
 ];
 
 class TestLocation extends ContainerMixin(NamedMixin(PerceptibleMixin(Idea))) {}

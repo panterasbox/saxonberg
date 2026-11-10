@@ -215,7 +215,7 @@ has to be survivable and readable, and that starts here.
 
 ### ⚠ It is a STANZA, not a verb
 
-`equip set <name>` (with `--save`) and `equip sets` are `subcommands:`
+`equip set <name>` (with the nested `equip set save <name>`) and `equip sets` are `subcommands:`
 on `cmd/inventory/equip.yaml`, alongside its existing `args:` — the
 `measure strike` precedent, second instance. `fallthrough: true` is what
 keeps bare `equip <item>` working once the verb has subcommands: an

@@ -26,7 +26,7 @@
  *     (`fuelEnergyJ / burnPowerW`), which is the whole claim.
  *   - AC 5's middle — *bank it and come back* is twenty times the
  *     duration by construction. The ratio is asserted in
- *     `DraughtController.test.ts`; what this file can see is that the
+ *     `draught.test.ts`; what this file can see is that the
  *     fire is still lit and its draught is at the floor.
  *   - AC 12's *burns until doused or empty* — a lamp's 16 game hours.
  *     `Lamp.test.ts` walks it in game-hour steps.

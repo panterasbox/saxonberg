@@ -11,6 +11,7 @@ import "../../../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import WearController from '../WearController';
 import EquipSetController from '../EquipSetController';
+import EquipSetSaveController from '../EquipSetSaveController';
 import EquipSetsController from '../EquipSetsController';
 import { WearableMixin } from '../../../../../lib/slot/Wearable';
 import { SlottableMixin } from '../../../../../lib/slot/Slottable';
@@ -382,18 +383,22 @@ describe('the wardrobe stanza — getting dressed is one command', () => {
     const ctx = context(body, location);
     const sub = (model as { subcommand?: string }).subcommand;
     await makeStuff(() =>
-      sub === 'sets' ? new EquipSetsController() : new EquipSetController(),
+      sub === 'sets'
+        ? new EquipSetsController()
+        : sub === 'save'
+          ? new EquipSetSaveController()
+          : new EquipSetController(),
     ).execute(model as never, ctx);
     await settle();
     return ctx;
   }
 
-  it('⭐ `--save` captures the worn stack in WEAR ORDER (innermost first)', async () => {
+  it('⭐ `equip set save` captures the worn stack in WEAR ORDER (innermost first)', async () => {
     const { body, location, shirt, coat } = dressed();
     body.occupyAll(shirt, ['torso']);
     body.occupyAll(coat, ['torso']);
 
-    await run(body, location, { subcommand: 'set', name: 'daily', save: true });
+    await run(body, location, { subcommand: 'save', name: 'daily' });
     // Worn shirt-then-coat, so the saved order is shirt-then-coat —
     // which is exactly the order a replay must dress in.
     expect(body.getWardrobe('daily')).toEqual(['shirt', 'coat']);
@@ -436,12 +441,11 @@ describe('the wardrobe stanza — getting dressed is one command', () => {
     expect(rejection?.reason).toBe('unknown-set');
   });
 
-  it('`--save` with nothing on refuses rather than saving an empty set', async () => {
+  it('`equip set save` with nothing on refuses rather than saving an empty set', async () => {
     const { body, location } = dressed();
     const ctx = await run(body, location, {
-      subcommand: 'set',
+      subcommand: 'save',
       name: 'empty',
-      save: true,
     });
     const rejection = ctx
       .getNotes()

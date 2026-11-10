@@ -99,11 +99,11 @@ new player's first impression should not be six dead boxes. They are one
 discovers them — which is why `list` prints the whole catalogue rather
 than only what is pinned.
 
-Mirrors `cockpit card` in every respect — `list` / verb / `<id>`, two
-positional slots (`action`, `row`) dispatched in the controller, and a
-refusal in the machine voice naming the known set. Four artifacts: a
-YAML `subcommands:` block, `CockpitShelfController`, a two-line seed,
-and a `clientStateSchema` entry.
+Mirrors `cockpit card` in every respect — nested stanzas `list` / `pin` /
+`unpin` / `first`, one controller each over `CockpitShelfControllerBase`
+(controller-liquidity W7b), and `row` a `values:` slot equal to
+`SHELF_ROW_IDS` (a test pins the two together), so the binder refuses an
+unknown action or row naming the known set before any controller runs.
 
 ⚠ **Pinning is a command and not a client toggle**, which is the whole
 reason it is here at all. The status bar shipped in the same build
@@ -124,27 +124,30 @@ build exists to eliminate. Modelling it server-side would mean the
 server holding a second source of truth for something only one side
 observes.
 
-⭐ Identity and connection refuse as *unknown shelf row*, because they
-are **not rows** — a stronger guarantee than a protection rule.
+⭐ Identity and connection are refused by the binder (not one of the
+row `values:`), because they are **not rows** — a stronger guarantee than
+a protection rule.
 
-### ⚠ The style tree rides positionals, not nested subcommands
+### ⭐ `card`, `shelf`, `layout` and `style` nest (controller-liquidity W7b)
 
-`cockpit style theme high-contrast` looks like a subcommand of a
-subcommand. It is not, and cannot be: `SubcommandDefinition` has no
-`subcommands` field — **subcommands are one level deep framework-wide**,
-and nesting them would be a change to the dispatch chain.
+`cockpit style theme high-contrast` is a subcommand of a subcommand, and
+since controller-liquidity D2 the grammar says so: `SubcommandDefinition`
+recurses, `model.subcommand` is the leaf and `model.subcommandPath` the
+walk, and each stanza names its own controller (`StyleThemeController`,
+`LayoutSaveController`, `CockpitCardMoveController`, …) over a base per
+noun. Every closed word — themes, `on|off`, `words|ids`, shelf rows — is a
+`values:` slot, so an unknown setting, action or value is the binder's
+`unknown-subcommand` / `bind` refusal, naming the set, and never reaches a
+controller (the old explicit `default:` refusals are gone with the
+positional `styleSub`/`a`/`b`/`c` and `action` slots).
 
-So the style settings ride generic positional slots (`styleSub` / `a` /
-`b` / `c`) and `StyleController` dispatches on them — the same shape
-`style channel <key> color|clear` already used for its own third level.
-The player-facing syntax is unchanged.
-
-⚠ **The cost, and the reason `StyleController` has an explicit
-`default:`** — an unknown setting no longer reaches the matcher's
-`unknown-subcommand` refusal, because `cockpit style` *is* the
-subcommand. Without that default, `cockpit style bogus` would fall out
-of the switch and the command would silently succeed while doing
-nothing, which is a worse failure than an error.
+Two shapes the nesting could not take, recorded: `cockpit style channel
+<key> color|clear` puts its word AFTER an argument, so `color|clear` is a
+`values:` slot on one `StyleChannelController`; and bare `cockpit layout`
+reaches the recall stanza with no name and lists. `cockpit layout <name>`
+still recalls by fallthrough, and a layout NAMED `list` (or `save`,
+`forget`, `recall`) is recalled with `cockpit layout recall list` — the
+dead end where such a layout could be saved and never recalled is gone.
 
 ### ⭐ The input-mode exemption is now a rule
 
@@ -330,8 +333,8 @@ See [card-surface.md](./card-surface.md) for the card set itself.
 The cockpit's half is the verb: `cockpit card <action> <card>`, where the
 action is one of `list` · `pin` · `unpin` · `dismiss` · `auto` · `close` ·
 `grow` · `shrink` · `minimize` · `restore` · `move <col> <row>` · `place` ·
-`unplace` (client-surface D8). The pin actions are `CockpitCardController`'s
-own; every shape-and-place action goes through `Interactive.arrangeCard`
+`unplace` (client-surface D8), each a nested stanza. The pin actions are
+`CockpitCardPin`/`Unpin`/`AutoController`'s; every shape-and-place action goes through `Interactive.arrangeCard`
 → `CardRegistry.arrange`, echoes on `shell.control` tagged
 `control:card`, and pushes a `card-arranged` for each card it moved.
 Refusals are named: `unknown-card`, `primary-terminal` (the primary

@@ -2962,6 +2962,16 @@ function bindPositionalsImpl(
   const typedWords = positionals;
   let pi = 0;
   /**
+   * ⭐ A typed word that does not read (a `values:` word out of its set, a
+   * number that is not one) is the VIEW's refusal — but only once the
+   * line's SHAPE fits this view (controller-liquidity W7b). It is held
+   * here and said at the end, so a missing slot or a leftover word still
+   * moves the chain on to the next shape: `draught low at forge` is not
+   * `draught <fire> <setting>` with the setting `at`; it is the next view's
+   * `draught <setting> at <fire>`.
+   */
+  let unread: { error: 'bind'; summary: string } | undefined;
+  /**
    * ⭐ A typed slot's value (controller-liquidity D1): a `number` or
    * `duration` is coerced, a `values:` word canonicalized — the same
    * coercion an option gets. Everything else binds as typed.
@@ -3313,8 +3323,8 @@ function bindPositionalsImpl(
       }
       const { text, width } = tokenText();
       const c = typed(def, expand(text));
-      if (!c.ok) return { error: 'bind', summary: `${name}: ${c.error}` };
-      bound[name] = c.value;
+      if (!c.ok) unread ??= { error: 'bind', summary: `${name}: ${c.error}` };
+      bound[name] = c.ok ? c.value : text;
       pi += width;
       continue;
     }
@@ -3333,8 +3343,10 @@ function bindPositionalsImpl(
         bound[name] = c.value;
         pi += width;
       } else if (def.values !== undefined && def.values.length > 0) {
-        // A closed word set refuses, naming the set.
-        return { error: 'bind', summary: `${name}: ${c.error}` };
+        // A closed word set refuses, naming the set — once the shape fits.
+        unread ??= { error: 'bind', summary: `${name}: ${c.error}` };
+        bound[name] = text;
+        pi += width;
       } else if (def.default !== undefined) {
         // ⭐ An optional NUMBER that is not one leaves the word for the
         // next slot (`mill wheat at quern` — the extraction is not given).
@@ -3359,6 +3371,7 @@ function bindPositionalsImpl(
         : {}),
     };
   }
+  if (unread !== undefined) return unread;
 
   return { bound, prep };
 }

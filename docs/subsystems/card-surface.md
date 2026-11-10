@@ -294,7 +294,7 @@ given card holds a subscription is per instance, above):
 |---|---|---|---|---|---|
 | `subject` | mql `$subject`, `detail` | **✓** | ✗ | `look <subject>` | `look`'s / `sense`'s body |
 | `who` | payload `roster` | ✗ | ✗ | `who` | `WhoController` |
-| `news` | payload `releases` | ✗ | ✗ | `press` | `PressController` |
+| `news` | payload `releases` | ✗ | ✗ | `press` | `PressReadController` |
 | `wiki` | payload `wikiPage` | ✗ | ✗ | `wiki <slug>` | the page read |
 | `help` | payload `helpTopic` | ✗ | ✗ | `help <topic>` | the topic read |
 | `prompt` | prompt | ✗ | ✓ | `prompt <promptId>` | `noProse` |

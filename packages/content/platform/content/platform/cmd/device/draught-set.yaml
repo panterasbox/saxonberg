@@ -1,0 +1,34 @@
+# `draught <setting> [at <fire>]` — set a fire's air (controller-liquidity
+# W7b; one of draught's three shapes — see draught.yaml). The setting
+# comes first, so the fire needs its preposition.
+verbs: [draught]
+category: device
+controller: /platform/idea/cmd/device/DraughtSetController
+description: "Set how much air a fire draws: wide, open, half, low or banked"
+help: |
+  `draught <setting>` sets the fire's air — `wide` (or `open`), `half`,
+  `low` or `banked`. Name the fire after `at` when there is more than
+  one: `draught wide at forge`.
+examples:
+  - cmd: draught wide
+    note: Open the vents — hotter, cleaner, dimmer
+  - cmd: draught banked at forge
+    note: Bank the forge down under its ash
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: setting
+    type: string
+    required: true
+    values: [wide, open, half, low, banked]
+  - name: fire
+    type: object
+    required: false
+    prepositions: [on, at, in]
+    prepositionRequired: true
+    scope: ["here", "peers", "person"]
+    default: "reachable:[mixin.BurnerMixin]"
+    requires: BurnerMixin
+    validators:
+      - /lib/command/validators/canReach
