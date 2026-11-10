@@ -173,7 +173,7 @@ Otherwise the first quay with room is written into the book and she is
 told the course to it. A ship already made fast is told she lies there.
 Nothing is rolled. Nothing but the clock and the book changes the answer.
 
-**A player keeper** (`berth <ship> at <quay>`, `berth <ship> roads`, at the
+**A player keeper** (`berth <ship> at <quay>`, `berth roads <ship>`, at the
 book, in the transport pack's `harbor` command category) has exactly the
 NPC's authority and no more. `Harbor.keptBy` (holds the seat, on shift)
 is checked before anything is looked up: *"You do not keep this harbor."*
@@ -336,7 +336,7 @@ have **sunk** a neglected smack rather than settling her on the mud.
 | `hail office` | `Helm`/`Boat` (the shipped `hail`) | asks the office for a berth |
 | `course <quay>` | the helm | comes in and makes fast (admitted first) |
 | `go <her>` / `go ashore` | `BerthExit` on the quay / `AshoreExit` on her deck | aboard and ashore ([ship.md](./ship.md)) |
-| `berth <ship> at <quay>` / `berth <ship> roads` | `HarborBook` (peers), transport `harbor` category | the keeper's call |
+| `berth <ship> at <quay>` / `berth roads <ship>` | `HarborBook` (peers), transport `harbor` category | the keeper's call |
 | `pay office` / `pay book` | `HarborOffice` / `HarborBook` (`Payable`) | pays every bill you answer for |
 | `charter [<ship>]` | `CharterBook` (peers) | hires the whole ship until she next berths at a kept quay |
 | `look book` | — | the berth book's page |
@@ -347,7 +347,7 @@ have **sunk** a neglected smack rather than settling her on the mud.
 - Transport pack (`packages/content/transport/`):
   `src/idea/Harbor.ts`, `src/thing/HarborBook.ts`,
   `src/location/HarborQuay.ts`, `src/location/HarborOffice.ts`,
-  `src/idea/cmd/harbor/BerthController.ts`,
+  `src/idea/cmd/harbor/BerthAtController.ts` + `BerthRoadsController.ts` (over `BerthControllerBase`),
   `content/system/transport/cmd/harbor/berth.yaml`; tests
   `src/__tests__/Harbor.test.ts`.
 - Kernel (`packages/server/src/mud/`): `lib/expanse/Berthing.ts`,

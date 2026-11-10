@@ -29,11 +29,13 @@ class TestGiver extends ContainerMixin(
   ContainableMixin(FocusedMixin(CommandGiverMixin(NamedMixin(PerceptibleMixin(Idea))))),
 ) {}
 
+/** A platform view by its `cmd/` path, or any pack's by `<pack>:<path under content/>`. */
 function view(rel: string): CommandDefinition {
+  const [pack, file] = rel.includes(':') ? rel.split(':') : ['platform', `platform/cmd/${rel}`];
   const path = fileURLToPath(
-    new URL(`../../../../../content/platform/content/platform/cmd/${rel}`, import.meta.url),
+    new URL(`../../../../../content/${pack}/content/${file}`, import.meta.url),
   );
-  return CommandDefinition.fromYaml(readFileSync(path, 'utf8'), `platform/cmd/${rel}`);
+  return CommandDefinition.fromYaml(readFileSync(path, 'utf8'), file!);
 }
 
 /** The file the line lands on, or `null` when every view refuses it. */
@@ -110,6 +112,16 @@ describe('notify — every act is a word (W7b)', () => {
     '%s is refused',
     (line) => {
       expect(landsOn(NOTIFY, line)).toBeNull();
+    },
+  );
+});
+
+describe('berth — a quay is the fallthrough, the roads a word (W7b)', () => {
+  const BERTH = ['transport:system/transport/cmd/harbor/berth.yaml'];
+  it.each(['berth kittiwake at town quay', 'berth roads corrigan', 'berth roads corrigan in book'])(
+    '%s binds',
+    (line) => {
+      expect(landsOn(BERTH, line)).toBe(BERTH[0]);
     },
   );
 });
