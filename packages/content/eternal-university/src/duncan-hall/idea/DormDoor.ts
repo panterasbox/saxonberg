@@ -7,40 +7,25 @@
  * destination template is `DORMROOM_TEMPLATE`, so `look`/a map describe it
  * without conjuring the room), with the room faulted in on traversal via
  * `computeDestination` → `DormWarren.admit(unitKey)` (cached by the base). The
- * load-bearing behavior is "**the door
- * opens for whoever holds the key**": it is locked with the unit's `keyway`
- * (a `pin-tumbler` `Lock`), and `canTraverse` admits any mover who presents a
- * matching key — a carried physical `Key` or an implant-keychain entry, found
- * by `CredentialApi.presentsKey` (a **synchronous** reachable-wallet scan, run before
- * `resolveDestination`). The keyway is read off the warren's sync
- * `keywayOf(unitKey)` cache (refreshed from the durable parcel keyway); an
- * unkeyed unit (empty keyway) is locked to everyone. Access is bearer
- * (transferable — lend your key); the lease is the authority that *issues*
- * the key at provisioning, and move-out **re-keys** so the old key is dead
- * metal.
- *
- * (v1: the door stays an `Exit` with a lock, not a `SealableMixin(Boundary)`
- * fixture; the physical `open <door>` / manual `lock`/`unlock` verbs +
- * auto-close-behind are deferred. A follower can't tail a holder through —
- * traversal is gated per-mover, so a keyless mover is blocked even if they
- * follow.)
+ * door in the way is NOT this exit's (boundary build, D6): the warren hangs
+ * ONE door (`thing/dorm-door`, `CirculationWarren.hangEntryDoor`) whose
+ * sides are this edge and the room's `out` — bolted, keyed to the unit's
+ * parcel keyway (re-stamped when the warren's keyway cache rebuilds, so a
+ * move-out re-key makes the old key dead metal), free from inside. A key
+ * that fits passes without unlocking (`Exit.canTraverse`); a student can
+ * `unlock` their door and leave it open for a friend; `open`/`close`/`lock`
+ * act on the one door from either side.
  */
 
 import DeferredDestinationExit from '@saxonberg/server/mud/lib/boundary/DeferredDestinationExit';
-import { type TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import { LockableMixin } from '@saxonberg/server/mud/lib/boundary/Lockable';
-import { Lock } from '@saxonberg/server/mud/lib/lock/Lock';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import DormWarren from './DormWarren';
 
-export default class DormDoor extends LockableMixin(DeferredDestinationExit) {
-  /** The unit parcel extent this door fronts (the D1 key + lease key). */
+export default class DormDoor extends DeferredDestinationExit {
   private unitKey = '';
 
-  /** ⭐ What the constructor used to take, as a set-once step. */
   public configureUnit(unitKey: string): void {
     this.unitKey = unitKey;
   }
@@ -49,53 +34,8 @@ export default class DormDoor extends LockableMixin(DeferredDestinationExit) {
     return this.unitKey;
   }
 
-  /** Materialize (or re-materialize) the unit's room. */
   protected override async computeDestination(): Promise<Stuff & Container> {
     const warren = await StuffApi.singleton<DormWarren>(DormWarren.WARREN_PATH);
     return warren.admit(this.unitKey);
-  }
-
-  /**
-   * The key gate: the door opens for whoever presents a KEY matching its lock
-   * (bearer possession — a physical key or an implant-keychain entry, found by
-   * the sync reachable-wallet scan), and blocks everyone else. The lock's
-   * keyway is a sync lookup off the warren's keyway cache; an empty keyway is
-   * an unprovisioned/re-keyed unit no key opens. A master key (a super's ring)
-   * passes via the same check.
-   */
-  /** ⭐ A dorm room door starts BOLTED — as it always was. */
-  protected override boltedByDefault(): boolean {
-    return true;
-  }
-
-  /**
-   * ⭐⭐ `LockableMixin`'s policy seam: the keyway is the WARREN's cache
-   * for this unit, so a re-key reaches every door of the room at once.
-   */
-  public override getLock(): Lock {
-    const keyway =
-      StuffApi.findByTemplatePath<DormWarren>(
-        DormWarren.WARREN_PATH,
-      )?.keywayOf(this.unitKey) ?? '';
-    return new Lock(keyway, DormWarren.DORM_LOCK_TECH);
-  }
-
-  public override async canTraverse(
-    mover: Stuff & Containable,
-    mode?: string,
-  ): Promise<TraversalGuard> {
-    // ⭐⭐ The bolt refuses, the key excuses — and a student can now
-    // `unlock` their own door and leave it open for a friend, which the
-    // keyway-only model had no way to say.
-    if (this.isLocked() && !this.opensFor(mover)) {
-      return {
-        ok: false,
-        gate: 'door',
-        reason: this.getLock().keyway
-          ? "Your key doesn't fit this lock."
-          : 'The door is locked.',
-      };
-    }
-    return await super.canTraverse(mover, mode);
   }
 }

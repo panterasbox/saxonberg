@@ -160,7 +160,7 @@ describe('OpenController / CloseController / doors integration', () => {
     door = await StuffApi.create(() => new Door());
     door.setShortDescription('heavy oak door');
     door.setKeywords(['oak']);
-    await locA.addBidirectionalExit(locB, 'north', { door });
+    await locA.addBidirectionalExit(locB, 'north', { boundary: door });
 
     avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');

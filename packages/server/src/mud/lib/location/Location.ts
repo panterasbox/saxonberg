@@ -31,6 +31,8 @@ import { MixinApi } from '../../api/mixin';
 import { Quantity } from '../quantity';
 import type CartesianZone from '../../platform/idea/location/CartesianZone';
 import type Exit from '../boundary/Exit';
+import type { Boundary } from '../boundary/Boundary';
+import type { Container } from '../spatial/Container';
 import type { Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
 
@@ -258,6 +260,57 @@ export default class Location extends LocationBase {
       return true;
     }
     return false;
+  }
+
+  /**
+   * ⭐⭐ **The edge rules** (boundary build, D8): inside one zone every room is
+   * one cell, so every shared face is the same size — and a boundary (a
+   * door, a window, a curtain) standing in a way must be true to that grid.
+   * The far place is the ADJACENT cell that way, the far side's way back is
+   * the OPPOSITE direction, and the opening is no larger than the face.
+   * Across zones (or between a holding's own frame and another) a way is a
+   * threshold: the two grids do not share a face, and nothing is checked.
+   *
+   * Returns the reason, or null. ⚠ Only when both places stand plotted:
+   * a place with no coords is not on the grid, so there is nothing to be
+   * true to. `lint:locations` checks the same three rules from the rows.
+   *
+   * @hook
+   */
+  public override edgeRefusal(
+    direction: string,
+    far: Stuff & Container,
+    boundary: Boundary,
+  ): string | null {
+    const here = this as unknown as Stuff;
+    const zone = here.getZone();
+    if (zone === null || far.getZone() !== zone) return null;
+    if (this.holdingFrameOf(here) !== this.holdingFrameOf(far)) return null;
+    const a = this.getCoords();
+    const b = far instanceof Location ? far.getCoords() : null;
+    if (a === null || b === null) return null;
+    const off = NavigationApi.directionOffset(direction);
+    if (!off) {
+      return `'${direction}' is not a side of a cell — a way with a door inside one zone runs north, south, east, west, up or down`;
+    }
+    if (b.x !== a.x + off[0] || b.y !== a.y + off[1] || b.z !== a.z + off[2]) {
+      return `the far place is not the cell ${direction} of here — a door joins adjacent cells`;
+    }
+    const back = NavigationApi.invertDirection(direction);
+    if (MixinApi.isExitable(far)) {
+      for (const [dir, x] of far.getExits()) {
+        if (x.getBoundary() !== boundary) continue;
+        if (dir !== back) {
+          return `the far side names it '${dir}', and the way back must be '${back}' — the two sides are opposite`;
+        }
+      }
+    }
+    const face = this.getLinearExtent();
+    const opening = boundary.getOpening();
+    if (face !== null && (opening.width > face || opening.height > face)) {
+      return `its opening (${opening.width} × ${opening.height} m) is larger than the ${face} m face it stands in — a smaller opening, or a threshold to another zone`;
+    }
+    return null;
   }
 
   /**

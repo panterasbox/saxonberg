@@ -104,7 +104,7 @@ describe('gatherAudience — outward push walk', () => {
     const door = await StuffApi.create(() => new Door());
     door.setShortDescription('oak door');
     door.setOpen(false);
-    await a.addBidirectionalExit(b, 'north', { door });
+    await a.addBidirectionalExit(b, 'north', { boundary: door });
     const earA = earIn(a);
     const earB = earIn(b);
 

@@ -16,7 +16,7 @@ import {
   makeStuff,
   seedKernelContentStore,
 } from '../../lib/security/__tests__/test-setup';
-import type { LightConduit, LineOfSight, MovementConduit } from '../../lib/boundary/Conduit';
+import { BOUNDARY_CHANNELS as CHANNELS } from '../../lib/boundary/Conduit';
 import { PerceptionApi } from '../../api/perception';
 
 /** The vision modality singleton — these are instance methods on it. */
@@ -25,7 +25,7 @@ const vision = (): VisionModality =>
 
 class Candle extends LightSourceMixin(Good) {}
 
-describe('Door retrofit — Boundary identity and conduit registry', () => {
+describe('Door — a Boundary with a bolt', () => {
   beforeEach(() => {
     seedKernelContentStore();
   });
@@ -46,74 +46,20 @@ describe('Door retrofit — Boundary identity and conduit registry', () => {
     expect(MixinApi.isContainable(door)).toBe(true);
   });
 
-  it('getConduits returns Light, Sight, Movement, Smell, and Sound conduits', async () => {
+  it('⭐ its channel table gates every channel on isOpen', async () => {
     const door = await StuffApi.create(() => new Door());
-    const kinds = door.getConduits().map((c) => c.conduitKind).sort();
-    expect(kinds).toEqual(['light', 'movement', 'sight', 'smell', 'sound']);
-  });
-
-  it('all three conduits gate on isOpen', async () => {
-    const door = await StuffApi.create(() => new Door());
-    const conduits = door.getConduits();
-    const light = conduits.find((c) => c.conduitKind === 'light') as LightConduit;
-    const sight = conduits.find((c) => c.conduitKind === 'sight') as LineOfSight;
-    const movement = conduits.find((c) => c.conduitKind === 'movement') as MovementConduit;
-
-    expect(light.transmissivity('A', 'B')).toBe(0);
-    expect(sight.canSeeThrough('A', 'B')).toBe(false);
-    expect(movement.canPassThrough('A', 'B', 'walk')).toBe(false);
-
+    for (const ch of CHANNELS) {
+      expect(door.transmissivity(ch, 'A', 'B'), `${ch} shut`).toBe(0);
+    }
     door.open();
-    expect(light.transmissivity('A', 'B')).toBe(1);
-    expect(sight.canSeeThrough('A', 'B')).toBe(true);
-    expect(movement.canPassThrough('A', 'B', 'walk')).toBe(true);
+    for (const ch of CHANNELS) {
+      expect(door.transmissivity(ch, 'A', 'B'), `${ch} open`).toBe(1);
+    }
   });
 
-  it('addBidirectionalExit({door}) installs anchors on both rooms', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    zone.setCellSize(1); // pre-biome light calibration: 1m² receiving-surface scale
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
-
+  it('passes bodies when open — it is a way, not a window', async () => {
     const door = await StuffApi.create(() => new Door());
-    door.setShortDescription('oak door');
-    await a.addBidirectionalExit(b, 'north', { door });
-
-    // Existing attachedTo wiring still works.
-    expect(door.getAttachedExits().size).toBe(2);
-    // New: anchors live in each room's fixtures.
-    expect(door.getAnchorA()).not.toBeNull();
-    expect(door.getAnchorB()).not.toBeNull();
-    expect(a.getFixtureBoundaries()).toContain(door);
-    expect(b.getFixtureBoundaries()).toContain(door);
-  });
-
-  it('door.detach() clears BOTH attachedTo AND the anchors’ hosts', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    zone.setCellSize(1); // pre-biome light calibration: 1m² receiving-surface scale
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
-
-    const door = await StuffApi.create(() => new Door());
-    door.setShortDescription('oak door');
-    await a.addBidirectionalExit(b, 'north', { door });
-    expect(door.getAttachedExits().size).toBe(2);
-    expect(door.getAnchorA()).not.toBeNull();
-
-    door.detach();
-
-    expect(door.getAttachedExits().size).toBe(0);
-    // ⭐ The anchors SURVIVE detach — they are the door's own per-side
-    // proxies, minted once with it. What detach clears is where they
-    // are installed.
-    expect(door.getAnchorA()!.getAdornedTo()).toBeNull();
-    expect(door.getAnchorB()!.getAdornedTo()).toBeNull();
-    expect(a.getFixtureBoundaries()).toEqual([]);
-    expect(b.getFixtureBoundaries()).toEqual([]);
+    expect(door.passesBodiesWhenOpen()).toBe(true);
   });
 });
 
@@ -146,7 +92,7 @@ describe('Door retrofit — closed door blocks light propagation', () => {
     const { a, b } = setupTwoRoomsAcrossZones();
     const door = await StuffApi.create(() => new Door());
     door.setShortDescription('oak door');
-    await a.addBidirectionalExit(b, 'north', { door, opposite: 'south' });
+    await a.addBidirectionalExit(b, 'north', { boundary: door, opposite: 'south' });
 
     const candle = makeStuff(() => new Candle());
     candle.setEmittedFlux(40);
@@ -169,9 +115,8 @@ describe('Door retrofit — closed door blocks light propagation', () => {
   });
 
   it('shares neighbor across two paths only when no double-counting', async () => {
-    // Same-zone setup: cardinal-derived exit + an explicit doored
-    // exit could lead to the same neighbor counting twice. The walk
-    // skips doored exits so the boundary-side contribution wins.
+    // The doored way is ONE leg: the walk takes it through the boundary
+    // and never again as an open way, so it is not counted twice.
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1); // pre-biome light calibration: 1m² receiving-surface scale
     const a = makeStuff(() => new Location());
@@ -181,7 +126,7 @@ describe('Door retrofit — closed door blocks light propagation', () => {
 
     const door = await StuffApi.create(() => new Door());
     door.setShortDescription('oak door');
-    await a.addBidirectionalExit(b, 'north', { door });
+    await a.addBidirectionalExit(b, 'north', { boundary: door });
     door.open();
 
     const candle = makeStuff(() => new Candle());

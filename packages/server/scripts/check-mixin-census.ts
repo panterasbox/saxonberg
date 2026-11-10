@@ -33,7 +33,7 @@
  *   2. after `test-bootstrap` → `Policy AnyOf(FromModule(...)) denied
  *      _registerMergeOnArrivalHook` (no call-security loader);
  *   3. after registering the loader hook → a module-scope failure in
- *      `BoundaryAnchor.ts`, which is one of the two sanctioned
+ *      a boundary class, which is one of the two sanctioned
  *      module-scope branch registrations.
  *
  * ⭐ So this tool reports the channels it can see HONESTLY and reports

@@ -1,0 +1,17 @@
+# A dorm room's door (boundary build, D6) — minted by the dorm warren for
+# each room it hangs off a corridor: bolted, keyed to the room's parcel at
+# provisioning, free from inside. One door, two sides: the corridor sees
+# what the room sees.
+class: /platform/thing/Door
+extends: /platform/thing/boundaries/door
+data:
+  shortDescription: dorm-room door
+  keywords: [door, "dorm door", "dorm-room door"]
+  register: definite
+  longDescription: >
+    A plain painted door with a brass number and a pin-tumbler lock.
+  locked: true
+  lockTechnology: pin-tumbler
+  # On a latch: shut behind whoever passes, and a key that fits lets you
+  # through without unlocking it (the bolt is the lock gate's).
+  closesBehind: true

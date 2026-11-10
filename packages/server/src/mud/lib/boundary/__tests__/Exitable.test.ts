@@ -108,34 +108,18 @@ describe('ExitableMixin', () => {
     expect(directions).not.toContain('north'); // not derived
   });
 
-  it('getExitDoors collects doors from obvious exits', async () => {
+  it('removeExit lets the side go from its boundary; the far side keeps it', async () => {
     const oak = await StuffApi.create(() => new Door());
     oak.setShortDescription('oak door');
-    const iron = await StuffApi.create(() => new Door());
-    iron.setShortDescription('iron gate');
-    const withDoor = makeStuff(() => new Exit({
-      direction: 'up',
-      source: locA,
-      destination: locC,
-      door: oak,
-    }));
-    await locA.addExit(withDoor);
+    await locA.addBidirectionalExit(locB, 'north', { boundary: oak });
+    const north = locA.getExit('north')!;
+    const south = locB.getExit('south')!;
+    expect(oak.getSides()).toEqual([north, south]);
 
-    // Attach an iron door to the zone-derived north exit: doing that
-    // realistically requires creating an explicit exit (derived exits are
-    // doorless). Validate that doored explicit exits are picked up.
-    const explicitNorth = makeStuff(() => new Exit({
-      direction: 'north',
-      source: locA,
-      destination: locB,
-      door: iron,
-    }));
-    await locA.addExit(explicitNorth);
-
-    const doors = locA.getExitDoors();
-    expect(doors).toContain(oak);
-    expect(doors).toContain(iron);
-    expect(doors).toHaveLength(2);
+    expect(locA.removeExit('north')).toBe(true);
+    expect(north.getBoundary()).toBeNull();
+    expect(oak.sideOf(north)).toBeNull();
+    expect(south.getBoundary()).toBe(oak);
   });
 
   it('spherical-zoned locations receive no derived exits', () => {
@@ -150,18 +134,22 @@ describe('ExitableMixin', () => {
   it('addBidirectionalExit infers the opposite direction for cardinals', async () => {
     const door = await StuffApi.create(() => new Door());
     door.setShortDescription('heavy gate');
-    await locA.addBidirectionalExit(locC, 'up', { door });
+    await locA.addBidirectionalExit(locC, 'up', { boundary: door });
 
     const forward = locA.getExit('up');
     const back = locC.getExit('down');
     expect(forward).toBeDefined();
     expect(back).toBeDefined();
-    expect(forward!.getDoor()).toBe(door);
-    expect(back!.getDoor()).toBe(door);
+    expect(forward!.getBoundary()).toBe(door);
+    expect(back!.getBoundary()).toBe(door);
+    expect(door.otherSide(forward!)).toBe(back);
 
+    // ⭐ One door, two sides: opened from either, open from both.
+    expect(forward!.wayState()).toBe('shut');
+    expect(back!.wayState()).toBe('shut');
     door.open();
-    expect(forward!.getDoor()!.isOpen()).toBe(true);
-    expect(back!.getDoor()!.isOpen()).toBe(true);
+    expect(forward!.wayState()).toBe('open');
+    expect(back!.wayState()).toBe('open');
   });
 
   it('addBidirectionalExit requires explicit opposite for non-cardinal labels', async () => {

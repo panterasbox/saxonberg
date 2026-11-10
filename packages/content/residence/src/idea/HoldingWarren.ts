@@ -53,7 +53,9 @@ import {
   Floorplan,
   type FloorplanRoom,
 } from '@saxonberg/server/mud/lib/location/Floorplan';
-import KeyedDoorExit from './KeyedDoorExit';
+import type Door from '@saxonberg/server/mud/platform/thing/Door';
+import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -76,11 +78,25 @@ export const UPKEEP_TERMS = [
   'owner-all',
 ] as const;
 
+/** The way kind a plan names for a keyed door, and the door the holding hangs in it. */
+const KEYED_DOOR_WAY = '/system/residence/idea/exits/keyed-door';
+const KEYED_DOOR_ROW = '/system/residence/thing/boundaries/keyed-door';
+
 export default class HoldingWarren extends FloorplanWarren {
   static fieldMeta: FieldMeta = {
     addressBase: { persistent: true, authorable: true },
     upkeepTerm: { persistent: true, authorable: true },
+    // The keyed doors this holding minted — its own (D6: the minter owns
+    // what it mints); a door dies with the holding that hung it.
+    _doors: { ref: 'instance', lifetime: 'owned' },
   };
+
+  /**
+   * ⭐ The holding's keyed doors, one per keyed way, keyed `<room identity>
+   * #<direction>` — minted at wake, kept across a sleep so a door left
+   * unlocked is still unlocked when the house wakes in the same session.
+   */
+  private _doors: Map<string, Door> = new Map();
 
   /** Who owes the upkeep (D5): a validated kebab-case term, open to
    *  future values (`hoa-shell`) without mechanism. */
@@ -173,6 +189,7 @@ export default class HoldingWarren extends FloorplanWarren {
   public override async wake(): Promise<void> {
     await this.refreshKeyway();
     await super.wake();
+    await this.hangKeyedDoors();
     await this.wakeHouses();
   }
 
@@ -198,15 +215,39 @@ export default class HoldingWarren extends FloorplanWarren {
   }
 
   /**
-   * ⭐ A keyed door of the copy (`kind: /system/residence/idea/exits/keyed-door`
-   * on its plan room's way) is locked to THIS holding's keyway; the
-   * plan authors the way back out as a plain passage, so a guest let
-   * in is never trapped and leaving your own house needs no key.
-   *
-   * @hook
+   * ⭐⭐ A keyed door of the copy is ONE door with two sides (boundary build,
+   * D6). The plan names the way in as `kind: /system/residence/idea/exits/
+   * keyed-door`; at wake the holding mints a door from
+   * `/system/residence/thing/boundaries/keyed-door` (bolted), keys it to the
+   * parcel, and attaches it to that way AND the way back. The inside is its
+   * free side (`freeFrom`), so a guest let in is never trapped and leaving
+   * your own house needs no key — what the plain way back used to buy by
+   * having no door at all, at the price of a lock you could walk round.
    */
-  protected override fitExit(exit: Exit): void {
-    if (exit instanceof KeyedDoorExit) exit.configureKeyedDoor(this);
+  private async hangKeyedDoors(): Promise<void> {
+    for (const room of this.getMembers()) {
+      const here = room as unknown as Stuff;
+      if (!MixinApi.isExitable(here)) continue;
+      for (const [direction, exit] of here.getExits()) {
+        if (exit.getTemplatePath() !== KEYED_DOOR_WAY || exit.getBoundary()) continue;
+        const inside = exit.peekDestination() as Stuff | null;
+        if (!inside) continue;
+        const key = `${here.getIdentityPath()}#${direction}`;
+        let door = this._doors.get(key);
+        if (!door || door.isDestroyed()) {
+          door = await StuffApi.clone<Door>(KEYED_DOOR_ROW);
+          this._doors.set(key, door);
+        }
+        door.setKeyway(this._keyway);
+        door.setFreeFrom(inside.getIdentityPath());
+        const back = MixinApi.isExitable(inside)
+          ? [...inside.getExits().values()].filter(
+              (x) => x.peekDestination() === here && !x.getBoundary(),
+            )
+          : [];
+        BoundaryApi.attach(door, exit, ...(back.length === 1 ? back : []));
+      }
+    }
   }
 
   // ── the keyway (the front door's sync lock identity) ────────────
@@ -217,6 +258,10 @@ export default class HoldingWarren extends FloorplanWarren {
     const record = await ParcelApi.coveringParcelOf(extent);
     this._keyway =
       record && record.getExtent() === extent ? record.getKeyway() : '';
+    // A re-key re-keys every door the holding hung.
+    for (const door of this._doors.values()) {
+      if (!door.isDestroyed()) door.setKeyway(this._keyway);
+    }
   }
 
   /** The holding's keyway ('' = no key opens; the institution's own

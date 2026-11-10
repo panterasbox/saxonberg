@@ -36,7 +36,7 @@ data:
     - /trade/drilling/thing/bailer
   exits:
     west:
-      destination: /world/terminus/rejection/location/hillside
+      destination: /world/terminus/rejection/location/old-workings
       edgeMinutes: 4
     southeast:
       destination: /world/terminus/rejection/location/salt-flat

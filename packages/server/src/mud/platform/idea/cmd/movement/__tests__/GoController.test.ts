@@ -1,5 +1,6 @@
 import "../../../../../../test-bootstrap";
 import { StuffApi } from '../../../../../api/stuff';
+import { BoundaryApi } from '../../../../../api/boundary';
 import { describe, it, expect, beforeEach  } from 'vitest';
 import GoController from '../GoController';
 import CartesianZone from '../../../location/CartesianZone';
@@ -254,9 +255,9 @@ describe('GoController', () => {
     it('blocks traversal through a closed door', async () => {
       const door = await StuffApi.create(() => new Door());
       door.setShortDescription('oak door');
-      await locA.addExit(
-        makeStuff(() => new Exit({ direction: 'east', source: locA, destination: locB, door }))
-      );
+      const east = makeStuff(() => new Exit({ direction: 'east', source: locA, destination: locB }));
+      await locA.addExit(east);
+      BoundaryApi.attach(door, east);
       await goCmd(controller, avatar, locA, 'east');
       const shellFrames = avatar.received.filter((f) =>
         ((f as { topic?: string })?.topic ?? '').startsWith(

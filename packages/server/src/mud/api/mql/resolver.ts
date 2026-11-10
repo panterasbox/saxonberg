@@ -703,8 +703,9 @@ function candidatesForAnchor(
   }
   if (MixinApi.isExitable(stuff)) {
     const seenDoors = new Set<string>();
-    for (const door of stuff.getExitDoors()) {
-      if (seenDoors.has(door.stuffId)) continue;
+    for (const exit of stuff.getObviousExits()) {
+      const door = exit.getBoundary();
+      if (!door || seenDoors.has(door.stuffId)) continue;
       seenDoors.add(door.stuffId);
       out.push(candidateFor(door, viewer));
     }

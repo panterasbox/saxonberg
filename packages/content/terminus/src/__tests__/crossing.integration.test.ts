@@ -226,14 +226,14 @@ describe("University Avenue crossing standup (real seeds)", () => {
     await StuffApi.singleton(CROSSING);
     const crossing = StuffApi.findByTemplatePath(CROSSING)!;
     const north = exitsOf(crossing).get("north") as unknown as {
-      getDoor(): { isLocked(): boolean } | null;
+      getBoundary(): { isLocked(): boolean } | null;
       canTraverse(
         mover: Stuff & Containable,
         mode?: string,
       ): Promise<{ ok: boolean; gate?: string }>;
     };
     expect(north).toBeTruthy();
-    expect(north.getDoor()?.isLocked()).toBe(true);
+    expect(north.getBoundary()?.isLocked()).toBe(true);
     const mover = {} as unknown as Stuff & Containable;
     const guard = await north.canTraverse(mover);
     expect(guard.ok).toBe(false);

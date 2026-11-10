@@ -6,6 +6,7 @@ import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
+import { BoundaryApi } from '../../../api/boundary';
 import { SensorMixin } from '../../message/Sensor';
 import { ContainableMixin } from '../../spatial/Containable';
 import { MobileMixin } from '../../spatial/Mobile';
@@ -96,7 +97,8 @@ describe('Exit', () => {
     it('returns not ok when door is closed', async () => {
       const door = await StuffApi.create(() => new Door());
       door.setShortDescription('oak door');
-      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB, door }));
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
+      BoundaryApi.attach(door, exit);
       const result = (await exit.canTraverse(mover));
       expect(result.ok).toBe(false);
       expect(result.reason).toMatch(/closed/i);
@@ -109,10 +111,11 @@ describe('Exit', () => {
       const door = await StuffApi.create(() => new Door());
       door.setShortDescription('shop door');
       door.setClosesBehind(true);
-      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB, door }));
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
+      BoundaryApi.attach(door, exit);
       expect((await exit.canTraverse(mover))).toEqual({ ok: true });
       expect(door.isOpen()).toBe(false);
-      expect(door.canPassThrough('a' as never, 'b' as never, 'walk')).toBe(true);
+      expect(door.transmissivity('movement', 'A', 'B') > 0).toBe(true);
     });
 
     it('…but a LOCKED swinging door still refuses', async () => {
@@ -120,17 +123,21 @@ describe('Exit', () => {
       door.setShortDescription('shop door');
       door.setClosesBehind(true);
       (door as unknown as { setLocked(v: boolean): void }).setLocked(true);
-      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB, door }));
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
+      BoundaryApi.attach(door, exit);
       const result = await exit.canTraverse(mover);
       expect(result.ok).toBe(false);
-      expect(door.canPassThrough('a' as never, 'b' as never, 'walk')).toBe(false);
+      // ⚠ The bolt is the LOCK gate's, not the movement channel's: the
+      // latch still swings, and the lock refuses whoever it does not open for.
+      expect(result.gate).toBe('locked');
     });
 
     it('returns ok when door is open', async () => {
       const door = await StuffApi.create(() => new Door());
       door.setShortDescription('oak door');
       door.open();
-      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB, door }));
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
+      BoundaryApi.attach(door, exit);
       expect((await exit.canTraverse(mover))).toEqual({ ok: true });
     });
   });
@@ -537,8 +544,9 @@ describe('Exit.canTraverse with mode', () => {
     const door = await StuffApi.create(() => new Door());
     door.setShortDescription('iron gate');
     const exit = makeStuff(() => new Exit({
-      direction: 'n', source: locA, destination: locB, door,
+      direction: 'n', source: locA, destination: locB,
     }));
+    BoundaryApi.attach(door, exit);
     const result = (await exit.canTraverse(mover, 'walk'));
     expect(result.ok).toBe(false);
     expect(result.gate).toBe('door');

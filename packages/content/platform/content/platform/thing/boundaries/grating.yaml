@@ -1,0 +1,13 @@
+# A GRATING fixed in a way — always open, and `close` refuses with the reason
+# (owner's call, 2026-11-09). It passes everything but a body; a grating
+# with a hinge and a bolt is a door row instead.
+class: /platform/thing/Boundary
+data:
+  shortDescription: grating
+  keywords: [grating, grate]
+  register: definite
+  open: true
+  fixed: true
+  opening: { width: 1, height: 1 }
+  channels:
+    open: { movement: 0, light: 0.7, sight: 0.7, sound: 1, smell: 1 }

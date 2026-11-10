@@ -262,15 +262,15 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // ⭐ The perception-gated list: a concealed exit is not here.
       const here = place.getZone();
+      // ⭐ The same `WayRecord` the room card's `exits` subscription emits
+      // (boundary build), plus where the way leads — this push resolves it.
       const exits: WhereaboutsExit[] = MixinApi.isExitable(place)
         ? place.obviousExitsFor(viewer).map((exit) => {
             const dest = exit.getDestination();
-            const door = exit.getDoor();
             return {
-              direction: exit.getDirection(),
+              ...exit.wayRecord(),
               ...(dest ? { destination: dest.getPresentation() } : {}),
               crossesZone: !!dest && dest.getZone() !== here,
-              ...(door ? { door: { name: door.getPresentation(), open: door.isOpen() } } : {}),
             };
           })
         : [];

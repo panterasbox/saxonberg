@@ -51,8 +51,7 @@ let installed = false;
  * ⭐⭐ The rows the ENGINE ITSELF clones.
  *
  * Since template inheritance every exit in the world is a clone of a
- * kind row, and a boundary's two anchors are clones of
- * `/platform/thing/BoundaryAnchor` — there is no `new Exit(...)` branch
+ * kind row — there is no `new Exit(...)` branch
  * left, which is the point (an exit can say what an author wrote).
  *
  * ⚠ They are declared HERE, beside `PackApi.registerSources()`, rather
@@ -95,11 +94,6 @@ export const KERNEL_CONTENT_ROWS: ReadonlyArray<{
   {
     path: "/platform/idea/exits/sandbox-return",
     class: "/platform/idea/SandboxCrossingExit",
-    data: {},
-  },
-  {
-    path: "/platform/thing/BoundaryAnchor",
-    class: "/platform/thing/BoundaryAnchor",
     data: {},
   },
 ];

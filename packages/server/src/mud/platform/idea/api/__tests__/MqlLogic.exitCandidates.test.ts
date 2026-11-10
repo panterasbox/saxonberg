@@ -63,7 +63,7 @@ describe('an exit binds as itself', () => {
     door = await StuffApi.create(() => new Door());
     door.setShortDescription('iron gate');
     door.setKeywords(['gate']);
-    await here.addBidirectionalExit(there, 'north', { door });
+    await here.addBidirectionalExit(there, 'north', { boundary: door });
 
     mover = makeStuff(() => new TestMover());
     mover.setName('Alice');

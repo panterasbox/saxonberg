@@ -176,15 +176,15 @@ export class MqlLogic extends ApiLogic {
     if (!bound) return null;
     if (predicate(bound)) return bound;
     // ⭐ The one carve-out, and it is MQL's: a WAY that does not itself
-    // satisfy the verb is answered by the door hung on it. `open north`
-    // binds the exit (a candidate in its own right);
-    // `open` needs a sealable thing, and the way's sealable thing is its
-    // door. The keyed-exit family (`KeyedDoorExit`, `FrontDoorExit`,
-    // `BerthExit`) carries its lock on the exit itself, so `lock north`
-    // stops at the first rung.
+    // satisfy the verb is answered by the boundary standing in it. `open
+    // north` binds the exit (a candidate in its own right) and `open` needs
+    // a sealable thing, which is the boundary standing in the way — one
+    // object for both sides (boundary build, 2026-11). A sleeping ship's berth way
+    // carries a remembered lock on the exit itself, so `lock` stops at the
+    // first rung there.
     if (bound.isExit()) {
-      const door = bound.getDoor();
-      if (door && predicate(door)) return door;
+      const boundary = bound.getBoundary();
+      if (boundary && predicate(boundary)) return boundary;
     }
     return null;
   }

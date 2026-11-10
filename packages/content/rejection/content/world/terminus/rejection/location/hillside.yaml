@@ -40,12 +40,13 @@ data:
     north:
       destination: /world/terminus/rejection/hanging-wood/treeline
       edgeMinutes: 4
-    # ⭐ East, over the shoulder of the hill, into salt country. The lode
-    # does not go that way — the walk is a different trade's, and the
-    # same hill.
+    # ⭐ East, through the glazier's hut's west window (boundary build): you
+    # see into the hut from here and cannot climb through. Salt country is
+    # reached over the shoulder from the old workings now (the hut moved
+    # beside the hill, and a way has one direction at each end).
     east:
-      destination: /world/terminus/rejection/location/salt-spring
-      edgeMinutes: 4
+      destination: /world/terminus/rejection/location/glaziers-hut
+      door: /world/terminus/rejection/thing/hut-window-west
   props:
     # ⭐⭐ The deep well (the pump build) — fourteen metres down, past what
     # any pump that draws will lift. The suction limit's classroom, and

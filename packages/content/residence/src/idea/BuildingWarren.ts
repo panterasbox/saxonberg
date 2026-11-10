@@ -39,6 +39,8 @@ const PASSAGE_KIND = '/platform/idea/exits/passage';
 const STAIR_KIND = '/platform/idea/exits/passage';
 const UPSTAIRS_KIND = '/system/residence/idea/exits/upstairs';
 const FRONT_DOOR_KIND = '/system/residence/idea/exits/front-door';
+/** The door a unit's front way carries (boundary build, D6) — bolted, keyed to the unit. */
+const FRONT_DOOR_ROW = '/system/residence/thing/boundaries/keyed-door';
 
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
@@ -177,14 +179,20 @@ export default class BuildingWarren extends BuildingWarrenBase {
     if (!m) return null;
     const dir = `unit-${m[2]}`;
     const existing = corridor.getExit(dir);
-    if (existing) return existing as unknown as Exit;
+    if (existing) {
+      await this.hangEntryDoor(key, FRONT_DOOR_ROW, existing as unknown as Exit);
+      return existing as unknown as Exit;
+    }
     const entryRow = await HoldingWarren.entryRowOf(this.programmePath);
-    const door = await corridor.installExit<FrontDoorExit>(
+    const edge = await corridor.installExit<FrontDoorExit>(
       FRONT_DOOR_KIND,
       { direction: dir, source: corridor, destinationPath: entryRow },
       (e) => e.configureFrontDoor(this, key),
     );
-    return door as unknown as Exit;
+    // ⭐ The unit's front door is ONE door (boundary build): this edge is
+    // its corridor side; the entry room's `out` is its inside.
+    await this.hangEntryDoor(key, FRONT_DOOR_ROW, edge as unknown as Exit);
+    return edge as unknown as Exit;
   }
 
   /** Wire the unit's way OUT: the entry room's `out` back to its
@@ -200,14 +208,17 @@ export default class BuildingWarren extends BuildingWarrenBase {
     const corridor = await this.ensureNode(node);
     if (!corridor) return;
     const entryEx = entry as ExitableContainer;
-    if (entryEx.getExit('out')) return;
-    await entryEx.installExit(PASSAGE_KIND, {
-      direction: 'out',
-      source: entry,
-      destination: corridor as ExitableContainer,
-      keepLiveDestination: true,
-      oneWay: true,
-    });
+    const out =
+      (entryEx.getExit('out') as unknown as Exit | undefined) ??
+      (await entryEx.installExit(PASSAGE_KIND, {
+        direction: 'out',
+        source: entry,
+        destination: corridor as ExitableContainer,
+        keepLiveDestination: true,
+        oneWay: true,
+      }));
+    // The inside of the front door: free (no key to leave your own home).
+    await this.hangEntryDoor(key, FRONT_DOOR_ROW, out, entry as unknown as Stuff);
   }
 
   // ─────────────── Warren policy hooks ────────────────────────────

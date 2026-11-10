@@ -4,6 +4,7 @@ import Location from '../../location/Location';
 import Door from '../../../platform/thing/Door';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
+import { DiagnosticApi } from '../../../api/diagnostics';
 import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import {
   makeStuffAtPath,
@@ -130,10 +131,48 @@ describe('Exitable.applyExits', () => {
 
     const exitN = a.getExit('north');
     const exitS = b.getExit('south');
-    expect(exitN?.getDoor()).toBe(door);
-    expect(exitS?.getDoor()).toBe(door);
-    expect(a.getFixtureBoundaries()).toContain(door);
-    expect(b.getFixtureBoundaries()).toContain(door);
+    expect(exitN?.getBoundary()).toBe(door);
+    expect(exitS?.getBoundary()).toBe(door);
+    expect(door.getSides()).toEqual([exitN, exitS]);
+  });
+
+  it('⭐ each side authoring the same door: attaches to the ONE singleton', async () => {
+    installInMemoryStore([
+      { path: '/zone', class: '/platform/idea/location/CartesianZone', data: {} },
+    ]);
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    const b = makeStuffAtPath(() => new Location(), '/zone/b');
+    const door = await makeStuffAtPathAsync(() => new Door(), '/door1');
+
+    await a.applyExits({ north: { destination: '/zone/b', door: '/door1' } });
+    await b.applyExits({ south: { destination: '/zone/a', door: '/door1' } });
+
+    const exitN = a.getExit('north')!;
+    const exitS = b.getExit('south')!;
+    expect(exitN.getBoundary()).toBe(door);
+    expect(exitS.getBoundary()).toBe(door);
+    expect(door.otherSide(exitN)).toBe(exitS);
+    expect(exitN.isBlocked()).toBe(false);
+    expect(exitS.isBlocked()).toBe(false);
+  });
+
+  it('⭐ D4: a door on one side only walls the doorless side and tells the author', async () => {
+    installInMemoryStore([
+      { path: '/zone', class: '/platform/idea/location/CartesianZone', data: {} },
+    ]);
+    const record = vi.spyOn(DiagnosticApi, 'record').mockResolvedValue(undefined);
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    const b = makeStuffAtPath(() => new Location(), '/zone/b');
+    await makeStuffAtPathAsync(() => new Door(), '/door1');
+
+    await a.applyExits({ north: { destination: '/zone/b', door: '/door1' } });
+    await b.applyExits({ south: { destination: '/zone/a' } });
+
+    expect(a.getExit('north')!.isBlocked()).toBe(false);
+    expect(b.getExit('south')!.isBlocked()).toBe(true);
+    expect(record).toHaveBeenCalledWith(
+      expect.objectContaining({ path: '/zone/b', severity: 'error' }),
+    );
   });
 
   it('per-direction idempotency: matching existing exit is a no-op', async () => {

@@ -71,7 +71,7 @@ interface ContainerLike {
 }
 interface ExitLike {
   getDirection(): string;
-  getDoor(): { isOpen(): boolean; getShortDescription(): string } | null;
+  getBoundary(): { isOpen(): boolean; getShortDescription(): string } | null;
 }
 
 /** Assemble a location's prompt from its live composed state. */
@@ -89,7 +89,7 @@ function locationPrompt(loc: unknown): { prompt: string; size: string } {
   const exits = (loc as ExitableLike).getExits?.() ?? new Map();
   const exitPhrases: string[] = [];
   for (const ex of exits.values()) {
-    const door = ex.getDoor();
+    const door = ex.getBoundary();
     const through = door
       ? door.isOpen()
         ? `an open door (${door.getShortDescription()})`

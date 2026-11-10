@@ -191,8 +191,10 @@ export interface Row {
   cls: string;
   /** Does the row author a `coords:` block? */
   coords: boolean;
-  /** `[direction, destination]` for every authored exit. */
-  exits: Array<[string, string]>;
+  /** `[direction, destination, door?]` for every authored exit. */
+  exits: Array<[string, string, string?]>;
+  /** The row's authored cell, when it plots one (inline or block form). */
+  xyz?: [number, number, number];
 }
 
 /** Every shipped row's `class:`, keyed by its pack-relative path. */
@@ -216,10 +218,26 @@ export function shippedRows(contentDir: string = CONTENT): Row[] {
         // exactly the row whose cross-zone pair this gate exists to
         // check. The shape below (four-space key, `destination:` on the
         // next line) is unambiguous on its own.
-        const exits: Array<[string, string]> = [];
+        const exits: Array<[string, string, string?]> = [];
         const re = /^ {4}([A-Za-z0-9_-]+):[^\S\n]*\n[^\S\n]+destination:[^\S\n]*(\S+)/gm;
         let hit: RegExpExecArray | null;
-        while ((hit = re.exec(text)) !== null) exits.push([hit[1]!, hit[2]!]);
+        while ((hit = re.exec(text)) !== null) {
+          // The exit's own block runs to the next 4-space key (or a
+          // top-level/2-space key); its `door:` is in there if anywhere.
+          const rest = text.slice(re.lastIndex);
+          const end = rest.search(/^ {0,4}[A-Za-z0-9_-]+:/m);
+          const block = end < 0 ? rest : rest.slice(0, end);
+          const door = /^ {6}door:[^\S\n]*(\S+)/m.exec(block)?.[1];
+          exits.push(door ? [hit[1]!, hit[2]!, door] : [hit[1]!, hit[2]!]);
+        }
+        const inline = /^ {2}coords:\s*\{([^}]*)\}/m.exec(text)?.[1];
+        const block = /^ {2}coords:\s*\n((?: {4}[xyz]:.*\n?)+)/m.exec(text)?.[1];
+        const src = inline ?? block ?? '';
+        const num = (k: string): number | null => {
+          const m = new RegExp(`\\b${k}:\\s*(-?\\d+(?:\\.\\d+)?)`).exec(src);
+          return m ? Number(m[1]) : null;
+        };
+        const [cx, cy, cz] = [num('x'), num('y'), num('z')];
         out.push({
           file: full.slice(contentDir.length + 1),
           cls: m[1]!,
@@ -235,6 +253,7 @@ export function shippedRows(contentDir: string = CONTENT): Row[] {
            */
           coords: /^ {2}coords:/m.test(text),
           exits,
+          ...(cx !== null && cy !== null ? { xyz: [cx, cy, cz ?? 0] as [number, number, number] } : {}),
         });
       }
     }
@@ -601,12 +620,80 @@ export function classifyMinted(rows: readonly Row[]): {
   );
 }
 
+/** A cardinal's grid offset — the static twin of `NavigationApi.directionOffset`. */
+const OFFSETS: Readonly<Record<string, [number, number, number]>> = {
+  north: [0, 1, 0], south: [0, -1, 0], east: [1, 0, 0], west: [-1, 0, 0],
+  northeast: [1, 1, 0], northwest: [-1, 1, 0], southeast: [1, -1, 0], southwest: [-1, -1, 0],
+  up: [0, 0, 1], down: [0, 0, -1],
+};
+const OPPOSITE: Readonly<Record<string, string>> = {
+  north: 'south', south: 'north', east: 'west', west: 'east',
+  northeast: 'southwest', southwest: 'northeast', northwest: 'southeast', southeast: 'northwest',
+  up: 'down', down: 'up',
+};
+
+/**
+ * ⭐⭐ **A boundary inside one zone that is not true to the grid** (boundary
+ * build, D8) — the static twin of `Location.edgeRefusal`. Every room of a
+ * zone is one cell, so a door, a window or a curtain between two of them
+ * must join ADJACENT cells (the far row's coords are this row's plus the
+ * direction's offset) and its two sides must be OPPOSITE (the far row names
+ * the same `door:` on the inverse direction). Across zones a way is a
+ * threshold and nothing is checked. (The third rule — the opening fits the
+ * face — needs the boundary row's resolved `extends:` chain and the zone's
+ * cell size; the runtime check owns it.)
+ */
+export function boundaryEdges(rows: readonly Row[]): string[] {
+  const zones = new Set(
+    rows.filter((r) => isZoneClass(r.cls)).map((r) => templatePathOf(r.file)),
+  );
+  const byPath = new Map<string, Row>();
+  for (const r of rows) byPath.set(templatePathOf(r.file), r);
+  const zoneOf = (templatePath: string): string | null =>
+    ancestorsOf(templatePath).find((a) => zones.has(a)) ?? null;
+  const out: string[] = [];
+  for (const r of rows) {
+    if (!isCartesianClass(r.cls) || !r.xyz) continue;
+    const herePath = templatePathOf(r.file);
+    const here = zoneOf(herePath);
+    if (here === null) continue;
+    for (const [dir, dest, door] of r.exits) {
+      if (!door) continue;
+      const target = byPath.get(dest);
+      if (!target || !isCartesianClass(target.cls) || !target.xyz) continue;
+      if (zoneOf(dest) !== here) continue;
+      const off = OFFSETS[dir];
+      if (!off) continue; // a named way inside a zone is sameZoneNamedExits'
+      const [x, y, z] = r.xyz;
+      const [tx, ty, tz] = target.xyz;
+      if (tx !== x + off[0] || ty !== y + off[1] || tz !== z + off[2]) {
+        out.push(
+          `${r.file}  '${dir}' → ${dest} through ${door}: the far cell is ` +
+            `(${tx},${ty},${tz}), not the cell ${dir} of (${x},${y},${z}) — a door joins adjacent cells`,
+        );
+        continue;
+      }
+      for (const [bdir, bdest, bdoor] of target.exits) {
+        if (bdest !== herePath || bdoor !== door) continue;
+        if (bdir !== OPPOSITE[dir]) {
+          out.push(
+            `${r.file}  '${dir}' → ${dest} through ${door}: the far side names ` +
+              `it '${bdir}', and the way back must be '${OPPOSITE[dir]}'`,
+          );
+        }
+      }
+    }
+  }
+  return out.sort();
+}
+
 function main(): void {
   const rows = shippedRows();
   const orphans = orphanedZones(rows, allYamlFiles());
   const unzoned = unzonedCoords(rows);
   const unplotted = unplottedLocations(rows);
   const namedSameZone = sameZoneNamedExits(rows);
+  const badEdges = boundaryEdges(rows);
   const mint = classifyMinted(rows);
   const { unexpected, missing } = classify(rows);
   if (
@@ -617,16 +704,30 @@ function main(): void {
     orphans.length === 0 &&
     unzoned.length === 0 &&
     unplotted.length === 0 &&
-    namedSameZone.length === 0
+    namedSameZone.length === 0 &&
+    badEdges.length === 0
   ) {
     console.log(
       `check-location-classes: ok — ${FURNISHED.length} rows on ` +
         `PersistentLocation, every one a room somebody furnishes; ` +
         `${MINTED_ROWS.length} on Location, every one a KIND; ` +
         `every zone row zones something; every cartesian row PLOTS on a ` +
-        `coordinate system; every row's coords and named doors are legal.`,
+        `coordinate system; every row's coords and named doors are legal; every door inside a ` +
+        `zone joins adjacent cells through opposite sides.`,
     );
     return;
+  }
+  if (badEdges.length > 0) {
+    console.error(
+      `\ncheck-location-classes: ${badEdges.length} boundary edge(s) inside a ` +
+        `zone are not true to the grid. A door, a window or a curtain between ` +
+        `two rooms of one zone joins ADJACENT cells through OPPOSITE sides — ` +
+        `the runtime installs such a way UNBUILT and tells the author ` +
+        `(\`Location.edgeRefusal\`). Fix: move a room to the adjacent cell, ` +
+        `name the way back the opposite direction, or make it a threshold ` +
+        `into another zone:`,
+    );
+    for (const f of badEdges) console.error(`  ✗ ${f}`);
   }
   if (unzoned.length > 0) {
     console.error(

@@ -7,8 +7,7 @@ invariants are stated for the edge, and one wire shape tells every screen a way'
 **Kind:** refactor/sweep. **Lead end:** kernel (`lib/boundary/`), with pack rows and five pack-owned
 exit classes following. No new verbs. No migrations (dev DBs are dropped).
 
-⚠ **Sequencing.** This build lands AFTER `origin/build/controller-liquidity` (build-2). W0 merges it;
-the plan is written against build-2's end state (its W3 locking contract is on the branch now; its
+⚠ **Sequencing.** ~~This build lands AFTER build-2~~ — re-planned at W0: built on master, reconciled with build-2 by whichever merges second. The plan was written against build-2's end state (its W3 locking contract is on the branch now; its
 W2 and W8 are pending at plan time — see § Grounding → build-2).
 
 ## Grounding
@@ -378,12 +377,16 @@ is a narrowing on the TARGET's composition (door vs window), which is the correc
 
 ## Waves
 
-### W0 — merge build-2; re-ground
-Merge `master` after `build/controller-liquidity` lands (never the branch directly — rule 8). Re-verify:
-`Lockable.ts` contract, `BerthExit`/`AshoreExit` shape, `MqlLogic.effectiveTarget` lines, the
-resolver/scope-walk door loops (build-2 W2), `OpenController` (build-2 W8). Update § Grounding line
-numbers in place. `pnpm -C packages/server lint:family`, `pnpm test:near` on `lib/boundary`.
-Commit: `plan(boundary): W0 — merged build-2, grounding re-verified`.
+### W0 — ✅ re-planned in place (2026-11-09): build on master; build-2 is context
+At `/build` time build-2 was still in flight (W7 landing, 68 commits ahead of master). Per the
+owner's standing rule (*never gate on a sibling's merge — whichever merges second reconciles*), this
+build runs on master (b06d790b8, where `Lockable` is still `lock()`/`unlock()` with no `by` and
+`BerthExit`/`AshoreExit` still override `lock()`/`unlock()`) and merges master in when build-2 lands.
+Consequences, decided: W1 keeps the master `Lockable` contract untouched (the boundary is a
+`Lockable`; whichever contract is live, the controllers reach it through `effectiveTarget`); W3's
+deletion of the Berth/Ashore lock overrides is the reconcile point with build-2's W3 (both delete or
+reshape the same overrides — the merge takes this build's deletion); W1's resolver/scope-walk
+door-candidate deletion is re-done against build-2's W2 at that merge.
 
 ### W1 — the side carries its boundary (D1, D3, D4, D5, D7, D12, D13)
 - `lib/boundary/Boundary.ts`: sides (`sideA/sideB` weak), `sideOf`, `otherSide`, `channels`
@@ -621,6 +624,68 @@ re-coord (D14), and the free side (D5).
 `packages/server/scripts/check-location-classes.ts`, `packages/types/src/index.ts`,
 `packages/client/src/components/cards/{NavigatorBody,CardBodies}.tsx`, `packages/client/src/components/phone/ButtonBar.tsx`,
 `docs/subsystems/{boundary,light,mql,location,construction}.md`, the rows named in § Grounding.
+
+
+## Build notes — waves W1–W5 (2026-11-09, one pass)
+
+W1+W2 were built together (the anchors and conduits would only have been kept as shims for one
+wave), and W5's wire type with them (the producers were being rewritten anyway). Decisions the build
+made that the plan did not, each with what decided it:
+
+- **B1 — the boundary stays an MQL candidate; the side does NOT fold its boundary's words (D12
+  amended).** Dropping doors from the `here` pool would have made `wash window`, `glaze pane in
+  window`, `paint door` and ~15 other object verbs bind the EXIT, each needing an `effectiveTarget`
+  retrofit. Lens 2 (the ordinary case keeps working with no per-controller code) + the nearest
+  pattern (`effectiveTarget` already maps way → boundary). `open door` binds the door, `open north`
+  reaches it through `effectiveTarget`; both act on the one object, which is the requirement.
+- **B2 — no `EdgeRefusalError`.** The edge check runs BEFORE the side installs (the boundary is
+  attached after `addExit`, so `Location.addExit` cannot see it): `Exitable.edgeRefusal(direction,
+  far, boundary)` is a hook (null on the base) that `Location` answers with a reason. Refuse, not
+  throw — one fewer new class. `_installUnbuiltExit` takes the reason for its diagnostic.
+- **B3 — the mismatch rule (D4) runs at install, not in `verifyOutboundExits`.** Authored one-sided
+  exits default `oneWay: true`, which the verifier skips, so D4 there would never fire.
+  `_reconcileBoundaryPair` runs after each one-way install: whichever side installs second checks
+  the far place's single way back.
+- **B4 — keyed doors latch (`closesBehind: true`), and the bolt is the lock gate's alone.** A shut
+  keyed door would have made a resident unlock and open their own front door to walk in (the keyed
+  exits never had a shut state). `Door.transmissivity('movement')` shut+`closesBehind` → 1 regardless
+  of the bolt; `canTraverse`'s lock gate refuses whoever the key does not open for. Same rule as the
+  keyed exits; now also true of the latched holding/dorm/front doors.
+- **B5 — the entry doors live on the kernel's `CirculationWarren`** (`hangEntryDoor`, `entryDoorOf`,
+  `_entryDoors` owned, re-stamped in `refreshProvisioned`) — its three composers (Building, Plat,
+  Dorm) have no common pack ancestor (CLAUDE.md: substrate goes to the kernel then). The holding's
+  interior keyed doors are `HoldingWarren.hangKeyedDoors` (`_doors` owned), after `wake`.
+- **B6 — the lot gate stands OPEN** (`open: true`): a lot had no gate state; a shut gate would block
+  every walk onto a lot. A holder may shut and lock it.
+- **B7 — the gangway is NOT re-modelled this build.** It is already one lock with two faces (the
+  berth way and the deck's `ashore` both delegate to `Ship.gangwayLocked`), so the requirement holds;
+  converting it to a minted boundary is a refactor with no product change, its sleep fallback is a
+  harbors decision, and build-2 is rewriting those exact overrides. `Exit.wayState()` reads an
+  exit's own lock when it has no boundary, so screens show the gangway `locked`. → follow-up.
+- **B8 — the Rejection hut (D14) needed a reroute.** The hillside's `east` was already the walk to the
+  salt spring, so the window could not take it; salt country is reached `east` from the old workings
+  now (salt spring `west` back). The pithead yard's `southeast` to the hut and the south window row
+  are gone (the doorway took south). No pane-on-a-face exists in construction (its § Deferred), so
+  the south window was retired, not moved into `enclosure:`; the hut's prose says one window.
+- **B9 — window grime persists on the room's ways** (`Adornable` captureSlice keys `way:<dir>`):
+  the anchor fixture used to carry it. Door open/lock state was never runtime-persisted (not
+  `runtimeState`), so nothing else moved.
+- **B10 — a shut vessel drops its synthesized `out` from its neighbours** (`ExitableVessel
+  .getObviousNeighbours`): its seal is its door for light/sound/smell too, as for air. Found by the
+  test rewrite.
+- **B11 — `Sealable.canClose`** (the twin of `canOpen`) for the fixed grating; `close` asks it.
+- **B12 — `lint:locations` checks adjacency and opposite sides; the face check is runtime-only**
+  (the lint would need the boundary row's resolved `extends:` chain and the zone's cell size).
+- **B13 — the fire walk and the openings count treat glass as a wall** (`isOpen() &&
+  passesBodiesWhenOpen()`): a window is a side now, and fire/air never crossed one before.
+
+New substrate as built: `platform/thing/Boundary` (twin), `Boundary` fields/methods (sides,
+channels, opening, `transmissivity`/`transmissivityInto`/`colourInto`/`passesBodiesWhenOpen`),
+`Door.freeFrom`, `Exit.boundary` + `wayState`/`wayRecord`, `WayRecord`/`WayState`,
+`BoundaryApi.attach/detach`, `Exitable.edgeRefusal` hook, `Sealable.canClose`,
+`CirculationWarren.hangEntryDoor`, rows `/platform/thing/boundaries/{door,gate,hatch,grating,curtain}`,
+`/system/residence/thing/boundaries/{keyed-door,lot-gate}`, `duncan-hall/thing/dorm-door`.
+Retired: everything in § New substrate's "Retired" list except the Berth/Ashore lock (B7).
 
 ## Drive record
 

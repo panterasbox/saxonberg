@@ -37,6 +37,8 @@ import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persista
 
 /** The exit-kind ROWS Duncan Hall's edges are cloned from. */
 const PASSAGE_KIND = '/platform/idea/exits/passage';
+/** The door the warren hangs in each dorm room's way (boundary build, D6). */
+const DORM_DOOR_ROW = '/world/terminus/eternal/duncan-hall/thing/dorm-door';
 const STAIR_KIND = '/stuff/idea/exits/stair';
 const FLOOR_STAIR_KIND =
   '/world/terminus/eternal/duncan-hall/idea/exits/floor-stair';
@@ -243,7 +245,10 @@ export default class DormWarren extends DormWarrenBase {
     if (!slot) return null;
     const dir = `unit-${slot.pos}`;
     const existing = corridor.getExit(dir);
-    if (existing) return existing as unknown as Exit;
+    if (existing) {
+      await this.hangEntryDoor(key, DORM_DOOR_ROW, existing as unknown as Exit);
+      return existing as unknown as Exit;
+    }
     const door = await corridor.installExit<DormDoor>(
       DORM_DOOR_KIND,
       {
@@ -253,6 +258,9 @@ export default class DormWarren extends DormWarrenBase {
       },
       (e) => e.configureUnit(key),
     );
+    // ⭐ ONE door (boundary build): this edge is its corridor side, the
+    // room's `out` its inside.
+    await this.hangEntryDoor(key, DORM_DOOR_ROW, door as unknown as Exit);
     return door as unknown as Exit;
   }
 
@@ -299,14 +307,17 @@ export default class DormWarren extends DormWarrenBase {
     const corridor = await this.ensureFloor(slot.floor);
     if (!corridor) return;
     const roomEx = this.requireExitable(room);
-    if (roomEx.getExit('out')) return;
-    await roomEx.installExit(PASSAGE_KIND, {
-      direction: 'out',
-      source: room,
-      destination: corridor as ExitableContainer,
-      keepLiveDestination: true,
-      oneWay: true,
-    });
+    const out =
+      (roomEx.getExit('out') as unknown as Exit | undefined) ??
+      (await roomEx.installExit(PASSAGE_KIND, {
+        direction: 'out',
+        source: room,
+        destination: corridor as ExitableContainer,
+        keepLiveDestination: true,
+        oneWay: true,
+      }));
+    // The room's side of its door: free from inside.
+    if (key) await this.hangEntryDoor(key, DORM_DOOR_ROW, out, room as unknown as Stuff);
   }
 
   // ───────────────────── private helpers ──────────────────────────

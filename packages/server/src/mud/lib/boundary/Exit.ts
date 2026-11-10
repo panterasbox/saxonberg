@@ -4,7 +4,7 @@
  * An `Exit` lives on an `Exitable` (`Location`, `SphericalLocation`,
  * or `ExitableVessel`) and points to another Exitable. Reciprocity is opt-in
  * via `ExitableMixin.addBidirectionalExit()`, which installs one Exit on
- * each side (and, optionally, the same shared `Door` reference).
+ * each side (and, optionally, one shared `Boundary` — a door, a window — of which each exit is a side).
  *
  * An Exit is an `Idea` — it has identity but no physical presence in a
  * location's contents. Exits are referenced from `Exitable.exits` and,
@@ -50,7 +50,8 @@ import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
-import type Door from '../../platform/thing/Door';
+import type { Boundary } from './Boundary';
+import type { WayRecord, WayState } from '@saxonberg/types';
 import type Structure from '../structure/Structure';
 import { StuffApi } from '../../api/stuff';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
@@ -149,7 +150,6 @@ export interface ExitOptions {
    * behavior).
    */
   keepLiveDestination?: boolean;
-  door?: Door | null;
   hidden?: boolean;
   /**
    * Explicit concealment band (D1 — subsumes `hidden`). When set, it wins
@@ -263,6 +263,10 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     // at a dead Exit. Declaring it makes the relationship whole — a
     // behaviour change, which is why it is here and not in W6.
     inverse: { ref: 'instance', lifetime: 'symmetric', inverse: 'inverse' },
+    // The boundary standing in this way — shared with the far side, owned
+    // by neither (a row singleton or its minter's). Weak: a destroyed
+    // boundary reads as an open way.
+    _boundary: { ref: 'instance', lifetime: 'weak' },
     messageIn: { persistent: true },
     messageOut: { persistent: true },
     media: { persistent: true },
@@ -291,7 +295,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
    * this exit's row (`gangway` on a berth way) PLUS its direction PLUS
    * that direction's short forms (`north` → `n`, `up` → `u`, read from
    * the direction table via `NavigationApi.shortFormsOf`). None of these
-   * is authored — they are folded in, the `Door.getKeywords()` shape — and
+   * is authored — they are folded in, the `Boundary.getKeywords()` shape — and
    * MQL reads an exit ONLY through this Perceptible interface: it builds
    * no exit-shaped name or keyword and rewrites no word, so `go n` binds
    * the north exit because the exit says it answers to `n`.
@@ -299,9 +303,10 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
   public override getKeywords(viewer?: Stuff): string[] {
     const out = super.getKeywords(viewer);
     const dir = this.direction?.toLowerCase().trim();
-    if (!dir) return out;
-    for (const w of [dir, ...NavigationApi.shortFormsOf(dir)]) {
-      if (!out.includes(w)) out.push(w);
+    if (dir) {
+      for (const w of [dir, ...NavigationApi.shortFormsOf(dir)]) {
+        if (!out.includes(w)) out.push(w);
+      }
     }
     return out;
   }
@@ -348,16 +353,66 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     return this.plainWay();
   }
 
-  /** *A way north; the oak door is closed.* — the unauthored description. */
+  /**
+   * *A way north; the oak door is closed.* — the unauthored description. A
+   * window is named, not stated: *a way west; the west window.*
+   */
   protected plainWay(): string {
     let said = `A way ${this.direction}`;
-    if (this.door) {
-      const door = this.door.presentationPhrase().withRegister('definite').render();
-      said += `; ${door} is ${this.door.stateWord()}`;
+    const boundary = this.getBoundary();
+    if (boundary) {
+      const name = boundary.presentationPhrase().withRegister('definite').render();
+      said += this.wayState() === 'window'
+        ? `; ${name}`
+        : `; ${name} is ${boundary.stateWord()}`;
     } else if (MixinApi.isLockable(this) && this.isLocked()) {
       said += '; it is locked';
     }
     return `${said}.`;
+  }
+
+  /**
+   * ⭐ This way as every screen sees it — the one wire shape
+   * (`WayRecord`) both producers emit (the room card's `exits`
+   * subscription, the whereabouts push), so they cannot disagree.
+   */
+  public wayRecord(): WayRecord {
+    const here = this.source ? this.source.getZone() : null;
+    const far = this.peekDestination() as Stuff | null;
+    const out: WayRecord = {
+      direction: this.direction,
+      state: this.wayState(),
+      // ⭐ A threshold: the far place is in another zone's frame. Unknown
+      // (the far side not standing) reads as no threshold.
+      crossesZone: !!far && far.getZone() !== here,
+    };
+    const boundary = this.getBoundary();
+    if (boundary) {
+      const kw = boundary.getPrimaryKeyword();
+      out.boundary = {
+        stuffId: boundary.stuffId,
+        name: boundary.getPresentation(),
+        ...(kw ? { primaryKeyword: kw } : {}),
+      };
+    }
+    return out;
+  }
+
+  /**
+   * ⭐ The way's whole state in one word — what every screen shows
+   * (`WayRecord.state`): no boundary → `open`; a boundary no body can cross
+   * even open → `window`; else the boundary's own word, `locked` over `shut`
+   * over `open`. A keyed exit with a lock of its own (a sleeping ship's
+   * berth way) answers `locked` from that lock.
+   */
+  public wayState(): WayState {
+    const boundary = this.getBoundary();
+    if (!boundary) {
+      return MixinApi.isLockable(this) && this.isLocked() ? 'locked' : 'open';
+    }
+    if (!boundary.passesBodiesWhenOpen()) return 'window';
+    const word = boundary.stateWord();
+    return word === 'closed' ? 'shut' : word;
   }
 
   protected source: Stuff & Container;
@@ -373,7 +428,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
    * `direction → exit` map rather than containing them. So neither
    * rung of the default jurisdiction walk reaches an exit, and a
    * governed `eval --parcel <extent>` was refused on every exit of
-   * every room inside its own extent — `getDoor()` included, so not
+   * every room inside its own extent — `getBoundary()` included, so not
    * even a read got through. Found by a browser drive.
    *
    * ⚠⚠ **The SOURCE, never the destination.** An exit has two ends and
@@ -503,29 +558,19 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
 
   public setDestination(value: Stuff & Container): void { this.destination = value; }
 
-  /** Backing storage for `door`; the accessor pair mediates
-   *  `Door.attachedTo` bookkeeping. */
-  private _door: Door | null = null;
-
   /**
-   * Host-internal accessor pair (Pattern D). External callers go
-   * through `getDoor()` / `setDoor()`. Setting this property updates
-   * the door's `attachedTo` back-reference: the previous door (if any)
-   * drops this Exit, the new door (if any) gains it. `null` clears.
+   * ⭐ The boundary standing in this way — a door, a window, a curtain — or
+   * null for an open way. This exit is one SIDE of it; the far place's exit
+   * is the other. Set only by `BoundaryApi.attach` (both sides at once, or
+   * each authored side as it installs).
    */
-  protected get door(): Door | null {
-    return this._door;
-  }
+  private _boundary: Boundary | null = null;
 
-  protected set door(value: Door | null) {
-    if (value === this._door) return;
-    if (this._door) this._door.detachExit(this);
-    this._door = value;
-    if (value) value.attachExit(this);
-  }
+  public getBoundary(): Boundary | null { return this._boundary; }
 
-  public getDoor(): Door | null { return this.door; }
-  public setDoor(value: Door | null): void { this.door = value; }
+  /** BoundaryLogic-only seam: the Api attaches, the exit records it. */
+  @CallSecurity(SecurityPolicies.FromModule('/platform/idea/api/BoundaryLogic#BoundaryLogic'))
+  public _setBoundary(value: Boundary | null): void { this._boundary = value; }
 
   /** Permanently blocked regardless of door state. */
   protected blocked: boolean;
@@ -804,7 +849,6 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
       this.source = null as unknown as Stuff & Container;
       this._destination = null;
       this._destinationPath = null;
-      this._door = null;
       this.blocked = false;
       this.muffled = false;
       this.noFollow = false;
@@ -850,12 +894,6 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     } else {
       this._destination = null;
     }
-    // Set `_door` directly (not through the setter) to avoid registering
-    // `this` in `door.attachedTo` while still raw — pre-Proxy. The
-    // Proxy-aware registration happens post-construction in
-    // `ExitableMixin.addExit`, which is the only legitimate way to
-    // install an Exit on an Exitable host.
-    this._door = opts.door ?? null;
     // D1: map the legacy `hidden` flag onto the concealment band. An
     // un-hidden exit stays at the mixin's `obvious` default. An explicit
     // `concealment` band (the authored form) takes precedence over the
@@ -949,10 +987,6 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     } else {
       this._destination = null;
     }
-    // Direct `_door` write for the same pre-`addExit` reason as the
-    // constructor: proxy-aware attachedTo registration happens in
-    // `ExitableMixin.addExit`, the only legitimate installer.
-    this._door = opts.door ?? null;
     // Per-site overrides — delta-only from here down.
     if (opts.concealment) {
       this.setConcealment(opts.concealment);
@@ -1125,18 +1159,14 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
    *
    *   - Clears the inverse back-pointer on the paired Exit so neighbors
    *     don't retain references to a dead instance.
-   *   - Removes this Exit from the attached Door's `attachedTo` set
-   *     (Phase 4 wires that field — pre-Phase-4 the lookup is a
-   *     no-op).
-   *   - Drops the local door reference.
+   *   - Its boundary's slot for this side self-heals (a weak ref), so the
+   *     boundary needs no call back.
    */
   public onDestruct(): void {
     if (this.inverse) {
       this.inverse.setInverse(undefined);
       this.inverse = undefined;
     }
-    // Setter detaches us from the door's `attachedTo` set.
-    this.door = null;
     // Chain. `Stuff.onDestruct` is a no-op terminal, so this costs
     // nothing today — but a witness that does not chain silently
     // amputates every layer beneath it, which is exactly the collision
@@ -1245,48 +1275,39 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
         reason: `${GrammarApi.cap(this.farSideName())} is not open.`,
       };
     }
-    // Lock gate runs BEFORE the closed-door gate so a locked door
-    // reports "locked" not "closed". Reads entirely off `this.door`
-    // (already in hand) — the destination is never resolved, so a
-    // locked gate pointing at an unbuilt/dangling destination path is
-    // safe to veto.
+    // Lock gate runs BEFORE the shut gate so a locked door reports
+    // "locked" not "closed". Reads entirely off the boundary (already in
+    // hand) — the destination is never resolved, so a locked gate pointing
+    // at an unbuilt/dangling destination path is safe to veto.
     // ⭐⭐ **The bolt refuses, the key excuses.** A locked door admits
-    // whoever presents a key that fits its keyway, so a key-holder never
-    // has to `unlock` to get through — which is exactly how the keyed
-    // Exit family (`KeyedDoorExit`, `FrontDoorExit`, `DormDoor`) has
-    // always behaved. What changed is that the bolt is now a separate
-    // fact from the keyway, so a door can also be left OPEN for
-    // everybody; see `lib/boundary/Lockable.ts` for why those were two
-    // disjoint half-models before.
-    //
-    // ⚠ An empty keyway opens for nobody, so a row authoring
-    // `locked: true` and no keyway is sealed against the whole world —
-    // the university gate's case, and its content row did not change.
-    if (
-      this.door &&
-      MixinApi.isLockable(this.door) &&
-      this.door.isLocked() &&
-      !this.door.opensFor(mover)
-    ) {
-      const doorName = this.door.getPresentation();
-      return {
-        ok: false,
-        gate: 'locked',
-        // `getPresentation()` already carries the article ("the
-        // university gate"); cap the leading char rather than re-prefix
-        // "The " (which double-articles to "The the …").
-        reason: `${GrammarApi.cap(doorName)} is locked.`,
-      };
-    }
-    // ⭐ A door that swings shut behind you (`Door.closesBehind`) is passed
-    // shut — it was never left open; the lock gate above still holds.
-    if (this.door && !this.door.isOpen() && !this.door.swingsShut()) {
-      const doorName = this.door.getPresentation();
-      return {
-        ok: false,
-        gate: 'door',
-        reason: `${GrammarApi.cap(doorName)} is closed.`,
-      };
+    // whoever presents a key that fits its keyway — or stands on its free
+    // side (`Door.freeFrom`) — so a key-holder never has to `unlock` to get
+    // through. ⚠ An empty keyway opens for nobody, so a row authoring
+    // `locked: true` and no keyway is sealed against the whole world (the
+    // university gate). The boundary is ONE object for both sides, so this
+    // gate reads the same from either (boundary build, 2026-11).
+    const boundary = this.getBoundary();
+    if (boundary) {
+      const name = GrammarApi.cap(boundary.getPresentation());
+      if (
+        MixinApi.isLockable(boundary) &&
+        boundary.isLocked() &&
+        !boundary.opensFor(mover)
+      ) {
+        return { ok: false, gate: 'locked', reason: `${name} is locked.` };
+      }
+      // ⭐ Nothing crosses that its movement channel refuses: a shut door
+      // (unless it swings shut behind you, `Door.closesBehind`), and a
+      // window, open or shut — *the west window is not a way through.*
+      if (!(boundary.transmissivityInto('movement', this) > 0)) {
+        return {
+          ok: false,
+          gate: 'door',
+          reason: boundary.isOpen() || !boundary.passesBodiesWhenOpen()
+            ? `${name} is not a way through.`
+            : `${name} is closed.`,
+        };
+      }
     }
     if (mode != null && !this.allowsMode(mode) && !(await this.floodedFor(mover, mode))) {
       // ⭐ Name the way that works (found by the underwater browser walk:

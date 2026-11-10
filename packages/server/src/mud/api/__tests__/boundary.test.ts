@@ -1,22 +1,19 @@
 /**
- * BoundaryApi tests.
+ * BoundaryApi tests — `attach` / `detach`, the one two-object act.
  *
- * `attachExistingBoundary` and `destruct` are exercised in detail by
- * `lib/boundary/__tests__/Boundary.test.ts` against the concrete
- * Boundary class. This file targets:
- *
- *   - the async `create()` factory entry point (no coverage at the
- *     lib-level test, which always uses pre-built boundaries);
- *   - rejection paths surfaced by the Api wrapper itself.
+ * ⭐ A boundary is ONE object; each place's exit is a SIDE of it. The Api
+ * refuses a third side, an exit already on another boundary and the same
+ * exit twice, and is idempotent for a side already attached.
  */
 
 import "../../../test-bootstrap";
-import { describe, it, expect, afterEach , beforeEach } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { BoundaryApi } from '../boundary';
 import { BoundaryLogic } from '../../platform/idea/api/BoundaryLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import { Boundary } from '../../lib/boundary/Boundary';
+import Exit from '../../lib/boundary/Exit';
 import Location from '../../lib/location/Location';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
 import {
@@ -24,130 +21,88 @@ import {
   seedKernelContentStore,
 } from '../../lib/security/__tests__/test-setup';
 
-describe('BoundaryApi.create', () => {
+describe('BoundaryApi.attach / detach', () => {
+  let a: Location;
+  let b: Location;
+
   beforeEach(() => {
     seedKernelContentStore();
+    const zone = makeStuff(() => new CartesianZone());
+    a = makeStuff(() => new Location());
+    b = makeStuff(() => new Location());
+    zone.addLocation(a, 0, 0, 0);
+    zone.addLocation(b, 0, 1, 0);
   });
 
   afterEach(() => {
     StuffApi.clearAll();
   });
 
-  it('constructs via factory through StuffApi.create and installs on both hosts', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
+  function exit(direction: string): Exit {
+    return makeStuff(() => new Exit({ direction, source: a, destination: b }));
+  }
 
-    const boundary = await BoundaryApi.create({
-      factory: () => new Boundary(),
-      hostA: a,
-      hostB: b,
-    });
-
-    // The returned boundary is fully wired.
-    expect(boundary.getAnchorA()).not.toBeNull();
-    expect(boundary.getAnchorB()).not.toBeNull();
-    expect(boundary.getAnchorA()!.getAdornedTo()).toBe(a);
-    expect(boundary.getAnchorB()!.getAdornedTo()).toBe(b);
-    expect(a.getFixtures()).toContain(boundary.getAnchorA());
-    expect(b.getFixtures()).toContain(boundary.getAnchorB());
-  });
-
-  it('returns the boundary for fluent chaining', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
-
-    const built = await BoundaryApi.create({
-      factory: () => new Boundary(),
-      hostA: a,
-      hostB: b,
-    });
-
-    expect(built).toBeInstanceOf(Object);
-    expect(built.getOtherHost(a)).toBe(b);
-    expect(built.getOtherHost(b)).toBe(a);
-  });
-
-  it('rejects hostA === hostB after the factory has already run', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-
-    await expect(
-      BoundaryApi.create({
-        factory: () => new Boundary(),
-        hostA: a,
-        hostB: a,
-      }),
-    ).rejects.toThrow(/must differ/);
-  });
-
-  it('composes with destruct to fully tear down a created boundary', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
-
-    const boundary = await BoundaryApi.create({
-      factory: () => new Boundary(),
-      hostA: a,
-      hostB: b,
-    });
-    const anchorA = boundary.getAnchorA()!;
-    const anchorB = boundary.getAnchorB()!;
-
-    BoundaryApi.destruct(boundary);
-
-    expect(boundary.isDestroyed()).toBe(true);
-    expect((anchorA as unknown as { isDestroyed(): boolean }).isDestroyed()).toBe(true);
-    expect((anchorB as unknown as { isDestroyed(): boolean }).isDestroyed()).toBe(true);
-    expect(a.getFixtures()).toHaveLength(0);
-    expect(b.getFixtures()).toHaveLength(0);
-  });
-});
-
-describe('BoundaryApi.attachExistingBoundary — edge cases not covered by lib-level tests', () => {
-  afterEach(() => {
-    StuffApi.clearAll();
-  });
-
-  it('preserves anchor side tags (A/B) deterministically', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
-
+  it('returns the boundary it was given', async () => {
     const boundary = await StuffApi.create(() => new Boundary());
-    BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: b });
-
-    // The side tag is part of the Boundary's symmetric model — anchors
-    // expose 'A' / 'B' regardless of host identity. Future code (door
-    // bearing, conduit walks) reads this; pin it.
-    expect(boundary.getAnchorA()!.getSide()).toBe('A');
-    expect(boundary.getAnchorB()!.getSide()).toBe('B');
+    expect(BoundaryApi.attach(boundary, exit('north'))).toBe(boundary);
   });
 
-  it('returns the same boundary instance the caller supplied', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
-
+  it('is idempotent for a side already attached', async () => {
     const boundary = await StuffApi.create(() => new Boundary());
-    const result = BoundaryApi.attachExistingBoundary({
-      boundary,
-      hostA: a,
-      hostB: b,
-    });
-    expect(result).toBe(boundary);
+    const north = exit('north');
+    BoundaryApi.attach(boundary, north);
+    expect(() => BoundaryApi.attach(boundary, north)).not.toThrow();
+    expect(boundary.getSides()).toEqual([north, null]);
+  });
+
+  it('⛔ refuses a third side — a way has only two', async () => {
+    const boundary = await StuffApi.create(() => new Boundary());
+    BoundaryApi.attach(boundary, exit('north'), exit('south'));
+    const third = exit('east');
+    expect(() => BoundaryApi.attach(boundary, third)).toThrow(/two sides/);
+    expect(third.getBoundary()).toBeNull();
+  });
+
+  it('⛔ refuses an exit already on another boundary', async () => {
+    const one = await StuffApi.create(() => new Boundary());
+    const two = await StuffApi.create(() => new Boundary());
+    const north = exit('north');
+    BoundaryApi.attach(one, north);
+    expect(() => BoundaryApi.attach(two, north)).toThrow(/already has a boundary/);
+    expect(north.getBoundary()).toBe(one);
+    expect(two.sideOf(north)).toBeNull();
+  });
+
+  it('⛔ refuses the same exit as both sides', async () => {
+    const boundary = await StuffApi.create(() => new Boundary());
+    const north = exit('north');
+    expect(() => BoundaryApi.attach(boundary, north, north)).toThrow(/both sides/);
+    expect(boundary.getSides()).toEqual([null, null]);
+  });
+
+  it('detach lets a side go and the boundary keeps the other', async () => {
+    const boundary = await StuffApi.create(() => new Boundary());
+    const north = exit('north');
+    const south = exit('south');
+    BoundaryApi.attach(boundary, north, south);
+
+    BoundaryApi.detach(north);
+    expect(north.getBoundary()).toBeNull();
+    expect(boundary.sideOf(north)).toBeNull();
+    expect(boundary.sideOf(south)).toBe('B');
+
+    // Idempotent, and an exit with no boundary is a no-op.
+    expect(() => BoundaryApi.detach(north)).not.toThrow();
+
+    // The freed slot takes a new side.
+    const east = exit('east');
+    BoundaryApi.attach(boundary, east);
+    expect(boundary.getSides()).toEqual([east, south]);
+  });
+
+  it('⛔ Exit._setBoundary is BoundaryLogic-only', async () => {
+    const boundary = await StuffApi.create(() => new Boundary());
+    expect(() => exit('north')._setBoundary(boundary)).toThrow(SecurityError);
   });
 });
 
@@ -156,24 +111,18 @@ describe('BoundaryLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /platform/idea/api/boundary once the facade has materialized it', async () => {
-    const boundary = await StuffApi.create(() => new Boundary());
-    // A facade call lazily creates the logic singleton.
-    BoundaryApi.destruct(boundary);
-    const logic = StuffApi.findByTemplatePath('/platform/idea/api/boundary');
-    expect(logic).toBeDefined();
+  it('lives at /platform/idea/api/boundary once the facade has materialized it', () => {
+    BoundaryApi.mintKeyway();
+    expect(StuffApi.findByTemplatePath('/platform/idea/api/boundary')).toBeDefined();
   });
 
   it('denies a direct logic-method call from a non-BoundaryApi caller', async () => {
-    const boundary = await StuffApi.create(() => new Boundary());
-    BoundaryApi.destruct(boundary);
+    BoundaryApi.mintKeyway();
     const logic = StuffApi.findByTemplatePath<BoundaryLogic>(
       '/platform/idea/api/boundary'
     );
     expect(logic).toBeDefined();
-    // The test module is not `mud/api/boundary#BoundaryApi`, so the
-    // FromModule gate on the logic's own methods denies the call.
     const victim = await StuffApi.create(() => new Boundary());
-    expect(() => logic!.destruct(victim)).toThrow(SecurityError);
+    expect(() => logic!.attach(victim, [])).toThrow(SecurityError);
   });
 });

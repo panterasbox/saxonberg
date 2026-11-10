@@ -3883,8 +3883,9 @@ function peerScopesOf(container: Stuff): Stuff[] {
     // exit itself; asking `isSealable(exit)` looked right and would
     // never have fired.
     if (exit.isBlocked()) continue;
-    const door = exit.getDoor();
-    if (door !== null && !door.isOpen()) continue;
+    // ...and so is glass: a verb does not reach through a window.
+    const boundary = exit.getBoundary();
+    if (boundary !== null && (!boundary.isOpen() || !boundary.passesBodiesWhenOpen())) continue;
     // ⚠ `getDestination()` THROWS when the target zone is not faulted
     // in yet. Redistributing affordances must never force world-loading
     // — a containment delta is a hot path and an unloaded room simply is

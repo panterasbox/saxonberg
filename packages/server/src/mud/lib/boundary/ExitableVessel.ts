@@ -2,8 +2,7 @@
  * ExitableVessel — an enterable, portable-by-shape container.
  *
  * Composition:
- *   `DoorBearingMixin(ExitableMixin(AdornableMixin(
- *     AtmosphericMixin(Vessel))))`.
+ *   `ExitableMixin(AdornableMixin(AtmosphericMixin(Vessel)))`.
  * `Vessel` already carries the describable-physical baseline
  * (`Visible`/`Perceptible`/`Tangible`) + Container + Containable, so nothing
  * is re-added here beyond the enterable-container machinery.
@@ -21,9 +20,12 @@
  * anyway. Moving it changes what the world CLAIMS, not what it does.
  *
  * The result is a container-object that is both Containable (so it can live
- * inside a Location or another ExitableVessel) and Container + Exitable +
- * DoorBearing (so players can enter it, look/act inside it, and so it
- * can carry a defining Door — wardrobe, refrigerator, car).
+ * inside a Location or another ExitableVessel) and Container + Exitable
+ * (so players can enter it and look/act inside it). ⭐ Its door is its own
+ * `Sealable` — a coach authors `open: false` and no `door:` — read by
+ * `openExteriorOpenings`; the synthesized `out`/`in` carry no boundary
+ * (boundary build D11: `DoorBearingMixin` retired, no row ever authored a
+ * vessel door).
  *
  * Containment constraint (enforced by `ContainmentApi.move`): an
  * ExitableVessel may only live inside another Exitable. This is the
@@ -33,39 +35,26 @@
  * Exit semantics: the explicit exit map is always consultable. In
  * addition the vessel holds its own `out` and `in` pair — ⭐ CLONES of
  * `/platform/idea/exits/vessel-out` and `…/vessel-in`, minted once at
- * `onCreate` and REBOUND whenever the vessel's environment or door
- * changes. `getExit('out')` and `getEntryExit()` (used by `go
+ * `onCreate` and REBOUND whenever the vessel's environment changes. `getExit('out')` and `getEntryExit()` (used by `go
  * <vessel-keyword>`) return them, rebinding first if they are stale.
  *
  * ⭐ They used to be `new Exit(...)` built on demand, which is why they
  * could not say anything an author had written: there was no row. Now
  * the prose is content, with the vessel's name interpolated per site.
  *
- * Door wiring: when the vessel composes a non-null `door`, every
- * synthesized exit picks it up (so `canTraverse` blocks until the door
- * opens). Synthesized exits register themselves in `door.attachedTo`
- * the same way explicit exits do via `addExit`, so `Door.detach()`
- * walks back and clears refs symmetrically.
- *
- * **`Adornable` is declared here, not on the `Vessel` base.** The Door →
- * `BoundaryAnchor` retrofit needs `getFixtures()` so the vessel's defining
- * Door can surface as a fixture on the vessel side of the (vessel,
- * environment) Boundary pair (`installVesselDoorBoundary`). That is an
- * `ExitableVessel`-only need, so the fixture machinery lives here rather
- * than burdening every bare Vessel (a bag, a cart) with it.
+ * **`Adornable` is declared here, not on the `Vessel` base** — a vessel
+ * can carry fixtures. (It was added for the retired door anchors; whether
+ * a vessel still needs it is a cleanup finding, boundary-plan § Deferred.)
  */
 
 import { Vessel } from '../stuff/Vessel';
 import { AtmosphericMixin } from '../biome/Atmospheric';
-import { ExitableMixin } from './Exitable';
+import { ExitableMixin, type ObviousNeighbour, type ObviousNeighbourOptions } from './Exitable';
 import { AdornableMixin } from './Adornable';
-import { DoorBearingMixin } from './DoorBearing';
 import Exit from './Exit';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
-import type Door from '../../platform/thing/Door';
 import { StuffApi } from '../../api/stuff';
-import { BoundaryApi } from '../../api/boundary';
 import { PerceptionApi } from '../../api/perception';
 import { MixinApi } from '../../api/mixin';
 import { TemplatePaths } from '../paths';
@@ -97,7 +86,7 @@ const VESSEL_WALL_M = 0.01;
 // `Atmospheric` innermost of the additions: `Adornable` and `Exitable`
 // read nothing off it, and `openExteriorOpenings` needs `isExitable` to
 // be true of the COMPOSED class, which it is at any order.
-const ExitableVesselBase = DoorBearingMixin(ExitableMixin(AdornableMixin(AtmosphericMixin(Vessel))));
+const ExitableVesselBase = ExitableMixin(AdornableMixin(AtmosphericMixin(Vessel)));
 
 export default class ExitableVessel extends ExitableVesselBase {
   /**
@@ -287,7 +276,6 @@ export default class ExitableVessel extends ExitableVesselBase {
       return;
     }
     const vesselName = (this as unknown as Stuff).getPresentation();
-    const door = this.getDoor();
     const outOpts = {
       direction: 'out',
       source: this as unknown as Stuff & Container,
@@ -296,7 +284,6 @@ export default class ExitableVessel extends ExitableVesselBase {
       // row has made (the river drive's three canoes on a shingle, and
       // `go canoe` crashed "expected singleton, found 3").
       keepLiveDestination: true,
-      door,
       messageOut: `{{ mover }} leaves the <thing>${vesselName}</thing>.`,
       messageIn: `{{ mover }} emerges from the <thing>${vesselName}</thing>.`,
     };
@@ -305,7 +292,6 @@ export default class ExitableVessel extends ExitableVesselBase {
       source: env,
       destination: this as unknown as Stuff & Container,
       keepLiveDestination: true,
-      door,
       media: this.entryMediaIn(env),
       messageOut: `{{ mover }} enters the <thing>${vesselName}</thing>.`,
       messageIn: `{{ mover }} enters from outside.`,
@@ -314,10 +300,6 @@ export default class ExitableVessel extends ExitableVesselBase {
     else out.bind(outOpts);
     if (entry.isBound()) entry.rebind(entryOpts);
     else entry.bind(entryOpts);
-    if (door) {
-      door.attachExit(out);
-      door.attachExit(entry);
-    }
     this.outCacheEnvId = env.stuffId;
     this.entryCacheEnvId = env.stuffId;
   }
@@ -342,6 +324,24 @@ export default class ExitableVessel extends ExitableVesselBase {
     return super.getExit(direction);
   }
 
+  /**
+   * ⭐ **For a vessel the SEAL is the door** — for the walks too (boundary
+   * build). Its synthesized `out` carries no boundary (no row ever authored
+   * a vessel door), so a SHUT vessel drops that way from its neighbours:
+   * light, sound and smell do not come in through a shut coach or a shut
+   * wardrobe, exactly as `openExteriorOpenings` already keeps its air in.
+   * The way is still there to `go` (the traverse reads the exit itself).
+   */
+  public override getObviousNeighbours(
+    opts?: ObviousNeighbourOptions,
+  ): ObviousNeighbour[] {
+    const all = super.getObviousNeighbours(opts);
+    const self = this as unknown as Stuff;
+    if (!MixinApi.isSealable(self) || self.isOpen()) return all;
+    const out = this.outCache;
+    return all.filter((n) => n.exit !== out);
+  }
+
   public override getObviousExits(): Exit[] {
     const base = super.getObviousExits();
     const out = this.getOrSynthesizeOutExit();
@@ -359,15 +359,8 @@ export default class ExitableVessel extends ExitableVesselBase {
   }
 
   /**
-   * Invalidate the synthesized exit caches AND migrate the door's
-   * BoundaryAnchor pair from (vessel, oldEnv) to (vessel, newEnv).
-   * Fires once per `ContainmentApi.move` transition.
-   *
-   * The (vessel, env) anchor-pair is the runtime install on the
-   * vessel side of the door's Boundary representation: a closed
-   * vessel-door blocks light flowing between vessel interior and
-   * its current environment. As the vessel relocates, the boundary
-   * follows.
+   * Invalidate the synthesized exit caches. Fires once per
+   * `ContainmentApi.move` transition.
    */
   public onMoved(
     _from: (Stuff & Container) | null,
@@ -381,68 +374,6 @@ export default class ExitableVessel extends ExitableVesselBase {
     this.resetWeatherLocality();
     this.resetClimateSite();
     this.invalidateSynthesizedExits();
-    const door = this.getDoor();
-    if (door) {
-      // Destruct any existing (vessel, oldEnv) anchor pair via the
-      // Boundary subclass-bypass seam — we don't want Door.detach's
-      // `attachedTo` cleanup, just the anchor migration.
-      door._detachAndDestructAnchors();
-      this.installVesselDoorBoundary(door, to);
-    }
-  }
-
-  /**
-   * Door change: drop any cached synthesized exits (so the next access
-   * recreates them with the new door) and migrate the BoundaryAnchor
-   * pair on (vessel, environment) — old door's anchors are torn down,
-   * new door's anchors are installed if the vessel is currently
-   * placed.
-   */
-  public override setDoor(door: Door | null): void {
-    const old = this.getDoor();
-    if (door === old) return;
-    this.invalidateSynthesizedExits();
-    if (old) {
-      old._detachAndDestructAnchors();
-    }
-    super.setDoor(door);
-    if (door) {
-      this.installVesselDoorBoundary(door, this.getContainer());
-    }
-  }
-
-  /**
-   * Anchor the vessel's defining door on (vessel, env). No-op when
-   * the env is null (vessel hasn't been placed yet) or the door
-   * already has anchors (re-install would throw — caller should
-   * detach first).
-   */
-  private installVesselDoorBoundary(
-    door: Door,
-    env: (Stuff & Container) | null
-  ): void {
-    if (!env) return;
-    // ⚠ "already anchored" is now "already INSTALLED": a boundary mints
-    // its pair at registration and keeps it across detach, so the
-    // presence of anchors says nothing about whether they are on a host.
-    if (door.getAnchorA()?.getAdornedTo() || door.getAnchorB()?.getAdornedTo()) {
-      return;
-    }
-    // Cast both sides to plain `Stuff` (sound — vessel and env are
-    // both Stuff) and let `MixinApi.isAdornable` narrow them to
-    // `Stuff & Adornable` via its type predicate. The earlier
-    // pre-assert-then-verify shape double-cast around the predicate;
-    // this lets the predicate's narrowing flow through to the
-    // BoundaryApi call site.
-    const vesselStuff = this as unknown as Stuff;
-    const envStuff = env as unknown as Stuff;
-    if (!MixinApi.isAdornable(vesselStuff)) return;
-    if (!MixinApi.isAdornable(envStuff)) return;
-    BoundaryApi.attachExistingBoundary({
-      boundary: door,
-      hostA: vesselStuff,
-      hostB: envStuff,
-    });
   }
 
   /**
@@ -466,25 +397,11 @@ export default class ExitableVessel extends ExitableVesselBase {
   }
 
   /**
-   * Drop both synthesized-exit caches and unhook the cached exits from
-   * any door's `attachedTo` set. The next access (if still warranted)
-   * will recreate them with the current `door` and re-register.
-   */
-  /**
-   * Unhook the pair from any door and mark them stale. ⚠ The EXITS are
-   * kept — they are this vessel's, minted once; only the binding is
-   * dropped, and the next access rebinds them against the current
-   * environment and door.
+   * Mark the pair stale. ⚠ The EXITS are kept — they are this vessel's,
+   * minted once; only the binding is dropped, and the next access rebinds
+   * them against the current environment.
    */
   private invalidateSynthesizedExits(): void {
-    const outDoor = this.outCache?.getDoor();
-    if (this.outCache && outDoor) {
-      outDoor.detachExit(this.outCache);
-    }
-    const entryDoor = this.entryCache?.getDoor();
-    if (this.entryCache && entryDoor) {
-      entryDoor.detachExit(this.entryCache);
-    }
     this.outCacheEnvId = null;
     this.entryCacheEnvId = null;
   }

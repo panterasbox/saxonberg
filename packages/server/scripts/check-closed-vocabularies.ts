@@ -133,6 +133,13 @@ export const MIGRATING: Readonly<Record<string, string>> = {
  * restatement of the name.
  */
 export const CLOSED_BY_DESIGN: Readonly<Record<string, string>> = {
+  BOUNDARY_CHANNELS:
+    'What crosses a way (boundary build): each channel is a WALK in the ' +
+    'kernel that reads it — movement the traverse, light/sound/smell the ' +
+    'three modalities, sight the vision gate. A row cannot add a channel ' +
+    'nothing reads; the first reader of a new one (water: an ice hole, a ' +
+    'flooded hatch) is code, and adds the word with it. The NUMBERS per ' +
+    'channel are rows (`channels:` on every boundary row).',
   BASIC_TASTES:
     'Taste physiology is genuinely closed — five receptor classes, and ' +
     'that is territory rather than a modelling choice. ⚠ Smell is NOT ' +

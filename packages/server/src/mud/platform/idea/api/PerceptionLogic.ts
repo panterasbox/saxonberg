@@ -371,7 +371,7 @@ export class PerceptionLogic extends ApiLogic {
 
     if (MixinApi.isContainer(actor) && reachesInto(actor)) return true;
     if (location && reachesInto(location)) return true;
-    // ⚠ Attached doors are in NO container — they ride `exit.getDoor()`
+    // ⚠ Attached doors are in NO container — they ride `exit.getBoundary()`
     // — so a containment-only test misses every door in the game. This
     // clause is the entire reason reach could not stay hand-rolled: the
     // card hold that omitted it released `out-of-reach` on doors the
@@ -386,7 +386,7 @@ export class PerceptionLogic extends ApiLogic {
       for (const exit of location.obviousExitsFor(actor)) {
         // ⭐ The way itself (a direction binds the exit)
         // or the door hung in it.
-        if (exit.stuffId === id || exit.getDoor()?.stuffId === id) return true;
+        if (exit.stuffId === id || exit.getBoundary()?.stuffId === id) return true;
       }
     }
     // ⚠ ...and neither are fixtures. A hung sconce, a wall TV, a neon
@@ -452,7 +452,7 @@ export class PerceptionLogic extends ApiLogic {
     // Attached doors ride their exit, in no container at all.
     if (location && MixinApi.isExitable(location)) {
       for (const exit of location.getObviousExits()) {
-        const door = exit.getDoor();
+        const door = exit.getBoundary();
         if (door) ids.add(door.stuffId);
       }
     }

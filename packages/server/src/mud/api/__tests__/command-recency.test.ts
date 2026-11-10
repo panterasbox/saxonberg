@@ -9,6 +9,7 @@
 
 import "../../../test-bootstrap";
 import { StuffApi } from '../../api/stuff';
+import { BoundaryApi } from '../../api/boundary';
 import { describe, it, expect, beforeEach, vi  } from 'vitest';
 import { Idea } from '../../lib/stuff/Idea';
 import Place from '../../lib/stuff/Place';
@@ -424,10 +425,10 @@ describe('affordance reach — peers one hop away', () => {
           direction: 'north',
           source: here,
           destination: there,
-          door,
         }),
     );
     await here.addExit(exit);
+    BoundaryApi.attach(door, exit);
 
     const provider = makeStuff(() => new EnvProvider());
     ContainmentApi.move(provider, there as never);

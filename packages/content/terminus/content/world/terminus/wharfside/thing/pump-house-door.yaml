@@ -3,6 +3,7 @@
 # holds that seat and clocks on is handed a key; anybody else stands outside
 # a thumping engine they cannot reach.
 class: /platform/thing/Door
+extends: /platform/thing/boundaries/door
 data:
   shortDescription: pump-house door
   keywords: [door, "pump-house door", "iron door"]
@@ -15,5 +16,8 @@ data:
   locked: true
   keyway: terminus-works
   lockTechnology: pin-tumbler
+  # ⭐ The thumb-turn side (boundary build): from inside the house it opens
+  # with no key, so whoever is in there is never locked in.
+  freeFrom: /world/terminus/wharfside/pumphouse/location/house
   _materialPath: /stuff/idea/material/wood/oak
   mass: 45

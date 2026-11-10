@@ -31,6 +31,12 @@ data:
     southwest:
       destination: /world/terminus/rejection/location/hillside
       edgeMinutes: 3
+    # ⭐ East, over the shoulder of the hill, into salt country. The lode
+    # does not go that way — the walk is a different trade's, and the
+    # same hill. (It left from the hillside until the boundary build.)
+    east:
+      destination: /world/terminus/rejection/location/salt-spring
+      edgeMinutes: 4
     northeast:
       destination: /world/terminus/rejection/location/fringe-claim
       edgeMinutes: 4
