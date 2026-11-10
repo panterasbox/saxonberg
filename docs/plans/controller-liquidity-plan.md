@@ -141,6 +141,12 @@ no words.
 - `belay off` is gone — `untie` ends the belay (W7c).
 - `wash` needs water in reach (a tap, a pump, a shore — a crafted pail no
   longer counts) (W7c).
+- `stir <churn>` → **`churn`** (the dairying pack's own verb) (W18).
+- `stir <compound>` (a glaze tub, a batch pot, a paint pot, a plaster
+  tub) → **`knead`** — the matter still decides a stir's few minutes or a
+  knead's quarter-hour, and the words say which (W18).
+- `sweep <grate>` → **`rake`** (`rake hearth`, `rake pit`); `sweep` keeps
+  the floor and, with a flue brush, the chimney (W18).
 - ⭐ **`survey` is retired** (owner, 2026-11-10; W17) — the word belongs to
   land surveying. The place read is **`analyze rooms`** (what the room
   answers to and by what; at home the holding, the shell and who owes the
@@ -1123,6 +1129,56 @@ or not anything wearable is carried). Controllers renamed to their verbs
 `stream-rotation` has no controller of its own (every subcommand names
 one) and is refused `missing-subcommand`. Player-facing outfit words say
 *outfit* (`You have no outfit called 'x'.`, reason `unknown-outfit`).
+
+**D-W18a (owner 2026-11-10; build, W18) — `stir` is the drink build's
+alone.** `AgitatedMixin` retired (with `Mixins.Agitated`,
+`MixinApi.isAgitated`); the plan is `ManualBuildMixin.stirPlan()`. A
+shaker's technique `shaken` is the SAME act (working the build, the way
+the tool works it) — no `shake` verb invented; the kernel's words say
+"work" for any non-`stirred` method because `shaken` is a pack's name.
+⚠ For the owner: if `shake` should be a word, it is a removable default
+alias or a W-later call, not this wave's.
+
+**D-W18b (build, W18) — compounds are `knead`'s, the matter decides the
+work.** `knead` already asked `kneadPlanFor` with no word and took the
+matter's `workVerb`; `stir`'s delegation was the only caller of
+`KneadRequest.verb`, so `verb`, `Compounding.workRefusal` and the
+`wrong-work` refusal are deleted — B101 (no word may pick the shorter
+work) is now structural. ⚠ For the owner: a paint pot or glaze slurry is
+TYPED `knead` though narrated "You begin to stir…"; the help and the row
+comments say so. If that reads wrong, the honest fix is a word for
+mixing (not `stir` back).
+
+**D-W18c (build, W18) — `churn` lives in `trade-dairying`.** View
+`content/trade/dairying/cmd/crafting/churn.yaml` (category `crafting`,
+like hospitality's `muddle`), `ChurnController` in the pack's
+`src/idea/cmd/crafting/`, afforded by the `Churn` CLASS (a kernel mixin
+must not name a pack view, so `HandWorkedMixin` lost its
+`commandContributions`). `HandWorkedMixin` stays the kernel protocol it
+was before W7c, its plan now `handWorkPlan()`; one composer (the churn),
+so moving it into the pack is a later cleanup, not needed for the split.
+The pack's "ships no verb" row test now asserts one verb.
+
+**D-W18d (build, W18) — `Sweepable` is KEPT, slimmed.** Two real hosts
+(`FloorMixin`, `FluedMixin`), one act (taking something up off a
+surface), and now ONE result shape `{ kg, kinds, taken }` with begin
+`{ tool: broom|brush|hands }` — the union was the tell, and it is gone.
+`BurnerMixin` no longer composes it; `FluedMixin` composes it itself and
+refuses `no-brush` without a flue brush (it used to fall back to the
+grate). `sweep <unflued fire>` refuses pointing at `rake`; any other
+non-sweepable target (`sweep byre`) still sweeps the floor underfoot.
+
+**D-W18e (build, W18) — `rake` is a platform `device` verb.** Beside
+`light`/`douse`/`cover`/`draught`; `Burner.rakePlan(raker)` → `rakeGrate`
+(a method, one host); afforded on the Burner's `peers` only (nobody rakes
+the lamp in their hand). No tool gate, as before. The potash ash round
+calls `rakeGrate` directly and is unchanged.
+
+**D-W18f (build, W18) — the baseline row.** `stir` (recorded as `stir pot`
+at the glasshouse batch pot) is renamed `knead.compound`, command `knead
+pot`: the same plan (powder → two minutes, `engagement-started`), so the
+recorded outcome is unchanged — the key moved, nothing re-recorded.
+`sweep` (a floor with a broom) is unchanged.
 
 **D-W17a (owner, 2026-11-10) — `survey` retired; its reads are
 channels.** No `survey` verb: `rooms` (`RoomsReading`, scope `here`, an
@@ -2171,6 +2227,30 @@ rebase cleanly.
 > carpentry, mining), client vitest 1055/1055, carpentry vitest 36/36,
 > lint:family 106/106, test:near origin/master 11,446 kernel + every pack lane passed (the kernel lane's 3 unhandled Mongo rejections come from `card-terminals.test.ts` and reproduce on the pre-W17 HEAD — not this wave's). Wire and
 > e2e moved to the new reads (not driven this wave: no world was started).
+
+### W18 — two false unifications undone (owner, 2026-11-10; D-W18a–f) ✅ done
+
+> **Done (`34f8e50c3`).** W7c's `Agitated` and `Sweepable` each stitched
+> several acts behind one verb with a union result. Now: `stir` is the
+> drink build's (`ManualBuildMixin.stirPlan`), a compound is `knead`ed
+> (the matter decides the work), a churn is `churn`ed (new, the dairying
+> pack's verb over `HandWorkedMixin.handWorkPlan`), a grate is `rake`d
+> (new platform `device` verb over `Burner.rakePlan`). `AgitatedMixin` is
+> retired; `Sweepable` keeps two hosts (Floor, Flued) with one result
+> shape. Surprise: `knead` already did everything `stir` delegated, so
+> the `wrong-work` refusal and `KneadRequest.verb` were dead the moment
+> `stir` stopped asking. Content, wiki, wire drives and docs moved with
+> it; the baseline row `stir` became `knead.compound` (same outcome);
+> `reading-slate.md` holds the owner's open question on `Readable`.
+> Ceilings: decision tokens 620 → 614 and duck probes 480 → 478 are
+> pinned in W17's commit (W18's share is −1 and −2, measured together).
+> Verified: tsc 0 (server; dairying, ceramics, potash, painting,
+> cooking, hospitality), those packs' vitest + glass green, lint:family
+> 104/106 (the two failures were the "fallen, re-pin" ratchets above),
+> test:near origin/master 35 lanes green (server 11,446 passed). ⚠ 3
+> unhandled "Not connected to MongoDB" rejections from
+> `card-terminals.test.ts` (cockpit terminal; it fails the same way when
+> run alone). W18 touched no code it reaches.
 
 ---
 
