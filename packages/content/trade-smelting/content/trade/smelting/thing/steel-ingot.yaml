@@ -11,7 +11,7 @@
 # ⚠ Its MASS and its exact carbon are stamped per run, never authored.
 # Two steel bars off two different carburizing runs are both steel and
 # are not the same; `analyze chemistry` is how you tell.
-class: /platform/thing/Ingot
+class: /trade/smithing/thing/Stock
 data:
   shortDescription: steel bar
   keywords: [bar, steel, ingot, billet]

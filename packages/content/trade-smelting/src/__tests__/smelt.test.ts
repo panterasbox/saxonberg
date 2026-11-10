@@ -137,9 +137,9 @@ describe('the smelt', () => {
     const ingot = YAML.parse(
       readFileSync(`${PACK}content/trade/smelting/thing/copper-ingot.yaml`, 'utf8'),
     ) as { class: string };
-    // `Ingot` composes Meltable + Thermal, so heating a bar past 1358 K
+    // `Stock` is an `Ingot`, which composes Meltable + Thermal, so heating a bar past 1358 K
     // runs it back to a pool. Nothing here special-cases the direction.
-    expect(ingot.class).toBe('/platform/thing/Ingot');
+    expect(ingot.class).toBe('/trade/smithing/thing/Stock');
   });
 
   it('⚠ SLAG ships, because a smelt that produced only metal would be lying', () => {
@@ -202,7 +202,7 @@ describe('⭐ the metal faucets are closed', () => {
     // cut. There is no second path in.
     const ingots = shippedRows().filter(
       ({ doc }) =>
-        (doc.class === '/platform/thing/Ingot' || doc.class === '/platform/thing/Casting') &&
+        (doc.class === '/trade/smithing/thing/Stock' || doc.class === '/platform/thing/Ingot' || doc.class === '/platform/thing/Casting') &&
         /copper/i.test(JSON.stringify(doc.data ?? {})),
     );
     // ⭐ (dairy D19) …and the generic `ingot`, whose copper is a

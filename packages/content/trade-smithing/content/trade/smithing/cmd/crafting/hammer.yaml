@@ -21,10 +21,10 @@ args:
   # `findBuildVessel` instead of this gate. Found by driving it in a
   # browser.
   #
-  # ⭐ `AlloyedMixin` is the honest gate: what you hammer is METAL STOCK,
-  # and that is exactly the set the mixin marks. It also lets a pig of
-  # cast iron REACH the controller, which is the only way a player ever
-  # hears why cast iron cannot be forged.
+  # ⭐ What you hammer is METAL STOCK — the smithing pack's `Stock` and the
+  # smelter's `Bloom`, both `HammerableMixin`. A pig of cast iron is Stock
+  # too, so it REACHES the piece's refusal, which is the only way a player
+  # ever hears why cast iron cannot be forged.
   - name: target
     type: object
     required: false
@@ -32,11 +32,14 @@ args:
     # ⭐ Bare `hammer` works the piece you are at — DECLARED, so the binder
     # resolves it instead of the controller walking for it
     # (`lint:controller-resolution`).
-    default: "reachable:[mixin.ManualBuildMixin]"
+    default: "reachable:[mixin.HammerableMixin]"
     # (⚠ Both branches found the `DurableMixin` gate the same week: one
     # by driving it in a browser, one by declaring this default — the
     # walk it replaces was the only reason the verb ever ran.)
-    requires: AlloyedMixin
+    # ⭐ controller-liquidity W9: the piece answers the hammer itself
+    # (`HammerableMixin` — every shipped ingot, bar, pig, blank and bloom),
+    # so the gate names the protocol, not the material record.
+    requires: HammerableMixin
   # ⭐ WHICH STRIKER — DECLARED, not hunted for (`lint:controller-resolution`).
   # Bare, the binder hands over every reachable thing offering
   # `striking` and the controller takes the best-rated (a requirement, never

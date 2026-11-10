@@ -2,7 +2,7 @@
 # this one feeds the recipe ladder). ⚠ There is no third: the general
 # store's ingot was deleted with the import faucet, so these two and a
 # consolidated bloom are the only wrought bars the world has.
-class: /platform/thing/Ingot
+class: /trade/smithing/thing/Stock
 data:
   shortDescription: iron ingot
   keywords: [billet, ingot, iron, bar]

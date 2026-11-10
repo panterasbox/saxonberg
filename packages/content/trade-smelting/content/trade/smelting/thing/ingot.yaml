@@ -8,7 +8,7 @@
 #
 # ⚠ `_materialPath` is a PLACEHOLDER the set overwrites (`lint:mass` reads
 # authored rows); the copper-ingot row stays for `cast-bar`.
-class: /platform/thing/Ingot
+class: /trade/smithing/thing/Stock
 data:
   shortDescription: ingot
   keywords: [ingot, bar, billet]

@@ -1,57 +1,30 @@
 /**
- * QuenchController — `quench [<workpiece>]` (the smithing terminal mint).
+ * QuenchController — `quench [<workpiece>] [on <anvil>]`.
  *
- * The strain of the smithy: at completion it hands the workpiece's
- * accumulated buffer (+ its latched heat) to `CraftingApi.mintFromBuild`,
- * which reverse-matches it to a recipe and mints the formed, stamped good
- * — **consuming the workpiece** (its Material + mass flow onto the
- * output). An off-spec build still yields *a* thing (the generic worked
- * lump). The first making of a recipe mints the can-make deed
- * (`CraftingLogic.recordCraftEvidence`), and the scene says so.
- *
- * ⭐⭐ **And on an UN-worked hot piece it is a heat treatment**, which is
- * what quenching actually is. Heat a bar and drop it in the tub without
- * shaping it and you have not made anything — you have changed the
- * metal. What happens depends entirely on what is dissolved in it:
- *
- *  - **wrought iron** — nothing. There is no carbon to trap, so the
- *    steel does not harden, and the scene says so. That negative is the
- *    lesson: quenching is not a ritual that improves metal.
- *  - **steel** — it hardens. Carbon frozen in place where it had no time
- *    to leave, which is the entire reason the band matters.
- *  - **cast iron** — it CRACKS, and you have two halves. Brittle metal
- *    and a thermal shock is exactly this, and the pig was never going to
- *    be forged anyway.
- *
- * ⚠ `temper` is recorded and reported (`analyze chemistry`) with no
- * mechanical consumer in this build, and the next `heat` anneals it back
- * — because heating past the critical temperature is what annealing IS,
- * and it is why a smith quenches LAST.
+ * ⭐ I/O over the piece's own protocol ({@link Quenchable.quenchPlanFor},
+ * controller-liquidity Appendix A, rung 1): a worked build is FINISHED (the
+ * smithing terminal mint — reverse-matched to a recipe, the formed good out
+ * of the tub, the first making teaching it), and an un-worked hot piece is
+ * HEAT-TREATED (its carbon decides: unchanged, hardened, or cracked in two).
+ * Which of the two it is, and every number in it, is the piece's; the anvil
+ * paces the plunge and is deliberately not a gate.
  */
 
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Builds } from '@saxonberg/server/mud/lib/craft/ManualBuild';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import type { Alloyed } from '@saxonberg/server/mud/lib/material/Alloyed';
+import {
+  QUENCHABLE_MIXIN,
+  type Quenchable,
+  type QuenchBegin,
+  type QuenchDone,
+  type QuenchRefusal,
+} from '../../../lib/Quenchable';
 
-const TOPIC = 'act.deed';
-const QUENCH_MS = 2500;
-
-const CARBON = '/stuff/idea/material/element/carbon';
-/** The bottom of the steel band — below it there is nothing to harden. */
-const C_STEEL_FLOOR = 0.002;
-/** Austenite's limit — above it the metal is cast, and it shatters. */
-const C_CAST_FLOOR = 0.021;
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface QuenchModel extends CommandModel {
   anvil?: MqlManyResult;
@@ -59,171 +32,94 @@ interface QuenchModel extends CommandModel {
 }
 
 export default class QuenchController extends ManualBuildController<QuenchModel> {
-  /**
-   * The heat treatment: the piece's own carbon decides what a quench
-   * does to it. ⚠ No recipe, no mint, no build — nothing is being MADE
-   * here, and that is the point.
-   */
-  private treat(
-    context: CommandContext,
-    piece: Stuff & Alloyed,
-    anvilBound: MqlManyResult | undefined,
-  ): void {
+  async execute(model: QuenchModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const carbon = piece.fractionOf(CARBON);
-    const brittle = MixinApi.isTangible(piece) && piece.hasMaterialTag('brittle');
-    const anvil = this.bestInstrument(anvilBound, 'anvil');
-    this.engageStep(context, {
-      durationMs: this.paceMs(QUENCH_MS, anvil, ['anvil']),
-      effortW: 600,
-      beginSelf: Mml.compose`You bring ${Mml.thing(piece)} up to colour and hold it over the slack tub.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} holds ${Mml.thing(piece)} over the slack tub.`,
-      onComplete: () => {
-        if (brittle || carbon >= C_CAST_FLOOR) {
-          void crack(giver, piece);
-          return;
-        }
-        if (carbon < C_STEEL_FLOOR) {
-          // ⭐ The honest nothing. Quenching is not a ritual.
-          MessageApi.scene(giver)
-            .topic(TOPIC)
-            .toSelf(
-              Mml.compose`Steam, and then nothing. ${Mml.thing(piece)} comes out of the tub exactly as soft as it went in — there is no carbon in it to trap, and quenching iron with nothing in it changes nothing at all.`,
-            )
-            .send();
-          return;
-        }
-        piece.setTemper('hardened');
-        MessageApi.scene(giver)
-          .topic(TOPIC)
-          .toSelf(
-            Mml.compose`The tub boils and goes quiet. ${Mml.thing(piece)} comes out grey and dead-looking, and a file skates off it where it bit before — the carbon has been caught where it stood. It is hard now, and it will stay hard until the fire takes it back.`,
-          )
-          .toPeers(Mml.compose`${Mml.actor(giver)} quenches ${Mml.thing(piece)}; the tub boils.`)
-          .send();
-      },
-    });
-  }
-
-  execute(model: QuenchModel, context: CommandContext): void {
-    const giver = context.commandGiver;
-
-    const workpiece: Stuff | null =
-      model.target?.stuff ?? null;
-    if (!workpiece || !MixinApi.isBuildVessel(workpiece)) {
-      this.declineStep(
-        context,
-        Mml.compose`Quench what? You need a workpiece you've been forging.`,
-        'no-vessel',
-      );
+    const target = model.target?.stuff ?? null;
+    if (!target || !MixinApi.isActive(target, QUENCHABLE_MIXIN)) {
+      this.declineStep(context, Mml.compose`Quench what? You need a workpiece you've been forging.`, 'no-vessel');
       return;
     }
-    if (workpiece.isBuildEmpty()) {
-      // ⭐ An un-worked piece that has been in the fire is not a mistake
-      // — it is the other thing quenching does. Only a COLD one has
-      // nothing to say.
-      if (MixinApi.isAlloyed(workpiece) && workpiece.getHeatedToK() > 0) {
-        this.treat(context, workpiece, model.anvil);
-        return;
-      }
-      this.declineStep(
-        context,
-        Mml.compose`${Mml.thing(workpiece)} hasn't been worked — there's nothing to quench.`,
-        'empty-build',
-      );
+    const piece = target as Stuff & Quenchable;
+    const plan = piece.quenchPlanFor(giver);
+    if (!plan.ok) {
+      this.declineStep(context, QuenchController.refusalWords(plan, piece), plan.reason);
       return;
     }
-
-    const makerPath =
-      (ExecutionContextApi.getActingAuthor() as Stuff | null)?.getIdentityPath() ??
-      '';
-    const built: Stuff & Builds = workpiece;
-
-    // The anvil paces the terminal quench too. Quench is deliberately
-    // not GATED on an anvil — pacing must not add a gate; rate 1 absent.
     const anvil = this.bestInstrument(model.anvil, 'anvil');
-    this.engageStep(context, {
-      durationMs: this.paceMs(QUENCH_MS, anvil, ['anvil']),
-      effortW: 600,
-      beginSelf: Mml.compose`You plunge ${Mml.thing(workpiece)} into the slack tub with a hiss of steam.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} quenches ${Mml.thing(workpiece)} in a burst of steam.`,
-      onComplete: () => {
-        void (async (): Promise<void> => {
-          const outcome = await CraftingApi.mintFromBuild({
-            workpiece: built,
-            contributions: [...built.getContributions()],
-            heatedToK: built.getHeatedToK(),
-            makerPath,
-          });
-          if (!outcome.ok) {
-            MessageApi.scene(giver)
-              .topic(TOPIC)
-              .toSelf(Mml.compose`The quench goes wrong, and nothing holds its shape.`)
-              .send();
-            return;
-          }
-          const recipeId = outcome.recipeId;
-          // The workpiece was consumed by the mint, which hands its
-          // successor over (the Api lands, stamps and captures it).
-          const output = outcome.output;
-          MessageApi.scene(giver)
-            .topic(TOPIC)
-            .toSelf(Mml.compose`You draw ${Mml.thing(output)} from the tub, finished.`)
-            .toPeers(Mml.compose`${Mml.actor(giver)} draws ${Mml.thing(output)} from the tub.`)
-            .send();
-
-          // ⭐ The knowledge ladder: crafting itself records the first
-          // making (the can-make deed) and says so on the outcome — no
-          // script is written behind the player's back.
-          if (outcome.learned === true && recipeId.length > 0) {
-            const view = await CraftingApi.lookupRecipe(recipeId);
-            const name = view?.name ?? recipeId;
-            MessageApi.scene(giver)
-              .topic(TOPIC)
-              .toSelf(
-                Mml.compose`You've worked out how to forge ${name} — the craft is yours now (try \`forge ${recipeId}\`).`,
-              )
-              .send();
-          }
-        })().catch((err: unknown) => {
-          console.error('QuenchController: mint failed', err);
-        });
+    await this.engagePlan(
+      context,
+      { ...plan, durationMs: this.paceMs(plan.durationMs, anvil, ['anvil']) },
+      {
+        beginSelf: (b) => QuenchController.beginWords(b, piece),
+        beginPeers: (b) => QuenchController.beginPeerWords(b, giver, piece),
+        onRefused: (r) => QuenchController.refusalWords(r, piece),
+        onDone: (d) => QuenchController.doneWords(d, giver, piece),
       },
-    });
+    );
   }
-}
 
-/**
- * ⚠ A thermal shock through brittle metal, and it does what a thermal
- * shock through brittle metal does. The pig is replaced by two halves of
- * it — the mass is conserved, because nothing was lost, only broken.
- */
-async function crack(giver: Stuff, piece: Stuff & Alloyed): Promise<void> {
-  const row = piece.getTemplatePath() ?? '';
-  const wholeKg = MixinApi.isTangible(piece) ? piece.getMass().rawValue() : 0;
-  const where = MixinApi.isContainable(piece) ? piece.getContainer() : null;
-  if (!row || wholeKg <= 0 || !where || !MixinApi.isContainer(where)) return;
-
-  const carbon = piece.getMakeup();
-  // Minted before the piece goes: two halves of the owner's casting.
-  const halves: Stuff[] = [];
-  for (let i = 0; i < 2; i++) {
-    halves.push(await StuffApi.clone<Stuff>(row, undefined, { madeFrom: piece }));
-  }
-  StuffApi.destruct(piece);
-  for (const half of halves) {
-    if (MixinApi.isTangible(half)) {
-      half.setMass(Quantity.of(Number((wholeKg / 2).toFixed(3)), 'kg'));
+  /** ⭐ Every reason the piece refuses the tub (D4). */
+  protected static refusalWords(r: QuenchRefusal, piece: Stuff): Composed {
+    switch (r.reason) {
+      case 'empty-build':
+        return Mml.compose`${Mml.thing(piece)} hasn't been worked — there's nothing to quench.`;
+      case 'mint-failed':
+        return Mml.compose`The quench goes wrong, and nothing holds its shape.`;
+      default: {
+        const never: never = r;
+        return never;
+      }
     }
-    if (MixinApi.isComposition(half)) half.setMakeup(carbon);
-    if (MixinApi.isContainable(half)) ContainmentApi.move(half, where);
   }
-  if (giver.isDestroyed()) return;
-  MessageApi.scene(giver)
-    .topic(TOPIC)
-    .toSelf(
-      Mml.compose`It goes into the water and comes apart in your tongs with a sound like a dropped plate. Two pieces, a clean grey fracture down the middle, and both of them exactly as useless as the whole one was. Cast iron does not take a quench; it takes offence.`,
-    )
-    .toPeers(Mml.compose`Something cracks in ${Mml.actor(giver)}'s slack tub, loudly.`)
-    .send();
+
+  protected static beginWords(b: QuenchBegin, piece: Stuff): Composed {
+    return b.manner === 'finish'
+      ? Mml.compose`You plunge ${Mml.thing(piece)} into the slack tub with a hiss of steam.`
+      : Mml.compose`You bring ${Mml.thing(piece)} up to colour and hold it over the slack tub.`;
+  }
+
+  protected static beginPeerWords(b: QuenchBegin, giver: Stuff, piece: Stuff): Composed {
+    return b.manner === 'finish'
+      ? Mml.compose`${Mml.actor(giver)} quenches ${Mml.thing(piece)} in a burst of steam.`
+      : Mml.compose`${Mml.actor(giver)} holds ${Mml.thing(piece)} over the slack tub.`;
+  }
+
+  /** ⭐ Every outcome of the tub, said — the honest nothing included. */
+  protected static doneWords(
+    d: QuenchDone,
+    giver: Stuff,
+    piece: Stuff,
+  ): { self: Composed; peers?: Composed } {
+    switch (d.kind) {
+      case 'finished': {
+        // ⭐ The knowledge ladder: crafting records the first making and
+        // says so on the outcome — no script is written behind your back.
+        const learned = d.learnedName === null
+          ? ''
+          : ` You've worked out how to forge ${d.learnedName} — the craft is yours now (try \`forge ${d.recipeId}\`).`;
+        return {
+          self: Mml.compose`You draw ${Mml.thing(d.output)} from the tub, finished.${learned}`,
+          peers: Mml.compose`${Mml.actor(giver)} draws ${Mml.thing(d.output)} from the tub.`,
+        };
+      }
+      case 'unchanged':
+        return {
+          self: Mml.compose`Steam, and then nothing. ${Mml.thing(piece)} comes out of the tub exactly as soft as it went in — there is no carbon in it to trap, and quenching iron with nothing in it changes nothing at all.`,
+        };
+      case 'hardened':
+        return {
+          self: Mml.compose`The tub boils and goes quiet. ${Mml.thing(piece)} comes out grey and dead-looking, and a file skates off it where it bit before — the carbon has been caught where it stood. It is hard now, and it will stay hard until the fire takes it back.`,
+          peers: Mml.compose`${Mml.actor(giver)} quenches ${Mml.thing(piece)}; the tub boils.`,
+        };
+      case 'cracked':
+        return {
+          self: Mml.compose`It goes into the water and comes apart in your tongs with a sound like a dropped plate. Two pieces, a clean grey fracture down the middle, and both of them exactly as useless as the whole one was. Cast iron does not take a quench; it takes offence.`,
+          peers: Mml.compose`Something cracks in ${Mml.actor(giver)}'s slack tub, loudly.`,
+        };
+      default: {
+        const never: never = d;
+        return never;
+      }
+    }
+  }
 }

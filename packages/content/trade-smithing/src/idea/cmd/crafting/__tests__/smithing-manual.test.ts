@@ -21,7 +21,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/lib/material/Material';
-import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
+import Stock from '../../../../thing/Stock';
 import Casting from '@saxonberg/server/mud/platform/thing/MetalCasting';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -60,8 +60,8 @@ let harness: BranchHarness;
 let room: TestActor;
 let actor: TestActor;
 
-function makeIngot(massKg = 0.5): Ingot {
-  const i = makeStuff(() => new Ingot());
+function makeIngot(massKg = 0.5): Stock {
+  const i = makeStuff(() => new Stock());
   i.setMass(Quantity.of(massKg, 'kg'));
   i.setMaterial(
     StuffApi.findByTemplatePath<Material>(IRON) as unknown as Material,
