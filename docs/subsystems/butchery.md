@@ -179,10 +179,12 @@ build ago.
 - ⚠⚠ The sausage deliberately does **not** take `offal`, so the bakery's
   dog loaf keeps its cheapest line. The two goods want different things
   off the same animal.
-- ⚠ **Blood SPILLS** when nobody brought a vessel — no refusal, no
-  warning, because blood on the floor is what happens. A pudding is
-  something you only get if you came prepared. Deliberately unlike the
-  milk rule: milk is a tap you can return to, and a carcass is once.
+- ⚠ **The knife catches no blood.** `butcher` once declared a `vessel`
+  arg ("what to catch the blood in") that nothing ever read — no
+  butchering caught any — so controller-liquidity (C3) deleted it with
+  its help line. Catching blood at the kill is the blood loop's to design
+  ([blood.md](./blood.md)); until then a pudding's blood comes from
+  there, not from the knife.
 - **Lard is not suet.** `leaf-fat` is tagged `cooking-fat` and **not**
   `tallow`, so the chandler's dip refuses a pig's fat by tag arithmetic
   with nothing anywhere checking for a pig.
