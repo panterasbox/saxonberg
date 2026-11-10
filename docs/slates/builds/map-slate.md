@@ -280,6 +280,12 @@ nicety.
 
 ## ⭐⭐⭐ How deep the map goes — the grid bottoms out at the ROOM
 
+> ⭐ **Revised 2026-11-10:** the pane gains a **room view** — a diagram of
+> one room on the compass plane, not a floor plan. It keeps this section's
+> rule (no invented `(x,y)` inside a room) because its axes are DIRECTIONS
+> and its contents are RELATIONS. See
+> [§ The room view](#-the-room-view--a-diagram-on-the-compass-plane-lean-2026-11-10).
+
 What is "inside" a location? **Relations, not coordinates.**
 [spatial.md](../../subsystems/spatial.md) models **Placement** — `on` ·
 `in` · `from`, a row-extensible vocabulary — plus details, adornments and
@@ -631,6 +637,130 @@ level as the example):
   note*) — the drill-in the owner described: open the context, then act
   from it.
 - **Tabs:** Map · Zone · Ways out · Notes.
+
+### ⭐⭐ The room view — a diagram on the compass plane **[LEAN, 2026-11-10]**
+
+The owner: *"we're going to want a single-room view that you can drill in
+on … not the place inspection card, which shows the author's rendering,
+the illustration and all — just a model of the room that makes use of a
+two-dimensional plane to draw on, a map already showing certain metadata
+at the place level."*
+
+- **The plane is the compass, not coordinates.** Walls are directions: a
+  north exit on the north wall, a northwest one in that corner, up and down
+  at the center.
+- ⭐ **Structure faces and landings sit on the side they face** — *the
+  north face of the Gatehouse is reachable from here*, and what can be done
+  to it from here (paint, repair, climb). The landing is derived for
+  painting today and never shown ([painting.md](../../subsystems/painting.md)).
+- **Contents as relations, never positions** — grouped by placement (*on
+  the counter · in the well · from the hook*,
+  [spatial.md](../../subsystems/spatial.md)), seats and slots as such —
+  a schematic, never a made-up spot on a floor.
+- **No illustration, no prose** — those stay on the inspection card. The
+  room view is navigation's model of a room: where its ways and faces are,
+  what it holds as relations, and the lenses drawn over it.
+- How you reach it — clicking your own cell, or a zoom step below *close* —
+  is open.
+
+### ⭐⭐⭐ Lenses — what the map can be asked **[DIRECTION, 2026-11-10]**
+
+A lens maps each cell and edge, through what you know, onto something
+drawn. The owner: *"probably the most powerful feature."*
+
+**The data, by temperature** — lenses compute on the CLIENT from personal
+models the server sends down and refreshes when it decides to:
+
+1. **What you know** — your map document's claims, notes, sources: slow,
+   cached per zone on the client, delta-synced when the server writes a
+   claim. Most lenses read only this.
+2. **What is true of the zone** — structure, ground, sky, boundaries:
+   near-static, cached per zone version.
+3. **What you sense now** — sound, smell, party, weather: live events,
+   never stored.
+
+⛔ The evidence firewall holds: only the player's own knowledge goes down,
+never the location-graph index ([location-graph.md](../../subsystems/location-graph.md)).
+A lens that needs the index is a server query (like `route`).
+
+**The cap is the channels.** A lens draws on a channel — cell tint, cell
+border, corner glyph, edge marker, line overlay, label — and two lenses
+cannot share one, which bounds how many are on at once without a rule.
+
+**Two narrowing ideas** (not decided):
+- ⭐ **Lenses as instruments** — *competence resolves detail, never
+  access* ([instrumentation.md](../../subsystems/instrumentation.md)):
+  a canary or safety lamp brings the damp lens, assay skill the grade
+  lens, a tide table the tide lens; a pack ships a lens as it ships a
+  Reading row.
+- **A suggested lens for the situation** — in a mine, air; carrying ore,
+  where to sell it; on a contract, its destination; in the dark, light.
+
+**Priority: getting around first** (the owner). The first lenses are the
+ones about moving: the frontier (openings not taken), your trail, your
+active route and its weakest assumption, ways and their refusals,
+departures and timetables (TPA, ferries, the market boat), where your
+mount or vehicle is, tide windows, step cost on the route's axes.
+
+**The candidate list** (2026-11-10, a creative pass — light on detail;
+✅ the server models it · ◐ partly, or not yet per player · ✗ not
+modeled; marked from the subsystem docs, not checked in code):
+
+- **Structures:** footprints over street cells ✅ · ⭐ the face or landing
+  you are at and what you can do to it ◐ · faces as edges on the cell they
+  are reachable from ◐ · storeys, roofs, covered vs open sky ✅ · windows
+  ◐ · façade paint and building condition ✅ · doors locked / yours / which
+  key ✅ · tapped rooms ✅ · a holding's gate ring ✅ · planned warren
+  streets not yet walked ✅ · lots for sale or rent ◐ · construction under
+  way ✗
+- **Ground:** material per cell ✅ · your parcels ✅ · marked fields ✅ ·
+  surveyed soil ◐ · slope and elevation ◐ · wetness and puddles ✅ · tree
+  stands, coppice due ✅ · stakes, shored and unshored drifts, graded
+  deposits ✅ · bore points and logs ✅ · damps ✅
+- **Water:** watercourses and flow ✅ · navigability ✅ · wells and
+  aquifers ✅ · ditch rotas and rights ✅ · contamination ✅ · fishing
+  reaches and how fished-out ✅ · tide and the bar's window ✅ · depth
+  bands ✅ · ropes you tied at drops ✅
+- **Sky:** wind ✅ · rain, storms, lightning ✅ · light per cell ✅ · sun,
+  moon and shadow ◐ · warm and cold spots ◐ · snow and ice ◐
+- **Senses:** sound at edges ✅ · smell drifting from a source ✅ ·
+  discovered hidden exits ✅ · concealment hints noticed ◐ · sight lines ✗
+- **People and creatures:** party ✅ · contacts where last seen ◐ · NPC
+  shifts and haunts as learned ◐ · who is hiring ✅ · streamers
+  broadcasting ✅ · places seen crowded ◐ · your pets ✅ · your herd ✅ ·
+  ⭐ a bee colony's forage radius over land it does not own ✅ · wildlife
+  seen ◐
+- **Economy:** shops and what they sell ✅ · prices you have seen ✗ ·
+  your consigned goods ✅ · hire counters ✅ · banks and credential points
+  ✅ · job boards and contracts ✅ · delivery destinations ✅ · ⭐ haulage
+  lanes and depots, the desire paths goods wear ✅ · power feeders, poles,
+  meters ✅ · street lamps ✅ · your casks maturing ✅ · crops growing and
+  ready ✅ · traps you set ✅ · ⭐ where your things are ✅
+- **Rules:** jurisdiction lines ✅ · epoch ceilings ◐ · parcel lines ✅ ·
+  seats and offices ✅ · places that refuse you ◐ · crime scenes and blame
+  ✅
+- **Danger and the body:** hazards found ✅ · fights under way ✅ · your
+  corpse ✅ · beyond your strength or reach now ◐ · contagion ✗
+- **Knowledge and history:** your trail ✗ · notes and pins ✗ · how and
+  when you learned each place ✅ · conflicts ✅ · published maps vs yours ✅
+  · your deeds and firsts ✅ · unclaimed firsts ◐ · wiki articles about a
+  place ✅
+- **Getting around:** TPA nodes and departures ✅ · ships at berth ✅ ·
+  ferry and market-boat timetables ✅ · where you left your mount or
+  vehicle ✅ · an active route and its weakest assumption ✅
+- **Time:** open now vs later ◐ · restaging ◐ · calendar entries tied to
+  places ✅
+- **Magic:** mana nodes and mains ✅ · suppression ✅ · scryable things ✅
+- **For authors:** draft vs published ✅ · a parcel's code maintainers ✅ ·
+  diagnostics errors ✅
+
+⭐ **What the list says:** the server already models nearly all of it;
+what is missing is the per-player layer (your trail, notes, prices seen,
+NPC hours learned). Lenses are mostly a client and sync problem plus a
+few new knowledge records. ⭐ And the landing is a pattern, not a one-off
+— structure faces, forage radii, haulage lanes, fishing reaches and
+parcel lines are geometry the simulation computes and the player never
+sees; the map is where it shows.
 
 ### Still open
 
