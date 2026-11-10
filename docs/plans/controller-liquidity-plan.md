@@ -64,8 +64,8 @@ which ratchets toward MORE greedy). Both are retired in W1/W5 (D3).
 | `FitController` (platform crafting) | `fit <part> to <whole> [with <tool>]` (assembly, three heads that are one act); `fit <label> on <pot> with <paste pot>` (a face coat) | 1 for assembly; ⭐ **5** for the paste | `fit …` is assembly only (`CraftingApi.fit`); pasting a label is `paste <sheet> on <whole> [with <pot>]` | `fit label on pot`. *Why 1–4 failed:* the paste has its own refusals (glue), no engagement and a different outcome (a coat on a face), so not one act (1); not a manner of fitting (2); no noun groups "paste a label" with "fit a handle" (3); its syntax is `fit X on Y with Z`, which is also assembly's, so no shape is disjoint (4). `paste` sits beside `paint` and `dip` in the face-coat family |
 | `AssessController` (platform perception) | `assess <target>` — in a fight, a read that **spends an exchange**; otherwise a medical examination | 3 | `assess <patient>` is the medical examination; the combat read is `fight assess <target>` (a subcommand of the fight noun the player already groups gambits under) | `assess <foe>` mid-fight |
 | `NotifyController` (platform social) | `notify` lists; `notify <ref>` shows; `notify <ref> --login --message …` sets; `notify <ref> --above <x>` reorders; `notify remove <ref>` | 3 | `notify` (list), `notify show <ref>`, `notify set <ref> --login …`, `notify move <ref> --above <x>`, `notify remove <ref>` | `notify bob --login` (needs `set`); `notify bob` (needs `show`) |
-| `EquipSetController` (platform inventory) | `equip set <name>` wears a set; `equip set <name> --save` saves one | 3 (nested) | `equip set <name>` wears; `equip set save <name>` saves (the first nested subcommand) | `--save` |
-| `LayoutController` (`cockpit layout`) | `cockpit layout <name>` recalls; `list`/`save <name>`/`forget <name>` are caught before names, so a layout *named* `list` can never be recalled | 3 (nested) | `cockpit layout list` · `save <name>` · `forget <name>` · `recall <name>`; `cockpit layout <name>` still recalls by fallthrough. A layout named `list` is recalled with `cockpit layout recall list` | nothing a player relies on today; the dead end goes |
+| `EquipSetController` (platform inventory) | `equip set <name>` wears a set; `equip set <name> --save` saves one; `equip sets` lists | 3 → a verb (W16) | ⭐ **`outfit wear <name>`** wears; **`outfit save <name>`** saves; **`outfit list`** (or bare `outfit`) lists — a diegetic verb, so a plain word (owner, 2026-11-10; W7b had shipped `equip set save <name>`, nested) | `equip set …`, `equip sets`, `--save` |
+| `LayoutController` (`cockpit layout`) | `cockpit layout <name>` recalls; `list`/`save <name>`/`forget <name>` are caught before names, so a layout *named* `list` can never be recalled | 3 → a verb (W16) | ⭐ **`client-layout list`** · `save <name>` · `forget <name>` · `recall <name>`; `client-layout <name>` still recalls by fallthrough. A layout named `list` is recalled with `client-layout recall list` — a non-diegetic compound name (owner, 2026-11-10; W7b had nested it under `cockpit`) | `cockpit layout …`; the dead end goes |
 | `PackSyncController` (`pack sync`) | `pack sync <id>` then **prompts for a name** to staff the pack with (and passes the raw text as a member path, so the member never matches) | 3 | `pack sync <id>` syncs; `pack staff <id> <person>` staffs (an object arg, keyed by identity) | the prompt |
 | `WatchController` | `watch <stream> [on <screen>]`; `watch horizon` (a ship's lookout, a different act) decided inside the controller | 3 + 4 | `watch horizon` is a declared subcommand; `watch <stream>` and `watch <stream> on <screen>` are two shapes (prepositionRequired) with their own controllers | nothing — the typed forms are the same; only an unknown second word is now refused by the view |
 
@@ -101,7 +101,7 @@ durations.
 |---|---|---|
 | 1 — one act, several hosts (a protocol or one planner) | 31 | 5 of them retire a head into an existing verb (`put`, `cut`, `draught`, `look`, `untie`) |
 | 2 — a manner (an option) | 4 | none |
-| 3 — subcommands of a noun the player groups (incl. 5 nested) | 33 | `notify`, `equip set save`, `berth roads`, `pack staff`, `fight assess`, `cockpit layout recall` |
+| 3 — subcommands of a noun the player groups (the 5 nested ones became verbs in W16) | 33 | `notify`, `outfit save`, `berth roads`, `pack staff`, `fight assess`, `client-layout recall` |
 | 4 — disjoint shapes of one word | 6 | none |
 | 5 — a new word | 2 | `spud`, `paste` (Fit's assembly half stays rung 1) |
 | base, not a ladder item | 1 | `BankingControllerBase` |
@@ -117,6 +117,17 @@ no words.
    object; `put <pot> on <hearth>` is the act.
 4. **`notify set` stays** (ruled 2026-11-09, during W7) — the builtin
    `set` word on a noun is accepted; `lint:subcommand-words` records it.
+5. **No nested subcommands** (ruled 2026-11-10, W16) — a command is `verb
+   target` or `verb subcommand target`, never deeper; D2 is reversed. A
+   **non-diegetic** verb (the interface, the tooling) may take a hyphenated
+   compound name; a diegetic verb stays a plain word. So `cockpit
+   layout|card|shelf|style …` → `client-layout|client-card|client-shelf|
+   client-style …`, `stream rotation …` → `stream-rotation …`, `testharness
+   clock advance` → `testharness clock-advance` (and `weather-pin`,
+   `weather-unpin`), `equip set <name>` / `equip set save <name>` / `equip
+   sets` → `outfit wear` / `outfit save` / `outfit list`; `client-style
+   mention self on` → `client-style mention on`, `… plain channel <k> on`
+   → `client-style plain-channel <k> on`. `cockpit mode|cli|terminal` stay.
 
 ### 6. Found in the build — further player-visible changes
 
@@ -532,7 +543,11 @@ is word→value tables and hand-rolled refusals (`StyleController`,
 `CockpitShelfController`, `DraughtController`'s `NAMED`, `StreamController`'s
 `away <duration>`).
 
-**D2 — Subcommands nest.** `SubcommandDefinition.subcommands?:` recurses;
+**D2 — Subcommands nest.** ⛔ **REVERSED BY OWNER 2026-11-10 (W16):** a
+command is `verb target` or `verb subcommand target`, never deeper. The
+nesting below shipped in W1/W7b and was removed from the grammar, the
+schema and every view in W16; see D-W16a–c. *(Original text kept for the
+record:)* `SubcommandDefinition.subcommands?:` recurses;
 the schema's `$defs.subcommand` gains it; `assemble` walks words while they
 match, binding each level's options lexically; `model.subcommand` is the
 **leaf** (so every existing `switch (model.subcommand)` keeps working during
@@ -737,7 +752,9 @@ positional that does not read is a `bind` refusal; an OPTIONAL one leaves
 the word for the next slot (`mill wheat quern`); a `values:` slot always
 refuses, naming the set.
 
-**D2a (build, W1) — nested stanzas are addressed by PATH.** Every per-stanza
+**D2a (build, W1) — nested stanzas are addressed by PATH.** ⛔ Reversed with
+D2 (W16): `subcommandKey`/`getSubcommandChain`/`subcommandPath` are gone;
+a stanza is addressed by its one word. Every per-stanza
 lookup (`getSubcommand`, `getOptions`, validators, the dispatcher's
 controller) keys on the space-joined path (`layout save`), read from the
 model by `CommandDefinition.subcommandKey(model)`; `allSubcommands()` is the
@@ -1063,6 +1080,42 @@ identity) before asking the zone; a lot off a plat book has no zone.
 
 **D-W15g (build, W15) — reachability link 5.** `fight assess`'s target
 requires `CombatantMixin`; `rm`'s missing-row refusal says `no-template`.
+
+**D-W16a (owner, 2026-11-10) — depth: `verb target` or `verb subcommand
+target`, never deeper.** D2 is reversed. The schema's `$defs.subcommand`
+has no `subcommands`/`fallthrough` key (`additionalProperties: false`
+refuses them), `CommandDefinition.validate()` refuses them in code, and
+`lint:command-views` gained a **depth** half (hard, structural zero — no
+ceiling). The binder walks one word; `model.subcommand` is it.
+
+**D-W16b (owner, 2026-11-10) — the compound-name rule.** A verb that is
+**non-diegetic** (acts on the player's interface or tooling, mostly sent by
+the client) may take a hyphenated compound name: `client-layout`,
+`client-card`, `client-shelf`, `client-style`, `stream-rotation`; the same
+rule names a non-diegetic subcommand word that would otherwise nest
+(`testharness clock-advance`, `weather-pin`, `weather-unpin`). A
+**diegetic** verb stays a plain word: `equip set …` → `outfit
+wear|save|list`. Hyphens needed no grammar change — the tokenizer, the
+alias path, `help` and every gate (`one-word`, `command-views`,
+`verb-collisions`, `subcommand-words`) already read a word as a string;
+a test binds `client-style plain-channel gossip on` through the real
+parser to hold it.
+
+**D-W16c (build, W16) — the two third-level style forms, and the
+exemption.** `cockpit style mention self on|off` → `client-style mention
+on|off` (`self` was the only word); `cockpit style plain channel <key>
+on|off` → `client-style plain-channel <key> on|off` (D-W16b). The
+input-mode exemption covers every `client-…` verb as it covers `cockpit`
+(`CommandApi.applyInputMode`). `SaxonbergClientMixin` affords the four
+`client-` views beside `cockpit`; `BroadcastMixin` affords
+`stream-rotation` beside `stream`; ⭐ `WardrobeMixin` affords `outfit` to
+itself (the garments afforded `equip set`, but an outfit is kept whether
+or not anything wearable is carried). Controllers renamed to their verbs
+(`ClientLayout*`, `ClientCard*`, `ClientShelf*`, `ClientStyle*`,
+`Outfit{Wear,Save,List}Controller`), one per subcommand still. Bare
+`stream-rotation` has no controller of its own (every subcommand names
+one) and is refused `missing-subcommand`. Player-facing outfit words say
+*outfit* (`You have no outfit called 'x'.`, reason `unknown-outfit`).
 
 ## ⭐⭐ Host placement
 
@@ -2027,6 +2080,39 @@ rebase cleanly.
   `berth` (W7b — `berth roads` is its own word), `mill` (W5 — `at` is
   required).
 
+### W16 — no nested subcommands (owner, 2026-11-10; D-W16a–c) ✅ done
+
+> **Done (`8c41a78a4`, `ee6374390`).** D2 reversed: the binder walks one subcommand
+> word; `subcommandPath`/`subcommandKey`/`getSubcommandChain` and the
+> nested help walk are gone; the schema, `validate()` and a new **depth**
+> half of `lint:command-views` (hard, structural zero) refuse a nested
+> stanza. The five nested forms became verbs — `client-layout`,
+> `client-card`, `client-shelf`, `client-style` (non-diegetic compound
+> names), `stream-rotation`, and `outfit wear|save|list` (diegetic, a plain
+> word); `testharness clock-advance`/`weather-pin`/`weather-unpin` are flat
+> compound subcommand words. ⭐ Hyphens needed nothing: the tokenizer,
+> aliases, `help` and every gate already read a word as a string (a test
+> binds `client-style plain-channel gossip on` through the real parser).
+> Ceilings: `lint:subcommand-words` different-act 44 → **49** (caller
+> audit: `client-card close|move`, `client-layout recall`, `client-style
+> show`, `stream-rotation clear` were the same pairs one level down, which
+> the top-level-only census could not see; `outfit wear` is the owner's
+> word), builtin `set` 7 → **6**. Verified: tsc 0 (server + packs,
+> client), client vitest 1055/1055, lint:family 106/106, test:near
+> origin/master 12,127 passed across 33 lanes after two source-shape tests
+> were updated (`Wardrobe.test` pinned "a saved set is never a verb";
+> `Login.verbs` the pre-world bucket, which gains the four `client-…`
+> words — the old `cockpit` subcommands renamed, not a new reach), drive
+> step 9 green on a fresh world, walk test 9 green. ⚠ Six other
+> cockpit e2e specs run against the same world showed 12 reds that are
+> NOT this wave's — every command they send was accepted and echoed
+> (`client-card move who 2 0` → "card who moved"; `client-shelf first
+> status` put Status first); the reds are older drift in what they assert
+> (shelf labels `Standing`/`Known` vs the shipped `PLAY`/`RENOWN`; the
+> default shelf grew `body`; `unknown theme` is the binder's `values:`
+> refusal since W7b; the column/top-bar layout counts). Left for the
+> sweep.
+
 ---
 
 ## Reachability wiring
@@ -2047,7 +2133,7 @@ gate. Each fails closed and silent.
 | `pack staff` | stanza on `pack.yaml` | authoring | — | platform | the person arg `type: object`, `scope: online` |
 | `fight assess` | stanza on `fight.yaml` → `FightAssessController` | the combatant (already) | — | — | `requires: CombatantMixin` |
 | `notify set/show/move` | stanzas | the implant (already) | — | — | — |
-| `equip set save` | nested stanza | already | — | — | — |
+| `outfit save` (was `equip set save`) | its own verb (W16) | already | — | — | — |
 | `dry … with <cloth>` shape | `dry-rub.yaml` | the cloth's `commandContributions` (a towel affords rubbing dry) | row | platform | `prepositionRequired: with`, `requires: AbsorbentMixin` |
 | `watch horizon` | stanza | the ship (already afforded `watch`) | — | — | — |
 | every protocol mixin | the existing verb | the view's `requires:` names the protocol (`requires: SawableMixin`) — so a thing that does not compose it is refused **by the binder** and no controller test sees it | hosts compose it | pack discovery registers `_mixinName` | **this is the fifth link**: every converted view's `requires:` is re-checked against its hosts in the wave's acceptance (`lint:reachability` arm A) |
@@ -2117,7 +2203,7 @@ here so it is not read as unfinished at review.
 | 6 `buy "dog loaf"` / `buy dog loaf` / `say` | instant · player | bought · refused with the hint · whole sentence | W5 |
 | 7 a bad `values:` word; written durations | instant · player | refused with the list; `90m`/`2 hours` accepted | W1 (+ W7b's `draught`, `stream away`) |
 | 8 the three representatives (`notify set`, `draught … low`, `dry … with`) + `help` for each | instant · player | the new forms route; `help` lists them | W7b, W7c |
-| 9 `cockpit layout save list` → `cockpit layout recall list` | instant · player | round-trips | W1, W7b |
+| 9 `client-layout save list` → `client-layout recall list` | instant · player | round-trips | W1, W7b, W16 |
 | 10 a transfusion narrates/credits/records; a `search` finishes; an anchored teleport arrives | **short** (engaged acts of seconds to a minute) · player | the completion's effects observed | W0 (the fix), W8/W13 (the moved rules) |
 | 11 refused land purchase leaves money untouched; pilot charges only with something to tell | instant · player | wallet delta 0 on refusal; 0 on "nothing to tell" | W13, W12 |
 | 12 introducing a player; a gifted parcel | instant · player | known; owner is the receiver | W3 |
@@ -2345,7 +2431,7 @@ Columns: controller (pack) · the heads the survey found · today's forms
 | DraughtController (device) | read the dial / set the dial | bare + five stanzas (`wide…banked`) | 4 + grammar | `DraughtReadController` (bare) + `DraughtSetController` with `setting` `values: [wide, open, half, low, banked]`; the table is `Burner`'s vocabulary | none (typed forms identical) |
 | TipController (employment) | cash into jar / EFT | `tip <amount> --eft` | 2 | one act; typed refusal; fall through only on `insufficient-coin` | none |
 | OfficeController (governance) | assign / vacate / list | subs, switch | 3 | three controllers; the assign reason | none |
-| EquipSetController (inventory) | save a set / wear a set | `equip set <name> [--save]` | 3 (nested) | `equip set <name>` wears; `equip set save <name>` | `--save` → `save` |
+| EquipSetController (inventory) | save a set / wear a set | `equip set <name> [--save]` | 3 → a verb (W16) | `outfit wear <name>`; `outfit save <name>`; `outfit list` | `--save` → `save`; `equip set` → `outfit` |
 | LabelController (inventory) | annotate / mark one plant out | `label <target> [<text>] [at <part>]` | 1 | `Labelled.labelPlanFor(text)`; the stand marks one out; the `at` re-glue goes | none |
 | SampleController (inventory) | stem / piece / chip the face | `sample [<subject>] [at <part>]` | 1 | `Sampleable.samplePiece(actor, part?)`; host order is the hosts' | none |
 | SweepController (inventory) | floor / grate / flue | `sweep [<target>] [with <tool>]` | 1 | `Sweepable.sweepPlanFor` | none |
@@ -2635,7 +2721,7 @@ trade-shopkeeping's pack-rows (`HouseShopControllerBase`). All three fixed.
 | 6 | ✅ `buy padded gambeson` → `bind-failed` + the quote hint; quoted, bought; `say` whole | funding finds the holder online |
 | 7 | ✅ `draught forge medium` lists the five words; `--expires 10` refused; `90m`, `2 hours` taken | D-W15a (press, not stream) |
 | 8 | ✅ `notify set/show/move`; `draught forge low`; `dry … with` / `dry … on` each route; `help` lists them | ⚠ `dry #rag with …` was an unknown shape — fixed (D-W15e) |
-| 9 | ✅ `cockpit layout save list` → `recall list` | — |
+| 9 | ✅ `cockpit layout save list` → `recall list`; **W16:** re-driven as `client-layout save list` → `client-layout recall list` on a fresh world, green (wire + walk) | — |
 | 10 | ✅ transfusion completes · `search` completes · held-extent teleport arrives | — |
 | 11 | ✅ refused `title buy` moves no coin; a pilot refused for coin tells nothing | the paid pilot path is maritime-space step 21 |
 | 12 | ✅ introduced, the receiver sees the name; a bought lot given, the receiver (by identity) owns it | ⚠ a player could not give a lot they bought — fixed (D-W15f) |
