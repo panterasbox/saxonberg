@@ -289,7 +289,7 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     async takeName(name: string, by: Stuff): Promise<NameRefusal | NameTaken> {
       const wanted = name.trim();
-      if (!this.canBeNamedBy(by.getIdentityPath() ?? '', by)) {
+      if (!(this as unknown as Named).canBeNamedBy(by.getIdentityPath() ?? '', by)) {
         return { ok: false, reason: 'not-nameable' };
       }
       if (!wanted) return { ok: false, reason: 'no-name-given' };

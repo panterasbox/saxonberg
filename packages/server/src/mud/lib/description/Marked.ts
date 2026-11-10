@@ -354,7 +354,7 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
      *
      * A page is a book's; a sheet has none (`Book` overrides).
      */
-    public override async readFor(viewer: Stuff, page?: number): Promise<ReadDone | ReadRefusal> {
+    public async readFor(viewer: Stuff, page?: number): Promise<ReadDone | ReadRefusal> {
       if (page !== undefined) return { ok: false, reason: 'not-a-book' };
       const self = this as unknown as Stuff & Marked;
       // Marks derived from a record are read now, so the text is a sync read.

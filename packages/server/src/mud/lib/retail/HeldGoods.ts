@@ -22,7 +22,9 @@ import type { Organization } from "../employment/Organization";
 import { ContainmentApi } from "../../api/containment";
 import type { ActRefusal } from "../craft/ActPlan";
 import type { Chattel } from "../chattel/Chattel";
-import type Ticket from "../../platform/thing/Ticket";
+
+/** The claim ticket a check-in hands back (`/platform/thing/Ticket`). */
+type ClaimTicket = Stuff & Containable & { setClaim(pointPath: string, number: number): void };
 
 /**
  * Why a held-goods fixture will not take a good into custody — the
@@ -37,7 +39,7 @@ export type HoldRefusal = ActRefusal<HoldRefusalReason>;
 /** A good checked in: the holding and the claim ticket handed back. */
 export interface CheckedIn {
   ok: true;
-  facts: { holding: HeldGood; ticket: Ticket };
+  facts: { holding: HeldGood; ticket: Stuff };
 }
 
 
@@ -207,7 +209,7 @@ export function HeldGoodsMixin<TBase extends MixinConstructor<Stuff>>(
       // The diegetic claim: a carried ticket stamped with this fixture.
       // The AUTHORITY to reclaim is the owner-stamp, not the ticket — so a
       // lost ticket never traps the good (it's flavor, not the key).
-      const ticket = await StuffApi.clone<Ticket>("/platform/thing/Ticket");
+      const ticket = await StuffApi.clone<ClaimTicket>("/platform/thing/Ticket");
       ticket.setClaim(self.getTemplatePath() ?? "", this.countHeld(consignorKey));
       ContainmentApi.move(ticket, by);
       return { ok: true, facts: { holding, ticket } };

@@ -245,7 +245,7 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
      * ⭐ `read` on a screen is what it shows, live (`readScreen`) — a lit
      * screen is its own light, so no light gate; a page means nothing here.
      */
-    public override async readFor(viewer: Stuff, _page?: number): Promise<ReadDone | ReadRefusal> {
+    public async readFor(viewer: Stuff, _page?: number): Promise<ReadDone | ReadRefusal> {
       return { ok: true, facts: { kind: 'screen', shown: await this.readScreen(viewer) } };
     }
 

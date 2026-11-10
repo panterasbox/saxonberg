@@ -82,7 +82,10 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
     if (model.target?.stuff) {
       const careful = /^careful/i.test(manner);
       const target = model.target.stuff;
-      UnequipControllerBase.takeOff(target, this.heldSpeak(target), careful, false, context, giver, {});
+      UnequipControllerBase.takeOff(target, this.heldSpeak(target), careful, false, context, giver, {
+        onDone: () => {},
+        onAbort: () => {},
+      });
       return;
     }
     this.strip(context, giver);
@@ -186,8 +189,8 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
 
   /**
    * One layer. `'now'` — off, and no clock in play; `'later'` — off, its
-   * step under way (`then.onDone` runs at its completion); `'refused'` —
-   * it stays on (the refusal is said).
+   * step under way (`then.onDone` runs at its completion, `then.onAbort`
+   * if it is cut short); `'refused'` — it stays on (the refusal is said).
    *
    * ⚠⚠ The step is STARTED before the release (C53: its start result was
    * ignored, so a layer came off with the hands busy elsewhere and no clock
@@ -201,7 +204,7 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
     quiet: boolean,
     context: CommandContext,
     giver: Stuff & Slotted & Attired,
-    then: { onDone?: () => void; onAbort?: () => void },
+    then: { onDone: () => void; onAbort: () => void },
   ): 'now' | 'later' | 'refused' {
     let armed = false;
     let early = false;
@@ -216,10 +219,10 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
             early = true;
             return;
           }
-          then.onDone?.();
+          then.onDone();
         },
         onAbort: () => {
-          if (!dropped) then.onAbort?.();
+          if (!dropped) then.onAbort();
         },
       });
       const result = SchedulerApi.start(step);
