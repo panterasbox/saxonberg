@@ -88,9 +88,10 @@ export interface Container {
 
   /**
    * ⭐⭐ **What a hand could take from in here, at a rung** — the one
-   * walk of reach (controller-liquidity D4/D5). MQL's `person` / `peers` /
-   * `reachable` pools and `PerceptionApi.canReach` / `reachableAmong` all
-   * read it, so what you can name at a rung is what you can touch.
+   * per-container walk of reach (controller-liquidity D4/D5) — the step
+   * under `PerceptionApi.reach`, the one list MQL's pools and
+   * `PerceptionApi.canReach` / `reachableAmong` all read (W20), so what you
+   * can name at a rung is what you can touch.
    *
    *   - `top` — my own contents.
    *   - `open` (the default) — and inside every OPEN vessel among them

@@ -800,19 +800,11 @@ function candidatesForHorizon(ctx: MqlContext): ScopeCandidate[] {
 }
 
 function candidatesForHereScope(ctx: MqlContext): ScopeCandidate[] {
-  const giver = requireGiver(ctx, "the 'here' scope");
-  if (!MixinApi.isContainable(giver)) return [];
   // The place, past any vessel (controller-liquidity D7) — and the
   // surface of the vessel you sit in, when that is not the place: its
-  // door and its way `out` are as much to hand as the road's.
-  const env = giver.getEnclosingPlace();
-  if (!env) return [];
-  const out = candidatesForHere(env, giver, ctx.attention);
-  const immediate = giver.getContainer();
-  if (immediate && immediate.stuffId !== env.stuffId) {
-    for (const c of candidatesForHere(immediate, giver, ctx.attention)) out.push(c);
-  }
-  return out;
+  // door and its way `out` are as much to hand as the road's. Which
+  // things those are is `PerceptionApi.reach`'s (W20).
+  return candidatesForHere(requireGiver(ctx, "the 'here' scope"), ctx.attention);
 }
 
 function scopeKeywordSearch(words: string[], ctx: MqlContext): MqlMatch[] {

@@ -159,7 +159,7 @@ seed yields a list of Stuff (possibly empty).
 | `here` | the **place** you are in — the first container up your chain that is a place, past a boat, a cart or a bed (`getEnclosingPlace`); what immediately holds you is `me:e` |
 | `peers` | the place's contents minus the giver, one level into open things there, and the vessel you sit in |
 | `person` | everything on your person: you, your own attunement-hosted apps, installed slot occupants (+ their apps), carried items (+ their apps). Never the room's contents |
-| `reachable` | `person` ∪ `here` ∪ `peers`, your own gear emitted first (you can reach yourself) — **what you could lay hands on now**: held, worn, inside the open vessels you carry (all the way down), the room's top level and one level into open things here; never inside a shut thing. `PerceptionApi.canReach` reads the same walk (`Container.getReachableContents`) |
+| `reachable` | `person` ∪ `here` ∪ `peers`, your own gear emitted first (you can reach yourself) — **what you could lay hands on now**: held, worn, inside the open vessels you carry (all the way down), the room's top level and one level into open things here; never inside a shut thing. `PerceptionApi.canReach` is membership in the same list (`PerceptionApi.reach`) |
 | `inventory` | the giver's contents, and inside the open vessels among them (the giver itself is `me`) |
 | `horizon` | what the giver can see from where they stand that is NOT in their room — structures and craft in view (a fixed pool, like `here`). `horizon:tower` drills to one. A bare `horizon` names the whole set — `query horizon` / `scan horizon` lists it; `look` takes one thing. See [expanse.md § Perception at range](./subsystems/expanse.md) |
 | `online` | every connected command-giver |

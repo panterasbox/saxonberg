@@ -4643,8 +4643,9 @@ one of the three that does. Do not merge them.
 | `ContainmentApi.reachableFrom(actor)` | ✅ | ✅ | ✅ | — | — | — |
 | `reachable:[…]` (MQL, viewer-gated) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-⚠ The seed also reaches **through a passable exit** (`candidatesForPeers`)
-and carries hosted updates; the two code-side pools stop at the room. So
+⚠ The seed also carries the place's surface (its ways, their doors, open
+ground seen across a way — `PerceptionApi.reach`'s `here` pool) and
+hosted updates; the two code-side pools stop at the room. So
 the query is not merely the same set with fog applied — it is a wider
 question, and that is another reason not to treat any of the three as a
 drop-in for another.

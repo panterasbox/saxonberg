@@ -449,8 +449,10 @@ hosts, which would constrain several identical tables in one hall.
 - ⭐ `reachRefusal(actor)` — the innermost shut lid between me and the
   actor, as `{reason: 'enclosed-shut', facts: {by}}`, or `null`. The verb's
   question; MQL addresses through lids ([perception.md](./perception.md)).
-- On `Container`: ⭐ `getReachableContents(rung)` — the one reach walk
-  (`top` · `open` · `deep`), read by `canReach` and the MQL pools.
+- On `Container`: ⭐ `getReachableContents(rung)` — the per-container
+  reach walk (`top` · `open` · `deep`), the step under
+  `PerceptionApi.reach` — the one list `canReach` and the MQL pools read
+  ([perception.md](./perception.md)).
 
 ⭐ Its two readers ask different questions, and the difference is one
 step:

@@ -351,9 +351,9 @@ export class ContainmentApi {
   // should have left open in the first place. Deleting a finder is only
   // half the job — the other half is making the replacement findable
   // from where the callers are.
-  // (api/mql/scope-walk.ts `candidatesForReachable` — self → own hosted
-  // updates → slot occupants → carried → location → peers, on-person
-  // first). Callers resolve the pool via `MqlApi.resolveMany('reachable',
+  // (`PerceptionApi.reach`, filtered by api/mql/scope-walk.ts
+  // `candidatesForReachable` — self → own hosted updates → slot occupants
+  // → carried → the place's surface → peers, on-person first). Callers resolve the pool via `MqlApi.resolveMany('reachable',
   // …)` and narrow locally; identity-bound (own-attunement) reads scan
   // `actor.getHostedUpdates()` directly.
 

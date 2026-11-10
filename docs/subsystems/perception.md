@@ -20,11 +20,36 @@ limes). That is the `open` rung; `top` stops at the holders' own
 contents and `deep` goes through every lid but never into another body
 (controller-liquidity D4/D5).
 
-⭐⭐ **It is ONE walk** — `Container.getReachableContents(rung)` — read by
-`canReach`, `reachableAmong` and MQL's `inventory` / `person` / `peers` /
-`reachable` pools. Before W2 the seed reached the person's top level only
-while `canReach` went one level into an open pouch, so a name could bind
-what reach refused; that asymmetry is gone by construction.
+⭐⭐⭐ **It is ONE list — `PerceptionApi.reach(actor, {depth, location,
+pools})`** (controller-liquidity W20; the owner: *"I just don't want two
+different algos for the same thing"*). It returns everything to hand,
+each tagged with its pool — `self` · `attached` (slot occupants, the apps
+an implant hosts) · `inventory` · `around` (the place and the vessel that
+hold the actor — MQL's `here` names them; the one pool that is NOT reach,
+since a hand is in the room, not on it) · `here` (the place and the vessel's
+surface: the place itself, the ways the actor can see and their doors,
+the buildings whose landing it is, open ground seen across a way) ·
+`peers` (what stands there, fixtures included) — in MQL's tie-break
+order. `canReach` / `reachableAmong` are **membership** in it (every pool
+but `around`); MQL's
+`person` · `inventory` · `here` · `peers` · `reachable` pools are
+**filters** over it (`api/mql/scope-walk.ts` only builds and scores the
+candidates). `Container.getReachableContents(rung)` is the per-container
+step underneath. `pools` computes only the sections asked for, so an
+`inventory` scope never walks the room; `reachableAmong` is one walk for
+the whole list. `reach.sameSet.test.ts` pins that every MQL `reachable`
+result but the `around` holders is `canReach`-true and vice versa, scene by
+scene and rung by rung.
+
+⚠ History, twice over: before W2 the seed reached the person's top level
+only while `canReach` went one level into an open pouch; after W2 the walk
+was one but the ASSEMBLY (which holders, the fixtures, the ways and their
+doors) was written twice — in the scope walk and in a `reachIds` helper —
+and they disagreed at the edges (the room you stand in, the doors of ways
+you cannot see, hosted apps, the buildings whose landing it is). The
+consequences of the merge (W20): the place you stand in is explicit in the
+list as `around` (named, not reached), and a door is in reach only on a way
+the actor can see.
 
 **One level in the room, deliberately.** Reach into the open crate, yes;
 a box *inside* that crate must be opened or taken out first. Without a

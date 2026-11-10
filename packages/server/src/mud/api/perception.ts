@@ -51,6 +51,40 @@ import { fileURLToPath } from 'url';
  */
 export type SearchDepth = 'broad' | 'narrow' | 'glance';
 
+/**
+ * Which pool a reached thing belongs to (see {@link PerceptionApi.reach}) —
+ * MQL's pools exactly: `self` the actor; `attached` what is on the person
+ * without being carried (slot occupants, the apps an implant hosts);
+ * `inventory` what it carries at the rung; `here` the surface of the place
+ * and of the vessel it sits in (the place itself, its ways and their
+ * doors, the buildings whose landing it is, open ground seen across a
+ * way); `peers` what stands there with it, fixtures included; `around`
+ * the holders themselves — the place and the vessel the actor sits in —
+ * which MQL's `here` names and which is NOT reach (a hand is in the room,
+ * not on it: `canReach` skips this pool). MQL's `person` is
+ * `self`+`attached`+`inventory`, `here` is `around`+`here`, `reachable`
+ * is all six.
+ */
+export type ReachPool = 'self' | 'attached' | 'inventory' | 'around' | 'here' | 'peers';
+
+/** One thing to hand, and the pool it is in. */
+export interface Reached {
+  stuff: Stuff;
+  pool: ReachPool;
+}
+
+/** The options of {@link PerceptionApi.reach}. */
+export interface ReachOptions {
+  /** The rung (`top` · `open` · `deep`); default `open`. */
+  depth?: ReachDepth;
+  /** A further holder to reach into (a command's location), beside the
+   *  place and the vessel the actor sits in. */
+  location?: Stuff | null;
+  /** Compute only these pools (an `inventory` scope never walks the
+   *  room). Default: all of them. */
+  pools?: readonly ReachPool[];
+}
+
 /** One thing in view beyond the room (maritime R4). */
 export interface HorizonSighting {
   /** The structure or craft. */
@@ -336,6 +370,23 @@ export class PerceptionApi {
   }
 
   /**
+   * ⭐⭐⭐ **Everything `actor` can lay hands on right now, each tagged with
+   * its pool — the one definition of reach** (controller-liquidity W20;
+   * the owner: *"I just don't want two different algos for the same
+   * thing"*). {@link canReach} and {@link reachableAmong} are membership
+   * in it (every pool but `around` — what holds you is named, not
+   * touched); MQL's `person` · `inventory` · `here` · `peers` · `reachable`
+   * pools are filters over it. Ordered as MQL breaks ties: the person,
+   * then the place's surface, then what stands there.
+   *
+   * Reach is not perception — nothing here is filtered by what the actor
+   * perceives; a caller that needs both asks both.
+   */
+  public static reach(actor: Stuff, opts?: ReachOptions): Reached[] {
+    return logic().reach(actor, opts);
+  }
+
+  /**
    * **Can the actor physically reach the target right now?**
    *
    * ⭐ The one definition of reach. It used to exist twice — once
@@ -347,41 +398,23 @@ export class PerceptionApi {
    * of one world concept is one too many; verbs, cards and anything
    * later ask here.
    *
-   * Reach is satisfied by any of:
-   *
-   *   - the target IS the actor;
-   *   - it is in the actor's own contents (inventory);
-   *   - it is in the actor's location's contents (peers, dropped
-   *     things, detached doors);
-   *   - it is a door attached to one of the location's obvious exits —
-   *     ⚠ attached doors live in NO container, so containment alone
-   *     never finds them;
-   *   - it IS one of the location's obvious exits — a direction binds
-   *     the way itself (`open north`, `go north`).
+   * ⭐ It is membership in {@link reach} — the set MQL's `reachable`
+   * pool is a view of (controller-liquidity W20). Until W20 it was a
+   * second assembly of the same holders, fixtures, ways and doors, and
+   * the two drifted (MQL offered a hidden way's door; this did not
+   * count the place, the hosted apps or the buildings whose landing it
+   * is). Now there is one list: what MQL's `reachable` resolves is
+   * `canReach`-true but the room and vessel that hold you (the `around`
+   * pool), and nothing else is (`reach.sameSet.test.ts`).
    *
    * ⚠ **Reach is not perception.** A thing can be reachable and
    * unperceived (dark room) or perceived and unreachable (across a
    * chasm). Callers that need both ask both.
    *
-   * ⚠ **And it is not the `reachable` MQL seed either**, which the
-   * antipattern doc's "hand-rolled reachability walk" rule would
-   * otherwise point at. That seed emits a **candidate set for keyword
-   * SEARCH** — attention-scored, keyword-bearing, ordered
-   * on-person-first. This is a **membership predicate** on a Stuff
-   * that is already resolved, it counts attached doors (which the
-   * search pool has no reason to), and it
-   * runs per-arg on every dispatch and per-refresh on every card.
-   * Answering it by resolving the whole room and testing for inclusion
-   * would be the wrong shape and the wrong cost.
+   * At the default rung (`open`) it descends every open vessel you carry
+   * and one level into open things here; never into a shut thing.
    *
-   * ⭐ Controller-liquidity D5: reach is ONE walk, shared with MQL's
-   * `reachable` pool — `Container.getReachableContents(rung)` over the
-   * actor's person, the vessel it sits in and the place around it
-   * (`getEnclosingPlace`), plus doors and ways and fixtures. At the
-   * default rung (`open`) it descends every open vessel you carry and
-   * one level into open things here; never into a shut thing.
-   *
-   * @param opts.location defaults to the actor's own container.
+   * @param opts.location a further holder beside the place and the vessel.
    * @param opts.depth the rung (`top` · `open` · `deep`); default `open`.
    */
   public static canReach(

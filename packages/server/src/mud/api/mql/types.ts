@@ -87,8 +87,8 @@ export interface MqlContext {
    * by the command binder from the line's `--top`/`--open`/`--deep` or the
    * slot's `depth:`; player-typed MQL has no word for it. Read by the
    * `inventory` · `person` · `peers` · `reachable` pools via
-   * `Container.getReachableContents` — the walk `PerceptionApi.canReach`
-   * reads too.
+   * `PerceptionApi.reach` — the one list `PerceptionApi.canReach` reads
+   * too.
    */
   depth?: ReachDepth;
 }

@@ -234,8 +234,8 @@ export class ContainmentLogic extends ApiLogic {
   }
 
   // `findReachable` / `findHostedUpdate` were removed — the reachable
-  // walk now lives in MQL's `reachable` seed (api/mql/scope-walk.ts
-  // `candidatesForReachable`).
+  // walk now lives in `PerceptionApi.reach`, which MQL's `reachable`
+  // seed filters (api/mql/scope-walk.ts `candidatesForReachable`).
 
   /** See {@link ContainmentApi.resolveLanding}. */
   @CallSecurity(ContainmentApiCallers)

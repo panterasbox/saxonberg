@@ -40,7 +40,9 @@ import {
 // value import of a specific modality would drag the whole modality
 // subsystem into this module's eval.
 import type { VisionModality } from '../modalities/VisionModality';
-import type { SearchDepth } from '../../../api/perception';
+import type {
+  ReachOptions, ReachPool, Reached, SearchDepth,
+} from '../../../api/perception';
 import type { ReachDepth } from '../../../api/command';
 import type {
   HorizonView, HorizonSighting, HorizonTraffic, Observation, VisibleContents,
@@ -315,6 +317,12 @@ export class PerceptionLogic extends ApiLogic {
     return unseen;
   }
 
+  /** See {@link PerceptionApi.reach}. */
+  @CallSecurity(PerceptionApiCallers)
+  public reach(actor: Stuff, opts?: ReachOptions): Reached[] {
+    return reachOf(actor, opts);
+  }
+
   /** See {@link PerceptionApi.canReach}. */
   @CallSecurity(PerceptionApiCallers)
   public canReach(
@@ -323,7 +331,9 @@ export class PerceptionLogic extends ApiLogic {
     opts?: { location?: Stuff | null; depth?: ReachDepth },
   ): boolean {
     if (target.stuffId === actor.stuffId) return true;
-    return reachIds(actor, opts).has(target.stuffId);
+    return reachOf(actor, opts).some(
+      (r) => r.pool !== 'around' && r.stuff.stuffId === target.stuffId,
+    );
   }
 
   /**
@@ -339,7 +349,7 @@ export class PerceptionLogic extends ApiLogic {
    * trivial HTTP GET taking 17 seconds behind it.
    *
    * One walk, one gate, O(1) per candidate afterwards. The RULE is not
-   * duplicated — both read {@link reachIds}.
+   * duplicated — both read {@link reachOf}.
    */
   @CallSecurity(PerceptionApiCallers)
   public reachableAmong(
@@ -348,7 +358,10 @@ export class PerceptionLogic extends ApiLogic {
     opts?: { location?: Stuff | null; depth?: ReachDepth },
   ): Stuff[] {
     if (candidates.length === 0) return [];
-    const ids = reachIds(actor, opts);
+    const ids = new Set<string>();
+    for (const r of reachOf(actor, opts)) {
+      if (r.pool !== 'around') ids.add(r.stuff.stuffId);
+    }
     return candidates.filter((c) => ids.has(c.stuffId));
   }
 
@@ -1453,53 +1466,152 @@ function roomOf(who: Stuff): (Stuff & Container) | null {
 }
 
 /**
- * ⭐⭐ **Everything `actor` can lay hands on, as ids** — the one definition
- * of reach (controller-liquidity D5), read by `canReach` and
- * `reachableAmong`. The holders are the actor's own person, the vessel
- * it sits in, and the place around it (`getEnclosingPlace` — in a boat
- * on the river, both the boat and the river); each is walked by
- * `Container.getReachableContents(rung)`, the walk MQL's `reachable`
- * pool reads too, so what you can name is what you can touch. Then the
- * two things in no container at all:
+ * ⭐⭐⭐ **Everything `actor` can lay hands on, each tagged with its pool —
+ * the ONE definition of reach** (controller-liquidity D5, W20). Read by
+ * `canReach` / `reachableAmong` (membership) and by MQL's `person` ·
+ * `inventory` · `here` · `peers` · `reachable` pools (`api/mql/scope-walk`
+ * filters it by pool and builds its candidates from it), so what you can
+ * name is what you can touch — there is no second assembly to drift.
+ *
+ * ⚠ `around` — the holders themselves (the place, the vessel you sit in) —
+ * is in the list because MQL's `here` names them, and is the ONE pool that
+ * is not reach: a hand is IN the room, not on it, so `canReach` and
+ * `reachableAmong` skip it (the vessel is still reached as a `peer` of
+ * the place it stands in).
+ *
+ * Emission order is MQL's tie-break and is kept exactly: the PERSON first
+ * (`self`, then what is `attached` — slot occupants and the apps an
+ * implant hosts — and the `inventory` at the rung), then `here` (the
+ * place's surface, then the vessel's you sit in), then `peers`.
+ *
+ * The holders: the actor's person; the place around it
+ * (`getEnclosingPlace` — in a boat on the river, the river) AND the vessel
+ * it sits in when that is not the place (the passenger beside you in a
+ * shut coach is to hand though the coach's lid is between you and the
+ * road); and `opts.location` when a caller names one. Each holder's
+ * contents are `Container.getReachableContents(rung)` — the per-container
+ * walk underneath. Then what lives in no container at all:
  *
  * ⚠ Attached doors ride `exit.getDoor()` — a containment-only test misses
  * every door in the game (the card hold that omitted them released
  * `out-of-reach` on doors `open` worked on perfectly well); and the way
- * itself binds a direction. The ways are the ones the ACTOR can see
- * (`obviousExitsFor`), never the physics list — the rope's way down off
- * the Sunken Delve's lip bound and was "you can't reach down" (harbors
- * sibling drives, 2026-11-04).
+ * itself binds a direction. The ways — and so their doors — are the ones
+ * the ACTOR can see (`obviousExitsFor`), never the physics list: the
+ * rope's way down off the Sunken Delve's lip bound and was "you can't
+ * reach down" (harbors sibling drives, 2026-11-04), and a hidden way's
+ * door would name the way it hides.
  *
- * ⚠ ...and fixtures ride the room's fixture map, likewise uncontained.
+ * ⚠ ...and fixtures ride the room's fixture map, likewise uncontained —
+ * `peers`, because a fixture is a thing a person hangs and takes down;
+ * `here` is the surface you never pick up (the place, its ways and their
+ * doors, the buildings whose landing it is, open ground seen across a way).
+ *
+ * ⚠ Reach is not perception: nothing here asks `perceives` (MQL does, per
+ * candidate). `opts.pools` computes only the sections asked for, so an
+ * `inventory` scope never walks the room.
  */
-function reachIds(
-  actor: Stuff,
-  opts?: { location?: Stuff | null; depth?: ReachDepth },
-): Set<string> {
+function reachOf(actor: Stuff, opts?: ReachOptions): Reached[] {
   const rung = opts?.depth ?? 'open';
-  const ids = new Set<string>([actor.stuffId]);
-  const holders: Stuff[] = [actor];
-  const immediate = MixinApi.isContainable(actor) ? actor.getContainer() : null;
-  const place = MixinApi.isContainable(actor) ? actor.getEnclosingPlace() : null;
-  const location = opts?.location !== undefined ? opts.location : immediate;
-  for (const h of [location, immediate, place]) {
-    if (h && !holders.some((x) => x.stuffId === h.stuffId)) holders.push(h);
-  }
-  for (const h of holders) {
-    if (!MixinApi.isContainer(h)) continue;
-    for (const c of h.getReachableContents(rung)) ids.add(c.stuffId);
-  }
-  for (const room of holders.slice(1)) {
-    if (MixinApi.isExitable(room)) {
-      for (const exit of room.obviousExitsFor(actor)) {
-        ids.add(exit.stuffId);
-        const door = exit.getDoor();
-        if (door) ids.add(door.stuffId);
+  const want = (p: ReachPool): boolean => !opts?.pools || opts.pools.includes(p);
+  const out: Reached[] = [];
+  const push = (stuff: Stuff, pool: ReachPool): void => {
+    if (want(pool)) out.push({ stuff, pool });
+  };
+  // The apps an implant hosts are on the person with it.
+  const pushHosted = (host: Stuff): void => {
+    if (!MixinApi.isAether(host)) return;
+    for (const u of host.getHostedUpdates()) {
+      if (u !== actor) push(u, 'attached');
+    }
+  };
+
+  // ── the person ──
+  if (want('self') || want('attached') || want('inventory')) {
+    push(actor, 'self');
+    pushHosted(actor);
+    if (MixinApi.isSlotted(actor)) {
+      for (const occupants of actor.getAllOccupants().values()) {
+        for (const occ of occupants) {
+          push(occ, 'attached');
+          pushHosted(occ);
+        }
       }
     }
-    if (MixinApi.isAdornable(room)) {
-      for (const f of room.getFixtures()) ids.add(f.stuffId);
+    if (MixinApi.isContainer(actor)) {
+      if (want('inventory')) {
+        for (const item of actor.getReachableContents(rung)) push(item, 'inventory');
+      }
+      if (want('attached')) {
+        for (const item of actor.getContents()) pushHosted(item);
+      }
     }
   }
-  return ids;
+  if (!want('here') && !want('peers')) return out;
+
+  // ── the holders around the person: the place, the vessel, a named one ──
+  if (!MixinApi.isContainable(actor)) return out;
+  const place = actor.getEnclosingPlace();
+  const holders: (Stuff & Container)[] = [];
+  for (const h of [place, actor.getContainer(), opts?.location ?? null]) {
+    if (h && MixinApi.isContainer(h) && !holders.some((x) => x.stuffId === h.stuffId)) {
+      holders.push(h);
+    }
+  }
+
+  if (want('here') || want('around')) {
+    for (const holder of holders) {
+      // What holds you is named (`look here`) but not laid hands on: a
+      // direction binds the WAY, never the room (harbors review 3).
+      push(holder, 'around');
+      if (!MixinApi.isExitable(holder)) continue;
+      const ways = holder.obviousExitsFor(actor);
+      const doors = new Set<string>();
+      for (const way of ways) {
+        const door = way.getDoor();
+        if (!door || doors.has(door.stuffId)) continue;
+        doors.add(door.stuffId);
+        push(door, 'here');
+      }
+      for (const way of ways) push(way, 'here');
+      // ⭐ The buildings whose LANDING this is (paint build, 2026-10-31): a
+      // structure is an Idea, never in a room, so it is reached from where
+      // it meets the weather — `look cottage` from the lane.
+      if (holder.isPlace()) {
+        for (const s of (holder as unknown as Place).landedStructuresNow()) {
+          push(s as unknown as Stuff, 'here');
+        }
+      }
+      // ⭐ A place read from where it is reached (tracts build D30): open
+      // ground through a way, by its own name from this side — only the
+      // place, never what stands in it, and only when it is loaded.
+      const far = new Set<string>();
+      for (const way of ways) {
+        const there = way.peekDestination();
+        if (!there || there === holder || !there.isPlace()) continue;
+        if (!(there as unknown as Place).isSeenAcrossExit()) continue;
+        if (far.has(there.stuffId)) continue;
+        far.add(there.stuffId);
+        push(there, 'here');
+      }
+    }
+  }
+
+  if (want('peers')) {
+    const seen = new Set<string>([actor.stuffId]);
+    for (const holder of holders) {
+      for (const item of holder.getReachableContents(rung)) {
+        if (seen.has(item.stuffId)) continue;
+        seen.add(item.stuffId);
+        push(item, 'peers');
+      }
+      if (MixinApi.isAdornable(holder)) {
+        for (const fixture of holder.getFixtures()) {
+          if (seen.has(fixture.stuffId)) continue;
+          seen.add(fixture.stuffId);
+          push(fixture, 'peers');
+        }
+      }
+    }
+  }
+  return out;
 }

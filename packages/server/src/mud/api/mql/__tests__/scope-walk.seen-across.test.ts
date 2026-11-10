@@ -58,7 +58,7 @@ describe('candidatesForHere — a place seen across an exit', () => {
     bench.setKeywords(['bench', 'upper bench']);
     field.addLocation(bench, 0, 1, 0);
     await yard.addBidirectionalExit(bench, 'north');
-    const pool = candidatesForHere(yard, viewer);
+    const pool = candidatesForHere(viewer);
     expect(pool.some((c) => c.stuff === bench)).toBe(true);
   });
 
@@ -70,7 +70,7 @@ describe('candidatesForHere — a place seen across an exit', () => {
     const sheaf = makeStuff(() => new Sheaf());
     sheaf.setShortDescription('a sheaf');
     ContainmentApi.move(sheaf, bench);
-    const pool = candidatesForHere(yard, viewer);
+    const pool = candidatesForHere(viewer);
     expect(pool.some((c) => c.stuff === sheaf)).toBe(false);
   });
 
@@ -79,7 +79,7 @@ describe('candidatesForHere — a place seen across an exit', () => {
     barn.setShortDescription('the barn');
     field.addLocation(barn, 1, 0, 0);
     await yard.addBidirectionalExit(barn, 'east');
-    const pool = candidatesForHere(yard, viewer);
+    const pool = candidatesForHere(viewer);
     expect(pool.some((c) => c.stuff === barn)).toBe(false);
   });
 });

@@ -151,15 +151,19 @@ describe('PerceptionApi.canReach', () => {
   });
 
   /*
-   * ⭐ A direction binds the WAY itself: `open north`
-   * and `go north` hold the exit, so the exit is within reach — and the
-   * room you stand in is not something you reach.
+   * ⭐ A direction binds the WAY itself: `open north` and `go north` hold
+   * the exit, so the exit is within reach — and the room you stand in is
+   * not something you reach. It IS in the one list (W20), as `around`:
+   * MQL's `here` names it; a hand is in it, not on it.
    */
-  it('reaches an exit of the room; never the room itself', async () => {
+  it('reaches an exit of the room; never the room itself, nor the room beyond', async () => {
     await here.addBidirectionalExit(there, 'north');
     const north = here.getExit('north')!;
     expect(PerceptionApi.canReach(s(actor), s(north))).toBe(true);
     expect(PerceptionApi.canReach(s(actor), s(here))).toBe(false);
+    expect(PerceptionApi.canReach(s(actor), s(there))).toBe(false);
+    expect(PerceptionApi.reach(s(actor)).filter((r) => r.stuff === s(here)).map((r) => r.pool))
+      .toEqual(['around']);
   });
   // ⭐ What you can name is what you can touch: reach reads the ways the
   // ACTOR perceives (the list MQL names them from), never the viewer-blind

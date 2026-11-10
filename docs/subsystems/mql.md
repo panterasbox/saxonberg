@@ -610,13 +610,17 @@ Built-in scopes:
 | `online` | every connected interactive's holder Stuff |
 | `world` | every Stuff — ⚠ gated; see below |
 
-### ⭐⭐ Reach is one walk, at a rung (controller-liquidity W2)
+### ⭐⭐ Reach is one list, at a rung (controller-liquidity W2, W20)
 
-`inventory` · `person` · `peers` · `reachable` read
-`Container.getReachableContents(rung)` — and so do
-`PerceptionApi.canReach` / `reachableAmong`, so what a pool names is what
-a hand can touch (the old seed reached top-level only on the person and
-`canReach` one level on both sides; the asymmetry is gone). The rung is
+`here` · `inventory` · `person` · `peers` · `reachable` are **filters over
+`PerceptionApi.reach`** — the one definition of what the giver can lay
+hands on, each thing tagged with its pool (`here` = `around` + `here`:
+the holders themselves, then their surface) — and `PerceptionApi.canReach`
+/ `reachableAmong` are membership in the same list (all but `around`), so what a pool names
+is what a hand can touch, by construction (`reach.sameSet.test.ts`). The
+scope walk decides no WHICH; it turns each reached thing into a candidate
+(the perception gate, the keyword face, the facets). Underneath, each
+holder is walked by `Container.getReachableContents(rung)`. The rung is
 `MqlContext.depth`, set only by the binder (the line's `--top` /
 `--open` / `--deep`, else the slot's `depth:`, else `open`):
 
@@ -731,8 +735,10 @@ split lets `get` declare the surgical scope it actually wants
 
 ##### Doors and exits — both candidates, each as itself
 
-`candidatesForHere` emits doors and exits through the same generic
-`pushDirect` path (harbors review 3 retired the asymmetry):
+The `here` pool (`PerceptionApi.reach`'s `here` section) emits doors and
+exits through the same generic `pushDirect` path (harbors review 3
+retired the asymmetry; ⚠ since W20 a door is offered only on a way the
+viewer can see, as `canReach` always had it):
 
 - **Doors are Stuff** with keywords, descriptions and details. A door
   at the north exit is addressable by its own keywords (`oak`, `door`).
