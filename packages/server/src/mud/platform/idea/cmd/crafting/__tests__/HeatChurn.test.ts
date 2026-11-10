@@ -3,8 +3,8 @@
  * `heat` takes a `HeatedMixin` thing to the fire — a build latches, an
  * instrument held in the flame is sterilized — and a plain vessel is no
  * longer set on the fire by it (that is `put … on`, dairy D6's act now);
- * `stir` asks the vessel's `AgitatedMixin` plan — a churn is worked by
- * hand (dairy D5), a build records its method.
+ * `stir` is the build's alone (W18): a build records its method, and a
+ * churn is NOT stirred — it is `churn`ed, the dairying pack's verb.
  */
 
 import '../../../../../../test-bootstrap';
@@ -234,8 +234,8 @@ describe('⭐ heat — one act on what is Heated (W7c)', () => {
   });
 });
 
-describe('⭐ churn — the hand-worked arm (dairy D5)', () => {
-  it('a hand-worked vessel is worked, and says what came of it', async () => {
+describe('⭐ `stir` is the build\'s alone (controller-liquidity W18)', () => {
+  it('a hand-worked churn is not stirred — `churn` is its verb', async () => {
     await stand('hearth');
     const calls: string[] = [];
     class TestChurn extends HandWorkedMixin(BulkableMixin(Good)) {
@@ -247,11 +247,11 @@ describe('⭐ churn — the hand-worked arm (dairy D5)', () => {
     const churn = makeStuff(() => new TestChurn());
     await ContainmentApi.move(churn as never, room as never);
     const ctx = await run(() => new StirController(), 'stir', 'vessel', churn);
-    expect(refusal(ctx)).toBeNull();
-    expect(calls).toEqual(['worked']);
+    expect(refusal(ctx)).toBe('no-vessel');
+    expect(calls).toEqual([]);
   });
 
-  it('a vessel that is neither a build nor hand-worked is refused', async () => {
+  it('a vessel that is not a build is refused', async () => {
     await stand('hearth');
     const v = vat();
     await ContainmentApi.move(v as never, room as never);

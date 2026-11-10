@@ -2,17 +2,21 @@
  * SweepController — `sweep [<floor|hearth>] [with <broom|brush>]`, the
  * byre's mucking out included — cleanliness D15, D18, D20.
  *
- * ⭐ One act, and the thing swept plans it (`SweepableMixin`,
- * controller-liquidity W7c): the FLOOR decides what a broom takes up
+ * ⭐ One act, two hosts, one result (`SweepableMixin`, controller-liquidity
+ * W7c, slimmed in W18): the FLOOR decides what a broom takes up
  * (`FloorMixin.sweepInto` — everything on an earth floor, only the debris
  * on a scrubbed one) and what it is heaped into (sweepings, or the byre's
- * muck); a FIRE rakes its grate (`Burner.rakeGrate`), and a flued one,
- * with a brush to hand, its chimney (`Flued.sweepChimney`). How long each
- * takes is the thing's. This file finds what is to hand, engages the plan
- * and says what came up.
+ * muck); a flued fire, with a brush to hand, its chimney
+ * (`Flued.sweepChimney`). Either way so many kg of these kinds came up,
+ * and some of it is in the sweeper's hands. How long it takes is the
+ * thing's. This file finds what is to hand, engages the plan and says what
+ * came up.
  *
- * ⭐ A target that is not sweepable — or none — sweeps the floor you stand
- * on: `sweep`, `sweep byre`.
+ * ⚠ A grate is RAKED (`rake`, W18) — a fire that is not flued is not
+ * swept, and the refusal says so.
+ *
+ * ⭐ No target — or one that is not swept itself — sweeps the floor you
+ * stand on: `sweep`, `sweep byre`.
  */
 
 import { ManualBuildController } from '../crafting/ManualBuildController';
@@ -39,7 +43,11 @@ export default class SweepController extends ManualBuildController<SweepModel> {
     const named = model.target?.stuff ?? null;
     const room = context.location ?? null;
     const floor = room && MixinApi.isAdornable(room) ? (room.getFloor() as unknown as Stuff | null) : null;
-    const target = named !== null && MixinApi.isSweepable(named) ? named : floor;
+    // A fire that is not flued has nothing to sweep (its grate is raked);
+    // anything else that is not swept itself — the byre you stand in —
+    // means the floor underfoot.
+    const unflued = named !== null && !MixinApi.isSweepable(named) && MixinApi.isBurner(named);
+    const target = named !== null && MixinApi.isSweepable(named) ? named : unflued ? null : floor;
     const plan =
       target !== null && MixinApi.isSweepable(target)
         ? target.sweepPlanFor({ actor: giver, broom, brush })
@@ -47,10 +55,10 @@ export default class SweepController extends ManualBuildController<SweepModel> {
     if (target === null || plan === null) {
       this.declineStep(
         context,
-        named
-          ? Mml.compose`You can't sweep ${Mml.thing(named)}.`
+        unflued && named !== null
+          ? Mml.compose`${Mml.thing(named)} has no flue to sweep. Its grate is raked — rake it.`
           : Mml.compose`There is no floor here to sweep.`,
-        'no-floor',
+        unflued ? 'not-sweepable' : 'no-floor',
       );
       return;
     }
@@ -65,69 +73,39 @@ export default class SweepController extends ManualBuildController<SweepModel> {
   protected static sweepWords(target: Stuff, giver: Stuff): ActWords<SweepBegin, SweepFacts, SweepRefusal> {
     return {
       beginSelf: (b) => {
-        switch (b.kind) {
-          case 'floor':
-            return b.broom
-              ? Mml.compose`You set to with the broom.`
-              : Mml.compose`You get down and sweep with your hands.`;
-          case 'grate':
-            return Mml.compose`You rake out the grate of ${Mml.thing(target)}.`;
-          case 'flue':
-            return Mml.compose`You work the brush up into ${Mml.thing(target)}'s flue, rod by rod.`;
+        switch (b.tool) {
+          case 'broom':
+            return Mml.compose`You set to on ${Mml.thing(target)} with the broom.`;
+          case 'brush':
+            return Mml.compose`You work the brush up into ${Mml.thing(target)}, rod by rod.`;
+          case 'hands':
+            return Mml.compose`You get down and sweep ${Mml.thing(target)} with your hands.`;
           default: {
-            const never: never = b;
+            const never: never = b.tool;
             return never;
           }
         }
       },
       onRefused: (r) => SweepController.refusalWords(r),
-      onDone: (f) => SweepController.doneWords(f, giver),
+      onDone: (f) => SweepController.doneWords(f, target, giver),
     };
   }
 
-  /** What came up, in words. */
-  protected static doneWords(f: SweepFacts, giver: Stuff): { self: Composed; peers?: Composed } {
-    switch (f.kind) {
-      case 'floor': {
-        if (f.heap === null) {
-          return { self: Mml.compose`You sweep, and there is nothing worth the name to take up.` };
-        }
-        const what = Object.keys(f.kinds).slice(0, 3).join(', ');
-        return {
-          self: Mml.compose`You sweep the floor clean${what ? ` of ${what}` : ''}, into ${Mml.thing(f.heap)}.`,
-          peers: Mml.compose`${Mml.actor(giver)} sweeps the floor.`,
-        };
-      }
-      case 'grate': {
-        const first = f.ash[0];
-        if (!first) {
-          return {
-            self: Mml.compose`There is hardly any ash in the grate. It wants a brush up the flue, maybe, but not raking.`,
-          };
-        }
-        return {
-          self:
-            f.ash.length === 1
-              ? Mml.compose`You rake the grate out into ${Mml.thing(first)}.`
-              : Mml.compose`You rake the grate out into ${String(f.ash.length)} heaps of ash.`,
-          peers: Mml.compose`${Mml.actor(giver)} rakes out the grate.`,
-        };
-      }
-      case 'flue':
-        return {
-          self:
-            f.taken.length > 0
-              ? Mml.compose`Soot comes down the flue in a black fall, and you gather the finest of it up: ${Mml.thing(f.taken[0]!)}. The chimney is clear.`
-              : f.sootKg > 0.05
-                ? Mml.compose`Soot comes down the flue in a black fall, all over the hearthstone. The chimney is clear.`
-                : Mml.compose`A little soot comes down. The flue was clean enough.`,
-          peers: Mml.compose`${Mml.actor(giver)} sweeps the chimney.`,
-        };
-      default: {
-        const never: never = f;
-        return never;
-      }
+  /** What came up, in words — a floor's and a flue's alike. */
+  protected static doneWords(f: SweepFacts, target: Stuff, giver: Stuff): { self: Composed; peers?: Composed } {
+    if (!(f.kg > 0.05) && f.taken.length === 0) {
+      return { self: Mml.compose`You sweep ${Mml.thing(target)}, and there is nothing worth the name to take up.` };
     }
+    const what = Object.keys(f.kinds).slice(0, 3).join(', ');
+    const of = what ? ` of ${what}` : '';
+    const first = f.taken[0];
+    return {
+      self:
+        first !== undefined
+          ? Mml.compose`You sweep ${Mml.thing(target)} clean${of}, and take it up: ${Mml.thing(first)}.`
+          : Mml.compose`You sweep ${Mml.thing(target)} clean${of}. It comes down where it will.`,
+      peers: Mml.compose`${Mml.actor(giver)} sweeps ${Mml.thing(target)}.`,
+    };
   }
 
   /** ⭐ Every reason, exhaustively. */
@@ -135,8 +113,10 @@ export default class SweepController extends ManualBuildController<SweepModel> {
     switch (r.reason) {
       case 'nothing-to-sweep':
         return Mml.compose`There is nothing here a broom could take up.`;
+      case 'no-brush':
+        return Mml.compose`A chimney is swept with a flue brush, and you have none to hand. (Its grate is raked — rake it.)`;
       default: {
-        const never: never = r.reason;
+        const never: never = r;
         return never;
       }
     }

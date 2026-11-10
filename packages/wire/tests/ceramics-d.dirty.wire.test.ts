@@ -532,7 +532,7 @@ suite('⭐ 26 — slip cast: gypsum to plaster, plaster to a mould, slip to a cu
     await doing(caster, 'get lump');
     await doing(caster, 'put lump in "plaster tub"');
     await doing(caster, 'fill "plaster tub" from butt');
-    await act(caster, 'stir "plaster tub"', '2 minutes');
+    await act(caster, 'knead "plaster tub"', '2 minutes');
     expect(await examine(caster, '"plaster tub"'), 'the tub holds slurry').toMatch(/slurry/i);
     await doing(caster, 'pour "plaster tub" into case');
     await mint(FOUNDRY, T.mug);
@@ -554,7 +554,7 @@ suite('⭐ 26 — slip cast: gypsum to plaster, plaster to a mould, slip to a cu
     await doing(caster, 'get clay');
     await doing(caster, 'put clay in "slip tub"');
     await doing(caster, 'fill "slip tub" from butt');
-    await act(caster, 'stir "slip tub"', '2 minutes');
+    await act(caster, 'knead "slip tub"', '2 minutes');
     expect(await examine(caster, '"slip tub"'), 'the tub holds slip').toMatch(/slip/i);
     await doing(caster, 'get "plaster mould"');
     await doing(caster, 'drop "plaster mould"');

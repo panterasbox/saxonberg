@@ -642,7 +642,8 @@ PROTOCOL; it is not a pump. See [pump.md](./pump.md).
 - `FluedMixin` on `Hearth` and `Oven` (⛔ not `Firebox`; the `Brazier` is
   its own flueless class): soot by kg burnt × incompleteness; a foul flue
   under a roaring fire catches. `sweep hearth with flue brush` clears it;
-  `sweep hearth` rakes the grate's ash (`Burner.takeAsh`).
+  `rake hearth` rakes the grate's ash (`Burner.rakePlan` → `rakeGrate` —
+  its own verb since controller-liquidity W18; a grate is not swept).
 - A fuel's `combustionProducts` decide what its exhaust puts in the room
   (sulfur burns to sulfur dioxide); a substance's `flammableLimit` flashes
   on a flame (flour dust at the mill house). Incomplete exhaust soots every

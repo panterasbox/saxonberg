@@ -407,14 +407,16 @@ const ACTS: Act[] = [
     cmd: (id) => `carve peg from #${id.blank} --with #${id.hook}`,
   },
   {
-    key: 'stir',
+    // ⭐ W18: compounding is `knead`'s (a powder, so the work is a stir's
+    // two minutes) — the row's key and word moved, the recorded act did not.
+    key: 'knead.compound',
     at: P.glasshouse,
     hand: [
       ['sand1', '/trade/glass/thing/sand'],
       ['sand2', '/trade/glass/thing/sand'],
     ],
     stage: typed((id) => `put #${id.sand1} in pot`, (id) => `put #${id.sand2} in pot`),
-    cmd: () => 'stir pot',
+    cmd: () => 'knead pot',
   },
   { key: 'heat.build', at: P.smithy, stage: typed('light forge', 'pump forge'), cmd: () => 'heat ingot' },
   { key: 'heat.tool', at: P.ward, hand: [['kit', '/trade/medicine/thing/surgical-kit']], cmd: (id) => `heat #${id.kit}` },

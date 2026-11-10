@@ -22,10 +22,19 @@ describe('the churn', () => {
   beforeEach(standUp);
   afterEach(tearDown);
 
+  it('⭐ `churn` is its own verb (W18): the churn affords it and plans the working', async () => {
+    at(0);
+    const c = churn(287);
+    expect(Churn.commandContributions.environment).toEqual(['trade/dairying/cmd/crafting/churn.yaml']);
+    const plan = c.handWorkPlan();
+    expect(plan.durationMs).toBe(8000);
+    expect(await plan.onComplete()).toEqual({ ok: true, facts: { result: 'came' } });
+  });
+
   it('cream at a cool-room warmth breaks; buttermilk draws off; butter stays', () => {
     at(0);
     const c = churn(287);
-    // ⭐ The churn answers what came of it; `stir` words it (D4).
+    // ⭐ The churn answers what came of it; `churn` words it (D4).
     expect(c.workByHand()?.facts.result).toBe('came');
     // ⭐ Broken: the churning schedule is running, and what the next litre
     // drawn IS (the read a pour stamps a jug with) is the buttermilk.

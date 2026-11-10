@@ -757,10 +757,10 @@ export const Mixins = {
   // recovered from — protocols (controller-liquidity W8).
   Anchoring: 'AnchoringMixin',
   Launchable: 'LaunchableMixin',
-  // ⭐ The acts behind `heat`, `stir`, `wash` and `sweep` — protocols, one
-  // act each over several hosts (controller-liquidity W7c).
+  // ⭐ The acts behind `heat`, `wash` and `sweep` — protocols, one act each
+  // over several hosts (controller-liquidity W7c; `stir`'s `Agitated`
+  // retired in W18 — one host, so a method on the build).
   Heated: 'HeatedMixin',
-  Agitated: 'AgitatedMixin',
   Washable: 'WashableMixin',
   Sweepable: 'SweepableMixin',
   // ⭐ A piece can be taken from it — `sample` (controller-liquidity W7c).
@@ -1173,7 +1173,6 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   AnchoringMixin: "{} has no anchor to let go",
   LaunchableMixin: "{} isn't water you could put a boat into",
   HeatedMixin: "{} isn't something you take to the fire — to warm it, set it on one (`put … on hearth`)",
-  AgitatedMixin: "{} isn't something you could stir",
   WashableMixin: "{} can't be washed",
   SweepableMixin: "{} isn't something you could sweep",
   SampleableMixin: "{} is not matter you could take a piece of",

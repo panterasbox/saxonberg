@@ -100,9 +100,6 @@ export default class TemperPit extends TemperPitBase {
       return mat === null || !(mat.hasTag('plastic') || mat.hasTag('granular'));
     });
     if (hard !== undefined) return { ok: false, reason: 'not-treadable', facts: { hard } };
-    // Clay is trodden, never stirred (B101).
-    const wrong = this.workRefusal(req.verb);
-    if (wrong !== null) return wrong;
     if (!(this.waterLitres() > 0)) return { ok: false, reason: 'no-water' };
     const giver = req.actor;
     const minutes = dial('ceramics.temper.minutes', 20);

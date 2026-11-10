@@ -1069,7 +1069,7 @@ against it at the mint; reset by `clearBuild`).
   with the authored food Material at the portion; off-spec mints the
   generic **pot-luck** fill).
 - **Compounding** — ⭐ the same mint over a vessel's **charge** rather
-  than a buffer (ceramics re-plan R1-D7): `knead`/`stir` at a
+  than a buffer (ceramics re-plan R1-D7): `knead` at a
   `CompoundingMixin` vessel (a glaze tub, the batch pot, a temper pit)
   calls `mintFromBuild({ charge })`; the vessel's
   `chargeContributions()` reads its pieces and belly as contributions
@@ -1903,7 +1903,8 @@ the feed was dropped. It folds the source payload through
 ## History — the dairy build (2026-10)
 
 - **`stir churn`** records method `churned` (the `churn` word that once
-  joined `stir.yaml` is deleted: one view, one word).
+  joined `stir.yaml` is deleted: one view, one word). ⚠ Superseded by
+  W18: `churn` is its own verb again — the dairying pack's, its own act.
   ⭐ The view is `requires: any` now and the controller narrows to two arms:
   a build vessel records the method; a hand-worked vessel (the kernel's
   **`HandWorkedMixin`**, `workByHand(method)` → an `ActOutcome` or `null`,
@@ -1919,13 +1920,21 @@ the feed was dropped. It folds the source payload through
   asks `HeatedMixin.heatPlanFor(actor)` (`lib/fire/Heated.ts`): a build
   (`ManualBuildMixin` composes it) latches the heat it took and a tempered
   piece anneals; an instrument (the medicine kits, `KitchenTool`) held in
-  the flame takes a dry heat and is sterilized. `stir` asks
-  `AgitatedMixin.agitatePlanFor` (`lib/craft/Agitated.ts`): a compounding
-  vessel answers its knead plan, a churn (`HandWorkedMixin`) works its
-  charge, a build records the method its vessel names — the durations live
-  on the hosts. `dry` is two shapes with two controllers (`dry.yaml` hangs
+  the flame takes a dry heat and is sterilized. ~~`stir` asked
+  `AgitatedMixin.agitatePlanFor`~~ — **undone in W18** (below). `dry` is two shapes with two controllers (`dry.yaml` hangs
   it up, the forecast the thing's `Moist.hoursToDry` / `Wet.dryingHours`;
   `dry-rub.yaml`, `with` required, rubs it dry).
+- ⭐⭐ **Two false unifications undone (controller-liquidity W18, owner
+  2026-11-10).** W7c's `AgitatedMixin` stitched three acts behind `stir`
+  with a union result; now each has its word and one host, no protocol:
+  `stir` is the drink build's (`ManualBuildMixin.stirPlan` — the method
+  the vessel names; a shaker's `shaken` is the same act, not a verb of its
+  own), a compounding vessel is `knead`ed (`CompoundingMixin.workVerb`
+  decides a knead's quarter-hour or a stir's few minutes — the B101 guard
+  is structural now, so the `wrong-work` refusal and `KneadRequest.verb`
+  are gone), and a churn is `churn`ed (the dairying pack's verb over
+  `HandWorkedMixin.handWorkPlan`). The same ruling split `rake` (a grate,
+  `Burner.rakePlan`) out of `sweep` — see cleanliness.md.
 - ⭐ **A mould is not a recipe** — the cheese hoop, the ingot mould and the
   ice pan decide the shape of what sets in them with no verb, no recipe
   and no deed; a pour into a mould credits its discipline. See

@@ -17,7 +17,7 @@ no controller, no Api**.
 |---|---|---|
 | `milk cow into pail` | litres of the animal's own milk; the milker's identity stamped on it; unwashed hands put `e-coli` in it and on the pail | `ProducingMixin` (`taps.md`) |
 | `pour pail into pan`, wait, `pour pan into pail` | the charge **stands** (`restDays`), then the skim draws off and **stops at the cream** — a share derived from the milk's fat | `SettingPan` = `FractionatingMixin` (`fractionation.md`), schedule `milk-setting` |
-| `pour pan into churn`, `stir churn` | between ~283 and 291 K the cream **breaks** (churned cream); too cold it will not come; too warm it comes greasy (`fair`) | `Churn` is the kernel's `HandWorkedMixin`; the `stir` view, whose working the churn names (`churned`) |
+| `pour pan into churn`, `churn` | between ~283 and 291 K the cream **breaks** (churned cream); too cold it will not come; too warm it comes greasy (`fair`) | `Churn` is the kernel's `HandWorkedMixin` (`handWorkPlan` → `workByHand`); ⭐ `churn` is this pack's own verb (`cmd/crafting/churn.yaml` + `ChurnController`, afforded by the `Churn` class) since controller-liquidity W18 — it was an arm of `stir` |
 | `pour churn into jug` | buttermilk draws off; **butter** is the residue — a `fat`, so every fried recipe takes it | schedule `churning` |
 | `put vat on hearth` | the vat sits on the lit fire and warms; the thermometer reads it | `put`'s placement + the furnace couple (`heat vat` retired in controller-liquidity W7c) |
 | `pour crock into vat` | a crock of whey IS a living lactic culture: the pour pitches the batch; milk poured into the crock feeds it | profile `whey-starter` (`kind: culture`) |

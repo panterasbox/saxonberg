@@ -1,8 +1,11 @@
 /**
- * The kernel act protocols behind `heat`, `stir`, `wash` and `sweep`
+ * The kernel act protocols behind `heat`, `wash` and `sweep`
  * (controller-liquidity W7c, D13 rung 1): one act each, planned by the
  * THING — its time, its effort and what came of it — so the verb only
- * engages the plan and words the facts.
+ * engages the plan and words the facts. ⭐ And the acts W18 took back out
+ * of false unifications, each with one host and no protocol: `stir` (the
+ * build's `stirPlan`), `churn` (`HandWorked.handWorkPlan`) and `rake`
+ * (`Burner.rakePlan`).
  */
 
 import '../../../../test-bootstrap';
@@ -48,34 +51,32 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-describe('Agitated — `stir` asks the vessel', () => {
-  it('a build with nothing banked refuses `empty-build`', async () => {
+describe('`stir` asks the build; `churn` the hand-worked vessel (W18)', () => {
+  it('a build with nothing banked refuses `empty-build`', () => {
     const b = makeStuff(() => new TestBuild());
-    expect(MixinApi.isAgitated(b)).toBe(true);
-    const plan = await b.agitatePlanFor({ actor: actor() });
-    expect(plan?.ok).toBe(false);
-    expect(plan && !plan.ok && plan.reason).toBe('empty-build');
+    const plan = b.stirPlan();
+    expect(plan.ok).toBe(false);
+    expect(!plan.ok && plan.reason).toBe('empty-build');
   });
 
   it('a build records the working its vessel names, at the vessel’s pace', async () => {
     const b = makeStuff(() => new TestBuild());
     b.addContribution({ tags: ['gin'], measureL: 0.06, gradeBand: 'fair' } as never);
-    const plan = await b.agitatePlanFor({ actor: actor() });
-    expect(plan?.ok).toBe(true);
-    if (!plan || plan.ok !== true) return;
-    expect(plan.facts).toEqual({ kind: 'build', method: 'stirred' });
+    const plan = b.stirPlan();
+    expect(plan.ok).toBe(true);
+    if (plan.ok !== true) return;
+    expect(plan.facts).toEqual({ method: 'stirred' });
     expect(plan.durationMs).toBe(4000);
     const done = await plan.onComplete();
-    expect(done).toEqual({ ok: true, facts: { kind: 'built', method: 'stirred' } });
+    expect(done).toEqual({ ok: true, facts: { method: 'stirred' } });
     expect(b.getBuildMethod()).toBe('stirred');
   });
 
   it('a churn is worked by hand — eight seconds, and what came of it', async () => {
     const c = makeStuff(() => new TestChurn());
-    const plan = await c.agitatePlanFor({ actor: actor() });
-    if (!plan || plan.ok !== true) throw new Error('expected a plan');
+    const plan = c.handWorkPlan();
     expect(plan.durationMs).toBe(8000);
-    expect(await plan.onComplete()).toEqual({ ok: true, facts: { kind: 'hand-worked', result: { result: 'came' } } });
+    expect(await plan.onComplete()).toEqual({ ok: true, facts: { result: 'came' } });
   });
 });
 
@@ -127,21 +128,27 @@ describe('Washable — a soilable thing washes the load', () => {
   });
 });
 
-describe('Sweepable — a fire rakes its grate, a flued one its chimney', () => {
-  it('a grate is raked of its ash', async () => {
+describe('`rake` — a fire plans the raking of its grate (W18)', () => {
+  it('a grate is raked of its ash — and a bare fire is not swept', async () => {
     const g = makeStuff(() => new TestGrate());
-    expect(MixinApi.isSweepable(g)).toBe(true);
+    expect(MixinApi.isSweepable(g)).toBe(false);
     const rake = vi.spyOn(g, 'rakeGrate').mockResolvedValue({ kg: 0, ash: [] });
-    const plan = g.sweepPlanFor({ actor: actor(), broom: false, brush: false });
-    if (!plan || plan.ok !== true) throw new Error('expected a plan');
-    expect(plan.facts).toEqual({ kind: 'grate' });
-    expect(await plan.onComplete()).toEqual({ ok: true, facts: { kind: 'grate', ash: [] } });
+    const plan = g.rakePlan(actor());
+    expect(plan.durationMs).toBe(8000);
+    expect(await plan.onComplete()).toEqual({ ok: true, facts: { ash: [] } });
     expect(rake).toHaveBeenCalledOnce();
   });
+});
 
-  it('a flued fire takes the brush up its chimney only when there is one to hand', () => {
+describe('Sweepable — a floor and a chimney, one result shape (W18)', () => {
+  it('a flued fire takes the brush up its chimney — and without one refuses `no-brush`', async () => {
     const h = makeStuff(() => new TestHearth());
-    expect(h.sweepPlanFor({ actor: actor(), broom: false, brush: true })).toMatchObject({ ok: true, facts: { kind: 'flue' }, durationMs: 24000 });
-    expect(h.sweepPlanFor({ actor: actor(), broom: false, brush: false })).toMatchObject({ ok: true, facts: { kind: 'grate' } });
+    expect(MixinApi.isSweepable(h)).toBe(true);
+    const plan = h.sweepPlanFor({ actor: actor(), broom: false, brush: true });
+    expect(plan).toMatchObject({ ok: true, facts: { tool: 'brush' }, durationMs: 24000 });
+    vi.spyOn(h, 'sweepChimney').mockResolvedValue({ sootKg: 0.4, taken: [] });
+    if (!plan || plan.ok !== true) throw new Error('expected a plan');
+    expect(await plan.onComplete()).toEqual({ ok: true, facts: { kg: 0.4, kinds: { soot: 0.4 }, taken: [] } });
+    expect(h.sweepPlanFor({ actor: actor(), broom: true, brush: false })).toEqual({ ok: false, reason: 'no-brush' });
   });
 });

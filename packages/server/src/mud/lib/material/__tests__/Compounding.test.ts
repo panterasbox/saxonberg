@@ -155,16 +155,18 @@ describe('the product is the inputs, by mass', () => {
 });
 
 describe('⭐ the work is the matter\'s, never the word (B101)', () => {
-  it('raw rubber and sulfur are a stiff mass: kneaded — stirring is refused, naming the knead', async () => {
+  it('raw rubber and sulfur are a stiff mass: kneaded — the long, heavy work, whatever was typed', async () => {
     (StuffApi.findByTemplatePath<Material>(RAW) as unknown as Material).setTags(['elastomer']);
     const v = tub(STOCK_ROW, COMPOUND);
     await ContainmentApi.move(lumpOf(RAW, 0.97), v);
     await ContainmentApi.move(lumpOf(SULFUR, 0.03), v);
     expect(v.workVerb()).toBe('knead');
-    const stirred = await v.kneadPlanFor({ actor: v as unknown as Stuff, verb: 'stir' });
-    expect(stirred.ok).toBe(false);
-    if (!stirred.ok) expect(stirred.reason).toBe('wrong-work');
-    expect((await v.kneadPlanFor({ actor: v as unknown as Stuff, verb: 'knead' })).ok).toBe(true);
+    const plan = await v.kneadPlanFor({ actor: v as unknown as Stuff });
+    expect(plan.ok).toBe(true);
+    if (plan.ok) {
+      expect(plan.facts).toEqual({ kind: 'compound', verb: 'knead' });
+      expect(plan.durationMs).toBe(15 * 60 * 1000);
+    }
   });
 
   it('⭐ clay in a little water is kneaded; drowned past its liquid limit it is a slip, stirred', async () => {
@@ -196,12 +198,16 @@ describe('⭐ the work is the matter\'s, never the word (B101)', () => {
     expect(v.workVerb()).toBe('stir');
   });
 
-  it('a loose powder is stirred — kneading it is refused', async () => {
+  it('a loose powder is stirred — `knead` asks it, and the work is the few light minutes of a stir (W18)', async () => {
     const v = tub(STOCK_ROW, COMPOUND);
     await ContainmentApi.move(lumpOf(SULFUR, 1), v);
     expect(v.workVerb()).toBe('stir');
-    const kneaded = await v.kneadPlanFor({ actor: v as unknown as Stuff, verb: 'knead' });
-    expect(kneaded.ok).toBe(false);
+    const plan = await v.kneadPlanFor({ actor: v as unknown as Stuff });
+    expect(plan.ok).toBe(true);
+    if (plan.ok) {
+      expect(plan.facts).toEqual({ kind: 'compound', verb: 'stir' });
+      expect(plan.durationMs).toBe(2 * 60 * 1000);
+    }
   });
 });
 

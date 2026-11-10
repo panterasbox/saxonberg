@@ -1,18 +1,22 @@
 /**
  * Sweepable — ⭐ **a thing you sweep, and it says what comes up**
- * (controller-liquidity W7c, D13 rung 1): the protocol behind `sweep`.
+ * (controller-liquidity W7c, D13 rung 1; slimmed in W18): the protocol
+ * behind `sweep`.
  *
- * `sweep` was three acts decided by what the target turned out to be — a
- * floor swept into a heap, a grate raked of its ash, a flue brushed of its
- * soot. They are one act with three hosts: the thing is swept with what the
- * sweeper has to hand, and what comes up — and how long it takes — is the
- * thing's. A floor decides what a broom takes up (`FloorMixin.sweepInto` —
- * everything on an earth floor, only the debris on a scrubbed one); a fire
- * decides what is in its grate (`Burner.rakeGrate`); a flued fire takes the
- * brush up its chimney (`Flued.sweepChimney`) when the sweeper has one.
+ * Two hosts, one act, one result: a FLOOR swept with a broom (or bare
+ * hands) into a heap (`FloorMixin.sweepInto` — everything on an earth
+ * floor, only the debris on a scrubbed one), and a flued fire's CHIMNEY
+ * swept with a flue brush (`Flued.sweepChimney` — the soot comes down).
+ * Either way the sweeper takes something up off a surface: so many kg, of
+ * these kinds, and what of it is now in their hands. How long it takes is
+ * the thing's.
  *
- * **Implementers:** `FloorMixin`, `BurnerMixin`, `FluedMixin` (overriding
- * its fire's grate when a brush is to hand).
+ * ⚠ Raking a grate is NOT a sweep (owner, 2026-11-10): W7c had a third
+ * host here (`BurnerMixin`, its grate's ash) and a three-way union result;
+ * the grate is `rake`'s now (`Burner.rakePlan`), and a fire with no flue is
+ * not swept at all.
+ *
+ * **Implementers:** `FloorMixin`, `FluedMixin`.
  *
  * ⭐ Facts and a reason, never words: the `sweep` controller words every
  * member of {@link SweepRefusal}, {@link SweepBegin} and {@link SweepFacts}.
@@ -34,22 +38,24 @@ export interface SweepRequest {
 /** ⭐ Every reason a sweep is refused. */
 export type SweepRefusal =
   /** A floor that takes no soil (bare rock, water) — nothing a broom could take up. */
-  ActRefusal<'nothing-to-sweep'>;
+  | ActRefusal<'nothing-to-sweep'>
+  /** A chimney wants a flue brush — a broom does not go up a flue. */
+  | ActRefusal<'no-brush'>;
 
-/** What the begin words need. */
-export type SweepBegin =
-  | { kind: 'floor'; broom: boolean }
-  | { kind: 'grate' }
-  | { kind: 'flue' };
+/** What the begin words need: what the sweeper is sweeping with. */
+export interface SweepBegin {
+  tool: 'broom' | 'brush' | 'hands';
+}
 
-/** What a sweep came to. */
-export type SweepFacts =
-  /** The floor swept: the kinds taken up and the heap they went into (`null` — nothing worth it). */
-  | { kind: 'floor'; kinds: Record<string, number>; heap: Stuff | null }
-  /** The grate raked: the ash, in heaps (none — hardly any). */
-  | { kind: 'grate'; ash: readonly Stuff[] }
-  /** The flue swept: the soot that came down, and what of it was gathered. */
-  | { kind: 'flue'; sootKg: number; taken: readonly Stuff[] };
+/** What a sweep came to — the same shape for a floor and a flue. */
+export interface SweepFacts {
+  /** What came up, kg (`0` — nothing worth the name). */
+  kg: number;
+  /** What it was, by kind (`soot`, `grit`, `crumbs`, …), kg each. */
+  kinds: Record<string, number>;
+  /** What of it is now in the sweeper's hands — a heap, a lump of soot; empty when it fell where it fell. */
+  taken: readonly Stuff[];
+}
 
 /** A sweep plan. */
 export type SweepPlan = ActPlan<SweepBegin, SweepFacts, SweepRefusal>;

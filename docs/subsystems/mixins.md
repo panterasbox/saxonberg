@@ -187,6 +187,15 @@ craft protocols with a null-or-refusing default (`lib/craft/`): `DipBathMixin`
 ⚠ `FormingMixin` is NOT one — it carries authored state (`forms`,
 `formTemplates`) beside its `shapePlanFor`, so it is a fact about the
 instrument as well as a verb's protocol.
+⚠ **A protocol is one act over several hosts — not several acts behind one
+verb** (controller-liquidity W18, owner 2026-11-10). W7c's `AgitatedMixin`
+(`stir` over a build, a compound and a churn) and its three-host
+`SweepableMixin` (a floor, a grate, a flue) each answered a UNION result —
+the tell that the hosts were doing different things. `AgitatedMixin` is
+retired (`stir` → `ManualBuildMixin.stirPlan`, the compound → `knead`, the
+churn → the dairying pack's `churn`); `SweepableMixin` keeps two hosts with
+ONE result shape (a floor, a chimney), and the grate is `rake`'s
+(`Burner.rakePlan`). With one host, the act is a method on that host.
 
 **How it is presented** (D8b): the affordance resolver's `composition` is
 `{ name, kind, verbs? }[]` — a protocol carries the verbs whose views

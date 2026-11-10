@@ -14,7 +14,8 @@
  * one: a `pour` into a build vessel BANKS the matter as a recipe
  * contribution and drains the source, so cream poured into a build-vessel
  * churn would vanish. The churn is HAND-WORKED instead (the kernel's
- * `HandWorkedMixin`), which is what `stir churn` reaches.
+ * `HandWorkedMixin`), and `churn` — this pack's verb — works it
+ * (controller-liquidity W18: churning is its own act, not a `stir`).
  */
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
@@ -29,6 +30,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 /** What a worked charge of cream becomes — the churning schedule's input. */
 export const CHURNED_CREAM = '/trade/dairying/idea/material/churned-cream';
@@ -38,16 +40,25 @@ const COMES_ABOVE_K = 283;
 /** Above this (K) it comes greasy — butter, but poor. */
 const GREASY_ABOVE_K = 291;
 
-// ⭐ `stir churn` — the kitchen's stir view, which a BUILD vessel confers
-// through `ManualBuildMixin`. The churn is not a build (see the header); it
-// is HAND-WORKED, and `HandWorkedMixin` confers the view: an affordance is a
-// static on a class (a row's `commandContributions:` is dead silently).
-// Found by the drive: *"I don't understand 'churn'"* with a churn in the room.
+/** ⭐ The churn's verb — this pack's own view (controller-liquidity W18). */
+const CHURNING = ['trade/dairying/cmd/crafting/churn.yaml'];
+
 const ChurnBase = HandWorkedMixin(
   FractionatingMixin(ContaminableMixin(CraftedMixin(ThermalMixin(BulkableMixin(Good))))),
 );
 
 export default class Churn extends ChurnBase {
+  /**
+   * ⭐ `churn` — afforded by the churn itself: an affordance is a static on
+   * a class (a row's `commandContributions:` is dead silently). Found by
+   * the dairy drive: *"I don't understand 'churn'"* with a churn in the
+   * room — and now it is the word.
+   */
+  static commandContributions: CommandContributions = {
+    environment: CHURNING,
+    peers: CHURNING,
+  };
+
   /**
    * Work the charge. The churn reads ITS OWN temperature — which is the
    * cream's — and the cream either breaks or it does not. Nothing is
@@ -78,7 +89,7 @@ export default class Churn extends ChurnBase {
     return this.worked('came');
   }
 
-  /** What working the charge came to — facts; the `stir` controller words them. */
+  /** What working the charge came to — facts; the `churn` controller words them. */
   private worked(result: HandWorkFacts['result']): ActOutcome<HandWorkFacts> {
     return { ok: true, facts: { result } };
   }

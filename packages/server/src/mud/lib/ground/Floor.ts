@@ -478,14 +478,15 @@ export function FloorMixin<
         ok: true,
         durationMs: FLOOR_SWEEP_MS * (req.broom ? 1 : 3),
         effortW: FLOOR_SWEEP_W,
-        facts: { kind: 'floor', broom: req.broom },
+        facts: { tool: req.broom ? 'broom' : 'hands' },
         onComplete: async () => {
-          const { kinds, heap } = await this.sweepInto(req.actor);
+          const { kg, kinds, heap } = await this.sweepInto(req.actor);
           if (heap !== null && MixinApi.isAdvancing(req.actor)) {
             // The deed `analyze cleanliness` reads (B57).
             void req.actor.creditDeed({ discipline: 'domestic-services', difficulty: 'easy', outcome: 'success' });
           }
-          return { ok: true, facts: { kind: 'floor', kinds, heap } };
+          // Nothing worth a heap is nothing taken up (a heap is minted past 0.01 kg).
+          return { ok: true, facts: { kg: heap === null ? 0 : kg, kinds, taken: heap === null ? [] : [heap] } };
         },
       };
     }

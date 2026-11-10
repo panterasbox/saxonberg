@@ -103,7 +103,7 @@ test.describe('the paint build, in a browser', () => {
       // ── One pot makes the paint; the card names binder, pigment, color ──
       expect(await sayAwaiting(page, 'pour jar into me:i:kettle', /You pour|cannot|isn't|nothing/i)).toMatch(/You pour/);
       expect(await sayAwaiting(page, 'put paper in me:i:kettle', /You put|don't see|cannot/i)).toMatch(/You put a paper/);
-      await sayAwaiting(page, 'stir me:i:kettle', /stir|comes together/i, 120_000);
+      await sayAwaiting(page, 'knead me:i:kettle', /stir|comes together/i, 120_000);
       const pot = await lookFor(page, 'me:i:kettle', /The paint in it is/);
       expect(pot).toMatch(/yellow ochre in linseed oil/);
       await page.screenshot({ path: 'test-results/paint-walk/02-pot.png', fullPage: true });

@@ -497,7 +497,7 @@ suite('7–9 (afternoon). the pan has separated; skim off; churn the cream cool'
     await advance('2 hours');
     const t = await kelvinOf(k, 'churn');
     note(`cream in the churn at ${t} K`);
-    const churned = await doing(k, 'stir churn');
+    const churned = await doing(k, 'churn');
     expect(churned).toMatch(/come|butter|thump/i);
     expect(churned).not.toMatch(/will not come|greasy/i);
   });

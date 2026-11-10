@@ -310,7 +310,6 @@ import type { Readable } from '../lib/description/Readable';
 import type { Anchoring } from '../lib/expanse/Anchoring';
 import type { Launchable } from '../lib/location/Launchable';
 import type { Heated } from '../lib/fire/Heated';
-import type { Agitated } from '../lib/craft/Agitated';
 import type { Washable } from '../lib/cleanliness/Washable';
 import type { Sweepable } from '../lib/cleanliness/Sweepable';
 import type { LiftSource } from '../lib/pump/LiftSource';
@@ -2610,17 +2609,12 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Heated);
   }
 
-  /** ⭐ A vessel whose contents are worked by stirring — `stir` (`AgitatedMixin`, a protocol; W7c). */
-  public static isAgitated(obj: Stuff): obj is Stuff & Agitated {
-    return this.hasMixin(obj, Mixins.Agitated);
-  }
-
   /** ⭐ A thing (or a body's hands) washed at water — `wash` (`WashableMixin`, a protocol; W7c). */
   public static isWashable(obj: Stuff): obj is Stuff & Washable {
     return this.hasMixin(obj, Mixins.Washable);
   }
 
-  /** ⭐ A floor, a grate, a flue — `sweep` (`SweepableMixin`, a protocol; W7c). */
+  /** ⭐ A floor, a chimney — `sweep` (`SweepableMixin`, a protocol; W7c, slimmed W18). */
   public static isSweepable(obj: Stuff): obj is Stuff & Sweepable {
     return this.hasMixin(obj, Mixins.Sweepable);
   }

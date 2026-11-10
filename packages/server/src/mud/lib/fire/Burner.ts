@@ -49,7 +49,6 @@ import type { CommandContributions } from '../../api/command';
 import type { MarkupAugmenter } from '../../api/mml';
 import { Mml } from '../../api/mml';
 import { PumpableMixin } from '../pump/Pumpable';
-import { SweepableMixin, type Sweepable, type SweepPlan, type SweepRefusal, type SweepRequest } from '../cleanliness/Sweepable';
 
 /** Raking a grate, real ms. */
 const GRATE_RAKE_MS = 8000;
@@ -159,7 +158,13 @@ export type StokeOutcome =
  * worked by hand — but a furnace is NOT a pump: it implements the
  * protocol, never `PumpingMixin`'s capability.
  */
-export interface Burner extends Pumpable, Sweepable {
+/**
+ * A rake of the grate (`rake`, controller-liquidity W18): the ash taken
+ * out, in heaps in the raker's hands — empty when there was hardly any.
+ */
+export type RakePlan = ActPlan<undefined, { ash: readonly Stuff[] }>;
+
+export interface Burner extends Pumpable {
   /** Is the furnace currently alight? */
   isLit(): boolean;
   /** Fuel remaining, in **kilograms** (was a `%` of a Reserve). */
@@ -203,6 +208,8 @@ export interface Burner extends Pumpable, Sweepable {
    * there was hardly any.
    */
   rakeGrate(raker: Stuff): Promise<{ kg: number; ash: Stuff[] }>;
+  /** ⭐ `rake`: the grate raked, planned by the fire — {@link rakeGrate} at the end. */
+  rakePlan(raker: Stuff): RakePlan;
   /**
    * ⭐ Mint `kg` of ash carrying `alkaliKg` of alkali as heaps of
    * `fire.ash.heapKg` (potash D3, D4) — the grate's rake and a clamp's
@@ -452,21 +459,22 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
 ) {
   // ⭐ Composes the pump PROTOCOL (`PumpableMixin`): a furnace's bellows
   // answers `pump`, and a lamp's honest `no-bellows` is this override.
-  // ⭐ …and the sweep PROTOCOL (`SweepableMixin`, controller-liquidity W7c):
-  // `sweep hearth` rakes the grate — any fire's: a pit, a brazier, a hearth.
-  class BurnerMixin extends SweepableMixin(PumpableMixin(Base)) implements Burner {
+  // ⭐ `rake` is the fire's own act (controller-liquidity W18 — W7c had it
+  // as an arm of `sweep`): `rake hearth` takes the ash out of any fire's
+  // grate — a pit, a brazier, a hearth.
+  class BurnerMixin extends PumpableMixin(Base) implements Burner {
     static _mixinName = 'BurnerMixin';
 
-    /** @hook `sweep`: the grate raked of its ash, into the raker's hands. */
-    public override sweepPlanFor(req: SweepRequest): SweepPlan | SweepRefusal | null {
+    /** `rake`: the grate raked of its ash, into the raker's hands. */
+    public rakePlan(raker: Stuff): RakePlan {
       return {
         ok: true,
         durationMs: GRATE_RAKE_MS,
         effortW: GRATE_RAKE_W,
-        facts: { kind: 'grate' },
+        facts: undefined,
         onComplete: async () => {
-          const { ash } = await this.rakeGrate(req.actor);
-          return { ok: true, facts: { kind: 'grate', ash } };
+          const { ash } = await this.rakeGrate(raker);
+          return { ok: true, facts: { ash } };
         },
       };
     }
@@ -523,6 +531,10 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
         'platform/cmd/device/draught-set.yaml',
         'platform/cmd/device/draught.yaml',
         'platform/cmd/device/cover.yaml',
+        // ⭐ Raking the grate (controller-liquidity W18): a fire you stand
+        // at — a hearth, a pit, a brazier. Peers only: nobody rakes the
+        // lamp in their hand.
+        'platform/cmd/device/rake.yaml',
         'platform/cmd/device/pump.yaml',
         // ⭐ The fire is what affords heating — and with it boiling, which
         // is `heat`'s alias (a pot held at its boiling point is boiling;

@@ -1,20 +1,16 @@
 verbs: [stir]
 category: crafting
 controller: /platform/idea/cmd/crafting/StirController
-description: "Work a build in progress or a charge — the vessel decides how"
+description: "Work the drink you're building — the vessel decides how"
 help: |
   Work the drink you're building — `stir shaker`. The tool is what knows:
   a shaker shakes it and a mixing glass stirs it, and it records how the
   build was mixed and takes a moment. Name the vessel (`stir mixing glass`)
   or leave it to the one you're building in.
 
-  `stir churn` works a butter churn's cream: at the right warmth it
-  breaks into butter and buttermilk; too cold and it will not come.
-
-  ⭐ `stir` a mixing vessel — a batch pot, a glaze bucket — and what is in
-  it becomes one blend, its make-up the inputs' by mass. No recipe: a
-  little more sand is a leaner batch. `knead` is the same act for a
-  plastic mass.
+  ⭐ `stir` is the build's alone. A batch pot, a glaze bucket or a paint
+  pot is `knead`ed — what is in it decides whether that is a few minutes'
+  stirring or a quarter-hour's kneading — and a butter churn is `churn`ed.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -27,8 +23,7 @@ args:
     # ⭐ Bare `stir` works the build you are at — DECLARED, so the binder
     # resolves it (held first) instead of the controller walking for it
     # (`lint:controller-resolution`).
-    default: "reachable:[mixin.ManualBuildMixin],reachable:[mixin.CompoundingMixin]"
-    # ⭐ The vessel plans the working (`AgitatedMixin`, controller-liquidity
-    # W7c): a build records its method, a churn (dairy D5) works its charge,
-    # a compounding vessel blends what is in it.
-    requires: AgitatedMixin
+    default: "reachable:[mixin.ManualBuildMixin]"
+    # ⭐ One host (controller-liquidity W18): the build vessel plans the
+    # working (`ManualBuildMixin.stirPlan`) by the method the vessel names.
+    requires: ManualBuildMixin

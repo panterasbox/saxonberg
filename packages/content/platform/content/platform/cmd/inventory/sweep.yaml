@@ -1,7 +1,7 @@
 verbs: [sweep]
 category: inventory
 controller: /platform/idea/cmd/inventory/SweepController
-description: "Sweep a floor clean — or a hearth's grate, or its flue"
+description: "Sweep a floor clean — or, with a flue brush, a chimney"
 help: |
   Sweep the floor where you stand — `sweep`, or `sweep floor` — and what
   you take up goes into a heap: crumbs, grit, the old rushes and whatever
@@ -13,9 +13,9 @@ help: |
   (`wash floor --hard`) and swept only of what lies on them. `sweep` the byre
   and the dung goes to the field.
 
-  `sweep hearth` rakes the ash out of its grate — the lye-maker's ash. With
-  a flue brush, it sweeps the CHIMNEY: soot builds there from every smoky
-  fire, and a foul flue catches when the fire roars.
+  `sweep hearth with brush` sweeps the CHIMNEY: soot builds there from
+  every smoky fire, and a foul flue catches when the fire roars. The ash
+  in a fire's grate is not swept but raked — `rake hearth`.
 examples:
   - cmd: sweep
     note: Sweep the floor of this room into a heap
@@ -26,8 +26,8 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
-  # Optional: bare, the floor you stand on. A hearth names its grate (or,
-  # with a flue brush, its chimney).
+  # Optional: bare, the floor you stand on. A flued hearth names its
+  # chimney (a flue brush to hand); a grate is `rake`'s (W18).
   - name: target
     type: object
     required: false

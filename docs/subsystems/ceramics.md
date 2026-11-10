@@ -334,7 +334,8 @@ floors are the alluvial clay, unworked outdoors and beaten in the sheds
 **Glazes are mixing, not recipes (R1).** Each tub is a kernel `GlazeTub`
 (a `CompoundingVessel` that is also a coat BATH — B101) whose
 `productMaterial` is its glaze (`glaze/ash`, `glaze/lead`, the slip): put
-ash (or lead) in with a little clay and water, `stir tub`, and the slurry is
+ash (or lead) in with a little clay and water, `knead tub` (a slurry, so the
+work is a few minutes' stirring — controller-liquidity W18), and the slurry is
 that glaze by the vessel's name and its make-up by what was weighed. Then
 `dip` a pot in it. A bath with less left than the pot's skin takes coats
 nothing (`bath-too-low`).
@@ -459,7 +460,7 @@ The moulding half of the build lives in [mould.md](./mould.md); what is
 ceramics' here:
 
 - **Plaster** — `rock/gypsum` burns to `mineral/plaster` by the one heat
-  rule (~420 K for an hour; the foundry's core oven); `stir` it with water in
+  rule (~420 K for an hour; the foundry's core oven); `knead` it with water in
   the **plaster tub** and the slurry (`plaster-slurry`, a `kinetics:` set of 15
   minutes → `cast-plaster`) poured into the two-piece **plaster case**, a
   model pressed in before it sets, cures into a **plaster mould** with the

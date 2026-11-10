@@ -5,9 +5,12 @@
  * a tub or a pit.
  *
  * ⭐ The vessel answers facts and a reason; the WORDS are this controller's
- * (controllers-are-io D4) — {@link KneadController.kneadWords}, which
- * `stir` shares for a compounding vessel (the same act, named by the state
- * of the matter).
+ * (controllers-are-io D4) — {@link KneadController.kneadWords}.
+ *
+ * ⭐ A slurry, a powder or a liquid in a compounding vessel is `knead`ed
+ * too (controller-liquidity W18): the MATTER decides whether the work is a
+ * knead's quarter-hour or a stir's few minutes, and the words say which.
+ * `stir` asked the same plan until W18 gave it back to the drink build.
  *
  * Promoted from `trade-baking` (the `dry` precedent): a baker's dough, a
  * brickmaker's clay and a rubber works' compound are one act — working a
@@ -130,10 +133,6 @@ export default class KneadController<
           : Mml.compose`${Mml.thing(vessel)} is empty. Put what you mean to mix into it first.`;
       case 'empty-build':
         return Mml.compose`${Mml.thing(vessel)} is empty. Put flour and water in it first.`;
-      case 'wrong-work':
-        return r.facts.work === 'knead'
-          ? Mml.compose`What is in ${Mml.thing(vessel)} is a stiff mass — it will not stir. Knead it.`
-          : Mml.compose`There is nothing in ${Mml.thing(vessel)} to knead — it is loose or liquid. Stir it.`;
       case 'frozen':
         return Mml.compose`${Mml.thing(vessel)} is frozen: ${Mml.thing(r.facts.ice)} is set in it. Nothing treads until it thaws.`;
       case 'not-treadable':

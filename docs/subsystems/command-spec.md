@@ -214,8 +214,10 @@ binder's lookahead skips when the next token is the bath's preposition.
 The paint slate's reservation is honored: `dip` is the coat-from-bath
 primitive; `paint` will be the brush. `knead` (W0) is the same promotion:
 the VESSEL plans (`KneadVesselMixin.kneadPlanFor`, `lib/craft/KneadVessel.ts`
-— a trough, a compounding tub, a temper pit), and `stir` on a compounding
-vessel asks the same plan with its own word (`req.verb`).
+— a trough, a compounding tub, a temper pit, a glaze bucket); what is in
+the vessel decides whether the work is a knead's quarter-hour or a stir's
+few minutes, never the word (`stir` asked the same plan by `req.verb`
+until controller-liquidity W18 gave `stir` back to the drink build).
 
 ⭐⭐ **One vocabulary for every act protocol** (`lib/craft/ActPlan.ts`,
 ceramics review 2026-10-28). A planned act answers an `ActPlan` (duration —
@@ -223,7 +225,7 @@ ceramics review 2026-10-28). A planned act answers an `ActPlan` (duration —
 need, and an `onComplete` that may itself return a refusal), an
 `ActRefusal` (`{ ok: false, reason, facts? }`), or `null` = *nothing to
 say*, and the controller asks the next candidate or words a refusal from
-what is there. An instant act (`impress`, `turn`, the hand-worked `stir`)
+what is there. An instant act (`impress`, `turn`)
 answers an `ActOutcome` (`{ ok: true, facts }`) or an `ActRefusal`.
 ⭐ **No `Mml` on any of them** (controllers-are-io D4): each protocol
 declares a closed reason union, and the controller words it in an

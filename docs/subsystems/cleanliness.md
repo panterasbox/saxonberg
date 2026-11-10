@@ -97,9 +97,13 @@ co-wash; your own body, asked by you, answers with its hands
 (`HygieneMixin` overrides — bare `wash`). The water is the source's
 answer (`WaterDrawable.drawWaterFor`, its draw carrying heat and hardness —
 `wash`, `bathe`, `rinse` and `cool` share the one read). `sweep` asks
-`SweepableMixin.sweepPlanFor` (`lib/cleanliness/Sweepable.ts`): a `Floor`
-sweeps into its heap, a `Burner` rakes its grate, a `Flued` fire takes the
-brush up its chimney when one is to hand.
+`SweepableMixin.sweepPlanFor` (`lib/cleanliness/Sweepable.ts`) — two hosts,
+one act, one result (so many kg, of these kinds, and what of it is in the
+sweeper's hands): a `Floor` sweeps into its heap, a `Flued` fire takes the
+brush up its chimney (no brush — `no-brush`). ⭐ A grate is RAKED, not
+swept (controller-liquidity W18, owner 2026-11-10): `rake` asks the fire's
+own `Burner.rakePlan`, which ends in `rakeGrate`; W7c's third `Sweepable`
+host and its three-way union result are gone.
 
 `Soilable.washSite(spec, site)` is the chemistry (B8 — not `wash()`, which
 is the vessel service wash). A `WashSpec` is the water's heat and
@@ -227,7 +231,7 @@ hygienic one.
 - **The flue** (`FluedMixin`, on `Hearth` and `Oven`; a `Brazier` has
   none): soot by kg burnt × incompleteness; a foul flue under a roaring fire
   CATCHES (heat and smoke into the room). `sweep hearth with flue brush`
-  clears it; `sweep hearth` rakes the grate's ash.
+  clears it; `rake hearth` takes the grate's ash out (W18 — not a sweep).
 - **The grate** — a wood fire leaves `ashFraction` of what it burns; past
   `fire.ash.chokeStartShare` of the burner's capacity the ash **chokes the
   draught** (down to `fire.ash.chokedDraught`), and the fire says *the grate

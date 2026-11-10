@@ -42,10 +42,19 @@ import { PourTargetMixin, type PourAnswer, type PourRequest } from "../bulk/Pour
 import { Grade } from "./Grade";
 import type { Technique, TechniqueSpec } from "./Technique";
 import { HeatedMixin, type HeatTaken } from "../fire/Heated";
-import { AgitatedMixin, type AgitatePlan, type AgitateRefusal, type AgitateRequest } from "./Agitated";
+import type { ActPlan, ActRefusal } from "./ActPlan";
 
 /** How the build was worked — recorded by `stir` / `muddle`. */
 export type BuildMethod = Technique;
+
+/** ⭐ The one reason `stir` is refused: nothing banked yet. */
+export type StirRefusal = ActRefusal<"empty-build">;
+
+/**
+ * A stir plan (controller-liquidity W18): the build worked by the method
+ * the vessel names — the begin and done facts are that method.
+ */
+export type StirPlan = ActPlan<{ method: BuildMethod }, { method: BuildMethod }, StirRefusal>;
 
 /** One banked ingredient: its recipe category, measure, and input grade. */
 export interface BuildContribution {
@@ -145,6 +154,12 @@ export interface Builds {
   setBuildMethod(method: BuildMethod): void;
   /** How the build was worked, or null if not yet stirred/shaken. */
   getBuildMethod(): BuildMethod | null;
+  /**
+   * ⭐ `stir`: the build worked by the method the VESSEL names (a shaker
+   * shakes, a mixing glass stirs), at the vessel's pace, the method
+   * recorded at the end.
+   */
+  stirPlan(): StirPlan | StirRefusal;
   /** Summed measure of every contribution, in litres. */
   getBuildVolumeL(): number;
   /** Weakest-link grade across the banked contributions. */
@@ -204,10 +219,11 @@ function workingOf(vessel: Stuff): BuildMethod {
 }
 
 export function ManualBuildMixin<TBase extends NestingConstructor>(Base: TBase) {
-  // ⭐ A build is taken to the fire (`heat` — `HeatedMixin`) and worked by
-  // its method (`stir` — `AgitatedMixin`): both protocols, answered here
-  // (controller-liquidity W7c).
-  return class ManualBuildMixin extends AgitatedMixin(HeatedMixin(PourTargetMixin(Base))) implements Builds {
+  // ⭐ A build is taken to the fire (`heat` — `HeatedMixin`, a protocol) and
+  // worked by its method (`stir` — this vessel's own `stirPlan`; the
+  // `AgitatedMixin` protocol retired in controller-liquidity W18: `stir`
+  // has one host).
+  return class ManualBuildMixin extends HeatedMixin(PourTargetMixin(Base)) implements Builds {
     static _mixinName = "ManualBuildMixin";
 
     /** @hook `heat`: a build is worked in the heat, paced by the pot. */
@@ -235,11 +251,11 @@ export function ManualBuildMixin<TBase extends NestingConstructor>(Base: TBase) 
     }
 
     /**
-     * @hook ⭐ `stir`: the build is worked by the method the VESSEL names
-     * (a shaker shakes, a mixing glass stirs), at the vessel's pace, and the
+     * ⭐ `stir`: the build is worked by the method the VESSEL names (a
+     * shaker shakes, a mixing glass stirs), at the vessel's pace, and the
      * method is recorded on it.
      */
-    public override async agitatePlanFor(_req: AgitateRequest): Promise<AgitatePlan | AgitateRefusal | null> {
+    public stirPlan(): StirPlan | StirRefusal {
       const self = this as unknown as Stuff;
       if (this.isBuildEmpty()) return { ok: false, reason: "empty-build" };
       const method = workingOf(self);
@@ -247,10 +263,10 @@ export function ManualBuildMixin<TBase extends NestingConstructor>(Base: TBase) 
         ok: true,
         durationMs: pacedMs(self, STIR_MS),
         effortW: STIR_EFFORT_W,
-        facts: { kind: "build", method },
+        facts: { method },
         onComplete: () => {
           this.setBuildMethod(method);
-          return { ok: true, facts: { kind: "built", method } };
+          return { ok: true, facts: { method } };
         },
       };
     }

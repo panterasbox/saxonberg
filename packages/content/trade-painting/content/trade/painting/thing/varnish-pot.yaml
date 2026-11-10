@@ -1,4 +1,4 @@
-# The varnish pot (paint D17) — pour turpentine in, put rosin in, stir: it
+# The varnish pot (paint D17) — pour turpentine in, put rosin in, `knead` (stirred): it
 # comes together as varnish.
 class: /platform/thing/CompoundingVessel
 data:

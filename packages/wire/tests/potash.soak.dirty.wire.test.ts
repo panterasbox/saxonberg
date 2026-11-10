@@ -407,7 +407,7 @@ async function burnAndSweep(handle: string): Promise<{ swept: string; heaps: { l
   s = await goTo(handle, ASHERY);
   const before = await named(s, 'me:i', /wood ash/i);
   await say(s, 'get broom');
-  const swept = await act(s, 'sweep pit');
+  const swept = await act(s, 'rake pit');
   await say(s, 'drop broom');
   const after = await named(s, 'me:i', /wood ash/i);
   s.close();
@@ -440,7 +440,7 @@ suite('⭐ drive 1–4 — brash, the pit, and ash of a strength (AC 2, 3, 10)',
     y.close();
     await brashOf(ashMaker, 'beech', 2);
     const { swept, heaps } = await burnAndSweep(ashMaker);
-    expect(swept, `sweep pit: ${swept}`).toMatch(/rake/i);
+    expect(swept, `rake pit: ${swept}`).toMatch(/rake/i);
     const kg = heaps.reduce((a, h) => a + (h.mass?.value ?? 0), 0);
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ beech: ${heaps.length} heap(s), ${kg.toFixed(3)} kg of ash off two bundles of brash`);

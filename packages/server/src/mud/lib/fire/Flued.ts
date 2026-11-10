@@ -21,7 +21,7 @@
 import type { NestingConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Burner } from './Burner';
-import type { SweepPlan, SweepRefusal, SweepRequest } from '../cleanliness/Sweepable';
+import { SweepableMixin, type SweepPlan, type SweepRefusal, type SweepRequest } from '../cleanliness/Sweepable';
 
 /** Brushing a flue, real ms — rod by rod. */
 const FLUE_SWEEP_MS = 24000;
@@ -82,24 +82,27 @@ function flueAugmenter(text: string, host: Stuff): string {
 export function FluedMixin<TBase extends NestingConstructor<Stuff & Burner>>(
   Base: TBase,
 ) {
-  return class FluedMixin extends Base implements Flued {
+  // ⭐ A chimney is swept (`SweepableMixin`): with a flue brush, the soot
+  // comes down. A grate is raked, not swept — `rake`, the Burner's own
+  // (controller-liquidity W18).
+  return class FluedMixin extends SweepableMixin(Base) implements Flued {
     static _mixinName: string = 'FluedMixin';
 
     /**
-     * @hook `sweep` with a flue brush to hand sweeps the CHIMNEY (soot onto
-     * the hearthstone and the sweeper's hands); without one, the fire's
-     * grate is raked as any fire's is (controller-liquidity W7c).
+     * @hook `sweep` sweeps the CHIMNEY (soot onto the hearthstone and the
+     * sweeper's hands) — with a flue brush; a broom does not go up a flue.
      */
     public override sweepPlanFor(req: SweepRequest): SweepPlan | SweepRefusal | null {
-      if (!req.brush) return super.sweepPlanFor(req);
+      if (!req.brush) return { ok: false, reason: 'no-brush' };
       return {
         ok: true,
         durationMs: FLUE_SWEEP_MS,
         effortW: FLUE_SWEEP_W,
-        facts: { kind: 'flue' },
+        facts: { tool: 'brush' },
         onComplete: async () => {
           const { sootKg, taken } = await this.sweepChimney(req.actor);
-          return { ok: true, facts: { kind: 'flue', sootKg, taken } };
+          const kinds: Record<string, number> = sootKg > 0 ? { soot: sootKg } : {};
+          return { ok: true, facts: { kg: sootKg, kinds, taken } };
         },
       };
     }
