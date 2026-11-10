@@ -266,7 +266,17 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       // (boundary build), plus where the way leads — this push resolves it.
       const exits: WhereaboutsExit[] = MixinApi.isExitable(place)
         ? place.obviousExitsFor(viewer).map((exit) => {
-            const dest = exit.getDestination();
+            // ⚠ A deferred way (a berth, a holding's front door) has no
+            // destination until someone crosses it, and `getDestination`
+            // THREW for it — `map` on the bank died with *destination not
+            // materialized* (the boundary browser walk). Resolve as before,
+            // and fall back to what is standing.
+            let dest: Stuff | null;
+            try {
+              dest = exit.getDestination();
+            } catch {
+              dest = exit.peekDestination();
+            }
             return {
               ...exit.wayRecord(),
               ...(dest ? { destination: dest.getPresentation() } : {}),

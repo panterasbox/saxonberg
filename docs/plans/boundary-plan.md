@@ -731,3 +731,19 @@ see above (the reboot between runs).
 **B2 — each checkpoint seen red:** the state checks failed on real defects and on wrong wording
 across runs 1–6 (the dark *something*, the prompt, the agreement, the shut-not-locked `go out`);
 step 7 was red on a genuinely open door before it was made to assert agreement.
+
+**Browser walk — `e2e/tests/boundary-walk.spec.ts`, 2026-11-10: 3/3 green** (Chromium against a
+test-world server on 2014, the client on 5181 with `CLIENT_URL` pointed at it). The pump-house
+door reads *locked* in `look`'s exits line and the navigator's arm (*through the pump-house door
+(locked)*), `go pumphouse` refuses on the bolt, and both follow it open; the hut's `look west`
+answers with no prompt, `go west` is *not a way through*, and the navigator's west arm is disabled;
+Duncan Hall's doors by name and by way, opened and walked through.
+
+**What the walk found (fixed):** `map` on the bank CRASHED — *DeferredDestinationExit:
+destination not materialized* — because the whereabouts producer resolved every way and the
+berth way is deferred (pre-existing on master; it is the screen this build's `WayRecord` feeds).
+`Perceiver` now falls back to what is standing. **Walk-side lessons:** the room card's exit chips
+are hidden while the navigator is docked (it IS the exits view then), so the navigator is what a
+person reads; a walk server on a non-default client port needs `CLIENT_URL`, or the test login
+lands on the sign-in page.
+
