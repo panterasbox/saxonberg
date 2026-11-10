@@ -1808,6 +1808,26 @@ rebase cleanly.
   `trade-glass` (host methods; `Window.canGlaze`), `trade-diving`, `tpa`
   (Teleport's board controller is kernel W7a; the node's `ridePlanFor`
   here), `energy`.
+  > **W12: ✅ done** (`f971a8654`…`6237312c5`). `spud [with <bailer>]` sites
+  > (`Bailer.spudPlanFor` — title via `AccessApi.can` on the room, bank before
+  > mint; the controller gate is gone); `bore` swings (`Wellhead.swingPlan`);
+  > `line` over `Wellhead.linePlan`/`canLine` (C8; liner default `me:i:liner`,
+  > the rig takes `at` only — `with` collided). C27 `Pilot.sellWaterTo`; C13
+  > `Trap.layIn` + `Waters.waterIn`; C14 kernel `Window.canGlaze` + `Sheet.glazeInto`;
+  > `TakesFish` is wordless and the rod implements it; `Gather.crackPlan/
+  > reheatPlanAt`, `Sheet.flattenPlanAt`, `Fish.releaseInto`, `Boat.paddleBy`,
+  > `FastTravel.registerFor`, `LineAccess.severBy`, `LaneCatalogue.planJourney`.
+  > **Decisions (build, W12):** (a) `spud` takes no rig — the rig is raised by
+  > spudding; the bailer (its affordance) hosts the act, not a `Wellhead` static
+  > (no instance exists yet). (b) DEFERRED: `TravelNode.ride` stays prose — a
+  > kernel union of the TPA's reasons would put a pack network's words behind a
+  > kernel MR (lens 2); `PullOutcome` wordless (~85 sentences, 3 kernel hosts) →
+  > W14; `CourseController`'s heading parse → frame (it already steers through
+  > `Frame.planCourse`; not on the multi-act census) → W14; C60 stays deferred.
+  > Ice was already clean. Ceilings: multi-act −1, mutations −24, decisions −31,
+  > durations −7, functions −12, gates −1, duck −4, self-resolution −4.
+  > Recorded rows: `journey` now asks the vehicle's mode before the destination
+  > (refusal order only); drilling.dirty sites with `spud`.
 - **W13 — people and places:** `trade-medicine` (Transfuse → `Transfusable`
   is **not** minted: the vessel's payload decides saline vs blood inside
   `patient.receiveBlood`'s plan; Bleed per D9; Operate's hold abort linked
