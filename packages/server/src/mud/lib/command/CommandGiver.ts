@@ -1327,6 +1327,20 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             }
             continue; // fall through
           }
+          // ⭐ A word this view's subcommands do not know is a question for
+          // the verb's next SHAPE, when it has one (controller-liquidity
+          // W7a, build): `watch horizon` is `watch.yaml`'s subcommand and
+          // `watch shroud` is `watch-stream.yaml`'s shape, so `watch.yaml`
+          // not knowing `shroud` must not end the line. The LAST view's
+          // unknown word still refuses, naming the valid words — so a verb
+          // with one view is unchanged — and when every later view
+          // shape-fails too, the refusal lists every shape the verb has.
+          if (
+            built.error === 'unknown-subcommand' &&
+            affordance !== matches[matches.length - 1]
+          ) {
+            continue;
+          }
           if (firstRefused) return this._otherOffer(parsed, allMatches, firstRefused);
           // Bind / unknown-subcommand errors stop the chain. Emit on
           // the outer ctx — we never reached _executeOne for any
