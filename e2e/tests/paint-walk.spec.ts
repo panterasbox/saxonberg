@@ -8,7 +8,7 @@ import { openWorldAs, runCommand } from './helpers';
  * The wire tier (`packages/wire/tests/paint.dirty.wire.test.ts`) asserts the
  * ENVELOPE. This is a real Chromium against the real client: the forms a
  * person types parse at the binder (`mill flax`, `pour … into me:i:kettle`,
- * `knead`, `paint cottage with …`, `analyze condition cottage`, `write … on … with …`,
+ * `stir`, `paint cottage with …`, `analyze condition cottage`, `write … on … with …`,
  * `dip rags in pot`, `maintain cottage`), the card renders a pot of paint, a
  * building seen from its landing, a lettered board and a glued brush in
  * words, and the colorman's counter sells.
@@ -103,7 +103,7 @@ test.describe('the paint build, in a browser', () => {
       // ── One pot makes the paint; the card names binder, pigment, color ──
       expect(await sayAwaiting(page, 'pour jar into me:i:kettle', /You pour|cannot|isn't|nothing/i)).toMatch(/You pour/);
       expect(await sayAwaiting(page, 'put paper in me:i:kettle', /You put|don't see|cannot/i)).toMatch(/You put a paper/);
-      await sayAwaiting(page, 'knead me:i:kettle', /stir|comes together/i, 120_000);
+      await sayAwaiting(page, 'stir me:i:kettle', /stir|comes together/i, 120_000);
       const pot = await lookFor(page, 'me:i:kettle', /The paint in it is/);
       expect(pot).toMatch(/yellow ochre in linseed oil/);
       await page.screenshot({ path: 'test-results/paint-walk/02-pot.png', fullPage: true });

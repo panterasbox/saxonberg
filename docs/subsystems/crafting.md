@@ -1929,12 +1929,26 @@ the feed was dropped. It folds the source payload through
   with a union result; now each has its word and one host, no protocol:
   `stir` is the drink build's (`ManualBuildMixin.stirPlan` — the method
   the vessel names; a shaker's `shaken` is the same act, not a verb of its
-  own), a compounding vessel is `knead`ed (`CompoundingMixin.workVerb`
-  decides a knead's quarter-hour or a stir's few minutes — the B101 guard
-  is structural now, so the `wrong-work` refusal and `KneadRequest.verb`
-  are gone), and a churn is `churn`ed (the dairying pack's verb over
+  own), a compounding vessel is worked by the verb its MATTER wants, and
+  a churn is `churn`ed (the dairying pack's verb over
   `HandWorkedMixin.handWorkPlan`). The same ruling split `rake` (a grate,
   `Burner.rakePlan`) out of `sweep` — see cleanliness.md.
+- ⭐⭐ **`stir` what runs, `knead` what is stiff (owner 2026-11-10;
+  controller-liquidity W19).** A compound's state routes the verb, and
+  the predicate is the one that already chose a stir's two minutes or a
+  knead's quarter-hour — `Compounding.workVerb()`, read off the contents
+  (any `elastomer` → knead; `plastic` matter → knead unless the free water
+  in the belly is ≥ 0.4× its mass, a slip; no plastic matter → stir). No
+  new field. `knead` asks `kneadPlanFor`, `stir` asks `stirPlanFor`; each
+  refuses `wrong-work` (`facts.work` = the other verb), worded by its own
+  controller ("there is nothing to knead. Stir it." / "too stiff to stir —
+  knead it"). So a paint pot, a glaze or slip tub, a plaster tub, a varnish
+  pot and the glass batch pot are `stir`red; the rubber tub, the rubber
+  cement pot and the temper pit are `knead`ed. `stir` has two hosts asked
+  by METHOD, no protocol (a build answers `{method}`, a compound a
+  product): the controller asks a compounding vessel, then refuses a knead
+  vessel that compounds nothing (a dough trough — a dough is stiff), then
+  asks a build vessel.
 - ⭐ **A mould is not a recipe** — the cheese hoop, the ingot mould and the
   ice pan decide the shape of what sets in them with no verb, no recipe
   and no deed; a pour into a mould credits its discipline. See

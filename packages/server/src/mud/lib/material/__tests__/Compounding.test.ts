@@ -198,16 +198,39 @@ describe('⭐ the work is the matter\'s, never the word (B101)', () => {
     expect(v.workVerb()).toBe('stir');
   });
 
-  it('a loose powder is stirred — `knead` asks it, and the work is the few light minutes of a stir (W18)', async () => {
+  it('⭐ a loose powder is STIRRED — the few light minutes; `knead` is refused, naming `stir` (W19)', async () => {
     const v = tub(STOCK_ROW, COMPOUND);
     await ContainmentApi.move(lumpOf(SULFUR, 1), v);
     expect(v.workVerb()).toBe('stir');
-    const plan = await v.kneadPlanFor({ actor: v as unknown as Stuff });
+    const plan = await v.stirPlanFor({ actor: v as unknown as Stuff });
     expect(plan.ok).toBe(true);
     if (plan.ok) {
       expect(plan.facts).toEqual({ kind: 'compound', verb: 'stir' });
       expect(plan.durationMs).toBe(2 * 60 * 1000);
     }
+    expect(await v.kneadPlanFor({ actor: v as unknown as Stuff })).toEqual({
+      ok: false,
+      reason: 'wrong-work',
+      facts: { work: 'stir' },
+    });
+  });
+
+  it('⭐ a stiff mass is refused a stir, naming `knead` (W19)', async () => {
+    (StuffApi.findByTemplatePath<Material>(RAW) as unknown as Material).setTags(['elastomer']);
+    const v = tub(STOCK_ROW, COMPOUND);
+    await ContainmentApi.move(lumpOf(RAW, 1), v);
+    expect(await v.stirPlanFor({ actor: v as unknown as Stuff })).toEqual({
+      ok: false,
+      reason: 'wrong-work',
+      facts: { work: 'knead' },
+    });
+  });
+
+  it('an empty vessel is refused `empty` by either verb, before the matter is asked', async () => {
+    const v = tub(STOCK_ROW, COMPOUND);
+    const actor = v as unknown as Stuff;
+    expect(await v.stirPlanFor({ actor })).toMatchObject({ ok: false, reason: 'empty' });
+    expect(await v.kneadPlanFor({ actor })).toMatchObject({ ok: false, reason: 'empty' });
   });
 });
 

@@ -1,16 +1,27 @@
 verbs: [stir]
 category: crafting
 controller: /platform/idea/cmd/crafting/StirController
-description: "Work the drink you're building — the vessel decides how"
+description: "Stir something runny — the drink you're building, a paint, a glaze"
 help: |
-  Work the drink you're building — `stir shaker`. The tool is what knows:
-  a shaker shakes it and a mixing glass stirs it, and it records how the
-  build was mixed and takes a moment. Name the vessel (`stir mixing glass`)
-  or leave it to the one you're building in.
+  `stir` works what is RUNNY. ⭐ What is in the vessel decides:
 
-  ⭐ `stir` is the build's alone. A batch pot, a glaze bucket or a paint
-  pot is `knead`ed — what is in it decides whether that is a few minutes'
-  stirring or a quarter-hour's kneading — and a butter churn is `churn`ed.
+  - **the drink you're building** — `stir shaker`. The tool is what
+    knows: a shaker shakes it and a mixing glass stirs it, and it records
+    how the build was mixed and takes a moment.
+  - **a runny compound** — a paint pot, a glaze or slip tub, a plaster
+    tub, a glass batch pot: a few light minutes fold what is in it into
+    one blend, its make-up the inputs' by mass. Nothing is a recipe.
+
+  ⭐ Stiff stuff is kneaded, never stirred: a pot of clay, raw rubber or a
+  dough is refused — "too stiff to stir — knead it" (`knead`). And a
+  butter churn is `churn`ed.
+examples:
+  - cmd: stir
+    note: Work the drink you are building
+  - cmd: stir pot
+    note: Stir the paint pot's oil and pigment into one paint
+  - cmd: stir "ash tub"
+    note: Stir ash, clay and water into an ash glaze
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -23,7 +34,8 @@ args:
     # ⭐ Bare `stir` works the build you are at — DECLARED, so the binder
     # resolves it (held first) instead of the controller walking for it
     # (`lint:controller-resolution`).
-    default: "reachable:[mixin.ManualBuildMixin]"
-    # ⭐ One host (controller-liquidity W18): the build vessel plans the
-    # working (`ManualBuildMixin.stirPlan`) by the method the vessel names.
-    requires: ManualBuildMixin
+    default: "reachable:[mixin.ManualBuildMixin],reachable:[mixin.CompoundingMixin]"
+    # ⚠ `any`, narrowed by the controller (W19): two hosts asked by method
+    # — a build vessel (`ManualBuildMixin.stirPlan`) and a compounding one
+    # (`Compounding.stirPlanFor`, refused when what is in it is stiff).
+    requires: any

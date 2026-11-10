@@ -194,7 +194,8 @@ verb** (controller-liquidity W18, owner 2026-11-10). W7c's `AgitatedMixin`
 (`stir` over a build, a compound and a churn) and its three-host
 `SweepableMixin` (a floor, a grate, a flue) each answered a UNION result —
 the tell that the hosts were doing different things. `AgitatedMixin` is
-retired (`stir` → `ManualBuildMixin.stirPlan`, the compound → `knead`, the
+retired (`stir` → `ManualBuildMixin.stirPlan`, the compound → `knead` if
+stiff and `stir` if runny by its own `workVerb` — W19 — the
 churn → the dairying pack's `churn`); `SweepableMixin` keeps two hosts with
 ONE result shape (a floor, a chimney), and the grate is `rake`'s
 (`Burner.rakePlan`). With one host, the act is a method on that host.

@@ -4,7 +4,7 @@
 # paint, a limewash, a tempera); the thing painted decides how much it
 # takes and whether you can reach it (`Faced.coatPlanFor`): a good is its
 # skin; a BUILDING is its walls and roof, reached only where it meets the
-# weather (its landing). Making paint is `mill`/`pour`/`knead`; `dip` stays
+# weather (its landing). Making paint is `mill`/`pour`/`stir`; `dip` stays
 # the bath's.
 verbs: [paint]
 category: crafting

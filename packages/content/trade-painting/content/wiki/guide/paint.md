@@ -19,9 +19,9 @@ pigments are, mixed by how much of each went in.
 
 The colorman's stones in Wharfside do the grinding. `mill flax` presses
 oil into a jar; `mill clay` grinds an ochre earth to a paper of pigment.
-Pour the oil into a pot, put the pigment in, and `knead pot` — it is a
-liquid, so the work is a few minutes' stirring: the pot now holds a
-paint, and `look` at it says what it is made of and what color it is.
+Pour the oil into a pot, put the pigment in, and `stir pot` — a few
+minutes' stirring (a paint is runny; `knead` is for a stiff mass like
+clay or dough): the pot now holds a paint, and `look` at it says what it is made of and what color it is.
 Crack an egg into it and it binds as tempera instead. Some pigments
 hide what is under them better than others, and some fade in the sun.
 

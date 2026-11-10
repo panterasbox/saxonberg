@@ -7,10 +7,10 @@
  * ⭐ The vessel answers facts and a reason; the WORDS are this controller's
  * (controllers-are-io D4) — {@link KneadController.kneadWords}.
  *
- * ⭐ A slurry, a powder or a liquid in a compounding vessel is `knead`ed
- * too (controller-liquidity W18): the MATTER decides whether the work is a
- * knead's quarter-hour or a stir's few minutes, and the words say which.
- * `stir` asked the same plan until W18 gave it back to the drink build.
+ * ⭐ Stiff stuff only (owner, 2026-11-10; controller-liquidity W19): a
+ * runny compound — a paint, a glaze slurry, a wash — is `stir`red, and the
+ * vessel refuses a knead of it `wrong-work`, worded here pointing at
+ * `stir`. The MATTER decides (`Compounding.workVerb`), never the word.
  *
  * Promoted from `trade-baking` (the `dry` precedent): a baker's dough, a
  * brickmaker's clay and a rubber works' compound are one act — working a
@@ -71,9 +71,7 @@ export default class KneadController<
       beginSelf: (b) => {
         switch (b.kind) {
           case 'compound':
-            return b.verb === 'knead'
-              ? Mml.compose`You set your hands to what is in ${Mml.thing(vessel)}, folding it over and over on itself.`
-              : Mml.compose`You begin to ${b.verb} ${Mml.thing(vessel)}, working what is in it together.`;
+            return Mml.compose`You set your hands to what is in ${Mml.thing(vessel)}, folding it over and over on itself.`;
           case 'tread':
             return Mml.compose`You wet the clay in ${Mml.thing(vessel)} and get in, treading it and turning it over with the spade.`;
           case 'dough':
@@ -87,9 +85,7 @@ export default class KneadController<
       beginPeers: (b) => {
         switch (b.kind) {
           case 'compound':
-            return b.verb === 'knead'
-              ? Mml.compose`${Mml.actor(giver)} works at ${Mml.thing(vessel)} with both hands.`
-              : Mml.compose`${Mml.actor(giver)} ${b.verb}s ${Mml.thing(vessel)}.`;
+            return Mml.compose`${Mml.actor(giver)} works at ${Mml.thing(vessel)} with both hands.`;
           case 'tread':
             return Mml.compose`${Mml.actor(giver)} treads the clay in ${Mml.thing(vessel)}.`;
           case 'dough':
@@ -133,6 +129,9 @@ export default class KneadController<
           : Mml.compose`${Mml.thing(vessel)} is empty. Put what you mean to mix into it first.`;
       case 'empty-build':
         return Mml.compose`${Mml.thing(vessel)} is empty. Put flour and water in it first.`;
+      case 'wrong-work':
+        // A knead vessel only ever wants the other work when it is runny.
+        return Mml.compose`What is in ${Mml.thing(vessel)} is runny — there is nothing to knead. Stir it.`;
       case 'frozen':
         return Mml.compose`${Mml.thing(vessel)} is frozen: ${Mml.thing(r.facts.ice)} is set in it. Nothing treads until it thaws.`;
       case 'not-treadable':
@@ -140,7 +139,7 @@ export default class KneadController<
       case 'no-water':
         return Mml.compose`The clay in ${Mml.thing(vessel)} is dry. It wants water before it will come to the window.`;
       case 'came-empty':
-        return Mml.compose`You ${r.facts.verb} ${Mml.thing(vessel)}, but there is nothing in it.`;
+        return Mml.compose`You knead ${Mml.thing(vessel)}, but there is nothing in it.`;
       case 'already-compounded':
         return Mml.compose`It is already one even mass. There is nothing to work in.`;
       case 'mint-failed':

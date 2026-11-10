@@ -234,7 +234,7 @@ suite('paint — the blocking drive', () => {
     // oil going into the shop's pot and the ochre into the painter's).
     await say(s, 'pour jar into me:i:kettle');
     await say(s, 'put paper in me:i:kettle');
-    await act(s, 'knead me:i:kettle');
+    await act(s, 'stir me:i:kettle');
     const l = await say(s, 'look me:i:kettle');
     expect(l, l).toMatch(/linseed oil/i);
     expect(l, l).toMatch(/yellow ochre/i);

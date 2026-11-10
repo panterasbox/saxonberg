@@ -8,11 +8,10 @@
  * until the sulfur is milled through. The verb is dumb; the VESSEL plans.
  * A baker's trough plans a dough (its build buffer becomes matter); a
  * mixing vessel plans a blend by mass (`CompoundingMixin`, the kernel's
- * default, ceramics R1) — a slurry, a powder or a liquid included: how
- * long and how hard is the MATTER's (`workVerb`), and the words say
- * "stir" for it, but the act is `knead` (controller-liquidity W18 — `stir`
- * is the drink build's alone); a temper pit plans water to the window and
- * the tread.
+ * default, ceramics R1) — while what is in it is STIFF; a runny compound
+ * (a paint, a glaze slurry) is `stir`red instead, and `knead` is refused
+ * `wrong-work` pointing there (the matter's `workVerb`, controller-
+ * liquidity W19); a temper pit plans water to the window and the tread.
  *
  * The composer implements `kneadPlanFor` — an {@link ActPlan}, an
  * {@link ActRefusal}, or `null` when this vessel has nothing to say (the
@@ -35,10 +34,10 @@ export interface KneadRequest {
 }
 
 /**
- * What the matter in a vessel wants doing to it — kneaded (a long, heavy
- * job) or stirred (a few light minutes). ⭐ The MATTER's, never the word
- * (B101): both are asked by `knead`, and this decides the time, the effort
- * and the words.
+ * What the matter in a vessel wants doing to it — kneaded (stiff: a long,
+ * heavy job) or stirred (runny: a few light minutes). ⭐ The MATTER's,
+ * never the word (B101): the verb typed must be this one, or the act is
+ * refused `wrong-work` pointing at the other (W19).
  */
 export type KneadWork = 'knead' | 'stir';
 
@@ -48,6 +47,8 @@ export type KneadRefusal =
   | ActRefusal<'empty', { wants: 'anything' | 'clay' }>
   /** The trough's build is empty — flour and water first. */
   | ActRefusal<'empty-build'>
+  /** ⭐ The matter wants the other work (B101, W19): `work` names it. */
+  | ActRefusal<'wrong-work', { work: KneadWork }>
   /** Ice is set in the pit. */
   | ActRefusal<'frozen', { ice: Stuff }>
   /** Something in the pit will not tread into clay. */

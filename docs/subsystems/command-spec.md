@@ -214,10 +214,11 @@ binder's lookahead skips when the next token is the bath's preposition.
 The paint slate's reservation is honored: `dip` is the coat-from-bath
 primitive; `paint` will be the brush. `knead` (W0) is the same promotion:
 the VESSEL plans (`KneadVesselMixin.kneadPlanFor`, `lib/craft/KneadVessel.ts`
-— a trough, a compounding tub, a temper pit, a glaze bucket); what is in
-the vessel decides whether the work is a knead's quarter-hour or a stir's
-few minutes, never the word (`stir` asked the same plan by `req.verb`
-until controller-liquidity W18 gave `stir` back to the drink build).
+— a trough, a compounding tub, a temper pit); what is in the vessel
+decides whether it is kneaded (stiff) or `stir`red (runny), never the
+word: a compounding vessel answers both verbs (`kneadPlanFor` /
+`stirPlanFor`) and refuses the wrong one `wrong-work`, naming the right
+one (controller-liquidity W19).
 
 ⭐⭐ **One vocabulary for every act protocol** (`lib/craft/ActPlan.ts`,
 ceramics review 2026-10-28). A planned act answers an `ActPlan` (duration —

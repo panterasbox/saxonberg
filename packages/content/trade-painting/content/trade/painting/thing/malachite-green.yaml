@@ -1,5 +1,5 @@
 # A paper of malachite green — ground pigment, folded in paper the way a colorman sells
-# it. Put it in a paint pot with a binder and `knead`.
+# it. Put it in a paint pot with a binder and `stir`.
 class: /trade/painting/thing/Pigment
 data:
   shortDescription: paper of malachite green

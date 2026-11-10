@@ -11,7 +11,7 @@
  *
  * The drive in one sentence: *throw a mug as a novice and a jug as a
  * practiced potter and name it; trim, join and stamp at leather-hard and be
- * refused at bone-dry; bisque-fire with cones in the spy-hole; knead an ash
+ * refused at bone-dry; bisque-fire with cones in the spy-hole; stir an ash
  * glaze and a lead glaze, dip two crocks inside and glost-fire them; open a
  * kiln hot and ring the hidden crack; keep vinegar in the lead-glazed crock
  * a week; crack a cold glazed mug with boiling water; watch an unglazed jar
@@ -514,7 +514,7 @@ suite('⭐ 17 — bisque fire, with cones in the spy-hole', () => {
 });
 
 suite('⭐ 18 — glaze', () => {
-  it('knead an ash glaze and a lead glaze; dip two crocks inside; glost-fire them — glazed, marked and dated', async () => {
+  it('stir an ash glaze and a lead glaze; dip two crocks inside; glost-fire them — glazed, marked and dated', async () => {
     // Read and act by daylight: in the dark a query sees nothing, and a
     // named piece in your own hand cannot be bound (run 34's glaze, at night).
     await toHour(8, 14);
@@ -528,7 +528,7 @@ suite('⭐ 18 — glaze', () => {
     await say(potter, 'put ash in "ash tub"');
     await say(potter, 'put 1 clay in "ash tub"');
     await say(potter, 'pour pail into "ash tub"');
-    const ash = await act(potter, 'knead "ash tub"', '20 minutes');
+    const ash = await act(potter, 'stir "ash tub"', '20 minutes');
     expect(ash.said, `the ash glaze: ${ash.said}`).toMatch(/glaze|stir|blend/i);
     expect(await examine(potter, 'ash tub')).toMatch(/ash glaze|glaze/i);
     potter = await clayFor(potter, 1);
@@ -539,7 +539,7 @@ suite('⭐ 18 — glaze', () => {
     await say(potter, `put #${pig} in "lead tub"`);
     await say(potter, 'put 1 clay in "lead tub"');
     await say(potter, 'pour pail into "lead tub"');
-    await act(potter, 'knead "lead tub"', '20 minutes');
+    await act(potter, 'stir "lead tub"', '20 minutes');
     expect(await examine(potter, 'lead tub')).toMatch(/lead glaze|glaze/i);
     // Two bisque crocks, dipped inside.
     // One at a time: a plural `crocks` bound nothing in the kiln and fell

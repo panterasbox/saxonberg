@@ -137,8 +137,8 @@ coat's MATERIAL is its binder, so the binder sets and weathers it. There is
 no paint table: a second paint is a pigment row.
 
 **Pigments are items** (a paper of yellow ochre), because a pot's liquid is
-one slot: the binder is poured, the pigment put in, the pot stirred
-(`PaintPot.payloadFor`). An egg in the pot binds as tempera.
+one slot: the binder is poured, the pigment put in, the pot stirred (`stir pot`;
+a paint is runny, so `knead` refuses it — W19) (`PaintPot.payloadFor`). An egg in the pot binds as tempera.
 
 ## 4. `paint` — one verb, the target plans it
 

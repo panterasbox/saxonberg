@@ -25,7 +25,7 @@
  *   - the glasswork Discipline advances with practice.
  *
  * ⭐ Since ceramics W0 it also MIXES a batch live (sand, ash and lime in
- * the batch pot, `knead pot`) and puts it in the kiln — the batch is a
+ * the batch pot, `stir pot`) and puts it in the kiln — the batch is a
  * blend by mass and a firing by the one rule, neither a recipe.
  *
  * What it does NOT do is run the full batch→melt→blow→crack→cold→glaze
@@ -172,7 +172,7 @@ suite('⭐⭐ glass — the batch is MIXED in a pot, then FIRED (ceramics W0)', 
   // liquidus (1400 K), so a live firing at the clock's scale may leave the
   // charge still batch — the conversion arithmetic is pinned in
   // `trade-glass/src/__tests__/batch.test.ts`. What this proves is the
-  // five links: the pot is propped and afforded, `knead` reaches the
+  // five links: the pot is propped and afforded, `stir` reaches the
   // mixing arm and a charge of batch EXISTS after it, and it goes into the
   // kiln and `fire` holds it.
   let b: Session;
@@ -206,8 +206,8 @@ suite('⭐⭐ glass — the batch is MIXED in a pot, then FIRED (ceramics W0)', 
     }
   }, 300_000);
 
-  it('⭐⭐ `knead pot` makes ONE charge of batch out of them — by mass, no recipe', async () => {
-    const stirred = await b.cmd('knead pot');
+  it('⭐⭐ `stir pot` makes ONE charge of batch out of them — by mass, no recipe', async () => {
+    const stirred = await b.cmd('stir pot');
     expect(verbUnderstood(stirred)).toBe(true);
     expect(refusedFor(stirred)).toBeNull();
     await settle(b, stirred);
