@@ -19,13 +19,19 @@
  *
  * ⭐ Same capability as the bench, deliberately. They are two rungs of
  * one act and they differ in time, in fee and in ceiling — never in
- * access. `AssayController` tells them apart on `fixedInPlace`.
+ * access. Both speak {@link AssayingMixin}.
  */
 
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
+import { AssayingMixin } from '../../lib/Assaying';
 
-export default class AssayKit extends Tool {
+// ⭐ It speaks the assay protocol with the field defaults (no fee, no queue,
+// the slow furnace), and it takes the samples it reads (controller-liquidity W9).
+const AssayKitBase = AssayingMixin(ContainerMixin(Tool));
+
+export default class AssayKit extends AssayKitBase {
   /**
    * ⚠⚠ **`environment`, not `inventory` — the bucket means the OPPOSITE
    * of what it sounds like.**

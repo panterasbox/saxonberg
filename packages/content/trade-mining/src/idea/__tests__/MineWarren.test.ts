@@ -58,6 +58,8 @@ const GRANITE = '/stuff/idea/material/rock/granite';
 const MALACHITE = '/stuff/idea/material/mineral/malachite';
 const QUARTZ = '/stuff/idea/material/mineral/quartz';
 const EXTENT = '/world/fx-mine/claims/1';
+/** A holder, keyed by identity (controller-liquidity D11). */
+const IRIS = { kind: 'player' as const, templatePath: '/platform/agent/Avatar/iris' };
 
 let store: Map<string, Doc[]>;
 let idCounter = 0;
@@ -341,7 +343,7 @@ describe('the mine — reads on the space, mutation on the warren', () => {
     const { warren } = await mine();
     await warren.carve([0, 1, -1], 'face');
     await warren.carve([0, 2, -1], 'face');
-    warren.promote([0, 2, -1], 'iris');
+    warren.promote([0, 2, -1], IRIS);
 
     await (warren as unknown as { reconcile(): Promise<void> }).reconcile();
 
@@ -378,7 +380,7 @@ describe('the mine — reads on the space, mutation on the warren', () => {
   it('the ledger round-trips, and NO new collection appears', async () => {
     const { warren } = await mine();
     await warren.carve([0, 1, -1], 'face');
-    warren.promote([0, 1, -1], 'iris');
+    warren.promote([0, 1, -1], IRIS);
     const { PersistableApi } = await import('@saxonberg/server/mud/api/persistable');
     await PersistableApi.capture(warren);
 
@@ -393,13 +395,13 @@ describe('the mine — reads on the space, mutation on the warren', () => {
     const revived = makeStuffAtPath(() => new MineWarren(), WARREN);
     await PersistableApi.materialize(revived);
     expect(revived.tierOf([0, 1, -1])).toBe('held');
-    expect(revived.getCarved()['0,1,-1']!.holder).toBe('iris');
+    expect(revived.getCarved()['0,1,-1']!.holder).toEqual(IRIS);
   });
 
   it('a Held working survives a capture/materialize round trip WITH its contents', async () => {
     const { warren } = await mine();
     const room = (await warren.carve([0, 1, -1], 'face'))!;
-    warren.promote([0, 1, -1], 'iris');
+    warren.promote([0, 1, -1], IRIS);
     const lamp = await StuffApi.clone<Stuff>('/world/fx-mine/thing/glowcap-jar');
     ContainmentApi.move(lamp as unknown as Stuff & Containable, room as unknown as Stuff & Container);
 

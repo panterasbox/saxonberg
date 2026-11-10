@@ -117,8 +117,12 @@ export interface ClaimBlock {
 export interface CarvedEntry {
   cell: string;
   tier: WorkingTier;
-  /** Who cut it — a chattel/parcel owner ref, or null for the commons. */
-  holder: string | null;
+  /**
+   * Who cut it — a title-shaped owner keyed by IDENTITY (controller-liquidity
+   * D11: it was the lineage path every player shares), or null for the
+   * commons.
+   */
+  holder: ParcelOwner | null;
   /** Which type row it was cloned from, so a regenerate is identical. */
   type: WorkingType;
 }
@@ -188,11 +192,28 @@ export default class MineWarren extends MineWarrenBase {
    * reverts because you never secured it. Promoting is what admits a cell
    * to the holding, and it is the act that writes the record.
    */
-  public promote(cell: Cell, holder: string | null = null): boolean {
+  public promote(cell: Cell, holder: ParcelOwner | null = null): boolean {
     const entry = this.carved[keyOf(cell)];
     if (!entry) return false;
     entry.tier = 'held';
     if (holder !== null) entry.holder = holder;
+    return true;
+  }
+
+  /**
+   * ⭐ Secure a working: promote it to the holding AND keep it — held ground
+   * survives a restart WITH its contents, so its record is written now, at
+   * the moment it became worth keeping. The warren persists its own member
+   * (survey: `shore` used to do this from its completion).
+   */
+  public async secure(cell: Cell, holder: ParcelOwner): Promise<boolean> {
+    if (!this.promote(cell, holder)) return false;
+    const room = this.roomAt(cell);
+    if (room && MixinApi.isPersistable(room)) {
+      const key = this.memberKeyOf(cell);
+      await PersistableApi.restoreOrSeed(room, key);
+      await PersistableApi.capture(room, key);
+    }
     return true;
   }
 
@@ -281,7 +302,7 @@ export default class MineWarren extends MineWarrenBase {
   public async carve(
     cell: Cell,
     type: WorkingType,
-    holder: string | null = null,
+    holder: ParcelOwner | null = null,
   ): Promise<MemberStuff | null> {
     const key = keyOf(cell);
     if (key in this.carved) return this.roomAt(cell);
@@ -306,7 +327,7 @@ export default class MineWarren extends MineWarrenBase {
   private async _carveOne(
     cell: Cell,
     type: WorkingType,
-    holder: string | null,
+    holder: ParcelOwner | null,
   ): Promise<MemberStuff> {
     const key = this.memberKeyOf(cell);
     // ⭐ The base's keyed mint. The coordinate IS the
