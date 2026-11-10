@@ -194,6 +194,20 @@ export type ConditionBand =
   | 'dying'
   | 'dead';
 
+/**
+ * A looker's words for a body's band, in the third person — *"Ada looks
+ * hurt"*. The medical read (`assess`) and the combat read (`fight assess`)
+ * say a band the same way, so it is said once, here.
+ */
+export const CONDITION_BAND_PHRASE: Readonly<Record<ConditionBand, string>> = {
+  healthy: 'looks unhurt',
+  hurt: 'looks hurt',
+  serious: 'is seriously injured',
+  critical: 'is in critical condition',
+  dying: 'is dying',
+  dead: 'is dead',
+};
+
 /** A second derived state below death; recoverable. */
 export type Consciousness = 'conscious' | 'unconscious' | 'dead';
 

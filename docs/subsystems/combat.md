@@ -803,8 +803,9 @@ auto-harvested by `DisciplineCatalogue`): `melee-combat` (skill) and
 side's** own `ActSignature` (self-credit; difficulty from the target's
 poise band, outcome from the exchange result; `blades` additionally
 credited on an edge/point instrument) via `creditSignature`,
-fire-and-forget. The existing **`assess`** verb (`AssessController`) gains a
-mid-fight branch: assessing your opponent delegates to `actor.assessCombat` —
+fire-and-forget. **`fight assess <foe>`** (`FightAssessController`; it was
+`assess`'s mid-fight branch until controller-liquidity W7b — `assess` is the
+medical examination now, in a fight or out) delegates to `actor.assessCombat` —
 a **costed** read (it spends your next exchange, `queuedGambit = 'assess'`)
 that mints a combat signature and returns the opponent's banded tactical
 state (poise / flags / armed / condition). Bands, never numbers.
