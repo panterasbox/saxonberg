@@ -341,9 +341,15 @@ suite('documents: the path is the identity', () => {
       await s.cmd('practice magic-light hard success');
     }
     await hand(s, T.primer);
-    await act(s, 'study primer', '4 hours');
-    const cast = await act(s, 'cast glowlight');
-    expect(cast.said).toMatch(/You begin shaping Glowlight/i);
+    const studied = await act(s, 'study primer', '4 hours');
+    // ⚠ The study holds the hands until it is done (run 2: the first cast
+    // met "your hands and voice are otherwise committed"). Let it finish.
+    let cast = await act(s, 'cast glowlight');
+    for (let i = 0; i < 8 && /otherwise committed/i.test(cast.said); i++) {
+      await advanceWorldClock('30 minutes');
+      cast = await act(s, 'cast glowlight');
+    }
+    expect(cast.said, `study: ${studied.said}`).toMatch(/You begin shaping Glowlight/i);
   });
 
   it('15. competence lists the disciplines a character holds', async () => {

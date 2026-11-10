@@ -1485,6 +1485,28 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)* — the blocking drive's output, step by step, with
-each checkpoint's forced failure (B2), the `explain` result that decided D2,
-the first-studio-request timing (D8), and the lint ceilings as landed.
+`packages/wire/tests/documents-path-identity.dirty.wire.test.ts`, WIRE_PORT
+2019, each run against a freshly dropped `saxonberg_build4` (step 0). **Soak
+drive: none** (nothing here depends on the clock).
+
+| run | result | what it found |
+|---|---|---|
+| 1 (2026-11-10, before W5c) | 14/20 | ⭐ **`press` with no headline was refused by its own view** — the fallthrough form's `headline` was `required: true`, though the controller and the help both say bare `press` reads the ticker (a master defect; fixed: `required: false`). The drive's own staging: the lobby read **pitch dark** at night (steps 0, 4 → the drive moves to daylight first); deposits staged by dirt WORD where W3a keys them by PATH (step 2 → staged by path; the smell drive had the same stale staging, fixed too); a cast before the study ended (14). |
+| 2 (after W5c) | 19/20 | Step 14 only: the retry matched "occupied" where the refusal says "committed". |
+| 3 | 19/20 | Same; fixed. Step 14 re-run alone: ✅. Restart step 20 ✅ in runs 2 and 3. |
+
+⭐ **B2 — each checkpoint can fail:** run 1 turned steps 0, 2, 4, 14 and 18
+red for real reasons, and step 20 (the restart) was red with 18; each
+checkpoint asserts the sentence, never only "not refused".
+
+**Adapted from the requirements** (recorded in the file header and the MR):
+step 6 asserts arrival (the name suggestion rides a structured frame the
+harness does not surface); step 10 asserts the depth in words (by design the
+pump never names its ceiling — `pump.md`); step 11 asserts `operate` resolves
+the operation by name (no route stages a wound); step 12 asserts `fit` meets
+no missing joint (`fit` names no joint; the bill does) — ⚠ weak, a follow-up;
+step 19 is unit-proved (no route installs a pack into a running world:
+`PackLogic.flatkey` / `PackLogic.topics`).
+
+**Ceilings as landed:** boot entries 75 (85 at plan; −1 is master's), duck
+probes 533, `lint:family` 102 gates green.
