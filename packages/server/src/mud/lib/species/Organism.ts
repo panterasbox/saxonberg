@@ -51,6 +51,7 @@ import type Species from '../../platform/idea/species/Species';
 import type { LifeStage } from '../../platform/idea/species/Species';
 import type { MarkupAugmenter } from '../../api/mml';
 import { ConditionApi } from '../../api/condition';
+import { SpeciesApi } from '../../api/species';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
@@ -95,7 +96,33 @@ export interface Organism {
   getSex(): string | null;
   setSex(value: string | null): void;
   getValidSexSet(): readonly string[];
+  /**
+   * ⭐ May `by` slaughter this body, and if not, the most specific true
+   * reason (controller-liquidity W10): alive, identifiable, not somebody,
+   * not named, with something on it worth the killing. @hook — a keeper's
+   * herd adds its book (`not-keeper`).
+   */
+  slaughterRefusal(by: Stuff): Promise<SlaughterRefusal | null>;
+  /**
+   * ⭐ The kill: the slayer bloodied with this body's blood, then the ONE
+   * lethal call a fight makes (`ConditionApi.die`). @hook — a head out of
+   * a herd writes itself out of the book after it, and answers
+   * `recordFailed` (the record left as it was) when that write failed.
+   */
+  slaughter(by: Stuff): Promise<{ recordFailed: string | null }>;
 }
+
+/**
+ * Why a body will not be slaughtered — closed, most specific first; the
+ * `slaughter` verb words each. `not-keeper` is a herd's (ranching).
+ */
+export type SlaughterRefusal =
+  | 'not-an-animal'
+  | 'unidentified-species'
+  | 'sentient'
+  | 'named-animal'
+  | 'no-yield'
+  | 'not-keeper';
 
 /**
  * Map a species' `sexDeterminationSystem` to its valid sex value set.
@@ -393,6 +420,44 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.lifecycleState !== 'dead' && this.lifecycleState !== 'undead';
     }
     public isUndead(): boolean { return this.lifecycleState === 'undead'; }
+
+    /** @hook See {@link Organism.slaughterRefusal}. */
+    public async slaughterRefusal(_by: Stuff): Promise<SlaughterRefusal | null> {
+      const self = this as unknown as Stuff & Organism;
+      if (!this.isAlive()) return 'not-an-animal';
+      // ⚠⚠ Warm the species before asking it anything: `isSentient`
+      // answers FALSE for a species that is not resident, and the
+      // sentience refusal would fail OPEN.
+      await SpeciesApi.preloadAnatomy(self);
+      const species = this.getSpecies();
+      if (!species) return 'unidentified-species';
+      if (SpeciesApi.isSentient(self)) return 'sentient';
+      // ⭐⭐ A name arrives only when a player gives one to an animal that
+      // chose to follow them — so this always fires on the dog called Moss.
+      if (MixinApi.isNamed(self) && (self.getName() ?? '') !== '') return 'named-animal';
+      // ⭐ An empty yield is authored: nothing here worth the killing.
+      if (species.getButcheryYield().length === 0) return 'no-yield';
+      return null;
+    }
+
+    /** @hook See {@link Organism.slaughter}. */
+    public async slaughter(by: Stuff): Promise<{ recordFailed: string | null }> {
+      const self = this as unknown as Stuff;
+      // ⭐ (cleanliness D6) The kill bloodies the one who makes it — with
+      // this body's blood, read while it still has a body.
+      if (MixinApi.isHygienic(by)) {
+        by.soilFrom(
+          [
+            { kind: 'blood', amount: 0.4, where: 'hands' },
+            { kind: 'blood', amount: 0.3, where: 'apron' },
+            { kind: 'blood', amount: 0.2, where: 'floor' },
+          ],
+          self,
+        );
+      }
+      await ConditionApi.die(self as Stuff & Organism, 'slaughtered');
+      return { recordFailed: null };
+    }
     public isPowered(): boolean { return this.lifecycleState === 'powered'; }
 
     /** The host's biological sex, or `null` when it has none. */
