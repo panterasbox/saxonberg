@@ -1768,7 +1768,7 @@ reads and words as **protected methods**, never module functions
 subcommand, each with its row (`lint:controller-rows`). The verb-level
 `controller:` is whatever the bare form runs (`SoulListController`,
 `JobBrowseController`, `ChatPostController` for the fallthrough post,
-`WikiReadController` for bare `wiki <page>`, `TuneInController`); a noun
+`WikiReadController` for bare `wiki <page>`, `TuneListController`); a noun
 with no bare form (`pack`) names none. The gating a switch did once
 before dispatch moves onto the base and every subcommand calls it
 (`SoulControllerBase.refuseUnlessCommittee`); a `FromModule` gate that

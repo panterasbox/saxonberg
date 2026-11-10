@@ -1,0 +1,33 @@
+verbs: [tune]
+category: stream
+controller: /platform/idea/cmd/stream/TuneFollowController
+description: "Follow a livestream's chat in your console"
+help: |
+  `tune <target>` follows a stream's chat — a URL, a handle with
+  `--twitch` / `--youtube` / `--kick`, or a character. ⭐ One of three
+  shapes of `tune`, told apart by their words: bare `tune` (and its
+  subcommands) lists and manages, `tune <target>` follows, `tune <target>
+  <message>` posts.
+examples:
+  - cmd: tune shroud --twitch
+    note: Follow a Twitch channel's chat
+validators:
+  - /lib/command/validators/requiresAnimate
+options:
+  twitch:
+    type: boolean
+    field: twitch
+    description: "The target is a Twitch handle"
+  youtube:
+    type: boolean
+    field: youtube
+    description: "The target is a YouTube handle"
+  kick:
+    type: boolean
+    field: kick
+    description: "The target is a Kick channel slug"
+args:
+  # ⭐ One word: a second is `tune-post.yaml`'s message.
+  - name: target
+    type: string
+    required: true

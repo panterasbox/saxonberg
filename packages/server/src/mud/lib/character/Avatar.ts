@@ -336,6 +336,10 @@ export default abstract class Avatar extends AvatarBase {
       // `playerId`, which nothing without one has.
       "platform/cmd/shell/recall.yaml",
       "platform/cmd/stream/tune.yaml",
+      // ⭐ `tune <target>` and `tune <target> <message>` — two more shapes,
+      // AFTER `tune.yaml` so its subcommand words are tried first (W7a).
+      "platform/cmd/stream/tune-follow.yaml",
+      "platform/cmd/stream/tune-post.yaml",
       // ⭐ `fit`'s RAISE arm builds a thing made of parts, and its hand rung
       // (a wedge, a friction fit) has no instrument — so it is the
       // person's. Afforded by the parts it was not: a

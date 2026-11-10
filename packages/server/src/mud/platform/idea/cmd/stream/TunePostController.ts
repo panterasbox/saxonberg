@@ -1,51 +1,17 @@
 /**
- * TuneInController — the bare form (`fallthrough: true`): `tune <target>` follows a stream's chat, `tune <target> <message>` posts to it (Twitch), and bare `tune` lists (over {@link TuneControllerBase}).
+ * TunePostController — `tune <target> <message>`: post to a followed stream's chat (Twitch) (over {@link TuneControllerBase}).
+ *
+ * One of three shapes of `tune`; the message is the greedy tail, so this
+ * shape needs two words where `tune-follow.yaml` takes one.
  */
 
 import type { CommandContext } from '../../../../api/command';
-import { Mml } from '../../../../api/mml';
 import { StreamApi } from '../../../../api/stream';
-import { PlayerApi } from '../../../../api/player';
 import { TuneControllerBase, type TuneModel } from './TuneControllerBase';
 
-export default class TuneInController extends TuneControllerBase {
+export default class TunePostController extends TuneControllerBase {
   async execute(model: TuneModel, context: CommandContext): Promise<void> {
-    const target = (model.target ?? '').trim();
-    if (!target) return this.listTuned(context);
-    const message = (model.message ?? '').trim();
-    if (message) return this.executePost(model, context, message);
-    return this.executeTuneIn(model, context);
-  }
-
-  private async executeTuneIn(
-    model: TuneModel,
-    context: CommandContext,
-  ): Promise<void> {
-    const actor = context.commandGiver;
-    if (!PlayerApi.isAvatarStuff(actor)) {
-      return this.fail(context, 'Only players tune in.', 'avatar-required');
-    }
-    const parsed = this.parseTarget(model);
-    if (parsed.form === 'reject') return this.rejectParse(context, parsed);
-
-    const resolved = await StreamApi.resolveTarget(parsed);
-    if (!resolved.ok) return this.rejectResolve(context, parsed, resolved.reason);
-
-    const res = await StreamApi.tune(actor, resolved.target);
-    await this.publishTuned(actor);
-    this.send(
-      context,
-      Mml.compose`\nFollowing ${res.ok ? res.service : ''} #${
-        res.ok ? res.handle : resolved.target.handle
-      }.\n`,
-    );
-  }
-
-  private async executePost(
-    model: TuneModel,
-    context: CommandContext,
-    body: string,
-  ): Promise<void> {
+    const body = (model.message ?? '').trim();
     const speaker = context.commandGiver;
     const parsed = this.parseTarget(model);
     if (parsed.form === 'reject') return this.rejectParse(context, parsed);
