@@ -132,20 +132,14 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * The bolt. Backing storage; access via `isLocked()`/`setLocked()`.
      *
-     * ⭐⭐ Initialized from {@link boltedByDefault} rather than from a
-     * literal, and the reason is a security regression this would
-     * otherwise have shipped: the keyed-door family
-     * (`KeyedDoorExit`/`FrontDoorExit`/`DormDoor`) has been
-     * *permanently* locked for its whole life, so composing a mixin
-     * whose bolt defaulted to `false` would have thrown every dorm room
-     * and every holding in the realm open to anybody who walked past.
-     *
-     * ⚠ It must be a FIELD DEFAULT and not a `postRegister` write: the
-     * Hydrator reflects a persisted `locked` in after construction, so
-     * a default is overridden by what the player last did while a
+     * ⭐ Unbolted by default — a row says `locked: true` when it means it
+     * (the keyed-door rows do; since the boundary build a keyed way is a
+     * plain way with a bolted door hung in it, so no class needs a bolted
+     * default). ⚠ A field default, never a `postRegister` write: the
+     * Hydrator reflects a persisted `locked` in after construction, so a
      * lifecycle write would re-bolt the door on every boot.
      */
-    private _locked: boolean = this.boltedByDefault();
+    private _locked: boolean = false;
 
     /**
      * The lock's identity. ⚠ Empty by default, and an empty keyway opens
@@ -156,20 +150,6 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** The lock technology a key must match. */
     private _lockTechnology: LockType = 'pin-tumbler';
-
-    /**
-     * Whether this kind of thing starts out bolted.
-     *
-     * ⭐ A plain `Door` does not — an authored row says `locked: true`
-     * when it means it. A door whose whole existence is a lock (the
-     * keyed-exit family) does. **Override** — read once, at
-     * construction, before any persisted value is hydrated over it.
-     *
-     * @hook
-     */
-    protected boltedByDefault(): boolean {
-      return false;
-    }
 
     /** Predicate getter — is the bolt thrown? */
     isLocked(): boolean {

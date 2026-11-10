@@ -2,6 +2,7 @@
 # (shut), it passes a body, sound and smell and a little light; pulled back
 # (open), it passes everything.
 class: /platform/thing/Boundary
+unreachable: parent
 data:
   _materialPath: /stuff/idea/material/textile/wool
   mass: 4

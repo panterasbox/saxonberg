@@ -2,6 +2,7 @@
 # (owner's call, 2026-11-09). It passes everything but a body; a grating
 # with a hinge and a bolt is a door row instead.
 class: /platform/thing/Boundary
+unreachable: parent
 data:
   _materialPath: /stuff/idea/material/alloy/cast-iron
   mass: 30

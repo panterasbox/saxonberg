@@ -17,10 +17,9 @@
  *    that keep a record are its `dependentPersistables`, so capturing the
  *    warren captures them) / `teardown` / `revert`;
  *  - **the subclass** — what the key MEANS (a parcel extent, a ship's
- *    serial), who is told when the population changes (`reconcile`), what
- *    a copied way needs from the copy (`fitExit` — a house hands its
- *    keyed doors their keyway), and the address a woken room is stamped
- *    with (`addressFor`). A room that must finish itself against its
+ *    serial), who is told when the population changes (`reconcile`), and
+ *    the address a woken room is stamped with (`addressFor`); a house
+ *    hangs its keyed doors itself at wake (the boundary build). A room that must finish itself against its
  *    warren does so in its own `WarrenMember.onWarrenWake` — the ONE wake
  *    hook.
  *
@@ -443,20 +442,8 @@ export abstract class FloorplanWarren extends FloorplanBase {
           wheelPassable: way.wheelPassable,
           edgeMinutes: way.edgeMinutes,
         },
-        (exit) => this.fitExit(exit),
       );
     }
-  }
-
-  /**
-   * A copied way inside the copy, before it is bound — what it needs from
-   * the copy it belongs to. A house hands its keyed doors the holding (the
-   * keyway is the parcel's); an unfitted keyed door opens for nobody.
-   *
-   * @hook Default: nothing.
-   */
-  protected fitExit(_exit: Exit): void {
-    /* nothing to fit */
   }
 
   /** The live room for a leaf, or null. */
