@@ -23,15 +23,6 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
-  # ⚠⚠ **ARG ORDER: the positional `hole` comes FIRST, and that is a
-  # boot-fatal rule rather than a style.** Every prepositional object arg
-  # below carries `greedy: true` (`lint:reachability` arm G — a
-  # prepositional object arg that is not greedy takes ONE token, so
-  # `at the brick oven` is a shape error and `command-spec.md` says they
-  # all want greedy). But *a greedy arg must be last, or be followed only
-  # by prepositional args* — so a greedy `rig` standing before the
-  # positional `hole` would fail `CommandApi.preloadAll` and take the
-  # whole server down. Moving `hole` to the front satisfies both.
   - name: hole
     type: object
     required: false
@@ -42,7 +33,9 @@ args:
     prepositionRequired: true
     type: object
     required: false
-    prepositions: [at, with, using]
+    # ⚠ `at` only: `with`/`using` name the liner (they collided, so
+    # `line with liner` bound the rig's slot — controller-liquidity W12).
+    prepositions: [at]
     default: "reachable:[capability.derrick]"
     scope: ["here", "peers", "person"]
     requires: [ToolMixin]
@@ -51,6 +44,8 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    default: "me:i"
+    # ⚠ The liner by name, never "the first thing in your pack" — the hole
+    # destroyed whatever bound (C8). `canLine` refuses anything else.
+    default: "me:i:liner"
     scope: ["inventory", "reachable"]
     requires: TangibleMixin

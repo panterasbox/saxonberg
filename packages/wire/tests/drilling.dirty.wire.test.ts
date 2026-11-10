@@ -542,16 +542,16 @@ suite('6. the rig goes up, and `bore` is afforded by what is in your hands', () 
     // refusal is the one `stake` exists to lift.
     //
     // ⚠ Not the spring any more (the pump build): the spring hollow now
-    // holds an OLD BRINE BORE somebody sank and walked away from, and
-    // `bore` at a hole is a SWING — deliberately not title-gated, because
-    // whoever stands at the beam may turn it (a hired hand holds no
+    // holds an OLD BRINE BORE somebody sank and walked away from. Siting
+    // is `spud` (controller-liquidity W12 split it from `bore`, the swing,
+    // which is deliberately not title-gated — a hired hand holds no
     // title). So "ground nothing stands on" moved one room back.
     const plainHand = await Session.open(uniqueHandle('trespasser'), {
       startLocation: PROVISIONING,
     });
     try {
       await walk(plainHand, TO_THE_SPRING.slice(0, 3));
-      const tried = await say(plainHand, 'bore');
+      const tried = await say(plainHand, 'spud');
       // ⚠ Either refusal proves the gate: with no bailer in hand the
       // verb is not afforded at all, which is itself the honest answer.
       // ⚠ Two refusals both prove the gate, and which one you get
@@ -570,7 +570,7 @@ suite('6. the rig goes up, and `bore` is afforded by what is in your hands', () 
     }
   });
 
-  it('⭐⭐ at the staked flat, `bore` raises a derrick and sites a wellhead', async () => {
+  it('⭐⭐ at the staked flat, `spud` raises a derrick and sites a wellhead', async () => {
     // ⚠⚠ **This walk starts from the claims office and is this
     // checkpoint's own.** It used to rely on a walk appended to the
     // previous one — and when that checkpoint failed, the trailing walk
@@ -579,7 +579,7 @@ suite('6. the rig goes up, and `bore` is afforded by what is in your hands', () 
     // what it was testing. ⭐ A checkpoint that inherits its position
     // inherits every earlier failure.
     await walk(k, ['north', 'east', 'southeast']);
-    const sited = await say(k, 'bore');
+    const sited = await say(k, 'spud');
     expect(
       refusedFor(sited),
       `siting must not refuse on staked ground — the rig said: ${JSON.stringify(sited.notes)}`,
@@ -593,7 +593,7 @@ suite('6. the rig goes up, and `bore` is afforded by what is in your hands', () 
     expect(here).toMatch(/wellhead|collar/i);
   });
 
-  it('⭐ a second `bore` is a SWING, not a second rig', async () => {
+  it('⭐ `bore` at the sited hole is a SWING, not a second rig', async () => {
     // ⚠⚠ **A rest first, and it is the design working rather than a
     // nuisance.** A swing costs real endurance, and after a
     // fifteen-step walk out of the city plus the siting the body is
@@ -630,7 +630,7 @@ suite('6. the rig goes up, and `bore` is afforded by what is in your hands', () 
     ).toBeNull();
     await settle(k, swing);
     const here = await read(k, 'look');
-    // One rig, not two: the fork is which of the two acts the world is in.
+    // One rig, not two.
     expect((here.match(/derrick/gi) ?? []).length).toBeLessThan(2);
   });
 });

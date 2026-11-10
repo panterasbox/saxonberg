@@ -1,0 +1,36 @@
+verbs: [spud]
+category: drilling
+controller: /trade/drilling/idea/cmd/drilling/SpudController
+description: "Site a hole on your own ground and raise a rig over it"
+help: |
+  `spud` starts a hole: the rig goes up over the ground you stand on, an
+  outfit is opened to pay for it, and from that moment the hole is
+  capital you cannot pick up and carry somewhere better. It is the
+  driller's own word for the first blow of a new hole.
+
+  ⚠ The ground has to be yours — `stake` it at the claims counter
+  first — and you need a bank account, because a crew is paid from
+  somewhere and a hole is nothing but wages.
+
+  ⭐ This is the one act in the trade that is the OWNER's skill:
+  choosing this ground on what the structure read told you. Everything
+  after it is the beam's — `bore` — and whoever turns it.
+
+  A bailer in hand is what you start a hole with; the rig is raised by
+  the act, not carried to it.
+examples:
+  - cmd: spud
+    note: Site a rig on ground you have staked
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: bailer
+    prepositionRequired: true
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "me:i:[capability.bailing],reachable:[capability.bailing]"
+    scope: ["inventory", "here", "peers", "person"]
+    requires: [ToolMixin]

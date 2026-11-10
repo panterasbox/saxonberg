@@ -514,3 +514,31 @@ describe('⭐ `bail` — the platform\'s bucket down the hole (harbors review 1:
     expect(String(said)).toMatch(/broken rock .* 25 m/);
   });
 });
+
+describe('⭐ the acts at the hole (controller-liquidity W12): the hole plans, the verb words', () => {
+  it('⭐ `canLine` takes a length of well liner and nothing else (C8)', () => {
+    const w = hole([SALT]);
+    expect(w.canLine(null)?.reason).toBe('no-liner');
+    const pail = makeStuff(() => new Good());
+    expect(w.canLine(pail as never)?.reason).toBe('not-a-liner');
+    const tube = makeStuffAtPath(() => new Good(), '/trade/drilling/thing/liner');
+    expect(w.canLine(tube as never)).toBeNull();
+  });
+
+  it('a hole lined to its depth refuses the tube before asking what it is', async () => {
+    const w = hole([SALT]);
+    const hand = makeStuff(() => new Good());
+    const out = await w.linePlan(hand as never, null);
+    expect(out.ok).toBe(false);
+    expect((out as { reason: string }).reason).toBe('lined-to-depth');
+  });
+
+  it('⭐ a bit swimming in standing water is the hole\'s refusal, not the verb\'s', async () => {
+    const w = hole([SALT]);
+    w.setDepthM(25);
+    (w as unknown as { sumpL: number }).sumpL = 30;
+    const hand = makeStuff(() => new Good());
+    const out = await w.swingPlan(hand as never);
+    expect(out.ok).toBe(false);
+  });
+});

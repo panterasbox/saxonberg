@@ -1,9 +1,10 @@
 /**
  * DrillingActController — the part every act at a derrick shares.
  *
- * ⭐ Three questions and nothing else: *which hole am I standing at*,
- * *is the ground mine to work*, and *has the rig caught up with the
- * clock*. Everything about hands, endurance, engagements and refusals is
+ * ⭐ Two questions and nothing else: *which hole am I standing at* and
+ * *is there a rig over it*. Whether the ground is the actor's to site a
+ * hole in is the bailer's question now (`Bailer.spudPlanFor`), and
+ * whether the rig has caught up with the clock is the hole's. Everything about hands, endurance, engagements and refusals is
  * `EngagedActController`'s, which is the third-consumer promotion this
  * trade is the fourth consumer of.
  *
@@ -26,13 +27,10 @@
  */
 
 import { EngagedActController, ACT_TOPIC } from '@saxonberg/server/mud/lib/command/EngagedActController';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import Wellhead from '../../../thing/Wellhead';
 
 export { ACT_TOPIC };
@@ -52,12 +50,6 @@ export interface DrillingModel extends CommandModel {
 export abstract class DrillingActController<
   M extends DrillingModel = DrillingModel,
 > extends EngagedActController<M> {
-  /** The room the actor is standing in, or `null`. */
-  protected placeOf(giver: Stuff): (Stuff & Container) | null {
-    const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    return room && MixinApi.isContainer(room) ? (room as Stuff & Container) : null;
-  }
-
   /**
    * ⭐⭐ **The derrick, read off the MODEL** — bound by the view, never
    * hunted for in the room.
@@ -80,42 +72,14 @@ export abstract class DrillingActController<
    * "reachable:[mixin.GroundPointMixin]"`, which is the only thing in
    * the realm that composes it.
    *
-   * ⭐ Absent is MEANINGFUL and not a failure: no hole bound means there
-   * is no hole here, which is the fork `bore` takes to site one. A
-   * required arg would have made siting unreachable.
-   *
-   * ⚠ The rig is reconciled on the way out, which is what makes *weeks
-   * pass while you are away* true without a global sweep: the clock
-   * catches most of it and an act catches the rest.
+   * ⭐ Absent is a refusal with the remedy in it — `spud` sites a hole
+   * (controller-liquidity W12; it was `bore`'s other act until then).
+   * The rig is reconciled by the hole's own act plans, which is what
+   * makes *weeks pass while you are away* true without a global sweep.
    */
-  protected async wellheadOf(model: DrillingModel): Promise<Wellhead | null> {
+  protected wellheadOf(model: DrillingModel): Wellhead | null {
     const bound = (model.hole?.stuff ?? null) as Stuff | null;
-    const hole = bound instanceof Wellhead ? bound : null;
-    if (hole !== null) await hole.reconcileRig();
-    return hole;
-  }
-
-  /**
-   * ⚠ Is this ground the actor's to sink a hole in?
-   *
-   * Title, through `AccessApi.can` — which resolves the parcel registry
-   * by longest prefix, so an unstaked site answers `null` and is DENIED.
-   * That is the whole of why `stake` comes first in the drive: a bore is
-   * capital sunk into ground, and sinking it into somebody else's is the
-   * one thing the claims layer exists to stop.
-   *
-   * ⭐ **Labour is not title-gated and this is not labour-gating** — a
-   * hired hand swings on their employer's claim all day. What is gated
-   * is **siting**: committing a hole to a piece of ground. The farming
-   * rule, applied to the act that is actually a property act.
-   */
-  protected async maySite(giver: Stuff, place: Stuff & Container): Promise<boolean> {
-    // ⚠ The resource is the ROOM, not its path: `can` walks the zone
-    // tree to the covering title and dispatches on the OWNER's kind, so
-    // a staked site resolves to the player who staked it and an unstaked
-    // one resolves to the town's committee — which the player is not in,
-    // so it is denied, which is the refusal `stake` exists to lift.
-    return (await AccessApi.can(giver, 'bore', place)) === true;
+    return bound instanceof Wellhead ? bound : null;
   }
 
   /** The refusal for an act with no derrick to do it at. */
@@ -131,7 +95,7 @@ export abstract class DrillingActController<
   protected noHole(context: CommandContext): void {
     this.decline(
       context,
-      Mml.compose`There is no hole here yet. \`bore\` sites one.`,
+      Mml.compose`There is no hole here yet. \`spud\` sites one.`,
       'no-hole',
     );
   }
