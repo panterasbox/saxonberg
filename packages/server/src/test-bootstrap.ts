@@ -80,6 +80,34 @@ export const KERNEL_CONTENT_ROWS: ReadonlyArray<{
     class: "/platform/idea/TemplateApplier",
     data: {},
   },
+  // ⭐ The lazy dictionaries (documents W5): never booted, cloned on the
+  // first reach (`StuffApi.ready`) — a harness's fake store answers the
+  // clone and the warm reads its (empty) rows.
+  {
+    path: "/platform/idea/CorpoCatalogue",
+    class: "/platform/idea/CorpoCatalogue",
+    data: {},
+  },
+  {
+    path: "/platform/idea/GovernmentCatalogue",
+    class: "/platform/idea/GovernmentCatalogue",
+    data: {},
+  },
+  {
+    path: "/platform/idea/SpellCatalogue",
+    class: "/platform/idea/SpellCatalogue",
+    data: {},
+  },
+  {
+    path: "/platform/idea/DisciplineCatalogue",
+    class: "/platform/idea/DisciplineCatalogue",
+    data: {},
+  },
+  {
+    path: "/platform/idea/RecipeCatalogue",
+    class: "/platform/idea/RecipeCatalogue",
+    data: {},
+  },
   {
     path: "/platform/idea/exits/passage",
     class: "/platform/idea/Exit",

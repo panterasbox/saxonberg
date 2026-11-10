@@ -15,6 +15,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
+import { rememberDisciplines } from '../../advancement/__tests__/discipline-fixtures';
 import { Character } from '../../character/Character';
 import Place from '../../stuff/Place';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
@@ -148,6 +149,8 @@ describe('RespirationMixin — the crisis core', () => {
     StuffApi.unregister(reg);
     StuffApi.register(reg);
     EventApi._setRegistryForTesting(reg);
+    // The swimming band stands on the discipline dictionary (D11).
+    await rememberDisciplines();
   });
 
   beforeEach(() => {

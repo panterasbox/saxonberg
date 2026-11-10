@@ -21,8 +21,9 @@ describe("an Api's declared needs", () => {
     vi.spyOn(StuffApi, "findByTemplatePath").mockImplementation(
       ((p: string) => (p === NEED && resident ? ({} as never) : null)) as never,
     );
+    // As the real one: resolves at once for a resident singleton, loads a cold one.
     vi.spyOn(StuffApi, "singleton").mockImplementation((async (p: string) => {
-      order.push(`load ${p}`);
+      if (!resident) order.push(`load ${p}`);
       resident = true;
       return {} as never;
     }) as never);

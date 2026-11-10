@@ -47,7 +47,9 @@ const ALICE = "/platform/agent/Avatar/alice";
 function makeBank(terms?: Record<string, number>): InstanceType<typeof BankCounter> {
   return makeStuffAtPath(() => {
     const b = new BankCounter();
-    b.setCorpoKey("goodkin");
+    // The corpo dictionary loads with the bank (D7); this suite never reads
+    // the corpo, so the load is not waited for — only kept from leaking.
+    void b.setCorpoKey("goodkin")?.catch(() => undefined);
     if (terms) b.terms = terms;
     return b;
   }, BANK_PATH);

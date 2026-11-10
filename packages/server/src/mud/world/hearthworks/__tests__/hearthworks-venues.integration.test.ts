@@ -16,6 +16,7 @@ import "../../../../test-bootstrap";
 import { chargeHot } from '../../../lib/fire/__tests__/burner-fuel';
 import type { Burner } from '../../../lib/fire/Burner';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { rememberDisciplines } from '../../../lib/advancement/__tests__/discipline-fixtures';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
@@ -284,6 +285,8 @@ let store: Record<string, Record<string, unknown>[]>;
 
 beforeEach(async () => {
   StuffApi.clearAll();
+  // A credit or a band read stands on the discipline dictionary (D11).
+  await rememberDisciplines();
   installV1QuantityMarshallers();
   WorldClockApi._setNowProviderForTesting(() => 1000);
   const pm = PersistenceManager.get();

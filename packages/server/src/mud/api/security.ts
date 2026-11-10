@@ -991,8 +991,8 @@ export class SecurityApi {
   /**
    * The loader an Api's declared `needs` are awaited through (the same
    * door as `StuffApi.ready`) — late-bound for the ShadowApi reason:
-   * `stuff.ts` decorates itself through this module. `null` resolution
-   * means "all resident; call through synchronously".
+   * `stuff.ts` decorates itself through this module. Only async statics
+   * await it, so it never needs a synchronous fast path.
    */
   static #needsLoader: ((needs: readonly string[]) => Promise<unknown> | null) | null = null;
 

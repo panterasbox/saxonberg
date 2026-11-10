@@ -9,6 +9,7 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { rememberDisciplines } from "../../../../../lib/advancement/__tests__/discipline-fixtures";
 import CompetenceController from "../CompetenceController";
 import { MessageApi } from "../../../../../api/message";
 import { Mml } from "../../../../../api/mml";
@@ -44,7 +45,9 @@ function captureBody(): void {
   });
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+  // A credit or a band read stands on the discipline dictionary (D11).
+  await rememberDisciplines();
   store = new Map();
   idCounter = 0;
   const pm = PersistenceManager.get();

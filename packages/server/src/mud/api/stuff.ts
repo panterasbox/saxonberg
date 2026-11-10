@@ -825,10 +825,10 @@ export class StuffApi {
   public static ready(
     ...needs: ReadonlyArray<string | { readonly needs?: readonly string[] }>
   ): Promise<void> {
+    // `singleton` resolves at once for a resident one — no pre-check
+    // (lint:get-or-create).
     const paths = needs.flatMap((n) => (typeof n === 'string' ? [n] : [...(n.needs ?? [])]));
-    const cold = paths.filter((p) => !StuffApi.findByTemplatePath(p));
-    if (cold.length === 0) return Promise.resolve();
-    return Promise.all(cold.map((p) => StuffApi.singleton(p))).then(() => undefined);
+    return Promise.all(paths.map((p) => StuffApi.singleton(p))).then(() => undefined);
   }
 
   /**

@@ -119,9 +119,7 @@ export class BootstrapManager {
     );
     SecurityApi._registerShadowApi(ShadowApi);
     // An Api's declared `needs` load through the one readiness door (W5c).
-    SecurityApi._registerNeedsLoader((needs) =>
-      needs.every((p) => StuffApi.findByTemplatePath(p)) ? null : StuffApi.ready(...needs),
-    );
+    SecurityApi._registerNeedsLoader((needs) => StuffApi.ready(...needs));
     CommandApi.installShadowBridge();
     StackableApi.installMergeOnArrival();
     // The sandbox scope resolver (Decision G): PM learns the ambient

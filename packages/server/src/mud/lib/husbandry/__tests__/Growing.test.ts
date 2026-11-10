@@ -8,6 +8,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { rememberDisciplines } from '../../advancement/__tests__/discipline-fixtures';
 import Good from '../../stuff/Good';
 import { GrowingMixin, type GrowthProfileData } from '../Growing';
 import { SoilMixin } from '../Soil';
@@ -759,7 +760,9 @@ describe('GrowingMixin — the stand reads at the viewer\'s band', () => {
   }
   let rows: Row[] = [];
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // A band read stands on the discipline dictionary (D11).
+    await rememberDisciplines();
     WorldClockApi._resetForTesting();
     setNow(0);
     WorldClockApi._setNowProviderForTesting(() => now);

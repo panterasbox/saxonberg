@@ -99,7 +99,9 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
     // holds your stake), never the default.
     makeStuffAtPath(() => {
       const b = new BankCounter();
-      b.setCorpoKey("veshko");
+      // The corpo dictionary loads with the bank (D7); this suite never reads
+      // the corpo, so the load is not waited for — only kept from leaking.
+      void b.setCorpoKey("veshko")?.catch(() => undefined);
       return b;
     }, "/world/test/veshko-bank");
     const funded = new AccountBalance();
