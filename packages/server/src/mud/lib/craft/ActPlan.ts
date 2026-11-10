@@ -37,6 +37,8 @@
  */
 
 import type { AbortReason } from '@saxonberg/types';
+import type { Stuff } from '../stuff/Stuff';
+import type { EngagementSlot } from '../activity/Engaged';
 
 /**
  * A refused act: the machine reason (the `controller-rejected` note's
@@ -102,6 +104,18 @@ export interface ActPlan<
    */
   onBegin?: () => void;
   onAbort?: (reason: AbortReason) => void;
+  /**
+   * The body slots the act holds — `['hands']` when absent. ⭐ A WATCHED act
+   * (a three-day charcoal burn) holds `attention`, so the collier's hands
+   * stay free (controller-liquidity W9).
+   */
+  slots?: readonly EngagementSlot[];
+  /**
+   * The thing the act is ABOUT, when it is not the actor — the step's host
+   * (its destruction aborts the step), and what "already doing this"
+   * compares against. Absent = the actor.
+   */
+  host?: Stuff;
 }
 
 /** Any plan — the constraint a generic consumer narrows from. */

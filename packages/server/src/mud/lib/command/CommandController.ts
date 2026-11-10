@@ -237,11 +237,12 @@ export abstract class CommandController<
     }
     const step = new ManualBuildStep({
       actor: giver,
-      slots: ['hands'],
+      slots: plan.slots ? [...plan.slots] : ['hands'],
       durationMs: plan.durationMs,
       effortW: plan.effortW,
       onComplete: land,
       onAbort: plan.onAbort,
+      host: plan.host,
     });
     // ⚠ Begun BEFORE the start: a step that completes synchronously runs
     // its completion inside `start`, and the claim must already be held
