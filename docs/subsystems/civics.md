@@ -26,7 +26,7 @@ through the real chokepoints.
 
 Source: `obj/Government.ts`, `obj/GovernmentCatalogue.ts`,
 `platform/idea/api/GovernmentLogic.ts`, `api/government.ts`,
-`cmd/civics/government.yaml` + `platform/idea/cmd/civics/GovernmentController.ts`.
+`cmd/civics/government.yaml` + `platform/idea/cmd/civics/Government{List,Residency}Controller.ts` (over `GovernmentControllerBase`).
 The meta-side committee concept lives on **`CompactApi`**
 (`api/compact.ts`) — see [access.md](./access.md) § The committee.
 

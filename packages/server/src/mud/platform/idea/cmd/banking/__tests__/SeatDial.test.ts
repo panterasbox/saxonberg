@@ -8,8 +8,8 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import TreasuryController from "../TreasuryController";
-import ReserveController from "../ReserveController";
+import TreasurySetController from "../TreasurySetController";
+import ReserveSetController from "../ReserveSetController";
 import { AppApi } from "../../../../../api/app";
 import { AppSettings } from "../../../../../lib/config/AppSettings";
 import { CompactApi } from "../../../../../api/compact";
@@ -68,7 +68,7 @@ const reasons = () => note.mock.calls.map((c) => (c[0] as { reason?: string }).r
 
 describe("treasury set — the Minister of Finance's dials", () => {
   it("sets a fiscal key and records the deed", async () => {
-    const ctrl = makeStuff(() => new TreasuryController());
+    const ctrl = makeStuff(() => new TreasurySetController());
     await ctrl.execute({ subcommand: "set", row: "banking.salesTaxRate", value: "0.1" } as never, ctx);
     expect(values["banking.salesTaxRate"]).toBe("0.1");
     expect(note).not.toHaveBeenCalled();
@@ -78,7 +78,7 @@ describe("treasury set — the Minister of Finance's dials", () => {
   });
 
   it("refuses the Governor's key with wrong-seat, naming the Governor and reserve set", async () => {
-    const ctrl = makeStuff(() => new TreasuryController());
+    const ctrl = makeStuff(() => new TreasurySetController());
     await ctrl.execute({ subcommand: "set", row: "banking.withdrawalDailyCap", value: "600" } as never, ctx);
     expect(values["banking.withdrawalDailyCap"]).toBe("500");
     expect(reasons()).toContain("wrong-seat");
@@ -88,7 +88,7 @@ describe("treasury set — the Minister of Finance's dials", () => {
   });
 
   it("refuses a Tier B key, naming the Prime Minister's config", async () => {
-    const ctrl = makeStuff(() => new TreasuryController());
+    const ctrl = makeStuff(() => new TreasurySetController());
     await ctrl.execute({ subcommand: "set", row: "defaultStartLocation", value: "/x" } as never, ctx);
     expect(reasons()).toContain("wrong-seat");
     expect(JSON.stringify(note.mock.calls)).toContain("Prime Minister");
@@ -97,21 +97,21 @@ describe("treasury set — the Minister of Finance's dials", () => {
 
 describe("reserve set — the Governor's dials", () => {
   it("sets a capital control and records the deed", async () => {
-    const ctrl = makeStuff(() => new ReserveController());
+    const ctrl = makeStuff(() => new ReserveSetController());
     await ctrl.execute({ subcommand: "set", row: "banking.withdrawalDailyCap", value: "600" } as never, ctx);
     expect(values["banking.withdrawalDailyCap"]).toBe("600");
     expect(deeds[0]!.text).toContain("As Governor of the Central Bank");
   });
 
   it("still writes the reserve.* Schedule rows", async () => {
-    const ctrl = makeStuff(() => new ReserveController());
+    const ctrl = makeStuff(() => new ReserveSetController());
     await ctrl.execute({ subcommand: "set", row: "reserve.defaultHorizonGameDays", value: "30" } as never, ctx);
     expect(note).not.toHaveBeenCalled();
     expect(values["reserve.defaultHorizonGameDays"]).toBe("30");
   });
 
   it("refuses the fisc's key with wrong-seat, naming the Minister and treasury set", async () => {
-    const ctrl = makeStuff(() => new ReserveController());
+    const ctrl = makeStuff(() => new ReserveSetController());
     await ctrl.execute({ subcommand: "set", row: "banking.salesTaxRate", value: "0.2" } as never, ctx);
     expect(values["banking.salesTaxRate"]).toBe("0.08");
     expect(reasons()).toContain("wrong-seat");
@@ -135,7 +135,7 @@ describe("⭐ the seat rule is the WRITE's own (controller-liquidity D9)", () =>
 
   it("the controller words a not-seated refusal", async () => {
     seated = false;
-    const ctrl = makeStuff(() => new TreasuryController());
+    const ctrl = makeStuff(() => new TreasurySetController());
     await ctrl.execute({ subcommand: "set", row: "banking.salesTaxRate", value: "0.1" } as never, ctx);
     expect(reasons()).toContain("not-seated");
     expect(deeds).toHaveLength(0);

@@ -1,6 +1,6 @@
 verbs: [wallet]
 category: banking
-controller: /platform/idea/cmd/banking/WalletController
+controller: /platform/idea/cmd/banking/WalletShowController
 description: "Your payment wallet — show / use / freeze"
 help: |
   Bare `wallet` shows which account your implant pays from. `wallet use
@@ -15,18 +15,21 @@ validators:
   - /lib/command/validators/requiresAnimate
 subcommands:
   use:
+    controller: /platform/idea/cmd/banking/WalletUseController
     description: "Switch the active account to your <corpo> account, or `house`"
     args:
       - name: corpo
         type: string
         required: true
   beneficiary:
+    controller: /platform/idea/cmd/banking/WalletBeneficiaryController
     description: "Name who your estate passes to if you are gone past the long clock — or `none`"
     args:
       - name: player
         type: string
         required: true
   freeze:
+    controller: /platform/idea/cmd/banking/WalletFreezeController
     description: "Report a card lost (freeze + reissue)"
     args:
       - name: card

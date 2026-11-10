@@ -32,7 +32,7 @@ import {
   makeStuffAtPath,
   withRootContext,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
-import HouseShopController from '../HouseShopController';
+import HouseParController from '../HouseParController';
 
 const BIZ = '/stuff/test/bar/business';
 const DAVE = '/platform/agent/Avatar/dave';
@@ -89,7 +89,7 @@ describe('`house par` — the shop keeps the sheet', () => {
     ContainmentApi.move(tablet, dave as never);
     const run = (level: string, extra: Record<string, string> = {}) =>
       asActor(dave, () =>
-        makeStuff(() => new HouseShopController()).execute(
+        makeStuff(() => new HouseParController()).execute(
           { subcommand: 'par', category: 'gin', level, ...extra } as never,
           ctx(dave, loc, `house par gin ${level}`),
         ),

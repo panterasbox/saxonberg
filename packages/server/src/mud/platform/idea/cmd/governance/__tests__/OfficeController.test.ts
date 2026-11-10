@@ -1,8 +1,8 @@
 /**
- * OfficeController — the `office` verb wiring, driven as the dispatcher
+ * Office{Assign,Vacate,List}Controller — the `office` verb wiring, driven as the dispatcher
  * would: a real controller Stuff whose `execute` calls the gated
  * `CompactApi.assign`/`vacate` (the caller frame is the controller, so the
- * narrow-entry `FromModule(OfficeController)` gate passes), over a real
+ * narrow-entry `FromModule(OfficeAssignController)` gate passes), over a real
  * `OfficeRegistry` + in-memory store. Proves the MVC mapping (target →
  * playerId, office key resolution) and the assign/replace/vacate
  * behavior end-to-end. Authority (founder-only `assign`/`vacate`) is the
@@ -15,7 +15,9 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import OfficeController from '../OfficeController';
+import OfficeAssignController from '../OfficeAssignController';
+import OfficeVacateController from '../OfficeVacateController';
+import OfficeListController from '../OfficeListController';
 import OfficeRegistry from '../../../OfficeRegistry';
 import Avatar from '../../../../agent/PrimaryAvatar';
 import { CompactApi } from '../../../../../api/compact';
@@ -159,7 +161,15 @@ async function run(
 ): Promise<void> {
   await withRootContext(null, 'office.test', () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    return makeStuff(() => new OfficeController()).execute(
+    // One controller per subcommand (controller-liquidity W7a): the
+    // dispatcher picks the stanza's; bare is `list`'s.
+    const Ctrl =
+      model.subcommand === 'assign'
+        ? OfficeAssignController
+        : model.subcommand === 'vacate'
+          ? OfficeVacateController
+          : OfficeListController;
+    return makeStuff(() => new Ctrl()).execute(
       model as never,
       ctx,
     );
@@ -168,7 +178,7 @@ async function run(
 
 const TWITCH_ENV = 'FOUNDER_TWITCH_HANDLE';
 
-describe('OfficeController', () => {
+describe('office (assign / vacate / list controllers)', () => {
   let prevTwitch: string | undefined;
 
   beforeEach(async () => {

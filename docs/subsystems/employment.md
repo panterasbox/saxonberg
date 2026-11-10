@@ -874,7 +874,7 @@ and settlement never checks that the payer *owns* the routing account
 - **`actor.buysFor(): Promise<BusinessStuff[]>`** — every
   Business where the actor holds a non-exited `purchases` position, plus
   the one whose proprietor they are.
-- **`wallet use house`** (`WalletController`) — resolves the house via
+- **`wallet use house`** (`WalletUseController`) — resolves the house via
   `buysFor`: the business operating **here** (`businessAt`), else the
   single one, else `ambiguous-house` (names them); links its operating
   account into the holder's credential and makes it active
@@ -902,7 +902,7 @@ and settlement never checks that the payer *owns* the routing account
   number). Same credential kind, same `wallet use house`, same `buy`.
   Players get nothing minted.
 
-**`house`** (`HouseController`) no longer carries `requiresWizard` — that
+**`house`** (`HouseBookController` · `HousePnlController` · `HousePayrollController` · `HouseRosterController`, over `HouseControllerBase`) no longer carries `requiresWizard` — that
 is the TypeScript code-trust axis and nothing else; venue authority is
 the SEAT (`resolveHouse`: the business here if the giver `holdsPosition`
 or `isProprietorOf`, else `buysFor(giver)[0]`, else `not-staff`).

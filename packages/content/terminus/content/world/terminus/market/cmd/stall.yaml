@@ -3,7 +3,7 @@
 # square's produce stalls to whoever stands in the square.
 verbs: [stall]
 category: retail
-controller: /world/terminus/market/idea/cmd/StallController
+controller: /world/terminus/market/idea/cmd/StallRentController
 description: "Rent a market stall of your own, or give it up"
 help: |
   `stall rent` (or just `stall`) takes the next free pitch on the
@@ -32,6 +32,8 @@ validators:
   - /lib/command/validators/requiresEmbodied
 subcommands:
   rent:
+    controller: /world/terminus/market/idea/cmd/StallRentController
     description: "Rent a stall (or open the one you hold)"
   give-up:
+    controller: /world/terminus/market/idea/cmd/StallGiveUpController
     description: "Pack your stall away; what is on it comes back to you"

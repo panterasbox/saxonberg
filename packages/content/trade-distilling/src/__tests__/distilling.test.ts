@@ -10,7 +10,7 @@
  *
  * The brain drives the literal verbs through `forceCommand` (the giver's own method since the OO sweep);
  * here that seam is a dispatcher onto the REAL controllers (`wallet use
- * house` → WalletController, `shelf consign … --ask` → ShelfConsignController, `get`
+ * house` → WalletUseController, `shelf consign … --ask` → ShelfConsignController, `get`
  * → the containment move the verb performs), the `HouseAccount` harness
  * shape — the parser/binder is not in the loop (controller tests skip the
  * binder); the live drive is where the typed line is proven.
@@ -87,7 +87,7 @@ import Coin from '@saxonberg/server/mud/platform/thing/Coin';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import ChattelRegistry from '@saxonberg/server/mud/platform/idea/ChattelRegistry';
 import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
-import WalletController from '@saxonberg/server/mud/platform/idea/cmd/banking/WalletController';
+import WalletUseController from '@saxonberg/server/mud/platform/idea/cmd/banking/WalletUseController';
 import ShelfConsignController from '@saxonberg/server/mud/platform/idea/cmd/retail/ShelfConsignController';
 import BuyController from '@saxonberg/server/mud/platform/idea/cmd/retail/BuyController';
 import SpiritBottle from '../thing/SpiritBottle';
@@ -590,7 +590,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
       if (verb === 'wallet') {
         const c = ctx(giver, here, null, text);
         await asPrincipal(giver, () =>
-          makeStuff(() => new WalletController()).execute({ subcommand: 'use', corpo: 'house' } as never, c),
+          makeStuff(() => new WalletUseController()).execute({ subcommand: 'use', corpo: 'house' } as never, c),
         );
         expect(rejections(c)).toEqual([]);
         return;

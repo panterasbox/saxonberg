@@ -1,6 +1,5 @@
 verbs: [house]
 category: banking
-controller: /platform/idea/cmd/banking/HouseController
 description: "The house app — book / pnl / payroll / roster / appoint / dismiss / draw / par / price / stock / freight / traffic"
 opens_card: stock
 help: |
@@ -41,10 +40,13 @@ validators:
 subcommands:
   book:
     description: "The house's book: what it owes and to whom — loans, supplier terms, wages in arrears"
+    controller: /platform/idea/cmd/banking/HouseBookController
   pnl:
     description: "Read the house's profit-and-loss"
+    controller: /platform/idea/cmd/banking/HousePnlController
   payroll:
     description: "Pay a worker a wage from the house account"
+    controller: /platform/idea/cmd/banking/HousePayrollController
     args:
       - name: worker
         type: object
@@ -195,7 +197,7 @@ subcommands:
   # a legible `controller-error`, never a crash.
   par:
     description: "Set (or strike, at 0) a par line on the house"
-    controller: /trade/shopkeeping/idea/cmd/banking/HouseShopController
+    controller: /trade/shopkeeping/idea/cmd/banking/HouseParController
     args:
       - name: category
         type: string
@@ -257,14 +259,14 @@ subcommands:
       where the stories are: a fine road nobody uses, a rut carrying
       more than it should, a high street that was the only way through
       before the cut-off.
-    controller: /trade/haulage/idea/cmd/banking/HouseFreightController
+    controller: /trade/haulage/idea/cmd/banking/HouseTrafficController
     options:
       since:
         type: string
         description: "`season` — only the last quarter."
   price:
     description: "Set the house's ask for a good and its kind on the counter it operates"
-    controller: /trade/shopkeeping/idea/cmd/banking/HouseShopController
+    controller: /trade/shopkeeping/idea/cmd/banking/HousePriceController
     args:
       - name: thing
         type: object
@@ -276,6 +278,7 @@ subcommands:
         required: true
   roster:
     description: "The chart: every position, who holds it, on shift or not, or `vacant`"
+    controller: /platform/idea/cmd/banking/HouseRosterController
   stock:
     description: "The live stock sheet — the rail against par"
-    controller: /trade/shopkeeping/idea/cmd/banking/HouseShopController
+    controller: /trade/shopkeeping/idea/cmd/banking/HouseStockController

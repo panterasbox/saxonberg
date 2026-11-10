@@ -19,7 +19,7 @@ import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import WaterController from '@saxonberg/server/mud/platform/idea/cmd/bulk/WaterController';
 import HarvestController from '@saxonberg/server/mud/platform/idea/cmd/inventory/HarvestController';
 import ShelfConsignController from '@saxonberg/server/mud/platform/idea/cmd/retail/ShelfConsignController';
-import WalletController from '@saxonberg/server/mud/platform/idea/cmd/banking/WalletController';
+import WalletUseController from '@saxonberg/server/mud/platform/idea/cmd/banking/WalletUseController';
 import StockBase from '@saxonberg/server/mud/lib/retail/Stock';
 
 class Stock extends StockBase {}
@@ -359,7 +359,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
         }
         if (verb === 'wallet') {
           await asPrincipal(who, () =>
-            makeStuff(() => new WalletController()).execute(
+            makeStuff(() => new WalletUseController()).execute(
               { subcommand: 'use', corpo: 'house' } as never,
               ctx(who, here, null, text),
             ),

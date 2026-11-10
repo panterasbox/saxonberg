@@ -7,7 +7,7 @@
 # `withdraw`, beside `bank deposit` / `bank withdraw`).
 verbs: [store]
 category: custody
-controller: /platform/idea/cmd/custody/StoreController
+controller: /platform/idea/cmd/custody/StoreReceiptsController
 description: "Keep goods in a store — deposit / withdraw / receipts"
 help: |
   Leave goods in a store's keeping and take them back — an icehouse, a
@@ -39,6 +39,7 @@ validators:
 # `bank` finds the bank.
 subcommands:
   receipts:
+    controller: /platform/idea/cmd/custody/StoreReceiptsController
     description: "Your receipts here (same as bare `store`)"
     args:
       - name: book
@@ -49,6 +50,7 @@ subcommands:
         scope: ["here", "peers", "person"]
         requires: [StoreBookMixin]
   deposit:
+    controller: /platform/idea/cmd/custody/StoreDepositController
     description: "Leave something in the store's keeping, on a receipt"
     validators:
       - /lib/command/validators/requiresEmbodied
@@ -67,6 +69,7 @@ subcommands:
         scope: ["here", "peers", "person"]
         requires: [StoreBookMixin]
   withdraw:
+    controller: /platform/idea/cmd/custody/StoreWithdrawController
     description: "Take goods back out against your receipt"
     validators:
       - /lib/command/validators/requiresEmbodied

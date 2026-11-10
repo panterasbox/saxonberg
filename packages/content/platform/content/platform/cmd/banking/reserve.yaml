@@ -1,6 +1,6 @@
 verbs: [reserve]
 category: banking
-controller: /platform/idea/cmd/banking/ReserveController
+controller: /platform/idea/cmd/banking/ReserveDashboardController
 description: "The Central Bank — the Governor's dashboard, the Schedule's reserve rows, the audit, the recorded override"
 help: |
   The Central Bank's surface, Governor-gated (the `central-bank-governor`
@@ -31,8 +31,10 @@ validators:
   - /lib/command/validators/requiresGovernor
 subcommands:
   supply:
+    controller: /platform/idea/cmd/banking/ReserveSupplyController
     description: "Money supply + reconciliation audit"
   set:
+    controller: /platform/idea/cmd/banking/ReserveSetController
     description: "Write a reserve.* row or a Governor's Tier C dial, on the record"
     args:
       - name: row
@@ -42,6 +44,7 @@ subcommands:
         type: string
         required: true
   override:
+    controller: /platform/idea/cmd/banking/ReserveOverrideController
     description: "The recorded emergency mint: <amount> to <target> \"<reason>\""
     args:
       - name: amount

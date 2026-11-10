@@ -19,7 +19,9 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import StallController, { STALL_SEED, STALL_BUSINESS_SEED, MARKET_BUSINESS } from '../idea/cmd/StallController';
+import StallRentController from '../idea/cmd/StallRentController';
+import StallGiveUpController from '../idea/cmd/StallGiveUpController';
+import { STALL_SEED, STALL_BUSINESS_SEED, MARKET_BUSINESS } from '../idea/cmd/StallControllerBase';
 import MarketStalls from '../thing/MarketStalls';
 import Stock from '@saxonberg/content-trade-shopkeeping/src/thing/Stock';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
@@ -29,7 +31,7 @@ import Coin from '@saxonberg/server/mud/platform/thing/Coin';
 import ChattelRegistry from '@saxonberg/server/mud/platform/idea/ChattelRegistry';
 import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
 import ShelfConsignController from '@saxonberg/server/mud/platform/idea/cmd/retail/ShelfConsignController';
-import HouseShopController from '@saxonberg/content-trade-shopkeeping/src/idea/cmd/banking/HouseShopController';
+import HousePriceController from '@saxonberg/content-trade-shopkeeping/src/idea/cmd/banking/HousePriceController';
 import { BankingApi, Money } from '@saxonberg/server/mud/api/banking';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -127,7 +129,7 @@ async function fundedGiver(path: string, minor: number): Promise<TestGiver> {
 
 async function stall(giver: TestGiver, subcommand: 'rent' | 'give-up'): Promise<CommandContext> {
   const c = ctx(giver, square, stalls, `stall ${subcommand}`);
-  await asOwner(giver, () => makeStuff(() => new StallController()).execute({ subcommand } as never, c));
+  await asOwner(giver, () => makeStuff(() => (subcommand === 'give-up' ? new StallGiveUpController() : new StallRentController())).execute({ subcommand } as never, c));
   return c;
 }
 
@@ -326,7 +328,7 @@ describe('a player shop is a rented market stall', () => {
     // Alice, the keeper, sets her own ask.
     const priced = ctx(alice, square, counter, 'house price torch 12');
     await asOwner(alice, () =>
-      makeStuff(() => new HouseShopController()).execute(
+      makeStuff(() => new HousePriceController()).execute(
         { subcommand: 'price', thing: { stuff: torch as never, raw: 'torch' }, ask: '12' } as never,
         priced,
       ),
