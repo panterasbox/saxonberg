@@ -446,3 +446,36 @@ describe('the pit', () => {
     expect(bark / (litres * TANNING.BARK_KG_PER_LITRE)).toBeCloseTo(1, 2);
   });
 });
+
+describe('⭐ laying in is the pit’s, and checking is a look (controller-liquidity W11)', () => {
+  it('lays a hide in, stamps its clock, and refuses a second lay-in with where to look', async () => {
+    const p = pit(1000, 100);
+    const h = hide();
+    const plan = p.layInPlan(h as never, yard as never);
+    if (!plan.ok) throw new Error(`expected a plan, got ${plan.reason}`);
+    const out = await plan.onComplete();
+    expect(out.ok).toBe(true);
+    expect(h.getContainer()).toBe(p);
+    expect(p.layInPlan(h as never, yard as never)).toEqual({ ok: false, reason: 'already-in-pit' });
+  });
+
+  it('a dry pit refuses before anything moves', () => {
+    const p = pit(0, 100);
+    const h = hide();
+    expect(p.layInPlan(h as never, yard as never)).toEqual({ ok: false, reason: 'pit-dry' });
+    expect(h.getContainer()).toBe(yard);
+  });
+
+  it('⭐ `look` at the pit carries the liquor and every skin in it, in words', async () => {
+    const p = pit(1000, 100);
+    const h = hide();
+    const plan = p.layInPlan(h as never, yard as never);
+    if (!plan.ok) throw new Error('expected a plan');
+    await plan.onComplete();
+    advance(10);
+    const aug = (Tanpit.markupAugmenters[0]!)('', p as never, yard as never);
+    expect(aug).toContain(p.pitReport().line);
+    expect(aug).toContain(h.tanReport().line);
+    expect(aug).toMatch(/is down in it/);
+  });
+});

@@ -989,15 +989,16 @@ suite('⭐⭐ 11–12. tan the hide against the pit it stands in', () => {
   }, 180_000);
 
   it('⚠ pulled early it is NOT leather, and it says which', async () => {
-    const out = await say(k, 'tan hide');
+    // ⭐ The check is a READ (controller-liquidity W11): `look` at the pit
+    // carries every skin in it; a second `tan` refuses and says to look.
+    const out = await say(k, 'look tanpit');
     const said = await out.said();
-    // The judgement half of the verb: a second `tan` is how you check.
     expect(said.toLowerCase()).toMatch(
       /barely|taking|raw|through|liquor|most of the way/,
     );
   }, 180_000);
 
-  it('⭐ a SECOND `tan` on the same hide is the judgement, not a transform', async () => {
+  it('⭐ a SECOND `tan` on the same hide says where to look — the check is a read', async () => {
     // ⭐⭐⭐ **This step used to jump 25 game days, and it is the sweep's
     // longest-running lesson: a drive must not depend on a compressed
     // clock.**
@@ -1034,17 +1035,19 @@ suite('⭐⭐ 11–12. tan the hide against the pit it stands in', () => {
     //    is now the second customer with the log line above as evidence.
     //
     // ⚠ What is left here is the half that needs no clock and can still
-    // fail: a second `tan` on a hide already in the pit must answer about
-    // THIS hide's state rather than starting over — the judgement that
-    // makes the verb a decision instead of a transform.
-    const out = await say(k, 'tan hide');
-    expect(refusedFor(out), await out.said()).toBeNull();
+    // fail: a second `tan` on a hide already in the pit must not start
+    // over — it refuses `already-in-pit` and names the read (`look` at the
+    // pit, controller-liquidity W11), and the pit's look speaks about
+    // THIS hide.
+    const again = await say(k, 'tan hide');
+    expect(refusedFor(again)).toBe('already-in-pit');
+    expect((await again.said()).toLowerCase()).toMatch(/look/);
+    const out = await say(k, 'look tanpit');
     const said = (await out.said()).toLowerCase();
-    expect(said.length, 'a second `tan` must report on the hide').toBeGreaterThan(0);
     expect(
       said,
-      `a second tan must speak about the hide in the pit: ${said}`,
-    ).toMatch(/barely|taking|raw|through|liquor|most of the way|leather|green|skin|hide/);
+      `the pit's look must speak about the hide in it: ${said}`,
+    ).toMatch(/barely|taking|raw|through|most of the way|leather|green|skin|hide/);
   }, 180_000);
 });
 
