@@ -3337,7 +3337,7 @@ function bindPositionalsImpl(
         return { error: 'bind', summary: `${name}: ${c.error}` };
       } else if (def.default !== undefined) {
         // ⭐ An optional NUMBER that is not one leaves the word for the
-        // next slot (`mill wheat quern` — the extraction is not given).
+        // next slot (`mill wheat at quern` — the extraction is not given).
         bound[name] = defaulted(def);
       }
     } else if (def.default !== undefined) {
