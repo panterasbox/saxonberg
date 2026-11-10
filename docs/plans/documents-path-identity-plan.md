@@ -1196,6 +1196,33 @@ Commit:
 > localities before their government dictionary stood (an unhandled
 > rejection from W5a's setter load).
 
+### W5c — one readiness routine for every Api (owner, at review)
+
+> ✅ **W5c done (build).** The owner, reading the MR: *"what's readying all
+> these APIs — we should have some standard initialization routine that
+> all Apis go through instead of these individual hooks."* Every per-Api
+> door (`CorpoApi.ready`, `GovernmentApi.ready`, `MagicApi.ready`,
+> `HelpApi.ready` — the last one already on master — `Recipe.loadDictionary`,
+> Advancement's `loadDisciplines`) was a one-line wrapper around
+> `StuffApi.singleton(path)`. Now:
+> - **An Api declares what its reads stand on:** `static readonly needs =
+>   [TemplatePaths.corpoCatalogue]` (Corpo, Government, Magic, Help).
+> - **The Api gate does the rest, for every Api:** `decorateApiClass`
+>   makes each ASYNC static await its Api's `needs` before forwarding (a
+>   late-bound loader registered in `installFrameworkWiring`, the ShadowApi
+>   pattern — `security.ts` cannot import `StuffApi`). A sync static is
+>   untouched: it cannot wait.
+> - **One door for the sync reach:** `StuffApi.ready(...needs)` takes an
+>   Api (its `needs`) or a path. Setters return it; acts await it.
+> - **Never at boot** — still load on reach; this only unifies how.
+> - ⚠ `needs` is per Api, so it is coarse: `MagicApi.relocationCost` (async)
+>   now loads the spell dictionary though it reads no spell — one load, on
+>   reach. Caster reaches MagicLogic directly (not through the Api), so the
+>   three casting impls call the door themselves.
+> - Topics stay their own mechanism (D13's queue is not a singleton).
+> - `HelpApi.ready` used to swallow a failed load (`.catch(() => null)`);
+>   the door refuses loudly. Test: `lib/security/__tests__/ApiNeeds.test.ts`.
+
 ### W6 — the aroma library in directories (D14)
 
 Late and mechanical so a rebase onto material decomposition is a re-run of

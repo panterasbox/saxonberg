@@ -22,6 +22,7 @@ import type { Stuff } from "../lib/stuff/Stuff";
 import type { CorpoDescriptor } from "../platform/idea/corpo/Corpo";
 import type { BrandDescriptor } from "../platform/idea/corpo/Brand";
 import { StuffApi } from "./stuff";
+import { TemplatePaths } from "../lib/paths";
 import { HotReloadApi } from "./hot-reload";
 import { CorpoLogic } from "../platform/idea/api/CorpoLogic";
 import { fileURLToPath } from "url";
@@ -48,6 +49,13 @@ function logic(): CorpoLogic {
 
 export class CorpoApi {
   /**
+   * ⭐ What this Api's reads stand on (documents D7, W5c): every async
+   * static awaits it in the call gate; a sync reach calls
+   * `StuffApi.ready(CorpoApi)`. Loaded on reach, never at boot.
+   */
+  static readonly needs: readonly string[] = [TemplatePaths.corpoCatalogue];
+
+  /**
    * Resolve a brand `key` to its owning corpo. An independent brand
    * (`owner === ''`) and an unknown key both resolve to `null` — the
    * legible absence of a corpo mark.
@@ -70,15 +78,6 @@ export class CorpoApi {
     return logic().brandOf(obj);
   }
 
-  /**
-   * ⭐ Load the corpo/brand dictionary — a resolved promise once it is resident.
-   * Never booted (documents D9): a holder that cites one returns this from
-   * its setter (the applier awaits it), and a verb that names one by word
-   * awaits it first.
-   */
-  public static ready(): Promise<void> {
-    return logic().ready();
-  }
 
   /** The authored descriptor for brand `key`, or `null`. */
   public static getBrand(brandKey: string): BrandDescriptor | null {

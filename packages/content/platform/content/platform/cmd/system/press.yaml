@@ -143,5 +143,6 @@ args:
   # greedy — it consumes the whole inline phrase (a multi-word ticker line).
   - name: headline
     type: string
-    required: true
+    # Not required: bare `press` (no headline) is the READ (PressController).
+    required: false
     greedy: true

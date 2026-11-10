@@ -166,11 +166,6 @@ function catalogue(): {
   return cat;
 }
 
-/** Load the discipline dictionary (at once when it is resident) — the
- * reach that makes {@link catalogue} safe. Never booted (documents D11). */
-async function loadDisciplines(): Promise<Stuff> {
-  return StuffApi.singleton(TemplatePaths.disciplineCatalogue);
-}
 
 /**
  * ⭐ **The conditioning branch** — a Discipline that names a body `stock`
@@ -220,7 +215,7 @@ async function bandsForImpl(
     opts.stocks ? withConditioning(owner, rows) : rows;
   // The reach: a character's bands are read here first, so the dictionary
   // is resident before the digest (and its sync overlay) has any rows.
-  await loadDisciplines();
+  await StuffApi.ready(TemplatePaths.disciplineCatalogue);
   if (!transcriptActive()) return overlay([]);
   const ownerId = ownerKeyOf(owner);
   if (!ownerId) return overlay([]);
@@ -248,7 +243,7 @@ async function bandsForImpl(
  * band×catalogue decision.
  */
 async function conferredVerbsImpl(owner: Stuff): Promise<string[]> {
-  await loadDisciplines();
+  await StuffApi.ready(TemplatePaths.disciplineCatalogue);
   const cat = catalogue();
   const verbs = new Set<string>();
   for (const { discipline, band } of await bandsForImpl(owner)) {
@@ -458,7 +453,8 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
       const self = this as unknown as Stuff;
       if (!MixinApi.isCommandGiver(self)) return;
       const giver = self;
-      const catalogue = await loadDisciplines();
+      await StuffApi.ready(TemplatePaths.disciplineCatalogue);
+      const catalogue = StuffApi.findByTemplatePath(TemplatePaths.disciplineCatalogue)!;
       const verbs = await conferredVerbsImpl(giver);
       const defs: CommandDefinition[] = [];
       for (const verb of verbs) {
@@ -571,7 +567,7 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
     ): Promise<CompetenceBandName> {
       // ⭐ A conditioning Discipline short-circuits to its body stock.
       const self = this as unknown as Stuff;
-      await loadDisciplines();
+      await StuffApi.ready(TemplatePaths.disciplineCatalogue);
       const stock = catalogue().getStock(discipline);
       if (stock && MixinApi.isExerting(self)) {
         return this.suppressed(self.conditioningBand(stock));

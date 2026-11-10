@@ -408,7 +408,7 @@ export class Recipe {
    * ⭐ The recipe dictionary, synchronously — for a reader beneath runtime
    * state that cites a recipe (a blend's name, a dose's hold). Resident by
    * construction: whatever holds a recipe reference loaded the dictionary
-   * when the reference was set ({@link Recipe.loadDictionary}), and a craft
+   * when the reference was set (`StuffApi.ready(TemplatePaths.recipeCatalogue)`), and a craft
    * had its recipe in hand. ⚠ Throws `DocumentNotResidentError` if it is
    * not — an engine defect, never a quiet "no recipe".
    *
@@ -420,17 +420,6 @@ export class Recipe {
     return found as unknown as RecipeDictionary;
   }
 
-  /**
-   * Load the recipe dictionary (a resolved promise when it is already
-   * resident — the runtime case, where the act that wrote a reference held
-   * the recipe). A setter that stores a recipe reference returns this, and
-   * the applier awaits it at a restore.
-   *
-   * @internal the recipe-citing setters' own.
-   */
-  static loadDictionary(): Promise<void> {
-    return StuffApi.singleton<Stuff>(RECIPE_DICTIONARY).then(() => undefined);
-  }
 
 
   static fromDocument(doc: StoredDocument): Recipe {

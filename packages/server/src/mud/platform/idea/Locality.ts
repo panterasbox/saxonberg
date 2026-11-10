@@ -583,7 +583,7 @@ export default class Locality extends Idea {
     }
     const trimmed = value?.trim() ?? '';
     this._governmentKey = trimmed.length > 0 ? trimmed : null;
-    return this._governmentKey ? GovernmentApi.ready() : undefined;
+    return this._governmentKey ? StuffApi.ready(GovernmentApi) : undefined;
   }
 
   /** The applier's door for `_governmentKey:` (the field's own name). */

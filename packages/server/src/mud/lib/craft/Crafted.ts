@@ -24,7 +24,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import { GradedMixin, type Graded } from './Graded';
 import { NameTakingMixin } from '../description/NameTaking';
 import { StuffApi } from '../../api/stuff';
-import { Recipe } from './Recipe';
+import { TemplatePaths } from '../paths';
 import type { Stuff } from '../stuff/Stuff';
 
 /** Grade-keyed verdict prose (v1 uniform — no per-instance scatter yet). */
@@ -213,7 +213,7 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.recipe = value;
       // A ferment mark (`ferment:<key>`) names no recipe.
       if (!value || value.includes(':')) return undefined;
-      return Recipe.loadDictionary();
+      return StuffApi.ready(TemplatePaths.recipeCatalogue);
     }
 
     /** See {@link Crafted.getCastFrom}. */

@@ -303,11 +303,6 @@ function dial(key: string, fallback: number): number {
 
 @Unshadowable
 export class MagicLogic extends ApiLogic {
-  /** See {@link MagicApi.ready}. */
-  @CallSecurity(MagicApiCallers)
-  public ready(): Promise<void> {
-    return readyImpl();
-  }
 
   /** See {@link MagicApi.prepareCast}. */
   @CallSecurity(CasterCallers)
@@ -432,9 +427,6 @@ function catalogue(): SpellCatalogue {
 }
 
 /** Load the spell dictionary (resolved at once when it is resident). */
-async function readyImpl(): Promise<void> {
-  await StuffApi.singleton<SpellCatalogue>(SPELL_DICTIONARY);
-}
 
 const SPELL_DICTIONARY = '/platform/idea/SpellCatalogue';
 
@@ -443,7 +435,7 @@ async function prepareCastImpl(
   spellId: string,
   target?: Stuff,
 ): Promise<PrepareOutcome> {
-  await readyImpl(); // the spell dictionary loads on first use (D9)
+  await StuffApi.ready(SPELL_DICTIONARY); // Caster reaches here past MagicApi's gate (W5c)
   if (!MixinApi.isCaster(caster)) {
     return { ok: false, refusal: 'You have no gift for the arts.' };
   }
@@ -727,7 +719,7 @@ async function resolveCastImpl(
   spellId: string,
   target?: Stuff,
 ): Promise<CastOutcome> {
-  await readyImpl(); // the spell dictionary loads on first use (D9)
+  await StuffApi.ready(SPELL_DICTIONARY); // Caster reaches here past MagicApi's gate (W5c)
   // Re-validate — the world may have changed during the cast time (the
   // caster walked into a ward, the wound landed, the band is unchanged).
   const prep = await prepareCastImpl(caster, spellId, target);
@@ -1056,7 +1048,7 @@ function absorbWasteHeat(
 }
 
 async function spellsViewImpl(caster: Stuff): Promise<SpellsView> {
-  await readyImpl(); // the spell dictionary loads on first use (D9)
+  await StuffApi.ready(SPELL_DICTIONARY); // Caster reaches here past MagicApi's gate (W5c)
   const casterView = (caster as unknown as Caster).getFacultyView();
   const rows: SpellCellRow[] = [];
   for (const spell of catalogue().allSpells() ?? []) {

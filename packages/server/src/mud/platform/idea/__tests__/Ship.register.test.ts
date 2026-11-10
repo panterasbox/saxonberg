@@ -241,7 +241,7 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     await bootGovernments();
     vi.spyOn(Ship.prototype, 'linesAboard').mockImplementation(async () => [fakeLine(), fakeLine()]);
     // The brand dictionary is a fake here: its load resolves at once.
-    vi.spyOn(CorpoApi, 'ready').mockResolvedValue(undefined);
+    vi.spyOn(StuffApi, 'ready').mockResolvedValue(undefined);
     vi.spyOn(CorpoApi, 'getBrand').mockImplementation((key: string) =>
       key === 'flag-test-city'
         ? { key, name: 'the colors of the City of Test', owner: '', government: 'test-city', category: 'colors', positioning: '', descriptor: '' }

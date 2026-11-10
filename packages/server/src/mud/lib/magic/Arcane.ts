@@ -180,7 +180,7 @@ export function ArcaneMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       this.carriedSpellPath = v;
       // The item is live only when the spell dictionary is (D7).
-      return v ? MagicApi.ready() : undefined;
+      return v ? StuffApi.ready(MagicApi) : undefined;
     }
 
     public getDeclaredAddresses(): readonly ArcaneAddress[] {

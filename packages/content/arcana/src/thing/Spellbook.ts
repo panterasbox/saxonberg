@@ -67,6 +67,7 @@ import { CirculatingMixin } from '@saxonberg/server/mud/lib/residency/Circulatin
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import { MagicApi } from '@saxonberg/server/mud/api/magic';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 
 // `Detailed`: an item you cannot name is exactly the one you want to look
 // at closely, so these three classes are examinable in parts. Safe only
@@ -129,7 +130,7 @@ export default class Spellbook extends SpellbookBase {
     }
     this.teachesSpellPath = v;
     // The book is live only when the spell dictionary is (D7).
-    return v ? MagicApi.ready() : undefined;
+    return v ? StuffApi.ready(MagicApi) : undefined;
   }
 
   /** The comprehension floor band, or `''` for "the spell's own". */

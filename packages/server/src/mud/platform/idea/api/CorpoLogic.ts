@@ -36,10 +36,6 @@ function catalogue(): CorpoCatalogue {
   return cat;
 }
 
-/** Load the corpo/brand dictionary (resolved at once when it is resident). */
-async function readyImpl(): Promise<void> {
-  await StuffApi.singleton<CorpoCatalogue>(TemplatePaths.corpoCatalogue);
-}
 
 /** Resolve a brand `key` to its owning corpo; independent / unknown → `null`. */
 function corpoOfBrandImpl(brandKey: string): CorpoDescriptor | null {
@@ -96,11 +92,6 @@ function rivalsOfImpl(corpoKey: string): CorpoDescriptor[] {
  */
 @Unshadowable
 export class CorpoLogic extends ApiLogic {
-  /** See {@link CorpoApi.ready}. */
-  @CallSecurity(CorpoApiCallers)
-  public ready(): Promise<void> {
-    return readyImpl();
-  }
 
   /** See {@link CorpoApi.corpoOfBrand}. */
   @CallSecurity(CorpoApiCallers)

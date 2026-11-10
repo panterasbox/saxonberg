@@ -33,6 +33,7 @@ import { Mixins } from "../mixin";
 import { MixinApi } from "../../api/mixin";
 import { CorpoApi } from "../../api/corpo";
 import { GovernmentApi } from "../../api/government";
+import { StuffApi } from "../../api/stuff";
 import type { Stuff } from "../stuff/Stuff";
 import type { SubscribableFieldDescriptor } from "../../api/mql-subscription";
 import type { MarkupAugmenter } from "../../api/mml";
@@ -82,9 +83,9 @@ export function BrandedMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!value) return undefined;
       // …and a brand that names a polity (the colors a flag flies) loads the
       // government dictionary too — `look`'s mark names it.
-      return CorpoApi.ready().then(() => {
+      return StuffApi.ready(CorpoApi).then(() => {
         const polity = CorpoApi.getBrand(value)?.government;
-        return polity ? GovernmentApi.ready() : undefined;
+        return polity ? StuffApi.ready(GovernmentApi) : undefined;
       });
     }
 

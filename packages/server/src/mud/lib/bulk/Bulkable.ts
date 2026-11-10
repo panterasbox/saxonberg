@@ -47,7 +47,6 @@ import { Mixins } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Perceptible } from '../description/Perceptible';
 import { BlendIdentity } from '../craft/BlendIdentity';
-import { Recipe } from '../craft/Recipe';
 import type { CommandContributions } from '../../api/command';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
@@ -1458,13 +1457,13 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      */
     public setInteriorPayload(payload: BulkPayload | null): Promise<void> | undefined {
       this.interiorPayload = payload;
-      return payload?.recipeId ? Recipe.loadDictionary() : undefined;
+      return payload?.recipeId ? StuffApi.ready(TemplatePaths.recipeCatalogue) : undefined;
     }
 
     /** The restore door for the surface payload — see {@link setInteriorPayload}. */
     public setSurfacePayload(payload: BulkPayload | null): Promise<void> | undefined {
       this.surfacePayload = payload;
-      return payload?.recipeId ? Recipe.loadDictionary() : undefined;
+      return payload?.recipeId ? StuffApi.ready(TemplatePaths.recipeCatalogue) : undefined;
     }
 
     /**

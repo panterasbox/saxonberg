@@ -935,7 +935,7 @@ export default abstract class Avatar extends AvatarBase {
   ): Promise<void> {
     const startingLocation = this.assertStartingLocation();
     // A caster's verbs are afforded by the spell dictionary (D9: never booted).
-    if (this.isCastingCapable()) await MagicApi.ready();
+    if (this.isCastingCapable()) await StuffApi.ready(MagicApi);
     this.armSession();
     // ⭐⭐ **No belief read here, and its absence is proved rather than
     // assumed.** This used to call `hydrateBeliefs()`, from before the

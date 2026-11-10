@@ -30,7 +30,7 @@
  * tests/documents-path-identity.dirty.wire.test.ts` (build-4's port).
  */
 
-import { describe as suite, it, expect, afterAll } from 'vitest';
+import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
 import { spawnSync } from 'child_process';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -173,7 +173,21 @@ async function restartWorld(): Promise<void> {
   process.env.WIRE_SERVER_URL = await bootOwnedWorld();
 }
 
+/** Move the clock to the next `fromH`–`toH` window (by daylight: in the dark a thing is "something"). */
+async function toHour(fromH: number, toH: number): Promise<void> {
+  const { after } = await advanceWorldClock('0 seconds');
+  const tod = (((after % 86_400) + 86_400) % 86_400) / 3600;
+  if (tod >= fromH && tod < toH) return;
+  const wait = ((fromH - tod + 24) % 24) * 3600;
+  await advanceWorldClock(`${Math.ceil(wait / 60)} minutes`);
+}
+
 suite('documents: the path is the identity', () => {
+  // ⚠ Unlit interiors are pitch dark: the first run read the lobby at night.
+  beforeAll(async () => {
+    await toHour(10, 14);
+  }, 120_000);
+
   const opened: Session[] = [];
   async function open(prefix: string, opts: Parameters<typeof Session.open>[1]): Promise<Session> {
     const s = await Session.open(uniqueHandle(prefix), opts);
@@ -212,7 +226,7 @@ suite('documents: the path is the identity', () => {
 
   it('2. a sweat-soaked body: someone else names stale sweat', async () => {
     const worn = await open('sweaty', { startLocation: LOBBY, ...WIZARD });
-    await evalOn(worn, 'me', 'this.deposits = Object.fromEntries([["|sweat", 1]])');
+    await evalOn(worn, 'me', 'this.deposits = Object.fromEntries([["|/platform/dirt/sweat", 1]])');
     await say(worn, 'look');
     const other = await open('sniff', { startLocation: LOBBY, ...WIZARD });
     const read = await say(other, 'analyze aroma');
@@ -327,7 +341,7 @@ suite('documents: the path is the identity', () => {
       await s.cmd('practice magic-light hard success');
     }
     await hand(s, T.primer);
-    await act(s, 'study primer', '1 hour');
+    await act(s, 'study primer', '4 hours');
     const cast = await act(s, 'cast glowlight');
     expect(cast.said).toMatch(/You begin shaping Glowlight/i);
   });

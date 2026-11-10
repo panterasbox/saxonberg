@@ -40,10 +40,6 @@ function catalogue(): GovernmentCatalogue {
   return cat;
 }
 
-/** Load the government dictionary (resolved at once when it is resident). */
-async function readyImpl(): Promise<void> {
-  await StuffApi.singleton<GovernmentCatalogue>(TemplatePaths.governmentCatalogue);
-}
 
 /**
  * The jurisdiction chain for an address, most-local first: walk the
@@ -248,11 +244,6 @@ async function seatViewsOf(governmentKey: string): Promise<SeatView[]> {
  */
 @Unshadowable
 export class GovernmentLogic extends ApiLogic {
-  /** See {@link GovernmentApi.ready}. */
-  @CallSecurity(GovernmentApiCallers)
-  public ready(): Promise<void> {
-    return readyImpl();
-  }
 
   /** See {@link GovernmentApi.governmentAt}. */
   @CallSecurity(GovernmentApiCallers)
