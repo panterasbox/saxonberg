@@ -76,10 +76,10 @@ export default class MoveController extends CommandController<MoveModel> {
       return;
     }
     const field = picked;
-    const tract = field.getTract();
-    const home = herd.homeExtent;
-    const path = tract ? this.groundPathOf(tract) : '';
-    if (home && !(path === home || path.startsWith(`${home}/`))) {
+    // ⭐ The book decides (D9, controller-liquidity W10): the home extent,
+    // already there, and the keeper's gate are `moveHerd`'s.
+    const moved = await registry.moveHerd(giver, herd.herdId, field);
+    if (moved === 'outside-home') {
       this.decline(
         context,
         Mml.compose`${Mml.thing(field)} is not ${herd.name}'s ground. They graze where they belong.`,
@@ -87,22 +87,12 @@ export default class MoveController extends CommandController<MoveModel> {
       );
       return;
     }
-    if (herd.grazing === registry.refOf(field)) {
-      this.decline(
-        context,
-        Mml.compose`${herd.name} are already on ${Mml.thing(field)}.`,
-        'already-there',
-      );
+    if (moved === 'already-there') {
+      this.decline(context, Mml.compose`${herd.name} are already on ${Mml.thing(field)}.`, 'already-there');
       return;
     }
-    // ⭐ The keeper's gate is the BOOK's (D9): `moveHerd` asks it.
-    const moved = await registry.moveHerd(giver, herd.herdId, field);
     if (moved === 'not-keeper') {
-      this.decline(
-        context,
-        Mml.compose`${herd.name} is not yours to move.`,
-        'not-keeper',
-      );
+      this.decline(context, Mml.compose`${herd.name} is not yours to move.`, 'not-keeper');
       return;
     }
     MessageApi.scene(giver)
@@ -179,16 +169,6 @@ export default class MoveController extends CommandController<MoveModel> {
       if (name === want || tract.hasKeyword(want)) return this.fieldOfTract(tract);
     }
     return null;
-  }
-
-  /**
-   * The path the parcel registry knows a tract by — a holding's keyed copy
-   * by its key (`<extent>/<leaf>`), the one authored tract by its row.
-   */
-  private groundPathOf(tract: Tract): string {
-    return tract.isPersistenceKeyExplicit()
-      ? (tract.getPersistenceKey() ?? '')
-      : (tract.getTemplatePath() ?? '');
   }
 
   /** A tract named whole: its one field, its one grass field, or its refusal. */

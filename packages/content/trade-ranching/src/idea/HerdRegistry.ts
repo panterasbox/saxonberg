@@ -71,6 +71,12 @@ import Field from '@saxonberg/content-trade-farming/src/thing/Field';
 // ⚠ A cycle (the book imports the register), safe because the book is
 // only read inside a method, never while either module evaluates.
 import Herdbook from '../thing/Herdbook';
+import type Livestock from '../agent/Livestock';
+import { HeadSeed } from '../lib/HeadSeed';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 
 /**
  * Where the register lives in the path-addressed document tree.
@@ -548,9 +554,23 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     actor: Stuff,
     herdId: string,
     to: Field | null,
-  ): Promise<HerdRecord | null | 'not-keeper'> {
+  ): Promise<HerdRecord | null | 'not-keeper' | 'outside-home' | 'already-there'> {
     const herd = await this.read(herdId);
     if (herd === null) return null;
+    if (to) {
+      // ⭐ A herd grazes where it belongs: its home extent, by the path the
+      // parcel registry knows the field's tract by (a holding's keyed copy
+      // by its key, the one authored tract by its row).
+      const tract = to.getTract();
+      const path = tract
+        ? tract.isPersistenceKeyExplicit()
+          ? (tract.getPersistenceKey() ?? '')
+          : (tract.getTemplatePath() ?? '')
+        : '';
+      const home = herd.homeExtent;
+      if (home && !(path === home || path.startsWith(`${home}/`))) return 'outside-home';
+      if (herd.grazing === this.refOf(to)) return 'already-there';
+    }
     if (!(await this.mayKeep(actor, herd))) return 'not-keeper';
     return this.graze(herdId, to);
   }
@@ -658,6 +678,150 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     if (last > 0 && now > last) {
       await this.foldFed(herdId, { fraction: 0, days: (now - last) / SECONDS_PER_GAME_DAY, end: now });
     }
+  }
+
+  /**
+   * ⭐ Which herd an act means: the one named; else the one the BOOK
+   * standing where the act is records (the `stake` shape — the fixture
+   * that affords the act says what it is about, which is what lets a
+   * second farm exist); else the only one filed.
+   */
+  public async pick(named: string | undefined, where: Stuff | null): Promise<HerdRecord | null> {
+    if (named) return this.named(named);
+    if (where && MixinApi.isContainer(where)) {
+      for (const item of where.getContents()) {
+        if (!(item instanceof Herdbook)) continue;
+        const id = item.getHerdId();
+        if (!id) continue;
+        const here = await this.read(id);
+        if (here) return here;
+      }
+    }
+    return this.sole();
+  }
+
+  /**
+   * ⚠⚠ **Heal drafted entries whose animal no longer exists**
+   * (reconcile-on-read): `drafted` claims there is an object for this head
+   * somewhere, and a purge, an eviction or a restart can falsify it — the
+   * DOCUMENT is the herd's identity, the OBJECT a temporary body, so a
+   * missing body means the record is stale, never that the head is gone.
+   */
+  public async reapStrays(herd: HerdRecord): Promise<HerdRecord> {
+    if (herd.drafted.length === 0) return herd;
+    const live = new Set<number>();
+    for (const beast of StuffApi.findAllByTemplatePath<Livestock>(LIVESTOCK_ROW)) {
+      if (beast.getHerdId() === herd.herdId) live.add(beast.getHeadIndex());
+    }
+    const kept = herd.drafted.filter((d) => live.has(d.index));
+    if (kept.length === herd.drafted.length) return herd;
+    const healed = { ...herd, drafted: kept };
+    await this.update(healed);
+    return healed;
+  }
+
+  /**
+   * ⭐⭐ `draft` (controller-liquidity W10): **cut head `index` out of the
+   * herd** — the keeper's act (D9), written BEFORE the head is minted (a
+   * failed mint is healed by {@link reapStrays}). The head is ⭐ seeded,
+   * never drawn: a pure function of `(herdId, index)` folded over what the
+   * register remembers of it, its age derived from the clock, its
+   * condition replayed over the fed history, a dried-off cow still dry.
+   * It lands `into` the place the drafter stands.
+   */
+  public async draftHead(
+    by: Stuff,
+    herdId: string,
+    index: number,
+    into: Stuff | null,
+  ): Promise<DraftAnswer> {
+    const found = await this.read(herdId);
+    if (found === null) return { ok: false, reason: 'no-herd' };
+    const herd = await this.reapStrays(found);
+    if (!Number.isInteger(index) || index < 0 || index >= herd.tally) {
+      return { ok: false, reason: 'no-such-head', facts: { herd } };
+    }
+    if (herd.drafted.some((d) => d.index === index)) {
+      return { ok: false, reason: 'already-drafted', facts: { herd } };
+    }
+    await this.foldOpen(herd.herdId);
+    const fed = (await this.read(herd.herdId))?.fed ?? [];
+    const drafted = await this.draft(herd.herdId, index, by);
+    if (drafted === 'not-keeper') return { ok: false, reason: 'not-keeper', facts: { herd } };
+    if (!drafted) return { ok: false, reason: 'already-drafted', facts: { herd } };
+    const animal = await this.mintHead(herd, index, fed, into);
+    if (!animal) return { ok: false, reason: 'mint-failed', facts: { herd } };
+    return { ok: true, animal, herd };
+  }
+
+  /** Materialise head `index` — seeded, never drawn. */
+  private async mintHead(
+    herd: HerdRecord,
+    index: number,
+    fed: readonly FedWindow[],
+    into: Stuff | null,
+  ): Promise<Livestock | null> {
+    let animal: Livestock;
+    try {
+      animal = await StuffApi.clone<Livestock>(LIVESTOCK_ROW);
+    } catch {
+      return null;
+    }
+    const overlay = herd.overlay[String(index)];
+    const sample = HeadSeed.sample(
+      {
+        herdId: herd.herdId,
+        meanAgeDays: this.meanAgeOf(herd, index),
+        femaleFraction: herd.femaleFraction ?? DEFAULT_FEMALE_FRACTION,
+      },
+      index,
+      overlay,
+    );
+    animal.bindToHerd(herd.herdId, index);
+    // ⚠⚠ Get-or-create: a `Species` is a reference Idea nothing warms, and
+    // a bare lookup minted every head with no species at all, silently.
+    let species: Species | null = null;
+    if (herd.speciesPath) {
+      try {
+        species = await StuffApi.singleton<Species>(herd.speciesPath);
+      } catch (err) {
+        console.error(`HerdRegistry: species '${herd.speciesPath}' did not resolve`, err);
+      }
+    }
+    animal.setSpecies(species);
+    animal.setLifecycleState('alive');
+    try {
+      animal.setSex(sample.sex);
+    } catch {
+      /* the species keeps no sexes; the head stays unrecorded */
+    }
+    animal.answerToSpecies(species, sample.sex);
+    animal.setAge(sample.ageDays);
+    animal.setHandling(sample.handling);
+    const since = overlay?.fleshAt ?? herd.founded;
+    const condition = HeadSeed.replay(sample.flesh, since, fed, sample.frame);
+    const flesh = animal.getReserve('flesh');
+    if (flesh) animal.adjustReserve('flesh', Quantity.of(condition - flesh.current.rawValue(), '%'));
+    animal.reconcileProduction();
+    animal.restoreDryPeriods(species, overlay?.driedOffAt, this.nowSeconds() ?? 0);
+    if (into && MixinApi.isContainer(into)) {
+      await ContainmentApi.move(animal as unknown as Stuff & Containable, into as Stuff & Container);
+    }
+    return animal;
+  }
+
+  /**
+   * ⭐⭐ How old head `index` is, derived: born into the record → the time
+   * since; otherwise founding stock — the herd's founding mean age plus
+   * the game time since it was founded. The spread stays seeded.
+   */
+  private meanAgeOf(herd: HerdRecord, index: number): number {
+    const nowS = this.nowSeconds() ?? 0;
+    const bornAt = herd.overlay[String(index)]?.bornAt;
+    if (typeof bornAt === 'number' && bornAt > 0) {
+      return Math.max(0, (nowS - bornAt) / SECONDS_PER_GAME_DAY);
+    }
+    return herd.foundingMeanAgeDays + Math.max(0, (nowS - herd.founded) / SECONDS_PER_GAME_DAY);
   }
 
   /** What the register remembers about head `index`. */
@@ -812,6 +976,23 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
 }
 
 const SECONDS_PER_GAME_DAY = 86_400;
+
+/** The row a drafted head is minted from — one row serves every species. */
+const LIVESTOCK_ROW = '/trade/ranching/agent/livestock';
+
+/** Why a head will not come out — closed; `draft` words each. */
+export type DraftRefusalReason =
+  | 'no-herd'
+  | 'no-such-head'
+  | 'already-drafted'
+  | 'not-keeper'
+  | 'mint-failed';
+
+/** What `draftHead` answers: the head, or why not. */
+export type DraftAnswer =
+  | { ok: true; animal: Livestock; herd: HerdRecord }
+  | { ok: false; reason: 'no-herd'; facts?: undefined }
+  | { ok: false; reason: Exclude<DraftRefusalReason, 'no-herd'>; facts: { herd: HerdRecord } };
 
 const COUNT_WORDS = [
   'no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',

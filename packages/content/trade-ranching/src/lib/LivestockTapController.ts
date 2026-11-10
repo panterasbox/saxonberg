@@ -22,12 +22,12 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Producing } from '@saxonberg/server/mud/lib/husbandry/Producing';
 import Livestock from '../agent/Livestock';
 
-/** One decimal place — you weigh a fleece; you do not assay it. */
-function round1(v: number): string {
-  return String(Math.round(v * 10) / 10);
-}
-
 export abstract class LivestockTapController extends TapActController {
+  /** One decimal place — you weigh a fleece; you do not assay it. */
+  protected static round1(v: number): string {
+    return String(Math.round(v * 10) / 10);
+  }
+
   protected override tapWords(giver: Stuff, subject: Stuff & Producing): TapWords {
     const base = super.tapWords(giver, subject);
     /** How she stood for it — read as the take lands. */
@@ -92,16 +92,16 @@ export abstract class LivestockTapController extends TapActController {
           }
           if (d.kept < d.drawn - 0.05) {
             return {
-              self: Mml.compose`You milk her out and the pail fills before she is done; ${round1(d.drawn - d.kept)} litres go on the straw. ${handling()}.`,
+              self: Mml.compose`You milk her out and the pail fills before she is done; ${LivestockTapController.round1(d.drawn - d.kept)} litres go on the straw. ${handling()}.`,
             };
           }
-          return { self: Mml.compose`You milk her right out — ${round1(d.kept)} litres, and she stands for it. ${handling()}.` };
+          return { self: Mml.compose`You milk her right out — ${LivestockTapController.round1(d.kept)} litres, and she stands for it. ${handling()}.` };
         }
         if (d.key === 'wool') {
           return {
             self: d.overgrown === true
-              ? Mml.compose`It comes off in one heavy matted piece — ${round1(d.drawn)} kilos of it, and half of that is second cuts and dung. It should have come off a year ago.`
-              : Mml.compose`The fleece comes off clean in a single piece, ${round1(d.drawn)} kilos, and the animal walks away looking half the size.`,
+              ? Mml.compose`It comes off in one heavy matted piece — ${LivestockTapController.round1(d.drawn)} kilos of it, and half of that is second cuts and dung. It should have come off a year ago.`
+              : Mml.compose`The fleece comes off clean in a single piece, ${LivestockTapController.round1(d.drawn)} kilos, and the animal walks away looking half the size.`,
           };
         }
         if (d.key === 'eggs') {
