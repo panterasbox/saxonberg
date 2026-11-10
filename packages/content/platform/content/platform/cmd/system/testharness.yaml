@@ -1,6 +1,5 @@
 verbs: [testharness]
 category: system
-controller: /platform/idea/cmd/system/TestHarnessController
 # ⛔ A TEST-WORLD verb. The view installs everywhere; the command loader
 # admits it only when SecurityApi.isTestEnvironment() (the wire runner's
 # SAXONBERG_TEST_WORLD=1). In a world somebody plays in there is no such
@@ -60,26 +59,38 @@ options:
     type: boolean
     field: alive
     description: "Pin alive (the grammar still varies the deviation) rather than frozen"
+# ⭐ One controller per act (controller-liquidity W7a): a bare subcommand
+# READS (its node's controller), and the clock's and the weather's acts are
+# nested stanzas (D2) with their own — the word is the grammar's, never a
+# controller's `op`.
 subcommands:
   clock:
+    controller: /platform/idea/cmd/system/TestHarnessClockController
     description: "Read the clock, or `clock advance <dur>` (30m, 2h, 1d)"
-    args:
-      - name: op
-        type: string
-        required: false
-      - name: value
-        type: string
-        required: false
+    subcommands:
+      advance:
+        controller: /platform/idea/cmd/system/TestHarnessClockAdvanceController
+        description: "Move the clock: one token, a number and a unit (30m, 2h, 1d), a day at most"
+        args:
+          - name: value
+            type: string
+            required: false
   weather:
+    controller: /platform/idea/cmd/system/TestHarnessWeatherController
     description: "Read the pin and the weather, or `weather pin <kind>` / `weather unpin`"
-    args:
-      - name: op
-        type: string
-        required: false
-      - name: value
-        type: string
-        required: false
+    subcommands:
+      pin:
+        controller: /platform/idea/cmd/system/TestHarnessWeatherPinController
+        description: "Hold the weather at clear, overcast, rain, storm, fog or snow (`--alive` lets it vary)"
+        args:
+          - name: value
+            type: string
+            required: false
+      unpin:
+        controller: /platform/idea/cmd/system/TestHarnessWeatherUnpinController
+        description: "Release the pin"
   ship:
+    controller: /platform/idea/cmd/system/TestHarnessShipController
     description: "Stage a ship: `ship <ship> [at node:<path> | at <frame> <cite>] [hull <band>] [bilge <L>] [slept <days>] [flag <government>] [settling]`"
     args:
       - name: op

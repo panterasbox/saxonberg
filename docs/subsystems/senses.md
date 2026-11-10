@@ -365,10 +365,10 @@ state queries about the player's own setup, not perceptual events:
 ```
 shell.result.
 ├── alias       AliasController
-├── var         VarController
-├── settings    SettingsController
+├── var         Var*Controller
+├── settings    Settings*Controller
 ├── focus       FocusController
-└── player      PlayerController
+└── player      Player*Controller
 ```
 
 (Plus the pre-existing `shell.result.{author, fs, help, movement}`

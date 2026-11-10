@@ -1,6 +1,5 @@
 verbs: [subject]
 category: social
-controller: /platform/idea/cmd/social/SubjectController
 description: "Own a subject's identity + audience (make / list); light up surfaces with `chat on` / `forum on`"
 help: |
   A subject is the shared identity and audience that chat channels and
@@ -14,6 +13,7 @@ validators:
   - /lib/command/validators/requiresAnimate
 subcommands:
   make:
+    controller: /platform/idea/cmd/social/SubjectMakeController
     description: "Create a subject (default mints a managed group; --group binds a ref; --public is audience-open)"
     help: |
       Create a subject you own. By default it mints a fresh managed
@@ -39,6 +39,7 @@ subcommands:
         type: string
         required: true
   list:
+    controller: /platform/idea/cmd/social/SubjectListController
     description: "List subjects visible to you, with their lit surfaces"
     help: |
       Show the subjects you can see and which surfaces — chats, boards —

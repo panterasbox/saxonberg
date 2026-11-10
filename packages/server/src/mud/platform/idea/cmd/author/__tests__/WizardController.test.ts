@@ -1,5 +1,5 @@
 /**
- * WizardController — maps `wizard grant/revoke <player>` onto the
+ * WizardGrantController / WizardRevokeController — map `wizard grant/revoke <player>` onto the
  * narrow-entry `AccessApi.setWizardMembership` (never the registry).
  * `AccessApi.setWizardMembership` + `PlayerApi.isAvatarStuff` are stubbed
  * (no Mongo, no live AccessRegistry); the scene transport is a no-op
@@ -10,7 +10,8 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { MockInstance } from "vitest";
-import WizardController from "../WizardController";
+import WizardGrantController from "../WizardGrantController";
+import WizardRevokeController from "../WizardRevokeController";
 import { AccessApi } from "../../../../../api/access";
 import { PlayerApi } from "../../../../../api/player";
 import { MessageApi } from "../../../../../api/message";
@@ -28,8 +29,7 @@ function fakeTarget(playerId: string, name = "Alice") {
   };
 }
 
-describe("WizardController", () => {
-  let ctrl: WizardController;
+describe("WizardGrantController / WizardRevokeController", () => {
   let ctx: CommandContext;
   let note: ReturnType<typeof vi.fn>;
   let setMembership: MockInstance<(...args: never[]) => unknown>;
@@ -49,7 +49,6 @@ describe("WizardController", () => {
       b.send = () => {};
       return b as never;
     });
-    ctrl = makeStuff(() => new WizardController());
     note = vi.fn();
     ctx = { commandGiver: {} as never, note } as unknown as CommandContext;
   });
@@ -59,6 +58,10 @@ describe("WizardController", () => {
   });
 
   function run(model: WizardModel) {
+    const ctrl =
+      model.subcommand === "revoke"
+        ? makeStuff(() => new WizardRevokeController())
+        : makeStuff(() => new WizardGrantController());
     return ctrl.execute(model as never, ctx);
   }
 
@@ -83,13 +86,6 @@ describe("WizardController", () => {
     );
   });
 
-  it("rejects an unknown subcommand without touching membership", async () => {
-    await run({ subcommand: undefined, target: fakeTarget("p-alice") });
-    expect(setMembership).not.toHaveBeenCalled();
-    expect(note).toHaveBeenCalledWith(
-      expect.objectContaining({ reason: "unknown-subcommand" }),
-    );
-  });
 
   it("rejects a missing target", async () => {
     await run({ subcommand: "grant" });

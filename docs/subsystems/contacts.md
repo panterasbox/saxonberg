@@ -8,7 +8,7 @@ chooses) are derived views over a flat entry set; there is no
 reserved label vocabulary, and `friend` carries no special status.
 
 Composed onto `Character` (and so onto every `Avatar`), `ContactsMixin`
-ships the storage + method surface; `ContactsController` + `contacts.yaml`
+ships the storage + method surface; `Contacts<Sub>Controller` (over `ContactsControllerBase`) + `contacts.yaml`
 ship the player-facing verb suite; `ContactsGroupProvider` plugs the
 storage into the broader `GroupApi` so future audience-computation
 consumers can reach a contacts list with the same uniform shape they
@@ -235,7 +235,7 @@ study-group — reaches the contacts list uniformly with managed groups
 and MQL queries. No per-consumer special case.
 
 `onChange` registration is also routed through the provider:
-`ContactsController` calls `fireChange(ownerPlayerId, label)` after
+The contacts controllers call `fireChange(ownerPlayerId, label)` after
 every CRUD mutation, and subscribed listeners (chat audience cache,
 future targeting subscriptions) get a tick.
 

@@ -20,5 +20,4 @@ packages/server/src/mud/platform/idea/AccessRegistry.ts  7  definition
 packages/server/src/mud/platform/idea/OfficeRegistry.ts  1  prose
 packages/server/src/mud/platform/idea/api/AccessLogic.ts  7  definition
 packages/server/src/mud/platform/idea/cmd/author/EvalController.ts  1  prose
-packages/server/src/mud/platform/idea/cmd/author/WizardController.ts  1  subject
 packages/server/src/services/auth/AuthRoutes.ts  5  ux

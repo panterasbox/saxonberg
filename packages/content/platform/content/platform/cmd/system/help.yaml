@@ -1,7 +1,7 @@
 verbs: [help]
 category: system
 defaultAliases: [{name: h}, {name: "?"}]
-controller: /platform/idea/cmd/system/HelpController
+controller: /platform/idea/cmd/system/HelpTopicController
 opens_card: help
 description: "Get help: bare lists the verb categories; `help <category>`, `help <verb>`, `help api`, `help search`"
 help: |
@@ -33,6 +33,7 @@ args:
     required: false
 subcommands:
   verb:
+    controller: /platform/idea/cmd/system/HelpVerbController
     description: "Show help for a verb (no name → list verbs)"
     help: |
       You rarely type `help verb` in full — `help look` reaches the
@@ -42,6 +43,7 @@ subcommands:
         type: string
         required: false
   api:
+    controller: /platform/idea/cmd/system/HelpApiController
     description: "Show api signatures (Type or Type.member)"
     help: |
       For authors: browse the scripting surface. Name a type to see
@@ -54,6 +56,7 @@ subcommands:
         type: string
         required: false
   search:
+    controller: /platform/idea/cmd/system/HelpSearchController
     description: "Full-text search across verb help and api docs"
     help: |
       Type a word or two and get every command whose name, summary,

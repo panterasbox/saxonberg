@@ -346,7 +346,7 @@ export default class AccessRegistry extends AccessRegistryBase {
   /**
    * Narrow-entry mutation: add or remove `playerId` from the `'wizards'`
    * group. Reachable only through `AccessApi.setWizardMembership`, which
-   * carries the `FromController(WizardController)` policy — the archwizard
+   * carries the `FromModule(WizardGrantController | WizardRevokeController)` policy — the archwizard
    * authorization itself is enforced by the verb's `requiresArchwizard`
    * validator, not here. Fires `managed().fireChange` so the lazy wizard
    * cache invalidates. Returns true iff membership changed.

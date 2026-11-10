@@ -1,5 +1,5 @@
 /**
- * ErrorsController — the `errors` verb maps the bound model onto
+ * The `errors` controllers — the `errors` verb maps the bound model onto
  * DiagnosticApi.list / rawTail / clear and gates raw (the Prime Minister's —
  * other players' data, wizard-axis D19) + clear
  * (author-of-path, via the -1 sentinel). Output is captured by spying
@@ -9,7 +9,9 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import ErrorsController from '../ErrorsController';
+import ErrorsListController from '../ErrorsListController';
+import ErrorsRawController from '../ErrorsRawController';
+import ErrorsClearController from '../ErrorsClearController';
 import { DiagnosticApi } from '../../../../../api/diagnostics';
 import { ExecutionContextApi } from '../../../../../api/execution-context';
 import { CompactApi } from '../../../../../api/compact';
@@ -49,8 +51,7 @@ function row(over: Partial<DiagnosticDoc>): DiagnosticDoc {
   };
 }
 
-describe('ErrorsController', () => {
-  let ctrl: ErrorsController;
+describe('errors controllers', () => {
   let ctx: CommandContext;
   let output: string[];
   let note: ReturnType<typeof vi.fn>;
@@ -62,7 +63,6 @@ describe('ErrorsController', () => {
     vi.spyOn(DiagnosticApi, 'clear').mockResolvedValue(0);
     vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(false);
 
-    ctrl = makeStuff(() => new ErrorsController());
 
     output = [];
     const realFromMarkup = Mml.fromMarkup.bind(Mml);
@@ -97,7 +97,9 @@ describe('ErrorsController', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  const run = (m: ErrorsModel) => ctrl.execute(m as never, ctx);
+  // ⭐ The view's routing: each form names its own controller.
+  const run = (m: ErrorsModel) =>
+    makeStuff(() => new (m.subcommand === 'raw' ? ErrorsRawController : m.subcommand === 'clear' ? ErrorsClearController : ErrorsListController)()).execute(m as never, ctx);
 
   it('has no door: a nobody gets an empty list, never a refusal (what you see is what you hold)', async () => {
     await run({});

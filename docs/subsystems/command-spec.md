@@ -574,7 +574,7 @@ with a brush, half that by hand, and the `brush` slot is `wash`'s.
 ## Help content — `description` / `help` / `examples`
 
 Three authored fields feed the in-game `help` browser
-(`HelpController` → `CommandDefinition.getHelpText()`). The governing
+(`HelpTopicController` → `CommandDefinition.getHelpText()`). The governing
 rule: **author intent, generate mechanics.** Anything the spec already
 encodes — syntax, options, prepositions, aliases, the subcommand list
 — is rendered automatically; authored prose must not restate it.
@@ -720,7 +720,8 @@ wide, open, half, low, banked*. `default:` must be one of the values
 (load-time). `help` renders the set in place of the placeholder
 (`--width <wide|open|half|low|banked>`). A controller that refuses an
 out-of-set word itself, or keeps a word→value table for one, is carrying
-the view's job (`StyleController`, `CockpitShelfController`).
+the view's job (`StyleController` and `CockpitShelfController` did, until
+controller-liquidity W7b moved both sets onto `values:`).
 
 ### ⭐ `depth:` — how deep an object slot reaches (controller-liquidity D4)
 
@@ -2350,8 +2351,8 @@ levels:
   resolve → validators → execute → auto-emit).
 
 `FocusController.test.ts`, `GoController.test.ts`,
-`OpenController.test.ts`, `SettingsController.test.ts`, and
-`VarController.test.ts` are good integration-test references.
+`OpenController.test.ts`, `SettingsController.test.ts` (the `settings`
+controllers), and `VarController.test.ts` are good integration-test references.
 
 ## Cross-references
 
