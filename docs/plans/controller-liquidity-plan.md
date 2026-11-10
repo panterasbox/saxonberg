@@ -1744,6 +1744,23 @@ rebase cleanly.
   → `Comminuting.millPlanFor` one engine, the hopper takes the grain),
   `trade-baking`, `trade-sugar` (Clay's structured reason), `trade-dairying`,
   `trade-hospitality`, `trade-apiculture`.
+  > **W10: ✅ done.** Kernel: `Comminuting.millPlanFor` (one engine; C17 —
+  > driven stones take the charge as they start; dust is an authored
+  > `dustMaterial`), `Butcherable.butcherPlan` (the whole breakdown on the
+  > body — the plan's Corpse home, via the mixin Corpse composes),
+  > `Organism.slaughterRefusal`/`slaughter` (@hooks; Livestock adds the
+  > book), `RecipeCatalogue.curingRecipeFor`. Packs: `Tract.plowPlanFor`/
+  > `readGround`, `Field.mowPlanFor` (the plow lives on the TRACT, not
+  > `Soil` — clearing is the tract's), `HerdRegistry.pick`/`draftHead`/
+  > `reapStrays`, `Livestock.returnToHerd`/`serveBy`/`answerToSpecies`,
+  > `Copper` reasons not lines; serve = mix handed over. C3 closed (vessel
+  > arg deleted — nothing caught blood; `blade` `with`, `tools` `using`),
+  > C17, C19's W10 half, C21's sugar half. No record row re-recorded
+  > (`mill`/`butcher`/`plow` end states unchanged). **Deferred:** plate/
+  > muddle/strain/garnish paces (they act on the kernel `Builds` vessel — a
+  > step protocol is kernel work), bake's lit-chamber read (a `Burner`
+  > predicate), Move's field/herd word resolution. Ceilings: decisions −110,
+  > durations −3, mutations −30, functions −9, multi-act −3, self −7, duck −8.
 - **W11 — wood and fiber:** `trade-forestry` (Fell → `Fellable`, spend at
   engagement start; Rive → `Rivable`), `trade-carpentry` (Saw → `Sawmill.
   sawPlan` one engine, `setSawing` on both paths, the two exported
@@ -1753,6 +1770,30 @@ rebase cleanly.
   Mordant binds a material and a bath), `trade-tanning` (Tan one act;
   `look` reports), `trade-cordage`, `trade-sericulture`, `trade-papermaking`,
   `trade-printing` (Print → `Printing`; the `on` arg renamed `press`).
+
+  > **W11: ✅ done.** Kernel: `ActPlan.onBegin` (a claim held while the act
+  > runs, taken by `engagePlan` once the work is under way) and
+  > `Wearable.alterPlanFor`. Packs: `FellableMixin` (Wood + a new forestry
+  > `Standard`; oak/ash rows name it, `SapStandard` extends it),
+  > `Sawmill.sawPlan` (both rungs claim the saw; C6), `TextileStock.
+  > scutch/spin/weavePlan` (mint before consume, C29; `isYarn` by count,
+  > C23), `CutPieces.sewPlan` (`--pattern` a `values:` list), `DyeBath`
+  > (C9: the mordant is the bath's material, a dose spent), `Tanpit.
+  > layInPlan` + the pit's `look` carries every skin, `PrintingMixin.
+  > printFor`. **Decisions (build, W11):** (a) `Fellable` is a PACK mixin —
+  > with the planted standard a forestry class both hosts share a pack
+  > ancestor, and kernel `Plant` stays honest; (b) `DyeBath` is a value
+  > object, not a protocol — a bath is any bulk vessel, so there is no host
+  > class; (c) `sew` refuses a wearable that is not cut pieces. **Player-
+  > visible (add to § 6):** `mordant <cloth> [in <bath>]` (was `with
+  > alum`, which cost nothing); `tan hide` on a skin already down refuses
+  > and says `look` at the pit; `print "a name" 2` (quoted, `copies` a
+  > number arg); hemp yarn now weaves. Ceilings (my share, per commit):
+  > decisions −135, durations −11, functions −42, mutations −49, multi-act
+  > −7, duck −3, self-resolution −1 — the lane's controllers are at 4
+  > decisions / 0 functions / 1 mutation. The carcass-chain wire drive's
+  > two tan checks now `look tanpit`. Cordage, papermaking, Rive: read,
+  > no change (W6 did Rive; `--length` stays W6's grammar deferral).
 - **W12 — water, transport and the ground you sink a hole in:**
   `transport` (Course readout controller + `Frame.planCourse` for the
   rest; Journey status controller; Berth → `berth roads`; Launch/Recover →
@@ -1780,6 +1821,32 @@ rebase cleanly.
   where this build can reach them), `trade-shopkeeping` (HouseShop split
   is W7a; the stock sheet by screen principal stays — documented), the
   stub trades.
+
+  > **W13: ✅ done.** `PlatBook.sell(extent, buyer, desk)` check-then-act
+  > over the new `ParcelApi.subdivisionRefusal` (C1, drive step 11);
+  > `LettingWarren` (residence `src/lib/`) is ONE let/end-let over Dorm +
+  > Building warrens with `mayLetFor(by)` inside (D9; Hall/LettingController
+  > deleted; C4 storage eviction; the dorm end-let scoped to the dorms);
+  > the ascent gate is the `Ascent` value object (not on PlatBook — a let has
+  > no book); `maintain` rides kernel `Maintainable` on `Building`/`Ship`
+  > (no upkeep mixin existed); `MarketStalls.let/giveUp` (C5: goods to the
+  > square when the keeper cannot hold), the fixture a bound `square` arg;
+  > `receiveGift` credits + `GiftAnswer` (C15); `OperationEngagement` owns
+  > the hold (C38); `Vitals.leaveWoundOpen` (C39, not ConditionApi — it is
+  > the body's record); `receiveBlood({by})` records harm + revival;
+  > `DonationBank.keptBy` gates `takeUnit`; `Spellbook.studyPlanFor`;
+  > `job.yaml` help (C85). Step 12 was already W3's (identity-keyed
+  > transfer + introduce; verified). Ceilings −18/−4/−1/−12/−6/−6
+  > (decisions/durations/functions/mutations/duck/self-res); gates stay 11
+  > (W8's engine primitives, none in these packs), lineage-keys 0.
+  > **Deferred:** #128 (a kernel retail/banking settle path, not a pack
+  > controller); Recharge's `transfer`-spell gate (the kernel `Charged`
+  > cannot name a content spell — needs a kernel field + rows);
+  > Cast/Zap/Recite still pass the magic Apis' prose (a kernel MagicApi
+  > change); university-avenue verbs, Prescribe/Set/Test unchanged.
+  > Record rows that change on purpose: `title buy` (zoning refusal now
+  > takes no money), `unprovision` (goods to storage; new sentence),
+  > `donate` (someone else's unit), `stall give-up`.
 - Acceptance per lane: its rows in Appendix A/B/C closed; its pack's
   vitest green; its ceilings' share lowered (each lane's brief carries the
   per-pack counts from W0's census output); its baseline rows unchanged
