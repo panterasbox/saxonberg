@@ -46,7 +46,7 @@ Idea). The document carries only **declared shape** — role vocabulary,
 allocation kind, interception rule, coup governance; what a token *means*
 is combat's module-private interpreter in `CombatLogic`, and every
 magnitude is a `combat.formation.*` AppSettings dial (shape in code,
-magnitudes in dials). `Formation.fromData` validates it into a frozen
+magnitudes in dials). `PartyApi.formations().parse` validates it into a frozen
 `FormationPolicy`; a pack sync of the kind invalidates the cache, so an
 edit lands on the next load. A formation's word (`vanguard`) is its
 path's leaf — a typed word, unique at install.
@@ -73,11 +73,11 @@ beat (`resolvePolicyFor` — deliberately NOT frozen at open, unlike
 `side`, which is what makes a mid-fight `party adopt` land on the very
 next beat with no pending-state machinery): ⭐ a combatant with no party,
 or whose party never chose, fights by the built-in
-`Formation.DEFAULT_POLICY`, pinned value-equal to the shipped `default`
+`DEFAULT_FORMATION_POLICY`, pinned value-equal to the shipped `default`
 document — that is the **no-formation** case, not a cold case. A party
-that CHOSE a formation reads it with `Formation.need(path)`, and it is
+that CHOSE a formation reads it with `PartyApi.formations().need(path)`, and it is
 always resident (documents D7): the adopt loaded it in the act, and
-`materializeParty` awaits `Formation.ensure` for a restored party's
+`materializeParty` awaits `PartyApi.formations().ensure` for a restored party's
 path. A miss is `DocumentNotResidentError`, never a quiet default, and
 there is nothing to warm before a fight. **The default preset byte-preserves pre-formation
 combat** — a gym regression pins four canonical matchups' exact winners
@@ -183,7 +183,7 @@ the mentored pair does it by the engine's rules instead of around them.
   **witnessed, reactable formation-shift beat** ("the line reforms
   around…", topic `self.group`); a mid-fight adopt acts on the
   very next beat. `party adopt <word>` resolves the word with
-  `Formation.pathOfWord` (resident first, else the card's `keys.word`),
+  `PartyApi.formations().pathOfWord` (resident first, else the card's `keys.word`),
   which loads the document in the act, so the path the party records is
   resident (the beat's consult is sync).
 - **`fight`** (bare) shows your own side's `Formation:` + `Role:`; the

@@ -70,7 +70,7 @@ const VOCAB = fileURLToPath(
  * in the same commit, which is the whole point: the diff shows somebody
  * widened the sandbox boundary.
  */
-export const COMMONS_CEILING = 23; // documents W4: −1 more (TopicCatalogue). Was 24; // documents W4: −2 (Placement + PlacementCatalogue are documents now). Was 26; // +1 Biome (ceramics, 2026-10-22): every body's reconcile reads it; +2 PlacementCatalogue + Placement (ceramics, 2026-10-28): every PLACED body's reconcile reads them (`getEnclosingScope`), and a governed eval in a parcel was refused at a pan on a hearth
+export const COMMONS_CEILING = 30; // documents W5d: +7 — the document families' catalogues are restored as commons singletons (Joint, Form, PumpMechanism, Operation, Formation, Dirt, Placement, Topic, Aroma). CALLER AUDIT: every one is read by any player's verbs inside a circle (smell, put…on, fit, operate, party adopt, pump, shape) — shared reference vocabulary, the role's definition. The −4 this branch reported earlier came from DELETING commons catalogues the owner asked back; master was 27. Was: documents W4: −1 more (TopicCatalogue). Was 24; // documents W4: −2 (Placement + PlacementCatalogue are documents now). Was 26; // +1 Biome (ceramics, 2026-10-22): every body's reconcile reads it; +2 PlacementCatalogue + Placement (ceramics, 2026-10-28): every PLACED body's reconcile reads them (`getEnclosingScope`), and a governed eval in a parcel was refused at a pan on a hearth
 
 export interface RoleDeclaration {
   file: string;

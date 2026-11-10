@@ -212,7 +212,7 @@ engine machinery, so it loads the vocabulary itself — **transparently,
 with no caller involvement and no frame lost** (documents D13; the owner:
 *"queue is fine"*):
 
-- `Topic.warm()` reads every `topic` document (one `listOfKind`, memoized)
+- `MessageApi.topics().warm()` reads every `topic` document (one `listOfKind`, memoized)
   and installs the dictionary. Nothing calls it at boot.
 - **`Scene.send()` stays synchronous for its caller.** While the
   dictionary is cold (`MessageApi.topicsWarming()` returns the warm in
@@ -221,7 +221,7 @@ with no caller involvement and no frame lost** (documents D13; the owner:
   sent after the warm dispatches immediately — and a scene sent while the
   queue still holds earlier ones queues behind them, so order holds.
 - `Avatar`'s welcome payload awaits `MessageApi.topicsWarming()` before
-  reading `Topic.snapshot()`.
+  reading `MessageApi.topics().snapshot()`.
 - A synchronous read (`descriptor`, `snapshot`, `isCommunicative`) that
   finds the dictionary cold throws `DocumentNotResidentError` — unreachable
   through `Scene.send`.
@@ -231,7 +231,7 @@ Access is through `MessageApi` and the message logic (`isCommunicative`,
 
 ## Auto-fallback for unknown topics
 
-`Topic.descriptor` walks three tiers in order:
+`MessageApi.topics().descriptor` walks three tiers in order:
 
 1. **Cache hit** — return the authored entry verbatim.
 2. **Family-inherited** — walk the dotted-path chain
@@ -258,7 +258,7 @@ cached snapshot — descriptor lookups don't round-trip.
 ## Wire push on session-establish
 
 At session-establish, the avatar's welcome payload awaits the warm and
-reads `Topic.snapshot()` into its `topicCatalogue` field. The client
+reads `MessageApi.topics().snapshot()` into its `topicCatalogue` field. The client
 caches the array in a `Map<topic, TopicDescriptor>` on the Zustand
 store; `getTopicDescriptor` consults that map.
 
@@ -267,7 +267,7 @@ login.
 
 ## Cache invalidation
 
-⭐ A pack sync that touches the `topic` kind calls `Topic.invalidate()`
+⭐ A pack sync that touches the `topic` kind calls `MessageApi.topics().invalidate()`
 (the installer's per-kind go-live), which drops the dictionary; the next
 scene re-warms it, queueing behind that warm like the first. No restart.
 

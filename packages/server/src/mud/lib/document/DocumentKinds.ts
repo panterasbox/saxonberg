@@ -66,6 +66,13 @@ export interface DocumentKindSpec {
    * kind's documents are named by path only.
    */
   words?: (doc: DocumentKeySource) => string[];
+  /**
+   * The singleton that SERVES the kind — where its documents are looked up
+   * (`/platform/idea/JointCatalogue`, reached as `CraftingApi.joints()`).
+   * Absent for a kind read by path alone. An edit's go-live forgets the
+   * edited paths through it (`DocumentApi.catalogueFor`).
+   */
+  catalogue?: string;
   /** The pack subdir the kind's files live under (`emotes`). */
   contentDir: string;
   /** File extension the reader accepts. */
@@ -113,40 +120,40 @@ export const DOCUMENT_KINDS = {
    * that path when something names it (`lib/perception/Aroma.ts`). Authored
    * metadata: nothing writes one.
    */
-  aroma: { kind: 'aroma', contentDir: 'aromas', ext: 'yaml', onVanish: 'delete' },
+  aroma: { kind: 'aroma', catalogue: '/platform/idea/AromaCatalogue', contentDir: 'aromas', ext: 'yaml', onVanish: 'delete' },
   recipe: { kind: 'recipe', words: leafWord, keys: { output: recipeOutput }, contentDir: 'recipes', ext: 'yaml', onVanish: 'delete' },
   /**
    * A **pump mechanism** — how a displacement machine moves its fluid, and
    * whether it `pulls` (and so meets the atmosphere's wall). Authored
    * metadata a pump cites by path (`lib/pump/PumpMechanism.ts`).
    */
-  'pump-mechanism': { kind: 'pump-mechanism', contentDir: 'pump-mechanisms', ext: 'yaml', onVanish: 'delete' },
+  'pump-mechanism': { kind: 'pump-mechanism', catalogue: '/platform/idea/PumpMechanismCatalogue', contentDir: 'pump-mechanisms', ext: 'yaml', onVanish: 'delete' },
   /**
    * A **form word** — what a potter's (or a glassblower's) `shape` makes:
    * five classes × a capacity × a proportion (`lib/craft/FormSpec.ts`
    * `Form`). An instrument cites the words it makes by path; the word is
    * resolved against that list, so two instruments may each know a `brick`.
    */
-  form: { kind: 'form', contentDir: 'forms', ext: 'yaml', onVanish: 'delete' },
+  form: { kind: 'form', catalogue: '/platform/idea/FormCatalogue', contentDir: 'forms', ext: 'yaml', onVanish: 'delete' },
   /**
    * A **joint** — one way parts are joined (a wedge, a mortise, a knot):
    * portability, competence, how it comes apart, its strength
    * (`lib/craft/Joint.ts`). A bill cites a joint by path.
    */
-  joint: { kind: 'joint', contentDir: 'joints', ext: 'yaml', onVanish: 'delete' },
+  joint: { kind: 'joint', catalogue: '/platform/idea/JointCatalogue', contentDir: 'joints', ext: 'yaml', onVanish: 'delete' },
   /**
    * A **dirt** kind — blood, grease, mud: its word, whether it is a film,
    * a debris or a stain, what lifts it, what sets it, what it smells of
    * (`lib/cleanliness/DirtKind.ts`). A deposit, a recipe's `soils[]` and
    * the kernel's own `DirtKinds` constants name it by path.
    */
-  dirt: { kind: 'dirt', contentDir: 'dirt', ext: 'yaml', onVanish: 'delete' },
+  dirt: { kind: 'dirt', catalogue: '/platform/idea/DirtCatalogue', contentDir: 'dirt', ext: 'yaml', onVanish: 'delete' },
   /**
    * An **operation** — one entry of the surgical catalogue: which wound it
    * addresses, its blood and time, its anaesthesia, how it resolves
    * (`lib/vitals/Operation.ts`). A surgeon names it by its word.
    */
-  operation: { kind: 'operation', words: leafWord, contentDir: 'operations', ext: 'yaml', onVanish: 'delete' },
+  operation: { kind: 'operation', catalogue: '/platform/idea/OperationCatalogue', words: leafWord, contentDir: 'operations', ext: 'yaml', onVanish: 'delete' },
   /**
    * A **help concept** — a player-facing help page about a CONCEPT (what
    * nitrogen is), not a command or an Api. Read by `HelpCatalogue` into
@@ -158,7 +165,7 @@ export const DOCUMENT_KINDS = {
    * allocation, interception, the coup (`lib/combat/Formation.ts`). A party
    * names its formation by path; a captain adopts one by its word.
    */
-  formation: { kind: 'formation', words: leafWord, contentDir: 'formations', ext: 'yaml', onVanish: 'delete' },
+  formation: { kind: 'formation', catalogue: '/platform/idea/FormationCatalogue', words: leafWord, contentDir: 'formations', ext: 'yaml', onVanish: 'delete' },
   /**
    * A **placement** — a way of sitting (`on`, `in`, `from`): the words a
    * player types for it, whether it encloses, its sentence and its heading
@@ -168,6 +175,7 @@ export const DOCUMENT_KINDS = {
    */
   placement: {
     kind: 'placement',
+    catalogue: '/platform/idea/PlacementCatalogue',
     words: (doc) => {
       const p = doc.data.prepositions;
       return Array.isArray(p) && typeof p[0] === 'string' ? [p[0]] : [];
@@ -178,11 +186,11 @@ export const DOCUMENT_KINDS = {
   },
   /**
    * A **topic** — one key of the message vocabulary (`combat.hit`): its
-   * label, description and the six attention facets (`lib/message/Topic.ts`).
+   * label, description and the six attention facets (`platform/idea/TopicCatalogue.ts`).
    * Named by code; its dotted key is its path's leaf. Roots are closed —
    * a pack adds leaves under the seven core roots only.
    */
-  topic: { kind: 'topic', words: leafWord, contentDir: 'topics', ext: 'yaml', onVanish: 'delete' },
+  topic: { kind: 'topic', catalogue: '/platform/idea/TopicCatalogue', words: leafWord, contentDir: 'topics', ext: 'yaml', onVanish: 'delete' },
   'name-bank': { kind: 'name-bank', contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
   blueprint: { kind: 'blueprint', contentDir: 'blueprints', ext: 'yaml', onVanish: 'delete' },
   'command-view': { kind: 'command-view', contentDir: 'cmd', ext: 'yaml', onVanish: 'delete' },

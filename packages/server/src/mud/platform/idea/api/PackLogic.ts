@@ -28,9 +28,7 @@ import {
   type DocumentVanishPolicy,
 } from '../../../lib/document/DocumentKinds';
 import { StoredDocument } from '../../../lib/document/StoredDocument';
-import { DocumentCache } from '../../../lib/document/DocumentCache';
 import { TOPIC_ROOTS } from '@saxonberg/types';
-import { Topic } from '../../../lib/message/Topic';
 import { PersistApi } from '../../../api/persist';
 import { StuffApi, type ClassResolution } from '../../../api/stuff';
 import { ModuleApi } from '../../../api/module';
@@ -94,6 +92,7 @@ import { ConditionApi } from '../../../api/condition';
 import { PartyApi } from '../../../api/party';
 import { MaterialApi } from '../../../api/material';
 import { ContainmentApi } from '../../../api/containment';
+import { MessageApi } from '../../../api/message';
 
 const PackApiCallers = SecurityPolicies.FromModule('/api/pack#PackApi');
 
@@ -3610,15 +3609,10 @@ async function invalidateDocumentKind(
   changedPaths: string[] = [],
   deletedPaths: string[] = [],
 ): Promise<void> {
-  // ⭐ Every value class's memory of the kind forgets the touched paths,
-  // so the next use re-reads (aroma, and each family that is a document).
-  DocumentCache.invalidate(kind, [...changedPaths, ...deletedPaths]);
+  // ⭐ The catalogue serving the kind forgets the touched paths, so the
+  // next use re-reads (the topics re-read on their next warm).
   DocumentApi.catalogueFor(kind)?.forget([...changedPaths, ...deletedPaths]);
   switch (kind) {
-    case 'topic':
-      // The vocabulary re-reads on its next warm (the next scene queues).
-      Topic.invalidate();
-      return;
     case 'command-view':
       // Per path: a changed view re-reads from the store; a deleted one
       // drops its cache entry (the next getCommand falls to disk).

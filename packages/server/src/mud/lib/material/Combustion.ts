@@ -17,9 +17,10 @@ import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { DissolvedAromatics } from '../metabolism/DissolvedAromatics';
 import type { AromaTag } from '../metabolism/DissolvedAromatics';
-import { Aroma, type OdorTag } from '../perception/Aroma';
+import { type OdorTag } from '../perception/Aroma';
 import type { FieldMeta, MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import { PerceptionApi } from '../../api/perception';
 
 export interface Combustion {
   getCombustionImparts(): readonly AromaTag[];
@@ -71,7 +72,7 @@ export function CombustionMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
     }
 
     public async setBurning(value: readonly OdorTag[]): Promise<void> {
-      this.burning = await Aroma.resolveOdorTags(value, 'Material.burning');
+      this.burning = await PerceptionApi.aromas().resolveOdorTags(value, 'Material.burning');
     }
 
     // ---------- Fire / phase-change — real thermal properties ----------
@@ -292,7 +293,7 @@ async function validateCombustionImparts(value: AromaTag[]): Promise<AromaTag[]>
           `positive amount (mg/L)`,
       );
     }
-    await Aroma.ensure(tag.type);
+    await PerceptionApi.aromas().ensure(tag.type);
     out.push({ type: tag.type, amount: tag.amount });
   }
   return out;

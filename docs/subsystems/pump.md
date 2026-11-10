@@ -34,8 +34,8 @@ law and becomes a lie. So:
   true|false`) — `suction` and `force` ship; a third (`centrifugal`,
   `sucker-rod`) is a file with `pulls:` set honestly and no code. It is
   resident whenever its pump is: the `mechanism` setter awaits
-  `PumpMechanism.ensure(path)`, so the sync read beneath the stroke is
-  `PumpMechanism.need(path)` and a miss throws `DocumentNotResidentError`
+  `BulkableApi.pumpMechanisms().ensure(path)`, so the sync read beneath the stroke is
+  `BulkableApi.pumpMechanisms().need(path)` and a miss throws `DocumentNotResidentError`
   ([document-store.md](./document-store.md));
 - the ceiling is **arithmetic over the place**:
   `BiomeApi.suctionHeadFor(scope, fluidDensity?)` = `P_here / (ρ_fluid·g)`

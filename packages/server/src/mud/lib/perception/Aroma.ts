@@ -29,10 +29,6 @@
  * authored in odor units directly (1 OU = just detectable).
  */
 
-import { DocumentApi } from '../../api/document';
-import { DiagnosticApi } from '../../api/diagnostics';
-import { StuffApi } from '../../api/stuff';
-import { DocumentCache } from '../document/DocumentCache';
 
 /** How one person's liking moves with a note's strength: a hump, in log10 OU. */
 export interface HedonicCurve {
@@ -60,190 +56,31 @@ export interface AromaData {
 }
 
 
-/** An aroma path's shape: absolute, under an `aromas/` directory, a slug leaf. */
-const PATH_SHAPE = /^(\/[a-z0-9][a-z0-9._-]*)*\/aromas(\/[a-z][a-z0-9]*(-[a-z0-9]+)*)+$/;
-/** How deep a tree may go before it is a mistake. */
-const MAX_DEPTH = 8;
+
+/**
+ * An aroma's path: a pack root, then `/aromas/`, then slug segments — the
+ * folder is the tree (documents D14). A shape test only: no document is
+ * consulted.
+ */
+export const AROMA_PATH_SHAPE = /^(\/[a-z0-9][a-z0-9._-]*)*\/aromas(\/[a-z][a-z0-9]*(-[a-z0-9]+)*)+$/;
 
 export class Aroma {
-  /**
-   * Every aroma read so far, by path — the shared `DocumentCache` (which is
-   * also what a pack sync's go-live clears). Aroma keeps its own `ensure`
-   * because it walks the parent chain with a depth guard.
-   */
-  private static memo: DocumentCache<Aroma> | null = null;
-  private static get known(): DocumentCache<Aroma> {
-    // Built on first use: a static built at module load races an import
-    // cycle through the document store.
-    return (Aroma.memo ??= new DocumentCache<Aroma>('aroma', (doc) => Aroma.ensure(doc.getPath())));
-  }
-  /** Loads in flight, by path. */
-  private static readonly loading = new Map<string, Promise<unknown>>();
-
-  private constructor(
+  /** An aroma read with its parents (built by `AromaCatalogue`). */
+  public constructor(
     private readonly lineage: readonly string[],
     private readonly threshold: number,
     private readonly discipline: string,
     private readonly liking: HedonicCurve | null,
   ) {}
 
-  /** Whether a string could be an aroma's path (no document is consulted). @internal */
-  public static isAromaPath(path: unknown): path is string {
-    return typeof path === 'string' && PATH_SHAPE.test(path);
-  }
-
-  /** An aroma's word: the last segment of its path (`/…/aromas/peat-smoke` → `peat-smoke`). @internal */
-  public static wordOf(path: string): string {
-    return path.slice(path.lastIndexOf('/') + 1);
-  }
-
-  /** How an aroma reads in a sentence: `/…/aromas/peat-smoke` → `peat smoke`. @internal */
-  public static phraseOf(path: string): string {
-    return Aroma.wordOf(path).replace(/-/g, ' ');
-  }
-
-  /**
-   * The aroma, synchronously, for a read that cannot wait. One not yet read
-   * answers `null` and starts loading; a path with no document records an error an
-   * author sees in `errors`, never a quiet loss.
-   *
-   * @internal the nose's and the setters' own; an author names a path on a row.
-   */
-  public static resolve(path: string): Aroma | null {
-    const found = Aroma.known.peek(path);
-    if (found) return found;
-    if (!Aroma.loading.has(path)) {
-      const load = Aroma.ensure(path)
-        .catch((err: unknown) => {
-          void DiagnosticApi.record({
-            path,
-            severity: 'error',
-            message: `Aroma '${path}' is named but has no document: ${String(err)}`,
-          }).catch(() => {});
-        })
-        .finally(() => Aroma.loading.delete(path));
-      Aroma.loading.set(path, load);
-    }
-    return null;
-  }
-
-  /** The aroma at `path`, read with its parents; throws naming the path if there is none. @internal */
-  public static async ensure(path: string, depth = 0): Promise<Aroma> {
-    if (!Aroma.isAromaPath(path)) throw new Error(`'${String(path)}' is not an aroma path`);
-    const found = Aroma.known.peek(path);
-    if (found) return found;
-    if (depth > MAX_DEPTH) throw new Error(`Aroma '${path}': the tree is deeper than ${MAX_DEPTH}`);
-    const doc = await DocumentApi.read(path);
-    if (!doc || doc.getKind() !== 'aroma') {
-      throw new Error(`Aroma '${path}' has no aroma document`);
-    }
-    const data = doc.getData() as AromaData;
-    const parentPath = data.parent ?? Aroma.folderParentOf(path);
-    const parent = parentPath ? await Aroma.ensure(parentPath, depth + 1) : null;
-    return Aroma.remember(path, data, parent);
-  }
-
-  /**
-   * ⭐ The folder is the tree (documents D14): a child lives in its parent's
-   * directory, so its parent is the path one segment up — or none, for a
-   * root directly under `aromas/`. An explicit `parent:` is for a parent in
-   * ANOTHER pack only; `lint:aromas` refuses one the folder already says.
-   * @internal
-   */
-  public static folderParentOf(path: string): string | null {
-    const up = path.slice(0, path.lastIndexOf('/'));
-    return up.endsWith('/aromas') ? null : up;
-  }
-
-  /**
-   * Keep an aroma read from its document, its parent already known. The one way
-   * an aroma enters the cache: `ensure` calls it, and so does a unit fixture that
-   * has no document store behind it. @internal
-   */
-  public static remember(path: string, data: AromaData, parent: Aroma | null): Aroma {
-    const row = new Aroma(
-      [...(parent?.lineage ?? []), path],
-      data.threshold ?? parent?.threshold ?? 1,
-      data.discipline ?? parent?.discipline ?? '',
-      data.liking ?? parent?.liking ?? null,
-    );
-    return Aroma.known.remember(path, row);
-  }
-
-  /** An aroma already read, or `null`; starts nothing. @internal */
-  public static resolveKnown(path: string): Aroma | null {
-    return Aroma.known.peek(path);
-  }
-
-  /** Forget every aroma read, so a test starts clean. @internal */
-  public static forgetAll(): void {
-    Aroma.known.forgetAll();
-  }
-
-  /**
-   * Shape-check authored smell tags and load each aroma, so a row naming a path
-   * with no aroma fails where it is named. ⚠ Async by design: this is what makes a
-   * material's aromas resident once the material is. @internal
-   */
-  public static async resolveOdorTags(value: unknown, owner: string): Promise<OdorTag[]> {
-    if (!Array.isArray(value)) {
-      throw new TypeError(`${owner} must be a list of { aroma, strength }`);
-    }
-    const out: OdorTag[] = [];
-    for (const [i, raw] of value.entries()) {
-      const tag = raw as { aroma?: unknown; strength?: unknown };
-      if (!Aroma.isAromaPath(tag?.aroma)) {
-        throw new TypeError(`${owner}[${i}]: '${String(tag?.aroma)}' is not an aroma path`);
-      }
-      if (typeof tag.strength !== 'number' || !(tag.strength > 0)) {
-        throw new TypeError(`${owner}[${i}] ('${tag.aroma}') needs a positive strength (OU/kg)`);
-      }
-      await Aroma.ensure(tag.aroma);
-      out.push({ aroma: tag.aroma, strength: tag.strength });
-    }
-    return out;
-  }
-
-  /**
-   * Have {@link Aroma.settling} wait for another load a cold read started (a dirt
-   * kind on a restored floor, an ingredient of a restored blend), so the first read
-   * after a restart does not lose a smell. @internal
-   */
-  public static waitFor(key: string, load: Promise<unknown>): void {
-    // Caught first, whatever happens next: a load is never left to reject unheard.
-    const caught = load.catch(() => {});
-    if (Aroma.loading.has(key)) return;
-    Aroma.loading.set(
-      key,
-      caught.finally(() => Aroma.loading.delete(key)),
-    );
-  }
-
-  /**
-   * Start loading a row a smell read found cold, by path, and have
-   * {@link Aroma.settling} wait for it. @internal
-   */
-  public static loadRow(path: string): void {
-    // ⚠ Start one load per path. A second cold read must not start another:
-    // nothing would catch it, and a rejection nobody catches ends the process
-    // (found by the drive: a dirt kind with no row crashed the server).
-    if (Aroma.loading.has(path)) return;
-    Aroma.waitFor(path, StuffApi.singleton(path));
-  }
-
-  /** Every load a cold read started, to wait out; `null` when there are none. @internal */
-  public static settling(): Promise<unknown> | null {
-    return Aroma.loading.size > 0 ? Promise.all(Aroma.loading.values()) : null;
-  }
-
-  /** This aroma's path. */
   public path(): string {
     return this.lineage[this.lineage.length - 1] ?? '';
   }
 
   /** This aroma's word: its path's last segment. */
   public word(): string {
-    return Aroma.wordOf(this.path());
+    const path = this.path();
+    return path.slice(path.lastIndexOf('/') + 1);
   }
 
   /** The tree from its root down to this aroma, as paths. */

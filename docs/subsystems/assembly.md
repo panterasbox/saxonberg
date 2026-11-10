@@ -161,13 +161,13 @@ clove hitch works loose as `slack`.
 assigns synchronously and RETURNS the load of every joint its lines cite,
 which the template applier awaits; `setJoints` is the restore door that
 does the same for a made assembly's record. So `jointRow` — read inside a
-blow by `wear()` — is `Joint.need(path)`, and a joint nothing loaded
+blow by `wear()` — is `CraftingApi.joints().need(path)`, and a joint nothing loaded
 throws `DocumentNotResidentError` (an engine defect) rather than falling
 back to a default strength. Every DECIDING read in `CraftingLogic` (a
-joint made, fitted, repaired, taken apart) awaits `Joint.ensure`, and a
+joint made, fitted, repaired, taken apart) awaits `CraftingApi.joints().ensure`, and a
 rope ensures its knot in the act that ties it
-(`Joint.ensure('/platform/joints/' + word)`) — knots are only read
-asynchronously. `Joint.all()` is the lazy roster for a listing. A
+(`CraftingApi.joints().ensure('/platform/joints/' + word)`) — knots are only read
+asynchronously. `CraftingApi.joints().all()` is the lazy roster for a listing. A
 malformed document throws at `fromData`, naming the path (the installer's
 validator too).
 

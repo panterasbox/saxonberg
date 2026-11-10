@@ -7,7 +7,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { Topic } from '../Topic';
+import type TopicCatalogue from '../../../platform/idea/TopicCatalogue';
 import { DocumentApi } from '../../../api/document';
 import { DiagnosticApi } from '../../../api/diagnostics';
 import { MessageApi } from '../../../api/message';
@@ -39,67 +39,71 @@ function asDocs(): StoredDocument[] {
   );
 }
 
-let saved: ReturnType<typeof Topic.snapshot>;
+let saved: ReturnType<TopicCatalogue['snapshot']>;
 beforeEach(() => {
-  saved = Topic.snapshot();
+  saved = MessageApi.topics().snapshot();
 });
 afterEach(() => {
   vi.restoreAllMocks();
   // Put the bootstrap's vocabulary back for the next file's scenes.
-  Topic.install(saved.map((d) => ({ path: `/platform/topics/${d.topic}`, data: { ...d } })));
+  MessageApi.topics().install(saved.map((d) => ({ path: `/platform/topics/${d.topic}`, data: { ...d } })));
 });
 
 describe('Topic — the vocabulary', () => {
-  beforeEach(() => Topic.install(DOCS));
+  beforeEach(() => MessageApi.topics().install(DOCS));
 
   it('an authored descriptor reads verbatim; its key is the path leaf', () => {
-    expect(Topic.descriptor('speech.say').label).toBe('Say');
-    expect(Topic.descriptor('speech.say').topic).toBe('speech.say');
+    expect(MessageApi.topics().descriptor('speech.say').label).toBe('Say');
+    expect(MessageApi.topics().descriptor('speech.say').topic).toBe('speech.say');
   });
 
   it('an unseeded leaf inherits its nearest authored ancestor', () => {
-    const d = Topic.descriptor('speech.say.loudly');
+    const d = MessageApi.topics().descriptor('speech.say.loudly');
     expect(d.family).toBe('speech.say');
     expect(d.label).toBe('Say (Loudly)');
   });
 
-  it('an unauthored key derives a default — and records a diagnostic, once', () => {
+  it('an unauthored key derives a default — and records a diagnostic, once', async () => {
     const rec = vi.spyOn(DiagnosticApi, 'record').mockResolvedValue(undefined as never);
-    expect(Topic.descriptor('invented').label).toBe('Invented');
-    Topic.descriptor('invented');
+    expect(MessageApi.topics().descriptor('invented').label).toBe('Invented');
+    MessageApi.topics().descriptor('invented');
+    // The report is fire-and-forget (the diagnostics Api is reached by a
+    // deferred import — a static edge would cycle): let it land.
+    await vi.waitFor(() => expect(rec).toHaveBeenCalled());
+    await new Promise((r) => setTimeout(r, 20));
     expect(rec).toHaveBeenCalledTimes(1);
   });
 
   it('isCommunicative reads the authored flag', () => {
-    expect(Topic.isCommunicative('speech')).toBe(true);
-    expect(Topic.isCommunicative('sense')).toBe(false);
+    expect(MessageApi.topics().isCommunicative('speech')).toBe(true);
+    expect(MessageApi.topics().isCommunicative('sense')).toBe(false);
   });
 
   it('the snapshot is the authored descriptors only', () => {
-    expect(Topic.snapshot().map((d) => d.topic).sort()).toEqual(['sense', 'speech', 'speech.say']);
+    expect(MessageApi.topics().snapshot().map((d) => d.topic).sort()).toEqual(['sense', 'speech', 'speech.say']);
   });
 
   it('⚠ a synchronous read while the vocabulary is cold throws DocumentNotResidentError', () => {
-    Topic.invalidate();
-    expect(() => Topic.descriptor('speech')).toThrow(DocumentNotResidentError);
+    MessageApi.topics().invalidate();
+    expect(() => MessageApi.topics().descriptor('speech')).toThrow(DocumentNotResidentError);
   });
 });
 
 describe('Topic — the one warm (D13)', () => {
   it('warms from the documents once, however many callers ask', async () => {
-    Topic.invalidate();
+    MessageApi.topics().invalidate();
     const list = vi.spyOn(DocumentApi, 'listOfKind').mockResolvedValue(asDocs());
-    const a = Topic.warming();
-    const b = Topic.warming();
+    const a = MessageApi.topics().warming();
+    const b = MessageApi.topics().warming();
     expect(a).not.toBeNull();
     await Promise.all([a, b]);
     expect(list).toHaveBeenCalledTimes(1);
-    expect(Topic.warming()).toBeNull();
-    expect(Topic.descriptor('speech.say').label).toBe('Say');
+    expect(MessageApi.topics().warming()).toBeNull();
+    expect(MessageApi.topics().descriptor('speech.say').label).toBe('Say');
   });
 
   it('⭐ scenes sent while cold are queued, then delivered IN ORDER when the warm lands — none lost', async () => {
-    Topic.invalidate();
+    MessageApi.topics().invalidate();
     let land!: () => void;
     const gate = new Promise<void>((r) => (land = r));
     vi.spyOn(DocumentApi, 'listOfKind').mockImplementation(async () => {

@@ -731,7 +731,7 @@ competence · kit · anaesthesia**, with the biology in `applyTreatment` /
 (`/trade/medicine/operations/amputation`, value class
 `lib/vitals/Operation.ts`); a surgeon names it by its word — the path's
 leaf, a typed word unique at install (`operate … for amputation`) — and
-`operate` reads the kind through the lazy dictionary `Operation.all()`.
+`operate` reads the kind through the lazy dictionary `ConditionApi.operations().all()`.
 (`OperationCatalogue` and the `Operation` Idea were deleted by the
 documents path identity build, 2026-11-09.)
 

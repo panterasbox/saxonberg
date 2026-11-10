@@ -1223,6 +1223,44 @@ Commit:
 > - `HelpApi.ready` used to swallow a failed load (`.catch(() => null)`);
 >   the door refuses loudly. Test: `lib/security/__tests__/ApiNeeds.test.ts`.
 
+### W5d — the catalogues come back (owner, at review)
+
+> ✅ **W5d done (build).** ⚠⚠ **D6 was wrong, and the build made it worse.**
+> D6 put each family's lookups on its value class as statics backed by a
+> `DocumentCache`; when `lint:lib-statics` went over at W1, the build tagged
+> those classes `@internal` — the lint's escape for *no author calls this*,
+> taken without the caller audit it requires (DirtKind, Operation and
+> Aroma had pack-author callers; every family is global vocabulary). Then
+> it deleted the catalogue singletons, and `COMMONS_CEILING` falling
+> 27 → 23 was reported as progress. The owner: *"this is why we have
+> singletons that actually serve this stuff … structure and
+> discoverability — but you axed that stuff."* Now:
+> - **One catalogue singleton per family** at `/platform/idea/<X>Catalogue`
+>   (commons), **reached through its domain Api**: `CraftingApi.joints()` /
+>   `.forms()` / `.recipes()`, `ContainmentApi.placements()`,
+>   `MaterialApi.dirtKinds()`, `PartyApi.formations()`,
+>   `ConditionApi.operations()`, `BulkableApi.pumpMechanisms()`,
+>   `MessageApi.topics()`, `PerceptionApi.aromas()` (master's `Aroma` statics
+>   were the template copied — folded too).
+> - `lib/document/DocumentCatalogue` is the substrate the per-path families
+>   extend (instance doors; the per-kind memory a hard-private static slot so
+>   a re-stood catalogue reads the same memory); a family's parse is the
+>   catalogue's `parse`, which the installer validates through. Topic and
+>   Aroma are Ideas of their own shape (a warmed vocabulary; a parent walk).
+> - Value classes keep only what the thing IS: no statics, no `@internal`.
+>   Path constants are exported objects (`Placements`, `DirtKinds`,
+>   `DEFAULT_FORMATION_POLICY`, `AROMA_PATH_SHAPE`).
+> - `DocumentCache` deleted. The go-live (installer, CMS save) forgets
+>   through `DocumentApi.catalogueFor(kind)`, which reads the `catalogue:`
+>   path each kind declares in `DocumentKinds` — never by importing every
+>   domain Api into the document store.
+> - ⚠ Import cycles found on the way: a catalogue module must stay light —
+>   it reaches `DocumentApi`/`DiagnosticApi` by a deferred `import()` in its
+>   async paths, because an Api serving it may sit on `Visible`'s import path.
+> - Gates: 58 `@internal` lib statics gone (267 → 209 counted separately);
+>   public lib statics unchanged at 340; `COMMONS_CEILING` 23 → 30 with the
+>   caller audit in the constant's comment; every other gate unchanged.
+
 ### W6 — the aroma library in directories (D14)
 
 Late and mechanical so a rebase onto material decomposition is a re-run of

@@ -50,8 +50,8 @@ import { fileURLToPath } from "url";
 import YAML from "yaml";
 import { MaterialApi } from "./mud/api/material";
 import { PartyApi } from "./mud/api/party";
-import { Topic } from "./mud/lib/message/Topic";
 import { ContainmentApi } from "./mud/api/containment";
+import { MessageApi } from "./mud/api/message";
 
 let installed = false;
 
@@ -191,7 +191,7 @@ function rememberKernelDocuments(): void {
   // first does.
   const topics: Array<{ path: string; data: Record<string, unknown> }> = [];
   each("topics", (path, data) => void topics.push({ path, data }));
-  Topic.install(topics);
+  MessageApi.topics().install(topics);
 }
 
 ensureFrameworkWiring();

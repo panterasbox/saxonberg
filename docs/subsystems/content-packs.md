@@ -894,7 +894,7 @@ see below):
   The quantity kind uses `reloadTagTables` (diff-apply); a changed bank
   drops its cache. The document kinds' go-live is one module-private
   switch (`invalidateDocumentKind`): first, for every kind,
-  `DocumentCache.invalidate(kind, paths)` drops the changed and deleted
+  `DocumentApi.catalogueFor(kind)?.forget(kind, paths)` drops the changed and deleted
   paths from every value class's memory (an edited dirt kind or joint is
   re-read on next use); then `topic` drops the topic dictionary (the next
   scene re-warms), `emote` drops a resident

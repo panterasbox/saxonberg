@@ -74,7 +74,6 @@ import type {
 import { DEFAULT_ROUTING } from "@saxonberg/types";
 import type { CommandContributions } from "../../api/command";
 import type Interactive from "../../platform/idea/Interactive";
-import { Topic } from "../message/Topic";
 import { TemplatePathPrefixes } from "../paths";
 import { EstateMixin } from "../chattel/Estate";
 import type { FieldMeta } from "../mixin";
@@ -1086,7 +1085,7 @@ export default abstract class Avatar extends AvatarBase {
         portraitUrl,
         isGuest: this.getIsGuest(),
       },
-      topicCatalogue: Topic.snapshot(),
+      topicCatalogue: MessageApi.topics().snapshot(),
 
       // Which topics are reactable, so the client stops keeping its own
       // copy of the answer. Its copy had already drifted — `act.combat`

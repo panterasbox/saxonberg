@@ -20,7 +20,6 @@ import type { RoutingRule, TopicDescriptor } from '@saxonberg/types';
 import { DEFAULT_ROUTING } from '@saxonberg/types';
 import { MessageApi } from '../message';
 import { StuffApi } from '../stuff';
-import { Topic } from '../../lib/message/Topic';
 
 /** A catalogue that answers with whatever facets the case needs. */
 function installCatalogue(
@@ -28,7 +27,7 @@ function installCatalogue(
 ): void {
   // One singleton per test; a second stamp at the same path is what
   // `findByTemplatePath` refuses, loudly and correctly.
-  vi.spyOn(Topic, 'descriptor').mockImplementation(
+  vi.spyOn(MessageApi.topics(), 'descriptor').mockImplementation(
     (topic: string) =>
       ({
         topic,

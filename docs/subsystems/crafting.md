@@ -250,10 +250,10 @@ a **`Document`** managed by a catalogue singleton — the
   `pack sync`. ⭐ A **lazy dictionary**, never booted (documents path
   identity, 2026-11-09): reached through `StuffApi.singleton`, and the
   sync readers (`BlendIdentity`, `ThermalDose`, `Archetype.effectiveRows`)
-  go through `Recipe.dictionary()`, which throws
+  go through `CraftingApi.recipes()`, which throws
   `DocumentNotResidentError` when it is cold — `Crafted.setRecipe` and
   `Bulkable`'s `setInteriorPayload`/`setSurfacePayload` restore doors
-  return `Recipe.loadDictionary()` for the applier to await. ⚠ A runtime
+  return `StuffApi.ready(TemplatePaths.recipeCatalogue)` for the applier to await. ⚠ A runtime
   record (`BulkPayload.recipeId`, `Crafted.recipe`, a thermal dose) keeps
   the recipe's WORD, not its path — the word is derived from the path and
   unique, and a player types it. The `SoulCatalogue` shape. **Read methods

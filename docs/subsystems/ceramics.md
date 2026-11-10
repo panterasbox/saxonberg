@@ -135,8 +135,8 @@ YIELDS the piece (`Clay.yieldPieces`).
   `capacityL`, `proportion`, `product`, `seats`, `greenScale`,
   `discipline`; the word is the path's leaf unless a `key:` says
   otherwise), cited by path in the instrument's `forms:` list — nothing
-  scans. The `forms` setter awaits `Form.ensure` per path, so the sync
-  read (`Form.need`) under `shape` always finds them; a typed word is
+  scans. The `forms` setter awaits `CraftingApi.forms().ensure` per path, so the sync
+  read (`CraftingApi.forms().need`) under `shape` always finds them; a typed word is
   resolved against that list, so two instruments may each know a
   `brick`. (They were `Form` Idea rows under `<root>/idea/form/` until the
   documents path identity build, 2026-11-09.) `tall jug holding 3 pints`, `open vessel holding 2 litres`; an

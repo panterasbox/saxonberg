@@ -40,6 +40,7 @@ import { MessageLogic } from '../platform/idea/api/MessageLogic';
 import type { Scene } from '../lib/message/Scene';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import TopicCatalogue from '../platform/idea/TopicCatalogue';
 
 export { Scene } from '../lib/message/Scene';
 
@@ -106,6 +107,17 @@ const TAGS = {
  * Message distribution and Scene factory.
  */
 export class MessageApi {
+  /**
+   * ⭐ The topics — the message vocabulary (`combat.hit`, `speech.vocal`),
+   * any pack's `content/topics/`, served by {@link TopicCatalogue}: a
+   * descriptor by dotted key (authored, inherited, or derived with a
+   * diagnostic), the client's snapshot, the communicative flag. Warmed by
+   * the first scene of the process, never at boot (documents D13).
+   */
+  public static topics(): TopicCatalogue {
+    return StuffApi.singletonSync('/platform/idea/TopicCatalogue', () => new TopicCatalogue());
+  }
+
   static readonly Tags = TAGS;
 
   /**

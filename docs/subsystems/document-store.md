@@ -31,7 +31,7 @@ revision log and a CAS edit path of its own).
 
 ⭐ **The authored metadata kinds** — each cited by path, none with a
 second name; most read through a value class in `lib/` over a
-`DocumentCache` (below — `Topic` keeps a dictionary of its own, and help
+`DocumentCatalogue` (below — `Topic` keeps a dictionary of its own, and help
 concepts have no value class):
 
 | kind | `contentDir` | value class | named by | typed word |
@@ -161,7 +161,7 @@ it is not returned), `prefix` keeps the read under one path (a path
 range, never a regex), `limit` caps. `findByKey('release', 'publishedAt',
 {order: 'desc', limit: 30})` is the press, newest first.
 
-## ⭐⭐ Resident by construction — `DocumentCache`
+## ⭐⭐ Resident by construction — `DocumentCatalogue`
 
 ⭐ The owner's rule (2026-11-09): *"you're responsible for loading objects
 into the game when they're needed; you can't just say 'they're not loaded
@@ -170,10 +170,25 @@ that cites it is resident**, and a synchronous read always finds it.
 Nobody above the model — not a controller, not a pack author — ever warms
 anything, and no family is on a `boot:` list.
 
-`lib/document/DocumentCache.ts` is the memory each value class composes
-(a `private static`, never by inheritance — a static a subclass inherits
-is shared). **A memory, never a roster**: a path enters when something
-names it.
+⭐⭐ **A family is SERVED by a catalogue singleton, reached through its
+domain Api** — `CraftingApi.joints()`, `ContainmentApi.placements()`,
+`MaterialApi.dirtKinds()`, `PartyApi.formations()`,
+`ConditionApi.operations()`, `BulkableApi.pumpMechanisms()`,
+`CraftingApi.forms()` / `.recipes()`, `MessageApi.topics()`,
+`PerceptionApi.aromas()`. The catalogue at `/platform/idea/<X>Catalogue` is
+the one place that family's documents are looked up; the value class keeps
+only what the thing IS (no statics). The per-path families extend
+`lib/document/DocumentCatalogue` (its `parse` is the installer's validator
+too); its per-kind memory is a hard-private static slot, so a catalogue
+stood up again reads the same memory. **A memory, never a roster**: a path
+enters when something names it. Each kind names its catalogue in
+`DocumentKinds` (`catalogue:`), which is how the go-live finds it.
+
+⚠ Why not statics on the value classes (W5d, at review): that is where the
+build first put these lookups — tagged `@internal` to get under
+`lint:lib-statics`, with no caller audit — and it left a family's lookups
+on a class nobody thinks to search. A catalogue reached through its Api is
+discoverable, documented, and part of the author surface.
 
 | door | what it does |
 |---|---|
@@ -182,7 +197,7 @@ names it.
 | `peek(path)` (sync) | resident or `null`, starting nothing — for a reader whose honest answer to "not read" is "not mine to read" |
 | `remember(path, value)` | the one way a value enters (unit fixtures use it too) |
 | `all()` / `byWord(word)` | the lazy dictionary, only for a kind a player names by a typed word or a verb lists: one `listOfKind`, or one `findByKey(kind, 'word', {eq})` (a resident leaf answers first) |
-| `DocumentCache.invalidate(kind, paths?)` | the go-live: every cache of the kind forgets those paths (or all); the installer calls it for every kind a sync touches |
+| `forget(paths?)` | the go-live: the catalogue forgets those paths (or all). The installer and a CMS save reach it as `DocumentApi.catalogueFor(kind)` — by the `catalogue:` path the kind declares |
 
 (The sync door is named `need`, not `require`: `lint:imports` reads a
 `require(` declaration as a dynamic require.)
@@ -590,5 +605,5 @@ pack-installed kinds, and releases ride it today.
   unique partial indexes are gone; the path is unique; every document
   carries a derived `keys` card served by one wildcard index and read with
   `findByKey`; the nine metadata families became document kinds over
-  `DocumentCache`, resident by construction. See git log for the
+  `DocumentCatalogue`, resident by construction. See git log for the
   `reqs/documents-path-identity` branch.

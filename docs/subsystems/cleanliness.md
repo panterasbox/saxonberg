@@ -60,15 +60,15 @@ everywhere** (documents path identity, 2026-11): a deposit and a stain
 record the path, a recipe's `soils[].kind` cites it (`SoilSpec` refuses a
 bare word), and the kernel's own literals are the `DirtKinds` constants
 (`DirtKinds.GREASE = '/platform/dirt/grease'`). Prose speaks the dirt's
-word (`DirtKind.wordOf`, the path's leaf). **Resident by construction**:
-`SoilableMixin.onCreate` awaits `DirtKind.ensureKernel()` (one prefix
+word (`MaterialApi.dirtKinds().wordOf`, the path's leaf). **Resident by construction**:
+`SoilableMixin.onCreate` awaits `MaterialApi.dirtKinds().ensureKernel()` (one prefix
 read of `/platform/dirt/`, once per process), restored deposits and stains
 load through the `setDeposits`/`setStains` restore doors, and a pack
 soiling with its own kind loads it in the act that lands it (the worked
 act, `hew`, `scutch` for `dust`); so `soil()` and the sync read
-`DirtKind.need(path)` always find it, and a miss is
+`MaterialApi.dirtKinds().need(path)` always find it, and a miss is
 `DocumentNotResidentError`. A tap's apron splash is only a dirt the
-kernel ships (`DirtKind.has`). A cleanser is named
+kernel ships (`MaterialApi.dirtKinds().has`). A cleanser is named
 by its MATERIAL (`cleanser:`, `identity:constituent`, loaded with it —
 `Material.getCleanser()`). Each row reads itself (`descriptor()`).
 

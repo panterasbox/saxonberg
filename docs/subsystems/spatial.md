@@ -380,7 +380,7 @@ Any pack ships one at `content/placements/<name>.yaml`, stored at
 sitting with no kernel edit. ⭐ **The path is its only name**: a host
 cites the ways it offers by path (`placements: [/platform/placements/from]`),
 `ContentPlacement` persists the path, and the kernel's own three are the
-constants `Placement.ON` · `Placement.IN` · `Placement.FROM`
+constants `Placements.ON` · `Placements.IN` · `Placements.FROM`
 (`/platform/placements/on|in|from`).
 
 | field | read by |
@@ -411,19 +411,19 @@ global placement dictionary to search.
 `ContainmentApi.move` is synchronous and stays so, so every reader
 beneath it (`Containable.getEnclosingScope`, `PlacementOffers`,
 `Placing.canPlace`/`wordsFor`/`resolvePlacement`, the MQL `placed`
-projection, `put`/`dry`/`look`/`sense`) calls `Placement.need(path)`,
+projection, `put`/`dry`/`look`/`sense`) calls `ContainmentApi.placements().need(path)`,
 which throws `DocumentNotResidentError` for a path nothing loaded (an
 engine defect, never a refusal and never a default). What loads them:
 
-- **`Place.onCreate`** awaits `Placement.ensureKernel()` — one prefix
+- **`Place.onCreate`** awaits `ContainmentApi.placements().ensureKernel()` — one prefix
   read of `/platform/placements/`, once per process — so the engine's
-  own `move(item, desk, Placement.ON)` and every container's inside
+  own `move(item, desk, Placements.ON)` and every container's inside
   always find theirs (one host, rather than `ContainerMixin` and
   `PlacingMixin` each, keeps `lint:on-create` from rising);
 - **`PlacingMixin.setPlacements`** returns the load of every path it is
   given, which the template applier awaits (authored rows and restores
   alike);
-- **the persistence restore pass** awaits `Placement.ensure` for each
+- **the persistence restore pass** awaits `ContainmentApi.placements().ensure` for each
   restored item's `ContentPlacement`.
 
 ### The cost of a new way of sitting
@@ -719,7 +719,7 @@ order:
 - **region zero** — the container's own interior — when the target is
   a plain Container and not a body. It is NOT a member (a chest has no
   compartments, it just holds things), but it borrows its words and
-  its prose from the `in` document (`Placement.IN`, resident with every
+  its prose from the `in` document (`Placements.IN`, resident with every
   place). That is what
   makes *one region and many regions are the same thing* literal.
 - **one per member** the target's row offers (`placements:`).

@@ -12,8 +12,6 @@
 
 import { DocumentCatalogue } from '../../lib/document/DocumentCatalogue';
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
-import { DocumentApi } from '../../api/document';
-import { Aroma } from '../../lib/perception/Aroma';
 import { CLEANSER_ACTIONS, type CleanserAction } from './Cleanser';
 import {
   DIRT_FORMS,
@@ -22,6 +20,8 @@ import {
   type DirtForm,
   type DirtKindDescriptor,
 } from '../../lib/cleanliness/DirtKind';
+import { AROMA_PATH_SHAPE } from '../../lib/perception/Aroma';
+import { PerceptionApi } from '../../api/perception';
 
 export default class DirtCatalogue extends DocumentCatalogue<DirtKindDescriptor> {
   /** A reference catalogue everyone reads (the commons). */
@@ -57,7 +57,7 @@ export default class DirtCatalogue extends DocumentCatalogue<DirtKindDescriptor>
       typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : fallback;
     const word = path.slice(path.lastIndexOf('/') + 1);
     const odor = data.odor as { aroma?: unknown; ouPerLoad?: unknown } | null | undefined;
-    if (odor && !Aroma.isAromaPath(odor.aroma)) why(`odor.aroma '${String(odor.aroma)}' is not an aroma path`);
+    if (odor && !(typeof odor.aroma === 'string' && AROMA_PATH_SHAPE.test(odor.aroma))) why(`odor.aroma '${String(odor.aroma)}' is not an aroma path`);
     return {
       key: path,
       adjective: typeof data.adjective === 'string' && data.adjective ? data.adjective : word,
@@ -79,7 +79,7 @@ export default class DirtCatalogue extends DocumentCatalogue<DirtKindDescriptor>
 
   /** A dirt's smell loads with it, so a dirt naming no aroma fails here. */
   protected override async afterRead(d: DirtKindDescriptor): Promise<void> {
-    if (d.odor) await Aroma.ensure(d.odor.aroma);
+    if (d.odor) await PerceptionApi.aromas().ensure(d.odor.aroma);
   }
 
   /** How a dirt reads in a sentence: its path's leaf, hyphens as spaces (`/platform/dirt/blood` → `blood`). */
@@ -95,7 +95,7 @@ export default class DirtCatalogue extends DocumentCatalogue<DirtKindDescriptor>
   public ensureKernel(): Promise<void> {
     if (Object.values(DirtKinds).every((p) => this.has(p))) return Promise.resolve();
     return (this.kernel ??= (async () => {
-      for (const doc of await DocumentApi.list(KERNEL_DIRT_PREFIX)) {
+      for (const doc of await (await import('../../api/document')).DocumentApi.list(KERNEL_DIRT_PREFIX)) {
         if (doc.getKind() === 'dirt') await this.ensure(doc.getPath());
       }
     })().catch((err: unknown) => {

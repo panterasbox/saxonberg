@@ -18,7 +18,7 @@
  * the sweep.
  */
 
-import { Aroma, type AromaData } from '@saxonberg/server/mud/lib/perception/Aroma';
+import { type AromaData } from '@saxonberg/server/mud/lib/perception/Aroma';
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { readdirSync, readFileSync, existsSync } from 'fs';
@@ -54,6 +54,7 @@ import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
 import IceBin from '../thing/IceBin';
 import Tap from '../thing/Tap';
 import { BlendLabel } from '@saxonberg/server/mud/lib/metabolism/BlendLabel';
+import { PerceptionApi } from '@saxonberg/server/mud/api/perception';
 
 const ROOT = '/trade/hospitality';
 const CONTENT = fileURLToPath(new URL('../../../', import.meta.url)); // packages/content/
@@ -206,9 +207,9 @@ beforeAll(async () => {
       data: YAML.parse(readFileSync(join(aromaDir, f), 'utf8')) as AromaData,
     }));
   while (pending.length > 0) {
-    const i = pending.findIndex((p) => !p.data.parent || Aroma.resolveKnown(p.data.parent));
+    const i = pending.findIndex((p) => !p.data.parent || PerceptionApi.aromas().resolveKnown(p.data.parent));
     const [next] = pending.splice(i, 1);
-    Aroma.remember(next!.word, next!.data, next!.data.parent ? Aroma.resolveKnown(next!.data.parent) : null);
+    PerceptionApi.aromas().remember(next!.word, next!.data, next!.data.parent ? PerceptionApi.aromas().resolveKnown(next!.data.parent) : null);
   }
 
   vi.spyOn(DocumentApi, 'listOfKind').mockImplementation(async (kind: string) =>

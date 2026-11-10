@@ -593,7 +593,7 @@ holds the folder rule: a directory under `aromas/` must itself be an aroma, a
 `parent:` naming an aroma in the same pack is refused (move the file — the folder
 says it), and a `parent:` beside a parent folder is refused (one aroma, one
 parent). An aroma loads when something naming it loads: the naming row's
-setter awaits `Aroma.ensure`, which reads the document at that path and fails
+setter awaits `PerceptionApi.aromas().ensure`, which reads the document at that path and fails
 loudly if there is none, and a cold read starts the load that `smell`, `taste` and
 `analyze` wait out. `lint:aromas` catches the same at CI.
 

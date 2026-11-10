@@ -23,7 +23,7 @@ import { MixinApi } from "../../../api/mixin";
 import { StuffApi } from "../../../api/stuff";
 import { Scene } from "../../../lib/message/Scene";
 import type { MessageBroadcastOptions } from "../../../api/message";
-import { Topic } from "../../../lib/message/Topic";
+import { MessageApi } from '../../../api/message';
 
 type SensorStuff = Stuff & Sensor;
 
@@ -117,13 +117,13 @@ export class MessageLogic extends ApiLogic {
   @CallSecurity(MessageApiCallers)
   public isCommunicative(topic: string): boolean {
     // Warm before any frame is delivered (Scene.send queues behind it, D13).
-    return Topic.isCommunicative(topic);
+    return MessageApi.topics().isCommunicative(topic);
   }
 
   /** See {@link MessageApi.topicsWarming}. */
   @CallSecurity(MessageApiCallers)
   public topicsWarming(): Promise<void> | null {
-    return Topic.warming();
+    return MessageApi.topics().warming();
   }
 
   /** See {@link MessageApi.feedsFor}. */
@@ -135,7 +135,7 @@ export class MessageLogic extends ApiLogic {
     // The vocabulary is warm before any frame is delivered: `Scene.send`
     // queues behind its first warm (documents D13), so a frame is never
     // routed cold — and a read that bypassed the queue throws, by name.
-    const facets = Topic.descriptor(topic);
+    const facets = MessageApi.topics().descriptor(topic);
     return routeFrame(topic, facets, rules);
   }
 }

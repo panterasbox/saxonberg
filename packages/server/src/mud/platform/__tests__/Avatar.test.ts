@@ -924,10 +924,9 @@ describe('Avatar', () => {
     it('welcome-scene payload carries the topic snapshot', async () => {
       const { MessageApi } = await import('../../api/message');
       const { EventApi } = await import('../../api/event');
-      const { Topic } = await import('../../lib/message/Topic');
       // One authored topic, as the vocabulary's warm would leave it (a spy,
       // so the next test's scenes still see the whole vocabulary).
-      vi.spyOn(Topic, 'snapshot').mockReturnValue([
+      vi.spyOn(MessageApi.topics(), 'snapshot').mockReturnValue([
         { topic: 'world', family: '', label: 'World', description: 'In-world events.' } as never,
       ]);
 

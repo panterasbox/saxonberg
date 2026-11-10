@@ -40,7 +40,7 @@ import type { DocumentPages, EditionRequest } from '../lib/document/Edition';
 import type { Berthed } from '../platform/idea/BerthExit';
 import { SecurityPolicies } from "../lib/security/SecurityPolicies";
 import { SecurityApi } from './security';
-import type { DocumentCatalogue } from '../lib/document/DocumentCatalogue';
+import type { ServesDocuments } from '../lib/document/DocumentCatalogue';
 
 /**
  * ⚠⚠ **The release write transport's whole blast radius.** The transport
@@ -182,7 +182,7 @@ export class DocumentApi {
    * alone. An edit's go-live (the installer, a CMS save) forgets the
    * edited paths through it.
    */
-  static catalogueFor(kind: string): DocumentCatalogue<unknown> | null {
+  static catalogueFor(kind: string): ServesDocuments | null {
     return logic().catalogueFor(kind);
   }
 

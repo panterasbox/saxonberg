@@ -22,12 +22,11 @@ import type { Registrar } from '../../../lib/document/Registrar';
 import type { Berthed } from '../BerthExit';
 import {
   DECLARED_DOCUMENT_KINDS,
+  DOCUMENT_KINDS,
   type DeclaredDocumentKind,
 } from '../../../lib/document/DocumentKinds';
 import { createHash } from 'node:crypto';
 import { Release } from '../../../lib/press/Release';
-import { DocumentCache } from '../../../lib/document/DocumentCache';
-import { Topic } from '../../../lib/message/Topic';
 import {
   EDITIONS_DIR,
   type DocumentPages,
@@ -35,13 +34,8 @@ import {
   type EditionRequest,
   type EditionTeaching,
 } from '../../../lib/document/Edition';
-import type { DocumentCatalogue } from '../../../lib/document/DocumentCatalogue';
-import { CraftingApi } from '../../../api/crafting';
-import { BulkableApi } from '../../../api/bulk';
-import { ConditionApi } from '../../../api/condition';
-import { PartyApi } from '../../../api/party';
-import { MaterialApi } from '../../../api/material';
-import { ContainmentApi } from '../../../api/containment';
+import type { ServesDocuments } from '../../../lib/document/DocumentCatalogue';
+import { StuffApi } from '../../../api/stuff';
 
 const DocumentApiCallers = SecurityPolicies.FromModule("/api/document#DocumentApi",
 );
@@ -697,25 +691,12 @@ async function saveImpl(
  * singleton that serves it (documents W5d). A kind read by path alone has
  * none.
  */
-function catalogueForImpl(kind: string): DocumentCatalogue<unknown> | null {
-  switch (kind) {
-    case 'joint':
-      return CraftingApi.joints() as DocumentCatalogue<unknown>;
-    case 'form':
-      return CraftingApi.forms() as DocumentCatalogue<unknown>;
-    case 'placement':
-      return ContainmentApi.placements() as DocumentCatalogue<unknown>;
-    case 'dirt':
-      return MaterialApi.dirtKinds() as DocumentCatalogue<unknown>;
-    case 'formation':
-      return PartyApi.formations() as DocumentCatalogue<unknown>;
-    case 'operation':
-      return ConditionApi.operations() as DocumentCatalogue<unknown>;
-    case 'pump-mechanism':
-      return BulkableApi.pumpMechanisms() as DocumentCatalogue<unknown>;
-    default:
-      return null;
-  }
+function catalogueForImpl(kind: string): ServesDocuments | null {
+  // By the kind's declared path, never by importing every domain Api into
+  // the document store (a hub every module reaches would cycle). A
+  // catalogue nothing has stood up holds nothing to forget.
+  const path = (DOCUMENT_KINDS as Record<string, { catalogue?: string }>)[kind]?.catalogue;
+  return path ? (StuffApi.findByTemplatePath(path) as unknown as ServesDocuments | null) : null;
 }
 
 /**
@@ -724,9 +705,7 @@ function catalogueForImpl(kind: string): DocumentCatalogue<unknown> | null {
  * installer's go-live, for one path. A topic re-warms its vocabulary.
  */
 function forgetEdited(kind: string, path: string): void {
-  DocumentCache.invalidate(kind, [path]);
   catalogueForImpl(kind)?.forget([path]);
-  if (kind === 'topic') Topic.invalidate();
 }
 
 /** The document kind a command view is stored under. */
@@ -969,7 +948,7 @@ export class DocumentLogic extends ApiLogic {
 
   /** See {@link DocumentApi.catalogueFor}. */
   @CallSecurity(DocumentApiCallers)
-  public catalogueFor(kind: string): DocumentCatalogue<unknown> | null {
+  public catalogueFor(kind: string): ServesDocuments | null {
     return catalogueForImpl(kind);
   }
 

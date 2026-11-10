@@ -1,5 +1,6 @@
 /**
- * Topic — the message vocabulary, as `topic` documents (a document since
+ * TopicCatalogue — the singleton that serves the message vocabulary,
+ * reached as `MessageApi.topics()`: the `topic` documents (a document since
  * the path-identity build): one per dotted key, at
  * `/platform/topics/<dotted.key>`, carrying a label, a description and the
  * six attention facets the client renders and the router routes by.
@@ -8,7 +9,7 @@
  * `.topic('combat.hit')`. So no host can carry the load (documents D7's
  * mechanisms 1–4), and the message pipeline loads it itself — the one
  * engine-machinery exception (D13, the owner's "queue is fine"): the
- * dictionary warms on the FIRST scene of the process ({@link Topic.warm},
+ * dictionary warms on the FIRST scene of the process ({@link TopicCatalogue.warm},
  * one read of the kind), `Scene.send` queues its dispatch IN ORDER behind
  * that warm while it is cold, and session entry awaits the same warm before
  * it sends the client its snapshot. Never booted.
@@ -19,12 +20,13 @@
  * per key. A synchronous read while the dictionary is cold throws
  * `DocumentNotResidentError` (unreachable through `Scene.send`).
  *
- * @internal the message pipeline's; an emitter names a dotted key.
  */
 
-import { DiagnosticApi } from '../../api/diagnostics';
-import { DocumentApi } from '../../api/document';
-import { DocumentNotResidentError } from '../errors';
+import { Idea } from '../../lib/stuff/Idea';
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
+import type { EvictionContext } from '../../lib/stuff/Stuff';
+import type { VetoResult } from '../../lib/errors';
+import { DocumentNotResidentError } from '../../lib/errors';
 import type {
   TopicDescriptor,
   TopicAddress,
@@ -72,40 +74,44 @@ const TOPIC_PREFIX = '/platform/topics/';
 /**
  * The topic dictionary — see the module header.
  *
- * @internal the message pipeline's.
  */
-export class Topic {
+export default class TopicCatalogue extends Idea {
+  /** A reference catalogue everyone reads (the commons). */
+  static boundaryRole: BoundaryRole = 'commons';
+
+  // `#` (CLAUDE.md special case 3): the vocabulary is the class's own and
+  // must outlive any instance (a re-stood catalogue reads the same words).
   /** Authored descriptors by dotted key; `null` until warmed. */
-  private static dict: Map<string, TopicDescriptor> | null = null;
+  static #dict: Map<string, TopicDescriptor> | null = null;
   /** The keys flagged `communicative`. */
-  private static communicative: Set<string> = new Set();
+  static #communicative: Set<string> = new Set();
   /** The warm in flight, if one is. */
-  private static loading: Promise<void> | null = null;
+  static #loading: Promise<void> | null = null;
   /** Keys already reported as unauthored (once per key). */
-  private static readonly derivedReported = new Set<string>();
+  static #derivedReported = new Set<string>();
 
   /** Whether the dictionary is resident. */
-  public static isWarm(): boolean {
-    return Topic.dict !== null;
+  public isWarm(): boolean {
+    return TopicCatalogue.#dict !== null;
   }
 
   /**
    * The warm in flight — started if the dictionary is cold — or `null` when
    * it is already resident. `Scene.send` queues behind this.
    */
-  public static warming(): Promise<void> | null {
-    if (Topic.dict !== null) return null;
-    return Topic.warm();
+  public warming(): Promise<void> | null {
+    if (TopicCatalogue.#dict !== null) return null;
+    return this.warm();
   }
 
   /** Read every `topic` document into the dictionary (one indexed read; memoized). */
-  public static warm(): Promise<void> {
-    if (Topic.dict !== null) return Promise.resolve();
-    return (Topic.loading ??= (async () => {
-      const docs = await DocumentApi.listOfKind('topic');
-      Topic.install(docs.map((d) => ({ path: d.getPath(), data: d.getData() })));
+  public warm(): Promise<void> {
+    if (TopicCatalogue.#dict !== null) return Promise.resolve();
+    return (TopicCatalogue.#loading ??= (async () => {
+      const docs = await (await import('../../api/document')).DocumentApi.listOfKind('topic');
+      this.install(docs.map((d) => ({ path: d.getPath(), data: d.getData() })));
     })().finally(() => {
-      Topic.loading = null;
+      TopicCatalogue.#loading = null;
     }));
   }
 
@@ -113,11 +119,11 @@ export class Topic {
    * Install the dictionary from documents — the warm's tail, and the one way
    * a unit fixture (or the test bootstrap) stands the vocabulary up.
    */
-  public static install(docs: ReadonlyArray<{ path: string; data: Record<string, unknown> }>): void {
+  public install(docs: ReadonlyArray<{ path: string; data: Record<string, unknown> }>): void {
     const map = new Map<string, TopicDescriptor>();
     const communicative = new Set<string>();
     for (const { path, data } of docs) {
-      const topic = Topic.keyOf(path);
+      const topic = this.keyOf(path);
       if (!topic) continue;
       if (data.communicative === true) communicative.add(topic);
       map.set(topic, {
@@ -125,49 +131,49 @@ export class Topic {
         family: typeof data.family === 'string' ? data.family : '',
         label: typeof data.label === 'string' && data.label.length > 0 ? data.label : topic,
         description: typeof data.description === 'string' ? data.description : '',
-        ...Topic.readFacets(data),
+        ...this.readFacets(data),
       });
     }
-    Topic.dict = map;
-    Topic.communicative = communicative;
+    TopicCatalogue.#dict = map;
+    TopicCatalogue.#communicative = communicative;
   }
 
   /** Forget the dictionary (a go-live re-reads on the next warm). */
-  public static invalidate(): void {
-    Topic.dict = null;
-    Topic.communicative = new Set();
+  public invalidate(): void {
+    TopicCatalogue.#dict = null;
+    TopicCatalogue.#communicative = new Set();
   }
 
   /** The dotted key a topic document is stored under (its path's leaf). */
-  public static keyOf(path: string): string {
+  public keyOf(path: string): string {
     return path.startsWith(TOPIC_PREFIX) ? path.slice(TOPIC_PREFIX.length) : path.slice(path.lastIndexOf('/') + 1);
   }
 
   /** The descriptor for `topic` — authored, inherited, or derived (with a diagnostic). */
-  public static descriptor(topic: string): TopicDescriptor {
-    const dict = Topic.resident();
+  public descriptor(topic: string): TopicDescriptor {
+    const dict = this.resident();
     const cached = dict.get(topic);
     if (cached) return cached;
-    return Topic.resolveInherited(dict, topic) ?? Topic.deriveFallback(topic);
+    return this.resolveInherited(dict, topic) ?? this.deriveFallback(topic);
   }
 
   /** Every authored descriptor — the client's snapshot. */
-  public static snapshot(): TopicDescriptor[] {
-    return [...Topic.resident().values()];
+  public snapshot(): TopicDescriptor[] {
+    return [...this.resident().values()];
   }
 
   /** Whether `topic` is a communication act (the authored `communicative` flag). */
-  public static isCommunicative(topic: string): boolean {
-    Topic.resident();
-    return Topic.communicative.has(topic);
+  public isCommunicative(topic: string): boolean {
+    this.resident();
+    return TopicCatalogue.#communicative.has(topic);
   }
 
-  private static resident(): Map<string, TopicDescriptor> {
-    if (Topic.dict === null) throw new DocumentNotResidentError('topic', TOPIC_PREFIX);
-    return Topic.dict;
+  private resident(): Map<string, TopicDescriptor> {
+    if (TopicCatalogue.#dict === null) throw new DocumentNotResidentError('topic', TOPIC_PREFIX);
+    return TopicCatalogue.#dict;
   }
 
-  private static resolveInherited(
+  private resolveInherited(
     dict: Map<string, TopicDescriptor>,
     topic: string,
   ): TopicDescriptor | null {
@@ -196,7 +202,7 @@ export class Topic {
     return null;
   }
 
-  private static readFacets(
+  private readFacets(
     data:
       | {
           address?: unknown;
@@ -233,10 +239,10 @@ export class Topic {
    * a topic is being emitted that nobody authored. Reported, not thrown:
    * failing the frame would punish the player for the author's miss.
    */
-  private static deriveFallback(topic: string): TopicDescriptor {
-    if (!Topic.derivedReported.has(topic)) {
-      Topic.derivedReported.add(topic);
-      void DiagnosticApi.record({
+  private deriveFallback(topic: string): TopicDescriptor {
+    if (!TopicCatalogue.#derivedReported.has(topic)) {
+      TopicCatalogue.#derivedReported.add(topic);
+      void import('../../api/diagnostics').then(({ DiagnosticApi }) => DiagnosticApi.record({
         path: null,
         channel: 'topic.unauthored',
         severity: 'warning',
@@ -244,7 +250,7 @@ export class Topic {
           `Topic '${topic}' is emitted but has no authored descriptor, ` +
           `so it resolved to a derived default. Add a document under ` +
           `${TOPIC_PREFIX}, or route the emitter to an existing topic.`,
-      });
+      })).catch(() => {});
     }
     const segments = topic.split('.');
     const leaf = segments[segments.length - 1] ?? topic;
@@ -254,8 +260,24 @@ export class Topic {
       family,
       label: titleCase(leaf),
       description: '(no description)',
-      ...Topic.readFacets(undefined),
+      ...this.readFacets(undefined),
     };
+  }
+
+  /** Forget the vocabulary (an edited topic re-reads on the next warm). */
+  public forget(_paths?: readonly string[]): void {
+    void _paths;
+    this.invalidate();
+  }
+
+  /** Residency veto — the vocabulary is never culled. */
+  public canEvict(_context: EvictionContext): VetoResult {
+    return { ok: false, reason: 'the topic catalogue; never culled' };
+  }
+
+  /** Singleton refusal. */
+  public canDestruct(): VetoResult {
+    return { ok: false, reason: 'the topic catalogue is a system singleton' };
   }
 }
 

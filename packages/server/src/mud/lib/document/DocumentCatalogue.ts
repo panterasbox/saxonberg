@@ -22,10 +22,18 @@
  */
 
 import { Idea } from '../stuff/Idea';
-import { DocumentApi } from '../../api/document';
 import { DocumentNotResidentError, type VetoResult } from '../errors';
 import type { EvictionContext } from '../stuff/Stuff';
 import type { StoredDocument } from './StoredDocument';
+
+/**
+ * What serves a document kind: it can forget edited paths (every path when
+ * omitted) — the go-live of an installer sync or a CMS save. The
+ * `DocumentCatalogue`s, the aromas and the topics all do.
+ */
+export interface ServesDocuments {
+  forget(paths?: readonly string[]): void;
+}
 
 /** One kind's memory: what has been read, and what is being read. */
 interface KindMemory {
@@ -33,7 +41,7 @@ interface KindMemory {
   loading: Map<string, Promise<unknown>>;
 }
 
-export abstract class DocumentCatalogue<T> extends Idea {
+export abstract class DocumentCatalogue<T> extends Idea implements ServesDocuments {
   // `#` (CLAUDE.md special case 3): the memory is the class's own; nothing
   // outside these methods may reach it, and it must outlive any instance.
   static #memory = new Map<string, KindMemory>();
@@ -77,7 +85,7 @@ export abstract class DocumentCatalogue<T> extends Idea {
     const inFlight = m.loading.get(path);
     if (inFlight) return inFlight as Promise<T>;
     const load = (async () => {
-      const doc = await DocumentApi.read(path);
+      const doc = await (await import('../../api/document')).DocumentApi.read(path);
       if (!doc || doc.getKind() !== this.kind) {
         throw new Error(`${this.kind} '${path}' has no ${this.kind} document`);
       }
@@ -120,13 +128,13 @@ export abstract class DocumentCatalogue<T> extends Idea {
 
   /** Every document of this kind in the store, read and kept. */
   public async all(): Promise<T[]> {
-    const docs = await DocumentApi.listOfKind(this.kind);
+    const docs = await (await import('../../api/document')).DocumentApi.listOfKind(this.kind);
     return docs.map((doc) => this.keep(doc));
   }
 
   /** Every document of this kind under `prefix`, read and kept. */
   public async under(prefix: string): Promise<T[]> {
-    const docs = await DocumentApi.list(prefix);
+    const docs = await (await import('../../api/document')).DocumentApi.list(prefix);
     return docs.filter((d) => d.getKind() === this.kind).map((doc) => this.keep(doc));
   }
 
@@ -138,7 +146,7 @@ export abstract class DocumentCatalogue<T> extends Idea {
     for (const [path, value] of this.memory().known) {
       if (path.slice(path.lastIndexOf('/') + 1) === word) return [{ path, value: value as T }];
     }
-    const docs = await DocumentApi.findByKey(this.kind, 'word', { eq: word });
+    const docs = await (await import('../../api/document')).DocumentApi.findByKey(this.kind, 'word', { eq: word });
     return docs.map((doc) => ({ path: doc.getPath(), value: this.keep(doc) }));
   }
 

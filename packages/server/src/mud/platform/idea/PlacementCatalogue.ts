@@ -11,7 +11,6 @@
 
 import { DocumentCatalogue } from '../../lib/document/DocumentCatalogue';
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
-import { DocumentApi } from '../../api/document';
 import { KERNEL_PLACEMENT_PREFIX, Placement, Placements } from '../../lib/spatial/Placement';
 
 export default class PlacementCatalogue extends DocumentCatalogue<Placement> {
@@ -49,7 +48,7 @@ export default class PlacementCatalogue extends DocumentCatalogue<Placement> {
   public ensureKernel(): Promise<void> {
     if (Object.values(Placements).every((p) => this.has(p))) return Promise.resolve();
     return (this.kernel ??= (async () => {
-      for (const doc of await DocumentApi.list(KERNEL_PLACEMENT_PREFIX)) {
+      for (const doc of await (await import('../../api/document')).DocumentApi.list(KERNEL_PLACEMENT_PREFIX)) {
         if (doc.getKind() === 'placement') await this.ensure(doc.getPath());
       }
     })().catch((err: unknown) => {
