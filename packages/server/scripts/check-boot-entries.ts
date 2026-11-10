@@ -74,7 +74,7 @@ export const CENSUS_AT_LANDING = { entries: 128, uncited: 71 };
  * pipeline's first scene (D13), never at boot. */
 /* 80 → 78 (documents W5a): the corpo/brand and government dictionaries load
  * when a holder that cites one does, never at boot. */
-export const BOOT_ENTRY_CEILING = 77; // documents W5a: −1 (the spell dictionary).
+export const BOOT_ENTRY_CEILING = 76; // documents W5b: −1 (the discipline dictionary).
 
 /**
  * ⭐ Content entries whose reason does not cite the unobserved economy —

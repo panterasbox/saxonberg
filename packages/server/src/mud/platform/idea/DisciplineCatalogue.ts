@@ -24,6 +24,7 @@
  * /platform/idea/DisciplineCatalogue, data: {} }`.
  */
 
+import { DocumentNotResidentError } from "../../lib/errors";
 import { Idea } from "../../lib/stuff/Idea";
 import { Template } from "../../lib/stuff/Template";
 import Discipline, {
@@ -120,8 +121,8 @@ export default class DisciplineCatalogue extends DisciplineCatalogueBase {
   }
 
   /**
-   * Warm the cache from the `content` collection. One mongo query at boot,
-   * then the public surface is sync.
+   * Warm the cache from the `content` collection — one query, on the first
+   * reach (`StuffApi.singleton`), never at boot; then the surface is sync.
    */
   public override async onCreate(_context?: unknown): Promise<void> {
     await this.loadCacheFromTemplates();
@@ -144,10 +145,10 @@ export default class DisciplineCatalogue extends DisciplineCatalogueBase {
 
   private ensureCache(): void {
     if (this.cache !== null) return;
-    // Never warmed (onCreate wasn't awaited, e.g. a unit test). An
-    // empty cache is a valid cold state — every reader degrades to "no
-    // such Discipline".
-    this.cache = new Map();
+    // Reached only through `StuffApi.singleton`, whose onCreate warms it; a
+    // cold read is an engine defect, never "no such discipline" (documents
+    // D11 — the dictionary is never booted).
+    throw new DocumentNotResidentError("discipline", "/platform/idea/DisciplineCatalogue");
   }
 
   /**

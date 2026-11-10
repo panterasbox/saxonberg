@@ -14,6 +14,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { rememberDisciplines } from './discipline-fixtures';
 import { Idea } from '../../stuff/Idea';
 import { AdvancementMixin } from '../Advancement';
 import { DispositionedMixin } from '../../trait/Dispositioned';
@@ -57,7 +58,8 @@ const GIFT: ActSignature = {
   ],
 };
 
-beforeEach(() => {
+beforeEach(async () => {
+  await rememberDisciplines();
   store = new Map();
   idCounter = 0;
   counter = 0;

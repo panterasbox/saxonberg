@@ -7,6 +7,7 @@
  * clock advance).
  */
 
+import { rememberDisciplines } from '../../../../../lib/advancement/__tests__/discipline-fixtures';
 import { vi } from 'vitest';
 import { chargeHot } from '../../../../../lib/fire/__tests__/burner-fuel';
 import type { Burner } from '../../../../../lib/fire/Burner';
@@ -392,6 +393,9 @@ export async function standUpBranchHarness(): Promise<BranchHarness> {
   // the helper's pass-through captures THIS mock as its real clone — the
   // two stubs compose instead of racing for the same spy.
   installCorpseMintStub();
+  // A credit refreshes conferrals, which reads the discipline dictionary —
+  // resident as a character's first band read leaves it (documents D11).
+  await rememberDisciplines();
 
   const catalogue = makeStuffAtPath(
     () => new RecipeCatalogue(),

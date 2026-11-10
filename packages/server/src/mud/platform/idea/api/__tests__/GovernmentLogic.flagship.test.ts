@@ -68,20 +68,6 @@ const CLERK_PATH = "/world/terminus/registry/clerk";
 async function wireFromSeeds(): Promise<void> {
   makeStuffAtPath(() => new AddressRegistry(), "/platform/idea/AddressRegistry");
 
-  for (const file of LOCALITY_SEEDS) {
-    const data = seedData(file);
-    const loc = makeStuffAtPath(() => {
-      const l = new Locality();
-      l.setName(String(data.name ?? ""));
-      l.setAddress(String(data._address ?? ""));
-      l.setGovernmentKey(
-        typeof data._governmentKey === "string" ? data._governmentKey : null
-      );
-      return l;
-    }, `/obj/Locality/${file.split("/").pop()!.replace(".yaml", "")}`);
-    AddressApi.registerLocality(loc);
-  }
-
   const governments = GOVERNMENT_SEEDS.map((file) => seedData(file));
   vi.spyOn(Template, "findDescendants").mockImplementation(
     async (basePath: string) => {
@@ -106,6 +92,21 @@ async function wireFromSeeds(): Promise<void> {
     "/platform/idea/GovernmentCatalogue"
   );
   await cat.onCreate();
+  // After the dictionary: a locality's government setter loads it
+  // (documents D7), so it must already be standing in a suite.
+  for (const file of LOCALITY_SEEDS) {
+    const data = seedData(file);
+    const loc = makeStuffAtPath(() => {
+      const l = new Locality();
+      l.setName(String(data.name ?? ""));
+      l.setAddress(String(data._address ?? ""));
+      l.setGovernmentKey(
+        typeof data._governmentKey === "string" ? data._governmentKey : null
+      );
+      return l;
+    }, `/obj/Locality/${file.split("/").pop()!.replace(".yaml", "")}`);
+    AddressApi.registerLocality(loc);
+  }
 }
 
 describe("the civics flagship (authored seeds, end-to-end)", () => {

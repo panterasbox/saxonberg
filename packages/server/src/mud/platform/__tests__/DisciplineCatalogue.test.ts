@@ -6,6 +6,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { DocumentNotResidentError } from "../../lib/errors";
 import DisciplineCatalogue from "../idea/DisciplineCatalogue";
 import Discipline from "../idea/Discipline";
 import { StuffApi } from "../../api/stuff";
@@ -152,11 +153,11 @@ describe("DisciplineCatalogue", () => {
     expect(cat.getRequires("mixology")).toEqual(["recipe-knowledge"]);
   });
 
-  it("cold state (onCreate never awaited) degrades to no-such-Discipline", () => {
+  it("a cold read (never reached) throws DocumentNotResidentError — never no-such", () => {
     const cat = makeStuff(() => new DisciplineCatalogue());
-    expect(cat.getDiscipline("mixology")).toBeNull();
-    expect(cat.has("mixology")).toBe(false);
-    expect(cat.allDisciplines()).toEqual([]);
+    expect(() => cat.getDiscipline("mixology")).toThrow(DocumentNotResidentError);
+    expect(() => cat.has("mixology")).toThrow(DocumentNotResidentError);
+    expect(() => cat.allDisciplines()).toThrow(DocumentNotResidentError);
   });
 
   it("invalidateCache + re-warm picks up new templates", async () => {

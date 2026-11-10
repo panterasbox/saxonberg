@@ -28,6 +28,7 @@ import type { CommandContributions } from "../../api/command";
 import type { SubscribableFieldDescriptor } from "../../api/mql-subscription";
 import { CommandApi } from "../../api/command";
 import { StuffApi } from "../../api/stuff";
+import { DocumentNotResidentError } from "../errors";
 import { TemplatePaths } from "../paths";
 import TranscriptEntry from "./TranscriptEntry";
 import type { TranscriptEntryFields } from "./TranscriptEntry";
@@ -137,24 +138,38 @@ async function creditSignatureImpl(
   }
 }
 
-/** The live DisciplineCatalogue singleton's conferral face (duck-typed —
- * lib does not import the platform class), or `null` before it warms. */
+/** The discipline dictionary's conferral face (duck-typed — lib does not
+ * import the platform class). Resident by construction (documents D11):
+ * every async reader below loads it first, and the sync digest only has
+ * rows after `bandsForImpl` ran — so a cold read is an engine defect and
+ * throws, never "no such discipline". */
 function catalogue(): {
   getConferrals(discipline: string): { band: CompetenceBandName; verbs: string[] }[];
   getStock(discipline: string): string;
   allDisciplines(): { key: string; stock: string }[];
-} | null {
-  return (
-    (StuffApi.findByTemplatePath(
+} {
+  const cat = StuffApi.findByTemplatePath(
+    TemplatePaths.disciplineCatalogue
+  ) as unknown as {
+    getConferrals(
+      discipline: string
+    ): { band: CompetenceBandName; verbs: string[] }[];
+    getStock(discipline: string): string;
+    allDisciplines(): { key: string; stock: string }[];
+  } | null;
+  if (!cat) {
+    throw new DocumentNotResidentError(
+      "discipline",
       TemplatePaths.disciplineCatalogue
-    ) as unknown as {
-      getConferrals(
-        discipline: string
-      ): { band: CompetenceBandName; verbs: string[] }[];
-      getStock(discipline: string): string;
-      allDisciplines(): { key: string; stock: string }[];
-    } | null) ?? null
-  );
+    );
+  }
+  return cat;
+}
+
+/** Load the discipline dictionary (at once when it is resident) — the
+ * reach that makes {@link catalogue} safe. Never booted (documents D11). */
+async function loadDisciplines(): Promise<Stuff> {
+  return StuffApi.singleton(TemplatePaths.disciplineCatalogue);
 }
 
 /**
@@ -167,10 +182,10 @@ function catalogue(): {
  * is stored and nothing is appended.
  */
 function withConditioning(owner: Stuff, rows: DisciplineBand[]): DisciplineBand[] {
-  const cat = catalogue();
-  if (!cat || !MixinApi.isExerting(owner) || !MixinApi.isReserved(owner)) {
+  if (!MixinApi.isExerting(owner) || !MixinApi.isReserved(owner)) {
     return rows;
   }
+  const cat = catalogue();
   const out = new Map<string, DisciplineBand>(rows.map((r) => [r.discipline, r]));
   for (const { key, stock } of cat.allDisciplines()) {
     if (!stock || !owner.hasReserve(stock)) continue;
@@ -203,6 +218,9 @@ async function bandsForImpl(
 ): Promise<DisciplineBand[]> {
   const overlay = (rows: DisciplineBand[]): DisciplineBand[] =>
     opts.stocks ? withConditioning(owner, rows) : rows;
+  // The reach: a character's bands are read here first, so the dictionary
+  // is resident before the digest (and its sync overlay) has any rows.
+  await loadDisciplines();
   if (!transcriptActive()) return overlay([]);
   const ownerId = ownerKeyOf(owner);
   if (!ownerId) return overlay([]);
@@ -230,8 +248,8 @@ async function bandsForImpl(
  * band×catalogue decision.
  */
 async function conferredVerbsImpl(owner: Stuff): Promise<string[]> {
+  await loadDisciplines();
   const cat = catalogue();
-  if (!cat) return [];
   const verbs = new Set<string>();
   for (const { discipline, band } of await bandsForImpl(owner)) {
     for (const rule of cat.getConferrals(discipline)) {
@@ -430,18 +448,17 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
      * the affordance stack: drop the prior conferral entry, then re-push
      * the current set (idempotent pop + conditional push, mirroring the
      * hosted-update delta). Called by `AdvancementApi` after each Transcript
-     * append. No-op before the Catalog warms.
+     * append. Loads the dictionary first (documents D11).
      */
     async refreshConferrals(): Promise<void> {
-      const catalogue = StuffApi.findByTemplatePath(
-        TemplatePaths.disciplineCatalogue
-      );
-      if (!catalogue) return;
-      // The host is always a CommandGiver in practice (AdvancementMixin is
-      // composed above CommandGiverMixin on Character), but the base isn't
-      // type-constrained to it — narrow like Mobile does for its
-      // CommandGiver calls.
-      const giver = this as unknown as Stuff & CommandGiver;
+      // The host is a CommandGiver in practice (AdvancementMixin is composed
+      // above CommandGiverMixin on Character), but the base isn't
+      // type-constrained to it: a host with no command stack has nothing
+      // to confer onto, so it skips rather than throws.
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isCommandGiver(self)) return;
+      const giver = self;
+      const catalogue = await loadDisciplines();
       const verbs = await conferredVerbsImpl(giver);
       const defs: CommandDefinition[] = [];
       for (const verb of verbs) {
@@ -554,7 +571,8 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
     ): Promise<CompetenceBandName> {
       // ⭐ A conditioning Discipline short-circuits to its body stock.
       const self = this as unknown as Stuff;
-      const stock = catalogue()?.getStock(discipline) ?? "";
+      await loadDisciplines();
+      const stock = catalogue().getStock(discipline);
       if (stock && MixinApi.isExerting(self)) {
         return this.suppressed(self.conditioningBand(stock));
       }

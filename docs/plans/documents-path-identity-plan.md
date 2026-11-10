@@ -1050,7 +1050,9 @@ Commit: `build(documents W3b): operations, help concepts and formations are docu
 >   and reads `listOfKind('help-concept')`; a concept's word is its leaf;
 >   `seeAlso` cites paths (census (g)).
 > - **Formations** (`lib/combat/Formation.ts`): `DEFAULT_FORMATION_PATH` is
->   `/platform/formations/default`; `Party.onCreate` loads the default,
+>   `/platform/formations/default`; a party that never chose fights by
+>   `DEFAULT_POLICY` (no `Party.onCreate` — the on-create ratchet), a chosen
+>   one is loaded by its setter (`setFormationPath` asserts `need`),
 >   `materializeParty` loads a restored party's, `party adopt <word>` resolves
 >   through `Formation.pathOfWord` (resident-first, then `keys.word`);
 >   `resolvePolicyFor` returns `DEFAULT_POLICY` only for a combatant with NO
@@ -1101,6 +1103,22 @@ Isolated on purpose; if the premise fails, this wave is re-planned alone.
   delivered synchronously as today).
 - Commit: `build(documents W4): placements and topics are documents, resident by construction`.
 
+> ✅ **W4 done (build).**
+> - **Placements** (`lib/spatial/Placement.ts`, `ON`/`IN`/`FROM` paths,
+>   `ensureKernel`, `getPrimaryWord`): `PlacementCatalogue` and the
+>   `ContainmentApi.placement*` statics are deleted. `Place.onCreate` loads
+>   the kernel placements (not `ContainerMixin`/`PlacingMixin` — one host
+>   keeps `lint:on-create` from rising); `PlacingMixin.setPlacements`
+>   returns the load; the persistence restore pass ensures. Rows'
+>   `placements:` cite paths.
+> - **Topics** (`lib/message/Topic.ts` replaces `TopicCatalogue`): `warm`,
+>   `warming`, `install`, `invalidate`, `descriptor`, `snapshot`. D13's queue
+>   is `Scene.send`'s ordered `QUEUED` list, drained in order when the warm
+>   lands; `MessageApi.topicsWarming()` lets the avatar's welcome await it.
+>   The installer calls `Topic.invalidate()` on a topic change;
+>   `validatePackTopics` reads topic documents. The test bootstrap installs
+>   the shipped topics.
+
 ### W5a — the Ideas that stay Ideas, by path: Spell, Corpo/Brand, Government (D9, D10)
 
 `SingletonMixin` + eviction veto on the four classes; descriptor coercion onto
@@ -1120,6 +1138,19 @@ Boot entries −3 → ceiling 77. Tests per the survey (`SpellCatalogue`,
 `livestock-branded`, `GovernmentCatalogue` → deleted, `GovernmentLogic*`,
 `Locality.government`, `Ship.register`, `Authority`). Commit:
 `build(documents W5a): spells, corporations, brands and governments load when something reaches them`.
+
+> ✅ **W5a done (build).** Narrowed from the plan, recorded (lens 2 — the
+> requirement is *load on reach*, not *cite by path*): bare keys stay, the
+> three catalogues stay as lazy dictionaries (`GovernmentCatalogue` kept),
+> no constituent refs. `CorpoApi.ready()`, `GovernmentApi.ready()`,
+> `MagicApi.ready()` stand them up; their logic's `catalogue()` throws
+> `DocumentNotResidentError` when cold. Residency by construction:
+> `_brandKey` → `brand` so `Branded.setBrand` can return the brand load
+> (plus the government's when the brand names a polity);
+> `Locality.setGovernmentKey`, `ShipRegister.setGovernment`,
+> `Arcane.setCarriedSpellPath`, `Spellbook.setTeachesSpellPath` return
+> theirs; `Avatar.enter` awaits `MagicApi.ready()` for a caster. Boot
+> entries −3 → 77.
 
 ### ⚠ W5b — disciplines load when a character reaches them (D11)
 
@@ -1141,6 +1172,24 @@ has its transcript's disciplines and the stock-bearing ones resident before
 any digest; a business with `fulfills:` has them resident after clone).
 Commit:
 `build(documents W5b): disciplines load when a character reaches them`.
+
+> ✅ **W5b done (build).** Narrowed like W5a, recorded: the dictionary keeps
+> the descriptors it already reads in its one `findByClass` (stock,
+> conferrals, specializes), so no per-discipline Idea is stood up — the
+> data is the same and the stand-up would be one live Stuff per discipline
+> for nothing. Never booted (boot entries 76; `check-template-scans` lists
+> it `LAZY_DICT`). The reach: `Advancement`'s async readers
+> (`bandsForImpl`, `conferredVerbsImpl`, `competenceBandFor`,
+> `refreshConferrals`) load it first, so the sync digest — which only has
+> rows after `bandsForImpl` ran — and `withConditioning` read a resident
+> dictionary; the craft act loads it before a discipline-carrying
+> `isFulfilling` walk. Cold reads throw (`DisciplineCatalogue.ensureCache`,
+> `catalogue()`, `Employed.fulfils`). `refreshConferrals` now skips a host
+> with no command stack explicitly (it used to by accident, through the
+> cold early return). Fixture: `lib/advancement/__tests__/discipline-fixtures.ts`
+> (`rememberDisciplines`). Also fixed: `GovernmentLogic.flagship` built its
+> localities before their government dictionary stood (an unhandled
+> rejection from W5a's setter load).
 
 ### W6 — the aroma library in directories (D14)
 

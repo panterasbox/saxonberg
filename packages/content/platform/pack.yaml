@@ -55,7 +55,6 @@ boot:
   # organization-held title admits nobody until the org is resident, and
   # the Treasury's account is keyed on this row's path.
   - { template: /platform/idea/PressBoard, role: producer, reason: the news-ticker window warms from the release documents at postRegister }
-  - { template: /platform/idea/DisciplineCatalogue, role: sync-read, reason: "kept by the scan sweep's READER RULE — read synchronously with no act-shaped async seam before the read, so it cannot warm on first use (making these readers async is its own build): the advancement Catalog's descriptor cache" }
   - { template: /platform/idea/MaturationProfileCatalogue, role: sync-read, reason: "kept by the scan sweep's READER RULE — read synchronously with no act-shaped async seam before the read, so it cannot warm on first use (making these readers async is its own build): stands the maturation-profile roster up for the vat reconcile's sync match (the reference-Ideas-inert-at-boot rule, self-warming — no Api.boot)" }
   - { template: /platform/idea/FractionScheduleCatalogue, role: sync-read, reason: "kept by the scan sweep's READER RULE — read synchronously with no act-shaped async seam before the read, so it cannot warm on first use (making these readers async is its own build): stands the fraction-schedule roster up for the still's charge match (the reference-Ideas-inert-at-boot rule, self-warming — no Api.boot)" }
   - { template: /platform/idea/GroupRegistry, role: sync-read, reason: the provider table every GroupApi read resolves }

@@ -403,6 +403,9 @@ async function resolveMaker(
   }
 
   const discipline = recipe.getDiscipline() || undefined;
+  // A seat fulfils a discipline's specializations too — the walk reads the
+  // discipline dictionary, so the act loads it (documents D11).
+  if (discipline) await StuffApi.singleton(TemplatePaths.disciplineCatalogue);
   const fulfilling = presentFulfillers(giver, discipline);
   if (fulfilling.length === 0) return { ok: false, reason: 'no-maker' };
 
@@ -3850,6 +3853,7 @@ async function fulfillingHandImpl(
   // the house a lookup of the employment's path returns need not be the
   // same reference (the live drive's first run: Berta on shift, "nobody").
   const housePath = house.getOrganizationPath();
+  if (discipline) await StuffApi.singleton(TemplatePaths.disciplineCatalogue);
   const candidates = presentFulfillers(giver, discipline).filter(
     (c) =>
       MixinApi.isEmployed(c) &&
