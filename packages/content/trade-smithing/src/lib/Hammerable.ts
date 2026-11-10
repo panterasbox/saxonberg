@@ -94,6 +94,7 @@ type Stock = Stuff & Builds & Alloyed;
 export function HammerableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class HammerableMixin extends Base implements Hammerable {
     static _mixinName: string = HAMMERABLE_MIXIN;
+    static _mixinRefusal = '{} is not metal stock an anvil works';
     static _mixinKind = 'protocol' as const;
 
     public hammerPlanFor(actor: Stuff, striker: Stuff, anvil: Stuff): HammerPlan | HammerRefusal {

@@ -84,6 +84,7 @@ type Piece = Stuff & Builds & Alloyed;
 export function QuenchableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class QuenchableMixin extends Base implements Quenchable {
     static _mixinName: string = QUENCHABLE_MIXIN;
+    static _mixinRefusal = '{} is not a piece the slack tub takes';
     static _mixinKind = 'protocol' as const;
 
     public quenchPlanFor(_actor: Stuff): QuenchPlan | QuenchRefusal {

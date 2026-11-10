@@ -91,8 +91,7 @@ export const ALLOWLIST: AllowEntry[] = [
   { file: "packages/content/transport/src/idea/LaneCatalogue.ts", count: 2, reason: "the transport system compiling its own index of its lanes and service routes, under its own namespace — once, lazily" },
   { file: "packages/content/energy/src/idea/GridCatalogue.ts", count: 1, reason: "the energy system compiling its own feeder reachability, under its own namespace — once, lazily" },
   { file: "packages/server/src/mud/lib/expanse/Expanse.ts", count: 1, reason: "a sea compiling its own nodes and bands — the rows under its own extent, which it owns (Expanse.compile)" },
-  // ── the wrong-way references the sweep flips ──
-  { file: "packages/content/trade-smelting/src/idea/cmd/smelting/SmeltController.ts", count: 1, reason: "an attribute match with no reference (a material → the trade's own product row), inside the trade's own namespace — the requirements' lazy-index case" },
+  // ── the wrong-way references the sweep flips ── (none left: controller-liquidity W9 — the smelt asks `Material.getCastTemplate()`)
   // ── the unobserved economy ──
   { file: "packages/server/src/mud/platform/idea/api/ResidencyLogic.ts", count: 1, reason: "the residency spawn sweep's censusKey read — the unobserved economy's faucet, kept by the scan sweep (→ unobserved-economy-slate)" },
 ];
