@@ -46,6 +46,15 @@ export interface Charge {
   splits?: RemittanceSplit[];
   /** The P&L line the main leg rolls up into (default `sales`). */
   category?: PnlCategory;
+  /**
+   * The part of the amount that is the payee's taxable revenue — the sales
+   * tax on it is remitted from the payee's account after the sale lands, so
+   * `settle` keeps that tax with the payee: a creditor's repayment share is
+   * taken from what is left, and a charge whose own splits leave the payee
+   * less than the tax is refused (`splits-exceed`) before any leg posts.
+   * Absent = nothing to keep (issue #128).
+   */
+  taxableMinor?: number;
 }
 
 /**

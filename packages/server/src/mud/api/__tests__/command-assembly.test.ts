@@ -172,7 +172,7 @@ args:
 describe('CommandApi.assemble — verb options', () => {
   const giltYaml = `
 verbs: [git]
-controller: GitController
+controller: GitStatusController
 description: Git
 options:
   json:
@@ -215,7 +215,7 @@ args:
   it('rejects multi-occurrence on multiple:false', () => {
     const def = defOf(`
 verbs: [git]
-controller: GitController
+controller: GitStatusController
 description: Git
 options:
   out:
@@ -296,7 +296,7 @@ options:
 describe('CommandApi.assemble — subcommand option scope', () => {
   const playerYaml = `
 verbs: [player]
-controller: PlayerController
+controller: PlayerShowController
 description: Player
 options:
   json:
@@ -367,7 +367,7 @@ subcommands:
 describe('CommandApi.assemble — stop-options sentinel', () => {
   const giltYaml = `
 verbs: [git]
-controller: GitController
+controller: GitStatusController
 description: Git
 options:
   json:

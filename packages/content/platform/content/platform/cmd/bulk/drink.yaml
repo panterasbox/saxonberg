@@ -39,8 +39,8 @@ args:
     type: object
     required: true
     scope: "reachable"
-    # `drink from the fountain` (water-supply drive): the article defect
-    # wants greedy, and `from` is the natural way to name an outlet.
+    # `drink from the fountain` (water-supply drive): the binder folds the
+    # article, and `from` is the natural way to name an outlet.
     prepositions: [from]
     requires: VisibleMixin
     validators:

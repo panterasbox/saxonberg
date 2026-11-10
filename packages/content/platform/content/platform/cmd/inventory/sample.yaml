@@ -44,13 +44,10 @@ examples:
     note: A stem from the stand at one end of a field, to read its roots
 controller: /platform/idea/cmd/inventory/SampleController
 args:
-  # ⚠⚠ `greedy: true` — without it `sample the north face` binds three
-  # positionals, answers "too many arguments" and dies as an unknown
-  # shape with the controller never reached.
-  #
-  # ⭐ And unresolved text is the PARAMETER path: `sample the north face`
+  # ⭐ Unresolved text is the PARAMETER path: `sample "north face"`
   # binds nothing (a face is not an object), so the raw words reach the
-  # room's `sampleFace` and tell it which face.
+  # room's `sampleFace` and tell it which face. Two words are quoted
+  # (controller-liquidity D3); the binder folds a leading article.
   - name: subject
     type: object
     required: false

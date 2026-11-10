@@ -2317,12 +2317,12 @@ execute(model, ctx) {
 // CORRECT — validator in the YAML
 // var.yaml
 verbs: [var]
-controller: VarController
+controller: /platform/idea/cmd/shell/VarListController
 validators:
   - /lib/command/validators/requiresEnvironment
-subcommands: …
+subcommands: …   # each names its own controller
 
-// VarController.ts
+// VarListController.ts
 execute(model, ctx) {
   const avatar = ctx.commandGiver as EnvHost;  // validator guarantees this
   // …
@@ -2367,8 +2367,9 @@ no authority.
 controller** (`controller:` on the subcommand in the view, over a shared
 `<Noun>ControllerBase`) — `house appoint` → `HouseAppointController`,
 `wiki edit` → `WikiEditController`. A new subcommanded verb does not
-switch on `model.subcommand` at all. The rule below still holds for the
-few that do (`WalletController`'s three arms).
+switch on `model.subcommand` at all — and since controller-liquidity
+W7 none does: `lint:multi-act`'s `subcommand` arm is a hard 0. The rule
+below is kept for the history of why.
 
 A subcommanded controller's `execute()` should NOT have a
 `default:` case in its subcommand `switch` that emits
@@ -6226,8 +6227,9 @@ back into the controller:
 `void SomeApi.slowThing().then((r) => this.tell(context, this.format(r)))`.
 
 **Do:** capture what the continuation needs (the giver, the plain
-values) before `execute` returns. Do the work in module functions that
-touch no instance, and tell the result from a fresh scheduler root:
+values) before `execute` returns. Do the work in `protected static`
+methods reached through `this.constructor` (never module functions —
+`lint:controller-functions`), and tell the result from a fresh scheduler root:
 `ScheduleApi.schedule(0, () => tellGiver(giver, text), { propagateAttribution: false })`.
 
 **Why.** A controller instance is destroyed when its command returns, so
@@ -6456,3 +6458,44 @@ list who answers it. Fewer than three implementers is a method on the one
 host. See [mixins.md § protocol mixins](./subsystems/mixins.md) and
 `lint:duck-typing` (controllers-are-io D8).
 
+## A permission decided in a controller
+
+```ts
+// NOT ALLOWED — the gate protects one door
+if (!(await AccessApi.can(giver, 'let', room))) return this.fail(context, …);
+await warren.let(unit, giver);
+
+// CORRECT — the method that writes asks who, with the actor as an argument
+const answer = await warren.let(unit, giver);   // refuses `not-yours` itself
+if (!answer.ok) return this.refuse(context, words(answer.reason), answer.reason);
+```
+
+A gate in a controller protects that controller. Every other caller of the
+same model method — a worded replacement controller, a brain, a script, the
+next verb — walks past it. The permission lives on the method that does the
+read or write, taking `by`, and the controller's copy is deleted
+(controller-liquidity D9; call-security.md § *the method asks who*).
+`lint:controller-gates` counts what is left; each remaining site is a verb's
+door onto a primitive the world itself must call ungated, named in the gate's
+header.
+
+## `greedy: true` on an object arg
+
+```yaml
+# NOT ALLOWED — the slot swallows every word after it
+- name: thing
+  type: object
+  greedy: true
+
+# CORRECT — one word binds bare; a name with a space in it is quoted
+- name: thing
+  type: object        # `buy apple`, `buy the apple`, `buy "dog loaf"`
+```
+
+A greedy object slot made every later word part of the name, so a
+preposition or a second arg after it could never bind, and `the` became a
+thing you could look at. The binder folds a leading article into the next
+token, and words left over refuse with the quote hint (*too many words —
+quote a name with a space in it*). The schema refuses `greedy` on
+`object`/`objects`; greedy stays for PROSE (`say`, `dm`, a forum body).
+`lint:greedy-object` is a hard 0 (controller-liquidity D3, W5).

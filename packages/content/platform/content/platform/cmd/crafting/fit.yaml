@@ -49,8 +49,8 @@ args:
   # The part to fit — or, when it names no thing in reach, the recipe to
   # raise (`fit cask`). `required: false` so an unresolved word binds as
   # `{stuff: null, raw}` (the `measure` rule); the controller refuses when
-  # nothing bound at all. ⚠ `greedy: true` — `fit the oak haft` is three
-  # tokens and one thing.
+  # nothing bound at all. The binder folds `the`; a two-word name is
+  # quoted — `fit "oak haft"` (controller-liquidity D3).
   - name: thing
     type: object
     required: false

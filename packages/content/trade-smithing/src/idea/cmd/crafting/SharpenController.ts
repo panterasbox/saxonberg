@@ -18,27 +18,14 @@ import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { AppApi } from '@saxonberg/server/mud/api/app';
-import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 
 const TOPIC = 'act.deed';
-const SHARPEN_MS_FALLBACK = 12000;
 const RASP_DB = 55;
 
 interface SharpenModel extends CommandModel {
   /** ⭐ The instrument, resolved by the BINDER off the view's arg. */
   stone?: MqlOneResult;
   blade?: MqlOneResult;
-}
-
-function sharpenDurationMs(): number {
-  try {
-    const raw = AppApi.setting(AppSettingKeys.craftingKeennessSharpenDurationMs);
-    const n = raw === '' || raw == null ? NaN : Number.parseFloat(raw);
-    return Number.isFinite(n) && n > 0 ? n : SHARPEN_MS_FALLBACK;
-  } catch {
-    return SHARPEN_MS_FALLBACK;
-  }
 }
 
 export default class SharpenController extends ManualBuildController<SharpenModel> {
@@ -79,7 +66,7 @@ export default class SharpenController extends ManualBuildController<SharpenMode
     const keenBlade = blade;
     this.engageStep(context, {
       // The stone paces its own ritual (a grinding wheel is faster).
-      durationMs: this.paceMs(sharpenDurationMs(), stone, ['whetstone']),
+      durationMs: this.paceMs(blade.honeDurationMs(), stone, ['whetstone']),
       effortW: 250,
       beginSelf: Mml.compose`You set to work on ${Mml.thing(blade)} with ${Mml.thing(stone)}, long slow strokes.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} sets to sharpening ${Mml.thing(blade)}.`,

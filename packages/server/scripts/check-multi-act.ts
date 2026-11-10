@@ -31,6 +31,22 @@
  * controller-liquidity W0 (2026-11-09). The survey's 75 multi-act
  * controllers is a different (reading) classifier's number; this one is a
  * syntax census and says so. It may fall, never rise.
+ *
+ * ⭐ **At merge (W14): 6, the `subcommand` arm a hard 0.** Each remaining
+ * site is ONE act, named here so nobody reads the number as work left:
+ *   - `PassageController` (target-kind) — the floor's restoration of a
+ *     body: the reserve and the conditions are two faculties of one act.
+ *   - `WorkedActController` (target-kind) — the worker's soil and deed
+ *     credit after the one worked act lands, each where the faculty exists.
+ *   - `GetController` (target-kind) — taking a thing: an adornment comes
+ *     down, a slotted thing is released — preconditions of the one take.
+ *   - `UnequipControllerBase` (target-kind) — the doff and its timing read
+ *     off the wearer; one act per subcommand controller.
+ *   - `LookController` (target-kind) — a read whose arms call reads the
+ *     READ_NAME regex does not know (`readScreen`, `chattelOwner`).
+ *   - `StyleChannelController` (arg-word) — `channel <key> color|clear`:
+ *     the second word comes AFTER an argument, so no stanza can carry it,
+ *     and the owner's read promised `cockpit style` unchanged (W7b).
  */
 
 import { readFileSync } from "fs";
@@ -39,7 +55,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const MULTI_ACT_CEILING = 9; // controller-liquidity W9: −2, smelt and quench ask the piece. // controller-liquidity W11: −7 (saw, fell, sew, tan, scutch, spin, weave answer one plan each). // controller-liquidity W12: −1 (glass crack). // controller-liquidity W10: −3 (butcher, mill, slaughter). // controller-liquidity W7: −16, the kernel multi-act controllers split (W7a/b/c). // controller-liquidity W8: −1
+export const MULTI_ACT_CEILING = 6; // controller-liquidity W14: −3, the empty string is a presence test, not a word (Read, Tear, WriteOn). // controller-liquidity W9: −2, smelt and quench ask the piece. // controller-liquidity W11: −7 (saw, fell, sew, tan, scutch, spin, weave answer one plan each). // controller-liquidity W12: −1 (glass crack). // controller-liquidity W10: −3 (butcher, mill, slaughter). // controller-liquidity W7: −16, the kernel multi-act controllers split (W7a/b/c). // controller-liquidity W8: −1
 
 export type MultiActShape = "subcommand" | "arg-word" | "target-kind";
 
@@ -58,8 +74,13 @@ function modelField(e: ts.Expression, models: ReadonlySet<string>): string | nul
   return null;
 }
 
+/**
+ * A WORD literal. ⚠ The empty string is not one: `model.page !== ''` asks
+ * whether the slot was given, not which word it holds (controller-liquidity
+ * W14 — Read/Tear/WriteOn were counted for a presence test).
+ */
 const isStringLit = (e: ts.Expression): boolean =>
-  ts.isStringLiteral(e) || ts.isNoSubstitutionTemplateLiteral(e);
+  (ts.isStringLiteral(e) || ts.isNoSubstitutionTemplateLiteral(e)) && e.text !== "";
 
 /** The tested identifier of a `MixinApi.isX(t)` / `t instanceof X` condition, if that is what it is. */
 function testedKind(cond: ts.Expression): string | null {

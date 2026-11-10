@@ -112,21 +112,22 @@ Contacts-bearing being.
 
 ```yaml
 verbs: [contacts]
-controller: ContactsController
+controller: /platform/idea/cmd/social/ContactsListController   # bare `contacts`
 validators:
   - /lib/command/validators/requiresAnimate
-subcommands:
+subcommands:            # one controller per subcommand (controller-liquidity W7a)
   add:
+    controller: /platform/idea/cmd/social/ContactsAddController
     options:
       char: { short: c, type: boolean }
     args:
       - { name: target, type: object, required: true, scope: "online" }
       - { name: label,  type: string, required: true }
-  remove: { args: [ { target: string }, { label: string } ] }
-  show:   { args: [ { label:  string } ] }
-  list:   {}
-  clear:  { args: [ { label:  string } ] }
-  rename: { args: [ { old_label: string }, { new_label: string } ] }
+  remove: { controller: …/ContactsRemoveController, args: [ { target: string }, { label: string } ] }
+  show:   { controller: …/ContactsShowController,   args: [ { label:  string } ] }
+  list:   { controller: …/ContactsListController }
+  clear:  { controller: …/ContactsClearController,  args: [ { label:  string } ] }
+  rename: { controller: …/ContactsRenameController, args: [ { old_label: string }, { new_label: string } ] }
 ```
 
 The `add` subcommand resolves its `target` via MQL at `scope: online`

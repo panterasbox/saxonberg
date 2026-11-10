@@ -23,6 +23,23 @@
  * ⭐ Census, then ratchet: opened at its own count at controller-liquidity
  * W0 (2026-11-09). W3 moves the confirmed gates (plan Appendix D) onto
  * their models; it may fall, never rise.
+ *
+ * ⭐ **At merge (W14): 10, and each is the VERB's door onto a primitive
+ * that must stay ungated** — a primitive the world itself calls for
+ * things nobody holds, so the permission cannot live on it without
+ * refusing the world:
+ *   - `clone`, `destruct` (×2), `eval`, `goto` (×2), `reload` — the author
+ *     verbs over `StuffApi.clone/destruct`, the eval sandbox, movement and
+ *     hot reload: framework primitives with hundreds of system callers
+ *     (a pack's mint, a brain's move, a boot's reload). The gate is the
+ *     held-extent read (`AccessApi.can*`), the one door a PERSON uses.
+ *   - `title subdivide`, `title transfer` — `ParcelApi.subdivide/transfer`
+ *     are what the plat book, a lease, `provision` and `stake` call for
+ *     parcels the actor does not own (W8 decision g); the verb asks
+ *     `canMutateZone` of the person.
+ *   - `broadcast` — `canAtPath(speaker, 'broadcast', extent)`: the scene
+ *     composer is the primitive every room message rides.
+ * A new site is not one of these by default: move it onto the method.
  */
 
 import { readFileSync } from "fs";

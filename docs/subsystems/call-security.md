@@ -1172,6 +1172,22 @@ subject whose methods the logic trusts about third parties:
 `FromIdentity`, the audit rail and the full pass remain the call-security
 pass's.
 
+⭐⭐ **The method asks who (controller-liquidity D9).** Possession is
+capability, so the *"who initiates"* answer cannot be left to whichever
+controller happened to call: a model method that reads or writes something
+protected **takes the actor as an argument** (`by`, `reader`) and asks the
+predicate that exists on the model — `AccessApi.can` on the room
+(`Bailer.spudPlanFor`), `mayLetFor(by)` (`LettingWarren.let`), `opensFor`
+(a forum board), `isAudienceMemberOf`, `seatFor`/`holdsOffice`
+(`DiagnosticLogic.rawTail`, `AppLogic`'s Tier C), `mayKeep` (a herd). Where a
+participant contract already proves the actor is the caller (`SelfSubject(0)`
+on ForumsLogic, OrgCallers) the relational half trusts it; where none exists
+the method asks. Fail-closed: an unresolvable board, a channel with no
+subject, a jar with no house all refuse. The controller's copy of the gate is
+then deleted — a worded replacement, a brain or a script reaches the same door.
+`lint:controller-gates` counts what is left in controllers; its header names
+each remaining site and why it is a verb's door onto an ungated primitive.
+
 ### Async `allows`
 
 `SecurityPolicy.allows` returns `boolean | Promise<boolean>`. The

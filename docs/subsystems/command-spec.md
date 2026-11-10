@@ -1615,10 +1615,10 @@ each subcommand can declare its own `args:` and `options:`:
 ```yaml
 verbs: [player]
 category: author
-controller: PlayerController
 description: "Manage your player character settings"
-subcommands:
+subcommands:                 # ⭐ one controller per subcommand (D9; controller-liquidity W7a)
   name:
+    controller: /platform/idea/cmd/author/PlayerNameController
     description: "Set your character name"
     args:
       - name: name
@@ -1628,12 +1628,14 @@ subcommands:
         type: string
         required: false
   pronouns:
+    controller: /platform/idea/cmd/author/PlayerPronounsController
     description: "Set your pronouns"
     args:
       - name: pronouns
         type: string
         required: true
   show:
+    controller: /platform/idea/cmd/author/PlayerShowController
     description: "Show your current player settings"
 ```
 
@@ -1642,9 +1644,13 @@ The matcher stamps `model.subcommand` with the chosen subcommand name
 `api/command.ts`). YAMLs with `subcommands:` cannot declare a field
 or option named `subcommand` — caught at load time.
 
-Subcommanded verbs invoked without a subcommand reach the controller
-with `model.subcommand === undefined`. The controller decides what
-that means (`settings list`-style default, error, etc.).
+A subcommanded verb invoked without a subcommand runs the view's
+top-level `controller:` (the bare form — `contacts` lists), with
+`model.subcommand === undefined`. ⭐ Each subcommand names its own
+`controller:` (a shared `*ControllerBase.ts` holds what they share); a
+controller that reads `model.subcommand` to pick an act is counted by
+`lint:multi-act`, whose ceiling is a hard **0** for the `subcommand` arm
+(controller-liquidity W7, W14).
 
 ### Unknown subcommand — framework-side rejection
 
@@ -1657,8 +1663,8 @@ and the list of valid subcommand names. The dispatcher
 emits a `command-rejected { reason: 'unknown-subcommand', detail:
 "unknown subcommand 'foo'; valid: bar, baz" }` note on the outer
 context before any controller is cloned. Controllers therefore
-don't need (and shouldn't ship) a `default:` case in their
-subcommand switch — that path is dead, and the framework's prose
+don't need (and shouldn't ship) a fallback for it — that path is
+dead, and the framework's prose
 mapping says "Command rejected: unknown subcommand 'foo'; valid:
 bar, baz" out of the box.
 
@@ -2211,25 +2217,81 @@ when the giver has X" example: it lives on `FocusedMixin`, so an NPC scripted
 without `FocusedMixin` simply doesn't see `focus` on its recency
 stack.
 
-## ⭐⭐ Alternate controllers — the same act in other words
+## ⭐⭐ The liquidity contract — any controller can be replaced
 
-A controller that only does input and output can be swapped without touching the
-world (D14). Re-point the view's `controller:` at another class and every state
-change, reason and duration is what it was, because the object decided them. The
-exemplar is `HarvestWordedController`:
+A controller is the act's **input and output and nothing else** (controllers-are-io
+D14, controller-liquidity). Re-point the view's `controller:` at another class and
+every state change, reason, gate, duration and money leg is what it was, because
+the object decided them. What that takes, and the gate that holds each line:
+
+| the controller may | the controller may not | held by |
+|---|---|---|
+| read the bound model; ask the object for a plan (`fooPlanFor(actor, …)`) | decide a rule, a threshold or a duration | `lint:controller-decisions` (pinned at its floor) |
+| engage the plan (`engagePlan`) and render its reasons and facts | write the world (`set*`/`add*`/`record*` on another Stuff) | `lint:controller-mutations` |
+| — | ask a permission — `AccessApi.can*`, `holdsOffice`, `mayKeep`, … | `lint:controller-gates` (the remaining sites are named in its header) |
+| — | pick WHICH act the player meant | `lint:multi-act` (see the ladder below) |
+| — | search the world for its own instrument | `lint:controller-resolution` |
+| — | close a completion over `this` | `lint:completion-this` (**0**) |
+| — | key a person on `getTemplatePath()` | `lint:lineage-keys` (**0**) |
+
+⭐ **The permission is the method's.** A model method that reads or writes
+something protected takes the actor (`by`) and asks the predicate itself
+(`LettingWarren.let(…, by)`, `Bailer.spudPlanFor(actor)` asking `AccessApi.can`
+on the room, `Organization.apply`); every other caller — a worded replacement, a
+brain, a script — goes through the same door (D9; call-security.md § *the method
+asks who*).
+
+⭐ **Every refusal before every write; no money before a refusable write** (D10).
+A plan IS the statement that nothing refuses: the mint, the accountability record
+and the settle live in the plan's `onComplete`/`run`. An instant act is
+check-then-act in one model method (`PlatBook.sell`, `Pilot.sellWaterTo`).
+
+⭐ **A planner that cannot decide returns choices** (`ActChoices`, `ok:
+'choose'`) and the controller picks a default, refuses with the list
+(`choiceLine`) or asks (`chooseAmong`) — and a replacement may do any of the three.
+
+The exemplar replacement is `HarvestWordedController`:
 
 ```typescript
 export default class HarvestWordedController extends HarvestController {
-  static override refusalWords(r: HarvestRefusal): Composed { /* … */ }
-  static override beginWords(f: HarvestBegin, giver: Stuff) { /* … */ }
-  static override doneWords(f: HarvestDone, giver: Stuff) { /* … */ }
+  protected static override refusalWords(r: HarvestRefusal): Composed { /* … */ }
+  protected static override beginWords(f: HarvestBegin, giver: Stuff) { /* … */ }
+  protected static override doneWords(f: HarvestDone, giver: Stuff) { /* … */ }
 }
 ```
 
-⚠ **Word methods are `static`, and read off the instance's class before the act
-engages** (`const words = this.constructor as typeof HarvestController`). They run
-at completion, after the dispatcher destructed the controller, and a destroyed Stuff
-answers a method call with a silent no-op. `lint:completion-this` reads the closures.
+⚠ **Word methods are `protected static`, read off the instance's class before the
+act engages** (`const words = this.constructor as typeof HarvestController`), so a
+replacement's override is the one that runs. They run at completion, after the
+dispatcher destructed the controller, and a destroyed Stuff answers a method call
+with a silent no-op. *A completion closes over values and the class, never over
+`this`* — `lint:completion-this` reads every form one can be written in.
+
+## ⭐⭐ The remedy ladder — one controller, one act
+
+A controller that is several acts (it switches on a subcommand, on a typed word,
+or on what kind of thing its target turned out to be) takes the **first rung
+that fits**:
+
+1. **One act on several kinds of thing** → each thing answers the same act
+   behind one protocol; one controller (`heat` → `Heated.takeHeat` on three
+   hosts; `fell` → `Fellable`). A head that was really another verb's act
+   retires into that verb (`heat pot` → `put pot on hearth`, `fell log` →
+   `cut`, `belay off` → `untie`, `char 0.5` → `draught`, `tan hide` as a check
+   → `look pit`).
+2. **A manner of the same act** → an option (`wash --hard`).
+3. **Different acts the player already groups** → subcommands of a noun, one
+   controller each over a shared `<Noun>ControllerBase` (`notify show|set|move|
+   remove`, `fight assess`, `berth roads`, `cockpit layout recall`; nested where
+   the noun nests — `equip set save`).
+4. **Different shapes of one sentence** → separate shapes of one word, each with
+   its own controller (`throw`, `watch <stream>` vs `watch <stream> on <screen>`).
+5. **None fits** → a new word, with the four failures written down (`spud`
+   beside `bore`; `paste` beside `fit`).
+
+`lint:multi-act` counts the shapes a controller shows; its `subcommand` arm is a
+hard **0**, and each remaining `arg-word`/`target-kind` site is named, with why it
+is one act, in the gate's header.
 
 ## Controller template row
 

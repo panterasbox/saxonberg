@@ -988,7 +988,7 @@ of it) and spends itself (`spendSeed`).
 because the controller is destructed when `execute` returns.
 `HarvestWordedController` overrides all three and is the doctrine's exemplar: the
 same harvest in other words. See
-[command-spec.md § Alternate controllers](./command-spec.md#-alternate-controllers--the-same-act-in-other-words).
+[command-spec.md § The liquidity contract](./command-spec.md#-the-liquidity-contract--any-controller-can-be-replaced).
 
 ⚠ A crop's maker is the person, `getIdentityPath()`: every player body shares a
 lineage path, and a crop marked with it was marked by nobody.

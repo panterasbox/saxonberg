@@ -1013,6 +1013,21 @@ test:near green.
 
 ---
 
+**D18a (build, W14) — `multi-act` and `controller-gates` close at their
+floor, not at 0.** The `subcommand` arm is 0 and `lineage-keys`/`greedy-object`
+/`completion-this` are hard zeros; `multi-act` holds 6 (one act each — the
+target-kind classifier sees a precondition or a second faculty as a second act;
+`StyleChannel`'s `color|clear` comes after an argument, where no stanza can carry
+it) and `controller-gates` 10 (each a verb's door onto a primitive the world
+itself must call ungated). Every site is named in its gate's header. The
+multi-act classifier stopped counting `''` as a word (−3, a measurement fix).
+
+**D18b (build, W14) — #128: the tax is reserved INSIDE `settle`.** A sale's
+`Charge` carries `taxableMinor`; `settle` keeps the tax on it with the payee, a
+creditor's repayment share is of what is left, and splits that leave the payee
+less refuse `splits-exceed` before any leg. The alternative — a `BankingApi`
+tax read the employment logic subtracts — puts the rate in two places.
+
 ## ⭐⭐ Host placement
 
 For every new mixin, field and method: which host carries it, and what
@@ -1899,7 +1914,7 @@ rebase cleanly.
 - Commits: `build(controller-liquidity W9): the metal chain's rules in the
   metal chain` … `W13: …`.
 
-### W14 — the gates close and the docs graduate
+### W14 — the gates close and the docs graduate ✅ done
 
 - Every census at its end value; `lint:greedy-object`, `lint:multi-act`,
   `lint:controller-gates`, `lint:lineage-keys` at **0** and flipped to zero
@@ -1919,6 +1934,21 @@ rebase cleanly.
   glass.md for the cutting split, the trades' docs for the moved rules.
 - Commit: `build(controller-liquidity W14): the gates close; the docs
   carry the liquidity contract`.
+
+  > **W14: ✅ done.** Green first: tsc 0 (server + 54 packs), the four reds
+  > (`census` — `dustMaterial` read by `refsOf`; decisions 635→633, functions
+  > 64→63, mixin-clusters 42→41 re-pinned). Defects: **#128 fixed** (D18b;
+  > `credit.test.ts` reproduces the floor throw); C5's square branch tested;
+  > Sharpen's duration → `Keen.honeDurationMs`; Wash/Bathe verified; magic
+  > prose, `PullOutcome`, Course's parse and C60 deferred to named slates (C93–
+  > C96). Gates (D18a): greedy-object 0, lineage-keys 0, completion-this 0,
+  > multi-act 6, controller-gates 10; decisions 633/38, functions 63, mutations
+  > 138, resolution 1/80, duck 483/0, lib-statics 340. Docs: command-spec (the
+  > liquidity contract + the remedy ladder; subcommand examples), command-
+  > routing (by-path, nested), call-security (*the method asks who*),
+  > antipatterns (+2), lint-family (at-merge column), glass, textiles, contacts;
+  > 26 stale `greedy` YAML comments and `kermes.yaml`. CLAUDE.md left for the
+  > sweep.
 
 ### W15 — the drive and the walk
 
@@ -2418,7 +2448,7 @@ Current lines at `2ce973dfb`. **52 confirmed and fixed, 2 reclassified,
 | C57 | movement `TeleportController` L320–322/L337/L345 | completion on a destroyed controller | confirmed | **W0** |
 | C58 | `TeleportController` L92–98; `teleport.yaml` L64; `resolveAnchored` L416–430 | free move inside a held extent rarely binds | **design-level — the drive decides** | W7a looks; W15 step 10 |
 | C59 | movement `UnhitchController` L48–49; `unhitch.yaml` L23; `DraftAnimal.ts` L57 | `unhitch horse` refused at bind | confirmed | W3 |
-| C60 | `LocomotionControllerBase` L313–327 | refusal at arrival writes no note | confirmed (minor) | W8 → deferred (scheduler seam, W8 note f) |
+| C60 | `LocomotionControllerBase` L313–327 | refusal at arrival writes no note | confirmed (minor) | W8 → deferred (scheduler seam, W8 note f) → `controllers-are-io-slate` § Deferred from controller-liquidity |
 | C61 | retail `RackCheckController` L79; `rack.yaml` L35–36 | TypeError on a non-weapon | confirmed | ✅ W8 |
 | C62 | shell `CpController` L61–65, `MvController` L52–68, `WriteController` L271–278 (`AccessRegistry` L136–148) | `can(…, null)` always false | confirmed | W3 (`canAtPath`) |
 | C63 | retail `ShelfConsignController` L143–180/L242–244 vs `HeldGoodsControllerBase` L82–88 | consignable but never reclaimable (parent-org title; released id) | confirmed (premise corrected) | W3 |
@@ -2448,6 +2478,13 @@ Current lines at `2ce973dfb`. **52 confirmed and fixed, 2 reclassified,
 | C87 | `EvalController` L181–224 | a hand copy of the access decision | partial (duplication) | W3 |
 | C88 | `LockController`/`UnlockController` vs `Lockable.lock()` L177–183 | the mutator asks nobody | confirmed (by design) | W3 |
 | C89 | `ChatHistoryController` L13–16 → `ChannelCatalogue.historyFor` L462–464 | no membership check | confirmed | W3 |
+| C90 | GitLab #128 — `EmploymentLogic.settleSale` → `remitDemoTax` | a sale whose creditor's repayment share left the shop less than the sales tax threw at the ledger floor (`controller-error`) | confirmed (reproduced in `credit.test.ts`) | ✅ W14 (`Charge.taxableMinor`: `settle` keeps the tax with the payee; a creditor's share is of what is left; splits that leave less refuse `splits-exceed` before any leg) |
+| C91 | terminus `MarketStalls.giveUp` (C5's square branch) | no test for a keeper who cannot hold things | confirmed | ✅ W14 (`stall.test.ts`) |
+| C92 | smithing `SharpenController` | a module-level duration helper reading a setting | confirmed | ✅ W14 (`Keen.honeDurationMs`) |
+| C93 | arcana `Cast`/`Zap`/`Recite`/`Recharge` | the magic Apis return prose; `recharge` cannot name its transfer spell | confirmed | deferred → `spellbook-slate` § 8 (a reason union over the faculty/band/impairment/suppression producers, and a `Charged` field + rows — kernel work beyond this build) |
+| C94 | `PullOutcome` (six hosts, four packs) | words on the protocol, not reasons | confirmed | deferred → `controllers-are-io-slate` (a kernel union would hold pack words — lens 2, the `TravelNode.ride` call) |
+| C95 | movement `CourseController` | the heading parse is read in the controller | not a defect (the decisions are Ship's/the frame's) | deferred → `controllers-are-io-slate` (`Frame.readHeading`) |
+| C96 | crafting `Wash`/`Bathe` `findWater` | should ask `WaterDrawable` | verified done (W7c) | — |
 | — | `HouseShopController` L196–205 (stock by the screen's principal) | **not a defect** — documented posture (L18–19, display.md) | dropped | — |
 | — | `WhoController` L4–10 | **not a defect** — presence is public; lensing is `SocialApi.composeRow`'s | dropped | — |
 

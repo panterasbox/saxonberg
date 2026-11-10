@@ -51,8 +51,8 @@ args:
   # ⭐⭐ WHICH SAW, declared rather than hunted (`lint:controller-resolution`).
   # ⚠ The query is the CAPABILITY, not `[class.Sawmill]`: a pit saw and a
   # sawmill are two rows of one class today, and a second saw a realm
-  # authors on any tool class is found by what it offers. `greedy` so
-  # `at the pit saw` is one name; safe because it is the last arg.
+  # authors on any tool class is found by what it offers. Two words are
+  # quoted — `at "pit saw"` (controller-liquidity D3).
   - name: saw
     prepositionRequired: true
     type: object

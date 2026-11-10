@@ -283,6 +283,16 @@ is why linen was worn undyed and wool was the coloured cloth. Wool
 (protein) takes alum directly and arrives with ranching. The full
 account is `packages/content/trade-dyeing/README.md`.
 
+⭐ **The mordant is the bath's MATERIAL, and a dose is spent** (controller-
+liquidity W11, C9). `mordant <cloth> [in <bath>]` reads the mordant off the
+bulk vessel it names (or the first one in reach holding a mordant) and
+draws one dose from it; there is no `with alum` word any more — it bound
+nothing and cost nothing. The bath is a value object (`DyeBath`), not a
+host class: any bulk vessel can hold one. Scutch, spin and weave each answer
+one plan on `TextileWork(actor, instrument)` — the good is minted before
+its inputs are consumed (C29), and yarn is whatever has a count (C23, so
+hemp yarn weaves).
+
 **`jute`** is in the fibre vocabulary (`base-library/…/material/textile/jute.yaml`)
 — hessian is jute, and the sack rows in `trade-cooking` and `trade-bottling`
 name it (graduated from the bulkable slate, 2026-09).

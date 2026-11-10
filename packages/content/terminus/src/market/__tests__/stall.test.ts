@@ -51,6 +51,7 @@ import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { makeStuff, makeStuffAtPath, withRootContext } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { PlayerApi } from '@saxonberg/server/mud/api/player';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { installBankingHarness, teardownBankingHarness } from '@saxonberg/server/mud/lib/banking/__tests__/banking-test-harness';
 const STALL_SEED = MarketStalls.STALL_SEED;
@@ -359,6 +360,26 @@ describe('a player shop is a rented market stall', () => {
     expect(house.getOperatingLocations()).toEqual([]);
     // Nobody else's stall to give up.
     expect(rejections(await stall(alice, 'give-up'))).toEqual(['no-stall']);
+  });
+
+  it('⭐ C5: a keeper who cannot hold things gets the goods on the SQUARE — never destructed with the counter', async () => {
+    const alice = await fundedGiver('/platform/agent/Avatar/alice', 20);
+    expect(rejections(await stall(alice, 'rent'))).toEqual([]);
+    const counter = StuffApi.findByTemplatePath<Stock>(idsFor(1).counter)!;
+    const torch = makeStuffAtPath(() => {
+      const t = new Torch();
+      t.setKeywords(['torch']);
+      return t;
+    }, TORCH);
+    ContainmentApi.move(torch as never, counter as never);
+    // A keeper with no hands (a shade, a broadcast body): the counter's
+    // goods used to be destructed with it.
+    const isContainer = MixinApi.isContainer.bind(MixinApi);
+    vi.spyOn(MixinApi, 'isContainer').mockImplementation(((x: unknown) => x !== alice && isContainer(x as never)) as never);
+    const answer = await asOwner(alice, () => stalls.giveUp(alice as never));
+    expect(answer).toEqual({ ok: true, goodsTo: 'square' });
+    expect(torch.getContainer()).toBe(square);
+    expect(StuffApi.findByTemplatePath(idsFor(1).counter)).toBeUndefined();
   });
 
   it('⭐⭐ the pitch is the key, and the BOOK is what remembers whose it is', async () => {

@@ -947,7 +947,10 @@ async function withRepaymentSplits(
   if (!charge.payeeAccountId || charge.amount.minor <= 0) return { charge, repayments: [] };
   const existing = charge.splits ?? [];
   const existingTotal = existing.reduce((s, x) => s + x.amount.minor, 0);
-  const net = charge.amount.minor - existingTotal;
+  // ⭐ The tax the payee remits from this inflow stays with the payee: a
+  // creditor's share is of what is left (issue #128 — a repayment that
+  // took the whole sale left the tax to overdraw the shop).
+  const net = charge.amount.minor - existingTotal - salesTaxMinor(charge.taxableMinor ?? 0);
   if (net <= 0) return { charge, repayments: [] };
   const splits = await ContractApi.repaymentSplitsFor(charge.payeeAccountId, net);
   if (splits.length === 0) return { charge, repayments: [] };
@@ -1339,7 +1342,7 @@ async function settleLegs(
     }
     const cashSplits = charge.splits ?? [];
     const cashSplitTotal = cashSplits.reduce((s, x) => s + x.amount.minor, 0);
-    if (cashSplitTotal > charge.amount.minor) {
+    if (cashSplitTotal > charge.amount.minor - salesTaxMinor(charge.taxableMinor ?? 0)) {
       throw new SettleRefused("splits-exceed", "BankingLogic.settle: splits exceed the charge");
     }
     // Exact-cash-or-card: consume coins summing to exactly the charge, or
@@ -1415,8 +1418,8 @@ async function settleLegs(
 
   const splits = charge.splits ?? [];
   const splitTotal = splits.reduce((s, x) => s + x.amount.minor, 0);
-  if (splitTotal > charge.amount.minor) {
-    throw new Error("BankingLogic.settle: splits exceed the charge");
+  if (splitTotal > charge.amount.minor - salesTaxMinor(charge.taxableMinor ?? 0)) {
+    throw new SettleRefused("splits-exceed", "BankingLogic.settle: splits exceed the charge");
   }
   const legs: LedgerLeg[] = [];
   const mainAmount = charge.amount.minor - splitTotal;
@@ -1808,17 +1811,23 @@ function demoTaxConfig(): { rate: number } {
  * authored, inert rate. The seller-collected model: the tax shows in the
  * seller's P&L (a `tax` line) and the treasury accumulates it beside the
  * perpetual (the Minister of Finance appropriates from it). Returns the
- * tax remitted (zero when the rate is absent). Runs after the sale landed,
- * so the floor cannot fail it.
+ * tax remitted (zero when the rate is absent). Runs after the sale landed;
+ * the floor cannot fail it because a sale's charge carries `taxableMinor`
+ * and `settle` keeps that tax with the seller (issue #128).
  */
+/** The demo sales tax on `taxableMinor` at the authored rate — one rule for `settle`'s reserve and the remit. */
+function salesTaxMinor(taxableMinor: number): number {
+  if (taxableMinor <= 0) return 0;
+  const { rate } = demoTaxConfig();
+  return rate <= 0 ? 0 : Math.floor(taxableMinor * rate);
+}
+
 async function remitDemoTaxImpl(
   sellerAccountId: string,
   saleAmount: Money,
   at?: Stuff,
 ): Promise<Money> {
-  const { rate } = demoTaxConfig();
-  if (rate <= 0) return Money.zero(BankingApi.compactCurrency());
-  const tax = Math.floor(saleAmount.minor * rate);
+  const tax = salesTaxMinor(saleAmount.minor);
   if (tax <= 0) return Money.zero(BankingApi.compactCurrency());
   // ⭐ To the treasury's real account — `/compact/treasury`'s, at the CB
   // (economic bootstrap D9) — never a raw string id nobody owns.

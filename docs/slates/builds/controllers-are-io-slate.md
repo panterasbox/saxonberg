@@ -970,3 +970,21 @@ slate does not yet carry the item, this section is its record.
 - Weak drive checkpoints: 24b blind; 21b passes a nonsense way; step 17's read-back room unexplained.
 - Crowd timing targets: `crowded-rooms-slate`.
 
+
+### Deferred from controller-liquidity (2026-11-10)
+
+- **C60 — a refusal at arrival writes no note** (`LocomotionControllerBase.
+  arriveAfter`): at arrival the command frame is gone and the engagement has
+  completed, so an abort reason needs a **scheduler seam** (an engagement
+  whose completion can still fail and report). The same seam carries the
+  `WaterSurface` push-off (`room.pushOff`) out of the controller.
+- **`PullOutcome` still carries words** across the `Pullable` hosts (kernel
+  `Line`/`HaulOut`/`Capstan`, transport `Boat`, fishing `Trap`, diving
+  `Hoist`): a kernel reason union would hold four packs' words behind a
+  kernel MR (the `TravelNode.ride` call, lens 2). Needs a protocol-level
+  answer — reasons the kernel names plus a host's own word table.
+- **`course`'s heading parse** (bearing · node · landing · `upstream`/`bar`
+  · `slow`) is still read in `CourseController` before it asks the frame;
+  the decisions (the bar, the keeper's criteria, the steering, who may helm)
+  are Ship's and the frame's. Moving the parse is a `Frame.readHeading`
+  protocol method on `Expanse` and `LineFrame` — no defect behind it.

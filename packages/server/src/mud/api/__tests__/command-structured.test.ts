@@ -26,7 +26,7 @@ function defOf(yaml: string): CommandDefinition {
 describe('CommandApi.assembleFromStructured', () => {
   const playerYaml = `
 verbs: [player]
-controller: PlayerController
+controller: PlayerShowController
 description: Player
 subcommands:
   name:

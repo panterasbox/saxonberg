@@ -59,13 +59,10 @@ args:
     # amortized trip the economics are built around.
     required: false
     default: "reachable:[mixin.SampledMixin]"
-    # ⚠⚠ `greedy: true`, and a PLURAL arg needs it every bit as much as a
-    # singular one. Without it `assay the ore` binds `the` and `ore` as
-    # TWO object queries, `the` matches the first thing in reach, and the
-    # verb refuses with *"an aether implant is not a sample"* — a
-    # sentence about an object nobody mentioned. Found by driving, after
-    # the same defect had already been fixed on `measure`, `analyze` and
-    # `sample`: the article eats a positional wherever one is free.
+    # `assay the ore`: the binder folds the article into the next word
+    # (controller-liquidity D3), so `the` never binds a thing of its own —
+    # it once matched the first thing in reach and refused with a sentence
+    # about an aether implant.
     scope: ["reachable"]
     requires: [SampledMixin]
   # ⭐ The default resolves the carried KIT as well as the bench —

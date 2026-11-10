@@ -249,7 +249,7 @@ subcommands:
   it('controllerForSubcommand falls back to verb-level controller', () => {
     const cmd = load(`
 verbs: [settings]
-controller: /platform/idea/cmd/shell/SettingsController
+controller: /platform/idea/cmd/shell/SettingsListController
 description: ok
 subcommands:
   list:
@@ -258,10 +258,10 @@ subcommands:
     description: set
 `);
     expect(cmd.controllerForSubcommand('list')).toBe(
-      '/platform/idea/cmd/shell/SettingsController'
+      '/platform/idea/cmd/shell/SettingsListController'
     );
     expect(cmd.controllerForSubcommand('set')).toBe(
-      '/platform/idea/cmd/shell/SettingsController'
+      '/platform/idea/cmd/shell/SettingsListController'
     );
   });
 

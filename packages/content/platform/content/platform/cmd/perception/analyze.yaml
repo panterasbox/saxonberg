@@ -45,9 +45,8 @@ args:
   - name: channel
     type: string
     required: true
-  # ⚠⚠ `greedy: true` IS REQUIRED — see `measure.yaml`'s note. Without
-  # it `analyze ground the north face` binds three positionals, answers
-  # "too many arguments" and dies as an unknown command shape.
+  # A two-word subject is quoted — `analyze ground "north face"` — and a
+  # leading article is folded by the binder (controller-liquidity D3).
   - name: subject
     type: object
     required: false
@@ -64,13 +63,8 @@ args:
     prepositionRequired: true
     type: objects
     required: false
-    # ⚠⚠ `greedy: true` on the PREPOSITIONAL arg too, and this one was
-    # found last. `with the photometer` puts `the` and `photometer` after
-    # the preposition, and a non-greedy arg takes one positional — so the
-    # leftover word trips "too many arguments" and the whole command dies
-    # as an unknown shape. ⭐ The general rule the three fixes add up to:
-    # **every object arg a player will put an article in front of needs
-    # `greedy`**, wherever it sits in the view.
+    # `with the photometer`: the binder folds the article into the name
+    # (controller-liquidity D3); a two-word name is quoted.
     prepositions: [with, using]
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]

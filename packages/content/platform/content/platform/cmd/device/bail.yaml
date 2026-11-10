@@ -42,13 +42,11 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
-  # ⚠⚠ ARG ORDER: the positional `target` comes FIRST — a greedy arg must
-  # be last or followed only by prepositional args, and every
-  # prepositional object arg below is greedy (`lint:reachability` arm G).
+  # The positional `target` comes first; the prepositional args follow.
   # ⭐ The LIFT protocol (`LiftSourceMixin`, controllers-are-io D8a): a
   # boat, a well, a ship's bilge well and a wellhead compose it, and with
-  # nothing named the controller takes the boat you sit in. `greedy`: `bail village
-  # well` is one target (the pump drive's lesson).
+  # nothing named the controller takes the boat you sit in. A name with a
+  # space in it is quoted: `bail "village well"` (controller-liquidity D3).
   - name: target
     type: object
     required: false

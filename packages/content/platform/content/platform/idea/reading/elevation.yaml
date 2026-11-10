@@ -6,8 +6,7 @@
 # is what made the sextant findable at all.
 #
 # ⚠ `measure elevation moon` binds NOTHING — there is no moon object —
-# so the raw word arrives as the parameter. That is the path, and it is
-# why the view's `subject` arg is greedy.
+# so the raw word arrives as the parameter. That is the path.
 #
 # ⭐ Install the pack, get the channel. This row and its class are the
 # whole registration story — nothing in a platform view names it.
