@@ -141,6 +141,13 @@ no words.
 - `belay off` is gone — `untie` ends the belay (W7c).
 - `wash` needs water in reach (a tap, a pump, a shore — a crafted pail no
   longer counts) (W7c).
+- ⭐ **`survey` is retired** (owner, 2026-11-10; W17) — the word belongs to
+  land surveying. The place read is **`analyze rooms`** (what the room
+  answers to and by what; at home the holding, the shell and who owes the
+  upkeep); a building's outside from its landing is **`analyze condition
+  <building>`** (the condition word and why) and **`measure paint
+  <building>`** (the area to the weather and the litres a coat takes — a
+  rule or a gauging rod); the floor line is `analyze cleanliness floor`'s.
 
 ---
 
@@ -491,10 +498,10 @@ below are the price of rung 1: every one has at least two host *kinds*
 | `Washable` | protocol mixin (kernel) | `$L/cleanliness/Washable.ts` | `washPlanFor(spec)`; hosts Soilable goods and the body's hand faces (Creature) |
 | `Sweepable` | protocol mixin (kernel) | `$L/cleanliness/Sweepable.ts` | hosts Floor, Burner grate, Flue |
 | `Sampleable` | protocol mixin (kernel) | `$L/instrument/Sampleable.ts` | `samplePiece(actor, part?)`; hosts Growing stand, Stackable, Sampled, Floor (`sampleFace`) |
-| `Surveyed` | protocol mixin (kernel) | `$L/construction/Surveyed.ts` | `surveyFor(viewer)`; hosts Location, Structure (Building, Ship) |
+| `Surveyed` ⛔ folded W17 → `Place.readRooms` / `Structure.readOutside` | protocol mixin (kernel) | `$L/construction/Surveyed.ts` | `surveyFor(viewer)`; hosts Location, Structure (Building, Ship) |
 | `Fellable` | protocol mixin (kernel) | `$L/husbandry/Fellable.ts` | `fellPlanFor(actor, axe)`; hosts forestry `StandMixin` (pack) and kernel `Growing` (a planted tree) — kernel because the hosts have no common pack ancestor |
 | `Readable` | protocol mixin (kernel) | `$L/description/Readable.ts` | `readFor(viewer, page?)`; hosts Display (`readScreen`), Marked, the paper leaves |
-| `WaterEntry` | protocol mixin (kernel) | `$L/underwater/WaterEntry.ts` | `wayIntoWater(actor)`; hosts ShoreMixin, WaterPlaceMixin — replaces `SwimController`'s two-kind fork |
+| `WaterEntry` ⛔ folded W17 → `Shore.wayIntoWater` | protocol mixin (kernel) | `$L/underwater/WaterEntry.ts` | `wayIntoWater(actor)`; hosts ShoreMixin, WaterPlaceMixin — replaces `SwimController`'s two-kind fork |
 | `WaterSource` | protocol mixin (kernel) | `$L/bulk/WaterSource.ts` | `drawWaterFor(actor)`; hosts ShoreMixin, a Bulkable vessel — the Cool/Rinse/Wash/Water quadruplicated `findWater` |
 | `Launchable` | protocol mixin (kernel) | `$L/location/Launchable.ts` | `launchPlaceFor(from)` / `recoverPlaceFor(from)`; hosts water's SeaWarren, ReachWarren; consumer is the transport pack → kernel (P4: a pack imports only what it declares; transport declares no dependency on water) |
 | `Anchoring` | protocol mixin (kernel) | `$L/expanse/Anchoring.ts` | `anchorPlanFor(actor)`; hosts SmallCraft (`letGoAnchor`), Voyaging ship (`anchorHere`) |
@@ -1116,6 +1123,41 @@ or not anything wearable is carried). Controllers renamed to their verbs
 `stream-rotation` has no controller of its own (every subcommand names
 one) and is refused `missing-subcommand`. Player-facing outfit words say
 *outfit* (`You have no outfit called 'x'.`, reason `unknown-outfit`).
+
+**D-W17a (owner, 2026-11-10) — `survey` retired; its reads are
+channels.** No `survey` verb: `rooms` (`RoomsReading`, scope `here`, an
+eye rung, **unbanded** — nothing in it is competence-resolved) reads
+`Place.readRooms(viewer)`; `condition` reads a structure's cause off
+`Structure.readOutside()`; `paint` (`PaintReading`, an instrument rung —
+`gauging`, *a rule or a gauging rod* — unbanded) reads the job. No
+protocol: the place read is a method on `Place` (the honest host — every
+place has rooms to answer for), the outside a method on the `Structure`
+base (`weatherSurface()` stays the hook Ship overrides). `SurveyedMixin`,
+`Mixins.Surveyed`, `MixinApi.isSurveyed`, `survey.yaml` and
+`SurveyController` (+ row) are deleted.
+
+**D-W17b (build, W17) — what survey said that did not move.** The shell
+line stays on `analyze rooms` for ANY structure a room is part of (a shop,
+a ship — the harbors drives read *"the fabric of the place is sound"*
+aboard), not only a holding; the coat line moved to `look`, which already
+said it. The floor line moved to `analyze cleanliness floor` (the
+untrained line adds *To scrub it would see to it.* off
+`Floor.cleaningMethod()`). The archetype field `surveyScope` →
+**`roomsScope`** (seven rows + `Archetype`). ⚠ **Kept, deliberately:** the
+`survey` CARD (`analyze ground`/`analyze soil`'s deposit survey — the
+land-surveying meaning the owner gave the word back to) and the
+`sense.survey` TOPIC key (the topic of *looking* — `look`, `search`,
+`inventory`; ~50 sites; a rename is a deliberate sweep, not this wave's).
+The record's `survey` row now runs `analyze rooms` against the same
+before-record shape (ok, no notes, nothing moved); not re-recorded.
+
+**D-W17c (owner, 2026-11-10) — one-host protocols fold into the host.**
+`SawableMixin` → `Bole.sawPlanFor` (the saw types moved to `Bole.ts`; the
+sawmill asks `log instanceof Bole` — carpentry already depends on
+forestry; the `saw` view keeps `requires: TangibleMixin` because a length
+and a billet go on the saw too, so no `class:` binding was honest);
+`WaterEntryMixin` → `Shore.wayIntoWater` (types in `Shore.ts`; `swim`
+narrows `MixinApi.isShore`; `WaterPlace` overrides). `Butcherable` stays.
 
 ## ⭐⭐ Host placement
 
@@ -2113,6 +2155,23 @@ rebase cleanly.
 > refusal since W7b; the column/top-bar layout counts). Left for the
 > sweep.
 
+### W17 — `survey` retired; two one-host protocols fold (owner, 2026-11-10; D-W17a–c) ✅ done
+
+> **Done (`ac2c3c883`).** `survey` → `analyze rooms` (new `rooms` row, `RoomsReading`,
+> `Place.readRooms`), `analyze condition <building>` (the cause, off
+> `Structure.readOutside`), `measure paint <building>` (new `paint` row,
+> `PaintReading`); the floor line → `analyze cleanliness floor`.
+> `Surveyed`/`Sawable`/`WaterEntry` mixins, their `Mixins` entries and
+> `MixinApi.is*` gone; `surveyScope` → `roomsScope`. Surprise: the
+> archetype field carried the verb's name into seven content rows; the
+> `survey` card and the `sense.survey` topic are the other meaning and
+> stay (D-W17b). Ceilings: `controller-decisions` 620 → **614** (−5 the
+> survey controller; −1 W18's, pinned here), `duck-typing` 480 → **478**
+> (W18's, pinned here). Verified: tsc 0 (server, client, forestry,
+> carpentry, mining), client vitest 1055/1055, carpentry vitest 36/36,
+> lint:family 106/106, test:near origin/master 11,446 kernel + every pack lane passed (the kernel lane's 3 unhandled Mongo rejections come from `card-terminals.test.ts` and reproduce on the pre-W17 HEAD — not this wave's). Wire and
+> e2e moved to the new reads (not driven this wave: no world was started).
+
 ---
 
 ## Reachability wiring
@@ -2442,7 +2501,7 @@ Columns: controller (pack) · the heads the survey found · today's forms
 | AssessController (perception) | combat read / medical examination | `assess [at <target>]` | 3 | `assess <patient>` medical; `fight assess <target>` the exchange-spending read | `assess <foe>` in a fight → `fight assess` |
 | FeelController (perception) | ambient / surface / detail | `feel [at <target>]` | 1 | presentation of one perception act (look's sibling) | none |
 | RingController (perception) | tap for soundness / strike a bell | `ring <target>` | 1 | `Ringable.ringPlanFor` — a pot sounds true or cracked, a bell signals | none |
-| SurveyController (perception) | purpose / fabric / upkeep / floor | `survey [<target>]` | 1 | `Surveyed.surveyFor(viewer)` on Location and Structure | none |
+| SurveyController (perception) ⛔ retired W17 → `analyze rooms` · `analyze condition` · `measure paint` | purpose / fabric / upkeep / floor | `survey [<target>]` | 1 | `Surveyed.surveyFor(viewer)` on Location and Structure | none |
 | CockpitCardController (shell) | list / pin / dismiss / auto / move / shrink | `cockpit card <action> [<id>] [<col>] [<row>]` | 3 (nested) | stanzas under `card`; `values:` where closed | none |
 | CockpitShelfController (shell) | list / pin / unpin / first | `cockpit shelf <action> [<row>]` | 3 (nested) | stanzas; `row` `values:` = `SHELF_ROW_IDS` | none |
 | LayoutController (shell) | recall / save / forget / list | `cockpit layout <name> [<target>]` | 3 (nested) | `list · save <n> · forget <n> · recall <n>` + fallthrough recall | a layout named `list` via `recall` |
