@@ -34,4 +34,3 @@ args:
     # desugar drops the article, so `the ground` reaches the keyword
     # match as `ground`.
     prepositions: [on, at, in, upon]
-    greedy: true

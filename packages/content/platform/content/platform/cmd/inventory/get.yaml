@@ -24,7 +24,6 @@ args:
   - name: targets
     type: objects
     required: true
-    greedy: true
     scope: "peers"
     requires: [VisibleMixin, ContainableMixin]
     validators:
@@ -36,10 +35,10 @@ args:
   # hogshead`). Without this arg the words `from hogshead` went to the
   # targets query and MQL refused them as a parse error (sugar, 2026-10-26).
   - name: source
+    prepositionRequired: true
     type: object
     required: false
     # Greedy: `get loaf from the sugar cone` is several words.
-    greedy: true
     prepositions: [from, off]
     scope: "peers"
     requires: [VisibleMixin, ContainerMixin|PlacingMixin]

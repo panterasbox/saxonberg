@@ -18,7 +18,6 @@ args:
   - name: targets
     type: objects
     required: true
-    greedy: true
     scope: "inventory"
     requires: ContainableMixin
     depth: top

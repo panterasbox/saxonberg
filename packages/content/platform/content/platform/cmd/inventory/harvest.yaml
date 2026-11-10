@@ -37,7 +37,7 @@ help: |
 examples:
   - cmd: harvest the carrots
     note: Take the crop; an annual plant is spent
-  - cmd: harvest the cherry tree
+  - cmd: 'harvest the "cherry tree"'
     note: A ripe tree gives its whole set and keeps its place
   - cmd: harvest the bed
     note: Naming the ground takes its ripest plant

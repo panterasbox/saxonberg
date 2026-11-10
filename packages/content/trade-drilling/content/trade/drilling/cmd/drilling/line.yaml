@@ -39,18 +39,18 @@ args:
     scope: ["here", "peers", "person"]
     requires: [GroundPointMixin]
   - name: rig
+    prepositionRequired: true
     type: object
     required: false
     prepositions: [at, with, using]
-    greedy: true
     default: "reachable:[capability.derrick]"
     scope: ["here", "peers", "person"]
     requires: [ToolMixin]
   - name: liner
+    prepositionRequired: true
     type: object
     required: false
     prepositions: [with, using]
-    greedy: true
     default: "me:i"
     scope: ["inventory", "reachable"]
     requires: TangibleMixin

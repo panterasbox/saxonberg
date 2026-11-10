@@ -45,7 +45,6 @@ args:
   - name: board
     type: object
     required: false
-    greedy: true
     prepositions: [on]
     default: "reachable:[class.JobBoard]"
     scope: ["here", "peers", "person"]
@@ -107,7 +106,7 @@ subcommands:
         note: The floor of the room you stand in, swept or scrubbed clean
       - cmd: job post clean hearth at the cookhouse for 12
         note: A chimney swept before it catches
-      - cmd: job post deliver crate to the depot for 30 --from the brewing floor
+      - cmd: job post deliver crate to the depot for 30 --from "the brewing floor"
         note: Name where the goods are collected, so a hauler can find the backhaul
     args:
       # ⚠ The condition is a PHRASE, greedy up to `for`, parsed by the
@@ -128,7 +127,6 @@ subcommands:
       - name: board
         type: object
         required: false
-        greedy: true
         prepositions: [on]
         default: "reachable:[class.JobBoard]"
         scope: ["here", "peers", "person"]
@@ -159,7 +157,6 @@ subcommands:
       - name: board
         type: object
         required: false
-        greedy: true
         prepositions: [on]
         default: "reachable:[class.JobBoard]"
         scope: ["here", "peers", "person"]
@@ -179,7 +176,6 @@ subcommands:
       - name: board
         type: object
         required: false
-        greedy: true
         prepositions: [on]
         default: "reachable:[class.JobBoard]"
         scope: ["here", "peers", "person"]
@@ -194,7 +190,6 @@ subcommands:
       - name: board
         type: object
         required: false
-        greedy: true
         prepositions: [on]
         default: "reachable:[class.JobBoard]"
         scope: ["here", "peers", "person"]

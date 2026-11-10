@@ -17,7 +17,6 @@ args:
   - name: fragment
     type: objects
     required: false
-    greedy: true
     # Match `look`'s scope chain: try the current focus first (so
     # chain-drilling works — `focus apple` while focused on the
     # bookcase finds an apple inside the bookcase), then fall back

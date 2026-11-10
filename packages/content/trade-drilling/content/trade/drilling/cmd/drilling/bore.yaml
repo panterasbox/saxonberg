@@ -50,10 +50,10 @@ args:
     scope: ["here", "peers", "person"]
     requires: [GroundPointMixin]
   - name: rig
+    prepositionRequired: true
     type: object
     required: false
     prepositions: [at, with, using]
-    greedy: true
     default: "reachable:[capability.derrick]"
     scope: ["here", "peers", "person"]
     requires: [ToolMixin]

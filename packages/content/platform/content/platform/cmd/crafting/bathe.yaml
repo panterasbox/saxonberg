@@ -27,7 +27,6 @@ args:
   - name: water
     type: objects
     required: false
-    greedy: true
     prepositions: [in, at]
     default: "reachable:[mixin.BulkableMixin],reachable:[mixin.ShoreMixin]"
     scope: ["here", "peers", "person"]
@@ -38,9 +37,9 @@ args:
       - /lib/command/validators/anyHasBulkSlot
   # ⭐ WHAT WITH — a cleanser (soap, fuller's earth…), as `wash`.
   - name: cleanser
+    prepositionRequired: true
     type: objects
     required: false
-    greedy: true
     prepositions: [with, using]
     scope: ["reachable"]
     requires: any

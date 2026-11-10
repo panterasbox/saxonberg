@@ -17,7 +17,7 @@ help: |
   keep it. The piece carries where it was taken, by whom, and when —
   which is what makes it evidence rather than just a rock.
 
-  `sample the north face` takes a chip off a face in a working.
+  `sample the "north face"` takes a chip off a face in a working.
   `sample the ore` takes a piece off a pile you are carrying.
 
   ⭐ The stamp says where you were STANDING when you took it. That is
@@ -25,7 +25,7 @@ help: |
   barren and sample it there, and the record will truthfully say the
   barren place. The paper never lies; people do.
 
-  ⭐ In a field, `sample wheat at the top end` pulls ONE stem from the
+  ⭐ In a field, `sample wheat at the "top end"` pulls ONE stem from the
   stand there — roots and all — and the stand is none the worse. Look
   at it: it shows what was holding the crop back where it stood, and
   what its roots met. On a field of several parts you must say which;
@@ -36,11 +36,11 @@ help: |
   where you stand cannot be carried anywhere; cutting a piece off a
   finished blade would ruin it.
 examples:
-  - cmd: sample the north face
+  - cmd: 'sample the "north face"'
     note: A chip off a face, to carry to a bench
   - cmd: sample the ore
     note: A piece off the pile you are carrying
-  - cmd: sample wheat at the top end
+  - cmd: 'sample wheat at the "top end"'
     note: A stem from the stand at one end of a field, to read its roots
 controller: /platform/idea/cmd/inventory/SampleController
 args:
@@ -54,16 +54,15 @@ args:
   - name: subject
     type: object
     required: false
-    greedy: true
     scope: ["$focus", "reachable"]
     requires: any
   # ⭐ WHICH PART — `at <field>` on a tract marked into fields (field population D5,
   # D7). Optional and greedy, bounded by its preposition — the shape
   # harvest/water/feed/plant carry.
   - name: part
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     scope: ["here", "peers", "person"]
     prepositions: [at]
     requires: SoilMixin

@@ -33,15 +33,14 @@ args:
     type: object
     required: true
     scope: "reachable"
-    greedy: true
     updates_focus: extend
     requires: TangibleMixin
     validators:
       - /lib/command/validators/canReach
   - name: burner
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     prepositions: [into, in, on, with]
     scope: ["here", "peers", "person"]
     default: "reachable:[mixin.BurnerMixin]"

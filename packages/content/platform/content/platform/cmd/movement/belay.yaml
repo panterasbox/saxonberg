@@ -25,7 +25,6 @@ args:
     required: true
     scope: ["reachable"]
     requires: any
-    greedy: true
   # ⭐ The rope you hold the belay with — DECLARED, never hunted
   # (`lint:controller-resolution`): `belay hal with rope`, or the rope in hand.
   # ⚠ The default is the INVENTORY, not `reachable`: at the ropewalk the
@@ -33,10 +32,10 @@ args:
   # default picking one off the counter — then refusing you for not
   # holding it.
   - name: rope
+    prepositionRequired: true
     type: object
     required: false
     prepositions: [with]
-    greedy: true
     default: "inventory:[class.Rope]"
     scope: ["reachable"]
     requires: [TieableMixin]

@@ -50,18 +50,18 @@ args:
   # ⭐ Every reachable bulk vessel is a candidate; the controller takes the
   # first whose liquid lays a coat (a bucket of water says so).
   - name: pot
+    prepositionRequired: true
     type: objects
     required: false
-    greedy: true
     prepositions: [with, from]
     default: "reachable:[mixin.BulkableMixin]"
     scope: ["reachable"]
     requires: [BulkableMixin]
   # ⭐ WHICH BRUSH, declared rather than hunted for — in hand.
   - name: brush
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     prepositions: [using]
     default: "me:i:[capability.painting]"
     scope: ["reachable"]

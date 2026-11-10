@@ -45,7 +45,6 @@ args:
   - name: book
     type: object
     required: true
-    greedy: true
     prepositions: [in]
     default: "reachable:[class.HarborBook]"
     scope: ["here", "peers", "person"]

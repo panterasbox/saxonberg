@@ -119,7 +119,6 @@ args:
   - name: mill
     type: object
     required: false
-    greedy: true
     prepositions: [at, with, on]
     default: "reachable:[mixin.ComminutingMixin]"
     scope: ["here", "peers", "person"]

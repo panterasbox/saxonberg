@@ -19,7 +19,6 @@ args:
     type: object
     required: true
     scope: "reachable"
-    greedy: true
     prepositions: [from]
     requires: VisibleMixin
     validators:

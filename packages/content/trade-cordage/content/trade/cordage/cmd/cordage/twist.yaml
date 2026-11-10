@@ -24,15 +24,14 @@ args:
   - name: stock
     type: objects
     required: false
-    greedy: true
     scope: ["inventory"]
     requires: any
   # ⭐ The jack — DECLARED, never hunted (`lint:controller-resolution`).
   - name: jack
+    prepositionRequired: true
     type: object
     required: false
     prepositions: [on, at, with]
-    greedy: true
     default: "reachable:[capability.ropelaying]"
     scope: ["here", "peers", "person"]
     requires: [ToolMixin]

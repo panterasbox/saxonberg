@@ -32,13 +32,13 @@ cannot mark more than there is.
 
 Ground nobody has marked is rough. Nothing is sown on it, but you can still
 read its soil from where you stand. From a yard you can read a tract's
-fields over the gate: `look upper bench`.
+fields over the gate: `look "upper bench"`.
 
 ## Working a field {#working-a-field}
 
 On a tract of several fields, every act on a crop or its ground names the
-field: `plow at the wheat field`, `plant barley --at "the barley field"`,
-`mow at the far side`. A herd grazes a field, not a place — `move the herd
+field: `plow at the "wheat field"`, `plant barley --at "the barley field"`,
+`mow at the "far side"`. A herd grazes a field, not a place — `move the herd
 to the far side` — and a field with a crop on it is never grazed. A trough
 on the tract feeds any field's herd.
 

@@ -54,20 +54,19 @@ args:
     required: false
     scope: ["here", "peers", "person"]
     requires: LiftSourceMixin
-    greedy: true
   - name: tool
+    prepositionRequired: true
     type: object
     required: false
     prepositions: [with, using]
-    greedy: true
     default: "reachable:[capability.bailing]"
     scope: ["reachable"]
     requires: [ToolMixin]
   - name: vessel
+    prepositionRequired: true
     type: object
     required: false
     prepositions: [into, in]
-    greedy: true
     default: "me:i:[mixin.BulkableMixin]"
     scope: ["inventory", "reachable"]
     requires: VisibleMixin

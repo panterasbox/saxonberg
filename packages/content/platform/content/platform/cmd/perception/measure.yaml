@@ -73,7 +73,6 @@ args:
   - name: subject
     type: object
     required: false
-    greedy: true
     # ⭐ `horizon` last (maritime R8): a thing in view beyond your room —
     # the light you take a bearing on — is a subject too, after anything
     # within reach of the same name.
@@ -87,6 +86,7 @@ args:
   # Reach, not carry: a bench on the wall and a photometer on the table
   # both count.
   - name: tool
+    prepositionRequired: true
     type: objects
     required: false
     # ⚠⚠ `greedy: true` on the PREPOSITIONAL arg too, and this one was
@@ -96,7 +96,6 @@ args:
     # as an unknown shape. ⭐ The general rule the three fixes add up to:
     # **every object arg a player will put an article in front of needs
     # `greedy`**, wherever it sits in the view.
-    greedy: true
     prepositions: [with, using]
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]

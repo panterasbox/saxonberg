@@ -41,7 +41,6 @@ args:
     scope: "reachable"
     # `drink from the fountain` (water-supply drive): the article defect
     # wants greedy, and `from` is the natural way to name an outlet.
-    greedy: true
     prepositions: [from]
     requires: VisibleMixin
     validators:

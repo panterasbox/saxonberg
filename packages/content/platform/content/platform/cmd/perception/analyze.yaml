@@ -36,7 +36,7 @@ help: |
 examples:
   - cmd: analyze light
     note: What the light here is good for
-  - cmd: analyze ground the north face
+  - cmd: 'analyze ground the "north face"'
     note: What your readings add up to
   - cmd: analyze patient the miner
     note: Read a person's condition, in words
@@ -51,7 +51,6 @@ args:
   - name: subject
     type: object
     required: false
-    greedy: true
     # ⭐ `horizon` last (maritime R8): a thing in view beyond your room —
     # the light you take a bearing on — is a subject too, after anything
     # within reach of the same name.
@@ -62,6 +61,7 @@ args:
   # (a hand lens, a streak plate). The words stay words; what changes is
   # how fine they may get.
   - name: tool
+    prepositionRequired: true
     type: objects
     required: false
     # ⚠⚠ `greedy: true` on the PREPOSITIONAL arg too, and this one was
@@ -71,7 +71,6 @@ args:
     # as an unknown shape. ⭐ The general rule the three fixes add up to:
     # **every object arg a player will put an article in front of needs
     # `greedy`**, wherever it sits in the view.
-    greedy: true
     prepositions: [with, using]
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]

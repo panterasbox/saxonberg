@@ -35,6 +35,5 @@ args:
     # *"That doesn't match any known command shape"*, because without it
     # the two words are two positionals. The target is the whole tail
     # (the `look.yaml` precedent), so nothing else can be swallowed.
-    greedy: true
     validators:
       - /lib/command/validators/canReach

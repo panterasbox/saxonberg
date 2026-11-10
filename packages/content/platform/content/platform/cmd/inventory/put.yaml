@@ -26,13 +26,13 @@ args:
     # ⭐ Greedy, as `get`/`drop`'s are: a count and a noun (`put 1 clay in
     # tub`) bind together, split at the preposition — without it that line
     # matched no shape of `put` at all (the ceramics drive).
-    greedy: true
     scope: "inventory"
     requires: ContainableMixin
     depth: top
     validators:
       - /lib/command/validators/mustBeInInventory
   - name: target
+    prepositionRequired: true
     type: object
     required: true
     scope: "peers"

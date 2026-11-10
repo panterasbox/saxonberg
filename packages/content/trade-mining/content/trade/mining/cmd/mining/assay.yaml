@@ -66,7 +66,6 @@ args:
     # sentence about an object nobody mentioned. Found by driving, after
     # the same defect had already been fixed on `measure`, `analyze` and
     # `sample`: the article eats a positional wherever one is free.
-    greedy: true
     scope: ["reachable"]
     requires: [SampledMixin]
   # ⭐ The default resolves the carried KIT as well as the bench —
@@ -74,13 +73,13 @@ args:
   # they differ in time, fee and ceiling, never in access. The
   # controller tells them apart on `fixedInPlace`.
   - name: bench
+    prepositionRequired: true
     type: object
     required: false
     # ⚠⚠ Greedy here too: `assay the ore at the bench` puts `the` and
     # `bench` after the preposition, and without this the leftover word
     # trips "too many arguments" and the command dies as an unknown
     # shape — with everything upstream of it already correct.
-    greedy: true
     prepositions: [at, on, with]
     default: "reachable:[capability.assay-scale]"
     scope: ["here", "peers", "person"]

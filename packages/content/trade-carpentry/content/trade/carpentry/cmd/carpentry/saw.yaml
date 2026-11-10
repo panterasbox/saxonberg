@@ -32,7 +32,7 @@ examples:
     note: Take a length off a felled trunk and saw it through
   - cmd: saw bole --quarter
     note: Quarter it — fewer boards, and boards that stay flat
-  - cmd: saw the length at the pit saw
+  - cmd: 'saw the length at the "pit saw"'
     note: Name the saw when there is more than one
 validators:
   - /lib/command/validators/requiresAnimate
@@ -54,9 +54,9 @@ args:
   # authors on any tool class is found by what it offers. `greedy` so
   # `at the pit saw` is one name; safe because it is the last arg.
   - name: saw
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     prepositions: [at, with, on]
     default: "reachable:[capability.sawing]"
     scope: ["reachable"]

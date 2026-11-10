@@ -16,7 +16,7 @@ description: "Unlock a door (by direction or by name)"
 help: |
   Unlock anything that can be locked — a door blocking an exit. Name a
   direction to unlock the door on that exit (`unlock north`), or name
-  the thing directly (`unlock oak door`).
+  the thing directly (`unlock "oak door"`).
 
   The target has to be within reach. If it's already unlocked, or it
   isn't something that locks at all, the game tells you so and nothing
@@ -29,7 +29,6 @@ args:
     type: object
     required: true
     scope: "reachable"
-    greedy: true
     updates_focus: extend
     requires: LockableMixin
     validators:

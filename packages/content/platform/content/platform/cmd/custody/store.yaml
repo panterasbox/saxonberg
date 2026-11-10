@@ -44,7 +44,6 @@ subcommands:
       - name: book
         type: object
         required: false
-        greedy: true
         prepositions: [at, in]
         default: "reachable:[mixin.StoreBookMixin]"
         scope: ["here", "peers", "person"]
@@ -60,9 +59,9 @@ subcommands:
         scope: [inventory]
         requires: [ContainableMixin]
       - name: book
+        prepositionRequired: true
         type: object
         required: false
-        greedy: true
         prepositions: [in, at, with]
         default: "reachable:[mixin.StoreBookMixin]"
         scope: ["here", "peers", "person"]
@@ -75,11 +74,10 @@ subcommands:
       - name: what
         type: string
         required: true
-        greedy: true
       - name: book
+        prepositionRequired: true
         type: object
         required: false
-        greedy: true
         prepositions: [from, at]
         default: "reachable:[mixin.StoreBookMixin]"
         scope: ["here", "peers", "person"]

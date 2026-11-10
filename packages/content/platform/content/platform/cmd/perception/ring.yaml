@@ -26,6 +26,5 @@ args:
   - name: target
     type: object
     required: true
-    greedy: true
     scope: ["reachable"]
     requires: [IntegrityMixin]

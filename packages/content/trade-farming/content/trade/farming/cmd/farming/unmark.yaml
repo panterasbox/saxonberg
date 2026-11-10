@@ -9,7 +9,7 @@ help: |
 
   To rename a field, take it up and mark it again.
 examples:
-  - cmd: unmark the barley field
+  - cmd: 'unmark the "barley field"'
     note: Its ground goes back to the rest of the tract
 validators:
   - /lib/command/validators/requiresAnimate
@@ -19,6 +19,5 @@ args:
   - name: field
     type: object
     required: true
-    greedy: true
     scope: ["here", "peers", "person"]
     requires: SoilMixin

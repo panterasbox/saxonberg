@@ -30,7 +30,6 @@ args:
   - name: on
     type: objects
     required: false
-    greedy: true
     prepositions: [on, with]
     default: "reachable:[mixin.ToolMixin]"
     scope: ["here", "peers", "person"]

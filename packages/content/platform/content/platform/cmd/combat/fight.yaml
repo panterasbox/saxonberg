@@ -114,7 +114,7 @@ subcommands:
       then the new weapon is in your grip. Use it to bring the right tool to
       the range you're at (a dagger once you're inside a spear).
     examples:
-      - cmd: fight switch my dagger
+      - cmd: 'fight switch "my dagger"'
         note: Trade your current weapon for a carried one
     args:
       - name: target

@@ -26,7 +26,7 @@ help: |
 
   `label <thing>` with no text clears it.
 
-  ⭐ In a field, `label wheat trial at the gate end` ties your label to
+  ⭐ In a field, `label wheat trial at the "gate end"` ties your label to
   ONE plant in the stand there and leaves it standing — with no text,
   your own name goes on it. From then on it is a plant of its own: it
   answers to the label (`look trial`, `water trial`), and water or feed
@@ -56,7 +56,6 @@ args:
   - name: part
     type: object
     required: false
-    greedy: true
     scope: ["here", "peers", "person"]
     prepositions: [at]
     requires: SoilMixin

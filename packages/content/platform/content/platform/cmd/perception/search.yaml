@@ -29,5 +29,4 @@ args:
     prepositions: [in, inside, through]
     # `search the floor` / `search in the chest` — the same article problem
     # `look` had. See look.yaml.
-    greedy: true
     requires: any

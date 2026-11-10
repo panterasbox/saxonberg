@@ -24,17 +24,16 @@ args:
     scope: "reachable"
     # The article defect (the water-supply browser walk): `fill the pail
     # from the standpipe` is this verb's own help example.
-    greedy: true
     requires: VisibleMixin
     validators:
       - /lib/command/validators/mustHaveBulkSlot
       - /lib/command/validators/mustNotBeShutAway
   - name: source
+    prepositionRequired: true
     type: object
     required: true
     scope: ["here", "peers", "person"]
     prepositions: [from]
-    greedy: true
     requires: VisibleMixin
     validators:
       - /lib/command/validators/mustHaveBulkSlot

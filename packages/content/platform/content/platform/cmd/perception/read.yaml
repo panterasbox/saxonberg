@@ -30,7 +30,6 @@ args:
     # ⭐ Greedy, bounded by `page <n>`: a name is many words (`read city
     # directory page 3`, `read torn-out page`). `page` ends it only before
     # a number.
-    greedy: true
     scope: ["$focus", "reachable"]
     updates_focus: extend
     requires: [VisibleMixin, ReadableMixin]
@@ -39,6 +38,7 @@ args:
   # ⭐ A book reads at a page: `read notebook page 3` opens it
   # there. A positional number reaches the controller raw; it parses.
   - name: page
+    prepositionRequired: true
     type: number
     required: false
     prepositions: [page]

@@ -41,12 +41,12 @@ args:
   - name: target
     type: object
     required: true
-    greedy: true
     scope: ["here", "peers", "person"]
     requires: RivableMixin
   # What to rive a billet INTO — a recipe word. Optional: with one answer
   # installed there is nothing to choose.
   - name: into
+    prepositionRequired: true
     type: string
     required: false
     greedy: true
@@ -54,9 +54,9 @@ args:
   # ⭐ WHICH FROE — declared, not hunted for (`lint:controller-resolution`). The
   # CAPABILITY, never a class: a froe is a `Tool` row.
   - name: froe
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     prepositions: [with, using]
     default: "reachable:[capability.riving]"
     scope: ["reachable"]

@@ -40,7 +40,6 @@ args:
   - name: vessel
     type: object
     required: false
-    greedy: true
     scope: ["reachable"]
     default: "me:i:[mixin.BulkableMixin]"
     requires: [BulkableMixin]

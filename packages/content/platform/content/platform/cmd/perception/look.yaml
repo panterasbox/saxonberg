@@ -25,7 +25,7 @@ help: |
   preposition is optional. Use `--peek` to read something without
   disturbing your focus trail.
 examples:
-  - cmd: look at the brass lantern
+  - cmd: 'look at the "brass lantern"'
     note: Examine one object up close
   - cmd: look --peek sign
     note: Read the sign without changing focus
@@ -49,7 +49,6 @@ args:
     # ground build fixed on the four posture verbs, still live on the most
     # used verb in the game. The MQL desugar drops articles, so the whole
     # tail resolves as one query.
-    greedy: true
     default: "$focus"
     # Typed ambiguity → disambiguation prompt. The click-affordance
     # path is fine without this: MmlRenderer.commandFor emits
