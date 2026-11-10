@@ -15,24 +15,15 @@
  * finds one with MQL. A third mechanism (`centrifugal`, `sucker-rod`) is a
  * file under any pack's `content/pump-mechanisms/`, named by its path.
  * It is resident whenever a pump that names it is: the pump's `mechanism`
- * setter awaits {@link PumpMechanism.ensure}.
+ * setter awaits its load. The mechanisms are SERVED by
+ * `PumpMechanismCatalogue`, reached as `BulkableApi.pumpMechanisms()`.
  *
  * See [docs/subsystems/pump.md].
  */
 
 import type { FieldMeta } from '../mixin';
-import { DocumentCache } from '../document/DocumentCache';
-import type { StoredDocument } from '../document/StoredDocument';
 
 export class PumpMechanism {
-  /** Every mechanism read, by path. */
-  /** The memory of what has been read — built on first use (a static built at
-   *  module load would race an import cycle through the document store). */
-  private static memo: DocumentCache<PumpMechanism> | null = null;
-  private static get cache(): DocumentCache<PumpMechanism> {
-    return (PumpMechanism.memo ??= new DocumentCache<PumpMechanism>('pump-mechanism', (doc) => PumpMechanism.fromDocument(doc)));
-  }
-
   /**
    * The fields as authored. ⭐ `pulls` is `spoiler: 1` — the one fact the
    * suction law follows from. That a mechanism HAS this property is
@@ -45,46 +36,13 @@ export class PumpMechanism {
     description: { persistent: true, authorable: true },
   };
 
-  private constructor(
+  /** A mechanism as its document says (read through `PumpMechanismCatalogue.parse`). */
+  public constructor(
     private readonly path: string,
     private readonly name: string,
     private readonly pulls: boolean,
     private readonly description: string,
   ) {}
-
-  /** Read and validate a `pump-mechanism` document. @internal */
-  public static fromDocument(doc: StoredDocument): PumpMechanism {
-    return PumpMechanism.fromData(doc.getData(), doc.getPath());
-  }
-
-  /** Validate a mechanism's data at `path` (the installer's validator too). @internal */
-  public static fromData(data: Record<string, unknown>, path: string): PumpMechanism {
-    if (typeof data.pulls !== 'boolean') {
-      throw new Error(`pump mechanism '${path}' must say whether it pulls (pulls: true | false)`);
-    }
-    const word = path.slice(path.lastIndexOf('/') + 1);
-    return new PumpMechanism(
-      path,
-      typeof data.name === 'string' && data.name ? data.name : word,
-      data.pulls,
-      typeof data.description === 'string' ? data.description : '',
-    );
-  }
-
-  /** The mechanism at `path`, read if it is not resident; throws naming a path with none. @internal */
-  public static ensure(path: string): Promise<PumpMechanism> {
-    return PumpMechanism.cache.ensure(path);
-  }
-
-  /** The resident mechanism at `path`; `DocumentNotResidentError` if its pump never loaded it. @internal */
-  public static need(path: string): PumpMechanism {
-    return PumpMechanism.cache.need(path);
-  }
-
-  /** Keep a mechanism (a unit fixture with no store behind it). @internal */
-  public static remember(value: PumpMechanism): PumpMechanism {
-    return PumpMechanism.cache.remember(value.path, value);
-  }
 
   public getPath(): string {
     return this.path;

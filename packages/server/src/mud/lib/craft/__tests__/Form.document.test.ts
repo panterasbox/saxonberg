@@ -13,6 +13,7 @@ import { DocumentApi } from '../../../api/document';
 import { DocumentNotResidentError } from '../../errors';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { StoredDocument } from '../../document/StoredDocument';
+import { CraftingApi } from '../../../api/crafting';
 
 const MUG = '/test/forms/mug';
 
@@ -31,7 +32,7 @@ describe('Form — resident with its instrument', () => {
     } as unknown as StoredDocument);
     const wheel = makeStuff(() => new TestWheel());
     await wheel.setForms([MUG]);
-    expect(Form.need(MUG).key).toBe('mug');
+    expect(CraftingApi.forms().need(MUG).key).toBe('mug');
   });
 
   it('an instrument listing a path with no form fails at the setter, naming it', async () => {
@@ -41,10 +42,10 @@ describe('Form — resident with its instrument', () => {
   });
 
   it('a sync read of a form nothing loaded throws DocumentNotResidentError', () => {
-    expect(() => Form.need('/test/forms/never')).toThrow(DocumentNotResidentError);
+    expect(() => CraftingApi.forms().need('/test/forms/never')).toThrow(DocumentNotResidentError);
   });
 
   it('refuses a form class outside the five', () => {
-    expect(() => Form.fromData({ formClass: 'sphere' }, '/t/forms/x')).toThrow(/formClass/);
+    expect(() => CraftingApi.forms().parse({ formClass: 'sphere' }, '/t/forms/x')).toThrow(/formClass/);
   });
 });

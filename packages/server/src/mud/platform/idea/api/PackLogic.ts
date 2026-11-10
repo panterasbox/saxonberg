@@ -28,10 +28,7 @@ import {
   type DocumentVanishPolicy,
 } from '../../../lib/document/DocumentKinds';
 import { StoredDocument } from '../../../lib/document/StoredDocument';
-import { PumpMechanism } from '../../../lib/pump/PumpMechanism';
-import { Form } from '../../../lib/craft/FormSpec';
 import { DirtKind } from '../../../lib/cleanliness/DirtKind';
-import { Operation } from '../../../lib/vitals/Operation';
 import { Formation } from '../../../lib/combat/Formation';
 import { Placement } from '../../../lib/spatial/Placement';
 import { DocumentCache } from '../../../lib/document/DocumentCache';
@@ -95,6 +92,8 @@ import type {
 } from '../../../api/pack';
 import { CraftingApi } from '../../../api/crafting';
 import { DocumentApi } from '../../../api/document';
+import { BulkableApi } from '../../../api/bulk';
+import { ConditionApi } from '../../../api/condition';
 
 const PackApiCallers = SecurityPolicies.FromModule('/api/pack#PackApi');
 
@@ -184,11 +183,11 @@ const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>, path: 
   emote: (d, p) => void Emote.fromData(d, p),
   recipe: (d, p) => void Recipe.fromData(d, p),
   archetype: (d, p) => void Archetype.fromData(d, p),
-  'pump-mechanism': (d, p) => void PumpMechanism.fromData(d, p),
-  form: (d, p) => void Form.fromData(d, p),
+  'pump-mechanism': (d, p) => void BulkableApi.pumpMechanisms().parse(d, p),
+  form: (d, p) => void CraftingApi.forms().parse(d, p),
   joint: (d, p) => void CraftingApi.joints().parse(d, p),
   dirt: (d, p) => void DirtKind.fromData(d, p),
-  operation: (d, p) => void Operation.fromData(d, p),
+  operation: (d, p) => void ConditionApi.operations().parse(d, p),
   formation: (d, p) => void Formation.fromData(d, p),
   placement: (d, p) => void Placement.fromData(d, p),
   topic: (d) => {

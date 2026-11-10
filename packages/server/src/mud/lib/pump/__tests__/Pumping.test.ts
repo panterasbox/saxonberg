@@ -47,7 +47,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { SpatialZone } from '../../zone/SpatialZone';
-import { PumpMechanism } from '../PumpMechanism';
+import { BulkableApi } from '../../../api/bulk';
 
 type Doc = Record<string, unknown> & {
   _id?: string;
@@ -65,10 +65,10 @@ const WATER = '/stuff/idea/material/bulk/water';
 
 /** The mechanism documents, kept as a pump that cites them would have loaded them. */
 function rememberMechanisms(): void {
-  PumpMechanism.remember(PumpMechanism.fromData({ name: 'suction', pulls: true }, SUCTION));
-  PumpMechanism.remember(PumpMechanism.fromData({ name: 'force', pulls: false }, FORCE));
+  BulkableApi.pumpMechanisms().remember(SUCTION, BulkableApi.pumpMechanisms().parse({ name: 'suction', pulls: true }, SUCTION));
+  BulkableApi.pumpMechanisms().remember(FORCE, BulkableApi.pumpMechanisms().parse({ name: 'force', pulls: false }, FORCE));
   // ⭐ A third mechanism nobody wrote code for — it pulls, so it meets the wall.
-  PumpMechanism.remember(PumpMechanism.fromData({ name: 'diaphragm', pulls: true }, DRAWS));
+  BulkableApi.pumpMechanisms().remember(DRAWS, BulkableApi.pumpMechanisms().parse({ name: 'diaphragm', pulls: true }, DRAWS));
 }
 
 function installInMemoryStore(initial: Doc[] = []): void {

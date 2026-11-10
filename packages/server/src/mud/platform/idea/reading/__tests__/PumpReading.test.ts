@@ -34,7 +34,7 @@ import { makeStuff, makeStuffAtPath, EXIT_KIND_TEST_ROWS } from '../../../../lib
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { CommandApi, type CommandContext } from '../../../../api/command';
 import type Interactive from '../../Interactive';
-import { PumpMechanism } from '../../../../lib/pump/PumpMechanism';
+import { BulkableApi } from '../../../../api/bulk';
 
 const SUCTION = '/platform/pump-mechanisms/suction';
 const FORCE = '/platform/pump-mechanisms/force';
@@ -51,8 +51,8 @@ class FakeAvatar extends FakeAvatarBase {
 
 function installStore(): void {
   // The mechanism documents, as the pumps citing them would have loaded them.
-  PumpMechanism.remember(PumpMechanism.fromData({ name: 'suction', pulls: true, description: 'It draws.' }, SUCTION));
-  PumpMechanism.remember(PumpMechanism.fromData({ name: 'force', pulls: false, description: 'It drives.' }, FORCE));
+  BulkableApi.pumpMechanisms().remember(SUCTION, BulkableApi.pumpMechanisms().parse({ name: 'suction', pulls: true, description: 'It draws.' }, SUCTION));
+  BulkableApi.pumpMechanisms().remember(FORCE, BulkableApi.pumpMechanisms().parse({ name: 'force', pulls: false, description: 'It drives.' }, FORCE));
   const rows = [
     ...(EXIT_KIND_TEST_ROWS as unknown as Array<{ path: string }>),
   ].map((r, i) => ({ ...r, _id: String(i + 1) }));

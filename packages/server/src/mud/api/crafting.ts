@@ -31,6 +31,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { CraftingLogic } from '../platform/idea/api/CraftingLogic';
 import JointCatalogue from '../platform/idea/JointCatalogue';
+import FormCatalogue from '../platform/idea/FormCatalogue';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import type { BulkPayload } from '../lib/bulk/Bulkable';
@@ -532,6 +533,7 @@ function logic(): CraftingLogic {
 }
 
 const JOINT_CATALOGUE = '/platform/idea/JointCatalogue';
+const FORM_CATALOGUE = '/platform/idea/FormCatalogue';
 
 export class CraftingApi {
   /**
@@ -542,6 +544,16 @@ export class CraftingApi {
    */
   public static joints(): JointCatalogue {
     return StuffApi.singletonSync(JOINT_CATALOGUE, () => new JointCatalogue());
+  }
+
+  /**
+   * ⭐ The form words — what an instrument makes (`mug`, `jar`, `brick`),
+   * any pack's `content/forms/`, served by {@link FormCatalogue}. An
+   * instrument's `forms` setter loads the words it lists; `shape` reads
+   * them resident.
+   */
+  public static forms(): FormCatalogue {
+    return StuffApi.singletonSync(FORM_CATALOGUE, () => new FormCatalogue());
   }
 
   /**

@@ -14,6 +14,7 @@ import { DocumentApi } from '../../../api/document';
 import { DocumentNotResidentError } from '../../errors';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { StoredDocument } from '../../document/StoredDocument';
+import { BulkableApi } from '../../../api/bulk';
 
 const PATH = '/test/pump-mechanisms/bellows-draw';
 
@@ -39,7 +40,7 @@ describe('PumpMechanism — resident with its pump', () => {
     const pump = makeStuff(() => new TestPump());
     await pump.setMechanism(PATH);
     expect(read).toHaveBeenCalledWith(PATH);
-    expect(PumpMechanism.need(PATH).isPulling()).toBe(true);
+    expect(BulkableApi.pumpMechanisms().need(PATH).isPulling()).toBe(true);
     expect((await pump.mechanismRow())?.getName()).toBe('bellows-draw');
   });
 
@@ -52,12 +53,12 @@ describe('PumpMechanism — resident with its pump', () => {
   });
 
   it('a sync read of a mechanism nothing loaded throws DocumentNotResidentError by path', () => {
-    expect(() => PumpMechanism.need('/test/pump-mechanisms/never-read')).toThrow(
+    expect(() => BulkableApi.pumpMechanisms().need('/test/pump-mechanisms/never-read')).toThrow(
       DocumentNotResidentError,
     );
   });
 
   it('a mechanism must say whether it pulls', () => {
-    expect(() => PumpMechanism.fromData({ name: 'x' }, '/t/pump-mechanisms/x')).toThrow(/pulls/);
+    expect(() => BulkableApi.pumpMechanisms().parse({ name: 'x' }, '/t/pump-mechanisms/x')).toThrow(/pulls/);
   });
 });

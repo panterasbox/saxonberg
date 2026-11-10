@@ -37,6 +37,8 @@ import {
 } from '../../../lib/document/Edition';
 import type { DocumentCatalogue } from '../../../lib/document/DocumentCatalogue';
 import { CraftingApi } from '../../../api/crafting';
+import { BulkableApi } from '../../../api/bulk';
+import { ConditionApi } from '../../../api/condition';
 
 const DocumentApiCallers = SecurityPolicies.FromModule("/api/document#DocumentApi",
 );
@@ -696,6 +698,12 @@ function catalogueForImpl(kind: string): DocumentCatalogue<unknown> | null {
   switch (kind) {
     case 'joint':
       return CraftingApi.joints() as DocumentCatalogue<unknown>;
+    case 'form':
+      return CraftingApi.forms() as DocumentCatalogue<unknown>;
+    case 'operation':
+      return ConditionApi.operations() as DocumentCatalogue<unknown>;
+    case 'pump-mechanism':
+      return BulkableApi.pumpMechanisms() as DocumentCatalogue<unknown>;
     default:
       return null;
   }
@@ -824,6 +832,8 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'berth-roll':
     case 'berth-book':
     case 'aroma':
+    case 'operation':
+      return ConditionApi.operations() as DocumentCatalogue<unknown>;
     case 'pump-mechanism':
     case 'form':
     case 'joint':

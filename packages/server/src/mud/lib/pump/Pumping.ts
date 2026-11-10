@@ -53,6 +53,7 @@ import { Mml } from '../../api/mml';
 import { Quantity } from '../quantity';
 import { AppSettingKeys } from '../config/AppSettings';
 import { PumpMechanism } from './PumpMechanism';
+import { BulkableApi } from '../../api/bulk';
 
 /** The capability a packing offers, and the only thing a pump will hold. */
 export const PACKING = 'packing';
@@ -147,7 +148,7 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
      * mechanism fails here, where it is named.
      */
     public async setMechanism(path: string): Promise<void> {
-      if (path) await PumpMechanism.ensure(path);
+      if (path) await BulkableApi.pumpMechanisms().ensure(path);
       this.mechanism = path;
     }
 
@@ -192,7 +193,7 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** The mechanism this pump is built on (resident with the pump). `null` = unauthored. */
     public async mechanismRow(): Promise<PumpMechanismView | null> {
       if (this.mechanism === '') return null;
-      return PumpMechanism.need(this.mechanism);
+      return BulkableApi.pumpMechanisms().need(this.mechanism);
     }
 
     /** What the pump is set in, or `null` (a loose pump on a floor). */

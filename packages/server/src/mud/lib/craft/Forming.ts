@@ -34,6 +34,7 @@ import { Form, FormGrammar, ParsedForm } from './FormSpec';
 import type { BeyondHandRefusal, ShapePlan, ShapeRefusal, ShapeRequest } from './Shapeable';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { CraftingApi } from '../../api/crafting';
 
 const SHAPING = ['platform/cmd/crafting/shape.yaml'];
 
@@ -109,7 +110,7 @@ export function FormingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
      * its words are (documents D7); a path with no form fails here.
      */
     public async setForms(paths: string[]): Promise<void> {
-      for (const p of paths) await Form.ensure(p);
+      for (const p of paths) await CraftingApi.forms().ensure(p);
       this.forms = [...paths];
     }
     /** Fallback products by form class, when a word names none. */
@@ -177,7 +178,7 @@ export function FormingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
      */
     protected async formWords(): Promise<FormWord[]> {
       // Resident with the instrument (its `forms` setter loaded them).
-      return this.forms.map((path) => Form.need(path));
+      return this.forms.map((path) => CraftingApi.forms().need(path));
     }
 
     /**

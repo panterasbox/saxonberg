@@ -214,11 +214,14 @@ beforeEach(async () => {
   }, SUPPLIER_COUNTER);
   ContainmentApi.move(supplierCounter as never, market as never);
 
+  let corpoLoad: Promise<void> | undefined;
   const bank = makeStuffAtPath(() => {
     const b = new BankCounter();
-    b.setCorpoKey('goodkin');
+    corpoLoad = b.setCorpoKey('goodkin');
     return b;
   }, BANK);
+  // The setter loads the corpo dictionary; settle it here, never as a stray rejection.
+  await corpoLoad;
   ContainmentApi.move(bank as never, hall as never);
 
   house = business(HOUSE, [COUNTER]);

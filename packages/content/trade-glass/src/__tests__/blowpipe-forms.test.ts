@@ -21,6 +21,7 @@ import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { ShapePlan, ShapeRefusal } from "@saxonberg/server/mud/lib/craft/Shapeable";
 import Gather from "../thing/Gather";
 import Blowpipe from "../thing/Blowpipe";
+import { CraftingApi } from "@saxonberg/server/mud/api/crafting";
 
 class TestHand extends SensorMixin(ContainerMixin(Idea)) {
   static _mixinName = "BlowpipeFormsTestHand";
@@ -62,9 +63,9 @@ describe("⭐ the blowpipe blows the forms its row lists", () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
     // The form document, as the blowpipe citing it would have loaded it.
-    Form.remember(
+    CraftingApi.forms().remember(
       BOTTLE_FORM,
-      Form.fromData(
+      CraftingApi.forms().parse(
         { key: "bottle", formClass: "closed", capacityL: 0.75, product: BOTTLE, discipline: "glasswork" },
         BOTTLE_FORM,
       ),

@@ -20,6 +20,7 @@ import {
   makeContext,
 } from "@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures";
 import { makeStuff } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
+import { rememberDisciplines } from "@saxonberg/server/mud/lib/advancement/__tests__/discipline-fixtures";
 import type { CommandContext } from "@saxonberg/server/mud/api/command";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import Sheet from "../thing/Sheet";
@@ -68,8 +69,10 @@ function declined(ctx: CommandContext): string | undefined {
 }
 
 describe("the cold shop", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     installV1QuantityMarshallers();
+    // Glass work with a discipline loads the discipline dictionary: stand it up warm.
+    await rememberDisciplines();
     vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
       if (path === PANE_ROW) return makeStuff(() => new Sheet());
       throw new Error(`unexpected clone ${path}`);

@@ -33,6 +33,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Vitals } from '@saxonberg/server/mud/lib/vitals/Vitals';
 import type { Trauma } from '@saxonberg/server/mud/platform/idea/Condition';
 import type { Engaged } from '@saxonberg/server/mud/lib/activity/Engaged';
+import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 
 const TOPIC = 'act.deed';
 
@@ -64,7 +65,7 @@ export default class OperateController extends CommandController<OperateModel> {
     }
     // ⭐ The operation dictionary loads on first use (scan-sweep ruling 1):
     // one indexed read of the kind — nothing boots it.
-    const ops = await Operation.all();
+    const ops = await ConditionApi.operations().all();
     const body = target as Stuff & Vitals;
 
     // Pick the operation: named, else the most urgent applicable.

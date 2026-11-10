@@ -25,6 +25,7 @@ import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { Trauma } from '@saxonberg/server/mud/platform/idea/Condition';
+import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 
 class Medic extends AdvancementMixin(Creature) {
   static override _mixinName: string = 'Medic';
@@ -96,7 +97,7 @@ const OPS: OperationDescriptor[] = [
   },
 ];
 
-/** The operation documents the store would hand `Operation.all()` (the
+/** The operation documents the store would hand `ConditionApi.operations().all()` (the
  * drive reads them from the installed rows; a unit test fakes the read). */
 function warmCatalogue(): void {
   vi.spyOn(DocumentApi, 'listOfKind').mockImplementation((async (kind: string) =>

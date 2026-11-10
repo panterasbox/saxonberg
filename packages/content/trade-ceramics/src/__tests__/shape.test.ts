@@ -9,7 +9,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Metal from '@saxonberg/server/mud/platform/idea/material/Metal';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
-import { Form, type FormClass } from '@saxonberg/server/mud/lib/craft/FormSpec';
+import { type FormClass } from '@saxonberg/server/mud/lib/craft/FormSpec';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
@@ -25,6 +25,7 @@ import Wheel from '../thing/Wheel';
 import BrickTable from '../thing/BrickTable';
 import ClayVessel from '../thing/ClayVessel';
 import Brick from '../thing/Brick';
+import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
 
 class Shed extends Place {}
 
@@ -33,9 +34,9 @@ let seq = 0;
 /** A form document, kept as the instrument citing it would have loaded it. */
 function form(key: string, formClass: FormClass, capacityL: number, product: string, discipline = 'pottery'): string {
   const path = `/trade/ceramics/forms/${key}`;
-  Form.remember(
+  CraftingApi.forms().remember(
     path,
-    Form.fromData(
+    CraftingApi.forms().parse(
       { key, formClass, capacityL, product, discipline, greenScale: formClass === 'block' ? 1.08 : 1 },
       path,
     ),
