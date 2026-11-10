@@ -22,6 +22,10 @@ data:
   # iron's 1811 K, because that is what carbon does to iron and it is
   # the same fact the whole ladder turns on.
   meltingPoint: 1723
+  # ⭐ What this sets as, and what a smelt that ends solid in it makes —
+  # a steel bar (controller-liquidity W9: the smelt asks the material, it
+  # no longer scans the trade's rows for a `_materialPath` match).
+  castTemplate: /trade/smelting/thing/steel-ingot
   latentHeatOfFusion: 270000
   # Mechanical response (materials-response): hard + tough, the
   # standard for swords and armor. MPa / MJ·m⁻³, marshalled.

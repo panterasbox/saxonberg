@@ -31,6 +31,10 @@ data:
   # forging heat, not under a cold load.
   toughness: 30
   meltingPoint: 1780
+  # ⭐ What this sets as, and what a smelt that ends solid in it makes —
+  # a hot-short bloom (controller-liquidity W9: the smelt asks the material, it
+  # no longer scans the trade's rows for a `_materialPath` match).
+  castTemplate: /trade/smelting/thing/hot-short-bloom
   edibility: false
   nutrients: []
   toxicity: []

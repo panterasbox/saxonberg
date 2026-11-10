@@ -39,6 +39,10 @@ data:
   # It melts where iron melts, because it is iron — but a bloomery never
   # gets there, which is exactly why a bloom exists at all.
   meltingPoint: 1811
+  # ⭐ What this sets as, and what a smelt that ends solid in it makes —
+  # a bloom: solid-state reduced, never melted (controller-liquidity W9: the smelt asks the material, it
+  # no longer scans the trade's rows for a `_materialPath` match).
+  castTemplate: /trade/smelting/thing/iron-bloom
   latentHeatOfFusion: 247000
   edibility: false
   nutrients: ["iron"]
