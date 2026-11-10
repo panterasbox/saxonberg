@@ -457,8 +457,7 @@ export default class SmeltingFurnace extends SmeltingFurnaceBase {
 
   /** A material's melting point, K, off the material's own row. */
   protected meltingPointKOf(metal: Material): number {
-    const point = metal.getMeltingPoint?.();
-    const value = typeof point === 'number' ? point : (point?.rawValue() ?? 0);
+    const value = metal.getMeltingPoint().rawValue();
     return value > 0 ? value : IronCarbon.T_FE;
   }
 
