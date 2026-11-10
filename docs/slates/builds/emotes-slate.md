@@ -506,6 +506,41 @@ work; the famous phrasing is the 1995 film's, which is not).
 Noto Emoji (Apache) and OpenMoji (CC BY-SA, share-alike). A licensing-and-style
 decision for when that layer is built.
 
+### 8. ⭐⭐⭐ The rails: quotes, NPCs, and what the platform may encourage **[DECIDED 2026-11-10 — the owner]**
+
+The owner: *"if anyone is reading this I'm really not trying to get around copyright
+just trying to figure out where the rails are."* Informed reasoning, not legal advice;
+a lawyer reads it before launch.
+
+- **A quoted line is fine; a catalog of one work is not.** Short phrases are not
+  copyrightable (Copyright Office Circular 33), and one famous line quoted with
+  attribution as a meme is a strong fair use, so **text-only quotable emotes may ship
+  in the base pack**. The trap is quantity: *Castle Rock v. Carol Publishing* (1998)
+  found a trivia book built from Seinfeld lines infringing. **A few lines per work,
+  never a work mined for dozens.** A catchphrase used to *sell* something can touch a
+  trademark or the right of publicity (*Carson v. Here's Johnny Portable Toilets*);
+  said in play or as an emote, it does not.
+- **NPCs quote lines; they are never a character.** An NPC who says *"I'll be back"*
+  as a wink is quotation. An NPC who *is* a famous character in all but name is a
+  derivative work (well-delineated characters are protected), even with every line
+  original; imitating a real actor raises the right of publicity. NPCs are
+  company-authored, so the user-upload safe harbor never covers them.
+- ⭐⭐ **The platform never encourages uploading other people's work.** The safe harbor
+  covers what users upload on their own; inducement liability (*MGM v. Grokster*,
+  2005) is separate, is not covered by it, and turns on a platform's design and its
+  stated intent. Players making a text emote and someone later attaching an image is
+  ordinary user behavior. What the platform must not do:
+  1. **No "image wanted" prompts**: no list, badge or nudge for meme emotes missing
+     an illustration. A cited film with an empty slot is an invitation, and the kind
+     of specific knowledge that undercuts the safe harbor.
+  2. **No standing for uploading someone else's work.** Labor standing is for
+     original work ([labor-standing-slate](./labor-standing-slate.md) § 9b).
+  3. **Docs say what we do, honestly**: realms may attach images, the platform
+     honors takedowns, and nothing is designed to route around copyright.
+- The citation the meme classification carries (work, year) is for pedagogy and for
+  proving public-domain status; it is never used to solicit images for works still
+  under copyright.
+
 ### Open
 
 1. **What the base pack may ship** — real film/TV clips or not, and how long. The
@@ -554,13 +589,18 @@ decision for when that layer is built.
    our pack, (c) as the managed host's posture, and the public-domain film catalog
    (US: published 1930 or earlier, as of 2026 — the line moves a year every January) as the base pack's quotable classics. **The owner decides.**
 
-   **Decided (the owner, 2026-11-08):** rely on the safe harbor for what realms' players
-   upload, and give the company's own demo realm (`mud.panterasbox.com`) real assets
-   anyway, at the owner's own risk as its curator. The images live in a **private realm
-   pack** (an org repo, kept out of the public monorepo and its distribution) and a
-   realm-only S3 prefix, so a takedown deletes one object and nothing infringing is
-   distributed to self-hosters. Licensing and sponsorship, the ways rights holders come
-   in by agreement, are the [sponsorship slate](./sponsorship-slate.md).
+   **Decided (the owner, 2026-11-08; wording corrected 2026-11-10):** the company's
+   own packs ship only what is **public domain, original, licensed, or plainly a quoted
+   line** (§ 7, § 8). The demo realm (`mud.panterasbox.com`) has a curator, the owner,
+   who answers for its content like any publisher; anything the owner adds there lives
+   in a **private realm pack** (an org repo, kept out of the open pack distributed to
+   self-hosters), so a takedown removes one object and is honored at once. Players'
+   own uploads to a realm are hosted under the ordinary notice-and-takedown process,
+   and the platform **neither prompts nor rewards** uploading other people's work
+   (§ 8). Rights holders' content comes in **by agreement**: the
+   [sponsorship slate](./sponsorship-slate.md). The owner, 2026-11-10: *"I'm really
+   not trying to get around copyright just trying to figure out where the rails
+   are."*
 
    **Other sources (2026-11-08, informed knowledge, not legal advice):**
    - **Video games:** everything on screen is a copyrighted audiovisual work, cutscene
