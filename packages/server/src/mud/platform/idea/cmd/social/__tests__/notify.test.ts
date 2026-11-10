@@ -1,8 +1,8 @@
 /**
- * NotifyController — the `notify` verb surface: bare-name contacts
- * normalization, typed field-option parsing + validation, --above/--below
- * reorder, remove (both grammars: `--remove` and the `remove` subcommand),
- * and the 50-rule soft-cap rejection.
+ * The `notify` controllers (one per subcommand over NotifyControllerBase):
+ * bare-name contacts normalization, `set`'s typed field-option parsing +
+ * validation, `move --above/--below` reorder, `remove`, and the 50-rule
+ * soft-cap rejection.
  *
  * The store lives in the in-memory NotifyPolicyMixin giver; the emitted
  * scene body is captured by stubbing `MessageApi.scene` (the
@@ -11,7 +11,12 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import NotifyController from "../NotifyController";
+import NotifyListController from "../NotifyListController";
+import NotifyShowController from "../NotifyShowController";
+import NotifySetController from "../NotifySetController";
+import NotifyMoveController from "../NotifyMoveController";
+import NotifyRemoveController from "../NotifyRemoveController";
+import type { NotifyControllerBase } from "../NotifyControllerBase";
 import { SocialApi } from "../../../../../api/social";
 import { PlayerApi } from "../../../../../api/player";
 import { MessageApi } from "../../../../../api/message";
@@ -54,7 +59,6 @@ interface NotifyModel extends CommandModel {
   color?: string;
   boost?: boolean;
   noBoost?: boolean;
-  remove?: boolean;
   above?: string;
   below?: string;
 }
@@ -89,8 +93,20 @@ function makeGiver(): NotifyHost {
   return g;
 }
 
+/** The controller `notify.yaml` routes to: a subcommand's own, else the list. */
+const CONTROLLERS: Record<string, () => NotifyControllerBase> = {
+  show: () => new NotifyShowController(),
+  set: () => new NotifySetController(),
+  move: () => new NotifyMoveController(),
+  remove: () => new NotifyRemoveController(),
+};
+
+function controllerFor(model: NotifyModel): () => NotifyControllerBase {
+  return CONTROLLERS[model.subcommand ?? ""] ?? (() => new NotifyListController());
+}
+
 async function run(giver: NotifyHost, model: NotifyModel): Promise<void> {
-  const ctrl = makeStuff(() => new NotifyController());
+  const ctrl = makeStuff(controllerFor(model));
   await ctrl.execute(model as CommandModel, ctxFor(giver));
 }
 
@@ -100,7 +116,7 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-describe("NotifyController", () => {
+describe("the notify controllers", () => {
   it("bare `notify` lists the effective rules (the baseline)", async () => {
     const g = makeGiver();
     await run(g, {});
@@ -109,9 +125,9 @@ describe("NotifyController", () => {
     expect(body).toContain("everyone-else");
   });
 
-  it("shows a single rule when only a ref is given (no field options)", async () => {
+  it("`notify show <ref>` shows a single rule", async () => {
     const g = makeGiver();
-    await run(g, { ref: "friends" });
+    await run(g, { subcommand: "show", ref: "friends" });
     const body = captured!.toString();
     expect(body).toContain(FRIENDS_REF);
     // A pure show must not materialize a stored row.
@@ -123,6 +139,7 @@ describe("NotifyController", () => {
   it("sets multiple fields via typed options and normalizes a bare label", async () => {
     const g = makeGiver();
     await run(g, {
+      subcommand: "set",
       ref: "friends",
       color: "amber",
       boost: true,
@@ -141,14 +158,14 @@ describe("NotifyController", () => {
 
   it("sets boostInDense=false via --no-boost", async () => {
     const g = makeGiver();
-    await run(g, { ref: "friends", noBoost: true });
+    await run(g, { subcommand: "set", ref: "friends", noBoost: true });
     const stored = g.effectiveNotifyRules().find((r) => r.groupRef === FRIENDS_REF);
     expect(stored?.boostInDense).toBe(false);
   });
 
   it("rejects an invalid field-option value with a friendly note", async () => {
     const g = makeGiver();
-    await run(g, { ref: "friends", color: "fuchsia" });
+    await run(g, { subcommand: "set", ref: "friends", color: "fuchsia" });
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "controller-rejected", reason: "bad-option" }),
     );
@@ -158,21 +175,26 @@ describe("NotifyController", () => {
     ).toHaveLength(1); // only the virtual baseline, not a stored row
   });
 
-  it("reorders with --above", async () => {
+  it("`notify set <ref>` with no field asks which, and writes nothing", async () => {
+    const g = makeGiver();
+    await run(g, { subcommand: "set", ref: "friends" });
+    expect(note).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "controller-rejected", reason: "field-required" }),
+    );
+    expect(g.notifyRules().some((r) => r.groupRef === FRIENDS_REF)).toBe(false);
+  });
+
+  it("`notify move` reorders with --above", async () => {
     const g = makeGiver();
     g.setNotifyRule("managed:a", {});
     g.setNotifyRule("managed:b", {});
-    await run(g, { ref: "managed:b", above: "managed:a" });
+    await run(g, { subcommand: "move", ref: "managed:b", above: "managed:a" });
     const stored = g.notifyRules().map((r) => r.groupRef);
     expect(stored).toEqual(["managed:b", "managed:a"]);
   });
 
-  it("removes via the --remove flag and via the remove subcommand", async () => {
+  it("`notify remove <ref>` drops a rule", async () => {
     const g = makeGiver();
-    g.setNotifyRule("managed:a", {});
-    await run(g, { ref: "managed:a", remove: true });
-    expect(g.notifyRules().some((r) => r.groupRef === "managed:a")).toBe(false);
-
     g.setNotifyRule("managed:c", {});
     await run(g, { subcommand: "remove", ref: "managed:c" });
     expect(g.notifyRules().some((r) => r.groupRef === "managed:c")).toBe(false);
@@ -185,9 +207,9 @@ describe("NotifyController", () => {
       .spyOn(g, "pushClientStateUpdate")
       .mockImplementation(() => {});
 
-    const ctrl = makeStuff(() => new NotifyController());
+    const ctrl = makeStuff(() => new NotifySetController());
     await ctrl.execute(
-      { ref: "friends", color: "teal", boost: true } as CommandModel,
+      { subcommand: "set", ref: "friends", color: "teal", boost: true } as CommandModel,
       ctxFor(g),
     );
 
@@ -211,7 +233,7 @@ describe("NotifyController", () => {
   it("does not push when the giver has no connected Interactive", async () => {
     const g = makeGiver(); // plain NotifyHost — no HasInteractive
     // No push method exists to spy on; the mutation must still succeed.
-    await run(g, { ref: "friends", color: "amber" });
+    await run(g, { subcommand: "set", ref: "friends", color: "amber" });
     expect(
       g.effectiveNotifyRules().find((r) => r.groupRef === FRIENDS_REF)?.color,
     ).toBe("amber");
@@ -222,7 +244,7 @@ describe("NotifyController", () => {
     for (let i = 0; i < 50; i++) g.setNotifyRule(`managed:g${i}`, {});
     expect(g.notifyRules()).toHaveLength(50);
 
-    await run(g, { ref: "managed:over", color: "teal" });
+    await run(g, { subcommand: "set", ref: "managed:over", color: "teal" });
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "controller-rejected", reason: "rule-cap" }),
     );

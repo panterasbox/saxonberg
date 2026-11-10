@@ -94,3 +94,22 @@ describe('course and teleport — the bare read is a shape of its own', () => {
     expect(landsOn(files as string[], line as string)).toBe(file);
   });
 });
+
+describe('notify — every act is a word (W7b)', () => {
+  const NOTIFY = ['social/notify.yaml'];
+  it.each([
+    'notify',
+    'notify show friends',
+    'notify set friends --login show --boost',
+    'notify move managed:a --above friends',
+    'notify remove friends',
+  ])('%s binds', (line) => {
+    expect(landsOn(NOTIFY, line)).toBe('social/notify.yaml');
+  });
+  it.each(['notify friends', 'notify friends --login show', 'notify show friends --login show'])(
+    '%s is refused',
+    (line) => {
+      expect(landsOn(NOTIFY, line)).toBeNull();
+    },
+  );
+});

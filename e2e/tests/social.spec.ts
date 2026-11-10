@@ -49,11 +49,11 @@ test('pane controls preview their command in the command bar on hover', async ({
 
     const ghost = page.getByTestId('ghost-line');
 
-    // Add-rule button: previews `notify <ref> --render name` for the
+    // Add-rule button: previews `notify set <ref> --render name` for the
     // typed reference.
     await page.getByTestId('social-add-input').fill('friends');
     await page.getByTestId('social-add-button').hover();
-    await expect(ghost).toContainText('notify friends --render name');
+    await expect(ghost).toContainText('notify set friends --render name');
 
     // Reset button: a fixed, ref-independent command.
     await page.getByTestId('presence-format-reset').hover();
