@@ -315,7 +315,11 @@ beforeAll(async () => {
   const opened = await k.cmd('bank open');
   expect(refusedFor(opened)).toBeNull();
   k.close();
-  k = await Session.open(handle, { startLocation: BYRE });
+  // ⭐ Seated on the Delight's committee: since controller liquidity (D9)
+  // only a keeper drafts — whoever holds the herd's home ground, or a hand
+  // on shift for the business that works it — and the dairy book's home is
+  // the Delight (finalize: a stranger's `draft` is refused `not-keeper`).
+  k = await Session.open(handle, { startLocation: BYRE, committees: ['/world/terminus/hearts-delight'] });
   await k.drainProse();
 }, 300_000);
 
@@ -417,9 +421,11 @@ suite('6–9. the co-op creamery: the cream rises, the skim comes off, the butte
 /* ───────────── 10–12. heat, and the curd ───────────── */
 
 suite('10–12. scald it on the fire, cool it, pitch it, rennet it', () => {
-  it('⭐ `pour pail into vat`; `heat vat` sets it on the fire', async () => {
+  it('⭐ `pour pail into vat`; `put vat on hearth` sets it on the fire', async () => {
     await doing(k, 'pour me:i:pail into vat');
-    const heat = await doing(k, 'heat vat');
+    // `heat <pot>` retired (controller liquidity W7c): a vessel that is not
+    // a build is SET ON the fire, which is `put`.
+    const heat = await doing(k, 'put vat on hearth');
     expect(heat).toMatch(/set .* on|fire|hearth/i);
   });
 
@@ -643,7 +649,7 @@ suite('11. a second batch taken to the boil: its curd sets badly, said in words'
     // The whole pail: the vat takes 25 L, and a pail left half full is a
     // pail that cannot be emptied on a wet floor.
     await doing(k, 'pour me:i:pail into vat');
-    await doing(k, 'heat vat');
+    await doing(k, 'put vat on hearth');
     let t = await kelvinOf(k, 'vat');
     for (let i = 0; i < 40 && t < 362; i++) {
       await advance('5 minutes');
