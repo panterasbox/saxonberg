@@ -21,8 +21,9 @@ belt, cart and mule becomes worth having. Seeding slate: [size-slate](../slates/
 **Carrying** is where a thing is on a body: in a **hand**, **worn**, **in something worn or held** (a
 pocket, a pouch, a pack), or **inside the body** (organs, what you ate). It holds in every epoch: a
 travois, a handcart, a wagon and a truck are one ladder; a pocket is a pocket in every century.
-**Disclosure** — what a container shows to whom — is part of it, because the moment things sit in
-pockets, what is hidden must stay hidden.
+**Perceiving what someone carries** is part of it, because the moment things sit in pockets, what is
+covered must stay covered. The query language still names things for everyone; what a viewer
+perceives is decided by the act (§ Perceiving).
 
 ## What already exists (R2)
 
@@ -49,8 +50,8 @@ pockets, what is hidden must stay hidden.
 
 **Therefore what is genuinely new:** sizes and openings; a body's two hands and the *nothing loose on a
 body* invariant; homes, readying and reach tiers; pockets and hands-free gear; exit clearances; the
-tiered inventory; disclosure as a projection; authority inside your extents in queries; the scale
-envelope.
+tiered inventory; what a person's carrying shows to others, applied by every act that shows or binds a
+thing; a builder lens inside your extents; the scale envelope.
 
 ## Goals
 
@@ -64,8 +65,8 @@ envelope.
   wants both hands, the wardrobe sticks on the stairs' turn.
 - **An expedition is a packing problem** — food, water, light and tools against a body's room and
   strength — so cargo gear, pack animals and carts have real demand.
-- **What is hidden stays hidden** — no command, query, count or refusal tells a viewer whether a
-  concealed thing exists.
+- **What is covered stays covered** — no verb shows, names, counts or asks about a thing its viewer
+  does not perceive.
 - **A creator can inspect their own content** completely, and can play it as an ordinary player.
 - **The engine stays inside the scale it was built to sustain**, loudly.
 
@@ -85,8 +86,8 @@ envelope.
 
 ## Placement
 
-Kernel: size, carrying, readying, disclosure, query authority, the scale envelope — containment,
-slots and queries are kernel substrate, and a second gear row must need no code. Packs: the gear rows
+Kernel: size, carrying, readying, perceiving, the builder lens, the scale envelope — containment,
+slots, perception and the binder are kernel substrate, and a second gear row must need no code. Packs: the gear rows
 (pockets on garments in the textiles pack; belts, holsters, sheaths, pouches, quivers and packs in the
 leather and smithing packs that make them); exit clearances on each locality's own exits where they
 differ from the defaults.
@@ -185,42 +186,50 @@ three-meter pole held costs more than its mass; a well-fitted pack costs least.
 
 ### Inventory **[DECIDED]**
 
-- **`inventory` runs one query — everything under the target, through the viewer's disclosure** (§
-  Disclosure) — and presentation prunes it. With nothing loose on a body, "what's directly on you" is
+- **`inventory` shows everything under the target that the viewer perceives** (§ Perceiving), and
+  presentation prunes it. With nothing loose on a body, "what's directly on you" is
   only your coat, belt and pack, so the human command walks the whole tree; the immediate list keeps its
   meaning for scripts and queries.
 - **The default view is by tier**: in hand · ready (each container's contents listed) · worn · packed
   (each container summarized as a count and a weight) · the burden in words. Options switch the
   presentation: **all** (expand everything), **flat** (the old single list), **ready / packed / worn /
   held** (filter a tier), **weight** (mass and volume per thing), a container's own contents, or a
-  person's (through disclosure). Details — an engraving — stay in `look`, not the inventory.
+  person's (what you perceive on them). Details — an engraving — stay in `look`, not the inventory.
 
-### Disclosure **[DECIDED]**
+### Perceiving **[DECIDED 2026-11-11, owner review]**
 
-- **A container shows its contents to a viewer by five things:** open or shut; see-through (glass, mesh,
-  a net — derived from its material); worn on the outside (a belt's loops, a holster's grip); covered (a
-  pocket under a coat); and **known** — the bearer knows what they packed, and so does whoever last
-  opened it.
-- `i me` · `i them` · `i here` · `i bag` are the same query through the same walk. Your own shut pack
-  lists **from what you know** — *"as you packed it"* — and knowledge goes stale: a pickpocket's theft
-  shows only when you next open it.
-- ⭐⭐ **Hidden is indistinguishable from absent.** For any container not yours, every query resolves
-  against **what that viewer is shown**, never the real contents — names, filters, counts, ordinals and
-  refusals alike (*"you don't see a letter on Joe"*). An instructive refusal never teaches about a hidden
-  thing. It is **structural** — the query cannot reach the real contents of another's container — the
-  routing firewall's doctrine.
-- **Your own things resolve against what you know, and the act checks reality** — reaching for the
-  compass a thief took tells you it's gone. That is how you discover a theft.
-- **What extends disclosure:** opening, being handed a thing, the frisk, the pickpocket.
+The owner, on reviewing this section: the value is in the trades that need a pocket to be private (the
+pickpocket, the frisk, the smuggler, customs; lenses 3b, 6, 7, and 4's privacy), and it must be done
+with **very simple, memorable idioms** — not by changing what a query means. MUDs leak this all the
+time; the leak worth closing is the one a script turns into a scanner, and the cheap version closes it.
 
-### Authority inside your extents **[DECIDED]**
+**Four idioms:**
 
-- **Inside an extent you hold, queries reach the real truth of your content** — its rooms, fixtures,
-  vessels, stock and staged NPCs — so a creator can troubleshoot any state. "An extent you hold" means
-  what access already means: held extents by parcel title. Never a wizard check.
-- **A builder lens** you switch on and off: on, commands inside your extents read the raw truth and
-  **label it builder information**; off, you play your content as a player. ⭐ The true test is a real
-  character — the sandbox's test avatars, which any of your friends can play.
+1. **MQL names things; it never hides them.** A query means the same thing for every viewer — only
+   words like `me` and `here` depend on who asks. (This reverses the shipped rule that filters by
+   viewer inside the query when it steps into a holder; that filter moves to the acts.)
+2. **You act only on what you perceive.** A verb binds only targets its viewer perceives — so a refusal,
+   an ordinal and a *"which one?"* prompt never reveal a covered thing (*"get knife from Bob"* never asks
+   *"which knife?"* because of the one in his pocket).
+3. **Perceive, then reach.** What you don't perceive is refused exactly as if it weren't there — *"you
+   don't see a letter on Joe."* What you perceive but can't reach is refused saying why — *"the box is
+   shut"*, *"your compass is packed in your backpack — unsling it first."*
+4. **Anything that shows a result shows only what you perceive** — `query`, `find`, `look`,
+   `inventory`, a script's `( )` expression, the client's cards and its autocomplete.
+
+**What you perceive of a container's contents:** open or shut; see-through (glass, mesh, a net —
+derived from its material); worn on the outside (a belt's loops, a holster's grip); covered (a pocket
+under a coat). **Your own things you always perceive** — if you look at the bag you see the bag; if you
+look in it you see what's in it, so a theft shows the next time you look. Opening, being handed a
+thing, the frisk and the pickpocket show more.
+
+### The builder lens **[DECIDED]**
+
+- **A builder lens** you switch on and off: on, you perceive everything inside extents you hold — your
+  content's rooms, fixtures, vessels, stock and staged NPCs — and what it shows is **labeled builder
+  information**; off, you play your content as a player. "An extent you hold" means what access already
+  means: held extents by parcel title. Never a wizard check. ⭐ The true test is a real character — the
+  sandbox's test avatars, which any of your friends can play.
 - **Other players are not your content** — inspecting them is a separate, logged grant (Non-goals).
 
 ### The scale envelope **[DECIDED]**
@@ -251,7 +260,7 @@ today's `get`; it is short because the porting came first.
 3. **Immersion** — the stoop, the crawl, the piano on the stairs, the sword sheathed as the compass comes
    out; a dropped sword when you're knocked down. **Participation** — the tailor's pockets, the
    leatherworker's holsters, the carter, the packer, the pickpocket, the frisk.
-4. **Values** — accessibility: a built environment can exclude bodies; privacy: hidden stays hidden.
+4. **Values** — accessibility: a built environment can exclude bodies; privacy: what is covered stays covered.
 5. **Continuity** — travois to truck; a pocket in every epoch.
 6. **Economy** — the demand is the expedition's own (food, water, tools), so cargo gear, mules and carts
    are bought because they were already needed; the hunting and foraging pass then sells what replaces
@@ -287,11 +296,12 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
     size, saying so; the same crate through a wide doorway passes.
 11. *instant · player* — Another character in the room: `i them` shows what they hold, their outer layer,
     the knife on their belt — not the letter in their inner pocket.
-12. *instant · player* — ⭐ Probe the hidden letter: `get letter from them`, a count of their papers, a
-    keyword filter — each answer is identical to the answer for a person with no letter at all.
-13. *instant · staged* — A shut backpack: `inventory` lists its contents *"as you packed it"*; a wizard
-    removes one item; `inventory` still lists it; reach for it — *"it isn't where you left it"*;
-    `inventory` now corrects.
+12. *instant · player* — ⭐ Probe the covered letter: `get letter from them`, `get paper from them`
+    (no *"which one?"*), `query them:I:letter`, and a script `if (them:I:letter) { say yes }` — each
+    answer is identical to the answer for a person with no letter at all. The same query typed by the
+    letter's bearer finds it.
+13. *instant · staged* — A shut backpack: `inventory` lists its contents; a wizard removes one item;
+    `inventory` no longer lists it — you see what's in your own bag when you look.
 14. *instant · staged* — Knock a character unconscious mid-fight — the sword in their hand falls to the
     floor; their worn belt stays on them.
 15. *short · player* — Swim across a pond carrying a paper letter in an ordinary pack — it comes out wet
@@ -325,8 +335,9 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 - A low door, a crawlway, a ladder, a stair's turn and a pond each behave as their size and the body's
   say, in words a player can act on.
 - `inventory` shows a player's hand, ready, worn and packed things at a glance, and the burden in words.
-- No command, query, count or refusal distinguishes a hidden thing from an absent one, for any viewer
-  who does not hold the container.
+- No verb shows, names, counts or asks about a thing its viewer does not perceive — refusals, prompts,
+  `query`, scripts, the client's cards and autocomplete alike — while the query language itself names
+  the same things for every viewer.
 - A creator inspects the true state of their own content with the builder lens, and plays it plainly
   without.
 - Every character restored after a restart carries exactly what they carried.
