@@ -36,8 +36,11 @@
  *       on every row that authors it — read by its declaration, not by a
  *       hand-kept list (the scan sweep, 2026-10-14). `identity:provenance`
  *       is a historical claim and is not checked. The constituent graph
- *       over rows must be ACYCLIC: a constituent loads with its holder,
- *       so a cycle is a load that waits on itself. One field name
+ *       over rows must be ACYCLIC except within the Material family (a
+ *       melt and its freeze cite each other; `ensureConstituent` never
+ *       awaits a load in flight, so such a pair waits on nothing —
+ *       load-on-use decision 4); a cycle that leaves the family is a load
+ *       that waits on itself. One field name
  *       declared as two different kinds is a finding.
  *
  * No exemption list, by design: a reference that cannot resolve is a
@@ -1042,7 +1045,7 @@ const UNREAD_PATH_FIELDS: readonly string[] = [
   'lobbyPath', 'makerId', 'parLines',
   'parentExtent', 'roadTemplate',
   'rosterSlots', 'routes', 'seatIn', 'seats', 'seedTemplatePath',
-  'steepsInto', 'teachesSpellPath', 'trapTemplate', 'treasury',
+  'teachesSpellPath', 'trapTemplate', 'treasury',
 ];
 
 function checkPathFieldCoverage(
@@ -1333,16 +1336,24 @@ function checkDeclaredIdentity(
       }
     }
   }
-  // The constituent graph must be acyclic: a constituent is AWAITED by
-  // its holder's load, so a cycle is a load waiting on itself.
+  // The constituent graph must be acyclic where a cycle would be a load
+  // waiting on itself. ⚠ It is NOT, between materials (owner, load-on-use
+  // decision 4): `ensureConstituent` returns WITHOUT awaiting a load already
+  // in flight, so water → ice → water stands both rows and waits on neither.
+  // A cycle that stays inside the Material family is a melt and its freeze
+  // (or a liquor that concentrates to itself), not a deadlock; one that
+  // leaves it is refused.
+  const isMaterialRow = (path: string): boolean => path.includes('/idea/material/');
   const state = new Map<string, 'open' | 'done'>();
   const visit = (n: string, trail: string[]): void => {
     const st = state.get(n);
     if (st === 'done') return;
     if (st === 'open') {
+      const cycle = [...trail.slice(trail.indexOf(n)), n];
+      if (cycle.every(isMaterialRow)) return;
       findings.push({
         clause: 'f', file: rows.get(n) ?? n,
-        detail: `constituent cycle: ${[...trail.slice(trail.indexOf(n)), n].join(' → ')}`,
+        detail: `constituent cycle: ${cycle.join(' → ')}`,
       });
       return;
     }
@@ -1362,11 +1373,22 @@ function checkTemplatePathConstants(rows: Map<string, string>): number {
     findings.push({ clause: 'c', file: 'src/mud/lib/paths.ts', detail: 'TemplatePaths block not found' });
     return 0;
   }
+  // A catalogue an Api stands up in code (`singletonSync(TemplatePaths.x,
+  // …)`, load-on-use D13) has no row by design — its constant names a
+  // singleton's address, not a row to clone.
+  const apiDir = join(SERVER_ROOT, 'src/mud/api');
+  const codeMade = new Set<string>();
+  for (const f of readdirSync(apiDir).filter((n) => n.endsWith('.ts'))) {
+    for (const k of readFileSync(join(apiDir, f), 'utf8').matchAll(/singletonSync\(\s*TemplatePaths\.(\w+)/g)) {
+      codeMade.add(k[1]!);
+    }
+  }
   let checked = 0;
-  for (const m of block[1]!.matchAll(/:\s*"(\/[^"]+)"/g)) {
-    const path = m[1]!;
+  for (const m of block[1]!.matchAll(/(\w+):\s*"(\/[^"]+)"/g)) {
+    const path = m[2]!;
     const leaf = path.split('/').pop()!;
     if (!/(Registry|Catalogue)$/.test(leaf)) continue;
+    if (codeMade.has(m[1]!)) continue;
     checked += 1;
     if (!rows.has(path)) {
       findings.push({

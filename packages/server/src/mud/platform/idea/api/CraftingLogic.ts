@@ -1415,7 +1415,7 @@ function pourKg(material: Material | null, litres: number): number {
 function bulkContributionKg(c: BuildContribution): number {
   return pourKg(
     c.materialPath
-      ? StuffApi.findByTemplatePath<Material>(c.materialPath) ?? null
+      ? MaterialApi.materials().peek(c.materialPath) ?? null
       : null,
     c.measureL,
   );
@@ -2760,7 +2760,7 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
   // named product consults no recipe at all.
   let named: Material | null = null;
   if (charge !== null && charge.getProductMaterial() !== '') {
-    named = StuffApi.findByTemplatePath<Material>(charge.getProductMaterial()) ?? null;
+    named = MaterialApi.materials().peek(charge.getProductMaterial()) ?? null;
     if (named === null) {
       return { ok: false, reason: 'no-output', detail: 'product-material-missing' };
     }
@@ -2914,7 +2914,7 @@ function buildSpoilage(build: MintBuild, vessel: Stuff): SpoilageOutcome {
   const perishable = build.contributions.some((c) =>
     Freshness.isPerishable(
       c.materialPath
-        ? StuffApi.findByTemplatePath<Material>(c.materialPath) ?? null
+        ? MaterialApi.materials().peek(c.materialPath) ?? null
         : null,
     ),
   );
@@ -4080,7 +4080,7 @@ async function unitMassOf(template: string, fallbackKg: number): Promise<number>
 }
 
 function materialAtPath(path: string): Material | null {
-  return path ? (StuffApi.findByTemplatePath<Material>(path) ?? null) : null;
+  return path ? (MaterialApi.materials().peek(path) ?? null) : null;
 }
 
 function mendRecord(
@@ -4759,7 +4759,7 @@ const GLUE_STEAMED_RECOVERY = 0.8;
 
 /** Does `glue` let go of `whole` as it stands — hot enough and wet enough? */
 function glueLetsGo(whole: Stuff, glue: string): boolean {
-  const glueMat = StuffApi.findByTemplatePath<Material>(glue);
+  const glueMat = MaterialApi.materials().peek(glue);
   const a = glueMat && MixinApi.hasCoating(glueMat) ? glueMat.getAdhesive() : null;
   if (a === null || a.reversible === 'never') return false;
   const hot = a.reversible.heatK === undefined ||
@@ -5062,7 +5062,7 @@ async function mintMember(
     console.warn(`CraftingLogic: cannot mint a '${line.part}' from '${line.template}':`, err);
     return null;
   }
-  const m = line.material ? StuffApi.findByTemplatePath<Material>(line.material) : null;
+  const m = line.material ? MaterialApi.materials().peek(line.material) : null;
   if (m && MixinApi.isTangible(out)) out.setMaterial(m);
   if (MixinApi.isGraded(out)) {
     let g = Grade.of(line.grade);
@@ -5208,7 +5208,7 @@ async function salvageByJoints(
       const unit = Number((tpl?.data as { mass?: unknown } | undefined)?.mass);
       lost.push({
         material: line.material
-          ? (StuffApi.findByTemplatePath<Material>(line.material) ?? null)
+          ? (MaterialApi.materials().peek(line.material) ?? null)
           : null,
         kg: (Number.isFinite(unit) && unit > 0 ? unit : 1) * (line.count - back),
       });

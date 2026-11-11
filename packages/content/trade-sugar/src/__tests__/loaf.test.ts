@@ -22,7 +22,7 @@ const settle = async (): Promise<void> => {
 };
 
 function loaf(band: string): SugarLoaf {
-  const l = makeStuff(() => new SugarLoaf());
+  const l = makeStuff(() => Object.assign(new SugarLoaf(), { drainsTo: '/trade/sugar/idea/material/molasses' }) /* its row's fields (load-on-use W8) */);
   l.setMass(Quantity.of(6, 'kg'));
   if (MixinApi.isGraded(l)) l.setGrade(Grade.of(band));
   return l;

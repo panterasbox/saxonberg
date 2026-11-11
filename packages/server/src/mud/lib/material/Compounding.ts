@@ -134,7 +134,7 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
     };
 
     static fieldMeta: FieldMeta = {
-      productMaterial: { persistent: true, authorable: true },
+      productMaterial: { persistent: true, authorable: true, ref: 'identity:constituent' },
       productTemplate: { persistent: true, authorable: true },
     };
 

@@ -54,6 +54,7 @@ import { Quantity } from '../quantity';
 import { AppSettingKeys } from '../config/AppSettings';
 import { PumpMechanism } from './PumpMechanism';
 import { BulkableApi } from '../../api/bulk';
+import { MaterialApi } from '../../api/material';
 
 /** The capability a packing offers, and the only thing a pump will hold. */
 export const PACKING = 'packing';
@@ -291,7 +292,7 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** kg/m³ of a material path, or `null` (unknown → water). */
     private async densityOf(materialPath: string | null): Promise<number | null> {
       if (!materialPath) return null;
-      const m = StuffApi.findByTemplatePath<Material>(materialPath);
+      const m = MaterialApi.materials().peek(materialPath);
       const rho = m?.getDensity().rawValue() ?? 0;
       return rho > 0 ? rho : null;
     }
@@ -414,7 +415,7 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⭐ Name what came up — brine is not water, and a pump on a bore
       // says so.
       const path = await source.standingMaterial();
-      const name = (path ? StuffApi.findByTemplatePath<Material>(path)?.getName() : '') || 'water';
+      const name = (path ? MaterialApi.materials().peek(path)?.getName() : '') || 'water';
       const What = name.charAt(0).toUpperCase() + name.slice(1);
       return {
         self: source.liftedWords

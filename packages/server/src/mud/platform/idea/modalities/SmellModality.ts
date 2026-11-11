@@ -37,6 +37,7 @@ import type { Sensor } from '../../../lib/message/Sensor';
 import type { Percept } from '../../../lib/perception/Modality';
 import type { Bulkable, BulkPayload } from '../../../lib/bulk/Bulkable';
 import { PerceptionApi } from '../../../api/perception';
+import { MaterialApi } from '../../../api/material';
 
 /** One band fainter per hop: a doorless exit, and on top of a boundary's own. */
 const HOP_TAU = 1 / 30;
@@ -309,7 +310,7 @@ export class SmellModality extends Modality {
     const makeup = payload?.makeup ?? [];
     if (makeup.length > 0) {
       for (const part of makeup) {
-        const m = StuffApi.findByTemplatePath<Material>(part.materialPath);
+        const m = MaterialApi.materials().peek(part.materialPath);
         if (!m) PerceptionApi.aromas().loadRow(part.materialPath);
         this.addMaterial(m ?? null, litres * part.fraction, heat, into);
       }

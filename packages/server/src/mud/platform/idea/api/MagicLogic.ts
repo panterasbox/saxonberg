@@ -116,6 +116,7 @@ import type { Container } from '../../../lib/spatial/Container';
 import type { Combatant } from '../../../lib/combat/Combatant';
 import type { GenerationNow } from '../../../lib/identification/Appearance';
 import { DocumentNotResidentError } from '../../../lib/errors';
+import { MaterialApi } from '../../../api/material';
 
 const MagicApiCallers = SecurityPolicies.FromModule('/api/magic#MagicApi');
 /** The F3 object faces forward here as the subject instance. */
@@ -1735,7 +1736,7 @@ async function execConjure(
   const materialPath = e.bulkMaterial!.startsWith('/')
     ? e.bulkMaterial!
     : `/stuff/idea/material/bulk/${e.bulkMaterial}`;
-  const material = StuffApi.findByTemplatePath<Material>(materialPath);
+  const material = MaterialApi.materials().peek(materialPath);
   if (!material) return 'The stuff of it will not come.';
   const source = await StuffApi.clone<UnboundedReceptacle>(
     '/platform/thing/UnboundedReceptacle',

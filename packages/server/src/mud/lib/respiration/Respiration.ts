@@ -57,6 +57,7 @@ import { TemplatePaths } from '../paths';
 import type { CommandContributions } from '../../api/command';
 import type { RespirationCause } from './RespirationDrain';
 import { RespirationDrain, RespirationRecovery, RespirationTread } from './RespirationDrain';
+import { MaterialApi } from '../../api/material';
 
 /**
  * Every respiration dial as a module const-object (the
@@ -753,7 +754,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (contents.length === 0) return;
       for (const c of contents) {
         if (!(c.amount > 0)) continue;
-        const material = StuffApi.findByTemplatePath<Material>(c.type);
+        const material = MaterialApi.materials().peek(c.type);
         if (!material) continue;
         for (const toxin of MixinApi.hasToxicity(material) ? material.getToxicity() : []) {
           if (!(toxin.amount > 0)) continue;

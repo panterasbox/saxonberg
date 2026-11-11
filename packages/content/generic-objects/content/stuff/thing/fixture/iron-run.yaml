@@ -3,6 +3,8 @@
 # frost cracks it where it would only bulge lead.
 class: /platform/thing/PipeRun
 data:
+  # What the run carries (load-on-use W8: a class's material is content).
+  carries: /stuff/idea/material/bulk/water
   shortDescription: iron pipe run
   keywords: [run, "pipe run", plumbing, pipes, "iron pipe", "iron run"]
   register: definite

@@ -81,7 +81,7 @@ export const CENSUS_AT_LANDING = { entries: 128, uncited: 71 };
 /* 78 → 76 (documents W5b): the discipline dictionary loads with a
  * character's first band read; −1 more on the merge with master (the
  * broadcast build's StreamState retired, 85 → 84 there). */
-export const BOOT_ENTRY_CEILING = 70; // load-on-use W6: conditions load with the first body. Was 71 (W7: no biome catalogue)
+export const BOOT_ENTRY_CEILING = 69; // load-on-use W8: materials load per row by the holder, the relation, the act and the restore door. Was 70 (W6: conditions load with the first body)
 
 /**
  * ⭐ Content entries whose reason does not cite the unobserved economy —

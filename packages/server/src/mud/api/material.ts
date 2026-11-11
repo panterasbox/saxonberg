@@ -38,11 +38,11 @@ import { HotReloadApi } from './hot-reload';
 import { MaterialLogic } from '../platform/idea/api/MaterialLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import { TestOnly } from '../lib/security/decorators';
 import DirtCatalogue from '../platform/idea/DirtCatalogue';
-import type MaterialCatalogue from '../platform/idea/MaterialCatalogue';
+import MaterialCatalogue from '../platform/idea/MaterialCatalogue';
 import CleanserCatalogue from '../platform/idea/CleanserCatalogue';
 import FabricCatalogue from '../platform/idea/FabricCatalogue';
-import { DocumentNotResidentError } from '../lib/errors';
 import { TemplatePaths } from '../lib/paths';
 
 // kg + kg/m³ tag tables live in `mud/config/quantity-tags.yaml`
@@ -170,9 +170,16 @@ export class MaterialApi {
    * family after `ensureRoster()`.
    */
   public static materials(): MaterialCatalogue {
-    const cat = StuffApi.findByTemplatePath<MaterialCatalogue>(TemplatePaths.materialCatalogue);
-    if (!cat) throw new DocumentNotResidentError('catalogue', TemplatePaths.materialCatalogue);
-    return cat;
+    return StuffApi.singletonSync(TemplatePaths.materialCatalogue, () => new MaterialCatalogue());
+  }
+
+  /**
+   * Mark the material roster stood with whatever materials a suite has made
+   * — a suite has no rows to read (load-on-use W8). The harness calls it once.
+   */
+  @TestOnly('Nothing in the game stands the material roster in by hand — a roster read awaits ensureRoster.')
+  public static standRosterForTesting(): void {
+    MaterialApi.materials().standRosterAsLive();
   }
 
   /**
@@ -204,7 +211,7 @@ export class MaterialApi {
    * filters by capability or kind (material decomposition W3).
    */
   public static all(): Material[] {
-    return logic().all();
+    return MaterialApi.materials().roster();
   }
 
   /**
@@ -213,17 +220,9 @@ export class MaterialApi {
    * Materials that haven't been cloned yet aren't there.
    */
   public static findByTag(tag: string): Material[] {
-    return logic().findByTag(tag);
+    return MaterialApi.materials().byTag(tag);
   }
 
-  /**
-   * Every registered Material whose recursive composition contains
-   * the element identified by `symbol`. Combines `compositionOf` +
-   * `containsElement` over the index.
-   */
-  public static findByElement(symbol: string): Material[] {
-    return logic().findByElement(symbol);
-  }
 
   // ---------- materials-response (the three-axis response function) ----------
 

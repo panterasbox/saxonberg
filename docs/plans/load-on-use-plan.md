@@ -889,6 +889,64 @@ every biome reader is a host's constituent, as the census said.
 - Drive steps 1–2 at W9.
 - Commit: `refactor(load-on-use): W7 — a biome loads with its place; the catalogue goes`.
 
+### W8 (a + b, landing as one wave) — IN PROGRESS
+
+⚠ **W8a and W8b land together**: `MaterialApi.materials()` must be a
+`singletonSync` (D13) before any sync door is loud, and that means the
+catalogue's `onCreate` and boot line go in the same change — a W8a commit
+alone would leave every production material cold. Done so far:
+- `MaterialCatalogue`: no `onCreate`/row/boot line (boot 70 → 69, the stale
+  `dependsOn` on `LocationGraphRegistry` gone); class-held roster state;
+  `ensure`/`need`/`peek`/`roster`/`byTag`; `ensureCited(paths)` and
+  `ensureCitedIn(value)` — the restore door's load, which returns
+  `undefined` when nothing is cold (the runtime case, so a setter dangles no
+  promise) and NEVER rejects (the `ensureConstituent` contract); `@TestOnly
+  MaterialApi.standRosterForTesting` for the harness. `findByElement` +
+  `MaterialLogic.everyMaterial` retired; `all`/`findByTag` read the roster.
+- All 110 raw lookups go through `MaterialApi.materials()` — `peek`, and
+  `need` at the holder's own reads (`Tangible`, `SourceSlot`, `Floor`
+  underfoot, `Bulkable.getBulkMaterial`, the kinetic origin, the c1 fields).
+  ⚠ `Tangible` keeps an inline `peekMaterial/needMaterial`: importing
+  `MaterialApi` there evaluated `Thing` before `TangibleMixin` existed.
+- ⭐ **`TemplateApplier.pathsIn` reads nested values** (only `/`-strings
+  below the top level): the relation fields are lists of records
+  (`composition[].materialPath`, a rung's `becomes`, a layer's `material`),
+  and the one-level walk would have loaded none of them. Same mechanism,
+  reaching into the declared field's own value — no new hook.
+- (a\*)/(b) declared `identity:constituent`: `Kinetic.kinetics/drainSetting`,
+  `Fusion.chillsTo`, `Mixture.composition`, `Solution`'s four,
+  `Steepable.steepsInto`, `Composition.makeup`, `Compounding.productMaterial`,
+  `Comminuting.productMaterial/residueMaterial`, `Atmospheric.enclosure/roof`
+  (+181 declared refs censused). NOT `Comminuting.products` (it carries
+  milling THING rows), NOT Species/BodyPlan/Deposit (mixed paths) — those
+  readers stay `peek` for now.
+- Census (f) narrowed per decision 4 (a cycle inside the Material family is
+  allowed; two liquors cite themselves); clause (c) skips a `TemplatePaths`
+  catalogue an Api stands up with `singletonSync`; `steepsInto` off the
+  unread list.
+- (c1) content, per decision 6: `PipeRun.carries` (4 rows), sugar
+  `Copper.boilsTo/skimsTo` (copper + kettle), `SugarLoaf.drainsTo`,
+  `Churn.churnsTo`, `SoapKettle.slakesTo` — authored on the rows,
+  `identity:constituent`, read with `need`. Async acts `ensure`: Midden,
+  WaterFixture, IronPot, LayController, BleedController (before its sync
+  completion), WeatherLogic's puddle water (the async tick passes it in),
+  farming `Field`'s texture (rule 1: `Tract.ensureFields` awaits it).
+- (c2) restore doors: `setInteriorPayload/setSurfacePayload` (makeup,
+  madeFrom…), `setJoints` (glue), `setCoats`, `setFuelBed` (keyed by
+  material), `setKineticRecord` (origin), `setStrewn`, `setMadeFrom`.
+- ❓ **OPEN — the owner's call (rule 3):** `Atmospheric`'s enclosure DEFAULT
+  is an AppSettings dial (`enclosure.defaultMaterial`, granite) read in the
+  sync exposure resolve, and the `enclosureDefaults()` hook's overriders
+  (`SealedCellar`, `ColdStore`, `Hive`) hard-code theirs. No async parent;
+  rule 2 would move the default onto the root `universe` biome row as a
+  constituent field and retire the dial. Until decided, `resolveLayer` reads
+  `peek` (a cold default would read k = 0.02, wrong silently once the boot
+  line is gone — must be resolved before the MR).
+- Still to do: `SmeltController` product, `Comminuting.products`, Species/
+  BodyPlan/Deposit/Effect relations, the wiki/pattern roster reads
+  (`ensureRoster`), the suite sweep (light runs only while build-2
+  finalizes).
+
 ### W8a — materials: the sync door and the relations
 
 - The census table (§ Grounding) is the wave's checklist: every one of the

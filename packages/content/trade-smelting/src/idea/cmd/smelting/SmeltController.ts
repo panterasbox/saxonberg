@@ -68,6 +68,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 import type { Bulkable } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import type { Thermal } from '@saxonberg/server/mud/lib/thermal/Thermal';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 const TOPIC = 'act.deed';
 const SMELTING = 'smelting';
@@ -645,7 +646,7 @@ function lotsOf(items: Stuff[]): ChargeLot[] {
       const composition = MixinApi.hasMixture(material) ? material.getComposition() : [];
       if (composition.length > 0) {
         for (const entry of composition) {
-          const metal = StuffApi.findByTemplatePath<Material>(entry.materialPath);
+          const metal = MaterialApi.materials().peek(entry.materialPath);
           if (!metal || !metal.hasTag('metal')) continue;
           // ⭐ `metalFractionOf` already folds the lump's GRADE in. A bar
           // has no grade and is simply itself.
@@ -678,7 +679,7 @@ function dominantMetalOf(charge: ChargeLot[]): Material | null {
   for (const [path, kg] of totals) {
     if (kg > 0 && (best === null || kg > best.kg)) best = { path, kg };
   }
-  return best ? StuffApi.findByTemplatePath<Material>(best.path) ?? null : null;
+  return best ? MaterialApi.materials().peek(best.path) ?? null : null;
 }
 
 /** The carbon already dissolved in the charge, or `null` if it is ore. */
@@ -818,7 +819,7 @@ async function runIntoCrucible(
   madeFrom: readonly Stuff[],
   carbon = 0,
 ): Promise<CrucibleRun> {
-  const metal = StuffApi.findByTemplatePath<Material>(metalPath) ?? null;
+  const metal = MaterialApi.materials().peek(metalPath) ?? null;
   if (metal === null || kg <= 0) return 'hearth';
   const density = metal.getDensity().rawValue() || 8000;
   const litres = (kg / density) * 1000;

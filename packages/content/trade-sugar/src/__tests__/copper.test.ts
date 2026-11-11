@@ -44,7 +44,7 @@ let quicklime: Material;
 
 function copperOfWater(litres: number): Copper {
   const room = makeStuff(() => new Place());
-  const c = makeStuff(() => new Copper());
+  const c = makeStuff(() => Object.assign(new Copper(), { boilsTo: '/trade/sugar/idea/material/raw-liquor', skimsTo: '/trade/sugar/idea/material/skimmings' }) /* its row's fields (load-on-use W8) */);
   c.setBulkMaterial('interior', water);
   c.setBulkAmount('interior', Quantity.of(litres, 'L'));
   ContainmentApi.move(c, room);
@@ -89,7 +89,7 @@ describe('the sugar copper', () => {
 
   it('a dry copper refuses the block', () => {
     const room = makeStuff(() => new Place());
-    const c = makeStuff(() => new Copper());
+    const c = makeStuff(() => Object.assign(new Copper(), { boilsTo: '/trade/sugar/idea/material/raw-liquor', skimsTo: '/trade/sugar/idea/material/skimmings' }) /* its row's fields (load-on-use W8) */);
     ContainmentApi.move(c, room);
     expect(c.canAddContainable(lump(rawSugar, 20) as never).ok).toBe(false);
     expect(c.canAddContainable(makeStuff(() => new Good()) as never).ok).toBe(false);

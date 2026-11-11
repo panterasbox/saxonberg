@@ -92,6 +92,7 @@ import type FractionSchedule from './FractionSchedule';
 import type { FractionSpec } from './FractionSchedule';
 import { BulkableApi } from '../../api/bulk';
 import type { CompetenceBandName } from '../advancement/CompetenceBand';
+import { MaterialApi } from '../../api/material';
 
 /** Where a run has got to. */
 export type RunPhase = 'idle' | 'charged' | 'running' | 'spent';
@@ -366,7 +367,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
     protected startCharge(path: string, amount: number): void {
       this.resetRun();
       this.runMaterialPath = path;
-      const material = StuffApi.findByTemplatePath<Material>(path);
+      const material = MaterialApi.materials().peek(path);
       if (!material) return;
       const schedule = BulkableApi.fractionSchedules().forMaterial(material);
       if (!schedule) return;
@@ -434,7 +435,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
         this.runPhase = 'running';
         return;
       }
-      const product = StuffApi.findByTemplatePath<Material>(
+      const product = MaterialApi.materials().peek(
         schedule.getProductMaterial(),
       );
       if (!product) {
@@ -463,7 +464,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       this.runPhase = 'spent';
       const residuePath = schedule.getResidueMaterial();
       if (!residuePath) return;
-      const residue = StuffApi.findByTemplatePath<Material>(residuePath);
+      const residue = MaterialApi.materials().peek(residuePath);
       if (!residue) return;
       this.runMaterialPath = residuePath;
       self.setBulkMaterial('interior', residue);

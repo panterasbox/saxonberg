@@ -24,7 +24,7 @@ afterEach(() => {
 });
 
 describe("the roster warm", () => {
-  it("onCreate stands up Material rows and skips the FolderZone folders", async () => {
+  it("the warm stands up Material rows and skips the FolderZone folders", async () => {
     vi.spyOn(Template, "findByPathInfix").mockResolvedValue([
       { path: "/stuff/idea/material/wood", class: "/platform/idea/FolderZone" },
       { path: "/stuff/idea/material/wood/oak", class: "/platform/idea/material/Wood" },
@@ -43,7 +43,7 @@ describe("the roster warm", () => {
     });
 
     const catalogue = makeStuff(() => new MaterialCatalogue());
-    await catalogue.onCreate();
+    await catalogue.warm();
     expect(stood).toEqual([
       "/stuff/idea/material/wood/oak",
       "/stuff/idea/material/element/uranium",
@@ -66,15 +66,16 @@ describe("the roster warm", () => {
     expect(await catalogue.warm()).toBe(1);
   });
 
-  it("the platform pack boots it eagerly (the wiring assert)", () => {
+  it("nothing boots it — a material loads with what reaches it (load-on-use W8)", () => {
     const src = readFileSync(
       fileURLToPath(
         new URL("../../../../../content/platform/pack.yaml", import.meta.url),
       ),
       "utf-8",
     );
-    expect(src).toMatch(/template: \/platform\/idea\/MaterialCatalogue/);
+    expect(src).not.toMatch(/MaterialCatalogue/);
   });
+
 });
 
 describe("Material residency veto", () => {
@@ -110,12 +111,14 @@ describe("the doors (load-on-use W0)", () => {
     expect(StuffApi.ensureConstituent).toHaveBeenCalledTimes(1);
   });
 
-  it("the roster read throws until the roster is warmed, and the warm is coalesced", async () => {
-    vi.spyOn(Template, "findByPathInfix").mockResolvedValue([] as unknown as Template[]);
+  it("the restore door loads only what is cold, and never rejects", async () => {
     const catalogue = makeStuff(() => new MaterialCatalogue());
-    expect(() => catalogue.roster()).toThrow(/material roster/);
-    await Promise.all([catalogue.ensureRoster(), catalogue.ensureRoster()]);
-    expect(Template.findByPathInfix).toHaveBeenCalledTimes(1);
-    expect(catalogue.roster()).toEqual([]);
+    const live = makeStuff(() => new Material());
+    stampTemplatePathForTest(live, "/stuff/idea/material/live");
+    expect(catalogue.ensureCited(["/stuff/idea/material/live", "", null])).toBeUndefined();
+    vi.spyOn(StuffApi, "ensureConstituent").mockResolvedValue(undefined);
+    await expect(catalogue.ensureCited(["/stuff/idea/material/cold"])).resolves.toBeUndefined();
+    expect(StuffApi.ensureConstituent).toHaveBeenCalledWith("/stuff/idea/material/cold");
   });
+
 });

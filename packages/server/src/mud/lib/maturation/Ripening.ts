@@ -44,6 +44,7 @@ import { Grade, type GradeBand } from '../craft/Grade';
 import type MaturationProfile from './MaturationProfile';
 import { BulkableApi } from '../../api/bulk';
 import { TemplatePaths } from '../paths';
+import { MaterialApi } from '../../api/material';
 
 /** Where a wheel has got to. */
 export type RipeningPhase = 'idle' | 'active' | 'finished' | 'turned' | 'killed';
@@ -253,7 +254,7 @@ export function RipeningMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
     private swapToTurned(profile: MaturationProfile): void {
       const turned = profile.getTurnedMaterial();
       if (!turned || turned === this.ripeningMaterialPath) return;
-      const m = StuffApi.findByTemplatePath<Material>(turned);
+      const m = MaterialApi.materials().peek(turned);
       const self = this as unknown as Stuff;
       if (m && MixinApi.isTangible(self)) {
         self.setMaterial(m);

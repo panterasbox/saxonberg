@@ -4,6 +4,9 @@
 # grade (written by `temper` and `skim`) is what the strike arrow reads.
 class: /trade/sugar/thing/Copper
 data:
+  # What this vessel makes of its charge (load-on-use W8: content, not code).
+  boilsTo: /trade/sugar/idea/material/raw-liquor
+  skimsTo: /trade/sugar/idea/material/skimmings
   shortDescription: sugar copper
   keywords: [copper, pan, "sugar copper", kettle]
   # The word a card link names it by — without it the link fell back to the

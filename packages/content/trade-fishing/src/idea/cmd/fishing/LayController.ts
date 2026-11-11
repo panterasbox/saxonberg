@@ -20,6 +20,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import { FishingController, FISHING_TOPIC } from './FishingController';
 import Trap from '../../../thing/Trap';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 const WATER = '/stuff/idea/material/bulk/water';
 
@@ -61,8 +62,8 @@ export default class LayController extends FishingController<LayModel> {
     // which is what keeps a keepnet's fish alive (B8).
     if (trap.hasInteriorBulk()) {
       const capacity = trap.getInteriorCapacity();
-      const water = StuffApi.findByTemplatePath<Material>(WATER);
-      if (capacity !== null && water) {
+      const water = await MaterialApi.materials().ensure(WATER); // the act loads it (load-on-use D2 c)
+      if (capacity !== null) {
         trap.setBulkMaterial('interior', water);
         trap.setBulkAmount('interior', capacity);
       }

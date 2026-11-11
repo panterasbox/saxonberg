@@ -32,6 +32,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Atmospheric } from '@saxonberg/server/mud/lib/biome/Atmospheric';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 const CondenserBase = PlacingMixin(BulkableMixin(ThermalMixin(Good)));
 
@@ -52,7 +53,7 @@ export default class Condenser extends CondenserBase {
   public receive(materialPath: string, litres: number): number {
     if (!(litres > 0)) return 0;
     const material =
-      StuffApi.findByTemplatePath<Material>(materialPath) ?? null;
+      MaterialApi.materials().peek(materialPath) ?? null;
     if (material === null) return 0;
 
     // A gas at this temperature is not something a coil can hold. Pass

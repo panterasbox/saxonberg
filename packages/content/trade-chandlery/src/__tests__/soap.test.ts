@@ -112,7 +112,7 @@ describe('the hopper (lye from ash)', () => {
 
 describe('the kettle (soap from fat and lye)', () => {
   it('⭐ lye poured on fat — and salt on soft soap — are the kettle\'s transforms', () => {
-    const k = makeStuff(() => new SoapKettle());
+    const k = makeStuff(() => Object.assign(new SoapKettle(), { slakesTo: '/trade/chandlery/idea/material/milk-of-lime' }) /* its row's fields (load-on-use W8) */);
     const fat = material(['liquid', 'fat']);
     vi.spyOn(k, 'getBulkMaterial').mockReturnValue(fat);
     const lye = material(['liquid', 'caustic', 'lye']);
@@ -129,7 +129,7 @@ describe('the kettle (soap from fat and lye)', () => {
   });
 
   it('anything else is the shipped maturation\'s question', () => {
-    const k = makeStuff(() => new SoapKettle());
+    const k = makeStuff(() => Object.assign(new SoapKettle(), { slakesTo: '/trade/chandlery/idea/material/milk-of-lime' }) /* its row's fields (load-on-use W8) */);
     vi.spyOn(k, 'getBulkMaterial').mockReturnValue(material(['liquid', 'water']));
     expect(k.classifyForeignPour(material(['liquid', 'lye']), '')).toBeNull();
   });
@@ -289,7 +289,7 @@ describe('⭐⭐ lime in the kettle: slaking, causticizing, hard soap direct (po
 
   it('⭐ water on quicklime slakes it — heat into the kettle, milk of lime, no batch', async () => {
     installV1QuantityMarshallers();
-    const k = makeStuff(() => new SoapKettle());
+    const k = makeStuff(() => Object.assign(new SoapKettle(), { slakesTo: '/trade/chandlery/idea/material/milk-of-lime' }) /* its row's fields (load-on-use W8) */);
     const lime = makeStuff(() => new Good());
     lime.setMaterial(material(['mineral', 'caustic', 'alkali', 'liming', 'stabilizer']));
     lime.setMass(Quantity.of(2, 'kg'));
@@ -304,14 +304,14 @@ describe('⭐⭐ lime in the kettle: slaking, causticizing, hard soap direct (po
   });
 
   it('water with no lime in the kettle is the shipped question', () => {
-    const k = makeStuff(() => new SoapKettle());
+    const k = makeStuff(() => Object.assign(new SoapKettle(), { slakesTo: '/trade/chandlery/idea/material/milk-of-lime' }) /* its row's fields (load-on-use W8) */);
     const rekey = rekeyOf(k);
     k.matchProfile(material(['liquid', 'water']));
     expect(rekey).not.toHaveBeenCalled();
   });
 
   it('⭐ lye and milk of lime, either way round, make caustic lye', () => {
-    const k = makeStuff(() => new SoapKettle());
+    const k = makeStuff(() => Object.assign(new SoapKettle(), { slakesTo: '/trade/chandlery/idea/material/milk-of-lime' }) /* its row's fields (load-on-use W8) */);
     const rekey = rekeyOf(k);
     const lye = material(['liquid', 'caustic', 'alkali', 'lye']);
     const milk = material(['liquid', 'caustic', 'alkali', 'slaked-lime']);
@@ -325,7 +325,7 @@ describe('⭐⭐ lime in the kettle: slaking, causticizing, hard soap direct (po
   });
 
   it('⭐⭐ fat and CAUSTIC lye make the hard-soap paste; fat and plain lye still make soft', () => {
-    const k = makeStuff(() => new SoapKettle());
+    const k = makeStuff(() => Object.assign(new SoapKettle(), { slakesTo: '/trade/chandlery/idea/material/milk-of-lime' }) /* its row's fields (load-on-use W8) */);
     const rekey = rekeyOf(k);
     vi.spyOn(k, 'getBulkMaterial').mockReturnValue(material(['liquid', 'fat']));
     k.applyForeignPour('transform', '', 1, material(['liquid', 'caustic', 'alkali', 'lye', 'caustic-lye']));

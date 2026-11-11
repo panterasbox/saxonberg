@@ -80,7 +80,7 @@ export class BlendLabel {
     const makeup: readonly CompositionEntry[] = payload?.makeup ?? [];
     const out: Material[] = [];
     for (const part of makeup) {
-      const material = StuffApi.findByTemplatePath<Material>(part.materialPath);
+      const material = MaterialApi.materials().peek(part.materialPath);
       if (material) out.push(material);
     }
     return out;
@@ -123,7 +123,7 @@ export class BlendLabel {
     }
     const out: Record<string, number> = {};
     for (const part of makeup) {
-      const m = StuffApi.findByTemplatePath<Material>(part.materialPath);
+      const m = MaterialApi.materials().peek(part.materialPath);
       if (!m) continue;
       const servings = MaterialApi.servingsOf(m, part.fraction * hostKg);
       if (!MixinApi.hasEdibility(m)) continue;
@@ -208,7 +208,7 @@ export class BlendLabel {
       for (const tox of blend && MixinApi.hasToxicity(blend) ? blend.getToxicity() : []) add(tox, 1);
     } else {
       for (const part of makeup) {
-        const m = StuffApi.findByTemplatePath<Material>(part.materialPath);
+        const m = MaterialApi.materials().peek(part.materialPath);
         if (!m) continue;
         const servings = MaterialApi.servingsOf(m, part.fraction * hostKg);
         if (!MixinApi.hasToxicity(m)) continue;

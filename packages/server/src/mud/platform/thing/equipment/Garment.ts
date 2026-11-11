@@ -66,6 +66,7 @@ import type { FieldMeta } from '../../../lib/mixin';
 import type { DirtKindDescriptor } from '../../../lib/cleanliness/DirtKind';
 import type { WashPolicy, WashSubject } from '../../../lib/cleanliness/WashPolicy';
 import { DirtKinds } from '../../../lib/cleanliness/DirtKind';
+import { MaterialApi } from '../../../api/material';
 
 // ⭐ Soilable and Labelled OUTERMOST (cleanliness D3, D9): every garment
 // may carry dirt by kind and be washed — a shirt, an apron, a pair of
@@ -284,7 +285,7 @@ export default class Garment extends GarmentBase {
     const rot = dial(AppSettingKeys.textilesWashRotDose, 0.05);
     for (const c of spec.cleansers) {
       const agent = c.materialPath
-        ? StuffApi.findByTemplatePath<Material>(c.materialPath)
+        ? MaterialApi.materials().peek(c.materialPath)
         : null;
       const eats = (agent && MixinApi.hasAcidity(agent) ? agent.getCorrosiveTo() : []).some(
         (tag) => material?.hasTag(tag) ?? false,
@@ -341,7 +342,7 @@ export default class Garment extends GarmentBase {
     }
     let fume = 0;
     for (const c of BiomeApi.resolveAtmosphereContentsFor(room)) {
-      const m = StuffApi.findByTemplatePath<Material>(c.type);
+      const m = MaterialApi.materials().peek(c.type);
       if (m?.hasTag('sulfur-fume')) fume += c.amount;
     }
     const sunDose = Math.min(1, dayHours * SUN_DOSE_PER_HOUR);

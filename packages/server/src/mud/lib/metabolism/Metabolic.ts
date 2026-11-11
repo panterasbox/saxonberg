@@ -1600,7 +1600,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       const makeup = payload?.makeup ?? [];
       const parts = makeup.length > 0
         ? makeup
-            .map((p) => StuffApi.findByTemplatePath<Material>(p.materialPath))
+            .map((p) => MaterialApi.materials().peek(p.materialPath))
             .filter((m): m is Material => !!m)
         : [material];
       return parts.filter(

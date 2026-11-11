@@ -84,6 +84,7 @@ import {
 } from './GroundKind';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
 import { DirtKinds } from '../cleanliness/DirtKind';
+import { MaterialApi } from '../../api/material';
 
 const FLOOR_MIXIN = 'FloorMixin';
 
@@ -518,7 +519,7 @@ export function FloorMixin<
       const room = this.hostOf() as unknown as Stuff | null;
       if (room && MixinApi.isAtmospheric(room)) {
         for (const c of BiomeApi.resolveAtmosphereContentsFor(room)) {
-          const m = StuffApi.findByTemplatePath<Material>(c.type);
+          const m = MaterialApi.materials().peek(c.type);
           if (!m?.hasTag('dust')) continue;
           room.drawAtmosphereContent(c.type, Infinity);
           const dust = c.type.split('/').pop() ?? 'dust';
@@ -532,6 +533,12 @@ export function FloorMixin<
 
     /** What is strewn on the floor (cleanliness D15), or `null`. */
     public strewn: { materialPath: string; kg: number } | null = null;
+
+    /** The restore door for what is strewn (load-on-use W8): its material loads with the floor. */
+    public setStrewn(value: { materialPath: string; kg: number } | null): Promise<void> | undefined {
+      this.strewn = value ?? null;
+      return MaterialApi.materials().ensureCited([this.strewn?.materialPath]);
+    }
     /** ⭐ A byre's stalls: the herd book whose head foul it (D20). */
     public stalls: { herdbook: string } | null = null;
     /** Game-seconds the stalls were last reconciled; `0` = never. */
@@ -645,10 +652,8 @@ export function FloorMixin<
       const own = super.getMaterial(detailKey);
       if (own) return own;
       if (!this.underfootMaterialPath) return null;
-      return (
-        StuffApi.findByTemplatePath<Material>(this.underfootMaterialPath) ??
-        null
-      );
+      // Stamped by `resolveUnderfoot`, which loads it (load-on-use W8).
+      return MaterialApi.materials().need(this.underfootMaterialPath);
     }
 
     /**

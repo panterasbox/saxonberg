@@ -24,6 +24,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 const PIECE = '/trade/sugar/thing/sugar-piece';
 const NIP_MS = 20_000;
@@ -50,7 +51,6 @@ function loafAugmenter(
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
-const MOLASSES = '/trade/sugar/idea/material/molasses';
 /** The share of a loaf's mass the claying water carries out as molasses. */
 const CLAY_WASHES = 0.12;
 
@@ -74,9 +74,19 @@ export default class SugarLoaf extends CuttableMixin(PercolatingMixin(Provision)
   public clayWaterL = 2;
 
   static fieldMeta: FieldMeta = {
+    // What the clayed loaf drains as. Authored on the row, loaded with it (load-on-use W8:
+    // a class's material is content, not a constant).
+    drainsTo: { persistent: true, authorable: true, ref: 'identity:constituent' },
     clayDays: { persistent: true, authorable: true },
     clayWaterL: { persistent: true, authorable: true },
   };
+  /** What the clayed loaf drains as. */
+  protected drainsTo = '';
+  public setDrainsTo(value: string): void {
+    this.drainsTo = typeof value === 'string' ? value : '';
+  }
+
+
 
   public override percolationDays(): number {
     return this.clayDays;
@@ -138,10 +148,10 @@ export default class SugarLoaf extends CuttableMixin(PercolatingMixin(Provision)
     const kg = self.getMass().rawValue() * CLAY_WASHES * (to - from);
     self.setMass(Quantity.of(Math.max(0, self.getMass().rawValue() - kg), 'kg'));
     const into = this.percolatesInto();
-    const molasses = StuffApi.findByTemplatePath<Material>(MOLASSES);
+    const molasses = MaterialApi.materials().need(this.drainsTo);
     if (!into || !molasses) return;
     const held = into.getBulkMaterial('interior');
-    if (held !== null && held.getTemplatePath() !== MOLASSES) return;
+    if (held !== null && held.getTemplatePath() !== this.drainsTo) return;
     if (held === null) into.setBulkMaterial('interior', molasses);
     const litres = (kg / molasses.getDensity().rawValue()) * 1000;
     into.setBulkAmount('interior', Quantity.of(into.getBulkAmount('interior').rawValue() + litres, 'L'));

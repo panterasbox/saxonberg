@@ -33,6 +33,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import { GRADE_BANDS } from '@saxonberg/server/mud/lib/craft/Grade';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 export const FINISHING_MIXIN = 'FinishingMixin';
 
@@ -187,7 +188,7 @@ export function FinishingMixin<TBase extends MixinConstructor>(Base: TBase) {
     private complete(profile: MaturationProfile): void {
       const host = this.finishingHost();
       const productPath = profile.getProductMaterial();
-      const product = productPath ? StuffApi.findByTemplatePath<Material>(productPath) : null;
+      const product = productPath ? MaterialApi.materials().peek(productPath) : null;
       this.finishingPhase = 'finished';
       if (product) {
         this.finishingMaterialPath = productPath;

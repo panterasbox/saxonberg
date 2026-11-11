@@ -79,6 +79,7 @@ import {
   type Cell,
   type MixinCtor,
 } from '@saxonberg/content-ground/src/lib/Strata';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 /**
  * A cell of the workings' grid — integer coordinates, z negative down.
@@ -810,7 +811,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
         return { ok: false, reason: 'no-vessel' };
       }
       const material =
-        StuffApi.findByTemplatePath<Material>(gas.materialPath) ?? null;
+        MaterialApi.materials().peek(gas.materialPath) ?? null;
       if (material === null) return { ok: false, reason: 'no-gas' };
       const slot = vessel.getBulk('interior');
       if (slot.getCapacity() === null) return { ok: false, reason: 'no-vessel' };

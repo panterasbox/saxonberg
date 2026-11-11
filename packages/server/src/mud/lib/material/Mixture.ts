@@ -38,7 +38,7 @@ export function MixtureMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
     static _mixinName = 'MixtureMixin';
 
     static fieldMeta: FieldMeta = {
-      composition: { persistent: true },
+      composition: { persistent: true, ref: 'identity:constituent' },
     };
 
     /**

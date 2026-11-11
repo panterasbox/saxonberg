@@ -116,10 +116,12 @@ import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import GroundCharacter, {
+  TEXTURE_MATERIALS,
   type GroundLean,
   type GroundSample,
   type Spot,
 } from '@saxonberg/content-ground/src/idea/GroundCharacter';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -452,8 +454,12 @@ export default class Tract extends TractBase {
           await this.restoreField(field, spec.key);
         }
         field.configureField(spec, areas[i] ?? 0, this.legumeFraction);
+        const sample = GroundCharacter.resolve(model, this.getGroundSpot(), seed, spec.lean);
+        // The soil the field becomes is named by the sample's texture; the
+        // async parent loads it (load-on-use W8, D2 c) — the install is sync.
+        await MaterialApi.materials().ensure(TEXTURE_MATERIALS[sample.texture]);
         field.installFromTract(
-          GroundCharacter.resolve(model, this.getGroundSpot(), seed, spec.lean),
+          sample,
           fieldSample,
           // ⭐ An AUTHORED field is kept pasture (cover build): its grass
           // starts as a good even cover; a field just marked starts at the

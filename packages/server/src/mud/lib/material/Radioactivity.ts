@@ -42,6 +42,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import type Material from './Material';
+import { MaterialApi } from '../../api/material';
 
 /**
  * Radioactive decay modes. Lower-division pedagogy ships the four
@@ -110,7 +111,7 @@ export function RadioactivityMixin<TBase extends MixinConstructor>(Base: TBase) 
     public getDecayProduct(): Material | null {
       if (!this._decayProductPath) return null;
       return (
-        StuffApi.findByTemplatePath<Material>(this._decayProductPath) ?? null
+        MaterialApi.materials().peek(this._decayProductPath) ?? null
       );
     }
 

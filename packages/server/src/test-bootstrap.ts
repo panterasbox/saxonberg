@@ -160,6 +160,9 @@ export function ensureFrameworkWiring(): boolean {
   // suite has no rows to read, so the roster stands as whatever conditions
   // the suite itself makes — what every such suite read before.
   ConditionApi.standRosterForTesting();
+  // Likewise the material roster (load-on-use W8): a roster read in a suite
+  // answers with the materials the suite made.
+  MaterialApi.standRosterForTesting();
   return true;
 }
 

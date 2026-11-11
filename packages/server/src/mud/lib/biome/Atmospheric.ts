@@ -78,6 +78,7 @@ import { CelestialApi } from '../../api/celestial';
 import type Exit from '../boundary/Exit';
 import type Structure from '../structure/Structure';
 import { Placements } from '../spatial/Placement';
+import { MaterialApi } from '../../api/material';
 
 export interface Atmospheric {
   /** Days since `atS` this place's air crossed freezing; 0 indoors. */
@@ -491,8 +492,8 @@ export function AtmosphericMixin<
       _detailGravities: { persistent: true, authorable: true },
       _detailAtmospheres: { persistent: true, authorable: true },
       _weatherPin: { persistent: true, authorable: true },
-      enclosure: { persistent: true, authorable: true },
-      roof: { persistent: true, authorable: true },
+      enclosure: { persistent: true, authorable: true, ref: 'identity:constituent' },
+      roof: { persistent: true, authorable: true, ref: 'identity:constituent' },
       envelopeTemperatureK: { persistent: true, runtimeState: true },
       envelopeClockStamp: { persistent: true, runtimeState: true },
       envelopeOutsideK: { persistent: true, runtimeState: true },
@@ -1341,7 +1342,7 @@ export function AtmosphericMixin<
           : defaults.thicknessM;
       const thicknessM = authored > 0 ? authored : 0.3;
       const material =
-        StuffApi.findByTemplatePath<Material>(materialPath) ?? null;
+        MaterialApi.materials().peek(materialPath) ?? null;
       // ⭐ Beer–Lambert (D5): e^(−α·t); a material with no α is opaque.
       const alpha =
         material !== null && MixinApi.hasOptics(material)

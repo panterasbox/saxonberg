@@ -16,7 +16,7 @@ import { standUp, tearDown, at, vessel, TestPail } from './world';
 
 const mat = (p: string): Material => StuffApi.findByTemplatePath<Material>(p)!;
 const churn = (tempK: number): Churn =>
-  vessel(() => new Churn(), 8, tempK, { material: mat(MAT.cream), litres: 2 });
+  vessel(() => Object.assign(new Churn(), { churnsTo: '/trade/dairying/idea/material/churned-cream' }) /* its row's fields (load-on-use W8) */, 8, tempK, { material: mat(MAT.cream), litres: 2 });
 
 describe('the churn', () => {
   beforeEach(standUp);
@@ -66,7 +66,7 @@ describe('the churn', () => {
 
   it('only cream churns', () => {
     at(0);
-    const c = vessel(() => new Churn(), 8, 287, { material: mat(MAT.milk), litres: 2 });
+    const c = vessel(() => Object.assign(new Churn(), { churnsTo: '/trade/dairying/idea/material/churned-cream' }) /* its row's fields (load-on-use W8) */, 8, 287, { material: mat(MAT.milk), litres: 2 });
     expect(c.workByHand()?.facts.result).toBe('not-cream');
     expect(c.getBulkMaterialPath('interior')).toBe(MAT.milk);
   });

@@ -86,6 +86,7 @@ import {
   MATURING_SUB_STEPS,
   SECONDS_PER_GAME_DAY,
 } from './MaturationClock';
+import { MaterialApi } from '../../api/material';
 
 /** The batch phases, in lifecycle order. */
 export const FERMENT_PHASES = ['idle', 'active', 'finished', 'turned'] as const;
@@ -629,7 +630,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
             this.getMaturationProfile()?.getLeesMaterial() ??
             '';
           if (leesPath !== '') {
-            const lees = StuffApi.findByTemplatePath<Material>(leesPath);
+            const lees = MaterialApi.materials().peek(leesPath);
             if (lees) {
               const bulkSelf = self as Stuff & {
                 setBulkMaterial(a: 'interior', m: Material): void;
@@ -919,7 +920,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.batchDays = 0;
       this.batchPeakK = 0;
       this.maturationClockStamp = nowS;
-      const material = StuffApi.findByTemplatePath<Material>(materialPath);
+      const material = MaterialApi.materials().peek(materialPath);
       if (!material) {
         this.batchMaterialPath = null;
         this.maturationProfilePath = '';
@@ -1202,7 +1203,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.batchMaterialPath = path;
         return;
       }
-      const material = StuffApi.findByTemplatePath<Material>(path);
+      const material = MaterialApi.materials().peek(path);
       if (!material) return;
       self.setBulkMaterial('interior', material);
       this.batchMaterialPath = path;
@@ -1541,7 +1542,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
     public rekeyBatch(materialPath: string): void {
       const self = this as unknown as Stuff;
       if (!MixinApi.isBulkable(self)) return;
-      const material = StuffApi.findByTemplatePath<Material>(materialPath);
+      const material = MaterialApi.materials().peek(materialPath);
       if (!material) return;
       self.setBulkMaterial('interior', material);
       this.batchMaterialPath = materialPath;
@@ -1584,7 +1585,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
         (MixinApi.isBulkable(self)
           ? self.getBulkPayload('interior')?.madeFrom
           : undefined) ?? this.batchMaterialPath;
-      return path ? StuffApi.findByTemplatePath<Material>(path) ?? null : null;
+      return path ? MaterialApi.materials().peek(path) ?? null : null;
     }
 
     /**

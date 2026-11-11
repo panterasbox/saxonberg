@@ -129,8 +129,6 @@ describe('MaterialApi v2 — classification queries', () => {
     it('a pure element credits its own symbol — it is no mixture, so it carries no composition to expand', () => {
       const { iron } = setupSteel();
       expect(MixinApi.hasMixture(iron)).toBe(false);
-      expect(MaterialApi.findByElement('Fe')).toContain(iron);
-      expect(MaterialApi.findByElement('C')).not.toContain(iron);
     });
 
     it('an alloy expands to leaf-element fractions', () => {
@@ -154,13 +152,6 @@ describe('MaterialApi v2 — classification queries', () => {
   });
 
   describe('containsElement', () => {
-    it('iron contains Fe; not C', () => {
-      const { iron } = setupSteel();
-      const containing = (symbol: string): boolean => MaterialApi.findByElement(symbol).includes(iron);
-      expect(containing('Fe')).toBe(true);
-      expect(containing('C')).toBe(false);
-    });
-
     it('steel contains both Fe and C', () => {
       const { steel } = setupSteel();
       expect(steel.containsElement('Fe')).toBe(true);
@@ -187,18 +178,7 @@ describe('MaterialApi v2 — classification queries', () => {
     });
   });
 
-  describe('findByElement', () => {
-    it('finds every Material whose recursive composition contains the symbol', () => {
-      const { iron, steel } = setupSteel();
-      const ironContaining = MaterialApi.findByElement('Fe');
-      expect(new Set(ironContaining)).toEqual(new Set([iron, steel]));
-    });
 
-    it('unknown element symbol returns empty', () => {
-      setupSteel();
-      expect(MaterialApi.findByElement('Au')).toEqual([]);
-    });
-  });
 });
 
 describe('MaterialLogic singleton encapsulation', () => {
@@ -211,21 +191,21 @@ describe('MaterialLogic singleton encapsulation', () => {
 
   it('lives at /platform/idea/api/material once the facade has materialized it', () => {
     // A facade call lazily creates the logic singleton.
-    MaterialApi.findByTag('nonexistent');
+    MaterialApi.materialScale(null, 'edge');
     const logic = StuffApi.findByTemplatePath('/platform/idea/api/material');
     expect(logic).toBeDefined();
     expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
   });
 
   it('denies a direct logic-method call from a non-MaterialApi caller', () => {
-    MaterialApi.findByTag('nonexistent');
+    MaterialApi.materialScale(null, 'edge');
     const logic = StuffApi.findByTemplatePath<MaterialLogic>(
       '/platform/idea/api/material'
     );
     expect(logic).toBeDefined();
     // The test module is not `mud/api/material#MaterialApi`, so the
     // FromModule gate on the logic's own methods denies the call.
-    expect(() => logic!.findByTag('iron')).toThrow(SecurityError);
+    expect(() => logic!.materialScale(null, 'edge')).toThrow(SecurityError);
   });
 });
 

@@ -103,7 +103,7 @@ export interface Crafted extends Graded {
    * maker and the cast; it rides a set and a transform that keeps the thing.
    */
   getMadeFrom(): string;
-  setMadeFrom(materialPath: string): void;
+  setMadeFrom(materialPath: string): Promise<void> | undefined;
   /**
    * Stamp the recipe word. Returns the dictionary load to await when the
    * recipe dictionary is not resident yet (a restore — the applier awaits
@@ -225,8 +225,16 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
     public getMadeFrom(): string {
       return this.madeFrom;
     }
-    public setMadeFrom(materialPath: string): void {
+    /**
+     * Name the material this was made from — and, restoring, load it
+     * (load-on-use W8): `undefined` when it is live, the runtime case. The
+     * Api is reached late — `MaterialApi` reaches this module back.
+     */
+    public setMadeFrom(materialPath: string): Promise<void> | undefined {
       this.madeFrom = typeof materialPath === 'string' ? materialPath : '';
+      if (!this.madeFrom || StuffApi.findByTemplatePath(this.madeFrom)) return undefined;
+      const path = this.madeFrom;
+      return import('../../api/material').then(({ MaterialApi }) => MaterialApi.materials().ensureCited([path]));
     }
 
     public getCastFrom(): CastProvenance | null {

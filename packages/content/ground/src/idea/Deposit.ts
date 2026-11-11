@@ -41,6 +41,7 @@ import { GroundSourceMixin } from '@saxonberg/server/mud/lib/ground/GroundSource
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { Seeded } from '@saxonberg/server/mud/lib/Seeded';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 /**
  * A point in the ground, **in metres**, z negative going down.
@@ -1202,7 +1203,7 @@ function normalOf(lode: Lode): [number, number, number] {
  * free-digging bug is far worse than a slightly wrong one.
  */
 function hardnessOf(materialPath: string): number {
-  const m = StuffApi.findByTemplatePath<Material>(materialPath);
+  const m = MaterialApi.materials().peek(materialPath);
   if (!m) return DEFAULT_HARDNESS_MPA;
   const h = MixinApi.hasSolidity(m) ? m.getHardness().rawValue() : 0;
   return h > 0 ? h : DEFAULT_HARDNESS_MPA;

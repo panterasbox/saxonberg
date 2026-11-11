@@ -23,6 +23,7 @@ import { TemplatePaths } from '../../../lib/paths';
 import type { Combustible } from '../../../lib/fire/Combustible';
 import type { IgniteOutcome, Incandescence } from '../../../api/fire';
 import { DirtKinds } from '../../../lib/cleanliness/DirtKind';
+import { MaterialApi } from '../../../api/material';
 
 const FireApiCallers = SecurityPolicies.FromModule('/api/fire#FireApi');
 /**
@@ -667,7 +668,7 @@ function flammableMediumCheck(
   let worst: { type: string; amount: number } | null = null;
   let worstLimit = ignitesAt;
   for (const c of contents) {
-    const material = StuffApi.findByTemplatePath<Material>(c.type);
+    const material = MaterialApi.materials().peek(c.type);
     if (!material) continue;
     // ⭐ (cleanliness D22) A substance's own flammable limit, when it
     // states one — mill dust flashes at a share of the air coal gas would

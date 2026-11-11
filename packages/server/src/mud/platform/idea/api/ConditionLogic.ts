@@ -166,7 +166,7 @@ function layerOf(occ: Stuff, construction: Construction): CoveringLayer {
 /** Does the resolved part carry a bone tissue (gates blunt → fracture)? */
 function partHasBoneTissue(part: { tissues?: { tissuePath: string }[] }): boolean {
   for (const t of part.tissues ?? []) {
-    const mat = StuffApi.findByTemplatePath<Material>(t.tissuePath);
+    const mat = MaterialApi.materials().peek(t.tissuePath);
     if (mat && mat.hasTag('bone')) return true;
     if (t.tissuePath.includes('bone')) return true; // pre-load fallback
   }
@@ -178,7 +178,7 @@ function primaryTissueMaterial(part: {
   tissues?: { tissuePath: string }[];
 }): Material | null {
   for (const t of part.tissues ?? []) {
-    const mat = StuffApi.findByTemplatePath<Material>(t.tissuePath);
+    const mat = MaterialApi.materials().peek(t.tissuePath);
     if (mat) return mat;
   }
   return null;
@@ -1283,7 +1283,7 @@ function inflictThroughStack(
         channel,
         residual,
         answering
-          ? (StuffApi.findByTemplatePath<Material>(answering.material) ?? layer.material)
+          ? (MaterialApi.materials().peek(answering.material) ?? layer.material)
           : layer.material,
         lineConstruction,
         answering ? Grade.of(answering.grade) : layer.grade,
