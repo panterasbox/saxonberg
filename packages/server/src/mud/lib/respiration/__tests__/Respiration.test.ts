@@ -44,6 +44,7 @@ import { Idea } from '../../stuff/Idea';
 import Material from '../../material/Material';
 import { Quantity } from '../../quantity';
 import { buildMode } from '../../locomotion/__tests__/test-helpers';
+import { standShippedConditions } from '../../vitals/__tests__/conditions';
 
 class TestLocation extends Place {}
 /** A bowl: holds a bulk interior AND things (the fish). */
@@ -153,7 +154,9 @@ describe('RespirationMixin — the crisis core', () => {
     await rememberDisciplines();
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
+
+    await standShippedConditions(); // load-on-use W6: the shipped roster, as a world loads it with the body
     installV1QuantityMarshallers();
     // ⭐ Every death mints a corpse now, and the mint clones an authored
     // row that a unit world has no store for. See the helper.

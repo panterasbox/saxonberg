@@ -812,6 +812,33 @@ between tests; the assay suite stands the index before its clone spy.
 
 ### W6 — conditions load with the first body
 
+✅ **Done** (after W7). `ConditionCatalogue` per D13: no `onCreate`, no row,
+no boot line (boot 71 → 70); `ConditionApi.conditions()` is `singletonSync`;
+the roster state is the CLASS's (`static #rosterLoad`/`#stood`, special case
+3) so a suite's `clearAll` cannot un-stand it; `warm()` reads by the
+`/idea/Condition/` infix with a class-extends filter (a pack's condition needs
+no line); `roster()` reads every LIVE condition in path order (the
+differential's question) and throws before the roster stood.
+`VitalsMixin`/`ContaminableMixin.onCreate` → `ensureRoster()` (Contaminable
+reaches `ConditionApi` by late import — the Api reaches that module).
+`Vitals` ×11, Cool/Warm/Assess/MagicLogic/PatientReading → `need`; the two
+toxin/pathogen KEY reads (Metabolic, Contaminable) and Dose/Prescribe → peek
+(a key with no row is an honest "no behavior"). ⭐ **Build decisions:** (a)
+`afflict` does NOT check its row — every reader of an affliction's row
+already throws cold, so a second check on the write adds nothing; (b)
+`AssessController`'s leaf-name fallback for a cold row is gone (it was the
+silent-null era's workaround) and its two tests became one "cold throws by
+path" test; (c) the harness: `@TestOnly ConditionApi.standRosterForTesting()`
+(called once by `test-bootstrap`) marks the roster stood with whatever a
+suite makes — a body's `onCreate` must not reach for a store; ~20 suites
+that let a body starve/drown/chill now stand rows — the SHIPPED platform rows
+from disk (`lib/vitals/__tests__/conditions.ts`, `standShippedConditions`)
+where the suite proves what the rows do, BLANK rows
+(`standBlankConditions`) where it proves only that a cascade lands its
+afflictions (the cascade, magic, infection, couplings suites — written
+against a world with no rows, and the shipped progression changes what they
+measure). On-create 79/80.
+
 - `ConditionCatalogue.warm()`: `Template.findByPathInfix('/idea/Condition/')`
   + class-extends-`Condition` (the material shape; a pack's own condition
   class qualifies). `TemplatePathPrefixes.condition` stays for the kernel's

@@ -26,6 +26,7 @@ import type { Vitals } from '../../../../lib/vitals/Vitals';
 import type { Trauma, AfflictionRecord } from '../../Condition';
 import type Condition from '../../Condition';
 import { BulkableApi } from '../../../../api/bulk';
+import { ConditionApi } from '../../../../api/condition';
 
 const TOPIC = 'act.deed';
 /** Cooling with water is competent, not expert — a middling article. */
@@ -106,7 +107,7 @@ export default class CoolController extends CommandController<CoolModel> {
 
   /** The affliction's authored resolution token, or null. */
   private resolutionOf(a: AfflictionRecord): string | null {
-    const row = StuffApi.findByTemplatePath<Condition>(a.templatePath);
+    const row = ConditionApi.conditions().need(a.templatePath);
     return row?.getResolution()?.by ?? null;
   }
 

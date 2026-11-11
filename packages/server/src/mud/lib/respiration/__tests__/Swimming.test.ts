@@ -35,6 +35,7 @@ import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { installCorpseMintStub } from '../../mortality/__tests__/corpse-mint-test-helpers';
+import { standShippedConditions } from '../../vitals/__tests__/conditions';
 
 class TestLocation extends Location {}
 class TestCharacter extends Character {}
@@ -88,7 +89,8 @@ describe('the weight of the water (underwater A4)', () => {
     StuffApi.register(reg);
     EventApi._setRegistryForTesting(reg);
   });
-  beforeEach(() => {
+  beforeEach(async () => {
+    await standShippedConditions(); // load-on-use W6: the shipped roster, as a world loads it with the body
     installV1QuantityMarshallers();
     installCorpseMintStub();
     WorldClockApi._resetForTesting();

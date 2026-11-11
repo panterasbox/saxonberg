@@ -22,6 +22,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Vitals } from '../../../../lib/vitals/Vitals';
 import type { Trauma, AfflictionRecord } from '../../Condition';
 import type Condition from '../../Condition';
+import { ConditionApi } from '../../../../api/condition';
 
 const TOPIC = 'act.deed';
 /** A fire warms well — better than a splash of water cools. */
@@ -107,7 +108,7 @@ export default class WarmController extends CommandController<WarmModel> {
   }
 
   private resolutionOf(a: AfflictionRecord): string | null {
-    const row = StuffApi.findByTemplatePath<Condition>(a.templatePath);
+    const row = ConditionApi.conditions().need(a.templatePath);
     return row?.getResolution()?.by ?? null;
   }
 

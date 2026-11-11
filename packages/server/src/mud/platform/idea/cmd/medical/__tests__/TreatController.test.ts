@@ -39,6 +39,7 @@ import type { Trauma } from '../../../Condition';
 import BodyPlan from '../../../species/BodyPlan';
 import Species from '../../../species/Species';
 import { OUTCOMES, type Outcome } from '../../../../../lib/advancement/ActSignature';
+import { standShippedConditions } from '../../../../../lib/vitals/__tests__/conditions';
 
 // A dressing-capable item that is NOT a Bandage — proves the gate is
 // `isDressing`, not `instanceof Bandage`.
@@ -91,6 +92,8 @@ function woundOf(c: Creature): Trauma {
 }
 
 beforeEach(async () => {
+
+  await standShippedConditions(); // load-on-use W6: the shipped roster, as a world loads it with the body
   // A credit or a band read stands on the discipline dictionary (D11).
   await rememberDisciplines();
   installV1QuantityMarshallers();

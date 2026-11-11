@@ -48,6 +48,7 @@ import {
   stampTemplatePathForTest,
 } from "../../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
+import { standBlankConditions } from "../../../../lib/vitals/__tests__/conditions";
 /** A light source standing in for the arcane library's GlowlightMote — the executor clones whatever the row's `locus` names. */
 class GlowlightOrb extends LightSourceMixin(Good) {}
 const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
@@ -205,6 +206,12 @@ describe("MagicLogic — the cast pipeline", () => {
     real = 100000;
     WorldClockApi._setNowProviderForTesting(() => real);
     await installCatalogue();
+    // load-on-use W6: the rows the cast lands (strain) and the dispel test
+    // names (collapse), there and blank.
+    standBlankConditions(
+      "/platform/idea/Condition/magic/overchannel-strain",
+      "/platform/idea/Condition/metabolism/collapse",
+    );
     // (The transcript credit no-ops with PM disconnected; tests that
     // assert it spy the caster instance.)
     vi.spyOn(StuffApi, "clone").mockImplementation(async () =>

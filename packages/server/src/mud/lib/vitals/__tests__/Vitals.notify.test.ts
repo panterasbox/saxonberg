@@ -18,6 +18,7 @@ import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import type { AfflictionRecord } from '../../../platform/idea/Condition';
+import { standShippedConditions } from './conditions';
 
 const SEPSIS = '/platform/idea/Condition/pathogen/wound-sepsis';
 
@@ -50,7 +51,9 @@ const isFestering = (c: Creature, nowS: number): boolean =>
         nowS >= (x.symptomsAt ?? Infinity),
     );
 
-beforeEach(() => {
+beforeEach(async () => {
+
+  await standShippedConditions(); // load-on-use W6: the shipped roster, as a world loads it with the body
   installV1QuantityMarshallers();
   atGameSeconds(10_000);
   // onNotifyFire pushes a message; silence it.

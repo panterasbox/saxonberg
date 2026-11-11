@@ -1574,7 +1574,7 @@ async function execAfflict(
   if (!target || !MixinApi.isVitals(target)) {
     return 'The working needs a living mark.';
   }
-  const seed = StuffApi.findByTemplatePath<Condition>(e.conditionPath);
+  const seed = ConditionApi.conditions().need(e.conditionPath);
 
   // **Afflict is magnitude where it HAS one, outcome where it does not.**
   // A seed with `mentalBands` scales its stage below (the resist fold

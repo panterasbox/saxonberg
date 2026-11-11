@@ -26,6 +26,7 @@ import { TemplatePathPrefixes } from '../../../../lib/paths';
 import { CompetenceBand } from '../../../../lib/advancement/CompetenceBand';
 import type Condition from '../../Condition';
 import type { Prescription } from '../../../../lib/vitals/Prescription';
+import { ConditionApi } from '../../../../api/condition';
 
 const TOPIC = 'act.deed';
 /** Litres of a remedy one dose spends. */
@@ -129,7 +130,7 @@ export default class DoseController extends CommandController<DoseModel> {
     }
 
     // The prescription gate — read the active's Condition row.
-    const row = StuffApi.findByTemplatePath<Condition>(
+    const row = ConditionApi.conditions().peek(
       TemplatePathPrefixes.metabolismCondition + type,
     );
     const controlled = row?.isPrescriptionOnly() === true;

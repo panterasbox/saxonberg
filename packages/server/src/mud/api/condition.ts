@@ -52,9 +52,9 @@ import { ConditionLogic } from '../platform/idea/api/ConditionLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import OperationCatalogue from '../platform/idea/OperationCatalogue';
-import type ConditionCatalogue from '../platform/idea/ConditionCatalogue';
-import { DocumentNotResidentError } from '../lib/errors';
+import ConditionCatalogue from '../platform/idea/ConditionCatalogue';
 import { TemplatePaths } from '../lib/paths';
+import { TestOnly } from '../lib/security/decorators';
 
 export type { InsultKind, Channel } from '../platform/idea/Condition';
 
@@ -248,9 +248,17 @@ export class ConditionApi {
    * body's `onCreate` awaits).
    */
   public static conditions(): ConditionCatalogue {
-    const cat = StuffApi.findByTemplatePath<ConditionCatalogue>(TemplatePaths.conditionCatalogue);
-    if (!cat) throw new DocumentNotResidentError('catalogue', TemplatePaths.conditionCatalogue);
-    return cat;
+    return StuffApi.singletonSync(TemplatePaths.conditionCatalogue, () => new ConditionCatalogue());
+  }
+
+  /**
+   * Mark the condition roster stood with whatever conditions a suite has
+   * made — a suite has no rows to read, and a body's `onCreate` awaits the
+   * roster (load-on-use W6). The test harness calls it once.
+   */
+  @TestOnly('Nothing in the game stands the condition roster in by hand — a body loads it.')
+  public static standRosterForTesting(): void {
+    ConditionApi.conditions().standRosterAsLive();
   }
 
   /**

@@ -18,6 +18,7 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { standShippedConditions } from './conditions';
 
 let seq = 0;
 
@@ -68,7 +69,9 @@ const speciesPathOf = (c: Creature): string =>
 const bv = (c: Creature): number =>
   c.getVitalSign('bloodVolume').rawValue();
 
-beforeEach(() => {
+beforeEach(async () => {
+
+  await standShippedConditions(); // load-on-use W6: the shipped roster, as a world loads it with the body
   installV1QuantityMarshallers();
 });
 

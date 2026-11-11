@@ -49,6 +49,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
 import { MaterialApi } from "./mud/api/material";
+import { ConditionApi } from "./mud/api/condition";
 import { PartyApi } from "./mud/api/party";
 import { ContainmentApi } from "./mud/api/containment";
 import { MessageApi } from "./mud/api/message";
@@ -155,6 +156,10 @@ export function ensureFrameworkWiring(): boolean {
   PackApi.registerSources();
   rememberKernelDocuments();
   installAddressIndexStandIn();
+  // A body's `onCreate` awaits the condition roster (load-on-use W6); a
+  // suite has no rows to read, so the roster stands as whatever conditions
+  // the suite itself makes — what every such suite read before.
+  ConditionApi.standRosterForTesting();
   return true;
 }
 

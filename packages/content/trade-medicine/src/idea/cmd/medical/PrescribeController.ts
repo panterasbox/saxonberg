@@ -21,6 +21,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Prescription } from '@saxonberg/server/mud/lib/vitals/Prescription';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 
 const TOPIC = 'act.deed';
 const PRESCRIPTION = '/trade/medicine/thing/prescription';
@@ -61,7 +62,7 @@ export default class PrescribeController extends CommandController<PrescribeMode
       );
     }
     // The active must resolve to a warmed drug Condition.
-    const row = StuffApi.findByTemplatePath<Condition>(
+    const row = ConditionApi.conditions().peek(
       TemplatePathPrefixes.metabolismCondition + active,
     );
     if (!row || row.getToxinBehavior() === null) {

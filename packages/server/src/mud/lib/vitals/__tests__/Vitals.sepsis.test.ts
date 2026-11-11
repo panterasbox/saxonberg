@@ -14,6 +14,7 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../../platform/idea/Condition';
 import { rememberShippedDirt } from '../../cleanliness/__tests__/soil-fixtures';
+import { standShippedConditions } from './conditions';
 
 const atGameSeconds = (g: number): void => {
   const scale = WorldClockApi.getScale();
@@ -51,7 +52,9 @@ function dirtyTreater(): Creature {
   return t;
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+
+  await standShippedConditions(); // load-on-use W6: the shipped roster, as a world loads it with the body
   rememberShippedDirt();
   installV1QuantityMarshallers();
   atGameSeconds(10_000);

@@ -1107,6 +1107,8 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** Resolve a toxin's authored rate params off its `Condition` seed. */
     protected resolveToxinBehavior(type: string): ToxinBehavior | null {
+      // A peek: the roster stood with the body (`VitalsMixin.onCreate`), so
+      // a toxin with no row is an honest "no authored behavior".
       const cond = StuffApi.findByTemplatePath<Condition>(
         TemplatePathPrefixes.metabolismCondition + type,
       );
