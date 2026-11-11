@@ -364,7 +364,7 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 ## Acceptance criteria
 
 - No character, anywhere, has a thing loose on their body — after any act and after a restart.
-- A verb finds the nearest thing you perceive, with no reach option to learn; a player picks up, readies,
+- A verb finds the nearest thing you perceive, with no reach option to learn; a player picks up, readies and
   puts away tools in single commands, and every refusal names what
   would work.
 - A low door, a crawlway, a ladder, a stair's turn and a pond each behave as their size and the body's
