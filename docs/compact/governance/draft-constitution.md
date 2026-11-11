@@ -337,6 +337,13 @@ unamendable except by founding anew (Article X §4).
    for mere unpopularity — only for a named standard it violates, or by
    deliberate legislative sunset.
 
+> ⭐ **Applied to moderation (2026-11-10):** the mod committee is an Art. V §5 enforcement
+> institution that imposes **holds** (interim, reversible, the lightest measure that stops the
+> harm); a lasting deprivation is a **sentence** and needs a case under this article, and a hold
+> past the line lapses unless its case is heard. At founding the case is heard on the operator's
+> weekly stream, publicly, with the audience as an advisory jury: this article at a pool of one,
+> operator-overridable. See [moderation-slate § 14a](../../slates/builds/moderation-slate.md).
+
 ## Article VII — The Record & Its Integrity
 
 1. The **archive** records all governance. It is **operated by the executive**
