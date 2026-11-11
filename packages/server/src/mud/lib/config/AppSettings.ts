@@ -1623,7 +1623,6 @@ export const AppSettingKeys = {
    * author "well-insulated"; you author granite and the physics
    * decides*.
    */
-  enclosureDefaultMaterial: "enclosure.defaultMaterial",
   /**
    * ⭐ Plumbing — the run a plumbed place stands up when its row says
    * nothing (water-supply review): a word naming
@@ -2987,7 +2986,6 @@ export const AppSettingTiers: Readonly<
   stormStrikeIntervalS: "B",
   stormStrikeVoltage: "B",
   stormAttractorBias: "B",
-  enclosureDefaultMaterial: "B",
   enclosureDefaultThicknessM: "B",
   envelopeSurfaceResistanceM2KPerW: "B",
   envelopeOpeningUPerM3: "B",

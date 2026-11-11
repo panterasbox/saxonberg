@@ -33,16 +33,19 @@ import type { ComponentContext } from '../render';
 export const component = class WikiMaterials {
   static label = 'materials';
 
-  static render(
+  static async render(
     props: Readonly<Record<string, string>>,
     _children: readonly MmlNode[],
     _ctx: ComponentContext,
-  ): readonly MmlNode[] {
+  ): Promise<readonly MmlNode[]> {
     const capability = (props.capability ?? '').trim();
     const kind = (props.kind ?? '').trim();
     if (!capability === !kind) {
       return [note('<materials> needs exactly one of `capability` or `kind`')];
     }
+    // A listing of every material is a roster read: it loads the roster
+    // once, here (load-on-use W8).
+    await MaterialApi.materials().ensureRoster();
     const all = MaterialApi.all();
     const members = capability
       ? all.filter((m) => MixinApi.hasMixin(m, `${capability}Mixin`))

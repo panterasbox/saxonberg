@@ -661,10 +661,7 @@ export function AtmosphericMixin<
      */
     public enclosureDefaults(): EnclosureDefaults | 'none' {
       return {
-        materialPath: envelopeDialStr(
-          AppSettingKeys.enclosureDefaultMaterial,
-          '/stuff/idea/material/rock/granite',
-        ),
+        materialPath: BiomeApi.getRootBiome().getEnclosureMaterial(),
         thicknessM: envelopeDial(
           AppSettingKeys.enclosureDefaultThicknessM,
           0.3,
@@ -1262,7 +1259,7 @@ export function AtmosphericMixin<
      *
      *   1. the scope's own `fabric:` spec;
      *   2. its class's {@link enclosureDefaults} hook, whose terminal here
-     *      is the universe default (`enclosure.defaultMaterial`), and which
+     *      is the universe default (the root biome's `_enclosureMaterial`), and which
      *      a `Vessel` overrides with its own material because it IS
      *      matter.
      *
@@ -1341,8 +1338,10 @@ export function AtmosphericMixin<
           ? spec.thicknessM
           : defaults.thicknessM;
       const thicknessM = authored > 0 ? authored : 0.3;
-      const material =
-        MaterialApi.materials().peek(materialPath) ?? null;
+      // Every layer's material loads with what names it (load-on-use W8): an
+      // authored layer is a constituent of the place, the default is the
+      // root biome's, a class's own is its row's field — cold is loud.
+      const material = materialPath ? MaterialApi.materials().need(materialPath) : null;
       // ⭐ Beer–Lambert (D5): e^(−α·t); a material with no α is opaque.
       const alpha =
         material !== null && MixinApi.hasOptics(material)
@@ -1362,10 +1361,7 @@ export function AtmosphericMixin<
     /** The universe default — what a part with nothing authored is made of. */
     private static universeEnclosure(): EnclosureDefaults {
       return {
-        materialPath: envelopeDialStr(
-          AppSettingKeys.enclosureDefaultMaterial,
-          '/stuff/idea/material/rock/granite',
-        ),
+        materialPath: BiomeApi.getRootBiome().getEnclosureMaterial(),
         thicknessM: envelopeDial(
           AppSettingKeys.enclosureDefaultThicknessM,
           0.3,
@@ -2475,12 +2471,3 @@ function envelopeDial(key: string, fallback: number): number {
   }
 }
 
-/** String AppSetting read with a seeded-literal fallback (pre-warm safe). */
-function envelopeDialStr(key: string, fallback: string): string {
-  try {
-    const raw = AppApi.setting(key);
-    return raw == null || raw === '' ? fallback : raw;
-  } catch {
-    return fallback;
-  }
-}

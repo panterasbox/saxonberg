@@ -934,18 +934,24 @@ alone would leave every production material cold. Done so far:
 - (c2) restore doors: `setInteriorPayload/setSurfacePayload` (makeup,
   madeFrom…), `setJoints` (glue), `setCoats`, `setFuelBed` (keyed by
   material), `setKineticRecord` (origin), `setStrewn`, `setMadeFrom`.
-- ❓ **OPEN — the owner's call (rule 3):** `Atmospheric`'s enclosure DEFAULT
-  is an AppSettings dial (`enclosure.defaultMaterial`, granite) read in the
-  sync exposure resolve, and the `enclosureDefaults()` hook's overriders
-  (`SealedCellar`, `ColdStore`, `Hive`) hard-code theirs. No async parent;
-  rule 2 would move the default onto the root `universe` biome row as a
-  constituent field and retire the dial. Until decided, `resolveLayer` reads
-  `peek` (a cold default would read k = 0.02, wrong silently once the boot
-  line is gone — must be resolved before the MR).
-- Still to do: `SmeltController` product, `Comminuting.products`, Species/
-  BodyPlan/Deposit/Effect relations, the wiki/pattern roster reads
-  (`ensureRoster`), the suite sweep (light runs only while build-2
-  finalizes).
+- ✅ **Owner's call (2026-11-11): the enclosure default is the ROOT BIOME's**
+  — `Biome._enclosureMaterial` (`identity:constituent`) authored on
+  `universe` (granite), loaded with the booted root; the
+  `enclosure.defaultMaterial` dial is retired (AppSettings key, tier entry,
+  `envelope.yaml` line). `SealedCellar`/`ColdStore` author `wallMaterial:`
+  on their rows (walls and roof); `Hive` and a vessel already use their own
+  live material. `resolveLayer` reads `need`. Test fixture
+  `lib/biome/__tests__/root-biome.ts` (`standRootBiome`, a BLANK wall by
+  default — the envelope's own fallback figures, what a suite with no wall
+  material read before).
+- Done since: `SmeltController` (the dominant metal is a composition
+  constituent → `need`; the crucible run `ensure`s its metal); the wiki
+  `<materials>` render and the pattern's metal match await `ensureRoster()`.
+- Still to do: `Comminuting.products`, Species/BodyPlan/Deposit/Effect
+  relations (readers still `peek`), and the suite sweep — server `lib/
+  material`, `lib/bulk`, `lib/biome`, `lib/thermal` and the sugar, dairying,
+  chandlery, smelting packs are green; the rest waits for a quiet machine
+  (build-2 finalizing).
 
 ### W8a — materials: the sync door and the relations
 

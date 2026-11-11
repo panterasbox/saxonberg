@@ -5,6 +5,8 @@
 # compartment is for blood, the freezer for ice.
 class: /system/energy/thing/ColdStore
 data:
+  # What its walls are made of when no `enclosure:` says (load-on-use W8).
+  wallMaterial: /stuff/idea/material/wood/pine
   shortDescription: freezer compartment
   keywords: [freezer, compartment, box, freezer-box]
   register: indefinite

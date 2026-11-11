@@ -4,6 +4,8 @@
 # self-smothers — an enclosed fire kills by CO, not flame.
 class: /world/terminus/hearthworks/location/SealedCellar
 data:
+  # What its walls are made of when no `enclosure:` says (load-on-use W8).
+  wallMaterial: /stuff/idea/material/rock/granite
   shortDescription: sealed cellar
   keywords: [cellar, sealed]
   register: indefinite

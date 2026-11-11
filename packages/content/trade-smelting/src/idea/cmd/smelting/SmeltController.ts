@@ -679,7 +679,9 @@ function dominantMetalOf(charge: ChargeLot[]): Material | null {
   for (const [path, kg] of totals) {
     if (kg > 0 && (best === null || kg > best.kg)) best = { path, kg };
   }
-  return best ? MaterialApi.materials().peek(best.path) ?? null : null;
+  // A charge's metals are its minerals' composition — loaded with them (a
+  // constituent, load-on-use W8).
+  return best ? MaterialApi.materials().need(best.path) : null;
 }
 
 /** The carbon already dissolved in the charge, or `null` if it is ore. */
@@ -819,8 +821,9 @@ async function runIntoCrucible(
   madeFrom: readonly Stuff[],
   carbon = 0,
 ): Promise<CrucibleRun> {
-  const metal = MaterialApi.materials().peek(metalPath) ?? null;
-  if (metal === null || kg <= 0) return 'hearth';
+  if (kg <= 0) return 'hearth';
+  // The act names the metal it runs, and loads it (load-on-use D2 c).
+  const metal = await MaterialApi.materials().ensure(metalPath);
   const density = metal.getDensity().rawValue() || 8000;
   const litres = (kg / density) * 1000;
   const crucible = crucibleIn(furnace, metalPath);

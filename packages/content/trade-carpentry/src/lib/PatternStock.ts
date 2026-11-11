@@ -84,6 +84,9 @@ export function PatternStockMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         return { ok: false, reason: 'no-shape', facts: { of } };
       }
       const own = MixinApi.isTangible(of) ? of.getMaterial() : null;
+      // "Which metal is that word" is a question about every metal: the
+      // roster loads once, here, before the sync match (load-on-use W8).
+      await MaterialApi.materials().ensureRoster();
       const metal =
         this.metalNamed(req.forWord ?? '') ?? (own !== null && own.hasTag('metal') ? own : null);
       if (metal === null) {
