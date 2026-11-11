@@ -507,7 +507,7 @@ below are the price of rung 1: every one has at least two host *kinds*
 | `Washable` | protocol mixin (kernel) | `$L/cleanliness/Washable.ts` | `washPlanFor(spec)`; hosts Soilable goods and the body's hand faces (Creature) |
 | `Sweepable` | protocol mixin (kernel) | `$L/cleanliness/Sweepable.ts` | hosts Floor, Burner grate, Flue |
 | `Sampleable` | protocol mixin (kernel) | `$L/instrument/Sampleable.ts` | `samplePiece(actor, part?)`; hosts Growing stand, Stackable, Sampled, Floor (`sampleFace`) |
-| `Surveyed` ⛔ folded W17 → `Place.readRooms` / `Structure.readOutside` | protocol mixin (kernel) | `$L/construction/Surveyed.ts` | `surveyFor(viewer)`; hosts Location, Structure (Building, Ship) |
+| `Surveyed` ⛔ folded W17 → `Place.readRooms` (→ `RoomsReading`, W21) / `Structure.readOutside` | protocol mixin (kernel) | `$L/construction/Surveyed.ts` | `surveyFor(viewer)`; hosts Location, Structure (Building, Ship) |
 | `Fellable` | protocol mixin (kernel) | `$L/husbandry/Fellable.ts` | `fellPlanFor(actor, axe)`; hosts forestry `StandMixin` (pack) and kernel `Growing` (a planted tree) — kernel because the hosts have no common pack ancestor |
 | `Readable` | protocol mixin (kernel) | `$L/description/Readable.ts` | `readFor(viewer, page?)`; hosts Display (`readScreen`), Marked, the paper leaves |
 | `WaterEntry` ⛔ folded W17 → `Shore.wayIntoWater` | protocol mixin (kernel) | `$L/underwater/WaterEntry.ts` | `wayIntoWater(actor)`; hosts ShoreMixin, WaterPlaceMixin — replaces `SwimController`'s two-kind fork |
@@ -1272,6 +1272,50 @@ passenger, a fixture sconce, a door on a way and the three rungs, and
 asserts MQL `reachable` ≡ `canReach` both ways; its last case asserts a
 300-item open floor stock is walked once by `reachableAmong` and once by
 an MQL `peers` resolution.
+
+**D-W21a (owner review 2026-11-10; build, W21) — the rooms read leaves
+`Place`.** *"That's every single location in the game, are we sure what
+we're doing belongs there?"* — it does not: `readRooms` was an
+interpretation over five other objects (the archetype catalogue, the
+warren's members + upkeep term, each archetype's `satisfies`, the
+structure's `readOutside`, the realm's ways), not the place's own state.
+It is `RoomsReading.readRooms` (+ `roomArchetypes`, `waysideOf`,
+`standsIn`, the `RoomsRead` type); `Place.ts` is master's again. The
+structure is asked through `Place.structure()`, the place's own answer.
+This reverses D-W17a's *"a method on `Place` (the honest host)"*.
+
+**D-W21b (build, W21) — the lane probe becomes a kernel seam.** No kernel
+seam answered *the places along this place's way* (`WayRecord` is one
+exit's wire state). New: `WayIndexMixin` (`lib/location/WayIndex.ts`,
+`waysideOf(placePath)`), the `WaterSourceMixin` / `water.sourcePath`
+shape — the transport pack's `LaneCatalogue` composes it and seeds
+`ways.indexPath` from its own `content/settings/ways.yaml` (not the
+platform pack's `transport.yaml`: the key names a row only that pack
+ships). The reading reads the setting, `StuffApi.singleton`s it and
+narrows `MixinApi.isWayIndex`. No index named → no corridor archetype is
+reported (documented in the reading, logistics.md, instrumentation.md); a
+named path that is not a `WayIndex` throws. The string lookup, the
+`typeof lanesAt` probe and the `.catch(() => null)` are gone.
+
+**D-W21c (build, W21) — a reader not standing in the place is refused by
+name** (`not-here`, *"You take stock of a place from inside it."*), not
+`null`. Through the verb `here` already resolves to where the reader
+stands, so the test drives `analyze` directly.
+
+**D-W21d (build, W21) — cleanliness drive 23 is the DRIVE's, and
+pre-existing.** The restart spawned `dev-preflight` with its default
+two-second grace (`PREFLIGHT_GRACE_MS ?? 2000`), which SIGKILLs the server
+before its shutdown capture — the cookhouse's record (the rack, and the
+shirt drive 9 hung on it via the view's `default:
+reachable:[class.DryingRack]`) is never written. Harbors and sugar pass
+60 s for exactly this; cleanliness never did (its restart lines are
+master's, untouched by this build). The earlier greens printed a SECOND,
+stained shirt — captured by luck before the kill; the !527 finalize saw the
+same red on that branch. Not W7c: `dry` hangs on the rack the same way
+master did (the diff is the `with`-cloth split and the forecast), and
+`Soilable`'s only change is nesting `WashableMixin` (no fields). Fixed in
+the drive: `PREFLIGHT_GRACE_MS: '300000'` (the !527 record measured a
+loaded world's capture at ~3.5 min). Not re-driven (no world booted).
 
 **D-W17a (owner, 2026-11-10) — `survey` retired; its reads are
 channels.** No `survey` verb: `rooms` (`RoomsReading`, scope `here`, an
@@ -2369,6 +2413,22 @@ rebase cleanly.
 > named, not reached) and on doors of unseen ways (D-W20b). `reach.sameSet.test.ts` pins the agreement and the
 > one-walk cost. Docs: perception, mql, mql-grammar, spatial,
 > antipatterns. Ceilings unchanged.
+
+### W21 — the rooms read leaves `Place` (owner review, 2026-11-10; D-W21a–d) ✅ done
+
+> **Done (`1c63f86a4`).** `readRooms` and its two helpers moved into `RoomsReading`
+> (`Place.ts` = master); the transport lane probe is a kernel seam,
+> `WayIndexMixin`, composed by `LaneCatalogue` and named by the pack's
+> `ways.indexPath` — no pack, no corridor, said so. A reader elsewhere is
+> refused `not-here`. Tests: RoomsReading 14/14 (+ no-index, a building
+> that is no holding, `not-here`), transport `Lane.test` pins `waysideOf`.
+> Surprise: cleanliness 23 was never this build's — the drive's restart
+> SIGKILLed the shutdown capture (D-W21d; fixed in the drive, not
+> re-driven). ⚠ No ship fixture: the shell line for any structure is pinned
+> with a building that is no holding. Ceilings: `duck-typing` 477 → **476**
+> (the lane probe); lint:family 106/106, tsc 0 (server, transport),
+> test:near origin/master: the one red was ArchetypeSatisfaction's file pin
+> (Place.ts no longer names `Satisfaction`) — re-pinned, 19/19.
 
 ---
 
