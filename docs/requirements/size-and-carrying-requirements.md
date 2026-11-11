@@ -187,7 +187,8 @@ differ from the defaults.
   — *"you sheathe your sword and pull out your compass."* Outside a fight it is nearly instant; **in a
   fight it costs a beat**, and a quick-draw holster beats a pocket.
 - **Reach tiers**: **in hand** (now) · **ready** (worn at waist, chest, thigh, wrist — one draw) ·
-  **packed** (on the back — take it off and open it first) · **elsewhere** (the room, a saddlebag, a cart).
+  **packed** (on the back — take it off and open it first) · **elsewhere** (the room, a cart, a led animal's panniers). Mounted, **your own saddlebags are ready** —
+  one draw from the saddle, slower than a belt holster.
 - **Targeting is permissive about your own things; the refusal is instructive**: *"your compass is
   packed in your backpack — take it off first."* (`remove backpack`: the pack is worn, so taking it
   off is the same act as taking off a coat.)
@@ -200,6 +201,25 @@ and quivers**; **satchels, haversacks, rucksacks, frame packs**; a **headlamp** 
 **comms headset** (so a message needs no phone in hand); **slings and lanyards** (a tethered tool you
 drop hangs from you). Beyond the person: saddlebags, panniers, the pack saddle, the **travois**,
 sledges, handcarts, barrows, wagons.
+
+### Mounts and pack animals **[DECIDED 2026-11-11, owner review]**
+
+- **An animal carries only in what it wears** — a horse has no hands — and *nothing loose on a body*
+  holds for every body, not only players. Tack is rows: the saddle, the pack saddle with its two
+  panniers, saddlebags — worn containers on the animal's back.
+- **How much it bears is its body's**, by the same burden model as a person's — its strength against
+  its load, never an authored *"carries 80 kg"*; overloaded, it refuses in words: *"the mule won't take
+  more."*
+- **A mount bears its rider**, the rider's gear and its tack; the rider's burden line says the horse
+  carries you, the horse's says what it is working against.
+- **Rider and mount are one body at an opening** — *"you'd have to dismount"*, never dismounted for you;
+  a laden animal is as wide as its panniers (*"the panniers won't fit"*); an animal moves only in the
+  modes its body allows (a horse cannot stoop or crawl; a dog can crawl).
+- **Someone else's panniers** follow the perceiving rules of a pocket: worn on the outside, their
+  contents covered by the flap.
+- ⭐ **Leading is a held rope.** A pack animal is led, not ridden: tie a rope to its halter and hold the
+  other end, and it comes with you when you move, as a hitched cart does — the rope's use is where its
+  ends are tied, and **it takes a hand**. No new verb; `hitch` stays a cart's.
 
 ### Bodies and openings **[DECIDED]**
 
@@ -398,7 +418,11 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
     and ruined; the same letter in an oilskin pouch comes out dry. A cork in an open coat pocket floats
     away as you go under; in a buttoned pocket it stays.
 16. *instant · player* — Pack two game days of food and water for one person — `inventory --weight` and
-    the burden line show it is most of a pack; load it onto a mule's pack saddle and the burden falls.
+    the burden line show it is most of a pack; `put` it in a mule's panniers and the burden falls; keep
+    adding and the mule refuses in words. `tie rope to mule` and hold the end — the mule comes with you
+    through the next way, and you have one hand free. Mounted on a horse, a compass in your saddlebags
+    readies in one draw; at a low door, *"you'd have to dismount"*; the laden mule at a narrow gate,
+    *"the panniers won't fit."*
 17. *instant · staged* — A wizard sets one room's gravity to zero: a dropped cup floats in the room; a
     cup set on the table drifts off; a full pack reads as no weight on the burden line, yet still won't
     pass the hatch and still takes both hands.
@@ -432,6 +456,8 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 - A creator inspects the true state of their own content with the builder lens, and plays it plainly
   without.
 - Every character restored after a restart carries exactly what they carried.
+- A pack animal carries only what it wears, as much as its body bears, and comes with you on a held
+  rope that takes a hand.
 - Weight follows the place's gravity and the water's buoyancy; nothing assumes Earth, and a thing
   leaves an open container whenever nothing presses it in.
 
