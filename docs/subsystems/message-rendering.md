@@ -881,7 +881,7 @@ three wrote the same `cockpit.*` clientState keyspace — see
 thing.
 
 ⭐ The settings above ARE nested subcommands (controller-liquidity W7b —
-see [cockpit.md](./cockpit.md)); every closed word is a `values:` slot,
+see [cockpit.md](./cockpit.md)); every closed word is a `type: enum` slot,
 so `client-style bogus` or `client-style theme default` is refused by
 the binder, naming the set, before any controller runs.
 

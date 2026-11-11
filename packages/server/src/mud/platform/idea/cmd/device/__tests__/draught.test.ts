@@ -82,7 +82,7 @@ describe('the draught', () => {
   async function setDraught(setting: string): Promise<CommandContext> {
     const c = ctx('draught');
     await makeStuff(() => new DraughtSetController()).execute(
-      // ⭐ The setting is a `values:` slot on the set shapes (W7b). A bare
+      // ⭐ The setting is an enum slot on the set shapes (W7b). A bare
       // word after `draught` once bound to the fire and never arrived —
       // three drive runs found it; the read shape now needs `at <fire>`
       // (asserted through the real views below).

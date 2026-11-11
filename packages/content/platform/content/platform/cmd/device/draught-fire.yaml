@@ -1,7 +1,7 @@
 # `draught <fire> <setting>` — the same act as draught-set.yaml with the
 # fire named first (controller-liquidity W7b; the owner's read names this
 # form: `draught <clamp> <setting>`). ⚠ Tried BEFORE draught-set.yaml:
-# a `values:` slot refuses rather than falling through, so the shape
+# an enum slot refuses rather than falling through, so the shape
 # whose first word may be a fire has to be asked first — `draught low`
 # shape-fails here (no setting after the fire) and binds there.
 verbs: [draught]
@@ -32,6 +32,6 @@ args:
     validators:
       - /lib/command/validators/canReach
   - name: setting
-    type: string
+    type: enum
     required: true
     values: [wide, open, half, low, banked]

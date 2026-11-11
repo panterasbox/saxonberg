@@ -112,7 +112,7 @@ than only what is pinned.
 
 Mirrors `client-card` in every respect — subcommands `list` / `pin` /
 `unpin` / `first`, one controller each over `ClientShelfControllerBase`
-(controller-liquidity W7b; its own verb since W16), and `row` a `values:` slot equal to
+(controller-liquidity W7b; its own verb since W16), and `row` an enum slot (`type: enum`) whose `values:` equal
 `SHELF_ROW_IDS` (a test pins the two together), so the binder refuses an
 unknown action or row naming the known set before any controller runs.
 
@@ -148,13 +148,13 @@ a subcommand). The owner reversed the nesting (W16): each is its own
 ordinary subcommand with its own controller (`ClientStyleThemeController`,
 `ClientLayoutSaveController`, `ClientCardMoveController`, …) over a base
 per noun. Every closed word — themes, `on|off`, `words|ids`, shelf rows — is a
-`values:` slot, so an unknown setting, action or value is the binder's
+`type: enum` slot, so an unknown setting, action or value is the binder's
 `unknown-subcommand` / `bind` refusal, naming the set, and never reaches a
 controller (the old explicit `default:` refusals are gone with the
 positional `styleSub`/`a`/`b`/`c` and `action` slots).
 
 Shapes recorded: `client-style channel <key> color|clear` puts its word
-AFTER an argument, so `color|clear` is a `values:` slot on one
+AFTER an argument, so `color|clear` is an enum slot on one
 `ClientStyleChannelController`; the two forms that were a third level
 flattened — `mention self on|off` → **`client-style mention on|off`**
 (`self` was the only word) and `plain channel <key> on|off` →

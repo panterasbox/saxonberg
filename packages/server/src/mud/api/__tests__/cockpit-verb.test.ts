@@ -19,7 +19,7 @@
  * `shelf`, `layout` and `style` left `cockpit` for verbs of their own —
  * the non-diegetic compound names `client-card`, `client-shelf`,
  * `client-layout`, `client-style` — and each action is a subcommand with
- * its own controller; every closed word is a `values:` slot the binder
+ * its own controller; every closed word is an enum slot the binder
  * refuses by name. The hyphenated verb is the thing proved here: it
  * tokenizes as one word, resolves in the registry and binds.
  */
@@ -134,7 +134,7 @@ describe('the cockpit verb', () => {
   });
 
   /*
-   * ⚠ The shelf's `values:` is a copy of `SHELF_ROW_IDS` (a view is YAML
+   * ⚠ The shelf's enum `values:` is a copy of `SHELF_ROW_IDS` (a view is YAML
    * and cannot import it). Pinned here so the two cannot drift: a row
    * added to the catalogue and not to the view would be refused by the
    * binder with a list that omits it.
@@ -142,6 +142,7 @@ describe('the cockpit verb', () => {
   it('⚠ the shelf rows the view accepts ARE SHELF_ROW_IDS', () => {
     for (const leaf of ['pin', 'unpin', 'first']) {
       const row = view('client-shelf').getSubcommand(leaf)!.args!.find((a) => a.name === 'row')!;
+      expect(row.type).toBe('enum');
       expect(row.values).toEqual([...SHELF_ROW_IDS]);
     }
   });
@@ -309,7 +310,7 @@ describe('the cockpit verb', () => {
       expect(m.name).toBe('world');
     });
 
-    it('⭐ binds client-style, its closed words as values', () => {
+    it('⭐ binds client-style, its closed words as enums', () => {
       const theme = bind('client-style theme high-contrast');
       expect(theme.subcommand).toBe('theme');
       expect(theme.theme).toBe('high-contrast');

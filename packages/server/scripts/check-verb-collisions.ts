@@ -70,8 +70,8 @@ export interface PositionalShape {
 
 /**
  * The words a line binding this view can START with, or `null` when any
- * word may: a required first positional with `values:` starts with one of
- * them; a view whose every positional is `prepositionRequired` starts with
+ * word may: a required first `enum` positional starts with one of its `values:`;
+ * a view whose every positional is `prepositionRequired` starts with
  * one of their prepositions (or is empty, when none is required); a view
  * with no positionals binds only the empty line (a leftover word is a
  * shape error). `empty` — whether the empty line binds it.

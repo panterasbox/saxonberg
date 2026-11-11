@@ -235,11 +235,11 @@ describe("controller-liquidity W7 — the shapes the dispatcher can tell apart",
     expect(collisionsIn(claimsIn(allViews(root))).size).toBe(0);
   });
 
-  it("⭐ first words that cannot meet — a `values:` word against a preposition-only read", () => {
+  it("⭐ first words that cannot meet — an `enum` word against a preposition-only read", () => {
     const READ = `verbs: [draught]\ncontroller: /x/Read\nargs:\n  - { name: fire, type: object, required: false, prepositions: [at], prepositionRequired: true }\n`;
-    const SET = `verbs: [draught]\ncontroller: /x/Set\nargs:\n  - { name: setting, type: string, required: true, values: [wide, low] }\n  - { name: fire, type: object, required: false, prepositions: [at], prepositionRequired: true }\n`;
+    const SET = `verbs: [draught]\ncontroller: /x/Set\nargs:\n  - { name: setting, type: enum, required: true, values: [wide, low] }\n  - { name: fire, type: object, required: false, prepositions: [at], prepositionRequired: true }\n`;
     expect(collisionsIn(claimsIn(allViews(shapes([READ, SET])))).size).toBe(0);
-    // A `values:` list that holds the preposition meets the read.
+    // An enum list that holds the preposition meets the read.
     const BAD = SET.replace("values: [wide, low]", "values: [wide, at]");
     expect([...collisionsIn(claimsIn(allViews(shapes([READ, BAD])))).keys()]).toEqual(["draught"]);
   });

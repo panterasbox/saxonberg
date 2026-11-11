@@ -5,7 +5,7 @@
  *
  * These tests drive a bound model directly and so **skip the binder**;
  * the refusals of an unknown action or row are the VIEW's now (`row` is a
- * `values:` slot equal to `SHELF_ROW_IDS`), asserted here through the real
+ * enum `values:` equal to `SHELF_ROW_IDS`), asserted here through the real
  * cockpit view and in `api/__tests__/cockpit-verb.test.ts`.
  *
  * ⭐ The refusals matter more than the writes here. The shelf is a

@@ -210,23 +210,32 @@
       "required": [
         "name"
       ],
-      "if": {
-        "properties": {
-          "greedy": {
-            "const": true
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "greedy": {
+                "const": true
+              }
+            },
+            "required": [
+              "greedy"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "string"
+              }
+            }
           }
         },
-        "required": [
-          "greedy"
-        ]
-      },
-      "then": {
-        "properties": {
-          "type": {
-            "const": "string"
-          }
+        {
+          "if": {"properties": {"type": {"const": "enum"}}, "required": ["type"]},
+          "then": {"required": ["values"]},
+          "else": {"not": {"required": ["values"]}}
         }
-      },
+      ],
       "$comment": "\u2b50 `greedy` is for PROSE only (controller-liquidity D3): an `object` / `objects` slot binds ONE word, and a name with a space in it is quoted (`buy \"dog loaf\"`). A greedy arg must be `type: string` (or untyped).",
       "additionalProperties": false,
       "properties": {
@@ -239,6 +248,7 @@
         "type": {
           "enum": [
             "string",
+            "enum",
             "number",
             "duration",
             "boolean",
@@ -246,7 +256,7 @@
             "objects",
             "struct"
           ],
-          "description": "Field value type. `number` and `duration` are coerced at bind (a duration's written forms \u2014 `90s`, `15m`, `2h`, `1h30m`, `3d`, `90 seconds`, `2 hours` \u2014 bind as MILLISECONDS) and refused by the view when they do not read. `object` runs `MqlApi.resolveOne` (single-cardinality MQL); `objects` runs `MqlApi.resolveMany` (plural-cardinality MQL); `struct` is a structured-input-only blob (Record<string, unknown>) \u2014 text input cannot bind it."
+          "description": "Field value type. `enum` is a closed word list: it REQUIRES `values:`, and `values:` is refused on every other type (controller-liquidity D1, owner 2026-11-10). `number` and `duration` are coerced at bind (a duration's written forms \u2014 `90s`, `15m`, `2h`, `1h30m`, `3d`, `90 seconds`, `2 hours` \u2014 bind as MILLISECONDS) and refused by the view when they do not read. `object` runs `MqlApi.resolveOne` (single-cardinality MQL); `objects` runs `MqlApi.resolveMany` (plural-cardinality MQL); `struct` is a structured-input-only blob (Record<string, unknown>) \u2014 text input cannot bind it."
         },
         "schema": {
           "type": "object",
@@ -357,7 +367,7 @@
         "type": "string",
         "minLength": 1
       },
-      "description": "\u2b50 The closed set of words this slot accepts. Matched case-insensitively; the canonical spelling (as written here) is what binds. Anything else is refused by the VIEW, before a controller is cloned, with the list named. `default:` must be one of them."
+      "description": "\u2b50 The closed set of words a `type: enum` slot accepts \u2014 required on `enum`, refused on every other type. Matched case-insensitively; the canonical spelling (as written here) is what binds. Anything else is refused by the VIEW, before a controller is cloned, with the list named. `default:` must be one of them."
     },
     "cardinality": {
       "type": "object",
@@ -383,6 +393,13 @@
       "required": [
         "type"
       ],
+      "allOf": [
+        {
+          "if": {"properties": {"type": {"const": "enum"}}, "required": ["type"]},
+          "then": {"required": ["values"]},
+          "else": {"not": {"required": ["values"]}}
+        }
+      ],
       "additionalProperties": false,
       "properties": {
         "requires": {"oneOf":[{"type":"string","minLength":1},{"type":"array","items":{"type":"string","minLength":1},"minItems":1}],"description":"What this object-typed slot ACCEPTS, by mixin composition. `any` = deliberately unconstrained (a wizard's `destruct <anything>`, an MQL selector, a perception verb that refuses nothing by kind). Otherwise a mixin name from the Mixins registry — `SealableMixin` — which the bound Stuff must compose; the framework synthesises the check and the refusal sentence. A LIST means ALL of them; `|` inside one entry means EITHER (`CombustibleMixin|FurnaceMixin`). An unknown name is a load-time error, which is the point: `targetKind: any`, its predecessor, was an unverifiable promise and three of its fifty uses were wrong. Kind only — relation (`canReach`) and state (already open, currently lit) stay in validators and controllers."},
@@ -396,6 +413,7 @@
           "enum": [
             "boolean",
             "string",
+            "enum",
             "number",
             "duration",
             "object",

@@ -14,7 +14,7 @@ category: device
 #   draught [at <fire>]            — this view, the READ
 #   draught <setting> [at <fire>]  — draught-set.yaml
 #   draught <fire> <setting>       — draught-fire.yaml
-# The setting is a `values:` slot on the two set shapes (it was five
+# The setting is an enum slot on the two set shapes (it was five
 # subcommands), so `draught forge medium` is refused by the view, naming
 # the five words.
 controller: /platform/idea/cmd/device/DraughtReadController

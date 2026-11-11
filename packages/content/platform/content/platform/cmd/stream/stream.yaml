@@ -107,7 +107,7 @@ subcommands:
       or kick. Give no handle to clear one.
     args:
       - name: service
-        type: string
+        type: enum
         required: true
         values: [twitch, youtube, kick]
       - name: handle

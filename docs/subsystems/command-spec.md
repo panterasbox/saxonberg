@@ -686,7 +686,8 @@ Three load-time invariants enforced by `CommandDefinition.validate`:
 
 | Type | Bound value | Notes |
 |---|---|---|
-| `string` | the raw token text | no coercion — unless `values:` closes the set |
+| `string` | the raw token text | no coercion; an open word (a key, a name, prose when `greedy`) |
+| `enum` | one of the slot's `values:`, in its canonical spelling | ⭐ a closed word list — see below; `values:` is REQUIRED here and REFUSED on every other type |
 | `number` | `Number(token)` | coerced for options AND positionals (since controller-liquidity W1); a required one refuses a non-number at bind, an optional one leaves the word for the next slot |
 | `duration` | milliseconds | ⭐ written `90s` · `15m` · `2h` · `1h30m` · `3d` · `90 seconds` · `2 hours`; a bare number is NOT a duration (seconds or minutes? the view refuses to guess) |
 | `boolean` | `true` / `false` | usually used on options, not positionals |
@@ -705,16 +706,23 @@ means in its domain (see the example controllers).
 should accumulate. Don't combine it with `type: objects` — the
 plurality is the type.
 
-### ⭐ `values:` — a closed word set (controller-liquidity D1)
+### ⭐ `type: enum` — a closed word list (controller-liquidity D1)
 
-An arg or option of `type: string` may declare the words it accepts:
+An arg or option that accepts only certain words is `type: enum`, and
+lists them in `values:`:
 
 ```yaml
-options:
-  width:
-    type: string
-    values: [wide, open, half, low, banked]
+- name: setting
+  type: enum
+  values: [wide, open, half, low, banked]
 ```
+
+⭐ A closed word list is a **type**, not a string with a constraint
+(owner ruling 2026-11-10 — D1 first shipped it as `values:` on a
+`type: string` slot; *"isn't that just an enum type?"*). So the schema
+(and `CommandDefinition.validate()` behind it) requires `values:` on
+`enum` and refuses it on every other type, and an enum slot is never
+greedy and never takes a quoted name.
 
 The match is case-insensitive and the canonical spelling written here is
 what binds. Anything else is refused **by the view**, before a controller
@@ -724,7 +732,7 @@ wide, open, half, low, banked*. `default:` must be one of the values
 (`--width <wide|open|half|low|banked>`). A controller that refuses an
 out-of-set word itself, or keeps a word→value table for one, is carrying
 the view's job (`StyleController` and `CockpitShelfController` did, until
-controller-liquidity W7b moved both sets onto `values:`).
+controller-liquidity W7b moved both sets onto the view; W22 made them `type: enum`).
 
 ### ⭐ `depth:` — how deep an object slot reaches (controller-liquidity D4)
 

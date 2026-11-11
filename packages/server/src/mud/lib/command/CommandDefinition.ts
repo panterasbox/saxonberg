@@ -646,7 +646,7 @@ export class CommandDefinition {
   }
 
   /**
-   * The canonical spelling a `values:` list gives a typed word
+   * The canonical spelling an enum slot's `values:` gives a typed word
    * (case-insensitive), or undefined when the word is not one of them.
    */
   static matchValue(values: readonly string[], raw: string): string | undefined {
@@ -730,7 +730,7 @@ function renderOptionLines(
     const val =
       def.type === 'boolean'
         ? ''
-        : def.values && def.values.length > 0
+        : def.type === 'enum' && def.values
           ? ` <${def.values.join('|')}>`
           : def.type === 'duration'
             ? ` <duration>`
@@ -817,7 +817,7 @@ function renderArgs(args: PositionalDefinition[] | undefined): string {
         return required ? phrase : `[${phrase}]`;
       }
       const label =
-        def.values && def.values.length > 0 ? def.values.join('|') : def.name;
+        def.type === 'enum' && def.values ? def.values.join('|') : def.name;
       const core = def.greedy
         ? `<${label}...>`
         : def.required
@@ -1063,10 +1063,11 @@ function validateStanzaShape(
 }
 
 /**
- * ⭐ The grammar keys a slot may carry (D1, D4): `values:` non-empty,
- * unique (case-insensitively), on a word slot only, with any `default:`
- * among them; a `duration`'s default must read; `depth:` only on an
- * object slot.
+ * ⭐ The grammar keys a slot may carry (D1, D4): a `type: enum` slot
+ * REQUIRES `values:` and every other type REFUSES it (owner ruling
+ * 2026-11-10); the list is non-empty, unique (case-insensitively), with
+ * any `default:` among it; a `duration`'s default must read; `depth:`
+ * only on an object slot.
  */
 function validateGrammar(
   field: Pick<FieldDefinition, 'type' | 'values' | 'depth'> & {
@@ -1077,14 +1078,17 @@ function validateGrammar(
   where: string
 ): void {
   const label = `${filePath} (${where}${field.name ? `.${field.name}` : ''})`;
+  if (field.type === 'enum' && field.values === undefined) {
+    throw new Error(`${label}: type: enum needs values: (the closed word list)`);
+  }
   if (field.values !== undefined) {
+    if (field.type !== 'enum') {
+      throw new Error(
+        `${label}: values: is only valid on a type: enum slot (got type=${field.type ?? 'string'})`
+      );
+    }
     if (field.values.length === 0) {
       throw new Error(`${label}: values: must list at least one word`);
-    }
-    if (field.type !== undefined && field.type !== 'string') {
-      throw new Error(
-        `${label}: values: is only valid on a string slot (got type=${field.type})`
-      );
     }
     const seen = new Set<string>();
     for (const v of field.values) {

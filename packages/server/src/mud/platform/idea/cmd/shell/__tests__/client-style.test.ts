@@ -4,7 +4,7 @@
  * each case types a line, the real binder assembles it, the subcommand
  * names the controller,
  * and that controller runs. So the YAML-to-model mapping and the closed
- * word sets (`values:`) are exercised here, not stubbed.
+ * word lists (`type: enum`) are exercised here, not stubbed.
  *
  * The controllers mutate the host's `clientState['style.overlay']`, call
  * `host.save()` and `host.pushClientStateUpdate(...)`; the push is spied
@@ -146,7 +146,7 @@ describe('the client-style controllers', () => {
       // `default` stopped naming anything the moment there were two
       // grounds. The refusal must also NAME the three known themes —
       // "commands refuse honestly" is the machine-voice half of the
-      // honesty rule. It is the binder's now (a `values:` slot).
+      // honesty rule. It is the binder's now (an enum slot).
       const { refused } = await type('client-style theme default');
       expect(getOverlay(actor).theme).toBeUndefined();
       expect(refused?.error).toBe('bind');

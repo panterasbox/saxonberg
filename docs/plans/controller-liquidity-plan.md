@@ -558,6 +558,10 @@ duration's forms. Reasoning: the survey's parse share was 8% and most of it
 is word→value tables and hand-rolled refusals (`StyleController`,
 `CockpitShelfController`, `DraughtController`'s `NAMED`, `StreamController`'s
 `away <duration>`).
+⭐ **Amended by the owner, 2026-11-10 (W22):** a closed word list is a
+TYPE — `type: enum` with `values:` — not `values:` on a `type: string`
+slot (*"isn't that just an enum type?"*). `values:` is required on `enum`
+and refused on every other type; the behavior above is unchanged.
 
 **D2 — Subcommands nest.** ⛔ **REVERSED BY OWNER 2026-11-10 (W16):** a
 command is `verb target` or `verb subcommand target`, never deeper. The
@@ -2429,6 +2433,33 @@ rebase cleanly.
 > (the lane probe); lint:family 106/106, tsc 0 (server, transport),
 > test:near origin/master: the one red was ArchetypeSatisfaction's file pin
 > (Place.ts no longer names `Satisfaction`) — re-pinned, 19/19.
+
+
+### W22 — a closed word list is `type: enum` (owner ruling, 2026-11-10; D-W22a–c) ✅ done
+
+> **Done.** `enum` joined the arg/option `type` vocabulary; the schema
+> requires `values:` on it and refuses `values:` elsewhere (if/then/else in
+> an `allOf`, the greedy rule folded in beside it), and
+> `CommandDefinition.validate()` refuses the same mismatch behind it. The
+> binder, help and the verb-collision gate read `type === 'enum'`; 15 slots
+> in 7 views (draught ×2, house freight `--since` ×2, stream, client-shelf ×3,
+> client-style ×6, sew `--pattern`) migrated; no player-visible change.
+> `CommandDefinition.values.test.ts` → `.enum.test.ts`. Ceilings unchanged.
+
+**D-W22a (build, W22) — the schema speaks first.** A type/values mismatch
+fails JSON-schema validation before `validate()` runs, so the test pins
+the schema's message (`must match "else" schema` / `must have required
+property 'values'`); the `validate()` copy stays for a definition built
+past the schema, with its own sentence.
+
+**D-W22b (build, W22) — a structured client is held to the list.**
+`coerceStructuredValue` now canonicalizes an `enum` against its `values:`
+(it accepted any string for a `values:` slot before) — the same refusal
+a typed line gets.
+
+**D-W22c (build, W22) — an enum never takes a name.** `takesAName` is
+now plain `type === 'string'`: an enum is a different type, so the quote
+hint can never join words into it, with no `values` test left to keep.
 
 ---
 

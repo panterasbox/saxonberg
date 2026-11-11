@@ -1,7 +1,9 @@
 /**
- * ⭐ `values:` — a closed word set is the VIEW's refusal (controller-liquidity
- * D1). The binder canonicalizes a match and refuses anything else with the
- * set named, before a controller is cloned; `help` lists the set.
+ * ⭐ `type: enum` — a closed word list is a TYPE (controller-liquidity D1,
+ * owner ruling 2026-11-10), and the VIEW's refusal. The binder
+ * canonicalizes a match and refuses anything else with the list named,
+ * before a controller is cloned; `help` lists the words. `values:` is
+ * required on `enum` and refused on every other type.
  */
 
 import '../../../../test-bootstrap';
@@ -21,19 +23,19 @@ const assemble = (text: string, def: CommandDefinition) =>
 const STYLE = `
 verbs: [stylish]
 controller: NoopController
-description: values fixture
+description: enum fixture
 options:
   width:
-    type: string
+    type: enum
     values: [wide, open, half, low, banked]
 args:
   - name: mode
-    type: string
+    type: enum
     required: false
     values: [Bright, dim]
 `;
 
-describe('values: — the view refuses an out-of-set word', () => {
+describe('type: enum — the view refuses an out-of-set word', () => {
   it('binds the canonical spelling, case-insensitively', () => {
     const r = assemble('stylish DIM --width WIDE', defOf(STYLE));
     expect(r).toMatchObject({ model: { mode: 'dim', width: 'wide' } });
@@ -59,14 +61,17 @@ describe('values: — the view refuses an out-of-set word', () => {
     expect(help).toContain('--width <wide|open|half|low|banked>');
   });
 
-  it('load time: an empty, duplicated or default-outside list is refused', () => {
+  // ⭐ The schema refuses a type/values mismatch before the definition's own
+  // validate() (which refuses it again, for a definition built past the
+  // schema): values: on a non-enum slot, or an enum with no values:.
+  it('load time: an empty, duplicated, default-outside or mistyped list is refused', () => {
     expect(() =>
       defOf(`
 verbs: [v]
 controller: C
 description: d
 args:
-  - { name: a, type: string, values: [x, X] }
+  - { name: a, type: enum, values: [x, X] }
 `),
     ).toThrow(/lists "X" twice/);
     expect(() =>
@@ -75,7 +80,7 @@ verbs: [v]
 controller: C
 description: d
 args:
-  - { name: a, type: string, values: [x, y], default: z }
+  - { name: a, type: enum, values: [x, y], default: z }
 `),
     ).toThrow(/default "z" is not one of values/);
     expect(() =>
@@ -86,14 +91,32 @@ description: d
 args:
   - { name: a, type: object, requires: any, values: [x] }
 `),
-    ).toThrow(/only valid on a string slot/);
+    ).toThrow(/must match "else" schema/);
     expect(() =>
       defOf(`
 verbs: [v]
 controller: C
 description: d
 args:
-  - { name: a, type: string, values: [] }
+  - { name: a, type: string, values: [x] }
+`),
+    ).toThrow(/must match "else" schema/);
+    expect(() =>
+      defOf(`
+verbs: [v]
+controller: C
+description: d
+options:
+  o: { type: enum }
+`),
+    ).toThrow(/must have required property 'values'/);
+    expect(() =>
+      defOf(`
+verbs: [v]
+controller: C
+description: d
+args:
+  - { name: a, type: enum, values: [] }
 `),
     ).toThrow();
   });

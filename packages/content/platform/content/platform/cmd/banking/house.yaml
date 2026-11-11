@@ -242,7 +242,7 @@ subcommands:
         type: string
         description: "Only loads that ended here."
       since:
-        type: string
+        type: enum
         values: [season]
         description: "`season` — only the last quarter."
   traffic:
@@ -263,7 +263,7 @@ subcommands:
     controller: /trade/haulage/idea/cmd/banking/HouseTrafficController
     options:
       since:
-        type: string
+        type: enum
         values: [season]
         description: "`season` — only the last quarter."
   price:

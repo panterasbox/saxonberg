@@ -1259,7 +1259,7 @@ export class CommandLogic extends ApiLogic {
       const odef = lookupOptionDefinition(command, payload.subcommand, k);
       const type = fdef?.type ?? odef?.type;
       const schema = fdef?.schema ?? odef?.schema;
-      const coerceResult = coerceStructuredValue(type, v, schema, k);
+      const coerceResult = coerceStructuredValue(type, v, schema, k, fdef?.values ?? odef?.values);
       if (!coerceResult.ok) {
         return { error: `field ${k}: ${coerceResult.error}` };
       }
@@ -1315,7 +1315,7 @@ export class CommandLogic extends ApiLogic {
 
       const type = payloadDef?.type ?? argDef?.type;
       const schema = payloadDef?.schema ?? argDef?.schema;
-      const coerced = coerceStructuredValue(type, v, schema, k);
+      const coerced = coerceStructuredValue(type, v, schema, k, payloadDef?.values ?? argDef?.values);
       if (!coerced.ok) continue; // leave unset → downstream validation rejects.
       // Lean `fields` wins when both inline-greedy and the side-channel
       // supply the body.
@@ -2736,9 +2736,10 @@ function coerceOptionValue(
 ): CoerceOk | CoerceErr {
   switch (def.type) {
     case 'string':
-      // ⭐ A closed word set is the VIEW's refusal (D1), naming the set.
-      if (def.values && def.values.length > 0) return coerceValues(def.values, raw);
       return { ok: true, value: raw };
+    case 'enum':
+      // ⭐ A closed word set is the VIEW's refusal (D1), naming the set.
+      return coerceValues(def.values ?? [], raw);
     case 'object':
     case 'objects':
       // object/objects keep the raw text — the matcher's
@@ -2777,7 +2778,7 @@ function coerceOptionValue(
   }
 }
 
-/** ⭐ A typed word against a `values:` list: the canonical spelling, or the refusal naming the list. */
+/** ⭐ A typed word against an enum slot's `values:`: the canonical spelling, or the refusal naming the list. */
 function coerceValues(values: readonly string[], raw: string): CoerceOk | CoerceErr {
   const hit = CommandDefinition.matchValue(values, raw);
   if (hit !== undefined) return { ok: true, value: hit };
@@ -2788,7 +2789,8 @@ function coerceStructuredValue(
   type: FieldDefinition['type'] | OptionDefinition['type'] | undefined,
   raw: unknown,
   schema?: Record<string, unknown>,
-  fieldName?: string
+  fieldName?: string,
+  values?: readonly string[]
 ): CoerceOk | CoerceErr {
   if (type === undefined) {
     // No declared type — accept as-is.
@@ -2799,6 +2801,13 @@ function coerceStructuredValue(
       return { ok: false, error: `expected string, got ${typeof raw}` };
     }
     return { ok: true, value: raw };
+  }
+  if (type === 'enum') {
+    // A structured client is held to the same closed list as a typed line.
+    if (typeof raw !== 'string') {
+      return { ok: false, error: `expected one of ${(values ?? []).join(', ')}, got ${typeof raw}` };
+    }
+    return coerceValues(values ?? [], raw);
   }
   if (type === 'number') {
     if (typeof raw !== 'number' || !Number.isFinite(raw)) {
@@ -2930,7 +2939,7 @@ function bindPositionalsImpl(
   const typedWords = positionals;
   let pi = 0;
   /**
-   * ⭐ A typed word that does not read (a `values:` word out of its set, a
+   * ⭐ A typed word that does not read (an enum word out of its set, a
    * number that is not one) is the VIEW's refusal — but only once the
    * line's SHAPE fits this view (controller-liquidity W7b). It is held
    * here and said at the end, so a missing slot or a leftover word still
@@ -2941,17 +2950,15 @@ function bindPositionalsImpl(
   let unread: { error: 'bind'; summary: string } | undefined;
   /**
    * ⭐ A typed slot's value (controller-liquidity D1): a `number` or
-   * `duration` is coerced, a `values:` word canonicalized — the same
+   * `duration` is coerced, an `enum` word canonicalized — the same
    * coercion an option gets. Everything else binds as typed.
    */
   const typed = (
     def: PositionalDefinition,
     text: string
   ): CoerceOk | CoerceErr =>
-    def.type === 'number' ||
-    def.type === 'duration' ||
-    (def.values !== undefined && def.values.length > 0)
-      ? coerceOptionValue({ type: def.type ?? 'string', values: def.values }, text)
+    def.type === 'number' || def.type === 'duration' || def.type === 'enum'
+      ? coerceOptionValue({ type: def.type, values: def.values }, text)
       : { ok: true, value: text };
   /** A defaulted value, coerced like a typed one (a default is the author's word). */
   const defaulted = (def: PositionalDefinition): FieldValue => {
@@ -3310,7 +3317,7 @@ function bindPositionalsImpl(
       if (c.ok) {
         bound[name] = c.value;
         pi += width;
-      } else if (def.values !== undefined && def.values.length > 0) {
+      } else if (def.type === 'enum') {
         // A closed word set refuses, naming the set — once the shape fits.
         unread ??= { error: 'bind', summary: `${name}: ${c.error}` };
         bound[name] = text;
@@ -3375,13 +3382,13 @@ function isDeterminer(lower: string): boolean {
 /**
  * ⭐ Does the slot at `ai` take a NAME — one word, or a quoted phrase?
  * An `object` / `objects` slot always does; so does a non-greedy `string`
- * slot with no closed `values:` set (a key, a good's name, a variable).
+ * slot (a key, a good's name, a variable) — never an `enum`, whose words are closed.
  * The quote hint joins words into exactly these (controller-liquidity D3).
  */
 function takesAName(def: PositionalDefinition): boolean {
   if (def.greedy) return false;
   if (def.type === 'object' || def.type === 'objects') return true;
-  return (def.type ?? 'string') === 'string' && (def.values === undefined || def.values.length === 0);
+  return (def.type ?? 'string') === 'string';
 }
 
 /**

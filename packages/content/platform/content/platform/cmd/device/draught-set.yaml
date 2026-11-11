@@ -19,7 +19,7 @@ validators:
   - /lib/command/validators/requiresEmbodied
 args:
   - name: setting
-    type: string
+    type: enum
     required: true
     values: [wide, open, half, low, banked]
   - name: fire

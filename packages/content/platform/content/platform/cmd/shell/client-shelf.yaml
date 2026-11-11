@@ -57,7 +57,7 @@ subcommands:
     description: "Add a figure, at the end"
     args:
       - name: row
-        type: string
+        type: enum
         required: true
         values: &shelfRows [play, renown, skill, body, make, coin, status, time, online, docket]
   unpin:
@@ -65,7 +65,7 @@ subcommands:
     description: "Take one off"
     args:
       - name: row
-        type: string
+        type: enum
         required: true
         values: *shelfRows
   first:
@@ -73,6 +73,6 @@ subcommands:
     description: "Move it to the front (pinning it there if it was off)"
     args:
       - name: row
-        type: string
+        type: enum
         required: true
         values: *shelfRows

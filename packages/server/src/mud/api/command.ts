@@ -834,10 +834,13 @@ export function collectPhaseEffects(
  * A slot's value type. `duration` is a written span (`90s`, `15m`, `2h`,
  * `1h30m`, `3d`, `90 seconds`, `2 hours`) bound as **milliseconds**
  * (controller-liquidity D1); `number` is coerced at bind for options and
- * positionals alike.
+ * positionals alike. `enum` is a closed word list — the slot's `values:`
+ * (owner ruling 2026-11-10: a closed word list is a type, not a string
+ * with a constraint).
  */
 export type FieldType =
   | 'string'
+  | 'enum'
   | 'number'
   | 'duration'
   | 'boolean'
@@ -861,6 +864,7 @@ export interface FieldDefinition {
   requires?: MixinRequirement;
   /**
    * - `string` / `number` / `boolean` — primitive coerce-on-bind.
+   * - `enum` — one of the slot's `values:`, canonicalized at bind.
    * - `object` — singular MQL field; the dispatcher resolves the
    *   bound text via `MqlApi.resolveOne` (when `onExcess: 'top'`) or
    *   `MqlApi.resolveMany` (otherwise — full list needed for
@@ -878,11 +882,13 @@ export interface FieldDefinition {
    */
   type?: FieldType;
   /**
-   * ⭐ The closed set of words this slot accepts (controller-liquidity
-   * D1). Matched case-insensitively; the canonical spelling written here
-   * is what binds. Anything else is refused by the VIEW (a `bind` error
-   * naming the list) before a controller is cloned. `default:` must be one
-   * of them (load-time).
+   * ⭐ The closed set of words a `type: 'enum'` slot accepts
+   * (controller-liquidity D1, made a type by owner ruling 2026-11-10):
+   * required on `enum`, refused on every other type. Matched
+   * case-insensitively; the canonical spelling written here is what binds.
+   * Anything else is refused by the VIEW (a `bind` error naming the list)
+   * before a controller is cloned. `default:` must be one of them
+   * (load-time).
    */
   values?: string[];
   /**

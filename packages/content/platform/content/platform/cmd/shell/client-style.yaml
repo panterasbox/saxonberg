@@ -42,7 +42,7 @@ examples:
     note: Tint the gossip channel blue
   - cmd: client-style plain-channel gossip on
     note: Drop just the gossip channel to plain text
-# Every closed word is a `values:` slot. `channel <key> color|clear` is the
+# Every closed word is an enum slot. `channel <key> color|clear` is the
 # one form whose word follows an argument, so it is a slot, not a stanza.
 subcommands:
   show:
@@ -53,7 +53,7 @@ subcommands:
     description: "Switch the ground: ink | marble | high-contrast"
     args:
       - name: theme
-        type: string
+        type: enum
         required: true
         values: [ink, marble, high-contrast]
   channel:
@@ -64,7 +64,7 @@ subcommands:
         type: string
         required: true
       - name: action
-        type: string
+        type: enum
         required: true
         values: [color, clear]
       - name: value
@@ -75,7 +75,7 @@ subcommands:
     description: "Highlight your own name: on | off"
     args:
       - name: state
-        type: string
+        type: enum
         required: true
         values: &onOff [on, off]
   plain:
@@ -83,7 +83,7 @@ subcommands:
     description: "Plain unstyled output: on | off"
     args:
       - name: state
-        type: string
+        type: enum
         required: true
         values: *onOff
   plain-channel:
@@ -94,7 +94,7 @@ subcommands:
         type: string
         required: true
       - name: state
-        type: string
+        type: enum
         required: true
         values: *onOff
   links:
@@ -102,7 +102,7 @@ subcommands:
     description: "What a click names its target by: words | ids"
     args:
       - name: choice
-        type: string
+        type: enum
         required: true
         values: [words, ids]
   reset:
