@@ -1074,10 +1074,15 @@ suite('10–12. the defects, driven', () => {
     // C27 — the fee used to be taken AFTER the claims were written, so a
     // refused fee had already told. (The paid path is maritime-space's step 21.)
     const poor = await stager(uniqueHandle('cliq-pilot-poor'), PILOT_BANK);
-    const before = await poor.prose('map greywater');
+    // ⚠ Only the map's own lines: the prose window also catches the room
+    // (finalize: a cook leaving to the northwest made this red once).
+    const mapOnly = (said: string): string =>
+      said.split('\n').filter((l) => /\bmap\b|greywater/i.test(l)).join('\n');
+    const before = mapOnly(await poor.prose('map greywater'));
+    expect(before, 'the map read answered').not.toBe('');
     const unpaid = await act(poor, 'pilot');
     expect(reasonOf(unpaid), notesOf(unpaid)).toBe('cannot-pay');
-    expect(await poor.prose('map greywater'), 'told nothing').toEqual(before);
+    expect(mapOnly(await poor.prose('map greywater')), 'told nothing').toEqual(before);
   }, 240_000);
 
   it('12a + 12b. introducing a player: they know you; a gift of land: the receiver owns it', async () => {

@@ -231,6 +231,19 @@ is stable across restarts and cannot collide with the synthetic
 good comes off freely, anything else needs write authority over the
 room — the bar's neon stays on the bar's wall.
 
+### Goods ON a surface (controller-liquidity finalize, 2026-11-11)
+
+A good can also rest *on* something in the room — a shirt on the drying
+rack, a cup on the table. The estate entry records `rests: { on,
+placement }` (the surface's row and the placement member, read off the
+good by `Containable.getRestingPlace`), and every entry builder writes it:
+the room-capture flush, `ChattelLogic.syncEstate`, and the estate's own
+capture, which re-reads it from the live good. The overlay runs after the
+room's fixtures stand, so it lays the good back on that surface; a surface
+that is gone, or will not take it (`canPlace`), leaves the good standing
+in the room — a skip, never an error. Before this, every placed good came
+back beside its surface, which the cleanliness drive's restart step found.
+
 ## Restore routing
 
 | `place` | on materialize |
