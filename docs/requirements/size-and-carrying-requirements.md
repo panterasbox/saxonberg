@@ -142,16 +142,18 @@ differ from the defaults.
 
 ### Readying and reach **[DECIDED]**
 
-- **Every carried thing has a home on the person** — where it was put away. ⚠ *"Where it came from"
-  can lie about where it should go*, so **the player corrects it**: `stow compass in belt pouch` sets the
-  home.
+- **Every carried thing has a home on the person: a thing goes back where you last put it.** ⚠ *"Where
+  it came from" can lie about where it should go*, so **putting is how the player corrects it** — `put
+  compass in belt pouch` makes the pouch its home. No separate verb: putting away is putting (owner
+  review, 2026-11-11).
 - **Naming an instrument readies it**: what is in the hand goes home, the tool comes out, the act runs
   — *"you sheathe your sword and pull out your compass."* Outside a fight it is nearly instant; **in a
   fight it costs a beat**, and a quick-draw holster beats a pocket.
 - **Reach tiers**: **in hand** (now) · **ready** (worn at waist, chest, thigh, wrist — one draw) ·
-  **packed** (on the back — unsling and open it first) · **elsewhere** (the room, a saddlebag, a cart).
+  **packed** (on the back — take it off and open it first) · **elsewhere** (the room, a saddlebag, a cart).
 - **Targeting is permissive about your own things; the refusal is instructive**: *"your compass is
-  packed in your backpack — unsling it first."*
+  packed in your backpack — take it off first."* (`remove backpack`: the pack is worn, so taking it
+  off is the same act as taking off a coat.)
 
 ### Gear **[DECIDED]**
 
@@ -164,16 +166,21 @@ sledges, handcarts, barrows, wagons.
 
 ### Bodies and openings **[DECIDED]**
 
-- **A body's envelope** — height by posture (standing, crouching, crawling, lying), girth, plus what it
-  carries; a rider adds the mount.
+- **A body's envelope** — height by how it moves (walking upright, stooping, crawling) or rests
+  (sitting, kneeling, lying), girth, plus what it wears; a rider adds the mount. **How you move
+  through an opening is a movement mode** (owner review, 2026-11-11): beside `walk`, `run`, `sneak`,
+  `swim` and `climb`, two new modes, each its own verb — **`stoop`** (bent under a low lintel: lower,
+  a little slower, not quieter — stooping is not sneaking) and **`crawl`** (prone). Sneaking still
+  crouches, so it also clears a low door.
 - **Exits declare a clearance**, defaulting by kind: a door about 0.9 × 2.0 m, an outdoor way
   unbounded, a hatch 0.6 × 0.6 m, a crawlway 0.6 m tall, a window small, stairs 2.0 m of headroom and a
   turn; a ladder needs both hands. **The refusal says what would work and never changes your posture for
-  you** — *"you'd have to stoop."*
+  you** — *"you'd have to stoop — `stoop north`."*
 - **Locomotion meets your gear** — climbing wants both hands; swimming's weight refuses the way up and
   **soaks what you carry** (wet paper is ruined; waterproof containers — oilskin, rubber — are worth
   having); awkward held loads limit running; **loose, clanking gear is noise** to stealth; a crawlway
-  measures your pack too.
+  measures what you wear too — but what you hold goes through **ahead of you**, measured on its own
+  (you push it as you crawl; narrated, not a verb).
 
 ### Weight and shape **[DECIDED]**
 
@@ -217,7 +224,7 @@ time; the leak worth closing is the one a script turns into a scanner, and the c
    *"which knife?"* because of the one in his pocket).
 3. **Perceive, then reach.** What you don't perceive is refused exactly as if it weren't there — *"you
    don't see a letter on Joe."* What you perceive but can't reach is refused saying why — *"the box is
-   shut"*, *"your compass is packed in your backpack — unsling it first."*
+   shut"*, *"your compass is packed in your backpack — take it off first."*
 4. **Anything that shows a result shows only what you perceive** — `query`, `find`, `look`,
    `inventory`, a script's `( )` expression, the client's cards and its autocomplete.
 
@@ -246,7 +253,7 @@ the idioms above, item by item:
 - **Keep the body filters `:held`, `:worn`, `:carried`** — facts about where a thing is, the same for
   every viewer. After the flip, `:held` means *in a hand*.
 - **Keep the shut-lid refusal** (*"the box is shut"*) as the reach half of *perceive, then reach* — but it
-  fires only for a thing the viewer perceives. *"Unsling it first"* is the same refusal family.
+  fires only for a thing the viewer perceives. *"Take it off first"* is the same refusal family.
 - **Remove the viewer filter inside the query** (`:i` through a shut lid only for your own or the
   room's; the deepest rung never into another person's pockets). `:i` is the contents, for everyone.
 - **Remove the three reach rungs** (`--top` · `--open` · `--deep`) and the per-argument depth defaults —
@@ -305,19 +312,20 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
    refused in words.
 2. *instant · player* — `inventory` shows the tiers: in hand, ready (the pocket's contents), worn, and the
    burden in words. `inventory --flat` shows one list.
-3. *instant · player* — `stow cup in coat pocket`, then `inventory`: the cup's home is the pocket.
-4. *instant · staged* — Holding a sword with a compass stowed in a belt pouch: `measure` something that
+3. *instant · player* — `put cup in coat pocket`, then `inventory`: the cup's home is the pocket.
+4. *instant · staged* — Holding a sword with a compass put away in a belt pouch: `measure` something that
    needs the compass — *"you sheathe your sword and pull out your compass"*, and the reading runs.
 5. *instant · player* — Put the compass in a backpack worn on the back, then `measure` again — refused:
-   *"your compass is packed in your backpack — unsling it first."* Unsling it, and it works.
+   *"your compass is packed in your backpack — take it off first."* `remove backpack`, and it works.
 6. *short · staged* — In a fight, readying the compass costs a beat; drawn from a quick-draw holster it
    costs less than from a pocket (watch the exchange's narration).
 7. *instant · player* — A three-meter pole: `get pole` takes both hands; with a lantern held, it is
    refused, naming both hands.
-8. *instant · player* — Walk under a low door — *"you'd have to stoop"*; `crouch`, walk through. A
-   crawlway with a pack on: refused until you take the pack off and push it ahead.
-9. *instant · player* — Climb a ladder holding a lantern and a sword — refused for want of hands; stow
-   them and climb.
+8. *instant · player* — `go` under a low door — *"you'd have to stoop — `stoop north`"*; `stoop north`
+   goes through. A crawlway with a pack on: `crawl north` is refused, naming the pack; `remove
+   backpack`, then `crawl north` — through, pushing the pack ahead.
+9. *instant · player* — Climb a ladder holding a lantern and a sword — refused for want of hands; `put` them
+   away (the sword in its sheath, the lantern on your belt) and climb.
 10. *instant · staged* — Carry a wardrobe-sized crate to a stair whose turn is too tight — refused by its
     size, saying so; the same crate through a wide doorway passes.
 11. *instant · player* — Another character in the room: `i them` shows what they hold, their outer layer,
@@ -357,7 +365,7 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 
 - No character, anywhere, has a thing loose on their body — after any act and after a restart.
 - A verb finds the nearest thing you perceive, with no reach option to learn; a player picks up, readies,
-  stows and puts away tools in single commands, and every refusal names what
+  puts away tools in single commands, and every refusal names what
   would work.
 - A low door, a crawlway, a ladder, a stair's turn and a pond each behave as their size and the body's
   say, in words a player can act on.
