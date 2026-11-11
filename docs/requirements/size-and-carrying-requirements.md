@@ -224,8 +224,16 @@ differ from the defaults.
   compass in belt pouch` makes the pouch its home. No separate verb: putting away is putting (owner
   review, 2026-11-11).
 - **Naming an instrument readies it**: what is in the hand goes home, the tool comes out, the act runs
-  — *"you sheathe your sword and pull out your compass."* Outside a fight it is nearly instant; **in a
-  fight it costs a beat**, and a quick-draw holster beats a pocket.
+  — *"you sheathe your sword and pull out your compass."* Outside a fight it is nearly instant. **In a
+  fight it costs time, priced by where things go and come from** (owner review, 2026-11-11): readying is
+  two halves — putting away what is in the hand, then drawing what you want — and each is priced by its
+  holder: dropped, instant; a shaped holder (holster, sheath, scabbard, quiver, a belt clip), fast; an
+  open pocket or pouch or a tool hung on a belt, medium; a buttoned pocket or a flapped pouch, slower by
+  the undoing; packed on your back, refused — take the pack off first, which itself costs time. The two
+  add and round to beats, guard down the whole while, and the narration says where you are reaching
+  (*"Mara fumbles at her coat pocket"*, *"Mara's hand drops to her holster"*) so an opponent can read how
+  long you are open. One rule for a weapon, a compass, a flask or a bandage. Skill does not shorten it
+  in this build (→ [combat-slate](../slates/builds/combat-slate.md)).
 - **Reach tiers**: **in hand** (now) · **ready** (worn at waist, chest, thigh, wrist — one draw) ·
   **packed** (on the back — take it off and open it first) · **elsewhere** (the room, a cart, a led animal's panniers). Mounted, **your own saddlebags are ready** —
   one draw from the saddle, slower than a belt holster.
@@ -496,8 +504,10 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
    needs the compass — *"you sheathe your sword and pull out your compass"*, and the reading runs.
 5. *instant · player* — Put the compass in a backpack worn on the back, then `measure` again — refused:
    *"your compass is packed in your backpack — take it off first."* `remove backpack`, and it works.
-6. *short · staged* — In a fight, readying the compass costs a beat; drawn from a quick-draw holster it
-   costs less than from a pocket (watch the exchange's narration).
+6. *short · staged* — In a fight, holding a sword: readying the compass from a belt pouch (sheathe +
+   medium draw) takes two beats; dropping the sword instead and drawing it takes one; a pistol from a
+   quick-draw holster with an empty hand takes one; the compass from a buttoned coat pocket takes longer
+   than from the open pouch. The narration names where each hand goes.
 7. *short · staged* — In a fight, holding a lantern and a shield: `fight draw sword` is refused, naming
    the lantern and offering to drop it; `drop lantern` is instant and the room stays lit; `fight draw
    sword` costs a beat; `wield greatsword` is refused, naming the shield. A staged large body (the

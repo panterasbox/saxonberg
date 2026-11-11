@@ -458,6 +458,13 @@ the running game:
 
 ## Open questions
 
+0. **Does skill shorten readying?** (from the size-and-carrying build, owner review
+   2026-11-11) In a fight, readying is priced in two halves by holder — put away what is
+   in the hand, draw what you want (a holster fast, a pocket slower, a buttoned pocket
+   slower still). Practice should show in it, and a trained draw is real, but no
+   quick-draw competence exists and the shipped weapon switch is ungraded by skill. The
+   attach point is a factor on the carrier's ready time.
+
 1. **The competence→exchange-rate curve** — *the* load-bearing tuning
    knob is still unresolved. The de-risking tool (the **combat gym**)
    shipped and is documented (combat.md § The experience pass), but the

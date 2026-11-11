@@ -609,9 +609,19 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   (a `FieldDefinition` field; `measure.tool`, `analyze.tool`, `read`, `light`,
   `pour`/`fill`'s vessel, the crafting tools) before the controller runs and renders the
   refusal; the controller is dumb. In a live combat session `ready` runs through
-  `Combatant.beginWeaponSwitch`'s countdown generalized to any item: `combat.draw.
-  seconds` from a shaped container (`shapedTo` set — a holster, a sheath) at the ready tier, `combat.switch.seconds`
-  from anything else; `fight draw`/`fight switch` become callers of `ready`.
+  `Combatant.beginWeaponSwitch`'s countdown generalized to any item, **priced in two halves
+  by holder** (owner, 2026-11-11): `Carrying.readySeconds(item) = putAwaySeconds(held) +
+  drawSeconds(item)`, each by where the thing goes or comes from — dropped 0; a shaped
+  holder (`shapedTo` set) or a `from`-placement clip `combat.draw.seconds` (1.5); an open
+  pocket member, an unshaped pouch or a hung tool `combat.reach.seconds` (**new dial**,
+  3); a pocket or pouch with `closes: true` adds `combat.unfasten.seconds` (**new dial**,
+  3); packed → refused (`take it off first`; `remove` of a worn pack in a session costs
+  `combat.switch.seconds`). Summed, `beatsForSeconds` rounds up; the `WeaponSwitch` holds
+  guard down / no instrument throughout as today. The start line names the holder each
+  hand goes to (*fumbles at her coat pocket* / *her hand drops to her holster*) — the
+  session's existing switch narration, given the holder's noun. No competence term (the
+  shipped switch has none; deferred to combat-slate). Outside a session the seconds are
+  not spent. `fight draw`/`fight switch` become callers of `ready`.
 - **D17 — one rule for binding: the nearest thing you perceive wins.** Delete `ReachDepth`,
   `depth:`, the three flags, `MqlContext.depth`, `refuseIfShutAway`, `rungFor`, the
   `depth:` lines on the 8 views, and the rung parameter on `PerceptionApi.reach/canReach`
@@ -1509,6 +1519,11 @@ idioms (drive 18's `cook`/`buy`/`give`) are W7's.
   1.2 m staff two-handed; a gnome a 4 kg / 0.6 m).
 
 ## Deferred seams
+
+- **Skill shortening a draw** → [combat-slate](../slates/builds/combat-slate.md) (open
+  question added 2026-11-11): practice should show in `readySeconds`, but no quick-draw
+  competence exists and the shipped switch is ungraded; the attach point is a factor on
+  `Carrying.readySeconds`.
 
 - **Folding** → [folding-slate](../slates/builds/folding-slate.md): `foldPackingFactor()`
   is the attach point; the crease model replaces the number.
