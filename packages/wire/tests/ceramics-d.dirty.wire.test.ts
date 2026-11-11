@@ -371,12 +371,14 @@ async function funded(tag: string, where: string): Promise<Session> {
   const handle = uniqueHandle(tag);
   const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
-  bank.close();
+  // ⚠ The override names a member by the live roster, so the member stays
+  // in the world until it lands (finalize: closed first, `no-target`).
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
     expectOk(await gov.cmd(`reserve override 200 to ${handle} "wire: ceramics drive D"`));
   } finally {
     gov.close();
+    bank.close();
   }
   const s = await Session.open(handle, { startLocation: where });
   sessions.push(s);
