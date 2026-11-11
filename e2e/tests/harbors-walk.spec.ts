@@ -180,7 +180,7 @@ test.describe('the harbors build, in a browser', () => {
     await say(page, 'look north');
     await say(page, 'go southwest');
     await say(page, 'look');
-    await say(page, "buy caulker's kit");
+    await say(page, 'buy "caulker\'s kit"');
     await snap(page, 'chandler');
     await say(page, 'go northeast');
     await say(page, 'go north');

@@ -1026,7 +1026,7 @@ suite('B3 — she goes down', () => {
   it('25. (instant · player) `maintain` her hull with a caulker’s kit from the chandler: the leak stops, the hull reads sound; mooring, pumping and handling her counted toward seamanship', async () => {
     await inOfficeHours();
     const caulker = await session(SECOND, CHANDLER);
-    const kit = await say(caulker, "buy caulker's kit");
+    const kit = await say(caulker, 'buy "caulker\'s kit"');
     expect(kit, kit).toMatch(/You buy .*caulker's kit/);
     expectOk(await caulker.cmd('go northeast'));
     expectOk(await caulker.cmd('go west'));
