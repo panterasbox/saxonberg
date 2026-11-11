@@ -213,7 +213,7 @@ differ from the defaults.
 - **Nothing loose on a body**; choosing where a received thing goes is the carrier's own act — a free
   hand, else the first worn container it fits, else a refusal in words (*"your hands are full and it
   won't fit in your pockets"*). The order is the player's setting.
-- **Pockets** are small worn containers on their garment, at the ready tier; garments declare them,
+- **Pockets** are small regions of their garment that hold things, at the ready tier; garments declare them,
   with defaults by kind (trousers two; a coat outer and inner). Inner pockets stay concealed when the
   coat is outermost; outer pockets are quicker.
 
@@ -479,17 +479,19 @@ today's `get`; it is short because the porting came first.
 
 Every step instant or short; *player* means player verbs only, *staged* means wizard setup is fine.
 
-1. *instant · player* — A fresh character in the lounge: `get` a cup — it goes to a hand. `get` a second
-   and a third thing — the second to the other hand, the third to a pocket; a fourth that fits nowhere is
+1. *instant · player* — A fresh character in the lounge: `get` a mug — it goes to a hand. `get` a second
+   thing — the other hand; `get` something small (a coin, a key, a matchbox) — it goes to a trouser
+   pocket, because a mug would not fit one; a fourth that fits nowhere is
    refused in words. The refusal names the hands' contents and the
    next command in the character's own pocket names. At Duncan Hall, `talk to Katie` through intake —
    an Eternal U daypack is handed over; a second fresh character arriving with full hands finds it in
    their new room instead.
 2. *instant · player* — `inventory` shows the tiers: in hand, ready (the pocket's contents), worn, and the
    burden in words. `inventory --flat` shows one list.
-3. *instant · player* — `put cup in coat pocket`, then `inventory`: the cup's home is the pocket.
+3. *instant · player* — Wearing a coat: `put key in coat pocket`, then `inventory`: the key's home is the
+   pocket. `put mug in coat pocket` is refused by its size, saying so.
 4. *instant · staged* — `put pouch on belt`, `put holster on belt`, `put canteen on belt` until `i belt`
-   says there is no room; one more attachment is refused, naming the belt's length. Then, holding a
+   says there is no room; one more attachment is refused, naming the belt. Then, holding a
    sword with a compass put away in a belt pouch: `measure` something that
    needs the compass — *"you sheathe your sword and pull out your compass"*, and the reading runs.
 5. *instant · player* — Put the compass in a backpack worn on the back, then `measure` again — refused:
@@ -498,8 +500,9 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
    costs less than from a pocket (watch the exchange's narration).
 7. *short · staged* — In a fight, holding a lantern and a shield: `fight draw sword` is refused, naming
    the lantern and offering to drop it; `drop lantern` is instant and the room stays lit; `fight draw
-   sword` costs a beat; `wield greatsword` is refused, naming the shield. A staged ogre wields the same
-   greatsword in one hand; a gnome is refused a longsword one-handed.
+   sword` costs a beat; `wield greatsword` is refused, naming the shield. A staged large body (the
+   biggest shipped species) wields the same greatsword in one hand; a gnome is refused a longsword
+   one-handed.
 8. *instant · player* — A three-meter pole: `get pole` takes both hands; with a lantern held, it is
    refused, naming both hands.
 9. *instant · player* — `go` under a low door — *"you'd have to stoop — `stoop north`"*; `stoop north`
@@ -507,7 +510,8 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
    backpack`, then `crawl north` — through, pushing the pack ahead.
 10. *instant · player* — Climb a ladder holding a lantern and a sword — refused for want of hands; `put` them
    away (the sword in its sheath, the lantern on your belt) and climb.
-11. *instant · staged* — Carry a wardrobe-sized crate to a stair whose turn is too tight — refused by its
+11. *instant · staged* — Carry a long, light, empty crate (staged within what the body can lift) to a
+    stair whose turn is too tight — refused by its
     size, saying so; the same crate through a wide doorway passes. A pole stands in an open barrel,
     sticking out; put in a chest, `close chest` is refused — *"the pole sticks out."*
 12. *instant · player* — Another character in the room: `i them` shows what they hold, their outer layer,
@@ -526,7 +530,10 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 16. *short · player* — Swim across a pond carrying a paper letter in an ordinary pack — it comes out wet
     and ruined; the same letter in an oilskin pouch comes out dry. A cork in an open coat pocket floats
     away as you go under; in a buttoned pocket it stays.
-17. *instant · player* — Pack two game days of food and water for one person — `inventory --weight` and
+17. *short · staged* — The soak expedition's staged twin: a wizard advances the clock four hours on an
+    online body carrying food and water — what it ate and drank is gone from its pack, and the burden
+    line is lighter.
+18. *instant · player* — Pack two game days of food and water for one person — `inventory --weight` and
     the burden line show it is most of a pack; `put` it in a mule's panniers and the burden falls; keep
     adding and the mule refuses in words. `tie rope to mule` and hold the end — the mule comes with you
     through the next way, and you have one hand free. Mounted on a horse, a compass in your saddlebags
@@ -536,17 +543,17 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
     full hands — refused, the cup still yours. Hitch a handcart — `get lantern` is refused, naming your hands on the
     cart; at a narrow door the cart won't fit; throw a tarp over its load, and another character in the
     room no longer sees it.
-18. *instant · staged* — A wizard sets one room's gravity to zero: a dropped cup floats in the room; a
+19. *instant · staged* — A wizard sets one room's gravity to zero: a dropped cup floats in the room; a
     cup set on the table drifts off; a full pack reads as no weight on the burden line, yet still won't
     pass the hatch and still takes both hands.
-19. *instant · staged* — Inside an extent you hold, with the builder lens on: look into a staged NPC's
+20. *instant · staged* — Inside an extent you hold, with the builder lens on: look into a staged NPC's
     shut chest and read its true contents, labeled builder information; with the lens off, the same chest
     is shut to you like anyone.
-20. *short · staged* — ⭐ (R4) Restart the world. Every character comes back holding, wearing and
+21. *short · staged* — ⭐ (R4) Restart the world. Every character comes back holding, wearing and
     pocketing exactly what they had — no item loose, none on the floor, none duplicated; a pre-flip
     character's loose inventory has been placed (hands, pockets, pack, and the overflow at home, with the
     message).
-21. *instant · player* — (R5) `look` in the new or changed places — the low-door room, the crawlway, the
+22. *instant · player* — (R5) `look` in the new or changed places — the low-door room, the crawlway, the
     stair, the pond — by day and with a headlamp at night.
 
 ### Soak drive
