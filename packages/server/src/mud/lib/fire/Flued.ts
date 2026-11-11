@@ -104,7 +104,7 @@ export function FluedMixin<TBase extends NestingConstructor<Stuff & Burner>>(
           const { sootKg, taken } = await this.sweepChimney(req.actor);
           return {
             ok: true,
-            facts: { kg: sootKg, kinds: sootKg > 0 ? { [DirtKinds.SOOT]: sootKg } : {}, taken },
+            facts: { kg: sootKg, kinds: Object.fromEntries(sootKg > 0 ? [[DirtKinds.SOOT, sootKg]] : []), taken },
           };
         },
       };

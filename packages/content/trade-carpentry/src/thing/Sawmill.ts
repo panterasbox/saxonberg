@@ -312,20 +312,19 @@ export default class Sawmill extends SawmillBase {
     const durationMs = this.sawMs(charge.kg);
     if (!Number.isFinite(durationMs)) return { ok: false, reason: 'no-power' };
     const unattended = this.runsOnWater();
-    const self = this;
     const landedCharge = charge;
     return {
       ok: true,
       durationMs,
       effortW: unattended ? 0 : PIT_SAW_EFFORT_W,
       facts: { log, quarter, boards, unattended },
-      onBegin: () => self.setSawing(true),
-      onAbort: () => self.setSawing(false),
+      onBegin: () => this.setSawing(true),
+      onAbort: () => this.setSawing(false),
       onComplete: async (): Promise<ActDone<SawLanded, never>> => {
         try {
-          return await self.land(actor, log, take, landedCharge, boards, quarter);
+          return await this.land(actor, log, take, landedCharge, boards, quarter);
         } finally {
-          self.setSawing(false);
+          this.setSawing(false);
         }
       },
     };
