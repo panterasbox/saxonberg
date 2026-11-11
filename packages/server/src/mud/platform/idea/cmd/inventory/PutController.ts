@@ -206,10 +206,15 @@ export default class PutController extends CommandController<PutModel> {
       case 'wrong-preposition':
       case 'preposition-ambiguous': {
         const { takes, got } = r.facts;
+        // ⚠ A target that offers nothing at all (a person — you do not
+        // put things IN the bartender) has no list to give (finalize: the
+        // line read *"it takes ."*).
         line =
-          got !== undefined
-            ? Mml.compose`You can't put things ${got} ${Mml.thing(target)} — it takes ${PutController.joinOr(takes)}.`
-            : Mml.compose`Put it ${PutController.joinOr(takes)} ${Mml.thing(target)}?`;
+          takes.length === 0
+            ? Mml.compose`You can't put things ${got ?? 'in'} ${Mml.thing(target)}.`
+            : got !== undefined
+              ? Mml.compose`You can't put things ${got} ${Mml.thing(target)} — it takes ${PutController.joinOr(takes)}.`
+              : Mml.compose`Put it ${PutController.joinOr(takes)} ${Mml.thing(target)}?`;
         detail =
           got !== undefined
             ? `target takes ${takes.join('|')}; got '${got}'`
