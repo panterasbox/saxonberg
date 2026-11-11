@@ -157,20 +157,22 @@ let sweatSeen = false;
 let windedCueSeen = false;
 
 async function bank(handle: string, amount: number): Promise<void> {
-  const gov = await Session.open('founder', { startLocation: BANK });
-  try {
-    expectOk(await gov.cmd(`reserve issue ${amount}`));
-    expectOk(await gov.cmd('drop coins'));
-  } finally {
-    gov.close();
-  }
+  // ⚠ `reserve override`, not `reserve issue` (retired by the money
+  // write-off build — it answers `unknown-subcommand`; found at the
+  // controller-liquidity finalize, where this drive first ran since). The
+  // override is a RECORDED act that lands in the account, so the account
+  // is opened first (the apiculture drive's precedent).
   const me = await Session.open(handle, { startLocation: BANK });
   try {
-    expectOk(await me.cmd('get coins'));
     expectOkOr(await me.cmd('bank open'), 'already-open', 'account-exists');
-    expectOk(await me.cmd('bank deposit coins'));
   } finally {
     me.close();
+  }
+  const gov = await Session.open('founder', { startLocation: BANK });
+  try {
+    expectOk(await gov.cmd(`reserve override ${amount} to ${handle} "wire: nutrition-fitness funding"`));
+  } finally {
+    gov.close();
   }
 }
 
