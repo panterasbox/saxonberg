@@ -19,6 +19,30 @@ below.
 
 ---
 
+## ✅ Owner decisions (2026-11-11) — these override the Risks text below
+
+All six Risks calls went the plan's recommended way:
+
+1. **Biome keeps no catalogue** (Risks 1) — `BiomeCatalogue` is deleted in W7.
+2. **Materials load per row** (Risks 2) — by constituent, relation, act and
+   restore door; the roster warms only for the three roster reads. No
+   first-reach warm of all rows.
+3. **Fabrics are cited by path** (Risks 6) — the 19 garment rows and the
+   fixtures change (D5 as written).
+4. **`lint:census` (f) narrows** (Risks 3) — a constituent cycle is refused
+   only when it leaves the Material family; fix the gate's prose with it.
+5. **`COMMONS_CEILING` rises to the audited number** (Risks 4) — write the
+   caller audit in the gate's comment, as !560 did.
+6. **The declaration, not hooks** (Risks 12) — `static constituentPaths:
+   readonly string[]` on a class, ensured by the clone pipeline beside the
+   row's `identity:constituent` fields, checked by `lint:census`. Signed off
+   as new substrate. D2′'s seven `onCreate` hooks are NOT written;
+   `ON_CREATE_CEILING` must not rise.
+
+⚠ **Build order (Risks 5):** land **W7 before W6** (and W2 before W4) so the
+`lint:on-create` count never rises between commits — W7's deleted
+`BiomeCatalogue` hook pays for W6's two mixin hooks.
+
 ## Grounding
 
 Verified 2026-11-11 at `eb24ec989` (`reqs/load-on-use`). Paths are under
@@ -240,6 +264,7 @@ Every item cites its row in the scan-sweep slate's § Reuse ledger.
 | `DOCUMENT_PATH_FIELDS` += `cleanser: 'cleansers'`, `constructionForm: 'fabrics'` | lint extension | row 7 | path-shaped values only (`constructionForm` also holds kernel words) |
 | persisted fields `maturationProfilePath`, `ripeningProfilePath`, `runSchedulePath`, `finishingProfilePath` | rename of the four `…Key` runtime-state fields | row 4 (a cited thing resident whenever its citer is — the restore door) | setters return `ensure(path)`; no migration (dev DBs are dropped) |
 | restore-door setters on eight runtime fields (`setBulkPayload`, `setCoats`, `setParts`/`setJoints`, `setFuelBed`, `setStrewn`, `setKineticRecord`, the atmosphere contents, `setMadeFrom`) | return type `void` → `Promise<void>` | row 4 | the c2 class of the material census; each with a call-site census (W8b) |
+| `static constituentPaths: readonly string[]` (class-level) | a class's own built-in citations, ensured by the clone pipeline beside the row's `identity:constituent` fields; `lint:census` resolves each path | **genuinely new — owner signed off 2026-11-11** (Risks 12) | replaces seven `onCreate` hooks; read in `TemplateApplier` (or `StuffApi.#cloneInner` before apply) walking the class chain, each path through `StuffApi.ensureConstituent` |
 | `onCreate` readiness on `VitalsMixin`, `ContaminableMixin`, `MaturingMixin`, `RipeningMixin`, `FractionatingMixin`, textiles `FinishingMixin` | one awaited line each | row 4, mechanism 4 (`Soilable.onCreate` precedent) | `lint:on-create` arithmetic in Risks 5 |
 
 **Genuinely new: nothing.** Searched: `lib/document/`, every `*Catalogue.ts`,
@@ -298,8 +323,8 @@ written as one `await MaterialApi.materials().ensure(X)` in each class's
 `onCreate` **unless the owner prefers the declared form** (Risks 12): a
 `static constituentPaths: readonly string[]` on the class that the clone
 pipeline ensures beside the row's fields — one generalization, no per-class
-hook, and `lint:census` can check the constants resolve. The plan writes
-the hooks; the build asks before inventing the declaration.
+hook, and `lint:census` can check the constants resolve. ✅ **Owner chose the declaration** (2026-11-11): the clone pipeline ensures
+`static constituentPaths` — no per-class hook.
 
 **D3 — The vat and the still match by tag, over a lazy index.** The
 `inputCategory` tag match (`forMaterial`) is the recipe-slot `category`
@@ -769,11 +794,17 @@ The two are one shape; land them in one wave.
   (`Midden.takeRefuse`, `WaterFixture.settleBulk`, `IronPot.setCake`,
   `LayController`, `SmeltController.runIntoCrucible`, `BleedController`'s
   closure's async parent); sync sites load the constant when the class
-  stands (D2′: `onCreate` on `PipeRun`, sugar `Copper` + `SugarLoaf`,
-  dairying `Churn`, chandlery `SoapKettle`, farming `Field`,
-  `WeatherLogic`'s puddle in the tick's async parent, `Atmospheric`'s
-  enclosure default in `Location`'s existing `onCreate`) — ⚠ seven
-  `onCreate` hooks against `lint:on-create` (Risks 5, 12).
+  stands — ✅ by `static constituentPaths` (D2′, owner 2026-11-11) on
+  `PipeRun`, sugar `Copper` + `SugarLoaf`, dairying `Churn`, chandlery
+  `SoapKettle`, farming `Field` and `Location` (the `Atmospheric` enclosure
+  default); `WeatherLogic`'s puddle awaits in the tick's async parent. No
+  new `onCreate`. Implement the declaration first in this wave: the clone
+  pipeline reads `constituentPaths` up the class chain (subclass lists
+  union with the base's) and ensures each before phase 1, on mint,
+  go-live and restore alike; `lint:census` gains the clause that each
+  declared path is a shipped row (a pack class's paths resolve in its own
+  pack or a required one). Unit-test: a class declaring a path clones
+  with the row resident; a missing row warns as a bad row citation does.
 - **(c) the mints** — `CraftingLogic` mint paths hold a live `Material`
   already (`setMaterial(instance)`); the recipe's output materials are
   ensured when the recipe dictionary reads the row (`RecipeCatalogue`,
@@ -795,7 +826,7 @@ The two are one shape; land them in one wave.
 - `packages/wire/tests/load-on-use.dirty.wire.test.ts` (WIRE_PORT 2019):
   the blocking drive's 13 steps against a dropped DB, with the staged twins
   named in § Test & gate strategy; step 0 asserts the boot log; step 12
-  restarts (the harness cannot restart — see Risks).
+  restarts via `restartWorld()` (the !560 drive's helper).
 - `e2e/tests/load-on-use-walk.spec.ts`: steps 1–6, 9–11 in a browser.
 - Docs: `document-store.md` (the kinds table +5, § Resident by construction
   — the two Idea catalogues' doors, D17–D2x index), `race.md` (materials load
@@ -863,11 +894,7 @@ No new capability; the five links for each family's **load**:
   `eval` on the vessel that sets its maturation clock stamp back — the build
   verifies the exact seam the dairy/whiskey drives used and names it in the
   drive record); 9 `wash` at the bathhouse; 10 `look` at a garment at the
-  tailor's; 11 `dye` a hank; 12 restart — ⚠ the wire harness cannot restart
-  a world (scan-sweep § What remains, AC 7): the drive runs **twice against
-  the same DB** in two harness boots, the second asserting steps 1, 3, 5, 6, 10
-  read the same — if the harness still cannot, the restart step is run by
-  hand and recorded.
+  tailor's; 11 `dye` a hank; 12 restart — the harness CAN restart a world — `restartWorld()` in `packages/wire/tests/documents-path-identity.dirty.wire.test.ts` (a SIGTERM so the shutdown capture lands, then a re-boot against the same DB); reuse it; then re-assert steps 1, 3, 5, 6, 10.
 - **Soak drive:** S1 (a vat ripening over game weeks) — the soak lane,
   `assembly.soak` precedent; proved by arithmetic in the maturation suites here.
 - **B2:** every checkpoint made to fail once (a misspelled cleanser path, a
@@ -934,7 +961,7 @@ No new capability; the five links for each family's **load**:
    rewrites controllers including `WashController`/`DyeController`. Whichever
    merges second carries the merge; the catalogue accessors are additive, the
    row moves are the conflict surface (`packages/content/**/idea/{Cleanser,fabric,dyestuff,maturation,fractionation}/`).
-9. **The restart step** — the wire harness cannot restart; see § Test & gate.
+9. **The restart step** — resolved: the harness CAN restart a world — `restartWorld()` in `packages/wire/tests/documents-path-identity.dirty.wire.test.ts` (a SIGTERM so the shutdown capture lands, then a re-boot against the same DB); reuse it.
 10. **`ServesDocuments` may not expose `parse`** (W3's validator). One
     interface method, on every catalogue already.
 11. **`check-on-create`'s loading predicate** may count `ready(...)` in an
