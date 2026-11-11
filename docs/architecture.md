@@ -1478,8 +1478,10 @@ registry) lives in `lib/mixin.ts`.
 ⭐ **A protocol with ONE host is a method on that host** (controller-liquidity
 W17, owner): `SawableMixin` → `Bole.sawPlanFor` (the sawmill asks a `Bole`
 by class), `WaterEntryMixin` → `Shore.wayIntoWater` (`WaterPlace`, which
-composes a shore, overrides it), `SurveyedMixin` → `Place.readRooms` and
-`Structure.readOutside` (its verb retired with it). A protocol earns its
+composes a shore, overrides it), `SurveyedMixin` → `Structure.readOutside`
+and the `rooms` reading (its verb retired with it; the place read sat on
+`Place` until W21 moved it into `RoomsReading` — an interpretation over five
+other objects is the reading's, not every location's). A protocol earns its
 mixin by its hosts; with one, the mixin is ceremony and `MixinApi.isX`
 narrows on what `instanceof` or the host's own predicate already says.
 

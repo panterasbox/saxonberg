@@ -766,9 +766,16 @@ suite('⭐⭐⭐ drive 23 — a stain, a band and a kept floor survive a restart
       /* no log to keep */
     }
     const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
+    // ⭐ A RESTART, not a crash (the harbors and sugar drives' precedent):
+    // preflight's default two seconds SIGKILLs the server before its
+    // shutdown capture, and the cookhouse's record — the rack and the shirt
+    // on it — was never written (controller-liquidity W21's diagnosis; the
+    // !527 finalize measured a loaded world's capture at ~3.5 min, so the
+    // grace is longer than harbors' minute).
     spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
       cwd: serverDir,
       stdio: 'ignore',
+      env: { ...process.env, PREFLIGHT_GRACE_MS: '300000' },
     });
     process.env.WIRE_SERVER_URL = await bootOwnedWorld();
     const s = await Session.open(cookHandle, { startLocation: COOKHOUSE });

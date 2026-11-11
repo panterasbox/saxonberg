@@ -230,6 +230,7 @@ import type { Tieable } from '../lib/spatial/Tieable';
 import type { Spliceable } from '../lib/spatial/Spliceable';
 import type { Buoy } from '../lib/location/Buoy';
 import type { WaterSource } from '../lib/location/WaterSource';
+import type { WayIndex } from '../lib/location/WayIndex';
 import type { Improvable } from '../lib/ground/Improvable';
 import type { Posed } from '../lib/character/Posed';
 import type { Mountable } from '../lib/slot/Mountable';
@@ -2182,6 +2183,11 @@ export class MixinApi {
   /** Can this Idea read a named water for a place? */
   public static isWaterSource(obj: Stuff): obj is Stuff & WaterSource {
     return this.hasMixin(obj, Mixins.WaterSource);
+  }
+
+  /** Does this Idea know the realm's ways (the transport pack's lanes)? */
+  public static isWayIndex(obj: Stuff): obj is Stuff & WayIndex {
+    return this.hasMixin(obj, Mixins.WayIndex);
   }
 
   /**

@@ -377,12 +377,11 @@ describe('archetype satisfaction', () => {
       }
     };
     walk(root);
-    // `lib/stuff/Place.ts` carries it as a FACT of the place read (the
-    // place answers, `analyze rooms` words it — controller-liquidity W7c,
-    // W17); still reported, never spent.
+    // `RoomsReading` gathers and words it (`analyze rooms`; the read sat on
+    // `Place` from W17 until controller-liquidity W21 moved it off every
+    // location); still reported, never spent.
     expect(hits.sort()).toEqual([
       'lib/archetype/Archetype.ts',
-      'lib/stuff/Place.ts',
       'platform/__tests__/ArchetypeSatisfaction.test.ts',
       'platform/idea/reading/RoomsReading.ts',
     ]);

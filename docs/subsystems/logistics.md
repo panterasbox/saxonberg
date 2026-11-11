@@ -816,11 +816,17 @@ spot, and a city-sized zone would report *the corridor has water*
 because a fountain exists a quarter-mile away. The shipped roads read
 correctly only because they happen to be zoned one-road-per-zone.
 
-⭐ It resolves `LaneCatalogue.lanesAt(here)` **by shape** now — the
-duck-typed singleton lookup `consigns` already uses — so the kernel
-still imports no pack, a crossroads on two ways is asked about both, and
-**outdoor ground that is on no lane is asked nothing at all**, which is
-the behaviour a courtyard should have had from the start.
+⭐ It asks the realm's **`WayIndex`** (`lib/location/WayIndex.ts`, a
+kernel seam mixin; controller-liquidity W21) — the singleton the
+`ways.indexPath` setting names, narrowed by `MixinApi.isWayIndex`. The
+transport pack's `LaneCatalogue` composes it (`waysideOf(here)` — the union
+of every lane's nodes through here) and seeds the setting
+(`content/settings/ways.yaml`). So the kernel still imports no pack and
+probes no shape (it resolved `lanesAt` **by shape** until W21, swallowing
+any error), a crossroads on two ways is asked about both, **outdoor ground
+that is on no lane is asked nothing at all**, and ⚠ **with no index named
+(no transport pack) no corridor archetype is reported** — an absence by
+design; a named path that is not a `WayIndex` throws.
 
 ⭐ `lanesAt` is a **keyed read** off a `byNode` index built during the
 compile (`place → the lanes running through it`). It was a filter over

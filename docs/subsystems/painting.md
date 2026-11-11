@@ -58,7 +58,7 @@ word; **`analyze condition <building>`** says WHY (*the paint has gone;
 the weather is at what was under it*), to every band; **`measure paint
 <building>`** (a `Reading` row, `PaintReading` — an instrument rung, a
 rule or a gauging rod, unbanded) says the job: the area to the weather
-and the litres one coat takes. `Place.readRooms` (`analyze rooms`) asks
+and the litres one coat takes. `RoomsReading` (`analyze rooms`) asks
 the structure a room is part of for the shell line. So `analyze rooms`
 in a field reads no fabric and `maintain` there finds nothing to keep. By path, only
 the main building (the first named) answers, at the holding's own extent —

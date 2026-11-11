@@ -873,9 +873,10 @@ the base swap its header planned): it copies no plan, its carve mints keyed memb
 `mintKeyed`, its cells sit on its zone's grid (`laysOutOwnFrame` false)
 and keep their own records; it has no fabric. `CirculationWarren.conditionOf`
 reads the holding's main building (`MixinApi.isDurable`); `analyze rooms`
-asks the place (`Place.readRooms` — controller-liquidity W7c, a method on
-the host since W17 when the one-host `Surveyed` protocol folded), which
-asks the structure it is part of for its outside (`Structure.readOutside`)
+is `RoomsReading.readRooms` (controller-liquidity W21 — it sat on `Place`
+from W17 to W21; an interpretation over the warren, the archetypes, the
+structure and the realm's ways is the reading's, not every location's), which
+asks the structure the place is part of (`Place.structure()`) for its outside (`Structure.readOutside`)
 and reads the term off `Warren.getUpkeepTerm` (on the base since W7c; a
 holding answers).
 

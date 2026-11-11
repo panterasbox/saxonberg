@@ -237,9 +237,8 @@ verb not existing. See [instrumentation.md](./instrumentation.md).
 ⭐⭐ `analyze rooms` is a MIRROR and the mine's read is a MEASUREMENT.
 The geological read is instrument-mediated, competence-banded and the
 thing a player pays for and acts on — the opposite of a read nothing is
-gated on. `MineWarren` is a `FloorplanWarren`, which the place's own
-`readRooms` (`Place`, controller-liquidity W7c/W17) reads, so `analyze
-rooms` reports honestly in a working for free. (The mirror was the
+gated on. `MineWarren` is a `FloorplanWarren`, which `analyze rooms`
+(`RoomsReading`, controller-liquidity W17/W21) reads, so it reports honestly in a working for free. (The mirror was the
 `survey` verb until W17; the owner gave the word back to the surveyors —
 the three channels above are the surveying.) `sample` asks the ground the same way: `StrataMixin`
 composes the kernel's `SampleableMixin` and answers with `sampleFace`.

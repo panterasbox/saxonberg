@@ -38,6 +38,7 @@
  */
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { WayIndexMixin } from '@saxonberg/server/mud/lib/location/WayIndex';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -149,7 +150,7 @@ export type JourneyRefusal =
       }
     >;
 
-export default class LaneCatalogue extends Idea {
+export default class LaneCatalogue extends WayIndexMixin(Idea) {
   /** `null` until the first read; the load promise once one is running. */
   private loading: Promise<CompiledIndex> | null = null;
 
@@ -336,6 +337,18 @@ export default class LaneCatalogue extends Idea {
    */
   public async lanesAt(path: string): Promise<CompiledLane[]> {
     return [...((await this.index()).byNode.get(path) ?? [])];
+  }
+
+  /**
+   * ⭐ The kernel's `WayIndex` question (controller-liquidity W21): every
+   * place along every lane through `placePath` — the union, so a
+   * crossroads answers both ways. `analyze rooms` asks it for a
+   * `roomsScope: corridor` archetype.
+   */
+  public override async waysideOf(placePath: string): Promise<string[]> {
+    const out = new Set<string>();
+    for (const lane of await this.lanesAt(placePath)) for (const n of lane.nodes) out.add(n);
+    return [...out];
   }
 
   /**

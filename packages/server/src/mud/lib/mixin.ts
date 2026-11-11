@@ -524,6 +524,9 @@ export const Mixins = {
   // *This Idea can read a named water for a place* — the seam the water
   // pack's reach catalogue and seas implement (the GroundSource shape).
   WaterSource: 'WaterSourceMixin',
+  // *This Idea knows the realm's ways* — the seam the transport pack's lane
+  // catalogue implements (controller-liquidity W21; the WaterSource shape).
+  WayIndex: 'WayIndexMixin',
   // *This ground can be cleared, drained and limed — and it REVERTS.*
   // ⭐ Promoted out of `trade-farming` by the extraction build: you ditch
   // a road, a yard and a quarry, so improvement acts on GROUND and farming
@@ -1063,6 +1066,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   WaterPlaceMixin: "{} isn't a water you can be in",
   WaterColumnMixin: "{} doesn't grow a water column",
   WaterSourceMixin: "{} can't read a water",
+  WayIndexMixin: "{} doesn't know the ways",
   LockableMixin: "{} doesn't lock",
   SwitchableMixin: "{} doesn't switch on and off",
   FoldableMixin: "{} doesn't fold",

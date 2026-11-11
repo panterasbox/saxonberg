@@ -58,6 +58,8 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { Idea } from '../../../../lib/stuff/Idea';
 import type { Container } from '../../../../lib/spatial/Container';
 import type { Containable } from '../../../../lib/spatial/Containable';
+import { WayIndexMixin } from '../../../../lib/location/WayIndex';
+import { AppApi } from '../../../../api/app';
 
 const ARCHETYPE_DIR = fileURLToPath(
   new URL(
@@ -222,23 +224,24 @@ const analyzeRooms = async (room: unknown): Promise<CommandContext> => {
 };
 
 /**
- * ⭐ Stand a lane catalogue at the transport pack's own path, answering
- * the one method the place read asks for. `Place` finds it BY SHAPE —
- * the kernel imports no pack — so a fixture stands in the same way the
- * real one does.
+ * ⭐ Stand a way index where the realm's settings name one, answering the
+ * kernel's `WayIndex` question. The reading finds it through
+ * `ways.indexPath` and narrows it by its mixin — the kernel imports no pack
+ * and probes no shape — so a fixture stands in exactly as the transport
+ * pack's lane catalogue does.
  */
+const WAY_INDEX = '/test/idea/WayIndex';
+let settings: Record<string, string> = {};
 function installLane(nodes: (Stuff & Container)[]): void {
   const paths = nodes.map((n) => n.getTemplatePath() ?? '');
-  class StubLaneCatalogue extends Idea {
-    static _mixinName = 'StubLaneCatalogue';
-    async lanesAt(path: string): Promise<{ nodes: string[] }[]> {
-      return paths.includes(path) ? [{ nodes: paths }] : [];
+  class StubWayIndex extends WayIndexMixin(Idea) {
+    static _mixinName = 'StubWayIndex';
+    override async waysideOf(path: string): Promise<string[]> {
+      return paths.includes(path) ? paths : [];
     }
   }
-  makeStuffAtPath(
-    () => new StubLaneCatalogue() as unknown as Stuff,
-    '/system/transport/idea/LaneCatalogue',
-  );
+  makeStuffAtPath(() => new StubWayIndex() as unknown as Stuff, WAY_INDEX);
+  settings['ways.indexPath'] = WAY_INDEX;
 }
 
 describe('analyze rooms', () => {
@@ -246,6 +249,8 @@ describe('analyze rooms', () => {
     installV1QuantityMarshallers();
     StuffApi.clearAll();
     captureBody();
+    settings = {};
+    vi.spyOn(AppApi, 'setting').mockImplementation((key: string) => settings[key] ?? '');
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     vi.spyOn(DocumentApi, 'listOfKind').mockImplementation(async (kind: string) =>
       kind === 'archetype' ? roomArchetypeDocs() : [],
@@ -433,6 +438,53 @@ describe('analyze rooms', () => {
       .flat();
     expect(verbs).not.toContain('survey');
     expect(verbs).toContain('look');
+  });
+
+  it('⚠ no way index named: an outdoor place reports no corridor, and nothing throws', async () => {
+    await warmWith([scopedDoc('corridor', 'a way', 'corridor')]);
+    const here = makeStuffAtPath(() => new Locale(), '/test/way/unindexed');
+    vi.spyOn(BiomeApi, 'isSkyExposed').mockReturnValue(true);
+    // No `ways.indexPath`: the realm has no ways (no transport pack).
+    const ctx = await analyzeRooms(here);
+    expect(captured).not.toContain('a way');
+    expect(captured).toContain('a bedroom: no');
+    expect(ctx.note).not.toHaveBeenCalled();
+  });
+
+  it('a building that is no holding still gets its shell line — and no upkeep line', async () => {
+    const shop = makeStuffAtPath(() => new Locale(), '/world/_rooms/shop/floor');
+    const house = makeStuff(() => new TestHouse());
+    house.setCondition(0.5);
+    vi.spyOn(NavigationApi, 'structureAt').mockResolvedValue(house as never);
+    await analyzeRooms(shop);
+    expect(captured).toContain('You take stock of the room');
+    expect(captured).toContain('The fabric of the place is');
+    expect(captured).not.toContain('Upkeep here is');
+  });
+
+  it('a reader standing somewhere else is refused by name', async () => {
+    const room = makeStuff(() => new Locale());
+    const elsewhere = makeStuff(() => new Locale());
+    const reader = makeStuff(() => new Reader());
+    ContainmentApi.move(
+      reader as unknown as Stuff & Containable,
+      elsewhere as unknown as Stuff & Container,
+    );
+    // The verb resolves `here` to where the reader stands, so a mismatch
+    // is reachable only by a caller handing the read another place — the
+    // reading still refuses it by name rather than reading somewhere else.
+    class Direct extends RoomsReading {
+      async readAt(ctx: CommandContext, here: Stuff): Promise<void> {
+        await this.analyze(ctx, here, 'novice' as never, null, '');
+      }
+    }
+    const reading = withRow(await StuffApi.create(() => new Direct()), 'rooms');
+    const ctx = ctxFor(reader, room);
+    await reading.readAt(ctx, room as unknown as Stuff);
+    expect(captured).toContain('from inside it');
+    expect(ctx.note).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'controller-rejected', reason: 'not-here' }),
+    );
   });
 
   it('a reader with nowhere to stand is told so', async () => {

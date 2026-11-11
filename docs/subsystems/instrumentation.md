@@ -309,7 +309,11 @@ and soil survey ladders keep it). What it reported moved onto this ladder:
   room archetypes met and missed and by what, the shell line (the
   building's condition word and why), and at home the whole holding and
   who owes the upkeep. A mirror, never a score: no digit reaches it
-  (its suite holds that). The facts are `Place.readRooms(viewer)`.
+  (its suite holds that). The facts are gathered by `RoomsReading.readRooms` (W21 — off `Place`)
+  from the objects that own them; a reader not standing in the place is
+  refused by name (`not-here`), and a corridor archetype's way comes from
+  the realm's `WayIndex` (`ways.indexPath`, the transport pack's lane
+  catalogue) — no index named, no corridor reported.
 - **`condition`** gained a building: on a structure read from its landing,
   the condition word carries its cause (*the paint has gone; the weather
   is at what was under it*) — to every band, because a passer-by sees a
