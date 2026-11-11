@@ -445,7 +445,7 @@ export class Archetype {
     const industry = this.getIndustry();
     if (industry === null) return order.map((k) => rows.get(k)!);
     // ⭐ The industry's recipes come from the recipe dictionary, which
-    // whatever asks (`survey`, the scaffold) loaded before asking — a miss
+    // whatever asks (`analyze rooms`, the scaffold) loaded before asking — a miss
     // throws rather than deriving an empty floor.
     const recipes = StuffApi.findByTemplatePath<RecipeCatalogue>(RECIPES_PATH);
     if (!recipes) throw new DocumentNotResidentError('recipe', RECIPES_PATH);

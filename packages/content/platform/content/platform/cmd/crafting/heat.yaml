@@ -10,8 +10,8 @@ category: crafting
 controller: /platform/idea/cmd/crafting/HeatController
 description: "Take a thing to the fire and hold it there until it has taken the heat"
 help: |
-  Bring the work to the fire — `heat ingot` at the forge, `heat pot` at
-  the hearth (or bare `heat` for the build you're working). Latches the
+  Bring the work to the fire — `heat ingot` at the forge (or bare `heat`
+  for the build you're working). Latches the
   hottest heat the build has taken; recipes that need heat check it at
   the finish. Needs a lit fire in reach. Takes a moment.
 

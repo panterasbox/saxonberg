@@ -148,7 +148,7 @@ describe('Sweepable — a floor and a chimney, one result shape (W18)', () => {
     expect(plan).toMatchObject({ ok: true, facts: { tool: 'brush' }, durationMs: 24000 });
     vi.spyOn(h, 'sweepChimney').mockResolvedValue({ sootKg: 0.4, taken: [] });
     if (!plan || plan.ok !== true) throw new Error('expected a plan');
-    expect(await plan.onComplete()).toEqual({ ok: true, facts: { kg: 0.4, kinds: { soot: 0.4 }, taken: [] } });
+    expect(await plan.onComplete()).toEqual({ ok: true, facts: { kg: 0.4, kinds: { '/platform/dirt/soot': 0.4 }, taken: [] } });
     expect(h.sweepPlanFor({ actor: actor(), broom: true, brush: false })).toEqual({ ok: false, reason: 'no-brush' });
   });
 });
