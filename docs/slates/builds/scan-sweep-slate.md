@@ -330,7 +330,32 @@ Reading, Placement), and `LocationGraphRegistry`'s own boot reason says
   `:1145-1148` puts three entries in `world-seed` that live in
   eternal-university and hinkley-hills.
 
+## Reuse ledger for the plan — load on use, round two (2026-11-11)
+
+For [load-on-use-requirements](../../requirements/load-on-use-requirements.md).
+Every row is one the plan must account for.
+
+| concept | already does it | reuse / generalize |
+|---|---|---|
+| a family's documents served by one singleton | `lib/document/DocumentCatalogue<T>` + the nine per-family catalogues (!560) | reuse — one subclass per new family (Cleanser, MaturationProfile, FractionSchedule, Fabric, Dyestuff) |
+| a document kind and its catalogue | `DocumentKinds` entry with `catalogue:`; `DocumentApi.catalogueFor(kind)` for the go-live | reuse — one entry each; Dyestuff's kind declared by the platform (trade-dyeing's rows) |
+| the value a document parses into | `lib/` value classes (`Joint`, `Aroma`, `DirtKind` …) | reuse the pattern — `MaturationProfile`'s `rateAt`/`transformFor` and the schedule's spans move onto values |
+| a cited thing resident by construction | D7: a setter returns its load, the applier awaits it; acts await theirs; `DocumentNotResidentError` on a cold sync read | reuse — `_materialPath`, `_biomePath`, the cleanser/fabric/dyestuff/profile citations |
+| an Idea family that loads when reached | spells/corpo/government/discipline (!560 W5a/b): lazy dictionary + `StuffApi.ready` | reuse for Material, Biome, Condition |
+| an Api's reads declared | `static readonly needs` + the security wrapper; `StuffApi.ready(Api)` for sync reach (W5c) | reuse — `MaterialApi`, `BiomeApi`, `ConditionApi`, `AddressApi` declare needs |
+| a citation check | `lint:census` clause (g) `DOCUMENT_PATH_FIELDS`, `lint:aromas`, `lint:typed-words` | extend with each new path-cited field |
+| the boot ratchet | `lint:boot-entries` | ratchet down by the entries removed |
+| the material roster's own warm | `MaterialCatalogue.warm()` (template-path infix, class extends `Material`) | generalize to warm-on-reach; the infix rule stays the membership test |
+| the address index | `AddressRegistry` + `PathTrie.longestPrefix` | reuse — built on first use instead of at `postRegister` |
+
 ## Open questions
+
+- **Could a place's locality be DERIVED from its address with no index?**
+  (load-on-use round two, 2026-11-11) The address index is an index over
+  every locality, so it can only be built on first use, never per-holder.
+  If an address named its locality by convention (the longest claimed
+  prefix IS a locality row's path), the index would go. Not decided; that
+  build only moves the index's build from boot to first use.
 
 1. ~~Negative caching vs maintained indexes~~ — **answered by Part 2:**
    neither; flip the reference so the place names what is in it.
