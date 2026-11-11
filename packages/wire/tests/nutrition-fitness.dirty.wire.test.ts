@@ -162,17 +162,16 @@ async function bank(handle: string, amount: number): Promise<void> {
   // controller-liquidity finalize, where this drive first ran since). The
   // override is a RECORDED act that lands in the account, so the account
   // is opened first (the apiculture drive's precedent).
+  // The member stays in the world until the override lands: it names
+  // them off the live roster.
   const me = await Session.open(handle, { startLocation: BANK });
-  try {
-    expectOkOr(await me.cmd('bank open'), 'already-open', 'account-exists');
-  } finally {
-    me.close();
-  }
   const gov = await Session.open('founder', { startLocation: BANK });
   try {
+    expectOkOr(await me.cmd('bank open'), 'already-open', 'account-exists');
     expectOk(await gov.cmd(`reserve override ${amount} to ${handle} "wire: nutrition-fitness funding"`));
   } finally {
     gov.close();
+    me.close();
   }
 }
 
