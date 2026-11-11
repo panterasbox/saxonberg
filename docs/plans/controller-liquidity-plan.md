@@ -3194,11 +3194,12 @@ after the merge made dirt kinds paths) — fixed. `pnpm build`, `pnpm lint`
 | glass | 6/10 → fixed, not re-driven | master's boundary review moved the dirty face and left its iron pin behind (`"20,0,-3"` → `"10,0,-3"`); a 30-game-minute firing the drive never advanced through; bare `dip` in a cold house is `no-target`. ⚠ one `analyze` got no answer in 30 s while that firing ran — unexplained |
 | cordage | 16/18 → fixed, not re-driven | `cut first rope` at the ropewalk bound the WALK ("rope walk"; `here` is the place since W20): `cut` reads person before here. ⚠ 20 other views list `here` before `person` — owner's call |
 | dairy | red at its first act → fixed, not re-driven | this build put the keeper gate on `draft` (D9): the dairyman sits on the Delight's committee; `heat vat` → `put vat on hearth` |
-| potash | 5/12 | ⚠ every red is a `no dispatch-response within 30 s` — the world stalled under a load average of ~9 (sibling worktrees; `ShoreMixin` reads of 2–5 s in the log). Re-driven: see below |
-| client-surface | 6/12 → 10/12 | stale vs master 11-01: a lit room has no Light segment; the presence line says *seated on*; the staging founder needs the lounge's committee (wizard-axis D13). ⚠ 7–8 depend on who is on shift (master's roster shifts, 7b37ed355) — for the soak lane |
-| wizard-axis | 11/13 → fixed | ⭐ this build's: `provision`/`lease` refused an unbound name `no-player` BEFORE the warren's authority; `LettingWarren.let`/`endLet` refuse `not-authorized` first again |
+| potash | ✗ 5/12, then re-driven on a QUIET machine (load 1.2): still stalls | ⚠⚠ every red is `no dispatch-response within 30 s`. Quiet, drive 8 passed and drive 9 stalled at `pour hopper into pail`; the cascade follows. Not root-caused — the hopper's pour is the suspect; `ShoreMixin` reads of 2–18 s (37 s peak) block the loop in every drive today, green ones included. **Blocks the merge** (relayed owner ruling) |
+| client-surface | 6/12 → 10/12 re-driven (7–8 → soak) | stale vs master 11-01: a lit room has no Light segment; the presence line says *seated on*; the staging founder needs the lounge's committee (wizard-axis D13). ⚠ 7–8 depend on who is on shift (master's roster shifts, 7b37ed355) — for the soak lane |
+| wizard-axis | 11/13 → ✅ 13/13 re-driven | ⭐ this build's: `provision`/`lease` refused an unbound name `no-player` BEFORE the warren's authority; `LettingWarren.let`/`endLet` refuse `not-authorized` first again |
 
-**Owner ruling, relayed 2026-11-11** (through the resumed W6 agent; not
+**Owner rulings, relayed 2026-11-11** (the latest, ~14:37: *"Merge !561 when wizard-axis is green. Client-surface's two shift-dependent reds go to soak. Re-drive potash once on a quiet machine first; if it stalls again, don't merge and tell me."* — potash stalled again, so the merge waits).
+Earlier (through the resumed W6 agent; not
 heard on this agent's own channel — confirm): *"cut the rest of the
 re-drives and walks to after the merge, merge when the first four are
 green"* — the four being potash, wizard-axis, client-surface and the
