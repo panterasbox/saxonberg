@@ -104,8 +104,10 @@ differ from the defaults.
 - **Every caller that puts a thing on a body** — the count is the flip's gate (§ The flip).
 - **The lounge and the newbie wilds** — a new player's first `get` now goes to a hand; the starter kit
   needs a pocket or a bag, or the tutorial's first pickup fills both hands.
-- **Exits everywhere** take default clearances by kind; a place built small or big (the kobold tunnel,
-  the ogre's hall) authors its own.
+- **Exits everywhere** take their clearance from the openings and boundaries already there; a place
+  built small or big (the kobold tunnel, the ogre's hall) authors its own. ⚠ **Any shipped room authored
+  smaller than a person** (an `extent` under about 2 m, under a roof) now makes a body stoop inside it —
+  each is found and judged.
 - **The card** (build-3) renders inventory in tiers; **`equip`** keeps working over the new hands.
 - **Shops** that hand goods to a buyer, **crafting** that drops output, **give** between players — each
   now hands, pockets, or refuses in words.
@@ -123,8 +125,20 @@ differ from the defaults.
   design).
 - **Filling a container:** rigid things fill by their bounding box (so packing efficiency emerges);
   flexible things by their own volume; bulk exactly; a stack is its count times its unit.
-- **A container has three limits** — mass (what it bears), volume, and its **opening** (what fits
-  through, by the thing's longest dimension against the opening's diagonal).
+- **A container has three limits** — mass (what it bears), volume, and its **opening**. Putting a thing
+  in is two checks a player could make with a tape measure (owner review, 2026-11-11): it passes the
+  **mouth by its cross-section** (its two smaller dimensions against the opening — a pole goes in
+  endwise, a ship model does not go through a bottle's neck), and it fits **inside, turned whichever way
+  works** (the interior's own dimensions — a 3 m pole is refused by a backpack its volume fits easily).
+  A container's inside is described like any thing — a form and a volume, derived — and authored only
+  where it is the point (a sheath, a holster, a quiver, shaped to what it holds). A flexible container
+  (sack, pouch, haversack) has its volume and its largest stretch.
+- **A place is a container too, and its inside is its cube** — but **only along the faces it really
+  has**, which the place's exposure already says: an open top has no ceiling (a walled yard holds a mast
+  upright; a field bounds nothing), a wall that isn't there bounds nothing. You enter through a way's
+  opening by cross-section, and what you carry must fit inside the place. ⚠ Places stay cubes: real
+  proportions (width × depth × height) are **rejected, deliberately** — the owner: *"if we wanted it that
+  way we would have built that from the outset."*
 
 ### Hands and carrying **[DECIDED]**
 
@@ -172,9 +186,18 @@ sledges, handcarts, barrows, wagons.
   `swim` and `climb`, two new modes, each its own verb — **`stoop`** (bent under a low lintel: lower,
   a little slower, not quieter — stooping is not sneaking) and **`crawl`** (prone). Sneaking still
   crouches, so it also clears a low door.
-- **Exits declare a clearance**, defaulting by kind: a door about 0.9 × 2.0 m, an outdoor way
-  unbounded, a hatch 0.6 × 0.6 m, a crawlway 0.6 m tall, a window small, stairs 2.0 m of headroom and a
-  turn; a ladder needs both hands. **The refusal says what would work and never changes your posture for
+- **A way's clearance is its tightest gap** — the face it passes through, the way's own **opening**
+  (shipped by the boundary build: from the way's kind or authored per site, the whole face when
+  unset), and the boundary hung in it (a door's own size) — no new field. The numbers are the rows':
+  the door kind is 1 × 2 m, the hatch 1 × 1; a low door is one way's authored opening; a **crawlway**, a
+  **stair** and a **ladder** become exit kinds (rows). A body passes by its envelope against the gap,
+  a carried thing by its cross-section; **length never matters walking straight through** — it matters
+  only where a way bends, so a way (a turning stair) may declare a **turn**, and a long rigid thing must
+  swing round it (the sofa in the stairwell — the one thing a cube cannot say about a narrow stair). A
+  ladder wants the climb and both hands.
+- **A ceiling is a ceiling only where there is one** — under a roof or a ceiling, never under the sky.
+  Since a way's opening cannot exceed its face, you can only enter a low room stooping or crawling;
+  inside it, `stand` is refused under a ceiling lower than you. **The refusal says what would work and never changes your posture for
   you** — *"you'd have to stoop — `stoop north`."*
 - **Locomotion meets your gear** — climbing wants both hands; swimming's weight refuses the way up and
   **soaks what you carry** (wet paper is ruined; waterproof containers — oilskin, rubber — are worth
