@@ -731,6 +731,22 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   rule **and** open — an inner pocket under a coat fails at the coat; (3) the existing
   concealment/discovery/light rules. A cart under a tarp is a shut, opaque holder (D30).
   `isAnotherPerson` is the person test. `Attired.outermostAt` exists.
+- **D24a — searching a body finds what its pockets cover** (owner, 2026-11-11). Reuse the
+  shipped `search` (`SearchController` + `SearchActivity`, narrow-deep on a named target,
+  hands slot, interruptible, awareness-graded) and concealment's per-viewer discovery:
+  when `search <body>` completes on a body that **cannot resist** (dead — a `Corpse` — or
+  unconscious per Vitals), every item covered on it (rule 2's person branch fails only for
+  covering) is recorded as **found by the searcher** through the same discovery record a
+  concealed find uses; an item also concealed must still clear `resolveSearch`'s awareness
+  check. D24 rule 2's person branch admits an item **found by this viewer on this holder**.
+  ⭐ **A find is cleared when the item changes holder** — the discovery record carries the
+  holder it was found on (its identity path), and rule 2 admits it only while the item's
+  holder is still that one; a move to another holder makes the old find inert (no sweep —
+  checked on read). A conscious target refuses before the activity starts (*"Bob won't let
+  you"* — an `ActRefusal` on the body, the controller words it); bound bodies and the
+  conscious frisk are out of scope (policing, compulsion gate). The room narration
+  (*"Mara goes through the dead man's pockets"*) is the activity's start line to witnesses.
+  No new verb, mixin or record kind — the discovery record gains the holder field.
 - **D25 — the builder lens is a verb and a memo, never a wizard check.** `lens on` resolves
   `AccessApi.heldExtents(giver)` once and stores it on the avatar (`Avatar._lensExtents:
   string[] | null`, runtime; re-resolved by `lens on` and cleared by `lens off`/logout);
@@ -1052,6 +1068,12 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   suppression removed (the card shows what the wire sends).
 - `lens` verb (author category, `lens on|off`), `Avatar._lensExtents`; the `[builder]`
   label on `look`/`inventory`/`query`/`find`.
+- D24a: `search <body>` on a dead or unconscious body records its covered items as found
+  by the searcher (the discovery record gains the holder it was found on; rule 2 admits a
+  find only while that holder still holds it); the conscious-target refusal; the start
+  line to witnesses. Test `search.body.test.ts`: covered letter unseen → `search corpse`
+  → found and takeable; a second viewer still unseen; letter moved to another holder →
+  the find is inert; interrupted search finds nothing; a conscious target refuses.
 - `lint:perceived-surfaces` ceiling → **0**.
 - Tests: `perceives.holders.test.ts` (own things always; shut opaque box no; glass jar
   yes; another person's hand yes, outer coat yes, inner pocket no, outer open pocket's

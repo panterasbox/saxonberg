@@ -353,7 +353,18 @@ time; the leak worth closing is the one a script turns into a scanner, and the c
 derived from its material); worn on the outside (a belt's loops, a holster's grip); covered (a pocket
 under a coat). **Your own things you always perceive** — if you look at the bag you see the bag; if you
 look in it you see what's in it, so a theft shows the next time you look. Opening, being handed a
-thing, the frisk and the pickpocket show more.
+thing, searching a body, the frisk and the pickpocket show more.
+
+**Searching a body** (owner review, 2026-11-11). `search corpse` — or `search` a person who is
+unconscious — is the shipped `search`: deliberate, a few moments, hands busy, interruptible, graded by
+awareness. When it completes, what the body's covered pockets hold is **found by you**, the way a
+concealed thing is found (the shipped per-viewer discovery) — so you perceive it, and taking it is
+ordinary taking, with whatever rules govern taking another's things. A thing hidden as well as covered
+(a letter sewn into a lining) still has to beat your awareness. The room sees it: *"Mara goes through
+the dead man's pockets."* **A find is cleared when the thing changes holder** — you found it on that
+body, not forever. Only a body that cannot resist — dead or unconscious — can be searched; a conscious
+person refuses (*"Bob won't let you"*). Frisking the conscious, and bodies that are bound, are policing's
+and the compulsion-gate build's, not this one.
 
 ### The builder lens **[DECIDED]**
 
@@ -461,7 +472,10 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 13. *instant · staged* — A shut backpack: `inventory` lists its contents; a wizard removes one item;
     `inventory` no longer lists it — you see what's in your own bag when you look.
 14. *instant · staged* — Knock a character unconscious mid-fight — the sword in their hand falls to the
-    floor; their worn belt stays on them.
+    floor; their worn belt stays on them. `get letter from them` is answered as for a person with no
+    letter; `search them` — a few moments, the room told — and the letter in their inner pocket is
+    found; `get letter from them` now takes it. Another character who did not search still cannot see
+    it; once the letter is in your own pocket, nobody's earlier find shows it.
 15. *short · player* — Swim across a pond carrying a paper letter in an ordinary pack — it comes out wet
     and ruined; the same letter in an oilskin pouch comes out dry. A cork in an open coat pocket floats
     away as you go under; in a buttoned pocket it stays.
