@@ -33,11 +33,14 @@ All six Risks calls went the plan's recommended way:
    only when it leaves the Material family; fix the gate's prose with it.
 5. **`COMMONS_CEILING` rises to the audited number** (Risks 4) — write the
    caller audit in the gate's comment, as !560 did.
-6. **The declaration, not hooks** (Risks 12) — `static constituentPaths:
-   readonly string[]` on a class, ensured by the clone pipeline beside the
-   row's `identity:constituent` fields, checked by `lint:census`. Signed off
-   as new substrate. D2′'s seven `onCreate` hooks are NOT written;
-   `ON_CREATE_CEILING` must not rise.
+6. **The constants become CONTENT** (Risks 12, revised by the owner
+   2026-11-11) — no `constituentPaths` declaration, no `onCreate` hooks, no
+   new step in cloning (*"I hate any new hooks being added to cloning … it's
+   already complicated enough"*). A material a class hard-codes becomes an
+   authored row field declared `identity:constituent`, so the existing
+   applier loads it; rows sharing a class share it through an `extends:`
+   parent. Lens 2 agrees: an author can make a copper that boils something
+   else. `ON_CREATE_CEILING` must not rise.
 
 ⚠ **Build order (Risks 5):** land **W7 before W6** (and W2 before W4) so the
 `lint:on-create` count never rises between commits — W7's deleted
@@ -264,7 +267,7 @@ Every item cites its row in the scan-sweep slate's § Reuse ledger.
 | `DOCUMENT_PATH_FIELDS` += `cleanser: 'cleansers'`, `constructionForm: 'fabrics'` | lint extension | row 7 | path-shaped values only (`constructionForm` also holds kernel words) |
 | persisted fields `maturationProfilePath`, `ripeningProfilePath`, `runSchedulePath`, `finishingProfilePath` | rename of the four `…Key` runtime-state fields | row 4 (a cited thing resident whenever its citer is — the restore door) | setters return `ensure(path)`; no migration (dev DBs are dropped) |
 | restore-door setters on eight runtime fields (`setBulkPayload`, `setCoats`, `setParts`/`setJoints`, `setFuelBed`, `setStrewn`, `setKineticRecord`, the atmosphere contents, `setMadeFrom`) | return type `void` → `Promise<void>` | row 4 | the c2 class of the material census; each with a call-site census (W8b) |
-| `static constituentPaths: readonly string[]` (class-level) | a class's own built-in citations, ensured by the clone pipeline beside the row's `identity:constituent` fields; `lint:census` resolves each path | **genuinely new — owner signed off 2026-11-11** (Risks 12) | replaces seven `onCreate` hooks; read in `TemplateApplier` (or `StuffApi.#cloneInner` before apply) walking the class chain, each path through `StuffApi.ensureConstituent` |
+| c1 constants → authored row fields (`identity:constituent`) | new authorable fields on the classes that hard-coded a material | row 4 (a cited thing resident whenever its citer is — the applier's constituent load) | no new mechanism |
 | `onCreate` readiness on `VitalsMixin`, `ContaminableMixin`, `MaturingMixin`, `RipeningMixin`, `FractionatingMixin`, textiles `FinishingMixin` | one awaited line each | row 4, mechanism 4 (`Soilable.onCreate` precedent) | `lint:on-create` arithmetic in Risks 5 |
 
 **Genuinely new: nothing.** Searched: `lib/document/`, every `*Catalogue.ts`,
@@ -319,12 +322,10 @@ functions (`PipeRun`'s water, `Copper`'s liquor and skimmings, `SugarLoaf`'s
 molasses, `Churn`'s cream, `SoapKettle`'s milk of lime, `Field`'s texture
 map, `WeatherLogic`'s puddle water, `Atmospheric`'s enclosure default) are a
 class's own built-in citation — D7 shape 4 — loaded when the class stands:
-written as one `await MaterialApi.materials().ensure(X)` in each class's
-`onCreate` **unless the owner prefers the declared form** (Risks 12): a
-`static constituentPaths: readonly string[]` on the class that the clone
-pipeline ensures beside the row's fields — one generalization, no per-class
-hook, and `lint:census` can check the constants resolve. ✅ **Owner chose the declaration** (2026-11-11): the clone pipeline ensures
-`static constituentPaths` — no per-class hook.
+✅ **owner, 2026-11-11: as CONTENT** — each constant becomes an authored row
+field declared `identity:constituent`, which the applier already loads
+before the setter runs; rows sharing a class share it via an `extends:`
+parent. No `onCreate`, no declaration, nothing new in cloning.
 
 **D3 — The vat and the still match by tag, over a lazy index.** The
 `inputCategory` tag match (`forMaterial`) is the recipe-slot `category`
@@ -793,18 +794,27 @@ The two are one shape; land them in one wave.
 - **(c1) the constants** — async sites await `ensure` in the act
   (`Midden.takeRefuse`, `WaterFixture.settleBulk`, `IronPot.setCake`,
   `LayController`, `SmeltController.runIntoCrucible`, `BleedController`'s
-  closure's async parent); sync sites load the constant when the class
-  stands — ✅ by `static constituentPaths` (D2′, owner 2026-11-11) on
-  `PipeRun`, sugar `Copper` + `SugarLoaf`, dairying `Churn`, chandlery
-  `SoapKettle`, farming `Field` and `Location` (the `Atmospheric` enclosure
-  default); `WeatherLogic`'s puddle awaits in the tick's async parent. No
-  new `onCreate`. Implement the declaration first in this wave: the clone
-  pipeline reads `constituentPaths` up the class chain (subclass lists
-  union with the base's) and ensures each before phase 1, on mint,
-  go-live and restore alike; `lint:census` gains the clause that each
-  declared path is a shipped row (a pack class's paths resolve in its own
-  pack or a required one). Unit-test: a class declaring a path clones
-  with the row resident; a missing row warns as a bad row citation does.
+  closure's async parent); sync sites read a ROW FIELD instead of the
+  constant (D2′, owner 2026-11-11 — content, not code):
+  - **per-kind content** — `PipeRun`'s water, sugar `Copper`'s liquor and
+    skimmings, `SugarLoaf`'s molasses, dairying `Churn`'s cream,
+    chandlery `SoapKettle`'s milk of lime: each becomes an authorable
+    field in `fieldMeta` with `ref: 'identity:constituent'`, its value
+    authored on the class's rows (or on one parent row they `extends:`),
+    and the code reads the field. The class keeps NO default path — a row
+    that omits the field is refused by `lint:census` (the citation lint
+    already covers constituent fields), never silently given molasses.
+  - **`WeatherLogic`'s puddle water** — the read sits in the weather
+    tick's async parent: await the load there; no field.
+  - **the two engine-wide defaults** — `Location`'s enclosure default
+    (`Atmospheric`) and farming `Field`'s soil-texture map. Decide each
+    at the wave by looking, in this order: (1) does the reader have an
+    async parent that can await? then await; (2) is there a root row
+    every holder already `extends:`? then a constituent field there;
+    (3) else STOP and ask — do not add an `onCreate`, a boot line or a
+    clone-pipeline step. Record which in the wave note.
+  - Every row touched gains the field; grep `packages/content` for each
+    class's rows before the commit (review question B4).
 - **(c) the mints** — `CraftingLogic` mint paths hold a live `Material`
   already (`setMaterial(instance)`); the recipe's output materials are
   ensured when the recipe dictionary reads the row (`RecipeCatalogue`,
@@ -967,7 +977,9 @@ No new capability; the five links for each family's **load**:
 11. **`check-on-create`'s loading predicate** may count `ready(...)` in an
     `onCreate` as limb 3 (state loading, ceiling 32) rather than limb 2;
     check at W4 and phrase the hook as the roster warm it is.
-12. **The eight sync code constants (c1) — hooks or a declaration?** D2′
+12. ✅ **DECIDED (owner, 2026-11-11): content.** The constants become
+    constituent row fields (decision 6; W8b (c1)). The text below is the
+    superseded analysis. — **The eight sync code constants (c1) — hooks or a declaration?** D2′
     writes an `onCreate` per class (seven new hooks, which with W4's and
     W6's six put the build at **+13 −6 = +7** on `ON_CREATE_CEILING = 80`
     unless the audit shows the catalogues' hooks it removes were counted
