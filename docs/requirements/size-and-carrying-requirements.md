@@ -84,6 +84,8 @@ thing; a builder lens inside your extents.
   § Inspection (a seat grant, logged, visible to the inspected, with a covenant menu for sub-extents).
   This build's authority covers your content, not other people.
 - **The interior place inside a creature** (the swallowing whale) → the bestiary.
+- **Moving in zero gravity** (hand over hand, pushing off) → [worlds-slate](../slates/builds/worlds-slate.md),
+  where gravity comes from a world's mass and radius. This build only refuses to assume Earth.
 - **Pace of time** → [pace](../slates/builds/pace-slate.md); needs are stated in game
   time, so this build is indifferent to it.
 
@@ -144,6 +146,13 @@ differ from the defaults.
   flexible — its volume and its largest stretch) and the distance between them derives like any size;
   they are authored only where that is the point (a sheath, a holster, a quiver, shaped to what it
   holds). A lid or a door that shuts **adds a side**: *"the pole sticks out — the lid won't shut."*
+- **A thing stays in an open container only while it is pressed in** (owner review, 2026-11-11). What
+  holds a thing against an open side is the net force on it, not the container: in air its weight; in
+  water a floater's net force is up, so a cork rises out of an open bucket — or a pocket with no flap —
+  the moment it is submerged; at zero gravity nothing presses, so whatever is not in a hand or behind a
+  closed side drifts out, and a thing set `on` a table drifts off unless it is fastened. Gravity,
+  buoyancy and weightlessness are three cases of one rule; closed sides hold regardless of force, which
+  is what makes lids, flaps, straps, lanyards and tethers worth having.
 - **A place is a container on the same rule.** Its sides are the faces its exposure already says it
   has (an open top is no ceiling; a missing wall bounds nothing), and the distance between them is its
   cube. You enter through a way's opening by cross-section. In a multi-author world nobody guarantees a
@@ -199,7 +208,9 @@ sledges, handcarts, barrows, wagons.
   through an opening is a movement mode** (owner review, 2026-11-11): beside `walk`, `run`, `sneak`,
   `swim` and `climb`, two new modes, each its own verb — **`stoop`** (bent under a low lintel: lower,
   a little slower, not quieter — stooping is not sneaking) and **`crawl`** (prone). Sneaking still
-  crouches, so it also clears a low door.
+  crouches, so it also clears a low door. A **swimmer** is horizontal — a crawler's height — so an
+  underwater squeeze measures like a crawlway; with **no gravity** a body has no up and fits by its
+  narrowest way round.
 - **A way's clearance is its tightest gap** — the face it passes through, the way's own **opening**
   (shipped by the boundary build: from the way's kind or authored per site, the whole face when
   unset), and the boundary hung in it (a door's own size) — no new field. The numbers are the rows':
@@ -214,8 +225,9 @@ sledges, handcarts, barrows, wagons.
   inside it, `stand` is refused under a ceiling lower than you. **The refusal says what would work and never changes your posture for
   you** — *"you'd have to stoop — `stoop north`."*
 - **Locomotion meets your gear** — climbing wants both hands; swimming's weight refuses the way up and
-  **soaks what you carry** (wet paper is ruined; waterproof containers — oilskin, rubber — are worth
-  having); awkward held loads limit running; **loose, clanking gear is noise** to stealth; a crawlway
+  **soaks what you carry** (wet paper is ruined; a **shut container tight against liquid** keeps it dry —
+  the oilskin pouch, the rubber bag — read from the tightness ladder vessels already carry, never a new
+  waterproof flag); swimming is a kick and needs no hands; awkward held loads limit running; **loose, clanking gear is noise** to stealth; a crawlway
   measures what you wear too — but what you hold goes through **ahead of you**, measured on its own
   (you push it as you crawl; narrated, not a verb).
 
@@ -224,6 +236,12 @@ sledges, handcarts, barrows, wagons.
 What a load costs is its mass × how it is carried (held, worn) × **awkwardness** — for held loads only,
 from its longest dimension against the carrier's stature and its volume against the body's. A
 three-meter pole held costs more than its mass; a well-fitted pack costs least.
+
+**Weight is mass × the place's gravity** — never mass with Earth's assumed (every place already carries
+an authorable gravity) — and in water each thing counts by its buoyancy, as diving already does. At
+zero gravity a full pack weighs nothing on the burden line and still has its mass, its size and its
+shape: it still won't fit the hatch, still takes two hands, still takes effort to stop. Mass versus
+weight is a lesson the game teaches by being right (lens 1).
 
 ### When the body stops **[DECIDED]**
 
@@ -377,17 +395,21 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 14. *instant · staged* — Knock a character unconscious mid-fight — the sword in their hand falls to the
     floor; their worn belt stays on them.
 15. *short · player* — Swim across a pond carrying a paper letter in an ordinary pack — it comes out wet
-    and ruined; the same letter in an oilskin pouch comes out dry.
+    and ruined; the same letter in an oilskin pouch comes out dry. A cork in an open coat pocket floats
+    away as you go under; in a buttoned pocket it stays.
 16. *instant · player* — Pack two game days of food and water for one person — `inventory --weight` and
     the burden line show it is most of a pack; load it onto a mule's pack saddle and the burden falls.
-17. *instant · staged* — Inside an extent you hold, with the builder lens on: look into a staged NPC's
+17. *instant · staged* — A wizard sets one room's gravity to zero: a dropped cup floats in the room; a
+    cup set on the table drifts off; a full pack reads as no weight on the burden line, yet still won't
+    pass the hatch and still takes both hands.
+18. *instant · staged* — Inside an extent you hold, with the builder lens on: look into a staged NPC's
     shut chest and read its true contents, labeled builder information; with the lens off, the same chest
     is shut to you like anyone.
-18. *short · staged* — ⭐ (R4) Restart the world. Every character comes back holding, wearing and
+19. *short · staged* — ⭐ (R4) Restart the world. Every character comes back holding, wearing and
     pocketing exactly what they had — no item loose, none on the floor, none duplicated; a pre-flip
     character's loose inventory has been placed (hands, pockets, pack, and the overflow at home, with the
     message).
-19. *instant · player* — (R5) `look` in the new or changed places — the low-door room, the crawlway, the
+20. *instant · player* — (R5) `look` in the new or changed places — the low-door room, the crawlway, the
     stair, the pond — by day and with a headlamp at night.
 
 ### Soak drive
@@ -410,6 +432,8 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 - A creator inspects the true state of their own content with the builder lens, and plays it plainly
   without.
 - Every character restored after a restart carries exactly what they carried.
+- Weight follows the place's gravity and the water's buoyancy; nothing assumes Earth, and a thing
+  leaves an open container whenever nothing presses it in.
 
 ## Cross-references
 
