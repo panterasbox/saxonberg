@@ -237,7 +237,7 @@ const REPO_ROOT = join(MUD, '../../../..');
  * light walk + `Light.add` — a value-object factory/lookup, the category
  * this file's own doctrine admits, not world logic wanting a `*Logic`.
  */
-export const LIB_STATICS_CEILING = 339; // load-on-use W2: the four fabric-registry statics on Construction went (+getWord is an instance method)
+export const LIB_STATICS_CEILING = 338; // load-on-use W3: Dyestuff.forMaterial went (the catalogue holds the find). Was 339 (W2: the four fabric-registry statics on Construction went)
 
 const STATIC =
   /^\s*(?:public\s+)?static\s+(?:async\s+)?(?!readonly\b|get\b|set\b|_)([a-zA-Z]\w*)\s*[(<]/;

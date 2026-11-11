@@ -636,6 +636,22 @@ checked). Test fixture: `lib/material/__tests__/fabrics.ts`
 
 ### W3 — dyestuffs become documents (pack-owned)
 
+✅ **Done.** Four documents at `/trade/dyeing/dyestuffs/<word>`
+(`materialPath` → `material`); value class `src/lib/Dyestuff.ts`
+(constructor-built, no statics); `DyestuffCatalogue.forMaterial` is async
+(resident first, else `findByKey('dyestuff','material')`, kept). ⭐ **Build
+decisions:** (a) `DyeController.findBath` became async rather than adding an
+`ensurePack()` — the act awaits the find per candidate, so nothing warms
+the pack's rows wholesale; (b) **no installer validator** for `dyestuff`:
+the kernel cannot import a pack class and `catalogueFor` answers `null`
+for a catalogue nothing has stood up, so `ServesDocuments` was NOT widened
+— instead the pack's own suite parses every shipped dyestuff through the
+catalogue and checks its `material` is a row some pack ships (the
+before-merge catch the AC asks for); (c) the catalogue is reached by a
+private `dyestuffs()` method on the controller (`lint:controller-functions`
+refuses a module-level helper). `lib-statics` 339 → 338; `COMMONS_CEILING`
+→ 35; `lint:template-scans` −1.
+
 - `DocumentKinds.dyestuff` (`contentDir: 'dyestuffs'`, `catalogue: '/trade/dyeing/idea/DyestuffCatalogue'`,
   `keys: { material: (d) => d.material }`) — declared by the platform, as every
   pack's kind is.

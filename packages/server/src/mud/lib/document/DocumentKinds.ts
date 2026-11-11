@@ -90,6 +90,10 @@ const leafWord = (doc: DocumentKeySource): string[] => {
 const recipeOutput: DocumentKeyDerivation = (doc) =>
   typeof doc.data.outputTemplate === 'string' ? doc.data.outputTemplate : undefined;
 
+/** A dyestuff's `material` — `dye` finds the dyestuff its bath holds by it. */
+const dyestuffMaterial: DocumentKeyDerivation = (doc) =>
+  typeof doc.data.material === 'string' ? doc.data.material : undefined;
+
 /** A release's publication instant (epoch-ms) — the press reads newest first by it. */
 const releasePublishedAt: DocumentKeyDerivation = (doc) =>
   typeof doc.data.publishedAt === 'number' ? doc.data.publishedAt : undefined;
@@ -161,6 +165,13 @@ export const DOCUMENT_KINDS = {
    * `constructionForm`.
    */
   fabric: { kind: 'fabric', catalogue: '/platform/idea/FabricCatalogue', contentDir: 'fabrics', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **dyestuff** — what a dye bath of one material lays on cloth, per
+   * mordant (madder, woad), and which of the two chemistries it is. The
+   * dyeing pack's (`src/lib/Dyestuff.ts`); declared here as every pack's
+   * kind is. Found by its card's `material` (the bath's material).
+   */
+  dyestuff: { kind: 'dyestuff', catalogue: '/trade/dyeing/idea/DyestuffCatalogue', keys: { material: dyestuffMaterial }, contentDir: 'dyestuffs', ext: 'yaml', onVanish: 'delete' },
   cleanser: { kind: 'cleanser', catalogue: '/platform/idea/CleanserCatalogue', contentDir: 'cleansers', ext: 'yaml', onVanish: 'delete' },
   /**
    * An **operation** — one entry of the surgical catalogue: which wound it

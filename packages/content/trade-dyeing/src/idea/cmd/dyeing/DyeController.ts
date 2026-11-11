@@ -56,7 +56,7 @@ import { AppApi } from '@saxonberg/server/mud/api/app';
 import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
-import Dyestuff from '../../Dyestuff';
+import DyestuffCatalogue from '../../DyestuffCatalogue';
 
 const TOPIC = 'act.deed';
 
@@ -65,8 +65,6 @@ interface DyeModel extends CommandModel {
   bath?: MqlManyResult;
 }
 
-/** The dyestuff roster's row (`trade-dyeing`'s own). */
-const DYESTUFF_CATALOGUE_PATH = '/trade/dyeing/idea/dyestuff-catalogue';
 
 export default class DyeController extends ManualBuildController<DyeModel> {
   static readonly BASE_MS_KEY = 'dyeing.dye.baseMs';
@@ -79,16 +77,13 @@ export default class DyeController extends ManualBuildController<DyeModel> {
   static readonly EXHAUST = 0.5;
 
   async execute(model: DyeModel, context: CommandContext): Promise<void> {
-    // ⭐ The dyestuff dictionary warms on first use (the scan sweep): the
-    // catalogue's own creation stands the roster up — nothing boots it.
-    await StuffApi.singleton(DYESTUFF_CATALOGUE_PATH).catch(() => null);
     const giver = context.commandGiver;
     const target = model.target?.stuff ?? null;
     if (!target || !MixinApi.isDyed(target)) {
       this.declineStep(context, Mml.compose`Dye what?`, 'no-target');
       return;
     }
-    const bath = this.findBath(model.bath);
+    const bath = await this.findBath(model.bath);
     if (!bath || !MixinApi.isBulkable(bath)) {
       this.declineStep(context, Mml.compose`There is no bath here to dip it in.`, 'no-bath');
       return;
@@ -105,7 +100,7 @@ export default class DyeController extends ManualBuildController<DyeModel> {
     // madder-the-dyestuff is what this consumes, and where it came
     // from — a bed or a retort — is upstream and none of dyeing's
     // business. ⭐ That is the seam a synthetic walks through.
-    const dyestuff = Dyestuff.forMaterial(material.getTemplatePath() ?? '');
+    const dyestuff = await this.dyestuffs().forMaterial(material.getTemplatePath() ?? '');
     if (!dyestuff) {
       this.declineStep(
         context,
@@ -238,7 +233,16 @@ export default class DyeController extends ManualBuildController<DyeModel> {
    * left is what is IN it (`lint:controller-resolution`). A NAMED bath is taken
    * as named, so the decline below can say what is wrong with it.
    */
-  private findBath(bound: MqlManyResult | undefined): Stuff | null {
+  /**
+   * The dyestuff documents (load-on-use W3) — this pack's catalogue, stood
+   * up on first reach at its path (so the document store's go-live finds it
+   * by the kind's `catalogue:`). Nothing boots it.
+   */
+  private dyestuffs(): DyestuffCatalogue {
+    return StuffApi.singletonSync('/trade/dyeing/idea/DyestuffCatalogue', () => new DyestuffCatalogue());
+  }
+
+  private async findBath(bound: MqlManyResult | undefined): Promise<Stuff | null> {
     const candidates = (bound?.stuff ?? []).filter((c) => MixinApi.isBulkable(c));
     if (candidates.length === 0) return null;
     if (bound?.prep !== undefined) return candidates[0]!;
@@ -246,7 +250,7 @@ export default class DyeController extends ManualBuildController<DyeModel> {
       if (!MixinApi.isBulkable(c)) continue;
       const slot = BulkableApi.slotFor(c, undefined);
       const mat = slot?.getMaterial();
-      if (mat && Dyestuff.forMaterial(mat.getTemplatePath() ?? '')) return c;
+      if (mat && (await this.dyestuffs().forMaterial(mat.getTemplatePath() ?? ''))) return c;
     }
     return null;
   }

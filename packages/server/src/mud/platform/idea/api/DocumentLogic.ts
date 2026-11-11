@@ -826,6 +826,7 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'dirt':
     case 'cleanser':
     case 'fabric':
+    case 'dyestuff':
     case 'operation':
     case 'help-concept':
     case 'formation':
