@@ -1187,8 +1187,18 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   build is mid-drive.
 - `Creature.canAddContainable` veto on; `LoadBearing` pass (a) removed and
   `LOOSE_CARRY_SURCHARGE` → `HELD_SURCHARGE`; `held` predicate = hand slot; `GetController`
-  → `receive` with the refusal in words (hands full and nothing fits); `give`/buying/
-  crafting output refuse in words when the recipient has nowhere; `Creature.onRestored
+  → `receive` with the refusal in words (hands full and nothing fits); **D-W7a (owner,
+  2026-11-11) — two idioms by counterparty:** a **made** thing (crafting/cooking/smelting
+  output, harvest and tap yields, fell, butcher, a catch) goes through `receive` and, when
+  nowhere fits, is **set down where it was made** — `ContainmentApi.move` onto the
+  workbench (`on`, when the act ran at one) else into the actor's place — with the line,
+  never a refusal after the inputs are spent; a **handed** thing (buy, `give`, trade,
+  payment in goods) is pre-checked with `Carrying.canReceive(item)` **before any write,
+  money included** (the retail/banking order: refusal, then the ledger), refusing in
+  words and moving nothing; a **granted** thing (`installDefaultLoadout`, the Arrival
+  Note, the bank card) uses `placeLoose`'s order with the residence overflow. A
+  `receive` that meets a stack it can merge into takes no hand. W0 tags every census row
+  made · handed · granted · inherit, so W4/W5's porting applies the right idiom per site; `Creature.onRestored
   → placeLoose` with the residence overflow and the message; NPC loadouts through
   `receive`; `lint:body-moves` ceiling → **0 outside the allowlist**; docs graduate
   (encumbrance.md's loose model section replaced; embodiment.md § *Hand slots are for

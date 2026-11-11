@@ -110,8 +110,22 @@ differ from the defaults.
   smaller than a person** (an `extent` under about 2 m, under a roof) now makes a body stoop inside it —
   each is found and judged.
 - **The card** (build-3) renders inventory in tiers; **`equip`** keeps working over the new hands.
-- **Shops** that hand goods to a buyer, **crafting** that drops output, **give** between players — each
-  now hands, pockets, or refuses in words.
+- **Shops** that hand goods to a buyer, **crafting** that drops output, **give** between players — two
+  idioms, by whether there is a counterparty (owner review, 2026-11-11):
+  - **A made thing comes to you if it can; otherwise it is set down where it was made** — crafting,
+    cooking, smelting, a harvest's yield, a felled length, a butchered cut, a catch. A free hand, then a
+    pocket or pack it fits; else on the workbench the work was done at, else the floor where you stand,
+    always with a line (*"your hands are full — you set the loaf on the bench"*). Size decides on its
+    own: a cart or a wardrobe is always set down. What already lands in a vessel or a mould is
+    unchanged. A set-down thing is an ordinary thing in the room — it persists, and others can take it.
+  - **A handed thing is offered; if you can't take it, nothing changes hands** — buying, `give`,
+    trading, payment in goods. Checked before anything moves, money included: *"your hands are full —
+    the shopkeeper keeps the loaf until you have one free"* (nothing charged); *"Bob's hands are full"*
+    (you keep it).
+  - **Stacks merge** — coins onto the coins in your purse, an apple onto the apples in your hand — and
+    take no new hand. **What the engine grants** (the login kit, the Arrival Note, the bank card) is
+    placed like the flip's first load: hand, pocket, pack, the overflow to your residence with a
+    message — never the floor, never lost.
 
 ## Surface decisions
 
@@ -484,7 +498,9 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
     adding and the mule refuses in words. `tie rope to mule` and hold the end — the mule comes with you
     through the next way, and you have one hand free. Mounted on a horse, a compass in your saddlebags
     readies in one draw; at a low door, *"you'd have to dismount"*; the laden mule at a narrow gate,
-    *"the panniers won't fit."* Hitch a handcart — `get lantern` is refused, naming your hands on the
+    *"the panniers won't fit."* With both hands full, `cook` a loaf — it is set on the bench, said so;
+    `buy bread` — refused before any money moves, the purse unchanged; `give cup to` a character with
+    full hands — refused, the cup still yours. Hitch a handcart — `get lantern` is refused, naming your hands on the
     cart; at a narrow door the cart won't fit; throw a tarp over its load, and another character in the
     room no longer sees it.
 17. *instant · staged* — A wizard sets one room's gravity to zero: a dropped cup floats in the room; a
