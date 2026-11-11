@@ -202,6 +202,28 @@ and quivers**; **satchels, haversacks, rucksacks, frame packs**; a **headlamp** 
 drop hangs from you). Beyond the person: saddlebags, panniers, the pack saddle, the **travois**,
 sledges, handcarts, barrows, wagons.
 
+### The modular belt — things hang from a length **[DECIDED 2026-11-11, owner review]**
+
+A general-purpose utility belt, *Batman style*: a belt other containers attach to, each using up some of
+its **bandwidth**, so a loadout is something a player assembles.
+
+- **Bandwidth is length.** A belt is as long as its wearer's waist is round; each attachment takes its
+  own width (a pouch, a holster, a canteen clip — derived from its size). A gnome's belt holds less than
+  an ogre's. Never an authored count of mount points. Room is said in words — *"room for one more
+  pouch"* — never in centimeters.
+- **Attaching is hanging.** Attachments hang **from** the belt (the shipped `from` placement — a ham
+  from a hook): `put holster on belt` → *"you clip the holster to your belt"*; `get holster from belt`
+  takes it off. No new verbs. Everything on a belt is **ready**; a holster still draws faster than a
+  pouch by its own shape.
+- **A belt bears a mass** (from what it is made of); overloaded, it refuses in words.
+- **The general rule, in this build:** anything others hang from is bounded by its length — the
+  bandolier, the chest harness and the load-bearing vest, a pack's straps and carabiners, the saddle
+  that saddlebags hang from, a key ring, a workshop's pegboard or tool rail. One rule, many rows.
+- Attachments are worn on the outside (everyone sees the holster); what is inside each follows its own
+  cover. Hung things are fastened, so they stay put underwater and in zero gravity.
+- The web client's drawing of a belt (a strip, each attachment as wide as it takes) → the
+  [client slate](../slates/builds/client-slate.md), not this build.
+
 ### Mounts and pack animals **[DECIDED 2026-11-11, owner review]**
 
 - **An animal carries only in what it wears** — a horse has no hands — and *nothing loose on a body*
@@ -412,7 +434,9 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 2. *instant · player* — `inventory` shows the tiers: in hand, ready (the pocket's contents), worn, and the
    burden in words. `inventory --flat` shows one list.
 3. *instant · player* — `put cup in coat pocket`, then `inventory`: the cup's home is the pocket.
-4. *instant · staged* — Holding a sword with a compass put away in a belt pouch: `measure` something that
+4. *instant · staged* — `put pouch on belt`, `put holster on belt`, `put canteen on belt` until `i belt`
+   says there is no room; one more attachment is refused, naming the belt's length. Then, holding a
+   sword with a compass put away in a belt pouch: `measure` something that
    needs the compass — *"you sheathe your sword and pull out your compass"*, and the reading runs.
 5. *instant · player* — Put the compass in a backpack worn on the back, then `measure` again — refused:
    *"your compass is packed in your backpack — take it off first."* `remove backpack`, and it works.
@@ -486,6 +510,8 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
   rope that takes a hand.
 - A hitched cart fills the hands it says, fits a way by its size, and a parked one stays where it was
   left, load and all.
+- A belt — or anything things hang from — holds attachments by its length, says how much room is left
+  in words, and a player assembles their own loadout with `put` and `get`.
 - Weight follows the place's gravity and the water's buoyancy; nothing assumes Earth, and a thing
   leaves an open container whenever nothing presses it in.
 
