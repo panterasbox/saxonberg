@@ -828,6 +828,17 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   trousers (`/stuff/thing/clothes/student-trousers`) gains `pockets:` (two patch) and the
   tops one or two (the field jacket four); the Arrival Note coin `receive`s into a pocket.
   The lounge's bar `props:` gain three `/trade/hospitality/thing/mug` (step 1).
+  **(owner, 2026-11-11)** Outfits carry what the aspiration carries — `char-gen.yaml`
+  `aspirations[].outfit` gains the bag rows (grain): healer → a belt + medic's pouch,
+  teacher → a satchel, guardian → an empty modular belt; something-better, founder and
+  seeker → pockets only. No outfit holds a rucksack or frame pack. **Katie's intake hands
+  an Eternal U daypack** (a `Pack` row in `eternal-university`, the university's mark via
+  `BrandedMixin`, smaller than an expedition pack): her provisioning dialogue's effect
+  offers it through `Carrying.receive` as a *handed* thing (D-W7a); if the newcomer cannot
+  take it, it is placed in the provisioned dorm room instead (never lost). The
+  hands-full refusal names the hand contents, what did not fit and the next command
+  using the actor's own pocket names (the `receive` refusal's wording, unit-tested). A
+  wiki guide `carrying` (base-library `guide/`) ships in W7's docs pass.
 - **D30 — a parked cart stays put.** Already true (a cart is a room object; logout drops
   nothing *from the body*). This build adds nothing but the drive step.
 - **D31 — the flip is one wave, last, and short.** W0 ships `receive` behaving as today
@@ -1174,7 +1185,8 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   narrow gate (`opening: {width: 0.8, height: 2}`), each lit by day and with the headlamp
   at night (R5); the lounge bar's three mugs; a general-store stock line for the belt
   pouch, satchel, oilskin pouch and headlamp (so a player can buy them).
-- `char-gen.yaml` outfits unchanged (pockets arrive through the trousers rows).
+- `char-gen.yaml` outfits gain their aspiration's bag rows (D29); the Eternal U daypack row and
+  Katie's intake effect (D29).
 - Tests: each pack's row test (`lint:instanceable` + the pack vitest); `lint:locations`
   on the new places; `lint:anatomy` on canid.
 - Acceptance: `clone` of every new row succeeds in a wire smoke; `look` in each new

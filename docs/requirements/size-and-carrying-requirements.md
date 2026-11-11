@@ -103,8 +103,23 @@ differ from the defaults.
   place on first load — a hand, then a pocket or pack that fits, and what fits nowhere goes **home**
   (the player's residence) with a message, never to the floor and never lost.
 - **Every caller that puts a thing on a body** — the count is the flip's gate (§ The flip).
-- **The lounge and the newbie wilds** — a new player's first `get` now goes to a hand; the starter kit
-  needs a pocket or a bag, or the tutorial's first pickup fills both hands.
+- **The lounge and the newbie wilds — a new player's first minutes** (owner review, 2026-11-11). The
+  first `get` goes to a hand, the second to the other, the third to a pocket it fits, so the first wall
+  comes only when hands *and* pockets are full — after the player has watched it work.
+  - **The refusal is the tutorial** — it names what is in your hands, what didn't fit, and the next
+    command in your own pockets' names: *"Your hands are full — the cup and the lantern — and the map
+    won't fit in your trouser pockets. Put something away (`put cup in pocket`) or set it down (`drop
+    lantern`)."* No tutorial system, no one-time hints.
+  - **The starter kit is the aspiration's outfit, and it carries what that life carries.** Every outfit
+    has pockets; an aspiration that implies a bag gets that bag (a healer a medic's pouch, a teacher a
+    satchel, a guardian an empty modular belt) — a grain an author may change. **Nobody starts with a
+    rucksack or a frame pack**: the expedition's pack is a purchase.
+  - ⭐ **Enrolling at the Eternal University gives you a backpack** — an Eternal U daypack, free, handed
+    to you by Katie at intake when your dorm is provisioned. It is *handed*: if your hands are full, she
+    leaves it in your new room. A daypack, not an expedition pack — the frame pack is still the
+    leatherworker's sale.
+  - **A wiki guide to carrying** (hands, pockets, the reach tiers, readying, belts, what fits), linking
+    `help` rather than repeating it.
 - **Exits everywhere** take their clearance from the openings and boundaries already there; a place
   built small or big (the kobold tunnel, the ogre's hall) authors its own. ⚠ **Any shipped room authored
   smaller than a person** (an `extent` under about 2 m, under a roof) now makes a body stoop inside it —
@@ -455,7 +470,10 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 
 1. *instant · player* — A fresh character in the lounge: `get` a cup — it goes to a hand. `get` a second
    and a third thing — the second to the other hand, the third to a pocket; a fourth that fits nowhere is
-   refused in words.
+   refused in words. The refusal names the hands' contents and the
+   next command in the character's own pocket names. At Duncan Hall, `talk to Katie` through intake —
+   an Eternal U daypack is handed over; a second fresh character arriving with full hands finds it in
+   their new room instead.
 2. *instant · player* — `inventory` shows the tiers: in hand, ready (the pocket's contents), worn, and the
    burden in words. `inventory --flat` shows one list.
 3. *instant · player* — `put cup in coat pocket`, then `inventory`: the cup's home is the pocket.
