@@ -46,6 +46,8 @@ import { BulkableLogic } from '../platform/idea/api/BulkableLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import PumpMechanismCatalogue from '../platform/idea/PumpMechanismCatalogue';
+import MaturationProfileCatalogue from '../platform/idea/MaturationProfileCatalogue';
+import FractionScheduleCatalogue from '../platform/idea/FractionScheduleCatalogue';
 
 /**
  * The note kinds `transfer` ever emits — reused from stack's set.
@@ -156,6 +158,26 @@ export class BulkableApi {
       '/platform/idea/PumpMechanismCatalogue',
       () => new PumpMechanismCatalogue(),
     );
+  }
+
+  /**
+   * ⭐ The maturation profiles — how a must ripens, a wheel cures, a bed
+   * malts — any pack's `content/maturation-profiles/`, served by
+   * {@link MaturationProfileCatalogue}. A `MaturingMixin` host loads the
+   * kind in `onCreate` and holds its profile's PATH.
+   */
+  public static maturationProfiles(): MaturationProfileCatalogue {
+    return StuffApi.singletonSync('/platform/idea/MaturationProfileCatalogue', () => new MaturationProfileCatalogue());
+  }
+
+  /**
+   * ⭐ The fraction schedules — how a still's run or a column divides —
+   * any pack's `content/fraction-schedules/`, served by
+   * {@link FractionScheduleCatalogue}. A `FractionatingMixin` host loads
+   * the kind in `onCreate` and holds its schedule's PATH.
+   */
+  public static fractionSchedules(): FractionScheduleCatalogue {
+    return StuffApi.singletonSync('/platform/idea/FractionScheduleCatalogue', () => new FractionScheduleCatalogue());
   }
 
   /**

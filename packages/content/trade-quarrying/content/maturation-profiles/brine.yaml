@@ -1,0 +1,46 @@
+# ⭐⭐ Brine → salt — **the evaporative profile, and the geography lesson.**
+#
+# The `evaporative` mechanism's first consumer and the reason it exists: the
+# air does the work by taking water away, so three things are true here that
+# are true of no other maturation profile.
+#
+#  1. **The rate is the AIR's.** `ratePerDay` is the rate in reference air;
+#     what happens is that times the vapour deficit × wind × heat, against a
+#     **saturated brine's** equilibrium (~75 % RH) rather than water's 100 %.
+#     ⭐ Which is the whole lesson: 85 % air will still dry a ham and will not
+#     concentrate a brine, so solar salt is a dry-climate industry and a wet
+#     week is a setback. Nobody had to write that down as a rule.
+#  2. **The batch gets smaller**, because the water leaves, and the salt in
+#     it is CONSERVED (the dissolved figure rescales by volume): sea water at
+#     3.5 % saturates near a ninth of its volume, and the pan works on down
+#     to `productFraction` 0.03, setting salt all the way.
+#  3. ⭐ **Rain puts it back**, through the pan's own mouth, and `f` goes
+#     *down*. A setback, never a death.
+#
+# ⚠ `stallBelowK: 273` is ice: a frozen pan does nothing and READS stalled
+# rather than reading *starting*, which is the distinction the grain chain
+# paid for. `damageAboveK: 400` is the one way to ruin one — boiled dry and
+# burnt to a bitter scale, which is what the `killed` line says.
+#
+# ⚠⚠ And it authors **no strain**, which is the whole point of
+# `requiresFlora`: nothing lives in a salt pan. Two shipped profiles (retting,
+# bleaching) were silently frozen by the strain gate before this build; a
+# third would have been.
+# The tag `bulk/salt-water` already carries.
+inputCategory: brine
+mechanism: evaporative
+stallBelowK: 273
+happyK: 283
+damageAboveK: 400
+ratePerDay: 0.25
+# ⭐⭐ (ceramics S17, W8) The profile no longer TURNS the brine into salt:
+# it takes the water, and the salt sets itself when the brine holds more
+# than it can (sea water's `solubility` — the phase engine's crystallize
+# arm). So the product is the brine itself, taken down to its last few
+# per cent — about the bittern a real pan leaves — and the crop is
+# whatever salt that much water could not keep.
+productMaterial: /stuff/idea/material/bulk/salt-water
+productFraction: 0.03
+turnedMaterial: null
+sealedOnly: false
+leesFraction: 0

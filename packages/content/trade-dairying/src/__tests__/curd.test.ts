@@ -56,7 +56,7 @@ describe('the cheese vat', () => {
   it('the starter crock is a living culture, and pitching holds spoilage off', () => {
     at(0);
     const vat = pitchedVat();
-    expect(vat.getMaturationProfileKey()).toBe('soft-curd');
+    expect(vat.getMaturationProfile()?.getKey()).toBe('soft-curd');
     expect(vat.getBatchStrain()).toBe('lactic');
     expect(vat.holdsSpoilage()).toBe(true);
   });
@@ -83,7 +83,7 @@ describe('the cheese vat', () => {
     const vat = pitchedVat();
     const jar = vatFromRow('/trade/dairying/thing/rennet-jar', 303);
     expect(pour(jar, vat, 0.05)).toBeCloseTo(0.05, 6);
-    expect(vat.getMaturationProfileKey()).toBe('firm-curd');
+    expect(vat.getMaturationProfile()?.getKey()).toBe('firm-curd');
     expect(vat.getBatchStrain()).toBe('lactic');
     at(DAY);
     pour(vat, vessel(() => new TestPail(), 20, 303));
@@ -98,7 +98,7 @@ describe('the cheese vat', () => {
     const crock = vessel(() => new Vat(), 3, 290);
     pour(vat, crock, 1);
     expect(crock.getBulkMaterialPath('interior')).toBe(MAT.whey);
-    expect(crock.getMaturationProfileKey()).toBe('whey-starter');
+    expect(crock.getMaturationProfile()?.getKey()).toBe('whey-starter');
     expect(crock.getBatchStrain()).toBe('lactic');
   });
 

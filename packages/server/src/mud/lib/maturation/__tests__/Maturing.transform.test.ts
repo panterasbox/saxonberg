@@ -7,7 +7,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../../platform/thing/Vat';
-import MaturationProfile from '../../../platform/idea/maturation/MaturationProfile';
+import MaturationProfile from '../../../lib/maturation/MaturationProfile';
 import Food from '../../../platform/idea/material/Food';
 import { WorldClockApi } from '../../../api/worldclock';
 import { BulkableApi } from '../../../api/bulk';
@@ -15,6 +15,7 @@ import { StuffApi } from '../../../api/stuff';
 import { Quantity } from '../../quantity';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import '../../../platform/idea/WorldClockRegistry';
+import { rememberProfile } from './profiles';
 
 const HOUR = 3600;
 const DAY = 86_400;
@@ -55,7 +56,7 @@ function standFixtures(): void {
   mat(WATER, ['liquid']);
 
   const curd = (key: string, input: string, lees: string, transforms: boolean): void => {
-    makeStuffAtPath(() => {
+    rememberProfile(() => {
       const p = new MaturationProfile();
       p.setKey(key);
       p.setInputCategory(input);
@@ -78,7 +79,7 @@ function standFixtures(): void {
   curd('t-firm-curd', 't-renneted', FIRM, false);
 
   // The kept starter: a crock of whey is a living culture.
-  makeStuffAtPath(() => {
+  rememberProfile(() => {
     const p = new MaturationProfile();
     p.setKey('t-whey-starter');
     p.setKind('culture');
@@ -150,7 +151,7 @@ describe('a pour that changes what a batch is', () => {
   it('rennet into a pitched milk batch rekeys it, keeping strain, days and mark', () => {
     const vat = milkVat();
     vat.setMaker('/agent/test-cheesemaker');
-    expect(vat.getMaturationProfileKey()).toBe('t-soft-curd');
+    expect(vat.getMaturationProfile()?.getKey()).toBe('t-soft-curd');
     pour(starter(), vat, 0.2);
     expect(vat.getBatchStrain()).toBe('t-lactic');
     setNow(HOUR);
@@ -161,7 +162,7 @@ describe('a pour that changes what a batch is', () => {
     const res = pour(rennetJar(), vat, 0.05);
     expect(res.applied).toBeCloseTo(0.05, 9);
     expect(vat.getBulkMaterialPath('interior')).toBe(RENNETED);
-    expect(vat.getMaturationProfileKey()).toBe('t-firm-curd');
+    expect(vat.getMaturationProfile()?.getKey()).toBe('t-firm-curd');
     expect(vat.getMaturationPhase()).toBe('active');
     expect(vat.getBatchStrain()).toBe('t-lactic');
     expect(vat.batchDays).toBe(daysBefore);
@@ -173,11 +174,11 @@ describe('a pour that changes what a batch is', () => {
   it('rennet first, then the starter, reaches the same state', () => {
     const vat = milkVat();
     pour(rennetJar(), vat, 0.05);
-    expect(vat.getMaturationProfileKey()).toBe('t-firm-curd');
+    expect(vat.getMaturationProfile()?.getKey()).toBe('t-firm-curd');
     expect(vat.getBatchStrain()).toBe('');
     pour(starter(), vat, 0.2);
     expect(vat.getBatchStrain()).toBe('t-lactic');
-    expect(vat.getMaturationProfileKey()).toBe('t-firm-curd');
+    expect(vat.getMaturationProfile()?.getKey()).toBe('t-firm-curd');
   });
 
   it('a foreign pour that is not a coagulant still declines as a mismatch', () => {

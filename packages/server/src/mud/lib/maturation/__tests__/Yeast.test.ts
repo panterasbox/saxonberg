@@ -10,7 +10,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../../platform/thing/Vat';
-import MaturationProfile from '../../../platform/idea/maturation/MaturationProfile';
+import MaturationProfile from '../../../lib/maturation/MaturationProfile';
 import Food from '../../../platform/idea/material/Food';
 import type { Crafted } from '../../craft/Crafted';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -22,6 +22,7 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import '../../../platform/idea/WorldClockRegistry';
+import { rememberProfile } from './profiles';
 
 const DAY = 86_400;
 const BASE = 20_000_000;
@@ -69,7 +70,7 @@ function standFixtures(): void {
 
   // A boiled wort is STERILE: it waits 4 open days for wild flora,
   // or takes a pitch at once; its yeast dies above 310 K.
-  makeStuffAtPath(() => {
+  rememberProfile(() => {
     const p = new MaturationProfile();
     p.setKey('test-ale');
     p.setInputCategory('test-wort');
@@ -87,7 +88,7 @@ function standFixtures(): void {
 
   // Lager: REQUIRES the cold strain, and refuses to work warm at all
   // (authored dormancy above 288 K) — the strain plus the cellar.
-  makeStuffAtPath(() => {
+  rememberProfile(() => {
     const p = new MaturationProfile();
     p.setKey('test-lager');
     p.setInputCategory('test-cold-wort');
@@ -103,7 +104,7 @@ function standFixtures(): void {
   }, LAGER_PROFILE);
 
   // The kept culture: lees in a jar, viability its aliveness.
-  makeStuffAtPath(() => {
+  rememberProfile(() => {
     const p = new MaturationProfile();
     p.setKey('test-culture');
     p.setKind('culture');

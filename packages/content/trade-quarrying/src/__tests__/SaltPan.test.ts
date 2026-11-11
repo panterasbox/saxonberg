@@ -14,7 +14,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import EdibleSalt from '@saxonberg/server/mud/platform/idea/material/EdibleSalt';
-import MaturationProfile from '@saxonberg/server/mud/platform/idea/maturation/MaturationProfile';
+import MaturationProfile from '@saxonberg/server/mud/lib/maturation/MaturationProfile';
 import Location from '@saxonberg/server/mud/lib/location/Location';
 import Provision from '@saxonberg/server/mud/platform/thing/Provision';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
@@ -33,6 +33,7 @@ import {
 import SaltPan from '../thing/SaltPan';
 import Tub from '../thing/Tub';
 import { Placements } from '@saxonberg/server/mud/lib/spatial/Placement';
+import { forgetProfiles, rememberProfile } from '@saxonberg/server/mud/lib/maturation/__tests__/profiles';
 
 const DAY = 86_400;
 const BASE = 10_000_000;
@@ -72,7 +73,7 @@ function stand(): void {
     m.setCrystallizesTo({ product: SALT, residue: BITTERN });
     return m;
   }, BRINE);
-  makeStuffAtPath(() => {
+  rememberProfile(() => {
     const p = new MaturationProfile();
     p.setKey('saltpan-brine');
     p.setInputCategory('saltpan-brine');
@@ -126,6 +127,7 @@ async function settle(): Promise<void> {
 
 beforeEach(() => {
   StuffApi.clearAll();
+  forgetProfiles();
   installV1QuantityMarshallers();
   WorldClockApi._resetForTesting();
   now = BASE;

@@ -81,7 +81,7 @@ export const CENSUS_AT_LANDING = { entries: 128, uncited: 71 };
 /* 78 → 76 (documents W5b): the discipline dictionary loads with a
  * character's first band read; −1 more on the merge with master (the
  * broadcast build's StreamState retired, 85 → 84 there). */
-export const BOOT_ENTRY_CEILING = 75;
+export const BOOT_ENTRY_CEILING = 73; // load-on-use W4: the maturation-profile and fraction-schedule catalogues no longer boot. Was 75
 
 /**
  * ⭐ Content entries whose reason does not cite the unobserved economy —

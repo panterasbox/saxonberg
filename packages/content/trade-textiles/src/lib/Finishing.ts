@@ -25,7 +25,8 @@
 import type { FieldMeta, MixinConstructor } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
-import MaturationProfile from '@saxonberg/server/mud/lib/maturation/MaturationProfile';
+import type MaturationProfile from '@saxonberg/server/mud/lib/maturation/MaturationProfile';
+import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -77,7 +78,7 @@ export function FinishingMixin<TBase extends MixinConstructor>(Base: TBase) {
       finishingPhase: { persistent: true, stackIdentity: true },
       finishedFraction: { persistent: true, stackIdentity: true },
       finishingStamp: { persistent: true },
-      finishingProfileKey: { persistent: true },
+      finishingProfilePath: { persistent: true },
       finishingMaterialPath: { persistent: true },
       _finishWorst: { persistent: true },
     };
@@ -86,13 +87,29 @@ export function FinishingMixin<TBase extends MixinConstructor>(Base: TBase) {
     public finishedFraction = 0;
     /** Game-seconds of the last reconcile; `0` = never. */
     public finishingStamp = 0;
-    public finishingProfileKey = '';
+    public finishingProfilePath = '';
     /** The material the finish is keyed to (a change ⇒ a fresh start). */
     public finishingMaterialPath: string | null = null;
     /** Monotone minimum of the damage satisfaction while active. */
     public _finishWorst = 1;
 
     private _reconcilingFinishing = false;
+
+    /** The restore door (load-on-use W4): a piece restored mid-finish loads its profile. */
+    public setFinishingProfilePath(value: string): Promise<void> {
+      this.finishingProfilePath = typeof value === 'string' ? value : '';
+      if (!this.finishingProfilePath) return Promise.resolve();
+      return BulkableApi.maturationProfiles().ensure(this.finishingProfilePath).then(() => undefined);
+    }
+
+    /**
+     * ⭐ Every maturation profile loads with the first piece that can be
+     * finished (load-on-use D3) — the tag match runs inside a SYNC reconcile.
+     */
+    public async onCreate(context?: unknown): Promise<void> {
+      await super.onCreate(context);
+      await BulkableApi.maturationProfiles().ensureAll();
+    }
 
     private finishingHost(): FinishingBase {
       return this as unknown as FinishingBase;
@@ -129,7 +146,9 @@ export function FinishingMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (!(nowS > fromS)) return;
         this.finishingStamp = nowS;
         if (this.finishingPhase !== 'active') return;
-        const profile = MaturationProfile.byKey(this.finishingProfileKey);
+        const profile = this.finishingProfilePath
+          ? BulkableApi.maturationProfiles().need(this.finishingProfilePath)
+          : null;
         if (!profile) return;
         const killK = profile.getKillK();
         let gained = 0;
@@ -155,8 +174,8 @@ export function FinishingMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.finishingStamp = nowS;
       this.finishedFraction = 0;
       this._finishWorst = 1;
-      const profile = material ? MaturationProfile.forMaterial(material) : null;
-      this.finishingProfileKey = profile?.getKey() ?? '';
+      const profile = material ? BulkableApi.maturationProfiles().forMaterial(material) : null;
+      this.finishingProfilePath = profile?.getPath() ?? '';
       this.finishingPhase = profile !== null ? 'active' : 'idle';
     }
 

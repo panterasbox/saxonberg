@@ -677,6 +677,34 @@ refuses a module-level helper). `lib-statics` 339 → 338; `COMMONS_CEILING`
 
 ### W4 — maturation profiles and fraction schedules become documents
 
+✅ **Done.** 37 profiles → `content/maturation-profiles/`, 10 schedules →
+`content/fraction-schedules/` across 14 packs (no `class:`, no `key:`; every
+key already equalled its leaf). `MaturationProfile`/`FractionSchedule` are
+value classes that KEEP their validating setters: the catalogue's `parse` is
+`new X(path).applyData(data)`, which runs each authored field through its
+setter (the old applier order), so the validation did not move and fixtures
+that build a profile field by field still work. Vessels hold
+`maturationProfilePath`/`ripeningProfilePath`/`runSchedulePath`/
+`finishingProfilePath`, each with a restore setter that returns its `ensure`;
+`MaturingMixin`, `RipeningMixin`, `FractionatingMixin`, textiles
+`FinishingMixin` `onCreate` → `ensureAll()` (coalesced, once per process;
+it applies `afterRead` to each, which loads the products/turned/lees/
+transforms/off-gas and the spans' materials). `Hopper`/`GluePot` cite their
+profiles by path. ⭐ **Build decisions:** (a) **census clause (h)** — the
+material paths inside maturation-profile, fraction-schedule and dyestuff
+documents are checked against shipped rows (B2: a misspelled `red` →
+`redd` goes red); without it the documents' citations had no before-merge
+check at all (`refsOf` reads rows only). (b) `lint:fraction-schedules`
+reads `content/fraction-schedules/`. (c) The catalogues' memory outlives
+`StuffApi.clearAll()`, so suites that remember profiles `forgetProfiles()`
+beside it — except `Fractionating.rest`, which stands its fixtures once per
+file. Fixture: `lib/maturation/__tests__/profiles.ts` (`rememberProfile`,
+`rememberSchedule`, `rememberShipped`, `forgetProfiles`); ~35 suites
+converted; `MaturationProfile.byKey.test.ts` deleted (its memo is gone);
+the wiki spoiler snapshot drops the families' field lists. Boot 75 → 73;
+`lib-statics` 338 → 334; `COMMONS_CEILING` → 36; `template-scans` −2;
+on-create 79/80 live.
+
 The two are one shape; land them in one wave.
 
 - `DocumentKinds`: `'maturation-profile'` (`contentDir: 'maturation-profiles'`,

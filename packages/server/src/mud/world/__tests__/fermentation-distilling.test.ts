@@ -19,7 +19,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import Vat from '../../platform/thing/Vat';
-import MaturationProfile from '../../platform/idea/maturation/MaturationProfile';
+import MaturationProfile from '../../lib/maturation/MaturationProfile';
 import Material from '../../lib/material/Material';
 import Spirit from '../../platform/idea/material/Spirit';
 import Food from '../../platform/idea/material/Food';
@@ -36,6 +36,10 @@ import {
   makeStuffAtPath,
 } from '../../lib/security/__tests__/test-setup';
 import '../../platform/idea/WorldClockRegistry';
+import { forgetProfiles, rememberProfile } from '../../lib/maturation/__tests__/profiles';
+
+// The profile and schedule documents outlive a test (load-on-use W4).
+afterEach(() => forgetProfiles());
 
 const PACKS = fileURLToPath(new URL('../../../../../content/', import.meta.url));
 const DISTILLING = join(PACKS, 'trade-distilling');
@@ -52,7 +56,8 @@ function rowData(pack: string, rel: string): Record<string, unknown> {
   const raw = parse(readFileSync(join(pack, rel), 'utf8')) as {
     data: Record<string, unknown>;
   };
-  return raw.data;
+  // A document (load-on-use W4) has no `data:` wrapper.
+  return raw.data ?? (raw as unknown as Record<string, unknown>);
 }
 function recipeOf(pack: string, id: string): Recipe {
   return Recipe.fromData(
@@ -86,7 +91,7 @@ describe('the wash (real rows)', () => {
   it("ferments the still-house's rough wort", () => {
     const profileData = rowData(
       DISTILLING,
-      'content/trade/distilling/idea/maturation/wash.yaml',
+      'content/maturation-profiles/wash.yaml',
     );
     // ⛔ This used to assert `foreshotCharacter` was non-empty — the one
     // reader of an inert seam. The whiskey build shipped the cuts rung,
@@ -115,7 +120,7 @@ describe('the wash (real rows)', () => {
       m.setTags(['liquid', 'wash']);
       return m;
     }, '/trade/distilling/idea/material/wash');
-    makeStuffAtPath(() => {
+    rememberProfile(() => {
       const p = new MaturationProfile();
       for (const [k, v] of Object.entries(profileData)) {
         const setter = `set${k[0]!.toUpperCase()}${k.slice(1)}`;
@@ -151,7 +156,7 @@ describe('the still recipes (real rows)', () => {
     for (const key of ['wash', 'rectify', 'wine']) {
       const row = rowData(
         DISTILLING,
-        `content/trade/distilling/idea/fractionation/${key}.yaml`,
+        `content/fraction-schedules/${key}.yaml`,
       );
       expect(row.requiresHeatK, key).toBe(351);
       expect(row.discipline, key).toBe('distilling');
@@ -177,7 +182,7 @@ describe('the still recipes (real rows)', () => {
   it('⭐ the wash schedule is calibrated so a good cut harms nobody', () => {
     const schedule = rowData(
       DISTILLING,
-      'content/trade/distilling/idea/fractionation/wash.yaml',
+      'content/fraction-schedules/wash.yaml',
     );
     const methanol = rowData(
       join(PACKS, 'platform'),

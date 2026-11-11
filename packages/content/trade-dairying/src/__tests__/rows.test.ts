@@ -89,10 +89,10 @@ describe('the dairying rows', () => {
   });
 
   it('no fraction speaks a number — the cut is a judgement', () => {
-    const schedules = parsed.filter((p) => p.file.includes('/fractionation/'));
+    const schedules = parsed.filter((p) => p.file.includes('/fraction-schedules/'));
     expect(schedules.length).toBe(2);
     for (const { row } of schedules) {
-      for (const f of (row as { data: { fractions: Array<{ character: string }> } }).data.fractions) {
+      for (const f of (row as { fractions: Array<{ character: string }> }).fractions) {
         expect(f.character).not.toMatch(/\d/);
       }
     }

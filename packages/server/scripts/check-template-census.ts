@@ -27,6 +27,9 @@
  *       document some pack ships: a pack's document is stored at its root
  *       + the kind's content dir + the file, and a document's path is its
  *       only identity (owner, 2026-11-08). Aroma paths are `lint:aromas`'.
+ *   (h) Every row a material-citing DOCUMENT names (a maturation
+ *       profile's product, a schedule's spans, a dyestuff's bath —
+ *       {@link DOCUMENT_ROW_CITATIONS}) is a row some pack ships.
  *   (f) ⭐⭐ Every field a `fieldMeta` DECLARES on the identity axis
  *       (`ref: 'identity:constituent' | 'identity:relation' |
  *       'identity:kind'`), in the kernel or any pack's `src/`, resolves
@@ -1203,6 +1206,52 @@ function checkDocumentRefs(rows: Map<string, string>): number {
   return checked;
 }
 
+// ── clause (h): a DOCUMENT naming a row by path resolves ───────────
+/**
+ * The row-citing fields of the document kinds that cite materials
+ * (load-on-use W1–W4): a maturation profile's product, failure and lees, a
+ * schedule's product, residue and spans, a dyestuff's bath. The catalogues
+ * load these with the document, so a misspelling would be a load that
+ * fails at first reach — caught here, before merge.
+ */
+const DOCUMENT_ROW_CITATIONS: Readonly<Record<string, (d: Record<string, unknown>) => unknown[]>> = {
+  'maturation-profiles': (d) => [
+    d.productMaterial, d.turnedMaterial, d.leesMaterial,
+    ...(Array.isArray(d.transforms) ? d.transforms.map((t) => (t as Record<string, unknown>)?.becomes) : []),
+    (d.offGas as Record<string, unknown> | undefined)?.material,
+  ],
+  'fraction-schedules': (d) => [
+    d.productMaterial, d.residueMaterial,
+    ...(Array.isArray(d.fractions) ? d.fractions.map((f) => (f as Record<string, unknown>)?.material) : []),
+  ],
+  dyestuffs: (d) => [d.material],
+};
+
+function checkDocumentCitations(rows: Map<string, string>): number {
+  let checked = 0;
+  if (!existsSync(CONTENT)) return checked;
+  for (const [contentDir, cites] of Object.entries(DOCUMENT_ROW_CITATIONS)) {
+    for (const pack of readdirSync(CONTENT)) {
+      const dir = join(CONTENT, pack, 'content', contentDir);
+      if (!existsSync(dir)) continue;
+      for (const file of walk(dir, '.yaml')) {
+        let data: Record<string, unknown> | null;
+        try { data = YAML.parse(readFileSync(file, 'utf8')) as Record<string, unknown> | null; }
+        catch { continue; }
+        if (!data || typeof data !== 'object') continue;
+        for (const path of cites(data)) {
+          if (typeof path !== 'string' || path === '') continue;
+          checked += 1;
+          if (!rows.has(path)) {
+            findings.push({ clause: 'h', file, detail: `cites ${path}, which no pack ships as a row` });
+          }
+        }
+      }
+    }
+  }
+  return checked;
+}
+
 // ── clause (f): every DECLARED identity field resolves ─────────────
 /** Every `.ts` under a source root, tests excluded. */
 function* sourceFiles(root: string): Generator<string> {
@@ -1454,7 +1503,7 @@ function main(): void {
   const rows = templateRows();
   checkRetiredChannel();
   const fieldRefs = checkFieldRefs(rows);
-  const documentRefs = checkDocumentRefs(rows);
+  const documentRefs = checkDocumentRefs(rows) + checkDocumentCitations(rows);
   const declared = declaredIdentityFields();
   const identityRefs = checkDeclaredIdentity(rows, declared);
   checkPathFieldCoverage(rows, declared);

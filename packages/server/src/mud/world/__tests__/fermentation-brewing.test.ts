@@ -16,7 +16,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import Vat from '../../platform/thing/Vat';
-import MaturationProfile from '../../platform/idea/maturation/MaturationProfile';
+import MaturationProfile from '../../lib/maturation/MaturationProfile';
 import GardenBed from '../../platform/thing/GardenBed';
 import Receptacle from '../../platform/thing/Receptacle';
 import FeedController from '../../platform/idea/cmd/bulk/FeedController';
@@ -50,6 +50,10 @@ class Grower extends SensorMixin(
   static _mixinName = 'BrewingTestGrower';
 }
 import '../../platform/idea/WorldClockRegistry';
+import { forgetProfiles, rememberProfile } from '../../lib/maturation/__tests__/profiles';
+
+// The profile and schedule documents outlive a test (load-on-use W4).
+afterEach(() => forgetProfiles());
 
 const PACKS = fileURLToPath(new URL('../../../../../content/', import.meta.url));
 const BREWING = join(PACKS, 'trade-brewing', 'content', 'trade', 'brewing');
@@ -66,7 +70,8 @@ function rowData(rel: string): Record<string, unknown> {
     class: string;
     data: Record<string, unknown>;
   };
-  return raw.data;
+  // A document (load-on-use W4) has no `data:` wrapper.
+  return raw.data ?? (raw as unknown as Record<string, unknown>);
 }
 
 let seq = 0;
@@ -74,7 +79,7 @@ let seq = 0;
 /** Stand a profile row's data up through the class's own setters. */
 function standProfile(rel: string): MaturationProfile {
   const data = rowData(rel);
-  return makeStuffAtPath(() => {
+  return rememberProfile(() => {
     const p = new MaturationProfile();
     for (const [k, v] of Object.entries(data)) {
       const setter = `set${k[0]!.toUpperCase()}${k.slice(1)}`;
@@ -86,7 +91,7 @@ function standProfile(rel: string): MaturationProfile {
       }
     }
     return p;
-  }, `/stuff/idea/brewing-w5-${seq}/idea/maturation/${data.key as string}`);
+  }, `/stuff/idea/brewing-w5-${seq}/maturation-profiles/${rel.slice(rel.lastIndexOf('/') + 1, -'.yaml'.length)}`);
 }
 
 /** Stand a material row's ferment-relevant face. */
@@ -146,10 +151,10 @@ afterEach(() => {
 
 describe('the authored profiles agree with the strain contract (D14)', () => {
   it('the lager gate is the lager culture, and the lees trace to their species rows', () => {
-    const lager = rowData('idea/maturation/lager.yaml');
-    const lagerCulture = rowData('idea/maturation/lager-culture.yaml');
+    const lager = rowData('../../maturation-profiles/lager.yaml');
+    const lagerCulture = rowData('../../maturation-profiles/lager-culture.yaml');
     expect(lager.requiresStrain).toBe(lagerCulture.strain);
-    const aleCulture = rowData('idea/maturation/ale-culture.yaml');
+    const aleCulture = rowData('../../maturation-profiles/ale-culture.yaml');
     const aleLees = rowData('idea/material/ale-lees.yaml');
     expect((aleLees.tags as string[])).toContain(aleCulture.inputCategory);
     // The D13 bridge: each lees' biologicalSource names a shipped
@@ -170,7 +175,7 @@ describe('the authored profiles agree with the strain contract (D14)', () => {
 
 describe('boiled wort is sterile (the ale profile, real rows)', () => {
   it('sealed never starts; open catches wild flora after the lag; a pitch starts at once', () => {
-    standProfile('idea/maturation/ale.yaml');
+    standProfile('../../maturation-profiles/ale.yaml');
     const sealed = makeVat(288);
     fill(sealed, wort, 50);
     sealed.getMaturationPhase();
@@ -199,7 +204,7 @@ describe('boiled wort is sterile (the ale profile, real rows)', () => {
 
 describe('the lager line (D14 on real rows)', () => {
   it('refuses wild, refuses the warm brewhouse, ferments in the cold store on its strain', () => {
-    standProfile('idea/maturation/lager.yaml');
+    standProfile('../../maturation-profiles/lager.yaml');
     const wild = makeVat(279);
     fill(wild, lagerWort, 50);
     wild.open();
@@ -228,7 +233,7 @@ describe('the lager line (D14 on real rows)', () => {
 
 describe('the cask conditions (P9 on real rows)', () => {
   it('sealed ale referments its residual sugar into carbonated cask ale; open just breathes', () => {
-    standProfile('idea/maturation/cask-conditioning.yaml');
+    standProfile('../../maturation-profiles/cask-conditioning.yaml');
     const ale = StuffApi.findByTemplatePath<Food>(
       '/trade/brewing/idea/material/ale',
     )!;

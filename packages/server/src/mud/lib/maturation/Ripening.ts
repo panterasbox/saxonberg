@@ -41,7 +41,8 @@ import type { MarkupAugmenter } from '../../api/mml';
 import type { Stuff } from '../stuff/Stuff';
 import type Material from '../material/Material';
 import { Grade, type GradeBand } from '../craft/Grade';
-import MaturationProfile from './MaturationProfile';
+import type MaturationProfile from './MaturationProfile';
+import { BulkableApi } from '../../api/bulk';
 import { TemplatePaths } from '../paths';
 
 /** Where a wheel has got to. */
@@ -108,7 +109,7 @@ export function RipeningMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
       ripeningPhase: { persistent: true, runtimeState: true },
       ripenessFraction: { persistent: true, runtimeState: true },
       ripeningStamp: { persistent: true, runtimeState: true },
-      ripeningProfileKey: { persistent: true, runtimeState: true },
+      ripeningProfilePath: { persistent: true, runtimeState: true },
       ripeningMaterialPath: { persistent: true, runtimeState: true },
       ripeningInputBand: { persistent: true, runtimeState: true },
       _ripeWorst: { persistent: true, runtimeState: true },
@@ -132,7 +133,7 @@ export function RipeningMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
     public ripenessFraction = 0;
     /** Game-seconds of the last reconcile; `0` = never. */
     public ripeningStamp = 0;
-    public ripeningProfileKey = '';
+    public ripeningProfilePath = '';
     /** The material the ripening is keyed to (a change ⇒ a fresh start). */
     public ripeningMaterialPath: string | null = null;
     /** The band the wheel was MADE at — the ceiling (weakest link). */
@@ -182,7 +183,7 @@ export function RipeningMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
         if (!(elapsed > 0)) return;
         this.ripeningStamp = nowS;
         if (this.ripeningPhase === 'idle' || this.ripeningPhase === 'killed') return;
-        const profile = MaturationProfile.byKey(this.ripeningProfileKey);
+        const profile = this.getRipeningProfile();
         if (!profile) return;
 
         const samples = MixinApi.isThermal(self)
@@ -229,8 +230,8 @@ export function RipeningMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
       this._ripeWorst = 1;
       this.overDays = 0;
       this.ripeningStamp = nowS;
-      const profile = material ? MaturationProfile.forMaterial(material) : null;
-      this.ripeningProfileKey = profile?.getKey() ?? '';
+      const profile = material ? BulkableApi.maturationProfiles().forMaterial(material) : null;
+      this.ripeningProfilePath = profile?.getPath() ?? '';
       this.ripeningPhase = profile !== null ? 'active' : 'idle';
     }
 
@@ -289,7 +290,26 @@ export function RipeningMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
     }
 
     public getRipeningProfile(): MaturationProfile | null {
-      return MaturationProfile.byKey(this.ripeningProfileKey);
+      return this.ripeningProfilePath
+        ? BulkableApi.maturationProfiles().need(this.ripeningProfilePath)
+        : null;
+    }
+
+    /** The restore door (load-on-use W4): a wheel restored mid-ripening loads its profile. */
+    public setRipeningProfilePath(value: string): Promise<void> {
+      this.ripeningProfilePath = typeof value === 'string' ? value : '';
+      if (!this.ripeningProfilePath) return Promise.resolve();
+      return BulkableApi.maturationProfiles().ensure(this.ripeningProfilePath).then(() => undefined);
+    }
+
+    /**
+     * ⭐ Every maturation profile loads with the first thing that can ripen
+     * (load-on-use D3, D7 shape 4) — the tag match runs inside a SYNC
+     * reconcile.
+     */
+    public async onCreate(context?: unknown): Promise<void> {
+      await super.onCreate(context);
+      await BulkableApi.maturationProfiles().ensureAll();
     }
 
     /**

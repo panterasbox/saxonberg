@@ -8,8 +8,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
-import MaturationProfile from '@saxonberg/server/mud/platform/idea/maturation/MaturationProfile';
-import FractionSchedule from '@saxonberg/server/mud/platform/idea/fractionation/FractionSchedule';
+import { rememberShipped } from '@saxonberg/server/mud/lib/maturation/__tests__/profiles';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import {
@@ -22,10 +21,7 @@ export const CONTENT = join(dirname(fileURLToPath(import.meta.url)), '..', '..',
 /** This pack's root. */
 export const PACK = join(CONTENT, 'trade-dairying');
 
-const CLASSES: Record<string, () => Stuff> = {
-  '/platform/idea/maturation/MaturationProfile': () => new MaturationProfile(),
-  '/platform/idea/fractionation/FractionSchedule': () => new FractionSchedule(),
-};
+const CLASSES: Record<string, () => Stuff> = {};
 
 /** The YAML file a template path is authored in, in any pack. */
 export function rowFile(path: string): string | null {
@@ -109,11 +105,12 @@ export const MAT = {
 /** Every dairying material, profile and schedule, plus the three milks. */
 export async function standUpTheTrade(): Promise<void> {
   for (const p of [MAT.milk, MAT.eweMilk, MAT.goatMilk]) await hydrate(p);
-  for (const dir of [
-    'trade/dairying/idea/material',
-    'trade/dairying/idea/maturation',
-    'trade/dairying/idea/fractionation',
-  ]) {
-    for (const p of pathsUnder(dir)) await hydrate(p);
+  for (const p of pathsUnder('trade/dairying/idea/material')) await hydrate(p);
+  // The profiles and schedules are DOCUMENTS (load-on-use W4): the pack's
+  // `content/maturation-profiles/` and `content/fraction-schedules/`.
+  for (const [dir, kind] of [['maturation-profiles', 'maturation-profiles'], ['fraction-schedules', 'fraction-schedules']] as const) {
+    for (const f of readdirSync(join(PACK, 'content', dir)).filter((n) => n.endsWith('.yaml'))) {
+      rememberShipped(`/trade/dairying/${kind}/${f.replace(/\.yaml$/, '')}`);
+    }
   }
 }

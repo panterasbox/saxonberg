@@ -11,7 +11,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import Vat from '../../../platform/thing/Vat';
-import MaturationProfile from '../../../platform/idea/maturation/MaturationProfile';
+import MaturationProfile from '../../../lib/maturation/MaturationProfile';
 import {
   MATURATION_LINES,
   MATURATION_MECHANISMS,
@@ -28,6 +28,7 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import '../../../platform/idea/WorldClockRegistry';
+import { rememberProfile } from './profiles';
 
 const DAY = 86_400;
 const BASE = 10_000_000; // production clocks never sit at 0
@@ -69,7 +70,7 @@ function standFixtures(): void {
     m.setTags(['liquid', 'vinegar']);
     return m;
   }, VINEGAR);
-  makeStuffAtPath(() => {
+  rememberProfile(() => {
     const p = new MaturationProfile();
     p.setKey('test-red');
     p.setInputCategory('test-must');
@@ -126,7 +127,7 @@ describe('the batch lifecycle', () => {
     const vat = makeVat(291);
     fillWithMust(vat);
     expect(vat.getMaturationPhase()).toBe('active');
-    expect(vat.getMaturationProfileKey()).toBe('test-red');
+    expect(vat.getMaturationProfile()?.getKey()).toBe('test-red');
     expect(vat.getStartingSugarGPerL()).toBe(SUGAR_G_PER_L);
     expect(vat.getFractionConverted()).toBe(0);
     expect(vat.getGravity()).toBeCloseTo(1 + 200 * 0.0004, 9);
@@ -144,7 +145,7 @@ describe('the batch lifecycle', () => {
     vat.setBulkAmount('interior', Quantity.of(0, 'L'));
     vat.setBulkMaterial('interior', null);
     expect(vat.getMaturationPhase()).toBe('idle');
-    expect(vat.getMaturationProfileKey()).toBe('');
+    expect(vat.getMaturationProfilePath()).toBe('');
   });
 });
 
@@ -359,7 +360,7 @@ describe('⚠⚠ the prose follows the MECHANISM, not the substrate', () => {
      * default and silently asserts the wrong chemistry, which is the
      * exact failure the field exists to end.
      */
-    const p = makeStuff(() => new MaturationProfile());
+    const p = new MaturationProfile();
     expect(() => p.setMechanism('photosynthetic')).toThrow(RangeError);
     p.setMechanism('photochemical');
     expect(p.getMechanism()).toBe('photochemical');

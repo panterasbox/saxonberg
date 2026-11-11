@@ -71,7 +71,7 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { ExecutionContextApi } from '../../api/execution-context';
-import MaturationProfileRef from './MaturationProfile';
+import { BulkableApi } from '../../api/bulk';
 import { BiomeApi } from '../../api/biome';
 import {
   Evaporation,
@@ -184,7 +184,7 @@ export interface Maturing {
   /** The monotone-min worst temperature stretch, 0..1 (reconciles first). */
   getWorstStretch(): number;
   /** The matched profile's key, `''` when none. */
-  getMaturationProfileKey(): string;
+  getMaturationProfilePath(): string;
   /** The matched profile row, or `null`. */
   getMaturationProfile(): MaturationProfile | null;
   /** The strain the batch carries; `''` = sterile (reconciles first). */
@@ -407,7 +407,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       maturationClockStamp: { persistent: true, runtimeState: true },
       maturationPhase: { persistent: true, runtimeState: true },
-      maturationProfileKey: { persistent: true, runtimeState: true },
+      maturationProfilePath: { persistent: true, runtimeState: true },
       batchMaterialPath: { persistent: true, runtimeState: true },
       startingSugarGPerL: { persistent: true, runtimeState: true },
       fractionConverted: { persistent: true, runtimeState: true },
@@ -537,7 +537,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** The batch phase. */
     public maturationPhase: MaturationPhase = 'idle';
     /** The matched profile's key; `''` = none matched. */
-    public maturationProfileKey = '';
+    public maturationProfilePath = '';
     /** The interior material path the current batch is keyed to. */
     public batchMaterialPath: string | null = null;
     /** Starting sugar, g/L, read off the input material at fill. */
@@ -626,7 +626,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
           amount <= this.leesVolumeL + 1e-9
         ) {
           const leesPath =
-            MaturationProfileRef.byKey(this.maturationProfileKey)?.getLeesMaterial() ??
+            this.getMaturationProfile()?.getLeesMaterial() ??
             '';
           if (leesPath !== '') {
             const lees = StuffApi.findByTemplatePath<Material>(leesPath);
@@ -654,7 +654,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
           this.maturationClockStamp = nowS;
           return;
         }
-        const profile = MaturationProfileRef.byKey(this.maturationProfileKey);
+        const profile = this.getMaturationProfile();
         if (!profile) {
           this.maturationClockStamp = nowS;
           return;
@@ -850,12 +850,36 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       return clamp01(this._worstStretch);
     }
 
-    public getMaturationProfileKey(): string {
-      return this.maturationProfileKey;
+    /** The path of the profile this batch runs — empty when idle. */
+    public getMaturationProfilePath(): string {
+      return this.maturationProfilePath;
     }
 
+    /**
+     * The restore door (load-on-use W4): a vessel restored mid-batch loads
+     * the profile it names. Returns the load; the applier awaits it.
+     */
+    public setMaturationProfilePath(value: string): Promise<void> {
+      this.maturationProfilePath = typeof value === 'string' ? value : '';
+      if (!this.maturationProfilePath) return Promise.resolve();
+      return BulkableApi.maturationProfiles().ensure(this.maturationProfilePath).then(() => undefined);
+    }
+
+    /** The profile this batch runs — read cold, it throws naming the path. */
     public getMaturationProfile(): MaturationProfile | null {
-      return MaturationProfileRef.byKey(this.maturationProfileKey);
+      return this.maturationProfilePath
+        ? BulkableApi.maturationProfiles().need(this.maturationProfilePath)
+        : null;
+    }
+
+    /**
+     * ⭐ Every maturation profile loads with the first vessel that can run
+     * one (load-on-use D3, D7 shape 4): the tag match runs inside a SYNC
+     * reconcile, so the kind is read once per process here.
+     */
+    public async onCreate(context?: unknown): Promise<void> {
+      await super.onCreate(context);
+      await BulkableApi.maturationProfiles().ensureAll();
     }
 
     // ---------- batch lifecycle (host-internal) ----------
@@ -898,7 +922,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       const material = StuffApi.findByTemplatePath<Material>(materialPath);
       if (!material) {
         this.batchMaterialPath = null;
-        this.maturationProfileKey = '';
+        this.maturationProfilePath = '';
         this.startingSugarGPerL = 0;
         this.maturationPhase = 'idle';
         return;
@@ -906,7 +930,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.batchMaterialPath = materialPath;
       this.stampMadeFrom(materialPath);
       const profile = this.matchProfile(material);
-      this.maturationProfileKey = profile?.getKey() ?? '';
+      this.maturationProfilePath = profile?.getPath() ?? '';
       this.startingSugarGPerL = MixinApi.hasEdibility(material)
         ? (material.getNutrientAmounts()['sugar'] ?? 0)
         : 0;
@@ -961,7 +985,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       // fill whose `setGrade` witness overwrites it. Clearing would be
       // harmless; not clearing keeps the one write path.
       this.maturationPhase = 'idle';
-      this.maturationProfileKey = '';
+      this.maturationProfilePath = '';
       this.batchMaterialPath = null;
       this.startingSugarGPerL = 0;
       this.fractionConverted = 0;
@@ -1041,7 +1065,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       // authoring `scaldAboveK` sets badly past it whatever else went
       // right; vacuous for every profile that authors none.
       const scald =
-        MaturationProfileRef.byKey(this.maturationProfileKey)?.getScaldAboveK() ??
+        this.getMaturationProfile()?.getScaldAboveK() ??
         null;
       if (scald !== null && this.batchPeakK > scald) {
         band = band.min(Grade.of('poor'));
@@ -1088,7 +1112,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** This batch's profile's `productAtFraction`, or 1 when there is none. */
     private productAtFractionForBatch(): number {
       return (
-        MaturationProfileRef.byKey(this.maturationProfileKey)
+        this.getMaturationProfile()
           ?.getProductAtFraction() ?? 1
       );
     }
@@ -1252,7 +1276,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       strain: string,
     ): ForeignPourKind | null {
       this.reconcileFerment();
-      const profile = MaturationProfileRef.byKey(this.maturationProfileKey);
+      const profile = this.getMaturationProfile();
       if (!profile) return null;
       // ⭐ A declared transform is checked FIRST (dairy D7): rennet into a
       // working milk batch changes what it is, whether or not it has been
@@ -1295,7 +1319,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
     ): void {
       this.reconcileFerment();
       if (kind === 'transform') {
-        const profile = MaturationProfileRef.byKey(this.maturationProfileKey);
+        const profile = this.getMaturationProfile();
         const becomes =
           material !== undefined ? profile?.transformFor(material) ?? null : null;
         if (becomes !== null) this.rekeyBatch(becomes);
@@ -1511,7 +1535,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
      * hopper leaches only while there is ash in it (cleanliness D24).
      */
     public matchProfile(material: Material): MaturationProfile | null {
-      return MaturationProfileRef.forMaterial(material);
+      return BulkableApi.maturationProfiles().forMaterial(material);
     }
 
     public rekeyBatch(materialPath: string): void {
@@ -1522,7 +1546,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       self.setBulkMaterial('interior', material);
       this.batchMaterialPath = materialPath;
       const profile = this.matchProfile(material);
-      this.maturationProfileKey = profile?.getKey() ?? '';
+      this.maturationProfilePath = profile?.getPath() ?? '';
       this.maturationPhase = profile !== null ? 'active' : 'idle';
       if (profile !== null) this.stampBatchMark(profile, this.maturationClockStamp);
     }
@@ -1543,7 +1567,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.reconcileFerment();
       if (this.maturationPhase !== 'active') return false;
       if (this.batchStrain === '') return false;
-      const profile = MaturationProfileRef.byKey(this.maturationProfileKey);
+      const profile = this.getMaturationProfile();
       if (profile === null) return false;
       return profile.getKind() !== 'culture' || this.viability > 0;
     }
@@ -1578,7 +1602,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** The kill ceiling of `strain`'s culture profile (pitch check). */
     private cultureKillKFor(strain: string): number {
-      const culture = MaturationProfileRef.cultureForStrain(strain);
+      const culture = BulkableApi.maturationProfiles().cultureForStrain(strain);
       return culture?.getKillK() ?? DEFAULT_PITCH_KILL_K;
     }
 

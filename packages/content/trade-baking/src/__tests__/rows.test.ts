@@ -28,7 +28,8 @@ function row(file: string): Record<string, unknown> {
     class?: string;
     data?: Record<string, unknown>;
   };
-  return { __class: doc.class, ...(doc.data ?? {}) };
+  // A document (load-on-use W4) has no `class:` and no `data:` wrapper.
+  return { __class: doc.class, ...(doc.data ?? (doc as Record<string, unknown>)) };
 }
 function recipe(name: string): Record<string, unknown> {
   return YAML.parse(
@@ -78,10 +79,10 @@ describe('the five materials, and why there are exactly five', () => {
 
 describe('⭐ the proof is a real ferment on the shipped substrate', () => {
   const profile = () =>
-    row(join(BAKING, 'idea', 'maturation', 'bread-dough.yaml'));
+    row(join(PACK, 'content', 'maturation-profiles', 'bread-dough.yaml'));
 
   it('it rides MaturationProfile, matching the dough by TAG', () => {
-    expect(profile().__class).toBe('/platform/idea/maturation/MaturationProfile');
+    expect(profile().__class).toBeUndefined(); // a document, not a row
     expect(profile().inputCategory).toBe('dough');
     expect((row(join(MATS, 'dough.yaml')).tags as string[])).toContain('dough');
   });
@@ -113,7 +114,7 @@ describe('⭐ the proof is a real ferment on the shipped substrate', () => {
   });
 
   it('the levain is a CULTURE and needier than a barm', () => {
-    const l = row(join(BAKING, 'idea', 'maturation', 'levain-culture.yaml'));
+    const l = row(join(PACK, 'content', 'maturation-profiles', 'levain-culture.yaml'));
     expect(l.kind).toBe('culture');
     expect(l.strain).toBe('sourdough');
     // A sourdough starter is famously needier than the brewer's twelve

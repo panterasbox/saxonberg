@@ -12,7 +12,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../platform/thing/Vat';
-import MaturationProfile from '../../platform/idea/maturation/MaturationProfile';
+import MaturationProfile from '../../lib/maturation/MaturationProfile';
 import Material from '../../lib/material/Material';
 import Food from '../../platform/idea/material/Food';
 import { WorldClockApi } from '../../api/worldclock';
@@ -22,6 +22,10 @@ import {
   makeStuffAtPath,
 } from '../../lib/security/__tests__/test-setup';
 import '../../platform/idea/WorldClockRegistry';
+import { forgetProfiles, rememberProfile } from '../../lib/maturation/__tests__/profiles';
+
+// The profile and schedule documents outlive a test (load-on-use W4).
+afterEach(() => forgetProfiles());
 
 const DAY = 86_400;
 const BASE = 60_000_000;
@@ -60,7 +64,7 @@ describe('cider from rows alone (the second-drink test)', () => {
       m.setTags(['liquid', 'vinegar']);
       return m;
     }, '/test/cider/idea/material/cider-vinegar');
-    makeStuffAtPath(() => {
+    rememberProfile(() => {
       const p = new MaturationProfile();
       p.setKey('cider');
       p.setInputCategory('apple-must');
@@ -82,7 +86,7 @@ describe('cider from rows alone (the second-drink test)', () => {
     vat.setBulkAmount('interior', Quantity.of(30, 'L'));
 
     expect(vat.getMaturationPhase()).toBe('active'); // matched by tag
-    expect(vat.getMaturationProfileKey()).toBe('cider');
+    expect(vat.getMaturationProfile()?.getKey()).toBe('cider');
     now = BASE + 4 * DAY;
     expect(vat.getFractionConverted()).toBeCloseTo(0.6, 9);
     expect(vat.getAbvPercent()).toBeCloseTo((130 * 0.6) / 17, 9);

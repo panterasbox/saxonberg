@@ -25,7 +25,8 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import Vat from '@saxonberg/server/mud/platform/thing/Vat';
-import MaturationProfile from '@saxonberg/server/mud/platform/idea/maturation/MaturationProfile';
+import type MaturationProfile from '@saxonberg/server/mud/lib/maturation/MaturationProfile';
+import { forgetProfiles, rememberShipped } from '@saxonberg/server/mud/lib/maturation/__tests__/profiles';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import Drink from '@saxonberg/server/mud/platform/idea/material/Drink';
@@ -39,6 +40,9 @@ import {
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
+
+// The profile and schedule documents outlive a test (load-on-use W4).
+afterEach(() => forgetProfiles());
 
 const DAY = 86_400;
 const here = dirname(fileURLToPath(import.meta.url));
@@ -82,28 +86,9 @@ function material(file: string, path: string): Material {
   });
 }
 
-/** Stand a MaturationProfile from its shipped row, field for field. */
-function profile(file: string, path: string): MaturationProfile {
-  const d = rowData(file);
-  return singleton(path, () => {
-    const p = new MaturationProfile();
-    p.setKey(String(d.key));
-    p.setInputCategory(String(d.inputCategory));
-    p.setStallBelowK(Number(d.stallBelowK));
-    p.setHappyK(Number(d.happyK));
-    p.setDamageAboveK(Number(d.damageAboveK));
-    if (d.killK !== undefined) p.setKillK(Number(d.killK));
-    p.setRatePerDay(Number(d.ratePerDay));
-    p.setProductMaterial(String(d.productMaterial));
-    if (d.turnedMaterial) p.setTurnedMaterial(String(d.turnedMaterial));
-    if (d.turnDays !== undefined) p.setTurnDays(Number(d.turnDays));
-    if (d.leesFraction !== undefined) p.setLeesFraction(Number(d.leesFraction));
-    if (d.leesMaterial) p.setLeesMaterial(String(d.leesMaterial));
-    if (d.spontaneousLagDays !== undefined) {
-      p.setSpontaneousLagDays(Number(d.spontaneousLagDays));
-    }
-    return p;
-  });
+/** The SHIPPED profile document at `path`, read from disk and parsed (load-on-use W4). */
+function profile(path: string): MaturationProfile {
+  return rememberShipped<MaturationProfile>(path);
 }
 
 const HONEY = '/trade/apiculture/idea/material/honey';
@@ -116,14 +101,8 @@ function stand(): void {
   material(join(APICULTURE, 'idea/material/fermented-honey.yaml'), FERMENTED);
   material(join(WINEMAKING, 'idea/material/honey-must.yaml'), HONEY_MUST);
   material(join(WINEMAKING, 'idea/material/mead.yaml'), MEAD);
-  profile(
-    join(APICULTURE, 'idea/maturation/honey-wild.yaml'),
-    '/trade/apiculture/idea/maturation/honey-wild',
-  );
-  profile(
-    join(WINEMAKING, 'idea/maturation/mead.yaml'),
-    '/trade/winemaking/idea/maturation/mead',
-  );
+  profile('/trade/apiculture/maturation-profiles/honey-wild');
+  profile('/trade/winemaking/maturation-profiles/mead');
 }
 
 /** A vessel at a stated temperature, open or shut. */
@@ -175,7 +154,7 @@ describe('mead, and the honey that ferments by itself', () => {
   it('⭐⭐ AC 15 — honey left OPEN ferments by itself', () => {
     const jar = vessel(297, true, 2);
     fill(jar, HONEY, 1);
-    expect(jar.getMaturationProfileKey()).toBe('honey-wild');
+    expect(jar.getMaturationProfile()?.getKey()).toBe('honey-wild');
     // Nothing for the first few days: the wild flora has to find it.
     setNow(400_000_000 + 4 * DAY);
     expect(jar.getFractionConverted()).toBe(0);
@@ -201,7 +180,7 @@ describe('mead, and the honey that ferments by itself', () => {
   it('⭐⭐ AC 15 — an OPEN honey must becomes mead: the same mechanism', () => {
     const bucket = vessel(293, true, 10);
     fill(bucket, HONEY_MUST, 4);
-    expect(bucket.getMaturationProfileKey()).toBe('mead');
+    expect(bucket.getMaturationProfile()?.getKey()).toBe('mead');
     setNow(400_000_000 + 3 * DAY);
     expect(bucket.getFractionConverted()).toBe(0); // still catching
     setNow(400_000_000 + 60 * DAY);
@@ -216,23 +195,14 @@ describe('mead, and the honey that ferments by itself', () => {
   });
 
   it('⭐ mead is SLOWER than a grape must — honey is a poor nitrogen source', () => {
-    const mead = profile(
-      join(WINEMAKING, 'idea/maturation/mead.yaml'),
-      '/trade/winemaking/idea/maturation/mead',
-    );
-    const white = rowData(join(WINEMAKING, 'idea/maturation/white-wine.yaml'));
-    expect(mead.getRatePerDay()).toBeLessThan(Number(white.ratePerDay));
+    const mead = profile('/trade/winemaking/maturation-profiles/mead');
+    const white = profile('/trade/winemaking/maturation-profiles/white-wine');
+    expect(mead.getRatePerDay()).toBeLessThan(white.getRatePerDay());
   });
 
   it('⭐ wild honey does NOT go on to vinegar — it just stays disappointing', () => {
-    const wild = profile(
-      join(APICULTURE, 'idea/maturation/honey-wild.yaml'),
-      '/trade/apiculture/idea/maturation/honey-wild',
-    );
-    const mead = profile(
-      join(WINEMAKING, 'idea/maturation/mead.yaml'),
-      '/trade/winemaking/idea/maturation/mead',
-    );
+    const wild = profile('/trade/apiculture/maturation-profiles/honey-wild');
+    const mead = profile('/trade/winemaking/maturation-profiles/mead');
     expect(wild.getTurnedMaterial()).toBeFalsy();
     // Mead does, because mead is wine.
     expect(mead.getTurnedMaterial()).toBeTruthy();

@@ -36,7 +36,8 @@ function row(abs: string): Record<string, unknown> {
   return YAML.parse(readFileSync(abs, 'utf8')) as Record<string, unknown>;
 }
 function data(abs: string): Record<string, unknown> {
-  return (row(abs).data ?? {}) as Record<string, unknown>;
+  // A document (load-on-use W4) has no `data:` wrapper.
+  return (row(abs).data ?? row(abs)) as Record<string, unknown>;
 }
 
 describe('⭐⭐⭐ the brine meets the pan by TAG', () => {
@@ -53,7 +54,7 @@ describe('⭐⭐⭐ the brine meets the pan by TAG', () => {
     const water = data(`${BASE}stuff/idea/material/bulk/salt-water.yaml`);
     const tags = (water.tags ?? []) as string[];
 
-    const profile = data(`${QUARRYING}idea/maturation/brine.yaml`);
+    const profile = data(`${CONTENT}trade-quarrying/content/maturation-profiles/brine.yaml`);
     expect(tags).toContain(profile.inputCategory);
     expect(profile.mechanism).toBe('evaporative');
     // ⭐ (ceramics W8) The profile takes the WATER; the salt sets itself

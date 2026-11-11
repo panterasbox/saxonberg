@@ -40,8 +40,8 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import Vat from '../../platform/thing/Vat';
 import CraftVessel from '../../platform/thing/CraftVessel';
-import MaturationProfile from '../../platform/idea/maturation/MaturationProfile';
-import FractionSchedule from '../../platform/idea/fractionation/FractionSchedule';
+import MaturationProfile from '../../lib/maturation/MaturationProfile';
+import FractionSchedule from '../../lib/fractionation/FractionSchedule';
 import type Material from '../../lib/material/Material';
 import { MixinApi } from '../../api/mixin';
 import Food from '../../platform/idea/material/Food';
@@ -64,6 +64,7 @@ import {
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import WorldClockRegistry from '../../platform/idea/WorldClockRegistry';
 import Still from '../../../../../content/trade-distilling/src/thing/Still';
+import { forgetProfiles, rememberProfile, rememberSchedule } from '../../lib/maturation/__tests__/profiles';
 
 const PACKS = fileURLToPath(new URL('../../../../../content/', import.meta.url));
 const MALTING = join(PACKS, 'trade-malting');
@@ -85,7 +86,8 @@ function row(pack: string, rel: string): Record<string, unknown> {
   const raw = parse(readFileSync(join(pack, rel), 'utf8')) as {
     data: Record<string, unknown>;
   };
-  return raw.data;
+  // A document (load-on-use W4) has no `data:` wrapper.
+  return raw.data ?? (raw as unknown as Record<string, unknown>);
 }
 
 function recipeOf(pack: string, id: string): Recipe {
@@ -134,9 +136,8 @@ function material(pack: string, rel: string, path: string): string[] {
 /** Stand an authored MaturationProfile row up at its own path. */
 function profile(pack: string, rel: string, path: string): MaturationProfile {
   const d = row(pack, rel);
-  return makeStuffAtPath(() => {
+  return rememberProfile(() => {
     const p = new MaturationProfile();
-    p.setKey(String(d.key));
     p.setMechanism(d.mechanism as never);
     p.setInputCategory(String(d.inputCategory));
     p.setProductMaterial(String(d.productMaterial));
@@ -246,7 +247,10 @@ beforeEach(() => {
   };
 });
 
-afterEach(() => StuffApi.clearAll());
+afterEach(() => {
+  StuffApi.clearAll();
+  forgetProfiles();
+});
 
 describe('⭐⭐⭐ barley to whiskey, one continuous chain on the shipped rows', () => {
   it('every handoff joins: each step\'s OUTPUT is the next step\'s INPUT', () => {
@@ -258,10 +262,10 @@ describe('⭐⭐⭐ barley to whiskey, one continuous chain on the shipped rows'
     const steep = recipeOf(MALTING, 'steep-barley');
     const kiln = recipeOf(MALTING, 'kiln-malt');
     const mash = recipeOf(DISTILLING, 'wash-mash');
-    const maltingProfile = row(MALTING, 'content/trade/malting/idea/maturation/malting.yaml');
-    const washProfile = row(DISTILLING, 'content/trade/distilling/idea/maturation/wash.yaml');
-    const washSchedule = row(DISTILLING, 'content/trade/distilling/idea/fractionation/wash.yaml');
-    const aging = row(DISTILLING, 'content/trade/distilling/idea/maturation/whiskey-aging.yaml');
+    const maltingProfile = row(MALTING, 'content/maturation-profiles/malting.yaml');
+    const washProfile = row(DISTILLING, 'content/maturation-profiles/wash.yaml');
+    const washSchedule = row(DISTILLING, 'content/fraction-schedules/wash.yaml');
+    const aging = row(DISTILLING, 'content/maturation-profiles/whiskey-aging.yaml');
 
     const slotCat = (r: Recipe, i = 0) => r.getInputSlots()[i]!.category;
 
@@ -326,14 +330,14 @@ describe('⭐⭐⭐ barley to whiskey, one continuous chain on the shipped rows'
   it('⭐⭐ and the chain RUNS: a steeped bed becomes whiskey that poisons nobody', () => {
     // ⚠ The joins above are static. This walks the two CLOCK links and the
     // VOLUME link in sequence, each consuming what the last produced.
-    profile(MALTING, 'content/trade/malting/idea/maturation/malting.yaml',
-      '/trade/malting/idea/maturation/malting');
-    profile(DISTILLING, 'content/trade/distilling/idea/maturation/wash.yaml',
-      '/trade/distilling/idea/maturation/wash');
-    profile(DISTILLING, 'content/trade/distilling/idea/maturation/whiskey-aging.yaml',
-      '/trade/distilling/idea/maturation/whiskey-aging');
-    const sched = row(DISTILLING, 'content/trade/distilling/idea/fractionation/wash.yaml');
-    makeStuffAtPath(() => {
+    profile(MALTING, 'content/maturation-profiles/malting.yaml',
+      '/trade/malting/maturation-profiles/malting');
+    profile(DISTILLING, 'content/maturation-profiles/wash.yaml',
+      '/trade/distilling/maturation-profiles/wash');
+    profile(DISTILLING, 'content/maturation-profiles/whiskey-aging.yaml',
+      '/trade/distilling/maturation-profiles/whiskey-aging');
+    const sched = row(DISTILLING, 'content/fraction-schedules/wash.yaml');
+    rememberSchedule(() => {
       const s = new FractionSchedule();
       s.setKey(String(sched.key));
       s.setInputCategory(String(sched.inputCategory));
@@ -345,7 +349,7 @@ describe('⭐⭐⭐ barley to whiskey, one continuous chain on the shipped rows'
       s.setGradeStretch(Number(sched.gradeStretch));
       s.setFractions(sched.fractions as never);
       return s;
-    }, '/trade/distilling/idea/fractionation/wash');
+    }, '/trade/distilling/fraction-schedules/wash');
 
     // ── LINK A: the malting floor (clock, `enzymatic`) ──
     const floor = vat(288, 60); // a cold stone floor, as the row wants

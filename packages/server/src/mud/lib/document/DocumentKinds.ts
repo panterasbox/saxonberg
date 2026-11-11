@@ -172,6 +172,20 @@ export const DOCUMENT_KINDS = {
    * kind is. Found by its card's `material` (the bath's material).
    */
   dyestuff: { kind: 'dyestuff', catalogue: '/trade/dyeing/idea/DyestuffCatalogue', keys: { material: dyestuffMaterial }, contentDir: 'dyestuffs', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **maturation profile** — how a vessel's charge ripens over time (a
+   * must into wine, a wheel into cheese): its temperature band, rate,
+   * product, failure and lees (`lib/maturation/MaturationProfile.ts`). A
+   * vessel matches one by its charge's tag and holds its path.
+   */
+  'maturation-profile': { kind: 'maturation-profile', catalogue: '/platform/idea/MaturationProfileCatalogue', contentDir: 'maturation-profiles', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **fraction schedule** — how a run divides by volume drawn: its spans,
+   * their character, grade and dose, and what is left in the pot
+   * (`lib/fractionation/FractionSchedule.ts`). A still matches one by its
+   * charge's tag and holds its path.
+   */
+  'fraction-schedule': { kind: 'fraction-schedule', catalogue: '/platform/idea/FractionScheduleCatalogue', contentDir: 'fraction-schedules', ext: 'yaml', onVanish: 'delete' },
   cleanser: { kind: 'cleanser', catalogue: '/platform/idea/CleanserCatalogue', contentDir: 'cleansers', ext: 'yaml', onVanish: 'delete' },
   /**
    * An **operation** — one entry of the surgical catalogue: which wound it
