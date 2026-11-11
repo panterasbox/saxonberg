@@ -507,6 +507,8 @@ export class ChattelLogic extends ApiLogic {
     const mountSlot = MixinApi.isAdornment(good as Stuff)
       ? (good as unknown as Adornment).getMountSlot()
       : null;
+    const placed = good as Stuff;
+    const rests = MixinApi.isContainable(placed) ? placed.getRestingPlace() : null;
     host._putEstateEntry(
       {
         chattelId: good.getChattelId(),
@@ -514,6 +516,7 @@ export class ChattelLogic extends ApiLogic {
         state: PersistableApi.captureDetached(good as Stuff),
         place,
         ...(mountSlot ? { mounted: { slot: mountSlot } } : {}),
+        ...(rests ? { rests } : {}),
       },
       good as Stuff,
     );

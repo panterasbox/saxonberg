@@ -106,6 +106,14 @@ export interface Containable {
   getPlacement(): { host: Stuff & Placing; name: string } | null;
 
   /**
+   * Where this rests, as a record can keep it — the surface's row and the
+   * placement member — or `null` when it rests on nothing. An owner's
+   * estate carries it so the room overlay lays a good back on the rack it
+   * was left on, not on the floor beside it.
+   */
+  getRestingPlace(): { on: string; placement: string } | null;
+
+  /**
    * Privileged setter — only `ContainmentApi.move` may call. Runtime-rejected by the
    * call-security gate otherwise. Authors don't touch this directly;
    * the Api maintains the invariant that a placement is only set when
@@ -429,6 +437,13 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       const host = this._placementHost;
       if (!host) return null;
       return { host, name: this._placementName || Placements.ON };
+    }
+
+    /** See the interface docstring. */
+    getRestingPlace(): { on: string; placement: string } | null {
+      const placed = this.getPlacement();
+      const on = placed?.host.getTemplatePath() ?? null;
+      return placed && on ? { on, placement: placed.name } : null;
     }
 
     /**

@@ -295,7 +295,7 @@ suite('documents: the path is the identity', () => {
     expectOk(await s.cmd('north'));
     expectOk(await s.cmd('north'));
     await s.cmd('put pump in well');
-    const pumped = await say(s, 'pump deep well');
+    const pumped = await say(s, 'pump "deep well"');
     // By design the refusal names the depth in words and never the ceiling.
     expect(pumped).toMatch(/water stands \d+ metres down/);
     expect(pumped).not.toMatch(/air|atmospher|pressure|vacuum/i);
@@ -304,8 +304,8 @@ suite('documents: the path is the identity', () => {
   it('11. a surgeon operates: the operation is found by its name', async () => {
     const doctor = await open('surgeon', { startLocation: WARD });
     for (let i = 0; i < 8; i++) await doctor.cmd('practice medicine hard success');
-    const got = await say(doctor, 'get surgical kit');
-    expect(got, 'the surgeon takes the kit').not.toMatch(/don't see|no such|can't|which/i);
+    const got = await say(doctor, 'get "surgical kit"');
+    expect(got, 'the surgeon takes the kit').not.toMatch(/don't see|no such|can't|which|too many words/i);
     const patient = await open('patient', { startLocation: WARD });
     await patient.cmd('lie');
     const op = await say(doctor, 'operate patient for extraction');

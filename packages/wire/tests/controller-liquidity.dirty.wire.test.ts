@@ -1183,9 +1183,15 @@ suite.skipIf(!isOwnedTestWorld())('14. a restart mid-act', () => {
     for (const s of [...open]) await park(s);
     await new Promise((r) => setTimeout(r, 8_000)); // let the logout saves land
     const serverDir = fileURLToPath(new URL('../../server', import.meta.url));
+    // ⭐ A RESTART, not a crash (the cleanliness drive's precedent):
+    // preflight's default two seconds SIGKILLs the server before its
+    // shutdown capture, so the mill house's record — the hopper's
+    // `pendingGrind` — was never written and the grind could not land
+    // (finalize, 2026-11-11: W20's green was the capture winning the race).
     spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
       cwd: serverDir,
       stdio: 'ignore',
+      env: { ...process.env, PREFLIGHT_GRACE_MS: '300000' },
     });
     process.env.WIRE_SERVER_URL = await bootOwnedWorld();
 
