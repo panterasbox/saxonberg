@@ -662,7 +662,14 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
 ### Perceiving and the lens
 
 - **D23 — MQL names things the same for every viewer; perception is applied only where
-  a result is bound or shown.** The resolver returns, for any non-system giver, exactly
+  a result is bound or shown.** ⭐ The owner's principle (2026-11-11): *MQL stays simple —
+  the things and the interfaces make the determinations; MQL only asks them, passing
+  whatever information they need (the asker).* So the engine holds **no perception rule
+  of its own**: any viewer-dependence is a method on the object that MQL calls with the
+  asker as an argument (`getKeywords(viewer)` — the object decides what it answers to),
+  or a surface's call to `PerceptionApi.perceived`. ⛔ The MqlApi surface stays
+  `resolveOne` + `resolveMany`; the ordinal travels as a field on the result type, never
+  a new function. The resolver returns, for any non-system giver, exactly
   what it returns in system mode (`commandGiver: null`). Concretely, in
   `$S/api/mql/**` and `MqlLogic`: `visibleInside`/`visibleInsideDeep` yield
   `getContents()`/`getDeepContents()` for everyone; **`pushDirect`'s per-candidate
@@ -1250,23 +1257,25 @@ Nothing in the requirements is unmapped.
   `[]` on Garment, or every shirt offers `on`. ⚠ `Placing`'s two composition refusals
   (spatial.md § *Two composition refusals*) must be checked against Garment's stack
   before W5.
-- **Pocketed and hung things live in the wearer's contents, not the garment's** — so a
-  garment taken off (`remove coat`) must carry its pocketed things with it: `Carrying.
-  stow`/`remove` move every item whose pair host is the garment along with the garment
-  (into the garment's new environment, pair kept) — the same choreography `hang`'s host
-  would need if a hook were carried out of a room. Listed here because it is the one
+- **Pocketed and hung things live in the wearer's contents, not the garment's** — so
+  **whatever is placed on, in or from a thing travels with it** (owner, 2026-11-11: the
+  general rule, not a garment special case). It lives at the one move chokepoint
+  (`ContainmentApi.move` → `moveCore`): moving a `Placing` host moves every item whose
+  pair host it is into the host's new environment, pair kept — a coat taken off, given
+  away or hung in a wardrobe keeps its pocketed things; a carried tray brings its cups;
+  a belt taken off brings its attachments. Recursive (a cup on a tray in a pocket), with
+  one cycle guard. Listed here because it is the one
   place the "ham in the room" model costs something; the W5 test `Garment.pockets.test.ts`
   pins *remove coat → the cup leaves with the coat*, and *drop coat → the cup is in the
   coat's room, still "in the left pocket"*.
 - **A belt's strength number** is a new material property with no reader before this
   build; its values are grain (leather 20 MPa, hemp 60, canvas 30, iron 200, steel 400)
   and unset is unbounded, so no shipped row changes behavior.
-- **Keyword matching stays viewer-bound** (`perceivedKeywordsFor(viewer)` in
-  `pushDirect`): the plan treats *what you call a thing* (the belief store's word for a
-  disguised person) as the asker's word, like `me`, not as hiding — the resolver still
-  returns the same objects. ⚠ For the owner's eye: if the rule is read as "the resolver
-  consults no viewer at all", keyword matching must also move to the surfaces, which
-  would make a stranger's query match names the asker does not know.
+- **Names are the asker's (owner, 2026-11-11, decided).** What a thing answers to is
+  the object's own method, `getKeywords(viewer)`, which MQL calls with the asker — the
+  object decides (a disguised person answers to the name you know them by), MQL holds no
+  rule. A name is a belief the way `me` is a perspective; the resolver still returns the
+  same objects for everyone.
 - **`pushDirect`'s gate removal widens what a verb can bind in principle** — every
   surface filters, but a brain or logic singleton calling `MqlApi` in system mode already
   saw everything; nothing new is reachable by an actor, since the binder filters. The
