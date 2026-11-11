@@ -3170,3 +3170,39 @@ residences, harbors, the six cockpit specs. Seen in passing, not this
 build's: an infirmary NPC's `press post` notice is `unknown-verb` (the
 blood-bank brain posts with a verb only `Avatar`/`Editor` afford — on
 master too).
+
+**/finalize, 2026-11-11** (after merging master's documents path-identity
+build, `ea82a874b`; one fresh world per dirty file — `reset:db`, an owned
+world on 2013, `WIRE_BOOT_TIMEOUT=900000`). Full suite (`tools/suite`,
+29 min): 56 packages, ~19,600 tests, 1 failure (W7cProtocols' soot key
+after the merge made dirt kinds paths) — fixed. `pnpm build`, `pnpm lint`
+(0 errors), `lint:family` 107/107.
+
+| drive | result | what driving found (each fixed in its own commit) |
+|---|---|---|
+| controller-liquidity step 13 | ✅ 78/78 equal the record | — |
+| controller-liquidity 1–12, 14 | ✅ 14b green; 11b once red | 14b's restart was a CRASH (preflight's 2 s SIGKILL before the shutdown capture, so `pendingGrind` was never written — W20's green won a race): a restart with the grace now. 11b compared the whole prose window and caught a cook leaving: compares the map's lines |
+| cleanliness | ✅ 23 (drive 23 by the subset re-drive) | ⭐ the undiagnosed W20 red: the stained shirt came back BESIDE its rack — the room overlay restored every owned good with an empty placement. Estate entries carry `rests` (furnishing.md § goods ON a surface) |
+| documents-path-identity (master's) | ✅ 20/20 | `survey` → `analyze rooms`; `pump "deep well"`, `get "surgical kit"` quoted (the kit checkpoint passed silently on the quote hint — it fails on it now) |
+| vocabularies-to-rows (master's) | ✅ 29/29 | — |
+| placement | ✅ 12/12 (re-driven) | `put … on bar` bound Mara (*tending bar*; the counter is no surface) — the drive names the back-bar, and `put` no longer says *"it takes ."*; a winter boot's cookhouse air (276.6 K) met `cold` by the SPACE rung, correctly — the suite holds the kitchen at 293 K to prove the holder rung |
+| metal-chain | ✅ 7/7 | — |
+| tracts | ✅ 11/11 | — |
+| harbors | 23/24 → fixed, not re-driven | `buy "caulker's kit"` quoted (drive and walk) |
+| nutrition-fitness | could not start → fixed, not re-driven | funded by `reserve issue` (retired before this build) — `reserve override`, with the payee in the world (it names members off the live roster) |
+| ceramics-c, ceramics-d | could not start → fixed, not re-driven | the payee's session closed before `reserve override` (`no-target`, master too) |
+| glass | 6/10 → fixed, not re-driven | master's boundary review moved the dirty face and left its iron pin behind (`"20,0,-3"` → `"10,0,-3"`); a 30-game-minute firing the drive never advanced through; bare `dip` in a cold house is `no-target`. ⚠ one `analyze` got no answer in 30 s while that firing ran — unexplained |
+| cordage | 16/18 → fixed, not re-driven | `cut first rope` at the ropewalk bound the WALK ("rope walk"; `here` is the place since W20): `cut` reads person before here. ⚠ 20 other views list `here` before `person` — owner's call |
+| dairy | red at its first act → fixed, not re-driven | this build put the keeper gate on `draft` (D9): the dairyman sits on the Delight's committee; `heat vat` → `put vat on hearth` |
+| potash | 5/12 | ⚠ every red is a `no dispatch-response within 30 s` — the world stalled under a load average of ~9 (sibling worktrees; `ShoreMixin` reads of 2–5 s in the log). Re-driven: see below |
+| client-surface | 6/12 → 10/12 | stale vs master 11-01: a lit room has no Light segment; the presence line says *seated on*; the staging founder needs the lounge's committee (wizard-axis D13). ⚠ 7–8 depend on who is on shift (master's roster shifts, 7b37ed355) — for the soak lane |
+| wizard-axis | 11/13 → fixed | ⭐ this build's: `provision`/`lease` refused an unbound name `no-player` BEFORE the warren's authority; `LettingWarren.let`/`endLet` refuse `not-authorized` first again |
+
+**Owner ruling, relayed 2026-11-11** (through the resumed W6 agent; not
+heard on this agent's own channel — confirm): *"cut the rest of the
+re-drives and walks to after the merge, merge when the first four are
+green"* — the four being potash, wizard-axis, client-surface and the
+placement re-drive. Moved to after the merge (for the soak lane): the
+re-drives of harbors, nutrition-fitness, ceramics-c, ceramics-d, glass,
+cordage, dairy; the walks — controller-liquidity (green at W16–W20),
+paint, residences, harbors, documents-path-identity, the six cockpit specs.
