@@ -76,7 +76,6 @@ export const ALLOWLIST: AllowEntry[] = [
   { file: "packages/server/src/mud/platform/idea/GovernmentCatalogue.ts", count: 1, reason: "a dictionary's own warm — booted under the scan sweep's reader rule (read synchronously; no async seam before the read)" },
   { file: "packages/server/src/mud/platform/idea/AddressRegistry.ts", count: 1, reason: LAZY_DICT },
   { file: "packages/server/src/mud/platform/idea/MaterialCatalogue.ts", count: 1, reason: "a dictionary's own warm — booted under the scan sweep's reader rule (read synchronously; no async seam before the read)" },
-  { file: "packages/server/src/mud/platform/idea/BiomeCatalogue.ts", count: 1, reason: "a dictionary's own warm — booted under the scan sweep's reader rule (read synchronously; no async seam before the read)" },
   { file: "packages/server/src/mud/platform/idea/ConditionCatalogue.ts", count: 1, reason: "a dictionary's own warm — booted under the scan sweep's reader rule (read synchronously; no async seam before the read)" },
   // ── systems compiling their own index ──
   { file: "packages/content/water/src/idea/WatercourseCatalogue.ts", count: 2, reason: "the water system compiling its own keyed index of its courses (and the localities draining to them) — once, lazily, never booted" },

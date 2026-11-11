@@ -32,6 +32,7 @@
  */
 
 import { SecurityApi } from '../../api/security';
+import { DocumentNotResidentError } from '../errors';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type Place from '../stuff/Place';
@@ -689,9 +690,17 @@ export function AtmosphericMixin<
 
     // ---------- biome reference ----------
 
+    /**
+     * The biome this place cites — loaded with the place (`_biomePath` is a
+     * constituent; its parents load by `extends:`). Read cold, it throws
+     * naming the path (load-on-use W7): a place under a biome nothing
+     * loaded is an engine defect, never a place with no sky.
+     */
     public getBiome(): Biome | null {
       if (this._biomePath === null) return null;
-      return BiomeApi.findByPath(this._biomePath);
+      const biome = BiomeApi.findByPath(this._biomePath);
+      if (!biome) throw new DocumentNotResidentError('biome', this._biomePath);
+      return biome;
     }
 
     public setBiome(value: Biome | null): void {

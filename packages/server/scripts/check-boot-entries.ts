@@ -81,7 +81,7 @@ export const CENSUS_AT_LANDING = { entries: 128, uncited: 71 };
 /* 78 → 76 (documents W5b): the discipline dictionary loads with a
  * character's first band read; −1 more on the merge with master (the
  * broadcast build's StreamState retired, 85 → 84 there). */
-export const BOOT_ENTRY_CEILING = 72; // load-on-use W5: the address index builds on its first question. Was 73 (W4: the maturation-profile and fraction-schedule catalogues no longer boot)
+export const BOOT_ENTRY_CEILING = 71; // load-on-use W7: no biome catalogue — a biome loads with its place. Was 72 (W5: the address index builds on its first question)
 
 /**
  * ⭐ Content entries whose reason does not cite the unobserved economy —

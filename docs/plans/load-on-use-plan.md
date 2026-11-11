@@ -839,6 +839,14 @@ between tests; the assay suite stands the index before its clone spy.
 
 ### W7 — biomes load with their place
 
+✅ **Done** (landed before W6, per the build order). `BiomeCatalogue` + its
+test + its row + its boot line + its scans entry deleted (the
+`biome.unresolved` diagnostic went with the file — nothing else filed it);
+`Atmospheric.getBiome()` throws `DocumentNotResidentError('biome', path)`
+on a non-empty cold path. The root `universe` boot line stays (reason
+updated). Boot 72 → 71; `lint:on-create` 78 live; no suite needed a change —
+every biome reader is a host's constituent, as the census said.
+
 - `Atmospheric.getBiome()`: non-empty `_biomePath` and no live row → throw
   `DocumentNotResidentError('biome', path)`.
 - Delete `platform/idea/BiomeCatalogue.ts`, its test, its yaml row
