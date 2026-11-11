@@ -15,7 +15,6 @@
 #
 # ⚠⚠ And it does NOT match `offal`: the dog loaf's line is safe, because
 # the two goods want different things off the same animal.
-recipeId: sausage
 name: Sausage
 keywords: [sausage, sausages, banger]
 discipline: butchery

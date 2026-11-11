@@ -31,6 +31,7 @@ import { CommandApi, type CommandContext } from '../../../../api/command';
 import type Interactive from '../../Interactive';
 import type { CompetenceBandName } from '../../../../lib/advancement/CompetenceBand';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { rememberShippedDirt } from '../../../../lib/cleanliness/__tests__/soil-fixtures';
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
@@ -75,6 +76,7 @@ describe('analyze cleanliness', () => {
   let avatar: FakeAvatar;
 
   beforeEach(() => {
+  rememberShippedDirt();
     StuffApi.clearAll();
     vi.spyOn(AppApi, 'setting').mockReturnValue('');
     installDirtKinds(DIRT as Record<string, unknown>[]);
@@ -90,9 +92,9 @@ describe('analyze cleanliness', () => {
 
   function rug(): Rug {
     const r = makeStuff(() => new Rug());
-    r.soil('grease', 0.6, null);
-    r.soil('blood', 0.4, null);
-    r.setSoilSet('blood', '', true);
+    r.soil('/platform/dirt/grease', 0.6, null);
+    r.soil('/platform/dirt/blood', 0.4, null);
+    r.setSoilSet('/platform/dirt/blood', '', true);
     ContainmentApi.move(r, room);
     return r;
   }

@@ -53,11 +53,9 @@ data:
   # charge, and a blend of the two is what a bar actually buys by the
   # litre. The still book does not say any of that — it just offers both.
   offeredRecipes:
-    [
-      steep-barley,
-      kiln-malt,
-      wash-mash,
-      grain-wash-mash,
-      compound-gin,
-      vat-whisky,
-    ]
+    - /trade/malting/recipes/steep-barley
+    - /trade/malting/recipes/kiln-malt
+    - /trade/distilling/recipes/wash-mash
+    - /trade/distilling/recipes/grain-wash-mash
+    - /trade/distilling/recipes/compound-gin
+    - /trade/distilling/recipes/vat-whisky

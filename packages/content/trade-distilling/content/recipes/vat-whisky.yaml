@@ -35,7 +35,6 @@
 # ⭐ `vat-malts` — two malts, peated and unpeated — is this same shape
 # with one slot changed, and is NOT shipped. One recipe proves the
 # mechanism; the second is a row somebody adds when they want it.
-recipeId: vat-whisky
 name: Blended whisky
 keywords: [vat-whisky, vat, blend, "blended whisky"]
 discipline: distilling

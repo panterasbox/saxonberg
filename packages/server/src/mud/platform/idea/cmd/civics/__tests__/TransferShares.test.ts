@@ -144,7 +144,8 @@ describe('title transfer … shares — money and shares together, or neither (h
     reg.setRegisterOwner('/platform');
     reg.setRegisterPrefix('/platform/ships/test-city');
     reg.setRegisterKind(SHIP_ENTRY_KIND);
-    reg.setGovernment('test-city');
+    // The government dictionary loads with the register (D7); not read here.
+    void reg.setGovernment('test-city')?.catch(() => undefined);
     const gov: GovernmentDescriptor = {
       key: 'test-city', name: 'the City of Test', description: '', charter: '', treasury: '',
       departments: [], seats: [], standards: [], shipRegister: REG,

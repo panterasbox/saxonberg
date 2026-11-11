@@ -5,7 +5,7 @@
 # out.
 class: /platform/idea/material/SolidFood
 data:
-  smells: [{ aroma: /base-library/aromas/cheese, strength: 200 }]
+  smells: [{ aroma: /base-library/aromas/sour/cheese, strength: 200 }]
   tastes: [{ type: sour, amount: 3 }, { type: salty, amount: 2 }]
   name: "firm curd"
   keywords: [curd, "firm curd"]

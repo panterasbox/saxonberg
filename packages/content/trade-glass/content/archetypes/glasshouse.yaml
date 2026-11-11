@@ -4,7 +4,6 @@
 # that a second glasshouse anywhere can be checked against it — and it is
 # what makes the pack's `blowpipe` capability a CONSUMED one (the gather
 # slot), so the capability gate is satisfied before the verb views land.
-archetypeId: glasshouse
 label: a working glasshouse
 industry: glass
 capabilities:

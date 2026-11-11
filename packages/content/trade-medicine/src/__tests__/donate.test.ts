@@ -29,6 +29,7 @@ import {
   withRootContext,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { rememberDisciplines } from '@saxonberg/server/mud/lib/advancement/__tests__/discipline-fixtures';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -87,8 +88,10 @@ function windowWithVault(): BloodWindow {
   return w;
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   installV1QuantityMarshallers();
+  // The gift credit is a conferral, which loads the discipline dictionary; no store here.
+  await rememberDisciplines();
   seq = 0;
   silence();
   vi.spyOn(RenownApi, 'append').mockResolvedValue(undefined);

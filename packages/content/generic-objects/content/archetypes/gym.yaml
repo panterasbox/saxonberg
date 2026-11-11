@@ -23,7 +23,6 @@
 # error; a bar dropped on a dorm floor makes it meet the load slot with
 # no code and no second archetype. No `default:` on any slot — the gym
 # does not furnish itself.
-archetypeId: gym
 label: a gym
 capabilities:
   - { key: load, needs: { tool: load } }

@@ -634,6 +634,20 @@ export class SecurityApi {
     if ((original as { _callSecWrapped?: boolean })._callSecWrapped) {
       return;
     }
+    // ⭐ An Api's declared `needs` (the dictionaries its reads stand on,
+    // documents D7): an ASYNC static awaits them before it runs, so no
+    // async caller of any Api readies one by hand. A sync static cannot
+    // wait — its reach is a setter or an act that called StuffApi.ready.
+    const needs = (cls as { needs?: readonly string[] }).needs;
+    const awaitsNeeds =
+      Array.isArray(needs) && needs.length > 0 && original.constructor.name === 'AsyncFunction';
+    const body = awaitsNeeds
+      ? function (this: unknown, ...args: unknown[]): unknown {
+          const load = SecurityApi.#needsLoader;
+          const loading = load ? load(needs) : null;
+          return loading ? loading.then(() => original.apply(this, args)) : original.apply(this, args);
+        }
+      : original;
     const wrapped = function (this: unknown, ...args: unknown[]): unknown {
       const policy = SecurityApi.resolveStaticCallPolicy(cls, methodName);
       const caller = ExecutionContextApi.getCurrentTarget();
@@ -642,13 +656,13 @@ export class SecurityApi {
         return allowed.then((ok) => {
           if (!ok) SecurityApi.#denyStatic(cls, methodName, policy);
           return SecurityApi.#pushFrame()(caller, cls, methodName, undefined, () =>
-            original.apply(this, args)
+            body.apply(this, args)
           );
         });
       }
       if (!allowed) SecurityApi.#denyStatic(cls, methodName, policy);
       return SecurityApi.#pushFrame()(caller, cls, methodName, undefined, () =>
-        original.apply(this, args)
+        body.apply(this, args)
       );
     };
     Object.defineProperty(wrapped, 'name', {
@@ -973,6 +987,23 @@ export class SecurityApi {
   }
 
   static #shadowApi: ShadowApiLike | null = null;
+
+  /**
+   * The loader an Api's declared `needs` are awaited through (the same
+   * door as `StuffApi.ready`) — late-bound for the ShadowApi reason:
+   * `stuff.ts` decorates itself through this module. Only async statics
+   * await it, so it never needs a synchronous fast path.
+   */
+  static #needsLoader: ((needs: readonly string[]) => Promise<unknown> | null) | null = null;
+
+  /**
+   * Slot for the boot wiring to hand the needs loader to the gate
+   * (`BootstrapManager.installFrameworkWiring`); idempotent.
+   * @internal
+   */
+  public static _registerNeedsLoader(load: (needs: readonly string[]) => Promise<unknown> | null): void {
+    SecurityApi.#needsLoader = load;
+  }
 
   /** The unwrapped per-dispatch pair — see {@link ShadowGateEntries}. */
   static #shadowGate: ShadowGateEntries | null = null;

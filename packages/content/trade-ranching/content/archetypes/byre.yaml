@@ -14,7 +14,6 @@
 # ⭐ `water` is the divergence slot again, and it ships with no default
 # for the same reason: every byre needs it and no two places answer the
 # same way.
-archetypeId: byre
 label: a place that keeps stock
 industry: ranching
 capabilities:

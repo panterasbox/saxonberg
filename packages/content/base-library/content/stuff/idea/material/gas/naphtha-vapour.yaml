@@ -3,8 +3,8 @@
 # naked flame sets it off. A rag of naphtha by the hearth is a fire.
 class: /platform/idea/material/FuelGas
 data:
-  smells: [{ aroma: /base-library/aromas/naphtha, strength: 3000 }]
-  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/oil/petroleum/naphtha, strength: 3000 }]
+  burning: [{ aroma: /base-library/aromas/smoke/oil-smoke, strength: 100 }]
   name: naphtha vapour
   keywords: [vapour, naphtha, fumes]
   appearance: a shimmer of vapour over the floor

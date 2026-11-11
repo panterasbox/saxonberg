@@ -15,6 +15,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
+import { rememberShippedJoints } from "@saxonberg/server/mud/lib/craft/__tests__/joint-fixtures";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { ModuleApi } from "@saxonberg/server/mud/api/module";
 import { Construction } from "@saxonberg/server/mud/lib/material/Construction";
@@ -369,6 +370,8 @@ vi.setConfig({ testTimeout: 30_000 });
 
 describe("general-store standup (real seeds)", () => {
   beforeEach(async () => {
+  // The joints the goods' bills name, as cloning them would load them.
+  rememberShippedJoints();
     StuffApi.clearAll();
     const goods = readdirSync(`${STORE_DIR}thing/`)
       .filter((f) => f.endsWith(".yaml"))

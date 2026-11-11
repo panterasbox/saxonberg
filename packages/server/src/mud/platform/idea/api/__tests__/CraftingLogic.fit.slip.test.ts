@@ -17,7 +17,6 @@ import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
 import Good from '../../../../lib/stuff/Good';
-import JointCatalogue from '../../JointCatalogue';
 import { Template } from '../../../../lib/stuff/Template';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
@@ -33,6 +32,7 @@ import {
   makeStuffAtPath,
   stampTemplatePathForTest,
 } from '../../../../lib/security/__tests__/test-setup';
+import { rememberJoint } from '../../../../lib/craft/__tests__/joint-fixtures';
 
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoomSlip';
@@ -69,7 +69,7 @@ function jug(moisture: number): GreenJug {
   j.setKeywords(['jug']);
   j.setBill({
     parts: [{ part: 'handle', template: HANDLE, count: 1, role: 'wear' }],
-    joints: [{ key: 'handling', method: 'slip', members: ['handle'] }],
+    joints: [{ key: 'handling', method: '/platform/joints/slip', members: ['handle'] }],
   });
   j.recordAssembly(
     [
@@ -85,7 +85,7 @@ function jug(moisture: number): GreenJug {
         makers: [],
       },
     ],
-    [{ key: 'handling', method: 'slip', members: ['handle'], tension: 1, maker: '' }],
+    [{ key: 'handling', method: '/platform/joints/slip', members: ['handle'], tension: 1, maker: '' }],
   );
   j.setWaterState({ moisture, solute: 0 });
   // ⚠ Standing nowhere: a piece in a test room would ask the biome chain
@@ -125,12 +125,10 @@ beforeEach(() => {
     m.setDensity(Quantity.of(1800, 'kg/m³'));
     return m;
   }, CLAY);
-  vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-    cls === '/platform/idea/Joint'
-      ? ([
+  for (const r of [
           {
-            path: '/platform/idea/Joint/slip',
-            class: cls,
+            path: '/platform/joints/slip',
+            class: "/platform/idea/Joint",
             data: {
               key: 'slip',
               portability: 'hand',
@@ -144,11 +142,8 @@ beforeEach(() => {
               failure: 'parted',
             },
           },
-        ] as never)
-      : ([] as never),
-  );
+        ] as unknown as Array<{ path: string; data: Record<string, unknown> }>) rememberJoint(r.path, r.data);
   vi.spyOn(Template, 'findByPath').mockResolvedValue(null as never);
-  makeStuffAtPath(() => new JointCatalogue(), TemplatePaths.jointCatalogue);
   room = makeStuff(() => new TestRoom());
   potter = makeStuffAtPath(() => new TestPotter(), '/platform/agent/Avatar/potter-1');
   ContainmentApi.move(potter, room);

@@ -10,7 +10,6 @@
 # input, differing in a tool capability and an output residue, and nothing
 # in the code branches on the tool. Which you want depends on what you are
 # selling, and that is the decision the trade exists to offer.
-recipeId: crush-comb
 name: Crush comb
 keywords: [crush, comb, honey]
 discipline: apiculture

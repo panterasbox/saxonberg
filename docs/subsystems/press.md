@@ -196,7 +196,14 @@ shell ending in `SecurityApi.decorateApiClass`; the logic is `@internal
   retract is soft.
 - `recent(limit?)` — the live ticker window.
 - `archive(query)` — the paged history (`realm`/`kind` filters +
-  `before`/`limit`), filtered in JS over the tree read.
+  `before`/`limit`): ⭐ one ordered read by the release's catalogue card,
+  `DocumentApi.findByKey('release', 'publishedAt', {max: before − 1,
+  order: 'desc', limit: limit × 4})`, newest first off the index; the
+  realm/kind/retraction/`publishedByOwner` filter runs over that page
+  (realm derives from the live publisher, so it cannot be a key — hence
+  the ×4 over-fetch). Never the whole kind.
+- loading one release by id (`edit`, `retract`, a permalink) reads the
+  board's cache, else `findByKey('release', 'releaseId', {eq})`.
 - ⭐ `pressRoom(limit?)` → `PublicReleaseRow[]` — the **anonymous** read.
 - `holdsAnyPublishingPosition(principal)` — the affordance-level boolean
   behind `requiresPublisher`. ⚠ It **selects nothing**, which is what
@@ -213,7 +220,19 @@ shell ending in `SecurityApi.decorateApiClass`; the logic is `@internal
 semantics — `recentWindow()` = pins-first then `publishedAt`-desc,
 excluding retracted and expired, the pin block capped at `press.maxPins`
 and the whole window at `press.tickerWindow`. Soft-retracted releases stay
-cached (reachable by id) and drop out of the window.
+cached (reachable by id) and drop out of the window. ⭐ Its warm is **two
+bounded reads** by the card — `pinned` eq true, and the newest
+`publishedAt` descending, each over-fetching its cap ×4 so filtered rows
+do not shorten the window — never a read of every release. It stays on
+the boot list because `PressApi.recent()` is read synchronously at
+session entry.
+
+A release's card declares three keys (`DocumentKinds`): `publishedAt`
+(the order), `pinned` (the ticker's pins) and `releaseId` (the load by
+id) — each derived from the release's data on write
+([document-store.md](./document-store.md)). The document store's
+`callUp` (an in-game reader naming a release by a word) searches the
+newest 200 by the same ordered read.
 
 ## Publishing — the `press` verb
 
@@ -486,3 +505,10 @@ iff it authors a `feedPath` and the principal holds one of its
 an empty feed, so a business with no masthead publishes nothing. The blood
 window's registrar posts a shortage `notice` to the window's feed through
 the shipped `press` verb. See `employment.md`, `blood.md`.
+
+## History
+
+- 2026-11-09 — documents path identity: the press reads releases by key
+  (`publishedAt` newest first, `pinned`, `releaseId`) over the one
+  wildcard index; no `listOfKind('release')` remains. See git log for the
+  `reqs/documents-path-identity` branch.

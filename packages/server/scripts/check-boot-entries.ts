@@ -67,7 +67,21 @@ export const CENSUS_AT_LANDING = { entries: 128, uncited: 71 };
  * singleton retired — the stream is state on each streamer's own body
  * now, loaded with them, so nothing about it boots.
  */
-export const BOOT_ENTRY_CEILING = 84;
+/*
+ * ⭐ 85 → 82 by the documents path-identity build (W1): the recipe,
+ * archetype and blueprint dictionaries load on first use through
+ * `StuffApi.singleton` (whose `onCreate` warms them), never at boot.
+ */
+/* 82 → 81 (documents W4): the placement catalogue is gone — a host's
+ * placements load with it, the kernel's three with every place. */
+/* 81 → 80 (documents W4): the topic vocabulary loads with the message
+ * pipeline's first scene (D13), never at boot. */
+/* 80 → 78 (documents W5a): the corpo/brand and government dictionaries load
+ * when a holder that cites one does, never at boot. */
+/* 78 → 76 (documents W5b): the discipline dictionary loads with a
+ * character's first band read; −1 more on the merge with master (the
+ * broadcast build's StreamState retired, 85 → 84 there). */
+export const BOOT_ENTRY_CEILING = 75;
 
 /**
  * ⭐ Content entries whose reason does not cite the unobserved economy —

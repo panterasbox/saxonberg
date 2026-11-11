@@ -28,6 +28,7 @@ import { AppSettings } from '../../lib/config/AppSettings';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { StuffApi } from '../../api/stuff';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
+import { findDocuments } from '../../lib/document/__tests__/document-query';
 
 // Small caps so ordering/limit assertions are deterministic.
 const SETTINGS: Record<string, string> = {
@@ -103,13 +104,11 @@ beforeEach(async () => {
   const pm = PersistenceManager.get();
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'find').mockImplementation(
-    async (col: string, query: Record<string, unknown>) => {
+    async (col: string, query: Record<string, unknown>, options?: { sort?: Record<string, 1 | -1>; limit?: number }) => {
       if (col === 'app_settings') {
         return [{ values: SETTINGS }] as never;
       }
-      return [...store.values()].filter((d) =>
-        Object.entries(query).every(([k, v]) => d[k] === v)
-      ) as never;
+      return findDocuments(store.values(), query, options) as never;
     }
   );
   vi.spyOn(pm, 'save').mockImplementation(

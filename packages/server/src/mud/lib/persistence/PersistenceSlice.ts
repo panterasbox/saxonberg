@@ -63,9 +63,8 @@ export interface ContentPlacement {
    */
   hostIndex?: number;
   /**
-   * The member name (`on`, `in`, `from`) the item is placed under.
-   * Undefined when it sits loose; `on` for anything captured before the
-   * relation had a name.
+   * The placement's PATH (`/platform/placements/on`) the item is placed
+   * under — a document's only name. Undefined when it sits loose.
    */
   placement?: string;
 }

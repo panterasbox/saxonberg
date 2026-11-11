@@ -25,6 +25,7 @@ import type { TurnOutcome, TurnRefusal, TurnTightness } from '../../lib/craft/Tu
 import { PersistableApi } from '../../api/persistable';
 import { MixinApi } from '../../api/mixin';
 import Sheet from './Sheet';
+import { Placements } from '../../lib/spatial/Placement';
 
 // ⭐ It is TURNED (`TurnableMixin`), which is also what affords `turn`.
 export default class ScrewPress extends TurnableMixin(PlacingMixin(Good)) {
@@ -64,12 +65,12 @@ export default class ScrewPress extends TurnableMixin(PlacingMixin(Good)) {
 
   /** ⭐ What the platen bears on a thing standing on the bed. */
   public override bearingLoadN(item: Stuff & Containable): number {
-    return item.getPlacement()?.name === 'on' ? Math.max(0, this.pressForceN()) : 0;
+    return item.getPlacement()?.name === Placements.ON ? Math.max(0, this.pressForceN()) : 0;
   }
 
   /** The moulds standing on the bed. */
   private moulds(): Stuff[] {
-    return this.getPlaced('on').filter((s) => MixinApi.isMould(s as Stuff)) as Stuff[];
+    return this.getPlaced(Placements.ON).filter((s) => MixinApi.isMould(s as Stuff)) as Stuff[];
   }
 
   public override async turnBy(_actor: Stuff, back: boolean): Promise<TurnOutcome | TurnRefusal> {
@@ -91,7 +92,7 @@ export default class ScrewPress extends TurnableMixin(PlacingMixin(Good)) {
     await PersistableApi.captureHostOf(this as unknown as Stuff).catch(() => undefined);
     // ⭐ A post of wet sheets on the bed gives up its water (paper W2): a
     // sheet pressed before it dries lies flat; one dried unpressed cockles.
-    const posted = this.getPlaced('on').filter((s): s is Sheet => s instanceof Sheet);
+    const posted = this.getPlaced(Placements.ON).filter((s): s is Sheet => s instanceof Sheet);
     let squeezed = 0;
     for (const sheet of posted) if (sheet.pressOut()) squeezed += sheet.getQuantity();
     const released: Stuff[] = [];

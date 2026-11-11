@@ -5,7 +5,6 @@
 # ⚠ The slot matches the material tag `fired`, which every fired body
 # carries, so a grinder grinds what of it they name; a whole pot is as
 # grindable as its sherds.
-recipeId: grog
 name: Grog
 keywords: [grog, chamotte, "grind sherds"]
 inputSlots:

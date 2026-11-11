@@ -48,5 +48,5 @@ data:
       - { part: boss, template: /trade/smithing/thing/shield-boss, count: 1, role: structural, material: /stuff/idea/material/element/iron }
       - { part: rivet, plural: rivets, template: /trade/smithing/thing/rivet, count: 4, role: fastener, material: /stuff/idea/material/element/iron }
     joints:
-      - { key: bossing, method: riveted, members: [boss, shield-board], fastener: rivet }
-      - { key: facing, method: glued, members: [hide-face, shield-board] }
+      - { key: bossing, method: /platform/joints/riveted, members: [boss, shield-board], fastener: rivet }
+      - { key: facing, method: /platform/joints/glued, members: [hide-face, shield-board] }

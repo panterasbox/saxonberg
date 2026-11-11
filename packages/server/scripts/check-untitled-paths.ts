@@ -23,6 +23,7 @@ import { join, dirname, relative, basename } from "path";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
 import { NON_TEMPLATE_DIRS as LIB_NON_TEMPLATE_DIRS } from "../src/mud/lib/paths";
+import { DOCUMENT_KINDS } from "../src/mud/lib/document/DocumentKinds";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CONTENT = join(HERE, "..", "..", "content");
@@ -39,8 +40,10 @@ export function titleRootsOf(claims: readonly string[]): string[] {
 }
 /** The `content/` dirs that are NOT the template kind (`lib/paths.ts`), plus the two non-yaml trees this walk special-cases. */
 const NON_TEMPLATE_DIRS = new Set([...LIB_NON_TEMPLATE_DIRS, "msh", "wiki"]);
-/** The yaml document kinds and their content dirs (`DOCUMENT_KINDS`, mirrored). */
-const DOCUMENT_DIRS = ["emotes", "recipes", "blueprints", "name-banks", "releases"];
+/** The yaml document kinds' content dirs — DERIVED from `DOCUMENT_KINDS` (a hand copy had gone stale). */
+const DOCUMENT_DIRS = Object.values(DOCUMENT_KINDS)
+  .filter((k) => k.ext === "yaml" && k.contentDir !== "cmd")
+  .map((k) => k.contentDir);
 
 export interface Untitled {
   path: string;

@@ -32,6 +32,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
+import { Placements } from '../../spatial/Placement';
 
 class TestMould extends MouldMixin(
   DurableMixin(CraftedMixin(ThermalMixin(BulkableMixin(ContainerMixin(Good))))),
@@ -283,7 +284,7 @@ describe('moulds — the container decides the shape', () => {
     const stone = makeStuff(() => new Good());
     (stone as unknown as { setMass(q: Quantity<'kg'>): void }).setMass(Quantity.of(4, 'kg'));
     ContainmentApi.move(stone, r);
-    ContainmentApi.move(stone, hoop, 'on');
+    ContainmentApi.move(stone, hoop, Placements.ON);
     expect(hoop.loadN()).toBeCloseTo(4 * 9.81, 9);
     hoop.reconcileSetting(); // seed
     setNow(0.25 * DAY + 60);
@@ -321,7 +322,7 @@ describe('moulds — the container decides the shape', () => {
       ContainmentApi.move(pot, r);
       const cone = fillVessel(mould(WHEEL), strike(), 5, 293);
       if (MixinApi.isGraded(cone)) cone.setGrade(Grade.of('fine'));
-      ContainmentApi.move(cone, pot, 'on');
+      ContainmentApi.move(cone, pot, Placements.ON);
       expect(cone.drainsInto()).toBe(pot);
 
       cone.reconcileSetting(); // stamps the start

@@ -12,7 +12,6 @@
 # WHAT that something is stays open — a bed, a bunk, a hammock, a pile of
 # straw an author gives a `lie` slot to. Reported, never enforced: a room
 # with no bed is a room, not an error.
-archetypeId: bedroom
 label: a bedroom
 capabilities:
   - { key: sleeping, needs: { rest: 1 }, default: /stuff/thing/fixture/bed }

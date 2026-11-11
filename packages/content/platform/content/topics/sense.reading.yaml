@@ -1,0 +1,9 @@
+family: "sense"
+label: "Instrument readings"
+description: "A number an instrument gave you. Kept, because a measurement is evidence and you may want it later."
+address: personal
+actor: world
+weight: activity
+audience: player
+durable: true
+affordance: decays

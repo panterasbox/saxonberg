@@ -20,7 +20,6 @@
 # whose key does not exist is a lock. What is hard is buying the right
 # fat at the right price — a market judgement, which is why the
 # chandlery mints no Discipline.
-recipeId: candle
 name: Dip a candle
 keywords: [candle, dip, taper]
 inputSlots:

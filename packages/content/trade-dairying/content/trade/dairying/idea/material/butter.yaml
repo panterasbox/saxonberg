@@ -8,7 +8,7 @@
 # the crock as a lump.
 class: /platform/idea/material/Food
 data:
-  smells: [{ aroma: /base-library/aromas/butter, strength: 200 }]
+  smells: [{ aroma: /base-library/aromas/milk/butter, strength: 200 }]
   tastes: [{ type: sweet, amount: 5 }, { type: salty, amount: 1.5 }]
   name: "butter"
   keywords: [butter]

@@ -22,4 +22,4 @@ data:
     parts:
       - { part: pipe, template: /trade/plumbing/thing/lead-pipe, count: 4, role: structural, plural: lengths }
     joints:
-      - { key: wiping, method: wiped, members: [pipe] }
+      - { key: wiping, method: /trade/plumbing/joints/wiped, members: [pipe] }

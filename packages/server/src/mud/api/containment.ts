@@ -33,7 +33,6 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Placing } from '../lib/spatial/Placing';
-import type Placement from '../platform/idea/Placement';
 import type { Warren } from '../lib/location/Warren';
 import { StuffApi } from './stuff';
 import { MixinApi } from './mixin';
@@ -43,6 +42,8 @@ import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { ContainmentLogic } from '../platform/idea/api/ContainmentLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import PlacementCatalogue from '../platform/idea/PlacementCatalogue';
+import { Placements } from '../lib/spatial/Placement';
 // `GotoController` is reached lazily via a string module id to avoid a
 // value-level static-import cycle (api/containment → controller →
 // ContainmentApi).
@@ -105,6 +106,17 @@ export type MergeOnArrivalHook = (
  */
 export class ContainmentApi {
   /**
+   * ⭐ The placements — the ways a thing sits in its container (`on` a
+   * desk, `in` a drawer, `from` a hook), any pack's `content/placements/`,
+   * served by {@link PlacementCatalogue}. Every place loads the kernel's;
+   * a host's `placements` setter loads its own; a typed `put X on Y` is
+   * resolved against the host's own.
+   */
+  public static placements(): PlacementCatalogue {
+    return StuffApi.singletonSync('/platform/idea/PlacementCatalogue', () => new PlacementCatalogue());
+  }
+
+  /**
    * Install (or replace) the merge-on-arrival hook. Called once by
    * `StackableApi` at module load. The `_` prefix marks it
    * framework-internal — same shape as `SecurityApi._registerShadowApi`.
@@ -119,7 +131,8 @@ export class ContainmentApi {
    * ⭐⭐ **The movement primitive — the one way a thing is put somewhere.**
    * `move(item, dest)` moves it into `dest`; `move(item, desk)` puts it ON
    * a placing host (into the host's environment, with the placement pair);
-   * `move(item, loft, 'in')` names the placement when a host offers more
+   * `move(item, loft, Placements.IN)` names the placement (by path, or a
+   * typed word the host resolves) when a host offers more
    * than one. `null` detaches it.
    *
    * Everything a move implies beyond geometry is DERIVED here, so no
@@ -247,33 +260,6 @@ export class ContainmentApi {
   // `Container.getLooseContents()`: it read one container's own list and
   // had no business being a free Api function.
 
-
-  /**
-   * ⭐ The one **synchronous** door onto the ways-of-sitting vocabulary
-   * — the live `Placement` member called `name`, or `null` when no
-   * installed pack ships it.
-   *
-   * Sync because every reader is on a dispatch path: `put` resolving a
-   * typed preposition, `look` labelling a drill-in list, a Containable
-   * asking whether its member encloses. Null is the shipped default
-   * everywhere, so a cold catalogue degrades to "the behaviour before
-   * the vocabulary" rather than to a broken verb — and the catalogue
-   * warms lazily on the first async miss.
-   *
-   * ⚠ A `lib/` mixin calls THIS, never the catalogue: the roster is a
-   * platform singleton and `lib/` may not reach into `platform/`.
-   */
-  public static placement(name: string): Placement | null {
-    return logic().placement(name);
-  }
-
-  /**
-   * The member a typed preposition names — `onto` → `on`, `from` →
-   * `from`. A member's primary word always wins its own key.
-   */
-  public static placementForWord(word: string): Placement | null {
-    return logic().placementForWord(word);
-  }
 
   // The old `findReachable` / `findHostedUpdate` finders were removed:
   // the reachable walk now lives in MQL's `reachable` seed

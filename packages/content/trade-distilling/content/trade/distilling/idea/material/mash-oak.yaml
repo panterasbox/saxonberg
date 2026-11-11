@@ -3,4 +3,4 @@
 extends: /stuff/idea/material/wood/oak
 data:
   name: mash-soaked oak
-  smells: [{ aroma: /base-library/aromas/mash, strength: 60 }, { aroma: /base-library/aromas/spirit, strength: 20 }]
+  smells: [{ aroma: /base-library/aromas/grain/mash, strength: 60 }, { aroma: /base-library/aromas/alcohol/spirit, strength: 20 }]

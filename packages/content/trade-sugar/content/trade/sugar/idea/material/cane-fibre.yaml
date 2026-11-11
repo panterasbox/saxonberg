@@ -3,8 +3,8 @@
 # fuel, if it is dry.
 class: /platform/idea/material/Fiber
 data:
-  smells: [{ aroma: /base-library/aromas/straw, strength: 10 }]
-  burning: [{ aroma: /base-library/aromas/straw-smoke, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/green/straw, strength: 10 }]
+  burning: [{ aroma: /base-library/aromas/smoke/straw-smoke, strength: 300 }]
   name: bagasse
   keywords: [bagasse, fibre, trash, megass]
   appearance: shredded pale fibre, damp and sweet-smelling

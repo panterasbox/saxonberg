@@ -14,17 +14,17 @@ data:
   fixedInPlace: true
   capabilities: [wheel]
   forms:
-    - /trade/ceramics/idea/form/mug
-    - /trade/ceramics/idea/form/jug
-    - /trade/ceramics/idea/form/jar
-    - /trade/ceramics/idea/form/crock
-    - /trade/ceramics/idea/form/bowl
-    - /trade/ceramics/idea/form/flask
-    - /trade/ceramics/idea/form/crucible
-    - /trade/ceramics/idea/form/plant-pot
-    - /trade/ceramics/idea/form/large-plant-pot
-    - /trade/ceramics/idea/form/handle
-    - /trade/ceramics/idea/form/cone
+    - /trade/ceramics/forms/mug
+    - /trade/ceramics/forms/jug
+    - /trade/ceramics/forms/jar
+    - /trade/ceramics/forms/crock
+    - /trade/ceramics/forms/bowl
+    - /trade/ceramics/forms/flask
+    - /trade/ceramics/forms/crucible
+    - /trade/ceramics/forms/plant-pot
+    - /trade/ceramics/forms/large-plant-pot
+    - /trade/ceramics/forms/handle
+    - /trade/ceramics/forms/cone
   formTemplates:
     open: /trade/ceramics/thing/vessel
     closed: /trade/ceramics/thing/jar

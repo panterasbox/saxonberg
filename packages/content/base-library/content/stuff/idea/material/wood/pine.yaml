@@ -19,8 +19,8 @@
 # material (plant tissue) — the wood is what is left when it is felled.
 class: /platform/idea/material/Wood
 data:
-  smells: [{ aroma: /base-library/aromas/pine, strength: 10 }]
-  burning: [{ aroma: /base-library/aromas/pine-tar, strength: 100 }, { aroma: /base-library/aromas/wood-smoke, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/wood/resin/pine, strength: 10 }]
+  burning: [{ aroma: /base-library/aromas/tar/pine-tar, strength: 100 }, { aroma: /base-library/aromas/smoke/wood-smoke, strength: 300 }]
   name: pine
   keywords: [pine, deal, softwood]
   density: 510

@@ -27,6 +27,7 @@ import '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { Placements } from '@saxonberg/server/mud/lib/spatial/Placement';
 
 const MIN = 60;
 const BASE = 10_000_000;
@@ -139,7 +140,7 @@ afterEach(() => {
 describe('finishing in the piece', () => {
   it('⭐ a raw-silk bolt in a copper on a lit range degums: silk, a quarter lighter, soft', () => {
     const c = copper(12);
-    ContainmentApi.move(c, litRange(), 'on');
+    ContainmentApi.move(c, litRange(), Placements.ON);
     const b = bolt(RAW);
     ContainmentApi.move(b, c);
     expect(b.getFinishingPhase()).toBe('active');
@@ -158,7 +159,7 @@ describe('finishing in the piece', () => {
 
   it('the water holds at the boil and boils down — it does not flash dry', () => {
     const c = copper(12);
-    ContainmentApi.move(c, litRange(), 'on');
+    ContainmentApi.move(c, litRange(), Placements.ON);
     // ⭐ Two hours, not eight: the range has POWER now (sugar D2) — a
     // couple of kilowatts reaching the pan boils off a few litres an hour,
     // so eight hours on the fire would (rightly) boil a 12 L copper dry.

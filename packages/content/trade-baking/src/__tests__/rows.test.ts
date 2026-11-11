@@ -278,7 +278,7 @@ describe('the two concepts', () => {
     // AC 19: a reader must be able to predict the bread box before ever
     // putting a loaf in one.
     const body = String(
-      row(join(BAKING, 'idea', 'HelpConcept', 'retrogradation.yaml')).body,
+      (YAML.parse(readFileSync(join(PACK, 'content', 'concepts', 'retrogradation.yaml'), 'utf-8')) as { body: string }).body,
     ).toLowerCase();
     expect(body).toContain('counter');
     expect(body).toContain('cold');
@@ -291,18 +291,18 @@ describe('the two concepts', () => {
 
   it('⭐ `gluten` explains why barley cannot make a loaf', () => {
     const body = String(
-      row(join(BAKING, 'idea', 'HelpConcept', 'gluten.yaml')).body,
+      (YAML.parse(readFileSync(join(PACK, 'content', 'concepts', 'gluten.yaml'), 'utf-8')) as { body: string }).body,
     ).toLowerCase();
     expect(body).toContain('barley');
     expect(body).toContain('sheet');
     expect(body).toContain('flat');
   });
 
-  it('both are HelpConcept rows, harvested by class', () => {
+  it('both are help-concept DOCUMENTS (the file is the data), harvested by kind', () => {
     for (const k of ['gluten', 'retrogradation']) {
-      const c = row(join(BAKING, 'idea', 'HelpConcept', `${k}.yaml`));
-      expect(c.__class).toBe('/platform/idea/HelpConcept');
-      expect(c.key).toBe(k);
+      const c = YAML.parse(readFileSync(join(PACK, 'content', 'concepts', `${k}.yaml`), 'utf-8')) as Record<string, unknown>;
+      expect(c.class).toBeUndefined();
+      expect(typeof c.title).toBe('string');
     }
   });
 });

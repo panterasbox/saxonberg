@@ -23,4 +23,4 @@ data:
     parts:
       - { part: handle, template: /trade/ceramics/thing/handle, count: 1, role: wear }
     joints:
-      - { key: handling, method: slip, members: [handle] }
+      - { key: handling, method: /platform/joints/slip, members: [handle] }

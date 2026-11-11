@@ -27,6 +27,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { ContainmentApi } from '../../../../api/containment';
+import { Placements } from '../../../../lib/spatial/Placement';
 
 const TOPIC = 'act.deed';
 const HEAT_MS = 4000;
@@ -173,7 +174,7 @@ export default class HeatController extends ManualBuildController<HeatModel> {
       );
       return;
     }
-    ContainmentApi.move(target, fire, 'on');
+    ContainmentApi.move(target, fire, Placements.ON);
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You set ${Mml.thing(target)} on ${Mml.thing(fire)} to take the heat.`)

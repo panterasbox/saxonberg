@@ -1,0 +1,13 @@
+# The curtain across the doorway to the baths (boundary build: a curtain
+# drawn passes a body, sound and smell, and stops sight). Drawn by default —
+# the baths are private and the vestibule is a public hall — but nobody
+# needs a key to push through it, and the steam and the voices come round it.
+class: /platform/thing/Boundary
+extends: /platform/thing/boundaries/curtain
+data:
+  shortDescription: heavy curtain
+  keywords: [curtain, "heavy curtain", doorway]
+  register: definite
+  longDescription: >
+    A heavy canvas curtain hung across the doorway to the baths, dark at the
+    hem with damp. Warm air moves it a little, now and then.

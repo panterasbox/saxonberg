@@ -24,9 +24,10 @@ import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
 import { TemplatePaths } from '../../../lib/paths';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { JointDescriptor } from '../../idea/Joint';
+import type { JointDescriptor } from '../../../lib/craft/Joint';
 import { makeStuff, makeStuffAtPath, seedKernelContentStore } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { rememberJoint } from '../../../lib/craft/__tests__/joint-fixtures';
 
 class Body extends Character {}
 
@@ -80,12 +81,8 @@ beforeEach(() => {
     if (path === '/platform/thing/rope') return makeStuff(() => new Rope());
     return (realClone as (...a: unknown[]) => unknown)(path, ...rest);
   }) as unknown as typeof StuffApi.clone);
-  const realSingleton = StuffApi.singleton.bind(StuffApi);
-  vi.spyOn(StuffApi, 'singleton').mockImplementation((async (path: string, ...rest: unknown[]) => path !== '/platform/idea/JointCatalogue'
-    ? (realSingleton as (...a: unknown[]) => unknown)(path, ...rest)
-    : ({
-    warmed: async (key: string) => (JOINTS[key] ?? null) as JointDescriptor | null,
-  })) as unknown as typeof StuffApi.singleton);
+  // The knots, as a rope tying them loads them (documents D7).
+  for (const [k, d] of Object.entries(JOINTS)) rememberJoint(`/platform/joints/${k}`, d);
 });
 
 afterEach(() => {

@@ -6,7 +6,7 @@
 # waits for a pitched culture; open, wild flora settle out of the air.
 class: /platform/idea/material/SolidFood
 data:
-  smells: [{ aroma: /base-library/aromas/dough, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/yeast/dough, strength: 100 }]
   tastes: [{ type: salty, amount: 10 }]
   name: dough
   keywords: [dough, paste]

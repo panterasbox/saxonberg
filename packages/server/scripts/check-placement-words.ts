@@ -82,7 +82,7 @@ interface AcceptingArg {
   file: string;
 }
 
-/** Every authored `Placement` row, from every pack, under any root. */
+/** Every authored `placement` document, from every pack (`content/placements/`). */
 export function members(contentDir: string = CONTENT): Member[] {
   const out: Member[] = [];
   if (!existsSync(contentDir)) return out;
@@ -90,16 +90,18 @@ export function members(contentDir: string = CONTENT): Member[] {
     const root = join(contentDir, pack, "content");
     if (!existsSync(root)) continue;
     for (const file of walkYamlFiles(root)) {
-      if (!file.split("\\").join("/").includes("/idea/Placement/")) continue;
+      const rel = file.split("\\").join("/");
+      if (!rel.includes("/content/placements/")) continue;
       let raw: unknown;
       try {
         raw = YAML.parse(readFileSync(file, "utf8"));
       } catch {
         continue;
       }
-      const data = (raw as { data?: Record<string, unknown> })?.data;
+      // A placement is a document: the file IS its data; its name is its leaf.
+      const data = raw as Record<string, unknown> | null;
       if (!data) continue;
-      const name = typeof data.name === "string" ? data.name : "";
+      const name = rel.slice(rel.lastIndexOf("/") + 1).replace(/\.yaml$/, "");
       const words = Array.isArray(data.prepositions)
         ? (data.prepositions as unknown[]).filter(
             (w): w is string => typeof w === "string",

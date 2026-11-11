@@ -71,6 +71,7 @@ function recipeOf(pack: string, id: string): Recipe {
     parse(
       readFileSync(join(pack, 'content', 'recipes', `${id}.yaml`), 'utf8'),
     ) as Record<string, unknown>,
+    `/test/recipes/${id}`,
   );
 }
 
@@ -464,7 +465,8 @@ describe('⭐⭐ the peated kiln — one choice, and the whole product changes',
       DISTILLING,
       'content/trade/distilling/thing/still-book.yaml',
     );
-    const offered = book.offeredRecipes as string[];
+    // Offered by PATH; read here by word (the path's leaf).
+    const offered = (book.offeredRecipes as string[]).map((p) => p.slice(p.lastIndexOf('/') + 1));
     // ⭐ ONE kiln line now. `kiln-malt-peated` is retired — what the
     // barley tastes of is decided at the firebox, not at the board.
     expect(offered).not.toContain('kiln-malt-peated');

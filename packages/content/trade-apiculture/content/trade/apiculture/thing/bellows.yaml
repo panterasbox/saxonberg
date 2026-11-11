@@ -21,4 +21,4 @@ data:
       - { part: gusset, template: /trade/tanning/thing/bellows-gusset, count: 1, role: structural, material: /stuff/idea/material/organic/leather }
       - { part: rivet, plural: rivets, template: /trade/smithing/thing/rivet, count: 4, role: fastener, material: /stuff/idea/material/element/iron }
     joints:
-      - { key: gusseting, method: riveted, members: [cheek, gusset], fastener: rivet }
+      - { key: gusseting, method: /platform/joints/riveted, members: [cheek, gusset], fastener: rivet }

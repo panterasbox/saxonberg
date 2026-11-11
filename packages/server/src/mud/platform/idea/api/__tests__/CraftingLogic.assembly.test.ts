@@ -31,7 +31,6 @@ import Casting from '../../../thing/Casting';
 import Tool from '../../../thing/Tool';
 import Timber from '../../../thing/Timber';
 import RecipeCatalogue from '../../RecipeCatalogue';
-import JointCatalogue from '../../JointCatalogue';
 import { Template } from '../../../../lib/stuff/Template';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
@@ -45,6 +44,7 @@ import {
   makeStuffAtPath,
   stampTemplatePathForTest,
 } from '../../../../lib/security/__tests__/test-setup';
+import { rememberJoint } from '../../../../lib/craft/__tests__/joint-fixtures';
 
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoomAssembly';
@@ -94,7 +94,7 @@ function pickRow(): Tool {
       { part: 'head', template: HEAD, count: 1, role: 'structural', material: IRON },
       { part: 'haft', template: HAFT, count: 1, role: 'structural', material: ASH },
     ],
-    joints: [{ key: 'hafting', method: 'wedged', members: ['head', 'haft'] }],
+    joints: [{ key: 'hafting', method: '/platform/joints/wedged', members: ['head', 'haft'] }],
   });
   return t;
 }
@@ -145,12 +145,10 @@ beforeEach(async () => {
     if (path === '/stuff/thing/Casting') return makeStuff(() => new Casting()) as never;
     throw new Error(`unexpected clone ${path}`);
   });
-  vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-    cls === '/platform/idea/Joint'
-      ? ([
+  for (const r of [
           {
-            path: '/platform/idea/Joint/wedged',
-            class: cls,
+            path: '/platform/joints/wedged',
+            class: "/platform/idea/Joint",
             data: {
               key: 'wedged',
               portability: 'hand',
@@ -163,15 +161,12 @@ beforeEach(async () => {
               failure: 'parted',
             },
           },
-        ] as never)
-      : ([] as never),
-  );
+        ] as unknown as Array<{ path: string; data: Record<string, unknown> }>) rememberJoint(r.path, r.data);
   vi.spyOn(Template, 'findByPath').mockImplementation(async (p: string) => {
     if (p === HAFT) return { path: p, class: '/platform/thing/Tool', data: { mass: 0.8 } } as never;
     if (p === PICK) return { path: p, class: '/platform/thing/Tool', data: { bill: pickRow().getBill() } } as never;
     return null as never;
   });
-  makeStuffAtPath(() => new JointCatalogue(), TemplatePaths.jointCatalogue);
 
   store.recipes!.push({
     recipeId: 'pick',
@@ -207,7 +202,7 @@ describe('CraftingLogic — assembly', () => {
       ['head', IRON],
       ['haft', ASH],
     ]);
-    expect(pick.getJoints()).toMatchObject([{ key: 'hafting', method: 'wedged', tension: 1 }]);
+    expect(pick.getJoints()).toMatchObject([{ key: 'hafting', method: '/platform/joints/wedged', tension: 1 }]);
     // One material and one mass, as before — the flatten still holds for the WHOLE.
     expect(pick.getMass().rawValue()).toBeCloseTo(2.6, 6);
   });
@@ -398,12 +393,10 @@ describe('⭐ fit matches a part to a line by ROW LINEAGE — a quartered board 
 describe('⭐⭐ interchangeable — a part cast to the line\'s own pattern needs no new joint', () => {
   /** A wedge joint that wants an instrument nobody here has. */
   function hardJoint(): void {
-    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-      cls === '/platform/idea/Joint'
-        ? ([
+    for (const r of [
             {
-              path: '/platform/idea/Joint/wedged',
-              class: cls,
+              path: '/platform/joints/wedged',
+              class: "/platform/idea/Joint",
               data: {
                 key: 'wedged',
                 label: 'wedged',
@@ -418,9 +411,7 @@ describe('⭐⭐ interchangeable — a part cast to the line\'s own pattern need
                 failure: 'parted',
               },
             },
-          ] as never)
-        : ([] as never),
-    );
+          ] as unknown as Array<{ path: string; data: Record<string, unknown> }>) rememberJoint(r.path, r.data);
   }
 
   it('a hand-made haft is refused the joint; a haft CAST from a haft\'s impression drops in', async () => {

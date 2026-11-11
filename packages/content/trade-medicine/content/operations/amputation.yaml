@@ -1,0 +1,13 @@
+key: amputation
+label: amputation
+addresses:
+  flag: unsalvageable
+instrument: surgery
+competence:
+  discipline: medicine
+  band: proficient
+bloodCostL: 0.5
+baseDurationS: 360
+anaesthesia: required
+resolution: severance
+difficulty: formidable

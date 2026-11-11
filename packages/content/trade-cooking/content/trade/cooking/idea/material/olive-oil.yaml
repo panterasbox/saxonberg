@@ -5,8 +5,8 @@
 # one tabulated number rather than by a rule anybody wrote.
 class: /platform/idea/material/Fat
 data:
-  smells: [{ aroma: /base-library/aromas/olive, strength: 100 }]
-  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/oil/olive, strength: 100 }]
+  burning: [{ aroma: /base-library/aromas/smoke/oil-smoke, strength: 300 }]
   tastes: [{ type: bitter, amount: 0.05 }]
   name: olive oil
   keywords: [olive, oil, olive-oil]

@@ -20,8 +20,6 @@ import type { RoutingRule, TopicDescriptor } from '@saxonberg/types';
 import { DEFAULT_ROUTING } from '@saxonberg/types';
 import { MessageApi } from '../message';
 import { StuffApi } from '../stuff';
-import TopicCatalogue from '../../platform/idea/TopicCatalogue';
-import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 
 /** A catalogue that answers with whatever facets the case needs. */
 function installCatalogue(
@@ -29,12 +27,7 @@ function installCatalogue(
 ): void {
   // One singleton per test; a second stamp at the same path is what
   // `findByTemplatePath` refuses, loudly and correctly.
-  StuffApi.clearAll();
-  const cat = makeStuffAtPath(
-    () => new TopicCatalogue(),
-    '/platform/idea/TopicCatalogue',
-  );
-  vi.spyOn(cat, 'getDescriptor').mockImplementation(
+  vi.spyOn(MessageApi.topics(), 'descriptor').mockImplementation(
     (topic: string) =>
       ({
         topic,
@@ -142,14 +135,13 @@ describe('⚠⚠ the catch-all', () => {
     expect(MessageApi.feedsFor('sense.ambient', useless)).toEqual(['world']);
   });
 
-  it('lands a frame even with NO topic catalogue warmed', () => {
-    // Before boot completes there are no facets to match on, so every
-    // rule falls through — which is precisely the state the catch-all
-    // covers. Failing open here is right; a dropped frame is the
-    // expensive mistake.
-    StuffApi.clearAll();
-    expect(MessageApi.feedsFor('anything', [...DEFAULT_ROUTING])).toEqual([
-      'world',
+  it('lands an UNAUTHORED topic too — its derived facets route it, never dropped', () => {
+    // The vocabulary is warm before any frame is delivered (Scene.send
+    // queues behind its first warm, D13). A key nobody authored resolves
+    // to the derived floor (`diagnostic`), which the shipped table routes —
+    // a dropped frame is the expensive mistake.
+    expect(MessageApi.feedsFor('anything.unauthored', [...DEFAULT_ROUTING])).toEqual([
+      'diagnostics',
     ]);
   });
 });

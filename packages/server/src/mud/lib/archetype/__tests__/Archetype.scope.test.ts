@@ -26,7 +26,7 @@ describe('Archetype — materializesOnto / surveyScope', () => {
   afterEach(() => vi.restoreAllMocks());
 
   it('the shipped shape is unchanged with both fields absent (AC15k)', () => {
-    const a = Archetype.fromData({ ...BARE });
+    const a = Archetype.fromData({ ...BARE }, '/test/archetypes/test-bare');
     expect(a.getMaterializesOnto()).toBe('/platform/location/venue');
     expect(a.getSurveyScope()).toBe('space');
   });
@@ -35,22 +35,22 @@ describe('Archetype — materializesOnto / surveyScope', () => {
     const a = Archetype.fromData({
       ...BARE,
       materializesOnto: '/system/transport/thing/HaulageRig',
-    });
+    }, '/test/archetypes/test-bare');
     expect(a.getMaterializesOnto()).toBe('/system/transport/thing/HaulageRig');
   });
 
   it('refuses a materializesOnto that is not a path', () => {
     expect(() =>
-      Archetype.fromData({ ...BARE, materializesOnto: 'HaulageRig' }),
+      Archetype.fromData({ ...BARE, materializesOnto: 'HaulageRig' }, '/test/archetypes/test-bare'),
     ).toThrow(/template path/);
   });
 
   it('surveyScope takes the three values and nothing else', () => {
     for (const scope of SURVEY_SCOPES) {
-      expect(Archetype.fromData({ ...BARE, surveyScope: scope }).getSurveyScope()).toBe(scope);
+      expect(Archetype.fromData({ ...BARE, surveyScope: scope }, '/test/archetypes/test-bare').getSurveyScope()).toBe(scope);
     }
     expect(() =>
-      Archetype.fromData({ ...BARE, surveyScope: 'everywhere' }),
+      Archetype.fromData({ ...BARE, surveyScope: 'everywhere' }, '/test/archetypes/test-bare'),
     ).toThrow(/surveyScope/);
   });
 
@@ -68,13 +68,13 @@ describe('Archetype — materializesOnto / surveyScope', () => {
         { key: 'crossing', needs: { presence: 'bridge' } },
         { key: 'light', needs: { lightLux: 1 } },
       ],
-    });
+    }, '/test/archetypes/corridor');
     expect(corridor.getCapabilities()).toHaveLength(4);
     expect(() =>
       Archetype.fromData({
         ...BARE,
         capabilities: [{ key: 'x', needs: { throughput: 3 } }],
-      }),
+      }, '/test/archetypes/test-bare'),
     ).toThrow(/unknown need/);
   });
 
@@ -93,13 +93,13 @@ describe('Archetype — materializesOnto / surveyScope', () => {
       ...BARE,
       materializesOnto: '/system/transport/thing/HaulageRig',
       capabilities: [],
-    });
+    }, '/test/archetypes/test-bare');
     await rig.materialize();
     expect(cloned).toEqual(['/system/transport/thing/HaulageRig']);
 
     // …and the unauthored case still builds the bare venue row.
     cloned.length = 0;
-    await Archetype.fromData({ ...BARE, capabilities: [] }).materialize();
+    await Archetype.fromData({ ...BARE, capabilities: [] }, '/test/archetypes/test-bare').materialize();
     expect(cloned).toEqual(['/platform/location/venue']);
   });
 });

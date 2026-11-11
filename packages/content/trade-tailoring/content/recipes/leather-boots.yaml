@@ -6,7 +6,6 @@
 #
 # The `sole` slot is not required by `lint:bills` (a wear part); it is
 # here because a pair of boots with no soles is a pair of socks.
-recipeId: leather-boots
 name: Leather Boots
 keywords: [leather-boots, boots]
 inputSlots:

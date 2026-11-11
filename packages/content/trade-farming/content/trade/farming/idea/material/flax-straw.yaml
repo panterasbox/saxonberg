@@ -12,7 +12,7 @@
 # materials, with the textile trade unchanged.
 class: /platform/idea/material/Fiber
 data:
-  smells: [{ aroma: /base-library/aromas/straw, strength: 15 }]
+  smells: [{ aroma: /base-library/aromas/green/straw, strength: 15 }]
   name: flax straw
   keywords: [flax, straw, flax-straw, stems, haulm]
   appearance: stiff pale flax straw

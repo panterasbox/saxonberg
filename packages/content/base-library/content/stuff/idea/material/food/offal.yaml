@@ -8,7 +8,7 @@
 # means it answers more steeply to warmth.
 class: /platform/idea/material/Flesh
 data:
-  smells: [{ aroma: /base-library/aromas/offal, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/flesh/offal, strength: 300 }]
   name: offal
   keywords: [offal, organ, liver, lights, pluck]
   appearance: dark wet offal

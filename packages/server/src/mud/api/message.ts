@@ -40,6 +40,7 @@ import { MessageLogic } from '../platform/idea/api/MessageLogic';
 import type { Scene } from '../lib/message/Scene';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import TopicCatalogue from '../platform/idea/TopicCatalogue';
 
 export { Scene } from '../lib/message/Scene';
 
@@ -72,9 +73,9 @@ export interface MessageBroadcastOptions {
 /**
  * Topic strings are emitted as **dotted-path string literals** at
  * call sites (e.g., `.topic('speech.vocal')`). The authored
- * source of truth for the topic vocabulary lives on per-topic YAML
- * leaf Ideas under the platform pack's `content/platform/idea/Topic/` (loaded into the
- * `TopicCatalogue` singleton at boot — see
+ * source of truth for the topic vocabulary is the `topic` documents
+ * under a pack's `content/topics/` (warmed by the first scene, never at
+ * boot — see
  * `docs/subsystems/topics.md`). Keeping a parallel `TOPICS` constant
  * tree in code led to the same data living in two places; the tree
  * has been retired in favor of literals.
@@ -106,6 +107,17 @@ const TAGS = {
  * Message distribution and Scene factory.
  */
 export class MessageApi {
+  /**
+   * ⭐ The topics — the message vocabulary (`combat.hit`, `speech.vocal`),
+   * any pack's `content/topics/`, served by {@link TopicCatalogue}: a
+   * descriptor by dotted key (authored, inherited, or derived with a
+   * diagnostic), the client's snapshot, the communicative flag. Warmed by
+   * the first scene of the process, never at boot (documents D13).
+   */
+  public static topics(): TopicCatalogue {
+    return StuffApi.singletonSync('/platform/idea/TopicCatalogue', () => new TopicCatalogue());
+  }
+
   static readonly Tags = TAGS;
 
   /**
@@ -168,11 +180,22 @@ export class MessageApi {
    * Whether `topic` is a **communication act** (say/whisper/shout/emote/
    * chat — the topic's data-driven `communicative` flag; NOT dm /
    * narration / system). Consulted by the renown reception gate on the
-   * receive path so non-comm frames never hit the bus. `false` before the
-   * `TopicCatalogue` is warmed.
+   * receive path so non-comm frames never hit the bus. The topic
+   * vocabulary is warm before any frame is delivered (`Scene.send` queues
+   * behind its first warm).
    */
   static isCommunicative(topic: string): boolean {
     return logic().isCommunicative(topic);
+  }
+
+  /**
+   * ⭐ The topic vocabulary's first warm, in flight — started if it is cold
+   * — or `null` once it is resident (documents D13). `Scene.send` queues its
+   * dispatch behind this, in order; session entry awaits it before sending
+   * the client its snapshot.
+   */
+  static topicsWarming(): Promise<void> | null {
+    return logic().topicsWarming();
   }
 
   /**

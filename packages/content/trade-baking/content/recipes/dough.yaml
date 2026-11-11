@@ -9,7 +9,6 @@
 # dough is buildable — and what comes out of it is flat, because barley
 # flour has no `gluten` tag and there is no sheet to hold the gas.
 # Nothing refuses it; the physics is the refusal.
-recipeId: dough
 name: Dough
 keywords:
 - dough
@@ -36,5 +35,5 @@ difficulty: standard
 discipline: baking
 # Kneading: flour on the hands and on the floor (cleanliness D6).
 soils:
-- { kind: flour, amount: 0.2, where: hands }
-- { kind: flour, amount: 0.05, where: floor }
+- { kind: /platform/dirt/flour, amount: 0.2, where: hands }
+- { kind: /platform/dirt/flour, amount: 0.05, where: floor }

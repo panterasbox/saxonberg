@@ -1,3 +1,0 @@
-# Smoke off burning oil and tar: greasy and black.
-parent: /base-library/aromas/smoke
-liking: { peak: 1.5, width: 2, valence: -1 }

@@ -3,7 +3,6 @@
 # `fermenting` discipline would cross-derive the vintner's press.
 # The brewhouse board (a Menu — the `order` surface) is deliberately
 # not a need; see the winery archetype's note.
-archetypeId: brewhouse
 label: a brewhouse
 capabilities:
   - { key: mash, needs: { tool: mash-tun }, default: /trade/brewing/thing/mash-tun }

@@ -1,6 +1,5 @@
 # The billhook's blade (repair D17) — forged on its own; the hook is
 # raised by `fit billhook` with a handle.
-recipeId: billhook-blade
 name: Billhook Blade
 keywords: [billhook-blade, "billhook blade"]
 inputSlots:

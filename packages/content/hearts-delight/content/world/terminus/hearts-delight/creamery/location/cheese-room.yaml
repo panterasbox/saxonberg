@@ -20,6 +20,7 @@ data:
   exits:
     up:
       destination: /world/terminus/hearts-delight/creamery/location/floor
+      door: /world/terminus/hearts-delight/creamery/thing/cellar-hatch
       media: [ground]
       edgeMinutes: 1
   # Hung, not set down: a lamp lights a room fixture-side, and one left

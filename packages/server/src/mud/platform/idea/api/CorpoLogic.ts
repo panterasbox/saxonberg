@@ -12,6 +12,7 @@ import { TemplatePaths } from "../../../lib/paths";
 import type { CorpoDescriptor } from "../corpo/Corpo";
 import type { BrandDescriptor } from "../corpo/Brand";
 import type CorpoCatalogue from "../CorpoCatalogue";
+import { DocumentNotResidentError } from '../../../lib/errors';
 
 const CorpoApiCallers = SecurityPolicies.FromModule("/api/corpo#CorpoApi");
 
@@ -23,14 +24,18 @@ interface BrandedHost {
   getBrandKey(): string;
 }
 
-/** The live CorpoCatalogue singleton, or `null` before it warms. */
-function catalogue(): CorpoCatalogue | null {
-  return (
-    (StuffApi.findByTemplatePath(
-      TemplatePaths.corpoCatalogue
-    ) as CorpoCatalogue | null) ?? null
-  );
+/**
+ * The corpo/brand dictionary — resident by construction (documents D7): a
+ * branded thing's `brand` setter (and a bank's corpo) loaded it, a verb that
+ * names a brand by word awaited it. ⚠ A cold read throws, by path — never
+ * "no such brand".
+ */
+function catalogue(): CorpoCatalogue {
+  const cat = StuffApi.findByTemplatePath(TemplatePaths.corpoCatalogue) as CorpoCatalogue | null;
+  if (!cat) throw new DocumentNotResidentError('corpo', TemplatePaths.corpoCatalogue);
+  return cat;
 }
+
 
 /** Resolve a brand `key` to its owning corpo; independent / unknown → `null`. */
 function corpoOfBrandImpl(brandKey: string): CorpoDescriptor | null {
@@ -87,6 +92,7 @@ function rivalsOfImpl(corpoKey: string): CorpoDescriptor[] {
  */
 @Unshadowable
 export class CorpoLogic extends ApiLogic {
+
   /** See {@link CorpoApi.corpoOfBrand}. */
   @CallSecurity(CorpoApiCallers)
   public corpoOfBrand(brandKey: string): CorpoDescriptor | null {
@@ -105,19 +111,19 @@ export class CorpoLogic extends ApiLogic {
   public brandOf(obj: Stuff): BrandDescriptor | null {
     const brandKey = brandKeyOf(obj);
     if (!brandKey) return null;
-    return catalogue()?.getBrand(brandKey) ?? null;
+    return catalogue().getBrand(brandKey) ?? null;
   }
 
   /** See {@link CorpoApi.getBrand}. */
   @CallSecurity(CorpoApiCallers)
   public getBrand(brandKey: string): BrandDescriptor | null {
-    return catalogue()?.getBrand(brandKey) ?? null;
+    return catalogue().getBrand(brandKey) ?? null;
   }
 
   /** See {@link CorpoApi.getCorpo}. */
   @CallSecurity(CorpoApiCallers)
   public getCorpo(corpoKey: string): CorpoDescriptor | null {
-    return catalogue()?.getCorpo(corpoKey) ?? null;
+    return catalogue().getCorpo(corpoKey) ?? null;
   }
 
   /** See {@link CorpoApi.portfolioOf}. */
@@ -135,12 +141,12 @@ export class CorpoLogic extends ApiLogic {
   /** See {@link CorpoApi.listCorpos}. */
   @CallSecurity(CorpoApiCallers)
   public listCorpos(): CorpoDescriptor[] {
-    return catalogue()?.allCorpos() ?? [];
+    return catalogue().allCorpos() ?? [];
   }
 
   /** See {@link CorpoApi.listBrands}. */
   @CallSecurity(CorpoApiCallers)
   public listBrands(): BrandDescriptor[] {
-    return catalogue()?.allBrands() ?? [];
+    return catalogue().allBrands() ?? [];
   }
 }

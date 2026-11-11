@@ -572,12 +572,23 @@ export default class Locality extends Idea {
   public getGovernmentKey(): string | null {
     return this._governmentKey;
   }
-  public setGovernmentKey(value: string | null): void {
+  /**
+   * ⭐ A locality that names a government is live only when the government
+   * dictionary is (documents D7): the applier awaits the returned load, so
+   * the jurisdiction chain reads it synchronously.
+   */
+  public setGovernmentKey(value: string | null): Promise<void> | undefined {
     if (value !== null && typeof value !== 'string') {
       throw new TypeError('Locality._governmentKey must be a string or null');
     }
     const trimmed = value?.trim() ?? '';
     this._governmentKey = trimmed.length > 0 ? trimmed : null;
+    return this._governmentKey ? StuffApi.ready(GovernmentApi) : undefined;
+  }
+
+  /** The applier's door for `_governmentKey:` (the field's own name). */
+  public set_governmentKey(value: string | null): Promise<void> | undefined {
+    return this.setGovernmentKey(value);
   }
 
   // ---------- the watershed declaration (D21) ----------

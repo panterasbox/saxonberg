@@ -3,7 +3,7 @@
 # thermalConductivity is why a wool layer authors meaningful `clo`.
 class: /platform/idea/material/HideHorn
 data:
-  smells: [{ aroma: /base-library/aromas/wet-wool, strength: 20 }]
+  smells: [{ aroma: /base-library/aromas/animal/sheep/wet-wool, strength: 20 }]
   name: wool
   keywords: [wool]
   # ⚠ A material must not assert a CONSTRUCTION — `woven` is a form a

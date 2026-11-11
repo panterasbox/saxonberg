@@ -12,6 +12,6 @@ data:
   _materialPath: /stuff/idea/material/wood/oak
   mass: 200
   fixedInPlace: true
-  placements: [on]
+  placements: [/platform/placements/on]
   newtonsPerTurn: 2000
   maxTurns: 6

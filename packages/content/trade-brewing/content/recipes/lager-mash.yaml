@@ -12,7 +12,6 @@
 # which is the whole of what the retrofit adds.
 # Lager mash — the cold-run grist: same tun, its own wort (the lager
 # process differs from the mash up), bound for the cold store.
-recipeId: lager-mash
 name: Lager mash
 keywords: [lager-mash, "cold mash"]
 discipline: fermenting

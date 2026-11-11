@@ -18,24 +18,22 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Postures } from '@saxonberg/server/mud/lib/slot/Postured';
-import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import { HARM_DEFAULTS } from '@saxonberg/server/mud/platform/idea/Condition';
 import {
   OperationEngagement,
   OperationPatientHold,
 } from '@saxonberg/server/mud/lib/vitals/OperationEngagement';
-import type OperationCatalogue from '@saxonberg/server/mud/platform/idea/OperationCatalogue';
-import type { OperationDescriptor } from '@saxonberg/server/mud/platform/idea/Operation';
+import { type OperationDescriptor } from '@saxonberg/server/mud/lib/vitals/Operation';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Vitals } from '@saxonberg/server/mud/lib/vitals/Vitals';
 import type { Trauma } from '@saxonberg/server/mud/platform/idea/Condition';
 import type { Engaged } from '@saxonberg/server/mud/lib/activity/Engaged';
+import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 
 const TOPIC = 'act.deed';
 
@@ -65,12 +63,9 @@ export default class OperateController extends CommandController<OperateModel> {
     if (!model.kit?.stuff) {
       return this.fail(context, "You need a surgeon's kit to operate.", 'no-kit');
     }
-    // ⭐ The operation dictionary warms on first use (the scan sweep): the
-    // singleton's own creation indexes the roster — nothing boots it.
-    const catalogue = await StuffApi.singleton<OperationCatalogue>(
-      TemplatePaths.operationCatalogue,
-    ).catch(() => null);
-    const ops = catalogue?.allOperations() ?? [];
+    // ⭐ The operation dictionary loads on first use (scan-sweep ruling 1):
+    // one indexed read of the kind — nothing boots it.
+    const ops = await ConditionApi.operations().all();
     const body = target as Stuff & Vitals;
 
     // Pick the operation: named, else the most urgent applicable.

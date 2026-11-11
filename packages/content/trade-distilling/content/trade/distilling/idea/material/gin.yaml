@@ -1,10 +1,10 @@
 # House gin — a spirit input. The category tag(s) are what a recipe
 # input slot matches (gin); the brand is the ROW's
-# (`_brandKey`), never the material's. Distilling's, by the generic drain
+# (`brand`), never the material's. Distilling's, by the generic drain
 # rule: the trade whose PROCESS makes it ships it.
 class: /platform/idea/material/Spirit
 data:
-  smells: [{ aroma: /base-library/aromas/juniper, strength: 800 }]
+  smells: [{ aroma: /base-library/aromas/wood/resin/juniper, strength: 800 }]
   burning: [{ aroma: /base-library/aromas/smoke, strength: 3 }]
   tastes: [{ type: bitter, amount: 0.01 }]
   name: house gin

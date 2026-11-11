@@ -33,6 +33,7 @@ import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import {
   makeStuffAtPath,
 } from '../../../../lib/security/__tests__/test-setup';
+import { findDocuments } from '../../../../lib/document/__tests__/document-query';
 
 class TestAuthor extends Idea {
   static _mixinName = 'TestAuthor';
@@ -139,9 +140,9 @@ beforeEach(() => {
   const pm = PersistenceManager.get();
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'find').mockImplementation(
-    async (col: string, query: Record<string, unknown>) => {
+    async (col: string, query: Record<string, unknown>, options?: { sort?: Record<string, 1 | -1>; limit?: number }) => {
       if (col === 'app_settings') return [] as never;
-      return [...store.values()].filter((d) => matches(d, query)) as never;
+      return findDocuments(store.values(), query, options) as never;
     }
   );
   vi.spyOn(pm, 'save').mockImplementation(
@@ -227,6 +228,18 @@ describe('PressApi.archive (filter + page)', () => {
       { releaseId: 'gone', kind: 'event', publishedAt: 50, retracted: true },
       'world',
     );
+  });
+
+  it('⭐ reads newest first BY KEY — bounded above by the cursor, capped — never the whole kind', async () => {
+    const spy = vi.spyOn(DocumentApi, 'findByKey');
+    const listed = vi.spyOn(DocumentApi, 'listOfKind');
+    await PressApi.archive({ before: 25, limit: 2 });
+    expect(spy).toHaveBeenCalledWith('release', 'publishedAt', {
+      max: 24,
+      order: 'desc',
+      limit: 8,
+    });
+    expect(listed).not.toHaveBeenCalled();
   });
 
   it('orders recency-desc and excludes retracted rows', async () => {

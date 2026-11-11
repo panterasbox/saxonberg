@@ -27,8 +27,8 @@ import {
   type DocumentKindSpec,
   type DocumentVanishPolicy,
 } from '../../../lib/document/DocumentKinds';
+import { StoredDocument } from '../../../lib/document/StoredDocument';
 import { TOPIC_ROOTS } from '@saxonberg/types';
-import Topic from '../Topic';
 import { PersistApi } from '../../../api/persist';
 import { StuffApi, type ClassResolution } from '../../../api/stuff';
 import { ModuleApi } from '../../../api/module';
@@ -85,6 +85,14 @@ import type {
   PackProvisionReport,
   PackMaintainersInfo,
 } from '../../../api/pack';
+import { CraftingApi } from '../../../api/crafting';
+import { DocumentApi } from '../../../api/document';
+import { BulkableApi } from '../../../api/bulk';
+import { ConditionApi } from '../../../api/condition';
+import { PartyApi } from '../../../api/party';
+import { MaterialApi } from '../../../api/material';
+import { ContainmentApi } from '../../../api/containment';
+import { MessageApi } from '../../../api/message';
 
 const PackApiCallers = SecurityPolicies.FromModule('/api/pack#PackApi');
 
@@ -170,12 +178,25 @@ const GATED_DOCUMENT_KINDS: ReadonlySet<DeclaredDocumentKind> = new Set<Declared
  * before inserting, moved to the pack boundary so a malformed file fails
  * the pack before any write. A kind with no entry is stored as parsed.
  */
-const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>) => void> = {
-  emote: (d) => void Emote.fromData(d),
-  recipe: (d) => void Recipe.fromData(d),
-  archetype: (d) => void Archetype.fromData(d),
-  'standby-reason': (d) => void StandbyReason.fromData('(row)', d),
-  'lower-third-panel': (d) => void LowerThirdPanel.fromData('(row)', d),
+const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>, path: string) => void> = {
+  emote: (d, p) => void Emote.fromData(d, p),
+  recipe: (d, p) => void Recipe.fromData(d, p),
+  archetype: (d, p) => void Archetype.fromData(d, p),
+  'pump-mechanism': (d, p) => void BulkableApi.pumpMechanisms().parse(d, p),
+  form: (d, p) => void CraftingApi.forms().parse(d, p),
+  joint: (d, p) => void CraftingApi.joints().parse(d, p),
+  dirt: (d, p) => void MaterialApi.dirtKinds().parse(d, p),
+  operation: (d, p) => void ConditionApi.operations().parse(d, p),
+  formation: (d, p) => void PartyApi.formations().parse(d, p),
+  placement: (d, p) => void ContainmentApi.placements().parse(d, p),
+  topic: (d) => {
+    if (typeof d.label !== 'string' || d.label === '') throw new Error('a topic needs a label');
+  },
+  'help-concept': (d) => {
+    if (typeof d.title !== 'string' || d.title === '') throw new Error('a help concept needs a title');
+  },
+  'standby-reason': (d, p) => void StandbyReason.fromData(p.slice(p.lastIndexOf('/') + 1), d),
+  'lower-third-panel': (d, p) => void LowerThirdPanel.fromData(p.slice(p.lastIndexOf('/') + 1), d),
   'command-view': (d) => {
     const trail = CommandApi.validateCommandView(d);
     if (trail !== null) throw new Error(`does not conform to the command schema:\n${trail}`);
@@ -861,9 +882,10 @@ function readYamlObject(pack: ResolvedPack, file: string, what: string): Record<
 
 /**
  * Read one declared document kind's files from `content/<contentDir>/`.
- * A `.yaml` file's object becomes `data` (a flat-key kind whose file
- * omits the natural key gets it from the basename; a key that disagrees
- * with the basename fails at `read`); an `.msh` file becomes
+ * A `.yaml` file's object becomes `data` (the file's place under the
+ * kind's dir IS its name — `aromas/smoke/peat-smoke.yaml` is stored at
+ * `<root>/aromas/smoke/peat-smoke`; nothing in the file names it); an
+ * `.msh` file becomes
  * `data: { source }` verbatim (the retired ScriptSeeder's shape). Never a
  * glob over `content/` — each kind's dir is enumerated by the table.
  */
@@ -899,22 +921,12 @@ function readDocumentKind(pack: ResolvedPack, spec: DocumentKindSpec): DocumentF
     const name = basename(relKey);
     const key =
       spec.kind === 'command-view' ? commandViewPathOf(relKey) : `/${spec.contentDir}/${relKey}`;
+    const path = spec.kind === 'command-view' ? commandViewPathOf(relKey) : root + key;
     let data: Record<string, unknown>;
     if (spec.ext === 'yaml') {
       data = readYamlObject(pack, file, `${spec.kind} document`);
-      const nk = spec.naturalKey;
-      if (nk !== null) {
-        if (data[nk] === undefined) data[nk] = name;
-        else if (String(data[nk]) !== name) {
-          throw new Error(
-            `PackApi: pack '${pack.manifest.id}': ${spec.kind} document at ${file} ` +
-              `declares ${nk} '${String(data[nk])}' but its file name says '${name}' ` +
-              `— the basename IS the key`,
-          );
-        }
-      }
       try {
-        DOCUMENT_VALIDATORS[spec.kind]?.(data);
+        DOCUMENT_VALIDATORS[spec.kind]?.(data, path);
       } catch (err) {
         throw new Error(
           `PackApi: pack '${pack.manifest.id}': ${spec.kind} document at ${file}: ${(err as Error).message}`,
@@ -925,7 +937,7 @@ function readDocumentKind(pack: ResolvedPack, spec: DocumentKindSpec): DocumentF
     }
     out.push({
       key,
-      path: spec.kind === 'command-view' ? commandViewPathOf(relKey) : root + key,
+      path,
       data,
       relFile: relative(pack.root, file),
     });
@@ -1441,7 +1453,7 @@ function canonical(value: unknown): string {
  * ⚠ **Gate pack-declared topics before anything is written.**
  *
  * The topic vocabulary is deliberately **open** — a pack adds a topic
- * by shipping a `/platform/idea/Topic/<key>` row like any other content, and no
+ * by shipping a `topic` document (`content/topics/<dotted.key>.yaml`), and no
  * mechanism was needed to allow it. Two things are *not* open:
  *
  *  - **Roots are closed.** A pack-minted root would mean a player's
@@ -1462,16 +1474,14 @@ function canonical(value: unknown): string {
  */
 async function validatePackTopics(
   packId: string,
-  files: DomainFile[],
+  topicFiles: readonly DocumentFile[],
 ): Promise<void> {
-  const topicFiles = files.filter((f) =>
-    f.path.startsWith(Topic.TEMPLATE_PATH_PREFIX),
-  );
   if (topicFiles.length === 0) return;
 
   const roots = new Set<string>(TOPIC_ROOTS);
   for (const f of topicFiles) {
-    const key = f.path.slice(Topic.TEMPLATE_PATH_PREFIX.length);
+    // A topic document's dotted key is its path's leaf.
+    const key = f.path.slice(f.path.lastIndexOf('/') + 1);
     const root = key.split('.')[0] ?? key;
     if (!roots.has(root)) {
       throw new Error(
@@ -1713,7 +1723,7 @@ function rowKeyOf(spec: DocumentKindSpec, root: string, r: Record<string, unknow
  * `{ data }` only — `owner`/`path`/`kind`/`sourcePack` are bookkeeping.
  */
 function documentStrategy(spec: DocumentKindSpec, root: string): KindStrategy<DocumentFile> {
-  const nk = spec.naturalKey;
+  const words = spec.words;
   return {
     kind: 'document',
     documentKind: spec.kind,
@@ -1724,19 +1734,23 @@ function documentStrategy(spec: DocumentKindSpec, root: string): KindStrategy<Do
     ext: spec.ext,
     recordKeyOf: (f) => f.key,
     recordKeyOfRow: (r) => rowKeyOf(spec, root, r),
-    // A flat-key kind's identity IS its natural key (the unique partial
-    // index says so): a row with this key at ANY path is this row.
-    dbKeyQuery: (f) => (nk ? { kind: spec.kind, [`data.${nk}`]: f.data[nk] } : { kind: spec.kind, path: f.path }),
+    // ⭐ A document's identity is its PATH — for every kind (the unique
+    // path index says so). Nothing adopts a row at another path.
+    dbKeyQuery: (f) => ({ kind: spec.kind, path: f.path }),
     stampedQuery: () => ({ kind: spec.kind }),
     rowOf: (f, packId) => ({
       path: f.path,
       owner: root,
       kind: spec.kind,
       data: f.data,
+      // The catalogue card, derived here as `StoredDocument.save` derives
+      // it: the installer writes before any persistence hook is loaded.
+      keys: StoredDocument.cardOf(spec.kind, f.path, f.data),
       sourcePack: packId,
     }),
     canonicalBody: (r) => canonical({ data: r.data ?? {} }),
-    flatKeyOf: nk ? (f) => String(f.data[nk]) : undefined,
+    // A typed word means one thing across the install set (D3).
+    flatKeysOf: words ? (f) => words({ path: f.path, data: f.data }) : undefined,
     exportBody: (r) => (r.data ?? {}) as Record<string, unknown>,
   };
 }
@@ -2943,11 +2957,64 @@ function flatKeyFailures(packs: ReadPack[]): Map<string, PackFailure> {
             error:
               `PackApi: pack '${rp.pack.manifest.id}' claims ${k.strategy.noun} ` +
               `key '${key}' (${relFile}) which pack '${first.packId}' ` +
-              `already claims (${first.relFile}). Keys are unique across ` +
-              `the install set; the second claimant fails.`,
+              `already claims (${first.relFile}). Keys (and a typed word) are ` +
+              `unique across the install set; the second claimant fails.`,
             file: relFile,
           });
         }
+        }
+      }
+    }
+  }
+  return failures;
+}
+
+/**
+ * ⭐ The STORE half of the typed-word check (documents D3): a word one of
+ * `packs` ships must not already be claimed in the store by a document no
+ * pack in this install set ships — the live `sync` of a pack from a
+ * directory, whose install set does not hold the packs already installed.
+ * A second claimant fails the claiming pack, naming the kind, the word and
+ * both claimants. Never first-wins, never silent.
+ */
+async function storeWordFailures(packs: ReadPack[]): Promise<Map<string, PackFailure>> {
+  const failures = new Map<string, PackFailure>();
+  const inSet = new Set(packs.map((rp) => rp.pack.manifest.id));
+  for (const spec of activeDocumentKinds()) {
+    if (!spec.words) continue;
+    const claims = new Map<string, Array<{ packId: string; file: DocumentFile }>>();
+    for (const rp of packs) {
+      for (const f of (rp.content.documents.get(spec.kind) ?? []) as DocumentFile[]) {
+        for (const word of spec.words({ path: f.path, data: f.data })) {
+          const list = claims.get(word) ?? [];
+          list.push({ packId: rp.pack.manifest.id, file: f });
+          claims.set(word, list);
+        }
+      }
+    }
+    if (claims.size === 0) continue;
+    // One indexed read per kind: every store row claiming any shipped word.
+    const rows = (await PersistApi.find(Collections.Documents, {
+      kind: spec.kind,
+      'keys.word': { $in: [...claims.keys()] },
+    })) as Array<Record<string, unknown>>;
+    for (const row of rows) {
+      if (inSet.has(String(row.sourcePack ?? ''))) continue;
+      const card = (row.keys ?? {}) as { word?: string | string[] };
+      const rowWords = Array.isArray(card.word) ? card.word : card.word ? [card.word] : [];
+      for (const word of rowWords) {
+        for (const { packId, file } of claims.get(word) ?? []) {
+          if (row.path === file.path || failures.has(packId)) continue;
+          failures.set(packId, {
+            step: 'flat-key',
+            error:
+              `PackApi: pack '${packId}' ships ${spec.kind} '${word}' (${file.relFile}) ` +
+              `but '${String(row.path)}'` +
+              (row.sourcePack ? ` (pack '${String(row.sourcePack)}')` : '') +
+              ` already claims that word. A typed word means one thing; ` +
+              `the second claimant fails.`,
+            file: file.relFile,
+          });
         }
       }
     }
@@ -3057,7 +3124,7 @@ async function gatePack(
     throw new PackStepError('requires-kernel', (err as Error).message);
   }
   try {
-    await validatePackTopics(packId, rp.content.domain);
+    await validatePackTopics(packId, (rp.content.documents.get('topic') ?? []) as DocumentFile[]);
   } catch (err) {
     throw new PackStepError('topics', (err as Error).message);
   }
@@ -3542,6 +3609,9 @@ async function invalidateDocumentKind(
   changedPaths: string[] = [],
   deletedPaths: string[] = [],
 ): Promise<void> {
+  // ⭐ The catalogue serving the kind forgets the touched paths, so the
+  // next use re-reads (the topics re-read on their next warm).
+  DocumentApi.catalogueFor(kind)?.forget([...changedPaths, ...deletedPaths]);
   switch (kind) {
     case 'command-view':
       // Per path: a changed view re-reads from the store; a deleted one
@@ -3902,6 +3972,7 @@ export class PackLogic extends ApiLogic {
       }
     }
     const flat = flatKeyFailures(read);
+    for (const [id, f] of await storeWordFailures(read)) if (!flat.has(id)) flat.set(id, f);
     const set = installSetOf(read);
 
     // One read window for the whole install: every pack's stamped rows
@@ -3948,6 +4019,7 @@ export class PackLogic extends ApiLogic {
     // explicit install set, or nothing.
     const siblings = packRoot && !packRoots ? [] : siblingsOf(pack, packRoots);
     const flat = flatKeyFailures([...siblings, rp]);
+    for (const [id, sf] of await storeWordFailures([...siblings, rp])) if (!flat.has(id)) flat.set(id, sf);
     const f = flat.get(packId);
     if (f) throw new PackStepError(f.step, f.error, f.file);
     // An operator at the keyboard: sync throws rather than recording.

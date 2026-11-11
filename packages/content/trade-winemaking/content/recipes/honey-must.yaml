@@ -4,7 +4,6 @@
 # mead is. ⚠ No tool: this is a bucket and a stick, and gating it on
 # equipment would put a shop between a player and the oldest drink in the
 # world.
-recipeId: honey-must
 name: Honey must
 keywords: [must, mead, "honey must"]
 discipline: fermenting

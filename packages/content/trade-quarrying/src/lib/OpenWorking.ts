@@ -523,10 +523,10 @@ export function OpenWorkingMixin<
           // ⭐ (cleanliness D6) Earth muddies; rock dusts.
           soils: face.earth
             ? [
-                { kind: 'mud', amount: 0.2, where: 'hands' },
-                { kind: 'mud', amount: 0.15, where: 'feet' },
+                { kind: '/platform/dirt/mud', amount: 0.2, where: 'hands' },
+                { kind: '/platform/dirt/mud', amount: 0.15, where: 'feet' },
               ]
-            : [{ kind: 'dust', amount: 0.15, where: 'hands' }],
+            : [{ kind: '/trade/mining/dirt/dust', amount: 0.15, where: 'hands' }],
           credit: {
             discipline: QUARRYING,
             // ⭐ Difficulty is the ROCK's, read at the moment of the act: a

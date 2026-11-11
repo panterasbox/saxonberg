@@ -1093,7 +1093,7 @@ Named at their sites; nothing inherited:
   `CombatCard` (and the contextual gambit affordances — terse verbs afforded
   only in a fight — that supersede the static ones). Party formation-roles
   **landed** — the combat-formations build (see
-  [combat-formations.md](./combat-formations.md)): `CombatFormation` Idea
+  [combat-formations.md](./combat-formations.md)): `formation` document
   presets over a total party-face resolution chain, the three hooks
   (allocation / interception / coup governance), the `command` Discipline,
   and the `party adopt` / `fight finish` surface.

@@ -29,8 +29,8 @@ import { PackApi } from '../../../../api/pack';
 import { stubRegistries } from './pack-harness';
 import { PersistApi } from '../../../../api/persist';
 import { StuffApi } from '../../../../api/stuff';
+import { matchesDocumentQuery } from '../../../../lib/document/__tests__/document-query';
 
-const TOPIC_CLASS = '/platform/idea/Topic';
 const HYDRATOR = '/platform/idea/TemplateApplier';
 
 interface Row extends Record<string, unknown> {
@@ -52,14 +52,7 @@ function stubPersist(): void {
     async (col: string, query: Record<string, unknown>) =>
       rows
         .filter((r) => (r.__col ?? 'content') === col)
-        .filter((r) =>
-          Object.entries(query).every(([k, v]) => {
-            if (v !== null && typeof v === 'object' && '$in' in v) {
-              return (v.$in as unknown[]).includes(r[k]);
-            }
-            return r[k] === v;
-          })
-        )
+        .filter((r) => matchesDocumentQuery(r, query))
         .map((r) => ({ ...r })) as never
   );
   vi.spyOn(PersistApi, 'save').mockImplementation(
@@ -90,24 +83,21 @@ function writeTopicPack(id: string, topicKey: string): string {
     join(root, 'pack.yaml'),
     YAML.stringify({ id, version: '0.1.0' })
   );
-  const file = join(root, 'content', 'platform', 'idea', 'Topic', `${topicKey}.yaml`);
+  // A topic is a document: the file IS its data, named by its dotted key.
+  const file = join(root, 'content', 'topics', `${topicKey}.yaml`);
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(
     file,
     YAML.stringify({
-      class: TOPIC_CLASS,
-      data: {
-        topic: topicKey,
-        family: topicKey.split('.').slice(0, -1).join('.'),
-        label: 'Pollen',
-        description: 'Pollen counts, for the allergic.',
-        address: 'ambient',
-        actor: 'world',
-        weight: 'chatter',
-        audience: 'player',
-        durable: false,
-        affordance: 'decays',
-      },
+      family: topicKey.split('.').slice(0, -1).join('.'),
+      label: 'Pollen',
+      description: 'Pollen counts, for the allergic.',
+      address: 'ambient',
+      actor: 'world',
+      weight: 'chatter',
+      audience: 'player',
+      durable: false,
+      affordance: 'decays',
     })
   );
   return root;
@@ -115,7 +105,7 @@ function writeTopicPack(id: string, topicKey: string): string {
 
 /** Topic rows currently in the stubbed store. */
 function topicRows(): Row[] {
-  return rows.filter((r) => String(r.path ?? '').startsWith('/platform/idea/Topic/'));
+  return rows.filter((r) => r.kind === 'topic');
 }
 
 beforeEach(() => {
@@ -136,7 +126,8 @@ describe('pack-declared topics', () => {
     const root = writeTopicPack('herbalism', 'sense.pollen');
 
     await expect(PackApi.install([root])).resolves.toBeDefined();
-    expect(topicRows().map((r) => r.path)).toEqual(['/platform/idea/Topic/sense.pollen']);
+    // Under the pack's OWN root — a document's path is its identity.
+    expect(topicRows().map((r) => r.path)).toEqual(['/herbalism/topics/sense.pollen']);
   });
 
   it('refuses a pack that mints a new root', async () => {
@@ -162,19 +153,19 @@ describe('pack-declared topics', () => {
     const root = writeTopicPack('platform', 'sense');
     const [r] = await PackApi.install([root]);
     expect(r!.failure).toBeNull();
-    expect(topicRows().map((t) => t.path)).toEqual(['/platform/idea/Topic/sense']);
+    expect(topicRows().map((t) => t.path)).toEqual(['/platform/topics/sense']);
   });
 
-  // Not a topic-specific gate: `reconcileKind` refuses cross-pack
-  // path collision for EVERY path. Asserted here so the guarantee is
-  // visibly true for topics too, and so a future topic-specific
-  // shortcut cannot quietly bypass it.
-  it("refuses a key another pack already owns (generic path rule)", async () => {
+  // ⭐ A topic key is a TYPED word (code names it): a second pack shipping
+  // one another pack already ships is refused at install, naming both.
+  it("refuses a key another pack already ships (the typed-word check)", async () => {
     rows.push({
       _id: 'pre',
-      path: '/platform/idea/Topic/sense.pollen',
+      path: '/flora/topics/sense.pollen',
+      kind: 'topic',
+      keys: { word: 'sense.pollen' },
       sourcePack: 'flora',
-      __col: 'content',
+      __col: 'documents',
     });
     const root = writeTopicPack('herbalism', 'sense.pollen');
 

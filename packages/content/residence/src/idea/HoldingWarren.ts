@@ -20,7 +20,7 @@
  * ⭐ **The lift.** The floorplan mint, keyed rooms,
  * whole-warren dormancy and `layOut` are the kernel's `FloorplanWarren`
  * now. What stays here is only what is residential: the address stem,
- * the parcel keyway handed to the copy's keyed doors (`fitExit`), the
+ * the parcel keyway hung on the copy's keyed doors (`hangKeyedDoors`), the
  * parcel's open ground (`openGroundM2`), the relay to the institution,
  * the tenure term (who OWES the upkeep), and the holding's BUILDINGS.
  * (`admitPlot`, the break-ground seam, retired with `plot` in the farming

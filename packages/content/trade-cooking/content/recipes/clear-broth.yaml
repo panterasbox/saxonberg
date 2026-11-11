@@ -2,7 +2,6 @@
 # cooking recipe asks for an instrument beyond the pot. Straining is what
 # makes it clear; without a sieve you have soup, which is a different thing
 # somebody else's recipe makes.
-recipeId: clear-broth
 name: Clear Broth
 keywords:
 - broth

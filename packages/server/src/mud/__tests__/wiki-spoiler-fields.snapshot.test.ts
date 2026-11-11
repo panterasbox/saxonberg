@@ -56,7 +56,7 @@
  *     reading. `donorIdentityPath` is never surfaced by any line.
  *   - `Recipe.soils` — `spoiler: 1, spoilerName: 0`, its recipe siblings'
  *     tag: *that a making dirties you* is public; how much is the trade's.
- *   - `SoilableMixin.deposits` / `.setDeposits` / `.washes` / `.heat` —
+ *   - `SoilableMixin.deposits` / `.fixedDeposits` / `.washes` / `.heat` —
  *     runtime state read out in words (*soiled, bloodied and greasy*; the
  *     clean tiers), never as figures; what an act did, visible to anyone
  *     who looks.

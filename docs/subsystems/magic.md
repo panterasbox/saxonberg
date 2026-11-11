@@ -112,7 +112,7 @@ verbs is no working.
 | Resist shapes | `lib/magic/Resist.ts` | axis vocabulary + the pure fold (`mitigators subtract`, immunity = a mitigator at 1) + `stageFor` (the substrate gate) |
 | Faculty | `lib/magic/Faculty.ts` + `lib/magic/Caster.ts` | the anatomical casting faculty (below) |
 | Suppression | `lib/magic/Suppression.ts` | the anti-magic field value + match + the **sync** outward containment walk (`fieldAt`) |
-| Spell | `platform/idea/magic/Spell.ts` (data-Idea) + `platform/idea/SpellCatalogue.ts` | authored roster leaves (the arcane library's, under `/stuff/idea/magic/Spell/<spellId>`), boot-warmed **by class** (`Template.findByClass(Spell.CLASS_PATH)` — a pack ships spells under its own root with no kernel edit), **no Mongo collection** |
+| Spell | `platform/idea/magic/Spell.ts` (data-Idea) + `platform/idea/SpellCatalogue.ts` | authored roster leaves (the arcane library's, under `/stuff/idea/magic/Spell/<spellId>`), warmed **by class** (`Template.findByClass(Spell.CLASS_PATH)` — a pack ships spells under its own root with no kernel edit) as a **lazy dictionary**, never booted: `MagicApi.ready()` stands it up, `Avatar.enter` awaits it for a caster, and `Arcane.setCarriedSpellPath` / `Spellbook.setTeachesSpellPath` return it for the applier to await (documents path identity, 2026-11-09); a cold read throws `DocumentNotResidentError`. **No Mongo collection** |
 | The pair | `api/magic.ts` + `platform/idea/api/MagicLogic.ts` | the gated cast pipeline + all effect executors |
 | Cast activity | `lib/magic/CastActivity.ts` | `hands`+`voice`, interruptible, **everything at completion** |
 | Verbs | `cmd/magic/{cast,spells}.yaml` | the `magic` command category |
@@ -439,3 +439,9 @@ magnitudes not yet worth a dial ride module `MAGIC_DEFAULTS` literals
 > `Material`'s and `Biome`'s measurements stopped here on purpose —
 > *collapse what the WORLD measures, never what the PLAYER operates.*
 > See [wiki.md](./wiki.md) § the reveal model.
+
+## History
+
+- 2026-11-09 — documents path identity: `SpellCatalogue` left the boot list
+  and loads on reach through `MagicApi.ready()`. See git log for the
+  `reqs/documents-path-identity` branch.

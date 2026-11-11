@@ -19,7 +19,7 @@ data:
     runs from it to a scupper in the rail.
   mass: 30
   _materialPath: /stuff/idea/material/wood/elm
-  mechanism: /platform/idea/PumpMechanism/suction
+  mechanism: /platform/pump-mechanisms/suction
   liftM: 4
   throughputLps: 0.6
   strokeS: 20

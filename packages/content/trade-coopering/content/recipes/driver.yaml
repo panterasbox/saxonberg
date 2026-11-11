@@ -1,5 +1,4 @@
 # A cooper's driver, forged from a bar.
-recipeId: driver
 name: Cooper's Driver
 keywords: [driver]
 inputSlots:

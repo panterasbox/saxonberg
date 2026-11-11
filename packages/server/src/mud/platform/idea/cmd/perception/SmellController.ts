@@ -18,7 +18,6 @@ import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { GrammarApi } from '../../../../api/grammar';
 import type { SmellModality } from '../../modalities/SmellModality';
-import { Aroma } from '../../../../lib/perception/Aroma';
 import { PerceptionApi } from '../../../../api/perception';
 import { Scent } from '../../../../lib/perception/Smell';
 
@@ -39,8 +38,8 @@ export default class SmellController extends SingleSenseControllerBase {
         : context.location
           ? this.modality().signalAt(context.location)
           : null;
-    for (const note of signal?.notes ?? []) Aroma.resolve(note.aroma);
-    const settling = Aroma.settling();
+    for (const note of signal?.notes ?? []) PerceptionApi.aromas().resolve(note.aroma);
+    const settling = PerceptionApi.aromas().settling();
     if (settling) return settling.then(() => super.execute(model, context));
     return super.execute(model, context);
   }

@@ -1,7 +1,7 @@
 # casein glue — curd stirred with milk of lime: a cold glue that sets hard, stands the damp, and never comes apart again.
 class: /platform/idea/material/Glue
 data:
-  smells: [{ aroma: /base-library/aromas/sour-milk, strength: 200 }]
+  smells: [{ aroma: /base-library/aromas/sour/sour-milk, strength: 200 }]
   name: casein glue
   keywords: ["casein glue", casein, glue]
   appearance: a thick, chalky white glue that smells faintly sour

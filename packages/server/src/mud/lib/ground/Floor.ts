@@ -83,6 +83,7 @@ import {
   type GroundMaterialClass,
 } from './GroundKind';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
+import { DirtKinds } from '../cleanliness/DirtKind';
 
 const FLOOR_MIXIN = 'FloorMixin';
 
@@ -113,10 +114,10 @@ const CLEANING_METHODS: Record<GroundKind, CleaningMethod> = {
 };
 
 /** The debris kinds a floor gathers and a sweep takes up (D15, D17). */
-const DEBRIS_KINDS = new Set(['crumbs', 'manure', 'soot', 'ash', 'flour']);
+const DEBRIS_KINDS: ReadonlySet<string> = new Set([DirtKinds.CRUMBS, DirtKinds.MANURE, DirtKinds.SOOT, DirtKinds.ASH, DirtKinds.FLOUR]);
 
 /** The films a strewn absorbent drinks up, swept with it (D15). */
-const ABSORBED_KINDS = new Set(['blood', 'grease', 'milk']);
+const ABSORBED_KINDS: ReadonlySet<string> = new Set([DirtKinds.BLOOD, DirtKinds.GREASE, DirtKinds.MILK]);
 
 /** Kilograms in a heap per unit of load swept (D15). */
 const SWEPT_KG_PER_LOAD = 2;
@@ -889,7 +890,7 @@ export function FloorMixin<
       );
       const head = typeof book?.getTally === 'function' ? book.getTally() : 0;
       if (head > 0 && days > 0 && MixinApi.isSoilable(self)) {
-        self.soil('manure', head * days * MANURE_PER_HEAD_DAY);
+        self.soil(DirtKinds.MANURE, head * days * MANURE_PER_HEAD_DAY);
       }
     }
 
@@ -943,7 +944,7 @@ export function FloorMixin<
       if (kind === 'mire') amount = 0.2;
       else if ((kind === 'earth' || kind === 'loose') && wet) amount = 0.1;
       if (amount <= 0) return;
-      mover.soilFrom([{ kind: 'mud', amount, where: 'feet' }]);
+      mover.soilFrom([{ kind: DirtKinds.MUD, amount, where: 'feet' }]);
     }
 
     /**

@@ -76,9 +76,12 @@ describe('buy smack — the yard\'s hull book', () => {
     vi.spyOn(EmploymentApi, 'ensureOperatorAt').mockResolvedValue(null as never);
     vi.spyOn(GovernmentApi, 'subjectTo').mockResolvedValue([GOV]);
     vi.spyOn(GovernmentApi, 'getGovernment').mockReturnValue(GOV);
+    // getGovernment is faked above, so the dictionary need not be ready (no store here).
+    vi.spyOn(StuffApi, 'ready').mockResolvedValue(undefined);
     // The register the government over the yard keeps — reached by its row.
     register = makeStuffAtPath(() => new ShipRegister(), GOV.shipRegister!);
-    register.setGovernment('test-city');
+    // GovernmentApi is faked here; the setter's dictionary load has no store, so drop it.
+    void register.setGovernment('test-city')?.catch(() => undefined);
     vi.spyOn(register, 'isNameTaken').mockImplementation(async (n: string) => n.toLowerCase() === 'gull');
     vi.spyOn(BankingApi, 'canSettle').mockReturnValue(true);
     settle = vi.spyOn(EmploymentApi, 'settleSale').mockResolvedValue({ tail: '(paid)', receipt: { method: 'cash' } } as never);

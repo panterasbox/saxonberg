@@ -38,6 +38,6 @@ data:
       - { part: compass-needle, template: /trade/mining/thing/compass-needle, count: 1, role: structural, material: /stuff/idea/material/alloy/steel }
       - { part: crystal, template: /trade/glass/thing/pane, count: 1, role: facing, material: /stuff/idea/material/glass/glass }
     joints:
-      - { key: mounting, method: glued, members: [rose, housing] }
-      - { key: pivot, method: seated, members: [compass-needle, housing] }
-      - { key: glazing, method: seated, members: [crystal, housing] }
+      - { key: mounting, method: /platform/joints/glued, members: [rose, housing] }
+      - { key: pivot, method: /platform/joints/seated, members: [compass-needle, housing] }
+      - { key: glazing, method: /platform/joints/seated, members: [crystal, housing] }

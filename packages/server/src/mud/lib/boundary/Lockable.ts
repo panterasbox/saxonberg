@@ -115,20 +115,14 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * The bolt. Backing storage; access via `isLocked()`/`setLocked()`.
      *
-     * ⭐⭐ Initialized from {@link boltedByDefault} rather than from a
-     * literal, and the reason is a security regression this would
-     * otherwise have shipped: the keyed-door family
-     * (`KeyedDoorExit`/`FrontDoorExit`/`DormDoor`) has been
-     * *permanently* locked for its whole life, so composing a mixin
-     * whose bolt defaulted to `false` would have thrown every dorm room
-     * and every holding in the realm open to anybody who walked past.
-     *
-     * ⚠ It must be a FIELD DEFAULT and not a `postRegister` write: the
-     * Hydrator reflects a persisted `locked` in after construction, so
-     * a default is overridden by what the player last did while a
-     * lifecycle write would re-bolt the door on every boot.
+     * ⭐ Unbolted unless the row says `locked: true` — a keyed door's row
+     * does (`/system/residence/thing/boundaries/keyed-door`, the dorm
+     * door). The `boltedByDefault` hook this used to read lost its last
+     * overrider when the keyed-exit classes became rows (boundary build),
+     * and was removed (`lint:unconsumed-seams`). A persisted `locked`
+     * hydrates over this default, so the player's last act survives.
      */
-    private _locked: boolean = this.boltedByDefault();
+    private _locked: boolean = false;
 
     /**
      * The lock's identity. ⚠ Empty by default, and an empty keyway opens
@@ -139,20 +133,6 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** The lock technology a key must match. */
     private _lockTechnology: LockType = 'pin-tumbler';
-
-    /**
-     * Whether this kind of thing starts out bolted.
-     *
-     * ⭐ A plain `Door` does not — an authored row says `locked: true`
-     * when it means it. A door whose whole existence is a lock (the
-     * keyed-exit family) does. **Override** — read once, at
-     * construction, before any persisted value is hydrated over it.
-     *
-     * @hook
-     */
-    protected boltedByDefault(): boolean {
-      return false;
-    }
 
     /** Predicate getter — is the bolt thrown? */
     isLocked(): boolean {

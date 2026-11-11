@@ -16,5 +16,5 @@ data:
   lit: true
   fuelBed:
     /stuff/idea/material/wood/oak: 8
-  placements: [on]
+  placements: [/platform/placements/on]
   mass: 15

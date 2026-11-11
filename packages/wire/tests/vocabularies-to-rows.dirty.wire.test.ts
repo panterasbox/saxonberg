@@ -232,7 +232,7 @@ suite('smell and taste', () => {
 
     it('15. you cannot tell how you reek, and someone else can', async () => {
       const a = await open('reek', { startLocation: LOBBY, ...WIZARD });
-      await evalOn(a, 'me', 'this.deposits = Object.fromEntries([["|manure", 1]])');
+      await evalOn(a, 'me', 'this.deposits = Object.fromEntries([["|/platform/dirt/manure", 1]])');
       await say(a, 'look');
       const self = await say(a, 'smell me');
       const other = await say(wiz, 'measure aroma with gas');
@@ -303,7 +303,7 @@ suite('smell and taste', () => {
       const b = await open('hand-b', { startLocation: STEPS, ...WIZARD });
       const reader = await open('reader', { startLocation: STEPS, ...WIZARD });
       // ⚠ The field, not `soil()`: the sandbox refuses a resident dirt row's read.
-      for (const s of [a, b]) await evalOn(s, 'me', 'this.deposits = Object.fromEntries([["|manure", 1]])');
+      for (const s of [a, b]) await evalOn(s, 'me', 'this.deposits = Object.fromEntries([["|/platform/dirt/manure", 1]])');
       const both = await say(reader, 'analyze aroma');
       expect(both).toMatch(/of dung/);
       expect(both).not.toMatch(/of dung, from/);
@@ -364,7 +364,7 @@ suite('smell and taste', () => {
     it('22. a peated whisky gives tongue and nose; a nose finds no salt; fouled water is silent', async () => {
       await hand(taster, '/trade/distilling/thing/whiskey');
       expectOk(await taster.cmd('open me:i:whiskey'));
-      await evalOn(taster, 'me:i:whiskey', 'this.getBulk("interior").setPayload({ dissolvedAromatics: [{ type: "/base-library/aromas/peat-smoke", amount: 30 }] })');
+      await evalOn(taster, 'me:i:whiskey', 'this.getBulk("interior").setPayload({ dissolvedAromatics: [{ type: "/base-library/aromas/smoke/peat-smoke", amount: 30 }] })');
       const whisky = await say(taster, 'taste me:i:whiskey');
       expect(whisky).toMatch(/It tastes .*It smells .*of smoke/);
       await hand(taster, '/stuff/thing/items/bowl', { interiorMaterial: '/stuff/idea/material/bulk/salt-water', interiorAmount: 0.3 });

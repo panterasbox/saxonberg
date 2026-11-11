@@ -37,7 +37,11 @@ interface RecipeRow {
 function recipes(): RecipeRow[] {
   return readdirSync(RECIPES)
     .filter((f) => f.endsWith('.yaml'))
-    .map((f) => YAML.parse(readFileSync(RECIPES + f, 'utf8')) as RecipeRow);
+    .map((f) => ({
+      ...(YAML.parse(readFileSync(RECIPES + f, 'utf8')) as RecipeRow),
+      // The file name IS the recipe's word (its path's leaf).
+      recipeId: f.replace(/\.yaml$/, ''),
+    }));
 }
 
 function archetype(): Archetype {
@@ -46,6 +50,7 @@ function archetype(): Archetype {
       string,
       unknown
     >,
+    '/trade/mining/archetypes/mining',
   );
 }
 
@@ -90,13 +95,12 @@ describe('the mine archetype', () => {
     }
   });
 
-  it('describe() reports every authored slot, and the light row is visibly unfilled', () => {
-    const rows = archetype().describe().rows;
-    expect(rows.map((r) => r.key)).toContain('light');
-    // ⚠ `industry: mining` means the tool/heat rows DERIVE from the
-    // recipes at runtime; with no catalogue warmed here the authored
-    // residue is all there is, which is the honest floor.
-    expect(rows.find((r) => r.key === 'light')!.default).toBeNull();
+  it('⚠ describe() derives from the recipe dictionary, so with none resident it throws — never an authored-residue floor', () => {
+    // `industry: mining` means the tool/heat rows DERIVE from the recipes
+    // at runtime. Whatever asks (`survey`, the scaffold) loads the recipe
+    // dictionary first; a cold read is an engine defect, named, rather
+    // than a quietly short floor (documents path identity, D7).
+    expect(() => archetype().describe()).toThrow(/not resident/);
   });
 });
 

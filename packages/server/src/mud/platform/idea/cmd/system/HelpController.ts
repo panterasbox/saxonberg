@@ -23,6 +23,7 @@ import { MessageApi } from "../../../../api/message";
 import { CardApi } from "../../../../api/card";
 import { Mml } from "../../../../api/mml";
 import { HelpApi } from "../../../../api/help";
+import { StuffApi } from '../../../../api/stuff';
 import type {
   HelpTopic,
   HelpIndexEntry,
@@ -41,7 +42,7 @@ interface HelpModel extends CommandModel {
 export default class HelpController extends CommandController<HelpModel> {
   async execute(model: HelpModel, context: CommandContext): Promise<void> {
     // The rulebook warms on first use (the scan sweep — not booted).
-    await HelpApi.ready();
+    await StuffApi.ready(HelpApi);
     switch (model.subcommand) {
       case "verb":
         return model.name

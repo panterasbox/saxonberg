@@ -14,7 +14,6 @@
 #
 # `holdS: 1800` is half a game-hour: long enough that a loaf pulled early
 # is underdone and one forgotten is not.
-recipeId: lean-loaf
 name: Lean Loaf
 keywords:
 - lean-loaf

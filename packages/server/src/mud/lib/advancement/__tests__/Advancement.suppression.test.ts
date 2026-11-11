@@ -19,6 +19,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { rememberDisciplines } from "./discipline-fixtures";
 import { AdvancementMixin } from "../Advancement";
 import { CompetenceBand } from "../CompetenceBand";
 import { Creature } from "../../creature/Creature";
@@ -95,10 +96,11 @@ function recovering(stage: number): AfflictionRecord {
   };
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   installV1QuantityMarshallers();
   fakeMongo();
   seedRecovering();
+  await rememberDisciplines();
 });
 afterEach(() => {
   vi.restoreAllMocks();

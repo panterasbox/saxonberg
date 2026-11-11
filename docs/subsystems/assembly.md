@@ -23,7 +23,7 @@ spear/mace/warhammer/flail, shield, boots, the surveyor's compass, the
 drop spindle, the hive frame, the smoker.
 
 Kernel: `lib/craft/Assembled.ts` (`AssembledMixin`),
-`platform/idea/{Joint,JointCatalogue}.ts`, the assembly arm and the three
+`lib/craft/Joint.ts` (the `joint` document's value class), the assembly arm and the three
 verbs' rungs in `platform/idea/api/CraftingLogic.ts`, the family host
 classes listed below.
 
@@ -43,7 +43,7 @@ bill:
     - { part: hoop,  template: …/hoop, count: 6, role: fastener }
     - { part: head,  template: /trade/coopering/thing/cask-head, count: 2, role: structural }
   joints:
-    - { key: hooping, method: hooped, members: [stave, head], fastener: hoop }
+    - { key: hooping, method: /trade/coopering/joints/hooped, members: [stave, head], fastener: hoop }
 ```
 
 - **Roles** are a closed four (`PART_ROLES`): `structural · fastener ·
@@ -112,11 +112,15 @@ and an item slot whose name is a part on the output's bill may draw from
 it — but only a thing that IS that part (its row, or its keyword), so a
 wrought bar is never taken as a froe's blade.
 
-## Joints — rows, loaded on first use
+## Joints — documents, cited by path
 
-`platform/idea/Joint.ts` — a leaf Idea, the `Operation` shape: authored
-under any root at `<root>/idea/Joint/<key>.yaml`, read straight from
-`template.data`, never cloned. A bill names a joint by `key`.
+`lib/craft/Joint.ts` — the value class over the `joint` document kind
+([document-store.md](./document-store.md); an Idea until the documents
+path identity build, 2026-11). Any pack ships one at
+`content/joints/<word>.yaml`, stored at `<pack root>/joints/<word>`
+(`/platform/joints/wedged`); the file IS the data. ⭐ **A bill names a
+joint by PATH** (`method: /platform/joints/wedged`), and a made
+assembly's `JointState.method` records the path.
 
 | field | meaning |
 |---|---|
@@ -152,17 +156,20 @@ tie-time with the tier's dressing ([cordage.md](cordage.md)).
 `JOINT_FAILURES` gained **`spilled`** (a reef knot under an uneven load); a
 clove hitch works loose as `slack`.
 
-**`JointCatalogue`** (`platform/idea/JointCatalogue.ts`) warms by CLASS
-(`Template.findByClass`), so any root's rows are found. ⭐ It loads on
-first use — no `onCreate`, **no boot line** (the scan sweep's rule:
-`StuffApi.singleton(TemplatePaths.jointCatalogue)` stands it up). Two
-reads on purpose: `warmed(key)`/`allWarmed()` are async and warm on a
-miss — every DECIDING read (a joint made, fitted, repaired, taken apart)
-goes through `CraftingLogic`, which awaits them; `peek(key)` is sync and
-never blocks — the wear route and the look use it, because `wear()` runs
-inside a blow. A cold peek answers `null` (wear uses a default strength
-0.5) and kicks the warm. A malformed row is skipped and named, never
-thrown.
+⭐⭐ **Resident by construction — no catalogue, no cold default.**
+`JointCatalogue` is deleted. `AssembledMixin.setBill` validates and
+assigns synchronously and RETURNS the load of every joint its lines cite,
+which the template applier awaits; `setJoints` is the restore door that
+does the same for a made assembly's record. So `jointRow` — read inside a
+blow by `wear()` — is `CraftingApi.joints().need(path)`, and a joint nothing loaded
+throws `DocumentNotResidentError` (an engine defect) rather than falling
+back to a default strength. Every DECIDING read in `CraftingLogic` (a
+joint made, fitted, repaired, taken apart) awaits `CraftingApi.joints().ensure`, and a
+rope ensures its knot in the act that ties it
+(`CraftingApi.joints().ensure('/platform/joints/' + word)`) — knots are only read
+asynchronously. `CraftingApi.joints().all()` is the lazy roster for a listing. A
+malformed document throws at `fromData`, naming the path (the installer's
+validator too).
 
 ## Host placement — the families; a monolith is one piece
 
@@ -585,12 +592,13 @@ is cast there. A second sawmill is rows.
 ## Gates
 
 - **`lint:bills`** (`scripts/check-bills.ts`) — (1) every bill part's
-  `template` resolves; (2) every joint `method` names a Joint row,
+  `template` resolves; (2) every joint `method` is the path of a joint
+  document (`check-bills` indexes every pack's `content/joints/`),
   members/fastener name parts, a fastener is `role: fastener`;
   (3) ⭐ every recipe whose output has a bill covers each structural and
   fastener part by an item slot of the same name and count — *one
   declaration*; (4) no bill on `constructionForm: mail`, nor on the
-  refused hive rows; (5) every Joint's competence Discipline exists, and
+  refused hive rows; (5) every joint's competence Discipline exists, and
   `competence: null` only on a `hand` row; (6) a bill's parts weigh no
   more than its whole (salvage conserves mass — a 2.5 kg cask head of
   three 6 kg boards refused every take-apart); (7) ⭐⭐ bill ⇔
@@ -698,12 +706,12 @@ that every method had become total on an empty record.
 
 ## ⭐ The slip joint — green clay joined at leather-hard (ceramics W4, 2026-10)
 
-`/platform/idea/Joint/slip` (`slipped`; `reversible: never`, no instrument,
+`/platform/joints/slip` (`slipped`; `reversible: never`, no instrument,
 no band — anybody can score and slip a handle on) joins two pieces of GREEN
 clay: a pulled handle to a thrown jug, a spout to a pot. A ware row carries a
 bill whose line names the joint (`bill: {parts: [{part: handle, template:
 /trade/ceramics/thing/handle, count: 1, role: wear}], joints: [{key:
-handling, method: slip, members: [handle]}]}`), and a freshly thrown piece
+handling, method: /platform/joints/slip, members: [handle]}]}`), and a freshly thrown piece
 records that line EMPTY (`failed: 1`) so `fit handle to jug` fills it rather
 than swapping a phantom handle out.
 
@@ -719,9 +727,18 @@ That is the lesson in the timing, and the only thing the joint grades on.
 
 ## The glued joint takes glue (paint build, 2026-10-31)
 
-A `Joint` row may say `takes: glue` (`glued` does). Making the joint by
+A joint document may say `takes: glue` (`glued` does). Making the joint by
 `fit`'s raise arm draws glue from an open vessel in reach and records it on
 the joint (`JointState.glue`, `setProgress`); the GLUE then decides the
 line's strength (weak until set), how it stands the damp, the heat it lets
 go at, and whether `salvage` gets the parts back. See
 [painting.md](./painting.md) § Glue.
+
+## History — joints became documents (2026-11-09)
+
+Documents path identity: `Joint` moved from a leaf Idea read by
+`JointCatalogue` (deleted) to the `joint` document kind at
+`content/joints/`; every bill's `joints[].method` and every
+`JointState.method` is a path, and a cited joint is resident whenever its
+bill or record is. See git log for the `reqs/documents-path-identity`
+branch.

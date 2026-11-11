@@ -5,7 +5,6 @@
 # It is the only archetype whose need is about other people, and the
 # cheapest one to satisfy — an armchair and a bench, a bed that also
 # takes `sit` and a stool, whatever an author gives a `sit` slot to.
-archetypeId: living
 label: a living room
 capabilities:
   - { key: seating, needs: { seating: 2 }, default: /stuff/thing/fixture/armchair }

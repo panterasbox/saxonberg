@@ -22,6 +22,7 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import Stamper from '../thing/Stamper';
 import PulpVat from '../thing/PulpVat';
 import PaperMould from '../thing/PaperMould';
+import { Placements } from '@saxonberg/server/mud/lib/spatial/Placement';
 
 const PULP = '/trade/papermaking/idea/material/_test/pulp';
 let now = 1_000;
@@ -141,12 +142,12 @@ describe('⭐ the vat and the mould', () => {
     const { mould, sheet } = await dip('white');
     const press = makeStuff(() => {
       const p = new ScrewPress();
-      p.setPlacements(['on']);
+      p.setPlacements([Placements.ON]);
       return p;
     });
     ContainmentApi.move(press, mould.getContainer() as unknown as Stuff & Container);
     expect(mould.couchOnto(press).ok).toBe(true);
-    expect(press.getPlaced('on')).toContain(sheet);
+    expect(press.getPlaced(Placements.ON)).toContain(sheet);
     await press.turnBy(makeStuff(() => new Holder()), false);
     expect(sheet!.pressed).toBe(true);
     // Dried (the loft's air is the world's; here the water is read as dry).

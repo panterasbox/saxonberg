@@ -75,7 +75,7 @@ describe("Reconciliation invariant", () => {
   it("supply == Σ balances + Σ circulating coin across a mixed sequence", async () => {
     const bank = makeStuffAtPath(() => {
       const b = new BankCounter();
-      b.setCorpoKey("goodkin");
+      void b.setCorpoKey("goodkin")?.catch(() => {}); // the load is the applier's (documents D7)
       return b;
     }, BANK);
     const alice = avatar("/platform/agent/Avatar/alice");

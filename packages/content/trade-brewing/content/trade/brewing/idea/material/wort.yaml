@@ -3,7 +3,7 @@
 # vat open for wild flora and takes the lag. Sugar in g/L (D4).
 class: /platform/idea/material/Drink
 data:
-  smells: [{ aroma: /base-library/aromas/mash, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/grain/mash, strength: 300 }]
   tastes: [{ type: sweet, amount: 90 }]
   name: wort
   keywords: [wort]

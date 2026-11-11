@@ -120,11 +120,11 @@ const UNREMARKABLE_FLESH = 55;
  * floor.
  */
 const BUTCHER_SOILS: readonly SoilSpec[] = [
-  { kind: 'blood', amount: 0.5, where: 'hands' },
-  { kind: 'grease', amount: 0.2, where: 'hands' },
-  { kind: 'blood', amount: 0.4, where: 'apron' },
-  { kind: 'grease', amount: 0.1, where: 'apron' },
-  { kind: 'blood', amount: 0.1, where: 'floor' },
+  { kind: '/platform/dirt/blood', amount: 0.5, where: 'hands' },
+  { kind: '/platform/dirt/grease', amount: 0.2, where: 'hands' },
+  { kind: '/platform/dirt/blood', amount: 0.4, where: 'apron' },
+  { kind: '/platform/dirt/grease', amount: 0.1, where: 'apron' },
+  { kind: '/platform/dirt/blood', amount: 0.1, where: 'floor' },
 ];
 
 /**
@@ -511,8 +511,8 @@ export default class ButcherController extends CraftController<ButcherModel> {
     // apron is why butchers wear one), and on the block and the floor.
     if (MixinApi.isHygienic(giver)) giver.soilFrom(BUTCHER_SOILS, body);
     if (block && MixinApi.isSoilable(block)) {
-      block.soil('blood', 0.3, body);
-      block.soil('grease', 0.2);
+      block.soil('/platform/dirt/blood', 0.3, body);
+      block.soil('/platform/dirt/grease', 0.2);
     }
 
     if (MixinApi.isAdvancing(giver)) {

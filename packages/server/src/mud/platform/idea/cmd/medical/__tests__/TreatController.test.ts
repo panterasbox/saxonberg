@@ -14,6 +14,7 @@
 import "../../../../../../test-bootstrap";
 import { AdvancementMixin } from "../../../../../lib/advancement/Advancement";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { rememberDisciplines } from '../../../../../lib/advancement/__tests__/discipline-fixtures';
 import TreatController from '../TreatController';
 import UndressController from '../UndressController';
 import Bandage from '../../../../thing/Bandage';
@@ -89,7 +90,9 @@ function woundOf(c: Creature): Trauma {
   return c.getConditions().find((x) => x.kind === 'trauma') as Trauma;
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+  // A credit or a band read stands on the discipline dictionary (D11).
+  await rememberDisciplines();
   installV1QuantityMarshallers();
   fakeMongo();
   WorldClockApi._setNowProviderForTesting(() => 100);

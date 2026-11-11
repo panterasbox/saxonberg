@@ -8,6 +8,8 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import CorpoCatalogue from "../../../CorpoCatalogue";
+import { Template } from "../../../../../lib/stuff/Template";
 import BankOpenController from "../BankOpenController";
 import BankBalanceController from "../BankBalanceController";
 import BankStatementController from "../BankStatementController";
@@ -95,9 +97,14 @@ async function asGiver<T>(giver: TestGiver, fn: () => Promise<T>): Promise<T> {
 }
 
 describe("Banking controllers — verb wiring", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     installV1QuantityMarshallers();
     installBankingHarness();
+    // A bank's corpo loads with it (documents D7): the dictionary, warmed
+    // with no rows — `bank open` then names "the bank".
+    const spy = vi.spyOn(Template, "findDescendants").mockResolvedValue([] as never);
+    await makeStuffAtPath(() => new CorpoCatalogue(), "/platform/idea/CorpoCatalogue").onCreate();
+    spy.mockRestore();
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -110,7 +117,7 @@ describe("Banking controllers — verb wiring", () => {
     ContainmentApi.move(giver, loc);
     const bank = makeStuffAtPath(() => {
       const b = new BankCounter();
-      b.setCorpoKey("goodkin");
+      void b.setCorpoKey("goodkin")?.catch(() => {}); // the load is the applier's (documents D7)
       return b;
     }, BANK_PATH);
     ContainmentApi.move(bank, loc);
@@ -162,7 +169,7 @@ describe("Banking controllers — verb wiring", () => {
     ContainmentApi.move(giver, loc);
     const bank = makeStuffAtPath(() => {
       const b = new BankCounter();
-      b.setCorpoKey("goodkin");
+      void b.setCorpoKey("goodkin")?.catch(() => {}); // the load is the applier's (documents D7)
       return b;
     }, BANK_PATH);
     ContainmentApi.move(bank, loc);

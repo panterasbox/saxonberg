@@ -23,6 +23,7 @@ import { HotReloadApi } from "./hot-reload";
 import { PartyLogic } from "../platform/idea/api/PartyLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
+import FormationCatalogue from '../platform/idea/FormationCatalogue';
 
 export type { Party } from "../platform/idea/Party";
 export { DEFAULT_FORMATION_PATH } from "../platform/idea/Party";
@@ -59,6 +60,17 @@ function logic(): PartyLogic {
 }
 
 export class PartyApi {
+  /**
+   * ⭐ The formations — how a party fights (`vanguard`, `focus-fire`,
+   * `master-apprentice`), any pack's `content/formations/`, served by
+   * {@link FormationCatalogue}. A captain's `party adopt <word>` resolves
+   * the word with `pathOfWord`; a party's chosen formation is resident
+   * with it.
+   */
+  public static formations(): FormationCatalogue {
+    return StuffApi.singletonSync('/platform/idea/FormationCatalogue', () => new FormationCatalogue());
+  }
+
   private constructor() {}
 
   /* ───────────────── the combat seam ───────────────── */

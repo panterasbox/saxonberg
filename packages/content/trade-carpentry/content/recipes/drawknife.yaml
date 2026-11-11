@@ -1,6 +1,5 @@
 # A drawknife — a smith's blade and two carved handles, wedged by hand.
 # Run by `fit drawknife`.
-recipeId: drawknife
 name: Drawknife
 keywords: [drawknife, draw-knife]
 inputSlots:

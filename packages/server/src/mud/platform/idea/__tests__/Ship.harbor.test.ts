@@ -26,6 +26,8 @@ import { MessageApi } from '../../../api/message';
 import { makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
+import { rememberShippedJoints } from '../../../lib/craft/__tests__/joint-fixtures';
+import { Placements } from '../../../lib/spatial/Placement';
 
 /**
  * ⭐ A ship and the harbor, by the kernel's protocols only:
@@ -89,8 +91,6 @@ function bollardOn(room: Stuff & Container): Bollard {
 
 
 
-/** The knot catalogue a rope's knot is warmed from — one row, the clove hitch. */
-const KNOTS = { warmed: async () => ({ label: 'made fast with a clove hitch', strength: 0.6 }) };
 
 /**
  * ⭐ A line of hers: a real rope flaked down on her BITTS — a
@@ -104,7 +104,7 @@ function lineOn(room: Stuff & Container, length = 30): Rope {
   }
   const l = makeStuffAtPath(() => new Rope(), '/platform/thing/mooring-line');
   l.setLengthM(length);
-  ContainmentApi.move(l, bitts, 'on');
+  ContainmentApi.move(l, bitts, Placements.ON);
   return l;
 }
 
@@ -121,6 +121,7 @@ function newShip(): Ship {
 }
 
 beforeEach(() => {
+  rememberShippedJoints();
   StuffApi.clearAll();
   rooms.clear();
   told = [];
@@ -132,7 +133,6 @@ beforeEach(() => {
   rooms.set(SHIP, ship as unknown as Stuff);
   installV1QuantityMarshallers();
   vi.spyOn(StuffApi, 'singleton').mockImplementation((async (p: string) => {
-    if (p === TemplatePaths.jointCatalogue) return KNOTS;
     const s = rooms.get(p);
     if (!s) throw new Error(`no fixture ${p}`);
     return s;

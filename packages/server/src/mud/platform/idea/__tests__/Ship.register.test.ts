@@ -51,6 +51,7 @@ import type Locality from '../Locality';
 import { PersistenceManager } from '../../../lib/persistence/__tests__/backend-store';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
+import { matchesDocumentQuery } from '../../../lib/document/__tests__/document-query';
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -81,6 +82,11 @@ function col(name: string): Doc[] {
 }
 
 function matches(d: Doc, q: Record<string, unknown>): boolean {
+  // The document store's own query shapes (a path range, `$or`, a card key).
+  const hasRegex = Object.values(q).some(
+    (v) => v !== null && typeof v === 'object' && '$regex' in (v as object),
+  );
+  if (!hasRegex) return matchesDocumentQuery(d as Record<string, unknown>, q);
   return Object.keys(q).every((k) => {
     const want = q[k];
     const stored = d[k];
@@ -122,7 +128,7 @@ function installStore(): void {
   });
   add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
   add(STAFF, '/platform/thing/Flagstaff', { shortDescription: 'flagstaff' });
-  add(FLAG, '/platform/thing/Flag', { shortDescription: 'test ensign', keywords: ['flag', 'ensign'], _brandKey: 'flag-test-city' });
+  add(FLAG, '/platform/thing/Flag', { shortDescription: 'test ensign', keywords: ['flag', 'ensign'], brand: 'flag-test-city' });
   add(COMPANY, '/platform/idea/PersistentBusiness', {
     name: "a ship's company",
     appointingAuthority: { kind: 'owners' },
@@ -234,6 +240,8 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     installStore();
     await bootGovernments();
     vi.spyOn(Ship.prototype, 'linesAboard').mockImplementation(async () => [fakeLine(), fakeLine()]);
+    // The brand dictionary is a fake here: its load resolves at once.
+    vi.spyOn(StuffApi, 'ready').mockResolvedValue(undefined);
     vi.spyOn(CorpoApi, 'getBrand').mockImplementation((key: string) =>
       key === 'flag-test-city'
         ? { key, name: 'the colors of the City of Test', owner: '', government: 'test-city', category: 'colors', positioning: '', descriptor: '' }

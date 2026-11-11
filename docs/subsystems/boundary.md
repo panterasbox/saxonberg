@@ -35,7 +35,7 @@ Cross-references:
 | `ExitableVessel` | concrete class | A Vessel you can enter. `ExitableMixin(AdornableMixin(AtmosphericMixin(Vessel)))` — ⭐ **`Atmospheric` since the base-class narrowing build: a thing you can go inside is a place with air** (see [biome.md](./biome.md)). Carries the authored `interiorVolume` the envelope runs on, and overrides `envelopeApplies` + `openExteriorOpenings` because a room's version of each is wrong about a vehicle. Synthesizes `'in'`/`'out'` exits, which carry no boundary: ⭐ **its own `Sealable` is its door** — a shut vessel drops its `out` from the walks' neighbours (`getObviousNeighbours`), so no light, sound or smell comes in. Resets the weather-locality memo on a move — a place that goes places has a new address. |
 | `Door` | concrete `Thing` (`platform/thing/Door`) | `LockableMixin(platform Boundary)` — a boundary with a **bolt**: a door, a gate, a hatch, a gangway-to-be. `closesBehind` (a door on a weight or a latch); ⭐ `freeFrom` (the place whose side opens with no key). |
 | `SwitchableMixin` | mixin | Generic binary on/off toggle (`isOn()` / `setOn()`, `switchOn()` / `switchOff()`). The Sealable of the electrical world — a wall switch, a machine, the crossing `Beacon`. Driven by the `switch` verb (in the `device` category). Registered as `Switchable`, `MixinApi.isSwitchable`. |
-| `LockableMixin` | mixin | ⭐ **A keyway AND a bolt** (`lib/boundary/Lockable.ts`), composed onto `Door` (over the platform twin's `Sealable`), onto the gangway's `BerthExit`/`AshoreExit` (which delegate to the ship) and water's `Gate`. The bolt is `isLocked()` / `setLocked()` / `lock()` / `unlock()`; the keyway is `getLock()` / `opensFor(mover)` over `lib/lock/Lock`. `canPass = !isLocked() || opensFor(mover)`, so a key-holder passes a locked door and `unlock` is how you let everyone else through. `getLock()` is a policy seam (the keyed family reads its warren's keyway) and `boltedByDefault()` decides the starting state. Registered as `Lockable`, `MixinApi.isLockable`. |
+| `LockableMixin` | mixin | ⭐ **A keyway AND a bolt** (`lib/boundary/Lockable.ts`), composed onto `Door` (over the platform twin's `Sealable`), onto the gangway's `BerthExit`/`AshoreExit` (which delegate to the ship) and water's `Gate`. The bolt is `isLocked()` / `setLocked()` / `lock()` / `unlock()`; the keyway is `getLock()` / `opensFor(mover)` over `lib/lock/Lock`. `canPass = !isLocked() || opensFor(mover)`, so a key-holder passes a locked door and `unlock` is how you let everyone else through. `getLock()` is a policy seam (the keyed family reads its warren's keyway); the starting bolt is the row's `locked:`. Registered as `Lockable`, `MixinApi.isLockable`. |
 | `BistateMixin` | mixin (unregistered) | The shared guarded-boolean substrate under `Sealable` (open/closed), `Switchable` (on/off), and `Foldable` (folded/unfolded). One persisted boolean + a `typeof`-boolean guard, reached via protected `getState()` / `setState(value, label)`. Lives at the `lib/` root (`lib/Bistate.ts`), NOT in `lib/boundary/`. **Deliberately carries no `_mixinName` and is not in the `Mixins` registry** — shared implementation, not a queryable capability; consumers narrow on the concrete axis (`isSealable` / `isSwitchable` / `isFoldable`), never an `isBistate`. |
 | `AdornableMixin` | mixin | Container-side surface for non-portable attached Stuff (`getFixtures()` parallel to `getContents()`). Composed onto `Location` and `ExitableVessel` (not the bare `Vessel` base — every fixture consumer narrows on `MixinApi.isAdornable` first). |
 | `AdornmentMixin` | mixin | Host-side back-reference (`adornedTo`) and not-portable invariant. Composed by content fixtures (e.g. `domain/lounge/NeonSign` = `Adornment(Branded(LightSource(Thing)))`) and the floor. Attached declaratively via the host's `adornments:` instruction field (see *Declarative adornments* below) or imperatively via `addFixture`. |
@@ -549,7 +549,10 @@ round.)
 ### A fixed grating — `fixed`
 
 On the platform twin: always open, and `close` refuses with the reason
-(`Sealable.canClose`, the twin of `canOpen`). The `grating` kind row.
+(`Sealable.canClose`, the twin of `canOpen`). ⚠ No kind row: a grating is
+`fixed: true` with a channel table on any boundary row — the shipped
+`grating` kind had no consumer, and `lint:reachability` refuses a row
+nothing reaches (documents sweep, 2026-11-10).
 
 ### Locking
 
@@ -611,14 +614,13 @@ The surface, and which half is which:
   a host whose keyway is owned elsewhere overrides it. All three keyed
   exits do, reading the warren's cache, so **a holding's identity stays
   in one place and re-keying it re-keys every door at once.**
-- `boltedByDefault()` — ⭐ overridable, read once at construction.
-  A plain `Door` returns false (an authored row says `locked: true` when
-  it means it); the keyed family returns **true**, because those doors
-  have been permanently locked for their whole life. ⚠ It must be a
-  field default and not a `postRegister` write: the Hydrator reflects
-  the persisted `locked` in after construction, so a default is
-  correctly overridden by what the player last did, while a lifecycle
-  write would re-bolt the door on every boot.
+- **The starting bolt is the row's** — `locked: true` on the keyed door
+  and the dorm door; a plain `Door` starts unbolted. (A `boltedByDefault()`
+  hook did this while the keyed family were classes; it lost its last
+  overrider when they became rows and was removed, 2026-11-10.) ⚠ The
+  default is a field default, never a `postRegister` write: the Hydrator
+  reflects the persisted `locked` in after construction, so the player's
+  last act wins, where a lifecycle write would re-bolt the door every boot.
 
 ⚠ **An empty keyway opens for NOBODY.** A row authoring `locked: true`
 with no keyway is sealed against the whole world — which is how the
@@ -783,11 +785,11 @@ instances it; rows name the platform twin, `Door` or `Window`).
 
 ### The kinds — rows, not classes
 
-`/platform/thing/boundaries/{door,gate,hatch,grating,curtain}`: a door
+`/platform/thing/boundaries/{door,gate,hatch,curtain}`: a door
 (all open / all shut, 1 × 2 m), a gate (2 × 2, shut it still shows and
-sounds through), a hatch (1 × 1), a grating (`fixed`, passes all but a
-body), a curtain (drawn, it passes a body, sound and smell and blocks
-sight). An authored boundary `extends:` one; ⭐ **a new kind of way is one
+sounds through), a hatch (1 × 1 — the Delight creamery's cellar steps), a
+curtain (drawn, it passes a body, sound and smell and blocks sight — the
+bathhouse doorway). An authored boundary `extends:` one; ⭐ **a new kind of way is one
 row and no code.** A window into a place is a `Window` row.
 
 ### `BoundaryApi`

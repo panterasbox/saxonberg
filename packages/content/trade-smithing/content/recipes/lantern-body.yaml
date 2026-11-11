@@ -2,7 +2,6 @@
 # is cut, bent round and its seams soldered. ⚠ `metal`, not `forgeable` —
 # tin is not anvil stock, so this recipe is outside the anvil ladder by
 # construction; the solder's heat is the only heat it asks for.
-recipeId: lantern-body
 name: Lantern Body
 keywords: [lantern-body]
 inputSlots:

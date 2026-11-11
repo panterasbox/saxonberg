@@ -45,6 +45,7 @@ import { HotReloadApi } from './hot-reload';
 import { BulkableLogic } from '../platform/idea/api/BulkableLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import PumpMechanismCatalogue from '../platform/idea/PumpMechanismCatalogue';
 
 /**
  * The note kinds `transfer` ever emits — reused from stack's set.
@@ -143,6 +144,20 @@ function logic(): BulkableLogic {
 }
 
 export class BulkableApi {
+  /**
+   * ⭐ The pump mechanisms — how a displacement machine moves its fluid
+   * (`suction` pulls and so meets the atmosphere's wall; `force` pushes),
+   * any pack's `content/pump-mechanisms/`, served by
+   * {@link PumpMechanismCatalogue}. A pump's `mechanism` setter loads its
+   * own; the pumping reads it resident.
+   */
+  public static pumpMechanisms(): PumpMechanismCatalogue {
+    return StuffApi.singletonSync(
+      '/platform/idea/PumpMechanismCatalogue',
+      () => new PumpMechanismCatalogue(),
+    );
+  }
+
   /**
    * Resolve a holder's bulk slot handle for a verb. Pass the bound
    * argument's `via` (`model.field.via`) — HOW it was named: its

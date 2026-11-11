@@ -76,11 +76,14 @@ distinguishes your candidate from an existing leaf is *who is talking*,
 
 ### ⚠ The vocabulary is open; the roots are closed
 
-Content packs **may** add topics — they install `domain` rows exactly as
-core seeds do, and `TopicCatalogue` reads the collection, not a bundled
-file list. Nothing special is needed.
+Content packs **may** add topics — they ship `topic` documents under
+`content/topics/` exactly as the platform pack does, and the dictionary
+reads every document of the kind, not a bundled file list. Nothing
+special is needed.
 
-**But a pack may add leaves only, never a root.** If a pack could mint a
+**But a pack may add leaves only, never a root** (the installer's
+`validatePackTopics`, over the pack's topic documents, throws before any
+write). If a pack could mint a
 top-level subject, a player's mute of `sense` would stop catching
 everything sense-shaped — and subtree-mute integrity is the entire
 reason topics form a tree instead of a flat tag set. `TOPIC_ROOTS` in
@@ -148,78 +151,87 @@ but it must not be silent either.
 
 | File | Role |
 |---|---|
-| `lib/messaging/Topic.ts` | The `Topic extends Idea` leaf class with persistent fields `topic` / `family` / `label` / `description` and `TEMPLATE_PATH_PREFIX = '/platform/idea/Topic/'`. |
-| `obj/TopicCatalogue.ts` | The singleton Idea (`/platform/idea/TopicCatalogue`) owning the runtime descriptor cache + accessor surface. Sibling to `obj/EventRegistry.ts` per the singleton-in-`obj/` convention. |
-| `platform/content/platform/idea/Topic/<dotted-path>.yaml` | One file per topic leaf or family. Flat path strings, no nested directories. |
-| `platform/content/platform/idea/TopicCatalogue.yaml` | Singleton row (`{ class: /platform/idea/TopicCatalogue, data: {} }`). |
-| platform `pack.yaml` `boot:` | The `/platform/idea/TopicCatalogue` entry (`sync-read`). **No per-Topic pre-clone** — the catalogue loads its own descriptors. |
+| `lib/message/Topic.ts` | The value class owning the dictionary: `warm`, `warming`, `install`, `invalidate`, `descriptor`, `snapshot`, `isCommunicative`. Static, never instanced; no catalogue singleton. |
+| `content/platform/content/topics/<dotted.key>.yaml` | One `topic` document per leaf or family, stored at `/platform/topics/<dotted.key>`. Flat file names, no nested directories; the dotted key is the path's leaf. |
 | `@saxonberg/types` `TopicDescriptor` | Wire-safe shape: `{ topic, family, label, description }` + the six facets. `TopicRoot` / `TOPIC_ROOTS` live here too. Shared between the server snapshot and the client cache. |
+
+Nothing is on any pack's `boot:` list: the dictionary is never booted
+(below).
 
 ## No code-side constants mirror
 
 There is no `TOPICS` const in code. The earlier nested `TOPICS` tree
 on `MessageApi` has been retired — topics are dotted-path string
-literals at call sites (e.g. `.topic('speech.vocal')`), with
-`Topic` Ideas + `TopicCatalogue` as the runtime catalogue. Three
-deliberate non-things:
+literals at call sites (e.g. `.topic('speech.vocal')`), with the
+`topic` documents as the runtime vocabulary. Three deliberate
+non-things:
 
 - No `Topics` enum exported from `@saxonberg/types`.
 - No mirror file under `lib/topics/` (and no such subsystem dir —
-  topics are a messaging concern, hence `lib/messaging/`).
-- Topic strings cross the wire raw; the catalogue carries everything
-  beyond the string itself (label, description, family).
+  topics are a messaging concern, hence `lib/message/`).
+- Topic strings cross the wire raw; the descriptor carries everything
+  beyond the string itself (label, description, family, facets).
 
-The catalogue and the const are independent: descriptors are content
-in the DB; `TOPICS` is a code-side autocomplete convenience.
+## A topic is a document
 
-## The Topic Idea
+A topic is a `topic` document ([document-store.md](./document-store.md))
+— authored metadata nothing writes and nothing acts on. It was a
+`Topic` Idea under `/platform/idea/Topic/`, read by a booted
+`TopicCatalogue` singleton, until the documents path identity build
+(2026-11); both are gone.
 
-`Topic` extends `Idea` with four public string fields and per-field
-invariants on the setters (empty strings rejected for `topic`,
-`label`, `description`; `family` accepts `''` for root topics). The
-`TEMPLATE_PATH_PREFIX` constant is `/platform/idea/Topic/`. Authors
-edit topic descriptors through the existing workspace shell —
-there's no `describe-topic` verb.
+```yaml
+# packages/content/platform/content/topics/act.combat.yaml
+family: "act"
+label: "Fighting"
+description: "Blows, gambits, and the turns of a fight."
+address: personal
+actor: person
+weight: consequence
+audience: player
+durable: true
+affordance: decays
+```
 
-`family` is encoded as a stored string field rather than derived
-from the dotted path, so authoring can override the inheritance
-chain if a future taxonomy refactor wants it. The catalogue's
-fallback resolver uses the dotted-path structure directly.
+The file IS the data: no `class:`, no `data:` wrapper, and no `topic:`
+line — the dotted key is the path's leaf (`Topic.keyOf`). `family` is a
+stored string rather than derived from the dotted path, so authoring can
+override the inheritance chain; the fallback resolver uses the dotted
+structure directly. `topic` declares its key as a typed word, so two
+packs claiming one key are refused at install, naming both
+([content-packs.md](./content-packs.md)). Authors edit descriptors
+through the workspace shell or the CMS — there is no `describe-topic`
+verb.
 
-## The TopicCatalogue singleton
+## ⭐ The dictionary loads on the first scene (the one engine-wired load)
 
-`TopicCatalogue extends Idea`. Three instance
-methods compose its surface:
+A topic is **named by code** (`.topic('combat.hit')`, ~1,200 emitters) and
+cited by no holder, so no host's setter or `onCreate` can carry its load
+the way every other document family's is carried. The message pipeline is
+engine machinery, so it loads the vocabulary itself — **transparently,
+with no caller involvement and no frame lost** (documents D13; the owner:
+*"queue is fine"*):
 
-- `getDescriptor(topic: string): TopicDescriptor` — three-tier
-  resolution; **always returns a populated descriptor**.
-- `getSnapshot(): TopicDescriptor[]` — flat array of authored
-  entries, used by the wire push.
-- `invalidateCache(): void` — drops the cached map. Future admin
-  verb hook for "I just edited a Topic seed, re-read it without
-  restarting"; currently unused at runtime (cache builds once at
-  boot).
+- `MessageApi.topics().warm()` reads every `topic` document (one `listOfKind`, memoized)
+  and installs the dictionary. Nothing calls it at boot.
+- **`Scene.send()` stays synchronous for its caller.** While the
+  dictionary is cold (`MessageApi.topicsWarming()` returns the warm in
+  flight), dispatch is pushed onto an ordered queue behind that one warm,
+  and every queued scene dispatches, **in order**, when it lands. A scene
+  sent after the warm dispatches immediately — and a scene sent while the
+  queue still holds earlier ones queues behind them, so order holds.
+- `Avatar`'s welcome payload awaits `MessageApi.topicsWarming()` before
+  reading `MessageApi.topics().snapshot()`.
+- A synchronous read (`descriptor`, `snapshot`, `isCommunicative`) that
+  finds the dictionary cold throws `DocumentNotResidentError` — unreachable
+  through `Scene.send`.
 
-Cache state lives as a `Map<string, TopicDescriptor> | null` private
-instance field, warmed by `onCreate`'s call to
-`Template.findDescendants('/platform/idea/Topic/')`. Resolution
-dispatches through the standard call-security gate via
-`StuffApi.findByTemplatePath('/platform/idea/TopicCatalogue')` — there's no
-`TopicCatalogueApi` indirection. Per
-[[feedback-no-new-apis-default]], the singleton's instance methods
-are the access surface.
-
-**No pre-cloning of Topic templates.** Topic templates are pure
-data (`topic` / `family` / `label` / `description`) with no runtime
-behavior, so the catalogue reads `data.*` directly off each
-`Template` doc — no `Topic` Stuff instances are ever cloned at
-boot. The platform pack's `boot:` list carries `/platform/idea/TopicCatalogue`
-but **no** per-Topic entry. Same pattern as species clades /
-materials / biomes ([bootstrap.md](./bootstrap.md)).
+Access is through `MessageApi` and the message logic (`isCommunicative`,
+`topicsWarming`); there is no `TopicCatalogueApi`.
 
 ## Auto-fallback for unknown topics
 
-`getDescriptor` walks three tiers in order:
+`MessageApi.topics().descriptor` walks three tiers in order:
 
 1. **Cache hit** — return the authored entry verbatim.
 2. **Family-inherited** — walk the dotted-path chain
@@ -228,18 +240,16 @@ materials / biomes ([bootstrap.md](./bootstrap.md)).
    inherit the family's description and synthesize the label as
    `<family-label> (<leaf-titlecased>)`.
 3. **Derived default** — titlecased last segment as the label,
-   `'(no description)'`, family = path prefix. ⚠ **This tier now files a
+   `'(no description)'`, family = path prefix. ⚠ **This tier files a
    diagnostic.** Reaching it means a topic is emitted that nobody
    authored; the frame still renders, but the omission is reported
    instead of hidden. Fires once per key, not once per frame — a chatty
    topic would otherwise flood the diagnostics store.
 
-The family-inheriting step scales dynamic-topic generators. For
-example, `MudlogApi` composes `system.log.<category>.<level>` at
-runtime (`system.log.command.info`, `system.log.command.warn`); the
-authored `system.log.command` family descriptor provides a useful
-label and description for both leaves without per-leaf hand-seeding.
-Authors override by writing a specific Topic seed; the cache hit at
+The family-inheriting step scales dynamic-topic generators: an authored
+family descriptor provides a useful label and description for every
+runtime-composed leaf beneath it without per-leaf hand-authoring.
+Authors override by writing a specific topic document; the cache hit at
 step 1 wins.
 
 The client runs the **same three-tier resolution** against its
@@ -247,68 +257,26 @@ cached snapshot — descriptor lookups don't round-trip.
 
 ## Wire push on session-establish
 
-At session-establish, `Avatar.enter` reads
-`(await findByTemplatePath('/platform/idea/TopicCatalogue')).getSnapshot()`
-into the welcome scene payload's `topicCatalogue` field. The client
+At session-establish, the avatar's welcome payload awaits the warm and
+reads `MessageApi.topics().snapshot()` into its `topicCatalogue` field. The client
 caches the array in a `Map<topic, TopicDescriptor>` on the Zustand
 store; `getTopicDescriptor` consults that map.
 
 No live updates in v1. Mid-session descriptor edits land on next
-login. If real demand for mid-session updates appears, the catalogue
-can be turned into an MQL-subscribed live query — but the snapshot
-shape is forward-compatible with that move.
+login.
 
 ## Cache invalidation
 
-The cache builds once at boot from mongo and stays put for the
-process lifetime. Descriptor edits written to mongo during the
-process are picked up on next boot (or via a future admin verb
-that calls `invalidateCache` + `onCreate` to re-read). Since
-the catalogue no longer holds runtime `Topic` Stuff instances,
-there are no `Events.StuffCreated/Destructed` subscriptions to
-manage.
+⭐ A pack sync that touches the `topic` kind calls `MessageApi.topics().invalidate()`
+(the installer's per-kind go-live), which drops the dictionary; the next
+scene re-warms it, queueing behind that warm like the first. No restart.
 
-The catalogue itself is a system singleton; `canDestruct` refuses
-unconditionally (mirrors `EventRegistry`).
-
-## Contrast with EventRegistry
-
-Both are singleton Ideas in `obj/` that own a per-X data shape:
-
-| Aspect | EventRegistry | TopicCatalogue |
-|---|---|---|
-| Content shape | Transient per-event policy closures | Persistent per-topic prose (label, description, family) |
-| Source of truth | Code-side `Events` enum + `defaultPolicyFor` table | `Topic` Ideas under `/platform/idea/Topic/` |
-| Code-side vocabulary | `Events` enum is the vocabulary | no code-side const — topics are string literals at call sites; descriptors are content |
-| Auto-resolve behavior | `EventApi.on/emit` auto-registers unknown events with the default `emittableBy()` policy | `getDescriptor` auto-falls-back via family inheritance or derived default |
-| Persistence | Empty seed; runtime state is closures | Empty seed; runtime cache reads `Topic` template docs from mongo at boot |
-
-## Seed YAML structure
-
-Every topic is one YAML file at
-`seeds/lib/messaging/Topic/<full-dotted-path>.yaml`. Flat path
-strings — no nested directories under the `Topic/` prefix, no
-`FolderZone` admin scaffolding at v1. The hierarchical meaning is
-encoded in the `topic` / `family` fields.
-
-```yaml
-class: /lib/messaging/Topic
-hydratorClass: /platform/idea/persistence/PersistentHydrator
-data:
-  topic: world.speech.say
-  family: world.speech
-  label: Say
-  description: A character speaks aloud to everyone in the room.
-  communicative: true
-```
-
-System-owned at v1. Revisit FolderZone admin scoping when a doc team
-emerges that needs scoped editing rights.
+## `communicative`
 
 The optional **`communicative: true`** flag marks a topic as a
 *communication act* (say/whisper/shout/emote/chat — **not** dm /
-narration / system). `TopicCatalogue` builds a server-side `Set` of these
-during its template scan (no `TopicDescriptor` wire change) and exposes
+narration / system). The dictionary builds a server-side `Set` of these
+as it installs (no `TopicDescriptor` wire change) and exposes
 `isCommunicative(topic)`, surfaced through `MessageApi.isCommunicative`.
 The renown reception gate (`SensorMixin.onMessage`) consults it so only
 genuine comm frames mint a being-heard signal — the first data-driven
@@ -343,9 +311,8 @@ defect they exist to remove.
 
 ### All three resolution tiers produce them
 
-1. **Authored** — read from `data:` verbatim, following the
-   `communicative` precedent. `Topic` gains no fields; Topic templates
-   are pure data rows that are never cloned.
+1. **Authored** — read from the document verbatim, following the
+   `communicative` precedent.
 2. **Family-inherited** — a leaf takes its ancestor's *attention shape*
    along with its prose. A child of `world.chat` is chatter for the same
    reason its parent is.
@@ -358,14 +325,14 @@ defect they exist to remove.
 
 The mechanical derivation (`system.*` → `system`/`all`, and so on) lives
 **only** in `scripts/derive-topic-facets.ts`, which bakes its answers
-into the seeds. `TopicCatalogue.readFacets` is authored-or-floor and
+into the documents. `Topic.readFacets` is authored-or-floor and
 nothing else.
 
 That is deliberate and was learned the hard way: the build first had a
 derivation in the script *and* a second one in the catalogue, and the
 two disagreed about `world.speech.say`'s `weight` within an hour of both
 existing. A second taxonomy describing what the first already knows will
-drift. **The seed file is the single source of truth.**
+drift. **The topic document is the single source of truth.**
 
 ### The exceptions are the point
 
@@ -379,26 +346,6 @@ The sharpest is the speech family splitting three ways on one facet —
 is precisely what the tree structurally cannot say. A test pins that
 split: if it ever collapses to one value, the facet has stopped earning
 its place.
-
-### ⚠ Facets need a reseed, not a migration
-
-The seeder is **insert-only**. Editing a seeded topic's `data:` does
-nothing on a database that has already booted — drop the `/platform/idea/Topic/`
-rows and restart. On the wiping demo instance this is simply the
-standing loop for reference data.
-
-## Boot sequence
-
-1. `PackApi.install` reconciles the platform pack's rows into the
-   `content` collection (including the per-topic rows — those just
-   sit in mongo as template docs, no runtime presence).
-2. `BootstrapManager` clones `/platform/idea/TopicCatalogue` (and nothing
-   else in the messaging substrate).
-3. `TopicCatalogue.onCreate` reads every Topic template via
-   `Template.findDescendants('/platform/idea/Topic/')` and warms
-   the descriptor cache.
-4. Welcome-scene payload composition reads `getSnapshot()` and
-   ships it to the client.
 
 ## Topics introduced by the social-cluster build
 
@@ -416,3 +363,13 @@ The emote leaf shares the modality `'emotive-esp'`; chat posts and
 broadcast both ride `'verbal-esp'`. See
 [emotes.md](./emotes.md), [chat.md](./chat.md), and
 [messaging.md](./messaging.md) for the producer side.
+
+## History
+
+- 2026-11-09 — documents path identity: topics became `topic` documents
+  at `content/topics/`; `TopicCatalogue`, the `Topic` Idea, its boot line
+  and `pruneRetiredRoots` were deleted, and the vocabulary loads on the
+  first scene behind an ordered dispatch queue. See git log for the
+  `reqs/documents-path-identity` branch. (The "facets need a reseed"
+  caveat went with the insert-only seeder: the installer is three-way,
+  and a topic sync re-warms.)

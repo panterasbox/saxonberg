@@ -54,6 +54,7 @@ import { PersonaMixin } from '@saxonberg/server/mud/lib/character/Persona';
 import TranscriptEntry from '@saxonberg/server/mud/lib/advancement/TranscriptEntry';
 import { Competence } from '@saxonberg/server/mud/lib/advancement/Competence';
 import { DerivedStandingCache } from '@saxonberg/server/mud/lib/standing/DerivedStandingCache';
+import { rememberDisciplines } from '@saxonberg/server/mud/lib/advancement/__tests__/discipline-fixtures';
 
 /** Set a reserve's level, keeping its capacity. */
 function level(host: Reserved, key: string, value: number): void {
@@ -314,6 +315,8 @@ describe('a tract divided into fields', () => {
       top.getVigor();
       clock.mockReturnValue(Quantity.of(base + 20 * DAY, 's'));
 
+      // A band read loads the discipline dictionary; this suite has no store.
+      await rememberDisciplines();
       const rows: Array<Record<string, unknown>> = [];
       DerivedStandingCache._clearAllForTesting();
       vi.spyOn(PersistApi, 'isConnected').mockReturnValue(true);

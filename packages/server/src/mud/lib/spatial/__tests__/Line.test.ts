@@ -26,6 +26,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Stuff } from '../../stuff/Stuff';
+import { rememberShippedJoints } from '../../craft/__tests__/joint-fixtures';
 
 class Body extends Character {}
 
@@ -45,6 +46,7 @@ async function scene(): Promise<{ quay: Location; water: Location; tender: Body;
 }
 
 beforeEach(() => {
+  rememberShippedJoints();
   StuffApi.clearAll();
   installV1QuantityMarshallers();
   seedKernelContentStore();

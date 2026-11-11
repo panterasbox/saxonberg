@@ -11,8 +11,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import SetController from '../idea/cmd/medical/SetController';
 import OperateController from '../idea/cmd/medical/OperateController';
 import SurgicalKit from '../thing/SurgicalKit';
-import OperationCatalogue from '@saxonberg/server/mud/platform/idea/OperationCatalogue';
-import type { OperationDescriptor } from '@saxonberg/server/mud/platform/idea/Operation';
+import { DocumentApi } from '@saxonberg/server/mud/api/document';
+import type { OperationDescriptor } from '@saxonberg/server/mud/lib/vitals/Operation';
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { AdvancementMixin } from '@saxonberg/server/mud/lib/advancement/Advancement';
@@ -25,6 +25,7 @@ import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { Trauma } from '@saxonberg/server/mud/platform/idea/Condition';
+import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 
 class Medic extends AdvancementMixin(Creature) {
   static override _mixinName: string = 'Medic';
@@ -96,13 +97,17 @@ const OPS: OperationDescriptor[] = [
   },
 ];
 
-/** Stand up an OperationCatalogue with the ops seeded (the drive warms it
- * from rows; a unit test injects the cache). */
+/** The operation documents the store would hand `ConditionApi.operations().all()` (the
+ * drive reads them from the installed rows; a unit test fakes the read). */
 function warmCatalogue(): void {
-  const cat = makeStuff(() => new OperationCatalogue());
-  stampTemplatePathForTest(cat, '/platform/idea/OperationCatalogue');
-  (cat as unknown as { cache: Map<string, OperationDescriptor> }).cache =
-    new Map(OPS.map((o) => [o.key, o]));
+  vi.spyOn(DocumentApi, 'listOfKind').mockImplementation((async (kind: string) =>
+    kind !== 'operation'
+      ? []
+      : OPS.map((o) => ({
+          getPath: () => `/trade/medicine/operations/${o.key}`,
+          getKind: () => 'operation',
+          getData: () => o as unknown as Record<string, unknown>,
+        }))) as never);
 }
 
 const kit = (): MqlOneResult =>

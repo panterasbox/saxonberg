@@ -1,6 +1,5 @@
 # A peg — the frame's fastener. Trivial to make and made by the hundred,
 # which is why it is a living. Run by `carve`.
-recipeId: peg
 name: Peg
 keywords: [peg, treenail]
 inputSlots:

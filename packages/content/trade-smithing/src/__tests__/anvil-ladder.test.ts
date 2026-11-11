@@ -53,7 +53,9 @@ function anvilRecipes(): Recipe[] {
   for (const pack of ['trade-smithing', 'trade-mining', 'trade-smelting']) {
     const dir = join(PACKS, pack, 'content', 'recipes');
     for (const file of readdirSync(dir)) {
-      const row = YAML.parse(readFileSync(join(dir, file), 'utf8')) as Recipe | null;
+      const parsed = YAML.parse(readFileSync(join(dir, file), 'utf8')) as Recipe | null;
+      // The file name IS the recipe's word (its path's leaf).
+      const row = parsed ? { ...parsed, recipeId: file.replace(/\.yaml$/, '') } : null;
       if (row && (row.toolCapabilities ?? []).includes('anvil')) out.push(row);
     }
   }
@@ -156,7 +158,9 @@ describe('the anvil ladder', () => {
     const all = new Map<string, Recipe>();
     const dir = join(PACKS, 'trade-smithing', 'content', 'recipes');
     for (const file of readdirSync(dir)) {
-      const row = YAML.parse(readFileSync(join(dir, file), 'utf8')) as Recipe | null;
+      const parsed = YAML.parse(readFileSync(join(dir, file), 'utf8')) as Recipe | null;
+      // The file name IS the recipe's word (its path's leaf).
+      const row = parsed ? { ...parsed, recipeId: file.replace(/\.yaml$/, '') } : null;
       if (row) all.set(row.recipeId, row);
     }
     const anvil = new Map(recipes.map((r) => [r.recipeId, r]));

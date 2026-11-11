@@ -8,7 +8,6 @@
 # satisfies. A salted wheel is the same wheel: material, mass, load, what
 # it was made from and its water state carry; the cure block writes the
 # salt onto it.
-recipeId: salt-wheel
 name: Salted wheel
 keywords: ["salt-wheel"]
 discipline: dairying

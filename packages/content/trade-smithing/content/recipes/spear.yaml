@@ -6,7 +6,6 @@
 # the spear what you fit it to. The whole was never an anvil product —
 # a spear is a stick with a point on it, and the stick is most of it.
 # Its head is still the best weapon per pound of iron anybody ever made.
-recipeId: spear
 name: Spear
 keywords: [spear]
 inputSlots:

@@ -1,5 +1,4 @@
 # A plough stilt — one of the two handles. Run by `carve`.
-recipeId: plough-stilt
 name: Plough Stilt
 keywords: [plough-stilt, stilt]
 inputSlots:

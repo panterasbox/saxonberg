@@ -44,6 +44,7 @@ import { Mml } from '../../../../api/mml';
 import { PerceptionApi } from '../../../../api/perception';
 import { SENSE_CHANNELS, type SenseChannel } from '../../../../lib/description/Perceiver';
 import type Exit from '../../../../lib/boundary/Exit';
+import { Placement } from '../../../../lib/spatial/Placement';
 
 /**
  * The `senseStripAugmenter`'s `filter` is `SenseChannel`-typed —
@@ -272,7 +273,7 @@ export default class SenseController extends CommandController<SenseModel> {
         // with nothing here knowing the difference. A member with no
         // live row falls back rather than printing nothing.
         const heading =
-          ContainmentApi.placement(member)?.getHeading() || 'With it';
+          ContainmentApi.placements().need(member).getHeading() || 'With it';
         body = Mml.compose`${body}── ${heading}: ${list}.`;
       }
     }

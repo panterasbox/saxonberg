@@ -48,4 +48,4 @@ data:
       - { part: haft, template: /trade/carpentry/thing/straight-haft, count: 1, role: structural, material: /stuff/idea/material/wood/oak }
       - { part: rivet, plural: rivets, template: /trade/smithing/thing/rivet, count: 1, role: fastener, material: /stuff/idea/material/element/iron }
     joints:
-      - { key: swivel, method: riveted, members: [flail-head, haft], fastener: rivet }
+      - { key: swivel, method: /platform/joints/riveted, members: [flail-head, haft], fastener: rivet }

@@ -207,7 +207,8 @@ Inside it, every shipped kind rides **one strategy interface**
 (`KindStrategy<F>`, module-private — the content-pack-units Part C
 interface): the target collection, the record key, the db-key query, the
 rendered row, the hash preimage, the go-live side effect, and an optional
-`flatKeyOf` for kinds whose keys form a flat namespace. One
+`flatKeyOf` / `flatKeysOf` for kinds whose keys (or typed words) form a
+flat namespace. One
 `computeKindPlan` (pure — reads only) and one `applyKindPlan` (the
 writes) drive all three kinds, so the reconcile policy is written once.
 **Dry-run is the planner with the apply half never called** — zero
@@ -224,7 +225,7 @@ which a path-prefix notion of ownership could not:
 | every `content/**/*.yaml` **outside the kind dirs below** | **domain** (the template kind) | reconciled into the `content` collection (stamped). Wave 3 widened the walk from the two enumerated roots (`obj/`, `domain/`) to *everything that is not another kind's directory*: a pack ships a row at the path its file mirrors, wherever in the tree that path lives — `content/corpo/aevex.yaml` → `/corpo/aevex`, `content/home.yaml` → `/home`, `content/wiki/main.yaml` → `/wiki/main` (the namespace ZONE rows; the wiki *pages* beside them are `.md`, a different extension, read by the wiki kind). The non-template dirs are **enumerated by kind** (`nonTemplateDirs()`: `settings`, `subjects`, `descriptor-banks`, `quantity`, and every yaml `DOCUMENT_KINDS` `contentDir`), never guessed. `cmd/` is skipped at **any** depth — a command view has no `class:` and is the command-view document kind |
 | `content/quantity/quantity-tags.yaml` | **quantity** | loaded into the in-memory tag table via `QuantityApi.loadTagTables(path)` |
 | `content/descriptor-banks/<key>.yaml` | **descriptor-banks** | reconciled into `descriptor_banks` (stamped), keyed on the basename = the item class; the appearance caches drop on change |
-| `content/<contentDir>/<name>.<ext>` per **`DOCUMENT_KINDS`** — `emotes/*.yaml`, `recipes/*.yaml`, `name-banks/*.yaml`, `blueprints/*.yaml`, `archetypes/*.yaml` (the venue archetype — libations D11: `{ archetypeId, label, industry, capabilities: [{ key, needs, default? }] }`, `needs` one of `tool`/`heatK`/`bulkSource`/`surface`/`seating`/`coldStorage`; validated by `Archetype.fromData`, warmed into `ArchetypeCatalogue`; an archetype then describes and materializes **itself** — `archetype.describe()` is the effective floor (the authored residue + the rows derived from the industry's recipes) and `archetype.materialize()` is the derived test venue (a `PersistentLocation` + each default binding). ⭐ **There is no `ArchetypeApi`**: the first cut shipped one whose every caller was a test, while the two production paths — this validator and the go-live re-warm — reached the value-object and the catalogue directly. A `checklist(venue)` reporting surface was deleted with it: D11 said *no runtime enforcement*, and nothing read it), `msh/*.msh`, `cmd/**/*.yaml` (+ every template tree's own `<tree>/**/cmd/*.yaml` — `world/…/cmd/`, `trade/…/cmd/`) | **document** (one strategy per declared kind) | reconciled into `documents` (stamped) at `root + key` — the closed vocabulary in `lib/document/DocumentKinds.ts`; a `.yaml` file's object is `data`, an `.msh` file is `data: { source }`; a flat-key kind gets its natural key from the basename (a disagreeing file fails at `read`); per-kind read validation (what the retired seeders validated) |
+| `content/<contentDir>/<name>.<ext>` per **`DOCUMENT_KINDS`** — `emotes/*.yaml`, `recipes/*.yaml`, `name-banks/*.yaml`, `blueprints/*.yaml`, `aromas/**/*.yaml`, the metadata families (`dirt/`, `pump-mechanisms/`, `joints/`, `forms/`, `operations/`, `concepts/`, `formations/`, `placements/`, `topics/` — each file IS the data, no `class:`/`data:` wrapper; [document-store.md](./document-store.md)), `archetypes/*.yaml` (the venue archetype — libations D11: `{ label, industry, capabilities: [{ key, needs, default? }] }`, `needs` one of `tool`/`heatK`/`bulkSource`/`surface`/`seating`/`coldStorage`; validated by `Archetype.fromData`, warmed into `ArchetypeCatalogue`; an archetype then describes and materializes **itself** — `archetype.describe()` is the effective floor (the authored residue + the rows derived from the industry's recipes) and `archetype.materialize()` is the derived test venue (a `PersistentLocation` + each default binding). ⭐ **There is no `ArchetypeApi`**: the first cut shipped one whose every caller was a test, while the two production paths — this validator and the go-live re-warm — reached the value-object and the catalogue directly. A `checklist(venue)` reporting surface was deleted with it: D11 said *no runtime enforcement*, and nothing read it), `msh/*.msh`, `cmd/**/*.yaml` (+ every template tree's own `<tree>/**/cmd/*.yaml` — `world/…/cmd/`, `trade/…/cmd/`) | **document** (one strategy per declared kind) | reconciled into `documents` (stamped) at `root + key` — the closed vocabulary in `lib/document/DocumentKinds.ts`; a `.yaml` file's object is `data`, an `.msh` file is `data: { source }`; the row's `keys` card is derived on the way in (`StoredDocument.cardOf`); ⭐ no kind carries a second name — an emote's verb, a recipe's or archetype's word, a blueprint's id is the path's LEAF, and the files carry no key line; per-kind read validation (what the retired seeders validated) |
 | `content/settings/<section>.yaml` | **settings** | merged into the `app_settings` singleton (**merge-missing**, below) |
 | `content/subjects/<name>.yaml` | **subject** | `forum_subjects` + its channel/board surfaces (**archive-never-reap**, below) |
 | `content/wiki/<ns>/<slug>.md` | **wiki** | submitted through `WikiRegistry` AS the pack (**CAS**, below) — never rows |
@@ -232,14 +233,14 @@ which a path-prefix notion of ownership could not:
 #### `DocumentKinds` — the closed vocabulary
 
 `lib/document/DocumentKinds.ts` declares every pack-installable document
-kind: its `kind` string, its natural key (`verb`, `recipeId`, `key`,
-`blueprintId` — or null for a path-keyed kind), the pack subdir, the
-file extension, and its vanish policy. **Editing it is a platform act**
+kind: its `kind` string, the pack subdir, the file extension, its vanish
+policy, and optionally the `keys` and typed `words` of its catalogue card.
+**Editing it is a platform act**
 (slate A11.5): a pack cannot declare a new kind, because the kind's
 consumer (a catalogue, an engine) is code and the installer needs its
-go-live hook. `PersistenceManager` builds one **unique partial index**
-`{kind, data.<naturalKey>}` per flat-key kind (partial on the kind, so
-path-keyed kinds never collide), and the nightly reset keeps every
+go-live hook. A document's path is its only identity (the `documents`
+path index is unique; there is no `naturalKey` and no per-kind index —
+[document-store.md](./document-store.md)), and the nightly reset keeps every
 declared kind beside releases — without that the world would lose its
 emotes at 04:00. `wiki` is deliberately absent (a page is not a
 document: it has a revision log and a CAS edit path); `settings` and
@@ -249,17 +250,18 @@ document: it has a revision log and a CAS edit path); `settings` and
 kind earns no collection of its own by being *searchable* —
 `SoulCatalogue`, `RecipeCatalogue`, `BlueprintCatalogue`,
 `ArchetypeCatalogue` are derived, in-memory, rebuildable projections
-shaped for their own queries, and the store underneath stays path-keyed
-with one unique partial index per flat-key kind. The honest limit is
+shaped for their own queries — lazy, warmed on first use and never
+booted — and the store underneath stays path-keyed, with one wildcard
+index over every document's derived card. The honest limit is
 cardinality, not principle: hundreds of emotes in memory are free, a
 prose corpus is not, and find-by-content over the wiki and the law is the
 day a real document search is owed.
 
 The **document strategy** is one factory (`documentStrategy(spec, root)`)
-per kind: `dbKeyQuery` — `{kind, path}`, or `{kind, 'data.<naturalKey>'}`
-for a flat-key kind (its identity IS its natural key: a row with that key
-at *any* path is this row, and one this pack did not stamp is refused) —
-and a
+per kind: `dbKeyQuery` — `{kind, path}` for every kind (nothing adopts
+a row at another path; the adopt-by-natural-key rule went with
+`naturalKey`) — a `rowOf` that derives the `keys` card itself (the
+installer writes before any persistence hook is loaded), and a
 **`stampedQuery`** `{kind}` — ⚠ load-bearing: `{sourcePack}` alone over
 `documents` returns every kind the pack ships, and each kind would reap
 the others' rows as its own vanished files. Baselines and conflicts
@@ -509,18 +511,40 @@ phase*) runs under the same step name, and the topic gate (leaves under
 a core root only; the platform pack is exempt because it *authors* the
 root descriptors) runs next, in the same pre-write position.
 
-### The flat-key uniqueness check
+### The flat-key uniqueness check — and typed words
 
 Kinds whose keys form a **flat namespace across the install set** (the
-banks today; later kinds — emote verbs, recipe ids — plug in by giving
-their strategy a `flatKeyOf`) must see each key claimed once. The check
-runs after discovery + content read and **before any pack's writes**: a
-second claimant — cross-pack, or two files in one pack — marks the
-*claiming* pack failed (`failure.step: 'flat-key'`) with an error naming
-the kind, the key, and **both** `(packId, relFile)` pairs; earlier packs
-in the topo order still install. Never first-wins, never silent (A17.2).
-The different-pack-stamp refusal in the reconcile stays as the belt to
-this check's suspenders.
+banks) must see each key claimed once. ⭐ So must every document kind that
+declares **typed `words`** — a word a player types to name a document
+(`emote`, `recipe`, `archetype`: the leaf; `operation`, `help-concept`,
+`formation`, `topic`: the leaf; `placement`: the primary preposition). A
+word means one thing.
+
+The check has two halves, and both run after discovery + content read and
+**before any pack's writes**, in `install` and in `sync`:
+
+- **the install set** (`flatKeyFailures`) — a second claimant, cross-pack
+  or two files in one pack, marks the *claiming* pack failed
+  (`failure.step: 'flat-key'`) with an error naming the kind, the key, and
+  **both** `(packId, relFile)` pairs; earlier packs in the topo order still
+  install;
+- **the store** (`storeWordFailures`, documents D3) — a word a pack ships
+  must not already be claimed by a stored document no pack in this install
+  set ships (the live `sync` of a pack from a directory, whose install set
+  does not hold the packs already installed). One indexed read per kind
+  (`keys.word` `$in` the shipped words); a claimant fails the claiming
+  pack, naming the kind, the word, the file, and the stored path and its
+  `sourcePack`.
+
+Never first-wins, never silent (A17.2). The different-pack-stamp refusal
+in the reconcile stays as the belt to this check's suspenders.
+**`pnpm lint:typed-words`** runs the same check over the shipped packs
+before merge.
+
+⚠ **Not typed-word kinds**, deliberately: `form` (resolved against the
+instrument's own `forms:` list, so two wheels may each know a `brick`),
+`joint`, `aroma`, `dirt`, `pump-mechanism`, `blueprint`, the runtime
+records, and `command-view` (which has `lint:verb-collisions`).
 
 ## The capability rung — a pack ships classes
 ### ⭐ …and where a trade's VOCABULARY lives
@@ -869,10 +893,15 @@ see below):
   pattern); for each deleted path it destructs the orphaned instance.
   The quantity kind uses `reloadTagTables` (diff-apply); a changed bank
   drops its cache. The document kinds' go-live is one module-private
-  switch (`invalidateDocumentKind`): `emote` drops a resident
+  switch (`invalidateDocumentKind`): first, for every kind,
+  `DocumentApi.catalogueFor(kind)?.forget(paths)` drops the changed and deleted
+  paths from that kind's catalogue (an edited dirt kind or joint is
+  re-read on next use); then `topic` drops the topic dictionary (the next
+  scene re-warms), `emote` drops a resident
   `SoulCatalogue`'s cache, `recipe` re-warms a resident
-  `RecipeCatalogue` (its reads are sync), `name-bank` clears
-  `NameBank`'s cache, `blueprint` re-warms the `BlueprintCatalogue`,
+  `RecipeCatalogue` (its reads are sync), `archetype` re-warms a resident
+  `ArchetypeCatalogue`, `name-bank` clears
+  `NameBank`'s cache, `blueprint` invalidates a resident `BlueprintCatalogue`,
   `command-view` reloads each changed view (`CommandApi.reload`) and
   invalidates each deleted one, `msh` needs nothing (scripts resolve by
   path per call). Settings re-warm `AppSettings`; subjects drop the
@@ -1156,6 +1185,16 @@ arrives at a place it operates (the location graph attaches it there). **`pnpm l
 ceiling and requires every content entry to cite the unobserved economy;
 `lint:instanceable` reads no `boot:` (this paragraph used to say it
 did).
+
+⭐ **No vocabulary catalogue is booted** (documents path identity,
+2026-11-09). Nine `sync-read` lines left the platform pack —
+`TopicCatalogue`, `RecipeCatalogue`, `ArchetypeCatalogue`,
+`BlueprintCatalogue`, `DisciplineCatalogue`, `CorpoCatalogue`,
+`GovernmentCatalogue`, `SpellCatalogue`, `PlacementCatalogue` — because
+each is loaded by whatever reaches it (a citing row's setter, a host's
+`onCreate`, a verb's first async read, the message pipeline's first
+scene for topics). `TopicCatalogue` and `PlacementCatalogue` are deleted
+outright; the rest are lazy dictionaries.
 
 ## Pack zero — the platform-only boot
 
@@ -1729,3 +1768,11 @@ views. The realm's sea, the Greywater, is a **world-seed** row under
 `/stuff/idea/WaterExpanse/`; the Hesper, Gannet Rock and the estuary's
 strand, pool and headland are **terminus**'s. See
 [expanse.md](./expanse.md).
+
+`reqs/documents-path-identity` (2026-11-09) — **documents path identity**:
+`naturalKey` gone (a document's path is its only identity; the key lines
+left every emote, recipe, archetype and blueprint file); typed words are
+unique at install against the install set AND the store, naming both
+claimants, with `lint:typed-words` before merge; nine metadata families
+became document kinds with their own content dirs; nine catalogue boot
+lines removed. See git log for the branch.

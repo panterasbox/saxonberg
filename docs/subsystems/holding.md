@@ -766,7 +766,7 @@ plan derives none. The shipped plans:
 `(room row, <key>/<leaf>)` with its `exits:` withheld (a way applied by
 the clone would stand the plan's own room up), then ONE rewrite: a way
 whose destination is inside the extent is installed to the same room of
-this copy (its `kind:` honored, `fitExit` the subclass's chance to fit it);
+this copy (its `kind:` honored);
 a way out is applied as authored. A keyed way gets its door after the
 copy (`HoldingWarren.hangKeyedDoors`).
 Mirroring is the copy's: every copied direction is reflected, and the
@@ -831,11 +831,9 @@ tracts build's layout reads (the persistent `mirrorAxis` every copied
 direction is read through, *only a persistable room restores*,
 `onWarrenWake` after a room is woken, a revert deleting each room's
 `dependentPersistables`; a tract's `share` is the tract row's own field
-now). It speaks through five hooks: `planOf` (whose fields the plan is —
+now). It speaks through four hooks: `planOf` (whose fields the plan is —
 the warren's own, or a ship kind's row), `reconcile` (who hears a
-population change — still abstract), `fitExit` (what a copied way needs
-from the copy — the base does nothing, and since the boundary build no
-shipped subclass needs it: a keyed door is hung after the copy), `addressFor` (the address a woken room is stamped with — a
+population change — still abstract), `addressFor` (the address a woken room is stamped with — a
 read, not a wake hook: anything a room does on waking is its own
 `WarrenMember.onWarrenWake`, the ONE wake hook since harbors review 2;
 a ship's deck stamps itself a shore of her sea there), and

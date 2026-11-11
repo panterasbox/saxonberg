@@ -190,14 +190,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // Resolved live at the grid compile, and a rowless one is a feeder that
     // energizes nothing with no author-findable reason.
     'source',
-    // ⭐ The pump citations (the pump build). `mechanism` names the
-    // `PumpMechanism` row a pump is built on — resolved live on every
-    // spell at the handle, and a rowless one is a pump with no law: it
-    // would lift from any depth, which is the one thing it must not do.
-    // `suppliedBy` names the main a tap is plumbed to; a rowless one fails
-    // OPEN (the tap runs as its own source), so the census is what says
-    // the plumbing was never connected.
-    'mechanism', 'suppliedBy',
+    // ⭐ The pump citation (the pump build): `suppliedBy` names the main a
+    // tap is plumbed to; a rowless one fails OPEN (the tap runs as its own
+    // source), so the census is what says the plumbing was never connected.
+    // (A pump's `mechanism` is a DOCUMENT path now — clause (g).)
+    'suppliedBy',
     // ⭐ `surface` (the underwater build) — the water place an authored
     // room beside a column lies under (the intake's mouth under the
     // Wharfside basin). Resolved live by every read of the band; a
@@ -302,12 +299,8 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       }
     }
   }
-  // ⭐ An instrument's `forms:` (the Form rows it makes, by path) and a
-  // `formTemplates:` map by form class (ceramics D16) — loaded on use when a
-  // `shape` asks.
-  if (Array.isArray(data.forms)) {
-    for (const v of data.forms as unknown[]) push('forms', v);
-  }
+  // ⭐ An instrument's `formTemplates:` map by form class (ceramics D16).
+  // (Its `forms:` are DOCUMENT paths now — clause (g).)
   if (data.formTemplates && typeof data.formTemplates === 'object') {
     for (const v of Object.values(data.formTemplates as Record<string, unknown>)) push('formTemplates', v);
   }
@@ -1131,9 +1124,24 @@ function checkFieldRefs(rows: Map<string, string>): number {
 
 // ── clause (g): a field naming DOCUMENTS by path resolves ──────────
 /** Field → the document kind's content dir its values are stored under. */
+/** Clause (g) field names another family also uses for a non-path word. */
+const SHARED_FIELD_NAMES: ReadonlySet<string> = new Set(['mechanism', 'forms']);
+
 const DOCUMENT_PATH_FIELDS: Readonly<Record<string, string>> = {
   // A species' name banks (`/species-and-names/name-banks/common`).
   nameBanks: 'name-banks',
+  // A menu's offered recipes (`/trade/hospitality/recipes/martini`).
+  offeredRecipes: 'recipes',
+  // A pump's mechanism (`/platform/pump-mechanisms/suction`) — a rowless one
+  // is a pump with no law: it would lift from any depth.
+  mechanism: 'pump-mechanisms',
+  // An instrument's form words (`/trade/ceramics/forms/mug`); a potter
+  // brain's `forms:` are WORDS, so only path-shaped values are checked.
+  forms: 'forms',
+  // A help concept's further reading (`/trade/farming/concepts/nitrogen`).
+  seeAlso: 'concepts',
+  // A host's ways of sitting (`/platform/placements/from`).
+  placements: 'placements',
 };
 
 /** Every document path a pack ships under `contentDir`: its root + the dir + the file. */
@@ -1171,6 +1179,12 @@ function checkDocumentRefs(rows: Map<string, string>): number {
       let docs = shipped.get(contentDir);
       if (!docs) shipped.set(contentDir, (docs = documentPaths(contentDir)));
       for (const path of Array.isArray(value) ? value : [value]) {
+        // A field name another family uses for a WORD (a maturation
+        // profile's `mechanism: microbial`) is checked only where it holds
+        // a path; a pump naming a bare word fails at its setter instead.
+        if (SHARED_FIELD_NAMES.has(field) && !(typeof path === 'string' && path.startsWith('/'))) {
+          continue;
+        }
         checked += 1;
         if (typeof path !== 'string' || !docs.has(path)) {
           findings.push({

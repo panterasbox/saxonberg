@@ -1,0 +1,12 @@
+# Sweat — what hard work leaves on the innermost layer.
+key: sweat
+adjective: sweat-stained
+form: film
+answersTo:
+- surfactant
+- alkali-mild
+- alkali-strong
+waterLifts: 0.5
+odor:
+  aroma: /base-library/aromas/sweat/stale-sweat
+  ouPerLoad: 400

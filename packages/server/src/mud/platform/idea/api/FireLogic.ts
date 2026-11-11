@@ -22,6 +22,7 @@ import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { TemplatePaths } from '../../../lib/paths';
 import type { Combustible } from '../../../lib/fire/Combustible';
 import type { IgniteOutcome, Incandescence } from '../../../api/fire';
+import { DirtKinds } from '../../../lib/cleanliness/DirtKind';
 
 const FireApiCallers = SecurityPolicies.FromModule('/api/fire#FireApi');
 /**
@@ -609,7 +610,7 @@ function sootTheRoom(room: Stuff & Container, kgBurnt: number): void {
     touched.add(c);
   }
   for (const t of touched) {
-    if (MixinApi.isSoilable(t)) t.soil('soot', amount);
+    if (MixinApi.isSoilable(t)) t.soil(DirtKinds.SOOT, amount);
   }
 }
 

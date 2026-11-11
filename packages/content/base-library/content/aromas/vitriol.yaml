@@ -1,4 +1,0 @@
-# An acrid mineral acid.
-parent: /base-library/aromas/sulfur
-discipline: chemistry
-liking: { peak: 1.5, width: 2, valence: -1 }

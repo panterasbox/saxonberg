@@ -1,6 +1,5 @@
 # A spear shaft — a long riven pole shaved round. Run by `carve`; the
 # spear is `fit spear` once a smith has made the head.
-recipeId: spear-shaft
 name: Spear Shaft
 keywords: [spear-shaft]
 inputSlots:

@@ -305,11 +305,9 @@ export default class PutController extends CommandController<PutModel> {
     // template on the row, rendered per audience with the agreement
     // variables `EmoteGrammar` already binds. That is what lets `from`
     // say *hang* where `on` says *put*, with no code here knowing the
-    // difference. A member with no live row falls back to the shipped
-    // sentence, so a cold catalogue still speaks English.
+    // difference. The member is resident with its host (documents D7).
     const what = item.isDestroyed() ? Mml.text(named) : Mml.thing(item);
-    const member = ContainmentApi.placement(offer.name);
-    const template = member?.getProse() ?? '';
+    const template = ContainmentApi.placements().need(offer.name).getProse();
     const word = offer.words[0] ?? offer.name;
     const scene = MessageApi.scene(giver).topic('sense.survey');
     if (template !== '') {

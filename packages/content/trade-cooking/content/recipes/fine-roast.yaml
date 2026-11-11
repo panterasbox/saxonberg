@@ -1,4 +1,3 @@
-recipeId: fine-roast
 name: Fine Roast
 keywords:
 - roast
@@ -24,5 +23,5 @@ difficulty: hard
 discipline: cooking
 # A roast: dripping fat on the hands and the apron (cleanliness D6).
 soils:
-- { kind: grease, amount: 0.15, where: hands }
-- { kind: grease, amount: 0.1, where: apron }
+- { kind: /platform/dirt/grease, amount: 0.15, where: hands }
+- { kind: /platform/dirt/grease, amount: 0.1, where: apron }

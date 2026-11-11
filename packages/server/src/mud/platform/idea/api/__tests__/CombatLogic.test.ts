@@ -56,7 +56,7 @@ import { AccountabilityApi } from "../../../../api/accountability";
 import { COMBAT_COUP_TYPE } from "../../../../lib/combat/Coup";
 import { PartyMemberMixin } from "../../../../lib/party/PartyMember";
 import { Party } from "../../Party";
-import { CombatFormation } from "../../CombatFormation";
+import { type FormationPolicy } from "../../../../lib/combat/Formation";
 import type { Channel } from "../../../../lib/material/Channel";
 import EventRegistry from "../../EventRegistry";
 import { EventApi } from "../../../../api/event";
@@ -1375,22 +1375,27 @@ const PRESETS: Record<
   },
 };
 
-/** Make a preset's formation Idea resident (sync findByTemplatePath is the
- * beat's consult path — no template DB needed). */
-function residentFormation(name: string): CombatFormation {
+/** Keep a preset's formation document resident (a party's load, D7 — the
+ * beat's consult is a sync read; no document store needed). */
+function residentFormation(name: string): FormationPolicy {
   const spec = PRESETS[name]!;
-  const f = makeStuff(() => new CombatFormation());
-  f.setName(name);
-  if (spec.roles.length) f.setRoles([...spec.roles]);
-  f.setAllocation(spec.allocation);
-  if (spec.primaryRole) f.setPrimaryRole(spec.primaryRole);
-  if (spec.protects?.length) f.setProtectsRoles([...spec.protects]);
-  if (spec.interceptors?.length) f.setInterceptorRoles([...spec.interceptors]);
-  if (spec.trigger) f.setInterceptTrigger(spec.trigger);
-  if (spec.coupRight) f.setCoupRight(spec.coupRight);
-  if (spec.coupCall) f.setCoupCall(spec.coupCall);
-  stampTemplatePathForTest(f, `/platform/idea/CombatFormation/${name}`);
-  return f;
+  const path = `/platform/formations/${name}`;
+  return PartyApi.formations().remember(
+    path,
+    PartyApi.formations().parse(
+      {
+        roles: [...spec.roles],
+        allocation: spec.allocation,
+        primaryRole: spec.primaryRole ?? '',
+        protectsRoles: [...(spec.protects ?? [])],
+        interceptorRoles: [...(spec.interceptors ?? [])],
+        interceptTrigger: spec.trigger ?? 'none',
+        coupRight: spec.coupRight ?? 'engaged',
+        coupCall: spec.coupCall ?? 'engaged',
+      },
+      path,
+    ),
+  );
 }
 
 /** Seed a rostered party with a formation + role assignments straight
@@ -1411,7 +1416,7 @@ function seedFormationParty(
   raw.setCombatSide("faction:formed");
   for (const m of members) raw.addMember(m.getTemplatePath()!);
   raw.setCaptainId(members[captainIdx]!.getTemplatePath()!);
-  raw.setFormationPath(`/platform/idea/CombatFormation/${formation}`);
+  raw.setFormationPath(`/platform/formations/${formation}`);
   for (const [idx, role] of Object.entries(roles)) {
     raw.assignRole(members[Number(idx)]!.getTemplatePath()!, role);
   }
@@ -1827,7 +1832,7 @@ describe("CombatLogic — formations: mid-fight adopt + determinism", () => {
     // captain's `party adopt` / `party assign` — the store is the same).
     residentFormation("vanguard");
     const raw = ProxyApi.unwrap(party) as Party;
-    raw.setFormationPath("/platform/idea/CombatFormation/vanguard");
+    raw.setFormationPath("/platform/formations/vanguard");
     raw.assignRole(front.getTemplatePath()!, "front");
     raw.assignRole(back.getTemplatePath()!, "back");
 
@@ -1957,7 +1962,7 @@ describe("CombatLogic — coup governance (right / call / facts)", () => {
       expect(death!.killerRole).toBe("apprentice");
       expect(death!.directedBy).toBe(master.getTemplatePath());
       expect(death!.formationPath).toBe(
-        "/platform/idea/CombatFormation/master-apprentice",
+        "/platform/formations/master-apprentice",
       );
     } finally {
       spy.mockRestore();

@@ -1,0 +1,18 @@
+key: bleed-control
+label: bleed control
+addresses:
+  traumaTypes:
+  - laceration
+  - avulsion
+  - puncture
+  minSeverity: 2.5
+  bleeding: true
+instrument: surgery
+competence:
+  discipline: medicine
+  band: competent
+bloodCostL: 0.1
+baseDurationS: 90
+anaesthesia: advised
+resolution: surgery
+difficulty: formidable

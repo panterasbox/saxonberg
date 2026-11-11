@@ -74,6 +74,7 @@ import type { Stuff } from '../stuff/Stuff';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
+import { DocumentNotResidentError } from '../errors';
 import { MixinApi } from '../../api/mixin';
 import { EXITED_STATUSES, Employment, type EmploymentData, type EmploymentStatus } from './Employment';
 import type { OrganizationStuff, BusinessStuff } from '../../api/employment';
@@ -122,12 +123,17 @@ type StoredEmployment = EmploymentData & { businessPath?: string };
  */
 function fulfils(serves: readonly string[], discipline: string): boolean {
   if (serves.includes(discipline)) return true;
+  // Resident by construction: the one discipline-carrying caller (the
+  // crafting maker/hand resolution, async) loads the dictionary first
+  // (documents D11). A cold read is a defect and throws.
   const cat = StuffApi.findByTemplatePath(
     TemplatePaths.disciplineCatalogue,
   ) as unknown as {
-    getSpecializes?(key: string): readonly string[];
+    getSpecializes(key: string): readonly string[];
   } | null;
-  if (!cat?.getSpecializes) return false;
+  if (!cat) {
+    throw new DocumentNotResidentError('discipline', TemplatePaths.disciplineCatalogue);
+  }
   // Walk UP from the recipe's discipline: does any ancestor appear on the
   // seat? Bounded by `seen` so a mis-authored cycle cannot hang a read
   // that happens on every order.

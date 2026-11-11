@@ -1241,7 +1241,7 @@ class of compile-time error for a boot-time one. Generating keeps both:
 one authored source, and a typo is still a build failure. It is the
 lint-family pattern applied to data.
 
-### Indexes are data; two loops stay derived
+### Indexes are data; one loop stays derived
 
 `createIndexes()` was 570 lines of hand-written `createIndex` calls. It
 is now a driver over three sources:
@@ -1250,12 +1250,17 @@ is now a driver over three sources:
 |---|---|---|
 | **Authored** | 84 | the `indexes[]` of each schema doc |
 | **Text** | 3 of those | the same, with `text: true` — routed through `ensureTextIndex`, whose drop-and-recreate-on-conflict recovery is BEHAVIOUR and stays in PM |
-| **Derived** | two loops | the `circleScope` partial on every STAMP collection (5 today), and the `{ kind, data.<naturalKey> }` partial-unique per declared document kind (5 today) |
+| **Derived** | one loop | the `circleScope` partial on every STAMP collection (5 today) |
 
-Both derived loops are **consequences of another declaration**, not
-authored facts, and writing them out per collection would be the
-duplication the docs refuse. Their COUNTS move on their own when the
-vocabulary they walk changes, which is exactly why they are not a list.
+The derived loop is a **consequence of another declaration**, not an
+authored fact, and writing it out per collection would be the
+duplication the docs refuse. Its COUNT moves on its own when the
+vocabulary it walks changes, which is exactly why it is not a list.
+(A second loop — a `{ kind, data.<naturalKey> }` partial-unique per
+flat-key document kind — was deleted by the documents path identity
+build, 2026-11: the `documents` collection's indexes are authored now,
+`{path: 1}` unique plus one `{kind: 1, 'keys.$**': 1}` wildcard over the
+catalogue card. See [document-store.md](./document-store.md).)
 
 ⭐ Declaring `sandbox: stamp` in a doc is now what gives a collection its
 `circleScope` index: `STAMP_COLLECTIONS` derives from

@@ -2,7 +2,6 @@
 # roasted at 430, and fried in fat at 440. Three methods, three dishes,
 # one ingredient, and nothing in the engine that knows the words "boil",
 # "roast" or "fry" — only what each medium can carry.
-recipeId: pan-fried-roots
 name: Pan-Fried Roots
 keywords:
 - pan-fried-roots

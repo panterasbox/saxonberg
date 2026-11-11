@@ -46,6 +46,7 @@ import { Final, Unshadowable } from '../security/decorators';
 import type { PrepareOutcome, CastOutcome, SpellsView } from '../../api/magic';
 // eslint-disable-next-line no-restricted-imports -- the F3 object face: a caster's prepareCast()/resolveCast()/spellsView() forward into the magic logic singleton exactly as the api/magic facade does (the Combustible/Energized precedent)
 import { MagicLogic } from '../../platform/idea/api/MagicLogic';
+import { DocumentNotResidentError } from '../errors';
 
 /**
  * The arcane pool's reserve key — **magic-internal plumbing** (this
@@ -205,7 +206,12 @@ export function CasterMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (!MixinApi.isCommandGiver(self)) return;
       const catalogue = StuffApi.findByTemplatePath(SPELL_CATALOGUE_PATH);
-      if (!catalogue) return;
+      // A caster's session loads the dictionary before it arms (D9); a
+      // non-caster never needs it, and has no casting source to pop.
+      if (!catalogue) {
+        if (this.isCastingCapable()) throw new DocumentNotResidentError('spell', SPELL_CATALOGUE_PATH);
+        return;
+      }
       self.popCommandSource(catalogue);
       if (!this.isCastingCapable()) return;
       const defs = CASTING_VERB_YAMLS.map((f) => CommandApi.getCommand(f)).filter(

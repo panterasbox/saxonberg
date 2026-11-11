@@ -8,7 +8,7 @@
 # that falls out of the tags rather than out of a check anywhere.
 class: /platform/idea/material/Fat
 data:
-  smells: [{ aroma: /base-library/aromas/lard, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/fat/lard, strength: 60 }]
   name: leaf fat
   keywords: ["leaf fat", lard, fat, leaf]
   density: 920

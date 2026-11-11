@@ -20,4 +20,4 @@ data:
       - { part: head, template: /trade/coopering/thing/cask-head, count: 2, role: structural }
       - { part: hoop, template: /trade/smithing/thing/hoop, count: 6, role: fastener, material: /stuff/idea/material/element/iron }
     joints:
-      - { key: hooping, method: slack-hooped, members: [stave, head], fastener: hoop }
+      - { key: hooping, method: /trade/coopering/joints/slack-hooped, members: [stave, head], fastener: hoop }

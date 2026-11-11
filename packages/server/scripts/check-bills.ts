@@ -150,6 +150,37 @@ interface RecipeDoc {
  * fixtures. `rows` is every template row by path; `recipes` every shipped
  * recipe document.
  */
+/**
+ * Every `joint` document a pack ships, by the path it is stored at
+ * (`<pack root>/joints/<rel>`), as a row-shaped record whose `raw.data` is
+ * the document's data — what arm 5 reads.
+ */
+function jointDocuments(): Map<string, TemplateRow> {
+  const out = new Map<string, TemplateRow>();
+  for (const pack of readdirSync(CONTENT)) {
+    const dir = join(CONTENT, pack, "content", "joints");
+    if (!existsSync(dir)) continue;
+    const manifest = join(CONTENT, pack, "pack.yaml");
+    const m = existsSync(manifest)
+      ? ((YAML.parse(readFileSync(manifest, "utf8")) ?? {}) as { id?: string; root?: string })
+      : {};
+    const root = typeof m.root === "string" ? m.root : `/${m.id ?? pack}`;
+    const walk = (d: string, rel: string): void => {
+      for (const e of readdirSync(d, { withFileTypes: true })) {
+        if (e.isDirectory()) walk(join(d, e.name), `${rel}${e.name}/`);
+        else if (e.name.endsWith(".yaml")) {
+          const file = join(d, e.name);
+          const path = `${root}/joints/${rel}${e.name.slice(0, -5)}`;
+          const data = (YAML.parse(readFileSync(file, "utf8")) ?? {}) as Record<string, unknown>;
+          out.set(path, { file, path, pack, raw: { data } });
+        }
+      }
+    };
+    walk(dir, "");
+  }
+  return out;
+}
+
 export function checkBills(
   rows: ReadonlyMap<string, TemplateRow>,
   recipes: readonly RecipeDoc[],
@@ -164,25 +195,26 @@ export function checkBills(
   unmade?: ReadonlyMap<string, string>,
   /** Arm 7b's census; omitted, every 7b finding is reported. */
   undeclared?: ReadonlyMap<string, string>,
+  /** The joint documents by path; omitted, every pack's are read. */
+  jointDocs?: ReadonlyMap<string, TemplateRow>,
 ): BillFinding[] {
   const out: BillFinding[] = [];
   const at = (row: TemplateRow): string => relative(CONTENT, row.file);
 
-  // The joint vocabulary and the Discipline keys, by class.
-  const joints = new Map<string, TemplateRow>();
+  // The joint vocabulary — `joint` DOCUMENTS, by the path each is stored
+  // at — and the Discipline keys, by class.
+  const joints = jointDocs ?? jointDocuments();
   const disciplines = new Set<string>();
   for (const row of rows.values()) {
     const data = (row.raw.data ?? {}) as Record<string, unknown>;
-    if (row.raw.class === "/platform/idea/Joint" && typeof data.key === "string") {
-      joints.set(data.key, row);
-    }
     if (row.path.includes("/idea/Discipline/") && typeof data.key === "string") {
       disciplines.add(data.key);
     }
   }
 
   // 5 — every joint's competence names a Discipline that exists.
-  for (const [key, row] of joints) {
+  for (const [path, row] of joints) {
+    const key = path.slice(path.lastIndexOf("/") + 1);
     const data = (row.raw.data ?? {}) as Record<string, unknown>;
     const comp = data.competence as { discipline?: unknown } | null | undefined;
     if (comp === null || comp === undefined) {
@@ -273,7 +305,7 @@ export function checkBills(
       const key = String(j.key ?? "");
       const method = String(j.method ?? "");
       if (!joints.has(method)) {
-        out.push({ where: at(row), detail: `joint '${key}' uses method '${method}', which no Joint row ships` });
+        out.push({ where: at(row), detail: `joint '${key}' uses method '${method}', which is not the path of a joint document any pack ships` });
       }
       const members = Array.isArray(j.members) ? j.members.map(String) : [];
       if (members.length === 0) {

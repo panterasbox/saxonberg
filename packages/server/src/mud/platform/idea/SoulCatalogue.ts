@@ -1,7 +1,7 @@
 /**
  * SoulCatalogue — singleton Idea that owns the runtime verb→Emote cache.
  *
- * Lives at `/platform/idea/SoulCatalogue`, sibling to `/platform/idea/TopicCatalogue` and
+ * Lives at `/platform/idea/SoulCatalogue`, sibling to `/platform/idea/RecipeCatalogue` and
  * `/platform/idea/EventRegistry` per the singleton-in-`obj/` convention. The
  * source of truth is the `documents` collection, `kind: 'emote'` — rows
  * the `expression` content pack installs (and an author mints at
@@ -343,7 +343,7 @@ export default class SoulCatalogue extends SoulCatalogueBase {
   /**
    * Singleton refusal — `Application` resolves us lazily via
    * `findByTemplatePath` and assumes we stay live for the process
-   * lifetime. Mirrors `TopicCatalogue.canDestruct`.
+   * lifetime. Mirrors `RecipeCatalogue.canDestruct`.
    */
   public canDestruct(): VetoResult {
     return {

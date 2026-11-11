@@ -1,6 +1,5 @@
 # A spindle shaft — a finger-length stick whittled true. Run by `carve`;
 # a whorl and a shaft are a drop spindle (`fit drop-spindle`).
-recipeId: spindle-shaft
 name: Spindle Shaft
 keywords: [spindle-shaft]
 inputSlots:

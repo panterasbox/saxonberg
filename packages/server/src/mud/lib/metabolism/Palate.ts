@@ -28,7 +28,7 @@ import { COMPETENCE_BANDS, CompetenceBand, type CompetenceBandName } from '../ad
 import { TASTE_HEDONICS } from '../material/Material';
 import type Material from '../material/Material';
 import { Freshness } from '../material/Freshness';
-import { Aroma, type HedonicCurve } from '../perception/Aroma';
+import { type HedonicCurve } from '../perception/Aroma';
 import { WorldClockApi } from '../../api/worldclock';
 import { Scent } from '../perception/Smell';
 import { Savor, type Flavor, type Liking, type PalateDetails, type TasteNote } from '../perception/Flavor';
@@ -240,8 +240,8 @@ export function PalateMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
       const modality = PerceptionApi.modalityByName('taste') as TasteModality;
       const foodName = food.getPresentation();
       // A first read after a restart may find a word or an ingredient cold.
-      for (const note of modality.flavorOf(food).aromas.notes) Aroma.resolve(note.aroma);
-      await Aroma.settling();
+      for (const note of modality.flavorOf(food).aromas.notes) PerceptionApi.aromas().resolve(note.aroma);
+      await PerceptionApi.aromas().settling();
 
       // ── a sip: whatever a vessel holds ──
       if (MixinApi.isBulkable(food) && food.hasInteriorBulk() && !food.isBulkEmpty('interior')) {
@@ -340,7 +340,7 @@ export function PalateMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
       const species = this.speciesPalate()?.curves?.[key];
       if (species) return species;
       return (
-        TASTE_HEDONICS[key] ?? Aroma.resolve(key)?.getLiking() ?? DEFAULT_AROMA_CURVE
+        TASTE_HEDONICS[key] ?? PerceptionApi.aromas().resolve(key)?.getLiking() ?? DEFAULT_AROMA_CURVE
       );
     }
 

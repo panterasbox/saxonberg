@@ -34,9 +34,10 @@ import { makeStuff, makeStuffAtPath, EXIT_KIND_TEST_ROWS } from '../../../../lib
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { CommandApi, type CommandContext } from '../../../../api/command';
 import type Interactive from '../../Interactive';
+import { BulkableApi } from '../../../../api/bulk';
 
-const SUCTION = '/platform/idea/PumpMechanism/suction';
-const FORCE = '/platform/idea/PumpMechanism/force';
+const SUCTION = '/platform/pump-mechanisms/suction';
+const FORCE = '/platform/pump-mechanisms/force';
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
@@ -49,10 +50,11 @@ class FakeAvatar extends FakeAvatarBase {
 }
 
 function installStore(): void {
+  // The mechanism documents, as the pumps citing them would have loaded them.
+  BulkableApi.pumpMechanisms().remember(SUCTION, BulkableApi.pumpMechanisms().parse({ name: 'suction', pulls: true, description: 'It draws.' }, SUCTION));
+  BulkableApi.pumpMechanisms().remember(FORCE, BulkableApi.pumpMechanisms().parse({ name: 'force', pulls: false, description: 'It drives.' }, FORCE));
   const rows = [
     ...(EXIT_KIND_TEST_ROWS as unknown as Array<{ path: string }>),
-    { path: SUCTION, class: '/platform/idea/PumpMechanism', data: { name: 'suction', pulls: true, description: 'It draws.' } },
-    { path: FORCE, class: '/platform/idea/PumpMechanism', data: { name: 'force', pulls: false, description: 'It drives.' } },
   ].map((r, i) => ({ ...r, _id: String(i + 1) }));
   vi.spyOn(PersistenceManager, 'get').mockReturnValue({
     save: vi.fn(async () => '1'),

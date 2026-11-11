@@ -811,6 +811,27 @@ export class StuffApi {
   }
 
   /**
+   * ⭐⭐ **The one readiness door** (documents D7, W5c): stand up the
+   * dictionaries a read stands on, each by its singleton path, and resolve
+   * when every one is resident. Each need is a path, or an Api whose
+   * `static needs` names its paths (`StuffApi.ready(GovernmentApi)`).
+   *
+   * An Api's ASYNC statics await their own `needs` in the call gate, so an
+   * async caller never calls this; it is for the reach a sync read cannot
+   * wait at — a setter returning the load the applier awaits, or an act
+   * about to make sync reads. Never at boot: a dictionary loads when
+   * something reaches it.
+   */
+  public static ready(
+    ...needs: ReadonlyArray<string | { readonly needs?: readonly string[] }>
+  ): Promise<void> {
+    // `singleton` resolves at once for a resident one — no pre-check
+    // (lint:get-or-create).
+    const paths = needs.flatMap((n) => (typeof n === 'string' ? [n] : [...(n.needs ?? [])]));
+    return Promise.all(paths.map((p) => StuffApi.singleton(p))).then(() => undefined);
+  }
+
+  /**
    * Cache-or-clone for templatePath-keyed singletons.
    *
    * Returns the unique live instance for `path` if one exists in the

@@ -51,12 +51,12 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import { MagicGrid } from './Grid';
 import type { MagicNoun, MagicVerb } from './Grid';
-import type SpellCatalogue from '../../platform/idea/SpellCatalogue';
 // eslint-disable-next-line no-restricted-imports -- the F3 object face: an arcane item's requiresMark() forwards into the magic logic singleton exactly as the api/magic facade does (the Combustible/Energized precedent)
 import { MagicLogic } from '../../platform/idea/api/MagicLogic';
 import type { Stuff } from '../stuff/Stuff';
 import { Final, Unshadowable } from '../security/decorators';
 import type { CastOutcome, DischargeOptions } from '../../api/magic';
+import { MagicApi } from '../../api/magic';
 
 /** One grid cell — the `MagicProvenance` axes, typed. */
 export interface ArcaneAddress {
@@ -65,7 +65,6 @@ export interface ArcaneAddress {
 }
 
 /** Where the catalogue that resolves a carried `spellId` lives. */
-const SPELL_CATALOGUE_PATH = '/platform/idea/SpellCatalogue';
 
 export interface Arcane {
   /** Would firing this item's working demand a mark? (F3 read) */
@@ -82,7 +81,7 @@ export interface Arcane {
   getArcaneFootprint(): readonly ArcaneAddress[];
   /** The spell whose address this item inherits, or `''` for a bespoke one. */
   getCarriedSpellPath(): string;
-  setCarriedSpellPath(spellId: string): void;
+  setCarriedSpellPath(spellId: string): Promise<void> | undefined;
   /** The bespoke declaration — ignored while a spell is carried. */
   getDeclaredAddresses(): readonly ArcaneAddress[];
   setDeclaredAddresses(addresses: readonly ArcaneAddress[]): void;
@@ -166,7 +165,7 @@ export function ArcaneMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.carriedSpellPath;
     }
 
-    public setCarriedSpellPath(path: string): void {
+    public setCarriedSpellPath(path: string): Promise<void> | undefined {
       // ⚠ A bare id is the mistake this field exists to prevent, and the
       // type system cannot catch it — both are strings. So the setter
       // does, which turns the rename from a naming convention into an
@@ -180,6 +179,8 @@ export function ArcaneMixin<TBase extends MixinConstructor>(Base: TBase) {
         );
       }
       this.carriedSpellPath = v;
+      // The item is live only when the spell dictionary is (D7).
+      return v ? StuffApi.ready(MagicApi) : undefined;
     }
 
     public getDeclaredAddresses(): readonly ArcaneAddress[] {
@@ -204,9 +205,8 @@ export function ArcaneMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public getArcaneFootprint(): readonly ArcaneAddress[] {
       if (this.carriedSpellPath.length > 0) {
-        const spell = StuffApi.findByTemplatePath<SpellCatalogue>(
-          SPELL_CATALOGUE_PATH,
-        )?.getSpellAt(this.carriedSpellPath);
+        // Resident with the item (its setter loaded the dictionary).
+        const spell = MagicApi.spellAt(this.carriedSpellPath);
         // A carried spell the catalogue does not know is an authoring
         // error, not a licence to fall back on a stale declaration —
         // an empty footprint is suppressible by nothing and priced as

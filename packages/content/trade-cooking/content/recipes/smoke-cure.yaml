@@ -6,7 +6,6 @@
 # never by sterilising. A smoked cut that went up contaminated comes down
 # contaminated — which is why "cure it or cook it" is two lessons and not
 # one, and why the number here is a decision rather than a dial.
-recipeId: smoke-cure
 name: Smoked cut
 keywords: ["smoke-cure", "smoke", "smoked"]
 discipline: cooking

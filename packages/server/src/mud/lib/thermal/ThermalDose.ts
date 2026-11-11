@@ -48,7 +48,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { BulkSlot } from '../bulk/Bulkable';
-import type { Recipe } from '../craft/Recipe';
+import { Recipe } from '../craft/Recipe';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
@@ -56,6 +56,7 @@ import { AppApi } from '../../api/app';
 import { TemplatePaths } from '../paths';
 import { Decay } from '../Decay';
 import type { MarkupAugmenter } from '../../api/mml';
+import { CraftingApi } from '../../api/crafting';
 
 /**
  * ⭐ **The dose's own field on the blend payload, declared here.** The
@@ -735,17 +736,9 @@ export function ThermalDoseMixin<TBase extends MixinConstructor<Stuff>>(
 function doseRecipeFor(recipeRef: string): Recipe | null {
   if (!recipeRef || recipeRef.length === 0) return null;
   // ⚠ A craft mark may be a ferment mark (`ferment:<key>`) rather than a
-  // recipe id — those name no working and have no hold to be judged by.
+  // recipe word — those name no working and have no hold to be judged by.
   if (recipeRef.includes(':')) return null;
-  const catalogue = StuffApi.findByTemplatePath(
-    '/platform/idea/RecipeCatalogue',
-  ) as unknown as { getRecipe?(id: string): Recipe | null } | null;
-  if (catalogue === null || typeof catalogue.getRecipe !== 'function') {
-    return null;
-  }
-  try {
-    return catalogue.getRecipe(recipeRef);
-  } catch {
-    return null;
-  }
+  // ⭐ Resident by construction (`Crafted.setRecipe` loads the dictionary at
+  // restore; a craft held its recipe). A miss throws — never a quiet null.
+  return CraftingApi.recipes().getRecipe(recipeRef);
 }

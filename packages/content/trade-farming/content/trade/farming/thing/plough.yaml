@@ -37,5 +37,5 @@ data:
       - { part: peg, plural: pegs, template: /trade/carpentry/thing/peg, count: 4, role: fastener, material: /stuff/idea/material/wood/oak }
       - { part: share, template: /trade/smithing/thing/plough-share, count: 1, role: wear, material: /stuff/idea/material/element/iron }
     joints:
-      - { key: framing, method: pegged, members: [plough-beam, mouldboard, stilt], fastener: peg }
-      - { key: shoeing, method: wedged, members: [share, plough-beam] }
+      - { key: framing, method: /trade/carpentry/joints/pegged, members: [plough-beam, mouldboard, stilt], fastener: peg }
+      - { key: shoeing, method: /platform/joints/wedged, members: [share, plough-beam] }

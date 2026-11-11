@@ -2,7 +2,7 @@
  * HelpCatalogue — singleton Idea owning the boot-warmed help index.
  *
  * Lives at `/platform/idea/HelpCatalogue` (the singleton-in-`obj/` convention,
- * sibling to `TopicCatalogue` / `RecipeCatalogue` / `CorpoCatalogue`).
+ * sibling to `SoulCatalogue` / `RecipeCatalogue` / `CorpoCatalogue`).
  * The index is *harvested*, never registered: `warm()` pulls two
  * projectors — commands (every loaded `CommandDefinition`) and the
  * engine API surface (the enriched `author-surface.json` artifact +
@@ -10,7 +10,7 @@
  * `Map<id, HelpTopic>` plus derived category indexes.
  *
  * Read-only reference surface (help is transparency-by-default), so the
- * read methods are ungated — the `TopicCatalogue`/`RecipeCatalogue`
+ * read methods are ungated — the `SoulCatalogue`/`RecipeCatalogue`
  * precedent. The single read chokepoint + the capability filter live in
  * the {@link HelpApi} facade, not here.
  *
@@ -796,7 +796,7 @@ export default class HelpCatalogue extends HelpCatalogueBase {
     }
   }
 
-  /** Singleton refusal (mirrors RecipeCatalogue / TopicCatalogue). */
+  /** Singleton refusal (mirrors RecipeCatalogue / SoulCatalogue). */
   public canDestruct(): VetoResult {
     return {
       ok: false,
@@ -1069,33 +1069,36 @@ function renderMemberBody(m: AuthorSurfaceMember): string {
 /**
  * Load every authored concept as a help topic.
  *
- * ⭐ It reads **templates**, not residents: a concept has no runtime
- * existence and cloning one would be meaningless, so `HelpConcept` rows
- * are reference data the same way a `Discipline` row is.
+ * ⭐ It reads `help-concept` **documents**: a concept is authored
+ * reference data with no runtime existence — nothing writes one, nothing
+ * acts on one, nothing finds one with MQL (documents path identity, D6).
  *
  * ⚠ A row missing its key or title is skipped LOUDLY rather than taking
  * the index down with it — the `ArchetypeCatalogue` rule, and the reason
  * a malformed pack row degrades one topic instead of the rulebook.
  */
 async function loadConceptTopics(): Promise<HelpTopic[]> {
-  let rows: Array<{ data?: Record<string, unknown> }> = [];
+  let rows: Array<{ path: string; data: Record<string, unknown> }> = [];
   try {
-    const { Template } = await import("../../lib/stuff/Template");
-    rows = (await Template.findByClass(
-      "/platform/idea/HelpConcept",
-    )) as unknown as Array<{ data?: Record<string, unknown> }>;
+    const { DocumentApi } = await import("../../api/document");
+    rows = (await DocumentApi.listOfKind("help-concept")).map((d) => ({
+      path: d.getPath(),
+      data: d.getData(),
+    }));
   } catch {
     // No store (pre-boot, a unit test): no concepts, and every other
     // projector is unaffected.
     return [];
   }
+  const leaf = (path: string): string => path.slice(path.lastIndexOf("/") + 1);
   const out: HelpTopic[] = [];
   for (const row of rows) {
-    const d = row.data ?? {};
-    const key = typeof d.key === "string" ? d.key : "";
+    const d = row.data;
+    // ⭐ A concept's word is its path's leaf (a typed word: `help nitrogen`).
+    const key = leaf(row.path);
     const title = typeof d.title === "string" ? d.title : "";
-    if (key === "" || title === "") {
-      console.warn("HelpCatalogue: skipping a HelpConcept with no key/title");
+    if (title === "") {
+      console.warn(`HelpCatalogue: skipping help concept ${row.path} — it has no title`);
       continue;
     }
     const keywords = Array.isArray(d.keywords)
@@ -1111,10 +1114,11 @@ async function loadConceptTopics(): Promise<HelpTopic[]> {
       summary: typeof d.summary === "string" ? d.summary : "",
       keywords: [key, ...keywords],
       body: typeof d.body === "string" ? d.body : "",
+      // `seeAlso` cites other concepts by PATH; a topic id is `concept.<word>`.
       relations: seeAlso.map((other) => ({
         kind: "see-also" as const,
-        targetId: `concept.${other}`,
-        targetTitle: other,
+        targetId: `concept.${leaf(other)}`,
+        targetTitle: leaf(other),
       })),
       spoiler: false,
       source: { subdivision: "commands", ref: `concept:${key}` },

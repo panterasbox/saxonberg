@@ -1,7 +1,6 @@
 # A mallet — one piece of beech, carved. ⭐ It offers `driving`, which the
 # `pegged` joint asks for: the frame's tool is one the trade makes for
 # itself. Run by `carve`.
-recipeId: mallet
 name: Mallet
 keywords: [mallet]
 inputSlots:

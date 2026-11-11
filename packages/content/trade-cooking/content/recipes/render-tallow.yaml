@@ -9,7 +9,6 @@
 # litre of water in would come out as half a litre of extra tallow. That
 # is a conservation lie for a nicety, so the shipped recipe renders the
 # way a cook with one pot actually does it: low and dry.
-recipeId: render-tallow
 name: Render Tallow
 keywords:
 - render-tallow
@@ -41,5 +40,5 @@ discipline: cooking
 # ⭐ Rendering is greasy work (cleanliness D6): the hands and the apron
 # take it.
 soils:
-- { kind: grease, amount: 0.3, where: hands }
-- { kind: grease, amount: 0.2, where: apron }
+- { kind: /platform/dirt/grease, amount: 0.3, where: hands }
+- { kind: /platform/dirt/grease, amount: 0.2, where: apron }

@@ -46,4 +46,4 @@ data:
       - { part: spear-head, template: /trade/smithing/thing/spear-head, count: 1, role: structural, material: /stuff/idea/material/alloy/steel }
       - { part: spear-shaft, template: /trade/carpentry/thing/spear-shaft, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
     joints:
-      - { key: hafting, method: wedged, members: [spear-head, spear-shaft] }
+      - { key: hafting, method: /platform/joints/wedged, members: [spear-head, spear-shaft] }

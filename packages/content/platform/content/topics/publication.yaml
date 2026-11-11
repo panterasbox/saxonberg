@@ -1,0 +1,9 @@
+family: ""
+label: "Published"
+description: "Things somebody wrote down on purpose, for other people to read later."
+address: ambient
+actor: person
+weight: activity
+audience: player
+durable: true
+affordance: permanent

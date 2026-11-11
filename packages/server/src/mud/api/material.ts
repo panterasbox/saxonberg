@@ -38,6 +38,7 @@ import { HotReloadApi } from './hot-reload';
 import { MaterialLogic } from '../platform/idea/api/MaterialLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import DirtCatalogue from '../platform/idea/DirtCatalogue';
 
 // kg + kg/m³ tag tables live in `mud/config/quantity-tags.yaml`
 // and load at boot via `QuantityApi.loadTagTables`. Material doesn't
@@ -146,6 +147,16 @@ export interface ContactWetness {
 }
 
 export class MaterialApi {
+  /**
+   * ⭐ The dirt kinds — what can soil a thing (`soot`, `blood`, `sweat`, a
+   * pack's own `dust`), any pack's `content/dirt/`, served by
+   * {@link DirtCatalogue}. Named by path everywhere; a Soilable host loads
+   * the kernel's kinds, a pack's own is loaded by the act that lands it.
+   */
+  public static dirtKinds(): DirtCatalogue {
+    return StuffApi.singletonSync('/platform/idea/DirtCatalogue', () => new DirtCatalogue());
+  }
+
   // The `materialOf` read-wrapper was removed: the read lives on the
   // object itself — narrow with `MixinApi.isTangible(stuff)` and call
   // `stuff.getMaterial(detailKey)` directly.

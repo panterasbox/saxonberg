@@ -46,10 +46,9 @@ import { WorldClockApi } from '../../api/worldclock';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import { Contamination } from '../material/Contaminable';
-import { DIRT_KIND_ROOT } from '../../platform/idea/DirtKind';
-import type DirtKind from '../../platform/idea/DirtKind';
-import type { DirtKindDescriptor } from '../../platform/idea/DirtKind';
+import { DirtKinds, type DirtKindDescriptor } from './DirtKind';
 import type { CleanserAction, CleanserDescriptor } from '../../platform/idea/Cleanser';
+import { MaterialApi } from '../../api/material';
 
 /** The four soil bands, cleanest first — words, ordinal. */
 export const SOIL_BANDS = ['clean', 'marked', 'soiled', 'filthy'] as const;
@@ -321,7 +320,7 @@ export interface Soilable {
 
   // Public so the applier and the persistence spine can reflect into them.
   deposits: Record<string, number>;
-  setDeposits: string[];
+  fixedDeposits: string[];
   stains: StainRecord[];
   washes: Record<string, WashStamp>;
   heat: HeatStamp | null;
@@ -335,7 +334,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
 
     static fieldMeta: FieldMeta = {
       deposits: { persistent: true, runtimeState: true },
-      setDeposits: { persistent: true, runtimeState: true },
+      fixedDeposits: { persistent: true, runtimeState: true },
       // ⚠ The bleeder's true type and who they were — what `analyze
       // blood` is for. A spoiler wherever it surfaces.
       stains: { persistent: true, runtimeState: true, spoiler: 2 },
@@ -349,13 +348,37 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
     /** `${site}|${kind}` → load. `{}` = clean. */
     public deposits: Record<string, number> = {};
     /** Deposit keys whose dirt has SET (a hot-washed blood stain). */
-    public setDeposits: string[] = [];
+    public fixedDeposits: string[] = [];
     public stains: StainRecord[] = [];
     /** Site → the last wash there. */
     public washes: Record<string, WashStamp> = {};
     public heat: HeatStamp | null = null;
     /** Its clock in the bath it is in (D8c), or `null` out of one. */
     public bath: BathHold | null = null;
+
+    /**
+     * ⭐ A soilable thing is live only when the kernel's dirt vocabulary is
+     * (documents D7, mechanism 4) — so the engine's own `soil(DirtKinds.X)`
+     * always finds its kind. One prefix read for the process.
+     */
+    public async onCreate(context?: unknown): Promise<void> {
+      await super.onCreate(context);
+      await MaterialApi.dirtKinds().ensureKernel();
+    }
+
+    /** The restore door for the deposits: every dirt kind they name loads with them. */
+    public async setDeposits(value: Record<string, number>): Promise<void> {
+      const deposits = value ?? {};
+      for (const key of Object.keys(deposits)) await MaterialApi.dirtKinds().ensure(splitKey(key)[1]);
+      this.deposits = { ...deposits };
+    }
+
+    /** The restore door for the stains: every dirt kind they name loads with them. */
+    public async setStains(value: StainRecord[]): Promise<void> {
+      const stains = Array.isArray(value) ? value : [];
+      for (const s of stains) await MaterialApi.dirtKinds().ensure(s.kind);
+      this.stains = stains.map((s) => ({ ...s }));
+    }
 
     // ---------- the writer ----------
 
@@ -374,7 +397,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       const next = Math.min(SOIL_DEFAULTS.MAX_LOAD, prior + amount);
       this.deposits = { ...this.deposits, [key]: round(next) };
       this.heat = null;
-      if (by && kind === 'blood') this.keepSample(site, kind, by);
+      if (by && kind === DirtKinds.BLOOD) this.keepSample(site, kind, by);
       const self = this as unknown as Stuff;
       if (MixinApi.isContaminable(self)) {
         const row = this.dirtKind(kind);
@@ -425,18 +448,18 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public isSoilSet(kind: string, site: string = WHOLE_SITE): boolean {
-      return this.setDeposits.includes(depositKey(site, kind));
+      return this.fixedDeposits.includes(depositKey(site, kind));
     }
 
     public setSoilSet(kind: string, site: string, set: boolean): void {
       const key = depositKey(site, kind);
-      const has = this.setDeposits.includes(key);
+      const has = this.fixedDeposits.includes(key);
       if (set && !has && (this.deposits[key] ?? 0) > 0) {
-        this.setDeposits = [...this.setDeposits, key];
+        this.fixedDeposits = [...this.fixedDeposits, key];
       } else if (!set && has) {
-        this.setDeposits = this.setDeposits.filter((k) => k !== key);
+        this.fixedDeposits = this.fixedDeposits.filter((k) => k !== key);
       }
-      if (kind === 'blood') {
+      if (kind === DirtKinds.BLOOD) {
         this.stains = this.stains.map((s) =>
           s.site === site && s.kind === kind ? { ...s, set } : s,
         );
@@ -456,7 +479,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       const next = { ...this.deposits };
       if (left < 0.005) {
         delete next[key];
-        this.setDeposits = this.setDeposits.filter((k) => k !== key);
+        this.fixedDeposits = this.fixedDeposits.filter((k) => k !== key);
         // The deposit is gone, and its sample with it.
         this.stains = this.stains.filter(
           (s) => !(s.site === site && s.kind === kind),
@@ -477,7 +500,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       const words: string[] = [];
       for (const kind of this.soilKinds(site)) {
         if (this.kindLoad(kind, site) < floor) continue;
-        const word = this.dirtKind(kind)?.adjective ?? kind;
+        const word = this.dirtKind(kind).adjective;
         if (!words.includes(word)) words.push(word);
         if (words.length === 3) break;
       }
@@ -507,7 +530,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
     public cleanTier(site: string = WHOLE_SITE): CleanTier {
       const band = this.soilBand(site);
       const filmed = this.soilKinds(site).some(
-        (k) => this.soilLoad(k, site) > 0 && this.dirtKind(k)?.form === 'film',
+        (k) => this.soilLoad(k, site) > 0 && this.dirtKind(k).form === 'film',
       );
       if (band !== 'clean') {
         return band === 'marked' && !filmed ? 'presentable' : 'dirty';
@@ -547,7 +570,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       const fEffort = Math.min(1.6, 0.7 + 0.3 * Math.max(0, effort));
       for (const kind of this.soilKinds(site)) {
         if (this.isSoilSet(kind, site)) continue;
-        const lifts = this.dirtKind(kind)?.brushLifts ?? 0;
+        const lifts = this.dirtKind(kind).brushLifts;
         if (!(lifts > 0)) continue;
         const got = this.removeSoil(kind, clamp01(lifts * fEffort), site);
         if (got > 0) removed[kind] = got;
@@ -556,16 +579,13 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /**
-     * The row for a dirt kind, synchronously — `look` cannot wait. ⭐ Loaded
-     * BY PATH (`DIRT_KIND_ROOT + kind`) when something is first soiled with
-     * it (`soil` kicks it), so by the time anything reads a deposit its row
-     * is resident; a cold read answers `null` (the key is then the word).
+     * The dirt document at `kind` (a path), synchronously — `look` cannot
+     * wait. ⭐ Resident by construction (documents D7): the kernel's kinds
+     * load with the host, restored deposits through their setters, and a
+     * pack soiling with its own kind loads it in that act — so a miss throws.
      */
-    protected dirtKind(kind: string): DirtKindDescriptor | null {
-      const row = StuffApi.findByTemplatePath<DirtKind>(DIRT_KIND_ROOT + kind);
-      if (row) return row.descriptor();
-      Aroma.loadRow(DIRT_KIND_ROOT + kind);
-      return null;
+    protected dirtKind(kind: string): DirtKindDescriptor {
+      return MaterialApi.dirtKinds().need(kind);
     }
 
     public holdAtHeat(tempK: number, holdS: number, opts: { wet: boolean }): void {
@@ -667,7 +687,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
     public soilOdor(): SmellNote[] {
       const byAroma = new Map<string, number>();
       for (const [key, load] of Object.entries(this.deposits)) {
-        const odor = this.dirtKind(splitKey(key)[1])?.odor ?? null;
+        const odor = this.dirtKind(splitKey(key)[1]).odor;
         if (!odor || !(load > 0)) continue;
         byAroma.set(odor.aroma, (byAroma.get(odor.aroma) ?? 0) + load * odor.ouPerLoad);
       }

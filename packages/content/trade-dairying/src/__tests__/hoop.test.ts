@@ -19,6 +19,7 @@ import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MAT, readRow } from './rows';
 import { standUp, tearDown, at, vessel, DAY } from './world';
+import { Placements } from '@saxonberg/server/mud/lib/spatial/Placement';
 
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'DairyHoopTestRoom';
@@ -53,7 +54,7 @@ function weigh(on: Hoop, room: TestRoom, kg: number): void {
   const stone = makeStuff(() => new Good());
   stone.setMass(Quantity.of(kg, 'kg'));
   ContainmentApi.move(stone, room);
-  ContainmentApi.move(stone, on, 'on');
+  ContainmentApi.move(stone, on, Placements.ON);
 }
 
 async function settle(): Promise<void> {

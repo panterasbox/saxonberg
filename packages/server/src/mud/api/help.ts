@@ -4,7 +4,7 @@
  * The in-game **rulebook** surface: the `help` verb controller and the
  * REST help routes both read through this facade, never the catalogue
  * directly. Help is transparency-by-default, so the catalogue's reads are
- * ungated (the `RecipeCatalogue`/`TopicCatalogue` precedent); the only
+ * ungated (the `RecipeCatalogue` precedent); the only
  * gate is the **capability filter**, and it lives once, here.
  *
  * Thin forwarding shell: the warmed index lives in the {@link
@@ -60,13 +60,11 @@ function catalogue(): HelpCatalogue | null {
 
 export class HelpApi {
   /**
-   * ⭐ Stand the help catalogue up — the rulebook warms on first use (the
-   * scan sweep: it is not booted). Every entry point (the `help` verb, the
-   * REST routes) awaits this before its synchronous reads.
+   * ⭐ What this Api's reads stand on (W5c): the rulebook warms on first
+   * use, never at boot. Its reads are sync, so every entry point (the
+   * `help` verb, the REST routes) calls `StuffApi.ready(HelpApi)` first.
    */
-  static async ready(): Promise<void> {
-    await StuffApi.singleton(TemplatePaths.helpCatalogue).catch(() => null);
-  }
+  static readonly needs: readonly string[] = [TemplatePaths.helpCatalogue];
 
   /** Light index slice + the category descriptors. */
   static index(viewer: HelpViewer = FLOOR): HelpIndexResult {

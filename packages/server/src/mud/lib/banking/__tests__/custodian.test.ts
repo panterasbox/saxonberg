@@ -35,7 +35,9 @@ const VENUE = "/world/lounge/idea/business";
 function makeBank(path: string, corpoKey = "goodkin"): void {
   makeStuffAtPath(() => {
     const b = new BankCounter();
-    b.setCorpoKey(corpoKey);
+    // The corpo dictionary loads with the bank (D7); this suite never reads
+    // the corpo, so the load is not waited for — only kept from leaking.
+    void b.setCorpoKey(corpoKey)?.catch(() => undefined);
     return b;
   }, path);
 }

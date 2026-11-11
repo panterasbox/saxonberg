@@ -16,15 +16,15 @@ State, all persistent runtime state, scalar-decomposed (⛔ never a `Map`):
 
 | field | what |
 |---|---|
-| `deposits` | `site\|kind` → a dimensionless load. `site` `''` is the whole thing; a body keys by body part. |
-| `setDeposits` | which of those have SET (blood washed hot) |
+| `deposits` | `site\|kind` → a dimensionless load, where `kind` is the dirt's **path** (`/platform/dirt/blood`). `site` `''` is the whole thing; a body keys by body part. |
+| `fixedDeposits` | which of those have SET (blood washed hot). Named `setDeposits` until 2026-11 — renamed to free the applier's `set<Field>` name for the deposits' restore door |
 | `stains` | blood only: the bleeder's type, system, species and identity — ⚠ spoiler level 2, the forensic read is `analyze` |
 | `washes` | per site: the last wash (cleanser, action, water heat, hardness) |
 | `heat` | the hottest hold since the last deposit (`peakK`, `heldS`) |
 
 **`soil(kind, amount, by?, site?)` is the ONE writer.** It clears the heat
 stamp (a sterile thing touched is not sterile) and, on a Contaminable host,
-seeds what the DirtKind row says the dirt carries (manure → *e. coli*).
+seeds what the dirt's document says it carries (manure → *e. coli*).
 Bands are words: `clean · marked · soiled · filthy` (dials
 `cleanliness.band.*`); the look line is `soilPhrase` — *soiled, bloodied
 and greasy* — never a number.
@@ -35,14 +35,16 @@ twin, `Window`, `Chair` (seats, beds, the `Tub`), `Lamp`, `Bandage`,
 `SurgicalKit` and `SutureKit`, `Rug`. ⛔ Not `Thing`, `Good`, `Tool` or
 `Receptacle`.
 
-### Two row families (no code to add one)
+### Two authored families (no code to add one)
 
-- **`DirtKind`** (`/platform/idea/DirtKind`, rows at
-  `/platform/idea/DirtKind/<key>`, a closed set): the adjective, the `form` (`film` washed,
+- **`dirt`** documents (value class `lib/cleanliness/DirtKind.ts`; any
+  pack's `content/dirt/<word>.yaml`, stored at `<pack root>/dirt/<word>` —
+  the platform's ten at `/platform/dirt/*`, `trade-mining`'s
+  `/trade/mining/dirt/dust`): the adjective, the `form` (`film` washed,
   `debris` swept, `stain` a film that can set), what cleanser `answersTo`,
   `setsAboveK`/`setAnswersTo` (blood: 318 K, then only a bleach),
   `waterLifts` (what plain water takes — mud 0.7, grease 0.05),
-  `contaminates`.
+  `contaminates`, `odor` (an aroma path and OU per unit of load).
 - **`Cleanser`** (`/platform/idea/Cleanser`): the material `agent` tag
   the wash finds it by, one `action` from a CLOSED ten-word mechanism
   vocabulary (`surfactant · alkali-mild · alkali-strong · acid-mild ·
@@ -53,9 +55,20 @@ twin, `Window`, `Chair` (seats, beds, the `Tub`), `Lamp`, `Bandage`,
   material's `corrosiveTo` ∩ the fibre's tags, never authored twice.
 
 ⭐ **No catalogues** (B50 — the scan sweep's rule: load by an authored
-reference, never by searching). A dirt kind is a closed platform
-vocabulary at `/platform/idea/DirtKind/<key>`, loaded by path the first
-time something is soiled with it (`Soilable.dirtKind`). A cleanser is named
+reference, never by searching). ⭐⭐ **A dirt is named by its PATH
+everywhere** (documents path identity, 2026-11): a deposit and a stain
+record the path, a recipe's `soils[].kind` cites it (`SoilSpec` refuses a
+bare word), and the kernel's own literals are the `DirtKinds` constants
+(`DirtKinds.GREASE = '/platform/dirt/grease'`). Prose speaks the dirt's
+word (`MaterialApi.dirtKinds().wordOf`, the path's leaf). **Resident by construction**:
+`SoilableMixin.onCreate` awaits `MaterialApi.dirtKinds().ensureKernel()` (one prefix
+read of `/platform/dirt/`, once per process), restored deposits and stains
+load through the `setDeposits`/`setStains` restore doors, and a pack
+soiling with its own kind loads it in the act that lands it (the worked
+act, `hew`, `scutch` for `dust`); so `soil()` and the sync read
+`MaterialApi.dirtKinds().need(path)` always find it, and a miss is
+`DocumentNotResidentError`. A tap's apron splash is only a dirt the
+kernel ships (`MaterialApi.dirtKinds().has`). A cleanser is named
 by its MATERIAL (`cleanser:`, `identity:constituent`, loaded with it —
 `Material.getCleanser()`). Each row reads itself (`descriptor()`).
 
@@ -391,3 +404,10 @@ place on a grid but the void, a room's size its zone's cell (B51–B54);
 towel (B56); `analyze cleanliness`, `domestic-services`, dirt that smells
 (B57); the browser walk's fixes — the lit bathhouse, the bath paid at the
 desk, the honest unlinked-implant refusal (B58).
+
+## History — dirt became documents (2026-11-09)
+
+Documents path identity: `DirtKind` moved from Idea rows at
+`/platform/idea/DirtKind/<key>` to `dirt` documents cited by path;
+`setDeposits` became `fixedDeposits`; a pack can ship its own dirt
+(`/trade/mining/dirt/dust` — the `dust` latent defect closed with it). See git log for the `reqs/documents-path-identity` branch.

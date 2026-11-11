@@ -7,6 +7,7 @@
  */
 
 import { Aroma, type HedonicCurve } from '../Aroma';
+import { PerceptionApi } from '../../../api/perception';
 
 export interface AromaFixture {
   word: string;
@@ -26,9 +27,9 @@ export function installAromas(rows: readonly (AromaFixture | string)[]): void {
     const row = typeof raw === 'string' ? { word: raw } : raw;
     let parent: Aroma | null = null;
     for (const word of row.parents ?? []) {
-      parent = Aroma.resolveKnown(aromaPath(word)) ?? Aroma.remember(aromaPath(word), {}, parent);
+      parent = PerceptionApi.aromas().resolveKnown(aromaPath(word)) ?? PerceptionApi.aromas().remember(aromaPath(word), {}, parent);
     }
-    Aroma.remember(
+    PerceptionApi.aromas().remember(
       aromaPath(row.word),
       { threshold: row.threshold, discipline: row.discipline, liking: row.liking },
       parent,

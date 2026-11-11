@@ -1,5 +1,4 @@
 # A cask head, fitted from three boards and four dowels — `fit cask-head`.
-recipeId: cask-head
 name: Cask Head
 keywords: [cask-head, "cask head"]
 inputSlots:

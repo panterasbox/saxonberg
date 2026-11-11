@@ -1,0 +1,7 @@
+# The `tile` form (ceramics S4): a thin slab cut to a tile.
+key: tile
+formClass: flat
+capacityL: 0
+product: /trade/ceramics/thing/tile
+greenScale: 1.06
+discipline: brickmaking

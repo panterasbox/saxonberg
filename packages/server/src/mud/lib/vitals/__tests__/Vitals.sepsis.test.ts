@@ -13,6 +13,7 @@ import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../../platform/idea/Condition';
+import { rememberShippedDirt } from '../../cleanliness/__tests__/soil-fixtures';
 
 const atGameSeconds = (g: number): void => {
   const scale = WorldClockApi.getScale();
@@ -46,11 +47,12 @@ function cleanTreater(): Creature {
 /** A treater with filthy hands (a full load of muck on them). */
 function dirtyTreater(): Creature {
   const t = makeStuff(() => new Creature());
-  t.soilHands('mud', 1);
+  t.soilHands('/platform/dirt/mud', 1);
   return t;
 }
 
 beforeEach(() => {
+  rememberShippedDirt();
   installV1QuantityMarshallers();
   atGameSeconds(10_000);
 });
@@ -142,6 +144,6 @@ describe('a wound goes bad on a clock — if the hands were dirty', () => {
     // Bloodied by handling the wound — past the dirty threshold, so the
     // next wound dressed without washing is inoculated.
     expect(treater.handCleanliness()).toBeLessThan(0.5);
-    expect(treater.soilKinds()).toContain('blood');
+    expect(treater.soilKinds()).toContain('/platform/dirt/blood');
   });
 });

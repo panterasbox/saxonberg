@@ -724,11 +724,18 @@ conversation on 2026-09-28, so it is corrected in place rather than
 quietly edited.
 
 ⭐⭐ **`operate` is now the craft.** It is a **durative, blood-costing,
-interruptible** act over a **data `Operation` catalogue** (5 rows today),
-gated on **posture · competence · kit · anaesthesia**, with the biology
-in `applyTreatment` / `severPart`.
+interruptible** act over a **data catalogue of `operation` documents**
+(5 today, `trade-medicine`'s `content/operations/`), gated on **posture ·
+competence · kit · anaesthesia**, with the biology in `applyTreatment` /
+`severPart`. ⭐ Each is a document named by its path
+(`/trade/medicine/operations/amputation`, value class
+`lib/vitals/Operation.ts`); a surgeon names it by its word — the path's
+leaf, a typed word unique at install (`operate … for amputation`) — and
+`operate` reads the kind through the lazy dictionary `ConditionApi.operations().all()`.
+(`OperationCatalogue` and the `Operation` Idea were deleted by the
+documents path identity build, 2026-11-09.)
 
-> ⭐⭐⭐ **A second operation is a ROW** — the extensible spine is done.
+> ⭐⭐⭐ **A second operation is a FILE** — the extensible spine is done.
 
 What is still deferred is the **richness**, not the mechanism →
 [surgery-specialty-slate](../slates/builds/surgery-specialty-slate.md):

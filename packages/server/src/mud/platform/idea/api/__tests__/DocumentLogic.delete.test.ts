@@ -14,6 +14,7 @@ import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { Stuff } from '../../../../lib/stuff/Stuff';
 import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
+import { CraftingApi } from '../../../../api/crafting';
 
 let rows: Record<string, unknown>[];
 let actor: Stuff;
@@ -70,5 +71,20 @@ describe('DocumentApi.delete', () => {
     vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
     expect(await runAs(() => DocumentApi.delete('/emotes/grin'))).toBe(true);
     expect(await runAs(() => DocumentApi.delete('/emotes/grin'))).toBe(false);
+  });
+});
+
+// ⭐ D16: a CMS edit reaches the cache — the value class forgets the path.
+describe('the CMS edit reaches the cache', () => {
+  it('a delete drops the edited path from its kind\'s cache; a save does too', async () => {
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
+    vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
+    // A joint's catalogue forgets the edited path; a kind read by path alone has none.
+    const joints = CraftingApi.joints();
+    const forget = vi.spyOn(joints, 'forget');
+    rows.push({ _id: '3', path: '/home/test/joints/pegged', owner: '/home/test', kind: 'joint', data: {} });
+    await runAs(() => DocumentApi.delete('/home/test/joints/pegged'));
+    expect(forget).toHaveBeenCalledWith(['/home/test/joints/pegged']);
+    expect(DocumentApi.catalogueFor('msh')).toBeNull();
   });
 });

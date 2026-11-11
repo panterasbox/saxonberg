@@ -30,4 +30,4 @@ data:
       - { part: head, template: /trade/smithing/thing/pick-head, count: 1, role: structural, material: /stuff/idea/material/element/iron }
       - { part: haft, template: /trade/carpentry/thing/pick-haft, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
     joints:
-      - { key: hafting, method: wedged, members: [head, haft] }
+      - { key: hafting, method: /platform/joints/wedged, members: [head, haft] }

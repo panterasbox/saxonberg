@@ -15,6 +15,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
+import { rememberDisciplines } from '../../advancement/__tests__/discipline-fixtures';
 import { Character } from '../../character/Character';
 import Place from '../../stuff/Place';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
@@ -148,6 +149,8 @@ describe('RespirationMixin — the crisis core', () => {
     StuffApi.unregister(reg);
     StuffApi.register(reg);
     EventApi._setRegistryForTesting(reg);
+    // The swimming band stands on the discipline dictionary (D11).
+    await rememberDisciplines();
   });
 
   beforeEach(() => {
@@ -475,6 +478,9 @@ describe('RespirationMixin — the crisis core', () => {
     // Hauled out: air again.
     read.mockRestore();
     ContainmentApi.move(c, room('air'));
+    // The move's own re-check (onMoved) is fire-and-forget and now awaits
+    // the swimming band's dictionary: let it land before the explicit one.
+    await settle();
     await c.reassess();
     tick(40);
     expect(c.isDying()).toBe(false);

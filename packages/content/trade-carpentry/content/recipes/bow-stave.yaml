@@ -3,7 +3,6 @@
 # growth ring on the back breaks there the first time it is drawn.
 # The wood you carve it from is the wood the bow is (yew makes the bow
 # the row describes). Run by `carve`.
-recipeId: bow-stave
 name: Bowstave
 keywords: [bowstave, bow-stave]
 inputSlots:
