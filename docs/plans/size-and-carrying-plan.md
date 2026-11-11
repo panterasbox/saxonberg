@@ -933,15 +933,19 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   the owner's hands or their place*); the guest's own outfit (cloned at `Login.ts:350`,
   titled to nobody) is destroyed with the body as today; a thing the guest found loose
   in a room (untitled) is dropped where the guest stands. No new record. W7.
-- **D38 — riding in a cart is a body in a container.** The transport pack's `HaulageRig`
-  and the kernel's `Handcart` compose `MountableMixin` with `mountSlot: 'bed:1'` and the
-  shipped `mount`/`ride` verbs take a rider into the cart's **contents** (`seatInSlot` =
-  `move` into the host + `occupy`): the body fits by D4's `fitRefusal` at
-  `canAddContainable` (a wagon takes four; a handcart one child-sized body) and stays
-  because a slot occupant is pressed in by its seat; the rider's weight joins the cart's
-  draft (the contents walk already). Entering a **coach** is the shipped `ExitableVessel`
-  door (its `in` exit's clearance). W6 (class composition in the transport pack's own
-  `src/`, one row field).
+- **D38 — riding in a cart is sitting in it** (owner, 2026-11-11: `sit in cart`, not
+  `mount cart`). A cart's bed is a **posture-bearing slot** like a bench's or a log's
+  (`docs/subsystems/posture.md`): the transport pack's `HaulageRig` and the kernel's
+  `Handcart` compose `PosturedMixin` (if not already) and their rows declare a `bed` slot
+  with `postures: [sit, lie]` and a `capacity` (a wagon four, a handcart one). The shipped
+  `sit`/`lie` verbs take the target (`sit in cart`, `lie in cart`); the rider is seated in
+  the cart's **contents**, fits by D4's `fitRefusal` at `canAddContainable` (its envelope
+  by posture), and stays because a seated body is pressed in by its seat; the rider's
+  weight joins the cart's draft (the contents walk already), and the cart's move carries
+  its seated riders through the shipped slot-occupant traverse ripple. `stand` gets out.
+  No `Mountable` on a cart; `mount`/`ride` stay the animals'. Entering a **coach** is the
+  shipped `ExitableVessel` door (its `in` exit's clearance). W6 (rows; a class
+  composition in the transport pack's own `src/` only if `Postured` is absent).
 - **D39 — the coach's roof rack is an `on` surface.** `coach.yaml` gains `placements:
   [{member: on, name: roof rack}]`: open, exposed (rain reaches it, D24 sees it,
   zero-g drifts it off). A row. W6.
@@ -986,7 +990,7 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
 | `'awkward-load'` on `run` | the mode gate in `LocomotionLogic.canTraverseExit` | beside the haulage gates; the mode's own refusal |
 | the noise lift | `LocomotionLogic.emissionAt` | the one reader of `bodyProfile`/`noiseLevel` already; it asks `Carrying.gearNoise` |
 | the headset | an `AetherImplant` row with `targetSlot: head` | no code; the augment is the implant's |
-| `Mountable` + `mountSlot: 'bed:1'` | `HaulageRig` (transport `src/`) and `Handcart` | a cart is a conveyance you ride in; a sledge, dray and wagon all carry a rider honestly; the coach is an `ExitableVessel` already |
+| `Postured` + a `bed` slot (`postures: [sit, lie]`, `capacity`) | `HaulageRig` (transport `src/`) and `Handcart` | a cart's bed is a seat like a bench's; a sledge, dray and wagon all carry a seated rider honestly; the coach is an `ExitableVessel` already |
 | `placements: [{member: on, name: roof rack}]` | `coach.yaml` | a row |
 
 **The two tests, applied.** No guard re-narrows a host: `Creature.canAddContainable`
@@ -1333,8 +1337,8 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   character by `testharness hand`; the turning stair's `turn: 1.6` refuses its 2.2 m, the
   wide doorway's 1 × 2 face passes its 0.4 × 0.4 cross-section.
 - D34 the headset row (`generic-objects` `/stuff/thing/gear/headset`, `AetherImplant`
-  class, `targetSlot: head`); D38 `Mountable` on `HaulageRig`/`Handcart` with `bed:1`
-  and the rows' `mountSlot`; D39 the coach's roof-rack placement entry.
+  class, `targetSlot: head`); D38 a posture-bearing `bed` slot on the `HaulageRig`/`Handcart`
+  rows (`sit in cart`); D39 the coach's roof-rack placement entry.
 - Tests: each pack's row test (`lint:instanceable` + the pack vitest); `lint:locations`
   on the new places; `lint:anatomy` on canid.
 - Acceptance: `clone` of every new row succeeds in a wire smoke; `look` in each new

@@ -297,7 +297,7 @@ budge. This build connects it:
 - **A cart is a container on the container rule**: open on top, its load may stand above the sides,
   pressed in; a **tarp** closes the top, and covers its contents as a pocket's are covered. Open, anyone
   in the room perceives and can reach the load.
-- **Riding in a cart** is a body in a container — it fits by size and stays in because it is pressed in.
+- **Riding in a cart is sitting in it** — `sit in cart` (or `lie in cart`), the same act as sitting on a bench; `stand` gets out. It fits by size and stays in because it is pressed in.
   **Getting into a coach** is entering a place-like vehicle: you fit its door, its inside is roofed and
   bounded; a roof rack is a surface (`on`) — open, exposed.
 - **In the inventory** a hitched cart is *elsewhere* — `i cart` lists it — and the burden line shows the
