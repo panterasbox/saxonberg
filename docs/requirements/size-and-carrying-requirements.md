@@ -43,10 +43,14 @@ perceives is decided by the act (§ Perceiving).
 - **Concealment and belief:** honest fog; the frisk and the pickpocket are designed (policing,
   stealth); a viewer's knowledge is the belief store.
 - **Access:** held extents by parcel title (the *within-your-extent* pattern).
-- **In flight:** **material decomposition** (build-1) re-homes the density this build reads volume
-  from; **controllers-are-io** (build-2) reshapes the controllers readying and inventory touch;
-  **client surface** (build-3) renders inventory. Whichever merges second reconciles — this build gates
-  on none of them.
+- **Merged since this doc was first written:** material decomposition (density and materials),
+  controllers-are-io, client surface, and the boundary build (every way has an **opening** sized by its
+  kind, and a boundary must fit its way — the clearance half of this build starts from it).
+- **In flight: controller liquidity** (build-2) rewrites most controllers, `get`, `put`, `inventory` and
+  `equip` among them, and adds a reach grammar over today's loose carrying. ⚠ This build is **planned
+  against it and built after it merges**, and cleans up its reach model here (§ Reach after controller
+  liquidity) — the owner, 2026-11-11: *"I don't want to fuck with build-2, we'll clean up the mess here
+  after it merges."*
 
 **Therefore what is genuinely new:** sizes and openings; a body's two hands and the *nothing loose on a
 body* invariant; homes, readying and reach tiers; pockets and hands-free gear; exit clearances; the
@@ -232,6 +236,28 @@ thing, the frisk and the pickpocket show more.
   sandbox's test avatars, which any of your friends can play.
 - **Other players are not your content** — inspecting them is a separate, logged grant (Non-goals).
 
+### Reach after controller liquidity **[DECIDED 2026-11-11, owner review]**
+
+Controller liquidity leaves this build a reach model built over today's loose carrying. Held against
+the idioms above, item by item:
+
+- **Keep `here`** (the place you're in, past a boat, a cart or a bed) and `me:e` (what immediately
+  holds you) — words that depend on who asks the way `me` does, without filtering anything.
+- **Keep the body filters `:held`, `:worn`, `:carried`** — facts about where a thing is, the same for
+  every viewer. After the flip, `:held` means *in a hand*.
+- **Keep the shut-lid refusal** (*"the box is shut"*) as the reach half of *perceive, then reach* — but it
+  fires only for a thing the viewer perceives. *"Unsling it first"* is the same refusal family.
+- **Remove the viewer filter inside the query** (`:i` through a shut lid only for your own or the
+  room's; the deepest rung never into another person's pockets). `:i` is the contents, for everyone.
+- **Remove the three reach rungs** (`--top` · `--open` · `--deep`) and the per-argument depth defaults —
+  a second vocabulary for *where to look* beside MQL paths and the reach tiers, and not memorable. In
+  their place, **one rule: the nearest thing you perceive wins** — in hand, ready, packed, then the
+  room; two equally near ask *"which one?"*; reach then decides whether the act can happen, and says
+  what would work.
+- **Reach is the body's** — what it could lay hands on now, one definition. It is a check on the act,
+  never what a verb searches; `reachable` survives as a query word only if it means exactly that.
+- **The card** shows what you perceive on a person — their outer layer, their belt, their hands.
+
 ### The scale envelope **[DECIDED]**
 
 The model already has the right representations — bulk and stacks are one object whatever the amount.
@@ -330,7 +356,8 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 ## Acceptance criteria
 
 - No character, anywhere, has a thing loose on their body — after any act and after a restart.
-- A player picks up, readies, stows and puts away tools in single commands, and every refusal names what
+- A verb finds the nearest thing you perceive, with no reach option to learn; a player picks up, readies,
+  stows and puts away tools in single commands, and every refusal names what
   would work.
 - A low door, a crawlway, a ladder, a stair's turn and a pond each behave as their size and the body's
   say, in words a player can act on.
@@ -351,4 +378,4 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 - [access-slate](../slates/tails/access-slate.md) § Inspection · [land-use-covenant-slate](../slates/builds/land-use-covenant-slate.md)
 - [spellbook-slate](../slates/builds/spellbook-slate.md) (the bag of holding) ·
   [bestiary pilot](../bestiary/pilot.md) (openings with a size; the square-cube check)
-- In flight: material decomposition (build-1) · controllers-are-io (build-2) · client surface (build-3)
+- In flight: controller liquidity (build-2) — this build follows it (§ Reach after controller liquidity)
