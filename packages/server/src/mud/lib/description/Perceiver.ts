@@ -37,6 +37,7 @@ import type Exit from '../boundary/Exit';
 import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
+import { StuffApi } from '../../api/stuff';
 
 /**
  * Canonical physical-sense channel vocabulary. The Perceiver-side
@@ -247,6 +248,8 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       const resolution = await attempt(() => AddressApi.resolveFor(place));
       const address = resolution?.address ?? null;
+      // The sync chain read stands on the index the awaited `resolveFor`
+      // built (`AddressApi.needs`, load-on-use W5).
       const localities = address
         ? AddressApi.coverageChainOf(address)
             .map((l) => ({ name: l.getName(), address: l.getAddress() }))
@@ -289,7 +292,13 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         ? await attempt(() => WeatherApi.sampleFor(place))
         : undefined;
       const day = await attempt(() => CelestialApi.isDayAt(place));
-      const government = address ? await attempt(() => GovernmentApi.governmentAt(address)) : undefined;
+      const government = address
+        ? await attempt(async () => {
+            // The government catalogue loads on reach (documents W5c).
+            await StuffApi.ready(GovernmentApi);
+            return GovernmentApi.governmentAt(address);
+          })
+        : undefined;
 
       return {
         place: { stuffId: place.stuffId, name: place.getPresentation() },

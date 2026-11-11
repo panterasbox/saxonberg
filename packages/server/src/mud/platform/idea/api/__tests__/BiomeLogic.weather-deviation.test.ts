@@ -22,6 +22,7 @@ import {
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { WEATHER_PROFILES } from '../../../../lib/weather/WeatherType';
+import { standAddressIndex } from '../../../../lib/address/__tests__/address-index';
 
 class TestLocation extends Place {}
 
@@ -91,6 +92,7 @@ function indoorRoom(): Place {
 
 describe('BiomeLogic — weather deviation seam (D2)', () => {
   beforeEach(() => {
+    standAddressIndex(); // load-on-use W5: an empty index, no store behind it
     installV1QuantityMarshallers();
     BiomeApi.invalidateRootBiomeCache();
     installRootBiome();

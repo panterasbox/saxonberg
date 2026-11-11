@@ -20,6 +20,7 @@
  */
 
 import { StuffApi } from './stuff';
+import { TemplatePaths } from '../lib/paths';
 import { HotReloadApi } from './hot-reload';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type Locality from '../platform/idea/Locality';
@@ -76,6 +77,14 @@ export interface AddressTrace extends AddressResolution {
 }
 
 export class AddressApi {
+  /**
+   * ⭐ What this Api's reads stand on (load-on-use W5): the locality
+   * index, built on the first address question — every async static
+   * awaits it in the call gate; a sync reach's async parent calls
+   * `StuffApi.ready(AddressApi)`. Never booted.
+   */
+  static readonly needs: readonly string[] = [TemplatePaths.addressRegistry];
+
   /**
    * The load-bearing read. Returns the most-specific Locality covering
    * `scope`'s resolved address, or `null` (global). Never throws; the
@@ -161,11 +170,13 @@ export class AddressApi {
    * boot), while an arbitrary ROOM may not be — and a bill of lading
    * names a consignee place, not a room, anyway.
    */
-  public static resolvePlace(
+  public static async resolvePlace(
     raw: string,
     giver: Stuff,
     herePath = '',
-  ): string {
+  ): Promise<string> {
+    // Async so the gate awaits `needs` — a place by its name or address is
+    // found in the index, which builds on its first question (load-on-use W5).
     return logic().resolvePlace(raw, giver, herePath);
   }
 

@@ -39,6 +39,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '../../../../../lib/security/__tests__/test-setup';
+import { standAddressIndex } from '../../../../../lib/address/__tests__/address-index';
 
 class Room extends AddressableMixin(ContainerMixin(Idea)) {}
 // The stealth-band read runs ON the placer since the OO sweep; pinned
@@ -88,6 +89,10 @@ function scene(): { room: Room; placer: Placer; kit: TrapKit } {
 
 beforeEach(() => {
   StuffApi.clearAll();
+  standAddressIndex(); // load-on-use W5: an empty index, no store behind it
+  // The government read readies its catalogue first; the suite stubs the
+  // read itself, so there is nothing to load (load-on-use W5).
+  vi.spyOn(StuffApi, 'ready').mockResolvedValue(undefined);
   stubScene();
   vi.spyOn(PerceptionApi, 'preloadForSenseGate').mockResolvedValue(undefined);
   vi.spyOn(PerceptionApi, 'hideLevelFor').mockReturnValue('hidden');

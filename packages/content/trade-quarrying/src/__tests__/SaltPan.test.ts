@@ -34,6 +34,7 @@ import SaltPan from '../thing/SaltPan';
 import Tub from '../thing/Tub';
 import { Placements } from '@saxonberg/server/mud/lib/spatial/Placement';
 import { forgetProfiles, rememberProfile } from '@saxonberg/server/mud/lib/maturation/__tests__/profiles';
+import { standAddressIndex } from '@saxonberg/server/mud/lib/address/__tests__/address-index';
 
 const DAY = 86_400;
 const BASE = 10_000_000;
@@ -128,6 +129,7 @@ async function settle(): Promise<void> {
 beforeEach(() => {
   StuffApi.clearAll();
   forgetProfiles();
+  standAddressIndex(); // load-on-use W5: an empty index, no store behind it
   installV1QuantityMarshallers();
   WorldClockApi._resetForTesting();
   now = BASE;

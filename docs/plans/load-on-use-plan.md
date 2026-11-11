@@ -766,6 +766,30 @@ The two are one shape; land them in one wave.
 
 ### W5 — the address index builds on first use
 
+✅ **Done.** `AddressApi.needs = [addressRegistry]`, `GovernmentApi.needs`
+gains it; every READ door in `AddressLogic` goes through `registry()`, which
+throws `DocumentNotResidentError('address-index', …)` cold (the write doors
+— a locality registering itself — stay no-ops). Boot line gone (73 → 72);
+`lint:template-scans` reason → LAZY_DICT. ⭐ **Build decisions:** (a)
+`AddressApi.resolvePlace` became **async** — the plan's "controllers await
+`StuffApi.ready(AddressApi)`" put a readiness call in three controllers for
+one sync Api read; an async static is gated by the Api's own `needs`, so the
+job verbs' `place()`/`parseCondition`/`parseClean` and `ShipController` now
+await it and no controller readies anything. (b) `ArmController.mayPlaceIn`
+and the navigator's government line (`Perceiver`) ready `GovernmentApi`
+before the sync `governmentAt` (the navigator's already swallowed failures
+by design). (c) **Test harness:** a suite has no locality rows, so
+`test-bootstrap` registers a needs loader that stands an EMPTY index in
+(`lib/address/__tests__/address-index.ts`) whenever the registry is needed
+and not live — never a clone attempt, because production resolves addresses
+from unawaited witnesses and a clone in flight across a test boundary landed
+a second registry beside the stand-in. Empty = "no locality covers this",
+which is what every such suite read before. A suite that builds its own
+registry keeps it. Side-fixes: the general-store standup pre-imports `Hive`
+(the counter's concurrent first clones read a pack module mid-evaluation —
+a harness quirk the stalled resolve used to hide); `AddressPlace` clears
+between tests; the assay suite stands the index before its clone spy.
+
 - `api/address.ts`: `static readonly needs = [TemplatePaths.addressRegistry]`;
   `api/government.ts`: `needs` += `addressRegistry`.
 - `AddressLogic.lookupRegistry()`: a cold registry throws

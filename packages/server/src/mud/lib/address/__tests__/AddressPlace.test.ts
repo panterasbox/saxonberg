@@ -12,6 +12,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AddressApi } from '../../../api/address';
+import { StuffApi } from '../../../api/stuff';
 import AddressRegistry from '../../../platform/idea/AddressRegistry';
 import Locality from '../../../platform/idea/Locality';
 import { Idea } from '../../stuff/Idea';
@@ -37,6 +38,10 @@ describe('AddressApi.resolvePlace', () => {
   let asker: Stuff;
 
   beforeEach(async () => {
+    // One index per test — `resolvePlace` is async now and its gate readies
+    // the index by its path, which must name exactly one (load-on-use W5).
+    StuffApi.clearAll();
+    AddressApi._resetRegistryRefForReload();
     makeStuffAtPath(() => new AddressRegistry(), REGISTRY);
     // Index by hand — `onCreate` walks the shipped Locality roster,
     // which is content this unit test has no business standing up.
@@ -44,27 +49,27 @@ describe('AddressApi.resolvePlace', () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  it('⭐ names a remote place by the NAME it is known by', () => {
+  it('⭐ names a remote place by the NAME it is known by', async () => {
     const rejection = locality('/stuff/idea/Locality/rejection', 'Rejection', 'terminus/rejection');
     AddressApi.registerLocality(rejection);
-    expect(AddressApi.resolvePlace('Rejection', asker)).toBe(
+    expect(await AddressApi.resolvePlace('Rejection', asker)).toBe(
       '/stuff/idea/Locality/rejection',
     );
     // Case-insensitively — nobody capitalizes at a shipping desk.
-    expect(AddressApi.resolvePlace('rejection', asker)).toBe(
+    expect(await AddressApi.resolvePlace('rejection', asker)).toBe(
       '/stuff/idea/Locality/rejection',
     );
   });
 
-  it('names one by its ADDRESS in the namespace', () => {
+  it('names one by its ADDRESS in the namespace', async () => {
     const rejection = locality('/stuff/idea/Locality/rejection', 'Rejection', 'terminus/rejection');
     AddressApi.registerLocality(rejection);
-    expect(AddressApi.resolvePlace('terminus/rejection', asker)).toBe(
+    expect(await AddressApi.resolvePlace('terminus/rejection', asker)).toBe(
       '/stuff/idea/Locality/rejection',
     );
   });
 
-  it('⚠⚠ a NAME COLLISION resolves to the BROADER place, deterministically', () => {
+  it('⚠⚠ a NAME COLLISION resolves to the BROADER place, deterministically', async () => {
     // Two shipped Localities really are called Terminus: the
     // municipality and the city proper. A plain Map would let whichever
     // indexed last win — silently, and differently on every boot.
@@ -72,25 +77,25 @@ describe('AddressApi.resolvePlace', () => {
     const town = locality('/stuff/idea/Locality/terminus', 'Terminus', 'terminus');
     AddressApi.registerLocality(city);
     AddressApi.registerLocality(town);
-    expect(AddressApi.resolvePlace('Terminus', asker)).toBe(
+    expect(await AddressApi.resolvePlace('Terminus', asker)).toBe(
       '/stuff/idea/Locality/terminus',
     );
     // …and the order of registration cannot change the answer.
     AddressApi.registerLocality(city);
-    expect(AddressApi.resolvePlace('Terminus', asker)).toBe(
+    expect(await AddressApi.resolvePlace('Terminus', asker)).toBe(
       '/stuff/idea/Locality/terminus',
     );
   });
 
-  it('takes a durable path verbatim, and answers nothing for a name nobody knows', () => {
-    expect(AddressApi.resolvePlace('/test/place/pithead-yard', asker)).toBe(
+  it('takes a durable path verbatim, and answers nothing for a name nobody knows', async () => {
+    expect(await AddressApi.resolvePlace('/test/place/pithead-yard', asker)).toBe(
       '/test/place/pithead-yard',
     );
-    expect(AddressApi.resolvePlace('Narnia-on-Sea', asker)).toBe('');
+    expect(await AddressApi.resolvePlace('Narnia-on-Sea', asker)).toBe('');
   });
 
-  it('`here` is where the asker stands', () => {
-    expect(AddressApi.resolvePlace('here', asker, '/test/place/quay')).toBe(
+  it('`here` is where the asker stands', async () => {
+    expect(await AddressApi.resolvePlace('here', asker, '/test/place/quay')).toBe(
       '/test/place/quay',
     );
   });

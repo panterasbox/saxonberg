@@ -138,7 +138,11 @@ export default class ArmController extends CommandController<ArmModel> {
     const owner = await ParcelApi.ownerOf(room.getTemplatePath() ?? '');
     if (owner !== null) return false;
     const address = MixinApi.isAddressable(room) ? room.getAddress() : null;
-    return address !== null && GovernmentApi.governmentAt(address) !== null;
+    if (address === null) return false;
+    // The government is found by the address chain — its index and the
+    // catalogue load on reach (load-on-use W5).
+    await StuffApi.ready(GovernmentApi);
+    return GovernmentApi.governmentAt(address) !== null;
   }
 
   private reject(

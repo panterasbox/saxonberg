@@ -32,6 +32,12 @@ import type { Burner } from "@saxonberg/server/mud/lib/fire/Burner";
 import type { LightSource } from "@saxonberg/server/mud/lib/perception/LightSource";
 import { installStore, type Doc } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
 import { installV1QuantityMarshallers } from "@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers";
+import { standAddressIndex } from "@saxonberg/server/mud/lib/address/__tests__/address-index";
+// ⚠ Loaded up front: the counter clones its hives concurrently, and a pack
+// class first imported by two clones at once can be read mid-evaluation
+// by the test module runner ("available exports: ") — a harness quirk, not
+// the world's (a running world loads it once, at first use).
+import "../../../trade-apiculture/src/thing/Hive";
 
 const PH = TemplateApplier.templatePath;
 const STORE_DIR = fileURLToPath(
@@ -366,6 +372,7 @@ vi.setConfig({ testTimeout: 30_000 });
 
 describe("general-store standup (real seeds)", () => {
   beforeEach(async () => {
+    standAddressIndex(); // load-on-use W5: an empty index, no store behind it
   // The joints the goods' bills name, as cloning them would load them.
   rememberShippedJoints();
     StuffApi.clearAll();

@@ -66,7 +66,11 @@ export class GovernmentApi {
    * static awaits it in the call gate; a sync reach calls
    * `StuffApi.ready(GovernmentApi)`. Loaded on reach, never at boot.
    */
-  static readonly needs: readonly string[] = [TemplatePaths.governmentCatalogue];
+  static readonly needs: readonly string[] = [
+    TemplatePaths.governmentCatalogue,
+    // A government is found by the address chain (load-on-use W5).
+    TemplatePaths.addressRegistry,
+  ];
 
   /**
    * The most-local government at an address (the head of the chain), or
