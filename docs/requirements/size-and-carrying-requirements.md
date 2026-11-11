@@ -221,6 +221,30 @@ sledges, handcarts, barrows, wagons.
   other end, and it comes with you when you move, as a hitched cart does — the rope's use is where its
   ends are tied, and **it takes a hand**. No new verb; `hitch` stays a cart's.
 
+### Carts and vehicles **[DECIDED 2026-11-11, owner review]**
+
+Haulage already ships: a cart is a wheeled vessel you `hitch`, its cargo burdens you only as its draft
+(mass × how well it rolls), a wheeled cart refuses a way that isn't wheeled, and an overload won't
+budge. This build connects it:
+
+- **Pulling and driving take hands.** A hitched handcart fills the hands its row already says (two); a
+  hand holds a thing, a rope's end, or a cart's handles — *"you can't take the lantern — your hands are
+  on the cart."* A vehicle's row says what driving it takes (reins two hands, a tiller one).
+- **A cart fits a way by its cross-section**, as anything carried does — *"the wagon won't fit through
+  the door"*; it never fits a crawlway or a ladder.
+- **A cart is a container on the container rule**: open on top, its load may stand above the sides,
+  pressed in; a **tarp** closes the top, and covers its contents as a pocket's are covered. Open, anyone
+  in the room perceives and can reach the load.
+- **Riding in a cart** is a body in a container — it fits by size and stays in because it is pressed in.
+  **Getting into a coach** is entering a place-like vehicle: you fit its door, its inside is roofed and
+  bounded; a roof rack is a surface (`on`) — open, exposed.
+- **In the inventory** a hitched cart is *elsewhere* — `i cart` lists it — and the burden line shows the
+  draft, not the cargo.
+- **A parked cart stays in the room with its load** — perceivable and reachable by anyone there, when
+  its owner is logged out too. Logging out drops nothing *from the body*, and a cart was never on the
+  body. Parking is a real risk, so a covered, locked wagon or a stable is worth paying for (lenses 3a and
+  6).
+
 ### Bodies and openings **[DECIDED]**
 
 - **A body's envelope** — height by how it moves (walking upright, stooping, crawling) or rests
@@ -422,7 +446,9 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
     adding and the mule refuses in words. `tie rope to mule` and hold the end — the mule comes with you
     through the next way, and you have one hand free. Mounted on a horse, a compass in your saddlebags
     readies in one draw; at a low door, *"you'd have to dismount"*; the laden mule at a narrow gate,
-    *"the panniers won't fit."*
+    *"the panniers won't fit."* Hitch a handcart — `get lantern` is refused, naming your hands on the
+    cart; at a narrow door the cart won't fit; throw a tarp over its load, and another character in the
+    room no longer sees it.
 17. *instant · staged* — A wizard sets one room's gravity to zero: a dropped cup floats in the room; a
     cup set on the table drifts off; a full pack reads as no weight on the burden line, yet still won't
     pass the hatch and still takes both hands.
@@ -458,6 +484,8 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 - Every character restored after a restart carries exactly what they carried.
 - A pack animal carries only what it wears, as much as its body bears, and comes with you on a held
   rope that takes a hand.
+- A hitched cart fills the hands it says, fits a way by its size, and a parked one stays where it was
+  left, load and all.
 - Weight follows the place's gravity and the water's buoyancy; nothing assumes Earth, and a thing
   leaves an open container whenever nothing presses it in.
 
