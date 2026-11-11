@@ -125,20 +125,35 @@ differ from the defaults.
   design).
 - **Filling a container:** rigid things fill by their bounding box (so packing efficiency emerges);
   flexible things by their own volume; bulk exactly; a stack is its count times its unit.
-- **A container has three limits** — mass (what it bears), volume, and its **opening**. Putting a thing
-  in is two checks a player could make with a tape measure (owner review, 2026-11-11): it passes the
+- **A container is where a thing sits; it bounds the thing only on the sides it closes** (owner review,
+  2026-11-11). Putting a thing in is two checks a player could make with a tape measure: it passes the
   **mouth by its cross-section** (its two smaller dimensions against the opening — a pole goes in
-  endwise, a ship model does not go through a bottle's neck), and it fits **inside, turned whichever way
-  works** (the interior's own dimensions — a 3 m pole is refused by a backpack its volume fits easily).
-  A container's inside is described like any thing — a form and a volume, derived — and authored only
-  where it is the point (a sheath, a holster, a quiver, shaped to what it holds). A flexible container
-  (sack, pouch, haversack) has its volume and its largest stretch.
-- **A place is a container too, and its inside is its cube** — but **only along the faces it really
-  has**, which the place's exposure already says: an open top has no ceiling (a walled yard holds a mast
-  upright; a field bounds nothing), a wall that isn't there bounds nothing. You enter through a way's
-  opening by cross-section, and what you carry must fit inside the place. ⚠ Places stay cubes: real
-  proportions (width × depth × height) are **rejected, deliberately** — the owner: *"if we wanted it that
-  way we would have built that from the outset."*
+  endwise, a ship model does not go through a bottle's neck), and, **turned some way, it fits along every
+  side the container closes**. Open sides do not count — what is bigger **spills over**, and that is
+  fine:
+
+  | container | closes | spills | |
+  |---|---|---|---|
+  | a shut chest | every side | nothing | the pole is refused |
+  | an open bucket, barrel or crate | sides and bottom | upward | a broom stands in a bucket |
+  | a table or shelf (`on`) | nothing — it supports | every way | a long plank overhangs |
+  | a roofed, walled room | every face | nothing | the mast cannot come indoors |
+  | a walled yard under the sky | its walls | upward | the mast stands upright |
+  | a field or a street | nothing | everywhere | a whale skeleton lies in a 3 m cell |
+
+  A container's sides come from its form (a chest a closed box, a bucket a box open at the top, a sack
+  flexible — its volume and its largest stretch) and the distance between them derives like any size;
+  they are authored only where that is the point (a sheath, a holster, a quiver, shaped to what it
+  holds). A lid or a door that shuts **adds a side**: *"the pole sticks out — the lid won't shut."*
+- **A place is a container on the same rule.** Its sides are the faces its exposure already says it
+  has (an open top is no ceiling; a missing wall bounds nothing), and the distance between them is its
+  cube. You enter through a way's opening by cross-section. In a multi-author world nobody guarantees a
+  zone was drawn to fit its content, so an **open** place simply lets a big thing spill over; only an
+  **enclosed** place can refuse authored content, and then loudly — an install diagnostic naming the
+  thing, its size and the place, never a silent trim.
+- **Places stay cubes.** Real proportions (width × depth × height inside the cell) were reconsidered in
+  review and **declined** — beyond the hallway and the sofa, which a way's turn already covers, they buy
+  too little for a refactor of every zone's content.
 
 ### Hands and carrying **[DECIDED]**
 
@@ -350,7 +365,8 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 9. *instant · player* — Climb a ladder holding a lantern and a sword — refused for want of hands; `put` them
    away (the sword in its sheath, the lantern on your belt) and climb.
 10. *instant · staged* — Carry a wardrobe-sized crate to a stair whose turn is too tight — refused by its
-    size, saying so; the same crate through a wide doorway passes.
+    size, saying so; the same crate through a wide doorway passes. A pole stands in an open barrel,
+    sticking out; put in a chest, `close chest` is refused — *"the pole sticks out."*
 11. *instant · player* — Another character in the room: `i them` shows what they hold, their outer layer,
     the knife on their belt — not the letter in their inner pocket.
 12. *instant · player* — ⭐ Probe the covered letter: `get letter from them`, `get paper from them`
