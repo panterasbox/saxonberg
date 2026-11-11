@@ -523,7 +523,11 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   | null`: `null` when `item.getMass() > getStrainCeiling()`; `2` when mass >
   `getCarryCapacity() × CARRYING_DEFAULTS.ONE_HAND_FRACTION` (0.3; 70 kg → ~10 kg) or
   `item.getDimensions().longest > stature × TWO_HAND_LENGTH` (0.6; a 1.2 m staff) or the
-  item's Wieldable claim names two hand slots (a weapon's own say wins when larger);
+  item's Wieldable claim names two hand slots **because its use needs two** (owner,
+  2026-11-11: two hands *by use* is authored — bow, crossbow, pike — and two hands *by
+  weight* is derived; a weapon row whose two-hand claim is only about weight loses it
+  in W6, so an ogre wields a human greatsword one-handed and a gnome needs two for a
+  longsword — the W6 audit of `generic-objects` arms rows lists each and its reason);
   else `1`. A gnome's threshold sits below an ogre's by construction. No strength stat
   is added (encumbrance.md's rule holds).
 - **D11 — `receive` is the one way onto a body; the invariant is a destination veto.**
@@ -581,7 +585,11 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
 - **D16 — `ready` is the model's act; a verb asks for it with one arg field.**
   `Carrying.ready(item): ActRefusal<'packed' | 'hands-full' | 'not-on-you', {by}> |
   null`: in hand → ok; ready tier → free a hand (`stow(held)` sends the held thing to
-  its home if it still fits, else refuse `hands-full`), then `seatInSlot(item, hand)` and
+  its home if it still fits, else refuse `hands-full` — **never dropped for the player**
+  (owner, 2026-11-11): the refusal names the held thing and offers both ways out, *drop
+  it* (instant, no beat — `drop` in a fight is free) or *put it away first*; a shield's
+  home may be the `back` slot when no pack holds it; a held shield counts as a hand, so
+  `handsFor` 2 + a shield refuses naming the shield), then `seatInSlot(item, hand)` and
   the scene line (*you sheathe your sword and pull out your compass*); packed → refuse
   naming the pack (*take it off first*); elsewhere but reachable and fixed in place (a
   bench) → ok (used where it stands); elsewhere otherwise → `not-on-you`. **The
@@ -1098,7 +1106,7 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   refusals fire after binding).
 - Acceptance: the controller-liquidity baseline drive still passes except the rows its
   own plan marks as reach-rung dependent (re-record those with the commit saying so);
-  drive steps 11–13 pass over the wire.
+  drive steps 12–14 pass over the wire.
 - Commit: `build(size-and-carrying W3): MQL names things for everyone; the acts apply perception; one rule for reach; the builder lens`.
 
 ### W4 — hands, homes, readying, weight, leading; the kernel callers port (D9–D18 kernel side)
@@ -1253,14 +1261,14 @@ Every verb above is conferred by a `commandContributions` static or a shipped vi
 | nothing loose on a body after any act and after a restart | W0 (census), W4/W5 (ports), W7 (veto + `placeLoose`); drive 1, 19 |
 | the nearest perceived thing wins; single-command pick up / ready / put away; every refusal names what works | W3 (one rule), W4 (`ready`, `stow`), W5 (`put` → home); drive 3–5 |
 | a belt — or anything things hang from — holds attachments by its length, says the room in words, and a loadout is assembled with `put` and `get` | W1 (the hanging rule on `Placing`, `roomFor`, `bearsKg`), W5 (the worn length, `i belt`), W6 (the rows); drive 4 |
-| low door, crawlway, ladder, stair's turn, pond behave by size and body, in actionable words | W1 (turn, fit), W2 (clearance, modes, hands, wet), W6 (places); drive 7–10, 15 |
+| low door, crawlway, ladder, stair's turn, pond behave by size and body, in actionable words | W1 (turn, fit), W2 (clearance, modes, hands, wet), W6 (places); drive 8–11, 15 |
 | `inventory` by tier + the burden in words | W5, W7; drive 2, 16 |
-| no verb shows/names/counts/asks about an unperceived thing; MQL names the same things for everyone | W3 — the resolver universal (`mql.universal.test.ts` pins player = system mode), every binding/showing surface through `perceived` (the lint at 0); drive 11–13 |
-| the builder lens inside held extents; plays plainly without | W3; drive 18 |
-| every character restored carries exactly what it carried | W4 (homes by index), W7 (`placeLoose`); drive 19 |
-| a pack animal carries only in what it wears, as its body bears, led on a held rope that takes a hand | W4 (lead, hands), W6 (mule, tack); drive 16 |
-| a hitched cart fills the hands it says, fits a way by size, parks with its load | W4 (handedness), W2 (cart clearance), D30; drive 16 |
-| weight follows gravity and buoyancy; a thing leaves an open container when nothing presses it | W1 (pressing, `gravityNow`), W4 (burden × g); drive 15, 17 |
+| no verb shows/names/counts/asks about an unperceived thing; MQL names the same things for everyone | W3 — the resolver universal (`mql.universal.test.ts` pins player = system mode), every binding/showing surface through `perceived` (the lint at 0); drive 12–14 |
+| the builder lens inside held extents; plays plainly without | W3; drive 19 |
+| every character restored carries exactly what it carried | W4 (homes by index), W7 (`placeLoose`); drive 20 |
+| a pack animal carries only in what it wears, as its body bears, led on a held rope that takes a hand | W4 (lead, hands), W6 (mule, tack); drive 17 |
+| a hitched cart fills the hands it says, fits a way by size, parks with its load | W4 (handedness), W2 (cart clearance), D30; drive 17 |
+| weight follows gravity and buoyancy; a thing leaves an open container when nothing presses it | W1 (pressing, `gravityNow`), W4 (burden × g); drive 16, 17 |
 
 Nothing in the requirements is unmapped.
 
@@ -1283,7 +1291,7 @@ Nothing in the requirements is unmapped.
   (B2). Step 19 is the R4 restart.
 - **The soak drive** (`size-and-carrying.soak.dirty.wire.test.ts`): the two-hour
   expedition at 12× — the pack's food and water consumed on the body's clock, the burden
-  line falling. Its **staged twin** in the blocking drive is step 16 (the packed pack's
+  line falling. Its **staged twin** in the blocking drive is step 17 (the packed pack's
   weight read, a wizard advancing hunger by `nourish`/`advanceWorldClock` four hours,
   the burden line lower). Named in the MR for the soak lane.
 - **The walk** (`e2e/tests/size-and-carrying-walk.spec.ts`): pick up two things, open

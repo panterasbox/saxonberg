@@ -199,6 +199,17 @@ differ from the defaults.
 - **What a hand grips** — mass against grip strength (from the arm's muscle and the body's mass); a
   load long relative to the carrier's own stature, or heavier than one hand bears, **takes both hands**;
   a hurt hand cannot grip. A gnome's two-handed threshold sits below an ogre's.
+- **Two hands by use, or by weight** (owner review, 2026-11-11). A thing whose **use** needs two hands
+  says so — a bow, a crossbow, a pike: drawing a bow takes both hands however strong you are.
+  Everything else takes two hands **by weight and length** against the holder, derived: an ogre swings
+  a human's greatsword one-handed, a gnome needs both hands for a longsword. Authors stop guessing.
+- **Hands in a fight.** A shield is held, so it takes a hand: a shield and a two-handed weapon refuse
+  each other, naming the shield; a lantern held means no shield — which is what a headlamp is for.
+  Readying puts what is in your hand **home** first; a thing with no home on you (the lantern you
+  picked up) is never dropped for you — the refusal offers both ways out: *"Your hands are full — the
+  lantern has nowhere to go. Drop it (`drop lantern`) or put it away first."* In a fight, dropping is
+  instant and stowing costs a beat, so the player makes the trade; a dropped lantern still lights the
+  room. A shield may live slung on your back, if a pack isn't there.
 - **Nothing loose on a body**; choosing where a received thing goes is the carrier's own act — a free
   hand, else the first worn container it fits, else a refusal in words (*"your hands are full and it
   won't fit in your pockets"*). The order is the player's setting.
@@ -485,33 +496,37 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
    *"your compass is packed in your backpack — take it off first."* `remove backpack`, and it works.
 6. *short · staged* — In a fight, readying the compass costs a beat; drawn from a quick-draw holster it
    costs less than from a pocket (watch the exchange's narration).
-7. *instant · player* — A three-meter pole: `get pole` takes both hands; with a lantern held, it is
+7. *short · staged* — In a fight, holding a lantern and a shield: `fight draw sword` is refused, naming
+   the lantern and offering to drop it; `drop lantern` is instant and the room stays lit; `fight draw
+   sword` costs a beat; `wield greatsword` is refused, naming the shield. A staged ogre wields the same
+   greatsword in one hand; a gnome is refused a longsword one-handed.
+8. *instant · player* — A three-meter pole: `get pole` takes both hands; with a lantern held, it is
    refused, naming both hands.
-8. *instant · player* — `go` under a low door — *"you'd have to stoop — `stoop north`"*; `stoop north`
+9. *instant · player* — `go` under a low door — *"you'd have to stoop — `stoop north`"*; `stoop north`
    goes through. A crawlway with a pack on: `crawl north` is refused, naming the pack; `remove
    backpack`, then `crawl north` — through, pushing the pack ahead.
-9. *instant · player* — Climb a ladder holding a lantern and a sword — refused for want of hands; `put` them
+10. *instant · player* — Climb a ladder holding a lantern and a sword — refused for want of hands; `put` them
    away (the sword in its sheath, the lantern on your belt) and climb.
-10. *instant · staged* — Carry a wardrobe-sized crate to a stair whose turn is too tight — refused by its
+11. *instant · staged* — Carry a wardrobe-sized crate to a stair whose turn is too tight — refused by its
     size, saying so; the same crate through a wide doorway passes. A pole stands in an open barrel,
     sticking out; put in a chest, `close chest` is refused — *"the pole sticks out."*
-11. *instant · player* — Another character in the room: `i them` shows what they hold, their outer layer,
+12. *instant · player* — Another character in the room: `i them` shows what they hold, their outer layer,
     the knife on their belt — not the letter in their inner pocket.
-12. *instant · player* — ⭐ Probe the covered letter: `get letter from them`, `get paper from them`
+13. *instant · player* — ⭐ Probe the covered letter: `get letter from them`, `get paper from them`
     (no *"which one?"*), `query them:I:letter`, and a script `if (them:I:letter) { say yes }` — each
     answer is identical to the answer for a person with no letter at all. The same query typed by the
     letter's bearer finds it.
-13. *instant · staged* — A shut backpack: `inventory` lists its contents; a wizard removes one item;
+14. *instant · staged* — A shut backpack: `inventory` lists its contents; a wizard removes one item;
     `inventory` no longer lists it — you see what's in your own bag when you look.
-14. *instant · staged* — Knock a character unconscious mid-fight — the sword in their hand falls to the
+15. *instant · staged* — Knock a character unconscious mid-fight — the sword in their hand falls to the
     floor; their worn belt stays on them. `get letter from them` is answered as for a person with no
     letter; `search them` — a few moments, the room told — and the letter in their inner pocket is
     found; `get letter from them` now takes it. Another character who did not search still cannot see
     it; once the letter is in your own pocket, nobody's earlier find shows it.
-15. *short · player* — Swim across a pond carrying a paper letter in an ordinary pack — it comes out wet
+16. *short · player* — Swim across a pond carrying a paper letter in an ordinary pack — it comes out wet
     and ruined; the same letter in an oilskin pouch comes out dry. A cork in an open coat pocket floats
     away as you go under; in a buttoned pocket it stays.
-16. *instant · player* — Pack two game days of food and water for one person — `inventory --weight` and
+17. *instant · player* — Pack two game days of food and water for one person — `inventory --weight` and
     the burden line show it is most of a pack; `put` it in a mule's panniers and the burden falls; keep
     adding and the mule refuses in words. `tie rope to mule` and hold the end — the mule comes with you
     through the next way, and you have one hand free. Mounted on a horse, a compass in your saddlebags
@@ -521,17 +536,17 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
     full hands — refused, the cup still yours. Hitch a handcart — `get lantern` is refused, naming your hands on the
     cart; at a narrow door the cart won't fit; throw a tarp over its load, and another character in the
     room no longer sees it.
-17. *instant · staged* — A wizard sets one room's gravity to zero: a dropped cup floats in the room; a
+18. *instant · staged* — A wizard sets one room's gravity to zero: a dropped cup floats in the room; a
     cup set on the table drifts off; a full pack reads as no weight on the burden line, yet still won't
     pass the hatch and still takes both hands.
-18. *instant · staged* — Inside an extent you hold, with the builder lens on: look into a staged NPC's
+19. *instant · staged* — Inside an extent you hold, with the builder lens on: look into a staged NPC's
     shut chest and read its true contents, labeled builder information; with the lens off, the same chest
     is shut to you like anyone.
-19. *short · staged* — ⭐ (R4) Restart the world. Every character comes back holding, wearing and
+20. *short · staged* — ⭐ (R4) Restart the world. Every character comes back holding, wearing and
     pocketing exactly what they had — no item loose, none on the floor, none duplicated; a pre-flip
     character's loose inventory has been placed (hands, pockets, pack, and the overflow at home, with the
     message).
-20. *instant · player* — (R5) `look` in the new or changed places — the low-door room, the crawlway, the
+21. *instant · player* — (R5) `look` in the new or changed places — the low-door room, the crawlway, the
     stair, the pond — by day and with a headlamp at night.
 
 ### Soak drive
@@ -554,6 +569,8 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 - A creator inspects the true state of their own content with the builder lens, and plays it plainly
   without.
 - Every character restored after a restart carries exactly what they carried.
+- Hands are scarce in a fight: a held light, a shield and a two-handed weapon compete, two hands come
+  from a thing's use or from its weight against the holder, and nothing is ever dropped for you.
 - A pack animal carries only what it wears, as much as its body bears, and comes with you on a held
   rope that takes a hand.
 - A hitched cart fills the hands it says, fits a way by its size, and a parked one stays where it was
