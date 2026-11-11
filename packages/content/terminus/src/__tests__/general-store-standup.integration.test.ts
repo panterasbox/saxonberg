@@ -88,10 +88,6 @@ const COOKING_SRC = fileURLToPath(new URL("../../../trade-cooking/src", import.m
 const HAULAGE_SRC = fileURLToPath(new URL("../../../trade-haulage/src", import.meta.url));
 const TEXTILES_SRC = fileURLToPath(new URL("../../../trade-textiles/src", import.meta.url));
 const DYEING_SRC = fileURLToPath(new URL("../../../trade-dyeing/src", import.meta.url));
-/** The commons' fabric-construction rows — `woven`, `knit`, `felted`. */
-const FABRIC_DIR = fileURLToPath(
-  new URL("../../../base-library/content/stuff/idea/fabric/", import.meta.url),
-);
 const COUNTER = "/world/terminus/general-store/counter";
 const TORCH = "/world/terminus/general-store/thing/torch";
 
@@ -424,34 +420,10 @@ describe("general-store standup (real seeds)", () => {
     ModuleApi.registerPackSource(DYEING_SRC, "/trade/dyeing");
     ModuleApi.registerPackSource(GLASS_SRC, "/trade/glass");
     ModuleApi.registerPackSource(CERAMICS_SRC, "/trade/ceramics");
-    // ⚠⚠ The FABRIC forms — ⭐ **read from the ROWS now, not written out
-    // here.** `woven` / `knit` / `felted` are registered at boot by
-    // `FabricCatalogue` from `base-library`'s rows, and this harness
-    // stands rows up without it, so the moment the shelf started stocking
-    // CLOTH (apiculture's veil and gloves, which are ordinary clothing by
-    // design) every standup assertion died on `unknown form 'woven'`.
-    // The armour line never caught it because `plate` and `padded` are
-    // kernel forms.
-    //
-    // ⚠ The first fix registered `woven` ALONE, with a comment naming all
-    // three — and the reachability sweep's shelf lines added a knit
-    // hoodie, so the standup died again on `unknown form 'knit'`. One
-    // hand-written form out of three, beside a comment that knew there
-    // were three. Reading the rows is what makes that unrepeatable: a
-    // fourth form is a row and this harness picks it up.
-    for (const f of readdirSync(FABRIC_DIR).filter((n) => n.endsWith('.yaml'))) {
-      const row = YAML.parse(readFileSync(`${FABRIC_DIR}${f}`, 'utf-8')) as {
-        data?: Record<string, number | string>;
-      };
-      const d = row.data ?? {};
-      Construction.registerFabric({
-        key: String(d.key),
-        layerBand: Number(d.layerBand ?? 0),
-        loft: Number(d.loft ?? 0),
-        weaveDensity: Number(d.weaveDensity ?? 0),
-        drape: Number(d.drape ?? 0),
-      });
-    }
+    // ⚠⚠ The FABRIC forms (`woven`, `knit`, `felted`) are platform
+    // documents now (load-on-use W2), resident in every suite from the
+    // shipped files (`test-bootstrap`'s `rememberKernelDocuments`) — the
+    // same way a running world loads them with the garment that cites them.
     installV1QuantityMarshallers();
     await AppSettings.warm();
   });

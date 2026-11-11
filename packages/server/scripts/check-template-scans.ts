@@ -75,7 +75,6 @@ export const ALLOWLIST: AllowEntry[] = [
   { file: "packages/server/src/mud/platform/idea/CorpoCatalogue.ts", count: 2, reason: "a dictionary's own warm — booted under the scan sweep's reader rule (read synchronously; no async seam before the read)" },
   { file: "packages/server/src/mud/platform/idea/GovernmentCatalogue.ts", count: 1, reason: "a dictionary's own warm — booted under the scan sweep's reader rule (read synchronously; no async seam before the read)" },
   { file: "packages/server/src/mud/platform/idea/AddressRegistry.ts", count: 1, reason: "a dictionary's own warm — booted under the scan sweep's reader rule (read synchronously; no async seam before the read)" },
-  { file: "packages/server/src/mud/platform/idea/FabricCatalogue.ts", count: 1, reason: LAZY_DICT },
   { file: "packages/server/src/mud/platform/idea/FractionScheduleCatalogue.ts", count: 1, reason: "a dictionary's own warm — booted under the scan sweep's reader rule (read synchronously; no async seam before the read)" },
   { file: "packages/server/src/mud/platform/idea/MaturationProfileCatalogue.ts", count: 1, reason: "a dictionary's own warm — booted under the scan sweep's reader rule (read synchronously; no async seam before the read)" },
   { file: "packages/content/trade-dyeing/src/idea/DyestuffCatalogue.ts", count: 1, reason: LAZY_DICT },

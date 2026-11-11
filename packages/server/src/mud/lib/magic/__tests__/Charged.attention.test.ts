@@ -39,6 +39,7 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { rememberFabric, forgetFabrics, fabricPath } from '../../material/__tests__/fabrics';
 
 /** A charged thing worn on a finger — the veil's carrier. */
 class Ring extends BlessableMixin(
@@ -85,7 +86,7 @@ function wearerWithHead(): { body: Wearer; planPath: string } {
 
 function hood(planPath: string, masks: boolean): Hood {
   const h = makeStuff(() => new Hood());
-  h.setConstructionForm('woven');
+  h.setConstructionForm(fabricPath('woven'));
   h.setSlotClaim(planPath, ['head']);
   if (masks) {
     h.setAppearsAs('a hooded figure');
@@ -109,7 +110,7 @@ describe('the hood/veil interlock', () => {
     WorldClockApi._resetForTesting();
     now = 100000;
     WorldClockApi._setNowProviderForTesting(() => now);
-    Construction.registerFabric({
+    rememberFabric({
       key: 'woven',
       layerBand: 0,
       loft: 0.1,
@@ -119,7 +120,7 @@ describe('the hood/veil interlock', () => {
   });
   afterEach(() => {
     vi.restoreAllMocks();
-    Construction.clearFabrics();
+    forgetFabrics();
     StuffApi.clearAll();
   });
 

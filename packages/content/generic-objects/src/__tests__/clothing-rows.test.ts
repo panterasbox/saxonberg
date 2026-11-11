@@ -105,14 +105,12 @@ describe("every worn row is a real physical object", () => {
     // The vocabulary has two sources; a typo in either direction throws
     // at hydration, which is a boot failure rather than a silent one.
     const KERNEL = new Set(["plate", "mail", "padded", "quilted", "hide"]);
-    const fabricDir = join(
-      here, "..", "..", "..", "base-library",
-      "content", "stuff", "idea", "fabric",
-    );
+    // A fabric is a platform DOCUMENT cited by path (load-on-use W2).
+    const fabricDir = join(here, "..", "..", "..", "platform", "content", "fabrics");
     const fabrics = new Set(
       readdirSync(fabricDir)
         .filter((f) => f.endsWith(".yaml"))
-        .map((f) => f.replace(/\.yaml$/, "")),
+        .map((f) => `/platform/fabrics/${f.replace(/\.yaml$/, "")}`),
     );
     for (const row of ALL) {
       const form = String(row.data.constructionForm);

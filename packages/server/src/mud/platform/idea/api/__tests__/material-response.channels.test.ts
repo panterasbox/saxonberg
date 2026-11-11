@@ -35,6 +35,7 @@ import {
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../Condition';
+import { rememberFabric, fabricPath } from '../../../../lib/material/__tests__/fabrics';
 
 let seq = 0;
 
@@ -70,7 +71,7 @@ function realGarment(
   const g = makeStuff(() => new Garment());
   g.setMaterial(material);
   g.setMass(Quantity.of(massKg, 'kg'));
-  g.setConstruction(Construction.of('woven'));
+  g.setConstruction(Construction.of(fabricPath('woven')));
   stampTemplatePathForTest(g, `/stuff/thing/test/ch-real-${seq++}`);
   const plan = c.getSpecies()!.getBodyPlan()!.getTemplatePath()!;
   g.setSlotClaims({ [plan]: ['torso'] });
@@ -209,7 +210,7 @@ describe('cold — the heat fold, run the other way', () => {
 describe('⭐⭐ ONE insulation number — the fold reads the garment\u2019s real clo', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    Construction.registerFabric({
+    rememberFabric({
       key: 'woven',
       layerBand: 0,
       loft: 0.6,

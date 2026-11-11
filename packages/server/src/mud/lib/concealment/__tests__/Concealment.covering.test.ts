@@ -32,6 +32,7 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { rememberFabric, forgetFabrics, fabricPath } from '../../material/__tests__/fabrics';
 
 class Covering extends WearableMixin(
   SlottableMixin(ContainableMixin(DyedMixin(ConstructedMixin(Good)))),
@@ -79,7 +80,7 @@ function covering(
   opts: { form?: string; dye?: number } = {},
 ): Covering {
   const g = makeStuff(() => new Covering());
-  g.setConstructionForm(opts.form ?? 'woven');
+  g.setConstructionForm(opts.form ?? fabricPath('woven'));
   g.setSlotClaim(planPath, slots);
   if (opts.dye !== undefined) {
     g.setDyeStack([
@@ -205,14 +206,14 @@ describe('⚠ every authored concealment row in shipped content still resolves',
 describe('the covering contribution', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    Construction.registerFabric({
+    rememberFabric({
       key: 'woven',
       layerBand: 0,
       loft: 0.1,
       weaveDensity: 0.9,
       drape: 0.6,
     });
-    Construction.registerFabric({
+    rememberFabric({
       key: 'knit',
       layerBand: 0,
       loft: 0.45,
@@ -221,7 +222,7 @@ describe('the covering contribution', () => {
     });
   });
   afterEach(() => {
-    Construction.clearFabrics();
+    forgetFabrics();
     StuffApi.clearAll();
   });
 
@@ -278,7 +279,7 @@ describe('the covering contribution', () => {
 describe('the hood/veil interlock', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    Construction.registerFabric({
+    rememberFabric({
       key: 'woven',
       layerBand: 0,
       loft: 0.1,
@@ -287,7 +288,7 @@ describe('the hood/veil interlock', () => {
     });
   });
   afterEach(() => {
-    Construction.clearFabrics();
+    forgetFabrics();
     StuffApi.clearAll();
   });
 

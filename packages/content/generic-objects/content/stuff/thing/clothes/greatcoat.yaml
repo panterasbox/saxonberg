@@ -21,6 +21,6 @@ data:
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [torso, legs]
   _materialPath: /stuff/idea/material/textile/wool
-  constructionForm: felted
+  constructionForm: /platform/fabrics/felted
   gradeBand: fair
   mass: 3.5

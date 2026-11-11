@@ -179,6 +179,7 @@ function rememberKernelDocuments(): void {
   };
   each("dirt", (path, data) => void MaterialApi.dirtKinds().remember(path, MaterialApi.dirtKinds().parse(data, path)));
   each("cleansers", (path, data) => void MaterialApi.cleansers().remember(path, MaterialApi.cleansers().parse(data, path)));
+  each("fabrics", (path, data) => void MaterialApi.fabrics().remember(path, MaterialApi.fabrics().parse(data, path)));
   each("formations", (path, data) => void PartyApi.formations().remember(path, PartyApi.formations().parse(data, path)));
   each("placements", (path, data) => void ContainmentApi.placements().remember(path, ContainmentApi.placements().parse(data, path)));
   // The topic vocabulary, as the first scene's warm would leave it — so a

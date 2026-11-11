@@ -50,6 +50,7 @@ import {
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
+import { rememberFabric, forgetFabrics, fabricPath } from '@saxonberg/server/mud/lib/material/__tests__/fabrics';
 
 /**
  * A body with hands and a head.
@@ -136,7 +137,7 @@ function garment(slot: string): TestGarment {
   const g = makeStuff(() => new TestGarment());
   g.setSlotClaim(bodyPlanPath, [slot]);
   g.setMaterial(linen());
-  g.setConstruction(Construction.of('woven'));
+  g.setConstruction(Construction.of(fabricPath('woven')));
   return g;
 }
 
@@ -209,7 +210,7 @@ describe('the sting', () => {
     // The veil is `woven` linen and the gloves are `hide`; a unit test
     // has no `FabricCatalogue` warm, so the fabric this file dresses
     // people in is registered by hand.
-    Construction.registerFabric({
+    rememberFabric({
       key: 'woven',
       layerBand: 0,
       loft: 0.1,
@@ -226,7 +227,7 @@ describe('the sting', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    Construction.clearFabrics();
+    forgetFabrics();
     WorldClockApi._resetForTesting();
   });
 

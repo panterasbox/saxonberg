@@ -581,6 +581,26 @@ with no reader, unchanged from before. `COMMONS_CEILING` → 33.
 
 ### W2 — fabrics become documents
 
+✅ **Done.** ⚠ **Re-planned in place:** the kernel's three fabrics live in
+the **platform** pack (`/platform/fabrics/{woven,knit,felted}`), not
+base-library — base-library declares no `root:`, so its documents would be
+`/base-library/fabrics/…`; the platform pack already hosts the kernel's
+document vocabularies (dirt, cleansers, placements). Textiles' two at
+`/trade/textiles/fabrics/…`. 20 garment rows (19 + the bolt) cite paths;
+code that writes a fabric word was found beyond the plan's census and
+converted: `WeaveController`'s three constants, `Garment`'s hot-wash
+felting (`FELTED`). `Construction` reads specs through
+`MaterialApi.fabrics().peek/need`; `getWord()` (an instance method) gives a
+sentence the leaf (`ResponseReading`). ⚠ `setConstructionForm` awaits only
+a NON-resident path — a resident one sets synchronously as a kernel word
+does (a fixture that sets and reads at once relied on it).
+`constructionForm` joins census (g) as a shared field (words pass, paths are
+checked). Test fixture: `lib/material/__tests__/fabrics.ts`
+(`fabricPath`/`rememberFabric`/`forgetFabrics`), 17 suites converted;
+`rememberKernelDocuments` gains `fabrics`. `lint:lib-statics` 340 → 339;
+`lint:on-create` 80 → 78 live (ceiling untouched until the end);
+`COMMONS_CEILING` → 34; `lint:template-scans` −1.
+
 - `DocumentKinds.fabric` (`contentDir: 'fabrics'`, `catalogue: '/platform/idea/FabricCatalogue'`).
 - `FabricCatalogue` rewritten over `DocumentCatalogue<FabricSpec>`; `parse`
   = `Construction.registerFabric`'s validation (kebab leaf, not a kernel form,

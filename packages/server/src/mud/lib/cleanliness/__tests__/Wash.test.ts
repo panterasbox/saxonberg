@@ -27,6 +27,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { rememberShippedDirt } from './soil-fixtures';
+import { rememberFabric, forgetFabrics, fabricPath } from '../../material/__tests__/fabrics';
 
 const DIRT = [
   { key: 'mud', form: 'film', answersTo: ['surfactant', 'alkali-mild', 'abrasive'], waterLifts: 0.7, brushLifts: 0.5 },
@@ -76,13 +77,13 @@ function garment(m: Material | null = null): Garment {
 beforeEach(async () => {
   rememberShippedDirt();
   installV1QuantityMarshallers();
-  Construction.registerFabric({ key: 'woven', layerBand: 0, loft: 0.1, weaveDensity: 0.75, drape: 0.6 });
-  Construction.registerFabric({ key: 'felted', layerBand: 1, loft: 0.6, weaveDensity: 0.9, drape: 0.3 });
+  rememberFabric({ key: 'woven', layerBand: 0, loft: 0.1, weaveDensity: 0.75, drape: 0.6 });
+  rememberFabric({ key: 'felted', layerBand: 1, loft: 0.6, weaveDensity: 0.9, drape: 0.3 });
   installDirtKinds(DIRT as Record<string, unknown>[]);
 });
 afterEach(() => {
   vi.restoreAllMocks();
-  Construction.clearFabrics();
+  forgetFabrics();
   StuffApi.clearAll();
 });
 
@@ -156,7 +157,7 @@ describe('what washing does to cloth (D10, AC 4–5)', () => {
     const out = jumper.washSite(spec({ waterK: 370 }));
     expect(out.damage).toContain('felted');
     await new Promise((r) => setTimeout(r, 0));
-    expect(jumper.getConstructionForm()).toBe('felted');
+    expect(jumper.getConstructionForm()).toBe(fabricPath('felted'));
     expect((jumper as unknown as { cutToStature: number }).cutToStature).toBeCloseTo(1.75 * 0.85, 3);
   });
 

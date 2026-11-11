@@ -81,6 +81,7 @@ import { installV1QuantityTagTables } from '@saxonberg/server/mud/lib/persistenc
 import { buildAllModalities } from '@saxonberg/server/mud/lib/perception/modalities/__tests__/test-helpers';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
+import { rememberFabric } from '@saxonberg/server/mud/lib/material/__tests__/fabrics';
 
 // Every test here simulates hundreds of game-days of growth through the real
 // verb path, and the acceptance walk runs two full stage ladders. The default
@@ -219,7 +220,7 @@ function seedDomain(): void {
   // ⭐ The winter coat the footlocker is born with (the climate build, D18).
   addSeed('/stuff/thing/clothes/greatcoat', `${OBJECTS}stuff/thing/clothes/greatcoat.yaml`);
   // …and its fabric form, which the real world's catalogue registers.
-  Construction.registerFabric({ key: 'felted', layerBand: 1, loft: 0.6, weaveDensity: 0.9, drape: 0.3 });
+  rememberFabric({ key: 'felted', layerBand: 1, loft: 0.6, weaveDensity: 0.9, drape: 0.3 });
   addSeed('/stuff/thing/vessel/soil-sack', `${OBJECTS}stuff/thing/vessel/soil-sack.yaml`);
   // Materials + taxonomy the above reference.
   // The dorm's mana lamp (TPA reform W5): the DOMESTIC half of the

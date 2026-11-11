@@ -26,6 +26,7 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { rememberFabric, forgetFabrics, fabricPath } from '../../material/__tests__/fabrics';
 
 class TestGarment extends WearableMixin(
   SlottableMixin(ContainableMixin(ConstructedMixin(Good))),
@@ -89,7 +90,7 @@ function garment(planPath: string, massKg = 1.0): TestGarment {
   stampTemplatePathForTest(m, `/stuff/idea/material/textile/fit-wool-${seq++}`);
   g.setMaterial(m);
   g.setMass(Quantity.of(massKg, 'kg'));
-  g.setConstructionForm('woven');
+  g.setConstructionForm(fabricPath('woven'));
   g.setSlotClaim(planPath, ['torso']);
   return g;
 }
@@ -97,7 +98,7 @@ function garment(planPath: string, massKg = 1.0): TestGarment {
 describe('the measurement pair', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    Construction.registerFabric({
+    rememberFabric({
       key: 'woven',
       layerBand: 0,
       loft: 0.1,
@@ -106,7 +107,7 @@ describe('the measurement pair', () => {
     });
   });
   afterEach(() => {
-    Construction.clearFabrics();
+    forgetFabrics();
     StuffApi.clearAll();
   });
 

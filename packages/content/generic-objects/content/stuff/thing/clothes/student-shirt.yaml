@@ -10,6 +10,6 @@ data:
     "/stuff/idea/species/BodyPlan/biped": [torso]
   # Plain linen, soft from washing — the shirt against the skin, which is what linen has always been.
   _materialPath: /stuff/idea/material/textile/linen
-  constructionForm: woven
+  constructionForm: /platform/fabrics/woven
   gradeBand: fair
   mass: 0.25

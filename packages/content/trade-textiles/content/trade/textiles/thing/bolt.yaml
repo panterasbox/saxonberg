@@ -26,5 +26,5 @@ data:
     Cloth folded flat over a board, the selvedge straight and the cut end still fraying. Hold it to the light and you can count the threads, which is exactly how anybody decides what it is worth.
   _materialPath: /stuff/idea/material/textile/linen
   mass: 2
-  constructionForm: woven
+  constructionForm: /platform/fabrics/woven
   gradeBand: fair

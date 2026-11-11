@@ -1125,7 +1125,7 @@ function checkFieldRefs(rows: Map<string, string>): number {
 // ── clause (g): a field naming DOCUMENTS by path resolves ──────────
 /** Field → the document kind's content dir its values are stored under. */
 /** Clause (g) field names another family also uses for a non-path word. */
-const SHARED_FIELD_NAMES: ReadonlySet<string> = new Set(['mechanism', 'forms']);
+const SHARED_FIELD_NAMES: ReadonlySet<string> = new Set(['mechanism', 'forms', 'constructionForm']);
 
 const DOCUMENT_PATH_FIELDS: Readonly<Record<string, string>> = {
   // A species' name banks (`/species-and-names/name-banks/common`).
@@ -1144,6 +1144,9 @@ const DOCUMENT_PATH_FIELDS: Readonly<Record<string, string>> = {
   placements: 'placements',
   // A cleansing material's cleanser (`/platform/cleansers/soap`) — load-on-use W1.
   cleanser: 'cleansers',
+  // A garment's fabric (`/platform/fabrics/woven`) — load-on-use W2; a
+  // kernel form (`plate`) is a word, so only path-shaped values are checked.
+  constructionForm: 'fabrics',
 };
 
 /** Every document path a pack ships under `contentDir`: its root + the dir + the file. */

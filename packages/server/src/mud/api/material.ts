@@ -41,6 +41,7 @@ import { SecurityApi } from './security';
 import DirtCatalogue from '../platform/idea/DirtCatalogue';
 import type MaterialCatalogue from '../platform/idea/MaterialCatalogue';
 import CleanserCatalogue from '../platform/idea/CleanserCatalogue';
+import FabricCatalogue from '../platform/idea/FabricCatalogue';
 import { DocumentNotResidentError } from '../lib/errors';
 import { TemplatePaths } from '../lib/paths';
 
@@ -181,6 +182,16 @@ export class MaterialApi {
    */
   public static cleansers(): CleanserCatalogue {
     return StuffApi.singletonSync('/platform/idea/CleanserCatalogue', () => new CleanserCatalogue());
+  }
+
+  /**
+   * ⭐ The fabrics — the non-resisting textile forms (`woven`, `knit`, a
+   * pack's `sackcloth`), any pack's `content/fabrics/`, served by
+   * {@link FabricCatalogue}. A garment cites one by path in its
+   * `constructionForm`, which loads it.
+   */
+  public static fabrics(): FabricCatalogue {
+    return StuffApi.singletonSync('/platform/idea/FabricCatalogue', () => new FabricCatalogue());
   }
 
   // The `materialOf` read-wrapper was removed: the read lives on the

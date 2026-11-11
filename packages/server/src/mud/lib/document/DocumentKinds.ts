@@ -154,6 +154,13 @@ export const DOCUMENT_KINDS = {
    * (`lib/cleanliness/Cleanser.ts`). Named by the MATERIAL that is one
    * (`cleanser:` on a material row), by path.
    */
+  /**
+   * A **fabric** — one non-resisting textile form (woven, knit, felted):
+   * its covering band, loft, weave density, drape and stretch (`FabricSpec`,
+   * `lib/material/Construction.ts`). A garment cites it by path in its
+   * `constructionForm`.
+   */
+  fabric: { kind: 'fabric', catalogue: '/platform/idea/FabricCatalogue', contentDir: 'fabrics', ext: 'yaml', onVanish: 'delete' },
   cleanser: { kind: 'cleanser', catalogue: '/platform/idea/CleanserCatalogue', contentDir: 'cleansers', ext: 'yaml', onVanish: 'delete' },
   /**
    * An **operation** — one entry of the surgical catalogue: which wound it

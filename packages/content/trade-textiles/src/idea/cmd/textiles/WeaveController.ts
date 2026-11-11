@@ -10,7 +10,7 @@
  *
  * ⭐⭐ **The density is a FABRIC ROW, not a per-bolt number**, and that
  * is the demonstration that `Construction`'s second source works: this
- * pack ships its own `/trade/textiles/idea/fabric/*` rows, the
+ * pack ships its own `content/fabrics/` documents (`/trade/textiles/fabrics/*`), the
  * catalogue harvests them by path infix, and the kernel never learned
  * they exist. A pack adding `lace` tomorrow needs no kernel edit and
  * changes nothing about combat — cloth resists poorly, and the kernel
@@ -42,10 +42,10 @@ import TextileStock from '../../../thing/TextileStock';
 const TOPIC = 'act.deed';
 const BOLT_ROW = '/trade/textiles/thing/bolt';
 
-/** The three points on the continuum, as fabric FORM words. */
-const OPEN = 'sackcloth';
-const PLAIN = 'woven';
-const CLOSE = 'fine-woven';
+/** The three points on the continuum, as the fabric documents they cite (load-on-use W2). */
+const OPEN = '/trade/textiles/fabrics/sackcloth';
+const PLAIN = '/platform/fabrics/woven';
+const CLOSE = '/trade/textiles/fabrics/fine-woven';
 
 interface WeaveModel extends CommandModel {
   loom?: MqlManyResult;
