@@ -343,8 +343,10 @@ field, a method or a row on something that exists.
 | `Dimensions` | value object | `$S/lib/spatial/Dimensions.ts` | **genuinely new.** Searched: `BoundaryOpening` (2-D, an opening not a thing — reused as the mouth/clearance type), `Quantity` (a scalar), `Exposure` (faces of a place). Carries `width·depth·height` m, `crossSection(): BoundaryOpening` (the two smaller), `longest`, `boxVolume`, `fitsThrough(opening)`, `fitsWithin(box, closed)` |
 | `Form` rows | Idea rows, class `platform/idea/Form` | `$P/idea/Form/{rod,sheet,block,round,flexible}` | generalizes the `LocomotionMode` / `Placement` row pattern (a vocabulary with numbers behind it is rows, not an enum — `lint:closed-vocabularies`); a sixth form is a row and no code |
 | `CarryingMixin` | kernel mixin on `Creature` | `$S/lib/embodiment/Carrying.ts` | **genuinely new** (slate § 8 "`agent.receive` on the carrier"). Searched: `LoadBearing` (the gauge, not where things go), `Attired` (covering), `Slotted` (occupancy), `HaulerMixin` (the cart), `Store.receive` (a warehouse's). Owns `receive`, `ready`, `stow`, the homes, `freeHands`, grip |
-| `Pocket` | class, `platform/thing/Pocket` | `$S/platform/thing/Pocket.ts` = `Sealable(Container(Good))`, `fixedInPlace` | the exit-kind pattern (`pockets:` entries clone a kind row); rows in tailoring |
-| `Pouch` · `Sheath` · `WornLight` | classes, `platform/thing/equipment/` | `Pouch = Wearable(Slottable(Sealable(Container(Good))))`; `Sheath = Pouch` + `shapedTo`; `WornLight = Wearable(Slottable(PortableLight))` | beside `Pack = Wearable(Slottable(Vessel))`; a holster/scabbard/quiver is a `Sheath` row; a belt/bumbag/saddlebag a `Pouch` row; the headlamp a `WornLight` row |
+| pockets as named placement members | a widening of `Placing.placements` (`string[]` → entries `{member, name?, mouth?, volumeM3?, covered?, closes?}`) + one Placement document `/platform/placements/pocket` | `$S/lib/spatial/Placing.ts`, `$C/platform/content/placements/pocket.yaml` | **not a class** (owner review): a pocket is a region the garment offers; the pocketed thing lives in the wearer's contents with the pair, as the ham lives in the room (`placeOn`); `putPlanFor`'s offers, `canPlace(item, name)`, `getPlaced(name)` and the persisted pair already do the job. The widening also lets a range name its two hot plates |
+| the hanging rule (the belt) | methods on `Placing` — `hangingLengthM()`, `bearsKg()`, `roomFor(name)`, and the fit step in `canPlace`'s default body; two row fields on the `from` Placement document (`hangs`, `fastens`); one material property `tensileStrengthMPa` | `$S/lib/spatial/Placing.ts`, `$C/platform/content/placements/from.yaml`, `$S/lib/material/Material.ts` | **not a class**: the container rule's one-dimensional case on the shipped `from` placement (a ham from a hook); attach is `put`, detach is `get`. Searched: `Slotted.capacity` (a count, never a length — the owner refuses authored mount counts), `Placing.bearingLoadN` (the force a host presses down, the inverse question) |
+| `shapedTo?` on `Container` | field | `$S/lib/spatial/Container.ts` | a container shaped to one kind (a sheath, a holster, a quiver, a knife block, a cup rack); unset = anything that fits. A holster/scabbard/quiver is a **`Pack` row** with `shapedTo` + an authored `mouth`; a belt pouch, bumbag, purse, saddlebag, pannier a `Pack` row with its claim — **no `Pouch`, no `Sheath` class** (owner review) |
+| `PortableLight` composes `Wearable(Slottable(…))` | composition change, no new class | `$S/platform/thing/equipment/PortableLight.ts` | the headlamp is a `PortableLight` row claiming `[head]`; the two shipped rows claim nothing and are unchanged. Slottable is also what lets a lamp clip onto a mount point later (the belt) |
 | `canid` body plan | row | `$C/species-and-names/…/BodyPlan/canid.yaml` `extends:` quadruped + `body.head.mouth` `serves: [manipulation]` + slot `mouth` | the dog's one "hand"; the horse keeps the quadruped plan (no hands) |
 | `stoop` · `crawl` | LocomotionMode rows + thin controllers + views | `$P/idea/LocomotionMode/`, `$S/platform/idea/cmd/movement/{Stoop,Crawl}Controller.ts`, `$P/cmd/movement/` | beside `sneak` (locomotion.md § Authoring) |
 | `lens` | view + controller (`author` category) | `$P/cmd/author/lens.yaml`, `$S/platform/idea/cmd/author/LensController.ts` | the builder lens switch; resolves `heldExtents` once at `on` |
@@ -352,8 +354,17 @@ field, a method or a row on something that exists.
 | the drive + the walk | wire file, e2e | `packages/wire/tests/size-and-carrying.dirty.wire.test.ts`, `size-and-carrying.soak.dirty.wire.test.ts`, `e2e/tests/size-and-carrying-walk.spec.ts` | precedent: controller-liquidity, cordage |
 
 **Fields on existing hosts** (each argued in § Host placement): `form`, `dimensions?`
-on `Tangible`; `mouth?` on `Container`; `turn?` on `Exit`; `hands` on `LocomotionMode`;
-`back` and `waist` slots on the biped plan.
+on `Tangible`; `mouth?`, `shapedTo?` on `Container`; `turn?` on `Exit`; `hands` on
+`LocomotionMode`; `readies:` on `FieldDefinition`; `tensileStrengthMPa` on `Material`;
+`hangs`/`fastens` on the `from` Placement row; `back` and `waist` slots on the biped
+plan; `Garment` composes `Placing`.
+
+**Classes considered and not made** (P1, owner review): `Pocket` (a Stuff per pocket —
+two to four objects per garment for every worn garment in the world, each persisted,
+swept and cloned; the member shape costs none), `Pouch`/`Sheath` (rows over `Pack` with
+`shapedTo`, hung from a belt), `WornLight` (a composition change on `PortableLight`),
+`Belt` (a `Garment` row with a `from` member; the length rule is `Placing`'s for every
+from-host).
 
 **Not new, and named so nobody re-invents them:** `BoundaryOpening` (the mouth and
 the clearance type), `Exit.getOpening()`, `Boundary.getOpening()`, `Exposure`,
@@ -378,7 +389,7 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
 
 - **D1 — a thing's size is `Dimensions`, derived from form × volume, authored only when
   special.** `Tangible` gains `form` (identity ref to a Form row; default by class:
-  `Garment`/`Line`/`Sack`/`Pocket`/`Pouch`/`Pack` → `flexible`, `Sheet` → `sheet`,
+  `Garment`/`Line`/`Sack`/`Pack` → `flexible`, `Sheet` → `sheet`,
   everything else `block`; a row overrides) and `dimensions?` (authored `{width, depth,
   height}` m, the bole's length precedent). `getDimensions()` = authored, else
   `Dimensions.ofForm(form.aspect, getVolumeM3())` (the form row carries `aspect:
@@ -419,6 +430,33 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   - mouth = authored `mouth?` else derived: rigid → the open or lidded face (width ×
     depth); flexible → the packed cross-section of the container itself; a place → not a
     mouth, entry is through a way (D8).
+  **The one-dimensional case — a thing others hang from** (the modular belt, requirements
+  § *The modular belt*): a `Placing` host's `from` member is bounded by its **length**,
+  and each hung thing takes its **hanging width** (`Dimensions.hangingWidthM()` — the
+  middle dimension of the sorted box; a flexible thing its packed cube root).
+  `Placing.hangingLengthM()`: default the host's own `getDimensions().longest` (a tool
+  rail, a pack's strap, a saddle's skirt; a `round` form answers its circumference — a
+  key ring); **`Garment` overrides it while worn** with the wearer's circumference at the
+  claimed slot (`π × envelope.width`, × `WAIST_FRACTION` 0.9 for `waist` — a gnome's belt
+  holds less than an ogre's), its own longest unworn. `Placing.bearsKg()`: the mass the
+  host holds up, from its material — `Material.tensileStrengthMPa` (new authorable
+  material property: leather 20, hemp 60, steel 400; unset = unbounded, a pegboard) ×
+  the host's cross-section (`depth × height` of its box) ÷ g ÷ `HANG_SAFETY` 4.
+  `Placing.roomFor(name): 'none' | 'a small thing' | 'one more pouch' | 'plenty'` words
+  the remaining length against `HANG_ROOM_WORDS` (0.04 m / 0.10 m / 0.30 m); never a
+  number. One mechanism for every from-host — belt, bandolier, chest harness, vest,
+  pack straps and carabiners, saddle, key ring, pegboard, tool rail — **and no belt
+  class** (D27).
+  **Where the member fit lives:** `Placing.canPlace(item, name)`'s default body (shipped:
+  `no-such-placement` → `shut` → ok) gains the fit step between `shut` and ok: for a
+  member whose document `encloses` (a pocket) the mouth/volume/capacity checks against
+  the member entry's `mouth`/`volumeM3` over `getPlaced(name)`; for a member whose
+  document `hangs` (the `from` row gains `hangs: true`, `fastens: true` — row fields, D5)
+  the length and the mass: Σ `hangingWidthM` + the item's ≤ `hangingLengthM()`
+  (`'no-room-along'`, worded *"there's no room on your belt for the canteen"*), Σ mass +
+  the item's ≤ `bearsKg()` (`'too-heavy-for'`, *"the belt won't take it"*); `on` bounds
+  nothing. `placeOn` (:262) already asks it, so the belt's rule fires at the chokepoint
+  with no new call.
   `Container.fitRefusal(item): ActRefusal<'too-big-for-mouth' | 'too-big-inside' |
   'no-room', {container, item, dims}> | null` runs the two tape-measure checks (mouth
   by cross-section; turned some way it fits every closed side — the three rotations of
@@ -433,8 +471,9 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   won't shut"*). A `Placing` `on` destination runs `canPlace` only (unchanged); it bounds
   nothing.
 - **D5 — pressed in, or it leaves.** `Container.reconcilePressing()`: for each content
-  that is not a slot occupant and not fixed in place, the net force direction is one
-  of three: **down** (gravity > 0 and not buoyed) → held by a closed bottom, always;
+  that is not a slot occupant, not fixed in place, and **not placed on a member whose
+  document `fastens`** (`from`: a hung thing is clipped or tied — it stays put in water
+  and in zero g; `on` does not fasten), the net force direction is one of three: **down** (gravity > 0 and not buoyed) → held by a closed bottom, always;
   **up** (immersed and `item density < medium density`) → leaves unless height is
   closed; **none** (`gravityNow() == 0`) → leaves unless every axis is closed (a thing
   `on` a surface leaves unless fastened). Leaving = `ContainmentApi.move(item,
@@ -464,9 +503,12 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   `Exit.turn?: number` (m, persistent, authorable; from the kind row or per site) is the
   longest rigid length that can swing round the bend; unset = unbounded. The traverse
   gate (D13) tests a body's envelope and each held thing's cross-section against the
-  clearance, and each held rigid thing's `longest` against `turn`. Three kind rows ship
-  (`crawlway` 0.6×0.6, `ladder`, `low-door` opening 0.9×1.4 — the stair kind gains
-  `turn: 2.2`); a site that differs authors `opening:`/`turn:` on its entry.
+  clearance, and each held rigid thing's `longest` against `turn`. Two kind rows ship
+  (`crawlway` 0.6×0.6, `ladder`), and the shipped `stair` kind gains `turn: 2.2`. **A low
+  door is not a kind** (owner review; requirements § Bodies and openings): it is one
+  way's authored `opening:` on its `exits:` entry (the drive's low-door room authors
+  `north: {destination: …, opening: {width: 0.9, height: 1.4}}`); a site that differs
+  from its kind authors `opening:`/`turn:` the same way.
 
 ### Hands and carrying
 
@@ -493,12 +535,19 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   into that container (the home is set, D14); else the refusal in words naming the hands
   and the containers tried. `slot:` pins a destination (equip's claim; `wear` →
   `occupyAll`). The horse: no hands → its worn containers; a cat → *"it has nowhere to
-  carry that"*. **The invariant:** `Creature.canAddContainable(item)` vetoes
-  `'loose-on-body'` unless `this._receiving === item` (a TypeScript-`private` reentry
-  flag set for the duration of `receive`/`seatInSlot`/`occupyAll`'s own move and of
+  carry that"*. **What "not loose" means after the placement model:** a content of a
+  body is honest when it is a slot occupant (held, worn), **or** it carries a placement
+  pair whose host is itself honest on the body (a cup in a coat's pocket, a pouch hung
+  from a belt, a canteen clipped to a pack's strap — all live in the body's contents with
+  a `(host, member)` pair, because `placeOn` places into the host's environment), or it
+  is inside such a thing's own contents. `Carrying.isHonest(item)` is that walk.
+  **The invariant:** `Creature.canAddContainable(item)` vetoes `'loose-on-body'` unless
+  `this._receiving === item` (a TypeScript-`private` reentry flag set for the duration
+  of `receive`/`seatInSlot`/`occupyAll`'s own move, of `placeOn` into a worn host, and of
   `restoreItem`); **off until the flip (W7)**, when W0's census must read 0 outside the
-  allowlist (`Carrying`, `Slotted.seatInSlot`, `PersistableLogic.restoreItem`,
-  `ConditionLogic` death → corpse, which is a `Thing`). `move()` is unchanged (slate § 8).
+  allowlist (`Carrying`, `Slotted.seatInSlot`, `ContainmentLogic.placeOn`,
+  `PersistableLogic.restoreItem`, `ConditionLogic` death → corpse, which is a `Thing`).
+  `move()` is unchanged (slate § 8).
 - **D12 — the loose-carry model retires at the flip.** `LoadBearing.getBorneBurden`
   drops pass (a) (contents at 1.25); every content of a Creature is a slot occupant, so
   the walk is slots only — hand slots at `LOOSE_CARRY_SURCHARGE` (renamed
@@ -520,13 +569,15 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   path** in `Carrying.captureSlice` (the `SlottedMixin.captureSlice` precedent: never a
   stuffId, which does not survive a restart), restored after contents in `onRestored`.
   No field on `Good`/`Containable` — a brick has no home (P2).
-- **D15 — reach tiers derive from the slot.** `Carrying.tierOf(thing): 'hand' | 'ready'
-  | 'packed' | 'elsewhere'`: in a hand slot → hand; inside a worn container whose
-  top-level slot is `back` (new biped slot, capacity 1, `accepts: WearableMixin`) →
-  packed; inside any other worn container (waist, torso, legs, neck, hands, a mount's
-  `back:1` saddlebags while mounted) or worn itself → ready; else elsewhere. A pocket's
-  tier is its garment's. The `Pack` row's claim moves `[torso]` → `[back]`; a satchel row
-  claims `[torso]` and is ready. Two rows, no flag.
+- **D15 — reach tiers derive from the slot and the pair.** `Carrying.tierOf(thing):
+  'hand' | 'ready' | 'packed' | 'elsewhere'`: in a hand slot → hand; **hung `from` a
+  worn host, or in a pocket of a worn garment, or inside a container that is hung or
+  pocketed** → ready (everything on a belt is ready; a canteen clipped to a pack's strap
+  is ready); inside a worn container whose slot is `back` (new biped slot, capacity 1,
+  `accepts: WearableMixin`) → packed; worn itself, or inside any other worn container
+  (torso, legs, neck, hands, a mount's saddlebags while mounted) → ready; else
+  elsewhere. The `Pack` row's claim moves `[torso]` → `[back]`; a satchel row claims
+  `[torso]` and is ready. Two rows, no flag.
 - **D16 — `ready` is the model's act; a verb asks for it with one arg field.**
   `Carrying.ready(item): ActRefusal<'packed' | 'hands-full' | 'not-on-you', {by}> |
   null`: in hand → ok; ready tier → free a hand (`stow(held)` sends the held thing to
@@ -539,7 +590,7 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   `pour`/`fill`'s vessel, the crafting tools) before the controller runs and renders the
   refusal; the controller is dumb. In a live combat session `ready` runs through
   `Combatant.beginWeaponSwitch`'s countdown generalized to any item: `combat.draw.
-  seconds` from a `Sheath` (shaped to one item) at the ready tier, `combat.switch.seconds`
+  seconds` from a shaped container (`shapedTo` set — a holster, a sheath) at the ready tier, `combat.switch.seconds`
   from anything else; `fight draw`/`fight switch` become callers of `ready`.
 - **D17 — one rule for binding: the nearest thing you perceive wins.** Delete `ReachDepth`,
   `depth:`, the three flags, `MqlContext.depth`, `refuseIfShutAway`, `rungFor`, the
@@ -610,20 +661,56 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
 
 ### Perceiving and the lens
 
-- **D23 — MQL names things; perception is applied at the Api boundary and at every
-  surface.** `visibleInside` loses its viewer branches: `:i`/`:I` yield `getContents()`
-  / `getDeepContents()` for everyone (system mode unchanged). `MqlLogic.resolveOne/
-  resolveMany` filter the result set by `PerceptionApi.perceives(giver, s)` when
-  `commandGiver` is non-null (so the binder, `query`, `find`, scripts, subscriptions and
-  the card's query source are all covered once); `pushDirect`'s per-candidate gate stays
-  (cheaper, same answer). Every surface that lists contents **without** MQL
-  (`look`'s `observeThing`, `inventory`, the card `contents` and `worn` reads, the
-  wire's `WayRecord`-style projections) filters through `PerceptionApi.perceived(viewer,
-  list)` (a new static over `perceives`, the one name the lint looks for).
-  `visibleContentsOf` becomes a **grouping** of a perceived list (worn/held/inside by
-  slot) and loses its person/pockets rule. The client's `HereList` suppression for
-  agents (`CardBodies.tsx:1594`) goes: the wire already carries only what is perceived.
-  mql.md § *Descending a holder…* is rewritten to say the reverse, with the date.
+- **D23 — MQL names things the same for every viewer; perception is applied only where
+  a result is bound or shown.** The resolver returns, for any non-system giver, exactly
+  what it returns in system mode (`commandGiver: null`). Concretely, in
+  `$S/api/mql/**` and `MqlLogic`: `visibleInside`/`visibleInsideDeep` yield
+  `getContents()`/`getDeepContents()` for everyone; **`pushDirect`'s per-candidate
+  `perceives` gate is removed**; `resolveOne`/`resolveMany` apply no viewer filter; the
+  `visible` predicate keeps only its class half (`MixinApi.isVisible` — *is a Visible
+  thing*) and loses its `perceives` clause; the pronoun-class words (`me`, `here`,
+  `me:e`, `it/them`) stay viewer-bound because the word is the asker's, and so does
+  keyword **matching** through `perceivedKeywordsFor(viewer)` (what the viewer calls a
+  thing is the belief store's word, not a hiding — flagged in § Risks for the owner's
+  eye). The head ordinal (`2nd knife`) stops being rewritten to an index inside the
+  resolver (`desugar.ts:189–210`): `resolveMany` returns it as result metadata
+  (`MqlManyResult.ordinal?`) and every surface applies it **after** `perceived`, so an
+  ordinal never counts a covered thing; the chain index `:[n]` stays universal (it
+  indexes the same list for everyone, and the surface then hides what is not perceived).
+  **The one named filter** is `PerceptionApi.perceived(viewer, list): Stuff[]` (a static
+  over `perceives`, order-preserving); `PerceptionApi.perceivedHow` labels (D25). The
+  surfaces, each calling it, each counted by `lint:perceived-surfaces`:
+  1. **the binder** — `CommandLogic.walkScopes` filters each scope try's candidates with
+     `perceived(giver, …)` **before** `strictCandidates`/`applyCardinalityPolicy`, then
+     applies the ordinal, then `stuff[0]`/error/`promptMqlObject` over the filtered list —
+     so *"get knife from Bob"* with one knife in Bob's hand and one in his pocket binds the
+     hand's knife and never asks *which one?*; with none perceived it fails to bind exactly
+     as for a Bob with no knife. "Nearest perceived wins" is the scope tries' order
+     (`person` → `here` → `peers`) and, inside `person`, the tier order hand · ready ·
+     packed, which the scope walk orders **universally** (D17) — perception only removes
+     candidates, never re-orders them;
+  2. the `query` and `find` controllers (`QueryController` after binding its `set`;
+     `FindController` over its rows);
+  3. the script `( )` island (`$S/lib/script/Expression.ts` — `evaluate` filters the
+     `StuffList` by the actor, then the ordinal; a `Value` holding Stuff is built from the
+     filtered list);
+  4. the MQL subscription projection that feeds the cards (`MqlSubscriptionRegistry.
+     resolveByQuery` result → `perceived(giver, …)` before `projectStuffInto` and before
+     the diff, so an unperceived id never reaches the wire; the subject-bound path keeps
+     its `perceives`), and `CardRegistry`'s query source;
+  5. autocomplete — none exists today (§ Grounding); the plan names the rule it will obey
+     (§ Deferred seams) and the lint will count it when it appears;
+  6. `look` (`observePlace`'s `ROOM_LISTING` result and `observeThing`'s holds),
+     `inventory`, and the card reads (`Container.contents`, `Attired.worn`, the
+     inspection card's segments).
+  `visibleContentsOf` becomes a **grouping** of an already-perceived list (worn/held/
+  inside by slot) and loses its person/pockets rule. The client's `HereList` suppression
+  for agents (`CardBodies.tsx:1594`) goes: the wire already carries only what is
+  perceived. mql.md § *Descending a holder…* is rewritten to say the reverse, with the
+  date; mql-grammar.md says `visible` is a class word. ⚠ Removing `pushDirect`'s gate
+  means a concealed trap is *named* by the resolver for everyone; every surface above
+  hides it, and a verb that binds it refuses on reach or on the act — `binder.perceived.
+  test.ts` pins that no surface leaks it.
 - **D24 — `perceives` gains the holder rules, in this order** (`perceivesImpl`): (0) the
   builder lens (D25); (1) the target is the viewer, or on the viewer's body at any depth
   → true (*your own things you always perceive*); (2) walk the target's container chain
@@ -631,7 +718,9 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   is not see-through (`lightAbsorption` present and `e^(−α·t)` over its shell ≥
   `SEE_THROUGH_T` 0.3 — glass, mesh, a net) → false; a holder that is **another person**
   → the target must be a hand occupant, or a worn occupant that is `outermostAt` its
-  slot (the covering ladder), or inside a worn container that is itself perceived by this
+  slot (the covering ladder), or **hung `from` a worn host** (attachments are worn on the
+  outside — everyone sees the holster), or in a pocket member that is not `covered` on
+  an outermost garment, or inside a hung/worn container that is itself perceived by this
   rule **and** open — an inner pocket under a coat fails at the coat; (3) the existing
   concealment/discovery/light rules. A cart under a tarp is a shut, opaque holder (D30).
   `isAnotherPerson` is the person test. `Attired.outermostAt` exists.
@@ -647,34 +736,63 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
 
 ### Pockets, gear, inventory, the flip
 
-- **D26 — pockets are minted child containers of the garment.** `Garment` composes
-  `ContainerMixin` (a garment holds its pockets and nothing else: `Garment.
-  canAddContainable` admits only a `Pocket` minted by its own `applyPockets`, refusing
-  `'not-a-pocket'` — the garment's own rule, not a guard re-narrowing a host). `pockets:`
-  is an instruction field (`applyPockets`, TemplateApplier phase 2 — no `onCreate`, so
-  `lint:on-create` is untouched): a list of `{kind: <pocket row>, name?, covered?: bool}`
-  cloned like exit kinds; defaults by garment kind come from the **row** (`trousers.yaml`
-  two `patch` pockets; `coat.yaml` two `patch` + one `inner`; `extends:` carries them).
-  A pocket is `Pocket = Sealable(Container(Good))`, `fixedInPlace`, `form: flexible`,
-  its row authoring `mass`, `dimensions` (flat), and whether it has a flap
-  (`open: true` with no fastening → `canClose` refuses; a flap/button row → shuttable).
-  `put cup in coat` resolves through `putPlanFor`'s offers: a garment's pockets are its
-  offers (by `name`), one pocket is taken, several ask. Restore: pockets come back as
-  contents (never re-minted — `applyPockets` runs on clone only).
-- **D27 — gear classes are three, and rows are many.** `Pouch` (belt, utility belt,
-  bumbag, saddlebag, pannier, purse), `Sheath` (sheath, scabbard, holster, quiver —
-  `shapedTo: <mixin or template path>` narrows `accepts`, its mouth authored to the item,
-  `drawFast` derived from being shaped), `Pack` (satchel, haversack, rucksack, frame pack
-  — `Vessel`-based as shipped; claims `[back]` or `[torso]`). A **sling/lanyard** is a
-  `Pouch` row with `form: flexible`, open, claiming `[hands]` (wrist): `tie tool to
-  lanyard` moves the tool into it; a dropped tethered tool is `receive`d back into its
-  sling (*it swings from your lanyard*). The **headlamp** is a `WornLight` row claiming
-  `[head]`. The **tarp** rides the shipped `cover` act (device): a cart row that can be
-  covered answers `cover` by setting its top closed and opaque for `bounds()` and D24.
-  Tack: `saddle` (Slotted, claims quadruped `back:1`, offers a `saddlebags` slot),
-  `saddlebags` (Pouch on the saddle), `pack-saddle` (Slotted on `back:1`, two `pannier`
-  slots), `pannier` (Pouch), `halter` (Tieable, claims `collar`). A **mule** species row
-  (`equus/asinus-mulus`, DraftAnimal class, `adultMass` 400) ships in `transport`.
+- **D26 — a pocket is a named region offered by the garment, never an object, and the
+  garment holds nothing itself.** `Garment` composes `PlacingMixin` only (class default
+  `placements: []` — a garment with no pockets offers nothing); a pocketed thing lives in
+  the **wearer's** contents with the pair `(garment, 'left pocket')`, exactly as the ham
+  lives in the room with `(hook, 'from')` (`placeOn` :242–275). `Placing.placements`
+  widens from `string[]` to entries `{member: <Placement document path>, name?,
+  mouth?, volumeM3?, covered?, closes?}` (a bare string stays a one-member entry, so the
+  shipped rows are untouched; `getPlaced(name)` and `canPlace(item, name)` key on the
+  entry's `name`, defaulting to the member's word). One new Placement **document**,
+  `/platform/idea/placement/pocket` (`encloses: true`, words *in* / *into*, prose *in
+  your {{name}}*), beside `in`/`on`/`from`. Defaults by garment kind are the **row's**
+  (`trousers.yaml`: two entries `{member: pocket, name: left pocket}` / `right pocket`
+  with `volumeM3: 0.0008`, `mouth: {width: 0.12, height: 0.03}`; `coat.yaml`: two outer
+  patch pockets + `{member: pocket, name: inner pocket, covered: true, volumeM3: 0.0004}`;
+  `extends:` carries them). **Fit per member:** `Placing.canPlace(item, name)`'s default
+  body asks `Container.fitRefusal(item, member)` with the member's mouth and volume — the
+  owner's "fit is a `canPlace` refusal at the chokepoint" literally (`placeOn` :262).
+  **Cover:** `covered: true` (an inner pocket) is covered always; an outer pocket is
+  covered when its garment is not `outermostAt` its slot (D24 rule 2). **Closes:**
+  `closes: true` (a buttoned or flapped pocket) is closed for the pressing rule (D5) and
+  for D24 whenever nothing is being put in or taken out — the abstraction is that a
+  fastened pocket is fastened; no dynamic flap state and no button verb (the abstraction
+  law: it still costs the player the choice of pocket). `put cup in coat` → `putPlanFor`'s
+  offers are the garment's pocket entries by name: one is taken, several ask (*left or
+  right pocket?*). `inventory` lists a garment's pockets by `getPlaced(name)`. Persistence
+  is the shipped placement pair on the item (`restorePlacement`); nothing new is
+  captured.
+- **D27 — the modular belt: things hang from a length; one worn-container class, rows
+  for the rest.** A **belt** is a `Garment` row (tanning, leather) claiming `[waist]`
+  with `placements: [from]` — no belt class; its hanging length is the wearer's waist
+  (D4), its bearing from leather's strength. `put holster on belt` → `putPlanFor`'s
+  `from` offer → *"you clip the holster to your belt"* (the `from` document's prose,
+  worded per row); `get holster from belt` takes it off; `i belt` lists what hangs and
+  the room in words (`roomFor`). The same row shape is the **bandolier** and the **chest
+  harness / load-bearing vest** (`[torso]`, `from`), a **pack's straps and carabiners**
+  (the `Pack` rows gain `placements: [from]`, length = their own strap), the **saddle**
+  (a Slotted tack row claiming quadruped `back:1` **and** `placements: [from]` — the
+  saddlebags hang from it), a **key ring** (smithing, `form: round`), a **pegboard** and a
+  **tool rail** (generic-objects fixtures, `from`). `Pack` (`Wearable(Slottable(Vessel))`,
+  shipped) is the class of every worn or hung container: satchel/haversack/rucksack/
+  frame pack (claim `[back]` or `[torso]`), **belt pouch, bumbag, purse, canteen clip,
+  saddlebag, pannier — rows that claim no body slot and hang**, and the sheath/scabbard/
+  holster/quiver — a `Pack` row with **`shapedTo:`** (new `Container` field: a mixin name
+  or a template path the container admits, refusing `'not-shaped-for'` otherwise), an
+  authored `mouth` to the item and `form: rod`; **draw-fast derives** from `shapedTo`
+  being set (D16) — a holster on the belt still draws faster than a pouch on the belt.
+  A **sling/lanyard** is a `Pack` row with `form: flexible`, open, claiming `[hands]`
+  (wrist): `tie tool to lanyard` moves the tool into it; a dropped tethered tool is
+  `receive`d back into its sling (*it swings from your lanyard*). The **headlamp** is a
+  `PortableLight` row claiming `[head]` (`PortableLight` composes `Wearable(Slottable(…))`
+  from this build; its two shipped rows claim nothing and wear nothing). The **tarp**
+  rides the shipped `cover` act (device): a cart row that can be covered answers `cover`
+  by setting its top closed and opaque for `bounds()` and D24. Tack: `pack-saddle` (a
+  Slotted row on `back:1` with `from` — two panniers hang), `pannier` (`Pack`), `halter`
+  (Tieable, claims `collar`). A **mule** species row (`equus/asinus-mulus`, DraftAnimal
+  class, `adultMass` 400) ships in `transport`. The client's drawing of the belt is the
+  client slate's — no client work here.
 - **D28 — `inventory` walks the whole tree by tier.** Default: *in hand* · *ready* (each
   container with its perceived contents) · *worn* · *packed* (each container as *N things,
   M kg*) · the burden line in words (held things × awkwardness, the mount line, the
@@ -724,9 +842,14 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
 | `'ceiling-too-low'` on `stand` | `PosedMixin.acceptPosture` | the body's posture change is the body's refusal |
 | `back` (cap 1), `waist` (cap 4) slots | the biped **plan row** | rows: the biped wears a pack and a belt; the quadruped has `back:1` already. No code |
 | `canid` plan | a new plan row, `extends:` quadruped | the dog's mouth; the horse's plan is untouched |
-| `Garment` + `ContainerMixin`, `pockets:` applier, `canAddContainable` → pockets only | `Garment` | every garment may have pockets (zero is a valid count); the garment's refusal of anything but its own pockets is its own rule. Not on `Wearable` (a ring has no pockets); not on `Good` |
-| `Pocket` | `platform/thing/Pocket` | instanceable (rows under `/trade/tailoring/thing/pockets/`), fixed in its garment |
-| `Pouch` · `Sheath` · `WornLight` | `platform/thing/equipment/` | instanceable, beside `Pack`; `Sheath` extends `Pouch` with `shapedTo` |
+| `Garment` + `PlacingMixin` (class default `placements: []`); `hangingLengthM` override while worn | `Garment` | every garment may offer pockets or a hanging length, and zero is the honest count (a shirt with no pockets offers no region and `put` refuses `no-such-placement` as any Placing host does; a belt offers `from`). **Not `Container`**: a garment holds nothing — the wearer does. Not on `Wearable`; not on `Good` |
+| `placements` entry widening (`name`, `mouth`, `volumeM3`, `covered`, `closes`) | `PlacingMixin` | every placing host may name its regions (a range's two plates, a coat's three pockets); a bare string entry is unchanged |
+| `hangingLengthM`, `bearsKg`, `roomFor`, the member fit in `canPlace` | `PlacingMixin` | every placing host answers how long its hanging edge is and what it bears; a host with no `from` member never asks. One mechanism for belt, bandolier, harness, strap, saddle, ring, rail, pegboard |
+| `tensileStrengthMPa` | `Material` row property | every material has a strength; unset = unbounded (a pegboard's authors need not care). Not on the belt row (the leather decides) |
+| `hangs`, `fastens` | the `from` Placement document (and any pack's own hanging document) | a member's document says what the relation does; `on` fastens nothing, `in` encloses |
+| `/platform/placements/pocket` | a Placement document row | the `in` family's vocabulary, one more member |
+| `shapedTo?` | `ContainerMixin` | any container may be shaped to one kind (a quiver, a knife block, a cup rack); unset = unshaped. Not on `Pack` only — a wall-mounted quiver is not worn |
+| `PortableLight` → `Wearable(Slottable(LightSource(Switchable(Good))))` | `PortableLight` | a portable light may be worn or clipped; a row claims it or does not (the flare claims nothing). Not on `Lamp` (a hearth lantern is not worn) |
 | `readies:` | `FieldDefinition` (`api/command.ts`) | one field in, three (`depth`, flags) out; read by the dispatcher only |
 | `perceived(viewer, list)`, `perceivedHow` | `PerceptionApi` statics (forwarding to `PerceptionLogic`) | two statics on the Api whose job this is; the lint names the first |
 | holder rules | `PerceptionLogic.perceivesImpl` | extend the one rule list (the task's instruction); no disclosure subsystem |
@@ -752,8 +875,8 @@ value means *unbounded* / *derived*, not *no*.
 - Paths: platform rows at `/platform/<branch>/…` (Form, LocomotionMode); commons at
   `/stuff/…` (generic-objects' exit kinds, clothes, gear); trades at `/trade/<x>/thing/…`
   (tailoring's pockets, tanning's leather goods); `/system/transport/…` (mule, tack rows
-  that are the transport's); classes mirror paths (`platform/thing/Pocket.ts` ↔
-  `/platform/thing/Pocket`).
+  that are the transport's); classes mirror paths (`platform/idea/Form.ts` ↔
+  `/platform/idea/Form`).
 - Persistence per content: pockets/homes ride the body snapshot (`holder_snapshots`,
   the avatar's); gear rows are staged kinds; a parked cart in a `PersistentLocation`
   persists by the furnishing rule already; **no new collection** (`lint:schema`).
@@ -779,8 +902,8 @@ value means *unbounded* / *derived*, not *no*.
   follows the line's `template` path; `lensExtents` resolves at `lens on`; no boot entry
   is added anywhere (the five Form rows are platform-pack rows, resident like
   LocomotionMode's).
-- **P8** names: `Carrying` (what the creature does), `Pocket`/`Pouch`/`Sheath`/`WornLight`
-  (what they are, no `-able`), `stoop`/`crawl` one word each, `lens` one word;
+- **P8** names: `Carrying` (what the creature does), `stoop`/`crawl` one word each,
+  `lens` one word; no new class names at all after owner review;
   `HELD_SURCHARGE` renames the loose dial at the flip; `Dimensions` not `Size`
   (`getSizeScale` exists on Location with another meaning).
 - Gates this build must pass: `lint:family` in full, specifically `lint:instanceable`
@@ -814,12 +937,19 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   reasons: `Carrying.ts`, `Slotted.seatInSlot`, `PersistableLogic.restoreItem`,
   `ConditionLogic` death.
 - `packages/server/scripts/check-perceived-surfaces.ts` (`lint:perceived-surfaces`):
-  census of files under `platform/idea/cmd/**`, `api/**`, `lib/script/**`,
-  `platform/idea/{CardRegistry,MqlSubscriptionRegistry}.ts` and `lib/**` subscribable
-  `read(stuff, viewer)` bodies that call `getContents|getDeepContents|getAllOccupants|
-  wornStack|resolveMany|resolveOne` **and** emit to a viewer (`MessageApi.scene|toSelf|
-  CardApi.open|onEnvelope|Mml.list`) without `PerceptionApi.perceived(|perceives(`.
-  Ceiling = today's count; the controller-liquidity fixture-test shape.
+  a **surface** is a function that (a) obtains a list of Stuff by `MqlApi.resolveOne|
+  resolveMany`, `getContents|getDeepContents|getAllOccupants|wornStack|getPlaced`, and
+  (b) binds it to a verb arg, prompts over it (`promptMqlObject|promptMqlMany`), or
+  emits it to a viewer or the wire (`MessageApi.scene|toSelf`, `CardApi.open`,
+  `onEnvelope`, `projectStuffInto`, a script `Value`). The census counts surfaces whose
+  list does not pass through `PerceptionApi.perceived(` (or the subject-bound
+  `perceives(`) between (a) and (b). Roots: `platform/idea/cmd/**`, `lib/command/**`,
+  `platform/idea/api/CommandLogic.ts`, `lib/script/**`, `platform/idea/{CardRegistry,
+  MqlSubscriptionRegistry}.ts`, every `read(stuff, viewer)` subscribable body under
+  `lib/**`. System-mode callers (brains, logic singletons with `commandGiver: null`)
+  are not surfaces — they emit to nobody — and are excluded by (b), never by an
+  allowlist. Ceiling = today's count; the controller-liquidity fixture-test shape (a
+  planted surface must FAIL).
 - Acceptance: both gates in `lint:family --list`; `receive` round-trips in
   `Carrying.receive.test.ts` exactly as `move` did; nothing behaves differently.
 - Commit: `build(size-and-carrying W0): the receiving act, behaving as today; two censuses cap the callers and the surfaces`.
@@ -833,9 +963,15 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   displacementWalk` → `getVolumeM3`; class default forms on `Garment`, `Line`, `Sack`,
   `Sheet` (`static defaultForm`).
 - `Container`: `mouth?` field, `bounds()`, `getMouth()`, `fitRefusal()`, `closureLevel()`
-  (`Bulkable` override), `reconcilePressing()`; `canAddContainable` default body asks
-  `fitRefusal`; `Sealable.canClose` overhang; `putPlanFor` words `fitRefusal` before
-  moving (`ContainmentLogic.ts:170`'s pattern).
+  (`Bulkable` override), `reconcilePressing()` (skips `fastens` members); `canAddContainable`
+  default body asks `fitRefusal`; `Sealable.canClose` overhang; `putPlanFor` words
+  `fitRefusal`/`canPlace` before moving (`ContainmentLogic.ts:170`'s pattern).
+- `Placing`: the `placements` entry widening; `hangingLengthM()`, `bearsKg()`,
+  `roomFor(name)`; `canPlace`'s default body gains the member fit (enclosing → mouth/
+  volume/capacity; hanging → length/mass); `Dimensions.hangingWidthM()`; the `from`
+  document gains `hangs: true`, `fastens: true`; `Material.tensileStrengthMPa` (+ values
+  on the leather, hemp, canvas, steel and iron rows). The belt's **length** override on
+  `Garment` lands in W5 with the garment work.
 - `AtmosphericMixin.gravityNow()`; `setGravity` → `reconcilePressing` over the place's
   containers; `WaterPlace.immerseArrival` → `reconcilePressing` on the arrival;
   `Buoyant.ts:28` reads the memo.
@@ -843,14 +979,17 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   `exposure()`; `Template.applyProps` enclosed-place diagnostic.
 - `Exit`: `turn?` field (fieldMeta persistent/authorable, kind row or per site),
   `clearance()`, `clearanceRefusal(mover, mode)` (used by W2). Kind rows: generic-objects
-  `/stuff/idea/exits/{crawlway,ladder,low-door}`; `stair` gains `turn`.
+  `/stuff/idea/exits/{crawlway,ladder}`; `stair` gains `turn`. No low-door kind.
 - Tests: `Dimensions.test.ts` (sorted box, cross-section, the three rotations, the sofa
   vs the turn), `Tangible.volume.test.ts` (mass/density, assembly Σ, stack × count,
   flexible packed, folded), `Container.fit.test.ts` (the requirements' six-row table:
   shut chest refuses the pole; bucket takes a broom standing out; `on` overhangs; a
   roofed room refuses the mast; a yard lets it stand; a field takes a whale), `Sealable.
   overhang.test.ts`, `Container.pressing.test.ts` (cork up in water, cup off the table at
-  zero g, a lid holds), `Location.ceiling.test.ts`, `Template.props-too-big.test.ts`.
+  zero g, a lid holds, **a thing hung `from` a hook stays at zero g**), `Placing.hanging.
+  test.ts` (a rail takes hooks until its length is spent; the refusal names the rail; a
+  heavy load against `bearsKg`; `roomFor` in words; an unset strength is unbounded),
+  `Location.ceiling.test.ts`, `Template.props-too-big.test.ts`.
 - Acceptance: the fit table passes; `look` and every existing drive are unchanged
   (no shipped row fails to fit — run `pnpm wire` on the touched packs' files and the
   boundary build's; a shipped prop that fails the enclosed-place check is a **finding**,
@@ -891,23 +1030,32 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   canReach` signatures, `Container.getReachableContents(rung)`, the 8 views' `depth:`,
   `refuseIfShutAway`, `mustNotBeShutAway` → folded into `canReach`'s wording, docs,
   and the four tests rewritten to the one rule). `reachRefusal` gains `'packed'`.
-- `visibleInside`/`visibleInsideDeep` → contents for everyone; `MqlLogic.resolveOne/
-  resolveMany` perceived filter; `PerceptionApi.perceived`/`perceivedHow`; `perceivesImpl`
-  rules 0–2; `visibleContentsOf` reduced to grouping; `InventoryController`,
-  `QueryController`, `LookController.observeThing`, `FindController`, `Expression.ts`,
-  `MqlSubscriptionRegistry`, `CardRegistry`, `Container.contents` read, `Attired.worn`
-  read each filter/label; client `CardBodies.tsx:1594` suppression removed (the card
-  shows what the wire sends).
+- The resolver made universal: `visibleInside`/`visibleInsideDeep` → contents for
+  everyone; `pushDirect`'s `perceives` gate removed; the `visible` predicate's
+  `perceives` clause removed; the head ordinal returned as `MqlManyResult.ordinal`
+  instead of rewritten (`desugar.ts`); `mql.system-mode.test.ts` extended to pin that a
+  player giver and a null giver get the same list for every seed, transform and
+  predicate. `PerceptionApi.perceived`/`perceivedHow`; `perceivesImpl` rules 0–2;
+  `visibleContentsOf` reduced to grouping. **The surfaces, each through `perceived`:**
+  the binder (`walkScopes`, before cardinality; the ordinal after), `QueryController`,
+  `FindController`, `Expression.ts`, `MqlSubscriptionRegistry.resolveByQuery` +
+  `CardRegistry`'s query source, `LookController` (`observePlace`'s listing and
+  `observeThing`'s holds), `InventoryController`, the `Container.contents` and
+  `Attired.worn` reads, the inspection card's segments; client `CardBodies.tsx:1594`
+  suppression removed (the card shows what the wire sends).
 - `lens` verb (author category, `lens on|off`), `Avatar._lensExtents`; the `[builder]`
   label on `look`/`inventory`/`query`/`find`.
 - `lint:perceived-surfaces` ceiling → **0**.
 - Tests: `perceives.holders.test.ts` (own things always; shut opaque box no; glass jar
   yes; another person's hand yes, outer coat yes, inner pocket no, outer open pocket's
   contents yes, packed pack's contents no; the lens inside/outside an extent), `mql.
-  universal.test.ts` (`them:I:letter` for bearer vs stranger vs no letter — identical
-  answers for the last two; `query` and a script island agree), `binder.perceived.test.ts`
-  (no *which one?* over a covered thing; ordinal never counts it), `reach.oneRule.test.ts`
-  (hand · ready · packed · room; the lid and the pack refusals fire after binding).
+  universal.test.ts` (**the resolver's answer to `them:I:letter` is the same list for
+  the bearer, a stranger and system mode**; after `perceived`, the stranger's and a
+  no-letter person's answers are identical; `query`, a script island and the binder
+  agree), `binder.perceived.test.ts` (no *which one?* over a covered thing; `2nd knife`
+  counts only perceived knives; a concealed trap named by the resolver reaches no
+  surface), `reach.oneRule.test.ts` (hand · ready · packed · room; the lid and the pack
+  refusals fire after binding).
 - Acceptance: the controller-liquidity baseline drive still passes except the rows its
   own plan marks as reach-rung dependent (re-record those with the commit saying so);
   drive steps 11–13 pass over the wire.
@@ -923,7 +1071,7 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   (`CommandLogic.resolveModel`'s tail); views: `measure`/`analyze` `tool`, `read`,
   `light`/`douse`, `pour`/`fill`/`drink` vessel, the crafting tool args (the W4 brief
   lists each view touched). Combat: `beginWeaponSwitch` generalized to any item, cost by
-  `Sheath` vs other; `fight draw`/`fight switch` call `ready`.
+  shaped (`shapedTo`) vs other; `fight draw`/`fight switch` call `ready`.
 - `LoadBearing`: `× g/9.81`; awkwardness on held slots; the pass-order fix (slots first)
   now, pass (a) retirement at W7. `Hauler.handsOccupied` → `freeHands`; `hitch` refusal;
   `Drivable` reads `handedness`.
@@ -935,7 +1083,7 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   gravity, hands on hitch and the `readies:` draw.
 - Tests: `Carrying.hands.test.ts` (two hands for the pole; a hurt hand; the gnome's
   threshold; hitched hands), `Carrying.ready.test.ts` (sheathe and draw; packed refusal;
-  the bench in place; the combat beat from a Sheath vs a pocket), `Carrying.homes.test.ts`
+  the bench in place; the combat beat from a holster vs a pocket), `Carrying.homes.test.ts`
   (put sets home; capture/restore by index), `LoadBearing.gravity.test.ts` (zero-g, Mars
   0.38, the water as shipped), `Carrying.release.test.ts` (unconscious drops the sword,
   keeps the belt), `Mobile.lead.test.ts` (the mule follows; its own refusal stops you).
@@ -943,41 +1091,60 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
 
 ### W5 — pockets, worn containers, tiers, inventory; the pack callers port (D15, D26–D28)
 
-- `Garment` + `ContainerMixin` + `applyPockets` + `canAddContainable`; `Pocket`,
-  `Pouch`, `Sheath`, `WornLight` classes; biped `back`/`waist` slots; `Pack` claim →
-  `[back]` (the backpack row); `putPlanFor` offers a garment's pockets; `receive`'s
-  container order by `tierOf`.
+- `Garment` + `PlacingMixin` (default `placements: []`) with the worn
+  `hangingLengthM` override (the wearer's circumference at the slot, from D19's
+  envelope); the `pocket` Placement document; `Container.shapedTo?` + its refusal;
+  `PortableLight` composes `Wearable(Slottable(…))`; biped `back`/`waist` slots; `Pack`
+  claim → `[back]` (the backpack row) and `placements: [from]` on the pack rows (straps);
+  `putPlanFor` offers a garment's pockets by name and a belt's `from`; `Carrying.
+  isHonest`, `tierOf` reading the pair; `receive`'s destination walk: a free hand, then
+  pockets and hung/worn containers in tier order, then packed; `inventory <belt>` with
+  the room line.
 - `InventoryController` rewritten with the option set; `inventory.yaml`; the card's
   `contents` read as the perceived tree (server side only — build-3's card renders what
   it gets).
 - **Port the ≈30 pack callers** to `receive` (every touched pack's vitest green);
   `lint:body-moves` ceiling → the allowlist only.
-- Tests: `Garment.pockets.test.ts` (mint from the row; restore does not re-mint; a coat's
-  inner pocket covered; `put cup in coat` resolves a pocket), `Inventory.tiers.test.ts`
-  (the default view; `--flat`; `--weight`; a container; a person), `Sheath.test.ts`
-  (shaped mouth refuses the wrong item; draw fast).
-- Commit: `build(size-and-carrying W5): pockets on garments, pouches and sheaths, the tiered inventory; the pack callers receive`.
+- Tests: `Garment.pockets.test.ts` (the row's entries become offers; a coat's inner
+  pocket covered; `put cup in coat` asks left or right, `put cup in inner pocket` takes;
+  per-member fit and capacity; a buttoned pocket closes for pressing; the placement pair
+  restores), `Placing.entries.test.ts` (a bare string entry unchanged; a named entry),
+  `Garment.belt.test.ts` (a gnome's belt takes fewer pouches than an ogre's; `put holster
+  on belt` then `get holster from belt`; a hung holster is ready and draws fast; the
+  pouch's contents are ready; the belt overloaded refuses in words; the pouches stay on
+  underwater), `Inventory.tiers.test.ts` (the default view; `--flat`; `--weight`; a
+  container; a person; `i belt`'s room line), `Container.shapedTo.test.ts` (a holster
+  row refuses a cup; draw fast).
+- Commit: `build(size-and-carrying W5): pockets as regions of the garment, worn containers as rows, the tiered inventory; the pack callers receive`.
 
 ### W6 — gear rows, tack, kinds, places, the starter kit (Stage B content; D27, D29)
 
-- Rows: tailoring `/trade/tailoring/thing/pockets/{patch,inner,flap}` + `pockets:` on
-  `shirt/trousers/coat/apron` and on generic-objects' `clothes/*` (student-trousers,
-  field-jacket four, white-coat two, greatcoat…); tanning `/trade/tanning/thing/{belt,
-  utility-belt,belt-pouch,bumbag,purse,holster,sheath,scabbard,quiver,bandolier,satchel,
-  haversack,rucksack,frame-pack,saddle,saddlebags,pack-saddle,pannier,halter,oilskin-pouch}`
-  (oiled-linen material row in textiles if none fits; `/stuff/idea/material/textile/
-  oilskin`, `waterAbsorptionCapacity: 0`); textiles `tarpaulin` (canvas, `Sheet`-class
-  flexible cover) and the cart rows answering `cover`; cordage `/trade/cordage/thing/lanyard`
-  (a `Pouch` sling row); smithing `/trade/smithing/thing/headlamp` (`WornLight`, `[head]`);
-  transport `/system/transport/agent/mule` + `/system/transport/idea/species/equus/
+- Rows: tailoring `placements:` pocket entries on `shirt/trousers/coat/apron` and on
+  generic-objects' `clothes/*` (student-trousers two, field-jacket four, white-coat two,
+  greatcoat three with one inner…); tanning `/trade/tanning/thing/{belt,utility-belt,
+  bandolier,chest-harness,vest}` (`Garment` rows with `placements: [from]`),
+  `{belt-pouch,bumbag,purse,canteen-clip,holster,sheath,scabbard,quiver,saddlebags,
+  pannier}` (`Pack` rows that hang, the shaped ones with `shapedTo` + `mouth`),
+  `{satchel,haversack,rucksack,frame-pack}` (`Pack` rows that claim a slot, each with
+  `placements: [from]` for its straps), `saddle` and `pack-saddle` (Slotted tack on
+  `back:1` with `from`), `halter` (Tieable), `oilskin-pouch` (needs a material row
+  `/stuff/idea/material/textile/oilskin`, `waterAbsorptionCapacity: 0`, in textiles);
+  `tensileStrengthMPa` on the leather, hemp, canvas, iron and steel material rows;
+  smithing `/trade/smithing/thing/{key-ring,headlamp}` (the ring `form: round` with
+  `from`; the headlamp a `PortableLight` row, `slotClaims: {biped: [head]}`, with a
+  `lantern-body` bill); generic-objects `/stuff/thing/fixture/{pegboard,tool-rail}`
+  (`from` hosts); textiles `tarpaulin` (canvas, `Sheet`-class flexible cover) and the
+  cart rows answering `cover`; cordage `/trade/cordage/thing/lanyard` (a `Pack` sling
+  row); transport `/system/transport/agent/mule` + `/system/transport/idea/species/equus/
   asinus-mulus` + `travois` (`HaulageRig`, `draftFactor 0.25`, `handedness 2`);
   species-and-names `BodyPlan/canid` and the dog species' `_bodyPlanPath` → canid.
-- Places for the drive (in `newbie-wilds`, beside the delve): a low-door room
-  (`exits: north: {kind: /stuff/idea/exits/low-door}`), a crawlway, a turning stair
+- Places for the drive (in `newbie-wilds`, beside the delve): a low-door room whose way
+  authors its opening (`exits: north: {destination: …, opening: {width: 0.9, height:
+  1.4}}` — **no kind**), a crawlway (`kind: /stuff/idea/exits/crawlway`), a turning stair
   (`stair` kind, `turn: 1.6`), a pond reach (water pack rows exist — `WaterPlaceMixin`), a
-  narrow gate (`opening 0.8×2`), each lit by day and with the headlamp at night (R5);
-  the lounge bar's three mugs; a general-store stock line for the belt pouch, satchel,
-  oilskin pouch and headlamp (so a player can buy them).
+  narrow gate (`opening: {width: 0.8, height: 2}`), each lit by day and with the headlamp
+  at night (R5); the lounge bar's three mugs; a general-store stock line for the belt
+  pouch, satchel, oilskin pouch and headlamp (so a player can buy them).
 - `char-gen.yaml` outfits unchanged (pockets arrive through the trousers rows).
 - Tests: each pack's row test (`lint:instanceable` + the pack vitest); `lint:locations`
   on the new places; `lint:anatomy` on canid.
@@ -1012,14 +1179,16 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
 |---|---|---|---|---|---|
 | stoop / crawl | `$P/cmd/movement/{stoop,crawl}.yaml`, category `movement` | `MobileMixin.self` (beside walk/sneak/run) | `$P/idea/LocomotionMode/{stoop,crawl}`; body plans' `locomotionModes` | the mode singleton is resolved by `LocomotionApi.modeOf` on first use (platform rows resident) | `scope: ["me:e:exits", …]`; the exit's `clearanceRefusal` words the mode that works |
 | the builder lens | `$P/cmd/author/lens.yaml`, category `author` | `AuthorMixin.self` | none | `heldExtents` resolved at `lens on` | `values: [on, off]`, optional |
-| readying an instrument | no new verb — `readies: true` on `measure`/`analyze`/`read`/`light`/`pour`/`fill`/the craft tools' tool args | the views already afford them | the `Sheath` row's `shapedTo` | the bound thing | `readies:` runs after binding, before the controller |
-| pockets | `put <x> in <garment or pocket>` (shipped `put`) | `Garment`'s pocket offers via `putPlanFor` | `pockets:` on garment rows; pocket kind rows | cloned at the garment's clone (`applyPockets`) | the pocket's `fitRefusal` |
+| readying an instrument | no new verb — `readies: true` on `measure`/`analyze`/`read`/`light`/`pour`/`fill`/the craft tools' tool args | the views already afford them | the holster row's `shapedTo` | the bound thing | `readies:` runs after binding, before the controller |
+| pockets | `put <x> in <garment or pocket>` (shipped `put`) | `Garment`'s pocket offers via `putPlanFor` (Placing members) | `placements:` pocket entries on garment rows; the `pocket` Placement document | `Placing.setPlacements` `ensure`s the document when the row hydrates (as every placement does) | `canPlace(item, name)` → the member fit |
+| the belt and every from-host | `put <x> on <belt>` / `get <x> from <belt>` / `i <belt>` (shipped `put`, `get`, `inventory`) | the host row's `placements: [from]` via `putPlanFor` | the belt/bandolier/harness/strap/saddle/ring/rail rows; `hangs`/`fastens` on the `from` document; `tensileStrengthMPa` on material rows | the `from` document is resident with every placement; the material is the row's | `canPlace(item, 'from')` → length + mass; `roomFor` words the rest |
+| the builder lens, `query`, `find`, scripts, cards, `look`, `inventory` | shipped verbs | — | — | — | every surface's list passes `PerceptionApi.perceived(viewer, …)` before binding, prompting or showing; `lint:perceived-surfaces` holds it |
 | `remove backpack` | shipped `remove` | `Wearable` | the `Pack` row claims `[back]` | — | — |
 | tiered inventory | `inventory` + options | `requiresAnimate` (as today) | — | — | `inventory <person>` is gated by `perceived` |
 | the mule and the lead | `tie <rope> to <halter>` (shipped `tie`) | `Tieable` on the halter row | halter, mule, saddlebags, panniers rows | the rope's anchor is the halter | `tie`'s load scope reaches the worn halter on a peer (perceived: outermost) |
 | the tarp | shipped `cover` | the cart row's coverable answer | tarpaulin row | — | `cover`'s target scope |
-| headlamp | shipped `wear` + `light` | `WornLight` is Wearable + Switchable | the row | — | — |
-| crawlway / ladder / low door | — | — | kind rows in generic-objects; drive places' `exits:` | `applyExits` clones the kind | — |
+| headlamp | shipped `wear` + `light` | `PortableLight` is Wearable + Switchable | the smithing row's `slotClaims` | — | — |
+| crawlway / ladder / the low door / the stair's turn | — | — | two kind rows in generic-objects; `turn:` on `stair`; the low door is `opening:` on the drive place's own `exits:` entry | `applyExits` clones the kind and binds the per-site opening | — |
 | the enclosed-place diagnostic | — | — | — | `Template.applyProps` at install | — |
 | `lint:body-moves`, `lint:perceived-surfaces` | `pnpm -C packages/server lint:family` | derived roster | ceilings in the scripts | — | — |
 
@@ -1032,9 +1201,10 @@ Every verb above is conferred by a `commandContributions` static or a shipped vi
 |---|---|
 | nothing loose on a body after any act and after a restart | W0 (census), W4/W5 (ports), W7 (veto + `placeLoose`); drive 1, 19 |
 | the nearest perceived thing wins; single-command pick up / ready / put away; every refusal names what works | W3 (one rule), W4 (`ready`, `stow`), W5 (`put` → home); drive 3–5 |
+| a belt — or anything things hang from — holds attachments by its length, says the room in words, and a loadout is assembled with `put` and `get` | W1 (the hanging rule on `Placing`, `roomFor`, `bearsKg`), W5 (the worn length, `i belt`), W6 (the rows); drive 4 |
 | low door, crawlway, ladder, stair's turn, pond behave by size and body, in actionable words | W1 (turn, fit), W2 (clearance, modes, hands, wet), W6 (places); drive 7–10, 15 |
 | `inventory` by tier + the burden in words | W5, W7; drive 2, 16 |
-| no verb shows/names/counts/asks about an unperceived thing; MQL names the same things for everyone | W3; drive 11–13 |
+| no verb shows/names/counts/asks about an unperceived thing; MQL names the same things for everyone | W3 — the resolver universal (`mql.universal.test.ts` pins player = system mode), every binding/showing surface through `perceived` (the lint at 0); drive 11–13 |
 | the builder lens inside held extents; plays plainly without | W3; drive 18 |
 | every character restored carries exactly what it carried | W4 (homes by index), W7 (`placeLoose`); drive 19 |
 | a pack animal carries only in what it wears, as its body bears, led on a held rope that takes a hand | W4 (lead, hands), W6 (mule, tack); drive 16 |
@@ -1074,9 +1244,33 @@ Nothing in the requirements is unmapped.
 
 ## Risks & opens
 
-- **Garment gains `Container`** — a mixin added to a 29-row class; `static _mixinName`
+- **Garment gains `Placing`** — a mixin added to a 29-row class; `static _mixinName`
   widening (slot.md's warning) and the `AssembledMixin` interplay (`Garment.ts:80`).
-  Verify the TypeScript compile cost first; the pocket mint must not fire on restore.
+  Verify the TypeScript compile cost first. Placing's class default `placements` must be
+  `[]` on Garment, or every shirt offers `on`. ⚠ `Placing`'s two composition refusals
+  (spatial.md § *Two composition refusals*) must be checked against Garment's stack
+  before W5.
+- **Pocketed and hung things live in the wearer's contents, not the garment's** — so a
+  garment taken off (`remove coat`) must carry its pocketed things with it: `Carrying.
+  stow`/`remove` move every item whose pair host is the garment along with the garment
+  (into the garment's new environment, pair kept) — the same choreography `hang`'s host
+  would need if a hook were carried out of a room. Listed here because it is the one
+  place the "ham in the room" model costs something; the W5 test `Garment.pockets.test.ts`
+  pins *remove coat → the cup leaves with the coat*, and *drop coat → the cup is in the
+  coat's room, still "in the left pocket"*.
+- **A belt's strength number** is a new material property with no reader before this
+  build; its values are grain (leather 20 MPa, hemp 60, canvas 30, iron 200, steel 400)
+  and unset is unbounded, so no shipped row changes behavior.
+- **Keyword matching stays viewer-bound** (`perceivedKeywordsFor(viewer)` in
+  `pushDirect`): the plan treats *what you call a thing* (the belief store's word for a
+  disguised person) as the asker's word, like `me`, not as hiding — the resolver still
+  returns the same objects. ⚠ For the owner's eye: if the rule is read as "the resolver
+  consults no viewer at all", keyword matching must also move to the surfaces, which
+  would make a stranger's query match names the asker does not know.
+- **`pushDirect`'s gate removal widens what a verb can bind in principle** — every
+  surface filters, but a brain or logic singleton calling `MqlApi` in system mode already
+  saw everything; nothing new is reachable by an actor, since the binder filters. The
+  universal test and the lint are the proof, not an argument.
 - **`gravityNow` before the first resolution** reads 9.81 — a zero-g room read in the
   first second after boot weighs things; acceptable, documented. If the exposure cache's
   rebuild hooks are not enough to re-resolve, resolve on `setGravity` and `onMoved` of the
@@ -1111,8 +1305,11 @@ Nothing in the requirements is unmapped.
 - **Folding** → [folding-slate](../slates/builds/folding-slate.md): `foldPackingFactor()`
   is the attach point; the crease model replaces the number.
 - **Autocomplete** — no object autocomplete exists on either side; when build-3's
-  navigation pane or a later client build adds one, it reads `perceived` results
-  (recorded on the client-knowledge slate).
+  navigation pane or a later client build adds one, it is a surface: its candidate list
+  passes `PerceptionApi.perceived(viewer, …)` before a word is suggested, and
+  `lint:perceived-surfaces` counts it (recorded on the client-knowledge slate).
+- **The belt strip on the client** (each attachment drawn as wide as it takes) → the
+  client slate; the server's `i belt` and `roomFor` words are the whole of this build.
 - **Inspecting another player inside your extent** → access-slate § Inspection: rule 2
   of D24 is where a grant would enter.
 - **The interior place inside a creature** → the bestiary.
