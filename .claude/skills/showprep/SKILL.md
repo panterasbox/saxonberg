@@ -49,8 +49,9 @@ For each booked segment:
   commands to run on air.
 - **The Real Science:** a one-pager; verify every fact and figure against a source and cite
   it. Never ship an unverified number on air.
-- **The Fork:** case cards, three points per side; mark which side the agent argues. Give
-  the agent's side its strongest honest case — a straw man fails the posture.
+- **The Fork:** case cards, three points per side, for the owner to argue **both** sides.
+  Give each side its strongest honest case — a straw man fails the segment. The agent never
+  performs on air; it prepares.
 - **Lower thirds** and **chapter titles**, one per segment, in rundown order.
 
 Assets go to the folder Rodney serves to OBS (ask the owner for the path the first time and

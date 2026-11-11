@@ -34,8 +34,10 @@ guy with AI. There really is no in between, this game is a game that could have 
 made with AI. Maybe the first of its kind … So if the livestream inherits that posture, I'm
 totally okay with it."*
 
-- **The AI is in the cast, not hidden in the production.** The agent appears on screen as
-  the owner's debate opponent (The Fork) and scene partner (Live Design).
+- **The AI is the workbench, not the cast.** The owner, 2026-11-11: *"don't get too cute with
+  the role of the agent in this production. you're not exactly built for performance just stick
+  to what you're good at."* The agent prepares (digest, research, case cards, diagrams,
+  illustrations, staging) and works visibly on screen as a tool; the owner performs.
 - **The answer to "AI slop" is receipts, not apology.** Show the rigor: the lenses, the
   verified figures, the real science, the agent corrected on air. Every commit is co-authored
   by Claude; the show leans into it.
@@ -50,9 +52,9 @@ totally okay with it."*
 | 0:05 | **Cold open** | the week's one-line hook, a 60-second bit | a Short |
 | 0:07 | **This Week** | what shipped, demoed in the game (a staged scene) | devlog clip |
 | 0:20 | **The Real Science** | one real-world fact behind a system, sourced | Shorts + a long clip |
-| 0:32 | ⭐ **The Fork** | one design decision, **argued both sides: the owner against the agent**, case cards, rebuttals, then the verdict and which lens decided it | the signature segment |
+| 0:32 | ⭐ **The Fork** | one design decision, **the owner argues both sides** (the debate exercise) from prepared case cards, then the verdict and which lens decided it | the signature segment |
 | 0:45 | **Break** | standby or b-roll | not clipped |
-| 0:50 | **Live Design** | improv's *"can I get a suggestion"*: a prompt from chat, Reddit or the backlog, designed live with the agent while the whiteboard draws | long clip |
+| 0:50 | **Live Design** | improv's *"can I get a suggestion"*: a prompt from chat, Reddit or the backlog, which the owner designs live, the agent's session and the whiteboard on screen as tools | long clip |
 | 1:10 | **Under the Hood** | one architecture idea, code on screen | developer clip |
 | 1:22 | **The Rotating Slot** | In the News ([media-responses.md](../media-responses.md)) · Court Day ([moderation § 14a](../slates/builds/moderation-slate.md), once a realm runs) · Playtest | varies |
 | 1:30 | **Mailbag** | questions from chat, Reddit, Discord | grab bag |
@@ -90,7 +92,7 @@ totally okay with it."*
 - **illustrations** in the house style ([media.md](../subsystems/media.md));
 - This Week: a **staged demo scene** in the game, set with the drive tooling;
 - The Real Science: a **one-pager**, every fact verified and sourced;
-- The Fork: **case cards**, three points for each side, the agent's side marked;
+- The Fork: **case cards**, three points for each side, for the owner to argue both;
 - the **lower-third text** and the **chapter titles**, preloaded so the chapter button
   advances to the next segment.
 
