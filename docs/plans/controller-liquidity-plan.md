@@ -3051,3 +3051,31 @@ load average of 11–13 from sibling worktrees, not an assertion); the walk
 8/8 on the fresh world. ⚠ The walk's step 5 spends the put-in's canoe
 (`launch` floats it away), so a second walk on the same world fails at
 `go canoe` — run it on a fresh world, as W15 did.
+
+**After W16–W20 + master merge, 2026-11-10** (merge `c26e782b1`: the
+boundary build and the map/step-beat/client-knowledge slates; conflicts in
+reach — kept `PerceptionApi.reach`, master's `getDoor`→`getBoundary` applied
+in `reachOf` — `Sealable` both hooks, `LookController`, `mql.md`). Gates:
+tsc 0 (server, client, 54 packs); `lint:family` 106/106 after two merge
+fixes (the boundary build's dead `boltedByDefault`/`fitExit` seams retired;
+curtain/grating/hatch rows `unreachable: parent`; `lint:duck-typing`
+478 → 477); `test:near origin/master` exit 0. Fresh worlds throughout.
+
+| drive | result |
+|---|---|
+| step 13 (world A) | ✅ 78/78 rows equal the record — `survey`→`analyze rooms`, `stir`, `sweep` unchanged; nothing re-recorded |
+| steps 1–12 (world B) | ✅ 25/25 |
+| step 14 (world B) | ⚠ red: a water-mill grind started before a restart never landed and its grain was gone — the landing was a closure timer (W15's green was timing). Fixed: `ComminutingMixin.pendingGrind` is persisted state whose setter re-arms the landing; re-driven green |
+| boundary (master's) | ⚠ red: `open pump-house door` unquoted under W5's grammar — the drive quotes it now; 5/5 on a fresh world |
+| paint | ✅ 16/16 |
+| cleanliness | ⚠ 22/23 — drive 23: after a restart the washed shirt is no longer on the cookhouse drying rack (`look rack` shows none; `look shirt` binds the cook's own). Not diagnosed → /finalize |
+| placement | ✗ not run — the shared world's cold boot overran 420 s → /finalize |
+| `controller-liquidity-walk.spec.ts` (world D, one worker, `CLIENT_URL`, vite 5183) | ✅ 8/8 |
+
+**Skipped → /finalize** (owner ruling, scope cut): wire — placement,
+harbors, metal-chain, nutrition-fitness, tracts, ceramics-c, ceramics-d,
+glass, cordage, dairy, potash, client-surface, wizard-axis; walks — paint,
+residences, harbors, the six cockpit specs. Seen in passing, not this
+build's: an infirmary NPC's `press post` notice is `unknown-verb` (the
+blood-bank brain posts with a verb only `Avatar`/`Editor` afford — on
+master too).
