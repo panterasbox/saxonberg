@@ -119,6 +119,34 @@ did not recur in one long run (RSS 1.1–1.2 GB). One run is not proof. Next
 time it happens: `--heapsnapshot-near-heap-limit` is the flag; the harness's
 own restart drops it.
 
+## 7. ⚠ The scale envelope — the model used past the scale it was built for
+
+Moved here from the size-and-carrying requirements in owner review,
+2026-11-11: it is engine performance, not carrying. The owner's frame (design
+session, 2026-11-07): no new model is needed — bulk and stacks are already one
+object whatever the amount; *"the problem is using the model at a scale it
+wasn't designed to sustain"*, and it only matters when something clones
+dynamically at scale.
+
+Size covers part of it for free: once things have sizes, volume bounds what a
+container holds, nesting runs out because each inner container is smaller,
+and an enclosed place refuses authored content that does not fit, loudly. What
+is left:
+
+- **Objects in an open place.** A field bounds nothing (big things spill), so
+  a runaway script can litter one without limit.
+- **Mints per act.** A `do` loop or a generator minting without bound.
+- **Resident objects.** What the world keeps loaded (see
+  [eager-residency-slate.md](./eager-residency-slate.md) and residency.md).
+
+The shape agreed for it: a small set of budgets, **measured** by benches at the
+envelope's edge (the soak lane), **enforced** at the chokepoints (the one
+minting path, the container side of a move, the resident set), and **loud** —
+a player's act refused in words, an author's or a generator's failing with a
+diagnostic naming who and what. Never a silent trim. Open: the numbers (set
+from the benches), and who may raise a budget (lens 7 — tier B, whoever
+ships the code).
+
 ## See also
 
 - [crowded-rooms-slate.md](./crowded-rooms-slate.md): the crowd timing, a

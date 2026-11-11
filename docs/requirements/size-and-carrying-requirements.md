@@ -55,7 +55,7 @@ perceives is decided by the act (§ Perceiving).
 **Therefore what is genuinely new:** sizes and openings; a body's two hands and the *nothing loose on a
 body* invariant; homes, readying and reach tiers; pockets and hands-free gear; exit clearances; the
 tiered inventory; what a person's carrying shows to others, applied by every act that shows or binds a
-thing; a builder lens inside your extents; the scale envelope.
+thing; a builder lens inside your extents.
 
 ## Goals
 
@@ -72,7 +72,6 @@ thing; a builder lens inside your extents; the scale envelope.
 - **What is covered stays covered** — no verb shows, names, counts or asks about a thing its viewer
   does not perceive.
 - **A creator can inspect their own content** completely, and can play it as an ordinary player.
-- **The engine stays inside the scale it was built to sustain**, loudly.
 
 ## Non-goals
 
@@ -90,7 +89,7 @@ thing; a builder lens inside your extents; the scale envelope.
 
 ## Placement
 
-Kernel: size, carrying, readying, perceiving, the builder lens, the scale envelope — containment,
+Kernel: size, carrying, readying, perceiving, the builder lens — containment,
 slots, perception and the binder are kernel substrate, and a second gear row must need no code. Packs: the gear rows
 (pockets on garments in the textiles pack; belts, holsters, sheaths, pouches, quivers and packs in the
 leather and smithing packs that make them); exit clearances on each locality's own exits where they
@@ -303,14 +302,14 @@ the idioms above, item by item:
   never what a verb searches; `reachable` survives as a query word only if it means exactly that.
 - **The card** shows what you perceive on a person — their outer layer, their belt, their hands.
 
-### The scale envelope **[DECIDED]**
+### Capacity is physical **[DECIDED 2026-11-11, owner review]**
 
-The model already has the right representations — bulk and stacks are one object whatever the amount.
-The risk is using it at a scale it was not built to sustain. So a small set of budgets — **objects per
-container, nesting depth, objects per place, mints per act, resident objects** — **measured** by
-benches at the envelope's edge (soak lane), **enforced** at the chokepoints (the one minting path, the
-container side of a move, the resident set), and **loud**: a player's act refused in words, an author's
-or a generator's failing with a diagnostic naming who and what. Never a silent trim.
+Once things have sizes, the physics bounds what a body or a container holds — a pocket cannot take ten
+thousand coins as objects, each container inside another is smaller, and an enclosed place refuses
+authored content that does not fit, loudly. A player only ever hears *"it won't fit"*. The rest of the
+old **scale envelope** — objects in an open place, mints per act, resident objects, and the benches
+that measure them — is engine performance, not carrying, and moved to
+[db-performance-slate](../slates/builds/db-performance-slate.md) § 7.
 
 ### The flip — one build, staged inside it **[DECIDED]**
 
@@ -384,21 +383,17 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 17. *instant · staged* — Inside an extent you hold, with the builder lens on: look into a staged NPC's
     shut chest and read its true contents, labeled builder information; with the lens off, the same chest
     is shut to you like anyone.
-18. *instant · staged* — A generator told to mint past the per-act budget fails with a diagnostic naming
-    the act and the author; nothing is half-made.
-19. *short · staged* — ⭐ (R4) Restart the world. Every character comes back holding, wearing and
+18. *short · staged* — ⭐ (R4) Restart the world. Every character comes back holding, wearing and
     pocketing exactly what they had — no item loose, none on the floor, none duplicated; a pre-flip
     character's loose inventory has been placed (hands, pockets, pack, and the overflow at home, with the
     message).
-20. *instant · player* — (R5) `look` in the new or changed places — the low-door room, the crawlway, the
+19. *instant · player* — (R5) `look` in the new or changed places — the low-door room, the crawlway, the
     stair, the pond — by day and with a headlamp at night.
 
 ### Soak drive
 
 1. *span* — Two real hours of an expedition at 12× (a game day): the food and water carried are consumed
    on the body's own clock, and the pack lightens; the burden line follows.
-2. *span* — The scale benches: a container, a place and a generator driven to the envelope's edge, each
-   measured, so the budgets are set from numbers.
 
 ## Acceptance criteria
 
@@ -415,7 +410,6 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 - A creator inspects the true state of their own content with the builder lens, and plays it plainly
   without.
 - Every character restored after a restart carries exactly what they carried.
-- A runaway generator is stopped at its budget with a diagnostic, and no player ever sees a silent trim.
 
 ## Cross-references
 
