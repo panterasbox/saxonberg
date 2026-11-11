@@ -448,9 +448,9 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (MixinApi.isHygienic(by)) {
         by.soilFrom(
           [
-            { kind: 'blood', amount: 0.4, where: 'hands' },
-            { kind: 'blood', amount: 0.3, where: 'apron' },
-            { kind: 'blood', amount: 0.2, where: 'floor' },
+            { kind: '/platform/dirt/blood', amount: 0.4, where: 'hands' },
+            { kind: '/platform/dirt/blood', amount: 0.3, where: 'apron' },
+            { kind: '/platform/dirt/blood', amount: 0.2, where: 'floor' },
           ],
           self,
         );

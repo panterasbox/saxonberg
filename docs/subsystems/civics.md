@@ -74,9 +74,16 @@ ref:
   is what a buyer, a builder or a magistrate takes, and a second polity
   declares its own by rows alone.
 
-`GovernmentCatalogue` (`/platform/idea/GovernmentCatalogue`, manifest-warmed) is
-the corpo-recipe data-cache: one boot query, sync reads, defensive
-copies, cold-state-empty, singleton destruct/evict refusals. Like the
+`GovernmentCatalogue` (`/platform/idea/GovernmentCatalogue`) is
+the corpo-recipe data-cache — a **lazy dictionary**: one query on first
+use, sync reads, defensive copies, singleton destruct/evict refusals.
+⭐ **Never booted** (documents path identity, 2026-11-09 — it was a
+`sync-read` boot entry): **`GovernmentApi.ready()`** stands it up, and
+`GovernmentLogic`'s sync reads throw `DocumentNotResidentError` when it is
+cold. It is resident by construction wherever a government is cited:
+`Locality.setGovernmentKey`, `ShipRegister.setGovernment` and a polity
+brand's `Branded.setBrand` return the dictionary's load for the applier
+to await, and `Ship.commission` awaits it before naming the polity. Like the
 corpo catalogue it has **no auto-invalidate** on template churn beyond
 HMR re-clone — a CMS edit to a Government template needs
 `dest /platform/idea/GovernmentCatalogue`.
@@ -310,3 +317,9 @@ the giver may rig where they hold (`AccessApi.can` write), or on ground
 under a government's jurisdiction (`GovernmentApi.governmentAt(address)`
 non-null) that nobody privately holds (`ParcelApi.ownerOf` null).
 Refused on another owner's property and on ungoverned ground.
+
+## History
+
+- 2026-11-09 — documents path identity: `GovernmentCatalogue` left the boot
+  list and loads on reach through `GovernmentApi.ready()`. See git log for the
+  `reqs/documents-path-identity` branch.

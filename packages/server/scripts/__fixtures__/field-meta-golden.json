@@ -1141,7 +1141,7 @@
     "index": 0,
     "className": "BrandedMixin",
     "persistentFields": [
-      "_brandKey"
+      "brand"
     ],
     "fieldMarshallers": {},
     "instructionFields": [],

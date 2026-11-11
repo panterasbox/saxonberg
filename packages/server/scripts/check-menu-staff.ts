@@ -219,8 +219,11 @@ function main(): void {
 
   for (const row of rows) {
     byPath.set(row.path, row);
-    if (typeof row.raw.recipeId === 'string') {
-      const id = row.raw.recipeId;
+    // A recipe document: a file under a pack's `content/recipes/`; its word
+    // is its file name (the path's leaf) — no field repeats it.
+    const recipeFile = /\/content\/recipes\/(?:.*\/)?([^/]+)\.yaml$/.exec(row.file);
+    if (recipeFile) {
+      const id = recipeFile[1]!;
       const difficulty =
         typeof row.raw.difficulty === 'string' ? row.raw.difficulty : '';
       if (difficulty && !DIFFICULTIES.includes(difficulty as never)) {
@@ -336,7 +339,10 @@ function main(): void {
       unhoused.push(`${row.file}: no house found for this menu.`);
       continue;
     }
-    for (const id of offered) {
+    for (const path of offered) {
+      // A menu cites a recipe by PATH (census (g) checks the path ships);
+      // the recipe is keyed here by its word, the path's leaf.
+      const id = path.slice(path.lastIndexOf('/') + 1);
       const recipe = recipes.get(id);
       if (!recipe) {
         failures.push(

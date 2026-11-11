@@ -36,6 +36,7 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
+import { DirtKinds } from '../cleanliness/DirtKind';
 
 /** Soot a swept flue drops, as a load on the floor per kg (D18). */
 const SOOT_LOAD_PER_KG = 0.8;
@@ -101,8 +102,10 @@ export function FluedMixin<TBase extends NestingConstructor<Stuff & Burner>>(
         facts: { tool: 'brush' },
         onComplete: async () => {
           const { sootKg, taken } = await this.sweepChimney(req.actor);
-          const kinds: Record<string, number> = sootKg > 0 ? { soot: sootKg } : {};
-          return { ok: true, facts: { kg: sootKg, kinds, taken } };
+          return {
+            ok: true,
+            facts: { kg: sootKg, kinds: sootKg > 0 ? { [DirtKinds.SOOT]: sootKg } : {}, taken },
+          };
         },
       };
     }
@@ -131,9 +134,9 @@ export function FluedMixin<TBase extends NestingConstructor<Stuff & Burner>>(
       const floor =
         room && MixinApi.isAdornable(room) ? (room.getFloor() as unknown as Stuff | null) : null;
       if (floor && MixinApi.isSoilable(floor) && soot > 0) {
-        floor.soil('soot', soot * SOOT_LOAD_PER_KG);
+        floor.soil(DirtKinds.SOOT, soot * SOOT_LOAD_PER_KG);
       }
-      if (MixinApi.isHygienic(sweeper)) sweeper.soilFrom([{ kind: 'soot', amount: 0.3, where: 'hands' }]);
+      if (MixinApi.isHygienic(sweeper)) sweeper.soilFrom([{ kind: DirtKinds.SOOT, amount: 0.3, where: 'hands' }]);
       const taken = await this.takeSoot(sweeper, soot);
       await PersistableApi.captureHostOf(self).catch(() => {});
       return { sootKg: soot, taken };

@@ -498,7 +498,7 @@ them:
   particular spell that IS a plot spoiler belongs behind a `<spoiler>`
   in authored prose, because a field level applies to every spell at
   once.
-- **`LocomotionMode`** (and `CombatFormation`) — `speed`, `noiseLevel`,
+- **`LocomotionMode`** (and the `formation` documents) — `speed`, `noiseLevel`,
   `costMultiplier` are numbers, but a locomotion mode is the player's
   own control surface. Hiding how your own legs work teaches nothing:
   a player learns sneaking is slower by sneaking, once.

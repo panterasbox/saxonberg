@@ -18,8 +18,9 @@
  *    warren captures them) / `teardown` / `revert`;
  *  - **the subclass** — what the key MEANS (a parcel extent, a ship's
  *    serial), who is told when the population changes (`reconcile`), and
- *    the address a woken room is stamped with (`addressFor`); a house
- *    hangs its keyed doors itself at wake (the boundary build). A room that must finish itself against its
+ *    the address a woken room is stamped with (`addressFor`). A house's
+ *    keyed doors are hung by the house itself after the wake
+ *    (`HoldingWarren.hangKeyedDoors`). A room that must finish itself against its
  *    warren does so in its own `WarrenMember.onWarrenWake` — the ONE wake
  *    hook.
  *

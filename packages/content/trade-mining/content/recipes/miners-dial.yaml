@@ -2,7 +2,6 @@
 # compass in gimbals over a clinometer is the most exacting thing the
 # trade makes, and it is exacting because a survey that is wrong sends a
 # heading into the wrong ground.
-recipeId: miners-dial
 name: Miner's Dial
 keywords: [dial, miners-dial]
 # ⭐⭐ The stock slot asks for `forgeable`, and that one tag is the whole

@@ -5,7 +5,6 @@
 # not a new kind of place, it is four known things standing together. A
 # depot missing one reports the gap and functions anyway — reported,
 # never enforced.
-archetypeId: depot
 label: a depot
 roomsScope: space
 capabilities:

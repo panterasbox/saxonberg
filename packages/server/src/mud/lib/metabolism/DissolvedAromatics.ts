@@ -20,9 +20,12 @@
  * and a static that exists only to forward is what it counts down.
  */
 
+import { StuffApi } from '../../api/stuff';
 import { Concentration, type Concentrate } from "../bulk/Concentration";
 import type { BulkPayload, BulkSlot } from "../bulk/Bulkable";
 import { Aroma } from "../perception/Aroma";
+import { AROMA_PATH_SHAPE } from '../perception/Aroma';
+import { PerceptionApi } from '../../api/perception';
 
 /**
  * An aroma compound's concentration in this matter, mg per litre. `type`
@@ -53,12 +56,12 @@ export class DissolvedAromatics {
 
   /** Whether a string has the shape of an aroma path; no document is consulted. */
   public static isAromaPath(type: unknown): type is string {
-    return Aroma.isAromaPath(type);
+    return typeof type === 'string' && AROMA_PATH_SHAPE.test(type);
   }
 
   /** The detection threshold for an aroma, or `null` if it is not resident. */
   public static thresholdFor(type: string): number | null {
-    return Aroma.resolve(type)?.getThreshold() ?? null;
+    return PerceptionApi.aromas().resolve(type)?.getThreshold() ?? null;
   }
 
   /** This slot's aroma concentrations. `[]` when there are none. */

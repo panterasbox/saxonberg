@@ -16,8 +16,8 @@
  * on use; nothing scans). ⚠ A word it does not know REFUSES naming the five
  * classes — it never binds silently.
  *
- * Value objects with instance methods only (no public statics —
- * `lint:lib-statics`).
+ * Value objects with instance methods only. The form words themselves
+ * are SERVED by `FormCatalogue`, reached as `CraftingApi.forms()`.
  */
 
 import type { ActRefusal } from './ActPlan';
@@ -185,3 +185,4 @@ export class FormGrammar {
     return this.words.map((w) => w.key);
   }
 }
+

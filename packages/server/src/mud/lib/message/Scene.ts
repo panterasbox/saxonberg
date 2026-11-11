@@ -250,6 +250,24 @@ export class Scene {
     const causingCommandId =
       ExecutionContextApi.getCurrentCausingCommandId() ?? undefined;
 
+    // ⭐ The topic vocabulary loads with the pipeline (documents D13): while
+    // it is cold — the first scenes of a process — dispatch waits IN ORDER
+    // behind the one warm, and every queued scene dispatches, in order, when
+    // it lands. No frame is ever classified cold and none is dropped. The
+    // ids are captured now, so a queued frame is attributed to its command.
+    const warming = MessageApi.topicsWarming();
+    if (warming !== null || QUEUED.length > 0) {
+      QUEUED.push(() => this.#dispatch(commandId, causingCommandId));
+      if (warming !== null) void warming.then(drainQueued, drainQueued);
+      else drainQueued();
+      return;
+    }
+    this.#dispatch(commandId, causingCommandId);
+  }
+
+  /** Render every frame and deliver it — `send`'s body, now or once topics are warm. */
+  #dispatch(commandId: string | undefined, causingCommandId: string | undefined): void {
+
     const explicitTarget = this.#frames.find(
       (f) => f.recipientKind === 'target'
     )?.target;
@@ -434,4 +452,23 @@ function composeFaint(
   const noun = descriptor && descriptor.length > 0 ? descriptor : 'sound';
   const adjective = sourceDb - deliveredDb >= 35 ? 'distant' : 'faint';
   return Mml.compose`From the ${direction}, a ${adjective} ${noun}.`;
+}
+
+/**
+ * Scenes waiting on the topic vocabulary's first warm, in send order
+ * (documents D13). Module-scoped value construction; drained by
+ * {@link drainQueued} the moment the warm lands.
+ */
+const QUEUED: Array<() => void> = [];
+
+/** Dispatch every queued scene, in order (a warm that failed still delivers — routing falls back loudly). */
+function drainQueued(): void {
+  while (QUEUED.length > 0) {
+    const next = QUEUED.shift()!;
+    try {
+      next();
+    } catch (err) {
+      console.error('Scene: a queued dispatch failed:', err);
+    }
+  }
 }

@@ -188,12 +188,12 @@
   },
   "BrandedMixin": {
     "authorable": [
-      "_brandKey",
+      "brand",
       "brandKey"
     ],
     "runtime": [],
     "refs": {
-      "_brandKey": "Brand",
+      "brand": "Brand",
       "brandKey": "Brand"
     }
   },

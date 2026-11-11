@@ -21,6 +21,7 @@ import { PersistenceManager } from "../../../../../backend/PersistenceManager";
 import { Idea } from "../../../../lib/stuff/Idea";
 import { Stuff } from "../../../../lib/stuff/Stuff";
 import { makeStuffAtPath } from "../../../../lib/security/__tests__/test-setup";
+import { matchesDocumentQuery } from '../../../../lib/document/__tests__/document-query';
 
 const OWNER = "/home/test";
 const SCRIPT_PATH = "/home/test/scripts/greet";
@@ -41,9 +42,7 @@ beforeEach(() => {
 
   const find = vi.fn(async (col: string, query: Record<string, unknown>) => {
     if (col === "documents") {
-      return scripts.filter((d) =>
-        Object.entries(query).every(([k, v]) => d[k] === v),
-      );
+      return scripts.filter((d) => matchesDocumentQuery(d, query));
     }
     return [];
   });

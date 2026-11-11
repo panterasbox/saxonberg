@@ -27,6 +27,7 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
+import { TemplatePaths } from '../lib/paths';
 import { HotReloadApi } from './hot-reload';
 import { MagicLogic } from '../platform/idea/api/MagicLogic';
 import type {
@@ -69,6 +70,14 @@ function logic(): MagicLogic {
 }
 
 export class MagicApi {
+  /**
+   * ⭐ What this Api's reads stand on (documents D7, W5c): every async
+   * static awaits it in the call gate; a sync reach calls
+   * `StuffApi.ready(MagicApi)`. Loaded on reach, never at boot.
+   */
+  static readonly needs: readonly string[] = [TemplatePaths.spellCatalogue];
+
+
   /**
    * One authored spell descriptor by id, or `null`. The read a
    * *consumer of a spell* needs — a spellbook resolving what it teaches,

@@ -86,6 +86,7 @@ import { ImpressibleMixin } from '../craft/Impressible';
 import type { Impressible, ImpressOutcome, ImpressRefusal } from '../craft/Impressible';
 import { CarvableMixin } from '../craft/Carvable';
 import type { Carvable, CarvePlan, CarveRefusal, CarveRequest } from '../craft/Carvable';
+import { Placements } from '../spatial/Placement';
 
 /** What a pool hands a mould when it sets. */
 export interface SetPool {
@@ -561,7 +562,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const self = this as unknown as Stuff;
       let n = 0;
       if (MixinApi.isPlacing(self)) {
-        for (const item of self.getPlaced('on')) {
+        for (const item of self.getPlaced(Placements.ON)) {
           if (MixinApi.isTangible(item)) n += item.getMass().rawValue() * G;
         }
       }
@@ -1107,7 +1108,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       }
 
       if (fromImpression && imp !== null) {
-        if (MixinApi.isAssembled(cast)) cast.setBill(null); // one piece
+        if (MixinApi.isAssembled(cast)) void cast.setBill(null); // one piece (nothing to load)
         if (MixinApi.isCrafted(cast)) {
           cast.setCastFrom({
             kindPath: imp.getKindPath(),

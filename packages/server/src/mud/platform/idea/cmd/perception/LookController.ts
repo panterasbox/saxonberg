@@ -57,6 +57,7 @@ import { AppApi } from '../../../../api/app';
 import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import type { Sensor } from '../../../../lib/message/Sensor';
 import type { Container } from '../../../../lib/spatial/Container';
+import { Placement } from '../../../../lib/spatial/Placement';
 
 interface LookModel extends CommandModel {
   /** ONE thing (maritime revision 2′) — a set is `query`'s. */
@@ -665,7 +666,7 @@ export default class LookController extends CommandController<LookModel> {
         // with nothing here knowing the difference. A member with no
         // live row falls back rather than printing nothing.
         const heading =
-          ContainmentApi.placement(member)?.getHeading() || 'With it';
+          ContainmentApi.placements().need(member).getHeading() || 'With it';
         section(Mml.compose`── ${heading}: ${list}.`, {
           shape: 'list',
           heading,

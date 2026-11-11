@@ -36,7 +36,6 @@
 # light is lux. The proof that the needs vocabulary already reaches this
 # domain is that it was already being used for it — the mining
 # archetype's `haulage: { presence: pony }`.
-archetypeId: corridor
 label: a way
 roomsScope: corridor
 capabilities:

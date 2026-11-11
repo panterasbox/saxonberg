@@ -64,11 +64,11 @@ export const TemplatePaths = {
   subjectCatalogue: "/platform/idea/SubjectCatalogue",
   soulCatalogue: "/platform/idea/SoulCatalogue",
   disciplineCatalogue: "/platform/idea/DisciplineCatalogue",
-  operationCatalogue: "/platform/idea/OperationCatalogue",
-  jointCatalogue: "/platform/idea/JointCatalogue",
   corpoCatalogue: "/platform/idea/CorpoCatalogue",
   conditionCatalogue: "/platform/idea/ConditionCatalogue",
   governmentCatalogue: "/platform/idea/GovernmentCatalogue",
+  spellCatalogue: "/platform/idea/SpellCatalogue",
+  recipeCatalogue: "/platform/idea/RecipeCatalogue",
   helpCatalogue: "/platform/idea/HelpCatalogue",
   pressBoard: "/platform/idea/PressBoard",
 

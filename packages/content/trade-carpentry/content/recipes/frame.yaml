@@ -2,7 +2,6 @@
 # ⭐ Run by `fit frame`. The slot NAMES and COUNTS are the frame row's
 # bill — `lint:bills` holds them to one declaration — so a slot named
 # for a part takes the part (a carved leg), not just any wood.
-recipeId: frame
 name: Pegged Frame
 keywords: [frame]
 inputSlots:

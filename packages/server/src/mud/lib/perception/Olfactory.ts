@@ -29,7 +29,6 @@ import { PerceptionApi } from '../../api/perception';
 import { Seeded } from '../Seeded';
 import { TemplatePaths } from '../paths';
 import { Scent, type ScentNote, type Smell } from './Smell';
-import { Aroma } from './Aroma';
 import type { VisionModality } from '../../platform/idea/modalities/VisionModality';
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
@@ -141,7 +140,7 @@ export function OlfactoryMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
         const ou =
           (note.ou * acuity * BAND ** this.bornSensitivity(note.aroma)) / BAND ** level;
         if (ou < 1) continue;
-        const row = Aroma.resolve(note.aroma);
+        const row = PerceptionApi.aromas().resolve(note.aroma);
         if (!row) continue;
         const maker = from.find((s) => s.maker)?.maker ?? '';
         const rank = Math.max(this.rankIn(maker), this.rankIn(row.disciplineOf()));
@@ -152,7 +151,7 @@ export function OlfactoryMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
         const hops = Math.min(...from.map((s) => s.hops));
         const had = named.get(aroma);
         named.set(aroma, {
-          name: Aroma.phraseOf(aroma),
+          name: PerceptionApi.aromas().phraseOf(aroma),
           ou: (had?.ou ?? 0) + ou,
           hops: Math.min(had?.hops ?? hops, hops),
           leaf: had?.leaf ?? note.aroma,
@@ -248,7 +247,7 @@ export function OlfactoryMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       // reaches you faintly, and that does not stop you knowing who is here.
       const from = signal.sources.filter((s) => {
         if (s.hops > 0) return false;
-        const row = Aroma.resolve(s.aroma);
+        const row = PerceptionApi.aromas().resolve(s.aroma);
         return row ? row.ancestry().includes(aroma) || s.aroma === aroma : s.aroma === aroma;
       });
       const only = from[0];

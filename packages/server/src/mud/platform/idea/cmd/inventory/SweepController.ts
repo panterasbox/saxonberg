@@ -27,6 +27,7 @@ import type { ActWords } from '../../../../lib/command/EngagedActController';
 import type { SweepBegin, SweepFacts, SweepRefusal } from '../../../../lib/cleanliness/Sweepable';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
+import { MaterialApi } from '../../../../api/material';
 
 type Composed = ReturnType<typeof Mml.compose>;
 
@@ -96,7 +97,8 @@ export default class SweepController extends ManualBuildController<SweepModel> {
     if (!(f.kg > 0.05) && f.taken.length === 0) {
       return { self: Mml.compose`You sweep ${Mml.thing(target)}, and there is nothing worth the name to take up.` };
     }
-    const what = Object.keys(f.kinds).slice(0, 3).join(', ');
+    // A dirt kind is named by its path; the sentence says its word.
+    const what = Object.keys(f.kinds).slice(0, 3).map((k) => MaterialApi.dirtKinds().wordOf(k)).join(', ');
     const of = what ? ` of ${what}` : '';
     const first = f.taken[0];
     return {

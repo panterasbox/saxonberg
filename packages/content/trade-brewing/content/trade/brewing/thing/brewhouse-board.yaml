@@ -7,4 +7,6 @@ data:
   register: definite
   longDescription: |
     A chalkboard over the tun, the day's grists rubbed and rewritten a hundred times.
-  offeredRecipes: [mash, lager-mash]
+  offeredRecipes:
+    - /trade/brewing/recipes/mash
+    - /trade/brewing/recipes/lager-mash

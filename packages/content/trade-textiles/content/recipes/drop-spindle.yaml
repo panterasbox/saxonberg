@@ -2,7 +2,6 @@
 # until it jams. Run by `fit drop-spindle`. FRICTION: no fastener, no
 # tool, no competence — the floor of the joint vocabulary, and the
 # reason a spinner with a knife and a stone has a spindle by evening.
-recipeId: drop-spindle
 name: Drop Spindle
 keywords: [drop-spindle, spindle]
 inputSlots:

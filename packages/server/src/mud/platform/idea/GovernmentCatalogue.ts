@@ -31,7 +31,7 @@ import Government, {
   type GovernmentDescriptor,
   type GovernmentSeat,
 } from "./Government";
-import type { VetoResult } from "../../lib/errors";
+import { DocumentNotResidentError, type VetoResult } from "../../lib/errors";
 import type { EvictionContext } from "../../lib/stuff/Stuff";
 
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
@@ -109,10 +109,9 @@ export default class GovernmentCatalogue extends GovernmentCatalogueBase {
 
   private ensureCache(): void {
     if (this.governmentCache !== null) return;
-    // Never warmed (onCreate wasn't awaited, e.g. a unit test). An
-    // empty cache is a valid cold state — every reader degrades to
-    // "no such government".
-    this.governmentCache = new Map();
+    // Reached only through `StuffApi.singleton`, whose onCreate warms it; a
+    // cold read is an engine defect, never "no such government" (D7).
+    throw new DocumentNotResidentError('government', '/platform/idea/GovernmentCatalogue');
   }
 
   /**

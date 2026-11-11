@@ -11,7 +11,6 @@
 # ⚠ Three bars and the lowest heat of the armour, because mail is not
 # forged hot — it is thousands of rings drawn, wound, cut, closed and
 # riveted one at a time. `hard` is the labour, not the temperature.
-recipeId: mail-hauberk
 name: Mail Hauberk
 keywords: [hauberk, mail]
 inputSlots:

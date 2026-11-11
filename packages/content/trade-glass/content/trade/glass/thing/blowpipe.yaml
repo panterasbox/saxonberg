@@ -14,5 +14,5 @@ data:
   # ⭐ The forms this pipe blows — `Form` rows, loaded when a `shape` asks
   # (`FormingMixin`). A blown jar or flask is one more row here.
   forms:
-    - /trade/glass/idea/form/bottle
-    - /trade/glass/idea/form/cylinder
+    - /trade/glass/forms/bottle
+    - /trade/glass/forms/cylinder

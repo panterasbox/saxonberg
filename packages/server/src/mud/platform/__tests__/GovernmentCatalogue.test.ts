@@ -116,11 +116,9 @@ describe("GovernmentCatalogue", () => {
     );
   });
 
-  it("degrades to empty in the cold (un-warmed) state", () => {
+  it("⚠ a cold (un-warmed) read throws — never reads as empty (documents D7)", () => {
     const cat = makeStuff(() => new GovernmentCatalogue());
-    expect(cat.getGovernment("terminus-city")).toBeNull();
-    expect(cat.hasGovernment("terminus-city")).toBe(false);
-    expect(cat.allGovernments()).toEqual([]);
+    expect(() => cat.getGovernment("terminus-city")).toThrow(/not resident/);
   });
 
   it("returns defensive copies callers can't mutate", async () => {

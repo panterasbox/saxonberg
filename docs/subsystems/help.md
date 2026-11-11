@@ -162,22 +162,28 @@ wins over a collection of the same name (so `help wiki` is the verb;
 strict and does not fall through — asking for a verb by that name should
 say the verb does not exist, not wander off into the persistence layer.
 
-### The concept projector — authored `HelpConcept` rows
+### The concept projector — authored `help-concept` documents
 
 Every projector above reads something that exists for another reason,
-which is why the index could never explain *what nitrogen is*. A
-**`HelpConcept`** (`platform/idea/HelpConcept.ts`) is a player-facing
-topic about a CONCEPT — `key`, `title`, `summary`, `body` (MML),
-`keywords`, `seeAlso` — authored as a template row at
-`<root>/idea/HelpConcept/<key>` and never instanced: the catalogue reads
-the rows (`Template.findByClass`) at `warm` and emits `concept.<key>`
-topics. ⭐ It is a data **Idea, not a document kind**, for the same reason
-`Discipline` is: a concept is reference data, so a pack ships one by
-writing YAML — no new collection, no go-live hook, no installer surface.
-`help api` stays the author surface; the concepts are the pedagogy, and a
-build that adds a whole agronomy owes both. Milling, baking, farming and
-the spoilage build ship the first rows; `help <key>` reaches them through
-the bare fallthrough's concept rung.
+which is why the index could never explain *what nitrogen is*. A **help
+concept** is a player-facing topic about a CONCEPT — `title`, `summary`,
+`body` (MML), `keywords`, `seeAlso` — authored as a **`help-concept`
+document** ([document-store.md](./document-store.md)) at a pack's
+`content/concepts/<word>.yaml`, stored at `<pack root>/concepts/<word>`.
+The catalogue reads the kind (`DocumentApi.listOfKind('help-concept')`)
+at `warm` and emits `concept.<word>` topics; there is no value class —
+`HelpCatalogue` is the one reader. ⭐ **A concept's word is its path's
+leaf** (`help nitrogen`), a typed word unique at install
+([content-packs.md](./content-packs.md)); `seeAlso:` cites other concepts
+by **path**, and a see-also relation targets `concept.<leaf>`. A concept
+with no `title` is skipped and named. (It was a `HelpConcept` data Idea
+under `<root>/idea/HelpConcept/<key>` until the documents path identity
+build, 2026-11: a concept is authored reference data nothing writes,
+nothing acts on and nothing finds with MQL — so a document.) `help api`
+stays the author surface; the concepts are the pedagogy, and a build that
+adds a whole agronomy owes both. Milling, baking, farming, ranching,
+carpentry, coopering, ice and the spoilage build ship them; `help <word>`
+reaches them through the bare fallthrough's concept rung.
 
 ## The enriched `author-surface.json` pipeline
 
@@ -290,7 +296,7 @@ the existing `shell.result` topic:
   common case no longer needs the `verb` subcommand word), resolved in
   the order a player means the word: **verb → category → concept →
   collection → api**. ⚠⚠ The concept rung was missing until 2026-09-17: authored
-  `HelpConcept` rows were indexed and searchable from the farmstead
+  help concepts (then `HelpConcept` rows) were indexed and searchable from the farmstead
   build on, and `help extraction` answered *"no help topic"* — four
   packs' concepts were reachable only through `help search`. The
   grain-chain drive was the first to type one (`HelpApi.conceptTopic`,
@@ -408,3 +414,7 @@ See [card-surface.md](./card-surface.md).
   (#89); the inspection card's source popover reads those summaries over
   the REST API. See `docs/plans/client-surface-plan.md` (D10) until it is
   retired at the sweep.
+- **Documents path identity (2026-11-09)** — help concepts moved from
+  `HelpConcept` Idea rows to `help-concept` documents at
+  `content/concepts/`, named by their leaf, with `seeAlso:` as paths. See
+  git log for the `reqs/documents-path-identity` branch.

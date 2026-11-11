@@ -1,10 +1,10 @@
 # Aromatic bitters — a spirit input. The category tag(s) are what a recipe
 # input slot matches (bitters); the brand is the ROW's
-# (`_brandKey`), never the material's. Distilling's, by the generic drain
+# (`brand`), never the material's. Distilling's, by the generic drain
 # rule: the trade whose PROCESS makes it ships it.
 class: /platform/idea/material/Drink
 data:
-  smells: [{ aroma: /base-library/aromas/spirit, strength: 300 }, { aroma: /base-library/aromas/herbal, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/alcohol/spirit, strength: 300 }, { aroma: /base-library/aromas/herbal, strength: 300 }]
   tastes: [{ type: sweet, amount: 100 }, { type: bitter, amount: 1 }]
   name: aromatic bitters
   keywords: [aromatic, bitters]

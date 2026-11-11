@@ -1,7 +1,7 @@
 # rubber cement — raw rubber dissolved in turpentine: a flexible glue that sets as the spirit leaves it, stands the damp, and peels away again.
 class: /platform/idea/material/Glue
 data:
-  smells: [{ aroma: /base-library/aromas/naphtha, strength: 800 }]
+  smells: [{ aroma: /base-library/aromas/oil/petroleum/naphtha, strength: 800 }]
   name: rubber cement
   keywords: ["rubber cement", cement, glue]
   appearance: a tacky amber syrup that smells of turpentine and rubber

@@ -174,7 +174,7 @@ export default class DryController extends CommandController<DryModel> {
     const word =
       member === null
         ? ''
-        : (ContainmentApi.placement(member)?.getPrimaryWord() ?? member);
+        : ContainmentApi.placements().need(member).getPrimaryWord();
     const self = rack
       ? Mml.compose`You hang ${Mml.thing(target)} up to dry ${word} ${Mml.thing(rack)}.${tail}`
       : Mml.compose`You hang ${Mml.thing(target)} up to dry.${tail}`;

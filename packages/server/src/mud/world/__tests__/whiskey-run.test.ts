@@ -920,7 +920,8 @@ describe('⭐⭐ vatting — the blend requires both lines', () => {
       DISTILLING,
       'content/trade/distilling/thing/still-book.yaml',
     );
-    expect(book.offeredRecipes as string[]).toContain('vat-whisky');
+    // Recipes are cited by path since the documents build (W1).
+    expect(book.offeredRecipes as string[]).toContain('/trade/distilling/recipes/vat-whisky');
     // `standard`, and the hand claims `distilling: proficient` — which is
     // what licenses standard work. No `blending` discipline: a
     // distillery vats its own, and it is the same judgement.

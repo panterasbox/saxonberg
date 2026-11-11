@@ -13,8 +13,8 @@
 # exemption needed: a material is not a `Provision`.
 class: /platform/idea/material/SolidFuel
 data:
-  smells: [{ aroma: /base-library/aromas/peat, strength: 50 }]
-  burning: [{ aroma: /base-library/aromas/peat-smoke, strength: 1000 }]
+  smells: [{ aroma: /base-library/aromas/earth/peat, strength: 50 }]
+  burning: [{ aroma: /base-library/aromas/smoke/peat-smoke, strength: 1000 }]
   name: peat
   keywords: [peat, turf]
   appearance: dark fibrous peat

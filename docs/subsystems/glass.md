@@ -177,9 +177,10 @@ the jacks in one move, re-validated at commit, lost to cullet if it set), and
 A wheel plans a pot through the same protocol.
 
 ⭐ **The forms are ROWS (ceramics review, 2026-10-28).** The pipe composes the
-kernel's `FormingMixin`, as the potter's wheel does: its row lists `Form` rows
-(`/trade/glass/idea/form/{bottle,cylinder}` — a closed vessel and a tall open
-one), so a blown jar or flask is one more row. The gather is `Formable` (`lib/craft/Forming.ts`): the
+kernel's `FormingMixin`, as the potter's wheel does: its row lists `form`
+documents by path (`/trade/glass/forms/{bottle,cylinder}` — a closed vessel
+and a tall open one; `form` documents since the documents path identity
+build, 2026-11-09), so a blown jar or flask is one more file. The gather is `Formable` (`lib/craft/Forming.ts`): the
 blower's competence in `glasswork` sets the largest vessel they can blow
 (`glass.blow.maxL.<band>`, untrained 2 L … expert 20 L) and the blow's grade
 (untrained poor … expert exceptional). The blow records the row it will
@@ -193,3 +194,9 @@ salts, pearl ash) and `stabilizer` (quicklime) — lye is alkali but no
 stabilizer, so it fills no slot. The melt carries the flux's potash share
 (concentrated by the yield); the melt itself stays ungraded (the trade
 grades by colour). See [potash.md](potash.md).
+
+## History
+
+- 2026-11-09 — documents path identity: the glass forms became `form`
+  documents at `content/forms/`, cited by path. See git log for the
+  `reqs/documents-path-identity` branch.

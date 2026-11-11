@@ -30,8 +30,8 @@ data:
       - { part: pane, template: /trade/glass/thing/pane, count: 1, role: facing, material: /stuff/idea/material/glass/glass }
       - { part: wick, template: /trade/chandlery/thing/wick, count: 1, role: wear, material: /stuff/idea/material/textile/linen }
     joints:
-      - { key: glazing, method: seated, members: [pane, lantern-body] }
-      - { key: wicking, method: seated, members: [wick, lantern-body] }
+      - { key: glazing, method: /platform/joints/seated, members: [pane, lantern-body] }
+      - { key: wicking, method: /platform/joints/seated, members: [wick, lantern-body] }
   # Steady and bright — the reason it costs more than a torch.
   # ⭐⭐ The darkness sweep (fire build). `emittedIntensity` is a CEILING
   # now, not the reading: luminosity is incandescent soot, so a solid-fuel

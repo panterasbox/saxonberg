@@ -1,5 +1,4 @@
 # The other top rung: the instrument that turns a lump into a number.
-recipeId: assay-kit
 name: Assayer's Kit
 keywords: [assay, assay-kit]
 # ⭐⭐ The stock slot asks for `forgeable`, and that one tag is the whole

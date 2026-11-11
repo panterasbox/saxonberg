@@ -9,7 +9,6 @@
 # one on the other is carpentry: the same rung, and the same Discipline,
 # as the froe beside it. Not silviculture — that is knowing the wood
 # standing, not the tool that takes it down.
-recipeId: felling-axe
 name: Felling Axe
 keywords: [felling-axe, axe]
 inputSlots:

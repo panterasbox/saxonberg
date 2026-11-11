@@ -263,14 +263,14 @@ describe('libations annexes — the floor rows fit the faucet', () => {
     const rail = (n: string) => byPath.get(`/trade/distilling/thing/${n}`)!;
     expect(old.data.interiorMaterial).toBe(rail('whiskey').data.interiorMaterial);
     expect(cane.data.interiorMaterial).toBe(rail('rum-dark').data.interiorMaterial);
-    expect(rail('whiskey').data._brandKey).toBeUndefined();
+    expect(rail('whiskey').data.brand).toBeUndefined();
     expect(lineHome(rail('whiskey').path)?.path).toBe(`${VESHKO}/thing/stock`);
-    expect(old.data._brandKey).toBe('old-hollis');
-    expect(byPath.get(`${VESHKO}/thing/volk`)!.data._brandKey).toBe('volk');
+    expect(old.data.brand).toBe('old-hollis');
+    expect(byPath.get(`${VESHKO}/thing/volk`)!.data.brand).toBe('volk');
     // Every brand key an annex names is a Brand row some pack ships.
     const brands = new Set(rows.filter((r) => r.class === '/platform/idea/corpo/Brand').map((r) => r.data.key));
-    for (const r of floorRows.filter((r) => typeof r.data._brandKey === 'string')) {
-      expect(brands.has(r.data._brandKey), r.path).toBe(true);
+    for (const r of floorRows.filter((r) => typeof r.data.brand === 'string')) {
+      expect(brands.has(r.data.brand), r.path).toBe(true);
     }
   });
 
@@ -377,18 +377,21 @@ describe('libations annexes — the serving recipes and the zone', () => {
     );
     expect(files.length).toBe(1 + 3 + 1);
     for (const f of files) {
-      const r = Recipe.fromData(parse(readFileSync(f, 'utf8')) as Record<string, unknown>);
+      const r = Recipe.fromData(
+        parse(readFileSync(f, 'utf8')) as Record<string, unknown>,
+        `/test/recipes/${f.slice(f.lastIndexOf('/') + 1, -'.yaml'.length)}`,
+      );
       expect(r.outputApplication, f).toBe('bulk');
       expect(r.outputTemplate.startsWith('/trade/hospitality/thing/'), f).toBe(true);
     }
-    const syrup = Recipe.fromData(parse(readFileSync(join(PACKS, 'trade-cooking/content/recipes/simple-syrup.yaml'), 'utf8')) as Record<string, unknown>);
+    const syrup = Recipe.fromData(parse(readFileSync(join(PACKS, 'trade-cooking/content/recipes/simple-syrup.yaml'), 'utf8')) as Record<string, unknown>, '/trade/cooking/recipes/simple-syrup');
     expect(syrup.requiresHeatK).toBe(340);
     expect(syrup.outputPortionL).toBe(0.5);
     // ⚠ Sugar is a BULK good in a sack — the slot asked for `kind: item`
     // and there has never been a discrete sugar item, so the shipped
     // recipe could not resolve at all until the cooking build cooked it.
     expect(syrup.inputSlots[0]).toMatchObject({ category: 'sugar', measureL: 0.25 });
-    const mixer = Recipe.fromData(parse(readFileSync(join(PACKS, 'trade-bottling/content/recipes/soft-drink.yaml'), 'utf8')) as Record<string, unknown>);
+    const mixer = Recipe.fromData(parse(readFileSync(join(PACKS, 'trade-bottling/content/recipes/soft-drink.yaml'), 'utf8')) as Record<string, unknown>, '/trade/bottling/recipes/soft-drink');
     expect(mixer.ice).toBe('cubes');
   });
 

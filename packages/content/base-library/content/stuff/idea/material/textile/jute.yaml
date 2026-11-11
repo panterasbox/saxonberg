@@ -10,8 +10,8 @@
 # insulator because the weave is open rather than lofted.
 class: /platform/idea/material/Fiber
 data:
-  smells: [{ aroma: /base-library/aromas/straw, strength: 20 }]
-  burning: [{ aroma: /base-library/aromas/paper-smoke, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/green/straw, strength: 20 }]
+  burning: [{ aroma: /base-library/aromas/smoke/paper-smoke, strength: 300 }]
   name: jute
   keywords: [sacking, jute, hessian, burlap]
   # ⚠ A material must not assert a CONSTRUCTION; hessian is jute WOVEN

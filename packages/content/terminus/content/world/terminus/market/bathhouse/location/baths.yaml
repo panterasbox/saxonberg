@@ -18,6 +18,7 @@ data:
   exits:
     south:
       destination: /world/terminus/market/bathhouse/location/vestibule
+      door: /world/terminus/market/bathhouse/thing/baths-curtain
       media: [ground]
       edgeMinutes: 1
   # A lamp kept lit — it keeps evening hours (cleanliness, the browser walk).

@@ -15,7 +15,8 @@
  */
 
 import type { FieldMeta, MixinConstructor } from '../mixin';
-import { Aroma, type OdorTag } from '../perception/Aroma';
+import { type OdorTag } from '../perception/Aroma';
+import { PerceptionApi } from '../../api/perception';
 
 export type { OdorTag };
 
@@ -39,7 +40,7 @@ export function OdorMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public async setSmells(value: readonly OdorTag[]): Promise<void> {
-      this.smells = await Aroma.resolveOdorTags(value, 'Material.smells');
+      this.smells = await PerceptionApi.aromas().resolveOdorTags(value, 'Material.smells');
     }
   };
 }

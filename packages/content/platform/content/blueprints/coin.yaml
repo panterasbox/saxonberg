@@ -1,4 +1,3 @@
-blueprintId: coin
 name: Coin
 kind: concrete
 baseClass: Thing

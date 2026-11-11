@@ -193,7 +193,7 @@
  */
 
 import { existsSync, readFileSync, readdirSync, statSync } from "fs";
-import { join, relative, sep } from "path";
+import { basename, join, relative, sep } from "path";
 import YAML from "yaml";
 import ts from "typescript";
 import {
@@ -959,7 +959,7 @@ export function run(
   for (const file of recipeFiles(contentDir)) {
     try {
       const data = YAML.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
-      Recipe.fromData(data ?? {});
+      Recipe.fromData(data ?? {}, `/recipes/${basename(file, ".yaml")}`);
     } catch (err) {
       findings.push({
         arm: "mint",

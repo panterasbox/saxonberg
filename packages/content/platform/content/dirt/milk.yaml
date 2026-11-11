@@ -1,0 +1,12 @@
+# Milk — what the milker's apron takes at the pail; water and time
+# take it off again.
+key: milk
+adjective: milk-splashed
+form: film
+answersTo:
+- surfactant
+- alkali-mild
+waterLifts: 0.6
+odor:
+  aroma: /base-library/aromas/sour/sour-milk
+  ouPerLoad: 300

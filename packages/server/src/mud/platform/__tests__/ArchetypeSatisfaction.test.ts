@@ -96,15 +96,14 @@ function roomArchetypeDocs(): StoredDocument[] {
       // Hand-parsed rather than YAML-loaded: these rows are flat, and the
       // point of reading the REAL files is that the shipped archetypes are
       // what is under test, not a fixture that agrees with them.
-      return raw;
+      return { raw, id: f.slice(0, -'.yaml'.length) };
     })
-    .map((raw) => parseArchetype(raw));
+    .map(({ raw, id }) => parseArchetype(raw, id));
 }
 
 /** A deliberately tiny reader for the four flat archetype rows. */
-function parseArchetype(raw: string): StoredDocument {
+function parseArchetype(raw: string, id: string): StoredDocument {
   const lines = raw.split('\n').filter((l) => !l.trimStart().startsWith('#'));
-  const idLine = lines.find((l) => l.startsWith('archetypeId:'))!;
   const labelLine = lines.find((l) => l.startsWith('label:'))!;
   const capabilities = lines
     .filter((l) => l.trimStart().startsWith('- { key:'))
@@ -122,12 +121,11 @@ function parseArchetype(raw: string): StoredDocument {
       return { key, needs: { [nk!]: nv }, default: dflt };
     });
   const data = {
-    archetypeId: idLine.slice('archetypeId:'.length).trim(),
     label: labelLine.slice('label:'.length).trim(),
     capabilities,
   };
   return {
-    getPath: () => `/generic-objects/archetypes/${data.archetypeId}`,
+    getPath: () => `/generic-objects/archetypes/${id}`,
     getData: () => data as Record<string, unknown>,
     getKind: () => 'archetype',
   } as unknown as StoredDocument;
@@ -407,7 +405,7 @@ describe('the fermentation venue archetypes', () => {
       const raw = YAML.parse(
         readFileSync(join(PACKS, pack, 'content', 'archetypes', `${id}.yaml`), 'utf8'),
       ) as Record<string, unknown>;
-      const archetype = Archetype.fromData(raw);
+      const archetype = Archetype.fromData(raw, `/${pack}/archetypes/${id}`);
       expect(archetype.getArchetypeId()).toBe(id);
       // industry stays null — the shared `fermenting` discipline would
       // cross-derive the sibling trade's tools (the authored-residue rule).
@@ -426,7 +424,7 @@ describe('the fermentation venue archetypes', () => {
       archetypeId: 'vessel-probe',
       label: 'a probe',
       capabilities: [{ key: 'ferment', needs: { vesselKind: 'vat' } }],
-    });
+    }, '/test/archetypes/vessel-probe');
     const room = makeStuff(() => new Locale());
     const bare = archetype.satisfies(room);
     expect(bare.satisfied).toBe(false);

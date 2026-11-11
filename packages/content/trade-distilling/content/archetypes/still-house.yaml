@@ -3,7 +3,6 @@
 # + 351 K cleanly, but the wash's mash rides `fermenting` — half a
 # derive is worse than honest residue). The still book (a Menu) is
 # deliberately not a need; see the winery archetype's note.
-archetypeId: still-house
 label: a still-house
 capabilities:
   - { key: mash, needs: { tool: mash-tun }, default: /trade/distilling/thing/mash-tun }

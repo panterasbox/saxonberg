@@ -10,4 +10,8 @@ data:
   register: definite
   longDescription: |
     A fat ledger chained to the press rail, the day's crush chalked across the open page.
-  offeredRecipes: [crush, white-crush, dry-vermouth, sweet-vermouth]
+  offeredRecipes:
+    - /trade/winemaking/recipes/crush
+    - /trade/winemaking/recipes/white-crush
+    - /trade/winemaking/recipes/dry-vermouth
+    - /trade/winemaking/recipes/sweet-vermouth

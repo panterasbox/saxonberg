@@ -190,7 +190,7 @@ export default class Block extends BlockBase implements Splittable {
         piece: piece === null ? null : piece.getPresentation(),
         last: left <= 0,
         // ⭐ (cleanliness D6) Stone dust on the hands.
-        soils: [{ kind: 'dust', amount: 0.1, where: 'hands' }],
+        soils: [{ kind: '/trade/mining/dirt/dust', amount: 0.1, where: 'hands' }],
         credit: { discipline: QUARRYING, difficulty: 'easy' },
       },
     };

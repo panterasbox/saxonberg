@@ -5,7 +5,7 @@
 # keeps for a season, which is why every dairying culture made it.
 class: /platform/idea/material/Food
 data:
-  smells: [{ aroma: /base-library/aromas/cheese, strength: 1500 }]
+  smells: [{ aroma: /base-library/aromas/sour/cheese, strength: 1500 }]
   tastes: [{ type: salty, amount: 20 }, { type: umami, amount: 6 }]
   name: "hard cheese"
   keywords: [cheese, "hard cheese"]

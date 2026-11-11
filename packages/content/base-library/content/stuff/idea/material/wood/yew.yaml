@@ -19,7 +19,7 @@
 class: /platform/idea/material/Wood
 data:
   smells: [{ aroma: /base-library/aromas/wood, strength: 1 }]
-  burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
+  burning: [{ aroma: /base-library/aromas/smoke/wood-smoke, strength: 300 }]
   name: yew
   keywords: [yew]
   density: 670

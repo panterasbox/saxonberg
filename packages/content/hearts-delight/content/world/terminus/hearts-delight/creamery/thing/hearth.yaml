@@ -21,6 +21,6 @@ data:
   fuelCapacityKg: 30
   fuelBed:
     /stuff/idea/material/wood/oak: 30
-  placements: [on]
+  placements: [/platform/placements/on]
   _materialPath: /stuff/idea/material/ceramic/ceramic
   mass: 400

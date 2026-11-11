@@ -51,6 +51,7 @@ import { HotReloadApi } from './hot-reload';
 import { ConditionLogic } from '../platform/idea/api/ConditionLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import OperationCatalogue from '../platform/idea/OperationCatalogue';
 
 export type { InsultKind, Channel } from '../platform/idea/Condition';
 
@@ -237,6 +238,16 @@ function logic(): ConditionLogic {
 }
 
 export class ConditionApi {
+  /**
+   * ⭐ The operations — what a surgeon can do to a body (`extraction`,
+   * `bleed-control`, `amputation`), any pack's `content/operations/`,
+   * served by {@link OperationCatalogue}. `operate` reads `all()` the first
+   * time a surgeon operates; a surgeon names one by its word.
+   */
+  public static operations(): OperationCatalogue {
+    return StuffApi.singletonSync('/platform/idea/OperationCatalogue', () => new OperationCatalogue());
+  }
+
   /**
    * Wound `target` through the materials-response function. For a `Channel`
    * insult, resolves the covering stack at `spec.site` (armor occupants

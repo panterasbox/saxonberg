@@ -18,7 +18,7 @@
  * by the modality's own `name` to keep `modalityByName` O(1) on hot
  * paths (every `filterMessage`, every single-sense validator);
  * tag invalidation rides on `Events.StuffCreated`/`Events.StuffDestructed`
- * filtered to the prefix — same shape as the `TopicCatalogue` HMR pattern.
+ * filtered to the prefix — the template-event HMR pattern.
  *
  * Thin, security-gated forwarding shell: the dispatch + caches live in
  * the hot-reloadable {@link PerceptionLogic} singleton at
@@ -42,6 +42,7 @@ import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
 import { PerceptionLogic } from '../platform/idea/api/PerceptionLogic';
 import { fileURLToPath } from 'url';
+import AromaCatalogue from '../platform/idea/AromaCatalogue';
 
 /**
  * The depth of an active detection act (D5). `broad` = a whole-room
@@ -176,6 +177,16 @@ function logic(): PerceptionLogic {
 }
 
 export class PerceptionApi {
+  /**
+   * ⭐ The aromas — every smell a nose can read, a tree any pack extends
+   * (the folder is the tree), served by {@link AromaCatalogue}: `ensure`
+   * loads one with its parents, `resolve` reads one (starting its load if
+   * cold), `settling` is what `smell`/`taste`/`analyze` wait out.
+   */
+  public static aromas(): AromaCatalogue {
+    return StuffApi.singletonSync('/platform/idea/AromaCatalogue', () => new AromaCatalogue());
+  }
+
   /**
    * Resolve a modality singleton by its canonical name. Throws when
    * not found — every consumer should know which modality it's

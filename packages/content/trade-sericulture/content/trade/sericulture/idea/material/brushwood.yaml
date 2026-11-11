@@ -4,7 +4,7 @@
 class: /platform/idea/material/Fiber
 data:
   smells: [{ aroma: /base-library/aromas/wood, strength: 10 }]
-  burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
+  burning: [{ aroma: /base-library/aromas/smoke/wood-smoke, strength: 300 }]
   name: brushwood
   keywords: [brushwood, brush, twigs]
   appearance: dry, twiggy brushwood

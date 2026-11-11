@@ -583,20 +583,20 @@ describe('Recipe.fromData validates the medium word', () => {
   };
 
   it('throws at READ on a medium that could not be a tag', () => {
-    expect(() => Recipe.fromData({ ...base, medium: 'Steam Cloud' })).toThrow(
+    expect(() => Recipe.fromData({ ...base, medium: 'Steam Cloud' }, '/test/recipes/bad')).toThrow(
       /medium/,
     );
-    expect(() => Recipe.fromData({ ...base, medium: 42 })).toThrow(/medium/);
+    expect(() => Recipe.fromData({ ...base, medium: 42 }, '/test/recipes/bad')).toThrow(/medium/);
   });
 
   it('accepts any tag, and absence', () => {
-    expect(Recipe.fromData({ ...base, medium: 'brine' }).getMedium()).toBe('brine');
-    expect(Recipe.fromData({ ...base, medium: 'water' }).getMedium()).toBe(
+    expect(Recipe.fromData({ ...base, medium: 'brine' }, '/test/recipes/bad').getMedium()).toBe('brine');
+    expect(Recipe.fromData({ ...base, medium: 'water' }, '/test/recipes/bad').getMedium()).toBe(
       'water',
     );
-    expect(Recipe.fromData({ ...base, medium: 'fat' }).getMedium()).toBe('fat');
-    expect(Recipe.fromData(base).getMedium()).toBeNull();
-    expect(Recipe.fromData({ ...base, medium: '' }).getMedium()).toBeNull();
+    expect(Recipe.fromData({ ...base, medium: 'fat' }, '/test/recipes/bad').getMedium()).toBe('fat');
+    expect(Recipe.fromData(base, '/test/recipes/bad').getMedium()).toBeNull();
+    expect(Recipe.fromData({ ...base, medium: '' }, '/test/recipes/bad').getMedium()).toBeNull();
   });
 });
 

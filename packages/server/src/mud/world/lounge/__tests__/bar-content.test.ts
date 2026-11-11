@@ -3,7 +3,7 @@
  * content pass: the corpo marks on the back-bar bottles and the wiring
  * of Dave's office. Pure YAML reads (no clone pipeline) — the same
  * cheap save-gate-parity discipline as cast-content.test: a typo'd
- * `_brandKey` or a dangling office exit is caught here, not silently at
+ * `brand` or a dangling office exit is caught here, not silently at
  * render/traverse time.
  */
 
@@ -130,7 +130,8 @@ describe("Dave's Bar — the rail is bought, never populated (libations D14)", (
 
   it("the menu offers every one of the 24 libation lines, each priced", () => {
     const menu = loadLounge("thing/bar-menu.yaml").data ?? {};
-    const offered = menu.offeredRecipes as string[];
+    // Offered by PATH; priced by the recipe's word (the path's leaf).
+    const offered = (menu.offeredRecipes as string[]).map((p) => p.slice(p.lastIndexOf("/") + 1));
     const prices = menu.prices as Record<string, number>;
     expect(offered.length).toBeGreaterThanOrEqual(24);
     for (const id of offered) expect(prices[id], id).toBeGreaterThan(0);
@@ -196,8 +197,8 @@ describe("Dave's Bar — neon adornments", () => {
     const keys = brandKeys();
     for (const file of SIGNS) {
       const data = loadLounge(file).data ?? {};
-      expect(keys, `${file}: ${String(data._brandKey)}`).toContain(
-        String(data._brandKey)
+      expect(keys, `${file}: ${String(data.brand)}`).toContain(
+        String(data.brand)
       );
       // A sign that doesn't emit wouldn't light the room.
       expect(Number(data.emittedIntensity), file).toBeGreaterThan(0);

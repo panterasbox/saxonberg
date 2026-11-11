@@ -35,4 +35,4 @@ data:
       - { part: spindle-shaft, template: /trade/textiles/thing/spindle-shaft, count: 1, role: structural, material: /stuff/idea/material/wood/oak }
       - { part: whorl, template: /trade/textiles/thing/whorl, count: 1, role: structural, material: /stuff/idea/material/rock/slate }
     joints:
-      - { key: seating, method: friction, members: [spindle-shaft, whorl] }
+      - { key: seating, method: /platform/joints/friction, members: [spindle-shaft, whorl] }

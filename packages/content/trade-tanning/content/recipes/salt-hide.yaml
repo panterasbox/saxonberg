@@ -21,7 +21,6 @@
 # ⚠ No `discipline` and no `difficulty`: rubbing salt into a skin is not
 # a skilled act and gating it would put a lock on a door with no key —
 # the skill in this trade is the pit, and `leatherwork` is credited there.
-recipeId: salt-hide
 name: Salted hide
 keywords: ["salt-hide", "salt-skin"]
 inputSlots:

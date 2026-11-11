@@ -2,7 +2,6 @@
 # ⚠ The slot signature (count × grade × heat) is this recipe's own: no two
 # anvil recipes may share one (`anvil-ladder.test.ts`), or the catalogue's
 # file order would pick the output.
-recipeId: flail-head
 name: Flail Head
 keywords: [flail-head]
 inputSlots:

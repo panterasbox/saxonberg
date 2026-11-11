@@ -1,6 +1,5 @@
 # A mouldboard — the twisted board that turns the sod, worked down
 # along its curve. Run by `carve`.
-recipeId: mouldboard
 name: Mouldboard
 keywords: [mouldboard]
 inputSlots:

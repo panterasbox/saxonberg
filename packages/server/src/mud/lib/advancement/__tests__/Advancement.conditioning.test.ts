@@ -141,3 +141,37 @@ describe("conditioning — the band is a threshold over a body stock", () => {
     expect(await p.competenceBandFor("wind")).toBe("competent");
   });
 });
+
+// ⭐ D7/D11 proof: the discipline dictionary is never booted — a
+// character's first band read is what loads it, and a sync read with
+// nothing resident throws rather than reading as "no such discipline".
+describe("the discipline dictionary loads when a character reaches it", () => {
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    fakeMongo();
+    vi.spyOn(AppApi, "setting").mockReturnValue("");
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  it("a band read stands the dictionary up first", async () => {
+    StuffApi.clearAll();
+    const reached: string[] = [];
+    const real = StuffApi.singleton.bind(StuffApi);
+    vi.spyOn(StuffApi, "singleton").mockImplementation(async (path: string) => {
+      reached.push(path);
+      if (path === TemplatePaths.disciplineCatalogue && !StuffApi.findByTemplatePath(path)) {
+        await warmCatalogue();
+      }
+      return real(path);
+    });
+    const p = makeStuff(() => new Person());
+    stampTemplatePathForTest(p, "/platform/agent/Avatar/p1");
+    expect(StuffApi.findByTemplatePath(TemplatePaths.disciplineCatalogue)).toBeFalsy();
+    await p.competenceBands();
+    expect(reached).toContain(TemplatePaths.disciplineCatalogue);
+    expect(StuffApi.findByTemplatePath(TemplatePaths.disciplineCatalogue)).toBeTruthy();
+  });
+});

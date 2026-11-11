@@ -3,7 +3,6 @@
 # blade's own recipe now (`sword-blade`, the old signature); this is the
 # hilting — `fit sword` with the four parts in reach, cold (the peen is
 # a hammer's work, gated by the joint), like every fitted arm.
-recipeId: sword
 name: Arming Sword
 keywords: [sword, arming-sword]
 inputSlots:

@@ -19,7 +19,6 @@
  * Harness mirrors DormResidence.test.ts.
  */
 
-import { Aroma } from '@saxonberg/server/mud/lib/perception/Aroma';
 import "@saxonberg/server/test-bootstrap";
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -248,9 +247,9 @@ function seedDomain(): void {
     `${CONTENT}base-library/content/stuff/idea/material/alloy/steel.yaml`,
   );
   // The aromas those materials name, which load with them.
-  const earth = Aroma.remember('/base-library/aromas/earth', {}, null);
-  Aroma.remember('/base-library/aromas/loam', {}, earth);
-  Aroma.remember('/base-library/aromas/green', {}, null);
+  const earth = PerceptionApi.aromas().remember('/base-library/aromas/earth', {}, null);
+  PerceptionApi.aromas().remember('/base-library/aromas/earth/loam', {}, earth);
+  PerceptionApi.aromas().remember('/base-library/aromas/green', {}, null);
   addSeed(
     '/stuff/idea/material/tissue/plant-tissue',
     `${CONTENT}base-library/content/stuff/idea/material/tissue/plant-tissue.yaml`,

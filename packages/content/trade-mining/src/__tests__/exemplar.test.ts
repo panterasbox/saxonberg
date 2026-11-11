@@ -166,6 +166,7 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
         string,
         unknown
       >,
+      '/trade/mining/archetypes/mining',
     );
     const light = archetype.getCapabilities().find((c) => c.key === 'light')!;
     // The trade states the need and names NOTHING…

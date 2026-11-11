@@ -15,8 +15,8 @@
 # for that word and the material was authored to carry it.
 class: /platform/idea/material/Oil
 data:
-  smells: [{ aroma: /base-library/aromas/petroleum, strength: 300 }]
-  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 800 }]
+  smells: [{ aroma: /base-library/aromas/oil/petroleum, strength: 300 }]
+  burning: [{ aroma: /base-library/aromas/smoke/oil-smoke, strength: 800 }]
   name: crude oil
   keywords: [crude, "crude oil", oil, petroleum, rock-oil]
   appearance: a black, slow, faintly green-sheened liquid that stains everything

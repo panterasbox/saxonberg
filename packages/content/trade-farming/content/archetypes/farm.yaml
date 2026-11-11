@@ -24,7 +24,6 @@
 # trade genuinely owns the implement. Whose barn and whose ox is a fact
 # about the PLACE, so those bind at the locality — exactly as haulage
 # does for the mine.
-archetypeId: farm
 label: a working farm
 industry: farming
 capabilities:

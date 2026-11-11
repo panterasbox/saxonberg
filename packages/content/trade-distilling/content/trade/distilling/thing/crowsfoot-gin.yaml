@@ -15,5 +15,5 @@ data:
   interiorMaterial: /trade/distilling/idea/material/gin
   interiorAmount: 0.75
   gradeBand: fine
-  _brandKey: crowsfoot-gin
+  brand: crowsfoot-gin
   materialTags: [spirit, gin, small-batch]

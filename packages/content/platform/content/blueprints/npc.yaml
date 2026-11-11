@@ -1,4 +1,3 @@
-blueprintId: npc
 name: NPC
 kind: composition
 baseClass: Character

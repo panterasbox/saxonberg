@@ -90,11 +90,11 @@ const TRIM_ROW = '/stuff/thing/items/stew-meat';
  * fat on the hands and the trunk's outer layer, a little on the floor.
  */
 const BUTCHER_SOILS: readonly SoilSpec[] = [
-  { kind: 'blood', amount: 0.5, where: 'hands' },
-  { kind: 'grease', amount: 0.2, where: 'hands' },
-  { kind: 'blood', amount: 0.4, where: 'apron' },
-  { kind: 'grease', amount: 0.1, where: 'apron' },
-  { kind: 'blood', amount: 0.1, where: 'floor' },
+  { kind: '/platform/dirt/blood', amount: 0.5, where: 'hands' },
+  { kind: '/platform/dirt/grease', amount: 0.2, where: 'hands' },
+  { kind: '/platform/dirt/blood', amount: 0.4, where: 'apron' },
+  { kind: '/platform/dirt/grease', amount: 0.1, where: 'apron' },
+  { kind: '/platform/dirt/blood', amount: 0.1, where: 'floor' },
 ];
 
 /**
@@ -360,8 +360,8 @@ export function ButcherableMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       // ⭐ (cleanliness D6) The bloodiest work there is.
       if (MixinApi.isHygienic(actor)) actor.soilFrom(BUTCHER_SOILS, body);
       if (kit.block && MixinApi.isSoilable(kit.block)) {
-        kit.block.soil('blood', 0.3, body);
-        kit.block.soil('grease', 0.2);
+        kit.block.soil('/platform/dirt/blood', 0.3, body);
+        kit.block.soil('/platform/dirt/grease', 0.2);
       }
       if (MixinApi.isAdvancing(actor)) {
         await actor.creditDeed({ discipline: BUTCHERY, difficulty: 'standard', outcome: 'success' });

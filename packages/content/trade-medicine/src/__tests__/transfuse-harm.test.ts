@@ -35,6 +35,7 @@ import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { BloodUnit } from '@saxonberg/server/mud/lib/vitals/Blood';
+import { rememberDisciplines } from '@saxonberg/server/mud/lib/advancement/__tests__/discipline-fixtures';
 
 // Character is abstract; a concrete subclass is what a Cast/Avatar is.
 class TestCharacter extends Character {}
@@ -194,6 +195,9 @@ describe('transfuse — the engaged give lands after its controller is gone (con
     StuffApi.unregister(reg);
     StuffApi.register(reg);
     EventApi._setRegistryForTesting(reg);
+    // The give credits a deed, a conferral, which loads the discipline
+    // dictionary; there is no store here.
+    await rememberDisciplines();
   });
   afterEach(() => {
     SchedulerApi._clearAllForTesting();

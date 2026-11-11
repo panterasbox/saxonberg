@@ -1,4 +1,3 @@
-blueprintId: payment-card
 name: Payment Card
 kind: concrete
 baseClass: Thing

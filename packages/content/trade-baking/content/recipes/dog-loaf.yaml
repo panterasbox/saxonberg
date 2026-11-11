@@ -21,7 +21,6 @@
 # ⚠ `difficulty: easy` and `discipline: baking`. Anybody who can bake can
 # bake this; it is the one loaf that forgives everything, which is rather
 # the point of it.
-recipeId: dog-loaf
 name: Dog bread
 keywords: ["dog-loaf", "dog-bread", "horse-bread", "dogbread"]
 inputSlots:

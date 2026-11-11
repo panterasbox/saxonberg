@@ -64,6 +64,7 @@ import { Traversal } from '@saxonberg/server/mud/lib/location/Traversal';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Atmospheric } from '@saxonberg/server/mud/lib/biome/Atmospheric';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import type { SampleAnswer, SampleRequest } from '@saxonberg/server/mud/lib/instrument/Sampleable';
 import { NavigationApi, type CardinalDirection } from '@saxonberg/server/mud/api/navigation';
@@ -1037,9 +1038,11 @@ export function WorkingMixin<TBase extends NestingConstructor<Stuff & Container>
       const room = this as unknown as Stuff & Container;
       // ⭐ Rock dust on the hewer — the pack's `dust` DirtKind row.
       if (MixinApi.isHygienic(hewer)) {
+        // The act loads the pack's own dirt it lands (documents D7).
+        await MaterialApi.dirtKinds().ensure('/trade/mining/dirt/dust');
         hewer.soilFrom([
-          { kind: 'dust', amount: 0.2, where: 'hands' },
-          { kind: 'dust', amount: 0.1, where: 'apron' },
+          { kind: '/trade/mining/dirt/dust', amount: 0.2, where: 'hands' },
+          { kind: '/trade/mining/dirt/dust', amount: 0.1, where: 'apron' },
         ]);
       }
       const lump = await StuffApi.clone<Stuff>(oreRow);

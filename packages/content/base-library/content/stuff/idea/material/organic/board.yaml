@@ -4,7 +4,7 @@
 class: /platform/idea/material/Fiber
 data:
   smells: [{ aroma: /base-library/aromas/wood, strength: 1 }]
-  burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
+  burning: [{ aroma: /base-library/aromas/smoke/wood-smoke, strength: 300 }]
   name: board
   keywords: [board, pasteboard, cardboard]
   appearance: stiff grey pasteboard

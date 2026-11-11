@@ -25,4 +25,4 @@ data:
       - { part: rail, plural: rails, template: /trade/carpentry/thing/rail, count: 4, role: structural, material: /stuff/idea/material/wood/ash }
       - { part: peg, plural: pegs, template: /trade/carpentry/thing/peg, count: 8, role: fastener, material: /stuff/idea/material/wood/oak }
     joints:
-      - { key: framing, method: pegged, members: [leg, rail], fastener: peg }
+      - { key: framing, method: /trade/carpentry/joints/pegged, members: [leg, rail], fastener: peg }

@@ -5,7 +5,7 @@
 # cooling when the Thermal capability lands.
 class: /platform/idea/material/Flesh
 data:
-  smells: [{ aroma: /base-library/aromas/raw-meat, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/flesh/raw-meat, strength: 60 }]
   name: muscle
   keywords: [muscle]
   density: 1060

@@ -9,4 +9,4 @@ data:
   longDescription: A shallow wooden frame faced with close brass wire, with a loose deckle that fits round its edge.
   _materialPath: /stuff/idea/material/wood/oak
   mass: 1.2
-  placements: [on]
+  placements: [/platform/placements/on]

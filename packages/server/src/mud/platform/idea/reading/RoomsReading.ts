@@ -104,7 +104,7 @@ export default class RoomsReading extends Reading {
         ? warren.getMembers().filter((m): m is Stuff & Container => MixinApi.isContainer(m))
         : [self];
     const wayside = await RoomsReading.waysideOf(place);
-    const reports = RoomsReading.roomArchetypes()
+    const reports = (await RoomsReading.roomArchetypes())
       .filter(
         (a) => a.getRoomsScope() !== 'off-room' && (a.getRoomsScope() !== 'corridor' || wayside !== null),
       )
@@ -118,9 +118,9 @@ export default class RoomsReading extends Reading {
   }
 
   /** The room archetypes — the ones that derive nothing from an industry (a bedroom has no trade; a bar does). */
-  protected static roomArchetypes(): Archetype[] {
-    const catalogue = StuffApi.findByTemplatePath<ArchetypeCatalogue>('/platform/idea/ArchetypeCatalogue');
-    if (!catalogue) return [];
+  protected static async roomArchetypes(): Promise<Archetype[]> {
+    // The archetype dictionary loads on first use (never at boot).
+    const catalogue = await StuffApi.singleton<ArchetypeCatalogue>('/platform/idea/ArchetypeCatalogue');
     return catalogue
       .allArchetypes()
       .filter((a) => a.getIndustry() === null)

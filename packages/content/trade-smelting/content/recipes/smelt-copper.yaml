@@ -5,7 +5,6 @@
 #
 # ⚠ `outputTemplate` names the bar, but the MASS of the bar a real smelt
 # produces is stamped from the charge and is never this row's business.
-recipeId: smelt-copper
 name: Smelt Copper
 keywords: [smelt, copper]
 inputSlots:

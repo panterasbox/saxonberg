@@ -38,6 +38,7 @@ import {
 import { ThermalDose } from '../thermal/ThermalDose';
 import type { FieldMeta } from '../mixin';
 import type { StoredDocument } from '../document/StoredDocument';
+import type { Stuff } from '../stuff/Stuff';
 
 /**
  * One input slot, by constraint. `category` is a Material classification tag
@@ -390,10 +391,11 @@ export class Recipe {
    * `RecipeSeeder` validated — a non-empty `inputSlots` and a string
    * `outputTemplate` — so a malformed pack file fails at `read`.
    */
+
+
+
   static fromDocument(doc: StoredDocument): Recipe {
-    const r = Recipe.fromData(doc.getData());
-    r.path = doc.getPath();
-    return r;
+    return Recipe.fromData(doc.getData(), doc.getPath());
   }
 
   /** The same validation over a bare `data` object (the pack reader's use). */
@@ -442,23 +444,26 @@ export class Recipe {
     return out;
   }
 
-  static fromData(data: Record<string, unknown>): Recipe {
-    if (typeof data.recipeId !== 'string' || data.recipeId.length === 0) {
-      throw new Error(`Recipe: document is missing a string 'recipeId'`);
+  static fromData(data: Record<string, unknown>, path: string): Recipe {
+    // ⭐ The recipe's word is its path's LEAF — the path is its only name.
+    const recipeId = path.slice(path.lastIndexOf('/') + 1);
+    if (recipeId.length === 0) {
+      throw new Error(`Recipe: document at '${path}' has no leaf to be its word`);
     }
     if (!Array.isArray(data.inputSlots) || data.inputSlots.length === 0) {
-      throw new Error(`Recipe '${data.recipeId}' needs a non-empty 'inputSlots'`);
+      throw new Error(`Recipe '${recipeId}' needs a non-empty 'inputSlots'`);
     }
     if (typeof data.outputTemplate !== 'string' || !data.outputTemplate) {
-      throw new Error(`Recipe '${data.recipeId}' missing 'outputTemplate'`);
+      throw new Error(`Recipe '${recipeId}' missing 'outputTemplate'`);
     }
     const str = (v: unknown, d = ''): string => (typeof v === 'string' ? v : d);
     const num = (v: unknown): number => (typeof v === 'number' ? v : 0);
     const list = (v: unknown): string[] =>
       Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
     const r = new Recipe();
-    r.recipeId = data.recipeId;
-    r.name = str(data.name, data.recipeId);
+    r.path = path;
+    r.recipeId = recipeId;
+    r.name = str(data.name, recipeId);
     r.keywords = list(data.keywords).map((k) => k.toLowerCase());
     r.inputSlots = data.inputSlots as RecipeInputSlot[];
     r.toolCapabilities = list(data.toolCapabilities);
@@ -674,7 +679,6 @@ export class Recipe {
   /** The inverse — the `data` a recipe document carries. */
   toData(): Record<string, unknown> {
     return {
-      recipeId: this.recipeId,
       name: this.name,
       keywords: [...this.keywords],
       inputSlots: this.inputSlots,

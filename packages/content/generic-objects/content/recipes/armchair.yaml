@@ -7,7 +7,6 @@
 # without a peg of the frame being touched.
 #
 # Seated, by hand: the cushion is set into the frame, not fixed to it.
-recipeId: armchair
 name: Armchair
 keywords: [armchair]
 inputSlots:

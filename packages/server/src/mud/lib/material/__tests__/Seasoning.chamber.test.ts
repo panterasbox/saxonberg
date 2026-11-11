@@ -18,8 +18,6 @@ import Wood from '../../../platform/idea/material/Wood';
 import Place from '../../stuff/Place';
 import type { Stuff } from '../../stuff/Stuff';
 import { Template } from '../../stuff/Template';
-import Placement from '../../../platform/idea/Placement';
-import PlacementCatalogue from '../../../platform/idea/PlacementCatalogue';
 import { WorldClockApi } from '../../../api/worldclock';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -28,6 +26,7 @@ import { Evaporation } from '../../material/Evaporation';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { TemplatePaths } from '../../paths';
+import { Placements } from '../../spatial/Placement';
 
 class Yard extends Place {}
 
@@ -46,32 +45,8 @@ function advanceGameDays(d: number): void {
 const original = BiomeApi.airSegmentsFor;
 
 async function warmPlacements(): Promise<void> {
-  const rows = [
-    { name: 'on', prepositions: ['on', 'onto'], encloses: false },
-    { name: 'in', prepositions: ['in', 'into'], encloses: true },
-  ];
-  vi.spyOn(Template, 'findByPathInfix').mockResolvedValue(
-    rows.map((r) => ({
-      path: `/platform/idea/Placement/${r.name}`,
-      class: '/platform/idea/Placement',
-    })) as unknown as Template[],
-  );
-  vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(
-    Placement as unknown as never,
-  );
-  vi.spyOn(StuffApi, 'singleton').mockImplementation(async (path: string) => {
-    const row = rows.find((r) => path.endsWith(`/${r.name}`))!;
-    const m = makeStuff(() => new Placement());
-    m.name = row.name;
-    m.prepositions = row.prepositions;
-    m.encloses = row.encloses;
-    return m as never;
-  });
-  const catalogue = makeStuffAtPath(
-    () => new PlacementCatalogue(),
-    '/platform/idea/PlacementCatalogue',
-  );
-  await catalogue.warm();
+  // The kernel's ways of sitting are resident — the test bootstrap stands
+  // in for every place's onCreate (documents D7).
 }
 
 let yard: Yard;
@@ -131,7 +106,7 @@ afterEach(() => {
 describe('⭐ seasoning in a chamber', () => {
   it("a stack placed IN the loft reads the loft's air — the scope IS the chamber", () => {
     const t = stack();
-    ContainmentApi.move(t, loft, 'in');
+    ContainmentApi.move(t, loft, Placements.IN);
     expect(t.getContainer()).toBe(yard);
     expect(t.getEnclosingScope()).toBe(loft);
 

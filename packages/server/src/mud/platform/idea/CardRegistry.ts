@@ -771,7 +771,7 @@ export default class CardRegistry extends CardRegistryBase {
     const mode = spec?.terminal?.inputMode;
     if (mode) this.setInputMode(interactive, barId, mode);
     const opened = this.cards.get(interactive)?.get(id);
-    if (opened) this.resolveTerminalPrivacy(opened);
+    if (opened) this.markTerminalPrivacyAsync(opened);
     return id;
   }
 
@@ -830,7 +830,7 @@ export default class CardRegistry extends CardRegistryBase {
     state.title = this.terminalTitle(filter);
     state.lastTouchedAt = Date.now();
     this.pushTerminal(state);
-    this.resolveTerminalPrivacy(state);
+    this.markTerminalPrivacyAsync(state);
   }
 
   private pushTerminal(state: CardState): void {
@@ -855,13 +855,18 @@ export default class CardRegistry extends CardRegistryBase {
    * inside already carry their own privacy tag, so nothing private is
    * shown in the moment before it arrives.
    */
-  private resolveTerminalPrivacy(state: CardState): void {
-    // ⚠ Not awaited by design (the open and the retarget are synchronous),
-    // so a failed lookup must land SOMEWHERE: the card keeps the privacy
-    // it had, and the failure is said, never left an unhandled rejection.
-    void this.markTerminalPrivacy(state).catch((err) =>
-      console.warn("CardRegistry: a terminal's channel privacy was not resolved:", err),
-    );
+  /**
+   * Fire {@link markTerminalPrivacy} from a sync path, caught: the frames
+   * already carry their own privacy tag, so a failed channel lookup leaves
+   * the card as it was — and a rejection nobody hears ends the process.
+   */
+  private markTerminalPrivacyAsync(state: CardState): void {
+    this.markTerminalPrivacy(state).catch((err: unknown) => {
+      console.warn(
+        `CardRegistry: terminal privacy for '${state.instanceId}' unresolved: ` +
+          (err instanceof Error ? err.message : String(err)),
+      );
+    });
   }
 
   private async markTerminalPrivacy(state: CardState): Promise<void> {

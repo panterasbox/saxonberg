@@ -2,7 +2,6 @@
 # The smith forges the head (`forge mace-head`); the haft is a
 # woodworker's. The flanges are what turn a club into a weapon that
 # answers plate, and they are all in the head.
-recipeId: mace
 name: Mace
 keywords: [mace]
 inputSlots:

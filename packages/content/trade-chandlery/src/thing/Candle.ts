@@ -41,10 +41,10 @@
  */
 
 import Lamp from '@saxonberg/server/mud/platform/thing/Lamp';
-import { Aroma } from '@saxonberg/server/mud/lib/perception/Aroma';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { PerceptionApi } from '@saxonberg/server/mud/api/perception';
 
 export default class Candle extends Lamp {
   static fieldMeta: FieldMeta = {};
@@ -104,7 +104,7 @@ export default class Candle extends Lamp {
   private smellOfMaterial(material: Material): string {
     if (!MixinApi.hasOdor(material)) return '';
     const aroma = material.getSmells()[0]?.aroma;
-    return aroma ? Aroma.phraseOf(aroma) : '';
+    return aroma ? PerceptionApi.aromas().phraseOf(aroma) : '';
   }
 
   /**

@@ -102,6 +102,7 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { POSTURE_REST_BASE } from '../character/Posed';
 import { CLEAN_TIERS, type CleanTier } from '../cleanliness/Soilable';
+import { DirtKinds } from '../cleanliness/DirtKind';
 
 /** Alias for readability at the magic arm's call sites. */
 /** Is `thing` on `body` — held, worn, or inside something it carries? */
@@ -4043,7 +4044,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         // the PATIENT's blood (the sample a forensic read can name).
         if (treater && MixinApi.isHygienic(treater)) {
           treater.soilHands(
-            'blood',
+            DirtKinds.BLOOD,
             HARM_DEFAULTS.HAND_BLOOD_PER_DRESSING,
             this as unknown as Stuff,
           );
@@ -4065,9 +4066,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       const D = HARM_DEFAULTS;
       const load = litres * D.BLOOD_STAIN_PER_L;
       const drips = opts.severity >= D.BLOOD_DRIP_SEVERITY;
-      body.soilBodyPart(opts.site, 'blood', drips ? load * (1 - D.BLOOD_DRIP_SHARE) : load, body, 'inner');
+      body.soilBodyPart(opts.site, DirtKinds.BLOOD, drips ? load * (1 - D.BLOOD_DRIP_SHARE) : load, body, 'inner');
       if (drips) {
-        body.soilFrom([{ kind: 'blood', amount: load * D.BLOOD_DRIP_SHARE, where: 'floor' }], body);
+        body.soilFrom([{ kind: DirtKinds.BLOOD, amount: load * D.BLOOD_DRIP_SHARE, where: 'floor' }], body);
       }
     }
 

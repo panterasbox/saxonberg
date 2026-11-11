@@ -64,7 +64,7 @@ describe('SoulCatalogue (documents-backed)', () => {
 
   it('setDisabled writes the row through DocumentApi.save with the flag and updates the cache both ways', async () => {
     expect(await SoulApi.setDisabled('greet', true)).toBe(true);
-    expect(save).toHaveBeenCalledWith('/expression/emotes/greet', 'emote', expect.objectContaining({ verb: 'greet', disabled: true }));
+    expect(save).toHaveBeenCalledWith('/expression/emotes/greet', 'emote', expect.objectContaining({ disabled: true }));
     expect(await SoulApi.resolve('greet')).toBeNull();
     expect(await SoulApi.setDisabled('greet', false)).toBe(true);
     expect((save.mock.calls.at(-1) as unknown[])[2]).not.toHaveProperty('disabled');
@@ -74,7 +74,7 @@ describe('SoulCatalogue (documents-backed)', () => {
 
   it('mint lands under the soul committee\'s extent (/expression/emotes)', async () => {
     await SoulApi.mint({ verb: 'bow', grammar: GRAMMAR });
-    expect(save).toHaveBeenCalledWith('/expression/emotes/bow', 'emote', expect.objectContaining({ verb: 'bow' }));
+    expect(save).toHaveBeenCalledWith('/expression/emotes/bow', 'emote', expect.objectContaining({ grammar: GRAMMAR }));
   });
 
   it('resolve is canonical-only: a search term does not dispatch', async () => {
@@ -106,7 +106,7 @@ describe('SoulCatalogue (documents-backed)', () => {
     expect(save).toHaveBeenCalledTimes(1);
     expect(save.mock.calls[0]![0]).toBe('/expression/emotes/shrug');
     expect(save.mock.calls[0]![1]).toBe('emote');
-    expect(save.mock.calls[0]![2]).toMatchObject({ verb: 'shrug', searchTerms: ['meh'], grammar: GRAMMAR });
+    expect(save.mock.calls[0]![2]).toMatchObject({ searchTerms: ['meh'], grammar: GRAMMAR });
     expect((await SoulApi.resolve('shrug'))?.verb).toBe('shrug');
     expect(await SoulApi.resolve('meh')).toBeNull();
     expect((await SoulApi.search('meh')).map((e) => e.verb)).toEqual(['shrug']);

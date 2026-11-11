@@ -5,13 +5,14 @@
 
 import type { CommandContext } from "../../../../api/command";
 import { HelpApi } from "../../../../api/help";
+import { StuffApi } from "../../../../api/stuff";
 import type { HelpIndexEntry } from "@saxonberg/types";
 import { HelpControllerBase, type HelpModel } from "./HelpControllerBase";
 
 export default class HelpTopicController extends HelpControllerBase {
   async execute(model: HelpModel, context: CommandContext): Promise<void> {
     // The rulebook warms on first use (the scan sweep — not booted).
-    await HelpApi.ready();
+    await StuffApi.ready(HelpApi);
     return model.topic
       ? HelpTopicController.showFallthrough(model.topic, context)
       : HelpControllerBase.showLanding(context);

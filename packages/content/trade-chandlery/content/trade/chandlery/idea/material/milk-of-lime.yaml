@@ -4,7 +4,7 @@
 # on a lump of lime; it heats as it slakes.
 class: /platform/idea/material/PigmentPaint
 data:
-  smells: [{ aroma: /base-library/aromas/lime, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/lye/lime, strength: 60 }]
   name: milk of lime
   keywords: ["milk of lime", "slaked lime", limewash, slurry]
   appearance: a thin white slurry, like watered milk

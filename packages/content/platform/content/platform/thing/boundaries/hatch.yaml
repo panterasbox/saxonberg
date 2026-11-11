@@ -1,7 +1,6 @@
 # A HATCH — a door in a floor or a deck, man-sized and square.
 class: /platform/thing/Door
 extends: /platform/thing/boundaries/door
-unreachable: parent
 data:
   _materialPath: /stuff/idea/material/wood/oak
   mass: 20

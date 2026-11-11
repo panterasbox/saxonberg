@@ -1,6 +1,5 @@
 # A handle — ⭐ the tool tree's root is here: a carved handle and a
 # smith's blade are a froe (`fit froe`). Run by `carve`.
-recipeId: handle
 name: Handle
 keywords: [handle, grip]
 inputSlots:

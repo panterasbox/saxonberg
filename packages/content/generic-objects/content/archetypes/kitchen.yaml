@@ -13,7 +13,6 @@
 # holder, and the shipped larder is neither — it is a cupboard. That is a
 # gap `analyze rooms` names, not a bug to paper over; it is also the reason to
 # want a cold box later.
-archetypeId: kitchen
 label: a kitchen
 capabilities:
   - { key: heat, needs: { heatK: 373 }, default: /stuff/thing/fixture/range }

@@ -839,8 +839,7 @@ direction is read through, *only a persistable room restores*,
 `dependentPersistables`; a tract's `share` is the tract row's own field
 now). It speaks through four hooks: `planOf` (whose fields the plan is —
 the warren's own, or a ship kind's row), `reconcile` (who hears a
-population change — still abstract; `fitExit` retired after the boundary
-build, since a keyed door is hung after the copy), `addressFor` (the address a woken room is stamped with — a
+population change — still abstract), `addressFor` (the address a woken room is stamped with — a
 read, not a wake hook: anything a room does on waking is its own
 `WarrenMember.onWarrenWake`, the ONE wake hook since harbors review 2;
 a ship's deck stamps itself a shore of her sea there), and

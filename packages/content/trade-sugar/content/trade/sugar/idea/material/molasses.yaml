@@ -3,7 +3,7 @@
 # poor to grain, and then it is blackstrap.
 extends: /trade/sugar/idea/material/raw-liquor
 data:
-  smells: [{ aroma: /base-library/aromas/molasses, strength: 600 }]
+  smells: [{ aroma: /base-library/aromas/sugar/molasses, strength: 600 }]
   name: molasses
   keywords: [molasses, treacle, first-molasses]
   appearance: dark brown and sticky, sweet with a bitter edge

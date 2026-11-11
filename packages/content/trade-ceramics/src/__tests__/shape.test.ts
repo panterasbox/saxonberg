@@ -9,7 +9,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Metal from '@saxonberg/server/mud/platform/idea/material/Metal';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
-import Form from '@saxonberg/server/mud/platform/idea/Form';
+import { type FormClass } from '@saxonberg/server/mud/lib/craft/FormSpec';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
@@ -17,6 +17,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { TestActor } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures';
+import { rememberDisciplines } from '@saxonberg/server/mud/lib/advancement/__tests__/discipline-fixtures';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { ShapePlan, ShapeRefusal } from '@saxonberg/server/mud/lib/craft/Shapeable';
 import Clay from '@saxonberg/content-trade-quarrying/src/thing/Clay';
@@ -24,29 +25,30 @@ import Wheel from '../thing/Wheel';
 import BrickTable from '../thing/BrickTable';
 import ClayVessel from '../thing/ClayVessel';
 import Brick from '../thing/Brick';
+import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
 
 class Shed extends Place {}
 
 let clayMat: Metal;
 let seq = 0;
-const forms = new Map<string, Form>();
-
-function form(key: string, formClass: Form['formClass'], capacityL: number, product: string, discipline = 'pottery'): string {
-  const path = `/trade/ceramics/idea/form/${key}`;
-  const f = makeStuff(() => new Form());
-  f.key = key;
-  f.formClass = formClass;
-  f.capacityL = capacityL;
-  f.product = product;
-  f.discipline = discipline;
-  f.greenScale = formClass === 'block' ? 1.08 : 1;
-  forms.set(path, f);
+/** A form document, kept as the instrument citing it would have loaded it. */
+function form(key: string, formClass: FormClass, capacityL: number, product: string, discipline = 'pottery'): string {
+  const path = `/trade/ceramics/forms/${key}`;
+  CraftingApi.forms().remember(
+    path,
+    CraftingApi.forms().parse(
+      { key, formClass, capacityL, product, discipline, greenScale: formClass === 'block' ? 1.08 : 1 },
+      path,
+    ),
+  );
   return path;
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   installV1QuantityMarshallers();
-  forms.clear();
+  // A credit refreshes conferrals: the discipline dictionary, resident as a
+  // character's first band read leaves it (documents D11).
+  await rememberDisciplines();
   seq += 1;
   clayMat = makeStuffAtPath(() => {
     const m = new Metal();
@@ -55,7 +57,6 @@ beforeEach(() => {
     m.setDensity(Quantity.of(1800, 'kg/m³'));
     return m;
   }, `/stuff/idea/material/_shape/clay-${seq}`) as unknown as Metal;
-  vi.spyOn(StuffApi, 'singleton').mockImplementation((async (p: string) => forms.get(p) ?? null) as never);
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (row: string) => {
     if (row.endsWith('/brick')) {
       const b = makeStuff(() => new Brick());

@@ -19,6 +19,8 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import { Idea } from '../../stuff/Idea';
+import { Placement } from '../Placement';
+import { Placements } from '../Placement';
 
 // Concrete Placing test class composed with Containable so the
 // host itself can live in an environment for the lazy walk.
@@ -88,7 +90,7 @@ describe('PlacingMixin', () => {
         '/test/surface-default-canplace',
       );
       const item = makeStuff(() => new TestThing());
-      expect(surface.canPlace(item, 'on')).toEqual({ ok: true });
+      expect(surface.canPlace(item, Placements.ON)).toEqual({ ok: true });
     });
 
     it('refuses a member the host does not offer', () => {
@@ -98,7 +100,7 @@ describe('PlacingMixin', () => {
         '/test/surface-unoffered-member',
       );
       const item = makeStuff(() => new TestThing());
-      expect(surface.canPlace(item, 'from')).toEqual({
+      expect(surface.canPlace(item, Placements.FROM)).toEqual({
         ok: false,
         reason: 'no-such-placement',
       });
@@ -112,24 +114,23 @@ describe('PlacingMixin', () => {
         () => new TestSurface(),
         '/test/surface-default-placements',
       );
-      expect(surface.getPlacements()).toEqual(['on']);
-      expect(surface.resolvePlacement('on')).toBe('on');
+      expect(surface.getPlacements()).toEqual([Placements.ON]);
+      expect(surface.resolvePlacement('on')).toBe(Placements.ON);
+      expect(surface.resolvePlacement('onto')).toBe(Placements.ON);
       expect(surface.resolvePlacement('from')).toBeNull();
-      expect(surface.resolvePlacement()).toBe('on');
+      expect(surface.resolvePlacement()).toBe(Placements.ON);
     });
 
-    it('⚠ COLD, a member answers to its own NAME and nothing else', () => {
-      // The words a member accepts are its `Placement` row's claim. With
-      // no roster warmed the fallback is the member's own name, so a
-      // host stays addressable — `onto` is `on`'s row talking, and
-      // without the row it is just a word nobody knows.
+    it('⚠ a host naming a way of sitting nothing loaded is an engine defect — thrown by path', () => {
+      // A placement is resident with its host (documents D7); there is no
+      // "cold" fallback to the member's own name any more.
       StuffApi.clearAll();
       const surface = makeStuffAtPath(
         () => new TestSurface(),
         '/test/surface-cold-words',
       );
-      expect(surface.resolvePlacement('on')).toBe('on');
-      expect(surface.resolvePlacement('onto')).toBeNull();
+      (surface as unknown as { placements: string[] }).placements = ['/t/placements/sideways'];
+      expect(() => surface.resolvePlacement('sideways')).toThrow(/sideways/);
     });
 
     it('a row may offer a different member entirely', () => {
@@ -138,12 +139,13 @@ describe('PlacingMixin', () => {
         () => new TestSurface(),
         '/test/surface-hook-placements',
       );
-      hook.setPlacements(['from']);
-      expect(hook.getPlacements()).toEqual(['from']);
-      expect(hook.resolvePlacement('from')).toBe('from');
-      expect(hook.resolvePlacement('on')).toBeNull();
+      hook.setPlacements([Placements.FROM]);
+      expect(hook.getPlacements()).toEqual([Placements.FROM]);
+      expect(hook.resolvePlacement('from')).toBe(Placements.FROM);
+      // `from`'s document lists `on` as a secondary word.
+      expect(hook.resolvePlacement('on')).toBe(Placements.FROM);
       // With no word and one member, that member.
-      expect(hook.resolvePlacement()).toBe('from');
+      expect(hook.resolvePlacement()).toBe(Placements.FROM);
     });
   });
 
@@ -179,7 +181,7 @@ describe('PlacingMixin', () => {
     });
 
     it('returns items whose placement names this host', () => {
-      ContainmentApi.move(restingItem, surface, 'on');
+      ContainmentApi.move(restingItem, surface, Placements.ON);
       ContainmentApi.move(floatingItem, room);
       const resting = surface.getPlaced();
       expect(resting).toHaveLength(1);
@@ -224,14 +226,14 @@ describe('PlacingMixin', () => {
         '/test/surface-two-members',
       );
       ContainmentApi.move(host, room);
-      host.setPlacements(['on', 'from']);
+      host.setPlacements([Placements.ON, Placements.FROM]);
       const onIt = makeStuff(() => new TestThing());
       const fromIt = makeStuff(() => new TestThing());
-      ContainmentApi.move(onIt, host, 'on');
-      ContainmentApi.move(fromIt, host, 'from');
+      ContainmentApi.move(onIt, host, Placements.ON);
+      ContainmentApi.move(fromIt, host, Placements.FROM);
       expect(host.getPlaced()).toHaveLength(2);
-      expect(host.getPlaced('on')).toEqual([onIt]);
-      expect(host.getPlaced('from')).toEqual([fromIt]);
+      expect(host.getPlaced(Placements.ON)).toEqual([onIt]);
+      expect(host.getPlaced(Placements.FROM)).toEqual([fromIt]);
     });
   });
 });

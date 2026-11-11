@@ -39,8 +39,23 @@ interface Manifest {
   requires?: { title?: Array<{ extent: string }> };
 }
 
+/**
+ * The manifests do not change during a lint run, and `extendsAny` is called
+ * once per content row with this as its default — re-parsing ~65 manifests
+ * per row made `lint:locations` take 10+ minutes. Read once per directory.
+ */
+const packSourcesCache = new Map<string, PackSource[]>();
+
 /** Every shipped pack that ships a `src/`, with the roots it backs. */
 export function packSources(contentDir: string = CONTENT): PackSource[] {
+  const cached = packSourcesCache.get(contentDir);
+  if (cached) return cached;
+  const read = readPackSources(contentDir);
+  packSourcesCache.set(contentDir, read);
+  return read;
+}
+
+function readPackSources(contentDir: string): PackSource[] {
   if (!existsSync(contentDir)) return [];
   const out: PackSource[] = [];
   for (const pack of readdirSync(contentDir).sort()) {

@@ -65,7 +65,7 @@ describe("help controllers", () => {
       b.send = () => {};
       return b as never;
     });
-    vi.spyOn(HelpApi, "ready").mockResolvedValue();
+    vi.spyOn(StuffApi, "ready").mockResolvedValue();
     vi.spyOn(HelpApi, "index").mockReturnValue({
       entries: [],
       categories: [

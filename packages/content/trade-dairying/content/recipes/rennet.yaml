@@ -5,7 +5,6 @@
 # ⭐ The vell is only to be had off a young animal (its butchery line's
 # `maxAgeDays`), so a creamery's rennet supply is a calf register's
 # business, and that is how the dairy and the farm are one economy.
-recipeId: rennet
 name: Rennet
 keywords:
 - rennet

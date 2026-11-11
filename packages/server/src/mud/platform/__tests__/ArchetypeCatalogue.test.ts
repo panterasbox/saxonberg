@@ -144,7 +144,7 @@ describe('the venue archetype', () => {
         label: 'a working mine',
         industry: null,
         capabilities: [{ key: 'light', needs: { lightLux: 20 } }],
-      });
+      }, '/test/archetypes/mining');
       expect(a.toData().capabilities).toEqual([
         { key: 'light', needs: { lightLux: 20 }, default: null },
       ]);
@@ -156,7 +156,7 @@ describe('the venue archetype', () => {
           Archetype.fromData({
             archetypeId: 'mining',
             capabilities: [{ key: 'light', needs: { lightLux: bad } }],
-          }),
+          }, '/test/archetypes/mining'),
         ).toThrow(/archetype 'mining'.*lightLux.*positive/);
       }
     });
@@ -179,7 +179,7 @@ describe('the venue archetype', () => {
         // ⭐ No default: the archetype's own honesty about the slot it
         // will not fill for you.
         capabilities: [{ key: 'light', needs: { lightLux: 20 } }],
-      });
+      }, '/test/archetypes/mining');
       expect(a.describe().rows).toEqual([
         { key: 'light', needs: { lightLux: 20 }, default: null, derivedFrom: [] },
       ]);

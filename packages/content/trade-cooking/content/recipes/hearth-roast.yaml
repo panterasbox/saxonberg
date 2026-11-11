@@ -2,7 +2,6 @@
 # (fine stock at 500 K): same act, worse stock, gentler fire, and the
 # reverse-match picks whichever the work actually supports. The ladder is
 # what makes better stock worth buying.
-recipeId: hearth-roast
 name: Hearth Roast
 keywords:
 - hearth-roast
@@ -28,6 +27,6 @@ difficulty: standard
 discipline: cooking
 # A roast over the fire: dripping fat and soot (cleanliness D6).
 soils:
-- { kind: grease, amount: 0.15, where: hands }
-- { kind: grease, amount: 0.1, where: apron }
-- { kind: soot, amount: 0.05, where: hands }
+- { kind: /platform/dirt/grease, amount: 0.15, where: hands }
+- { kind: /platform/dirt/grease, amount: 0.1, where: apron }
+- { kind: /platform/dirt/soot, amount: 0.05, where: hands }

@@ -29,6 +29,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
+import { rememberDisciplines } from '../../lib/advancement/__tests__/discipline-fixtures';
 import Avatar from '../agent/PrimaryAvatar';
 import { User } from '../../lib/identity/User';
 import { StuffApi } from '../../api/stuff';
@@ -68,8 +69,10 @@ describe('standing splits by level', () => {
   let alice: Avatar;
   let bob: Avatar;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     StuffApi.clearAll();
+    // A credit or a band read stands on the discipline dictionary (D11).
+    await rememberDisciplines();
     ShadowApi._clearAllForTesting();
     RenownStanding._resetForTesting();
 

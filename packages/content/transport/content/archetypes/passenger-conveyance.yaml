@@ -10,7 +10,6 @@
 #
 # So this row is a contract for content that arrives with distance or
 # with danger. It costs one file and it means nobody has to re-derive it.
-archetypeId: passenger-conveyance
 label: a passenger conveyance
 materializesOnto: /system/transport/thing/coach
 roomsScope: off-room

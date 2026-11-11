@@ -5,13 +5,14 @@
 
 import type { CommandContext } from "../../../../api/command";
 import { HelpApi } from "../../../../api/help";
+import { StuffApi } from "../../../../api/stuff";
 import type { HelpSearchResult } from "@saxonberg/types";
 import { HelpControllerBase, type HelpModel } from "./HelpControllerBase";
 
 export default class HelpSearchController extends HelpControllerBase {
   async execute(model: HelpModel, context: CommandContext): Promise<void> {
     // The rulebook warms on first use (the scan sweep — not booted).
-    await HelpApi.ready();
+    await StuffApi.ready(HelpApi);
     const query = model.query ?? "";
     if (!query) {
       HelpControllerBase.tellText(context, "\nUsage: help search <query>\n");

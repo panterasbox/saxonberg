@@ -8,8 +8,8 @@
 # reason for this row to exist now, holding the bottom of the barrel.
 class: /platform/idea/material/Oil
 data:
-  smells: [{ aroma: /base-library/aromas/asphalt, strength: 1000 }]
-  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 800 }]
+  smells: [{ aroma: /base-library/aromas/tar/asphalt, strength: 1000 }]
+  burning: [{ aroma: /base-library/aromas/smoke/oil-smoke, strength: 800 }]
   name: asphalt
   keywords: [asphalt, bitumen, tar, pitch, residue]
   appearance: a black tar that holds a thumbprint and smells of hot roads

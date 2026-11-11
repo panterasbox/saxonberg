@@ -2,7 +2,6 @@
 # The pipe mould is the other road to the same length — the container
 # decides the shape of what sets in it. Either way it is a plumber's work,
 # and a bill naming this length knows whose trade mends it.
-recipeId: lead-pipe
 name: Lead Pipe
 keywords: ["lead pipe", "lead-pipe"]
 inputSlots:

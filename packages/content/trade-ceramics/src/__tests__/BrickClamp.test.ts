@@ -258,9 +258,9 @@ describe('⭐ the burning clamp\'s smoke (ceramics browser walk)', () => {
     expect(clamp.burningNotes()).toEqual([]);
     vi.spyOn(clamp, 'isLit').mockReturnValue(true);
     const coal = makeStuff(() => new SolidFuel());
-    coal.burning = [{ aroma: '/base-library/aromas/coal-smoke', strength: 100 }];
+    coal.burning = [{ aroma: '/base-library/aromas/smoke/coal-smoke', strength: 100 }];
     vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(coal);
     clamp.fuelBed = { '/stuff/idea/material/coal': 4 };
-    expect(clamp.burningNotes()).toEqual([{ aroma: '/base-library/aromas/coal-smoke', ou: 200 }]);
+    expect(clamp.burningNotes()).toEqual([{ aroma: '/base-library/aromas/smoke/coal-smoke', ou: 200 }]);
   });
 });

@@ -78,7 +78,7 @@ describe("The bar money loop (end to end)", () => {
   it("open → deposit → buy → a wage within the takings pays, one beyond them is refused", async () => {
     const bank = makeStuffAtPath(() => {
       const b = new BankCounter();
-      b.setCorpoKey("goodkin");
+      void b.setCorpoKey("goodkin")?.catch(() => {}); // the load is the applier's (documents D7)
       return b;
     }, BANK);
     const patron = avatar(PATRON);

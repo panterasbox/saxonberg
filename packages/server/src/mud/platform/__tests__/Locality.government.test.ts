@@ -34,15 +34,15 @@ describe("Locality._governmentKey", () => {
 
   it("round-trips a key and trims to null on empty/whitespace", () => {
     const l = newLocality();
-    l.setGovernmentKey("terminus-city");
+    void l.setGovernmentKey("terminus-city")?.catch(() => {}); // the load is the applier's (documents D7)
     expect(l.getGovernmentKey()).toBe("terminus-city");
-    l.setGovernmentKey("  padded  ");
+    void l.setGovernmentKey("  padded  ")?.catch(() => {}); // the load is the applier's (documents D7)
     expect(l.getGovernmentKey()).toBe("padded");
-    l.setGovernmentKey("");
+    void l.setGovernmentKey("")?.catch(() => {}); // the load is the applier's (documents D7)
     expect(l.getGovernmentKey()).toBeNull();
-    l.setGovernmentKey("   ");
+    void l.setGovernmentKey("   ")?.catch(() => {}); // the load is the applier's (documents D7)
     expect(l.getGovernmentKey()).toBeNull();
-    l.setGovernmentKey(null);
+    void l.setGovernmentKey(null)?.catch(() => {}); // the load is the applier's (documents D7)
     expect(l.getGovernmentKey()).toBeNull();
   });
 

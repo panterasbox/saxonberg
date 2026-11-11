@@ -15,6 +15,7 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Burner, StokeOutcome } from '../../../../lib/fire/Burner';
+import { DirtKinds } from '../../../../lib/cleanliness/DirtKind';
 
 interface StokeModel extends CommandModel {
   fuel?: MqlOneResult;
@@ -135,8 +136,8 @@ export default class StokeController extends CommandController<StokeModel> {
     // ⭐ (cleanliness D6) Tending a fire blackens the hands.
     if (MixinApi.isHygienic(commandGiver)) {
       commandGiver.soilFrom([
-        { kind: 'ash', amount: 0.1, where: 'hands' },
-        { kind: 'soot', amount: 0.05, where: 'hands' },
+        { kind: DirtKinds.ASH, amount: 0.1, where: 'hands' },
+        { kind: DirtKinds.SOOT, amount: 0.05, where: 'hands' },
       ]);
     }
 

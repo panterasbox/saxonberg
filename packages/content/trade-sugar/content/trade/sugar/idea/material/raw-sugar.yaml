@@ -3,7 +3,7 @@
 # dissolved in water in the copper it becomes raw liquor.
 class: /platform/idea/material/SolidFood
 data:
-  smells: [{ aroma: /base-library/aromas/molasses, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/sugar/molasses, strength: 30 }]
   name: raw sugar
   keywords: [raw-sugar, sugar, raw, muscovado]
   appearance: coarse, damp and brown, smelling of molasses

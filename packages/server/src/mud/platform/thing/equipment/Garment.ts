@@ -63,8 +63,9 @@ import { CelestialApi } from '../../../api/celestial';
 import { Quantity } from '../../../lib/quantity';
 import { TemplatePaths } from '../../../lib/paths';
 import type { FieldMeta } from '../../../lib/mixin';
-import type { DirtKindDescriptor } from '../../idea/DirtKind';
+import type { DirtKindDescriptor } from '../../../lib/cleanliness/DirtKind';
 import type { WashPolicy, WashSubject } from '../../../lib/cleanliness/WashPolicy';
+import { DirtKinds } from '../../../lib/cleanliness/DirtKind';
 
 // ⭐ Soilable and Labelled OUTERMOST (cleanliness D3, D9): every garment
 // may carry dirt by kind and be washed — a shirt, an apron, a pair of
@@ -218,7 +219,7 @@ export default class Garment extends GarmentBase {
     const material = this.getMaterial();
     const wool = !!material?.hasTag('protein') && !!material.hasTag('fibre');
     const kinds = this.soilKinds();
-    const subject: WashSubject = { wool, blood: kinds.includes('blood') };
+    const subject: WashSubject = { wool, blood: kinds.includes(DirtKinds.BLOOD) };
     const name = this.getPresentation();
     if (!policy.readsTheCloth()) {
       return {

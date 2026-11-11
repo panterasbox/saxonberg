@@ -31,6 +31,26 @@
 import { Document } from "../persistence/Document";
 import type { FieldMeta } from "../mixin";
 import { Collections } from '../persistence/Collections';
+import {
+  DOCUMENT_KINDS,
+  type DocumentKeyValue,
+  type DocumentKindSpec,
+} from './DocumentKinds';
+
+/**
+ * A query over one key of a kind's catalogue card (`DocumentApi.findByKey`).
+ * `eq` is equality; `min`/`max` an inclusive range; `order` sorts by the key
+ * (the index serves it); `prefix` narrows to a path subtree; `limit` caps.
+ */
+export interface DocumentKeyQuery {
+  eq?: DocumentKeyValue;
+  min?: string | number;
+  max?: string | number;
+  prefix?: string;
+  order?: 'asc' | 'desc';
+  limit?: number;
+}
+
 
 /**
  * A document write the store refused for TITLE — the acting principal holds
@@ -56,6 +76,7 @@ export class StoredDocument extends Document {
     owner: { persistent: true },
     kind: { persistent: true },
     data: { persistent: true },
+    keys: { persistent: true },
   };
 
   /** Canonical path key (owner/scope encoded; e.g. `/home/iris/scripts/wave`). */
@@ -69,6 +90,15 @@ export class StoredDocument extends Document {
 
   /** The arbitrary JSON payload (a script's `{ source }`, dorm fields, …). */
   data: Record<string, unknown> = {};
+
+  /**
+   * ⭐ The **catalogue card** — the keys this document can be found by
+   * besides its path, DERIVED from `data` by its kind's declaration
+   * (`DocumentKinds` `keys` + `words`) on every write and never authored.
+   * Empty for most documents. Served by one wildcard index
+   * (`{kind, 'keys.$**'}`); read with `DocumentApi.findByKey`.
+   */
+  keys: Record<string, DocumentKeyValue> = {};
 
   getPath(): string {
     return this.path;
@@ -86,6 +116,51 @@ export class StoredDocument extends Document {
     return this.data;
   }
 
+  getKeys(): Record<string, DocumentKeyValue> {
+    return this.keys;
+  }
+
+  /**
+   * The card a document of `kind` at `path` with `data` carries — every
+   * key its kind declares that has a value, plus `word` for a typed-word
+   * kind. Both writers call it: {@link save} and the pack installer's row
+   * builder (which writes before any hook is loaded). A kind the
+   * vocabulary does not declare (a runtime kind the CMS or a brain files)
+   * has an empty card — the store is kind-agnostic; only a pack-installable
+   * kind is closed. ⚠ Throws on an empty path: the path is the identity.
+   */
+  static cardOf(
+    kind: string,
+    path: string,
+    data: Record<string, unknown>,
+  ): Record<string, DocumentKeyValue> {
+    if (!path) {
+      throw new Error(
+        `StoredDocument: a ${kind || 'kindless'} document has no path — the path is its identity`,
+      );
+    }
+    const spec = (DOCUMENT_KINDS as Record<string, DocumentKindSpec>)[kind];
+    const card: Record<string, DocumentKeyValue> = {};
+    if (!spec) return card;
+    const source = { path, data };
+    for (const [key, derive] of Object.entries(spec.keys ?? {})) {
+      const value = derive(source);
+      if (value !== undefined) card[key] = value;
+    }
+    if (spec.words) {
+      const words = spec.words(source);
+      if (words.length === 1) card.word = words[0]!;
+      else if (words.length > 1) card.word = words;
+    }
+    return card;
+  }
+
+  /** Writes the derived card with the row — the card is never a second copy to drift. */
+  override async save(): Promise<void> {
+    this.keys = StoredDocument.cardOf(this.kind, this.path, this.data);
+    await super.save();
+  }
+
   /** The one document stored at `path`, or null. */
   static async findByPath(path: string): Promise<StoredDocument | null> {
     const docs = await StoredDocument.find<StoredDocument>({ path });
@@ -96,16 +171,5 @@ export class StoredDocument extends Document {
   /** Every document of `kind` — the warm-window rebuild's input. */
   static async findByKind(kind: string): Promise<StoredDocument[]> {
     return StoredDocument.find<StoredDocument>({ kind });
-  }
-
-  /**
-   * Every document whose path is `prefix` or lies under `prefix/` — the
-   * CMS tree's listing input. Filters in JS (over `find({})`) so the
-   * store needs no `$regex` index for v1; a prefix index can land later.
-   */
-  static async findByPrefix(prefix: string): Promise<StoredDocument[]> {
-    const all = await StoredDocument.find<StoredDocument>({});
-    const under = prefix.endsWith("/") ? prefix : `${prefix}/`;
-    return all.filter((s) => s.path === prefix || s.path.startsWith(under));
   }
 }

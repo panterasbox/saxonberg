@@ -1,0 +1,14 @@
+# The creamery's cellar hatch — the way down to the cheese room is a hatch
+# propped open over stone steps (boundary build: a hatch is a door 1 × 1).
+# Open, so the cellar's cold breathes up into the dairy; shut it and the
+# cheese room keeps its own air.
+class: /platform/thing/Door
+extends: /platform/thing/boundaries/hatch
+data:
+  shortDescription: cellar hatch
+  keywords: [hatch, "cellar hatch", trap, trapdoor]
+  register: definite
+  longDescription: >
+    A wooden hatch propped open over stone steps that go down into the bank.
+    The air coming up them is cold.
+  open: true

@@ -1,0 +1,16 @@
+# A caulked joint — an iron spigot in an iron hub, packed with oakum and
+# run with lead, driven home with a caulking iron and a hammer (water-supply
+# D10). Rigid where a wiped joint gives; it does not forgive a frost.
+key: caulked
+label: caulked
+portability: tool
+instrument: striking
+competence:
+  discipline: plumbing
+  band: novice
+reversible: effort
+strength: 0.8
+structuralRecovery: 0.9
+fastenerRecovery: 0.0
+tightenable: true
+failure: parted

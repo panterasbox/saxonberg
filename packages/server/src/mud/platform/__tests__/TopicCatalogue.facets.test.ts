@@ -21,7 +21,7 @@ import YAML from 'yaml';
 
 const SEED_DIR = join(
   dirname(fileURLToPath(import.meta.url)),
-  '../../../../../content/platform/content/platform/idea/Topic'
+  '../../../../../content/platform/content/topics'
 );
 
 const ADDRESSES = ['direct', 'personal', 'ambient', 'broadcast'];
@@ -44,8 +44,9 @@ function seeds(): Seed[] {
       };
       return {
         file,
-        topic: String(doc?.data?.topic ?? ''),
-        data: doc?.data ?? {},
+        // A topic is a document: its key is the file name, the file IS its data.
+        topic: file.slice(0, -'.yaml'.length),
+        data: (doc as unknown as Record<string, unknown>) ?? {},
       };
     });
 }

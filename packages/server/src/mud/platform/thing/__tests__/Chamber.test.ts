@@ -23,8 +23,6 @@ import { ThermalMixin } from '../../../lib/thermal/Thermal';
 import { Quantity } from '../../../lib/quantity';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { Template } from '../../../lib/stuff/Template';
-import Placement from '../../idea/Placement';
-import PlacementCatalogue from '../../idea/PlacementCatalogue';
 import { WorldClockApi } from '../../../api/worldclock';
 import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
@@ -36,6 +34,7 @@ import {
   makeStuffAtPath,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { Placement, Placements } from '../../../lib/spatial/Placement';
 
 class Cheese extends ThermalMixin(Good) {
   static _mixinName = 'ChamberTestCheese';
@@ -55,33 +54,8 @@ class ProbeChamber extends Chamber {
  * degrades to the container and every assertion below is vacuous.
  */
 async function warmPlacements(): Promise<void> {
-  const rows = [
-    { name: 'on', prepositions: ['on', 'onto'], encloses: false },
-    { name: 'in', prepositions: ['in', 'into'], encloses: true },
-    { name: 'from', prepositions: ['from', 'on'], encloses: false },
-  ];
-  vi.spyOn(Template, 'findByPathInfix').mockResolvedValue(
-    rows.map((r) => ({
-      path: `/platform/idea/Placement/${r.name}`,
-      class: '/platform/idea/Placement',
-    })) as unknown as Template[],
-  );
-  vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(
-    Placement as unknown as never,
-  );
-  vi.spyOn(StuffApi, 'singleton').mockImplementation(async (path: string) => {
-    const row = rows.find((r) => path.endsWith(`/${r.name}`))!;
-    const m = makeStuff(() => new Placement());
-    m.name = row.name;
-    m.prepositions = row.prepositions;
-    m.encloses = row.encloses;
-    return m as never;
-  });
-  const catalogue = makeStuffAtPath(
-    () => new PlacementCatalogue(),
-    '/platform/idea/PlacementCatalogue',
-  );
-  await catalogue.warm();
+  // The kernel's ways of sitting are resident — the test bootstrap stands
+  // in for every place's onCreate (documents D7).
 }
 
 let matCounter = 0;
@@ -139,7 +113,7 @@ describe('Chamber', () => {
     expect(MixinApi.isContainable(c)).toBe(true);
     expect(MixinApi.isContainer(c)).toBe(false);
     expect(MixinApi.isExitable(c)).toBe(false);
-    expect(c.getPlacements()).toEqual(['in']);
+    expect(c.getPlacements()).toEqual([Placements.IN]);
     expect(c.isFixedInPlace()).toBe(true);
   });
 
@@ -150,7 +124,7 @@ describe('Chamber', () => {
     const inside = cheese(281);
     const beside = cheese(295);
     ContainmentApi.move(beside, room);
-    ContainmentApi.move(inside, loft, 'in');
+    ContainmentApi.move(inside, loft, Placements.IN);
 
     expect(loft.probeOccupants()).toEqual([inside]);
     // The placed thing stands in the ROOM, under the chamber.
@@ -172,8 +146,8 @@ describe('Chamber', () => {
 
     const cold = cheese(300);
     const warm = cheese(300);
-    ContainmentApi.move(cold, loft, 'in');
-    ContainmentApi.move(warm, shelf, 'on');
+    ContainmentApi.move(cold, loft, Placements.IN);
+    ContainmentApi.move(warm, shelf, Placements.ON);
     await cold.restamp();
     await warm.restamp();
 
@@ -194,7 +168,7 @@ describe('Chamber', () => {
     const loft = chamber(null);
     ContainmentApi.move(loft, room);
     const c = cheese(300);
-    ContainmentApi.move(c, loft, 'in');
+    ContainmentApi.move(c, loft, Placements.IN);
     await c.restamp();
     expect(c.lastAmbientK).toBeCloseTo(290, 0);
   });
@@ -208,7 +182,7 @@ describe('Chamber', () => {
     const loft = chamber(281);
     ContainmentApi.move(loft, room);
     const c = cheese(281);
-    ContainmentApi.move(c, loft, 'in');
+    ContainmentApi.move(c, loft, Placements.IN);
     await c.restamp();
     expect(c.lastAmbientK).toBeCloseTo(281, 0);
 

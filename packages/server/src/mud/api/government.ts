@@ -28,6 +28,7 @@ import type {
   GovernmentSeat,
 } from "../platform/idea/Government";
 import { StuffApi } from "./stuff";
+import { TemplatePaths } from "../lib/paths";
 import { HotReloadApi } from "./hot-reload";
 import { GovernmentLogic } from "../platform/idea/api/GovernmentLogic";
 import { fileURLToPath } from "url";
@@ -60,6 +61,13 @@ function logic(): GovernmentLogic {
 }
 
 export class GovernmentApi {
+  /**
+   * ⭐ What this Api's reads stand on (documents D7, W5c): every async
+   * static awaits it in the call gate; a sync reach calls
+   * `StuffApi.ready(GovernmentApi)`. Loaded on reach, never at boot.
+   */
+  static readonly needs: readonly string[] = [TemplatePaths.governmentCatalogue];
+
   /**
    * The most-local government at an address (the head of the chain), or
    * `null` when no covering Locality declares one. Sync — trie +
@@ -115,6 +123,7 @@ export class GovernmentApi {
   ): Promise<boolean> {
     return logic().holdsSeat(character, governmentKey, seatKey);
   }
+
 
   /** The authored descriptor for government `key`, or `null`. */
   public static getGovernment(key: string): GovernmentDescriptor | null {

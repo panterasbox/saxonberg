@@ -13,6 +13,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { rememberDisciplines } from "./discipline-fixtures";
 import type { ActSignature } from "../ActSignature";
 import { Idea } from "../../stuff/Idea";
 import { AdvancementMixin } from "../Advancement";
@@ -36,7 +37,8 @@ function makeOwnerAt(): AdvancingIdea {
   );
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+  await rememberDisciplines();
   store = new Map();
   idCounter = 0;
   const pm = PersistenceManager.get();

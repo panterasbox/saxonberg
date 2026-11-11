@@ -1,5 +1,4 @@
 # A frame rail — a tenon at each end. Run by `carve`.
-recipeId: rail
 name: Frame Rail
 keywords: [rail]
 inputSlots:

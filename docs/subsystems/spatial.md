@@ -50,7 +50,7 @@ substrate in `lib/spatial/`:
 | `ContainerMixin` | mixin | Inventory side: `addContainable` / `removeContainable` / `getContents`. |
 | `ContainableMixin` | mixin | Lives-inside side: `environment`, `setContainer`. |
 | `PlacingMixin` | mixin | **Placement**: the members this host offers (`placements`), the lazy `getPlaced` read, and the `canPlace` veto. Was `SurfacedMixin` until 2026-09-28. |
-| `Placement` | singleton Idea | A **way of sitting**, as a row: `on` · `in` · `from`. Rows under any root; warmed by `PlacementCatalogue`. |
+| `Placement` | document value class | A **way of sitting**, as a `placement` document: `on` · `in` · `from`. Any pack ships one under `content/placements/`; a host cites it by path. |
 | `MobileMixin` | mixin | Locomotion: `traverse` (async)/`teleport` and movement narration. |
 | `SealableMixin` | mixin | Binary `open` state (predicate `isOpen()`). Used by `Door` and `Window`; reusable for chests, trapdoors, envelopes. Generic, stays in `lib/spatial/`. |
 | `ContainmentApi` | static API | The single public surface for moving Stuff between containers. |
@@ -368,17 +368,23 @@ the throw, with a control class that must register cleanly.
    refuses to answer. Put a `Fitting` or a `Chamber` in its contents
    instead (that is how a boot works), or write the class.
 
-### The `Placement` vocabulary — a member is a ROW
+### The `Placement` vocabulary — a member is a DOCUMENT
 
-`platform/idea/Placement.ts`, warmed by `PlacementCatalogue` (the
-`ReadingCatalogue` self-warming shape, boot entry in the platform
-pack). Rows live at `<root>/idea/Placement/<name>` under **any** root,
-so a capability pack ships a way of sitting with no kernel edit.
+`lib/spatial/Placement.ts`, a value class over the `placement` document
+kind (a document since the path-identity build, 2026-11 — it was a
+singleton Idea warmed at boot by `PlacementCatalogue`, which is deleted).
+Any pack ships one at `content/placements/<name>.yaml`, stored at
+`<pack root>/placements/<name>`, so a capability pack ships a way of
+sitting with no kernel edit. ⭐ **The path is its only name**: a host
+cites the ways it offers by path (`placements: [/platform/placements/from]`),
+`ContentPlacement` persists the path, and the kernel's own three are the
+constants `Placements.ON` · `Placements.IN` · `Placements.FROM`
+(`/platform/placements/on|in|from`).
 
 | field | read by |
 |---|---|
-| `name` | the catalogue index; `PlacingMixin.getPlacements()` |
-| `prepositions` (primary first) | `resolvePlacement`, `put`'s offers |
+| (the path; its leaf is `getName()`) | `PlacingMixin.getPlacements()`, the wire's `placement` field |
+| `prepositions` (primary first) | `resolvePlacement`, `put`'s offers; the primary is the kind's typed word |
 | `encloses` | `Containable.getEnclosingScope`, `canPlace` |
 | `prose` (one Liquid template) | `put`, `dry` |
 | `heading` | the `look` / `sense` drill-in |
@@ -390,18 +396,37 @@ true`** — the only one), `from` (`[from, on]`).
 hook` reaches a `from`-only host and gets told *"You hang the ham from
 the hook"* — the world teaching the word without a tutorial. A
 member's PRIMARY word always wins its own key
-(`lint:placement-words` refuses two members claiming one primary).
+(`lint:placement-words` refuses two members claiming one primary, over
+every pack's `content/placements/`; and because `placement` declares its
+primary preposition as a typed word, the installer refuses a second pack
+claiming one, naming both — [content-packs.md](./content-packs.md)).
 
-⚠ **A cold catalogue degrades to the shipped behaviour, never to
-silence.** A member with no live row answers to its own name
-everywhere, so the worst case is *the model before the vocabulary*
-rather than an unaddressable host. The consequence: a member's
-SECONDARY words are its row's claim, so `put ham on hook` needs the
-roster warm.
+⭐ **A typed word is resolved against the HOST's own placements**, the
+way a form word is resolved against a wheel's `forms:` — so there is no
+global placement dictionary to search.
+
+⭐⭐ **Resident by construction — there is no cold case.**
+`ContainmentApi.move` is synchronous and stays so, so every reader
+beneath it (`Containable.getEnclosingScope`, `PlacementOffers`,
+`Placing.canPlace`/`wordsFor`/`resolvePlacement`, the MQL `placed`
+projection, `put`/`dry`/`look`/`sense`) calls `ContainmentApi.placements().need(path)`,
+which throws `DocumentNotResidentError` for a path nothing loaded (an
+engine defect, never a refusal and never a default). What loads them:
+
+- **`Place.onCreate`** awaits `ContainmentApi.placements().ensureKernel()` — one prefix
+  read of `/platform/placements/`, once per process — so the engine's
+  own `move(item, desk, Placements.ON)` and every container's inside
+  always find theirs (one host, rather than `ContainerMixin` and
+  `PlacingMixin` each, keeps `lint:on-create` from rising);
+- **`PlacingMixin.setPlacements`** returns the load of every path it is
+  given, which the template applier awaits (authored rows and restores
+  alike);
+- **the persistence restore pass** awaits `ContainmentApi.placements().ensure` for each
+  restored item's `ContentPlacement`.
 
 ### The cost of a new way of sitting
 
-> **One row, plus one word on every verb whose argument accepts a
+> **One document, plus one word on every verb whose argument accepts a
 > placement host.**
 
 Today that is `put` and `dry`, and
@@ -469,7 +494,8 @@ read is a walk and not a second step. See
 **The pair IS persisted**, by the container's slice.
 `ContentPlacement { hostIndex?, placement? }` in
 `lib/persistence/PersistenceSlice.ts` records the host's **index
-within the same contents list** plus the member name;
+within the same contents list** plus the member's **path**
+(`/platform/placements/on`);
 `PersistableLogic`'s placement pass re-`place`s on restore. (An older
 version of this doc said the relation reset on restart. That stopped
 being true when the slice learned to record it.)
@@ -580,7 +606,7 @@ Three subscribable fields carry it (the projection seam is
 
 | field | mixin | on | read |
 |---|---|---|---|
-| `placement` | `Containable` | `REF_FIELDS` | the member name (`on`/`in`/`from`) this item sits under, or omitted when loose |
+| `placement` | `Containable` | `REF_FIELDS` | the member's own word — its path's leaf (`on`/`in`/`from`) — this item sits under, or omitted when loose |
 | `holds` | `Container` **and** `Placing` | `REF_FIELDS` | `true` — this thing is itself a holder. A capability, not a count (`static`, never fires), true for an empty container; a thing composing both reads one `holds` |
 | `placed` | `Placing` | `DETAIL_FIELDS` | the items placed on this host, grouped by member with the member's own `Placement.getHeading()` — the card half of `look`'s drill-in prose |
 
@@ -648,8 +674,8 @@ it offers**, with the heading off the member's own row:
 ```
 
 So a hook says *Hanging from it* where a shelf says *On it*, with
-nothing in `look` or `sense` knowing the difference. A member with no
-live row falls back to `With it`.
+nothing in `look` or `sense` knowing the difference. A member whose
+document authors no `heading` falls back to `With it`.
 
 ### The concrete hosts
 
@@ -703,7 +729,8 @@ order:
 - **region zero** — the container's own interior — when the target is
   a plain Container and not a body. It is NOT a member (a chest has no
   compartments, it just holds things), but it borrows its words and
-  its prose from the `in` row when the catalogue has one. That is what
+  its prose from the `in` document (`Placements.IN`, resident with every
+  place). That is what
   makes *one region and many regions are the same thing* literal.
 - **one per member** the target's row offers (`placements:`).
 
@@ -1187,3 +1214,12 @@ move and then the occupancy. `ContainmentApi.move` stays the one primitive.
 ⭐ The witnesses are told the other end of the move, a second argument and never
 a search of the frame: a feeder notes who filled it (`from`), a tanpit lifts a
 hide for the hand it went to (`to`). A forwarder forwards both.
+
+## History — placements became documents (2026-11-09)
+
+Documents path identity: the `Placement` vocabulary moved from singleton
+Ideas warmed at boot by `PlacementCatalogue` (deleted, with its boot line
+and the `ContainmentApi.placement*` statics) to `placement` documents
+cited by path, resident by construction (`Place.onCreate`, the
+`placements` setter, the restore pass). See git log for the
+`reqs/documents-path-identity` branch.

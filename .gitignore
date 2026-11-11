@@ -24,6 +24,9 @@ out/
 .claude/*
 !.claude/skills/
 !.claude/agents/
+# ...and the project hooks (tools/hooks/), so every worktree and session
+# gets them — settings.local.json stays personal.
+!.claude/settings.json
 # ...and the /build skill's directory, which the generic `build/` rule
 # above would otherwise swallow.
 !.claude/skills/build/
@@ -52,3 +55,6 @@ docs/compact/manifesto/exports/
 
 # The typecheck wire drive writes and removes this probe; a crashed run may leave it.
 packages/server/src/mud/platform/thing/WireTypecheckProbe.ts
+
+# The worktree's build phase (build | suite | review) — read by tools/hooks.
+/.build-phase

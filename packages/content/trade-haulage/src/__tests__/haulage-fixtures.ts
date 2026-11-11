@@ -14,6 +14,7 @@ import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/_
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import WaybillRegistry from '../idea/WaybillRegistry';
 import RateCardRegistry from '../idea/RateCardRegistry';
+import { matchesDocumentQuery } from '@saxonberg/server/mud/lib/document/__tests__/document-query';
 
 export const CARRIER = '/trade/haulage/idea/carrier-business';
 export const DEPOT = '/trade/haulage/idea/depot-business';
@@ -47,9 +48,8 @@ export function installStore(): void {
   vi.spyOn(PersistApi, 'find').mockImplementation(
     async (col: string, query: Record<string, unknown>) => {
       if (col !== Collections.Documents) return [];
-      return [...store.values()].filter((d) =>
-        Object.entries(query).every(([k, v]) => d[k] === v),
-      );
+      // The store's real query shapes: a path range for a prefix read.
+      return [...store.values()].filter((d) => matchesDocumentQuery(d, query));
     },
   );
   vi.spyOn(PersistApi, 'save').mockImplementation(

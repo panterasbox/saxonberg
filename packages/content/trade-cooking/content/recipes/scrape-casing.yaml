@@ -7,7 +7,6 @@
 # having a step of its own. A sausage made in a scraped casing is a
 # sausage made in something that was full of what a gut is full of, and
 # cooking is the only answer.
-recipeId: scrape-casing
 name: Scraped casing
 keywords: ["scrape-casing", "casing", "scrape", "casings"]
 discipline: butchery

@@ -48,7 +48,7 @@ export default class BloodReading extends Reading {
     // shirt is evidence. Washed out cold, there is nothing to read; washed
     // hot it has set, and still reads.
     if (!MixinApi.isVitals(target) && MixinApi.isSoilable(target)) {
-      const stains = target.stainsOf('blood');
+      const stains = target.stainsOf('/platform/dirt/blood');
       if (stains.length === 0) {
         MessageApi.scene(giver)
           .topic(TOPIC)

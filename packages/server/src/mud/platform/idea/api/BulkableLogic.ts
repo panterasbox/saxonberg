@@ -991,7 +991,11 @@ function carryBatchIdentity(
   toHolder.setGrade(fromHolder.getGrade());
   if (MixinApi.isCrafted(fromHolder) && MixinApi.isCrafted(toHolder)) {
     toHolder.setMaker(fromHolder.getMaker());
-    toHolder.setRecipe(fromHolder.getRecipe());
+    // ⭐ A sync primitive, so the setter's load (documents D7) cannot be
+    // awaited here — and need not be: the source already cites this recipe,
+    // so its own setter made the catalogue resident. Caught, never left to
+    // reject unheard (an unhandled rejection ends the process).
+    void toHolder.setRecipe(fromHolder.getRecipe())?.catch(() => {});
     toHolder.setCraftedAt(fromHolder.getCraftedAt());
   }
 }

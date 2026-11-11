@@ -6,12 +6,13 @@
 
 import type { CommandContext } from "../../../../api/command";
 import { HelpApi } from "../../../../api/help";
+import { StuffApi } from "../../../../api/stuff";
 import { HelpControllerBase, type HelpModel } from "./HelpControllerBase";
 
 export default class HelpVerbController extends HelpControllerBase {
   async execute(model: HelpModel, context: CommandContext): Promise<void> {
     // The rulebook warms on first use (the scan sweep — not booted).
-    await HelpApi.ready();
+    await StuffApi.ready(HelpApi);
     if (!model.name) return HelpControllerBase.showLanding(context);
     const verb = model.name;
     const topic = HelpApi.commandTopic(verb);

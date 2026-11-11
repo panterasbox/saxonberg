@@ -1,0 +1,8 @@
+# The `large plant pot` form (ceramics S4): an open pot with a drainage hole,
+# big enough for a shrub.
+key: large plant pot
+formClass: open
+capacityL: 6
+product: /trade/ceramics/thing/plant-pot-large
+greenScale: 1
+discipline: pottery

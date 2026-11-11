@@ -20,7 +20,6 @@
 # ⚠ No ladder placement (`discipline` / `difficulty`), deliberately: the
 # requirements decided rubber has no knowledge gate, and a placed recipe
 # would be gated ("a recipe with no ladder placement gates on nothing").
-recipeId: dandelion-latex
 name: Dandelion latex
 keywords: ["dandelion-latex", "dandelion latex", "latex"]
 inputSlots:

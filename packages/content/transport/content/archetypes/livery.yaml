@@ -10,7 +10,6 @@
 # What ships is the contract, so that when ranching builds one there is
 # already an answer to *what does a livery have to have*, and it did not
 # have to be invented twice.
-archetypeId: livery
 label: a livery
 roomsScope: space
 capabilities:

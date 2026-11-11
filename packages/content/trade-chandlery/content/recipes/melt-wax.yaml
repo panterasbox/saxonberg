@@ -11,7 +11,6 @@
 # ⭐ `outputMaterial` is authored here and that is right: melting does not
 # change what the wax IS. Only the dip derives, because only the dip has
 # two possible feedstocks.
-recipeId: melt-wax
 name: Melted wax
 keywords: ["melt-wax", "melt", "wax"]
 inputSlots:
@@ -32,4 +31,4 @@ requiresHeatK: 340
 maxHeatK: 480
 # Melted wax gets on the hands (cleanliness D6).
 soils:
-- { kind: grease, amount: 0.15, where: hands }
+- { kind: /platform/dirt/grease, amount: 0.15, where: hands }

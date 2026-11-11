@@ -18,8 +18,8 @@ import { Freshness } from '../../../lib/material/Freshness';
 import type { BulkPayload } from '../../../lib/bulk/Bulkable';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
-import { Aroma } from '../../../lib/perception/Aroma';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import { PerceptionApi } from '../../../api/perception';
 
 export class TasteModality extends Modality {
   /** What a mouthful of `thing` holds; empty for what is not in reach of a tongue. */
@@ -41,7 +41,7 @@ export class TasteModality extends Modality {
       for (const part of payload?.makeup ?? []) {
         const m = StuffApi.findByTemplatePath<Material>(part.materialPath);
         if (m) parts.push({ material: m, fraction: part.fraction });
-        else Aroma.loadRow(part.materialPath);
+        else PerceptionApi.aromas().loadRow(part.materialPath);
       }
       if (parts.length === 0 && material) parts.push({ material, fraction: 1 });
       const rot = new Freshness(thing.getBulk('interior')).rotNote();

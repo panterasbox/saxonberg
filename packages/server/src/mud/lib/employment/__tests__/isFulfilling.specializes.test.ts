@@ -24,6 +24,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { DocumentNotResidentError } from '../../errors';
 import { Idea } from '../../stuff/Idea';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
@@ -126,12 +127,12 @@ describe('the walk', () => {
     expect(who.isFulfilling('a')).toBe(false);
   });
 
-  it('falls back to the exact match when no catalogue is warm', () => {
+  it('an exact match needs no dictionary; the walk on a cold one throws (documents D11)', () => {
     StuffApi.unregister(catalogue as never);
     const { who } = seat(['bartending']);
     expect(who.isFulfilling('bartending')).toBe(true);
-    // ⚠ Degrades to the OLD behaviour rather than throwing: a boot without
-    // the catalogue should serve less, not crash the rail.
-    expect(who.isFulfilling('mixology')).toBe(false);
+    // ⚠ Not a quiet "no": the crafting act loads the dictionary before it
+    // asks, so a cold walk is an engine defect and says so.
+    expect(() => who.isFulfilling('mixology')).toThrow(DocumentNotResidentError);
   });
 });

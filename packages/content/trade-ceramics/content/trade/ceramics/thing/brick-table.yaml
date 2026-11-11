@@ -13,8 +13,8 @@ data:
   fixedInPlace: true
   capabilities: [brick-table]
   forms:
-    - /trade/ceramics/idea/form/brick
-    - /trade/ceramics/idea/form/tile
-    - /trade/ceramics/idea/form/firebrick
+    - /trade/ceramics/forms/brick
+    - /trade/ceramics/forms/tile
+    - /trade/ceramics/forms/firebrick
   formTemplates:
     block: /trade/ceramics/thing/block

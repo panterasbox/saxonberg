@@ -266,7 +266,7 @@ describe("the house account in the wallet (D6)", () => {
     await reg.onCreate();
     makeStuffAtPath(() => {
       const b = new BankCounter();
-      b.setCorpoKey("goodkin");
+      void b.setCorpoKey("goodkin")?.catch(() => {}); // the load is the applier's (documents D7)
       return b;
     }, BANK);
     loc = makeStuff(() => new Place());

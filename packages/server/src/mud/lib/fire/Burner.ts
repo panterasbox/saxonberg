@@ -88,6 +88,7 @@ function burnerFireLogic(): FireLogic {
   return StuffApi.singletonSync('/platform/idea/api/fire', () => new FireLogic());
 }
 import { SecurityPolicies } from '../security/SecurityPolicies';
+import { DirtKinds } from '../cleanliness/DirtKind';
 
 /** Burner defaults that are not magnitudes — the rest are dials. */
 const BURNER_DEFAULTS = {
@@ -764,7 +765,7 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
       const self = this as unknown as Stuff;
       const alkaliKg = this.ashAlkaliKg;
       const kg = this.takeAsh();
-      if (MixinApi.isHygienic(raker)) raker.soilFrom([{ kind: 'ash', amount: 0.15, where: 'hands' }]);
+      if (MixinApi.isHygienic(raker)) raker.soilFrom([{ kind: DirtKinds.ASH, amount: 0.15, where: 'hands' }]);
       if (!(kg > 0.01)) return { kg, ash: [] };
       const template = (() => {
         try {

@@ -7,7 +7,7 @@
  *     `getFixtures()`, not its `getContents()`; you can't pocket the
  *     sign). Attached declaratively via the host's `adornments:` seed
  *     field (the `AdornableMixin.applyAdornments` applier).
- *   - `Branded` — carries a `_brandKey`; the "a product of <Corpo>"
+ *   - `Branded` — carries a `brand`; the "a product of <Corpo>"
  *     mark renders for free on the long description, same as the
  *     bottles. A neon sign advertises a product, so the brand it
  *     carries is the product it's lit up for (Volk, aevex zero, …).

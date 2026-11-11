@@ -34,6 +34,7 @@ import '../../../platform/idea/WorldClockRegistry';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { Placements } from '../../spatial/Placement';
 
 class TestHearth extends BurnerMixin(
   LightSourceMixin(ReservedMixin(PlacingMixin(ThermalMixin(Good)))),
@@ -95,7 +96,7 @@ async function copper(f: TestHearth, litres: number, startK: number): Promise<Po
   pot.setBulkAmount('interior', Quantity.of(litres, 'L'));
   pot.setStampedTemperatureK(startK);
   pot.setLastAmbientK(startK);
-  await ContainmentApi.move(pot, f, 'on');
+  await ContainmentApi.move(pot, f, Placements.ON);
   await pot.restamp();
   pot.reconcileThermal(); // first touch — seeds the trajectory
   return pot;

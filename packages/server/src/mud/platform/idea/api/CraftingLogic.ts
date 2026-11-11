@@ -63,8 +63,7 @@ import {
   CompetenceBand,
   type CompetenceBandName,
 } from '../../../lib/advancement/CompetenceBand';
-import type JointCatalogue from '../JointCatalogue';
-import type { JointDescriptor } from '../Joint';
+import type { JointDescriptor } from '../../../lib/craft/Joint';
 import { TemplatePaths } from '../../../lib/paths';
 import { GrammarApi } from '../../../api/grammar';
 import { PersistableApi } from '../../../api/persistable';
@@ -104,6 +103,7 @@ import CommerceMenu from '../../../lib/commerce/Menu';
 import type { BuildContribution } from '../../../lib/craft/ManualBuild';
 import type { Compounding } from '../../../lib/material/Compounding';
 import { BlendIdentity } from '../../../lib/craft/BlendIdentity';
+import { CraftingApi } from '../../../api/crafting';
 
 const CraftingApiCallers = SecurityPolicies.FromModule('/api/crafting#CraftingApi',
 );
@@ -403,6 +403,9 @@ async function resolveMaker(
   }
 
   const discipline = recipe.getDiscipline() || undefined;
+  // A seat fulfils a discipline's specializations too — the walk reads the
+  // discipline dictionary, so the act loads it (documents D11).
+  if (discipline) await StuffApi.ready(TemplatePaths.disciplineCatalogue);
   const fulfilling = presentFulfillers(giver, discipline);
   if (fulfilling.length === 0) return { ok: false, reason: 'no-maker' };
 
@@ -829,7 +832,7 @@ async function gatherMatter(
  * ⭐ This is the ONLY place a word is matched, and it is the sanctioned
  * one: a token the player typed, resolved at the command boundary
  * against the brands that actually exist. Everything downstream compares
- * `_brandKey` for equality — identity, not prose.
+ * `brand` for equality — identity, not prose.
  *
  * It replaced `material.getName().toLowerCase().includes(brand)`, which
  * asked whether a MATERIAL's display name contained the token: `with
@@ -859,7 +862,7 @@ function resolveBrandKey(token: string): string | null {
 
 /**
  * Does this candidate carry the mark? The mark lives on the **bottle**
- * (`_brandKey`, `BrandedMixin`) — a brand is a mark somebody owns, not a
+ * (`brand`, `BrandedMixin`) — a brand is a mark somebody owns, not a
  * property of the liquid, which is the whole point of private label:
  * Old Hollis and Veshko's unbranded rail hold the SAME material.
  */
@@ -1980,7 +1983,7 @@ async function applyTangibleOutput(
         }
       }
       if (weakest !== null && weakest !== own) {
-        output.setConstructionForm(weakest.getForm());
+        await output.setConstructionForm(weakest.getForm());
       }
     }
   }
@@ -3397,6 +3400,8 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // the one place a word is matched (see `resolveBrandKey`). A token
   // naming no brand that exists resolves to null and the preference is
   // simply not applied.
+  // A brand named by word: the dictionary loads on first use (D9).
+  if (req.brand) await StuffApi.ready(CorpoApi);
   const brandKey = req.brand ? resolveBrandKey(req.brand) : null;
   const matched: MatchedInput[] = [];
   const matchedItems: MatchedItemInput[] = [];
@@ -3594,11 +3599,8 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     );
     // ⭐⭐ …and, when the output is made of parts, which input became which
     // part. Before consumption: the inputs are still alive to be read. The
-    // joint roster is warmed first, so the wear it will take reads its
-    // joints' real figures (the catalogue is lazy — no onCreate).
-    if (MixinApi.isAssembled(output) && (output.getBill()?.joints?.length ?? 0) > 0) {
-      await (await jointCatalogue()).allWarmed();
-    }
+    // bill's joints are resident with the output (its `setBill` loaded them),
+    // so the wear it will take reads its joints' real figures.
     applyAssembledOutput(output, matchedItems, maker.getIdentityPath() ?? '');
   } else if (application === 'edible') {
     await applyEdibleOutput(
@@ -3852,6 +3854,7 @@ async function fulfillingHandImpl(
   // the house a lookup of the employment's path returns need not be the
   // same reference (the live drive's first run: Berta on shift, "nobody").
   const housePath = house.getOrganizationPath();
+  if (discipline) await StuffApi.ready(TemplatePaths.disciplineCatalogue);
   const candidates = presentFulfillers(giver, discipline).filter(
     (c) =>
       MixinApi.isEmployed(c) &&
@@ -4120,7 +4123,6 @@ async function mendAssembly(
   m: MendContext,
 ): Promise<void> {
   item.ensureParts();
-  const cat = await jointCatalogue();
   const metalHeatK = dial(AppSettingKeys.craftingRepairMetalHeatK, 900);
   const costFactor = dial(AppSettingKeys.craftingRepairCostFactor, 0.6);
   const brokenFactor = dial(AppSettingKeys.craftingRepairBrokenFactor, 2);
@@ -4137,7 +4139,7 @@ async function mendAssembly(
     const material = materialAtPath(line.material);
     const discipline = disciplineOf(line, m.catalogue);
     const { band, terms } = await termsFor(m.hand, discipline);
-    const named = await failedName(item, line, m.hand, cat);
+    const named = await failedName(item, line, m.hand);
     if (!material?.hasTag('metal')) {
       stillFailed.add(line.part);
       m.faults.push(unmendable(line.part, 'failed', 'reforged', named, discipline, band, 'part-failed', named));
@@ -4186,7 +4188,7 @@ async function mendAssembly(
   // back down). Never round a member that is still failed.
   for (const j of item.slackJoints()) {
     if (j.members.some((p) => stillFailed.has(p)) || (j.fastener && stillFailed.has(j.fastener))) continue;
-    const row = await cat.warmed(j.method);
+    const row = await CraftingApi.joints().ensure(j.method);
     if (!row || !row.tightenable) continue;
     const discipline = row.competence?.discipline ?? '';
     const band = discipline ? await bandIn(m.hand, discipline) : UNKNOWN_TRADE_BAND;
@@ -4207,7 +4209,7 @@ async function mendAssembly(
   // enough to char, a shaving tool, and the hand of the trade that made
   // it, read off the vessel's own joints.
   if (MixinApi.isMaturing(item) && item.isSpent() && stillFailed.size === 0) {
-    const refused = await refireGate(item, m, cat);
+    const refused = await refireGate(item, m);
     if (refused) {
       m.faults.push(unmendable('', 'spent', 'refired', 'the char', '', UNKNOWN_TRADE_BAND, refused.reason, refused.detail));
     } else {
@@ -4367,12 +4369,11 @@ async function failedName(
   item: Stuff & Assembled,
   failed: PartLine,
   hand: Stuff,
-  cat: JointCatalogue,
 ): Promise<string> {
   if (failed.count <= 1) return failed.part;
   let named = lineNoun(failed, failed.count);
   for (const j of jointsOf(item, failed.part)) {
-    const row = await cat.warmed(j.method);
+    const row = await CraftingApi.joints().ensure(j.method);
     if (row?.competence) {
       const band = await bandIn(hand, row.competence.discipline);
       if (!CompetenceBand.atOrAbove(band, row.competence.band)) {
@@ -4387,7 +4388,6 @@ async function failedName(
 async function refireGate(
   item: Stuff & Assembled,
   m: MendContext,
-  cat: JointCatalogue,
 ): Promise<{ reason: RepairDeclineReason; detail: string } | null> {
   const heatK = dial(AppSettingKeys.craftingRefireHeatK, 573);
   if ((MixinApi.isThermal(m.hand) ? m.hand.reachableHeatK() : 0) < heatK) {
@@ -4397,7 +4397,7 @@ async function refireGate(
     return { reason: 'missing-tool', detail: 'shaving' };
   }
   for (const j of item.getJoints()) {
-    const row = await cat.warmed(j.method);
+    const row = await CraftingApi.joints().ensure(j.method);
     if (!row?.competence) continue;
     const band = await bandIn(m.hand, row.competence.discipline);
     if (!CompetenceBand.atOrAbove(band, row.competence.band)) {
@@ -4702,7 +4702,7 @@ async function partInReachFor(
 }
 
 /** The joint that joins green clay with slip (ceramics W4). */
-const SLIP_JOINT = 'slip';
+const SLIP_JOINT = '/platform/joints/slip';
 
 /**
  * Why a piece cannot take a slip joint now, or `null` when it can: it must
@@ -4722,10 +4722,6 @@ function nowGameS(): number {
   return WorldClockApi.getNow().rawValue();
 }
 
-/** The joint vocabulary — loaded on first use (`singleton` is the get-or-create). */
-async function jointCatalogue(): Promise<JointCatalogue> {
-  return StuffApi.singleton<JointCatalogue>(TemplatePaths.jointCatalogue);
-}
 
 /** The person's band in a Discipline (the floor for an unadvancing body). */
 async function bandIn(who: Stuff, discipline: string): Promise<CompetenceBandName> {
@@ -4830,7 +4826,6 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   const location = maker.getContainer();
   if (!location) return { ok: false, reason: 'insufficient-input', detail: 'no-location' };
   const { tools } = await gatherMatter(location, maker);
-  const cat = await jointCatalogue();
 
   if (req.recipeRef && !req.whole) {
     const catalogue = await requireCatalogue();
@@ -4847,7 +4842,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
     if (!bill) return { ok: false, reason: 'no-line', detail: 'not-raised-from-parts' };
     let gluedJoints = 0;
     for (const j of bill?.joints ?? []) {
-      const row = j.method ? await cat.warmed(j.method) : null;
+      const row = j.method ? await CraftingApi.joints().ensure(j.method) : null;
       if (!row) continue;
       const gate = await jointGate(maker, row, tools);
       if (gate) return { ok: false, reason: gate.reason, detail: gate.detail };
@@ -4932,7 +4927,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   const castKind = MixinApi.isCrafted(part) ? (part.getCastFrom()?.kindPath ?? '') : '';
   const interchangeable = castKind !== '' && castKind === line.template;
   for (const j of interchangeable ? [] : jointsOf(whole, line.part)) {
-    const row = await cat.warmed(j.method);
+    const row = await CraftingApi.joints().ensure(j.method);
     if (!row) continue;
     const gate = await jointGate(maker, row, tools);
     if (gate) return { ok: false, reason: gate.reason, detail: gate.detail };
@@ -5008,7 +5003,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   if (MixinApi.isAdvancing(maker) && !interchangeable) {
     const credited = new Set<string>();
     for (const j of jointsOf(whole, line.part)) {
-      const row = await cat.warmed(j.method);
+      const row = await CraftingApi.joints().ensure(j.method);
       const d = row?.competence?.discipline ?? '';
       if (d === '' || credited.has(d)) continue;
       credited.add(d);
@@ -5075,7 +5070,7 @@ async function mintMember(
     out.setGrade(g);
   }
   if (MixinApi.isDurable(out)) out.setCondition(line.condition);
-  if (line.form && MixinApi.isConstructed(out)) out.setConstructionForm(line.form);
+  if (line.form && MixinApi.isConstructed(out)) await out.setConstructionForm(line.form);
   if (line.parts && MixinApi.isAssembled(out)) out.recordAssembly(line.parts, line.joints ?? []);
   // ⭐ …and what the line carried goes out with the part (repair D2): a
   // worn part removed is still worn, a keen edge still keen, a named blade
@@ -5086,7 +5081,8 @@ async function mintMember(
       for (const m of line.mends) out.recordMend(m);
     }
     if (line.name && MixinApi.isNamed(out)) out.setName(line.name);
-    if (MixinApi.isCrafted(out) && line.recipe) out.setRecipe(line.recipe);
+    // The setter returns the recipe catalogue's load (documents D7) — await it.
+    if (MixinApi.isCrafted(out) && line.recipe) await out.setRecipe(line.recipe);
     if (line.castDiscipline && MixinApi.isCrafted(out)) {
       out.setCastFrom({ kindPath: '', takenFromIdentity: '', takenAtS: 0, discipline: line.castDiscipline });
     }
@@ -5168,7 +5164,6 @@ async function salvageByJoints(
   item.ensureParts();
   const joints = item.getJoints();
   if (joints.length === 0) return null;
-  const cat = await jointCatalogue();
   const outputs: Stuff[] = [];
   const recoveredParts: { part: string; count: number; of: number }[] = [];
   const lost: { material: Material | null; kg: number }[] = [];
@@ -5179,7 +5174,7 @@ async function salvageByJoints(
     let rec = mine.length === 0 ? 0 : 1;
     let factor = 1;
     for (const j of mine) {
-      const row = await cat.warmed(j.method);
+      const row = await CraftingApi.joints().ensure(j.method);
       // ⭐ A glue line comes apart as its GLUE does (paint D11): an animal
       // glue softens hot and wet — steam it and it lets go; casein, a
       // resin, a rubber cement never come apart.
@@ -5251,11 +5246,17 @@ async function lookupImpl(ref: string): Promise<RecipeView | null> {
 
 async function offeredImpl(menu: Stuff): Promise<RecipeView[]> {
   const catalogue = await requireCatalogue();
-  const ids = menu instanceof CommerceMenu ? menu.getOfferedRecipeIds() : [];
+  const paths = menu instanceof CommerceMenu ? menu.getOfferedRecipeIds() : [];
   const out: RecipeView[] = [];
-  for (const id of ids) {
-    const recipe = catalogue.getRecipe(id);
-    if (recipe) out.push(toView(recipe));
+  for (const path of paths) {
+    const recipe = catalogue.getRecipeAt(path);
+    // ⚠ A menu citing a path no pack ships is caught by `lint:census` (g)
+    // before merge; at runtime it is skipped loudly, never silently.
+    if (!recipe) {
+      console.warn(`CraftingLogic: menu ${menu.getTemplatePath()} offers '${path}', which is no recipe`);
+      continue;
+    }
+    out.push(toView(recipe));
   }
   return out;
 }

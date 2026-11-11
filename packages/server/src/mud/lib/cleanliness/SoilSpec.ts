@@ -11,8 +11,8 @@
  *
  * ```yaml
  * soils:
- *   - { kind: grease, amount: 0.3, where: hands }
- *   - { kind: grease, amount: 0.2, where: apron }
+ *   - { kind: /platform/dirt/grease, amount: 0.3, where: hands }
+ *   - { kind: /platform/dirt/grease, amount: 0.2, where: apron }
  * ```
  *
  * `where` is one of {@link SOIL_WHERES}: the maker's hands, what covers the
@@ -33,7 +33,7 @@ export type SoilWhere = (typeof SOIL_WHERES)[number];
 
 /** One deposit an act makes. */
 export interface SoilSpec {
-  /** A DirtKind key (`grease`, `manure`). */
+  /** A `dirt` document's PATH (`/platform/dirt/grease`). */
   kind: string;
   /** The load deposited — dimensionless; `0.1` marks, `0.4` soils. */
   amount: number;
@@ -59,8 +59,8 @@ export class SoilSpecs {
     }
     this.entries = raw.map((entry, i) => {
       const e = (entry ?? {}) as Record<string, unknown>;
-      if (typeof e.kind !== 'string' || e.kind.length === 0) {
-        throw new Error(`${owner}: soils[${i}] needs a 'kind'`);
+      if (typeof e.kind !== 'string' || !e.kind.startsWith('/')) {
+        throw new Error(`${owner}: soils[${i}] needs a 'kind' — a dirt document's path (/platform/dirt/grease)`);
       }
       if (typeof e.amount !== 'number' || !(e.amount > 0)) {
         throw new Error(

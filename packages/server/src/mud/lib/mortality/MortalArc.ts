@@ -63,8 +63,8 @@ export type DecayStage = (typeof DECAY_STAGES)[number];
 export const DECAY_SMELLS: Record<DecayStage, { aroma: string; ou: number } | null> = {
   fresh: null,
   stale: { aroma: '/base-library/aromas/blood', ou: 30 },
-  decomposed: { aroma: '/base-library/aromas/decay', ou: 3000 },
-  spent: { aroma: '/base-library/aromas/decay', ou: 30 },
+  decomposed: { aroma: '/base-library/aromas/rot/decay', ou: 3000 },
+  spent: { aroma: '/base-library/aromas/rot/decay', ou: 30 },
 };
 
 export const MORTALITY_DEFAULTS = {

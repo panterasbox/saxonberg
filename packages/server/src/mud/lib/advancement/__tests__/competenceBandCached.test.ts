@@ -14,6 +14,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { rememberDisciplines } from './discipline-fixtures';
 import { Idea } from '../../stuff/Idea';
 import { AdvancementMixin } from '../Advancement';
 import { PersonaMixin } from '../../character/Persona';
@@ -40,9 +41,10 @@ interface Row {
 
 let rows: Row[] = [];
 
-beforeEach(() => {
+beforeEach(async () => {
   StuffApi.clearAll();
   DerivedStandingCache._clearAllForTesting();
+  await rememberDisciplines();
   rows = [];
   // ⚠ Every competence read short-circuits to the FLOOR when the store
   // is not connected, which would make each assertion here vacuous.

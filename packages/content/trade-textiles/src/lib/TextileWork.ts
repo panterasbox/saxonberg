@@ -20,6 +20,7 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import type { ActDone, ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import { Grade, GRADE_BANDS } from '@saxonberg/server/mud/lib/craft/Grade';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { AppApi } from '@saxonberg/server/mud/api/app';
@@ -334,7 +335,9 @@ export default class TextileWork {
           opts.room.addAtmosphereContent('/stuff/idea/material/gas/flax-dust', charge * 10);
         }
         if (!this.actor.isDestroyed() && MixinApi.isHygienic(this.actor)) {
-          this.actor.soilFrom([{ kind: 'dust', amount: 0.15, where: 'hands' }]);
+          // The act loads the pack's own dirt it lands (documents D7).
+          await MaterialApi.dirtKinds().ensure('/trade/mining/dirt/dust');
+          this.actor.soilFrom([{ kind: '/trade/mining/dirt/dust', amount: 0.15, where: 'hands' }]);
         }
         for (const m of minted) {
           if (MixinApi.isStackable(m.stock)) m.stock.setQuantity(m.units);

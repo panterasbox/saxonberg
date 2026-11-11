@@ -132,12 +132,12 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * The bolt. Backing storage; access via `isLocked()`/`setLocked()`.
      *
-     * ⭐ Unbolted by default — a row says `locked: true` when it means it
-     * (the keyed-door rows do; since the boundary build a keyed way is a
-     * plain way with a bolted door hung in it, so no class needs a bolted
-     * default). ⚠ A field default, never a `postRegister` write: the
-     * Hydrator reflects a persisted `locked` in after construction, so a
-     * lifecycle write would re-bolt the door on every boot.
+     * ⭐ Unbolted unless the row says `locked: true` — a keyed door's row
+     * does (`/system/residence/thing/boundaries/keyed-door`, the dorm
+     * door). The `boltedByDefault` hook this used to read lost its last
+     * overrider when the keyed-exit classes became rows (boundary build),
+     * and was removed (`lint:unconsumed-seams`). A persisted `locked`
+     * hydrates over this default, so the player's last act survives.
      */
     private _locked: boolean = false;
 

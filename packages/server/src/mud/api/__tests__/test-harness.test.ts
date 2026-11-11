@@ -132,6 +132,8 @@ describe('TestHarnessApi', () => {
       const gov = (key: string, reg: string) => ({
         key, name: key, description: '', charter: '', treasury: '', departments: [], seats: [], standards: [], shipRegister: reg,
       });
+      // The government dictionary is faked below; its load (the door) resolves at once.
+      vi.spyOn(StuffApi, 'ready').mockResolvedValue(undefined);
       const govs = vi.spyOn(GovernmentApi, 'getGovernment').mockImplementation((k: string) =>
         k === 'terminus-city' ? gov(k, '/test/reg/terminus') : k === 'test-isle' ? gov(k, '/test/reg/isle') : null,
       );

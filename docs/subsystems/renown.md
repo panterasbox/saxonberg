@@ -161,7 +161,7 @@ perception-gated (a deaf / shadowed / disconnected listener never fires
 it) and un-farmable by monologue. The fire is **gated to communication
 topics** by the data-driven `communicative` flag on the `Topic`
 (say/whisper/shout/emote/chat — **not** dm/narration/system), consulted
-via `MessageApi.isCommunicative` (→ `TopicCatalogue`'s `communicative`
+via `MessageApi.isCommunicative` (→ the topic dictionary's `communicative`
 set), so non-comm frames never hit the bus. The reception tap recovers the
 speaker + scope from the reactable-act registry (`ReactionApi.actInfo`),
 skips non-comm frames (`null`) and self-receipt, and **dedups per

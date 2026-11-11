@@ -168,7 +168,7 @@ review gates this: grep `from '.*api/mml/'` to audit.
 If a consumer needs something currently only exposed in the subdir
 (a type, a helper), re-export it from `api/mml.ts` — don't reach in.
 
-### Topic literals + TopicCatalogue
+### Topic literals + the topic documents
 
 The `MessageApi.Topics` constant tree was **retired**. Topic strings
 are emitted as dotted-path literals at call sites:
@@ -179,10 +179,11 @@ MessageApi.scene(speaker)
   …
 ```
 
-The authored source of truth for the topic vocabulary lives on
-per-topic YAML leaf Ideas under `seeds/lib/messaging/Topic/`. The
-`TopicCatalogue` singleton self-loads them at boot and the snapshot
-ships to clients in the welcome payload. See
+The authored source of truth for the topic vocabulary is one `topic`
+document per key under the platform pack's `content/topics/`. The
+message pipeline loads them on the first scene (`lib/message/Topic.ts`,
+dispatch queued in order behind that one warm) and the snapshot ships to
+clients in the welcome payload. See
 [topics.md](./topics.md). Keeping a parallel constant tree in code
 was duplication; literals + the YAML catalogue is one source of truth.
 
@@ -960,7 +961,7 @@ sweep distilled them to:
   Scene composer, `Mml.compose`, VocalMixin, Sensor pipeline).
 - [response-envelope.md](./response-envelope.md) — `frameId` ordering
   primitive shared by both channels.
-- [topics.md](./topics.md) — `TopicCatalogue` (authored source of
+- [topics.md](./topics.md) — the `topic` documents (authored source of
   truth for topic descriptors after `MessageApi.Topics` retirement).
 - [connection.md](./connection.md) — `HasInteractiveMixin`,
   `_clientState` storage, welcome-payload snapshot,

@@ -36,10 +36,12 @@ import type { BulkAffordance } from '../bulk/Bulkable';
 import type { Quantity } from '../quantity';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { DocumentNotResidentError } from '../errors';
 import { ContainmentApi } from '../../api/containment';
 import { PerceptionApi } from '../../api/perception';
 import { ParcelApi } from '../../api/parcel';
 import { GrammarApi } from '../../api/grammar';
+import { Placements } from '../spatial/Placement';
 
 const RECIPES_PATH = '/platform/idea/RecipeCatalogue';
 /**
@@ -293,14 +295,18 @@ export class Archetype {
   private constructor(private readonly data: ArchetypeData) {}
 
   static fromDocument(doc: StoredDocument): Archetype {
-    return Archetype.fromData(doc.getData());
+    return Archetype.fromData(doc.getData(), doc.getPath());
   }
 
-  /** The same validation over a bare `data` object (the pack reader's use). */
-  static fromData(data: Record<string, unknown>): Archetype {
-    const id = data.archetypeId;
-    if (typeof id !== 'string' || id.length === 0) {
-      throw new Error("archetype: 'archetypeId' must be a non-empty string");
+  /**
+   * The same validation over a bare `data` object at `path` (the pack
+   * reader's use). ⭐ The archetype's id is its path's LEAF — the path is its
+   * only name.
+   */
+  static fromData(data: Record<string, unknown>, path: string): Archetype {
+    const id = path.slice(path.lastIndexOf('/') + 1);
+    if (id.length === 0) {
+      throw new Error(`archetype: document at '${path}' has no leaf to be its id`);
     }
     const label = typeof data.label === 'string' && data.label.length > 0 ? data.label : id;
     // Optional: a room archetype derives nothing (no recipes make a
@@ -438,8 +444,12 @@ export class Archetype {
     // down; skipping the walk is the whole of "industry is optional".
     const industry = this.getIndustry();
     if (industry === null) return order.map((k) => rows.get(k)!);
-    const recipes = StuffApi.findByTemplatePath<RecipeCatalogue>(RECIPES_PATH) ?? null;
-    for (const r of recipes?.allRecipes() ?? []) {
+    // ⭐ The industry's recipes come from the recipe dictionary, which
+    // whatever asks (`survey`, the scaffold) loaded before asking — a miss
+    // throws rather than deriving an empty floor.
+    const recipes = StuffApi.findByTemplatePath<RecipeCatalogue>(RECIPES_PATH);
+    if (!recipes) throw new DocumentNotResidentError('recipe', RECIPES_PATH);
+    for (const r of recipes.allRecipes()) {
       if (r.getDiscipline() !== industry) continue;
       for (const cap of r.getToolCapabilities()) add({ tool: cap }, r.getRecipeId());
       const heat = r.getRequiresHeatK();
@@ -556,7 +566,7 @@ function satisfyingItem(
     // not a work surface; a hook is a `Placing` host and is not one
     // either. What a bench claims is that you can set things ON it.
     const hit = pool.find(
-      (i) => MixinApi.isPlacing(i) && i.getPlacements().includes('on'),
+      (i) => MixinApi.isPlacing(i) && i.getPlacements().includes(Placements.ON),
     );
     return hit ? hit.getPresentation() : null;
   }

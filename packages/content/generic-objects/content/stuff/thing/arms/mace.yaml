@@ -43,4 +43,4 @@ data:
       - { part: mace-head, template: /trade/smithing/thing/mace-head, count: 1, role: structural, material: /stuff/idea/material/alloy/steel }
       - { part: haft, template: /trade/carpentry/thing/straight-haft, count: 1, role: structural, material: /stuff/idea/material/wood/oak }
     joints:
-      - { key: hafting, method: wedged, members: [mace-head, haft] }
+      - { key: hafting, method: /platform/joints/wedged, members: [mace-head, haft] }

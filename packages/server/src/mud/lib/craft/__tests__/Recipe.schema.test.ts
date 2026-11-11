@@ -169,24 +169,24 @@ describe('Recipe schema round-trip', () => {
   it('carries the document path, and toData round-trips fromData', () => {
     const r = catalogue.getRecipe('belt-knife')!;
     expect(r.path).toBe('/generic-objects/recipes/belt-knife');
-    expect(Recipe.fromData(r.toData()).toData()).toEqual(r.toData());
+    expect(Recipe.fromData(r.toData(), r.path).toData()).toEqual(r.toData());
   });
 
   it('refuses what the retired seeder refused: empty inputSlots, missing outputTemplate', () => {
-    expect(() => Recipe.fromData({ recipeId: 'x', inputSlots: [], outputTemplate: '/t' })).toThrow(/inputSlots/);
-    expect(() => Recipe.fromData({ recipeId: 'x', inputSlots: [{}] })).toThrow(/outputTemplate/);
+    expect(() => Recipe.fromData({ recipeId: 'x', inputSlots: [], outputTemplate: '/t' }, '/test/recipes/x')).toThrow(/inputSlots/);
+    expect(() => Recipe.fromData({ recipeId: 'x', inputSlots: [{}] }, '/test/recipes/x')).toThrow(/outputTemplate/);
   });
 
   it('massYield parses in [0,1], round-trips, and refuses out of range (D6)', () => {
     const base = { recipeId: 'melt', inputSlots: [{ slot: 's', category: 'glass', minGrade: 'fair', kind: 'item' }], outputTemplate: '/t' };
-    expect(Recipe.fromData({ ...base, massYield: 0.72 }).getMassYield()).toBeCloseTo(0.72, 9);
-    expect(Recipe.fromData({ ...base, massYield: 1 }).getMassYield()).toBe(1);
+    expect(Recipe.fromData({ ...base, massYield: 0.72 }, '/test/recipes/melt').getMassYield()).toBeCloseTo(0.72, 9);
+    expect(Recipe.fromData({ ...base, massYield: 1 }, '/test/recipes/melt').getMassYield()).toBe(1);
     // round-trip
-    const r = Recipe.fromData({ ...base, massYield: 0.72 });
-    expect(Recipe.fromData(r.toData()).getMassYield()).toBeCloseTo(0.72, 9);
+    const r = Recipe.fromData({ ...base, massYield: 0.72 }, '/test/recipes/melt');
+    expect(Recipe.fromData(r.toData(), '/test/recipes/martini').getMassYield()).toBeCloseTo(0.72, 9);
     // out of range fails at read
-    expect(() => Recipe.fromData({ ...base, massYield: 1.5 })).toThrow(/massYield/);
-    expect(() => Recipe.fromData({ ...base, massYield: -0.1 })).toThrow(/massYield/);
+    expect(() => Recipe.fromData({ ...base, massYield: 1.5 }, '/test/recipes/melt')).toThrow(/massYield/);
+    expect(() => Recipe.fromData({ ...base, massYield: -0.1 }, '/test/recipes/melt')).toThrow(/massYield/);
   });
 });
 
@@ -195,7 +195,8 @@ describe('RecipeCatalogue.invalidateCache + warm', () => {
     expect(catalogue.knows('new-thing')).toBe(false);
     store.documents!.push(asDocument({ ...OLD_ROW, recipeId: 'new-thing', name: 'New', keywords: ['new'] }));
     catalogue.invalidateCache();
-    expect(catalogue.allRecipes()).toEqual([]); // dropped; the read surface is sync
+    // ⭐ A dropped dictionary is never read as empty: a cold sync read throws.
+    expect(() => catalogue.allRecipes()).toThrow(/not resident/);
     await catalogue.warm();
     expect(catalogue.knows('new-thing')).toBe(true);
     expect(catalogue.findByKeyword('new')?.getRecipeId()).toBe('new-thing');

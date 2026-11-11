@@ -55,6 +55,7 @@ import type {
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Containable } from '../../../../lib/spatial/Containable';
+import { Placements } from '../../../../lib/spatial/Placement';
 import { ContainmentApi, type PlaceRefusal } from '../../../../api/containment';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
@@ -155,15 +156,14 @@ export default class PutController extends CommandController<PutModel> {
     // template on the row, rendered per audience with the agreement
     // variables `EmoteGrammar` already binds. That is what lets `from`
     // say *hang* where `on` says *put*, with no code here knowing the
-    // difference. A member with no live row falls back to the shipped
-    // sentence, so a cold catalogue still speaks English.
+    // difference. The member is resident with its host (documents D7).
     // ⚠ The name was read BEFORE the move: a stack that arrives where its
     // like already is MERGES into it and is destroyed.
     const what = item.isDestroyed() ? Mml.text(named) : Mml.thing(item);
-    const name = route.kind === 'zero' ? 'in' : route.name;
-    const member = ContainmentApi.placement(name);
-    const template = member?.getProse() ?? '';
-    const word = route.kind === 'zero' ? (member?.getPrepositions()[0] ?? 'in') : route.word;
+    const name = route.kind === 'zero' ? Placements.IN : route.name;
+    const member = ContainmentApi.placements().need(name);
+    const template = member.getProse();
+    const word = route.kind === 'zero' ? (member.getPrepositions()[0] ?? 'in') : route.word;
     const scene = MessageApi.scene(giver).topic('sense.survey');
     if (template !== '') {
       scene

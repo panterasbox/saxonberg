@@ -34,7 +34,7 @@ afterEach(() => {
 describe('a wash wets what it washes', () => {
   it('⭐ a washed rug comes out wet through (not only a garment)', () => {
     const rug = makeStuff(() => new Rug());
-    rug.soil('mud', 1, null);
+    rug.soil('/platform/dirt/mud', 1, null);
     rug.washSite(spec());
     expect(rug.getWetness()).toBeGreaterThanOrEqual(0.99);
   });

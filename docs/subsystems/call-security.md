@@ -514,6 +514,16 @@ barrel: it makes a value-import cycle. (Graduated from the
 api-normalization slate, 2026-09; this fact had only ever been written in
 `api/identity.ts`'s commentary, a file scheduled for deletion.)
 
+⭐ **An Api's readiness is declared, never hand-rolled** (documents
+path-identity W5c, 2026-11). An Api whose reads stand on a lazily loaded
+dictionary declares it — `static readonly needs = [TemplatePaths.x]` — and
+the wrapper makes every **async** static await those singletons before the
+body runs (through a loader `BootstrapManager.installFrameworkWiring`
+hands to `SecurityApi._registerNeedsLoader`). A sync static cannot wait,
+so a caller that must reach one synchronously first awaits
+`StuffApi.ready(FooApi)` (or `ready(path)`) — the one door; a cold sync
+read throws `DocumentNotResidentError` rather than answering empty.
+
 Decoration is a **module-scope tail** — each `api/*.ts` facade ends with
 `SecurityApi.decorateApiClass(FooApi)`. This is one of the two sanctioned
 exceptions to the no-module-scope-statements rule (see

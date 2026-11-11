@@ -43,6 +43,7 @@ import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { PartyRecord } from "../../lib/party/PartyRecord";
 import type { PartyMember } from "../../lib/party/PartyMember";
 import type { FieldMeta } from "../../lib/mixin";
+import { PartyApi } from "../../api/party";
 
 /**
  * The party's own mutation surface: the party acting on itself (its
@@ -64,7 +65,7 @@ const PartySurface = SecurityPolicies.AnyOf(
  * formation **paths** only (a ref-shapes identity ref) and never imports
  * `lib/combat`.
  */
-export const DEFAULT_FORMATION_PATH = "/platform/idea/CombatFormation/default";
+export { DEFAULT_FORMATION_PATH } from "../../lib/combat/Formation";
 
 export class Party extends Idea {
   /**
@@ -273,10 +274,17 @@ export class Party extends Idea {
     return this.formationPath;
   }
 
+  /**
+   * Adopt the formation at `path`. ⭐ The formation is resident with the
+   * party (documents D7): the act that adopts it resolved it first, and a
+   * restore loads it in `materializeParty` — so this asserts it.
+   */
   @CallSecurity(PartySurface)
   setFormationPath(path: string): void {
+    if (path) PartyApi.formations().need(path);
     this.formationPath = path;
   }
+
 
   /** A member's assigned role, `''` when unassigned (vacant is inert,
    * never an error). Roles are sets, not seats — any number of members

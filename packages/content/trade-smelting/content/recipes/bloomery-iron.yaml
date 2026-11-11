@@ -6,7 +6,6 @@
 # ⚠ Nothing selects this recipe. What you get out of a furnace is decided
 # by the charge and the heat; charging to this row's shape is what makes
 # a bloom, and charging heavier makes something else.
-recipeId: bloomery-iron
 name: Run a Bloomery
 keywords: [bloom, bloomery, iron, smelt]
 inputSlots:

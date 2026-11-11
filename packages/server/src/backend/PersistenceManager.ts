@@ -1463,43 +1463,6 @@ export class PersistenceManager {
   }
 
   /**
-   * Declared document kinds: one `{kind, data.<naturalKey>}` unique index
-   * per flat-key kind, partial on the kind so path-keyed kinds and
-   * free-form kinds never collide. Lazy import: the vocabulary is
-   * import-free today, but PM must never statically import mudlib models
-   * — the cycle risk is structural, not current.
-   */
-  async #createDocumentKindIndexes(coll: {
-    createIndex(spec: Record<string, unknown>, opts?: Record<string, unknown>): Promise<unknown>;
-  }): Promise<void> {
-    const { DOCUMENT_KINDS } = await import('../mud/lib/document/DocumentKinds');
-    for (const spec of Object.values(DOCUMENT_KINDS)) {
-      if (spec.naturalKey === null) continue;
-      await coll.createIndex(
-        { kind: 1, [`data.${spec.naturalKey}`]: 1 },
-        { unique: true, partialFilterExpression: { kind: spec.kind } }
-      );
-    }
-  }
-
-  /** The driver collection narrowed to the one call the kind indexes need. */
-  #indexTarget(coll: Collection): {
-    createIndex(spec: Record<string, unknown>, opts?: Record<string, unknown>): Promise<unknown>;
-  } {
-    return {
-      createIndex: (spec, opts) =>
-        coll.createIndex(spec as IndexSpecification, opts as CreateIndexesOptions),
-    };
-  }
-
-  /** Test seam for `#createDocumentKindIndexes`. Not used at runtime. */
-  async runDocumentKindIndexesForTest(coll: {
-    createIndex(spec: Record<string, unknown>, opts?: Record<string, unknown>): Promise<unknown>;
-  }): Promise<void> {
-    return this.#createDocumentKindIndexes(coll);
-  }
-
-  /**
    * Build every index the world needs. Called from `connect()`, after
    * `loadSchemaDocs()`.
    *
@@ -1513,12 +1476,14 @@ export class PersistenceManager {
    *   2. **Text** — an authored index with `text: true`, routed through
    *      {@link ensureTextIndex}, whose drop-and-recreate-on-conflict
    *      recovery is BEHAVIOUR and stays here.
-   *   3. **Derived** — the two loops over another vocabulary: the
-   *      `circleScope` partial index on every STAMP collection, and the
-   *      `{ kind, data.<naturalKey> }` partial-unique index per declared
-   *      document kind. These are consequences of another declaration,
-   *      not authored facts; writing them out per collection would be the
-   *      duplication the schema docs refuse.
+   *   3. **Derived** — the loop over another vocabulary: the
+   *      `circleScope` partial index on every STAMP collection. It is a
+   *      consequence of another declaration, not an authored fact; writing
+   *      it out per collection would be the duplication the schema docs
+   *      refuse. (The documents store's per-kind natural-key indexes were
+   *      the second loop until 2026-11: a document's path is its only
+   *      identity now, and its catalogue card is one authored wildcard
+   *      index in `documents.yaml`.)
    *
    * ⭐ Declaring `sandbox: stamp` in a doc is now what gives a collection
    * its `circleScope` index — `STAMP_COLLECTIONS` derives from
@@ -1570,17 +1535,6 @@ export class PersistenceManager {
         )
       );
     }
-
-    // The other derived loop: one `{kind, data.<naturalKey>}`
-    // partial-unique index per declared document kind. It stays outside
-    // the plan because the vocabulary is a lazy import — PM must never
-    // statically import a mudlib model, and the cycle risk is structural
-    // rather than current.
-    await attempt('documents (declared kinds)', () =>
-      this.#createDocumentKindIndexes(
-        this.#indexTarget(this.getCollection(Collections.Documents))
-      )
-    );
 
     if (failures.length === 0) {
       console.info(`PersistenceManager: ${built} indexes created successfully`);

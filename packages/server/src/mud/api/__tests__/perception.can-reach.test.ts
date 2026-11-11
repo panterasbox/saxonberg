@@ -34,8 +34,6 @@ import { CommandGiverMixin } from '../../lib/command/CommandGiver';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { SealableMixin } from '../../lib/spatial/Sealable';
 import { PlacingMixin } from '../../lib/spatial/Placing';
-import Placement from '../../platform/idea/Placement';
-import PlacementCatalogue from '../../platform/idea/PlacementCatalogue';
 import { Template } from '../../lib/stuff/Template';
 import { vi } from 'vitest';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
@@ -44,6 +42,7 @@ import { makeStuff,
   seedKernelContentStore,
 } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import { Placements } from '../../lib/spatial/Placement';
 
 // ⭐ On the `Agent` branch, because `MixinApi.isOpenContainer` asks the
 // BRANCH now (`Stuff.isAgent`) rather than three mixin proxies for it.
@@ -245,35 +244,8 @@ describe('PerceptionApi.canReach', () => {
   describe('a placement that ENCLOSES', () => {
     /** Stand the three shipped members up so `encloses` reads true. */
     async function warmMembers(): Promise<void> {
-      const rows = [
-        { name: 'on', prepositions: ['on', 'onto'], encloses: false },
-        { name: 'in', prepositions: ['in', 'into'], encloses: true },
-        { name: 'from', prepositions: ['from', 'on'], encloses: false },
-      ];
-      vi.spyOn(Template, 'findByPathInfix').mockResolvedValue(
-        rows.map((r) => ({
-          path: `/platform/idea/Placement/${r.name}`,
-          class: '/platform/idea/Placement',
-        })) as unknown as Template[],
-      );
-      vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(
-        Placement as unknown as never,
-      );
-      vi.spyOn(StuffApi, 'singleton').mockImplementation(
-        async (path: string) => {
-          const row = rows.find((r) => path.endsWith(`/${r.name}`))!;
-          const m = makeStuff(() => new Placement());
-          m.name = row.name;
-          m.prepositions = row.prepositions;
-          m.encloses = row.encloses;
-          return m as never;
-        },
-      );
-      const catalogue = makeStuffAtPath(
-        () => new PlacementCatalogue(),
-        '/platform/idea/PlacementCatalogue',
-      );
-      await catalogue.warm();
+      // The kernel's ways of sitting are resident — the test bootstrap stands
+      // in for every place's onCreate (documents D7).
     }
 
     it('a thing placed IN a shut host is not reached; opening it lifts that', async () => {
@@ -282,12 +254,12 @@ describe('PerceptionApi.canReach', () => {
         () => new Compartment(),
         '/test/reach-compartment',
       );
-      box.setPlacements(['in']);
+      box.setPlacements([Placements.IN]);
       box.setOpen(true);
       ContainmentApi.move(box, here as unknown as never);
       const steak = makeStuff(() => new Good());
       ContainmentApi.move(steak, here as unknown as never);
-      ContainmentApi.move(steak, box, 'in');
+      ContainmentApi.move(steak, box, Placements.IN);
 
       // Open: right there, and reachable.
       expect(steak.getContainer()).toBe(here as unknown as never);
@@ -308,12 +280,12 @@ describe('PerceptionApi.canReach', () => {
         () => new Compartment(),
         '/test/reach-shut-hook',
       );
-      box.setPlacements(['from']);
+      box.setPlacements([Placements.FROM]);
       box.setOpen(false);
       ContainmentApi.move(box, here as unknown as never);
       const ham = makeStuff(() => new Good());
       ContainmentApi.move(ham, here as unknown as never);
-      ContainmentApi.move(ham, box, 'from');
+      ContainmentApi.move(ham, box, Placements.FROM);
       // The hook is on the OUTSIDE of the shut box.
       expect(PerceptionApi.canReach(s(actor), s(ham))).toBe(true);
     });
@@ -324,7 +296,7 @@ describe('PerceptionApi.canReach', () => {
       ContainmentApi.move(shelf, here as unknown as never);
       const mug = makeStuff(() => new Good());
       ContainmentApi.move(mug, here as unknown as never);
-      ContainmentApi.move(mug, shelf, 'on');
+      ContainmentApi.move(mug, shelf, Placements.ON);
       expect(PerceptionApi.canReach(s(actor), s(mug))).toBe(true);
     });
   });

@@ -3,9 +3,9 @@
 > **Status: PARTIAL** · opened 2026-11-06; smell, taste, the palate, aroma
 > documents and derived media shipped in !531 (vocabularies-to-rows, 2026-11-07).
 > **Left:** `MATURATION_MECHANISMS` (→ material decomposition) · `DISPLAY_KINDS` +
-> `DISPLAY_PAIRINGS` (→ display manifestation) · `DirtKind` as a document, not an
-> Idea · touch and hearing (the absorbed non-visual-senses design, → senses slate)
-> · an aroma library in directories, not one flat list (owner, review of !531).
+> `DISPLAY_PAIRINGS` (→ display manifestation) · touch and hearing (the absorbed
+> non-visual-senses design, → senses slate). (`DirtKind` as a document and the aroma
+> directories shipped with !560.)
 > **Size:** a tail each; none is a build of its own here.
 > **Absorbs:** `non-visual-senses-slate.md` (moved here verbatim below;
 > the file is retired).
@@ -132,30 +132,14 @@ player reads, so lens 2 leans (a). Requirements decides. Whichever wins,
 **no new boot entry** (`lint:boot-entries`), and the same rule governs
 mechanism rows.
 
-## Open: the aroma library in directories (owner, review of !531)
+## ~~Open: the aroma library in directories~~ — shipped with !560
 
-The owner would rather the aroma documents sat in several directories than one flat
-list of 132. The catch is that a word is its path: a material names `peat-smoke`, and
-the nose loads `/aromas/peat-smoke` with no search. Two shapes keep that:
-
-- **Directories by family, decoration only.** `content/aromas/smoke/peat-smoke.yaml`,
-  with the installer keeping `/aromas/peat-smoke` as the path and `parent:` still the
-  tree. Needs the kind to strip a directory, a small installer change, and a rule that
-  two families can't ship the same leaf.
-- **Directories as the tree.** The directory is the parent, so `parent:` goes away, but
-  every row naming a word would have to name its path (`smoke/peat-smoke`), and moving
-  a word in the tree would rewrite every material that names it.
-
-The first is the cheaper and keeps authoring a word as it is. Owner: *"I can live
-with it"*, so it is a tail, not a defect.
+The directory is the tree (documents D14); see senses.md and `lint:aromas`.
 
 ## Non-goals, each with its destination
 
-- ⚠ **`DirtKind` is an Idea that should be a Document** (owner, review of !531,
-  2026-11-07). The aroma words moved to the `aroma` document kind for this reason:
-  authored metadata nothing writes, nothing acts on, and MQL should not find. `DirtKind`
-  is the shape they copied, with the same problem, and other row-shaped vocabularies
-  may share it. → a follow-up sweep, deliberately not inside a content build.
+- ~~`DirtKind` is an Idea that should be a Document~~ — shipped with !560
+  (documents-path-identity); see document-store.md § Idea or document.
 
 - **NPCs reacting to smell, smell trails, scent-tracking** →
   `senses-slate.md` § NPCs reacting to smell. They consume this build's

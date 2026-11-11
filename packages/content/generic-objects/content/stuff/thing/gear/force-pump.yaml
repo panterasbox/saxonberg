@@ -23,7 +23,7 @@ data:
   # that is never fitted. A small force barrel and its rod are a load.
   mass: 30
   _materialPath: /stuff/idea/material/alloy/cast-iron
-  mechanism: /platform/idea/PumpMechanism/force
+  mechanism: /platform/pump-mechanisms/force
   liftM: 30
   # ⭐ Half a litre a second — strictly more than a bailer's twelve litres a
   # thirty-second trip, which is the whole case for fitting one to a bore.

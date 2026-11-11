@@ -1,7 +1,7 @@
 # Black pudding — set blood, grain and fat.
 class: /platform/idea/material/SolidFood
 data:
-  smells: [{ aroma: /base-library/aromas/cooked-meat, strength: 200 }, { aroma: /base-library/aromas/blood, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/flesh/cooked-meat, strength: 200 }, { aroma: /base-library/aromas/blood, strength: 100 }]
   name: black pudding
   keywords: ["black pudding", pudding, blood]
   density: 1060

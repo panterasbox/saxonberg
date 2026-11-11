@@ -16,4 +16,4 @@ data:
       - { part: blade, template: /trade/smithing/thing/drawknife-blade, count: 1, role: structural, material: /stuff/idea/material/element/iron }
       - { part: handle, template: /trade/carpentry/thing/handle, count: 2, role: structural, material: /stuff/idea/material/wood/ash }
     joints:
-      - { key: hafting, method: wedged, members: [blade, handle] }
+      - { key: hafting, method: /platform/joints/wedged, members: [blade, handle] }

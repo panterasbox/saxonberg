@@ -3,7 +3,7 @@
  * authored megacorps and their product brands.
  *
  * Lives at `/platform/idea/CorpoCatalogue`, per the singleton-in-`obj/` convention
- * (the `DisciplineCatalogue` / `TopicCatalogue` recipe). The caches are
+ * (the `DisciplineCatalogue` / `SoulCatalogue` recipe). The caches are
  * transient instance state; the source of truth is the per-`Corpo` and
  * per-`Brand` leaf templates under `/stuff/idea/corpo/Corpo/` and
  * `/stuff/idea/corpo/Brand/` in the `content` collection. Both leaves are pure data
@@ -37,6 +37,7 @@ import type { VetoResult } from "../../lib/errors";
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
+import { DocumentNotResidentError } from '../../lib/errors';
 const CorpoCatalogueBase = Idea;
 
 export default class CorpoCatalogue extends CorpoCatalogueBase {
@@ -146,11 +147,9 @@ export default class CorpoCatalogue extends CorpoCatalogueBase {
 
   private ensureCache(): void {
     if (this.corpoCache !== null) return;
-    // Never warmed (onCreate wasn't awaited, e.g. a unit test). Empty
-    // caches are a valid cold state — every reader degrades to "no such".
-    this.corpoCache = new Map();
-    this.brandCache = new Map();
-    this.portfolioIndex = new Map();
+    // Reached only through `StuffApi.singleton`, whose onCreate warms it; a
+    // cold read is an engine defect, never "no such" (documents D7).
+    throw new DocumentNotResidentError('corpo', '/platform/idea/CorpoCatalogue');
   }
 
   /**

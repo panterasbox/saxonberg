@@ -24,6 +24,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import { GradedMixin, type Graded } from './Graded';
 import { NameTakingMixin } from '../description/NameTaking';
 import { StuffApi } from '../../api/stuff';
+import { TemplatePaths } from '../paths';
 import type { Stuff } from '../stuff/Stuff';
 
 /** Grade-keyed verdict prose (v1 uniform — no per-instance scatter yet). */
@@ -103,7 +104,12 @@ export interface Crafted extends Graded {
    */
   getMadeFrom(): string;
   setMadeFrom(materialPath: string): void;
-  setRecipe(value: string): void;
+  /**
+   * Stamp the recipe word. Returns the dictionary load to await when the
+   * recipe dictionary is not resident yet (a restore — the applier awaits
+   * it), so a crafted thing is live only when the recipe it cites is.
+   */
+  setRecipe(value: string): Promise<void> | undefined;
   /** Game-clock seconds at which it was crafted. */
   getCraftedAt(): number;
   setCraftedAt(value: number): void;
@@ -203,8 +209,11 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
     getRecipe(): string {
       return this.recipe;
     }
-    setRecipe(value: string): void {
+    setRecipe(value: string): Promise<void> | undefined {
       this.recipe = value;
+      // A ferment mark (`ferment:<key>`) names no recipe.
+      if (!value || value.includes(':')) return undefined;
+      return StuffApi.ready(TemplatePaths.recipeCatalogue);
     }
 
     /** See {@link Crafted.getCastFrom}. */

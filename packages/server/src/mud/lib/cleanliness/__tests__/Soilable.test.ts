@@ -11,7 +11,7 @@ import CraftVessel from '../../../platform/thing/CraftVessel';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
-import DirtKind, { DIRT_KIND_ROOT } from '../../../platform/idea/DirtKind';
+import { DocumentNotResidentError } from '../../errors';
 import Cleanser from '../../../platform/idea/Cleanser';
 import Material from '../../material/Material';
 import { installDirtKinds } from './soil-fixtures';
@@ -27,6 +27,8 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { rememberShippedDirt } from './soil-fixtures';
+import { MaterialApi } from '../../../api/material';
 
 const atGameSeconds = (g: number): void => {
   const scale = WorldClockApi.getScale();
@@ -85,6 +87,7 @@ function gloves(on: Creature): Garment {
 }
 
 beforeEach(() => {
+  rememberShippedDirt();
   installV1QuantityMarshallers();
   atGameSeconds(10_000);
 });
@@ -98,19 +101,19 @@ describe('a deposit — kind, amount, site, band', () => {
   it('reads in bands, as words', () => {
     const shirt = makeStuff(() => new Garment());
     expect(shirt.soilBand()).toBe('clean');
-    shirt.soil('mud', 0.15);
+    shirt.soil('/platform/dirt/mud', 0.15);
     expect(shirt.soilBand()).toBe('marked');
-    shirt.soil('mud', 0.3);
+    shirt.soil('/platform/dirt/mud', 0.3);
     expect(shirt.soilBand()).toBe('soiled');
-    shirt.soil('grease', 0.6);
+    shirt.soil('/platform/dirt/grease', 0.6);
     expect(shirt.soilBand()).toBe('filthy');
     // Heaviest first.
-    expect(shirt.soilKinds()).toEqual(['grease', 'mud']);
+    expect(shirt.soilKinds()).toEqual(['/platform/dirt/grease', '/platform/dirt/mud']);
   });
 
   it('⭐⭐ AC 1 — nothing has a clock: a game week of idling changes nothing', () => {
     const shirt = makeStuff(() => new Garment());
-    shirt.soil('mud', 0.5);
+    shirt.soil('/platform/dirt/mud', 0.5);
     const before = shirt.soilAt();
     atGameSeconds(10_000 + 7 * 86_400);
     expect(shirt.soilAt()).toBe(before);
@@ -123,25 +126,24 @@ describe('a deposit — kind, amount, site, band', () => {
   it('describes the kinds with their rows\' adjectives', async () => {
     warmDirt();
     const apron = makeStuff(() => new Garment());
-    apron.soil('blood', 0.5);
-    apron.soil('grease', 0.5);
+    apron.soil('/platform/dirt/blood', 0.5);
+    apron.soil('/platform/dirt/grease', 0.5);
     expect(apron.describeSoil()).toBe('bloodied and greasy');
     expect(apron.soilPhrase()).toBe('filthy, bloodied and greasy');
     expect(apron.soilLookLine()).toBe('It is filthy, bloodied and greasy.');
   });
 
-  it('a cold catalogue still has words — the key stands in', () => {
+  it('⚠ a dirt nothing loaded is never read as its key — the soil act throws, by path', () => {
     const apron = makeStuff(() => new Garment());
-    apron.soil('mud', 0.5);
-    expect(apron.describeSoil()).toBe('mud');
+    expect(() => apron.soil('/t/dirt/never-loaded', 0.5)).toThrow(/never-loaded/);
   });
 
   it('removing soil by fraction, to clean', () => {
     const g = makeStuff(() => new Garment());
-    g.soil('mud', 0.5);
-    g.removeSoil('mud', 0.5);
-    expect(g.soilLoad('mud')).toBeCloseTo(0.25, 4);
-    g.removeSoil('mud', 1);
+    g.soil('/platform/dirt/mud', 0.5);
+    g.removeSoil('/platform/dirt/mud', 0.5);
+    expect(g.soilLoad('/platform/dirt/mud')).toBeCloseTo(0.25, 4);
+    g.removeSoil('/platform/dirt/mud', 1);
     expect(g.soilBand()).toBe('clean');
     expect(g.soilKinds()).toEqual([]);
   });
@@ -150,7 +152,7 @@ describe('a deposit — kind, amount, site, band', () => {
     const g = makeStuff(() => new Garment());
     g.recordHeat(373, 600);
     expect(g.getHeatStamp()?.peakK).toBe(373);
-    g.soil('sweat', 0.05);
+    g.soil('/platform/dirt/sweat', 0.05);
     expect(g.getHeatStamp()).toBeNull();
   });
 
@@ -160,13 +162,13 @@ describe('a deposit — kind, amount, site, band', () => {
     vi.spyOn(bleeder, 'bloodSystemOf').mockReturnValue('/sys/abo');
     stampTemplatePathForTest(bleeder, '/platform/agent/Avatar/_bleeder');
     const coat = makeStuff(() => new Garment());
-    coat.soil('blood', 0.5, bleeder);
-    coat.soil('mud', 0.5, bleeder);
+    coat.soil('/platform/dirt/blood', 0.5, bleeder);
+    coat.soil('/platform/dirt/mud', 0.5, bleeder);
     const stains = coat.stainsOf();
     expect(stains).toHaveLength(1);
-    expect(stains[0]).toMatchObject({ kind: 'blood', type: 'B', system: '/sys/abo', set: false });
+    expect(stains[0]).toMatchObject({ kind: '/platform/dirt/blood', type: 'B', system: '/sys/abo', set: false });
     // Washed off, the sample goes with it.
-    coat.removeSoil('blood', 1);
+    coat.removeSoil('/platform/dirt/blood', 1);
     expect(coat.stainsOf()).toEqual([]);
   });
 
@@ -175,7 +177,7 @@ describe('a deposit — kind, amount, site, band', () => {
     // CraftVessel is the shipped Soilable + Contaminable host.
     const block = makeStuff(() => new CraftVessel());
     const spy = vi.spyOn(block, 'contaminate');
-    block.soil('manure', 0.5);
+    block.soil('/platform/dirt/manure', 0.5);
     expect(spy).toHaveBeenCalledWith('e-coli', 0.15);
   });
 
@@ -189,7 +191,7 @@ describe('the body — the layer an act reaches (D4, D5)', () => {
   it('⭐ AC 2 — bare hands take it; a body is clean until touched', () => {
     const c = body();
     expect(c.handCleanliness()).toBe(1);
-    c.soilHands('blood', 0.6);
+    c.soilHands('/platform/dirt/blood', 0.6);
     expect(c.soilBand('body.arm.left.hand')).toBe('soiled');
     expect(c.handCleanliness()).toBeCloseTo(0.4, 5);
     expect(c.soilBand('body.torso')).toBe('clean');
@@ -198,7 +200,7 @@ describe('the body — the layer an act reaches (D4, D5)', () => {
   it('⭐ AC 3 — gloves take the dirt, the hands under them do not', () => {
     const c = body();
     const g = gloves(c);
-    c.soilHands('blood', 0.6);
+    c.soilHands('/platform/dirt/blood', 0.6);
     expect(g.soilBand()).toBe('soiled');
     expect(c.soilAt('body.arm.left.hand')).toBe(0);
     // The hands READ dirty through the gloves (that is what touches the wound).
@@ -218,37 +220,38 @@ describe('the body — the layer an act reaches (D4, D5)', () => {
     const apron = makeStuff(() => new Garment());
     apron.setSlotClaim(plan, ['torso']);
     c.occupyAll(apron, ['torso']);
-    c.soilBodyPart('body.torso', 'blood', 0.5);
+    c.soilBodyPart('body.torso', '/platform/dirt/blood', 0.5);
     expect(apron.soilBand()).toBe('soiled');
     expect(shirt.soilBand()).toBe('clean');
-    c.soilBodyPart('body.torso', 'sweat', 0.2, null, 'inner');
+    c.soilBodyPart('body.torso', '/platform/dirt/sweat', 0.2, null, 'inner');
     expect(shirt.soilBand()).toBe('marked');
   });
 
   it('the look line speaks only for bare skin', () => {
     const c = body();
-    c.soilHands('mud', 0.5);
-    expect(c.soilLookLine(c)).toBe('Your hands are soiled, mud.');
+    c.soilHands('/platform/dirt/mud', 0.5);
+    expect(c.soilLookLine(c)).toBe('Your hands are soiled, muddy.');
     expect(c.soilLookLine(null)).toMatch(/^Their hands are soiled/);
     gloves(c);
     expect(c.soilLookLine(c)).toBe('');
   });
 });
 
-describe('the rows read themselves (D2, AC 23; no catalogue — B50)', () => {
-  it('a dirt kind loads by path, and reads its own row', () => {
-    warmDirt([{ key: 'dust', adjective: 'dusty' }]);
-    const row = StuffApi.findByTemplatePath<DirtKind>(DIRT_KIND_ROOT + 'dust');
-    expect(row?.descriptor()?.adjective).toBe('dusty');
-    expect(row?.descriptor()?.form).toBe('film');
+describe('the documents read themselves (D2, AC 23; no catalogue — B50)', () => {
+  it('a dirt kind is named by its path, and reads its own document', () => {
+    warmDirt([{ key: '/trade/mining/dirt/dust', adjective: 'dusty' }]);
+    const row = MaterialApi.dirtKinds().need('/trade/mining/dirt/dust');
+    expect(row.adjective).toBe('dusty');
+    expect(row.form).toBe('film');
   });
 
-  it('a malformed row is named and answers null, never thrown', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    warmDirt([{ key: 'bad', form: 'puddle' }, { key: 'worse', answersTo: ['magic'] }]);
-    expect(StuffApi.findByTemplatePath<DirtKind>(DIRT_KIND_ROOT + 'bad')?.descriptor()).toBeNull();
-    expect(StuffApi.findByTemplatePath<DirtKind>(DIRT_KIND_ROOT + 'worse')?.descriptor()).toBeNull();
-    expect(warn).toHaveBeenCalledTimes(2);
+  it('a malformed document is refused, naming what is wrong (installer + loader)', () => {
+    expect(() => MaterialApi.dirtKinds().parse({ form: 'puddle' }, '/t/dirt/bad')).toThrow(/form 'puddle'/);
+    expect(() => MaterialApi.dirtKinds().parse({ answersTo: ['magic'] }, '/t/dirt/worse')).toThrow(/magic/);
+  });
+
+  it('a sync read of a dirt nothing loaded is an engine defect, thrown by path', () => {
+    expect(() => MaterialApi.dirtKinds().need('/t/dirt/never-loaded')).toThrow(DocumentNotResidentError);
   });
 
   it('⭐ a cleanser is what its MATERIAL names — no search by tag', () => {

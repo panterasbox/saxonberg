@@ -1,6 +1,5 @@
 # A straight haft — the plain helve a mace, a war-hammer or a flail
 # hangs on. Run by `carve`.
-recipeId: straight-haft
 name: Straight Haft
 keywords: [straight-haft]
 inputSlots:

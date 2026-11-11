@@ -284,6 +284,7 @@ export class TestHarnessLogic extends ApiLogic {
     // (Terminus by default), reached from that government.
     if (!handle.startsWith('/')) {
       const flag = spec.flag ?? DEFAULT_STAGE_FLAG;
+      await StuffApi.ready(GovernmentApi);
       const path = GovernmentApi.getGovernment(flag)?.shipRegister;
       const reg = path ? await StuffApi.singleton<Stuff>(path).catch(() => null) : null;
       if (!(reg instanceof ShipRegister)) throw new Error(`testharness ship: ${flag} keeps no register of ships`);

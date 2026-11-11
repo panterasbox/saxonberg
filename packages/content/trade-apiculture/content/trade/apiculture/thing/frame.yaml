@@ -25,4 +25,4 @@ data:
       - { part: side-bar, template: /trade/carpentry/thing/frame-bar, count: 2, role: structural, material: /stuff/idea/material/wood/pine }
       - { part: bottom-bar, template: /trade/carpentry/thing/frame-bar, count: 1, role: structural, material: /stuff/idea/material/wood/pine }
     joints:
-      - { key: squaring, method: glued, members: [top-bar, side-bar, bottom-bar] }
+      - { key: squaring, method: /platform/joints/glued, members: [top-bar, side-bar, bottom-bar] }

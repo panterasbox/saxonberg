@@ -9,7 +9,11 @@ data:
   register: indefinite
   longDescription: |
     A floury board chalked with the day's cooking, prices smudged by a thumb.
-  offeredRecipes: [toasted-ration, root-mash, hearty-stew, fine-roast]
+  offeredRecipes:
+    - /trade/cooking/recipes/toasted-ration
+    - /trade/cooking/recipes/root-mash
+    - /trade/cooking/recipes/hearty-stew
+    - /trade/cooking/recipes/fine-roast
   prices:
     toasted-ration: 2
     root-mash: 3

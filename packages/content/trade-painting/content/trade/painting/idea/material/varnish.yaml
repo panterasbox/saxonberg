@@ -3,7 +3,7 @@
 # the weather off what is under it a season or two.
 class: /platform/idea/material/PigmentPaint
 data:
-  smells: [{ aroma: /base-library/aromas/turpentine, strength: 1500 }]
+  smells: [{ aroma: /base-library/aromas/wood/resin/turpentine, strength: 1500 }]
   name: varnish
   keywords: [varnish]
   appearance: a clear amber varnish, sticky and sharp-smelling

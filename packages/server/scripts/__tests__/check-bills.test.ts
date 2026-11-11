@@ -15,9 +15,8 @@ function row(path: string, raw: Record<string, unknown>): [string, TemplateRow] 
 const SOUND: [string, TemplateRow][] = [
   row('/stuff/idea/material/wood/ash', { class: '/platform/idea/material/Residue', data: {} }),
   row('/x/idea/Discipline/mining', { class: '/platform/idea/Discipline', data: { key: 'mining' } }),
-  row('/platform/idea/Joint/wedged', {
-    class: '/platform/idea/Joint',
-    data: { key: 'wedged', portability: 'hand', competence: null },
+  row('/platform/joints/wedged', {
+    data: { portability: 'hand', competence: null },
   }),
   row('/x/thing/head', { class: '/platform/thing/Tool', data: { mass: 1.8 } }),
   row('/x/thing/haft', { class: '/platform/thing/Tool', data: { mass: 0.8 } }),
@@ -30,7 +29,7 @@ const SOUND: [string, TemplateRow][] = [
           { part: 'head', template: '/x/thing/head', count: 1, role: 'structural' },
           { part: 'haft', template: '/x/thing/haft', count: 1, role: 'structural', material: '/stuff/idea/material/wood/ash' },
         ],
-        joints: [{ key: 'hafting', method: 'wedged', members: ['head', 'haft'] }],
+        joints: [{ key: 'hafting', method: '/platform/joints/wedged', members: ['head', 'haft'] }],
       },
     },
   }),
@@ -47,8 +46,17 @@ const PICK_RECIPE = {
   ],
 };
 
+/** Split the joint DOCUMENTS (any row under a `/joints/` dir) from the template rows. */
+function split(rows: [string, TemplateRow][]): [Map<string, TemplateRow>, Map<string, TemplateRow>] {
+  const joints = new Map(rows.filter(([p]) => p.includes('/joints/')));
+  return [new Map(rows.filter(([p]) => !p.includes('/joints/'))), joints];
+}
+
 function details(rows: [string, TemplateRow][], recipes = [PICK_RECIPE]): string[] {
-  return checkBills(new Map(rows), recipes).map((f) => f.detail);
+  const [templates, joints] = split(rows);
+  return checkBills(templates, recipes, undefined, undefined, undefined, undefined, joints).map(
+    (f) => f.detail,
+  );
 }
 
 describe('check-bills', () => {
@@ -93,7 +101,7 @@ describe('check-bills', () => {
     });
     const all = details([...SOUND, broken]).join('\n');
     expect(all).toMatch(/'\/x\/thing\/nothing', which no row ships/);
-    expect(all).toMatch(/method 'welded', which no Joint row ships/);
+    expect(all).toMatch(/method 'welded', which is not the path of a joint document/);
     expect(all).toMatch(/member 'ghost'/);
   });
 
@@ -115,13 +123,11 @@ describe('check-bills', () => {
   });
 
   it('fires on a joint gated on a Discipline nobody ships, and on an ungated tool joint', () => {
-    const hooped = row('/x/idea/Joint/hooped', {
-      class: '/platform/idea/Joint',
-      data: { key: 'hooped', portability: 'tool', competence: { discipline: 'coopering', band: 'competent' } },
+    const hooped = row('/x/joints/hooped', {
+      data: { portability: 'tool', competence: { discipline: 'coopering', band: 'competent' } },
     });
-    const bare = row('/x/idea/Joint/bare', {
-      class: '/platform/idea/Joint',
-      data: { key: 'bare', portability: 'tool', competence: null },
+    const bare = row('/x/joints/bare', {
+      data: { portability: 'tool', competence: null },
     });
     const all = details([...SOUND, hooped, bare]).join('\n');
     expect(all).toMatch(/Discipline 'coopering', which no row ships/);
@@ -140,7 +146,7 @@ describe('check-bills', () => {
       opts: { undeclared?: Map<string, string> } = {},
     ): string =>
       checkBills(
-        new Map(rows),
+        split(rows)[0],
         recipes,
         assembled,
         {
@@ -149,6 +155,7 @@ describe('check-bills', () => {
         },
         undefined,
         opts.undeclared,
+        split(rows)[1],
       )
         .map((f) => f.detail)
         .join('\n');
@@ -216,7 +223,7 @@ describe('check-bills', () => {
 
   describe('arm 8 — every bill part is MADE by something (repair D7)', () => {
     const run = (unmade: Map<string, string>, recipes = [PICK_RECIPE]): string =>
-      checkBills(new Map(SOUND), recipes, undefined, undefined, unmade)
+      checkBills(split(SOUND)[0], recipes, undefined, undefined, unmade, undefined, split(SOUND)[1])
         .map((f) => `${f.where}: ${f.detail}`)
         .join('\n');
     const make = (out: string) => ({
