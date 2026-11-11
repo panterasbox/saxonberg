@@ -145,15 +145,17 @@ export abstract class LettingWarren extends CirculationWarren {
    * domicile stamp, a fresh keyway and the tenant's key, and the building
    * reflects it.
    */
-  public async let(by: Stuff, tenant: Stuff, opts: { theme?: string } = {}): Promise<LetAnswer> {
+  public async let(by: Stuff, tenant: Stuff | null, opts: { theme?: string } = {}): Promise<LetAnswer> {
     const parent = this.getParentExtent();
     const owner = (await ParcelApi.coveringParcelOf(parent))?.getOwner() ?? null;
     if (!owner) return { ok: false, reason: "no-owner", detail: `${parent} has no owner of record` };
     if (!(await this.mayLetFor(by))) {
       return { ok: false, reason: "not-authorized", detail: "neither staff nor the owner" };
     }
-    const tenantPath = tenant.getIdentityPath() ?? "";
-    if (!tenantPath) return { ok: false, reason: "no-player", detail: "the tenant has no identity" };
+    // ⚠ Authority first, then the tenant: a seatless caller is told whose act
+    // it is even when the name bound nobody (finalize, the wizard-axis drive).
+    const tenantPath = tenant?.getIdentityPath() ?? "";
+    if (!tenant || !tenantPath) return { ok: false, reason: "no-player", detail: tenant ? "the tenant has no identity" : "no tenant named" };
 
     if (await ParcelApi.heldUnitOf(tenantPath, this.tenancyScope())) {
       return { ok: false, reason: "already-housed", detail: `${tenantPath} already holds a unit` };
@@ -210,12 +212,14 @@ export abstract class LettingWarren extends CirculationWarren {
    * landing; the shell reverts whole; every record under the unit clears;
    * the slot frees and the keyway dies with the row.
    */
-  public async endLet(by: Stuff, tenant: Stuff): Promise<EndLetAnswer> {
+  public async endLet(by: Stuff, tenant: Stuff | null): Promise<EndLetAnswer> {
     if (!(await this.mayLetFor(by))) {
       return { ok: false, reason: "not-authorized", detail: "neither staff nor the owner" };
     }
-    const tenantPath = tenant.getIdentityPath() ?? "";
-    if (!tenantPath) return { ok: false, reason: "no-player", detail: "the tenant has no identity" };
+    // ⚠ Authority first, then the tenant: a seatless caller is told whose act
+    // it is even when the name bound nobody (finalize, the wizard-axis drive).
+    const tenantPath = tenant?.getIdentityPath() ?? "";
+    if (!tenant || !tenantPath) return { ok: false, reason: "no-player", detail: tenant ? "the tenant has no identity" : "no tenant named" };
     // ⚠ Scoped to THIS building: a home held elsewhere is not this let.
     const held = await ParcelApi.heldUnitOf(tenantPath, this.getParentExtent());
     if (!held) return { ok: false, reason: "not-housed", detail: `${tenantPath} holds no unit here` };

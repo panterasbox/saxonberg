@@ -43,11 +43,9 @@ export default class LeaseController extends CommandController<LeaseModel> {
       return LeaseController.fail(context, 'The house ledger is not standing.', 'no-building');
     }
     const target = model.player?.stuff ?? null;
-    if (!target) {
-      return LeaseController.fail(context, 'Lease a flat to whom?', 'no-player');
-    }
+    // An unbound name is the warren's to refuse — after who may let (finalize).
     const answer = await building.let(actor, target);
-    const who = target.getPresentation() ?? target.getIdentityPath() ?? 'them';
+    const who = target?.getPresentation() ?? target?.getIdentityPath() ?? 'them';
     if (!answer.ok) {
       return LeaseController.fail(context, LeaseController.refusalWords(answer, who), answer.reason);
     }

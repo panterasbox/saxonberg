@@ -41,12 +41,10 @@ export default class ProvisionController extends CommandController<ProvisionMode
   async execute(model: ProvisionModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver as Stuff;
     const target = model.player?.stuff ?? null;
-    if (!target) {
-      return ProvisionController.fail(context, 'Provision a dorm for whom?', 'no-player');
-    }
+    // An unbound name is the warren's to refuse — after who may let (finalize).
     const warren = await StuffApi.singleton<DormWarren>(DormWarren.WARREN_PATH);
     const answer = await warren.let(actor, target, { theme: model.theme });
-    const who = target.getPresentation() ?? target.getIdentityPath() ?? 'them';
+    const who = target?.getPresentation() ?? target?.getIdentityPath() ?? 'them';
     if (!answer.ok) {
       return ProvisionController.fail(context, ProvisionController.refusalWords(answer, who), answer.reason);
     }
