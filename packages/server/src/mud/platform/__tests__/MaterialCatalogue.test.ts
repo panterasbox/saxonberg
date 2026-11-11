@@ -16,7 +16,7 @@ import MaterialCatalogue from "../idea/MaterialCatalogue";
 import { StuffApi } from "../../api/stuff";
 import { Template } from "../../lib/stuff/Template";
 import Material from "../../lib/material/Material";
-import { makeStuff } from "../../lib/security/__tests__/test-setup";
+import { makeStuff, stampTemplatePathForTest } from "../../lib/security/__tests__/test-setup";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -82,5 +82,40 @@ describe("Material residency veto", () => {
     const m = makeStuff(() => new Material());
     const verdict = m.canEvict({} as never);
     expect(verdict.ok).toBe(false);
+  });
+});
+
+describe("the doors (load-on-use W0)", () => {
+  it("need throws cold naming the path; peek answers null; a live row is found", () => {
+    const catalogue = makeStuff(() => new MaterialCatalogue());
+    expect(() => catalogue.need("/stuff/idea/material/nowhere")).toThrow(
+      /material '\/stuff\/idea\/material\/nowhere' was read but is not resident/,
+    );
+    expect(catalogue.peek("/stuff/idea/material/nowhere")).toBeNull();
+    expect(catalogue.peek("")).toBeNull();
+    const oak = makeStuff(() => new Material());
+    stampTemplatePathForTest(oak, "/stuff/idea/material/oak");
+    expect(catalogue.need("/stuff/idea/material/oak")).toBe(oak);
+  });
+
+  it("ensure stands the row up when cold and answers the live row", async () => {
+    const catalogue = makeStuff(() => new MaterialCatalogue());
+    vi.spyOn(StuffApi, "ensureConstituent").mockImplementation(async (path: string) => {
+      const m = makeStuff(() => new Material());
+      stampTemplatePathForTest(m, path);
+    });
+    const got = await catalogue.ensure("/stuff/idea/material/ash");
+    expect(got).toBe(StuffApi.findByTemplatePath("/stuff/idea/material/ash"));
+    expect(await catalogue.ensure("/stuff/idea/material/ash")).toBe(got);
+    expect(StuffApi.ensureConstituent).toHaveBeenCalledTimes(1);
+  });
+
+  it("the roster read throws until the roster is warmed, and the warm is coalesced", async () => {
+    vi.spyOn(Template, "findByPathInfix").mockResolvedValue([] as unknown as Template[]);
+    const catalogue = makeStuff(() => new MaterialCatalogue());
+    expect(() => catalogue.roster()).toThrow(/material roster/);
+    await Promise.all([catalogue.ensureRoster(), catalogue.ensureRoster()]);
+    expect(Template.findByPathInfix).toHaveBeenCalledTimes(1);
+    expect(catalogue.roster()).toEqual([]);
   });
 });

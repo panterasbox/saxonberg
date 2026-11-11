@@ -32,12 +32,76 @@ import { Idea } from '../../lib/stuff/Idea';
 import Material from '../../lib/material/Material';
 import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
-import type { VetoResult } from '../../lib/errors';
+import { DocumentNotResidentError, type VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 
 const MaterialCatalogueBase = Idea;
 
 export default class MaterialCatalogue extends MaterialCatalogueBase {
+  /**
+   * Shared vocabulary nobody holds title to: `smell`, `taste`, `analyze`
+   * and every craft act read materials inside a circle (load-on-use W0).
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
+  /** Whether {@link warm} has run in this process — the roster's guard. */
+  private warmed = false;
+
+  /**
+   * ⭐ Load the material at `path` — at once when it is live, else its row
+   * (and its `extends:` ancestors) stood up. The async door: a setter that
+   * cites a material returns this, an act that names one awaits it
+   * (load-on-use D2). Throws when the row does not exist.
+   */
+  public async ensure(path: string): Promise<Material> {
+    const live = this.peek(path);
+    if (live) return live;
+    await StuffApi.ensureConstituent(path);
+    // `ensureConstituent` returns without awaiting a load already in
+    // flight; `singleton` coalesces onto it.
+    if (!this.peek(path)) await StuffApi.singleton(path);
+    return this.need(path);
+  }
+
+  /**
+   * The live material at `path` — throws `DocumentNotResidentError` when
+   * nothing loaded it (load-on-use D1: cold means loud). An empty path is
+   * a caller's "no material" and is not this door's question.
+   */
+  public need(path: string): Material {
+    const m = this.peek(path);
+    if (!m) throw new DocumentNotResidentError('material', path);
+    return m;
+  }
+
+  /** The live material at `path`, or `null` — a read that may honestly miss. */
+  public peek(path: string): Material | null {
+    if (!path) return null;
+    const m = StuffApi.findByTemplatePath<Material>(path);
+    return m instanceof Material ? m : null;
+  }
+
+  /**
+   * Every authored material, live — the roster read (the wiki's listing, a
+   * pattern's metal). Its async parent awaits
+   * `StuffApi.ready(TemplatePaths.materialCatalogue)` first; read cold, it
+   * throws rather than answering with whatever happened to be loaded.
+   */
+  public roster(): Material[] {
+    if (!this.warmed) {
+      throw new DocumentNotResidentError('material roster', '/platform/idea/MaterialCatalogue');
+    }
+    return StuffApi.findByPathGlob<Material>('/**/idea/material/**').filter(
+      (m): m is Material => m instanceof Material,
+    );
+  }
+
+  /** Every authored material carrying `tag` (exact-string match). */
+  public byTag(tag: string): Material[] {
+    return this.roster().filter((m) => m.hasTag(tag));
+  }
+
   /** Residency veto — the roster's warm; a culled catalogue re-warms nothing. */
   public canEvict(_context: EvictionContext): VetoResult {
     return { ok: false, reason: 'system singleton; never culled' };
@@ -51,7 +115,20 @@ export default class MaterialCatalogue extends MaterialCatalogueBase {
   }
 
   public override async onCreate(_context?: unknown): Promise<void> {
-    await this.warm();
+    await this.ensureRoster();
+  }
+
+  /** The one in-flight roster warm, shared by every caller (coalesced). */
+  private rosterLoad: Promise<number> | null = null;
+
+  /**
+   * ⭐ Stand the whole roster up once per process — what a ROSTER read's
+   * async parent awaits (the `DirtCatalogue.ensureKernel` shape). A
+   * per-row read never needs it: {@link ensure} loads one row.
+   */
+  public ensureRoster(): Promise<number> {
+    this.rosterLoad ??= this.warm();
+    return this.rosterLoad;
   }
 
   /**
@@ -78,6 +155,7 @@ export default class MaterialCatalogue extends MaterialCatalogueBase {
         );
       }
     }
+    this.warmed = true;
     console.info(`MaterialCatalogue: ${stood} material singleton(s) live`);
     return stood;
   }

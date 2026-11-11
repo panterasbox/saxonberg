@@ -29,9 +29,10 @@ import { Idea } from '../../lib/stuff/Idea';
 import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
 import { TemplatePathPrefixes } from '../../lib/paths';
-import type Condition from './Condition';
-import type { VetoResult } from '../../lib/errors';
+import Condition from './Condition';
+import { DocumentNotResidentError, type VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 
 /** The backing class every authored `Condition` row names. */
 const CONDITION_CLASS = '/platform/idea/Condition';
@@ -39,6 +40,41 @@ const CONDITION_CLASS = '/platform/idea/Condition';
 const ConditionCatalogueBase = Idea;
 
 export default class ConditionCatalogue extends ConditionCatalogueBase {
+  /**
+   * Shared vocabulary nobody holds title to: `look` at yourself, `assess`,
+   * a sting or a dose read conditions inside a circle (load-on-use W0).
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
+  /**
+   * ⭐ Load the condition at `path` — at once when it is live, else its row
+   * stood up. The async door (load-on-use D7).
+   */
+  public async ensure(path: string): Promise<Condition> {
+    const live = this.peek(path);
+    if (live) return live;
+    await StuffApi.ensureConstituent(path);
+    if (!this.peek(path)) await StuffApi.singleton(path);
+    return this.need(path);
+  }
+
+  /**
+   * The live condition at `path` — throws `DocumentNotResidentError` when
+   * nothing loaded it (cold means loud, load-on-use D1).
+   */
+  public need(path: string): Condition {
+    const c = this.peek(path);
+    if (!c) throw new DocumentNotResidentError('condition', path);
+    return c;
+  }
+
+  /** The live condition at `path`, or `null` — a read that may honestly miss. */
+  public peek(path: string): Condition | null {
+    if (!path) return null;
+    const c = StuffApi.findByTemplatePath<Condition>(path);
+    return c instanceof Condition ? c : null;
+  }
+
   /** Residency veto — the roster's warm; a culled catalogue re-warms nothing. */
   public canEvict(_context: EvictionContext): VetoResult {
     return { ok: false, reason: 'system singleton; never culled' };
@@ -52,7 +88,20 @@ export default class ConditionCatalogue extends ConditionCatalogueBase {
   }
 
   public override async onCreate(_context?: unknown): Promise<void> {
-    await this.warm();
+    await this.ensureRoster();
+  }
+
+  /** The one in-flight roster warm, shared by every caller (coalesced). */
+  private rosterLoad: Promise<number> | null = null;
+
+  /**
+   * ⭐ Stand the whole roster up once per process — what a ROSTER read's
+   * async parent awaits (the `DirtCatalogue.ensureKernel` shape). A
+   * per-row read never needs it: {@link ensure} loads one row.
+   */
+  public ensureRoster(): Promise<number> {
+    this.rosterLoad ??= this.warm();
+    return this.rosterLoad;
   }
 
   /**
@@ -72,8 +121,14 @@ export default class ConditionCatalogue extends ConditionCatalogueBase {
    */
   private readonly paths = new Set<string>();
 
+  /** Whether {@link warm} has run in this process — the roster's guard. */
+  private warmed = false;
+
   /** Every live condition row, in path order. */
   public roster(): Condition[] {
+    if (!this.warmed) {
+      throw new DocumentNotResidentError('condition roster', '/platform/idea/ConditionCatalogue');
+    }
     const out: Condition[] = [];
     for (const path of [...this.paths].sort()) {
       const row = StuffApi.findByTemplatePath<Condition>(path);
@@ -103,6 +158,7 @@ export default class ConditionCatalogue extends ConditionCatalogueBase {
         );
       }
     }
+    this.warmed = true;
     console.info(`ConditionCatalogue: ${stood} condition singleton(s) live`);
     return stood;
   }

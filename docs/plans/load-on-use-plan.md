@@ -493,6 +493,24 @@ code-complete (W9) and at `/finalize` only.
 
 ### W0 — the doors (kernel substrate, no family moves yet)
 
+✅ **Done.** Doors `ensure`/`need`/`peek`/`roster` + a coalesced
+`ensureRoster()` (the `DirtCatalogue.ensureKernel` shape) on both
+catalogues; `MaterialApi.materials()`/`ConditionApi.conditions()` are
+`findByTemplatePath ?? throw` while the catalogue is still booted.
+`COMMONS_CEILING` 30 → 32 with the audit. ⭐ **Build decision (D13):** when a
+family's boot line goes (W6, W8b), its catalogue drops `onCreate` and its
+yaml row and becomes a `singletonSync` singleton like every
+`DocumentCatalogue`; the roster readers await `ensureRoster()`. Reason:
+`singletonSync` refuses a class with an `onCreate`, and a catalogue that
+must be cloned from a row before a sync `need` can be asked is a boot
+dependency in disguise — every test that hand-builds a material would
+need the catalogue stood up first. `need`/`peek` read live Stuff, so the
+catalogue holds no state they depend on. Consequence: `ConditionApi.needs`
+is not declared (a `needs` entry is `StuffApi.ready` → a clone, which a
+factory singleton never runs); every body's `onCreate` awaits
+`ensureRoster()` instead, which covers the async statics that act on a body.
+`lint:on-create` falls by two more than planned.
+
 Goal: every later wave has its error, its fixtures and its gate arithmetic.
 
 - `lib/errors.ts`: `DocumentNotResidentError` message → *"… (an engine

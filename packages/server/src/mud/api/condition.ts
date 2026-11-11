@@ -52,6 +52,9 @@ import { ConditionLogic } from '../platform/idea/api/ConditionLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import OperationCatalogue from '../platform/idea/OperationCatalogue';
+import type ConditionCatalogue from '../platform/idea/ConditionCatalogue';
+import { DocumentNotResidentError } from '../lib/errors';
+import { TemplatePaths } from '../lib/paths';
 
 export type { InsultKind, Channel } from '../platform/idea/Condition';
 
@@ -238,6 +241,18 @@ function logic(): ConditionLogic {
 }
 
 export class ConditionApi {
+  /**
+   * ⭐ The conditions — the one door every condition read goes through
+   * (load-on-use D7): `ensure(path)`, the sync `need(path)` that throws
+   * cold, `peek(path)`, and `roster()` after `ensureRoster()` (which every
+   * body's `onCreate` awaits).
+   */
+  public static conditions(): ConditionCatalogue {
+    const cat = StuffApi.findByTemplatePath<ConditionCatalogue>(TemplatePaths.conditionCatalogue);
+    if (!cat) throw new DocumentNotResidentError('catalogue', TemplatePaths.conditionCatalogue);
+    return cat;
+  }
+
   /**
    * ⭐ The operations — what a surgeon can do to a body (`extraction`,
    * `bleed-control`, `amputation`), any pack's `content/operations/`,

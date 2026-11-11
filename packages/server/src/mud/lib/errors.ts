@@ -90,7 +90,7 @@ export class DocumentNotResidentError extends Error {
   ) {
     super(
       `${kind} '${path}' was read but is not resident — whatever cites it ` +
-        `should have loaded it (an engine defect, not a missing document)`,
+        `should have loaded it (an engine defect, not a missing row)`,
     );
     this.name = 'DocumentNotResidentError';
   }

@@ -39,6 +39,9 @@ import { MaterialLogic } from '../platform/idea/api/MaterialLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import DirtCatalogue from '../platform/idea/DirtCatalogue';
+import type MaterialCatalogue from '../platform/idea/MaterialCatalogue';
+import { DocumentNotResidentError } from '../lib/errors';
+import { TemplatePaths } from '../lib/paths';
 
 // kg + kg/m³ tag tables live in `mud/config/quantity-tags.yaml`
 // and load at boot via `QuantityApi.loadTagTables`. Material doesn't
@@ -155,6 +158,19 @@ export class MaterialApi {
    */
   public static dirtKinds(): DirtCatalogue {
     return StuffApi.singletonSync('/platform/idea/DirtCatalogue', () => new DirtCatalogue());
+  }
+
+  /**
+   * ⭐ The materials — the one door every material read goes through
+   * (load-on-use D2): `ensure(path)` loads one (a setter returns it, an act
+   * awaits it), `need(path)` is the sync read that throws cold, `peek(path)`
+   * a read that may honestly miss, and `roster()`/`byTag()` the whole
+   * family after `ensureRoster()`.
+   */
+  public static materials(): MaterialCatalogue {
+    const cat = StuffApi.findByTemplatePath<MaterialCatalogue>(TemplatePaths.materialCatalogue);
+    if (!cat) throw new DocumentNotResidentError('catalogue', TemplatePaths.materialCatalogue);
+    return cat;
   }
 
   // The `materialOf` read-wrapper was removed: the read lives on the

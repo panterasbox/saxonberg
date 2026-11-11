@@ -29,7 +29,7 @@ import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
 import { TemplatePathPrefixes } from '../../lib/paths';
 import Condition from '../idea/Condition';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { makeStuff, stampTemplatePathForTest } from '../../lib/security/__tests__/test-setup';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -142,5 +142,26 @@ describe('⭐ the real-seed coverage — driven off the seed files, not a mock',
     ]) {
       expect(seeded, `${p} is fabricated by a fixture`).toContain(p);
     }
+  });
+});
+
+describe('the doors (load-on-use W0)', () => {
+  it('need throws cold naming the path; peek answers null; a live row is found', () => {
+    const catalogue = makeStuff(() => new ConditionCatalogue());
+    expect(() => catalogue.need('/platform/idea/Condition/nowhere')).toThrow(
+      /condition '\/platform\/idea\/Condition\/nowhere' was read but is not resident/,
+    );
+    expect(catalogue.peek('/platform/idea/Condition/nowhere')).toBeNull();
+    const c = makeStuff(() => new Condition());
+    stampTemplatePathForTest(c, '/platform/idea/Condition/sting');
+    expect(catalogue.need('/platform/idea/Condition/sting')).toBe(c);
+  });
+
+  it('the roster read throws until the roster is warmed', async () => {
+    vi.spyOn(Template, 'findDescendants').mockResolvedValue([] as unknown as Template[]);
+    const catalogue = makeStuff(() => new ConditionCatalogue());
+    expect(() => catalogue.roster()).toThrow(/condition roster/);
+    await catalogue.ensureRoster();
+    expect(catalogue.roster()).toEqual([]);
   });
 });
