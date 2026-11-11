@@ -20,4 +20,4 @@ data:
   tags: ["food", "dairy", "liquid", "perishable", "buttermilk"]
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
-  cleanser: /platform/idea/Cleanser/sour-milk
+  cleanser: /platform/cleansers/sour-milk

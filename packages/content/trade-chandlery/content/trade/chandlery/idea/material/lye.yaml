@@ -28,4 +28,4 @@ data:
   solidsKgPerL: 0.04
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
-  cleanser: /platform/idea/Cleanser/lye
+  cleanser: /platform/cleansers/lye

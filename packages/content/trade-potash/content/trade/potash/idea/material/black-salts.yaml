@@ -15,7 +15,7 @@ data:
   electricalConductivity: 1.0e-6
   waterAbsorptionCapacity: 40
   tags: [solid, mineral, alkali, potash, flux, black-salts]
-  cleanser: /trade/potash/idea/Cleanser/potash
+  cleanser: /trade/potash/cleansers/potash
   # ⭐⭐ Calcining is the ONE firing rule (ceramics M1), not a recipe: a cake
   # held at a red heat burns its char and water out and whitens to pearl
   # ash, keeping 80 % of its mass — and its potash, which concentrates in

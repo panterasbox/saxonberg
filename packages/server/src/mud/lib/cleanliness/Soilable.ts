@@ -47,7 +47,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import { Contamination } from '../material/Contaminable';
 import { DirtKinds, type DirtKindDescriptor } from './DirtKind';
-import type { CleanserAction, CleanserDescriptor } from '../../platform/idea/Cleanser';
+import type { CleanserAction, CleanserDescriptor } from './Cleanser';
 import { MaterialApi } from '../../api/material';
 
 /** The four soil bands, cleanest first — words, ordinal. */

@@ -15,7 +15,7 @@ import Material from '../../material/Material';
 import Lye from '../../../platform/idea/material/Lye';
 import Fiber from '../../../platform/idea/material/Fiber';
 import { Construction } from '../../material/Construction';
-import type { CleanserDescriptor } from '../../../platform/idea/Cleanser';
+import type { CleanserDescriptor } from '../Cleanser';
 import { Template } from '../../stuff/Template';
 import { TemplatePaths } from '../../paths';
 import { StuffApi } from '../../../api/stuff';

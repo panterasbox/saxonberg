@@ -12,7 +12,6 @@ import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import { DocumentNotResidentError } from '../../errors';
-import Cleanser from '../../../platform/idea/Cleanser';
 import Material from '../../material/Material';
 import { installDirtKinds } from './soil-fixtures';
 import { Template } from '../../stuff/Template';
@@ -254,14 +253,11 @@ describe('the documents read themselves (D2, AC 23; no catalogue — B50)', () =
     expect(() => MaterialApi.dirtKinds().need('/t/dirt/never-loaded')).toThrow(DocumentNotResidentError);
   });
 
-  it('⭐ a cleanser is what its MATERIAL names — no search by tag', () => {
-    makeStuffAtPath(
-      () => Object.assign(new Cleanser(), { key: 'soap', agent: 'soap', action: 'surfactant', hardWaterPenalty: true }),
-      '/platform/idea/Cleanser/soap',
-    );
+  it('⭐ a cleanser is what its MATERIAL names — no search by tag', async () => {
     const soap = makeStuffAtPath(() => new Material(), '/stuff/idea/material/_test/soap');
-    soap.setCleanser('/platform/idea/Cleanser/soap');
+    await soap.setCleanser('/platform/cleansers/soap');
     expect(soap.getCleanser()?.action).toBe('surfactant');
+    expect(soap.getCleanser()?.key).toBe('soap');
     const sand = makeStuffAtPath(() => new Material(), '/stuff/idea/material/_test/sand');
     expect(sand.getCleanser()).toBeNull();
   });

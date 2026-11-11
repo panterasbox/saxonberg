@@ -186,6 +186,7 @@ const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>, path: 
   form: (d, p) => void CraftingApi.forms().parse(d, p),
   joint: (d, p) => void CraftingApi.joints().parse(d, p),
   dirt: (d, p) => void MaterialApi.dirtKinds().parse(d, p),
+  cleanser: (d, p) => void MaterialApi.cleansers().parse(d, p),
   operation: (d, p) => void ConditionApi.operations().parse(d, p),
   formation: (d, p) => void PartyApi.formations().parse(d, p),
   placement: (d, p) => void ContainmentApi.placements().parse(d, p),

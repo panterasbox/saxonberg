@@ -1142,6 +1142,8 @@ const DOCUMENT_PATH_FIELDS: Readonly<Record<string, string>> = {
   seeAlso: 'concepts',
   // A host's ways of sitting (`/platform/placements/from`).
   placements: 'placements',
+  // A cleansing material's cleanser (`/platform/cleansers/soap`) — load-on-use W1.
+  cleanser: 'cleansers',
 };
 
 /** Every document path a pack ships under `contentDir`: its root + the dir + the file. */

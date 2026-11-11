@@ -149,6 +149,13 @@ export const DOCUMENT_KINDS = {
    */
   dirt: { kind: 'dirt', catalogue: '/platform/idea/DirtCatalogue', contentDir: 'dirt', ext: 'yaml', onVanish: 'delete' },
   /**
+   * A **cleanser** — one thing you wash WITH (soap, lye, sand): its
+   * mechanism, the damage it does, how much a wash uses
+   * (`lib/cleanliness/Cleanser.ts`). Named by the MATERIAL that is one
+   * (`cleanser:` on a material row), by path.
+   */
+  cleanser: { kind: 'cleanser', catalogue: '/platform/idea/CleanserCatalogue', contentDir: 'cleansers', ext: 'yaml', onVanish: 'delete' },
+  /**
    * An **operation** — one entry of the surgical catalogue: which wound it
    * addresses, its blood and time, its anaesthesia, how it resolves
    * (`lib/vitals/Operation.ts`). A surgeon names it by its word.

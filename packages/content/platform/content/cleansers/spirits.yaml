@@ -1,0 +1,2 @@
+# Spirits — a solvent for resins and some stains.
+{agent: neutral-spirit, action: solvent, consumesPerWash: 0.05, skinHarshness: 0.3}

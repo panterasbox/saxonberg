@@ -12,7 +12,7 @@
 
 import { DocumentCatalogue } from '../../lib/document/DocumentCatalogue';
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
-import { CLEANSER_ACTIONS, type CleanserAction } from './Cleanser';
+import { CLEANSER_ACTIONS, type CleanserAction } from '../../lib/cleanliness/Cleanser';
 import {
   DIRT_FORMS,
   DirtKinds,

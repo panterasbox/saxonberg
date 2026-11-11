@@ -541,6 +541,14 @@ Goal: every later wave has its error, its fixtures and its gate arithmetic.
 
 ### W1 — cleansers become documents
 
+✅ **Done.** 16 rows → `content/cleansers/` (15 platform + potash); 17
+material citations repointed; `Material.setCleanser` returns the load;
+`lib/cleanliness/Cleanser.ts` holds the vocabulary (`DAMAGE_EFFECTS` now
+exported for the parse). The descriptor's `key` is the document's leaf (the
+wash outcome's `cleanserKey` still reads `soap`). Note: `sunlight` and
+`sulfur-fume` are cited by no material and read by no code — documents
+with no reader, unchanged from before. `COMMONS_CEILING` → 33.
+
 - `DocumentKinds`: `cleanser: { kind: 'cleanser', catalogue: '/platform/idea/CleanserCatalogue', contentDir: 'cleansers', ext: 'yaml', onVanish: 'delete' }`.
 - `lib/cleanliness/Cleanser.ts`: `CLEANSER_ACTIONS`, `CleanserAction`,
   `CleanserDamage`, `CleanserDescriptor` (moved from `platform/idea/Cleanser.ts`).

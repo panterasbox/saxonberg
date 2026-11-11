@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Garment from '../../../platform/thing/equipment/Garment';
 import Material from '../../material/Material';
 import { Construction } from '../../material/Construction';
-import type { CleanserDescriptor } from '../../../platform/idea/Cleanser';
+import type { CleanserDescriptor } from '../Cleanser';
 import { Template } from '../../stuff/Template';
 import { TemplatePaths } from '../../paths';
 import { StuffApi } from '../../../api/stuff';

@@ -40,6 +40,7 @@ import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import DirtCatalogue from '../platform/idea/DirtCatalogue';
 import type MaterialCatalogue from '../platform/idea/MaterialCatalogue';
+import CleanserCatalogue from '../platform/idea/CleanserCatalogue';
 import { DocumentNotResidentError } from '../lib/errors';
 import { TemplatePaths } from '../lib/paths';
 
@@ -171,6 +172,15 @@ export class MaterialApi {
     const cat = StuffApi.findByTemplatePath<MaterialCatalogue>(TemplatePaths.materialCatalogue);
     if (!cat) throw new DocumentNotResidentError('catalogue', TemplatePaths.materialCatalogue);
     return cat;
+  }
+
+  /**
+   * ⭐ The cleansers — what you wash WITH (`soap`, `lye`, a pack's own),
+   * any pack's `content/cleansers/`, served by {@link CleanserCatalogue}.
+   * Named by the material that is one (`Material.setCleanser` loads it).
+   */
+  public static cleansers(): CleanserCatalogue {
+    return StuffApi.singletonSync('/platform/idea/CleanserCatalogue', () => new CleanserCatalogue());
   }
 
   // The `materialOf` read-wrapper was removed: the read lives on the
