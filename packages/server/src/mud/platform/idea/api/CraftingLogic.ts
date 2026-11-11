@@ -1983,7 +1983,7 @@ async function applyTangibleOutput(
         }
       }
       if (weakest !== null && weakest !== own) {
-        output.setConstructionForm(weakest.getForm());
+        await output.setConstructionForm(weakest.getForm());
       }
     }
   }
@@ -5070,7 +5070,7 @@ async function mintMember(
     out.setGrade(g);
   }
   if (MixinApi.isDurable(out)) out.setCondition(line.condition);
-  if (line.form && MixinApi.isConstructed(out)) out.setConstructionForm(line.form);
+  if (line.form && MixinApi.isConstructed(out)) await out.setConstructionForm(line.form);
   if (line.parts && MixinApi.isAssembled(out)) out.recordAssembly(line.parts, line.joints ?? []);
   // ⭐ …and what the line carried goes out with the part (repair D2): a
   // worn part removed is still worn, a keen edge still keen, a named blade
@@ -5081,7 +5081,8 @@ async function mintMember(
       for (const m of line.mends) out.recordMend(m);
     }
     if (line.name && MixinApi.isNamed(out)) out.setName(line.name);
-    if (MixinApi.isCrafted(out) && line.recipe) out.setRecipe(line.recipe);
+    // The setter returns the recipe catalogue's load (documents D7) — await it.
+    if (MixinApi.isCrafted(out) && line.recipe) await out.setRecipe(line.recipe);
     if (line.castDiscipline && MixinApi.isCrafted(out)) {
       out.setCastFrom({ kindPath: '', takenFromIdentity: '', takenAtS: 0, discipline: line.castDiscipline });
     }
