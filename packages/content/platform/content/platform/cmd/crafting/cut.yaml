@@ -46,11 +46,13 @@ args:
   - name: target
     type: object
     required: false
-    # A world act names no `inventory` scope of its own. ⚠ `reachable` still
-    # puts your own gear first (person ∪ here ∪ peers), so `cut ice` while
-    # carrying a block binds the block — the seed's order is the
-    # command-taxonomy slate's question, not this view's.
-    scope: ["$focus", "here", "peers", "person"]
+    # A world act names no `inventory` scope of its own. ⚠ Your own gear
+    # first (person, then here, then peers), so `cut ice` while carrying a
+    # block binds the block — and, since `here` is the PLACE (controller
+    # liquidity W20), `cut rope` at the ropewalk binds the rope you hold,
+    # not the walk whose keywords say "rope walk" (finalize, the cordage
+    # drive). The seed's order is the command-taxonomy slate's question.
+    scope: ["$focus", "person", "here", "peers"]
     requires: any
   # ⭐ How much to cut off (cordage D4): `cut rope at 10 m`. A preposition,
   # because a greedy target may be followed only by prepositional args
