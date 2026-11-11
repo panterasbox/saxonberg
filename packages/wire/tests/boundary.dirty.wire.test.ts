@@ -149,7 +149,7 @@ suite.skipIf(!isOwnedTestWorld())('the boundary — blocking drive', () => {
     expect(shut.r.status).not.toBe('ok');
     expect(shut.w).toMatch(/locked/i);
     // ⭐ open refuses on the bolt from either side (a locked door does not open).
-    expect((await say(bank, 'open pump-house door')).w).toMatch(/locked/i);
+    expect((await say(bank, 'open "pump-house door"')).w).toMatch(/locked/i);
     expect((await say(inside, 'open door')).w).toMatch(/locked/i);
   }, 120_000);
 
@@ -160,7 +160,7 @@ suite.skipIf(!isOwnedTestWorld())('the boundary — blocking drive', () => {
     // One object — the bank reads the same state.
     expect(await exitsLine(bank)).toMatch(/pumphouse \(the pump-house door, open\)/i);
     // A keyless stranger at the bank cannot lock it (it is not their side).
-    expect((await say(bank, 'lock pump-house door')).r.status).not.toBe('ok');
+    expect((await say(bank, 'lock "pump-house door"')).r.status).not.toBe('ok');
     // ...and can walk in while it stands open.
     expectOk((await say(bank, 'go pumphouse')).r);
     expectOk((await say(bank, 'go out')).r);
