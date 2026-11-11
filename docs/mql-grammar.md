@@ -116,7 +116,7 @@ for its own literal slot. There's no quoting-within-quoting; the
 quote layers nest naturally.
 
 ```
-drop rose                   greedy field, no shell quote needed
+drop rose                   one word binds bare, no shell quote needed
 drop "second rose"          shell quote — MQL parses inside
 drop 'second rose'          MQL receives the literal string
 ```

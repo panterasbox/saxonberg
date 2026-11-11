@@ -2477,3 +2477,29 @@ rarer word held the file it moved (`ignite` → `light`, `plough` → `plow`);
 `drive` became `drift`. Institution transactions became subcommands of
 their noun (`house appoint`, `job apply`, `shelf consign`, `rack check`,
 `bank …`, `title transfer`) — W7–W8, `848adc897^..76e2d22b6`.
+
+## History — controller liquidity (MR !561, 2026-11)
+
+Build range `14af1e8ba..726c1f195`. What shifted between design and code:
+
+- **Quoting replaced greedy for object names** (D3, W5 `ca1547ca8`,
+  `a64187aee`). The binder folds a leading article; a name with a space in
+  it is quoted; greedy survives on prose only. The shipped doctrine *"a
+  prepositional object arg is born `greedy: true`"* and `lint:reachability`
+  arm G (which ratcheted toward MORE greedy) were reversed;
+  `lint:greedy-object` is a hard 0.
+- **Nested `subcommands:` shipped and were reversed** (W1 `e21135a65` →
+  W16 `8c41a78a4`). A command is `verb target` or `verb subcommand target`;
+  the five nested forms became verbs (`client-layout|card|shelf|style`,
+  `stream-rotation`, `outfit`), and `model.subcommandPath` /
+  `subcommandKey` / `getSubcommandChain` are gone. See § Depth.
+- **`values:` became `type: enum`** (W1 → W22 `726c1f195`): the closed
+  word list was first a field on any arg, then its own type; the schema
+  refuses `values:` elsewhere and requires it on `enum`.
+- **One controller, one act** (W6–W13): every multi-act controller walked
+  the remedy ladder (§ The remedy ladder); two rung-5 words were minted
+  (`spud`, `paste`), and five heads retired into existing verbs (`heat
+  <pot>` → `put … on`, `fell <bole>` → `cut`, `belay off` → `untie`,
+  `char <n>` → `draught`, `tan` as a check → `look`). W18–W19 undid two
+  false unifications (`stir`/`knead`/`churn`, `sweep`/`rake`). `survey`
+  retired in W17 (`analyze rooms`, `measure paint`).

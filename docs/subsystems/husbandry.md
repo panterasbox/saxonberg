@@ -900,7 +900,8 @@ one bed: a ripe stand at the lane end is no substitute for the middle's.
 Only an area crop answers to its field's words (`Plant.getKeywords`).
 
 **The act names its part.** `water`, `feed`, `plant`, `harvest`, `sample`
-and `label` take `at <field>` (optional, greedy, `SoilMixin`). The GROUND
+and `label` take `at <field>` (optional, `SoilMixin`; a two-word field is
+quoted — `at "the barley field"`). The GROUND
 decides (`resolvePartFor`): one part needs no name; several refuse
 `part-unnamed` with the names; naming a part a plant does not stand in
 refuses `not-a-part-here`. `water`/`feed` state the amount (*"You tip 2 L

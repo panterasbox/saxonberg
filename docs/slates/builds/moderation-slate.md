@@ -556,6 +556,9 @@ accounts (a sanction on an external id suffices first).
 - **Channel domains** — nested Subjects; which organization owns them.
 - **Targeting's spelling** — MQL or bespoke.
 - **Kick's moderation events** — verify before promising automation.
+- **Dose's licensing** (deferred from controller-liquidity, 2026-11-11) — `dose` treats
+  *competent in medicine* as *licensed*, which judges a PERSON: lens 7 wants the criterion,
+  the appeal and the entrenchment tier named. Today it is a Competence band and nothing else.
 - **Rehabilitation** — its own conversation ([prison-slate](./prison-slate.md) § 12). The prison
   conversation itself is done (prison-slate, rewritten 11-07).
 

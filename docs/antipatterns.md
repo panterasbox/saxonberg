@@ -6499,3 +6499,96 @@ token, and words left over refuse with the quote hint (*too many words —
 quote a name with a space in it*). The schema refuses `greedy` on
 `object`/`objects`; greedy stays for PROSE (`say`, `dm`, a forum body).
 `lint:greedy-object` is a hard 0 (controller-liquidity D3, W5).
+
+## A hand-rolled reach walk
+
+```ts
+// NOT ALLOWED — a second definition of "what can I lay hands on"
+const near = [...actor.getContents(), ...room.getContents(), ...exitDoors];
+const ok = near.some((s) => s === target);
+
+// CORRECT — ask the one walk, or membership in it
+const ok = PerceptionApi.canReach(actor, target);
+const reached = PerceptionApi.reach(actor);          // each tagged by its pool
+const hits = PerceptionApi.reachableAmong(actor, candidates);
+```
+
+Reach was written twice (the MQL scope walk and a `reachIds` helper) and the
+two disagreed — on the room itself and on doors of unseen ways. There is one
+list now, `PerceptionApi.reach`, tagged with MQL's pools (`person` ·
+`inventory` · `here` · `peers` · `reachable`; `around` is what holds you —
+named, not touched), and MQL's seeds filter it. Reach is not perception: a
+caller that needs both asks both. A thing behind a shut lid is ADDRESSED by
+MQL (`look me:I:apple`) but not reachable — a verb that puts a hand on it
+declares `mustNotBeShutAway` (`Containable.reachRefusal`). See
+[perception.md](./subsystems/perception.md) (controller-liquidity W20).
+
+## A nested subcommand
+
+```yaml
+# NOT ALLOWED — a subcommand of a subcommand
+verbs: [cockpit]
+subcommands:
+  layout:
+    subcommands:
+      save: { controller: … }
+
+# CORRECT — a command is `verb target` or `verb subcommand target`
+verbs: [client-layout]       # non-diegetic: a hyphenated compound name
+subcommands:
+  save: { controller: ../shell/ClientLayoutSaveController }
+```
+
+Depth is one. A second level is a noun that wants to be its own verb: a
+diegetic one takes a plain word (`equip set save` → `outfit save`), an
+interface or tooling one a compound name (`cockpit layout` →
+`client-layout`, `stream rotation` → `stream-rotation`). The schema and
+`CommandDefinition.validate()` refuse a nested stanza, and the depth half
+of `lint:command-views` is a structural zero (controller-liquidity W16,
+reversing W1's D2). See [command-spec.md § Depth](./subsystems/command-spec.md).
+
+## `values:` on a slot that is not `type: enum`
+
+```yaml
+# NOT ALLOWED — a closed word list wearing a string's type
+- name: setting
+  type: string
+  values: [wide, open, half, low, banked]
+
+# CORRECT — a closed word list is its own type
+- name: setting
+  type: enum
+  values: [wide, open, half, low, banked]
+```
+
+A closed list is a different type from a name: the binder refuses a word
+outside it with the list, `help` prints it, and the quote hint never joins
+words into it (`takesAName` is plain `type === 'string'`). The schema
+requires `values:` on `enum` and refuses it everywhere else; a structured
+client is held to the same list (controller-liquidity W22).
+
+## A controller that decides between acts
+
+```ts
+// NOT ALLOWED — one word, several acts, picked by what the target is
+if (MixinApi.isManualBuild(t)) return this.latchHeat(t);
+if (isTool(t)) return this.sterilize(t);
+return ContainmentApi.move(t, hearth, 'on');   // a third act: setting it on
+
+// CORRECT — one act; each host answers it (a protocol mixin), and the
+// act that was never this word goes to the verb that already does it
+const plan = t.heatPlanFor(actor);   // HeatedMixin: a plan or a refusal; its
+                                     // completion is the host's `takeHeat`
+// `put <pot> on <hearth>` sets a vessel on the fire
+```
+
+A word names one act. When a controller forks on the target's kind, a
+typed word (`switch (model.x)`), or `model.subcommand`, walk the remedy
+ladder: (1) one act over several hosts — a protocol mixin or one planner,
+retiring a stray head into the verb that already does it; (2) a manner —
+an option; (3) subcommands of a noun the player groups the acts under,
+each its own view entry and controller; (4) disjoint shapes of one word,
+each its own controller (`dry <thing> with <cloth>` vs `dry <thing> on
+<rack>`); (5) only then a new word (`spud`, `paste`). The protocol answers
+facts and a reason; the controller words them. `lint:multi-act` counts what
+is left (controller-liquidity D13; [command-spec.md](./subsystems/command-spec.md)).

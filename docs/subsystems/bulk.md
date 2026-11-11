@@ -381,6 +381,21 @@ Bulkable`: a source slot's holder is a place.
 runs dry takes one draught — `bulk.draughtL` (0.25 L). The shipped tap
 (`UnboundedSourceMixin`) had the same unbounded `'all'`; it closes too.
 
+### ⭐ Water in reach — `WaterDrawableMixin` (controller-liquidity W8)
+
+`cool`, `rinse`, `wash` and `water` each want water in reach before they
+act, and each carried its own `findWater` copy, which had drifted (`cool`
+never looked at a shore). The read is the SOURCE's now:
+`drawWaterFor(actor)` → the source and its `WaterDraw` (material,
+temperature, hardness when known), or `no-water` / `frozen`. The default
+answers for a vessel: its slot, settled, holding something tagged `water`
+or `brine`. It is composed only by the classes that hold water (`Tub`,
+`Receptacle`, `Flask`, `Well`, `WaterStore`, `WaterFixture`), never by
+`BulkableMixin` at large — a wine cask is no source — and a CRAFTED vessel
+(a served glass, a made pail) says no. `ShoreMixin` overrides with the
+shore's water and the frozen gate. Nothing is drawn; the verb that uses the
+water decides how much.
+
 ## `BulkableApi.transfer` (`api/bulk.ts`)
 
 The one primitive — the bulk analog of `StackableApi.applyQuantity`

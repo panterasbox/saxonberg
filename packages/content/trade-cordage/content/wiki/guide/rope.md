@@ -31,7 +31,8 @@ is left. `analyze lay rope` reads a rope closely.
 off beside a drop, the rest goes over the edge: the rope is the way down,
 and its end at the bottom is the way back up. `tie rope to <someone>` puts
 them on the end of it, and `belay <someone>` holds it for them while they
-climb — a fall they take is caught, if you can hold the jerk. Three turns
+climb — a fall they take is caught, if you can hold the jerk. `untie rope`
+takes it off the belay; untie again to cast them off. Three turns
 round a post hold far more than your hands alone. Name a knot with `with`:
 `tie rope to post with clove hitch`. A reef knot spills when one end is
 loaded harder than the other.

@@ -550,3 +550,14 @@ every call with `undefined`, and `look` must not die because of it.
   and held things to their room's light. See
   `docs/plans/client-surface-plan.md` (W0, B6) until it is retired at the
   sweep.
+- **Controller liquidity (MR !561, 2026-11)** — reach is defined once
+  (W20, `985558c4d`): `PerceptionApi.reach` (`PerceptionLogic.reachOf`)
+  lists what an actor can lay hands on, tagged by MQL's pools;
+  `canReach`/`reachableAmong` are membership in it and MQL's seeds filter
+  it. The `reachIds` helper and scope-walk's own holder/fixture/way/door
+  assembly were deleted — they had disagreed on the room itself (now the
+  `around` pool: named, not reached) and on doors of unseen ways. Earlier
+  in the build (W2, `fd81f87e2`) `here` came to mean the enclosing place
+  (`Containable.getEnclosingPlace`), MQL ADDRESSES a thing wherever it is,
+  and a shut lid is the verb's gate (`mustNotBeShutAway` →
+  `Containable.reachRefusal`), not the query's. `look` observes once (W8).

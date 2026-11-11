@@ -1575,10 +1575,12 @@ a manifest declares which, so the script still says).
   boot entries moved into terminus; the trade packs no longer depend on
   it. A second venue for a trade is rows in another locality and zero
   pack code.
-- A pack's `src/lib/` base for a family of controllers (terminus's
-  `LettingController`, the University's `HallController`) carries its
-  shared authority read as a **protected** static — `lint:lib-statics` is
-  a ratchet.
+- A pack's `src/lib/` base for a family of controllers carries any
+  shared read as a **protected** static — `lint:lib-statics` is a ratchet.
+  ⚠ The two exemplars that stood here (terminus's `LettingController`, the
+  University's `HallController`) are gone (controller-liquidity W13): who
+  may let is the warren's, `LettingWarren.mayLetFor` in the residence
+  pack's `lib/`, asked by the act itself ([residence.md](./residence.md)).
 
 ## History
 

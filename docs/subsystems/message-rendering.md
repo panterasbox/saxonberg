@@ -881,8 +881,9 @@ three wrote the same `cockpit.*` clientState keyspace — see
 [cockpit.md](./cockpit.md). It is not kept as an alias: one name per
 thing.
 
-⭐ The settings above ARE nested subcommands (controller-liquidity W7b —
-see [cockpit.md](./cockpit.md)); every closed word is a `type: enum` slot,
+⭐ The settings above are subcommands of `client-style`, one controller
+each (controller-liquidity W7b nested them under `cockpit`; W16 made
+`client-style` a verb — see [cockpit.md](./cockpit.md)); every closed word is a `type: enum` slot,
 so `client-style bogus` or `client-style theme default` is refused by
 the binder, naming the set, before any controller runs.
 

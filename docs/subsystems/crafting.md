@@ -2009,3 +2009,19 @@ perishable inputs before the working's kill. A pot on the boil (what is in it) a
 A recipe is named by its path (its word the leaf, no `recipeId:` line);
 `RecipeCatalogue` left the boot list and reads cold as an error. See git
 log for the `reqs/documents-path-identity` branch.
+
+## History — controller liquidity (MR !561, 2026-11)
+
+Build range `14af1e8ba..726c1f195`. Cutting became several acts, each its
+own small protocol (D14, W6 `187eb96c1`): `Cuttable`'s ten-verb answer map
+is gone; `RivableMixin` and `ButcherableMixin` are kernel protocols, the
+saw is `Bole.sawPlanFor` (its one-host `SawableMixin` folded in W17), and
+`groove`/`scrape`/`scribe`/`snap`/`groze` are host methods. `heat` became
+one act over `HeatedMixin` (W7c, `b0869cda5`) and lost its placing arm to
+`put … on`; `fit` kept assembly and the face coat became `paste` (a rung-5
+word); `dry` is two shapes with two controllers. `stir` went through
+`AgitatedMixin` (W7c), was undone (W18, `34f8e50c3`) and settled as *stir
+what runs, knead what is stiff* (W19, `9a25745d1`, `Compounding.workVerb`).
+`ActChoices` (W4) lets the model return the set and the controller pick,
+refuse or ask; `engagePlan` moved up to `CommandController` so any controller
+can engage an `ActPlan`.

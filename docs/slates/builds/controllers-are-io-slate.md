@@ -988,3 +988,11 @@ slate does not yet carry the item, this section is its record.
   the decisions (the bar, the keeper's criteria, the steering, who may helm)
   are Ship's and the frame's. Moving the parse is a `Frame.readHeading`
   protocol method on `Expanse` and `LineFrame` — no defect behind it.
+- **A `defaulted` flag on `MqlOneResult`** — whether a bound arg was
+  defaulted rather than typed. `pour` wanted it (`startsWith('reachable:')`)
+  until it moved onto the model; tracked as
+  [one-resolution-rule](./one-resolution-rule-slate.md) § 1 row 3 (`buy`'s
+  raw-text sniff is its first consumer).
+- **The controller-adoption process** — how the Compact adopts a
+  player-proposed controller (the requirements' lens-7 gap). No design yet;
+  raised for the owner.

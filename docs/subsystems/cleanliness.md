@@ -428,3 +428,14 @@ Documents path identity: `DirtKind` moved from Idea rows at
 `/platform/idea/DirtKind/<key>` to `dirt` documents cited by path;
 `setDeposits` became `fixedDeposits`; a pack can ship its own dirt
 (`/trade/mining/dirt/dust` — the `dust` latent defect closed with it). See git log for the `reqs/documents-path-identity` branch.
+
+## History — controller liquidity (MR !561, 2026-11)
+
+`wash` and `sweep` became protocols (W7c, `b0869cda5`): `WashableMixin`
+(composed by `SoilableMixin`, the hands by `HygieneMixin`) washes at the
+water in reach by one `WashSpec`, and that water is the source's answer
+(`WaterDrawableMixin`, W8) — a crafted pail no longer counts as water.
+`SweepableMixin` shipped with three hosts and a union result; the owner
+split the grate off as `rake` (`Burner.rakePlan`, W18 `34f8e50c3`), leaving
+a floor and a flue with one result shape. `survey`'s floor line became
+`analyze cleanliness floor` (W17).

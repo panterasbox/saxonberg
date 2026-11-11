@@ -1253,7 +1253,6 @@ args:
   - name: query
     type: objects
     required: true
-    greedy: true
     scope: ["$focus", "reachable"]
 ```
 

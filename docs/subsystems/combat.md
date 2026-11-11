@@ -18,7 +18,7 @@ winning blow (killing them is the separate, interruptible **coup**), who is
 to **blame** for a death is derived from an append-only ledger (a consented
 duel is lawful; an imposed lethal attack on the unwilling is a crime), and
 every exchange **advances** the fighter (combat `Discipline`s + a costed
-`assess`). **Cycle 2** turns the 1v1 into an N-party melee — a threat
+`fight assess`). **Cycle 2** turns the 1v1 into an N-party melee — a threat
 graph, join/merge, focus-fire, the `defend` family (one act the fighter
 decides — `Combatant.defend`: cover up, stay a coup, or interpose;
 controller-liquidity W7c), fleeing, and the party
@@ -926,7 +926,7 @@ beats blind aggression, aggression beats a feinter.
 and **mistakes a feint for a real opening** (`open`); a sharp reader sees the
 true band and the feint's **tell**. Two surfaces carry the fogged read:
 the **free** `fight` status opponent line (`actor.perceiveCombat` — no cost,
-no side-effects), and the **costed** `assess` verb (`CombatApi.assess`
+no side-effects), and the **costed** `fight assess` (`Combatant.assessCombat`
 wraps `perceive` and adds the beat cost + the melee-read `ActSignature`).
 The **same** `CombatFog.reads(sharpness)` gate decides both the fog's tell
 and whether a defender bites a feint, so "the fog says open" and "I bit the

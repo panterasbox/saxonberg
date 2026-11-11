@@ -160,13 +160,13 @@ read is ungated and each sample has its own `try/catch`.
 field**, not just an overridden getter: `look` and the inspection card
 render the stored field and consult no getter.
 
-## ⚠⚠ Two things that fail closed and silent
+## ⚠⚠ Two things that failed closed and silent (one is fixed)
 
-**The article defect.** Any object arg a player may put an article in
-front of needs `greedy: true` — **including plural and prepositional
-args**. Without it `assay the ore` binds the literal token `the`, and
-`measure temperature the kettle` trips *"too many arguments"* and dies as
-an unknown shape with everything upstream of it correct.
+**The article defect** — ✅ fixed in the binder (controller-liquidity D3).
+`assay the ore` used to bind the literal token `the`, and the shipped
+workaround was `greedy: true` on every object arg. The binder now folds a
+leading article into the next token, greedy is refused on object args,
+and a name with a space in it is quoted (`assay "iron ore"`).
 
 **A required arg with no default.** `assay` shipped `samples` as
 `required: true`, so the bare form could never bind and a player standing
@@ -198,7 +198,7 @@ that opens with an escaped quote. The rest is: **read the words**.
 - [mining.md](./mining.md) · [soil.md](./soil.md) ·
   [watershed.md](./watershed.md) — packs that ship channels
 - [command-routing.md](./command-routing.md) — the binder, and the
-  `greedy`/`required` rules the article defect turns on
+  `required` rule a missing default turns on
 
 ## The aroma channel (vocabularies-to-rows, 2026-11)
 

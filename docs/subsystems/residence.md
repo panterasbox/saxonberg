@@ -230,8 +230,11 @@ is dead metal until a new lease re-issues one. The lease is *authority* (the
 right to a key); the **key is access** (bearer possession) — lend it, lose it,
 it just works.
 
-**Authorization** is at `execute()`, and only there:
-`HallController.mayProvision` admits a holder of a position at the college
+**Authorization** is on the warren, not the verb: `LettingWarren.mayLetFor`
+(the residence pack's `lib/`, which `DormWarren` and Seznick House's
+`BuildingWarren` both extend — controller-liquidity W13) is asked by
+`let` and `endLet` themselves, so a replaced controller cannot skip it. For
+the dorm it admits a holder of a position at the college
 (`duncan-hall/idea/college` — Katie's `hall-manager`, read off the authored
 roster) **or** a member of the committee over the hall, and refuses anyone
 else with the seat named. There is **no credential arm and no view
@@ -497,3 +500,18 @@ the class, the slot spec landed as data.
 
 A dorm room is itself an **archetype** — a bedsit, the
 [furnishing](./furnishing.md) four collapsed into one room.
+
+## History — one letting sequence (controller-liquidity W13, 2026-11)
+
+`provision`/`unprovision` (Duncan Hall) and `lease`/`unlease` (Seznick
+House) were four near-twin controllers in two packs, each carrying the whole
+let sequence and its own copy of who may let (`HallController`,
+`LettingController`). The dorm's end-let had lost the storage eviction on the
+way — a student's goods were destructed with the room (defect C4). The
+sequence moved onto `LettingWarren` (`residence/src/lib/`): mint the unit
+parcel at the lowest free slot, grant it, key it fresh, hand over the key;
+at the end, the tenant's goods to STORAGE (intact, titled, recoverable), the
+shell reverted, the slot freed. Each building supplies only policy hooks
+(the letting organization, where units hang, the ascent gate — `Ascent`, the
+ladder's condition read — the domicile). The four verbs keep their words.
+Build range `14af1e8ba..726c1f195`.

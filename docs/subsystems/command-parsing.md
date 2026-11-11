@@ -272,11 +272,13 @@ the ordinal and the distinguishing adjective are both unspeakable, and
 the only way through is to carry the object somewhere that holds no
 sibling. A player with two of anything in a room meets this.
 
-⚠ Same family as the `greedy: true` article defect
-[instrumentation.md](./instrumentation.md) records, and the fix is
-presumably the same one-key change per view — but *which* verbs should be
-greedy is a judgement about each verb's arg shape, so it is recorded here
-rather than swept blind.
+✅ **Resolved by quoting (controller-liquidity D3, W5).** The fix was not
+greedy-per-verb — greedy is gone from every object arg (`lint:greedy-object`
+is a hard 0). A one-word name binds bare, a leading article folds into the
+next token, and a name with a space in it is quoted: `open "double-walled
+beehive"`, `put frame in "first hive"`. Words left over refuse with the
+quote hint (*too many words — quote a name with a space in it*). See
+[command-spec.md § Names with a space in them](./command-spec.md).
 
 ## Cross-references
 

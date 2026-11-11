@@ -757,6 +757,14 @@ The `world` layout's right rail gained the **Inspect | Who's Online**
 card switch when the social-inspection feature merged from master — the
 roster card is that subsystem's; the cockpit just hosts it in the rail.
 
+**Controller liquidity (MR !561, 2026-11).** `cockpit layout|card|shelf|
+style` were split into one controller per action and nested under
+`cockpit` (W7b, `f79a9aa95`); the owner reversed the nesting (W16,
+`8c41a78a4`) and each became a non-diegetic compound verb —
+`client-layout`, `client-card`, `client-shelf`, `client-style`. A layout
+named `list` is now recallable (`client-layout recall list`); every closed
+word is a `type: enum` slot (W22). `cockpit mode|cli|terminal` stay.
+
 ## Crossing into a sandbox circle
 
 This state **forks onto the wire body** (fork-only — a change made

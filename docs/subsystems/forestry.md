@@ -548,3 +548,12 @@ mass — of the stand entry's `brashMaterialPath` (`<wood>-brash` rows
 `extends:` the wood with three times its ash and a richer alkali), else the
 wood itself. The Hanging Wood's ride stands beech and pine beside oak and
 ash. See [potash.md](potash.md).
+
+## History — controller liquidity (MR !561, 2026-11)
+
+`fell` decided between a standard, a planted tree and a bole in its
+controller. It is one act on two hosts now — `FellableMixin`
+(`trade-forestry/src/lib/`, W11 `fa6bf074d`) on the stand and on a planted
+tree — and a bole is crosscut with `cut` (`Cuttable`; `fell bole` retired,
+D14). The sawmill asks a `Bole` by class (`Bole.sawPlanFor`; the one-host
+`SawableMixin` folded in W17), and `rive` is the kernel `RivableMixin`.

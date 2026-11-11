@@ -34,7 +34,10 @@ slate ([printing-slate](../slates/builds/printing-slate.md)).
 
 - **`read`** takes a written thing (`MarkedMixin`) or a screen
   (`DisplayMixin`). A screen is read off what it shows (no light gate — it
-  is its own light); a written thing is perceived, decoded, read.
+  is its own light); a written thing is perceived, decoded, read. Each is
+  the host's answer to one protocol, `ReadableMixin.readFor(viewer, page?)`
+  (`lib/description/`, controller-liquidity W8), and `Book` opens at the
+  page first; the controller only words the facts.
 - **Derived marks.** `Marked.refreshMarks(viewer)` (`@hook`, harbors' too)
   runs before a read: a printed sheet reads its edition, a book its open
   page, a ledger its house's papers. `getMarkText()` stays sync.
@@ -104,8 +107,9 @@ slate ([printing-slate](../slates/builds/printing-slate.md)).
   **still the book's owner's paper** (made from the book; a book nobody
   holds title to, like an authored prop, makes no claim, so the page is
   the tearer's — the chattel rule). A stub is left, and a look at the book
-  names the pages gone. `read`'s target is a greedy name bounded by
-  `page <n>` (`read city directory page 3`, `read torn-out page`).
+  names the pages gone. `read`'s target is one word or a quoted name,
+  then `page <n>` (`read "city directory" page 3`, `read "torn-out page"`)
+  — greedy object names retired with controller-liquidity D3.
   ⚠ Binding sheets into a book (`fit notebook`) is deferred; so are
   leafing for a word (`read … for`), a compiled directory and who is
   listed in it — the slate's § 12.
