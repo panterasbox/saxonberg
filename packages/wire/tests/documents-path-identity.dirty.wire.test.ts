@@ -1,7 +1,7 @@
 /**
  * ⭐⭐ **Documents: the path is the identity — the blocking drive**
- * (requirements `documents-path-identity-requirements.md` § Blocking drive,
- * steps 0–20), against the real socket.
+ * (the documents path-identity build, MR !560 — its requirements are retired;
+ * the decisions live in document-store.md § History), steps 0–20, against the real socket.
  *
  * The drive in one sentence: *every vocabulary this build moved into the
  * document tree is reached by a player and answers — aromas by folder,
@@ -304,7 +304,8 @@ suite('documents: the path is the identity', () => {
   it('11. a surgeon operates: the operation is found by its name', async () => {
     const doctor = await open('surgeon', { startLocation: WARD });
     for (let i = 0; i < 8; i++) await doctor.cmd('practice medicine hard success');
-    await say(doctor, 'get surgical kit');
+    const got = await say(doctor, 'get surgical kit');
+    expect(got, 'the surgeon takes the kit').not.toMatch(/don't see|no such|can't|which/i);
     const patient = await open('patient', { startLocation: WARD });
     await patient.cmd('lie');
     const op = await say(doctor, 'operate patient for extraction');

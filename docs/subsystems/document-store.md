@@ -126,6 +126,27 @@ path identity, 2026-11): the path is unique (the `{path: 1}` index is `unique`),
 the installer adopts a row by `{kind, path}` only, and what a document is
 otherwise FOUND by is its derived catalogue card (below).
 
+## ⭐⭐ Idea or document — the test
+
+A row family is an **Idea** when any one of these holds; otherwise it is a
+**document kind** (owner, 2026-11-07/08: *"Ideas are MQL addressable and
+they carry mutable state, documents just hold a buncha metadata"*):
+
+1. something **writes** it after it loads (it carries mutable state);
+2. something **acts on** it — it is shadowable, a command targets it, or
+   its behavior varies by class;
+3. ⭐ it could be **a link in a query chain** — an MQL path a person would
+   write to reach something else (`here:business:owner`), whether or not a
+   controller targets it today. The governance palette will reach through
+   institutions and referents, so Discipline, Spell, Corpo/Brand and
+   Government stay Ideas (loaded on reach) while DirtKind, PumpMechanism,
+   Joint, Form, Operation, HelpConcept, CombatFormation, Placement, Topic
+   and Aroma are documents.
+
+A document may still carry **pure computation over its own data** — a value
+class in `lib/` (`Aroma`, `Joint`) holds `rateAt(tempK)` as happily as a
+threshold. Behavior that varies by CLASS is limb 2; computation is not.
+
 ## ⭐ The catalogue card — `keys`, and `findByKey`
 
 Every document carries a **card**, `keys: Record<string, DocumentKeyValue>`
@@ -607,3 +628,24 @@ pack-installed kinds, and releases ride it today.
   `findByKey`; the nine metadata families became document kinds over
   `DocumentCatalogue`, resident by construction. See git log for the
   `reqs/documents-path-identity` branch.
+- 2026-11-10 — review of !560: the per-family catalogues came back as
+  `DocumentCatalogue` singletons reached through their domain Api
+  (`CraftingApi.joints()`, `PartyApi.formations()`, …), and every Api
+  gained one readiness routine (`static needs` + `StuffApi.ready` — see
+  call-security.md). Code comments cite the build's decisions as
+  `(documents Dn)`; the index:
+
+  | D | decision | where it lives now |
+  |---|---|---|
+  | D1–D4 | the kind declares its keys; one wildcard index; typed words unique at install; `findByKey` | § The catalogue card |
+  | D5 | the press reads newest first by key | press.md |
+  | D6 | the metadata families become documents (the aroma recipe) | § Idea or document |
+  | D7 | ⭐⭐ a cited document is resident whenever its citer is (setters return their load; a cold sync read throws) | § Resident by construction |
+  | D8 | the four flat-key kinds: the leaf is the word | content-packs.md |
+  | D9–D10 | which catalogues survive; the Ideas that stay Ideas load on reach | § Resident by construction; civics.md, corpo.md, magic.md |
+  | D11 | disciplines: bare keys and a lazy dictionary | advancement.md |
+  | D12 | Placement: the offering host loads it | spatial.md |
+  | D13 | Topic: the engine-machinery exception, the ordered scene queue | topics.md |
+  | D14 | the aroma folder is the tree | senses.md |
+  | D15 | the lints follow the rows | lint-family.md |
+  | D16 | a CMS edit reaches the catalogue (`catalogueFor(kind)?.forget`) | § CMS |

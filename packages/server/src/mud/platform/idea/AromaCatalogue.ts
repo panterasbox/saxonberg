@@ -100,7 +100,7 @@ export default class AromaCatalogue extends Idea {
   /**
    * Keep an aroma read from its document, its parent already known. The one way
    * an aroma enters the cache: `ensure` calls it, and so does a unit fixture that
-   * has no document store behind it. @internal
+   * has no document store behind it.
    */
   public remember(path: string, data: AromaData, parent: Aroma | null): Aroma {
     const row = new Aroma(
@@ -126,7 +126,7 @@ export default class AromaCatalogue extends Idea {
   /**
    * Shape-check authored smell tags and load each aroma, so a row naming a path
    * with no aroma fails where it is named. ⚠ Async by design: this is what makes a
-   * material's aromas resident once the material is. @internal
+   * material's aromas resident once the material is.
    */
   public async resolveOdorTags(value: unknown, owner: string): Promise<OdorTag[]> {
     if (!Array.isArray(value)) {
@@ -150,7 +150,7 @@ export default class AromaCatalogue extends Idea {
   /**
    * Have {@link Aroma.settling} wait for another load a cold read started (a dirt
    * kind on a restored floor, an ingredient of a restored blend), so the first read
-   * after a restart does not lose a smell. @internal
+   * after a restart does not lose a smell.
    */
   public waitFor(key: string, load: Promise<unknown>): void {
     // Caught first, whatever happens next: a load is never left to reject unheard.
@@ -164,7 +164,7 @@ export default class AromaCatalogue extends Idea {
 
   /**
    * Start loading a row a smell read found cold, by path, and have
-   * {@link Aroma.settling} wait for it. @internal
+   * {@link Aroma.settling} wait for it.
    */
   public loadRow(path: string): void {
     // ⚠ Start one load per path. A second cold read must not start another:
@@ -178,8 +178,6 @@ export default class AromaCatalogue extends Idea {
   public settling(): Promise<unknown> | null {
     return AromaCatalogue.#loading.size > 0 ? Promise.all(AromaCatalogue.#loading.values()) : null;
   }
-
-  /** This aroma's path. */
 
   /** Forget `paths` (every aroma when omitted) — the go-live of an edit. */
   public forget(paths?: readonly string[]): void {
