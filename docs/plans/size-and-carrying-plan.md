@@ -1951,6 +1951,40 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
 
 **✅ Done — code half (50f562ed4; pre-flip de3463905 · 09039a4d2 · 67d2820aa · 4e0bd57f4 · 75b62314c).** Pre-flip: the census rule fixed so an emptiness test is no threshold (614 → 508, the W5 dodge removed); `controller-resolution` 83 → 80 (`Carrying.carriedTiers`), `graph-walks` 1 → 0 (`Container.getCarriedContents`), `test-content` clean — no ceiling rose; what hangs widens the body (thinnest side, either flank — the laden mule refused at the 0.8 m paddock gate, the leader told *its canvas panniers won't go through*); the lead hangs from the halter, a no-slot pouch hangs from the worn belt (`receive`'s hang rule; outfits are `{ for: 'wear' }`), an owned host keeps its pairs across a restart (`hostChattelId`/`placedOn`, pass 6); a hand holds any good (`Good`/`Vessel` slottable once; a carrier's hand takes any slottable). The flip: the veto with its two admissions (arriving placed; `admitWhile`), `receive` as one resolution, the three D-W7a methods across every census site, `onRestored → placeLoose`, `returnBorrowed`, LoadBearing pass (a) retired (`HELD_SURCHARGE`), `held` = a hand everywhere (MQL `:worn`/`:held`/`:carried`, `wornStack`, equip), `get` refuses in words, `ready` refuses `pick-up` for a portable thing on the floor. Decisions W7-a…W7-k above. **Siblings at the flip** (`./tools/wt-status`, 2026-11-12): build-2 holds `build/controller-liquidity` (merged !561); build-3 `reqs/navigation` and build-4 `reqs/load-on-use` are in requirements — no sibling mid-drive. Verified: server typecheck; the 24 touched packs' typecheck; branch-wide `test:near` (1153 files / 11117 tests green); **every pack's vitest** (54, all green); **every `lint:*` individually (109, all green)**. Full suite not run (code-complete runs it). ⚠ For the drive pass: `get` is the receiving act (a hand, then a pocket or bag it fits; a no-slot pouch onto the belt) and a direct `ContainmentApi.move` onto a planned body throws `loose-on-body` — staged steps must `testharness hand` (granted: hand/pocket, else the residence when its room is live, else at the feet with a line); a body with no known plan is not judged; the residence overflow finds only a LIVE room; cash the ledger moved is granted, not pre-checked (a follow-up); `put X in <person>` is handing; Gus's vest has two pockets now; the docs graduation (carrying.md, size.md, encumbrance/embodiment/spatial/slot/mql/perception/locomotion/boundary) and the `carrying` wiki guide are the docs pass's.
 
+### W8 — Carrying is one job: where a thing goes on a body (owner review, 2026-11-12)
+
+**Why.** Owner review of `lib/slot/Carrying.ts`: 1,780 lines, ~30 public methods, answering
+questions that belong to the mixins it reads (Containable, Container, Placing, Slotted,
+BodyPlanSlots, Wieldable, Attired, Vitals, LoadBearing, Hauler, Tieable, combat). *"You created
+something very unwieldy."* Most of the drive's ~25 defects were at those seams. Re-planned as
+a wave, not a review round.
+
+**The rule for every member:** *who owns the fact?* Carrying keeps only what is the carrier's
+own knowledge or act; everything else moves to the object that owns the fact, and Carrying
+**asks** it.
+
+| stays on `Carrying` (the body's act / knowledge) | moves to |
+|---|---|
+| `receive` — **one** method; the counterparty is an option (`{as: 'made' \| 'handed' \| 'granted'}`) replacing `receiveOrSetDown` / `receiveGranted` / `canReceive`'s three entry points (a dry-run flag or `canReceive` kept as the one pre-check); `placeLoose`, `returnBorrowed`, `isHonest` (the invariant) | — |
+| homes (`homeOf`/`setHome`, captured by index) | — (D14: a brick has no home) |
+| `tierOf` (reads slot + placement pair; no re-derivation) | — |
+| the acts `ready` / `stow` | — |
+| **hands**: `handSlots`, `freeHands`, `heldThings`, `wieldSlots`, `wieldRefusal`, grip | **`BodyPlanSlots`/`Slotted`** — *which slots grip, which are free* is the slot universe's answer (Vitals already answers `canGrip`); `handsFor` stays body-relative beside them |
+| `cartInHand` | **`Hauler`** (`handsOnCart()`) |
+| `halter` | **`Attired`** (a worn thing of a mixin — the generic read) or the tack's own `Tieable` |
+| `wears` | **`Attired`** |
+| `readySeconds`, `holderPhrase`, draw/put-away phrases and seconds | **the holder**: `Container` (a holster/pouch: `drawSeconds(item)`, `drawWords`) and the `Placing` member (a clip, a pocket — from the member's document row); the body sums them |
+| `awkwardnessOf` | **`LoadBearing`** (it is the gauge's) |
+| `gearNoise` | **the item** (does it ring — its material) read by locomotion's emission |
+| `refusalWords` / `tallyWords` / `nowhereWords` / `heldList` (76 controllers call `refusalWords`) | **out of the model**: the refusal carries reason + facts; the wording lives where refusals are worded in this codebase (follow the nearest shipped pattern — e.g. how `reachRefusal`/`ActRefusal` reasons are worded); one wording site, not 76 |
+| `carriedTiers` / `carriedThings` | the inventory view's (reads `tierOf` over `Container.getCarriedContents`) |
+| `settleReleased`, `isAdmitting` | private, or folded into `receive` |
+
+**Acceptance.** `Carrying`'s public interface ≈ 10 members; the file shrinks to the receiving act;
+no behavior change (the drive's assertions hold — unit tests + `test:near` + every pack's vitest +
+the lint gates; the drive re-runs once at /finalize). No new mixin, Api or class; no ceiling rises.
+Commit: `review(size-and-carrying W8): Carrying is one job — the facts go home to the mixins that own them`.
+
 ## Reachability wiring
 
 | capability | verb | affordance | data | load | arg gate |
