@@ -26,6 +26,11 @@ data:
       keywords: [hearth, fireplace]
       description: |
         A cold hearth of blackened stone with nothing in it but leaves.
+  # ⭐ The old table (size and carrying drive, step 19): a cup set on it
+  # stays while there is gravity to press it there, and drifts off when
+  # the room has none.
+  props:
+    - /stuff/thing/fixture/table
   exits:
     west:
       destination: /world/newbie-wilds/steading/yard

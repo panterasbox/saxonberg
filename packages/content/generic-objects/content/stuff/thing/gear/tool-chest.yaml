@@ -1,0 +1,17 @@
+# A tool chest — a plain deal box with a hinged lid, the kind a joiner's
+# kit or a farm's odd tools are kept in. ⭐ Its box is authored (size and
+# carrying drive, step 11): a chest with no size has no known room and is
+# never asked whether a thing fits, so a pole standing out of it could be
+# shut in. 0.9 m long and half that deep and high: a sword or a saw lies
+# in it, a setting pole sticks out and the lid will not close over it.
+class: /platform/thing/Chest
+data:
+  shortDescription: tool chest
+  keywords: [chest, "tool chest", box, lid]
+  register: indefinite
+  longDescription: |
+    A plain deal chest with a hinged lid and rope handles at either end, its corners bound in strap iron. Inside, the boards are dark with old oil.
+  _materialPath: /stuff/idea/material/wood/pine
+  open: true
+  mass: 18
+  dimensions: { width: 0.9, depth: 0.45, height: 0.45 }

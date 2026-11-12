@@ -41,3 +41,8 @@ data:
     - /stuff/thing/fixture/pegboard
     - /stuff/thing/fixture/tool-rail
     - /stuff/thing/gear/long-crate
+    # ⭐ An open barrel and a tool chest (size and carrying drive, step 11):
+    # a pole stands in the barrel sticking out of its open top; put in the
+    # chest, it will not let the lid shut.
+    - /stuff/thing/vessel/slack-barrel
+    - /stuff/thing/gear/tool-chest
