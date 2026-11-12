@@ -67,7 +67,7 @@ export interface Bank {
 
   /** The bank's corpo affiliation key (resolved via {@link CorpoApi}). */
   getCorpoKey(): string;
-  setCorpoKey(value: string): Promise<void> | undefined;
+  setCorpoKey(value: string): void;
   /** The resolved corpo descriptor, or null when independent/unknown. */
   getCorpo(): CorpoDescriptor | null;
   /** The durable account-resolution key for this branch (its templatePath). */
@@ -147,14 +147,9 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return this.corpoKey;
     }
 
-    /**
-     * The bank's corpo — resident by construction (documents D7): the
-     * applier awaits the corpo dictionary's load this returns, so
-     * `getCorpo` (and `bank open`'s house name) never reads it cold.
-     */
-    public setCorpoKey(value: string): Promise<void> | undefined {
+    /** The bank's corpo (CorpoApi's dictionary is stood at boot). */
+    public setCorpoKey(value: string): void {
       this.corpoKey = value;
-      return value ? StuffApi.ready(CorpoApi) : undefined;
     }
 
     public getCorpo(): CorpoDescriptor | null {

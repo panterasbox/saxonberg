@@ -3,7 +3,7 @@
 #
 # The brewing pack already ships a `cask` for conditioning ale, and this
 # is the same object doing the other thing an oak barrel has always done:
-# the profile at `/trade/distilling/idea/maturation/whiskey-aging` keys on
+# the profile at `/trade/distilling/maturation-profiles/whiskey-aging` keys on
 # `new-make` and turns it into `whiskey` over about forty-five game-days,
 # `sealedOnly` — so it only works once you have bunged it (`close cask`).
 #

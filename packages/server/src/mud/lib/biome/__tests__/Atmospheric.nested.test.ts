@@ -33,6 +33,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from "../../security/__tests__/test-setup";
+import { standRootBiome } from "./root-biome";
 
 const BIOME_K = 283;
 const INDOOR = "/stuff/idea/biome/_nested/indoor";
@@ -78,6 +79,7 @@ describe("F1 — the nested-envelope outside", () => {
   afterEach(() => StuffApi.clearAll());
   beforeEach(() => {
     StuffApi.clearAll();
+    standRootBiome(); // the universe's default walls (load-on-use W8)
     BiomeApi.invalidateRootBiomeCache();
     makeStuffAtPath(() => {
       const m = new Material();

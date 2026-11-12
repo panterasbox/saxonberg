@@ -30,6 +30,12 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { standShippedConditions } from './conditions';
+
+// load-on-use W6: the shipped condition roster, as a world loads it with the body.
+beforeEach(async () => {
+  await standShippedConditions();
+});
 
 let seq = 0;
 

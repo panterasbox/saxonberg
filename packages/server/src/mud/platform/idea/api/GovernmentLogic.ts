@@ -53,6 +53,8 @@ function chainForAddress(address: string): GovernmentDescriptor[] {
   const cat = catalogue();
   const seen = new Set<string>();
   const out: GovernmentDescriptor[] = [];
+  // Stands on the address index — `GovernmentApi.needs` builds it before
+  // any async static, a sync caller readies `GovernmentApi` (load-on-use W5).
   for (const locality of AddressApi.coverageChainOf(address)) {
     const key = locality.getGovernmentKey();
     if (key === null || seen.has(key)) continue;

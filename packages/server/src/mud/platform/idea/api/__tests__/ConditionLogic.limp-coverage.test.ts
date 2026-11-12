@@ -29,6 +29,7 @@ import Species from '../../species/Species';
 import BodyPlan from '../../species/BodyPlan';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../Condition';
+import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
 
 class MobileCreature extends MobileMixin(Creature) {
   static _mixinName = 'MobileCreature';
@@ -104,6 +105,7 @@ describe('the limp — LocomotionApi.engageAround endurance drain', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
     walk = buildMode('walk');
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
   });
   afterEach(() => StuffApi.clearAll());
 

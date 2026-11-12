@@ -26,6 +26,7 @@ import Species from '../Species';
 import BodyPlan from '../BodyPlan';
 import { StuffApi } from '../../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
+import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
 
 const MEAT = '/stuff/thing/items/stew-meat';
 const HIDE = '/trade/ranching/thing/hide';
@@ -36,7 +37,10 @@ function species(lines: Parameters<Species['setButcheryYield']>[0]): Species {
   return s;
 }
 
-beforeEach(() => StuffApi.clearAll());
+beforeEach(() => {
+  StuffApi.clearAll();
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+});
 afterEach(() => StuffApi.clearAll());
 
 describe('the counted shape — unchanged', () => {

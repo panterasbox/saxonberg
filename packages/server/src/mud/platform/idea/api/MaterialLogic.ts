@@ -37,6 +37,7 @@ import {
 import { BlendLabel } from '../../../lib/metabolism/BlendLabel';
 import type { BulkPayload } from '../../../lib/bulk/Bulkable';
 import type { ToxinTag } from '../../../lib/metabolism/Metabolic';
+import { MaterialApi } from '../../../api/material';
 
 const MaterialApiCallers = SecurityPolicies.FromModule('/api/material#MaterialApi'
 );
@@ -86,24 +87,6 @@ export class MaterialLogic extends ApiLogic {
   @CallSecurity(MaterialSelfCallers)
   public containsElement(material: Material, elementSymbol: string): boolean {
     return containsElementOf(material, elementSymbol);
-  }
-
-  /** See {@link MaterialApi.all}. */
-  @CallSecurity(MaterialApiCallers)
-  public all(): Material[] {
-    return everyMaterial();
-  }
-
-  /** See {@link MaterialApi.findByTag}. */
-  @CallSecurity(MaterialApiCallers)
-  public findByTag(tag: string): Material[] {
-    return everyMaterial().filter((m) => m.hasTag(tag));
-  }
-
-  /** See {@link MaterialApi.findByElement}. */
-  @CallSecurity(MaterialApiCallers)
-  public findByElement(symbol: string): Material[] {
-    return everyMaterial().filter((m) => containsElementOf(m, symbol));
   }
 
   // ---------- materials-response ----------
@@ -309,7 +292,7 @@ export class MaterialLogic extends ApiLogic {
     let fat = 0;
     let open = 0;
     for (const e of makeup) {
-      const m = StuffApi.findByTemplatePath<Material>(e.materialPath);
+      const m = MaterialApi.materials().peek(e.materialPath);
       if (m === null || m === undefined) continue;
       if (m.hasTag('clay-mineral')) fat += e.fraction;
       else if (m.hasTag('silica') || m.hasTag('grog') || m.hasTag('breeze')) open += e.fraction;
@@ -913,15 +896,6 @@ function containsElementOf(material: Material, elementSymbol: string): boolean {
   return (flat[elementSymbol] ?? 0) > 0;
 }
 
-function everyMaterial(): Material[] {
-  // Every root's `idea/material/` subtree — the platform's
-  // (`/platform/idea/material/blend`), the commons' (`/stuff/…`) and a
-  // trade pack's (`/trade/distilling/…`) — found by the branch, never by
-  // a list of roots (a pack must never need a kernel list edit).
-  return StuffApi.findByPathGlob<Material>('/**/idea/material/**').filter((m) =>
-    isMaterial(m)
-  );
-}
 
 function isMaterial(stuff: Stuff): stuff is Material {
   // Every kind extends the base, so the base is the test (no duck
@@ -1063,7 +1037,7 @@ function expandInto(
   }
 
   for (const entry of direct) {
-    const child = StuffApi.findByTemplatePath<Material>(entry.materialPath);
+    const child = MaterialApi.materials().peek(entry.materialPath);
     if (!child) continue;
     expandInto(child, weight * entry.fraction, acc, visited);
   }

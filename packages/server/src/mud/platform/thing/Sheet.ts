@@ -45,6 +45,7 @@ import { ContainmentApi } from '../../api/containment';
 import { DocumentApi } from '../../api/document';
 import { Quantity } from '../../lib/quantity';
 import type Material from '../../lib/material/Material';
+import { MaterialApi } from '../../api/material';
 
 /** The formats a sheet folds through. */
 export const SHEET_FORMATS = ['sheet', 'folio', 'quarto', 'octavo'] as const;
@@ -308,7 +309,7 @@ export default class Sheet extends SheetBase {
     this.reconcileThermal();
     return this.getCoats('outside').some((c) => {
       if (c.state !== 'set') return false;
-      const m = StuffApi.findByTemplatePath<Material>(c.material);
+      const m = MaterialApi.materials().peek(c.material);
       return m?.hasTag('size') === true;
     });
   }

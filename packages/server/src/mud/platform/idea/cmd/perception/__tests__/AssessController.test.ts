@@ -30,6 +30,7 @@ import Condition from '../../../Condition';
 import { AppApi } from '../../../../../api/app';
 import BodyPlan from '../../../species/BodyPlan';
 import Species from '../../../species/Species';
+import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
 
 let captured: string;
 function captureBody(): void {
@@ -75,12 +76,13 @@ const footWound = (dressed = false): Trauma => ({
   dressed,
 });
 
-beforeEach(() => {
+beforeEach(async () => {
   installV1QuantityMarshallers();
   fakeMongo();
   vi.spyOn(AppApi, 'setting').mockReturnValue('');
   WorldClockApi._setNowProviderForTesting(() => 100);
   captureBody();
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
 });
 afterEach(() => {
   vi.restoreAllMocks();
@@ -200,12 +202,9 @@ describe('AssessController — the affliction readout', () => {
     expect(captured.toLowerCase()).not.toContain('recovering');
   });
 
-  it('degrades to the path leaf when the Condition Idea is not live', async () => {
-    // Today this is the ONLY path that runs in the real world: condition
-    // seeds are inserted as template rows and nothing clones them into
-    // Ideas, so `findByTemplatePath` answers null for every condition.
-    // The readout must still say something, and must never leak a raw
-    // template path into player-facing prose.
+  it('a condition row nothing loaded is an engine defect, thrown by its path (load-on-use W6)', async () => {
+    // The leaf fallback is gone: the roster loads with the body, so a cold
+    // row means a load was skipped — said loudly, never rendered as a guess.
     const me = makeStuff(() => new Creature());
     stampTemplatePathForTest(me, '/platform/agent/Avatar/orphan');
     me.afflict({
@@ -214,36 +213,9 @@ describe('AssessController — the affliction readout', () => {
       stage: 0,
       elapsed: 0,
     });
-
-    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
-    expect(captured.toLowerCase()).toContain('recovering');
-    expect(captured).not.toContain('/platform/idea/Condition/mortality');
-    expect(captured).toContain('No visible wounds.');
-    // A name is what a body HAS; a sign is what it SEEMS.
-    expect(captured).toContain('You have recovering.');
-    expect(captured).not.toContain('You seem recovering');
-  });
-
-  it('the leaf fallback still withholds the diagnosis from the untrained', async () => {
-    // A leaf IS the condition's name, so handing it to a novice would
-    // route around the competence rule the resolved path obeys.
-    const me = makeStuff(() => new Creature());
-    stampTemplatePathForTest(me, '/platform/agent/Avatar/looker2');
-    const them = makeStuff(() => new Creature());
-    stampTemplatePathForTest(them, '/platform/agent/Avatar/patient4');
-    them.afflict({
-      kind: 'affliction',
-      templatePath: '/platform/idea/Condition/mortality/recovering',
-      stage: 0,
-      elapsed: 0,
-    });
-
-    await makeStuff(() => new AssessController()).execute(
-      targetArg(them),
-      ctxFor(me, null)
-    );
-    expect(captured.toLowerCase()).toContain('unwell');
-    expect(captured.toLowerCase()).not.toContain('recovering');
+    await expect(
+      makeStuff(() => new AssessController()).execute({}, ctxFor(me, null)),
+    ).rejects.toThrow(/condition '\/platform\/idea\/Condition\/mortality\/recovering' was read but is not resident/);
   });
 });
 

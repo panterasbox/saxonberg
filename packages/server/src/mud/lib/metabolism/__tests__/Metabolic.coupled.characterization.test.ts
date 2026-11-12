@@ -38,6 +38,7 @@ import '../../../platform/idea/WorldClockRegistry';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { Postures } from '../../slot/Postured';
+import { standShippedConditions } from '../../vitals/__tests__/conditions';
 
 const SCALE = 12;
 let real = 0;
@@ -65,7 +66,8 @@ function makeTired(drain = 50): Creature {
 }
 
 describe('coupledRecovery — characterization (pre-generalization)', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await standShippedConditions(); // load-on-use W6: the shipped roster, as a world loads it with the body
     installV1QuantityMarshallers();
     WorldClockApi._resetForTesting();
     real = 100000;

@@ -36,9 +36,9 @@ function profileRows(): Array<{ path: string; data: Record<string, unknown> }> {
       if (e === 'node_modules') continue;
       const full = join(dir, e);
       if (statSync(full).isDirectory()) walk(full);
-      else if (full.includes('/idea/maturation/') && e.endsWith('.yaml')) {
-        const doc = YAML.parse(readFileSync(full, 'utf8'));
-        if (doc?.class?.endsWith('MaturationProfile')) out.push({ path: full, data: doc.data });
+      else if (full.includes('/content/maturation-profiles/') && e.endsWith('.yaml')) {
+        // A DOCUMENT (load-on-use W4): the file IS the data.
+        out.push({ path: full, data: YAML.parse(readFileSync(full, 'utf8')) ?? {} });
       }
     }
   };
@@ -66,7 +66,7 @@ describe('what a ferment breathes (D22)', () => {
     const rows = profileRows();
     expect(rows.length).toBeGreaterThan(10);
     for (const r of rows) {
-      const p = makeStuff(() => new MaturationProfile());
+      const p = new MaturationProfile();
       p.mechanism = (r.data.mechanism as never) ?? 'microbial';
       if (r.data.offGas !== undefined) {
         // Only this build's rows author it.
@@ -83,7 +83,7 @@ describe('what a ferment breathes (D22)', () => {
   });
 
   it('an authored gas replaces the default; an empty one is nothing', () => {
-    const p = makeStuff(() => new MaturationProfile());
+    const p = new MaturationProfile();
     p.offGas = { material: '/stuff/idea/material/gas/ammonia', litresPerDay: 200 };
     expect(p.getOffGas()?.material).toBe('/stuff/idea/material/gas/ammonia');
     p.offGas = { material: '', litresPerDay: 0 };

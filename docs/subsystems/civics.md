@@ -77,13 +77,12 @@ ref:
 `GovernmentCatalogue` (`/platform/idea/GovernmentCatalogue`) is
 the corpo-recipe data-cache — a **lazy dictionary**: one query on first
 use, sync reads, defensive copies, singleton destruct/evict refusals.
-⭐ **Never booted** (documents path identity, 2026-11-09 — it was a
-`sync-read` boot entry): **`GovernmentApi.ready()`** stands it up, and
-`GovernmentLogic`'s sync reads throw `DocumentNotResidentError` when it is
-cold. It is resident by construction wherever a government is cited:
-`Locality.setGovernmentKey`, `ShipRegister.setGovernment` and a polity
-brand's `Branded.setBrand` return the dictionary's load for the applier
-to await, and `Ship.commission` awaits it before naming the polity. Like the
+⭐ **Stood at boot as `GovernmentApi`'s declared `needs`** (with the
+address registry; load-on-use W10 — no pack `boot:` line, and no setter or
+act readies it: `Locality.setGovernmentKey`, `ShipRegister.setGovernment`
+and `Branded.setBrand` are plain setters). `GovernmentLogic`'s sync reads
+throw `DocumentNotResidentError` if it is ever cold.
+`GovernmentApi.governmentAt` / `governmentChainAt` are async. Like the
 corpo catalogue it has **no auto-invalidate** on template churn beyond
 HMR re-clone — a CMS edit to a Government template needs
 `dest /platform/idea/GovernmentCatalogue`.
@@ -109,7 +108,7 @@ dedupe preserving the most-local position, resolve to descriptors.
 
 | read | sync? | semantics |
 |---|---|---|
-| `governmentAt(address)` / `governmentChainAt(address)` | sync | trie + in-memory catalogue (the `coveringLocalityOf` fast-path doctrine) |
+| `governmentAt(address)` / `governmentChainAt(address)` | async (load-on-use W10; the gate awaits the Api's `needs`) | trie + in-memory catalogue (the `coveringLocalityOf` fast-path doctrine) |
 | `subjectTo(scope)` | async | the chain over where the scope IS — what binds a visitor (the full resolve walk's zone step awaits) |
 | `residentOf(character)` | sync | the chain over the **domicile** — membership standing (the future franchise/petition/services hook) |
 | `domicileAddressOf(character)` | sync | the residence seam's face |
@@ -321,5 +320,6 @@ Refused on another owner's property and on ungoverned ground.
 ## History
 
 - 2026-11-09 — documents path identity: `GovernmentCatalogue` left the boot
-  list and loads on reach through `GovernmentApi.ready()`. See git log for the
+  list and loads on reach through `GovernmentApi.ready()` (since load-on-use
+  W10, at boot as `GovernmentApi`'s `needs`). See git log for the
   `reqs/documents-path-identity` branch.

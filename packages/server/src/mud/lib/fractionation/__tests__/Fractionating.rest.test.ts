@@ -20,6 +20,8 @@ import { WorldClockApi } from '../../../api/worldclock';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
+import { rememberSchedule } from '../../maturation/__tests__/profiles';
+
 
 class TestPan extends FractionatingMixin(ThermalMixin(CraftedMixin(BulkableMixin(Good)))) {
   static _mixinName = 'FractionatingRestTestPan';
@@ -63,7 +65,7 @@ function standFixtures(): void {
   mat(PLAIN, ['liquid', 'rest-plain']);
   mat(PLAIN_OUT, ['liquid']);
 
-  makeStuffAtPath(() => {
+  rememberSchedule(() => {
     const s = new FractionSchedule();
     s.setKey('rest-setting');
     s.setInputCategory('rest-milk');
@@ -82,7 +84,7 @@ function standFixtures(): void {
   }, `${ROOT}/fractionation/rest-setting`);
 
   // A schedule with NO rest and no derived residue — the shipped still shape.
-  makeStuffAtPath(() => {
+  rememberSchedule(() => {
     const s = new FractionSchedule();
     s.setKey('rest-plain');
     s.setInputCategory('rest-plain');

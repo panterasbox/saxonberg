@@ -5,7 +5,7 @@
  *
  * 1. **A pack can add a construction form with no kernel edit** — the
  *    whole point of `Construction`'s second source, demonstrated by
- *    this pack's own `/trade/textiles/idea/fabric/*` rows.
+ *    this pack's own `content/fabrics/` documents (`/trade/textiles/fabrics/*`).
  * 2. **Two bolts from different dye lots do not merge**, which is the
  *    real-world dye-lot problem falling out of a predicate — and which
  *    makes a dyer's repeatability visible *in the inventory*, with no
@@ -27,6 +27,7 @@ import {
   stampTemplatePathForTest,
 } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
+import { rememberFabric, forgetFabrics, fabricPath } from "@saxonberg/server/mud/lib/material/__tests__/fabrics";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CONTENT = join(here, "..", "..", "content", "trade", "textiles");
@@ -36,25 +37,18 @@ const WELD = "/trade/farming/idea/material/weld";
 
 /** The pack's own fabric rows, registered exactly as the catalogue does. */
 function registerPackFabrics(): string[] {
-  const dir = join(CONTENT, "idea", "fabric");
+  // The pack's own fabric DOCUMENTS (load-on-use W2): `content/fabrics/`,
+  // cited by `/trade/textiles/fabrics/<word>`.
+  const dir = join(CONTENT, "..", "..", "fabrics");
   const keys: string[] = [];
   for (const f of readdirSync(dir).filter((n) => n.endsWith(".yaml"))) {
-    const doc = YAML.parse(readFileSync(join(dir, f), "utf-8")) as {
-      class?: string;
-      data: {
-        key: string;
-        layerBand: number;
-        loft: number;
-        weaveDensity: number;
-        drape: number;
-      };
-    };
-    expect(doc.class).toBe("/platform/idea/material/Fabric");
-    Construction.registerFabric(doc.data);
-    keys.push(doc.data.key);
+    const data = YAML.parse(readFileSync(join(dir, f), "utf-8")) as Record<string, unknown>;
+    expect(data.class).toBeUndefined();
+    const word = f.slice(0, -".yaml".length);
+    keys.push(rememberFabric({ ...(data as object), key: word } as Parameters<typeof rememberFabric>[0]));
   }
   // Plus the commons' `woven`, which this pack's bolts default to.
-  Construction.registerFabric({
+  rememberFabric({
     key: "woven",
     layerBand: 0,
     loft: 0.1,
@@ -75,7 +69,7 @@ function bolt(opts: {
   // ⚠ Same row: `canMergeWith`'s FIRST question is template identity,
   // and two clones of one row is what a real pair of bolts is — see
   // `pair` below, which stamps both at one path.
-  b.setConstructionForm(opts.form ?? "woven");
+  b.setConstructionForm(opts.form ?? fabricPath("woven"));
   b.setGrade(Grade.of(opts.band ?? "fair"));
   if (opts.dye) b.setDyeStack(opts.dye.map((a) => ({ ...a })));
   return b;
@@ -99,18 +93,18 @@ function stamp(s: Stuff, path: string): void {
 }
 
 describe("⭐ a PACK adds construction forms with no kernel edit", () => {
-  beforeEach(() => Construction.clearFabrics());
+  beforeEach(() => forgetFabrics());
   afterEach(() => {
-    Construction.clearFabrics();
+    forgetFabrics();
     StuffApi.clearAll();
   });
 
   it("this pack's own fabric rows join the vocabulary", () => {
     // The kernel's covering vocabulary knows nothing about sackcloth.
-    expect(Construction.isForm("sackcloth")).toBe(false);
+    expect(Construction.isForm(fabricPath("sackcloth"))).toBe(false);
     const keys = registerPackFabrics();
-    expect(keys).toContain("sackcloth");
-    expect(keys).toContain("fine-woven");
+    expect(keys).toContain(fabricPath("sackcloth"));
+    expect(keys).toContain(fabricPath("fine-woven"));
     for (const key of keys) {
       expect(Construction.isForm(key)).toBe(true);
       expect(Construction.of(key).getDomain()).toBe("covering");
@@ -126,21 +120,21 @@ describe("⭐ a PACK adds construction forms with no kernel edit", () => {
     registerPackFabrics();
     const density = (k: string): number =>
       Construction.of(k).getFabric()!.weaveDensity;
-    expect(density("sackcloth")).toBeLessThan(density("woven"));
-    expect(density("woven")).toBeLessThan(density("fine-woven"));
+    expect(density(fabricPath("sackcloth"))).toBeLessThan(density(fabricPath("woven")));
+    expect(density(fabricPath("woven"))).toBeLessThan(density(fabricPath("fine-woven")));
     // …and they share a band, so wear order decides between them.
     const band = (k: string): number => Construction.of(k).getLayerDepth();
-    expect(band("sackcloth")).toBe(band("fine-woven"));
+    expect(band(fabricPath("sackcloth"))).toBe(band(fabricPath("fine-woven")));
   });
 });
 
 describe("⭐⭐ two bolts from different dye lots do not merge", () => {
   beforeEach(() => {
-    Construction.clearFabrics();
+    forgetFabrics();
     registerPackFabrics();
   });
   afterEach(() => {
-    Construction.clearFabrics();
+    forgetFabrics();
     StuffApi.clearAll();
   });
 
@@ -156,7 +150,7 @@ describe("⭐⭐ two bolts from different dye lots do not merge", () => {
   });
 
   it("⚠ a different WEAVE is a different cloth, however alike folded", () => {
-    const [a, b] = pair({ form: "woven" }, { form: "fine-woven" });
+    const [a, b] = pair({ form: fabricPath("woven") }, { form: fabricPath("fine-woven") });
     expect(a.canMergeWith(b as unknown as Stuff)).toBe(false);
   });
 

@@ -36,10 +36,7 @@ import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/C
 import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
-import type ConditionCatalogue from '@saxonberg/server/mud/platform/idea/ConditionCatalogue';
 import type Condition from '@saxonberg/server/mud/platform/idea/Condition';
 import type { AfflictionRecord } from '@saxonberg/server/mud/platform/idea/Condition';
 import type {
@@ -49,6 +46,7 @@ import type {
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
+import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 
 const TOPIC = 'sense.reading';
 const MEDICINE = 'medicine';
@@ -242,7 +240,7 @@ export default class PatientReading extends Reading {
   /** The warmed row behind a record, or null. */
   private rowOf(record: AfflictionRecord): Condition | null {
     return (
-      StuffApi.findByTemplatePath<Condition>(record.templatePath) ?? null
+      ConditionApi.conditions().need(record.templatePath) ?? null
     );
   }
 
@@ -257,11 +255,8 @@ export default class PatientReading extends Reading {
     // warmed. Reading it here rather than hard-coding a list is what
     // makes a differential diagnosis cover a pack's new conditions for
     // free.
-    const catalogue = StuffApi.findByTemplatePath<ConditionCatalogue>(
-      TemplatePaths.conditionCatalogue,
-    );
     const out: Condition[] = [];
-    for (const row of catalogue?.roster() ?? []) {
+    for (const row of ConditionApi.conditions().roster()) {
       const rowSigns = row.getObservableSigns?.() ?? [];
       if (rowSigns.length === 0) continue;
       if (rowSigns.some((sign) => signs.has(sign))) out.push(row);
@@ -280,11 +275,8 @@ export default class PatientReading extends Reading {
    * make.
    */
   private distractorFor(signs: ReadonlySet<string>, seed: number): string | null {
-    const catalogue = StuffApi.findByTemplatePath<ConditionCatalogue>(
-      TemplatePaths.conditionCatalogue,
-    );
     const pool: string[] = [];
-    for (const row of catalogue?.roster() ?? []) {
+    for (const row of ConditionApi.conditions().roster()) {
       for (const sign of row.getObservableSigns?.() ?? []) {
         if (!signs.has(sign) && !pool.includes(sign)) pool.push(sign);
       }

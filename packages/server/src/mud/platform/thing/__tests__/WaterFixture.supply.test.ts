@@ -31,6 +31,13 @@ import {
   makeStuffAtPath,
 } from '../../../lib/security/__tests__/test-setup';
 
+/** A pipe run whose row carries water (load-on-use W8: `carries:` is content). */
+function waterRun(): PipeRun {
+  const p = new PipeRun();
+  p.setCarries('/stuff/idea/material/bulk/water');
+  return p;
+}
+
 const MAIN = '/test/thing/main';
 
 /** A supply in the `WaterSupply` shape: a main, or (with a level) a store. */
@@ -231,7 +238,7 @@ describe('⭐⭐ a fixture reads its PREMISES', () => {
     // …and it says the PIPE is the cause, not the supply.
     expect(t.bulkWhyEmpty('interior')).toBe('Nothing comes out — no pipe brings water into this room.');
     // A sound run in the room, and it runs.
-    ContainmentApi.move(makeStuff(() => new PipeRun()), bar);
+    ContainmentApi.move(makeStuff(() => waterRun()), bar);
     await t.settleBulk('interior');
     expect(t.supplyStateNow()).toBeNull();
     expect(t.getBulkAvailable('interior')).toBe(Infinity);
@@ -239,7 +246,7 @@ describe('⭐⭐ a fixture reads its PREMISES', () => {
 
   describe('⭐⭐ a tap implies its pipe (`Plumbed` — the review: no author props one)', () => {
     const cloneRun = () =>
-      vi.spyOn(StuffApi, 'clone').mockImplementation((async () => makeStuff(() => new PipeRun())) as never);
+      vi.spyOn(StuffApi, 'clone').mockImplementation((async () => makeStuff(() => waterRun())) as never);
 
     it('a room that says nothing stands up the default run, once, and runs', async () => {
       mainAt();
@@ -300,7 +307,7 @@ describe('⭐⭐ a fixture reads its PREMISES', () => {
       vi.spyOn(ParcelApi, 'waterOf').mockReturnValue({ source: MAIN, parcel: null });
       const clone = cloneRun();
       const yard = room('/test/place/yard');
-      ContainmentApi.move(makeStuff(() => new PipeRun()), yard);
+      ContainmentApi.move(makeStuff(() => waterRun()), yard);
       const t = tap();
       ContainmentApi.move(t, yard);
       await t.settleBulk('interior');

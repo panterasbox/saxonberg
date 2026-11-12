@@ -13,6 +13,10 @@ import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import YAML from "yaml";
+import "@saxonberg/server/test-bootstrap";
+import { existsSync } from "fs";
+import DyestuffCatalogue from "../idea/DyestuffCatalogue";
+import { makeStuff } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const DYEING = join(here, "..", "..", "content", "trade", "dyeing");
@@ -24,22 +28,20 @@ interface ShadeAvatar {
 }
 interface DyestuffRow {
   key: string;
-  materialPath: string;
+  material: string;
   chemistry: "mordant" | "vat";
   shades: ShadeAvatar[];
 }
 
 function dyestuffs(): DyestuffRow[] {
-  const dir = join(DYEING, "idea", "dyestuff");
+  // The `dyestuff` DOCUMENTS (load-on-use W3): `content/dyestuffs/`.
+  const dir = join(DYEING, "..", "..", "dyestuffs");
   return readdirSync(dir)
     .filter((f) => f.endsWith(".yaml"))
     .map((f) => {
-      const doc = YAML.parse(readFileSync(join(dir, f), "utf-8")) as {
-        class: string;
-        data: DyestuffRow;
-      };
-      expect(doc.class).toBe("/trade/dyeing/idea/Dyestuff");
-      return doc.data;
+      const data = YAML.parse(readFileSync(join(dir, f), "utf-8")) as DyestuffRow & { class?: string };
+      expect(data.class).toBeUndefined();
+      return { ...data, key: f.replace(/\.yaml$/, "") };
     });
 }
 
@@ -141,8 +143,8 @@ describe("two chemistries, and the rows say which", () => {
     // from — a bed or a retort — is upstream. ⭐ That is the seam a
     // synthetic alizarin walks through.
     for (const d of dyestuffs()) {
-      expect(d.materialPath).toMatch(/\/idea\/material\//);
-      expect(d.materialPath).not.toMatch(/\/thing\//);
+      expect(d.material).toMatch(/\/idea\/material\//);
+      expect(d.material).not.toMatch(/\/thing\//);
     }
   });
 
@@ -154,5 +156,32 @@ describe("two chemistries, and the rows say which", () => {
         .flatMap((d) => d.shades.map((s) => s.fastness)),
     );
     expect(woad.shades[0]!.fastness).toBeGreaterThan(best);
+  });
+});
+
+describe("⭐ a dyestuff document is checked before merge (load-on-use W3)", () => {
+  // The installer cannot reach a pack's catalogue to validate a dyestuff,
+  // so the shipped documents are parsed here — and the material each one
+  // dyes with must be a row some pack ships, or `dye` finds nothing.
+  it("every shipped dyestuff parses, and names a material row a pack ships", () => {
+    const catalogue = makeStuff(() => new DyestuffCatalogue());
+    const packs = join(here, "..", "..", "..");
+    for (const d of dyestuffs()) {
+      const path = `/trade/dyeing/dyestuffs/${d.key}`;
+      const parsed = catalogue.parse(d as unknown as Record<string, unknown>, path);
+      expect(parsed.getKey()).toBe(d.key);
+      const shipped = readdirSync(packs).some((pack) =>
+        existsSync(join(packs, pack, "content", `${d.material}.yaml`)),
+      );
+      expect(shipped, `${path} names ${d.material}`).toBe(true);
+    }
+  });
+
+  it("a malformed dyestuff is refused, naming what is wrong", () => {
+    const catalogue = makeStuff(() => new DyestuffCatalogue());
+    expect(() => catalogue.parse({ material: "madder", chemistry: "mordant", shades: [] }, "/t/dyestuffs/x"))
+      .toThrow(/material 'madder'/);
+    expect(() => catalogue.parse({ material: "/m", chemistry: "boil", shades: [] }, "/t/dyestuffs/x"))
+      .toThrow(/chemistry 'boil'/);
   });
 });

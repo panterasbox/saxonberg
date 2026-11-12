@@ -40,6 +40,7 @@ import { Reserve } from '../../reserve/Reserved';
 import { chargeWood } from '../../fire/__tests__/burner-fuel';
 import type { Burner } from '../../fire/Burner';
 import { ContainmentApi } from '../../../api/containment';
+import { standRootBiome } from './root-biome';
 
 const SCALE = 12;
 const GRANITE = '/stuff/idea/material/_env/granite';
@@ -122,6 +123,8 @@ beforeEach(() => {
   makeStuffAtPath(() => new Biome(), INDOOR);
   makeStuffAtPath(() => new SkyBiome(), OUTDOOR);
   material(GRANITE, 2.9, 2750, 790);
+  // The universe's default walls are the root biome's (load-on-use W8).
+  standRootBiome(GRANITE);
   material(OAK, 0.17, 750, 2000);
   material(TIN, 80, 7300, 450);
   material(BRICK, 0.7, 1800, 840);

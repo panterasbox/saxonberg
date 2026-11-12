@@ -27,14 +27,20 @@
  *       document some pack ships: a pack's document is stored at its root
  *       + the kind's content dir + the file, and a document's path is its
  *       only identity (owner, 2026-11-08). Aroma paths are `lint:aromas`'.
+ *   (h) Every row a material-citing DOCUMENT names (a maturation
+ *       profile's product, a schedule's spans, a dyestuff's bath —
+ *       {@link DOCUMENT_ROW_CITATIONS}) is a row some pack ships.
  *   (f) ⭐⭐ Every field a `fieldMeta` DECLARES on the identity axis
  *       (`ref: 'identity:constituent' | 'identity:relation' |
  *       'identity:kind'`), in the kernel or any pack's `src/`, resolves
  *       on every row that authors it — read by its declaration, not by a
  *       hand-kept list (the scan sweep, 2026-10-14). `identity:provenance`
  *       is a historical claim and is not checked. The constituent graph
- *       over rows must be ACYCLIC: a constituent loads with its holder,
- *       so a cycle is a load that waits on itself. One field name
+ *       over rows must be ACYCLIC except within the Material family (a
+ *       melt and its freeze cite each other; `ensureConstituent` never
+ *       awaits a load in flight, so such a pair waits on nothing —
+ *       load-on-use decision 4); a cycle that leaves the family is a load
+ *       that waits on itself. One field name
  *       declared as two different kinds is a finding.
  *
  * No exemption list, by design: a reference that cannot resolve is a
@@ -1046,7 +1052,7 @@ const UNREAD_PATH_FIELDS: readonly string[] = [
   'lobbyPath', 'makerId', 'parLines',
   'parentExtent', 'roadTemplate',
   'rosterSlots', 'routes', 'seatIn', 'seats', 'seedTemplatePath',
-  'steepsInto', 'teachesSpellPath', 'trapTemplate', 'treasury',
+  'teachesSpellPath', 'trapTemplate', 'treasury',
 ];
 
 function checkPathFieldCoverage(
@@ -1132,7 +1138,7 @@ function checkFieldRefs(rows: Map<string, string>): number {
 // ── clause (g): a field naming DOCUMENTS by path resolves ──────────
 /** Field → the document kind's content dir its values are stored under. */
 /** Clause (g) field names another family also uses for a non-path word. */
-const SHARED_FIELD_NAMES: ReadonlySet<string> = new Set(['mechanism', 'forms']);
+const SHARED_FIELD_NAMES: ReadonlySet<string> = new Set(['mechanism', 'forms', 'constructionForm']);
 
 const DOCUMENT_PATH_FIELDS: Readonly<Record<string, string>> = {
   // A species' name banks (`/species-and-names/name-banks/common`).
@@ -1149,6 +1155,11 @@ const DOCUMENT_PATH_FIELDS: Readonly<Record<string, string>> = {
   seeAlso: 'concepts',
   // A host's ways of sitting (`/platform/placements/from`).
   placements: 'placements',
+  // A cleansing material's cleanser (`/platform/cleansers/soap`) — load-on-use W1.
+  cleanser: 'cleansers',
+  // A garment's fabric (`/platform/fabrics/woven`) — load-on-use W2; a
+  // kernel form (`plate`) is a word, so only path-shaped values are checked.
+  constructionForm: 'fabrics',
 };
 
 /** Every document path a pack ships under `contentDir`: its root + the dir + the file. */
@@ -1198,6 +1209,52 @@ function checkDocumentRefs(rows: Map<string, string>): number {
             clause: 'g', file,
             detail: `${field}: ${String(path)} is not the path of a document any pack ships under content/${contentDir}/`,
           });
+        }
+      }
+    }
+  }
+  return checked;
+}
+
+// ── clause (h): a DOCUMENT naming a row by path resolves ───────────
+/**
+ * The row-citing fields of the document kinds that cite materials
+ * (load-on-use W1–W4): a maturation profile's product, failure and lees, a
+ * schedule's product, residue and spans, a dyestuff's bath. The catalogues
+ * load these with the document, so a misspelling would be a load that
+ * fails at first reach — caught here, before merge.
+ */
+const DOCUMENT_ROW_CITATIONS: Readonly<Record<string, (d: Record<string, unknown>) => unknown[]>> = {
+  'maturation-profiles': (d) => [
+    d.productMaterial, d.turnedMaterial, d.leesMaterial,
+    ...(Array.isArray(d.transforms) ? d.transforms.map((t) => (t as Record<string, unknown>)?.becomes) : []),
+    (d.offGas as Record<string, unknown> | undefined)?.material,
+  ],
+  'fraction-schedules': (d) => [
+    d.productMaterial, d.residueMaterial,
+    ...(Array.isArray(d.fractions) ? d.fractions.map((f) => (f as Record<string, unknown>)?.material) : []),
+  ],
+  dyestuffs: (d) => [d.material],
+};
+
+function checkDocumentCitations(rows: Map<string, string>): number {
+  let checked = 0;
+  if (!existsSync(CONTENT)) return checked;
+  for (const [contentDir, cites] of Object.entries(DOCUMENT_ROW_CITATIONS)) {
+    for (const pack of readdirSync(CONTENT)) {
+      const dir = join(CONTENT, pack, 'content', contentDir);
+      if (!existsSync(dir)) continue;
+      for (const file of walk(dir, '.yaml')) {
+        let data: Record<string, unknown> | null;
+        try { data = YAML.parse(readFileSync(file, 'utf8')) as Record<string, unknown> | null; }
+        catch { continue; }
+        if (!data || typeof data !== 'object') continue;
+        for (const path of cites(data)) {
+          if (typeof path !== 'string' || path === '') continue;
+          checked += 1;
+          if (!rows.has(path)) {
+            findings.push({ clause: 'h', file, detail: `cites ${path}, which no pack ships as a row` });
+          }
         }
       }
     }
@@ -1286,16 +1343,24 @@ function checkDeclaredIdentity(
       }
     }
   }
-  // The constituent graph must be acyclic: a constituent is AWAITED by
-  // its holder's load, so a cycle is a load waiting on itself.
+  // The constituent graph must be acyclic where a cycle would be a load
+  // waiting on itself. ⚠ It is NOT, between materials (owner, load-on-use
+  // decision 4): `ensureConstituent` returns WITHOUT awaiting a load already
+  // in flight, so water → ice → water stands both rows and waits on neither.
+  // A cycle that stays inside the Material family is a melt and its freeze
+  // (or a liquor that concentrates to itself), not a deadlock; one that
+  // leaves it is refused.
+  const isMaterialRow = (path: string): boolean => path.includes('/idea/material/');
   const state = new Map<string, 'open' | 'done'>();
   const visit = (n: string, trail: string[]): void => {
     const st = state.get(n);
     if (st === 'done') return;
     if (st === 'open') {
+      const cycle = [...trail.slice(trail.indexOf(n)), n];
+      if (cycle.every(isMaterialRow)) return;
       findings.push({
         clause: 'f', file: rows.get(n) ?? n,
-        detail: `constituent cycle: ${[...trail.slice(trail.indexOf(n)), n].join(' → ')}`,
+        detail: `constituent cycle: ${cycle.join(' → ')}`,
       });
       return;
     }
@@ -1315,11 +1380,22 @@ function checkTemplatePathConstants(rows: Map<string, string>): number {
     findings.push({ clause: 'c', file: 'src/mud/lib/paths.ts', detail: 'TemplatePaths block not found' });
     return 0;
   }
+  // A catalogue an Api stands up in code (`singletonSync(TemplatePaths.x,
+  // …)`, load-on-use D13) has no row by design — its constant names a
+  // singleton's address, not a row to clone.
+  const apiDir = join(SERVER_ROOT, 'src/mud/api');
+  const codeMade = new Set<string>();
+  for (const f of readdirSync(apiDir).filter((n) => n.endsWith('.ts'))) {
+    for (const k of readFileSync(join(apiDir, f), 'utf8').matchAll(/singletonSync\(\s*TemplatePaths\.(\w+)/g)) {
+      codeMade.add(k[1]!);
+    }
+  }
   let checked = 0;
-  for (const m of block[1]!.matchAll(/:\s*"(\/[^"]+)"/g)) {
-    const path = m[1]!;
+  for (const m of block[1]!.matchAll(/(\w+):\s*"(\/[^"]+)"/g)) {
+    const path = m[2]!;
     const leaf = path.split('/').pop()!;
     if (!/(Registry|Catalogue)$/.test(leaf)) continue;
+    if (codeMade.has(m[1]!)) continue;
     checked += 1;
     if (!rows.has(path)) {
       findings.push({
@@ -1456,7 +1532,7 @@ function main(): void {
   const rows = templateRows();
   checkRetiredChannel();
   const fieldRefs = checkFieldRefs(rows);
-  const documentRefs = checkDocumentRefs(rows);
+  const documentRefs = checkDocumentRefs(rows) + checkDocumentCitations(rows);
   const declared = declaredIdentityFields();
   const identityRefs = checkDeclaredIdentity(rows, declared);
   checkPathFieldCoverage(rows, declared);

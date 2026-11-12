@@ -6,6 +6,7 @@ import {
   CONSTRUCTION_FORMS,
 } from '../Construction';
 import { MECHANICAL_CHANNELS } from '../Channel';
+import { rememberFabric, forgetFabrics, fabricPath } from './fabrics';
 
 describe('Construction', () => {
   it('constructs every known form; of() throws on junk', () => {
@@ -173,8 +174,8 @@ describe('Construction', () => {
  * resist profile.
  */
 describe('Construction — the fabric registry (the second covering source)', () => {
-  beforeEach(() => Construction.clearFabrics());
-  afterEach(() => Construction.clearFabrics());
+  beforeEach(() => forgetFabrics());
+  afterEach(() => forgetFabrics());
 
   const woven = {
     key: 'woven',
@@ -185,22 +186,22 @@ describe('Construction — the fabric registry (the second covering source)', ()
   };
 
   it('a registered fabric joins the vocabulary with no kernel edit', () => {
-    expect(Construction.isForm('woven')).toBe(false);
-    Construction.registerFabric(woven);
-    expect(Construction.isForm('woven')).toBe(true);
-    expect(Construction.isCoveringForm('woven')).toBe(true);
-    expect(Construction.isFabricForm('woven')).toBe(true);
-    expect(Construction.of('woven').getDomain()).toBe('covering');
-    expect(Construction.of('woven').isCovering()).toBe(true);
-    expect(Construction.of('woven').isWeapon()).toBe(false);
+    expect(Construction.isForm(fabricPath('woven'))).toBe(false);
+    rememberFabric(woven);
+    expect(Construction.isForm(fabricPath('woven'))).toBe(true);
+    expect(Construction.isCoveringForm(fabricPath('woven'))).toBe(true);
+    expect(Construction.isFabricForm(fabricPath('woven'))).toBe(true);
+    expect(Construction.of(fabricPath('woven')).getDomain()).toBe('covering');
+    expect(Construction.of(fabricPath('woven')).isCovering()).toBe(true);
+    expect(Construction.of(fabricPath('woven')).isWeapon()).toBe(false);
   });
 
   it('⭐ responseFor on a fabric is POOR everywhere, and is not authored', () => {
     // "A linen shirt is armor that does not work" — as one line of
     // kernel data. Adding `lace` changes nothing about combat.
-    Construction.registerFabric(woven);
-    Construction.registerFabric({ ...woven, key: 'lace', weaveDensity: 0.1 });
-    for (const key of ['woven', 'lace']) {
+    rememberFabric(woven);
+    rememberFabric({ ...woven, key: 'lace', weaveDensity: 0.1 });
+    for (const key of [fabricPath('woven'), fabricPath('lace')]) {
       const c = Construction.of(key);
       for (const ch of MECHANICAL_CHANNELS) {
         expect(c.responseFor(ch)).toBe('poor');
@@ -213,10 +214,10 @@ describe('Construction — the fabric registry (the second covering source)', ()
   });
 
   it('⚠ the depth ladder stays TOTAL over kernel ∪ registered forms', () => {
-    Construction.registerFabric(woven);
-    Construction.registerFabric({ ...woven, key: 'felted', layerBand: 1 });
+    rememberFabric(woven);
+    rememberFabric({ ...woven, key: 'felted', layerBand: 1 });
     const depths = new Map<string, number>();
-    for (const form of [...COVERING_FORMS, 'woven', 'felted']) {
+    for (const form of [...COVERING_FORMS, fabricPath('woven'), fabricPath('felted')]) {
       // Unconditional — this is exactly how the three hot paths call it.
       depths.set(form, Construction.of(form).getLayerDepth());
     }
@@ -225,42 +226,42 @@ describe('Construction — the fabric registry (the second covering source)', ()
     expect(depths.get('hide')).toBe(2);
     expect(depths.get('mail')).toBe(3);
     expect(depths.get('plate')).toBe(4);
-    expect(depths.get('woven')).toBe(0);
-    expect(depths.get('felted')).toBe(1);
+    expect(depths.get(fabricPath('woven'))).toBe(0);
+    expect(depths.get(fabricPath('felted'))).toBe(1);
     for (const d of depths.values()) expect(Number.isInteger(d)).toBe(true);
   });
 
-  it('an out-of-range or malformed row is refused AT REGISTRATION', () => {
-    // The totality guard has to fire at hydration, loudly — not at the
+  it('an out-of-range or malformed document is refused AT INSTALL (the parse)', () => {
+    // The totality guard has to fire at install, loudly — not at the
     // moment somebody swings.
-    expect(() => Construction.registerFabric({ ...woven, layerBand: 5 })).toThrow(
-      RangeError,
-    );
-    expect(() => Construction.registerFabric({ ...woven, layerBand: -1 })).toThrow(
-      RangeError,
-    );
-    expect(() =>
-      Construction.registerFabric({ ...woven, layerBand: 1.5 }),
-    ).toThrow(RangeError);
-    expect(() => Construction.registerFabric({ ...woven, loft: 2 })).toThrow(
-      RangeError,
-    );
-    expect(() => Construction.registerFabric({ ...woven, key: 'Woven' })).toThrow(
-      RangeError,
-    );
-    // And a fabric may never shadow a kernel form.
-    expect(() => Construction.registerFabric({ ...woven, key: 'plate' })).toThrow(
-      RangeError,
-    );
+    expect(() => rememberFabric({ ...woven, layerBand: 5 })).toThrow(/layerBand 5/);
+    expect(() => rememberFabric({ ...woven, layerBand: -1 })).toThrow(/layerBand -1/);
+    expect(() => rememberFabric({ ...woven, layerBand: 1.5 })).toThrow(/layerBand 1.5/);
+    expect(() => rememberFabric({ ...woven, loft: 2 })).toThrow(/loft 2/);
+    expect(() => rememberFabric({ ...woven, key: 'Woven' })).toThrow(/kebab/);
   });
 
-  it('survives clear + re-register (the HMR / go-live re-warm)', () => {
-    Construction.registerFabric(woven);
-    expect(Construction.fabricKeys()).toEqual(['woven']);
-    Construction.clearFabrics();
-    expect(Construction.isForm('woven')).toBe(false);
-    Construction.registerFabric(woven);
-    expect(Construction.of('woven').getFabric()?.weaveDensity).toBe(0.75);
+  it('⭐ a fabric can never shadow a kernel form: a fabric is a PATH, a kernel form a word', () => {
+    rememberFabric(woven);
+    expect(Construction.isFabricForm('plate')).toBe(false);
+    expect(Construction.of('plate').getFabric()).toBeNull();
+    // A sentence carries the leaf, never the path.
+    expect(Construction.of(fabricPath('woven')).getWord()).toBe('woven');
+    expect(Construction.of('plate').getWord()).toBe('plate');
+  });
+
+  it('a fabric read cold is an engine defect, thrown by path (load-on-use W2)', () => {
+    expect(Construction.isForm(fabricPath('woven'))).toBe(false);
+    expect(() => Construction.of(fabricPath('woven'))).toThrow(/unknown form/);
+  });
+
+  it('survives forget + re-remember (the go-live)', () => {
+    rememberFabric(woven);
+    expect(Construction.isForm(fabricPath('woven'))).toBe(true);
+    forgetFabrics();
+    expect(Construction.isForm(fabricPath('woven'))).toBe(false);
+    rememberFabric(woven);
+    expect(Construction.of(fabricPath('woven')).getFabric()?.weaveDensity).toBe(0.75);
   });
 
   it('every kernel covering form still has a real effect', () => {

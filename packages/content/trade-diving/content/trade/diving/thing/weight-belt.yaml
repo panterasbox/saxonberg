@@ -12,6 +12,6 @@ data:
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [torso]
   _materialPath: /stuff/idea/material/element/lead
-  constructionForm: woven
+  constructionForm: /platform/fabrics/woven
   gradeBand: fair
   mass: 6

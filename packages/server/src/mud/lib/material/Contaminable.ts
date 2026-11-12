@@ -244,6 +244,8 @@ export class Contamination {
    */
   public static behaviorOf(key: string): PathogenBehavior | null {
     if (!key) return null;
+    // A peek: the roster stood with the provision (`onCreate`), so a key
+    // with no row is an honest "no pathogen behavior", never a cold read.
     const row = StuffApi.findByTemplatePath<Condition>(
       TemplatePathPrefixes.pathogenCondition + key,
     );
@@ -620,6 +622,7 @@ export function ContaminableMixin<TBase extends MixinConstructor<Stuff>>(
 ) {
   return class ContaminableMixin extends Base implements Contaminable {
     static _mixinName = 'ContaminableMixin';
+
 
     static fieldMeta: FieldMeta = {
       _pathogenLoads: { persistent: true },

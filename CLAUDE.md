@@ -241,7 +241,7 @@ behavior. Read the relevant doc before editing in its area.
   - [combat-hooks.md](./docs/subsystems/combat-hooks.md) — wizard-facing combat extension grammar: three `@hook` surfaces, the augment carrier, the influence bridge, species vocabulary
   - [electricity.md](./docs/subsystems/electricity.md) — the shock channel + conduction spread: the Ohm's-law core, the ElectricityApi walk, SustainedShock, FloodedCell
   - [energy.md](./docs/subsystems/energy.md) — the `/system/energy` power economy, both epochs: lamp-oil street lighting (a producer + a depleting FuelStore + a civic bill) and the electric grid (a Feeder row → GridCatalogue compiled reachability, the parcel meter — feeder+powerBand, GridPoweredMixin, the sever/splice cut as the one state, `analyze grid`'s derived epoch); the meter is the boundary, poles are sparse LineAccess access points
-  - [maturation.md](./docs/subsystems/maturation.md) — the durative transform: MaturingMixin on the VESSEL, MaturationProfile rows + the boot-warmed roster, the grade/mark/strain transfer seam, cultures + the lees split, the cellar CO₂, the cellars brain, the work boards; zero new verbs
+  - [maturation.md](./docs/subsystems/maturation.md) — the durative transform: MaturingMixin on the VESSEL, maturation-profile documents `BulkableApi` stands at boot, the grade/mark/strain transfer seam, cultures + the lees split, the cellar CO₂, the cellars brain, the work boards; zero new verbs
   - [mould.md](./docs/subsystems/mould.md) — the container decides the SHAPE of what sets in it: `MouldMixin` and the set site (a mould keeps the solid in its own form, any other vessel drops the material's cast), three consumers — the cheese hoop (drains), the ingot mould and the ice pan (freeze)
   - [fractionation.md](./docs/subsystems/fractionation.md) — ⭐ the sibling of maturation, driven by the VOLUME DRAWN rather than the clock: FractionSchedule rows (ordered spans, each with a character, a grade band, a toxin dose and an `aromaticCarry`), FractionatingMixin's four policy-seam overrides, the blurred optimistic read (*the nose hears what it wants to hear*), and the cut as the skill
   - [fire.md](./docs/subsystems/fire.md) — combustion + high heat: the heat channel, FireApi/Combustible, the ignition balance, phase change, furnaces, Hearthworks
@@ -301,7 +301,7 @@ behavior. Read the relevant doc before editing in its area.
   - [activity.md](./docs/subsystems/activity.md) — the engagement framework: SchedulerApi, EngagedMixin slots, the AbortReason vocabulary
   - [behavior.md](./docs/subsystems/behavior.md) — NPC behavior: BehavedMixin data-specs, brains as modules, witness/`candidate` triggers, the ONE deliberation beat per agent + `Urgency`'s four bands × five `TaskKind`s, the NPC class
   - [npc-dialogue.md](./docs/subsystems/npc-dialogue.md) — the tree-dialogue responder: `talk`, the DialogueConversation engagement, the choice wheel, auto-introduce
-  - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome Idea, the outward-walking chain resolver, SkyExposed; the instrument rungs are `instrumentation.md`'s now (rows over `Tool`, not classes); ⚠ `getBiome()` is a REGISTRY read and `BiomeCatalogue` is what warms the roster
+  - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome Idea, the outward-walking chain resolver, SkyExposed; the instrument rungs are `instrumentation.md`'s now (rows over `Tool`, not classes); ⚠ a biome loads as its place's constituent — there is no biome catalogue
   - [instrumentation.md](./docs/subsystems/instrumentation.md) — the reading ladder: ⭐⭐⭐ competence resolves DETAIL and never ACCESS; `analyze`/`measure`/`readings`/`sample`/`assay` flat over a `Reading` ROW any pack ships (`<root>/idea/reading/<channel>`), warmed by `ReadingCatalogue` (no Api); the seeded bracket, the instrument CEILING, the bench that keeps nothing of yours; ⚠ a required arg with no default fails closed and SILENT (the article defect is fixed in the binder); `analyze rooms` + `measure paint` took `survey`'s reads
   - [address.md](./docs/subsystems/address.md) — the rooted address namespace: the Locality tier, AddressableMixin, the longest-prefix resolve walk
   - [weather.md](./docs/subsystems/weather.md) — the stateless procedural weather field, pins + climate lean, wetness, puddles, storm lightning, cloud forms
@@ -1024,12 +1024,14 @@ good"* and none said *"a movable"*.
 — today `equipment/`, `modalities/`, `location/`, `species/`, `magic/`,
 `corpo/`, `persistence/`, `sandbox/`, `material/`, plus the pre-existing
 `instrument/`. ⚠ **No cluster is load-bearing — `material/` included.**
-The warm is `MaterialCatalogue.warm()`: it selects candidates by
-**template-path infix** (`/idea/material/`, every root's subtree) and
-keeps a row whose **`class` extends `Material` wherever it lives** —
-*never an allowlist of roots*, which is exactly how a pack's
+Materials load per row by their doors (a holder's constituent field, an
+act's `ensure`, a restoring setter's `ensureCited` — never at boot); the
+roster's readers are async `MaterialApi.all()` / `findByTag()`, which
+select by **template-path infix** (`/idea/material/`, every root's
+subtree) and keep a row whose **`class` extends `Material` wherever it
+lives** — *never an allowlist of roots*, which is exactly how a pack's
 `/system/arcana/idea/material/PotionMaterial` qualifies. **The kernel
-directory is NOT the filter**, and there is no `MaterialLogic.boot`.
+directory is NOT the filter.**
 
 Lowercase content-tree roots under `/stuff/<branch>/` (`gear/`,
 `exits/`, `material/`, `biome/`) are template namespaces whose backing

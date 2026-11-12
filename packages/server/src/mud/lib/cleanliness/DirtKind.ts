@@ -17,7 +17,7 @@
  * {@link DirtKind.ensure} in its own act; a sync read is {@link DirtKind.need}.
  */
 
-import type { CleanserAction } from '../../platform/idea/Cleanser';
+import type { CleanserAction } from './Cleanser';
 
 /**
  * What a dirt does on a surface — the three things the kernel does

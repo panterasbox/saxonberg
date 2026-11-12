@@ -95,7 +95,7 @@ function register(path: string, gov: string): ShipRegister {
   reg.setRegisterKind(SHIP_ENTRY_KIND);
   // The government dictionary loads with the register (D7); this suite fakes
   // its reads, so the load is not waited for — only kept from leaking.
-  void reg.setGovernment(gov)?.catch(() => undefined);
+  reg.setGovernment(gov);
   return reg;
 }
 

@@ -91,7 +91,6 @@ export type BloodDrawRefusal = ActRefusal<
   'no-tool' | 'no-blood' | 'not-conscious' | 'too-low' | 'wan'
 >;
 import type { Dressing } from './Dressing';
-import type ConditionCatalogue from '../../platform/idea/ConditionCatalogue';
 import { MagicGrid } from '../magic/Grid';
 import { MaterialApi } from '../../api/material';
 import { MagicApi } from '../../api/magic';
@@ -539,7 +538,7 @@ function treatmentOutcome(band: string, quality: number): Outcome {
 /** What a condition declares relieves it, or null when nothing does. */
 function resolutionOf(c: Trauma | AfflictionRecord): string | null {
   if (c.kind === 'trauma') return TRAUMA_BEHAVIOR[c.type]?.resolution ?? null;
-  return StuffApi.findByTemplatePath<Condition>(c.templatePath)?.getResolution()?.by ?? null;
+  return ConditionApi.conditions().need(c.templatePath)?.getResolution()?.by ?? null;
 }
 
 /** ⭐ The remedy answers through what it is. */
@@ -673,11 +672,10 @@ async function treatNamed(
   // What this body is showing, and everything that could show it.
   const signs = new Set<string>();
   for (const c of carried) {
-    const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+    const row = ConditionApi.conditions().need(c.templatePath);
     for (const sign of row?.getObservableSigns() ?? []) signs.add(sign);
   }
-  const catalogue = StuffApi.findByTemplatePath<ConditionCatalogue>(TemplatePaths.conditionCatalogue);
-  const candidates = (catalogue?.roster() ?? []).filter((row) =>
+  const candidates = ConditionApi.conditions().roster().filter((row) =>
     (row.getObservableSigns() ?? []).some((sign) => signs.has(sign)),
   );
   // ⭐ The ambiguity IS the difficulty.
@@ -691,7 +689,7 @@ async function treatNamed(
           : 'easy';
   const hit =
     carried.find((c) => {
-      const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+      const row = ConditionApi.conditions().need(c.templatePath);
       return (row?.getName() ?? '').toLowerCase() === wanted;
     }) ?? null;
   // The supply is spent either way — that is what makes a wrong call cost.
@@ -702,7 +700,7 @@ async function treatNamed(
   if (!hit) return { kind: 'named-miss', named };
   // Right call: resolve it the way its own row says it resolves.
   if (hit.pathogenLoad !== undefined) return tendInfection(target, hit, by);
-  const wants = StuffApi.findByTemplatePath<Condition>(hit.templatePath)?.getResolution()?.by ?? null;
+  const wants = ConditionApi.conditions().need(hit.templatePath)?.getResolution()?.by ?? null;
   if (wants && wants !== treatment.by) {
     return { kind: 'named-remedy-wrong', offered: treatment.by, wanted: wants };
   }
@@ -1090,7 +1088,7 @@ export interface Vitals {
  */
 /** The law a record's own row declares, or null when a driver owns it. */
 function lawOf(record: AfflictionRecord): ProgressionLaw | null {
-  const row = StuffApi.findByTemplatePath<Condition>(record.templatePath);
+  const row = ConditionApi.conditions().need(record.templatePath);
   return row?.getProgression()?.law ?? null;
 }
 
@@ -1176,6 +1174,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
   // gate. Same shape as the shipped `ChattelMixin`.
   class VitalsMixin extends Base implements Vitals {
     static _mixinName = 'VitalsMixin';
+
 
     /** A lost part is visible on the body; so is a scar (D14). */
     static markupAugmenters: MarkupAugmenter[] = [
@@ -1705,7 +1704,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     public isSedated(): boolean {
       for (const c of this.conditions) {
         if (c.kind !== 'affliction') continue;
-        const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+        const row = ConditionApi.conditions().need(c.templatePath);
         for (const e of row?.getSignature() ?? []) {
           if (e.kind === 'sedation' && c.stage >= e.atStage) return true;
         }
@@ -1720,7 +1719,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       let factor = 1;
       for (const c of this.conditions) {
         if (c.kind !== 'affliction') continue;
-        const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+        const row = ConditionApi.conditions().need(c.templatePath);
         for (const e of row?.getSignature() ?? []) {
           if (e.kind === 'clearance') factor *= e.factor;
         }
@@ -1735,7 +1734,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       let relief = 0;
       for (const c of this.conditions) {
         if (c.kind !== 'affliction') continue;
-        const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+        const row = ConditionApi.conditions().need(c.templatePath);
         for (const e of row?.getSignature() ?? []) {
           if (e.kind === 'analgesia') relief = Math.max(relief, e.relief);
         }
@@ -2101,7 +2100,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.conditions
         .filter((c): c is AfflictionRecord => c.kind === 'affliction')
         .flatMap((c) => {
-          const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+          const row = ConditionApi.conditions().need(c.templatePath);
           return row ? [...row.getSignature()] : [];
         })
         .filter((e) => e.kind === 'convalescence')
@@ -2749,7 +2748,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       let bands = 0;
       for (const c of this.getConditions()) {
         if (c.kind !== 'affliction') continue;
-        const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+        const row = ConditionApi.conditions().need(c.templatePath);
         const sig = row?.getSignature();
         if (!sig) continue;
         for (const e of sig) {
@@ -2839,7 +2838,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       elapsedSec: number,
       nowS: number,
     ): void {
-      const row = StuffApi.findByTemplatePath<Condition>(record.templatePath);
+      const row = ConditionApi.conditions().need(record.templatePath);
       if (!row) return;
       const spec = row.getProgression();
       switch (spec?.law) {

@@ -55,6 +55,10 @@ import {
   makeStuffAtPath,
 } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
+import { standRootBiome } from "../../biome/__tests__/root-biome";
+
+// load-on-use W8: the universe's default walls are the root biome's.
+beforeEach(() => void standRootBiome());
 
 /** The biome default every room below sits in — and does NOT read. */
 const BIOME_K = 283;

@@ -5,7 +5,7 @@
  * clock, reads it the way a player does, and says what happened.
  */
 import '@saxonberg/server/test-bootstrap';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import IronPot from '../thing/IronPot';
 import Hearth from '@saxonberg/server/mud/platform/thing/Hearth';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
@@ -50,11 +50,20 @@ function lye(): Lye {
 describe('an iron pot of lye on a lit hearth', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
+    // The cake the boil casts is black salts — a row the act loads (D2 c);
+    // stand it, as the shipped pack's row would be. The cast itself is
+    // IronPot.test's subject: stubbed here, where only the boil is.
+    makeStuffAtPath(() => new Material(), '/trade/potash/idea/material/black-salts');
+    vi.spyOn(IronPot.prototype, 'castInto').mockResolvedValue(null as never);
     WorldClockApi._resetForTesting();
     realMs = 1_000_000;
     WorldClockApi._setNowProviderForTesting(() => realMs);
   });
-  afterEach(() => {
+  afterEach(async () => {
+    // The boil's salts cast loads its material first (load-on-use D2 c): let
+    // it land before the world is cleared under it.
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    vi.restoreAllMocks();
     WorldClockApi._resetForTesting();
     StuffApi.clearAll();
   });

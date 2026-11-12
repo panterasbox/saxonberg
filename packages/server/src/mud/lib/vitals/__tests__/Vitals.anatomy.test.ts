@@ -17,6 +17,7 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
 
 const SlottableThingBase = SlottableMixin(Good);
 class SlottableThing extends SlottableThingBase {}
@@ -65,7 +66,10 @@ function anatomicalCreature(): Creature {
 }
 
 describe('VitalsMixin — anatomy resolver', () => {
-  beforeEach(() => installV1QuantityMarshallers());
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+  });
   afterEach(() => StuffApi.clearAll());
 
   it('resolves parts from the species body plan', () => {

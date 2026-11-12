@@ -35,7 +35,7 @@ import {
 import type { CommandContext } from '../../../api/command';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Soilable } from '../../../lib/cleanliness/Soilable';
-import type { CleanserAction } from '../Cleanser';
+import type { CleanserAction } from '../../../lib/cleanliness/Cleanser';
 import { MixinApi } from '../../../api/mixin';
 import { GrammarApi } from '../../../api/grammar';
 import { WorldClockApi } from '../../../api/worldclock';

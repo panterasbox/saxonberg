@@ -18,6 +18,7 @@ import {
   makeStuff,
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
+import { rememberFabric, forgetFabrics, fabricPath } from '../../material/__tests__/fabrics';
 
 afterEach(() => StuffApi.clearAll());
 
@@ -60,7 +61,7 @@ describe('Garment — emergent composition', () => {
   it('⭐ a cloth garment and a plate one are the SAME class', async () => {
     // The retirement, asserted. Both go through `Construction`, both
     // answer `isCovering`, and what differs is two authored words.
-    Construction.registerFabric({
+    rememberFabric({
       key: 'woven',
       layerBand: 0,
       loft: 0.1,
@@ -70,7 +71,7 @@ describe('Garment — emergent composition', () => {
     try {
       const shirt = makeStuff(() => new Garment());
       const cuirass = makeStuff(() => new Garment());
-      shirt.setConstruction(Construction.of('woven'));
+      shirt.setConstruction(Construction.of(fabricPath('woven')));
       cuirass.setConstruction(Construction.of('plate'));
       expect(shirt.constructor).toBe(cuirass.constructor);
       expect(shirt.getConstruction()!.isCovering()).toBe(true);
@@ -83,7 +84,7 @@ describe('Garment — emergent composition', () => {
         cuirass.getConstruction()!.getLayerDepth(),
       );
     } finally {
-      Construction.clearFabrics();
+      forgetFabrics();
     }
   });
 

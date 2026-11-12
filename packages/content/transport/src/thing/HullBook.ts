@@ -172,7 +172,6 @@ export default class HullBook extends PersistableMixin(ForSaleMixin(Good)) {
       return no(Mml.compose`You can't cover a ${leaf} just now.`, 'insufficient-funds', word);
     }
     const flag = register.getGovernmentKey();
-    await StuffApi.ready(GovernmentApi);
     const polity = GovernmentApi.getGovernment(flag)?.name ?? flag;
     let name = '';
     for (let tries = 0; tries < NAME_TRIES && name === ''; tries++) {

@@ -153,6 +153,9 @@ function contentRows(): Row[] {
     ...yamlDir('base-library', 'stuff/idea/material/element', '/stuff/idea/material/element'),
     ...yamlDir('base-library', 'stuff/idea/material/organic', '/stuff/idea/material/organic'),
     ...yamlDir('base-library', 'stuff/idea/material/wood', '/stuff/idea/material/wood'),
+    // The sacks' jute — a constituent, loaded with the sack from the
+    // content store (load-on-use door a), so the store carries the row.
+    ...yamlDir('base-library', 'stuff/idea/material/textile', '/stuff/idea/material/textile'),
     ...yamlDir('generic-objects', 'stuff/thing/items', '/stuff/thing/items'),
     ...yamlDir('generic-objects', 'stuff/thing/cutlery', '/stuff/thing/cutlery'),
     ...yamlDir('generic-objects', 'stuff/thing/fixture', '/stuff/thing/fixture'),

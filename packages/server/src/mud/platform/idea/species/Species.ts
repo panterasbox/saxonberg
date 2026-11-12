@@ -41,6 +41,7 @@ import { SpeciesApi } from '../../../api/species';
 
 import type { BoundaryRole } from '../../../lib/security/BoundaryRole';
 import { PerceptionApi } from '../../../api/perception';
+import { MaterialApi } from '../../../api/material';
 /** A suggested character name (given + optional surname). */
 /**
  * One line of a species' butchery yield: a cut template and how many a
@@ -1546,9 +1547,8 @@ export default class Species extends SingletonMixin(
 
   public getDefaultMaterial(): Material | null {
     if (!this._defaultMaterialPath) return null;
-    return (
-      StuffApi.findByTemplatePath<Material>(this._defaultMaterialPath) ?? null
-    );
+    // A constituent of the species (load-on-use D2 a) — cold is loud.
+    return MaterialApi.materials().need(this._defaultMaterialPath);
   }
 
   /** Material template path (no resolution) — mirrors `getBodyPlanPath`. */

@@ -32,6 +32,7 @@ import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { BloodDrawRefusal } from '@saxonberg/server/mud/lib/vitals/Vitals';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 const TOPIC = 'act.deed';
 const BLOOD_MATERIAL = '/stuff/idea/material/tissue/blood';
@@ -105,6 +106,9 @@ export default class BleedController extends CommandController<BleedModel> {
 
     // The effect lands at COMPLETION — the draw is a durative act, and an
     // abort must take no blood. All the gates above ran at dispatch.
+    // The draw's material, loaded by the act before the durative step runs
+    // (load-on-use D2 c) — the completion is sync.
+    await MaterialApi.materials().ensure(BLOOD_MATERIAL);
     const onComplete = (): void => {
       const drawn = donor.drawBlood(BLOOD_DEFAULTS.UNIT_LITRES, giver, tool);
       if (!drawn.ok) {
@@ -116,9 +120,9 @@ export default class BleedController extends CommandController<BleedModel> {
         return;
       }
       const unit = drawn.facts;
-      const material = StuffApi.findByTemplatePath<Material>(BLOOD_MATERIAL);
+      const material = MaterialApi.materials().need(BLOOD_MATERIAL);
       if (slot.isEmpty()) {
-        if (material) slot.setMaterial(material);
+        slot.setMaterial(material);
         slot.setAmount(Quantity.of(BLOOD_DEFAULTS.UNIT_LITRES, 'L'));
         slot.setPayload({ blood: unit });
       } else {

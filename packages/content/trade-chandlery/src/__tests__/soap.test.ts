@@ -7,7 +7,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -17,7 +17,8 @@ import SoapKettle from '../thing/SoapKettle';
 import SoapBar from '../thing/SoapBar';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import MaturationProfileRef from '@saxonberg/server/mud/lib/maturation/MaturationProfile';
+import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
+import { rememberShipped } from '@saxonberg/server/mud/lib/maturation/__tests__/profiles';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import {
@@ -53,6 +54,8 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..', 'content', 'trade', 'chandlery');
 const row = (rel: string): { class: string; data: Record<string, unknown> } =>
   YAML.parse(readFileSync(join(ROOT, rel), 'utf8'));
+/** A document (load-on-use W4): the file IS the data. */
+const rowDoc = (rel: string): Record<string, unknown> => YAML.parse(readFileSync(join(ROOT, rel), 'utf8'));
 
 let seq = 0;
 function material(tags: string[], path = `/stuff/idea/material/_soap/${seq++}`): Material {
@@ -78,7 +81,7 @@ describe('the hopper (lye from ash)', () => {
 
   it('⭐ water through ash runs the lye-leach — and the ash is spent once the water is through', async () => {
     // The profile row is not loaded here: what is asked for is what counts.
-    const byKey = vi.spyOn(MaturationProfileRef, 'byKey').mockReturnValue(null as never);
+    const need = vi.spyOn(BulkableApi.maturationProfiles(), 'need').mockReturnValue(null as never);
     installV1QuantityMarshallers();
     clock();
     const h = makeStuff(() => new Hopper());
@@ -94,7 +97,7 @@ describe('the hopper (lye from ash)', () => {
     const destruct = vi.spyOn(StuffApi, 'destruct');
     vi.spyOn(StuffApi, 'clone').mockImplementation(async () => makeStuff(() => new Good()) as never);
     h.matchProfile(water);
-    expect(byKey).toHaveBeenCalledWith('lye-leach');
+    expect(need).toHaveBeenCalledWith('/trade/chandlery/maturation-profiles/lye-leach');
     // ⭐ Not yet: the water has only just been poured on.
     h.getBulkAmount('interior');
     await new Promise((r) => setTimeout(r, 0));
@@ -109,7 +112,7 @@ describe('the hopper (lye from ash)', () => {
 
 describe('the kettle (soap from fat and lye)', () => {
   it('⭐ lye poured on fat — and salt on soft soap — are the kettle\'s transforms', () => {
-    const k = makeStuff(() => new SoapKettle());
+    const k = makeStuff(() => Object.assign(new SoapKettle(), { slakesTo: '/trade/chandlery/idea/material/milk-of-lime' }) /* its row's fields (load-on-use W8) */);
     const fat = material(['liquid', 'fat']);
     vi.spyOn(k, 'getBulkMaterial').mockReturnValue(fat);
     const lye = material(['liquid', 'caustic', 'lye']);
@@ -126,7 +129,7 @@ describe('the kettle (soap from fat and lye)', () => {
   });
 
   it('anything else is the shipped maturation\'s question', () => {
-    const k = makeStuff(() => new SoapKettle());
+    const k = makeStuff(() => Object.assign(new SoapKettle(), { slakesTo: '/trade/chandlery/idea/material/milk-of-lime' }) /* its row's fields (load-on-use W8) */);
     vi.spyOn(k, 'getBulkMaterial').mockReturnValue(material(['liquid', 'water']));
     expect(k.classifyForeignPour(material(['liquid', 'lye']), '')).toBeNull();
   });
@@ -134,7 +137,7 @@ describe('the kettle (soap from fat and lye)', () => {
 
 describe('the rows say what', () => {
   it('saponification: soap paste at the boil → soft soap, with glycerin lees', () => {
-    const p = row('idea/maturation/saponification.yaml').data;
+    const p = rowDoc('../../maturation-profiles/saponification.yaml');
     expect(p).toMatchObject({
       inputCategory: 'soap-paste',
       mechanism: 'chemical',
@@ -196,7 +199,7 @@ describe('⭐⭐ the leach is DERIVED: ash, passes, hardness (potash D6)', () =>
     return a;
   }
   function leach(h: Hopper, liquor: Material): number {
-    vi.spyOn(MaturationProfileRef, 'byKey').mockReturnValue(null as never);
+    vi.spyOn(BulkableApi.maturationProfiles(), 'need').mockReturnValue(null as never);
     vi.spyOn(StuffApi, 'clone').mockImplementation(async () => makeStuff(() => new Good()) as never);
     h.matchProfile(liquor);
     // ⭐ It percolates (cordage W7): the strength is what the water has
@@ -262,7 +265,7 @@ describe('⭐⭐ the leach is DERIVED: ash, passes, hardness (potash D6)', () =>
     fill(h, 20, water);
     const destruct = vi.spyOn(StuffApi, 'destruct');
     const clone = vi.spyOn(StuffApi, 'clone').mockImplementation(async () => makeStuff(() => new Good()) as never);
-    vi.spyOn(MaturationProfileRef, 'byKey').mockReturnValue(null as never);
+    vi.spyOn(BulkableApi.maturationProfiles(), 'need').mockReturnValue(null as never);
     h.matchProfile(water);
     aDay();
     h.getBulkAmount('interior');
@@ -286,7 +289,7 @@ describe('⭐⭐ lime in the kettle: slaking, causticizing, hard soap direct (po
 
   it('⭐ water on quicklime slakes it — heat into the kettle, milk of lime, no batch', async () => {
     installV1QuantityMarshallers();
-    const k = makeStuff(() => new SoapKettle());
+    const k = makeStuff(() => Object.assign(new SoapKettle(), { slakesTo: '/trade/chandlery/idea/material/milk-of-lime' }) /* its row's fields (load-on-use W8) */);
     const lime = makeStuff(() => new Good());
     lime.setMaterial(material(['mineral', 'caustic', 'alkali', 'liming', 'stabilizer']));
     lime.setMass(Quantity.of(2, 'kg'));
@@ -301,14 +304,14 @@ describe('⭐⭐ lime in the kettle: slaking, causticizing, hard soap direct (po
   });
 
   it('water with no lime in the kettle is the shipped question', () => {
-    const k = makeStuff(() => new SoapKettle());
+    const k = makeStuff(() => Object.assign(new SoapKettle(), { slakesTo: '/trade/chandlery/idea/material/milk-of-lime' }) /* its row's fields (load-on-use W8) */);
     const rekey = rekeyOf(k);
     k.matchProfile(material(['liquid', 'water']));
     expect(rekey).not.toHaveBeenCalled();
   });
 
   it('⭐ lye and milk of lime, either way round, make caustic lye', () => {
-    const k = makeStuff(() => new SoapKettle());
+    const k = makeStuff(() => Object.assign(new SoapKettle(), { slakesTo: '/trade/chandlery/idea/material/milk-of-lime' }) /* its row's fields (load-on-use W8) */);
     const rekey = rekeyOf(k);
     const lye = material(['liquid', 'caustic', 'alkali', 'lye']);
     const milk = material(['liquid', 'caustic', 'alkali', 'slaked-lime']);
@@ -322,7 +325,7 @@ describe('⭐⭐ lime in the kettle: slaking, causticizing, hard soap direct (po
   });
 
   it('⭐⭐ fat and CAUSTIC lye make the hard-soap paste; fat and plain lye still make soft', () => {
-    const k = makeStuff(() => new SoapKettle());
+    const k = makeStuff(() => Object.assign(new SoapKettle(), { slakesTo: '/trade/chandlery/idea/material/milk-of-lime' }) /* its row's fields (load-on-use W8) */);
     const rekey = rekeyOf(k);
     vi.spyOn(k, 'getBulkMaterial').mockReturnValue(material(['liquid', 'fat']));
     k.applyForeignPour('transform', '', 1, material(['liquid', 'caustic', 'alkali', 'lye', 'caustic-lye']));
@@ -332,7 +335,7 @@ describe('⭐⭐ lime in the kettle: slaking, causticizing, hard soap direct (po
   });
 
   it('the caustic paste boils to the curd the frame already sets — no salt', () => {
-    const p = row('idea/maturation/saponification-caustic.yaml').data;
+    const p = rowDoc('../../maturation-profiles/saponification-caustic.yaml');
     expect(p.inputCategory).toBe('hard-soap-paste');
     expect(p.productMaterial).toBe('/trade/chandlery/idea/material/hard-soap-curd');
     // ⚠ The paste's thermal fields are soap paste's exactly, so the kettle
@@ -344,6 +347,9 @@ describe('⭐⭐ lime in the kettle: slaking, causticizing, hard soap direct (po
 });
 
 describe('⭐ ash put into liquor already in the hopper leaches too (the drive)', () => {
+  // The shipped leach profile, resident as a hopper's `onCreate` leaves it
+  // (load-on-use W4: every profile loads with the first maturing vessel).
+  beforeEach(() => void rememberShipped('/trade/chandlery/maturation-profiles/lye-leach'));
   it('a heap put into a lye adds its alkali as the lye works down through it', () => {
     installV1QuantityMarshallers();
     clock();

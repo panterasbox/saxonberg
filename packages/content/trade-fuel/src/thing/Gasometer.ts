@@ -26,6 +26,7 @@ import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 const GasometerBase = BulkableMixin(ThermalMixin(Thing));
 
@@ -38,7 +39,7 @@ export default class Gasometer extends GasometerBase {
   public receive(materialPath: string, litres: number): number {
     if (!(litres > 0)) return 0;
     const material =
-      StuffApi.findByTemplatePath<Material>(materialPath) ?? null;
+      MaterialApi.materials().peek(materialPath) ?? null;
     if (material === null) return 0;
     const slot = this.getBulk('interior');
     const existing = slot.getMaterialPath();

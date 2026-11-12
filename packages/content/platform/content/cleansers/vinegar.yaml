@@ -1,0 +1,2 @@
+# Vinegar — a mild acid: scale, hard-water crust, rust.
+{agent: vinegar, action: acid-mild, consumesPerWash: 0.05, skinHarshness: 0.2}

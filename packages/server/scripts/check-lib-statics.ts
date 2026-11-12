@@ -237,7 +237,7 @@ const REPO_ROOT = join(MUD, '../../../..');
  * light walk + `Light.add` — a value-object factory/lookup, the category
  * this file's own doctrine admits, not world logic wanting a `*Logic`.
  */
-export const LIB_STATICS_CEILING = 340;
+export const LIB_STATICS_CEILING = 334; // load-on-use W4: MaturationProfile.byKey/cultureForStrain/forMaterial and FractionSchedule.byKey/forMaterial went to the catalogues. Was 338 (W3)
 
 const STATIC =
   /^\s*(?:public\s+)?static\s+(?:async\s+)?(?!readonly\b|get\b|set\b|_)([a-zA-Z]\w*)\s*[(<]/;

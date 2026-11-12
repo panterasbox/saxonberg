@@ -368,6 +368,12 @@ export async function standUpBranchHarness(): Promise<BranchHarness> {
     ) {
       return realClone(path) as never;
     }
+    // The address index builds on its first question (load-on-use W5); a
+    // fixture world has no locality rows, so the index it builds is empty.
+    if (path === '/platform/idea/AddressRegistry') {
+      const { default: AddressRegistry } = await import('../../../AddressRegistry');
+      return makeStuffAtPath(() => new AddressRegistry(), path) as never;
+    }
     if (path === KNIFE_T || path === '/stuff/thing/arms/fire-poker') {
       return makeStuff(() => new TestKnife()) as never;
     }

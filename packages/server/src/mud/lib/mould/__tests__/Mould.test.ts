@@ -59,8 +59,9 @@ class TestRoom extends ContainerMixin(Good) {
 /** A cast that remembers what it was made from — the wheel's duck. */
 class TestCast extends Provision {
   public madeFrom = '';
-  setMadeFrom(path: string): void {
+  setMadeFrom(path: string): undefined {
     this.madeFrom = path;
+    return undefined;
   }
 }
 

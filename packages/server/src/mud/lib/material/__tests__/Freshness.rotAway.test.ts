@@ -15,6 +15,7 @@ import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { Quantity } from '../../quantity';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import Material from '../Material';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
 
@@ -85,6 +86,8 @@ describe('⭐ rotten food rots away, and a midden takes it', () => {
   });
 
   it('a midden takes rotten food as refuse', async () => {
+    // The compost the act loads (load-on-use W8) — live, as the row would be.
+    makeStuffAtPath(() => new Material(), '/stuff/idea/material/bulk/compost');
     const midden = makeStuff(() => new Midden());
     (midden as unknown as { interiorBulk: boolean }).interiorBulk = true;
     midden.setInteriorCapacity(Quantity.of(100, 'L'));

@@ -34,14 +34,15 @@ function row(absPath: string): Record<string, unknown> {
   return YAML.parse(readFileSync(absPath, 'utf8')) as Record<string, unknown>;
 }
 function data(absPath: string): Record<string, unknown> {
-  return (row(absPath).data ?? {}) as Record<string, unknown>;
+  // A document (load-on-use W4) has no `data:` wrapper.
+  return (row(absPath).data ?? row(absPath)) as Record<string, unknown>;
 }
 
 const SALT_MATERIAL = '/stuff/idea/material/food/salt';
 
 describe('the brine profile is wired to the water it evaporates', () => {
   const profile = data(
-    `${PACK}content/trade/quarrying/idea/maturation/brine.yaml`,
+    `${PACK}content/maturation-profiles/brine.yaml`,
   );
   const seaWater = data(
     `${BASE}content/stuff/idea/material/bulk/salt-water.yaml`,
@@ -92,7 +93,7 @@ describe('⭐⭐ all three sources end in the SAME salt', () => {
     expect(into.product).toBe(SALT_MATERIAL);
     expect(into.residue).toBe('/stuff/idea/material/bulk/bittern');
     const profile = data(
-      `${PACK}content/trade/quarrying/idea/maturation/brine.yaml`,
+      `${PACK}content/maturation-profiles/brine.yaml`,
     );
     expect(profile.productMaterial).toBe('/stuff/idea/material/bulk/salt-water');
   });

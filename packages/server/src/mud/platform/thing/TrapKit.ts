@@ -108,6 +108,6 @@ export default class TrapKit extends Good {
     const owner = await ParcelApi.ownerOf(room.getTemplatePath() ?? '');
     if (owner !== null) return false;
     const address = MixinApi.isAddressable(room) ? room.getAddress() : null;
-    return address !== null && GovernmentApi.governmentAt(address) !== null;
+    return address !== null && (await GovernmentApi.governmentAt(address)) !== null;
   }
 }

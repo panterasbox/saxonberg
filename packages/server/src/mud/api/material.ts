@@ -23,6 +23,7 @@
  * `StuffApi.singletonSync`. `dest /platform/idea/api/material` reloads it.
  */
 
+import type { ApiNeed } from './security';
 import type Material from '../lib/material/Material';
 import type { CompositionEntry } from '../lib/material/Material';
 import type { Channel } from '../lib/material/Channel';
@@ -38,7 +39,12 @@ import { HotReloadApi } from './hot-reload';
 import { MaterialLogic } from '../platform/idea/api/MaterialLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import { TestOnly } from '../lib/security/decorators';
 import DirtCatalogue from '../platform/idea/DirtCatalogue';
+import MaterialCatalogue from '../platform/idea/MaterialCatalogue';
+import CleanserCatalogue from '../platform/idea/CleanserCatalogue';
+import FabricCatalogue from '../platform/idea/FabricCatalogue';
+import { TemplatePaths } from '../lib/paths';
 
 // kg + kg/m³ tag tables live in `mud/config/quantity-tags.yaml`
 // and load at boot via `QuantityApi.loadTagTables`. Material doesn't
@@ -148,6 +154,13 @@ export interface ContactWetness {
 
 export class MaterialApi {
   /**
+   * ⭐ The kernel's dirt kinds, stood by the boot routine (no host readies
+   * them). ⚠ NOT the material roster: materials load per row by their doors,
+   * and the two roster reads go through {@link roster} / {@link findByTag}.
+   */
+  static readonly needs: readonly ApiNeed[] = [() => MaterialApi.dirtKinds().ensureKernel()];
+
+  /**
    * ⭐ The dirt kinds — what can soil a thing (`soot`, `blood`, `sweat`, a
    * pack's own `dust`), any pack's `content/dirt/`, served by
    * {@link DirtCatalogue}. Named by path everywhere; a Soilable host loads
@@ -157,36 +170,66 @@ export class MaterialApi {
     return StuffApi.singletonSync('/platform/idea/DirtCatalogue', () => new DirtCatalogue());
   }
 
+  /**
+   * ⭐ The materials — the one door every material read goes through
+   * (load-on-use D2): `ensure(path)` loads one (a setter returns it, an act
+   * awaits it), `need(path)` is the sync read that throws cold, `peek(path)`
+   * a read that may honestly miss, and `roster()`/`byTag()` the whole
+   * family after `ensureRoster()`.
+   */
+  public static materials(): MaterialCatalogue {
+    return StuffApi.singletonSync(TemplatePaths.materialCatalogue, () => new MaterialCatalogue());
+  }
+
+  /**
+   * Mark the material roster stood with whatever materials a suite has made
+   * — a suite has no rows to read (load-on-use W8). The harness calls it once.
+   */
+  @TestOnly('Nothing in the game stands the material roster in by hand — a roster read awaits ensureRoster.')
+  public static standRosterForTesting(): void {
+    MaterialApi.materials().standRosterAsLive();
+  }
+
+  /**
+   * ⭐ The cleansers — what you wash WITH (`soap`, `lye`, a pack's own),
+   * any pack's `content/cleansers/`, served by {@link CleanserCatalogue}.
+   * Named by the material that is one (`Material.setCleanser` loads it).
+   */
+  public static cleansers(): CleanserCatalogue {
+    return StuffApi.singletonSync('/platform/idea/CleanserCatalogue', () => new CleanserCatalogue());
+  }
+
+  /**
+   * ⭐ The fabrics — the non-resisting textile forms (`woven`, `knit`, a
+   * pack's `sackcloth`), any pack's `content/fabrics/`, served by
+   * {@link FabricCatalogue}. A garment cites one by path in its
+   * `constructionForm`, which loads it.
+   */
+  public static fabrics(): FabricCatalogue {
+    return StuffApi.singletonSync('/platform/idea/FabricCatalogue', () => new FabricCatalogue());
+  }
+
   // The `materialOf` read-wrapper was removed: the read lives on the
   // object itself — narrow with `MixinApi.isTangible(stuff)` and call
   // `stuff.getMaterial(detailKey)` directly.
 
   /**
-   * Every registered Material — the runtime singleton index, as
-   * {@link findByTag} reads it. What the wiki's `<materials>` listing
-   * filters by capability or kind (material decomposition W3).
+   * Every authored Material — what the wiki's `<materials>` listing
+   * filters by capability or kind (material decomposition W3). ⭐ The one
+   * read that wants the whole roster, so it loads it itself (once per
+   * process): materials otherwise load per row, and nothing at boot.
    */
-  public static all(): Material[] {
-    return logic().all();
+  public static async all(): Promise<Material[]> {
+    await MaterialApi.materials().ensureRoster();
+    return MaterialApi.materials().roster();
   }
 
-  /**
-   * Every registered Material that carries `tag`. Tag matching is
-   * exact-string. The result reflects the runtime singleton index;
-   * Materials that haven't been cloned yet aren't there.
-   */
-  public static findByTag(tag: string): Material[] {
-    return logic().findByTag(tag);
+  /** Every authored Material that carries `tag` (exact-string) — a roster read, as {@link all}. */
+  public static async findByTag(tag: string): Promise<Material[]> {
+    await MaterialApi.materials().ensureRoster();
+    return MaterialApi.materials().byTag(tag);
   }
 
-  /**
-   * Every registered Material whose recursive composition contains
-   * the element identified by `symbol`. Combines `compositionOf` +
-   * `containsElement` over the index.
-   */
-  public static findByElement(symbol: string): Material[] {
-    return logic().findByElement(symbol);
-  }
 
   // ---------- materials-response (the three-axis response function) ----------
 

@@ -46,6 +46,7 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { forgetProfiles, rememberSchedule } from '../../maturation/__tests__/profiles';
 
 const CHARGE = '/stuff/idea/material/_test/still-leg-wash';
 const PRODUCT = '/stuff/idea/material/_test/still-leg-spirit';
@@ -116,7 +117,7 @@ function material(path: string, tags: string[]): void {
 }
 
 function schedule(readBlur: number): void {
-  makeStuffAtPath(() => {
+  rememberSchedule(() => {
     const s = new FractionSchedule();
     s.setKey('still-leg');
     s.setInputCategory('still-leg-wash');
@@ -243,6 +244,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.restoreAllMocks();
   StuffApi.clearAll();
+  forgetProfiles();
 });
 
 describe('⭐⭐⭐ the hand cuts with the read it has', () => {

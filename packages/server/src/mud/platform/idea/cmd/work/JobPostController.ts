@@ -40,7 +40,7 @@ export default class JobPostController extends JobControllerBase {
   async execute(model: JobModel, context: CommandContext): Promise<void> {
     const board = this.boardOf(model.board, context);
     if (!board) return;
-    const parsed = this.parseCondition(model.condition ?? "", context);
+    const parsed = await this.parseCondition(model.condition ?? "", context);
     if ("error" in parsed) {
       return this.fail(context, parsed.error, parsed.reason);
     }
@@ -68,7 +68,7 @@ export default class JobPostController extends JobControllerBase {
       rewardMinor: reward,
       claimMode: model.bounty ? "open-bounty" : "exclusive",
       asBusiness: model.business === true,
-      ...(fromRaw ? { originPath: this.place(fromRaw, context) } : {}),
+      ...(fromRaw ? { originPath: await this.place(fromRaw, context) } : {}),
       ...(model.expires ? { expiresGameHours: Number(model.expires) } : {}),
     });
     if (!result.ok) {
@@ -102,10 +102,10 @@ export default class JobPostController extends JobControllerBase {
    * kind and `deliver <that crate>` is obviously an instance, and the
    * flag has nothing left to disambiguate.
    */
-  private parseCondition(
+  private async parseCondition(
     raw: string,
     context: CommandContext,
-  ):
+  ): Promise<
     | {
         template: "delivery" | "supply" | "watch" | "clean";
         itemRef: ConditionData["item"];
@@ -113,7 +113,8 @@ export default class JobPostController extends JobControllerBase {
         count: number;
         gameHours?: number;
       }
-    | { error: string; reason: string } {
+    | { error: string; reason: string }
+  > {
     const words = raw.trim().split(/\s+/).filter(Boolean);
     let verb = (words.shift() ?? "").toLowerCase();
     // ⭐ `recover <body> to <place>` is a delivery of ONE thing by who or
@@ -159,7 +160,7 @@ export default class JobPostController extends JobControllerBase {
           reason: "no-term",
         };
       }
-      const placePath = this.place(
+      const placePath = await this.place(
         words.slice(0, forAt).join(" "),
         context,
       );
@@ -198,7 +199,7 @@ export default class JobPostController extends JobControllerBase {
       };
     }
     const subject = words.slice(0, at);
-    const destinationPath = this.place(words.slice(at + 1).join(" "), context);
+    const destinationPath = await this.place(words.slice(at + 1).join(" "), context);
     if (destinationPath.length === 0) {
       return {
         error: `Nobody here has heard of that place.`,
@@ -311,17 +312,18 @@ export default class JobPostController extends JobControllerBase {
    * turned in. The engine checks the subject is clean NOW, not that
    * anybody took care.
    */
-  private parseClean(
+  private async parseClean(
     words: string[],
     context: CommandContext,
-  ):
+  ): Promise<
     | {
         template: "clean";
         itemRef: ConditionData["item"];
         destinationPath: string;
         count: number;
       }
-    | { error: string; reason: string } {
+    | { error: string; reason: string }
+  > {
     const at = words.findIndex((w) => w.toLowerCase() === "at");
     const subjectRaw = (at < 0 ? words : words.slice(0, at)).join(" ").trim();
     const placeRaw = at < 0 ? "" : words.slice(at + 1).join(" ").trim();
@@ -342,7 +344,7 @@ export default class JobPostController extends JobControllerBase {
         const placePath =
           thing !== null
             ? context.location?.getTemplatePath() ?? ""
-            : this.place(subjectRaw, context);
+            : await this.place(subjectRaw, context);
         if (placePath.length === 0) {
           return {
             error: `Nobody here has heard of that place.`,
@@ -358,7 +360,7 @@ export default class JobPostController extends JobControllerBase {
       }
       return this.cleanThing(thing, context.location?.getTemplatePath() ?? "");
     }
-    const placePath = this.place(placeRaw, context);
+    const placePath = await this.place(placeRaw, context);
     if (placePath.length === 0) {
       return {
         error: `Nobody here has heard of that place.`,

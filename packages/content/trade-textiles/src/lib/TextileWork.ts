@@ -37,6 +37,13 @@ const BOLT_ROW = '/trade/textiles/thing/bolt';
 /** The three points on the weave continuum, as fabric FORM words. */
 export type WeaveForm = 'sackcloth' | 'woven' | 'fine-woven';
 
+/** The fabric document each weave cites (load-on-use W2: a fabric is a path). */
+const WEAVE_FABRIC: Readonly<Record<WeaveForm, string>> = {
+  sackcloth: '/trade/textiles/fabrics/sackcloth',
+  woven: '/platform/fabrics/woven',
+  'fine-woven': '/trade/textiles/fabrics/fine-woven',
+};
+
 /** A stack the textile acts draw from — line, tow, a fleece, yarn. */
 type Stock = Stuff & { getQuantity(): number; setQuantity(n: number): void };
 
@@ -254,7 +261,7 @@ export default class TextileWork {
         }
         thread.drawInHand(charge);
         if (MixinApi.isStackable(bolt)) bolt.setQuantity(units);
-        if (MixinApi.isConstructed(bolt)) await bolt.setConstructionForm(form);
+        if (MixinApi.isConstructed(bolt)) await bolt.setConstructionForm(WEAVE_FABRIC[form]);
         if (MixinApi.isGraded(bolt)) bolt.setGrade(Grade.of(band));
         // ⭐⭐ The cloth is the yarn's fibre, and answers to its name.
         if (fibre && MixinApi.isTangible(bolt)) {

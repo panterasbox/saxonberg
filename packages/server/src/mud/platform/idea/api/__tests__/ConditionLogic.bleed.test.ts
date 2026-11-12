@@ -32,6 +32,7 @@ import {
   TRAUMA_BEHAVIOR,
 } from '../../Condition';
 import type { Trauma } from '../../Condition';
+import { standShippedConditions } from '../../../../lib/vitals/__tests__/conditions';
 
 class TestBody extends HasInteractiveMixin(Creature) {
   static _mixinName = 'TestBody';
@@ -65,7 +66,8 @@ function tick(b: TestBody, times = 1): void {
 }
 
 describe('VitalsMixin wound reconcile — bleed → death', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await standShippedConditions(); // load-on-use W6: the shipped roster, as a world loads it with the body
     installV1QuantityMarshallers();
     // ⭐ Every death mints a corpse now, and the mint clones an authored
     // row that a unit world has no store for. See the helper.

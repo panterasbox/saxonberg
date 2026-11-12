@@ -72,7 +72,7 @@ describe('carve pattern (ceramics D23)', () => {
       m.setMeltingPoint(Quantity.of(1220, 'K'));
       m.setThermalExpansion(1.8e-5);
     });
-    vi.spyOn(MaterialApi, 'findByTag').mockReturnValue([bronze]);
+    vi.spyOn(MaterialApi, 'findByTag').mockResolvedValue([bronze]);
     vi.spyOn(PersistableApi, 'captureHostOf').mockResolvedValue(undefined as never);
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
       const p = makeStuff(() => new Pattern());

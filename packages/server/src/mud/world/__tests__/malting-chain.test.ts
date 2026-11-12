@@ -30,7 +30,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import Vat from '../../platform/thing/Vat';
-import MaturationProfile from '../../platform/idea/maturation/MaturationProfile';
+import MaturationProfile from '../../lib/maturation/MaturationProfile';
 import {
   MATURATION_MECHANISMS,
   MATURATION_LINES,
@@ -49,6 +49,7 @@ import {
 } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import WorldClockRegistry from '../../platform/idea/WorldClockRegistry';
+import { forgetProfiles, rememberProfile } from '../../lib/maturation/__tests__/profiles';
 
 const PACKS = fileURLToPath(new URL('../../../../../content/', import.meta.url));
 const MALTING = join(PACKS, 'trade-malting');
@@ -63,7 +64,8 @@ function row(pack: string, rel: string): Record<string, unknown> {
   const raw = parse(readFileSync(join(pack, rel), 'utf8')) as {
     data: Record<string, unknown>;
   };
-  return raw.data;
+  // A document (load-on-use W4) has no `data:` wrapper.
+  return raw.data ?? (raw as unknown as Record<string, unknown>);
 }
 
 function recipeOf(pack: string, id: string): Recipe {
@@ -107,7 +109,10 @@ beforeEach(() => {
   WorldClockApi._setNowProviderForTesting(() => real);
 });
 
-afterEach(() => StuffApi.clearAll());
+afterEach(() => {
+  StuffApi.clearAll();
+  forgetProfiles();
+});
 
 describe('⭐⭐ the chain JOINS — every slot matches a tag something carries', () => {
   it('steep-barley asks for a tag the barley crop\'s material actually has', () => {
@@ -145,7 +150,7 @@ describe('⭐⭐ the chain JOINS — every slot matches a tag something carries'
   it('kiln-malt consumes what the floor produces, and produces what the mill wants', () => {
     const profile = row(
       MALTING,
-      'content/trade/malting/idea/maturation/malting.yaml',
+      'content/maturation-profiles/malting.yaml',
     );
     const kiln = recipeOf(MALTING, 'kiln-malt');
     const greenMalt = row(
@@ -170,7 +175,7 @@ describe('⭐⭐ the chain JOINS — every slot matches a tag something carries'
     const steep = recipeOf(MALTING, 'steep-barley');
     const profile = row(
       MALTING,
-      'content/trade/malting/idea/maturation/malting.yaml',
+      'content/maturation-profiles/malting.yaml',
     );
     const steeped = row(
       MALTING,
@@ -259,7 +264,7 @@ describe('⭐⭐ the floor\'s clock runs on a mechanism that is TRUE', () => {
   it('⭐ a steeped bed on the real profile becomes green malt', () => {
     const data = row(
       MALTING,
-      'content/trade/malting/idea/maturation/malting.yaml',
+      'content/maturation-profiles/malting.yaml',
     );
     const STEEPED = '/trade/malting/idea/material/steeped-barley';
     const GREEN = '/trade/malting/idea/material/green-malt';
@@ -275,9 +280,8 @@ describe('⭐⭐ the floor\'s clock runs on a mechanism that is TRUE', () => {
         return mat;
       }, path);
     }
-    makeStuffAtPath(() => {
+    rememberProfile(() => {
       const p = new MaturationProfile();
-      p.setKey(String(data.key));
       p.setMechanism(data.mechanism as never);
       p.setInputCategory(String(data.inputCategory));
       p.setProductMaterial(String(data.productMaterial));
@@ -287,7 +291,7 @@ describe('⭐⭐ the floor\'s clock runs on a mechanism that is TRUE', () => {
       p.setDamageAboveK(Number(data.damageAboveK));
       p.setKillK(Number(data.killK));
       return p;
-    }, '/trade/malting/idea/maturation/malting');
+    }, '/trade/malting/maturation-profiles/malting');
 
     const floorRow = row(
       MALTING,
@@ -330,7 +334,7 @@ describe('⭐⭐ the floor\'s clock runs on a mechanism that is TRUE', () => {
   it('⚠ a WARM floor kills the bed — the maltster\'s one real trade-off', () => {
     const data = row(
       MALTING,
-      'content/trade/malting/idea/maturation/malting.yaml',
+      'content/maturation-profiles/malting.yaml',
     );
     // A warm floor runs faster, and past `killK` it cooks the bed: slack,
     // sour, and no malt. That is the choice the trade is built on — speed
@@ -433,7 +437,7 @@ describe('⭐⭐ the peated kiln — one choice, and the whole product changes',
     // distiller's correct answer.
     const wash = row(
       DISTILLING,
-      'content/trade/distilling/idea/fractionation/wash.yaml',
+      'content/fraction-schedules/wash.yaml',
     );
     const fractions = wash.fractions as {
       key: string;

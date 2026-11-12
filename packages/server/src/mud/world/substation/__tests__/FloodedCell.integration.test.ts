@@ -37,6 +37,7 @@ import {
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../../platform/idea/Condition';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import { standMaterials, TEST_TISSUES } from '../../../lib/material/__tests__/materials';
 
 let seq = 0;
 
@@ -143,6 +144,7 @@ describe('FloodedCell — the electricity demonstrator', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
     installSaltWater();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
   });
   afterEach(() => StuffApi.clearAll());
 

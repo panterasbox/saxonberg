@@ -1,0 +1,3 @@
+# Sawdust, strewn — an absorbent: spills and blood on a floor, swept up
+# with them (the saw's, storage-and-ice).
+{agent: sawdust, action: absorbent, consumesPerWash: 0.5}

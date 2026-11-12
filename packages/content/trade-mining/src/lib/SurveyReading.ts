@@ -56,6 +56,7 @@ import type Material from '@saxonberg/server/mud/lib/material/Material';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import type { GroundSample } from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 /** The Discipline every geological read is banded by, and credits. */
 export const GEOLOGY = 'geology';
@@ -163,7 +164,7 @@ export abstract class SurveyReading extends Reading {
     if (!deposit) return null;
     const sample = deposit.sampleAt(this.metresAt(place), await this.seedAt(place));
     const mineral = sample.mineralPath
-      ? StuffApi.findByTemplatePath<Material>(sample.mineralPath) ?? null
+      ? MaterialApi.materials().need(sample.mineralPath)
       : null;
     return { sample, mineral };
   }

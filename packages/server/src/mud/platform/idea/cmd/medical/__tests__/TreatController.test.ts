@@ -39,6 +39,8 @@ import type { Trauma } from '../../../Condition';
 import BodyPlan from '../../../species/BodyPlan';
 import Species from '../../../species/Species';
 import { OUTCOMES, type Outcome } from '../../../../../lib/advancement/ActSignature';
+import { standShippedConditions } from '../../../../../lib/vitals/__tests__/conditions';
+import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
 
 // A dressing-capable item that is NOT a Bandage — proves the gate is
 // `isDressing`, not `instanceof Bandage`.
@@ -91,12 +93,15 @@ function woundOf(c: Creature): Trauma {
 }
 
 beforeEach(async () => {
+
+  await standShippedConditions(); // load-on-use W6: the shipped roster, as a world loads it with the body
   // A credit or a band read stands on the discipline dictionary (D11).
   await rememberDisciplines();
   installV1QuantityMarshallers();
   fakeMongo();
   WorldClockApi._setNowProviderForTesting(() => 100);
   stubScene();
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
 });
 afterEach(() => {
   vi.restoreAllMocks();

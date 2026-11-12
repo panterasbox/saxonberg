@@ -14,18 +14,18 @@
 
 import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
 import { MaturingMixin } from '@saxonberg/server/mud/lib/maturation/Maturing';
-import MaturationProfileRef from '@saxonberg/server/mud/lib/maturation/MaturationProfile';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type MaturationProfile from '@saxonberg/server/mud/lib/maturation/MaturationProfile';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 
 /** Which glue a stock boils to, by the stock's tag — the first that matches. */
 const STOCK_GLUE: ReadonlyArray<[string, string]> = [
-  ['fish-skin', 'fish-glue'],
-  ['hide-scraps', 'hide-glue'],
-  ['bone', 'bone-glue'],
+  ['fish-skin', '/trade/painting/maturation-profiles/fish-glue'],
+  ['hide-scraps', '/trade/painting/maturation-profiles/hide-glue'],
+  ['bone', '/trade/painting/maturation-profiles/bone-glue'],
 ];
 
 export default class GluePot extends MaturingMixin(CraftVessel) {
@@ -35,13 +35,12 @@ export default class GluePot extends MaturingMixin(CraftVessel) {
         const m = MixinApi.isTangible(c) ? c.getMaterial() : null;
         return m?.hasTag('collagen') ?? false;
       });
-      const key = this.glueFor(stock);
-      if (key !== null) {
-        const profile = MaturationProfileRef.byKey(key);
-        if (profile !== null) {
-          for (const s of stock) void StuffApi.destruct(s);
-          return profile;
-        }
+      const glue = this.glueFor(stock);
+      if (glue !== null) {
+        // Resident: every profile loads with the pot (MaturingMixin.onCreate).
+        const profile = BulkableApi.maturationProfiles().need(glue);
+        for (const s of stock) void StuffApi.destruct(s);
+        return profile;
       }
     }
     return super.matchProfile(material);

@@ -18,4 +18,4 @@ data:
   tags: [solid, soap, surfactant, cleanser]
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
-  cleanser: /platform/idea/Cleanser/soap
+  cleanser: /platform/cleansers/soap

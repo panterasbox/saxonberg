@@ -45,7 +45,11 @@ twin, `Window`, `Chair` (seats, beds, the `Tub`), `Lamp`, `Bandage`,
   `setsAboveK`/`setAnswersTo` (blood: 318 K, then only a bleach),
   `waterLifts` (what plain water takes — mud 0.7, grease 0.05),
   `contaminates`, `odor` (an aroma path and OU per unit of load).
-- **`Cleanser`** (`/platform/idea/Cleanser`): the material `agent` tag
+- **`cleanser`** documents (value `lib/cleanliness/Cleanser.ts`,
+  `CleanserDescriptor`; any pack's `content/cleansers/<word>.yaml`, stored
+  at `<pack root>/cleansers/<word>` — the platform's fifteen at
+  `/platform/cleansers/*`, `trade-potash`'s
+  `/trade/potash/cleansers/potash`; the leaf is the key): the material `agent` tag
   the wash finds it by, one `action` from a CLOSED ten-word mechanism
   vocabulary (`surfactant · alkali-mild · alkali-strong · acid-mild ·
   acid-strong · solvent · absorbent · abrasive · oxidiser-slow ·
@@ -54,23 +58,32 @@ twin, `Window`, `Chair` (seats, beds, the `Tub`), `Lamp`, `Bandage`,
   read from the room). ⭐ Burning and rotting are DERIVED from the agent
   material's `corrosiveTo` ∩ the fibre's tags, never authored twice.
 
-⭐ **No catalogues** (B50 — the scan sweep's rule: load by an authored
-reference, never by searching). ⭐⭐ **A dirt is named by its PATH
+⭐ **No roster warms** (B50 — the scan sweep's rule: load by an authored
+reference, never by searching); each family's catalogue is a memory of
+the paths something named. ⭐⭐ **A dirt is named by its PATH
 everywhere** (documents path identity, 2026-11): a deposit and a stain
 record the path, a recipe's `soils[].kind` cites it (`SoilSpec` refuses a
 bare word), and the kernel's own literals are the `DirtKinds` constants
 (`DirtKinds.GREASE = '/platform/dirt/grease'`). Prose speaks the dirt's
 word (`MaterialApi.dirtKinds().wordOf`, the path's leaf). **Resident by construction**:
-`SoilableMixin.onCreate` awaits `MaterialApi.dirtKinds().ensureKernel()` (one prefix
-read of `/platform/dirt/`, once per process), restored deposits and stains
+the kernel's kinds are `MaterialApi`'s declared `needs`
+(`dirtKinds().ensureKernel()`, one prefix read of `/platform/dirt/`, stood at
+boot — no `onCreate` readies them), restored deposits and stains
 load through the `setDeposits`/`setStains` restore doors, and a pack
 soiling with its own kind loads it in the act that lands it (the worked
 act, `hew`, `scutch` for `dust`); so `soil()` and the sync read
 `MaterialApi.dirtKinds().need(path)` always find it, and a miss is
 `DocumentNotResidentError`. A tap's apron splash is only a dirt the
-kernel ships (`MaterialApi.dirtKinds().has`). A cleanser is named
-by its MATERIAL (`cleanser:`, `identity:constituent`, loaded with it —
-`Material.getCleanser()`). Each row reads itself (`descriptor()`).
+kernel ships (`MaterialApi.dirtKinds().has`). ⭐ **A cleanser is named
+by its MATERIAL** — `cleanser: /platform/cleansers/soap` on the material
+row (17 rows cite one) — and loads with it: `Material.setCleanser(path)`
+returns `MaterialApi.cleansers().ensure(path)`, which the template applier
+awaits, so `Material.getCleanser()` → `need(path)` always finds it and the
+wash and the bathhouse tariff read it synchronously. The catalogue's
+`parse` validates the descriptor (a bad action or damage throws naming the
+path, at install); `lint:census` (g) checks every `cleanser:` citation
+names a shipped document (load-on-use round two — it was an Idea row at
+`/platform/idea/Cleanser/<key>` until 2026-11-11).
 
 ## The producers — every act names its deposit
 
@@ -439,3 +452,12 @@ water in reach by one `WashSpec`, and that water is the source's answer
 split the grate off as `rake` (`Burner.rakePlan`, W18 `34f8e50c3`), leaving
 a floor and a flue with one result shape. `survey`'s floor line became
 `analyze cleanliness floor` (W17).
+
+## History — cleansers became documents (MR !575, 2026-11-11)
+
+Load-on-use round two: the sixteen `Cleanser` Idea rows moved to
+`cleanser` documents under each pack's `content/cleansers/`; the material
+rows re-cite them by path (`/platform/cleansers/<word>`), the setter
+returns the load, and `cleanser` joined census clause (g). `sunlight` and
+`sulfur-fume` remain documents no material cites and no code reads, as
+before.

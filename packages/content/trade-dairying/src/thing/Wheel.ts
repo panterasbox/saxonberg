@@ -38,6 +38,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 /** The row a wedge is cloned from. */
 const WEDGE_ROW = '/trade/dairying/thing/wedge';
@@ -58,7 +59,7 @@ function madeFromAugmenter(
   if (!opts?.filter?.includes('taste')) return text;
   const from = MixinApi.isCrafted(host) ? host.getMadeFrom() : '';
   if (!from) return text;
-  const milk = StuffApi.findByTemplatePath<Material>(from);
+  const milk = MaterialApi.materials().peek(from);
   if (!milk) return text;
   // "made from goat's milk" reads right for every milk, including the cow's,
   // whose material is plain "milk" ("a milk cheese" did not — the drive).

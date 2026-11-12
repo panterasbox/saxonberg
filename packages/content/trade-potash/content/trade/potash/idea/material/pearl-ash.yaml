@@ -19,5 +19,5 @@ data:
   electricalConductivity: 1.0e-6
   waterAbsorptionCapacity: 60
   tags: [solid, mineral, alkali, potash, flux]
-  cleanser: /trade/potash/idea/Cleanser/potash
+  cleanser: /trade/potash/cleansers/potash
   castTemplate: /trade/potash/thing/pearl-ash

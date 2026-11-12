@@ -48,7 +48,7 @@ import { TemplatePaths } from '../paths';
 import { Contamination } from '../material/Contaminable';
 import { WashableMixin } from './Washable';
 import { DirtKinds, type DirtKindDescriptor } from './DirtKind';
-import type { CleanserAction, CleanserDescriptor } from '../../platform/idea/Cleanser';
+import type { CleanserAction, CleanserDescriptor } from './Cleanser';
 import { MaterialApi } from '../../api/material';
 
 /** The four soil bands, cleanest first — words, ordinal. */
@@ -359,15 +359,6 @@ export function SoilableMixin<TBase extends NestingConstructor<Stuff>>(
     /** Its clock in the bath it is in (D8c), or `null` out of one. */
     public bath: BathHold | null = null;
 
-    /**
-     * ⭐ A soilable thing is live only when the kernel's dirt vocabulary is
-     * (documents D7, mechanism 4) — so the engine's own `soil(DirtKinds.X)`
-     * always finds its kind. One prefix read for the process.
-     */
-    public async onCreate(context?: unknown): Promise<void> {
-      await super.onCreate(context);
-      await MaterialApi.dirtKinds().ensureKernel();
-    }
 
     /** The restore door for the deposits: every dirt kind they name loads with them. */
     public async setDeposits(value: Record<string, number>): Promise<void> {

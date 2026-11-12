@@ -26,7 +26,7 @@ import BankCounter from '../../../platform/thing/BankCounter';
 import PaymentCard from '../../../platform/thing/PaymentCard';
 import ChattelRegistry from '../../../platform/idea/ChattelRegistry';
 import BusinessEntity from '../../../platform/idea/Business';
-import MaturationProfile from '../../../platform/idea/maturation/MaturationProfile';
+import MaturationProfile from '../../../lib/maturation/MaturationProfile';
 import Food from '../../../platform/idea/material/Food';
 import type { Crafted } from '../../craft/Crafted';
 import { EmploymentApi } from '../../../api/employment';
@@ -64,6 +64,10 @@ import {
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { TemplatePaths } from '../../paths';
 import { EmploymentLogic } from '../../../platform/idea/api/EmploymentLogic';
+import { forgetProfiles, rememberProfile } from '../../maturation/__tests__/profiles';
+
+// The profile and schedule documents outlive a test (load-on-use W4).
+afterEach(() => forgetProfiles());
 // The counter mechanism is kernel substrate; the instanceable twin is
 // the shopkeeping pack's, which the kernel may not import. A local
 // fixture over the base is the whole of what these tests need.
@@ -177,7 +181,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
     makeStuffAtPath(() => {
       const b = new BankCounter();
       // The corpo dictionary loads with the bank (D7); never read here.
-      void b.setCorpoKey('goodkin')?.catch(() => undefined);
+      b.setCorpoKey('goodkin');
       return b;
     }, BANK);
 
@@ -202,7 +206,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
         m.setTags(['liquid', 'wine', 'red']);
         return m;
       }, RED);
-      makeStuffAtPath(() => {
+      rememberProfile(() => {
         const p = new MaturationProfile();
         p.setKey('cellars-red');
         p.setInputCategory('cellars-must');

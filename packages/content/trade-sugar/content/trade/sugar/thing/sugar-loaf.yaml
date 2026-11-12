@@ -2,6 +2,8 @@
 # its colour is read head to foot.
 class: /trade/sugar/thing/SugarLoaf
 data:
+  # What this vessel makes of its charge (load-on-use W8: content, not code).
+  drainsTo: /trade/sugar/idea/material/molasses
   shortDescription: sugar loaf
   keywords: [loaf, "sugar loaf", sugar, cone]
   register: indefinite

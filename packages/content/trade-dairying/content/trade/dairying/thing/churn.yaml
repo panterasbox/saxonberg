@@ -4,6 +4,8 @@
 # churn into jug`); the butter is what stays.
 class: /trade/dairying/thing/Churn
 data:
+  # What this vessel makes of its charge (load-on-use W8: content, not code).
+  churnsTo: /trade/dairying/idea/material/churned-cream
   shortDescription: butter churn
   keywords: [churn, "butter churn", dasher]
   register: indefinite

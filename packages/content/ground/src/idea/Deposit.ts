@@ -41,6 +41,7 @@ import { GroundSourceMixin } from '@saxonberg/server/mud/lib/ground/GroundSource
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { Seeded } from '@saxonberg/server/mud/lib/Seeded';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 /**
  * A point in the ground, **in metres**, z negative going down.
@@ -509,16 +510,16 @@ export default class Deposit extends GroundSourceMixin(Idea) {
     // out for free.
     stratigraphy: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     waterTable: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
-    lode: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
-    zones: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    lode: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0, ref: 'identity:constituent' },
+    zones: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0, ref: 'identity:constituent' },
     depletion: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     features: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
-    gas: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    gas: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0, ref: 'identity:constituent' },
     // ⭐ Same level-1 spoiler as the lode, and for a sharper reason: that
     // a column HAS fluid bodies to be surveyed for is public (a reader
     // should know there is structure to measure); where they are, and
     // above all whether they are charged, is the thing the payroll buys.
-    fluids: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    fluids: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0, ref: 'identity:constituent' },
   };
 
   // ---------- authored surface ----------
@@ -1202,7 +1203,7 @@ function normalOf(lode: Lode): [number, number, number] {
  * free-digging bug is far worse than a slightly wrong one.
  */
 function hardnessOf(materialPath: string): number {
-  const m = StuffApi.findByTemplatePath<Material>(materialPath);
+  const m = MaterialApi.materials().peek(materialPath);
   if (!m) return DEFAULT_HARDNESS_MPA;
   const h = MixinApi.hasSolidity(m) ? m.getHardness().rawValue() : 0;
   return h > 0 ? h : DEFAULT_HARDNESS_MPA;

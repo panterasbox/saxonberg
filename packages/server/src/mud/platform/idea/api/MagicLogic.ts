@@ -116,6 +116,7 @@ import type { Container } from '../../../lib/spatial/Container';
 import type { Combatant } from '../../../lib/combat/Combatant';
 import type { GenerationNow } from '../../../lib/identification/Appearance';
 import { DocumentNotResidentError } from '../../../lib/errors';
+import { MaterialApi } from '../../../api/material';
 
 const MagicApiCallers = SecurityPolicies.FromModule('/api/magic#MagicApi');
 /** The F3 object faces forward here as the subject instance. */
@@ -435,7 +436,6 @@ async function prepareCastImpl(
   spellId: string,
   target?: Stuff,
 ): Promise<PrepareOutcome> {
-  await StuffApi.ready(SPELL_DICTIONARY); // Caster reaches here past MagicApi's gate (W5c)
   if (!MixinApi.isCaster(caster)) {
     return { ok: false, refusal: 'You have no gift for the arts.' };
   }
@@ -719,7 +719,6 @@ async function resolveCastImpl(
   spellId: string,
   target?: Stuff,
 ): Promise<CastOutcome> {
-  await StuffApi.ready(SPELL_DICTIONARY); // Caster reaches here past MagicApi's gate (W5c)
   // Re-validate — the world may have changed during the cast time (the
   // caster walked into a ward, the wound landed, the band is unchanged).
   const prep = await prepareCastImpl(caster, spellId, target);
@@ -1048,7 +1047,6 @@ function absorbWasteHeat(
 }
 
 async function spellsViewImpl(caster: Stuff): Promise<SpellsView> {
-  await StuffApi.ready(SPELL_DICTIONARY); // Caster reaches here past MagicApi's gate (W5c)
   const casterView = (caster as unknown as Caster).getFacultyView();
   const rows: SpellCellRow[] = [];
   for (const spell of catalogue().allSpells() ?? []) {
@@ -1574,7 +1572,7 @@ async function execAfflict(
   if (!target || !MixinApi.isVitals(target)) {
     return 'The working needs a living mark.';
   }
-  const seed = StuffApi.findByTemplatePath<Condition>(e.conditionPath);
+  const seed = ConditionApi.conditions().need(e.conditionPath);
 
   // **Afflict is magnitude where it HAS one, outcome where it does not.**
   // A seed with `mentalBands` scales its stage below (the resist fold
@@ -1735,8 +1733,9 @@ async function execConjure(
   const materialPath = e.bulkMaterial!.startsWith('/')
     ? e.bulkMaterial!
     : `/stuff/idea/material/bulk/${e.bulkMaterial}`;
-  const material = StuffApi.findByTemplatePath<Material>(materialPath);
-  if (!material) return 'The stuff of it will not come.';
+  // The working names its matter; the cast loads it (load-on-use D2 c) —
+  // a name no row answers throws here rather than fizzling quietly.
+  const material = await MaterialApi.materials().ensure(materialPath);
   const source = await StuffApi.clone<UnboundedReceptacle>(
     '/platform/thing/UnboundedReceptacle',
   );

@@ -109,32 +109,32 @@ describe("GovernmentApi / GovernmentLogic", () => {
     vi.restoreAllMocks();
   });
 
-  it("resolves the nested chain most-local first", () => {
-    const chain = GovernmentApi.governmentChainAt("narnia/castle/closet");
+  it("resolves the nested chain most-local first", async () => {
+    const chain = await GovernmentApi.governmentChainAt("narnia/castle/closet");
     expect(chain.map((g) => g.key)).toEqual(["castle-gov", "narnia-gov"]);
-    expect(GovernmentApi.governmentAt("narnia/castle/closet")?.key).toBe(
+    expect((await GovernmentApi.governmentAt("narnia/castle/closet"))?.key).toBe(
       "castle-gov"
     );
   });
 
-  it("inherits through a key-less Locality (the sparse case)", () => {
-    const chain = GovernmentApi.governmentChainAt("narnia/wild/thicket");
+  it("inherits through a key-less Locality (the sparse case)", async () => {
+    const chain = await GovernmentApi.governmentChainAt("narnia/wild/thicket");
     expect(chain.map((g) => g.key)).toEqual(["narnia-gov"]);
   });
 
-  it("resolves off-grid to an empty chain, never throwing", () => {
-    expect(GovernmentApi.governmentChainAt("elsewhere/void")).toEqual([]);
-    expect(GovernmentApi.governmentAt("elsewhere/void")).toBeNull();
-    expect(GovernmentApi.governmentChainAt("")).toEqual([]);
+  it("resolves off-grid to an empty chain, never throwing", async () => {
+    expect(await GovernmentApi.governmentChainAt("elsewhere/void")).toEqual([]);
+    expect(await GovernmentApi.governmentAt("elsewhere/void")).toBeNull();
+    expect(await GovernmentApi.governmentChainAt("")).toEqual([]);
   });
 
-  it("drops a declared key unknown to the catalogue", () => {
-    const chain = GovernmentApi.governmentChainAt("narnia/castle/keep/cell");
+  it("drops a declared key unknown to the catalogue", async () => {
+    const chain = await GovernmentApi.governmentChainAt("narnia/castle/keep/cell");
     expect(chain.map((g) => g.key)).toEqual(["castle-gov", "narnia-gov"]);
   });
 
-  it("dedupes a repeated key, preserving the most-local position", () => {
-    const chain = GovernmentApi.governmentChainAt("narnia/castle/tower/top");
+  it("dedupes a repeated key, preserving the most-local position", async () => {
+    const chain = await GovernmentApi.governmentChainAt("narnia/castle/tower/top");
     expect(chain.map((g) => g.key)).toEqual(["narnia-gov", "castle-gov"]);
   });
 
@@ -148,7 +148,7 @@ describe("GovernmentApi / GovernmentLogic", () => {
     expect(chain.map((g) => g.key)).toEqual(["castle-gov", "narnia-gov"]);
   });
 
-  it("residentOf derives from the domicile field (an NPC exemplar)", () => {
+  it("residentOf derives from the domicile field (an NPC exemplar)", async () => {
     const npc = makeStuff(() => new NPC());
     npc.setDomicileAddress("narnia/castle/quarters");
     expect(GovernmentApi.residentOf(npc).map((g) => g.key)).toEqual([
@@ -160,13 +160,13 @@ describe("GovernmentApi / GovernmentLogic", () => {
     );
   });
 
-  it("residentOf is empty for the undomiciled", () => {
+  it("residentOf is empty for the undomiciled", async () => {
     const npc = makeStuff(() => new NPC());
     expect(GovernmentApi.residentOf(npc)).toEqual([]);
     expect(GovernmentApi.domicileAddressOf(npc)).toBeNull();
   });
 
-  it("domicile persists-until-replaced: clearing writes are ignored", () => {
+  it("domicile persists-until-replaced: clearing writes are ignored", async () => {
     const npc = makeStuff(() => new NPC());
     npc.setDomicileAddress("narnia/castle/quarters");
     npc.setDomicileAddress("");
@@ -297,7 +297,7 @@ describe("GovernmentApi / GovernmentLogic", () => {
     await expect(GovernmentApi.seatsOf("no-such-gov")).resolves.toEqual([]);
   });
 
-  it("descriptor getters read the warmed catalogue", () => {
+  it("descriptor getters read the warmed catalogue", async () => {
     expect(GovernmentApi.getGovernment("narnia-gov")?.name).toBe(
       "the Realm of Narnia"
     );

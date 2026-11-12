@@ -207,18 +207,18 @@ describe("the mill, at the SHIPPED tech level (spindle and hand loom)", () => {
     // can walk away from.
     const profile = YAML.parse(
       readFileSync(
-        join(PACK, "content", "trade", "textiles", "idea", "maturation", "retting.yaml"),
+        join(PACK, "content", "maturation-profiles", "retting.yaml"),
         "utf-8",
       ),
-    ) as { data: { ratePerDay: number; turnDays: number } };
-    const elapsedDays = 1 / profile.data.ratePerDay;
+    ) as { ratePerDay: number; turnDays: number };
+    const elapsedDays = 1 / profile.ratePerDay;
     console.info(
       `\n  retting: ~${Math.round(elapsedDays)} game-days ELAPSED, ` +
-        `0 attended; ${profile.data.turnDays} days of grace before it is ruined\n`,
+        `0 attended; ${profile.turnDays} days of grace before it is ruined\n`,
     );
     expect(elapsedDays).toBeGreaterThan(7);
     // ⚠ And the grace is short enough that judging it is a real act.
-    expect(profile.data.turnDays).toBeLessThan(elapsedDays / 2);
+    expect(profile.turnDays).toBeLessThan(elapsedDays / 2);
   });
 
   it("⚠⚠ (c) the HONEST-FINDING leg — bed-scale supply, computed and printed", () => {

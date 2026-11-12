@@ -47,6 +47,7 @@ import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { DigBegin, DigDone, DigRefusal, WorkLanding, WorkPlan } from '@saxonberg/server/mud/lib/ground/Workable';
 import type { ActDone } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import DigController from '@saxonberg/server/mud/platform/idea/cmd/ground/DigController';
+import { standAddressIndex } from '@saxonberg/server/mud/lib/address/__tests__/address-index';
 
 const ZONE = '/world/fx-quarry/quarry';
 const DEPOSIT = '/world/fx-quarry/idea/deposit/fx';
@@ -492,6 +493,9 @@ describe('a won load remembers its assay (glass W3)', () => {
     });
     column.setZones([{ toZ: -6, mineral: IRON, meanGrade: 0.012, spread: 0 }]);
     lastWon = null;
+    // The assay seeds by the covering locality; stand the (empty) address
+    // index in so the clone spy below sees only the won load (load-on-use W5).
+    standAddressIndex();
     vi.spyOn(StuffApi, 'clone').mockImplementation((async () => {
       const g = makeStuff(() => new AssayAlloyedGood());
       lastWon = g as unknown as Stuff;

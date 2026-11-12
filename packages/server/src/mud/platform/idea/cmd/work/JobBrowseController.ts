@@ -23,7 +23,7 @@ export default class JobBrowseController extends JobControllerBase {
     // — so it reads by origin rather than by board.
     const originRaw = (model.origin ?? "").trim();
     if (originRaw) {
-      const originPath = this.place(originRaw, context);
+      const originPath = await this.place(originRaw, context);
       const back = await ContractApi.openGigsFrom(originPath);
       if (back.length === 0) {
         this.send(

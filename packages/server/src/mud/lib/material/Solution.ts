@@ -81,6 +81,7 @@ export function SolutionMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
         authorable: true,
         spoiler: 1,
         spoilerName: 0,
+        ref: 'identity:constituent',
       },
       // ── Crystallizing and the filter (ceramics W8, S17 + S9) ──
       // ⭐ The boil-down (sugar D1). Public: a sugar boiler reads the
@@ -89,13 +90,13 @@ export function SolutionMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
       // ⭐ How much of its solute a liter of this holds at a temperature —
       // a measured fact, like the boiling point.
       solubility: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
-      crystallizesTo: { persistent: true, authorable: true },
+      crystallizesTo: { persistent: true, authorable: true, ref: 'identity:constituent' },
       // ⭐⭐ What a porous body strains this into — `spoiler: 1`: that fouled
       // water comes through a filter clean is the lesson, and that tainted
       // water does not is the harder one.
-      filteredTo: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+      filteredTo: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0, ref: 'identity:constituent' },
       boilingPointElevation: { persistent: true, authorable: true },
-      concentratesTo: { persistent: true, authorable: true },
+      concentratesTo: { persistent: true, authorable: true, ref: 'identity:constituent' },
     };
 
     /**

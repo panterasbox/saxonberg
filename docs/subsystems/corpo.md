@@ -101,10 +101,9 @@ The advancement-precedent three singletons:
   derived **portfolio index** (corpo key → owned brand keys) — the "portfolio
   is the forward edge" projection as a cheap precomputed inverted index. A
   *Catalogue* (holds authored data), not a Registry (holds code) — per the
-  [grouping.md](./grouping.md) convention. ⭐ **Never booted** (documents
-  path identity, 2026-11-09 — it was a `sync-read` boot entry): it loads
-  when something reaches it, through **`CorpoApi.ready()`**
-  (`StuffApi.singleton`), and `CorpoLogic`'s sync reads throw
+  [grouping.md](./grouping.md) convention. ⭐ No pack `boot:` entry
+  (documents path identity, 2026-11-09); it is `CorpoApi`'s declared
+  `needs`, stood once at boot by `AppBootstrap` (load-on-use W10), and `CorpoLogic`'s sync reads throw
   `DocumentNotResidentError` when it is cold rather than answering empty.
   Singleton-destruct refusal.
 - **`CorpoLogic`** (`platform/idea/api/CorpoLogic.ts`, `/platform/idea/api/corpo`) — the gated
@@ -137,11 +136,10 @@ durable key of one `Brand` in its **`brand`** field (renamed from
 `getBrand()` / `getCorpo()` resolve on **each call** through `CorpoApi`
 (HMR-safe — no cached instance, the `Material` cross-ref precedent). An
 empty `brand` is unbranded; a brand whose `owner` is empty resolves to a
-`null` corpo. ⭐ **Resident by construction**: `setBrand` returns the load
-of the brand dictionary (`CorpoApi.ready()`) — plus the government
-dictionary's (`GovernmentApi.ready()`) when the brand names a polity — and
-the applier awaits it, so a branded thing is live only when its brand is
-and every sync read above finds it.
+`null` corpo. ⭐ **Resident from boot**: the brand dictionary is
+`CorpoApi`'s declared `needs` (and the government dictionary
+`GovernmentApi`'s), stood once by `AppBootstrap` (load-on-use W10), so
+`setBrand` is a plain setter and every sync read above finds it.
 
 Two surfaces beyond the accessors:
 
@@ -296,5 +294,6 @@ it is authored, so the branch's tellers stay the branch's.
 ## History
 
 - 2026-11-09 — documents path identity: `CorpoCatalogue` left the boot list
-  (it loads on reach through `CorpoApi.ready()`), and `Branded._brandKey`
+  (it loaded on reach through `CorpoApi.ready()`; since load-on-use W10 it
+  stands at boot as `CorpoApi`'s `needs`), and `Branded._brandKey`
   became `brand`. See git log for the `reqs/documents-path-identity` branch.

@@ -90,6 +90,10 @@ const leafWord = (doc: DocumentKeySource): string[] => {
 const recipeOutput: DocumentKeyDerivation = (doc) =>
   typeof doc.data.outputTemplate === 'string' ? doc.data.outputTemplate : undefined;
 
+/** A dyestuff's `material` — `dye` finds the dyestuff its bath holds by it. */
+const dyestuffMaterial: DocumentKeyDerivation = (doc) =>
+  typeof doc.data.material === 'string' ? doc.data.material : undefined;
+
 /** A release's publication instant (epoch-ms) — the press reads newest first by it. */
 const releasePublishedAt: DocumentKeyDerivation = (doc) =>
   typeof doc.data.publishedAt === 'number' ? doc.data.publishedAt : undefined;
@@ -148,6 +152,41 @@ export const DOCUMENT_KINDS = {
    * the kernel's own `DirtKinds` constants name it by path.
    */
   dirt: { kind: 'dirt', catalogue: '/platform/idea/DirtCatalogue', contentDir: 'dirt', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **cleanser** — one thing you wash WITH (soap, lye, sand): its
+   * mechanism, the damage it does, how much a wash uses
+   * (`lib/cleanliness/Cleanser.ts`). Named by the MATERIAL that is one
+   * (`cleanser:` on a material row), by path.
+   */
+  /**
+   * A **fabric** — one non-resisting textile form (woven, knit, felted):
+   * its covering band, loft, weave density, drape and stretch (`FabricSpec`,
+   * `lib/material/Construction.ts`). A garment cites it by path in its
+   * `constructionForm`.
+   */
+  fabric: { kind: 'fabric', catalogue: '/platform/idea/FabricCatalogue', contentDir: 'fabrics', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **dyestuff** — what a dye bath of one material lays on cloth, per
+   * mordant (madder, woad), and which of the two chemistries it is. The
+   * dyeing pack's (`src/lib/Dyestuff.ts`); declared here as every pack's
+   * kind is. Found by its card's `material` (the bath's material).
+   */
+  dyestuff: { kind: 'dyestuff', catalogue: '/trade/dyeing/idea/DyestuffCatalogue', keys: { material: dyestuffMaterial }, contentDir: 'dyestuffs', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **maturation profile** — how a vessel's charge ripens over time (a
+   * must into wine, a wheel into cheese): its temperature band, rate,
+   * product, failure and lees (`lib/maturation/MaturationProfile.ts`). A
+   * vessel matches one by its charge's tag and holds its path.
+   */
+  'maturation-profile': { kind: 'maturation-profile', catalogue: '/platform/idea/MaturationProfileCatalogue', contentDir: 'maturation-profiles', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **fraction schedule** — how a run divides by volume drawn: its spans,
+   * their character, grade and dose, and what is left in the pot
+   * (`lib/fractionation/FractionSchedule.ts`). A still matches one by its
+   * charge's tag and holds its path.
+   */
+  'fraction-schedule': { kind: 'fraction-schedule', catalogue: '/platform/idea/FractionScheduleCatalogue', contentDir: 'fraction-schedules', ext: 'yaml', onVanish: 'delete' },
+  cleanser: { kind: 'cleanser', catalogue: '/platform/idea/CleanserCatalogue', contentDir: 'cleansers', ext: 'yaml', onVanish: 'delete' },
   /**
    * An **operation** — one entry of the surgical catalogue: which wound it
    * addresses, its blood and time, its anaesthesia, how it resolves

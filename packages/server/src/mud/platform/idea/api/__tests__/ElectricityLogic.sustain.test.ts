@@ -34,6 +34,7 @@ import { installV1QuantityMarshallers } from '../../../../lib/persistence/__test
 import { installCorpseMintStub } from '../../../../lib/mortality/__tests__/corpse-mint-test-helpers';
 import type { Trauma, SustainedShock } from '../../Condition';
 import requiresConscious from '../../../../lib/command/validators/requiresConscious';
+import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
 
 class TestWire extends EnergizedMixin(ContainableMixin(NamedMixin(Idea))) {
   static _mixinName = 'TestWire';
@@ -147,6 +148,7 @@ describe('ElectricityLogic — being-shocked sustain + tetany + death', () => {
     WorldClockApi._resetForTesting();
     real = 1_000_000;
     WorldClockApi._setNowProviderForTesting(() => real);
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
   });
   afterEach(() => {
     WorldClockApi._resetForTesting();

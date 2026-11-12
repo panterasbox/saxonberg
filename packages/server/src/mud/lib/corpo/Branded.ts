@@ -43,7 +43,7 @@ import type { CorpoDescriptor } from "../../platform/idea/corpo/Corpo";
 export interface Branded {
   /** The durable brand `key` this product is marked with (`''` if unbranded). */
   getBrandKey(): string;
-  setBrandKey(value: string): Promise<void> | undefined;
+  setBrandKey(value: string): void;
   /** The marked brand's descriptor, or `null` when unbranded. */
   getBrand(): BrandDescriptor | null;
   /**
@@ -75,22 +75,15 @@ export function BrandedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * returned load is awaited by the applier, so `look`'s mark and the MQL
      * projection read a resident brand synchronously.
      */
-    public setBrand(value: string): Promise<void> | undefined {
+    public setBrand(value: string): void {
       if (typeof value !== "string") {
         throw new TypeError("Branded.brand must be a string");
       }
       this.brand = value;
-      if (!value) return undefined;
-      // …and a brand that names a polity (the colors a flag flies) loads the
-      // government dictionary too — `look`'s mark names it.
-      return StuffApi.ready(CorpoApi).then(() => {
-        const polity = CorpoApi.getBrand(value)?.government;
-        return polity ? StuffApi.ready(GovernmentApi) : undefined;
-      });
     }
 
-    public setBrandKey(value: string): Promise<void> | undefined {
-      return this.setBrand(value);
+    public setBrandKey(value: string): void {
+      this.setBrand(value);
     }
 
     public getBrand(): BrandDescriptor | null {

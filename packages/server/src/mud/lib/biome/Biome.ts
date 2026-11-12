@@ -176,6 +176,10 @@ export default class Biome extends BiomeBase {
     _defaultWind: { persistent: true, inherit: 'never', spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('m/s') },
     _defaultGravity: { persistent: true, inherit: 'never', spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('m/s²') },
     _planetRadiusM: { persistent: true, authorable: true, inherit: 'never' },
+    // ── What a place is built of when neither its row nor its class says ──
+    // Authored on the root (`universe`) — content, not a dial (load-on-use
+    // W8, the owner's call): a constituent, so it loads with the booted root.
+    _enclosureMaterial: { persistent: true, authorable: true, inherit: 'never', ref: 'identity:constituent' },
     _defaultAmbientSoundLevel: { persistent: true, inherit: 'never', spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('dB') },
   };
 
@@ -190,6 +194,15 @@ export default class Biome extends BiomeBase {
     const { Template } = await import('../stuff/Template');
     const row = await Template.findByPath(path);
     this._parentPath = row?.extends ?? null;
+  }
+
+  /** The default wall material a place falls back to — the root's `_enclosureMaterial`. */
+  protected _enclosureMaterial = '';
+  public getEnclosureMaterial(): string {
+    return this._enclosureMaterial;
+  }
+  public setEnclosureMaterial(value: string): void {
+    this._enclosureMaterial = typeof value === 'string' ? value : '';
   }
 
   // ---------- name ----------

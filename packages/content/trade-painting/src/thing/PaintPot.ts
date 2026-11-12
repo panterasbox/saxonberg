@@ -34,6 +34,7 @@ import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Paint } from '@saxonberg/server/mud/lib/material/Paint';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 /** ⭐ What a look says of the paint in a pot — its color and what it is made of. */
 const paintAugmenter: MarkupAugmenter = (text, host: Stuff, _viewer, opts) => {
@@ -120,7 +121,7 @@ export default class PaintPot extends GlazeTub {
 
   private materialAt(path: string): Material | null {
     try {
-      return StuffApi.findByTemplatePath<Material>(path) ?? null;
+      return MaterialApi.materials().peek(path) ?? null;
     } catch {
       return null;
     }

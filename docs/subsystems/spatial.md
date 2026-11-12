@@ -413,11 +413,12 @@ projection, `put`/`dry`/`look`/`sense`) calls `ContainmentApi.placements().need(
 which throws `DocumentNotResidentError` for a path nothing loaded (an
 engine defect, never a refusal and never a default). What loads them:
 
-- **`Place.onCreate`** awaits `ContainmentApi.placements().ensureKernel()` — one prefix
-  read of `/platform/placements/`, once per process — so the engine's
-  own `move(item, desk, Placements.ON)` and every container's inside
-  always find theirs (one host, rather than `ContainerMixin` and
-  `PlacingMixin` each, keeps `lint:on-create` from rising);
+- **the boot**: `ContainmentApi`'s declared `needs` is
+  `placements().ensureKernel()` — one prefix read of
+  `/platform/placements/`, stood by `AppBootstrap` before the manifest
+  (load-on-use W10; `Place.onCreate` loaded it until then) — so the
+  engine's own `move(item, desk, Placements.ON)` and every container's
+  inside always find theirs;
 - **`PlacingMixin.setPlacements`** returns the load of every path it is
   given, which the template applier awaits (authored rows and restores
   alike);
@@ -1220,6 +1221,7 @@ hide for the hand it went to (`to`). A forwarder forwards both.
 Documents path identity: the `Placement` vocabulary moved from singleton
 Ideas warmed at boot by `PlacementCatalogue` (deleted, with its boot line
 and the `ContainmentApi.placement*` statics) to `placement` documents
-cited by path, resident by construction (`Place.onCreate`, the
+cited by path, resident by construction (`Place.onCreate` — since
+load-on-use W10 the boot, as `ContainmentApi`'s `needs` — the
 `placements` setter, the restore pass). See git log for the
 `reqs/documents-path-identity` branch.

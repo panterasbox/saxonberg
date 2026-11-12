@@ -38,6 +38,7 @@
  * See `docs/subsystems/harm.md`.
  */
 
+import type { ApiNeed } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Vitals } from '../lib/vitals/Vitals';
 import type { AccountabilityFields } from '../lib/accountability/AccountabilityEvent';
@@ -52,6 +53,9 @@ import { ConditionLogic } from '../platform/idea/api/ConditionLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import OperationCatalogue from '../platform/idea/OperationCatalogue';
+import ConditionCatalogue from '../platform/idea/ConditionCatalogue';
+import { TemplatePaths } from '../lib/paths';
+import { TestOnly } from '../lib/security/decorators';
 
 export type { InsultKind, Channel } from '../platform/idea/Condition';
 
@@ -238,6 +242,32 @@ function logic(): ConditionLogic {
 }
 
 export class ConditionApi {
+  /**
+   * ⭐ What this Api's reads stand on — the condition rows (the roster), stood
+   * by the boot routine with every Api's needs, so no body readies them.
+   */
+  static readonly needs: readonly ApiNeed[] = [() => ConditionApi.conditions().ensureRoster()];
+
+  /**
+   * ⭐ The conditions — the one door every condition read goes through
+   * (load-on-use D7): `ensure(path)`, the sync `need(path)` that throws
+   * cold, `peek(path)`, and `roster()` after `ensureRoster()` (which every
+   * body's `onCreate` awaits).
+   */
+  public static conditions(): ConditionCatalogue {
+    return StuffApi.singletonSync(TemplatePaths.conditionCatalogue, () => new ConditionCatalogue());
+  }
+
+  /**
+   * Mark the condition roster stood with whatever conditions a suite has
+   * made — a suite has no rows to read, and this Api's needs stand the
+   * roster (load-on-use W10). The test harness calls it once.
+   */
+  @TestOnly('Nothing in the game stands the condition roster in by hand — the boot stands it with every Api\'s needs.')
+  public static standRosterForTesting(): void {
+    ConditionApi.conditions().standRosterAsLive();
+  }
+
   /**
    * ⭐ The operations — what a surgeon can do to a body (`extraction`,
    * `bleed-control`, `amputation`), any pack's `content/operations/`,

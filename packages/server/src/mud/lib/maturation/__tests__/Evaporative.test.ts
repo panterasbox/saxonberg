@@ -21,7 +21,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../../platform/thing/Vat';
-import MaturationProfile from '../../../platform/idea/maturation/MaturationProfile';
+import MaturationProfile from '../../../lib/maturation/MaturationProfile';
 import Material from '../../material/Material';
 import Location from '../../location/Location';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -33,6 +33,7 @@ import type { AirSegment } from '../../../api/biome';
 import { BiomeApi } from '../../../api/biome';
 import { Evaporation } from '../../material/Evaporation';
 import '../../../platform/idea/WorldClockRegistry';
+import { rememberProfile } from './profiles';
 
 const HOUR = 3600;
 const DAY = 24 * HOUR;
@@ -62,7 +63,7 @@ function standFixtures(): void {
     m.setTags(['solid', 'salt']);
     return m;
   }, SALT);
-  makeStuffAtPath(() => {
+  rememberProfile(() => {
     const p = new MaturationProfile();
     p.setKey('test-brine');
     p.setInputCategory('test-brine');

@@ -247,6 +247,8 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       const resolution = await attempt(() => AddressApi.resolveFor(place));
       const address = resolution?.address ?? null;
+      // The sync chain read stands on the index the awaited `resolveFor`
+      // built (`AddressApi.needs`, load-on-use W5).
       const localities = address
         ? AddressApi.coverageChainOf(address)
             .map((l) => ({ name: l.getName(), address: l.getAddress() }))
@@ -289,7 +291,9 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         ? await attempt(() => WeatherApi.sampleFor(place))
         : undefined;
       const day = await attempt(() => CelestialApi.isDayAt(place));
-      const government = address ? await attempt(() => GovernmentApi.governmentAt(address)) : undefined;
+      const government = address
+        ? await attempt(() => GovernmentApi.governmentAt(address))
+        : undefined;
 
       return {
         place: { stuffId: place.stuffId, name: place.getPresentation() },

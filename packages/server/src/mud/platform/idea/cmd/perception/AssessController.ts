@@ -30,6 +30,7 @@ import type Condition from '../../Condition';
 import { StuffApi } from '../../../../api/stuff';
 import { Creature, type BmiBand } from '../../../../lib/creature/Creature';
 import type BodyPlan from '../../species/BodyPlan';
+import { ConditionApi } from '../../../../api/condition';
 
 const TOPIC = 'act.deed';
 
@@ -164,30 +165,13 @@ export default class AssessController extends CommandController<AssessModel> {
       const seen: string[] = [];
       for (const a of afflictions) {
         const path = (a as { templatePath: string }).templatePath;
-        const condition = StuffApi.findByTemplatePath<Condition>(path);
-        if (condition) {
-          seen.push(
-            named
-              ? condition.getName()
-              : (condition.getObservableSigns()[0] ?? 'unwell'),
-          );
-          continue;
-        }
-        // The Idea is not live. Condition seeds are inserted as template
-        // ROWS and nothing clones them into Ideas at boot, so today
-        // `findByTemplatePath` answers null for every one of them —
-        // `starvation` as much as `recovering`. (Pre-existing and
-        // world-wide: `Metabolic.resolveToxinBehavior` and `MagicLogic`
-        // already tolerate the same null.) Resolving the catalogue is its
-        // own build; until then, degrade to the path's leaf rather than
-        // rendering nothing, so the readout is useful now and gets
-        // strictly better — authored signs, real names — the moment the
-        // Ideas exist.
-        const leaf = path.split('/').filter(Boolean).pop();
-        if (!leaf) continue;
-        // The competence rule still holds: a leaf IS the condition's
-        // name, so an untrained looker must not be handed it.
-        seen.push(named ? leaf.replace(/-/g, ' ') : 'unwell');
+        // Loaded with the body (load-on-use W6) — a cold row throws by path.
+        const condition = ConditionApi.conditions().need(path);
+        seen.push(
+          named
+            ? condition.getName()
+            : (condition.getObservableSigns()[0] ?? 'unwell'),
+        );
       }
       if (seen.length > 0) {
         // Signs are what a body SEEMS ("You seem feverish"); a name is what

@@ -93,7 +93,7 @@ describe("CorpoApi / CorpoLogic", () => {
   it("resolves a branded Stuff to its corpo and brand end-to-end", () => {
     const b = makeStuff(() => {
       const bottle = new BrandedBottle();
-      void bottle.setBrandKey("volk")?.catch(() => {}); // the load is the applier's (documents D7)
+      bottle.setBrandKey("volk");
       return bottle;
     });
     expect(CorpoApi.corpoOf(b)?.key).toBe("veshko");
@@ -103,7 +103,7 @@ describe("CorpoApi / CorpoLogic", () => {
   it("resolves an independent branded Stuff to a brand but no corpo", () => {
     const b = makeStuff(() => {
       const bottle = new BrandedBottle();
-      void bottle.setBrandKey("crowsfoot-gin")?.catch(() => {}); // the load is the applier's (documents D7)
+      bottle.setBrandKey("crowsfoot-gin");
       return bottle;
     });
     expect(CorpoApi.brandOf(b)?.name).toBe("Crowsfoot Gin");
@@ -112,7 +112,7 @@ describe("CorpoApi / CorpoLogic", () => {
 
   it("resolves a non-branded Stuff to null", () => {
     const plain = makeStuff(() => new BrandedBottle());
-    void plain.setBrandKey("")?.catch(() => {}); // the load is the applier's (documents D7)
+    plain.setBrandKey("");
     expect(CorpoApi.corpoOf(plain)).toBeNull();
     expect(CorpoApi.brandOf(plain)).toBeNull();
   });

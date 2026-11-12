@@ -10,8 +10,6 @@ import { HelpControllerBase, type HelpModel } from "./HelpControllerBase";
 
 export default class HelpApiController extends HelpControllerBase {
   async execute(model: HelpModel, context: CommandContext): Promise<void> {
-    // The rulebook warms on first use (the scan sweep — not booted).
-    await StuffApi.ready(HelpApi);
     const target = model.target;
     if (!target) {
       const lines: string[] = [

@@ -22,8 +22,21 @@
 
 import Hall from '@saxonberg/server/mud/platform/location/Hall';
 import type { EnclosureDefaults, RoofSpec } from '@saxonberg/server/mud/lib/spatial/Enclosed';
+import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 export default class SealedCellar extends Hall {
+  static fieldMeta: FieldMeta = {
+    // The rock it is cut into — authored on the row, loaded with it
+    // (load-on-use W8: content, not a constant).
+    wallMaterial: { persistent: true, authorable: true, ref: 'identity:constituent' },
+  };
+
+  /** The rock its row authors (`wallMaterial:`). */
+  protected wallMaterial = '';
+  public setWallMaterial(value: string): void {
+    this.wallMaterial = typeof value === 'string' ? value : '';
+  }
+
   /**
    * ⭐ **A cellar is cut into the rock, and the rock is thick.**
    *
@@ -43,7 +56,7 @@ export default class SealedCellar extends Hall {
    */
   public override enclosureDefaults(): EnclosureDefaults {
     return {
-      materialPath: '/stuff/idea/material/rock/granite',
+      materialPath: this.wallMaterial,
       thicknessM: 1.0,
     };
   }
@@ -54,6 +67,6 @@ export default class SealedCellar extends Hall {
    * ever undeclared.
    */
   public override roofDefaults(): RoofSpec | null {
-    return { material: '/stuff/idea/material/rock/granite', thicknessM: 1.0 };
+    return { material: this.wallMaterial, thicknessM: 1.0 };
   }
 }

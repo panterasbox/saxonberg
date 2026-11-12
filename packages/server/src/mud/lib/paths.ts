@@ -66,6 +66,7 @@ export const TemplatePaths = {
   disciplineCatalogue: "/platform/idea/DisciplineCatalogue",
   corpoCatalogue: "/platform/idea/CorpoCatalogue",
   conditionCatalogue: "/platform/idea/ConditionCatalogue",
+  materialCatalogue: "/platform/idea/MaterialCatalogue",
   governmentCatalogue: "/platform/idea/GovernmentCatalogue",
   spellCatalogue: "/platform/idea/SpellCatalogue",
   recipeCatalogue: "/platform/idea/RecipeCatalogue",

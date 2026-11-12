@@ -26,7 +26,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../../platform/thing/Vat';
-import MaturationProfile from '../../../platform/idea/maturation/MaturationProfile';
+import MaturationProfile from '../../../lib/maturation/MaturationProfile';
 import Material from '../../material/Material';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
@@ -44,6 +44,7 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { TemplatePaths } from '../../paths';
+import { rememberProfile } from './profiles';
 
 const SPIRIT = '/stuff/idea/material/_test/cask-spirit';
 const WHISKY = '/stuff/idea/material/_test/cask-whisky';
@@ -65,7 +66,7 @@ function material(path: string, tags: string[]): void {
 
 /** The aging profile. `p` is `productAtFraction`. */
 function profile(p = 1): void {
-  makeStuffAtPath(() => {
+  rememberProfile(() => {
     const prof = new MaturationProfile();
     prof.setKey('cask-test');
     prof.setMechanism('chemical');

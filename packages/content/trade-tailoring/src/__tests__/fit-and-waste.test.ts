@@ -172,7 +172,7 @@ describe("the shipped garments", () => {
     // Nobody wrote "this is an apron". It is cheap, coarse, outermost
     // and wide — and apron-ness emerges from those four facts.
     const apron = row("thing", "apron");
-    expect(apron.constructionForm).toBe("sackcloth");
+    expect(apron.constructionForm).toBe("/trade/textiles/fabrics/sackcloth");
     const claims = apron.slotClaims as Record<string, string[]>;
     // Wide: it covers more than the shirt underneath it.
     expect(claims["/stuff/idea/species/BodyPlan/biped"]!.length).toBeGreaterThan(1);

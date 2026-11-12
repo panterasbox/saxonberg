@@ -65,6 +65,7 @@ import Location from "../../../../lib/location/Location";
 import CartesianZone from "../../location/CartesianZone";
 import { Postures } from "../../../../lib/slot/Postured";
 import type { Combatant } from '../../../../lib/combat/Combatant';
+import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
 
 class TestRoom extends ContainerMixin(Idea) {}
 class TestFighter extends Character {}
@@ -269,6 +270,7 @@ beforeEach(async () => {
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
   await bootRegistry();
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
 });
 
 afterEach(async () => {
@@ -280,6 +282,7 @@ afterEach(async () => {
   await new Promise((resolve) => setTimeout(resolve, 0));
   vi.restoreAllMocks();
   StuffApi.clearAll();
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
 });
 
 describe("CombatLogic — session lifecycle", () => {
@@ -1454,6 +1457,7 @@ describe("CombatLogic — formations: totality + byte-parity", () => {
   it("a party of 1 runs every preset clean (vacant roles inert)", () => {
     for (const name of Object.keys(PRESETS)) {
       StuffApi.clearAll();
+      standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
       SchedulerApi._clearAllForTesting();
       const room = makeStuff(() => new TestRoom());
       const cap = knifeFighter(room) as TestPartyFighter;
@@ -1486,6 +1490,7 @@ describe("CombatLogic — formations: totality + byte-parity", () => {
     // RESIDENT and the initiator sits in a party that never chose (the
     // chain resolves default either way; the trace must not move).
     StuffApi.clearAll();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
     SchedulerApi._clearAllForTesting();
     await bootRegistry();
     residentFormation("default");
@@ -1863,6 +1868,7 @@ describe("CombatLogic — formations: mid-fight adopt + determinism", () => {
     };
     const r1 = runOnce();
     StuffApi.clearAll();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
     SchedulerApi._clearAllForTesting();
     await bootRegistry();
     const r2 = runOnce();
@@ -2003,6 +2009,7 @@ describe("CombatLogic — command mints (the teaching payoff)", () => {
     // Player-driven front: the interception mints.
     {
       StuffApi.clearAll();
+      standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
       SchedulerApi._clearAllForTesting();
       const room = makeStuff(() => new TestRoom());
       const front = knifeFighter(room) as TestPartyFighter;

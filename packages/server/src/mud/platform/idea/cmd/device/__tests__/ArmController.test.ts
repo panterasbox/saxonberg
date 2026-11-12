@@ -39,6 +39,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '../../../../../lib/security/__tests__/test-setup';
+import { standAddressIndex } from '../../../../../lib/address/__tests__/address-index';
 
 class Room extends AddressableMixin(ContainerMixin(Idea)) {}
 // The stealth-band read runs ON the placer since the OO sweep; pinned
@@ -88,6 +89,10 @@ function scene(): { room: Room; placer: Placer; kit: TrapKit } {
 
 beforeEach(() => {
   StuffApi.clearAll();
+  standAddressIndex(); // load-on-use W5: an empty index, no store behind it
+  // The government read readies its catalogue first; the suite stubs the
+  // read itself, so there is nothing to load (load-on-use W5).
+  vi.spyOn(StuffApi, 'ready').mockResolvedValue(undefined);
   stubScene();
   vi.spyOn(PerceptionApi, 'preloadForSenseGate').mockResolvedValue(undefined);
   vi.spyOn(PerceptionApi, 'hideLevelFor').mockReturnValue('hidden');
@@ -101,7 +106,7 @@ describe('ArmController — deploy', () => {
     const { room, placer, kit } = scene();
     vi.spyOn(AccessApi, 'can').mockResolvedValue(false); // not owned by placer
     vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue(null); // no private title
-    vi.spyOn(GovernmentApi, 'governmentAt').mockReturnValue({ key: 'city' } as never); // under a government → allowed
+    vi.spyOn(GovernmentApi, 'governmentAt').mockResolvedValue({ key: 'city' } as never); // under a government → allowed
     const deployed = makeStuff(() => new Trap());
     vi.spyOn(StuffApi, 'clone').mockResolvedValue(deployed as never);
 
@@ -119,7 +124,7 @@ describe('ArmController — deploy', () => {
     const { placer, kit } = scene();
     vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
     vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue(null);
-    vi.spyOn(GovernmentApi, 'governmentAt').mockReturnValue(null);
+    vi.spyOn(GovernmentApi, 'governmentAt').mockResolvedValue(null);
     const clone = vi.spyOn(StuffApi, 'clone');
     const context = ctx(placer);
     await makeStuff(() => new ArmController()).execute({ target: { stuff: kit } } as never, context);
