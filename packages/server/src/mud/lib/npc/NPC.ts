@@ -62,9 +62,6 @@ export class NPC extends NPCBase {
    * hook is a terminal on `Stuff` now, so TypeScript can see it.
    */
   public override async onCreate(context?: unknown): Promise<void> {
-    // ⭐ Load on use: the species row before anything is handed or worn —
-    // an unplanned body is not judged (size and carrying drive).
-    await this.ensureSpecies();
     await super.onCreate(context);
   }
 }

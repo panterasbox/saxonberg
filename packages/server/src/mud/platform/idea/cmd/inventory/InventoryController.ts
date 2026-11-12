@@ -191,10 +191,10 @@ export default class InventoryController extends CommandController<InventoryMode
         const member = g.host.placementOf(g.region);
         const named = g.host.namedRegions().includes(g.region);
         const where = named
-          ? Mml.compose`In your ${Mml.thing(g.host)}'s ${g.region}`
+          ? Mml.compose`In your ${Mml.text(g.host.presentationPhrase().bare())}'s ${g.region}`
           : member.getHangs()
-            ? Mml.compose`Hanging from your ${Mml.thing(g.host)}`
-            : Mml.compose`${member.getHeading() || 'With'} your ${Mml.thing(g.host)}`;
+            ? Mml.compose`Hanging from your ${Mml.text(g.host.presentationPhrase().bare())}`
+            : Mml.compose`${member.getHeading() || 'With'} your ${Mml.text(g.host.presentationPhrase().bare())}`;
         ready.push(Mml.compose`  ${where}: ${list(g.items)}.`);
       }
       for (const c of readyContainers) {

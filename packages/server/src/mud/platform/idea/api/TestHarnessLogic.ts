@@ -307,8 +307,14 @@ export class TestHarnessLogic extends ApiLogic {
     if (!MixinApi.isVitals(body)) throw new Error(`testharness afflict: '${handle}' has no vitals`);
     const toxin = row.getToxinBehavior();
     if (toxin !== null && MixinApi.isMetabolic(body)) {
+      // Bring the body current FIRST, or the dose is cleared at once by the
+      // reconcile of every minute since its last read (the drive's first
+      // staging read back `conscious`).
+      body.getConsciousness();
+      // Past the top band, and enough over it to hold for a game hour at
+      // the row's clearance — long enough to be searched.
       const top = Math.max(0, ...toxin.bands.map((b) => b.threshold));
-      body.introduceToxin(toxin.toxinType, top * 1.5);
+      body.introduceToxin(toxin.toxinType, top * 1.5 + toxin.clearanceRate * 60);
       if (!body.getConditions().some((c) => c.kind === 'affliction' && c.templatePath === conditionPath)) {
         body.afflict({ kind: 'affliction', templatePath: conditionPath, stage, elapsed: 0 });
       }

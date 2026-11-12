@@ -715,6 +715,17 @@ export class Creature extends CreatureBase {
    * inventory (hands, pockets, packs, the overflow at home with a line).
    * Chained from `Persistable.onRestored`.
    */
+  /**
+   * ⭐ Load on use (size and carrying drive): every body made — a cast NPC,
+   * a beast, a mule — stands its species row up before anything is handed
+   * to it or worn, because a body whose plan is not known is not judged.
+   * (`Avatar.onCreate` does not chain here and awaits it itself.)
+   */
+  public override async onCreate(context?: unknown): Promise<void> {
+    await this.ensureSpecies();
+    await super.onCreate(context);
+  }
+
   public async onRestored(): Promise<void> {
     // ⭐ The species row first (size and carrying drive, step 21): after a
     // restart nothing has loaded it, and a body whose plan is not known is
