@@ -1294,7 +1294,8 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
 - **W5-gate — `lint:controller-decisions`.** The tiered inventory's arithmetic went onto the
   model (`LoadBearing.burdenWords`, `Tangible.massAndBulkWords`, `Carrying.tallyWords`), and
   its emptiness tests read `length !== 0` (an emptiness test is not a threshold; the census
-  counts `> 0` as one) — 614 held, no rise.
+  counts `> 0` as one) — 614 held, no rise. ⚠ Superseded at W7 (W7-a): that was a dodge; the
+  census rule was fixed instead and the code reads `> 0` again.
 - **W5-port — the 40 pack rows** take the W4 idiom; `PrescribeController` calls
   `giver.receive` directly after a thrown guard (its view `requiresEmbodied`, and an `if`
   arm calling a second mutator on `giver` read as a multi-act). `lint:body-moves` **40 → 0**
@@ -1403,6 +1404,91 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
 - pre-existing gate failures not W6's: `lint:controller-resolution` 83 > 80,
   `lint:graph-walks` 1 > 0 (`PerceptionLogic.reachOf`), `lint:test-content`
   (`LensController.test.ts` names `/world/…`) — all from W3/W4.
+
+
+**Decided while building W7** (beyond D11–D13, D31, D32, D37, D-W7a):
+
+- **W7-a — an emptiness test is not a threshold.** `lint:controller-decisions` stopped counting
+  `.length`/`.size` against 0 (or 1 in the emptiness direction) — W5 had written `length !== 0`
+  to slip under it. The rule was fixed (fixture-tested), the dodge removed, the ceiling re-pinned
+  614 → 508 (the measured floor, not a burn-down).
+- **W7-b — the gates fixed by fixing the code.** The tiered inventory's sorting is the carrier's
+  (`Carrying.carriedTiers`), so InventoryController walks no `.getContents()`
+  (`lint:controller-resolution` 83 → 80); the person's carried tree is a container read
+  (`Container.getCarriedContents` — breadth-first, never into another body, sandbox-scoped), so
+  `PerceptionLogic.reachOf` grows no frontier beside its one-room exits read (`lint:graph-walks`
+  1 → 0, no RESIDUE entry); LensController.test uses `/test/lens/…` extents. No ceiling rose.
+- **W7-c — what hangs widens the body.** A thing hung `from` a worn host rides flat against the
+  flank, so it stands out by its THINNEST side (authored box, else what it packs to); hung things
+  go either side, so their thicknesses add (`Creature.wornBulk().sideM`, the envelope's width =
+  girth + sideM). A pannier pair (0.3 m each) widens the 0.58 m mule to 1.18 m — the steading's
+  0.8 m paddock gate refuses it; two belt pouches add 0.12 m to a person. A refusal told ABOUT a
+  mover rides the guard's `context.about` (third person), so the leader hears *"The pack mule
+  won't follow you: its canvas panniers won't go through — take them off first."* A hung thing on
+  your own body names `get <it> from <host>`, not `remove`.
+- **W7-d — the hang rule.** A worn container that claims no slot of this body (a belt pouch, the
+  medic's pouch, a holster) ARRIVING from off the body is received onto the first worn host that
+  offers `from` with room, before hands or pockets; one already on the body (`get holster from
+  belt`) is taken in hand. `receive(…, { for: 'wear' })` puts a garment on by its claim, and
+  `{ slots }` pins several slots (an NPC's wielded kit). The char-gen installers are one
+  `receiveGranted(…, { for: 'wear' })` per outfit row — the medic's pouch hangs from the belt
+  listed before it. The lead rope hangs `from` the halter (decided before anything moves; a
+  tieable with no `from` has the rope received, one with nowhere refuses `no-halter`).
+- **W7-e — an owned host keeps its pairs across a restart** (D26-h's gap). A pair whose host is
+  an owner-persisted good is captured as `hostChattelId`; an owned good in the owner's keeping
+  placed on a host records `placedOn` on its estate entry; PersistableLogic's pass 6 re-places
+  both after the estate and the owned re-wear.
+- **W7-f — a hand holds any good.** The drive's first step is *`get` a mug — it goes to a hand*,
+  and only six classes were wieldable: `Good` and `Vessel` compose `SlottableMixin` (applied once —
+  over a base that already composes it the factory returns the base, since two layers would
+  redeclare its `@Final` methods), and a carrier's HAND slot takes any slottable thing whatever its
+  `accepts` (the grip decides — `handsFor`). Every other slot still asks its `accepts`. A garment in
+  a hand is held, not worn (`Attired.wornStack` skips hands; `equip` takes it out of the hand
+  first, and a bare `wear` dresses what is held).
+- **W7-g — the veto and its admissions.** `Creature.canAddContainable(item, how?)` refuses
+  `loose-on-body` unless the thing arrives PLACED (`how.placed`, passed by `placeOn` and by D33's
+  followers — no flag needed for either), is an agent, or the body is admitting it
+  (`Carrying.admitWhile`, gated `AnyOf(SelfOnly, FromModule(PersistableLogic#PersistableLogic))` —
+  `receive`, `seatInSlot`, readying, the restore's `restoreItem`). Taking a placed thing off its
+  host into the same body (`move(key, me)` with the key in my pocket) asks the veto too — it was a
+  way to loose. ⭐ **A body whose plan is not known yet is not judged** (the D18-b precedent): it
+  takes a thing as the pre-flip body did and the veto admits it — a fixture, a body mid-mint.
+- **W7-h — `receive` is one resolution** (`resolveReceive`, which `canReceive` reports, so the dry
+  run and the act cannot disagree): already in hand → nothing; the hang rule; a stack that meets
+  its like (in a hand, a pocket or a ready container) merges and takes no hand; then `carry.order`
+  between a free hand (or two, by `handsFor`) and the first carry place that fits (never itself or
+  something inside it); else `too-heavy` / `hands-on-cart` / `cannot-grip` / `nowhere-to-carry`.
+  The hands-full words are the tutorial: *"Your hands are full — the mug and the lantern — and the
+  map won't fit in your pockets. Put something away (`put mug in left pocket`) or set it down
+  (`drop lantern`)."*
+- **W7-i — the idioms (D-W7a) as three methods.** `receiveOrSetDown(item, at?)` — made, inherited
+  and served-to-you things (crafting output, yields, a catch, the pieces a cut or a tear leaves, a
+  drink made for you, a store's paid-out goods, a stall given up): received, else set down on `at`
+  or where the body stands, with a line, never refused after the inputs are spent (the bench
+  argument is unused by the ported sites — they set down where you stand). `canReceive` before any
+  write — `buy` (the counter and the consignment shelf ask before `settleSale`: *"…stays on the
+  shelf until you have one free. Nothing is charged."*), `give` (*"… has nowhere to take it — their
+  hands are full. You keep it."*), `put X in <person>`, reclaiming from a rack or shelf, a store
+  withdrawal, untying a rope/line end/air bag, a tip jar. `receiveGranted(item, opts?)` (async) —
+  loadouts, outfits, Gus, `props:` into a body, a minted key, a bank card, a travel card, the
+  testharness hand, a claim ticket, a store receipt, and CASH the ledger has already moved
+  (`dispenseCoin`/`moveCoins` — granted, not handed: the ledger post precedes the coins, so a
+  pre-check belongs to the ledger, a follow-up): received, else the residence (a live room at the
+  leased unit's extent, `ParcelApi.heldUnitOf`) with a line, else where the body stands — an NPC's
+  overflow also `DiagnosticApi.record`ed. ⚠ The residence is found only when its room is live (no
+  load-on-use stand-up from the kernel); otherwise the thing is set at the player's feet, said so.
+- **W7-j — D32/D37.** `Creature.onRestored → placeLoose()` (each loose thing out of the body, then
+  `receiveGranted`); `Carrying.returnBorrowed()` before a guest is reaped: a good titled to someone
+  else to its owner's hands (else set down where they stand), anything untitled the guest held or
+  pocketed dropped where it stands, what it wears reaped with it.
+- **W7-k — `held` and `worn` after the flip.** LoadBearing: hand slots at `HELD_SURCHARGE` (×
+  awkwardness), every other slot at 1.0, everything else on the body (placed) at the worn floor;
+  pass (a)'s loose surcharge is gone. MQL `:worn` = a non-hand slot of a carrier; `:held` = a
+  carrier's hand (a non-carrier keeps the old rule); `:carried` = on the holder and not worn (a
+  hand, a pocket, hung) — so the card's `contents`/`worn` partition still covers everything.
+  `ready` of a portable thing lying in the room refuses `pick-up` (*"You'd have to pick the tape up
+  first (`get tape`)"*); a fixture is still used where it stands. A homeless held thing is stowed
+  in the first carry place it fits, which becomes its home, else `hands-full`.
 
 ## ⭐⭐ Host placement
 
@@ -1849,6 +1935,8 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
 - Acceptance: the drive's **22** blocking steps pass; the suite once; every other wire
   file passes or its failure is a `get`-meaning change recorded in the commit.
 - Commit: `build(size-and-carrying W7): nothing sits loose on a body — the flip`.
+
+**✅ Done — code half (50f562ed4; pre-flip de3463905 · 09039a4d2 · 67d2820aa · 4e0bd57f4 · 75b62314c).** Pre-flip: the census rule fixed so an emptiness test is no threshold (614 → 508, the W5 dodge removed); `controller-resolution` 83 → 80 (`Carrying.carriedTiers`), `graph-walks` 1 → 0 (`Container.getCarriedContents`), `test-content` clean — no ceiling rose; what hangs widens the body (thinnest side, either flank — the laden mule refused at the 0.8 m paddock gate, the leader told *its canvas panniers won't go through*); the lead hangs from the halter, a no-slot pouch hangs from the worn belt (`receive`'s hang rule; outfits are `{ for: 'wear' }`), an owned host keeps its pairs across a restart (`hostChattelId`/`placedOn`, pass 6); a hand holds any good (`Good`/`Vessel` slottable once; a carrier's hand takes any slottable). The flip: the veto with its two admissions (arriving placed; `admitWhile`), `receive` as one resolution, the three D-W7a methods across every census site, `onRestored → placeLoose`, `returnBorrowed`, LoadBearing pass (a) retired (`HELD_SURCHARGE`), `held` = a hand everywhere (MQL `:worn`/`:held`/`:carried`, `wornStack`, equip), `get` refuses in words, `ready` refuses `pick-up` for a portable thing on the floor. Decisions W7-a…W7-k above. **Siblings at the flip** (`./tools/wt-status`, 2026-11-12): build-2 holds `build/controller-liquidity` (merged !561); build-3 `reqs/navigation` and build-4 `reqs/load-on-use` are in requirements — no sibling mid-drive. Verified: server typecheck; the 24 touched packs' typecheck; branch-wide `test:near` (1153 files / 11117 tests green); **every pack's vitest** (54, all green); **every `lint:*` individually (109, all green)**. Full suite not run (code-complete runs it). ⚠ For the drive pass: `get` is the receiving act (a hand, then a pocket or bag it fits; a no-slot pouch onto the belt) and a direct `ContainmentApi.move` onto a planned body throws `loose-on-body` — staged steps must `testharness hand` (granted: hand/pocket, else the residence when its room is live, else at the feet with a line); a body with no known plan is not judged; the residence overflow finds only a LIVE room; cash the ledger moved is granted, not pre-checked (a follow-up); `put X in <person>` is handing; Gus's vest has two pockets now; the docs graduation (carrying.md, size.md, encumbrance/embodiment/spatial/slot/mql/perception/locomotion/boundary) and the `carrying` wiki guide are the docs pass's.
 
 ## Reachability wiring
 
