@@ -749,6 +749,55 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   parts below the water line by stature — the `DEFAULT_WADE_M` constant becomes
   `stature × WADE_FRACTION` 0.85, slate § 6.2). Paper's ruin is `afterWetted` as shipped.
 
+**Decided while building W2** (beyond D19–D22):
+
+- **D19-b** — The worn bulk (`Creature.wornBulk()`) is the containers occupying `back`/`torso`,
+  each counted at the most of its packed volume, its authored box, or its walls plus its
+  contents' boxes; the added depth is the cube root of the sum. It rides ON TOP of a low body
+  (prone, horizontal) and trails BEHIND an upright or crouched one, where a way's face does not
+  see it. `envelope(profile, {lengthwise?, bare?})`: `bare` leaves the pack out (would it pass
+  without it?).
+- **D19-c** — A way UP or DOWN is passed lengthwise — the body's length runs along it — so its
+  gap measures the body's girth both ways, like zero g. This is what keeps the creamery's 1×1
+  cellar hatch (over steps, `up`/`down`) open to a walking body.
+- **D19-d** — The mounted pair is read from either end (`Creature.mountedPair()`); a rider being
+  carried by its mount is not asked again — the mount's own traverse measured the pair. A mount
+  with no stature (every shipped quadruped: the plan and the horse rows author none) has no
+  envelope, so no pair is refused until W6 authors one (drive 18's *dismount*).
+- **D20-b** — `stoop`/`crawl` rows require `[stoop]`/`[crawl]` in the plan, not `[walk]`: under
+  `[walk]` every quadruped could stoop, and the plan is what says *a horse never stoops*. The
+  biped lists both. An empty `media` list admits them (the ground family, and
+  `TravelProfile.GROUND_PACES`).
+- **D20-c** — The hands gate sits in the cascade after posture, before the exit
+  (`handsNeeded` → `hands-needed`). `Carrying` gained the minimal reads W4 builds on:
+  `handSlots()` (slots whose `bodyPart` is an `Attired.handSites()` part), `heldThings()`,
+  `freeHands()` (empty and `Vitals.canGrip`). A body with fewer hands than the mode asks gives
+  all it has. ⚠ Only hand-slot occupants are *held*: a thing W0's `receive` landed loose in the
+  body is not, until W4.
+- **D21-b** — `clearanceRefusal` is async (it awaits `ensureShape()` on held things and loads
+  the plan's modes). Reasons: `too-big-for-way` (facts `lower` · `pack` · `dismount`),
+  `held-too-big`, `wont-turn` (with `lengthM`), `cart-too-big`; `Exit.canTraverse` words them
+  (gate `clearance`). The suggested mode is the highest-profile, then fastest, lower mode the
+  body can engage and the way admits — so `stoop` beats `sneak` at a low door. With a pack and
+  no mode that fits it: *"You'd have to crawl, and your canvas backpack won't go through —
+  `remove backpack`, then `crawl north`."* A standing body is not turned on its side; a
+  lengthwise one may be either way round.
+- **D21-c** — The ceiling read is `Creature.acceptPosture(posture)`, not `Posed`'s: on `Posed`
+  it split the mixin into two disjoint ideas (posture held · posture allowed here) and raised
+  `lint:mixin-clusters` 44 → 45. `Posed` keeps only a `getStature()` hook (`null` default;
+  `Creature` answers the species'), which the water reads too. `StandController` asks it first,
+  on both the host and the no-host path.
+- **D22-b** — A holder keeps the water out only SHUT: `Sealable && !isOpen()` and
+  `closureLevel() ≥ liquidTight`. A `Bulkable`'s `closure` says it holds water IN (an open
+  bucket is liquid-tight), not that it has a lid.
+- **D22-c** — Wading by stature is `WaterPlace.stateFor(body)` (depth ≤ `stature ×
+  WADE_FRACTION`); the place's own `stateNow()` keeps the `water.column.wadeM` dial for
+  everything with no body in it (the column's bands, the shore's words, a compartment). The
+  water floor bears by `stateFor`; the over-your-head gate reads it. A body with no stature
+  reads the place. ⚠ Wetting the body's share below the water line is NOT built: body parts
+  carry no heights. Deferred to W6 with the pond.
+- **D35-b** — `'awkward-load'` on `run` waits for W4's awkwardness, as the plan allowed.
+
 ### Perceiving and the lens
 
 - **D23 — MQL names things the same for every viewer; perception is applied only where
@@ -1236,6 +1285,8 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   smaller than a walking body — the small-house's 2 m extent gives a 2 m face, above
   1.75; a finding otherwise).
 - Commit: `build(size-and-carrying W2): bodies meet openings — stoop, crawl, the turn, the ladder's hands, the pond`.
+
+**✅ Done (11d21e792).** Envelope, stoop/crawl, the clearance gate with its actionable refusals, the ladder's hands, the ceiling, the dry pouch and wading by stature landed; decisions D19-b…D22-c, D35-b above (notably: stoop/crawl are plan-listed modes; a way up or down is passed lengthwise; the ceiling read is `Creature.acceptPosture`; a liquid-tight holder keeps water out only shut; `WaterPlace.stateFor(body)` beside the dial's `stateNow`). Static census: no shipped way refuses a 1.75 m walking body (smallest face 2 m; doors 1×2; the 1×1 hatch only on an up/down way; ladder/crawlway kinds unused; a 2.0 m body passes a 2 m door exactly). ⚠ W4: held = hand-slot occupants only, so a removed pack lands loose and the crawl narration does not fire until `receive` puts it in a hand; `freeHands` must subtract a hitched cart's handedness; D35 is yours. ⚠ W6: quadrupeds author no stature (no mounted pair is refused — drive 18's *dismount*); the generic backpack has no material or box, so it widens no envelope (drive 9 needs its box); wading does not yet wet the parts below the water line.
 
 ### W3 — perceiving (D17, D23–D25)
 
