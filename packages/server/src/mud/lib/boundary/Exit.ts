@@ -935,8 +935,12 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
       const cart = mover.getHauledCart() as Stuff | null;
       if (cart !== null && MixinApi.isTangible(cart)) {
         await cart.ensureShape();
-        const box = cart.getFitBox();
-        if (gap !== null && box !== null && !box.fitsThrough(gap)) {
+        // ⭐ A cart goes through on its wheels: UPRIGHT and end-on — its
+        // width across the gap, its height under the lintel, never turned
+        // on its side the way a crate is fitted (the drive, step 18: a
+        // 0.9 m handcart "fitted" the 0.8 m paddock gate on its side).
+        const d = cart.getDimensions() ?? cart.getFitBox();
+        if (gap !== null && d !== null && (d.width > gap.width + 1e-9 || d.height > gap.height + 1e-9)) {
           return { ok: false, reason: 'cart-too-big', facts: { ...base, thing: cart } };
         }
       }
