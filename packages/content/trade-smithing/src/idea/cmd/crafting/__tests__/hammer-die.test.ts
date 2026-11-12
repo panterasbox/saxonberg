@@ -14,7 +14,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import type { StrikeOutcome } from '@saxonberg/server/mud/lib/craft/StrikingDie';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
-import Good from '@saxonberg/server/mud/lib/stuff/Good';
+import Stock from '../../../../thing/Stock';
 import { StrikingDieMixin } from '@saxonberg/server/mud/lib/craft/StrikingDie';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import {
@@ -54,7 +54,9 @@ afterEach(() => {
 
 describe('hammer on a die', () => {
   it('a bound die takes the blank from the blow; nothing is forged', async () => {
-    const blank = makeStuff(() => new Good());
+    // ⭐ A blank is metal stock (`token-blank` is a `Stock` row): the piece
+    // answers the hammer, and on a die its plan is to be struck.
+    const blank = makeStuff(() => new Stock());
     const striker = makeTool('striking');
     const die = makeStuff(() => {
       const d = new TestDie();

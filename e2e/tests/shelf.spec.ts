@@ -5,13 +5,13 @@ import { openWorldAs, reenterWorld, runCommand } from './helpers';
  * > AC: *the shelf renders nine rows … the other six render the
  * > not-wired state — `╌╌`, hatched ground, dashed border — each with
  * > its reason, and a test asserts no digit appears in any of them* …
- * > *`cockpit shelf pin <row>` / `unpin <row>` persist to
+ * > *`client-shelf pin <row>` / `unpin <row>` persist to
  * > `cockpit.shelf` and survive a reconnect.*
  *
- * ⚠ **The nine is the CATALOGUE, not the default shelf.** The AC was
+ * ⚠ **The nine (ten since `body`) is the CATALOGUE, not the default shelf.** The AC was
  * written against a nine-row default, which was reversed on review:
  * never default-pin a widget that does not do anything yet. So these
- * specs pin the hatched six explicitly where they need them — which is
+ * specs pin the hatched rows explicitly where they need them — which is
  * also the path a real player takes.
  *
  * ⭐ This spec exists because the unit suite **structurally cannot**
@@ -35,6 +35,26 @@ function shelfGroups(page: import('@playwright/test').Page) {
   return page.locator('[data-testid="shelf"] [data-figure-state]');
 }
 
+/**
+ * Send a shelf command and wait for the bar to hold `count` rows,
+ * RE-SENDING if it did not land — the first command after a world entry
+ * can be dropped while the socket settles (see `sendUntil`). Pin and
+ * unpin are idempotent, so a duplicate send changes nothing.
+ */
+async function shelfCommand(
+  page: import('@playwright/test').Page,
+  cmd: string,
+  count: number,
+): Promise<void> {
+  await expect(async () => {
+    await runCommand(page, cmd);
+    await expect(shelfGroups(page)).toHaveCount(count, { timeout: 3_000 });
+  }).toPass({ timeout: 20_000 });
+}
+
+/** The rows the default shelf leaves off: the five hatched, and MAKE. */
+const OFF_DEFAULT = ['make', 'coin', 'status', 'time', 'online', 'docket'];
+
 test('the shelf is honest, and its rows are hatched for real', async ({
   browser,
 }) => {
@@ -44,26 +64,28 @@ test('the shelf is honest, and its rows are hatched for real', async ({
       timeout: 20_000,
     });
     const groups = shelfGroups(page);
-    // ⭐ The DEFAULT is the three wired rows — never a bar of dead
-    // widgets on first login. The hatched six live in the widget menu
-    // until a player pins one.
-    await expect(groups).toHaveCount(3, { timeout: 20_000 });
+    // ⭐ The DEFAULT is the four wired rows — never a bar of dead
+    // widgets on first login (`body` joined the default the day it
+    // started answering: nutrition-fitness W8, de748bb51). The hatched
+    // five live in the widget menu until a player pins one. (MAKE went
+    // live with the account roll-up, 5b53647fd, so it is no longer one of
+    // them — the six this spec once pinned are five and a live row.)
+    await expect(groups).toHaveCount(4, { timeout: 20_000 });
     await expect(
       page.locator('[data-testid="shelf"] [data-figure-state="unwired"]'),
     ).toHaveCount(0);
 
-    // Pin the hatched six and they behave exactly as documented.
-    for (const row of ['make', 'coin', 'status', 'time', 'online', 'docket']) {
-      await runCommand(page, `cockpit shelf pin ${row}`);
+    // Pin the rest and the hatched five behave exactly as documented.
+    for (const [i, row] of OFF_DEFAULT.entries()) {
+      await shelfCommand(page, `client-shelf pin ${row}`, 5 + i);
     }
-    await expect(groups).toHaveCount(9, { timeout: 20_000 });
+    await expect(groups).toHaveCount(10, { timeout: 20_000 });
     await expect(
       page.locator('[data-testid="shelf"] [data-figure-state="unwired"]'),
-    ).toHaveCount(6);
+    ).toHaveCount(5);
 
-    // ⭐ No digit inside ANY hatched row. `MAKE` is the row where the
-    // server HAS a number and it is deliberately withheld, so this is
-    // the assertion that catches somebody "helpfully" wiring it up.
+    // ⭐ No digit inside ANY hatched row — the assertion that catches
+    // somebody "helpfully" printing a guess where the server has none.
     const unwiredText = await page
       .locator('[data-testid="shelf"] [data-figure-state="unwired"]')
       .allTextContents();
@@ -108,44 +130,43 @@ test('pinning is a real command, and the SERVER owns the answer', async ({
       timeout: 20_000,
     });
     const groups = shelfGroups(page);
-    await expect(groups).toHaveCount(3, { timeout: 20_000 });
+    await expect(groups).toHaveCount(4, { timeout: 20_000 });
 
-    // ⚠ Through the real binder: `cockpit shelf unpin renown` has to
+    // ⚠ Through the real binder: `client-shelf unpin renown` has to
     // tokenize into two positional slots and reach the controller. A
     // controller test cannot catch a YAML/controller slot mismatch.
-    await runCommand(page, 'cockpit shelf unpin renown');
-    await expect(groups).toHaveCount(2, { timeout: 10_000 });
+    await shelfCommand(page, 'client-shelf unpin renown', 3);
 
     // ⭐ THE assertion. A reload discards every scrap of client state —
     // a new socket, a fresh store, no memory of the command — and asks
     // the server what the shelf is. If pinning had been a local toggle
-    // this comes back nine.
+    // this comes back four.
     await page.reload();
     await reenterWorld(page);
     await expect(page.getByTestId('terminal')).toBeVisible({
       timeout: 20_000,
     });
-    await expect(groups).toHaveCount(2, { timeout: 20_000 });
+    await expect(groups).toHaveCount(3, { timeout: 20_000 });
 
-    await runCommand(page, 'cockpit shelf pin renown');
-    await expect(groups).toHaveCount(3, { timeout: 10_000 });
+    await shelfCommand(page, 'client-shelf pin renown', 4);
 
     // An unknown row refuses in the machine voice, NAMING the known set
     // — a refusal that says only "no" leaves a closed vocabulary a
-    // guessing game.
-    await runCommand(page, 'cockpit shelf pin nonesuch');
+    // guessing game. (Since controller-liquidity W7b the set is the
+    // view's `values:` list, so the BINDER refuses it, naming them.)
+    await runCommand(page, 'client-shelf pin nonesuch');
     const transcript = page.getByTestId('terminal');
-    await expect(transcript).toContainText("unknown shelf row 'nonesuch'", {
+    await expect(transcript).toContainText("'nonesuch' is not one of", {
       timeout: 10_000,
     });
     await expect(transcript).toContainText('docket', { timeout: 10_000 });
     // …and nothing changed.
-    await expect(groups).toHaveCount(3);
+    await expect(groups).toHaveCount(4);
 
     // ⭐ Identity and connection cannot be unpinned, from the direction
     // a player would actually attack it: they are not rows at all.
-    await runCommand(page, 'cockpit shelf unpin identity');
-    await expect(transcript).toContainText("unknown shelf row 'identity'", {
+    await runCommand(page, 'client-shelf unpin identity');
+    await expect(transcript).toContainText("'identity' is not one of", {
       timeout: 10_000,
     });
     await expect(page.getByLabel('Connection status')).toBeVisible();
@@ -169,11 +190,11 @@ test('the shelf WRAPS rather than scrolling at a narrow width', async ({
       timeout: 20_000,
     });
     // Pin everything — wrapping only matters with a full shelf, and the
-    // default three fit on one row at any width worth testing.
-    for (const row of ['make', 'coin', 'status', 'time', 'online', 'docket']) {
-      await runCommand(page, `cockpit shelf pin ${row}`);
+    // default four fit on one row at any width worth testing.
+    for (const [i, row] of OFF_DEFAULT.entries()) {
+      await shelfCommand(page, `client-shelf pin ${row}`, 5 + i);
     }
-    await expect(shelfGroups(page)).toHaveCount(9, { timeout: 20_000 });
+    await expect(shelfGroups(page)).toHaveCount(10, { timeout: 20_000 });
 
     await page.setViewportSize({ width: 900, height: 800 });
 
@@ -202,8 +223,8 @@ test('the shelf WRAPS rather than scrolling at a narrow width', async ({
     );
 
     // Every pinned row is still on screen — the actual claim.
-    await expect(shelfGroups(page)).toHaveCount(9);
-    for (let i = 0; i < 9; i++) {
+    await expect(shelfGroups(page)).toHaveCount(10);
+    for (let i = 0; i < 10; i++) {
       await expect(shelfGroups(page).nth(i)).toBeVisible();
     }
   } finally {
@@ -226,7 +247,7 @@ test('the ＋ widget menu stays inside the viewport at both widths', async ({
     await expect(page.getByTestId('terminal')).toBeVisible({
       timeout: 20_000,
     });
-    await expect(shelfGroups(page)).toHaveCount(3, { timeout: 20_000 });
+    await expect(shelfGroups(page)).toHaveCount(4, { timeout: 20_000 });
 
     for (const width of [1440, 900]) {
       await page.setViewportSize({ width, height: 800 });

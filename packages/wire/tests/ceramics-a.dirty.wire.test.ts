@@ -715,7 +715,7 @@ suite('⭐ 9 — measure against the statute brick', () => {
     await say(digger, 'east');
     await say(digger, 'get bricks');
     const sound = await wordOf(/earthenware/i);
-    const statute = await say(digger, `measure size ${sound} brick`);
+    const statute = await say(digger, `measure size "${sound}" brick`);
     expect(statute, `a statute brick: ${statute}`).toMatch(/statute|standard|true/i);
     expect(statute).not.toMatch(/off standard/i);
     await say(digger, 'drop bricks');
@@ -750,7 +750,7 @@ suite('⭐ 9 — measure against the statute brick', () => {
     expect(big?.stuffId, 'the oversize bricks').toBeDefined();
     // ⛔ STAGED (soak-harness census): drying the oversize bricks for weeks in the hacks and a day's burn in the firing pit live in ceramics-a.soak.dirty; here a fired brick off the old mould is set directly.
     const oversized = `#${await hand(digger, BRICK, { _materialPath: '/stuff/idea/material/ceramic/terracotta', mass: 4.4 })}`;
-    const oversize = await say(digger, `measure size ${oversized}`);
+    const oversize = await say(digger, `measure size "${oversized}"`);
     expect(oversize, `the old mould's brick: ${oversize}`).toMatch(/off standard/i);
     expect(oversize).toMatch(/over/i);
   }, 7_200_000);

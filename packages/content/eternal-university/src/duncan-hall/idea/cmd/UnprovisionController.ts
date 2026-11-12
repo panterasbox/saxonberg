@@ -1,41 +1,26 @@
 /**
- * UnprovisionController — the `unprovision <player>` verb
- * (a Duncan Hall *content* verb — content namespace
- * `world/terminus/eternal/duncan-hall/`, not a core command category). Ends a
- * tenant's dorm lease and reclaims the unit:
- * revoke the lease, revert the live room (no recapture races the delete),
- * clear the personalized D1 record, and retire the parcel so its slot frees
- * for reuse. Symmetric with `provision <player>` — you name the tenant, and
- * their held unit is resolved (`ParcelApi.heldUnitOf`); Katie dispatches
- * `unprovision $player` for a move-out.
+ * UnprovisionController — the `unprovision <player>` verb (a Duncan Hall
+ * *content* verb). Ends a tenant's dorm lease and reclaims the unit.
+ * Symmetric with `provision <player>` — you name the tenant; Katie
+ * dispatches `unprovision $player` for a move-out.
  *
- * Flow (DECISION B/H): `ParcelApi.revokeUse(unit, holder)` →
- * `DormWarren.dropUnit(unit, {revert:true})` (`markForRevert` → tear down the
- * live room → drop from `_unitsByKey`, no recapture) → `deleteAllFor(unit)`
- * (clear the prose overlay record) → `ParcelApi.retire(unit)` (free the
- * slot) → `refreshProvisioned`. A live occupant is ejected to the floor
- * corridor first (best-effort).
- *
- * Authorization is at `execute()` (the real boundary — a forced dispatch
- * bypasses the validator): a wizard, or an agent of the dorms owner (Katie) —
- * see `HallController.mayProvision` (staff of the college, or the hall's committee).
+ * ⭐ **The end of the let is the warren's** (controller-liquidity W13):
+ * `DormWarren.endLet(by, tenant)` — the residence pack's `LettingWarren`
+ * sequence — asks who may (staff of the college or the hall's committee),
+ * revokes the lease, sends the tenant's owned goods to STORAGE (intact,
+ * titled, recoverable — C4: this verb used to drop the room with the goods
+ * in it), steps any occupant out to the corridor, reverts the room, clears
+ * its records and frees the slot.
  */
 
-import { HallController } from '../../../lib/HallController';
+import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
-import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import ProvisionController from './ProvisionController';
-import DormWarren from '../DormWarren';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import DormWarren from '../DormWarren';
 
 const TOPIC = 'act.deed';
 
@@ -43,91 +28,42 @@ interface UnprovisionModel extends CommandModel {
   player?: MqlOneResult;
 }
 
-export default class UnprovisionController extends HallController<UnprovisionModel> {
-  async execute(
-    model: UnprovisionModel,
-    context: CommandContext,
-  ): Promise<void> {
+export default class UnprovisionController extends CommandController<UnprovisionModel> {
+  async execute(model: UnprovisionModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver as Stuff;
-
-    // Authorization (execute-level, so a forced dispatch can't skip it).
-    const dorms = await ParcelApi.coveringParcelOf(DormWarren.DORMS_EXTENT);
-    const owner = dorms?.getOwner();
-    if (!owner || !(await UnprovisionController.mayProvision(actor))) {
-      return this.fail(
-        context,
-        "Only the college's staff or a member of the hall's committee may end Duncan Hall's leases.",
-        'not-authorized',
-      );
-    }
-
-    // Resolve the tenant, then their held unit.
-    const target = model.player?.stuff as Stuff | undefined;
-    const playerPath = target?.getIdentityPath() ?? '';
-    if (!playerPath) {
-      return this.fail(context, 'End whose dorm lease?', 'no-player');
-    }
-    const held = await ParcelApi.heldUnitOf(playerPath);
-    if (!held) {
-      const who = target?.getPresentation() ?? playerPath;
-      return this.fail(context, `${who} doesn't hold a dorm.`, 'not-housed');
-    }
-    const unit = held.getExtent();
-    const record = held;
-
-    // Revoke every active lease on the unit.
-    for (const grant of record.getGrants()) {
-      await ParcelApi.revokeUse(unit, grant.holder);
-    }
-
-    // Eject any live occupants to the floor corridor before the room dies
-    // (best-effort; v1 expects a vacant/expired unit).
-    const warren = StuffApi.findByTemplatePath<DormWarren>(DormWarren.WARREN_PATH);
-    if (warren) {
-      this.evacuate(warren, unit);
-      // Revert + tear down the live room (no recapture), then clear the
-      // record and free the slot.
-      await warren.dropUnit(unit, { revert: true });
-    }
-    await PersistableApi.deleteAllFor(unit);
-    await ParcelApi.retire(unit);
-    if (warren) await warren.refreshProvisioned();
-
-    this.send(
-      context,
-      Mml.compose`\nEnded the lease on ${unit}; the room reverts and its slot is free.\n`,
-    );
-  }
-
-  /** Move any live occupants of the unit's room out to its floor corridor. */
-  private evacuate(warren: DormWarren, unit: string): void {
-    const room = warren.roomFor(unit);
-    if (!room) return;
-    const corridor = warren.corridorForUnit(unit);
-    if (!corridor) return;
-    for (const occ of room.getContents()) {
-      if (!MixinApi.isHasInteractive(occ)) continue;
-      try {
-        ContainmentApi.move(
-          occ as Stuff & Containable,
-          corridor as Stuff & Container,
-        );
-      } catch {
-        /* best-effort */
+    const target = model.player?.stuff ?? null;
+    const warren = await StuffApi.singleton<DormWarren>(DormWarren.WARREN_PATH);
+    if (!target) {
+      // Who may end a lease is asked before whose (the refusal names the seat).
+      if (!(await warren.mayLetFor(actor))) {
+        return UnprovisionController.fail(context, UnprovisionController.NOT_AUTHORIZED, 'not-authorized');
       }
+      return UnprovisionController.fail(context, 'End whose dorm lease?', 'no-player');
     }
+    const answer = await warren.endLet(actor, target);
+    if (!answer.ok) {
+      const who = target.getPresentation() ?? target.getIdentityPath() ?? 'They';
+      const detail =
+        answer.reason === 'not-authorized'
+          ? UnprovisionController.NOT_AUTHORIZED
+          : answer.reason === 'not-housed'
+            ? `${who} doesn't hold a dorm.`
+            : 'End whose dorm lease?';
+      return UnprovisionController.fail(context, detail, answer.reason);
+    }
+    MessageApi.scene(actor)
+      .topic(TOPIC)
+      .toSelf(
+        Mml.compose`\nEnded the lease on ${answer.unitExtent}; the tenant's goods are in storage, the room reverts and its slot is free.\n`,
+      )
+      .send();
   }
 
-  private send(context: CommandContext, body: Mml): void {
-    MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(body).send();
-  }
+  protected static readonly NOT_AUTHORIZED =
+    "Only the college's staff or a member of the hall's committee may end Duncan Hall's leases.";
 
-  private fail(
-    context: CommandContext,
-    detail: string,
-    reason: string,
-  ): void {
-    this.send(context, Mml.fromMarkup(`\n${detail}\n`));
+  protected static fail(context: CommandContext, detail: string, reason: string): void {
+    MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(Mml.fromMarkup(`\n${detail}\n`)).send();
     context.note({ kind: 'controller-rejected', reason, detail });
   }
 }

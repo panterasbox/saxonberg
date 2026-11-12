@@ -1,6 +1,5 @@
 verbs: [wizard]
 category: author
-controller: /platform/idea/cmd/author/WizardController
 description: "Confer or revoke wizard (code-trust) status (archwizard-only)"
 help: |
   Manage who holds wizard status — the capability to AUTHOR TypeScript:
@@ -16,6 +15,7 @@ validators:
   - /lib/command/validators/requiresArchwizard
 subcommands:
   grant:
+    controller: /platform/idea/cmd/author/WizardGrantController
     description: "Confer wizard status on a player"
     help: |
       Add a player to the `wizards` group, granting them code trust.
@@ -31,6 +31,7 @@ subcommands:
         requires: class:Agent
         onExcess: prompt
   revoke:
+    controller: /platform/idea/cmd/author/WizardRevokeController
     description: "Revoke wizard status from a player"
     help: |
       Remove a player from the `wizards` group, dropping their code

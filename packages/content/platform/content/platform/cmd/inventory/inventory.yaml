@@ -27,6 +27,5 @@ args:
   - name: target
     type: object
     required: false
-    greedy: true
     scope: ["$focus", "reachable"]
     requires: any

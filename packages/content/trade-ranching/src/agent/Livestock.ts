@@ -55,6 +55,36 @@ import type { Bulkable } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import { STOCKMANSHIP } from '../idea/cmd/ranching/HandleController';
 import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
 import { HeadSeed } from '../lib/HeadSeed';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
+import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
+import type HerdRegistry from '../idea/HerdRegistry';
+import { DEFAULT_FEMALE_FRACTION } from '../idea/HerdRegistry';
+import type Species from '@saxonberg/server/mud/platform/idea/species/Species';
+import type { SlaughterRefusal } from '@saxonberg/server/mud/lib/species/Organism';
+
+/** The register this head was drafted out of (the Herdbook's own constant). */
+const HERD_REGISTRY_PATH = '/trade/ranching/idea/HerdRegistry';
+
+const SECONDS_PER_GAME_DAY = 86_400;
+
+/** What `breed` answers: the words' facts, or why not. */
+export type ServeAnswer =
+  | { ok: true; index: number; gestationDays: number }
+  | { ok: false; reason: 'not-mature'; stage: string }
+  | { ok: false; reason: 'not-keeper'; herdName: string }
+  /** `longDays` — the days are still too long (autumn breeders wait for them to shorten). */
+  | { ok: false; reason: 'out-of-season'; longDays: boolean }
+  | { ok: false; reason: 'no-breeding' | 'not-in-herd' | 'no-herd' | BreedRefusal };
+
+/** What turning a head back in answers: the words' facts, or why not. */
+export type HerdReturn =
+  | { ok: true; index: number; read: string }
+  | { ok: false; reason: 'not-drafted' | 'not-in-book' };
+
+/** Why she cannot be put to the male — the animal's own refusals. */
+export type BreedRefusal = 'not-female' | 'no-male';
 
 /**
  * ⭐ **`Perceptible` arrives from `Creature` now, and the argument this
@@ -272,6 +302,192 @@ export default class Livestock extends LivestockBase {
       .find((l) => l !== null);
     if (!line) return null;
     return line.demandKg > 0 ? Math.min(1, line.fedKg / line.demandKg) : 1;
+  }
+
+  /**
+   * ⭐ May `by` cull this head? A head out of a herd is its KEEPER's
+   * (`HerdRegistry.mayKeep`, controller-liquidity D9, C19) — asked before
+   * the kill, because a refusal after it leaves a dead animal nobody may
+   * write out of the book. A head in no herd answers `null` (no book).
+   */
+  public async cullRefusal(by: Stuff): Promise<'not-keeper' | null> {
+    if (!this.herdId) return null;
+    const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
+    const herd = await registry.read(this.herdId);
+    if (!herd) return null;
+    return (await registry.mayKeep(by, herd)) ? null : 'not-keeper';
+  }
+
+  /**
+   * ⭐ The organism's ladder, then the BOOK: a head out of somebody's herd
+   * is its keeper's to cull (D9, C19) — asked before the kill.
+   */
+  public override async slaughterRefusal(by: Stuff): Promise<SlaughterRefusal | null> {
+    const base = await super.slaughterRefusal(by);
+    if (base !== null) return base;
+    return this.cullRefusal(by);
+  }
+
+  /**
+   * ⭐ The kill, then the book: the head returns and the tally falls
+   * (`HerdRegistry.cull`). The record's half is read BEFORE the kill —
+   * afterwards there is no live animal to ask. ⚠ A failed write leaves the
+   * herd over-counted, which is recoverable; the body already stands.
+   */
+  public override async slaughter(by: Stuff): Promise<{ recordFailed: string | null }> {
+    const herdId = this.herdId;
+    const index = this.headIndex;
+    const flesh = this.getReserve('flesh')?.current.rawValue();
+    const handling = this.getHandling();
+    const done = await super.slaughter(by);
+    if (!herdId || index < 0) return done;
+    try {
+      const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
+      await registry.cull(by, herdId, index, {
+        note: 'slaughtered',
+        ...(flesh !== undefined ? { flesh } : {}),
+        handling,
+      });
+      return done;
+    } catch (err) {
+      console.warn('Livestock: the book write failed:', err);
+      return { recordFailed: `${herdId}/${String(index)} stays drafted` };
+    }
+  }
+
+  /**
+   * ⭐ Can she be put to the male HERE? (C19.) She must be female — an
+   * unrecorded sex is open, the tri-state rule — and a male of her kind
+   * must be with her: a live one standing where she stands, or the herd's
+   * own males on the field she is grazing with them.
+   */
+  public async breedRefusal(): Promise<BreedRefusal | null> {
+    const sex = this.getSex();
+    if (sex !== null && sex !== 'female') return 'not-female';
+    const here = this.getContainer();
+    const kind = this.getSpecies();
+    if (here && MixinApi.isContainer(here)) {
+      for (const other of here.getContents()) {
+        if (other.stuffId === this.stuffId || !MixinApi.isOrganism(other)) continue;
+        if (other.isAlive() && other.getSex() === 'male' && other.getSpecies() === kind) {
+          return null;
+        }
+      }
+    }
+    if (this.herdId && this.grazedFraction() !== null) {
+      const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
+      const herd = await registry.read(this.herdId);
+      const female = herd?.femaleFraction ?? DEFAULT_FEMALE_FRACTION;
+      if (herd && herd.tally * (1 - female) >= 1) return null;
+    }
+    return 'no-male';
+  }
+
+  /**
+   * ⭐ Let the head answer to what it IS: the species' common names join
+   * the generic row's keywords, less the names only a male goes by when
+   * she is female (a cow is not a bull; a bull still answers to `cow`,
+   * which is what the room calls him).
+   */
+  public answerToSpecies(species: Species | null, sex: string): void {
+    if (!species) return;
+    const notHers = sex === 'female' ? new Set(species.getMaleNames()) : new Set<string>();
+    const names = species.getCommonNames().filter((n) => !notHers.has(n)).map((n) => n.toLowerCase());
+    if (names.length === 0) return;
+    const existing = this.getKeywords().map((k) => k.toLowerCase());
+    this.setKeywords([...new Set([...existing, ...names])]);
+    const primary = names[0];
+    if (primary) this.setShortDescription(primary);
+  }
+
+  /**
+   * ⭐ (dairy D12) A head returned dried off is still dry if it comes out
+   * again inside the species' rest: returning and redrafting cannot
+   * launder a dry cow. Past the rest she is drafted fresh.
+   */
+  public restoreDryPeriods(
+    species: Species | null,
+    driedOffAt: Readonly<Record<string, number>> | undefined,
+    nowS: number,
+  ): void {
+    if (!driedOffAt || !species) return;
+    for (const tap of species.getProduction()) {
+      const at = driedOffAt[tap.key];
+      if (typeof at !== 'number' || !(tap.restDays && tap.restDays > 0)) continue;
+      if (nowS - at < tap.restDays * SECONDS_PER_GAME_DAY) this.dryOff(tap.key);
+    }
+  }
+
+  /**
+   * ⭐⭐ `return` (controller-liquidity W10): **turn this head back into
+   * the book.** What it became — its flesh and when that was true (cover
+   * build D10), its handling, its age, and when each expiring tap went dry
+   * (dairy D12: a stamp still inside its rest is kept, so turning her in
+   * twice does not restart the clock) — is folded into the record, and the
+   * object goes LAST, after the write has landed: the identity was the
+   * record, not the flesh. A head in no herd is just itself.
+   */
+  public async returnToHerd(): Promise<HerdReturn> {
+    const herdId = this.herdId;
+    const index = this.headIndex;
+    if (!herdId || index < 0) return { ok: false, reason: 'not-drafted' };
+    const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
+    const clocked = !!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry);
+    const nowS = clocked ? WorldClockApi.getNow().rawValue() : 0;
+    let driedOffAt: Record<string, number> | null = null;
+    if (clocked) {
+      const prior = (await registry.overlayFor(herdId, index))?.driedOffAt ?? {};
+      const out: Record<string, number> = {};
+      for (const tap of this.taps()) {
+        if (tap.behaviour !== 'expire' || !this.isDriedOff(tap.key)) continue;
+        const was = prior[tap.key];
+        const rest = (tap.restDays ?? 0) * SECONDS_PER_GAME_DAY;
+        out[tap.key] = typeof was === 'number' && nowS - was < rest ? was : nowS;
+      }
+      if (Object.keys(out).length > 0) driedOffAt = out;
+    }
+    const flesh = this.getReserve('flesh');
+    const ok = await registry.returnHead(herdId, index, {
+      flesh: flesh ? Math.round(flesh.current.rawValue() * 10) / 10 : undefined,
+      ...(clocked ? { fleshAt: nowS } : {}),
+      handling: Math.round(this.getHandling() * 100) / 100,
+      ageDays: Math.round(this.getAgeDays() * 10) / 10,
+      ...(driedOffAt ? { driedOffAt } : {}),
+    });
+    if (!ok) return { ok: false, reason: 'not-in-book' };
+    const read = this.stockmanRead();
+    await StuffApi.destruct(this as unknown as Stuff);
+    return { ok: true, index, read };
+  }
+
+  /**
+   * ⭐⭐ `breed` (controller-liquidity W10): **put her to the male and write
+   * it in the book.** Her species must breed in keeping; she must be
+   * mature (a STAGE, not an age); the DAYLENGTH must be her season; she
+   * must be in a herd with a book; she must be female with a male of her
+   * kind by her (C19); and the book is the keeper's (D9). ⚠⚠ The tally
+   * does not move — nothing has gestated; the honest record is the date.
+   */
+  public async serveBy(by: Stuff): Promise<ServeAnswer> {
+    const species = this.getSpecies();
+    const spec = species?.getBreeding() ?? null;
+    if (!species || !spec) return { ok: false, reason: 'no-breeding' };
+    if (!this.isMature()) return { ok: false, reason: 'not-mature', stage: this.getLifeStage() ?? 'youngster' };
+    const where = MixinApi.isContainable(by) ? by.getContainer() : null;
+    const daylight = where ? await CelestialApi.daylightFractionAt(where) : 0.5;
+    if (!species.breedsAtDaylight(daylight)) {
+      return { ok: false, reason: 'out-of-season', longDays: daylight > spec.daylightTo };
+    }
+    if (!this.herdId) return { ok: false, reason: 'not-in-herd' };
+    const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
+    const herd = await registry.read(this.herdId);
+    if (!herd) return { ok: false, reason: 'no-herd' };
+    const breed = await this.breedRefusal();
+    if (breed !== null) return { ok: false, reason: breed };
+    const nowS = StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry) ? WorldClockApi.getNow().rawValue() : 0;
+    const served = await registry.serve(by, this.herdId, this.headIndex, nowS);
+    if (served === 'not-keeper') return { ok: false, reason: 'not-keeper', herdName: herd.name };
+    return { ok: true, index: this.headIndex, gestationDays: spec.gestationDays };
   }
 
   /** Bind this object to the record it was drafted out of. */

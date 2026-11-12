@@ -20,4 +20,4 @@ args:
     type: object
     required: false
     scope: ["$focus", "reachable"]
-    requires: [VisibleMixin, HaulableMixin]
+    requires: [VisibleMixin]

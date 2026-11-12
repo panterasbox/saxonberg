@@ -202,7 +202,7 @@ describe('the acts — scrape, mark, cut', () => {
     const marked = sheet.patchByWord('marked')!;
     expect(marked.gridM).toBe(0.5);
     const ice = sheet.iceOf(marked)!;
-    const plan = await sheet.cutPlan({ verb: 'cut', actor: w as unknown as Stuff, tools: [makeStuff(() => new Saw()) as unknown as Stuff], raw: 'marked', length: null, options: {} });
+    const plan = await sheet.cutPlan({ actor: w as unknown as Stuff, tools: [makeStuff(() => new Saw()) as unknown as Stuff], part: 'marked', length: null, options: {} });
     expect(plan.ok).toBe(true);
     const block = await sheet.cutBlock(w as unknown as Stuff, marked.id);
     expect(block).not.toBeNull();
@@ -217,8 +217,8 @@ describe('the acts — scrape, mark, cut', () => {
     const w = walker(pool);
     sheet.occupy(w as never, 'ground:1');
     sheet.markPatch(w as unknown as Stuff, makeStuff(() => new Marker()) as unknown as Stuff, null);
-    const plan = await sheet.cutPlan({ verb: 'cut', actor: w as unknown as Stuff, tools: [makeStuff(() => new Saw()) as unknown as Stuff], raw: 'marked', length: null, options: {} });
-    if (!plan.ok || plan.verb !== 'cut') throw new Error('the plan refused');
+    const plan = await sheet.cutPlan({ actor: w as unknown as Stuff, tools: [makeStuff(() => new Saw()) as unknown as Stuff], part: 'marked', length: null, options: {} });
+    if (!plan.ok) throw new Error('the plan refused');
     const done = await plan.onComplete();
     expect(done).toMatchObject({ ok: true, facts: { kind: 'ice-block' } });
     if (done.ok && done.facts.kind === 'ice-block') {
@@ -291,9 +291,9 @@ describe('the acts — scrape, mark, cut', () => {
     const { pool, sheet } = await sheetIn();
     const w = walker(pool);
     sheet.occupy(w as never, 'ground:1');
-    const noSaw = await sheet.cutPlan({ verb: 'cut', actor: w as unknown as Stuff, tools: [], raw: null, length: null, options: {} });
+    const noSaw = await sheet.cutPlan({ actor: w as unknown as Stuff, tools: [], part: null, length: null, options: {} });
     expect(noSaw).toMatchObject({ ok: false, reason: 'no-ice-saw' });
-    const noGrid = await sheet.cutPlan({ verb: 'cut', actor: w as unknown as Stuff, tools: [makeStuff(() => new Saw()) as unknown as Stuff], raw: null, length: null, options: {} });
+    const noGrid = await sheet.cutPlan({ actor: w as unknown as Stuff, tools: [makeStuff(() => new Saw()) as unknown as Stuff], part: null, length: null, options: {} });
     expect(noGrid).toMatchObject({ ok: false, reason: 'no-grid' });
   });
 

@@ -67,5 +67,9 @@ export default class DormRoom extends PersistentRoom {
    */
   static fieldMeta: FieldMeta = {};
 
+  /** Is this the room of the unit at `unitExtent`? (The copy keyed on it.) */
+  public isUnit(unitExtent: string): boolean {
+    return this.getPersistenceKey() === unitExtent;
+  }
 }
 

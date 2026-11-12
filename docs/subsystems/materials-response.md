@@ -569,6 +569,9 @@ freezing while wet (ceramics.md § green ware) — never broken into sherds.
   rings clear (hardness ≥ `impact.ringsAboveHardness`, or a metal), a soft one
   (a place brick) sounds dead, anything flawed gives a buzzing clack — the
   hidden dunt is heard, not seen. It carries by mass (50 + 10·log₁₀ kg dB).
+  ⭐ The act is the thing's (`Integrity.ringBy`, controller-liquidity W7c):
+  it answers the sound and whether it rang as a SIGNAL — a `Ringable` bell
+  is struck, remembered and sounds from itself — and the controller words it.
 - **`canReceiveAtK(k)`** — `holds | melts | burns` against the material's
   melting and autoignition points (the pour's receiver, ceramics W7).
 

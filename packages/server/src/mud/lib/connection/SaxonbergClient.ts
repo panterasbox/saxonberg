@@ -160,7 +160,7 @@ export interface SaxonbergClient extends ClientState {
    */
   getCockpitArrangement(mode?: CockpitMode): string;
 
-  /** Shipped defaults then saved names — what `cockpit layout` resolves against. */
+  /** Shipped defaults then saved names — what `client-layout` resolves against. */
   getArrangementNames(mode?: CockpitMode): string[];
 
   /** Is `name` one of `mode`'s shipped defaults? */
@@ -367,7 +367,7 @@ export function SaxonbergClientMixin<
         description:
           'The cockpit layout this player is in — the server-' +
           'authoritative view axis (world | forum | livestream-' +
-          'viewer | streamer | builder). Set by `cockpit layout`; ' +
+          'viewer | streamer | builder). Set by `client-layout`; ' +
           'the client holds a layout→component registry and swaps the ' +
           'whole cockpit on change.',
         validator: (v) =>
@@ -406,7 +406,7 @@ export function SaxonbergClientMixin<
         description:
           'Per-mode arrangement memory — a { mode → arrangement name } ' +
           'map. Switching modes and back restores the arrangement last ' +
-          'used in that mode. Written by `cockpit layout`; read through ' +
+          'used in that mode. Written by `client-layout`; read through ' +
           '`getCockpitArrangement()`, which falls back to the mode’s ' +
           'shipped default.',
         validator: (v) => {
@@ -430,13 +430,13 @@ export function SaxonbergClientMixin<
         key: 'cockpit.savedArrangements',
         // `{ [mode]: { [name]: ArrangementSpec } }`. Scoped by mode
         // because an arrangement only means anything inside one — the
-        // same reason `cockpit layout` refuses a name from elsewhere
+        // same reason `client-layout` refuses a name from elsewhere
         // instead of quietly switching modes for you.
         defaultValue: {},
         description:
           'Player-composed card arrangements, per mode — a ' +
           '{ mode → { name → { cards } } } map. Written by ' +
-          '`cockpit layout save` / `forget`. These sit BESIDE the ' +
+          '`client-layout save` / `forget`. These sit BESIDE the ' +
           'shipped per-mode defaults; a saved name may never shadow a ' +
           'shipped one, so the union is unambiguous.',
         validator: (v) => {
@@ -636,10 +636,10 @@ export function SaxonbergClientMixin<
         defaultValue: [...DEFAULT_SHELF],
         description:
           'The widget shelf — which figures are pinned to the top bar, ' +
-          'in order. An array of ShelfRowId. Edited by `cockpit shelf ' +
+          'in order. An array of ShelfRowId. Edited by `client-shelf ' +
           'pin|unpin`; defaults to the rows that are actually wired ' +
           '(play, renown, skill), never to a bar of dead widgets. The ' +
-          'other six are one `cockpit shelf pin` away and explain ' +
+          'other six are one `client-shelf pin` away and explain ' +
           'themselves in the widget menu. Server-authoritative on ' +
           'purpose: a pin affordance that mutated local state would ' +
           'falsify the claim the status bar makes, that every click ' +
@@ -671,13 +671,21 @@ export function SaxonbergClientMixin<
      * client state on this mixin; co-locating verb + schema keeps the
      * wiring local.
      *
-     * One entry, not three: `layout`, `style` and `mode` were absorbed
-     * as `cockpit layout` / `cockpit style` / `cockpit scope`. They
-     * each wrote this same `cockpit.*` keyspace, so three top-level
-     * verbs was scatter, not separation.
+     * `layout`, `style` and `mode` were absorbed into `cockpit` once;
+     * since controller-liquidity W16 (a command is `verb subcommand
+     * target`, never deeper) the screen's other controls are verbs of
+     * their own with non-diegetic compound names — `client-layout`,
+     * `client-card`, `client-shelf`, `client-style` — and every one of
+     * them still edits this same keyspace, so this mixin affords them all.
      */
     static commandContributions: CommandContributions = {
-      self: ['platform/cmd/shell/cockpit.yaml'],
+      self: [
+        'platform/cmd/shell/cockpit.yaml',
+        'platform/cmd/shell/client-layout.yaml',
+        'platform/cmd/shell/client-card.yaml',
+        'platform/cmd/shell/client-shelf.yaml',
+        'platform/cmd/shell/client-style.yaml',
+      ],
       peers: [],
       environment: [],
     };
@@ -787,7 +795,7 @@ export function SaxonbergClientMixin<
     /**
      * Every arrangement name available in `mode` — the shipped
      * defaults first, then this player's saved ones. This union is what
-     * `cockpit layout <name>` resolves against; there is deliberately
+     * `client-layout <name>` resolves against; there is deliberately
      * no frozen list, because the slate's arrangements are *savable*.
      */
     public getArrangementNames(mode?: CockpitMode): string[] {
@@ -863,7 +871,7 @@ export function SaxonbergClientMixin<
      * string, or null when acceptable.
      *
      * ⚠ A saved name may never shadow a shipped default. Allowing it
-     * would make `cockpit layout viewer` ambiguous with no way for the
+     * would make `client-layout viewer` ambiguous with no way for the
      * player to say which they meant — so the collision is refused at
      * save time, where it can still be explained, rather than resolved
      * silently at recall time in favour of whichever we happened to

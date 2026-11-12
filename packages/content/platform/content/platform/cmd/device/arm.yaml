@@ -18,7 +18,7 @@ help: |
   once it springs, it's spent. To defuse someone's trap you've found,
   use `disarm`.
 examples:
-  - cmd: arm the trap kit
+  - cmd: 'arm the "trap kit"'
     note: Set and conceal a carried trap here
 validators:
   - /lib/command/validators/requiresAnimate

@@ -15,7 +15,7 @@
  * clicking the tip jar in that same card.
  *
  * A player who would rather skip the question turns on
- * `cockpit style links ids`: an action then sends the server's exact
+ * `client-style links ids`: an action then sends the server's exact
  * `<verb> #<id>` — and only when the target really is the verb's first
  * argument (the server sends none otherwise).
  */

@@ -197,12 +197,12 @@ never a passed value):
 | Op | Gate |
 |---|---|
 | `list` (structured) | **per row** — the within-your-extent pattern: a row is yours to read when its `path` is under an extent you hold (`AccessApi.heldExtents`), or its channel is `pack.<id>` and you maintain that pack (`PackApi.maintainersOf` — a member of the maintainers group, or staff/head of the maintaining organization); `compile` rows (no path) are open to any signed-in avatar — they are a read of source, and reading source is open (the wizard-axis cleanup, 2026-11-05; spoilers in code are wizard-axis-cleanup-slate W4). `mine` bypasses the filter (the author is the context actor) |
-| `rawTail` (console ring) | the Prime Minister — `CompactApi.holdsOffice(actor, 'prime-minister')`, refusal reason `pm-only` (enforced in `ErrorsController`). Privacy, not code trust: the ring carries other players' command lines |
+| `rawTail` (console ring) | the Prime Minister — `CompactApi.holdsOffice(actor, 'prime-minister')`, refusal reason `pm-only` (enforced by `DiagnosticLogic.rawTail`). Privacy, not code trust: the ring carries other players' command lines |
 | `clear(path)` | title over the path (`AccessApi.canAtPath(subject, 'write-document', path)`), or the provenance author of the path — else `-1`. Clearing deletes rows, so it keeps a gate; deleting a diagnostic is not authoring code |
 | producer writes | the `DiagnosticApi` facade → `DiagnosticLogic` `FromModule` gate |
 
 There is **no author tier** (content-packs wave 3; [access.md](./access.md)):
-`ErrorsController` has no door of its own — the verb is afforded to every
+The `errors` controllers have no door of its own — the verb is afforded to every
 avatar, and a nobody's `errors` is simply an empty list, not an error.
 A `null` (unattributable) context fails every read closed (`list` → `[]`).
 
@@ -222,7 +222,7 @@ reach a guarded `runRoot` uncaught — command-controller throws (via the
 
 ## Reader A — the `errors` verb
 
-`content/platform/cmd/system/errors.yaml` + `ErrorsController` (category `system`,
+`content/platform/cmd/system/errors.yaml` + `Errors{List,Raw,Clear}Controller` (category `system`,
 AuthorMixin-afforded, no validator; the per-op gates above).
 Subcommands: `list` (default) —
 `--channel` / `--severity` / `--source` / `--mine` / `--limit` filters and

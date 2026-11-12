@@ -45,7 +45,7 @@ describe('Route', () => {
 
     const authored = (await cat.routeByKey('road-local'))!;
     // ⚠ Built with `Route.computed` directly, which is what
-    // `JourneyController` does now that routing is
+    // `LaneCatalogue.planJourney` does now that routing is
     // `NavigationApi.routeBetween`'s: the Journey never cared who made
     // its Route, and AC15n of logistics says nothing downstream may
     // tell authored from computed.
@@ -93,7 +93,7 @@ describe('Route', () => {
   it('carries exactly the stop set it is given, narrowed by its maker', async () => {
     // ⭐ The NARROWING moved, and this test moved with it. It used to
     // live inside `LaneCatalogue.planRoute`, which is retired;
-    // `JourneyController` now intersects the lane's stops with the
+    // `LaneCatalogue.planJourney` now intersects the lane's stops with the
     // plan's nodes and hands the result here. `Route`'s own contract
     // is what it was: it carries what it is given.
     const route = Route.computed('road', [P(0), P(1), P(2), P(3)], [P(0), P(2)]);

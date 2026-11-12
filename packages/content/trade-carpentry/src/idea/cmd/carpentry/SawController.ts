@@ -38,67 +38,25 @@
  * The duration is `mass / rate` either way: kilograms of log over
  * kilograms an hour.
  *
- * ⚠⚠ The completion is a **module-level function**. A controller is one
- * ephemeral clone per execution, destructed the moment `execute`
- * returns, and a cut runs for game-minutes; a completion calling back
- * into `this` would no-op on a dead proxy and the boards would silently
- * never appear.
+ * ⭐ The cut is the SAW's (`Sawmill.sawPlan` — controller-liquidity W11):
+ * the charge, the yield, the kerf and the claim on the saw are the
+ * instrument's, and this controller only words the plan's facts and its
+ * refusals. ⚠ The words that land at completion are `protected static`:
+ * a controller is destructed the moment `execute` returns, and a cut runs
+ * for game-minutes.
  */
 
-import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
-import type {
-  CommandContext,
-  CommandModel,
-} from '@saxonberg/server/mud/api/command';
+import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
+import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type Material from '@saxonberg/server/mud/lib/material/Material';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import type { ActDone } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
-import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import type { SawRefusal } from '@saxonberg/server/mud/lib/craft/Cuttable';
-import Sawmill from '../../../thing/Sawmill';
+import Sawmill, { type SawCut, type SawLanded, type SawmillRefusal } from '../../../thing/Sawmill';
 
 const TOPIC = 'act.deed';
-
-/** The through-sawn board row. */
-export const BOARD_PATH = '/trade/carpentry/thing/board';
-/** The quarter-sawn board row — the same board, opened radially. */
-export const QUARTERED_BOARD_PATH = '/trade/carpentry/thing/quartered-board';
-
-/**
- * Kilograms in one board — what both board rows author as their `mass`
- * (a stack's mass is per unit). A test holds the rows to this figure, so
- * the yield arithmetic and the boards on the floor cannot drift apart.
- */
-export const BOARD_KG = 6;
-
-/**
- * ⭐ What quartering costs: the wedges between the radial cuts are
- * waste, so a quartered log gives two boards for every three a
- * through-sawn one would.
- */
-export const QUARTER_YIELD = 2 / 3;
-
-/** The sawdust row the kerf mints (one unit a kilogram). */
-export const SAWDUST_PATH = '/trade/carpentry/thing/sawdust';
-
-/** A board's thickness, m — what one kerf is measured against. */
-export const BOARD_THICKNESS_M = 0.025;
-
-/**
- * Metabolic watts of working a pit saw — the top sawyer's half of it,
- * heavy and steady. The water rung costs nothing of yours.
- */
-const PIT_SAW_EFFORT_W = 650;
 
 interface SawModel extends CommandModel {
   log?: MqlOneResult;
@@ -108,15 +66,9 @@ interface SawModel extends CommandModel {
   through?: boolean;
 }
 
-/** What is going on the carriage, resolved before anything is cut. */
-interface Charge {
-  kg: number;
-  material: Material | null;
-  /** Seasoned fraction of what went on; a bole and a length are green. */
-  seasoned: number;
-}
+type Composed = ReturnType<typeof Mml.compose>;
 
-export default class SawController extends ManualBuildController<SawModel> {
+export default class SawController extends CommandController<SawModel> {
   async execute(model: SawModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
@@ -139,15 +91,6 @@ export default class SawController extends ManualBuildController<SawModel> {
       );
       return;
     }
-    if (saw.isSawing()) {
-      this.turnDown(
-        context,
-        'already-sawing',
-        Mml.compose`${Mml.thing(saw)} already has a log on it. Wait for it.`,
-      );
-      return;
-    }
-
     const log = model.log?.stuff ?? null;
     if (log === null) {
       this.turnDown(context, 'no-log', Mml.compose`Saw what?`);
@@ -161,79 +104,17 @@ export default class SawController extends ManualBuildController<SawModel> {
       );
       return;
     }
-    const quarter = model.quarter === true;
 
-    // ⭐ The log's own cut first (`CuttableMixin.cutPlan`, verb `saw` —
-    // controllers-are-io D8c): a bole answers its charge (one green length)
-    // and the take, and refuses when it is spent. A piece with no saw cut of
-    // its own (`not-cuttable`, or not cuttable at all) is weighed as it is.
-    let charge: Charge | null = null;
-    let take: SawJob['take'] = null;
-    if (MixinApi.isCuttable(log)) {
-      const out = await log.cutPlan({ verb: 'saw', actor: giver, tools: [saw], raw: null, length: null, options: {} });
-      if (out.verb !== 'saw') throw new Error(`SawController: asked 'saw', answered '${out.verb}'`);
-      if (out.ok) {
-        charge = out.facts;
-        take = out.onComplete;
-      } else if (out.reason !== 'not-cuttable') {
-        this.turnDown(context, out.reason, SawController.refusalWords(out, log));
-        return;
-      }
-    }
-    if (take === null) charge = chargeOf(log);
-    if (charge === null) {
-      this.turnDown(context, 'not-sawable', SawController.refusalWords({ ok: false, reason: 'not-sawable' }, log));
+    const plan = await saw.sawPlan(giver, log, { quarter: model.quarter === true });
+    if (!plan.ok) {
+      this.turnDown(context, plan.reason, SawController.refusalWords(plan, log, saw));
       return;
     }
 
-    // How many boards the log will give — refuse before anything is cut.
-    const boardPath = quarter ? QUARTERED_BOARD_PATH : BOARD_PATH;
-    const boards = boardsFrom(charge.kg, BOARD_KG, quarter);
-    if (boards < 1) {
-      this.turnDown(
-        context,
-        'too-small',
-        Mml.compose`${Mml.thing(log)} is too small to give a board${quarter ? ' quartered — try it through-sawn' : ''}.`,
-      );
-      return;
-    }
-
-    // ⚠ A cold water-sawmill answers 0 until its race has been read once,
-    // and "will not turn" must be true when it is said.
-    await saw.settlePower();
-    const sawMs = saw.sawMs(charge.kg);
-    if (!Number.isFinite(sawMs)) {
-      this.turnDown(
-        context,
-        'no-power',
-        Mml.compose`${Mml.thing(saw)} will not run. There is no water in the race — it wants a flow to drive the frame.`,
-      );
-      return;
-    }
-
-    const job: SawJob = {
-      giver,
-      saw,
-      log,
-      take,
-      charge,
-      boardPath,
-      boards,
-      quarter,
-    };
-
-    if (saw.runsOnWater()) {
-      // ⭐⭐ THE SAWMILL HOLDS NOTHING OF YOURS. The game clock carries
-      // the cut, so the sawyer may walk out, and the boards are on the
-      // mill floor when they come back.
-      saw.setSawing(true);
-      WorldClockApi.after(
-        Quantity.of(sawMs / 1000, 's'),
-        () => {
-          void finishSaw(job);
-        },
-        { host: saw as unknown as Stuff, tag: 'saw-log' },
-      );
+    if (plan.facts.unattended) {
+      // ⭐⭐ THE SAWMILL HOLDS NOTHING OF YOURS — the game clock carries
+      // the cut, and the boards are on the mill floor when you come back.
+      void saw.runUnattended(plan).then((out) => SawController.landed(saw, out));
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
@@ -246,28 +127,30 @@ export default class SawController extends ManualBuildController<SawModel> {
       return;
     }
 
-    // ⭐⭐ THE PIT SAW HOLDS YOUR HANDS until the cut is through — the
-    // shipped `hands` slot rule, so no flag on the saw is needed: the
-    // sawyer cannot start a second cut while this one runs.
-    this.engageStep(context, {
-      durationMs: sawMs,
-      effortW: PIT_SAW_EFFORT_W,
-      beginSelf: Mml.compose`You chalk a line down ${Mml.thing(log)} and set the long saw to it. It is going to take a while, and both your hands are on the handle.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} sets a long saw to ${Mml.thing(log)}.`,
-      onComplete: () => {
-        void finishSaw(job);
-      },
+    // ⭐⭐ THE PIT SAW HOLDS YOUR HANDS until the cut is through.
+    await this.engagePlan(context, plan, {
+      beginSelf: (f: SawCut) =>
+        Mml.compose`You chalk a line down ${Mml.thing(f.log)} and set the long saw to it. It is going to take a while, and both your hands are on the handle.`,
+      beginPeers: (f: SawCut) =>
+        Mml.compose`${Mml.actor(giver)} sets a long saw to ${Mml.thing(f.log)}.`,
+      onRefused: () => Mml.compose`The cut came to nothing.`,
+      onDone: (f: SawLanded) => SawController.doneWords(f),
     });
   }
 
-  /** ⭐ Every reason a log refuses the saw (D4), in this verb's words. */
-  private static refusalWords(r: SawRefusal, log: Stuff): ReturnType<typeof Mml.compose> {
+  /** ⭐ Every reason a saw refuses a log (D4), in this verb's words. */
+  protected static refusalWords(r: SawmillRefusal, log: Stuff, saw: Stuff): Composed {
     switch (r.reason) {
-      case 'not-cuttable':
       case 'not-sawable':
         return Mml.compose`${Mml.thing(log)} is not wood in the round. A felled bole, a length off one or a billet goes on a saw.`;
       case 'bole-spent':
         return Mml.compose`There is nothing left in ${Mml.thing(log)} but the butt.`;
+      case 'already-sawing':
+        return Mml.compose`${Mml.thing(saw)} already has a log on it. Wait for it.`;
+      case 'too-small':
+        return Mml.compose`${Mml.thing(log)} is too small to give a board${r.facts.quarter ? ' quartered — try it through-sawn' : ''}.`;
+      case 'no-power':
+        return Mml.compose`${Mml.thing(saw)} will not run. There is no water in the race — it wants a flow to drive the frame.`;
       default: {
         const never: never = r;
         return never;
@@ -275,171 +158,32 @@ export default class SawController extends ManualBuildController<SawModel> {
     }
   }
 
-  private turnDown(
-    context: CommandContext,
-    reason: string,
-    text: ReturnType<typeof Mml.compose>,
-  ): void {
+  /** What the sawyer at the pit is told when the cut is through. */
+  protected static doneWords(f: SawLanded): { self?: Composed; peers?: Composed } | null {
+    if (f.kind === 'gone') {
+      // ⭐ Never silent after the effort (C6): the work was done, and the
+      // log or the saw is not there to show for it.
+      return { self: Mml.compose`You come to the end of the cut and there is nothing on the saw to show for it.` };
+    }
+    const words = SawController.boardsWords(f.boards, f.quarter);
+    return { self: words, peers: words };
+  }
+
+  /** The room by the saw hears the boards fall — both rungs. */
+  protected static landed(saw: Sawmill, out: ActDone<SawLanded, never>): void {
+    if (!out.ok || out.facts.kind !== 'boards' || saw.isDestroyed()) return;
+    MessageApi.scene(saw as unknown as Stuff)
+      .topic(TOPIC)
+      .toPeers(SawController.boardsWords(out.facts.boards, out.facts.quarter))
+      .send();
+  }
+
+  protected static boardsWords(boards: number, quarter: boolean): Composed {
+    return Mml.compose`The last cut runs out and ${GrammarApi.inWords(boards)} ${quarter ? 'quartered ' : ''}${boards === 1 ? 'board falls' : 'boards fall'} away from the log.`;
+  }
+
+  private turnDown(context: CommandContext, reason: string, text: Composed): void {
     MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(text).send();
     context.note({ kind: 'controller-rejected', reason, detail: reason });
-  }
-}
-
-/** Everything the completion needs — closed over, never `this`. */
-interface SawJob {
-  giver: Stuff;
-  saw: Sawmill;
-  log: Stuff;
-  /** The log's own take (a bole's length), or `null` — consumed as it is. */
-  take: (() => Promise<unknown> | unknown) | null;
-  charge: Charge;
-  boardPath: string;
-  boards: number;
-  quarter: boolean;
-}
-
-/**
- * What a piece of wood with no saw cut of its own puts on the carriage, or
- * `null` when it is not sawable — weighed as it is (one piece of a stack).
- * Already-sawn stock is not wood in the round. (A bole answers its own
- * charge: `Bole.cutPlan`.)
- */
-function chargeOf(log: Stuff): Charge | null {
-  if (!MixinApi.isTangible(log)) return null;
-  const material = log.getMaterial();
-  if (!material || !material.hasTag('wood')) return null;
-  if (MixinApi.isConstructed(log) && log.getConstructionForm() === 'sawn') {
-    return null;
-  }
-  const kg = log.getMass().rawValue();
-  if (!(kg > 0)) return null;
-  const seasoned = MixinApi.isSeasoning(log) ? log.getSeasonedFraction() : 0;
-  return { kg, material, seasoned };
-}
-
-/**
- * Boards a log of `kg` gives: its mass over a board's, and two in three
- * of that when it is quartered. Exported for the yield test.
- */
-export function boardsFrom(kg: number, unitKg: number, quarter: boolean): number {
-  if (!(unitKg > 0) || !(kg > 0)) return 0;
-  const through = kg / unitKg;
-  return Math.floor(quarter ? through * QUARTER_YIELD : through);
-}
-
-/**
- * ⭐ Kilograms of sawdust a cut of `boards` makes (storage-and-ice D18):
- * one kerf a board (two when quartered — the radial cuts), each a kerf's
- * width of a board's thickness turned to dust. Exported for the yield
- * test. The boards come out lighter by what is minted, so mass is
- * conserved.
- */
-export function kerfSawdustKg(boards: number, quarter: boolean, kerfM: number): number {
-  if (!(boards > 0) || !(kerfM > 0)) return 0;
-  const cuts = boards * (quarter ? 2 : 1);
-  return (cuts * kerfM * BOARD_KG) / BOARD_THICKNESS_M;
-}
-
-/**
- * ⚠⚠ A MODULE function, never a method — see the header.
- *
- * ⭐ The boards land **where the saw is**: at a sawmill the sawyer may
- * be a valley away by now, which is the point of the rung, and a pit
- * saw stands where the log does. They are the sawyer's — stamped to the
- * giver — and the log is consumed first (conservation before creation:
- * a failure leaves the log rather than doubling it).
- */
-async function finishSaw(job: SawJob): Promise<void> {
-  const { giver, saw, log, take, charge, boardPath, boards, quarter } = job;
-  try {
-    if (saw.isDestroyed() || log.isDestroyed()) return;
-    // A saw in the sawyer's own hands puts the boards at their feet, not
-    // in their arms — a log's worth of boards is not a handful.
-    let room = MixinApi.isContainable(saw) ? saw.getContainer() : null;
-    if (room === giver && MixinApi.isContainable(giver)) room = giver.getContainer();
-    const landing: (Stuff & Container) | null =
-      room !== null && MixinApi.isContainer(room) ? room : null;
-    if (landing === null) return;
-
-    // Minted BEFORE the log is consumed: a board is the log's owner's, and
-    // the log is read for that while it is still there.
-    const board = await StuffApi.clone<Stuff & Containable>(boardPath, undefined, {
-      madeFrom: log,
-    });
-
-    // Then consume.
-    if (take !== null) {
-      await take();
-    } else if (MixinApi.isStackable(log) && log.getQuantity() > 1) {
-      log.setQuantity(log.getQuantity() - 1);
-      await capture(log);
-    } else {
-      await StuffApi.destruct(log);
-    }
-
-    if (charge.material && MixinApi.isTangible(board)) {
-      board.setMaterial(charge.material);
-    }
-    // ⭐ A board is as green as the log it came off: a bole is green, and
-    // sawing does not dry anything.
-    if (MixinApi.isSeasoning(board)) board.setSeasonedFraction(charge.seasoned);
-    if (MixinApi.isStackable(board)) board.setQuantity(boards);
-    const maker = giver.isDestroyed() ? '' : (giver.getIdentityPath() ?? '');
-    if (maker && MixinApi.isCrafted(board)) board.setMaker(maker);
-
-    // ⭐ The kerf (D18): the wood between the boards falls as sawdust, and
-    // the boards are lighter by EXACTLY what is minted — whole kilograms,
-    // because a heap's unit is a kilogram — so the log's mass is conserved
-    // to the gram (boards × board + dust = boards × BOARD_KG).
-    const dustKg = Math.round(kerfSawdustKg(boards, quarter, saw.getKerfM()));
-    if (dustKg > 0 && boards > 0 && MixinApi.isTangible(board)) {
-      board.setMass(Quantity.of(BOARD_KG - dustKg / boards, 'kg'));
-    }
-    ContainmentApi.move(board, landing);
-    if (dustKg > 0) await landDust(dustKg, log, maker, landing);
-
-    if (!saw.isDestroyed()) {
-      MessageApi.scene(saw as unknown as Stuff)
-        .topic(TOPIC)
-        .toPeers(
-          Mml.compose`The last cut runs out and ${GrammarApi.inWords(boards)} ${quarter ? 'quartered ' : ''}${boards === 1 ? 'board falls' : 'boards fall'} away from the log.`,
-        )
-        .send();
-    }
-  } finally {
-    saw.setSawing(false);
-  }
-}
-
-/**
- * Mint `kg` of sawdust where the boards fell. ⭐ It merges with the heap
- * already on the floor through the shipped stack merge (same row, same
- * wetness band), so a day at the saw leaves ONE heap that grows.
- */
-async function landDust(
-  kg: number,
-  log: Stuff,
-  maker: string,
-  landing: Stuff & Container,
-): Promise<void> {
-  try {
-    const dust = await StuffApi.clone<Stuff & Containable>(SAWDUST_PATH, undefined, {
-      madeFrom: log,
-    });
-    if (MixinApi.isStackable(dust)) dust.setQuantity(kg);
-    if (maker && MixinApi.isCrafted(dust)) dust.setMaker(maker);
-    ContainmentApi.move(dust, landing);
-  } catch (err) {
-    // ⚠ A missing sawdust row is a content gap: the boards are already
-    // down and lighter, so say so loudly rather than pretend.
-    console.warn('SawController: sawdust mint failed', err);
-  }
-}
-
-async function capture(host: Stuff): Promise<void> {
-  try {
-    await PersistableApi.captureHostOf(host);
-  } catch (err) {
-    console.warn('SawController: capture failed:', err);
   }
 }

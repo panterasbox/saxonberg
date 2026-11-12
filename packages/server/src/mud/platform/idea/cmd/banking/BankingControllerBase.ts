@@ -54,10 +54,10 @@ export abstract class BankingControllerBase<
   /**
    * ⭐ **A seat sets its own dials, on the record** (wizard-axis D11). The
    * one write path for a Tier C settings key: `treasury set` (the Minister
-   * of Finance) and `reserve set` (the Governor) both land here. Admits
-   * `row` iff `AppApi.seatFor(row) === seat` (or `alsoAdmits(row)` — the
-   * Governor's `reserve.*` Schedule rows); refuses any other key with
-   * `wrong-seat`, naming who does set it. On success it writes the value
+   * of Finance) and `reserve set` (the Governor) both land here. Whose row
+   * it is (Tier C: its office; the Governor's `reserve.*` Schedule rows)
+   * and whether the giver holds the seat are `AppApi.setSetting`'s refusals
+   * (`wrong-seat` naming who does set it, `not-seated`). On success it writes the value
    * and records the change as the officer's DEED — *"As Minister of
    * Finance, set `banking.salesTaxRate` to 0.1; it was 0.08."* — readable
    * with `chronicle`.
@@ -67,7 +67,6 @@ export abstract class BankingControllerBase<
     rowIn: string | undefined,
     valueIn: string | undefined,
     seat: string,
-    alsoAdmits: (row: string) => boolean = () => false,
   ): Promise<void> {
     const giver = context.commandGiver;
     const row = (rowIn ?? "").trim();
@@ -81,19 +80,24 @@ export abstract class BankingControllerBase<
       context.note({ kind: "controller-rejected", reason: "unknown-row", detail: row });
       return;
     }
-    if (AppApi.seatFor(row) !== seat && !alsoAdmits(row)) {
-      const detail = `\`${row}\` is not this seat's to set: ${AppApi.whoSets(row)}.`;
-      tell(detail);
-      context.note({ kind: "controller-rejected", reason: "wrong-seat", detail });
-      return;
-    }
     if (!value) {
       tell("Set it to what?");
       context.note({ kind: "controller-rejected", reason: "bad-value", detail: row });
       return;
     }
-    const before = AppApi.setting(row);
-    await AppApi.setSetting(row, value);
+    // Whose row it is and whether the giver holds the seat are the write's
+    // own rules (AppLogic.setSetting, controller-liquidity D9).
+    const wrote = await AppApi.setSetting(row, value, seat);
+    if (!wrote.ok) {
+      const detail =
+        wrote.reason === "wrong-seat"
+          ? `\`${row}\` is not this seat's to set: ${wrote.whoSets}.`
+          : "You do not hold this seat.";
+      tell(detail);
+      context.note({ kind: "controller-rejected", reason: wrote.reason, detail });
+      return;
+    }
+    const before = wrote.before;
     const office = Office.byKey(seat)?.getDisplayName() ?? seat;
     const text = `As ${office}, set \`${row}\` to ${value}; it was ${before || "unset"}.`;
     if (MixinApi.isPersona(giver)) {
@@ -185,14 +189,5 @@ export abstract class BankingControllerBase<
     }
     const mine = MixinApi.isEmployed(giver) ? await giver.buysFor() : [];
     return mine[0] ?? null;
-  }
-
-  /** A present bartender (whoever is on shift and fulfilling here) — the house's rep. */
-  protected presentBartender(context: CommandContext): Stuff | null {
-    return (
-      this.peers(context).find(
-        (s) => MixinApi.isEmployed(s) && s.isFulfilling(),
-      ) ?? null
-    );
   }
 }

@@ -19,6 +19,5 @@ args:
   - name: item
     type: object
     required: true
-    greedy: true
     scope: "inventory"
     requires: any

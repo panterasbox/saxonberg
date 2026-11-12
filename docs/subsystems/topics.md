@@ -68,7 +68,7 @@ distinguishes your candidate from an existing leaf is *who is talking*,
 |---|---|---|
 | `speech` | `vocal` `comms` `channel` `relay` | Words from a person, split by **medium** — overhearable vs point-to-point is a fact about the world |
 | `act` | `deed` `move` `emote` `combat` | Something was done; `actor` distinguishes person from world |
-| `sense` | `ambient` `weather` `survey` `reading` | The world reaching you; `survey` answers your own looking |
+| `sense` | `ambient` `weather` `survey` `reading` | The world reaching you; `survey` answers your own looking (the topic key — `look`, `search`, `inventory`; there is no `survey` verb since controller-liquidity W17) |
 | `self` | `body` `standing` `holding` `group` | Your own person |
 | `publication` | `press` `wiki` `forum` | Authored durable content |
 | `shell` | `result` `error` `prompt` `config` `control` `diagnostic` | The client↔server relationship |

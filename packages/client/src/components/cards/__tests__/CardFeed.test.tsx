@@ -199,7 +199,7 @@ describe("the pin", () => {
   /**
    * ⚠⚠ **Two cards of one KIND can be open at once**, and this is the
    * regression for the defect driving found: keyed on `cardId`, both
-   * `who` cards rendered `cockpit card pin who` and the server acted on
+   * `who` cards rendered `client-card pin who` and the server acted on
    * whichever it found first — two controls, identical labels, acting
    * on one thing.
    */
@@ -211,10 +211,10 @@ describe("the pin", () => {
     render(<CardFeed onSendCommand={noop} />);
     // The one with a space in its key is quoted, or `--here` would bind
     // as an option of `cockpit`.
-    expect(screen.getByLabelText('cockpit card pin "who --here"')).toBeTruthy();
-    expect(screen.getByLabelText("cockpit card pin who")).toBeTruthy();
+    expect(screen.getByLabelText('client-card pin "who --here"')).toBeTruthy();
+    expect(screen.getByLabelText("client-card pin who")).toBeTruthy();
     expect(
-      screen.getByLabelText('cockpit card close "who --here"'),
+      screen.getByLabelText('client-card close "who --here"'),
     ).toBeTruthy();
   });
 
@@ -222,8 +222,8 @@ describe("the pin", () => {
     landCard(opened({ instanceId: "c1", cardId: "who" }));
     const sent: string[] = [];
     render(<CardFeed onSendCommand={(t) => sent.push(t)} />);
-    fireEvent.click(screen.getByLabelText("cockpit card pin who"));
-    expect(sent).toEqual(["cockpit card pin who"]);
+    fireEvent.click(screen.getByLabelText("client-card pin who"));
+    expect(sent).toEqual(["client-card pin who"]);
     // ⚠ NOT flipped locally: the server is the one that answers.
     expect(useStore.getState().cards["c1"]!.pinned).toBe(false);
   });
@@ -232,7 +232,7 @@ describe("the pin", () => {
     landCard(opened({ instanceId: "c1", cardId: "who" }));
     useStore.getState().setCardPinnedState("c1", true);
     render(<CardFeed onSendCommand={noop} />);
-    expect(screen.getByLabelText("cockpit card unpin who")).toBeTruthy();
+    expect(screen.getByLabelText("client-card unpin who")).toBeTruthy();
     expect(screen.getByTestId("card-hold-reason").textContent).toBe(
       "kept",
     );
@@ -373,14 +373,14 @@ describe("the card's controls", () => {
       "who",
     );
     expect(screen.getByTestId("card-grow").getAttribute("aria-label")).toBe(
-      "cockpit card grow who",
+      "client-card grow who",
     );
     expect(screen.getByTestId("card-shrink").getAttribute("aria-label")).toBe(
-      "cockpit card shrink who",
+      "client-card shrink who",
     );
-    expect(screen.getByLabelText("cockpit card pin who")).toBeTruthy();
+    expect(screen.getByLabelText("client-card pin who")).toBeTruthy();
     expect(screen.getByTestId("card-close").getAttribute("aria-label")).toBe(
-      "cockpit card close who",
+      "client-card close who",
     );
   });
 
@@ -389,7 +389,7 @@ describe("the card's controls", () => {
     useStore.getState().closeCard("c1", "dismissed");
     render(<CardFeed onSendCommand={noop} />);
     expect(screen.queryByTestId("card-refresh")).toBeNull();
-    expect(screen.queryByLabelText("cockpit card pin who")).toBeNull();
+    expect(screen.queryByLabelText("client-card pin who")).toBeNull();
     expect(screen.getByTestId("card-close")).toBeTruthy();
   });
 });

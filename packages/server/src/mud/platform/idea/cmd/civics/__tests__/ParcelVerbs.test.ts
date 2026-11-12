@@ -258,6 +258,34 @@ describe("TitleTransferController", () => {
     expect(rejectionReason(ctx)).toBe("not-owner");
   });
 
+  it("⭐ a player gives a parcel they hold, though it has no zone (a lot off the plat book)", async () => {
+    const zone = vi.spyOn(AccessApi, "canMutateZone").mockResolvedValue(false);
+    vi.spyOn(ParcelApi, "coveringParcelOf").mockResolvedValue({
+      getExtent: () => "/plot/17",
+      getZonePath: () => "",
+      getOwner: () => ({ kind: "player", templatePath: "/platform/agent/Avatar/dave" }),
+    } as unknown as ParcelRecord);
+    confirmFn = vi.fn().mockResolvedValue(true);
+    const transfer = vi.spyOn(ParcelApi, "transfer").mockResolvedValue(null);
+
+    const giver = makeAvatar("dave");
+    const receiver = onlineReceiver("alice");
+    const ctx = makeContext(giver, "transfer");
+    await runController(
+      makeStuff(() => new TitleTransferController()),
+      giver,
+      recipientModel(receiver),
+      ctx,
+    );
+
+    expect(zone).not.toHaveBeenCalled();
+    expect(transfer).toHaveBeenCalledWith("/plot/17", {
+      kind: "player",
+      templatePath: "/platform/agent/Avatar/alice",
+    });
+    expect(rejectionReason(ctx)).toBeNull();
+  });
+
   it("refuses when the receiver declines consent", async () => {
     vi.spyOn(AccessApi, "canMutateZone").mockResolvedValue(true);
     confirmFn = vi.fn().mockResolvedValue(false);

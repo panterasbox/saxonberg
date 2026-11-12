@@ -18,7 +18,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain as cellars } from '../cellars';
 import type { BrainContext } from '../brain';
 import ShelfConsignController from '../../../platform/idea/cmd/retail/ShelfConsignController';
-import WalletController from '../../../platform/idea/cmd/banking/WalletController';
+import WalletUseController from '../../../platform/idea/cmd/banking/WalletUseController';
 import StockBase from "../../retail/Stock";
 import Vat from '../../../platform/thing/Vat';
 import Bottle from '../../../platform/thing/Bottle';
@@ -320,7 +320,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
         }
         if (text === 'wallet use house') {
           await asPrincipal(who, () =>
-            makeStuff(() => new WalletController()).execute(
+            makeStuff(() => new WalletUseController()).execute(
               { subcommand: 'use', corpo: 'house' } as never,
               ctx(who, here, null, text),
             ),

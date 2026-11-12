@@ -1,6 +1,6 @@
 verbs: [git]
 category: system
-controller: /platform/idea/cmd/system/GitController
+controller: /platform/idea/cmd/system/GitStatusController
 opens_card: git
 description: "In-runtime version control: status / diff / log / publish / revert engine source edits"
 help: |
@@ -36,8 +36,8 @@ examples:
   - cmd: git revert 1a2b3c4
     note: Additively roll back a commit you may write
 fallthrough: true
-# The bare form `git` falls through here → status (the controller defaults
-# an absent subcommand to status); an explicit subcommand uses its own
+# The bare form `git` falls through here → status (the verb-level controller
+# is the status read's); an explicit subcommand uses its own
 # args. fallthrough:true requires both `args` and `subcommands`.
 args:
   - name: path
@@ -59,22 +59,27 @@ options:
     description: "Report what git publish would commit, and touch nothing"
 subcommands:
   status:
+    controller: /platform/idea/cmd/system/GitStatusController
     description: "Show the branch, divergence, and dirty files (default)"
   diff:
+    controller: /platform/idea/cmd/system/GitDiffController
     description: "Show the working-tree patch (optionally one path)"
     args:
       - name: path
         type: string
         required: false
   log:
+    controller: /platform/idea/cmd/system/GitLogController
     description: "Show recent commits (optionally one path)"
     args:
       - name: path
         type: string
         required: false
   publish:
+    controller: /platform/idea/cmd/system/GitPublishController
     description: "Commit + push your writable dirty files (-m <message>)"
   revert:
+    controller: /platform/idea/cmd/system/GitRevertController
     description: "Add a commit undoing an earlier one (scoped to what you may write)"
     args:
       - name: sha

@@ -1,6 +1,8 @@
 /**
- * The `tune` controllers (one per subcommand over TuneControllerBase; the
- * fallthrough is TuneInController), driven as the dispatcher would: a real
+ * The `tune` controllers (one per subcommand over TuneControllerBase; bare
+ * `tune` is TuneListController, and `tune <target>` / `tune <target>
+ * <message>` are two shapes — TuneFollowController and TunePostController),
+ * driven as the dispatcher would: a real
  * controller Stuff whose `execute` forwards to a mocked `StreamApi`
  * (the controller under test is the MVC dispatch + reject-and-point copy,
  * not the relay). Proves tune-in / post / list / who / history / off and
@@ -10,7 +12,8 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import TuneInController from '../TuneInController';
+import TuneFollowController from '../TuneFollowController';
+import TunePostController from '../TunePostController';
 import TuneListController from '../TuneListController';
 import TuneOffController from '../TuneOffController';
 import TuneHistoryController from '../TuneHistoryController';
@@ -59,7 +62,7 @@ function makeContext(giver: Avatar): CommandContext {
   });
 }
 
-/** The controller `tune.yaml` routes to: a subcommand's own, else the fallthrough's. */
+/** The controller the views route to: a subcommand's own, else the shape the words make. */
 const CONTROLLERS: Record<string, () => TuneControllerBase> = {
   list: () => new TuneListController(),
   off: () => new TuneOffController(),
@@ -74,10 +77,16 @@ async function run(
 ): Promise<void> {
   await withRootContext(null, 'tune.test', () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    return makeStuff(
-      CONTROLLERS[(model as { subcommand?: string }).subcommand ?? ''] ??
-        (() => new TuneInController()),
-    ).execute(model as never, ctx);
+    const m = model as { subcommand?: string; target?: string; message?: string };
+    const shape = !m.target
+      ? () => new TuneListController()
+      : m.message
+        ? () => new TunePostController()
+        : () => new TuneFollowController();
+    return makeStuff(CONTROLLERS[m.subcommand ?? ''] ?? shape).execute(
+      model as never,
+      ctx,
+    );
   });
 }
 

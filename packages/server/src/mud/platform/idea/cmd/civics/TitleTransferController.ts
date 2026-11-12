@@ -92,6 +92,11 @@ export default class TitleTransferController extends TitleControllerBase<Transfe
         "no-parcel",
       );
     }
+    // ⭐ `for <price>` is the sale (controller-liquidity W7c); a parcel's
+    // title moves here as title only — land is sold off the plat book.
+    if (model.price !== undefined) {
+      return this.fail(context, "A parcel's title is handed over here, not sold — land is sold at the plat book.", "no-sale");
+    }
     const parcel = await ParcelApi.coveringParcelOf(parcelPath);
     if (!parcel) {
       return this.fail(
@@ -101,8 +106,14 @@ export default class TitleTransferController extends TitleControllerBase<Transfe
       );
     }
 
-    const parcelZone = await this.resolveZone(parcel.getZonePath());
-    if (!parcelZone || !(await AccessApi.canMutateZone(giver, parcelZone))) {
+    // ⭐ A person's title is theirs to give: a lot bought off a plat book
+    // has no zone of its own, so the zone's owner role alone refused every
+    // player-held parcel (controller-liquidity W15 — the drive's gift of
+    // land). A group's or the state's parcel still asks the zone.
+    const titled = parcel.getOwner();
+    const holdsIt = titled?.kind === "player" && titled.templatePath === giver.getIdentityPath();
+    const parcelZone = holdsIt ? null : await this.resolveZone(parcel.getZonePath());
+    if (!holdsIt && (!parcelZone || !(await AccessApi.canMutateZone(giver, parcelZone)))) {
       return this.fail(
         context,
         `You don't own ${parcel.getExtent()}.`,
@@ -153,7 +164,11 @@ export default class TitleTransferController extends TitleControllerBase<Transfe
         "self-transfer",
       );
     }
-    const receiverPath = receiver.getTemplatePath();
+    // ⚠ The PERSON (`getIdentityPath()`): every player shares one lineage,
+    // so a title keyed on the template path was every player's
+    // (controller-liquidity D11; `AccessRegistry.subjectOwnsAsPlayer`
+    // compares against the identity).
+    const receiverPath = receiver.getIdentityPath();
     if (!receiverPath) {
       return this.fail(
         context,
@@ -222,10 +237,13 @@ export default class TitleTransferController extends TitleControllerBase<Transfe
       ref && typeof ref === "object" ? (ref as MqlOneResult).stuff ?? null : null;
     const holderOf = (who: Stuff, path: string): UnitHolder => ({ kind: "player", path, name: who.getPresentation() });
 
-    const holder = person(model.holder);
-    if (holder !== null) {
+    // ⭐ `for <price>` is the sale (controller-liquidity W7c): the giver
+    // buys from the holder named by `from`; without a price it is a gift.
+    if (model.price !== undefined) {
       // ── bought: the giver is the buyer; the holder is asked ──
-      const price = Number((model.price ?? "").trim());
+      const holder = person(model.holder);
+      if (holder === null) return this.fail(context, "Bought from whom? `from <holder> for <price>`.", "no-holder");
+      const price = Number(model.price.trim());
       if (!Number.isInteger(price) || price < 0) {
         return this.fail(context, "Name your price in whole coin — `for 40`.", "bad-price");
       }
@@ -262,6 +280,9 @@ export default class TitleTransferController extends TitleControllerBase<Transfe
       return;
     }
 
+    if (person(model.holder) !== null) {
+      return this.fail(context, "Name your price in whole coin — `for 40`.", "bad-price");
+    }
     const receiver = person(model.recipient);
     if (receiver === null || !PlayerApi.isAvatarStuff(receiver)) {
       return this.fail(context, "Shares to whom — or from whom, and for what?", "no-receiver");

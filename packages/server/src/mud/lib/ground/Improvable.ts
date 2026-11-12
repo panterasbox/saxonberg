@@ -76,6 +76,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Mixins } from '../mixin';
 import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
 import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
 import type { Stuff } from '../stuff/Stuff';
@@ -120,6 +121,13 @@ export interface ImprovementCost {
  * which is honest (most steep ground never was terraced either) and
  * costs no verb.
  */
+/**
+ * The material tag a liming agent carries. ⭐ An open vocabulary, like every
+ * material tag: marl and quicklime both answer it, and a pack that ships a
+ * third sweetener needs no kernel edit.
+ */
+const LIMING_TAG = 'liming';
+
 export const IMPROVEMENT_JOBS = ['clearing', 'draining', 'liming'] as const;
 
 export type ImprovementJob = (typeof IMPROVEMENT_JOBS)[number];
@@ -202,6 +210,18 @@ export interface Improvable {
    * `ditch`, `lime`) let the job be finished over and over (cover build).
    */
   isComplete(job: ImprovementJob, cost: ImprovementCost): boolean;
+  /**
+   * ⭐ Would `agent` sweeten this ground — is it MADE of something that
+   * limes (the open `liming` material tag: marl, quicklime, spent ash)?
+   */
+  limesWith(agent: Stuff | null | undefined): boolean;
+  /**
+   * ⭐ One spreading of lime (controller-liquidity W8, C48): ONE dose of
+   * `agent` is consumed — one piece off a stack, never the stack — and
+   * `amount` of labour is banked against the liming. Returns the progress
+   * after.
+   */
+  spreadLime(agent: Stuff, amount: number, cost: ImprovementCost): Promise<number>;
   /** Which jobs this ground still owes work on, worst first. */
   owing(cost: ImprovementCost): ImprovementJob[];
   /** The overall band — the coarse read (D86). */
@@ -330,6 +350,22 @@ export function ImprovableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
     public workDoneOn(job: ImprovementJob): number {
       this.reconcileImprovement();
       return this.improvementWork[job] ?? 0;
+    }
+
+    public limesWith(agent: Stuff | null | undefined): boolean {
+      if (!agent || !MixinApi.isTangible(agent)) return false;
+      return agent.hasMaterialTag(LIMING_TAG);
+    }
+
+    public async spreadLime(agent: Stuff, amount: number, cost: ImprovementCost): Promise<number> {
+      // The dose is consumed by the spreading, whatever it was: one lump of
+      // a stack of six leaves five (it used to destruct all six).
+      if (MixinApi.isStackable(agent) && agent.getQuantity() > 1) {
+        agent.setQuantity(agent.getQuantity() - 1);
+      } else if (!agent.isDestroyed()) {
+        await StuffApi.destruct(agent);
+      }
+      return this.bankWork('liming', amount, cost);
     }
 
     public bankWork(job: ImprovementJob, amount: number, cost: ImprovementCost): number {

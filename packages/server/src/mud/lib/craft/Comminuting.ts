@@ -57,6 +57,57 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import type Material from '../material/Material';
 import { MaterialApi } from '../../api/material';
+import type { ActAnswer, ActDone, ActRefusal } from './ActPlan';
+import type { Container } from '../spatial/Container';
+import type { Containable } from '../spatial/Containable';
+import type { BulkPayload } from '../bulk/Bulkable';
+import { BulkableApi } from '../../api/bulk';
+import { ContainmentApi } from '../../api/containment';
+import { CraftingApi } from '../../api/crafting';
+import type { CraftFailure } from '../../api/crafting';
+import { WorldClockApi, type ClockHandle } from '../../api/worldclock';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
+import { Quantity } from '../quantity';
+
+/**
+ * Metabolic watts of turning a quern — above a fresh body's overload
+ * threshold (0.7 × 840 W), below a body a few points of lean later, so the
+ * sack trains a new miller and stops training one who outgrew it.
+ */
+const GRIND_EFFORT_W = 620;
+/** Litres of suspended dust per kilogram milled — ten grinds in an unswept
+ * mill house reach the flash; two do not. */
+const DUST_L_PER_KG = 15;
+
+/** A feed charge: what goes in, and how the hopper takes it. */
+interface MillCharge {
+  kg: number;
+  materialPath: string;
+  gradeBand: string;
+  /** Drain this much from the source, or destruct it when null. */
+  drainL: number | null;
+}
+
+/**
+ * ⭐ A powered grind under way — the charge the hopper took and when the
+ * meal comes out. Persisted on the stones, so a restart mid-grind still
+ * lands the sacks (requirements step 14): the grain was taken at the
+ * start, and a closure timer alone lost it with the process.
+ */
+export interface PendingGrind {
+  /** Game-seconds when the stones run empty. */
+  dueAtS: number;
+  kg: number;
+  materialPath: string;
+  gradeBand: string;
+  /** The extraction the grind was set at (already clamped). */
+  extraction: number;
+  makerPath: string;
+  payload: BulkPayload | null;
+}
 
 /** Comminution defaults — playtest numbers, not decisions. */
 const COMMINUTION_DEFAULTS = {
@@ -162,8 +213,65 @@ export interface ComminutionInput {
   gradeBand: string;
 }
 
+/**
+ * ⭐ Why a grind is refused (controller-liquidity W10) — closed; the `mill`
+ * controller words each in an exhaustive switch.
+ *
+ *  - `already-milling` — the stones are turning for somebody else;
+ *  - `no-power` — a driven mill with nothing driving it (a building);
+ *  - `not-grindable` — not a feed, and no recipe on these stones takes it;
+ *  - `grain-gone` — the charge left the sack while the quern turned;
+ *  - `craft-declined` — the recipe arm's resolve refused (`facts.craft`).
+ */
+export type MillRefusalReason =
+  | 'already-milling'
+  | 'no-power'
+  | 'not-grindable'
+  | 'grain-gone'
+  | 'craft-declined';
+
+/** The facts a grind refusal's words need. */
+export interface MillRefusalFacts {
+  mill: Stuff;
+  source: Stuff;
+  /** The resolve's own decline, on `craft-declined`. */
+  craft?: CraftFailure;
+}
+
+export type MillRefusal = ActRefusal<MillRefusalReason, MillRefusalFacts>;
+
+/** What the begin words need — the quern's engaged grind. */
+export interface MillBegin {
+  mill: Stuff;
+  source: Stuff;
+  /** `true` = driven stones; the driver's hands are not held. */
+  powered: boolean;
+}
+
+/**
+ * What the done words need. `set-going` — driven stones took the charge
+ * and turn on the game clock (the sacks land in the mill's room later);
+ * `ground` — the quern's grind landed; `recipe` — a non-feed went through
+ * the stones as a recipe (bone → bone meal).
+ */
+export type MillDone =
+  | { kind: 'set-going'; mill: Stuff; sourceName: string }
+  | { kind: 'ground'; mill: Stuff; sourceName: string }
+  | { kind: 'recipe'; mill: Stuff; sourceName: string; output: Stuff; caught: boolean };
+
+export type MillAnswer = ActAnswer<MillBegin, MillDone, MillRefusal>;
+
 /** The comminution capability surface. */
 export interface Comminuting {
+  /**
+   * ⭐ ONE engine for every grind (controller-liquidity W10, C17): a feed
+   * (`feedTags`) takes the extraction path — held hands at a quern, the
+   * game clock at driven stones — and anything else is matched to a
+   * recipe on this instrument's `millstone` capability. **The hopper
+   * takes the charge** when driven stones start: the grain cannot be
+   * spent twice while they turn.
+   */
+  millPlanFor(actor: Stuff, source: Stuff, extraction?: number): Promise<MillAnswer>;
   /** Plan a grind — pure; nothing is mutated and nothing is minted. */
   planComminution(input: ComminutionInput, extraction?: number): ComminutionPlan;
   /** Game-milliseconds a grind of `kg` takes at the current power. */
@@ -202,6 +310,8 @@ export interface Comminuting {
   tollFraction: number;
   tollBinPath: string;
   products: ComminutionProduct[];
+  feedTags: string[];
+  dustMaterial: string;
 
   /** The table row matching a feed, or `null` for the scalar fallback. */
   productFor(materialPath: string): ComminutionProduct | null;
@@ -228,6 +338,9 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
       tollFraction: { persistent: true, authorable: true },
       tollBinPath: { persistent: true, authorable: true },
       products: { persistent: true, authorable: true },
+      feedTags: { persistent: true, authorable: true },
+      dustMaterial: { persistent: true, authorable: true },
+      pendingGrind: { persistent: true, runtimeState: true },
     };
 
     /** Kilograms per game-minute with no power at all — the hand rung. */
@@ -289,11 +402,67 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
     public tollBinPath = '';
 
     /**
+     * Material tags that make a charge a FEED — the extraction path. Any
+     * other input is matched to a recipe on the `millstone` capability.
+     */
+    public feedTags: string[] = ['grain', 'malt'];
+
+    /**
+     * ⭐ The gas a feed grind throws into an ENCLOSED room (cleanliness
+     * D22) — flour dust at a grist mill, which hangs grind on grind until
+     * it is swept down. `''` = none.
+     */
+    public dustMaterial = '';
+
+    /**
      * ⚠ Runtime only, never persisted. A reload wakes the mill idle — the
      * `ManualBuild` rule: an engagement does not survive a restart, so a
      * flag claiming one did would strand the instrument forever.
      */
     private _grinding = false;
+
+    /**
+     * ⭐ The powered grind in the hopper, or `null` — persisted (unlike
+     * `_grinding`, which is the quern's held hands): restored through
+     * {@link setPendingGrind}, which re-arms the landing, so a restart
+     * mid-grind still turns the taken grain into its sacks.
+     */
+    public pendingGrind: PendingGrind | null = null;
+    /** The live landing timer — transient, re-armed by the setter. */
+    private _grindHandle: ClockHandle | null = null;
+
+    public getPendingGrind(): PendingGrind | null {
+      return this.pendingGrind;
+    }
+
+    /** Set (or clear) the grind in the hopper and arm its landing. */
+    public setPendingGrind(value: PendingGrind | null): void {
+      this._grindHandle?.cancel();
+      this._grindHandle = null;
+      this.pendingGrind = value ?? null;
+      if (this.pendingGrind === null) return;
+      this._grinding = true;
+      this._grindHandle = WorldClockApi.at(
+        Quantity.of(this.pendingGrind.dueAtS, 's'),
+        () => {
+          void this.landPendingGrind();
+        },
+        { host: this as unknown as Stuff, tag: 'mill-grind' },
+      );
+    }
+
+    /** The timer fired (live or re-armed): the meal comes out. */
+    private async landPendingGrind(): Promise<void> {
+      const p = this.pendingGrind;
+      if (p === null) return;
+      this.pendingGrind = null;
+      this._grindHandle = null;
+      const plan = this.planComminution(
+        { kg: p.kg, materialPath: p.materialPath, gradeBand: p.gradeBand },
+        p.extraction,
+      );
+      await this.landGrind(plan, p.makerPath, p.payload);
+    }
 
     public isGrinding(): boolean {
       return this._grinding;
@@ -326,6 +495,237 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
       // Game-minutes to game-milliseconds; the caller converts to real
       // time at the clock's scale.
       return (kg / rate) * 60 * 1000;
+    }
+
+    public async millPlanFor(
+      actor: Stuff,
+      source: Stuff,
+      extraction?: number,
+    ): Promise<MillAnswer> {
+      const self = this as unknown as Stuff & Comminuting;
+      const refuse = (reason: MillRefusalReason, craft?: CraftFailure): MillRefusal => ({
+        ok: false,
+        reason,
+        facts: { mill: self, source, ...(craft ? { craft } : {}) },
+      });
+      if (this._grinding) return refuse('already-milling');
+      const charge = this.chargeFrom(source);
+      if (charge === null) return this.recipePlanFor(actor, source, refuse);
+
+      // ⭐ A mill with no water has no rate of its own — saying so is the
+      // honest failure. ⚠ Settle first: a cold water-mill answers 0 until
+      // its river has been read once.
+      await this.settlePower();
+      if (!(this.throughputNow() > 0)) return refuse('no-power');
+
+      const plan = this.planComminution(
+        { kg: charge.kg, materialPath: charge.materialPath, gradeBand: charge.gradeBand },
+        extraction,
+      );
+      const grindMs = this.grindMs(charge.kg);
+      const makerPath = actor.getIdentityPath() ?? '';
+      const sourceName = source.getPresentation();
+
+      if (this.kgPerMinPerKw > 0) {
+        // ⭐⭐ THE MILL HOLDS NOTHING OF YOURS — the game clock carries the
+        // grind, and the hopper takes the charge NOW (C17: the water path
+        // left the grain in your hands, free to spend while the flour was
+        // still coming).
+        return {
+          ok: true,
+          durationMs: 0,
+          effortW: 0,
+          facts: { mill: self, source, powered: true },
+          onComplete: async (): Promise<ActDone<MillDone, MillRefusal>> => {
+            if (this._grinding) return refuse('already-milling');
+            this._grinding = true;
+            const payload = await this.takeCharge(source, charge);
+            this.setPendingGrind({
+              dueAtS: WorldClockApi.getNow().rawValue() + grindMs / 1000,
+              kg: charge.kg,
+              materialPath: charge.materialPath,
+              gradeBand: charge.gradeBand,
+              extraction: plan.extraction,
+              makerPath,
+              payload,
+            });
+            return { ok: true, facts: { kind: 'set-going', mill: self, sourceName } };
+          },
+        };
+      }
+
+      // ⭐⭐ THE QUERN HOLDS YOUR HANDS — the shipped slot rule. The charge
+      // stays in the sack until the grind lands; aborted, nothing moved.
+      return {
+        ok: true,
+        durationMs: grindMs,
+        effortW: GRIND_EFFORT_W,
+        facts: { mill: self, source, powered: false },
+        onBegin: () => {
+          this._grinding = true;
+        },
+        onAbort: () => {
+          this._grinding = false;
+        },
+        onComplete: async (): Promise<ActDone<MillDone, MillRefusal>> => {
+          const now = source.isDestroyed() ? null : this.chargeFrom(source);
+          if (now === null || now.kg + 1e-9 < charge.kg) {
+            this._grinding = false;
+            return refuse('grain-gone');
+          }
+          const payload = await this.takeCharge(source, charge);
+          await this.landGrind(plan, makerPath, payload);
+          return { ok: true, facts: { kind: 'ground', mill: self, sourceName } };
+        },
+      };
+    }
+
+    /** The non-feed arm: a recipe on these stones that takes the input. */
+    private async recipePlanFor(
+      actor: Stuff,
+      source: Stuff,
+      refuse: (reason: MillRefusalReason, craft?: CraftFailure) => MillRefusal,
+    ): Promise<MillAnswer> {
+      const self = this as unknown as Stuff;
+      const material = MixinApi.isTangible(source) ? source.getMaterial() : null;
+      const recipe = material
+        ? await CraftingApi.recipeTaking('millstone', material.getTags())
+        : null;
+      if (!recipe) return refuse('not-grindable');
+      // ⚠ Named BEFORE the stones take it: a destroyed source presents as
+      // nothing.
+      const sourceName = source.getPresentation();
+      return {
+        ok: true,
+        durationMs: 0,
+        effortW: 0,
+        facts: { mill: self, source, powered: false },
+        onComplete: async (): Promise<ActDone<MillDone, MillRefusal>> => {
+          const outcome = await CraftingApi.craft({ recipeRef: recipe.recipeId, makerMode: 'self' });
+          if (!outcome.ok) return refuse('craft-declined', outcome);
+          const output = outcome.output;
+          if (output === null) return refuse('not-grindable');
+          // ⭐ Grinding a lead stock raises a dust the grinder breathes and
+          // swallows (paint D14) — the painter's colic is made here.
+          if (material?.hasTag('lead') && MixinApi.isMetabolic(actor)) {
+            actor.addToxinBurden('lead', leadDustDose());
+          }
+          const caught = MixinApi.isBulkable(output) && output.hasInteriorBulk();
+          return { ok: true, facts: { kind: 'recipe', mill: self, sourceName, output, caught } };
+        },
+      };
+    }
+
+    /** What is going in, when it is a feed: a tangible sack or a bulk holder's matter. */
+    private chargeFrom(source: Stuff): MillCharge | null {
+      // Bulk first — a Sack of malt is also Tangible, and its interior is
+      // what we want rather than its tare.
+      if (MixinApi.isBulkable(source) && source.hasInteriorBulk()) {
+        const slot = BulkableApi.slotFor(source, undefined);
+        const material = slot?.getMaterial() ?? null;
+        if (!slot || !material || !this.isFeed(material)) return null;
+        const litres = slot.getAmount().rawValue();
+        if (litres <= 0) return null;
+        const density =
+          material.getDensity().rawValue() || COMMINUTION_DEFAULTS.DEFAULT_DENSITY;
+        return {
+          kg: litres * (density / 1000),
+          materialPath: material.getTemplatePath() ?? '',
+          gradeBand: MixinApi.isGraded(source) ? source.getGradeBand() : '',
+          drainL: litres,
+        };
+      }
+      if (!MixinApi.isTangible(source)) return null;
+      const material = source.getMaterial();
+      if (!material || !this.isFeed(material)) return null;
+      const kg = source.getMass().rawValue();
+      if (!(kg > 0)) return null;
+      return {
+        kg,
+        materialPath: material.getTemplatePath() ?? '',
+        gradeBand: MixinApi.isGraded(source) ? source.getGradeBand() : '',
+        drainL: null,
+      };
+    }
+
+    private isFeed(material: Material): boolean {
+      return this.feedTags.some((t) => material.hasTag(t));
+    }
+
+    /**
+     * ⭐ The hopper takes the charge: drain or destruct it, returning what
+     * the sack CARRIED per litre — read before the debit, because a full
+     * drain clears the payload with the material (smoke in a peated malt
+     * must survive the stones).
+     */
+    private async takeCharge(source: Stuff, charge: MillCharge): Promise<BulkPayload | null> {
+      const payload =
+        MixinApi.isBulkable(source) && source.hasInteriorBulk()
+          ? (BulkableApi.slotFor(source, undefined)?.getPayload() ?? null)
+          : null;
+      if (!source.isDestroyed()) {
+        if (charge.drainL !== null && MixinApi.isBulkable(source)) {
+          BulkableApi.slotFor(source, undefined)?.setAmount(Quantity.of(0, 'L'));
+        } else {
+          await StuffApi.destruct(source);
+        }
+      }
+      return payload;
+    }
+
+    /**
+     * The grind lands: the product less the toll, the residue, the toll
+     * into its bin, the dust into a shut room. ⭐ The sacks land in the
+     * MILL's room — at a water mill the driver may be a valley away.
+     */
+    private async landGrind(
+      plan: ComminutionPlan,
+      makerPath: string,
+      payload: BulkPayload | null,
+    ): Promise<void> {
+      const self = this as unknown as Stuff;
+      try {
+        const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+        const landing = room !== null && MixinApi.isContainer(room) ? room : null;
+        // ⭐ (cleanliness D22) In an ENCLOSED room the dust hangs, grind on
+        // grind; a floor damped down halves it; under the sky it blows away.
+        if (this.dustMaterial && landing && MixinApi.isAtmospheric(landing) && plan.productKg > 0) {
+          const floor = MixinApi.isAdornable(landing)
+            ? (landing.getFloor() as unknown as Stuff | null)
+            : null;
+          const damped = floor !== null && MixinApi.isWet(floor) && floor.getWetness() > 0.2;
+          landing.addAtmosphereContent(
+            this.dustMaterial,
+            plan.productKg * DUST_L_PER_KG * (damped ? 0.5 : 1),
+          );
+        }
+        const keptL = plan.productL - plan.tollL;
+        if (keptL > 0 && plan.productVessel) {
+          await fillSack(plan.productVessel, plan.productMaterial, keptL, plan, makerPath, landing, plan.productKg - plan.tollKg, payload);
+        }
+        // The residue — bran is a real good, not waste.
+        if (plan.residueL > 0 && plan.residueVessel) {
+          await fillSack(plan.residueVessel, plan.residueMaterial, plan.residueL, null, makerPath, landing, plan.residueKg, payload);
+        }
+        // ⭐ The multure. A tenth stays here and the miller sells it.
+        if (plan.tollL > 0 && this.tollBinPath && landing) {
+          const bin = landing.getContents().find((c) => c.getTemplatePath() === this.tollBinPath);
+          const slot = bin && MixinApi.isBulkable(bin) ? BulkableApi.slotFor(bin, undefined) : null;
+          if (slot) slot.setAmount(Quantity.of(slot.getAmount().rawValue() + plan.tollL, 'L'));
+        }
+        // ⚠ The stones fall quiet in the room — the world's line, said by
+        // the mill (a `Location` is not Containable, so the room cannot
+        // speak it): the command that started a water-mill grind is long
+        // gone when it lands.
+        if (landing && !self.isDestroyed()) {
+          MessageApi.scene(self)
+            .topic('act.deed')
+            .toPeers(Mml.compose`The stones run empty and the last of the meal works out from under them.`)
+            .send();
+        }
+      } finally {
+        this._grinding = false;
+      }
     }
 
     public planComminution(
@@ -433,4 +833,53 @@ function litresOf(kg: number, materialPath: string): number {
     (mat as unknown as Material | null)?.getDensity().rawValue() ??
     COMMINUTION_DEFAULTS.DEFAULT_DENSITY;
   return kg / ((density > 0 ? density : COMMINUTION_DEFAULTS.DEFAULT_DENSITY) / 1000);
+}
+
+/** The lead one grind of a lead stock puts into the grinder (`metabolism.leadDustDose`). */
+function leadDustDose(): number {
+  try {
+    const n = Number.parseFloat(AppApi.setting(AppSettingKeys.metabolismLeadDustDose) ?? '');
+    return Number.isFinite(n) && n > 0 ? n : 0.3;
+  } catch {
+    return 0.3;
+  }
+}
+
+/** Clone a sack, fill it, stamp the grade, the mark and the carried payload. */
+async function fillSack(
+  vesselPath: string,
+  materialPath: string,
+  litres: number,
+  plan: ComminutionPlan | null,
+  makerPath: string,
+  landing: (Stuff & Container) | null,
+  kg: number,
+  sourcePayload: BulkPayload | null,
+): Promise<void> {
+  const sack = await StuffApi.clone<Stuff>(vesselPath);
+  const slot = BulkableApi.slotFor(sack, undefined);
+  if (slot) {
+    if (materialPath) slot.setMaterial(await StuffApi.singleton<Material>(materialPath));
+    slot.setAmount(Quantity.of(litres, 'L'));
+    // ⭐ The per-litre domains ride the matter through the stones — a
+    // fold against an empty destination carries them at strength.
+    if (sourcePayload) {
+      const carried = BulkableApi.blendPayloads(sourcePayload, litres > 0 ? litres : 1, null, 0);
+      const next: BulkPayload = { ...(slot.getPayload() ?? {}) };
+      if (carried.dissolvedToxins) next.dissolvedToxins = carried.dissolvedToxins;
+      if (carried.dissolvedAromatics) next.dissolvedAromatics = carried.dissolvedAromatics;
+      if (Object.keys(next).length > 0) slot.setPayload(next);
+    }
+    // ⭐ The extraction, stamped continuously — two settings a hundredth
+    // apart are different matter.
+    if (plan !== null) {
+      slot.setPayload({ ...(slot.getPayload() ?? {}), makeup: plan.makeup, water: plan.water });
+    }
+  }
+  if (MixinApi.isTangible(sack)) {
+    sack.setMass(Quantity.of(sack.getMass().rawValue() + Math.max(0, kg), 'kg'));
+  }
+  if (plan !== null && MixinApi.isGraded(sack)) sack.setGradeBand(plan.grade.getBand());
+  if (makerPath && MixinApi.isCrafted(sack)) sack.setMaker(makerPath);
+  if (landing) await ContainmentApi.move(sack as Stuff & Containable, landing);
 }

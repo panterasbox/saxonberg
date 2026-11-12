@@ -50,7 +50,6 @@ args:
   - name: book
     type: object
     required: false
-    greedy: true
     prepositions: [at, from, in]
     default: "reachable:[class.CharterBook]"
     scope: ["here", "peers", "person"]

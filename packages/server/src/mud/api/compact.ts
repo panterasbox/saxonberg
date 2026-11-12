@@ -103,7 +103,8 @@ export class CompactApi {
   // Absorbed from the retired OfficeApi: the government-office substrate's
   // caller surface. Public reads are ungated (governance is transparent by
   // constitutional design, Art. VII); the two mutations keep their
-  // narrow-entry OfficeController gate. Subject-taking predicates accept
+  // narrow-entry gates (`OfficeAssignController`,
+  // `OfficeVacateController`). Subject-taking predicates accept
   // `Stuff | null` and fail closed; the appointer is never a parameter
   // (the `requiresFoundingAuthority` validator derives it from context).
 
@@ -200,13 +201,13 @@ export class CompactApi {
 
   /**
    * Narrow-entry mutation: set the explicit holder of an office
-   * (replacing any prior — auditable). Gated to the `OfficeController`
-   * (the `office assign` verb) via the string-keyed `FromModule` policy;
+   * (replacing any prior — auditable). Gated to the
+   * `OfficeAssignController` (the `office assign` verb) via the string-keyed `FromModule` policy;
    * the *authority* is the `requiresFoundingAuthority` subcommand
    * validator's job. Structurally the single entry to the handoff write.
    */
   @CallSecurity(
-    SecurityPolicies.FromModule("/platform/idea/cmd/governance/OfficeController")
+    SecurityPolicies.FromModule("/platform/idea/cmd/governance/OfficeAssignController")
   )
   public static async assignOffice(
     playerId: string,
@@ -235,10 +236,11 @@ export class CompactApi {
   /**
    * Narrow-entry mutation: clear an office's explicit holder (the seat
    * reverts to the founder default). Office-only — a singular seat has
-   * no empty state. Same `OfficeController` gate as `assignOffice`.
+   * no empty state. Gated to the `OfficeVacateController` (the `office
+   * vacate` verb), as `assignOffice` is to its own.
    */
   @CallSecurity(
-    SecurityPolicies.FromModule("/platform/idea/cmd/governance/OfficeController")
+    SecurityPolicies.FromModule("/platform/idea/cmd/governance/OfficeVacateController")
   )
   public static async vacateOffice(officeKey: string): Promise<boolean> {
     return logic().vacateOffice(officeKey);

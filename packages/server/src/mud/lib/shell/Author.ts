@@ -109,7 +109,8 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // her staff, never wizardness), so an author who is not on the
         // executive sees the verb but can't run it.
         'platform/cmd/author/pack.yaml',
-        // The app-settings surface — `config [key [value]]`.
+        // The app-settings surface — `config [key [value]]`, three shapes
+        // by arity (list · show · set; controller-liquidity W7a).
         //
         // ⭐ Gated on the Prime Minister's seat (`requiresPrimeMinister`,
         // wizard-axis D12): retuning the world's Tier B dials is the chief
@@ -128,6 +129,8 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // **missing enabling data fails CLOSED and SILENT**, and only a
         // drive types the word.
         'platform/cmd/system/config.yaml',
+        'platform/cmd/system/config-show.yaml',
+        'platform/cmd/system/config-set.yaml',
         // Author-diagnostics reader — `errors list/raw/clear` over the
         // diagnostics store (compile / runtime / console). Afforded here;
         // what you see is what you hold (`DiagnosticApi.list` filters to

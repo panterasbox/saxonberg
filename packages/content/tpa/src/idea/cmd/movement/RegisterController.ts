@@ -13,10 +13,8 @@ import type { CommandContext, CommandModel } from "@saxonberg/server/mud/api/com
 import { MessageApi } from "@saxonberg/server/mud/api/message";
 import { Mml } from "@saxonberg/server/mud/api/mml";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
-import type { AetherHosted } from "@saxonberg/server/mud/lib/augmentation/AetherHosted";
-import type { CredentialWallet } from "@saxonberg/server/mud/lib/credential/CredentialWallet";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
-import { FAST_TRAVEL_MIXIN, type FastTravel } from "../../../lib/FastTravel";
+import { FAST_TRAVEL_MIXIN, type FastTravel, type RegisterRefusal } from "../../../lib/FastTravel";
 
 export default class RegisterController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
@@ -32,48 +30,29 @@ export default class RegisterController extends CommandController<CommandModel> 
     if (!node) {
       return this.fail(context, "there is no terminal here", "no-terminal");
     }
-    if (!node.isArrival()) {
-      return this.fail(
-        context,
-        "this terminal is departures-only — there's nothing to register here",
-        "not-arrival",
-      );
-    }
-    // Clearance is bound to the traveller's IDENTITY (the born-with,
-    // aether-hosted wallet), never to a carried, transferable card — so the
-    // write targets the actor's own hosted wallet directly (a single-object
-    // read on the giver), not the general reachable-instrument scan.
-    const holder = MixinApi.isAether(giver)
-      ? (giver
-          .getHostedUpdates()
-          .find(
-            (s): s is Stuff & AetherHosted & CredentialWallet =>
-              MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
-          ) ?? null)
-      : null;
-    if (!holder) {
-      return this.fail(
-        context,
-        "you have no identity-bound Teleport Authority credential to record onto",
-        "no-credential",
-      );
-    }
-    const cred = holder.ensureCredential("travel");
-    const ref = node.getTemplatePath();
-    if (!ref) {
-      return this.fail(
-        context,
-        "this terminal has no network identity",
-        "no-identity",
-      );
-    }
+    const out = node.registerFor(giver);
+    if (!out.ok) return this.fail(context, RegisterController.refusalText(out), out.reason);
     const name = node.getPresentation();
-    if (cred.isRegistered(ref)) {
-      this.tell(context, `\nYou've already registered the ${name}.\n`);
-      return;
+    this.tell(
+      context,
+      out.facts.already ? `\nYou've already registered the ${name}.\n` : `\nYour credential records the ${name}.\n`,
+    );
+  }
+
+  /** ⭐ Every refusal a node's registration can give. */
+  protected static refusalText(r: RegisterRefusal): string {
+    switch (r.reason) {
+      case "not-arrival":
+        return "this terminal is departures-only — there's nothing to register here";
+      case "no-credential":
+        return "you have no identity-bound Teleport Authority credential to record onto";
+      case "no-identity":
+        return "this terminal has no network identity";
+      default: {
+        const never: never = r.reason;
+        return never;
+      }
     }
-    cred.register(ref);
-    this.tell(context, `\nYour credential records the ${name}.\n`);
   }
 
   private tell(context: CommandContext, text: string): void {

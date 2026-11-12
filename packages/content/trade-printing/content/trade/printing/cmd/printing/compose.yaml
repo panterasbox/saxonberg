@@ -27,7 +27,6 @@ args:
   - name: forme
     type: object
     required: true
-    greedy: true
     prepositions: [in, into]
     scope: ["inventory", "reachable"]
     requires: any

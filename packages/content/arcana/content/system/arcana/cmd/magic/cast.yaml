@@ -17,7 +17,7 @@ examples:
     note: A held mote of cold light (lasts until dispelled or it lapses)
   - cmd: cast firebolt at the dummy
     note: Real heat — flesh burns, tinder catches, iron merely warms
-  - cmd: cast dispel at the veiled figure
+  - cmd: 'cast dispel at the "veiled figure"'
     note: Unravels magical workings; a mundane fever is untouchable
 args:
   - name: spell

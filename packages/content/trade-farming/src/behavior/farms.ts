@@ -67,6 +67,7 @@ import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import { CommandLineApi } from '@saxonberg/server/mud/api/command-line';
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 5;
@@ -271,7 +272,7 @@ export const brain = class {
           const kw = keywordOf(good);
           if (!kw) continue;
           const ask = askFor(ctx.config, good);
-          await hand.forceCommand(`shelf consign ${kw} --ask ${ask}`);
+          await hand.forceCommand(`shelf consign ${CommandLineApi.word(kw)} --ask ${ask}`);
         }
       } finally {
         hand.teleport(home as Stuff & Container);
@@ -342,13 +343,13 @@ async function fillCan(
       ? StuffApi.findByTemplatePath(w.room)
       : null;
   if (!room || !MixinApi.isContainer(room) || room === home) {
-    await hand.forceCommand(`fill can from ${from}`);
+    await hand.forceCommand(`fill can from ${CommandLineApi.word(from)}`);
     return;
   }
   if (way && back) {
     await hand.forceCommand(`go ${way}`);
     try {
-      if (hand.getContainer() === room) await hand.forceCommand(`fill can from ${from}`);
+      if (hand.getContainer() === room) await hand.forceCommand(`fill can from ${CommandLineApi.word(from)}`);
     } finally {
       if (hand.getContainer() !== home) await hand.forceCommand(`go ${back}`);
       // A way that did not lead home still ends the beat at home.
@@ -358,7 +359,7 @@ async function fillCan(
   }
   hand.teleport(room as Stuff & Container);
   try {
-    await hand.forceCommand(`fill can from ${from}`);
+    await hand.forceCommand(`fill can from ${CommandLineApi.word(from)}`);
   } finally {
     hand.teleport(home);
   }

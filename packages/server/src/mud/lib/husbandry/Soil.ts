@@ -70,7 +70,11 @@ import type { Reserved } from "../reserve/Reserved";
 import type { Stuff } from "../stuff/Stuff";
 import type { Growing, HarvestRefusal } from "./Growing";
 import type { Plantable, PlantBegin, PlantDone, PlantRefusal, ZonedAgainst } from "./Plantable";
-import type { ActDone, ActPlan } from "../craft/ActPlan";
+import type { ActChoices, ActDone, ActPlan, ActRefusal } from "../craft/ActPlan";
+import { BulkableApi, type TransferResult } from "../../api/bulk";
+import type { BulkPayload, BulkSlot } from "../bulk/Bulkable";
+import type Material from "../material/Material";
+import type { MqlMatchVia } from "../../api/mql";
 import type { Tooled } from "../craft/Tool";
 import type { Throttleable } from "../spatial/Throttleable";
 import type { Irrigating } from "./Irrigating";
@@ -213,16 +217,143 @@ function clamp01(x: number): number {
 /**
  * What a ground answers when a verb names (or does not name) a part of it
  * — *at the top end* (field population D5). `part` is `null` on one-piece
- * ground. A refusal carries its own line: the ground decides and says
- * why, the controller only sends it.
+ * ground.
+ *
+ * ⭐⭐ The ground decides and says nothing (controller-liquidity D8): naming
+ * no part of a divided field is a CHOICE ({@link PartChoices} — the parts,
+ * and the ground's word for one), never a sentence. The controller refuses
+ * with the list (`CommandController.partLine`), or asks
+ * (`CommandController.chooseAmong`) and asks the ground again with the pick.
+ * The ground used to write *"Which field? Name one: …"* itself, which is
+ * why no controller could make `harvest` ask.
  */
 export type PartResolution =
   | { ok: true; part: (Stuff & Soil) | null }
+  | PartChoices
+  | PartRefusal;
+
+/** No part named on ground marked into several: the parts to choose among. */
+export type PartChoices = ActChoices<
+  Stuff & Soil,
+  "part-unnamed",
+  {
+    /** The ground the parts are of. */
+    ground: Stuff & Soil;
+    /** The ground's word for one of its parts (`soilPartNoun`) — *field*. */
+    noun: string;
+  }
+>;
+
+/** A part named that is not one of this ground's. */
+export interface PartRefusal {
+  ok: false;
+  reason: "not-a-part-here";
+  facts: { part: Stuff & Soil; ground: Stuff & Soil };
+}
+
+/**
+ * ⭐ `water` / `feed`, asked of the GROUND (controller-liquidity W8): what
+ * the act is aimed at, which of the carried things amends it, how much it
+ * takes, and what comes of it are the ground's — the two verbs bind what
+ * the player named and word what comes back. A plant named delegates to
+ * its bed (`Growing.amendPlanFor`); ground named resolves its part.
+ */
+export interface AmendRequest {
+  by: Stuff;
+  /** What is worked in: water, or a sack's matter (compost, a slow amendment). */
+  amend: "water" | "feed";
+  /** What the player named (the words of `not-cultivable` name it). */
+  target: Stuff;
+  /** Candidate sources in the verb's order; the first that amends is used. */
+  sources: readonly Stuff[];
+  /** The source was NAMED: it is taken as named, so "it is empty" can be said. */
+  named: boolean;
+  /** How a named source was named (a material keyword picks the slot). */
+  via?: MqlMatchVia;
+  /** `at <part>` — which part of a divided field. */
+  part: (Stuff & Soil) | null;
+  /**
+   * Set once the aim is resolved (by `Growing`'s delegation, or by ground
+   * that resolved its own part): the plant the water goes round (`null` =
+   * the bare ground) and the plant whose own root zone the feed goes into.
+   */
+  aimed?: { plant: (Stuff & Growing) | null; zone: (Stuff & Growing) | null };
+}
+
+/**
+ * ⭐ Every reason ground will not take water or feed — the verbs word each.
+ */
+export type AmendRefusal =
+  | ActRefusal<"not-rooted", { plant: Stuff }>
+  | ActRefusal<"not-standing-at", { plant: Stuff; part: Stuff }>
+  | ActRefusal<"nothing-planted", { ground: Stuff }>
+  | ActRefusal<"not-cultivable", { target: Stuff }>
+  | ActRefusal<"no-nutrient-reserve", { ground: Stuff }>
+  | ActRefusal<"no-water-source">
+  | ActRefusal<"no-compost-source">
+  | ActRefusal<"source-empty", { source: Stuff }>
+  | ActRefusal<"already-wet", { plant: Stuff | null; ground: Stuff }>
+  | ActRefusal<"no-amendment-reserve", { ground: Stuff; key: string }>
+  | ActRefusal<"already-fed", { ground: Stuff; slow: boolean }>
+  | ActRefusal<"nothing-poured", { source: Stuff }>
+  | ActRefusal<"nothing-spread", { source: Stuff }>;
+
+/** What a watering or a feeding came to — the facts the words need. */
+export type AmendDone =
+  | { kind: "stood"; on: Stuff; notes: TransferResult["notes"] }
   | {
-      ok: false;
-      reason: "part-unnamed" | "not-a-part-here";
-      line: string;
+      kind: "watered";
+      plant: (Stuff & Growing) | null;
+      ground: Stuff & Soil;
+      part: (Stuff & Soil) | null;
+      litres: number;
+      material: Material | null;
+      payload: BulkPayload | null;
+      /** Some stands on top, with nowhere to go. */
+      standing: boolean;
+      /** The plant drank some in. */
+      drank: boolean;
+      /** A can barely shows on this much ground: its area, m² (else null). */
+      barelyM2: number | null;
+      notes: TransferResult["notes"];
+    }
+  | {
+      kind: "fed";
+      /** The plant whose root zone took it, or null (the ground did). */
+      zone: (Stuff & Growing) | null;
+      ground: Stuff & Soil;
+      part: (Stuff & Soil) | null;
+      litres: number;
+      material: Material | null;
+      payload: BulkPayload | null;
+      notes: TransferResult["notes"];
     };
+
+/** What ground answers `water`/`feed`: a plan to run now, a refusal, or its parts. */
+export type AmendAnswer =
+  | ActPlan<undefined, AmendDone, AmendRefusal>
+  | AmendRefusal
+  | PartChoices
+  | PartRefusal;
+
+/** The material tag a holder's contents must carry to water ground with. */
+const WATERING_TAG = "liquid";
+/** The material tag of matter that feeds ground nitrogen. */
+const COMPOST_TAG = "compost";
+/**
+ * ⭐⭐ The second kind of matter worked into ground — structure and organic
+ * matter that pays out over years (ground bone, ash, marl). Worked in by hand
+ * out of a sack like compost, so one more branch of `feed`; and deliberately
+ * NOT a fifth reserve: `addOrganicMatter` credits a little nitrogen now and
+ * most of it later, which is what ground bone does in a field.
+ */
+const SLOW_AMENDMENT_TAG = "slow-amendment";
+/**
+ * Percentage points of nitrogen one litre of compost restores. A sack holds
+ * ~20 L, so a full sack refills a bed's 100 points twice over — generous by
+ * design: the decision is whether you kept up, not how many sacks you counted.
+ */
+const POINTS_PER_LITRE = 10;
 
 /** ⭐ `sow`: broadcast `seed` over this ground (controllers-are-io D11). */
 export interface SowRequest {
@@ -230,8 +361,12 @@ export interface SowRequest {
   seed: Stuff & Plantable;
   /** `--at <part>`: which part of a divided field. */
   part: (Stuff & Soil) | null;
-  /** A seed drill within reach: rows, at its own share of the rate. */
-  drill: (Stuff & Tooled) | null;
+  /**
+   * `--with <drill>`: what the sower took up. ⭐ The ground decides whether
+   * it is a seed drill (`drilling`, controller-liquidity W8) — anything else
+   * is broadcasting by hand.
+   */
+  drill: Stuff | null;
 }
 
 /** Felt cost of one cast, percentage points of a fresh body (D5). */
@@ -364,15 +499,16 @@ export interface Soil {
    */
   sowPlanFor(
     req: SowRequest,
-  ): Promise<ActPlan<PlantBegin, PlantDone, PlantRefusal> | PlantRefusal>;
+  ): Promise<ActPlan<PlantBegin, PlantDone, PlantRefusal> | PlantRefusal | PartChoices>;
   /**
    * ⭐ Which stand a harvest of `stand` means on this ground, given the part
-   * named: the ground decides whether one must be named, and says so.
+   * named: the ground decides whether one must be named, and answers the
+   * parts as a choice when it must (controller-liquidity D8).
    */
   harvestPartFor(req: {
     stand: Stuff & Growing;
     part: (Stuff & Soil) | null;
-  }): { ok: true; stand: Stuff & Growing } | HarvestRefusal;
+  }): { ok: true; stand: Stuff & Growing } | HarvestRefusal | PartChoices;
   /**
    * ⭐ The parcel's verdict on cultivating at `site`, or null: a site on a
    * use that admits no cultivation. ⚠ UNPARCELLED GROUND IS NOT POLICED —
@@ -569,17 +705,13 @@ export interface Soil {
    */
   soilRemainderAreaM2(): number;
   /**
-   * @hook The word for one of this ground's parts in a refusal — *"Which
-   * part? Name one: …"*. Default `'part'`; a tract answers `'field'`.
+   * @hook The word for one of this ground's parts — what a controller says
+   * when it asks or refuses *"Which part? Name one: …"*. Default `'part'`;
+   * a tract answers `'field'`.
    */
   soilPartNoun(): string;
   /** The part whose key is `key`, or `null` (an empty key is whole ground). */
   soilPart(key: string): (Stuff & Soil) | null;
-  /**
-   * Why an act on this ground must name a part, in words, or `null` when
-   * it need not (one piece, or a single part).
-   */
-  soilPartRefusal(): string | null;
   /**
    * Resolve the part an act names — or, naming none, whether that is
    * enough here. See {@link PartResolution}.
@@ -607,6 +739,13 @@ export interface Soil {
    * population D18).
    */
   rootedAreaCrop(part: (Stuff & Soil) | null): (Stuff & Growing) | null;
+  /**
+   * ⭐ `water` / `feed` this ground (controller-liquidity W8): resolve the
+   * aim (the part, the plant round which the water goes), pick the source
+   * that amends it, size the measure to what the ground can take, and — at
+   * once — transfer, credit the reserve, capture the host and the deed.
+   */
+  amendPlanFor(req: AmendRequest): Promise<AmendAnswer>;
 }
 
 /**
@@ -966,10 +1105,20 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     public harvestPartFor(req: {
       stand: Stuff & Growing;
       part: (Stuff & Soil) | null;
-    }): { ok: true; stand: Stuff & Growing } | HarvestRefusal {
+    }): { ok: true; stand: Stuff & Growing } | HarvestRefusal | PartChoices {
       const r = this.resolvePartFor(req.part);
+      if (r.ok === "choose") return r;
       if (!r.ok) {
-        return { ok: false, reason: r.reason, facts: { line: r.line, detail: r.line } };
+        const { part, ground } = r.facts;
+        return {
+          ok: false,
+          reason: r.reason,
+          facts: {
+            part,
+            ground,
+            detail: `${part.getPresentation()} is not a part of ${ground.getPresentation()}`,
+          },
+        };
       }
       if (!r.part) return { ok: true, stand: req.stand };
       const there = req.stand.standIn(r.part);
@@ -989,13 +1138,15 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     /** See {@link Soil.sowPlanFor}. */
     public async sowPlanFor(
       req: SowRequest,
-    ): Promise<ActPlan<PlantBegin, PlantDone, PlantRefusal> | PlantRefusal> {
+    ): Promise<ActPlan<PlantBegin, PlantDone, PlantRefusal> | PlantRefusal | PartChoices> {
       const self = this as unknown as Stuff & Soil;
       if (!MixinApi.isContainer(self)) {
         return { ok: false, reason: "no-ground", facts: {} };
       }
       const ground: Stuff & Soil & Container = self;
-      const { by, seed, drill } = req;
+      const { by, seed } = req;
+      const drill: (Stuff & Tooled) | null =
+        req.drill && MixinApi.isTool(req.drill) && req.drill.hasCapability("drilling") ? req.drill : null;
       const growsInto = seed.getGrowsIntoPath();
       if (!growsInto) return { ok: false, reason: "seed-names-no-plant", facts: { seed } };
       // Whose ground it is outranks what state it is in: a stranger is told
@@ -1009,8 +1160,13 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       // Which part of the ground — the GROUND decides whether one must be
       // named, and says so in its own words.
       const resolved = this.resolvePartFor(req.part);
+      if (resolved.ok === "choose") return resolved;
       if (!resolved.ok) {
-        return { ok: false, reason: resolved.reason, facts: { line: resolved.line } };
+        return {
+          ok: false,
+          reason: resolved.reason,
+          facts: { part: resolved.facts.part, target: resolved.facts.ground },
+        };
       }
       const part = resolved.part;
       // What already stands here decides what may be added to it — the
@@ -1130,33 +1286,234 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       return this.soilParts().find((p) => p.soilPartKey() === key) ?? null;
     }
 
-    /** See {@link Soil.soilPartRefusal}. */
-    public soilPartRefusal(): string | null {
-      const parts = this.soilParts();
-      if (parts.length <= 1) return null;
-      const names = parts.map((p) => p.presentationPhrase().definite());
-      const last = names.pop() ?? "";
-      const list = names.length > 0 ? `${names.join(", ")} or ${last}` : last;
-      return `Which ${this.soilPartNoun()}? Name one: ${list}.`;
-    }
-
     /** See {@link Soil.resolvePartFor}. */
     public resolvePartFor(named: (Stuff & Soil) | null): PartResolution {
       const parts = this.soilParts();
+      const self = this as unknown as Stuff & Soil;
       if (named === null) {
-        const refusal = this.soilPartRefusal();
-        if (refusal !== null) {
-          return { ok: false, reason: "part-unnamed", line: refusal };
+        if (parts.length > 1) {
+          return {
+            ok: "choose",
+            reason: "part-unnamed",
+            choices: parts,
+            facts: { ground: self, noun: this.soilPartNoun() },
+          };
         }
         return { ok: true, part: parts[0] ?? null };
       }
       if (parts.includes(named)) return { ok: true, part: named };
-      const self = this as unknown as Stuff;
-      const what = named.presentationPhrase().definite();
+      return { ok: false, reason: "not-a-part-here", facts: { part: named, ground: self } };
+    }
+
+    /** See {@link Soil.amendPlanFor}. */
+    public async amendPlanFor(req: AmendRequest): Promise<AmendAnswer> {
+      const self = this as unknown as Stuff & Soil;
+      if (!req.aimed) {
+        // Ground named: it says which part (or refuses), and what on it the
+        // act is aimed at — naming either half of the assembly works.
+        const r = this.resolvePartFor(req.part);
+        if (r.ok !== true) return r;
+        const part = r.part;
+        if (req.amend === "feed") {
+          return (part ?? self).amendPlanFor({ ...req, part, aimed: { plant: null, zone: null } });
+        }
+        if (MixinApi.isCultivable(self)) {
+          const occupant = self.getPlant();
+          if (!occupant || !MixinApi.isGrowing(occupant)) {
+            return { ok: false, reason: "nothing-planted", facts: { ground: self } };
+          }
+          return this.amendPlanFor({ ...req, part, aimed: { plant: occupant, zone: null } });
+        }
+        const plant = this.rootedAreaCrop(part);
+        const ground = plant?.getBed() ?? part ?? self;
+        return ground.amendPlanFor({ ...req, part, aimed: { plant, zone: null } });
+      }
+      return req.amend === "water" ? this.planWatering(req, req.aimed.plant) : this.planFeeding(req, req.aimed.zone);
+    }
+
+    /** The source that amends this ground with matter tagged one of `tags`, and its slot. */
+    private amendSource(
+      req: AmendRequest,
+      tags: readonly string[],
+    ): { ok: true; source: Stuff; slot: BulkSlot } | AmendRefusal {
+      if (req.named) {
+        const source = req.sources[0];
+        if (!source) return { ok: false, reason: req.amend === "water" ? "no-water-source" : "no-compost-source" };
+        const slot = BulkableApi.slotFor(source, req.via);
+        if (slot === null || slot.isEmpty()) return { ok: false, reason: "source-empty", facts: { source } };
+        return { ok: true, source, slot };
+      }
+      for (const source of req.sources) {
+        const slot = BulkableApi.slotFor(source, undefined);
+        if (!slot || slot.isEmpty()) continue;
+        const has = slot.getMaterial()?.getTags() ?? [];
+        if (tags.some((t) => has.includes(t))) return { ok: true, source, slot };
+      }
+      return { ok: false, reason: req.amend === "water" ? "no-water-source" : "no-compost-source" };
+    }
+
+    /** `water`, aimed: only as much as the soil can take, unless it holds water. */
+    private planWatering(
+      req: AmendRequest,
+      plant: (Stuff & Growing) | null,
+    ): AmendAnswer {
+      const ground = this as unknown as Stuff & Soil;
+      const picked = this.amendSource(req, [WATERING_TAG]);
+      if (!picked.ok) return picked;
+      const { source, slot } = picked;
+      // Reading through the plant reconciles the elapsed drain first —
+      // otherwise a long-neglected plant reports itself already wet.
+      let headroom: number;
+      if (plant) {
+        plant.getSoilMoisture();
+        headroom = plant.waterHeadroomL();
+      } else {
+        headroom = this.soilMoistureHeadroomL();
+      }
+      const now = (land: () => Promise<ActDone<AmendDone, AmendRefusal>>): AmendAnswer => ({
+        ok: true,
+        durationMs: 0,
+        effortW: 0,
+        facts: undefined,
+        onComplete: land,
+      });
+      // ⭐ Full ground that holds water does not refuse a pour: the water
+      // STANDS on it (water-supply D15/D16) — asked FIRST, so the can empties
+      // only when the water has somewhere to stand (D10, C30).
+      if (headroom <= 0) {
+        if (!this.soilAcceptsPonding()) {
+          return { ok: false, reason: "already-wet", facts: { plant, ground } };
+        }
+        return now(async () => {
+          const litres = slot.available();
+          if (this.takeStanding(litres, 0, slot.getPayload()?.salinityPpt) <= 0) {
+            return { ok: false, reason: "already-wet", facts: { plant, ground } };
+          }
+          const poured = BulkableApi.transfer(slot, null, { kind: "measure", litres, mode: "lenient" });
+          return { ok: true, facts: { kind: "stood", on: plant ?? ground, notes: poured.notes } };
+        });
+      }
+      // ⭐ Ground that HOLDS water takes the whole can (the soil drinks what
+      // it can and the rest stands); a drained pot is poured to its headroom.
+      // A plant with a root zone of its own is the exception: the pour is
+      // aimed at its pocket, not across the patch.
+      const ownRoots = plant?.hasRootZone() === true;
+      const holds = this.soilAcceptsPonding() && !ownRoots;
+      return now(async () => {
+        const material = slot.getMaterial();
+        const payload = slot.getPayload();
+        const result = BulkableApi.transfer(slot, null, {
+          kind: "measure",
+          litres: holds ? slot.available() : Math.min(headroom, slot.available()),
+          mode: "lenient",
+        });
+        if (result.applied <= 0) return { ok: false, reason: "nothing-poured", facts: { source } };
+        // The difficulty is the state the plant was in when the act was needed.
+        const difficulty = plant ? plant.careDifficulty() : "easy";
+        const soaking = Math.min(result.applied, headroom);
+        const absorbed = plant ? plant.waterPlant(soaking) : this.waterSoil(soaking);
+        const standing = holds ? this.takeStanding(result.applied, absorbed, payload?.salinityPpt) : 0;
+        // Capture the GROUND: the litres land in its moisture reserve (a
+        // labeled plant's in its own root zone, which its record carries).
+        try {
+          if (plant && ownRoots) await PersistableApi.captureHostOf(plant);
+          await PersistableApi.captureHostOf(ground);
+        } catch (err) {
+          console.warn("Soil.amendPlanFor: capture after watering failed:", err);
+        }
+        // Credit only when the soil actually took the water.
+        if (absorbed > 0 && MixinApi.isAdvancing(req.by)) {
+          try {
+            await req.by.creditDeed({ discipline: "horticulture", difficulty, outcome: "success" });
+          } catch (err) {
+            console.warn("Soil.amendPlanFor: recording the deed failed:", err);
+          }
+        }
+        return {
+          ok: true,
+          facts: {
+            kind: "watered",
+            plant,
+            ground,
+            part: req.part,
+            litres: result.applied,
+            material,
+            payload,
+            standing: standing > 0,
+            drank: plant !== null && absorbed > 0,
+            barelyM2: !ownRoots && this.barelyShows(result.applied) ? this.soilCatchmentAreaM2() : null,
+            notes: result.notes,
+          },
+        };
+      });
+    }
+
+    /** `feed`, aimed: which reserve is a fact about the MATTER. */
+    private planFeeding(req: AmendRequest, named: (Stuff & Growing) | null): AmendAnswer {
+      const ground = this as unknown as Stuff & Soil;
+      if (!MixinApi.isReserved(ground)) {
+        return { ok: false, reason: "not-cultivable", facts: { target: req.target } };
+      }
+      // A pot holds too little soil to need feeding: say so, rather than
+      // doing nothing.
+      if (!ground.getReserve(SOIL_NITROGEN_RESERVE_KEY)) {
+        return { ok: false, reason: "no-nutrient-reserve", facts: { ground } };
+      }
+      const picked = this.amendSource(req, [COMPOST_TAG, SLOW_AMENDMENT_TAG]);
+      if (!picked.ok) return picked;
+      const { source, slot } = picked;
+      const material = slot.getMaterial();
+      const payload = slot.getPayload();
+      // ⭐⭐ Decided BEFORE the headroom read: keyed on nitrogen, a field rich
+      // in it and starved of organic matter would refuse bone meal with
+      // "already rich" — a true sentence about the wrong reserve.
+      const slow = (material?.getTags() ?? []).includes(SLOW_AMENDMENT_TAG);
+      const key = slow ? SOIL_ORGANIC_MATTER_RESERVE_KEY : SOIL_NITROGEN_RESERVE_KEY;
+      const reserve = ground.getReserve(key);
+      if (!reserve) return { ok: false, reason: "no-amendment-reserve", facts: { ground, key } };
+      // A plant with a root zone of its own (a labeled one, D6) takes the
+      // compost into that zone alone — it was aimed at it.
+      const zone = named !== null && !slow && named.rootZoneFeeds() ? named : null;
+      const headroomPoints = zone
+        ? zone.nutrientHeadroom()
+        : reserve.capacity.rawValue() - reserve.current.rawValue();
+      if (headroomPoints <= 0) return { ok: false, reason: "already-fed", facts: { ground, slow } };
       return {
-        ok: false,
-        reason: "not-a-part-here",
-        line: `${what.charAt(0).toUpperCase()}${what.slice(1)} is not a part of ${self.presentationPhrase().definite()}.`,
+        ok: true,
+        durationMs: 0,
+        effortW: 0,
+        facts: undefined,
+        onComplete: async () => {
+          const result = BulkableApi.transfer(slot, null, {
+            kind: "measure",
+            litres: Math.min(headroomPoints / POINTS_PER_LITRE, slot.available()),
+            mode: "lenient",
+          });
+          if (result.applied <= 0) return { ok: false, reason: "nothing-spread", facts: { source } };
+          const points = result.applied * POINTS_PER_LITRE;
+          const applied = slow
+            ? this.addOrganicMatter(points)
+            : zone
+              ? zone.feedPlant(points)
+              : this.feedSoil(points);
+          try {
+            if (zone) await PersistableApi.captureHostOf(zone);
+            await PersistableApi.captureHostOf(ground);
+          } catch (err) {
+            console.warn("Soil.amendPlanFor: capture after feeding failed:", err);
+          }
+          if (applied > 0 && MixinApi.isAdvancing(req.by)) {
+            try {
+              await req.by.creditDeed({ discipline: "horticulture", difficulty: "easy", outcome: "success" });
+            } catch (err) {
+              console.warn("Soil.amendPlanFor: recording the deed failed:", err);
+            }
+          }
+          return {
+            ok: true,
+            facts: { kind: "fed", zone, ground, part: req.part, litres: result.applied, material, payload, notes: result.notes },
+          };
+        },
       };
     }
 

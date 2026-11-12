@@ -117,6 +117,28 @@ import {
   MqlSubscriptionApi,
   type SubscribableFieldDescriptor,
 } from '../../api/mql-subscription';
+import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
+
+/**
+ * Why a name was not taken — the CLOSED union `name` words (controller-
+ * liquidity W8). `not-nameable`: nobody may name this, or not you;
+ * `no-name-given`; and the animal's three (`Bonded.takeName`):
+ * `already-named`, `not-chosen` (the bond, the following, the earned home —
+ * one answer, one remedy), `name-taken` (a connected player goes by it).
+ */
+export type NameRefusalReason =
+  | 'not-nameable'
+  | 'no-name-given'
+  | 'already-named'
+  | 'not-chosen'
+  | 'name-taken';
+export type NameRefusal = ActRefusal<NameRefusalReason>;
+/**
+ * A name taken. `promoted`: the naming was also the thing's PROMOTION — it
+ * is titled, keyed and captured now (an animal: identity and durability
+ * together).
+ */
+export type NameTaken = ActOutcome<{ promoted: boolean }>;
 
 /**
  * Categories of alternate names. Open-ish — extend the union when a
@@ -164,6 +186,14 @@ export interface Named {
    * re-made, the person an animal has chosen. Default: nobody.
    */
   canBeNamedBy(handPath: string, by?: Stuff | null): boolean;
+
+  /**
+   * ⭐ Take the name `name` from `by` (controller-liquidity W8 — `name`
+   * used to run the act): who may name it is {@link canBeNamedBy}, the name
+   * is written, and the host that keeps it is captured. `Bonded` overrides
+   * it with the promotion.
+   */
+  takeName(name: string, by: Stuff): Promise<NameRefusal | NameTaken>;
 
   /**
    * ⭐ **A name is a keyword** (one-resolution slate § 4 — *the name is not
@@ -251,6 +281,29 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.name,
         value,
       );
+    }
+
+    /**
+     * @hook See {@link Named.takeName}. A made thing takes its name; the host
+     * that keeps it is captured.
+     */
+    async takeName(name: string, by: Stuff): Promise<NameRefusal | NameTaken> {
+      const wanted = name.trim();
+      if (!(this as unknown as Named).canBeNamedBy(by.getIdentityPath() ?? '', by)) {
+        return { ok: false, reason: 'not-nameable' };
+      }
+      if (!wanted) return { ok: false, reason: 'no-name-given' };
+      this.setName(wanted);
+      try {
+        // ⚠ Loaded at use: `Named` sits beneath `Thing`, and the persistence
+        // facade's import graph reaches `Thing` — a static import is a cycle
+        // that calls `VisibleMixin` before its module has run.
+        const { PersistableApi } = await import('../../api/persistable');
+        await PersistableApi.captureHostOf(this as unknown as Stuff);
+      } catch (err) {
+        console.warn('Named.takeName: capture after naming failed:', err);
+      }
+      return { ok: true, facts: { promoted: false } };
     }
 
     getSurname(): string | undefined { return this.surname; }

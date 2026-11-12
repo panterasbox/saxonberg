@@ -8,8 +8,9 @@
  * held there (a stop); `paddle` pushes off. From a ship's deck it goes into
  * the room alongside her, where she has stopped.
  *
- * Which water, and whether there is any, is the water's business: asked of
- * the river's warren and the sea's (the water mod, a declared dependency).
+ * ⭐ The boat decides (`Boat.launch`, controller-liquidity W8): which water
+ * is the water's own answer (`Launchable`), asked by the boat. This binds
+ * the boat you sit in and words the answer.
  */
 
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
@@ -17,14 +18,7 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import type ReachWarren from '@saxonberg/content-water/src/idea/ReachWarren';
-import type SeaWarren from '@saxonberg/content-water/src/idea/SeaWarren';
-import Boat from '../../../thing/Boat';
-
-/** The river's warren and the sea's (the water mod's). */
-const WATERS = ['/system/water/idea/ReachWarren', '/system/water/idea/SeaWarren'];
+import Boat, { type LaunchRefusal } from '../../../thing/Boat';
 
 export default class LaunchController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
@@ -33,25 +27,29 @@ export default class LaunchController extends CommandController<CommandModel> {
     if (!(boat instanceof Boat)) {
       return this.decline(context, 'You are not sitting in a boat.', 'not-in-boat');
     }
-    const from = boat.getContainer();
-    if (from === null) return this.decline(context, 'There is nowhere to put her into.', 'no-water');
-    if (MixinApi.isWaterPlace(from) && from.depthNow() > 0) {
-      return this.decline(context, 'She is in the water already.', 'already-launched');
+    const out = await boat.launch();
+    if (!out.ok) return this.decline(context, LaunchController.refusalText(out), out.reason);
+    MessageApi.scene(giver)
+      .topic('act.move')
+      .toSelf(Mml.compose`You run ${Mml.thing(boat)} down into the water and she floats. The water is close enough to touch.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} runs ${Mml.thing(boat)} down into the water.`)
+      .send();
+  }
+
+  /** ⭐ Every refusal `launch` can say. */
+  protected static refusalText(r: LaunchRefusal): string {
+    switch (r.reason) {
+      case 'no-water':
+        return r.facts.ashore
+          ? 'There is no open water beside here to put her into.'
+          : 'There is nowhere to put her into.';
+      case 'already-launched':
+        return 'She is in the water already.';
+      default: {
+        const never: never = r;
+        return never;
+      }
     }
-    for (const path of WATERS) {
-      const water = await StuffApi.singleton<ReachWarren | SeaWarren>(path).catch(() => null);
-      if (!water) continue;
-      const into = await water.launchPlaceFor(from);
-      if (into === null) continue;
-      ContainmentApi.move(boat, into);
-      MessageApi.scene(giver)
-        .topic('act.move')
-        .toSelf(Mml.compose`You run ${Mml.thing(boat)} down into the water and she floats. The water is close enough to touch.`)
-        .toPeers(Mml.compose`${Mml.actor(giver)} runs ${Mml.thing(boat)} down into the water.`)
-        .send();
-      return;
-    }
-    return this.decline(context, 'There is no open water beside here to put her into.', 'no-water');
   }
 
   private decline(context: CommandContext, text: string, reason: string): void {

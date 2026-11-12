@@ -14,7 +14,6 @@ interface CoerceErr { error: string; }
 
 export default class SoulMakeController extends SoulControllerBase {
   async execute(model: SoulModel, context: CommandContext): Promise<void> {
-    if (await this.refuseUnlessCommittee(model, context)) return;
     const verb = (model.verb ?? '').toLowerCase().trim();
     if (!verb) return this.fail(context, 'verb required', 'verb-required');
     const raw = (model.spec ?? '').trim();
@@ -42,6 +41,7 @@ export default class SoulMakeController extends SoulControllerBase {
     try {
       await SoulApi.mint(spec.value);
     } catch (err) {
+      if (this.refusedByCommittee(context, err)) return;
       return this.fail(
         context,
         `mint failed: ${(err as Error).message}`,

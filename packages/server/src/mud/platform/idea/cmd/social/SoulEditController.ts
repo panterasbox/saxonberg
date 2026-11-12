@@ -7,11 +7,10 @@ import { Mml } from '../../../../api/mml';
 import { SoulApi } from '../../../../api/soul';
 import { SoulControllerBase, type SoulModel } from './SoulControllerBase';
 import { SourceTreeApi } from '../../../../api/source-tree';
-import type { EmoteSpec } from '../../SoulCatalogue';
+import type { EmotePatch } from '../../SoulCatalogue';
 
 export default class SoulEditController extends SoulControllerBase {
   async execute(model: SoulModel, context: CommandContext): Promise<void> {
-    if (await this.refuseUnlessCommittee(model, context)) return;
     const verb = (model.verb ?? '').toLowerCase().trim();
     const field = (model.field ?? '').trim();
     const value = (model.value ?? '').trim();
@@ -19,20 +18,17 @@ export default class SoulEditController extends SoulControllerBase {
     if (!field) return this.fail(context, 'field required', 'field-required');
     if (!value) return this.fail(context, 'value required', 'value-required');
 
-    let patch: Partial<EmoteSpec> = {};
+    let patch: EmotePatch = {};
     try {
       switch (field) {
         case 'template':
-          patch = { grammar: { slots: {}, template: value } };
-          // We can't read the existing grammar here without an extra
-          // call; instead pass through edit which preserves slots:
-          // the catalogue's `edit` semantics replace the whole grammar
-          // when grammar is in patch. The author can edit grammar
-          // wholesale via `soul edit <verb> grammar <yaml>`.
+          // Sugar for the grammar's template; the catalogue MERGES a
+          // partial grammar, so the slots stay (C72).
+          patch = { grammar: { template: value } };
           break;
         case 'grammar': {
           const parsed = SourceTreeApi.parseYaml(value);
-          patch = { grammar: parsed as EmoteSpec['grammar'] };
+          patch = { grammar: parsed as EmotePatch['grammar'] };
           break;
         }
         case 'searchTerms': {
@@ -82,6 +78,7 @@ export default class SoulEditController extends SoulControllerBase {
     try {
       await SoulApi.edit(verb, patch);
     } catch (err) {
+      if (this.refusedByCommittee(context, err)) return;
       return this.fail(
         context,
         `edit failed: ${(err as Error).message}`,

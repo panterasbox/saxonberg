@@ -8,7 +8,6 @@ import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import { BankingApi } from '@saxonberg/server/mud/api/banking';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { Money } from '@saxonberg/server/mud/lib/banking/Money';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 
@@ -28,10 +27,8 @@ export default class TitleListController extends TitleBookControllerBase {
       lines.push(`${book.getLabel()}:`);
       for (const extent of await book.lotExtents()) {
         const leaf = extent.slice(extent.lastIndexOf('/') + 1);
-        const record = await ParcelApi.coveringParcelOf(extent);
-        const taken = !!record && record.getExtent() === extent;
         lines.push(
-          taken
+          (await book.isSold(extent))
             ? `  ${leaf} — sold.`
             : `  ${leaf} — ${area.tag('lot')}, zoned ${use}, ${price.render()}.`,
         );

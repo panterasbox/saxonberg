@@ -86,10 +86,10 @@ export default class WaterHose extends WaterHoseBase {
     const what = load.getPresentation();
     if (load instanceof WaterFixture) {
       if (load.isNatural()) {
-        return { ok: false, reason: 'no-pressure', line: `There is nothing to screw a hose onto at ${what}; water stands in it, it does not come out of a tap.` };
+        return { ok: false, reason: 'no-pressure', facts: { gear: this as unknown as Stuff, load } };
       }
       if (this.getOutlet() !== null) {
-        return { ok: false, reason: 'end-taken', line: `The hose is already on ${this.getOutlet()!.getPresentation()}.` };
+        return { ok: false, reason: 'end-taken', facts: { gear: this as unknown as Stuff, load, on: this.getOutlet()! } };
       }
       this._outlet = load;
       load.coupleHose(this, true);
@@ -98,24 +98,24 @@ export default class WaterHose extends WaterHoseBase {
     }
     if (load instanceof Sprinkler) {
       if (this.getSprinkler() !== null) {
-        return { ok: false, reason: 'end-taken', line: `The hose is already on ${this.getSprinkler()!.getPresentation()}.` };
+        return { ok: false, reason: 'end-taken', facts: { gear: this as unknown as Stuff, load, on: this.getSprinkler()! } };
       }
       const other = load.getHose();
       if (other !== null && other !== (this as unknown as WaterHose)) {
-        return { ok: false, reason: 'sprinkler-taken', line: `${what} already has a hose on it.` };
+        return { ok: false, reason: 'sprinkler-taken', facts: { gear: this as unknown as Stuff, load } };
       }
       this._sprinkler = load;
       load.setHose(this);
       this.layDownIfCoupled(by);
       return { ok: true, line: `You screw the hose onto ${what}.`, peers: `screws a hose onto ${what}.` };
     }
-    return { ok: false, reason: 'not-a-coupling', line: `A hose screws onto a tap or a sprinkler, not ${what}.` };
+    return { ok: false, reason: 'not-a-coupling', facts: { gear: this as unknown as Stuff, load } };
   }
 
   /** Uncouple both ends; it stays where it lies. */
   public override async untieBy(_by: Stuff): Promise<TieOutcome> {
     if (this.getOutlet() === null && this.getSprinkler() === null) {
-      return { ok: false, reason: 'not-tied', line: 'The hose is not coupled to anything.' };
+      return { ok: false, reason: 'not-tied', facts: { gear: this as unknown as Stuff } };
     }
     this.getSprinkler()?.setHose(null);
     this.getOutlet()?.coupleHose(this, false);

@@ -60,7 +60,10 @@ export default class HouseDismissController extends HouseControllerBase<DismissM
     const organization =
       asked.length === 0
         ? await this.houseIRun(context)
-        : StuffApi.findByTemplatePath(asked);
+        : // C33 — the same resolution `house appoint` uses: a relation
+          // resolved at the act stands the named organization up; a
+          // registry read missed every house not resident right now.
+          await StuffApi.singleton(asked).catch(() => null);
     if (!organization || !MixinApi.isOrganization(organization)) {
       return this.fail(
         context,

@@ -31,13 +31,14 @@ import type {
   SettlementMethod,
   SettlementReceipt,
 } from "../../../lib/banking/Charge";
+import { SettleRefused } from "../../../lib/banking/Charge";
 import { AppApi } from "../../../api/app";
 import { AddressApi } from "../../../api/address";
 // The own-Api self-import (the PressLogic precedent): a free function
 // here has no dispatched frame, so it re-enters through the face to
 // acquire one before the registry-wide read.
 import { BankingApi } from "../../../api/banking";
-import type { IndemnifyRequest, IndemnifyResult } from "../../../api/banking";
+import type { DrawResult, IndemnifyRequest, IndemnifyResult } from "../../../api/banking";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import { WorldClockApi } from "../../../api/worldclock";
 import { PersistApi } from "../../../api/persist";
@@ -946,7 +947,10 @@ async function withRepaymentSplits(
   if (!charge.payeeAccountId || charge.amount.minor <= 0) return { charge, repayments: [] };
   const existing = charge.splits ?? [];
   const existingTotal = existing.reduce((s, x) => s + x.amount.minor, 0);
-  const net = charge.amount.minor - existingTotal;
+  // ⭐ The tax the payee remits from this inflow stays with the payee: a
+  // creditor's share is of what is left (issue #128 — a repayment that
+  // took the whole sale left the tax to overdraw the shop).
+  const net = charge.amount.minor - existingTotal - salesTaxMinor(charge.taxableMinor ?? 0);
   if (net <= 0) return { charge, repayments: [] };
   const splits = await ContractApi.repaymentSplitsFor(charge.payeeAccountId, net);
   if (splits.length === 0) return { charge, repayments: [] };
@@ -1290,7 +1294,7 @@ async function settleImpl(
   method: SettlementMethod,
 ): Promise<SettlementReceipt> {
   const payer = actingPrincipal();
-  if (!payer) throw new Error("BankingLogic.settle: no acting payer");
+  if (!payer) throw new SettleRefused("no-payer", "BankingLogic.settle: no acting payer");
   // ⭐ The payee's creditors take their share of this inflow as rider
   // splits inside the same transaction (economic bootstrap D12).
   const { charge, repayments } = await withRepaymentSplits(original);
@@ -1311,7 +1315,7 @@ async function settleLegs(
 
   if (method.kind === "cash") {
     if (!MixinApi.isContainer(payer)) {
-      throw new Error("BankingLogic.settle: the payer can't hold coin");
+      throw new SettleRefused("cannot-hold-coin", "BankingLogic.settle: the payer can't hold coin");
     }
     // Off-ledger handover to a physical receiver (a till, a person's hand).
     if (charge.payeeContainer) {
@@ -1321,7 +1325,7 @@ async function settleLegs(
         charge.amount.minor,
         charge.amount.currency,
       );
-      if (!ok) throw new Error("BankingLogic.settle: not enough cash on hand");
+      if (!ok) throw new SettleRefused("insufficient-coin", "BankingLogic.settle: not enough cash on hand");
       return { method: "cash" };
     }
     // No physical receiver: bank the coin instantly across the cash bridge
@@ -1330,16 +1334,16 @@ async function settleLegs(
     // the payee has no local till (a global TPA operating-budget account), so
     // a cash fare's city+TPA split still holds (D12 cash bridge).
     if (!charge.payeeAccountId) {
-      throw new Error("BankingLogic.settle: cash needs a payee");
+      throw new SettleRefused("needs-payee", "BankingLogic.settle: cash needs a payee");
     }
     const payerC = payer as Stuff & Container;
     if (cashOnHand(payerC) < charge.amount.minor) {
-      throw new Error("BankingLogic.settle: not enough cash on hand");
+      throw new SettleRefused("insufficient-coin", "BankingLogic.settle: not enough cash on hand");
     }
     const cashSplits = charge.splits ?? [];
     const cashSplitTotal = cashSplits.reduce((s, x) => s + x.amount.minor, 0);
-    if (cashSplitTotal > charge.amount.minor) {
-      throw new Error("BankingLogic.settle: splits exceed the charge");
+    if (cashSplitTotal > charge.amount.minor - salesTaxMinor(charge.taxableMinor ?? 0)) {
+      throw new SettleRefused("splits-exceed", "BankingLogic.settle: splits exceed the charge");
     }
     // Exact-cash-or-card: consume coins summing to exactly the charge, or
     // refuse before any ledger leg posts (the caller falls back to the card).
@@ -1349,7 +1353,8 @@ async function settleLegs(
       charge.amount.currency,
     );
     if (!drained) {
-      throw new Error(
+      throw new SettleRefused(
+        "inexact-cash",
         "BankingLogic.settle: can't make the exact amount in cash",
       );
     }
@@ -1413,8 +1418,8 @@ async function settleLegs(
 
   const splits = charge.splits ?? [];
   const splitTotal = splits.reduce((s, x) => s + x.amount.minor, 0);
-  if (splitTotal > charge.amount.minor) {
-    throw new Error("BankingLogic.settle: splits exceed the charge");
+  if (splitTotal > charge.amount.minor - salesTaxMinor(charge.taxableMinor ?? 0)) {
+    throw new SettleRefused("splits-exceed", "BankingLogic.settle: splits exceed the charge");
   }
   const legs: LedgerLeg[] = [];
   const mainAmount = charge.amount.minor - splitTotal;
@@ -1697,26 +1702,25 @@ async function payDrawImpl(
   businessAccountId: string,
   proprietorKey: string,
   amount: Money,
-): Promise<void> {
+): Promise<DrawResult> {
   if (amount.minor <= 0) {
     throw new Error("BankingLogic.payDraw: amount must be positive");
   }
-  {
-    const frozen = await frozenReasonOf(businessAccountId);
-    if (frozen) throw new Error(`BankingLogic.payDraw: ${frozen}`);
+  // Every refusal before the post, as a reason (C32 — the verb used to
+  // pick its words by regex on a thrown sentence).
+  if (await frozenReasonOf(businessAccountId)) {
+    return { ok: false, reason: "frozen" };
   }
   if (
     active() &&
     balanceMinor(businessAccountId) < amount.minor
   ) {
-    throw new Error(
-      `BankingLogic.payDraw: the business holds less than ${amount.render()}`,
-    );
+    return { ok: false, reason: "business-short" };
   }
   const owned = await accountsOfImpl(proprietorKey);
   const drawAccount = (owned.find((a) => a.isPrimary) ?? owned[0])?.accountId;
   if (!drawAccount) {
-    throw new Error("BankingLogic.payDraw: the proprietor has no account");
+    return { ok: false, reason: "no-account" };
   }
   await postTransaction("draw", [
     {
@@ -1728,6 +1732,7 @@ async function payDrawImpl(
       memo: "proprietor draw",
     },
   ]);
+  return { ok: true };
 }
 
 /**
@@ -1806,17 +1811,23 @@ function demoTaxConfig(): { rate: number } {
  * authored, inert rate. The seller-collected model: the tax shows in the
  * seller's P&L (a `tax` line) and the treasury accumulates it beside the
  * perpetual (the Minister of Finance appropriates from it). Returns the
- * tax remitted (zero when the rate is absent). Runs after the sale landed,
- * so the floor cannot fail it.
+ * tax remitted (zero when the rate is absent). Runs after the sale landed;
+ * the floor cannot fail it because a sale's charge carries `taxableMinor`
+ * and `settle` keeps that tax with the seller (issue #128).
  */
+/** The demo sales tax on `taxableMinor` at the authored rate — one rule for `settle`'s reserve and the remit. */
+function salesTaxMinor(taxableMinor: number): number {
+  if (taxableMinor <= 0) return 0;
+  const { rate } = demoTaxConfig();
+  return rate <= 0 ? 0 : Math.floor(taxableMinor * rate);
+}
+
 async function remitDemoTaxImpl(
   sellerAccountId: string,
   saleAmount: Money,
   at?: Stuff,
 ): Promise<Money> {
-  const { rate } = demoTaxConfig();
-  if (rate <= 0) return Money.zero(BankingApi.compactCurrency());
-  const tax = Math.floor(saleAmount.minor * rate);
+  const tax = salesTaxMinor(saleAmount.minor);
   if (tax <= 0) return Money.zero(BankingApi.compactCurrency());
   // ⭐ To the treasury's real account — `/compact/treasury`'s, at the CB
   // (economic bootstrap D9) — never a raw string id nobody owns.
@@ -3004,7 +3015,7 @@ export class BankingLogic extends ApiLogic {
     businessAccountId: string,
     proprietorKey: string,
     amount: Money,
-  ): Promise<void> {
+  ): Promise<DrawResult> {
     return payDrawImpl(businessAccountId, proprietorKey, amount);
   }
 

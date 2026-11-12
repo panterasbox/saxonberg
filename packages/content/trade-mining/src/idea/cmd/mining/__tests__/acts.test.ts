@@ -60,7 +60,7 @@ import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { Cell } from '../../../../lib/Working';
+import type { Cell, Working } from '../../../../lib/Working';
 
 const ZONE = '/world/fx-mine/mine';
 const DEPOSIT = '/world/fx-mine/idea/deposit/fx';
@@ -343,10 +343,9 @@ describe('the mine’s four labour acts', () => {
   });
 
   it('⭐ the carve price is the ground: slate is cheaper than granite, and a seam cheaper than barren', async () => {
-    const c = makeStuff(() => new DriftController()) as unknown as {
-      paceForGround(base: number, mpa: number): number;
-    };
-    expect(c.paceForGround(1000, 90)).toBeLessThan(c.paceForGround(1000, 200));
+    // ⭐ The pace is the WORKING's (controller-liquidity W9).
+    const c = room([0, 0, -1]) as unknown as Working;
+    expect(c.paceFor(1000, 90)).toBeLessThan(c.paceFor(1000, 200));
     // And the seam really is softer — the deposit says so, off malachite's
     // own hardness rather than off a dial.
     // …and the ground the pick meets in a seam is genuinely different
@@ -545,12 +544,15 @@ describe('an engaged completion never reaches back into the controller', () => {
     }
   });
 
-  it('…and the completion bodies exist as module functions instead', () => {
-    const hew = readFileSync(join(DIR, 'HewController.ts'), 'utf8');
-    expect(hew).toMatch(/^async function winOre\(/m);
-    const drift = readFileSync(join(DIR, 'DriftController.ts'), 'utf8');
-    expect(drift).toMatch(/^async function cutHeading\(/m);
-    const shore = readFileSync(join(DIR, 'ShoreController.ts'), 'utf8');
-    expect(shore).toMatch(/^async function standTimber\(/m);
+  it('…and the completion bodies are the WORKING\'s, not the controllers\'', () => {
+    // controller-liquidity W9: a plan's completion is the working's; the
+    // controllers hold words and no completion at all.
+    for (const f of ['HewController.ts', 'DriftController.ts', 'ShoreController.ts', 'DrainController.ts']) {
+      expect(readFileSync(join(DIR, f), 'utf8')).not.toMatch(/onComplete/);
+    }
+    const working = readFileSync(join(DIR, '..', '..', '..', 'lib', 'Working.ts'), 'utf8');
+    for (const plan of ['hewPlanFor', 'drivePlanFor', 'shorePlanFor', 'drainPlanFor']) {
+      expect(working).toMatch(new RegExp(`public (async )?${plan}\\(`));
+    }
   });
 });

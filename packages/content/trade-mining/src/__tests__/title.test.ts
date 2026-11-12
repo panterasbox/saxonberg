@@ -116,8 +116,9 @@ describe('title is not content (metal chain R4)', () => {
   });
 
   it('⭐ `stake` reaches title ONLY through the gated Api, and mints no room', () => {
+    // ⭐ The register decides and writes the claim (controller-liquidity W9).
     const src = readFileSync(
-      join(PACKS, 'trade-mining', 'src', 'idea', 'cmd', 'mining', 'StakeController.ts'),
+      join(PACKS, 'trade-mining', 'src', 'thing', 'ClaimsRegister.ts'),
       'utf8',
     );
     // It registers title…

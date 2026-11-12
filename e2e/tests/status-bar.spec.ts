@@ -107,7 +107,7 @@ test('the shelf previews and sends the SAME string', async ({ browser }) => {
 
     const entry = menu.locator('[data-command]').first();
     const command = (await entry.getAttribute('data-command')) ?? '';
-    expect(command).toMatch(/^cockpit shelf (pin|unpin) /);
+    expect(command).toMatch(/^client-shelf (pin|unpin) /);
 
     await entry.hover();
     await expect(page.getByTestId('ghost-line')).toContainText(command, {

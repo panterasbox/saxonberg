@@ -1,168 +1,163 @@
 /**
- * StirController — `stir` (record how the build was worked).
+ * StirController — `stir [<vessel>]`: work what is RUNNY — the drink you
+ * are building, or a runny compound (a paint pot, a glaze slurry, a wash).
  *
- * An engaged step that, at completion, records the build method on the
- * vessel. No matter moves — it's the working of what's already banked.
- * ⭐ The VESSEL names the method (the tool is what knows — `Technique`): a
- * shaker shakes, a mixing glass stirs, and one with no working of its own
- * is stirred (D16: `shake` and `churn` are no longer words).
+ * ⭐ Owner, 2026-11-10 (controller-liquidity W19): `stir` is for runny
+ * stuff, `knead` for stiff. Two hosts, asked by method — no protocol, the
+ * two answer different questions in different shapes:
  *
- * ⭐ A vessel that is not a build but is hand-worked (`HandWorkedMixin`) —
- * a butter churn (dairy D5) — is worked the same way, and says itself what
- * came of it. ⭐ A compounding vessel (ceramics R1) is asked for its knead
- * plan (`KneadVesselMixin`) — `stir` and `knead` are one act named by the
- * state of the matter, and the VESSEL decides how long and how hard it is.
- * The view's arg is `requires: any` for that reason; the controller
- * narrows to the arms.
+ *  - a BUILD vessel (`ManualBuildMixin.stirPlan`) — the working is the one
+ *    the vessel names (D16: a mixing glass stirs; a shaker's technique is
+ *    `shaken`, so `stir shaker` shakes it — the same act, working the
+ *    build, worked the way the tool works it), the method recorded on the
+ *    build;
+ *  - a COMPOUNDING vessel (`Compounding.stirPlanFor`) — a few light
+ *    minutes folding what is in it into one product. The matter decides
+ *    (`Compounding.workVerb`): a stiff mass is refused `wrong-work`, worded
+ *    here as "too stiff to stir — knead it".
+ *
+ * A knead vessel that compounds nothing (a baker's trough) holds a dough,
+ * and a dough is stiff: refused the same way. A churn is `churn`ed (the
+ * dairying pack's verb).
  */
 
-import KneadController from "./KneadController";
-import type { CommandContext, CommandModel } from "../../../../api/command";
-import type { MqlOneResult } from "../../../../api/mql";
-import type { Stuff } from "../../../../lib/stuff/Stuff";
-import type { Builds, BuildMethod } from "../../../../lib/craft/ManualBuild";
-import type { TechniqueSpec } from "../../../../lib/craft/Technique";
-import type { HandWorked, HandWorkFacts } from "../../../../lib/craft/HandWorked";
-import { MixinApi } from "../../../../api/mixin";
-import { MessageApi } from "../../../../api/message";
-import { Mml } from "../../../../api/mml";
+import { ManualBuildController } from './ManualBuildController';
+import type { CommandContext, CommandModel } from '../../../../api/command';
+import type { MqlOneResult } from '../../../../api/mql';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { ActWords } from '../../../../lib/command/EngagedActController';
+import type { KneadBegin, KneadFacts } from '../../../../lib/craft/KneadVessel';
+import type { BuildMethod, StirRefusal } from '../../../../lib/craft/ManualBuild';
+import type { CompoundRefusal } from '../../../../lib/material/Compounding';
+import { MixinApi } from '../../../../api/mixin';
+import { Mml } from '../../../../api/mml';
 
-const TOPIC = "act.deed";
-const STIR_MS = 4000;
-/** Working a charge by hand — a churn takes a while to come. */
-const CHURN_MS = 8000;
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface StirModel extends CommandModel {
   vessel?: MqlOneResult;
 }
 
-export default class StirController extends KneadController<StirModel> {
+export default class StirController extends ManualBuildController<StirModel> {
   async execute(model: StirModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const vessel: Stuff | null =
-      model.vessel?.stuff ?? null;
-    // ⭐ One word, and the tool is what knows (D16, Technique.ts): the vessel
-    // names the working, so a shaker shakes and a mixing glass stirs.
-    const method = this.workingOf(vessel);
-    const verb = method === "stirred" ? "stir" : "work";
-    // ⭐ A compounding vessel (ceramics R1): what is in it becomes one
-    // product, its makeup the inputs' by mass — the slurry, powder and
-    // liquid twin of `knead`, so it is the vessel's KNEAD plan, asked with
-    // this verb. No recipe is consulted.
-    if (vessel && MixinApi.isCompounding(vessel)) {
-      const plan = await vessel.kneadPlanFor({
-        actor: giver,
-        verb,
-      });
-      if (plan === null) {
-        this.declineStep(
-          context,
-          Mml.compose`There is nothing in ${Mml.thing(vessel)} to ${verb}.`,
-          "no-vessel",
-        );
-        return;
-      }
-      // ⭐ The same act as `knead`, so the same words (D4).
-      const words = this.kneadWords(vessel, giver);
+    const vessel: Stuff | null = model.vessel?.stuff ?? null;
+    if (vessel === null) {
+      this.declineStep(context, Mml.compose`There's nothing here to stir.`, 'no-vessel');
+      return;
+    }
+    // ⭐ A compound: the matter decides whether it stirs (W19).
+    if (MixinApi.isCompounding(vessel)) {
+      const plan = await vessel.stirPlanFor({ actor: giver });
       if (!plan.ok) {
-        this.declineStep(context, words.onRefused(plan), plan.reason);
+        this.declineStep(context, StirController.compoundRefusalWords(plan, vessel), plan.reason);
         return;
       }
-      await this.engagePlan(context, plan, words);
+      await this.engagePlan(context, plan, StirController.compoundWords(vessel, giver));
       return;
     }
-    if (vessel && !MixinApi.isBuildVessel(vessel) && MixinApi.isHandWorked(vessel)) {
-      this.workByHand(vessel, context);
+    // A knead vessel that compounds nothing holds a dough — stiff.
+    if (MixinApi.isKneadVessel(vessel)) {
+      this.declineStep(context, StirController.tooStiff(vessel), 'wrong-work');
       return;
     }
-    if (!vessel || !MixinApi.isBuildVessel(vessel)) {
-      this.declineStep(
-        context,
-        Mml.compose`There's nothing here to ${verb}.`,
-        "no-vessel",
-      );
+    if (!MixinApi.isBuildVessel(vessel)) {
+      this.declineStep(context, Mml.compose`There is nothing in ${Mml.thing(vessel)} to stir.`, 'no-vessel');
       return;
     }
-    if (vessel.isBuildEmpty()) {
-      this.declineStep(
-        context,
-        Mml.compose`${Mml.thing(vessel)} is empty — there's nothing to ${verb} yet.`,
-        "empty-build",
-      );
+    const plan = vessel.stirPlan();
+    if (!plan.ok) {
+      this.declineStep(context, StirController.refusalWords(plan, vessel), plan.reason);
       return;
     }
-
-    const built: Stuff & Builds = vessel;
-    this.engageStep(context, {
-      durationMs: this.paceMs(STIR_MS, vessel, ["shaker", "mixing-glass", "pot"]),
-      effortW: 150,
-      beginSelf: Mml.compose`You begin to ${verb} ${Mml.thing(vessel)}.`,
-      onComplete: () => {
-        built.setBuildMethod(method);
-        MessageApi.scene(giver)
-          .topic(TOPIC)
-          .toSelf(Mml.compose`You ${verb} ${Mml.thing(built)} well.`)
-          .toPeers(Mml.compose`${Mml.actor(giver)} ${verb}s ${Mml.thing(built)}.`)
-          .send();
-      },
-    });
+    await this.engagePlan(context, plan, StirController.stirWords(vessel, giver));
   }
 
-  /** The working a vessel names — its finishing technique, else stirring. */
-  private workingOf(vessel: Stuff | null): BuildMethod {
-    if (vessel === null || !MixinApi.isTool(vessel)) return "stirred";
-    let best: TechniqueSpec | null = null;
-    for (const { technique } of vessel.capabilityTechniques()) {
-      if (best === null || (technique.priority ?? 0) > (best.priority ?? 0)) {
-        best = technique;
-      }
-    }
-    return best?.name ?? "stirred";
+  /** ⭐ The words for stirring a runny compound in `vessel` (D4, W19). */
+  protected static compoundWords(
+    vessel: Stuff,
+    giver: Stuff,
+  ): ActWords<
+    Extract<KneadBegin, { kind: 'compound' }>,
+    Extract<KneadFacts, { kind: 'compounded' }>,
+    CompoundRefusal
+  > {
+    return {
+      beginSelf: () => Mml.compose`You begin to stir ${Mml.thing(vessel)}, working what is in it together.`,
+      beginPeers: () => Mml.compose`${Mml.actor(giver)} stirs ${Mml.thing(vessel)}.`,
+      onRefused: (r) => StirController.compoundRefusalWords(r, vessel),
+      onDone: (f) => ({
+        self:
+          f.product !== null
+            ? Mml.compose`It stirs together into one even mass: ${Mml.thing(f.product)}.`
+            : Mml.compose`What is in ${Mml.thing(vessel)} stirs smooth, even all through.`,
+        peers: Mml.compose`${Mml.actor(giver)} finishes stirring ${Mml.thing(vessel)}.`,
+      }),
+    };
   }
 
-  /** The hand-worked arm — the vessel answers what came of it; this words it. */
-  private workByHand(
-    vessel: Stuff & HandWorked,
-    context: CommandContext,
-  ): void {
-    const giver = context.commandGiver;
-    const verb = "work";
-    this.engageStep(context, {
-      durationMs: CHURN_MS,
-      effortW: 150,
-      beginSelf: Mml.compose`You begin to ${verb} ${Mml.thing(vessel)}.`,
-      onComplete: () => {
-        const out = vessel.workByHand();
-        MessageApi.scene(giver)
-          .topic(TOPIC)
-          .toSelf(
-            out === null
-              ? Mml.compose`You ${verb} ${Mml.thing(vessel)}, but there is nothing in it to work.`
-              : Mml.compose`You ${verb} ${Mml.thing(vessel)} hard. ${StirController.handWorkWords(out.facts)}`,
-          )
-          .toPeers(Mml.compose`${Mml.actor(giver)} ${verb}s ${Mml.thing(vessel)}.`)
-          .send();
-      },
-    });
-  }
-
-  /** ⭐ What working a charge by hand came to, in words (D4) — exhaustively. */
-  private static handWorkWords(facts: HandWorkFacts): string {
-    switch (facts.result) {
-      case "came":
-        return "The sound changes: it thumps instead of sloshing. The butter has come.";
-      case "came-greasy":
-        return "It comes all at once, soft and greasy — too warm. It is butter, but not good butter.";
-      case "too-cold":
-        return "It slops and thickens and will not come. It is too cold to break.";
-      case "not-cream":
-        return "It sloshes about, and nothing comes of it. Only cream will churn.";
-      case "already-come":
-        return "It has already come — there is butter in there, waiting for the buttermilk to be drawn off.";
+  /** ⭐ Every reason stirring a compound is refused, exhaustively. */
+  protected static compoundRefusalWords(r: CompoundRefusal, vessel: Stuff): Composed {
+    switch (r.reason) {
+      case 'empty':
+        return Mml.compose`${Mml.thing(vessel)} is empty. Put what you mean to mix into it first.`;
+      case 'wrong-work':
+        // A compound only ever wants the other work when it is stiff.
+        return StirController.tooStiff(vessel);
+      case 'came-empty':
+        return Mml.compose`You stir ${Mml.thing(vessel)}, but there is nothing in it.`;
+      case 'already-compounded':
+        return Mml.compose`It is already one even mass. There is nothing to stir in.`;
+      case 'mint-failed':
+        return Mml.compose`It will not come together — and that is a fault in the books, not in your hands.`;
       default: {
-        const never: never = facts.result;
+        const never: never = r;
         return never;
       }
     }
+  }
+
+  /** The stiff-matter refusal — `knead` is the act. */
+  protected static tooStiff(vessel: Stuff): Composed {
+    return Mml.compose`What is in ${Mml.thing(vessel)} is too stiff to stir — knead it.`;
+  }
+
+  /** ⭐ The words for a stir of `vessel` (D4). */
+  protected static stirWords(
+    vessel: Stuff,
+    giver: Stuff,
+  ): ActWords<{ method: BuildMethod }, { method: BuildMethod }, StirRefusal> {
+    return {
+      beginSelf: (b) => Mml.compose`You begin to ${StirController.verbOf(b.method)} ${Mml.thing(vessel)}.`,
+      onRefused: (r) => StirController.refusalWords(r, vessel),
+      onDone: (f) => {
+        const verb = StirController.verbOf(f.method);
+        return {
+          self: Mml.compose`You ${verb} ${Mml.thing(vessel)} well.`,
+          peers: Mml.compose`${Mml.actor(giver)} ${verb}s ${Mml.thing(vessel)}.`,
+        };
+      },
+    };
+  }
+
+  /** ⭐ Every reason, exhaustively. */
+  protected static refusalWords(r: StirRefusal, vessel: Stuff): Composed {
+    switch (r.reason) {
+      case 'empty-build':
+        return Mml.compose`${Mml.thing(vessel)} is empty — there's nothing to stir yet.`;
+      default: {
+        const never: never = r.reason;
+        return never;
+      }
+    }
+  }
+
+  /**
+   * The verb a build's working is told by — a stir, or the vessel's own
+   * work (a shaker's `shaken` is a pack's technique name, and the kernel's
+   * words do not name it).
+   */
+  protected static verbOf(method: string): string {
+    return method === 'stirred' ? 'stir' : 'work';
   }
 }

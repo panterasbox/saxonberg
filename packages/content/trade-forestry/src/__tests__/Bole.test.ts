@@ -30,8 +30,11 @@ describe('the bole', () => {
     // ⚠ `peers` — to whoever stands beside it. This read `self` (a command
     // giver's own verbs, never read off an object), so it asserted a
     // declaration nobody receives (the assembly browser walk).
+    // ⭐ The cross-cut is the kernel's `cut` (controller-liquidity D14) —
+    // `fell` is for trees, and a bole no longer offers it.
     const verbs = CommandApi.collectContributions(Bole, 'peers').map((d) => d.verbs).flat();
-    expect(verbs).toContain('fell');
+    expect(verbs).toContain('cut');
+    expect(verbs).not.toContain('fell');
   });
 
   it('takes a length at a time, and the mass goes with it', () => {

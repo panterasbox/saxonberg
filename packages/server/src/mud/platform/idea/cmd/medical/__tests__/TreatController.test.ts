@@ -268,6 +268,27 @@ describe('UndressController — the clot gate', () => {
     expect(w.dressed).toBe(false);
     expect(w.bleeding).toBeFalsy(); // clotted → safe
   });
+
+  it('the body answers directly: nothing dressed refuses; two dressed is a choice (W8)', async () => {
+    const { medic, room } = medicWith(
+      makeStuff(() => new Bandage()),
+      '/platform/agent/Avatar/undress-c',
+      2
+    );
+    expect(medic.undressWound()).toEqual({ ok: false, reason: 'no-dressing' });
+    await makeStuff(() => new TreatController()).execute({}, ctxFor(medic, room));
+    const first = woundOf(medic);
+    const second = { ...first, part: 'body.head', severity: 0.5 } as Trauma;
+    (medic.getConditions() as Trauma[]).push(second);
+    const answer = medic.undressWound();
+    expect(answer.ok).toBe('choose');
+    if (answer.ok !== 'choose') return;
+    expect(answer.facts.preferred).toBe(first);
+    const done = medic.undressWound(answer.facts.preferred);
+    expect(done.ok).toBe(true);
+    expect(first.dressed).toBe(false);
+    expect(second.dressed).toBe(true);
+  });
 });
 
 /**

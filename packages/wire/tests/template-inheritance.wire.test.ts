@@ -82,7 +82,7 @@ async function at(where: string | undefined, tag: string): Promise<Session> {
 }
 
 async function look(s: Session, what = ''): Promise<string> {
-  return plain(await (await s.cmd(what ? `look ${what}` : 'look')).said());
+  return plain(await (await s.cmd(what ? `look "${what}"` : 'look')).said());
 }
 
 let bar: Session;

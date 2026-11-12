@@ -88,7 +88,7 @@ async function outfitted(handle: string, goods: string[]): Promise<Session> {
   }
   s.close();
   s = await Session.open(handle, { startLocation: SHOP });
-  for (const good of goods) expectOk(await s.cmd(`buy ${good}`));
+  for (const good of goods) expectOk(await s.cmd(`buy "${good}"`));
   return s;
 }
 

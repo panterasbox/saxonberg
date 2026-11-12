@@ -19,7 +19,11 @@ help: |
   apply live.)
 
   `pack sync [<packId>]` — reconcile one pack now and re-hydrate the
-  affected live instances; defaults to `base-library`.
+  affected live instances; defaults to `base-library`. A pack with no
+  maintainers says so, and names the command that staffs it.
+
+  `pack staff <packId> [<person>]` — add a maintainer: the person named
+  (someone online), or you.
 
   `pack provision <packId>` — what the registries granted the pack:
   its maintainers group and who is in it, its declared groups, and its
@@ -87,6 +91,18 @@ subcommands:
       - name: packId
         type: string
         required: false
+  staff:
+    controller: /platform/idea/cmd/author/PackStaffController
+    description: "Add a maintainer to a pack — the person named, or you"
+    args:
+      - name: packId
+        type: string
+        required: true
+      - name: person
+        type: object
+        required: false
+        scope: "online"
+        requires: class:Agent
   provision:
     controller: /platform/idea/cmd/author/PackProvisionController
     description: "The pack's maintainers, groups and titles as held now"

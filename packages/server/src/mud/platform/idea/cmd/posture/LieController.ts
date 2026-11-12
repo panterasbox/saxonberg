@@ -17,12 +17,8 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
-import { Postures } from '../../../../lib/slot/Postured';
+import { Postures, type PostureAnswer, type PostureRefusal } from '../../../../lib/slot/Postured';
 import Place from '../../../../lib/stuff/Place';
-import WaterSurface from '../../../thing/WaterSurface';
-
-/** Water running at least this fast takes a body that lies back in it, m/s. */
-const MOVING_WATER_MPS = 0.2;
 
 interface LieModel extends CommandModel {
   target: MqlOneResult;
@@ -32,31 +28,24 @@ export default class LieController extends CommandController<LieModel> {
   async execute(model: LieModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const target = model.target.stuff;
-    // ⭐ In moving water, lying back takes your feet off the bottom (river
-    // D13; the drive found `lie` in a fast shallows lying down ON the bed):
-    // standing or not, the river has you and you float.
     const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    // A patch of river carried with the current reads no current of its
-    // own (it moves WITH the water): under way, it is moving water.
-    const carried = room !== null && MixinApi.isMovingPlace(room) && room.isUnderWay();
-    const moving = target instanceof WaterSurface && room !== null && MixinApi.isWaterPlace(room) &&
-      (carried || (MixinApi.isMovingWater(room) && Math.abs(room.currentFor(giver)) >= MOVING_WATER_MPS));
-    // ⭐ And mid-water there is no ground to name: lying down there floats.
-    const adrift = !target && room !== null && MixinApi.isWaterPlace(room) && room.depthNow() > 0;
-    if ((target instanceof WaterSurface && (!target.supports(giver) || moving)) || adrift) {
-      if (!MixinApi.isRespiration(giver)) {
-        return this.refuse(context, 'act.deed', 'You cannot float.', 'not-a-swimmer');
-      }
-      if (moving && target instanceof WaterSurface && target.supports(giver)) target.giveWay(giver, true);
-      const out = await giver.float();
-      if (!out.ok) return this.refuse(context, 'act.deed', out.line, out.reason);
+    // ⭐ The host decides what lying on it is (`acceptPosture`): a bed or a
+    // floor takes you at rest; water that will not hold you up — deep, or
+    // moving (river D13) — floats you. Mid-water there is no ground to
+    // name, and the water itself answers.
+    const answer: PostureAnswer | null = target
+      ? (MixinApi.isPostured(target) ? await target.acceptPosture(giver, Postures.Lie) : null)
+      : room !== null && MixinApi.isWaterPlace(room) ? await room.lieAdrift(giver) : null;
+    if (answer !== null && !answer.ok) {
+      return this.refuse(context, 'act.deed', LieController.floatRefusal(answer), answer.reason);
+    }
+    if (answer !== null && answer.facts.as === 'float') {
       // ⭐ In moving water the float is feet-first (river D13): the
       // technique that costs half in rough water and meets a hazard feet on.
-      const feet = giver.isFeetFirst();
       MessageApi.scene(giver)
         .topic('act.deed')
         .toSelf(
-          feet
+          answer.facts.feetFirst
             ? Mml.compose`You turn on your back with your feet downstream and let the river carry you, feet first.`
             : Mml.compose`You lie back on the water and let it hold you up.`,
         )
@@ -66,7 +55,6 @@ export default class LieController extends CommandController<LieModel> {
     }
     if (!target) {
       // ⭐ No ground here at all (mid-water): the place says why.
-      const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
       const why = room instanceof Place ? room.groundRefusal(model.target.raw) : null;
       if (why !== null) return this.refuse(context, 'act.deed', why, 'no-ground');
       MessageApi.scene(giver)
@@ -114,5 +102,23 @@ export default class LieController extends CommandController<LieModel> {
       .toPeers(Mml.compose`${Mml.actor(giver)} lies down.`)
       .send();
     return;
+  }
+
+  /** Why the water would not float you, in words. */
+  protected static floatRefusal(r: PostureRefusal): string {
+    switch (r.reason) {
+      case 'not-a-swimmer':
+        return 'You cannot float.';
+      case 'not-at-surface':
+        return 'You would need to be in the water, at the surface.';
+      case 'cannot-float':
+        return 'You try to lie back, and the water closes over your face. You come up thrashing.';
+      case 'too-heavy':
+        return 'You are too heavy to float; the water will not hold you.';
+      default: {
+        const unworded: never = r;
+        throw new Error(`LieController: no words for ${String(unworded)}`);
+      }
+    }
   }
 }

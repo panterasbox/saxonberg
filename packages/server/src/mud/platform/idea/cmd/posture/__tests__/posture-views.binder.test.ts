@@ -60,22 +60,22 @@ describe('the posture views take a preposition', () => {
   for (const verb of ['sit', 'lie', 'kneel', 'stand']) {
     describe(verb, () => {
       it('binds the bare prepositional form', () => {
-        expect(boundTarget(`${verb} on the ground`, verb)).toBe('the ground');
+        expect(boundTarget(`${verb} on the ground`, verb)).toBe('ground');
       });
 
       it('binds every recognised preposition', () => {
-        expect(boundTarget(`${verb} upon the bench`, verb)).toBe('the bench');
-        expect(boundTarget(`${verb} at the table`, verb)).toBe('the table');
-        expect(boundTarget(`${verb} in the chair`, verb)).toBe('the chair');
+        expect(boundTarget(`${verb} upon the bench`, verb)).toBe('bench');
+        expect(boundTarget(`${verb} at the table`, verb)).toBe('table');
+        expect(boundTarget(`${verb} in the chair`, verb)).toBe('chair');
       });
 
       it('still binds the positional form', () => {
         expect(boundTarget(`${verb} bench`, verb)).toBe('bench');
       });
 
-      it('takes a multi-word target whole (greedy)', () => {
-        expect(boundTarget(`${verb} on the mossy flat stone`, verb)).toBe(
-          'the mossy flat stone'
+      it('takes a multi-word target whole when it is quoted (D3)', () => {
+        expect(boundTarget(`${verb} on the "mossy flat stone"`, verb)).toBe(
+          'mossy flat stone'
         );
       });
     });

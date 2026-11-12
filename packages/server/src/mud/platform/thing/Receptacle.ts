@@ -39,6 +39,7 @@ import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { DurableMixin } from '../../lib/material/Durable';
 import { AssembledMixin } from '../../lib/craft/Assembled';
+import { WaterDrawableMixin } from '../../lib/bulk/WaterDrawable';
 
 // ThermalMixin outer of Bulkable: a fluid holder's Thermal capacity
 // derives from its contents (more liquid → larger C → slower cooling),
@@ -56,8 +57,8 @@ import { AssembledMixin } from '../../lib/craft/Assembled';
 // Composed here, every jug of water stopped washing anything (the full
 // suite caught it). No recipe mints a plain receptacle; a mend reads its
 // trade off the row (`recipeFor`).
-const ReceptacleBase = AssembledMixin(
+const ReceptacleBase = WaterDrawableMixin(AssembledMixin(
   DurableMixin(ThermalMixin(BulkableMixin(Good))),
-);
+));
 
 export default class Receptacle extends ReceptacleBase {}

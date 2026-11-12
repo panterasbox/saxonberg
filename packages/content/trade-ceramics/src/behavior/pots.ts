@@ -43,6 +43,7 @@ import { BEHAVIOR_BEAT_TYPE } from '@saxonberg/server/mud/lib/behavior/BehaviorB
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
+import { CommandLineApi } from '@saxonberg/server/mud/api/command-line';
 
 type Potter = Stuff & Mobile & Containable & Container & CommandGiver;
 type Kiln = Stuff & Burner & Container;
@@ -127,9 +128,9 @@ export const brain = class {
       if (!kw) return;
       if (glaze && wantsGlaze(fired, glaze.forms)) {
         await p.forceCommand(`dip ${kw} inside in ${glaze.tub}`);
-        await p.forceCommand(`put ${kw} in kiln`);
+        await p.forceCommand(`put ${CommandLineApi.word(kw)} in kiln`);
       } else {
-        await p.forceCommand(`put ${kw} in shelf`);
+        await p.forceCommand(`put ${CommandLineApi.word(kw)} in shelf`);
       }
       return;
     }
@@ -138,7 +139,7 @@ export const brain = class {
     const ready = inKiln.find((w) => !isPlayers(w) && isDone(w) && coolEnough(w));
     if (ready) {
       const kw = keywordOf(ready);
-      if (kw) await p.forceCommand(`get ${kw} from kiln`);
+      if (kw) await p.forceCommand(`get ${CommandLineApi.word(kw)} from kiln`);
       return;
     }
 
@@ -146,7 +147,7 @@ export const brain = class {
     const wet = held.find((w) => isWare(w) && MixinApi.isGreenware(w) && w.isGreen());
     if (wet) {
       const kw = keywordOf(wet);
-      if (kw) await p.forceCommand(`drop ${kw}`);
+      if (kw) await p.forceCommand(`drop ${CommandLineApi.word(kw)}`);
       return;
     }
 
@@ -173,7 +174,7 @@ export const brain = class {
     const next = dryOnBoards[0];
     if (next) {
       const kw = keywordOf(next);
-      if (kw) await p.forceCommand(`put ${kw} in kiln`);
+      if (kw) await p.forceCommand(`put ${CommandLineApi.word(kw)} in kiln`);
       return;
     }
 

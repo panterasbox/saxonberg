@@ -15,7 +15,10 @@ import { StuffApi } from '../../../api/stuff';
 import type {
   FillDescription,
   FillField,
+  TemplateWrite,
 } from '../../../api/template';
+import { Zone } from '../../../lib/zone/Zone';
+import { ExecutionContextApi } from '../../../api/execution-context';
 import { MixinApi, type AnyConstructor } from '../../../api/mixin';
 import { Mixins } from '../../../lib/mixin';
 import { TemplateError } from '../../../lib/stuff/TemplateError';
@@ -23,6 +26,9 @@ import { ReservedTemplatePrefixes } from '../../../lib/paths';
 import { ProvenanceApi } from '../../../api/provenance';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import TemplateApplier from '../TemplateApplier';
+
+/** The content tree's folder row: what `mkdir` makes. */
+const FOLDER_CLASS = '/platform/idea/FolderZone';
 
 const TemplateApiCallers = SecurityPolicies.FromModule('/api/template#TemplateApi'
 );
@@ -56,6 +62,136 @@ export class TemplateLogic extends ApiLogic {
     path: string,
     spec: TemplateSpec,
   ): Promise<string> {
+    return this._save(path, spec);
+  }
+
+  /**
+   * See {@link TemplateApi.writeTemplate}. ⭐ The title gate is the
+   * write's own, on the acting principal (controller-liquidity D9): the in-world authoring verbs
+   * (`write`, `cp`, `mkdir`) reach the tree only through here.
+   */
+  @CallSecurity(TemplateApiCallers)
+  public async writeTemplate(
+    path: string,
+    spec: TemplateSpec,
+  ): Promise<TemplateWrite> {
+    if (!(await this._mayWrite(path))) {
+      return { ok: false, reason: 'access-denied', path };
+    }
+    await this._save(path, spec);
+    return { ok: true, paths: [path] };
+  }
+
+  /** See {@link TemplateApi.makeFolder}. */
+  @CallSecurity(TemplateApiCallers)
+  public async makeFolder(
+    path: string,
+    data: Record<string, unknown>,
+  ): Promise<TemplateWrite> {
+    if (!(await this._mayWrite(path))) {
+      return { ok: false, reason: 'access-denied', path };
+    }
+    await this._save(path, { class: FOLDER_CLASS, data });
+    return { ok: true, paths: [path] };
+  }
+
+  /**
+   * See {@link TemplateApi.move}. Every refusal before the first write
+   * (controller-liquidity D10, C66): title over both ends, the source
+   * exists, and the source is not a parent (a folder with descendants or a
+   * row others extend) — the delete that would refuse is asked FIRST, so a
+   * refused move leaves no stray copy at the destination.
+   */
+  @CallSecurity(TemplateApiCallers)
+  public async move(
+    src: string,
+    dst: string,
+  ): Promise<TemplateWrite> {
+    if (!(await this._mayWrite(src))) {
+      return { ok: false, reason: 'access-denied', path: src };
+    }
+    if (!(await this._mayWrite(dst))) {
+      return { ok: false, reason: 'access-denied', path: dst };
+    }
+    const tpl = await Template.findByPath(src);
+    if (!tpl) return { ok: false, reason: 'no-template', path: src };
+    if ((await this._descendantsOf(src)).length > 0) {
+      return { ok: false, reason: 'has-descendants', path: src };
+    }
+    if ((await this._extendersOf(src)).length > 0) {
+      return { ok: false, reason: 'extended', path: src };
+    }
+    // ⭐ The RAW row travels, never the effective one: a moved child is a
+    // child, and flattening the chain would fork it away from its parent.
+    await this._save(dst, {
+      class: tpl.own.class,
+      extends: tpl.extends,
+      data: tpl.own.data ?? {},
+    });
+    await tpl.delete();
+    return { ok: true, paths: [dst] };
+  }
+
+  /**
+   * See {@link TemplateApi.deleteSubtree}. Title is asked of EVERY row it
+   * would delete (C65 — a nested parcel is somebody else's), and a row
+   * outside the subtree that extends one inside refuses, all before the
+   * first delete. Deepest first, so leaves go before their folders.
+   */
+  @CallSecurity(TemplateApiCallers)
+  public async deleteSubtree(
+    path: string,
+    recursive: boolean,
+  ): Promise<TemplateWrite> {
+    const tpl = await Template.findByPath(path);
+    if (!tpl) return { ok: false, reason: 'no-template', path };
+    // One read of what is beneath: `-r` takes it, a bare delete refuses it.
+    const descendants = await this._descendantsOf(path);
+    if (!recursive && descendants.length > 0) {
+      return { ok: false, reason: 'has-descendants', path };
+    }
+    const doomed = recursive ? [tpl, ...descendants] : [tpl];
+    const doomedPaths = new Set(doomed.map((t) => t.path));
+    for (const t of doomed) {
+      if (!(await this._mayWrite(t.path))) {
+        return { ok: false, reason: 'access-denied', path: t.path };
+      }
+    }
+    for (const t of doomed) {
+      const outside = (await this._extendersOf(t.path)).filter(
+        (p) => !doomedPaths.has(p),
+      );
+      if (outside.length > 0) {
+        return { ok: false, reason: 'extended', path: t.path };
+      }
+    }
+    doomed.sort(
+      (a, b) => b.path.split('/').length - a.path.split('/').length,
+    );
+    for (const t of doomed) await t.delete();
+    return { ok: true, paths: doomed.map((t) => t.path) };
+  }
+
+  /**
+   * May the acting principal write the row at `path`? Derived from the
+   * dispatched context, never passed — the document store's gate
+   * (`DocumentLogic`) — so it cannot be spoofed; a forced chain is
+   * unattributable and refused. A live Zone there asks for the
+   * zone-mutation role (`canMutateZone`); anything else the covering
+   * title (`canAtPath`). Untitled is nobody's.
+   */
+  private async _mayWrite(path: string): Promise<boolean> {
+    const giver = (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
+    if (!giver) return false;
+    // Lazy: the access layer reaches templates; a static import is a cycle risk.
+    const { AccessApi } = await import('../../../api/access');
+    const live = StuffApi.findByTemplatePath<Stuff>(path) ?? null;
+    if (live instanceof Zone) return AccessApi.canMutateZone(giver, live);
+    return AccessApi.canAtPath(giver, 'write-template', path);
+  }
+
+  /** The save itself — shared by `saveTemplate` and the gated writers (no self-calls through the gate). */
+  private async _save(path: string, spec: TemplateSpec): Promise<string> {
     const existing = await Template.findByPath(path);
     const classPath = spec.class;
     const data = spec.data;
@@ -173,7 +309,7 @@ export class TemplateLogic extends ApiLogic {
     }
 
     if (!isZone) {
-      const children = await Template.findDescendants(path);
+      const children = await this._descendantsOf(path);
       if (children.length > 0) {
         throw new TemplateError(
           `Cannot save leaf template at '${path}'; ${children.length} child template(s) already exist beneath it.`
@@ -260,6 +396,16 @@ export class TemplateLogic extends ApiLogic {
       .filter((p): p is string => typeof p === 'string');
   }
 
+  /**
+   * The rows beneath `path` — the installer's ONE descendant read, shared by
+   * every write that must know whether a row is a parent (`move`,
+   * `deleteSubtree`, the folder/leaf validators), as {@link _extendersOf}
+   * is the one extender read. Ungated for the same 0-self-call reason.
+   */
+  private async _descendantsOf(path: string): Promise<Template[]> {
+    return Template.findDescendants(path);
+  }
+
   /** See {@link TemplateApi.validateFolderLeafDelete}. */
   @CallSecurity(TemplateApiCallers)
   public async validateFolderLeafDelete(id: string): Promise<void> {
@@ -278,7 +424,7 @@ export class TemplateLogic extends ApiLogic {
       );
     }
     if (!(await ZoneApi.isFolderClass(tpl.class))) return;
-    const children = await Template.findDescendants(tpl.path);
+    const children = await this._descendantsOf(tpl.path);
     if (children.length > 0) {
       throw new TemplateError(
         `Cannot delete zone template at '${tpl.path}'; ${children.length} descendant template(s) still reference it.`

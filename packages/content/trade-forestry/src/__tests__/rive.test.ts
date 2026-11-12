@@ -56,9 +56,9 @@ describe('rive — through the binder', () => {
     expect(m.into).toBeUndefined();
   });
 
-  it('⭐ `rive the oak billet into blank` — article, two words, and the choice', () => {
-    const m = bind('rive the oak billet into blank');
-    expect(m.target).toBe('the oak billet');
+  it('⭐ `rive the "oak billet" into blank` — article, a quoted name, and the choice', () => {
+    const m = bind('rive the "oak billet" into blank');
+    expect(m.target).toBe('oak billet');
     expect(m.into).toBe('blank');
     expect(m.froe).toBe(FROE);
   });
@@ -66,7 +66,7 @@ describe('rive — through the binder', () => {
   it('`rive billet with the froe` names the froe', () => {
     const m = bind('rive billet with the froe');
     expect(m.target).toBe('billet');
-    expect(m.froe).toBe('the froe');
+    expect(m.froe).toBe('froe');
   });
 
   it('⚠ `split` is NOT an alias — a ground protocol owns that word', () => {
@@ -76,8 +76,8 @@ describe('rive — through the binder', () => {
 });
 
 describe('rive — who affords it', () => {
-  it('⭐ the bole affords riving as it affords felling', () => {
-    expect(Bole.commandContributions.peers).toContain('trade/forestry/cmd/forestry/fell.yaml');
+  it('⭐ the bole affords riving as it affords its cross-cut (the kernel `cut`, D14)', () => {
+    expect(Bole.commandContributions.peers).toContain('platform/cmd/crafting/cut.yaml');
     expect(Bole.commandContributions.peers).toContain(RIVE);
   });
 

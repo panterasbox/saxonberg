@@ -45,7 +45,7 @@ describe('CommandSheet', () => {
    */
   it('⭐ sends exactly the string it displayed', () => {
     const sent: string[] = [];
-    const command = 'cockpit shelf first coin';
+    const command = 'client-shelf first coin';
     useStore.setState({ commandSheet: command });
     render(<CommandSheet onSend={(c) => sent.push(c)} />);
 

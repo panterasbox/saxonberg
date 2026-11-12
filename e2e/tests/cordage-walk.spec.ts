@@ -49,7 +49,7 @@ async function lookFor(page: Page, what: string, matching: RegExp, timeout = 30_
   await expect
     .poll(
       async () => {
-        await runCommand(page, `look ${what}`);
+        await runCommand(page, `look "${what}"`);
         body = (await cards(page)).reverse().find((c) => matching.test(c)) ?? '';
         return body;
       },

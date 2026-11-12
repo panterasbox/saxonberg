@@ -2,7 +2,7 @@
 # the corner of a dorm room with a bar on the floor, the office with a
 # mat behind the door. No `industry` (no recipe makes a gym; a room
 # archetype is residue all the way down, like the bedroom beside it), so
-# `survey` reports it in any room, and a room answers "a gym" exactly
+# `analyze rooms` reports it in any room, and a room answers "a gym" exactly
 # when something in it is a load you can lift, a pace you can hold, or
 # a surface you can work on.
 #

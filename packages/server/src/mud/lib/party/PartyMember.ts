@@ -147,11 +147,14 @@ export function PartyMemberMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public partyMemberId(): string {
-      const host = this as {
-        getPlayerId?: () => string | null;
-        getTemplatePath?: () => string | null;
-      };
-      return host.getPlayerId?.() || host.getTemplatePath?.() || "";
+      // An Avatar's playerId, else the PERSON — `getIdentityPath()`, never
+      // the lineage every clone of a row shares (controller-liquidity D11).
+      const host = this as { getPlayerId?: () => string | null };
+      return (
+        host.getPlayerId?.() ||
+        (this as unknown as Stuff).getIdentityPath() ||
+        ""
+      );
     }
 
     @CallSecurity(ByRosteringParty)

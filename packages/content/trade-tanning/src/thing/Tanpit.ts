@@ -37,7 +37,39 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import { TANNING, type TanLiquor, type Tanning } from '../lib/Tanning';
+import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
+import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { LEATHERWORK, TAN_SOILS, TANNING, type TanLiquor, type Tanning } from '../lib/Tanning';
+
+/** ⭐ Every reason a pit refuses a hide — `TanController` words each. */
+export type LayInRefusal =
+  /** It is in this pit already: `look` at the pit to see how it is coming on. */
+  | ActRefusal<'already-in-pit'>
+  /** Tanned through and lifted: nothing left for a pit to do. */
+  | ActRefusal<'already-tanned'>
+  /** No liquor in the pit. */
+  | ActRefusal<'pit-dry'>;
+
+/** A laying-in: instant (the hide's clock does the work), the pit's read after. */
+export type LayInPlan = ActPlan<undefined, { pitLine: string }, LayInRefusal>;
+
+/**
+ * ⭐ The pit's `look` carries what is in it and how each skin is coming on
+ * (controller-liquidity W11) — the read a second `tan` used to be. Words,
+ * never a number: the liquor's band, then a line a skin.
+ */
+function pitAugmenter(text: string, host: Stuff): string {
+  if (host.isDestroyed() || !(host instanceof Tanpit)) return text;
+  const lines = [host.pitReport().line];
+  for (const item of host.getContents()) {
+    if (!MixinApi.isActive(item, 'TanningMixin')) continue;
+    const name = item.getPresentation();
+    lines.push(`${name.charAt(0).toUpperCase()}${name.slice(1)} is down in it. ${(item as unknown as Tanning).tanReport().line}`);
+  }
+  const block = lines.join('\n');
+  return text && text.length > 0 ? `${text}\n\n${block}` : block;
+}
 
 /** The read a player gets off the pit — words, never a number. */
 export type PitBand = 'dry' | 'water' | 'weak' | 'good' | 'harsh';
@@ -63,6 +95,8 @@ export default class Tanpit extends CraftVessel {
   static fieldMeta: FieldMeta = {
     barkKg: { persistent: true, authorable: true },
   };
+
+  static markupAugmenters: MarkupAugmenter[] = [pitAugmenter];
 
   /**
    * Kilograms of crushed bark in the liquor. ⭐ Authorable so a working
@@ -133,6 +167,35 @@ export default class Tanpit extends CraftVessel {
     void (thing as unknown as Tanning).onLiftedFrom(this, by).catch((err: unknown) => {
       console.error('Tanpit: lifting a hide failed:', err);
     });
+  }
+
+  /**
+   * ⭐ `tan <hide> in <pit>` — lay it in (controller-liquidity W11). The act
+   * is a moment; the hide's own clock does the weeks, stamped NOW so a hide
+   * dropped in and ignored for a month does not get a month of free liquor.
+   * Checking on it is `look` at the pit; coming out is the hide's rule on
+   * leaving it (`TanningMixin.onLiftedFrom`).
+   */
+  public layInPlan(hide: Stuff & Containable & Tanning, by: Stuff): LayInPlan | LayInRefusal {
+    if (hide.getContainer() === (this as unknown as Stuff)) return { ok: false, reason: 'already-in-pit' };
+    if (hide.isTanned()) return { ok: false, reason: 'already-tanned' };
+    if (this.liquorLitres() <= 0) return { ok: false, reason: 'pit-dry' };
+    return {
+      ok: true,
+      durationMs: 0,
+      effortW: 0,
+      facts: undefined,
+      onComplete: async () => {
+        ContainmentApi.move(hide, this as never);
+        hide.reconcileTanning();
+        // ⭐ (cleanliness D6) The stench trade, on the hands and the apron.
+        if (MixinApi.isHygienic(by)) by.soilFrom(TAN_SOILS);
+        if (MixinApi.isAdvancing(by)) {
+          await by.creditDeed({ discipline: LEATHERWORK, difficulty: 'easy', outcome: 'success' });
+        }
+        return { ok: true, facts: { pitLine: this.pitReport().line } };
+      },
+    };
   }
 
   /** Take bark out of the liquor — what a finished hide costs the pit. */

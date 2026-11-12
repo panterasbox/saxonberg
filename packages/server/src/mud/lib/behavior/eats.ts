@@ -73,6 +73,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import type { EngagementSlot } from '../activity/Engaged';
 import type { TaskKind } from './Urgency';
 import { Urgency } from './Urgency';
+import { CommandLineApi } from '../../api/command-line';
 
 /** The morning window, in local hours. A baker's customers come early. */
 const DEFAULT_FROM_HOUR = 6;
@@ -187,7 +188,7 @@ export const brain = class {
         return;
       }
 
-      await buyer.forceCommand(`buy ${choice.keyword}`);
+      await buyer.forceCommand(`buy ${CommandLineApi.word(choice.keyword)}`);
       // ⚠ A forced command reports no outcome, so the only honest check
       // is whether a loaf is in hand now.
       const held = heldLoaf(buyer, choice.keyword);

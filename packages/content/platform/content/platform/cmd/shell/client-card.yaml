@@ -1,0 +1,147 @@
+# ⭐ A NON-DIEGETIC verb, so its name is a hyphenated compound
+# (controller-liquidity W16, owner rule 2026-11-10): what was `client-card
+# <action>` is its own verb, because a command is `verb target` or `verb
+# subcommand target`, never deeper. Every `client-…` verb reaches the
+# interpreter un-prefixed from a scoped bar.
+verbs: [client-card]
+category: shell
+controller: /platform/idea/cmd/shell/ClientCardListController
+description: "Keep, size, place, tray or close a card."
+help: |
+  Every change to which cards are up, and where, is one of these — a real
+  command, so it can be scripted, aliased, saved in an arrangement and
+  seen by a stream overlay.
+
+    client-card list              what is open: size, place, live
+    client-card pin <card>        keep it (a pinned card stays live)
+    client-card unpin <card>      let it age out again (= dismiss)
+    client-card auto <card>       hand the decision back
+    client-card close <card>      close it now
+    client-card grow <card>       tray → unit → medium → full
+    client-card shrink <card>     full → medium → unit → tray
+    client-card maximize <card>   straight to full
+    client-card minimize <card>   put it in the tray
+    client-card restore <card>    take it out of the tray (at unit)
+    client-card move <card> <col> <row>
+                                  place it there; the column's cards
+                                  below shift down
+    client-card place <card>      place it where it is
+    client-card unplace <card>    let it flow again
+
+  A placed card stays where you put it and keeps answering; a card that
+  just flows through the feed is a snapshot of when you looked. Medium
+  and full hold one card each — growing another into the slot returns
+  the first to its own size. The room card and the primary terminal fill
+  roles and cannot be closed.
+validators:
+  - /lib/command/validators/requiresHasInteractive
+examples:
+  - cmd: client-card list
+    note: List open cards, their size and place
+  - cmd: client-card grow who
+    note: Grow the who card into the medium slot
+  - cmd: client-card move who 1 0
+    note: Place the who card at the top of the second column
+# Bare `client-card` lists; an unknown action is refused by the binder,
+# naming the actions.
+subcommands:
+  list:
+    controller: /platform/idea/cmd/shell/ClientCardListController
+    description: "What is open: size, place, live"
+  pin:
+    controller: /platform/idea/cmd/shell/ClientCardPinController
+    description: "Keep it (a pinned card stays live)"
+    args:
+      - name: cardId
+        type: string
+        required: true
+  unpin:
+    controller: /platform/idea/cmd/shell/ClientCardUnpinController
+    description: "Let it age out again (= dismiss)"
+    args:
+      - name: cardId
+        type: string
+        required: true
+  dismiss:
+    controller: /platform/idea/cmd/shell/ClientCardUnpinController
+    description: "Let it age out again (= unpin)"
+    args:
+      - name: cardId
+        type: string
+        required: true
+  auto:
+    controller: /platform/idea/cmd/shell/ClientCardAutoController
+    description: "Hand the decision back to the catalogue"
+    args:
+      - name: cardId
+        type: string
+        required: true
+  close:
+    controller: /platform/idea/cmd/shell/ClientCardArrangeController
+    description: "Close it now"
+    args:
+      - name: cardId
+        type: string
+        required: true
+  grow:
+    controller: /platform/idea/cmd/shell/ClientCardArrangeController
+    description: "Tray → unit → medium → full"
+    args:
+      - name: cardId
+        type: string
+        required: true
+  shrink:
+    controller: /platform/idea/cmd/shell/ClientCardArrangeController
+    description: "Full → medium → unit → tray"
+    args:
+      - name: cardId
+        type: string
+        required: true
+  maximize:
+    controller: /platform/idea/cmd/shell/ClientCardArrangeController
+    description: "Straight to full"
+    args:
+      - name: cardId
+        type: string
+        required: true
+  minimize:
+    controller: /platform/idea/cmd/shell/ClientCardArrangeController
+    description: "Put it in the tray"
+    args:
+      - name: cardId
+        type: string
+        required: true
+  restore:
+    controller: /platform/idea/cmd/shell/ClientCardArrangeController
+    description: "Take it out of the tray (at unit)"
+    args:
+      - name: cardId
+        type: string
+        required: true
+  move:
+    controller: /platform/idea/cmd/shell/ClientCardMoveController
+    description: "Place it at a column and row; the column's cards below shift down"
+    args:
+      - name: cardId
+        type: string
+        required: true
+      - name: col
+        type: number
+        required: true
+      - name: row
+        type: number
+        required: true
+  place:
+    controller: /platform/idea/cmd/shell/ClientCardArrangeController
+    description: "Place it where it is"
+    args:
+      - name: cardId
+        type: string
+        required: true
+  unplace:
+    controller: /platform/idea/cmd/shell/ClientCardArrangeController
+    description: "Let it flow again"
+    args:
+      - name: cardId
+        type: string
+        required: true

@@ -71,7 +71,7 @@ describe('mill — rung 4, where quoting is the answer', () => {
   it('`mill wheat 0.9` binds the extraction', () => {
     const m = bind('mill wheat 0.9');
     expect(m.grain).toBe('wheat');
-    expect(m.extraction).toBe('0.9');
+    expect(m.extraction).toBe(0.9);
   });
 
   it('⭐ `mill "sack of wheat"` — the quoted phrase — binds UNQUOTED', () => {
@@ -83,22 +83,21 @@ describe('mill — rung 4, where quoting is the answer', () => {
   it('⭐ a quoted name AND an extraction together', () => {
     const m = bind('mill "sack of wheat" 0.6');
     expect(m.grain).toBe('sack of wheat');
-    expect(m.extraction).toBe('0.6');
+    expect(m.extraction).toBe(0.6);
   });
 
   it('⭐ `mill wheat at the quern` — the comment\'s own example — binds', () => {
     const m = bind('mill wheat at the quern');
     expect(m.grain).toBe('wheat');
-    expect(m.mill).toBe('the quern');
+    expect(m.mill).toBe('quern');
   });
 
-  it('⚠⚠ unquoted, it takes a sentence nobody meant — and the help says so', () => {
-    const m = bind('mill sack of wheat');
-    expect(m.grain).toBe('sack');
-    // `of` bound to a `number` arg: the binder applies no type gate to a
-    // positional. If that ever changes, rewrite the help text with it.
-    expect(m.extraction).toBe('of');
-    expect(m.mill).toBe('wheat');
+  it('⭐ unquoted, it is REFUSED with the quoted line (controller-liquidity W5)', () => {
+    const parsed = CommandLineApi.parsePipeline('mill sack of wheat').commands[0]!;
+    expect(CommandApi.assemble(parsed, def(), ctx)).toMatchObject({
+      error: 'shape',
+      quoteLine: 'mill "sack of wheat"',
+    });
   });
 
   it('⛔ greedy on `grain` is refused at LOAD time — the reason rung 4 exists', () => {

@@ -39,7 +39,7 @@ args:
   # lookup, and the verb is afforded by the vehicle.)
   - name: target
     type: object
-    scope: ["here:exits"]
+    scope: ["me:e:exits"]
     required: true
     requires: any
     validators:

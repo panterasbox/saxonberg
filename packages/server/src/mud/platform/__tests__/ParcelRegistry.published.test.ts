@@ -20,6 +20,7 @@ import ParcelRegistry from '../idea/ParcelRegistry';
 import GroupRegistry from '../idea/GroupRegistry';
 import { ParcelApi } from '../../api/parcel';
 import { AccessApi } from '../../api/access';
+import { ExecutionContextApi } from '../../api/execution-context';
 import { NavigationApi } from '../../api/navigation';
 import { StuffApi } from '../../api/stuff';
 import { ParcelRecord, type ParcelOwner } from '../../lib/parcel/ParcelRecord';
@@ -99,6 +100,12 @@ const HOLDER: ParcelOwner = {
   templatePath: '/compact/executive',
 };
 const EXTENT = '/test/pub/draftville';
+const actorAt = (path: string) => ({
+  getTemplatePath: () => path,
+  getIdentityPath: () => path,
+});
+const ACTOR = actorAt('/platform/agent/Avatar/holder');
+const STRANGER = actorAt('/platform/agent/Avatar/stranger');
 
 describe('published on the record', () => {
   beforeEach(() => {
@@ -169,6 +176,10 @@ describe('the flip, and the chain of title', () => {
     vi.spyOn(NavigationApi, 'reprojectExtent').mockResolvedValue(0);
     vi.spyOn(NavigationApi, 'nodesInExtent').mockResolvedValue([]);
     vi.spyOn(NavigationApi, 'pointingAt').mockResolvedValue([]);
+    // The flip is asked AS the acting principal (W8): the holder acts and
+    // holds title; the not-yours refusal has its own case below.
+    vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(ACTOR as never);
+    vi.spyOn(AccessApi, 'canAtPath').mockImplementation(async (who) => who === ACTOR);
   });
   afterEach(reset);
 
@@ -202,17 +213,28 @@ describe('the flip, and the chain of title', () => {
   it('⚠ a flip to the value it already has is a NO-OP — no event', async () => {
     await boot();
     await ParcelApi.grant({ extent: EXTENT, holder: HOLDER });
-    await ParcelApi.setPublished(EXTENT, true);
+    expect(await ParcelApi.setPublished(EXTENT, true)).toEqual({ ok: false, reason: 'no-change' });
     const events = await ParcelEvent.findByExtent(EXTENT);
     expect(events.map((e) => e.event)).toEqual(['grant']);
   });
 
-  it('an extent nobody holds answers null and writes nothing', async () => {
+  it('an extent nobody holds is refused untitled and writes nothing', async () => {
     await boot();
     await expect(
       ParcelApi.setPublished('/test/pub/unclaimed', false),
-    ).resolves.toBeNull();
+    ).resolves.toEqual({ ok: false, reason: 'untitled' });
     expect(await ParcelEvent.findByExtent('/test/pub/unclaimed')).toEqual([]);
+  });
+
+  it('⭐ the flip gates ITSELF: another principal is refused not-yours, a bare chain too (W8)', async () => {
+    await boot();
+    await ParcelApi.grant({ extent: EXTENT, holder: HOLDER });
+    vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(STRANGER as never);
+    expect(await ParcelApi.setPublished(EXTENT, false)).toEqual({ ok: false, reason: 'not-yours' });
+    vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
+    expect(await ParcelApi.setPublished(EXTENT, false)).toEqual({ ok: false, reason: 'not-yours' });
+    expect((await ParcelRecord.findByExtent(EXTENT))?.isPublished()).toBe(true);
+    expect((await ParcelEvent.findByExtent(EXTENT)).map((e) => e.event)).toEqual(['grant']);
   });
 
   it('⭐ the graph is re-projected on every flip — the record is the source', async () => {

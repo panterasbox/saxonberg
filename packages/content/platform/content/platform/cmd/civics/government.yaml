@@ -1,6 +1,6 @@
 verbs: [government]
 category: civics
-controller: /platform/idea/cmd/civics/GovernmentController
+controller: /platform/idea/cmd/civics/GovernmentListController
 description: "The governments over this place, and your residency"
 help: |
   Every place may sit under a chain of governments — a campus inside a
@@ -22,12 +22,14 @@ validators:
   - /lib/command/validators/requiresAnimate
 subcommands:
   list:
+    controller: /platform/idea/cmd/civics/GovernmentListController
     description: "Show the government chain over where you stand"
     help: |
       The jurisdiction chain at your current location, most local
       first, with each government's seats, departments, and charter.
       Public — runnable by anyone.
   residency:
+    controller: /platform/idea/cmd/civics/GovernmentResidencyController
     description: "Show your residency — the chain over your domicile"
     help: |
       Where you are a resident: the government chain over your

@@ -87,7 +87,8 @@ import {
 } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
 import { SoilMixin } from '@saxonberg/server/mud/lib/husbandry/Soil';
-import type { Soil } from '@saxonberg/server/mud/lib/husbandry/Soil';
+import type { Soil, PartChoices, PartRefusal } from '@saxonberg/server/mud/lib/husbandry/Soil';
+import type { ActAnswer, ActDone, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import {
   ImprovableMixin,
@@ -166,6 +167,49 @@ const DAYLIGHT_HAPPY = 0.54;
 const AUTHORED_SWARD_START = 0.8;
 
 const SECONDS_PER_GAME_DAY = 86_400;
+
+/**
+ * Body mass, in kilograms, that one unit of draught represents — a person
+ * is about 70 kg and an ox about 700 (D40).
+ */
+const KG_PER_DRAUGHT = 70;
+/** A bout by hand, ms, before stoniness and draught. */
+const PLOW_BASE_MS = 14_000;
+/** Felt cost of a bout by hand, percentage points; divided by the draught. */
+const PLOW_FELT_COST = 14;
+/** Labour one bout banks per unit of draught (`improvementBill` units). */
+const PLOW_LABOUR_PER_ACT = 1;
+/**
+ * Condition one bout takes off the plough — which lands on its share.
+ * Twenty-five bouts to a share: about one field turned.
+ */
+const SHARE_WEAR_PER_BOUT = 0.04;
+
+/** Why a bout of ploughing is refused — closed; `plow` words each. */
+export type PlowRefusalReason =
+  | 'part-failed'
+  | 'crop-stands'
+  | 'no-field-marked'
+  | 'already-ploughed';
+
+export type PlowRefusal = ActRefusal<PlowRefusalReason, { plough: Stuff; part: string }>;
+
+/** What the begin words need. */
+export interface PlowBegin {
+  plough: Stuff;
+  /** A beast in the traces (draught > 1.5). */
+  beast: boolean;
+}
+
+/** What the done words need: a seedbed turned, or clearing banked. */
+export type PlowDone =
+  | { kind: 'seedbed'; beast: boolean }
+  | { kind: 'clearing'; beast: boolean; done: boolean; phrase: string; cause: string | null };
+
+export type PlowAnswer =
+  | ActAnswer<PlowBegin, PlowDone, PlowRefusal>
+  | PartChoices
+  | PartRefusal;
 
 /**
  * ⭐ The tract's own lines in `look` — in words, never numbers: the crop
@@ -837,6 +881,133 @@ export default class Tract extends TractBase {
    */
   public isClearedForPlough(cost: ImprovementCost): boolean {
     return super.progressOn('clearing', cost) >= IMPROVEMENT_DONE_AT;
+  }
+
+  /**
+   * ⭐ The tract's ground, read whole (controller-liquidity W10): its
+   * seeded character at this locality and the improvement bill that
+   * character implies — what `plow` and `mow` stand on.
+   */
+  public async readGround(): Promise<{ sample: GroundSample; bill: ImprovementCost }> {
+    const self = this as unknown as Stuff & Container;
+    const locality = await AddressApi.resolveLocalityFor(self);
+    const seed = GroundCharacter.seedFor(locality?.getAddress() ?? '');
+    const model = await GroundCharacter.forZone(self.getZone());
+    const sample = this.groundSample(model, seed);
+    return { sample, bill: GroundCharacter.improvementCost(sample) };
+  }
+
+  /**
+   * ⭐⭐ `plow` (controller-liquidity W10, Appendix A): **the tract
+   * decides.** Clearing owed → the bout banks clearing on the TRACT (the
+   * one-time improvement); cleared → it turns one FIELD's sward under for
+   * a seedbed (cover build D4), refused under a standing crop and twice in
+   * one season. ⭐ The pace and the cost are the DRAUGHT — every live body
+   * big enough to pull standing with the ploughman, by mass (D40) — and
+   * the ground's stoniness slows both. ⭐⭐ The ground wears the share
+   * (assembly D7); a share worn through is a sledge.
+   */
+  public async plowPlanFor(
+    actor: Stuff,
+    plough: Stuff,
+    named: (Stuff & Soil) | null,
+  ): Promise<PlowAnswer> {
+    const refuse = (reason: PlowRefusalReason, part = ''): PlowRefusal => ({
+      ok: false,
+      reason,
+      facts: { plough, part },
+    });
+    if (MixinApi.isAssembled(plough)) {
+      const failed = plough.failedLines()[0];
+      if (failed) return refuse('part-failed', failed.part);
+    }
+    const { sample, bill } = await this.readGround();
+    // ⚠ The crop first: while one stands the tract reads its clearing as
+    // unfinished, and a plough must never be the thing that grubs it.
+    const clearing = !this.isClearedForPlough(bill);
+    if (clearing && this.getCrop()) return refuse('crop-stands');
+    let field: (Stuff & Field) | null = null;
+    if (!clearing) {
+      if (this.getFields().length === 0) return refuse('no-field-marked');
+      const resolved = this.resolvePartFor(named);
+      if (resolved.ok !== true) return resolved;
+      field = (resolved.part ?? this.getFields()[0]!) as unknown as Stuff & Field;
+      if (field.cropsOn().length > 0) return refuse('crop-stands');
+      if (field.isSeedbedFresh()) return refuse('already-ploughed');
+    }
+    const draught = Tract.draughtFor(actor);
+    const beast = draught > 1.5;
+    const durationMs = Math.round((PLOW_BASE_MS * (1 + sample.stoniness)) / Math.max(0.5, draught));
+    // ⚠ And so is the cost: a man dragging a plough spends himself.
+    const cost = Math.round(PLOW_FELT_COST / Math.max(1, draught));
+    return {
+      ok: true,
+      durationMs,
+      effortW: MixinApi.isExerting(actor) ? actor.wattsForFeltCost(cost, durationMs / 1000) : 0,
+      facts: { plough, beast },
+      onComplete: async (): Promise<ActDone<PlowDone, PlowRefusal>> => {
+        if (MixinApi.isDurable(plough) && !plough.isDestroyed()) plough.wear(SHARE_WEAR_PER_BOUT);
+        if (field) {
+          field.turnUnder();
+          try {
+            await PersistableApi.captureHostOf(this as unknown as Stuff);
+          } catch (err) {
+            console.warn('Tract: capture after ploughing failed:', err);
+          }
+          await this.creditAgriculture(actor, 1);
+          return { ok: true, facts: { kind: 'seedbed', beast } };
+        }
+        // ⭐⭐ The ox works ground a person cannot, at the same rate — the
+        // multiplier is the animal's mass, not a number here.
+        const after = this.bankWork('clearing', PLOW_LABOUR_PER_ACT * draught, bill);
+        await this.creditAgriculture(actor, bill.clearing + bill.stonePicking);
+        return {
+          ok: true,
+          facts: {
+            kind: 'clearing',
+            beast,
+            done: after >= 1,
+            phrase: this.improvementPhrase(bill),
+            cause: this.improvementCause(bill),
+          },
+        };
+      },
+    };
+  }
+
+  /**
+   * ⭐ **How much is pulling** — the actor, plus every live body standing
+   * with them big enough to pull, by MASS, in units of one person (70 kg).
+   * A man in the traces is worth about one and an ox about ten, and that
+   * ratio is the two animals' masses (D40).
+   */
+  private static draughtFor(actor: Stuff): number {
+    const massOf = (s: Stuff): number => (MixinApi.isTangible(s) ? s.getMass().rawValue() : 0);
+    let kg = massOf(actor);
+    const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+    if (room && MixinApi.isContainer(room)) {
+      for (const occupant of room.getContents()) {
+        if (occupant === actor) continue;
+        if (!MixinApi.isOrganism(occupant) || !occupant.isAlive()) continue;
+        // ⚠ Only something big enough to pull — a hen is not draught.
+        const mass = massOf(occupant);
+        if (mass >= KG_PER_DRAUGHT * 2) kg += mass;
+      }
+    }
+    return kg / KG_PER_DRAUGHT;
+  }
+
+  /**
+   * The improvement deed, by the ground's own difficulty (the estimator's
+   * anti-grind property: finishing hard ground is a hard check).
+   */
+  public async creditAgriculture(actor: Stuff, required: number): Promise<void> {
+    if (!MixinApi.isAdvancing(actor)) return;
+    await actor.creditDeed({
+      discipline: 'agriculture',
+      difficulty: required >= 4 ? 'hard' : required >= 2 ? 'standard' : 'trivial',
+      outcome: 'success',
+    });
   }
 
   /**

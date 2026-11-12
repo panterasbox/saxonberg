@@ -93,7 +93,7 @@ describe('order', () => {
       cocktail: 'repair',
       subject: 'sword',
     });
-    expect(bind('retail/order.yaml', 'order old fashioned with bombay')).toMatchObject({
+    expect(bind('retail/order.yaml', 'order "old fashioned" with bombay')).toMatchObject({
       cocktail: 'old fashioned',
       brand: 'bombay',
     });

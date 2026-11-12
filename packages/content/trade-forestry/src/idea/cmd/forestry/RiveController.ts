@@ -11,7 +11,7 @@
  * Two arms, and the TARGET chooses:
  *
  *  - **a bole** — the felled trunk on the ground. One length comes off it
- *    (`Bole.takeLength`, the same length `fell bole` cross-cuts) and is
+ *    (`Bole.takeLength`, the same length `cut bole` cross-cuts) and is
  *    split into a stack of green **billets**, of the bole's own species.
  *    An engaged act: your hands are on the froe until it is done.
  *  - **a billet** — split again, into whatever the installed trades rive
@@ -21,10 +21,11 @@
  *    among them, and with one installed there is nothing to choose. A
  *    second trade that rives something out of a billet is a recipe row.
  *
- * ⭐ Both arms are the TARGET's own cut (`CuttableMixin.cutPlan`, verb
- * `rive` — controllers-are-io D8c): `Bole` and `Billet` decide whether the
- * wood opens, what comes off and what it makes; this controller checks the
- * froe and words what they answer.
+ * ⭐ Both arms are the TARGET's own riving (`RivableMixin.rivePlanFor` —
+ * controller-liquidity D14; the view `requires:` it): `Bole` and `Billet`
+ * decide whether the wood opens, what comes off and what it makes, and a
+ * bole spends the endurance when the length lands; this controller checks
+ * the froe and words what they answer.
  *
  * The froe is declared on the view (`reachable:[capability.riving]`) —
  * the capability, never a class, since a froe is a `Tool` row.
@@ -40,23 +41,18 @@ import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/c
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { RiveDone, RiveRefusal } from '@saxonberg/server/mud/lib/craft/Cuttable';
+import type { RiveDone, RiveRefusal } from '@saxonberg/server/mud/lib/craft/Rivable';
 import { CraftingDecline } from '@saxonberg/server/mud/lib/craft/CraftingDecline';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
-import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { FORESTRY_TOPIC } from './FellController';
 
 type Composed = ReturnType<typeof Mml.compose>;
 
 /** The capability a froe offers, and riving asks for. */
 export const RIVING = 'riving';
-/** Endurance points it costs — the cross-cut's, a mallet being lighter than a saw. */
-export const RIVE_COST = 5;
-
-const ENDURANCE = 'endurance';
 
 export interface RiveModel extends CommandModel {
   /** The bole or billet to rive. */
@@ -103,27 +99,20 @@ export default class RiveController extends ManualBuildController<RiveModel> {
       return;
     }
 
-    // ⭐ The wood decides (D8c): whether it opens, what comes off, what it makes.
-    if (!MixinApi.isCuttable(target)) {
-      this.turnDown(context, 'not-rivable', RiveController.refusalWords({ ok: false, reason: 'not-cuttable' }, target));
+    // ⭐ The wood decides (D14): whether it opens, what comes off, what it makes.
+    if (!MixinApi.isRivable(target)) {
+      this.turnDown(context, 'not-rivable', RiveController.refusalWords({ ok: false, reason: 'not-rivable' }, target));
       return;
     }
-    const out = await target.cutPlan({
-      verb: 'rive',
+    const out = await target.rivePlanFor({
       actor: giver,
-      tools: [froe],
-      raw: null,
-      length: null,
-      options: { into: (model.into ?? '').trim().toLowerCase() },
+      froe,
+      into: (model.into ?? '').trim().toLowerCase(),
     });
-    if (out.verb !== 'rive') throw new Error(`RiveController: asked 'rive', answered '${out.verb}'`);
     if (!out.ok) {
       this.refuseRive(context, out, target);
       return;
     }
-    // A length off a bole is hard work up front — the work was done
-    // whether or not anything came of it.
-    if (out.facts.kind === 'bole') this.spend(giver, RIVE_COST);
     await this.engagePlan(context, out, {
       beginSelf: (f) =>
         f.kind === 'bole'
@@ -144,7 +133,7 @@ export default class RiveController extends ManualBuildController<RiveModel> {
     }
     this.turnDown(
       context,
-      out.reason === 'not-cuttable' ? 'not-rivable' : out.reason,
+      out.reason,
       RiveController.refusalWords(out, target),
     );
   }
@@ -152,7 +141,7 @@ export default class RiveController extends ManualBuildController<RiveModel> {
   /** ⭐ Every reason the wood refuses a riving (D4), in this verb's words. */
   private static refusalWords(r: RiveRefusal, target: Stuff): Composed {
     switch (r.reason) {
-      case 'not-cuttable':
+      case 'not-rivable':
         return Mml.compose`${Mml.thing(target)} is not a thing you rive. A froe goes into the end of a felled bole, or of a billet split off one.`;
       case 'will-not-rive':
         return Mml.compose`${Mml.thing(target)} will not open along its grain. The froe goes in and only bruises it — the fibres of ${r.facts.woodName} interlock, and nothing follows them. Saw it, or burn it.`;
@@ -203,13 +192,6 @@ export default class RiveController extends ManualBuildController<RiveModel> {
         return never;
       }
     }
-  }
-
-  /** Spend endurance. A no-op on a body that carries no reserves. */
-  private spend(giver: Stuff, points: number): void {
-    if (points <= 0 || !MixinApi.isReserved(giver)) return;
-    if (!giver.hasReserve(ENDURANCE)) return;
-    giver.adjustReserve(ENDURANCE, Quantity.of(-points, '%'));
   }
 
   private turnDown(

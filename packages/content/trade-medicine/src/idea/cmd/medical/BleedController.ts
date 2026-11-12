@@ -3,8 +3,11 @@
  * build D5; made durative in the clinical-medicine review). Draws a unit
  * of blood: spends the donor's volume + marrow reserve (via
  * `Vitals.drawBlood`) and fills the vessel with a labelled (or
- * unlabelled) blood unit. Refuses a donor who is unconscious, low on
- * volume, or low on the donation reserve. Credits `nursing standard`.
+ * unlabelled) blood unit. ⭐ The body refuses (`Vitals.bloodDrawRefusal`,
+ * controller-liquidity D9): no phlebotomy tool, unconscious, low on volume,
+ * or low on the donation reserve; a draw from another body is written to
+ * the accountability ledger by `drawBlood` itself. Credits `nursing
+ * standard`. ⚠ Consent is a deferred seam (no predicate decides it).
  *
  * ⭐ The draw is a LONG engaged `hands` step (`DRAW_DURATION_S`): the real
  * barrier to giving blood is not your volume, it is the TIME — you carve
@@ -28,6 +31,7 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
+import type { BloodDrawRefusal } from '@saxonberg/server/mud/lib/vitals/Vitals';
 import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 const TOPIC = 'act.deed';
@@ -36,7 +40,19 @@ const BLOOD_MATERIAL = '/stuff/idea/material/tissue/blood';
 interface BleedModel extends CommandModel {
   donor?: MqlOneResult;
   vessel?: MqlOneResult;
+  /** The phlebotomy tool — the view's `with`, defaulted to one you carry. */
+  with?: MqlOneResult;
 }
+
+/** The body's refusals, worded. */
+const DRAW_WORDS: Record<BloodDrawRefusal['reason'], (self: boolean, donor: Stuff) => string> = {
+  'no-tool': () => 'You need a syringe to draw blood.',
+  'no-blood': () => 'That body has no blood to give.',
+  'not-conscious': (self, donor) =>
+    `${self ? 'You are' : `${donor.getPresentation()} is`} not conscious to give blood.`,
+  'too-low': (self) => `${self ? 'You have' : 'They have'} too little blood to spare a unit.`,
+  wan: (self) => `${self ? 'You are' : 'They are'} too wan to give — not long since the last time.`,
+};
 
 export default class BleedController extends CommandController<BleedModel> {
   async execute(model: BleedModel, context: CommandContext): Promise<void> {
@@ -52,35 +68,28 @@ export default class BleedController extends CommandController<BleedModel> {
     if (!vessel || !MixinApi.isBulkable(vessel)) {
       return this.fail(context, 'You need a vessel to draw into.', 'no-vessel');
     }
-    if (donor.bloodType() === null) {
-      return this.fail(context, 'That body has no blood to give.', 'no-blood');
-    }
-    if (donor.getConsciousness() !== 'conscious') {
-      const who = self ? 'You are' : `${donor.getPresentation()} is`;
-      return this.fail(context, `${who} not conscious to give blood.`, 'not-conscious');
-    }
-    const baseline = donor.getVitalBand('bloodVolume').baseline;
-    const frac = baseline > 0 ? donor.getVitalSign('bloodVolume').rawValue() / baseline : 0;
-    if (frac < BLOOD_DEFAULTS.DONOR_MIN_FRAC) {
-      const who = self ? 'You have' : 'They have';
-      return this.fail(context, `${who} too little blood to spare a unit.`, 'too-low');
-    }
-    const marrow =
-      MixinApi.isReserved(donor)
-        ? (donor.getReserve('marrow')?.current.rawValue() ?? 0)
-        : 0;
-    if (marrow < BLOOD_DEFAULTS.DONATION_MIN_MARROW) {
-      const who = self ? 'You are' : 'They are';
-      return this.fail(context, `${who} too wan to give — not long since the last time.`, 'wan');
+    // ⭐ The BODY decides whether it gives (controller-liquidity D9, C10):
+    // the tool, its blood, conscious, above the floor, not wan — asked here
+    // at dispatch for the words, and again by `drawBlood` at completion.
+    const tool = (model.with?.stuff ?? null) as Stuff | null;
+    const refused = donor.bloodDrawRefusal(giver, tool);
+    if (refused) {
+      return this.fail(context, DRAW_WORDS[refused.reason](self, donor), refused.reason);
     }
 
     const slot = BulkableApi.slotFor(vessel, undefined);
     if (!slot) {
       return this.fail(context, 'That will not hold blood.', 'no-slot');
     }
+    // ⚠ Room for the unit on top of what it already holds (C10): a bag
+    // half full of the same type does not take a whole unit more.
     const cap = slot.getCapacity();
-    if (cap !== null && cap.rawValue() < BLOOD_DEFAULTS.UNIT_LITRES) {
-      return this.fail(context, 'That vessel is too small for a unit.', 'too-small');
+    if (cap !== null && cap.rawValue() - slot.getAmount().rawValue() < BLOOD_DEFAULTS.UNIT_LITRES) {
+      return this.fail(
+        context,
+        slot.isEmpty() ? 'That vessel is too small for a unit.' : 'That vessel has no room for another unit.',
+        'too-small',
+      );
     }
     // Empty, or already the SAME labelled type (else you would mix).
     if (!slot.isEmpty()) {
@@ -101,10 +110,19 @@ export default class BleedController extends CommandController<BleedModel> {
     // (load-on-use D2 c) — the completion is sync.
     await MaterialApi.materials().ensure(BLOOD_MATERIAL);
     const onComplete = (): void => {
-      const unit = donor.drawBlood(BLOOD_DEFAULTS.UNIT_LITRES);
+      const drawn = donor.drawBlood(BLOOD_DEFAULTS.UNIT_LITRES, giver, tool);
+      if (!drawn.ok) {
+        // The body changed under the draw (fainted, the syringe gone).
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.fromMarkup(Mml.escape(DRAW_WORDS[drawn.reason](self, donor))))
+          .send();
+        return;
+      }
+      const unit = drawn.facts;
       const material = MaterialApi.materials().need(BLOOD_MATERIAL);
       if (slot.isEmpty()) {
-        if (material) slot.setMaterial(material);
+        slot.setMaterial(material);
         slot.setAmount(Quantity.of(BLOOD_DEFAULTS.UNIT_LITRES, 'L'));
         slot.setPayload({ blood: unit });
       } else {

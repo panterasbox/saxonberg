@@ -205,7 +205,7 @@ suite('⭐⭐ AC 8 — armour is REACHABLE (see the drive record on price)', () 
     // not exist would answer "there is no such thing here".
     const out = await shopper.cmd('look');
     expectOk(out);
-    const buy = await shopper.cmd('buy padded gambeson');
+    const buy = await shopper.cmd('buy "padded gambeson"');
     const said = (await buy.said()).toLowerCase();
     expect(
       /gambeson/.test(said),

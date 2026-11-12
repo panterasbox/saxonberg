@@ -263,6 +263,19 @@ describe('⭐⭐ a fixture reads its PREMISES', () => {
       expect(clone).toHaveBeenCalledTimes(1); // the room keeps its pipe
     });
 
+    it('⭐ the run it stands up is the premises\', made by a process — never titled to whoever is standing there', async () => {
+      mainAt();
+      vi.spyOn(ParcelApi, 'waterOf').mockReturnValue({ source: MAIN, parcel: null });
+      cloneRun();
+      const bar = room('/test/place/bar');
+      const t = tap();
+      ContainmentApi.move(t, bar);
+      await t.settleBulk('interior');
+      const run = t.runOf()!;
+      expect(run.isMadeByProcess(), 'declared made by a process').toBe(true);
+      expect(run.getMadeFromOwner(), 'and that it is nobody\'s').toBeNull();
+    });
+
     it('`plumbing: lead` stands up the lead run', async () => {
       mainAt();
       vi.spyOn(ParcelApi, 'waterOf').mockReturnValue({ source: MAIN, parcel: null });

@@ -15,6 +15,7 @@ import { ShadowApi } from '../shadow';
 import { MessageApi } from '../message';
 import { MixinApi } from '../mixin';
 import { MqlSubscriptionApi } from '../mql-subscription';
+import { ChatApi } from '../chat';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { CardPayload } from '@saxonberg/types';
@@ -31,6 +32,15 @@ beforeEach(() => {
     b.send = () => {};
     return b as never;
   });
+  // ⭐ A terminal on a channel asks the channel catalogue whether it is
+  // private (D8) — off the open, unawaited. The catalogue is a store read,
+  // so the test supplies one: `#secret` is a player-made channel, every
+  // other name an open band.
+  vi.spyOn(ChatApi, 'catalogue').mockResolvedValue({
+    resolveByName: async (name: string) =>
+      name === 'secret' ? { kind: 'player-created' } : { kind: 'band' },
+    resolveHandle: () => null,
+  } as never);
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -124,6 +134,22 @@ describe('cockpit terminal', () => {
     expect(run(h, {})[0]).toMatchObject({ reason: 'missing-arg' });
     expect(run(h, { target: 'primary', cardId: 'who' })[0]).toMatchObject({
       reason: 'not-a-terminal',
+    });
+  });
+
+  it('⭐ a terminal on a player-made channel is marked private (D8)', async () => {
+    const h = await makeHarness();
+    h.interactive.applyCardArrangement([], {});
+    const id = terminals(h)[0]!.instanceId;
+    run(h, { target: '#secret' });
+    await vi.waitFor(() => {
+      const touched = h.ofType('card-touched').filter((e) => e.instanceId === id);
+      expect((touched[touched.length - 1] as { private?: boolean } | undefined)?.private).toBe(true);
+    });
+    run(h, { target: '#general' });
+    await vi.waitFor(() => {
+      const touched = h.ofType('card-touched').filter((e) => e.instanceId === id);
+      expect((touched[touched.length - 1] as { private?: boolean } | undefined)?.private).toBe(false);
     });
   });
 

@@ -121,13 +121,15 @@ export default class SugarLoaf extends CuttableMixin(PercolatingMixin(Provision)
   /**
    * Clay the loaf: a lump of wet clay on its base, whose water works down
    * through it over `clayDays` (sugar W4, the kernel's percolation).
+   * ⭐ Answers a reason, never a sentence — `ClayController` words it
+   * (controller-liquidity D8).
    */
-  public clay(lump: Stuff): { ok: boolean; line: string } {
+  public clay(lump: Stuff): { ok: true } | { ok: false; reason: 'not-clay' | 'clayed-already' } {
     if (!MixinApi.isTangible(lump) || !(lump.getMaterial()?.getName() ?? '').includes('clay')) {
-      return { ok: false, line: 'That is not clay.' };
+      return { ok: false, reason: 'not-clay' };
     }
     if (this.getPercolantL() > 0 || this.getReach() > 0) {
-      return { ok: false, line: 'It has been clayed already.' };
+      return { ok: false, reason: 'clayed-already' };
     }
     if (MixinApi.isStackable(lump) && lump.getQuantity() > 1) {
       lump.setQuantity(lump.getQuantity() - 1);
@@ -135,10 +137,7 @@ export default class SugarLoaf extends CuttableMixin(PercolatingMixin(Provision)
       void StuffApi.destruct(lump);
     }
     this.receivePercolant(this.clayWaterL);
-    return {
-      ok: true,
-      line: 'You pack wet clay on the base of the loaf. Its water will work down through it over the days to come.',
-    };
+    return { ok: true };
   }
 
   /** ⭐ The water carries molasses out as it goes, into the pot below. */
@@ -158,14 +157,12 @@ export default class SugarLoaf extends CuttableMixin(PercolatingMixin(Provision)
   }
 
   public override async cutPlan(req: CutRequest): Promise<CutAnswer> {
-    if (req.verb !== 'cut') return { ok: false, verb: req.verb, reason: 'not-cuttable' } as CutAnswer;
     const nips = req.tools.find((t) => MixinApi.isTool(t) && t.hasCapability('nipping'));
-    if (!nips) return { ok: false, verb: 'cut', reason: 'no-nips' };
+    if (!nips) return { ok: false, reason: 'no-nips' };
     const loaf = this as unknown as Stuff;
     const actor = req.actor;
     return {
       ok: true,
-      verb: 'cut',
       durationMs: NIP_MS,
       effortW: 300,
       facts: { kind: 'loaf', loaf },

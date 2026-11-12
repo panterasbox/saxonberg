@@ -1,0 +1,17 @@
+verbs: [config]
+category: system
+controller: /platform/idea/cmd/system/ConfigShowController
+description: "Show one of the world's settings (the Prime Minister's)"
+help: |
+  `config <key>` shows one application-wide setting's current value.
+  ⭐ One of three shapes of `config`: bare `config` lists every setting,
+  `config <key> <value>` sets one.
+examples:
+  - cmd: config defaultStartLocation
+    note: Show one setting's current value
+validators:
+  - /lib/command/validators/requiresPrimeMinister
+args:
+  - name: key
+    type: string
+    required: true

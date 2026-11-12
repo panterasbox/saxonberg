@@ -43,7 +43,6 @@ subcommands:
       - name: location
         type: object
         required: false
-        greedy: true
         default: "here"
         scope: ["reachable"]
         requires: ContainerMixin

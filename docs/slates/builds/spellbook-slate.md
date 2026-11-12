@@ -451,3 +451,11 @@ Found and crafted are one model, filled two ways.
 - Rune × verb × effect fit — *"you're just burying the problem a layer deeper"* — deferred until the
   effect roster grows; *"I expect the spellbook to grow organically."*
 - Stacking rules when several getter shadows sit on one method.
+- ⭐ **The magic Apis return prose, not reasons** (controller-liquidity W13/W14,
+  deferred): `Caster.prepareCast`/`resolveCast` and the zap/recite paths hand a
+  composed `refusal` string to `cast`/`zap`/`recite`, so those controllers cannot
+  be replaced in other words. The refusals are written across the faculty, band,
+  impairment and suppression producers — a closed reason union over them is its
+  own kernel change. **`recharge`'s `transfer`-spell gate** wants a kernel field on
+  `Charged` naming the spell that may refill it (the kernel cannot name a content
+  spell) plus the rows.

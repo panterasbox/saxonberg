@@ -5,11 +5,14 @@
 # posted criteria would refuse is refused, citing the criterion.
 verbs: [berth]
 category: harbor
-controller: /system/transport/idea/cmd/harbor/BerthController
+# ⭐ Two words, one controller each (controller-liquidity W7b): the
+# fallthrough form gives a quay (`BerthAtController`); `berth roads <ship>`
+# is the subcommand that sends her to the roads (`BerthRoadsController`).
+controller: /system/transport/idea/cmd/harbor/BerthAtController
 description: "Give a ship a quay, or send her to the roads — the harbormaster's call"
 help: |
   At the harbor office's book, whoever keeps the harbor on shift gives a
-  ship her berth: `berth <ship> at <quay>`, or `berth <ship> roads` to
+  ship her berth: `berth <ship> at <quay>`, or `berth roads <ship>` to
   have her lie in the roads. The ship is named as the book knows her — a
   ship in the book, or one that hailed lately (`look book` shows them).
 
@@ -25,14 +28,30 @@ validators:
 examples:
   - cmd: berth kittiwake at town-quay
     note: Give the Kittiwake the Town Quay
-  - cmd: berth corrigan roads
+  - cmd: berth roads corrigan
     note: Have the Corrigan lie in the roads until the office calls her in
+fallthrough: true
+subcommands:
+  roads:
+    controller: /system/transport/idea/cmd/harbor/BerthRoadsController
+    description: "Have a ship lie in the roads until the office calls her in"
+    args:
+      - name: ship
+        type: string
+        required: true
+      - name: book
+        type: object
+        required: true
+        prepositions: [in]
+        default: "reachable:[class.HarborBook]"
+        scope: ["here", "peers", "person"]
+        requires: [PayableMixin]
 args:
   - name: ship
     type: string
     required: true
   # ⭐ A quay's name may be two words (`town quay`), so the tail is greedy;
-  # `at` is its boundary, and `roads` is its other answer.
+  # `at` is its boundary. The roads are `berth roads <ship>`, not a quay.
   - name: quay
     type: string
     required: true
@@ -45,7 +64,6 @@ args:
   - name: book
     type: object
     required: true
-    greedy: true
     prepositions: [in]
     default: "reachable:[class.HarborBook]"
     scope: ["here", "peers", "person"]

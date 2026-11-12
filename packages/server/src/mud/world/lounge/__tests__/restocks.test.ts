@@ -39,7 +39,7 @@ import type { BrainContext } from '../../../lib/behavior/brain';
 import JobPostController from '../../../platform/idea/cmd/work/JobPostController';
 import JobBoard from '../../../platform/thing/JobBoard';
 import ShelfConsignController from '../../../platform/idea/cmd/retail/ShelfConsignController';
-import WalletController from '../../../platform/idea/cmd/banking/WalletController';
+import WalletUseController from '../../../platform/idea/cmd/banking/WalletUseController';
 import StockBase from "../../../lib/retail/Stock";
 import Bottle from '../../../platform/thing/Bottle';
 import CraftVessel from '../../../platform/thing/CraftVessel';
@@ -317,7 +317,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
     ContainmentApi.move(hand as never, cashAndCarry as never);
     await outfit.appoint(hand, 'hand');
     const c = ctx(hand, cashAndCarry, null, 'wallet use house');
-    await asPrincipal(hand, () => makeStuff(() => new WalletController()).execute({ subcommand: 'use', corpo: 'house' } as never, c));
+    await asPrincipal(hand, () => makeStuff(() => new WalletUseController()).execute({ subcommand: 'use', corpo: 'house' } as never, c));
     expect(rejections(c)).toEqual([]);
     const out: Bottle[] = [];
     for (let i = 0; i < n; i++) {
@@ -357,7 +357,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
         from.find((c) => MixinApi.isPerceptible(c) && c.hasKeyword(kw));
       if (verb === 'wallet') {
         const c = ctx(who, here, null, text);
-        await asPrincipal(who, () => makeStuff(() => new WalletController()).execute({ subcommand: 'use', corpo: 'house' } as never, c));
+        await asPrincipal(who, () => makeStuff(() => new WalletUseController()).execute({ subcommand: 'use', corpo: 'house' } as never, c));
         expect(rejections(c)).toEqual([]);
         return;
       }

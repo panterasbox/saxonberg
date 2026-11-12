@@ -25,20 +25,13 @@
  * therefore diegetic rather than a rule.
  */
 
-import { FieldWorkController, FIELD_TOPIC } from './FieldWorkController';
+import { FieldWorkController } from './FieldWorkController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
-import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
-import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import { SWARD_RESIDUAL_FRACTION } from '../../../lib/Sward';
-import type Field from '../../../thing/Field';
+import type { MowRefusal } from '../../../thing/Field';
+
+type Composed = ReturnType<typeof Mml.compose>;
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface MowModel extends CommandModel {
@@ -47,43 +40,11 @@ interface MowModel extends CommandModel {
   part?: MqlOneResult;
 }
 
-
-/** What a cut of hay comes off the field as. */
-const HAY_ROW = '/trade/farming/thing/hay';
-
 /**
- * ⭐⭐ **Crude protein is nitrogen × 6.25** — how feed is actually valued
- * and sold, and the constant that makes soil fertility and dietary
- * protein ONE accounting (D14).
- *
- * Hay's own material row authors its protein in mg/kg, exactly as every
- * food does. So what a cut carries off the field is **derived from what
- * it is worth as feed**, and the two halves the engine has always had
- * separately — a soil `nitrogen` reserve, and `Material.nutrientAmounts`
- * — are finally the same number seen twice.
- *
- * ⭐ Which is *why* understocking hurts: stemmy grass is low-protein
- * grass, so a sward that got ahead of the herd is both worse feed and a
- * smaller export. One fact, two consequences, no second rule.
+ * ⭐⭐ **The field decides** (controller-liquidity W10): the residual, the
+ * pace, the nitrogen exported, the bales and their wetness —
+ * `Field.mowPlanFor`. This file binds the scythe and writes the words.
  */
-const HAY_PROTEIN_MG_PER_KG = 120_000;
-
-/** mg of nitrogen per mg of crude protein. */
-const NITROGEN_PER_PROTEIN = 1 / 6.25;
-
-/**
- * Percentage points of the field's nitrogen reserve one gram of exported
- * nitrogen represents. The reserve is a `%` scale over the field's whole
- * root zone, so this is the units bridge and nothing more.
- */
-const RESERVE_POINTS_PER_G_N = 0.0004;
-
-/**
- * Kilograms in a bale — what one person lifts onto a rick or into a
- * trough (cover build D11). A small square bale is about this.
- */
-const BALE_KG = 25;
-
 export default class MowController extends FieldWorkController {
   async execute(model: MowModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
@@ -94,11 +55,7 @@ export default class MowController extends FieldWorkController {
     }
     const scythe = this.toolOf(model.tool?.stuff, 'mowing');
     if (!scythe) {
-      this.decline(
-        context,
-        Mml.compose`Not by hand. You would want a scythe.`,
-        'no-tool',
-      );
+      this.decline(context, Mml.compose`Not by hand. You would want a scythe.`, 'no-tool');
       return;
     }
     const choice = this.fieldChoice(reading.tract, model.part?.stuff ?? null);
@@ -106,107 +63,33 @@ export default class MowController extends FieldWorkController {
       this.decline(context, Mml.fromMarkup(choice.line), choice.reason);
       return;
     }
-    const field = choice.field;
-    const ceiling = field.swardCeilingKg();
-    const standing = field.standingDryMatterKg();
-    const cuttable = standing - ceiling * SWARD_RESIDUAL_FRACTION;
-    if (cuttable <= 0.5) {
-      this.decline(
-        context,
-        Mml.compose`${field.swardPhrase()} — there is nothing on it worth a scythe, and cutting into the crowns would finish it.`,
-        'below-residual',
-      );
+    const plan = choice.field.mowPlanFor(giver, scythe);
+    if (plan === null) return;
+    if (!plan.ok) {
+      this.decline(context, MowController.refusalWords(plan), plan.reason);
       return;
     }
-
-    this.engageAct(context, {
-      // A scythe is slow and the swathe is the field's size, not yours.
-      durationMs: Math.round(3_000 + cuttable * 400),
-      cost: 8,
-      beginSelf: Mml.compose`You set the edge of ${Mml.thing(scythe)} into the grass and start the first swathe.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} starts mowing, working across the field in long even swathes.`,
-      onComplete: () => {
-        void MowController.finish(context, reading, field, cuttable);
-      },
+    await this.engagePlan(context, plan, {
+      beginSelf: (f) => Mml.compose`You set the edge of ${Mml.thing(f.scythe)} into the grass and start the first swathe.`,
+      beginPeers: () => Mml.compose`${Mml.actor(giver)} starts mowing, working across the field in long even swathes.`,
+      onRefused: (r) => MowController.refusalWords(r),
+      onDone: (f) => ({
+        self: Mml.compose`You cut it down to the residual and leave it lying — ${f.takenKg} kilos of it. ${f.exported ? 'The field is the poorer for what you carried off it.' : ''}`,
+        peers: Mml.compose`${Mml.actor(giver)} finishes the last swathe and stands up.`,
+      }),
     });
   }
 
-  private static async finish(
-    context: CommandContext,
-    reading: NonNullable<Awaited<ReturnType<FieldWorkController['fieldOf']>>>,
-    field: Field & Stuff,
-    cuttable: number,
-  ): Promise<void> {
-    const giver = context.commandGiver;
-    const { tract } = reading;
-    const taken = field.drawSward(cuttable);
-    if (taken <= 0) {
-      MessageApi.scene(context.commandGiver)
-        .topic(FIELD_TOPIC)
-        .toSelf(Mml.compose`There was less on it than you thought.`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'nothing-cut',
-        detail: 'nothing-cut',
-      });
-      return;
-    }
-
-    // ⭐⭐ THE line, and it is now derived rather than declared: the
-    // crop carried its own protein away, and protein IS nitrogen × 6.25.
-    const proteinG = (taken * HAY_PROTEIN_MG_PER_KG) / 1000;
-    const nitrogenG = proteinG * NITROGEN_PER_PROTEIN;
-    const exported = field.drawNutrient(nitrogenG * RESERVE_POINTS_PER_G_N);
-
-    // ⭐ Made up into BALES a person can carry (cover build D11), not one
-    // bale the weight of the whole cut: the hay goes into a rick a forkful
-    // at a time, and a trough draws it a bale at a time.
-    const moisture = field.soilMoistureFraction();
-    const bales = Math.max(1, Math.ceil(taken / BALE_KG));
-    for (let i = 0; i < bales; i++) {
-      const kg = i < bales - 1 ? BALE_KG : taken - BALE_KG * (bales - 1);
-      let hay: Stuff | null = null;
-      try {
-        hay = await StuffApi.clone<Stuff>(HAY_ROW);
-      } catch {
-        hay = null;
+  protected static refusalWords(r: MowRefusal): Composed {
+    switch (r.reason) {
+      case 'below-residual':
+        return Mml.compose`${r.facts.field.swardPhrase()} — there is nothing on it worth a scythe, and cutting into the crowns would finish it.`;
+      case 'nothing-cut':
+        return Mml.compose`There was less on it than you thought.`;
+      default: {
+        const never: never = r.reason;
+        return Mml.compose`${String(never)}`;
       }
-      if (!hay) break;
-      // The cut IS the mass. Nobody authors how much hay a field gives.
-      const massed = hay as unknown as { setMass?(q: Quantity<'kg'>): void };
-      massed.setMass?.(Quantity.of(round2(kg), 'kg'));
-      // ⚠⚠ **And the cut carries the field's wetness into the barn**
-      // (D48). This one line is the whole of the hay fire: what decides
-      // whether a rick heats is what went into it, and you cannot see
-      // that afterwards. Cutting in a wet spell is invisible today and
-      // catastrophic in a month.
-      if (moisture !== null) {
-        (hay as unknown as { baledMoistureFraction?: number })
-          .baledMoistureFraction = round2(0.1 + moisture * 0.3);
-      }
-      ContainmentApi.move(hay as Stuff & Containable, tract as unknown as Stuff & Container);
     }
-    // ⭐ Capture the host, as `harvest` and `sow` do: the cut sward and the
-    // bales lying on it are the field's state now, and an idle field that
-    // is evicted uncaptured comes back as its row — bales and all gone.
-    try {
-      await PersistableApi.captureHostOf(tract as unknown as Stuff);
-    } catch (err) {
-      console.warn('MowController: capture after mowing failed:', err);
-    }
-
-    MessageApi.scene(giver)
-      .topic(FIELD_TOPIC)
-      .toSelf(
-        Mml.compose`You cut it down to the residual and leave it lying — ${round2(taken)} kilos of it. ${exported > 0 ? 'The field is the poorer for what you carried off it.' : ''}`,
-      )
-      .toPeers(Mml.compose`${Mml.actor(giver)} finishes the last swathe and stands up.`)
-      .send();
-    await this.credit(giver, 3);
   }
-}
-
-function round2(v: number): number {
-  return Math.round(v * 100) / 100;
 }

@@ -3,8 +3,10 @@ category: dyeing
 controller: /trade/dyeing/idea/cmd/dyeing/MordantController
 description: "Prepare cloth in a metal bath so a colour will bind"
 help: |
-  `mordant <thing> with <alum|iron|tannin>` puts cloth through the
-  first of two baths.
+  `mordant <thing> [in <bath>]` puts cloth through the first of two
+  baths. The bath is a vessel of mordant — alum, iron (copperas) or
+  tannin — and a piece takes a dose of it; bare, the first such vessel
+  in reach is used.
 
   ⭐ A mordant carries no colour of its own. It is what a colour BINDS
   TO — so the skill in this trade is front-loaded: you commit to a
@@ -29,6 +31,16 @@ args:
     required: true
     scope: [inventory, reachable]
     requires: DyedMixin
-  - name: mordant
-    type: string
-    required: true
+  # ⭐ WHICH BATH — DECLARED, not hunted (C9, controller-liquidity W11).
+  # It was a bare word (`with alum`) that bound nothing and cost nothing;
+  # the mordant is the bath's MATERIAL now, and a dose is spent from it.
+  # Bare, the binder hands over every reachable vessel and the controller
+  # takes the first holding a mordant; `mordant the wool in the tub` names
+  # one.
+  - name: bath
+    type: objects
+    required: false
+    prepositions: [in, with, at]
+    default: "reachable:[mixin.BulkableMixin]"
+    scope: ["here", "peers", "person"]
+    requires: [BulkableMixin]

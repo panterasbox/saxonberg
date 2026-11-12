@@ -43,6 +43,7 @@ import { Burning, type BurningStored } from './Burning';
 // eslint-disable-next-line no-restricted-imports -- the F1 object face: Combustible's ignite()/douse()/advanceBurn() forward into the fire logic singleton exactly as the api/fire facade does (the mixin is the subsystem's instance face; Energized is the D3 precedent)
 import { FireLogic } from '../../platform/idea/api/FireLogic';
 import type { IgniteOutcome } from '../../api/fire';
+import type { ActDone, ActPlan, ActRefusal } from '../craft/ActPlan';
 
 /** Resolve the HMR-able FireLogic singleton (the combustion driver). */
 function fireLogic(): FireLogic {
@@ -71,6 +72,15 @@ function dial(key: string, fallback: number): number {
  * The Combustible capability surface. Reads are the contract; the Burning
  * state is written only by the gated `FireLogic` (the `_`-prefixed mutators).
  */
+/** ⭐ Every reason a lighting refuses — `LightController` words each. */
+export type IgniteRefusal = ActRefusal<NonNullable<IgniteOutcome['reason']>>;
+/** A lighting: instant (`durationMs: 0`); it catches, or refuses, at completion. */
+export type IgnitePlan = ActPlan<undefined, undefined, IgniteRefusal>;
+/** ⭐ The one reason a dousing refuses — `DouseController` words it. */
+export type ExtinguishRefusal = ActRefusal<'not-burning'>;
+/** A dousing: instant; it hisses out, or was not burning, at completion. */
+export type ExtinguishPlan = ActPlan<undefined, undefined, ExtinguishRefusal>;
+
 export interface Combustible {
   /** Is the object currently on fire? */
   isBurning(): boolean;
@@ -106,6 +116,14 @@ export interface Combustible {
   // The combustion face (F1) — forwards into the FireLogic driver.
   /** Deliberate ignition; `{lit:false, reason}` on refusal. */
   ignite(): IgniteOutcome;
+  /**
+   * ⭐ `light` asks this (controller-liquidity W8): the lighting by `by` —
+   * the fire-triangle verdict is the completion's, so a refusal arrives as
+   * its result. Shared with `Burner`, which also starts its firing.
+   */
+  ignitePlanFor(by: Stuff): Promise<IgnitePlan>;
+  /** ⭐ `douse` asks this (W8): the dousing by `by`; `not-burning` at completion. */
+  extinguishPlanFor(by: Stuff): Promise<ExtinguishPlan>;
   /** Heat-threshold autoignition; returns whether it lit. */
   tryAutoignite(): boolean;
   /** The water/wet extinguisher; returns whether anything was doused. */
@@ -323,6 +341,31 @@ export function CombustibleMixin<TBase extends MixinConstructor<Stuff>>(
     @Unshadowable
     public ignite(): IgniteOutcome {
       return fireLogic().ignite(this as unknown as Stuff);
+    }
+
+    public async ignitePlanFor(_by: Stuff): Promise<IgnitePlan> {
+      return this.instantFirePlan<IgniteRefusal>(() => {
+        const out = this.ignite();
+        return out.lit
+          ? { ok: true, facts: undefined }
+          : { ok: false, reason: out.reason ?? 'not-flammable' };
+      });
+    }
+
+    public async extinguishPlanFor(_by: Stuff): Promise<ExtinguishPlan> {
+      // Read now as well as at completion (the fire may have gone out
+      // between): a fire that is out is not doused.
+      const burning = this.isBurning();
+      return this.instantFirePlan<ExtinguishRefusal>(() =>
+        burning && this.douse() ? { ok: true, facts: undefined } : { ok: false, reason: 'not-burning' },
+      );
+    }
+
+    /** An instant act at the fire: no time, no effort, its verdict at completion. */
+    private instantFirePlan<X extends ActRefusal<string>>(
+      run: () => ActDone<undefined, X> | Promise<ActDone<undefined, X>>,
+    ): ActPlan<undefined, undefined, X> {
+      return { ok: true, durationMs: 0, effortW: 0, facts: undefined, onComplete: run };
     }
 
     /**

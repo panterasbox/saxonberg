@@ -13,6 +13,7 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import EmbodyController from '../EmbodyController';
+import EmbodyConfirmController from '../EmbodyConfirmController';
 import Login from '../../../Login';
 import Interactive from '../../../Interactive';
 import Avatar from '../../../../../lib/character/Avatar';
@@ -50,7 +51,7 @@ const SAPIENS =
 
 describe('EmbodyController.commit → chronicle seeding', () => {
   let login: Login;
-  let ctrl: EmbodyController;
+  let ctrl: EmbodyConfirmController;
   let ctx: CommandContext;
   let user: { _id: string; playerIds: string[]; save: ReturnType<typeof vi.fn> };
   let avatarPath: string;
@@ -98,7 +99,7 @@ describe('EmbodyController.commit → chronicle seeding', () => {
       pronouns: 'she',
       aspiration: 'healer',
     });
-    ctrl = makeStuff(() => new EmbodyController());
+    ctrl = makeStuff(() => new EmbodyConfirmController());
 
     const species = makeStuff(() => new Species());
     species.setSexDeterminationSystem('dioecious');

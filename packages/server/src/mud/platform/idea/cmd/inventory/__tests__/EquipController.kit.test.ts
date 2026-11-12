@@ -19,7 +19,8 @@
  */
 
 import '../../../../../../test-bootstrap';
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import { MessageApi } from '../../../../../api/message';
 import EquipController from '../EquipController';
 import UnequipController from '../UnequipController';
 import RemoveController from '../RemoveController';
@@ -222,6 +223,47 @@ describe('bare `equip` — the whole kit', () => {
     expect(worn(body).sort()).toEqual(['cloak', 'jerkin', 'shirt']);
   });
 
+  it('⭐ C44: what is already on is not pooled — no "nowhere left to put it" for your own coat', async () => {
+    const { body, loc, plan } = standUp();
+    const shirt = garment(plan, 'woven', 'shirt');
+    ContainmentApi.move(shirt as never, body as never);
+    body.occupyAll(shirt as never, ['torso']);
+    const cloak = garment(plan, 'woven', 'cloak');
+    ContainmentApi.move(cloak as never, body as never);
+    const lines: string[] = [];
+    const spy = vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
+      const b: Record<string, unknown> = {};
+      b.topic = () => b;
+      b.toSelf = (m: unknown) => {
+        lines.push(String(m));
+        return b;
+      };
+      b.toPeers = () => b;
+      b.send = () => {};
+      return b as never;
+    });
+    await makeStuff(() => new EquipController()).execute({} as never, ctx(body, loc));
+    await settle();
+    spy.mockRestore();
+    expect(worn(body).sort()).toEqual(['cloak', 'shirt']);
+    expect(lines.join(' ')).not.toMatch(/leave/);
+  });
+
+  it('⭐ C43: `wear` of a thing already on says so', async () => {
+    const { body, loc, plan } = standUp();
+    const shirt = garment(plan, 'woven', 'shirt');
+    ContainmentApi.move(shirt as never, body as never);
+    body.occupyAll(shirt as never, ['torso']);
+    const c = ctx(body, loc, 'wear');
+    await makeStuff(() => new WearController()).execute(
+      { target: { stuff: shirt as never, raw: 'shirt' } } as never,
+      c,
+    );
+    expect(
+      c.getNotes().some((n) => (n as { reason?: string }).reason === 'already-worn'),
+    ).toBe(true);
+  });
+
   it('says so when there is nothing to put on', async () => {
     const { body, loc } = standUp();
     const c = ctx(body, loc);
@@ -253,9 +295,44 @@ describe('⭐ `--from` — dressing out of a container', () => {
     await settle();
     expect(worn(body)).toEqual(['shirt']);
   });
+
+  it('⭐ C42: a piece the body refuses STAYS in the chest — refused before it moves', async () => {
+    const { body, loc } = standUp();
+    const chest = makeStuff(() => new Chest());
+    ContainmentApi.move(chest as never, loc as never);
+    // Cut for a body plan this one does not have: no slot for it.
+    const odd = garment('/stuff/idea/bodyplan/_test/elsewhere', 'woven', 'tabard');
+    ContainmentApi.move(odd as never, chest as never);
+    const c = ctx(body, loc);
+    await makeStuff(() => new EquipController()).execute(
+      {
+        target: { stuff: odd as never, raw: 'tabard' },
+        from: { stuff: chest as never, raw: 'chest' },
+      } as never,
+      c,
+    );
+    await settle();
+    expect(odd.getContainer()).toBe(chest);
+    expect(c.getNotes().map((n) => (n as { reason?: string }).reason)).toEqual(['wrong-fit']);
+  });
 });
 
 describe('`unequip`', () => {
+  it('⭐ C53: the strip CHAINS — each layer takes its own time', async () => {
+    const { body, loc, plan } = standUp();
+    for (const kw of ['shirt', 'jerkin', 'cloak']) {
+      const g = garment(plan, 'woven', kw);
+      ContainmentApi.move(g as never, body as never);
+      body.occupyAll(g as never, ['torso']);
+    }
+    expect(worn(body)).toHaveLength(3);
+    await makeStuff(() => new UnequipController()).execute({} as never, ctx(body, loc));
+    // One layer is coming off; the other two wait their turn.
+    expect(worn(body)).toHaveLength(2);
+    await settle();
+    expect(worn(body)).toEqual([]);
+  });
+
   it('⭐ peels OUTERMOST-first — you cannot pull a shirt out from under plate', async () => {
     const { body, loc, plan } = standUp();
     const shirt = garment(plan, fabricPath('woven'), 'shirt');

@@ -9,11 +9,10 @@
  * checked weapon is simply held for you to `rack reclaim`, never brokered (a
  * coat check, not a marketplace).
  *
- * Gates: there must be a rack here; you must be carrying the thing; it
- * must be a WEAPON (the combat construction-domain predicate — a shield
- * is armor and is refused); and it must be a discrete good (a fungible
- * stack is owned-by-possession, never checked). An unstamped weapon is
- * stamped to you on check, so `reclaim` can authorize on `ownerOf`.
+ * Gates: there must be a rack here; you must be carrying the thing (the
+ * view). What the rack TAKES is the rack's (`accepts` — a check rack:
+ * a discrete weapon), and `checkIn` does the act: an unstamped weapon is
+ * stamped to you, so `reclaim` can authorize on `ownerOf`.
  *
  * No bank account, no ask, no house — this is custody, not a sale. The
  * `rack` noun is afforded solely by the `CheckRack` fixture's
@@ -22,19 +21,12 @@
 
 import { HeldGoodsControllerBase, TOPIC } from "./HeldGoodsControllerBase";
 import type { CommandContext, CommandModel } from "../../../../api/command";
-import Ticket from "../../../thing/Ticket";
-import { ContainmentApi } from "../../../../api/containment";
-import { StuffApi } from "../../../../api/stuff";
-import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
-import { ChattelApi } from "../../../../api/chattel";
-import { CombatApi } from "../../../../api/combat";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { Container } from "../../../../lib/spatial/Container";
 import type { Containable } from "../../../../lib/spatial/Containable";
 import type { Chattel } from '../../../../lib/chattel/Chattel';
-import type { Wieldable } from '../../../../lib/slot/Wieldable';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { RackStuff } from '../../../../lib/retail/HeldGoods';
 
@@ -63,7 +55,7 @@ export default class RackCheckController extends HeldGoodsControllerBase<CheckMo
     // ⭐ Read, never hunted. `scope: [inventory]` on the view is what
     // "you must be carrying it" means, and the binder enforces it.
     const item = (model.thing?.stuff ?? null) as
-      | (Stuff & Containable & { getChattelId(): string })
+      | (Stuff & Containable & Chattel)
       | null;
     if (!item) {
       return this.reject(
@@ -74,45 +66,32 @@ export default class RackCheckController extends HeldGoodsControllerBase<CheckMo
       );
     }
 
-    // A weapon, and a discrete one — a shield is armor (refused), a
-    // fungible stack is owned-by-possession (never checked).
-    if (!((item) as unknown as Stuff & Wieldable).isWeapon()) {
-      return this.reject(
-        giver,
-        context,
-        Mml.compose`${Mml.thing(item)} isn't a weapon to check.`,
-        { kind: "controller-rejected", reason: "not-a-weapon", detail: model.thing?.raw ?? "" },
-      );
+    // ⭐ The rack decides what it takes and does the check-in — the
+    // owner-stamp, custody, the book and the ticket (controller-liquidity
+    // W8, C61). This controller words the answer.
+    const result = await rack.checkIn(item, giver as unknown as Stuff & Container);
+    if (!result.ok) {
+      switch (result.reason) {
+        case "not-a-weapon":
+          return this.reject(
+            giver,
+            context,
+            Mml.compose`${Mml.thing(item)} isn't a weapon to check.`,
+            { kind: "controller-rejected", reason: "not-a-weapon", detail: model.thing?.raw ?? "" },
+          );
+        case "fungible":
+          return this.reject(
+            giver,
+            context,
+            Mml.compose`You can't check a loose stack.`,
+            { kind: "controller-rejected", reason: "fungible", detail: model.thing?.raw ?? "" },
+          );
+        default: {
+          const never: never = result.reason;
+          return never;
+        }
+      }
     }
-    if (MixinApi.isStackable(item)) {
-      return this.reject(
-        giver,
-        context,
-        Mml.compose`You can't check a loose stack.`,
-        { kind: "controller-rejected", reason: "fungible", detail: model.thing?.raw ?? "" },
-      );
-    }
-
-    // Establish the owner-stamp if unstamped — reclaim authorizes on it.
-    if (!item.getChattelId()) await (item as unknown as Stuff & Chattel).stampChattel(giver);
-    const consignorKey = giver.getIdentityPath() ?? "";
-
-    // Custody → the rack; the owner-stamp stays put. It's a plain
-    // holding (no ask, no listing) — nothing to buy, only to reclaim.
-    ContainmentApi.move(item, rack);
-    rack.recordHolding(item.getChattelId(), consignorKey);
-
-    // The diegetic claim: a carried ticket stamped with the rack. The
-    // AUTHORITY to reclaim is the owner-stamp, not the ticket — so a lost
-    // ticket never traps your weapon (it's flavor, not the key).
-    // ⭐ The row carries the prose and the keywords; the rack and the
-    // number are runtime state, so they are patched on after the clone.
-    // (The note that used to sit here — "a runtime-minted thing has no
-    // row to author them in" — is what the create→clone sweep fixed.)
-    const ticket = await StuffApi.clone<Ticket>("/platform/thing/Ticket");
-    ticket.pointPath = rack.getTemplatePath() ?? "";
-    ticket.number = rack.countHeld(consignorKey);
-    ContainmentApi.move(ticket as unknown as Stuff & Containable, giver as unknown as Stuff & Container);
 
     MessageApi.scene(giver)
       .topic(TOPIC)

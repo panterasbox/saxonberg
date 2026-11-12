@@ -52,6 +52,7 @@ import Stock from '@saxonberg/server/mud/lib/retail/Stock';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
+import { CommandLineApi } from '@saxonberg/server/mud/api/command-line';
 
 const DEFAULT_BATCH = 6;
 
@@ -188,7 +189,7 @@ export const brain = class {
         for (let i = 0; i < e.count; i += 1) {
           if (BankingApi.balanceOf(account).minor < (e.supplierCounter.priceFor(e.template) ?? 0)) break;
           const before = keeper.getContents().length;
-          await keeper.forceCommand(`buy ${kw}`);
+          await keeper.forceCommand(`buy ${CommandLineApi.word(kw)}`);
           if (keeper.getContents().length <= before) break; // a refused buy — stop
         }
         await ctx.goTo(homePath);
@@ -213,7 +214,7 @@ async function shelve(keeper: Keeper, counter: Stock, homePath: string): Promise
     if (!MixinApi.isChattel(good) || MixinApi.isCredentialWallet(good)) continue;
     const kw = keywordOf(good);
     if (!kw) continue;
-    await keeper.forceCommand(`put ${kw} in ${counterKw}`);
+    await keeper.forceCommand(`put ${CommandLineApi.word(kw)} in ${CommandLineApi.word(counterKw)}`);
   }
 }
 

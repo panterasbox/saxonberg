@@ -91,7 +91,7 @@ const noDigits = (t: string) => expect(t.replace(/<[^>]+>/g, '').replace(/Owned 
 /** `look --peek <thing>` — a close look that leaves the focus alone, so a bare `look` after it is still the room. */
 async function peek(s: Session, target: string): Promise<string> {
   await s.drainProse();
-  return squash(await s.prose(`look --peek ${target}`));
+  return squash(await s.prose(`look --peek "${target}"`));
 }
 
 let handle: string;
@@ -191,7 +191,7 @@ async function castFor(s: Session, line: string, maxTicks: number, work = false)
   for (let i = 0; i < 80; i++) {
     const held = await fishInHand(s);
     if (!held) break;
-    expectOk(await s.cmd(`drop ${held}`));
+    expectOk(await s.cmd(`drop "${held}"`));
   }
   await s.drainProse();
   const started = await s.cmd(line);
@@ -243,7 +243,7 @@ beforeAll(async () => {
   // found the angler COLLAPSED at the seventh hour — and every unfed
   // Cast in the world with it (recorded on the plan; not fishing's).
   for (const good of ['rod', 'worm', 'worm', 'worm', 'worm', 'worm', 'worm', 'crab-pot', 'net', 'bowl', 'fish-food', 'float-rod', 'leger-rod', 'spoon', 'keepnet', 'rations', 'rations', 'rations', 'rations', 'rations']) {
-    expectOk(await s.cmd(`buy ${good}`));
+    expectOk(await s.cmd(`buy "${good}"`));
   }
   s.close();
   me = await Session.open(handle, { startLocation: BANK, ...ANGLER });
@@ -417,7 +417,7 @@ suite('9 · the net empties the reach; the fisher says so; it recovers', () => {
     for (let i = 0; i < 80; i++) {
       const held = await fishInHand(me);
       if (!held) break;
-      expectOk(await me.cmd(`drop ${held}`));
+      expectOk(await me.cmd(`drop "${held}"`));
     }
     await me.drainProse();
   };
@@ -496,7 +496,7 @@ suite('11–12 · the stall', () => {
     me = await Session.open(handle, { startLocation: SQUARE, ...ANGLER });
     // `on slab`: the square has two consignment counters and the produce
     // stalls come first in reach.
-    const c = await me.cmd(`shelf consign ${name} on slab --ask 4`);
+    const c = await me.cmd(`shelf consign "${name}" on slab --ask 4`);
     expectOk(c);
     expect(await fishCount(me)).toBe(held - 1);
 
@@ -522,7 +522,7 @@ suite('11–12 · the stall', () => {
     b.close();
     b = await Session.open(buyerHandle, { startLocation: SQUARE });
     // `from slab`: `stall` is also the produce stalls' keyword.
-    const buy = await b.cmd(`buy ${name} from slab`);
+    const buy = await b.cmd(`buy "${name}" from slab`);
     expectOk(buy);
     expect(await fishInHand(b)).toBe(name);
     b.close();
@@ -552,11 +552,11 @@ suite('11–12 · the stall', () => {
     // Not a game-day of world clock yet: the band edge is the dial (the
     // Prime Minister's `config` — the founder's).
     expectOk(await asFounder('config freshness.band.taintedAt 0.0001'));
-    const c = await me.cmd(`shelf consign ${name} on slab --ask 4`);
+    const c = await me.cmd(`shelf consign "${name}" on slab --ask 4`);
     expectRefused(c);
     expectNote(c, 'controller-rejected', { reason: 'turned' });
     await asFounder('config freshness.band.taintedAt 0.25');
-    expectOk(await me.cmd(`drop ${name}`));
+    expectOk(await me.cmd(`drop "${name}"`));
     await me.drainProse();
   }, 600_000);
 });
@@ -655,7 +655,7 @@ suite('14–15 · the kept carp', () => {
       expect(Number(earned)).toBeGreaterThanOrEqual(0);
       const named = await k.cmd('name carp Barnaby');
       expectOk(named);
-      expect(squash(await k.prose('find carp mine'))).toMatch(/Barnaby/);
+      expect(squash(await k.prose('find "carp mine"'))).toMatch(/Barnaby/);
     } finally {
       k.close();
     }
@@ -744,7 +744,7 @@ suite('17 · the rig, the lure and the keepnet (B8)', () => {
     try {
       const kept = await fishUntilLanded(s, 'fish with worm using cane', 40);
       expectOk(await s.cmd('lay keepnet'));
-      expectOk(await s.cmd(`put ${kept} in keepnet`));
+      expectOk(await s.cmd(`put "${kept}" in keepnet`));
       await s.drainProse();
       expect(await fishInHand(s)).toBeNull();
       await sleep(60_000);

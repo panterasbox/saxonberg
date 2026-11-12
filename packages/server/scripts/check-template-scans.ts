@@ -60,13 +60,12 @@ export const ALLOWLIST: AllowEntry[] = [
   { file: "packages/server/src/mud/platform/idea/LocationGraphRegistry.ts", count: 1, reason: "the location graph — the one index the world keeps of its own shape" },
   // ── author tooling ──
   { file: "packages/server/src/mud/platform/idea/cmd/shell/LsController.ts", count: 2, reason: TOOL },
-  { file: "packages/server/src/mud/platform/idea/cmd/shell/RmController.ts", count: 1, reason: TOOL },
   { file: "packages/server/src/mud/platform/idea/cmd/shell/GrepController.ts", count: 1, reason: TOOL },
   { file: "packages/server/src/mud/platform/idea/api/CmsLogic.ts", count: 1, reason: TOOL },
   { file: "packages/server/src/mud/platform/idea/api/SandboxLogic.ts", count: 1, reason: TOOL },
   { file: "packages/server/src/mud/lib/wiki/components/composition.ts", count: 1, reason: "the wiki composition page — " + TOOL },
   // ── the installer ──
-  { file: "packages/server/src/mud/platform/idea/api/TemplateLogic.ts", count: 2, reason: "the template installer — reconciling the table is its job" },
+  { file: "packages/server/src/mud/platform/idea/api/TemplateLogic.ts", count: 1, reason: "the template installer — its one descendant read (`_descendantsOf`), shared by the folder/leaf validators and the mv/rm writes that moved here from the shell (controller-liquidity W3)" },
   { file: "packages/server/src/backend/BootstrapManager.ts", count: 1, reason: "the boot sequencer expanding a prefix entry — boot itself, which lint:boot-entries holds" },
   // ── lazy dictionaries ──
   { file: "packages/server/src/mud/platform/idea/ReadingCatalogue.ts", count: 1, reason: LAZY_DICT },
@@ -82,8 +81,7 @@ export const ALLOWLIST: AllowEntry[] = [
   { file: "packages/content/transport/src/idea/LaneCatalogue.ts", count: 2, reason: "the transport system compiling its own index of its lanes and service routes, under its own namespace — once, lazily" },
   { file: "packages/content/energy/src/idea/GridCatalogue.ts", count: 1, reason: "the energy system compiling its own feeder reachability, under its own namespace — once, lazily" },
   { file: "packages/server/src/mud/lib/expanse/Expanse.ts", count: 1, reason: "a sea compiling its own nodes and bands — the rows under its own extent, which it owns (Expanse.compile)" },
-  // ── the wrong-way references the sweep flips ──
-  { file: "packages/content/trade-smelting/src/idea/cmd/smelting/SmeltController.ts", count: 1, reason: "an attribute match with no reference (a material → the trade's own product row), inside the trade's own namespace — the requirements' lazy-index case" },
+  // ── the wrong-way references the sweep flips ── (none left: controller-liquidity W9 — the smelt asks `Material.getCastTemplate()`)
   // ── the unobserved economy ──
   { file: "packages/server/src/mud/platform/idea/api/ResidencyLogic.ts", count: 1, reason: "the residency spawn sweep's censusKey read — the unobserved economy's faucet, kept by the scan sweep (→ unobserved-economy-slate)" },
 ];

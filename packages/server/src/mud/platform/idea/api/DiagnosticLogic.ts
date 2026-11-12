@@ -12,8 +12,11 @@ import type {
   RuntimeDiagnostic,
   RawDiagnostic,
   DiagnosticEvent,
+  RawConsoleLine,
+  RawConsoleFilter,
   TypecheckResult,
 } from '@saxonberg/types';
+import { ConsoleTap } from '../../../../backend/ConsoleTap';
 import { Collections } from '../../../lib/persistence/Collections';
 import { PersistApi } from '../../../api/persist';
 import { ExecutionContextApi } from '../../../api/execution-context';
@@ -419,6 +422,23 @@ export class DiagnosticLogic extends ApiLogic {
     }
     if (!ok) return -1;
     return PersistApi.deleteMany(Collections.Diagnostics, { path });
+  }
+
+  /**
+   * See {@link DiagnosticApi.rawTail}. ⭐ The console ring carries other
+   * players' lines, so reading it is the Prime Minister's — decided HERE,
+   * on the read (controller-liquidity D9), so a replaced `errors`
+   * controller cannot skip it. The reader is the CONTEXT-derived acting
+   * principal (the `clear` precedent) — unspoofable. `null` = refused.
+   */
+  @CallSecurity(DiagnosticApiCallers)
+  public async rawTail(
+    filter: RawConsoleFilter = {}
+  ): Promise<RawConsoleLine[] | null> {
+    const reader = actor();
+    if (!reader) return null;
+    if (!(await CompactApi.holdsOffice(reader, 'prime-minister'))) return null;
+    return ConsoleTap.get().tail(filter);
   }
 
   /**

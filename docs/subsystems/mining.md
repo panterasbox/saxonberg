@@ -221,7 +221,7 @@ forbids; unauthored pockets stay grid cells with their own prose.
 
 | | Verb | What it is |
 |---|---|---|
-| **the mirror** | `survey` — shipped, free, ungated | *what is this place* |
+| **the mirror** | `analyze rooms` — shipped, free, ungated | *what is this place* |
 | **the measurement** | `measure strike` / `measure dip` | instrumented, banded, load-bearing |
 | **the interpretation** | `analyze ground` | route-gated synthesis with error bands, plus what is **underfoot** |
 
@@ -234,11 +234,14 @@ instrument in reach the refusal NAMES the instrument
 (*"It wants a surveyor's compass or a miner's dial."*) instead of the
 verb not existing. See [instrumentation.md](./instrumentation.md).
 
-⭐⭐ `survey` is a MIRROR and the mine's read is a MEASUREMENT. The
-geological read is instrument-mediated, competence-banded and the thing a
-player pays for and acts on — the opposite of a read nothing is gated on.
-`MineWarren` answers the duck-typed `WarrenMember` shape `SurveyController`
-reads, so `survey` reports honestly in a working for free.
+⭐⭐ `analyze rooms` is a MIRROR and the mine's read is a MEASUREMENT.
+The geological read is instrument-mediated, competence-banded and the
+thing a player pays for and acts on — the opposite of a read nothing is
+gated on. `MineWarren` is a `FloorplanWarren`, which `analyze rooms`
+(`RoomsReading`, controller-liquidity W17/W21) reads, so it reports honestly in a working for free. (The mirror was the
+`survey` verb until W17; the owner gave the word back to the surveyors —
+the three channels above are the surveying.) `sample` asks the ground the same way: `StrataMixin`
+composes the kernel's `SampleableMixin` and answers with `sampleFace`.
 
 ⭐ **Competence buys resolution and the availability of an inference,
 never outcome.** The error bar IS the competence; the underlying figure is
@@ -784,6 +787,7 @@ catch is somebody who already staked this exact ground.
 Limestone's smelting tag is `smelting-flux` (bare `flux` is the
 glassmaker's, the potash family's); `burn-lime` burns a `carbonate`. The
 clamp's ash is sized to the charge (kg × the wood's ash fraction), in heaps,
-not one fixed drift. ⚠ `char 0.45` binds the number as the clamp (a
-pre-existing view defect the potash drive found); `draught` sets it. See
+not one fixed drift. `char` lights the burn and `draught clamp low`
+sets its air (the `char <n>` figure retired into `draught`,
+controller-liquidity W7b). See
 [potash.md](potash.md).

@@ -32,8 +32,7 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
-import Casting from '@saxonberg/server/mud/platform/thing/MetalCasting';
+import Stock from '../thing/Stock';
 import Bloom from '@saxonberg/content-trade-smelting/src/thing/Bloom';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -56,9 +55,8 @@ describe('⚠⚠ a verb’s arg gate must admit the things the verb is FOR', () 
    * carbon* — which it can only do if the binder lets the pig through.
    */
   const HAMMERABLE: [string, new () => object][] = [
-    ['Ingot (a wrought bar, and the cast-iron pig row)', Ingot],
+    ['Stock (a wrought bar, and the cast-iron pig row)', Stock],
     ['Bloom (consolidated by the first blow)', Bloom as unknown as new () => object],
-    ['MetalCasting (poured metal)', Casting],
   ];
 
   it('⭐ every ferrous product composes the mixin `hammer` gates its target on', () => {
@@ -84,11 +82,13 @@ describe('⚠⚠ a verb’s arg gate must admit the things the verb is FOR', () 
     }
   });
 
-  it('⭐ `quench` gates on the workpiece mixin, which its targets do compose', () => {
-    // The sibling verb, as the control: it was always right, and it is
-    // what made `hammer`'s gate look plausible.
+  it('⭐ `quench` gates on the piece protocol, which its targets do compose', () => {
+    // controller-liquidity W9: the piece decides finish-or-treat, so the
+    // gate names the protocol (a cook pot is a build too).
     const required = argRequires('quench', 'target');
-    expect(required).toBe('ManualBuildMixin');
-    expect(MixinApi.hasMixin(Ingot as never, required as never)).toBe(true);
+    expect(required).toBe('QuenchableMixin');
+    for (const [label, ctor] of HAMMERABLE) {
+      expect(MixinApi.hasMixin(ctor as never, required as never), label).toBe(true);
+    }
   });
 });

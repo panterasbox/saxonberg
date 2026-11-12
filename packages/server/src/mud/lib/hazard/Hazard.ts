@@ -79,6 +79,9 @@ const PIN_SECONDS_FALLBACK = 6;
 const DROP_FALL_ENERGY_FALLBACK = 4;
 
 /** A hazard's outward method surface (the inter-Stuff contract). */
+/** `hazard.disarmSeconds` fallback (game-seconds). */
+const DEFAULT_DISARM_SECONDS = 5;
+
 export interface Hazard {
   isArmed(): boolean;
   getHazardState(): HazardState;
@@ -100,6 +103,12 @@ export interface Hazard {
    * controller). A no-op once sprung/disarmed.
    */
   disarmBy(actor: Stuff): void;
+  /**
+   * ⭐ How long defusing this hazard holds the hands, game-ms — the
+   * `hazard.disarmSeconds` dial, read by the hazard itself
+   * (controller-liquidity W8). A non-positive or unread dial is 5 s.
+   */
+  getDisarmDurationMs(): number;
   /**
    * A mover has entered this hazard's locus. Springs it unless the mover
    * *avoids* it (already-discovered, actively-perceived, or clearing a
@@ -369,6 +378,11 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
      * found/armed gates, the costed activity, the actor's advancement deed).
      * No-op if already sprung/disarmed.
      */
+    public getDisarmDurationMs(): number {
+      const s = readDial(AppSettingKeys.hazardDisarmSeconds, DEFAULT_DISARM_SECONDS);
+      return (s > 0 ? s : DEFAULT_DISARM_SECONDS) * 1000;
+    }
+
     public disarmBy(actor: Stuff): void {
       if (!this.isArmed()) return;
       this.disarm();

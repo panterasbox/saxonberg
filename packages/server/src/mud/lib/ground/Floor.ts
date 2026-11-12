@@ -58,7 +58,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { Quantity } from '../quantity';
 import { WEATHER_DEFAULTS } from '../weather/WeatherType';
 import { AppSettingKeys } from '../config/AppSettings';
-import { Mixins, type MixinConstructor, type FieldMeta } from '../mixin';
+import { Mixins, type NestingConstructor, type FieldMeta } from '../mixin';
 import { UNBOUNDED_CAPACITY, type SlotSpec } from '../slot/Slotted';
 import { Postures } from '../slot/Postured';
 import type { MarkupAugmenter } from '../../api/mml';
@@ -83,6 +83,12 @@ import {
   type GroundMaterialClass,
 } from './GroundKind';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
+import { SweepableMixin, type SweepPlan, type SweepRefusal, type SweepRequest } from '../cleanliness/Sweepable';
+
+/** A floor's sweep with a broom, real ms; bare hands take three times as long. */
+const FLOOR_SWEEP_MS = 8000;
+/** What sweeping a floor costs, W. */
+const FLOOR_SWEEP_W = 250;
 import { DirtKinds } from '../cleanliness/DirtKind';
 import { MaterialApi } from '../../api/material';
 
@@ -453,13 +459,39 @@ function snowAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
 }
 
 export function FloorMixin<
-  TBase extends MixinConstructor<
+  TBase extends NestingConstructor<
     Stuff & Tangible & Slotted & Bulkable & Adornment & Visible
   >,
 >(Base: TBase) {
   // Declared-then-returned (the Slotted / Stand shape).
-  class FloorMixin extends Base implements Floor {
+  // ⭐ A floor is swept (`SweepableMixin`, controller-liquidity W7c): `sweep`
+  // asks it the plan; what a broom takes up is the floor's `sweepInto`.
+  class FloorMixin extends SweepableMixin(Base) implements Floor {
     static _mixinName = FLOOR_MIXIN;
+
+    /**
+     * @hook ⭐ `sweep`: a broom does it properly; bare hands take three
+     * times as long. A floor that takes no soil has nothing a broom could
+     * take up.
+     */
+    public override sweepPlanFor(req: SweepRequest): SweepPlan | SweepRefusal | null {
+      if (!this.takesSoil()) return { ok: false, reason: 'nothing-to-sweep' };
+      return {
+        ok: true,
+        durationMs: FLOOR_SWEEP_MS * (req.broom ? 1 : 3),
+        effortW: FLOOR_SWEEP_W,
+        facts: { tool: req.broom ? 'broom' : 'hands' },
+        onComplete: async () => {
+          const { kg, kinds, heap } = await this.sweepInto(req.actor);
+          if (heap !== null && MixinApi.isAdvancing(req.actor)) {
+            // The deed `analyze cleanliness` reads (B57).
+            void req.actor.creditDeed({ discipline: 'domestic-services', difficulty: 'easy', outcome: 'success' });
+          }
+          // Nothing worth a heap is nothing taken up (a heap is minted past 0.01 kg).
+          return { ok: true, facts: { kg: heap === null ? 0 : kg, kinds, taken: heap === null ? [] : [heap] } };
+        },
+      };
+    }
 
     /** The derived reading, rendered into the host's `look`. */
     static markupAugmenters: MarkupAugmenter[] = [floorAugmenter, snowAugmenter];
@@ -1136,7 +1168,9 @@ export function FloorMixin<
      * cannot forget them.
      */
     public getKeywords(viewer?: Stuff): string[] {
-      const own = super.getKeywords(viewer);
+      // Through the base's prototype: `NestingConstructor` types `super` as
+      // the constraint, which declares no keywords (Perceptible's, beneath).
+      const own = (Base.prototype as { getKeywords(viewer?: Stuff): string[] }).getKeywords.call(this, viewer);
       const seen = new Set(own.map((k: string) => k.toLowerCase()));
       const out = [...own];
       for (const word of FLOOR_KEYWORDS) {

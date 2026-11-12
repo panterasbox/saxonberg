@@ -80,7 +80,7 @@ export interface CardState {
   live: boolean;
   /**
    * ⚠ Mirrored from the server's answer, never set optimistically. Pin
-   * is a real command (`cockpit card pin <id>`), and a local toggle
+   * is a real command (`client-card pin <id>`), and a local toggle
    * would show a pin the server had refused.
    */
   pinned: boolean;
@@ -322,7 +322,7 @@ export interface CardFeedSlice {
   setCardPinnedState: (instanceId: string, pinned: boolean) => void;
   /**
    * ⭐ A `card-arranged` landed (client-surface D8): the server's answer
-   * to a `cockpit card` action. Never set optimistically — the client is
+   * to a `client-card` action. Never set optimistically — the client is
    * a renderer of where the server says a card is.
    */
   arrangeCardState: (

@@ -536,7 +536,7 @@ export default class Locality extends Idea {
   public setWeatherPin(value: WeatherPin | null): void {
     SecurityApi.assertNotFromEval(
       'setWeatherPin',
-      'testharness weather pin <kind>',
+      'testharness weather-pin <kind>',
     );
     this._weatherPin = value;
   }

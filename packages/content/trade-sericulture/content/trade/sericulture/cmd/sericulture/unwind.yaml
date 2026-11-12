@@ -39,9 +39,9 @@ args:
   # the binder hands over every reachable thing offering `reeling` and the
   # controller takes the best-rated, so the mill's basin beats a hand reel.
   - name: tool
+    prepositionRequired: true
     type: objects
     required: false
-    greedy: true
     prepositions: [on, at, with]
     default: "reachable:[capability.reeling]"
     scope: ["reachable"]

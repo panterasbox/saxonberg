@@ -1,6 +1,10 @@
 verbs: [embody]
 category: charactergen
 controller: /platform/idea/cmd/charactergen/EmbodyController
+# ⭐ `confirm` is its own stanza (controller-liquidity W7c): committing the
+# draft is a different act from editing it. Any other first word falls
+# through to the field edit (`embody species dwarf`).
+fallthrough: true
 description: "Take a body — the first embodiment (`reembody` is the shade's). Field-named subcommands: embody <field> <value> (species / sex / name / pronouns / aspiration / confirm). Bare `embody` re-emits the current draft state."
 help: |
   Take a body — the first embodiment; `reembody` is the shade's.
@@ -25,3 +29,7 @@ args:
     type: string
     required: false
     greedy: true
+subcommands:
+  confirm:
+    controller: /platform/idea/cmd/charactergen/EmbodyConfirmController
+    description: "Commit the draft and drop into the world (refused with what is still to choose)"

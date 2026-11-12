@@ -27,7 +27,7 @@ import { RecipeKnowledge } from '@saxonberg/server/mud/lib/craft/RecipeKnowledge
 import { EmployedMixin } from '@saxonberg/server/mud/lib/employment/Employed';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/lib/material/Material';
-import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
+import Stock from '../../../../thing/Stock';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
@@ -129,8 +129,8 @@ let room: TestActor;
 let builder: TestActor;
 let bystander: TestActor;
 
-function makeIngot(): Ingot {
-  const i = makeStuff(() => new Ingot());
+function makeIngot(): Stock {
+  const i = makeStuff(() => new Stock());
   i.setMass(Quantity.of(0.5, 'kg'));
   i.setMaterial(
     StuffApi.findByTemplatePath<Material>(IRON) as unknown as Material,

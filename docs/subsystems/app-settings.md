@@ -20,7 +20,7 @@ Three small pieces, modeled on the `WorldClockState` (Document) ↔
 | the platform pack's settings | `packages/content/platform/content/settings/<section>.yaml` | The single source of the settings' **values** — split by key prefix (`combat.yaml`, `banking.yaml`, …; un-dotted keys in `core.yaml`). |
 | the `settings` content kind | `PackLogic` (`settingsStrategy`) | Merges the pack's defaults into `app_settings` at boot — **merge-missing** ([content-packs.md](./content-packs.md)). |
 | `AppApi` | `api/app.ts` | The runtime read/write surface (and the future home for app-level ops). |
-| `config` verb | `cmd/system/config.yaml` + `platform/idea/cmd/system/ConfigController.ts` | Developer-gated in-app editing. |
+| `config` verb | `cmd/system/config.yaml` + `config-show.yaml` + `config-set.yaml` (three shapes by arity) + `platform/idea/cmd/system/Config{List,Show,Set}Controller.ts` | Developer-gated in-app editing. |
 
 ### Storage is an open key/value bag, not a field per setting
 

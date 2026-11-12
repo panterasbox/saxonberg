@@ -8,8 +8,15 @@
  *     named ON (the target) or FROM (the stock): a leather-hard pot turns
  *     a foot (`GreenwareMixin`), a board cuts a founder's pattern
  *     (carpentry's `PatternStockMixin`), and each says itself why not;
- *  2. when it has nothing to say (`null`), the generic CARVING-RECIPE path
- *     below — the named thing is then the stock.
+ *  2. when it has nothing to say (`null`), the generic CARVING — a recipe
+ *     row, planned by the recipe catalogue (`RecipeCatalogue.
+ *     carvingPlanFor`) — and the named thing is then the stock.
+ *
+ * ⭐ One planner shape (controller-liquidity W7c): both answer the same
+ * `CarvePlan | CarveRefusal`, the controller asks the next candidate on a
+ * `null`, and ONE `engagePlan` with ONE set of words runs whichever
+ * answered. The carving rows' rules (what a carving IS, the list a refusal
+ * names) are the catalogue's, not this file's.
  *
  * Shapes one piece of wood into one part with an edge: a haft, a handle,
  * a peg, a dowel, a leg, a rail, a mallet. ⭐ **The by-hand rung of the
@@ -31,7 +38,7 @@
  * cheapest wood in reach that will do.
  *
  * The edge is declared on the view (`reachable:[capability.cutting]`)
- * and checked here so a refusal can name it; the craft itself finds its
+ * and checked by the catalogue so a refusal can name it; the craft finds its
  * tools by capability, as every recipe does.
  */
 
@@ -41,11 +48,10 @@ import type {
   CommandModel,
 } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
-import type { Recipe } from '../../../../lib/craft/Recipe';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { CarveBegin, CarveDone, CarveRefusal } from '../../../../lib/craft/Carvable';
 import RecipeCatalogue from '../../RecipeCatalogue';
-import { CraftingApi } from '../../../../api/crafting';
+import { CraftingDecline } from '../../../../lib/craft/CraftingDecline';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
@@ -55,11 +61,6 @@ const TOPIC = 'act.deed';
 
 type Composed = ReturnType<typeof Mml.compose>;
 const RECIPE_CATALOGUE = '/platform/idea/RecipeCatalogue';
-
-/** The capability a carving asks for — an edge. */
-const CARVING_EDGE = 'cutting';
-/** The material tag a carving's one slot takes. */
-const CARVING_STOCK = 'wood';
 
 interface CarveModel extends CommandModel {
   /** The thing to carve on, when it plans its own carving (a green pot). */
@@ -95,44 +96,21 @@ export default class CarveController extends ManualBuildController<CarveModel> {
     }
 
     // ⭐ ONE request, asked of the thing named — what to carve ON, else
-    // what to carve it FROM. It plans, refuses in its own words, or has
-    // nothing to say (`null`), and then the recipe path below takes the
-    // word: a board plans a pattern, and a peg off it is a recipe
-    // (B103 — this verb no longer knows what a pattern is).
+    // what to carve it FROM — and, when it has nothing to say (`null`), of
+    // the generic carving (a recipe row; the named thing is then the stock).
     const target = model.target?.stuff ?? null;
     const named = target ?? model.stock?.stuff ?? null;
-    if (named !== null && MixinApi.isCarvable(named)) {
-      const plan = await named.carvePlanFor({
-        actor: giver,
-        word,
-        knife: model.knife?.stuff ?? null,
-        ...(model.of ? { of: model.of.stuff ?? null } : {}),
-        forWord: (model.for ?? '').trim().toLowerCase(),
-      });
-      if (plan !== null) {
-        if (!plan.ok) {
-          this.turnDown(context, plan.reason, CarveController.refusalWords(plan, named));
-          return;
-        }
-        await this.engagePlan(context, plan, {
-          beginSelf: (f) => CarveController.beginWords(f, named),
-          beginPeers: (f) =>
-            f.kind === 'trim'
-              ? Mml.compose`${Mml.actor(giver)} pares at ${Mml.thing(named)}.`
-              : f.kind === 'riser'
-                ? Mml.compose`${Mml.actor(giver)} cuts into ${Mml.thing(named)}.`
-                : Mml.compose`${Mml.actor(giver)} measures and carves at ${Mml.thing(named)}.`,
-          onRefused: (r) => CarveController.refusalWords(r, named),
-          onDone: (f) => {
-            const self = CarveController.doneWords(f, named);
-            return self === null ? null : { self };
-          },
-        });
-        return;
-      }
-    }
+    const req = {
+      actor: giver,
+      word,
+      knife: model.knife?.stuff ?? null,
+      ...(model.of ? { of: model.of.stuff ?? null } : {}),
+      forWord: (model.for ?? '').trim().toLowerCase(),
+      stock: model.stock?.stuff ?? target,
+    };
+    let plan = named !== null && MixinApi.isCarvable(named) ? await named.carvePlanFor(req) : null;
     // A copy OF something is only ever a thing's own plan.
-    if (model.of) {
+    if (plan === null && model.of) {
       this.turnDown(
         context,
         'not-carvable',
@@ -140,82 +118,44 @@ export default class CarveController extends ManualBuildController<CarveModel> {
       );
       return;
     }
-
-    const catalogue = await StuffApi.singleton<RecipeCatalogue>(RECIPE_CATALOGUE);
-
-    if (!word) {
-      this.turnDown(
-        context,
-        'no-part',
-        Mml.compose`Carve what? ${carvableList(catalogue)}`,
-      );
+    if (plan === null) {
+      const catalogue = await StuffApi.singleton<RecipeCatalogue>(RECIPE_CATALOGUE);
+      plan = catalogue.carvingPlanFor(req);
+    }
+    // The words name the thing carved: the named piece, or the wood.
+    const thing = named;
+    if (!plan.ok) {
+      this.turnDown(context, plan.reason, CarveController.refusalWords(plan, thing));
       return;
     }
-
-    // ⭐ A KEYED read — the word the player said, resolved by the
-    // catalogue's own keyword index — then the one question this verb
-    // asks of the row: is it a carving?
-    const found = catalogue.getRecipe(word) ?? catalogue.findByKeyword(word);
-    const recipe = found !== null && isCarving(found) ? found : null;
-    if (recipe === null) {
-      this.turnDown(
-        context,
-        'not-carvable',
-        Mml.compose`You cannot carve '${word}' out of a piece of wood. ${carvableList(catalogue)}`,
-      );
-      return;
-    }
-
-    // The edge — bound by the view, never hunted.
-    const knife = model.knife?.stuff ?? null;
-    if (knife === null) {
-      this.turnDown(
-        context,
-        'no-edge',
-        Mml.compose`You have no edge to carve with. Anything that offers a cutting edge as a tool — a billhook, an axe, a pair of shears — will shape a blank.`,
-      );
-      return;
-    }
-    if (!MixinApi.isTool(knife) || !knife.hasCapability(CARVING_EDGE)) {
-      this.turnDown(
-        context,
-        'wrong-tool',
-        Mml.compose`${Mml.thing(knife)} has no edge you could carve with.`,
-      );
-      return;
-    }
-
-    // A named target that plans nothing is still what they named.
-    const stock = model.stock?.stuff ?? target;
-
-    const outcome = await CraftingApi.craft({
-      recipeRef: recipe.getRecipeId(),
-      makerMode: 'self',
-      // To hand — the Api lands, stamps and captures it.
-      landing: 'hands',
-      // ⭐ Carving cuts the stock down: the part is its own size and the
-      // rest is shavings (a dowel off a board is not the board's weight).
-      subtractive: true,
-      ...(stock ? { target: stock } : {}),
+    await this.engagePlan(context, plan, {
+      beginSelf: (f) => CarveController.beginWords(f, thing),
+      beginPeers: (f) =>
+        f.kind === 'trim'
+          ? Mml.compose`${Mml.actor(giver)} pares at ${Mml.thing(thing!)}.`
+          : f.kind === 'riser'
+            ? Mml.compose`${Mml.actor(giver)} cuts into ${Mml.thing(thing!)}.`
+            : f.kind === 'carving'
+              ? Mml.compose`${Mml.actor(giver)} whittles away at a piece of wood.`
+              : Mml.compose`${Mml.actor(giver)} measures and carves at ${Mml.thing(thing!)}.`,
+      onRefused: (r) => CarveController.refusalWords(r, thing),
+      onDone: (f) => {
+        if (f.kind === 'carved') {
+          return {
+            self: Mml.compose`You work the wood down with ${Mml.thing(f.knife)}, following the grain, until it is ${Mml.thing(f.output)}.`,
+            peers: Mml.compose`${Mml.actor(giver)} whittles away at a piece of wood and holds up ${Mml.thing(f.output)}.`,
+          };
+        }
+        const self = CarveController.doneWords(f, thing!);
+        return self === null ? null : { self };
+      },
     });
-    if (!outcome.ok) {
-      this.declineToScene(giver, outcome, context);
-      return;
-    }
-    const output = outcome.output;
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(
-        Mml.compose`You work the wood down with ${Mml.thing(knife)}, following the grain, until it is ${Mml.thing(output)}.`,
-      )
-      .toPeers(
-        Mml.compose`${Mml.actor(giver)} whittles away at a piece of wood and holds up ${Mml.thing(output)}.`,
-      )
-      .send();
   }
 
   /** ⭐ The words for a refused carving (D4) — every reason, exhaustively. */
-  private static refusalWords(r: CarveRefusal, thing: Stuff): Composed {
+  protected static refusalWords(r: CarveRefusal, named: Stuff | null): Composed {
+    // Every reason but the generic carving's has a thing that refused.
+    const thing = named as Stuff;
     switch (r.reason) {
       case 'not-carvable':
         switch (r.facts.carves) {
@@ -225,6 +165,8 @@ export default class CarveController extends ManualBuildController<CarveModel> {
             return Mml.compose`The only thing to cut in ${Mml.thing(thing)} is a riser.`;
           case 'pattern':
             return Mml.compose`From ${Mml.thing(thing)} you can carve a pattern of something — say \`carve pattern of <thing>\`.`;
+          case 'carving':
+            return Mml.compose`You cannot carve that out of a piece of wood.`;
         }
         break;
       case 'no-edge':
@@ -235,6 +177,8 @@ export default class CarveController extends ManualBuildController<CarveModel> {
             return Mml.compose`You need an edge to cut a riser — any knife will do.`;
           case 'pattern':
             return Mml.compose`You have no edge to carve with. Anything that offers a cutting edge will do.`;
+          case 'carving':
+            return Mml.compose`You have no edge to carve with. Anything that offers a cutting edge as a tool — a billhook, an axe, a pair of shears — will shape a blank.`;
         }
         break;
       case 'ruined':
@@ -256,6 +200,14 @@ export default class CarveController extends ManualBuildController<CarveModel> {
         return Mml.compose`Cut for which metal? A pattern is cut oversize by what the metal shrinks — say \`carve pattern of ${Mml.thing(r.facts.of)} for bronze\`.`;
       case 'too-small':
         return Mml.compose`${Mml.thing(thing)} is too small to carve a pattern of ${Mml.thing(r.facts.of)} from.`;
+      case 'no-part':
+        return Mml.compose`Carve what? ${CarveController.carvingList(r.facts.names)}`;
+      case 'not-a-carving':
+        return Mml.compose`You cannot carve '${r.facts.word}' out of a piece of wood. ${CarveController.carvingList(r.facts.names)}`;
+      case 'wrong-tool':
+        return Mml.compose`${Mml.thing(r.facts.knife)} has no edge you could carve with.`;
+      case 'craft-refused':
+        return Mml.compose`${CraftingDecline.messageFor(r.facts.failure)}`;
       default: {
         const never: never = r;
         return never;
@@ -265,8 +217,11 @@ export default class CarveController extends ManualBuildController<CarveModel> {
   }
 
   /** The words a carving begins on. */
-  private static beginWords(f: CarveBegin, thing: Stuff): Composed {
+  protected static beginWords(f: CarveBegin, named: Stuff | null): Composed {
+    const thing = named as Stuff;
     switch (f.kind) {
+      case 'carving':
+        return Mml.compose`You set ${Mml.thing(f.knife)} to the wood.`;
       case 'trim':
         return Mml.compose`You set ${Mml.thing(thing)} upside down and pare at it with ${Mml.thing(f.knife)}.`;
       case 'riser':
@@ -281,8 +236,10 @@ export default class CarveController extends ManualBuildController<CarveModel> {
   }
 
   /** The words a carving lands on (`null` — nothing said). */
-  private static doneWords(f: CarveDone, thing: Stuff): Composed | null {
+  protected static doneWords(f: CarveDone, thing: Stuff): Composed | null {
     switch (f.kind) {
+      case 'carved':
+        return Mml.compose`You work the wood down with ${Mml.thing(f.knife)}, following the grain, until it is ${Mml.thing(f.output)}.`;
       case 'trimmed':
         return Mml.compose`The shavings curl away. ${Mml.thing(thing)} has ${f.feature} now.`;
       case 'riser':
@@ -298,6 +255,12 @@ export default class CarveController extends ManualBuildController<CarveModel> {
     }
   }
 
+  /** The refusal's list — every installed carving, by name. */
+  protected static carvingList(names: readonly string[]): string {
+    if (names.length === 0) return 'Nothing installed here is carved.';
+    return `What a piece of wood will make: ${names.join(', ')}.`;
+  }
+
   private turnDown(
     context: CommandContext,
     reason: string,
@@ -306,38 +269,4 @@ export default class CarveController extends ManualBuildController<CarveModel> {
     MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(text).send();
     context.note({ kind: 'controller-rejected', reason, detail: reason });
   }
-}
-
-/**
- * The refusal's list — every installed carving, by name.
- *
- * ⚠ The one whole-catalogue walk in this verb, and only on the refusal
- * path. The honest home for it is a keyed read on `RecipeCatalogue` (the
- * recipes needing a capability) — a kernel addition this pack cannot
- * make; the walk is the `PreserveController.recipeFor` shape until it
- * lands, so the refusal can still name what CAN be carved.
- */
-function carvableList(catalogue: RecipeCatalogue): string {
-  const names: string[] = [];
-  for (const recipe of catalogue.allRecipes()) {
-    if (isCarving(recipe)) names.push(recipe.getName().toLowerCase());
-  }
-  if (names.length === 0) return 'Nothing installed here is carved.';
-  return `What a piece of wood will make: ${names.sort().join(', ')}.`;
-}
-
-/**
- * Is this recipe a carving — one item of wood, an edge, no heat, a
- * tangible thing out? Read off the row, so a pack's own carving qualifies
- * with no edit here.
- */
-function isCarving(recipe: Recipe): boolean {
-  if (recipe.getOutputApplication() !== 'tangible') return false;
-  if (recipe.getRequiresHeatK() > 0) return false;
-  const tools = recipe.getToolCapabilities();
-  if (tools.length !== 1 || tools[0] !== CARVING_EDGE) return false;
-  const slots = recipe.getInputSlots();
-  if (slots.length !== 1) return false;
-  const slot = slots[0]!;
-  return (slot.kind ?? 'bulk') === 'item' && slot.category === CARVING_STOCK;
 }

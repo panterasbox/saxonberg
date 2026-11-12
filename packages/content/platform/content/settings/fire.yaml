@@ -144,7 +144,7 @@ settings:
     value: "0.05"
 
   # ⭐ The grate chokes (cleanliness). Ash lies in the grate until somebody
-  # rakes it (`sweep hearth`), and a deep bed starves the fire of air from
+  # rakes it (`rake hearth`), and a deep bed starves the fire of air from
   # below — measured against the burner's own capacity, so a great hearth
   # takes more neglect than a stove. Clear below 10 %, fully choked at
   # 30 %, where the draught is down to 40 % of what the vents give.

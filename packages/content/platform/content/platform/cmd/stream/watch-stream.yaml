@@ -1,0 +1,32 @@
+verbs: [watch]
+category: stream
+controller: /platform/idea/cmd/stream/WatchStreamController
+description: "Put a livestream's video in your focal embed"
+help: |
+  `watch <target>` puts a stream in your cockpit's focal embed — a URL,
+  a handle with `--twitch` / `--youtube` / `--kick`, or a character.
+  ⭐ One of two shapes of the stream form, told apart by their words:
+  `watch <target>` is yours alone, `watch <target> on <screen>` puts it
+  up on a shared screen.
+examples:
+  - cmd: watch shroud --twitch
+    note: Watch a Twitch channel in the focal embed
+validators:
+  - /lib/command/validators/requiresAnimate
+options:
+  twitch:
+    type: boolean
+    field: twitch
+    description: "The target is a Twitch handle"
+  youtube:
+    type: boolean
+    field: youtube
+    description: "The target is a YouTube handle"
+  kick:
+    type: boolean
+    field: kick
+    description: "The target is a Kick channel slug"
+args:
+  - name: target
+    type: string
+    required: true

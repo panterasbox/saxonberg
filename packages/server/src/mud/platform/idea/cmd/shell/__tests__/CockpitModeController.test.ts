@@ -197,7 +197,7 @@ describe('CockpitModeController', () => {
    */
   it('remembers each mode’s arrangement across a round trip', async () => {
     await run('watch');
-    // Choose the other watch arrangement, the way `cockpit layout` will.
+    // Choose the other watch arrangement, the way `client-layout` will.
     actor.setClientState('cockpit.arrangements', {
       ...actor.getClientState<Record<string, string>>('cockpit.arrangements'),
       watch: 'streamer',

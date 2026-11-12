@@ -31,7 +31,7 @@
  * makes (`book:`), and the harbor's first use loads its record. `read book`
  * reads today's page (it bears marks); `look book` shows it too.
  * It is where the harbormaster's acts are afforded (`berth <ship> at
- * <quay>`, `berth <ship> roads` — the verb refuses anyone not keeping the
+ * <quay>`, `berth roads <ship>` — the verb refuses anyone not keeping the
  * harbor on shift) and what dues are paid at (`Payable`: `pay book`;
  * the office answers `pay office` with the same bills).
  */

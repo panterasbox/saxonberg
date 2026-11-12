@@ -109,7 +109,7 @@ export default class HaulageRig extends HaulageRigBase {
    * band × rank comparison and nothing else, and no number is shown or
    * stored anywhere.
    */
-  public async canHitch(_hauler: Stuff, actor: Stuff): Promise<VetoResult> {
+  public override async canHitch(_hauler: Stuff, actor: Stuff): Promise<VetoResult> {
     const key = this.requiredDiscipline;
     const demanded = this.requiredBand;
     if (key === '' || demanded === '' || !isBandName(demanded)) {

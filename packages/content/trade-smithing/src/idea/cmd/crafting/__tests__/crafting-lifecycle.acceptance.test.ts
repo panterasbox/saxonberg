@@ -26,7 +26,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { RecipeKnowledge } from '@saxonberg/server/mud/lib/craft/RecipeKnowledge';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/lib/material/Material';
-import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
+import Stock from '../../../../thing/Stock';
 import Casting from '@saxonberg/server/mud/platform/thing/MetalCasting';
 import Scrap from '@saxonberg/server/mud/platform/thing/Scrap';
 import Weapon from '@saxonberg/server/mud/platform/thing/equipment/Weapon';
@@ -102,7 +102,7 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
     ContainmentApi.move(makeTool('striking'), room);
     const anvil = makeTool('anvil');
     ContainmentApi.move(anvil, room);
-    const ingot = makeStuff(() => new Ingot());
+    const ingot = makeStuff(() => new Stock());
     ingot.setMass(Quantity.of(0.5, 'kg'));
     ingot.setMaterial(
       StuffApi.findByTemplatePath<Material>(IRON) as unknown as Material,

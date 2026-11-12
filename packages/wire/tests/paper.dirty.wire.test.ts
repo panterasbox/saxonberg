@@ -185,7 +185,7 @@ suite('paper — the blocking drive', () => {
 
   it('2. a garment tears into rags', async () => {
     const s = await session(maker, STORE);
-    const b = await say(s, 'buy padded gambeson');
+    const b = await say(s, 'buy "padded gambeson"');
     expect(b, b).not.toMatch(/bare|cannot afford/i);
     const t = await say(s, 'tear gambeson');
     expect(t, t).toMatch(/rags?/i);
@@ -199,10 +199,10 @@ suite('paper — the blocking drive', () => {
     expect(l, l).not.toMatch(REFUSED);
     const sold = await say(s, 'sell rag');
     expect(sold, sold).not.toMatch(REFUSED);
-    const m = await say(s, 'buy paper mould');
+    const m = await say(s, 'buy "paper mould"');
     expect(m, m).toMatch(/You buy/i);
     // Stationery is sold where paper is made.
-    for (const line of ['buy ink pot', 'buy pen', 'buy notebook', 'buy envelope', 'buy sheet of paper', 'buy sheet of paper', 'buy sheet of paper']) {
+    for (const line of ['buy "ink pot"', 'buy pen', 'buy notebook', 'buy envelope', 'buy sheet of paper', 'buy sheet of paper', 'buy sheet of paper']) {
       const b = await say(s, line);
       expect(b, b).toMatch(/You buy/i);
     }
@@ -304,7 +304,7 @@ suite('paper — the blocking drive', () => {
   it('17. a notebook: words on page 3, lent; the borrower reads them and writes in it too, in their own hand', async () => {
     // The borrower brings their own ink (a dropped pot breaks on the floor).
     const shop = await session(reader, VAT_HOUSE);
-    const ink = await say(shop, 'buy ink pot');
+    const ink = await say(shop, 'buy "ink pot"');
     expect(ink, ink).toMatch(/You buy/i);
     const s = await session(maker, BANK_HALL);
     const r = await session(reader, BANK_HALL);
@@ -448,7 +448,8 @@ suite('paper — the blocking drive', () => {
     await say(back, 'buy pot of paste');
     await say(back, 'buy label');
     await say(back, 'write ink on me:i:label');
-    const f = await say(back, 'fit me:i:label to me:i:inkpot with "pot of paste"');
+    // ⭐ `paste`, not `fit` (controller-liquidity W7c).
+    const f = await say(back, 'paste me:i:label on me:i:inkpot with "pot of paste"');
     expect(f, f).toMatch(/smooth it onto|paste/i);
     const l = await say(back, 'look me:i:inkpot');
     expect(l, l).toMatch(/label is pasted/i);

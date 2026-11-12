@@ -249,9 +249,9 @@ working.
 ⚠ The subject is a greedy **string** arg, not `type: object`. Two
 reasons: a body of people is an `Idea` and stands nowhere, so
 `scope: reachable` finds none of them; and an object arg with
-`requires: A|B` deletes a check. It also sidesteps issue **#43** — a
-definite article breaks every non-greedy object arg in the game, so
-`chronicle the watch` parses where `look the sentry` does not.
+`requires: A|B` deletes a check. (It also once sidestepped issue **#43**,
+the definite article that broke object args; the binder folds a leading
+article since controller-liquidity D3, so `look the sentry` parses too.)
 
 The verb is afforded by **`PersonaMixin`** (via a mixin-level
 `commandContributions.self`, collected by the affordance walk

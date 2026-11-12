@@ -97,7 +97,10 @@ const MODE_READERS_ALLOWED = [
   'lib/livestream/Broadcast.ts',
   'platform/idea/cmd/shell/CockpitController.ts',
   'platform/idea/cmd/shell/CockpitModeController.ts',
-  'platform/idea/cmd/shell/LayoutController.ts',
+  'platform/idea/cmd/shell/ClientLayoutListController.ts',
+  'platform/idea/cmd/shell/ClientLayoutRecallController.ts',
+  'platform/idea/cmd/shell/ClientLayoutSaveController.ts',
+  'platform/idea/cmd/shell/ClientLayoutForgetController.ts',
 ];
 
 class TestLocation extends ContainerMixin(NamedMixin(PerceptibleMixin(Idea))) {}

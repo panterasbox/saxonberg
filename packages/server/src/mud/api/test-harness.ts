@@ -65,7 +65,7 @@ export class TestHarnessApi {
    * @param duration the clock's grammar (`'2 hours'`, `'1 day'`).
    */
   @TestOnly(
-    'In a test world, move the clock with `testharness clock advance ' +
+    'In a test world, move the clock with `testharness clock-advance ' +
       '<dur>` (or the wire harness’s advanceWorldClock). Nothing in ' +
       'the game moves the realm’s clock.',
   )
@@ -77,7 +77,7 @@ export class TestHarnessApi {
     // schedule in the skipped interval, and inside a command's frame those
     // callbacks inherit the giver's context — anything that then waits on
     // the giver's own input chain waits behind the very command running
-    // the jump (the `testharness clock advance` drive hung exactly so). A
+    // the jump (the `testharness clock-advance` drive hung exactly so). A
     // root carries no scope and no jurisdiction, which is what a GLOBAL
     // jump needs; the async body keeps it across every await.
     return ExecutionContextApi.runRoot(TestHarnessApi, 'advanceClock', () =>
@@ -104,7 +104,7 @@ export class TestHarnessApi {
    * ⚠ The pin is persistent on the Locality: a drive that pins, unpins.
    */
   @TestOnly(
-    'In a test world, pin the weather with `testharness weather pin <kind> ' +
+    'In a test world, pin the weather with `testharness weather-pin <kind> ' +
       '[--at <place>]` (or the wire harness\u2019s pinWeather).',
   )
   public static pinWeather(
@@ -117,7 +117,7 @@ export class TestHarnessApi {
 
   /** Release the pin {@link pinWeather} set; the procedural weather returns. */
   @TestOnly(
-    'In a test world, release a pin with `testharness weather unpin ' +
+    'In a test world, release a pin with `testharness weather-unpin ' +
       '[--at <place>]` (or the wire harness\u2019s unpinWeather).',
   )
   public static unpinWeather(scope: string): Promise<WeatherPinReport> {

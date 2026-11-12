@@ -343,7 +343,7 @@ describe('aboard a ship of a kind — the room is asked, never its row', () => {
     expect(hold.isSeenAcrossExit()).toBe(false);
     const who = await standOn(landing);
     // Her deck is in the landing's pool by its OWN name (MQL's tract rule).
-    expect(candidatesForHere(landing, who).some((c) => c.stuff === deck)).toBe(true);
+    expect(candidatesForHere(who).some((c) => c.stuff === deck)).toBe(true);
     // The way's own description, her name in it.
     expect(way.getLongFor(who)).toMatch(/^A gangway runs up to .+'s deck\.$/);
 

@@ -37,14 +37,18 @@ import type {
 } from '../persistence/PersistenceSlice';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
-import { ExecutionContextApi } from '../../api/execution-context';
+import { ExecutionContextApi, OMNI_SCOPE } from '../../api/execution-context';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
 import { PlacementOffers, type PlacementChoice } from './PlacementOffers';
 import { MqlApi } from '../../api/mql';
 import type { CommandGiver } from '../command/CommandGiver';
 import { StuffApi } from '../../api/stuff';
-import { CommandApi, type CommandContributions } from '../../api/command';
+import {
+  CommandApi,
+  type CommandContributions,
+  type ReachDepth,
+} from '../../api/command';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { ChattelApi } from '../../api/chattel';
@@ -81,6 +85,26 @@ export interface Container {
    * recursion themselves.
    */
   getDeepContents(): (Stuff & Containable)[];
+
+  /**
+   * ⭐⭐ **What a hand could take from in here, at a rung** — the one
+   * per-container walk of reach (controller-liquidity D4/D5) — the step
+   * under `PerceptionApi.reach`, the one list MQL's pools and
+   * `PerceptionApi.canReach` / `reachableAmong` all read (W20), so what you
+   * can name at a rung is what you can touch.
+   *
+   *   - `top` — my own contents.
+   *   - `open` (the default) — and inside every OPEN vessel among them
+   *     (`MixinApi.isOpenContainer`): on a body, all the way down through
+   *     open vessels (the apple in the open bag in your pack); anywhere
+   *     else, one level (the crate's limes, not a box inside the crate).
+   *   - `deep` — everything, shut or not, never into another body.
+   *
+   * A thing placed under an ENCLOSING member of a shut host (the steak in
+   * a shut cold compartment) is behind that lid at `top`/`open`.
+   * Breadth-first: what is at hand comes before what is in a bag.
+   */
+  getReachableContents(rung?: ReachDepth): Stuff[];
 
   /**
    * ⭐ A **presentation** read — the model read is `getContents()`, and
@@ -506,6 +530,48 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
       };
       walk(this as unknown as Stuff & Container);
+      return out;
+    }
+
+    /** See the interface docstring (controller-liquidity D5). */
+    getReachableContents(rung: ReachDepth = 'open'): Stuff[] {
+      const self = this as unknown as Stuff & Container;
+      const out: Stuff[] = [];
+      // A body's open vessels are all to hand; a room's, one level.
+      const openLevels = self.isAgent() ? 32 : 1;
+      // ⚠ Sandbox hygiene, before anything is asked of an item: a walk in a
+      // circle never reads a field object (or one of another circle) — the
+      // proxy denies any method on it, the lid read included (the
+      // sandbox-escape battery's `reachable`). Omni sees all.
+      const ctxScope = ExecutionContextApi.getCircleScope();
+      const inScope = (c: Stuff): boolean => ctxScope === OMNI_SCOPE || c.getCircleScope() === ctxScope;
+      const behindLid = (c: Stuff): boolean => {
+        if (!MixinApi.isContainable(c)) return false;
+        const scope = c.getEnclosingScope();
+        if (scope === null || scope.stuffId === c.getContainer()?.stuffId) {
+          return false;
+        }
+        return MixinApi.isSealable(scope) && !scope.isOpen();
+      };
+      // Breadth-first: everything at one depth before anything deeper,
+      // so a name that answers at hand and in a bag binds the one at hand.
+      let frontier: (Stuff & Container)[] = [self];
+      for (let level = 0; frontier.length > 0 && level <= 32; level++) {
+        const next: (Stuff & Container)[] = [];
+        for (const holder of frontier) {
+          for (const item of holder.getContents()) {
+            if (!inScope(item)) continue;
+            if (rung !== 'deep' && behindLid(item)) continue;
+            out.push(item);
+            if (rung === 'deep') {
+              if (MixinApi.isContainer(item) && !item.isAgent()) next.push(item);
+            } else if (rung === 'open' && level < openLevels) {
+              if (MixinApi.isOpenContainer(item)) next.push(item);
+            }
+          }
+        }
+        frontier = next;
+      }
       return out;
     }
 

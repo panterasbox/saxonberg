@@ -4,13 +4,13 @@
  *
  * | | cloth per yarn | the cloth |
  * |---|---|---|
- * | `--open` | most | sackcloth — breathes, and a sack is what it is for |
+ * | `--coarse` | most | sackcloth — breathes, and a sack is what it is for |
  * | ordinary | middling | plain linen |
  * | `--close` | least | fine linen: breaks a wind, wears far longer |
  *
  * ⭐⭐ **The density is a FABRIC ROW, not a per-bolt number**, and that
  * is the demonstration that `Construction`'s second source works: this
- * pack ships its own `content/fabrics/` documents (`/trade/textiles/fabrics/*`), the
+ * pack ships its own `/trade/textiles/idea/fabric/*` rows, the
  * catalogue harvests them by path infix, and the kernel never learned
  * they exist. A pack adding `lace` tomorrow needs no kernel edit and
  * changes nothing about combat — cloth resists poorly, and the kernel
@@ -25,27 +25,14 @@ import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/c
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type Material from '@saxonberg/server/mud/lib/material/Material';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { AppApi } from '@saxonberg/server/mud/api/app';
-import { Grade, GRADE_BANDS } from '@saxonberg/server/mud/lib/craft/Grade';
-import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
-import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
-import TextileStock from '../../../thing/TextileStock';
+import TextileWork, {
+  type TextileRefusal,
+  type WeaveBegin,
+  type WeaveDone,
+} from '../../../lib/TextileWork';
 
-const TOPIC = 'act.deed';
-const BOLT_ROW = '/trade/textiles/thing/bolt';
-
-/** The three points on the continuum, as the fabric documents they cite (load-on-use W2). */
-const OPEN = '/trade/textiles/fabrics/sackcloth';
-const PLAIN = '/platform/fabrics/woven';
-const CLOSE = '/trade/textiles/fabrics/fine-woven';
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface WeaveModel extends CommandModel {
   loom?: MqlManyResult;
@@ -54,167 +41,59 @@ interface WeaveModel extends CommandModel {
   open?: boolean;
 }
 
+/**
+ * ⭐ The charge, the yield against the cloth, the band and the mint are
+ * the yarn's (`TextileWork.weavePlan` — controller-liquidity W11); this
+ * controller picks the weave from the options, the best loom bound, and
+ * words the plan.
+ */
 export default class WeaveController extends ManualBuildController<WeaveModel> {
-  /**
-   * ⭐ A dial. ⚠⚠ And roughly a SIXTH of `spin`'s, which is the whole
-   * lesson: one weaver kept several spinners busy. The bench asserts
-   * the ratio at the shipped tech level and says so in its own name —
-   * it is true before the wheel-and-loom era ends and false after, and
-   * a later mill wave must be able to change it without anyone
-   * "fixing" a test that was never eternal.
-   */
-  static readonly BASE_MS_KEY = 'textiles.weave.baseMs';
-  static readonly BASE_MS = 15 * 60 * 1000;
-  /** Units of yarn one act sets on the loom. */
-  static readonly CHARGE_KEY = 'textiles.weave.chargeUnits';
-  static readonly CHARGE = 4;
-
   async execute(model: WeaveModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const yarn = model.yarn?.stuff ?? null;
-    if (!yarn || !MixinApi.isStackable(yarn)) {
+    if (!yarn) {
       this.declineStep(context, Mml.compose`Weave what?`, 'no-yarn');
       return;
     }
-    if (!(yarn.getTemplatePath() ?? '').endsWith('/yarn')) {
-      this.declineStep(
-        context,
-        Mml.compose`${Mml.thing(yarn)} is not yarn. A loom wants thread.`,
-        'not-yarn',
-      );
+    if (model.close && model.open) {
+      this.declineStep(context, Mml.compose`A web is set close or open, not both.`, 'two-weaves');
       return;
     }
-    const charge = dial(WeaveController.CHARGE_KEY, WeaveController.CHARGE);
-    // ⭐ Like skeins in hand warp together (`TextileStock.quantityInHand`).
-    const inHand = yarn instanceof TextileStock ? yarn.quantityInHand() : yarn.getQuantity();
-    if (inHand < charge) {
-      this.declineStep(
-        context,
-        Mml.compose`There is not enough yarn there to warp a loom.`,
-        'too-little',
-      );
+    const plan = await new TextileWork(giver, this.bestInstrument(model.loom, 'weaving')).weavePlan(yarn, {
+      form: model.close ? 'fine-woven' : model.open ? 'sackcloth' : 'woven',
+    });
+    if (!plan.ok) {
+      this.declineStep(context, WeaveController.refusalWords(plan, yarn), plan.reason);
       return;
     }
-
-    // ⭐ Yield against the cloth. An open weave gets more cloth out of
-    // the same thread and is worth less; a close one gets less and is
-    // worth more. Nobody authored the trade-off — it is what a weave IS.
-    const form = model.close ? CLOSE : model.open ? OPEN : PLAIN;
-    const units = model.close ? 1 : model.open ? 3 : 2;
-
-    const band = await outcomeBand(giver, yarn, form);
-    const instrument = this.bestInstrument(model.loom, 'weaving');
-    const durationMs = this.paceMs(
-      dial(WeaveController.BASE_MS_KEY, WeaveController.BASE_MS),
-      instrument as Stuff | null,
-      ['weaving'],
-    );
-
-    this.engageStep(context, {
-      durationMs,
-      effortW: 250,
-      beginSelf: Mml.compose`You warp the loom with ${Mml.thing(yarn)} and begin throwing the shuttle.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} sets a web on the loom.`,
-      onComplete: () => {
-        void finish(context, yarn, charge, form, units, band);
-      },
+    await this.engagePlan(context, plan, {
+      beginSelf: (b: WeaveBegin) =>
+        Mml.compose`You warp the loom with ${Mml.thing(b.yarn)} and begin throwing the shuttle.`,
+      beginPeers: () => Mml.compose`${Mml.actor(giver)} sets a web on the loom.`,
+      onRefused: (r: TextileRefusal) => WeaveController.refusalWords(r, yarn),
+      onDone: (f: WeaveDone) => WeaveController.doneWords(giver, f),
     });
   }
-}
 
-async function finish(
-  context: CommandContext,
-  yarn: Stuff & { getQuantity(): number; setQuantity(n: number): void },
-  charge: number,
-  form: string,
-  units: number,
-  band: string,
-): Promise<void> {
-  const giver = context.commandGiver;
-  // ⚠⚠ A module function — the controller is destructed by now.
-  const watching = !giver.isDestroyed();
-  // ⚠ Read the fibre BEFORE the input is consumed — an emptied stack is
-  // destructed below.
-  const fibre = MixinApi.isTangible(yarn) ? yarn.getMaterial() : null;
-  if (yarn instanceof TextileStock) {
-    yarn.drawInHand(charge);
-  } else {
-    const left = Math.max(0, yarn.getQuantity() - charge);
-    if (left === 0) StuffApi.destruct(yarn);
-    else yarn.setQuantity(left);
-  }
-
-  try {
-    const bolt = await StuffApi.clone<Stuff>(BOLT_ROW);
-    if (MixinApi.isStackable(bolt)) bolt.setQuantity(units);
-    if (MixinApi.isConstructed(bolt)) await bolt.setConstructionForm(form);
-    if (MixinApi.isGraded(bolt)) bolt.setGrade(Grade.of(band));
-    // ⭐⭐ The cloth is the yarn's fibre, and the weaver's work.
-    carryFibre(fibre, bolt);
-    if (MixinApi.isCrafted(bolt)) bolt.setMaker(giver.getIdentityPath() ?? '');
-    if (MixinApi.isContainable(bolt) && MixinApi.isContainer(giver)) {
-      ContainmentApi.move(bolt as Stuff & Containable, giver as Stuff & Container);
-    }
-    if (!watching) return;
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(
-        Mml.compose`You cut ${String(units)} of ${form === CLOSE ? 'fine' : form === OPEN ? 'coarse' : 'plain'} cloth off the loom.`,
-      )
-      .toPeers(Mml.compose`${Mml.actor(giver)} cuts a web off the loom.`)
-      .send();
-  } catch (err) {
-    console.warn('WeaveController: could not mint a bolt:', err);
-  }
-}
-
-/** The cloth takes the yarn's material and answers to its name. */
-function carryFibre(material: Material | null, to: Stuff): void {
-  if (!material || !MixinApi.isTangible(to)) return;
-  to.setMaterial(material);
-  if (MixinApi.isPerceptible(to)) {
-    const words = material.getName().toLowerCase().split(/\s+/).filter(Boolean);
-    to.setKeywords([...new Set([...to.getKeywords(), ...words])]);
-  }
-}
-
-/**
- * The bolt's band. ⚠ It is the YARN's band, dropped one for a flawed
- * run — a close weave is harder to keep clean, and an untrained hand
- * setting a fine web will put a slub in it. Nothing here can raise the
- * band above what the fibre was.
- */
-async function outcomeBand(
-  giver: Stuff,
-  yarn: Stuff,
-  form: string,
-): Promise<string> {
-  const raw = MixinApi.isGraded(yarn) ? yarn.getGradeBand() : '';
-  // ⚠ Validated — `Grade.of` throws on anything else, and the throw would
-  // land inside the mint's try/catch: yarn consumed, no bolt, no word to
-  // the weaver. See ScutchController's `bandOf`.
-  const base = Grade.isBand(raw) ? raw : 'fair';
-  if (form !== CLOSE) return base;
-  let band: CompetenceBandName = 'untrained';
-  if (MixinApi.isAdvancing(giver)) {
-    try {
-      band = await giver.competenceBandFor('textiles');
-    } catch {
-      /* untrained */
+  protected static refusalWords(r: TextileRefusal, yarn: Stuff): Composed {
+    switch (r.reason) {
+      case 'not-yarn':
+        return Mml.compose`${Mml.thing(yarn)} is not yarn. A loom wants thread.`;
+      case 'too-little':
+        return Mml.compose`There is not enough yarn there to warp a loom.`;
+      case 'not-made':
+        return Mml.compose`The web will not come right. You take it off the loom with the yarn unspoiled.`;
+      default:
+        return Mml.compose`You cannot weave that.`;
     }
   }
-  if (CompetenceBand.rank(band) >= 2) return base;
-  const i = (GRADE_BANDS as readonly string[]).indexOf(base);
-  return GRADE_BANDS[Math.max(0, (i < 0 ? 1 : i) - 1)]!;
-}
 
-function dial(key: string, fallback: number): number {
-  try {
-    const raw = AppApi.setting(key);
-    if (raw === '' || raw == null) return fallback;
-    const n = Number.parseFloat(raw);
-    return Number.isFinite(n) ? n : fallback;
-  } catch {
-    return fallback;
+  protected static doneWords(giver: Stuff, f: WeaveDone): { self: Composed; peers: Composed } | null {
+    if (f.kind === 'gone') return null;
+    const kind = f.form === 'fine-woven' ? 'fine' : f.form === 'sackcloth' ? 'coarse' : 'plain';
+    return {
+      self: Mml.compose`You cut ${String(f.units)} of ${kind} cloth off the loom.`,
+      peers: Mml.compose`${Mml.actor(giver)} cuts a web off the loom.`,
+    };
   }
 }

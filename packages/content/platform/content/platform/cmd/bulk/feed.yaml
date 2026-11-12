@@ -15,7 +15,7 @@ help: |
   every harvest exports some, and an unfed bed yields worse each time.
 
   A field is fed the same way, and you are told how much went in. On a
-  tract marked into fields, say which: `feed wheat at the top end`.
+  tract marked into fields, say which: `feed wheat at the "top end"`.
 examples:
   - cmd: feed the bed
     note: Work compost in from whatever you're carrying
@@ -23,7 +23,7 @@ examples:
     note: Name the source explicitly
   - cmd: feed the carrots
     note: Naming a plant feeds the ground it stands in
-  - cmd: feed wheat at the top end
+  - cmd: 'feed wheat at the "top end"'
     note: On ground marked into fields, name the field
 validators:
   - /lib/command/validators/requiresAnimate
@@ -44,13 +44,14 @@ args:
   # Greedy so `at the top end` binds whole (an article would otherwise eat
   # a positional); every arg after it is prepositional, so it stops there.
   - name: part
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     scope: ["here", "peers", "person"]
     prepositions: [at]
     requires: SoilMixin
   - name: source
+    prepositionRequired: true
     type: object
     required: false
     scope: "reachable"

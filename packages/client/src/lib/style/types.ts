@@ -45,9 +45,10 @@ export interface BucketResolver {
 export type FontRole = 'narrative' | 'chrome' | 'command' | 'display';
 
 /**
- * The shipped theme vocabulary. **Server-owned** — `StyleController`'s
- * `KNOWN_THEMES` is the authority and this type must track it, because a
- * client-only rename leaves the verb refusing a theme the client has.
+ * The shipped theme vocabulary. **Server-owned** — the `values:` list on
+ * `client-style theme` (cockpit.yaml) is the authority and this type
+ * must track it, because a client-only rename leaves the verb refusing
+ * a theme the client has.
  *
  * ⚠ `default` is retired and **not aliased**; see `themes/index.ts`.
  */

@@ -29,7 +29,7 @@ export interface GroupModel extends CommandModel {
   /**
    * Three shapes by subcommand:
    *   - `add`: `MqlOneResult` (target Avatar resolved via MQL `scope: online`)
-   *   - `remove` / `role`: `string` (raw playerId entered by the caller)
+   *   - `remove` / `role`: `string` (a member typed by name — `Group.memberByName`)
    *   - any other subcommand: absent
    */
   target?: MqlOneResult | string;

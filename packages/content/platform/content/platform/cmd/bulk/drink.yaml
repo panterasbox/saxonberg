@@ -39,13 +39,13 @@ args:
     type: object
     required: true
     scope: "reachable"
-    # `drink from the fountain` (water-supply drive): the article defect
-    # wants greedy, and `from` is the natural way to name an outlet.
-    greedy: true
+    # `drink from the fountain` (water-supply drive): the binder folds the
+    # article, and `from` is the natural way to name an outlet.
     prepositions: [from]
     requires: VisibleMixin
     validators:
       - /lib/command/validators/mustHaveBulkSlot
+      - /lib/command/validators/mustNotBeShutAway
 examples:
   - cmd: drink the flask
     note: Finish it

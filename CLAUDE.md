@@ -152,7 +152,7 @@ behavior. Read the relevant doc before editing in its area.
   - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
   - [char-gen.md](./docs/subsystems/char-gen.md) — new-player intake: `enroll` draft machine, species dossier + NameBank, commit/spawn atomicity
   - [client-shell.md](./docs/subsystems/client-shell.md) — client front door: top bar, widget shelf, status bar, the mobile bar + pull-down + command sheet, the front door + character select, anonymous-guest path, reconnect machine, the honest-state primitives
-  - [cockpit.md](./docs/subsystems/cockpit.md) — the one `cockpit` verb; the mode × arrangement axes + the legacy mapping; the input-mode exemption as a rule; watch embed; `cockpit shelf` + `first`
+  - [cockpit.md](./docs/subsystems/cockpit.md) — the `cockpit` verb + the non-diegetic `client-layout|card|shelf|style` verbs; the mode × arrangement axes + the legacy mapping; the input-mode exemption as a rule; watch embed; `client-shelf` + `first`
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene composer, sensor routing, Vocal/Aether/Soul capability split
   - [message-rendering.md](./docs/subsystems/message-rendering.md) — server MML → client renderer, theme/overlay cascade, font-by-register
   - [presentation.md](./docs/subsystems/presentation.md) — what a thing is CALLED and which form a sentence needs: the `NounPhrase` (stem · register · count, built through `GrammarApi`), the six late-bound forms (`bare · handle · concise · presence · distinguishing · formal`), ⭐ `bare`/`handle` consult no perception gate — disguise is perceptual, anonymity declarative — the handle chain (authored keyword → job → species), and chat anonymity
@@ -302,7 +302,7 @@ behavior. Read the relevant doc before editing in its area.
   - [behavior.md](./docs/subsystems/behavior.md) — NPC behavior: BehavedMixin data-specs, brains as modules, witness/`candidate` triggers, the ONE deliberation beat per agent + `Urgency`'s four bands × five `TaskKind`s, the NPC class
   - [npc-dialogue.md](./docs/subsystems/npc-dialogue.md) — the tree-dialogue responder: `talk`, the DialogueConversation engagement, the choice wheel, auto-introduce
   - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome Idea, the outward-walking chain resolver, SkyExposed; the instrument rungs are `instrumentation.md`'s now (rows over `Tool`, not classes); ⚠ `getBiome()` is a REGISTRY read and `BiomeCatalogue` is what warms the roster
-  - [instrumentation.md](./docs/subsystems/instrumentation.md) — the reading ladder: ⭐⭐⭐ competence resolves DETAIL and never ACCESS; `analyze`/`measure`/`readings`/`sample`/`assay` flat over a `Reading` ROW any pack ships (`<root>/idea/reading/<channel>`), warmed by `ReadingCatalogue` (no Api); the seeded bracket, the instrument CEILING, the bench that keeps nothing of yours; ⚠ the article defect (`greedy: true`) and a required arg with no default both fail closed and SILENT
+  - [instrumentation.md](./docs/subsystems/instrumentation.md) — the reading ladder: ⭐⭐⭐ competence resolves DETAIL and never ACCESS; `analyze`/`measure`/`readings`/`sample`/`assay` flat over a `Reading` ROW any pack ships (`<root>/idea/reading/<channel>`), warmed by `ReadingCatalogue` (no Api); the seeded bracket, the instrument CEILING, the bench that keeps nothing of yours; ⚠ a required arg with no default fails closed and SILENT (the article defect is fixed in the binder); `analyze rooms` + `measure paint` took `survey`'s reads
   - [address.md](./docs/subsystems/address.md) — the rooted address namespace: the Locality tier, AddressableMixin, the longest-prefix resolve walk
   - [weather.md](./docs/subsystems/weather.md) — the stateless procedural weather field, pins + climate lean, wetness, puddles, storm lightning, cloud forms
   - [time.md](./docs/subsystems/time.md) — game-time: WorldClockApi, SchedulerApi, CelestialApi, the calendar; the Timekeeping display seam
@@ -831,11 +831,11 @@ reason.
   (`buy`/`sell`/`rent`/`menu`/`order`, `shelf consign|reclaim`,
   `rack check|reclaim`), harbor (the transport pack's `berth`), device
   ("operating a built object or mechanism" —
-  `wind`/`adjust`/`switch`/`fold`/`unfold`/`disarm`/`pump`/`bail` — one bucket over any lift source, the drilling pack's view retired; `lock`/`unlock`
+  `wind`/`adjust`/`switch`/`fold`/`unfold`/`disarm`/`pump`/`bail`/`draught`/`rake` — one bucket over any lift source, the drilling pack's view retired; `lock`/`unlock`
   stay under `boundary`), mining (the metal chain's cutting acts —
   `hew`/`drift`/`sink`/`raise`/`shore`/`stake`; `drive` is the
   vehicle's), fuel (`char`), smelting
-  (`smelt`), forestry (`fell` — a standard, a bole, or a planted tree;
+  (`smelt`), forestry (`fell` — a standard or a planted tree; a bole is `cut`;
   the coppice cut is the platform's `harvest` told its tool by the
   plant), ground and custody (platform), energy, and one category per
   trade pack (`farming`, `fishing`, `sericulture`, `glass`, …). ⭐ **Every view states its `category:`,
@@ -855,10 +855,10 @@ reason.
   than aliased: it belonged to a discipline whose own design had already
   decided the question. ⭐ **A verb lives with the pack whose content
   affords it**: platform keeps the verbs any trade's instrument confers
-  (`pour`/`stir`/`heat`/`repair`/`salvage`/`wash`/`dip`) and
+  (`pour`/`stir`/`knead`/`heat`/`dry`/`paste`/`repair`/`salvage`/`wash`/`dip`) and
   `retail/menu`+`order`, and `do` (shell) runs a script you `def`ined; a trade's own steps ship in its capability pack
   (`trade-hospitality`: `muddle`/`strain`/`garnish`/`mix`/`serve`;
-  `trade-cooking`: `cook`/`plate`/`cure`/`dry`/`smoke`/`butcher`;
+  `trade-cooking`: `cook`/`plate`/`cure`/`smoke`/`butcher`; `trade-dairying`: `churn`; `trade-drilling`: `spud`/`bore`;
   `trade-smithing`:
   `forge`/`hammer`/`quench`/`sharpen`; `trade-mining`:
   `hew`/`drift`/`sink`/`raise`/`shore`/`stake`; `trade-fuel`:
@@ -866,7 +866,13 @@ reason.
   `trade-tanning`: `tan`) under `content/<root>/cmd/` +
   `src/idea/cmd/`. The libations build added `wash`/`muddle`
   (crafting), `job quit` (work), `house par`/`house stock` (banking) and
-  `watch … on <screen>` (stream). ⚠ The metal chain's acts are a `mining`
+  `watch … on <screen>` (stream). The controller-liquidity build added
+  `paste` (crafting), `rake` (device), `outfit` (inventory),
+  `fight assess` (combat), `client-layout`/`client-card`/`client-shelf`/
+  `client-style` (shell), `stream-rotation` (stream), `churn`, `spud`, and the
+  `rooms`/`paint` readings (`analyze rooms`, `measure paint`); it retired
+  `survey`, `equip set`, `char <n>` (`draught`) and `heat <pot>` (`put <pot> on
+  <hearth>`). ⚠ The metal chain's acts are a `mining`
   CATEGORY of their own, and its survey channels are `Reading` ROWS the
   trade ships (`measure strike`/`dip`, `analyze ground`) — the platform's
   `measure`/`analyze` are flat verbs over a channel any pack can add, so

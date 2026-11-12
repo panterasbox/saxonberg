@@ -48,14 +48,14 @@ describe('fit — the view', () => {
     expect(m.whole).toBe('pick');
   });
 
-  it('⭐ greedy both sides: `fit the oak haft to the old pick`', () => {
-    const m = bind('fit the oak haft to the old pick');
-    expect(m.thing).toBe('the oak haft');
-    expect(m.whole).toBe('the old pick');
+  it('⭐ phrases both sides, quoted (D3): `fit the "oak haft" to the "old pick"`', () => {
+    const m = bind('fit the "oak haft" to the "old pick"');
+    expect(m.thing).toBe('oak haft');
+    expect(m.whole).toBe('old pick');
   });
 
   it('the tool defaults to the reachable tools, and can be named', () => {
     expect(bind('fit stave to cask').tool).toBe('reachable:[mixin.ToolMixin]');
-    expect(bind('fit stave to cask with the driver').tool).toBe('the driver');
+    expect(bind('fit stave to cask with the driver').tool).toBe('driver');
   });
 });

@@ -102,6 +102,22 @@ dirty glove's load on the bare hand; `remove gloves carefully` puts none.
 
 ## The wash
 
+⭐ **One act (controller-liquidity W7c).** `wash` asks the first thing named
+`WashableMixin.washPlanFor({actor, spec, alongside})`
+(`lib/cleanliness/Washable.ts`, composed by `SoilableMixin`): the default
+washes the whole load by each thing's `washSite` with the rest as its
+co-wash; your own body, asked by you, answers with its hands
+(`HygieneMixin` overrides — bare `wash`). The water is the source's
+answer (`WaterDrawable.drawWaterFor`, its draw carrying heat and hardness —
+`wash`, `bathe`, `rinse` and `cool` share the one read). `sweep` asks
+`SweepableMixin.sweepPlanFor` (`lib/cleanliness/Sweepable.ts`) — two hosts,
+one act, one result (so many kg, of these kinds, and what of it is in the
+sweeper's hands): a `Floor` sweeps into its heap, a `Flued` fire takes the
+brush up its chimney (no brush — `no-brush`). ⭐ A grate is RAKED, not
+swept (controller-liquidity W18, owner 2026-11-10): `rake` asks the fire's
+own `Burner.rakePlan`, which ends in `rakeGrate`; W7c's third `Sweepable`
+host and its three-way union result are gone.
+
 `Soilable.washSite(spec, site)` is the chemistry (B8 — not `wash()`, which
 is the vessel service wash). A `WashSpec` is the water's heat and
 hardness, zero or more cleansers, and the effort (`wash --hard` is 3 with a brush, 1.5 by hand; the old
@@ -213,8 +229,9 @@ hygienic one.
   `Litter` (rushes), `Heap`
   (sweepings, muck) and the `Midden` itself, never by the place. ⭐ The acts
   are the objects' (B45): `Floor.sweepInto` / `strewWith`,
-  `Flued.sweepChimney`, `Burner.rakeGrate`, `Midden.takeRefuse`. `survey` reads *the floor is soiled; to
-  scrub it would see to it*.
+  `Flued.sweepChimney`, `Burner.rakeGrate`, `Midden.takeRefuse`. `analyze cleanliness floor` reads *It is
+  soiled… To scrub it would see to it* (the line the retired `survey`
+  carried, controller-liquidity W17); `look` gives the soil sentence.
 - **The stalls** — the ONE calendar accrual: a byre floor row names its
   herd book (`stalls: {herdbook}`) and fouls by head × days, reconciled on
   read, following the authored reference.
@@ -228,7 +245,7 @@ hygienic one.
 - **The flue** (`FluedMixin`, on `Hearth` and `Oven`; a `Brazier` has
   none): soot by kg burnt × incompleteness; a foul flue under a roaring fire
   CATCHES (heat and smoke into the room). `sweep hearth with flue brush`
-  clears it; `sweep hearth` rakes the grate's ash.
+  clears it; `rake hearth` takes the grate's ash out (W18 — not a sweep).
 - **The grate** — a wood fire leaves `ashFraction` of what it burns; past
   `fire.ash.chokeStartShare` of the burner's capacity the ash **chokes the
   draught** (down to `fire.ash.chokedDraught`), and the fire says *the grate
@@ -411,3 +428,14 @@ Documents path identity: `DirtKind` moved from Idea rows at
 `/platform/idea/DirtKind/<key>` to `dirt` documents cited by path;
 `setDeposits` became `fixedDeposits`; a pack can ship its own dirt
 (`/trade/mining/dirt/dust` — the `dust` latent defect closed with it). See git log for the `reqs/documents-path-identity` branch.
+
+## History — controller liquidity (MR !561, 2026-11)
+
+`wash` and `sweep` became protocols (W7c, `b0869cda5`): `WashableMixin`
+(composed by `SoilableMixin`, the hands by `HygieneMixin`) washes at the
+water in reach by one `WashSpec`, and that water is the source's answer
+(`WaterDrawableMixin`, W8) — a crafted pail no longer counts as water.
+`SweepableMixin` shipped with three hosts and a union result; the owner
+split the grate off as `rake` (`Burner.rakePlan`, W18 `34f8e50c3`), leaving
+a floor and a flue with one result shape. `survey`'s floor line became
+`analyze cleanliness floor` (W17).

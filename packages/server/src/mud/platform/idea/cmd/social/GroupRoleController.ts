@@ -25,7 +25,8 @@ export default class GroupRoleController extends GroupControllerBase {
     if (!(await GroupApi.ownsGroup(avatar, g))) {
       return this.fail(context, 'Only the owner may set roles.', 'not-owner');
     }
-    const changed = g.setMemberRole(targetId, role);
+    const key = await g.memberByName(targetId);
+    const changed = key !== null && g.setMemberRole(key, role);
     if (!changed) {
       return this.fail(context, `${targetId} is not in '${name}' (or already has that role).`, 'no-change');
     }

@@ -22,7 +22,7 @@ import { Mml } from '../../../../../api/mml';
 import { StuffApi } from '../../../../../api/stuff';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { CommandContext } from '../../../../../api/command';
-import type { MqlManyResult } from '../../../../../api/mql';
+import type { MqlManyResult, MqlOneResult } from '../../../../../api/mql';
 import { MixinApi } from '../../../../../api/mixin';
 import Condition from '../../../Condition';
 import Prescription from '../../../../thing/Prescription';
@@ -83,6 +83,12 @@ function reachable(c: Creature): MqlManyResult {
   return { stuff: out, raw: '' } as unknown as MqlManyResult;
 }
 
+/** The one vessel the binder binds `with` to (the first reachable bulk holder, as the view's default). */
+function firstOf(m: MqlManyResult): MqlOneResult {
+  const first = (m.stuff as Stuff[]).find((s) => MixinApi.isBulkable(s)) ?? null;
+  return { stuff: first, raw: '' } as unknown as MqlOneResult;
+}
+
 /** A poisoned body in a room, carrying a vial. */
 function poisoned(venom = 4): { me: Creature; v: Receptacle } {
   const room = makeStuff(() => new Place());
@@ -109,7 +115,7 @@ describe('DoseController', () => {
     const { me } = poisoned(4);
     const before = me.toxinBurdens.venom ?? 0;
     await makeStuff(() => new DoseController()).execute(
-      { with: reachable(me), prescription: reachable(me) },
+      { with: firstOf(reachable(me)), prescription: reachable(me) },
       ctxFor(me),
     );
     expect(me.toxinBurdens.venom ?? 0).toBeLessThan(before);
@@ -119,7 +125,7 @@ describe('DoseController', () => {
     const { me, v } = poisoned(4);
     const before = v.getInteriorAmount().rawValue();
     await makeStuff(() => new DoseController()).execute(
-      { with: reachable(me), prescription: reachable(me) },
+      { with: firstOf(reachable(me)), prescription: reachable(me) },
       ctxFor(me),
     );
     expect(v.getInteriorAmount().rawValue()).toBeLessThan(before);
@@ -129,7 +135,7 @@ describe('DoseController', () => {
     const { me } = poisoned(0); // no venom
     me.introduceToxin('alcohol', 3);
     await makeStuff(() => new DoseController()).execute(
-      { with: reachable(me), prescription: reachable(me) },
+      { with: firstOf(reachable(me)), prescription: reachable(me) },
       ctxFor(me),
     );
     // The vial counters venom, of which there is none — alcohol is untouched.
@@ -147,7 +153,7 @@ describe('DoseController', () => {
     ContainmentApi.move(empty, me);
     me.introduceToxin('venom', 4);
     await makeStuff(() => new DoseController()).execute(
-      { with: reachable(me), prescription: reachable(me) },
+      { with: firstOf(reachable(me)), prescription: reachable(me) },
       ctxFor(me),
     );
     expect(note).toHaveBeenCalledWith(
@@ -162,7 +168,7 @@ describe('DoseController', () => {
     ContainmentApi.move(me, room);
     me.introduceToxin('venom', 4);
     await makeStuff(() => new DoseController()).execute(
-      { with: reachable(me), prescription: reachable(me) },
+      { with: firstOf(reachable(me)), prescription: reachable(me) },
       ctxFor(me),
     );
     expect(note).toHaveBeenCalledWith(
@@ -220,7 +226,7 @@ describe('DoseController — the active branch', () => {
       me,
     );
     await makeStuff(() => new DoseController()).execute(
-      { with: reachable(me), prescription: reachable(me) },
+      { with: firstOf(reachable(me)), prescription: reachable(me) },
       ctxFor(me),
     );
     expect(me.toxinBurdens.analgesia ?? 0).toBeGreaterThan(0);
@@ -236,7 +242,7 @@ describe('DoseController — the active branch', () => {
       me,
     );
     await makeStuff(() => new DoseController()).execute(
-      { with: reachable(me), prescription: reachable(me) },
+      { with: firstOf(reachable(me)), prescription: reachable(me) },
       ctxFor(me),
     );
     expect(note).toHaveBeenCalledWith(
@@ -270,7 +276,7 @@ describe('DoseController — the active branch', () => {
     await makeStuff(() => new DoseController()).execute(
       {
         patient: { stuff: patient } as never,
-        with: reachable(nurse),
+        with: firstOf(reachable(nurse)),
         prescription: reachable(nurse),
       },
       ctxFor(nurse),
@@ -304,7 +310,7 @@ describe('DoseController — the active branch', () => {
     await makeStuff(() => new DoseController()).execute(
       {
         patient: { stuff: patient } as never,
-        with: reachable(nurse),
+        with: firstOf(reachable(nurse)),
         prescription: reachable(nurse),
       },
       ctxFor(nurse),

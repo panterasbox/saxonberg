@@ -181,6 +181,11 @@ export default class Stock extends StockBase {
     return this.purchasing;
   }
 
+  /** ⭐ A stock's basis is its purchasing policy (economic bootstrap D11). */
+  public override listingBasis(): StockPurchasing {
+    return this.purchasing;
+  }
+
   /** The authored lines, read-only. */
   public getStockLines(): readonly StockLine[] {
     return this.stockLines;

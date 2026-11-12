@@ -464,6 +464,18 @@ hosts, which would constrain several identical tables in one hall.
   `PerceptionLogic.canReach`, by `Thermal`'s **holder** read
   (`ambientScopeOf` → `enclosingCoolbox`: what you are IN outranks the
   room), and as the **step** of `Thermal`'s **air** walk.
+- ⭐ `getEnclosingPlace()` — **the place I am in**: the first container up
+  my chain that is a Place (past a boat, a cart, a bed; at most eight
+  hops), else my immediate container. MQL's `here`, the room a sound is
+  heard in (`Scene`) and the room a horizon is seen from read it
+  (controller-liquidity D7).
+- ⭐ `reachRefusal(actor)` — the innermost shut lid between me and the
+  actor, as `{reason: 'enclosed-shut', facts: {by}}`, or `null`. The verb's
+  question; MQL addresses through lids ([perception.md](./perception.md)).
+- On `Container`: ⭐ `getReachableContents(rung)` — the per-container
+  reach walk (`top` · `open` · `deep`), the step under
+  `PerceptionApi.reach` — the one list `canReach` and the MQL pools read
+  ([perception.md](./perception.md)).
 
 ⭐ Its two readers ask different questions, and the difference is one
 step:

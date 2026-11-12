@@ -1,0 +1,51 @@
+# ⭐ An outfit is a list of the things you wear, saved under a name and
+# put on again in the order it was saved (innermost first, so the covering
+# ladder never refuses a replay). It was `equip set <name>` / `equip set
+# save <name>` / `equip sets` until controller-liquidity W16: a command is
+# `verb target` or `verb subcommand target`, never deeper, and a DIEGETIC
+# verb takes a plain word — so the noun the player groups these under is
+# the verb.
+verbs: [outfit]
+category: inventory
+controller: /platform/idea/cmd/inventory/OutfitListController
+description: "Save what you are wearing as an outfit, and put one on again"
+help: |
+  An outfit is what you have on, saved under a name. `outfit save
+  <name>` records it; `outfit wear <name>` puts it on again — the whole
+  kit, innermost first, the way `equip` dresses you; `outfit list` (or
+  bare `outfit`) names the ones you have.
+
+  An outfit is worth having mostly for the wardrobe: `outfit wear` takes
+  from what you carry, and anything it names that you no longer own is
+  simply reported as missed. Getting dressed takes the time it always
+  does.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresSlotted
+  - /lib/command/validators/requiresEmbodied
+examples:
+  - cmd: outfit save court
+    note: Save what you have on as "court"
+  - cmd: outfit wear court
+    note: Put the "court" outfit on, innermost first
+  - cmd: outfit list
+    note: Name your saved outfits
+subcommands:
+  wear:
+    controller: /platform/idea/cmd/inventory/OutfitWearController
+    description: "Put a saved outfit on, innermost first"
+    args:
+      - name: name
+        type: string
+        required: true
+  save:
+    controller: /platform/idea/cmd/inventory/OutfitSaveController
+    description: "Save what you are wearing right now as an outfit"
+    args:
+      - name: name
+        type: string
+        required: true
+  list:
+    controller: /platform/idea/cmd/inventory/OutfitListController
+    description: "Name your saved outfits"

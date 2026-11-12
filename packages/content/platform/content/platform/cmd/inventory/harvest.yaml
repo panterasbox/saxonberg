@@ -37,7 +37,7 @@ help: |
 examples:
   - cmd: harvest the carrots
     note: Take the crop; an annual plant is spent
-  - cmd: harvest the cherry tree
+  - cmd: 'harvest the "cherry tree"'
     note: A ripe tree gives its whole set and keeps its place
   - cmd: harvest the bed
     note: Naming the ground takes its ripest plant
@@ -62,8 +62,9 @@ args:
 options:
   # ⭐ WHICH PART — `--at <field>` on a tract marked into fields (field
   # population D5). Optional: on one-piece ground there is nothing to name,
-  # and on a divided field the GROUND refuses the act without it, listing
-  # its parts. Quote a name of several words.
+  # and on a divided field the ground answers its parts as a choice — this
+  # controller refuses with the list, `HarvestAskingController` asks
+  # (controller-liquidity D8). Quote a name of several words.
   at:
     type: object
     field: part

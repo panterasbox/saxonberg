@@ -4,7 +4,7 @@
 name: Pressure Gauge
 keywords: [gauge, "pressure gauge"]
 inputSlots:
-  - { slot: tube, category: forgeable, minGrade: good, kind: item, count: 1 }
+  - { slot: tube, category: forgeable, minGrade: fine, kind: item, count: 1 }
   - { slot: case, category: wood, minGrade: poor, kind: item, count: 1 }
 toolCapabilities: [striking, anvil]
 outputTemplate: /trade/drilling/thing/pressure-gauge

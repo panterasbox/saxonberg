@@ -551,7 +551,7 @@ Each protocol file declares a CLOSED reason union and facts types. The
 controller words them in an exhaustive `switch` with a `never` arm, so the
 compiler is the census of what a verb can say, and an alternate controller
 can word everything differently while changing nothing in the world.
-`ManualBuildController.engagePlan(context, plan, words)` and the
+`CommandController.engagePlan(context, plan, words)` and the
 `EngagedActController.engageAct(context, plan, words)` overload run a plan;
 `words` is `{beginSelf, beginPeers?, onRefused, onDone?}`.
 
@@ -561,16 +561,30 @@ sentences in the kernel controller. A new reason for `dip` is a kernel edit,
 or the pack ships its own controller. "A second cuttable thing needs no
 kernel edit" still holds when it reuses reasons.
 
-### ⭐ The cuts plan themselves (controllers-are-io D8c)
+### ⭐ Cutting is several acts (controller-liquidity D14)
 
-The trade cuts ask the same protocol: `cutPlan({verb, …})`, with one entry
-per verb in `CutAnswers` (`cut`, `saw`, `rive`, `crosscut`, `butcher`,
-`scribe`, `snap`, `groze`, `groove`, `scrape`). The answer carries its `verb`
-back and the asking controller narrows on it. Hosts: `Bole`, `Billet`,
-`Corpse`, glass `Sheet`, `IceSheet`, `Rope`, `SugarLoaf`. **The line:** only the
-cut's decision moved. Instrument checks (the saw, the froe, the knife) stay on
-the controller, and so does the saw's timing, because a sawmill's pace is the
-instrument's. `shear` is a tap, not a cut.
+The cuts plan themselves, and **each act is its own small protocol** — the
+target answers an `ActPlan` or a closed refusal, the asking controller words
+it. Until D14 one `cutPlan({verb, …})` answered ten verbs through a
+`CutAnswers` map and every answer carried its `verb` back for the asker to
+narrow on; a verb string on a request is a dispatch nobody can see. Now:
+
+| act | protocol / method | hosts | verb |
+|---|---|---|---|
+| `cut` | `CuttableMixin.cutPlan(req)` | `Rope`, `SugarLoaf`, `IceSheet`, forestry `Bole` (the cross-cut — one length of round timber, a felling axe among the tools); the tool side `CutPlannerMixin` (tailoring `CuttingTool`) | kernel `cut` |
+| saw | `Bole.sawPlanFor(actor, saw)` — a method on its one host since controller-liquidity W17 (`SawableMixin` folded) | `Bole` (one green length); any other wood is weighed as it is by the verb | carpentry `saw` (the sawmill asks a `Bole` by class) |
+| rive | `RivableMixin.rivePlanFor({actor, froe, into})` | `Bole`, `Billet` | forestry `rive` (`requires: RivableMixin`) |
+| butcher | `ButcherableMixin.butcherPlanFor(actor, lines)` — the carcass ledger; the default is the body with no ledger, spent at once | `Corpse` | cooking `butcher` |
+| groove · scrape |X (methods — one host) | water `IceSheet` | trade-ice |
+| scribe · snap · groze | `Sheet.scribePlan` · `snapPlan` · `grozePlan` (methods — one host) | glass `Sheet` | trade-glass |
+
+`CutRequest` carries `part` (a word naming part of the target — `cut hole`,
+`cut marked` on the ice underfoot), never the raw typed text. **The line:**
+only the cut's decision is the target's. Instrument checks (the saw, the
+froe, the knife) stay on the controller, and so does the saw's timing,
+because a sawmill's pace is the instrument's. A bole spends the endurance a
+length costs when the length LANDS, never before the engagement could refuse.
+`shear` is a tap, not a cut. ⚠ `fell bole` retired: a bole is `cut`.
 
 ### ⚠⚠ The tool ladder ranks on RATE, and used to rank on luck
 
@@ -1067,7 +1081,7 @@ against it at the mint; reset by `clearBuild`).
   with the authored food Material at the portion; off-spec mints the
   generic **pot-luck** fill).
 - **Compounding** — ⭐ the same mint over a vessel's **charge** rather
-  than a buffer (ceramics re-plan R1-D7): `knead`/`stir` at a
+  than a buffer (ceramics re-plan R1-D7): `knead` at a
   `CompoundingMixin` vessel (a glaze tub, the batch pot, a temper pit)
   calls `mintFromBuild({ charge })`; the vessel's
   `chargeContributions()` reads its pieces and belly as contributions
@@ -1866,6 +1880,15 @@ rest emitted into the scope — so a retort with nothing attached puts its
 volatiles in the room, which is what the clamp does and why the collier
 discards them.
 
+**⭐ A powered grind survives a restart** (controller-liquidity, after
+the master merge). The water path takes the charge into the hopper at the
+start and the stones run on the game clock — so the grind in flight is
+STATE, not a closure: `pendingGrind` (the charge, the extraction, the
+maker, the payload, `dueAtS`) is a persisted runtime field, and its setter
+arms the landing, so the restore re-arms it. Before, a restart mid-grind
+lost the grain outright. The quern's grind is an engagement and still does
+not survive one (the `ManualBuild` rule) — but it took nothing yet.
+
 **⛔⛔ `ComminutingMixin.products[]` — the mill makes what it is fed.**
 `productMaterial` was ONE path per instrument row and both shipped mill
 rows pinned it to **wheat flour**, while `MillController.chargeFrom`
@@ -1901,7 +1924,8 @@ the feed was dropped. It folds the source payload through
 ## History — the dairy build (2026-10)
 
 - **`stir churn`** records method `churned` (the `churn` word that once
-  joined `stir.yaml` is deleted: one view, one word).
+  joined `stir.yaml` is deleted: one view, one word). ⚠ Superseded by
+  W18: `churn` is its own verb again — the dairying pack's, its own act.
   ⭐ The view is `requires: any` now and the controller narrows to two arms:
   a build vessel records the method; a hand-worked vessel (the kernel's
   **`HandWorkedMixin`**, `workByHand(method)` → an `ActOutcome` or `null`,
@@ -1910,11 +1934,42 @@ the feed was dropped. It folds the source payload through
   vessel: a `pour` into a build vessel (`ManualBuildMixin.receivePour`) BANKS the matter as a contribution
   and drains the source, so cream poured into a build-vessel churn would
   vanish. `HandWorkedMixin` confers the view (a static on its class).
-- **`heat`'s placing arm** — a Thermal, Containable, non-build vessel (a
-  cheese vat) is SET ON the lit `Placing` fire in reach
-  (`reachableHeatSource()`), so its contents really warm; `requires: any`
-  with the controller narrowing; *"There's no fire here to set X on"*
-  otherwise.
+- ~~**`heat`'s placing arm**~~ — **retired in controller-liquidity W7c**
+  (the owner's call): a vat is warmed by `put vat on hearth`, `put`'s act;
+  `heat` binds only a `HeatedMixin` thing (below).
+- ⭐ **One act behind each kernel word (controller-liquidity W7c).** `heat`
+  asks `HeatedMixin.heatPlanFor(actor)` (`lib/fire/Heated.ts`): a build
+  (`ManualBuildMixin` composes it) latches the heat it took and a tempered
+  piece anneals; an instrument (the medicine kits, `KitchenTool`) held in
+  the flame takes a dry heat and is sterilized. ~~`stir` asked
+  `AgitatedMixin.agitatePlanFor`~~ — **undone in W18** (below). `dry` is two shapes with two controllers (`dry.yaml` hangs
+  it up, the forecast the thing's `Moist.hoursToDry` / `Wet.dryingHours`;
+  `dry-rub.yaml`, `with` required, rubs it dry).
+- ⭐⭐ **Two false unifications undone (controller-liquidity W18, owner
+  2026-11-10).** W7c's `AgitatedMixin` stitched three acts behind `stir`
+  with a union result; now each has its word and one host, no protocol:
+  `stir` is the drink build's (`ManualBuildMixin.stirPlan` — the method
+  the vessel names; a shaker's `shaken` is the same act, not a verb of its
+  own), a compounding vessel is worked by the verb its MATTER wants, and
+  a churn is `churn`ed (the dairying pack's verb over
+  `HandWorkedMixin.handWorkPlan`). The same ruling split `rake` (a grate,
+  `Burner.rakePlan`) out of `sweep` — see cleanliness.md.
+- ⭐⭐ **`stir` what runs, `knead` what is stiff (owner 2026-11-10;
+  controller-liquidity W19).** A compound's state routes the verb, and
+  the predicate is the one that already chose a stir's two minutes or a
+  knead's quarter-hour — `Compounding.workVerb()`, read off the contents
+  (any `elastomer` → knead; `plastic` matter → knead unless the free water
+  in the belly is ≥ 0.4× its mass, a slip; no plastic matter → stir). No
+  new field. `knead` asks `kneadPlanFor`, `stir` asks `stirPlanFor`; each
+  refuses `wrong-work` (`facts.work` = the other verb), worded by its own
+  controller ("there is nothing to knead. Stir it." / "too stiff to stir —
+  knead it"). So a paint pot, a glaze or slip tub, a plaster tub, a varnish
+  pot and the glass batch pot are `stir`red; the rubber tub, the rubber
+  cement pot and the temper pit are `knead`ed. `stir` has two hosts asked
+  by METHOD, no protocol (a build answers `{method}`, a compound a
+  product): the controller asks a compounding vessel, then refuses a knead
+  vessel that compounds nothing (a dough trough — a dough is stiff), then
+  asks a build vessel.
 - ⭐ **A mould is not a recipe** — the cheese hoop, the ingot mould and the
   ice pan decide the shape of what sets in them with no verb, no recipe
   and no deed; a pour into a mould credits its discipline. See
@@ -1943,7 +1998,7 @@ perishable inputs before the working's kill. A pot on the boil (what is in it) a
   returns a closed `reason` union or facts, and the controller words them
   (`engagePlan(context, plan, words)`). `boil` folded into `heat` and the
   vessel's bath (D8c); `scrub` became `wash --hard`; the cuts plan
-  themselves on `CuttableMixin.cutPlan`.
+  themselves (one protocol per act since controller-liquidity D14).
 - **The script runner left crafting** (W6, D18): `make` is deleted and the
   shell's `do` runs a named script; the craft's can-make deed is minted in
   `CraftingLogic.recordCraftEvidence`, and `RecipeKnowledge` lives in
@@ -1954,3 +2009,19 @@ perishable inputs before the working's kill. A pot on the boil (what is in it) a
 A recipe is named by its path (its word the leaf, no `recipeId:` line);
 `RecipeCatalogue` left the boot list and reads cold as an error. See git
 log for the `reqs/documents-path-identity` branch.
+
+## History — controller liquidity (MR !561, 2026-11)
+
+Build range `14af1e8ba..726c1f195`. Cutting became several acts, each its
+own small protocol (D14, W6 `187eb96c1`): `Cuttable`'s ten-verb answer map
+is gone; `RivableMixin` and `ButcherableMixin` are kernel protocols, the
+saw is `Bole.sawPlanFor` (its one-host `SawableMixin` folded in W17), and
+`groove`/`scrape`/`scribe`/`snap`/`groze` are host methods. `heat` became
+one act over `HeatedMixin` (W7c, `b0869cda5`) and lost its placing arm to
+`put … on`; `fit` kept assembly and the face coat became `paste` (a rung-5
+word); `dry` is two shapes with two controllers. `stir` went through
+`AgitatedMixin` (W7c), was undone (W18, `34f8e50c3`) and settled as *stir
+what runs, knead what is stiff* (W19, `9a25745d1`, `Compounding.workVerb`).
+`ActChoices` (W4) lets the model return the set and the controller pick,
+refuse or ask; `engagePlan` moved up to `CommandController` so any controller
+can engage an `ActPlan`.

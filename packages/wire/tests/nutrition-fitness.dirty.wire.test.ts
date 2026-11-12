@@ -157,19 +157,20 @@ let sweatSeen = false;
 let windedCueSeen = false;
 
 async function bank(handle: string, amount: number): Promise<void> {
+  // ⚠ `reserve override`, not `reserve issue` (retired by the money
+  // write-off build — it answers `unknown-subcommand`; found at the
+  // controller-liquidity finalize, where this drive first ran since). The
+  // override is a RECORDED act that lands in the account, so the account
+  // is opened first (the apiculture drive's precedent).
+  // The member stays in the world until the override lands: it names
+  // them off the live roster.
+  const me = await Session.open(handle, { startLocation: BANK });
   const gov = await Session.open('founder', { startLocation: BANK });
   try {
-    expectOk(await gov.cmd(`reserve issue ${amount}`));
-    expectOk(await gov.cmd('drop coins'));
+    expectOkOr(await me.cmd('bank open'), 'already-open', 'account-exists');
+    expectOk(await gov.cmd(`reserve override ${amount} to ${handle} "wire: nutrition-fitness funding"`));
   } finally {
     gov.close();
-  }
-  const me = await Session.open(handle, { startLocation: BANK });
-  try {
-    expectOk(await me.cmd('get coins'));
-    expectOkOr(await me.cmd('bank open'), 'already-open', 'account-exists');
-    expectOk(await me.cmd('bank deposit coins'));
-  } finally {
     me.close();
   }
 }
@@ -195,8 +196,8 @@ suite('1–3 · two fresh bodies read the same', () => {
   it('⭐ `look <person>` ends with the body line, and it is the species baseline', async () => {
     expectOk(await H.cmd('introduce'));
     expectOk(await L.cmd('introduce'));
-    const hSeen = await L.prose(`look ${hName}`);
-    const lSeen = await H.prose(`look ${lName}`);
+    const hSeen = await L.prose(`look "${hName}"`);
+    const lSeen = await H.prose(`look "${lName}"`);
     expect(hSeen, 'the body line exists on a person').toMatch(/In good flesh\./);
     expect(lSeen).toMatch(/In good flesh\./);
     expect(hSeen).not.toMatch(/\d+ ?%/);
@@ -281,7 +282,7 @@ suite('6 · a season of work (H), and a season of nothing (L)', () => {
 
   it('⭐⭐ a bar on the FLOOR makes the room meet the gym’s load slot — no code, no second archetype', async () => {
     expectOk(await H.cmd('drop barbell'));
-    const said = await H.prose('survey');
+    const said = await H.prose('analyze rooms');
     expect(said).toMatch(/a gym/i);
     expect(said).toMatch(/load \(/i);
   }, 60_000);
@@ -388,8 +389,8 @@ suite('8–9 · the mirror and the tape', () => {
     L = await Session.open(lName, { startLocation: CROSSROADS });
     expectOk(await L.cmd('introduce'));
     expectOk(await H.cmd('introduce'));
-    const hSeen = await L.prose(`look ${hName}`);
-    const lSeen = await H.prose(`look ${lName}`);
+    const hSeen = await L.prose(`look "${hName}"`);
+    const lSeen = await H.prose(`look "${lName}"`);
     expect(hSeen).toMatch(/hard|wiry|broad|burly|powerful/i);
     expect(hSeen).not.toMatch(/In good flesh\.$/m);
     expect(lSeen).toMatch(/In good flesh\./);

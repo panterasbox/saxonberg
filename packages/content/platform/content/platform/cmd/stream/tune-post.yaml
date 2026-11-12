@@ -1,0 +1,38 @@
+verbs: [tune]
+category: stream
+controller: /platform/idea/cmd/stream/TunePostController
+description: "Post to a followed livestream's chat (Twitch)"
+help: |
+  `tune <target> <message>` sends the message to that channel's chat as
+  your own linked Twitch identity (and mirrors it here). Posting needs a
+  linked Twitch account with chat authorized; you'll be pointed to the
+  authorize flow the first time. YouTube and Kick chat are read-only this
+  cycle. ⭐ One of three shapes of `tune`: a message after the target is
+  what makes it a post.
+examples:
+  - cmd: tune shroud --twitch hello
+    note: Say hello in a Twitch channel's chat
+validators:
+  - /lib/command/validators/requiresAnimate
+options:
+  twitch:
+    type: boolean
+    field: twitch
+    description: "The target is a Twitch handle"
+  youtube:
+    type: boolean
+    field: youtube
+    description: "The target is a YouTube handle"
+  kick:
+    type: boolean
+    field: kick
+    description: "The target is a Kick channel slug"
+args:
+  - name: target
+    type: string
+    required: true
+  # Prose: the message is the greedy tail (greedy stays on strings, D3).
+  - name: message
+    type: string
+    required: true
+    greedy: true

@@ -37,10 +37,8 @@ help: |
   `equip <thing> --from <container>` reaches into a chest or a wardrobe
   you can see, so getting dressed at home is one command and not six.
 
-  `equip set <name>` puts on a set you saved; `equip set <name> --save`
-  records what you have on right now; `equip sets` lists them. A set is
-  worth having mostly for the wardrobe — anything it names that you no
-  longer own is simply reported as missed.
+  An outfit you saved goes on with `outfit wear <name>` — see `help
+  outfit`.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -59,19 +57,3 @@ options:
     scope: [reachable]
     description: "A chest or wardrobe to take the kit out of first"
     requires: ContainerMixin
-fallthrough: true
-subcommands:
-  set:
-    controller: /platform/idea/cmd/inventory/EquipSetController
-    description: "Put on a saved set (`--save` to record what you have on)"
-    args:
-      - name: name
-        type: string
-        required: true
-    options:
-      save:
-        type: boolean
-        description: "Save what you are wearing right now under <name>"
-  sets:
-    controller: /platform/idea/cmd/inventory/EquipSetsController
-    description: "List your saved sets"

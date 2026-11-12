@@ -16,6 +16,8 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
+import { EmploymentApi } from '../../api/employment';
 
 /** One bill a payer owes, as its holder reads it now. */
 export interface Bill {
@@ -32,11 +34,40 @@ export interface Bill {
   key: string;
 }
 
+/** A bill paid, and the settlement's own tail (how it cleared). */
+export interface PaidBill {
+  bill: Bill;
+  tail: string;
+}
+
+/**
+ * ⭐ Why paying here stopped (controller-liquidity W7c) — the `pay` verb
+ * words each.
+ *  - `amount-at-payable` — a sum was named; what is owed is the holder's to say.
+ *  - `nothing-owed` — no bill for the payer.
+ *  - `bill-unpaid` — `stuck` could not be covered; `paid` went before it,
+ *    `owed` is everything still owed (`stuck` first).
+ */
+export type PayBillsRefusal =
+  | ActRefusal<'amount-at-payable'>
+  | ActRefusal<'nothing-owed'>
+  | ActRefusal<'bill-unpaid', { paid: readonly PaidBill[]; stuck: Bill; owed: readonly Bill[] }>;
+
+/** What paying a holder's bills came to: every bill paid, or where it stopped. */
+export type PayBillsAnswer = ActOutcome<{ paid: readonly PaidBill[] }> | PayBillsRefusal;
+
 export interface Payable {
   /** ⭐ What `payer` owes here now, in the order it is paid. `[]`: nothing. */
   billsFor(payer: Stuff): Promise<Bill[]>;
   /** `bill` has been paid by `payer`: the holder marks it settled. */
   onPaid(bill: Bill, payer: Stuff): Promise<void>;
+  /**
+   * ⭐ `pay <it>` (controller-liquidity W7c): pay every bill held for
+   * `payer`, in order, each to the venue it names (the payer is the acting
+   * principal — credential, then cash), stopping at the first that cannot
+   * be paid. `statedMinor` is a sum the payer named: refused, never used.
+   */
+  payBillsBy(payer: Stuff, statedMinor: number | null): Promise<PayBillsAnswer>;
 }
 
 export function PayableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
@@ -53,6 +84,23 @@ export function PayableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async onPaid(_bill: Bill, _payer: Stuff): Promise<void> {
       return;
+    }
+
+    public async payBillsBy(payer: Stuff, statedMinor: number | null): Promise<PayBillsAnswer> {
+      if (statedMinor !== null) return { ok: false, reason: 'amount-at-payable' };
+      const bills = (await this.billsFor(payer)).filter((b) => b.amountMinor > 0);
+      if (bills.length === 0) return { ok: false, reason: 'nothing-owed' };
+      const paid: PaidBill[] = [];
+      for (let i = 0; i < bills.length; i++) {
+        const bill = bills[i]!;
+        const settled = await EmploymentApi.settleSale(bill.to, bill.amountMinor, 0, bill.reason);
+        if (settled === null) {
+          return { ok: false, reason: 'bill-unpaid', facts: { paid, stuck: bill, owed: bills.slice(i) } };
+        }
+        await this.onPaid(bill, payer);
+        paid.push({ bill, tail: settled.tail });
+      }
+      return { ok: true, facts: { paid } };
     }
   };
 }

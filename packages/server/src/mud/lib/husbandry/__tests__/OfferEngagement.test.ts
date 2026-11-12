@@ -54,8 +54,8 @@ class Scrap extends ContainableMixin(Idea) {}
 class Beast extends ContainableMixin(Idea) {
   ate: { food: Stuff; offerer: Stuff | null }[] = [];
   refusal: string | null = null;
-  wouldEat(): string | null {
-    return this.refusal;
+  wouldEat(): boolean {
+    return this.refusal === null;
   }
   async eatFood(food: Stuff, offerer: Stuff | null): Promise<boolean> {
     this.ate.push({ food, offerer });

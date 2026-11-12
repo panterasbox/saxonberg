@@ -388,7 +388,7 @@ vessel-kind `category`, empty or full — `vesselKind`, not `vessel`,
 since bare `Vessel` is the enterable-container class). `industry` stays null — the
 shared `fermenting` discipline would cross-derive the sibling trade's
 tools, so the floors are authored residue; the work boards (Menus) are
-deliberately not needs (the bathroom rule). Reported by `survey`,
+deliberately not needs (the bathroom rule). Reported by `analyze rooms`,
 never enforced; a second winery anywhere satisfies from any rows.
 
 ## Generalization notes — bread, yogurt, cheese (parked 2026-09-01)

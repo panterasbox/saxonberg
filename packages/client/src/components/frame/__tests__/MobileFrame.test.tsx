@@ -171,14 +171,14 @@ describe('MobileFrame', () => {
     /*
      * ⭐ **Reordering is what changes the bar**, because the glance-line
      * is the HEAD of the one list. This is the client half of
-     * `cockpit shelf first`.
+     * `client-shelf first`.
      */
     it('⭐ follows a reorder, with no second list anywhere', () => {
       setShelf(['play', 'renown', 'skill']);
       const { rerender } = render(<MobileFrame />);
       expect(chipLabels()[0]).toBe('PLAY');
 
-      // What the server pushes back after `cockpit shelf first coin`.
+      // What the server pushes back after `client-shelf first coin`.
       act(() => setShelf(['coin', 'play', 'renown', 'skill']));
       rerender(<MobileFrame />);
       expect(chipLabels()).toEqual(['COIN', 'PLAY', 'RENOWN']);

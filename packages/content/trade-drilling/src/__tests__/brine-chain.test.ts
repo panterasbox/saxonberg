@@ -153,7 +153,7 @@ describe('the recipes name rows that exist', () => {
     expect(existsSync(`${PACK}content/recipes/derrick.yaml`)).toBe(false);
   });
 
-  it('⭐⭐ the BAILER affords `bore`, because a derrick cannot afford raising one', () => {
+  it('⭐⭐ the BAILER affords `spud`, because a derrick cannot afford raising one', () => {
     // The spade/field split the kernel already blessed. The bailer is
     // the one tool on the rig from the first yard to the last, and it is
     // in your hands rather than in the ground.
@@ -163,7 +163,8 @@ describe('the recipes name rows that exist', () => {
     const src = readFileSync(`${PACK}src/thing/Bailer.ts`, 'utf8');
     expect(src).toMatch(/static commandContributions/);
     expect(src).toMatch(/inventory/);
-    expect(src).toMatch(/bore\.yaml/);
+    expect(src).toMatch(/spud\.yaml/);
+    expect(src).toMatch(/spudPlanFor/);
     // ⚠ And the derrick keeps the `peers` rung, so putting the bailer
     // down at the wellhead costs nothing.
     const derrick = readFileSync(`${PACK}src/thing/Derrick.ts`, 'utf8');
@@ -256,11 +257,11 @@ describe('the labour pool is content, and the hands have no brain', () => {
     // overlay follows. Asserted on the source because only the live
     // drive can see the overlay actually applied.
     const src = readFileSync(
-      `${PACK}src/idea/cmd/drilling/BoreController.ts`,
+      `${PACK}src/thing/Bailer.ts`,
       'utf8',
     );
-    expect(src).toMatch(/positions: await openPlaces\(\)/);
-    expect(src).toMatch(/getPositions\?\.\(\)/);
+    expect(src).toMatch(/positions: await Bailer\.openPlaces\(\)/);
+    expect(src).toMatch(/getPositions\(\)/);
     expect(src).toMatch(/CREW_PLACES/);
   });
 });

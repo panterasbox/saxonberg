@@ -454,6 +454,20 @@ describe('feed <bed>', () => {
     expect(sack.getBulkAmount('interior').rawValue()).toBe(20);
   });
 
+  it('⭐ the GROUND decides (Soil.amendPlanFor) — refuses with the actor, from a direct call', async () => {
+    const { giver, bed } = scene(100);
+    const sack = makeSack(20);
+    // Full: no headroom, nothing moves.
+    await expect(
+      bed.amendPlanFor({ by: giver, amend: 'feed', target: bed, sources: [sack], named: false, part: null }),
+    ).resolves.toMatchObject({ ok: false, reason: 'already-fed', facts: { slow: false } });
+    // Nothing that feeds it.
+    await expect(
+      bed.amendPlanFor({ by: giver, amend: 'feed', target: bed, sources: [], named: false, part: null }),
+    ).resolves.toEqual({ ok: false, reason: 'no-compost-source' });
+    expect(sack.getBulkAmount('interior').rawValue()).toBe(20);
+  });
+
   it('refuses something that is not ground at all', async () => {
     const { giver, room } = scene();
     const sack = makeSack(20);

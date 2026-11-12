@@ -65,6 +65,21 @@ export {
 } from "../lib/parcel/LandUse";
 export type { LandUse, CultivationScale } from "../lib/parcel/LandUse";
 
+/** What declaring an extent published or dark answers (`ParcelApi.setPublished`). */
+export type PublishAnswer =
+  | { ok: true; record: ParcelRecord }
+  | { ok: false; reason: "untitled" | "not-yours" | "no-change" };
+
+/**
+ * Why `subdivide` would refuse a lot (`ParcelApi.subdivisionRefusal`):
+ * `over-area` — the parent's floor area is already taken; `zoning` — the
+ * area is outside the land use's band. `detail` names the numbers.
+ */
+export type SubdivisionRefusal = {
+  reason: "over-area" | "zoning";
+  detail: string;
+};
+
 export class ParcelApi {
   /**
    * The total three-rung title chain — explicit parcel title → self-home
@@ -160,6 +175,21 @@ export class ParcelApi {
   /** Every parcel row citing water source `sourcePath` — the twin of {@link parcelsOnFeeder}. */
   public static async parcelsOnWaterSource(sourcePath: string): Promise<ParcelRecord[]> {
     return logic().parcelsOnWaterSource(sourcePath);
+  }
+
+  /**
+   * ⭐ Would {@link ParcelApi.subdivide} refuse this lot? Its two checks —
+   * the parent's floor-area ledger and the zoning band — asked without
+   * writing, so an act with a money leg refuses before it takes the money.
+   * Null = it would be accepted.
+   */
+  public static async subdivisionRefusal(
+    childPath: string,
+    parentExtent: string,
+    area = 0,
+    landUse: LandUse | null = null,
+  ): Promise<SubdivisionRefusal | null> {
+    return logic().subdivisionRefusal(childPath, parentExtent, area, landUse);
   }
 
   /** Every parcel row citing feeder node `feederRef` — the meter's twin of {@link parcelsOnReach}. */
@@ -294,12 +324,16 @@ export class ParcelApi {
    * camera*, and which one this is is a fact about whether anybody was
    * there rather than a second field.
    *
-   * Returns the updated record, or null when no parcel claims `extent`.
+   * ⭐ Asked AS the acting principal (controller-liquidity W8 — the gate
+   * moved off `title publish`/`title offline` onto the write it protects):
+   * every refusal is a reason, before any write — `untitled` (no parcel
+   * claims exactly `extent`), `not-yours` (the actor holds no title there;
+   * an unattributable chain is nobody's), `no-change` (already so).
    */
   public static async setPublished(
     extent: string,
     value: boolean,
-  ): Promise<ParcelRecord | null> {
+  ): Promise<PublishAnswer> {
     return logic().setPublished(extent, value);
   }
 

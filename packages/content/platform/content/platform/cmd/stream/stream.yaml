@@ -37,21 +37,22 @@ args:
     required: false
 subcommands:
   start:
+    controller: /platform/idea/cmd/stream/StreamStartController
     description: "Starting Soon, optionally counting down (`stream start in 10m`)"
     help: |
       Put the overlay on the Starting Soon scene, with your agenda. Give a
       time to count down to — `stream start in 10m`, or just
       `stream start 10m` — or none for no countdown.
     args:
-      - name: first
+      - name: duration
         type: string
         required: false
-      - name: second
-        type: string
-        required: false
+        prepositions: [in]
   live:
+    controller: /platform/idea/cmd/stream/StreamLiveController
     description: "Put the desktop on air"
   away:
+    controller: /platform/idea/cmd/stream/StreamAwayController
     description: "Away for a reason (`stream away food`, `stream away privacy 20m`, `stream away 15m`)"
     help: |
       Drop the overlay to the Away scene with a reason's words and a
@@ -70,12 +71,16 @@ subcommands:
         type: string
         required: false
   back:
+    controller: /platform/idea/cmd/stream/StreamLiveController
     description: "Back from Away — the desktop returns to the air"
   end:
+    controller: /platform/idea/cmd/stream/StreamEndController
     description: "The outro; the stream goes offline when it finishes"
   "off":
+    controller: /platform/idea/cmd/stream/StreamOffController
     description: "Offline now"
   segment:
+    controller: /platform/idea/cmd/stream/StreamSegmentController
     description: "Set the topic the sidebar shows (`stream segment the glass trade`)"
     args:
       - name: title
@@ -83,6 +88,7 @@ subcommands:
         required: true
         greedy: true
   agenda:
+    controller: /platform/idea/cmd/stream/StreamAgendaController
     description: "Set the agenda, items split by commas (`stream agenda glass, paper, Q&A`), or `stream agenda clear`"
     args:
       # ⚠ Greedy by design: the whole rest of the line is the list.
@@ -91,29 +97,24 @@ subcommands:
         required: true
         greedy: true
   next:
+    controller: /platform/idea/cmd/stream/StreamNextController
     description: "Tick the current agenda item and move to the next"
-  rotation:
-    description: "Steer the lower third: `stream rotation pin <panel>`, `skip <panel>`, `clear`"
-    args:
-      - name: action
-        type: string
-        required: true
-      - name: panel
-        type: string
-        required: false
   channel:
+    controller: /platform/idea/cmd/stream/StreamChannelController
     description: "Name your chat channel on a service (`stream channel twitch mylogin`)"
     help: |
       Tell the overlay which chat to show: your channel on twitch, youtube
       or kick. Give no handle to clear one.
     args:
       - name: service
-        type: string
+        type: enum
         required: true
+        values: [twitch, youtube, kick]
       - name: handle
         type: string
         required: false
   token:
+    controller: /platform/idea/cmd/stream/StreamTokenController
     description: "Issue (or rotate) your overlay token, shown once; `--control` for the Stream Deck's"
     help: |
       Issue a new token for your overlay's browser source and show it

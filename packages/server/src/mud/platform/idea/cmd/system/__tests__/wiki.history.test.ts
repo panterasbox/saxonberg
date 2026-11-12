@@ -35,7 +35,7 @@ import { StuffApi } from '../../../../../api/stuff';
 import { ExecutionContextApi } from '../../../../../api/execution-context';
 import { TemplatePaths } from '../../../../../lib/paths';
 import { installWikiTestDb, type WikiTestDb } from '../../../../../lib/wiki/__tests__/wiki-test-db';
-import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import type { Note } from '@saxonberg/types';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 
@@ -101,7 +101,8 @@ beforeEach(() => {
     b.send = () => {};
     return b as never;
   });
-  registry = makeStuff(() => new WikiRegistry());
+  // At its template path: the renderer's gate admits the registry by it.
+  registry = makeStuffAtPath(() => new WikiRegistry(), TemplatePaths.wikiRegistry);
   renderer = makeStuff(() => new WikiRenderer());
   zone = makeStuff(() => new WikiNamespaceZone());
   giver = makeStuff(() => new Principal()) as unknown as Stuff;
@@ -317,6 +318,31 @@ describe('⭐ history is gated too (9, 67, 68)', () => {
     readerSeesNothingGated();
     const { body } = await run({ subcommand: 'history', page: 'oak' });
     expect(body).toContain('both at once');
+  });
+
+  it('⭐ naming a moderator as the reader cannot raise the ceiling (controller-liquidity D9)', async () => {
+    await run({ subcommand: 'create', page: 'oak', body: 'open' });
+    await run({
+      subcommand: 'edit',
+      page: 'oak',
+      body: 'open <spoiler level="3">secret</spoiler>',
+    });
+    const moderator = makeStuff(() => new Principal()) as unknown as Stuff;
+    vi.spyOn(AccessApi, 'canMutateZone').mockImplementation(
+      async (actor: unknown) => actor === moderator,
+    );
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
+    const page = (await registry.resolve('oak'))?.page;
+    // A direct call (no controller) acting as the ordinary reader, naming
+    // the moderator: the gate takes the LOWER ceiling.
+    const views = await ExecutionContextApi.runRoot(null, 'direct', async () => {
+      ExecutionContextApi.tagActingAuthor(giver);
+      return registry.historyFor(moderator, page!._id ?? '');
+    });
+    expect(views.map((v) => v.body).join(' ')).not.toContain('secret');
+    expect(views.find((v) => v.rev === 2)?.visibleChange).toBe(false);
+    // The rows themselves are not on the view.
+    expect(Object.keys(views[0]!)).not.toContain('getBody');
   });
 
   it('a wholly-gated page lists only its creation, and counts nothing', async () => {

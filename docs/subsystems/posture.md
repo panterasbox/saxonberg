@@ -161,7 +161,7 @@ the standard non-configurable case.
 | `sit <X>` | with arg | First slot on X accepting `Postures.Sit` |
 | `lie` / `lie <X>` | both | Same shape, `Postures.Lie` |
 | `kneel` | no-arg only | `default: 'ground'`, `Postures.Kneel` |
-| `stand` | no-arg | Slot-less posture flip — vacates any posture-bearing slot, sets `Stand`; ⭐ on a slotted floor, transfers ONTO the floor (below) |
+| `stand` | no-arg | Slot-less posture flip — vacates any posture-bearing slot, sets `Stand`; ⭐ on a slotted floor the floor answers `acceptPosture(actor, 'stand')` (controller-liquidity W7c): `held` when it already bears you (only the posture changes), `rest` when standing means getting up ONTO it (the floor's `occupy` ends the swim) |
 | `stand <X>` | with arg | Stand on X (e.g., on a chair or table) |
 
 The asymmetry: `sit` / `lie` / `kneel` no-arg occupy the floor slot

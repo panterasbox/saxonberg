@@ -5,10 +5,21 @@
  * house's books, so `appoint`, `dismiss` and `draw` moved under `house`
  * beside `book` / `pnl` / `payroll` / `roster`; each subcommand has its
  * own controller (`HouseAppointController`, `HouseDismissController`,
- * `HouseDrawController`) and `HouseController` keeps the reads.
+ * `HouseDrawController`, and the reads `HouseBookController`,
+ * `HousePnlController`, `HousePayrollController`, `HouseRosterController`
+ * — controller-liquidity W7a). trade-shopkeeping's `house par` / `price` /
+ * `stock` ride this base too.
+ *
+ * ⚠ **Gated on the SEAT, never the wizard axis.** The code-trust axis is
+ * TypeScript and nothing else; venue authority comes from a position held
+ * or the proprietorship (`resolveHouse`). A thief holding the house tablet
+ * gets `house stock` (the sheet is what the screen shows) but `wallet use
+ * house` and a house-stamped `buy` refuse them — money authority is only
+ * ever the wallet's, and the wallet's is the position's.
  *
  * Holds the one derivation appoint and dismiss both need — *the house an
- * omitted `at` means* — and the shell-result words they both speak.
+ * omitted `at` means* — the house the reads keep (`houseKept`), and the
+ * shell-result words they speak.
  */
 
 import { BankingControllerBase } from "./BankingControllerBase";
@@ -17,7 +28,8 @@ import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import { MixinApi } from "../../../../api/mixin";
 import { EmploymentApi } from "../../../../api/employment";
-import type { OrganizationStuff } from "../../../../api/employment";
+import type { Business, OrganizationStuff } from "../../../../api/employment";
+import type { Stuff } from "../../../../lib/stuff/Stuff";
 
 const TOPIC = "shell.result";
 
@@ -69,6 +81,19 @@ export abstract class HouseControllerBase<
     }
     // Nothing here — your own stall may simply be somewhere else.
     return EmploymentApi.businessOfProprietor(giver) as OrganizationStuff | null;
+  }
+
+  /** The house the giver keeps, or a `not-staff` rejection. */
+  protected async houseKept(context: CommandContext): Promise<(Stuff & Business) | null> {
+    const house = await this.resolveHouse(context);
+    if (!house) {
+      MessageApi.scene(context.commandGiver)
+        .topic("act.deed")
+        .toSelf(Mml.compose`You don't keep any house here.`)
+        .send();
+      context.note({ kind: "controller-rejected", reason: "not-staff", detail: "house" });
+    }
+    return house;
   }
 
   protected tell(context: CommandContext, text: string): void {

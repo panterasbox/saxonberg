@@ -19,6 +19,22 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { standShippedConditions } from './conditions';
+import { ToolMixin } from '../../craft/Tool';
+import { Idea } from '../../stuff/Idea';
+import type { BloodUnit } from '../Blood';
+
+class TestSyringe extends ToolMixin(Idea) {}
+const syringe = (): TestSyringe => {
+  const t = makeStuff(() => new TestSyringe());
+  t.setCapabilities(['phlebotomy']);
+  return t;
+};
+/** Draw a unit of one's own blood with a syringe, and unwrap the unit. */
+const draw = (c: Creature): BloodUnit => {
+  const r = c.drawBlood(BLOOD_DEFAULTS.UNIT_LITRES, c, syringe());
+  if (!r.ok) throw new Error(`draw refused: ${r.reason}`);
+  return r.facts;
+};
 
 let seq = 0;
 
@@ -110,7 +126,7 @@ describe('VitalsMixin — draw', () => {
     c.markBloodTyped();
     const marrowBefore = c.getMarrow().current.rawValue();
     const before = bv(c);
-    const unit = c.drawBlood(BLOOD_DEFAULTS.UNIT_LITRES);
+    const unit = draw(c);
     expect(bv(c)).toBeCloseTo(before - BLOOD_DEFAULTS.UNIT_LITRES, 5);
     expect(c.getMarrow().current.rawValue()).toBeCloseTo(
       marrowBefore -
@@ -122,9 +138,16 @@ describe('VitalsMixin — draw', () => {
     expect(unit.donorIdentityPath).toBe(c.getIdentityPath());
   });
 
+  it('⭐ D9: the BODY refuses a draw with no phlebotomy tool', () => {
+    const c = body({ genotype: 'AO' });
+    const before = bv(c);
+    expect(c.drawBlood(BLOOD_DEFAULTS.UNIT_LITRES, c, null)).toEqual({ ok: false, reason: 'no-tool' });
+    expect(bv(c)).toBe(before);
+  });
+
   it('an untested donor stamps an unlabelled (but true-typed) unit', () => {
     const c = body({ genotype: 'BO' });
-    const unit = c.drawBlood(BLOOD_DEFAULTS.UNIT_LITRES);
+    const unit = draw(c);
     expect(unit.type).toBe('B'); // the TRUE type is always stored
     expect(unit.labelled).toBe(false); // nobody tested it
   });
@@ -247,7 +270,7 @@ describe('VitalsMixin — compatibility crosses species sharing a system (D3)', 
     expect(recip.bloodSystemOf()).toBe('hominid');
     const baseline = recip.getVitalBand('bloodVolume').baseline;
     recip.setVitalSign('bloodVolume', Quantity.of(baseline * 0.6, 'L'));
-    const unit = donor.drawBlood(BLOOD_DEFAULTS.UNIT_LITRES);
+    const unit = draw(donor);
     expect(unit.system).toBe('hominid');
     const r = recip.receiveBlood({ litres: BLOOD_DEFAULTS.UNIT_LITRES, blood: unit });
     expect(r.reaction).toBe(0);
@@ -260,7 +283,7 @@ describe('VitalsMixin — compatibility crosses species sharing a system (D3)', 
     const recip = body({ species: elf, genotype: 'OO' });
     const baseline = recip.getVitalBand('bloodVolume').baseline;
     recip.setVitalSign('bloodVolume', Quantity.of(baseline * 0.6, 'L'));
-    const unit = donor.drawBlood(BLOOD_DEFAULTS.UNIT_LITRES);
+    const unit = draw(donor);
     const r = recip.receiveBlood({ litres: BLOOD_DEFAULTS.UNIT_LITRES, blood: unit });
     expect(r.reaction).toBe(2);
   });

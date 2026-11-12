@@ -23,15 +23,16 @@ export default class ForumPostController extends ForumControllerBase {
     if (!body) return this.fail(context, 'body required', 'body-required');
     const view = await ForumsApi.resolveBoardByHandle(handle);
     if (!view) return this.fail(context, `No board '${handle}'.`, 'no-such-board');
-    if (!(await actor.isAudienceMemberOf(view.subject))) {
-      return this.fail(context, 'You are not in this board’s audience.', 'not-member');
-    }
     const title = (model.title ?? this.deriveTitle(body)).trim();
-    const entry = await actor.postThread(view.board, title, body);
-    this.send(
-      context,
-      Mml.compose`\nPosted thread '${title}' (#${entry._id ?? '?'}).\n`,
-    );
+    try {
+      const entry = await actor.postThread(view.board, title, body);
+      this.send(
+        context,
+        Mml.compose`\nPosted thread '${title}' (#${entry._id ?? '?'}).\n`,
+      );
+    } catch (err) {
+      return this.failFrom(context, err, 'post-failed');
+    }
   }
 
   private deriveTitle(body: string): string {

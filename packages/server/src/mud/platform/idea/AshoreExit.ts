@@ -129,13 +129,6 @@ export default class AshoreExit extends LockableMixin(DeferredDestinationExit) {
     this.berthed()?.setGangwayLocked(value);
   }
 
-  public override lock(): void {
-    this.setLocked(true);
-  }
-
-  public override unlock(): void {
-    this.setLocked(false);
-  }
 
   public override getLock(): Lock {
     return new Lock(this.berthed()?.getGangwayKeyway() ?? '', 'pin-tumbler');

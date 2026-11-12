@@ -90,3 +90,33 @@ describe('Boat (river D19, D38)', () => {
     expect(boat.isCapsized()).toBe(false);
   });
 });
+
+describe('Boat — launch, recover, anchor answer for themselves (controller-liquidity W8)', () => {
+  it('⭐ launch asks each Launchable water and refuses with no water beside, from a direct call', async () => {
+    const boat = makeStuff(() => new Boat());
+    expect(await boat.launch()).toEqual({ ok: false, reason: 'no-water', facts: { ashore: false } });
+    const bank = { stuffId: 'bank' };
+    vi.spyOn(boat, 'getContainer').mockReturnValue(bank as never);
+    const notWater = vi.spyOn(MixinApi, 'isWaterPlace').mockReturnValue(false);
+    const asked: string[] = [];
+    vi.spyOn(StuffApi, 'singleton').mockImplementation((async (path: string) => {
+      asked.push(path);
+      return { stuffId: path } as never;
+    }) as never);
+    vi.spyOn(MixinApi, 'isLaunchable').mockReturnValue(false);
+    expect(await boat.launch()).toEqual({ ok: false, reason: 'no-water', facts: { ashore: true } });
+    expect(asked).toEqual(['/system/water/idea/ReachWarren', '/system/water/idea/SeaWarren']);
+    notWater.mockRestore();
+  });
+
+  it('⭐ recover refuses a boat that is not afloat', async () => {
+    const boat = makeStuff(() => new Boat());
+    expect(await boat.recover()).toEqual({ ok: false, reason: 'not-afloat' });
+  });
+
+  it('⭐ a boat with no killick has no anchor to let go', async () => {
+    const boat = makeStuff(() => new Boat());
+    expect(MixinApi.isAnchoring(boat)).toBe(true);
+    expect(await boat.anchorPlanFor(boat)).toBeNull();
+  });
+});

@@ -71,7 +71,7 @@ describe('fell.yaml — the arg gates', () => {
     expect([axe.requires].flat()).toEqual(['ToolMixin']);
     expect(MixinApi.hasMixin(Tool, Mixins.Tool)).toBe(true);
   });
-  it('the affordance: a Wood’s occupants have `fell`; a plain room’s do not; a Panel’s neighbours do; a bole itself does', () => {
+  it('the affordance: a Wood’s occupants have `fell`; a plain room’s do not; a Panel’s neighbours do; a bole does NOT (it is `cut`, D14)', () => {
     const verbs = (ctor: unknown, bucket: 'self' | 'inventory' | 'environment' | 'peers'): string[] =>
       CommandApi.collectContributions(ctor, bucket).map((d) => d.verbs).flat();
     expect(verbs(Wood, 'inventory')).toContain('fell');
@@ -79,7 +79,8 @@ describe('fell.yaml — the arg gates', () => {
     expect(verbs(Locale, 'inventory')).not.toContain('fell');
     expect(verbs(Panel, 'peers')).toContain('fell');
     expect(verbs(Panel, 'peers')).toContain('harvest'); // the copied-in four
-    expect(verbs(Bole, 'peers')).toContain('fell'); // `self` is a giver's, never read off a bole
+    expect(verbs(Bole, 'peers')).not.toContain('fell'); // a felled trunk is cut, not felled
+    expect(verbs(Bole, 'peers')).toContain('cut');
   });
 });
 
@@ -245,7 +246,7 @@ describe('fell.yaml through the whole binder', () => {
     expect((r as { axe: string }).axe).toBe('a felling axe');
   });
 
-  it('`fell bole` binds the bole on the floor', async () => {
+  it('`fell bole` still binds the bole on the floor (the controller refuses it — a bole is `cut` now, D14)', async () => {
     ContainmentApi.move(axe, giver);
     const bole = makeStuffAtPath(() => {
       const b = new Bole();

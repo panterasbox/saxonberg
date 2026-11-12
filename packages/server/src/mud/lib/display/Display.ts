@@ -61,6 +61,7 @@ import { PerceptionApi } from '../../api/perception';
 import { EmploymentApi } from '../../api/employment';
 import { DocumentApi } from '../../api/document';
 import type { CommandContributions } from '../../api/command';
+import { ReadableMixin, type Readable, type ReadDone, type ReadRefusal } from '../description/Readable';
 
 /** The per-viewer focal-embed key the `watch` verb writes. */
 const WATCH_KEY = 'cockpit.watch';
@@ -167,7 +168,7 @@ export interface Display {
 export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
-  class DisplayMixin extends Base implements Display {
+  class DisplayMixin extends ReadableMixin(Base) implements Display, Readable {
     static _mixinName = 'DisplayMixin';
 
     /**
@@ -238,6 +239,14 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
     }
     acceptsSource(source: DisplaySource): boolean {
       return this.shows.includes(source.kind);
+    }
+
+    /**
+     * ⭐ `read` on a screen is what it shows, live (`readScreen`) — a lit
+     * screen is its own light, so no light gate; a page means nothing here.
+     */
+    public async readFor(viewer: Stuff, _page?: number): Promise<ReadDone | ReadRefusal> {
+      return { ok: true, facts: { kind: 'screen', shown: await this.readScreen(viewer) } };
     }
 
     async readScreen(_viewer: Stuff): Promise<Mml | null> {

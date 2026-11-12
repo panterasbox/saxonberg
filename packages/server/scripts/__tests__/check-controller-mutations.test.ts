@@ -23,6 +23,23 @@ describe("the classifier", () => {
   });
 });
 
+describe("the controller's own class (controller-liquidity D12)", () => {
+  it("a static word reached through `this.constructor` or the class name is the controller's own surface", () => {
+    const src = [
+      "class XController {",
+      "  go() { const words = this.constructor as typeof XController; words.recordHarm(a); XController.creditDeed(b); }",
+      "}",
+    ].join("\n");
+    expect(scan(src)).toEqual([]);
+  });
+
+  it("a mutator on the patient beside it is still counted", () => {
+    expect(scan(`class XController { go() { const words = this.constructor; patient.setBlood(1); } }`)).toEqual([
+      "patient….setBlood(",
+    ]);
+  });
+});
+
 describe("⭐ the live tree", () => {
   it("at or below the ceiling, above zero", () => {
     const n = census().length;

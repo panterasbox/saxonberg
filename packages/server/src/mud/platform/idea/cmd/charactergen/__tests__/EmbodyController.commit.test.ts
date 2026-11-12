@@ -11,6 +11,7 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import EmbodyController from '../EmbodyController';
+import EmbodyConfirmController from '../EmbodyConfirmController';
 import Login from '../../../Login';
 import Interactive from '../../../Interactive';
 import Avatar from '../../../../../lib/character/Avatar';
@@ -40,7 +41,7 @@ class TestGarment extends WearableMixin(SlottableMixin(ContainableMixin(Idea))) 
 
 describe('EmbodyController.commit', () => {
   let login: Login;
-  let ctrl: EmbodyController;
+  let ctrl: EmbodyConfirmController;
   let ctx: CommandContext;
   let user: { _id: string; playerIds: string[]; save: ReturnType<typeof vi.fn> };
   let savedTemplate: { path: string; data: Record<string, unknown> } | null;
@@ -94,7 +95,7 @@ describe('EmbodyController.commit', () => {
       pronouns: 'she',
       aspiration: 'healer',
     });
-    ctrl = makeStuff(() => new EmbodyController());
+    ctrl = makeStuff(() => new EmbodyConfirmController());
 
     const species = makeStuff(() => new Species());
     species.setSexDeterminationSystem('dioecious');
@@ -211,6 +212,13 @@ describe('EmbodyController.commit', () => {
     await confirm();
     expect(user.playerIds).toHaveLength(1);
     expect(user.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('⭐ C35: a clone that throws leaves the roster UNTOUCHED (clone, then roster)', async () => {
+    vi.mocked(StuffApi.clone).mockRejectedValueOnce(new Error('the seed would not clone'));
+    await expect(confirm()).rejects.toThrow(/would not clone/);
+    expect(user.playerIds).toEqual([]);
+    expect(user.save).not.toHaveBeenCalled();
   });
 
   it('clones the avatar, sets sex, dresses, hands off, and destructs Login', async () => {

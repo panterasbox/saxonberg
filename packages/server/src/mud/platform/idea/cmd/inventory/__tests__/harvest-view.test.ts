@@ -114,13 +114,13 @@ describe('`at <patch>` — which part of a divided field (field population D5)',
     ['sample', SAMPLE_VIEW],
     ['label', LABEL_VIEW],
   ] as const) {
-    it(`${verb}.yaml declares an optional greedy \`patch\` object gated on SoilMixin`, () => {
+    it(`${verb}.yaml declares an optional \`patch\` object (one word or quoted, D3) gated on SoilMixin`, () => {
       const all = args(view) as PatchSpec[];
       const patch = all.find((a) => a.name === 'part');
       expect(patch).toBeDefined();
       expect(patch!.type).toBe('object');
       expect(patch!.required).toBe(false);
-      expect(patch!.greedy).toBe(true);
+      expect(patch!.greedy).toBeUndefined();
       expect(patch!.prepositions).toEqual(['at']);
       // A patch is ground underfoot: a world act, room first (D21).
       expect(patch!.scope).toEqual(['here', 'peers', 'person']);

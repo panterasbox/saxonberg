@@ -17,7 +17,8 @@
  * on the carried `assay-kit` and already consumed by the mining
  * archetype. The kit is the portable rung and this is the fixed one, and
  * they differ in `perSampleS`, in fee and in ceiling, **never in
- * access**. The controller tells them apart on `fixedInPlace`.
+ * access**. Both speak {@link AssayingMixin}; this one overrides the time,
+ * the fee and the queue (controller-liquidity W9).
  *
  * ## ⚠ Runtime, not persistent
  *
@@ -25,34 +26,21 @@
  * queue that survived a restart would be a promise the world clock can
  * no longer keep — the timers are gone — so the honest behaviour is that
  * a restart empties the bench, and nothing was taken from anybody
- * because the samples are still on it.
+ * because the samples are still in it.
  */
 
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
+import { AssayingMixin, type AssayBatch } from '../../lib/Assaying';
 
-/** One customer's batch, waiting or running. */
-export interface AssayBatch {
-  /** The samples, in the order they were handed over. */
-  readonly samples: Stuff[];
-  /** Who is paying, by identity path. */
-  readonly customer: string;
-  /** What to call them on the paper. */
-  readonly customerLabel: string;
-  /** Seconds this batch will take once it starts. */
-  readonly seconds: number;
-}
+export type { AssayBatch };
 
-export default class AssayBench extends Tool {
-  /**
-   * ⭐ The bench contributes the verb where the bench IS. The carried
-   * kit contributes it on `inventory` (see `assay-kit.yaml`), so a
-   * prospector in the field is refused by the CHANNEL — *nothing here
-   * can read that; a bench or a kit could* — rather than by the verb not
-   * existing.
-   */
+// ⭐ A container, because handing the samples over puts them IN it.
+const AssayBenchBase = AssayingMixin(ContainerMixin(Tool));
+
+export default class AssayBench extends AssayBenchBase {
   static override commandContributions: CommandContributions = {
     self: [],
     environment: ['trade/mining/cmd/mining/assay.yaml'],
@@ -66,25 +54,16 @@ export default class AssayBench extends Tool {
     fee: { persistent: true, authorable: true },
   };
 
-  /**
-   * ⭐⭐ **The amortization, and it is the whole economics of the trip.**
-   * Lighting the furnace and bringing it to heat costs the same whether
-   * you brought one sample or eight, so a batch of eight costs
-   * `setup + 8×per` and not `8×(setup + per)`. Carrying one sample in is
-   * a decision you should feel bad about.
-   */
+  /** Game-seconds to bring the muffle to heat — paid once per batch. */
   public setupS: number = 1800;
-
-  /** Each sample's own time once the furnace is up. */
+  /** Game-seconds per sample once the muffle is hot. */
   public perSampleS: number = 600;
-
-  /** Minor units per sample, paid to whoever owns the bench. */
+  /** What the house charges per sample, in the compact's currency. */
   public fee: number = 25;
 
-  /** Runtime: a batch is on the fire. */
+  /** Whether a batch is in the fire. Runtime only. */
   private busy = false;
-
-  /** Runtime: batches waiting, in order. */
+  /** Batches waiting for the fire, oldest first. Runtime only. */
   private pending: AssayBatch[] = [];
 
   public getSetupS(): number {
@@ -103,26 +82,27 @@ export default class AssayBench extends Tool {
     return this.busy;
   }
 
-  /** How many batches are in front of a newcomer. */
+  /** Batches on the slate, including the one in the fire. */
   public queueLength(): number {
     return this.pending.length + (this.busy ? 1 : 0);
   }
 
-  /** What a batch of `n` samples will take, amortized. */
-  public secondsFor(n: number): number {
+  /** ⭐ The amortization: setup once, then each sample. */
+  public override secondsFor(n: number): number {
     return this.setupS + n * this.perSampleS;
   }
 
-  /** Join the queue. Returns the position, 0 meaning *straight on*. */
+  public override feePerSample(): number {
+    return this.fee;
+  }
+
+  /** Onto the slate; the number of batches ahead of it. */
   public enqueue(batch: AssayBatch): number {
     this.pending.push(batch);
     return this.queueLength() - 1;
   }
 
-  /**
-   * Take the next batch if the fire is free. `null` when the bench is
-   * working or the queue is empty — the caller schedules nothing.
-   */
+  /** The next batch for the fire, marking it busy — `null` while it burns. */
   public takeNext(): AssayBatch | null {
     if (this.busy) return null;
     const next = this.pending.shift();
@@ -134,5 +114,23 @@ export default class AssayBench extends Tool {
   /** The fire is free again. */
   public release(): void {
     this.busy = false;
+  }
+
+  /** Onto the slate; the fire takes it when it is free. */
+  public override takeBatch(batch: AssayBatch): number {
+    const ahead = this.enqueue(batch);
+    this.startNext();
+    return ahead;
+  }
+
+  /** The fire is free: start the next batch on the slate. */
+  protected override batchDone(): void {
+    this.release();
+    this.startNext();
+  }
+
+  private startNext(): void {
+    const next = this.takeNext();
+    if (next) this.fireAfter(next);
   }
 }

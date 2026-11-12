@@ -47,5 +47,5 @@ test('a person reaches every moved vocabulary by typing its word', async ({ brow
   await sayAwaiting(lobby.page, 'competence', /Competence|not yet practiced/i);
 
   const dorm = await openWorldAs(browser, 'docs-dorm', { startLocation: DORM });
-  await sayAwaiting(dorm.page, 'survey', /a bedroom: (yes|not quite)/);
+  await sayAwaiting(dorm.page, 'analyze rooms', /a bedroom: (yes|not quite)/);
 });

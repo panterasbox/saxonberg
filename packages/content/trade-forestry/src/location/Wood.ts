@@ -70,6 +70,16 @@ import {
   SOIL_RESERVE_THEME,
 } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import { StandMixin } from '../lib/Stand';
+import {
+  FellableMixin,
+  FELL_COST,
+  FELL_EFFORT_W,
+  FELL_MS,
+  LOGS_PER_STANDARD,
+  type FellPlan,
+  type FellRefusal,
+} from '../lib/Fellable';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -83,7 +93,8 @@ const LITRES_PER_M2_LOAM = 45;
 const WoodGround = SoilMixin(ReservedMixin(Locale));
 // The stand goes OVER the soil because it drinks it (the Sward rule).
 // Persistable OUTERMOST — the host rule.
-const WoodBase = PersistableMixin(StandMixin(WoodGround));
+// ⭐ Fellable over the stand: the felling is the stand's (controller-liquidity W11).
+const WoodBase = PersistableMixin(FellableMixin(StandMixin(WoodGround)));
 
 export default class Wood extends WoodBase {
   static fieldMeta: FieldMeta = {
@@ -115,6 +126,62 @@ export default class Wood extends WoodBase {
 
   public setAreaM2(value: number): void {
     this.areaM2 = Math.max(0, value);
+  }
+
+  /**
+   * ⭐ `fell [<species>]` standing here — a standard out of the stand: the
+   * species the word names, or the thickest. The cut is taken at
+   * COMPLETION (the stand may have been felled out under the swing), and
+   * only then is the endurance spent.
+   */
+  public override async fellPlanFor(
+    actor: Stuff,
+    axe: Stuff,
+    word: string,
+  ): Promise<FellPlan | FellRefusal> {
+    if (!this.fellsWith(axe)) return { ok: false, reason: 'wrong-tool' };
+    const w = word.trim();
+    const sp = w ? this.speciesNamed(w) : this.thickestSpecies();
+    if (!sp) {
+      return w
+        ? { ok: false, reason: 'no-such-species', facts: { word: w } }
+        : { ok: false, reason: 'stand-empty', facts: { name: null } };
+    }
+    if (this.standingNow(sp) < 1) return { ok: false, reason: 'stand-empty', facts: { name: sp.name } };
+    const self = this as unknown as Stuff & Container;
+    return {
+      ok: true,
+      durationMs: FELL_MS,
+      effortW: FELL_EFFORT_W,
+      facts: { name: sp.name, planted: false },
+      onComplete: async () => {
+        // ⚠⚠ The actor may be GONE — an engaged act completes long after
+        // dispatch.
+        if (actor.isDestroyed() || this.isDestroyed()) return { ok: true, facts: { kind: 'gone' } };
+        const nowS = WorldClockApi.getNow().rawValue();
+        if (!this.cut(sp.speciesPath, nowS, actor.getIdentityPath() ?? '')) {
+          return { ok: false, reason: 'stand-empty', facts: { name: null } };
+        }
+        // ⭐ The endurance is spent HERE, when the tree comes down (C12).
+        Wood.spendOn(actor, FELL_COST);
+        const { bole, seed } = await Wood.dropStandard(actor, self, {
+          woodMaterialPath: sp.woodMaterialPath,
+          seedPath: sp.seedPath,
+          barkPath: sp.barkPath ?? null,
+          brashMaterialPath: sp.brashMaterialPath ?? null,
+        });
+        await Wood.captureNow(self);
+        // ⚠ And the FELLER: a felling puts tonnes on the floor, so it
+        // writes the owner's record now — a hard stop inside the window
+        // lost a whole clearing's trunks in the browser.
+        await Wood.captureNow(actor);
+        await Wood.creditFelling(actor, 'standard');
+        return {
+          ok: true,
+          facts: { kind: 'standard', name: sp.name, planted: false, bole, logs: LOGS_PER_STANDARD, seed },
+        };
+      },
+    };
   }
 
   // ---------- the three hooks SoilMixin asks of its host ----------

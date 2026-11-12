@@ -24,7 +24,9 @@
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { BloodUnit } from "../vitals/Blood";
-import { BLOOD_DEFAULTS } from "../vitals/Blood";
+import { BLOOD_DEFAULTS, BLOOD_GIFT_SIGNATURE, BLOOD_GIFT_RENOWN } from "../vitals/Blood";
+import { RenownApi } from "../../api/renown";
+import { ScheduleApi } from "../../api/schedule";
 import { BloodType } from "../vitals/BloodType";
 import { Freshness } from "../material/Freshness";
 import { Quantity } from "../quantity";
@@ -63,7 +65,10 @@ export interface DonationBank {
   /**
    * Hand one unit of `lotKey` to `dest` (a container — a recipient's
    * hands), recording custody. `issuer` is who issued it (for the deed).
-   * Returns the moved holder, or null when the lot is empty.
+   * ⭐ A person issuing must keep the window ({@link keptBy} — asked here,
+   * controller-liquidity W13); a null issuer is the house's own act.
+   * Returns the moved holder, or null when the lot is empty or the issuer
+   * does not keep the window.
    */
   takeUnit(
     lotKey: string,
@@ -87,6 +92,11 @@ export interface DonationBank {
    */
   hasCompatibleUnitFor(recipient: Stuff): boolean;
   /**
+   * Does `person` keep this window — the proprietor of its operating
+   * business, or on shift there? The seat that may issue (blood D7).
+   */
+  keptBy(person: Stuff): Promise<boolean>;
+  /**
    * Transfuse `patient` from the bank's own shelf: take the oldest
    * compatible unit (draining its holder, recording custody) and give it.
    * Returns the graded reaction (0 compatible, 1/2 mismatched), or null
@@ -98,9 +108,29 @@ export interface DonationBank {
     patient: Stuff,
     issuer?: Stuff | null,
   ): Promise<{ reaction: 0 | 1 | 2 } | null>;
-  /** Accept a gift: move `holder` into the first vault, record custody. */
-  receiveGift(holder: Stuff, donor?: Stuff | null): Promise<void>;
+  /**
+   * Accept a gift: move `holder` into the first vault, record custody, and —
+   * when a PLAYER gives THEIR OWN blood — credit the gift (blood D8/D10).
+   */
+  receiveGift(holder: Stuff, donor?: Stuff | null): Promise<GiftAnswer>;
 }
+
+/**
+ * What `receiveGift` answers (controller-liquidity W13): whose blood the
+ * unit was, and whether the gift earned standing. The giver's own words are
+ * the verb's — `ownBlood` false is somebody else's unit.
+ */
+export interface GiftAnswer {
+  /** The unit was drawn from the giver. */
+  ownBlood: boolean;
+  /** The gift earned standing (a player's own blood). */
+  credited: boolean;
+  /** The lot was short when the gift landed (a named shortage answered). */
+  wasShort: boolean;
+}
+
+/** How long after a gift the renown fold runs (the seedTo shape, D10). */
+const GIFT_FOLD_DELAY_MS = 1500;
 
 export function DonationBankMixin<TBase extends MixinConstructor>(Base: TBase) {
   class DonationBankMixin extends Base implements DonationBank {
@@ -227,6 +257,7 @@ export function DonationBankMixin<TBase extends MixinConstructor>(Base: TBase) {
       dest: Stuff,
       issuer?: Stuff | null,
     ): Promise<Stuff | null> {
+      if (issuer && !(await this.keptBy(issuer))) return null;
       const holder = this.holdersOfLot(lotKey)[0];
       if (!holder) return null;
       if (MixinApi.isContainable(holder) && MixinApi.isContainer(dest)) {
@@ -234,6 +265,19 @@ export function DonationBankMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       await this.recordCustody("issue", lotKey, issuer ?? null, dest);
       return holder;
+    }
+
+    public async keptBy(person: Stuff): Promise<boolean> {
+      const self = this as unknown as Stuff;
+      const path = self.getIdentityPath() ?? self.getTemplatePath();
+      const business = path ? EmploymentApi.businessAt(path) : null;
+      if (!business) return false;
+      if (await business.hasProprietor(person)) return true;
+      const orgPath = business.getTemplatePath();
+      if (!orgPath || !MixinApi.isEmployed(person)) return false;
+      return person
+        .getActiveEmployments()
+        .some((e) => e.organizationPath === orgPath && e.status === "on-shift");
     }
 
     public async takeCompatibleUnitFor(
@@ -307,20 +351,67 @@ export function DonationBankMixin<TBase extends MixinConstructor>(Base: TBase) {
     public async receiveGift(
       holder: Stuff,
       donor?: Stuff | null,
-    ): Promise<void> {
+    ): Promise<GiftAnswer> {
+      let unit: BloodUnit | undefined;
+      if (MixinApi.isBulkable(holder)) {
+        try {
+          unit = holder.getBulk().getPayload()?.blood;
+        } catch {
+          unit = undefined;
+        }
+      }
+      const lotKey = unit?.type ?? "";
+      // Read BEFORE the gift lands — once it does the lot is no longer short.
+      const wasShort = lotKey !== "" && this.shortLots().includes(lotKey);
       const vault = this.getVaults()[0];
       if (vault && MixinApi.isContainable(holder) && MixinApi.isContainer(vault)) {
         ContainmentApi.move(holder, vault);
       }
-      let lotKey = "";
-      if (MixinApi.isBulkable(holder)) {
-        try {
-          lotKey = holder.getBulk().getPayload()?.blood?.type ?? "";
-        } catch {
-          lotKey = "";
-        }
-      }
       await this.recordCustody("gift", lotKey, donor ?? null, null);
+
+      // ⭐ The standing credit (D8): only a PLAYER giving their OWN blood.
+      // An NPC giving is plumbing; somebody else's unit earns nothing (its
+      // donor already earned it).
+      const donorPath = donor?.getIdentityPath() ?? null;
+      const ownBlood = !!unit && !!donorPath && unit.donorIdentityPath === donorPath;
+      const credited = ownBlood && !!donor && MixinApi.isHasInteractive(donor);
+      if (credited && donor) await this.creditGift(donor, wasShort);
+      return { ownBlood, credited, wasShort };
+    }
+
+    /**
+     * The three ledgers of a credited gift (D8/D10): the disposition
+     * signature (generosity always; compassion when the lot was SHORT), and
+     * a public renown reaction folded by a scheduled recompute. (The custody
+     * deed is {@link recordCustody}'s.)
+     */
+    private async creditGift(donor: Stuff, wasShort: boolean): Promise<void> {
+      const valence = wasShort
+        ? BLOOD_GIFT_SIGNATURE.named
+        : BLOOD_GIFT_SIGNATURE.routine;
+      if (MixinApi.isAdvancing(donor)) {
+        // creditSignature's D9 graft fans the valence into the trait ledger.
+        await donor.creditSignature(
+          { discipline: [], dispositionValence: [...valence] },
+          { kind: "deed", tags: ["blood", "gift"] },
+        );
+      }
+      const donorId = donor.getIdentityPath();
+      if (!donorId) return;
+      const self = this as unknown as Stuff;
+      const path = self.getIdentityPath() ?? self.getTemplatePath();
+      const business = path ? EmploymentApi.businessAt(path) : null;
+      await RenownApi.append({
+        subject: donorId,
+        source: business?.getTemplatePath() ?? donorId,
+        kind: "reaction",
+        signal: { emote: BLOOD_GIFT_RENOWN.emote, tags: ["blood", "gift"] },
+        locality: null,
+      });
+      // Append alone moves nothing — fold it (the seedTo shape, D10).
+      ScheduleApi.schedule(GIFT_FOLD_DELAY_MS, () => {
+        void RenownApi.recompute();
+      });
     }
 
     /**

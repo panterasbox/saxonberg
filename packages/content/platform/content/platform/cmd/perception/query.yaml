@@ -35,7 +35,6 @@ args:
   - name: set
     type: objects
     required: true
-    greedy: true
     scope: ["reachable"]
     requires: any
 options:

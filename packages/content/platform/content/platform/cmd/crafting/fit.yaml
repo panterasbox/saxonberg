@@ -34,6 +34,8 @@ help: |
   made of and what has failed. A slack joint is `repair`ed; a thing
   is taken apart with `salvage`, and how much comes back depends on
   how it was joined, and on who is taking it apart.
+
+  A label is not fitted — it is pasted: `paste label on jar with paste`.
 examples:
   - cmd: fit haft to pick
     note: Replace one part and keep the rest
@@ -47,20 +49,20 @@ args:
   # The part to fit — or, when it names no thing in reach, the recipe to
   # raise (`fit cask`). `required: false` so an unresolved word binds as
   # `{stuff: null, raw}` (the `measure` rule); the controller refuses when
-  # nothing bound at all. ⚠ `greedy: true` — `fit the oak haft` is three
-  # tokens and one thing.
+  # nothing bound at all. The binder folds `the`; a two-word name is
+  # quoted — `fit "oak haft"` (controller-liquidity D3).
   - name: thing
     type: object
     required: false
-    greedy: true
     scope: ["reachable"]
     requires: any
-  # What it is fitted TO. Only an assembly can take a part — ⭐ or a good's
-  # FACE a label (a sheet) is pasted onto.
+  # What it is fitted TO. Only an assembly can take a part. ⚠ `FacedMixin`
+  # stays admitted for ONE build so `fit label on jar` reaches the refusal
+  # that names `paste` (controller-liquidity W7c) — then it narrows.
   - name: whole
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     prepositions: [to, on, in, into, onto]
     scope: ["reachable"]
     requires: AssembledMixin|FacedMixin
@@ -68,11 +70,10 @@ args:
   # the binder hands over every reachable tool; the joint decides which
   # capability it wants.
   - name: tool
+    prepositionRequired: true
     type: objects
     required: false
-    greedy: true
     prepositions: [with, using]
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]
-    # ⭐ …or the POT a label is pasted from.
-    requires: [ToolMixin|BulkableMixin]
+    requires: [ToolMixin]

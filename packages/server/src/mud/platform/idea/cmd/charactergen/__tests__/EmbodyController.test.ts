@@ -9,6 +9,7 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import EmbodyConfirmController from '../EmbodyConfirmController';
 import EmbodyController, {
   FIELDS,
   FIELD_ORDER,
@@ -114,7 +115,11 @@ describe('EmbodyController step model', () => {
     StuffApi.clearAll();
   });
 
+  /** `embody confirm` is its own controller (W7c); everything else edits. */
   function run(rest: string): Promise<void> {
+    if (rest === 'confirm') {
+      return makeStuff(() => new EmbodyConfirmController()).execute({} as never, ctx);
+    }
     return ctrl.execute({ rest } as EmbodyModelLike, ctx);
   }
   type EmbodyModelLike = CommandModel & { rest?: string };

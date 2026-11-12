@@ -60,7 +60,7 @@ function boundTarget(text: string, verb: string): string | undefined {
 
 describe('look — the form a person types', () => {
   it('⭐ `look at the ground` binds, article and all', () => {
-    expect(boundTarget('look at the ground', 'look')).toBe('the ground');
+    expect(boundTarget('look at the ground', 'look')).toBe('ground');
   });
 
   it('`look at floor` still binds (it always did)', () => {
@@ -71,14 +71,14 @@ describe('look — the form a person types', () => {
     expect(boundTarget('look floor', 'look')).toBe('floor');
   });
 
-  it('a multi-word target arrives whole rather than as "too many arguments"', () => {
-    expect(boundTarget('look at the worn diagonal track', 'look')).toBe(
-      'the worn diagonal track',
+  it('a multi-word target is QUOTED and arrives whole (controller-liquidity D3)', () => {
+    expect(boundTarget('look at the "worn diagonal track"', 'look')).toBe(
+      'worn diagonal track',
     );
   });
 
   it('⚠ bare `look` still falls back to the focus default', () => {
-    // `greedy` must not cost the no-argument form its `default: "$focus"`.
+    // The one-word slot must not cost the no-argument form its `default: "$focus"`.
     // ⭐ It binds `here`, not the literal `$focus`: an arg `default:` is
     // SHELL-interpolated at assembly, so the variable is already resolved by
     // the time a model exists — which is also why bare `sit` arrives with
@@ -87,18 +87,18 @@ describe('look — the form a person types', () => {
   });
 
   it('the other prepositions are unaffected', () => {
-    expect(boundTarget('look in the chest', 'look')).toBe('the chest');
-    expect(boundTarget('look inside the chest', 'look')).toBe('the chest');
+    expect(boundTarget('look in the chest', 'look')).toBe('chest');
+    expect(boundTarget('look inside the chest', 'look')).toBe('chest');
   });
 });
 
 describe('search — the same article problem', () => {
   it('`search the floor` binds', () => {
-    expect(boundTarget('search the floor', 'search')).toBe('the floor');
+    expect(boundTarget('search the floor', 'search')).toBe('floor');
   });
 
   it('`search in the chest` binds', () => {
-    expect(boundTarget('search in the chest', 'search')).toBe('the chest');
+    expect(boundTarget('search in the chest', 'search')).toBe('chest');
   });
 
   it('bare `search` takes no target', () => {

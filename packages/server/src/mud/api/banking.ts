@@ -47,6 +47,7 @@ import type {
   RemittanceSplit,
   SettlementReceipt,
 } from "../lib/banking/Charge";
+import { SettleRefused, type SettleRefusalReason } from "../lib/banking/Charge";
 import type AccountBalance from "../lib/banking/AccountBalance";
 import type { Stuff } from "../lib/stuff/Stuff";
 import type { Stackable } from "../lib/stuff/Stackable";
@@ -59,8 +60,8 @@ import { SecurityApi } from './security';
 import { AppApi } from './app';
 import { AppSettingKeys } from '../lib/config/AppSettings';
 
-export { Money, Account, Currency };
-export type { PerpetualReconcile, ReserveDashboard, PriceIndex };
+export { Money, Account, Currency, SettleRefused };
+export type { PerpetualReconcile, ReserveDashboard, PriceIndex, SettleRefusalReason };
 export type {
   CurrencyTag,
   CurrencyRecord,
@@ -115,6 +116,17 @@ export type IndemnifyResult =
       ok: false;
       reason: "self-dealing" | "house-short" | "no-account" | "nothing-owed" | "no-persistence";
     };
+
+/**
+ * The proprietor's draw, answered (controller-liquidity C32): the refusal
+ * is a REASON the verb words, never a sentence it pattern-matches.
+ * `business-short` — the business holds less than the draw;
+ * `no-account` — the proprietor keeps no account to draw into;
+ * `frozen` — the business account is frozen.
+ */
+export type DrawResult =
+  | { ok: true }
+  | { ok: false; reason: "business-short" | "no-account" | "frozen" };
 
 export class BankingApi {
   /**
@@ -538,15 +550,17 @@ export class BankingApi {
    * Pay the proprietor's **draw** — business account → the proprietor's
    * primary account, kind `draw` (owner take-home is not a wage; the
    * distinct leg kind is the future tax wedge). Solvency-checked: refuses
-   * when the business balance is short (unlike `payWage`, which pays red by
-   * design — the deficit model). The verb layer resolves the business from
-   * the acting proprietor (participant contract), never a spoofable param.
+   * — as a {@link DrawResult} reason, nothing posted — when the business
+   * balance is short, the account is frozen, or the proprietor has no
+   * account. The verb layer resolves the business from the acting
+   * proprietor (participant contract), never a spoofable param. Throws only
+   * on a non-positive amount (a caller's bug, not a refusal).
    */
   public static async payDraw(
     businessAccountId: string,
     proprietorKey: string,
     amount: Money,
-  ): Promise<void> {
+  ): Promise<DrawResult> {
     return logic().payDraw(businessAccountId, proprietorKey, amount);
   }
 

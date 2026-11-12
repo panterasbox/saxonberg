@@ -27,6 +27,7 @@ args:
     required: true
     scope: "inventory"
     requires: WearableMixin
+    depth: top
     validators:
       - /lib/command/validators/mustBeInInventory
   # ⭐ The MANNER of taking it off (cleanliness D5): `carefully` peels a

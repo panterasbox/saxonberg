@@ -49,6 +49,7 @@ import type { Combatant } from '../combat/Combatant';
 import type { EngagementSlot } from '../activity/Engaged';
 import type { TaskKind } from './Urgency';
 import { Urgency } from './Urgency';
+import { CommandLineApi } from '../../api/command-line';
 
 const BAND_ORDER = [
   'healthy',
@@ -252,7 +253,7 @@ async function breakUpFight(
     const toOffice = str(cfg.officeDirection, 'north');
     const back = str(cfg.officeReturn, 'south');
     await (host as unknown as CommandGiver).forceCommand(`go ${toOffice}`);
-    await (host as unknown as CommandGiver).forceCommand(`get ${taserKw}`);
+    await (host as unknown as CommandGiver).forceCommand(`get ${CommandLineApi.word(taserKw)}`);
     await (host as unknown as CommandGiver).forceCommand(`wield ${taserKw}`);
     await (host as unknown as CommandGiver).forceCommand(`switch on ${taserKw}`);
     await (host as unknown as CommandGiver).forceCommand(`go ${back}`);

@@ -282,7 +282,7 @@ async function buy(s: Session, item: string): Promise<void> {
   // loaded machine that can outlast the harness's 30 s.
   let said = '';
   for (let attempt = 0; attempt < 3 && !/you buy/i.test(said); attempt++) {
-    said = await say(s, `buy ${item}`).catch(async () => {
+    said = await say(s, `buy "${item}"`).catch(async () => {
       await s.drainProse();
       return '';
     });
@@ -357,8 +357,9 @@ suite('⭐ the new places stand (the boot, and the five reachability links)', ()
     const s = await newPlayer('window', COOKHOUSE);
     const w = await examine(s, 'window');
     expect(w, `the cookhouse window: ${w}`).toMatch(/window/i);
-    const survey = await say(s, 'survey');
-    expect(survey, `survey: ${survey}`).toMatch(/floor is/i);
+    // The floor line `survey` carried is `analyze cleanliness floor`'s (W17).
+    const kept = await say(s, 'analyze cleanliness floor');
+    expect(kept, `analyze cleanliness floor: ${kept}`).toMatch(/It is /i);
     s.close();
   }, 300_000);
 });
@@ -404,7 +405,7 @@ suite('⭐⭐ drive 1–3 — the apron takes the blood; the gloves, washed and 
     await cloneHere(COOKHOUSE, '/trade/cooking/thing/boning-knife').catch(() => {});
     // The player's own shirt is the one the drive reads (a fresh avatar
     // dresses in a student shirt, trousers and canvas shoes).
-    await say(cook, 'get boning knife');
+    await say(cook, 'get "boning knife"');
     await say(cook, 'get apron');
     const worn = await body(cook);
     // eslint-disable-next-line no-console -- the drive's own record
@@ -564,8 +565,8 @@ suite('⭐⭐ drive 12 — the cookhouse kept: crumbs, the window, the flue (AC 
     for (let i = 0; i < 2; i++) await act(s, 'eat rations');
     const floor = await examine(s, 'floor');
     expect(floor, `the floor after three meals: ${floor}`).toMatch(/crumb/i);
-    const survey = await say(s, 'survey');
-    expect(survey, `survey: ${survey}`).toMatch(/floor is (marked|soiled|filthy)/i);
+    const kept = await say(s, 'analyze cleanliness floor');
+    expect(kept, `analyze cleanliness floor: ${kept}`).toMatch(/would see to it/i);
     await act(s, 'sweep with broom');
     expect(await examine(s, 'floor'), 'swept').not.toMatch(/crumb/i);
     s.close();
@@ -701,7 +702,7 @@ suite('⭐ drive 21 — a bath you draw yourself: cold from the tap, hot from a 
     // The bathhouse's own tubs, its cold tap and its copper — no cloning:
     // a commons fixture row is nobody's title to clone (the run-29 finding).
     const s = await goTo(cookHandle, BATHS);
-    const cold = await act(s, 'fill 1st tub from bath tap');
+    const cold = await act(s, 'fill 1st tub from "bath tap"');
     expect(cold, `fill tub from bath tap: ${cold}`).toMatch(/fill|tub/i);
     expect(cold, `the tap gives water: ${cold}`).not.toMatch(/can't|nothing to fill/i);
     const coldBath = await act(s, 'bathe in 1st tub');
@@ -765,9 +766,16 @@ suite('⭐⭐⭐ drive 23 — a stain, a band and a kept floor survive a restart
       /* no log to keep */
     }
     const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
+    // ⭐ A RESTART, not a crash (the harbors and sugar drives' precedent):
+    // preflight's default two seconds SIGKILLs the server before its
+    // shutdown capture, and the cookhouse's record — the rack and the shirt
+    // on it — was never written (controller-liquidity W21's diagnosis; the
+    // !527 finalize measured a loaded world's capture at ~3.5 min, so the
+    // grace is longer than harbors' minute).
     spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
       cwd: serverDir,
       stdio: 'ignore',
+      env: { ...process.env, PREFLIGHT_GRACE_MS: '300000' },
     });
     process.env.WIRE_SERVER_URL = await bootOwnedWorld();
     const s = await Session.open(cookHandle, { startLocation: COOKHOUSE });

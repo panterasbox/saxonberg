@@ -3609,7 +3609,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       matched,
       matchedItems,
       workingHeatK,
-      maker.getTemplatePath() ?? '',
+      maker.getIdentityPath() ?? '',
       deliveredHeatK,
       fireImpartsFor(maker),
     );
@@ -3620,7 +3620,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       matched,
       matchedItems,
       workingHeatK,
-      maker.getTemplatePath() ?? '',
+      maker.getIdentityPath() ?? '',
       deliveredHeatK,
       fireImpartsFor(maker),
     );

@@ -137,8 +137,9 @@ export abstract class EngagedActController<
    * The effect lands at completion; what it returns is worded by `words`.
    *
    * ⭐ A zero-length plan runs NOW, inside the command frame, and a refusal
-   * it returns declines the command — `ManualBuildController.engagePlan`'s
-   * rule, the same for the same reason. Await it: that frame is the promise.
+   * it returns declines the command. Await it: that frame is the promise.
+   * ⭐ The body is `CommandController.engagePlan` — the one routine every
+   * controller engages a plan with (controller-liquidity W4).
    */
   protected engageAct<B, F, X extends AnyActRefusal>(
     context: CommandContext,
@@ -151,7 +152,7 @@ export abstract class EngagedActController<
     words?: ActWords<B, F, X>,
   ): void | Promise<void> {
     if ('ok' in opts) {
-      return this.engageActPlan(context, opts, words!);
+      return this.engagePlan(context, opts, words!);
     }
     const giver = context.commandGiver;
     const durationS = opts.durationMs / 1000;
@@ -206,80 +207,5 @@ export abstract class EngagedActController<
       Mml.compose`You can't manage that just now.`,
       'start-rejected',
     );
-  }
-
-  /** The plan overload's body: watts are the plan's, the words are `words`. */
-  private async engageActPlan<B, F, X extends AnyActRefusal>(
-    context: CommandContext,
-    plan: ActPlan<B, F, X>,
-    words: ActWords<B, F, X>,
-  ): Promise<void> {
-    const giver = context.commandGiver;
-    const sayDone = (facts: F): void => {
-      const done = words.onDone?.(facts) ?? null;
-      if (done === null || (!done.self && !done.peers)) return;
-      const scene = MessageApi.scene(giver).topic(ACT_TOPIC);
-      if (done.self) scene.toSelf(done.self);
-      if (done.peers) scene.toPeers(done.peers);
-      scene.send();
-    };
-    if (plan.durationMs <= 0) {
-      const out = await plan.onComplete();
-      if (!out.ok) {
-        this.decline(context, words.onRefused(out), out.reason);
-        return;
-      }
-      if (!giver.isDestroyed()) sayDone(out.facts);
-      return;
-    }
-    const durationS = plan.durationMs / 1000;
-    if (MixinApi.isExerting(giver) && !giver.canExert(plan.effortW, durationS)) {
-      this.decline(context, Mml.fromMarkup(giver.exhaustionRefusal()), 'too-tired');
-      return;
-    }
-    const land = (): void => {
-      // ⚠ The scheduler's completion is synchronous, so an async plan's
-      // throw would land after its root returned — caught and said here.
-      Promise.resolve()
-        .then(() => plan.onComplete())
-        .then((out) => {
-          if (giver.isDestroyed()) return;
-          if (!out.ok) {
-            MessageApi.scene(giver).topic(ACT_TOPIC).toSelf(words.onRefused(out)).send();
-            return;
-          }
-          sayDone(out.facts);
-        })
-        .catch((err: unknown) => {
-          console.error('EngagedActController: a planned act failed at completion', err);
-        });
-    };
-    if (!MixinApi.isEngaged(giver)) {
-      land();
-      return;
-    }
-    const step = new ManualBuildStep({
-      actor: giver,
-      slots: ['hands'],
-      durationMs: plan.durationMs,
-      effortW: plan.effortW,
-      onComplete: land,
-      onAbort: plan.onAbort,
-    });
-    const result = SchedulerApi.start(step);
-    if (result.ok && (result.status === 'started' || result.status === 'replaced')) {
-      context.note(result.note);
-      const scene = MessageApi.scene(giver).topic(ACT_TOPIC).toSelf(words.beginSelf(plan.facts));
-      const peers = words.beginPeers?.(plan.facts) ?? null;
-      if (peers) scene.toPeers(peers);
-      scene.send();
-      return;
-    }
-    if (result.ok && result.status === 'completed-sync') return;
-    if (!result.ok && result.reason === 'engagement-conflict') {
-      this.decline(context, Mml.compose`Your hands are already busy.`, 'engagement-conflict');
-      return;
-    }
-    this.decline(context, Mml.compose`You can't manage that just now.`, 'start-rejected');
   }
 }

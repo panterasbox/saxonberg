@@ -1600,6 +1600,14 @@ export const AppSettingKeys = {
    */
   waterSourcePath: "water.sourcePath",
   /**
+   * Ways — the `WayIndex` that knows the realm's ways (controller-liquidity
+   * W21): what `analyze rooms` asks for the places along the way a
+   * `roomsScope: corridor` archetype reports over. ⚠ Unset until the
+   * transport pack seeds it; with no pack naming one the realm has no ways
+   * and no corridor archetype is reported.
+   */
+  waysIndexPath: "ways.indexPath",
+  /**
    * Bulk — one draught, L: what `drink` with no amount takes from a
    * source that never runs dry (a river, a tap). Seeded literal 0.25 at
    * the call site (maritime revision 3).
@@ -2981,6 +2989,7 @@ export const AppSettingTiers: Readonly<
   groundFloorOutdoorMaterialPath: "B",
   groundDefaultSourcePath: "B",
   waterSourcePath: "B",
+  waysIndexPath: "B",
   bulkDraughtL: "B",
   stormStrikeRate: "B",
   stormStrikeIntervalS: "B",

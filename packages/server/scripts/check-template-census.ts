@@ -178,6 +178,10 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // where a new live-resolved citation belongs.
     'productMaterial', 'residueMaterial',
     'productVessel', 'residueVessel', 'tollBinPath',
+    // (controller-liquidity W10) The dust a stone throws off as it grinds
+    // — authored on the mill row now (`Comminuting.millPlanFor`, C17), a
+    // real material row resolved at the grind's completion.
+    'dustMaterial',
     // ⭐ The forestry citations. `standardMaterialPath` is what a felled
     // standard is made of when no stand answers for it — resolved live
     // at the completion of a felling, and a rowless one is a bole of
@@ -901,6 +905,9 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   for (const scalar of [
     'roomTemplate', 'holderPath', 'streetPath', 'corridorTemplate',
     'programmePath', 'purifiedByBoiling',
+    // (controller-liquidity W13) The letting agency a building's let asks —
+    // a real Organization row (`LettingWarren.mayLetFor`).
+    'agencyPath',
     // ⭐ (ceramics W8) What a porous wall strains a liquid into — a real
     // material row, the filter's sibling of `purifiedByBoiling`.
     'filteredTo',

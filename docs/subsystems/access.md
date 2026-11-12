@@ -283,9 +283,10 @@ entry path AND that path enforces who is authorized.
 Adoption sites:
 
 - `AccessApi.setWizardMembership(playerId, makeWizard)` → gated by
-  `FromModule('/platform/idea/cmd/author/WizardController')`
-  (string-keyed `FromController(WizardController)`). `WizardController`
-  (the `wizard grant/revoke` verb) is the sole legitimate caller; its
+  `FromModule` on `/platform/idea/cmd/author/WizardGrantController` and
+  `…/WizardRevokeController` (string-keyed; named exactly, never their
+  base with `includeSubclasses`). Those two (the `wizard grant/revoke`
+  verb) are the sole legitimate callers; the verb's
   `requiresArchwizard` validator enforces *who* may invoke (the giver
   must be an archwizard). The mutation resolves the `wizards` group,
   add/removeMember, save, and `fireChange` to invalidate the wizard
@@ -469,8 +470,8 @@ tree mode, etc.) we revisit.
 | `BroadcastController` | `canAtPath(giver, 'broadcast', extent)` for `--at <extent>`; a non-holder's refusal lists `heldExtents(giver)`. |
 | the `pack` controllers | `requiresPackInstaller` (validator) — `canAtPath(giver, 'install', '/compact/executive')`. |
 | `EvalController` | `requiresWizard` (validator) — `isWizard(giver)`; no slice (typing code is authoring TypeScript — one of the two places the axis is asked). |
-| `StreamController` | `requiresStreamer` (validator) — `isStreamer(giver)`; no slice (livestream control plane). |
-| `WizardController` | `requiresArchwizard` (validator) — `isArchwizard(giver)`; calls the narrow-entry `setWizardMembership` (wizard grant/revoke). |
+| `StreamController` + its subcommand controllers (`StreamControllerBase`) | `requiresStreamer` (validator) — `isStreamer(giver)`; no slice (livestream control plane). |
+| `WizardGrantController` / `WizardRevokeController` | `requiresArchwizard` (validator) — `isArchwizard(giver)`; calls the narrow-entry `setWizardMembership` (wizard grant/revoke). |
 | `CloneController` | `canAtPath(giver, 'clone', path)` — the KIND's own title, by longest prefix. Untitled fails closed. ⚠⚠ It used to walk a live REPRESENTATIVE's zone (whichever copy came first), so whether you could clone a flask depended on where some flask was standing — the first copy a town's props minted put the kind under that town's title for everybody, by load order (the ceramics drives, 2026-10-21; the assembly drive had dodged it). The row-with-no-instance hole (`zoneOf(null)` refused everybody; `/system/transport/thing/coach`) is closed by the same question. |
 | `ReloadController` / `TypecheckController` | `canAtPath(giver, 'reload', path)` over the target's class/template path — the question `clone` asks; refusal `access-denied` listing `heldExtents(giver)`. |
 | `WriteController` content | Zone target: `canMutateZone(giver, target)`. Else: `can(giver, 'write', target)`. |
@@ -482,9 +483,9 @@ tree mode, etc.) we revisit.
 | `CpController` | Source endpoint: open (reading is not gated). Dest endpoint: WRITE rules per tree mode (`sourceWriteRefusal` in source mode). |
 | `MvController` | Both endpoints WRITE rules (`sourceWriteRefusal` in source mode) — `mv` REMOVES source after write. |
 | `LsController` / `CatController` / `GrepController` | **no access check** — source and content reads are open to anyone. |
-| `GitController` | `status` / `diff` / `log`: any signed-in avatar. `publish` / `revert`: `sourceWriteRefusal` per touched file. |
+| the `git` controllers (`GitStatusController` …) | `status` / `diff` / `log`: any signed-in avatar. `publish` / `revert`: `sourceWriteRefusal` per touched file. |
 | `CmsController` / `StudioController` | no validator; the REST/Logic surface gates each act (browse open; source write via `sourceWriteRefusal`; template writes by title). |
-| `ErrorsController` | `list`: open (compile rows included); `clear`: title over the path or author-of-path; `raw`: the Prime Minister (`CompactApi.holdsOffice(actor, 'prime-minister')`, reason `pm-only`) — the console ring carries other players' command lines. |
+| the `errors` controllers (`ErrorsListController` …) | `list`: open (compile rows included); `clear`: title over the path or author-of-path; `raw`: the Prime Minister (`CompactApi.holdsOffice(actor, 'prime-minister')`, reason `pm-only`) — the console ring carries other players' command lines. |
 | `PwdController` / `CdController` | **no access check** in any mode (state queries on the actor, not file reads). |
 
 ## Subject = current command giver

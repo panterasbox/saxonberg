@@ -47,6 +47,10 @@ import type { CommandContributions } from '../../api/command';
 import { BulkableApi } from '../../api/bulk';
 import { StuffApi } from '../../api/stuff';
 import { PersistableApi } from '../../api/persistable';
+import { PlayerApi } from '../../api/player';
+import { SecurityApi } from '../../api/security';
+import { MessageApi } from '../../api/message';
+import type { Named, NameRefusal, NameTaken } from '../description/Named';
 import { METABOLIC_DEFAULTS } from '../metabolism/Metabolic';
 
 /**
@@ -260,8 +264,14 @@ export interface Bonded {
   getTrail(): readonly string[];
   /** Note where it is now. Revisiting a remembered place rewinds to it. */
   rememberPlace(placeId: string): void;
-  /** Why it would not eat `food`, or `null` if it would. */
-  wouldEat(food: Stuff): FoodRefusal | null;
+  /** Is `food` food at all to it? A fact of the material, anybody's to know. */
+  canEat(food: Stuff): boolean;
+  /**
+   * Would it eat `food` now? ⚠ A boolean on purpose (controller-liquidity
+   * C49): WHY it would not is the animal's and never leaves it — a
+   * not-hungry dog and one that smelled the rot look the same.
+   */
+  wouldEat(food: Stuff): boolean;
   /** Eat it. Credits `offerer` when it came from a hand. */
   eatFood(food: Stuff, offerer: Stuff | null): Promise<boolean>;
   /** Does this animal's species feed by `style`? */
@@ -640,6 +650,60 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.hasChosen(by);
     }
 
+    /**
+     * ⭐⭐ An animal's naming is its **promotion** — identity and durability
+     * arrive together (pets; moved off the `name` verb, controller-liquidity
+     * W8): the name (public to everybody from here), the title and chain of
+     * title (⚠ and so the metabolic clock starts integrating its owner's
+     * absences — *yes iff somebody owns it*), an explicit persistence key
+     * and a recorded place, its first capture, and every witness who can
+     * perceive it learning the name (the `introduce` shape — a neighbour can
+     * return it). Every refusal before any write.
+     */
+    public async takeName(
+      name: string,
+      by: Stuff,
+    ): Promise<NameRefusal | NameTaken> {
+      const self = this as unknown as Stuff & Named;
+      const wanted = name.trim();
+      if (!wanted) return { ok: false, reason: 'no-name-given' };
+      if (self.getName()) return { ok: false, reason: 'already-named' };
+      // ⚠ Every gate, one answer: the bond, the following, the earned home.
+      if (!this.canBeNamedBy(by.getIdentityPath() ?? '', by)) {
+        return { ok: false, reason: 'not-chosen' };
+      }
+      // ⚠ Partial name defence — a connected player's name may not be
+      // taken. The live-`Cast` half wants a name index nobody has built;
+      // the naming slate owns the real defence (Defence B).
+      const clash = PlayerApi.connectedAvatars().some(
+        (a) => (a.getName() ?? '').toLowerCase() === wanted.toLowerCase(),
+      );
+      if (clash) return { ok: false, reason: 'name-taken' };
+
+      // ── the promotion, in order ──
+      self.setName(wanted);
+      if (MixinApi.isChattel(self)) await self.stampChattel(by);
+      if (MixinApi.isPersistable(self)) {
+        // The key BEFORE the place: the place write stamps the residency
+        // pin onto the chattel row, and the pin is `(scope, key)`.
+        self.setPersistenceKey(SecurityApi.uuid(), true);
+      }
+      if (MixinApi.isChattel(self)) {
+        await self.setChattelPlace(PersistableApi.placeIdOf(self));
+      }
+      if (MixinApi.isPersistable(self)) await PersistableApi.capture(self);
+      // ⭐ Witnessed: everybody who can PERCEIVE it learns the name — the
+      // same set a scene reaches (never the room's crockery).
+      const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+      if (room) {
+        for (const witness of MessageApi.getSensors(room)) {
+          if (witness.stuffId === self.stuffId) continue;
+          if (MixinApi.isBeliefStore(witness)) witness.learnIdentityOf(self, wanted);
+        }
+      }
+      return { ok: true, facts: { promoted: true } };
+    }
+
     public hasChosen(person: Stuff): boolean {
       const self = this as unknown as Stuff;
       if (this.bondWith(person) < NAME_BOND) return false;
@@ -671,10 +735,19 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
      *     keen enough. ⚠ And the refusal sentence is the same as (2)
      *     and (3), so the animal never tells you what it knows.
      */
-    public wouldEat(food: Stuff): FoodRefusal | null {
-      const self = this as unknown as Stuff;
+    public canEat(food: Stuff): boolean {
       const material = MixinApi.isTangible(food) ? food.getMaterial() : null;
-      if (!material || !MixinApi.hasEdibility(material)) return 'not-edible';
+      return !!material && MixinApi.hasEdibility(material);
+    }
+
+    public wouldEat(food: Stuff): boolean {
+      return this.foodRefusal(food) === null;
+    }
+
+    /** Why it would not eat `food` — the animal's own, never surface. */
+    private foodRefusal(food: Stuff): FoodRefusal | null {
+      const self = this as unknown as Stuff;
+      if (!this.canEat(food)) return 'not-edible';
 
       if (MixinApi.isReserved(self)) {
         // ⚠ The surplus line, not "full": an animal in maintenance is

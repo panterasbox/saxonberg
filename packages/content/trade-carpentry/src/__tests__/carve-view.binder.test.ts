@@ -49,14 +49,14 @@ describe('carve — the view binds what a woodworker says', () => {
     expect(m.stock).toBeUndefined();
   });
 
-  it('⭐ `carve pick haft` — a two-word part arrives whole', () => {
-    expect(bind('carve pick haft').thing).toBe('pick haft');
+  it('⭐ `carve "pick haft"` — a two-word part is quoted and arrives whole (D3)', () => {
+    expect(bind('carve "pick haft"').thing).toBe('pick haft');
   });
 
   it('`carve peg from the blank` names the stock', () => {
     const m = bind('carve peg from the blank');
     expect(m.thing).toBe('peg');
-    expect(m.stock).toBe('the blank');
+    expect(m.stock).toBe('blank');
     expect(m.knife).toBe(EDGE);
   });
 

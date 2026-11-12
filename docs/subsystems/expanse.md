@@ -268,7 +268,7 @@ wrong chart is wrong in one row and never reconciled. See
 | verb | afforded by | does |
 |---|---|---|
 | `course` | `Helm` (peers), `Boat` (inventory — granted inward to whoever sits in it) | reads the plot; lays a course by bearing or node |
-| `anchor` | same | stops where she is |
+| `anchor` | same | stops where she is — one act over two crafts, the kernel protocol `AnchoringMixin` (a small boat's killick, a `Voyaging` ship's `anchorHere`; controller-liquidity W8) |
 | `hail` | same | signals a contact in signal range |
 | `launch` / `recover` | `Boat` (inventory — you are in it) | over the side / back aboard |
 | `pilot` | `Pilot` (peers) | buy told claims |

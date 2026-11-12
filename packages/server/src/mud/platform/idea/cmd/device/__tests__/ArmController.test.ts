@@ -132,6 +132,15 @@ describe('ArmController — deploy', () => {
     expect(context.note).toHaveBeenCalledWith(expect.objectContaining({ kind: 'controller-rejected' }));
   });
 
+  it('⭐ W8: the kit refuses with the actor, from a direct call — the gate is not the controller\'s', async () => {
+    const { placer, kit } = scene();
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
+    vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({ kind: 'player', templatePath: '/home/x' } as never);
+    const clone = vi.spyOn(StuffApi, 'clone');
+    expect(await kit.armBy(placer)).toEqual({ ok: false, reason: 'not-your-property' });
+    expect(clone).not.toHaveBeenCalled();
+  });
+
   it('refuses to arm on another owner\'s property', async () => {
     const { placer, kit } = scene();
     vi.spyOn(AccessApi, 'can').mockResolvedValue(false);

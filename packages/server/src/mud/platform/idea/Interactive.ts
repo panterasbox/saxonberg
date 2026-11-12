@@ -336,13 +336,13 @@ export default class Interactive extends Idea {
     return cardLogic().close(this, instanceId, reason);
   }
 
-  /** The open cards — `cockpit card list`'s report. */
+  /** The open cards — `client-card list`'s report. */
   public listCards(): CardListing[] {
     return cardLogic().list(this);
   }
 
   /**
-   * ⭐ Change one card's shape or place — the `cockpit card` actions
+   * ⭐ Change one card's shape or place — the `client-card` actions
    * (client-surface D8). Returns the refusal reason, or `refused: null`.
    */
   public arrangeCard(

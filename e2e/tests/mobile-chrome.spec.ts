@@ -15,7 +15,7 @@ import { openWorldAs, reenterWorld, runCommand } from './helpers';
  * whole page scroll horizontally, with the entire unit suite green. The
  * same is assumed of everything here.
  *
- * The other half is server-authority: `cockpit shelf first` surviving a
+ * The other half is server-authority: `client-shelf first` surviving a
  * RELOAD is the only honest test that the order is the server's, since
  * a reload throws away every scrap of client state and asks again.
  */
@@ -129,8 +129,10 @@ test('the bar is two rows, and the glance-line holds three', async ({
     await expect(page.getByTestId('mobile-facts-row')).toBeVisible();
     await expect(page.getByTestId('mobile-glance-row')).toBeVisible();
 
-    // The default shelf is the three wired rows.
-    expect(await glanceLabels(page)).toEqual(['Standing', 'Known', 'Skills']);
+    // The default shelf is the four wired rows (`body` joined it in
+    // nutrition-fitness W8, de748bb51); the glance-line holds the first
+    // three, under master's words (PLAY · RENOWN · SKILL — B42, e0d4e6ae7).
+    expect(await glanceLabels(page)).toEqual(['PLAY', 'RENOWN', 'SKILL']);
 
     // ⚠ No status bar: it has no hover to report and would cost the
     // feed a row.
@@ -197,7 +199,7 @@ test('the pull-down overlays the feed, and nothing scrolls sideways', async ({
     );
     // The default shelf — four rows since the body joined it.
     await expect(cards).toHaveCount(4); // DEFAULT_SHELF: play, renown, skill, body
-    await runCommand(page, 'cockpit shelf pin coin');
+    await runCommand(page, 'client-shelf pin coin');
     await expect(cards).toHaveCount(5, { timeout: 15_000 });
 
     // ⭐ Hatched rows carry their reason as VISIBLE text and no digit —
@@ -266,7 +268,7 @@ test('neither the pull-down nor the shelf screen overflows at 320px', async ({
  * the controller reading them — the controller test calls `execute()`
  * directly and structurally cannot.
  */
-test('cockpit shelf first puts a row on the bar, and it survives a reload', async ({
+test('client-shelf first puts a row on the bar, and it survives a reload', async ({
   browser,
 }) => {
   const { page, close } = await openWorldAs(browser, 'mobfirst', {
@@ -276,13 +278,13 @@ test('cockpit shelf first puts a row on the bar, and it survives a reload', asyn
     await expect(page.getByTestId('mobile-bar')).toBeVisible({
       timeout: 20_000,
     });
-    expect(await glanceLabels(page)).toEqual(['Standing', 'Known', 'Skills']);
+    expect(await glanceLabels(page)).toEqual(['PLAY', 'RENOWN', 'SKILL']);
 
     // `coin` is not on the shelf at all — one command, one intention.
-    await runCommand(page, 'cockpit shelf first coin');
+    await runCommand(page, 'client-shelf first coin');
     await expect
       .poll(() => glanceLabels(page), { timeout: 15_000 })
-      .toEqual(['Money', 'Standing', 'Known']);
+      .toEqual(['COIN', 'PLAY', 'RENOWN']);
 
     await page.reload();
     await reenterWorld(page);
@@ -291,7 +293,7 @@ test('cockpit shelf first puts a row on the bar, and it survives a reload', asyn
     });
     await expect
       .poll(() => glanceLabels(page), { timeout: 20_000 })
-      .toEqual(['Money', 'Standing', 'Known']);
+      .toEqual(['COIN', 'PLAY', 'RENOWN']);
   } finally {
     await close();
   }
@@ -331,7 +333,7 @@ test('a tap names its command, and the server echoes exactly that', async ({
     await expect(sheet).toBeVisible();
     const shown =
       (await page.getByTestId('command-sheet-command').textContent()) ?? '';
-    expect(shown).toBe('cockpit shelf first status');
+    expect(shown).toBe('client-shelf first status');
 
     await page.getByTestId('command-sheet-send').click();
     await expect(sheet).toHaveCount(0);
@@ -342,7 +344,7 @@ test('a tap names its command, and the server echoes exactly that', async ({
     });
     await expect
       .poll(() => glanceLabels(page), { timeout: 15_000 })
-      .toEqual(['Status', 'Standing', 'Known']);
+      .toEqual(['STATUS', 'PLAY', 'RENOWN']);
   } finally {
     await close();
   }

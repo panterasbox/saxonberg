@@ -17,6 +17,13 @@ import { StuffApi } from '../../../../../api/stuff';
 import { MqlApi } from '../../../../../api/mql';
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
+import { MixinApi } from '../../../../../api/mixin';
+import { SchedulerApi } from '../../../../../api/scheduler';
+import { WorldClockApi } from '../../../../../api/worldclock';
+import { EventApi } from '../../../../../api/event';
+import { MessageApi } from '../../../../../api/message';
+import EventRegistry from '../../../EventRegistry';
+import { Stuff } from '../../../../../lib/stuff/Stuff';
 
 let notes: Array<Record<string, unknown>>;
 
@@ -187,5 +194,75 @@ describe('teleport — the anchored resolver (D10, AC16/AC17)', () => {
           n.reason === 'failed-specification',
       ),
     ).toBe(true);
+  });
+});
+
+describe('teleport — the anchored cast lands after its controller is gone (controller-liquidity D12)', () => {
+  beforeEach(async () => {
+    WorldClockApi._resetForTesting();
+    WorldClockApi.setScale(1);
+    WorldClockApi._setNowProviderForTesting(() => 1000);
+    SchedulerApi._clearAllForTesting();
+    // The scheduler subscribes to StuffDestructed on start → EventRegistry.
+    const reg = await StuffApi.create(() => {
+      const r = new EventRegistry();
+      Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
+      return r;
+    });
+    StuffApi.unregister(reg);
+    StuffApi.register(reg);
+    EventApi._setRegistryForTesting(reg);
+    vi.spyOn(MessageApi, 'scene').mockImplementation(
+      () =>
+        ({
+          topic: () => ({
+            toSelf: () => ({
+              toPeers: () => ({ send: () => undefined }),
+              send: () => undefined,
+            }),
+          }),
+        }) as never,
+    );
+  });
+  afterEach(() => {
+    SchedulerApi._clearAllForTesting();
+    WorldClockApi._resetForTesting();
+  });
+
+  it('⭐ the scheduled cast resolves after the dispatcher has destructed the controller', async () => {
+    const caster = makeAvatar('far-caster', loungeBar);
+    // The faculty is ACTIVATION (a casting species or an augment); the
+    // controller only narrows on it, so the test confers it here.
+    vi.spyOn(MixinApi, 'isCaster').mockReturnValue(true);
+    expect(MixinApi.isEngaged(caster)).toBe(true);
+    vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue([]);
+    // No travel node in reach; the destination is held in mind.
+    vi.spyOn(MqlApi, 'resolveMany').mockImplementation((raw: string) => ({ stuff: [], raw }) as never);
+    vi.spyOn(TeleportController, 'resolveAnchored').mockResolvedValue({
+      stuff: terminus,
+      anchor: 'scope',
+      ambiguous: false,
+    } as never);
+    vi.spyOn(caster as never as { prepareCast: () => unknown }, 'prepareCast').mockResolvedValue({
+      ok: true,
+      costTau: 0,
+      castSeconds: 3,
+    } as never);
+    const resolved = vi
+      .spyOn(caster as never as { resolveCast: () => unknown }, 'resolveCast')
+      .mockResolvedValue({ ok: true, reports: ['You arrive.'] } as never);
+
+    const ctrl = makeStuff(() => new TeleportController());
+    await ctrl.execute(
+      { destination: { stuff: null, raw: 'hall' } } as CommandModel as never,
+      ctx(caster, loungeBar),
+    );
+    expect(notes.some((n) => n.kind === 'engagement-started'), JSON.stringify(notes)).toBe(true);
+    // The dispatcher's `finally`: the controller is gone before the cast lands.
+    await StuffApi.destruct(ctrl);
+    expect(resolved).not.toHaveBeenCalled();
+    WorldClockApi._advanceForTesting(5000);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(resolved).toHaveBeenCalledTimes(1);
   });
 });

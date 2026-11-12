@@ -22,10 +22,18 @@ import { Idea } from '../../lib/stuff/Idea';
 import { Recipe } from '../../lib/craft/Recipe';
 import { DocumentApi } from '../../api/document';
 import { DocumentNotResidentError, type VetoResult } from '../../lib/errors';
+import type { CarvePlan, CarveRefusal, CarveRequest } from '../../lib/craft/Carvable';
+import { CraftingApi } from '../../api/crafting';
+import { MixinApi } from '../../api/mixin';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 const RecipeCatalogueBase = Idea;
+
+/** The capability a carving asks for — an edge. */
+const CARVING_EDGE = 'cutting';
+/** The material tag a carving's one slot takes. */
+const CARVING_STOCK = 'wood';
 
 export default class RecipeCatalogue extends RecipeCatalogueBase {
   /**
@@ -105,6 +113,93 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
   public allRecipes(): readonly Recipe[] {
     this.ensureCache();
     return [...this.cache!.values()];
+  }
+
+  /**
+   * ⭐ **The cure for what the player named** (controller-liquidity W10;
+   * moved off the cooking pack's `PreserveController`): among the recipes
+   * that move `axis` of the water state (`solute` — salting, `moisture` —
+   * drying), one whose ITEM slot the material's own tags satisfy, matched
+   * the way crafting matches. ⚠ `preferred` is checked FIRST and wins
+   * ties, so a second row can never steer an existing act elsewhere; with
+   * nothing better it is the answer.
+   */
+  public curingRecipeFor(axis: 'moisture' | 'solute', tags: readonly string[], preferred: string): string {
+    const satisfies = (recipe: Recipe | null): boolean => {
+      const cure = recipe?.getCure();
+      if (!recipe || !cure || cure[axis] === undefined) return false;
+      return recipe
+        .getInputSlots()
+        .some((slot) => (slot.kind ?? 'bulk') === 'item' && tags.includes(slot.category));
+    };
+    if (satisfies(this.getRecipe(preferred))) return preferred;
+    return this.allRecipes().find((r) => satisfies(r))?.getRecipeId() ?? preferred;
+  }
+
+  /**
+   * ⭐ **The generic carving** (controller-liquidity W7c; moved off
+   * `CarveController`, whose second engine it was): the word the player
+   * said, read through the keyword index, as a CARVING row — one item of
+   * wood, an edge, no heat, a tangible thing out; read off the row, so a
+   * pack's spoon or bowl recipe is carvable the day it installs. The plan
+   * is instant (`durationMs: 0` — a craft resolved from the actor's reach):
+   * the named stock is preferred, not required, and the carving is
+   * subtractive (a dowel off a board is not the board's weight). Asked by
+   * `carve` when the thing named plans no carving of its own.
+   */
+  public carvingPlanFor(req: CarveRequest): CarvePlan | CarveRefusal {
+    const word = req.word.trim().toLowerCase();
+    if (!word) return { ok: false, reason: 'no-part', facts: { names: this.carvingNames() } };
+    const found = this.getRecipe(word) ?? this.findByKeyword(word);
+    const recipe = found !== null && RecipeCatalogue.isCarving(found) ? found : null;
+    if (recipe === null) {
+      return { ok: false, reason: 'not-a-carving', facts: { word, names: this.carvingNames() } };
+    }
+    const knife = req.knife;
+    if (knife === null) return { ok: false, reason: 'no-edge', facts: { carves: 'carving' } };
+    if (!MixinApi.isTool(knife) || !knife.hasCapability(CARVING_EDGE)) {
+      return { ok: false, reason: 'wrong-tool', facts: { knife } };
+    }
+    const recipeRef = recipe.getRecipeId();
+    const stock = req.stock ?? null;
+    return {
+      ok: true,
+      durationMs: 0,
+      effortW: 0,
+      facts: { kind: 'carving', knife },
+      onComplete: async () => {
+        const outcome = await CraftingApi.craft({
+          recipeRef,
+          makerMode: 'self',
+          // To hand — the Api lands, stamps and captures it.
+          landing: 'hands',
+          subtractive: true,
+          ...(stock ? { target: stock } : {}),
+        });
+        if (!outcome.ok) return { ok: false, reason: 'craft-refused', facts: { failure: outcome } };
+        return { ok: true, facts: { kind: 'carved', knife, output: outcome.output } };
+      },
+    };
+  }
+
+  /** Every installed carving, by name — what the refusal says can be carved. */
+  private carvingNames(): string[] {
+    return this.allRecipes()
+      .filter((r) => RecipeCatalogue.isCarving(r))
+      .map((r) => r.getName().toLowerCase())
+      .sort();
+  }
+
+  /** Is this recipe a carving — one item of wood, an edge, no heat, a tangible thing out? */
+  private static isCarving(recipe: Recipe): boolean {
+    if (recipe.getOutputApplication() !== 'tangible') return false;
+    if (recipe.getRequiresHeatK() > 0) return false;
+    const tools = recipe.getToolCapabilities();
+    if (tools.length !== 1 || tools[0] !== CARVING_EDGE) return false;
+    const slots = recipe.getInputSlots();
+    if (slots.length !== 1) return false;
+    const slot = slots[0]!;
+    return (slot.kind ?? 'bulk') === 'item' && slot.category === CARVING_STOCK;
   }
 
   /** Whether `recipeId` is known. */
