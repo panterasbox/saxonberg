@@ -72,7 +72,7 @@ import { MUD, packSources, packSrcFiles } from "./pack-roots";
 // 82 → 81 by the documents path-identity build: three catalogues with an
 // onCreate warm left (operations, placements), SoilableMixin gained one
 // (the kernel dirt vocabulary, D7 mechanism 4).
-export const ON_CREATE_CEILING = 80; // documents W4: the topic catalogue left (its warm is the pipeline's now).
+export const ON_CREATE_CEILING = 78; // load-on-use round two: −2 net (five catalogue warms and Fabric left; Maturing, Ripening, Fractionating, Finishing, Vitals and Contaminable load what they read). // documents W4: the topic catalogue left (its warm is the pipeline's now).
 
 /**
  * ⭐⭐ **The loading ceiling** — the subset of those bodies that look like
