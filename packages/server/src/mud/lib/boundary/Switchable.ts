@@ -25,6 +25,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { CommandContributions } from '../../api/command';
 import { BistateMixin, type BistateInternal } from '../Bistate';
 
 /**
@@ -42,6 +43,21 @@ export interface Switchable {
 export function SwitchableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class SwitchableMixin extends BistateMixin(Base) {
     static _mixinName = 'SwitchableMixin';
+
+    /**
+     * ⭐ The verb is the protocol's (size and carrying drive, step 22): a
+     * switchable thing — a headlamp you wear, a lamp you hold, a lamppost
+     * beside you — affords `switch` wherever it is. It was afforded by
+     * nothing on the mixin, so a worn headlamp answered "I don't
+     * understand 'switch'" (ManaLamp carried the content-side workaround
+     * and said this belonged here).
+     */
+    static commandContributions: CommandContributions = {
+      self: [],
+      peers: ['platform/cmd/device/switch.yaml'],
+      environment: ['platform/cmd/device/switch.yaml'],
+      inventory: ['platform/cmd/device/switch.yaml'],
+    };
 
     static fieldMeta: FieldMeta = {
       on: { persistent: true },
