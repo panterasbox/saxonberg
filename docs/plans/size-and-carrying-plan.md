@@ -16,6 +16,14 @@ a fact. Path shorthand: `$S` = `packages/server/src/mud`, `$C` = `packages/conte
 
 ## Grounding
 
+> ⚠ **Grounded at build-2's tip `47a904bdd`; build-2 merged as `13cece156` with 19 more
+> commits.** Of the files this plan touches, three moved after grounding:
+> `LookController.ts` (≈400 lines reworked — *look holds the light steady*; W3's
+> `observePlace`/`observeThing` surfaces must be re-found), `PutController.ts` (the
+> placement drive fix) and eternal-university's `ProvisionController.ts` (Katie's intake —
+> where D29's daypack is offered). Re-verify those three before W3/W5/W6; every other
+> grounded file is unchanged. Line numbers everywhere are approximate.
+
 Facts verified at the tip this cycle. What exists, what it does, what it does not.
 
 ### Containment and the chokepoint
