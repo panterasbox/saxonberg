@@ -366,8 +366,15 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       const host = this as unknown as Stuff & Slotted;
       if (MixinApi.isVitals(host) || !MixinApi.isSlottable(item)) return null;
       if (!new PlacementOffers(host).admitsSlot(word)) return null;
+      // ⭐ A posture-bearing slot (a bench's seat, the handcart's `bed`) is
+      // where a BODY sits or lies — the posture verbs fill it, never `put`.
+      // Since a hand holds any good (size and carrying W7-f) every good is
+      // slottable, so a ration put in the handcart took its bed (the drive,
+      // step 18). Only a body that takes postures is offered one here.
+      const postured = MixinApi.isPosed(item);
       for (const name of this.getSlotNames()) {
         if (this.isSlotFull(name)) continue;
+        if (!postured && (this.getSlotSpec(name)?.postures?.length ?? 0) > 0) continue;
         if (this.canOccupy(item, name)) return name;
       }
       return null;
