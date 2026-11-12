@@ -109,7 +109,12 @@ describe('the fire tick — spread', () => {
   });
 
   beforeEach(() => installV1QuantityMarshallers());
-  afterEach(() => StuffApi.clearAll());
+  afterEach(() => {
+    // The occupants' interactives outlive the world clear; a later test's
+    // reads walk them (load-on-use W8: a cleared material reads loudly).
+    ConnectionManager.get().clearAll();
+    StuffApi.clearAll();
+  });
 
   it('a burning object ignites an adjacent dry combustible in an occupied scope', async () => {
     const zone = makeStuff(() => new CartesianZone());

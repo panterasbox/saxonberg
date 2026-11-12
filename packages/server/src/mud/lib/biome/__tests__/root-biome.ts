@@ -19,6 +19,12 @@ const UNIVERSE = '/stuff/idea/biome/universe';
 /** The blank wall a suite's default stands as — no conductivity, density or heat authored. */
 const BLANK_WALL = '/stuff/idea/material/_test/default-wall';
 
+/** Stand the blank default wall in (unless live) and name it — the harness's stand-in. */
+export function blankDefaultWall(): string {
+  if (!StuffApi.findByTemplatePath(BLANK_WALL)) makeStuffAtPath(() => new Material(), BLANK_WALL);
+  return BLANK_WALL;
+}
+
 /**
  * Stand the root biome in (or reuse a live one) with `enclosureMaterial` as
  * its default walls. With none named, the walls are a BLANK material — the

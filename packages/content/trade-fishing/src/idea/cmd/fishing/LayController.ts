@@ -44,8 +44,9 @@ export default class LayController extends FishingController<LayModel> {
       return;
     }
     const water = pick.water ?? (await (await this.waters()).waterIn(pick.reach, WorldClockApi.getNow().rawValue()));
-    // The water the trap fills with — loaded by the act (load-on-use D2 c).
-    await MaterialApi.materials().ensure(water);
+    // The water a trap with an interior fills with — loaded by the act
+    // (load-on-use D2 c); a pot with no interior holds none.
+    if (trap.hasInteriorBulk()) await MaterialApi.materials().ensure(water);
     const out = trap.layIn(giver, room, pick.reach, water);
     if (!out.ok) {
       this.decline(context, LayController.refusalText(out), out.reason);

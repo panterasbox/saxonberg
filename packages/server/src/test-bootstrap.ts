@@ -50,6 +50,8 @@ import { fileURLToPath } from "url";
 import YAML from "yaml";
 import { MaterialApi } from "./mud/api/material";
 import { ConditionApi } from "./mud/api/condition";
+import { BiomeApi } from "./mud/api/biome";
+import { blankDefaultWall } from "./mud/lib/biome/__tests__/root-biome";
 import { PartyApi } from "./mud/api/party";
 import { ContainmentApi } from "./mud/api/containment";
 import { MessageApi } from "./mud/api/message";
@@ -163,6 +165,9 @@ export function ensureFrameworkWiring(): boolean {
   // Likewise the material roster (load-on-use W8): a roster read in a suite
   // answers with the materials the suite made.
   MaterialApi.standRosterForTesting();
+  // And a suite with no root biome reads its default walls as a BLANK
+  // material — the envelope's fallback figures (load-on-use W8).
+  BiomeApi.standDefaultEnclosureForTesting(blankDefaultWall);
   return true;
 }
 

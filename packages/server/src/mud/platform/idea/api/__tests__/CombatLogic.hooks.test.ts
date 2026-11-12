@@ -51,6 +51,7 @@ import StunBaton from "../../../thing/equipment/StunBaton";
 import type { Channel } from "../../../../lib/material/Channel";
 import EventRegistry from "../../EventRegistry";
 import { EventApi } from "../../../../api/event";
+import { standMaterials, TEST_TISSUES } from "../../../../lib/material/__tests__/materials";
 
 /* ───────────────────────── fixtures ───────────────────────── */
 
@@ -372,9 +373,11 @@ beforeEach(async () => {
   // unit world has no Template store for. See the helper.
   installCorpseMintStub();
   StuffApi.clearAll();
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
   SchedulerApi._clearAllForTesting();
   HookSeq.length = 0;
   await bootRegistry();
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
 });
 
 afterEach(async () => {
@@ -388,6 +391,7 @@ afterEach(async () => {
   await new Promise((resolve) => setTimeout(resolve, 0));
   vi.restoreAllMocks();
   StuffApi.clearAll();
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
 });
 
 /* ───────────────── instrument seam — augmentInflict ───────────────── */
@@ -1358,6 +1362,7 @@ describe("CombatLogic hooks — NPC ≈ PC parity", () => {
 
     const npcLogs = runOnce(false);
     StuffApi.clearAll();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
     SchedulerApi._clearAllForTesting();
     const pcLogs = runOnce(true);
     expect(pcLogs).toEqual(npcLogs);

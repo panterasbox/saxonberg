@@ -10,7 +10,7 @@
  * a non-caustic material is a no-op.
  */
 import '../../../../test-bootstrap';
-import { describe, it, expect } from 'vitest';
+import { beforeEach, describe, it, expect } from 'vitest';
 import Acid from '../../../platform/idea/material/Acid';
 import Water from '../../../platform/idea/material/Water';
 import { MixinApi } from '../../../api/mixin';
@@ -23,6 +23,11 @@ import {
 } from '../../security/__tests__/test-setup';
 import type { Trauma } from '../../../platform/idea/Condition';
 import Metal from '../../../platform/idea/material/Metal';
+import { standMaterials, TEST_TISSUES } from './materials';
+
+beforeEach(() => {
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+});
 
 let seq = 0;
 

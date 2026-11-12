@@ -47,6 +47,7 @@ import { Stuff } from "../../../../lib/stuff/Stuff";
 import EventRegistry from "../../EventRegistry";
 import { EventApi } from "../../../../api/event";
 import type { Combatant } from '../../../../lib/combat/Combatant';
+import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
 
 class TestRoom extends ContainerMixin(Idea) {}
 class TestFighter extends Character {}
@@ -178,6 +179,7 @@ beforeEach(async () => {
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
   await bootRegistry();
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
 });
 
 afterEach(() => {

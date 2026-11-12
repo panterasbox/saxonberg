@@ -1,6 +1,8 @@
 # The floor bottle of cranberry juice — 1 L, at target in the bottling stock.
 class: /platform/thing/Bottle
 data:
+  # What it is made of (load-on-use W8: authored, not a constructor default).
+  _materialPath: /stuff/idea/material/glass/glass
   censusKey: mixer:cranberry-juice
   shortDescription: "bottle of cranberry juice"
   keywords: [cranberry, juice, bottle, mixer, "bottle of cranberry juice"]

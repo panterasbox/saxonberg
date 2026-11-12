@@ -25,6 +25,7 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
 
 let seq = 0;
 
@@ -103,7 +104,10 @@ function wound(type: Trauma['type'], site: string, severity: number): Trauma {
 }
 
 describe('the function axis — functionAt', () => {
-  beforeEach(() => installV1QuantityMarshallers());
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+  });
   afterEach(() => StuffApi.clearAll());
 
   it('an untouched body reads `full` everywhere', () => {

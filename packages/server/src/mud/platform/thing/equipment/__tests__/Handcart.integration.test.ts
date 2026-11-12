@@ -30,6 +30,7 @@ import {
   seedKernelContentStore,
 } from '../../../../lib/security/__tests__/test-setup';
 import { massThing } from '../../../../lib/encumbrance/__tests__/encumbrance-fixtures';
+import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
 
 class SelfHauler extends HaulerMixin(MobileMixin(SensorMixin(Creature))) {
   static _mixinName = 'SelfHauler';
@@ -114,6 +115,7 @@ const walk = () => LocomotionApi.modeOfOrThrow('walk');
 describe('haulage integration — self-haul', () => {
   beforeEach(() => {
     seedKernelContentStore();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
   });
 
   beforeEach(() => {

@@ -30,6 +30,7 @@ import Condition from '../../../Condition';
 import { AppApi } from '../../../../../api/app';
 import BodyPlan from '../../../species/BodyPlan';
 import Species from '../../../species/Species';
+import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
 
 let captured: string;
 function captureBody(): void {
@@ -81,6 +82,7 @@ beforeEach(async () => {
   vi.spyOn(AppApi, 'setting').mockReturnValue('');
   WorldClockApi._setNowProviderForTesting(() => 100);
   captureBody();
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
 });
 afterEach(() => {
   vi.restoreAllMocks();

@@ -3,6 +3,8 @@
 # is what keeps a sparkling wine sparkling.
 class: /platform/thing/Bottle
 data:
+  # What it is made of (load-on-use W8: authored, not a constructor default).
+  _materialPath: /stuff/idea/material/glass/glass
   censusKey: vessel:wine-bottle
   shortDescription: "wine bottle"
   keywords: [bottle, wine, empty, "wine bottle"]

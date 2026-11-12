@@ -20,6 +20,8 @@
 # the rows.
 class: /platform/thing/Bottle
 data:
+  # What it is made of (load-on-use W8: authored, not a constructor default).
+  _materialPath: /stuff/idea/material/glass/glass
   shortDescription: "mixer bottle"
   keywords: [bottle, mixer, empty, "mixer bottle"]
   register: indefinite

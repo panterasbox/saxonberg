@@ -26,6 +26,7 @@ import {
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../Condition';
+import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
 
 // Per-instance unique paths — several bodies / materials coexist in one test.
 let seq = 0;
@@ -120,7 +121,10 @@ function trauma(c: Creature): Trauma | undefined {
 }
 
 describe('materials-response — inflict through the covering stack', () => {
-  beforeEach(() => installV1QuantityMarshallers());
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+  });
   afterEach(() => StuffApi.clearAll());
 
   it('edge lacerates bare flesh but is deflected by steel plate', () => {

@@ -661,7 +661,7 @@ export function AtmosphericMixin<
      */
     public enclosureDefaults(): EnclosureDefaults | 'none' {
       return {
-        materialPath: BiomeApi.getRootBiome().getEnclosureMaterial(),
+        materialPath: BiomeApi.defaultEnclosureMaterial(),
         thicknessM: envelopeDial(
           AppSettingKeys.enclosureDefaultThicknessM,
           0.3,
@@ -1361,7 +1361,7 @@ export function AtmosphericMixin<
     /** The universe default — what a part with nothing authored is made of. */
     private static universeEnclosure(): EnclosureDefaults {
       return {
-        materialPath: BiomeApi.getRootBiome().getEnclosureMaterial(),
+        materialPath: BiomeApi.defaultEnclosureMaterial(),
         thicknessM: envelopeDial(
           AppSettingKeys.enclosureDefaultThicknessM,
           0.3,

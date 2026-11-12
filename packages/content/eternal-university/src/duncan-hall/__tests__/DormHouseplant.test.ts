@@ -82,6 +82,7 @@ import { buildAllModalities } from '@saxonberg/server/mud/lib/perception/modalit
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import { rememberFabric } from '@saxonberg/server/mud/lib/material/__tests__/fabrics';
+import { standMaterials } from '@saxonberg/server/mud/lib/material/__tests__/materials';
 
 // Every test here simulates hundreds of game-days of growth through the real
 // verb path, and the acceptance walk runs two full stage ladders. The default
@@ -294,6 +295,19 @@ function installStore(): void {
   // makes for a sibling pack.
   ModuleApi.registerPackSource(`${PACKS}arcana/src`, '/system/arcana');
   seedDomain();
+  // The materials the seeded rows cite — loaded with each row in a world
+  // (constituents, load-on-use W8); this store ships no material rows, so
+  // they stand in blank, as the cold read answered before.
+  const cited = new Set<string>();
+  const walk = (v: unknown): void => {
+    if (typeof v === 'string') {
+      if (v.includes('/idea/material/')) cited.add(v);
+    } else if (Array.isArray(v)) v.forEach(walk);
+    else if (v && typeof v === 'object') Object.values(v).forEach(walk);
+  };
+  const rows = new Set(col('content').map((d) => (d as { path?: string }).path));
+  for (const d of col('content')) walk((d as { data?: unknown }).data);
+  standMaterials([...cited].filter((p) => !rows.has(p)));
   col('parcels').push({
     _id: `p-${++idCounter}`,
     extent: DORMS,

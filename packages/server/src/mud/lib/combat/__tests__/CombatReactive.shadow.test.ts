@@ -52,6 +52,7 @@ import { EnergizedMixin } from "../../electricity/Energized";
 import { MixinApi } from "../../../api/mixin";
 import EventRegistry from "../../../platform/idea/EventRegistry";
 import { EventApi } from "../../../api/event";
+import { standMaterials, TEST_TISSUES } from "../../material/__tests__/materials";
 
 class TestRoom extends ContainerMixin(Idea) {}
 class TestFighter extends Character {}
@@ -210,6 +211,7 @@ beforeEach(async () => {
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
   await bootRegistry();
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
 });
 
 afterEach(() => {
@@ -234,6 +236,7 @@ describe("CombatReactive × shadows — enchantment (DECISION I)", () => {
     // engine's next exchange lands the reshaped spec (observed through
     // the engine's dispatch, never a direct call).
     StuffApi.clearAll();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
     SchedulerApi._clearAllForTesting();
     const room2 = makeStuff(() => new TestRoom());
     const blade2 = makeStuff(() => new PlainReactiveBlade());
@@ -252,6 +255,7 @@ describe("CombatReactive × shadows — enchantment (DECISION I)", () => {
     // Detached fight — byte-baseline again (same trauma spec).
     ShadowApi.detach(blessing);
     StuffApi.clearAll();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
     SchedulerApi._clearAllForTesting();
     const room3 = makeStuff(() => new TestRoom());
     const blade3 = makeStuff(() => new PlainReactiveBlade());
@@ -327,6 +331,7 @@ describe("CombatReactive × shadows — enchantment (DECISION I)", () => {
     ShadowApi.detach(enchant);
     expect(MixinApi.isCombatReactive(mundane)).toBe(false);
     StuffApi.clearAll();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
     SchedulerApi._clearAllForTesting();
     const room2 = makeStuff(() => new TestRoom());
     const mundane2 = makeStuff(() => new Weapon());
@@ -342,6 +347,7 @@ describe("CombatReactive × shadows — enchantment (DECISION I)", () => {
     // composes the mixin (no-op terminals = the base to reshape) — the
     // scan point fires while attached.
     StuffApi.clearAll();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
     SchedulerApi._clearAllForTesting();
     const room3 = makeStuff(() => new TestRoom());
     const reactive = makeStuff(() => new PlainReactiveBlade());
@@ -387,6 +393,7 @@ describe("CombatReactive × shadows — enchantment (DECISION I)", () => {
 
     const r1 = await runOnce();
     StuffApi.clearAll();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
     SchedulerApi._clearAllForTesting();
     await bootRegistry();
     const r2 = await runOnce();

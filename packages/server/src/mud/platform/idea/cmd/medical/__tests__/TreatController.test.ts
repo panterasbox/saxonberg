@@ -40,6 +40,7 @@ import BodyPlan from '../../../species/BodyPlan';
 import Species from '../../../species/Species';
 import { OUTCOMES, type Outcome } from '../../../../../lib/advancement/ActSignature';
 import { standShippedConditions } from '../../../../../lib/vitals/__tests__/conditions';
+import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
 
 // A dressing-capable item that is NOT a Bandage — proves the gate is
 // `isDressing`, not `instanceof Bandage`.
@@ -100,6 +101,7 @@ beforeEach(async () => {
   fakeMongo();
   WorldClockApi._setNowProviderForTesting(() => 100);
   stubScene();
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
 });
 afterEach(() => {
   vi.restoreAllMocks();

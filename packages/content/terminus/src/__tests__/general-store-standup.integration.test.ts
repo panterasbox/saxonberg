@@ -38,6 +38,7 @@ import { standAddressIndex } from "@saxonberg/server/mud/lib/address/__tests__/a
 // by the test module runner ("available exports: ") — a harness quirk, not
 // the world's (a running world loads it once, at first use).
 import "../../../trade-apiculture/src/thing/Hive";
+import { standMaterials } from "@saxonberg/server/mud/lib/material/__tests__/materials";
 
 const PH = TemplateApplier.templatePath;
 const STORE_DIR = fileURLToPath(
@@ -410,12 +411,25 @@ describe("general-store standup (real seeds)", () => {
       ...APIARY_LINES,
     ];
     const shelfPaths = [...new Set([...enumerated, ...stocked])];
-    installStore([
+    const docs = [
       { path: PH, class: PH, data: {} },
       seedDoc("counter"),
       ...goods,
       ...shelfPaths.map(objDoc),
-    ]);
+    ];
+    installStore(docs);
+    // The materials the stocked rows cite — loaded with each good in a
+    // world (constituents, load-on-use W8); this store has no material
+    // rows, so they stand in blank, as the cold read answered before.
+    const cited = new Set<string>();
+    const walk = (v: unknown): void => {
+      if (typeof v === "string") {
+        if (v.includes("/idea/material/")) cited.add(v);
+      } else if (Array.isArray(v)) v.forEach(walk);
+      else if (v && typeof v === "object") Object.values(v).forEach(walk);
+    };
+    for (const d of docs) walk(d.data);
+    standMaterials([...cited]);
     ModuleApi.registerPackSource(DIST_SRC, "/trade/distilling");
     ModuleApi.registerPackSource(FISHING_SRC, "/trade/fishing");
     ModuleApi.registerPackSource(APICULTURE_SRC, "/trade/apiculture");

@@ -27,6 +27,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { rememberFabric, forgetFabrics, fabricPath } from '../../material/__tests__/fabrics';
+import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
 
 class TestGarment extends WearableMixin(
   SlottableMixin(ContainableMixin(ConstructedMixin(Good))),
@@ -105,6 +106,7 @@ describe('the measurement pair', () => {
       weaveDensity: 0.75,
       drape: 0.6,
     });
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
   });
   afterEach(() => {
     forgetFabrics();

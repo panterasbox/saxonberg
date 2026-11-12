@@ -45,6 +45,7 @@ import { HotReloadApi } from './hot-reload';
 import { BiomeLogic } from '../platform/idea/api/BiomeLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import { TestOnly } from '../lib/security/decorators';
 import type { ClimateSite } from '../lib/weather/WeatherType';
 import type { Exposure } from '../lib/spatial/Exposure';
 import type { MediumProps } from '../lib/biome/Medium';
@@ -282,6 +283,25 @@ export class BiomeApi {
    */
   public static getRootBiome(): Biome {
     return logic().getRootBiome();
+  }
+
+  /**
+   * What a place is built of when neither its row nor its class says — the
+   * root biome's `_enclosureMaterial` (load-on-use W8: content, loaded with
+   * the booted root). Throws when the root is not loaded.
+   */
+  public static defaultEnclosureMaterial(): string {
+    return logic().defaultEnclosureMaterial();
+  }
+
+  /**
+   * A suite with no root biome names what its default walls are — the
+   * harness stands a BLANK wall in (the envelope's own fallback figures,
+   * what such a suite read before the default became the root's).
+   */
+  @TestOnly('Nothing in the game stands a default wall in by hand — the root biome authors it.')
+  public static standDefaultEnclosureForTesting(provider: () => string): void {
+    logic().setDefaultEnclosureStandIn(provider);
   }
 
   /**

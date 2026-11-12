@@ -8,7 +8,7 @@
  */
 
 import "../../../../../../test-bootstrap";
-import { describe, it, expect, afterEach } from 'vitest';
+import { beforeEach, describe, it, expect, afterEach } from 'vitest';
 import WearController from '../WearController';
 import OutfitWearController from '../OutfitWearController';
 import OutfitSaveController from '../OutfitSaveController';
@@ -44,6 +44,11 @@ import { SchedulerApi } from '../../../../../api/scheduler';
 import { EventApi } from '../../../../../api/event';
 import EventRegistry from '../../../EventRegistry';
 import { rememberFabric, forgetFabrics, fabricPath } from '../../../../../lib/material/__tests__/fabrics';
+import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
+
+beforeEach(() => {
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+});
 
 /*
  * ⭐⭐ DRESSING IS DURATIVE NOW, so this suite has to reckon with time.

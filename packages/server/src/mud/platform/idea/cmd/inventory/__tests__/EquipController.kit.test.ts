@@ -19,7 +19,7 @@
  */
 
 import '../../../../../../test-bootstrap';
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { beforeEach, describe, it, expect, afterEach, vi } from 'vitest';
 import { MessageApi } from '../../../../../api/message';
 import EquipController from '../EquipController';
 import UnequipController from '../UnequipController';
@@ -55,6 +55,11 @@ import {
 } from '../../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { rememberFabric, forgetFabrics, fabricPath } from '../../../../../lib/material/__tests__/fabrics';
+import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
+
+beforeEach(() => {
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+});
 
 class Garment extends WearableMixin(
   SlottableMixin(ConstructedMixin(ContainableMixin(Good))),

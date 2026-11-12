@@ -36,6 +36,7 @@ import {
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../Condition';
 import { rememberFabric, fabricPath } from '../../../../lib/material/__tests__/fabrics';
+import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
 
 let seq = 0;
 
@@ -150,7 +151,10 @@ describe('the channel vocabulary', () => {
 });
 
 describe('cold — the heat fold, run the other way', () => {
-  beforeEach(() => installV1QuantityMarshallers());
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+  });
   afterEach(() => StuffApi.clearAll());
 
   it('⭐ freezes bare flesh, and it is FROSTBITE not a burn', () => {
@@ -217,6 +221,7 @@ describe('⭐⭐ ONE insulation number — the fold reads the garment\u2019s rea
       weaveDensity: 0.75,
       drape: 0.6,
     });
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
   });
   afterEach(() => StuffApi.clearAll());
 
@@ -295,7 +300,10 @@ describe('⭐⭐ ONE insulation number — the fold reads the garment\u2019s rea
 });
 
 describe('corrosion — the material is everything', () => {
-  beforeEach(() => installV1QuantityMarshallers());
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+  });
   afterEach(() => StuffApi.clearAll());
 
   const LIME = ['organic', 'tissue', 'leather', 'textile'];
@@ -392,7 +400,10 @@ describe('corrosion — the material is everything', () => {
 });
 
 describe('legibility — the readout shows every folded column', () => {
-  beforeEach(() => installV1QuantityMarshallers());
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+  });
   afterEach(() => StuffApi.clearAll());
 
   it('⭐⭐ a covering previews a band on cold and corrosion, not just the three', () => {
@@ -427,7 +438,10 @@ describe('legibility — the readout shows every folded column', () => {
 // "cool little synergy" that falls out of honest physics through the ONE
 // door, and each is a guard against a future channel regressing it.
 describe('interop — the channels compose', () => {
-  beforeEach(() => installV1QuantityMarshallers());
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+  });
   afterEach(() => StuffApi.clearAll());
 
   const LIME = ['organic', 'tissue', 'leather', 'textile'];

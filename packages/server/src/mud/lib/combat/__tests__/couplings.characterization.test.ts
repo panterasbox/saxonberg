@@ -60,6 +60,7 @@ import { CombatSession } from '../CombatSession';
 import { Poise } from '../Poise';
 import EventRegistry from '../../../platform/idea/EventRegistry';
 import { EventApi } from '../../../api/event';
+import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
 
 class TestRoom extends ContainerMixin(Idea) {}
 class TestFighter extends Character {}
@@ -200,6 +201,7 @@ beforeEach(async () => {
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
   await bootRegistry();
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
 });
 
 afterEach(() => {
