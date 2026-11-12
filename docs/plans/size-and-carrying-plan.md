@@ -1300,6 +1300,110 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   arm calling a second mutator on `giver` read as a multi-act). `lint:body-moves` **40 → 0**
   counted; the ceiling is 0, the roster is allowlist + not-body rows only.
 
+**Decided while building W6** (beyond D27, D29, D34, D38, D39):
+
+- **W6-a — `Pack` composes `Sealable`, and starts OPEN** (constructor `setOpen(true)`): D22's
+  *a shut canvas pack does not keep dry* and the oilskin pouch need a pack that shuts, D24's
+  flap needs it, drive 14 shuts a backpack. Nothing that never shut behaves differently; a
+  row may author `open: false`.
+- **W6-b — the tarp rides `close`/`open`, not `cover`.** The shipped `cover` is the fire's
+  banking verb (`requires: BurnerMixin`) — a cart answering it would be a second protocol
+  under one word. `Handcart` (kernel) and `HaulageRig` (transport `src/`) compose
+  `Postured(Slotted(Sealable(…)))` (D38's `bed` seat and the cover), start open, and
+  `canClose` only under a cover lying in them — `Haulable.coverFor()`: a thing whose shape
+  is `sheet` and whose material is a textile (a shirt is cloth but not a sheet). A tarp
+  drapes, so the overhang refusal is skipped. The `/trade/textiles/thing/tarpaulin` row is a
+  `Good` with `shape: sheet` and no box (folded; its size derives). Rows: wagon bed 4, dray
+  3, sledge 2, ore tram 1, handcart 1, travois 1 (`lie` only).
+- **W6-c — D39's roof rack is NOT shipped.** `PlacingMixin` refuses composition with
+  `ExitableMixin` by design (`Placing.__validateComposition__`: *"put a Fitting or a Chamber
+  in its contents … or write the class"*). No drive step uses it; it wants its own class
+  (an outside surface that travels with an Exitable host) — a follow-up, recorded for
+  `/finalize`.
+- **W6-d — the halter is a class, and leading reads it.** `/trade/tanning/thing/Halter` =
+  `TieableMixin(Garment)` (a garment is not Tieable, and making every garment Tieable would
+  make a saddle a halter). `Carrying.halter()` = the first worn Tieable off the hands.
+  `Rope.tieTo` leads a body that is handless **or wears a halter**; `Mobile.ledAnimals` the
+  same — so the `canid` dog (whose mouth is a hand) is led on its collar. Unit-tested
+  (`Mobile.lead.test.ts`).
+- **W6-e — the headset is a class.** No code reads `targetSlot` (the implant reaches the
+  cranial bay by name in `installDefaultLoadout`) and the head slot accepts only Wearable:
+  `/generic-objects/thing/Headset` = `WearableMixin(AetherImplant)`, row claims biped
+  `[head]`. Augments confer from any slot (`collectAugmentConferralNames`).
+- **W6-f — the shield is slung by `Shield.fitsSlot('back')`, not by its claim.** A claim is
+  occupied WHOLE (`wieldSlots` seats every slot it names), so `[hand:left, back]` would take
+  the back on every `wield`.
+- **W6-g — `greatsword` 1.15 m / 3.2 kg, `longsword` 1.0 m / 1.4 kg** (not 1.6 / 1.1): at
+  D10-b's `TWO_HAND_LENGTH` 0.6 a 1.6 m blade takes two hands for every shipped species
+  (draconicus 2.0 m → 1.2 m), and a 1.1 m one two for a human (1.05 m). The rows were fixed,
+  not the rule. Both claim one hand; the holder decides.
+- **W6-h — the arms audit** (D10). Every arms row with a length now authors `shape: rod` and
+  its blade/shaft box, or the length rule could never read it (a 1 kg sword derived to a
+  5 cm cube):
+
+  | row | claim before | claim after | why |
+  |---|---|---|---|
+  | hunting-bow | right | **both** | by use — one hand holds, one draws |
+  | flintlock-musket | both | both | by use — stock and lock |
+  | spear | both | both | by use — couched as a pike |
+  | warhammer | both | **right** | its two were by weight; `handsFor` decides (a human takes both by its 1.1 m) |
+  | sword, oak-waster, mace, flail, fire-poker, dagger, belt-knife | right | right | one-handed by use; a gnome takes two by length past 0.6 m |
+  | leather-whip | right | right | flexible, no box |
+  | longsword, greatsword, flintlock-pistol (new) | — | right | the holder decides |
+- **W6-i — `flintlock-pistol`** (generic-objects arms, `Launcher`, 1.2 kg, 0.35 m): the
+  holster's kind; drive 6 draws a pistol from it.
+- **W6-j — `shapedTo` values.** The holster names the pistol row, the quiver the arrow row,
+  the canteen clip `BulkableMixin`, the sheath and the scabbard `WieldableMixin` (the census
+  refuses a folder path — `/stuff/thing/arms` is no row — so the mouth and the box decide a
+  knife from a sword). `lint:census` now reads `shapedTo` (clause b) and a named placement
+  entry's `member` (clause g); `lint:reachability` lists `shapedTo` as a citation.
+- **W6-k — the bumbag claims `[waist]`** (its own strap) instead of hanging from a belt.
+- **W6-l — oilskin** is `base-library`'s `/stuff/idea/material/textile/oilskin`, `extends:`
+  linen (it IS oiled linen), `waterAbsorptionCapacity: 0` against the parent's 20 (a value,
+  not "not applicable"), `wetStrength: 1`, tagged `oiled` (impermeable on purpose — `WetLaw.test`'s cloth check exempts it as it does the elastomer). `lint:material-kinds` (d) **6054 → 6067**: the
+  one new row's 13 gaps are linen's own unauthored fields.
+- **W6-m — sizes the drive needs:** the mug (earthenware, 0.35 kg, 9 × 9 × 10 cm — it must
+  fail a trouser pocket); the generic backpack (canvas, 0.35 × 0.25 × 0.55 m — drive 9's
+  crawlway refuses it); every pack row authors its box (its room).
+- **W6-n — statures:** draft horse (`caballus-major`) 1.75 m, pit pony (`caballus-pumilus`)
+  1.2 m, mule (`asinus-mulus`, new, 400 kg) 1.5 m. ⚠ The draft horse's derived girth is
+  0.82 m, so the 0.8 m paddock gate refuses it bare; the mule's is 0.58 m and passes bare.
+- **W6-o — places:** `newbie-wilds`' **Old Steading** (`/world/newbie-wilds/steading`,
+  `CartesianZone`), reached `northwest` from `crossroads/treeline` (the spawn). `yard` —
+  east the cottage through a 0.9 × 1.4 low door (no kind), south the barn through a 1 × 2
+  doorway, north the paddock through a 0.8 × 2 gate, up the lookout by `ladder`, west the
+  pond; `cottage` — east the charcoal pit by `crawlway`; `barn` — up the hayloft by `stair`
+  with `turn: 1.6`; `pond` (`Pool`, 2.5 m, citing a one-node `Watercourse/steading`) — west
+  the reed bank. All under the sky (the cottage, barn and hayloft are roofless ruins), so lit
+  by day and dark at night. Props: barn — pegboard, tool rail, long crate; yard — the mule
+  (cast), its halter, pack saddle and two panniers. `newbie-wilds` gained the water,
+  transport and trade-tanning dependencies.
+- **W6-p — Katie's daypack** is `DormWarren.let`'s (eternal-university): the residence
+  let, then `handDaypack` clones `/world/terminus/eternal/duncan-hall/thing/daypack` and
+  `receive`s it when `canReceive` is null, else moves it into the new room; once per tenant
+  (a second let is `already-housed`). `ProvisionController` tells the newcomer in words.
+  The daypack carries no brand: `Pack` is not `Branded` and the university has no brand row.
+- **W6-q — the outfits.** healer → belt + medic's pouch, teacher → satchel, guardian → belt;
+  the installer (`EmbodyController` / `Login`) receives and wears each Wearable with a
+  claim, so the belt and the satchel are worn and **the medic's pouch lands loose** — the
+  outfit list cannot say "hang this from that".
+
+⚠ **For W7:**
+- the medic's pouch (and any unclaimed `Pack` in an outfit) needs a hanging step — the
+  receive walk or the installer must hang it `from` a worn host;
+- `Rope.tieLead` still puts the rope LOOSE in the animal; the halter now offers `from` —
+  place it there before the veto;
+- **drive 18's "the panniers won't fit" cannot fire yet**: `Creature.wornBulk` reads only
+  `back`/`torso` occupants (the quadruped's slot is `back:1`), counts no container hung
+  from a worn host, and adds depth (trailing), not width, upright — a laden mule is as
+  wide as itself (0.58 m) at the 0.8 m gate;
+- the headlamp is `switch headlamp on` (a `PortableLight` burns nothing), not `light`;
+- `close handcart` needs the tarpaulin IN it first; `sit in cart` binds through `sit`'s
+  `in` preposition (not driven);
+- pre-existing gate failures not W6's: `lint:controller-resolution` 83 > 80,
+  `lint:graph-walks` 1 > 0 (`PerceptionLogic.reachOf`), `lint:test-content`
+  (`LensController.test.ts` names `/world/…`) — all from W3/W4.
+
 ## ⭐⭐ Host placement
 
 | what | host | what composing it claims — and why every host means it |
@@ -1706,6 +1810,8 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
 - Acceptance: `clone` of every new row succeeds in a wire smoke; `look` in each new
   place by day and by headlamp at night reads.
 - Commit: `build(size-and-carrying W6): pockets on every garment, the leather goods, tack and the mule, the crawlway and the stair's turn, cups in the lounge`.
+
+**✅ Done (34cc6119c).** Pockets on every garment row (tailoring four, generic-objects clothes eight); trade-tanning's 25 rows (belts and harnesses, hung pouches and shaped holders, slot bags, tack, the `Halter` class); oilskin, key ring, headlamp, lanyard, tarpaulin, pegboard, tool rail, long crate, headset (`Headset` class), longsword, greatsword, flintlock pistol; the mule (species + agent), the travois, statures; `BodyPlan/canid` and the dog on it; `Pack` Sealable; carts Postured + Sealable under a tarp; `Carrying.halter()` leading; the shield slung; the Old Steading in newbie-wilds; three mugs; the store's carrying line; the outfits; Katie's daypack. D39's roof rack not shipped (W6-c). Decisions W6-a…W6-q above. Verified: server typecheck; touched packs' typecheck + vitest (tanning, generic-objects, transport, terminus, eternal-university, smithing, cordage, textiles, tailoring, hospitality, ranching, mining, water); `test:near` (1147 files — 3 failures found and fixed: `WetLaw` oiled cloth, the newbie-wilds pack test's row count and its `/stuff` coverage stand-in; re-run green); every `lint:*` individually — green except `controller-resolution`, `graph-walks`, `test-content` (pre-existing from W3/W4, see ⚠). Full suite not run. ⚠ W7: see the W6 block's *For W7* list (the medic's pouch's hang, the lead's `from`, the panniers' width, the headlamp's `switch`).
 
 ### W7 — the flip (D11–D13, D31–D32)
 
