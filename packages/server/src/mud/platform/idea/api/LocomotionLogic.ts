@@ -286,6 +286,14 @@ export class LocomotionLogic extends ApiLogic {
         };
       }
     }
+    // ⭐ Load on use (size and carrying drive, step 18): the cart's passage
+    // mode (`wheeled`) is read synchronously by name, and nothing had stood
+    // its row up — every hitched cart was refused "You can't drag the cart
+    // that way" at every door, and never met a door's SIZE.
+    if (MixinApi.isHauling(actor) && actor.isHitched()) {
+      const cart = actor.getHauledCart();
+      if (cart !== null) await this.loadMode(cart.getPassageModeName()).catch(() => null);
+    }
     const haul = this.checkHaulage(actor, exit, mode);
     // ⭐ The host rides the ok guard to the crossing (cordage D11).
     return haul.ok && enablement.host ? { ...haul, host: enablement.host } : haul;

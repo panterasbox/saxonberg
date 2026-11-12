@@ -93,6 +93,8 @@ export interface Haulable {
   setHandedness(value: number): void;
   /** Locomotion mode the cart's passage needs (default `wheeled`). */
   getPassageMode(): LocomotionMode | null;
+  /** The passage mode's name, resident or not. */
+  getPassageModeName(): string;
   setPassageMode(value: string): void;
   /** Effective-kg draft a hauler bears while pulling this cart. */
   getDraftLoad(): Quantity<'kg'>;
@@ -257,6 +259,10 @@ export function HaulableMixin<
 
     public getPassageMode(): LocomotionMode | null {
       return LocomotionApi.modeOf(this.passageMode);
+    }
+    /** The passage mode's name, resident or not (what `getPassageMode` resolves). */
+    public getPassageModeName(): string {
+      return this.passageMode;
     }
     public setPassageMode(value: string): void {
       this.passageMode = value;
