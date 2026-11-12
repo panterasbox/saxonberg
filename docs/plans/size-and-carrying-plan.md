@@ -2218,3 +2218,64 @@ the `give` path now, and the **arg gate** stops at the animal (MQL names its
 panniers); the tarp ✓ (18 — `close handcart` with the tarpaulin in it); the
 headlamp ✓ (22) — the **verb** link was missing (`switch` conferred by nothing).
 
+
+**Run 12 (2026-11-12, after the five post-drive fixes; fresh DB, `WIRE_PORT=2014`).**
+All 22 steps ✓ but 21; 1b ✗ (the pre-existing residence defect, unchanged —
+Katie's second let still throws at `Location.addExit`). Step 21 was tightened
+to assert the restore's line (the wire `Session` now keeps what entering said,
+`arrival()`) and to check the steading mule's tack across the restart. It
+found two defects, each reproduced in a unit test that failed first:
+
+- The line now reaches the player, but restored in the dark it read
+  *"something would not fit anywhere on you"*: it is said once the thing is
+  off the body, where the sight gate obscures it. Named with `bare` (no
+  perception gate) — *"Your punched-tin lantern would not fit anywhere on
+  you; it is at your feet."* `0ba536169`.
+- The mule kept its tack across ONE restart and lost it across the second
+  (`b7b6b9216` was half the fix): the first restore re-minted the saddle into
+  the mule, and the derived title's rung 2 ("the hands it lands in") titled it
+  to the mule as a player. A beast keeps no estate, so its next capture
+  skipped the tack as somebody else's goods. Rung 2 titles only a body that
+  keeps an estate, or an organization. `e8da0fdfe`.
+
+**Run 13 (fresh DB, `e8da0fdfe`):** all steps ✓ but 1b (as above) and 21,
+which read the mule in the dark after a night restart (*"someone ── Wearing:
+something and something"*) — read by daylight now, `e4c7d55b8`; step 21 then
+✓ across the world's second restart (the mule wears its saddle and halter,
+its panniers in it). ⚠ The cold boot took past the harness's 420 s budget
+once (`WIRE_BOOT_TIMEOUT=900000` used).
+
+**The server log, the two open checks.** The keepers' `get` declines are one
+per trip now, not one per candidate per beat: the hand fills both hands
+(*"picks up a can of cola"* ×2), the third `get` is refused `nowhere-to-carry`
+and stops, and the hand walks to the counter — run 13's pre-restart log has
+Dez 3, Bram 3, Rufus 2, Marn 1 over the whole drive (`e143d028a` holds). No
+`shelf consign` `not-held` anywhere, and no Wen Hartley decline at all
+(`da84ff4d4` holds).
+
+**Browser walk** (`e2e/tests/size-and-carrying-walk.spec.ts`, Chromium against
+vite on 5173 → the run-13 world on 2014, `AUTH_MODE=test`,
+`SAXONBERG_TEST_WORLD=1`): steps 1–3 at Dave's bar, 9 from the treeline to the
+Old Steading's low door, 12–13 a second login looking at a first. It found:
+
+- `get mug` at a back-bar of three takes every mug it names (`get`'s targets
+  are plural): one to each hand, and the third refused as *"Your hands are
+  full — the mug and the mug — and the mug won't fit in your pockets."* Two
+  alike read *"both mugs"* now and the refused one *"another mug"*
+  (`2bb35f8a1`). ⚠ That a bare `get mug` takes all three is the binder's
+  `objects` cardinality, not this build's — recorded, not changed.
+- `look` and `i` on a body grouped its other things as *"In it: an aether
+  implant and a key"* (and the mule's panniers *"In it"*) — a body is not a
+  box: *"Carrying:"* (`592a8fcba`). ⚠ Left as found: the self look still
+  groups the implant under *Carrying* (the grouping pins an implant as carried)
+  while `inventory` lists it *Worn*.
+- Walk-side, not defects: `wear` is durative and silent until done (*"You put
+  on a linen coat"*); a key handed to free hands goes to a hand (hands first,
+  D11); the yard holds earlier walkers, so the second login names the first
+  by the `#id` their link carries, as a click does (`i human` binds whichever
+  human is first; `look human` asks which).
+
+No pitch-dark rooms by day, the stoop refusal names its form, the inventory
+tiers and the burden read in words, and the letter in the inner pocket shows
+on neither `i #id` nor `look #id` (which show the coat over the shirt, never
+the shirt under it). Final run, the world rebooted on `592a8fcba`: 3/3 ✓.
