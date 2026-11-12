@@ -96,20 +96,20 @@ describe('the newbie-wilds pack (real root, real class resolution)', () => {
   const ownRows = (): ReturnType<typeof contentRows> =>
     contentRows().filter((row) => String(row.path).startsWith('/world/newbie-wilds'));
 
-  it('empty store → 35 inserted, 35 domain baselines', async () => {
+  it('empty store → 36 inserted, 36 domain baselines', async () => {
     const r = await withParent();
     expect(r.failure).toBeNull();
     expect(r.packId).toBe('newbie-wilds');
-    // 34 `/world/newbie-wilds` rows (the steading added ten) + the pond's
+    // 35 `/world/newbie-wilds` rows (the steading added eleven — its lookout ladder) + the pond's
     // commons watercourse.
-    expect(r.inserted).toHaveLength(35);
+    expect(r.inserted).toHaveLength(36);
     expect(r.inserted).toContain('/stuff/idea/Watercourse/steading');
     expect(r.inserted).toContain('/world/newbie-wilds/crossroads/hub');
     expect(r.inserted).toContain('/world/newbie-wilds/agent/wolf');
-    expect(r.inserted.filter((p) => p.startsWith('/world/newbie-wilds'))).toHaveLength(34);
+    expect(r.inserted.filter((p) => p.startsWith('/world/newbie-wilds'))).toHaveLength(35);
     expect(ownRows().every((row) => row.sourcePack === 'newbie-wilds')).toBe(true);
     const rec = recordOf('newbie-wilds')!;
-    expect(Object.keys(rec.rows)).toHaveLength(35);
+    expect(Object.keys(rec.rows)).toHaveLength(36);
     expect(Object.values(rec.rows).every((b) => b.kind === 'domain')).toBe(true);
   });
 
@@ -134,13 +134,13 @@ describe('the newbie-wilds pack (real root, real class resolution)', () => {
       }
     };
     walk(join(CONTENT, 'world'));
-    expect(n).toBe(34);
+    expect(n).toBe(35);
 
     const r = await withParent();
     expect(r.failure?.step).toBe('reconcile');
     expect(r.failure?.error).toMatch(/no sourcePack stamp/);
-    // Untouched: the same 34 rows, none stamped, nothing inserted beside them.
-    expect(ownRows()).toHaveLength(34);
+    // Untouched: the same 35 rows, none stamped, nothing inserted beside them.
+    expect(ownRows()).toHaveLength(35);
     expect(ownRows().every((row) => String(row._id).startsWith('seed-') && !row.sourcePack)).toBe(true);
   });
 

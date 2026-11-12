@@ -53,6 +53,8 @@ data:
   # side — and it is led on a rope tied to its halter. The narrow gate to
   # the paddock and the cottage's low door are a few steps away.
   props:
+    # The ladder up the post (drive 10): it is what makes the way climbable.
+    - /world/newbie-wilds/steading/thing/lookout-ladder
     - /trade/tanning/thing/halter
     - /trade/tanning/thing/pack-saddle
     - { template: /trade/tanning/thing/pannier, as: near-pannier }

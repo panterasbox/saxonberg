@@ -17,6 +17,13 @@ data:
     bed. Loaded right, one person can move a load that would flatten
     them to carry — so long as the ground stays level.
   mass: 25
+  # ⭐ Its size (size and carrying drive, step 18): a plank bed on two
+  # wheels with the handles out in front — 0.9 m across the wheels, 1.6 m
+  # handle to tail. With no box and no material its size was unknown, an
+  # unknown size is never refused, and the drive was told to `put
+  # handcart in breast pocket`. Now a narrow gate stops it.
+  _materialPath: /stuff/idea/material/wood/ash
+  dimensions: { width: 0.9, depth: 1.6, height: 0.7 }
   draftFactor: 0.04
   handedness: 2
   passageMode: wheeled
