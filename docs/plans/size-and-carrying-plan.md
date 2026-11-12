@@ -24,6 +24,22 @@ a fact. Path shorthand: `$S` = `packages/server/src/mud`, `$C` = `packages/conte
 > where D29's daypack is offered). Re-verify those three before W3/W5/W6; every other
 > grounded file is unchanged. Line numbers everywhere are approximate.
 
+> ⭐ **Master merged at `53f1ebcdc` (load-on-use, !575 — 26 commits), 2026-11-12.** Six
+> conflicts, all both-intents: Tangible/Garment imports (the size imports beside master's
+> material doors), the boundary-roles ceiling (master 36 + this branch's Form = 37), the
+> terminus standup harness (Form rows kept; fabrics are documents now), the layer test
+> (`carry` + `fabricPath`), and the spoiler snapshot (regenerated — the union). One
+> non-conflict collision: `lint:on-create` — master lowered the ceiling to 71 and this
+> branch's `Creature.onCreate` (`ensureSpecies`) made 72; raised with a caller audit.
+> **Reconciled against master's doors:** the `wheeled` load is master's act door
+> (`LocomotionApi.loadMode`); `ensureSpecies` is the act door over a `_speciesPath` both
+> sides declare `identity:constituent`. ⚠ **Open:** forms still load by D1-c (setter
+> loads, `ensureShape()` at async seams, a sync miss starts the load and answers unknown)
+> — master's rule is *a cold sync read is loud, a class's default citations load with its
+> content*. Moving a thing's form (row OR class default) into the applier's constituent
+> load, and retiring `Creature.onCreate` into that same wait, is the follow-up that makes
+> it one mechanism.
+
 Facts verified at the tip this cycle. What exists, what it does, what it does not.
 
 ### Containment and the chokepoint
