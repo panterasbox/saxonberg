@@ -181,7 +181,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
     makeStuffAtPath(() => {
       const b = new BankCounter();
       // The corpo dictionary loads with the bank (D7); never read here.
-      void b.setCorpoKey('goodkin')?.catch(() => undefined);
+      b.setCorpoKey('goodkin');
       return b;
     }, BANK);
 

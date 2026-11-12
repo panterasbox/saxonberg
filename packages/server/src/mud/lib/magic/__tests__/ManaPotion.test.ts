@@ -11,6 +11,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { standShippedConditions } from '../../vitals/__tests__/conditions';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WorldClockApi } from '../../../api/worldclock';
 import '../../../platform/idea/WorldClockRegistry';
@@ -83,7 +84,9 @@ function depleted(): TestCharacter {
 }
 
 describe('the mana potion — metabolic, never a generator', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    // The condition rows the boot stands (load-on-use W10).
+    await standShippedConditions();
     installV1QuantityMarshallers();
     WorldClockApi._resetForTesting();
     real = 1_000_000;

@@ -63,8 +63,8 @@ function logic(): GovernmentLogic {
 export class GovernmentApi {
   /**
    * ⭐ What this Api's reads stand on (documents D7, W5c): every async
-   * static awaits it in the call gate; a sync reach calls
-   * `StuffApi.ready(GovernmentApi)`. Loaded on reach, never at boot.
+   * static awaits it in the call gate, so a caller never readies it.
+   * Loaded on reach, never at boot.
    */
   static readonly needs: readonly string[] = [
     TemplatePaths.governmentCatalogue,
@@ -74,18 +74,19 @@ export class GovernmentApi {
 
   /**
    * The most-local government at an address (the head of the chain), or
-   * `null` when no covering Locality declares one. Sync — trie +
-   * in-memory catalogue.
+   * `null` when no covering Locality declares one. Async so the call gate
+   * loads what it stands on (`needs`: the catalogue and the address index).
    */
-  public static governmentAt(address: string): GovernmentDescriptor | null {
+  public static async governmentAt(address: string): Promise<GovernmentDescriptor | null> {
     return logic().governmentAt(address);
   }
 
   /**
    * The full jurisdiction chain at an address, most-local first (ward →
-   * city → realm). Sync. `[]` off-grid.
+   * city → realm). `[]` off-grid. Async for the same reason as
+   * {@link governmentAt}.
    */
-  public static governmentChainAt(address: string): GovernmentDescriptor[] {
+  public static async governmentChainAt(address: string): Promise<GovernmentDescriptor[]> {
     return logic().governmentChainAt(address);
   }
 

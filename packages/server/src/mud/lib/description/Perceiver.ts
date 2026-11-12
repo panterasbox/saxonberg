@@ -37,7 +37,6 @@ import type Exit from '../boundary/Exit';
 import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
-import { StuffApi } from '../../api/stuff';
 
 /**
  * Canonical physical-sense channel vocabulary. The Perceiver-side
@@ -293,11 +292,7 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         : undefined;
       const day = await attempt(() => CelestialApi.isDayAt(place));
       const government = address
-        ? await attempt(async () => {
-            // The government catalogue loads on reach (documents W5c).
-            await StuffApi.ready(GovernmentApi);
-            return GovernmentApi.governmentAt(address);
-          })
+        ? await attempt(() => GovernmentApi.governmentAt(address))
         : undefined;
 
       return {

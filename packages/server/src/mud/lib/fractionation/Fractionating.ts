@@ -605,21 +605,11 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       return this.runSchedulePath ? BulkableApi.fractionSchedules().need(this.runSchedulePath) : null;
     }
 
-    /** The restore door (load-on-use W4): a still restored mid-run loads its schedule. */
-    public setRunSchedulePath(value: string): Promise<void> {
+    /** The schedule this run follows, by path (BulkableApi's, stood at boot). */
+    public setRunSchedulePath(value: string): void {
       this.runSchedulePath = typeof value === 'string' ? value : '';
-      if (!this.runSchedulePath) return Promise.resolve();
-      return BulkableApi.fractionSchedules().ensure(this.runSchedulePath).then(() => undefined);
     }
 
-    /**
-     * ⭐ Every fraction schedule loads with the first still (load-on-use D3,
-     * D7 shape 4): the charge match runs inside a SYNC reconcile.
-     */
-    public async onCreate(context?: unknown): Promise<void> {
-      await super.onCreate(context);
-      await BulkableApi.fractionSchedules().ensureAll();
-    }
 
     public readFraction(viewer: Stuff): FractionSpec | null {
       this.reconcileRun();

@@ -1082,6 +1082,39 @@ alone would leave every production material cold. Done so far:
 - `pnpm test` (code-complete), `lint:family`, open the MR.
 - Commit: `docs(load-on-use): W9 — drive record, the walk, subsystem docs`.
 
+
+### W10 — review: Api dictionaries stand at boot; no class readies its Api
+
+**Owner's call in review (2026-11-12):** *"why does a random class have to
+worry about whether GovernmentApi is ready or not?"* — and, asked how the
+dictionaries load, chose **the boot routine stands them**. This reverses
+D7's "never at boot" for the dictionaries an Api declares, and retires the
+caller-side readiness the documents build (!560) and this one had spread.
+
+- `static needs` takes an `ApiNeed`: a catalogue path, or a loader for a
+  row-less catalogue (`() => BulkableApi.maturationProfiles().ensureAll()`).
+  `AppBootstrap` readies **every decorated Api's needs once, before the
+  manifest**; the async call gate still awaits them (a resolved promise after
+  boot; the load itself in a harness).
+- Needs added: `ConditionApi` (the roster), `BulkableApi` (profiles,
+  schedules), `ContainmentApi` (placements), `MaterialApi` (dirt kinds —
+  **not** the material roster), `CraftingApi` (recipes, disciplines —
+  disciplines have no Api; crafting is where a recipe's discipline is read).
+- Deleted: every `StuffApi.ready(...)` outside the loader (Ship, RegisterBook,
+  HullBook, TestHarness, TrapKit, Perceiver, the four Help controllers,
+  Avatar.enter, MagicLogic ×3, Advancement ×4, CraftingLogic ×3,
+  ArchetypeCatalogue); every setter that returned a dictionary load
+  (Locality, ShipRegister, Crafted, Arcane, Spellbook, Bank, Branded, the
+  payload's recipe; the profile/schedule path doors); every mixin `onCreate`
+  that readied one (Vitals, Contaminable, Maturing, Ripening, Fractionating,
+  Finishing, Soilable, Place's placements). `StuffApi.ready` is `@internal`.
+- `GovernmentApi.governmentAt` / `governmentChainAt` are async (the first
+  fix, before the owner's call).
+- ⚠ **The material roster stays out of boot** (384 rows; materials load per
+  row by their doors — this build's subject). Its two readers go through
+  async `MaterialApi.all()` / `findByTag()`, which load it themselves: the
+  Api owns it, no caller does.
+
 ---
 
 ## Reachability wiring

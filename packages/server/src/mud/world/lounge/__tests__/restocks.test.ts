@@ -247,7 +247,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
     await reg.onCreate();
     makeStuffAtPath(() => {
       const b = new BankCounter();
-      void b.setCorpoKey('goodkin')?.catch(() => {}); // the load is the applier's (documents D7)
+      b.setCorpoKey('goodkin');
       return b;
     }, BANK);
 

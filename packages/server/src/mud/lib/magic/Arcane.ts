@@ -81,7 +81,7 @@ export interface Arcane {
   getArcaneFootprint(): readonly ArcaneAddress[];
   /** The spell whose address this item inherits, or `''` for a bespoke one. */
   getCarriedSpellPath(): string;
-  setCarriedSpellPath(spellId: string): Promise<void> | undefined;
+  setCarriedSpellPath(spellId: string): void;
   /** The bespoke declaration — ignored while a spell is carried. */
   getDeclaredAddresses(): readonly ArcaneAddress[];
   setDeclaredAddresses(addresses: readonly ArcaneAddress[]): void;
@@ -165,7 +165,7 @@ export function ArcaneMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.carriedSpellPath;
     }
 
-    public setCarriedSpellPath(path: string): Promise<void> | undefined {
+    public setCarriedSpellPath(path: string): void {
       // ⚠ A bare id is the mistake this field exists to prevent, and the
       // type system cannot catch it — both are strings. So the setter
       // does, which turns the rename from a naming convention into an
@@ -179,8 +179,6 @@ export function ArcaneMixin<TBase extends MixinConstructor>(Base: TBase) {
         );
       }
       this.carriedSpellPath = v;
-      // The item is live only when the spell dictionary is (D7).
-      return v ? StuffApi.ready(MagicApi) : undefined;
     }
 
     public getDeclaredAddresses(): readonly ArcaneAddress[] {

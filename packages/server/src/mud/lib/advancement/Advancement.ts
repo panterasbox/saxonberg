@@ -213,9 +213,6 @@ async function bandsForImpl(
 ): Promise<DisciplineBand[]> {
   const overlay = (rows: DisciplineBand[]): DisciplineBand[] =>
     opts.stocks ? withConditioning(owner, rows) : rows;
-  // The reach: a character's bands are read here first, so the dictionary
-  // is resident before the digest (and its sync overlay) has any rows.
-  await StuffApi.ready(TemplatePaths.disciplineCatalogue);
   if (!transcriptActive()) return overlay([]);
   const ownerId = ownerKeyOf(owner);
   if (!ownerId) return overlay([]);
@@ -243,7 +240,6 @@ async function bandsForImpl(
  * band×catalogue decision.
  */
 async function conferredVerbsImpl(owner: Stuff): Promise<string[]> {
-  await StuffApi.ready(TemplatePaths.disciplineCatalogue);
   const cat = catalogue();
   const verbs = new Set<string>();
   for (const { discipline, band } of await bandsForImpl(owner)) {
@@ -453,7 +449,6 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
       const self = this as unknown as Stuff;
       if (!MixinApi.isCommandGiver(self)) return;
       const giver = self;
-      await StuffApi.ready(TemplatePaths.disciplineCatalogue);
       const catalogue = StuffApi.findByTemplatePath(TemplatePaths.disciplineCatalogue)!;
       const verbs = await conferredVerbsImpl(giver);
       const defs: CommandDefinition[] = [];
@@ -567,7 +562,6 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
     ): Promise<CompetenceBandName> {
       // ⭐ A conditioning Discipline short-circuits to its body stock.
       const self = this as unknown as Stuff;
-      await StuffApi.ready(TemplatePaths.disciplineCatalogue);
       const stock = catalogue().getStock(discipline);
       if (stock && MixinApi.isExerting(self)) {
         return this.suppressed(self.conditioningBand(stock));

@@ -22,6 +22,8 @@
  * {@link CraftingLogic} singleton at `/platform/idea/api/crafting`.
  */
 
+import type { ApiNeed } from './security';
+import { TemplatePaths } from '../lib/paths';
 import type { PricedOffer } from '../lib/commerce/PricedOffer';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { WashOutcome, WashSpec } from '../lib/cleanliness/Soilable';
@@ -539,6 +541,16 @@ const FORM_CATALOGUE = '/platform/idea/FormCatalogue';
 const RECIPE_CATALOGUE = '/platform/idea/RecipeCatalogue';
 
 export class CraftingApi {
+  /**
+   * ⭐ The recipe and discipline dictionaries, stood by the boot routine.
+   * Disciplines have no Api of their own; crafting is where a recipe's
+   * discipline is read, so it declares them.
+   */
+  static readonly needs: readonly ApiNeed[] = [
+    TemplatePaths.recipeCatalogue,
+    TemplatePaths.disciplineCatalogue,
+  ];
+
   /**
    * ⭐ The joints — every way two parts are joined, any pack's
    * `content/joints/`, served by {@link JointCatalogue}: `ensure(path)`

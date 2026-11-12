@@ -23,6 +23,7 @@
  * `StuffApi.singletonSync`. `dest /platform/idea/api/material` reloads it.
  */
 
+import type { ApiNeed } from './security';
 import type Material from '../lib/material/Material';
 import type { CompositionEntry } from '../lib/material/Material';
 import type { Channel } from '../lib/material/Channel';
@@ -153,6 +154,13 @@ export interface ContactWetness {
 
 export class MaterialApi {
   /**
+   * ⭐ The kernel's dirt kinds, stood by the boot routine (no host readies
+   * them). ⚠ NOT the material roster: materials load per row by their doors,
+   * and the two roster reads go through {@link roster} / {@link findByTag}.
+   */
+  static readonly needs: readonly ApiNeed[] = [() => MaterialApi.dirtKinds().ensureKernel()];
+
+  /**
    * ⭐ The dirt kinds — what can soil a thing (`soot`, `blood`, `sweat`, a
    * pack's own `dust`), any pack's `content/dirt/`, served by
    * {@link DirtCatalogue}. Named by path everywhere; a Soilable host loads
@@ -206,20 +214,19 @@ export class MaterialApi {
   // `stuff.getMaterial(detailKey)` directly.
 
   /**
-   * Every registered Material — the runtime singleton index, as
-   * {@link findByTag} reads it. What the wiki's `<materials>` listing
-   * filters by capability or kind (material decomposition W3).
+   * Every authored Material — what the wiki's `<materials>` listing
+   * filters by capability or kind (material decomposition W3). ⭐ The one
+   * read that wants the whole roster, so it loads it itself (once per
+   * process): materials otherwise load per row, and nothing at boot.
    */
-  public static all(): Material[] {
+  public static async all(): Promise<Material[]> {
+    await MaterialApi.materials().ensureRoster();
     return MaterialApi.materials().roster();
   }
 
-  /**
-   * Every registered Material that carries `tag`. Tag matching is
-   * exact-string. The result reflects the runtime singleton index;
-   * Materials that haven't been cloned yet aren't there.
-   */
-  public static findByTag(tag: string): Material[] {
+  /** Every authored Material that carries `tag` (exact-string) — a roster read, as {@link all}. */
+  public static async findByTag(tag: string): Promise<Material[]> {
+    await MaterialApi.materials().ensureRoster();
     return MaterialApi.materials().byTag(tag);
   }
 

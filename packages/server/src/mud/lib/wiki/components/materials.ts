@@ -43,10 +43,7 @@ export const component = class WikiMaterials {
     if (!capability === !kind) {
       return [note('<materials> needs exactly one of `capability` or `kind`')];
     }
-    // A listing of every material is a roster read: it loads the roster
-    // once, here (load-on-use W8).
-    await MaterialApi.materials().ensureRoster();
-    const all = MaterialApi.all();
+    const all = await MaterialApi.all();
     const members = capability
       ? all.filter((m) => MixinApi.hasMixin(m, `${capability}Mixin`))
       : all.filter((m) => kindsOf(m).includes(kind));

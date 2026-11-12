@@ -106,7 +106,7 @@ describe('ArmController — deploy', () => {
     const { room, placer, kit } = scene();
     vi.spyOn(AccessApi, 'can').mockResolvedValue(false); // not owned by placer
     vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue(null); // no private title
-    vi.spyOn(GovernmentApi, 'governmentAt').mockReturnValue({ key: 'city' } as never); // under a government → allowed
+    vi.spyOn(GovernmentApi, 'governmentAt').mockResolvedValue({ key: 'city' } as never); // under a government → allowed
     const deployed = makeStuff(() => new Trap());
     vi.spyOn(StuffApi, 'clone').mockResolvedValue(deployed as never);
 
@@ -124,7 +124,7 @@ describe('ArmController — deploy', () => {
     const { placer, kit } = scene();
     vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
     vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue(null);
-    vi.spyOn(GovernmentApi, 'governmentAt').mockReturnValue(null);
+    vi.spyOn(GovernmentApi, 'governmentAt').mockResolvedValue(null);
     const clone = vi.spyOn(StuffApi, 'clone');
     const context = ctx(placer);
     await makeStuff(() => new ArmController()).execute({ target: { stuff: kit } } as never, context);

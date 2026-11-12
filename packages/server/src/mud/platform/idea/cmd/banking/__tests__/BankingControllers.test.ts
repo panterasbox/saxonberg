@@ -117,7 +117,7 @@ describe("Banking controllers — verb wiring", () => {
     ContainmentApi.move(giver, loc);
     const bank = makeStuffAtPath(() => {
       const b = new BankCounter();
-      void b.setCorpoKey("goodkin")?.catch(() => {}); // the load is the applier's (documents D7)
+      b.setCorpoKey("goodkin");
       return b;
     }, BANK_PATH);
     ContainmentApi.move(bank, loc);
@@ -169,7 +169,7 @@ describe("Banking controllers — verb wiring", () => {
     ContainmentApi.move(giver, loc);
     const bank = makeStuffAtPath(() => {
       const b = new BankCounter();
-      void b.setCorpoKey("goodkin")?.catch(() => {}); // the load is the applier's (documents D7)
+      b.setCorpoKey("goodkin");
       return b;
     }, BANK_PATH);
     ContainmentApi.move(bank, loc);

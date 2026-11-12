@@ -25,6 +25,7 @@
  * Operational reference: `docs/subsystems/bulk.md`.
  */
 
+import type { ApiNeed } from './security';
 import type {
   EmptyResultNote,
   QuantityClampedNote,
@@ -146,6 +147,16 @@ function logic(): BulkableLogic {
 }
 
 export class BulkableApi {
+  /**
+   * ⭐ What this Api's reads stand on — every maturation profile and fraction
+   * schedule (a vessel's charge is matched to one by a sync tag read), stood
+   * by the boot routine, so no vessel readies them.
+   */
+  static readonly needs: readonly ApiNeed[] = [
+    () => BulkableApi.maturationProfiles().ensureAll(),
+    () => BulkableApi.fractionSchedules().ensureAll(),
+  ];
+
   /**
    * ⭐ The pump mechanisms — how a displacement machine moves its fluid
    * (`suction` pulls and so meets the atmosphere's wall; `force` pushes),

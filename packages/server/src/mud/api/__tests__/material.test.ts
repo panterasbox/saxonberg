@@ -161,20 +161,20 @@ describe('MaterialApi v2 — classification queries', () => {
   });
 
   describe('findByTag', () => {
-    it('returns every Material carrying the tag', () => {
+    it('returns every Material carrying the tag', async () => {
       const { iron, carbon, steel } = setupSteel();
-      const metals = MaterialApi.findByTag('metal');
-      const ferrous = MaterialApi.findByTag('ferrous');
-      const elements = MaterialApi.findByTag('element');
+      const metals = await MaterialApi.findByTag('metal');
+      const ferrous = await MaterialApi.findByTag('ferrous');
+      const elements = await MaterialApi.findByTag('element');
 
       expect(new Set(metals)).toEqual(new Set([iron, steel]));
       expect(new Set(ferrous)).toEqual(new Set([iron, steel]));
       expect(new Set(elements)).toEqual(new Set([iron, carbon]));
     });
 
-    it('unknown tag returns empty list', () => {
+    it('unknown tag returns empty list', async () => {
       setupSteel();
-      expect(MaterialApi.findByTag('fantasy')).toEqual([]);
+      expect(await MaterialApi.findByTag('fantasy')).toEqual([]);
     });
   });
 

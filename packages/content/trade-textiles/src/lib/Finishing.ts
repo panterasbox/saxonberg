@@ -103,14 +103,6 @@ export function FinishingMixin<TBase extends MixinConstructor>(Base: TBase) {
       return BulkableApi.maturationProfiles().ensure(this.finishingProfilePath).then(() => undefined);
     }
 
-    /**
-     * ⭐ Every maturation profile loads with the first piece that can be
-     * finished (load-on-use D3) — the tag match runs inside a SYNC reconcile.
-     */
-    public async onCreate(context?: unknown): Promise<void> {
-      await super.onCreate(context);
-      await BulkableApi.maturationProfiles().ensureAll();
-    }
 
     private finishingHost(): FinishingBase {
       return this as unknown as FinishingBase;

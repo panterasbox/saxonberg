@@ -34,7 +34,7 @@ import {
 // at module-load time, so simply importing it (which we do for several
 // other uses below) guarantees the security gate is in place before
 // the first `ProxyApi.wrap` in `create` / `clone` / `createSync`.
-import { SecurityApi } from './security';
+import { SecurityApi, type ApiNeed } from './security';
 import { ShadowApi } from './shadow';
 import { EventApi } from './event';
 import { Events } from '../lib/events';
@@ -811,24 +811,26 @@ export class StuffApi {
   }
 
   /**
-   * ⭐⭐ **The one readiness door** (documents D7, W5c): stand up the
-   * dictionaries a read stands on, each by its singleton path, and resolve
-   * when every one is resident. Each need is a path, or an Api whose
-   * `static needs` names its paths (`StuffApi.ready(GovernmentApi)`).
+   * ⭐⭐ **The one readiness door**: stand up what a read stands on — a
+   * catalogue by its singleton path, a row-less catalogue by its loader —
+   * or every need an Api declares (`StuffApi.ready(GovernmentApi)`).
    *
-   * An Api's ASYNC statics await their own `needs` in the call gate, so an
-   * async caller never calls this; it is for the reach a sync read cannot
-   * wait at — a setter returning the load the applier awaits, or an act
-   * about to make sync reads. Never at boot: a dictionary loads when
-   * something reaches it.
+   * ⛔ Not for callers. The boot readies every Api's `needs` once
+   * (`AppBootstrap`), and an Api's async statics await theirs in the call
+   * gate; a class that reaches for this is doing its Api's job.
+   * @internal
    */
   public static ready(
-    ...needs: ReadonlyArray<string | { readonly needs?: readonly string[] }>
+    ...needs: ReadonlyArray<ApiNeed | { readonly needs?: readonly ApiNeed[] }>
   ): Promise<void> {
     // `singleton` resolves at once for a resident one — no pre-check
     // (lint:get-or-create).
-    const paths = needs.flatMap((n) => (typeof n === 'string' ? [n] : [...(n.needs ?? [])]));
-    return Promise.all(paths.map((p) => StuffApi.singleton(p))).then(() => undefined);
+    const flat = needs.flatMap((n) =>
+      typeof n === 'string' || typeof n === 'function' ? [n] : [...(n.needs ?? [])],
+    );
+    return Promise.all(
+      flat.map((n) => (typeof n === 'function' ? n() : StuffApi.singleton(n))),
+    ).then(() => undefined);
   }
 
   /**

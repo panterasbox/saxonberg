@@ -1664,17 +1664,12 @@ function bulkDial(key: string, fallback: number): number {
 }
 
 /**
- * What a restored payload stands on: the recipe that made it (its
- * dictionary) and every material it names — its makeup, what it was made
- * from (load-on-use W8, the restore door). `undefined` when nothing is
- * cold, so the runtime case dangles no promise; the material load never
- * rejects.
+ * What a restored payload stands on: every material it names — its
+ * makeup, what it was made from (load-on-use W8, the restore door).
+ * `undefined` when nothing is cold, so the runtime case dangles no
+ * promise; the load never rejects. (The recipe that made it is
+ * CraftingApi's dictionary, stood at boot.)
  */
 function restorePayload(payload: BulkPayload | null): Promise<void> | undefined {
-  if (!payload) return undefined;
-  const loads = [
-    payload.recipeId ? StuffApi.ready(TemplatePaths.recipeCatalogue) : undefined,
-    MaterialApi.materials().ensureCitedIn(payload),
-  ].filter((p): p is Promise<void> => p !== undefined);
-  return loads.length > 0 ? Promise.all(loads).then(() => undefined) : undefined;
+  return payload ? MaterialApi.materials().ensureCitedIn(payload) : undefined;
 }

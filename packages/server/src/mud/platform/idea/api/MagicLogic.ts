@@ -436,7 +436,6 @@ async function prepareCastImpl(
   spellId: string,
   target?: Stuff,
 ): Promise<PrepareOutcome> {
-  await StuffApi.ready(SPELL_DICTIONARY); // Caster reaches here past MagicApi's gate (W5c)
   if (!MixinApi.isCaster(caster)) {
     return { ok: false, refusal: 'You have no gift for the arts.' };
   }
@@ -720,7 +719,6 @@ async function resolveCastImpl(
   spellId: string,
   target?: Stuff,
 ): Promise<CastOutcome> {
-  await StuffApi.ready(SPELL_DICTIONARY); // Caster reaches here past MagicApi's gate (W5c)
   // Re-validate — the world may have changed during the cast time (the
   // caster walked into a ward, the wound landed, the band is unchanged).
   const prep = await prepareCastImpl(caster, spellId, target);
@@ -1049,7 +1047,6 @@ function absorbWasteHeat(
 }
 
 async function spellsViewImpl(caster: Stuff): Promise<SpellsView> {
-  await StuffApi.ready(SPELL_DICTIONARY); // Caster reaches here past MagicApi's gate (W5c)
   const casterView = (caster as unknown as Caster).getFacultyView();
   const rows: SpellCellRow[] = [];
   for (const spell of catalogue().allSpells() ?? []) {

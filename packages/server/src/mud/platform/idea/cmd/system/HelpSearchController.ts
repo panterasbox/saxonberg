@@ -11,8 +11,6 @@ import { HelpControllerBase, type HelpModel } from "./HelpControllerBase";
 
 export default class HelpSearchController extends HelpControllerBase {
   async execute(model: HelpModel, context: CommandContext): Promise<void> {
-    // The rulebook warms on first use (the scan sweep — not booted).
-    await StuffApi.ready(HelpApi);
     const query = model.query ?? "";
     if (!query) {
       HelpControllerBase.tellText(context, "\nUsage: help search <query>\n");

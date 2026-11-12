@@ -303,15 +303,6 @@ export function RipeningMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
       return BulkableApi.maturationProfiles().ensure(this.ripeningProfilePath).then(() => undefined);
     }
 
-    /**
-     * ⭐ Every maturation profile loads with the first thing that can ripen
-     * (load-on-use D3, D7 shape 4) — the tag match runs inside a SYNC
-     * reconcile.
-     */
-    public async onCreate(context?: unknown): Promise<void> {
-      await super.onCreate(context);
-      await BulkableApi.maturationProfiles().ensureAll();
-    }
 
     /**
      * ⭐ The grade a buyer reads is the RIPENED grade: reconcile first, so

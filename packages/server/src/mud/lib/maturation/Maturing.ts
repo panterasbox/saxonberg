@@ -856,14 +856,9 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.maturationProfilePath;
     }
 
-    /**
-     * The restore door (load-on-use W4): a vessel restored mid-batch loads
-     * the profile it names. Returns the load; the applier awaits it.
-     */
-    public setMaturationProfilePath(value: string): Promise<void> {
+    /** The profile this batch runs, by path (BulkableApi's, stood at boot). */
+    public setMaturationProfilePath(value: string): void {
       this.maturationProfilePath = typeof value === 'string' ? value : '';
-      if (!this.maturationProfilePath) return Promise.resolve();
-      return BulkableApi.maturationProfiles().ensure(this.maturationProfilePath).then(() => undefined);
     }
 
     /** The profile this batch runs — read cold, it throws naming the path. */
@@ -873,15 +868,6 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
         : null;
     }
 
-    /**
-     * ⭐ Every maturation profile loads with the first vessel that can run
-     * one (load-on-use D3, D7 shape 4): the tag match runs inside a SYNC
-     * reconcile, so the kind is read once per process here.
-     */
-    public async onCreate(context?: unknown): Promise<void> {
-      await super.onCreate(context);
-      await BulkableApi.maturationProfiles().ensureAll();
-    }
 
     // ---------- batch lifecycle (host-internal) ----------
 

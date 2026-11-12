@@ -38,6 +38,7 @@
  * See `docs/subsystems/harm.md`.
  */
 
+import type { ApiNeed } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Vitals } from '../lib/vitals/Vitals';
 import type { AccountabilityFields } from '../lib/accountability/AccountabilityEvent';
@@ -241,6 +242,12 @@ function logic(): ConditionLogic {
 }
 
 export class ConditionApi {
+  /**
+   * ⭐ What this Api's reads stand on — the condition rows (the roster), stood
+   * by the boot routine with every Api's needs, so no body readies them.
+   */
+  static readonly needs: readonly ApiNeed[] = [() => ConditionApi.conditions().ensureRoster()];
+
   /**
    * ⭐ The conditions — the one door every condition read goes through
    * (load-on-use D7): `ensure(path)`, the sync `need(path)` that throws

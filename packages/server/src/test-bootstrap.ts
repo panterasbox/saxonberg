@@ -190,14 +190,39 @@ function installAddressIndexStandIn(): void {
   // module's top would reorder every suite's module evaluation.
   const REGISTRY = "/platform/idea/AddressRegistry";
   void import("./mud/api/security").then(({ SecurityApi }) =>
-    SecurityApi._registerNeedsLoader(async (needs) => {
-      const { StuffApi } = await import("./mud/api/stuff");
-      if (needs.includes(REGISTRY)) {
-        const { standAddressIndex } =
-          await import("./mud/lib/address/__tests__/address-index");
-        standAddressIndex();
-      }
-      await StuffApi.ready(...needs);
+    import("./mud/api/stuff").then(({ StuffApi }) => {
+      // ⚠ The REAL clone, captured before any suite spies on it: a suite
+      // that mocks `StuffApi.clone` for what its act makes must not see
+      // the Api's dictionaries stood through its mock (load-on-use W10 —
+      // an Api's async statics stand their needs in the gate).
+      const realClone = StuffApi.clone.bind(StuffApi);
+      const inFlight = new Map<string, Promise<unknown>>();
+      const stand = (path: string): Promise<unknown> => {
+        if (StuffApi.findByTemplatePath(path)) return Promise.resolve();
+        let p = inFlight.get(path);
+        if (!p) {
+          // Best effort, as the address stand-in is: a suite may carry no
+          // row for a dictionary it never reads (its own store, its own
+          // `Template` mock). Stand nothing then — a read of it is still
+          // loud (cold means `DocumentNotResidentError`), so no defect hides.
+          p = Promise.resolve()
+            .then(() => realClone(path))
+            .catch(() => undefined)
+            .finally(() => inFlight.delete(path));
+          inFlight.set(path, p);
+        }
+        return p;
+      };
+      SecurityApi._registerNeedsLoader(async (needs) => {
+        if (needs.includes(REGISTRY)) {
+          const { standAddressIndex } =
+            await import("./mud/lib/address/__tests__/address-index");
+          standAddressIndex();
+        }
+        await Promise.all(
+          needs.map((n) => (typeof n === "function" ? n() : stand(n))),
+        );
+      });
     }),
   );
 }

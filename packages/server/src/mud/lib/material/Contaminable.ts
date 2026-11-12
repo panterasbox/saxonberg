@@ -623,17 +623,6 @@ export function ContaminableMixin<TBase extends MixinConstructor<Stuff>>(
   return class ContaminableMixin extends Base implements Contaminable {
     static _mixinName = 'ContaminableMixin';
 
-    /**
-     * ⭐ The condition roster loads with the first contaminable provision
-     * (load-on-use W6): a pathogen's behavior is a condition row, read
-     * inside the sync spoilage clock. Late-bound — `ConditionApi` reaches
-     * this module.
-     */
-    public async onCreate(context?: unknown): Promise<void> {
-      await super.onCreate(context);
-      const { ConditionApi } = await import('../../api/condition');
-      await ConditionApi.conditions().ensureRoster();
-    }
 
     static fieldMeta: FieldMeta = {
       _pathogenLoads: { persistent: true },

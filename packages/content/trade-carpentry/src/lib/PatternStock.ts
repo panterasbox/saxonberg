@@ -51,10 +51,10 @@ export function PatternStockMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     static _mixinName = 'PatternStockMixin';
 
     /** The metal a word names, among the metals — or `null`. */
-    protected metalNamed(word: string): Material | null {
+    protected async metalNamed(word: string): Promise<Material | null> {
       const w = word.trim().toLowerCase();
       if (w === '') return null;
-      for (const m of MaterialApi.findByTag('metal')) {
+      for (const m of await MaterialApi.findByTag('metal')) {
         if (m.getName().toLowerCase() === w || m.hasKeyword(w)) return m;
       }
       return null;
@@ -84,11 +84,8 @@ export function PatternStockMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         return { ok: false, reason: 'no-shape', facts: { of } };
       }
       const own = MixinApi.isTangible(of) ? of.getMaterial() : null;
-      // "Which metal is that word" is a question about every metal: the
-      // roster loads once, here, before the sync match (load-on-use W8).
-      await MaterialApi.materials().ensureRoster();
       const metal =
-        this.metalNamed(req.forWord ?? '') ?? (own !== null && own.hasTag('metal') ? own : null);
+        (await this.metalNamed(req.forWord ?? '')) ?? (own !== null && own.hasTag('metal') ? own : null);
       if (metal === null) {
         return { ok: false, reason: 'no-metal', facts: { of } };
       }

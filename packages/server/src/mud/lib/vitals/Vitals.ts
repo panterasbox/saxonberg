@@ -1175,15 +1175,6 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
   class VitalsMixin extends Base implements Vitals {
     static _mixinName = 'VitalsMixin';
 
-    /**
-     * ⭐ The condition roster loads with the first body (load-on-use D7,
-     * W6): a body is what a condition lands on, and every condition read on
-     * it — a tick, `afflict`, an examination — is sync. Once per process.
-     */
-    public async onCreate(context?: unknown): Promise<void> {
-      await super.onCreate(context);
-      await ConditionApi.conditions().ensureRoster();
-    }
 
     /** A lost part is visible on the body; so is a scar (D14). */
     static markupAugmenters: MarkupAugmenter[] = [
