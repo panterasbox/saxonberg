@@ -163,7 +163,7 @@ export abstract class SurveyReading extends Reading {
     if (!deposit) return null;
     const sample = deposit.sampleAt(this.metresAt(place), await this.seedAt(place));
     const mineral = sample.mineralPath
-      ? MaterialApi.materials().peek(sample.mineralPath) ?? null
+      ? MaterialApi.materials().need(sample.mineralPath)
       : null;
     return { sample, mineral };
   }

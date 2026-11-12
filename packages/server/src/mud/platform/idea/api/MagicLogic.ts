@@ -1736,8 +1736,9 @@ async function execConjure(
   const materialPath = e.bulkMaterial!.startsWith('/')
     ? e.bulkMaterial!
     : `/stuff/idea/material/bulk/${e.bulkMaterial}`;
-  const material = MaterialApi.materials().peek(materialPath);
-  if (!material) return 'The stuff of it will not come.';
+  // The working names its matter; the cast loads it (load-on-use D2 c) —
+  // a name no row answers throws here rather than fizzling quietly.
+  const material = await MaterialApi.materials().ensure(materialPath);
   const source = await StuffApi.clone<UnboundedReceptacle>(
     '/platform/thing/UnboundedReceptacle',
   );

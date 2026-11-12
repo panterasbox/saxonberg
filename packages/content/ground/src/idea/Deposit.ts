@@ -510,16 +510,16 @@ export default class Deposit extends GroundSourceMixin(Idea) {
     // out for free.
     stratigraphy: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     waterTable: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
-    lode: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
-    zones: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    lode: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0, ref: 'identity:constituent' },
+    zones: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0, ref: 'identity:constituent' },
     depletion: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     features: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
-    gas: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    gas: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0, ref: 'identity:constituent' },
     // ⭐ Same level-1 spoiler as the lode, and for a sharper reason: that
     // a column HAS fluid bodies to be surveyed for is public (a reader
     // should know there is structure to measure); where they are, and
     // above all whether they are charged, is the thing the payroll buys.
-    fluids: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    fluids: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0, ref: 'identity:constituent' },
   };
 
   // ---------- authored surface ----------

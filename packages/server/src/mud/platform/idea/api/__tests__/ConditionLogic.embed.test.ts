@@ -18,6 +18,7 @@ import {
   stampTemplatePathForTest,
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
 
 let seq = 0;
 function torso(): Creature {
@@ -44,7 +45,10 @@ const at = (c: Creature, site: string): Trauma | undefined =>
   c.getConditions().find((x): x is Trauma => x.kind === 'trauma' && x.site === site);
 
 describe('embedding', () => {
-  beforeEach(() => installV1QuantityMarshallers());
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    standMaterials(TEST_TISSUES); // the body plans' tissues (load-on-use W8)
+  });
   afterEach(() => StuffApi.clearAll());
 
   it('a point wound with embeds, above the floor, is a foreign body', () => {

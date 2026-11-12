@@ -26,6 +26,7 @@ import {
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../Condition';
+import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
 
 let seq = 0;
 
@@ -86,7 +87,10 @@ function traumaOf(c: Creature): Trauma | undefined {
 }
 
 describe('inflict — the shock branch', () => {
-  beforeEach(() => installV1QuantityMarshallers());
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    standMaterials(TEST_TISSUES); // the body plans' tissues (load-on-use W8)
+  });
   afterEach(() => {
     vi.restoreAllMocks();
     StuffApi.clearAll();

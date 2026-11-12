@@ -688,7 +688,7 @@ export default class Wellhead
     const alreadyOut =
       register === null ? this.drawnL : await register.drawnFrom(ref);
     const left = Math.max(0, deposit.capacityOf(body) - alreadyOut);
-    const material = MaterialApi.materials().peek(body.fluid) ?? null;
+    const material = MaterialApi.materials().need(body.fluid);
     if (material === null) return;
 
     let litres = Math.min(wanted, left);
@@ -717,7 +717,7 @@ export default class Wellhead
   private async sumpMaterial(): Promise<Material | null> {
     const body = await this.bodyHere();
     if (body === null) return null;
-    return MaterialApi.materials().peek(body.fluid) ?? null;
+    return MaterialApi.materials().need(body.fluid);
   }
 
   /**

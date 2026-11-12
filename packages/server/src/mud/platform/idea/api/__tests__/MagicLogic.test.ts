@@ -49,6 +49,7 @@ import {
 } from "../../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
 import { standBlankConditions } from "../../../../lib/vitals/__tests__/conditions";
+import { standMaterials, TEST_TISSUES } from "../../../../lib/material/__tests__/materials";
 /** A light source standing in for the arcane library's GlowlightMote — the executor clones whatever the row's `locus` names. */
 class GlowlightOrb extends LightSourceMixin(Good) {}
 const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
@@ -206,6 +207,7 @@ describe("MagicLogic — the cast pipeline", () => {
     real = 100000;
     WorldClockApi._setNowProviderForTesting(() => real);
     await installCatalogue();
+    standMaterials(TEST_TISSUES); // the body plans' tissues (load-on-use W8)
     // load-on-use W6: the rows the cast lands (strain) and the dispel test
     // names (collapse), there and blank.
     standBlankConditions(

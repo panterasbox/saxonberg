@@ -811,7 +811,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
         return { ok: false, reason: 'no-vessel' };
       }
       const material =
-        MaterialApi.materials().peek(gas.materialPath) ?? null;
+        MaterialApi.materials().need(gas.materialPath);
       if (material === null) return { ok: false, reason: 'no-gas' };
       const slot = vessel.getBulk('interior');
       if (slot.getCapacity() === null) return { ok: false, reason: 'no-vessel' };

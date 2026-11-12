@@ -60,6 +60,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import { standMaterials } from '@saxonberg/server/mud/lib/material/__tests__/materials';
 
 const SURFACE = '/world/fx-mine/pithead';
 const UNDER = '/world/fx-mine/mine';
@@ -183,6 +184,8 @@ describe('surveying', () => {
       thickness: 12, strikeExtent: 300, dipExtent: 300, gangue: QUARTZ,
     });
     deposit.setZones([{ toZ: -4000, mineral: MALACHITE, meanGrade: 0.08, spread: 0.04 }]);
+    // The zone's mineral loads with the deposit (a constituent, load-on-use W8).
+    standMaterials([MALACHITE]);
   });
   afterEach(() => {
     vi.restoreAllMocks();

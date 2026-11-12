@@ -947,8 +947,18 @@ alone would leave every production material cold. Done so far:
 - Done since: `SmeltController` (the dominant metal is a composition
   constituent → `need`; the crucible run `ensure`s its metal); the wiki
   `<materials>` render and the pattern's metal match await `ensureRoster()`.
-- Still to do: `Comminuting.products`, Species/BodyPlan/Deposit/Effect
-  relations (readers still `peek`), and the suite sweep — server `lib/
+- Relations, round two: `BodyPlan.bodyParts` (tissues) and `Deposit`'s
+  `lode`/`zones`/`gas`/`fluids` declared constituent (material-only, by a
+  content scan) and read with `need` (tissues, the well's fluid, the mine's
+  gas, the survey's mineral; the conjure `ensure`s its matter; a species'
+  default material `need`). ⚠ **Left `peek`, deliberately:** fields that MIX
+  material and thing rows — `Species.production[].yieldRow` (eggs, fleece,
+  comb), `Comminuting.products` (flour sacks), `Deposit.stratigraphy`
+  (won-thing rows beside host materials). Declaring them would stand thing
+  rows up as singletons; their material halves want a split field — a
+  follow-up, recorded for the docs sweep. Fixture
+  `lib/material/__tests__/materials.ts` (`standMaterials`, `TEST_TISSUES`).
+- Still to do: the suite sweep — server `lib/
   material`, `lib/bulk`, `lib/biome`, `lib/thermal` and the sugar, dairying,
   chandlery, smelting packs are green; the rest waits for a quiet machine
   (build-2 finalizing).
