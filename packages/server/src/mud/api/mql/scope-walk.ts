@@ -123,15 +123,20 @@ export function candidatesForPerson(giver: Stuff): ScopeCandidate[] {
  * `reachable` — everything the giver can lay hands on, and the place and
  * vessel that hold it (`around`, named but not touched): all six pools,
  * person first (first-match consumers and tie-broken keyword targeting
- * prefer your own gear over the floor's). Composes mid-chain
- * (`online:reachable`) where the comma-union form can't. The giver is in
- * it: `look bob` when you are bob finds you. Duplicates across pools are
+ * prefer your own gear over the floor's), the giver itself last.
+ * Composes mid-chain (`online:reachable`) where the comma-union form
+ * can't. The giver is in it: `look bob` when you are bob finds you. Duplicates across pools are
  * tolerated; the resolver's `finalize` dedupes.
  */
 export function candidatesForReachable(giver: Stuff): ScopeCandidate[] {
   // ⭐ Its light is walked once per place by the resolution that calls it
   // (`MqlLogic` runs every resolution as a steady read).
-  return candidatesFromReach(giver, ['self', 'attached', 'inventory', 'around', 'here', 'peers']);
+  // ⭐ The giver LAST (size and carrying drive, step 12): a noun that names
+  // a kind of person — `i human`, `attack human` — names someone else in
+  // the room before it names you. On `self` first, `attack human` answered
+  // "You can't attack yourself" and `i human` listed your own clothes.
+  // `look bob` when you are bob still finds you: nobody else answers.
+  return candidatesFromReach(giver, ['attached', 'inventory', 'around', 'here', 'peers', 'self']);
 }
 
 /**

@@ -24,10 +24,14 @@ args:
   - name: targets
     type: objects
     required: true
-    scope: "peers"
+    # ⭐ The room first, then what is on you (size and carrying W7-d): `get
+    # lantern` picks up the one on the floor, and `get lantern from belt`
+    # finds the one hanging from your belt — the source keeps only what it
+    # holds. What you already hold in a hand is never picked up again (the
+    # controller); what is on you comes to hand.
+    scope: ["peers", "reachable"]
     requires: [VisibleMixin, ContainableMixin]
     validators:
-      - /lib/command/validators/mustBeInLocation
       - /lib/command/validators/canReach
   # ⭐ WHERE FROM — optional. `peers` already reaches one level into an
   # open container standing here, so the targets bind without it; naming
@@ -40,7 +44,11 @@ args:
     required: false
     # Greedy: `get loaf from the sugar cone` is several words.
     prepositions: [from, off]
-    scope: "peers"
+    # ⭐ Your own belt, pocket or pack first (size and carrying D17, W7-d:
+    # `get holster from belt` takes it in hand) — on `peers`, `get lantern
+    # from belt` searched a belt pouch lying on the floor (the drive). Held
+    # to what you can reach, not merely to the room.
+    scope: "reachable"
     requires: [VisibleMixin, ContainerMixin|PlacingMixin]
     validators:
-      - /lib/command/validators/mustBeInLocation
+      - /lib/command/validators/canReach

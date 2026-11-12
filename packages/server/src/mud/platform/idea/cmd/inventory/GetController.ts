@@ -17,6 +17,7 @@ import type {
   } from '../../../../api/command';
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Carrying } from '../../../../lib/slot/Carrying';
 import { ContainmentApi } from '../../../../api/containment';
 import { StackableApi, type ApplyQuantityResult } from '../../../../api/stackable';
 import { MessageApi } from '../../../../api/message';
@@ -73,6 +74,12 @@ export default class GetController extends CommandController<GetModel> {
       throw new Error(
         `GetController: commandGiver ${giver.stuffId} is not a Container`
       );
+    }
+    // ⭐ From something on you — your belt, a pocket, the pouch on your
+    // belt — it comes to hand (size and carrying W7-d; the drive's `get
+    // lantern from belt`, the way's own `get <it> from <host>` advice).
+    if (source && MixinApi.isCarrying(giver) && giver.tierOf(source) !== 'elsewhere') {
+      return this.bringOut(giver, stuff, context);
     }
 
     // `giver` is narrowed to `Stuff & Container`; carry the inventory
@@ -199,6 +206,17 @@ export default class GetController extends CommandController<GetModel> {
       return;
     }
     return;
+  }
+
+  /** `get X from <a thing on you>`: each comes to hand, or the body says why not. */
+  private bringOut(giver: Stuff & Carrying, things: readonly Stuff[], context: CommandContext): void {
+    for (const thing of things) {
+      const refused = giver.bringToHand(thing);
+      if (refused === null) continue;
+      MessageApi.scene(giver).topic('act.deed').toSelf(Mml.text(giver.refusalWords(refused))).send();
+      context.note({ kind: 'controller-rejected', reason: refused.reason, detail: thing.getPresentation() });
+      return;
+    }
   }
 
   /** Is `s` in `holder`, or placed on it? */

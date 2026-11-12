@@ -34,7 +34,11 @@ args:
     prepositionRequired: true
     type: object
     required: true
-    scope: "peers"
+    # ⭐ The nearest thing you perceive (size and carrying D17): your own
+    # coat, belt and pack before anything in the room. On `peers` alone,
+    # `put key in coat` put the key in the lounge's coat-check rack and
+    # `put sword in scabbard` in a scabbard lying on the floor (the drive).
+    scope: "reachable"
     # ⭐ One word per placement member this verb accepts, plus region
     # zero's. `pnpm -C packages/server lint:placement-words --list` is
     # what tells an author which verbs need a new member's word — a verb
