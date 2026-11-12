@@ -1061,6 +1061,33 @@ focus-fire keyed on `graph.incomingEdges`), it grants its holder a large
 - **Sidearm draw** (`fight draw`) — a *fast* switch to a sheathed (`sidearm`
   slot) / carried backup: **disarm becomes a tempo setback, not a fight-ender**
   (the `combatant` brain draws when disarmed).
+- ⭐⭐ **Readying is the switch, generalized, and priced by holder** (size
+  and carrying D16, 2026-11-12). On a carrier, `fight switch` and `fight
+  draw` call `Carrying.ready(item)`, and so does any act whose view arg
+  declares `readies: true` (a compass, a tape, a lantern, a potion): in a
+  session `ready` starts `Combatant.beginWeaponSwitch(item, {seconds})` —
+  guard down, no instrument — for `Carrying.readySeconds(item)`, **two
+  halves**: putting away what the hands hold, then getting the thing out,
+  each by its holder. Dropped 0; a shaped holder (`shapedTo` — a holster,
+  a scabbard), a `from` clip or a non-hand slot (`sidearm`)
+  **`combat.draw.seconds`** (1.5); an open pocket, an unshaped pouch or a
+  homeless put-away **`combat.reach.seconds`** (3, new); a pocket that
+  `closes` or a shut pouch adds **`combat.unfasten.seconds`** (3, new);
+  packed → refused (*take it off first*; `remove` of a worn pack in a
+  session costs `combat.switch.seconds`). `beatsForSeconds` rounds the sum
+  up. The readied act does not wait — it runs on the thing where it is,
+  and the beats are the price; the completion is the carrier's
+  `bringToHand`, so a non-weapon is held and never the instrument. The
+  start line names the holder (`Carrying.holderPhrase` — *her hand drops
+  to her holster*). `drop` is instant and free. No competence term yet.
+  A body with no hand slots switches the shipped way. See
+  [carrying.md](./carrying.md).
+- **Two hands by weight, two by use** — `Carrying.handsFor` decides a
+  grip from the holder's own carry capacity and stature; a weapon row
+  claims two hands only when its *use* needs two (bow, musket, spear), so
+  an ogre swings a greatsword one-handed and a gnome needs both for a
+  longsword. `equip`/`wield` read `wieldSlots`/`wieldRefusal`. A shield is
+  slung on the `back` slot (`Shield.fitsSlot('back')`).
 - **Dual-wield** — two weapons: the off-hand adds a guard bonus **band-gated**
   on competence (a novice fumbles it — a net penalty; you grow into it, the
   experience-pass competence seam).
@@ -1079,7 +1106,7 @@ tactical state (no new RNG); the **gym** gains a weapon × allocation matrix
 session reproducibility with weapons (each matrix cell runs in a reset clean
 world — a session is deterministic, but a matrix must not accumulate the prior
 fight's objects). All tunables are `combat.weapon.*` / `combat.reach.*` /
-`combat.switch.*`/`combat.draw.*`/`combat.offhand.*`/`combat.dualWield.*`
+`combat.switch.*`/`combat.draw.*`/`combat.reach.seconds`/`combat.unfasten.seconds`/`combat.offhand.*`/`combat.dualWield.*`
 AppSettings. Content: the `steel-spear`/`steel-warhammer`/`steel-flail`/
 `steel-sword`/`steel-shield`/`leather-whip` arms (in `/stuff/thing/arms/`) + the
 `sidearm` biped slot.
@@ -1251,3 +1278,8 @@ Named at their sites; nothing inherited:
   sharpness, your own poise unfogged. See
   `docs/plans/client-surface-plan.md` (D3, B2) until it is retired at the
   sweep.
+- **Size and carrying** (`build/size-and-carrying`, 2026-11-12,
+  `39d4ba23e..50f562ed4`) — readying generalized the weapon switch to any
+  item and priced it by holder (two new dials, `combat.reach.seconds` and
+  `combat.unfasten.seconds`); grip became derived (two hands by weight)
+  or authored (two by use), and the arms rows were audited to match.

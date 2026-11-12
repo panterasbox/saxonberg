@@ -503,8 +503,13 @@ Mechanics (the identity doctrine's first consumer — see
   bare passage has nothing authored, so it earns no row.
 
 Seeded kinds: `/stuff/idea/exits/archway`, `/stuff/idea/exits/stair`
-(`wheelPassable: false` — the haulage residue). Demonstrator: the
-counting-houses banking-hall → circle-parlor archway.
+(`wheelPassable: false` — the haulage residue; `turn: 2.2`),
+`/stuff/idea/exits/crawlway` (`opening: 0.8 × 0.8`, ground — a
+hands-and-knees body clears it bare, a pack on the back does not) and
+`/stuff/idea/exits/ladder` (`opening: 0.7 × 0.7`, `media: [vertical]` —
+climbing takes both hands). Demonstrator: the counting-houses
+banking-hall → circle-parlor archway; the Old Steading in `newbie-wilds`
+uses all four plus a low door (size and carrying).
 
 ## Doors
 
@@ -841,6 +846,18 @@ row or authored per site; `null` = the whole face). An empty archway has a
 size too, and what carries what through a way (size and carrying) asks the
 way. A boundary's own `opening` is the object's size; it must fit.
 
+⭐ **Clearance and turn** (size and carrying D8/D21). `Exit.clearance()`
+is the way's tightest gap — the elementwise min of the face (the source
+place's extent, square), the way's `opening` and the hung boundary's
+`getOpening()`. `Exit.turn` (m; `getTurn()`, authorable on the kind row
+or per site, `null` = unbounded) is the longest rigid length that swings
+round the bend. `Exit.clearanceRefusal(mover, mode)` measures the
+mover's envelope, each held thing and a hitched cart against them, and
+`canTraverse` words the refusal with what would work (`stoop`, `crawl`,
+take the pack off, dismount). **A low door is not a kind**: it is one
+way's authored `opening:` on its `exits:` entry (`north: {destination: …,
+opening: {width: 0.9, height: 1.4}}`). See [size.md](./size.md).
+
 ⭐⭐ **A track — the long walk over open ground** (`kind:
 /platform/idea/exits/track`, `Exit.spansOpenGround()`). The sparse country
 (Rejection's outlying claims, Hearts Delight's lanes, Waponi's volcano)
@@ -1043,6 +1060,13 @@ country (67 ways swept to 0). Verified by the blocking drive
 `e2e/tests/boundary-walk.spec.ts` (3/3), which found `map` crashing on a
 deferred way (fixed in `Perceiver`). Left: the gangway as a minted boundary
 and the rest of [boundary-slate](../slates/tails/boundary-slate.md).
+
+### Size and carrying (2026-11-12)
+
+`39d4ba23e..50f562ed4`. A way's opening became a clearance every mover is
+measured against (`clearance`, `turn`, `clearanceRefusal`); the
+`crawlway` and `ladder` kinds shipped and `stair` gained `turn`. See
+[size.md](./size.md).
 
 ## Cross-References
 

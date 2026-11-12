@@ -160,6 +160,23 @@ Detach is `ContainmentApi.move(item, null)`. A direct
    `onContainableRemoved` on source, `onContainableAdded` on
    destination, `onMoved(from, to)` on the item.
 
+⭐ **Two destination vetoes every move meets** (size and carrying,
+2026-11-12):
+
+- **The tape measure.** `Container.canAddContainable`'s default body is
+  `fitRefusal(item)` — the mouth, the sides the container closes and its
+  room ([size.md](./size.md)). Specialized overrides (a pump's well, a
+  store, a hive) own their whole answer.
+- **`loose-on-body`.** `Creature.canAddContainable(item, how?)` refuses any
+  thing arriving on a body that is not (a) arriving **placed**
+  (`how.placed` — a pocketed key, a hung pouch, a host-follower), (b) an
+  agent, or (c) admitted by the body itself (`Carrying.admitWhile`, used
+  by `receive`, `seatInSlot`, readying and the restore). **The one way
+  onto a body is `Carrying.receive`** and its three counterparty idioms —
+  see [carrying.md](./carrying.md). A direct `ContainmentApi.move(x,
+  body)` throws `ContainmentError`. A body whose plan is not known yet (a
+  fixture, a body mid-mint) is not judged.
+
 Witness hooks are optional methods on the relevant interface — declare
 the ones you want, omit the rest. `containment.ts:157-165` dispatches
 them via `typeof === 'function'` so a shadow defining a hook
@@ -389,8 +406,41 @@ constants `Placements.ON` · `Placements.IN` · `Placements.FROM`
 | `prose` (one Liquid template) | `put`, `dry` |
 | `heading` | the `look` / `sense` drill-in |
 
-Three ship: `on` (`[on, onto]`), `in` (`[in, into]`, **`encloses:
-true`** — the only one), `from` (`[from, on]`).
+Four ship: `on` (`[on, onto]`), `in` (`[in, into]`, `encloses: true`),
+`from` (`[from, on]`, **`hangs: true`, `fastens: true`** — a hung thing
+is clipped or tied: bounded by a length, and it stays put in water and
+zero g) and `pocket` (`[into, in]`, `encloses: true` — size and carrying
+D26). A Placement document's `hangs`/`fastens` say what the relation
+does; `on` fastens nothing.
+
+⭐ **A host's `placements:` entries may be NAMED regions.** An entry is a
+bare path (one member, named by its leaf — the shipped rows) or
+`{member, name?, mouth?, volumeM3?, covered?, closes?}`:
+
+```yaml
+# a coat's row
+placements:
+  - { member: /platform/placements/pocket, name: left pocket,
+      mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 }
+  - { member: /platform/placements/pocket, name: breast pocket,
+      mouth: { width: 0.12, height: 0.03 }, volumeM3: 0.0004, closes: true }
+  - { member: /platform/placements/pocket, name: inner pocket, covered: true,
+      mouth: { width: 0.14, height: 0.03 }, volumeM3: 0.0006 }
+```
+
+`getPlacements()` returns region keys (`name ?? member`);
+`Placing.placementOf(key)` is the one read of a region's `Placement`, and
+`getPlacementEntry(key)` its entry — every reader of a placed pair goes
+through the host. A region's name is a word its host answers to
+(`Placing.namedRegions()`, folded into `getKeywords`; MQL's `via.region`
+facet), so `put key in inner pocket` binds the coat. `covered` hides a
+region from other people; `closes` fastens it (pressing and perception
+treat it as shut). The class default is the static
+`PlacingMixin.defaultPlacements` (`[on]`); `Garment` and `Pack` say `[]`,
+so a garment with no pockets honestly offers nothing. **A pocket is never
+an object**: the pocketed thing lives in the *wearer's* contents with the
+pair `(coat, left pocket)`, exactly as the ham lives in the room with
+`(hook, from)`.
 
 ⭐ **`from` lists `on` as a SECONDARY word**, which is how `put ham on
 hook` reaches a `from`-only host and gets told *"You hang the ham from
@@ -555,6 +605,22 @@ ambient scope just changed.
 (no environment; `canPlace` vetoes). User-input failures are handled
 upstream by `put`, which reads the veto's `reason` into prose.
 
+### ⭐⭐ What is placed on a thing travels with it (D33, 2026-11-12)
+
+When `moveCore` moves a host, every thing whose placement pair names
+that host (found in the host's **old** environment) follows it into the
+new environment **with its pair kept** — a coat taken off, given away or
+hung in a wardrobe keeps its pocketed key; a carried tray brings its
+cups; a belt taken off brings its pouches. It is `moveCore` recursing on
+itself (never `ContainmentApi.move`, which would clear the pair), so
+witnesses fire and custody follows for each follower. Before anything
+moves, the whole bring-along (`bringAlong`, recursive, one cycle guard)
+is asked of the destination's `canAddContainable(f, { placed: true })`,
+each follower on its own — so a body admits a coat's pocketed things as
+placed, and a chest that cannot fit the tray's cups refuses the tray. A
+creature placed on a moved host steps off (pair cleared, stays); a host
+moved to `null` drops what was on it where it stood.
+
 ### `Placing.getPlaced(name?)`
 
 Lazy walk; no maintained forward collection. The host walks its own
@@ -567,7 +633,13 @@ earned a forward index.
 
 Per-host gate, replacing the old boolean `canRest`. Default body, in
 order: the name is not offered → `no-such-placement`; the member
-`encloses` and the host is a closed `Sealable` → `shut`; else ok.
+`encloses` and the host is a closed `Sealable` → `shut`; **the member
+fit** (size and carrying D4) — a region whose member `encloses` (a
+pocket) checks the entry's `mouth` (`too-big-for-mouth`) and `volumeM3`
+over what it already holds (`no-room`); a member that `hangs` checks the
+summed hanging widths against `hangingLengthM()` (`no-room-along` — the
+first thing always hangs: a hook is a point) and the summed mass against
+`bearsKg()` (`too-heavy-for`); `on` bounds nothing — else ok.
 Authors override for shape-specific gates (a fragile shelf rejects
 heavy items, a wax tabletop rejects hot ones). ⭐ The `reason` is what
 the verb reads into its refusal, so name it for a player.
@@ -581,6 +653,26 @@ host-side (*"this host refuses X"*), not item-side.
 it, N, beyond the thing's own weight. `0` by default (a shelf, a bench, a
 floor); a `ScrewPress` answers its platen for what stands on its bed. A
 mould reads it as part of its load (`mould.md` § Pressing).
+
+### The hanging length — `hangingLengthM`, `bearsKg`, `roomFor`
+
+One mechanism for every thing others hang from — a belt, a bandolier, a
+pack's straps, a saddle, a key ring, a pegboard, a tool rail. No belt
+class: a belt is a `Garment` row claiming `[waist]` with `placements:
+[from]`.
+
+- `hangingLengthM()` — the host's longest side (a `round` host its
+  circumference — a key ring). `Garment` overrides it while worn: π × the
+  wearer's bare envelope width, × `SIZE_DEFAULTS.WAIST_FRACTION` (0.9) on
+  a `waist` slot — a gnome's belt holds fewer pouches than an ogre's.
+- `bearsKg()` — the material's `tensileStrengthMPa` × the host's
+  cross-section ÷ g ÷ `HANG_SAFETY` (4). Unset strength = unbounded.
+- `roomFor(key)` — what is left along the length, in words only
+  (`plenty` · `one more pouch` · `a small thing` · `none`), never a
+  number; `i belt` prints it.
+
+Each hung thing takes its `Dimensions.hangingWidthM()` (its middle side;
+a flexible thing its packed cube root). See [size.md](./size.md).
 
 ### `Placing.userFacingDetail`
 
@@ -750,11 +842,19 @@ The sentence is the MEMBER's: one Liquid template on its row,
 rendered per audience, so `from` says *hang* with nothing in the
 controller knowing the difference.
 
-`give X to Y` is inter-Agent transfer via `ContainmentApi.move`
-into the recipient's general Container. Items don't land in a
-hand slot — see [embodiment.md § Hand slots are for activities,
-not storage](./embodiment.md). The recipient is gated by the
-`mustBeAgent` validator (target `instanceof Agent`).
+⭐ **Pockets by name** (size and carrying D26): a garment's offers are
+its pocket regions, so `put key in coat` takes the one pocket that fits
+or asks *"Which — the left pocket or the right pocket of the coat?"*
+(`PlacementChoice`/`PlaceRefusal` carry `regions` when the matched offers
+share a primary word); `put key in left pocket` names it. `put` into a
+container the putter carries sets that thing's **home**. `put X in
+<person>` is handing, not putting.
+
+`give X to Y` is the **handed** idiom: `Y.canReceive(X)` is asked before
+anything moves, and a refusal is worded to the giver (*"Bob has nowhere
+to take it — their hands are full. You keep it."*); otherwise
+`Y.receive(X)` puts it in a hand, a pocket or a bag. The recipient is
+gated by the `mustBeAgent` validator. See [carrying.md](./carrying.md).
 
 ## Locations, Coordinates, Zones
 
@@ -1223,3 +1323,14 @@ and the `ContainmentApi.placement*` statics) to `placement` documents
 cited by path, resident by construction (`Place.onCreate`, the
 `placements` setter, the restore pass). See git log for the
 `reqs/documents-path-identity` branch.
+
+## History — size and carrying (2026-11-12)
+
+`39d4ba23e..50f562ed4`. Containers bound what goes in them
+(`fitRefusal` in the default `canAddContainable`); a body vetoes
+`loose-on-body` and `Carrying.receive` is the one way on; placement
+entries became named regions (`pocket` the fourth member, `from` gained
+`hangs`/`fastens`, the member fit in `canPlace`, the hanging length);
+`moveCore` carries a host's placed things with it (D33); `put` names
+pockets and `give` asks `canReceive` first. See [carrying.md](./carrying.md)
+and [size.md](./size.md).

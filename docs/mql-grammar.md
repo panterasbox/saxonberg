@@ -396,17 +396,17 @@ A reserved predicate name keeps members where the predicate holds:
 | `here` | object is (or stands in) the giver's place, or is in the vessel the giver sits in |
 | `visible` | a CLASS word: the object presents to the eye (composes Visible). ⚠ Since 2026-11-11 it does not ask whether the giver perceives it — MQL names the same things for everyone, and the verb that shows the result shows only what you perceive (size-and-carrying D23); the scope says *where* |
 | `loose` | object is its holder's own loose contents — not placed on or in something else there (the back-bar's bottles), not a crop standing over the ground |
-| `worn` | object occupies one of its holder's slots (a coat on a person, a coupe in a rack) |
-| `carried` | object is held as contents and occupies none of its holder's slots — `worn` and `carried` partition a holder |
-| `held` | object is in hand: in a body's slot that accepts a Wieldable, or loose in a body's contents in no slot (today's carrying model — the carrying build retunes it). A coupe in a rack is not held |
+| `worn` | object occupies one of its holder's slots that is not a hand (a coat on a person, a coupe in a rack; a coat in your hand is held, not worn) |
+| `carried` | object is on its holder and not worn — in a hand, a pocket, hung from a belt — so `worn` and `carried` partition a holder |
+| `held` | object is in hand: in one of a body's hand slots (since 2026-11-12 nothing sits loose on a body — a thing is held, worn, or placed on something worn). A coupe in a rack is not held |
 
 ```
 peers:living              only Mobile peers
 peers:online              only connected peers
 me:i:visible              visible items in inventory
-me:i:worn                 what you are wearing (and holding)
-me:i:carried              what is in your pockets and pack
-me:i:held                 what is in your hands (today: anything loose on you)
+me:i:worn                 what you are wearing
+me:i:carried              what is in your hands, your pockets, on your belt
+me:i:held                 what is in your hands
 here:i:visible:loose:[not mixin.AdornmentMixin] - me
                           the room as `look` lists it
 ```

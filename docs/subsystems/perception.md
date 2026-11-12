@@ -13,8 +13,8 @@ pricing) reference this doc rather than re-derive the rule.
 An actor reaches (size-and-carrying D17, 2026-11-11 — the rungs `top` ·
 `open` · `deep` are gone): itself; its **whole carried tree**, never into
 another body, nearest first by tier — *hand* · *ready* (worn, hung from
-what is worn, a pocket, an open worn container; W3: also what is carried
-loose) · *packed* (inside a worn container in the `back` slot)
+what is worn, a pocket, an open worn container — nothing is carried
+loose since the carrying flip) · *packed* (inside a worn container in the `back` slot)
 (`Carrying.tierOf`, the carrier's own read); what stands
 in its place and in the vessel it sits in (`getEnclosingPlace` — in a
 boat on the river, both) and **one level** into the open things there (the
@@ -377,6 +377,22 @@ sync at the enumeration seams by warming it into
    its lid.
 3. concealment, discovery and light (unchanged).
 
+⭐ **Searching a body** (D24a) is the shipped `search` on a named body
+that **cannot resist** — a `Corpse`, or an unconscious body
+(`Vitals.searchRefusal(by)`; a conscious one refuses `resists`: *"Bob
+won't let you."*). When the activity completes, each thing its pockets
+cover is recorded as found **by the searcher on that holder** (the
+discovery realm's `BeliefPayload.foundOn`, the holder's identity path);
+rule 2 admits it only while the thing's holder is still that one — a
+move to another holder makes the find inert, checked on read, no sweep.
+A thing also concealed must still clear `resolveSearch`'s awareness
+check. Witnesses hear *"Mara goes through the dead man's pockets."*
+
+⭐ **The builder lens** is a verb (`lens` reports, `lens on`, `lens off`
+— `author` category, afforded by `AuthorMixin`) and a memo on the avatar
+(`Avatar.lensOn()` / `lensOff()`, no setter — nothing can hand a
+character a lens it does not hold), never a wizard check.
+
 **`PerceptionApi.perceived(viewer, list, ordinal?)`** — the members of a
 list the viewer perceives, in order, then the head ordinal — is the one
 filter every surface applies (`lint:perceived-surfaces` holds the count at
@@ -608,3 +624,9 @@ every call with `undefined`, and `look` must not die because of it.
   the `canReach` validator. MQL made universal (D23) and perception moved
   to the surfaces through `perceived`; `perceives` gained the holder rules
   (D24), the body search (D24a) and the builder lens (D25).
+- **Size and carrying W7, the flip (2026-11-12)** — `39d4ba23e..50f562ed4`
+  for the build. Nothing sits loose on a body, so the *ready* tier no
+  longer holds loose things; the person's carried tree is
+  `Container.getCarriedContents` (breadth-first, never into another body),
+  so `PerceptionLogic.reachOf` walks no frontier of its own; `held` is a
+  hand slot everywhere. See [carrying.md](./carrying.md).

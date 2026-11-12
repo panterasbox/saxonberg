@@ -208,6 +208,12 @@ fall a rope causes — see [cordage.md](cordage.md).
 3. **hands** — a mode with `hands > 0` (climb: 2) refuses
    `handsNeeded` (`hands-needed` on the wire) when `Carrying.freeHands()`
    is short, naming what the hands hold (size and carrying D20).
+3a. **awkward load** — `run` only (`LocomotionLogic.awkwardGate`, gate
+   `awkwardLoad`): a held thing longer than the runner's stature ×
+   `RUN_AWKWARD`, or more awkward than `RUN_AWKWARD_FACTOR`
+   (`Carrying.awkwardnessOf`), refuses *"You can't run with the pole —
+   it's too awkward to carry at a run. Walk it."* Sneak and walk are not
+   gated (size and carrying D35).
 4. **exit.canTraverse** — checks `blocked`, `door`, `media` (mode
    medium must match the exit's medium list, or empty media → the
    ground family walk/sneak/run/stoop/crawl), then the **clearance**
@@ -230,6 +236,15 @@ fall a rope causes — see [cordage.md](cordage.md).
    ceiling (`breakaway`). For a ridden move the HOST hauls, and since the
    host now runs its own crossing this gate reads the horse, not the
    rider.
+
+⭐ **Driving takes hands** (size and carrying D18): after enablement, a
+`Drivable` host's `driveRefusal(actor)` refuses `handsNeeded` when the
+driver's free hands are fewer than `getDriveHands()` (a hauled host's
+`handedness`, else the authorable `driveHands`, default 2 — reins).
+**Leading** is the crossing's too: `Mobile.crossExit` takes a led animal
+(a held line end whose far end is on a handless or haltered body in the
+same place) after the leader, pre-checking the animal's own
+`canTraverse` — see [carrying.md](./carrying.md).
 
 Each rejection carries `gate` / `mode` / optional `context` so
 controllers can render verb-templated prose without re-parsing
@@ -418,6 +433,23 @@ read this to ask "what does this mover sound / look / feel like right
 now?" — a rider on a galloping horse reads the horse's wheeled-style
 emission, not the rider's own walk.
 
+⭐ **Loose gear is noise** (size and carrying D36): when
+`Carrying.gearNoise()` is 1 — a held thing, or one hung from a worn host,
+is rigid and rings (a sword on a belt, a lantern in hand, a key ring) —
+`emissionAt` lifts the mode's `noiseLevel` one band (`quiet → normal`,
+`normal → loud`), which is what `sneak`'s detection edge and stealth's
+`modeAttention` read. A thing in a pocket or a shut pouch is silent.
+
+⭐ **`stoop` and `crawl`** (size and carrying D20) are ground modes with
+thin controllers (`StoopController`/`CrawlController` over
+`LocomotionControllerBase`) and views in `cmd/movement/`, conferred by
+`MobileMixin.self` beside walk/sneak/run. `stoop` (speed 0.8, `crouched`,
+normal noise, cost 1.1) is lower than a walk and **not** quieter; `crawl`
+(0.3, `prone`, quiet, 1.5). A mode's `hands` field (default 0; climb 2)
+is what gate 3 reads. The plan lists who can: a biped both, a `canid`
+dog only `crawl`, a horse neither. The profile heights and the
+clearance gate are [size.md](./size.md)'s.
+
 ## Authoring locomotion content
 
 Adding a new mode (e.g., `slither`):
@@ -557,3 +589,13 @@ In moving water the direction words are the river's — `swim upstream`,
 taken (`ReachExit`). Finding your feet in the shallows drops a water mode for
 walk (`WaterSurface.occupy`), so the way out is waded. See
 [river.md](./river.md).
+
+## History — size and carrying (2026-11-12)
+
+`39d4ba23e..50f562ed4`. `stoop` and `crawl` joined the ground family; a
+mode gained `hands` (the hands gate); `run` gained the awkward-load gate;
+the exit gate grew the clearance read (envelope, held things, `turn`, the
+mounted pair, a hitched cart) with refusals that name what would work;
+driving reads the controls' hands; `crossExit` leads a haltered animal;
+rigid ringing gear lifts the emission one band. See [size.md](./size.md)
+and [carrying.md](./carrying.md).

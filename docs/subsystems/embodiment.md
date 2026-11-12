@@ -148,7 +148,14 @@ then check `slotClaims[bodyPlanPath].includes(slot)`. The host's
 passes, so the candidate gets the final say.
 
 Subclasses override `fitsSlot` for richer rules (a magic boot that
-only fits Elven feet, etc.).
+only fits Elven feet, etc.; a shield answers yes for `back`, so it is
+slung there without the claim naming it).
+
+⭐ **A carrier's hand is the exception** (size and carrying W4/W7): the
+claim says where `wield` puts a thing, not which hands may close on it.
+Any `Carrying.handSlots()` slot takes any slottable thing — the second
+hand by weight, a readied compass, a lead rope's end, a mug — and the
+grip (`Carrying.handsFor`) is what can refuse.
 
 > ⭐ **Prosthetics are the augmentation build's, not embodiment's.** A
 > stand-in for a lost limb is a **"replace" augment** — vitals owns the
@@ -271,47 +278,62 @@ reachable post-validator; user-facing rejection lives in these):
 - The controller's own per-slot scan surfaces "you aren't wearing that"
   when nothing actually vacated.
 
-## Hand slots are for activities, not storage
+## ⭐⭐ Hands hold what you carry — the rule since the carrying flip
 
-A design rule the shipped verbs already obey, written down so
-future verb design doesn't drift:
+**Reversed 2026-11-12 (size and carrying).** This section used to say
+*hand slots are for activities, not storage* — `get` put a thing into an
+ambient "on your person" pool and receiving a thing never needed a free
+hand. That pool is gone. The rule now:
 
-> **Body slots model active commitments. Ambient inventory
-> models possession. The two are distinct destinations.**
+> **A hand is a slot whose body part serves manipulation, and it holds
+> whatever you carry in it. Everything on a body is held, worn, or placed
+> on something worn.**
 
-`wield`, `wear`, `mount`, posture-bearing seats — all occupy
-slots, because each represents a body-level commitment: the
-hand is being used for this sword right now, the torso is
-being clothed by this shirt right now. Releasing the
-commitment (`unwield`, `remove`, `dismount`, `stand`) frees
-the slot.
+- **Hands are derived, not named.** `Carrying.handSlots()` is the slots of
+  the body plan whose part `serves: [manipulation]` — the biped's
+  `hand:left`/`hand:right`, the `canid` plan's `mouth`. A horse has none.
+- **A hand takes any good.** `Good` and `Vessel` compose `SlottableMixin`,
+  and a carrier's hand slot admits any slottable thing whatever its
+  `accepts` — the grip decides (`Carrying.handsFor`: one hand, two, or too
+  heavy, from the holder's own carry capacity and stature, or two because
+  the thing's *use* needs two — a bow, a musket, a pike). Every other slot
+  still asks its `accepts`. A garment in a hand is **held, not worn**
+  (`Attired.wornStack` skips hands); `wear` dresses what is held.
+- **`get`, `give`, `buy` and every other way onto a body go through
+  `Carrying.receive`** — a free hand, else a pocket, a hung pouch or a worn
+  bag that fits, else a refusal in words that names what the hands hold and
+  the next command. A dual-wielder handed a spellbook takes it in a pocket
+  or a bag if one fits, and is told *"your hands are full"* if none does.
+  That friction is the point now: what you hold is a choice that costs you
+  something (see [carrying.md](./carrying.md)).
+- **Readying is the act between the tiers.** `ready <thing>` (and any verb
+  whose argument declares `readies: true` — `measure`, `read`, `light`,
+  `pour`, the crafting tools) puts the held thing back where it lives and
+  brings the named one to hand; in a fight it costs beats by holder.
+- **`wield` is still a commitment.** `wield`/`wear`/`mount`/a posture seat
+  occupy slots because each is a body-level commitment; `equip` reads
+  `Carrying.wieldSlots(item, claim)`, which widens a one-hand claim to two
+  when the holder's weight or reach says so, and refuses `too-heavy` /
+  `hands-needed` / `hands-on-cart` in words.
 
-`get`, `drop`, `give`, future `put`/`take` — all move items
-in and out of the actor's general `Container`. This is the
-"on your person" abstraction: pack, belt, sheath, pouch are
-all narrative flavors of the same ambient-inventory slot. The
-model deliberately does not author backpacks-as-slots; if a
-container-on-the-body is meaningful, it's a Stuff worn in a
-slot whose contents are still ambient inventory addressing.
+Activity verbs that need a hand for a duration still compete with `wield`
+for the slot (the engagement framework's slots — [activity.md
+§ Engagement slots](./activity.md)); the difference is that what you are
+carrying competes too, which is the honest tension.
 
-The corollary that matters for verb design: **receiving an
-item never requires a free body slot.** A character dual-
-wielding two swords can still be given a spellbook — it goes
-into ambient inventory, and they can `wield` it later if they
-free a hand. The realism is preserved where it pays off (you
-can't actually hold three swords); the friction is removed
-where it didn't (handing someone a book shouldn't depend on
-their combat loadout).
+## History
 
-Future activity verbs that need a body slot for the duration
-of the activity (cooking grabs a hand for the spoon; reading
-grabs `attention` for the book) compete with `wield` /
-`wear` / posture for slot occupancy — that's the right
-tension, and the engagement framework already supports it.
-See [activity.md § Engagement slots](./activity.md).
+- **Size and carrying (2026-11-12, `39d4ba23e..50f562ed4`).** *Hand slots
+  are for activities, not storage* was reversed: hands hold any good, the
+  ambient carry pool retired, `receive` is the one way onto a body, and
+  `equip` consults the holder's grip (`wieldSlots`/`wieldRefusal`). The
+  hand-slot `fitsSlot` short-circuit lives on `Wieldable` (a carrier's
+  hand) and on `Slotted.canOccupy` (any slottable in a hand).
 
 ## Cross-references
 
 - [slot.md](./slot.md) — substrate.
+- [carrying.md](./carrying.md) — hands, `receive`, the tiers, readying.
+- [size.md](./size.md) — what fits, the envelope.
 - [race.md](./race.md) — BodyPlan's `slots: SlotSpec[]` declaration.
 - [command-spec.md](./command-spec.md) — verb authoring.

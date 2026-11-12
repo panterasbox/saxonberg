@@ -6544,6 +6544,17 @@ counts or shows a list runs it through `PerceptionApi.perceived` first —
 and a head ordinal counts after it. `lint:perceived-surfaces` holds every
 surface at zero exceptions. See [mql.md](./subsystems/mql.md).
 
+## Moving a thing onto a body with `ContainmentApi.move`
+
+| Don't | Do |
+|---|---|
+| `ContainmentApi.move(x, body)` — a thing put on a body by the move primitive | `body.receive(x)`, or the idiom for the counterparty: `canReceive` before any write for a **handed** thing (buy, give, take, untie — refuse in words, move nothing), `receiveOrSetDown` for a **made** thing (output, yield, catch — never refused after the inputs are spent), `receiveGranted` for a **granted** one (loadout, key, card, cash already posted — the residence or the feet as overflow). Where the destination may or may not be a body: `if (MixinApi.isCarrying(dest)) dest.receive(x); else ContainmentApi.move(x, dest);` |
+
+Since the carrying flip (size and carrying W7) a direct move onto a body
+throws: `Creature.canAddContainable` vetoes `loose-on-body` for anything
+not arriving placed or admitted by the body itself. `lint:body-moves`
+holds the census at zero. See [carrying.md](./subsystems/carrying.md).
+
 ## A nested subcommand
 
 ```yaml

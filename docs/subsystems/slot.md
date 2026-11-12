@@ -95,6 +95,18 @@ Two-part check:
    final say — `canOccupy` returns its result after the slot-side
    mixin check passes.
 
+⭐ **A carrier's hand is the one exception to Part 1** (size and carrying
+W7). On a host that composes `CarryingMixin`, a slot in
+`Carrying.handSlots()` — a slot whose `bodyPart` serves manipulation —
+admits **any slottable thing**, whatever its `accepts` names and whatever
+the thing's claim says: a claim says where `wield`/`wear` put a thing, not
+what a hand may close on. `Good` and `Vessel` compose `SlottableMixin` for
+this (applied once — over a base that already composes it the factory
+returns the base, since two layers would redeclare its `@Final` methods),
+so a hand holds a mug, a sack, a coat. The grip decides instead
+(`Carrying.handsFor` — one hand, two, or too heavy). Every non-hand slot
+still asks its `accepts`. See [carrying.md](./carrying.md).
+
 Future affordance mixins ship a new mixin, register it in `Mixins`,
 and slots that want it declare `accepts: 'NewMixin'`. No central
 switch, no closed enum.
@@ -178,6 +190,14 @@ the `Chair`/`sit` posture-slot side this gates.
   rather than unbounded because "wear forty shirts" would otherwise be
   free insulation. The ladder decides the ORDER; this decides the
   DEPTH.
+- The biped's **carry slots** (size and carrying D15/D27) are not
+  coverings (no `covers`): `back` (capacity 1, `accepts: SlottableMixin`)
+  takes one thing — a pack, whose inside is *packed* (take it off to reach
+  in), or a slung shield (`Shield.fitsSlot('back')`); `waist` (capacity 4,
+  `accepts: WearableMixin`) takes a belt, a sash, a bumbag's strap — a
+  belt's hanging length is the wearer's waist and what hangs from it is
+  *ready*. The quadruped's `back:1` is the pack saddle's; the `canid`
+  plan's `mouth` is its one hand.
 - `UNBOUNDED_CAPACITY` (= `Number.MAX_SAFE_INTEGER`) — floor's
   `ground:1`. **Don't use `Infinity`** — it doesn't round-trip
   through JSON/BSON. The sentinel constant is JSON-safe and
@@ -451,6 +471,16 @@ without re-parsing prose.
 - [race.md](./race.md) — BodyPlan's `slots: SlotSpec[]`.
 - [command-spec.md](./command-spec.md) — `default:` field used by
   posture verbs for the `ground` fallback.
+
+## History — size and carrying (2026-11-12)
+
+`39d4ba23e..50f562ed4`. The biped plan gained the `back` and `waist` carry
+slots and the `canid` plan its `mouth` hand; a carrier's hand slot admits
+any slottable thing, and `Good`/`Vessel` became slottable so a hand can
+hold any good. `get` from a non-body slot still vacates through
+`tryReleaseFromSlots`, and the taken thing now goes through
+`Carrying.receive` (a hand, a pocket, a bag) rather than loose into the
+taker's contents. See [carrying.md](./carrying.md).
 
 ## History
 

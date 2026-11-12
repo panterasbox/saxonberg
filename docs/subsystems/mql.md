@@ -623,8 +623,8 @@ the facets). ⭐ **There are no rungs any more** (`ReachDepth`, `depth:`,
 
 - **the person** — the giver's whole carried tree, never into another
   body, ordered **nearest first by tier**: *hand* (a hand slot) · *ready*
-  (worn, hung from what is worn, in a pocket or an open worn container;
-  ⚠ W3: also anything carried loose, until the carrying flip) · *packed*
+  (worn, hung from what is worn, in a pocket or an open worn container
+  — nothing sits loose on a body since the carrying flip) · *packed*
   (inside a worn container in the `back` slot). The tier read is
   `Carrying.tierOf` (the carrier answers; W4). A thing
   behind a shut lid or in the pack on your back **is in the list**;
@@ -950,6 +950,14 @@ bob` and a script must get the same answer — they do, because each is a
 surface and each calls the one filter, and MQL can no longer disagree with
 any of them.
 
+⭐ **What went with it (2026-11-12, the carrying flip).** The reach
+grammar is gone with the viewer filter: no `depth:` on a view, no
+`--top`/`--open`/`--deep`, no `ReachDepth` — the binder binds the nearest
+thing the giver perceives (tier order hand · ready · packed, then the
+room) and the verb's `canReach` refuses a packed or shut-away one in the
+object's words. A head ordinal rides `MqlMany.ordinal` and is applied
+after `perceived`. MQL is universal; perceiving is the act's job.
+
 ## Resolving is not permission
 
 There are **no permission tiers** (content-packs wave 3 deleted them
@@ -1032,16 +1040,18 @@ express (the exemption is commented at both loops).
 ## Predicate registry (`mql/predicates.ts`)
 
 Bareword filters that can appear in chain position
-(`:living`, `:online`, `:mine`, `:here`, `:visible`, `:loose`, `:worn`,
-`:carried`). Each is a check function — no tier (there are none) — and
+(`:living`, `:online`, `:mine`, `:here`, `:visible`, `:loose`, `:held`,
+`:worn`, `:carried`). Each is a check function — no tier (there are none) — and
 ⭐ each DELEGATES to a method the model already answers
 ([architecture.md § MQL is a VIEW](../architecture.md)):
 
 | predicate | delegates to |
 |---|---|
-| `visible` | composes `Visible` and `PerceptionApi.perceives(giver, target)` — the SCOPE is the neighborhood (it used to also demand the room, which made `me:i:visible` empty) |
+| `visible` | a CLASS word: composes `Visible` (*presents to the eye*). ⚠ Since size and carrying D23 it does NOT ask `perceives` — the surface does |
 | `loose` | the holder's `getLooseContents()` |
-| `worn` / `carried` | the holder's `Slotted.getAllOccupants()` — a partition of its contents |
+| `held` | on a carrier, a **hand** slot (`Carrying.handSlots()`); a non-carrier holder keeps the wieldable-slot rule. A coupe in a rack is not held |
+| `worn` | on a carrier, a **non-hand** slot (a coat in your hand is held, not worn) |
+| `carried` | on the holder and not worn — a hand, a pocket, hung from a worn host — so `contents`/`worn` still partition everything (size and carrying W7-k) |
 
 ⭐ The room listing `look`, `sense` and the inspection card share is one
 query — `here:i:visible:[not mixin.AdornmentMixin] - me` (the card adds
@@ -1200,3 +1210,14 @@ query language can see it and the abstraction carries it.
   variable interpolation, `FocusedMixin`'s synthetic vars.
 - [collections.md](./collections.md) — the Detailed / Container /
   Exitable surfaces the resolver walks.
+
+## History — size and carrying (2026-11-11 → 2026-11-12)
+
+`39d4ba23e..50f562ed4`. D17 removed the reach rungs (`ReachDepth`,
+`depth:`, the three flags, `MqlContext.depth`); D23 made the resolver
+universal (`visibleInside`/`visibleInsideDeep` now yield contents for
+everyone, `pushDirect`'s `perceives` gate and `MqlContext.attention`
+removed, `visible` a class word, the head ordinal on `MqlMany.ordinal`)
+and moved perception to the surfaces (`PerceptionApi.perceived`,
+`lint:perceived-surfaces`). The flip (W7) made `:held` a hand slot and
+`:worn` a non-hand slot on a carrier.

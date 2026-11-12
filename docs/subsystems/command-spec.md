@@ -758,6 +758,32 @@ substance on the room). `mustNotBeShutAway` is folded into it and
 deleted. Inspection verbs (`look apple`) carry no reach validator: the
 apple in your shut box is yours to look at.
 
+### ⭐ `readies: true` — the tool comes to hand (size and carrying D16)
+
+An `object`/`objects` arg may declare `readies: true`: the dispatcher
+calls `giver.ready(bound)` (`CommandGiver._executeOne`, after the
+validators, so a reach refusal comes first) **before the controller
+runs**, and renders the carrier's refusal itself (*"Your hands are full —
+…"*, *"It's packed in the backpack — take it off first."*, *"You'd have
+to pick the tape up first (`get tape`)."*). The controller stays dumb: it
+acts on the thing where it now is. Only a single bound thing is readied —
+a default that binds every tool in reach readies none. In a fight the
+readying is the generalized weapon switch, priced in beats by holder
+([carrying.md](./carrying.md)).
+
+```yaml
+args:
+  - name: tool
+    readies: true
+    prepositionRequired: true
+    type: objects
+    required: false
+```
+
+Shipped on: `measure`/`analyze` `tool`, `read`, `light`/`douse`, `pour`
+`source`, `fill`/`drink` `target`, `shape` `instrument`, `fit` `tool`,
+`cut` `tools`. Use it on any arg naming a thing the act is done WITH.
+
 ### `type: struct` — structured-input-only fields
 
 For verbs whose input includes a client-composed payload (a code-
@@ -2493,3 +2519,10 @@ Build range `14af1e8ba..726c1f195`. What shifted between design and code:
   `char <n>` → `draught`, `tan` as a check → `look`). W18–W19 undid two
   false unifications (`stir`/`knead`/`churn`, `sweep`/`rake`). `survey`
   retired in W17 (`analyze rooms`, `measure paint`).
+
+## History — size and carrying (2026-11-12)
+
+`39d4ba23e..50f562ed4`. `depth:` and the reserved `--top`/`--open`/`--deep`
+flags were deleted (one reach rule, D17); `mustNotBeShutAway` folded into
+`canReach`; `readies:` joined `FieldDefinition`. `get` became the
+receiving act and `put X in <person>` handing ([carrying.md](./carrying.md)).

@@ -63,11 +63,16 @@ primitives: the *transfer* is containment onto the other bearer, the
 ### Borne burden — the weighted tree-walk
 
 `getBorneBurden` walks **both** carried stores and sums a weighted
-contribution per item. Missing either store would silently undercount, so
-both are walked:
+contribution per item. Every content of a body is honest since the carrying
+flip (size and carrying W7 — [carrying.md](./carrying.md)): it is a slot
+occupant (held or worn) or it is **placed** on a worn host (a key in a
+pocket, a pouch hung from the belt) or inside one of those. So the walk is:
 
-- **General contents** (`Container.contents`) — items carried *loose*.
-- **Slot occupants** (`Slotted.getAllOccupants()`) — worn / wielded items.
+- **Slot occupants first** (`Slotted.getAllOccupants()`) — held and worn
+  things, each at its slot's coupling.
+- **Then the body's other contents** (`Container.contents`) — the placed
+  things, at the worn floor `1.0`. A thing already counted as a slot
+  occupant is skipped by the `visited` set.
 
 Two coupling factors shape the sum:
 
@@ -77,21 +82,20 @@ Two coupling factors shape the sum:
   toward zero. Only a `Vessel` attenuates (it owns the field); a
   non-`Vessel` container passes weight through at `1.0`.
 - **Placement** — a per-attachment surcharge fixed at the top-level
-  attach point and carried down the subtree unchanged. **Derived from the
-  slot's existing `accepts`**, never stored on `SlotSpec`: a held slot
-  (`WieldableMixin`) couples at `LOOSE_CARRY_SURCHARGE`; a worn slot
-  (`WearableMixin` / anything else) at the `1.0` floor. A backpack worn on
-  the torso applies the worn floor to itself *and* its contents; a chest
-  held in a hand applies the held surcharge to both.
+  attach point and carried down the subtree unchanged. A **hand** slot
+  (`Carrying.handSlots()` — a slot whose body part serves manipulation)
+  couples at `HELD_SURCHARGE` (1.25); every other slot, and everything
+  placed on a worn host, at the `1.0` floor. A backpack worn on the back
+  applies the worn floor to itself *and* its contents; a chest held in the
+  hands applies the held surcharge to both.
 
-⭐ **Slots first** (size and carrying W4): the slot occupants are walked
-before the loose contents. A worn or held thing is in the contents too,
-and when the loose pass went first it reached a worn coat before its slot
-did and charged it the held surcharge. A **held** load (a hand slot —
-`Carrying.handSlots`) is also multiplied by its **awkwardness**,
-`Carrying.awkwardnessOf`: `1 + AWKWARD_LENGTH × max(0, longest/stature − 1)
-+ AWKWARD_BULK × volume/bodyVolume` (`CARRYING_DEFAULTS`). The loose pass
-retires at the carrying flip (W7).
+⭐ **Slots before the rest.** A worn or held thing is in the contents too;
+when the contents pass went first it reached a worn coat before its slot
+did and charged it the held surcharge. A **held** load is also multiplied
+by its **awkwardness**, `Carrying.awkwardnessOf`: `1 + AWKWARD_LENGTH ×
+max(0, longest/stature − 1) + AWKWARD_BULK × volume/bodyVolume`
+(`CARRYING_DEFAULTS` in `lib/slot/Carrying.ts`) — a 3 m pole costs more to
+carry than its mass, and a pole the same mass strapped to a pack does not.
 
 ⭐ **Weight is mass × the place's gravity**: the total (and the lift
 gate's prospective walk) is scaled by `gravityNow() / 9.81` of the
@@ -114,17 +118,21 @@ both stores is counted once. The walk reads only the method surface
 > what a scale reads, burden is what the gauge accumulates. A discipline
 > note, not worth a branded type.
 
-#### The v1 loose-carry model
+#### Held, worn, placed — the loose-carry model retired
 
-`get` does **not** claim a hand slot (building a hand-slot mechanic was out
-of scope). Instead, items in a bearer's general `Container.contents`
-(carried loose, not in any slot) are treated as carried-in-hand and pay
-the **held surcharge** — the same `LOOSE_CARRY_SURCHARGE` a `hand:*` slot
-would. This honors "carrying loose is a surcharge" without a new slot
-mechanic. Worn / wielded items (in `slots`) get their slot's coupling. A
-worn `Pack` is therefore strictly better than carrying the same load
-loose: the contents drop from the held surcharge to the worn floor, and
-the hands stay free.
+Until the carrying flip (2026-11-12), `get` claimed no hand: a thing picked
+up sat *loose* in the body's contents and paid the held surcharge under the
+name `LOOSE_CARRY_SURCHARGE`. That model is gone. `get` is the receiving act
+(`Carrying.receive`), which puts the thing in a hand, a pocket, a hung pouch
+or a worn bag — and `Creature.canAddContainable` refuses `loose-on-body` for
+any other way on. The surcharge kept its number and took its honest name,
+`HELD_SURCHARGE`, and it is paid only by what a hand holds. A worn `Pack` is
+still strictly better than carrying the same load in your arms: the
+contents drop from the held surcharge to the worn floor, and the hands stay
+free.
+
+The lift gate (`wouldExceedCeiling`) prices a candidate at the held
+surcharge — the worst place it could land.
 
 ### Carry capacity — physiology-derived
 
@@ -293,7 +301,7 @@ wiring in v1.
 Numeric tuning is a non-goal this build, so the dials are named, greppable,
 and retunable in one record at the top of `LoadBearing.ts`:
 `CAPACITY_FRACTION`, `OVERLOAD_FACTOR`, `HEAVY_LOAD_THRESHOLD`,
-`LOOSE_CARRY_SURCHARGE`, `LIGHT_LOAD_FLOOR`, `DRAIN_PER_TRAVERSAL`,
+`HELD_SURCHARGE`, `LIGHT_LOAD_FLOOR`, `DRAIN_PER_TRAVERSAL`,
 `ENDURANCE_FLOOR`, the `CONDITION_BAND_MARGIN` table, and `MAX_DEPTH`. They
 live in the capability's own module; **GameConfig is the eventual home**
 when it lands.
@@ -370,7 +378,17 @@ tiring hauler can hit it). See
 - **The spo2 capacity-margin** → the **respiration** build (slate written).
 - **Cart / conveyance carry handoff** — **shipped** (the draft term
   above; the relationship in [conveyance.md § Haulage](./conveyance.md#haulage--pulling-a-cart)).
-- **Environmental (gravity) margins, tissue-derived mass,
+- **Tissue-derived mass,
   augment-conferred capacity, numeric tuning, the per-item placement
   refinement (a frame pack beating the worn floor)** — genuinely undriven;
   land when a consumer appears.
+
+## History
+
+- **Size and carrying (2026-11-12, `39d4ba23e..50f562ed4`).** The v1
+  loose-carry model retired: nothing sits loose on a body, `held` is a hand
+  slot everywhere, `LOOSE_CARRY_SURCHARGE` became `HELD_SURCHARGE` and
+  is paid by hand slots only (× the load's awkwardness); the walk reads
+  slots before the placed contents; weight is mass × `gravityNow() / 9.81`
+  of the bearer's place. `burdenWords()` gives `inventory` its line. See
+  [carrying.md](./carrying.md) and [size.md](./size.md).

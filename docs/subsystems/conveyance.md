@@ -271,12 +271,47 @@ carries you and the tow carries the cart.
 
 | Verb | Action |
 |---|---|
-| `hitch <cart>` | The giver becomes the hauler (self-haul). Hands fill up (can't wield / loose-carry while hauling — guarded in `Wield`/`GetController`, keyed on `isHauling(giver)`). |
+| `hitch <cart>` | The giver becomes the hauler (self-haul). ⭐ **The handles take hands** (size and carrying D18): `hitch` refuses `hands-on-cart` when `Carrying.freeHands()` is fewer than the cart's `handedness` (`need = min(handedness, handSlots)`), and while hitched `freeHands()` is reduced by it — `receive`, `ready` and `wield` say *"Your hands are on the handcart — `unhitch` it first."* |
 | `hitch <cart> to <mount>` | Harness a draft creature (`HaulerMixin`) as the hauler instead; the rider's hands stay free. |
 | `unhitch [target]` | Bare = release the giver's own cart; `unhitch <mount>` / `<cart>` releases that one. |
 
 Hitching never fails on weight (you can always grab a handle); the cost
 surfaces at move time. Validators `mustBeHaulable` / `mustBeHauler`.
+
+### Driving takes hands; a cart's bed is a seat; a tarp shuts it
+
+- **Driving** (size and carrying D18): `Drivable.getDriveHands()` is a
+  hauled host's `handedness`, else the authorable `driveHands` (default
+  2 — reins; a tiller 1); `driveRefusal` gates the drive in
+  `LocomotionLogic.canTraverseExit` after enablement.
+- **Riding in a cart is sitting in it** (D38): a `bed` posture slot on
+  `Handcart` and `HaulageRig` rows (`sit in cart`, `lie in cart`);
+  the rider is in the cart's contents, fits by the cart's tape measure,
+  adds to the draft, and is carried by the tow. See
+  [posture.md](./posture.md).
+- **The tarp** rides `close`/`open`, not `cover` (that is the fire's
+  banking verb): a cart is `Sealable`, starts open, and `canClose` only
+  when a cover lies in it (`Haulable.coverFor()` — a `sheet`-shaped
+  textile, the `/trade/textiles/thing/tarpaulin` row). Shut, it is an
+  opaque holder: what is in it is not seen ([perception.md](./perception.md)).
+- **A cart's box** is measured against a `wheeled` way's clearance
+  (`cart-too-big`, [size.md](./size.md)).
+
+### Leading an animal
+
+Leading is not haulage — the animal walks its own way. `tie rope to
+mule` resolves to the animal's **halter** (`Carrying.halter()` — the
+first worn `Tieable`; `/trade/tanning/thing/Halter` =
+`Tieable(Garment)` on `collar`): the rope hangs `from` the halter and
+its free end is received into the leader's hand; no halter → `no-halter`.
+In `Mobile.crossExit`'s conveyance region, beside the tow, each held line
+end whose far end is on a handless or haltered body in the same place
+(`Mobile.ledAnimals`) is led: the animal's own `canTraverse` is asked
+first and its refusal refuses the leader (*"The pack mule won't follow
+you: its canvas panniers won't go through — take them off first."*),
+then it follows by `traverseWithDefault`. A `canid` dog, whose mouth is
+a hand, is led on its collar. The rope's length is not modeled across
+rooms. See [carrying.md](./carrying.md).
 
 ## What v1 doesn't cover
 
@@ -333,3 +368,9 @@ in an **aether-hosted** wallet a vehicle cannot host
 - [slot.md](./slot.md) — substrate, Detail-targeted resolution.
 - [posture.md](./posture.md) — `Postures.Mounted` integration.
 - [spatial.md](./spatial.md) — `Mobile.traverse` integration.
+
+## History — size and carrying (2026-11-12)
+
+`39d4ba23e..50f562ed4`. Hitching and driving read the hauler's hands; a
+cart's bed became a posture seat and a tarp can shut it; leading an
+animal by its halter joined `crossExit` beside the tow.

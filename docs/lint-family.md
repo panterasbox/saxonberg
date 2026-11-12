@@ -1384,6 +1384,33 @@ non-person name (`referent`, `tplPath`). Those are D11's confirmed list and
 W3 switches them by hand; `MineWarren` taking a `ParcelOwner` puts the
 mining pair where `lint:person-keys` sees them.
 
+### The size-and-carrying censuses (2026-11-11 → 2026-11-12)
+
+Opened at W0 of size and carrying, both **syntax-only** (a type-checked
+`ts.Program` over the kernel and every pack costs ~95 s, so each
+classifier is a heuristic checked against a hand-kept truth), both driven
+to **0** by the build and held there. See [carrying.md](./subsystems/carrying.md).
+
+| gate | what it counts | W0 ceiling | at merge |
+|---|---|---|---|
+| `lint:body-moves` (`scripts/check-body-moves.ts`) | every `ContainmentApi.move(item, dest)` in non-test code (kernel `src/mud/**`, `src/backend/**`, every pack's `src/**`) whose destination may be a body, by four rules: a body-named destination (`by`, `actor`, …), a body class's own `this`/`self`, inherit-the-container (`getContainer()` with no `isPlace` narrowing), or a local initialized from a body-named identifier. Every hit must be in the hand-kept ROSTER (keyed `file :: Class.method :: dest`, no line numbers), tagged by the counterparty idiom it ports to — `made` · `handed` · `granted` · `inherit` (counted) or `allow` (the framework paths that ARE the receiving act) · `not-body` (with its reason) — and a roster row that matches no site fails as stale. A move in the false arm of an `isCarrying(<same dest>)` test is not a body move (the port idiom). `--report` prints the roster by tag | **101** (made 38 · handed 20 · granted 16 · inherit 27) | **0** (kernel 101 → 40 at W4, packs 40 → 0 at W5); the flip's `loose-on-body` veto now makes a missed site throw at run time too |
+| `lint:perceived-surfaces` (`scripts/check-perceived-surfaces.ts`) | a *unit* (a named function/method, or a subscribable field's `read(stuff, viewer)`) with a **source** (`MqlApi.resolveOne/Many` not in system mode, `.getContents(` / `.getDeepContents(` / `.getAllOccupants(` / `.wornStack(` / `.getPlaced(`) and a **sink** (`promptMqlObject/Many`, `MessageApi.scene(`/`.toSelf(`, `CardApi.open(`, `onEnvelope(`, `projectStuffInto(`; in the binder and the script interpreter a `return` in a unit whose source is MQL; any subscribable `read`) and no `perceived(`/`perceives(` call in the unit (or one hop into a same-module function that makes one). Roots: every controller module, `lib/command/**`, `CommandLogic`, `lib/script/**`, `CardRegistry`, `MqlSubscriptionRegistry`, every subscribable `read` | **32** | **0** at W3, by fixing every surface plus two rule corrections, no allowlist |
+
+⭐ **What they protect.** `lint:body-moves` is the receiving act's census:
+after the flip, the one way onto a body is `Carrying.receive` and its
+idioms, and the gate is what kept the port list finite while 101 callers
+moved. `lint:perceived-surfaces` is the other half of *MQL names, acts
+observe*: MQL resolves the same things for every viewer, so every place
+a list reaches a person must ask `PerceptionApi.perceived` — a surface
+that forgets is a leak of a covered pocket, a concealed trap or a
+stranger's inner pocket.
+
+⚠ **The blind spot `lint:body-moves` admits**: a parameter named
+`into`/`to`/`dest` that a caller fills with a body is invisible without
+types. The W0 survey found those by reading and rostered them as
+`survey` rows, stale-checked like the rest; the run-time veto is the
+backstop.
+
 ### `lint:get-or-create` — `singleton` already does it (2026-09)
 
 ⭐ **`StuffApi.singleton(path)` IS the get-or-create** — index read
