@@ -113,6 +113,8 @@ describe('lens — the builder lens', () => {
     other.setPlayerId('other');
     ContainmentApi.move(other, shop);
     const purse = makeStuff(() => new Thing());
+    // On them (a fixture's stand-in for what they carry — the body admits it).
+    vi.spyOn(other, 'isAdmitting').mockReturnValue(true);
     ContainmentApi.move(purse, other);
     await lens(me, 'on');
     expect(PerceptionApi.perceivedHow(me, purse)).not.toBe('builder');

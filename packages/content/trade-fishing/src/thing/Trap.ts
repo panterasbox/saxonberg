@@ -236,8 +236,9 @@ export default class Trap extends PullableMixin(TrapBase) {
         }
         const fish = await mintFish(species, organic);
         if (fish === null) continue;
-        if (MixinApi.isCarrying(puller)) puller.receiveOrSetDown(fish as Stuff & Containable);
-        else ContainmentApi.move(fish as Stuff & Containable, puller as Stuff & Container);
+        // Made (D-W7a): to whoever made it, else set down where they stand.
+        if (puller.canReceive(fish as Stuff & Containable) === null) ContainmentApi.move(fish as Stuff & Containable, puller as Stuff & Container);
+        else ContainmentApi.move(fish as Stuff & Containable, (MixinApi.isContainable(puller) ? puller.getContainer() : null) ?? puller as Stuff & Container);
         took.push(species.name);
       }
     }
@@ -245,14 +246,16 @@ export default class Trap extends PullableMixin(TrapBase) {
     const held: string[] = [];
     for (const item of [...this.getContents()]) {
       if (!MixinApi.isContainable(item)) continue;
-      if (MixinApi.isCarrying(puller)) puller.receiveOrSetDown(item as Stuff & Containable);
-      else ContainmentApi.move(item as Stuff & Containable, puller as Stuff & Container);
+      // Made (D-W7a): to whoever made it, else set down where they stand.
+      if (puller.canReceive(item as Stuff & Containable) === null) ContainmentApi.move(item as Stuff & Containable, puller as Stuff & Container);
+      else ContainmentApi.move(item as Stuff & Containable, (MixinApi.isContainable(puller) ? puller.getContainer() : null) ?? puller as Stuff & Container);
       held.push(item.getPresentation());
     }
     if (this.hasInteriorBulk()) this.setBulkAmount('interior', Quantity.of(0, 'L'));
     this.markLifted();
-    if (MixinApi.isCarrying(puller)) puller.receiveOrSetDown(this as unknown as Stuff & Containable);
-    else ContainmentApi.move(this as unknown as Stuff & Containable, puller as Stuff & Container);
+    // Made (D-W7a): to whoever made it, else set down where they stand.
+    if (puller.canReceive(this as unknown as Stuff & Containable) === null) ContainmentApi.move(this as unknown as Stuff & Containable, puller as Stuff & Container);
+    else ContainmentApi.move(this as unknown as Stuff & Containable, (MixinApi.isContainable(puller) ? puller.getContainer() : null) ?? puller as Stuff & Container);
     const me = this as unknown as Stuff;
     if (took.length === 0 && held.length > 0) {
       return {

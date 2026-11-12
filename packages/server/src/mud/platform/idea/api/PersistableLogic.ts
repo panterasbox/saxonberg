@@ -4,6 +4,7 @@
 
 import { KeyedHosts } from '../../../lib/persistence/KeyedHosts';
 import { ApiLogic } from "../../../lib/stuff/ApiLogic";
+import { Creature } from '../../../lib/creature/Creature';
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
 import { MixinApi, type AnyConstructor } from "../../../api/mixin";
@@ -976,7 +977,7 @@ async function restoreItem(
     if (nested && MixinApi.isContainable(nested) && MixinApi.isContainer(host)) {
       const put = (): void =>
         ContainmentApi.move(nested as Stuff & Containable, host as Stuff & Container);
-      if (MixinApi.isCarrying(host) && !nested.isAgent()) host.admitWhile(nested, put);
+      if (host instanceof Creature && !nested.isAgent()) host.admitWhile(nested, put);
       else put();
     }
     return nested;
@@ -988,10 +989,12 @@ async function restoreItem(
   if (MixinApi.isContainable(clone) && MixinApi.isContainer(host)) {
     const put = (): void =>
       ContainmentApi.move(clone as Stuff & Containable, host as Stuff & Container);
-    // ⭐ A body admits what it carried (the flip's veto, D11): the record is
-    // replayed — re-seated and re-placed by the passes after this, and
-    // whatever is still loose is placed by `onRestored` (D32).
-    if (MixinApi.isCarrying(host)) host.admitWhile(clone, put);
+    // ⭐ A body admits what it carried (the flip's veto, D11; W8 — every
+    // body, so a hog or a fish restored with contents is not refused): the
+    // record is replayed — re-seated and re-placed by the passes after
+    // this, and whatever is still loose is placed by a carrier's
+    // `onRestored` (D32), or reported by a non-carrier's.
+    if (host instanceof Creature) host.admitWhile(clone, put);
     else put();
   }
   return clone;

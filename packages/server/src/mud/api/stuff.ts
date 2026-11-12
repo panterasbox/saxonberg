@@ -938,10 +938,16 @@ export class StuffApi {
    * — and nothing has to be booted to make that true.
    *
    * - live → nothing to do;
-   * - already loading (`#pendingSingletons`) → return WITHOUT awaiting: a
-   *   concurrent load completes on its own, and awaiting a load that is
-   *   waiting on this holder would deadlock (the census refuses an
-   *   authored cycle, so this is the concurrent case);
+   * - already loading (`#pendingSingletons`) → AWAITED when the holder is
+   *   a clone (`holderPath` not itself loading): a clone is never what a
+   *   row's load waits on, so the wait cannot deadlock — and returning
+   *   early let the holder's sync reads meet a cold row (size and carrying
+   *   W8: a cast mule minted while another body's load of the same species
+   *   was in flight stood UNPLANNED; that early return was the one way a
+   *   cited row could still be cold after phase 1). When the holder is
+   *   itself a row loading, it returns WITHOUT awaiting: a load waiting on
+   *   this holder would deadlock (the census refuses an authored cycle, so
+   *   this is the concurrent case);
    * - else the row's `extends:` ancestors first, outermost last (a cited
    *   biome's parent chain is walked live by the biome resolver, so the
    *   ancestors are constituents of what cites them), then the row.
@@ -949,10 +955,17 @@ export class StuffApi {
    * Never throws: a holder with a bad citation is a degraded holder, not
    * a failed clone. It warns, and `lint:census` refuses the row at build.
    */
-  public static async ensureConstituent(path: string): Promise<void> {
+  public static async ensureConstituent(path: string, holderPath?: string | null): Promise<void> {
     if (!path) return;
     if (this.#indexes.byTemplatePath.exact(path).length > 0) return;
-    if (this.#pendingSingletons.has(path)) return;
+    const inFlight = this.#pendingSingletons.get(path);
+    if (inFlight !== undefined) {
+      // A clone waits for the row; a row loading does not (see above).
+      if (holderPath && !this.#pendingSingletons.has(holderPath)) {
+        await inFlight.catch(() => undefined);
+      }
+      return;
+    }
     try {
       const { Template } = await import('../lib/stuff/Template');
       const row = await Template.findByPath(path);
@@ -961,10 +974,14 @@ export class StuffApi {
         return;
       }
       if (typeof row.extends === 'string' && row.extends.length > 0) {
-        await this.ensureConstituent(row.extends);
+        await this.ensureConstituent(row.extends, holderPath);
       }
       if (this.#indexes.byTemplatePath.exact(path).length > 0) return;
-      if (this.#pendingSingletons.has(path)) return;
+      const raced = this.#pendingSingletons.get(path);
+      if (raced !== undefined) {
+        if (holderPath && !this.#pendingSingletons.has(holderPath)) await raced.catch(() => undefined);
+        return;
+      }
       await this.singleton(path);
     } catch (err) {
       console.warn(

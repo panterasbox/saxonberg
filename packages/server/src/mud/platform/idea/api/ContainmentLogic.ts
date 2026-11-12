@@ -6,7 +6,7 @@ import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { Container } from '../../../lib/spatial/Container';
+import type { Arrival, ArrivalRefusal, Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { Placing } from '../../../lib/spatial/Placing';
 import type { PlacementChoice } from '../../../lib/spatial/PlacementOffers';
@@ -102,14 +102,38 @@ export class ContainmentLogic extends ApiLogic {
       placeOn(item, to, placement);
       return;
     }
+    // ⭐⭐ A BODY places what arrives (size and carrying W8): the destination
+    // answers `arrivalFor` — into its contents (admitted), a hand or its
+    // tack (`seat`), a worn host's pocket or hook (`pair`), a bag it
+    // carries (`into`) — or refuses, and `move` throws naming why. It never
+    // lands the thing anywhere but on the body. (A key moved out of its
+    // pocket onto its owner asks too, and goes to a hand.)
+    if (to !== null && to.isAgent()) {
+      const arrival = callHook<Arrival>(to, 'arrivalFor', [item, { placed: false }]) ?? { kind: 'contents' };
+      switch (arrival.kind) {
+        case 'contents':
+          break;
+        case 'seat':
+          (to as unknown as Stuff & Slotted).seatInSlots(item as ContainableStuff & Slottable, arrival.slots);
+          return;
+        case 'pair':
+          this.move(item, arrival.host, arrival.region);
+          return;
+        case 'into':
+          this.move(item, arrival.container);
+          return;
+        case 'refuse':
+          throw new ContainmentError(arrivalWords(item, to, arrival.refusal), {
+            reason: arrival.refusal.reason,
+            facts: arrival.refusal.facts,
+          });
+      }
+    }
     // ⭐ Moving a placed thing into the container it already stands in takes
     // it OFF its host (size and carrying D5 — the cup drifts off the table
     // into the room). The container did not change, so `moveCore` would be
     // a no-op; the placement pair is the whole of the move.
     if (to !== null && item.getContainer() === to && item.getPlacement() !== null) {
-      // ⭐ Off its host and loose on a BODY is the flip's veto too (D11):
-      // a key out of a pocket goes to a hand (`receive`), never loose.
-      if (MixinApi.isCarrying(to)) assertVetoOk(callHook<VetoResult>(to, 'canAddContainable', [item]), 'canAddContainable');
       const was = item.getPlacement()?.name ?? '';
       item._setPlacement(null);
       MqlSubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', was, '');
@@ -202,28 +226,25 @@ export class ContainmentLogic extends ApiLogic {
       }
       const offer = choice.offer;
       if (offer.kind === 'zero') {
-        // ⭐ Into a person is HANDING it to them (D-W7a): their own
-        // `receive` decides where, asked before anything moves.
-        if (MixinApi.isCarrying(target)) {
-          const refused = target.canReceive(item);
-          if (refused !== null) {
-            return { ok: false, reason: 'refused-by-container', facts: { said: refused.reason } };
-          }
-        }
         // A shut lid refuses at the verb — never in `move`.
         if (MixinApi.isSealable(target) && !target.isOpen()) return { ok: false, reason: 'shut' };
-        // ⭐ The tape measure, asked first so it is a sentence (size and
-        // carrying D4) — `move` asserts the same rule at the chokepoint.
-        const fit = MixinApi.isContainer(target) ? target.fitRefusal(item) : null;
-        if (fit !== null) return { ok: false, reason: 'wont-fit', facts: { why: fit.reason } };
-        // ⭐ A container that says what it is FOR refuses in its own words —
-        // the hook `move` asserts, asked first so it is a sentence, not a
-        // thrown ContainmentError. (A carrier answered above, by `receive`.)
-        const veto = MixinApi.isContainer(target) && !MixinApi.isCarrying(target)
-          ? target.canAddContainable?.(item)
-          : undefined;
-        if (veto && !veto.ok) {
-          return { ok: false, reason: 'refused-by-container', facts: { said: veto.reason ?? null } };
+        // ⭐⭐ Would it arrive — asked first so it is a sentence, not a thrown
+        // ContainmentError (size and carrying W8). Every container answers:
+        // the tape measure (D4), a container that says what it is FOR, a
+        // person HANDED it (D-W7a — their hands, pockets, pack).
+        const refused = MixinApi.isContainer(target) ? target.canReceive(item) : null;
+        if (refused !== null) {
+          switch (refused.reason) {
+            case 'too-big-for-mouth':
+            case 'too-big-inside':
+            case 'no-room':
+            case 'not-shaped-for':
+              return { ok: false, reason: 'wont-fit', facts: { why: refused.reason } };
+            case 'refused-by-container':
+              return { ok: false, reason: 'refused-by-container', facts: { said: refused.facts.said } };
+            default:
+              return { ok: false, reason: 'refused-by-container', facts: { said: refused.reason } };
+          }
         }
         route = { kind: 'zero' };
       } else {
@@ -256,8 +277,7 @@ export class ContainmentLogic extends ApiLogic {
         if (route.kind === 'slot') {
           (target as Stuff & Slotted).seatInSlot(item as ContainableStuff & Slottable, route.slot);
         } else if (route.kind === 'zero') {
-          if (MixinApi.isCarrying(target)) target.receive(item);
-          else ContainmentApi.move(item, target as ContainerStuff);
+          ContainmentApi.move(item, target as ContainerStuff);
         } else {
           ContainmentApi.move(item, target as PlacingStuff, route.name);
         }
@@ -601,6 +621,46 @@ function callHook<T>(
   const fn = (obj as Record<string, unknown>)[hookName];
   if (typeof fn !== 'function') return undefined;
   return (fn as (...a: unknown[]) => T).apply(obj, args);
+}
+
+/**
+ * The author's sentence for a refused arrival (size and carrying W8) — the
+ * `ContainmentError` message: *"move: the lantern has no place on Bob —
+ * hands hold the mug and the map; tried the coat, the satchel"*. A
+ * player's sentence is the controller's, from `canReceive`.
+ */
+function arrivalWords(item: ContainableStuff, to: Stuff, r: ArrivalRefusal): string {
+  const name = (x: Stuff): string => {
+    try {
+      return x.presentationPhrase().definite();
+    } catch {
+      return x.getTemplatePath() ?? x.stuffId;
+    }
+  };
+  const head = `move: ${name(item)} has no place on ${name(to)}`;
+  switch (r.reason) {
+    case 'nowhere-to-carry': {
+      const held = r.facts.held.map(name);
+      const tried = r.facts.tried.map(name);
+      if (held.length === 0 && tried.length === 0) {
+        return `${head} — it does not carry (no hands, nothing worn it fits); ask canReceive first`;
+      }
+      return (
+        `${head} — hands hold ${held.length > 0 ? held.join(' and ') : 'nothing'}; ` +
+        `tried ${tried.length > 0 ? tried.join(', ') : 'nothing worn'}`
+      );
+    }
+    case 'too-heavy':
+      return `${head} — more than it can lift`;
+    case 'cannot-grip':
+      return `${head} — it cannot grip (${r.facts.why})`;
+    case 'hands-on-cart':
+      return `${head} — its hands are on ${name(r.facts.cart)}`;
+    case 'refused-by-container':
+      return `${head} — ${r.facts.said}`;
+    default:
+      return `${head} — ${r.reason}`;
+  }
 }
 
 function assertVetoOk(result: VetoResult | undefined, hookName: string): void {

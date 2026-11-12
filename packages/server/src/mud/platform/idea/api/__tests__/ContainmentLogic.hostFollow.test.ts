@@ -62,7 +62,7 @@ describe('ContainmentLogic — the host-follow (D33)', () => {
     const { me: ruth } = makeBody();
     ContainmentApi.move(ruth, room);
     me.vacate('torso', coat);
-    ruth.receive(coat);
+    ContainmentApi.move(coat, ruth);
     expect(coat.getContainer()).toBe(ruth);
     expect(k.getContainer()).toBe(ruth);
     expect(k.getPlacement()).toEqual({ host: coat, name: 'left pocket' });

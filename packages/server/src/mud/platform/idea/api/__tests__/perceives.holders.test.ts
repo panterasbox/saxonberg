@@ -15,6 +15,7 @@
  * plan with a `back` slot.
  */
 import '../../../../../test-bootstrap';
+import { CarryingMixin } from '../../../../lib/slot/Carrying';
 import { carry } from '../../../../lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { PerceptionApi } from '../../../../api/perception';
@@ -39,6 +40,9 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
+/** A body that carries (size and carrying W8: the capability is the carrier classes'). */
+class CarrierBody extends CarryingMixin(Creature) {}
+
 const PLAN = '/stuff/idea/species/BodyPlan/holders-biped';
 
 class Coat extends PlacingMixin(WearableMixin(SlottableMixin(Thing))) {}
@@ -62,7 +66,7 @@ const PARTS: BodyPart[] = [
 
 let species: Species;
 function body(): Creature {
-  const c = makeStuff(() => new Creature());
+  const c = makeStuff(() => new CarrierBody());
   c.setSpecies(species);
   return c;
 }

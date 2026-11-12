@@ -65,6 +65,7 @@
 
 import Beast from './Beast';
 import { HaulerMixin } from '../../lib/slot/Hauler';
+import { CarryingMixin } from '../../lib/slot/Carrying';
 import { MountableMixin } from '../../lib/slot/Mountable';
 import { PersistableMixin } from '../../lib/persistence/Persistable';
 import { PersistableApi } from '../../api/persistable';
@@ -74,7 +75,9 @@ import type {
 } from '../../lib/persistence/PersistenceSlice';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
-const DraftAnimalBase = PersistableMixin(MountableMixin(HaulerMixin(Beast)));
+// ⭐ It carries (size and carrying W8): no hands, a pack saddle with
+// `from` — panniers hang, and tack handed to it is put on.
+const DraftAnimalBase = PersistableMixin(MountableMixin(HaulerMixin(CarryingMixin(Beast))));
 
 export class DraftAnimal extends DraftAnimalBase {
   /**

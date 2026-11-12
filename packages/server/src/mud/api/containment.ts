@@ -79,11 +79,21 @@ function logic(): ContainmentLogic {
  */
 export class ContainmentError extends Error {
   public readonly cause?: unknown;
+  /**
+   * The refusal's reason when a destination refused the arrival (size and
+   * carrying W8: `nowhere-to-carry`, `too-heavy`, …) — for a caller that
+   * catches and words it. The message is for the author.
+   */
+  public readonly reason?: string;
+  /** The refusal's facts (the item, what the hands hold, what was tried). */
+  public readonly facts?: unknown;
 
-  constructor(message: string, opts?: { cause?: unknown }) {
+  constructor(message: string, opts?: { cause?: unknown; reason?: string; facts?: unknown }) {
     super(message);
     this.name = 'ContainmentError';
     if (opts?.cause !== undefined) this.cause = opts.cause;
+    if (opts?.reason !== undefined) this.reason = opts.reason;
+    if (opts?.facts !== undefined) this.facts = opts.facts;
   }
 }
 
@@ -200,6 +210,15 @@ export class ContainmentApi {
    *     lands in; else the acting person, in a live command, where they
    *     stand; else its recorded maker. A good that already exists is
    *     never retitled by being moved — taking one is theft.
+   *
+   * ⭐⭐ **A body is a destination that places what arrives** (size and
+   * carrying W8). `move(item, person)` just works: the body decides where
+   * on it the thing goes — a free hand, else a pocket, a hook on the belt,
+   * a worn bag, else the pack on its back (`Container.arrivalFor`). When
+   * the body has no honest place for it (hands full and nothing it fits; a
+   * fish, which has no pocket), `move` THROWS a `ContainmentError` naming
+   * why — it never lands the thing anywhere but where you asked. To get a
+   * refusal instead of a throw, ask `dest.canReceive(item)` first.
    *
    * The other layer is a thing moving ITSELF ({@link MobileMixin}'s
    * `traverse`), which crosses exits and arrives through this primitive.

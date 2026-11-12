@@ -131,8 +131,9 @@ export function PrintingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
           const run = (take === stack.getQuantity() ? stack : await stack.split(take)) as unknown as Sheet;
           run.bindTo(edition, page);
           if (MixinApi.isContainer(req.by)) {
-            if (MixinApi.isCarrying(req.by)) req.by.receiveOrSetDown(run);
-            else ContainmentApi.move(run, req.by);
+            // Made (D-W7a): to whoever made it, else set down where they stand.
+            if (req.by.canReceive(run) === null) ContainmentApi.move(run, req.by);
+            else ContainmentApi.move(run, (MixinApi.isContainable(req.by) ? req.by.getContainer() : null) ?? req.by);
           }
           copies.push(run);
           left -= take;

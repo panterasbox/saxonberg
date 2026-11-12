@@ -105,7 +105,7 @@ describe('Carrying — a hand holds any good (W7)', () => {
     expect(MixinApi.isSlottable(mug)).toBe(true);
     expect(MixinApi.isWieldable(mug)).toBe(false);
     expect(me.canOccupy(mug, 'hand:right')).toBe(true);
-    me.receive(mug, { slot: 'hand:right' });
+    me.seatInSlot(mug, 'hand:right');
     expect(me.heldThings()).toContain(mug);
     expect(me.tierOf(mug)).toBe('hand');
   });

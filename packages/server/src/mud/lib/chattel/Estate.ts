@@ -59,6 +59,7 @@ import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { MixinApi } from "../../api/mixin";
 import { ContainmentApi } from "../../api/containment";
+import { Creature } from "../creature/Creature";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 import {
@@ -351,8 +352,11 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
             entry.templatePath,
             entry.key,
           )) as Stuff | null;
+          // The restore path (size and carrying W8): what the record says the
+          // owner carried is admitted, as `restoreItem` admits it — a keyed
+          // thing on a body arrives as the body's own record, not a hand-off.
           if (live && MixinApi.isContainable(live) && MixinApi.isContainer(host)) {
-            if (MixinApi.isCarrying(host)) await host.receiveGranted(live);
+            if (host instanceof Creature) host.admitWhile(live, () => ContainmentApi.move(live, host));
             else ContainmentApi.move(live, host);
           }
           self._putEstateEntry(entry, live);

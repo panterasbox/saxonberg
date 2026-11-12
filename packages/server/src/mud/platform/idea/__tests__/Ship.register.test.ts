@@ -19,6 +19,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { withHands } from '../../../lib/slot/__tests__/carrying-fixture';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Ship from '../Ship';
@@ -205,6 +206,8 @@ function fakeLine(): Rope {
 function makeAvatar(id: string): Avatar {
   const av = makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${id}`);
   av.setPlayerId(id);
+  // Hands for her key (size and carrying W8: no plan, no place).
+  withHands(av);
   return av;
 }
 

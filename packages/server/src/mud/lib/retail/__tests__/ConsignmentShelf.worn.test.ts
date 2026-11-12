@@ -66,8 +66,9 @@ describe('consign takes what you carry, never what you wear', () => {
     const key = good('key', [0.06, 0.025, 0.003]);
     ContainmentApi.move(mug, room);
     ContainmentApi.move(key, room);
-    expect(me.receive(mug)).toBeNull();
-    expect(me.receive(key, { prefer: 'pockets' })).toBeNull();
+    ContainmentApi.move(mug, me);
+    ContainmentApi.move(key, me);
+    me.stow(key);
     expect(me.wears(mug)).toBe(false);
     expect(me.wears(key)).toBe(false);
     for (const g of [mug, key]) {

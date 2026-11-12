@@ -74,13 +74,13 @@ describe('the flip — nothing loose on a body', () => {
     const key = good('key', 0.02, [0.06, 0.025, 0.003]);
     const map = good('map', 0.05, [0.3, 0.2, 0.02]);
     for (const x of [mug, lantern, key, map]) ContainmentApi.move(x, room);
-    expect(me.receive(mug)).toBeNull();
+    ContainmentApi.move(mug, me);
     expect(me.tierOf(mug)).toBe('hand');
-    expect(me.receive(lantern)).toBeNull();
+    ContainmentApi.move(lantern, me);
     expect(me.heldThings()).toEqual(expect.arrayContaining([mug, lantern]));
-    expect(me.receive(key)).toBeNull();
+    ContainmentApi.move(key, me);
     expect(key.getPlacement()?.host).toBe(trousers);
-    const refused = me.receive(map);
+    const refused = me.canReceive(map);
     expect(refused?.reason).toBe('nowhere-to-carry');
     expect(map.getContainer()).toBe(room);
     const words = me.refusalWords(refused!);
@@ -98,9 +98,9 @@ describe('the flip — nothing loose on a body', () => {
     const { room, me } = await newcomer();
     const mugs = [0, 1, 2].map(() => good('mug', 0.35, [0.09, 0.09, 0.1]));
     for (const x of mugs) ContainmentApi.move(x, room);
-    expect(me.receive(mugs[0]!)).toBeNull();
-    expect(me.receive(mugs[1]!)).toBeNull();
-    const refused = me.receive(mugs[2]!);
+    ContainmentApi.move(mugs[0]!, me);
+    ContainmentApi.move(mugs[1]!, me);
+    const refused = me.canReceive(mugs[2]!);
     expect(refused?.reason).toBe('nowhere-to-carry');
     expect(me.refusalWords(refused!)).toMatch(/^Your hands are full — both mugs — and another mug won't fit in your pockets\. Set something down \(`drop mug`\)\.$/);
   });
@@ -109,7 +109,7 @@ describe('the flip — nothing loose on a body', () => {
     const { room, me } = await newcomer();
     const rope = good('rope', 0.5, [0.2, 0.2, 0.05]);
     ContainmentApi.move(rope, room);
-    expect(me.receive(rope)).toBeNull();
+    ContainmentApi.move(rope, me);
     expect(me.freeHands()).toBe(1);
     ContainmentApi.move(rope, room);
     expect(me.freeHands()).toBe(2);
@@ -125,12 +125,13 @@ describe('the flip — nothing loose on a body', () => {
     expect(trousers.canPlace(sword, 'left pocket')).toEqual({ ok: false, reason: 'too-big-inside' });
   });
 
-  it('⭐ the veto: a direct move onto a body is refused loose-on-body; placed or received it comes on', async () => {
+  it('⭐ a direct move onto a body places it (a hand); placed on a worn host it comes on too', async () => {
     const { room, me, trousers } = await newcomer();
     const coin = good('coin', 0.01, [0.02, 0.02, 0.002]);
     ContainmentApi.move(coin, room);
-    expect(() => ContainmentApi.move(coin, me)).toThrow(/loose-on-body/);
-    expect(coin.getContainer()).toBe(room);
+    ContainmentApi.move(coin, me);
+    expect(me.tierOf(coin)).toBe('hand');
+    ContainmentApi.move(coin, room);
     ContainmentApi.move(coin, trousers, 'left pocket');
     expect(coin.getContainer()).toBe(me);
     expect(me.isHonest(coin)).toBe(true);
@@ -144,20 +145,24 @@ describe('the flip — nothing loose on a body', () => {
     const b = tool('saw', 1, [0.5, 0.15, 0.02]);
     const c = good('book', 0.5, [0.2, 0.15, 0.03]);
     for (const x of [a, b, c]) ContainmentApi.move(x, room);
-    me.receive(a);
-    me.receive(b);
-    expect(me.receive(c)).toBeNull();
+    ContainmentApi.move(a, me);
+    ContainmentApi.move(b, me);
+    ContainmentApi.move(c, me);
     expect(c.getContainer()).toBe(satchel);
   });
 
-  it('⭐ made: a thing with nowhere to go is SET DOWN where it was made, with a line — never refused', async () => {
+  it('⭐ made: with nowhere to go, `move` throws and the owner\'s second call sets it down — never refused, never lies', async () => {
     const { room, me } = await newcomer();
-    me.receive(tool('hammer', 1, [0.3, 0.05, 0.03]));
-    me.receive(tool('saw', 1, [0.5, 0.15, 0.02]));
+    ContainmentApi.move(tool('hammer', 1, [0.3, 0.05, 0.03]), me);
+    ContainmentApi.move(tool('saw', 1, [0.5, 0.15, 0.02]), me);
     const loaf = good('loaf', 0.5, [0.25, 0.12, 0.1]);
-    expect(me.receiveOrSetDown(loaf)).toBe('set-down');
+    // `move` never lands it anywhere but the body: it throws, nothing moved.
+    expect(() => ContainmentApi.move(loaf, me)).toThrow(/has no place on/);
+    expect(loaf.getContainer()).toBeNull();
+    // The mint path's two calls (W8): ask, then move to the maker or here.
+    if (me.canReceive(loaf) === null) ContainmentApi.move(loaf, me);
+    else ContainmentApi.move(loaf, me.getContainer()!);
     expect(loaf.getContainer()).toBe(room);
-    expect(said.join('\n')).toMatch(/you set .*loaf.* down/);
   });
 
   it('⭐ D32: a restore places what it finds loose; what fits nowhere is never lost', async () => {
@@ -183,7 +188,7 @@ describe('the flip — nothing loose on a body', () => {
     const { room, me } = await newcomer();
     const found = good('pebble', 0.05, [0.03, 0.03, 0.03]);
     ContainmentApi.move(found, room);
-    me.receive(found);
+    ContainmentApi.move(found, me);
     me.returnBorrowed();
     expect(found.getContainer()).toBe(room);
   });

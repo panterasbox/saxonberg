@@ -7,6 +7,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { CarryingMixin } from '../../../../lib/slot/Carrying';
 import { carry } from '../../../../lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ElectricityApi } from '../../../../api/electricity';
@@ -33,6 +34,9 @@ import {
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../Condition';
 import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
+
+/** A body that carries (size and carrying W8: the capability is the carrier classes'). */
+class CarrierBody extends CarryingMixin(Creature) {}
 
 // Slottable: a hand holds it (size and carrying W7 — nothing loose on a body).
 class TestWire extends EnergizedMixin(SlottableMixin(ContainableMixin(NamedMixin(Idea)))) {
@@ -150,7 +154,7 @@ function makeBody(room: Place | null): Creature {
   species.setBodyPlan(plan);
   stampTemplatePathForTest(species, `/stuff/idea/species/test/elec-${id}`);
 
-  const c = makeStuff(() => new Creature());
+  const c = makeStuff(() => new CarrierBody());
   c.setSpecies(species);
   if (room) ContainmentApi.move(c as never, room as never);
   return c;

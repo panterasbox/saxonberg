@@ -1118,8 +1118,8 @@ async function reembodyImpl(shade: Stuff): Promise<Stuff> {
 
   const stuff = body as unknown as Stuff;
   if (landing && MixinApi.isContainable(stuff) && MixinApi.isContainer(landing)) {
-    if (MixinApi.isCarrying(landing)) landing.receiveOrSetDown(stuff);
-    else ContainmentApi.move(stuff, landing);
+    // A body arriving is an agent — every container admits it (a rider into a mount too).
+    ContainmentApi.move(stuff, landing);
   }
 
   // The arc is cleared HERE and only here — the identity is alive and

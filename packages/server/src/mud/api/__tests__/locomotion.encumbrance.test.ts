@@ -21,6 +21,7 @@ import Exit from '../../lib/boundary/Exit';
 import { MobileMixin } from '../../lib/spatial/Mobile';
 import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { Creature } from '../../lib/creature/Creature';
+import { CarryingMixin } from '../../lib/slot/Carrying';
 import { ContainmentApi } from '../containment';
 import { StuffApi } from '../stuff';
 import { makeStuff, makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
@@ -39,7 +40,7 @@ class SwimLocation extends SwimmableMixin(Place) {}
 
 // A Mobile + Propertied load-bearer (Character-shaped: can traverse and
 // engage modes; capability props for the climb difficulty check).
-class MobileBearerBase extends PropertiedMixin(MobileMixin(Creature)) {}
+class MobileBearerBase extends PropertiedMixin(MobileMixin(CarryingMixin(Creature))) {}
 class MobileBearer extends MobileBearerBase {
   static _mixinName = 'MobileBearer';
 }
@@ -48,7 +49,7 @@ class MobileBearer extends MobileBearerBase {
 function overload(bearer: Creature): void {
   // capacity = 70 * 0.5 = 35 kg; 100 kg held (seated in a hand — the
   // seat asks no weight; the flip, W7) → ratio well over 1.
-  bearer.receive(massThing(100), { slot: 'hand:left' });
+  bearer.seatInSlot(massThing(100), 'hand:left');
 }
 
 describe('LocomotionApi — load-aware veto', () => {
@@ -88,7 +89,7 @@ describe('LocomotionApi — load-aware veto', () => {
       m.setDensity(Quantity.of(11340, 'kg/m³'));
       return m;
     }, '/stuff/idea/material/_test/test-lead') as unknown as Metal);
-    bearer.receive(lead, { slot: 'hand:left' });
+    bearer.seatInSlot(lead, 'hand:left');
 
     expect(LocomotionApi.checkEnablement(bearer, swim, 'down')).toMatchObject({ ok: true });
     // In off the quay in the hard-hat suit: in, and sinking, not refused.

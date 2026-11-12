@@ -59,6 +59,7 @@ import {
 } from '../../api/mql-subscription';
 import type { FieldMeta } from '../mixin';
 import type { ActRefusal } from '../craft/ActPlan';
+import type { Placing } from './Placing';
 import type { BoundaryOpening } from '../boundary/Conduit';
 import type { ClosureLevel } from '../bulk/Bulkable';
 import type Place from '../stuff/Place';
@@ -90,6 +91,40 @@ export type FitRefusal = ActRefusal<
   'too-big-for-mouth' | 'too-big-inside' | 'no-room' | 'not-shaped-for',
   { container: Stuff; item: Stuff; dims: Dimensions | null }
 >;
+
+/**
+ * ⭐⭐ Why a thing would not arrive in a container (size and carrying W8) —
+ * {@link Container.canReceive}'s answer. The tape measure's own refusals; a
+ * container that says what it is FOR (`refused-by-container`, its veto's
+ * reason); and a body's — a carrier that has no honest place for it
+ * (`nowhere-to-carry`, naming what the hands hold and what was tried), a
+ * load past what it can lift, a hurt hand, a cart's handles. A body that
+ * does not carry answers `nowhere-to-carry` with nothing held or tried.
+ */
+export type ArrivalRefusal =
+  | FitRefusal
+  | ActRefusal<'refused-by-container', { said: string }>
+  | ActRefusal<'nowhere-to-carry', { item: Stuff; held: Stuff[]; tried: Stuff[] }>
+  | ActRefusal<'too-heavy'>
+  | ActRefusal<'cannot-grip', { why: string }>
+  | ActRefusal<'hands-on-cart', { cart: Stuff }>;
+
+/**
+ * ⭐⭐ Where inside a container an arrival goes (size and carrying W8) — the
+ * destination's answer, which `ContainmentApi.move` performs:
+ *
+ * - `contents` — into this container's contents (every ordinary container);
+ * - `seat` — into these slots of this body (a hand; a mule's tack);
+ * - `pair` — placed on a host this body wears (a coat's pocket, the belt's `from`);
+ * - `into` — into a container this body carries (a worn satchel);
+ * - `refuse` — nowhere honest: `move` throws a `ContainmentError` naming why.
+ */
+export type Arrival =
+  | { kind: 'contents' }
+  | { kind: 'seat'; slots: string[] }
+  | { kind: 'pair'; host: Stuff & Placing; region: string }
+  | { kind: 'into'; container: Stuff & Container }
+  | { kind: 'refuse'; refusal: ArrivalRefusal };
 
 /** The form a container's interior takes when its own form gives (a sack, filled, is a block). */
 const BLOCK_FORM = '/platform/idea/Form/block';
@@ -175,6 +210,28 @@ export interface Container {
    * what it is FOR overrides it and owns the whole answer.
    */
   canAddContainable?(thing: Stuff & Containable, how?: { placed?: boolean }): VetoResult;
+
+  /**
+   * ⭐⭐ Where `item` arrives in this container (size and carrying W8) — the
+   * destination decides, and `ContainmentApi.move` performs it. The default
+   * is `contents`; a body answers by its own rule (`Creature`: nothing
+   * loose; `Carrying`: a hand, a pocket, a worn bag, or `refuse`). The tape
+   * measure ({@link canAddContainable}) still runs on whatever container
+   * the thing finally enters. `how.placed`: it arrives with a placement
+   * pair on a host here.
+   *
+   * @hook Override to place an arrival; call `super` for the admissions.
+   */
+  arrivalFor(item: Stuff & Containable, how?: { placed?: boolean }): Arrival;
+
+  /**
+   * ⭐⭐ Would `item` arrive in this container — the dry read of
+   * {@link arrivalFor} and the veto, no write (size and carrying W8).
+   * `null` = `move(item, this)` will place it. **Every container answers**:
+   * a chest by its fit, a canary *nowhere to carry that*, a person by hand →
+   * pocket → pack. Ask it first when you want a refusal instead of a throw.
+   */
+  canReceive(item: Stuff): ArrivalRefusal | null;
 
   // ── size (size and carrying D4–D5, D22) ──
 
@@ -398,6 +455,32 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     public canAddContainable(thing: Stuff & Containable, _how?: { placed?: boolean }): VetoResult {
       const refusal = this.fitRefusal(thing);
       return refusal === null ? { ok: true } : { ok: false, reason: refusal.reason };
+    }
+
+    /**
+     * See {@link Container.arrivalFor}. The default: into the contents.
+     *
+     * @hook
+     */
+    public arrivalFor(_item: Stuff & Containable, _how?: { placed?: boolean }): Arrival {
+      return { kind: 'contents' };
+    }
+
+    /** See {@link Container.canReceive}. */
+    public canReceive(item: Stuff): ArrivalRefusal | null {
+      if (!MixinApi.isContainable(item)) return null;
+      const self = this as unknown as Stuff & Container;
+      const arrival = self.arrivalFor(item, { placed: false });
+      if (arrival.kind === 'refuse') return arrival.refusal;
+      // Placed elsewhere on this body: that host's own rule decided it.
+      if (arrival.kind !== 'contents') return null;
+      const fit = this.fitRefusal(item);
+      if (fit !== null) return fit;
+      const veto = self.canAddContainable?.(item, { placed: false });
+      if (veto !== undefined && !veto.ok) {
+        return { ok: false, reason: 'refused-by-container', facts: { said: veto.reason ?? '' } };
+      }
+      return null;
     }
 
     /** See {@link Container.closureLevel}. */
@@ -692,8 +775,9 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       for (const item of snapshot) {
         try {
           if (outer !== null && (!dormant || MixinApi.isHasInteractive(item))) {
-            if (MixinApi.isCarrying(outer)) outer.receiveOrSetDown(item);
-            else ContainmentApi.move(item, outer);
+            // Made (D-W7a): to whoever made it, else set down where they stand.
+            if (outer.canReceive(item) === null) ContainmentApi.move(item, outer);
+            else ContainmentApi.move(item, (MixinApi.isContainable(outer) ? outer.getContainer() : null) ?? outer);
           } else if (
             MixinApi.isHasInteractive(item) &&
             evacuationFallback !== null

@@ -31,6 +31,7 @@ import { AppApi } from "../../../../api/app";
 import { Currency, BankingApi, Money } from "../../../../api/banking";
 import { ConnectionApi } from "../../../../api/connection";
 import { MixinApi } from "../../../../api/mixin";
+import { ContainmentApi } from '../../../../api/containment';
 import { ContractApi } from "../../../../api/contract";
 import { AppSettingKeys } from "../../../../lib/config/AppSettings";
 import { Template } from "../../../../lib/stuff/Template";
@@ -765,9 +766,13 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
         try {
           const garment = await StuffApi.clone(garmentPath);
           if (!MixinApi.isContainable(garment)) continue;
-          // Put on what is worn; a bag that claims no slot hangs from the
-          // belt listed before it (`receive`'s hang rule, W7).
-          await avatar.receiveGranted(garment, { for: 'wear' });
+          // ⭐ Put on by its claim — a seating, said exactly (size and
+          // carrying W8); a bag that claims no slot the body places (it
+          // hangs from the belt listed before it).
+          const plan = SpeciesApi.tryGetBodyPlanPath(avatar);
+          const claim = plan !== null && MixinApi.isWearable(garment) ? garment.getSlotClaim(plan) : [];
+          if (claim.length > 0 && MixinApi.isSlottable(garment)) avatar.seatInSlots(garment, claim);
+          else ContainmentApi.move(garment, avatar);
         } catch {
           /* skip this garment */
         }

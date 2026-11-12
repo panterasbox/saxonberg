@@ -7,6 +7,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DormWarren from '../idea/DormWarren';
@@ -259,7 +260,7 @@ function reset(): void {
 const snapshots = () => col('holder_snapshots');
 
 function makeAvatar(playerId: string): Avatar {
-  const av = makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${playerId}`);
+  const av = withHands(makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${playerId}`));
   av.setPlayerId(playerId);
   return av;
 }

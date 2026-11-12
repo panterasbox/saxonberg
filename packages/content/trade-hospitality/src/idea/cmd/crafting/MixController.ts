@@ -61,8 +61,9 @@ export default class MixController<M extends MixModel = MixModel> extends CraftC
     }
     const drink = outcome.output;
     if (MixinApi.isContainable(drink) && MixinApi.isContainer(holder)) {
-      if (MixinApi.isCarrying(holder)) holder.receiveOrSetDown(drink);
-      else ContainmentApi.move(drink, holder);
+      // Made (D-W7a): to whoever made it, else set down where they stand.
+      if (holder.canReceive(drink) === null) ContainmentApi.move(drink, holder);
+      else ContainmentApi.move(drink, (MixinApi.isContainable(holder) ? holder.getContainer() : null) ?? holder);
     }
     return drink;
   }

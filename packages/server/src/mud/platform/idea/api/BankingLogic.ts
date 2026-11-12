@@ -463,10 +463,11 @@ async function moveCoins(
   const plan = Coinage.planSpend(currency, cashSupply(from, currency), value);
   if (!plan) return false;
   return takeCoins(from, plan, async (piece) => {
-    // Granted (D-W7a): the ledger has already moved — a purse or a pocket,
-    // else home; never refused after the ledger, never lost.
-    if (MixinApi.isCarrying(to)) await to.receiveGranted(piece);
-    else ContainmentApi.move(piece, to);
+    // The ledger has already moved — a purse or a pocket, else set down
+    // where they stand; never refused after the ledger, never lost (W8).
+    const here = MixinApi.isContainable(to) ? to.getContainer() : null;
+    if (to.canReceive(piece) === null || here === null) ContainmentApi.move(piece, to);
+    else ContainmentApi.move(piece, here);
   });
 }
 
@@ -1943,10 +1944,12 @@ async function dispenseCoin(into: Stuff & Container, amount: Money): Promise<Stu
     stamped.currency = line.currency;
     stamped.denomination = line.denomination;
     (coin as unknown as Stackable).setQuantity(line.count);
-    // Cash the ledger has already moved is GRANTED (D-W7a): a purse or a
-    // pocket, else home — never refused after the ledger, never lost.
-    if (MixinApi.isCarrying(into)) await into.receiveGranted(coin as unknown as Stuff & Containable);
-    else ContainmentApi.move(coin as unknown as Stuff & Containable, into);
+    // Cash the ledger has already moved (D-W7a): a purse or a pocket, else
+    // set down where they stand — never refused after the ledger, never lost.
+    const cash = coin as unknown as Stuff & Containable;
+    const here = MixinApi.isContainable(into) ? into.getContainer() : null;
+    if (into.canReceive(cash) === null || here === null) ContainmentApi.move(cash, into);
+    else ContainmentApi.move(cash, here);
     if (!representative) representative = coin;
   }
   // `dispense` yields ≥1 line for a positive amount; the largest is returned
@@ -2163,9 +2166,13 @@ async function issueCardImpl(
     // and a purchasing NPC never puts its house card away — one hand gone
     // for good, so a keeper carried one good at a time and every beat's
     // second `get` was refused.
-    if (MixinApi.isCarrying(principal)) {
-      await principal.receiveGranted(card as unknown as Stuff & Containable, { prefer: 'pockets' });
-    } else ContainmentApi.move(card as unknown as Stuff & Containable, principal);
+    // W8: the body places it (else it is set down where they stand), and a
+    // carrier puts it away at once — a pocket it fits becomes its home.
+    const kept = card as unknown as Stuff & Containable;
+    const here = MixinApi.isContainable(principal) ? principal.getContainer() : null;
+    if (principal.canReceive(kept) === null || here === null) ContainmentApi.move(kept, principal);
+    else ContainmentApi.move(kept, here);
+    if (MixinApi.isCarrying(principal) && principal.tierOf(kept) === 'hand') principal.stow(kept);
   }
   return card as Stuff & CredentialWallet;
 }

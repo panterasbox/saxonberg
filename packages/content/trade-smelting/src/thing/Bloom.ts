@@ -170,8 +170,9 @@ export default class Bloom extends BloomBase {
 /** Put a freshly made thing where the bloom was standing. */
 async function place(item: Stuff, where: Stuff | null): Promise<void> {
   if (!where || !MixinApi.isContainer(where)) return;
-  if (MixinApi.isCarrying(where)) where.receiveOrSetDown(item as unknown as Stuff & Containable);
-  else ContainmentApi.move(item as unknown as Stuff & Containable, where as unknown as Stuff & Container);
+  // Made (D-W7a): to whoever made it, else set down where they stand.
+  if (where.canReceive(item as unknown as Stuff & Containable) === null) ContainmentApi.move(item as unknown as Stuff & Containable, where as unknown as Stuff & Container);
+  else ContainmentApi.move(item as unknown as Stuff & Containable, (MixinApi.isContainable(where) ? where.getContainer() : null) ?? where as unknown as Stuff & Container);
 }
 
 function round3(kg: number): number {

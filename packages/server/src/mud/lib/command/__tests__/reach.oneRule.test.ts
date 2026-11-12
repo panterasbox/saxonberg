@@ -17,6 +17,7 @@ import { CommandDefinition } from '../CommandDefinition';
 import { CommandGiverMixin } from '../CommandGiver';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { Creature } from '../../creature/Creature';
+import { CarryingMixin } from '../../slot/Carrying';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import Location from '../../location/Location';
@@ -32,7 +33,7 @@ import type { Affordance } from '../CommandGiver';
 import type { MqlOneResult } from '../../../api/mql';
 
 const PLAN = '/stuff/idea/species/BodyPlan/onerule-biped';
-class Person extends CommandGiverMixin(Creature) {}
+class Person extends CommandGiverMixin(CarryingMixin(Creature)) {}
 class Knife extends WieldableMixin(SlottableMixin(Thing)) {}
 class Bag extends SealableMixin(WearableMixin(SlottableMixin(Holder))) {}
 

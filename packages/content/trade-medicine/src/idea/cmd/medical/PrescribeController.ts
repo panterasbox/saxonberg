@@ -11,6 +11,7 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePathPrefixes } from '@saxonberg/server/mud/lib/paths';
 import type Condition from '@saxonberg/server/mud/platform/idea/Condition';
@@ -77,12 +78,12 @@ export default class PrescribeController extends CommandController<PrescribeMode
         (giver as Stuff).getIdentityPath?.() ?? (giver as Stuff).getTemplatePath?.() ?? '',
       writtenAtS: WorldClockApi.getNow().rawValue(),
     });
-    // The slip is the act's product — into the prescriber's keeping. The
-    // view's `requiresEmbodied` admits only a body, and every body carries.
-    if (!MixinApi.isCarrying(giver)) {
-      throw new Error('prescribe: requiresEmbodied admitted a giver that cannot carry');
-    }
-    giver.receiveOrSetDown(slip as unknown as Stuff & Containable);
+    // The slip is the act's product — into the prescriber's keeping, else
+    // set down where they stand (made, D-W7a; size and carrying W8).
+    const written = slip as unknown as Stuff & Containable;
+    const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+    if (MixinApi.isContainer(giver) && giver.canReceive(written) === null) ContainmentApi.move(written, giver);
+    else if (here !== null) ContainmentApi.move(written, here);
 
     if (MixinApi.isAdvancing(giver)) {
       await giver.creditDeed({

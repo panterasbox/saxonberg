@@ -75,10 +75,16 @@ export default class GiveController extends CommandController<GiveModel> {
 
     // ⭐ A HANDED thing is offered (size and carrying D-W7a): if they
     // cannot take it, nothing changes hands — asked before anything moves.
-    if (MixinApi.isCarrying(recipient) && recipient.canReceive(item) !== null) {
+    const refused = recipient.canReceive(item);
+    if (refused !== null) {
+      const full = refused.reason === 'nowhere-to-carry' && refused.facts.held.length > 0;
       MessageApi.scene(giver)
         .topic('sense.survey')
-        .toSelf(Mml.compose`${Mml.actor(recipient)} has nowhere to take ${Mml.thing(item)} — their hands are full. You keep it.`)
+        .toSelf(
+          full
+            ? Mml.compose`${Mml.actor(recipient)} has nowhere to take ${Mml.thing(item)} — their hands are full. You keep it.`
+            : Mml.compose`${Mml.actor(recipient)} has nowhere to take ${Mml.thing(item)}. You keep it.`,
+        )
         .send();
       context.note({ kind: 'controller-rejected', reason: 'recipient-hands-full', detail: item.getPresentation() });
       return;
@@ -108,8 +114,7 @@ export default class GiveController extends CommandController<GiveModel> {
       }
     }
 
-    if (MixinApi.isCarrying(recipient)) recipient.receive(item as Stuff & Containable);
-    else ContainmentApi.move(item as Stuff & Containable, recipient as Stuff & Container);
+    ContainmentApi.move(item as Stuff & Containable, recipient as Stuff & Container);
 
     MessageApi.scene(giver)
       .topic('sense.survey')

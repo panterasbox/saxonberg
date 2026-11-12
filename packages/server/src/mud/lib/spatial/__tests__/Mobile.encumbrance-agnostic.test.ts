@@ -23,14 +23,14 @@ describe('move substrate stays encumbrance-agnostic', () => {
     // The lift gate would decline this via `get`, but the containment
     // primitive must not — a seat in a named hand just lands it (the flip,
     // W7: a raw move onto a body is the loose-on-body veto, not weight).
-    expect(() => sparrow.receive(anvil, { slot: 'hand:left' })).not.toThrow();
+    expect(() => sparrow.seatInSlot(anvil, 'hand:left')).not.toThrow();
     expect(anvil.getContainer()).toBe(sparrow);
   });
 
   it('a raw move does not drain endurance', () => {
     const bearer = bearerCreature(70);
     const before = bearer.getReserve('endurance')!.current.rawValue();
-    bearer.receive(massThing(200), { slot: 'hand:left' });
+    bearer.seatInSlot(massThing(200), 'hand:left');
     expect(bearer.getReserve('endurance')!.current.rawValue()).toBe(before);
   });
 });

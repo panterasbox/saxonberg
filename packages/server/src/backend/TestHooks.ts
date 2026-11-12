@@ -673,8 +673,10 @@ export class TestHooks {
         await StuffApi.destruct(thing);
         throw new Error(`'${handle}' stands nowhere to put '${templatePath}' down`);
       }
-      if (MixinApi.isCarrying(into)) await into.receiveGranted(thing);
-      else ContainmentApi.move(thing, into);
+      // ⭐ The harness hands it as play does (size and carrying W8): the
+      // body places it, or the move throws — a hand that cannot take it is
+      // the test's finding, never a silent drop at the feet.
+      ContainmentApi.move(thing, into);
       return thing.stuffId;
     });
   }

@@ -113,8 +113,9 @@ export default class Die extends StrikingDieMixin(MarkedMixin(ToolMixin(DurableM
     await StuffApi.destruct(blank);
     const into = scope !== null && MixinApi.isContainer(scope) ? scope : MixinApi.isContainer(by) ? by : null;
     if (into !== null && MixinApi.isContainable(token)) {
-      if (MixinApi.isCarrying(into)) into.receiveOrSetDown(token as Stuff & Containable);
-      else ContainmentApi.move(token as Stuff & Containable, into as Stuff & Container);
+      // Made (D-W7a): to whoever made it, else set down where they stand.
+      if (into.canReceive(token as Stuff & Containable) === null) ContainmentApi.move(token as Stuff & Containable, into as Stuff & Container);
+      else ContainmentApi.move(token as Stuff & Containable, (MixinApi.isContainable(into) ? into.getContainer() : null) ?? into as Stuff & Container);
     }
     await PersistableApi.captureHostOf(token);
     if (MixinApi.isDurable(self)) self.wear();

@@ -186,8 +186,9 @@ export default class Garment extends GarmentBase {
     const rags = await StuffApi.clone<Stuff>(RAG_TEMPLATE, undefined, { madeFrom: self });
     if (MixinApi.isStackable(rags)) rags.setQuantity(n);
     if (where !== null && MixinApi.isContainer(where) && MixinApi.isContainable(rags)) {
-      if (MixinApi.isCarrying(where)) where.receiveOrSetDown(rags);
-      else ContainmentApi.move(rags, where);
+      // Made (D-W7a): to whoever made it, else set down where they stand.
+      if (where.canReceive(rags) === null) ContainmentApi.move(rags, where);
+      else ContainmentApi.move(rags, (MixinApi.isContainable(where) ? where.getContainer() : null) ?? where);
     }
     // The name first: a destroyed thing has none (the drive's "tear undefined").
     const line = `You tear ${self.getPresentation()} into ${n} rag${n === 1 ? '' : 's'}.`;

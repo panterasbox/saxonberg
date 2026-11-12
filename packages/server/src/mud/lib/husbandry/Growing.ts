@@ -64,6 +64,8 @@ import { TemplatePaths } from '../paths';
 import { Quantity } from '../quantity';
 import type { Light } from '../perception/Light';
 import { ContainmentApi } from '../../api/containment';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 import { PersistableApi } from '../../api/persistable';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { Grade, type GradeBand } from '../craft/Grade';
@@ -1122,8 +1124,18 @@ function growingPickPlan(
           const crop = await StuffApi.clone<Stuff>(cropPath, undefined, { madeFrom: plant });
           stampCrop(crop, by, band, cropPath);
           if (MixinApi.isContainable(crop) && MixinApi.isContainer(by)) {
-            if (MixinApi.isCarrying(by)) by.receiveOrSetDown(crop as Stuff & Containable);
-            else ContainmentApi.move(crop as Stuff & Containable, by as Stuff & Container);
+            // Made (D-W7a; W8): to whoever made it, else set down where they
+            // stand — and they are told. The fallback is this mint's.
+            if (by.canReceive(crop as Stuff & Containable) === null) ContainmentApi.move(crop as Stuff & Containable, by as Stuff & Container);
+            else {
+              ContainmentApi.move(crop as Stuff & Containable, (MixinApi.isContainable(by) ? by.getContainer() : null) ?? by as Stuff & Container);
+              if (MixinApi.isSensor(by)) {
+                MessageApi.scene(by)
+                  .topic('act.deed')
+                  .toSelf(Mml.compose`Your hands are full — you set ${Mml.thing(crop as Stuff & Containable)} down.`)
+                  .send();
+              }
+            }
           }
           crops.push(crop);
         }
@@ -1288,8 +1300,18 @@ async function landSwath(
         MixinApi.isContainer(by) && !(MixinApi.isLoadBearing(by) && by.wouldExceedCeiling(crop));
       if (MixinApi.isContainable(crop)) {
         const dest = (carry ? by : where) as Stuff & Container;
-        if (MixinApi.isCarrying(dest)) dest.receiveOrSetDown(crop as Stuff & Containable);
-        else ContainmentApi.move(crop as Stuff & Containable, dest);
+        // Made (D-W7a; W8): to whoever made it, else set down where they
+        // stand — and they are told. The fallback is this mint's.
+        if (dest.canReceive(crop as Stuff & Containable) === null) ContainmentApi.move(crop as Stuff & Containable, dest);
+        else {
+          ContainmentApi.move(crop as Stuff & Containable, (MixinApi.isContainable(dest) ? dest.getContainer() : null) ?? dest);
+          if (MixinApi.isSensor(dest)) {
+            MessageApi.scene(dest)
+              .topic('act.deed')
+              .toSelf(Mml.compose`Your hands are full — you set ${Mml.thing(crop as Stuff & Containable)} down.`)
+              .send();
+          }
+        }
       }
       if (!carry) dropped++;
       crops.push(crop);

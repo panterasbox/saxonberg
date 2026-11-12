@@ -28,7 +28,7 @@ import Interactive from '../../../platform/idea/Interactive';
 import Avatar from '../../../platform/agent/PrimaryAvatar';
 import Locale from '../../../platform/location/Locale';
 import Tablet from '../../../platform/thing/Tablet';
-import { makeBody } from '../../slot/__tests__/carrying-fixture';
+import { makeBody, withHands } from '../../slot/__tests__/carrying-fixture';
 // ⭐ `Tablet` is the SHIPPED `Display` — two rows name it (the lounge's
 // and trade-hospitality's house tablet), and it is what these cases used
 // to reach through `Screen`, a class no row has ever named. The wall-TV
@@ -73,6 +73,8 @@ async function makeViewer(name: string, room: Locale): Promise<Viewer> {
   seq += 1;
   const avatar = await StuffApi.create(() => new Avatar());
   avatar.setName(name);
+  // A body that holds a screen has hands (size and carrying W8).
+  withHands(avatar);
   stampTemplatePathForTest(avatar, `/platform/agent/Avatar/${name.toLowerCase()}`);
   ContainmentApi.move(avatar, room);
   const interactive = await StuffApi.create(
@@ -278,7 +280,7 @@ describe('DisplayMixin — a display drives itself', () => {
       // rule 2), never what sits loose on it — and nothing sits loose on a
       // body any more (the W7 flip). Ann is given hands and holds it.
       a.avatar.setSpecies(makeBody().me.getSpecies()!);
-      a.avatar.receive(tablet);
+      ContainmentApi.move(tablet, a.avatar);
       expect(a.avatar.handSlots().some((h) => a.avatar.getOccupants(h).has(tablet as never))).toBe(true);
       tablet.show({ kind: 'card', cardId: 'who', key: 'who' });
       expect(a.cards().length).toBe(1);

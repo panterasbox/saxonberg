@@ -8,6 +8,7 @@
  */
 
 import { Actor } from '../../creature/Actor';
+import { CarryingMixin } from '../Carrying';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import Thing from '../../../platform/thing/Thing';
@@ -22,15 +23,13 @@ import Pack from '../../../platform/thing/equipment/Pack';
 import type { PlacementEntry } from '../../spatial/Placing';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Containable } from '../../spatial/Containable';
-import type { Carrying } from '../Carrying';
 import type { Container } from '../../spatial/Container';
 import { ContainmentApi } from '../../../api/containment';
-import { MixinApi } from '../../../api/mixin';
 import { material } from '../../spatial/__tests__/size-fixture';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 
-/** An acting body (Mobile, a Combatant, a Sensor) — what a player's is. */
-export class Body extends Actor {}
+/** An acting body that carries (Mobile, a Combatant, a Sensor) — what a player's is. */
+export class Body extends CarryingMixin(Actor) {}
 /** A thing a hand takes (a knife, a pole, a compass). */
 export class Tool extends WieldableMixin(SlottableMixin(Thing)) {}
 /** A worn bag (a satchel on the torso, a rucksack on the back, a pouch). */
@@ -44,8 +43,13 @@ export interface BodySpec {
   hands?: boolean;
 }
 
-/** A body on a fresh plan. Returns the body and its plan path. */
-export function makeBody(spec: BodySpec = {}): { me: Body; plan: string } {
+/**
+ * A fresh species on a fresh plan with real hands (or none), its plan path
+ * beside it — give any body hands with `body.setSpecies(handsSpecies().species)`
+ * (size and carrying W8: a body with no plan has no honest place for a
+ * thing, so a fixture that holds things needs one).
+ */
+export function handsSpecies(spec: BodySpec = {}): { species: Species; plan: string } {
   const n = seq++;
   const plan = makeStuff(() => new BodyPlan());
   plan.setName(`carrying-w4-${n}`);
@@ -85,9 +89,15 @@ export function makeBody(spec: BodySpec = {}): { me: Body; plan: string } {
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
   stampTemplatePathForTest(species, `/stuff/idea/species/test/carrying-w4-${n}`);
+  return { species, plan: path };
+}
+
+/** A body on a fresh plan. Returns the body and its plan path. */
+export function makeBody(spec: BodySpec = {}): { me: Body; plan: string } {
+  const { species, plan } = handsSpecies(spec);
   const me = makeStuff(() => new Body());
   me.setSpecies(species);
-  return { me, plan: path };
+  return { me, plan };
 }
 
 /** A holdable thing of `kg`, optionally with a box (m). */
@@ -162,18 +172,16 @@ export function pack(name: string, kg: number, box: [number, number, number], sh
 }
 
 /**
- * ⭐ Put `item` on `body` the one way a thing comes onto a body (the flip,
- * W7): `receive` — a free hand, else a pocket or a worn bag it fits. Throws
- * on a refusal, so a test that over-fills a body says so instead of
- * carrying a thing nowhere.
+ * Put `item` on `body` — `ContainmentApi.move`, which a body places (a free
+ * hand, else a pocket or a worn bag it fits) or refuses by throwing (size
+ * and carrying W8). Kept as the suite's one-word idiom.
  */
 export function carry(body: unknown, item: unknown): void {
-  if (!MixinApi.isCarrying(body as Stuff)) {
-    // Not a body (a holder, a stub): the plain move it always was.
-    ContainmentApi.move(item as Stuff & Containable, body as Stuff & Container);
-    return;
-  }
-  const b = body as Stuff & Carrying;
-  const refused = b.receive(item as Stuff & Containable);
-  if (refused !== null) throw new Error(`carry: ${b.refusalWords(refused)}`);
+  ContainmentApi.move(item as Stuff & Containable, body as Stuff & Container);
+}
+
+/** Give `b` hands — a fresh biped plan (size and carrying W8: no plan, no place). */
+export function withHands<T extends { setSpecies(s: Species | null): void }>(b: T, spec: BodySpec = {}): T {
+  b.setSpecies(handsSpecies(spec).species);
+  return b;
 }

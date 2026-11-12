@@ -318,8 +318,9 @@ export default class Plant extends PlantBase {
     const { stand, part, ground } = at;
     const piece = await stand.takeSpecimen(stand.specimenVariation());
     if (MixinApi.isContainable(piece) && MixinApi.isContainer(actor)) {
-      if (MixinApi.isCarrying(actor)) actor.receiveOrSetDown(piece);
-      else ContainmentApi.move(piece, actor);
+      // Made (D-W7a): to whoever made it, else set down where they stand.
+      if (actor.canReceive(piece) === null) ContainmentApi.move(piece, actor);
+      else ContainmentApi.move(piece, (MixinApi.isContainable(actor) ? actor.getContainer() : null) ?? actor);
     }
     return { ok: true, facts: { piece, from: "stem", at: ground, part } };
   }
@@ -738,8 +739,9 @@ export default class Plant extends PlantBase {
         // ⭐ The move places it and captures its host in one call. A seed
         // a flowering set has no actor, so it carries no title.
         if (MixinApi.isContainable(seed)) {
-          if (MixinApi.isCarrying(target)) target.receiveOrSetDown(seed as Stuff & Containable);
-          else ContainmentApi.move(seed as Stuff & Containable, target as Stuff & Container);
+          // Made (D-W7a): to whoever made it, else set down where they stand.
+          if (target.canReceive(seed as Stuff & Containable) === null) ContainmentApi.move(seed as Stuff & Containable, target as Stuff & Container);
+          else ContainmentApi.move(seed as Stuff & Containable, (MixinApi.isContainable(target) ? target.getContainer() : null) ?? target as Stuff & Container);
         } else {
           await PersistableApi.captureHostOf(this);
         }

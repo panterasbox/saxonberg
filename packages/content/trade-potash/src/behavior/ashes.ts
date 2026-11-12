@@ -91,8 +91,9 @@ export const brain = class {
       for (const heap of ash) {
         if (!(await brain.buy(heap, counter, account, hand))) unpaid += 1;
         if (MixinApi.isContainable(heap)) {
-          if (MixinApi.isCarrying(hand)) hand.receiveOrSetDown(heap);
-          else ContainmentApi.move(heap, hand as unknown as Stuff & Container);
+          // Made (D-W7a): to whoever made it, else set down where they stand.
+          if (hand.canReceive(heap) === null) ContainmentApi.move(heap, hand as unknown as Stuff & Container);
+          else ContainmentApi.move(heap, (MixinApi.isContainable(hand) ? hand.getContainer() : null) ?? hand as unknown as Stuff & Container);
         }
       }
       MessageApi.scene(hand)

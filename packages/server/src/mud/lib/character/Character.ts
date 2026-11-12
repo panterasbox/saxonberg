@@ -41,6 +41,7 @@ import { Creature } from '../creature/Creature';
 import { GenderedMixin } from './Gendered';
 import { PersonaMixin } from './Persona';
 import { DispositionedMixin } from '../trait/Dispositioned';
+import { CarryingMixin } from '../slot/Carrying';
 import { HaulerMixin } from '../slot/Hauler';
 import { PerceiverMixin } from '../description/Perceiver';
 import { VocalMixin } from '../message/Vocal';
@@ -100,6 +101,9 @@ import type { MarkupAugmenter } from '../../api/mml';
 //   competence-conferred verbs onto the giver's affordance stack, so it
 //   needs CommandGiver's surface (pushCommandSource/popCommandSource) in
 //   its base.
+// - CarryingMixin (size and carrying W8) sits innermost, on the body: a
+//   person carries — hands, pockets, a pack — and places what is moved
+//   onto them (`arrivalFor`). It composes only on the classes that carry.
 const CharacterBase = AdvancementMixin(
   CommandGiverMixin(
   HaulerMixin(
@@ -112,7 +116,7 @@ const CharacterBase = AdvancementMixin(
             DispositionedMixin(
             PersonaMixin(
               StatusMixin(
-              BeliefStoreMixin(HidingMixin(EmployedMixin(Actor)))
+              BeliefStoreMixin(HidingMixin(EmployedMixin(CarryingMixin(Actor))))
               )
             )
             )
@@ -223,23 +227,12 @@ export abstract class Character extends CharacterBase {
       try {
         const garment = await StuffApi.clone(path);
         if (!MixinApi.isContainable(garment)) continue;
-        // Put on by its claim; what claims nothing is carried (granted, D32).
-        if (MixinApi.isCarrying(self)) await self.receiveGranted(garment, { for: 'wear' });
+        // ⭐ Put on by its claim — a seating, said exactly (size and
+        // carrying W8); what claims nothing on this body (a pouch) the body
+        // places (`move`: it hangs from the belt put on before it).
+        const slots = bodyPlanPath && MixinApi.isWearable(garment) ? garment.getSlotClaim(bodyPlanPath) : [];
+        if (slots.length > 0 && MixinApi.isSlottable(garment)) this.seatInSlots(garment, slots);
         else ContainmentApi.move(garment, self as never);
-        if (MixinApi.isCarrying(self)) continue;
-        // ⭐ `isSlotted`, not a cast. Every other narrowing in this
-        // method is a `MixinApi` predicate and this one was a bare
-        // assertion (fixed at review, 2026-09-24) — which mattered:
-        // a host with a body plan but no slots threw into the catch
-        // below and lost the garment SILENTLY. Now it is a skip.
-        if (
-          bodyPlanPath &&
-          MixinApi.isWearable(garment) &&
-          MixinApi.isSlotted(self)
-        ) {
-          const slots = garment.getSlotClaim(bodyPlanPath);
-          if (slots.length) self.occupyAll(garment, slots);
-        }
       } catch {
         /* a bad garment costs that garment, not the character */
       }

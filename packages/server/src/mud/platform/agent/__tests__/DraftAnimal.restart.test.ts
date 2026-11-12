@@ -124,7 +124,8 @@ describe('a cast beast keeps its tack across a restart', () => {
     ContainmentApi.move(m, yard);
     const s = saddle();
     ContainmentApi.move(s, yard);
-    expect(m.receive(s, { for: 'wear' })).toBeNull();
+    // A handless body handed its tack puts it on (W8: `move` places it).
+    ContainmentApi.move(s, m);
     expect(m.getOccupants('back').has(s as never)).toBe(true);
 
     // The restart: every host is captured, then the world is gone.

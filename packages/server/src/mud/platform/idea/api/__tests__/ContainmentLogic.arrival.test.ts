@@ -1,133 +1,105 @@
 /**
- * `Carrying.receive` at W0 — **it behaves exactly as the move it replaces.**
- *
- * size-and-carrying W0: `receive(item)` is `carry(body, item)`
- * and `receive(item, { slot })` is `seatInSlot(item, slot)`. Every port in
- * W4/W5 swaps one for the other and must change nothing until the flip, so
- * each case here runs the old call on one body and `receive` on a twin and
- * compares what the world looks like afterwards.
+ * ⭐⭐ `move` just works (size and carrying W8): a body is a destination that
+ * places what arrives — a hand, the other hand, a pocket it fits — and when
+ * it has no honest place, `move` THROWS naming why; it never lands the
+ * thing anywhere but the body. `canReceive` is the same answer, read dry.
  */
+import '../../../../../test-bootstrap';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { StuffApi } from '../../../../api/stuff';
+import { ContainmentApi, ContainmentError } from '../../../../api/containment';
+import { MixinApi } from '../../../../api/mixin';
+import { Placements } from '../../../../lib/spatial/Placement';
+import type { PlacementEntry } from '../../../../lib/spatial/Placing';
+import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { installForms } from '../../../../lib/spatial/__tests__/size-fixture';
+import { makeBody, tool, wornGarment } from '../../../../lib/slot/__tests__/carrying-fixture';
+import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
+import Location from '../../../../lib/location/Location';
+import Holder from '../../../../lib/stuff/Holder';
 
-import '../../../../test-bootstrap';
-import { carry } from './carrying-fixture';
-import { describe, it, expect, afterEach } from 'vitest';
-import { SlottableMixin } from '../Slottable';
-import { SlottedMixin } from '../Slotted';
-import { ContainableMixin } from '../../spatial/Containable';
-import { ContainerMixin } from '../../spatial/Container';
-import Good from '../../stuff/Good';
-import { Creature } from '../../creature/Creature';
-import Species from '../../../platform/idea/species/Species';
-import BodyPlan from '../../../platform/idea/species/BodyPlan';
-import { StuffApi } from '../../../api/stuff';
-import { MixinApi } from '../../../api/mixin';
-import { ContainmentApi } from '../../../api/containment';
-import type { Stuff } from '../../stuff/Stuff';
-import type { Containable } from '../../spatial/Containable';
-import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
+const TROUSERS: PlacementEntry[] = [
+  { member: Placements.POCKET, name: 'left pocket', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 },
+];
+const key = () => tool('key', 0.02, [0.06, 0.025, 0.003]);
+const mug = () => tool('mug', 0.35, [0.09, 0.09, 0.1]);
 
-/** A thing a hand can hold. */
-class TestCup extends SlottableMixin(ContainableMixin(Good)) {}
-
-/** A plain box on the floor — somewhere a thing comes FROM. */
-class TestBox extends ContainerMixin(ContainableMixin(Good)) {}
-
-/** Slotted, not a body — it carries nothing. */
-class Rack extends SlottedMixin(Good) {}
-
-let uniq = 0;
-
-function body(): Creature {
-  const suffix = `-${uniq++}`;
-  const plan = makeStuff(() => new BodyPlan());
-  plan.setName(`carrying-test-biped${suffix}`);
-  plan.setSlots([
-    { name: 'hand:right', accepts: 'SlottableMixin', bodyPart: 'body.hand.right' },
-    { name: 'hand:left', accepts: 'SlottableMixin', bodyPart: 'body.hand.left' },
-  ]);
-  plan.setBodyParts([
-    { key: 'body', parent: null, tissues: [] },
-    { key: 'body.hand.right', parent: 'body', tissues: [], serves: ['manipulation'] },
-    { key: 'body.hand.left', parent: 'body', tissues: [], serves: ['manipulation'] },
-  ]);
-  stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/carrying-test${suffix}`);
-  const species = makeStuff(() => new Species());
-  species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/stuff/idea/species/test/carrying${suffix}`);
-  const creature = makeStuff(() => new Creature());
-  creature.setSpecies(species);
-  return creature;
-}
-
-function cup(): TestCup {
-  const c = makeStuff(() => new TestCup());
-  c.setShortDescription('a tin cup');
-  c.setPrimaryKeyword('cup');
-  return c;
-}
-
-/** What the world says about one item after it moved. */
-function snapshot(item: Stuff & Containable, holder: Creature, from: TestBox | null) {
-  return {
-    inHolder: item.getContainer() === holder,
-    placement: item.getPlacement(),
-    holderHasIt: holder.getContents().includes(item),
-    fromStillHasIt: from ? from.getContents().includes(item) : null,
-    rightHand: (holder.getOccupant('hand:right') as Stuff | null) === (item as Stuff),
-  };
-}
-
-describe('Carrying — composed on every body', () => {
-  afterEach(() => StuffApi.clearAll());
-
-  it('a Creature is Carrying; a slotted rack is not', () => {
-    expect(MixinApi.isCarrying(body())).toBe(true);
-    expect(MixinApi.isCarrying(makeStuff(() => new Rack()))).toBe(false);
+describe('ContainmentApi.move onto a body — the body places what arrives (W8)', () => {
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    installForms();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
   });
 
-  it('declares carry.order, hands-first by default', () => {
-    const entry = MixinApi.collectSettingsSchema(Creature).find((e) => e.entry.key === 'carry.order');
-    expect(entry?.sourceMixin).toBe('CarryingMixin');
-    expect(entry?.entry.default).toBe('hands-first');
-    expect(entry?.entry.enumValues).toEqual(['hands-first', 'pockets-first']);
-  });
-});
-
-describe('receive — the receiving act after the flip (W0 → W7)', () => {
-  afterEach(() => StuffApi.clearAll());
-
-  it('from nowhere: a direct move onto a body is refused loose-on-body; receive puts it in a hand', () => {
-    const [a, b] = [body(), body()];
-    const [ca, cb] = [cup(), cup()];
-    expect(() => ContainmentApi.move(ca, a)).toThrow(/loose-on-body/);
-    expect(ca.getContainer()).toBeNull();
-    expect(b.receive(cb)).toBeNull();
-    expect(b.tierOf(cb)).toBe('hand');
+  it('a mug lands in a hand; a second in the other; a key in a pocket; a fourth throws naming the hands and the pockets', async () => {
+    const { me, plan } = makeBody();
+    ContainmentApi.move(me, makeStuff(() => new Location()));
+    const trousers = await wornGarment(me, plan, 'trousers', 'legs', TROUSERS);
+    const [m1, m2, k, m3] = [mug(), mug(), key(), mug()];
+    ContainmentApi.move(m1, me);
+    expect(me.tierOf(m1)).toBe('hand');
+    ContainmentApi.move(m2, me);
+    expect(me.tierOf(m2)).toBe('hand');
+    expect(me.freeHands()).toBe(0);
+    ContainmentApi.move(k, me);
+    expect(k.getPlacement()).toEqual({ host: trousers, name: 'left pocket' });
+    expect(me.isHonest(k)).toBe(true);
+    // The dry read says so first…
+    const refused = me.canReceive(m3);
+    expect(refused?.reason).toBe('nowhere-to-carry');
+    // …and the act throws rather than lie: nothing moved.
+    let thrown: unknown = null;
+    try {
+      ContainmentApi.move(m3, me);
+    } catch (err) {
+      thrown = err;
+    }
+    expect(thrown).toBeInstanceOf(ContainmentError);
+    const e = thrown as ContainmentError;
+    expect(e.reason).toBe('nowhere-to-carry');
+    expect(e.message).toMatch(/has no place on/);
+    expect(e.message).toMatch(/hands hold .*mug.* and .*mug/);
+    expect(e.message).toMatch(/tried .*trousers/);
+    expect(m3.getContainer()).toBeNull();
   });
 
   it('out of a box: leaves the box, lands in a hand', () => {
-    const b = body();
-    const boxB = makeStuff(() => new TestBox());
-    const cb = cup();
-    ContainmentApi.move(cb, boxB);
-    expect(b.receive(cb)).toBeNull();
-    expect(snapshot(cb, b, boxB).fromStillHasIt).toBe(false);
-    expect(b.tierOf(cb)).toBe('hand');
+    const { me } = makeBody();
+    const box = makeStuff(() => new Holder());
+    const m = mug();
+    ContainmentApi.move(m, box);
+    ContainmentApi.move(m, me);
+    expect(box.getContents()).not.toContain(m);
+    expect(me.tierOf(m)).toBe('hand');
   });
 
-  it('`prefer: pockets` with nothing worn still takes a free hand', () => {
-    const b = body();
-    const c = cup();
-    expect(b.receive(c, { prefer: 'pockets' })).toBeNull();
-    expect(b.tierOf(c)).toBe('hand');
+  it('a key moved out of its pocket onto its owner goes to a hand, never loose', async () => {
+    const { me, plan } = makeBody();
+    ContainmentApi.move(me, makeStuff(() => new Location()));
+    const trousers = await wornGarment(me, plan, 'trousers', 'legs', TROUSERS);
+    const k = key();
+    ContainmentApi.move(k, trousers, 'left pocket');
+    expect(me.tierOf(k)).toBe('ready');
+    ContainmentApi.move(k, me);
+    expect(k.getPlacement()).toBeNull();
+    expect(me.tierOf(k)).toBe('hand');
+    expect(me.isHonest(k)).toBe(true);
   });
 
-  it('with a slot: seated there, exactly as seatInSlot did', () => {
-    const [a, b] = [body(), body()];
-    const [ca, cb] = [cup(), cup()];
-    a.seatInSlot(ca, 'hand:right');
-    expect(b.receive(cb, { slot: 'hand:right' })).toBeNull();
-    expect(snapshot(cb, b, null)).toEqual(snapshot(ca, a, null));
-    expect(snapshot(cb, b, null)).toMatchObject({ inHolder: true, rightHand: true });
+  it('a slot named: seated there, exactly', () => {
+    const { me } = makeBody();
+    const m = mug();
+    me.seatInSlot(m, 'hand:left');
+    expect(me.getOccupant('hand:left')).toBe(m);
+    expect(me.isSeating(m)).toBe(false);
+  });
+
+  it('every container answers canReceive — a box by its fit, with no narrowing', () => {
+    const box = makeStuff(() => new Holder());
+    expect(box.canReceive(mug())).toBeNull();
+    expect(MixinApi.isCarrying(box)).toBe(false);
   });
 });

@@ -99,6 +99,31 @@ describe('StuffApi.ensureConstituent', () => {
     expect(order).toEqual(['/b/parent', '/b/child']);
   });
 
+  it('⭐ a CLONE waits for a row already loading; a row loading does not (size and carrying W8)', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    vi.spyOn(StuffApi, 'clone').mockImplementation(async (p: string) => {
+      await gate;
+      return makeStuffAtPath(() => new Holder(), p) as never;
+    });
+    // Another body's load of the species is in flight…
+    const first = StuffApi.singleton('/s/mule');
+    let cloneDone = false;
+    let rowDone = false;
+    // …a clone holder (its own path not loading) waits for it;
+    const asClone = StuffApi.ensureConstituent('/s/mule', '/w/yard/mule').then(() => (cloneDone = true));
+    // a row that is itself loading (the cycle case) returns at once.
+    const asRow = StuffApi.ensureConstituent('/s/mule', '/s/mule').then(() => (rowDone = true));
+    await asRow;
+    expect(rowDone).toBe(true);
+    expect(cloneDone).toBe(false);
+    release();
+    await first;
+    await asClone;
+    expect(cloneDone).toBe(true);
+    expect(StuffApi.findByTemplatePath('/s/mule')).not.toBeNull();
+  });
+
   it('a bad citation warns and never throws — a degraded holder, not a failed clone', async () => {
     vi.spyOn(Template, 'findByPath').mockResolvedValue(null);
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);

@@ -8,6 +8,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DonateController from '../idea/cmd/medical/DonateController';
 import BloodWindow from '../thing/BloodWindow';
@@ -114,7 +115,7 @@ async function runDonate(giver: Stuff, b: Stuff, w: BloodWindow): Promise<void> 
 
 describe('donate — the gift credit', () => {
   it('⭐ a player giving their OWN blood earns a renown reaction', async () => {
-    const giver = makeStuff(() => new TestPlayer());
+    const giver = withHands(makeStuff(() => new TestPlayer()));
     stampTemplatePathForTest(giver, '/platform/agent/Avatar/donor-p');
     const w = windowWithVault();
     await runDonate(giver, bag(giver.getIdentityPath()!), w);
@@ -124,7 +125,7 @@ describe('donate — the gift credit', () => {
   });
 
   it('an NPC giving earns nothing (plumbing)', async () => {
-    const giver = makeStuff(() => new TestNpc());
+    const giver = withHands(makeStuff(() => new TestNpc()));
     stampTemplatePathForTest(giver, '/platform/agent/Avatar/donor-npc');
     const w = windowWithVault();
     await runDonate(giver, bag(giver.getIdentityPath()!), w);
@@ -132,7 +133,7 @@ describe('donate — the gift credit', () => {
   });
 
   it("a player giving someone ELSE's unit earns nothing", async () => {
-    const giver = makeStuff(() => new TestPlayer());
+    const giver = withHands(makeStuff(() => new TestPlayer()));
     stampTemplatePathForTest(giver, '/platform/agent/Avatar/donor-p2');
     const w = windowWithVault();
     await runDonate(giver, bag('/who/somebody-else'), w);

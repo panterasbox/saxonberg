@@ -24,6 +24,7 @@ import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
 import { TemplatePaths } from '../../../lib/paths';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { Containable } from '../../../lib/spatial/Containable';
 import type { JointDescriptor } from '../../../lib/craft/Joint';
 import { makeStuff, makeStuffAtPath, seedKernelContentStore } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
@@ -31,7 +32,7 @@ import { rememberJoint } from '../../../lib/craft/__tests__/joint-fixtures';
 import Garment from '../equipment/Garment';
 import { TieableMixin } from '../../../lib/spatial/Tieable';
 import { Placements } from '../../../lib/spatial/Placement';
-import { makeBody } from '../../../lib/slot/__tests__/carrying-fixture';
+import { makeBody, withHands } from '../../../lib/slot/__tests__/carrying-fixture';
 
 class Body extends Character {}
 
@@ -131,7 +132,7 @@ describe('a rope is a length with a strength (D4, D6)', () => {
 describe('cut, splice, coil (D4, D9, D10)', () => {
   async function cutter(r: Rope): Promise<{ who: Body; knife: Tool }> {
     const room = makeStuffAtPath(() => new Location(), '/test/rope/room');
-    const who = makeStuff(() => new Body());
+    const who = withHands(makeStuff(() => new Body()));
     ContainmentApi.move(who as never, room as never);
     ContainmentApi.move(r as never, who as never);
     const knife = makeStuff(() => new Tool());
@@ -147,7 +148,10 @@ describe('cut, splice, coil (D4, D9, D10)', () => {
     const plan = await r.cutPlan({ actor: who as unknown as Stuff, tools: [knife as unknown as Stuff], part: null, length: '8 m', options: {} });
     if (!plan.ok) throw new Error('the cut refused');
     expect(await plan.onComplete()).toMatchObject({ ok: true, facts: { kind: 'rope', takeM: 8, leftM: 12 } });
-    const ropes = who.getContents().filter((c): c is Rope => c instanceof Rope);
+    // Both hands are full (the rope, the knife): the cut length is set down
+    // where the cutter stands (made, D-W7a; size and carrying W8).
+    const here = (who as unknown as Stuff & Containable).getContainer()!;
+    const ropes = [...who.getContents(), ...here.getContents()].filter((c): c is Rope => c instanceof Rope);
     expect(ropes).toHaveLength(2);
     expect(ropes.map((x) => x.getLengthM()).sort((a, b) => a - b)).toEqual([8, 12]);
     expect(ropes.every((x) => x.getMarks().includes('red'))).toBe(true);
@@ -169,7 +173,7 @@ describe('cut, splice, coil (D4, D9, D10)', () => {
     const b = rope(hemp, 15);
     a.marks = ['red'];
     b.marks = ['blue'];
-    const who = makeStuff(() => new Body());
+    const who = withHands(makeStuff(() => new Body()));
     const out = await a.spliceBy(who as unknown as Stuff, b as unknown as Stuff);
     expect(out.ok).toBe(true);
     expect(a.getLengthM()).toBe(25);
@@ -181,7 +185,7 @@ describe('cut, splice, coil (D4, D9, D10)', () => {
   it('⭐ an uncoiled rope will not throw; coiled, it does', async () => {
     const r = rope(fiber('hemp', 4), 20);
     r.coiledDown = false;
-    const who = makeStuff(() => new Body());
+    const who = withHands(makeStuff(() => new Body()));
     expect(await r.tossTo(who as unknown as Stuff, 'anyone')).toMatchObject({ ok: false, reason: 'not-coiled' });
     const plan = r.coilPlan(who as unknown as Stuff);
     if (!plan.ok) throw new Error('the coil refused');
@@ -195,7 +199,7 @@ describe('knots (D7)', () => {
   it('⭐ a knot keeps its row\'s share, dressed by the band; a reef knot keeps least', async () => {
     const hemp = fiber('hemp', 4);
     const room = makeStuffAtPath(() => new Location(), '/test/rope/knots');
-    const who = makeStuff(() => new Body());
+    const who = withHands(makeStuff(() => new Body()));
     ContainmentApi.move(who as never, room as never);
     const post = makeStuffAtPath(() => new Good(), '/test/rope/post');
     ContainmentApi.move(post as never, room as never);
@@ -258,7 +262,7 @@ describe('a lead hangs from the halter (size and carrying W7)', () => {
     halter.setSlotClaims({ [mulePlan]: ['torso'] });
     mule.seatInSlot(halter, 'torso');
     const r = rope(fiber('hemp', 4), 4, 10);
-    me.receive(r as never);
+    ContainmentApi.move(r as never, me);
     return { me, mule, halter, r };
   }
 

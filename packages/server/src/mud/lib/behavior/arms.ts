@@ -61,8 +61,7 @@ export const brain = class {
         // Take it up first if it's lying in the room, then wield.
         if (MixinApi.isContainable(item) && item.getContainer() !== host) {
           // Taken up straight into the slots it is wielded in.
-          if (MixinApi.isCarrying(host)) host.receive(item, { slots: [...slots] });
-          else ContainmentApi.move(item, host);
+          host.seatInSlots(item, [...slots]);
         }
         if (!host.getOccupants(slots[0]!).has(item)) host.occupyAll(item, [...slots]);
       } catch {

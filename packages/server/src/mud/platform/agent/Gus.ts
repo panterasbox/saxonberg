@@ -108,20 +108,16 @@ export default class Gus extends Cast {
           // A worn/wielded item lives in inventory AND a slot (the
           // EquipController contract): received into its claim.
           const slots = (item as unknown as SlotClaimer).getSlotClaim(bodyPlanPath);
-          if (MixinApi.isCarrying(self)) await self.receiveGranted(item, { slots });
-          else ContainmentApi.move(item, self);
-          if (MixinApi.isCarrying(self)) continue;
-          for (const slot of slots) {
-            slottedSelf.occupy(item as unknown as Stuff & Slottable, slot);
-          }
+          slottedSelf.seatInSlots(item as unknown as Stuff & Containable & Slottable, slots);
         }
       }
-      // Carried gear AFTER he is dressed (the flip, W7): into the vest's
-      // pockets first, then the free hand — nothing loose on a body.
+      // Carried gear AFTER he is dressed (the flip, W7): the body places it,
+      // and he puts it away — the vest's pockets first, the hand only for
+      // what fits nowhere. Nothing loose on a body.
       for (const path of CARRIED) {
         const item = await StuffApi.clone<Stuff & Containable>(path);
-        if (MixinApi.isCarrying(self)) await self.receiveGranted(item, { prefer: 'pockets' });
-        else ContainmentApi.move(item, self);
+        ContainmentApi.move(item, self);
+        if (MixinApi.isCarrying(self) && self.tierOf(item) === 'hand') self.stow(item);
       }
     } catch (err) {
       console.warn(

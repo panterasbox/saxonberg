@@ -879,9 +879,11 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         if (!words.includes('receipt')) paper.setKeywords([...words, 'receipt']);
       }
       if (MixinApi.isContainable(paper) && MixinApi.isContainer(actor)) {
-        // The receipt is GRANTED (D-W7a): the claim is already filed.
-        if (MixinApi.isCarrying(actor)) await actor.receiveGranted(paper);
-        else ContainmentApi.move(paper, actor as unknown as Stuff & Container);
+        // The claim is already filed: to you, else set down where you stand.
+        const to = actor as unknown as Stuff & Container;
+        const here = MixinApi.isContainable(to) ? to.getContainer() : null;
+        if (to.canReceive(paper) === null || here === null) ContainmentApi.move(paper, to);
+        else ContainmentApi.move(paper, here);
       }
       return { ...out, paper };
     }
@@ -999,11 +1001,10 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const live = this.liveGood(r.poolKey);
         if (live === null) continue;
         // Handed (D-W7a): with no hand or pocket for it, it stays in store.
-        if (MixinApi.isCarrying(actor) && actor.canReceive(live) !== null) {
+        if ((actor as unknown as Stuff & Container).canReceive(live) !== null) {
           return { ok: false, reason: 'hands-full', line: `Your hands are full — the keeper keeps ${live.getPresentation()} until you have one free.` };
         }
-        if (MixinApi.isCarrying(actor)) actor.receive(live);
-        else ContainmentApi.move(live, actor as unknown as Stuff & Container);
+        ContainmentApi.move(live, actor as unknown as Stuff & Container);
         r.amountKg = 0;
         r.settledAtS = nowS();
         const receiptPath = await this.fileReceipt(business, r);
@@ -1140,8 +1141,9 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         for (const g of goods) {
           if (!MixinApi.isContainable(g)) continue;
           // Drawn and debited: comes to you, else set down at the counter.
-          if (MixinApi.isCarrying(to)) to.receiveOrSetDown(g);
-          else ContainmentApi.move(g, to);
+          // Made (D-W7a): to whoever made it, else set down where they stand.
+          if (to.canReceive(g) === null) ContainmentApi.move(g, to);
+          else ContainmentApi.move(g, (MixinApi.isContainable(to) ? to.getContainer() : null) ?? to);
         }
       }
       if (line.amountKg <= LINE_EPSILON_KG) {

@@ -184,7 +184,7 @@ export default class TemplateApplier extends Idea {
       // up before the field is set — on mint, go-live and restore alike.
       if (meta[field]?.ref === 'identity:constituent') {
         for (const cited of TemplateApplier.pathsIn(raw)) {
-          await StuffApi.ensureConstituent(cited);
+          await StuffApi.ensureConstituent(cited, host.getTemplatePath());
         }
       }
       const path = marshallerPaths[field];

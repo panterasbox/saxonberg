@@ -7,6 +7,7 @@
  */
 
 import "../../../test-bootstrap";
+import { withHands } from '../../lib/slot/__tests__/carrying-fixture';
 import { seedKernelContentStore } from '../../lib/security/__tests__/test-setup';
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import { ParcelApi } from '../parcel';
@@ -90,6 +91,7 @@ async function makeRig(): Promise<{
     playerId: PLAYER,
   });
   Stuff._stampTemplatePath(avatar, Avatar.getTemplatePath(PLAYER));
+  withHands(avatar);
   ContainmentApi.move(
     avatar as unknown as Stuff & Containable,
     room as unknown as Stuff & Container
@@ -380,10 +382,14 @@ describe('the seeding aperture (Wave 4)', () => {
     const { default: Thing } = await import('../../lib/stuff/Thing');
     const trinket = await StuffApi.create(() => new Thing());
     Stuff._stampTemplatePath(trinket, '/obj/sandbox-test/trinket');
+    // A bare `Thing` is no good a hand closes on: the fixture admits it
+    // as something the avatar already carries (size and carrying W8).
+    const admit = vi.spyOn(avatar, 'isAdmitting').mockReturnValue(true);
     ContainmentApi.move(
       trinket as unknown as Stuff & Containable,
       avatar as unknown as Stuff & Container
     );
+    admit.mockRestore();
 
     // Outside a circle: refused.
     await expect(

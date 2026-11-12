@@ -15,7 +15,14 @@
  */
 
 import { KeptAnimal as KeptAnimalBase } from '../../lib/creature/KeptAnimal';
+import { CarryingMixin } from '../../lib/slot/Carrying';
 
-export class KeptAnimal extends KeptAnimalBase {}
+/**
+ * ⭐ A kept animal CARRIES (size and carrying W8) — by its plan: the dog's
+ * mouth is a hand (`canid`); the cat's plan names none, and it answers
+ * `nowhere-to-carry` by that, not by a default. The substrate rung does
+ * not (a fish is a kept animal too, and has no pocket).
+ */
+export class KeptAnimal extends CarryingMixin(KeptAnimalBase) {}
 
 export default KeptAnimal;

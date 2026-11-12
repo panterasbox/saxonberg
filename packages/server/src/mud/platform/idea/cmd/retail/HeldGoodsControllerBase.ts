@@ -100,10 +100,7 @@ export abstract class HeldGoodsControllerBase<
     }
 
     // Custody → you; clear the listing. No chattel op (ownership never left).
-    if (MixinApi.isContainer(giver)) {
-      if (MixinApi.isCarrying(giver)) giver.receive(item);
-      else ContainmentApi.move(item, giver); // narrowed to Stuff & Container
-    }
+    if (MixinApi.isContainer(giver)) ContainmentApi.move(item, giver);
     if (MixinApi.isChattel(item)) shelf.removeHolding(item.getChattelId());
 
     MessageApi.scene(giver)

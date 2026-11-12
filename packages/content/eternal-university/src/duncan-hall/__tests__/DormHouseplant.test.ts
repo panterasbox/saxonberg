@@ -20,6 +20,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
@@ -550,7 +551,8 @@ function conditionLines(plant: Plant): string {
 async function makeAvatar(playerId: string): Promise<Avatar> {
   const av = makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${playerId}`);
   av.setPlayerId(playerId);
-  return av;
+  // Hands for the can and the pot (size and carrying W8).
+  return withHands(av);
 }
 
 /* ══════════════════ Wave 6 — content, placement, the loop ═════════════ */
@@ -736,7 +738,10 @@ describe('the dorm houseplant — content and placement', () => {
     const sack = await StuffApi.clone<Stuff>('/stuff/thing/vessel/soil-sack');
     const small = await StuffApi.clone<PlantPot>('/trade/farming/thing/pot/small');
     const seed = await StuffApi.clone<Seed>('/trade/farming/thing/seed/snake-plant');
-    for (const item of [sack, small, seed]) {
+    // Two hands (size and carrying W8): the pot and the seed in hand, the
+    // sack set down beside the tenant — within reach for `pour`.
+    ContainmentApi.move(sack as Stuff & Containable, room as unknown as Stuff & Container);
+    for (const item of [small, seed]) {
       ContainmentApi.move(item as Stuff & Containable, tenant);
     }
     expect(small.hasSoil()).toBe(false);

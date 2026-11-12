@@ -6,6 +6,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DormWarren from '../idea/DormWarren';
 import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
@@ -27,7 +28,7 @@ const UNIT = `${DormWarren.DORMS_EXTENT}/f1-1`;
 
 function setup(): { w: Probe; tenant: Avatar; pack: Pack; room: Location } {
   const w = makeStuffAtPath(() => new Probe(), DormWarren.WARREN_PATH);
-  const tenant = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/newcomer');
+  const tenant = withHands(makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/newcomer'));
   const pack = makeStuff(() => new Pack());
   const room = makeStuff(() => new Location());
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
@@ -48,9 +49,7 @@ describe('the daypack at intake (D29)', () => {
   it('⭐ a newcomer who can take it is handed it', async () => {
     const { w, tenant, pack } = setup();
     vi.spyOn(tenant, 'canReceive').mockReturnValue(null);
-    const receive = vi.spyOn(tenant, 'receive');
     expect(await w.give(tenant, UNIT)).toBe('handed');
-    expect(receive).toHaveBeenCalledWith(pack);
     expect(pack.getContainer()).toBe(tenant);
   });
 
@@ -59,11 +58,9 @@ describe('the daypack at intake (D29)', () => {
     vi.spyOn(tenant, 'canReceive').mockReturnValue({
       ok: false,
       reason: 'nowhere-to-carry',
-      facts: { held: [], tried: [] },
+      facts: { item: pack, held: [], tried: [] },
     });
-    const receive = vi.spyOn(tenant, 'receive');
     expect(await w.give(tenant, UNIT)).toBe('in-room');
-    expect(receive).not.toHaveBeenCalled();
     expect(pack.getContainer()).toBe(room);
   });
 

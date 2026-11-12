@@ -10,6 +10,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DormWarren from '../idea/DormWarren';
@@ -362,9 +363,9 @@ describe('DormWarren — the DormDoor key gate', () => {
     await bootRegistries();
     const w = await warren();
 
-    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    const iris = withHands(makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris'));
     iris.setPlayerId('iris');
-    const bob = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/bob');
+    const bob = withHands(makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/bob'));
     bob.setPlayerId('bob');
 
     // No keyway yet → the door is locked → nobody passes.
@@ -398,7 +399,7 @@ describe('DormWarren — the DormDoor key gate', () => {
     await w.ensureFloor(1);
     const door = w.doorFor(k1)!;
 
-    const sam = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/sam');
+    const sam = withHands(makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/sam'));
     sam.setPlayerId('sam');
     // No unit key, but a pin-tumbler master → opens regardless of the keyway.
     await new Lock('', 'pin-tumbler').issueMasterKeyTo(sam);

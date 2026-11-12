@@ -88,7 +88,7 @@ describe('Garment — the belt (D27)', () => {
     expect(me.isHonest(pistol)).toBe(true);
     expect(me.holderPhrase(pistol)).toBe('your holster');
     // `get holster from belt`: the receiving act takes it off its host.
-    me.receive(holster);
+    ContainmentApi.move(holster, me);
     expect(holster.getPlacement()).toBeNull();
     expect(belt.getPlaced()).toEqual([]);
   });
@@ -137,7 +137,7 @@ describe('Garment — the belt (D27)', () => {
     const belt = await wornGarment(me, plan, 'belt', 'waist', [Placements.FROM]);
     const p = pouch();
     expect(me.canReceive(p)).toBeNull();
-    expect(me.receive(p)).toBeNull();
+    ContainmentApi.move(p, me);
     expect(p.getContainer()).toBe(me);
     expect(p.getPlacement()?.host).toBe(belt);
     expect(p.getPlacement()?.name).toBe(Placements.FROM);
@@ -148,16 +148,16 @@ describe('Garment — the belt (D27)', () => {
   it('a pouch received with no belt worn does not hang (it goes the ordinary way)', () => {
     const { me } = makeBody();
     const p = pouch();
-    me.receive(p);
+    ContainmentApi.move(p, me);
     expect(p.getContainer()).toBe(me);
     expect(p.getPlacement()).toBeNull();
   });
 
-  it('`receive … for: wear` puts a garment on by its whole claim', async () => {
+  it('`seatInSlots` puts a garment on by its whole claim', async () => {
     const { me, plan } = makeBody();
     const belt = await garment('belt', [Placements.FROM]);
     belt.setSlotClaims({ [plan]: ['waist'] });
-    me.receive(belt, { for: 'wear' });
+    me.seatInSlots(belt, ['waist']);
     expect(me.getOccupants('waist').has(belt)).toBe(true);
   });
 });

@@ -145,8 +145,9 @@ export function PatternStockMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             craftedAt: WorldClockApi.getNow().rawValue(),
           });
           // To hand first; then the stock is spent — one piece of it.
-          if (MixinApi.isCarrying(actor)) actor.receiveOrSetDown(pattern as Stuff & Containable);
-          else ContainmentApi.move(pattern as Stuff & Containable, actor as Stuff & Container);
+          // Made (D-W7a): to whoever made it, else set down where they stand.
+          if (actor.canReceive(pattern as Stuff & Containable) === null) ContainmentApi.move(pattern as Stuff & Containable, actor as Stuff & Container);
+          else ContainmentApi.move(pattern as Stuff & Containable, (MixinApi.isContainable(actor) ? actor.getContainer() : null) ?? actor as Stuff & Container);
           if (MixinApi.isStackable(self) && self.getQuantity() > 1) {
             self.setQuantity(self.getQuantity() - 1);
           } else {

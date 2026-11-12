@@ -7,6 +7,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import RopeJack, { type TwistPlan } from '../thing/RopeJack';
 import TwistController from '../idea/cmd/cordage/TwistController';
@@ -60,9 +61,18 @@ function walk(extentM: number): { room: Location; jack: RopeJack; who: Body } {
   room.setExtent(extentM);
   const jack = makeStuff(() => new RopeJack());
   ContainmentApi.move(jack as never, room as never);
-  const who = makeStuff(() => new Body());
+  const who = withHands(makeStuff(() => new Body()));
   ContainmentApi.move(who as never, room as never);
   return { room, jack, who };
+}
+
+/**
+ * What the twister has made: in hand, else set down at the walk (two
+ * hands — size and carrying W8: a made thing with no hand free is set
+ * down where it was made).
+ */
+function madeBy(who: Body): Stuff[] {
+  return [...who.getContents(), ...(who.getContainer()?.getContents() ?? [])];
 }
 
 function yarn(who: Body, skeins: number): TextileStock {
@@ -90,11 +100,11 @@ describe('twist at the walk (cordage D5)', () => {
     for (let i = 0; i < 3; i++) {
       await run(jack.twistPlan(actor, [y as unknown as Stuff], { yarns: 40, length: '50', mark: i === 0 ? 'red' : null }));
     }
-    const strands = who.getContents().filter((c): c is Rope => c instanceof Rope && c.getStage() === 'strand');
+    const strands = madeBy(who).filter((c): c is Rope => c instanceof Rope && c.getStage() === 'strand');
     expect(strands).toHaveLength(3);
     expect(strands.every((s) => s.getLengthM() === 50)).toBe(true);
     await run(jack.twistPlan(actor, strands as unknown as Stuff[], { yarns: null, length: null, mark: null }));
-    const ropes = who.getContents().filter((c): c is Rope => c instanceof Rope);
+    const ropes = madeBy(who).filter((c): c is Rope => c instanceof Rope);
     expect(ropes).toHaveLength(1);
     const rope = ropes[0]!;
     expect(rope.getStage()).toBe('rope');
@@ -110,7 +120,7 @@ describe('twist at the walk (cordage D5)', () => {
     const actor = who as unknown as Stuff;
     await run(jack.twistPlan(actor, [y as unknown as Stuff], { yarns: 20, length: '20', mark: null }));
     await run(jack.twistPlan(actor, [y as unknown as Stuff], { yarns: 80, length: '20', mark: null }));
-    const [thin, thick] = who.getContents().filter((c): c is Rope => c instanceof Rope);
+    const [thin, thick] = madeBy(who).filter((c): c is Rope => c instanceof Rope);
     expect(thick!.getDiameterMm()).toBeCloseTo(thin!.getDiameterMm() * 2, 5);
     expect(thick!.breakingKg()).toBeCloseTo(thin!.breakingKg() * 4, 3);
   });
@@ -157,7 +167,7 @@ describe('twist at the walk (cordage D5)', () => {
     const actor = who as unknown as Stuff;
     expect(await jack.twistPlan(actor, [y as unknown as Stuff], { yarns: 40, length: '300', mark: null })).toMatchObject({ ok: false, reason: 'not-enough-yarn' });
     await run(jack.twistPlan(actor, [y as unknown as Stuff], { yarns: 10, length: '10', mark: null }));
-    const strand = who.getContents().find((c): c is Rope => c instanceof Rope)!;
+    const strand = madeBy(who).find((c): c is Rope => c instanceof Rope)!;
     expect(await jack.twistPlan(actor, [strand as unknown as Stuff], { yarns: null, length: null, mark: null })).toMatchObject({ ok: false, reason: 'too-few-strands' });
   });
 
@@ -166,9 +176,9 @@ describe('twist at the walk (cordage D5)', () => {
     const y = yarn(who, 30);
     const actor = who as unknown as Stuff;
     for (let i = 0; i < 3; i++) await run(jack.twistPlan(actor, [y as unknown as Stuff], { yarns: 40, length: '20', mark: null }));
-    const strands = who.getContents().filter((c): c is Rope => c instanceof Rope);
+    const strands = madeBy(who).filter((c): c is Rope => c instanceof Rope);
     await run(jack.twistPlan(actor, strands as unknown as Stuff[], { yarns: null, length: null, mark: null }));
-    const rope = who.getContents().find((c): c is Rope => c instanceof Rope)!;
+    const rope = madeBy(who).find((c): c is Rope => c instanceof Rope)!;
     expect(rope.getLayEvenness()).toBeCloseTo(0.8, 5);
     expect(rope.describeRope().join(' ')).toMatch(/hockles/);
     expect(rope.effectiveKg()).toBeCloseTo(rope.breakingKg() * 0.8, 3);
@@ -179,7 +189,7 @@ describe('twist at the walk (cordage D5)', () => {
     const y = yarn(who, 30);
     y.setGrade(Grade.of('poor'));
     await run(jack.twistPlan(who as unknown as Stuff, [y as unknown as Stuff], { yarns: 40, length: '20', mark: null }));
-    const strand = who.getContents().find((c): c is Rope => c instanceof Rope)!;
+    const strand = madeBy(who).find((c): c is Rope => c instanceof Rope)!;
     expect(strand.getGrade().getBand()).toBe('poor');
   });
 

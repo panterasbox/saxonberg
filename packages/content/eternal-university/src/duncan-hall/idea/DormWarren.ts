@@ -221,23 +221,25 @@ export default class DormWarren extends DormWarrenBase {
       console.warn(`DormWarren: the daypack did not stand up for ${unitExtent}: ${(err as Error).message}`);
       return 'none';
     }
-    if (MixinApi.isCarrying(tenant) && tenant.canReceive(pack) === null) {
-      tenant.receive(pack);
+    if (MixinApi.isContainer(tenant) && tenant.canReceive(pack) === null) {
+      ContainmentApi.move(pack, tenant);
       return 'handed';
     }
     // ⚠ Standing the room up can fail (the size-and-carrying drive found
     // `admit` refusing the unit's own door — "non-cardinal direction
     // 'unit-2' requires the destination to be in a different zone", the
     // same failure the move-in theme logs): the daypack must never void a
-    // let that has already happened. It is then GRANTED — the body's own
-    // overflow (its room when that stands, else at its feet, said so).
+    // let that has already happened. It is then set down at the tenant's
+    // feet (size and carrying W8: `move` has no overflow; this is the
+    // explicit second call).
     try {
       const room = await this.admit(unitExtent);
       ContainmentApi.move(pack, room);
       return 'in-room';
     } catch (err) {
       console.warn(`DormWarren: the daypack could not wait in ${unitExtent}: ${(err as Error).message}`);
-      if (MixinApi.isCarrying(tenant)) await tenant.receiveGranted(pack);
+      const feet = MixinApi.isContainable(tenant) ? tenant.getContainer() : null;
+      if (feet !== null) ContainmentApi.move(pack, feet);
       return 'granted';
     }
   }

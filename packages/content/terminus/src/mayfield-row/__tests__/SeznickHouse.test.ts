@@ -8,6 +8,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
+import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -277,7 +278,8 @@ function stubCommand(verb: string): CommandDefinition {
 }
 
 function makeAvatar(id: string): Avatar {
-  const a = makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${id}`);
+  // Hands for the key (size and carrying W8).
+  const a = withHands(makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${id}`));
   a.setPlayerId(id);
   return a;
 }

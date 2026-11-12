@@ -10,6 +10,7 @@ import { Vessel } from '../../stuff/Vessel';
 import { SensorMixin } from '../../message/Sensor';
 import { HaulableMixin } from '../Haulable';
 import { HaulerMixin } from '../Hauler';
+import { CarryingMixin } from '../Carrying';
 import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { bearerOf } from '../../encumbrance/__tests__/encumbrance-fixtures';
@@ -21,7 +22,7 @@ export class Cart extends CartBase {
 }
 
 /** A load-bearing creature that can also haul (the burden-term subject). */
-class HaulingBearerBase extends HaulerMixin(SensorMixin(Creature)) {}
+class HaulingBearerBase extends HaulerMixin(SensorMixin(CarryingMixin(Creature))) {}
 export class HaulingBearer extends HaulingBearerBase {
   static _mixinName = 'HaulingBearer';
 }

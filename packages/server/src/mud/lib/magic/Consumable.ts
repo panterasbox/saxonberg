@@ -129,8 +129,9 @@ export function ConsumableMixin<TBase extends MixinConstructor<Stuff>>(
         ) {
           // ⭐ The move captures the flask left behind where it lies;
           // the consume names no actor, so it carries no new title.
-          if (MixinApi.isCarrying(where)) where.receiveOrSetDown(residue);
-          else ContainmentApi.move(residue, where);
+          // Made (D-W7a): to whoever made it, else set down where they stand.
+          if (where.canReceive(residue) === null) ContainmentApi.move(residue, where);
+          else ContainmentApi.move(residue, (MixinApi.isContainable(where) ? where.getContainer() : null) ?? where);
         }
       }
       StuffApi.destruct(self);

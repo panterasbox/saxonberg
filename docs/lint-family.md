@@ -1406,23 +1406,25 @@ to **0** by the build and held there. See [carrying.md](./subsystems/carrying.md
 
 | gate | what it counts | W0 ceiling | at merge |
 |---|---|---|---|
-| `lint:body-moves` (`scripts/check-body-moves.ts`) | every `ContainmentApi.move(item, dest)` in non-test code (kernel `src/mud/**`, `src/backend/**`, every pack's `src/**`) whose destination may be a body, by four rules: a body-named destination (`by`, `actor`, …), a body class's own `this`/`self`, inherit-the-container (`getContainer()` with no `isPlace` narrowing), or a local initialized from a body-named identifier. Every hit must be in the hand-kept ROSTER (keyed `file :: Class.method :: dest`, no line numbers), tagged by the counterparty idiom it ports to — `made` · `handed` · `granted` · `inherit` (counted) or `allow` (the framework paths that ARE the receiving act) · `not-body` (with its reason) — and a roster row that matches no site fails as stale. A move in the false arm of an `isCarrying(<same dest>)` test is not a body move (the port idiom). `--report` prints the roster by tag | **101** (made 38 · handed 20 · granted 16 · inherit 27) | **0** (kernel 101 → 40 at W4, packs 40 → 0 at W5); the flip's `loose-on-body` veto now makes a missed site throw at run time too |
+| ~~`lint:body-moves`~~ — **retired W8, 2026-11-12: `move` is the receiving act** | was every `ContainmentApi.move(item, dest)` whose destination may be a body, kept so each could be ported to `Carrying.receive`. With `move` honest — a body places what arrives (`Container.arrivalFor`) or `move` throws naming why — there is nothing to port and nothing a gate could count; the script and its roster are deleted | **101** (made 38 · handed 20 · granted 16 · inherit 27) | **0** at W5; **retired** at W8 |
 | `lint:perceived-surfaces` (`scripts/check-perceived-surfaces.ts`) | a *unit* (a named function/method, or a subscribable field's `read(stuff, viewer)`) with a **source** (`MqlApi.resolveOne/Many` not in system mode, `.getContents(` / `.getDeepContents(` / `.getAllOccupants(` / `.wornStack(` / `.getPlaced(`) and a **sink** (`promptMqlObject/Many`, `MessageApi.scene(`/`.toSelf(`, `CardApi.open(`, `onEnvelope(`, `projectStuffInto(`; in the binder and the script interpreter a `return` in a unit whose source is MQL; any subscribable `read`) and no `perceived(`/`perceives(` call in the unit (or one hop into a same-module function that makes one). Roots: every controller module, `lib/command/**`, `CommandLogic`, `lib/script/**`, `CardRegistry`, `MqlSubscriptionRegistry`, every subscribable `read` | **32** | **0** at W3, by fixing every surface plus two rule corrections, no allowlist |
 
-⭐ **What they protect.** `lint:body-moves` is the receiving act's census:
-after the flip, the one way onto a body is `Carrying.receive` and its
-idioms, and the gate is what kept the port list finite while 101 callers
-moved. `lint:perceived-surfaces` is the other half of *MQL names, acts
-observe*: MQL resolves the same things for every viewer, so every place
-a list reaches a person must ask `PerceptionApi.perceived` — a surface
-that forgets is a leak of a covered pocket, a concealed trap or a
+⭐ **What they protect.** `lint:perceived-surfaces` is the other half of
+*MQL names, acts observe*: MQL resolves the same things for every viewer,
+so every place a list reaches a person must ask `PerceptionApi.perceived` —
+a surface that forgets is a leak of a covered pocket, a concealed trap or a
 stranger's inner pocket.
 
-⚠ **The blind spot `lint:body-moves` admits**: a parameter named
-`into`/`to`/`dest` that a caller fills with a body is invisible without
-types. The W0 survey found those by reading and rostered them as
-`survey` rows, stale-checked like the rest; the run-time veto is the
-backstop.
+⭐ **Why `lint:body-moves` retired rather than ratcheted** (W8, owner
+review): a census is the right tool while there is something to port TO.
+It counted the moves onto a body so each could be ported to
+`Carrying.receive` — a synonym for `move`. The owner struck the synonym
+(*"every time you invent a synonym for `move()` you're making it harder for
+everyone else in the game"*): a body is a destination that places what
+arrives, and a body with no honest place makes `move` throw. A direct
+`move` onto a body is now the way on, so the census had nothing left to
+count — the run-time throw (named, with what the hands hold and what was
+tried) is the backstop it used to be the blind spot of.
 
 ### `lint:get-or-create` — `singleton` already does it (2026-09)
 

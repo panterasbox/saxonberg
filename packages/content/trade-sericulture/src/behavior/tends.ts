@@ -113,8 +113,9 @@ async function step(hand: Hand, direction: string): Promise<boolean> {
 function handMoves(hand: Hand, thing: Stuff, to: Stuff & Container, line: string): void {
   if (!MixinApi.isContainable(thing)) return;
   // A hand's own work: taken up, else set down where it stands.
-  if (MixinApi.isCarrying(to)) to.receiveOrSetDown(thing as Stuff & Containable);
-  else ContainmentApi.move(thing as Stuff & Containable, to);
+  // Made (D-W7a): to whoever made it, else set down where they stand.
+  if (to.canReceive(thing as Stuff & Containable) === null) ContainmentApi.move(thing as Stuff & Containable, to);
+  else ContainmentApi.move(thing as Stuff & Containable, (MixinApi.isContainable(to) ? to.getContainer() : null) ?? to);
   MessageApi.scene(hand).topic('act.deed').toPeers(Mml.compose`${Mml.actor(hand)} ${line}`).send();
 }
 

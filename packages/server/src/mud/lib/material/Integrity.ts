@@ -353,8 +353,9 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
           if (residue !== '' && where !== null) {
             const lump = await StuffApi.clone<Stuff>(residue, undefined, { madeFrom: [self] });
             if (MixinApi.isContainable(lump)) {
-              if (MixinApi.isCarrying(where)) where.receiveOrSetDown(lump);
-              else ContainmentApi.move(lump, where);
+              // Made (D-W7a): to whoever made it, else set down where they stand.
+              if (where.canReceive(lump) === null) ContainmentApi.move(lump, where);
+              else ContainmentApi.move(lump, (MixinApi.isContainable(where) ? where.getContainer() : null) ?? where);
             }
           }
           StuffApi.destruct(self);
@@ -560,8 +561,9 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
           pieces.setMass((this as unknown as Tangible).getMass());
         }
         if (MixinApi.isContainable(pieces)) {
-          if (MixinApi.isCarrying(where)) where.receiveOrSetDown(pieces);
-          else ContainmentApi.move(pieces, where);
+          // Made (D-W7a): to whoever made it, else set down where they stand.
+          if (where.canReceive(pieces) === null) ContainmentApi.move(pieces, where);
+          else ContainmentApi.move(pieces, (MixinApi.isContainable(where) ? where.getContainer() : null) ?? where);
         }
       }
       await StuffApi.destruct(self);

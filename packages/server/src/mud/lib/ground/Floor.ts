@@ -527,8 +527,9 @@ export function FloorMixin<
       // Into the sweeper's hands (at their feet when they hold nothing).
       const where = MixinApi.isContainer(sweeper) ? sweeper : MixinApi.isContainable(sweeper) ? sweeper.getContainer() : null;
       if (where && MixinApi.isContainer(where) && MixinApi.isContainable(heap)) {
-        if (MixinApi.isCarrying(where)) where.receiveOrSetDown(heap);
-        else ContainmentApi.move(heap, where);
+        // Made (D-W7a): to whoever made it, else set down where they stand.
+        if (where.canReceive(heap) === null) ContainmentApi.move(heap, where);
+        else ContainmentApi.move(heap, (MixinApi.isContainable(where) ? where.getContainer() : null) ?? where);
       }
       return { kg, kinds, heap };
     }

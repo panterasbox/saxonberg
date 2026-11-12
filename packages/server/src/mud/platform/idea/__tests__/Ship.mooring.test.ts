@@ -1,4 +1,5 @@
 import '../../../../test-bootstrap';
+import { withHands } from '../../../lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Ship from '../Ship';
 import BerthExit from '../BerthExit';
@@ -195,7 +196,7 @@ describe('a ship made fast (harbors P4–P6)', () => {
     bollardOn(quay);
     const line = lineOn(deck);
     await ship.comeAlongside(QUAY);
-    const hand = makeStuffAtPath(() => new Hand(), '/test/hand');
+    const hand = withHands(makeStuffAtPath(() => new Hand(), '/test/hand'));
     ContainmentApi.move(hand, deck);
     vi.spyOn(ship, 'aboard').mockResolvedValue([deck as unknown as Stuff]);
     const out = await line.untieBy(hand as unknown as Stuff);
@@ -228,7 +229,7 @@ describe('a ship made fast (harbors P4–P6)', () => {
     lineOn(deck);
     await ship.comeAlongside(QUAY);
     expect(ship.fastLines()).toHaveLength(2);
-    const hand = makeStuffAtPath(() => new Hand(), '/test/hand');
+    const hand = withHands(makeStuffAtPath(() => new Hand(), '/test/hand'));
     ContainmentApi.move(hand, quay);
     vi.spyOn(ship, 'aboard').mockResolvedValue([deck as unknown as Stuff]);
     const [first, second] = ends(quay);

@@ -54,8 +54,9 @@ export default class Envelope extends EnvelopeBase {
     const spilled: Stuff[] = [];
     for (const c of [...this.getContents()]) {
       if (where !== null && MixinApi.isContainer(where) && MixinApi.isContainable(c)) {
-        if (MixinApi.isCarrying(where)) where.receiveOrSetDown(c);
-        else ContainmentApi.move(c, where);
+        // Made (D-W7a): to whoever made it, else set down where they stand.
+        if (where.canReceive(c) === null) ContainmentApi.move(c, where);
+        else ContainmentApi.move(c, (MixinApi.isContainable(where) ? where.getContainer() : null) ?? where);
         spilled.push(c);
       }
     }

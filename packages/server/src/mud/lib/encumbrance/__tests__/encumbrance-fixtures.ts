@@ -6,6 +6,7 @@
  */
 
 import { Creature } from '../../creature/Creature';
+import { CarryingMixin } from '../../slot/Carrying';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import Good from '../../stuff/Good';
@@ -25,7 +26,7 @@ import {
  * driver emits a scene to the bearer (the `get` lift-gate decline).
  * Concrete subclass so `makeStuff` can construct it.
  */
-class SensingCreatureBase extends SensorMixin(Creature) {}
+class SensingCreatureBase extends SensorMixin(CarryingMixin(Creature)) {}
 export class SensingCreature extends SensingCreatureBase {
   static _mixinName = 'SensingCreature';
 }
@@ -46,8 +47,11 @@ let planSeq = 0;
  * (Wieldable → held surcharge). Each call gets a uniquely-pathed plan +
  * species so registrations don't collide within a suite.
  */
-export function bearerCreature(baseMass = 70): Creature {
-  return bearerOf(() => new Creature(), baseMass);
+/** A body that carries (size and carrying W8: the capability is not every Creature's). */
+export class CarryingCreature extends CarryingMixin(Creature) {}
+
+export function bearerCreature(baseMass = 70): CarryingCreature {
+  return bearerOf(() => new CarryingCreature(), baseMass);
 }
 
 /** As {@link bearerCreature}, but a Sensor too (for scene-emitting drivers). */

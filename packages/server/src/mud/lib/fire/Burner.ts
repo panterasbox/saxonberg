@@ -814,8 +814,9 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
         if (MixinApi.isComposition(heap)) heap.setMakeup([{ materialPath: alkaliPath, fraction: strength }]);
         if (opts.into && MixinApi.isContainer(opts.into) && MixinApi.isContainable(heap)) {
           const into = opts.into;
-          if (MixinApi.isCarrying(into)) into.receiveOrSetDown(heap);
-          else ContainmentApi.move(heap, into);
+          // Made (D-W7a): to whoever made it, else set down where they stand.
+          if (into.canReceive(heap) === null) ContainmentApi.move(heap, into);
+          else ContainmentApi.move(heap, (MixinApi.isContainable(into) ? into.getContainer() : null) ?? into);
         }
         heaps.push(heap);
       }

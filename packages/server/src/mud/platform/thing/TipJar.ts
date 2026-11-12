@@ -81,11 +81,8 @@ export default class TipJar extends TipJarBase {
           // Handed (D-W7a): coins you cannot take stay in the jar. Counted
           // first — a stack that meets its like merges and is gone.
           const q = c.getQuantity();
-          if (MixinApi.isCarrying(actor)) {
-            if (actor.receive(c) !== null) continue;
-          } else {
-            ContainmentApi.move(c, actor);
-          }
+          if (actor.canReceive(c) !== null) continue;
+          ContainmentApi.move(c, actor);
           took += q;
         }
       }

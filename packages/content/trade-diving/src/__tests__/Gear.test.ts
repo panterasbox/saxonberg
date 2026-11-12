@@ -5,6 +5,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Slate from '../thing/Slate';
 import AirBag from '../thing/AirBag';
@@ -91,7 +92,7 @@ function bag(): AirBag {
 }
 
 function body(): Body {
-  const b = makeStuff(() => new Body());
+  const b = withHands(makeStuff(() => new Body()));
   b.setMass(Quantity.of(70, 'kg'));
   return b;
 }
@@ -168,19 +169,25 @@ describe('what a line cannot bring up, air can (C5)', () => {
     const { quay, top, bed } = await water();
     vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue(BED);
     const tender = body();
-    const diver = body();
+    // The diver carries the bags with no body plan of its own (a plan's
+    // ears would take the ascent's squeeze, which this test is not about):
+    // the fixture admits what it is handed (size and carrying W8).
+    const diver = makeStuff(() => new Body());
+    diver.setMass(Quantity.of(70, "kg"));
+    vi.spyOn(diver, 'isAdmitting').mockReturnValue(true);
     ContainmentApi.move(tender as never, quay as never);
     ContainmentApi.move(diver as never, bed as never);
     const a = anchor();
     ContainmentApi.move(a as never, bed as never);
 
     const bags = [bag(), bag(), bag()];
-    for (const b of bags) ContainmentApi.move(b as never, diver as never);
+    for (const b of bags.slice(0, 2)) ContainmentApi.move(b as never, diver as never);
     const first = await bags[0]!.tieTo(diver as unknown as Stuff, a as unknown as Stuff, null);
     expect(first.ok).toBe(true);
     expect(a.getContainer()).toBe(bed);
     await bags[1]!.tieTo(diver as unknown as Stuff, a as unknown as Stuff, null);
     expect(a.getContainer()).toBe(bed);
+    ContainmentApi.move(bags[2] as never, diver as never);
     await bags[2]!.tieTo(diver as unknown as Stuff, a as unknown as Stuff, null);
     expect(a.getContainer()).toBe(top);
     expect(bags.every((b) => b.getContainer() === top)).toBe(true);

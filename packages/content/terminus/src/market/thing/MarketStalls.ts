@@ -359,9 +359,10 @@ export default class MarketStalls extends Stock {
     for (const good of [...counter.getContents()]) {
       counter.removeListing?.(MixinApi.isChattel(good) ? good.getChattelId() : '');
       if (to) {
-        // Back to you, else set down in the square (the stall is going away).
-        if (MixinApi.isCarrying(to)) to.receiveOrSetDown(good as unknown as Stuff & Containable);
-        else ContainmentApi.move(good as unknown as Stuff & Containable, to);
+        // Back to you, else set down in the square (the stall is going away)
+        // — asked first, so a full renter is never a throw (size and carrying W8).
+        if (to.canReceive(good as unknown as Stuff & Containable) === null) ContainmentApi.move(good as unknown as Stuff & Containable, to);
+        else ContainmentApi.move(good as unknown as Stuff & Containable, (MixinApi.isContainable(to) ? to.getContainer() : null) ?? to);
       }
     }
     // The owner IS the pitch key, so this is one record.

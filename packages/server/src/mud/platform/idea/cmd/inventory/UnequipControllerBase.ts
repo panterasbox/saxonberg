@@ -36,6 +36,7 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { SchedulerApi } from '../../../../api/scheduler';
+import { ContainmentApi } from '../../../../api/containment';
 import { DressingStep } from '../../../../lib/slot/DressingStep';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Slotted } from '../../../../lib/slot/Slotted';
@@ -305,10 +306,27 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
     // ⭐ The hands that pulled it off take what was on its outside —
     // unless it was peeled off carefully (cleanliness D5).
     if (!wieldy && MixinApi.isHygienic(giver)) giver.doff(target, { careful });
-    // ⭐ Nothing loose on a body (size and carrying D11): what came off is
-    // held, or put up where it lives (drive step 9's backpack).
-    if (MixinApi.isCarrying(giver) && MixinApi.isContainable(target)) {
-      giver.settleReleased(target, wieldy ? 'put-up' : 'hold');
+    // ⭐ Nothing loose on a body (size and carrying D11, W8): what came off
+    // is put up where it lives (its sheath, else the first place on you it
+    // fits) or comes to hand (drive step 9's backpack) — and with neither,
+    // it is set down where you stand, said so. A body with no hands sets
+    // down what came off it: handed back, its tack would only go on again.
+    let setDown = false;
+    if (
+      MixinApi.isCarrying(giver) &&
+      MixinApi.isContainable(target) &&
+      target.getContainer() === giver &&
+      !giver.isHonest(target)
+    ) {
+      if (wieldy) giver.stow(target);
+      if (!giver.isHonest(target)) {
+        const here = giver.getContainer();
+        if (giver.handSlots().length > 0 && giver.canReceive(target) === null) ContainmentApi.move(target, giver);
+        else if (here !== null) {
+          ContainmentApi.move(target, here);
+          setDown = true;
+        }
+      }
     }
 
     if (!quiet) {
@@ -326,6 +344,12 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
             ? Mml.compose`${Mml.actor(giver)} puts up ${Mml.thing(target)}.`
             : Mml.compose`${Mml.actor(giver)} takes off ${Mml.thing(target)}.`,
         )
+        .send();
+    }
+    if (setDown) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`Your hands are full — you set ${Mml.thing(target)} down.`)
         .send();
     }
     armed = true;

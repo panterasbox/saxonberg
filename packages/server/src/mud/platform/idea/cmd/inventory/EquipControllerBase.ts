@@ -819,8 +819,10 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
       // goes straight on by its claim; the rest comes to hand or a pocket,
       // and what has nowhere to go stays in the wardrobe (nothing moved).
       const now = EquipControllerBase.canEquip(item, giver, mode) === null;
-      if (MixinApi.isCarrying(giver)) giver.receive(item, now ? { for: 'wear' } : {});
-      else ContainmentApi.move(item as Stuff & Containable, giver as unknown as Stuff & Container);
+      const plan = SpeciesApi.tryGetBodyPlanPath(giver);
+      const claim = now && plan !== null && MixinApi.isWearable(item) ? [...item.getSlotClaim(plan)] : [];
+      if (claim.length > 0 && MixinApi.isSlottable(item)) giver.seatInSlots(item, claim);
+      else if (giver.canReceive(item) === null) ContainmentApi.move(item as Stuff & Containable, giver as unknown as Stuff & Container);
     }
     return PerceptionApi.perceived(giver, giver.getContents());
   }

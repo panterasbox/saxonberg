@@ -23,6 +23,7 @@ import { MixinApi } from "../../api/mixin";
 import { BiomeApi } from "../../api/biome";
 import { CombatApi } from "../../api/combat";
 import type { Containable } from "../spatial/Containable";
+import type { Slottable } from "../slot/Slottable";
 import type { Container } from "../spatial/Container";
 import type { Stuff, EvictionContext } from "../stuff/Stuff";
 import type { VetoResult } from "../errors";
@@ -1403,13 +1404,7 @@ export default abstract class Avatar extends AvatarBase {
             // avatar and never lists as loose room contents, THEN occupy
             // the slot. (Occupy alone doesn't set containment, so a
             // freshly cloned implant would otherwise leak into the room.)
-            const body = this as unknown as Stuff & Container;
-            if (MixinApi.isCarrying(body)) {
-              body.receive(implant as unknown as Stuff & Containable, { slot: "cranial" });
-            } else {
-              ContainmentApi.move(implant as unknown as Stuff & Containable, body);
-              this.occupy(implant, "cranial");
-            }
+            this.seatInSlot(implant as unknown as Stuff & Containable & Slottable, "cranial");
           }
         } catch {
           // No cranial slot on this body plan (sessile etc.) — can't

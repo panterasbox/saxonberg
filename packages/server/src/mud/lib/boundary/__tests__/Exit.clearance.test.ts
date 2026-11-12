@@ -16,6 +16,10 @@ import Pack from '../../../platform/thing/equipment/Pack';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Location from '../../location/Location';
 import { Creature } from '../../creature/Creature';
+import { CarryingMixin } from '../../slot/Carrying';
+
+/** A body that carries — the hands the clearance measures. */
+class Carrier extends CarryingMixin(Creature) {}
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan, { type BodyPart } from '../../../platform/idea/species/BodyPlan';
 import { WieldableMixin } from '../../slot/Wieldable';
@@ -46,7 +50,7 @@ const PARTS: BodyPart[] = [
   { key: 'body.hand.right', parent: 'body', tissues: [], serves: ['manipulation'] },
 ];
 
-function human(): Creature {
+function human(): Carrier {
   const plan = makeStuff(() => new BodyPlan());
   plan.setName('clearance-biped');
   plan.setBaseMass(70);
@@ -58,7 +62,7 @@ function human(): Creature {
   const sp = makeStuff(() => new Species());
   sp.setBodyPlan(plan);
   stampTemplatePathForTest(sp, '/stuff/idea/species/test/clearance-human');
-  const c = makeStuff(() => new Creature());
+  const c = makeStuff(() => new Carrier());
   c.setSpecies(sp);
   return c;
 }
@@ -67,7 +71,7 @@ describe('Exit.clearanceRefusal — bodies meet openings', () => {
   let here: Location;
   let there: Location;
   let below: Location;
-  let body: Creature;
+  let body: Carrier;
 
   async function way(direction: string, to: Location = there): Promise<Exit> {
     const exit = makeStuff(() => new Exit({ direction, source: here, destination: to }));

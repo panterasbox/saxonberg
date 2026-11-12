@@ -81,6 +81,8 @@ import {
 } from '../weather/WeatherType';
 import { BulkableApi } from '../../api/bulk';
 import { ContainmentApi } from '../../api/containment';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 import { Quantity } from '../quantity';
 import type Material from '../material/Material';
 import type { Tooled } from '../craft/Tool';
@@ -1093,8 +1095,18 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
           }
         }
         if (MixinApi.isContainer(by) && MixinApi.isContainable(thing)) {
-          if (MixinApi.isCarrying(by)) by.receiveOrSetDown(thing);
-          else ContainmentApi.move(thing, by);
+          // Made (D-W7a; W8): to whoever made it, else set down where they
+          // stand — and they are told. The fallback is this mint's.
+          if (by.canReceive(thing) === null) ContainmentApi.move(thing, by);
+          else {
+            ContainmentApi.move(thing, (MixinApi.isContainable(by) ? by.getContainer() : null) ?? by);
+            if (MixinApi.isSensor(by)) {
+              MessageApi.scene(by)
+                .topic('act.deed')
+                .toSelf(Mml.compose`Your hands are full — you set ${Mml.thing(thing)} down.`)
+                .send();
+            }
+          }
         }
         made.push(thing);
       }

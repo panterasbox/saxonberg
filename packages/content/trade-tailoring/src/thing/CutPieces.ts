@@ -131,8 +131,9 @@ export default class CutPieces extends CutPiecesBase {
           });
         }
         if (MixinApi.isContainable(garment) && MixinApi.isContainer(actor) && !actor.isDestroyed()) {
-          if (MixinApi.isCarrying(actor)) actor.receiveOrSetDown(garment as Stuff & Containable);
-          else ContainmentApi.move(garment as Stuff & Containable, actor as Stuff & Container);
+          // Made (D-W7a): to whoever made it, else set down where they stand.
+          if (actor.canReceive(garment as Stuff & Containable) === null) ContainmentApi.move(garment as Stuff & Containable, actor as Stuff & Container);
+          else ContainmentApi.move(garment as Stuff & Containable, (MixinApi.isContainable(actor) ? actor.getContainer() : null) ?? actor as Stuff & Container);
         }
         await StuffApi.destruct(self);
         return { ok: true, facts: { kind: 'garment', garment, pattern } };

@@ -430,10 +430,10 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
      * one free"*. Null when they can (or are no carrier).
      */
     protected handOverRefusal(item: Stuff, giver: Stuff, word: string): SaleOutcome | null {
-      if (!MixinApi.isCarrying(giver)) return null;
+      if (!MixinApi.isContainer(giver)) return null;
       const refused = giver.canReceive(item);
       if (refused === null) return null;
-      const why = refused.reason === "nowhere-to-carry" || refused.reason === "hands-on-cart"
+      const why = refused.reason === "nowhere-to-carry" || refused.reason === "hands-on-cart" || !MixinApi.isCarrying(giver)
         ? Mml.compose`Your hands are full — ${Mml.thing(item)} stays on the shelf until you have one free. Nothing is charged.`
         : Mml.text(`${giver.refusalWords(refused)} Nothing is charged.`);
       return this.refused(why, "buyer-cannot-take", word);
@@ -441,10 +441,8 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
 
     /** Custody → the buyer: into their hands (asked first — `handOverRefusal`). */
     protected handOver(item: Stuff & Containable, giver: Stuff): void {
-      if (MixinApi.isContainer(giver)) {
-        if (MixinApi.isCarrying(giver)) giver.receiveOrSetDown(item);
-        else ContainmentApi.move(item, giver); // narrowed to Stuff & Container
-      }
+      // `handOverRefusal` asked `canReceive` before any write; the move places it.
+      if (MixinApi.isContainer(giver)) ContainmentApi.move(item, giver);
     }
 
     /** What the buyer and the room are told of a sale. */

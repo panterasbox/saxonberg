@@ -67,7 +67,7 @@ describe("a keeper's goods are what she carries, never what she wears", () => {
     ContainmentApi.move(counter as never, room as never);
     expect(stocks.urgency(ctx(me, { counter: COUNTER })).band).toBe('idle');
     // …and a crate in her hand is work.
-    expect(me.receive(crate(room))).toBeNull();
+    ContainmentApi.move(crate(room), me);
     expect(stocks.urgency(ctx(me, { counter: COUNTER })).band).not.toBe('idle');
   });
 
@@ -76,7 +76,7 @@ describe("a keeper's goods are what she carries, never what she wears", () => {
     const floor = makeStuffAtPath(() => new Holder(), FLOOR);
     ContainmentApi.move(floor as never, room as never);
     expect(consigns.urgency(ctx(me, { stock: FLOOR })).band).toBe('idle');
-    expect(me.receive(crate(room))).toBeNull();
+    ContainmentApi.move(crate(room), me);
     expect(consigns.urgency(ctx(me, { stock: FLOOR })).band).not.toBe('idle');
   });
 });

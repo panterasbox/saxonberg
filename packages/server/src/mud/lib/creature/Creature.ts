@@ -65,13 +65,14 @@ import { DisguisableMixin } from '../disguise/Disguisable';
 import { ConcealableMixin } from '../concealment/Concealable';
 import { SlottableMixin } from '../slot/Slottable';
 import { AttiredMixin } from '../slot/Attired';
-import { CarryingMixin } from '../slot/Carrying';
 import { PostmortemMixin } from '../mortality/Postmortem';
 import { Quantity } from '../quantity';
 import { Postures } from '../slot/Postured';
 import type { ActRefusal } from '../craft/ActPlan';
 import { Dimensions, SIZE_DEFAULTS } from '../spatial/Dimensions';
-import type { VetoResult } from '../errors';
+import type { Arrival } from '../spatial/Container';
+import { CallSecurity } from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
 import type { Containable } from '../spatial/Containable';
 import type { BoundaryOpening } from '../boundary/Conduit';
 import { BODY_PROFILE_HEIGHT, type BodyProfile } from '../../platform/idea/LocomotionMode';
@@ -214,11 +215,11 @@ const CreatureBase = PalateMixin(OlfactoryMixin(HygieneMixin(PostmortemMixin(
                         // always Slottable via Avatar's composition", which
                         // was never true. Found by driving the world.
                         SlottableMixin(
-                        // ⭐ The receiving act (size-and-carrying D11):
-                        // outer of Attired (it seats into the slot
-                        // substrate), inner of LoadBearing (the burden
-                        // reads what it placed). See Carrying.ts.
-                        CarryingMixin(
+                        // ⭐ The CAPABILITY to carry (hands, pockets,
+                        // readying) composes only on the classes that
+                        // carry — `Carrying`, size and carrying W8. The
+                        // RULE that nothing sits loose is every body's:
+                        // `arrivalFor` below.
                         // ⭐ The only composer of Attired: a body is the
                         // only thing that wears anything. See Attired.ts.
                         AttiredMixin(
@@ -229,7 +230,6 @@ const CreatureBase = PalateMixin(OlfactoryMixin(HygieneMixin(PostmortemMixin(
                               )
                             )
                           )
-                        )
                         )
                         )
                         )
@@ -687,65 +687,100 @@ export class Creature extends CreatureBase {
   }
 
   /**
-   * ⭐⭐ **Nothing sits loose on a body** (size and carrying D11 — the
-   * flip, W7). A thing may enter a body's contents only as something the
-   * body holds, wears or has placed on a worn host:
+   * ⭐⭐ **Nothing sits loose on a body** (size and carrying D11; W8 — every
+   * body's rule, and it fails closed). A thing arrives in a body's contents
+   * only as something the body holds, wears or has placed on a worn host:
    *
    * - `how.placed` — it arrives with a placement pair on a host here (a key
    *   into a coat's pocket, a pouch hung from the belt, a coat's pocketed
    *   things following the coat, D33);
-   * - or the body is admitting it (`Carrying.admitWhile`): its own
-   *   `receive` and `seatInSlot`, readying, and the restore replaying what
-   *   it carried.
+   * - it is an agent (a rider, a passenger);
+   * - it is being seated (`Slotted.seatInSlots` marks it: a hand, a garment
+   *   put on, a halter on a hog);
+   * - or the body is admitting it ({@link admitWhile}): the restore
+   *   replaying what it carried, a carrier's merge into a held stack.
    *
-   * Anything else — a direct `ContainmentApi.move(thing, body)` — is
-   * refused `loose-on-body`: the caller wanted `receive`. The tape measure
-   * runs first, as for any container.
+   * Anything else is refused `nowhere-to-carry`: a body with no capability
+   * to carry (a fish, a wolf, a hog) has no honest place for a loose thing,
+   * and `ContainmentApi.move` throws rather than lie. A carrier overrides
+   * this (`Carrying.arrivalFor`) to place the arrival, asking `super` first
+   * so the admissions are one list. **No plan escape**: a body whose
+   * species row has not loaded is not let off.
+   *
+   * @hook
    */
-  public override canAddContainable(thing: Stuff & Containable, how?: { placed?: boolean }): VetoResult {
-    const fit = super.canAddContainable(thing);
-    if (!fit.ok) return fit;
-    if (how?.placed === true || thing.isAgent() || this.isAdmitting(thing)) return { ok: true };
-    return { ok: false, reason: 'loose-on-body' };
+  public override arrivalFor(item: Stuff & Containable, how?: { placed?: boolean }): Arrival {
+    if (how?.placed === true || item.isAgent() || this.isSeating(item) || this.isAdmitting(item)) {
+      return { kind: 'contents' };
+    }
+    return {
+      kind: 'refuse',
+      refusal: { ok: false, reason: 'nowhere-to-carry', facts: { item, held: [], tried: [] } },
+    };
+  }
+
+  /** The things this body is admitting right now — see {@link admitWhile}. Runtime only. */
+  private _admitting = new Set<string>();
+
+  /**
+   * Run `fn` with `item` admitted onto this body (D11) — the body's own
+   * acts and the restore, which replays a record of what the body already
+   * carried (`PersistableLogic.restoreItem`). Gated.
+   */
+  @CallSecurity(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.SelfOnly,
+      SecurityPolicies.FromModule('/platform/idea/api/PersistableLogic#PersistableLogic'),
+    ),
+  )
+  public admitWhile<T>(item: Stuff, fn: () => T): T {
+    const id = item.stuffId;
+    const had = this._admitting.has(id);
+    this._admitting.add(id);
+    try {
+      return fn();
+    } finally {
+      if (!had) this._admitting.delete(id);
+    }
+  }
+
+  /** Is `item` being admitted onto this body right now? Read by {@link arrivalFor}. */
+  public isAdmitting(item: Stuff): boolean {
+    return this._admitting.has(item.stuffId);
   }
 
   /**
-   * ⭐ D32: a restored body puts anything it finds loose where a carried
-   * thing goes — the first load after the flip places a pre-flip
-   * inventory (hands, pockets, packs, the overflow at home with a line).
-   * Chained from `Persistable.onRestored`.
+   * A restored body stands its species row up (size and carrying drive,
+   * step 21: after a restart nothing has loaded it). What it finds loose on
+   * itself is reported, never moved here — a carrier places it
+   * (`Carrying.onRestored` → `placeLoose`); a body that does not carry has
+   * no place for it, and no such record is expected (no migrations).
    */
-  /**
-   * ⭐ Load on use (size and carrying drive): every body made — a cast NPC,
-   * a beast, a mule — stands its species row up before anything is handed
-   * to it or worn, because a body whose plan is not known is not judged.
-   * (`Avatar.onCreate` does not chain here and awaits it itself.)
-   */
-  public override async onCreate(context?: unknown): Promise<void> {
-    await this.ensureSpecies();
-    await super.onCreate(context);
-  }
-
   public async onRestored(): Promise<void> {
-    // ⭐ The species row first (size and carrying drive, step 21): after a
-    // restart nothing has loaded it, and a body whose plan is not known is
-    // not judged — it would keep its loose things loose, and every `get`
-    // after would land loose too.
     await this.ensureSpecies();
-    if (this.placesLooseOnRestore()) await this.placeLoose();
+    if (MixinApi.isCarrying(this)) return;
+    const loose = this.getContents().filter(
+      (c) => !c.isAgent() && c.getPlacement() === null && !this.isSlotOccupant(c),
+    );
+    if (loose.length === 0) return;
+    const { DiagnosticApi } = await import('../../api/diagnostics');
+    await DiagnosticApi.record({
+      path: this.getTemplatePath() ?? this.stuffId,
+      severity: 'warning',
+      message:
+        `restored with ${loose.length} loose thing(s) (` +
+        loose.map((c) => c.getTemplatePath() ?? c.stuffId).join(', ') +
+        ') — this body does not carry, so nothing places them.',
+      channel: 'location-graph',
+    });
   }
 
-  /**
-   * Whether the restore itself places what it finds loose (D32). A body
-   * nobody attaches to places it at once; a PLAYER's body waits for its
-   * session (`Avatar.enter`), so the lines it says — *"…would not fit
-   * anywhere on you; it is in your room"* — are heard live rather than
-   * spoken into a socket that is not there yet (the drive, step 21).
-   *
-   * @hook Default `true`. `Avatar` answers `false` and places at `enter`.
-   */
-  protected placesLooseOnRestore(): boolean {
-    return true;
+  /** Does `thing` occupy one of this body's slots? */
+  private isSlotOccupant(thing: Stuff): boolean {
+    for (const occ of this.getAllOccupants().values()) {
+      for (const o of occ) if (o.stuffId === thing.stuffId) return true;
+    }
+    return false;
   }
 
   /**

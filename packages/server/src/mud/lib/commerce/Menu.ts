@@ -21,6 +21,8 @@ import Good from '../stuff/Good';
 import { PricedOfferMixin, type Offering, type OrderAnswer, type OrderDone, type OrderRefusal, type OrderRequest } from './PricedOffer';
 import { RecipeKnowledge } from '../craft/RecipeKnowledge';
 import { ContainmentApi } from '../../api/containment';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 import { EmploymentApi } from '../../api/employment';
 import { MixinApi } from '../../api/mixin';
 import type { Attendant } from '../attendant/Attendant';
@@ -164,8 +166,18 @@ export default class CommerceMenu extends CommerceMenuBase {
         const drink = outcome.output;
         if (MixinApi.isContainable(drink) && MixinApi.isContainer(by)) {
           // Made for you (D-W7a): to hand, else set down in front of you.
-          if (MixinApi.isCarrying(by)) by.receiveOrSetDown(drink);
-          else ContainmentApi.move(drink, by);
+          // Made (D-W7a; W8): to whoever made it, else set down where they
+          // stand — and they are told. The fallback is this mint's.
+          if (by.canReceive(drink) === null) ContainmentApi.move(drink, by);
+          else {
+            ContainmentApi.move(drink, (MixinApi.isContainable(by) ? by.getContainer() : null) ?? by);
+            if (MixinApi.isSensor(by)) {
+              MessageApi.scene(by)
+                .topic('act.deed')
+                .toSelf(Mml.compose`Your hands are full — you set ${Mml.thing(drink)} down.`)
+                .send();
+            }
+          }
         }
         // The drink purchase: if the menu prices this recipe, the venue takes
         // payment through the one settle-a-sale path (credential → cash; the

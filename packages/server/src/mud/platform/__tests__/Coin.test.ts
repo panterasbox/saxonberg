@@ -159,11 +159,11 @@ describe("Coin — mass → encumbrance coupling (AC#1)", () => {
     // received into a hand — the seat asks no weight, so the 200 kg stack
     // is held and charged like the small one.
     const small = bearerCreature(70);
-    small.receive(makeCoins(10), { slot: "hand:left" });
+    small.seatInSlot(makeCoins(10), "hand:left");
     const smallRatio = small.getLoadRatio();
 
     const big = bearerCreature(70);
-    big.receive(makeCoins(100_000), { slot: "hand:left" }); // 200 kg of coin
+    big.seatInSlot(makeCoins(100_000), "hand:left"); // 200 kg of coin
     const bigRatio = big.getLoadRatio();
 
     // Same bearer physiology; only the coin count differs. The heavy stack

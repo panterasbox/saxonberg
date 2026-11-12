@@ -449,8 +449,9 @@ export default class Clay extends ClayBase implements Formable {
     }
     const into = order.into ?? order.actor;
     if (MixinApi.isContainable(product) && MixinApi.isContainer(into)) {
-      if (MixinApi.isCarrying(into)) into.receiveOrSetDown(product as Stuff & Containable);
-      else ContainmentApi.move(product as Stuff & Containable, into as Stuff & Container);
+      // Made (D-W7a): to whoever made it, else set down where they stand.
+      if (into.canReceive(product as Stuff & Containable) === null) ContainmentApi.move(product as Stuff & Containable, into as Stuff & Container);
+      else ContainmentApi.move(product as Stuff & Containable, (MixinApi.isContainable(into) ? into.getContainer() : null) ?? into as Stuff & Container);
     }
     // ⭐ The craft-mint defect must not reach green ware: the piece is
     // placed AND its host captured (the `fell` precedent).

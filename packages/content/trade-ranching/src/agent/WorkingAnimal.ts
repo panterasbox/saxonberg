@@ -44,6 +44,7 @@
  */
 
 import { KeptAnimal } from '@saxonberg/server/mud/lib/creature/KeptAnimal';
+import { CarryingMixin } from '@saxonberg/server/mud/lib/slot/Carrying';
 import { HandledMixin } from '../lib/Handled';
 
 /**
@@ -66,6 +67,7 @@ import { HandledMixin } from '../lib/Handled';
  * already carries it — beside `BeliefStoreMixin`, which is what makes a
  * bond possible. A working animal is a kept animal that also has a job.
  */
-const WorkingAnimalBase = HandledMixin(KeptAnimal);
+// ⭐ It carries (size and carrying W8): a harness, a pack saddle.
+const WorkingAnimalBase = CarryingMixin(HandledMixin(KeptAnimal));
 
 export default class WorkingAnimal extends WorkingAnimalBase {}

@@ -146,11 +146,11 @@ describe('the flip across a restart (drive 21)', () => {
     const avatar = makeAvatar('flip-ann');
     ContainmentApi.move(avatar, room);
     const t = await trousers();
-    avatar.receive(t, { for: 'wear' });
+    avatar.seatInSlots(t, ['legs']);
     const k = good(KEY, 'key');
     ContainmentApi.move(k, t, 'left pocket');
     const c = good(CUP, 'cup');
-    expect(avatar.receive(c)).toBeNull();
+    ContainmentApi.move(c, avatar);
     const key = Avatar.getTemplatePath('flip-ann');
     await PersistableApi.capture(avatar, key);
     logout(avatar);
@@ -173,7 +173,7 @@ describe('the flip across a restart (drive 21)', () => {
     const avatar = makeAvatar('flip-bob');
     ContainmentApi.move(avatar, room);
     const t = await trousers();
-    avatar.receive(t, { for: 'wear' });
+    avatar.seatInSlots(t, ['legs']);
     // A pre-flip record: the key loose in the contents (only a test can
     // stand in for the old world — the veto refuses it now).
     const k = good(KEY, 'key');
@@ -235,7 +235,15 @@ describe('the flip across a restart (drive 21)', () => {
     const room = makeStuff(() => new Location());
     const avatar = makeAvatar('flip-dee');
     ContainmentApi.move(avatar, room);
-    vi.spyOn(avatar, 'receive').mockReturnValue({ kind: 'nowhere' } as never);
+    const cup = good(CUP, 'tin cup');
+    // Loose on the body (a pre-flip record), and no place on it takes it.
+    const admit = vi.spyOn(avatar, 'isAdmitting').mockReturnValue(true);
+    ContainmentApi.move(cup, avatar);
+    admit.mockRestore();
+    vi.spyOn(avatar, 'arrivalFor').mockReturnValue({
+      kind: 'refuse',
+      refusal: { ok: false, reason: 'nowhere-to-carry', facts: { item: cup, held: [], tried: [] } },
+    });
     const told: string[] = [];
     vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
       const b: Record<string, unknown> = {};
@@ -244,8 +252,7 @@ describe('the flip across a restart (drive 21)', () => {
       b.send = () => {};
       return b as never;
     });
-    const cup = good(CUP, 'tin cup');
-    expect(await avatar.receiveGranted(cup)).toBe('here');
+    expect(await avatar.placeLoose()).toContain(cup);
     expect(cup.getContainer()).toBe(room);
     expect(told.join(' ')).toMatch(/Your tin cup would not fit anywhere on you; it is at your feet\./);
   });

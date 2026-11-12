@@ -668,8 +668,25 @@ export abstract class Template extends Document {
               continue;
             }
           }
-          if (MixinApi.isCarrying(host)) await host.receiveGranted(inst);
-          else ContainmentApi.move(inst, host);
+          // ⭐ A body places what it is handed (size and carrying W8) — or has
+          // no place for it (a fish, a full pair of hands): then the author
+          // is told and the thing is not placed, as for a prop too big.
+          const refused = host.isAgent() ? host.canReceive(inst) : null;
+          if (refused !== null) {
+            const { DiagnosticApi } = await import('../../api/diagnostics');
+            await DiagnosticApi.record({
+              path: host.getTemplatePath() ?? host.stuffId,
+              severity: 'error',
+              message:
+                `prop ${path} has no place on ${host.getTemplatePath() ?? host.stuffId} ` +
+                `(${refused.reason}); it is not placed. A body places what it carries — ` +
+                `give it hands or something worn to carry it in, or fewer things.`,
+              channel: 'location-graph',
+            });
+            StuffApi.destruct(inst);
+            continue;
+          }
+          ContainmentApi.move(inst, host);
         }
       }
       // ⚠ Keyed by BOTH identity and path, so a placement key may name

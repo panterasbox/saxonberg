@@ -402,8 +402,9 @@ export default class Sheet extends SheetBase {
     }
     const where = MixinApi.isContainable(self) ? self.getContainer() : null;
     if (where !== null && MixinApi.isContainer(where)) {
-      if (MixinApi.isCarrying(where)) where.receiveOrSetDown(other);
-      else ContainmentApi.move(other, where);
+      // Made (D-W7a): to whoever made it, else set down where they stand.
+      if (where.canReceive(other) === null) ContainmentApi.move(other, where);
+      else ContainmentApi.move(other, (MixinApi.isContainable(where) ? where.getContainer() : null) ?? where);
     }
     return {
       ok: true,

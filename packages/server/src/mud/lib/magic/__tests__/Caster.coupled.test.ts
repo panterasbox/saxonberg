@@ -18,6 +18,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { handsSpecies } from '../../slot/__tests__/carrying-fixture';
 import { standShippedConditions } from "../../vitals/__tests__/conditions";
 import type { CompetenceBandName } from '../../advancement/CompetenceBand';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -104,6 +105,8 @@ function makeCaster(): TestCharacter {
   species.setFacultyProfile({ depth: 'mid', serenity: 'mid', composure: 'mid' });
   species.setInnateMixins(['CasterMixin']);
   species.setSentient(true);
+  // Hands to hold the charged item (size and carrying W8).
+  species.setBodyPlan(handsSpecies().species.getBodyPlan()!);
   stampTemplatePathForTest(species, `/stuff/idea/species/test/coupled-${n}`);
   const actor = makeStuff(() => new TestCharacter());
   actor.setSpecies(species);

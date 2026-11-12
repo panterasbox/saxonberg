@@ -18,6 +18,7 @@ import type {
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Carrying } from '../../../../lib/slot/Carrying';
+import type { Container } from '../../../../lib/spatial/Container';
 import { ContainmentApi } from '../../../../api/containment';
 import { StackableApi, type ApplyQuantityResult } from '../../../../api/stackable';
 import { MessageApi } from '../../../../api/message';
@@ -231,7 +232,7 @@ export default class GetController extends CommandController<GetModel> {
   }
 
   /** `get X from <a body that cannot stop you>`: each is received, or the carrier says why not. */
-  private takeFromBody(giver: Stuff & Carrying, body: Stuff, things: readonly Stuff[], context: CommandContext): void {
+  private takeFromBody(giver: Stuff & Container & Carrying, body: Stuff, things: readonly Stuff[], context: CommandContext): void {
     for (const thing of things) {
       if (!MixinApi.isContainable(thing)) continue;
       const refused = giver.canReceive(thing);
@@ -240,7 +241,7 @@ export default class GetController extends CommandController<GetModel> {
         context.note({ kind: 'controller-rejected', reason: refused.reason, detail: thing.getPresentation() });
         return;
       }
-      giver.receive(thing);
+      ContainmentApi.move(thing, giver);
       MessageApi.scene(giver)
         .topic('act.deed')
         .toSelf(Mml.compose`You take ${Mml.thing(thing)} from ${Mml.actor(body)}.`)
@@ -557,8 +558,7 @@ export default class GetController extends CommandController<GetModel> {
     // already is MERGES into it and is destroyed, and a reference to a
     // destroyed thing threw in the scene (the assembly drive's pegs).
     const named = operand.getPresentation();
-    if (MixinApi.isCarrying(giver)) giver.receive(operand);
-    else ContainmentApi.move(operand, giver);
+    ContainmentApi.move(operand, giver);
     const merged = operand.isDestroyed();
     // Custody returns to a pair of hands; `move` records it (`inventory`).
     // Picking up a good you do not hold title to is theft — permitted and

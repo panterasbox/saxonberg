@@ -2732,8 +2732,21 @@ async function landOutput(
   ) {
     return;
   }
-  if (MixinApi.isCarrying(into)) into.receiveOrSetDown(output);
-  else ContainmentApi.move(output, into);
+  // ⭐ Made (D-W7a; size and carrying W8): to whoever made it, else set
+  // down where they stand — never refused after the inputs are spent, and
+  // the maker is told. `move` places it; the fallback is this mint's.
+  if (into.canReceive(output) === null) {
+    ContainmentApi.move(output, into);
+    return;
+  }
+  const here = MixinApi.isContainable(into) ? into.getContainer() : null;
+  ContainmentApi.move(output, here ?? into);
+  if (into === maker && !output.isDestroyed() && MixinApi.isSensor(maker)) {
+    MessageApi.scene(maker)
+      .topic('act.deed')
+      .toSelf(Mml.compose`Your hands are full — you set ${Mml.thing(output)} down.`)
+      .send();
+  }
 }
 
 /**
@@ -5030,8 +5043,9 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
     whole.setGrade(worst);
   }
   if (returned && MixinApi.isContainable(returned) && MixinApi.isContainer(maker)) {
-    if (MixinApi.isCarrying(maker)) maker.receiveOrSetDown(returned);
-    else ContainmentApi.move(returned, maker);
+    // Made (D-W7a): to whoever made it, else set down where they stand.
+    if (maker.canReceive(returned) === null) ContainmentApi.move(returned, maker);
+    else ContainmentApi.move(returned, (MixinApi.isContainable(maker) ? maker.getContainer() : null) ?? maker);
   }
   try {
     await PersistableApi.captureHostOf(whole);

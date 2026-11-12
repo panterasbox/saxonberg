@@ -9,6 +9,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CardApi } from '@saxonberg/server/mud/api/card';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -54,6 +55,7 @@ describe('the stock card', () => {
 
   it('house stock opens a live card whose rows update when a bottle drains', async () => {
     const h = await makeHarness('Dave');
+    withHands(h.avatar);
     stampTemplatePathForTest(h.avatar, DAVE);
     const biz = makeStuffAtPath(() => new BusinessEntity(), '/stuff/test/bar/business');
     biz.proprietorPath = DAVE;

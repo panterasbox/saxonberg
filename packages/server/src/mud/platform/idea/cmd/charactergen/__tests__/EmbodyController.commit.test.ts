@@ -21,6 +21,7 @@ import { WearableMixin } from '../../../../../lib/slot/Wearable';
 import { SlottableMixin } from '../../../../../lib/slot/Slottable';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { Idea } from '../../../../../lib/stuff/Idea';
+import { SpeciesApi } from '../../../../../api/species';
 import { StuffApi } from '../../../../../api/stuff';
 import { AppApi } from '../../../../../api/app';
 import { Template } from '../../../../../lib/stuff/Template';
@@ -54,8 +55,7 @@ describe('EmbodyController.commit', () => {
     recordDeed: ReturnType<typeof vi.fn>;
     recordChronicleOnce: ReturnType<typeof vi.fn>;
     occupyAll: ReturnType<typeof vi.fn>;
-    receive: ReturnType<typeof vi.fn>;
-    receiveGranted: ReturnType<typeof vi.fn>;
+    seatInSlots: ReturnType<typeof vi.fn>;
   };
   let transfer: ReturnType<typeof vi.fn>;
   let destruct: ReturnType<typeof vi.fn>;
@@ -136,11 +136,11 @@ describe('EmbodyController.commit', () => {
       recordChronicleOnce: vi.fn().mockResolvedValue(undefined),
       // The dressing loop claims slots ON the avatar since the OO sweep.
       occupyAll: vi.fn(),
-      // …and the garment comes onto the body by the receiving act (size
-      // and carrying W4).
-      receive: vi.fn(),
-      receiveGranted: vi.fn(async () => 'carried'),
+      // …and a garment is put on by its claim — a seating (size and
+      // carrying W8).
+      seatInSlots: vi.fn(),
     };
+    vi.spyOn(SpeciesApi, 'tryGetBodyPlanPath').mockReturnValue(BIPED);
     dressed = [];
     const garment = makeStuff(() => new TestGarment());
     garment.setSlotClaim(BIPED, ['torso']);
@@ -232,7 +232,7 @@ describe('EmbodyController.commit', () => {
     expect(avatar.setSex).toHaveBeenCalledWith('female');
     // Healer outfit garments cloned + worn (tolerant loop).
     expect(dressed.length).toBeGreaterThan(0);
-    expect(avatar.receiveGranted).toHaveBeenCalledWith(expect.anything(), { for: 'wear' });
+    expect(avatar.seatInSlots).toHaveBeenCalledWith(expect.anything(), ['torso']);
     expect(transfer).toHaveBeenCalled();
     expect(avatar.enter).toHaveBeenCalledTimes(1);
     expect(destruct).toHaveBeenCalledWith(login);

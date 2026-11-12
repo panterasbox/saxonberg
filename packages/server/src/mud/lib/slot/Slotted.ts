@@ -148,6 +148,19 @@ export interface Slotted {
    * containment is where the part physically is. The host must be a Container.
    */
   seatInSlot(item: Stuff & Containable & Slottable, slot: string): void;
+  /**
+   * ⭐ Seat `item` across `slots` at once (a two-handed grip, a garment's
+   * whole claim, a mule's pack saddle) — contents first, then every slot,
+   * all or none (`occupyAll`). The body's way to WEAR or HOLD a thing,
+   * said exactly (size and carrying W8).
+   */
+  seatInSlots(item: Stuff & Containable & Slottable, slots: readonly string[]): void;
+  /**
+   * Is `item` being seated on this host right now (between its arrival in
+   * the contents and its slot claim)? A body's arrival rule reads it: a
+   * thing on its way into a slot is not loose. Runtime only.
+   */
+  isSeating(item: Stuff): boolean;
   /** Why `candidate` may not occupy `slot`, in the host's words, or `null`. */
   canOccupyReason(candidate: Stuff & Slottable, slot: string): string | null;
 
@@ -381,15 +394,49 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public seatInSlot(item: Stuff & Containable & Slottable, slot: string): void {
-      const host = this as unknown as Stuff;
-      // ⭐ A carrier admits what it seats (the flip's veto, D11): the move
-      // lands it in the contents a moment before the slot claims it.
-      const seat = (): void => {
-        ContainmentApi.move(item, this as unknown as Stuff & Container);
-        this.occupy(item, slot);
-      };
-      if (MixinApi.isCarrying(host)) host.admitWhile(item, seat);
-      else seat();
+      this.seatInSlots(item, [slot]);
+    }
+
+    /**
+     * The things being seated right now (size and carrying W8) — marked for
+     * the move's duration so a body's arrival rule (`Creature.arrivalFor`)
+     * sees a thing on its way into a slot, not a loose one. A rack's mark
+     * is read by nobody. Runtime only.
+     */
+    private _seating = new Set<string>();
+
+    public seatInSlots(item: Stuff & Containable & Slottable, slots: readonly string[]): void {
+      // ⭐ Contents first, then the slots: the move lands it in the
+      // contents a moment before the claim, under the mark.
+      const id = item.stuffId;
+      const had = this._seating.has(id);
+      const self = this as unknown as Stuff & Container;
+      const from = item.getContainer();
+      this._seating.add(id);
+      try {
+        ContainmentApi.move(item, self);
+        try {
+          if (slots.length === 1) this.occupy(item, slots[0]!);
+          else this.occupyAll(item, slots);
+        } catch (err) {
+          // A claim that will not seat leaves nothing loose behind: back
+          // where it came from (a fresh thing, nowhere), then the throw.
+          if (from !== self && item.getContainer() === self && !item.isDestroyed()) {
+            try {
+              ContainmentApi.move(item, from);
+            } catch {
+              /* the original error is the one the caller needs */
+            }
+          }
+          throw err;
+        }
+      } finally {
+        if (!had) this._seating.delete(id);
+      }
+    }
+
+    public isSeating(item: Stuff): boolean {
+      return this._seating.has(item.stuffId);
     }
 
     public canOccupy(candidate: Stuff & Slottable, slot: string): boolean {

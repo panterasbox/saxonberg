@@ -954,8 +954,9 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         // the mould at once and sets outside it.
         const scope = MixinApi.isContainable(self) ? self.getContainer() : null;
         if (scope !== null && MixinApi.isContainer(scope) && MixinApi.isContainable(cast)) {
-          if (MixinApi.isCarrying(scope)) scope.receiveOrSetDown(cast as Stuff & Containable);
-          else ContainmentApi.move(cast as Stuff & Containable, scope as Stuff & Container);
+          // Made (D-W7a): to whoever made it, else set down where they stand.
+          if (scope.canReceive(cast as Stuff & Containable) === null) ContainmentApi.move(cast as Stuff & Containable, scope as Stuff & Container);
+          else ContainmentApi.move(cast as Stuff & Containable, (MixinApi.isContainable(scope) ? scope.getContainer() : null) ?? scope as Stuff & Container);
         }
         return cast;
       }
@@ -1201,16 +1202,18 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       // what it was made of (its sand to re-temper, its wax). Its place was
       // checked before the mint (`assertCanRelease`).
       const at = scope!;
-      if (MixinApi.isCarrying(at)) at.receiveOrSetDown(item);
-      else ContainmentApi.move(item, at);
+      // Made (D-W7a): to whoever made it, else set down where they stand.
+      if (at.canReceive(item) === null) ContainmentApi.move(item, at);
+      else ContainmentApi.move(item, (MixinApi.isContainable(at) ? at.getContainer() : null) ?? at);
       if (runner && scope !== null) await this.mintRunner(material, runnerKg, scope);
       if (this.breaksTo !== '') {
         const left = await StuffApi.clone<Stuff>(this.breaksTo);
         if (!MixinApi.isContainable(left)) {
           throw new TypeError(`Mould: '${this.breaksTo}' is not a thing that can be left behind`);
         }
-        if (MixinApi.isCarrying(at)) at.receiveOrSetDown(left as Stuff & Containable);
-        else ContainmentApi.move(left as Stuff & Containable, at);
+        // Made (D-W7a): to whoever made it, else set down where they stand.
+        if (at.canReceive(left as Stuff & Containable) === null) ContainmentApi.move(left as Stuff & Containable, at);
+        else ContainmentApi.move(left as Stuff & Containable, (MixinApi.isContainable(at) ? at.getContainer() : null) ?? at);
       }
       await StuffApi.destruct(self as Stuff);
       return cast;
@@ -1226,8 +1229,9 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       lump.setMass(Quantity.of(kg, 'kg'));
       lump.setShortDescription(`runner and riser of ${material.getName()}`);
       lump.setKeywords(['runner', 'riser', 'sprue', ...material.getName().split(/\s+/)]);
-      if (MixinApi.isCarrying(scope)) scope.receiveOrSetDown(lump as Stuff & Containable);
-      else ContainmentApi.move(lump as Stuff & Containable, scope);
+      // Made (D-W7a): to whoever made it, else set down where they stand.
+      if (scope.canReceive(lump as Stuff & Containable) === null) ContainmentApi.move(lump as Stuff & Containable, scope);
+      else ContainmentApi.move(lump as Stuff & Containable, (MixinApi.isContainable(scope) ? scope.getContainer() : null) ?? scope);
     }
   };
 }

@@ -8,6 +8,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { withHands } from '../../../lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Rope from '../Rope';
 import RopeEnd from '../RopeEnd';
@@ -76,7 +77,7 @@ function hemp(): Material {
 }
 
 function body(kg: number): Body {
-  const b = makeStuff(() => new Body());
+  const b = withHands(makeStuff(() => new Body()));
   b.setMass(Quantity.of(kg, 'kg'));
   return b;
 }
