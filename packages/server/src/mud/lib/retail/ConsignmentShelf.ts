@@ -418,7 +418,8 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
     /** Custody → the buyer: into their hands. */
     protected handOver(item: Stuff & Containable, giver: Stuff): void {
       if (MixinApi.isContainer(giver)) {
-        ContainmentApi.move(item, giver); // narrowed to Stuff & Container
+        if (MixinApi.isCarrying(giver)) giver.receive(item);
+        else ContainmentApi.move(item, giver); // narrowed to Stuff & Container
       }
     }
 

@@ -60,6 +60,7 @@ args:
   # (a hand lens, a streak plate). The words stay words; what changes is
   # how fine they may get.
   - name: tool
+    readies: true
     prepositionRequired: true
     type: objects
     required: false

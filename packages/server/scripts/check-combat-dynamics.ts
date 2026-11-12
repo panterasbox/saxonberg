@@ -63,6 +63,10 @@ export const COMBAT_DYNAMICS_ALLOWLIST: ReadonlySet<string> = new Set([
   // substrate as the drain's `isMetabolic`, not a dynamic. Under the
   // water the fight is about air.
   "isRespiration",
+  // ⭐ `isCarrying` (size and carrying W4): a switch completes by the body's
+  // own hands — what is held goes home, the thing comes out of its holder.
+  // Hands are slots; this is the slot substrate's next rung, not a dynamic.
+  "isCarrying",
   // ⭐ `isHygienic` is the same move again (the cleanliness review, !380): a blow's
   // blood on the struck site and on the striker's hands was `Attired`'s
   // `soilHands` until hygiene left the clothes module for `HygieneMixin`.

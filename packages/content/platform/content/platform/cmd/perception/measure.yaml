@@ -81,6 +81,7 @@ args:
   # Reach, not carry: a bench on the wall and a photometer on the table
   # both count.
   - name: tool
+    readies: true
     prepositionRequired: true
     type: objects
     required: false

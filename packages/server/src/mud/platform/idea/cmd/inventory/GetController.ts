@@ -480,7 +480,8 @@ export default class GetController extends CommandController<GetModel> {
     // already is MERGES into it and is destroyed, and a reference to a
     // destroyed thing threw in the scene (the assembly drive's pegs).
     const named = operand.getPresentation();
-    ContainmentApi.move(operand, giver);
+    if (MixinApi.isCarrying(giver)) giver.receive(operand);
+    else ContainmentApi.move(operand, giver);
     const merged = operand.isDestroyed();
     // Custody returns to a pair of hands; `move` records it (`inventory`).
     // Picking up a good you do not hold title to is theft — permitted and

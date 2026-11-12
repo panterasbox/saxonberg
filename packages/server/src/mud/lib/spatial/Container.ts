@@ -612,7 +612,8 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       for (const item of snapshot) {
         try {
           if (outer !== null && (!dormant || MixinApi.isHasInteractive(item))) {
-            ContainmentApi.move(item, outer);
+            if (MixinApi.isCarrying(outer)) outer.receive(item);
+            else ContainmentApi.move(item, outer);
           } else if (
             MixinApi.isHasInteractive(item) &&
             evacuationFallback !== null

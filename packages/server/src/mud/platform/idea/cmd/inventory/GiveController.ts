@@ -97,10 +97,8 @@ export default class GiveController extends CommandController<GiveModel> {
       }
     }
 
-    ContainmentApi.move(
-      item as Stuff & Containable,
-      recipient as Stuff & Container,
-    );
+    if (MixinApi.isCarrying(recipient)) recipient.receive(item as Stuff & Containable);
+    else ContainmentApi.move(item as Stuff & Containable, recipient as Stuff & Container);
 
     MessageApi.scene(giver)
       .topic('sense.survey')

@@ -54,6 +54,7 @@ describe('EmbodyController.commit', () => {
     recordDeed: ReturnType<typeof vi.fn>;
     recordChronicleOnce: ReturnType<typeof vi.fn>;
     occupyAll: ReturnType<typeof vi.fn>;
+    receive: ReturnType<typeof vi.fn>;
   };
   let transfer: ReturnType<typeof vi.fn>;
   let destruct: ReturnType<typeof vi.fn>;
@@ -134,6 +135,9 @@ describe('EmbodyController.commit', () => {
       recordChronicleOnce: vi.fn().mockResolvedValue(undefined),
       // The dressing loop claims slots ON the avatar since the OO sweep.
       occupyAll: vi.fn(),
+      // …and the garment comes onto the body by the receiving act (size
+      // and carrying W4).
+      receive: vi.fn(),
     };
     dressed = [];
     const garment = makeStuff(() => new TestGarment());

@@ -1122,7 +1122,8 @@ function growingPickPlan(
           const crop = await StuffApi.clone<Stuff>(cropPath, undefined, { madeFrom: plant });
           stampCrop(crop, by, band, cropPath);
           if (MixinApi.isContainable(crop) && MixinApi.isContainer(by)) {
-            ContainmentApi.move(crop as Stuff & Containable, by as Stuff & Container);
+            if (MixinApi.isCarrying(by)) by.receive(crop as Stuff & Containable);
+            else ContainmentApi.move(crop as Stuff & Containable, by as Stuff & Container);
           }
           crops.push(crop);
         }
@@ -1286,10 +1287,9 @@ async function landSwath(
       const carry =
         MixinApi.isContainer(by) && !(MixinApi.isLoadBearing(by) && by.wouldExceedCeiling(crop));
       if (MixinApi.isContainable(crop)) {
-        ContainmentApi.move(
-          crop as Stuff & Containable,
-          (carry ? by : where) as Stuff & Container,
-        );
+        const dest = (carry ? by : where) as Stuff & Container;
+        if (MixinApi.isCarrying(dest)) dest.receive(crop as Stuff & Containable);
+        else ContainmentApi.move(crop as Stuff & Containable, dest);
       }
       if (!carry) dropped++;
       crops.push(crop);

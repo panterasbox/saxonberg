@@ -386,12 +386,6 @@ export class PerceptionLogic extends ApiLogic {
     return lensAdmits(viewer, target) ? 'builder' : null;
   }
 
-  /** See {@link PerceptionApi.tierOf}. */
-  @CallSecurity(PerceptionApiCallers)
-  public tierOf(carrier: Stuff, thing: Stuff): ReachTier {
-    return tierOfImpl(carrier, thing);
-  }
-
   @CallSecurity(PerceptionApiCallers)
   public perceives(viewer: Stuff, target: Stuff, attention?: number): boolean {
     return perceivesImpl(viewer, target, attention);
@@ -1252,41 +1246,19 @@ function foundOnBy(viewer: Stuff, thing: Stuff, body: Stuff): boolean {
   return viewer.recall(DISCOVERY, referent)?.payload.foundOn === holder;
 }
 
-/** The slot a pack on the back sits in — its inside is *packed* (D15). */
-const PACKED_SLOT = 'back';
-
 /**
- * ⭐ D15/D17's tier read — see {@link PerceptionApi.tierOf}. ⚠ W3: a thing
- * loose in the carrier's contents (today's carrying, before the flip) is
- * `ready`; `Carrying.tierOf` replaces this read at W4.
+ * ⭐ D15/D17's tier read — `Carrying.tierOf` (size and carrying W4): the
+ * carrier answers how near its own things are. A holder that does not
+ * carry (a cart, a chest) has nothing in a hand: what is in it is ready.
  */
 function tierOfImpl(carrier: Stuff, thing: Stuff): ReachTier {
-  // Walk up to the carrier; `top` is the thing directly on it.
-  let top: Stuff = thing;
-  for (let i = 0; i < 32; i++) {
-    const up: Stuff | null = MixinApi.isContainable(top) ? top.getContainer() : null;
-    if (up === null) return 'elsewhere';
-    if (up.stuffId === carrier.stuffId) break;
-    if (up.isAgent()) return 'elsewhere';
-    top = up;
-    if (i === 31) return 'elsewhere';
+  if (MixinApi.isCarrying(carrier)) return carrier.tierOf(thing);
+  let up: Stuff | null = MixinApi.isContainable(thing) ? thing.getContainer() : null;
+  for (let i = 0; up !== null && i < 32; i++) {
+    if (up.stuffId === carrier.stuffId) return 'ready';
+    up = MixinApi.isContainable(up) ? up.getContainer() : null;
   }
-  const slotted = MixinApi.isSlotted(carrier) ? carrier : null;
-  const slotsOf = (x: Stuff): string[] => {
-    if (slotted === null) return [];
-    const out: string[] = [];
-    for (const [slot, occ] of slotted.getAllOccupants()) {
-      if ([...occ].some((o) => o.stuffId === x.stuffId)) out.push(slot);
-    }
-    return out;
-  };
-  const slots = slotsOf(top);
-  if (top !== thing) {
-    return slots.includes(PACKED_SLOT) ? 'packed' : 'ready';
-  }
-  const hands = MixinApi.isCarrying(carrier) ? carrier.handSlots() : [];
-  if (slots.some((s) => hands.includes(s))) return 'hand';
-  return 'ready';
+  return 'elsewhere';
 }
 
 /** The order the binder ties on, nearest first. */

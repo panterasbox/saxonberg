@@ -102,7 +102,8 @@ export default class Gus extends Cast {
       // Carried gear: straight into inventory.
       for (const path of CARRIED) {
         const item = await StuffApi.clone<Stuff & Containable>(path);
-        ContainmentApi.move(item, self);
+        if (MixinApi.isCarrying(self)) self.receive(item);
+        else ContainmentApi.move(item, self);
       }
 
       // Worn/wielded gear needs a body plan to resolve its slot claim.
@@ -114,7 +115,8 @@ export default class Gus extends Cast {
         // A worn/wielded item lives in inventory AND a slot (the
         // EquipController contract). Move in, then occupy
         // each claimed slot.
-        ContainmentApi.move(item, self);
+        if (MixinApi.isCarrying(self)) self.receive(item);
+        else ContainmentApi.move(item, self);
         const slots = (item as unknown as SlotClaimer).getSlotClaim(
           bodyPlanPath,
         );

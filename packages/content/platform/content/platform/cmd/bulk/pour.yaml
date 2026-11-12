@@ -41,6 +41,7 @@ options:
     description: "Pour the full measure or none of it"
 args:
   - name: source
+    readies: true
     type: object
     required: true
     scope: "reachable"

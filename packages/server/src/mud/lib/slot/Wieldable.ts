@@ -18,6 +18,7 @@ import type { CommandContributions } from '../../api/command';
 import type { Slottable } from './Slottable';
 import type { Slotted } from './Slotted';
 import { SpeciesApi } from '../../api/species';
+import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import type { WeaponProfile } from '../combat/WeaponProfile';
 // eslint-disable-next-line no-restricted-imports -- the G1 weapon face: a wieldable's isWeapon()/weaponProfile() forward into the combat logic singleton exactly as the api/combat facade does (the Combustible/Energized precedent)
@@ -104,6 +105,11 @@ export function WieldableMixin<
     }
 
     public fitsSlot(host: Stuff & Slotted, slot: string): boolean {
+      // ⭐ A hand takes anything that can be wielded (size and carrying
+      // D9/D16): readying a compass, a lead's end, a pole's second hand by
+      // weight — the claim says where it goes when you `wield` it, not
+      // which hands may close on it.
+      if (MixinApi.isCarrying(host) && host.handSlots().includes(slot)) return true;
       const bodyPlanPath = SpeciesApi.tryGetBodyPlanPath(host);
       if (!bodyPlanPath) return false;
       return this.getSlotClaim(bodyPlanPath).includes(slot);

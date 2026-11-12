@@ -104,8 +104,11 @@ export default class HitchController extends CommandController<HitchModel> {
         return hauler.stuffId === giver.stuffId
           ? Mml.compose`You're already pulling something.`
           : Mml.compose`${Mml.thing(hauler)} is already pulling something.`;
-      case 'hands-occupied':
-        return Mml.compose`Your hands are full.`;
+      case 'hands-on-cart':
+        // The hands are the body's to word (size and carrying D18).
+        return MixinApi.isCarrying(giver)
+          ? Mml.text(giver.refusalWords({ ok: false, reason: 'hands-needed', facts: r.facts }))
+          : Mml.compose`Your hands are full.`;
       default: {
         const never: never = r;
         return never;

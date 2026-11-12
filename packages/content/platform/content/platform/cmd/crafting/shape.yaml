@@ -47,6 +47,7 @@ args:
   # with a default (`lint:controller-resolution`); the controller asks each bound
   # tool whether it plans the shape, and hands are the fallback.
   - name: instrument
+    readies: true
     type: objects
     required: false
     prepositions: [with, using, on, at]

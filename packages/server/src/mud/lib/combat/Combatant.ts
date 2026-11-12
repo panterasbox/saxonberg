@@ -120,7 +120,14 @@ export interface Combatant {
   disengage(): { ok: boolean; message?: string };
   bumRush(direction: string): Promise<{ ok: boolean; reason?: string }>;
   offerBreak(): { ok: boolean; reason?: string; broke: boolean };
-  beginWeaponSwitch(target: Stuff): { ok: boolean; reason?: string };
+  /**
+   * Begin a guarded switch to `target` — guard down, no instrument, for
+   * `opts.seconds` (default the `combat.switch.seconds` dial). ⭐ Any item,
+   * not only a weapon (size and carrying D16): `Carrying.ready` passes the
+   * two halves its holders cost, and a thing that is not a weapon never
+   * becomes the instrument when it comes to hand.
+   */
+  beginWeaponSwitch(target: Stuff, opts?: { seconds?: number }): { ok: boolean; reason?: string };
   drawSidearm(): { ok: boolean; reason?: string };
   resolveThrown(
     target: Stuff,
@@ -617,8 +624,8 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** Begin a guarded weapon switch against `target`. */
-    public beginWeaponSwitch(target: Stuff): { ok: boolean; reason?: string } {
-      return combatLogic().beginSwitch(this as unknown as Stuff, target);
+    public beginWeaponSwitch(target: Stuff, opts?: { seconds?: number }): { ok: boolean; reason?: string } {
+      return combatLogic().beginSwitch(this as unknown as Stuff, target, opts?.seconds);
     }
 
     /** Fast-draw a sheathed/carried backup weapon. */

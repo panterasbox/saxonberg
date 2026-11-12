@@ -879,7 +879,8 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         if (!words.includes('receipt')) paper.setKeywords([...words, 'receipt']);
       }
       if (MixinApi.isContainable(paper) && MixinApi.isContainer(actor)) {
-        ContainmentApi.move(paper, actor as unknown as Stuff & Container);
+        if (MixinApi.isCarrying(actor)) actor.receive(paper);
+        else ContainmentApi.move(paper, actor as unknown as Stuff & Container);
       }
       return { ...out, paper };
     }
@@ -996,7 +997,8 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       for (const r of mine.filter((x) => x.unit === 'count' && matchesGood(x, word))) {
         const live = this.liveGood(r.poolKey);
         if (live === null) continue;
-        ContainmentApi.move(live, actor as unknown as Stuff & Container);
+        if (MixinApi.isCarrying(actor)) actor.receive(live);
+        else ContainmentApi.move(live, actor as unknown as Stuff & Container);
         r.amountKg = 0;
         r.settledAtS = nowS();
         const receiptPath = await this.fileReceipt(business, r);
@@ -1130,7 +1132,11 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       line.amountKg = Math.max(0, line.amountKg - paidKg);
       this.noteDraw(line, paidKg, forHouse);
       if (to !== null && MixinApi.isContainer(to)) {
-        for (const g of goods) if (MixinApi.isContainable(g)) ContainmentApi.move(g, to);
+        for (const g of goods) {
+          if (!MixinApi.isContainable(g)) continue;
+          if (MixinApi.isCarrying(to)) to.receive(g);
+          else ContainmentApi.move(g, to);
+        }
       }
       if (line.amountKg <= LINE_EPSILON_KG) {
         const key = line.poolKey;

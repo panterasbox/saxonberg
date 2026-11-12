@@ -85,8 +85,13 @@ import { MUD, SERVER_SRC, packSources, packSrcFiles, parseTs, ratchet } from "./
  * survey missed (`Mould.castInto`, `ThrownLanding`, `Plant` seed-fall,
  * `LineEnd.followLoad`, `Colony.mintDeparture`, `reembodyImpl`,
  * `Thermal.setLump`).
+ *
+ * W4: every kernel caller ported → **40**, all of them pack rows (W5's).
+ * The idiom is `if (isCarrying(dest)) dest.receive(x) else move(x, dest)`
+ * (`inCarrierElse` skips the else). Two keys whose other branch was
+ * ported became `not-body` (a Placing route).
  */
-export const BODY_MOVES_CEILING = 101;
+export const BODY_MOVES_CEILING = 40;
 
 export type BodyMoveTag = "made" | "handed" | "granted" | "inherit";
 export type Disposition = BodyMoveTag | "allow" | "not-body";
@@ -131,6 +136,18 @@ export function isBodyFile(rel: string): boolean {
  */
 export const ROSTER: Record<string, RosterRow> = {
   // ── D11's allowlist — the receiving act and what restores one ─────────
+  "lib/slot/Carrying.ts :: CarryingMixin.receive :: self": {
+    tag: "allow",
+    why: "D11 — receive IS the receiving act",
+  },
+  "lib/slot/Carrying.ts :: CarryingMixin.bringToHand :: self": {
+    tag: "allow",
+    why: "D11/D16 — readying seats a thing in the carrier's own hands (occupyAll for two)",
+  },
+  "lib/slot/Carrying.ts :: CarryingMixin.releaseHeld :: place": {
+    tag: "not-body",
+    why: "D13 — a grip that fails drops to the place the body stands in",
+  },
   "lib/slot/Slotted.ts :: SlottedMixin.seatInSlot :: this": {
     tag: "allow",
     why: "D11 — seatInSlot is the hand/slot half of the receiving act",
@@ -168,61 +185,22 @@ export const ROSTER: Record<string, RosterRow> = {
   },
 
   // ── handed — a counterparty offers, or the carrier takes ─────────────
-  "platform/idea/cmd/inventory/GetController.ts :: GetController.pickUpOperand :: giver": { tag: "handed" },
-  "platform/idea/cmd/inventory/GiveController.ts :: GiveController.execute :: recipient": { tag: "handed" },
-  "platform/idea/cmd/inventory/EquipControllerBase.ts :: EquipControllerBase.pool :: giver": { tag: "handed" },
-  "platform/idea/cmd/retail/HeldGoodsControllerBase.ts :: HeldGoodsControllerBase.reclaimFrom :: giver": {
-    tag: "handed",
+  "platform/idea/api/ContainmentLogic.ts :: ContainmentLogic.putPlanFor :: target": {
+    tag: "not-body",
+    why: "the region route: a Placing host, which a body is not (the zero route is ported, W4)",
   },
-  "lib/retail/ConsignmentShelf.ts :: ConsignmentShelfMixin.handOver :: giver": { tag: "handed" },
-  "lib/retail/HeldGoods.ts :: HeldGoodsMixin.checkIn :: by": { tag: "handed" },
-  "lib/storage/Store.ts :: StoreMixin.writeBearerPaper :: actor": { tag: "handed" },
-  "lib/storage/Store.ts :: StoreMixin.withdraw :: actor": { tag: "handed" },
-  "lib/storage/Store.ts :: StoreMixin.payOut :: to": { tag: "handed", survey: true },
-  "lib/commerce/Menu.ts :: CommerceMenu.orderPlanFor :: by": { tag: "handed" },
-  "platform/idea/api/BankingLogic.ts :: moveCoins :: to": { tag: "handed", survey: true },
-  "platform/idea/api/BankingLogic.ts :: dispenseCoin :: into": { tag: "handed", survey: true },
-  "platform/idea/api/ContainmentLogic.ts :: ContainmentLogic.putPlanFor :: target": { tag: "handed", n: 2, survey: true },
-  "platform/thing/TipJar.ts :: TipJar.collectBy :: actor": { tag: "handed" },
-  "platform/thing/Rope.ts :: Rope.untieBy :: by": { tag: "handed" },
-  "platform/thing/LineEnd.ts :: LineEnd.untieBy :: by": { tag: "handed" },
   "trade-diving:thing/AirBag.ts :: AirBag.untieBy :: by": { tag: "handed" },
   "terminus:market/thing/MarketStalls.ts :: MarketStalls.giveUp :: to": { tag: "handed", survey: true },
   "trade-sericulture:behavior/tends.ts :: handMoves :: to": { tag: "handed", survey: true },
 
   // ── granted — the world gives it to you ──────────────────────────────
-  "lib/character/Avatar.ts :: Avatar.installDefaultLoadout :: this": { tag: "granted" },
-  "lib/character/Character.ts :: Character.wearGarments :: self": { tag: "granted" },
-  "platform/agent/Gus.ts :: Gus.equipLoadout :: self": { tag: "granted", n: 2 },
-  "lib/behavior/arms.ts :: brain.act :: host": { tag: "granted" },
-  "platform/idea/Login.ts :: Login.mintRandomGuestAvatar :: avatar": { tag: "granted" },
-  "platform/idea/cmd/charactergen/EmbodyController.ts :: EmbodyController.commit :: avatar": { tag: "granted" },
-  "platform/idea/api/BankingLogic.ts :: issueCardImpl :: principal": { tag: "granted" },
-  "lib/lock/Lock.ts :: mintPhysical :: holder": { tag: "granted" },
-  "lib/chattel/Estate.ts :: EstateMixin.hydrateSlice :: host": { tag: "granted" },
-  "lib/stuff/Template.ts :: Template._stageEntries :: host": { tag: "granted", n: 2 },
-  "platform/idea/cmd/author/CloneController.ts :: CloneController.execute :: placement.dest": {
-    tag: "granted",
-    survey: true,
-  },
-  "platform/idea/cmd/author/CloneController.ts :: CloneController.placeCopy :: placement.dest": {
-    tag: "granted",
-    survey: true,
+  "lib/stuff/Template.ts :: Template._stageEntries :: host": {
+    tag: "not-body",
+    why: "the named-placement route: a Placing host, which a body is not (the unnamed route is ported, W4)",
   },
   "tpa:idea/cmd/tpa/ProcureCardController.ts :: ProcureCardController.execute :: giver": { tag: "granted" },
-  "backend/TestHooks.ts :: TestHooks.handCharacter :: into": { tag: "granted" },
 
   // ── made — what an act produces lands on the maker ───────────────────
-  "lib/husbandry/Producing.ts :: ProducingMixin.mintTake :: by": { tag: "made" },
-  "lib/husbandry/Growing.ts :: growingPickPlan :: by": { tag: "made" },
-  "lib/husbandry/Growing.ts :: landSwath :: carry ? by : where": { tag: "made" },
-  "platform/idea/api/CraftingLogic.ts :: landOutput :: into": { tag: "made", survey: true },
-  "platform/idea/api/CraftingLogic.ts :: fitImpl :: maker": { tag: "made" },
-  "platform/thing/Plant.ts :: Plant.samplePiece :: actor": { tag: "made" },
-  "platform/thing/Rope.ts :: Rope.cutOff :: into": { tag: "made", survey: true },
-  "lib/ground/Floor.ts :: FloorMixin.sweepInto :: where": { tag: "made" },
-  "lib/fire/Flued.ts :: FluedMixin.takeSoot :: into": { tag: "made", survey: true },
-  "lib/fire/Burner.ts :: BurnerMixin.mintAshHeaps :: opts.into": { tag: "made", survey: true },
   "trade-fishing:lib/FishingEngagement.ts :: FishingEngagement.mint :: this.actor": { tag: "made" },
   "trade-fishing:thing/Trap.ts :: Trap.pullBy :: puller": { tag: "made", n: 3 },
   "trade-diving:thing/Spear.ts :: Spear.takeFishBy :: by": { tag: "made" },
@@ -251,18 +229,6 @@ export const ROSTER: Record<string, RosterRow> = {
   "trade-glass:thing/Gather.ts :: Gather.crackOff :: where": { tag: "made", n: 2 },
 
   // ── inherit — the residue lands where its source was ─────────────────
-  "platform/thing/Envelope.ts :: Envelope.tear :: where": { tag: "inherit" },
-  "platform/thing/equipment/Garment.ts :: Garment.tear :: where": { tag: "inherit" },
-  "platform/thing/Book.ts :: Book.tear :: where": { tag: "inherit" },
-  "platform/thing/Sheet.ts :: Sheet.tear :: where": { tag: "inherit" },
-  "lib/material/Integrity.ts :: IntegrityMixin.afterWetted :: where": { tag: "inherit" },
-  "lib/material/Integrity.ts :: IntegrityMixin.sufferImpact :: where": { tag: "inherit" },
-  "lib/magic/Consumable.ts :: ConsumableMixin.consume :: where": { tag: "inherit" },
-  "platform/idea/api/BulkableLogic.ts :: loseReceiver :: where": { tag: "inherit" },
-  "lib/mould/Mould.ts :: MouldMixin.pressRelease :: scope": { tag: "inherit" },
-  "lib/thermal/Thermal.ts :: setCrystals :: scope": { tag: "inherit", survey: true },
-  "lib/thermal/Thermal.ts :: setLump :: scope": { tag: "inherit", survey: true },
-  "lib/spatial/Container.ts :: ContainerMixin.cleanupOnDestruct :: outer": { tag: "inherit" },
   "trade-smithing:lib/Quenchable.ts :: QuenchableMixin.crack :: where": { tag: "inherit" },
   "trade-glass:thing/Sheet.ts :: Sheet.openFlat :: where": { tag: "inherit" },
   "trade-glass:thing/Sheet.ts :: Sheet.snapInTwo :: where": { tag: "inherit" },
@@ -310,13 +276,7 @@ export const ROSTER: Record<string, RosterRow> = {
     why: "a boat stands in water; a thing you get into is never carried",
   },
   // ── rule-3 hits that ARE inherit (the source may be carried) ─────────
-  "lib/material/ThrownLanding.ts :: ThrownLanding.settle :: landing": { tag: "inherit" },
-  "platform/thing/LineEnd.ts :: LineEnd.followLoad :: at": { tag: "inherit" },
-  "platform/thing/Plant.ts :: Plant.onFloweringLatched :: target": { tag: "inherit" },
   "trade-apiculture:lib/Colony.ts :: ColonyMixin.mintDeparture :: env": { tag: "inherit" },
-  "lib/mould/Mould.ts :: MouldMixin.castInto :: scope": { tag: "inherit", n: 2 },
-  "lib/mould/Mould.ts :: MouldMixin.mintRunner :: scope": { tag: "inherit" },
-  "platform/idea/api/ConditionLogic.ts :: reembodyImpl :: landing": { tag: "inherit" },
 };
 
 export interface MoveSite {
@@ -405,6 +365,30 @@ function siteName(node: ts.Node): { name: string; outer: ts.Node | null } {
   return { name: cls ? `${cls}.${m}` : m, outer };
 }
 
+/**
+ * Is this move the `else` of an `isCarrying(<dest>)` test (W4's port
+ * idiom)? Then the destination was already asked whether it carries, and
+ * the move only runs when it does not.
+ */
+export function inCarrierElse(call: ts.Node, destText: string, sf: ts.SourceFile): boolean {
+  let child: ts.Node = call;
+  for (let p: ts.Node | undefined = call.parent; p; p = p.parent) {
+    if (isFunctionLike(p)) return false;
+    const test =
+      ts.isIfStatement(p) && p.elseStatement === child
+        ? p.expression
+        : ts.isConditionalExpression(p) && p.whenFalse === child
+          ? p.condition
+          : null;
+    if (test) {
+      const t = test.getText(sf).replace(/\s+/g, " ");
+      if (t.includes(`isCarrying(${destText})`)) return true;
+    }
+    child = p;
+  }
+  return false;
+}
+
 /** Every local initializer of `name` declared anywhere in `scope`. */
 function initializersOf(scope: ts.Node, name: string): ts.Expression[] {
   const out: ts.Expression[] = [];
@@ -472,6 +456,13 @@ export function sitesIn(sf: ts.SourceFile, rel: string): MoveSite[] {
       const dest = n.arguments[1]!;
       const { name, outer } = siteName(n);
       const destText = unwrap(dest).getText(sf).replace(/\s+/g, " ");
+      // ⭐ The ported idiom: `if (MixinApi.isCarrying(dest)) dest.receive(x);
+      // else ContainmentApi.move(x, dest);` — the else branch moves into
+      // something that is NOT a carrier, so it is not a body move at all.
+      if (inCarrierElse(n, destText, sf)) {
+        ts.forEachChild(n, walk);
+        return;
+      }
       out.push({
         key: `${rel} :: ${name} :: ${destText}`,
         file: rel,

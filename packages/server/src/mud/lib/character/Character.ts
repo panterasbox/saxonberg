@@ -223,7 +223,8 @@ export abstract class Character extends CharacterBase {
       try {
         const garment = await StuffApi.clone(path);
         if (!MixinApi.isContainable(garment)) continue;
-        ContainmentApi.move(garment, self as never);
+        if (MixinApi.isCarrying(self)) self.receive(garment);
+        else ContainmentApi.move(garment, self as never);
         // ⭐ `isSlotted`, not a cast. Every other narrowing in this
         // method is a `MixinApi` predicate and this one was a bare
         // assertion (fixed at review, 2026-09-24) — which mattered:

@@ -878,7 +878,8 @@ function loseReceiver(receiver: Stuff, how: 'melts' | 'burns'): void {
         pieces.setMass(Quantity.of(massKg, 'kg'));
       }
       if (MixinApi.isContainable(pieces) && !where.isDestroyed()) {
-        ContainmentApi.move(pieces as Stuff & Containable, where as Stuff & Container);
+        if (MixinApi.isCarrying(where)) where.receive(pieces as Stuff & Containable);
+        else ContainmentApi.move(pieces as Stuff & Containable, where as Stuff & Container);
       }
     })
     .catch((err: unknown) => console.warn('BulkableLogic: a melted receiver left nothing:', err));

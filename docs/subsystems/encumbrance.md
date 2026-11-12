@@ -84,6 +84,21 @@ Two coupling factors shape the sum:
   the torso applies the worn floor to itself *and* its contents; a chest
   held in a hand applies the held surcharge to both.
 
+⭐ **Slots first** (size and carrying W4): the slot occupants are walked
+before the loose contents. A worn or held thing is in the contents too,
+and when the loose pass went first it reached a worn coat before its slot
+did and charged it the held surcharge. A **held** load (a hand slot —
+`Carrying.handSlots`) is also multiplied by its **awkwardness**,
+`Carrying.awkwardnessOf`: `1 + AWKWARD_LENGTH × max(0, longest/stature − 1)
++ AWKWARD_BULK × volume/bodyVolume` (`CARRYING_DEFAULTS`). The loose pass
+retires at the carrying flip (W7).
+
+⭐ **Weight is mass × the place's gravity**: the total (and the lift
+gate's prospective walk) is scaled by `gravityNow() / 9.81` of the
+bearer's enclosing place — a pack weighs nothing at zero g and 38 % of
+itself on Mars, and keeps its mass, its size and the hands it takes. The
+water's buoyancy (`rho`) is applied per item as before.
+
 Safety: a `visited` set (by `stuffId`) plus `MAX_DEPTH` guard against
 cycles and pathological nesting — containment is a DAG via the move
 chokepoint, but the walk does not assume it. The same item appearing in
@@ -140,8 +155,8 @@ ceiling  = capacity × OVERLOAD_FACTOR
   but never to zero (the floor is "exhausted", not "can't lift a feather").
 
 Both margins pull capacity *down* off the body-mass baseline. Environmental
-margins (spo2, gravity) are deferred — nothing drives them off baseline
-yet.
+margins (spo2) are deferred — nothing drives them off baseline yet
+(gravity scales the burden, not the capacity: size and carrying W4).
 
 ## Body mass — `Species.getBaseMass()` + `Creature.getMass()`
 

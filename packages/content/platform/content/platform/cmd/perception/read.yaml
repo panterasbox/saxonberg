@@ -25,6 +25,7 @@ validators:
   - /lib/command/validators/requiresConscious
 args:
   - name: target
+    readies: true
     type: object
     required: true
     # ⭐ One word, or a quoted name (`read "city directory" page 3`) —

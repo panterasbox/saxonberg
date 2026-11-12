@@ -988,6 +988,30 @@ function pushAhead(mover: Stuff & Containable & Mobile, mode: string): void {
   scene.send();
 }
 
+/**
+ * ⭐ The animals `mover` leads (size and carrying D18): for each line end in
+ * its hands, the creature at the line's other end — the rope goes with
+ * the animal, made fast round its halter — when that creature stands
+ * beside it and can move.
+ */
+function ledAnimals(mover: Stuff): Array<Stuff & Mobile & Containable> {
+  if (!MixinApi.isCarrying(mover) || !MixinApi.isContainable(mover)) return [];
+  const here = mover.getContainer();
+  const out: Array<Stuff & Mobile & Containable> = [];
+  for (const held of mover.heldThings()) {
+    if (!MixinApi.isTetherEnd(held)) continue;
+    const far = held.tetheredTo();
+    if (far === null || far.stuffId === mover.stuffId || !far.isAgent()) continue;
+    if (!MixinApi.isMobile(far) || !MixinApi.isContainable(far) || far.getContainer() !== here) continue;
+    // Led, not hauled: a body with no hands of its own (an animal on a
+    // halter). A person on a line's end — a diver, a climber — walks
+    // their own way.
+    if (!MixinApi.isCarrying(far) || far.handSlots().length > 0) continue;
+    if (!out.includes(far)) out.push(far);
+  }
+  return out;
+}
+
 async function crossExit(
   mover: Stuff & Containable & Mobile,
   exit: Exit,
@@ -1015,6 +1039,21 @@ async function crossExit(
   // tracked individually and don't trigger this re-check.
   if (MixinApi.isExitable(source) && source.hasPendingVerification()) {
     source.verifyOutboundExits();
+  }
+
+  // ⭐ A held lead brings its animal (size and carrying D18) — and the
+  // animal's own refusal stops you: the panniers that will not fit the
+  // door keep the leader on this side too. Pre-checked before anything
+  // moves, by the animal's own gates at the way.
+  const led = ledAnimals(mover);
+  for (const animal of led) {
+    const theirs = await exit.canTraverse(animal, LocomotionApi.defaultModeFor(animal));
+    if (!theirs.ok) {
+      return {
+        ...theirs,
+        reason: `${GrammarApi.cap(animal.getPresentation())} won't follow you: ${theirs.reason ?? 'it balks.'}`,
+      };
+    }
   }
 
   // The place-side vetoes: may this mover leave the source, enter the
@@ -1103,6 +1142,18 @@ async function crossExit(
     const hauledCart = mover.getHauledCart();
     if (hauledCart && MixinApi.isContainable(hauledCart)) {
       ContainmentApi.move(hauledCart, destination);
+    }
+  }
+
+  // ⭐ The led animals follow, each crossing on its own legs — its own
+  // announcements, its own hooks, its rope with it. One that cannot now
+  // (a gate that changed since the pre-check) stays, and says nothing.
+  for (const animal of led) {
+    const went = await LocomotionApi.traverseWithDefault(animal, exit).catch(
+      (err: Error) => ({ ok: false as const, reason: err.message }),
+    );
+    if (!went.ok) {
+      console.warn(`lead: ${animal.stuffId} did not follow ${mover.stuffId}: ${went.reason ?? '?'}`);
     }
   }
 

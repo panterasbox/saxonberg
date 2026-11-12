@@ -36,6 +36,7 @@ validators:
   - /lib/command/validators/requiresEmbodied
 args:
   - name: target
+    readies: true
     type: object
     required: true
     scope: "reachable"

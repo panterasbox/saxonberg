@@ -444,8 +444,9 @@ export class CombatLogic extends ApiLogic {
   public beginSwitch(
     actor: Stuff,
     target: Stuff,
+    seconds?: number,
   ): { ok: boolean; reason?: string } {
-    return beginSwitchImpl(actor, target, false);
+    return beginSwitchImpl(actor, target, false, seconds);
   }
 
   @CallSecurity(CombatantCallers)
@@ -4237,6 +4238,14 @@ function gripSlotFor(actor: Stuff, target: Stuff): string | null {
  */
 function performSwap(actor: Stuff, target: Stuff | null): void {
   if (!MixinApi.isSlotted(actor) || !target) return;
+  // ⭐ A carrier brings it to hand its own way (size and carrying D16):
+  // what is in the hand goes home, the thing comes out of its holder. A
+  // thing that is not a weapon is held, never the instrument
+  // (`wieldedWeapon` reads weapons only).
+  if (MixinApi.isCarrying(actor) && actor.handSlots().length > 0) {
+    actor.bringToHand(target);
+    return;
+  }
   const grip = gripSlotFor(actor, target);
   if (!grip) return;
   for (const occ of [...actor.getOccupants(grip)]) {
@@ -4350,6 +4359,7 @@ function beginSwitchImpl(
   actor: Stuff,
   target: Stuff,
   fast: boolean,
+  priced?: number,
 ): { ok: boolean; reason?: string } {
   const session = sessionForImpl(actor);
   const state = session?.getState(actor);
@@ -4358,9 +4368,11 @@ function beginSwitchImpl(
   if (state.weaponSwitch && !state.weaponSwitch.isReady()) {
     return { ok: false, reason: "already-switching" };
   }
-  const seconds = fast
+  // ⭐ A readying prices itself by its holders (size and carrying D16);
+  // the two dials are the shipped switch's own prices.
+  const seconds = priced ?? (fast
     ? dial(AppSettingKeys.combatDrawSeconds, 1.5)
-    : dial(AppSettingKeys.combatSwitchSeconds, 6);
+    : dial(AppSettingKeys.combatSwitchSeconds, 6));
   state.weaponSwitch = new WeaponSwitch(target, beatsForSeconds(seconds), fast);
   return { ok: true };
 }
@@ -4368,6 +4380,13 @@ function beginSwitchImpl(
 function drawSidearmImpl(actor: Stuff): { ok: boolean; reason?: string } {
   const backup = findBackupWeapon(actor);
   if (!backup) return { ok: false, reason: "no-sidearm" };
+  // ⭐ `fight draw` is a readying (size and carrying D16): the holder
+  // prices it — a sheath is the draw dial, the hand's own load goes home.
+  if (MixinApi.isCarrying(actor) && actor.handSlots().length > 0) {
+    if (!sessionForImpl(actor)) return { ok: false, reason: "not-in-combat" };
+    const refused = actor.ready(backup);
+    return refused === null ? { ok: true } : { ok: false, reason: refused.reason };
+  }
   return beginSwitchImpl(actor, backup, true);
 }
 

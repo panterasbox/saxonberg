@@ -33,6 +33,24 @@ describe("the classifier", () => {
   });
 });
 
+describe("W4's port idiom — `inCarrierElse`", () => {
+  it("SKIPS a move in the else of `isCarrying(<dest>)` (if/else and ternary)", () => {
+    expect(planted("if (MixinApi.isCarrying(buyer)) buyer.receive(item);\nelse ContainmentApi.move(item, buyer);")).toEqual([]);
+    expect(planted("MixinApi.isCarrying(buyer) ? buyer.receive(item) : ContainmentApi.move(item, buyer);")).toEqual([]);
+  });
+
+  it("COUNTS the same move with no guard, or guarded on a DIFFERENT destination", () => {
+    expect(planted("ContainmentApi.move(item, buyer);")[0]!.rule).toBe(1);
+    expect(
+      planted("if (MixinApi.isCarrying(actor)) actor.receive(item);\nelse ContainmentApi.move(item, buyer);")[0]!.rule,
+    ).toBe(1);
+  });
+
+  it("COUNTS a move in the THEN branch of the guard", () => {
+    expect(planted("if (MixinApi.isCarrying(buyer)) ContainmentApi.move(item, buyer);")[0]!.rule).toBe(1);
+  });
+});
+
 describe("⭐ the verdict", () => {
   it("a planted site with no roster row FAILS as unrostered", () => {
     const v = judge(planted("ContainmentApi.move(item, buyer);"), {});

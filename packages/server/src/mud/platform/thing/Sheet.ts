@@ -400,7 +400,10 @@ export default class Sheet extends SheetBase {
       other.setMass(Quantity.of(half, 'kg'));
     }
     const where = MixinApi.isContainable(self) ? self.getContainer() : null;
-    if (where !== null && MixinApi.isContainer(where)) ContainmentApi.move(other, where);
+    if (where !== null && MixinApi.isContainer(where)) {
+      if (MixinApi.isCarrying(where)) where.receive(other);
+      else ContainmentApi.move(other, where);
+    }
     return {
       ok: true,
       line: text.length > 0

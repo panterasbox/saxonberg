@@ -70,6 +70,7 @@ args:
   # the binder hands over every reachable tool; the joint decides which
   # capability it wants.
   - name: tool
+    readies: true
     prepositionRequired: true
     type: objects
     required: false

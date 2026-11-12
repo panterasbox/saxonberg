@@ -155,10 +155,10 @@ describe('reach — one rule: hand · ready · packed · room (D17)', () => {
     me.occupy(held, 'hand:right');
     const floor = knife();
     ContainmentApi.move(floor, room);
-    expect(PerceptionApi.tierOf(me, held)).toBe('hand');
-    expect(PerceptionApi.tierOf(me, ready)).toBe('ready');
-    expect(PerceptionApi.tierOf(me, packed)).toBe('packed');
-    expect(PerceptionApi.tierOf(me, floor)).toBe('elsewhere');
+    expect(me.tierOf(held)).toBe('hand');
+    expect(me.tierOf(ready)).toBe('ready');
+    expect(me.tierOf(packed)).toBe('packed');
+    expect(me.tierOf(floor)).toBe('elsewhere');
     const order = PerceptionApi.reach(me)
       .map((r) => r.stuff)
       .filter((s) => s instanceof Knife);

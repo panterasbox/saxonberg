@@ -523,15 +523,6 @@ export class PerceptionApi {
     return logic().perceivedHow(viewer, target);
   }
 
-  /**
-   * ⭐ How near a carried thing is to `carrier`'s hand (D15/D17) — `hand` ·
-   * `ready` · `packed` · `elsewhere`; the order the binder breaks ties in.
-   * ⚠ W3's read over what exists today; `Carrying.tierOf` replaces it
-   * when hands and homes land (W4).
-   */
-  public static tierOf(carrier: Stuff, thing: Stuff): ReachTier {
-    return logic().tierOf(carrier, thing);
-  }
 
   /**
    * The viewer's effective perception against `target`:

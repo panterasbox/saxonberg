@@ -67,6 +67,7 @@ args:
   # target (or the tool that plans the cut) narrows them by the capability
   # it needs.
   - name: tools
+    readies: true
     prepositionRequired: true
     type: objects
     required: false

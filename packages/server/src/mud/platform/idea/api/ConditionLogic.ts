@@ -1119,7 +1119,8 @@ async function reembodyImpl(shade: Stuff): Promise<Stuff> {
 
   const stuff = body as unknown as Stuff;
   if (landing && MixinApi.isContainable(stuff) && MixinApi.isContainer(landing)) {
-    ContainmentApi.move(stuff, landing);
+    if (MixinApi.isCarrying(landing)) landing.receive(stuff);
+    else ContainmentApi.move(stuff, landing);
   }
 
   // The arc is cleared HERE and only here — the identity is alive and

@@ -15,7 +15,7 @@ An actor reaches (size-and-carrying D17, 2026-11-11 — the rungs `top` ·
 another body, nearest first by tier — *hand* · *ready* (worn, hung from
 what is worn, a pocket, an open worn container; W3: also what is carried
 loose) · *packed* (inside a worn container in the `back` slot)
-(`PerceptionApi.tierOf`, replaced by W4's `Carrying.tierOf`); what stands
+(`Carrying.tierOf`, the carrier's own read); what stands
 in its place and in the vessel it sits in (`getEnclosingPlace` — in a
 boat on the river, both) and **one level** into the open things there (the
 glass rack's coupe, a crate's limes); a door attached to one of those

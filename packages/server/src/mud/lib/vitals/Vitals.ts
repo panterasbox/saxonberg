@@ -1957,6 +1957,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public getConsciousness(): Consciousness {
       this.reconcileConditions();
+      return this.consciousnessRead();
+    }
+
+    /** {@link getConsciousness}'s read, without the reconcile. */
+    private consciousnessRead(): Consciousness {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) {
         throw new Error('VitalsMixin requires OrganismMixin (lifecycle state)');
@@ -2647,7 +2652,17 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.bodyPartDeltas[k] = delta;
       }
 
-      // (2) release what the lost slots were carrying.
+      // (2) release what the lost slots were carrying — a carrier lets go
+      // its own way (size and carrying D13: the room hears it).
+      if (MixinApi.isCarrying(self)) {
+        self.releaseHeld(
+          plan
+            .getSlots()
+            .filter((spec) => spec.bodyPart !== undefined && severed.has(spec.bodyPart))
+            .map((spec) => spec.name),
+        );
+        return;
+      }
       if (!MixinApi.isSlotted(self)) return;
       const destination = MixinApi.isContainable(self)
         ? self.getContainer()
@@ -3068,8 +3083,44 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * active. The `_reconcilingConditions` guard makes the vital-sign reads
      * this method performs non-reentrant.
      */
+    /**
+     * Was this body conscious at the last reconcile? Runtime only — a
+     * restored body that comes back under lets go on its first read, which
+     * is the honest answer (an unconscious hand holds nothing).
+     */
+    private _wasConscious: boolean | null = null;
+
     private reconcileConditions(): void {
       if (this._reconcilingConditions) return;
+      this.reconcileConditionsNow();
+      this.noticeGripLost();
+    }
+
+    /**
+     * ⭐ A grip that fails lets go (size and carrying D13): when the body
+     * goes under — unconscious, dying (which reads unconscious), sedated —
+     * what its hands hold falls to the place. Worn things stay; death's
+     * own move to the corpse follows for everything else.
+     */
+    private noticeGripLost(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self) || self.getLifecycleState() === 'dead') return;
+      // The read must not reconcile again: we just did.
+      this._reconcilingConditions = true;
+      let state: Consciousness;
+      try {
+        state = this.consciousnessRead();
+      } finally {
+        this._reconcilingConditions = false;
+      }
+      const was = this._wasConscious;
+      this._wasConscious = state === 'conscious';
+      if (state !== 'conscious' && was !== false && MixinApi.isCarrying(self)) {
+        self.releaseHeld();
+      }
+    }
+
+    private reconcileConditionsNow(): void {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return;
       this.seedFromSpecies();

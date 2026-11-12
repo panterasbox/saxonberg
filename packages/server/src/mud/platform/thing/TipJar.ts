@@ -79,7 +79,8 @@ export default class TipJar extends TipJarBase {
       for (const c of [...this.getContents()]) {
         if (c instanceof Coin) {
           took += c.getQuantity();
-          ContainmentApi.move(c, actor);
+          if (MixinApi.isCarrying(actor)) actor.receive(c);
+          else ContainmentApi.move(c, actor);
         }
       }
     }

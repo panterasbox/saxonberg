@@ -299,6 +299,16 @@ settings:
   - key: combat.draw.seconds
     value: "1.5"
 
+  # Readying anything (size and carrying D16) is priced in two halves by
+  # holder: a shaped holder or a clip is the draw above; an open pocket,
+  # an unshaped pouch or a hung tool is a reach; a buttoned pocket or a
+  # flapped pouch adds the undoing. Game-time seconds.
+  - key: combat.reach.seconds
+    value: "3"
+
+  - key: combat.unfasten.seconds
+    value: "3"
+
   # Guard bonus a wielded shield / dual-wield off-hand adds; dual-wield is a
   # net penalty at/below this competence rank (a novice fumbles the off-hand),
   # getting only the reduced novice bonus until they grow into it.

@@ -462,7 +462,10 @@ async function moveCoins(
 ): Promise<boolean> {
   const plan = Coinage.planSpend(currency, cashSupply(from, currency), value);
   if (!plan) return false;
-  return takeCoins(from, plan, (piece) => ContainmentApi.move(piece, to));
+  return takeCoins(from, plan, (piece) => {
+    if (MixinApi.isCarrying(to)) to.receive(piece);
+    else ContainmentApi.move(piece, to);
+  });
 }
 
 /** Total cash-like value on hand in a container (Σ face-value × quantity). */
@@ -1938,7 +1941,8 @@ async function dispenseCoin(into: Stuff & Container, amount: Money): Promise<Stu
     stamped.currency = line.currency;
     stamped.denomination = line.denomination;
     (coin as unknown as Stackable).setQuantity(line.count);
-    ContainmentApi.move(coin as unknown as Stuff & Containable, into);
+    if (MixinApi.isCarrying(into)) into.receive(coin as unknown as Stuff & Containable);
+    else ContainmentApi.move(coin as unknown as Stuff & Containable, into);
     if (!representative) representative = coin;
   }
   // `dispense` yields ≥1 line for a positive amount; the largest is returned
@@ -2150,7 +2154,8 @@ async function issueCardImpl(
   if (principal && MixinApi.isContainer(principal)) {
     // ⭐ A card is a held good — the move titles it to whoever it is
     // issued to and records where it is, or it is gone at the next restart.
-    ContainmentApi.move(card as unknown as Stuff & Containable, principal);
+    if (MixinApi.isCarrying(principal)) principal.receive(card as unknown as Stuff & Containable);
+    else ContainmentApi.move(card as unknown as Stuff & Containable, principal);
   }
   return card as Stuff & CredentialWallet;
 }

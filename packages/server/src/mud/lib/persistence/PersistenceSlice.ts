@@ -241,13 +241,35 @@ export interface BeliefSlice {
   beliefs: BeliefRecord[];
 }
 
+/**
+ * Where a thing lives on its carrier — one end of a home (size and
+ * carrying D14): a good the carrier owns by its chattel id (it rides the
+ * estate, not the contents order), anything else by its contents PATH
+ * from the body down (the first index in the body's captured order — the
+ * one the Container and Slotted slices share — then each nested
+ * container's own order). `templatePath` guards a path that no longer
+ * resolves to the same kind of thing.
+ */
+export type HomeEnd =
+  | { kind: 'chattel'; chattelId: string }
+  | { kind: 'path'; path: number[]; templatePath: string };
+
+/**
+ * `CarryingMixin`'s slice — the carrier's knowledge of where its things
+ * go back to (D14). Never a stuffId (it does not survive a restart).
+ */
+export interface HomesSlice {
+  homes: Array<{ item: HomeEnd; home: HomeEnd }>;
+}
+
 /** The tagged union stored under each layer key in a record's `state`. */
 export type MixinSlice =
   | FieldsSlice
   | ContainerSlice
   | SlottedSlice
   | EstateSlice
-  | BeliefSlice;
+  | BeliefSlice
+  | HomesSlice;
 
 /**
  * A Containable top-level host's own durable spawn/recall location — the

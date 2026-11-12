@@ -626,7 +626,7 @@ the facets). ⭐ **There are no rungs any more** (`ReachDepth`, `depth:`,
   (worn, hung from what is worn, in a pocket or an open worn container;
   ⚠ W3: also anything carried loose, until the carrying flip) · *packed*
   (inside a worn container in the `back` slot). The tier read is
-  `PerceptionApi.tierOf` (W4's `Carrying.tierOf` replaces it). A thing
+  `Carrying.tierOf` (the carrier answers; W4). A thing
   behind a shut lid or in the pack on your back **is in the list**;
 - **the place** (and the vessel you sit in, and a named holder) — its top
   level and one level into the open things there

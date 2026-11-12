@@ -21,9 +21,19 @@ import type { MixinName } from '../../../lib/mixin';
 import { LOAD_BEARING_DEFAULTS } from '../../../lib/encumbrance/LoadBearing';
 import { Postures } from '../../../lib/slot/Postured';
 import type { EmissionData } from '../../../api/locomotion';
+import { CARRYING_DEFAULTS } from '../../../lib/slot/Carrying';
+import type { NoiseLevel } from '../LocomotionMode';
 
 /** Hard depth cap for the passthrough chain walk; matches the conveyance ripple. */
 const MAX_PASSTHROUGH_DEPTH = 16;
+
+/** One band louder (size and carrying D36): what clanking gear does to a mode. */
+const LOUDER: Record<NoiseLevel, NoiseLevel> = {
+  silent: 'quiet',
+  quiet: 'normal',
+  normal: 'loud',
+  loud: 'loud',
+};
 
 const LocomotionApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/locomotion#LocomotionApi'),
@@ -239,6 +249,8 @@ export class LocomotionLogic extends ApiLogic {
     }
     const hands = this.handsGate(actor, mode);
     if (hands !== null) return hands;
+    const awkward = this.awkwardGate(actor, mode);
+    if (awkward !== null) return awkward;
     const exitGuard = await exit.canTraverse(actor, mode.getName());
     if (!exitGuard.ok) return exitGuard;
     const deep = this.overYourHead(actor, exit, mode);
@@ -254,6 +266,26 @@ export class LocomotionLogic extends ApiLogic {
       if (far !== null) enablement = far;
     }
     if (!enablement.ok) return enablement;
+    // ⭐ Driving takes the hands the controls take (size and carrying D18).
+    const host = enablement.host ?? null;
+    if (host !== null && MixinApi.isDrivable(host)) {
+      const no = host.driveRefusal(actor);
+      if (no !== null) {
+        const held = MixinApi.isCarrying(actor)
+          ? actor.heldThings().map((t) => t.presentationPhrase().indefinite())
+          : [];
+        const need = no.hands >= 2 ? 'both hands' : 'a free hand';
+        return {
+          ok: false,
+          gate: 'handsNeeded',
+          mode: mode.getName(),
+          reason: held.length > 0
+            ? `Driving ${host.presentationPhrase().definite()} takes ${need} — you're holding ${GrammarApi.joinList(held)}.`
+            : `Driving ${host.presentationPhrase().definite()} takes ${need}.`,
+          context: { hands: no.hands },
+        };
+      }
+    }
     const haul = this.checkHaulage(actor, exit, mode);
     // ⭐ The host rides the ok guard to the crossing (cordage D11).
     return haul.ok && enablement.host ? { ...haul, host: enablement.host } : haul;
@@ -283,6 +315,30 @@ export class LocomotionLogic extends ApiLogic {
         : `You need ${hands} to ${verb}.`,
       context: { hands: need, free: actor.freeHands() },
     };
+  }
+
+  /**
+   * ⭐ An awkward held load limits running (size and carrying D35): a
+   * thing longer than you are tall, or awkward past
+   * `CARRYING_DEFAULTS.RUN_AWKWARD_FACTOR`, refuses `run` naming it — you
+   * walk the pole. Walking and sneaking are not gated.
+   */
+  private awkwardGate(actor: Stuff, mode: LocomotionMode): TraversalGuard | null {
+    if (mode.getName() !== 'run' || !MixinApi.isCarrying(actor)) return null;
+    const stature = MixinApi.isPosed(actor) ? actor.getStature() : null;
+    for (const held of actor.heldThings()) {
+      const longest = MixinApi.isTangible(held) ? held.getDimensions()?.longest() ?? 0 : 0;
+      const tooLong = stature !== null && stature > 0 && longest > stature * CARRYING_DEFAULTS.RUN_AWKWARD;
+      if (!tooLong && actor.awkwardnessOf(held) <= CARRYING_DEFAULTS.RUN_AWKWARD_FACTOR) continue;
+      return {
+        ok: false,
+        gate: 'awkwardLoad',
+        mode: 'run',
+        reason: `You can't run with ${held.presentationPhrase().definite()} — it's too awkward to carry at a run. Walk it.`,
+        context: { held: held.stuffId },
+      };
+    }
+    return null;
   }
 
   /**
@@ -444,9 +500,13 @@ export class LocomotionLogic extends ApiLogic {
       mode = cursor.getEngagedMode() ?? this.resolveHostMode(cursor);
     }
     if (!mode) return null;
+    // ⭐ Loose, clanking gear is noise (size and carrying D36): a sword on a
+    // belt or a lantern in hand lifts the mode one band — what sneak's
+    // detection edge and stealth's attention already read.
+    const clanks = MixinApi.isCarrying(mover) ? mover.gearNoise() : 0;
     return {
       modeName: mode.getName(),
-      noiseLevel: mode.getNoiseLevel(),
+      noiseLevel: clanks === 1 ? LOUDER[mode.getNoiseLevel()] : mode.getNoiseLevel(),
       bodyProfile: mode.getBodyProfile(),
       groundContact: mode.getGroundContact(),
       resolvedHostChain: chain,

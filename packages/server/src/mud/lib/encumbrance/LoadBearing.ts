@@ -42,6 +42,7 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import { NEUTRAL_DENSITY_KG_M3 } from './Buoyant';
+import { SIZE_DEFAULTS } from '../spatial/Dimensions';
 
 /** Numeric AppSetting read with a seeded-literal fallback. */
 function readDial(key: string, fallback: number): number {
@@ -267,10 +268,45 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
       const bearer = this as unknown as Stuff & Container & Slotted;
       const visited = new Set<string>();
       let total = 0;
+      const self0 = this as unknown as Stuff;
+      const carrier = MixinApi.isCarrying(self0) ? self0 : null;
+      const hands = new Set(carrier?.handSlots() ?? []);
 
-      // a) General contents — carried loose, paying the held surcharge
-      // (v1 has no hand-slot-claiming on `get`; loose contents couple
-      // like a held item — see docs/subsystems/encumbrance.md).
+      // a) Slot occupants FIRST — worn / held; placement from the slot
+      // kind. ⭐ Slots before the loose pass (size and carrying W4): an
+      // occupant is in the contents too, and the loose pass used to reach
+      // it first and charge a worn coat the held surcharge.
+      //
+      // ⭐ A TIGHT garment costs more than its mass. Clothes cut for a
+      // smaller body bind, and binding is a real load on a body that
+      // has to move in them — so `tightness` (the fit reading's signed
+      // half) adds a surcharge on top of the placement coupling. A
+      // garment cut for you, or cut generous, adds nothing.
+      //
+      // ⭐ A HELD load is also as awkward as its shape (D12): long against
+      // the holder's stature, bulky against the body's volume.
+      const tightSurcharge = readDial(
+        AppSettingKeys.textilesFitTightnessBurden,
+        LOAD_BEARING_DEFAULTS.TIGHT_FIT_SURCHARGE,
+      );
+      for (const [slotName, occupants] of bearer.getAllOccupants()) {
+        const placement = placementCouplingFor(bearer.getSlotSpec(slotName));
+        for (const occ of occupants) {
+          const asStuff = occ as unknown as Stuff;
+          if (visited.has(asStuff.stuffId)) continue;
+          let coupling = placement;
+          if (MixinApi.isWearable(asStuff)) {
+            coupling += asStuff.fitOn(self0).tightness * tightSurcharge;
+          }
+          if (carrier !== null && hands.has(slotName)) coupling *= carrier.awkwardnessOf(asStuff);
+          total += walk(asStuff, 1.0, coupling, 0, visited, waterDensityKgM3);
+        }
+      }
+
+      // b) General contents — carried loose, paying the held surcharge
+      // (until the flip, `get` claims no hand; loose contents couple like a
+      // held item — see docs/subsystems/encumbrance.md). W7 retires this
+      // pass: everything on a body is then held, worn or placed.
       for (const item of bearer.getContents()) {
         total += walk(
           item,
@@ -280,30 +316,6 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
           visited,
           waterDensityKgM3,
         );
-      }
-
-      // b) Slot occupants — worn / wielded; placement from the slot kind.
-      //
-      // ⭐ A TIGHT garment costs more than its mass. Clothes cut for a
-      // smaller body bind, and binding is a real load on a body that
-      // has to move in them — so `tightness` (the fit reading's signed
-      // half) adds a surcharge on top of the placement coupling. A
-      // garment cut for you, or cut generous, adds nothing.
-      const tightSurcharge = readDial(
-        AppSettingKeys.textilesFitTightnessBurden,
-        LOAD_BEARING_DEFAULTS.TIGHT_FIT_SURCHARGE,
-      );
-      const self0 = this as unknown as Stuff;
-      for (const [slotName, occupants] of bearer.getAllOccupants()) {
-        const placement = placementCouplingFor(bearer.getSlotSpec(slotName));
-        for (const occ of occupants) {
-          const asStuff = occ as unknown as Stuff;
-          let coupling = placement;
-          if (MixinApi.isWearable(asStuff)) {
-            coupling += asStuff.fitOn(self0).tightness * tightSurcharge;
-          }
-          total += walk(asStuff, 1.0, coupling, 0, visited, waterDensityKgM3);
-        }
       }
 
       // c) Hitched cart — the draft load of whatever this bearer hauls.
@@ -316,7 +328,19 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
         total += self.getHaulDraft().rawValue();
       }
 
-      return Quantity.of(Math.max(0, total), 'kg');
+      // ⭐ Weight is mass × the place's gravity (size and carrying W4): the
+      // burden is in Earth-kilograms of effort, so a pack weighs nothing at
+      // zero g and 38 % of itself on Mars — and keeps its mass, its size
+      // and the hands it takes.
+      return Quantity.of(Math.max(0, total) * this.gravityShare(), 'kg');
+    }
+
+    /** The place's gravity over standard (1 when it is unknown). */
+    private gravityShare(): number {
+      const self = this as unknown as Stuff;
+      const place = MixinApi.isContainable(self) ? self.getEnclosingPlace() : null;
+      if (place === null || !MixinApi.isAtmospheric(place)) return 1;
+      return place.gravityNow().rawValue() / SIZE_DEFAULTS.STANDARD_GRAVITY;
     }
 
     public getCarryCapacity(): Quantity<'kg'> {
@@ -365,7 +389,7 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
           LOAD_BEARING_DEFAULTS.LOOSE_CARRY_SURCHARGE,
           0,
           new Set<string>(),
-        );
+        ) * this.gravityShare();
       return prospective > this.getStrainCeiling().rawValue();
     }
 

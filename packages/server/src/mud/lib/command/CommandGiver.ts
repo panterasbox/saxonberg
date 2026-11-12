@@ -1766,6 +1766,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         });
         return;
       }
+      // ⭐ The instruments come to hand before the act (size and carrying
+      // D16): a `readies:` arg is readied by the giver, and a refusal is
+      // the answer — the controller never runs.
+      if (!(await this._readyInstruments(command, model, context))) return;
 
       // Async: spawn the controller body detached (a fresh root frame,
       // NOT awaited) so the giver's input chain frees at accept-time.
@@ -1815,6 +1819,48 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       } finally {
         if (controller) StuffApi.destruct(controller);
       }
+    }
+
+    /**
+     * ⭐ Ready every `readies: true` arg the model bound (size and carrying
+     * D16): `Carrying.ready` on the giver — the held thing goes home, the
+     * instrument comes out (in a fight, the switch's beats). An `objects`
+     * arg readies only a single bound thing. `false` when the giver
+     * refused, having said why; a giver that carries nothing readies
+     * nothing.
+     */
+    async _readyInstruments(
+      command: CommandDefinition,
+      model: CommandModel,
+      context: CommandContext,
+    ): Promise<boolean> {
+      const giver = this as unknown as Stuff;
+      if (!MixinApi.isCarrying(giver)) return true;
+      const sub = model.subcommand;
+      const fields = sub ? (command.getSubcommand(sub)?.args ?? []) : command.args;
+      for (const field of fields) {
+        if (field.readies !== true) continue;
+        // An object arg binds an `MqlOneResult`, an objects arg an
+        // `MqlManyResult` (the field's type says which).
+        const bound = (model as Record<string, unknown>)[field.name] as
+          | { stuff?: Stuff | Stuff[] | null }
+          | undefined;
+        const things = bound?.stuff ?? null;
+        const list = things === null ? [] : Array.isArray(things) ? things : [things];
+        if (list.length !== 1) continue;
+        const item = list[0]!;
+        if (MixinApi.isTangible(item)) await item.ensureShape();
+        const refused = giver.ready(item);
+        if (refused === null) continue;
+        MessageApi.scene(giver).topic('act.deed').toSelf(Mml.text(giver.refusalWords(refused))).send();
+        context.note({
+          kind: 'controller-rejected',
+          reason: refused.reason,
+          detail: item.getPresentation(),
+        });
+        return false;
+      }
+      return true;
     }
 
     /**

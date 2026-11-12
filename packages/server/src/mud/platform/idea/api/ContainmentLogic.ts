@@ -217,9 +217,22 @@ export class ContainmentLogic extends ApiLogic {
         if (route.kind === 'slot') {
           (target as Stuff & Slotted).seatInSlot(item as ContainableStuff & Slottable, route.slot);
         } else if (route.kind === 'zero') {
-          ContainmentApi.move(item, target as ContainerStuff);
+          if (MixinApi.isCarrying(target)) target.receive(item);
+          else ContainmentApi.move(item, target as ContainerStuff);
         } else {
           ContainmentApi.move(item, target as PlacingStuff, route.name);
+        }
+        // ⭐ Putting is how a home is made (size and carrying D14): a thing
+        // put in a container the putter carries goes back there when it
+        // is put away.
+        if (
+          route.kind === 'zero' &&
+          MixinApi.isCarrying(by) &&
+          MixinApi.isContainer(target) &&
+          !target.isAgent() &&
+          by.tierOf(target) !== 'elsewhere'
+        ) {
+          by.setHome(item, target);
         }
         return { ok: true, facts: { route, named } };
       },

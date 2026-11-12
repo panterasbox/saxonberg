@@ -348,6 +348,10 @@
             "error"
           ],
           "description": "Policy when a match was discarded for failing this slot's `requires:`. Default 'take' (silent, today's behaviour). See command-spec.md."
+        },
+        "readies": {
+          "type": "boolean",
+          "description": "⭐ The thing bound here is an instrument: the dispatcher readies it into the giver's hand (Carrying.ready) after binding and before the controller, rendering the refusal (size and carrying D16). object fields, or objects bound to exactly one thing."
         }
       }
     },
@@ -482,6 +486,10 @@
             "error"
           ],
           "description": "Policy when a match was discarded for failing this slot's `requires:`. Default 'take'."
+        },
+        "readies": {
+          "type": "boolean",
+          "description": "⭐ The thing bound here is an instrument: the dispatcher readies it into the giver's hand (Carrying.ready) after binding and before the controller, rendering the refusal (size and carrying D16). object fields, or objects bound to exactly one thing."
         },
         "effects": {
           "type": "array",

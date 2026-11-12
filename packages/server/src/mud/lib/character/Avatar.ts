@@ -1424,10 +1424,9 @@ export default abstract class Avatar extends AvatarBase {
             // avatar and never lists as loose room contents, THEN occupy
             // the slot. (Occupy alone doesn't set containment, so a
             // freshly cloned implant would otherwise leak into the room.)
-            ContainmentApi.move(
-              implant as unknown as Stuff & Containable,
-              this as unknown as Stuff & Container,
-            );
+            const body = this as unknown as Stuff & Container;
+            if (MixinApi.isCarrying(body)) body.receive(implant as unknown as Stuff & Containable);
+            else ContainmentApi.move(implant as unknown as Stuff & Containable, body);
             this.occupy(implant, "cranial");
           }
         } catch {

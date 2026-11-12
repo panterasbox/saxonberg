@@ -1109,6 +1109,10 @@ export const AppSettingKeys = {
   combatSwitchSeconds: "combat.switch.seconds",
   /** Fast sidearm-draw window (game-time seconds) — the disarm answer. */
   combatDrawSeconds: "combat.draw.seconds",
+  /** Readying from an open pocket, an unshaped pouch or a hung tool — one half of a readying (size and carrying D16). */
+  combatReachSeconds: "combat.reach.seconds",
+  /** What undoing a buttoned pocket or a flapped pouch adds to that half (D16). */
+  combatUnfastenSeconds: "combat.unfasten.seconds",
   /** Guard/parry bonus a wielded shield or a dual-wield off-hand adds. */
   combatOffhandGuardBonus: "combat.offhand.guardBonus",
   /** Competence band rank at/below which dual-wield is a net penalty
@@ -2875,6 +2879,8 @@ export const AppSettingTiers: Readonly<
   combatRangeSplashBystander: "B",
   combatSwitchSeconds: "B",
   combatDrawSeconds: "B",
+  combatReachSeconds: "B",
+  combatUnfastenSeconds: "B",
   combatOffhandGuardBonus: "B",
   combatDualWieldMasteryRank: "B",
   combatDualWieldNoviceGuardBonus: "B",

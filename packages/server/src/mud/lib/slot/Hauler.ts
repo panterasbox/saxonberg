@@ -30,7 +30,6 @@ import type { Haulable } from './Haulable';
 import type { VetoResult } from '../errors';
 import type { ActPlan, ActRefusal } from '../craft/ActPlan';
 import { MixinApi } from '../../api/mixin';
-import { Mixins } from '../mixin';
 
 /**
  * ⭐ Every reason a hitch refuses — `HitchController` words each
@@ -40,7 +39,7 @@ import { Mixins } from '../mixin';
 export type HitchRefusal =
   | ActRefusal<'hitch-refused', { veto: string }>
   | ActRefusal<'already-hitched'>
-  | ActRefusal<'hands-occupied'>;
+  | ActRefusal<'hands-on-cart', { hands: number; held: Stuff[] }>;
 
 /** What a hitch's words need: the cart, who pulls it, and whether by hand. */
 export interface HitchFacts {
@@ -65,8 +64,9 @@ export interface Hauler {
    * ⭐ May `actor` couple `cart` to me, and if so the hitch (controller-
    * liquidity W8): the cart's own veto first (`canHitch`), then whether I
    * already pull something, then — when the actor is taking the handle
-   * themselves — whether their hands are free (hauling and wielding are
-   * mutually exclusive; a harnessed beast claims no hands). Overload never
+   * themselves — whether they have the hands the cart's handles take
+   * (`Carrying.freeHands` against `getHandedness`; a harnessed beast
+   * claims no hands). Overload never
    * refuses here: the cost surfaces at move time.
    */
   hitchPlanFor(cart: Stuff & Haulable, actor: Stuff): Promise<HitchPlan | HitchRefusal>;
@@ -124,7 +124,16 @@ export function HaulerMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       if (this.isHitched()) return { ok: false, reason: 'already-hitched' };
       const byHand = self.stuffId === actor.stuffId;
-      if (byHand && this.handsOccupied()) return { ok: false, reason: 'hands-occupied' };
+      // ⭐ The handles take the hands the cart says (size and carrying D18).
+      // A body with fewer hands than the handles gives all it has.
+      const need = MixinApi.isCarrying(self) ? Math.min(cart.getHandedness(), self.handSlots().length) : 0;
+      if (byHand && MixinApi.isCarrying(self) && self.freeHands() < need) {
+        return {
+          ok: false,
+          reason: 'hands-on-cart',
+          facts: { hands: need, held: self.heldThings() },
+        };
+      }
       const facts: HitchFacts = { cart, hauler: self, byHand };
       return {
         ok: true,
@@ -136,17 +145,6 @@ export function HaulerMixin<TBase extends MixinConstructor>(Base: TBase) {
           return { ok: true, facts };
         },
       };
-    }
-
-    /** True if this body wields anything (a held slot is full). */
-    private handsOccupied(): boolean {
-      const self = this as unknown as Stuff;
-      if (!MixinApi.isSlotted(self)) return false;
-      for (const [slotName, occupants] of self.getAllOccupants()) {
-        if (occupants.size === 0) continue;
-        if (self.getSlotSpec(slotName)?.accepts === Mixins.Wieldable) return true;
-      }
-      return false;
     }
 
     public unhitch(by: Stuff): VetoResult {

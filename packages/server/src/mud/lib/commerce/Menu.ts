@@ -163,7 +163,8 @@ export default class CommerceMenu extends CommerceMenuBase {
         }
         const drink = outcome.output;
         if (MixinApi.isContainable(drink) && MixinApi.isContainer(by)) {
-          ContainmentApi.move(drink, by);
+          if (MixinApi.isCarrying(by)) by.receive(drink);
+          else ContainmentApi.move(drink, by);
         }
         // The drink purchase: if the menu prices this recipe, the venue takes
         // payment through the one settle-a-sale path (credential → cash; the

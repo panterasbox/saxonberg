@@ -668,7 +668,8 @@ export abstract class Template extends Document {
               continue;
             }
           }
-          ContainmentApi.move(inst, host);
+          if (MixinApi.isCarrying(host)) host.receive(inst);
+          else ContainmentApi.move(inst, host);
         }
       }
       // ⚠ Keyed by BOTH identity and path, so a placement key may name

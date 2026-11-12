@@ -84,6 +84,8 @@ export function bearerOf<T extends Creature>(
       key: 'body.arm.left.hand',
       parent: 'body.arm.left',
       tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.035088 }],
+      // A hand (size and carrying D9): the part serves manipulation.
+      serves: ['manipulation'],
     },
   ]);
   plan.setSlots([

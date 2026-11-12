@@ -347,7 +347,8 @@ export default class Login extends LoginBase {
         try {
           const garment = await StuffApi.clone(garmentPath);
           if (!MixinApi.isContainable(garment)) continue;
-          ContainmentApi.move(garment, avatar);
+          if (MixinApi.isCarrying(avatar)) avatar.receive(garment);
+          else ContainmentApi.move(garment, avatar);
           if (bodyPlanPath && MixinApi.isWearable(garment)) {
             const slots = garment.getSlotClaim(bodyPlanPath);
             if (slots.length) avatar.occupyAll(garment, slots);

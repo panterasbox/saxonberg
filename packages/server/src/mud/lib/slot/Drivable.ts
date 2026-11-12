@@ -25,6 +25,7 @@ import type { Slottable } from './Slottable';
 import type { Slotted } from './Slotted';
 import type { LocomotionMode } from '../../platform/idea/LocomotionMode';
 import { LocomotionApi } from '../../api/locomotion';
+import { MixinApi } from '../../api/mixin';
 
 /**
  * Internal SlotRef — naming the (host, slot-name) pair the controller
@@ -51,6 +52,17 @@ export interface Drivable {
    */
   getVehicularMode(): LocomotionMode | null;
   setVehicularMode(value: LocomotionMode | null): void;
+  /**
+   * ⭐ The hands driving this takes (size and carrying D18): reins two, a
+   * tiller one. A vehicle that is also hauled answers its handles'
+   * `handedness`; any other its own `driveHands` (default 2).
+   */
+  getDriveHands(): number;
+  /**
+   * May `driver` drive this now — has it the hands the controls take
+   * (`Carrying.freeHands`)? `null` when it may.
+   */
+  driveRefusal(driver: Stuff): { reason: 'hands-needed'; hands: number } | null;
 }
 
 export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
@@ -108,6 +120,7 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
 
     static fieldMeta: FieldMeta = {
       controllerSlot: { persistent: true, authorable: true },
+      driveHands: { persistent: true, authorable: true },
       _vehicularModePath: { persistent: true, authorable: true, authorPicker: 'Template' },
     };
 
@@ -142,6 +155,20 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
 
     public getControllerSlot(): string {
       return this.controllerSlot;
+    }
+
+    /** What driving takes in hands when nothing hauled says (reins: 2). */
+    public driveHands: number = 2;
+
+    public getDriveHands(): number {
+      const self = this as unknown as Stuff;
+      return MixinApi.isHaulable(self) ? self.getHandedness() : this.driveHands;
+    }
+
+    public driveRefusal(driver: Stuff): { reason: 'hands-needed'; hands: number } | null {
+      if (!MixinApi.isCarrying(driver)) return null;
+      const hands = Math.min(this.getDriveHands(), driver.handSlots().length);
+      return driver.freeHands() >= hands ? null : { reason: 'hands-needed', hands };
     }
 
     public setControllerSlot(value: string): void {

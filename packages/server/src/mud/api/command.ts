@@ -906,6 +906,17 @@ export interface FieldDefinition {
    */
   onFiltered?: OnFilteredPolicy;
   /**
+   * ⭐ The thing bound here is an INSTRUMENT (size and carrying D16): after
+   * binding and the validators, before the controller runs, the
+   * dispatcher asks the giver to `ready` it (`Carrying.ready` — what is in
+   * the hand goes home, the tool comes out; in a fight it costs the
+   * switch's beats) and renders the refusal (*packed in your backpack —
+   * take it off first*). The controller stays dumb. On an `objects` field
+   * it readies only a single bound thing (a default that binds every tool
+   * in reach readies none). Only valid on object / objects fields.
+   */
+  readies?: boolean;
+  /**
    * Optional JSON Schema fragment for `type: 'struct'` fields. Run
    * by ajv during the structured-input coercion step; failure yields
    * a friendly error pointing at the offending property.

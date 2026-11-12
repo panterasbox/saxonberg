@@ -319,7 +319,10 @@ export default class Book extends BookBase {
     // ⭐ A page torn out is in the hand that tore it (a book chained to a
     // counter included); with no hand to take it, it falls where the book is.
     const where = MixinApi.isContainer(by) ? by : MixinApi.isContainable(self) ? self.getContainer() : null;
-    if (where !== null && MixinApi.isContainer(where)) ContainmentApi.move(loose, where);
+    if (where !== null && MixinApi.isContainer(where)) {
+      if (MixinApi.isCarrying(where)) where.receive(loose);
+      else ContainmentApi.move(loose, where);
+    }
     return { ok: true, line: `You tear page ${at} out of ${from}.`, made: [loose as unknown as Stuff] };
   }
 }

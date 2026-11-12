@@ -30,7 +30,6 @@ import { StuffApi } from "../../../../api/stuff";
 import { AppApi } from "../../../../api/app";
 import { Currency, BankingApi, Money } from "../../../../api/banking";
 import { ConnectionApi } from "../../../../api/connection";
-import { ContainmentApi } from "../../../../api/containment";
 import { MixinApi } from "../../../../api/mixin";
 import { ContractApi } from "../../../../api/contract";
 import { AppSettingKeys } from "../../../../lib/config/AppSettings";
@@ -767,7 +766,7 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
         try {
           const garment = await StuffApi.clone(garmentPath);
           if (!MixinApi.isContainable(garment)) continue;
-          ContainmentApi.move(garment, avatar);
+          avatar.receive(garment);
           if (bodyPlanPath && MixinApi.isWearable(garment)) {
             const slots = garment.getSlotClaim(bodyPlanPath);
             if (slots.length) avatar.occupyAll(garment, slots);

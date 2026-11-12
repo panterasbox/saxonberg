@@ -90,6 +90,10 @@ export abstract class TieControllerBase<
         return Mml.compose`You cannot hold a belay.`;
       case 'busy':
         return Mml.compose`Your hands are on something else.`;
+      case 'no-halter':
+        return Mml.compose`${GrammarApi.cap(them)} wears nothing to tie ${it} to — a halter would do.`;
+      case 'hands-full':
+        return Mml.compose`You have no free hand for the end of ${it}.`;
       default: {
         const unworded: never = r.reason;
         throw new Error(`TieControllerBase: no words for '${String(unworded)}'`);

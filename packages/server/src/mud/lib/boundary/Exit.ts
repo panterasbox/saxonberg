@@ -94,6 +94,8 @@ export type TraversalGate =
   | 'clearance'
   /** ⭐ The mode wants more free hands than the body has (a ladder, D20). */
   | 'handsNeeded'
+  /** ⭐ A held load too long or awkward to run with (size and carrying D35). */
+  | 'awkwardLoad'
   /**
    * ⭐ The far side is **not published** — a readiness wall, not a
    * locked door. Draft content that has never been live, or live

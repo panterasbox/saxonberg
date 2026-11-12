@@ -1,5 +1,5 @@
 /**
- * Hitch / Unhitch controllers + the hands-occupied guard. Exercises the
+ * Hitch / Unhitch controllers + the hands-on-cart guard. Exercises the
  * self-haul and harness paths, the already-hitched / hands-full declines,
  * and the wield-while-hauling block.
  */
@@ -91,7 +91,7 @@ describe('HitchController', () => {
     await makeStuff(() => new HitchController()).execute({ target: one(c, 'cart') }, ctx);
     expect(giver.isHitched()).toBe(false);
     expect(ctx.getNotes()).toContainEqual(
-      expect.objectContaining({ kind: 'controller-rejected', reason: 'hands-occupied' }),
+      expect.objectContaining({ kind: 'controller-rejected', reason: 'hands-on-cart' }),
     );
   });
 
@@ -148,7 +148,7 @@ describe('UnhitchController', () => {
   });
 });
 
-describe('hands-occupied guard — wield while hauling', () => {
+describe('hands-on-cart guard — wield while hauling', () => {
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => StuffApi.clearAll());
 
