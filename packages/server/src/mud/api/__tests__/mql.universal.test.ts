@@ -10,6 +10,7 @@
  * script island and the binder all go through that one filter.
  */
 import '../../../test-bootstrap';
+import Garment from '../../platform/thing/equipment/Garment';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MqlApi } from '../mql';
 import { PerceptionApi } from '../perception';
@@ -19,7 +20,7 @@ import { Creature } from '../../lib/creature/Creature';
 import Species from '../../platform/idea/species/Species';
 import BodyPlan from '../../platform/idea/species/BodyPlan';
 import Location from '../../lib/location/Location';
-import Thing from '../../platform/thing/Thing';
+import Thing from '../../platform/thing/Good';
 import { Expression } from '../../lib/script/Expression';
 import { Scope } from '../../lib/script/Scope';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -35,14 +36,23 @@ describe('MQL is universal; perception is the surface’s (D23)', () => {
   let empty: Creature;
   let letter: Thing;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     installV1QuantityMarshallers();
     const plan = makeStuff(() => new BodyPlan());
     plan.setName('universal-biped');
     plan.setBaseMass(70);
     plan.setBaseStature(1.75);
-    plan.setSlots([{ name: 'torso', accepts: 'WearableMixin', capacity: 4, covers: ['body.torso'] }]);
-    plan.setBodyParts([{ key: 'body.torso', parent: null, tissues: [] }]);
+    plan.setSlots([
+      { name: 'torso', accepts: 'WearableMixin', capacity: 4, covers: ['body.torso'] },
+    // Two hands (size and carrying W7: a carried thing is held, not loose).
+    { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.hand.left' },
+    { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.hand.right' },
+    ]);
+    plan.setBodyParts([
+      { key: 'body.torso', parent: null, tissues: [] },
+    { key: 'body.hand.left', parent: 'body.torso', tissues: [], serves: ['manipulation'] },
+    { key: 'body.hand.right', parent: 'body.torso', tissues: [], serves: ['manipulation'] },
+    ]);
     stampTemplatePathForTest(plan, '/stuff/idea/species/BodyPlan/universal-biped');
     const species = makeStuff(() => new Species());
     species.setBodyPlan(plan);
@@ -60,8 +70,14 @@ describe('MQL is universal; perception is the surface’s (D23)', () => {
     letter = makeStuff(() => new Thing());
     letter.setShortDescription('a letter');
     letter.setKeywords(['letter']);
-    // In the bearer's keeping, in no hand and on no outer layer — a pocket.
-    ContainmentApi.move(letter, bearer);
+    // In the bearer's keeping, in no hand and on no outer layer — a coat's
+    // inner pocket (covered: size and carrying D26).
+    const coat = makeStuff(() => new Garment());
+    coat.setShortDescription('a coat');
+    await coat.setPlacements([{ member: '/platform/placements/pocket', name: 'inner pocket', covered: true }]);
+    coat.setSlotClaims({ '/stuff/idea/species/BodyPlan/universal-biped': ['torso'] });
+    bearer.seatInSlot(coat, 'torso');
+    ContainmentApi.move(letter, coat, 'inner pocket');
   });
   afterEach(() => StuffApi.clearAll());
 

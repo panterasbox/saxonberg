@@ -91,7 +91,7 @@ export const brain = class {
       for (const heap of ash) {
         if (!(await brain.buy(heap, counter, account, hand))) unpaid += 1;
         if (MixinApi.isContainable(heap)) {
-          if (MixinApi.isCarrying(hand)) hand.receive(heap);
+          if (MixinApi.isCarrying(hand)) hand.receiveOrSetDown(heap);
           else ContainmentApi.move(heap, hand as unknown as Stuff & Container);
         }
       }

@@ -599,6 +599,9 @@ export default class Stock extends StockBase {
     let item = shelfGood;
     const price = this.priceFor(item.getTemplatePath() ?? "");
     if (price == null) return this.refused(Mml.compose`${Mml.thing(item)} isn't for sale.`, "not-priced", word);
+    // ⭐ Handed (D-W7a): asked before any money moves.
+    const cannot = this.handOverRefusal(item, giver, word);
+    if (cannot !== null) return cannot;
     const paid = await EmploymentApi.settleSale(
       (this as unknown as Stuff).getIdentityPath(),
       price,

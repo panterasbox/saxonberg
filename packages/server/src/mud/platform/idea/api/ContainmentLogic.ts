@@ -107,6 +107,9 @@ export class ContainmentLogic extends ApiLogic {
     // into the room). The container did not change, so `moveCore` would be
     // a no-op; the placement pair is the whole of the move.
     if (to !== null && item.getContainer() === to && item.getPlacement() !== null) {
+      // ⭐ Off its host and loose on a BODY is the flip's veto too (D11):
+      // a key out of a pocket goes to a hand (`receive`), never loose.
+      if (MixinApi.isCarrying(to)) assertVetoOk(callHook<VetoResult>(to, 'canAddContainable', [item]), 'canAddContainable');
       const was = item.getPlacement()?.name ?? '';
       item._setPlacement(null);
       MqlSubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', was, '');
@@ -199,6 +202,14 @@ export class ContainmentLogic extends ApiLogic {
       }
       const offer = choice.offer;
       if (offer.kind === 'zero') {
+        // ⭐ Into a person is HANDING it to them (D-W7a): their own
+        // `receive` decides where, asked before anything moves.
+        if (MixinApi.isCarrying(target)) {
+          const refused = target.canReceive(item);
+          if (refused !== null) {
+            return { ok: false, reason: 'refused-by-container', facts: { said: refused.reason } };
+          }
+        }
         // A shut lid refuses at the verb — never in `move`.
         if (MixinApi.isSealable(target) && !target.isOpen()) return { ok: false, reason: 'shut' };
         // ⭐ The tape measure, asked first so it is a sentence (size and
@@ -207,8 +218,10 @@ export class ContainmentLogic extends ApiLogic {
         if (fit !== null) return { ok: false, reason: 'wont-fit', facts: { why: fit.reason } };
         // ⭐ A container that says what it is FOR refuses in its own words —
         // the hook `move` asserts, asked first so it is a sentence, not a
-        // thrown ContainmentError.
-        const veto = MixinApi.isContainer(target) ? target.canAddContainable?.(item) : undefined;
+        // thrown ContainmentError. (A carrier answered above, by `receive`.)
+        const veto = MixinApi.isContainer(target) && !MixinApi.isCarrying(target)
+          ? target.canAddContainable?.(item)
+          : undefined;
         if (veto && !veto.ok) {
           return { ok: false, reason: 'refused-by-container', facts: { said: veto.reason ?? null } };
         }
@@ -319,7 +332,9 @@ function placeOn(
       `move: host ${(host as Stuff).stuffId} rejects ${item.stuffId} (${veto.reason})`,
     );
   }
-  moveCore(item, targetEnv as ContainerStuff, false);
+  // ⭐ It arrives PLACED (D11): a body's veto admits a thing that comes
+  // with its pair on a host there.
+  moveCore(item, targetEnv as ContainerStuff, false, undefined, true);
   item._setPlacement(host, name);
   // Rung 1: the placement member just changed — wake every card showing it.
   MqlSubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', '', name);
@@ -362,6 +377,7 @@ function moveCore(
   to: ContainerStuff | null,
   force: boolean,
   following?: Set<string>,
+  placed = false,
 ): void {
   if (to !== null) {
     // PRE-FLIGHT (1): Exitables may only land in Exitables.
@@ -419,7 +435,7 @@ function moveCore(
   const followers = from !== null && from !== to ? directFollowers(item, from) : [];
   if (top && to !== null && !force && followers.length > 0) {
     for (const f of bringAlong(item, from as ContainerStuff)) {
-      assertVetoOk(callHook<VetoResult>(to, 'canAddContainable', [f]), 'canAddContainable');
+      assertVetoOk(callHook<VetoResult>(to, 'canAddContainable', [f, { placed: true }]), 'canAddContainable');
     }
   }
 
@@ -431,7 +447,7 @@ function moveCore(
     ? callHook<VetoResult>(from, 'canRemoveContainable', [item])
     : undefined;
   const addVeto = to
-    ? callHook<VetoResult>(to, 'canAddContainable', [item])
+    ? callHook<VetoResult>(to, 'canAddContainable', [item, { placed: placed || following !== undefined }])
     : undefined;
   if (!force) {
     assertVetoOk(moveVeto, 'canMove');
@@ -504,7 +520,7 @@ function moveCore(
       MqlSubscriptionApi.fireFieldChange(f as unknown as Stuff, 'placement', was, '');
       continue;
     }
-    moveCore(f, to, force, visited);
+    moveCore(f, to, force, visited, true);
   }
 
   // ⭐⭐ CUSTODY is derived here, for every move by anyone: where an owned

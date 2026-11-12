@@ -97,8 +97,7 @@ describe('Creature.envelope — the gap a body needs', () => {
     pack.setMass(Quantity.of(2, 'kg'));
     pack.setDimensions({ width: 0.3, depth: 0.2, height: 0.5 });
     pack.setSlotClaims({ [human.getSpecies()!.getBodyPlan()!.getTemplatePath()!]: ['torso'] });
-    ContainmentApi.move(pack, human);
-    human.occupy(pack, 'torso');
+    human.seatInSlot(pack, 'torso');
     const bulk = human.wornBulk();
     expect(bulk.things).toEqual([pack]);
     expect(bulk.depthM).toBeCloseTo(Math.cbrt(0.03));

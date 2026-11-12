@@ -359,7 +359,8 @@ export default class MarketStalls extends Stock {
     for (const good of [...counter.getContents()]) {
       counter.removeListing?.(MixinApi.isChattel(good) ? good.getChattelId() : '');
       if (to) {
-        if (MixinApi.isCarrying(to)) to.receive(good as unknown as Stuff & Containable);
+        // Back to you, else set down in the square (the stall is going away).
+        if (MixinApi.isCarrying(to)) to.receiveOrSetDown(good as unknown as Stuff & Containable);
         else ContainmentApi.move(good as unknown as Stuff & Containable, to);
       }
     }

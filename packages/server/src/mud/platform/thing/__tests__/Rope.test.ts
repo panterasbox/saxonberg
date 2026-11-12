@@ -256,8 +256,7 @@ describe('a lead hangs from the halter (size and carrying W7)', () => {
     halter.setShortDescription('halter');
     if (withFrom) await halter.setPlacements([Placements.FROM]);
     halter.setSlotClaims({ [mulePlan]: ['torso'] });
-    ContainmentApi.move(halter as never, mule as never);
-    mule.occupy(halter, 'torso');
+    mule.seatInSlot(halter, 'torso');
     const r = rope(fiber('hemp', 4), 4, 10);
     me.receive(r as never);
     return { me, mule, halter, r };

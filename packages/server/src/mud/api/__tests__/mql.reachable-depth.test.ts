@@ -17,6 +17,7 @@
  *   - `:held`.
  */
 import '../../../test-bootstrap';
+import { carry } from '../../lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect } from 'vitest';
 import { MqlApi } from '../mql';
 import { PerceptionApi } from '../perception';
@@ -78,7 +79,7 @@ describe('reachable — one rule (D17)', () => {
     const pack = vessel('pack', true);
     const bag = vessel('bag', true);
     const a = apple();
-    ContainmentApi.move(pack, me);
+    carry(me, pack);
     ContainmentApi.move(bag, pack);
     ContainmentApi.move(a, bag);
     expect(find(me, 'apple')).toContain(a.stuffId);
@@ -107,7 +108,7 @@ describe('reachable — one rule (D17)', () => {
     const pack = vessel('pack', true);
     const bag = vessel('bag', true);
     const a = apple();
-    ContainmentApi.move(pack, me);
+    carry(me, pack);
     ContainmentApi.move(bag, pack);
     ContainmentApi.move(a, bag);
     const chest = vessel('chest', false);
@@ -129,7 +130,7 @@ describe('MQL addresses; the verb refuses (D6)', () => {
     const { me } = world();
     const box = vessel('box', false);
     const a = apple();
-    ContainmentApi.move(box, me);
+    carry(me, box);
     ContainmentApi.move(a, box);
     expect(ids(MqlApi.resolveMany('me:I:apple', ctx(me, 'reachable')).stuff)).toContain(a.stuffId);
     expect(ids(MqlApi.resolveMany('me:i:i', ctx(me, 'reachable')).stuff)).toContain(a.stuffId);
@@ -152,7 +153,7 @@ describe('MQL addresses; the verb refuses (D6)', () => {
     ContainmentApi.move(other, river);
     const box = vessel('box', false);
     const b = apple();
-    ContainmentApi.move(box, other);
+    carry(other, box);
     ContainmentApi.move(b, box);
     const named = MqlApi.resolveMany('here:I:apple', ctx(me, 'reachable')).stuff;
     expect(ids(named)).toContain(b.stuffId);
@@ -213,8 +214,8 @@ describe(':held', () => {
     const inHand = apple();
     const inBag = apple();
     const onGround = apple();
-    ContainmentApi.move(inHand, me);
-    ContainmentApi.move(bag, me);
+    carry(me, inHand);
+    carry(me, bag);
     ContainmentApi.move(inBag, bag);
     ContainmentApi.move(onGround, river);
     const held = ids(MqlApi.resolveMany('reachable:held', ctx(me, 'reachable')).stuff);

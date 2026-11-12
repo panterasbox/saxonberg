@@ -6,6 +6,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { carry } from '../../slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -25,7 +26,7 @@ import {
   equip,
 } from './encumbrance-fixtures';
 
-const { CAPACITY_FRACTION, LOOSE_CARRY_SURCHARGE, OVERLOAD_FACTOR, ENDURANCE_FLOOR } =
+const { CAPACITY_FRACTION, HELD_SURCHARGE, OVERLOAD_FACTOR, ENDURANCE_FLOOR } =
   LOAD_BEARING_DEFAULTS;
 
 describe('LoadBearing — composition', () => {
@@ -48,10 +49,10 @@ describe('LoadBearing — getBorneBurden (the weighted tree-walk)', () => {
     expect(c.getBorneBurden().rawValue()).toBe(0);
   });
 
-  it('a loose-carried item pays the held surcharge', () => {
+  it('a received item is held and pays the held surcharge (the flip, W7)', () => {
     const c = bearerCreature();
-    ContainmentApi.move(massThing(10), c);
-    expect(c.getBorneBurden().rawValue()).toBeCloseTo(10 * LOOSE_CARRY_SURCHARGE);
+    carry(c, massThing(10));
+    expect(c.getBorneBurden().rawValue()).toBeCloseTo(10 * HELD_SURCHARGE);
   });
 
   it('a worn item counts at the worn floor (1.0)', () => {
@@ -63,18 +64,18 @@ describe('LoadBearing — getBorneBurden (the weighted tree-walk)', () => {
   it('a held item counts at the held surcharge', () => {
     const c = bearerCreature();
     equip(c, heldThing(10), 'hand:left');
-    expect(c.getBorneBurden().rawValue()).toBeCloseTo(10 * LOOSE_CARRY_SURCHARGE);
+    expect(c.getBorneBurden().rawValue()).toBeCloseTo(10 * HELD_SURCHARGE);
   });
 
   it('sums a nested container: self + child, placement carried down', () => {
     const c = bearerCreature();
     const bag = vessel(2, 1.0); // full transmission
     ContainmentApi.move(massThing(10), bag);
-    ContainmentApi.move(bag, c);
+    carry(c, bag);
     // bag self: 2 * 1.0(transmission) * 1.25(loose placement) = 2.5
     // child:   10 * 1.0 * 1.25                                = 12.5
     expect(c.getBorneBurden().rawValue()).toBeCloseTo(
-      2 * LOOSE_CARRY_SURCHARGE + 10 * LOOSE_CARRY_SURCHARGE,
+      2 * HELD_SURCHARGE + 10 * HELD_SURCHARGE,
     );
   });
 
@@ -82,11 +83,11 @@ describe('LoadBearing — getBorneBurden (the weighted tree-walk)', () => {
     const c = bearerCreature();
     const bagOfHolding = vessel(1, 0.05); // near-zero transmission
     ContainmentApi.move(massThing(100), bagOfHolding);
-    ContainmentApi.move(bagOfHolding, c);
+    carry(c, bagOfHolding);
     // bag self: 1 * 1.0 * 1.25                   = 1.25
     // child:    100 * 0.05 * 1.25                = 6.25
     const burden = c.getBorneBurden().rawValue();
-    expect(burden).toBeCloseTo(1 * LOOSE_CARRY_SURCHARGE + 100 * 0.05 * LOOSE_CARRY_SURCHARGE);
+    expect(burden).toBeCloseTo(1 * HELD_SURCHARGE + 100 * 0.05 * HELD_SURCHARGE);
     expect(burden).toBeLessThan(10); // 100 kg of cargo, but barely felt
   });
 
@@ -95,10 +96,10 @@ describe('LoadBearing — getBorneBurden (the weighted tree-walk)', () => {
     const shared = wornThing(10);
     equip(c, shared, 'torso');
     // Force the same instance into general contents too (pathological).
-    ContainmentApi.move(shared, c);
+    carry(c, shared);
     // Counted once — worn floor (slots walked first → 10), not 10 + 12.5.
     // Either store may win the first visit; assert it is not double-counted.
-    expect(c.getBorneBurden().rawValue()).toBeLessThan(10 * LOOSE_CARRY_SURCHARGE + 10);
+    expect(c.getBorneBurden().rawValue()).toBeLessThan(10 * HELD_SURCHARGE + 10);
     expect(c.getBorneBurden().rawValue()).toBeGreaterThanOrEqual(10);
   });
 });
@@ -158,7 +159,7 @@ describe('LoadBearing — getLoadRatio', () => {
 
   it('zero capacity with positive burden reads as Infinity (over-ceiling)', () => {
     const c = bearerCreature(0); // no body mass → zero capacity
-    ContainmentApi.move(massThing(5), c);
+    carry(c, massThing(5));
     expect(c.getLoadRatio()).toBe(Infinity);
   });
 });
@@ -182,13 +183,16 @@ describe('LoadBearing — the burden in the water (underwater review)', () => {
 
   it('⭐ lead still weighs in the water; a bag of air lifts and helps carry it', () => {
     const c = bearerCreature();
-    ContainmentApi.move(madeOf(6, 11340, 'test-lead'), c);
+    const lead = madeOf(6, 11340, 'test-lead');
+    carry(c, lead);
+    // Held (the flip, W7): the held surcharge × the load's own awkwardness.
+    const held = HELD_SURCHARGE * c.awkwardnessOf(lead);
     const dry = c.getBorneBurden().rawValue();
     const wet = c.getBorneBurden(1000).rawValue();
-    expect(dry).toBeCloseTo(6 * LOOSE_CARRY_SURCHARGE);
-    expect(wet).toBeCloseTo(6 * (1 - 1000 / 11340) * LOOSE_CARRY_SURCHARGE);
-    // Three canvas bags (600 kg/m³) float: they take weight OFF.
-    for (let i = 0; i < 3; i++) ContainmentApi.move(madeOf(3, 600, `test-canvas-${i}`), c);
+    expect(dry).toBeCloseTo(6 * held);
+    expect(wet).toBeCloseTo(6 * (1 - 1000 / 11340) * held);
+    // A canvas bundle (600 kg/m³) in the other hand floats: it takes weight OFF.
+    carry(c, madeOf(9, 600, 'test-canvas'));
     expect(c.getBorneBurden().rawValue()).toBeGreaterThan(dry);
     expect(c.getBorneBurden(1000).rawValue()).toBe(0);
     expect(c.getLoadRatio(1000)).toBe(0);

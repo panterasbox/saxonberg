@@ -630,7 +630,7 @@ export function ColonyMixin<TBase extends MixinConstructor<ColonyBase>>(
         // D7a: this probed a `setHandling` nobody defined, so every swarm
         // left at the default; HandlingMixin now has the field's setter).
         if (MixinApi.isHandling(swarm)) swarm.setHandling(handling);
-        if (MixinApi.isCarrying(env)) env.receive(swarm as Stuff & Containable);
+        if (MixinApi.isCarrying(env)) env.receiveOrSetDown(swarm as Stuff & Containable);
         else ContainmentApi.move(
           swarm as Stuff & Containable,
           env as Stuff & Container,

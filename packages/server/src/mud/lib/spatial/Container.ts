@@ -174,7 +174,7 @@ export interface Container {
    * asks {@link fitRefusal} (size and carrying D4) — a container that says
    * what it is FOR overrides it and owns the whole answer.
    */
-  canAddContainable?(thing: Stuff & Containable): VetoResult;
+  canAddContainable?(thing: Stuff & Containable, how?: { placed?: boolean }): VetoResult;
 
   // ── size (size and carrying D4–D5, D22) ──
 
@@ -395,7 +395,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** The default veto: the tape measure. See {@link Container.canAddContainable}. */
-    public canAddContainable(thing: Stuff & Containable): VetoResult {
+    public canAddContainable(thing: Stuff & Containable, _how?: { placed?: boolean }): VetoResult {
       const refusal = this.fitRefusal(thing);
       return refusal === null ? { ok: true } : { ok: false, reason: refusal.reason };
     }
@@ -692,7 +692,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       for (const item of snapshot) {
         try {
           if (outer !== null && (!dormant || MixinApi.isHasInteractive(item))) {
-            if (MixinApi.isCarrying(outer)) outer.receive(item);
+            if (MixinApi.isCarrying(outer)) outer.receiveOrSetDown(item);
             else ContainmentApi.move(item, outer);
           } else if (
             MixinApi.isHasInteractive(item) &&

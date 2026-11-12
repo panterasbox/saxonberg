@@ -423,7 +423,7 @@ function cashSupply(holder: Stuff & Container, currency: string): CoinSupply[] {
 async function takeCoins(
   from: Stuff & Container,
   plan: readonly CoinLine[],
-  dispose: (piece: Stuff & Containable) => void,
+  dispose: (piece: Stuff & Containable) => void | Promise<void>,
 ): Promise<boolean> {
   for (const line of plan) {
     let need = line.count;
@@ -434,11 +434,11 @@ async function takeCoins(
       }
       const have = item.getQuantity();
       if (have <= need) {
-        dispose(item as unknown as Stuff & Containable);
+        await dispose(item as unknown as Stuff & Containable);
         need -= have;
       } else {
         const piece = await item.split(need);
-        dispose(piece as unknown as Stuff & Containable);
+        await dispose(piece as unknown as Stuff & Containable);
         need = 0;
       }
     }
@@ -462,8 +462,10 @@ async function moveCoins(
 ): Promise<boolean> {
   const plan = Coinage.planSpend(currency, cashSupply(from, currency), value);
   if (!plan) return false;
-  return takeCoins(from, plan, (piece) => {
-    if (MixinApi.isCarrying(to)) to.receive(piece);
+  return takeCoins(from, plan, async (piece) => {
+    // Granted (D-W7a): the ledger has already moved — a purse or a pocket,
+    // else home; never refused after the ledger, never lost.
+    if (MixinApi.isCarrying(to)) await to.receiveGranted(piece);
     else ContainmentApi.move(piece, to);
   });
 }
@@ -1941,7 +1943,9 @@ async function dispenseCoin(into: Stuff & Container, amount: Money): Promise<Stu
     stamped.currency = line.currency;
     stamped.denomination = line.denomination;
     (coin as unknown as Stackable).setQuantity(line.count);
-    if (MixinApi.isCarrying(into)) into.receive(coin as unknown as Stuff & Containable);
+    // Cash the ledger has already moved is GRANTED (D-W7a): a purse or a
+    // pocket, else home — never refused after the ledger, never lost.
+    if (MixinApi.isCarrying(into)) await into.receiveGranted(coin as unknown as Stuff & Containable);
     else ContainmentApi.move(coin as unknown as Stuff & Containable, into);
     if (!representative) representative = coin;
   }
@@ -2154,7 +2158,7 @@ async function issueCardImpl(
   if (principal && MixinApi.isContainer(principal)) {
     // ⭐ A card is a held good — the move titles it to whoever it is
     // issued to and records where it is, or it is gone at the next restart.
-    if (MixinApi.isCarrying(principal)) principal.receive(card as unknown as Stuff & Containable);
+    if (MixinApi.isCarrying(principal)) await principal.receiveGranted(card as unknown as Stuff & Containable);
     else ContainmentApi.move(card as unknown as Stuff & Containable, principal);
   }
   return card as Stuff & CredentialWallet;

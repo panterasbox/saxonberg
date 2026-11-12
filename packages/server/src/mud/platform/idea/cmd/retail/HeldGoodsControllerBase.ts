@@ -87,6 +87,18 @@ export abstract class HeldGoodsControllerBase<
       return;
     }
 
+    // ⭐ Handed back (D-W7a): if you cannot take it, it stays where it is.
+    const refused = MixinApi.isCarrying(giver) ? giver.canReceive(item) : null;
+    const cannot = refused !== null && MixinApi.isCarrying(giver) ? giver.refusalWords(refused) : null;
+    if (refused !== null && cannot !== null) {
+      this.reject(giver, context, Mml.text(cannot), {
+        kind: "controller-rejected",
+        reason: refused.reason,
+        detail: thing,
+      });
+      return;
+    }
+
     // Custody → you; clear the listing. No chattel op (ownership never left).
     if (MixinApi.isContainer(giver)) {
       if (MixinApi.isCarrying(giver)) giver.receive(item);

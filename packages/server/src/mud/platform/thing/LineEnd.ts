@@ -117,6 +117,10 @@ export default class LineEnd extends TieableMixin(TetherEndMixin(WieldableMixin(
     const load = this.getLashedTo();
     if (load === null) return { ok: false, reason: 'not-tied', facts: { gear: this as unknown as Stuff } };
     if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', facts: { gear: this as unknown as Stuff } };
+    // Handed back to you (D-W7a): with no hand for it, it stays lashed.
+    if (MixinApi.isCarrying(by) && by.canReceive(this) !== null) {
+      return { ok: false, reason: 'hands-full', facts: { gear: this as unknown as Stuff, load } };
+    }
     this._lashedTo = null;
     if (MixinApi.isCarrying(by)) by.receive(this);
     else ContainmentApi.move(this, by as Stuff & Container);
@@ -129,7 +133,7 @@ export default class LineEnd extends TieableMixin(TetherEndMixin(WieldableMixin(
     const load = this._lashedTo;
     const at = load !== null && !load.isDestroyed() && MixinApi.isContainable(load) ? load.getContainer() : null;
     if (at === null || at === this.getContainer()) return;
-    if (MixinApi.isCarrying(at)) at.receive(this);
+    if (MixinApi.isCarrying(at)) at.receiveOrSetDown(this);
     else ContainmentApi.move(this, at as Stuff & Container);
   }
 

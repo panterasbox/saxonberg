@@ -292,7 +292,12 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     const remaining = pool.filter(
       (c) =>
         this.equippable(c) &&
-        !(MixinApi.isSlottable(c) && c.getOccupiedHost()?.stuffId === giver.stuffId),
+        !(
+          MixinApi.isSlottable(c) &&
+          c.getOccupiedHost()?.stuffId === giver.stuffId &&
+          // A thing merely HELD is still to put on (the flip, W7).
+          !(MixinApi.isCarrying(giver) && giver.tierOf(c) === 'hand')
+        ),
     );
     if (remaining.length === 0) {
       MessageApi.scene(giver)
@@ -594,6 +599,11 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     const plan = SpeciesApi.tryGetBodyPlanPath(giver) ?? '';
     const as = EquipControllerBase.claimAs(item, mode);
     const slots = as === null ? [] : EquipControllerBase.slotsFor(item, plan, as, giver);
+    // ⭐ Out of the hand it was held in, then on (size and carrying W7): a
+    // held coat is put on, a held sword moved to the hand it is wielded in.
+    if (MixinApi.isCarrying(giver) && MixinApi.isSlottable(item)) {
+      for (const h of giver.handSlots()) if (giver.getOccupants(h).has(item)) giver.vacate(h, item);
+    }
     giver.occupyAll(item as Parameters<typeof giver.occupyAll>[0], [...slots]);
   }
 
@@ -805,7 +815,11 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     });
     for (const item of wanted) {
       if (!MixinApi.isContainable(item)) continue;
-      if (MixinApi.isCarrying(giver)) giver.receive(item);
+      // ⭐ Handed out of the wardrobe (the flip, W7): what can go on now
+      // goes straight on by its claim; the rest comes to hand or a pocket,
+      // and what has nowhere to go stays in the wardrobe (nothing moved).
+      const now = EquipControllerBase.canEquip(item, giver, mode) === null;
+      if (MixinApi.isCarrying(giver)) giver.receive(item, now ? { for: 'wear' } : {});
       else ContainmentApi.move(item as Stuff & Containable, giver as unknown as Stuff & Container);
     }
     return PerceptionApi.perceived(giver, giver.getContents());

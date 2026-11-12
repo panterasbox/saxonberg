@@ -131,7 +131,7 @@ export default class CutPieces extends CutPiecesBase {
           });
         }
         if (MixinApi.isContainable(garment) && MixinApi.isContainer(actor) && !actor.isDestroyed()) {
-          if (MixinApi.isCarrying(actor)) actor.receive(garment as Stuff & Containable);
+          if (MixinApi.isCarrying(actor)) actor.receiveOrSetDown(garment as Stuff & Containable);
           else ContainmentApi.move(garment as Stuff & Containable, actor as Stuff & Container);
         }
         await StuffApi.destruct(self);

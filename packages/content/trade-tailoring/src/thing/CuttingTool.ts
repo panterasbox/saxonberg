@@ -176,7 +176,7 @@ async function finishCut(
   }
   if (MixinApi.isWearable(pieces)) pieces.setSeamAllowance(allowance);
   if (MixinApi.isContainable(pieces) && MixinApi.isContainer(giver)) {
-    if (MixinApi.isCarrying(giver)) giver.receive(pieces as Stuff & Containable);
+    if (MixinApi.isCarrying(giver)) giver.receiveOrSetDown(pieces as Stuff & Containable);
     else ContainmentApi.move(pieces as Stuff & Containable, giver as Stuff & Container);
   }
   // ⭐ Offcuts — and a generous cut leaves more of them.
@@ -184,7 +184,7 @@ async function finishCut(
   const offcuts = await StuffApi.clone<Stuff>(OFFCUT_ROW);
   if (MixinApi.isStackable(offcuts)) offcuts.setQuantity(offcutUnits);
   if (MixinApi.isContainable(offcuts) && MixinApi.isContainer(giver)) {
-    if (MixinApi.isCarrying(giver)) giver.receive(offcuts as Stuff & Containable);
+    if (MixinApi.isCarrying(giver)) giver.receiveOrSetDown(offcuts as Stuff & Containable);
     else ContainmentApi.move(offcuts as Stuff & Containable, giver as Stuff & Container);
   }
   return { ok: true, facts: { kind: 'pattern', allowance, offcuts: offcutUnits } };

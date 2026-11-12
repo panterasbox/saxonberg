@@ -4,6 +4,7 @@
  * thing drawn out of a shaped container is drawn fast.
  */
 import '../../../../test-bootstrap';
+import { carry } from '../../slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -32,7 +33,7 @@ describe('Container — shapedTo (D27)', () => {
     expect(holster.fitRefusal(cup)?.reason).toBe('not-shaped-for');
     expect(holster.fitRefusal(pistol)).toBeNull();
     const { me } = makeBody();
-    ContainmentApi.move(cup, me);
+    carry(me, cup);
     const plan = ContainmentApi.putPlanFor(cup as Stuff & Containable, holster, { prep: 'in', by: me });
     expect(plan).toMatchObject({ ok: false, reason: 'wont-fit', facts: { why: 'not-shaped-for' } });
     expect(() => ContainmentApi.move(cup, holster)).toThrow(/not-shaped-for/);
@@ -53,7 +54,7 @@ describe('Container — shapedTo (D27)', () => {
     const holster = pack('holster', 0.3, [0.06, 0.04, 0.25], '/trade/smithing/thing/pistol');
     const pouch = pack('pouch', 0.1, [0.12, 0.05, 0.12]);
     for (const p of [holster, pouch]) {
-      ContainmentApi.move(p, me);
+      carry(me, p);
       ContainmentApi.move(p, belt, Placements.FROM);
     }
     const pistol = tool('pistol', 1.1, [0.04, 0.03, 0.2]);

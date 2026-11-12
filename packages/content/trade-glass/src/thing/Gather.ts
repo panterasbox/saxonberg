@@ -257,7 +257,7 @@ export default class Gather extends GatherBase implements Formable {
       });
     }
     if (where && MixinApi.isContainable(product)) {
-      if (MixinApi.isCarrying(where)) where.receive(product as Stuff & Containable);
+      if (MixinApi.isCarrying(where)) where.receiveOrSetDown(product as Stuff & Containable);
       else ContainmentApi.move(product as Stuff & Containable, where);
     }
     try {
@@ -271,7 +271,7 @@ export default class Gather extends GatherBase implements Formable {
       (moil as unknown as Labelled).setKeywords(["cullet", "moil", "glass"]);
       if (MixinApi.isComposition(moil) && alloying.length > 0) moil.setMakeup(alloying);
       if (where && MixinApi.isContainable(moil)) {
-        if (MixinApi.isCarrying(where)) where.receive(moil as Stuff & Containable);
+        if (MixinApi.isCarrying(where)) where.receiveOrSetDown(moil as Stuff & Containable);
         else ContainmentApi.move(moil as Stuff & Containable, where);
       }
     } catch {
@@ -339,7 +339,7 @@ export default class Gather extends GatherBase implements Formable {
             ? (actor as unknown as Stuff & Container)
             : null;
       if (dest && MixinApi.isContainable(cullet)) {
-        if (MixinApi.isCarrying(dest)) dest.receive(cullet as Stuff & Containable);
+        if (MixinApi.isCarrying(dest)) dest.receiveOrSetDown(cullet as Stuff & Containable);
         else ContainmentApi.move(cullet as Stuff & Containable, dest);
       }
     } catch {

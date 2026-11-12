@@ -5,6 +5,7 @@
  * the switch, priced in two halves by holder.
  */
 import '../../../../test-bootstrap';
+import { carry } from './carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -22,7 +23,7 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     StuffApi.clearAll();
   });
 
-  it('the tiers: hand · ready (worn, a satchel, loose until the flip) · packed (the back) · elsewhere', () => {
+  it('the tiers: hand · ready (worn, a satchel) · packed (the back) · elsewhere', () => {
     const { me, plan } = makeBody();
     const room = makeStuff(() => new Location());
     ContainmentApi.move(me, room);
@@ -33,14 +34,15 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     const pack = wornBag(me, plan, 'rucksack', 'back');
     const map = tool('map', 0.1);
     ContainmentApi.move(map, pack);
-    const loose = tool('flint', 0.1);
-    ContainmentApi.move(loose, me);
+    // A second thing received goes to the other hand (the flip, W7).
+    const flint = tool('flint', 0.1);
+    carry(me, flint);
     const floor = tool('stone', 1);
     ContainmentApi.move(floor, room);
     expect(me.tierOf(knife)).toBe('hand');
     expect(me.tierOf(satchel)).toBe('ready');
     expect(me.tierOf(compass)).toBe('ready');
-    expect(me.tierOf(loose)).toBe('ready');
+    expect(me.tierOf(flint)).toBe('hand');
     expect(me.tierOf(map)).toBe('packed');
     expect(me.tierOf(floor)).toBe('elsewhere');
   });
@@ -98,7 +100,8 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     // The pouch is too small for it now (a box that refuses).
     vi.spyOn(pouch, 'fitRefusal').mockReturnValue({ reason: 'too-big' } as never);
     const compass = tool('compass', 0.2);
-    ContainmentApi.move(compass, me);
+    // In a satchel at the waist — on you, not in hand (the flip, W7).
+    ContainmentApi.move(compass, wornBag(me, plan, 'satchel', 'waist'));
     const r = me.ready(compass);
     expect(r?.reason).toBe('hands-full');
     expect(me.refusalWords(r!)).toMatch(/Drop it \(`drop lantern`\) or put it away first/);
@@ -109,14 +112,14 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     const { me, plan } = makeBody();
     const shield = tool('shield', 4);
     shield.setSlotClaims({ [plan]: ['hand:left'] });
-    ContainmentApi.move(shield, me);
-    me.occupy(shield, 'hand:left');
+    me.seatInSlot(shield, 'hand:left');
     // A home that refuses keeps the shield in hand.
     const pouch = wornBag(me, plan, 'pouch', 'torso');
     me.setHome(shield, pouch);
     vi.spyOn(pouch, 'fitRefusal').mockReturnValue({ reason: 'too-big' } as never);
     const maul = tool('maul', 12);
-    ContainmentApi.move(maul, me);
+    // Slung in a bag at the waist — on you, not in hand (the flip, W7).
+    ContainmentApi.move(maul, wornBag(me, plan, 'sling', 'waist'));
     expect(me.handsFor(maul)).toBe(2);
     const r = me.ready(maul);
     expect(r?.reason).toBe('hands-full');
@@ -127,8 +130,7 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     const { me, plan } = makeBody();
     const dagger = tool('dagger', 0.4);
     dagger.setSlotClaims({ [plan]: ['sidearm'] });
-    ContainmentApi.move(dagger, me);
-    me.occupy(dagger, 'sidearm');
+    me.seatInSlot(dagger, 'sidearm');
     // Hands empty: only the draw half. A sheath slot is the draw dial.
     expect(me.readySeconds(dagger)).toBeCloseTo(1.5);
     const pouch = wornBag(me, plan, 'pouch', 'torso');

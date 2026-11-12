@@ -374,8 +374,15 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public seatInSlot(item: Stuff & Containable & Slottable, slot: string): void {
-      ContainmentApi.move(item, this as unknown as Stuff & Container);
-      this.occupy(item, slot);
+      const host = this as unknown as Stuff;
+      // ⭐ A carrier admits what it seats (the flip's veto, D11): the move
+      // lands it in the contents a moment before the slot claims it.
+      const seat = (): void => {
+        ContainmentApi.move(item, this as unknown as Stuff & Container);
+        this.occupy(item, slot);
+      };
+      if (MixinApi.isCarrying(host)) host.admitWhile(item, seat);
+      else seat();
     }
 
     public canOccupy(candidate: Stuff & Slottable, slot: string): boolean {

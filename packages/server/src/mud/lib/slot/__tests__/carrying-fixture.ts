@@ -17,10 +17,15 @@ import { WearableMixin } from '../Wearable';
 import { WieldableMixin } from '../Wieldable';
 import { SlottableMixin } from '../Slottable';
 import { Quantity } from '../../quantity';
-import { ContainmentApi } from '../../../api/containment';
 import Garment from '../../../platform/thing/equipment/Garment';
 import Pack from '../../../platform/thing/equipment/Pack';
 import type { PlacementEntry } from '../../spatial/Placing';
+import type { Stuff } from '../../stuff/Stuff';
+import type { Containable } from '../../spatial/Containable';
+import type { Carrying } from '../Carrying';
+import type { Container } from '../../spatial/Container';
+import { ContainmentApi } from '../../../api/containment';
+import { MixinApi } from '../../../api/mixin';
 import { material } from '../../spatial/__tests__/size-fixture';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 
@@ -97,8 +102,7 @@ export function wornBag(me: Body, plan: string, name: string, slot: string, shut
   b.setKeywords([name]);
   b.setSlotClaims({ [plan]: [slot] });
   b.setOpen(true);
-  ContainmentApi.move(b, me);
-  me.occupy(b, slot);
+  me.seatInSlot(b, slot);
   if (shut) b.setOpen(false);
   return b;
 }
@@ -135,8 +139,7 @@ export async function wornGarment(
 ): Promise<Garment> {
   const g = await garment(name, placements, kg);
   g.setSlotClaims({ [plan]: [slot] });
-  ContainmentApi.move(g, me);
-  me.occupy(g, slot);
+  me.seatInSlot(g, slot);
   return g;
 }
 
@@ -151,4 +154,21 @@ export function pack(name: string, kg: number, box: [number, number, number], sh
   p.setMaterial(material('/stuff/idea/material/_carrying/leather', 860));
   if (shapedTo !== undefined) p.setShapedTo(shapedTo);
   return p;
+}
+
+/**
+ * ⭐ Put `item` on `body` the one way a thing comes onto a body (the flip,
+ * W7): `receive` — a free hand, else a pocket or a worn bag it fits. Throws
+ * on a refusal, so a test that over-fills a body says so instead of
+ * carrying a thing nowhere.
+ */
+export function carry(body: unknown, item: unknown): void {
+  if (!MixinApi.isCarrying(body as Stuff)) {
+    // Not a body (a holder, a stub): the plain move it always was.
+    ContainmentApi.move(item as Stuff & Containable, body as Stuff & Container);
+    return;
+  }
+  const b = body as Stuff & Carrying;
+  const refused = b.receive(item as Stuff & Containable);
+  if (refused !== null) throw new Error(`carry: ${b.refusalWords(refused)}`);
 }

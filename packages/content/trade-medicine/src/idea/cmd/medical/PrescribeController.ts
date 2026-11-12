@@ -81,7 +81,7 @@ export default class PrescribeController extends CommandController<PrescribeMode
     if (!MixinApi.isCarrying(giver)) {
       throw new Error('prescribe: requiresEmbodied admitted a giver that cannot carry');
     }
-    giver.receive(slip as unknown as Stuff & Containable);
+    giver.receiveOrSetDown(slip as unknown as Stuff & Containable);
 
     if (MixinApi.isAdvancing(giver)) {
       await giver.creditDeed({

@@ -288,8 +288,7 @@ describe('harvest <plant>', () => {
   /** Seat a mature plant with a chosen worst-limiting history. */
   function ripe(bed: GardenBed, worst = 1): Plant {
     const p = makePlant();
-    ContainmentApi.move(p, bed);
-    bed.occupy(p, PLANT_SLOT);
+    bed.seatInSlot(p, PLANT_SLOT);
     forceStage(p, 'mature');
     forceWorst(p, worst);
     return p;
@@ -401,8 +400,7 @@ describe('harvest <plant>', () => {
   it('refuses an IMMATURE plant, naming the stage', async () => {
     const { giver, room, bed } = scene();
     const p = makePlant();
-    ContainmentApi.move(p, bed);
-    bed.occupy(p, PLANT_SLOT);
+    bed.seatInSlot(p, PLANT_SLOT);
     forceStage(p, 'young');
 
     const ctrl = makeStuff(() => new HarvestController());
@@ -469,8 +467,7 @@ describe('harvest <plant>', () => {
   it('refuses an ORNAMENTAL that yields nothing', async () => {
     const { giver, room, bed } = scene();
     const p = makePlant({ harvestable: false });
-    ContainmentApi.move(p, bed);
-    bed.occupy(p, PLANT_SLOT);
+    bed.seatInSlot(p, PLANT_SLOT);
     forceStage(p, 'mature');
 
     const ctrl = makeStuff(() => new HarvestController());
@@ -515,8 +512,7 @@ describe('harvest <plant>', () => {
       t.setNutrientDraw(15);
       return t;
     }, freshPath('/trade/farming/thing/plant/_tree'));
-    ContainmentApi.move(p, bed);
-    bed.occupy(p, PLANT_SLOT);
+    bed.seatInSlot(p, PLANT_SLOT);
     forceStage(p, 'mature');
     forceWorst(p, worst);
     (p as unknown as { _flowering: boolean })._flowering = true;
@@ -574,8 +570,7 @@ describe('harvest <plant>', () => {
   it('⭐ naming the GROUND picks its ripe occupant over a bare one', async () => {
     const { giver, room, bed } = scene();
     const seedling = makePlant();
-    ContainmentApi.move(seedling, bed);
-    bed.occupy(seedling, PLANT_SLOT);
+    bed.seatInSlot(seedling, PLANT_SLOT);
     forceStage(seedling, 'young');
     const tree = ripeTree(bed);
 
@@ -591,8 +586,7 @@ describe('harvest <plant>', () => {
   it('a bed with only an unready plant refuses NAMING the stage', async () => {
     const { giver, room, bed } = scene();
     const seedling = makePlant();
-    ContainmentApi.move(seedling, bed);
-    bed.occupy(seedling, PLANT_SLOT);
+    bed.seatInSlot(seedling, PLANT_SLOT);
     forceStage(seedling, 'young');
 
     const ctrl = makeStuff(() => new HarvestController());

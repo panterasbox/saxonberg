@@ -6,6 +6,7 @@
  * buttoned one closes; and the pair is what persists.
  */
 import '../../../../../test-bootstrap';
+import { carry } from '../../../../lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
@@ -65,7 +66,7 @@ describe('Garment — pockets as regions (D26)', () => {
     ContainmentApi.move(me, makeStuff(() => new Location()));
     const coat = await wornGarment(me, plan, 'coat', 'torso', COAT);
     const k = key();
-    ContainmentApi.move(k, me);
+    carry(me, k);
     const asked = put(k, coat, me, 'in');
     expect(asked.ok).toBe(false);
     if (!asked.ok && asked.reason === 'preposition-ambiguous') {
@@ -100,7 +101,7 @@ describe('Garment — pockets as regions (D26)', () => {
       { member: Placements.POCKET, name: 'front pocket', mouth: { width: 0.2, height: 0.05 }, volumeM3: 0.002 },
     ]);
     const k = key();
-    ContainmentApi.move(k, me);
+    carry(me, k);
     const p = put(k, apron, me, 'in');
     expect(p.ok).toBe(true);
     if (p.ok) expect(p.facts.route).toEqual({ kind: 'region', name: 'front pocket', word: 'into' });
@@ -110,7 +111,7 @@ describe('Garment — pockets as regions (D26)', () => {
     const { me, plan } = makeBody();
     const trousers = await wornGarment(me, plan, 'trousers', 'legs', TROUSERS);
     const m = mug();
-    ContainmentApi.move(m, me);
+    carry(me, m);
     const refused = put(m, trousers, me, 'in', 'left pocket');
     expect(refused).toMatchObject({ ok: false, reason: 'cannot-rest', facts: { why: 'too-big-for-mouth' } });
     expect(trousers.canPlace(key(), 'left pocket')).toEqual({ ok: true });
@@ -119,7 +120,7 @@ describe('Garment — pockets as regions (D26)', () => {
     let placed = 0;
     for (let i = 0; i < 40; i++) {
       const b = box();
-      ContainmentApi.move(b, me);
+      carry(me, b);
       if (!trousers.canPlace(b, 'right pocket').ok) {
         expect(trousers.canPlace(b, 'right pocket')).toEqual({ ok: false, reason: 'no-room' });
         break;
@@ -145,10 +146,8 @@ describe('Garment — pockets as regions (D26)', () => {
       return c;
     };
     const buttoned = cork();
-    ContainmentApi.move(buttoned, me);
     ContainmentApi.move(buttoned, coat, 'breast pocket');
     const loose = cork();
-    ContainmentApi.move(loose, me);
     ContainmentApi.move(loose, coat, 'left pocket');
     const left = me.reconcilePressing();
     expect(left).toEqual([loose]);
@@ -162,11 +161,11 @@ describe('Garment — pockets as regions (D26)', () => {
     const { me, plan } = makeBody();
     const coat = await wornGarment(me, plan, 'coat', 'torso', COAT);
     const k = key();
-    ContainmentApi.move(k, me);
+    carry(me, k);
     ContainmentApi.move(k, coat, 'left pocket');
     expect(k.getPlacement()?.name).toBe('left pocket');
     // Taken out and put back by its region name — the pair is the name.
-    ContainmentApi.move(k, me);
+    carry(me, k);
     expect(k.getPlacement()).toBeNull();
     ContainmentApi.move(k, coat, 'left pocket');
     expect(coat.getPlaced('left pocket')).toEqual([k]);

@@ -643,7 +643,7 @@ export class TestHooks {
         await StuffApi.destruct(thing);
         throw new Error(`'${handle}' stands nowhere to put '${templatePath}' down`);
       }
-      if (MixinApi.isCarrying(into)) into.receive(thing);
+      if (MixinApi.isCarrying(into)) await into.receiveGranted(thing);
       else ContainmentApi.move(thing, into);
       return thing.stuffId;
     });

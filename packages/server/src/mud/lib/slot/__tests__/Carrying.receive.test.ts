@@ -1,7 +1,7 @@
 /**
  * `Carrying.receive` at W0 — **it behaves exactly as the move it replaces.**
  *
- * size-and-carrying W0: `receive(item)` is `ContainmentApi.move(item, body)`
+ * size-and-carrying W0: `receive(item)` is `carry(body, item)`
  * and `receive(item, { slot })` is `seatInSlot(item, slot)`. Every port in
  * W4/W5 swaps one for the other and must change nothing until the flip, so
  * each case here runs the old call on one body and `receive` on a twin and
@@ -9,6 +9,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { carry } from './carrying-fixture';
 import { describe, it, expect, afterEach } from 'vitest';
 import { SlottableMixin } from '../Slottable';
 import { SlottedMixin } from '../Slotted';
@@ -41,8 +42,13 @@ function body(): Creature {
   const plan = makeStuff(() => new BodyPlan());
   plan.setName(`carrying-test-biped${suffix}`);
   plan.setSlots([
-    { name: 'hand:right', accepts: 'SlottableMixin' },
-    { name: 'hand:left', accepts: 'SlottableMixin' },
+    { name: 'hand:right', accepts: 'SlottableMixin', bodyPart: 'body.hand.right' },
+    { name: 'hand:left', accepts: 'SlottableMixin', bodyPart: 'body.hand.left' },
+  ]);
+  plan.setBodyParts([
+    { key: 'body', parent: null, tissues: [] },
+    { key: 'body.hand.right', parent: 'body', tissues: [], serves: ['manipulation'] },
+    { key: 'body.hand.left', parent: 'body', tissues: [], serves: ['manipulation'] },
   ]);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/carrying-test${suffix}`);
   const species = makeStuff(() => new Species());
@@ -87,35 +93,33 @@ describe('Carrying — composed on every body', () => {
   });
 });
 
-describe('receive — the same as the move it replaces (W0)', () => {
+describe('receive — the receiving act after the flip (W0 → W7)', () => {
   afterEach(() => StuffApi.clearAll());
 
-  it('from nowhere: lands loose in the body, exactly as move did', () => {
+  it('from nowhere: a direct move onto a body is refused loose-on-body; receive puts it in a hand', () => {
     const [a, b] = [body(), body()];
     const [ca, cb] = [cup(), cup()];
-    ContainmentApi.move(ca, a);
+    expect(() => ContainmentApi.move(ca, a)).toThrow(/loose-on-body/);
+    expect(ca.getContainer()).toBeNull();
     expect(b.receive(cb)).toBeNull();
-    expect(snapshot(cb, b, null)).toEqual(snapshot(ca, a, null));
-    expect(snapshot(cb, b, null)).toMatchObject({ inHolder: true, holderHasIt: true, rightHand: false });
+    expect(b.tierOf(cb)).toBe('hand');
   });
 
-  it('out of a box: leaves the box, lands in the body, exactly as move did', () => {
-    const [a, b] = [body(), body()];
-    const [boxA, boxB] = [makeStuff(() => new TestBox()), makeStuff(() => new TestBox())];
-    const [ca, cb] = [cup(), cup()];
-    ContainmentApi.move(ca, boxA);
+  it('out of a box: leaves the box, lands in a hand', () => {
+    const b = body();
+    const boxB = makeStuff(() => new TestBox());
+    const cb = cup();
     ContainmentApi.move(cb, boxB);
-    ContainmentApi.move(ca, a);
     expect(b.receive(cb)).toBeNull();
-    expect(snapshot(cb, b, boxB)).toEqual(snapshot(ca, a, boxA));
     expect(snapshot(cb, b, boxB).fromStillHasIt).toBe(false);
+    expect(b.tierOf(cb)).toBe('hand');
   });
 
-  it('a `prefer` or `for` changes nothing yet — no hand is chosen', () => {
+  it('`prefer: pockets` with nothing worn still takes a free hand', () => {
     const b = body();
     const c = cup();
-    expect(b.receive(c, { prefer: 'hands', for: 'hold' })).toBeNull();
-    expect(snapshot(c, b, null)).toMatchObject({ inHolder: true, rightHand: false });
+    expect(b.receive(c, { prefer: 'pockets' })).toBeNull();
+    expect(b.tierOf(c)).toBe('hand');
   });
 
   it('with a slot: seated there, exactly as seatInSlot did', () => {

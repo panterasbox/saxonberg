@@ -2735,7 +2735,7 @@ async function landOutput(
   ) {
     return;
   }
-  if (MixinApi.isCarrying(into)) into.receive(output);
+  if (MixinApi.isCarrying(into)) into.receiveOrSetDown(output);
   else ContainmentApi.move(output, into);
 }
 
@@ -5036,7 +5036,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
     whole.setGrade(worst);
   }
   if (returned && MixinApi.isContainable(returned) && MixinApi.isContainer(maker)) {
-    if (MixinApi.isCarrying(maker)) maker.receive(returned);
+    if (MixinApi.isCarrying(maker)) maker.receiveOrSetDown(returned);
     else ContainmentApi.move(returned, maker);
   }
   try {

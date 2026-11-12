@@ -254,7 +254,7 @@ export function FellableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
       if (spec.seedPath && MixinApi.isContainer(giver)) {
         try {
           const s = await StuffApi.clone<Stuff & Containable>(spec.seedPath);
-          if (MixinApi.isCarrying(giver)) giver.receive(s);
+          if (MixinApi.isCarrying(giver)) giver.receiveOrSetDown(s);
           else ContainmentApi.move(s, giver);
           seed = s;
         } catch (err) {

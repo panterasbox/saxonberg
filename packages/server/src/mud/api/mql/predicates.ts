@@ -144,22 +144,28 @@ function occupiesHolderSlot(target: Stuff): boolean {
   if (!MixinApi.isContainable(target)) return false;
   const holder = target.getContainer();
   if (!holder || !MixinApi.isSlotted(holder)) return false;
-  for (const occupants of holder.getAllOccupants().values()) {
+  // ⭐ A carrier's HAND is not worn (size and carrying D12, the flip): what
+  // a hand holds is `held` and, with the rest of what is on you, `carried`.
+  const hands = MixinApi.isCarrying(holder) ? new Set(holder.handSlots()) : null;
+  for (const [slot, occupants] of holder.getAllOccupants()) {
+    if (hands?.has(slot)) continue;
     for (const o of occupants) if ((o as unknown as Stuff).stuffId === target.stuffId) return true;
   }
   return false;
 }
 
 /**
- * ⭐ Worn — occupies one of its holder's slots (`Slotted.getAllOccupants`):
- * the coat on a person, the sword in a hand, the coupe in the rack.
+ * ⭐ Worn — occupies one of its holder's slots (`Slotted.getAllOccupants`)
+ * that is not a hand: the coat on a person, the sheathed sword, the coupe
+ * in the rack. A sword in a hand is `held` (the flip, W7).
  */
 function isWorn(target: Stuff): boolean {
   return occupiesHolderSlot(target);
 }
 
 /**
- * ⭐ Carried — held as contents and in none of the holder's slots. `worn`
+ * ⭐ Carried — held as contents and in none of the holder's slots but a
+ * hand (in a hand, a pocket, hung from a belt). `worn`
  * and `carried` PARTITION a holder's contents: wearing a shirt never takes
  * it out of the wearer's contents (the `wear` verb only claims slots), so
  * without the partition a shirt would list in both.
@@ -170,16 +176,18 @@ function isCarried(target: Stuff): boolean {
 }
 
 /**
- * ⭐ Held — in hand (controller-liquidity D5): in one of a BODY's slots
- * that accepts a Wieldable, or carried loose in its contents in no slot —
- * today's carrying model, where nothing loose on a body is anywhere but
- * to hand (size-slate § 9 retunes this with the carrying flip). A coupe
- * in a rack is not held: a rack is not a body.
+ * ⭐ Held — in hand: in one of a carrier's HAND slots (size and carrying
+ * D12, the flip — nothing sits loose on a body, so `held` no longer means
+ * "loose in the contents"). A body that is no carrier keeps the old rule (a
+ * wieldable's slot, or loose in no slot). A coupe in a rack is not held: a
+ * rack is not a body.
  */
 function isHeld(target: Stuff): boolean {
   if (!MixinApi.isContainable(target)) return false;
   const holder = target.getContainer();
   if (!holder || !holder.isAgent()) return false;
+  if (MixinApi.isCarrying(holder)) return holder.tierOf(target) === 'hand';
+  // A body that carries nothing the carrier's way: loose is to hand, as before.
   if (!MixinApi.isSlotted(holder)) return true;
   let slotted = false;
   for (const [slot, occupants] of holder.getAllOccupants()) {

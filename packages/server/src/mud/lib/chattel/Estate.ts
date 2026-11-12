@@ -352,7 +352,7 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
             entry.key,
           )) as Stuff | null;
           if (live && MixinApi.isContainable(live) && MixinApi.isContainer(host)) {
-            if (MixinApi.isCarrying(host)) host.receive(live);
+            if (MixinApi.isCarrying(host)) await host.receiveGranted(live);
             else ContainmentApi.move(live, host);
           }
           self._putEstateEntry(entry, live);

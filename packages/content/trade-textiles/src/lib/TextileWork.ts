@@ -412,7 +412,7 @@ export default class TextileWork {
   /** Put what was made into the maker's hands. */
   private static handTo(made: Stuff, actor: Stuff): void {
     if (MixinApi.isContainable(made) && MixinApi.isContainer(actor) && !actor.isDestroyed()) {
-      if (MixinApi.isCarrying(actor)) actor.receive(made as Stuff & Containable);
+      if (MixinApi.isCarrying(actor)) actor.receiveOrSetDown(made as Stuff & Containable);
       else ContainmentApi.move(made as Stuff & Containable, actor as Stuff & Container);
     }
   }

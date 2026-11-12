@@ -627,9 +627,8 @@ export default class Rope extends CuttableMixin(
     this.anchorPath = halter.getTemplatePath();
     this.knots = [...this.knots.filter((k) => k.end !== 'fixed'), { ...knot, end: 'fixed' }];
     this.coiledDown = false;
-    const end = await this.mintEnd(by as Stuff & Container);
-    const hand = by.handSlots().find((h) => !(by as Stuff & Slotted).isSlotOccupied(h));
-    if (hand !== undefined && MixinApi.isSlottable(end)) by.receive(end, { slot: hand });
+    // The free end comes to the hand the rope just left (`mintEnd` receives it).
+    await this.mintEnd(by as Stuff & Container);
     return {
       ok: true,
       line: `You tie ${this.getPresentation()} to ${halter.getPresentation()} on ${animal.describeFor(by)}, ${knot.label}, and keep hold of the end.`,
@@ -656,6 +655,10 @@ export default class Rope extends CuttableMixin(
     const anchor = this.getAnchor();
     if (anchor !== null) {
       if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', facts: { gear: this as unknown as Stuff } };
+      // Handed back to you (D-W7a): with no hand for it, it stays tied.
+      if (MixinApi.isCarrying(by) && by.canReceive(this as unknown as Stuff) !== null) {
+        return { ok: false, reason: 'hands-full', facts: { gear: this as unknown as Stuff, load: anchor } };
+      }
       if (this.hungVia !== null) {
         this.hungVia = null;
         await this.castOff();
@@ -1030,7 +1033,7 @@ export default class Rope extends CuttableMixin(
     this.cutEnds = Math.min(2, this.cutEnds + 1);
     this.coiledDown = false;
     const into = MixinApi.isContainer(actor) ? actor : (this.getContainer() as Stuff | null);
-    if (into !== null && MixinApi.isCarrying(into)) into.receive(piece as unknown as Stuff & Line);
+    if (into !== null && MixinApi.isCarrying(into)) into.receiveOrSetDown(piece as unknown as Stuff & Line);
     else if (into !== null && MixinApi.isContainer(into)) ContainmentApi.move(piece as unknown as Stuff & Line, into);
     return { ok: true, facts: { kind: 'rope', takeM: take, leftM: this.lengthM } };
   }

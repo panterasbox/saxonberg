@@ -15,6 +15,7 @@
  */
 
 import '../../../test-bootstrap';
+import { carry } from '../../lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { MqlSubscriptionApi, DETAIL_FIELDS } from '../mql-subscription';
 import { StuffApi } from '../stuff';
@@ -49,7 +50,17 @@ async function dressedAvatar(): Promise<{
   const suffix = `-${uniq++}`;
   const plan = makeStuff(() => new BodyPlan());
   plan.setName(`worn-wire-biped${suffix}`);
-  plan.setSlots([{ name: 'torso', accepts: 'WearableMixin' }]);
+  plan.setSlots([
+    { name: 'torso', accepts: 'WearableMixin' },
+    // Hands (the flip, W7): what is carried and not worn is held.
+    { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.hand.left' },
+    { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.hand.right' },
+  ]);
+  plan.setBodyParts([
+    { key: 'body', parent: null, tissues: [] },
+    { key: 'body.hand.left', parent: 'body', tissues: [], serves: ['manipulation'] },
+    { key: 'body.hand.right', parent: 'body', tissues: [], serves: ['manipulation'] },
+  ]);
   const planPath = `/stuff/idea/species/BodyPlan/worn-wire${suffix}`;
   stampTemplatePathForTest(plan, planPath);
 
@@ -70,9 +81,15 @@ async function dressedAvatar(): Promise<{
   pocketed.setShortDescription('a folded letter');
   pocketed.setPrimaryKeyword('letter');
 
-  ContainmentApi.move(shirt, avatar);
-  ContainmentApi.move(pocketed, avatar);
+  carry(avatar, shirt);
+  carry(avatar, pocketed);
   return { avatar, shirt, pocketed, planPath };
+}
+
+/** Out of the hand it is held in, onto the torso (the flip, W7: held is not worn). */
+function putOn(avatar: Avatar, shirt: TestGarment): void {
+  for (const h of ['hand:left', 'hand:right']) if (avatar.getOccupants(h).has(shirt)) avatar.vacate(h, shirt);
+  avatar.occupyAll(shirt, ['torso']);
 }
 
 function project(host: Stuff, viewer: Stuff): Record<string, unknown> {
@@ -97,7 +114,7 @@ describe('the `worn` wire field', () => {
 
   it('projects what is worn and keeps what is carried out of it', async () => {
     const { avatar, shirt, pocketed } = await dressedAvatar();
-    avatar.occupyAll(shirt, ['torso']);
+    putOn(avatar, shirt);
 
     const rec = project(avatar, avatar);
     expect(ids(rec.worn)).toEqual([shirt.stuffId]);
@@ -117,7 +134,7 @@ describe('the `worn` wire field', () => {
 
   it('the two projections are disjoint over one host', async () => {
     const { avatar, shirt } = await dressedAvatar();
-    avatar.occupyAll(shirt, ['torso']);
+    putOn(avatar, shirt);
     const rec = project(avatar, avatar);
     const overlap = ids(rec.worn).filter((id) => ids(rec.contents).includes(id));
     expect(overlap).toEqual([]);
@@ -125,7 +142,7 @@ describe('the `worn` wire field', () => {
 
   it('an unperceived worn item never enters the projection', async () => {
     const { avatar, shirt } = await dressedAvatar();
-    avatar.occupyAll(shirt, ['torso']);
+    putOn(avatar, shirt);
     // Honest fog on the wire, exactly as `contents` does it.
     // ⚠ Through the one filter since size-and-carrying W3 (D23).
     const spy = vi

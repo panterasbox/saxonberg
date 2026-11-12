@@ -71,6 +71,8 @@ import { Quantity } from '../quantity';
 import { Postures } from '../slot/Postured';
 import type { ActRefusal } from '../craft/ActPlan';
 import { Dimensions, SIZE_DEFAULTS } from '../spatial/Dimensions';
+import type { VetoResult } from '../errors';
+import type { Containable } from '../spatial/Containable';
 import type { BoundaryOpening } from '../boundary/Conduit';
 import { BODY_PROFILE_HEIGHT, type BodyProfile } from '../../platform/idea/LocomotionMode';
 import { AppApi } from '../../api/app';
@@ -682,6 +684,39 @@ export class Creature extends CreatureBase {
     const ceilingM = room.getCeilingHeight()?.rawValue() ?? null;
     if (ceilingM === null || ceilingM + 1e-9 >= statureM) return null;
     return { ok: false, reason: 'ceiling-too-low', facts: { ceilingM, statureM } };
+  }
+
+  /**
+   * ⭐⭐ **Nothing sits loose on a body** (size and carrying D11 — the
+   * flip, W7). A thing may enter a body's contents only as something the
+   * body holds, wears or has placed on a worn host:
+   *
+   * - `how.placed` — it arrives with a placement pair on a host here (a key
+   *   into a coat's pocket, a pouch hung from the belt, a coat's pocketed
+   *   things following the coat, D33);
+   * - or the body is admitting it (`Carrying.admitWhile`): its own
+   *   `receive` and `seatInSlot`, readying, and the restore replaying what
+   *   it carried.
+   *
+   * Anything else — a direct `ContainmentApi.move(thing, body)` — is
+   * refused `loose-on-body`: the caller wanted `receive`. The tape measure
+   * runs first, as for any container.
+   */
+  public override canAddContainable(thing: Stuff & Containable, how?: { placed?: boolean }): VetoResult {
+    const fit = super.canAddContainable(thing);
+    if (!fit.ok) return fit;
+    if (how?.placed === true || thing.isAgent() || this.isAdmitting(thing)) return { ok: true };
+    return { ok: false, reason: 'loose-on-body' };
+  }
+
+  /**
+   * ⭐ D32: a restored body puts anything it finds loose where a carried
+   * thing goes — the first load after the flip places a pre-flip
+   * inventory (hands, pockets, packs, the overflow at home with a line).
+   * Chained from `Persistable.onRestored`.
+   */
+  public async onRestored(): Promise<void> {
+    await this.placeLoose();
   }
 
   /**

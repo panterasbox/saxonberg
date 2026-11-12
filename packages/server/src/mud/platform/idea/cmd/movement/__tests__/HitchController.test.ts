@@ -157,7 +157,8 @@ describe('hands-on-cart guard — wield while hauling', () => {
     const c = cart();
     giver.hitch(c);
     const sword = heldThing(1);
-    ContainmentApi.move(sword, giver);
+    // On the floor at their feet (the flip, W7: nothing loose on a body).
+    ContainmentApi.move(sword, loc);
     const ctx = ctxFor(giver, loc, 'wield');
     makeStuff(() => new EquipController()).execute({ target: one(sword, 'sword') }, ctx);
     expect(ctx.getNotes()).toContainEqual(

@@ -73,6 +73,17 @@ export default class GiveController extends CommandController<GiveModel> {
       );
     }
 
+    // ⭐ A HANDED thing is offered (size and carrying D-W7a): if they
+    // cannot take it, nothing changes hands — asked before anything moves.
+    if (MixinApi.isCarrying(recipient) && recipient.canReceive(item) !== null) {
+      MessageApi.scene(giver)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`${Mml.actor(recipient)} has nowhere to take ${Mml.thing(item)} — their hands are full. You keep it.`)
+        .send();
+      context.note({ kind: 'controller-rejected', reason: 'recipient-hands-full', detail: item.getPresentation() });
+      return;
+    }
+
     // **Leaving your inventory means leaving your body first** — the
     // same release gate `remove`/`unwield`/`drop` run. Without it this
     // verb both bypasses a curse and leaves a phantom slot occupant

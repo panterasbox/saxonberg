@@ -6,6 +6,7 @@
  * nothing; and a planted cycle trips the guard.
  */
 import '../../../../../test-bootstrap';
+import { carry } from '../../../../lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
@@ -34,7 +35,7 @@ describe('ContainmentLogic — the host-follow (D33)', () => {
     ContainmentApi.move(me, room);
     const coat = await wornGarment(me, plan, 'coat', 'torso', POCKETS);
     const k = key();
-    ContainmentApi.move(k, me);
+    carry(me, k);
     ContainmentApi.move(k, coat, 'left pocket');
     return { me, plan, room, coat, k };
   }
@@ -90,10 +91,10 @@ describe('ContainmentLogic — the host-follow (D33)', () => {
   it('a cup on a tray in a pocket comes along too (recursion)', async () => {
     const { me, room, coat } = await coated();
     const tray = thing(() => new Surface(), { kg: 0.05, box: { width: 0.1, depth: 0.03, height: 0.005 } });
-    ContainmentApi.move(tray, me);
+    carry(me, tray);
     ContainmentApi.move(tray, coat, 'right pocket');
     const pin = thing(() => new Item(), { kg: 0.001, box: { width: 0.01, depth: 0.01, height: 0.01 } });
-    ContainmentApi.move(pin, me);
+    carry(me, pin);
     ContainmentApi.move(pin, tray, Placements.ON);
     me.vacate('torso', coat);
     ContainmentApi.move(coat, room);

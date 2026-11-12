@@ -87,7 +87,9 @@ describe('Carrying — hands (D9/D10)', () => {
     hold(me, plan, tool('torch', 0.5), 'hand:left');
     const r = me.canReceive(tool('cup', 0.2));
     expect(r?.reason).toBe('nowhere-to-carry');
-    expect(me.refusalWords(r!)).toMatch(/hands are full \(a knife and a torch\)|hands are full \(a torch and a knife\)/);
+    // ⭐ The refusal is the tutorial (the flip, W7): the hands' contents,
+    // what did not fit, and the next command.
+    expect(me.refusalWords(r!)).toMatch(/^Your hands are full — the (knife and the torch|torch and the knife) — and the cup has nowhere to go\. Set something down \(`drop (knife|torch)`\)\.$/);
   });
 });
 
@@ -111,7 +113,7 @@ describe('Carrying — a hand holds any good (W7)', () => {
   it('a good that is also worn composes Slottable once (no second layer)', () => {
     const chain: string[] = [];
     for (let c: unknown = Garment; typeof c === 'function'; c = Object.getPrototypeOf(c)) {
-      if (Object.prototype.hasOwnProperty.call(c, '_mixinName')) chain.push((c as { _mixinName: string })._mixinName);
+      if (Object.prototype.hasOwnProperty.call(c, '_mixinName')) chain.push((c as unknown as { _mixinName: string })._mixinName);
     }
     expect(chain.filter((n) => n === 'SlottableMixin')).toHaveLength(1);
   });

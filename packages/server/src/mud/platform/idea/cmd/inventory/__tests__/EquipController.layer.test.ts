@@ -8,6 +8,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { carry } from '../../../../../lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, afterEach } from 'vitest';
 import WearController from '../WearController';
 import OutfitWearController from '../OutfitWearController';
@@ -101,6 +102,9 @@ function bodyAndPlanPath(): { body: Wearer; planPath: string } {
   plan.setName(`ladder-${n}`);
   plan.setSlots([
     { name: 'torso', accepts: 'WearableMixin', capacity: 4, covers: ['body.torso'] },
+    // Two hands (size and carrying W7: a carried thing is held, not loose).
+    { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.hand.left' },
+    { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.hand.right' },
   ]);
   plan.setBodyParts([
     {
@@ -108,6 +112,8 @@ function bodyAndPlanPath(): { body: Wearer; planPath: string } {
       parent: null,
       tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.5 }],
     },
+    { key: 'body.hand.left', parent: 'body.torso', tissues: [], serves: ['manipulation'] },
+    { key: 'body.hand.right', parent: 'body.torso', tissues: [], serves: ['manipulation'] },
   ]);
   const planPath = `/stuff/idea/species/BodyPlan/ladder-${n}`;
   stampTemplatePathForTest(plan, planPath);
@@ -204,7 +210,7 @@ describe('the ladder refusal', () => {
   it('⚠⚠ the garment goes ON though the controller is gone when the step lands', async () => {
     const { body, planPath, location } = setup();
     const shirt = garment(planPath, 'woven', 'shirt');
-    ContainmentApi.move(shirt, body);
+    carry(body, shirt);
     await equipLikeDispatch(model(shirt), context(body, location));
     expect(body.getOccupants('torso').has(shirt)).toBe(true);
   });
@@ -213,8 +219,8 @@ describe('the ladder refusal', () => {
     const { body, planPath, location } = setup();
     const shirt = garment(planPath, 'woven', 'shirt');
     const coat = garment(planPath, 'woven', 'coat');
-    ContainmentApi.move(shirt, body);
-    ContainmentApi.move(coat, body);
+    carry(body, shirt);
+    carry(body, coat);
     await equipLikeDispatch(
       {} as ModelData as unknown as Parameters<WearController['execute']>[0],
       context(body, location),
@@ -227,8 +233,8 @@ describe('the ladder refusal', () => {
     const { body, planPath, location } = setup();
     const cuirass = garment(planPath, 'plate', 'cuirass');
     const shirt = garment(planPath, 'woven', 'shirt');
-    ContainmentApi.move(cuirass, body);
-    ContainmentApi.move(shirt, body);
+    carry(body, cuirass);
+    carry(body, shirt);
     body.occupyAll(cuirass, ['torso']);
 
     const ctx = context(body, location);
@@ -248,8 +254,8 @@ describe('the ladder refusal', () => {
     const { body, planPath, location } = setup();
     const shirt = garment(planPath, 'woven', 'shirt');
     const coat = garment(planPath, 'woven', 'coat');
-    ContainmentApi.move(shirt, body);
-    ContainmentApi.move(coat, body);
+    carry(body, shirt);
+    carry(body, coat);
     body.occupyAll(shirt, ['torso']);
 
     const ctx = context(body, location);
@@ -265,8 +271,8 @@ describe('the ladder refusal', () => {
     const { body, planPath, location } = setup();
     const shirt = garment(planPath, 'woven', 'shirt');
     const cuirass = garment(planPath, 'plate', 'cuirass');
-    ContainmentApi.move(shirt, body);
-    ContainmentApi.move(cuirass, body);
+    carry(body, shirt);
+    carry(body, cuirass);
     body.occupyAll(shirt, ['torso']);
 
     const ctx = context(body, location);
@@ -328,7 +334,8 @@ describe('the impossible fit', () => {
     // matching alone would have let it straight on.
     const coat = garment(planPath, 'woven', 'coat');
     coat.setCutTo(planPath, 1.05, Math.sqrt(38 / 1.05));
-    ContainmentApi.move(coat, big);
+    // At the body's feet (the flip, W7): `wear` takes it from the floor.
+    ContainmentApi.move(coat, location);
 
     const ctx = context(big, location);
     await equipVia(model(coat), ctx);
@@ -370,8 +377,8 @@ describe('the outfit verb — getting dressed is one command', () => {
     ContainmentApi.move(body, location);
     const shirt = garment(planPath, 'woven', 'shirt');
     const coat = garment(planPath, 'woven', 'coat');
-    ContainmentApi.move(shirt, body);
-    ContainmentApi.move(coat, body);
+    carry(body, shirt);
+    carry(body, coat);
     return { body, planPath, location, shirt, coat };
   }
 

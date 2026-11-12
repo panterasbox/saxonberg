@@ -19,7 +19,7 @@ describe('LoadBearing — weight by the place (W4)', () => {
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => StuffApi.clearAll());
 
-  const heldSurcharge = LOAD_BEARING_DEFAULTS.LOOSE_CARRY_SURCHARGE;
+  const heldSurcharge = LOAD_BEARING_DEFAULTS.HELD_SURCHARGE;
 
   it('a held 10 kg weighs 10 kg × the held surcharge at standard gravity', () => {
     const { me, plan } = makeBody();

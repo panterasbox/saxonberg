@@ -172,7 +172,9 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
   protected async mintEnd(into: Stuff & Container, tiedTo: Stuff | null = null): Promise<LineEnd> {
     const end = await StuffApi.clone<LineEnd>((this.constructor as typeof Line).END_ROW);
     end.attachTo(this, tiedTo);
-    ContainmentApi.move(end, into);
+    // Into a person's hands (the flip, W7): received, else at their feet.
+    if (MixinApi.isCarrying(into)) into.receiveOrSetDown(end);
+    else ContainmentApi.move(end, into);
     this._end = end;
     this._tugs = [];
     return end;

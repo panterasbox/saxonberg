@@ -878,7 +878,7 @@ function loseReceiver(receiver: Stuff, how: 'melts' | 'burns'): void {
         pieces.setMass(Quantity.of(massKg, 'kg'));
       }
       if (MixinApi.isContainable(pieces) && !where.isDestroyed()) {
-        if (MixinApi.isCarrying(where)) where.receive(pieces as Stuff & Containable);
+        if (MixinApi.isCarrying(where)) where.receiveOrSetDown(pieces as Stuff & Containable);
         else ContainmentApi.move(pieces as Stuff & Containable, where as Stuff & Container);
       }
     })

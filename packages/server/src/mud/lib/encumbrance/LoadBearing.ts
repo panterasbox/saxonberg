@@ -28,12 +28,11 @@
  */
 
 import type { MixinConstructor } from '../mixin';
-import { Mixins } from '../mixin';
 import { Quantity } from '../quantity';
 import type { Stuff } from '../stuff/Stuff';
 import { Vessel } from '../stuff/Vessel';
 import type { Container } from '../spatial/Container';
-import type { Slotted, SlotSpec } from '../slot/Slotted';
+import type { Slotted } from '../slot/Slotted';
 import type { Tangible } from '../material/Tangible';
 import type { Reserved } from '../reserve/Reserved';
 import type { Vitals, ConditionBand } from '../vitals/Vitals';
@@ -74,11 +73,11 @@ export const LOAD_BEARING_DEFAULTS = {
    */
   HEAVY_LOAD_THRESHOLD: 1.0,
   /**
-   * Surcharge applied to held items and to loose general-contents carry
-   * (a hand-held or unstowed load couples worse than a worn one). Also
-   * the value the derived placement coupling returns for a held slot.
+   * Surcharge applied to what the HANDS hold (a hand-held load couples
+   * worse than a worn or pocketed one; size and carrying D12). Renamed from
+   * the loose-carry surcharge at the flip (W7): nothing is carried loose.
    */
-  LOOSE_CARRY_SURCHARGE: 1.25,
+  HELD_SURCHARGE: 1.25,
   /**
    * Extra placement coupling per unit of a worn garment's `tightness`.
    * Clothes cut for a smaller body bind, and binding is a real load;
@@ -139,21 +138,6 @@ export interface LoadBearing {
   burdenWords(): string | null;
   /** Would lifting `candidate` (as loose carry) push burden past the ceiling? */
   wouldExceedCeiling(candidate: Stuff): boolean;
-}
-
-/**
- * Placement coupling for a top-level attachment, derived from the slot's
- * existing `accepts` — held (`WieldableMixin`) couples at the surcharge,
- * worn (`WearableMixin` / anything else) at the `1.0` floor. No field on
- * `SlotSpec`: the universal slot record stays a pure structural mechanism,
- * and v1 has no per-slot coupling overrides. A `null` spec (unknown slot)
- * falls back to the worn floor.
- */
-function placementCouplingFor(spec: SlotSpec | null): number {
-  if (spec && spec.accepts === Mixins.Wieldable) {
-    return LOAD_BEARING_DEFAULTS.LOOSE_CARRY_SURCHARGE;
-  }
-  return 1.0;
 }
 
 /**
@@ -295,7 +279,9 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
         LOAD_BEARING_DEFAULTS.TIGHT_FIT_SURCHARGE,
       );
       for (const [slotName, occupants] of bearer.getAllOccupants()) {
-        const placement = placementCouplingFor(bearer.getSlotSpec(slotName));
+        // ⭐ Held = a HAND slot (D12, the flip): worn and slotted things
+        // bear at the floor; what the hands hold at the held surcharge.
+        const placement = hands.has(slotName) ? LOAD_BEARING_DEFAULTS.HELD_SURCHARGE : 1.0;
         for (const occ of occupants) {
           const asStuff = occ as unknown as Stuff;
           if (visited.has(asStuff.stuffId)) continue;
@@ -308,19 +294,12 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
       }
 
-      // b) General contents — carried loose, paying the held surcharge
-      // (until the flip, `get` claims no hand; loose contents couple like a
-      // held item — see docs/subsystems/encumbrance.md). W7 retires this
-      // pass: everything on a body is then held, worn or placed.
+      // b) Everything else on the body is PLACED on a worn host (D12, the
+      // flip): a key in a pocket, a pouch hung from the belt — each at the
+      // worn floor, 1.0, counted once (the visited set). The loose-carry
+      // pass retired with the flip: nothing sits loose on a body.
       for (const item of bearer.getContents()) {
-        total += walk(
-          item,
-          1.0,
-          LOAD_BEARING_DEFAULTS.LOOSE_CARRY_SURCHARGE,
-          0,
-          visited,
-          waterDensityKgM3,
-        );
+        total += walk(item, 1.0, 1.0, 0, visited, waterDensityKgM3);
       }
 
       // c) Hitched cart — the draft load of whatever this bearer hauls.
@@ -395,14 +374,14 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public wouldExceedCeiling(candidate: Stuff): boolean {
       // Prospective burden = current borne + the candidate's full subtree
-      // as it would attach (loose carry → the held surcharge). A bag of
+      // as it would attach (into a hand → the held surcharge, the worst case). A bag of
       // holding lifted whole is correctly attenuated by walking it.
       const prospective =
         this.getBorneBurden().rawValue() +
         walk(
           candidate,
           1.0,
-          LOAD_BEARING_DEFAULTS.LOOSE_CARRY_SURCHARGE,
+          LOAD_BEARING_DEFAULTS.HELD_SURCHARGE,
           0,
           new Set<string>(),
         ) * this.gravityShare();

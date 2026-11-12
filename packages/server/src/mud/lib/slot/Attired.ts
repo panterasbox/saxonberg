@@ -624,7 +624,11 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
        * into it was the coupling the split existed to remove. The
        * public read preserves insertion order, which IS wear order.
        */
-      for (const occupants of this.getAllOccupants().values()) {
+      // ⭐ A garment in a HAND is held, not worn (size and carrying W7: a
+      // hand holds any good) — it covers nothing until it is put on.
+      const hands = MixinApi.isCarrying(this) ? new Set(this.handSlots()) : null;
+      for (const [slot, occupants] of this.getAllOccupants()) {
+        if (hands?.has(slot)) continue;
         for (const occupant of occupants) {
           if (seen.has(occupant)) continue;
           seen.add(occupant);

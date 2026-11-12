@@ -10,6 +10,7 @@
  */
 
 import "../../../test-bootstrap";
+import { carry } from '../../lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { LocomotionApi } from '../locomotion';
 import { LocomotionMode } from '../../platform/idea/LocomotionMode';
@@ -45,8 +46,9 @@ class MobileBearer extends MobileBearerBase {
 
 /** Push the bearer's load ratio above 1.0 with a heavy worn-free load. */
 function overload(bearer: Creature): void {
-  // capacity = 70 * 0.5 = 35 kg; 100 kg loose → ratio well over 1.
-  ContainmentApi.move(massThing(100), bearer);
+  // capacity = 70 * 0.5 = 35 kg; 100 kg held (seated in a hand — the
+  // seat asks no weight; the flip, W7) → ratio well over 1.
+  bearer.receive(massThing(100), { slot: 'hand:left' });
 }
 
 describe('LocomotionApi — load-aware veto', () => {
@@ -86,7 +88,7 @@ describe('LocomotionApi — load-aware veto', () => {
       m.setDensity(Quantity.of(11340, 'kg/m³'));
       return m;
     }, '/stuff/idea/material/_test/test-lead') as unknown as Metal);
-    ContainmentApi.move(lead, bearer);
+    bearer.receive(lead, { slot: 'hand:left' });
 
     expect(LocomotionApi.checkEnablement(bearer, swim, 'down')).toMatchObject({ ok: true });
     // In off the quay in the hard-hat suit: in, and sinking, not refused.
@@ -151,7 +153,7 @@ describe('LocomotionApi — loaded-traversal drain (engageAround)', () => {
     const there = makeStuff(() => new Place());
     const bearer = bearerOf(() => new MobileBearer());
     ContainmentApi.move(bearer, here);
-    ContainmentApi.move(massThing(1), bearer); // ratio well under the floor
+    carry(bearer, massThing(1)); // ratio well under the floor
     const before = endurance(bearer);
 
     await LocomotionApi.engageAround(bearer, walk, exitBetween(here, there), async () => ({ ok: true }));

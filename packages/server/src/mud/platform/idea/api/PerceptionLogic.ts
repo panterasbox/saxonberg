@@ -1344,10 +1344,12 @@ function visibleContentsImpl(viewer: Stuff, target: Stuff): VisibleContents {
   if (!MixinApi.isContainer(target)) return out;
   const slotted = new Map<string, 'held' | 'worn' | 'inside'>();
   if (MixinApi.isSlotted(target)) {
+    // Held = a hand slot (size and carrying D12, the flip).
+    const hands = MixinApi.isCarrying(target) ? target.handSlots() : null;
     for (const [slot, occupants] of target.getAllOccupants()) {
       const spec = target.getSlotSpec(slot);
       const accepts = spec?.accepts ?? '';
-      const kind = accepts.includes('Wieldable')
+      const kind = hands?.includes(slot) || (hands === null && accepts.includes('Wieldable'))
         ? 'held'
         : accepts.includes('Wearable') || spec?.userFacingDetail
           ? 'worn'

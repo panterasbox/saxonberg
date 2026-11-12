@@ -19,6 +19,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { carry } from '../../slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -233,7 +234,7 @@ describe('the computed cost — the two doors', () => {
     wand.setCarriedSpellPath(`${SPELL_PATH_PREFIX}teleport`);
     wand.setMakerId('test');
     wand.setCapacityTau(100000);
-    ContainmentApi.move(wand as never, wielder as never);
+    carry(wielder, wand);
 
     // The item door reads the actor from the execution context.
     vi.spyOn(ExecutionContextApi, 'getCurrentCommandGiver').mockReturnValue(

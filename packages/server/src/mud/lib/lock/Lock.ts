@@ -232,6 +232,6 @@ async function mintPhysical(
   // ⭐ The physical key is the durable form: the move titles it to the
   // holder and records its place (custody is derived in
   // `ContainmentApi.move`), or it vanishes at the next restart.
-  if (MixinApi.isCarrying(holder)) holder.receive(key as unknown as Stuff & Containable);
+  if (MixinApi.isCarrying(holder)) await holder.receiveGranted(key as unknown as Stuff & Containable);
   else ContainmentApi.move(key as unknown as Stuff & Containable, holder as Stuff & Container);
 }

@@ -6,6 +6,7 @@
  * belt refuses in words, and a hung pouch stays on under water.
  */
 import '../../../../../test-bootstrap';
+import { carry } from '../../../../lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
@@ -23,7 +24,7 @@ import { SIZE_DEFAULTS } from '../../../../lib/spatial/Dimensions';
 
 const pouch = () => pack('pouch', 0.1, [0.15, 0.05, 0.15]);
 const hang = (p: Stuff & Containable, belt: Stuff, me: Stuff & { getContainer(): unknown }) => {
-  ContainmentApi.move(p, me as never);
+  carry(me, p);
   return ContainmentApi.putPlanFor(p, belt, { prep: 'on', by: me as never });
 };
 
@@ -96,7 +97,7 @@ describe('Garment — the belt (D27)', () => {
     const { me, plan } = makeBody();
     const belt = await wornGarment(me, plan, 'belt', 'waist', [Placements.FROM]);
     const p = pouch();
-    ContainmentApi.move(p, me);
+    carry(me, p);
     ContainmentApi.move(p, belt, Placements.FROM);
     const coin = tool('coin', 0.01, [0.02, 0.02, 0.002]);
     ContainmentApi.move(coin, p);
@@ -125,7 +126,7 @@ describe('Garment — the belt (D27)', () => {
     vi.spyOn(BiomeApi, 'densityOf').mockReturnValue(Quantity.of(1000, 'kg/m³'));
     const p = pouch();
     p.setMaterial(material('/stuff/idea/material/_belt/cork', 300));
-    ContainmentApi.move(p, me);
+    carry(me, p);
     ContainmentApi.move(p, belt, Placements.FROM);
     expect(me.reconcilePressing()).toEqual([]);
     expect(p.getPlacement()).toEqual({ host: belt, name: Placements.FROM });

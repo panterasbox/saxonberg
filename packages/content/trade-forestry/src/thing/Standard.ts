@@ -112,7 +112,7 @@ export default class Standard extends StandardBase {
       if (MixinApi.isTangible(tree)) {
         tree.setMass(Quantity.of(FELLED_TREE_KG[stage] ?? FELLED_TREE_KG.young!, 'kg'));
       }
-      if (MixinApi.isCarrying(actor)) actor.receive(tree);
+      if (MixinApi.isCarrying(actor)) actor.receiveOrSetDown(tree);
       else if (MixinApi.isContainer(actor)) ContainmentApi.move(tree, actor);
       else ContainmentApi.move(tree, room as Stuff & Container);
       done = { kind: 'whole', name };

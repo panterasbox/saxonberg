@@ -393,24 +393,6 @@ export default class GetController extends CommandController<GetModel> {
       return false;
     }
 
-    // Hands-occupied while hauling: you can't pick a thing up into your
-    // hands while gripping a cart's handle. Keyed on the giver being the
-    // hauler (a mounted rider whose horse hauls keeps their hands free).
-    if (MixinApi.isHauling(giver) && giver.isHitched()) {
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'hands-hauling',
-        detail: 'cannot pick up while hauling a cart',
-      });
-      MessageApi.scene(giver)
-        .topic('sense.survey')
-        .toSelf(
-          Mml.compose`Your hands are full — you're pulling ${Mml.thing(giver.getHauledCart()!)}.`,
-        )
-        .send();
-      return false;
-    }
-
     // Encumbrance lift gate — only a load-bearing giver (a creature with
     // the gauge) is gated; non-creature containers (a chest looting into
     // a bag) skip it. Diegetic decline: an envelope note + a scene line,
@@ -426,6 +408,35 @@ export default class GetController extends CommandController<GetModel> {
       MessageApi.scene(giver)
         .topic('sense.survey')
         .toSelf(Mml.compose`You strain, but ${Mml.thing(operand)} doesn't budge.`)
+        .send();
+      return false;
+    }
+
+    // ⭐ Where it would go on you, asked BEFORE anything moves (size and
+    // carrying W7 — `get` is the receiving act): a free hand, a pocket it
+    // fits, a pack; else the refusal is the tutorial — your hands' contents,
+    // where it would not fit, and the next command in your own pockets'
+    // names. A cart's handles in your hands say so too.
+    if (MixinApi.isCarrying(giver)) {
+      const refused = giver.canReceive(operand);
+      if (refused !== null) {
+        context.note({
+          kind: 'controller-rejected',
+          reason: refused.reason === 'hands-on-cart' ? 'hands-hauling' : refused.reason,
+          detail: `${operand.getPresentation()}: ${refused.reason}`,
+        });
+        MessageApi.scene(giver).topic('sense.survey').toSelf(Mml.text(giver.refusalWords(refused))).send();
+        return false;
+      }
+    } else if (MixinApi.isHauling(giver) && giver.isHitched()) {
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'hands-hauling',
+        detail: 'cannot pick up while hauling a cart',
+      });
+      MessageApi.scene(giver)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`Your hands are full — you're pulling ${Mml.thing(giver.getHauledCart()!)}.`)
         .send();
       return false;
     }

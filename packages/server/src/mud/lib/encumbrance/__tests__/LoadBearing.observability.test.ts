@@ -6,6 +6,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { carry } from '../../slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -21,7 +22,7 @@ describe('LoadBearing — observability via subscribableFields', () => {
 
   it('projects borneBurden / carryCapacity / loadRatio matching the getters', () => {
     const bearer = sensingBearer(70);
-    ContainmentApi.move(massThing(20), bearer);
+    carry(bearer, massThing(20));
     const viewer = bearer as unknown as Stuff & Sensor;
 
     const projection = MqlSubscriptionApi.projectFields(

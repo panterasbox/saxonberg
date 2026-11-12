@@ -326,8 +326,7 @@ describe('water <plant>', () => {
     const pot = makePot();
     ContainmentApi.move(pot, room);
     const plant = makePlant();
-    ContainmentApi.move(plant, pot);
-    pot.occupy(plant, PLANT_SLOT);
+    pot.seatInSlot(plant, PLANT_SLOT);
     return { giver, room, plant, pot };
   }
 

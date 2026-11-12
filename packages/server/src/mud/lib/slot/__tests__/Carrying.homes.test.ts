@@ -5,6 +5,7 @@
  * restart.
  */
 import '../../../../test-bootstrap';
+import { carry } from './carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -40,7 +41,7 @@ describe('Carrying — homes (D14)', () => {
     ContainmentApi.move(me, room);
     const pouch = wornBag(me, plan, 'pouch', 'torso');
     const compass = tool('compass', 0.2);
-    ContainmentApi.move(compass, me);
+    carry(me, compass);
     const plan2 = ContainmentApi.putPlanFor(compass, pouch, { by: me });
     expect(plan2.ok).toBe(true);
     if (plan2.ok) plan2.onComplete();
@@ -58,7 +59,7 @@ describe('Carrying — homes (D14)', () => {
     me.setHome(compass, pouch);
     ContainmentApi.move(compass, room);
     expect(me.homeOf(compass)).toBeNull();
-    ContainmentApi.move(compass, me);
+    carry(me, compass);
     expect(me.homeOf(compass)).toBeNull();
   });
 

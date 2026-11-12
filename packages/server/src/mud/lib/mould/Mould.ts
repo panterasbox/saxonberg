@@ -953,7 +953,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         // the mould at once and sets outside it.
         const scope = MixinApi.isContainable(self) ? self.getContainer() : null;
         if (scope !== null && MixinApi.isContainer(scope) && MixinApi.isContainable(cast)) {
-          if (MixinApi.isCarrying(scope)) scope.receive(cast as Stuff & Containable);
+          if (MixinApi.isCarrying(scope)) scope.receiveOrSetDown(cast as Stuff & Containable);
           else ContainmentApi.move(cast as Stuff & Containable, scope as Stuff & Container);
         }
         return cast;
@@ -1200,7 +1200,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       // what it was made of (its sand to re-temper, its wax). Its place was
       // checked before the mint (`assertCanRelease`).
       const at = scope!;
-      if (MixinApi.isCarrying(at)) at.receive(item);
+      if (MixinApi.isCarrying(at)) at.receiveOrSetDown(item);
       else ContainmentApi.move(item, at);
       if (runner && scope !== null) await this.mintRunner(material, runnerKg, scope);
       if (this.breaksTo !== '') {
@@ -1208,7 +1208,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         if (!MixinApi.isContainable(left)) {
           throw new TypeError(`Mould: '${this.breaksTo}' is not a thing that can be left behind`);
         }
-        if (MixinApi.isCarrying(at)) at.receive(left as Stuff & Containable);
+        if (MixinApi.isCarrying(at)) at.receiveOrSetDown(left as Stuff & Containable);
         else ContainmentApi.move(left as Stuff & Containable, at);
       }
       await StuffApi.destruct(self as Stuff);
@@ -1225,7 +1225,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       lump.setMass(Quantity.of(kg, 'kg'));
       lump.setShortDescription(`runner and riser of ${material.getName()}`);
       lump.setKeywords(['runner', 'riser', 'sprue', ...material.getName().split(/\s+/)]);
-      if (MixinApi.isCarrying(scope)) scope.receive(lump as Stuff & Containable);
+      if (MixinApi.isCarrying(scope)) scope.receiveOrSetDown(lump as Stuff & Containable);
       else ContainmentApi.move(lump as Stuff & Containable, scope);
     }
   };

@@ -257,8 +257,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
       t.setNutrientDraw(10);
       return t;
     }, '/trade/farming/thing/plant/_farms-tree');
-    ContainmentApi.move(tree as never, bed as never);
-    bed.occupy(tree, PLANT_SLOT);
+    bed.seatInSlot(tree, PLANT_SLOT);
     (tree as unknown as { growthStage: string }).growthStage = 'mature';
     (tree as unknown as { _flowering: boolean })._flowering = true;
     (tree as unknown as { _seedSet: boolean })._seedSet = true;

@@ -81,8 +81,7 @@ describe('Exit.clearanceRefusal — bodies meet openings', () => {
 
   function hold(thing: Carryable, slot = 'hand:left'): void {
     thing.setSlotClaims({ [PLAN_PATH]: [slot] });
-    ContainmentApi.move(thing, body);
-    body.occupy(thing, slot);
+    body.seatInSlot(thing, slot);
   }
 
   beforeEach(() => {
@@ -132,8 +131,7 @@ describe('Exit.clearanceRefusal — bodies meet openings', () => {
     pack.setKeywords(['backpack', 'canvas']);
     pack.setDimensions({ width: 0.3, depth: 0.2, height: 0.5 });
     pack.setSlotClaims({ [PLAN_PATH]: ['torso'] });
-    ContainmentApi.move(pack, body);
-    body.occupy(pack, 'torso');
+    body.seatInSlot(pack, 'torso');
     const crawling = await gate(north, 'crawl');
     expect(crawling.ok).toBe(false);
     expect(crawling.reason).toBe('Your canvas backpack won\'t go through — `remove backpack`.');

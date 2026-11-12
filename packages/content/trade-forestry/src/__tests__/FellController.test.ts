@@ -478,8 +478,7 @@ describe('fell', () => {
         (t as unknown as { growthStage: string }).growthStage = stage;
         return t;
       }, fresh('/trade/forestry/thing/plant/_std'));
-      ContainmentApi.move(p, panel);
-      panel.occupy(p, PLANT_SLOT);
+      panel.seatInSlot(p, PLANT_SLOT);
       return p;
     }
 

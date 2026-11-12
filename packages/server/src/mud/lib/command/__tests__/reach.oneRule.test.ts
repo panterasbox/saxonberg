@@ -75,8 +75,7 @@ describe('reach — one rule: hand · ready · packed · room (D17)', () => {
     b.setKeywords([slot === 'back' ? 'rucksack' : 'satchel']);
     b.setSlotClaims({ [PLAN]: [slot] });
     b.setOpen(true);
-    ContainmentApi.move(b, me);
-    me.occupy(b, slot);
+    me.seatInSlot(b, slot);
     return b;
   };
 
@@ -151,8 +150,7 @@ describe('reach — one rule: hand · ready · packed · room (D17)', () => {
     ContainmentApi.move(ready, satchel);
     const held = knife();
     held.setSlotClaims({ [PLAN]: ['hand:right'] });
-    ContainmentApi.move(held, me);
-    me.occupy(held, 'hand:right');
+    me.seatInSlot(held, 'hand:right');
     const floor = knife();
     ContainmentApi.move(floor, room);
     expect(me.tierOf(held)).toBe('hand');
@@ -174,8 +172,7 @@ describe('reach — one rule: hand · ready · packed · room (D17)', () => {
     ContainmentApi.move(ready, satchel);
     const held = knife();
     held.setSlotClaims({ [PLAN]: ['hand:right'] });
-    ContainmentApi.move(held, me);
-    me.occupy(held, 'hand:right');
+    me.seatInSlot(held, 'hand:right');
     const floor = knife();
     ContainmentApi.move(floor, room);
 

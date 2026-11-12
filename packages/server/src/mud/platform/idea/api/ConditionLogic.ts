@@ -1119,7 +1119,7 @@ async function reembodyImpl(shade: Stuff): Promise<Stuff> {
 
   const stuff = body as unknown as Stuff;
   if (landing && MixinApi.isContainable(stuff) && MixinApi.isContainer(landing)) {
-    if (MixinApi.isCarrying(landing)) landing.receive(stuff);
+    if (MixinApi.isCarrying(landing)) landing.receiveOrSetDown(stuff);
     else ContainmentApi.move(stuff, landing);
   }
 

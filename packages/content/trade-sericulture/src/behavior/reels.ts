@@ -165,7 +165,7 @@ export const brain = class {
         for (const c of crib.getContents() as Stuff[]) {
           if (held(hand, COCOONS) >= REEL_CHARGE) break;
           if (c.getTemplatePath() !== COCOONS || !MixinApi.isContainable(c)) continue;
-          if (MixinApi.isCarrying(hand)) hand.receive(c as Stuff & Containable);
+          if (MixinApi.isCarrying(hand)) hand.receiveOrSetDown(c as Stuff & Containable);
           else ContainmentApi.move(c as Stuff & Containable, hand);
         }
         MessageApi.scene(hand).topic('act.deed').toPeers(Mml.compose`${Mml.actor(hand)} scoops cocoons out of the crib.`).send();

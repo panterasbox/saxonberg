@@ -59,7 +59,7 @@ export class ThrownLanding {
     const { item, target } = this;
     const landing = MixinApi.isContainable(target) ? target.getContainer() : null;
     if (landing !== null && MixinApi.isContainer(landing) && MixinApi.isContainable(item)) {
-      if (MixinApi.isCarrying(landing)) landing.receive(item);
+      if (MixinApi.isCarrying(landing)) landing.receiveOrSetDown(item);
       else ContainmentApi.move(item, landing);
     }
   }

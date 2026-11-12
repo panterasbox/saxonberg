@@ -767,7 +767,7 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
           if (!MixinApi.isContainable(garment)) continue;
           // Put on what is worn; a bag that claims no slot hangs from the
           // belt listed before it (`receive`'s hang rule, W7).
-          avatar.receive(garment, { for: 'wear' });
+          await avatar.receiveGranted(garment, { for: 'wear' });
         } catch {
           /* skip this garment */
         }

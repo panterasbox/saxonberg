@@ -6,6 +6,7 @@
  * (what you perceive); `i belt` with the room left in words.
  */
 import '../../../../../../test-bootstrap';
+import { carry } from '../../../../../lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import InventoryController from '../InventoryController';
 import { ContainmentApi } from '../../../../../api/containment';
@@ -75,14 +76,14 @@ describe('inventory — by tier (D28)', () => {
     ContainmentApi.move(tool('rope', 2), rucksack);
     const belt = await wornGarment(me, plan, 'belt', 'waist', [Placements.FROM]);
     const pouch = pack('pouch', 0.1, [0.12, 0.05, 0.12]);
-    ContainmentApi.move(pouch, me);
+    carry(me, pouch);
     ContainmentApi.move(pouch, belt, Placements.FROM);
     ContainmentApi.move(tool('coin', 0.01), pouch);
     const coat = await wornGarment(me, plan, 'coat', 'torso', [
       { member: Placements.POCKET, name: 'left pocket', mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 },
     ]);
     const key = tool('key', 0.02, [0.06, 0.025, 0.003]);
-    ContainmentApi.move(key, me);
+    carry(me, key);
     ContainmentApi.move(key, coat, 'left pocket');
     return { me, plan, belt, rucksack };
   }

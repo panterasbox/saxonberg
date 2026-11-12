@@ -160,8 +160,7 @@ describe('Mobile.teleport — D14', () => {
     wearer.setStaticSlots([{ name: 'cranial', accepts: 'SlottableMixin' }]);
     ContainmentApi.move(wearer, locA);
     const implant = makeStuff(() => new Worn());
-    ContainmentApi.move(implant, wearer);
-    wearer.occupy(implant, 'cranial');
+    wearer.seatInSlot(implant, 'cranial');
 
     wearer.teleport(locB);
     expect(implant.getContainer()).toBe(wearer);

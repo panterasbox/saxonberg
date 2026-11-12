@@ -974,10 +974,10 @@ async function restoreItem(
     const refEntry = entry as RefEntry;
     const nested = await cloneHost(refEntry.ref, refEntry.key);
     if (nested && MixinApi.isContainable(nested) && MixinApi.isContainer(host)) {
-      ContainmentApi.move(
-        nested as Stuff & Containable,
-        host as Stuff & Container,
-      );
+      const put = (): void =>
+        ContainmentApi.move(nested as Stuff & Containable, host as Stuff & Container);
+      if (MixinApi.isCarrying(host) && !nested.isAgent()) host.admitWhile(nested, put);
+      else put();
     }
     return nested;
   }
@@ -986,10 +986,13 @@ async function restoreItem(
   clearSeededContents(clone, entry.state);
   await restoreState(clone, entry.state, principal);
   if (MixinApi.isContainable(clone) && MixinApi.isContainer(host)) {
-    ContainmentApi.move(
-      clone as Stuff & Containable,
-      host as Stuff & Container,
-    );
+    const put = (): void =>
+      ContainmentApi.move(clone as Stuff & Containable, host as Stuff & Container);
+    // ⭐ A body admits what it carried (the flip's veto, D11): the record is
+    // replayed — re-seated and re-placed by the passes after this, and
+    // whatever is still loose is placed by `onRestored` (D32).
+    if (MixinApi.isCarrying(host)) host.admitWhile(clone, put);
+    else put();
   }
   return clone;
 }

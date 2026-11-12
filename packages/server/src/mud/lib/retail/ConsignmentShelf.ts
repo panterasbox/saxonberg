@@ -329,6 +329,10 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
       // seed row and its house operates the minted counter, not the seed.
       const venuePath = (this as unknown as Stuff).getIdentityPath();
       let paid: { tail: string; receipt: SettlementReceipt } | null;
+      // ⭐ Handed (D-W7a): a buyer who cannot take it is told BEFORE any
+      // money moves — the purse and the shelf untouched.
+      const cannot = this.handOverRefusal(item, giver, sale.word);
+      if (cannot !== null) return cannot;
       const termsAsk = listing.basis === "terms" ? this.termsAskFor(item, listing) : null;
       if (termsAsk !== null) {
         // ⭐ Rung 0 — supplier terms (economic bootstrap D11): the buyer pays
@@ -415,10 +419,25 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
       }
     }
 
-    /** Custody → the buyer: into their hands. */
+    /**
+     * ⭐ Could the buyer take it — asked before any money moves (D-W7a):
+     * *"your hands are full — the shopkeeper keeps the loaf until you have
+     * one free"*. Null when they can (or are no carrier).
+     */
+    protected handOverRefusal(item: Stuff, giver: Stuff, word: string): SaleOutcome | null {
+      if (!MixinApi.isCarrying(giver)) return null;
+      const refused = giver.canReceive(item);
+      if (refused === null) return null;
+      const why = refused.reason === "nowhere-to-carry" || refused.reason === "hands-on-cart"
+        ? Mml.compose`Your hands are full — ${Mml.thing(item)} stays on the shelf until you have one free. Nothing is charged.`
+        : Mml.text(`${giver.refusalWords(refused)} Nothing is charged.`);
+      return this.refused(why, "buyer-cannot-take", word);
+    }
+
+    /** Custody → the buyer: into their hands (asked first — `handOverRefusal`). */
     protected handOver(item: Stuff & Containable, giver: Stuff): void {
       if (MixinApi.isContainer(giver)) {
-        if (MixinApi.isCarrying(giver)) giver.receive(item);
+        if (MixinApi.isCarrying(giver)) giver.receiveOrSetDown(item);
         else ContainmentApi.move(item, giver); // narrowed to Stuff & Container
       }
     }

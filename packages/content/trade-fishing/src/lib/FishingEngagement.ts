@@ -444,7 +444,7 @@ export class FishingEngagement implements SustainedEngagement {
         fish.setPathogenLoads({ 'e-coli': Math.min(1, organic * dial('fishing.contamination.loadPerUnit', 2)) });
       }
       if (MixinApi.isContainer(this.actor) && MixinApi.isContainable(fish)) {
-        if (MixinApi.isCarrying(this.actor)) this.actor.receive(fish as Stuff & Containable);
+        if (MixinApi.isCarrying(this.actor)) this.actor.receiveOrSetDown(fish as Stuff & Containable);
         else ContainmentApi.move(fish as Stuff & Containable, this.actor as Stuff & Container);
       }
       return fish;

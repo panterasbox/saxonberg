@@ -69,8 +69,7 @@ describe('Creature.wornBulk — side load (W7)', () => {
     const saddle = await wornGarment(mule, plan, 'pack saddle', 'back', [Placements.FROM], 7);
     const halter = makeStuff(() => new Halter());
     halter.setSlotClaims({ [plan]: ['torso'] });
-    ContainmentApi.move(halter, mule);
-    mule.occupy(halter, 'torso');
+    mule.seatInSlot(halter, 'torso');
     return { yard, paddock, gate, mule, saddle };
   }
 

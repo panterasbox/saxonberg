@@ -1425,9 +1425,12 @@ export default abstract class Avatar extends AvatarBase {
             // the slot. (Occupy alone doesn't set containment, so a
             // freshly cloned implant would otherwise leak into the room.)
             const body = this as unknown as Stuff & Container;
-            if (MixinApi.isCarrying(body)) body.receive(implant as unknown as Stuff & Containable);
-            else ContainmentApi.move(implant as unknown as Stuff & Containable, body);
-            this.occupy(implant, "cranial");
+            if (MixinApi.isCarrying(body)) {
+              body.receive(implant as unknown as Stuff & Containable, { slot: "cranial" });
+            } else {
+              ContainmentApi.move(implant as unknown as Stuff & Containable, body);
+              this.occupy(implant, "cranial");
+            }
           }
         } catch {
           // No cranial slot on this body plan (sessile etc.) — can't
@@ -1668,6 +1671,8 @@ export default abstract class Avatar extends AvatarBase {
     // persists linkdead for reconnection). The client routes a dropped
     // guest to the start screen.
     if (this.isGuest) {
+      // ⭐ D37: what it borrowed goes back first — never destroyed with it.
+      this.returnBorrowed();
       StuffApi.destruct(this);
       return;
     }

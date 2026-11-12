@@ -180,7 +180,7 @@ export default class Block extends BlockBase implements Splittable {
         ? (this as unknown as Stuff & Containable).getContainer()
         : null;
       if (where !== null && MixinApi.isContainer(where) && MixinApi.isContainable(piece)) {
-        if (MixinApi.isCarrying(where)) where.receive(piece as Stuff & Containable);
+        if (MixinApi.isCarrying(where)) where.receiveOrSetDown(piece as Stuff & Containable);
         else ContainmentApi.move(piece as Stuff & Containable, where as Stuff & Container);
       }
     }

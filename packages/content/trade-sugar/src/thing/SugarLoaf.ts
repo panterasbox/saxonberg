@@ -185,7 +185,7 @@ async function nipLoaf(loaf: Stuff & SugarLoaf, actor: Stuff): Promise<ActDone<C
     }
     if (MixinApi.isGraded(piece)) piece.setGrade(Grade.of(bands[i]!));
     if (into && MixinApi.isContainer(into) && MixinApi.isContainable(piece)) {
-      if (MixinApi.isCarrying(into)) into.receive(piece);
+      if (MixinApi.isCarrying(into)) into.receiveOrSetDown(piece);
       else ContainmentApi.move(piece, into);
     }
     pieces.push({ part: PARTS[i]!, color: colourOf(bands[i]!) });

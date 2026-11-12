@@ -83,14 +83,22 @@ export function bearerOf<T extends Creature>(
     {
       key: 'body.arm.left.hand',
       parent: 'body.arm.left',
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.035088 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.017544 }],
       // A hand (size and carrying D9): the part serves manipulation.
+      serves: ['manipulation'],
+    },
+    {
+      key: 'body.arm.right.hand',
+      parent: 'body.torso',
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.017544 }],
       serves: ['manipulation'],
     },
   ]);
   plan.setSlots([
     { name: 'torso', accepts: 'WearableMixin', covers: ['body.torso'] },
     { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.arm.left.hand' },
+    // The second hand (size and carrying W7): a carried thing is HELD now.
+    { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.arm.right.hand' },
   ]);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/test-bearer-${n}`);
 

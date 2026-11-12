@@ -668,7 +668,7 @@ export abstract class Template extends Document {
               continue;
             }
           }
-          if (MixinApi.isCarrying(host)) host.receive(inst);
+          if (MixinApi.isCarrying(host)) await host.receiveGranted(inst);
           else ContainmentApi.move(inst, host);
         }
       }

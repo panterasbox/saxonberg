@@ -31,13 +31,16 @@
  * - `canReceive` (the dry resolution of D11's order), `gearNoise` (D36),
  *   `awkwardnessOf` (D12's held-load factor).
  *
- * ⚠ **What did NOT change at W4: `receive` without a slot still lands the
- * thing loose in the body's contents**, exactly as every caller's direct
- * move did (the veto is off; D31). `canReceive` already answers what the
- * flip will do — a free hand, else the worn containers in tier order, else
- * a refusal in words — so W7 swaps one line. Likewise a held thing with no
- * home is stowed LOOSE until the flip (today's carrying), and refuses
- * `hands-full` only when its home will not take it back.
+ * ⭐⭐ **The flip (W7): nothing sits loose on a body.** `receive` resolves
+ * D11's order — a hanging pouch onto the belt, a stack onto its like, a
+ * free hand (`carry.order`), the worn pockets and containers in tier order
+ * — and moves the thing there, or refuses in words and moves nothing;
+ * `Creature.canAddContainable` vetoes any other way on (`admitWhile` is the
+ * body's own seating and the restore). The idioms by counterparty
+ * (D-W7a): `receiveOrSetDown` for a made thing, `canReceive` before any
+ * write for a handed one, `receiveGranted` for what the engine grants and
+ * `placeLoose` for what a restore found loose. A homeless held thing is
+ * stowed in the first place it fits, which becomes its home.
  *
  * ## Why `lib/slot/`
  *
@@ -66,6 +69,9 @@ import type { Slotted } from './Slotted';
 import type { ActRefusal } from '../craft/ActPlan';
 import type { CaptureContext, HydrateContext, HomeEnd, HomesSlice, MixinSlice } from '../persistence/PersistenceSlice';
 import { ContainmentApi } from '../../api/containment';
+import { StuffApi } from '../../api/stuff';
+import { CallSecurity } from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
 import { Placements } from '../spatial/Placement';
 import { MixinApi } from '../../api/mixin';
 import { SpeciesApi } from '../../api/species';
@@ -99,6 +105,16 @@ export const CARRYING_DEFAULTS = {
   RUN_AWKWARD_FACTOR: 1.5,
 } as const;
 
+/**
+ * Who may admit a thing past the flip's veto (D11): the body itself (its
+ * own `receive`, `seatInSlot`, readying) and the restore, which replays a
+ * record of what the body already carried (`PersistableLogic.restoreItem`).
+ */
+const ADMIT_CALLERS = SecurityPolicies.AnyOf(
+  SecurityPolicies.SelfOnly,
+  SecurityPolicies.FromModule('/platform/idea/api/PersistableLogic#PersistableLogic'),
+);
+
 /** The order a carrier tries its places in (`carry.order`, D11). */
 export const CARRY_ORDERS = ['hands-first', 'pockets-first'] as const;
 export type CarryOrder = (typeof CARRY_ORDERS)[number];
@@ -115,6 +131,8 @@ export interface ReceiveOptions {
   prefer?: 'hands' | 'pockets';
   /** Pins the destination to a slot (equip's claim) — `seatInSlot`. */
   slot?: string;
+  /** Pins it to several slots at once (a worn or wielded claim) — `occupyAll`. */
+  slots?: readonly string[];
   /** Held in the hands, or put on (`wear` → the garment's whole claim). */
   for?: 'hold' | 'wear';
 }
@@ -124,7 +142,7 @@ export type ReceiveRefusal =
   | ActRefusal<'too-heavy'>
   | ActRefusal<'cannot-grip', { why: string }>
   | ActRefusal<'hands-on-cart', { cart: Stuff }>
-  | ActRefusal<'nowhere-to-carry', { held: Stuff[]; tried: Stuff[] }>;
+  | ActRefusal<'nowhere-to-carry', { item?: Stuff; held: Stuff[]; tried: Stuff[] }>;
 
 /** Why readying a thing failed (D16) — every one names a way out. */
 export type ReadyRefusal =
@@ -135,6 +153,7 @@ export type ReadyRefusal =
   | ActRefusal<'cannot-grip', { why: string }>
   | ActRefusal<'too-heavy'>
   | ActRefusal<'not-on-you'>
+  | ActRefusal<'pick-up', { item: Stuff }>
   | ActRefusal<'already-switching'>;
 
 /** Every refusal a carrier words. */
@@ -177,9 +196,8 @@ export interface Carrying {
    * **Take `item` onto this body.** `null` when it came on; a refusal
    * when it could not — and then nothing moved.
    *
-   * ⚠ Until the flip (W7) a receive without `slot` lands the thing loose
-   * in the contents, as the direct move it replaced did; with `slot` it is
-   * seated there (`seatInSlot`). It never refuses yet.
+   * `slot` pins it (`seatInSlot`); `for: 'wear'` puts it on by its claim;
+   * otherwise D11's order (see the module doc).
    */
   receive(item: Stuff & Containable, opts?: ReceiveOptions): ReceiveRefusal | null;
   /**
@@ -251,9 +269,9 @@ export interface Carrying {
   /** The game-seconds readying `item` would cost in a fight: put away + draw (D16). */
   readySeconds(item: Stuff): number;
   /**
-   * Put `held` away — to its home if it still takes it (else, until the
-   * flip, loose on you). Refuses `hands-full` naming it when its home will
-   * not take it back. Never drops it.
+   * Put `held` away — to its home if it still takes it; homeless, to the
+   * first place on you it fits (which becomes its home). Refuses
+   * `hands-full` naming it when neither will take it. Never drops it.
    */
   stow(held: Stuff): ReadyRefusal | null;
   /**
@@ -292,6 +310,29 @@ export interface Carrying {
   tallyWords(things: readonly Stuff[]): string;
   /** ⭐ What is directly on this body, sorted by how it is carried (D28) — raw; a surface perceives it. */
   carriedTiers(): CarriedTiers;
+  /**
+   * Run `fn` with `item` admitted past the flip's veto (D11) — the body's
+   * own seating and the restore only (gated).
+   */
+  admitWhile<T>(item: Stuff, fn: () => T): T;
+  /** Is `item` being admitted onto this body right now? Read by the veto. */
+  isAdmitting(item: Stuff): boolean;
+  /**
+   * ⭐ The made idiom (D-W7a): `receive`, else set it down on `at` (the
+   * bench) or where the body stands, with a line. Never a refusal.
+   */
+  receiveOrSetDown(item: Stuff & Containable, at?: Stuff | null): 'carried' | 'set-down';
+  /** ⭐ The granted idiom (D-W7a/D32): `receive`, else the residence, else here — never lost. */
+  receiveGranted(item: Stuff & Containable, opts?: ReceiveOptions): Promise<'carried' | 'home' | 'here'>;
+  /** ⭐ D32: place everything loose on this body (a restore's first load). */
+  placeLoose(): Promise<Stuff[]>;
+  /**
+   * ⭐ D37: before a guest body is reaped, what it borrowed goes back — a
+   * good titled to someone else to its owner (their hands, else set down
+   * where they stand), anything untitled it picked up dropped where the
+   * guest stands. What it wears (the guest's own outfit) goes with it.
+   */
+  returnBorrowed(): Stuff[];
 }
 
 /** A numeric dial with a fallback (the `LoadBearing` shape). */
@@ -310,7 +351,9 @@ function dialSeconds(key: string, fallback: number): number {
 // container at runtime but not yet at this rung's type — the same cast
 // `Slotted.seatInSlot` makes.
 export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(Base: TBase) {
-  return class CarryingMixin extends Base {
+  // Declared-then-returned (the Slottable shape) so method decorators are
+  // legal — a class EXPRESSION cannot carry them.
+  class CarryingMixin extends Base {
     static _mixinName = 'CarryingMixin';
 
     /**
@@ -540,7 +583,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       if (top !== thing) return slots.includes(PACKED_SLOT) ? 'packed' : 'ready';
       const hands = this.handSlots();
       if (slots.some((s) => hands.includes(s))) return 'hand';
-      // Worn itself, or (until the flip) loose on the body: one draw.
+      // Worn itself (or, never after the flip, loose on the body): one draw.
       return 'ready';
     }
 
@@ -598,30 +641,308 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
 
     // ── receiving (D11) ──
 
+    /**
+     * The things this body is admitting right now — the only way past the
+     * flip's veto (`Creature.canAddContainable`, D11). Runtime only.
+     */
+    private _admitting = new Set<string>();
+
+    @CallSecurity(ADMIT_CALLERS)
+    public admitWhile<T>(item: Stuff, fn: () => T): T {
+      const id = item.stuffId;
+      const had = this._admitting.has(id);
+      this._admitting.add(id);
+      try {
+        return fn();
+      } finally {
+        if (!had) this._admitting.delete(id);
+      }
+    }
+
+    public isAdmitting(item: Stuff): boolean {
+      return !this.isJudged() || this._admitting.has(item.stuffId);
+    }
+
+    /** Does this body have a known plan — so hands, slots and the veto apply? */
+    private isJudged(): boolean {
+      return SpeciesApi.tryGetBodyPlanPath(this as unknown as Stuff) !== null;
+    }
+
     public receive(item: Stuff & Containable, opts: ReceiveOptions = {}): ReceiveRefusal | null {
       const self = this as unknown as Stuff & Container & Slotted;
       if (opts.slot !== undefined) {
         self.seatInSlot(item as Stuff & Containable & Slottable, opts.slot);
         return null;
       }
-      // Put on: the garment's whole claim on this body (`wear`, an outfit).
-      const claim = opts.for === 'wear' ? this.wearClaim(item) : [];
+      // Put on: the garment's whole claim on this body (`wear`, an outfit),
+      // or the slots a caller names.
+      const claim = opts.slots !== undefined ? [...opts.slots] : opts.for === 'wear' ? this.wearClaim(item) : [];
       if (claim.length > 0) {
+        this.admitWhile(item, () => {
+          ContainmentApi.move(item, self);
+          self.occupyAll(item as Stuff & Containable & Slottable, claim);
+        });
+        return null;
+      }
+      // ⭐ A body whose plan is not known yet (a fixture, a body mid-mint)
+      // is not judged (the D18-b precedent): it takes the thing as the
+      // pre-flip body did, and the veto admits it (`isJudged`).
+      if (!this.isJudged()) {
         ContainmentApi.move(item, self);
-        self.occupyAll(item as Stuff & Containable & Slottable, claim);
         return null;
       }
-      // ⭐ A thing that hangs (a pouch, a holster: a worn container that
-      // claims no slot of this body) goes onto the first worn host it hangs
-      // from — the belt — before anything else (W7).
+      const where = this.resolveReceive(item, opts);
+      if (where.kind === 'refused') return where.refusal;
+      switch (where.kind) {
+        case 'held':
+          return null;
+        case 'merge':
+          // ⭐ A stack meets its like and takes no hand (requirements §
+          // Collisions): onto the coins in the purse, the apples in a hand.
+          if (where.into.stuffId === self.stuffId) this.admitWhile(item, () => ContainmentApi.move(item, self));
+          else ContainmentApi.move(item, where.into as Stuff & Container);
+          return null;
+        case 'hand': {
+          const it = item as Stuff & Containable & Slottable;
+          if (where.slots.length === 1) {
+            self.seatInSlot(it, where.slots[0]!);
+          } else {
+            this.admitWhile(item, () => {
+              ContainmentApi.move(it, self);
+              self.occupyAll(it, where.slots);
+            });
+          }
+          return null;
+        }
+        case 'place':
+          if (where.place.region !== undefined) ContainmentApi.move(item, where.place.host, where.place.region);
+          else ContainmentApi.move(item, where.place.host);
+          return null;
+      }
+    }
+
+    /**
+     * ⭐ Where `item` would go on this body, by D11's order — the one
+     * resolution `receive` performs and `canReceive` reports, so the dry
+     * run and the act can never disagree.
+     */
+    private resolveReceive(
+      item: Stuff,
+      opts: ReceiveOptions,
+    ):
+      | { kind: 'held' }
+      | { kind: 'merge'; into: Stuff }
+      | { kind: 'hand'; slots: string[] }
+      | { kind: 'place'; place: CarryPlace }
+      | { kind: 'refused'; refusal: ReceiveRefusal } {
+      if (this.tierOf(item) === 'hand') return { kind: 'held' };
       const hang = this.hangHostFor(item);
-      if (hang !== null) {
-        ContainmentApi.move(item, hang, Placements.FROM);
-        return null;
+      if (hang !== null) return { kind: 'place', place: { host: hang, region: Placements.FROM } };
+      const merge = this.mergeTargetFor(item);
+      if (merge !== null) return { kind: 'merge', into: merge };
+      const hands = this.handsFor(item);
+      if (hands === null) return { kind: 'refused', refusal: { ok: false, reason: 'too-heavy' } };
+      const order: CarryOrder =
+        opts.prefer === 'pockets'
+          ? 'pockets-first'
+          : opts.prefer === 'hands'
+            ? 'hands-first'
+            : this.carryOrder();
+      const open = this.openHands();
+      const handOk = this.freeHands() >= hands && MixinApi.isSlottable(item);
+      const hand = { kind: 'hand' as const, slots: open.slice(0, hands) };
+      // Never into itself, nor into something it holds.
+      const places = this.carryPlaces().filter((p) => !within(p.host, item));
+      const fits = places.find((p) => this.placeTakes(p, item)) ?? null;
+      const place = fits !== null ? { kind: 'place' as const, place: fits } : null;
+      if (order === 'hands-first') {
+        if (handOk) return hand;
+        if (place !== null) return place;
+      } else {
+        if (place !== null) return place;
+        if (handOk) return hand;
       }
-      // ⚠ Until the flip (D31): loose, exactly as the direct move did.
-      ContainmentApi.move(item, self);
+      const cart = this.cartInHand();
+      if (cart !== null && open.length >= hands) {
+        return { kind: 'refused', refusal: { ok: false, reason: 'hands-on-cart', facts: { cart: cart.cart } } };
+      }
+      const why = this.gripWhy();
+      if (why !== null && this.heldThings().length === 0) {
+        return { kind: 'refused', refusal: { ok: false, reason: 'cannot-grip', facts: { why } } };
+      }
+      return {
+        kind: 'refused',
+        refusal: {
+          ok: false,
+          reason: 'nowhere-to-carry',
+          facts: { item, held: this.heldThings(), tried: [...new Set(places.map((p) => p.host))] },
+        },
+      };
+    }
+
+    /**
+     * A carried stack `item` would merge into — in a hand, a pocket or a
+     * carried container — answered as the container it would be moved into
+     * (this body for a held or pocketed stack). Null when none.
+     */
+    private mergeTargetFor(item: Stuff): Stuff | null {
+      if (!MixinApi.isStackable(item)) return null;
+      const self = this as unknown as Stuff & Container;
+      for (const x of self.getCarriedContents()) {
+        if (x.stuffId === item.stuffId || !MixinApi.isStackable(x) || !x.canMergeWith(item)) continue;
+        if (this.tierOf(x) === 'packed' || this.tierOf(x) === 'elsewhere') continue;
+        const at = x.getContainer();
+        if (at !== null) return at;
+      }
       return null;
+    }
+
+    /**
+     * ⭐ The made idiom (D-W7a): a thing made, yielded, caught or left by an
+     * act comes to this body if it can; otherwise it is SET DOWN where it
+     * was made — on `at` (the workbench) when that will take it, else in
+     * the place the body stands in — and the body is told. Never refused
+     * after the inputs are spent; never lost. Returns where it went.
+     */
+    public receiveOrSetDown(item: Stuff & Containable, at?: Stuff | null): 'carried' | 'set-down' {
+      if (this.receive(item) === null) return 'carried';
+      const self = this as unknown as Stuff & Containable;
+      const place = self.getContainer();
+      const bench = at !== undefined && at !== null && MixinApi.isPlacing(at) && at.canPlace(item, Placements.ON).ok
+        ? at
+        : null;
+      if (bench !== null) ContainmentApi.move(item, bench, Placements.ON);
+      else if (place !== null) ContainmentApi.move(item, place as Stuff & Container);
+      else return 'set-down';
+      if (!item.isDestroyed() && MixinApi.isSensor(self)) {
+        const where = bench !== null ? Mml.compose`on ${Mml.thing(bench)}` : Mml.compose`down`;
+        MessageApi.scene(self)
+          .topic('act.deed')
+          .toSelf(Mml.compose`Your hands are full — you set ${Mml.thing(item)} ${where}.`)
+          .send();
+      }
+      return 'set-down';
+    }
+
+    /**
+     * ⭐ The granted idiom (D-W7a, D32): what the engine gives a body — a
+     * loadout, the Arrival Note, a card, a key, what a restore found loose
+     * — is placed as `receive` would; what fits nowhere goes to a player's
+     * RESIDENCE with a line queued to them (*your crate would not fit
+     * anywhere on you; it is in your room*), or — an NPC, or a player with
+     * no room standing — the place it stands in, the author told
+     * (`DiagnosticApi`). Never destroyed, never lost.
+     */
+    public async receiveGranted(item: Stuff & Containable, opts: ReceiveOptions = {}): Promise<'carried' | 'home' | 'here'> {
+      if (this.receive(item, opts) === null) return 'carried';
+      const self = this as unknown as Stuff & Containable;
+      const home = await this.residenceRoom();
+      if (home !== null) {
+        ContainmentApi.move(item, home);
+        if (MixinApi.isSensor(self)) {
+          MessageApi.scene(self)
+            .topic('act.deed')
+            .toSelf(Mml.compose`${Mml.thing(item)} would not fit anywhere on you; it is in your room.`)
+            .send();
+        }
+        return 'home';
+      }
+      const place = self.getContainer();
+      if (place !== null) ContainmentApi.move(item, place as Stuff & Container);
+      if (MixinApi.isSensor(self) && MixinApi.isHasInteractive(self)) {
+        MessageApi.scene(self)
+          .topic('act.deed')
+          .toSelf(Mml.compose`${Mml.thing(item)} would not fit anywhere on you; it is at your feet.`)
+          .send();
+      } else {
+        const { DiagnosticApi } = await import('../../api/diagnostics');
+        await DiagnosticApi.record({
+          path: self.getTemplatePath() ?? self.stuffId,
+          severity: 'warning',
+          message:
+            `${item.getTemplatePath() ?? item.stuffId} found no place on ` +
+            `${self.getTemplatePath() ?? self.stuffId} (no free hand, nothing worn it fits) and was ` +
+            `set down where it stands — give the body something to carry it in, or fewer things.`,
+          channel: 'location-graph',
+        });
+      }
+      return 'here';
+    }
+
+    /** The room this body leases (its residence, D32), when it is standing; else null. */
+    private async residenceRoom(): Promise<(Stuff & Container) | null> {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isHasInteractive(self) && !self.getIdentityPath()?.startsWith('/platform/agent/Avatar/')) return null;
+      const holder = self.getIdentityPath();
+      if (!holder) return null;
+      const { ParcelApi } = await import('../../api/parcel');
+      const unit = await ParcelApi.heldUnitOf(holder).catch(() => null);
+      if (unit === null) return null;
+      const extent = unit.getExtent();
+      const byPath = StuffApi.findByTemplatePath(extent);
+      const live = [...StuffApi.findByIdentityPath(extent), ...(byPath ? [byPath] : [])].find(
+        (x) => MixinApi.isContainer(x) && x.isPlace(),
+      );
+      return live !== undefined ? (live as Stuff & Container) : null;
+    }
+
+    public returnBorrowed(): Stuff[] {
+      const self = this as unknown as Stuff & Container & Slotted;
+      const me = self.getIdentityPath() ?? self.getTemplatePath() ?? '';
+      const place = (self as unknown as Stuff & Containable).getContainer();
+      const hands = new Set(this.handSlots());
+      const worn = new Set<string>();
+      for (const [slot, occ] of self.getAllOccupants()) {
+        if (hands.has(slot)) continue;
+        for (const o of occ) worn.add(o.stuffId);
+      }
+      const out: Stuff[] = [];
+      // Top-level first: a borrowed bag goes back whole, with what is in it.
+      for (const item of [...self.getCarriedContents()]) {
+        if (item.isDestroyed() || item.isAgent()) continue;
+        const owner = MixinApi.isChattel(item) ? item.stampedOwner() : null;
+        const ownerPath = owner !== null && owner.kind !== 'group' ? owner.templatePath : null;
+        if (ownerPath !== null && ownerPath !== me) {
+          const body = StuffApi.findByIdentityPath(ownerPath).find((b) => MixinApi.isCarrying(b) && !b.isDestroyed());
+          if (body !== undefined && MixinApi.isCarrying(body)) body.receiveOrSetDown(item);
+          else if (place !== null) ContainmentApi.move(item, place as Stuff & Container);
+          out.push(item);
+          continue;
+        }
+        // Untitled and not the guest's own clothes: found here, left here.
+        const onBody = item.getContainer()?.stuffId === self.stuffId;
+        if (ownerPath === null && onBody && !worn.has(item.stuffId) && place !== null) {
+          const pair = item.getPlacement();
+          const onWorn = pair !== null && worn.has(pair.host.stuffId);
+          // A thing in the guest's own pocket, or held: found, so dropped.
+          if (onWorn || this.tierOf(item) === 'hand') {
+            if (MixinApi.isSlottable(item)) {
+              for (const slot of this.handSlots()) if (self.getOccupants(slot).has(item)) self.vacate(slot, item);
+            }
+            ContainmentApi.move(item, place as Stuff & Container);
+            out.push(item);
+          }
+        }
+      }
+      return out;
+    }
+
+    /**
+     * ⭐ D32: put every thing loose on this body where a carried thing goes
+     * — on a restore (`onRestored`), or after anything that could have left
+     * one loose. A pre-flip inventory is placed on its first load.
+     */
+    public async placeLoose(): Promise<Stuff[]> {
+      const self = this as unknown as Stuff & Container;
+      const loose = self.getContents().filter((c) => !this.isHonest(c) && !c.isAgent());
+      for (const item of loose) {
+        if (item.isDestroyed() || this.isHonest(item)) continue;
+        // Out of the body first, so `receive` treats it as arriving.
+        const at = (self as unknown as Stuff & Containable).getContainer();
+        if (at !== null) ContainmentApi.move(item as Stuff & Containable, at as Stuff & Container);
+        await this.receiveGranted(item as Stuff & Containable);
+      }
+      return loose;
     }
 
     /** The slots `item` claims on this body when put on — empty when it is not worn here. */
@@ -661,34 +982,9 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
     }
 
     public canReceive(item: Stuff, opts: ReceiveOptions = {}): ReceiveRefusal | null {
-      if (this.hangHostFor(item) !== null) return null;
-      const hands = this.handsFor(item);
-      if (hands === null) return { ok: false, reason: 'too-heavy' };
-      const self = this as unknown as Stuff;
-      const order: CarryOrder =
-        opts.prefer === 'pockets'
-          ? 'pockets-first'
-          : opts.prefer === 'hands'
-            ? 'hands-first'
-            : this.carryOrder();
-      const handOk = this.freeHands() >= hands && MixinApi.isSlottable(item);
-      const places = this.carryPlaces();
-      const fits = places.find((p) => this.placeTakes(p, item)) ?? null;
-      if (order === 'hands-first' ? handOk || fits !== null : fits !== null || handOk) return null;
-      const cart = this.cartInHand();
-      if (cart !== null && this.openHands().length >= hands) {
-        return { ok: false, reason: 'hands-on-cart', facts: { cart: cart.cart } };
-      }
-      const why = this.gripWhy();
-      if (why !== null && this.heldThings().length === 0) {
-        return { ok: false, reason: 'cannot-grip', facts: { why } };
-      }
-      void self;
-      return {
-        ok: false,
-        reason: 'nowhere-to-carry',
-        facts: { held: this.heldThings(), tried: [...new Set(places.map((p) => p.host))] },
-      };
+      if (!this.isJudged()) return null;
+      const where = this.resolveReceive(item, opts);
+      return where.kind === 'refused' ? where.refusal : null;
     }
 
     /** The `carry.order` setting, else the default. */
@@ -787,10 +1083,12 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
         return { ok: false, reason: 'packed', facts: { by: this.packOf(item) ?? item } };
       }
       if (tier === 'elsewhere') {
-        // In somebody else's grasp: not yours to use. Anything else the
-        // binder let through is used where it stands (a bench, a cask, a
-        // tape on the floor) — ⚠ until the flip, when `get` means receive.
-        return insideAnotherBody(this as unknown as Stuff, item) ? { ok: false, reason: 'not-on-you' } : null;
+        // In somebody else's grasp: not yours to use. A fixture (a bench, a
+        // cask, a bolted vice) is used where it stands; a thing you could
+        // carry is picked up first (the flip, W7: `get` is the receiving act).
+        if (insideAnotherBody(this as unknown as Stuff, item)) return { ok: false, reason: 'not-on-you' };
+        const fixed = MixinApi.isContainable(item) && item.isFixedInPlace();
+        return fixed || !MixinApi.isSlottable(item) ? null : { ok: false, reason: 'pick-up', facts: { item } };
       }
       if (!this.wantsHand(item)) return null;
       const hands = this.handsFor(item);
@@ -857,12 +1155,22 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       return out;
     }
 
-    /** Would `held` go away? `null` = yes (home, or loose until the flip). */
+    /**
+     * Would `held` go away? `null` = yes: to its home, or — homeless — to
+     * the first place on you it fits (the flip, W7: never loose). Refuses
+     * `hands-full` naming it otherwise; never drops it for you.
+     */
     private stowRefusal(held: Stuff): ReadyRefusal | null {
+      if (this.tierOf(held) !== 'hand') return null;
       const home = this.homeOf(held);
-      if (home === null) return null; // ⚠ until the flip: loose on you
-      if (this.homeTakes(held) || this.tierOf(held) !== 'hand') return null;
+      if (home !== null && this.homeTakes(held)) return null;
+      if (home === null && this.stowPlaceFor(held) !== null) return null;
       return { ok: false, reason: 'hands-full', facts: { held, home } };
+    }
+
+    /** Where a homeless held thing would be put away: the first carry place it fits. */
+    private stowPlaceFor(held: Stuff): CarryPlace | null {
+      return this.carryPlaces().find((p) => !within(p.host, held) && this.placeTakes(p, held)) ?? null;
     }
 
     /** Would `held`'s home take it back — its pocket's `canPlace`, its container's tape measure? */
@@ -885,9 +1193,21 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       }
       const home = this.homeOf(held);
       const region = this.homeRegionOf(held);
-      if (home !== null && MixinApi.isContainable(held)) {
+      if (!MixinApi.isContainable(held)) return null;
+      if (home !== null) {
         if (region !== null && MixinApi.isPlacing(home)) ContainmentApi.move(held, home, region);
         else if (MixinApi.isContainer(home)) ContainmentApi.move(held, home);
+        return null;
+      }
+      // Homeless: the first place it fits — and that becomes its home.
+      const place = this.stowPlaceFor(held);
+      if (place === null) return null;
+      if (place.region !== undefined) {
+        ContainmentApi.move(held, place.host, place.region);
+        this.setHome(held, place.host, place.region);
+      } else {
+        ContainmentApi.move(held, place.host);
+        this.setHome(held, place.host);
       }
       return null;
     }
@@ -923,8 +1243,10 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       }
       if (slots.length === 1) this.receive(it, { slot: slots[0]! });
       else {
-        ContainmentApi.move(it, self as unknown as Stuff & Container);
-        self.occupyAll(it, slots);
+        this.admitWhile(it, () => {
+          ContainmentApi.move(it, self as unknown as Stuff & Container);
+          self.occupyAll(it, slots);
+        });
       }
       return null;
     }
@@ -1107,6 +1429,49 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
 
     // ── words ──
 
+    /**
+     * ⭐ The hands-full refusal is the tutorial (requirements § Collisions):
+     * it names what is in the hands, what did not fit and where it was
+     * tried, and the next command in this body's OWN pocket names — *"Your
+     * hands are full — the cup and the lantern — and the map won't fit in
+     * your pockets. Put something away (`put cup in left pocket`) or set it
+     * down (`drop lantern`)."*
+     */
+    private nowhereWords(item: Stuff | null, held: Stuff[], tried: Stuff[]): string {
+      const def = (x: Stuff): string => x.presentationPhrase().definite();
+      const kw = (x: Stuff): string =>
+        (MixinApi.isPerceptible(x) ? x.getPrimaryKeyword() : undefined) ?? x.presentationPhrase().bare();
+      const it = item !== null ? def(item) : 'it';
+      const where = [
+        ...new Set(
+          tried.map((h) =>
+            MixinApi.isPlacing(h) && h.namedRegions().length > 0 ? 'your pockets' : `your ${h.presentationPhrase().bare()}`,
+          ),
+        ),
+      ];
+      const fit = where.length > 0 ? ` won't fit in ${GrammarApi.joinList(where)}` : ` has nowhere to go`;
+      if (held.length === 0) return `${cap(it)}${fit}, and your hands can't take it.`;
+      const hands = `Your hands are full — ${GrammarApi.joinList(held.map(def))} —`;
+      // The next command, in this body's own words: a held thing that WOULD
+      // go away somewhere, and one to set down.
+      let away: string | null = null;
+      for (const h of held) {
+        for (const p of this.carryPlaces()) {
+          if (within(p.host, h) || !this.placeTakes(p, h)) continue;
+          away = p.region !== undefined && MixinApi.isPlacing(p.host) && p.host.namedRegions().includes(p.region)
+            ? `put ${kw(h)} in ${p.region}`
+            : `put ${kw(h)} in ${kw(p.host)}`;
+          break;
+        }
+        if (away !== null) break;
+      }
+      const drop = `drop ${kw(held[held.length - 1]!)}`;
+      const next = away !== null
+        ? `Put something away (\`${away}\`) or set it down (\`${drop}\`).`
+        : `Set something down (\`${drop}\`).`;
+      return `${hands} and ${it}${fit}. ${next}`;
+    }
+
     public refusalWords(r: CarryRefusal): string {
       const a = (s: Stuff): string => s.presentationPhrase().definite();
       switch (r.reason) {
@@ -1118,12 +1483,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
           return `Your hands are on ${a(r.facts.cart)} — \`unhitch\` it first.`;
         case 'nowhere-to-carry': {
           if (this.handSlots().length === 0) return 'You have nowhere to carry that.';
-          const held = r.facts.held.map((h) => h.presentationPhrase().indefinite());
-          const tried = r.facts.tried.map(a);
-          const hands = held.length > 0 ? `your hands are full (${GrammarApi.joinList(held)})` : 'your hands are full';
-          return tried.length > 0
-            ? `${cap(hands)} and it won't fit in ${GrammarApi.joinList(tried)}.`
-            : `${cap(hands)}.`;
+          return this.nowhereWords(r.facts.item ?? null, r.facts.held, r.facts.tried);
         }
         case 'packed':
           return `It's packed in ${a(r.facts.by)} — take it off first (\`remove ${r.facts.by.presentationPhrase().bare()}\`).`;
@@ -1141,6 +1501,11 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
         }
         case 'not-on-you':
           return "That isn't yours to use.";
+        case 'pick-up': {
+          const it = r.facts.item;
+          const kw = (MixinApi.isPerceptible(it) ? it.getPrimaryKeyword() : undefined) ?? it.presentationPhrase().bare();
+          return `You'd have to pick ${it.presentationPhrase().definite()} up first (\`get ${kw}\`).`;
+        }
         case 'already-switching':
           return "You're already reaching for something.";
         default: {
@@ -1149,7 +1514,8 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
         }
       }
     }
-  };
+  }
+  return CarryingMixin;
 }
 
 /** Two significant places for a reading off a list — `0.42`, `3.2`, `12`. */
@@ -1162,6 +1528,16 @@ function roundForReading(n: number): number {
 
 function cap(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** Is `host` the thing `item` itself, or inside it? */
+function within(host: Stuff, item: Stuff): boolean {
+  let cur: Stuff | null = host;
+  for (let i = 0; cur !== null && i < 32; i++) {
+    if (cur.stuffId === item.stuffId) return true;
+    cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+  }
+  return false;
 }
 
 /** Is `item` inside some other agent than `me`? */

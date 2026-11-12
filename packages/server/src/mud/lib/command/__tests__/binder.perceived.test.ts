@@ -11,6 +11,7 @@
  *   - a concealed trap MQL names reaches no binding.
  */
 import '../../../../test-bootstrap';
+import Garment from '../../../platform/thing/equipment/Garment';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ContainmentApi } from '../../../api/containment';
 import { CommandApi, type CommandContext, type CommandModel } from '../../../api/command';
@@ -70,12 +71,13 @@ describe('the binder binds what the giver perceives (D23)', () => {
   };
   const inHand = (k: Knife, slot: string): Knife => {
     k.setSlotClaims({ [PLAN]: [slot] });
-    ContainmentApi.move(k, ruth);
-    ruth.occupy(k, slot);
+    ruth.seatInSlot(k, slot);
     return k;
   };
+  let coat: Garment;
+  /** Her coat's inner pocket — covered (D26): hers to know, not ours. */
   const inPocket = (k: Knife): Knife => {
-    ContainmentApi.move(k, ruth);
+    ContainmentApi.move(k, coat, 'inner pocket');
     return k;
   };
 
@@ -103,7 +105,7 @@ describe('the binder binds what the giver perceives (D23)', () => {
   };
   const kinds = (): string[] => (last?.getNotes() ?? []).map((n) => `${n.kind}:${(n as { validator?: string }).validator ?? ''}`);
 
-  beforeEach(() => {
+  beforeEach(async () => {
     installV1QuantityMarshallers();
     world = makeWorld();
     last = null;
@@ -112,6 +114,7 @@ describe('the binder binds what the giver perceives (D23)', () => {
     plan.setBaseMass(70);
     plan.setBaseStature(1.75);
     plan.setSlots([
+      { name: 'torso', accepts: 'WearableMixin', capacity: 2, covers: ['body'] },
       { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.hand.left' },
       { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.hand.right' },
     ]);
@@ -129,6 +132,11 @@ describe('the binder binds what the giver perceives (D23)', () => {
     ruth.setShortDescription('Ruth');
     ruth.setKeywords(['ruth']);
     ContainmentApi.move(ruth, world.location as never);
+    coat = makeStuff(() => new Garment());
+    coat.setShortDescription('a coat');
+    await coat.setPlacements([{ member: '/platform/placements/pocket', name: 'inner pocket', covered: true }]);
+    coat.setSlotClaims({ [PLAN]: ['torso'] });
+    ruth.seatInSlot(coat, 'torso');
     vi.spyOn(world.giver as never, '_executeOne').mockImplementation((async (
       _c: CommandDefinition,
       model: CommandModel,

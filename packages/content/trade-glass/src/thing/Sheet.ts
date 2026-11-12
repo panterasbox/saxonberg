@@ -214,7 +214,7 @@ export default class Sheet extends SheetBase {
     pane.setForm("pane");
     if (MixinApi.isComposition(pane) && alloying.length > 0) pane.setMakeup(alloying);
     if (where && MixinApi.isContainer(where) && MixinApi.isContainable(pane)) {
-      if (MixinApi.isCarrying(where)) where.receive(pane as unknown as Stuff & Containable);
+      if (MixinApi.isCarrying(where)) where.receiveOrSetDown(pane as unknown as Stuff & Containable);
       else ContainmentApi.move(pane as unknown as Stuff & Containable, where as Stuff & Container);
     }
     await StuffApi.destruct(self);
@@ -284,7 +284,7 @@ export default class Sheet extends SheetBase {
       p.setForm("pane");
       if (MixinApi.isComposition(p) && alloying.length > 0) p.setMakeup(alloying);
       if (where && MixinApi.isContainer(where) && MixinApi.isContainable(p)) {
-        if (MixinApi.isCarrying(where)) where.receive(p as unknown as Stuff & Containable);
+        if (MixinApi.isCarrying(where)) where.receiveOrSetDown(p as unknown as Stuff & Containable);
         else ContainmentApi.move(p as unknown as Stuff & Containable, where as Stuff & Container);
       }
     }

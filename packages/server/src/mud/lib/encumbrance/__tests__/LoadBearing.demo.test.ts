@@ -11,6 +11,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { carry } from '../../slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -46,7 +47,7 @@ describe('encumbrance demo — three axes, real classes', () => {
   it('bag of holding: 100 kg of cargo barely registers', () => {
     const bearer = bearerCreature(70);
     const bag = vessel(0.5, 0.05); // light bag, near-zero transmission
-    ContainmentApi.move(bag, bearer);
+    carry(bearer, bag);
     const burdenEmpty = bearer.getBorneBurden().rawValue();
     ContainmentApi.move(massThing(100), bag);
     const burdenFull = bearer.getBorneBurden().rawValue();

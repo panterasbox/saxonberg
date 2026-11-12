@@ -99,30 +99,29 @@ export default class Gus extends Cast {
       await SpeciesApi.preloadAnatomy(this);
 
       const self = this as unknown as Stuff & Container;
-      // Carried gear: straight into inventory.
-      for (const path of CARRIED) {
-        const item = await StuffApi.clone<Stuff & Containable>(path);
-        if (MixinApi.isCarrying(self)) self.receive(item);
-        else ContainmentApi.move(item, self);
-      }
-
       // Worn/wielded gear needs a body plan to resolve its slot claim.
       const bodyPlanPath = SpeciesApi.tryGetBodyPlanPath(this);
-      if (!bodyPlanPath || !MixinApi.isSlotted(this)) return;
-      const slottedSelf = this as unknown as Stuff & Slotted;
-      for (const path of WORN_OR_WIELDED) {
-        const item = await StuffApi.clone<Stuff & Containable>(path);
-        // A worn/wielded item lives in inventory AND a slot (the
-        // EquipController contract). Move in, then occupy
-        // each claimed slot.
-        if (MixinApi.isCarrying(self)) self.receive(item);
-        else ContainmentApi.move(item, self);
-        const slots = (item as unknown as SlotClaimer).getSlotClaim(
-          bodyPlanPath,
-        );
-        for (const slot of slots) {
-          slottedSelf.occupy(item as unknown as Stuff & Slottable, slot);
+      if (bodyPlanPath && MixinApi.isSlotted(this)) {
+        const slottedSelf = this as unknown as Stuff & Slotted;
+        for (const path of WORN_OR_WIELDED) {
+          const item = await StuffApi.clone<Stuff & Containable>(path);
+          // A worn/wielded item lives in inventory AND a slot (the
+          // EquipController contract): received into its claim.
+          const slots = (item as unknown as SlotClaimer).getSlotClaim(bodyPlanPath);
+          if (MixinApi.isCarrying(self)) await self.receiveGranted(item, { slots });
+          else ContainmentApi.move(item, self);
+          if (MixinApi.isCarrying(self)) continue;
+          for (const slot of slots) {
+            slottedSelf.occupy(item as unknown as Stuff & Slottable, slot);
+          }
         }
+      }
+      // Carried gear AFTER he is dressed (the flip, W7): into the vest's
+      // pockets first, then the free hand — nothing loose on a body.
+      for (const path of CARRIED) {
+        const item = await StuffApi.clone<Stuff & Containable>(path);
+        if (MixinApi.isCarrying(self)) await self.receiveGranted(item, { prefer: 'pockets' });
+        else ContainmentApi.move(item, self);
       }
     } catch (err) {
       console.warn(

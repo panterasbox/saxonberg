@@ -923,13 +923,13 @@ suite('3. each protected act refuses another player, with nothing but the object
 suite('4–9. the player-facing forms', () => {
   afterAll(parkAll);
 
-  it('4. `eat orange` finds it in the open bag you carry; a shut chest says so; `--top` has none; `me:I:` finds it anywhere', async () => {
+  it('4. `eat orange` finds it in the open bag you carry; a shut chest says so; `me:I:` finds it anywhere', async () => {
     const s = await stager(uniqueHandle('cliq-eat'), SQUARE);
     const bag = await hand(s, '/trade/papermaking/thing/bag');
     const orange = await hand(s, '/trade/farming/thing/orange');
     expect((await s.cmd(`put #${orange} in #${bag}`)).status).toBe('ok');
-    const top = await s.cmd('eat orange --top');
-    expect(top.status, `--top reaches only what is at hand: ${notesOf(top)}`).not.toBe('ok');
+    // (`--top` retired with the reach rungs — size and carrying W3: reach
+    // is one rule, and the open bag you carry is in it.)
     const look = await s.cmd('look me:I:orange');
     expect(look.status, notesOf(look)).toBe('ok');
     const ate = await act(s, 'eat orange');

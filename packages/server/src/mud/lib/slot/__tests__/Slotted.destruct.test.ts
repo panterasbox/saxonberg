@@ -186,8 +186,7 @@ describe('Walk order: Container fires before Slotted on a composed host', () => 
     const sword = makeStuff(() => new Sword());
 
     ContainmentApi.move(avatar, room);
-    ContainmentApi.move(sword, avatar);
-    avatar.occupy(sword, 'hand:right');
+    avatar.seatInSlot(sword, 'hand:right');
     expect(avatar.getOccupant('hand:right')).toBe(sword);
     expect(sword.getContainer()).toBe(avatar);
 

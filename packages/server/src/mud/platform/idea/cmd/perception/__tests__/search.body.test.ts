@@ -35,6 +35,7 @@ import BodyPlan from '../../../species/BodyPlan';
 import Thing from '../../../../thing/Thing';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import Garment from '../../../../thing/equipment/Garment';
 
 class Room extends ContainerMixin(ContainableMixin(Idea)) {}
 class Searcher extends BeliefStoreMixin(
@@ -69,6 +70,14 @@ describe('search <body> — what the pockets cover (D24a)', () => {
   const search = async (actor: Searcher, body: Stuff): Promise<void> => {
     const controller = makeStuff(() => new SearchController());
     await controller.execute({ target: { stuff: body, raw: 'corpse' } } as never, ctx(actor));
+  };
+  /** Into `body`'s coat's inner pocket — covered (the flip, W7: never loose on a body). */
+  const pocketOn = async (body: Creature, thing: Stuff): Promise<void> => {
+    const coat = makeStuff(() => new Garment());
+    await coat.setPlacements([{ member: '/platform/placements/pocket', name: 'inner pocket', covered: true }]);
+    coat.setSlotClaims({ '/stuff/idea/species/BodyPlan/search-biped': ['torso'] });
+    body.seatInSlot(coat, 'torso');
+    ContainmentApi.move(thing as never, coat, 'inner pocket');
   };
   const finish = async (): Promise<void> => {
     WorldClockApi._advanceForTesting(6000);
@@ -149,7 +158,7 @@ describe('search <body> — what the pockets cover (D24a)', () => {
     const bob = makeStuffAtPath(() => new Creature(), '/test/search/bob');
     bob.setSpecies(species);
     ContainmentApi.move(bob, room as never);
-    ContainmentApi.move(letter, bob);
+    await pocketOn(bob, letter);
     expect(PerceptionApi.perceives(mara, letter)).toBe(false);
   });
 
@@ -164,7 +173,7 @@ describe('search <body> — what the pockets cover (D24a)', () => {
     const bob = makeStuffAtPath(() => new Creature(), '/test/search/bob-awake');
     bob.setSpecies(species);
     ContainmentApi.move(bob, room as never);
-    ContainmentApi.move(letter, bob);
+    await pocketOn(bob, letter);
     expect(bob.searchRefusal(mara)?.reason).toBe('resists');
     await search(mara, bob);
     expect(said.join('\n')).toMatch(/won't let you/);

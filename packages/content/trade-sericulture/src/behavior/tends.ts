@@ -112,7 +112,8 @@ async function step(hand: Hand, direction: string): Promise<boolean> {
 /** Move by object, said aloud — the tray acts (see the header). */
 function handMoves(hand: Hand, thing: Stuff, to: Stuff & Container, line: string): void {
   if (!MixinApi.isContainable(thing)) return;
-  if (MixinApi.isCarrying(to)) to.receive(thing as Stuff & Containable);
+  // A hand's own work: taken up, else set down where it stands.
+  if (MixinApi.isCarrying(to)) to.receiveOrSetDown(thing as Stuff & Containable);
   else ContainmentApi.move(thing as Stuff & Containable, to);
   MessageApi.scene(hand).topic('act.deed').toPeers(Mml.compose`${Mml.actor(hand)} ${line}`).send();
 }

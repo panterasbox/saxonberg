@@ -149,6 +149,8 @@ function makeFighter(room: TestRoom, opts: FighterOpts = {}): TestFighter {
     { name: "torso", accepts: "WearableMixin", capacity: 2, covers: ["body.torso"] },
     { name: "grip", accepts: "WieldableMixin", covers: ["body.arm.right"] },
     { name: "offgrip", accepts: "WieldableMixin" },
+    // A sheath at the hip (size and carrying W7 — nothing loose on a body).
+    { name: "sidearm", accepts: "WieldableMixin" },
   ]);
   plan.setBodyParts([
     {
@@ -1142,8 +1144,10 @@ describe("CombatLogic — hand-slot economy (switch / sidearm / dual-wield)", ()
   function carriedWeapon(f: TestFighter, form: string): Weapon {
     const w = makeStuff(() => new Weapon());
     w.setConstruction(Construction.of(form));
-    w.setSlotClaim(planPathOf(f), ["grip"]);
-    ContainmentApi.move(w as never, f as never);
+    // The grip it is wielded in first; the sheath it rides in too.
+    w.setSlotClaim(planPathOf(f), ["grip", "sidearm"]);
+    // Sheathed at the hip — never loose on the body (the flip, W7).
+    (f as unknown as { seatInSlot(x: unknown, s: string): void }).seatInSlot(w, "sidearm");
     return w;
   }
 

@@ -141,8 +141,18 @@ export const ROSTER: Record<string, RosterRow> = {
   // ── D11's allowlist — the receiving act and what restores one ─────────
   "lib/slot/Carrying.ts :: CarryingMixin.receive :: self": {
     tag: "allow",
+    n: 4,
+    why: "D11 — receive IS the receiving act (put on by its claim; a merge onto a held or pocketed stack; two hands; a body whose plan is not known yet, not judged)",
+  },
+  "lib/slot/Carrying.ts :: CarryingMixin.receive :: where.place.host": {
+    tag: "allow",
     n: 2,
-    why: "D11 — receive IS the receiving act (put on by its claim; the loose landing until the flip)",
+    why: "D11 — receive into the carry place it chose (a pocket region or a worn container)",
+  },
+  "lib/slot/Carrying.ts :: CarryingMixin.stow :: place.host": {
+    tag: "allow",
+    n: 2,
+    why: "D16/W7 — a homeless held thing put away in the first carry place it fits",
   },
   "lib/slot/Carrying.ts :: CarryingMixin.bringToHand :: self": {
     tag: "allow",
