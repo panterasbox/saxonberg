@@ -145,6 +145,20 @@ describe('inventory — by tier (D28)', () => {
     expect(PerceptionApi.visibleContentsOf).toHaveBeenCalledWith(me, ruth);
   });
 
+  /**
+   * ⭐ The browser walk: a body's other things read "In it: an aether
+   * implant and a key" — a person (or a mule with its panniers) is not a
+   * box. What a body has that is neither worn nor held, it is CARRYING.
+   */
+  it('⭐ a body carries — never "In it"', async () => {
+    const { me } = await kitted();
+    const { me: ruth } = makeBody();
+    vi.spyOn(PerceptionApi, 'visibleContentsOf').mockReturnValue({ worn: [], held: [], carried: [tool('lantern', 1)], shut: false });
+    const out = await inventory(me, { target: { stuff: ruth, raw: 'ruth' } });
+    expect(out).toMatch(/── Carrying: [^\n]*lantern/);
+    expect(out).not.toMatch(/In it:/);
+  });
+
   it('`i belt`: what hangs from it and the room left, in words', async () => {
     const { me, belt } = await kitted();
     const out = await inventory(me, { target: { stuff: belt, raw: 'belt' } });

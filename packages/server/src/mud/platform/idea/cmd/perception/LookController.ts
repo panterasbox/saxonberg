@@ -767,7 +767,9 @@ export default class LookController extends CommandController<LookModel> {
       };
       group('Wearing', v.worn);
       group('Holding', v.held);
-      group('In it', v.carried);
+      // ⭐ A body is not a box: it is CARRYING what it neither wears nor
+      // holds (the browser walk read "In it: an aether implant and a key").
+      group(target.isAgent() ? 'Carrying' : 'In it', v.carried);
     }
 
     // Close look: attending to a container peers in for anything

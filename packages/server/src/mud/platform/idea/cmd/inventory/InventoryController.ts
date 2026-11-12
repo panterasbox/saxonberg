@@ -141,7 +141,10 @@ export default class InventoryController extends CommandController<InventoryMode
       lines.push(Mml.compose`${Mml.actor(target)}`);
       if (v.worn.length) lines.push(Mml.compose`── Wearing: ${list(v.worn)}.`);
       if (v.held.length) lines.push(Mml.compose`── Holding: ${list(v.held)}.`);
-      if (v.carried.length) lines.push(Mml.compose`── In it: ${list(v.carried)}.`);
+      // ⭐ A body is not a box: what it has that is neither worn nor held,
+      // it is CARRYING (the browser walk read "In it: an aether implant").
+      const carrying = target.isAgent() ? 'Carrying' : 'In it';
+      if (v.carried.length) lines.push(Mml.compose`── ${carrying}: ${list(v.carried)}.`);
       if (lines.length === 1) lines.push(Mml.compose`── Nothing you can see.`);
     }
     const body = lines.reduce((acc, line) => Mml.compose`${acc}\n${line}`);
