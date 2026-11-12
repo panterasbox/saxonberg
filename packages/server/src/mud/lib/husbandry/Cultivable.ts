@@ -75,6 +75,8 @@ import type { Slottable } from "../slot/Slottable";
 import type { Bulkable } from "../bulk/Bulkable";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
+import type { Containable } from "../spatial/Containable";
+import type { VetoResult } from "../errors";
 
 // The soil surface is re-exported here because it was born here: every
 // shipped importer (the `water` verb, the `feed` verb, their tests) names
@@ -205,6 +207,22 @@ export function CultivableMixin<
       ],
       environment: [],
     };
+
+    /**
+     * ⭐ A plant stands IN the ground; it is not packed into a box (size
+     * and carrying drive, 2026-11-12: a fresh world would not boot — the
+     * hevea tub's tree did not pass the tub's derived mouth, a coppice
+     * panel's birch nor a silk-house bed's mulberry its room). It roots in
+     * the soil and its crown stands in the open air above, so the tape
+     * measure the default veto applies (the mouth, the room inside) never
+     * asks it: how many a bed holds is its plant slot's capacity, which
+     * `plant` gates. Anything else is a thing put in the bed, and the box
+     * rule decides it.
+     */
+    public canAddContainable(thing: Stuff & Containable, how?: { placed?: boolean }): VetoResult {
+      if (MixinApi.isGrowing(thing)) return { ok: true };
+      return super.canAddContainable(thing, how);
+    }
 
     /** The soil's own checkpoint fields are declared by `SoilMixin`. */
     static fieldMeta: FieldMeta = {
