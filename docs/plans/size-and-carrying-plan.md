@@ -1951,7 +1951,7 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
 
 **✅ Done — code half (50f562ed4; pre-flip de3463905 · 09039a4d2 · 67d2820aa · 4e0bd57f4 · 75b62314c).** Pre-flip: the census rule fixed so an emptiness test is no threshold (614 → 508, the W5 dodge removed); `controller-resolution` 83 → 80 (`Carrying.carriedTiers`), `graph-walks` 1 → 0 (`Container.getCarriedContents`), `test-content` clean — no ceiling rose; what hangs widens the body (thinnest side, either flank — the laden mule refused at the 0.8 m paddock gate, the leader told *its canvas panniers won't go through*); the lead hangs from the halter, a no-slot pouch hangs from the worn belt (`receive`'s hang rule; outfits are `{ for: 'wear' }`), an owned host keeps its pairs across a restart (`hostChattelId`/`placedOn`, pass 6); a hand holds any good (`Good`/`Vessel` slottable once; a carrier's hand takes any slottable). The flip: the veto with its two admissions (arriving placed; `admitWhile`), `receive` as one resolution, the three D-W7a methods across every census site, `onRestored → placeLoose`, `returnBorrowed`, LoadBearing pass (a) retired (`HELD_SURCHARGE`), `held` = a hand everywhere (MQL `:worn`/`:held`/`:carried`, `wornStack`, equip), `get` refuses in words, `ready` refuses `pick-up` for a portable thing on the floor. Decisions W7-a…W7-k above. **Siblings at the flip** (`./tools/wt-status`, 2026-11-12): build-2 holds `build/controller-liquidity` (merged !561); build-3 `reqs/navigation` and build-4 `reqs/load-on-use` are in requirements — no sibling mid-drive. Verified: server typecheck; the 24 touched packs' typecheck; branch-wide `test:near` (1153 files / 11117 tests green); **every pack's vitest** (54, all green); **every `lint:*` individually (109, all green)**. Full suite not run (code-complete runs it). ⚠ For the drive pass: `get` is the receiving act (a hand, then a pocket or bag it fits; a no-slot pouch onto the belt) and a direct `ContainmentApi.move` onto a planned body throws `loose-on-body` — staged steps must `testharness hand` (granted: hand/pocket, else the residence when its room is live, else at the feet with a line); a body with no known plan is not judged; the residence overflow finds only a LIVE room; cash the ledger moved is granted, not pre-checked (a follow-up); `put X in <person>` is handing; Gus's vest has two pockets now; the docs graduation (carrying.md, size.md, encumbrance/embodiment/spatial/slot/mql/perception/locomotion/boundary) and the `carrying` wiki guide are the docs pass's.
 
-### W8 — move just works; the body places what arrives (owner review, 2026-11-12)
+### W8 — move just works; the body places what arrives; no synonym for move (owner review, 2026-11-12)
 
 **Why.** Owner review of `lib/slot/Carrying.ts` (1,780 lines, 35 interface members): *"a camel or
 hydra or blind man's elephant … something very unwieldy."* Then the constraint that decides the
@@ -1977,11 +1977,15 @@ in location, move shouldn't be telling you it did."*
    feet or anywhere but the body. A non-carrying body (a fish, a canary) has no honest place for
    anything, so `move(item, fish)` throws: a fish's inside is a stomach, not a pocket (lens 3a — the
    fiction cannot betray itself; lens 2 — the author learns at the first call, not in play).
-3. **UX lives where it is needed.** A caller that wants a graceful outcome asks ONE question first —
-   `body.canReceive(item)` — and chooses explicitly: refuse a purchase before money moves; set a
-   made thing down on the bench; overflow a restored body's loose things to its residence. The
-   fallback moves are the caller's own explicit `move(item, place)`. That is the only extra
-   interface an author ever meets, and only when they want a refusal.
+3. **UX lives where it is needed, and there is no synonym for `move`.** A caller that wants a
+   graceful outcome asks ONE question first — `container.canReceive(item)`, **on every
+   `Container`** (lens 2 + P2: every container genuinely answers *would this arrive in me* — a chest
+   by its fit, a canary *nowhere to carry that*, a carrier by hand → pocket → pack; no caller narrows
+   before asking) — and chooses explicitly with the two calls that exist: `move(item, body)`, else
+   `move(item, <where it was made>)`. Owner: *"why do we need `deliver()`? Every time you invent a
+   synonym for `move()` you're making it harder for everyone else in the game."* There is exactly one
+   movement verb. The fallback lives on the **owner of the mint path** (the method that makes the
+   thing), and so does any *you set it down* line — never on containment.
 4. **The invariant is not the capability** (owner, earlier the same day). *Nothing sits loose on a
    body* is every `Creature`'s destination rule and fails closed; the hand/tier/ready/home
    capability composes only on the classes whose bodies carry.
@@ -2048,10 +2052,11 @@ destination says (a hand, a pocket's pair, a worn bag's inside), and nowhere els
 
 | piece | host | signature | what it does |
 |---|---|---|---|
-| **the hook** | `ContainerMixin` (`lib/spatial/Container.ts`), beside `canAddContainable` | `@hook arrivalFor(item: Stuff & Containable, how?: { placed?: boolean }): Arrival` where `Arrival = { kind: 'contents' } \| { kind: 'seat'; slots: string[] } \| { kind: 'pair'; host: Stuff & Placing; region: string } \| { kind: 'into'; container: Stuff & Container } \| { kind: 'refuse'; refusal: ReceiveRefusal }` | the default is `{ kind: 'contents' }` — every ordinary container takes an arrival into its contents, exactly as today. The tape measure (`canAddContainable` → `fitRefusal`) is unchanged and still runs in `moveCore` on whatever container the thing finally enters |
+| **the hook** | `ContainerMixin` (`lib/spatial/Container.ts`), beside `canAddContainable` | `@hook arrivalFor(item: Stuff & Containable, how?: { placed?: boolean }): Arrival` where `Arrival = { kind: 'contents' } \| { kind: 'seat'; slots: string[] } \| { kind: 'pair'; host: Stuff & Placing; region: string } \| { kind: 'into'; container: Stuff & Container } \| { kind: 'refuse'; refusal: ArrivalRefusal }` | the default is `{ kind: 'contents' }` — every ordinary container takes an arrival into its contents, exactly as today. The tape measure (`canAddContainable` → `fitRefusal`) is unchanged and still runs in `moveCore` on whatever container the thing finally enters |
+| **the dry read** | `ContainerMixin`, beside the hook | `canReceive(item: Stuff): ArrivalRefusal \| null` with `ArrivalRefusal = FitRefusal \| ActRefusal<'refused-by-container', { said: string }> \| ActRefusal<'nowhere-to-carry', { item: Stuff; held: Stuff[]; tried: Stuff[] }> \| ActRefusal<'too-heavy'> \| ActRefusal<'cannot-grip', { why }> \| ActRefusal<'hands-on-cart', { cart }>` — declared in `Container.ts` (Carrying's `ReceiveRefusal` is its carrier subset; `lib/spatial` cannot import `lib/slot`) | the default: `arrivalFor(item)` refused → that refusal; else `canAddContainable(item)` not ok → `refused-by-container { said }` (a `Store`'s own veto, a `Well`'s); else null. **Every container answers**; `Creature` and `Carrying` override `arrivalFor` only — `canReceive` reads it. No caller narrows `isCarrying` to ask |
 | **the invariant** | `Creature` (`lib/creature/Creature.ts`) overrides | `arrivalFor(item, how)`: `how.placed` · `item.isAgent()` · `this.isSeating(item)` · `this.isAdmitting(item)` → `contents`; else `{ kind: 'refuse', refusal: { reason: 'nowhere-to-carry', facts: { item, held: [], tried: [] } } }`. **No plan escape**: `isJudged` is deleted | a body with no capability to carry has no honest place for a loose arrival. `admitWhile`/`isAdmitting` move here (gate unchanged: `AnyOf(SelfOnly, FromModule(PersistableLogic))`). `canAddContainable` on `Creature` reverts to the Container default (the tape measure) — the `loose-on-body` veto is replaced by the hook, which is asked first |
 | **the seating mark** | `Slotted` (`lib/slot/Slotted.ts`) | `seatInSlot(item, slot)` (exists) and new `seatInSlots(item, slots)` (the `move` + `occupyAll` pair Carrying writes four times today) mark `_seating` for the move's duration (`try/finally`); `isSeating(item): boolean` | `Slotted` cannot import `Creature`; it marks, the body reads. A rack's mark is a no-op |
-| **the capability** | `CarryingMixin` on the carrier classes, base constraint `MixinConstructor<Creature>` | overrides `arrivalFor`: the admissions → `super`; else D11's order (`resolveReceive`, verbatim): already in a hand → `contents`; a handless body handed its tack → `seat` (the claim); a hanging pouch → `pair(belt, from)`; a stack meeting its like → `into`/`contents` (merge); a free hand by `carry.order` → `seat`; the first carry place that fits → `pair` (a pocket) or `into` (a worn bag); else `refuse` (`too-heavy` · `cannot-grip` · `hands-on-cart` · `nowhere-to-carry {item, held, tried}`) | **one resolution, two readers**: `move` performs it and `canReceive(item)` reports it dry, so the pre-check and the act cannot disagree |
+| **the capability** | `CarryingMixin` on the carrier classes, base constraint `MixinConstructor<Creature>` | overrides `arrivalFor`: the admissions → `super`; else D11's order (`resolveReceive`, verbatim): already in a hand → `contents`; a handless body handed its tack → `seat` (the claim); a hanging pouch → `pair(belt, from)`; a stack meeting its like → `into`/`contents` (merge); a free hand by `carry.order` → `seat`; the first carry place that fits → `pair` (a pocket) or `into` (a worn bag); else `refuse` (`too-heavy` · `cannot-grip` · `hands-on-cart` · `nowhere-to-carry {item, held, tried}`) | **one resolution, two readers**: `move` performs it and `Container.canReceive(item)` reports it dry, so the pre-check and the act cannot disagree. `Carrying` does not override `canReceive` |
 | **the chokepoint** | `ContainmentLogic.move` (:87), a third branch | `if (to !== null && to.isAgent())`: `const a = callHook<Arrival>(to, 'arrivalFor', [item, { placed: false }])` → `contents` → `moveCore`; `seat` → `(to as Slotted).seatInSlots(item, a.slots)` (which re-enters `move` under the mark → `contents`); `pair` → `this.move(item, a.host, a.region)` (the existing `placeOn`: the body is the host's environment, the pair is stamped); `into` → `this.move(item, a.container)` (a worn bag's own tape measure); `refuse` → `throw new ContainmentError(words, { reason, facts })` | `ContainmentError` gains `reason?: string; facts?: unknown` (an existing class). The message is for the AUTHOR (*"`move`: the lantern has no place on Bob — hands hold the mug and the map; tried the coat's pockets, the satchel"*); the PLAYER's sentence is the controller's, from `canReceive` (below) |
 | the unplace branch (:110-118) | `ContainmentLogic.move` | a placed thing moved into the body it already stands in asks `arrivalFor` like any arrival (a key out of a pocket goes to a hand), never a veto | the one behavior change on this branch: today it is refused; now it is placed. `get key from pocket` is `bringToHand` anyway |
 | `MixinApi.isCarrying` | `api/mixin.ts:2103` | `obj is Creature & Carrying` | the 168 sites keep compiling |
@@ -2069,9 +2074,9 @@ destination says (a hand, a pocket's pair, a worn bag's inside), and nowhere els
 **What a non-carrying body answers, by lens.** `move(item, fish)` throws — no line, no feet. Lens 3a:
 a fish has no pocket, and a thing "in" it would be in its stomach; lens 2: the author who staged it
 learns at the call. A verb that can face one (`give`, `put X in <person>`) asks `canReceive` first —
-which a non-carrier does not have — so those controllers narrow `isCarrying` and, for a `Creature`
-that is not, word *"The canary has nowhere to carry that"* with nothing moved (the one wording site
-takes `{ reason: 'nowhere-to-carry' }` for it).
+**on the recipient as a `Container`, with no narrowing** — and the canary answers
+`nowhere-to-carry` by `Creature.arrivalFor`; the controller words it from the one site (*"The canary
+has nowhere to carry that"*), nothing moved.
 
 **The fail-closed ordering** — every legitimate way onto a body:
 
@@ -2096,14 +2101,35 @@ stays. Every site reverts to `ContainmentApi.move(item, body)` unless it wants a
 |---|---|---|
 | **the port idiom** `isCarrying(x) ? x.receive(i) : move(i, x)` (every site below, plus the 18 `receive` files: `GetController:243/560`, `HeldGoodsControllerBase:104`, `ContainmentLogic:259`, `TipJar:85`, `LineEnd:125`, `Rope:625/669`, `Store:1005`, `Avatar:1410` (a `slot:` → `seatInSlot`), `arms.ts:64` (`slots` → `seatInSlots`), `EquipControllerBase:822` (`for: 'wear'` → `seatInSlots(claim)`), `DormWarren:225`, `AirBag:120`) | ~30 | **plain `move`**; the narrowing goes |
 | **handed** — `canReceive` then the move, a write between (`GiveController:78/111`, `HeldGoodsControllerBase:91/104`, `ContainmentLogic.putPlanFor:208/259` (plan vs `onComplete`), `Rope:621/659`, `LineEnd:121`, `Store:1002`, `GetController:237/486`, `ConsignmentShelf:434` + `handOver`, `DormWarren:224`, `AirBag:116`) | 10 files / 15 | **`canReceive` + plain `move`** — unchanged shape, `receive` → `move`. The two phases are structural (an engagement, or money, between) — `receiveHanded(item, write)` with a callback was considered and rejected |
-| **made** — `receiveOrSetDown(item, at?)`: a craft output, a yield, a catch, the pieces a cut leaves, a drink made for you (`CraftingLogic:2738/5039`, `Store`, `Rope`, 21 kernel `lib/` sites, 8 `platform/thing/`, 2 `cmd/`, and 41 pack sites in 22 packs) | **57 files / 76 sites** | each wants the graceful outcome the requirements promise (*never refused after the inputs are spent*): `canReceive(item) === null ? move(item, body) : move(item, at ?? place)` + the one line. ⭐ **Owner question 1** (below): written **once** as `ContainmentApi.deliver(item, body, at?)` — an orchestration static over two destinations, the shape an Api exists for, which never lies (it returns `'carried' \| 'set-down'` and the thing is where it says) — or written out at the 76 sites. The plan assumes `deliver`; the sites become `ContainmentApi.deliver(output, maker)` with no narrowing |
+| **made** — `receiveOrSetDown(item, at?)`: a craft output, a yield, a catch, the pieces a cut leaves, a drink made for you | **73 sites in 68 minting methods** (the table below) | each wants the graceful outcome the requirements promise (*never refused after the inputs are spent*), written with the two calls that exist on the **owner of the mint path**: `if (maker.canReceive(made) === null) ContainmentApi.move(made, maker); else ContainmentApi.move(made, at ?? here)` and that owner's (or its controller's) *you set it down* line. **No `deliver`, no helper, no new name** (owner) |
 | **granted** — `receiveGranted` (18 sites): loadouts `Login:352`, `EmbodyController:770`, `Character:227` (`{for:'wear'}`), `Gus:111` (`{slots}`) | 4 | `seatInSlots(garment, claim)` — *wear it* is a seating, said exactly |
 | granted: a minted thing after a write — `BankingLogic:468/1948` (coins after the ledger post), `:2167` (a card), `Lock:235` (a key), `Store:883` (a paper), `HeldGoods:215` (a ticket), `tpa/ProcureCardController:35` (a card) | 7 | **`canReceive` before the write, then plain `move`** — the ledger's cash pre-check the plan deferred becomes mandatory (a thing minted after money moved must not throw); `BuyController`/`ProcureCard` word the refusal |
 | granted: `Gus:123` (`prefer: 'pockets'`), `Template:671` (props), `TestHooks:676` (the harness `hand`), `DormWarren:240` | 4 | **plain `move`** (Gus's row can set `carry.order: pockets-first`; a harness `hand` that throws is the test's finding) |
 | granted: `Estate:355` (an owned good re-placed on restore) | 1 | the restore path — `admitWhile` + `move`, as `restoreItem` |
 | **restore** — `placeLoose` → `receiveGranted` per loose thing | 1 (Carrying's own) | `canReceive` → `move(item, this)`, else `move(item, residence ?? here)` + the line (the one overflow) |
-| **unequip** — `settleReleased` (`UnequipControllerBase:311`) | 1 | deleted; the controller: `wieldy && giver.stow(target) === null`, else `ContainmentApi.deliver(target, giver)` |
+| **unequip** — `settleReleased` (`UnequipControllerBase:311`) | 1 | deleted; the controller: `wieldy && giver.stow(target) === null`, else `giver.canReceive(target) === null ? move(target, giver) : move(target, here)` + its line |
 | the `lint:body-moves` roster's `inherit`/`allow`/`not-body` rows | 44 | untouched — they were never body destinations |
+
+**The made paths, grounded** (`grep '\.receiveOrSetDown('`, each site's enclosing method): the 73
+sites sit in **68 distinct minting methods** — they do **not** collapse through shared paths. The
+shared ones, where the fallback is written once and covers every act through it:
+
+| path owner (method) | sites it covers | where the two-line fallback lives |
+|---|---|---|
+| `CraftingLogic.landOutput` (:2738) — every recipe's product; `consumeItemInputs` (:5039) — what an input gives back | every `craft`-resolved recipe in the game | once each, in the Logic; the *set down on the bench* line is the craft completion's |
+| `Producing.mintTake` (`lib/husbandry/Producing.ts:1096`) — every tap yield; `Growing.growingPickPlan`/`landSwath` (:1125/:1291) — every harvest | every species' production, every harvest | once each, on the producing/growing mixin |
+| `Mould.castInto` ×2 + `mintRunner` + `pressRelease` (4) | every cast | on `Mould` (one private fallback it calls four times) |
+| `Trap.pullBy` ×3 (fishing), `Gather.crackOff` ×2 (glass), `CuttingTool.finishCut` ×2 (tailoring) | the traps, the gathers, the cuts | one private fallback per class |
+| the `tear` family — `Book`, `Envelope`, `Sheet`, `Garment` (4 classes, one each) | a torn thing's halves | each class's own `tear` (no shared base; four lines each) |
+| the `completeSplit` family — `Hive`, `Wheel`, `Block` (3 packs) | a split's second half | each class's own |
+| the rest — 50 methods with one site each (`Burner.mintAshHeaps`, `Flued.takeSoot`, `Floor.sweepInto`, `Consumable.consume`, `Integrity.sufferImpact`, `ThrownLanding.settle`, `Line.mintEnd`, `Store.payOut`, `Thermal.setCrystals/setLump`, `Menu.orderPlanFor`, `BulkableLogic.loseReceiver`, `ConditionLogic.reembodyImpl`, `CloneController` ×2, `Plant` ×2, `Rope.cutOff`, `LineEnd.followLoad`, and 31 pack methods in 20 packs) | one act each | each on its owner — two calls and, where the act narrates, its line |
+
+Three of the 73 were never *made*: `ConsignmentShelf.handOver` (:445) and `MarketStalls.giveUp`
+(:363) are the second half of a **handed** act whose `canReceive` already ran — plain `move`; and
+`Container.cleanupOnDestruct` (:695) evacuates a destroyed container's contents to its holder — a
+place or a body, `canReceive` then `move`, with no line. The builder confirms each site against
+the rule (*is the thing already pre-checked? is there a bench?*) as it ports; the count is the cost
+of having one movement verb, and the owner chose it.
 
 **`lint:body-moves` retires.** It was the census that found sites to port to `receive`; with `move`
 honest there is nothing to port and nothing a gate could count — a direct `move` onto a body is
@@ -2116,7 +2142,7 @@ the way on, and a body with no place throws at run time. The script and its rost
 | member | → | callers | new signature | why |
 |---|---|---|---|---|
 | `receive`, `receiveOrSetDown`, `receiveGranted`, `settleReleased`, `admitWhile`, `isAdmitting` | **gone / to `Creature`** | above | — | the arrival hook and `move` |
-| `canReceive(item)` | **stays** | 10 files | `canReceive(item: Stuff): ReceiveRefusal \| null` (the `opts` go: `prefer`/`slot`/`slots`/`for` were `receive`'s) | the one question a verb asks for a refusal in words; `arrivalFor`'s dry read |
+| `canReceive(item)` | **→ `Container`** | 10 files today; every handed and made site after | `canReceive(item: Stuff): ArrivalRefusal \| null` on `ContainerMixin` (the `opts` go) | every container answers *would this arrive in me*; the carrier's answer comes through its `arrivalFor` override, not a `canReceive` of its own |
 | `handSlots`, `heldThings`, `wears` | **`Attired`** | 12 / 8 / 2 files | bodies verbatim; `wornStack`, `Slotted.fitsSlotSpec`, `Wieldable.fitsSlot` narrow `isAttired` | the body-side slot substrate's fact; three mixins beneath Carrying ask it today |
 | `freeHands` | stays | 5 files | unchanged | the carrier's composite (hands ∧ empty ∧ `canGrip` − the cart's `getHandedness()`) |
 | `handsFor`, `carryPlaces`, `resolveReceive` | private | 0 external | — | asked through `arrivalFor`/`canReceive`/`wieldPlanFor` |
@@ -2140,11 +2166,11 @@ the way on, and a body with no place throws at run time. The script and its rost
 | `putAwayPhrase`, `drawPhrase` | → `CommandController` | — | `public readiedWords(giver, out: ReadiedOutcome): { self; peer }` | beside the refusal words |
 | `settings`, `captureSlice`/`hydrateSlice`, `CARRYING_DEFAULTS` (`ONE_HAND_FRACTION`, `TWO_HAND_LENGTH`), `onRestored` | stay | — | — | the carrier's |
 
-**The `Carrying` surface after W8 — 15 members (from 35):** `canReceive` · `freeHands` ·
-`wieldPlanFor` · `handsToFree` · `tierOf` · `homeOf` · `setHome` · `isHonest` · `ready` · `bringToHand`
-· `stow` · `releaseHeld` · `gearNoise` · `placeLoose` · `returnBorrowed` — plus the `arrivalFor`
-override (a hook, not interface) and `onRestored`. An author meets none of them to stage a thing:
-`move(item, body)`.
+**The `Carrying` surface after W8 — 14 members (from 35):** `freeHands` · `wieldPlanFor` ·
+`handsToFree` · `tierOf` · `homeOf` · `setHome` · `isHonest` · `ready` · `bringToHand` · `stow` ·
+`releaseHeld` · `gearNoise` · `placeLoose` · `returnBorrowed` — plus the `arrivalFor` override (a
+hook, not interface) and `onRestored`. An author meets none of them: to stage a thing,
+`move(item, body)`; to ask first, `container.canReceive(item)` — both on every container.
 
 #### Q3 — retail, measured
 
@@ -2180,14 +2206,14 @@ body's exposure (a candidate `Attired.shows`); the ordinal arithmetic exists thr
   `ContainmentError.reason/facts`; the body branch in `ContainmentLogic.move` (+ the unplace branch asks
   the hook); `Slotted.seatInSlots` + the seating mark + `isSeating`; `Creature.arrivalFor` (the
   invariant, fail-closed) + `admitWhile`/`isAdmitting` moved there, `canAddContainable` reverted to the
-  tape measure, `isJudged` deleted; `Carrying.arrivalFor` (today's `resolveReceive`) + `canReceive(item)`
-  over it; `receive`/`receiveOrSetDown`/`receiveGranted`/`settleReleased` deleted;
-  **`ContainmentApi.deliver(item, body, at?)`** (if Q1 says so) with the made line; `Carrying` off
+  tape measure, `isJudged` deleted; `Container.canReceive(item)` (the dry read; `ArrivalRefusal` declared in `Container.ts`);
+  `Carrying.arrivalFor` (today's `resolveReceive`); `receive`/`receiveOrSetDown`/`receiveGranted`/
+  `settleReleased`/Carrying's `canReceive` deleted; `Carrying` off
   `CreatureBase`, onto `Character`, `DraftAnimal`, `platform/agent/KeptAnimal`, `WorkingAnimal`, base
   constraint `MixinConstructor<Creature>`; `isCarrying` → `Creature & Carrying`; `restoreItem` narrows
   `instanceof Creature`; `Carrying.onRestored` → `placeLoose` (+ `placesLooseOnRestore`). **The caller
-  sweep** per the table: ~30 port-idiom sites → `move`; 15 handed sites `receive` → `move`; 76 made
-  sites → `deliver`; 4 loadouts → `seatInSlots`; 7 minted-after-a-write → `canReceive` first; 4 → `move`;
+  sweep** per the table: ~30 port-idiom sites → `move`; 15 handed sites `receive` → `move` (and their `isCarrying` narrowing before `canReceive` goes);
+  73 made sites → the two calls on their 68 owners (the table); 4 loadouts → `seatInSlots`; 7 minted-after-a-write → `canReceive` first; 4 → `move`;
   `Estate` → the restore path. **`lint:body-moves` retired** (script, roster, `package.json` line,
   `lint-family.md` row). Tests: `Carrying.receive.test` → `ContainmentLogic.arrival.test.ts` (*a mug
   moved onto a person lands in a hand; a second in the other; a key in a pocket; a fourth throws
@@ -2195,11 +2221,10 @@ body's exposure (a candidate `Attired.shows`); the ordinal arithmetic exists thr
   owner goes to a hand*); `Creature.veto.test.ts` (*throws with no species row; passes seated, placed,
   agent, admitted; a hog restored with contents passes; `move(item, fish)` throws; a Beast, a Livestock,
   a Fish are not Carrying; a Character, a DraftAnimal, a KeptAnimal, a WorkingAnimal are*);
-  `Carrying.flip.test`'s "made: set down with a line" → `deliver`; "D32 restore places" unchanged;
+  `Carrying.flip.test`'s "made: set down with a line" → a `CraftingLogic.landOutput` case; "D32 restore places" unchanged;
   `Avatar.flip-restore.test` unchanged; `Template.props-too-big.test` gains *a prop into a fish is a
-  diagnostic*. Gates: `lint:mixin-names`, `lint:duck-typing`, `lint:instanceable`, `lint:object-verbs`
-  (`deliver` is orchestration over two destinations — the Api's job, not a verb on a host; name the
-  caller audit in the commit), `lint:imports`; packs: ranching, fishing, shopkeeping and the 22 made
+  diagnostic*. Gates: `lint:mixin-names`, `lint:duck-typing`, `lint:instanceable`, `lint:object-verbs` (0 — no
+  Api static takes a host first; `canReceive` is a method on the container), `lint:imports`; packs: ranching, fishing, shopkeeping and the 22 made
   packs' vitest.
 - **W8b — the hands are Attired's.** `handSlots`, `heldThings`, `wears` → `Attired`; `halter`,
   `carriedThings` deleted; `handsFor`, `carryPlaces` private; `homeRegionOf` folded;
@@ -2217,7 +2242,7 @@ body's exposure (a candidate `Attired.shows`); the ordinal arithmetic exists thr
 - **W8g — the sibling seams + retail's carry facts.** The fixed list; `SaleOutcome.facts.carry`.
 - **W8h — the docs.** `carrying.md` rewritten around *`move` is the receiving act* (the Cast: the hook
   on `Container`, the invariant on `Creature`, the mark on `Slotted`, `Carrying` on four classes; the
-  idiom table: plain `move` · `canReceive` + `move` · `deliver` · `seatInSlots`; § What a non-carrier
+  idiom table: plain `move` · `canReceive` + `move` (handed) · `canReceive` + `move`-or-`move`-here (made, on the mint path's owner) · `seatInSlots` (wear); § What a non-carrier
   answers; the one overflow on restore), `spatial.md` (`arrivalFor` beside `canAddContainable`; the
   Placing precedent; `move` never lies), `antipatterns.md` (the `move` row in the Api table: *a body is
   a destination that places what arrives*; `receive`/`receiveOrSetDown` gone), `slot.md`,
@@ -2244,7 +2269,8 @@ is the receiving act`.
   only `Store.receive`/`Warehouse.receive`, which are the storage protocol's).
 - **No new mixin, Api, class, registry or document kind.** `arrivalFor` is a hook on an existing
   mixin with **three** implementers (Container default, Creature, Carrying); `seatInSlots`/`isSeating`
-  sit beside `seatInSlot`; `deliver` is a static on an existing Api; `carryRefusalWords`/`readiedWords`
+  sit beside `seatInSlot`; `canReceive` is a method on an existing mixin; **no new `ContainmentApi`
+  name**; `carryRefusalWords`/`readiedWords`
   are methods on an existing class; `Arrival`/`ReadiedOutcome` are types.
 - **No ceiling rises**: `lint:lib-statics`, `lint:object-verbs`, `lint:controller-decisions`,
   `lint:controller-mutations`, `lint:perceived-surfaces` (0), `lint:duck-typing`, `lint:mixin-names`,
@@ -2260,12 +2286,16 @@ is the receiving act`.
 - **Re-entrancy in `move`**: `seat` re-enters `move` under the seating mark; `pair` re-enters
   `placeOn`; `into` re-enters for the bag. Each re-entry is a different destination shape (contents ·
   environment · a plain container), so no cycle — the test pins a mug, a key, a pouch, a packed thing.
-- **`deliver`'s line** is a model-side event line (the `Rope.tieTo` / `Vitals` precedent), sent by the
-  Api, 76 sites — the alternative is 76 copies.
+- **68 copies of two lines.** The made fallback is written on 68 mint-path owners; the risk is drift
+  (one site forgetting the `canReceive`, which then throws at a full body after the inputs are
+  spent). Mitigation: the rule is three greppable tokens (`canReceive` · `move(x, maker)` ·
+  `move(x, here)`), and the drive's made steps (a craft, a harvest, a catch at full hands) pin the
+  three biggest owners. Accepted by the owner as the cost of one movement verb.
 - **The dispatcher order change** (W8d): the controller clone moves ahead of a refusing step; the
   refusal path destructs it as every early return does (`CommandGiver.ts:1820`).
 - **The seating mark on a throw** inside `occupyAll` — `try/finally`, the shape `admitWhile` has.
-- **`receiveOrSetDown` across 22 packs**: a mechanical rename to `deliver` (B4's content grep).
+- **`receiveOrSetDown` across 22 packs**: 73 sites rewritten by hand to the two calls (B4's content grep
+  finds any left).
 - **The minted-after-a-write sites** (7) gain a `canReceive` pre-check that did not exist — a full
   body buying a card is refused before the charge, which is the requirements' handed rule applied
   where the plan had deferred it.
@@ -2273,12 +2303,13 @@ is the receiving act`.
 #### The review questions for this wave
 
 - **P1** — `arrivalFor` is the one new hook: three implementers, each a different answer (contents ·
-  refuse · place), promoted at the third, not invented; `deliver` is an orchestration static on the
-  existing Api; everything else is a method moved to the class that owns its fact. Searched: a
+  refuse · place), promoted at the third, not invented; `canReceive` is its dry read on the same
+  mixin; **no new Api name** (the owner struck `deliver`); everything else is a method moved to the
+  class that owns its fact. Searched: a
   destination-side placement seam (`placeOn` — the precedent reused), a shared refusal-wording helper
   (none), a hands read (`Attired.handSites`, reused), a seating entry (`seatInSlot`, pluralized).
 - **P2** — `Container.arrivalFor` default is a no-op on every container (contents, as today);
-  `Creature` (every body): the rule is about what a body's contents may be — a fish means it;
+  `Container.canReceive` default is the fit/veto read every container already has; `Creature` (every body): the rule is about what a body's contents may be — a fish means it;
   `Slotted`'s mark is a no-op on a rack; `Carrying` on the four carrier classes: hands or tack by plan;
   `Attired` (Creature, Corpse): hands by plan; `LoadBearing` (Creature); `CommandController` (every
   verb may ready or hand). No guard re-narrows a host; no plan escape remains.
@@ -2294,22 +2325,21 @@ is the receiving act`.
 - **P7** — the plan is awaited where a body is made or restored, never searched; the hook needs no
   plan; `switchSecondsFor` reads dials at use.
 - **P8** — `arrivalFor` (the destination answers *where does this arrive on me*, beside
-  `canAddContainable`), `deliver` (the made counterparty's verb), `seatInSlots`, `wieldPlanFor`,
+  `canAddContainable`), `canReceive` (its dry read, the common word), `seatInSlots`, `wieldPlanFor`,
   `handsToFree`, `poseRefusal`, `carryRefusalWords`/`readiedWords`. No class renamed.
 
-#### Owner questions (two)
+#### Owner rulings on the two questions (2026-11-12) — folded in
 
-1. **`ContainmentApi.deliver(item, body, at?)` — or 76 explicit copies?** The made idiom (*never refused
-   after the inputs are spent; set down where made, with a line*) is wanted at 76 sites in 22 packs +
-   the kernel. The plan writes it once as an orchestration static that never lies (it returns where the
-   thing went). The alternative — `canReceive` + two `move`s + the line at every site — is the rolodex
-   in another form. Lens 2 says once; the plan assumes it.
-2. **A handed thing to a non-carrier: who says "the canary has nowhere to carry that"?** The plan has
-   `give`/`put X in <person>` narrow `isCarrying` and word it from the one site when the target is a
-   `Creature` that is not a carrier — a controller-side decision (*is this a body that carries?*) that
-   P5 would rather see on the model. The alternative is `canReceive` on **every** Creature (the
-   non-carrier's answering `nowhere-to-carry` by construction), which puts one capability method on
-   the invariant's host. Lens 2 vs P2; the plan picks the controller narrowing, and asks.
+1. **No `ContainmentApi.deliver`.** *"Every time you invent a synonym for `move()` you're making it
+   harder for everyone else in the game."* The made fallback is the two calls that exist, on the owner
+   of the mint path; the made-path table above is the count (73 sites, 68 owners).
+2. **`canReceive` lives on `Container`.** Every container answers; no caller narrows; `Creature`
+   answers the invariant's refusal for a non-carrier through `arrivalFor`; `Carrying` overrides
+   `arrivalFor` only.
+
+**Still the owner's:** nothing in W8. Two notes for the sweep, not questions: `Carrying.ts` could move
+to `lib/creature/` now that its base is `Creature` (≈100 imports); and the `ForSale` reshape to facts
+(3 implementers, one in `transport`) is retail's build.
 
 ## Reachability wiring
 
