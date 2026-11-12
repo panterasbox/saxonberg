@@ -456,7 +456,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       const placement = this.getPlacement();
       if (placement !== null) {
         // Resident with the host and with the restored thing (documents D7).
-        if (ContainmentApi.placements().need(placement.name).getEncloses()) {
+        if (placement.host.placementOf(placement.name).getEncloses()) {
           return placement.host as unknown as Stuff;
         }
       }

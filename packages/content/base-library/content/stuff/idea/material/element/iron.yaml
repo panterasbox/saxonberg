@@ -15,6 +15,8 @@ data:
   # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
   hardness: 350
   toughness: 120
+  # Size and carrying D4: what a strap, a belt or a rail of it bears hung from.
+  tensileStrengthMPa: 200
   # Phase change (thermal): melts at 1811 K (smelting heat — a bellows-fed
   # forge only), boils at 3134 K; latent heats are the reserve-clamp
   # plateaus (fusion 247 kJ/kg, vaporization 6.34 MJ/kg).

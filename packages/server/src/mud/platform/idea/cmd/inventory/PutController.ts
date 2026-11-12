@@ -127,6 +127,9 @@ export default class PutController extends CommandController<PutModel> {
     // ⭐ Where it would go, and every refusal before any write, is the
     // world's (`ContainmentApi.putPlanFor` — the slot, the interior, the
     // region; controller-liquidity W8). This words it.
+    // Sizes load on use (size and carrying P7): the forms the tape measure
+    // reads, before the sync plan asks it.
+    for (const s of [item, target]) if (MixinApi.isTangible(s)) await s.ensureShape();
     const plan = ContainmentApi.putPlanFor(item as Stuff & Containable, target, { prep, by: giver });
     if (!plan.ok) {
       PutController.refused(item, target, plan, context);
@@ -161,7 +164,10 @@ export default class PutController extends CommandController<PutModel> {
     // like already is MERGES into it and is destroyed.
     const what = item.isDestroyed() ? Mml.text(named) : Mml.thing(item);
     const name = route.kind === 'zero' ? Placements.IN : route.name;
-    const member = ContainmentApi.placements().need(name);
+    const member =
+      route.kind === 'region' && MixinApi.isPlacing(target)
+        ? target.placementOf(name)
+        : ContainmentApi.placements().need(name);
     const template = member.getProse();
     const word = route.kind === 'zero' ? (member.getPrepositions()[0] ?? 'in') : route.word;
     const scene = MessageApi.scene(giver).topic('sense.survey');
@@ -236,8 +242,25 @@ export default class PutController extends CommandController<PutModel> {
         detail = `host rejected item (${r.facts.said ?? ''})`;
         break;
       case 'cannot-rest':
-        line = Mml.compose`${Mml.thing(item)} won't go ${r.facts.word} ${Mml.thing(target)}.`;
+        // ⭐ The hanging rule's two refusals (size and carrying D4) — a
+        // length used up, a weight it will not bear.
+        line =
+          r.facts.why === 'no-room-along'
+            ? Mml.compose`There's no room ${r.facts.word} ${Mml.thing(target)} for ${Mml.thing(item)}.`
+            : r.facts.why === 'too-heavy-for'
+              ? Mml.compose`${Mml.thing(target)} won't take the weight of ${Mml.thing(item)}.`
+              : Mml.compose`${Mml.thing(item)} won't go ${r.facts.word} ${Mml.thing(target)}.`;
         detail = `host rejected item (${r.facts.why})`;
+        break;
+      case 'wont-fit':
+        // ⭐ What a tape measure would say (size and carrying D4).
+        line =
+          r.facts.why === 'too-big-for-mouth'
+            ? Mml.compose`${Mml.thing(item)} won't go through the mouth of ${Mml.thing(target)}.`
+            : r.facts.why === 'too-big-inside'
+              ? Mml.compose`${Mml.thing(item)} is too big to go in ${Mml.thing(target)}.`
+              : Mml.compose`There's no room left in ${Mml.thing(target)} for ${Mml.thing(item)}.`;
+        detail = `it won't fit (${r.facts.why})`;
         break;
       case 'cursed-will-not-release':
         line =

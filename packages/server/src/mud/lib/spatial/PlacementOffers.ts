@@ -57,7 +57,7 @@ export class PlacementOffers {
     if (MixinApi.isPlacing(host)) {
       for (const name of host.getPlacements()) {
         // Resident with the host (documents D7): a miss throws by path.
-        offers.push({ kind: 'placement', name, words: ContainmentApi.placements().need(name).getPrepositions() });
+        offers.push({ kind: 'placement', name, words: host.placementOf(name).getPrepositions() });
       }
     }
     this.offers = offers;

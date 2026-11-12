@@ -57,6 +57,37 @@ import {
   REF_FIELDS,
   type SubscribableFieldDescriptor,
 } from '../../api/mql-subscription';
+import type { FieldMeta } from '../mixin';
+import type { ActRefusal } from '../craft/ActPlan';
+import type { BoundaryOpening } from '../boundary/Conduit';
+import type { ClosureLevel } from '../bulk/Bulkable';
+import type Place from '../stuff/Place';
+import { Dimensions, SIZE_DEFAULTS, type ClosedSides } from './Dimensions';
+import { BiomeApi } from '../../api/biome';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
+
+/**
+ * ⭐ What a container is, to a tape measure (size and carrying D4): the box
+ * inside it, which of its sides it closes, and the way in.
+ */
+export interface ContainerBounds {
+  /** The room inside. */
+  interior: Dimensions;
+  /** The sides it closes — open sides bound nothing (a broom stands in a bucket). */
+  closed: ClosedSides;
+  /** The way in, or `null` when entry is not through a mouth (a place: through a way). */
+  mouth: BoundaryOpening | null;
+}
+
+/** Why a thing will not go in — the tape measure's three answers. */
+export type FitRefusal = ActRefusal<
+  'too-big-for-mouth' | 'too-big-inside' | 'no-room',
+  { container: Stuff; item: Stuff; dims: Dimensions }
+>;
+
+/** The form a container's interior takes when its own form gives (a sack, filled, is a block). */
+const BLOCK_FORM = '/platform/idea/Form/block';
 
 /**
  * Public shape provided by ContainerMixin.
@@ -123,8 +154,47 @@ export interface Container {
    */
   getLooseContents(items?: readonly Stuff[]): Stuff[];
 
-  /** Optional pre-add veto. Return `{ ok: false, reason }` to block. */
+  /**
+   * Pre-add veto. Return `{ ok: false, reason }` to block. ⭐ The default
+   * asks {@link fitRefusal} (size and carrying D4) — a container that says
+   * what it is FOR overrides it and owns the whole answer.
+   */
   canAddContainable?(thing: Stuff & Containable): VetoResult;
+
+  // ── size (size and carrying D4–D5, D22) ──
+
+  /** The authored way in (a sheath, a bottle's neck), else `null` — derived by {@link bounds}. */
+  getMouth(): BoundaryOpening | null;
+  /** Author the way in (`{width, height}` m); `null` derives it. Throws on a non-positive side. */
+  setMouth(value: BoundaryOpening | null): void;
+  /**
+   * ⭐ The box inside, the sides closed, the way in — or `null` when this
+   * container's room is unknown (a hollow thing with no authored size: its
+   * mass measures its walls, never its room) or it is a body (a body
+   * carries; it is sized by its envelope). Unknown bounds ask nothing.
+   */
+  bounds(): ContainerBounds | null;
+  /**
+   * ⭐ Would `item` go in? The two tape-measure checks — through the mouth
+   * by its cross-section, and, turned some way, along every side this
+   * closes — and the capacity (what is already in, filled by box, packed
+   * cloth, a stack's count). `null` = it goes (or nothing is known).
+   */
+  fitRefusal(item: Stuff): FitRefusal | null;
+  /**
+   * ⭐ How tight it closes against the wet (D22): a bulk vessel's authored
+   * `closure`; any other — shut and of a material that takes no water →
+   * `liquidTight`, else `open`.
+   */
+  closureLevel(): ClosureLevel;
+  /**
+   * ⭐ Pressed in, or it leaves (D5): what is not held drifts out of an open
+   * side when nothing presses it in — a floater up out of a submerged open
+   * bucket, anything not behind a closed side at zero gravity, a cup off a
+   * table (a fastened member — `from` — holds). With `only`, that thing
+   * alone. Returns what left.
+   */
+  reconcilePressing(only?: Stuff): Stuff[];
   /** Optional pre-remove veto. */
   canRemoveContainable?(thing: Stuff & Containable): VetoResult;
   /** Fired after the Containable has been added; `from` is where it was. */
@@ -159,6 +229,231 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** See {@link Container.placementFor}. */
     public placementFor(word: string | undefined): PlacementChoice {
       return new PlacementOffers(this as unknown as Stuff).choose(word);
+    }
+
+    static fieldMeta: FieldMeta = {
+      // ⭐ The way in, authored only where it is the point (a sheath, a
+      // holster, a bottle's neck); unset derives (D4).
+      mouth: { persistent: true, authorable: true },
+    };
+
+    private _mouth: BoundaryOpening | null = null;
+
+    protected get mouth(): BoundaryOpening | null {
+      return this._mouth ? { ...this._mouth } : null;
+    }
+    protected set mouth(value: BoundaryOpening | null) {
+      this.setMouth(value);
+    }
+
+    public getMouth(): BoundaryOpening | null {
+      return this._mouth ? { ...this._mouth } : null;
+    }
+
+    public setMouth(value: BoundaryOpening | null): void {
+      if (value === null || value === undefined) {
+        this._mouth = null;
+        return;
+      }
+      if (
+        !(typeof value.width === 'number' && value.width > 0) ||
+        !(typeof value.height === 'number' && value.height > 0)
+      ) {
+        throw new TypeError(
+          `Container.mouth must be { width, height } in metres, both positive; got ${JSON.stringify(value)}.`,
+        );
+      }
+      this._mouth = { width: value.width, height: value.height };
+    }
+
+    /** See {@link Container.bounds}. */
+    public bounds(): ContainerBounds | null {
+      const self = this as unknown as Stuff & Container;
+      if (self.isAgent()) return null;
+      // The room first: most containers have no known room, and their
+      // sides are then never asked (a place's sides cost an exposure read).
+      const interior = interiorOf(self);
+      if (interior === null) return null;
+      const closed = closedSidesOf(self);
+      if (closed === null) return null;
+      let mouth: BoundaryOpening | null = this.getMouth();
+      if (mouth === null && !self.isPlace()) {
+        // The open (or lidded) face: the top. A bag opens as wide as it is.
+        mouth = { width: interior.width, height: interior.depth };
+      }
+      return { interior, closed, mouth };
+    }
+
+    /** See {@link Container.fitRefusal}. */
+    public fitRefusal(item: Stuff): FitRefusal | null {
+      const self = this as unknown as Stuff & Container;
+      // A destroyed piece (merged into a stack on arrival) has no size to fit.
+      if (item.stuffId === self.stuffId || self.isAgent() || item.isDestroyed()) return null;
+      const box = (MixinApi.isTangible(item) ? item.getFitBox() : null);
+      if (box === null) return null;
+      const interior = interiorOf(self);
+      if (interior === null) return null;
+      // ⭐ Every side closed is the strictest case — an open side only ever
+      // lets more in. A thing that fits a closed box fits whatever this is,
+      // and the sides (a place's cost an exposure read) are never asked.
+      const strict: ContainerBounds = {
+        interior,
+        closed: { width: true, depth: true, height: true },
+        mouth: self.isPlace() ? null : (this.getMouth() ?? { width: interior.width, height: interior.depth }),
+      };
+      if (this.fitsWithinBounds(item, box, strict)) return null;
+      const b = this.bounds();
+      if (b === null) return null;
+      const facts = { container: self as Stuff, item, dims: box };
+      if (b.mouth !== null && !box.fitsThrough(b.mouth)) {
+        return { ok: false, reason: 'too-big-for-mouth', facts };
+      }
+      if (box.orientationWithin(b.interior, b.closed) === null) {
+        return { ok: false, reason: 'too-big-inside', facts };
+      }
+      // Capacity: only a container that closes some side holds a volume —
+      // a field takes a whale skeleton however much is lying there.
+      if (b.closed.width || b.closed.depth || b.closed.height) {
+        let used = 0;
+        for (const c of this.getContents()) {
+          if (c.stuffId === item.stuffId) continue;
+          used += fillOf(c, b);
+        }
+        if (used + fillOf(item, b) > b.interior.boxVolume() * (1 + 1e-9)) {
+          return { ok: false, reason: 'no-room', facts };
+        }
+      }
+      return null;
+    }
+
+    /** Would `item` (fitted by `box`) go into `b`? The cheap pass of {@link fitRefusal}. */
+    private fitsWithinBounds(item: Stuff, box: Dimensions, b: ContainerBounds): boolean {
+      if (b.mouth !== null && !box.fitsThrough(b.mouth)) return false;
+      if (box.orientationWithin(b.interior, b.closed) === null) return false;
+      let used = 0;
+      for (const c of this.getContents()) {
+        if (c.stuffId !== item.stuffId) used += fillOf(c, b);
+      }
+      return used + fillOf(item, b) <= b.interior.boxVolume() * (1 + 1e-9);
+    }
+
+    /** The default veto: the tape measure. See {@link Container.canAddContainable}. */
+    public canAddContainable(thing: Stuff & Containable): VetoResult {
+      const refusal = this.fitRefusal(thing);
+      return refusal === null ? { ok: true } : { ok: false, reason: refusal.reason };
+    }
+
+    /** See {@link Container.closureLevel}. */
+    public closureLevel(): ClosureLevel {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isBulkable(self)) return self.getClosure();
+      if (MixinApi.isSealable(self) && !self.isOpen()) {
+        const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
+        const takesWater =
+          mat !== null && MixinApi.hasPorosity(mat)
+            ? mat.getWaterAbsorptionCapacity().rawValue()
+            : 0;
+        return takesWater > 0 ? 'open' : 'liquidTight';
+      }
+      return 'open';
+    }
+
+    /** See {@link Container.reconcilePressing}. */
+    public reconcilePressing(only?: Stuff): Stuff[] {
+      const self = this as unknown as Stuff & Container;
+      // A body carries; what it holds is not pressed in by sides.
+      if (self.isAgent() || self.isDestroyed()) return [];
+      const closed = closedSidesOf(self);
+      if (closed === null) return [];
+      const place: Stuff | null = self.isPlace()
+        ? self
+        : MixinApi.isContainable(self)
+          ? self.getEnclosingPlace()
+          : null;
+      const g =
+        place !== null && MixinApi.isAtmospheric(place)
+          ? place.gravityNow().rawValue()
+          : SIZE_DEFAULTS.STANDARD_GRAVITY;
+      // ⚠ The CONTAINER's medium, never the item's: a cork floats in a
+      // bucket's own water and stays in the bucket; it leaves only when the
+      // bucket itself is under.
+      let mediumRho: number | null = null;
+      const floats = (c: Stuff): boolean => {
+        if (!MixinApi.isTangible(c)) return false;
+        const rho = c.getMaterial()?.getDensity().rawValue() ?? 0;
+        if (!(rho > 0)) return false;
+        if (mediumRho === null) {
+          const medium = BiomeApi.mediumFor(self);
+          if (!medium.immersed) {
+            mediumRho = 0;
+          } else {
+            try {
+              mediumRho = BiomeApi.densityOf(medium.tag).rawValue() || 1000;
+            } catch {
+              mediumRho = 1000;
+            }
+          }
+        }
+        return rho < mediumRho;
+      };
+      const occupants = new Set<string>();
+      if (MixinApi.isSlotted(self)) {
+        for (const [, occ] of self.getAllOccupants()) {
+          for (const o of occ) occupants.add((o as unknown as Stuff).stuffId);
+        }
+      }
+      const left: Stuff[] = [];
+      const candidates = only !== undefined ? [only] : this.getContents();
+      for (const c of candidates) {
+        if (!MixinApi.isContainable(c) || c.getContainer() !== self) continue;
+        if (c.isAgent() || occupants.has(c.stuffId) || c.isFixedInPlace()) continue;
+        const placed = c.getPlacement();
+        let sides: ClosedSides;
+        if (placed !== null) {
+          // A hung thing is fastened — clipped or tied — and stays put.
+          if (placed.host.placementOf(placed.name).getFastens()) continue;
+          sides = { width: false, depth: false, height: false };
+        } else {
+          // Loose in a place, there is nowhere further to go.
+          if (self.isPlace()) continue;
+          sides = closed;
+        }
+        let leaves: boolean;
+        let how: 'up' | 'drifts';
+        if (g > 0) {
+          // Down is held by a bottom, always; up only by a closed top.
+          if (!floats(c)) continue;
+          leaves = !sides.height;
+          how = 'up';
+        } else {
+          leaves = !(sides.width && sides.depth && sides.height);
+          how = 'drifts';
+        }
+        if (!leaves) continue;
+        const dest: Stuff | null = placed !== null ? self : place;
+        if (dest === null || !MixinApi.isContainer(dest)) continue;
+        if (placed === null && dest.stuffId === self.stuffId) continue;
+        try {
+          ContainmentApi.move(c, dest);
+        } catch {
+          continue;
+        }
+        left.push(c);
+        const from: Stuff = placed !== null ? (placed.host as unknown as Stuff) : self;
+        try {
+          MessageApi.scene(c)
+            .topic('sense.surroundings')
+            .toPeers(
+              how === 'up'
+                ? Mml.compose`${Mml.thing(c)} bobs up and away from ${Mml.thing(from)}.`
+                : Mml.compose`${Mml.thing(c)} drifts away from ${Mml.thing(from)}.`,
+            )
+            .send();
+        } catch {
+          /* no one to tell (a unit world) */
+        }
+      }
+      return left;
     }
 
     /**
@@ -596,4 +891,77 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
   }
   return ContainerMixin;
+}
+
+/**
+ * The sides a container closes (D4), or `null` for a body. A place: its
+ * walls unless it has none or stands open-fronted, its top unless open to
+ * the sky. A thing: its sides and bottom always, its top when it is shut.
+ */
+function closedSidesOf(c: Stuff & Container): ClosedSides | null {
+  if (c.isAgent()) return null;
+  if (c.isPlace()) {
+    if (!MixinApi.isAtmospheric(c)) return null;
+    const e = c.exposure();
+    const walled = !e.wallsNone;
+    return {
+      // An open-fronted barn spills along its depth; three open sides,
+      // both ways.
+      width: walled && e.openSides < 3,
+      depth: walled && e.openSides < 1,
+      height: e.top !== 'open',
+    };
+  }
+  const shut = MixinApi.isSealable(c) && !c.isOpen();
+  return { width: true, depth: true, height: shut };
+}
+
+/**
+ * The room inside (D4), or `null` when it is not known. A place: its cube.
+ * A vessel: its `interiorCapacity`, in its own proportions (a flexible one
+ * filled is a block). A thing with an authored box: that box less its
+ * walls. Anything else — a hollow thing whose only size is its mass — has
+ * no known room, and nothing asks it to fit.
+ */
+function interiorOf(c: Stuff & Container): Dimensions | null {
+  if (c.isPlace()) {
+    // Places stay cubes; an open top is an open SIDE (`closedSidesOf`), so
+    // the height is the cell's whether or not a ceiling closes it.
+    const ext = (c as unknown as Place).getLinearExtent();
+    if (ext === null || !(ext > 0)) return null;
+    return new Dimensions(ext, ext, ext);
+  }
+  if (!MixinApi.isTangible(c)) return null;
+  if (MixinApi.isBulkable(c)) {
+    const litres = c.getInteriorCapacity()?.rawValue() ?? 0;
+    if (litres > 0) {
+      const own = c.getShape();
+      const form =
+        own !== null && own.isRigid()
+          ? own
+          : StuffApi.findByTemplatePath<NonNullable<typeof own>>(BLOCK_FORM) ?? null;
+      return form === null ? null : form.dimensionsFor(litres / 1000);
+    }
+  }
+  if (c.hasAuthoredSize()) {
+    const d = c.getDimensions();
+    if (d === null) return null;
+    const f = SIZE_DEFAULTS.INTERIOR_FRACTION;
+    return new Dimensions(d.width * f, d.depth * f, d.height * f);
+  }
+  return null;
+}
+
+
+/**
+ * The room a content takes inside these bounds (D4): a rigid thing its box
+ * as it best stands, clipped where it stands out of an open side; a
+ * flexible one its packed volume; a stack its count (its volume already
+ * is). Unknown size takes no room.
+ */
+function fillOf(item: Stuff, b: ContainerBounds): number {
+  const box = (MixinApi.isTangible(item) ? item.getFitBox() : null);
+  if (box === null) return 0;
+  const stands = box.orientationWithin(b.interior, b.closed) ?? box;
+  return stands.clippedTo(b.interior);
 }

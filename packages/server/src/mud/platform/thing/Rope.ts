@@ -42,6 +42,7 @@
  * is tied where a mooring line's is.
  */
 
+import { SIZE_DEFAULTS } from '../../lib/spatial/Dimensions';
 import Line from '../../lib/spatial/Line';
 import LineEnd from './LineEnd';
 import { TieableMixin, type TieOutcome, type TieRefusal } from '../../lib/spatial/Tieable';
@@ -376,6 +377,22 @@ export default class Rope extends CuttableMixin(
     if (this.isTarred()) kg *= TAR_GAIN;
     const now = super.getDryMass().rawValue();
     if (Math.abs(now - kg) > 1e-9) this.setMass(Quantity.of(kg, 'kg'));
+  }
+
+  /**
+   * ⭐ A rope's room is its own cylinder, `π(d/2)²·L` (size and carrying
+   * D2) — the fibre and the air laid between its strands.
+   */
+  public override getVolumeM3(): number | null {
+    const r = this.diameterMm / 2000;
+    const v = Math.PI * r * r * this.lengthM;
+    return v > 0 ? v : null;
+  }
+
+  /** ⭐ Coiled, it packs with the air between its turns — not a cloth's crumple. */
+  public override getPackedVolumeM3(): number | null {
+    const v = this.getVolumeM3();
+    return v === null ? null : v * SIZE_DEFAULTS.COIL_PACKING;
   }
 
   /** ⭐ What it breaks at, new and untied, kg (D6). */

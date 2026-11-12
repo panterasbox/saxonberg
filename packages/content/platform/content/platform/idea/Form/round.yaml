@@ -1,0 +1,7 @@
+# Round — as wide as it is tall: an apple, a pot, a cheese, a ball, a
+# key ring (a round thing others hang from offers its circumference).
+class: /platform/idea/Form
+data:
+  name: round
+  aspect: { width: 1, depth: 1, height: 1 }
+  rigid: true

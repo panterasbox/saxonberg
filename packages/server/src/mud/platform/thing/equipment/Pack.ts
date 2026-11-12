@@ -26,4 +26,7 @@ import { WearableMixin } from '../../../lib/slot/Wearable';
 
 const PackBase = WearableMixin(SlottableMixin(Vessel));
 
-export default class Pack extends PackBase {}
+export default class Pack extends PackBase {
+  /** ⭐ A pack is cloth or leather: it gives, packs and squeezes (size and carrying D1). */
+  static defaultShape = 'flexible';
+}

@@ -7,3 +7,7 @@ data:
   wheelPassable: false
   messageOut: "{{ mover }} takes the stairs."
   messageIn: "{{ mover }} arrives up the stairs."
+  # ⭐ Size and carrying D8: a stair turns, and only a rigid thing no
+  # longer than this swings round the landing — the sofa in the stairwell.
+  # A straight flight authors its own `turn` (or none) per site.
+  turn: 2.2

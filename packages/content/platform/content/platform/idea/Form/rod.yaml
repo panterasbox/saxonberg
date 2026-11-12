@@ -1,0 +1,8 @@
+# Rod — long and thin: a sword, a pole, a staff, a scroll, an oar.
+# A rod goes into a container endwise (its cross-section passes the mouth)
+# and only a turn in a way cares how long it is.
+class: /platform/idea/Form
+data:
+  name: rod
+  aspect: { width: 1, depth: 1, height: 20 }
+  rigid: true

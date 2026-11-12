@@ -1,0 +1,13 @@
+# Exit-kind: a crawlway — a passage too low to walk or stoop through. A
+# body on hands and knees is about 0.4 of its stature, so a person crawls
+# it bare and a pack on the back does not go (size and carrying D8, read
+# by the traverse gate); what you hold goes through ahead of you. Admits
+# the ground modes and refuses wheels. See archway.yaml for the exit-kind
+# mechanism notes.
+class: /platform/idea/Exit
+data:
+  media: [ground]
+  wheelPassable: false
+  opening: { width: 0.8, height: 0.8 }
+  messageOut: "{{ mover }} crawls into the low passage."
+  messageIn: "{{ mover }} crawls out of the low passage."

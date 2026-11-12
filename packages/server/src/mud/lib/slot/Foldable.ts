@@ -23,6 +23,7 @@
  * the folded/unfolded naming layer over `getState()` / `setState()`.
  */
 
+import { SIZE_DEFAULTS } from '../spatial/Dimensions';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import { BistateMixin, type BistateInternal } from '../Bistate';
@@ -82,6 +83,15 @@ export function FoldableMixin<TBase extends MixinConstructor>(Base: TBase) {
       environment: FOLD,
       peers: FOLD,
     };
+
+    /**
+     * @hook ⭐ The folding seam (size and carrying D3): a folded flexible
+     * thing packs smaller. A number until the folding build's crease model
+     * replaces it; a rigid thing's pack ignores it (`Tangible.getPackedVolumeM3`).
+     */
+    foldPackingFactor(): number {
+      return this.isFolded() ? SIZE_DEFAULTS.FOLDED_PACKING : 1;
+    }
 
     /** Predicate getter. */
     isFolded(): boolean {

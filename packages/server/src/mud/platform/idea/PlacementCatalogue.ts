@@ -35,6 +35,8 @@ export default class PlacementCatalogue extends DocumentCatalogue<Placement> {
       data.encloses === true,
       typeof data.prose === 'string' ? data.prose : '',
       typeof data.heading === 'string' ? data.heading : '',
+      data.hangs === true,
+      data.fastens === true,
     );
   }
 

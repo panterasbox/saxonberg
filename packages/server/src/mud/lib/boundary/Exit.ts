@@ -52,6 +52,8 @@ import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { Boundary } from './Boundary';
 import type { BoundaryOpening } from './Conduit';
+import type { ActRefusal } from '../craft/ActPlan';
+import type Place from '../stuff/Place';
 import type { WayRecord, WayState } from '@saxonberg/types';
 import type Structure from '../structure/Structure';
 import { StuffApi } from '../../api/stuff';
@@ -187,6 +189,8 @@ export interface ExitOptions {
   wheelPassable?: boolean;
   /** Per-site size of the gap this way passes through (see {@link Exit.getOpening}). */
   opening?: BoundaryOpening | null;
+  /** Per-site longest rigid length that swings round this way's bend (see {@link Exit.getTurn}). */
+  turn?: number | null;
   /**
    * ⭐⭐ Is this the KIND of way that closes? See
    * {@link Exit.isConditional}.
@@ -275,6 +279,9 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     media: { persistent: true },
     wheelPassable: { persistent: true },
     opening: { persistent: true, authorable: true },
+    // ⭐ Size and carrying D8: the longest rigid thing that swings round
+    // this way's bend (a turning stair); unset = no bend.
+    turn: { persistent: true, authorable: true },
     spansGround: { persistent: true, authorable: true },
     _conditional: { persistent: true },
     _edgeMinutes: { persistent: true },
@@ -769,6 +776,81 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
   }
 
   /**
+   * ⭐ **The longest rigid length that can swing round this way's bend**, m
+   * (size and carrying D8) — the sofa in the stairwell, the one thing a
+   * cube cannot say about a narrow stair. From the kind row (`stair`: 2.2)
+   * or per site; `null` = the way runs straight and length never matters.
+   */
+  protected _turn: number | null = null;
+
+  public getTurn(): number | null {
+    return this._turn;
+  }
+  public setTurn(value: number | null): void {
+    if (value === null || value === undefined) {
+      this._turn = null;
+      return;
+    }
+    if (!(typeof value === 'number' && Number.isFinite(value) && value > 0)) {
+      throw new TypeError(`Exit.turn must be a positive number of metres; got ${JSON.stringify(value)}.`);
+    }
+    this._turn = value;
+  }
+
+  /**
+   * ⭐ **The way's tightest gap** (size and carrying D8): elementwise the
+   * least of the face it passes through (its source's cell), its own
+   * opening, and the boundary hung in it (a door's own size). `null` when
+   * nothing bounds it — a track over open ground with no opening given.
+   */
+  public clearance(): BoundaryOpening | null {
+    const gaps: BoundaryOpening[] = [];
+    if (!this._spansGround) {
+      const src: Stuff | undefined = this.source;
+      const face = src !== undefined && src.isPlace() ? (src as unknown as Place).getLinearExtent() : null;
+      if (face !== null && face > 0) gaps.push({ width: face, height: face });
+    }
+    const own = this.getOpening();
+    if (own !== null) gaps.push(own);
+    const hung = this.getBoundary();
+    if (hung !== null) {
+      const b = hung.getOpening();
+      if (b !== null) gaps.push(b);
+    }
+    if (gaps.length === 0) return null;
+    return {
+      width: Math.min(...gaps.map((g) => g.width)),
+      height: Math.min(...gaps.map((g) => g.height)),
+    };
+  }
+
+  /**
+   * ⭐ Would `mover` pass this way, moving as `mode` moves (size and carrying
+   * D8/D21)? Its cross-section against the {@link clearance}, and — rigid —
+   * its longest side against the {@link getTurn}. `null` = it passes (or
+   * its size is unknown). Measures the mover's own box here; a body's
+   * envelope and the things in its hands join it with the traverse gate.
+   */
+  public clearanceRefusal(
+    mover: Stuff,
+    _mode?: string,
+  ): ActRefusal<'too-big-for-way' | 'wont-turn', { mover: Stuff; gap: BoundaryOpening | null; turn: number | null }> | null {
+    if (!MixinApi.isTangible(mover)) return null;
+    const box = mover.getFitBox();
+    if (box === null) return null;
+    const gap = this.clearance();
+    const turn = this.getTurn();
+    if (gap !== null && !box.fitsThrough(gap)) {
+      return { ok: false, reason: 'too-big-for-way', facts: { mover, gap, turn } };
+    }
+    const rigid = mover.getShape()?.isRigid() ?? true;
+    if (turn !== null && rigid && box.longest() > turn + 1e-9) {
+      return { ok: false, reason: 'wont-turn', facts: { mover, gap, turn } };
+    }
+    return null;
+  }
+
+  /**
    * ⭐ **A way across open ground** — a track, a road (the `track` kind). An
    * ordinary way joins two ADJACENT cells of its zone through their shared
    * face; a track runs on along its direction over cells nobody has
@@ -1063,6 +1145,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
       this._wheelPassable = opts.wheelPassable;
     }
     if (opts.opening !== undefined) this.setOpening(opts.opening);
+    if (opts.turn !== undefined) this.setTurn(opts.turn);
     if (opts.edgeMinutes !== undefined) {
       this.setEdgeMinutes(opts.edgeMinutes);
     }

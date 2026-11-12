@@ -111,6 +111,9 @@ const SUN_DOSE_PER_HOUR = 0.012;
 const FUME_DOSE_PER_FRACTION_HOUR = 20;
 
 export default class Garment extends GarmentBase {
+  /** ⭐ Cloth: it gives, packs with air and folds (size and carrying D1). */
+  static defaultShape = 'flexible';
+
 
   // ── airing (cleanliness D21): the sun and the fumes ──
 

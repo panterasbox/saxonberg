@@ -1,0 +1,13 @@
+# Exit-kind: a ladder — a way up or down that is climbed, not walked: the
+# vertical medium only (the climb mode), no wheels, and a hatch-sized gap
+# at the top (size and carrying D8). A ladder wants both hands; the climb
+# mode's own `hands` says so with the traverse gate. Distinct from the
+# `Ladder` THING, a Climbable a player carries and props against a wall to
+# make a vertical way climbable — this is the way itself, built in.
+class: /platform/idea/Exit
+data:
+  media: [vertical]
+  wheelPassable: false
+  opening: { width: 0.7, height: 0.7 }
+  messageOut: "{{ mover }} climbs the ladder."
+  messageIn: "{{ mover }} arrives by the ladder."

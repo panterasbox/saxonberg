@@ -86,6 +86,9 @@ export interface LineSignal {
 export type LineOutcome = { ok: true; line: string } | { ok: false; reason: string; line: string };
 
 export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
+  /** ⭐ A line gives and coils (size and carrying D1). */
+  static defaultShape = 'flexible';
+
   static commandContributions: CommandContributions = {
     self: [],
     // Whoever holds it (`environment` — item → holder) throws and pulls

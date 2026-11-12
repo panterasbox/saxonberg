@@ -885,6 +885,15 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
         if (MixinApi.isAttired(s)) s.immerse();
         else if (MixinApi.isWet(s)) s.wet(1);
         if (MixinApi.isBulkable(s) && depth > 0) await this.fillOpenVessel(s);
+        // ⭐ Pressed in, or it leaves (size and carrying D5): a floater rises
+        // out of an open container the moment it is under. Deferred a tick —
+        // never move a thing from inside the hook of an arrival.
+        if (MixinApi.isContainer(s) && !s.isAgent()) {
+          const holder = s;
+          void Promise.resolve().then(() => {
+            if (!holder.isDestroyed()) holder.reconcilePressing();
+          });
+        }
         // ⭐ An air pocket (a bell) keeps the water out of what it holds.
         const ownAir = MixinApi.isAtmospheric(s) ? s.getInlineAtmosphere() : null;
         if (MixinApi.isContainer(s) && (ownAir === null || ownAir === 'water')) {

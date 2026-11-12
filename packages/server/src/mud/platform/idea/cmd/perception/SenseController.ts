@@ -37,7 +37,6 @@ import type {
 import { MqlApi, type MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
-import { ContainmentApi } from '../../../../api/containment';
 import { MessageApi } from '../../../../api/message';
 import { CardApi } from '../../../../api/card';
 import { Mml } from '../../../../api/mml';
@@ -273,7 +272,7 @@ export default class SenseController extends CommandController<SenseModel> {
         // with nothing here knowing the difference. A member with no
         // live row falls back rather than printing nothing.
         const heading =
-          ContainmentApi.placements().need(member).getHeading() || 'With it';
+          target.placementOf(member).getHeading() || 'With it';
         body = Mml.compose`${body}── ${heading}: ${list}.`;
       }
     }

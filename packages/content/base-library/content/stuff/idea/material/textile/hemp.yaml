@@ -18,6 +18,8 @@ data:
   # ⭐ Toughness orders the rope fibers (cordage D6): hemp 4 > flax 3 > jute 2.
   hardness: 6
   toughness: 4
+  # Size and carrying D4: what a strap, a belt or a rail of it bears hung from.
+  tensileStrengthMPa: 60
   specificHeat: 1360
   electricalConductivity: 1.0e-11
   waterAbsorptionCapacity: 20

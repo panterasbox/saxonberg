@@ -13,6 +13,8 @@ data:
   # Mechanical response: soft but tough-for-its-softness (MPa / MJ·m⁻³).
   hardness: 20
   toughness: 10
+  # Size and carrying D4: what a strap, a belt or a rail of it bears hung from.
+  tensileStrengthMPa: 20
   # Electrical conductivity (S/m) — dry leather insulates (~1×10⁻⁹);
   # a hide jerkin adds real series resistance (the armor inversion).
   electricalConductivity: 1.0e-9

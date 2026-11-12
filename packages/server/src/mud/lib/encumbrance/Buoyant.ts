@@ -24,7 +24,7 @@ import type { Slotted } from '../slot/Slotted';
 import { MixinApi } from '../../api/mixin';
 import { LOAD_BEARING_DEFAULTS } from './LoadBearing';
 
-/** Standard gravity, m/s². */
+/** Standard gravity, m/s² — read only until the body's place says (D6). */
 const G = 9.81;
 
 /** What a thing with no material is taken to weigh per liter: neutral. */
@@ -48,8 +48,10 @@ function displacementWalk(
   let volumeM3 = 0;
   if (MixinApi.isTangible(item)) {
     massKg = item.getMass().rawValue();
-    const rho = item.getMaterial()?.getDensity().rawValue() ?? NEUTRAL_DENSITY_KG_M3;
-    volumeM3 = rho > 0 ? massKg / rho : 0;
+    // ⭐ The ONE read (size and carrying D2): a thing's matter volume, mass
+    // over density. The matter, not the outside — a vessel's room floods or
+    // holds contents this walk counts on their own. No material: neutral.
+    volumeM3 = item.getMatterVolumeM3() ?? massKg / NEUTRAL_DENSITY_KG_M3;
   }
   if (MixinApi.isContainer(item)) {
     for (const child of item.getContents()) {
@@ -88,7 +90,14 @@ export function BuoyantMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public getNetBuoyancyN(waterDensityKgM3: number, depthM = 0): number {
       const { massKg, volumeM3 } = this.displacement(depthM);
-      return G * (waterDensityKgM3 * volumeM3 - massKg);
+      return this.gravityHere() * (waterDensityKgM3 * volumeM3 - massKg);
+    }
+
+    /** ⭐ The gravity of the place this body is in (D6's memo), else standard. */
+    private gravityHere(): number {
+      const self = this as unknown as Stuff;
+      const place = MixinApi.isContainable(self) ? self.getEnclosingPlace() : null;
+      return place !== null && MixinApi.isAtmospheric(place) ? place.gravityNow().rawValue() : G;
     }
 
     /** The body and all it carries and wears: mass, and water pushed aside. */

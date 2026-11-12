@@ -234,6 +234,8 @@ export interface BidirectionalExitOptions {
   boundary?: Boundary;
   /** The size of the gap both sides pass through. */
   opening?: { width: number; height: number };
+  /** The longest rigid length that swings round the bend (size and carrying D8). */
+  turn?: number;
   /**
    * Hold BOTH sides' destinations as within-session live refs (Pattern
    * B) rather than templatePath resolution. Required when the two
@@ -324,6 +326,11 @@ export interface ExitInstruction {
    * metres — the way's own, over its kind's (`Exit.getOpening`).
    */
   opening?: { width: number; height: number };
+  /**
+   * The longest rigid length that swings round this way's bend, metres —
+   * the way's own, over its kind's (`Exit.getTurn`, size and carrying D8).
+   */
+  turn?: number;
   /**
    * Game minutes for one baseline (unloaded, walk-mode) traverse of this
    * edge. Omitted → the `transport.defaultEdgeMinutes` corridor default.
@@ -641,6 +648,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         messageIn: opts.messageInForward,
         messageOut: opts.messageOutForward,
         opening: opts.opening,
+        turn: opts.turn,
       };
       const backOpts = {
         direction: opposite,
@@ -654,6 +662,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         messageIn: opts.messageInBack,
         messageOut: opts.messageOutBack,
         opening: opts.opening,
+        turn: opts.turn,
       };
       // One clone per edge from the kind row, then bind — `bind` is
       // delta-aware, so unset per-site fields keep the kind's authored
@@ -809,6 +818,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
           kind: kindPath,
           boundary,
           opening: spec.opening,
+          turn: spec.turn,
           opposite: spec.opposite,
           hidden: spec.hidden,
           blocked: spec.blocked,
@@ -837,6 +847,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         media: spec.media,
         wheelPassable: spec.wheelPassable,
         opening: spec.opening,
+        turn: spec.turn,
         edgeMinutes: spec.edgeMinutes,
         conditional: spec.conditional,
       };

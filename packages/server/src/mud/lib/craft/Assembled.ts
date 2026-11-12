@@ -58,6 +58,7 @@ import { MixinApi } from '../../api/mixin';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
+import type { Tangible } from '../material/Tangible';
 import type { VetoResult } from '../errors';
 import type { Durable, MendRecord } from '../material/Durable';
 import type Material from '../material/Material';
@@ -167,6 +168,13 @@ export interface PartLine {
    * flat (glue) seats short of it.
    */
   cupped?: boolean;
+  /**
+   * ⭐ The room the line's members took as they went in, m³ — the whole
+   * line, every member (size and carrying D2). An assembly's volume is the
+   * sum of its lines'; a line with none recorded (a found thing's bill)
+   * leaves the whole to answer by its own mass.
+   */
+  volumeM3?: number;
   /** Identity paths of everyone who made or fitted a member of this line. */
   makers: string[];
   /** The nested record, when the fitted part was itself an assembly. */
@@ -710,6 +718,31 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         parts: this.bill.parts.map((p) => ({ ...p })),
         joints: (this.bill.joints ?? []).map((j) => ({ ...j, members: [...j.members] })),
       };
+    }
+
+    /**
+     * ⭐ An assembly takes the room its parts took (size and carrying D2):
+     * Σ the parts record's line volumes, recorded as each line went in.
+     * A thing with no record of its own (one piece, or found) — or any line
+     * that never recorded one — answers by its own mass over its material.
+     */
+    getVolumeM3(): number | null {
+      const self = this as unknown as Stuff & Tangible;
+      const host0 = self as unknown as Stuff;
+      const bulk = MixinApi.isBulkable(host0) ? (host0.getInteriorCapacity()?.rawValue() ?? 0) / 1000 : 0;
+      const matter = MixinApi.isTangible(host0) ? self.getMatterVolumeM3() : null;
+      const own = matter === null && bulk <= 0 ? null : (matter ?? 0) + bulk;
+      if (this.parts.length === 0) return own;
+      let sum = 0;
+      for (const line of this.parts) {
+        if (!(typeof line.volumeM3 === 'number' && line.volumeM3 > 0)) return own;
+        sum += line.volumeM3;
+      }
+      if (!(sum > 0)) return own;
+      // A coopered cask is its staves AND the room they close round.
+      const host = self as unknown as Stuff;
+      if (MixinApi.isBulkable(host)) sum += (host.getInteriorCapacity()?.rawValue() ?? 0) / 1000;
+      return sum;
     }
 
     getParts(): PartLine[] {

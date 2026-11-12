@@ -2637,6 +2637,17 @@ function applyAssembledOutput(
       makers,
     };
     if (billPart?.plural) line.plural = billPart.plural;
+    // ⭐ The room the members took as they went in (size and carrying D2):
+    // an assembly's volume is its lines'. Any member of unknown size leaves
+    // the line unrecorded, and the whole answers by its own mass.
+    let lineVolume = 0;
+    for (const m of ms) {
+      const v = MixinApi.isTangible(m.stuff) ? m.stuff.getVolumeM3() : null;
+      if (v === null || !(v > 0)) { lineVolume = 0; break; }
+      const units = MixinApi.isStackable(m.stuff) ? Math.max(1, m.stuff.getQuantity()) : 1;
+      lineVolume += (v / units) * m.count;
+    }
+    if (lineVolume > 0) line.volumeM3 = lineVolume;
     if (MixinApi.isConstructed(first.stuff)) {
       const form = first.stuff.getConstructionForm();
       if (form) line.form = form;

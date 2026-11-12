@@ -242,8 +242,28 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
       };
     }
 
-    /** May `by` close this? A plain sealable always says yes. */
+    /**
+     * May `by` close this? A plain sealable says yes — unless a lid shutting
+     * would close on something standing out of it (size and carrying D4):
+     * a shut lid ADDS a side, and the pole sticks out.
+     */
     canClose(_by: Stuff): VetoResult {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainer(self)) return { ok: true };
+      const b = self.bounds();
+      if (b === null || b.closed.height) return { ok: true };
+      const shut = { ...b.closed, height: true };
+      for (const c of self.getContents()) {
+        if (!MixinApi.isTangible(c)) continue;
+        const box = c.getFitBox();
+        if (box !== null && box.orientationWithin(b.interior, shut) === null) {
+          const named = c.getPresentation();
+          return {
+            ok: false,
+            reason: `${named.charAt(0).toUpperCase()}${named.slice(1)} sticks out — the lid won't shut.`,
+          };
+        }
+      }
       return { ok: true };
     }
   };

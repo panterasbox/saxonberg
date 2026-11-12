@@ -290,7 +290,27 @@ export default class Material extends SingletonMixin(
     thermalConductivity: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('W/(m·K)') },
     specificHeat: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/(kg·K)') },
     electricalConductivity: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('S/m') },
+    // ⭐ Size and carrying D4: what a strap, a belt or a rail of it bears.
+    tensileStrengthMPa: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
   };
+
+  /**
+   * ⭐ What it breaks at pulled, MPa (size and carrying D4) — what a belt, a
+   * strap, a rail of it bears hung from (`Placing.bearsKg`). `0` = not
+   * given, and a host of it bears without bound (a pegboard's authors need
+   * not care). On every material, as density is: a liquid simply never
+   * gives one.
+   */
+  public tensileStrengthMPa = 0;
+  public getTensileStrengthMPa(): number {
+    return this.tensileStrengthMPa;
+  }
+  public setTensileStrengthMPa(value: number): void {
+    if (!(typeof value === 'number' && Number.isFinite(value) && value >= 0)) {
+      throw new RangeError(`tensileStrengthMPa must be a non-negative number (got ${String(value)})`);
+    }
+    this.tensileStrengthMPa = value;
+  }
 
   public getName(): string { return this.name; }
   public setName(value: string): void { this.name = value; }

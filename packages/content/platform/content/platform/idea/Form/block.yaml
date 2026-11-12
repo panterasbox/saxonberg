@@ -1,0 +1,7 @@
+# Block — the default shape of a thing nobody has said more about: a
+# brick, a box, a chest, a tool, a body.
+class: /platform/idea/Form
+data:
+  name: block
+  aspect: { width: 1, depth: 1.5, height: 2 }
+  rigid: true

@@ -172,9 +172,9 @@ export default class DryController extends CommandController<DryModel> {
     // ⭐ The sentence uses the MEMBER's own word: *on the rack*, *from
     // the hook*. A player never has to be told which; they read it.
     const word =
-      member === null
+      member === null || rack === null
         ? ''
-        : ContainmentApi.placements().need(member).getPrimaryWord();
+        : rack.placementOf(member).getPrimaryWord();
     const self = rack
       ? Mml.compose`You hang ${Mml.thing(target)} up to dry ${word} ${Mml.thing(rack)}.${tail}`
       : Mml.compose`You hang ${Mml.thing(target)} up to dry.${tail}`;

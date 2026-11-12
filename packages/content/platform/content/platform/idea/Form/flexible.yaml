@@ -1,0 +1,9 @@
+# Flexible — cloth, rope, a bag, a pelt. Its box is the FLAT one (a coat
+# laid out); it packs with air (twice its own volume) and folds smaller,
+# and it squeezes through an opening by its packed cube, so a coat goes
+# where a board of the same volume cannot.
+class: /platform/idea/Form
+data:
+  name: flexible
+  aspect: { width: 6, depth: 8, height: 1 }
+  rigid: false

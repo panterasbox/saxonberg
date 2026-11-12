@@ -36,7 +36,6 @@ import { MixinApi } from '../../../../api/mixin';
 import { Postures } from '../../../../lib/slot/Postured';
 import { StuffApi } from '../../../../api/stuff';
 import { ChattelApi } from '../../../../api/chattel';
-import { ContainmentApi } from '../../../../api/containment';
 import { MessageApi } from '../../../../api/message';
 import { CardApi } from '../../../../api/card';
 import { BulkableApi } from '../../../../api/bulk';
@@ -697,7 +696,7 @@ export default class LookController extends CommandController<LookModel> {
         // with nothing here knowing the difference. A member with no
         // live row falls back rather than printing nothing.
         const heading =
-          ContainmentApi.placements().need(member).getHeading() || 'With it';
+          target.placementOf(member).getHeading() || 'With it';
         section(Mml.compose`── ${heading}: ${list}.`, {
           shape: 'list',
           heading,

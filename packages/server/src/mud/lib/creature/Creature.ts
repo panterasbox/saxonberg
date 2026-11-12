@@ -632,6 +632,17 @@ export class Creature extends CreatureBase {
   }
 
   /**
+   * ⭐ A body's room is its mass over its own density (size and carrying
+   * D2) — fat floats and takes more room for its weight. Never its
+   * material's: flesh is not what a body is made of, it is what it is.
+   */
+  public override getVolumeM3(): number | null {
+    const kg = this.getMass().rawValue();
+    const rho = this.getBodyDensity().rawValue();
+    return kg > 0 && rho > 0 ? kg / rho : null;
+  }
+
+  /**
    * Mass override that lazy-seeds the body-grounded default. When the
    * instance authored no mass of its own (still `0`), resolve
    * `species → baseMass` (own, else the plan's) and adopt it; an explicitly-authored

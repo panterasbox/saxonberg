@@ -123,7 +123,8 @@ export type PutRoute =
  * `refused-by-container`: the container says what it is for (`said` is its
  * own sentence — `canAddContainable`'s veto); `cannot-rest`: the region
  * will not hold it; `cursed-will-not-release`: it will not leave the
- * putter's body.
+ * putter's body; `wont-fit`: the tape measure says no (size and carrying
+ * D4 — through the mouth, along the closed sides, or no room left).
  */
 export type PlaceRefusal =
   | {
@@ -135,7 +136,12 @@ export type PlaceRefusal =
   | { ok: false; reason: 'shut'; facts?: undefined }
   | { ok: false; reason: 'refused-by-container'; facts: { said: string | null } }
   | { ok: false; reason: 'cannot-rest'; facts: { word: string; why: string } }
-  | { ok: false; reason: 'cursed-will-not-release'; facts: { dumpedTau: number } };
+  | { ok: false; reason: 'cursed-will-not-release'; facts: { dumpedTau: number } }
+  | {
+      ok: false;
+      reason: 'wont-fit';
+      facts: { why: 'too-big-for-mouth' | 'too-big-inside' | 'no-room' };
+    };
 
 /**
  * A `put` that will go: the route, and the move at once (`durationMs: 0`).

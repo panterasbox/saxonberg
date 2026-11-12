@@ -45,6 +45,7 @@ import type { Stuff } from './Stuff';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { PropSpec } from './Props';
+import type Place from './Place';
 
 /**
  * Doc shape we pull off the `content` collection. The `class` field drives
@@ -634,6 +635,39 @@ export abstract class Template extends Document {
           }
           ContainmentApi.move(inst, host, placement.name);
         } else {
+          // ⭐ Capacity is physical (size and carrying D7): an ENCLOSED place
+          // refuses authored content that does not fit — loudly, naming the
+          // thing, its size and the place, and the thing is not placed. An
+          // open place lets a big thing spill over, so it never refuses.
+          if (
+            kind === 'props' &&
+            host.isPlace() &&
+            !singleton &&
+            ((host as unknown as Place).getLinearExtent() ?? 0) > 0
+          ) {
+            // Its form loads on use — here, before the sync tape measure.
+            if (MixinApi.isTangible(inst)) await inst.ensureShape();
+            const refusal = host.fitRefusal(inst);
+            if (
+              refusal !== null &&
+              MixinApi.isAtmospheric(host) &&
+              host.exposure().holdsAir()
+            ) {
+              const { DiagnosticApi } = await import('../../api/diagnostics');
+              const d = refusal.facts.dims;
+              await DiagnosticApi.record({
+                path: host.getTemplatePath() ?? host.stuffId,
+                severity: 'error',
+                message:
+                  `prop ${path} (${d.width.toFixed(2)} × ${d.depth.toFixed(2)} × ` +
+                  `${d.height.toFixed(2)} m) does not fit ${host.getTemplatePath() ?? host.stuffId} ` +
+                  `(${refusal.reason}); it is not placed. Size the row, or the place.`,
+                channel: 'location-graph',
+              });
+              StuffApi.destruct(inst);
+              continue;
+            }
+          }
           ContainmentApi.move(inst, host);
         }
       }

@@ -468,6 +468,8 @@ export interface Bulkable {
    * does not exist.
    */
   hasInteriorBulk(): boolean;
+  /** The interior's capacity in litres; `null` = unbounded / not authored. */
+  getInteriorCapacity(): Quantity<'L'> | null;
   hasSurfaceBulk(): boolean;
   /**
    * Resolve a bulk slot handle. With no argument, returns the single
@@ -928,6 +930,20 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
 
     public getClosure(): ClosureLevel {
       return this.closure;
+    }
+
+    /**
+     * ⭐ A vessel's room is its walls AND its inside (size and carrying D2):
+     * the shell's matter plus `interiorCapacity`. A bulk host that is not a
+     * thing (a well, a water place) has no size of its own: `null`.
+     */
+    public getVolumeM3(): number | null {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isTangible(self)) return null;
+      const shell = self.getMatterVolumeM3() ?? 0;
+      const inside = (this._interiorCapacity?.rawValue() ?? 0) / 1000;
+      const v = shell + inside;
+      return v > 0 ? v : null;
     }
     /**
      * ⚠⚠ **It took anything, and three rows paid for it.** Three vessels

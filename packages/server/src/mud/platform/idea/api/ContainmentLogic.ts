@@ -101,6 +101,17 @@ export class ContainmentLogic extends ApiLogic {
       placeOn(item, to, placement);
       return;
     }
+    // ⭐ Moving a placed thing into the container it already stands in takes
+    // it OFF its host (size and carrying D5 — the cup drifts off the table
+    // into the room). The container did not change, so `moveCore` would be
+    // a no-op; the placement pair is the whole of the move.
+    if (to !== null && item.getContainer() === to && item.getPlacement() !== null) {
+      const was = item.getPlacement()?.name ?? '';
+      item._setPlacement(null);
+      MqlSubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', was, '');
+      if (MixinApi.isThermal(item)) void item.restamp();
+      return;
+    }
     moveCore(item, to as ContainerStuff | null, false);
   }
 
@@ -164,6 +175,10 @@ export class ContainmentLogic extends ApiLogic {
       if (offer.kind === 'zero') {
         // A shut lid refuses at the verb — never in `move`.
         if (MixinApi.isSealable(target) && !target.isOpen()) return { ok: false, reason: 'shut' };
+        // ⭐ The tape measure, asked first so it is a sentence (size and
+        // carrying D4) — `move` asserts the same rule at the chokepoint.
+        const fit = MixinApi.isContainer(target) ? target.fitRefusal(item) : null;
+        if (fit !== null) return { ok: false, reason: 'wont-fit', facts: { why: fit.reason } };
         // ⭐ A container that says what it is FOR refuses in its own words —
         // the hook `move` asserts, asked first so it is a sentence, not a
         // thrown ContainmentError.
@@ -272,6 +287,27 @@ function placeOn(
   // A member that encloses changes the thing's ambient scope even when the
   // container did not change.
   if (MixinApi.isThermal(item)) void item.restamp();
+  // ⭐ Pressed in, or it leaves (D5): a thing set on a table at zero gravity
+  // does not stay set. Deferred a tick — never move a thing from inside its
+  // own arrival.
+  pressAfterArrival(item, targetEnv as ContainerStuff);
+}
+
+/**
+ * Ask the container a thing just arrived in whether it is pressed in
+ * (size and carrying D5), a tick later. A body or a container with no sides
+ * to speak of answers at once and moves nothing.
+ */
+function pressAfterArrival(item: ContainableStuff, to: ContainerStuff): void {
+  if (to.isAgent()) return;
+  void Promise.resolve().then(() => {
+    if (item.isDestroyed() || to.isDestroyed() || item.getContainer() !== to) return;
+    try {
+      to.reconcilePressing(item);
+    } catch (err) {
+      console.warn('ContainmentApi.move: pressing failed:', err);
+    }
+  });
 }
 
 /**
@@ -385,6 +421,14 @@ function moveCore(
   // own `isStackable` skip path.
   if (to !== null && _mergeOnArrivalHook !== null) {
     _mergeOnArrivalHook(item, to);
+  }
+
+  // ⭐ Pressed in, or it leaves (size and carrying D5) — asked of the
+  // container a thing arrives in (a place holds what lies loose in it, so
+  // only a thing container is asked here; `placeOn` asks for what is set
+  // on a host).
+  if (to !== null && !to.isPlace() && MixinApi.isContainer(to)) {
+    pressAfterArrival(item, to);
   }
 
   // ⭐⭐ CUSTODY is derived here, for every move by anyone: where an owned

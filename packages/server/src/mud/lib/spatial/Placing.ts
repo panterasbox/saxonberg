@@ -61,6 +61,29 @@ import {
 } from '../../api/mql-subscription';
 import { Placement } from './Placement';
 import { Placements } from './Placement';
+import type { BoundaryOpening } from '../boundary/Conduit';
+import { SIZE_DEFAULTS } from './Dimensions';
+
+/**
+ * ⭐ One region a host offers (size and carrying, the `placements` entry
+ * widening): the way of sitting it is (`member`, a `Placement` path), and —
+ * when a host offers more than one of a kind — its own name (a coat's
+ * `breast pocket`, a range's `back plate`). A bare path in the list is an
+ * entry whose name is its member, exactly as every shipped host wrote it.
+ * `mouth`/`volumeM3` bound an enclosing region (a pocket); `covered`/`closes`
+ * say whether a flap hides and shuts it.
+ */
+export interface PlacementEntry {
+  member: string;
+  name?: string;
+  mouth?: BoundaryOpening;
+  volumeM3?: number;
+  covered?: boolean;
+  closes?: boolean;
+}
+
+/** What room is left along a hanging length, in words — never a number. */
+export type HangingRoom = 'none' | 'a small thing' | 'one more pouch' | 'plenty';
 
 /**
  * Public shape provided by PlacingMixin.
@@ -78,7 +101,35 @@ export interface Placing {
    * exactly what they all were. Authorable per row.
    */
   getPlacements(): readonly string[];
-  setPlacements(paths: readonly string[]): Promise<void>;
+  setPlacements(paths: readonly (string | PlacementEntry)[]): Promise<void>;
+  /**
+   * The region `key` names — one of {@link getPlacements} — as a whole
+   * entry (a bare member path reads as `{ member }`); `null` when this host
+   * offers no such region.
+   */
+  getPlacementEntry(key: string): PlacementEntry | null;
+  /**
+   * ⭐ The way of sitting a region IS — its `Placement` document, resident
+   * with the host (documents D7). Every reader of a placed pair asks the
+   * host this, never the catalogue by the pair's name: a named region
+   * (`breast pocket`) is not a path.
+   */
+  placementOf(key: string): Placement;
+
+  /**
+   * ⭐ How long this host's hanging edge is, m (size and carrying D4): its
+   * own longest side by default (a tool rail, a strap); a `round` host its
+   * circumference (a key ring). A worn belt answers its wearer's waist.
+   */
+  hangingLengthM(): number;
+  /**
+   * ⭐ The mass this host holds up hung from it, kg: its material's tensile
+   * strength × its cross-section ÷ g ÷ a safety factor. `Infinity` for a
+   * material with no strength given (a pegboard's authors need not care).
+   */
+  bearsKg(): number;
+  /** The room left along the hanging region `key`, in words. */
+  roomFor(key: string): HangingRoom;
 
   /**
    * Items currently placed on this host. Computed lazily by walking the
@@ -152,7 +203,7 @@ export interface Placing {
   /** Public so the applier can reflect into it. Not the contract. */
   airExposure: number;
   /** Public so the applier can reflect into it. Not the contract. */
-  placements: string[];
+  placements: (string | PlacementEntry)[];
 }
 
 export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -199,7 +250,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
                 PerceptionApi.perceives(viewer, c),
             );
             if (items.length === 0) continue;
-            const row = ContainmentApi.placements().need(member);
+            const row = host.placementOf(member);
             groups.push({
               name: row.getName(),
               heading: row.getHeading() || 'With it',
@@ -250,8 +301,8 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** `[0, 1]` — how much of a placed thing the air reaches. Default airy. */
     public airExposure = 1;
 
-    /** The offered ways of sitting, by path, primary first. A bare host is a surface. */
-    public placements: string[] = [Placements.ON];
+    /** The offered regions — paths or entries — primary first. A bare host is a surface. */
+    public placements: (string | PlacementEntry)[] = [Placements.ON];
 
     placementFor(word: string | undefined): PlacementChoice {
       return new PlacementOffers(this as unknown as Stuff).choose(word);
@@ -260,7 +311,28 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
     getPlacements(): readonly string[] {
       const v = this.placements;
       if (!Array.isArray(v) || v.length === 0) return [Placements.ON];
-      return v;
+      return v.map((e) => (typeof e === 'string' ? e : (e.name ?? e.member)));
+    }
+
+    getPlacementEntry(key: string): PlacementEntry | null {
+      const v = Array.isArray(this.placements) && this.placements.length > 0
+        ? this.placements
+        : [Placements.ON];
+      for (const e of v) {
+        if (typeof e === 'string') {
+          if (e === key) return { member: e };
+        } else if ((e.name ?? e.member) === key) {
+          return { ...e };
+        }
+      }
+      return null;
+    }
+
+    placementOf(key: string): Placement {
+      // A key this host does not name is read as a member path, so a stale
+      // pair still finds its way of sitting (and a missing one throws by path).
+      const member = this.getPlacementEntry(key)?.member ?? key;
+      return ContainmentApi.placements().need(member);
     }
 
     /**
@@ -269,10 +341,18 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
      * placement document fails here, where it is named. (The kernel's three
      * are resident with every place.)
      */
-    setPlacements(paths: readonly string[]): Promise<void> {
-      this.placements = [...paths];
+    setPlacements(paths: readonly (string | PlacementEntry)[]): Promise<void> {
+      const entries = paths.map((e) => {
+        if (typeof e === 'string') return e;
+        if (!e || typeof e.member !== 'string' || e.member === '') {
+          throw new TypeError(`placements: an entry names no member (${JSON.stringify(e)})`);
+        }
+        return { ...e };
+      });
+      this.placements = entries;
+      const members = entries.map((e) => (typeof e === 'string' ? e : e.member));
       // The applier awaits this: the row is live only when its placements are.
-      return Promise.all(paths.map((p) => ContainmentApi.placements().ensure(p))).then(() => undefined);
+      return Promise.all(members.map((p) => ContainmentApi.placements().ensure(p))).then(() => undefined);
     }
 
     getPlaced(name?: string): readonly (Stuff & Containable)[] {
@@ -302,10 +382,10 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Primary word first: a host offering both `on` and `from` takes
       // `put X on host` as `on`, because `on` is `on`'s primary.
       for (const nm of offered) {
-        if (wordsFor(nm)[0] === w) return nm;
+        if (this.placementOf(nm).getPrepositions()[0] === w) return nm;
       }
       for (const nm of offered) {
-        if (wordsFor(nm).includes(w)) return nm;
+        if (this.placementOf(nm).getPrepositions().includes(w)) return nm;
       }
       return null;
     }
@@ -332,34 +412,119 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
       return 0;
     }
 
-    canPlace(_item: Stuff & Containable, name: string): VetoResult {
+    canPlace(item: Stuff & Containable, name: string): VetoResult {
       if (!this.getPlacements().includes(name)) {
         return { ok: false, reason: 'no-such-placement' };
       }
+      const member = this.placementOf(name);
       // ⭐ An ENCLOSING member puts the thing inside this host, so a
       // shut host refuses it — and says which, because a refusal a
       // player cannot act on teaches nothing. A non-enclosing member
       // (a hook on the outside of a shut box) is unaffected.
-      if (ContainmentApi.placements().need(name).getEncloses()) {
+      if (member.getEncloses()) {
         const self = this as unknown as Stuff;
         if (MixinApi.isSealable(self) && !self.isOpen()) {
           return { ok: false, reason: 'shut' };
         }
       }
+      // ⭐ The member fit (size and carrying D4) — the container rule's
+      // regions: a pocket bounds by its mouth and its volume, a hanging
+      // length by its length and what it bears. `on` bounds nothing.
+      const fit = this.memberFitRefusal(item, name, member);
+      if (fit !== null) return { ok: false, reason: fit };
       // Default: accept any Containable under an offered member.
       // Subclasses / shadows override for shape-specific gates
       // (capacity, weight, temperature).
       return { ok: true };
     }
+
+    /** The member fit's refusal reason, or `null` (see {@link canPlace}). */
+    private memberFitRefusal(item: Stuff, name: string, member: Placement): string | null {
+      if (member.getHangs()) {
+        const w = hangingWidthOf(item);
+        if (w !== null) {
+          let used = 0;
+          for (const c of this.getPlaced(name)) {
+            if (c.stuffId !== item.stuffId) used += hangingWidthOf(c) ?? 0;
+          }
+          // A hook takes ONE thing however wide it is — a point is not a
+          // length; a rail takes them until its length is spent.
+          if (used > 0 && used + w > this.hangingLengthM() + 1e-9) return 'no-room-along';
+        }
+        const bears = this.bearsKg();
+        if (Number.isFinite(bears)) {
+          let kg = MixinApi.isTangible(item) ? item.getMass().rawValue() : 0;
+          for (const c of this.getPlaced(name)) {
+            if (c.stuffId !== item.stuffId && MixinApi.isTangible(c)) kg += c.getMass().rawValue();
+          }
+          if (kg > bears + 1e-9) return 'too-heavy-for';
+        }
+        return null;
+      }
+      if (member.getEncloses()) {
+        const entry = this.getPlacementEntry(name);
+        const box = (MixinApi.isTangible(item) ? item.getFitBox() : null);
+        if (entry === null || box === null) return null;
+        if (entry.mouth && !box.fitsThrough(entry.mouth)) return 'too-big-for-mouth';
+        if (typeof entry.volumeM3 === 'number' && entry.volumeM3 > 0) {
+          let used = 0;
+          for (const c of this.getPlaced(name)) {
+            if (c.stuffId !== item.stuffId) used += (MixinApi.isTangible(c) ? c.getFitBox() : null)?.boxVolume() ?? 0;
+          }
+          if (used + box.boxVolume() > entry.volumeM3 + 1e-9) return 'no-room';
+        }
+      }
+      return null;
+    }
+
+    /** See {@link Placing.hangingLengthM}. */
+    public hangingLengthM(): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isTangible(self)) return Infinity;
+      const d = self.getDimensions();
+      if (d === null) return Infinity;
+      // A ring offers its circumference; anything else its longest side.
+      if (self.getShapeName() === 'round') return Math.PI * d.longest();
+      return d.longest();
+    }
+
+    /** See {@link Placing.bearsKg}. */
+    public bearsKg(): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isTangible(self)) return Infinity;
+      const mat = self.getMaterial();
+      const mpa = mat?.getTensileStrengthMPa() ?? 0;
+      if (!(mpa > 0)) return Infinity;
+      const d = self.getDimensions();
+      if (d === null) return Infinity;
+      // The cross-section that takes the pull: the two smaller sides.
+      const { width, height } = d.crossSection();
+      const newtons = mpa * 1e6 * width * height;
+      return newtons / SIZE_DEFAULTS.STANDARD_GRAVITY / SIZE_DEFAULTS.HANG_SAFETY;
+    }
+
+    /** See {@link Placing.roomFor}. */
+    public roomFor(key: string): HangingRoom {
+      const length = this.hangingLengthM();
+      if (!Number.isFinite(length)) return 'plenty';
+      let used = 0;
+      for (const c of this.getPlaced(key)) used += hangingWidthOf(c) ?? 0;
+      const left = length - used;
+      for (const step of SIZE_DEFAULTS.HANG_ROOM_WORDS) {
+        if (left >= step.atLeastM) return step.words;
+      }
+      // An empty hook still takes one thing.
+      return used > 0 ? 'none' : 'a small thing';
+    }
   };
 }
 
 /**
- * The words a member accepts, primary first, off its own `Placement`
- * row. A member with no live row answers to its own name — so a host
- * offering a member the catalogue has not warmed still resolves the
- * obvious word rather than becoming unaddressable.
+ * The width a thing takes hanging from a length: its middle side (D4); a
+ * flexible thing its packed cube root. `null` when its size is unknown.
  */
-function wordsFor(path: string): readonly string[] {
-  return ContainmentApi.placements().need(path).getPrepositions();
+function hangingWidthOf(item: Stuff): number | null {
+  return (MixinApi.isTangible(item) ? item.getFitBox() : null)?.hangingWidthM() ?? null;
 }
+
+

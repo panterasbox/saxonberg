@@ -115,6 +115,14 @@ export interface Atmospheric {
 
   getGravity(detailKey?: string): Promise<Quantity<'m/s²'>>;
   setGravity(value: Quantity<'m/s²'> | null, detailKey?: string): void;
+  /**
+   * ⭐ Gravity here NOW, synchronously (size and carrying D6): the scope's
+   * own override when it has one, else the last resolution of
+   * {@link getGravity} — standard gravity until the first resolution lands
+   * (a read in the first instant after boot weighs things as on Earth).
+   * `getGravity` stays the authoritative async read.
+   */
+  gravityNow(): Quantity<'m/s²'>;
 
   getAtmosphere(detailKey?: string): Promise<string>;
   setAtmosphere(value: string | null, detailKey?: string): void;
@@ -864,10 +872,59 @@ export function AtmosphericMixin<
       }
       if (value === null) {
         this._gravity = null;
-        return;
+        this._gravityMemo = null;
+      } else {
+        assertQuantity(value, 'm/s²', 'gravity');
+        this._gravity = value;
+        this._gravityMemo = value.rawValue();
       }
-      assertQuantity(value, 'm/s²', 'gravity');
-      this._gravity = value;
+      // ⭐ Pressed in, or it leaves (D5): what is not held drifts the moment
+      // nothing presses it — every container here, one level down.
+      this.reconcilePressingHere();
+    }
+
+    /** The memo {@link gravityNow} reads; `null` = not resolved yet. */
+    private _gravityMemo: number | null = null;
+    private _gravityResolving = false;
+
+    public gravityNow(): Quantity<'m/s²'> {
+      if (this._gravity !== null) return this._gravity;
+      if (this._gravityMemo === null) this.resolveGravityMemo();
+      return Quantity.of(this._gravityMemo ?? STANDARD_GRAVITY_MS2, 'm/s²');
+    }
+
+    /** Resolve the chain once, in the background; the memo answers meanwhile. */
+    private resolveGravityMemo(): void {
+      if (this._gravityResolving) return;
+      this._gravityResolving = true;
+      this.getGravity()
+        .then((g) => {
+          this._gravityMemo = g.rawValue();
+        })
+        .catch(() => {
+          /* no chain yet (a unit world): standard gravity stands */
+        })
+        .finally(() => {
+          this._gravityResolving = false;
+        });
+    }
+
+    /**
+     * Ask this scope (when it holds things) and every container it holds to
+     * settle what is no longer pressed in. Synchronous; a refusal to move
+     * leaves a thing where it is.
+     */
+    private reconcilePressingHere(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainer(self)) return;
+      try {
+        self.reconcilePressing();
+        for (const c of self.getContents()) {
+          if (MixinApi.isContainer(c)) c.reconcilePressing();
+        }
+      } catch (err) {
+        console.warn('Atmospheric.setGravity: pressing failed:', err);
+      }
     }
 
     // ---------- atmosphere ----------
@@ -1462,6 +1519,9 @@ export function AtmosphericMixin<
       if (this._exposure !== null && this._exposureKey === key) {
         return this._exposure;
       }
+      // The chain may have changed under it (a structure stood up, a biome
+      // resolved): gravity is re-resolved, the last answer standing meanwhile.
+      if (this._gravityMemo !== null) this.resolveGravityMemo();
       const built = this.buildExposure(path, structure, neighbours);
       this._exposure = built;
       this._exposureKey = key;
@@ -2383,6 +2443,9 @@ export function AtmosphericMixin<
     }
   };
 }
+
+/** Standard gravity, m/s² — what {@link Atmospheric.gravityNow} reads before the chain resolves. */
+const STANDARD_GRAVITY_MS2 = 9.81;
 
 /** Below this fraction a content is gone — the air has cleared. */
 const CONTENT_EPSILON = 1e-6;
