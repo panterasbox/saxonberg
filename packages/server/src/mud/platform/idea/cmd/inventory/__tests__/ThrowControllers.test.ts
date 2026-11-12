@@ -183,6 +183,10 @@ describe('letting go (C51)', () => {
     const { room, giver, rock } = scene();
     const release = vi.fn(() => ({ released: true, vacated: 1 }));
     (giver as unknown as Record<string, unknown>).tryReleaseFromSlots = release;
+    // The giver poses as slotted (below); the chokepoint reads its slots as
+    // a thing leaves it (size and carrying: no phantom occupant), so it
+    // answers with none — the release above already vacated.
+    (giver as unknown as Record<string, unknown>).getAllOccupants = () => new Map();
     const { MixinApi } = await import('../../../../../api/mixin');
     vi.spyOn(MixinApi, 'isSlotted').mockReturnValue(true);
     vi.spyOn(MixinApi, 'isSlottable').mockReturnValue(true);

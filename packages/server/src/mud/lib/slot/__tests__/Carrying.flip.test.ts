@@ -88,6 +88,17 @@ describe('the flip — nothing loose on a body', () => {
     expect(words).toMatch(/`drop lantern`/);
   });
 
+  it('⭐ a held thing that leaves the body leaves its hand (no phantom occupant — the lead rope)', async () => {
+    const { room, me } = await newcomer();
+    const rope = good('rope', 0.5, [0.2, 0.2, 0.05]);
+    ContainmentApi.move(rope, room);
+    expect(me.receive(rope)).toBeNull();
+    expect(me.freeHands()).toBe(1);
+    ContainmentApi.move(rope, room);
+    expect(me.freeHands()).toBe(2);
+    expect(me.heldThings()).toEqual([]);
+  });
+
   it('⭐ a pocket is as deep as its volume over its mouth: a pencil stands out of it, a sword does not go in', async () => {
     const { room, me, trousers } = await newcomer();
     const pencil = good('pencil', 0.01, [0.008, 0.008, 0.18]);

@@ -459,6 +459,17 @@ function moveCore(
   // the three cross-object updates atomically.
   item.setContainer(to);
 
+  // ⭐ A thing that leaves a holder leaves the holder's SLOTS (size and
+  // carrying drive, step 18): a lead rope tied to a mule's halter went
+  // with the mule and stayed in the leader's hand slot — a phantom that
+  // filled the hand, so nothing else could be held. Every caller that
+  // remembered to vacate first still does; this is the floor under them.
+  if (from !== null && from !== to && MixinApi.isSlotted(from) && MixinApi.isSlottable(item)) {
+    for (const [slot, occupants] of from.getAllOccupants()) {
+      if ([...occupants].some((o) => o.stuffId === item.stuffId)) from.vacate(slot, item);
+    }
+  }
+
   // Auxiliary-pair invariant: when the container actually changes, the
   // placement can no longer be valid (the apple is now in the chest;
   // whatever desk it was on can't still be holding it). Clearing here
