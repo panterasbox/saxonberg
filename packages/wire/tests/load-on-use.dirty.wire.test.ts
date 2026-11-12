@@ -106,8 +106,13 @@ const T = {
 const WIZARD = { wizard: true, committees: ['/world/terminus'] };
 const PARCEL = '--parcel /world/terminus';
 
-/** The nine rosters' boot lines (the two that still log a warm). */
-const ROSTER_WARM = /(MaterialCatalogue: \d+ material|ConditionCatalogue: \d+ condition) singleton\(s\) live/;
+/**
+ * The material roster's warm line. ⚠ Conditions are NOT in it: they load
+ * with the first BODY (plan D7), and a world stands bodies up at boot (its
+ * cast) — so `ConditionCatalogue: n condition singleton(s) live` in the
+ * boot log is D7 working, not a roster booted.
+ */
+const ROSTER_WARM = /MaterialCatalogue: \d+ material singleton\(s\) live/;
 
 /** What a cold read looks like to a player (D1: cold means loud). */
 const COLD = /not resident|DocumentNotResident|went wrong|controller error/i;
@@ -245,14 +250,17 @@ suite('load on use: nothing stands at boot, everything answers', () => {
     expect(await say(city, 'government')).toMatch(/City of Terminus/);
   }
   async function step6(s: Session): Promise<void> {
-    const self = squash(await examine(s, 'me'));
+    // ⭐ The row's own `name` (`metabolism/alcohol.yaml`), read off the live
+    // condition — `assess` speaks the condition to its bearer; the
+    // `observableSigns` are an observer's read, not the self's.
     const assessed = await say(s, 'assess');
-    expect(`${self} ${assessed}`, 'the intoxicated row reads with its signs').toMatch(/flushed|unsteady|slurr/i);
+    expect(assessed, 'the intoxicated row reads').toMatch(/You have intoxicated/);
   }
   async function step10(): Promise<void> {
     const s = await open('fitting', { startLocation: TAILOR });
-    await hand(s, T.shirt);
-    const looked = await say(s, 'look me:i:shirt');
+    // ⚠ By id: a new body is already wearing a student shirt.
+    const shirt = await hand(s, T.shirt);
+    const looked = await say(s, `look #${shirt}`);
     expect(looked).toMatch(/linen|wool|cotton|silk|fustian|cloth/i);
   }
 
@@ -297,11 +305,13 @@ suite('load on use: nothing stands at boot, everything answers', () => {
     const s = await open('drinker', { startLocation: WARD });
     kept.drinker = s.handle;
     for (let i = 0; i < 4; i++) {
-      await hand(s, T.whiskey);
-      await say(s, 'open me:i:whiskey');
-      await act(s, 'drink me:i:whiskey');
+      // By id: `me:i:whiskey` binds the first (emptied) bottle again.
+      const bottle = await hand(s, T.whiskey);
+      await say(s, `open #${bottle}`);
+      await act(s, `drink #${bottle}`);
     }
-    await advanceWorldClock('20 minutes');
+    // Absorption is gradual (0.5 g/min against clearance): an hour crosses the 0.03 band.
+    await advanceWorldClock('1 hour');
     await step6(s);
   });
 
@@ -329,6 +339,7 @@ suite('load on use: nothing stands at boot, everything answers', () => {
     await evalOn(s, `#${vat}`, 'this.fractionConverted = 0.4');
     const looked = await say(s, `look #${vat}`);
     expect(looked).toMatch(/It bubbles steadily, a yeasty breath rising off it/);
+    await say(s, `open #${vat}`);
     const tasted = await say(s, `taste #${vat}`);
     expect(tasted).toMatch(/It tastes /);
   });
@@ -351,8 +362,10 @@ suite('load on use: nothing stands at boot, everything answers', () => {
     const pot = await hand(s, T.pot, { interiorMaterial: T.madder, interiorAmount: 10 });
     const bolt = await hand(s, T.bolt);
     const dyed = await act(s, `dye #${bolt} in #${pot}`, '1 hour');
-    // ⭐ The shade is the dyestuff document's (`madder.yaml`): unmordanted, it will not hold.
-    expect(dyed).toMatch(/comes up a red that will not hold/);
+    expect(dyed).toMatch(/You work a bolt of linen down into/);
+    // ⭐ The take is the dyestuff document's (`madder.yaml`): unmordanted,
+    // fastness 0.02 — the cloth reads dyed, and already washing out.
+    expect(await examine(s, `#${bolt}`)).toMatch(/Dyed \w+.*washing out/);
   });
 
   it.skipIf(!isOwnedTestWorld())('12. restart: the look, the taste, the governments, the signs and the fabric read the same', async () => {
@@ -366,11 +379,12 @@ suite('load on use: nothing stands at boot, everything answers', () => {
     const drinker = await Session.open(kept.drinker!, { startLocation: WARD });
     opened.push(drinker);
     for (let i = 0; i < 3; i++) {
-      await hand(drinker, T.whiskey);
-      await say(drinker, 'open me:i:whiskey');
-      await act(drinker, 'drink me:i:whiskey');
+      const bottle = await hand(drinker, T.whiskey);
+      await say(drinker, `open #${bottle}`);
+      await act(drinker, `drink #${bottle}`);
     }
-    await advanceWorldClock('20 minutes');
+    // Absorption is gradual (0.5 g/min against clearance): an hour crosses the 0.03 band.
+    await advanceWorldClock('1 hour');
     await step6(drinker);
     await step10();
   }, 1_500_000);

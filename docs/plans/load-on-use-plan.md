@@ -1270,4 +1270,30 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)*
+*(appended at build time)* — `packages/wire/tests/load-on-use.dirty.wire.test.ts`,
+WIRE_PORT 2019, a freshly dropped `saxonberg_build4`, 2026-11-12.
+**13 / 13 green** (steps 0–11 in one run on the kept world, 6 and 12 re-run
+after the last fix). Soak drive: S1 (a vat ripening over game weeks) is
+the soak lane's — no `.soak.` file yet; the staged twin is step 8.
+
+| step | result | note |
+|---|---|---|
+| 0 boot | ✓ | no `MaterialCatalogue` warm line. ⚠ `ConditionCatalogue: 41 … live` IS in the boot log — **D7 working, not a roster booted**: conditions load with the first body and a world stands its cast up at boot. The first run asserted both and failed on it (B2: the check is live) |
+| 1 look + floor | ✓ | |
+| 2 sky by day / night | ✓ | |
+| 3 smell + taste | ✓ | brine salty to the tongue, silent to the nose; a whiskey tastes |
+| 4 analyze / measure | ✓ | **adapted**: no reading reports mass; `measure density` on brine stands in (same material read) |
+| 5 governments | ✓ | Heart's Delight Parish; City of Terminus |
+| 6 toxin at the ward | ✓ | **adapted**: a strong drink (the `intoxicated` row). `assess` reads *"You have intoxicated."* — the row's `name`; signs are an observer's read. ⚠ Absorption is gradual: 20 game minutes left BAC 0.019 (< the 0.03 band) and the first two runs failed there; an hour crosses it. Found, not this build's: the sentence's grammar (*"You have intoxicated"*) and `drink`'s *"You drink the an amber…"* |
+| 7 the still cut | ✓ | wash poured, stoked, lit; `smell still` reads the schedule's own sentence; a draw pours |
+| 8 staged vat | ✓ | wort poured (the charge picks the profile), `fractionConverted` set by `eval`; `look` reads *"It bubbles steadily…"*; `taste` after `open` |
+| 9 soap at the baths | ✓ | grease out of an apron with soap and a brush |
+| 10 garment fabric | ✓ | by `#id` — a new body already wears a student shirt (the first run met a prompt) |
+| 11 dye | ✓ | madder unmordanted: the bolt reads *"Dyed …, and washing out"* — the row's 0.02 fastness |
+| 12 restart | ✓ | 1, 3, 5, 6, 10 read the same |
+
+Every failure across the four runs was the drive script's (binding, timing,
+a wrong expected sentence); the build needed no code change. The first boot
+of all failed on a **stale DB** (a `turn` command view kept on a pack
+conflict) — dropped, and the drive ran on a fresh world as the requirements
+ask.

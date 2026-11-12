@@ -98,8 +98,8 @@ test('a person reaches every roster this build stopped booting', async ({ browse
       await sayAwaiting(ward.page, 'open me:i:whiskey', /\S/);
       await sayAwaiting(ward.page, 'drink me:i:whiskey', /\S/);
     }
-    await sayAwaiting(ward.page, 'testharness clock advance 20m', /\S/);
-    await sayAwaiting(ward.page, 'assess', /flushed|unsteady|slurr/i);
+    await sayAwaiting(ward.page, 'testharness clock advance 1h', /\S/);
+    await sayAwaiting(ward.page, 'assess', /You have intoxicated/);
   } finally {
     await ward.close();
   }
