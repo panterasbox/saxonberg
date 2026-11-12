@@ -31,6 +31,20 @@ describe("the classifier", () => {
     expect(d[0]!.duration).toBe(false);
   });
 
+  it("⭐ an emptiness test is not a threshold (size-and-carrying W7)", () => {
+    expect(
+      scan(`if (xs.length > 0) {}\nif (0 < s.size) {}\nif (xs.length >= 1) {}\nif (xs.length < 1) {}\nif (xs.length <= 0) {}`),
+    ).toEqual([]);
+  });
+
+  it("⚠ but a count against any other number IS one", () => {
+    expect(scan(`if (xs.length > 2) {}\nif (xs.length >= 0) {}\nif (n > 0) {}`).map((d) => d.kind)).toEqual([
+      "threshold",
+      "threshold",
+      "threshold",
+    ]);
+  });
+
   it("reading a plan's duration is not a decision", () => {
     expect(scan(`engage({ durationMs: plan.durationMs, effortW: plan.effortW });\nconst x = a + b;`)).toEqual([]);
   });

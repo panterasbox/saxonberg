@@ -115,7 +115,7 @@ export default class InventoryController extends CommandController<InventoryMode
     }
     // A container that also offers regions (a pack's straps) lists them too.
     const hung = MixinApi.isPlacing(target) ? InventoryController.regionLines(viewer, target, weight) : [];
-    const all = hung.length !== 0 ? hung.reduce((acc, line) => Mml.compose`${acc}${line}\n`, body) : body;
+    const all = hung.length > 0 ? hung.reduce((acc, line) => Mml.compose`${acc}${line}\n`, body) : body;
     MessageApi.scene(viewer).topic('sense.survey').toSelf(all).send();
   }
 
@@ -213,7 +213,7 @@ export default class InventoryController extends CommandController<InventoryMode
       MixinApi.isContainer(c) ? PerceptionApi.perceived(viewer, c.getContents()) : [];
     const lines: Mml[] = [];
 
-    if (shows('held') && held.length !== 0) lines.push(Mml.compose`In hand: ${list(held)}.`);
+    if (shows('held') && held.length > 0) lines.push(Mml.compose`In hand: ${list(held)}.`);
 
     if (shows('ready')) {
       const ready: Mml[] = [];
@@ -230,28 +230,28 @@ export default class InventoryController extends CommandController<InventoryMode
       for (const c of readyContainers) {
         const inside = contentsOf(c);
         ready.push(
-          inside.length !== 0
+          inside.length > 0
             ? Mml.compose`  ${Mml.thing(c)}: ${list(inside)}.`
             : Mml.compose`  ${Mml.thing(c)}: empty.`,
         );
       }
       // ⚠ Until the flip (W7), a thing can still be loose on you — ready.
-      if (loose.length !== 0) ready.push(Mml.compose`  Loose: ${list(loose)}.`);
-      if (ready.length !== 0) {
+      if (loose.length > 0) ready.push(Mml.compose`  Loose: ${list(loose)}.`);
+      if (ready.length > 0) {
         lines.push(Mml.compose`Ready:`);
         lines.push(...ready);
       }
     }
 
-    if (shows('worn') && worn.length !== 0) lines.push(Mml.compose`Worn: ${list(worn)}.`);
+    if (shows('worn') && worn.length > 0) lines.push(Mml.compose`Worn: ${list(worn)}.`);
 
-    if (shows('packed') && packedContainers.length !== 0) {
+    if (shows('packed') && packedContainers.length > 0) {
       lines.push(Mml.compose`Packed:`);
       for (const c of packedContainers) {
         const inside = contentsOf(c);
         if (model.all === true || only.includes('packed')) {
           lines.push(
-            inside.length !== 0
+            inside.length > 0
               ? Mml.compose`  ${Mml.thing(c)}: ${list(inside)}.`
               : Mml.compose`  ${Mml.thing(c)}: empty.`,
           );
@@ -296,7 +296,7 @@ export default class InventoryController extends CommandController<InventoryMode
       const heading = named
         ? region.charAt(0).toUpperCase() + region.slice(1)
         : member.getHeading() || 'With it';
-      if (items.length !== 0) lines.push(Mml.compose`── ${heading}: ${InventoryController.list(viewer, items, weight)}.`);
+      if (items.length > 0) lines.push(Mml.compose`── ${heading}: ${InventoryController.list(viewer, items, weight)}.`);
       else if (named) lines.push(Mml.compose`── ${heading}: empty.`);
       // ⭐ The room along a length, in words — never a number (D27).
       if (member.getHangs()) lines.push(Mml.compose`── Room left: ${host.roomFor(region)}.`);
