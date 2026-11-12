@@ -33,6 +33,9 @@ import { Vessel } from '@saxonberg/server/mud/lib/stuff/Vessel';
 import { HaulableMixin } from '@saxonberg/server/mud/lib/slot/Haulable';
 import { VehicularMixin } from '../lib/Vehicular';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
+import { SealableMixin } from '@saxonberg/server/mud/lib/spatial/Sealable';
+import { SlottedMixin } from '@saxonberg/server/mud/lib/slot/Slotted';
+import { PosturedMixin } from '@saxonberg/server/mud/lib/slot/Postured';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import {
@@ -43,9 +46,32 @@ import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/C
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 
-const HaulageRigBase = VehicularMixin(BulkableMixin(HaulableMixin(Vessel)));
+// ⭐ Size and carrying W6: `Postured(Slotted(…))` — riding in a cart is
+// SITTING in it (D38: the row's `bed` slot, `postures: [sit, lie]`); and
+// `Sealable` — a tarpaulin drawn over the load closes its top and hides
+// what is in it (D24/D27). Starts OPEN; closes only under a cover lying in
+// it (`Haulable.coverFor`).
+const HaulageRigBase = VehicularMixin(
+  BulkableMixin(
+    HaulableMixin(PosturedMixin(SlottedMixin(SealableMixin(Vessel)))),
+  ),
+);
 
 export default class HaulageRig extends HaulageRigBase {
+  constructor() {
+    super();
+    this.setOpen(true);
+  }
+
+  /** A rig closes under a tarpaulin, and a tarp drapes over what stands up. */
+  public override canClose(_by: Stuff): VetoResult {
+    if (this.coverFor() !== null) return { ok: true };
+    return {
+      ok: false,
+      reason: `There is nothing to draw over ${this.getPresentation()} — put a tarpaulin in it first.`,
+    };
+  }
+
   static fieldMeta: FieldMeta = {
     requiredDiscipline: { persistent: true, authorable: true },
     requiredBand: { persistent: true, authorable: true },

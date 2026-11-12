@@ -1,0 +1,15 @@
+# The steading pond's water (size and carrying W6) — a one-node still
+# water, so the pond is a water place with a read of its own: a farm pond
+# dug for stock, cool, brown and weedy. The Duncan Hall cistern is the
+# precedent.
+class: /system/water/idea/Watercourse
+data:
+  key: steading
+  name: the steading pond
+  basin: steading
+  branchesFrom: null
+  water: { pH: 7.4, hardnessDgh: 6, nitrateMgL: 4 }
+  clarityM: 1
+  site: { latitudeDeg: 42 }
+  nodes:
+    - { name: pond, elevation: 120, channelWidthM: 18, meanDepthM: 2.5, stocks: [] }

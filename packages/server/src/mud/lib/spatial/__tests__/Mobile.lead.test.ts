@@ -19,6 +19,11 @@ import { SlottableMixin } from '../../slot/Slottable';
 import Thing from '../../../platform/thing/Thing';
 import type { Stuff } from '../../stuff/Stuff';
 import { makeBody } from '../../slot/__tests__/carrying-fixture';
+import { TieableMixin } from '../Tieable';
+import { WearableMixin } from '../../slot/Wearable';
+
+/** A collar: a worn Tieable a lead is made fast to (the W6 halter's shape). */
+class Collar extends TieableMixin(WearableMixin(SlottableMixin(Thing))) {}
 
 /** The end of a lead: held, and its line's far end is the animal. */
 class LeadEnd extends TetherEndMixin(WieldableMixin(SlottableMixin(Thing))) {
@@ -92,5 +97,20 @@ describe('Mobile.traverse — leading (D18)', () => {
     await me.traverse(exit, 'walk');
     expect(me.getContainer()).toBe(locB);
     expect(diver.getContainer()).toBe(locA);
+  });
+
+  it('⭐ a body with a hand of its own is still LED on a halter (W6: a dog\'s mouth is a hand)', async () => {
+    const { locA, locB, exit, me, end } = setup();
+    const { me: dog, plan } = makeBody({ mass: 30, stature: 0.6 });
+    ContainmentApi.move(dog, locA);
+    const collar = makeStuff(() => new Collar());
+    collar.setSlotClaims({ [plan]: ['torso'] });
+    dog.seatInSlot(collar, 'torso');
+    expect(dog.handSlots().length).toBeGreaterThan(0);
+    expect(dog.halter()).toBe(collar);
+    end.animal = dog;
+    await me.traverse(exit, 'walk');
+    expect(me.getContainer()).toBe(locB);
+    expect(dog.getContainer()).toBe(locB);
   });
 });

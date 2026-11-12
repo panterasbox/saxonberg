@@ -137,6 +137,13 @@ export interface Haulable {
    * to leave its hauler hitched to it from another room.
    */
   slipHitch(): string | null;
+  /**
+   * ⭐ The cloth that can be drawn over the load (size and carrying D27, W6):
+   * a thing lying in the cart whose shape is a `sheet` and whose material
+   * is a textile — a tarpaulin. A cart that closes (`close wagon`) closes
+   * only under one; `null` = nothing to draw over it.
+   */
+  coverFor(): Stuff | null;
 }
 
 export function HaulableMixin<
@@ -302,6 +309,16 @@ export function HaulableMixin<
       if (!hauler) return null;
       const name = hauler.getPresentation();
       return hauler.unhitch(hauler).ok ? name : null;
+    }
+
+    /** See {@link Haulable.coverFor}. */
+    public coverFor(): Stuff | null {
+      const self = this as unknown as Stuff & Container;
+      for (const c of self.getContents()) {
+        if (!MixinApi.isTangible(c) || c.getShapeName() !== 'sheet') continue;
+        if (c.getMaterial()?.hasTag('textile') === true) return c;
+      }
+      return null;
     }
 
   };

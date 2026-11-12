@@ -44,4 +44,8 @@ data:
       - { part: pommel, template: /trade/smithing/thing/pommel, count: 1, role: fastener, material: /stuff/idea/material/element/iron }
     joints:
       - { key: hilting, method: /platform/joints/peened, members: [blade, guard, grip], fastener: pommel }
-
+  # ⭐ Size and carrying (W6 arms audit): its shape is a ROD and its box
+  # its blade/shaft, so the length rule (`Carrying.handsFor` — longer than
+  # 0.6 of the holder's stature takes two hands) reads it.
+  shape: rod
+  dimensions: { width: 0.05, depth: 0.01, height: 0.9 }

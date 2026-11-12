@@ -1,0 +1,17 @@
+# The Old Steading — a farmstead gone back to the wood, northwest of the
+# treeline and beside the delve. ⭐ The size-and-carrying drive's ground
+# (size and carrying W6): every way here is a size question asked
+# honestly by a real place — a cottage door you stoop under, a crawlway
+# a pack will not go through, a ladder that wants both hands, a barn stair
+# whose turn a long crate will not swing round (beside a barn door wide
+# enough for it), a narrow paddock gate a laden mule will not pass, and a
+# pond you swim across.
+#
+# All of it is open to the sky — the roofs are long gone — so `look` reads
+# by day and wants a light at night. Its own sub-zone, hung off the
+# treeline by ONE ordinary ground way (the delve and hollow precedent): an
+# added exit pulls it into no standup or fast-travel cascade.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Old Steading
+  cellSize: 3.0

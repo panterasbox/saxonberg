@@ -1,0 +1,29 @@
+# A greatsword — a long, heavy blade (size and carrying W6, drive 7).
+# ⭐ It claims ONE hand: two hands by WEIGHT or LENGTH are the holder's to
+# decide (`Carrying.handsFor`), never the row's. A human (1.75 m) needs
+# both — its 1.15 m is past 0.6 of their stature (1.05 m) — and is refused
+# it beside a shield; the big draconic body (2.0 m, threshold 1.2 m) wields
+# it in one hand.
+#
+# ⚠ The plan's 1.6 m would have taken two hands for EVERY shipped species
+# (2.0 × 0.6 = 1.2 m), so the drive's one-handed large body could never
+# have held it. The row was fixed, not the rule (W6 decision).
+class: /platform/thing/equipment/Weapon
+data:
+  shortDescription: greatsword
+  keywords: [greatsword, sword, great]
+  register: indefinite
+  longDescription: >
+    A broad, heavy blade on a long grip, with a wide crossguard and a
+    ricasso wrapped in leather below it. It is made for someone big, or
+    for someone prepared to use both hands and nothing else.
+  _materialPath: /stuff/idea/material/alloy/steel
+  constructionForm: bladed
+  gradeBand: fine
+  mass: 3.2
+  length: 1.15
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  exercises: [blades]
+  shape: rod
+  dimensions: { width: 0.06, depth: 0.012, height: 1.15 }

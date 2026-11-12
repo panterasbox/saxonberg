@@ -30,14 +30,29 @@ import { Vessel } from '../../../lib/stuff/Vessel';
 import { SlottableMixin } from '../../../lib/slot/Slottable';
 import { WearableMixin } from '../../../lib/slot/Wearable';
 import { PlacingMixin } from '../../../lib/spatial/Placing';
+import { SealableMixin } from '../../../lib/spatial/Sealable';
 
 // ⭐ Placing outermost (size and carrying D27): a pack's straps and
 // carabiners are a hanging length (`placements: [from]` on the row) — a
 // canteen clipped to the strap is ready while the pack's inside is packed.
 // A pack whose row says nothing offers nothing but its inside.
-const PackBase = PlacingMixin(WearableMixin(SlottableMixin(Vessel)));
+//
+// ⭐ Sealable (size and carrying W6): a pack has a flap, a drawstring or a
+// lid — the oilskin pouch keeps a letter dry only SHUT (D22: a shut holder
+// whose material takes no water is liquid-tight; a shut canvas pack is
+// not), a shut pack hides what is in it (D24), and `close satchel` is the
+// shipped verb. Every pack starts OPEN (the constructor), so a pack that
+// was never shut behaves exactly as before; a row may author `open: false`.
+const PackBase = PlacingMixin(
+  WearableMixin(SlottableMixin(SealableMixin(Vessel))),
+);
 
 export default class Pack extends PackBase {
+  constructor() {
+    super();
+    this.setOpen(true);
+  }
+
   /** ⭐ A pack is cloth or leather: it gives, packs and squeezes (size and carrying D1). */
   static defaultShape = 'flexible';
 

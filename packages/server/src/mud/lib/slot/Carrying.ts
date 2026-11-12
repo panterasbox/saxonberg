@@ -172,6 +172,13 @@ export interface Carrying {
   /** What the hands hold, each thing once (a two-handed grip is one thing). */
   heldThings(): (Stuff & Slottable)[];
   /**
+   * ⭐ What a lead is made fast to (size and carrying D18, W6): the first
+   * worn `Tieable` off the hands — a halter, a dog's collar. A body that
+   * wears one is LED by a rope tied to it, hands or no hands (a dog's mouth
+   * is a hand, and a dog on a lead is still led). `null` = nothing to tie.
+   */
+  halter(): Stuff | null;
+  /**
    * How many hands are empty and can close on something (`Vitals.canGrip`),
    * less the handles of a cart this body pulls (D18).
    */
@@ -380,6 +387,17 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
         }
       }
       return out;
+    }
+
+    public halter(): Stuff | null {
+      const self = this as unknown as Stuff & Slotted;
+      const hands = new Set(this.handSlots());
+      for (const name of self.getSlotNames()) {
+        if (hands.has(name)) continue;
+        const worn = [...self.getOccupants(name)].find((o) => MixinApi.isTieable(o));
+        if (worn !== undefined) return worn;
+      }
+      return null;
     }
 
     /** Hand slots that are empty and can close on something. */

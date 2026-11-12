@@ -17,3 +17,8 @@ data:
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [back]
   placements: [/platform/placements/from]
+  # ⭐ Canvas, and the box it opens to (size and carrying W2/W6): a pack
+  # with no box widens no envelope, so drive 9's crawlway could never
+  # refuse it. 0.35 × 0.25 × 0.55 m — about 43 L inside.
+  _materialPath: /stuff/idea/material/textile/canvas
+  dimensions: { width: 0.35, depth: 0.25, height: 0.55 }

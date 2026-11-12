@@ -1,0 +1,16 @@
+# A medic's pouch (size and carrying D29) — the healer's starting bag: a
+# belt pouch big enough for a roll of bandage and a phial or two.
+# It claims no body slot: it HANGS — `put pouch on belt` clips it to a
+# belt, a strap or a saddle (the `from` placement), taking its own width
+# of the host's length, and what hangs from a worn host is ready.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: medic's pouch
+  keywords: [pouch, "medic's pouch", medic, leather]
+  register: indefinite
+  longDescription: >
+    A deep leather pouch with a buckled flap, stamped on the front with a
+    healer's plain cross and lined with linen that can be boiled.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 0.2
+  dimensions: { width: 0.2, depth: 0.08, height: 0.15 }

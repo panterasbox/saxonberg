@@ -1,0 +1,25 @@
+# A flintlock pistol — the holster's pistol (size and carrying W6, drive 6:
+# a pistol from a quick-draw holster with an empty hand takes one beat).
+# One hand: it is held and fired in one, so it claims one; whether a small
+# body needs two is the holder's (`Carrying.handsFor`).
+class: /platform/thing/equipment/Launcher
+data:
+  shortDescription: flintlock pistol
+  keywords: [pistol, flintlock, gun, firearm, "flintlock pistol"]
+  register: indefinite
+  longDescription: >
+    A short-barreled flintlock with a walnut stock that ends in a brass
+    cap, heavy for its size. It fires once, and then it is a club until
+    somebody reloads it.
+  _materialPath: /stuff/idea/material/wood/oak
+  constructionForm: hafted
+  gradeBand: fair
+  mass: 1.2
+  energySource: chemical
+  muzzleSpeed: 250
+  projectileTemplate: /stuff/thing/arms/musket-ball
+  readySeconds: 15
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  shape: rod
+  dimensions: { width: 0.05, depth: 0.04, height: 0.35 }

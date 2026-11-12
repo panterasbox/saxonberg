@@ -1,0 +1,35 @@
+# The roofless cottage — through the steading's low door (size and
+# carrying W6, drive 9). Its back wall has fallen into the old drain, and
+# the gap left is a crawlway east to the charcoal pit. Open to the sky.
+class: /platform/location/Locale
+data:
+  shortDescription: roofless cottage
+  keywords: [cottage, roofless, ruin]
+  register: indefinite
+  _address: last-counted-mile/steading-cottage
+  coords: { x: 1, y: 0, z: 0 }
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  # Stone walls still standing; the roof is gone, so the sky looks in
+  # (construction.md: the place says what it is made of).
+  enclosure: { material: /stuff/idea/material/rock/granite, thicknessM: 0.45 }
+  roof: none
+  longDescription: |
+    Four stone walls and no roof. The rafters came down long ago and rotted where they fell, and the sky looks straight in on a cold hearth and a floor of flags heaved up by roots.
+
+    The back wall has slumped into the old drain behind it, leaving a low, dark gap at knee height that runs east under the rubble — a way through for anyone willing to crawl. West, the low front door lets out into the yard.
+  details:
+    gap:
+      keywords: [gap, drain, crawlway, rubble]
+      description: |
+        A gap no higher than your knee where the back wall fell into the drain. It runs east under the rubble. You could get through it on hands and knees — but not with anything on your back.
+    hearth:
+      keywords: [hearth, fireplace]
+      description: |
+        A cold hearth of blackened stone with nothing in it but leaves.
+  exits:
+    west:
+      destination: /world/newbie-wilds/steading/yard
+      opening: { width: 0.9, height: 1.4 }
+    east:
+      destination: /world/newbie-wilds/steading/charcoal-pit
+      kind: /stuff/idea/exits/crawlway

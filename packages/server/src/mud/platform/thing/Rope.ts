@@ -554,8 +554,14 @@ export default class Rope extends CuttableMixin(
       // ⭐ An animal is led, not handed a rope (size and carrying D18): the
       // rope goes round what it wears (the halter), and the free end comes
       // to the tier's hand. A body with hands of its own takes the end.
-      // (A body whose plan is unknown is not judged handless.)
-      if (MixinApi.isCarrying(load) && SpeciesApi.tryGetBodyPlanPath(load) !== null && load.handSlots().length === 0) {
+      // (A body whose plan is unknown is not judged handless.) ⭐ A body
+      // that WEARS a halter is led whatever its hands (W6: a dog's mouth
+      // serves manipulation, and a dog on a lead is still led).
+      if (
+        MixinApi.isCarrying(load) &&
+        SpeciesApi.tryGetBodyPlanPath(load) !== null &&
+        (load.handSlots().length === 0 || load.halter() !== null)
+      ) {
         return this.tieLead(by, load, made.knot);
       }
       await this.makeFast(load);
@@ -600,9 +606,7 @@ export default class Rope extends CuttableMixin(
    */
   private async tieLead(by: Stuff, animal: Stuff, knot: KnotRecord): Promise<TieOutcome> {
     const gear = this as unknown as Stuff;
-    const halter = MixinApi.isSlotted(animal)
-      ? [...animal.getAllOccupants().values()].flatMap((occ) => [...occ]).find((o) => MixinApi.isTieable(o)) ?? null
-      : null;
+    const halter = MixinApi.isCarrying(animal) ? animal.halter() : null;
     if (halter === null) return { ok: false, reason: 'no-halter', facts: { gear, load: animal } };
     if (!MixinApi.isCarrying(by) || by.freeHands() < 1) return { ok: false, reason: 'hands-full', facts: { gear, load: animal } };
     // The rope goes with the animal: in its keeping, made fast round the halter.

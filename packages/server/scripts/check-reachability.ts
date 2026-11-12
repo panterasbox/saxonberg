@@ -588,6 +588,7 @@ const CITATIONS: Record<string, string> = {
   connectsTo: "the main a plumber's service run connects to — loaded on use, never placed (water-supply D10)",
   gate: "the gate a field's inlet draws on — loaded on use, placed by its own room (water-supply D15)",
   source: "a feeder's generator — read live, never placed (the case that forced this list)",
+  shapedTo: "the one kind a holster, quiver or sheath admits — named, never minted (size and carrying D27)",
   supply: "a locality's supply point",
   shelf: "a brain's config — the fixture is propped by its room",
   works: "the works a face is the face of — the works are propped by their own place (underwater)",

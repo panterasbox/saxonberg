@@ -1,0 +1,20 @@
+# A leather belt (size and carrying D27) — the modular belt: things hang
+# `from` it, each taking its own width, and its length is its wearer's
+# waist (a gnome's holds fewer pouches than an ogre's). It bears what its
+# leather bears. Room is said in words (`i belt`).
+class: /platform/thing/equipment/Garment
+data:
+  shortDescription: leather belt
+  keywords: [belt, leather, strap, "leather belt"]
+  register: indefinite
+  longDescription: >
+    A plain belt of oak-tanned leather with an iron buckle, worn soft
+    where it bends and punched with more holes than anyone needs.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 0.3
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [waist]
+  placements: [/platform/placements/from]
+  dimensions: { width: 0.04, depth: 0.005, height: 1.1 }
+  constructionForm: hide
+  gradeBand: fair

@@ -1,0 +1,19 @@
+# A bandolier (size and carrying D27): a strap worn across the chest that
+# things hang from — a row of loops for cartridges, a knife, a flask. The
+# belt's rule on the torso.
+class: /platform/thing/equipment/Garment
+data:
+  shortDescription: leather bandolier
+  keywords: [bandolier, strap, sash, leather, "leather bandolier"]
+  register: indefinite
+  longDescription: >
+    A broad leather strap worn from one shoulder to the opposite hip, set
+    with a row of stitched loops and two iron rings.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 0.5
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso]
+  placements: [/platform/placements/from]
+  dimensions: { width: 0.05, depth: 0.006, height: 1.3 }
+  constructionForm: hide
+  gradeBand: fair

@@ -31,3 +31,7 @@ data:
   passageMode: wheeled
   interiorBulk: true
   interiorCapacity: 400
+  # ⭐ Riding in it is SITTING in it (size and carrying D38): the bed is a
+  # posture-bearing slot like a bench's — `sit in dray`, `lie in …`, `stand`.
+  staticSlots:
+    - { name: bed, accepts: SlottableMixin, capacity: 3, postures: [sit, lie] }

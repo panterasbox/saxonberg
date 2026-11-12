@@ -1,0 +1,20 @@
+# The lookout platform — up the ladder on the yard's post (size and
+# carrying W6, drive 10). A ladder wants both hands.
+class: /platform/location/Locale
+data:
+  shortDescription: lookout platform
+  keywords: [lookout, platform]
+  register: definite
+  _address: last-counted-mile/steading-lookout
+  coords: { x: 0, y: 0, z: 1 }
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  enclosure: none
+  roof: none
+  longDescription: |
+    A platform of boards on top of a post, just big enough to stand on, with a rail at waist height. From up here you can see over the steading's walls: the pond to the west, the paddock to the north, and the pines all around.
+
+    The ladder goes back down to the yard.
+  exits:
+    down:
+      destination: /world/newbie-wilds/steading/yard
+      kind: /stuff/idea/exits/ladder

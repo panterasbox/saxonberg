@@ -24,3 +24,8 @@ data:
   constructionForm: felted
   gradeBand: fair
   mass: 3.5
+  # ⭐ Two deep side pockets and a covered inner pocket (size and carrying D26).
+  placements:
+    - { member: /platform/placements/pocket, name: left pocket, mouth: { width: 0.17, height: 0.055 }, volumeM3: 0.002 }
+    - { member: /platform/placements/pocket, name: right pocket, mouth: { width: 0.17, height: 0.055 }, volumeM3: 0.002 }
+    - { member: /platform/placements/pocket, name: inner pocket, mouth: { width: 0.14, height: 0.03 }, volumeM3: 0.0006, covered: true }

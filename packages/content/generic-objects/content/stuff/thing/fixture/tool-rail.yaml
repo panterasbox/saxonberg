@@ -1,0 +1,17 @@
+# A tool rail — an iron bar along a bench's back with hooks on it (size
+# and carrying D27): tools hang `from` it, each taking its own width, and
+# it bears what iron bears.
+class: /platform/thing/Fitting
+data:
+  shortDescription: tool rail
+  keywords: [rail, "tool rail", hooks, bar]
+  register: indefinite
+  longDescription: >
+    A square iron bar held off the wall on two brackets, with S-hooks
+    slid along it. Whatever hangs here is where a hand can find it
+    without looking.
+  placements: [/platform/placements/from]
+  airExposure: 0.5
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 4
+  dimensions: { width: 1.5, depth: 0.02, height: 0.02 }

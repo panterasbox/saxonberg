@@ -1,0 +1,25 @@
+# A longsword — a long blade with a grip long enough for a second hand
+# (size and carrying W6, drive 7). ⭐ It claims ONE hand: whether it takes
+# two is the holder's (`Carrying.handsFor`), by its length against the
+# holder's stature. A human (1.75 m) holds it in one; a gnome (1.0 m)
+# needs both. Its 1.0 m is the arithmetic of that: the length rule's
+# threshold is 0.6 of stature (1.05 m for a human, 0.6 m for a gnome).
+class: /platform/thing/equipment/Weapon
+data:
+  shortDescription: longsword
+  keywords: [longsword, sword, long]
+  register: indefinite
+  longDescription: >
+    A straight, double-edged blade a little longer than an arm, with a
+    plain crossguard and a grip long enough for a second hand when it is
+    wanted. It is a sword for someone who means to keep their distance.
+  _materialPath: /stuff/idea/material/alloy/steel
+  constructionForm: bladed
+  gradeBand: fine
+  mass: 1.4
+  length: 1.0
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  exercises: [blades]
+  shape: rod
+  dimensions: { width: 0.05, depth: 0.01, height: 1.0 }

@@ -28,8 +28,11 @@ data:
   # slow tempo, and an expensive commit. Two-handed.
   mass: 3.2
   length: 1.1
+  # ⭐ One hand claimed (W6 arms audit, D10): its two hands were BY WEIGHT,
+  # and weight is the holder's to decide (`Carrying.handsFor`) — a human
+  # takes it in both by its length, an ogre in one.
   slotClaims:
-    "/stuff/idea/species/BodyPlan/biped": ["hand:left", "hand:right"]
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
   # ⭐ A hammer is a mace that has committed further.
   exercises: [bludgeons]
   # ⭐ What it is MADE OF (assembly D3): a smith's head on a woodworker's
@@ -44,3 +47,8 @@ data:
       - { part: haft, template: /trade/carpentry/thing/straight-haft, count: 1, role: structural, material: /stuff/idea/material/wood/oak }
     joints:
       - { key: hafting, method: /platform/joints/wedged, members: [warhammer-head, haft] }
+  # ⭐ Size and carrying (W6 arms audit): its shape is a ROD and its box
+  # its blade/shaft, so the length rule (`Carrying.handsFor` — longer than
+  # 0.6 of the holder's stature takes two hands) reads it.
+  shape: rod
+  dimensions: { width: 0.12, depth: 0.05, height: 1.1 }

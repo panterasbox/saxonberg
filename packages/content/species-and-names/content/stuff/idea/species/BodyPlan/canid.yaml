@@ -1,0 +1,128 @@
+# Canid — the quadruped with a mouth that carries (size and carrying D9,
+# W6): a dog takes a stick, a bird, a glove in its jaws, so its plan names
+# a part that SERVES manipulation and a `mouth` slot that accepts a
+# wieldable thing. Everything else is the quadruped's (`extends:`).
+#
+# ⚠ `slots` and `bodyParts` merge `replace`, so both lists are restated
+# whole here — the quadruped's plus the mouth.
+#
+# ⭐ It crawls and does not stoop (D20): a dog goes flat under a fence; it
+# has nothing to bend.
+extends: /stuff/idea/species/BodyPlan/quadruped
+class: /platform/idea/species/BodyPlan
+data:
+  name: canid
+  slots:
+    # Capacity 4, the biped's reason: a covering slot that holds one
+    # thing cannot layer, and the covering stack has nothing to walk.
+    - { name: head,    accepts: WearableMixin, capacity: 4, covers: [body.head] }
+    - { name: collar,  accepts: WearableMixin }
+    - { name: 'back:1', accepts: SlottableMixin, userFacingDetail: back }
+    # Cranial implant slot — parallel to biped. See augmentation
+    # subsystem doc; sessile body plans deliberately omit this slot
+    # (plants don't get implants in v1).
+    - { name: cranial, accepts: SlottableMixin, bodyPart: body.head }
+    # ⭐ The mouth is a hand (size and carrying D9): a dog carries a stick,
+    # a bird, a lead's end in it. One hand, so a dog holds one thing.
+    - { name: mouth,   accepts: WieldableMixin, bodyPart: body.head.mouth }
+  locomotionModes:
+    - walk
+    - swim
+    - crawl
+  defaultLocomotionMode: walk
+  bodyParts:
+    - key: body.torso
+      parent: null
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.05 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/neck, share: 0.035 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/rib, share: 0.05 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/loin, share: 0.05 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/tenderloin, share: 0.011 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/belly, share: 0.05 }
+        - { tissuePath: /stuff/idea/material/food/animal-fat, share: 0.06 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.312 }
+    - key: body.head
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.012 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.027 }
+    # ⭐ The jaws (size and carrying D9): `serves: [manipulation]` makes the
+    # `mouth` slot a hand — `Carrying.handSlots()` reads exactly that — so
+    # a dog is not handless: it takes a thing in its mouth. A share of the
+    # head's flesh, not new mass. On a halter or a collar it is still LED
+    # (`Carrying.halter()`), whatever its mouth holds.
+    - key: body.head.mouth
+      parent: body.head
+      serves: [manipulation]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.003 }
+    - key: body.leg.frontLeft
+      parent: body.torso
+      severable: true
+      serves: [locomotion]
+      innervatedBy: [body.torso.spine.lower]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.012 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/shoulder, share: 0.035 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.011 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.01 }
+    - key: body.leg.frontRight
+      parent: body.torso
+      severable: true
+      serves: [locomotion]
+      innervatedBy: [body.torso.spine.lower]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.012 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/shoulder, share: 0.035 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.011 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.01 }
+    - key: body.leg.rearLeft
+      parent: body.torso
+      severable: true
+      serves: [locomotion]
+      innervatedBy: [body.torso.spine.lower]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.017 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/leg, share: 0.042 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.014 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.01 }
+    - key: body.leg.rearRight
+      parent: body.torso
+      severable: true
+      serves: [locomotion]
+      innervatedBy: [body.torso.spine.lower]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.017 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/leg, share: 0.042 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.014 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.01 }
+    - key: body.torso.heart
+      parent: body.torso
+      governs: [heartRate, circulation]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.002 }
+    - key: body.torso.lungs
+      parent: body.torso
+      governs: [respiratoryRate, respiration]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.01 }
+    - key: body.head.brain
+      parent: body.head
+      governs: [consciousness]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.003 }
+    - key: body.torso.spine.upper
+      parent: body.torso
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.006 }
+    - key: body.torso.spine.lower
+      parent: body.torso.spine.upper
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.005 }
+    - key: body.torso.liver
+      parent: body.torso
+      governs: [clearance]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.012 }

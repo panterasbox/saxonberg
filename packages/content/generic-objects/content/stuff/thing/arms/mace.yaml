@@ -44,3 +44,8 @@ data:
       - { part: haft, template: /trade/carpentry/thing/straight-haft, count: 1, role: structural, material: /stuff/idea/material/wood/oak }
     joints:
       - { key: hafting, method: /platform/joints/wedged, members: [mace-head, haft] }
+  # ⭐ Size and carrying (W6 arms audit): its shape is a ROD and its box
+  # its blade/shaft, so the length rule (`Carrying.handsFor` — longer than
+  # 0.6 of the holder's stature takes two hands) reads it.
+  shape: rod
+  dimensions: { width: 0.08, depth: 0.08, height: 0.7 }

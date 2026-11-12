@@ -1,0 +1,32 @@
+# The steading pond — west of the yard (size and carrying W6, drive 16).
+# ⭐ The place IS the water (underwater D1): the stock pond, its floor 2.5
+# m below the surface, so a body swims it. Swim west to the reed bank and
+# what you carry has been under water: a letter in an ordinary pack comes
+# out wet, the same letter in a shut oilskin pouch comes out dry.
+class: /platform/location/Pool
+data:
+  shortDescription: steading pond
+  keywords: [pond, water]
+  register: definite
+  _address: last-counted-mile/steading-pond
+  coords: { x: -1, y: 0, z: 0 }
+  _biomePath: /stuff/idea/biome/water/open
+  enclosure: none
+  roof: none
+  water: { of: steading:pond, depthM: 2.5, feature: pond }
+  details:
+    pond:
+      keywords: [pond, water]
+      description: |
+        Brown, still water with weed trailing in it. It is deeper than it looks.
+  longDescription: |
+    The steading's stock pond, dug long ago and left to fill with weed and lilies. The water is brown and still, and deeper than it looks — there is no wading this.
+
+    East, the bank climbs back up to the yard. West, across the water, reeds stand along the far bank.
+  exits:
+    east:
+      destination: /world/newbie-wilds/steading/yard
+      media: [ground, water]
+    west:
+      destination: /world/newbie-wilds/steading/reed-bank
+      media: [ground, water]

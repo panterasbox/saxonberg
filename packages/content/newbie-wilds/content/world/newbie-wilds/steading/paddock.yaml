@@ -1,0 +1,26 @@
+# The paddock — north of the yard through a narrow gate (size and
+# carrying W6, drive 18): 0.8 m wide, so a person passes and a mule
+# with panniers does not.
+class: /platform/location/Locale
+data:
+  shortDescription: overgrown paddock
+  keywords: [paddock, field, overgrown]
+  register: indefinite
+  _address: last-counted-mile/steading-paddock
+  coords: { x: 0, y: 1, z: 0 }
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  enclosure: none
+  roof: none
+  longDescription: |
+    A small walled paddock gone to rough grass and thistles, with a stone water trough cracked dry in one corner. Stock was kept here once.
+
+    The only way out is the narrow gate south into the yard — wide enough for a person or a lean goat, and not much more.
+  details:
+    gate:
+      keywords: [gate, gap]
+      description: |
+        A gap in the paddock wall hung with a light hurdle gate, built narrow so one animal at a time could be counted through.
+  exits:
+    south:
+      destination: /world/newbie-wilds/steading/yard
+      opening: { width: 0.8, height: 2 }

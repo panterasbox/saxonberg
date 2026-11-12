@@ -1,0 +1,17 @@
+# A quiver (size and carrying D27/D16) — a tube of leather shaped to
+# arrows (`shapedTo` the arrow row): it takes nothing else, and an arrow
+# is drawn from it, not reached for. It hangs from a belt or a strap.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: leather quiver
+  keywords: [quiver, leather, "leather quiver"]
+  register: indefinite
+  longDescription: >
+    A stiff leather tube closed at the bottom with a wooden disc, long
+    enough to keep a score of arrows' fletchings clear of the rain.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 0.4
+  dimensions: { width: 0.1, depth: 0.1, height: 0.65 }
+  shape: rod
+  shapedTo: /stuff/thing/arms/arrow
+  mouth: { width: 0.09, height: 0.09 }

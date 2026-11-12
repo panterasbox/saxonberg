@@ -1,0 +1,18 @@
+# A chest harness (size and carrying D27): webbing over both shoulders and
+# round the ribs, hung with whatever a climber or a sapper needs to hand.
+class: /platform/thing/equipment/Garment
+data:
+  shortDescription: chest harness
+  keywords: [harness, chest, webbing, "chest harness"]
+  register: indefinite
+  longDescription: >
+    Two leather straps over the shoulders, buckled to a band round the
+    ribs, with rings sewn on wherever there was room for one.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 0.7
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso]
+  placements: [/platform/placements/from]
+  dimensions: { width: 0.06, depth: 0.01, height: 1.2 }
+  constructionForm: hide
+  gradeBand: fair

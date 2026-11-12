@@ -1,0 +1,19 @@
+# A key ring (size and carrying D27) — the belt's rule in iron, round: keys
+# hang `from` it, each taking its own width of the ring's circumference
+# (a round host offers π × its diameter), and the ring itself clips to a
+# belt. Iron bears more keys than anyone carries.
+class: /platform/thing/Fitting
+data:
+  shortDescription: iron key ring
+  keywords: [ring, "key ring", keyring, iron, "iron key ring"]
+  register: indefinite
+  longDescription: >
+    A split ring of springy iron wire, wide enough for a thumb, made to
+    be prised open with a fingernail and to close on whatever is hung
+    from it.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 0.02
+  fixedInPlace: false
+  placements: [/platform/placements/from]
+  shape: round
+  dimensions: { width: 0.06, depth: 0.06, height: 0.004 }

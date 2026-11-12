@@ -1,0 +1,20 @@
+# A load-bearing vest (size and carrying D27): a sleeveless leather vest
+# with rings to hang things from and two flapped pockets.
+class: /platform/thing/equipment/Garment
+data:
+  shortDescription: load-bearing vest
+  keywords: [vest, waistcoat, leather, load-bearing, "load-bearing vest"]
+  register: indefinite
+  longDescription: >
+    A sleeveless vest of heavy leather, laced at the sides, with iron
+    rings riveted across the chest and two flapped pockets at the waist.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 1.1
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso]
+  placements:
+    - /platform/placements/from
+    - { member: /platform/placements/pocket, name: left pocket, mouth: { width: 0.14, height: 0.04 }, volumeM3: 0.001, closes: true }
+    - { member: /platform/placements/pocket, name: right pocket, mouth: { width: 0.14, height: 0.04 }, volumeM3: 0.001, closes: true }
+  constructionForm: hide
+  gradeBand: fair

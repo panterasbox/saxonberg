@@ -1,0 +1,21 @@
+# A headlamp (size and carrying D27, R5) — a light you WEAR: a PortableLight
+# claiming the head, so both hands stay free at night or underground.
+# `wear headlamp`, then `switch headlamp on`. It burns nothing: a sealed
+# glowcap cell in a tin housing (the realm's switch-lit light, the glowcap
+# jar's fungus made small), so it never needs filling.
+class: /platform/thing/equipment/PortableLight
+data:
+  shortDescription: tin headlamp
+  keywords: [headlamp, lamp, light, tin, head, "tin headlamp"]
+  register: indefinite
+  longDescription: >
+    A small tin housing with a glass front, riveted to a leather band
+    that buckles round the head. A shutter over the glass opens on a pale,
+    steady light from a cell of glowcap packed inside.
+  _materialPath: /stuff/idea/material/element/tin
+  mass: 0.3
+  emittedIntensity: 120
+  emittedColorTemperature: 5000
+  on: false
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [head]

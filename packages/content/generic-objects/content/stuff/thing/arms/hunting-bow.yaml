@@ -29,8 +29,10 @@ data:
   muzzleSpeed: 55
   projectileTemplate: /stuff/thing/arms/arrow
   readySeconds: 3
+  # ⭐ Two hands BY USE (W6 arms audit, D10): one holds the stave, the
+  # other draws the string. Authored, because it is the act's, not the weight's.
   slotClaims:
-    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+    "/stuff/idea/species/BodyPlan/biped": ["hand:left", "hand:right"]
   # ⭐ What a bow is MADE OF (assembly D3): a yew stave, two horn nocks
   # GLUED on its tips, and a linen string looped over them by hand. ⭐⭐ The
   # string is the bow's WEAR part (assembly AC 13): it frays at the
@@ -46,3 +48,8 @@ data:
     joints:
       - { key: nocking, method: /platform/joints/glued, members: [bowstave, nock] }
       - { key: stringing, method: /platform/joints/friction, members: [bowstave, bowstring] }
+  # ⭐ Size and carrying (W6 arms audit): its shape is a ROD and its box
+  # its blade/shaft, so the length rule (`Carrying.handsFor` — longer than
+  # 0.6 of the holder's stature takes two hands) reads it.
+  shape: rod
+  dimensions: { width: 0.04, depth: 0.03, height: 1.2 }

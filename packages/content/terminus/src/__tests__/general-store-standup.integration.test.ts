@@ -88,6 +88,12 @@ const COOKING_SRC = fileURLToPath(new URL("../../../trade-cooking/src", import.m
 const HAULAGE_SRC = fileURLToPath(new URL("../../../trade-haulage/src", import.meta.url));
 const TEXTILES_SRC = fileURLToPath(new URL("../../../trade-textiles/src", import.meta.url));
 const DYEING_SRC = fileURLToPath(new URL("../../../trade-dyeing/src", import.meta.url));
+const TANNING_SRC = fileURLToPath(new URL("../../../trade-tanning/src", import.meta.url));
+const GENERIC_SRC = fileURLToPath(new URL("../../../generic-objects/src", import.meta.url));
+// ⭐ The platform's Form rows (size and carrying W1): a row that authors
+// `shape: rod` (a holster, a scabbard) resolves its Form on hydrate, and
+// this harness stands rows up without the platform pack.
+const FORM_DIR = fileURLToPath(new URL("../../../platform/content/platform/idea/Form/", import.meta.url));
 /** The commons' fabric-construction rows — `woven`, `knit`, `felted`. */
 const FABRIC_DIR = fileURLToPath(
   new URL("../../../base-library/content/stuff/idea/fabric/", import.meta.url),
@@ -295,6 +301,7 @@ const ROW_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/glass/", dir: () => GLASS_DIR },
   { prefix: "/trade/smithing/", dir: () => SMITHING_DIR },
   { prefix: "/trade/tanning/", dir: () => TANNING_DIR },
+  { prefix: "/trade/cordage/", dir: () => fileURLToPath(new URL("../../../trade-cordage/content/trade/cordage/", import.meta.url)) },
   { prefix: "/trade/tailoring/", dir: () => TAILORING_DIR },
   { prefix: "/trade/chandlery/", dir: () => CHANDLERY_DIR },
   { prefix: "/trade/fuel/", dir: () => FUEL_DIR },
@@ -412,6 +419,12 @@ describe("general-store standup (real seeds)", () => {
       seedDoc("counter"),
       ...goods,
       ...shelfPaths.map(objDoc),
+      ...readdirSync(FORM_DIR)
+        .filter((n) => n.endsWith(".yaml"))
+        .map((n) => {
+          const row = YAML.parse(readFileSync(`${FORM_DIR}${n}`, "utf-8")) as { class: string; data: Record<string, unknown> };
+          return { path: `/platform/idea/Form/${n.replace(/\.yaml$/, "")}`, class: row.class, data: row.data };
+        }),
     ]);
     ModuleApi.registerPackSource(DIST_SRC, "/trade/distilling");
     ModuleApi.registerPackSource(FISHING_SRC, "/trade/fishing");
@@ -424,6 +437,8 @@ describe("general-store standup (real seeds)", () => {
     ModuleApi.registerPackSource(DYEING_SRC, "/trade/dyeing");
     ModuleApi.registerPackSource(GLASS_SRC, "/trade/glass");
     ModuleApi.registerPackSource(CERAMICS_SRC, "/trade/ceramics");
+    ModuleApi.registerPackSource(TANNING_SRC, "/trade/tanning");
+    ModuleApi.registerPackSource(GENERIC_SRC, "/generic-objects");
     // ⚠⚠ The FABRIC forms — ⭐ **read from the ROWS now, not written out
     // here.** `woven` / `knit` / `felted` are registered at boot by
     // `FabricCatalogue` from `base-library`'s rows, and this harness

@@ -37,6 +37,11 @@ import { CraftedMixin } from '../../../lib/craft/Crafted';
 import { AssembledMixin } from '../../../lib/craft/Assembled';
 import { SlottableMixin } from '../../../lib/slot/Slottable';
 import { WieldableMixin } from '../../../lib/slot/Wieldable';
+import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { Slotted } from '../../../lib/slot/Slotted';
+
+/** The slot a slung shield lives in (the biped's `back`). */
+const SLUNG_SLOT = 'back';
 
 const ShieldBase = WieldableMixin(
   SlottableMixin(
@@ -44,4 +49,16 @@ const ShieldBase = WieldableMixin(
   ),
 );
 
-export default class Shield extends ShieldBase {}
+export default class Shield extends ShieldBase {
+  /**
+   * ⭐ A shield may be SLUNG (size and carrying D16, W6): it fits the body's
+   * `back` slot as well as the hand its claim names. Not by widening
+   * `slotClaims` — a claim is occupied WHOLE (`wield` seats every slot it
+   * names), so `[hand:left, back]` would take the back every time the
+   * shield is taken up. The back is where it may live, not where it is used.
+   */
+  public override fitsSlot(host: Stuff & Slotted, slot: string): boolean {
+    if (slot === SLUNG_SLOT && host.getSlotNames().includes(SLUNG_SLOT)) return true;
+    return super.fitsSlot(host, slot);
+  }
+}

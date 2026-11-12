@@ -1,0 +1,19 @@
+# A pegboard — a workshop wall's tools hung each on its own peg (size and
+# carrying D27). One rule with the belt: things hang `from` it along its
+# length, each taking its own width, and it says the room left in words.
+# ⭐ The board authors its box because a hanging length is a SIDE, and a
+# board this light would otherwise derive to a cube.
+class: /platform/thing/Fitting
+data:
+  shortDescription: pegboard
+  keywords: [pegboard, board, pegs, peg]
+  register: indefinite
+  longDescription: >
+    A board of pale pine screwed flat to the wall and drilled in rows,
+    with wooden pegs pushed into some of the holes. The outline of a saw
+    is pencilled where a saw used to hang.
+  placements: [/platform/placements/from]
+  airExposure: 0.5
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 6
+  dimensions: { width: 1.2, depth: 0.03, height: 0.8 }

@@ -20,3 +20,7 @@ data:
   draftFactor: 0.04
   handedness: 2
   passageMode: wheeled
+  # ⭐ Riding in it is SITTING in it (size and carrying D38): the bed is a
+  # posture-bearing slot like a bench's — `sit in handcart`, `lie in …`, `stand`.
+  staticSlots:
+    - { name: bed, accepts: SlottableMixin, capacity: 1, postures: [sit, lie] }

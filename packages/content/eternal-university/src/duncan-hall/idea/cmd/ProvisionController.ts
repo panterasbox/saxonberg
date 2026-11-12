@@ -52,6 +52,25 @@ export default class ProvisionController extends CommandController<ProvisionMode
       .topic(TOPIC)
       .toSelf(Mml.compose`\nProvisioned ${answer.unitExtent} and leased it to ${who}; handed over the key.\n`)
       .send();
+    // ⭐ The daypack (size and carrying D29): the warren decided where it
+    // went; the newcomer is told in words.
+    const told = ProvisionController.daypackWords(answer.daypack, actor.getPresentation());
+    if (target && told) {
+      MessageApi.scene(target).topic(TOPIC).toSelf(Mml.fromMarkup(`\n${told}\n`)).send();
+    }
+  }
+
+  /** What the newcomer is told about their daypack. */
+  protected static daypackWords(where: 'handed' | 'in-room' | 'none', giver: string): string | null {
+    const who = giver.charAt(0).toUpperCase() + giver.slice(1);
+    switch (where) {
+      case 'handed':
+        return `${who} hands you an Eternal U daypack. Every first-year gets one.`;
+      case 'in-room':
+        return `${who} has an Eternal U daypack for you, but you have nowhere to put it — it will be waiting in your room.`;
+      case 'none':
+        return null;
+    }
   }
 
   /** What a refused let is told as. */

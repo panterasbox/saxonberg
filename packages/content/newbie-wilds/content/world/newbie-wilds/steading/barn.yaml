@@ -1,0 +1,43 @@
+# The barn — south of the yard through a wide doorway (size and carrying
+# W6, drive 11). Its stair to the hayloft turns tightly on a landing:
+# `turn: 1.6`, so a rigid thing longer than that will not swing round it,
+# while the doorway's 1 × 2 m face lets the same thing in end-on. Most of
+# its roof is gone, so it is lit by the sky.
+class: /platform/location/Locale
+data:
+  shortDescription: old barn
+  keywords: [barn, old]
+  register: indefinite
+  _address: last-counted-mile/steading-barn
+  coords: { x: 0, y: -1, z: 0 }
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  # Stone walls still standing; the roof is gone, so the sky looks in
+  # (construction.md: the place says what it is made of).
+  enclosure: { material: /stuff/idea/material/rock/granite, thicknessM: 0.45 }
+  roof: none
+  longDescription: |
+    A tall stone barn whose roof has mostly fallen in, so the light comes down through the bare rafters in long bars. Old straw lies in drifts against the walls.
+
+    A narrow wooden stair climbs the back wall to the hayloft, turning back on itself at a cramped landing halfway up. North, the wide doorway opens onto the yard.
+  details:
+    stair:
+      keywords: [stair, stairs, landing, steps]
+      description: |
+        A steep wooden stair against the back wall. Halfway up it turns sharply on a landing hardly bigger than a door — anything long has to come up some other way.
+  exits:
+    north:
+      destination: /world/newbie-wilds/steading/yard
+      opening: { width: 1, height: 2 }
+    up:
+      destination: /world/newbie-wilds/steading/hayloft
+      kind: /stuff/idea/exits/stair
+      # ⭐ The tight turn (size and carrying D8): authored per site.
+      turn: 1.6
+  # ⭐ The workshop wall and the long crate (size and carrying W6): tools
+  # hang `from` the pegboard and the rail along their length (D27); the
+  # long crate is drive 11's — it comes in through the wide doorway end-on
+  # and will not swing round the stair's turn.
+  props:
+    - /stuff/thing/fixture/pegboard
+    - /stuff/thing/fixture/tool-rail
+    - /stuff/thing/gear/long-crate

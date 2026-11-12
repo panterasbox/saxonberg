@@ -1,0 +1,20 @@
+# A wide utility belt (size and carrying D27): a belt built to be hung
+# with things — a double row of loops and a heavier buckle. Same rule as
+# the belt; its leather is thicker, so it bears more.
+class: /platform/thing/equipment/Garment
+data:
+  shortDescription: wide utility belt
+  keywords: [belt, utility, wide, "utility belt", "wide utility belt"]
+  register: indefinite
+  longDescription: >
+    A broad belt of doubled bridle leather, stitched along both edges and
+    studded with brass rings and loops for whatever a working day wants
+    within reach.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 0.6
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [waist]
+  placements: [/platform/placements/from]
+  dimensions: { width: 0.06, depth: 0.008, height: 1.1 }
+  constructionForm: hide
+  gradeBand: fair

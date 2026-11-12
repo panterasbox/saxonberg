@@ -1003,10 +1003,11 @@ function ledAnimals(mover: Stuff): Array<Stuff & Mobile & Containable> {
     const far = held.tetheredTo();
     if (far === null || far.stuffId === mover.stuffId || !far.isAgent()) continue;
     if (!MixinApi.isMobile(far) || !MixinApi.isContainable(far) || far.getContainer() !== here) continue;
-    // Led, not hauled: a body with no hands of its own (an animal on a
-    // halter). A person on a line's end — a diver, a climber — walks
-    // their own way.
-    if (!MixinApi.isCarrying(far) || far.handSlots().length > 0) continue;
+    // Led, not hauled: a body with no hands of its own, or one that wears
+    // a halter (a dog's mouth is a hand; on its collar it is still led). A
+    // person on a line's end — a diver, a climber — walks their own way.
+    if (!MixinApi.isCarrying(far)) continue;
+    if (far.handSlots().length > 0 && far.halter() === null) continue;
     if (!out.includes(far)) out.push(far);
   }
   return out;

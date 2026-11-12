@@ -16,6 +16,9 @@ data:
   binomial: Equus caballus pumilus
   commonNames: ["pit pony", "pony", "horse"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  # ⭐ Its height (size and carrying W6): a pit pony, twelve hands — low
+  # enough for a drift, and measured at every way (D19).
+  stature: 1.2
   # ⭐ Adult liveweight in kg. A grown pit pony — small enough for a drift, strong enough for the tubs.
   adultMass: 250
   _parentCladePath: /stuff/idea/species/animalia

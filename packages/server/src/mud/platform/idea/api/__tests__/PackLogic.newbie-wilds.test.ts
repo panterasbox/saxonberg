@@ -75,24 +75,41 @@ describe('the newbie-wilds pack (real root, real class resolution)', () => {
         data: { shortDescription: 'student' },
       },
     ]);
-    const results = await PackApi.install([parent, ROOT]);
+    // ⭐ The steading pond's watercourse (size and carrying W6) is a COMMONS
+    // row (`/stuff/idea/Watercourse/steading`), covered at boot by the
+    // platform pack's `/stuff` claim through newbie-wilds' dependency on it —
+    // so the platform stands in here too, claiming only that.
+    const platform = writePack('platform', [
+      { rel: 'stuff/thing/stand-in.yaml', class: '/platform/thing/Thing', data: { shortDescription: 'stand-in' } },
+    ], {
+      manifest: {
+        requires: {
+          groups: [{ name: 'commons', purpose: 'the commons' }],
+          title: [{ extent: '/stuff', holder: { group: 'commons' } }],
+        },
+      },
+    });
+    const results = await PackApi.install([platform, parent, ROOT]);
     return results.find((x) => x.packId === 'newbie-wilds')!;
   };
   /** The pack's own rows — the parent stand-in is not one of them. */
   const ownRows = (): ReturnType<typeof contentRows> =>
     contentRows().filter((row) => String(row.path).startsWith('/world/newbie-wilds'));
 
-  it('empty store → 24 inserted, 24 domain baselines', async () => {
+  it('empty store → 35 inserted, 35 domain baselines', async () => {
     const r = await withParent();
     expect(r.failure).toBeNull();
     expect(r.packId).toBe('newbie-wilds');
-    expect(r.inserted).toHaveLength(24);
+    // 34 `/world/newbie-wilds` rows (the steading added ten) + the pond's
+    // commons watercourse.
+    expect(r.inserted).toHaveLength(35);
+    expect(r.inserted).toContain('/stuff/idea/Watercourse/steading');
     expect(r.inserted).toContain('/world/newbie-wilds/crossroads/hub');
     expect(r.inserted).toContain('/world/newbie-wilds/agent/wolf');
-    expect(r.inserted.every((p) => p.startsWith('/world/newbie-wilds'))).toBe(true);
+    expect(r.inserted.filter((p) => p.startsWith('/world/newbie-wilds'))).toHaveLength(34);
     expect(ownRows().every((row) => row.sourcePack === 'newbie-wilds')).toBe(true);
     const rec = recordOf('newbie-wilds')!;
-    expect(Object.keys(rec.rows)).toHaveLength(24);
+    expect(Object.keys(rec.rows)).toHaveLength(35);
     expect(Object.values(rec.rows).every((b) => b.kind === 'domain')).toBe(true);
   });
 
@@ -117,13 +134,13 @@ describe('the newbie-wilds pack (real root, real class resolution)', () => {
       }
     };
     walk(join(CONTENT, 'world'));
-    expect(n).toBe(24);
+    expect(n).toBe(34);
 
     const r = await withParent();
     expect(r.failure?.step).toBe('reconcile');
     expect(r.failure?.error).toMatch(/no sourcePack stamp/);
-    // Untouched: the same 24 rows, none stamped, nothing inserted beside them.
-    expect(ownRows()).toHaveLength(24);
+    // Untouched: the same 34 rows, none stamped, nothing inserted beside them.
+    expect(ownRows()).toHaveLength(34);
     expect(ownRows().every((row) => String(row._id).startsWith('seed-') && !row.sourcePack)).toBe(true);
   });
 

@@ -14,3 +14,6 @@ data:
   constructionForm: knit
   gradeBand: fair
   mass: 0.7
+  # ⭐ One front pouch pocket, open both ends (size and carrying D29).
+  placements:
+    - { member: /platform/placements/pocket, name: front pocket, mouth: { width: 0.2, height: 0.05 }, volumeM3: 0.0015 }

@@ -182,6 +182,12 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // nothing. The stand's own `mix[].woodMaterialPath` / `seedPath` /
     // `speciesPath` are read below, the `props:` way.
     'standardMaterialPath',
+    // ⭐ `shapedTo` (size and carrying D27) — a holster's, a quiver's, a
+    // sheath's one kind: a template path admits that row and every row
+    // under it (a mixin name is a WORD and is not a path). Resolved live
+    // at every `put`, and a rowless one is a holster nothing ever fits,
+    // refusing `not-shaped-for` with no author-findable cause.
+    'shapedTo',
     // ⭐ `offstage` (the agent-coordination build) — where a house parks its
     // cast off shift, resolved live by the roster tick with
     // `singletonOrClone`. Read here rather than ignored because a rowless
@@ -1185,7 +1191,13 @@ function checkDocumentRefs(rows: Map<string, string>): number {
       if (value === undefined) continue;
       let docs = shipped.get(contentDir);
       if (!docs) shipped.set(contentDir, (docs = documentPaths(contentDir)));
-      for (const path of Array.isArray(value) ? value : [value]) {
+      for (const entry of Array.isArray(value) ? value : [value]) {
+        // ⭐ A named placement region (size and carrying D26) is an object
+        // `{ member, name, … }` — its document path is the `member`.
+        const path =
+          entry !== null && typeof entry === 'object' && 'member' in entry
+            ? (entry as { member: unknown }).member
+            : entry;
         // A field name another family uses for a WORD (a maturation
         // profile's `mechanism: microbial`) is checked only where it holds
         // a path; a pump naming a bare word fails at its setter instead.

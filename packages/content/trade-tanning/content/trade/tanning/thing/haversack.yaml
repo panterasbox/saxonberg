@@ -1,0 +1,16 @@
+# A haversack (size and carrying D27) — a canvas bag on a single strap,
+# worn at the hip: ready, not packed.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: canvas haversack
+  keywords: [haversack, bag, canvas, "canvas haversack"]
+  register: indefinite
+  longDescription: >
+    A plain canvas bag with a buttoned flap, on a single strap, the kind a
+    soldier keeps the day's bread in.
+  _materialPath: /stuff/idea/material/textile/canvas
+  mass: 0.5
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso]
+  placements: [/platform/placements/from]
+  dimensions: { width: 0.3, depth: 0.12, height: 0.3 }

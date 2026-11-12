@@ -1,0 +1,17 @@
+# A long crate — light, empty and too long for a tight stair (size and
+# carrying drive 11). Within a human's one-hand grip by its mass; both
+# hands by its length (2.2 m is past 0.6 of any shipped stature). A
+# turning stair whose `turn` is shorter than it refuses it, saying so; a
+# wide doorway's face passes its 0.4 m cross-section.
+class: /platform/thing/Good
+data:
+  shortDescription: long crate
+  keywords: [crate, "long crate", box]
+  register: indefinite
+  longDescription: >
+    A long, narrow crate of thin deal boards nailed to four battens, the
+    kind a surveyor's poles or a set of oars travel in. It is empty, and
+    lighter than it looks.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 6
+  dimensions: { width: 0.4, depth: 0.4, height: 2.2 }

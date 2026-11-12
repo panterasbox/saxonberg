@@ -1,0 +1,19 @@
+# A halter (size and carrying D18/W6) — headgear a lead is tied to: `tie
+# rope to mule` makes the rope fast round it and gives you the end, and
+# the animal comes with you through the next way. The lead hangs `from`
+# it, so it is never loose on the animal.
+class: /trade/tanning/thing/Halter
+data:
+  shortDescription: leather halter
+  keywords: [halter, headcollar, leather, tack, "leather halter"]
+  register: indefinite
+  longDescription: >
+    A headstall of flat leather straps with a noseband and a ring under
+    the jaw where a lead is tied.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 0.4
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/quadruped": [collar]
+  placements: [/platform/placements/from]
+  constructionForm: hide
+  gradeBand: fair

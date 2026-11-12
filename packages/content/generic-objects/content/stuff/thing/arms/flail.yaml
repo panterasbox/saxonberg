@@ -49,3 +49,8 @@ data:
       - { part: rivet, plural: rivets, template: /trade/smithing/thing/rivet, count: 1, role: fastener, material: /stuff/idea/material/element/iron }
     joints:
       - { key: swivel, method: /platform/joints/riveted, members: [flail-head, haft], fastener: rivet }
+  # ⭐ Size and carrying (W6 arms audit): its shape is a ROD and its box
+  # its blade/shaft, so the length rule (`Carrying.handsFor` — longer than
+  # 0.6 of the holder's stature takes two hands) reads it.
+  shape: rod
+  dimensions: { width: 0.08, depth: 0.08, height: 0.9 }

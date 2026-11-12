@@ -1,0 +1,15 @@
+# A purse (size and carrying D27) — a drawstring purse for coin.
+# It claims no body slot: it HANGS — `put purse on belt` clips it to a
+# belt, a strap or a saddle (the `from` placement), taking its own width
+# of the host's length, and what hangs from a worn host is ready.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: drawstring purse
+  keywords: [purse, drawstring, "coin purse", leather, "drawstring purse"]
+  register: indefinite
+  longDescription: >
+    A soft leather purse gathered at the neck by a thong, small enough to
+    close a fist round.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 0.05
+  dimensions: { width: 0.1, depth: 0.03, height: 0.12 }

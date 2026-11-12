@@ -18,3 +18,8 @@ data:
     "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
   # ⭐ A working knife pressed into a fight still trains the edge.
   exercises: [blades]
+  # ⭐ Size and carrying (W6 arms audit): its shape is a ROD and its box
+  # its blade/shaft, so the length rule (`Carrying.handsFor` — longer than
+  # 0.6 of the holder's stature takes two hands) reads it.
+  shape: rod
+  dimensions: { width: 0.025, depth: 0.008, height: 0.2 }

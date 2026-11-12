@@ -13,3 +13,8 @@ data:
   constructionForm: woven
   gradeBand: fair
   mass: 0.5
+  # ⭐ Two side pockets with realistic mouths (size and carrying D26/D29):
+  # the first small thing a newcomer picks up goes in one.
+  placements:
+    - { member: /platform/placements/pocket, name: left pocket, mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 }
+    - { member: /platform/placements/pocket, name: right pocket, mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 }

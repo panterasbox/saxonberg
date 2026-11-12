@@ -1,0 +1,17 @@
+# A lanyard (size and carrying D27) — a short cord loop worn at the wrist,
+# with a toggle to fasten a tool to: a sling for a thing you cannot afford
+# to drop over the side. It is a `Pack` row that claims the hands' wear
+# slot and is open: what is in it hangs from your wrist, ready.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: hemp lanyard
+  keywords: [lanyard, cord, loop, sling, wrist, "hemp lanyard"]
+  register: indefinite
+  longDescription: >
+    A short loop of braided hemp cord with a wooden toggle, sized to go
+    over a wrist and fasten round the handle of whatever you are holding.
+  _materialPath: /stuff/idea/material/textile/hemp
+  mass: 0.03
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [hands]
+  dimensions: { width: 0.05, depth: 0.05, height: 0.3 }

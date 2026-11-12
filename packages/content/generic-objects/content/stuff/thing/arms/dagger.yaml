@@ -31,3 +31,8 @@ data:
     "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
   # ⭐ A dagger is blades at the clinch.
   exercises: [blades]
+  # ⭐ Size and carrying (W6 arms audit): its shape is a ROD and its box
+  # its blade/shaft, so the length rule (`Carrying.handsFor` — longer than
+  # 0.6 of the holder's stature takes two hands) reads it.
+  shape: rod
+  dimensions: { width: 0.035, depth: 0.01, height: 0.25 }

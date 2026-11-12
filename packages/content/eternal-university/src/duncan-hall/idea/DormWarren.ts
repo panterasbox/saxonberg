@@ -17,7 +17,9 @@
  * `docs/subsystems/residence.md`.
  */
 
-import { LettingWarren } from '@saxonberg/content-residence/src/lib/LettingWarren';
+import { LettingWarren, type LetAnswer } from '@saxonberg/content-residence/src/lib/LettingWarren';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -47,6 +49,16 @@ const DORM_DOOR_KIND =
   '/world/terminus/eternal/duncan-hall/idea/exits/dorm-door';
 
 type MemberStuff = Stuff & Container;
+
+/**
+ * What a dorm let answers: the residence pack's answer, and — on a let —
+ * where the newcomer's daypack went (size and carrying D29): `handed` (it
+ * came onto them), `in-room` (they could not take it, so it waits in the
+ * new room) or `none` (the row did not stand up; the let stands).
+ */
+export type DormLetAnswer =
+  | Extract<LetAnswer, { ok: false }>
+  | { ok: true; unitExtent: string; daypack: 'handed' | 'in-room' | 'none' };
 type ExitableContainer = Stuff & Container & Exitable;
 
 const DormWarrenBase = SingletonMixin(LettingWarren);
@@ -66,6 +78,8 @@ export default class DormWarren extends DormWarrenBase {
   static readonly DORMS_EXTENT = '/world/terminus/eternal/duncan-hall/dorms';
   /** The hall's extent — the committee that owns it. */
   static readonly HALL_EXTENT = '/world/terminus/eternal/duncan-hall';
+  /** The Eternal U daypack Katie hands a newcomer at intake (size and carrying D29). */
+  static readonly DAYPACK_PATH = '/world/terminus/eternal/duncan-hall/thing/daypack';
   /** The college — the Organization whose `hall-manager` position is Katie's job. */
   static readonly COLLEGE_PATH = '/world/terminus/eternal/duncan-hall/idea/college';
   /** Units per floor — the AUTHORED default under the operator's
@@ -169,6 +183,49 @@ export default class DormWarren extends DormWarrenBase {
     opts: { revert?: boolean } = {},
   ): Promise<void> {
     return this.dropHolding(unitKey, opts);
+  }
+
+  /**
+   * ⭐ **Let a unit, and hand the newcomer a daypack** (size and carrying
+   * D29). The let is the residence pack's sequence; a let happens once per
+   * tenant (`already-housed` refuses the second), so the gift is once too.
+   */
+  public override async let(
+    by: Stuff,
+    tenant: Stuff | null,
+    opts: { theme?: string } = {},
+  ): Promise<DormLetAnswer> {
+    const answer = await super.let(by, tenant, opts);
+    if (!answer.ok) return answer;
+    const daypack = tenant ? await this.handDaypack(tenant, answer.unitExtent) : 'none';
+    return { ok: true, unitExtent: answer.unitExtent, daypack };
+  }
+
+  /**
+   * The daypack is HANDED (D-W7a): it goes onto the newcomer only when
+   * they can take it (`canReceive`, the dry run, before anything moves);
+   * if they cannot — hands full, nowhere it fits — it waits in their new
+   * room, never on the floor of the lobby and never lost. Best-effort: a
+   * row that will not stand up never voids the let.
+   */
+  protected async handDaypack(
+    tenant: Stuff,
+    unitExtent: string,
+  ): Promise<'handed' | 'in-room' | 'none'> {
+    let pack: Stuff & Containable;
+    try {
+      pack = await StuffApi.clone<Stuff & Containable>(DormWarren.DAYPACK_PATH);
+    } catch (err) {
+      console.warn(`DormWarren: the daypack did not stand up for ${unitExtent}: ${(err as Error).message}`);
+      return 'none';
+    }
+    if (MixinApi.isCarrying(tenant) && tenant.canReceive(pack) === null) {
+      tenant.receive(pack);
+      return 'handed';
+    }
+    const room = await this.admit(unitExtent);
+    ContainmentApi.move(pack, room);
+    return 'in-room';
   }
 
   // ─────────────── LettingWarren policy hooks ─────────────────────────

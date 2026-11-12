@@ -422,6 +422,44 @@ data:
     - { itemTemplatePath: /trade/textiles/thing/whorl, par: 3 }
     - { itemTemplatePath: /trade/apiculture/thing/bellows, par: 2 }
     - { itemTemplatePath: /trade/tailoring/thing/cushion, par: 2 }
+    # ⭐ Size and carrying (W6): the carrying gear a player can buy — a belt
+    # and a pouch to hang from it, a satchel, an oilskin pouch that keeps a
+    # letter dry under water, and a headlamp that leaves both hands free.
+    - { itemTemplatePath: /trade/tanning/thing/belt, par: 2 }
+    - { itemTemplatePath: /trade/tanning/thing/belt-pouch, par: 3 }
+    - { itemTemplatePath: /trade/tanning/thing/satchel, par: 2 }
+    - { itemTemplatePath: /trade/tanning/thing/oilskin-pouch, par: 2 }
+    - { itemTemplatePath: /trade/smithing/thing/headlamp, par: 2 }
+    # The rest of the leatherworker's, smith's and roper's carrying gear, tack
+    # for a pack animal, a tarpaulin for a cart, and the drive's arms.
+    - { itemTemplatePath: /trade/tanning/thing/utility-belt, par: 1 }
+    - { itemTemplatePath: /trade/tanning/thing/bandolier, par: 1 }
+    - { itemTemplatePath: /trade/tanning/thing/chest-harness, par: 1 }
+    - { itemTemplatePath: /trade/tanning/thing/vest, par: 1 }
+    - { itemTemplatePath: /trade/tanning/thing/medics-pouch, par: 2 }
+    - { itemTemplatePath: /trade/tanning/thing/bumbag, par: 2 }
+    - { itemTemplatePath: /trade/tanning/thing/purse, par: 3 }
+    - { itemTemplatePath: /trade/tanning/thing/canteen-clip, par: 2 }
+    - { itemTemplatePath: /trade/tanning/thing/holster, par: 1 }
+    - { itemTemplatePath: /trade/tanning/thing/sheath, par: 2 }
+    - { itemTemplatePath: /trade/tanning/thing/scabbard, par: 1 }
+    - { itemTemplatePath: /trade/tanning/thing/quiver, par: 2 }
+    - { itemTemplatePath: /trade/tanning/thing/haversack, par: 2 }
+    - { itemTemplatePath: /trade/tanning/thing/rucksack, par: 2 }
+    - { itemTemplatePath: /trade/tanning/thing/frame-pack, par: 1 }
+    - { itemTemplatePath: /trade/tanning/thing/saddle, par: 1 }
+    - { itemTemplatePath: /trade/tanning/thing/pack-saddle, par: 1 }
+    - { itemTemplatePath: /trade/tanning/thing/halter, par: 2 }
+    - { itemTemplatePath: /trade/tanning/thing/saddlebags, par: 1 }
+    - { itemTemplatePath: /trade/tanning/thing/pannier, par: 2 }
+    - { itemTemplatePath: /trade/smithing/thing/key-ring, par: 4 }
+    - { itemTemplatePath: /trade/cordage/thing/lanyard, par: 4 }
+    - { itemTemplatePath: /trade/textiles/thing/tarpaulin, par: 2 }
+    - { itemTemplatePath: /system/transport/thing/travois, par: 1 }
+    - { itemTemplatePath: /stuff/thing/gear/headset, par: 1 }
+    - { itemTemplatePath: /stuff/thing/arms/longsword, par: 1 }
+    - { itemTemplatePath: /stuff/thing/arms/greatsword, par: 1 }
+    - { itemTemplatePath: /stuff/thing/arms/flintlock-pistol, par: 1 }
   prices:
     /trade/rubber/thing/hose: 9
     /stuff/thing/gear/sprinkler: 6
@@ -604,6 +642,39 @@ data:
     /trade/textiles/thing/whorl: 1
     /trade/apiculture/thing/bellows: 3
     /trade/tailoring/thing/cushion: 4
+    /trade/tanning/thing/belt: 4
+    /trade/tanning/thing/belt-pouch: 3
+    /trade/tanning/thing/satchel: 7
+    /trade/tanning/thing/oilskin-pouch: 5
+    /trade/smithing/thing/headlamp: 12
+    /trade/tanning/thing/utility-belt: 7
+    /trade/tanning/thing/bandolier: 6
+    /trade/tanning/thing/chest-harness: 8
+    /trade/tanning/thing/vest: 12
+    /trade/tanning/thing/medics-pouch: 4
+    /trade/tanning/thing/bumbag: 4
+    /trade/tanning/thing/purse: 2
+    /trade/tanning/thing/canteen-clip: 2
+    /trade/tanning/thing/holster: 6
+    /trade/tanning/thing/sheath: 3
+    /trade/tanning/thing/scabbard: 8
+    /trade/tanning/thing/quiver: 5
+    /trade/tanning/thing/haversack: 4
+    /trade/tanning/thing/rucksack: 12
+    /trade/tanning/thing/frame-pack: 22
+    /trade/tanning/thing/saddle: 40
+    /trade/tanning/thing/pack-saddle: 28
+    /trade/tanning/thing/halter: 4
+    /trade/tanning/thing/saddlebags: 14
+    /trade/tanning/thing/pannier: 9
+    /trade/smithing/thing/key-ring: 1
+    /trade/cordage/thing/lanyard: 1
+    /trade/textiles/thing/tarpaulin: 9
+    /system/transport/thing/travois: 6
+    /stuff/thing/gear/headset: 30
+    /stuff/thing/arms/longsword: 30
+    /stuff/thing/arms/greatsword: 45
+    /stuff/thing/arms/flintlock-pistol: 40
     /trade/textiles/thing/drop-spindle: 2
     /trade/dyeing/thing/household-vat: 6
     # ⚠ The bronze plate being DEARER than the steel one at 55 would be a

@@ -1,0 +1,61 @@
+# The steading yard — the middle of the old farmstead, and the size
+# drive's crossroads (size and carrying W6). Every way out of it asks a
+# size question: the cottage's low door (east), the barn's wide door
+# (south), the paddock's narrow gate (north), the lookout ladder (up) and
+# the pond (west). Southeast climbs back to the treeline — the one
+# cross-zone way; its partner is authored on the treeline.
+class: /platform/location/Locale
+data:
+  shortDescription: yard of an old steading
+  keywords: [yard, steading, farmstead]
+  register: definite
+  _address: last-counted-mile/steading
+  coords: { x: 0, y: 0, z: 0 }
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  enclosure: none
+  roof: none
+  longDescription: |
+    A farmyard the wood is taking back. Nettles stand in the old dung heap and a birch has come up through the cart track, but the stone walls still hold their shape, and so do the ways out of them.
+
+    East, a roofless cottage with a door so low its last owner must have been short or used to bowing. South, a barn with its big doors gone and a wide doorway left. North, a paddock behind a narrow gate. A ladder climbs a post to a lookout platform, and west the ground runs down to a pond. Southeast, a path goes back through the pines to the treeline.
+  details:
+    post:
+      keywords: [post, lookout, platform]
+      description: |
+        A stout post set in the yard with a ladder nailed up it to a little platform at the top, where someone once kept watch over the stock.
+  exits:
+    east:
+      destination: /world/newbie-wilds/steading/cottage
+      # ⭐ The low door is the WAY's, authored on this entry, no kind
+      # (size and carrying D8): a person stoops through it, a rider must
+      # dismount.
+      opening: { width: 0.9, height: 1.4 }
+    south:
+      destination: /world/newbie-wilds/steading/barn
+      # The barn's doorway: wide and full height — a long crate goes
+      # through it end-on (drive 11's comparison with the barn stair).
+      opening: { width: 1, height: 2 }
+    north:
+      destination: /world/newbie-wilds/steading/paddock
+      # A narrow gate: a person walks through, a mule with panniers does not.
+      opening: { width: 0.8, height: 2 }
+    up:
+      destination: /world/newbie-wilds/steading/lookout
+      kind: /stuff/idea/exits/ladder
+    west:
+      destination: /world/newbie-wilds/steading/pond
+      media: [ground, water]
+    # Back to the treeline — the one cross-zone way out of the steading.
+    southeast:
+      destination: /world/newbie-wilds/crossroads/treeline
+  # ⭐ A pack mule and its tack (size and carrying W6, drive 18): it carries
+  # only in what it wears — put the pack saddle on it, hang a pannier each
+  # side — and it is led on a rope tied to its halter. The narrow gate to
+  # the paddock and the cottage's low door are a few steps away.
+  props:
+    - /trade/tanning/thing/halter
+    - /trade/tanning/thing/pack-saddle
+    - { template: /trade/tanning/thing/pannier, as: near-pannier }
+    - { template: /trade/tanning/thing/pannier, as: off-pannier }
+  cast:
+    - /system/transport/agent/mule

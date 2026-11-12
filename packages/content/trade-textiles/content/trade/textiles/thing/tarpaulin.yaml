@@ -1,0 +1,18 @@
+# A tarpaulin (size and carrying D27/W6) — a sheet of heavy canvas, folded.
+# ⭐ What a cart closes under: lay it in a handcart or a wagon and `close
+# cart` draws it over the load (`Haulable.coverFor` — a sheet of textile
+# lying in it); shut, the cart is an opaque holder, so nobody else in the
+# room sees what is in it (D24), and rain stays out. `open cart` throws it
+# back. No box is authored: it is folded, and its size derives as a sheet.
+class: /platform/thing/Good
+data:
+  shortDescription: canvas tarpaulin
+  keywords: [tarpaulin, tarp, canvas, sheet, cover, "canvas tarpaulin"]
+  register: indefinite
+  longDescription: >
+    A big square of heavy canvas, tarred along the hems, with brass
+    grommets at the corners for lashing. Folded, it is a heavy bundle;
+    spread, it covers a cart bed and whatever is stacked on it.
+  _materialPath: /stuff/idea/material/textile/canvas
+  mass: 4
+  shape: sheet

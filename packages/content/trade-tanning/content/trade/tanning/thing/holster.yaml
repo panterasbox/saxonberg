@@ -1,0 +1,17 @@
+# A holster (size and carrying D27/D16) — a leather case shaped to a
+# pistol: a shaped holder is the draw, fast from a free hand. It hangs
+# from a belt.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: leather holster
+  keywords: [holster, leather, "leather holster"]
+  register: indefinite
+  longDescription: >
+    A boiled-leather holster shaped to a pistol's barrel and lock, with a
+    strap that snaps over the grip.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 0.25
+  dimensions: { width: 0.07, depth: 0.05, height: 0.42 }
+  shape: rod
+  shapedTo: /stuff/thing/arms/flintlock-pistol
+  mouth: { width: 0.07, height: 0.05 }

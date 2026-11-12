@@ -1,0 +1,20 @@
+# The reed bank — the far side of the steading pond (size and carrying
+# W6, drive 16). Reached only by swimming.
+class: /platform/location/Locale
+data:
+  shortDescription: reed bank
+  keywords: [bank, reeds, reed]
+  register: definite
+  _address: last-counted-mile/steading-reeds
+  coords: { x: -2, y: 0, z: 0 }
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  enclosure: none
+  roof: none
+  longDescription: |
+    A muddy strip of bank between the pond and the pines, the reeds taller than your head and rattling when the wind gets into them. There is no path from here but the water.
+
+    East, the pond lies between you and the steading.
+  exits:
+    east:
+      destination: /world/newbie-wilds/steading/pond
+      media: [ground, water]

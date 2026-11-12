@@ -1,0 +1,17 @@
+# A canteen clip (size and carrying D27) — a leather cradle shaped to a
+# water bottle: it admits only something that holds a liquid
+# (`shapedTo: BulkableMixin`), and a shaped holder is the draw, not a
+# reach. It hangs from a belt or a strap.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: canteen clip
+  keywords: [clip, "canteen clip", cradle, leather]
+  register: indefinite
+  longDescription: >
+    A cradle of stiff leather straps shaped to hold a flask or a waterskin
+    upright, with a hook to clip it to a belt.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 0.1
+  dimensions: { width: 0.12, depth: 0.09, height: 0.25 }
+  shapedTo: BulkableMixin
+  mouth: { width: 0.12, height: 0.09 }

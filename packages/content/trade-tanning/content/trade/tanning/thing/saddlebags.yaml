@@ -1,0 +1,15 @@
+# Saddlebags (size and carrying D27) — a pair of leather bags joined
+# across a saddle: they hang `from` a saddle (or a pack saddle), and an
+# animal carries only in what it wears. Their flaps cover what is in
+# them.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: pair of saddlebags
+  keywords: [saddlebags, saddlebag, bags, leather, "pair of saddlebags"]
+  register: indefinite
+  longDescription: >
+    Two leather bags joined by a broad strap that lies across a saddle's
+    cantle, each with a buckled flap.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 1.5
+  dimensions: { width: 0.35, depth: 0.15, height: 0.3 }

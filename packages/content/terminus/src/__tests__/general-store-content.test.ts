@@ -156,6 +156,7 @@ const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/glass/", dir: () => GLASS_DIR },
   { prefix: "/trade/smithing/", dir: () => SMITHING_DIR },
   { prefix: "/trade/tanning/", dir: () => TANNING_DIR },
+  { prefix: "/trade/cordage/", dir: () => fileURLToPath(new URL("../../../trade-cordage/content/trade/cordage/", import.meta.url)) },
   { prefix: "/trade/tailoring/", dir: () => TAILORING_DIR },
   // ⭐ The cleansers' shelf (cleanliness W3).
   { prefix: "/trade/chandlery/", dir: () => fileURLToPath(new URL("../../../trade-chandlery/content/trade/chandlery/", import.meta.url)) },
@@ -479,6 +480,11 @@ describe("general-store content integrity", () => {
     "/trade/fishing/thing/Rod",
     "/trade/fishing/thing/Trap",
     "/trade/fishing/thing/Bait",
+    // ⭐ The carrying line (size and carrying W6): the halter is the one
+    // garment a lead is tied to (worn AND Tieable), the headset the aether
+    // implant made Wearable. Discrete, owned, one each.
+    "/trade/tanning/thing/Halter",
+    "/generic-objects/thing/Headset",
   ]);
 
   // ⭐ Ammunition is the ONE stackable good the store sells, and rightly:

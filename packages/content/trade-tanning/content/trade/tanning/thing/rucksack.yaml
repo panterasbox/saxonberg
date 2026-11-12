@@ -1,0 +1,18 @@
+# A rucksack (size and carrying D27/D15) — an expedition's pack, worn on
+# the back: what is in it is PACKED (take it off to get at it). Its
+# straps take things clipped `from` them. A purchase — no aspiration
+# starts with one.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: canvas rucksack
+  keywords: [rucksack, pack, canvas, "canvas rucksack"]
+  register: indefinite
+  longDescription: >
+    A big canvas pack with leather corners, two broad shoulder straps and
+    a drawstring neck under a buckled lid.
+  _materialPath: /stuff/idea/material/textile/canvas
+  mass: 1.8
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [back]
+  placements: [/platform/placements/from]
+  dimensions: { width: 0.4, depth: 0.28, height: 0.6 }

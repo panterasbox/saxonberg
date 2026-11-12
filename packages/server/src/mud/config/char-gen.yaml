@@ -7,7 +7,11 @@
 # the `@saxonberg/content-species-and-names` content pack
 # (`content/stuff/idea/species/**`). `aspirations[].outfit` lists garment template
 # paths cloned + worn at commit (missing ones are skipped). `bioSeed`
-# is the starter bio prose seeded onto PersonaMixin.
+# is the starter bio prose seeded onto PersonaMixin. ⭐ Every outfit has
+# pockets (the trousers' and the top's rows); an aspiration that implies a
+# bag gets that bag (size and carrying D29) — nobody starts with a rucksack
+# or a frame pack. A bag with no slot claim (the medic's pouch) is received,
+# not worn: list the belt it hangs from BEFORE it.
 #
 # `species[].image` / `aspirations[].image` (OPTIONAL) — a resolvable
 # illustration URL surfaced in the char-gen detail card (3:4 portrait).
@@ -95,6 +99,10 @@ aspirations:
       - /stuff/thing/clothes/white-coat
       - /stuff/thing/clothes/student-trousers
       - /stuff/thing/clothes/canvas-shoes
+      # ⭐ What the life carries (size and carrying D29 — a grain an author
+      # may change): a belt, and the medic's pouch that hangs from it.
+      - /trade/tanning/thing/belt
+      - /trade/tanning/thing/medics-pouch
     claimSeeds:
       - order: 1
         text: "Was always the one others came to when something broke."
@@ -110,6 +118,8 @@ aspirations:
       - /stuff/thing/clothes/tweed-jacket
       - /stuff/thing/clothes/student-trousers
       - /stuff/thing/clothes/canvas-shoes
+      # A satchel for the books and the marking (D29).
+      - /trade/tanning/thing/satchel
     claimSeeds:
       - order: 1
         text: "Remembers the teacher who finally made it click."
@@ -125,6 +135,9 @@ aspirations:
       - /stuff/thing/clothes/field-jacket
       - /stuff/thing/clothes/student-trousers
       - /stuff/thing/clothes/canvas-shoes
+      # An empty modular belt — the loadout is the guardian's to
+      # assemble (D29).
+      - /trade/tanning/thing/belt
     claimSeeds:
       - order: 1
         text: "Learned early to stand between people and the worst of it."
