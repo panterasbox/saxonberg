@@ -909,6 +909,8 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
       if (pair !== null && pair.rider === mover) return null;
       const current = mode != null ? LocomotionApi.modeOf(mode) : null;
       const profile = current?.getBodyProfile() ?? 'upright';
+      // What it carries is measured by its shape — loaded on use (W1).
+      for (const c of mover.getContents()) if (MixinApi.isTangible(c)) await c.ensureShape();
       const env = mover.envelope(profile, { lengthwise });
       if (gap !== null && env !== null && !opens(env, gap, lengthwise)) {
         if (pair !== null) return { ok: false, reason: 'too-big-for-way', facts: { ...base, dismount: true } };
@@ -992,7 +994,8 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     };
     const full = lower.find((m) => fits(m, false));
     if (full !== undefined) return { lower: full.getName() };
-    const worn = body.wornBulk().things;
+    const bulk = body.wornBulk();
+    const worn = [...bulk.things, ...bulk.hung];
     if (worn.length === 0) return {};
     const pack = worn[0]!;
     if (fits(current, true)) return { pack };
@@ -1000,8 +1003,12 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     return bare !== undefined ? { pack, lower: bare.getName() } : {};
   }
 
-  /** The words for a way that will not take what is coming through it. */
-  private clearanceWords(refusal: ClearanceRefusal): string {
+  /**
+   * The words for a way that will not take what is coming through it —
+   * to the mover (`second`), or about it to somebody leading it (`third`:
+   * *its canvas panniers won't go through*).
+   */
+  private clearanceWords(refusal: ClearanceRefusal, person: 'second' | 'third' = 'second'): string {
     const { facts } = refusal;
     const way = this.direction;
     const name = (t: Stuff): string => t.presentationPhrase().definite();
@@ -1009,13 +1016,33 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
       (MixinApi.isPerceptible(t) ? t.getPrimaryKeyword() : undefined) ?? t.presentationPhrase().bare();
     switch (refusal.reason) {
       case 'too-big-for-way': {
+        if (person === 'third') {
+          const mover = facts.mover;
+          if (facts.dismount === true) return `${GrammarApi.cap(GrammarApi.pronoun(mover))} won't fit through there with a rider.`;
+          if (facts.pack !== undefined && mover instanceof Creature) {
+            const bulk = mover.wornBulk();
+            const same = [...bulk.things, ...bulk.hung].filter(
+              (t) => t.presentationPhrase().bare() === facts.pack!.presentationPhrase().bare(),
+            );
+            const bare = facts.pack.presentationPhrase().bare();
+            const what = same.length > 1 ? GrammarApi.pluralize(facts.pack, bare) : bare;
+            const it = same.length > 1 ? 'them' : 'it';
+            return `${GrammarApi.possessive(mover)} ${what} won't go through — take ${it} off first.`;
+          }
+          return `${GrammarApi.cap(GrammarApi.pronoun(mover))} won't fit through there.`;
+        }
         if (facts.dismount === true) return `You won't fit through there mounted; you'd have to dismount.`;
         if (facts.mover instanceof Creature) {
           if (facts.pack !== undefined) {
             const own = `your ${facts.pack.presentationPhrase().bare()}`;
+            // A hung thing comes off its host; a worn one is removed.
+            const pair = MixinApi.isContainable(facts.pack) ? facts.pack.getPlacement() : null;
+            const off = pair !== null
+              ? `get ${keyword(facts.pack)} from ${keyword(pair.host)}`
+              : `remove ${keyword(facts.pack)}`;
             const then = facts.lower !== undefined ? `, then \`${facts.lower} ${way}\`` : '';
             const how = facts.lower !== undefined ? `You'd have to ${facts.lower}, and ${own}` : GrammarApi.cap(own);
-            return `${how} won't go through — \`remove ${keyword(facts.pack)}\`${then}.`;
+            return `${how} won't go through — \`${off}\`${then}.`;
           }
           if (facts.lower !== undefined) return `You'd have to ${facts.lower} — \`${facts.lower} ${way}\`.`;
           return `You won't fit through there.`;
@@ -1661,6 +1688,8 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
         reason: this.clearanceWords(tight),
         context: {
           refusal: tight.reason,
+          // The same refusal told ABOUT the mover — a leader hears it (D18).
+          about: this.clearanceWords(tight, 'third'),
           ...(tight.facts.lower !== undefined ? { lower: tight.facts.lower } : {}),
         },
       };

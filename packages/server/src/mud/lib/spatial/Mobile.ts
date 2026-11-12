@@ -1052,7 +1052,9 @@ async function crossExit(
     if (!theirs.ok) {
       return {
         ...theirs,
-        reason: `${GrammarApi.cap(animal.getPresentation())} won't follow you: ${theirs.reason ?? 'it balks.'}`,
+        reason: `${GrammarApi.cap(animal.getPresentation())} won't follow you: ${
+          typeof theirs.context?.['about'] === 'string' ? theirs.context['about'] : (theirs.reason ?? 'it balks.')
+        }`,
       };
     }
   }
