@@ -490,6 +490,9 @@ export const Mixins = {
   // missing from it cannot be named by a `requires:` however real it is.
   BodyPlanSlots: 'BodyPlanSlotsMixin',
   Attired: 'AttiredMixin',
+  // ⭐ The receiving act (size-and-carrying D11): the one way a thing comes
+  // onto a body. `Creature` composes it, between Attired and LoadBearing.
+  Carrying: 'CarryingMixin',
   Hygiene: 'HygieneMixin',
   Slottable: 'SlottableMixin',
   Wearable: 'WearableMixin',

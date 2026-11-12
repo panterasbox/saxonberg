@@ -65,6 +65,7 @@ import { DisguisableMixin } from '../disguise/Disguisable';
 import { ConcealableMixin } from '../concealment/Concealable';
 import { SlottableMixin } from '../slot/Slottable';
 import { AttiredMixin } from '../slot/Attired';
+import { CarryingMixin } from '../slot/Carrying';
 import { PostmortemMixin } from '../mortality/Postmortem';
 import { Quantity } from '../quantity';
 import { AppApi } from '../../api/app';
@@ -206,6 +207,11 @@ const CreatureBase = PalateMixin(OlfactoryMixin(HygieneMixin(PostmortemMixin(
                         // always Slottable via Avatar's composition", which
                         // was never true. Found by driving the world.
                         SlottableMixin(
+                        // ⭐ The receiving act (size-and-carrying D11):
+                        // outer of Attired (it seats into the slot
+                        // substrate), inner of LoadBearing (the burden
+                        // reads what it placed). See Carrying.ts.
+                        CarryingMixin(
                         // ⭐ The only composer of Attired: a body is the
                         // only thing that wears anything. See Attired.ts.
                         AttiredMixin(
@@ -216,6 +222,7 @@ const CreatureBase = PalateMixin(OlfactoryMixin(HygieneMixin(PostmortemMixin(
                               )
                             )
                           )
+                        )
                         )
                         )
                         )

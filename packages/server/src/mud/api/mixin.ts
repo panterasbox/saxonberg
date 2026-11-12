@@ -203,6 +203,7 @@ import type { Perceiver } from '../lib/description/Perceiver';
 import type { Scryable } from '../lib/perception/Scryable';
 import type { Slotted } from '../lib/slot/Slotted';
 import type { Attired } from '../lib/slot/Attired';
+import type { Carrying } from '../lib/slot/Carrying';
 import type { Hygiene } from '../lib/cleanliness/Hygiene';
 import type { Persistable } from '../lib/persistence/Persistable';
 import type { Forkable } from '../lib/persistence/Forkable';
@@ -2093,6 +2094,14 @@ export class MixinApi {
    */
   public static isAttired(obj: Stuff): obj is Stuff & Slotted & Attired {
     return this.hasMixin(obj, Mixins.Attired);
+  }
+
+  /**
+   * A body that receives things — `receive` is the one way onto it
+   * (size-and-carrying D11). Every `Creature` composes it.
+   */
+  public static isCarrying(obj: Stuff): obj is Stuff & Container & Slotted & Carrying {
+    return this.hasMixin(obj, Mixins.Carrying);
   }
 
   /** A body kept clean — where an act's dirt lands, the hands, a bath (cleanliness). */
