@@ -87,6 +87,7 @@ import type { Impressible, ImpressOutcome, ImpressRefusal } from '../craft/Impre
 import { CarvableMixin } from '../craft/Carvable';
 import type { Carvable, CarvePlan, CarveRefusal, CarveRequest } from '../craft/Carvable';
 import { Placements } from '../spatial/Placement';
+import { MaterialApi } from '../../api/material';
 
 /** What a pool hands a mould when it sets. */
 export interface SetPool {
@@ -659,7 +660,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           const rung = cure.rungIndexFor(this.setProgress);
           if (rung < 0) return;
           const to = cure.getLadder()[rung]!.becomes;
-          const becomes = to ? StuffApi.findByTemplatePath<Material>(to) ?? material : material;
+          const becomes = to ? MaterialApi.materials().peek(to) ?? material : material;
           this.assertCanRelease();
           const payload = self.getBulkPayload('interior');
           this.clearPool(self);
@@ -715,7 +716,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         // hogshead's block is raw sugar, a cone's loaf is loaf sugar).
         const becomesPath = drain.becomesFor(this.castTemplateFor(material));
         const becomes = becomesPath
-          ? StuffApi.findByTemplatePath<Material>(becomesPath) ?? material
+          ? MaterialApi.materials().peek(becomesPath) ?? material
           : material;
         this.assertCanRelease();
         const payload = self.getBulkPayload('interior');
@@ -980,7 +981,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     private creditDrainings(drain: DrainSetting, totalKg: number): void {
       const deltaKg = totalKg - this.setDrainedKg;
       if (!drain.getDrains() || !(deltaKg > 0)) return;
-      const what = StuffApi.findByTemplatePath<Material>(drain.getDrains());
+      const what = MaterialApi.materials().peek(drain.getDrains());
       if (!what) return;
       const density = what.getDensity().rawValue();
       if (!(density > 0)) return;
@@ -1018,7 +1019,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     /** Litres the drainings have taken out of the pool so far (R1-D8). */
     private drainedLitres(drain: DrainSetting | null): number {
       if (!drain?.getDrains() || !(this.setDrainedKg > 0)) return 0;
-      const what = StuffApi.findByTemplatePath<Material>(drain.getDrains());
+      const what = MaterialApi.materials().peek(drain.getDrains());
       const density = what?.getDensity().rawValue() ?? 0;
       return density > 0 ? (this.setDrainedKg / density) * 1000 : 0;
     }
@@ -1044,7 +1045,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const ownMaterial = MixinApi.isTangible(self) ? self.getMaterial() : null;
         const k = ownMaterial?.getThermalConductivity().rawValue() ?? 0;
         const chilled = MixinApi.hasFusion(material) ? material.chilledIn(k) : '';
-        if (chilled) material = StuffApi.findByTemplatePath<Material>(chilled) ?? material;
+        if (chilled) material = MaterialApi.materials().peek(chilled) ?? material;
       }
       const fromImpression = !blown && imp !== null && this.castTemplate === '';
       const template = blown

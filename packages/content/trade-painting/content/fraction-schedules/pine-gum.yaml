@@ -1,0 +1,28 @@
+# Pine gum, cut (paint D17) — the oleoresin tapped from a pine, run through a
+# pot still: the spirit comes over (turpentine) and the rosin stays behind in
+# the pot. ⚠ No digit in a `character`.
+inputCategory: oleoresin
+discipline: chemistry
+requiresHeatK: 430
+productMaterial: /trade/painting/idea/material/turpentine
+residueMaterial: /trade/painting/idea/material/rosin
+readBlur: 0.02
+gradeStretch: 0.02
+fractions:
+  - key: light
+    upTo: 0.04
+    character: >-
+      Thin and sharp and almost sweet, a smell of cut pine that catches
+      the back of the throat.
+    gradeBand: fair
+  - key: spirit
+    upTo: 0.22
+    character: >-
+      Clear and clean now, the true resinous bite of good turpentine.
+    gradeBand: fine
+  - key: heavy
+    upTo: 0.26
+    character: >-
+      Yellowing and oily, heavier on the nose, the rosin starting to come
+      through.
+    gradeBand: poor

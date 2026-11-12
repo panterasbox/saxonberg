@@ -123,6 +123,10 @@ function contentRows(): Row[] {
     ...yamlDir('base-library', 'stuff/idea/material/bulk', '/stuff/idea/material/bulk'),
     ...yamlDir('base-library', 'stuff/idea/material/glass', '/stuff/idea/material/glass'),
     ...yamlDir('base-library', 'stuff/idea/material/element', '/stuff/idea/material/element'),
+    // What the kit is made of — a steel jigger, a jute sack — constituents
+    // loaded with their holders from the content store (load-on-use door a).
+    ...yamlDir('base-library', 'stuff/idea/material/alloy', '/stuff/idea/material/alloy'),
+    ...yamlDir('base-library', 'stuff/idea/material/textile', '/stuff/idea/material/textile'),
     ...yamlDir('generic-objects', 'stuff/thing/fixture', '/stuff/thing/fixture'),
     ...yamlDir('trade-hospitality', 'trade/hospitality/thing', `${ROOT}/thing`),
     ...yamlDir('trade-hospitality', 'trade/hospitality/idea/material', `${ROOT}/idea/material`),

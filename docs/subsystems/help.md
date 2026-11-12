@@ -43,10 +43,10 @@ request/response DTOs (`HelpIndexResult` / `HelpKindListResult` /
 ## The lazily warmed index — harvest, don't register
 
 `/platform/idea/HelpCatalogue` is a singleton `Idea`+`onCreate`, warming
-in `onCreate`. ⭐ It is **not booted** (the scan sweep, 2026-10-14):
-`HelpApi.ready()` stands it up, and the `help` verb and every REST route
-await that before their synchronous reads — the rulebook warms on the
-first `help` anybody types. The index is
+in `onCreate`. ⭐ It has no pack `boot:` entry (the scan sweep,
+2026-10-14); it is `HelpApi`'s declared `needs`, so `AppBootstrap` stands
+it once at boot (load-on-use W10) and the `help` verb's sync reads find it
+— no controller readies it. The index is
 **harvested**: `warm()` *pulls* three projectors. No content-side hook
 ever pushes a topic in (the substrate-no-content-hooks rule).
 
@@ -384,7 +384,7 @@ the thing it documents, where the wiki is the community's.
 | Read chokepoint + capability filter | `mud/api/help.ts` |
 | REST surface | `backend/HelpRoutes.ts` (mounted in `services/Server.ts`) |
 | Verb | `content/platform/cmd/system/help.yaml` + `mud/platform/idea/cmd/system/Help*Controller.ts` |
-| Warm wiring | `HelpApi.ready()` (no `boot:` entry since the scan sweep), `mud/lib/paths.ts`, `platform/content/platform/idea/HelpCatalogue.yaml` |
+| Warm wiring | `HelpApi.needs`, stood by `AppBootstrap` (no pack `boot:` entry since the scan sweep), `mud/lib/paths.ts`, `platform/content/platform/idea/HelpCatalogue.yaml` |
 
 ## ⭐ The help card exists now
 

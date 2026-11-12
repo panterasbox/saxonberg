@@ -30,10 +30,11 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
+import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 /** What a worked charge of cream becomes — the churning schedule's input. */
-export const CHURNED_CREAM = '/trade/dairying/idea/material/churned-cream';
 
 /** Below this (K) the cream will not come. */
 const COMES_ABOVE_K = 283;
@@ -48,6 +49,19 @@ const ChurnBase = HandWorkedMixin(
 );
 
 export default class Churn extends ChurnBase {
+  static fieldMeta: FieldMeta = {
+    // What cream comes to in the churn. Authored on the row, loaded with it (load-on-use W8:
+    // a class's material is content, not a constant).
+    churnsTo: { persistent: true, authorable: true, ref: 'identity:constituent' },
+  };
+  /** What cream comes to in the churn. */
+  protected churnsTo = '';
+  public setChurnsTo(value: string): void {
+    this.churnsTo = typeof value === 'string' ? value : '';
+  }
+
+
+
   /**
    * ⭐ `churn` — afforded by the churn itself: an affordance is a static on
    * a class (a row's `commandContributions:` is dead silently). Found by
@@ -68,7 +82,7 @@ export default class Churn extends ChurnBase {
     const amount = this.getBulkAmount('interior').rawValue();
     const material = this.getBulkMaterial('interior');
     if (!(amount > 0) || material === null) return null;
-    if (material.getTemplatePath() === CHURNED_CREAM) {
+    if (material.getTemplatePath() === this.churnsTo) {
       return this.worked('already-come');
     }
     if (!material.hasTag('cream')) {
@@ -78,7 +92,7 @@ export default class Churn extends ChurnBase {
     if (tempK < COMES_ABOVE_K) {
       return this.worked('too-cold');
     }
-    const churned = StuffApi.findByTemplatePath<Material>(CHURNED_CREAM);
+    const churned = MaterialApi.materials().need(this.churnsTo);
     if (!churned) return null;
     this.setBulkMaterial('interior', churned);
     if (tempK > GREASY_ABOVE_K) {

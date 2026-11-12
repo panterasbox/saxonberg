@@ -418,7 +418,7 @@ function jointRow(method: string): JointDescriptor {
 
 function materialAt(path: string): Material | null {
   if (!path) return null;
-  return StuffApi.findByTemplatePath<Material>(path) ?? null;
+  return MaterialApi.materials().peek(path) ?? null;
 }
 
 function constructionOf(form: string | undefined): Construction | null {
@@ -708,6 +708,8 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
     async setJoints(value: JointState[]): Promise<void> {
       const joints = Array.isArray(value) ? value : [];
       for (const j of joints) await CraftingApi.joints().ensure(j.method);
+      // …and the glue each line was made with (load-on-use W8).
+      await MaterialApi.materials().ensureCitedIn(joints);
       this.joints = joints.map((j) => ({ ...j, members: [...j.members] }));
     }
 

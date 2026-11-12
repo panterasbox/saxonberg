@@ -24,6 +24,7 @@ import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
 import { Mixins } from "../../../lib/mixin";
 import { makeStuffAtPath } from "../../../lib/security/__tests__/test-setup";
+import { standMaterials } from "../../../lib/material/__tests__/materials";
 
 beforeEach(() => {
   StuffApi.clearAll();
@@ -95,6 +96,10 @@ describe("⭐ a room is roofed in its walls unless its row says otherwise", () =
   it("an authored roof still wins", () => {
     const hall = makeStuffAtPath(() => new Hall(), "/test/room/lavoir");
     hall.setEnclosure("none");
+    // The roof is a constituent of the place (`identity:constituent`): the
+    // applier loads its material with the row. The setter called by hand
+    // skips that door, so the slate is stood in.
+    standMaterials(["/stuff/idea/material/rock/slate"]);
     hall.setRoof({ material: "/stuff/idea/material/rock/slate", thicknessM: 0.01 });
     const built = hall.construction();
     expect(built.walls.none).toBe(true);

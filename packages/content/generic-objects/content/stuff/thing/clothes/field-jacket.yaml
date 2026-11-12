@@ -11,7 +11,7 @@ data:
     "/stuff/idea/species/BodyPlan/biped": [torso]
   # Heavy close-woven duck. The weight IS the weather-proofing — a dense weave is what breaks a wind.
   _materialPath: /stuff/idea/material/textile/linen
-  constructionForm: woven
+  constructionForm: /platform/fabrics/woven
   gradeBand: fair
   mass: 1.4
   # ⭐ Four flapped pockets — two at the chest, two at the hip (size and

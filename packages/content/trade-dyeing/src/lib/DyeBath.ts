@@ -8,8 +8,8 @@
  * chemistry is the CONTENTS'. This value object wraps one vessel and
  * answers both verbs over it:
  *
- *  - {@link DyeBath.dyePlanFor} — the dyestuff in the bath (`Dyestuff.
- *    forMaterial`) decides the chemistry: a **mordant** dye exhausts dip by
+ *  - {@link DyeBath.dyePlanFor} — the dyestuff in the bath (its document, found by
+ *    its material) decides the chemistry: a **mordant** dye exhausts dip by
  *    dip and binds to the metal waiting on the cloth; a **vat** dye
  *    accumulates and refuses a mordanted cloth outright. Cellulose without
  *    tannin, and silk still in its gum, pay a bond penalty in depth and in
@@ -31,7 +31,9 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 import { CompetenceBand, type CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
-import Dyestuff from '../idea/Dyestuff';
+import type Dyestuff from './Dyestuff';
+import DyestuffCatalogue from '../idea/DyestuffCatalogue';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 
 /** The three mordants the trade knows, by the tag their material carries. */
 export type MordantKey = 'alum' | 'iron' | 'tannin';
@@ -90,9 +92,19 @@ export default class DyeBath {
     this.material = this.slot && !this.slot.isEmpty() ? this.slot.getMaterial() : null;
   }
 
-  /** The dyestuff this bath holds, or `null`. */
-  public dyestuff(): Dyestuff | null {
-    return this.material ? Dyestuff.forMaterial(this.material.getTemplatePath() ?? '') : null;
+  /**
+   * The dyestuff this bath holds, or `null` — the `dyestuff` document whose
+   * card names the bath's material, found and kept on first ask
+   * (load-on-use W3). Nothing boots the dyestuffs.
+   */
+  public async dyestuff(): Promise<Dyestuff | null> {
+    if (!this.material) return null;
+    return DyeBath.dyestuffs().forMaterial(this.material.getTemplatePath() ?? '');
+  }
+
+  /** This pack's dyestuff catalogue, stood up on first reach at its path. */
+  private static dyestuffs(): DyestuffCatalogue {
+    return StuffApi.singletonSync('/trade/dyeing/idea/DyestuffCatalogue', () => new DyestuffCatalogue());
   }
 
   /** The mordant this bath holds, or `null` — read off its material's tags. */
@@ -115,7 +127,7 @@ export default class DyeBath {
     if (!slot || !this.material) return { ok: false, reason: 'empty-bath' };
     // ⚠⚠ `dye` takes a dyestuff MATERIAL, never a crop — the seam a
     // synthetic walks through.
-    const dyestuff = this.dyestuff();
+    const dyestuff = await this.dyestuff();
     if (!dyestuff) return { ok: false, reason: 'not-a-dyestuff' };
     const pending = DyeBath.pendingMordant(target);
     const chemistry = dyestuff.getChemistry();

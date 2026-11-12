@@ -11,7 +11,7 @@ data:
     "/stuff/idea/species/BodyPlan/biped": [torso]
   # Knit, not woven: the loops are why it is soft and why it lets the wind straight through.
   _materialPath: /stuff/idea/material/textile/wool
-  constructionForm: knit
+  constructionForm: /platform/fabrics/knit
   gradeBand: fair
   mass: 0.7
   # ⭐ One front pouch pocket, open both ends (size and carrying D29).

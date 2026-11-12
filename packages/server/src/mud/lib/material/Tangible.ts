@@ -66,6 +66,7 @@ import {
 } from '../spatial/Dimensions';
 import type Form from '../../platform/idea/Form';
 import { ExecutionContextApi, OMNI_SCOPE } from '../../api/execution-context';
+import { DocumentNotResidentError } from '../errors';
 
 /** Where the forms live (`platform/idea/Form`'s `FORM_ROOT`, restated to keep this substrate free of a value import). */
 const FORM_ROOT = '/platform/idea/Form/';
@@ -590,7 +591,9 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         while (key !== undefined) {
           const override = this._detailMaterialPaths[key];
           if (override) {
-            return StuffApi.findByTemplatePath<Material>(override) ?? null;
+            // A constituent: loaded with the holder (load-on-use D2 a) —
+            // cold means a load was skipped, said loudly.
+            return needMaterial(override);
           }
           const dot = key.lastIndexOf('.');
           key = dot < 0 ? undefined : key.substring(0, dot);
@@ -598,7 +601,7 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         // No override at any prefix — fall through to bulk default.
       }
       if (!this._materialPath) return null;
-      return StuffApi.findByTemplatePath<Material>(this._materialPath) ?? null;
+      return needMaterial(this._materialPath);
     }
 
     /**
@@ -622,11 +625,11 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     public hasMaterialTag(tag: string): boolean {
       const wanted = tag.toLowerCase();
       if (this._materialPath) {
-        const bulk = StuffApi.findByTemplatePath<Material>(this._materialPath);
+        const bulk = peekMaterial(this._materialPath);
         if (bulk?.hasTag(wanted)) return true;
       }
       for (const path of Object.values(this._detailMaterialPaths)) {
-        const part = StuffApi.findByTemplatePath<Material>(path);
+        const part = peekMaterial(path);
         if (part?.hasTag(wanted)) return true;
       }
       return false;
@@ -867,4 +870,19 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       return (held * capacityFraction * lVap) / c;
     }
   };
+}
+
+/**
+ * The holder's own material read — the same door as
+ * `MaterialApi.materials().need/peek` (load-on-use W8), inline because this
+ * mixin sits under `Thing` and `MaterialApi` reaches `Thing` back (an import
+ * here would evaluate `Thing` before `TangibleMixin` exists).
+ */
+function peekMaterial(path: string): Material | null {
+  return path ? (StuffApi.findByTemplatePath<Material>(path) ?? null) : null;
+}
+function needMaterial(path: string): Material {
+  const m = peekMaterial(path);
+  if (!m) throw new DocumentNotResidentError('material', path);
+  return m;
 }

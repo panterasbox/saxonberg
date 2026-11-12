@@ -128,7 +128,12 @@ function amountOf(r: Location, path: string): number {
 
 describe('fire chemistry — the oxygen leg, derived', () => {
   beforeEach(() => installV1QuantityMarshallers());
-  afterEach(() => StuffApi.clearAll());
+  afterEach(() => {
+    // The occupants' interactives outlive the world clear; a later test's
+    // reads walk them (load-on-use W8: a cleared material reads loudly).
+    ConnectionManager.get().clearAll();
+    StuffApi.clearAll();
+  });
 
   it('the atmosphere TAG is untouched — smoke is a thing IN the air now', async () => {
     const zone = makeStuff(() => new CartesianZone());

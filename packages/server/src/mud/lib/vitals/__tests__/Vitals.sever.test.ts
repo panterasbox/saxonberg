@@ -95,6 +95,7 @@ describe('VitalsMixin — severPart', () => {
     // ⭐ Every death mints a corpse now, and the mint clones an authored
     // row that a unit world has no store for. See the helper.
     installCorpseMintStub();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
   });
   afterEach(() => StuffApi.clearAll());
 
@@ -293,6 +294,7 @@ describe('AVULSION_BEHAVIOR — the sever gate', () => {
 
 import { WorldClockApi } from '../../../api/worldclock';
 import '../../../platform/idea/WorldClockRegistry';
+import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
 
 let headedSeq = 0;
 /** A body whose head is severable and whose brain governs consciousness. */

@@ -306,10 +306,11 @@ reference pointing the WRONG WAY forces.
 | a `boot:` entry so a species / material / biome is resident | declare the citing field `ref: 'identity:constituent'` — the applier loads it with its holder |
 | `Template.findByClass(Species)` to find "what lives in this reach" | the reach names its species (`stocks:`), each loaded at the read |
 | a pack catalogue that scans `findWhereDataHas('parentExtent')` | `NavigationApi.attachedTo(key, 'institution')` — the graph's record anchors each `parentExtent` at its extent and reads the key's ancestry |
-| a dictionary warmed at boot for a typed word | `await StuffApi.singleton(CATALOGUE_PATH)` at the verb; its creation warms it |
+| a pack `boot:` entry for a dictionary read by a typed word | `await StuffApi.singleton(CATALOGUE_PATH)` at the verb; its creation warms it — or, when an Api's reads stand on it, the Api's `static needs` (next row) |
+| a class readying its Api's data (`StuffApi.ready(FooApi)`, a setter returning a dictionary load, an `onCreate` that warms a catalogue) | declare it in the Api's `static needs`; the boot stands it (`AppBootstrap`, load-on-use W10 — [call-security.md](./subsystems/call-security.md)) |
 
 ⚠ **What legitimately stays booted:** the engine's wardens and
-registries; a catalogue read SYNCHRONOUSLY with no act-shaped async seam
+registries; every Api's declared `needs`; a catalogue read SYNCHRONOUSLY with no act-shaped async seam
 before the read (the *reader rule* — say so in the entry's reason); and
 the houses whose NPCs act while nobody is present
 (→ `unobserved-economy-slate`). `lint:boot-entries` and
@@ -4265,13 +4266,17 @@ so `Atmospheric.getBiome()` (a registry read) answered `null` for every
 room in the game, `isSkyExposed` returned its documented
 false-when-nothing-resolves, and the ground build's drive read *"It is
 oak, laid as boards"* in a wood, a concrete apron and a mine adit.
-⭐ Found 2026-09-24, by driving; `BiomeCatalogue` is the conversion.
+⭐ Found 2026-09-24, by driving; `BiomeCatalogue` was the conversion,
+and load-on-use round two (2026-11-11) went further — the catalogue is
+deleted and a biome loads as its place's constituent.
 
-**The rule:** if a roster is read by path at runtime, warm the ROSTER —
-derived by class over a path infix, never a list somebody has to
-remember to extend. `MaterialCatalogue` and `BiomeCatalogue` are the two
-exemplars; both select every root's subtree and filter on the class, so
-a pack shipping its own row is warmed with nothing to edit.
+**The rule:** if a roster is read by path at runtime, make every row
+reachable — load it with whatever cites it (a constituent field) or, for
+a read that asks for every row, derive the roster by class over a path
+infix, never a list somebody has to remember to extend. The material
+roster (async `MaterialApi.all()` / `findByTag()`) is the exemplar: it
+selects every root's subtree and filters on the class, so a pack shipping
+its own row is found with nothing to edit.
 
 ---
 
@@ -5405,9 +5410,11 @@ fails the rule — it trades one static for a wider surface. **The pattern
 that resolved most bodies: the Api gets the DOOR, the body stays with its
 privates** — the `lib/` static becomes `@internal` *because* there is now
 somewhere visible to call. And not every invisible callable wants a door:
-`Construction.registerFabric` stays `@internal` with none, because its two
-callers are the textile subsystem populating its own vocabulary at boot,
-and a door would advertise a boot seam as author surface.
+`Construction.registerFabric` stayed `@internal` with none, because its two
+callers were the textile subsystem populating its own vocabulary at boot,
+and a door would have advertised a boot seam as author surface (it is
+gone since load-on-use round two: fabrics are documents read through
+`MaterialApi.fabrics()`).
 
 ⚠ Two traps when fixing one:
 

@@ -89,6 +89,7 @@ function burnerFireLogic(): FireLogic {
 }
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { DirtKinds } from '../cleanliness/DirtKind';
+import { MaterialApi } from '../../api/material';
 
 /** Burner defaults that are not magnitudes — the rest are dials. */
 const BURNER_DEFAULTS = {
@@ -633,7 +634,7 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
       if (!MixinApi.isAssembled(self) || !(heldK > 0) || !(heldS > 0)) return;
       const line = self.getLine('lining');
       if (line === null) return;
-      const brick = StuffApi.findByTemplatePath<Material>(line.material);
+      const brick = MaterialApi.materials().peek(line.material);
       const limitK = (brick && MixinApi.hasFusion(brick) ? brick.getMeltingPoint().rawValue() : 0) || 1950;
       let units =
         burnerDial(AppSettingKeys.fireLiningWearPerHour, 0.5) *
@@ -865,7 +866,7 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
         if (m) shares.push([m, 1]);
       } else {
         for (const [path, mass] of Object.entries(this.fuelBed)) {
-          const m = StuffApi.findByTemplatePath<Material>(path);
+          const m = MaterialApi.materials().peek(path);
           if (m && mass > 0) shares.push([m, mass / total]);
         }
       }
@@ -904,6 +905,15 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
      * may seed a starting charge; `stoke` is how anybody adds more.
      */
     public fuelBed: Record<string, number> = {};
+
+    /**
+     * The restore door for the fuel bed (load-on-use W8): the bed is keyed
+     * by the materials it holds, and they load with the burner.
+     */
+    public setFuelBed(value: Record<string, number>): Promise<void> | undefined {
+      this.fuelBed = value ?? {};
+      return MaterialApi.materials().ensureCited(Object.keys(this.fuelBed));
+    }
     /**
      * The air control, `0..1` — a damper, a wick, a tuyère, the ash you
      * bank a hearth down under. ⭐ On the mixin because **every** fire
@@ -986,7 +996,7 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
       let joules = 0;
       for (const [path, mass] of Object.entries(this.fuelBed)) {
         if (!(mass > 0)) continue;
-        const material = StuffApi.findByTemplatePath<Material>(path);
+        const material = MaterialApi.materials().peek(path);
         if (!material || !MixinApi.hasCombustion(material)) continue;
         joules += mass * material.getHeatOfCombustion().rawValue() * 1e6;
       }
@@ -1002,7 +1012,7 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
       const out: { material: Material; mass: number }[] = [];
       for (const [path, mass] of Object.entries(this.fuelBed)) {
         if (!(mass > 0)) continue;
-        const material = StuffApi.findByTemplatePath<Material>(path);
+        const material = MaterialApi.materials().peek(path);
         if (material) out.push({ material, mass });
       }
       out.sort((a, b) => b.mass - a.mass);
@@ -1018,7 +1028,7 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
         if (material) beds.push([material, this.fuelRemaining()]);
       } else {
         for (const [path, mass] of Object.entries(this.fuelBed)) {
-          const material = StuffApi.findByTemplatePath<Material>(path);
+          const material = MaterialApi.materials().peek(path);
           if (material && mass > 0) beds.push([material, mass]);
         }
       }
@@ -1067,7 +1077,7 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
       const out: { material: Material; share: number }[] = [];
       for (const [path, mass] of Object.entries(this.fuelBed)) {
         if (!(mass > 0)) continue;
-        const material = StuffApi.findByTemplatePath<Material>(path);
+        const material = MaterialApi.materials().peek(path);
         if (material) out.push({ material, share: mass / total });
       }
       return out;
@@ -1124,7 +1134,7 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
         scope as unknown as Stuff & Container,
       )) {
         if (!(c.amount > worst)) continue;
-        const material = StuffApi.findByTemplatePath<Material>(c.type);
+        const material = MaterialApi.materials().peek(c.type);
         if (!material || !MixinApi.hasCombustion(material)) continue;
         if (!(material.getHeatOfCombustion().rawValue() > 0)) continue;
         worst = c.amount;
@@ -1491,7 +1501,7 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
       for (const path of Object.keys(this.fuelBed)) {
         const mass = this.fuelBed[path] ?? 0;
         // ⭐ What burns leaves its ash in the grate (cleanliness D24).
-        const material = StuffApi.findByTemplatePath<Material>(path);
+        const material = MaterialApi.materials().peek(path);
         const ash = material && MixinApi.hasCombustion(material) ? material.getAshFraction() : 0;
         if (ash > 0) {
           this.ashKg += mass * fraction * ash;

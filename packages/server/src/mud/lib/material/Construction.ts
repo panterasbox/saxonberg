@@ -61,6 +61,7 @@
 
 import { MECHANICAL_CHANNELS, Channels } from './Channel';
 import type { Channel, MechanicalChannel } from './Channel';
+import { MaterialApi } from '../../api/material';
 
 // ---------- form vocabularies ----------
 
@@ -175,9 +176,9 @@ export type ConstructionDomain = 'covering' | 'weapon-delivery' | 'stock';
  * moment somebody swings.
  */
 export interface FabricSpec {
-  /** The form word an author writes (`woven`, `knit`, `felted`). */
+  /** The fabric document's leaf (`woven`) — the word a sentence carries. */
   key: string;
-  /** Outside-in depth band, `0..4`, sharing the kernel ladder. */
+  /** Outside-in depth band, `0..MAX_LAYER_BAND`, sharing the kernel ladder. */
   layerBand: number;
   /** Trapped-air fraction `0..1` — the thermal parameter. */
   loft: number;
@@ -209,11 +210,15 @@ export const TEXTILE_RESIST_PROFILE: Readonly<
 > = { edge: 'poor', point: 'poor', blunt: 'poor' };
 
 /**
- * The registered fabric forms. Module-private and plain — the bridge
- * that lets a template-backed roster extend the vocabulary without
- * `Construction.ts` importing anything.
+ * ⭐ The fabric a form names, when it names one — a fabric is a `fabric`
+ * DOCUMENT cited by its path (`/platform/fabrics/woven`, load-on-use W2),
+ * read through `MaterialApi.fabrics()`. A kernel form is a bare word and
+ * never a path, so the two vocabularies cannot collide. `peek`: answers
+ * `null` for a path nothing loaded — the setter that stored it loaded it.
  */
-const FABRICS = new Map<string, FabricSpec>();
+function fabricSpec(s: string): FabricSpec | null {
+  return s.startsWith('/') ? MaterialApi.fabrics().peek(s) : null;
+}
 
 // ---------- profile token vocabularies (SHAPE, not magnitude) ----------
 
@@ -314,6 +319,13 @@ const LAYER_DEPTH: Record<KernelCoveringForm, number> = {
 };
 
 /**
+ * The outermost band of the covering ladder — a fabric document's
+ * `layerBand` must sit on it (`FabricCatalogue.parse`), which is what keeps
+ * {@link Construction.getLayerDepth} total across both sources.
+ */
+export const MAX_LAYER_BAND = Math.max(...Object.values(LAYER_DEPTH));
+
+/**
  * Covering-resistance tokens that provide **zero** mitigation — a construction
  * whose every channel resolves to one of these does nothing to anyone (the
  * does-nothing lint's smell). `fail` is the only genuinely-inert token
@@ -330,9 +342,9 @@ function isKernelCoveringForm(s: string): s is KernelCoveringForm {
   return (COVERING_FORMS as readonly string[]).includes(s);
 }
 
-/** Is `s` a REGISTERED textile form? */
+/** Is `s` a resident fabric document's path? */
 function isFabricForm(s: string): boolean {
-  return FABRICS.has(s);
+  return fabricSpec(s) !== null;
 }
 
 /** Is `s` any covering form — kernel resist-bearing OR registered fabric? */
@@ -395,111 +407,9 @@ export class Construction {
     return isCoveringForm(s);
   }
 
-  /** Is `s` a registered textile form? */
+  /** Is `s` a resident fabric document's path? */
   public static isFabricForm(s: string): boolean {
     return isFabricForm(s);
-  }
-
-  /**
-   * Register one textile form. Called by `Fabric.onCreate` as each
-   * `/stuff/idea/fabric/<key>` row stands up (the roster's warm is
-   * `FabricCatalogue`'s job).
-   *
-   * ⚠ Validated HERE rather than trusted, because `layerBand` is what
-   * keeps {@link getLayerDepth} total across both sources — and that
-   * method is called unconditionally in three hot paths, so a bad band
-   * must fail at hydration, not at the moment somebody swings.
-   * Re-registering the same key overwrites (a pack go-live re-warms).
-   *
-   * @internal **and deliberately given no Api door.** Its two callers are
-   * `Fabric.onCreate` and `FabricCatalogue.warm` — the textile
-   * subsystem populating its own vocabulary at boot. Putting
-   * `MaterialApi.registerFabric` in the generated docs would advertise a
-   * boot seam as author surface, which is the *opposite* of what
-   * `callable == visible == cared-about` asks for: the fix for an
-   * invisible callable is not always to make it callable by everyone.
-   * The `FABRICS` map it writes is module-private and stays so.
-   */
-  public static registerFabric(spec: FabricSpec): void {
-    if (!spec.key || !/^[a-z][a-z0-9-]*$/.test(spec.key)) {
-      throw new RangeError(
-        `Construction.registerFabric: '${spec.key}' is not a kebab form word`,
-      );
-    }
-    if (isKernelCoveringForm(spec.key) || isDeliveryForm(spec.key)) {
-      throw new RangeError(
-        `Construction.registerFabric: '${spec.key}' is already a kernel form`,
-      );
-    }
-    for (const [field, value] of [
-      ['layerBand', spec.layerBand],
-      ['loft', spec.loft],
-      ['weaveDensity', spec.weaveDensity],
-      ['drape', spec.drape],
-      ['stretch', spec.stretch ?? 1],
-    ] as const) {
-      if (!Number.isFinite(value)) {
-        throw new RangeError(
-          `Construction.registerFabric('${spec.key}'): ${field} must be a number`,
-        );
-      }
-    }
-    const maxBand = Object.keys(LAYER_DEPTH).length - 1;
-    if (
-      !Number.isInteger(spec.layerBand) ||
-      spec.layerBand < 0 ||
-      spec.layerBand > maxBand
-    ) {
-      throw new RangeError(
-        `Construction.registerFabric('${spec.key}'): layerBand ` +
-          `${spec.layerBand} is outside the 0..${maxBand} ladder`,
-      );
-    }
-    for (const [field, value] of [
-      ['loft', spec.loft],
-      ['weaveDensity', spec.weaveDensity],
-      ['drape', spec.drape],
-    ] as const) {
-      if (value < 0 || value > 1) {
-        throw new RangeError(
-          `Construction.registerFabric('${spec.key}'): ${field} ${value} ` +
-            `is outside 0..1`,
-        );
-      }
-    }
-    if ((spec.stretch ?? 1) < 0) {
-      throw new RangeError(
-        `Construction.registerFabric('${spec.key}'): stretch ${spec.stretch} is negative`,
-      );
-    }
-    FABRICS.set(spec.key, { ...spec });
-  }
-
-  /**
-   * The registered spec for a fabric form, or `null`.
-   *
-   * @internal the registry `registerFabric` fills — same ruling, same
-   * reason: `FabricCatalogue` and `Constructed` are its only readers.
-   */
-  static fabric(key: string): FabricSpec | null {
-    return FABRICS.get(key) ?? null;
-  }
-
-  /**
-   * Every registered fabric key (HMR / test introspection).
-   *
-   * @internal read by `FabricCatalogue` alone.
-   */
-  public static fabricKeys(): readonly string[] {
-    return [...FABRICS.keys()];
-  }
-
-  /** Drop the whole textile registry — the HMR / go-live re-warm seam. */
-  /**
-   * @internal one production caller plus the tests that white-box it — not author surface.
-   */
-  public static clearFabrics(): void {
-    FABRICS.clear();
   }
 
   /** Is `s` a weapon-delivery form? */
@@ -512,9 +422,8 @@ export class Construction {
     if (!Construction.isForm(form)) {
       throw new RangeError(
         `Construction.of: unknown form '${form}' (expected one of ` +
-          `${[...CONSTRUCTION_FORMS, ...STOCK_FORMS].join(', ')}` +
-          (FABRICS.size > 0 ? `, ${[...FABRICS.keys()].join(', ')}` : '') +
-          `)`,
+          `${[...CONSTRUCTION_FORMS, ...STOCK_FORMS].join(', ')}, ` +
+          `or a resident fabric document's path)`,
       );
     }
     return new Construction(form);
@@ -557,9 +466,17 @@ export class Construction {
     return isCoveringForm(this._form);
   }
 
-  /** The registered textile spec for this form, or `null` if it is not one. */
+  /** The fabric document this form cites, or `null` if it is not one. */
   public getFabric(): FabricSpec | null {
-    return FABRICS.get(this._form) ?? null;
+    return this._form.startsWith('/') ? MaterialApi.fabrics().need(this._form) : null;
+  }
+
+  /**
+   * The form as a word a sentence can carry: a kernel form is its word, a
+   * fabric its document's leaf (`/platform/fabrics/woven` → `woven`).
+   */
+  public getWord(): string {
+    return this._form.slice(this._form.lastIndexOf('/') + 1);
   }
 
   /** Is this a weapon-delivery form? */
@@ -656,7 +573,7 @@ export class Construction {
     // throw — which is why `layerBand` is required and range-validated
     // at registration.
     if (!isKernelCoveringForm(this._form)) {
-      return FABRICS.get(this._form)!.layerBand;
+      return MaterialApi.fabrics().need(this._form).layerBand;
     }
     return LAYER_DEPTH[this._form];
   }

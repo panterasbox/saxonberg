@@ -55,6 +55,7 @@ import type { ActOutcome, ActRefusal } from '@saxonberg/server/mud/lib/craft/Act
 export type LayRefusal = ActRefusal<'already-set' | 'not-held' | 'no-water'>;
 import Waters, { WATERS_PATH } from '../idea/Waters';
 import Fish from '../agent/Fish';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 const TrapBase = BulkableMixin(ContainerMixin(Tool));
 
@@ -157,8 +158,8 @@ export default class Trap extends PullableMixin(TrapBase) {
     this.markSet(WorldClockApi.getNow().rawValue(), reachRef, by.getIdentityPath() ?? '');
     if (this.hasInteriorBulk()) {
       const capacity = this.getInteriorCapacity();
-      const water = StuffApi.findByTemplatePath<Material>(waterPath);
-      if (capacity !== null && water) {
+      const water = MaterialApi.materials().need(waterPath); // loaded by the act (`LayController`)
+      if (capacity !== null) {
         this.setBulkMaterial('interior', water);
         this.setBulkAmount('interior', capacity);
       }

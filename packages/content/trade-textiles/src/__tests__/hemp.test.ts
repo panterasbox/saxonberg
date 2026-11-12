@@ -50,9 +50,9 @@ describe("hemp line (cordage D14)", () => {
   });
 
   it("⭐ the two retting profiles take two different straws", () => {
-    const row = (p: string) => parse(readFileSync(new URL(p, import.meta.url), "utf8")).data;
-    const flax = row("../../content/trade/textiles/idea/maturation/retting.yaml");
-    const hempProfile = row("../../content/trade/textiles/idea/maturation/retting-hemp.yaml");
+    const row = (p: string) => parse(readFileSync(new URL(p, import.meta.url), "utf8")); // a document: no `data:` wrapper
+    const flax = row("../../content/maturation-profiles/retting.yaml");
+    const hempProfile = row("../../content/maturation-profiles/retting-hemp.yaml");
     expect(flax.inputCategory).not.toBe(hempProfile.inputCategory);
     expect(hempProfile.productMaterial).toBe("/stuff/idea/material/textile/hemp");
   });

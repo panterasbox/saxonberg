@@ -395,7 +395,7 @@ export default class BodyPlan extends SingletonMixin(Idea) {
     locomotionModes: { persistent: true },
     defaultLocomotionMode: { persistent: true },
     sensoryPorts: { persistent: true },
-    bodyParts: { persistent: true },
+    bodyParts: { persistent: true, ref: 'identity:constituent' },
     baseMass: { persistent: true },
     baseStature: { persistent: true },
     thermalStrategy: { persistent: true },

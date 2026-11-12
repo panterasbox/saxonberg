@@ -35,6 +35,10 @@ import { chargeWood } from '../../fire/__tests__/burner-fuel';
 import type { Burner } from '../../fire/Burner';
 import type { RoofSpec, EnclosurePartSpec } from '../../spatial/Enclosed';
 import type { Exposure } from '../../spatial/Exposure';
+import { standRootBiome } from './root-biome';
+
+// load-on-use W8: the universe's default walls are the root biome's.
+beforeEach(() => void standRootBiome());
 
 const SCALE = 12;
 const BRICK = '/stuff/idea/material/_cpl/brick';

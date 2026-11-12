@@ -95,6 +95,7 @@ import type Material from '../material/Material';
 import { Paint } from '../material/Paint';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
+import { MaterialApi } from '../../api/material';
 
 /**
  * ⭐ A structure's outside, as facts (paint D13) — what `analyze condition`
@@ -168,7 +169,8 @@ export default class Structure extends DetailedMixin(
     await this.standUpLandings();
     const top = self.getCoats('outside')[0] ?? null;
     const paint = top?.paint ? new Paint(top.paint) : null;
-    const material = top ? (StuffApi.findByTemplatePath<Material>(top.material) ?? null) : null;
+    // A coat's material loads with the face (`setCoats`, load-on-use W8).
+    const material = top?.material ? MaterialApi.materials().need(top.material) : null;
     const areaM2 = self.coatAreaM2();
     const film = Structure.dial(AppSettingKeys.structurePaintCoatThicknessM, 0.00005);
     return {

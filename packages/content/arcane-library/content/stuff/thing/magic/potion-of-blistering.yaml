@@ -25,6 +25,8 @@ unreachable: awaiting:magic-items-slate
 # flask is exactly one dose and drinking half of it is half.
 class: /system/arcana/thing/Potion
 data:
+  # What it is made of (load-on-use W8: authored, not a constructor default).
+  _materialPath: /stuff/idea/material/glass/glass
   shortDescription: stoppered glass flask
   keywords: [flask, stoppered, glass]
   register: indefinite

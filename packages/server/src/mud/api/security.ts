@@ -122,6 +122,15 @@ type TestOnlyStub = {
  * gate the corresponding `ShadowApi` operation on the host method.
  * Omitted ops default to Public.
  */
+/**
+ * One thing an Api's reads stand on (`static readonly needs`): a
+ * catalogue's singleton path, or a loader for a catalogue that has no row
+ * (a `singletonSync` one) — e.g. `() => BulkableApi.maturationProfiles().ensureAll()`.
+ * A loader must be idempotent (a cached promise). ⭐ The boot readies every
+ * Api's needs once (`AppBootstrap`), so no class ever readies one by hand.
+ */
+export type ApiNeed = string | (() => Promise<unknown>);
+
 export interface ShadowSecuritySpec {
   attach?: SecurityPolicy;
   detach?: SecurityPolicy;
@@ -634,11 +643,11 @@ export class SecurityApi {
     if ((original as { _callSecWrapped?: boolean })._callSecWrapped) {
       return;
     }
-    // ⭐ An Api's declared `needs` (the dictionaries its reads stand on,
-    // documents D7): an ASYNC static awaits them before it runs, so no
-    // async caller of any Api readies one by hand. A sync static cannot
-    // wait — its reach is a setter or an act that called StuffApi.ready.
-    const needs = (cls as { needs?: readonly string[] }).needs;
+    // ⭐ An Api's declared `needs` (the dictionaries its reads stand on):
+    // the boot readies them all once (`AppBootstrap`); an ASYNC static also
+    // awaits them here, which is a resolved promise after boot and the
+    // load itself in a harness that never booted.
+    const needs = (cls as { needs?: readonly ApiNeed[] }).needs;
     const awaitsNeeds =
       Array.isArray(needs) && needs.length > 0 && original.constructor.name === 'AsyncFunction';
     const body = awaitsNeeds
@@ -994,14 +1003,14 @@ export class SecurityApi {
    * `stuff.ts` decorates itself through this module. Only async statics
    * await it, so it never needs a synchronous fast path.
    */
-  static #needsLoader: ((needs: readonly string[]) => Promise<unknown> | null) | null = null;
+  static #needsLoader: ((needs: readonly ApiNeed[]) => Promise<unknown> | null) | null = null;
 
   /**
    * Slot for the boot wiring to hand the needs loader to the gate
    * (`BootstrapManager.installFrameworkWiring`); idempotent.
    * @internal
    */
-  public static _registerNeedsLoader(load: (needs: readonly string[]) => Promise<unknown> | null): void {
+  public static _registerNeedsLoader(load: (needs: readonly ApiNeed[]) => Promise<unknown> | null): void {
     SecurityApi.#needsLoader = load;
   }
 

@@ -29,6 +29,7 @@
  * boundary.
  */
 
+import type { ApiNeed } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
@@ -156,6 +157,9 @@ export type PutPlan = ActPlan<
 >;
 
 export class ContainmentApi {
+  /** ⭐ The kernel's placement words, stood by the boot routine (no host readies them). */
+  static readonly needs: readonly ApiNeed[] = [() => ContainmentApi.placements().ensureKernel()];
+
   /**
    * ⭐ The placements — the ways a thing sits in its container (`on` a
    * desk, `in` a drawer, `from` a hook), any pack's `content/placements/`,

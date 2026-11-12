@@ -35,6 +35,7 @@ import {
   registerMaterial,
 } from "@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
+import { rememberFabric } from "@saxonberg/server/mud/lib/material/__tests__/fabrics";
 
 const LINEN = "/stuff/idea/material/textile/linen";
 const WOOL = "/stuff/idea/material/textile/wool";
@@ -92,7 +93,7 @@ beforeEach(async () => {
   await standUpBranchHarness();
   registerMaterial(LINEN, "linen", ["textile", "fibre", "cellulose"]);
   registerMaterial(WOOL, "wool", ["textile", "fibre", "protein"]);
-  Construction.registerFabric({ key: "woven", layerBand: 0, loft: 0.1, weaveDensity: 0.75, drape: 0.6 });
+  rememberFabric({ key: "woven", layerBand: 0, loft: 0.1, weaveDensity: 0.75, drape: 0.6 });
   room = makeStuff(() => new TestActor());
   actor = makeStuff(() => new TestActor());
   ContainmentApi.move(actor, room);

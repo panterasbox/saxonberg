@@ -1150,7 +1150,7 @@ function defaultTakeMs(shape: 'mass' | 'volume' | 'count'): number {
  * meaning changes with another field's value.
  */
 function yieldMaterial(tap: TapSpec): Material | null {
-  return StuffApi.findByTemplatePath<Material>(tap.yieldRow) ?? null;
+  return MaterialApi.materials().peek(tap.yieldRow) ?? null;
 }
 
 /**

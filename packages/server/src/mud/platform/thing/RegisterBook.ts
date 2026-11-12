@@ -109,7 +109,6 @@ export default class RegisterBook extends MarkedMixin(Good) {
     const data = doc.getData() as Record<string, unknown>;
     const flag = typeof data.flag === 'string' ? data.flag : '';
     const name = typeof data.name === 'string' ? data.name : '';
-    if (flag !== '') await StuffApi.ready(GovernmentApi);
     const path = flag === '' ? '' : (GovernmentApi.getGovernment(flag)?.shipRegister ?? '');
     if (path === '' || name === '') return null;
     const reg = await StuffApi.singleton<Stuff>(path).catch((err) => {
@@ -121,7 +120,6 @@ export default class RegisterBook extends MarkedMixin(Good) {
 
   /** A ship's entry: her name, kind and flag, her owning company, and who holds it. */
   private async shipLine(e: ShipEntry): Promise<string> {
-    await StuffApi.ready(GovernmentApi);
     const polity = GovernmentApi.getGovernment(e.flag)?.name ?? e.flag;
     // A ship of a kind says her kind; an authored ship is her own row and says none.
     const kind = e.kind !== e.key ? ` (${e.kind.split('/').pop() ?? e.kind})` : '';

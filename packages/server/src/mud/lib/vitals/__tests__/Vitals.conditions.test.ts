@@ -11,6 +11,16 @@ import type { Trauma, AfflictionRecord } from '../../../platform/idea/Condition'
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { standShippedConditions } from './conditions';
+import { standBlankConditions } from './conditions';
+
+// load-on-use W6: the rows these bodies' cascades cite, there and blank.
+beforeEach(() => standBlankConditions('/lib/condition/disease/influenza'));
+
+// load-on-use W6: the shipped condition roster, as a world loads it with the body.
+beforeEach(async () => {
+  await standShippedConditions();
+});
 
 describe('VitalsMixin — condition collection', () => {
   beforeEach(() => installV1QuantityMarshallers());

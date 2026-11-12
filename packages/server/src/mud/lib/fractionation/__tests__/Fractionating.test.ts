@@ -41,6 +41,7 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { forgetProfiles, rememberSchedule } from '../../maturation/__tests__/profiles';
 
 /**
  * The generic host. Nothing about it is a still.
@@ -127,7 +128,7 @@ function schedule(
     discipline: string;
   }> = {},
 ): FractionSchedule {
-  return makeStuffAtPath(() => {
+  return rememberSchedule(() => {
     const s = new FractionSchedule();
     s.setKey('test-run');
     s.setInputCategory('test-charge');
@@ -216,7 +217,10 @@ beforeEach(() => {
   material(RESIDUE, ['liquid', 'dregs']);
 });
 
-afterEach(() => StuffApi.clearAll());
+afterEach(() => {
+  StuffApi.clearAll();
+  forgetProfiles();
+});
 
 describe('the state machine', () => {
   it('matter no schedule matches leaves the host idle — a still full of water', () => {
@@ -577,7 +581,7 @@ describe('⭐⭐ AC12 — a different product is ROWS', () => {
         requiresHeatK: 700,
       },
     ];
-    makeStuffAtPath(() => {
+    rememberSchedule(() => {
       const s = new FractionSchedule();
       s.setKey('test-crude');
       s.setInputCategory('test-charge');
@@ -610,7 +614,7 @@ describe('⭐⭐ AC12 — a different product is ROWS', () => {
 
 describe('the row class refuses an incoherent schedule', () => {
   it('boundaries must ascend', () => {
-    const s = makeStuff(() => new FractionSchedule());
+    const s = new FractionSchedule();
     expect(() =>
       s.setFractions([
         { key: 'a', upTo: 0.5, character: 'One.', gradeBand: 'fine' },
@@ -620,7 +624,7 @@ describe('the row class refuses an incoherent schedule', () => {
   });
 
   it('a schedule that gives up everything is not a still', () => {
-    const s = makeStuff(() => new FractionSchedule());
+    const s = new FractionSchedule();
     expect(() =>
       s.setFractions([
         { key: 'a', upTo: 1, character: 'All of it.', gradeBand: 'fine' },
@@ -629,7 +633,7 @@ describe('the row class refuses an incoherent schedule', () => {
   });
 
   it('an unknown grade band is refused at the row', () => {
-    const s = makeStuff(() => new FractionSchedule());
+    const s = new FractionSchedule();
     expect(() =>
       s.setFractions([
         { key: 'a', upTo: 0.5, character: 'One.', gradeBand: 'lovely' },

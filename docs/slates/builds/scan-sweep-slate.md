@@ -11,7 +11,8 @@
 > water, species and the typed-word dictionaries loaded on use;
 > `container:` made runtime-only and producers' stocks naming their lines
 > (review round 2); `lint:get-or-create` widened to every pre-check form.
-> **Left:** the fourteen sync-read catalogues still booted · where
+> **Left:** ~~the fourteen sync-read catalogues still booted~~ (done —
+> !560 and load-on-use round two, MR !575) · where
 > singleton-ness lives · AC 7 (log back in to a keyed room after a
 > restart) merged unverified · unstaged content · vessel lines count by
 > template · six drives red on master too — see § What remains.
@@ -24,13 +25,18 @@ for stupid reasons."*
 
 ## What remains (after MR !362)
 
-- ⚠ **Fourteen catalogues still booted under the READER RULE** —
-  Material, Biome, Condition, Topic, Recipe, Archetype, Spell,
-  Discipline, Placement, Corpo, Government, AddressRegistry,
-  MaturationProfile, FractionSchedule: each is read synchronously with
-  no act-shaped async seam (74 sync material lookups, most of them
-  relations no holder loads). Making those readers async is its own
-  build; AC 1 is only partly met until it lands.
+- ~~⚠ **Fourteen catalogues still booted under the READER RULE**~~ —
+  ✅ **done.** Documents path identity (!560) took Topic, Recipe,
+  Archetype, Spell, Discipline, Placement, Corpo and Government off the
+  boot; load-on-use round two (MR !575, 2026-11-11) took the other six —
+  Material, Biome (deleted), Condition, AddressRegistry,
+  MaturationProfile, FractionSchedule. The sync readers were not made
+  async; each row is made resident before its reader runs (holder,
+  relation, act, restore door — [race.md](../../subsystems/race.md),
+  [document-store.md](../../subsystems/document-store.md) § Resident by
+  construction). ⚠ Still on `peek`: fields that mix material and thing
+  rows (`Species.production[].yieldRow`, `Comminuting.products`,
+  `Deposit.stratigraphy`) — their material halves want a split field.
 - ⚠⚠ **Where singleton-ness lives** — competing authorities:
   `SingletonMixin` on the class, `StuffApi.singleton()` chosen by the
   caller, `singletonOrClone`; and one class backs both unique rows (the
@@ -330,7 +336,32 @@ Reading, Placement), and `LocationGraphRegistry`'s own boot reason says
   `:1145-1148` puts three entries in `world-seed` that live in
   eternal-university and hinkley-hills.
 
+## Reuse ledger for the plan — load on use, round two (2026-11-11)
+
+For the load-on-use round-two build (MR !575; its requirements and plan are retired — the decisions live in document-store.md § History).
+Every row is one the plan must account for.
+
+| concept | already does it | reuse / generalize |
+|---|---|---|
+| a family's documents served by one singleton | `lib/document/DocumentCatalogue<T>` + the nine per-family catalogues (!560) | reuse — one subclass per new family (Cleanser, MaturationProfile, FractionSchedule, Fabric, Dyestuff) |
+| a document kind and its catalogue | `DocumentKinds` entry with `catalogue:`; `DocumentApi.catalogueFor(kind)` for the go-live | reuse — one entry each; Dyestuff's kind declared by the platform (trade-dyeing's rows) |
+| the value a document parses into | `lib/` value classes (`Joint`, `Aroma`, `DirtKind` …) | reuse the pattern — `MaturationProfile`'s `rateAt`/`transformFor` and the schedule's spans move onto values |
+| a cited thing resident by construction | D7: a setter returns its load, the applier awaits it; acts await theirs; `DocumentNotResidentError` on a cold sync read | reuse — `_materialPath`, `_biomePath`, the cleanser/fabric/dyestuff/profile citations |
+| an Idea family that loads when reached | spells/corpo/government/discipline (!560 W5a/b): lazy dictionary + `StuffApi.ready` | reuse for Material, Biome, Condition |
+| an Api's reads declared | `static readonly needs` + the security wrapper; `StuffApi.ready(Api)` for sync reach (W5c) | reuse — `MaterialApi`, `BiomeApi`, `ConditionApi`, `AddressApi` declare needs |
+| a citation check | `lint:census` clause (g) `DOCUMENT_PATH_FIELDS`, `lint:aromas`, `lint:typed-words` | extend with each new path-cited field |
+| the boot ratchet | `lint:boot-entries` | ratchet down by the entries removed |
+| the material roster's own warm | `MaterialCatalogue.warm()` (template-path infix, class extends `Material`) | generalize to warm-on-reach; the infix rule stays the membership test |
+| the address index | `AddressRegistry` + `PathTrie.longestPrefix` | reuse — built on first use instead of at `postRegister` |
+
 ## Open questions
+
+- **Could a place's locality be DERIVED from its address with no index?**
+  (load-on-use round two, 2026-11-11) The address index is an index over
+  every locality, so it can only be built on first use, never per-holder.
+  If an address named its locality by convention (the longest claimed
+  prefix IS a locality row's path), the index would go. Not decided; that
+  build only moves the index's build from boot to first use.
 
 1. ~~Negative caching vs maintained indexes~~ — **answered by Part 2:**
    neither; flip the reference so the place names what is in it.

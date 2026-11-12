@@ -70,7 +70,6 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MagicApi } from '@saxonberg/server/mud/api/magic';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { SpellKnowledge } from '@saxonberg/server/mud/lib/magic/SpellKnowledge';
 import { Fade } from '@saxonberg/server/mud/lib/magic/Fade';
 import { MagicGrid } from '@saxonberg/server/mud/lib/magic/Grid';
@@ -145,7 +144,7 @@ export default class Spellbook extends SpellbookBase {
     return this.teachesSpellPath;
   }
 
-  public setTeachesSpellPath(value: string): Promise<void> | undefined {
+  public setTeachesSpellPath(value: string): void {
     // The `Arcane.setCarriedSpellPath` guardrail, same reason: a bare id
     // typechecks and resolves to nothing.
     const v = typeof value === 'string' ? value.trim() : '';
@@ -156,8 +155,6 @@ export default class Spellbook extends SpellbookBase {
       );
     }
     this.teachesSpellPath = v;
-    // The book is live only when the spell dictionary is (D7).
-    return v ? StuffApi.ready(MagicApi) : undefined;
   }
 
   /** The comprehension floor band, or `''` for "the spell's own". */

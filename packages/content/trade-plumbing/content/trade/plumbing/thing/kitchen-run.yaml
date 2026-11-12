@@ -4,6 +4,8 @@
 # kitchen's tap reads `unplumbed` until the last length is wiped home.
 class: /platform/thing/PipeRun
 data:
+  # What the run carries (load-on-use W8: a class's material is content).
+  carries: /stuff/idea/material/bulk/water
   shortDescription: kitchen pipe run
   keywords: [run, "pipe run", "kitchen run", plumbing, pipes]
   register: definite

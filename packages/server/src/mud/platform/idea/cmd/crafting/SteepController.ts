@@ -31,6 +31,7 @@ import type {
 import type { MqlOneResult } from "../../../../api/mql";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type Material from "../../../../lib/material/Material";
+import { MaterialApi } from "../../../../api/material";
 
 const TOPIC = "act.deed";
 const SOLVENT_TAG = "solvent";
@@ -78,7 +79,7 @@ export default class SteepController extends CommandController<SteepModel> {
     }
 
     const onComplete = (): void => {
-      const extract = StuffApi.findByTemplatePath<Material>(steepsInto);
+      const extract = MaterialApi.materials().peek(steepsInto);
       const litres = slot.getAmount().rawValue();
       if (extract) slot.setMaterial(extract);
       slot.setAmount(Quantity.of(litres, "L"));

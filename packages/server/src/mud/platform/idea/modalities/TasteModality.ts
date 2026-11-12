@@ -20,6 +20,7 @@ import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { PerceptionApi } from '../../../api/perception';
+import { MaterialApi } from '../../../api/material';
 
 export class TasteModality extends Modality {
   /** What a mouthful of `thing` holds; empty for what is not in reach of a tongue. */
@@ -39,7 +40,7 @@ export class TasteModality extends Modality {
       payload = thing.getBulkPayload('interior');
       const material = thing.getBulkMaterial('interior');
       for (const part of payload?.makeup ?? []) {
-        const m = StuffApi.findByTemplatePath<Material>(part.materialPath);
+        const m = MaterialApi.materials().peek(part.materialPath);
         if (m) parts.push({ material: m, fraction: part.fraction });
         else PerceptionApi.aromas().loadRow(part.materialPath);
       }

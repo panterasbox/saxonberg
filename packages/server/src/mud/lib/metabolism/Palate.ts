@@ -36,6 +36,7 @@ import type { TasteModality } from '../../platform/idea/modalities/TasteModality
 import type { FieldMeta, MixinConstructor } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
+import { MaterialApi } from '../../api/material';
 
 /** One mouthful, in litres, out of what a vessel holds. */
 const TASTE_LITRES = 0.01;
@@ -308,7 +309,7 @@ export function PalateMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
         ? [
             ...new Set(
               (payload?.makeup ?? [])
-                .map((p) => StuffApi.findByTemplatePath<Material>(p.materialPath)?.getName())
+                .map((p) => MaterialApi.materials().peek(p.materialPath)?.getName())
                 .filter((n): n is string => !!n),
             ),
           ]

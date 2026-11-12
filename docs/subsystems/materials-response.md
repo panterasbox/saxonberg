@@ -100,7 +100,7 @@ The two halves of that vocabulary answer to different people:
 | | where | may a pack add one? |
 |---|---|---|
 | **resist-bearing** — `plate` `mail` `padded` `quilted` `hide` | a closed kernel `as const` | **no** — a resist profile is combat mitigation |
-| **non-resisting textile** — `woven` `knit` `felted`, and lace or netting later | template rows at `/stuff/idea/fabric/`, class `/platform/idea/material/Fabric` | **yes** — *a pack must never need a kernel list edit* |
+| **non-resisting textile** — `woven` `knit` `felted`, and lace or netting later | `fabric` documents at `<root>/fabrics/<word>` (any pack's `content/fabrics/`), read through `MaterialApi.fabrics()` | **yes** — *a pack must never need a kernel list edit* |
 
 ⭐ **Content never authors a resist profile.** One kernel constant
 answers for every textile form at once — `TEXTILE_RESIST_PROFILE`,
@@ -123,24 +123,22 @@ aramid's toughness and comes out genuinely protective. That is
 1. `getLayerDepth()` stays **total** — it is called unconditionally in
    three hot paths (`MaterialLogic.heatAttenuationFraction`, the
    struck-site covering stack, the trauma covering walk), so a fabric
-   row's `layerBand` is **required and range-validated at
-   registration**, loudly, rather than throwing when somebody swings.
+   document's `layerBand` is **required and range-validated at
+   install** (`FabricCatalogue.parse`), loudly, rather than throwing when somebody swings.
 2. `Construction.ts` stays **import-pure** (only `./Channel`) — two
-   build-time lints instantiate it outside the runtime. The bridge is a
-   module-private `Map` filled by `Construction.registerFabric`.
+   build-time lints instantiate it outside the runtime. A fabric form is a
+   path (`/platform/fabrics/woven`), and `Construction` reads its spec
+   with `MaterialApi.fabrics().peek(path)`; `registerFabric` is gone.
 3. `check-does-nothing` covers every present and future fabric in **one
    assertion** over `TEXTILE_RESIST_PROFILE`, because they all share it
    — the whole reason that profile is a kernel constant.
-4. `FabricCatalogue` (`platform/idea/FabricCatalogue.ts`) warms the
-   roster at `onCreate`, **never an operator `boot()`**. ⭐ Since the
-   scan sweep it is NOT booted: `Constructed.setConstructionForm` (async,
-   awaited by the applier) stands it up the first time a row cites a form
-   word the process has not met, then re-checks. ⚠ This was the
-   *reference-Ideas-inert-at-boot* rule, and here the failure would not
-   even be silent: a garment row authoring `constructionForm: woven`
-   **throws at hydration** against a cold roster. The manifest is the
-   install-order union DFS-sorted and the platform pack installs first,
-   so the warm precedes any locality's `props:` clone.
+4. `FabricCatalogue` (`platform/idea/FabricCatalogue.ts`) is a
+   per-path `DocumentCatalogue` — a memory, never a roster, and never
+   booted (load-on-use round two). A garment cites its fabric BY PATH
+   (`constructionForm: /platform/fabrics/woven`), so `lint:census`
+   catches a misspelling before merge, and `Constructed.setConstructionForm`
+   (async, awaited by the applier) `ensure`s the document with the
+   garment; a path naming no fabric **throws at hydration**, loudly.
 
 ## The response function (the Api home)
 

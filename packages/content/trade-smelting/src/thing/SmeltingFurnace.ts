@@ -85,6 +85,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Ore from '@saxonberg/content-trade-mining/src/thing/Ore';
 import IronCarbon from '@saxonberg/content-trade-smithing/src/lib/IronCarbon';
 import Bloom from './Bloom';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 // ⭐ Made of parts (ceramics D19): its lining wears with every run.
 const SmeltingFurnaceBase = AssembledMixin(DurableMixin(ContainerMixin(Forge)));
@@ -340,7 +341,8 @@ export default class SmeltingFurnace extends SmeltingFurnaceBase {
       return { ok: true, facts: { ...base, bloom: false, metalKg, run, fluxed: false } };
     }
 
-    const product = StuffApi.findByTemplatePath<Material>(productMaterial) ?? null;
+    // The tap names its product, and loads it (load-on-use D2 c).
+    const product = productMaterial ? await MaterialApi.materials().ensure(productMaterial) : null;
     const productRow = product && MixinApi.hasFusion(product) ? product.getCastTemplate() : '';
     if (!productRow) {
       // ⚠ An authoring fault, not a game outcome — loud, never a silent
@@ -389,7 +391,7 @@ export default class SmeltingFurnace extends SmeltingFurnaceBase {
         const composition = MixinApi.hasMixture(material) ? material.getComposition() : [];
         if (composition.length > 0) {
           for (const entry of composition) {
-            const m = StuffApi.findByTemplatePath<Material>(entry.materialPath);
+            const m = MaterialApi.materials().peek(entry.materialPath);
             if (!m || !m.hasTag('metal')) continue;
             // ⭐ An ore lot folds its GRADE in; a bar is simply itself.
             const fraction = item instanceof Ore ? item.metalFractionOf(entry.materialPath) : entry.fraction;
@@ -415,7 +417,9 @@ export default class SmeltingFurnace extends SmeltingFurnaceBase {
     }
     let best: { path: string; kg: number } | null = null;
     for (const [path, kg] of totals) if (kg > 0 && (best === null || kg > best.kg)) best = { path, kg };
-    return best ? (StuffApi.findByTemplatePath<Material>(best.path) ?? null) : null;
+    // A charge's metals are its minerals' composition — loaded with them (a
+    // constituent, load-on-use W8).
+    return best ? MaterialApi.materials().need(best.path) : null;
   }
 
   /** The carbon already dissolved in the charge, or `null` if it is ore. */
@@ -504,8 +508,9 @@ export default class SmeltingFurnace extends SmeltingFurnaceBase {
     madeFrom: readonly Stuff[],
     carbon: number,
   ): Promise<CrucibleRun> {
-    const metal = StuffApi.findByTemplatePath<Material>(metalPath) ?? null;
-    if (metal === null || kg <= 0) return 'hearth';
+    if (kg <= 0) return 'hearth';
+    // The act names the metal it runs, and loads it (load-on-use D2 c).
+    const metal = await MaterialApi.materials().ensure(metalPath);
     const density = metal.getDensity().rawValue() || 8000;
     const litres = (kg / density) * 1000;
     const crucible = this.crucibleFor(metalPath);

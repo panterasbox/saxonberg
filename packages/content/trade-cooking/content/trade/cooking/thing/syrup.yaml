@@ -5,6 +5,8 @@
 # pantry hand like the sacks.
 class: /platform/thing/Bottle
 data:
+  # What it is made of (load-on-use W8: authored, not a constructor default).
+  _materialPath: /stuff/idea/material/glass/glass
   censusKey: pantry:syrup
   shortDescription: "bottle of simple syrup"
   keywords: [syrup, simple-syrup, bottle, simple, "bottle of simple syrup"]

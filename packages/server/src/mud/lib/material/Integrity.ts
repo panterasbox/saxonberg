@@ -48,6 +48,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { AppSettingKeys } from '../config/AppSettings';
 import { Grade } from '../craft/Grade';
 import { ScheduleApi } from '../../api/schedule';
+import { MaterialApi } from '../../api/material';
 
 /** Soaked past this (the `soaked` band), a weak-wet material gives way. */
 const SODDEN_AT = 0.8;
@@ -449,7 +450,7 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       let grog = mat.hasTag('refractory') ? 0.4 : 0;
       if (MixinApi.isComposition(self)) {
         for (const e of self.getMakeup()) {
-          const m = StuffApi.findByTemplatePath<Material>(e.materialPath);
+          const m = MaterialApi.materials().peek(e.materialPath);
           if (m?.hasTag('grog')) grog += e.fraction;
         }
       }

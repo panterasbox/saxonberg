@@ -1412,7 +1412,6 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
     // She lies where she was built: on the frame at the landing, made fast to it.
     const lying = await this.putDownAt(landingPath);
     await PersistableApi.capture(this as unknown as Stuff);
-    await StuffApi.ready(GovernmentApi);
     const polity = GovernmentApi.getGovernment(flag)?.name ?? flag;
     const all = units === 64 ? 'all sixty-four shares' : `all ${units} shares`;
     return `She is entered in the register of ${polity} as the ${named}, ${all} in your name, and you are her master. Her gangway is locked; the key is yours. ${lying}`.trim();

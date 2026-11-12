@@ -32,6 +32,10 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { standRootBiome } from './root-biome';
+
+// load-on-use W8: the universe's default walls are the root biome's.
+beforeEach(() => void standRootBiome());
 
 const SMOKE = '/stuff/idea/material/gas/smoke';
 const CO2 = '/stuff/idea/material/gas/carbon-dioxide';

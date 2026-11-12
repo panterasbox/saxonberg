@@ -34,10 +34,10 @@ import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
+import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 /** The liquor a block of raw sugar dissolves into. */
-const RAW_LIQUOR = '/trade/sugar/idea/material/raw-liquor';
-const SKIMMINGS = '/trade/sugar/idea/material/skimmings';
 /** Sucrose's own density: what a kilogram of it adds to the volume. */
 const SUGAR_KG_PER_L = 1.6;
 /** The share of the liquor a skim lifts off with the scum. */
@@ -71,6 +71,28 @@ export type SugarActResult =
 const VERBS = ['trade/sugar/cmd/sugar/temper.yaml', 'trade/sugar/cmd/sugar/skim.yaml'];
 
 export default class Copper extends ContainerMixin(Vat) {
+  static fieldMeta: FieldMeta = {
+    // The liquor a fresh charge of sugar boils into. Authored on the row, loaded with it (load-on-use W8:
+    // a class's material is content, not a constant).
+    boilsTo: { persistent: true, authorable: true, ref: 'identity:constituent' },
+    // What the scum skims off as. Authored on the row, loaded with it (load-on-use W8:
+    // a class's material is content, not a constant).
+    skimsTo: { persistent: true, authorable: true, ref: 'identity:constituent' },
+  };
+  /** The liquor a fresh charge of sugar boils into. */
+  protected boilsTo = '';
+  public setBoilsTo(value: string): void {
+    this.boilsTo = typeof value === 'string' ? value : '';
+  }
+
+  /** What the scum skims off as. */
+  protected skimsTo = '';
+  public setSkimsTo(value: string): void {
+    this.skimsTo = typeof value === 'string' ? value : '';
+  }
+
+
+
   static commandContributions: CommandContributions = {
     self: [],
     environment: VERBS,
@@ -109,7 +131,7 @@ export default class Copper extends ContainerMixin(Vat) {
     const solids = (solidsBefore * litres + kg) / after;
     const fresh = held === null || !MixinApi.hasSolution(held) || held.getSolidsKgPerL() <= 0;
     if (fresh) {
-      const liquor = StuffApi.findByTemplatePath<Material>(RAW_LIQUOR);
+      const liquor = MaterialApi.materials().need(this.boilsTo);
       if (liquor) this.setBulkMaterial('interior', liquor);
     }
     this.setBulkAmount('interior', Quantity.of(after, 'L'));
@@ -158,11 +180,11 @@ export default class Copper extends ContainerMixin(Vat) {
       return { ok: false, reason: 'already-skimmed' };
     }
     const into = pail.getBulkMaterial('interior');
-    if (into !== null && into.getTemplatePath() !== SKIMMINGS) {
+    if (into !== null && into.getTemplatePath() !== this.skimsTo) {
       return { ok: false, reason: 'pail-full' };
     }
     const lift = this.getBulkAmount('interior').rawValue() * SKIM_SHARE;
-    const skimmings = StuffApi.findByTemplatePath<Material>(SKIMMINGS);
+    const skimmings = MaterialApi.materials().need(this.skimsTo);
     if (!skimmings) {
       return { ok: false, reason: 'no-skimmings' };
     }

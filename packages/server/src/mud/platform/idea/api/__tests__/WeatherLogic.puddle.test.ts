@@ -34,6 +34,7 @@ import {
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../WorldClockRegistry';
+import { standAddressIndex } from '../../../../lib/address/__tests__/address-index';
 
 class TestRoom extends Place {}
 class TestOccupant extends HasInteractiveMixin(Good) {
@@ -137,6 +138,7 @@ function summerAfternoon(): void {
 
 describe('Weather → Floor puddle (Phase D)', () => {
   beforeEach(() => {
+    standAddressIndex(); // load-on-use W5: an empty index, no store behind it
     installV1QuantityMarshallers();
     BiomeApi.invalidateRootBiomeCache();
     installRootBiome();

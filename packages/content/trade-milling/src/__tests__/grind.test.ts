@@ -17,11 +17,16 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
-import { describe, it, expect } from 'vitest';
+import { beforeEach, describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
+import { standMaterials, TEST_TISSUES } from '@saxonberg/server/mud/lib/material/__tests__/materials';
+
+beforeEach(() => {
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+});
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PACK = join(HERE, '..', '..');

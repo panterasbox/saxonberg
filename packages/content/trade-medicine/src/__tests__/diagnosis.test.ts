@@ -36,14 +36,11 @@ const ROWS = fileURLToPath(
   new URL('../../content/trade/medicine/idea/reading/', import.meta.url),
 );
 import Condition from '@saxonberg/server/mud/platform/idea/Condition';
-import ConditionCatalogue from '@saxonberg/server/mud/platform/idea/ConditionCatalogue';
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
 import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
 import { AdvancementMixin } from '@saxonberg/server/mud/lib/advancement/Advancement';
-import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
-import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -118,7 +115,7 @@ function ctxFor(actor: unknown): CommandContext {
 
 /**
  * Two authored conditions that SHARE a sign — the ambiguity is the
- * point — warmed through the real catalogue so `roster()` answers.
+ * point — live, so the catalogue's `roster()` answers with them.
  */
 async function warmRoster(): Promise<void> {
   const fever = makeStuffAtPath(() => {
@@ -137,18 +134,10 @@ async function warmRoster(): Promise<void> {
     return c;
   }, CHILL);
 
-  vi.spyOn(Template, 'findDescendants').mockResolvedValue([
-    { path: FEVER, class: '/platform/idea/Condition' },
-    { path: CHILL, class: '/platform/idea/Condition' },
-  ] as unknown as Template[]);
-  vi.spyOn(StuffApi, 'singleton').mockImplementation(
-    async (path: string) => (path === FEVER ? fever : chill) as never,
-  );
-  const catalogue = makeStuffAtPath(
-    () => new ConditionCatalogue(),
-    TemplatePaths.conditionCatalogue,
-  );
-  await catalogue.warm();
+  // The roster is every live condition (load-on-use W6), stood as the
+  // harness's (`ConditionApi.standRosterForTesting`) — the two above.
+  void fever;
+  void chill;
 }
 
 /** A medic at `band`, reading a patient carrying marsh fever at stage 3. */

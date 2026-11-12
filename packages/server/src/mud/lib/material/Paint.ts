@@ -22,6 +22,7 @@ import { Colour } from '../perception/Colour';
 import type { ColorTag } from '../perception/Light';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { MaterialApi } from '../../api/material';
 
 /** One pigment in a paint, by its share of the pigment mass. */
 export interface PaintPigment {
@@ -173,7 +174,7 @@ export class Paint {
   private materialAt(path: string): Material | null {
     if (!path) return null;
     try {
-      return StuffApi.findByTemplatePath<Material>(path) ?? null;
+      return MaterialApi.materials().peek(path) ?? null;
     } catch {
       return null;
     }

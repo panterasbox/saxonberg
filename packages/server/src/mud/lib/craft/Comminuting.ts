@@ -56,6 +56,7 @@ import { Grade } from './Grade';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import type Material from '../material/Material';
+import { MaterialApi } from '../../api/material';
 import type { ActAnswer, ActDone, ActRefusal } from './ActPlan';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
@@ -330,8 +331,8 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
       extractionMax: { persistent: true, authorable: true },
       extractionDefault: { persistent: true, authorable: true },
       residueFraction: { persistent: true, authorable: true },
-      productMaterial: { persistent: true, authorable: true },
-      residueMaterial: { persistent: true, authorable: true },
+      productMaterial: { persistent: true, authorable: true, ref: 'identity:constituent' },
+      residueMaterial: { persistent: true, authorable: true, ref: 'identity:constituent' },
       productVessel: { persistent: true, authorable: true },
       residueVessel: { persistent: true, authorable: true },
       tollFraction: { persistent: true, authorable: true },
@@ -386,7 +387,7 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
     public productFor(materialPath: string): ComminutionProduct | null {
       if (this.products.length === 0) return null;
       const material = materialPath
-        ? StuffApi.findByTemplatePath<Material>(materialPath)
+        ? MaterialApi.materials().peek(materialPath)
         : null;
       const tags = material?.getTags() ?? [];
       for (const row of this.products) {
@@ -826,7 +827,7 @@ function clamp(x: number, lo: number, hi: number): number {
 function litresOf(kg: number, materialPath: string): number {
   if (!(kg > 0)) return 0;
   const mat = materialPath
-    ? StuffApi.findByTemplatePath<Material>(materialPath)
+    ? MaterialApi.materials().peek(materialPath)
     : null;
   const density =
     (mat as unknown as Material | null)?.getDensity().rawValue() ??

@@ -15,7 +15,7 @@ import Copper from '../thing/Copper';
 import Oven from '@saxonberg/server/mud/platform/thing/Oven';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Water from '@saxonberg/server/mud/platform/idea/material/Water';
-import MaturationProfile from '@saxonberg/server/mud/platform/idea/maturation/MaturationProfile';
+import MaturationProfile from '@saxonberg/server/mud/lib/maturation/MaturationProfile';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -28,6 +28,10 @@ import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/_
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { Placements } from '@saxonberg/server/mud/lib/spatial/Placement';
+import { forgetProfiles, rememberProfile } from '@saxonberg/server/mud/lib/maturation/__tests__/profiles';
+
+// The profile and schedule documents outlive a test (load-on-use W4).
+afterEach(() => forgetProfiles());
 
 const MIN = 60;
 const BASE = 10_000_000;
@@ -62,8 +66,8 @@ function fixtures(): void {
     m.setMeltingPoint(Quantity.of(273, 'K'));
     m.setLatentHeatOfVaporization(Quantity.of(2260000, 'J/kg'));
   });
-  if (!StuffApi.findByTemplatePath('/trade/sericulture/idea/maturation/degumming')) {
-    makeStuffAtPath(() => {
+  if (!StuffApi.findByTemplatePath('/trade/sericulture/maturation-profiles/degumming')) {
+    rememberProfile(() => {
       const p = new MaturationProfile();
       p.setKey('degumming');
       p.setInputCategory('gummed');
@@ -74,7 +78,7 @@ function fixtures(): void {
       p.setProductMaterial(SILK);
       p.setProductFraction(0.75);
       return p;
-    }, '/trade/sericulture/idea/maturation/degumming');
+    }, '/trade/sericulture/maturation-profiles/degumming');
   }
 }
 

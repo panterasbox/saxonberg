@@ -1,0 +1,3 @@
+# Naphtha — coal tar's light cut: the solvent for oil and grease that
+# water cannot touch. Flammable.
+{agent: naphtha, action: solvent, consumesPerWash: 0.05, skinHarshness: 0.5}

@@ -20,7 +20,6 @@
 import type { Express, Response } from "express";
 import type { HelpErrorBody, HelpKind } from "@saxonberg/types";
 import { HelpApi } from "../mud/api/help";
-import { StuffApi } from '../mud/api/stuff';
 import { AuthMiddleware } from "../services/auth/AuthMiddleware";
 
 const HELP_KINDS: ReadonlySet<string> = new Set([
@@ -51,12 +50,10 @@ export class HelpRoutes {
     const requireAuth = AuthMiddleware.requireAuthApi;
 
     app.get("/api/help/index", requireAuth, async (_req, res) => {
-      await StuffApi.ready(HelpApi);
       res.json(HelpApi.index());
     });
 
     app.get("/api/help/kind", requireAuth, async (req, res) => {
-      await StuffApi.ready(HelpApi);
       const kind = String(req.query.kind ?? "");
       if (!HELP_KINDS.has(kind)) {
         sendError(res, 400, "invalid", `unknown kind: ${kind || "(missing)"}`);
@@ -66,7 +63,6 @@ export class HelpRoutes {
     });
 
     app.get("/api/help/topic", requireAuth, async (req, res) => {
-      await StuffApi.ready(HelpApi);
       const id = String(req.query.id ?? "").trim();
       if (id.length === 0) {
         sendError(res, 400, "invalid", "missing topic id");
@@ -81,7 +77,6 @@ export class HelpRoutes {
     });
 
     app.get("/api/help/search", requireAuth, async (req, res) => {
-      await StuffApi.ready(HelpApi);
       const q = String(req.query.q ?? "").trim();
       if (q.length === 0) {
         sendError(res, 400, "invalid", "missing query");

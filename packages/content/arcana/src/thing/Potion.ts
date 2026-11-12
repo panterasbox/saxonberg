@@ -22,8 +22,6 @@
 import Receptacle from '@saxonberg/server/mud/platform/thing/Receptacle';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 
-/** The commons' glass — what a catalog potion is bottled in unless a row says otherwise. */
-const GLASS = '/stuff/idea/material/glass/glass';
 
 export default class Potion extends Receptacle {
   constructor() {
@@ -32,7 +30,6 @@ export default class Potion extends Receptacle {
     // material by path — the singleton need not be resident yet — and
     // the interior through its own setters. A row's `data:` overrides
     // any of these through the hydrator exactly as on a bare Receptacle.
-    this._materialPath = GLASS;
     this.interiorBulk = true;
     this.setInteriorCapacity(Quantity.of(0.25, 'L'));
     this.setKeywords(['flask', 'vial', 'potion', 'draught']);

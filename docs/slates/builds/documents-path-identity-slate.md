@@ -1,8 +1,8 @@
 # Documents — the path is the identity, and metadata is not an Idea
 
 > **Status:** PARTIAL
-> **Left:** the five material-adjacent families → documents (Cleanser · MaturationProfile · FractionSchedule · Fabric · Dyestuff)
-> **Size:** a wave (unblocked: material decomposition merged !555)
+> **Left:** ~~the five material-adjacent families → documents~~ (done — load-on-use round two, MR !575) · a shared Idea-catalogue base at the third consumer · materials with no roster warm at all (§ Recorded, not decided)
+> **Size:** tails
 
 Opened 2026-11-08 out of the smell-and-taste review (MR !531) and its
 precursor fix (MR !541, merged `a4fe4550a`). Two owner rulings frame it.
@@ -43,7 +43,15 @@ the Ideas that stay Ideas loading on reach, and the aroma directories. See
 the test*, § *The catalogue card* and § *Resident by construction —
 `DocumentCatalogue`*.
 
-## What is left — the material-adjacent families
+## ~~What is left — the material-adjacent families~~ ✅ done
+
+✅ **Shipped by load-on-use round two (MR !575, 2026-11-11):** all five
+are document kinds (`cleanser`, `maturation-profile`, `fraction-schedule`,
+`fabric`, `dyestuff` — the last keyed by its `material` card) with their
+Idea classes, statics and boot lines gone; a garment cites its fabric by
+path, a vessel holds its profile's path behind a restore door. See
+[document-store.md](../../subsystems/document-store.md)'s kinds table and
+§ Resident by construction. The table below is the plan-time record.
 
 These waited for material decomposition (now merged). Each is the same
 recipe the shipped ten followed: a document kind in `DocumentKinds` with a
@@ -65,3 +73,11 @@ become paths; the Idea class goes.
   meanings of one word.
 - Discipline keys are a flat namespace across five roots — accepted (D11);
   namespace them when a custom discipline needs it.
+- **A shared Idea-catalogue base** (load-on-use round two) —
+  `MaterialCatalogue` and `ConditionCatalogue` carry the same
+  `ensure`/`need`/`peek`/`ensureRoster` doors by hand; promote them to a
+  base at the third consumer, not before.
+- **Materials as a per-row-only family with no roster warm at all** —
+  retire `MaterialCatalogue.warm()` once the wiki's `<materials>` listing
+  and the pattern's metal match read the document store's cards (or some
+  other index) instead of standing every material row up.

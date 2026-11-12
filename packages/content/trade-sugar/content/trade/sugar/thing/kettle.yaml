@@ -3,6 +3,9 @@
 # arrows as the Terminus copper's (sugar D1), from much further down.
 class: /trade/sugar/thing/Copper
 data:
+  # What this vessel makes of its charge (load-on-use W8: content, not code).
+  boilsTo: /trade/sugar/idea/material/raw-liquor
+  skimsTo: /trade/sugar/idea/material/skimmings
   shortDescription: boiling kettle
   keywords: [kettle, copper, "boiling kettle", pan]
   # The word a card link names it by — without it the link fell back to the

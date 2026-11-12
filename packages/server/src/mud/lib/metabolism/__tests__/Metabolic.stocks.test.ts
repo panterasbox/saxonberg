@@ -33,6 +33,7 @@ import { Quantity } from '../../quantity';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
+import { standShippedConditions } from '../../vitals/__tests__/conditions';
 
 const DAY = 86_400;
 
@@ -65,7 +66,9 @@ describe('the slow stocks — five more reserves on the metabolism clock', () =>
   let base: number;
   let settings: Record<string, string>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+
+    await standShippedConditions(); // load-on-use W6: the shipped roster, as a world loads it with the body
     installV1QuantityMarshallers();
     makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
     base = WorldClockApi.getNow().rawValue();

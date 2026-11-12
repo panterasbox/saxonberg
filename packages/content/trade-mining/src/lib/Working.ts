@@ -917,7 +917,7 @@ export function WorkingMixin<TBase extends NestingConstructor<Stuff & Container>
         return { ok: false, reason: 'no-vessel' };
       }
       const material =
-        StuffApi.findByTemplatePath<Material>(gas.materialPath) ?? null;
+        MaterialApi.materials().need(gas.materialPath);
       if (material === null) return { ok: false, reason: 'no-gas' };
       const slot = vessel.getBulk('interior');
       if (slot.getCapacity() === null) return { ok: false, reason: 'no-vessel' };

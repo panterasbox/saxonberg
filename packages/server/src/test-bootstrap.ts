@@ -49,6 +49,9 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
 import { MaterialApi } from "./mud/api/material";
+import { ConditionApi } from "./mud/api/condition";
+import { BiomeApi } from "./mud/api/biome";
+import { blankDefaultWall } from "./mud/lib/biome/__tests__/root-biome";
 import { PartyApi } from "./mud/api/party";
 import { ContainmentApi } from "./mud/api/containment";
 import { MessageApi } from "./mud/api/message";
@@ -134,7 +137,6 @@ export const KERNEL_CONTENT_ROWS: ReadonlyArray<{
   },
 ];
 
-
 /**
  * Install the framework wiring if it has not been installed. Safe to
  * call any number of times.
@@ -155,7 +157,74 @@ export function ensureFrameworkWiring(): boolean {
   // read of the shipped manifests; no database.
   PackApi.registerSources();
   rememberKernelDocuments();
+  installAddressIndexStandIn();
+  // A body's `onCreate` awaits the condition roster (load-on-use W6); a
+  // suite has no rows to read, so the roster stands as whatever conditions
+  // the suite itself makes — what every such suite read before.
+  ConditionApi.standRosterForTesting();
+  // Likewise the material roster (load-on-use W8): a roster read in a suite
+  // answers with the materials the suite made.
+  MaterialApi.standRosterForTesting();
+  // And a suite with no root biome reads its default walls as a BLANK
+  // material — the envelope's fallback figures (load-on-use W8).
+  BiomeApi.standDefaultEnclosureForTesting(blankDefaultWall);
   return true;
+}
+
+/**
+ * ⭐ The address index, in a suite (load-on-use W5). In a running world
+ * `AddressApi.needs` clones the registry on the first address question and
+ * its `onCreate` indexes every locality row. A suite has no locality rows
+ * (and usually no store), so the harness's needs loader stands an EMPTY
+ * index in instead of cloning one — "no locality covers this", which is
+ * what every such suite read before the index stopped booting. A suite that
+ * builds its own registry (`weather.resolve`) keeps it; a locality a suite
+ * makes registers itself into whichever index is live.
+ *
+ * ⚠ Never a clone attempt: production code resolves addresses from
+ * unawaited witnesses, so a clone in flight across a test boundary would
+ * land a second registry beside the stand-in.
+ */
+function installAddressIndexStandIn(): void {
+  // Late-bound, as the production loader is: importing the Apis at this
+  // module's top would reorder every suite's module evaluation.
+  const REGISTRY = "/platform/idea/AddressRegistry";
+  void import("./mud/api/security").then(({ SecurityApi }) =>
+    import("./mud/api/stuff").then(({ StuffApi }) => {
+      // ⚠ The REAL clone, captured before any suite spies on it: a suite
+      // that mocks `StuffApi.clone` for what its act makes must not see
+      // the Api's dictionaries stood through its mock (load-on-use W10 —
+      // an Api's async statics stand their needs in the gate).
+      const realClone = StuffApi.clone.bind(StuffApi);
+      const inFlight = new Map<string, Promise<unknown>>();
+      const stand = (path: string): Promise<unknown> => {
+        if (StuffApi.findByTemplatePath(path)) return Promise.resolve();
+        let p = inFlight.get(path);
+        if (!p) {
+          // Best effort, as the address stand-in is: a suite may carry no
+          // row for a dictionary it never reads (its own store, its own
+          // `Template` mock). Stand nothing then — a read of it is still
+          // loud (cold means `DocumentNotResidentError`), so no defect hides.
+          p = Promise.resolve()
+            .then(() => realClone(path))
+            .catch(() => undefined)
+            .finally(() => inFlight.delete(path));
+          inFlight.set(path, p);
+        }
+        return p;
+      };
+      SecurityApi._registerNeedsLoader(async (needs) => {
+        if (needs.includes(REGISTRY)) {
+          const { standAddressIndex } =
+            await import("./mud/lib/address/__tests__/address-index");
+          standAddressIndex();
+        }
+        await Promise.all(
+          needs.map((n) => (typeof n === "function" ? n() : stand(n))),
+        );
+      });
+    }),
+  );
 }
 
 /**
@@ -167,19 +236,68 @@ export function ensureFrameworkWiring(): boolean {
  * shipped files: a disk read, no database.
  */
 function rememberKernelDocuments(): void {
-  const root = join(dirname(fileURLToPath(import.meta.url)), "../../content/platform/content");
-  const each = (dir: string, keep: (path: string, data: Record<string, unknown>) => void): void => {
+  const root = join(
+    dirname(fileURLToPath(import.meta.url)),
+    "../../content/platform/content",
+  );
+  const each = (
+    dir: string,
+    keep: (path: string, data: Record<string, unknown>) => void,
+  ): void => {
     const at = join(root, dir);
     if (!existsSync(at)) return;
     for (const f of readdirSync(at)) {
       if (!f.endsWith(".yaml")) continue;
       const path = `/platform/${dir}/${f.slice(0, -".yaml".length)}`;
-      keep(path, (YAML.parse(readFileSync(join(at, f), "utf8")) ?? {}) as Record<string, unknown>);
+      keep(
+        path,
+        (YAML.parse(readFileSync(join(at, f), "utf8")) ?? {}) as Record<
+          string,
+          unknown
+        >,
+      );
     }
   };
-  each("dirt", (path, data) => void MaterialApi.dirtKinds().remember(path, MaterialApi.dirtKinds().parse(data, path)));
-  each("formations", (path, data) => void PartyApi.formations().remember(path, PartyApi.formations().parse(data, path)));
-  each("placements", (path, data) => void ContainmentApi.placements().remember(path, ContainmentApi.placements().parse(data, path)));
+  each(
+    "dirt",
+    (path, data) =>
+      void MaterialApi.dirtKinds().remember(
+        path,
+        MaterialApi.dirtKinds().parse(data, path),
+      ),
+  );
+  each(
+    "cleansers",
+    (path, data) =>
+      void MaterialApi.cleansers().remember(
+        path,
+        MaterialApi.cleansers().parse(data, path),
+      ),
+  );
+  each(
+    "fabrics",
+    (path, data) =>
+      void MaterialApi.fabrics().remember(
+        path,
+        MaterialApi.fabrics().parse(data, path),
+      ),
+  );
+  each(
+    "formations",
+    (path, data) =>
+      void PartyApi.formations().remember(
+        path,
+        PartyApi.formations().parse(data, path),
+      ),
+  );
+  each(
+    "placements",
+    (path, data) =>
+      void ContainmentApi.placements().remember(
+        path,
+        ContainmentApi.placements().parse(data, path),
+      ),
+  );
   // The topic vocabulary, as the first scene's warm would leave it — so a
   // suite's scenes deliver synchronously, as every scene after a world's
   // first does.

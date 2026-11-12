@@ -77,6 +77,7 @@ import { DirtKinds } from '../../../lib/cleanliness/DirtKind';
 import { PlacingMixin } from '../../../lib/spatial/Placing';
 import { SIZE_DEFAULTS } from '../../../lib/spatial/Dimensions';
 import { Creature } from '../../../lib/creature/Creature';
+import { MaterialApi } from '../../../api/material';
 
 // ⭐ Soilable and Labelled OUTERMOST (cleanliness D3, D9): every garment
 // may carry dirt by kind and be washed — a shirt, an apron, a pair of
@@ -109,6 +110,8 @@ const RAG_KG = 0.05;
  * a customer could wash an apron for an income (controllers-are-io W0, 12c).
  */
 const LAUNDRY_RUIN = new Set(['felted', 'rotted', 'burnt', 'bled']);
+/** The fabric a hot wash mats protein cloth into (a platform `fabric` document). */
+const FELTED = '/platform/fabrics/felted';
 
 /** The water at which wool FELTS — boiling, near enough. */
 const FELT_ABOVE_K = 363;
@@ -307,8 +310,8 @@ export default class Garment extends GarmentBase {
 
     if (fibre) {
       if (material!.hasTag('protein') && spec.waterK >= FELT_ABOVE_K) {
-        if (this.getConstructionForm() !== 'felted') {
-          void this.setConstructionForm('felted').catch((err: unknown) =>
+        if (this.getConstructionForm() !== FELTED) {
+          void this.setConstructionForm(FELTED).catch((err: unknown) =>
             console.warn('Garment.washSite: felting failed:', err),
           );
           this.shrinkCut(dial(AppSettingKeys.textilesWashFeltShrink, 0.85));
@@ -325,7 +328,7 @@ export default class Garment extends GarmentBase {
     const rot = dial(AppSettingKeys.textilesWashRotDose, 0.05);
     for (const c of spec.cleansers) {
       const agent = c.materialPath
-        ? StuffApi.findByTemplatePath<Material>(c.materialPath)
+        ? MaterialApi.materials().peek(c.materialPath)
         : null;
       const eats = (agent && MixinApi.hasAcidity(agent) ? agent.getCorrosiveTo() : []).some(
         (tag) => material?.hasTag(tag) ?? false,
@@ -382,7 +385,7 @@ export default class Garment extends GarmentBase {
     }
     let fume = 0;
     for (const c of BiomeApi.resolveAtmosphereContentsFor(room)) {
-      const m = StuffApi.findByTemplatePath<Material>(c.type);
+      const m = MaterialApi.materials().peek(c.type);
       if (m?.hasTag('sulfur-fume')) fume += c.amount;
     }
     const sunDose = Math.min(1, dayHours * SUN_DOSE_PER_HOUR);

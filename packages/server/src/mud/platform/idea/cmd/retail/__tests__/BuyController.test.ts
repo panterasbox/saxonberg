@@ -228,7 +228,7 @@ describe("BuyController — buy that stamps", () => {
     ContainmentApi.move(card as never, giver as never);
     const bank = makeStuffAtPath(() => {
       const b = new BankCounter();
-      void b.setCorpoKey("goodkin")?.catch(() => {}); // the load is the applier's (documents D7)
+      b.setCorpoKey("goodkin");
       return b;
     }, BANK);
 
@@ -272,7 +272,7 @@ describe("BuyController — buy that stamps", () => {
     ContainmentApi.move(card as never, giver as never);
     const bank = makeStuffAtPath(() => {
       const b = new BankCounter();
-      void b.setCorpoKey("goodkin")?.catch(() => {}); // the load is the applier's (documents D7)
+      b.setCorpoKey("goodkin");
       return b;
     }, BANK);
     await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency()));
@@ -454,7 +454,7 @@ describe("BuyController — buy that stamps", () => {
     ContainmentApi.move(card as never, giver as never);
     const bank = makeStuffAtPath(() => {
       const b = new BankCounter();
-      void b.setCorpoKey("goodkin")?.catch(() => {}); // the load is the applier's (documents D7)
+      b.setCorpoKey("goodkin");
       return b;
     }, BANK);
     await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency()));

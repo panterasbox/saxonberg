@@ -1116,7 +1116,8 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     public getBulkMaterial(affordance: BulkAffordance): Material | null {
       const path = this.getBulkMaterialPath(affordance);
       if (path === null) return null;
-      return StuffApi.findByTemplatePath<Material>(path) ?? null;
+      // A constituent of the holder (load-on-use D2 a) — cold is loud.
+      return MaterialApi.materials().need(path);
     }
 
     public setBulkMaterial(
@@ -1301,7 +1302,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       if (!MixinApi.isFaced(self) || !this.interiorBulk) return;
       const litres = this._interiorAmount.rawValue();
       const material = this.interiorMaterial
-        ? StuffApi.findByTemplatePath<Material>(this.interiorMaterial) ?? null
+        ? MaterialApi.materials().peek(this.interiorMaterial) ?? null
         : null;
       if (!(litres > 0) || material === null) return;
       // ⭐ At most once a game-minute, asked BEFORE the face reads below: this
@@ -1443,7 +1444,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
             { kind: 'measure', litres: seepL, mode: 'lenient' },
             {
               through: 'pores',
-              arrivesAs: through !== '' ? (StuffApi.findByTemplatePath<Material>(through) ?? null) : null,
+              arrivesAs: through !== '' ? (MaterialApi.materials().peek(through) ?? null) : null,
             },
           );
         }
@@ -1473,13 +1474,13 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      */
     public setInteriorPayload(payload: BulkPayload | null): Promise<void> | undefined {
       this.interiorPayload = payload;
-      return payload?.recipeId ? StuffApi.ready(TemplatePaths.recipeCatalogue) : undefined;
+      return restorePayload(payload);
     }
 
     /** The restore door for the surface payload — see {@link setInteriorPayload}. */
     public setSurfacePayload(payload: BulkPayload | null): Promise<void> | undefined {
       this.surfacePayload = payload;
-      return payload?.recipeId ? StuffApi.ready(TemplatePaths.recipeCatalogue) : undefined;
+      return restorePayload(payload);
     }
 
     /**
@@ -1676,4 +1677,15 @@ function bulkDial(key: string, fallback: number): number {
   } catch {
     return fallback;
   }
+}
+
+/**
+ * What a restored payload stands on: every material it names — its
+ * makeup, what it was made from (load-on-use W8, the restore door).
+ * `undefined` when nothing is cold, so the runtime case dangles no
+ * promise; the load never rejects. (The recipe that made it is
+ * CraftingApi's dictionary, stood at boot.)
+ */
+function restorePayload(payload: BulkPayload | null): Promise<void> | undefined {
+  return payload ? MaterialApi.materials().ensureCitedIn(payload) : undefined;
 }

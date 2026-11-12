@@ -101,7 +101,7 @@ function standUpBank(charter: boolean): BusinessEntity {
   }, BANK);
   bankCounter = makeStuffAtPath(() => {
     const c = new BankCounter();
-    void c.setCorpoKey("goodkin")?.catch(() => {}); // the load is the applier's (documents D7)
+    c.setCorpoKey("goodkin");
     c.terms = { loanRatePerGameYear: 0.05, repaymentShare: 0.25 };
     return c;
   }, BANK_COUNTER);

@@ -10,7 +10,7 @@ data:
     "/stuff/idea/species/BodyPlan/biped": [torso]
   # Tweed is wool woven heavy — warm because wool conducts badly, not because it is thick.
   _materialPath: /stuff/idea/material/textile/wool
-  constructionForm: woven
+  constructionForm: /platform/fabrics/woven
   gradeBand: fine
   mass: 1.1
   # ⭐ Two hip pockets and an inner pocket (size and carrying D29).

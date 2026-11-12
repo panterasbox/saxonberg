@@ -101,7 +101,7 @@ A padded gambeson *is* quilted cloth, so a shirt is not armor but it
 | | where | may a pack add one? |
 |---|---|---|
 | **resist-bearing** — `plate` `mail` `padded` `quilted` `hide` | a closed kernel `as const` | **no** |
-| **non-resisting textile** — `woven` `knit` `felted`, lace or netting later | `/stuff/idea/fabric/<key>` rows, class `/platform/idea/material/Fabric` | **yes** |
+| **non-resisting textile** — `woven` `knit` `felted`, lace or netting later | `fabric` **documents**, cited by PATH — the kernel's three at `/platform/fabrics/{woven,knit,felted}`, `trade-textiles`' `/trade/textiles/fabrics/{sackcloth,fine-woven}` | **yes** — a pack ships `content/fabrics/<word>.yaml` |
 
 ⭐ **Content never authors a resist profile.** One kernel constant —
 `TEXTILE_RESIST_PROFILE`, `poor` on all three mechanical channels —
@@ -109,8 +109,18 @@ answers for every textile form at once. Content chooses drape, loft and
 weave; **the kernel decides that cloth resists poorly.** A pack adding
 `lace` changes nothing whatever about combat.
 
-Full rationale, the four simultaneous constraints, and the
-`FabricCatalogue` boot-ordering argument:
+⭐ **A garment cites its fabric by path** (load-on-use round two):
+`constructionForm` holds either a kernel word (`plate`, `bladed`, …) or a
+fabric document path (`constructionForm: /platform/fabrics/woven`).
+`Constructed.setConstructionForm` returns `MaterialApi.fabrics().ensure(path)`
+for a path the process has not read (the applier awaits it), so the
+covering walk's sync `Construction.isForm`/`of` always find the spec; a
+value that is neither a kernel word nor a shipped path throws at hydration,
+and `lint:census` (g) checks every path-shaped `constructionForm` before
+merge. Prose prints the leaf (`woven`). Suites use
+`lib/material/__tests__/fabrics.ts` (`fabricPath`, `rememberFabric`).
+
+Full rationale and the four simultaneous constraints:
 [materials-response.md](./materials-response.md) § *The covering domain
 has TWO sources*.
 
@@ -230,7 +240,14 @@ lives on the shared mixin.
 `DyedMixin` (`lib/material/Dyed.ts`) stores the **application stack** —
 `[{dyestuff, mordant, strength, transmitR/G/B}]` — and a `fastness`,
 never a colour word. Overdyeing is arithmetic, fading is desaturation,
-and authors author dyes rather than colours. It rides `ColorTag`, the
+and authors author dyes rather than colours. ⭐ A **dyestuff** is a
+`dyestuff` document of `trade-dyeing`'s (`content/dyestuffs/<word>.yaml`,
+at `/trade/dyeing/dyestuffs/<word>` — woad, weld, madder, kermes): its
+`material`, its `chemistry` and a shade per mordant. It is found by its
+material — the kind's derived card key `material`, read by the dye act
+through the pack's own `DyestuffCatalogue.forMaterial` (async;
+`DyeBath.dyestuff()` likewise) — never by a field on the kernel's
+`Material` (load-on-use round two). It rides `ColorTag`, the
 seam `lib/perception/Light.ts` already reserved.
 
 ### ⭐⭐ The colour is SUBTRACTIVE, and that is why it is not RGB
@@ -788,3 +805,13 @@ what scutch and spin mint: its material, its name among the keywords, and
 — when it is not the row's own fiber — its name in the words (*hank of hemp
 line*, `fibreWord`). The straw refusal reads `fibre-stock`, so either straw
 is told to go to the pit. Rope yarn is the cordage pack's.
+
+## History
+
+- **2026-11-11 — load-on-use round two (MR !575).** Fabrics and dyestuffs
+  became documents: the five fabric rows moved to `content/fabrics/` (the
+  kernel's three into the platform pack) and the 20 garment rows that
+  named a fabric word now cite its path; `Construction`'s fabric registry
+  (`registerFabric`, the `FABRICS` map) and the `Fabric` Idea went; the
+  four dyestuffs moved to `trade-dyeing`'s `content/dyestuffs/`, found by
+  their material card (§ The covering vocabulary, § Dye, wash and fade).

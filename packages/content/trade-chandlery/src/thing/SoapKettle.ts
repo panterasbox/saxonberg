@@ -25,13 +25,13 @@ import { AppApi } from '@saxonberg/server/mud/api/app';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
+import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 /** What fat and lye become in the kettle — and what the boil works on. */
 const SOAP_PASTE = '/trade/chandlery/idea/material/soap-paste';
 /** What salt grains soft soap into. */
 const SOAP_CURD = '/trade/chandlery/idea/material/hard-soap-curd';
 /** Quicklime slaked in water (potash D14). */
-const MILK_OF_LIME = '/trade/chandlery/idea/material/milk-of-lime';
 /** Lye made caustic by slaked lime — the soap-boiler's strong lye. */
 const CAUSTIC_LYE = '/trade/chandlery/idea/material/caustic-lye';
 /** Fat and caustic lye: the paste that boils straight to a hard curd. */
@@ -40,6 +40,19 @@ const HARD_SOAP_PASTE = '/trade/chandlery/idea/material/hard-soap-paste';
 const SLAKING_J_PER_KG = 1.15e6;
 
 export default class SoapKettle extends MaturingMixin(CraftVessel) {
+  static fieldMeta: FieldMeta = {
+    // What quicklime slakes to in the kettle. Authored on the row, loaded with it (load-on-use W8:
+    // a class's material is content, not a constant).
+    slakesTo: { persistent: true, authorable: true, ref: 'identity:constituent' },
+  };
+  /** What quicklime slakes to in the kettle. */
+  protected slakesTo = '';
+  public setSlakesTo(value: string): void {
+    this.slakesTo = typeof value === 'string' ? value : '';
+  }
+
+
+
   /** The kettle's own transform for `poured` into what it holds, or null. */
   private soapTransform(poured: Material): string | null {
     const held = this.getBulkMaterial('interior');
@@ -116,7 +129,7 @@ export default class SoapKettle extends MaturingMixin(CraftVessel) {
     const burnt = lime[0] && MixinApi.isTangible(lime[0]) ? lime[0].getMaterial() : null;
     for (const lump of lime) void StuffApi.destruct(lump);
     this.depositHeat(kg * perKg);
-    this.rekeyBatch(MILK_OF_LIME);
+    this.rekeyBatch(this.slakesTo);
     // ⭐ Slaking is loud: the room sees and hears it.
     if (actor) {
       MessageApi.scene(actor)

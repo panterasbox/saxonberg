@@ -62,7 +62,7 @@ function bottle(brandKey: string, long = "A squat bottle."): BrandedBottle {
     const b = new BrandedBottle();
     b.setShortDescription("a bottle");
     b.setLongDescription(long);
-    void b.setBrandKey(brandKey)?.catch(() => {}); // the load is the applier's (documents D7)
+    b.setBrandKey(brandKey);
     return b;
   });
 }

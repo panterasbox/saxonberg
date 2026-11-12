@@ -87,17 +87,17 @@ every reader needs, so no per-discipline Idea is stood up. Read-only
 canon — no runtime mutation surface. There is no derived fallback: a
 Discipline either exists in the canon or it does not.
 
-⭐⭐ **Never booted; loaded when a character reaches it** (documents path
-identity, 2026-11-09 — it was a `sync-read` boot entry). Discipline keys
+⭐⭐ **No pack `boot:` entry; stood at boot as `CraftingApi`'s declared
+`needs`** (documents path identity, 2026-11-09 took it off the boot list;
+load-on-use W10 put it in the Api's `needs` — disciplines have no Api, and
+crafting is where a recipe's discipline is read). Discipline keys
 stay bare and flat (700+ citations across five roots; namespacing arrives
 when a custom discipline needs it — the owner: *"we want a deep skill tree
-in the game"*), so the dictionary stays as `key → descriptor`. The reach
-is `AdvancementMixin`'s async readers — `bandsForImpl`,
-`conferredVerbsImpl`, `competenceBandFor`, `refreshConferrals` — which
-`await StuffApi.singleton` the catalogue first; the sync digest
-(`competenceDigestCached`, which only has rows after `bandsForImpl` ran)
-and `withConditioning` then read a resident dictionary, and the craft act
-loads it before a discipline-carrying `isFulfilling` walk. A cold read —
+in the game"*), so the dictionary stays as `key → descriptor`. No reader
+readies it (W10 deleted `AdvancementMixin`'s and the craft act's
+hand-readying): `bandsForImpl`, `conferredVerbsImpl`, `competenceBandFor`,
+`refreshConferrals`, the sync digest (`competenceDigestCached`) and
+`withConditioning` all read a dictionary resident from boot. A cold read —
 `DisciplineCatalogue.ensureCache`, the mixin's `catalogue()`,
 `Employed.fulfils` — throws `DocumentNotResidentError`; there is no cold
 digest. `refreshConferrals` skips a host with no command stack

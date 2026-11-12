@@ -450,10 +450,10 @@ export default class Locality extends Idea {
   public async resolveTreasury(
     currency: string,
   ): Promise<{ ownerPath: string; accountId: string; own: boolean }> {
-    let chain: ReturnType<typeof GovernmentApi.governmentChainAt> = [];
+    let chain: Awaited<ReturnType<typeof GovernmentApi.governmentChainAt>> = [];
     try {
       chain = this._address
-        ? GovernmentApi.governmentChainAt(this._address)
+        ? await GovernmentApi.governmentChainAt(this._address)
         : [];
     } catch {
       chain = []; // no government registry (a test / early boot) → the realm
@@ -572,23 +572,18 @@ export default class Locality extends Idea {
   public getGovernmentKey(): string | null {
     return this._governmentKey;
   }
-  /**
-   * ⭐ A locality that names a government is live only when the government
-   * dictionary is (documents D7): the applier awaits the returned load, so
-   * the jurisdiction chain reads it synchronously.
-   */
-  public setGovernmentKey(value: string | null): Promise<void> | undefined {
+
+  public setGovernmentKey(value: string | null): void {
     if (value !== null && typeof value !== 'string') {
       throw new TypeError('Locality._governmentKey must be a string or null');
     }
     const trimmed = value?.trim() ?? '';
     this._governmentKey = trimmed.length > 0 ? trimmed : null;
-    return this._governmentKey ? StuffApi.ready(GovernmentApi) : undefined;
   }
 
   /** The applier's door for `_governmentKey:` (the field's own name). */
-  public set_governmentKey(value: string | null): Promise<void> | undefined {
-    return this.setGovernmentKey(value);
+  public set_governmentKey(value: string | null): void {
+    this.setGovernmentKey(value);
   }
 
   // ---------- the watershed declaration (D21) ----------

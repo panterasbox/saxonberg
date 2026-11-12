@@ -13,7 +13,7 @@ data:
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [torso]
   _materialPath: /stuff/idea/material/textile/linen
-  constructionForm: woven
+  constructionForm: /platform/fabrics/woven
   gradeBand: fair
   mass: 0.25
   # ⭐ One open breast pocket (size and carrying D26).

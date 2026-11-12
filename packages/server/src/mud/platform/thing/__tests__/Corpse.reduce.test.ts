@@ -10,10 +10,15 @@
  */
 
 import '../../../../test-bootstrap';
-import { describe, it, expect, afterEach } from 'vitest';
+import { beforeEach, describe, it, expect, afterEach } from 'vitest';
 import Corpse from '../Corpse';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
+import { standMaterials, TEST_TISSUES } from '../../../lib/material/__tests__/materials';
+
+beforeEach(() => {
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+});
 
 afterEach(() => StuffApi.clearAll());
 

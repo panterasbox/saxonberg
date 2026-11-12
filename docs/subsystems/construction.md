@@ -33,7 +33,7 @@ or `null` when the row says nothing. The repair build's building upkeep
 seeds its layer state from them: do not reshape them without telling it.
 
 ⭐ **The rung ladder** is row → class hook → universe. `enclosureDefaults()`
-answers the universe default (`enclosure.defaultMaterial`, granite 0.3 m);
+answers the universe default (the root biome row's `_enclosureMaterial`, granite 0.3 m — content since load-on-use round two, MR !575);
 `roofDefaults()` answers `null` on a `Location` — **undeclared** — and a
 class that knows its own construction declares it: a ROOM (`Room`, `Hall`
 and their kept twins — roofed in its walls, `location.md` § The room rung),

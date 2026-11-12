@@ -119,16 +119,38 @@ export default class TemplateApplier extends Idea {
 
   /**
    * The template paths a constituent value carries: a string, an array of
-   * strings, or an object's string values (a map of slot → material).
+   * strings, or an object's string values (a map of slot → material) — and,
+   * one level down or deeper, every path-shaped string inside the lists and
+   * records a relation field is made of (a mixture's `composition[].
+   * materialPath`, a melt rung's `becomes`, an enclosure layer's
+   * `material`), so a material's relations load with it (load-on-use D2 b).
+   * Nested values count only when they begin `/`: a nested word (a rung's
+   * `kind`, a part's name) is never a citation.
    */
   private static pathsIn(raw: unknown): string[] {
     if (typeof raw === 'string') return raw.length > 0 ? [raw] : [];
-    const vals = Array.isArray(raw)
+    const out: string[] = [];
+    const top = Array.isArray(raw)
       ? raw
       : raw !== null && typeof raw === 'object'
         ? Object.values(raw as Record<string, unknown>)
         : [];
-    return vals.filter((v): v is string => typeof v === 'string' && v.length > 0);
+    const nested = (v: unknown, depth: number): void => {
+      if (depth > 6) return;
+      if (typeof v === 'string') {
+        if (v.startsWith('/')) out.push(v);
+      } else if (Array.isArray(v)) {
+        for (const x of v) nested(x, depth + 1);
+      } else if (v !== null && typeof v === 'object') {
+        for (const x of Object.values(v as Record<string, unknown>)) nested(x, depth + 1);
+      }
+    };
+    for (const v of top) {
+      if (typeof v === 'string') {
+        if (v.length > 0) out.push(v);
+      } else nested(v, 1);
+    }
+    return out;
   }
 
   /**

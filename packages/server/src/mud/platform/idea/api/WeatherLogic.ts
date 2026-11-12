@@ -57,6 +57,7 @@ import {
 } from '../../../lib/weather/WeatherType';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import { Seeded } from '../../../lib/Seeded';
+import { MaterialApi } from '../../../api/material';
 
 const WeatherApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/weather#WeatherApi'),
@@ -954,7 +955,7 @@ async function runBoundaryFanout(): Promise<void> {
 
     // Puddle accrual / evaporation (Wave 2, D): source-indifferent — an
     // authored indoor rain fills a Floor pool exactly as procgen rain does.
-    maintainPuddle(room, resolved);
+    maintainPuddle(room, resolved, resolved.precipitationHere === 'rain' ? await freshWaterMaterial() : null);
 
     // Precipitation exposure (Wave 2, B): a body/object standing in resolved
     // rain (procgen OR authored — source-indifferent) gets wet. The wetness
@@ -1380,13 +1381,17 @@ function findRoomFloor(room: Stuff & Container): (Stuff & Bulkable) | null {
   return floor;
 }
 
-/** The authored fresh-water material a new rain puddle fills with (weakly conductive). */
-function freshWaterMaterial(): Material | null {
+/**
+ * The authored fresh-water material a new rain puddle fills with (weakly
+ * conductive) — loaded by the async tick that maintains the puddles
+ * (load-on-use W8, D2 c), so the sync puddle step finds it.
+ */
+function freshWaterMaterial(): Promise<Material> {
   const path = dialStr(
     AppSettingKeys.stormPuddleFreshWaterMaterialPath,
     '/stuff/idea/material/bulk/water',
   );
-  return StuffApi.findByTemplatePath<Material>(path) ?? null;
+  return MaterialApi.materials().ensure(path);
 }
 
 /**
@@ -1396,7 +1401,7 @@ function freshWaterMaterial(): Material | null {
  * scales with the resolved sky (a clearer sky dries the ground faster).
  * Floor / bulk state — allowed (never weather state).
  */
-function maintainPuddle(room: Stuff & Container, resolved: ResolvedWeather): void {
+function maintainPuddle(room: Stuff & Container, resolved: ResolvedWeather, freshWater: Material | null): void {
   const floor = findRoomFloor(room);
   if (floor === null) return;
   const capQ = floor.getBulkCapacity('surface');
@@ -1406,8 +1411,7 @@ function maintainPuddle(room: Stuff & Container, resolved: ResolvedWeather): voi
   if (resolved.precipitationHere === 'rain') {
     // Fill toward capacity; seed a fresh-water pool if the floor is dry.
     if (cur <= 0 || floor.getBulkMaterial('surface') === null) {
-      const mat = freshWaterMaterial();
-      if (mat) floor.setBulkMaterial('surface', mat);
+      if (freshWater) floor.setBulkMaterial('surface', freshWater);
     }
     const accrual = dial(
       AppSettingKeys.stormPuddleAccrualLitersPerSegment,

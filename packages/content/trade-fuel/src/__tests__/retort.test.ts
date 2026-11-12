@@ -97,7 +97,13 @@ describe('the retort', () => {
     installMaterial('stuff/idea/material/bulk/coal-tar.yaml', COAL_TAR);
     installMaterial('stuff/idea/material/gas/coal-gas.yaml', COAL_GAS);
   });
-  afterEach(() => StuffApi.clearAll());
+  afterEach(async () => {
+    // ⭐ A move re-stamps a thermal receiver off the room's air on its own
+    // tick, reading what the receiver holds; let it land before the
+    // materials it reads are cleared, or it reads them cold.
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    StuffApi.clearAll();
+  });
 
   function retort(): Retort {
     const r = makeStuff(() => new Retort()) as Retort;

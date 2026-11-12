@@ -53,6 +53,7 @@ import { Quantity } from '../quantity';
 import type { PaintMakeup } from './Paint';
 import { BiomeApi } from '../../api/biome';
 import { WorldClockApi } from '../../api/worldclock';
+import { MaterialApi } from '../../api/material';
 
 /** Game seconds in a game year (the calendar's 360 days). */
 const GAME_YEAR_S = 360 * 86_400;
@@ -307,7 +308,7 @@ function dial(key: string, fallback: number): number {
 }
 
 function materialAt(path: string): Material | null {
-  return StuffApi.findByTemplatePath<Material>(path) ?? null;
+  return MaterialApi.materials().peek(path) ?? null;
 }
 
 /**
@@ -527,7 +528,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * renamed `set`, and every one of those glazed goods read as a bare
      * porous body (the ceramics finalize).
      */
-    public setCoats(value: Partial<Record<FaceName, CoatLayer[]>>): void {
+    public setCoats(value: Partial<Record<FaceName, CoatLayer[]>>): Promise<void> | undefined {
       for (const [face, list] of Object.entries(value ?? {})) {
         for (const c of list ?? []) {
           if (!isCoatState(c.state)) {
@@ -536,6 +537,9 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         }
       }
       this.coats = value ?? {};
+      // The restore door (load-on-use W8): every coat's material loads with
+      // the face; `undefined` at runtime, where the act held the rows.
+      return MaterialApi.materials().ensureCitedIn(this.coats);
     }
 
     public async pasteOn(

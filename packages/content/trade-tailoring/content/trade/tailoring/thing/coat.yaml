@@ -13,7 +13,7 @@ data:
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [torso]
   _materialPath: /stuff/idea/material/textile/linen
-  constructionForm: woven
+  constructionForm: /platform/fabrics/woven
   gradeBand: fair
   mass: 1.2
   # ⭐ Two outer patch pockets, a buttoned breast pocket (a cork stays in it

@@ -33,6 +33,10 @@ import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Location from '../../location/Location';
 import { BiomeApi } from '../../../api/biome';
 import type { Container } from '../../spatial/Container';
+import { standRootBiome } from '../../biome/__tests__/root-biome';
+
+// load-on-use W8: the universe's default walls are the root biome's.
+beforeEach(() => void standRootBiome());
 
 class Lump extends ThermalMixin(Good) {
   static _mixinName = 'HeatworkTestLump';

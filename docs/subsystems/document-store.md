@@ -46,6 +46,11 @@ concepts have no value class):
 | `formation` | `formations` | `lib/combat/Formation.ts` | a party's path; `party adopt <word>` | the leaf |
 | `placement` | `placements` | `lib/spatial/Placement.ts` | a host's `placements:` paths | the primary preposition |
 | `topic` | `topics` | `lib/message/Topic.ts` | code (`.topic('act.combat')`); the dotted key is the leaf | the leaf |
+| `cleanser` | `cleansers` | `lib/cleanliness/Cleanser.ts` | a material's `cleanser:` path ([cleanliness.md](./cleanliness.md)) | — |
+| `fabric` | `fabrics` | `FabricSpec` in `lib/material/Construction.ts` | a garment's `constructionForm:` path (kernel forms stay words — [textiles.md](./textiles.md)) | — |
+| `maturation-profile` | `maturation-profiles` | `lib/maturation/MaturationProfile.ts` | a vessel's charge by tag; the vessel keeps the path ([maturation.md](./maturation.md)) | — |
+| `fraction-schedule` | `fraction-schedules` | `lib/fractionation/FractionSchedule.ts` | a still's charge by tag; the still keeps the path ([fractionation.md](./fractionation.md)) | — |
+| `dyestuff` | `dyestuffs` | trade-dyeing's `src/lib/Dyestuff.ts` | the card key `material` (the dye bath's material) | — |
 
 `emote`, `recipe` and `archetype` declare the leaf as their typed word;
 a `blueprint` is named by its leaf too. ⭐ None of the four carries a key
@@ -191,12 +196,29 @@ that cites it is resident**, and a synchronous read always finds it.
 Nobody above the model — not a controller, not a pack author — ever warms
 anything, and no family is on a `boot:` list.
 
+⭐⭐ **No class readies its Api's data** (owner, load-on-use W10,
+2026-11-12). A dictionary an Api's reads stand on is declared in the Api's
+`static readonly needs` (an `ApiNeed`: a catalogue path, or a loader for a
+row-less catalogue) and `AppBootstrap` stands every decorated Api's needs
+once, before the manifest; the async call gate still awaits them. No
+setter returns such a load, no `onCreate` warms one, and no act calls
+`StuffApi.ready` (it is `@internal`). Today: `AddressApi`, `GovernmentApi`,
+`CorpoApi`, `HelpApi`, `MagicApi` (spells), `ConditionApi` (the roster),
+`BulkableApi` (profiles + schedules), `ContainmentApi` (the kernel's
+placements), `MaterialApi` (the kernel's dirt kinds — **not** the material
+roster), `CraftingApi` (recipes + disciplines). Resident-by-construction
+below now covers only the **per-path** citations (an authored or runtime
+field naming one document) and material rows.
+
 ⭐⭐ **A family is SERVED by a catalogue singleton, reached through its
 domain Api** — `CraftingApi.joints()`, `ContainmentApi.placements()`,
 `MaterialApi.dirtKinds()`, `PartyApi.formations()`,
 `ConditionApi.operations()`, `BulkableApi.pumpMechanisms()`,
 `CraftingApi.forms()` / `.recipes()`, `MessageApi.topics()`,
-`PerceptionApi.aromas()`. The catalogue at `/platform/idea/<X>Catalogue` is
+`PerceptionApi.aromas()`, `MaterialApi.cleansers()` / `.fabrics()`,
+`BulkableApi.maturationProfiles()` / `.fractionSchedules()` (the
+`dyestuff` catalogue is the dyeing pack's, reached by its own controller —
+a pack owns no Api). The catalogue at `/platform/idea/<X>Catalogue` is
 the one place that family's documents are looked up; the value class keeps
 only what the thing IS (no statics). The per-path families extend
 `lib/document/DocumentCatalogue` (its `parse` is the installer's validator
@@ -237,20 +259,41 @@ What makes "resident" true, per family:
 3. **A runtime write** happens in an act that already holds the document
    (a word was resolved to it; a pack's own dirt kind is ensured by the
    act that lands it), so the written path is resident by induction.
-4. **A class's own built-in citations load with the class's content**, in
-   one host's `onCreate`: `Place.onCreate` loads the kernel's placements,
-   `SoilableMixin.onCreate` the kernel's dirt kinds — one prefix read
-   each, once per process.
+4. **The kernel's own built-in citations stand at boot** as their Api's
+   `needs` — the kernel placements (`ContainmentApi`) and dirt kinds
+   (`MaterialApi`), one prefix read each. (Until W10 a host's `onCreate`
+   loaded them.)
 
 ⚠ **The one engine-wired load is topics**: named by code and cited by no
 holder, so the message pipeline warms the dictionary on the first scene
 and queues dispatch in order behind it ([topics.md](./topics.md)). The
-lazy dictionaries that stay Stuff (`RecipeCatalogue`, `SoulCatalogue`,
-`ArchetypeCatalogue`, `BlueprintCatalogue`, `SpellCatalogue`,
-`CorpoCatalogue`, `GovernmentCatalogue`, `DisciplineCatalogue`) warm on
-their first async use and are never booted; the ones read synchronously
-throw `DocumentNotResidentError` when read cold rather than answering
-empty.
+dictionaries that stay Stuff split two ways: those an Api declares
+(`RecipeCatalogue`, `DisciplineCatalogue`, `SpellCatalogue`,
+`CorpoCatalogue`, `GovernmentCatalogue`, `HelpCatalogue`) stand at boot as
+its `needs`; the rest (`SoulCatalogue`, `ArchetypeCatalogue`,
+`BlueprintCatalogue`) warm on their first async use. A sync read of a
+cold one throws `DocumentNotResidentError` rather than answering empty.
+
+⭐ **Two Idea families serve the same doors by hand** (load-on-use round
+two): `MaterialApi.materials()` and `ConditionApi.conditions()` reach
+`platform/idea/MaterialCatalogue` / `ConditionCatalogue` by `singletonSync`
+— no `onCreate`, no yaml row, no boot line — and answer `ensure` · `need` ·
+`peek` over **live Stuff** (the rows stay Ideas: query links, class-varying
+behavior). A cold `need` throws `DocumentNotResidentError('material' |
+'condition', path)` — the error's message says *"not a missing row"*, so an
+Idea kind reads right. The roster (`ensureRoster()` → `roster()` /
+`byTag`) is only for the few reads that ask for every row — the
+conditions' stands at boot as `ConditionApi`'s need; the materials' never
+does, and is reached only through async `MaterialApi.all()` /
+`findByTag()`, which load it themselves — and its state
+is the class's, so a suite's `clearAll` cannot un-stand it. The material
+catalogue adds `ensureCited(paths)` / `ensureCitedIn(value)`, the load a
+restoring setter returns for a runtime field that carries material paths
+(it answers `undefined` when nothing is cold and never rejects). How each
+material reaches residence — holder, relation, act, roster — is
+[race.md](./race.md)'s; conditions stand at boot
+([vitals.md](./vitals.md)). Two implementers by hand, not a shared base:
+the third promotes it.
 
 ## What a record is
 
@@ -640,12 +683,23 @@ pack-installed kinds, and releases ride it today.
   | D1–D4 | the kind declares its keys; one wildcard index; typed words unique at install; `findByKey` | § The catalogue card |
   | D5 | the press reads newest first by key | press.md |
   | D6 | the metadata families become documents (the aroma recipe) | § Idea or document |
-  | D7 | ⭐⭐ a cited document is resident whenever its citer is (setters return their load; a cold sync read throws) | § Resident by construction |
+  | D7 | ⭐⭐ a cited document is resident whenever its citer is (per-path setters return their load; a cold sync read throws) — ⚠ for an Api's dictionaries retired by load-on-use W10: they stand at boot as the Api's `needs` | § Resident by construction |
   | D8 | the four flat-key kinds: the leaf is the word | content-packs.md |
-  | D9–D10 | which catalogues survive; the Ideas that stay Ideas load on reach | § Resident by construction; civics.md, corpo.md, magic.md |
+  | D9–D10 | which catalogues survive; the Ideas that stay Ideas — loaded on reach then, at boot as their Api's `needs` since W10 | § Resident by construction; civics.md, corpo.md, magic.md |
   | D11 | disciplines: bare keys and a lazy dictionary | advancement.md |
   | D12 | Placement: the offering host loads it | spatial.md |
   | D13 | Topic: the engine-machinery exception, the ordered scene queue | topics.md |
   | D14 | the aroma folder is the tree | senses.md |
   | D15 | the lints follow the rows | lint-family.md |
   | D16 | a CMS edit reaches the catalogue (`catalogueFor(kind)?.forget`) | § CMS |
+- 2026-11-11 — load-on-use round two (MR !575): five material-adjacent
+  families became document kinds — `cleanser`, `fabric`,
+  `maturation-profile`, `fraction-schedule`, `dyestuff` (the last keyed by
+  its `material` card) — and their Idea classes and boot lines went; the
+  material and condition catalogues gained the sync doors and stopped
+  booting (§ Resident by construction). `DocumentNotResidentError`'s
+  message now says *row*, not *document*. The plan's decisions are cited in
+  code as `(load-on-use Dn)`. ⭐ In its review (W10) no class may ready its
+  Api's data: every Api's `static needs` stand at boot (`AppBootstrap`),
+  and the readying setters, `onCreate` loads and caller `StuffApi.ready`s
+  went.

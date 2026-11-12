@@ -34,6 +34,7 @@ import { ResidencyApi } from '../mud/api/residency';
 import { EmploymentApi } from '../mud/api/employment';
 import { Document } from '../mud/lib/persistence/Document';
 import { StuffApi } from '../mud/api/stuff';
+import { SecurityApi, type ApiNeed } from '../mud/api/security';
 import type { Marshaller } from '../mud/lib/persistence/Marshaller';
 // Registers the live `online`/`world` provider so MQL queries against
 // admin-tier seeds reflect connected interactives. Imported here (off
@@ -212,6 +213,18 @@ export class AppBootstrap {
     }
 
     installOnlineHoldersProvider();
+
+    // ⭐⭐ Every Api's dictionaries, stood ONCE, here (owner, load-on-use
+    // review): each Api declares what its reads stand on (`static needs`),
+    // and this loop is the one place they are readied — so no class, setter
+    // or act ever readies its Api's data by hand. Before the manifest, so
+    // the hosts it clones meet them resident.
+    const declaring = (SecurityApi.decoratedApiClasses() as Array<{ needs?: readonly ApiNeed[] }>).filter(
+      (a) => Array.isArray(a.needs) && a.needs.length > 0,
+    );
+    await StuffApi.ready(...declaring);
+    console.info(`AppBootstrap: ${declaring.length} Api(s)' needs stood`);
+
     await BootstrapManager.run();
 
     // The boot-time SPAWN sweep — the world stands at target on a fresh

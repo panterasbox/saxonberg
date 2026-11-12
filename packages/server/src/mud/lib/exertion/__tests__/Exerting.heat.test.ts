@@ -17,6 +17,7 @@ import "../../../platform/idea/WorldClockRegistry";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
 import type { LocomotionMode } from "../../../platform/idea/LocomotionMode";
+import { standShippedConditions } from "../../vitals/__tests__/conditions";
 
 const SCALE = 12;
 let real = 0;
@@ -64,7 +65,10 @@ function advanceAll(bodies: Creature[], gameSec: number, chunkSec = 60): void {
 const RUN = { getName: () => "run", getCostMultiplier: () => 2, getSpeed: () => 2 } as unknown as LocomotionMode;
 
 describe("exertion is heat", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    // A heat-loaded body reads its burden laws (hyperthermia) from the
+    // condition roster the boot stands with ConditionApi's needs.
+    await standShippedConditions();
     installV1QuantityMarshallers();
     vi.spyOn(AppApi, "setting").mockReturnValue("");
     WorldClockApi._resetForTesting();

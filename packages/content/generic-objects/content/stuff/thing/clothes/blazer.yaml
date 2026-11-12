@@ -10,7 +10,7 @@ data:
     "/stuff/idea/species/BodyPlan/biped": [torso]
   # Cut close from a fine worsted — the cost is in the cloth and the cutting.
   _materialPath: /stuff/idea/material/textile/wool
-  constructionForm: woven
+  constructionForm: /platform/fabrics/woven
   gradeBand: fine
   mass: 0.9
   # ⭐ Two hip pockets and an inner pocket (size and carrying D29).

@@ -24,7 +24,6 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import { GradedMixin, type Graded } from './Graded';
 import { NameTakingMixin } from '../description/NameTaking';
 import { StuffApi } from '../../api/stuff';
-import { TemplatePaths } from '../paths';
 import type { Stuff } from '../stuff/Stuff';
 
 /** Grade-keyed verdict prose (v1 uniform — no per-instance scatter yet). */
@@ -103,13 +102,13 @@ export interface Crafted extends Graded {
    * maker and the cast; it rides a set and a transform that keeps the thing.
    */
   getMadeFrom(): string;
-  setMadeFrom(materialPath: string): void;
+  setMadeFrom(materialPath: string): Promise<void> | undefined;
   /**
    * Stamp the recipe word. Returns the dictionary load to await when the
    * recipe dictionary is not resident yet (a restore — the applier awaits
    * it), so a crafted thing is live only when the recipe it cites is.
    */
-  setRecipe(value: string): Promise<void> | undefined;
+  setRecipe(value: string): void;
   /** Game-clock seconds at which it was crafted. */
   getCraftedAt(): number;
   setCraftedAt(value: number): void;
@@ -209,11 +208,8 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
     getRecipe(): string {
       return this.recipe;
     }
-    setRecipe(value: string): Promise<void> | undefined {
+    setRecipe(value: string): void {
       this.recipe = value;
-      // A ferment mark (`ferment:<key>`) names no recipe.
-      if (!value || value.includes(':')) return undefined;
-      return StuffApi.ready(TemplatePaths.recipeCatalogue);
     }
 
     /** See {@link Crafted.getCastFrom}. */
@@ -225,8 +221,16 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
     public getMadeFrom(): string {
       return this.madeFrom;
     }
-    public setMadeFrom(materialPath: string): void {
+    /**
+     * Name the material this was made from — and, restoring, load it
+     * (load-on-use W8): `undefined` when it is live, the runtime case. The
+     * Api is reached late — `MaterialApi` reaches this module back.
+     */
+    public setMadeFrom(materialPath: string): Promise<void> | undefined {
       this.madeFrom = typeof materialPath === 'string' ? materialPath : '';
+      if (!this.madeFrom || StuffApi.findByTemplatePath(this.madeFrom)) return undefined;
+      const path = this.madeFrom;
+      return import('../../api/material').then(({ MaterialApi }) => MaterialApi.materials().ensureCited([path]));
     }
 
     public getCastFrom(): CastProvenance | null {

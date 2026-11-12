@@ -35,6 +35,7 @@ import { METABOLIC_DEFAULTS } from "../../../../../lib/metabolism/Metabolic";
 import { TemplatePaths } from "../../../../../lib/paths";
 import mustBeEdible from "../../../../../lib/command/validators/mustBeEdible";
 import requiresConscious from "../../../../../lib/command/validators/requiresConscious";
+import { standShippedConditions } from "../../../../../lib/vitals/__tests__/conditions";
 
 // ⭐ `NamedMixin` is composed EXPLICITLY, which is what a class that has
 // a proper name now does — it is off the creature base, because a body
@@ -147,7 +148,10 @@ describe("EatController", () => {
     void MixinApi; // tangible check exercised inside the validator
   });
 
-  it("requiresConscious blocks a collapsed eater", () => {
+  it("requiresConscious blocks a collapsed eater", async () => {
+    // A body's condition reads stand on the roster the boot stands with
+    // ConditionApi's needs; this suite never booted.
+    await standShippedConditions();
     eater.afflict({
       kind: "affliction",
       templatePath: TemplatePaths.metabolismCollapse,

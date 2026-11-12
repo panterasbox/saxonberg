@@ -30,6 +30,7 @@ import type Material from '../../../lib/material/Material';
 import type { Tooled } from '../../../lib/craft/Tool';
 import type { Concentrate } from '../../../lib/bulk/Concentration';
 import type { CompetenceBandName } from '../../../lib/advancement/CompetenceBand';
+import { MaterialApi } from '../../../api/material';
 
 /**
  * ⭐ The fraction at or above which an untrained person simply notices
@@ -142,7 +143,7 @@ export default class AtmosphereReading extends Reading {
 
 /** The material's own name, falling back to its path's leaf. */
 function nameOf(c: Concentrate): string {
-  const material = StuffApi.findByTemplatePath<Material>(c.type);
+  const material = MaterialApi.materials().peek(c.type);
   if (material) return material.getName();
   const leaf = c.type.substring(c.type.lastIndexOf('/') + 1);
   return leaf.replace(/-/g, ' ');

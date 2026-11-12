@@ -16,6 +16,6 @@ data:
   covers: [face]
   # Coarse wool, as the prose already said.
   _materialPath: /stuff/idea/material/textile/wool
-  constructionForm: woven
+  constructionForm: /platform/fabrics/woven
   gradeBand: fair
   mass: 0.3

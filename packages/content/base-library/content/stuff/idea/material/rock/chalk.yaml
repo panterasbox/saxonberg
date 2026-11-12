@@ -17,4 +17,4 @@ data:
   pigment: { transmitR: 0.95, transmitG: 0.95, transmitB: 0.92, hidingPower: 0.25, lightfastness: 1 }
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
-  cleanser: /platform/idea/Cleanser/chalk
+  cleanser: /platform/cleansers/chalk

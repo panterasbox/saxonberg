@@ -27,6 +27,7 @@ import { StuffApi } from '../../api/stuff';
 import type Material from '../../lib/material/Material';
 import type { CoatLayer } from '../../lib/material/Faced';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import { MaterialApi } from '../../api/material';
 import type { CommandContributions } from '../../api/command';
 
 /** Three rags and more stacked together is a heap. */
@@ -85,7 +86,7 @@ export default class Rag extends SelfHeatingMixin(
   public oilCoats(): CoatLayer[] {
     return this.getCoats('outside').filter((c) => {
       if (c.state !== 'wet') return false;
-      const m = StuffApi.findByTemplatePath<Material>(c.material);
+      const m = MaterialApi.materials().peek(c.material);
       return m && MixinApi.hasKinetic(m)
         ? m.getKinetics()?.airSet()?.getSets() === 'oxidation'
         : false;

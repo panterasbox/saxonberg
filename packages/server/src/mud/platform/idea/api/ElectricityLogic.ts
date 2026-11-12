@@ -234,7 +234,7 @@ function waterPlacePoolOf(room: Stuff): Material | null {
   if (state === 'dry' || state === 'frozen') return null;
   const read = room.peekWaterRead(room.getWaterKey());
   const path = read?.draw?.materialPath ?? null;
-  const mat = path ? StuffApi.findByTemplatePath<Material>(path) ?? null : null;
+  const mat = path ? MaterialApi.materials().peek(path) ?? null : null;
   if (!mat) return null;
   const poolMin = dial(AppSettingKeys.electricityPoolMinConductivity, 0.005);
   return mat.getElectricalConductivity().rawValue() >= poolMin ? mat : null;

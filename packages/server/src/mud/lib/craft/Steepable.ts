@@ -48,7 +48,7 @@ export function SteepableMixin<TBase extends MixinConstructor>(Base: TBase) {
     };
 
     static fieldMeta: FieldMeta = {
-      steepsInto: { persistent: true, authorable: true },
+      steepsInto: { persistent: true, authorable: true, ref: 'identity:constituent' },
     };
 
     /** The extract Material path this thing steeps into. */

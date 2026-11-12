@@ -1,6 +1,8 @@
 # The floor bottle of cola — 1 L, at target in the bottling stock.
 class: /platform/thing/Bottle
 data:
+  # What it is made of (load-on-use W8: authored, not a constructor default).
+  _materialPath: /stuff/idea/material/glass/glass
   censusKey: mixer:cola
   shortDescription: "bottle of cola"
   keywords: [cola, coke, bottle, mixer, "bottle of cola"]

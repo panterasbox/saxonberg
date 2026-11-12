@@ -30,7 +30,8 @@ import {
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import DyeController from '../idea/cmd/dyeing/DyeController';
-import Dyestuff from '../idea/Dyestuff';
+import Dyestuff from '../lib/Dyestuff';
+import DyestuffCatalogue from '../idea/DyestuffCatalogue';
 import DyeBath from '../lib/DyeBath';
 import MordantController from '../idea/cmd/dyeing/MordantController';
 
@@ -100,16 +101,13 @@ beforeEach(async () => {
   room = makeStuff(() => new Place());
   dyer = makeStuff(() => new TestActor());
   ContainmentApi.move(dyer as never, room as never);
-  makeStuffAtPath(() => {
-    const d = new Dyestuff();
-    d.setKey('madder');
-    d.setMaterialPath(MADDER);
-    d.setChemistry('mordant');
-    d.setShades([
+  // The dyestuff DOCUMENT, resident as `dye` would leave it (load-on-use W3).
+  StuffApi.singletonSync('/trade/dyeing/idea/DyestuffCatalogue', () => new DyestuffCatalogue()).remember(
+    '/trade/dyeing/dyestuffs/madder',
+    new Dyestuff('/trade/dyeing/dyestuffs/madder', MADDER, 'mordant', [
       { mordant: 'alum', colour: 'a clear red', fastness: 0.8, transmitR: 0.9, transmitG: 0.2, transmitB: 0.2 },
-    ]);
-    return d;
-  }, '/trade/dyeing/idea/dyestuff/madder');
+    ]),
+  );
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const chain = {
       topic: () => chain,

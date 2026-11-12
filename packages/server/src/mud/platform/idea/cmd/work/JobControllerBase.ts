@@ -115,7 +115,7 @@ export abstract class JobControllerBase<
    * and the two drifted until one of them could not name a remote
    * destination at all.
    */
-  protected place(raw: string, context: CommandContext): string {
+  protected place(raw: string, context: CommandContext): Promise<string> {
     return AddressApi.resolvePlace(
       raw,
       context.commandGiver,

@@ -42,7 +42,6 @@
  * which is visible in whether your bolts stack.
  */
 
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
@@ -58,8 +57,6 @@ interface DyeModel extends CommandModel {
   bath?: MqlManyResult;
 }
 
-/** The dyestuff roster's row (`trade-dyeing`'s own). */
-const DYESTUFF_CATALOGUE_PATH = '/trade/dyeing/idea/dyestuff-catalogue';
 
 /**
  * ⭐ The two chemistries — refusal, bond, depth, fastness, the bath's
@@ -69,16 +66,13 @@ const DYESTUFF_CATALOGUE_PATH = '/trade/dyeing/idea/dyestuff-catalogue';
  */
 export default class DyeController extends ManualBuildController<DyeModel> {
   async execute(model: DyeModel, context: CommandContext): Promise<void> {
-    // ⭐ The dyestuff dictionary warms on first use (the scan sweep): the
-    // catalogue's own creation stands the roster up — nothing boots it.
-    await StuffApi.singleton(DYESTUFF_CATALOGUE_PATH).catch(() => null);
     const giver = context.commandGiver;
     const target = model.target?.stuff ?? null;
     if (!target || !MixinApi.isDyed(target)) {
       this.declineStep(context, Mml.compose`Dye what?`, 'no-target');
       return;
     }
-    const bath = DyeController.findBath(model.bath);
+    const bath = await DyeController.findBath(model.bath);
     if (!bath) {
       this.declineStep(context, Mml.compose`There is no bath here to dip it in.`, 'no-bath');
       return;
@@ -101,11 +95,12 @@ export default class DyeController extends ManualBuildController<DyeModel> {
    * NAMED bath is taken as named, so the refusal can say what is wrong
    * with it; bare, the first vessel in reach with dyestuff in it.
    */
-  protected static findBath(bound: MqlManyResult | undefined): Stuff | null {
+  protected static async findBath(bound: MqlManyResult | undefined): Promise<Stuff | null> {
     const candidates = (bound?.stuff ?? []).filter((c) => MixinApi.isBulkable(c));
     if (candidates.length === 0) return null;
     if (bound?.prep !== undefined) return candidates[0]!;
-    return candidates.find((c) => new DyeBath(c).dyestuff() !== null) ?? null;
+    for (const c of candidates) if ((await new DyeBath(c).dyestuff()) !== null) return c;
+    return null;
   }
 
   protected static refusalWords(r: DyeBathRefusal, target: Stuff, bath: Stuff): Composed {

@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Garment from '../../../platform/thing/equipment/Garment';
 import Material from '../../material/Material';
 import { Construction } from '../../material/Construction';
-import type { CleanserDescriptor } from '../../../platform/idea/Cleanser';
+import type { CleanserDescriptor } from '../Cleanser';
 import { Template } from '../../stuff/Template';
 import { TemplatePaths } from '../../paths';
 import { StuffApi } from '../../../api/stuff';
@@ -27,6 +27,7 @@ import { WashPolicy } from '../WashPolicy';
 import { MixinApi } from '../../../api/mixin';
 import { brain as doorman } from '../../behavior/doorman';
 import { soilBody, wear, installDirtKinds } from './soil-fixtures';
+import { rememberFabric, forgetFabrics } from '../../material/__tests__/fabrics';
 
 const DIRT = [
   { key: 'mud', form: 'film', answersTo: ['surfactant', 'alkali-mild', 'abrasive'], waterLifts: 0.7 },
@@ -73,13 +74,13 @@ function garment(m: Material | null = null): Garment {
 
 beforeEach(async () => {
   installV1QuantityMarshallers();
-  Construction.registerFabric({ key: 'woven', layerBand: 0, loft: 0.1, weaveDensity: 0.75, drape: 0.6 });
-  Construction.registerFabric({ key: 'felted', layerBand: 1, loft: 0.6, weaveDensity: 0.9, drape: 0.3 });
+  rememberFabric({ key: 'woven', layerBand: 0, loft: 0.1, weaveDensity: 0.75, drape: 0.6 });
+  rememberFabric({ key: 'felted', layerBand: 1, loft: 0.6, weaveDensity: 0.9, drape: 0.3 });
   installDirtKinds(DIRT as Record<string, unknown>[]);
 });
 afterEach(() => {
   vi.restoreAllMocks();
-  Construction.clearFabrics();
+  forgetFabrics();
   StuffApi.clearAll();
 });
 

@@ -692,7 +692,7 @@ describe('the well — an unnamed pour takes the rail, a named one takes the bra
     ContainmentApi.move(makeHolder(ICE, 5), room);
     const rail = makeBottle(GIN, 1, 'fair');
     const good = makeBottle(GIN, 1, 'fine');
-    void good.setBrandKey('crowsfoot-gin')?.catch(() => {}); // the load is the applier's (documents D7)
+    good.setBrandKey('crowsfoot-gin');
     ContainmentApi.move(rail, room);
     ContainmentApi.move(good, room);
 

@@ -83,6 +83,7 @@ import HayBale from './HayBale';
 import Tract, { type FieldSpec } from '../location/Tract';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 /** A part's water against the tract's is held within this band (D14). */
 const DEPTH_FACTOR_MIN = 0.2;
@@ -425,10 +426,8 @@ export default class Field extends FieldBase {
     );
     this.installSoilReserves(sample, depthFactor);
     this.installSward(swardStart);
-    const material = StuffApi.findByTemplatePath<Material>(
-      TEXTURE_MATERIALS[sample.texture],
-    );
-    if (material) this.setMaterial(material);
+    // Loaded by the async parent that marked the field (`Tract.ensureFields`).
+    this.setMaterial(MaterialApi.materials().need(TEXTURE_MATERIALS[sample.texture]));
     this.settleSoilPlacement();
   }
 

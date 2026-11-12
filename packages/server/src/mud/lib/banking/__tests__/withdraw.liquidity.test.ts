@@ -38,7 +38,7 @@ const ALICE = "/platform/agent/Avatar/alice";
 function makeBank(): InstanceType<typeof BankCounter> {
   return makeStuffAtPath(() => {
     const b = new BankCounter();
-    void b.setCorpoKey("goodkin")?.catch(() => {}); // the load is the applier's (documents D7)
+    b.setCorpoKey("goodkin");
     return b;
   }, BANK_PATH);
 }

@@ -5,6 +5,8 @@
 # avenue and it warms; the units begin to spoil.
 class: /system/energy/thing/ColdStore
 data:
+  # What its walls are made of when no `enclosure:` says (load-on-use W8).
+  wallMaterial: /stuff/idea/material/wood/pine
   shortDescription: blood fridge
   keywords: [fridge, refrigerator, blood-fridge, bloodfridge]
   register: indefinite

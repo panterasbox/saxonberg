@@ -3,6 +3,8 @@
 # bottom. Salt it to grain the soap, pour the curd into a frame.
 class: /trade/chandlery/thing/SoapKettle
 data:
+  # What this vessel makes of its charge (load-on-use W8: content, not code).
+  slakesTo: /trade/chandlery/idea/material/milk-of-lime
   shortDescription: soap kettle
   keywords: [kettle, "soap kettle", copper]
   register: indefinite

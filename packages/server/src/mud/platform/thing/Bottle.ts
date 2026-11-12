@@ -30,7 +30,6 @@ import { CirculatingMixin } from '../../lib/residency/Circulating';
 import { Quantity } from '../../lib/quantity';
 import { VesselKindMixin } from '../../lib/bulk/VesselKind';
 
-const GLASS = '/stuff/idea/material/glass/glass';
 
 // ⭐ `VesselKind` — the par key (`bottle`, `flask`, `demijohn`). It used
 // to ride `BulkableMixin`, which handed one to every puddle and garden
@@ -45,7 +44,6 @@ export default class Bottle extends BottleBase {
     // Host-internal writes (the constructor IS the class body — the
     // arcana `Potion` precedent). A row's `data:` overrides any of these
     // through the hydrator exactly as on a bare GradedReceptacle.
-    this._materialPath = GLASS;
     this.interiorBulk = true;
     this.setInteriorCapacity(Quantity.of(0.75, 'L'));
     this.setClosure('liquidTight');

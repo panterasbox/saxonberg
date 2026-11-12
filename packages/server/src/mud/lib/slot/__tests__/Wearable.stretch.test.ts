@@ -28,6 +28,8 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { rememberFabric, forgetFabrics, fabricPath } from '../../material/__tests__/fabrics';
+import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
 
 class TestGarment extends WearableMixin(
   SlottableMixin(ContainableMixin(ConstructedMixin(Good))),
@@ -58,7 +60,7 @@ function wearer(massKg: number, statureM: number): Creature {
   return c;
 }
 
-function trousers(cloth: Material, form = 'woven', waist?: Material): TestGarment {
+function trousers(cloth: Material, form = fabricPath('woven'), waist?: Material): TestGarment {
   const g = makeStuff(() => new TestGarment());
   g.setMaterial(cloth);
   if (waist) g.setMaterial(waist, 'waist');
@@ -71,11 +73,11 @@ function trousers(cloth: Material, form = 'woven', waist?: Material): TestGarmen
 beforeEach(() => {
   installV1QuantityMarshallers();
   for (const [key, loft, stretch] of [
-    ['woven', 0.1, undefined],
-    ['knit', 0.45, 1.45],
-    ['felted', 0.6, 0],
+    [fabricPath('woven'), 0.1, undefined],
+    [fabricPath('knit'), 0.45, 1.45],
+    [fabricPath('felted'), 0.6, 0],
   ] as const) {
-    Construction.registerFabric({ key, layerBand: 0, loft, weaveDensity: 0.5, drape: 0.5, stretch });
+    rememberFabric({ key, layerBand: 0, loft, weaveDensity: 0.5, drape: 0.5, stretch });
   }
   plan = makeStuff(() => new BodyPlan());
   plan.setName(`stretch-biped-${seq}`);
@@ -87,9 +89,10 @@ beforeEach(() => {
   ]);
   planPath = `/stuff/idea/species/BodyPlan/stretch-${seq++}`;
   stampTemplatePathForTest(plan, planPath);
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
 });
 afterEach(() => {
-  Construction.clearFabrics();
+  forgetFabrics();
   StuffApi.clearAll();
 });
 
@@ -99,7 +102,7 @@ describe('⭐ stretch takes up a misfit', () => {
     const linen = material('linen', 3);
     const rubber = material('rubber', 500);
     const plain = trousers(linen).fitOn(halfOrc);
-    const elastic = trousers(linen, 'woven', rubber).fitOn(halfOrc);
+    const elastic = trousers(linen, fabricPath('woven'), rubber).fitOn(halfOrc);
     expect(plain.tightness).toBeGreaterThan(0.05);
     expect(elastic.tightness).toBeLessThan(0.05);
     expect(elastic.distance).toBeLessThan(plain.distance);
@@ -108,7 +111,7 @@ describe('⭐ stretch takes up a misfit', () => {
   it('⚠ the give is round the body, not along it: a tall thin body is still short in the leg', () => {
     const tall = wearer(76, 2.05);
     const rubber = material('rubber', 500);
-    const fit = trousers(material('linen', 3), 'woven', rubber).fitOn(tall);
+    const fit = trousers(material('linen', 3), fabricPath('woven'), rubber).fitOn(tall);
     // Stature alone is 17 % over the cut; the band does nothing for it.
     expect(fit.tightness).toBeGreaterThan(0.05);
   });
@@ -117,16 +120,16 @@ describe('⭐ stretch takes up a misfit', () => {
     const slight = wearer(55, 1.75);
     const linen = material('linen', 3);
     const plain = trousers(linen).fitOn(slight);
-    const elastic = trousers(linen, 'woven', material('rubber', 500)).fitOn(slight);
+    const elastic = trousers(linen, fabricPath('woven'), material('rubber', 500)).fitOn(slight);
     expect(plain.looseness).toBeGreaterThan(0.05);
     expect(elastic.looseness).toBe(0);
   });
 
   it('the form decides how far the fibre gives: knit more than woven, felt nothing', () => {
     const wool = material('wool', 30);
-    const knit = trousers(wool, 'knit').stretchAllowance();
-    const woven = trousers(wool, 'woven').stretchAllowance();
-    const felt = trousers(wool, 'felted').stretchAllowance();
+    const knit = trousers(wool, fabricPath('knit')).stretchAllowance();
+    const woven = trousers(wool, fabricPath('woven')).stretchAllowance();
+    const felt = trousers(wool, fabricPath('felted')).stretchAllowance();
     expect(knit).toBeGreaterThan(woven);
     expect(woven).toBeCloseTo(0.3 * 0.04, 6);
     expect(felt).toBe(0);
