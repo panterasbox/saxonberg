@@ -637,7 +637,9 @@ async function issueHouseCardImpl(
     );
     return;
   }
-  for (const held of actor.getContents()) {
+  // Anywhere on the body — a card in a worn bag is still the card it was
+  // dealt (a direct-contents read reissued one every roster tick).
+  for (const held of actor.getCarriedContents()) {
     if (!MixinApi.isCredentialWallet(held)) continue;
     if (held.getCredential('payment')?.hasAccount(account)) return;
   }

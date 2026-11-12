@@ -2158,8 +2158,14 @@ async function issueCardImpl(
   if (principal && MixinApi.isContainer(principal)) {
     // ⭐ A card is a held good — the move titles it to whoever it is
     // issued to and records where it is, or it is gone at the next restart.
-    if (MixinApi.isCarrying(principal)) await principal.receiveGranted(card as unknown as Stuff & Containable);
-    else ContainmentApi.move(card as unknown as Stuff & Containable, principal);
+    // ⭐ And it is KEPT on you, not held (size and carrying, the drive's
+    // open finding): pockets first. Hands-first put every card in a hand,
+    // and a purchasing NPC never puts its house card away — one hand gone
+    // for good, so a keeper carried one good at a time and every beat's
+    // second `get` was refused.
+    if (MixinApi.isCarrying(principal)) {
+      await principal.receiveGranted(card as unknown as Stuff & Containable, { prefer: 'pockets' });
+    } else ContainmentApi.move(card as unknown as Stuff & Containable, principal);
   }
   return card as Stuff & CredentialWallet;
 }
