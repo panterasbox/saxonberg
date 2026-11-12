@@ -77,9 +77,7 @@ export const brain = class {
   static urgency(ctx: BrainContext): Urgency {
     const counterPath = ctx.config.counter;
     const counter = typeof counterPath === 'string' ? StuffApi.findByTemplatePath(counterPath) : null;
-    const holding =
-      MixinApi.isContainer(ctx.host) &&
-      (ctx.host.getContents() as Stuff[]).some((g) => MixinApi.isChattel(g) && !MixinApi.isCredentialWallet(g));
+    const holding = goodsOn(ctx.host).length > 0;
     if (counter instanceof Stock && counter.shortSuppliedLines().length === 0 && !holding) {
       return new Urgency('idle');
     }
@@ -210,12 +208,26 @@ export const brain = class {
 async function shelve(keeper: Keeper, counter: Stock, homePath: string): Promise<void> {
   if (!atRoom(keeper, homePath)) return;
   const counterKw = keywordOf(counter as unknown as Stuff) ?? 'counter';
-  for (const good of [...keeper.getContents()] as Stuff[]) {
-    if (!MixinApi.isChattel(good) || MixinApi.isCredentialWallet(good)) continue;
+  for (const good of goodsOn(keeper)) {
     const kw = keywordOf(good);
     if (!kw) continue;
     await keeper.forceCommand(`put ${CommandLineApi.word(kw)} in ${CommandLineApi.word(counterKw)}`);
   }
+}
+
+/**
+ * ⭐ The goods the keeper has to shelve — what she CARRIES
+ * (`Carrying.carriedThings`: a hand, a pocket, a belt — never what she
+ * wears, since the flip put her clothes in her contents too), chattel, and
+ * never the house card (chattel too — not for sale).
+ */
+function goodsOn(holder: Stuff): Stuff[] {
+  const things = MixinApi.isCarrying(holder)
+    ? holder.carriedThings()
+    : MixinApi.isContainer(holder)
+      ? (holder.getContents() as Stuff[])
+      : [];
+  return things.filter((g) => MixinApi.isChattel(g) && !MixinApi.isCredentialWallet(g));
 }
 
 /** Is the keeper standing in this room? */

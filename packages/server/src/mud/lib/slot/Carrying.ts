@@ -211,6 +211,22 @@ export interface Carrying {
   /** What the hands hold, each thing once (a two-handed grip is one thing). */
   heldThings(): (Stuff & Slottable)[];
   /**
+   * ⭐ Does this body WEAR `item` — does it occupy one of its slots other
+   * than a hand? What a hand holds is carried, not worn (D12, the flip);
+   * what is pocketed or hung is placed on a worn host, not in a slot. The
+   * model read behind MQL's `:worn` for a carrier.
+   */
+  wears(item: Stuff): boolean;
+  /**
+   * ⭐ What this body CARRIES, directly: in a hand, pocketed, hung from a
+   * belt — and, on a body whose plan is not known yet, loose — never what
+   * it wears (a garment, the bag on its back; what is IN that bag is the
+   * bag's). The goods a body has to hand over, sell or shelve: since the
+   * flip its clothes are in its contents too, and a read of the whole
+   * contents offered them up (a keeper put her apron on the counter).
+   */
+  carriedThings(): Stuff[];
+  /**
    * ⭐ What a lead is made fast to (size and carrying D18, W6): the first
    * worn `Tieable` off the hands — a halter, a dog's collar. A body that
    * wears one is LED by a rope tied to it, hands or no hands (a dog's mouth
@@ -457,6 +473,21 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
         const part = spec?.bodyPart;
         return part !== undefined && sites.has(part) && spec?.accepts !== Mixins.Wearable;
       });
+    }
+
+    public wears(item: Stuff): boolean {
+      const self = this as unknown as Stuff & Slotted;
+      const hands = new Set(this.handSlots());
+      for (const [slot, occupants] of self.getAllOccupants()) {
+        if (hands.has(slot)) continue;
+        for (const o of occupants) if (o.stuffId === item.stuffId) return true;
+      }
+      return false;
+    }
+
+    public carriedThings(): Stuff[] {
+      const self = this as unknown as Stuff & Container;
+      return self.getContents().filter((x) => !this.wears(x));
     }
 
     public heldThings(): (Stuff & Slottable)[] {

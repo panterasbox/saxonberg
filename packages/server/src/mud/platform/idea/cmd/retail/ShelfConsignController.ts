@@ -104,6 +104,13 @@ export default class ShelfConsignController extends HeldGoodsControllerBase<Cons
     const answer = await shelf.consignBy(giver, item, ask);
     if (!answer.ok) {
       switch (answer.reason) {
+        case "worn":
+          return this.reject(
+            giver,
+            context,
+            Mml.compose`You're wearing ${Mml.thing(item)} — take it off first (\`remove ${raw}\`).`,
+            { kind: "controller-rejected", reason: answer.reason, detail: raw },
+          );
         case "unsplittable":
           return this.reject(giver, context, Mml.compose`${Mml.thing(item)} won't divide into lots.`, {
             kind: "controller-rejected", reason: answer.reason, detail: raw,

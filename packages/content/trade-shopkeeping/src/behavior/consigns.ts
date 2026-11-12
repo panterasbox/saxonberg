@@ -111,9 +111,7 @@ export const brain = class {
   static urgency(ctx: BrainContext): Urgency {
     const stockPath = ctx.config.stock;
     const stock = typeof stockPath === 'string' ? StuffApi.findByTemplatePath(stockPath) : null;
-    const goods = (x: Stuff): boolean =>
-      MixinApi.isContainer(x) &&
-      (x.getContents() as Stuff[]).some((g) => MixinApi.isChattel(g) && !MixinApi.isCredentialWallet(g));
+    const goods = (x: Stuff): boolean => goodsOn(x).length > 0;
     if (stock && !goods(stock) && !goods(ctx.host)) return new Urgency('idle');
     return new Urgency('wanted', 'gathers up an armful of stock for the counter');
   }
@@ -239,8 +237,8 @@ export const brain = class {
     // carries them to the board rather than stranding them.
     void before;
     const room2 = shelfHeadroom(shelf);
-    const carried = (hand.getContents() as Stuff[])
-      .filter((c) => MixinApi.isChattel(c) && !MixinApi.isCredentialWallet(c) && room2.take(c)) // the house card is chattel too — not for sale
+    const carried = goodsOn(hand)
+      .filter((c) => room2.take(c))
       .slice(0, Number.isFinite(headroom) ? headroom : undefined);
     if (carried.length === 0) return;
 
@@ -302,6 +300,21 @@ export const brain = class {
     }
   }
 } satisfies BrainStatics;
+
+/**
+ * ⭐ The goods `holder` has to sell — what a body CARRIES
+ * (`Carrying.carriedThings`: a hand, a pocket, a belt — never what it
+ * wears, since the flip put its costume in its contents too), chattel, and
+ * never the house card (chattel too — not for sale).
+ */
+function goodsOn(holder: Stuff): Stuff[] {
+  const things = MixinApi.isCarrying(holder)
+    ? holder.carriedThings()
+    : MixinApi.isContainer(holder)
+      ? (holder.getContents() as Stuff[])
+      : [];
+  return things.filter((g) => MixinApi.isChattel(g) && !MixinApi.isCredentialWallet(g));
+}
 
 /**
  * A keyword the good ANSWERS TO. ⚠ The primary keyword is not always one:

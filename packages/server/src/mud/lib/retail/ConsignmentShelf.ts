@@ -41,7 +41,7 @@ import type { ActOutcome, ActRefusal } from "../craft/ActPlan";
 
 /** Why `consignBy` refused — each a gate of the shelf's, in order. */
 export type ConsignRefusal =
-  | ActRefusal<"unsplittable" | "not-owner" | "no-account" | "turned">
+  | ActRefusal<"worn" | "unsplittable" | "not-owner" | "no-account" | "turned">
   | ActRefusal<"over-cap", { cap: number }>;
 
 /** What `consignBy` did: the lot listed, what stayed in hand, the basis. */
@@ -232,6 +232,11 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
       item: Stuff & Containable,
       askMinor: number,
     ): Promise<ConsignAnswer> {
+      // ⭐ What you WEAR does not go up: you hand the shop a good you carry
+      // (a hand, a pocket, a belt, a bag) — the shirt on your back you take
+      // off first. Since the flip `inventory` is everything on you, and a
+      // consignor's whole outfit was one `shelf consign` from the counter.
+      if (MixinApi.isCarrying(actor) && actor.wears(item)) return { ok: false, reason: "worn" };
       // ⭐ A stack goes up ONE UNIT at a time (a stack cannot bear title, a
       // lot of one can) — the split comes LAST, after every gate.
       const stack = MixinApi.isStackable(item) ? item : null;
