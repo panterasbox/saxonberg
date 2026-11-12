@@ -166,7 +166,7 @@ async function arrive(re: RegExp, budgetMs = 180_000): Promise<string> {
  */
 async function lighten(): Promise<void> {
   for (const w of ['saw', 'marker', 'scraper', 'block', 'block', 'block', 'rod', 'rod', 'worm', 'glowcap']) {
-    if (new RegExp(w, 'i').test(await carried())) await k.cmd(`drop ${w}`);
+    if (new RegExp(w, 'i').test(await carried())) await k.cmd(`drop "${w}"`);
   }
   await k.drainProse();
 }
@@ -264,7 +264,7 @@ beforeAll(async () => {
   // ⚠ Run 2: the founder may not `clone` fishing tackle (it is the
   // trade's title); a rod is bought, as anyone gets one.
   const store = await Session.open(handle, { startLocation: GENERAL_STORE });
-  for (const good of ['rod', 'worm']) expectOk(await store.cmd(`buy ${good}`));
+  for (const good of ['rod', 'worm']) expectOk(await store.cmd(`buy "${good}"`));
   store.close();
   k = await Session.open(handle, { startLocation: SHORE });
   // ⭐ Noon: every outdoor reading here is made in daylight.
@@ -323,7 +323,7 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     await goto(SHORE);
     await nextDays(3);
     await goto(SHORE);
-    for (const tool of ['spud', 'scraper', 'marker', 'saw']) await say(`get ${tool}`);
+    for (const tool of ['spud', 'scraper', 'marker', 'saw']) await say(`get "${tool}"`);
     const inv = await carried();
     console.info(`  carried: ${inv.slice(0, 300)}`);
     expect(inv, inv).toMatch(/spud/i);

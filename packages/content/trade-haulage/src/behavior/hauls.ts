@@ -75,6 +75,7 @@ import type {
   BrainContext,
   BrainStatics,
 } from '@saxonberg/server/mud/lib/behavior/brain';
+import { CommandLineApi } from '@saxonberg/server/mud/api/command-line';
 /*
  * ⭐⭐ **The pack→pack import of `LaneCatalogue` is GONE**, and that is
  * the routing build's quietest win. This brain used to reach across
@@ -205,7 +206,7 @@ async function cover(
   const kw = keywordOf(crate);
   if (!kw) return;
   if (crate.getContainer() !== (carter as unknown as Stuff)) {
-    await carter.forceCommand(`get 1 ${kw}`);
+    await carter.forceCommand(`get 1 ${CommandLineApi.word(kw)}`);
     if (crate.getContainer() !== (carter as unknown as Stuff)) return;
   }
 
@@ -217,7 +218,7 @@ async function cover(
   // completion pays the escrow to the carter's employer and announces
   // the issuer's `onContractSettled`, which files the bill of lading — so the
   // brain's carriage is on the paper exactly like a counter tender's.
-  await carter.forceCommand(`drop ${kw}`);
+  await carter.forceCommand(`drop ${CommandLineApi.word(kw)}`);
   await carter.forceCommand(`job complete ${gig.contractId.slice(0, 8)}`);
 }
 
@@ -287,7 +288,7 @@ async function buyAtOrigin(
   if (!kw) return null;
 
   await carter.forceCommand('wallet use house');
-  await carter.forceCommand(`buy ${kw}`);
+  await carter.forceCommand(`buy ${CommandLineApi.word(kw)}`);
   const got = (carter.getContents() as Stuff[]).find(
     (s) => s.getTemplatePath() === wanted,
   );

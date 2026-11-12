@@ -27,9 +27,10 @@ args:
   - name: water
     type: objects
     required: false
-    greedy: true
     prepositions: [in, at]
-    default: "reachable:[mixin.BulkableMixin],reachable:[mixin.ShoreMixin]"
+    # ⭐ The water answers for itself (`WaterDrawableMixin`, controller-liquidity
+    # W7c): a basin, a tap, a tub, a pail, a shore — the read `rinse` makes.
+    default: "reachable:[mixin.WaterDrawableMixin]"
     scope: ["here", "peers", "person"]
     requires: any
     # Something named must hold water — a shore citing none (a ship's dry
@@ -38,9 +39,9 @@ args:
       - /lib/command/validators/anyHasBulkSlot
   # ⭐ WHAT WITH — a cleanser (soap, fuller's earth…), as `wash`.
   - name: cleanser
+    prepositionRequired: true
     type: objects
     required: false
-    greedy: true
     prepositions: [with, using]
     scope: ["reachable"]
     requires: any

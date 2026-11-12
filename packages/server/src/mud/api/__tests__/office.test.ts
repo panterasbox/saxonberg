@@ -1,7 +1,8 @@
 /**
  * CompactApi — the facade's two surfaces: ungated public reads forward
  * freely; the `assign`/`vacate` mutations are narrow-entry gated to
- * `OfficeController` and throw `SecurityError` from any other caller.
+ * `OfficeAssignController` / `OfficeVacateController` and throw
+ * `SecurityError` from any other caller.
  * The no-registry path returns the documented closed-fail defaults.
  */
 
@@ -30,13 +31,13 @@ describe('CompactApi facade', () => {
     StuffApi.clearAll();
   });
 
-  it('assign throws SecurityError from a non-OfficeController caller', () => {
+  it('assign throws SecurityError from a non-office-controller caller', () => {
     expect(() => CompactApi.assignOffice('alice', 'prime-minister')).toThrow(
       SecurityError,
     );
   });
 
-  it('vacate throws SecurityError from a non-OfficeController caller', () => {
+  it('vacate throws SecurityError from a non-office-controller caller', () => {
     expect(() => CompactApi.vacateOffice('prime-minister')).toThrow(SecurityError);
   });
 

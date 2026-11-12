@@ -3,8 +3,9 @@
  * the water (river D30) — onto the deck of a ship lying alongside, or up
  * onto the bank it is beached against.
  *
- * Where it can come out is the water's business, asked of the river's
- * warren and the sea's (the water mod, a declared dependency).
+ * ⭐ The boat decides (`Boat.recover`, controller-liquidity W8): where it
+ * can come out is the water's own answer (`Launchable`), asked by the boat.
+ * This binds the boat you sit in and words the answer.
  */
 
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
@@ -12,14 +13,7 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import type ReachWarren from '@saxonberg/content-water/src/idea/ReachWarren';
-import type SeaWarren from '@saxonberg/content-water/src/idea/SeaWarren';
-import Boat from '../../../thing/Boat';
-
-/** The river's warren and the sea's (the water mod's). */
-const WATERS = ['/system/water/idea/SeaWarren', '/system/water/idea/ReachWarren'];
+import Boat, { type RecoverRefusal } from '../../../thing/Boat';
 
 export default class RecoverController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
@@ -28,23 +22,26 @@ export default class RecoverController extends CommandController<CommandModel> {
     if (!(boat instanceof Boat)) {
       return this.decline(context, 'You are not sitting in a boat.', 'not-in-boat');
     }
-    const from = boat.getContainer();
-    if (from === null || !MixinApi.isWaterPlace(from) || from.depthNow() <= 0) {
-      return this.decline(context, 'She is out of the water already.', 'not-afloat');
+    const out = await boat.recover();
+    if (!out.ok) return this.decline(context, RecoverController.refusalText(out), out.reason);
+    MessageApi.scene(giver)
+      .topic('act.move')
+      .toSelf(Mml.compose`${Mml.thing(boat)} comes up out of the water and you with it.`)
+      .send();
+  }
+
+  /** ⭐ Every refusal `recover` can say. */
+  protected static refusalText(r: RecoverRefusal): string {
+    switch (r.reason) {
+      case 'not-afloat':
+        return 'She is out of the water already.';
+      case 'nowhere':
+        return 'There is nowhere beside here to take her out onto.';
+      default: {
+        const never: never = r;
+        return never;
+      }
     }
-    for (const path of WATERS) {
-      const water = await StuffApi.singleton<ReachWarren | SeaWarren>(path).catch(() => null);
-      if (!water) continue;
-      const onto = await water.recoverPlaceFor(from);
-      if (onto === null) continue;
-      ContainmentApi.move(boat, onto);
-      MessageApi.scene(giver)
-        .topic('act.move')
-        .toSelf(Mml.compose`${Mml.thing(boat)} comes up out of the water and you with it.`)
-        .send();
-      return;
-    }
-    return this.decline(context, 'There is nowhere beside here to take her out onto.', 'nowhere');
   }
 
   private decline(context: CommandContext, text: string, reason: string): void {

@@ -163,6 +163,13 @@ export interface CommandContext {
   filterPolicy?: OnFilteredPolicy;
 
   /**
+   * ⭐ The per-invocation reach rung (`--top` / `--open` / `--deep`,
+   * controller-liquidity D4). Absent: each slot's own `depth:` applies.
+   * ⚠ Carried, not yet consumed — the seed walks obey it from W2.
+   */
+  depth?: ReachDepth;
+
+  /**
    * ⭐⭐ **The one guard every prompt seam uses.** Returns the
    * Interactive to ask, or — when nobody is there to answer (a script
    * line, an NPC) — notes `command-rejected { reason: 'needs-input',
@@ -217,6 +224,8 @@ export interface CreateCommandContextArgs {
   barId?: string;
   /** `--strict` / `--loose`; see {@link CommandContext.filterPolicy}. */
   filterPolicy?: OnFilteredPolicy;
+  /** `--top` / `--open` / `--deep` on the line. */
+  depth?: ReachDepth;
 }
 
 /**
@@ -821,6 +830,31 @@ export function collectPhaseEffects(
   return out;
 }
 
+/**
+ * A slot's value type. `duration` is a written span (`90s`, `15m`, `2h`,
+ * `1h30m`, `3d`, `90 seconds`, `2 hours`) bound as **milliseconds**
+ * (controller-liquidity D1); `number` is coerced at bind for options and
+ * positionals alike. `enum` is a closed word list — the slot's `values:`
+ * (owner ruling 2026-11-10: a closed word list is a type, not a string
+ * with a constraint).
+ */
+export type FieldType =
+  | 'string'
+  | 'enum'
+  | 'number'
+  | 'duration'
+  | 'boolean'
+  | 'object'
+  | 'objects'
+  | 'struct';
+
+/**
+ * The three reach rungs (controller-liquidity D4): `top` = held, worn and
+ * the place's top level; `open` = also inside open vessels you carry and
+ * open things here; `deep` = everything, shut or not.
+ */
+export type ReachDepth = 'top' | 'open' | 'deep';
+
 export interface FieldDefinition {
   /**
    * What this slot accepts, by mixin composition. Required on every
@@ -830,6 +864,7 @@ export interface FieldDefinition {
   requires?: MixinRequirement;
   /**
    * - `string` / `number` / `boolean` — primitive coerce-on-bind.
+   * - `enum` — one of the slot's `values:`, canonicalized at bind.
    * - `object` — singular MQL field; the dispatcher resolves the
    *   bound text via `MqlApi.resolveOne` (when `onExcess: 'top'`) or
    *   `MqlApi.resolveMany` (otherwise — full list needed for
@@ -845,7 +880,24 @@ export interface FieldDefinition {
    *   `assembleFromStructured`. Validated against the optional
    *   `schema` (JSON Schema) before user-defined validators fire.
    */
-  type?: 'string' | 'number' | 'boolean' | 'object' | 'objects' | 'struct';
+  type?: FieldType;
+  /**
+   * ⭐ The closed set of words a `type: 'enum'` slot accepts
+   * (controller-liquidity D1, made a type by owner ruling 2026-11-10):
+   * required on `enum`, refused on every other type. Matched
+   * case-insensitively; the canonical spelling written here is what binds.
+   * Anything else is refused by the VIEW (a `bind` error naming the list)
+   * before a controller is cloned. `default:` must be one of them
+   * (load-time).
+   */
+  values?: string[];
+  /**
+   * ⭐ How deep an `object` / `objects` slot reaches by default
+   * (controller-liquidity D4): `top` · `open` (the default) · `deep`. The
+   * player overrides it per invocation with the reserved `--top` /
+   * `--open` / `--deep` flags ({@link AssembleSuccess.reservedDepth}).
+   */
+  depth?: ReachDepth;
   /**
    * Cardinality constraint for `objects` fields. Ignored on other
    * field types. Defaults to `{ min: 0, max: Infinity }`.
@@ -1101,7 +1153,9 @@ export interface OptionDefinition {
    * resolution (see `scope` below); the controller receives an
    * `MqlOneResult` / `MqlManyResult` wrapper, not the raw string.
    */
-  type: 'boolean' | 'string' | 'number' | 'object' | 'objects' | 'struct';
+  type: 'boolean' | FieldType;
+  /** The closed set of words this option accepts — see `FieldDefinition.values`. */
+  values?: string[];
   /** Optional JSON Schema fragment — see `FieldDefinition.schema`. */
   schema?: Record<string, unknown>;
   /** Cardinality / onExcess / onShortage — see `FieldDefinition`. */
@@ -1213,6 +1267,10 @@ export interface SubcommandDefinition {
    * parallels `validators`. @internal
    */
   _resolvedValidators?: CommandValidator[];
+  // ⛔ No `subcommands?:` here, and no `fallthrough?:` — a stanza is a
+  // LEAF. A command is `verb target` or `verb subcommand target`, never
+  // deeper (owner rule 2026-11-10; nesting shipped in controller-liquidity
+  // W1 and was reversed in W16).
 }
 
 /**
@@ -1384,6 +1442,14 @@ export interface AssembleSuccess {
    * the attempt's {@link CommandContext.filterPolicy}.
    */
   reservedFiltered?: OnFilteredPolicy;
+  /**
+   * ⭐ The reserved `--top` / `--open` / `--deep` flag consumed from the
+   * token stream (last wins) — the reach rung for this one invocation,
+   * over every object slot's `depth:` (controller-liquidity D4). Stripped
+   * like `--async`, so it works on any verb; carried onto
+   * {@link CommandContext.depth}.
+   */
+  reservedDepth?: ReachDepth;
 }
 
 /**
@@ -1416,7 +1482,15 @@ export type AssembleResult =
    * `missing` names the required field the line left out, when that is
    * why it failed — the dispatcher asks for an object it is missing.
    */
-  | { error: 'shape'; summary: string; missing?: string }
+  /**
+   * `quoteHint` — ⭐ the line had too many words for this view and quoting
+   * one multi-word name would have made it fit (controller-liquidity D3):
+   * the sentence to say, `too many words — quote a name with a space in
+   * it: buy "dog loaf"`. Said only when no other view claims the line.
+   * `quoteLine` is the fitted line alone (`buy "dog loaf"`), the
+   * suggestion the client offers to run.
+   */
+  | { error: 'shape'; summary: string; missing?: string; quoteHint?: string; quoteLine?: string }
   | { error: 'bind'; summary: string }
   | { error: 'unknown-subcommand'; subcommand: string; available: string[] };
 
@@ -1648,10 +1722,12 @@ export class CommandApi {
    *   1. **No prefix** (the bar is unset) → verbatim no-op.
    *   2. **`/`-escape** → strip the leading slash and run the rest raw
    *      (a one-off un-moded command; `/look` lexes as `look`).
-   *   3. **Cockpit control** → the `cockpit` verb is exempt, so
-   *      `cockpit scope off` / `cockpit mode watch` / `cockpit style …`
-   *      always reach the interpreter un-prefixed regardless of the
-   *      active scope.
+   *   3. **Cockpit control** → the `cockpit` verb and every `client-…`
+   *      verb are exempt, so `cockpit cli --clear` / `cockpit mode watch`
+   *      / `client-style …` always reach the interpreter un-prefixed
+   *      regardless of the active scope. (The `client-` compound names are
+   *      the interface verbs split out of `cockpit` when nesting was
+   *      reversed — controller-liquidity W16.)
    *
    * Rule 3 states one thing: **interface control is not world input.**
    * A bar scoped to a chat channel still steers its own cockpit. The
@@ -1670,7 +1746,8 @@ export class CommandApi {
     if (!modePrefix) return rawText; // (1) unset bar — verbatim no-op
     const t = rawText.trimStart();
     if (t.startsWith('/')) return t.slice(1); // (2) escape → run raw
-    if (t.split(/\s+/)[0]?.toLowerCase() === 'cockpit') return rawText; // (3) exempt
+    const first = t.split(/\s+/)[0]?.toLowerCase() ?? '';
+    if (first === 'cockpit' || first.startsWith('client-')) return rawText; // (3) exempt
     return `${modePrefix} ${rawText}`;
   }
 

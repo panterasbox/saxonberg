@@ -191,6 +191,13 @@ chain summary, commandId/causingCommandId, timestamp}` into an
    content developers need alternative implementations: decide whether
    the mechanism is the `_mixinName` marker (status quo, spoof-shaped),
    a registered interface vocabulary, or per-pack conferral via (3).
+5. **The consent gate** (deferred from controller-liquidity, 2026-11-11)
+   — the predicate that decides, BEFORE the act, whether one body may do
+   a thing to another (`bleed` first: `Vitals.drawBlood(litres, by)`
+   takes the actor and writes the accountability record when `by ≠ self`,
+   but nothing asks consent first). The compulsion-gate security build's;
+   the audit rail above is its compensating control for *possession is
+   capability*.
 
 ## Where everything lives (orientation for the pass)
 

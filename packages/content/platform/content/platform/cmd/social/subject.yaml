@@ -1,6 +1,5 @@
 verbs: [subject]
 category: social
-controller: /platform/idea/cmd/social/SubjectController
 description: "Own a subject's identity + audience (make / list); light up surfaces with `chat on` / `forum on`"
 help: |
   A subject is the shared identity and audience that chat channels and
@@ -14,11 +13,12 @@ validators:
   - /lib/command/validators/requiresAnimate
 subcommands:
   make:
-    description: "Create a subject (default mints a managed group; --group binds a ref; --open is audience-open)"
+    controller: /platform/idea/cmd/social/SubjectMakeController
+    description: "Create a subject (default mints a managed group; --group binds a ref; --public is audience-open)"
     help: |
       Create a subject you own. By default it mints a fresh managed
       group for membership; `--group` binds an existing ref instead,
-      and `--open` makes the audience every player.
+      and `--public` makes the audience every player.
     examples:
       - cmd: subject make stargazers
         note: Create a subject with its own managed audience
@@ -28,7 +28,9 @@ subcommands:
         type: string
         field: group
         description: "Bind an existing guild:/mql:/contacts:/managed: ref (mints nothing)"
-      open:
+      # ⚠ `--public`, not `--open`: `--open` is the reserved reach rung
+      # (controller-liquidity D4). The field keeps its name.
+      public:
         type: boolean
         field: open
         description: "Leave the audience open to every player"
@@ -37,6 +39,7 @@ subcommands:
         type: string
         required: true
   list:
+    controller: /platform/idea/cmd/social/SubjectListController
     description: "List subjects visible to you, with their lit surfaces"
     help: |
       Show the subjects you can see and which surfaces — chats, boards —

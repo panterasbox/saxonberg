@@ -1,0 +1,53 @@
+# ⭐ `paste` — a label onto a good's face (controller-liquidity W7c, the
+# remedy ladder's rung 5, accepted by the owner 2026-11-09). It was a head
+# of `fit`, and it is not one act with assembly: it has its own refusals
+# (the glue), no engagement and a different outcome — a COAT on a face, the
+# sheet gone into it — so it is its own word, beside `paint` and `dip` in
+# the face-coat family. Rungs 1–4 failed: not one act (1), not a manner of
+# fitting (2), no noun groups "paste a label" with "fit a handle" (3), and
+# `fit X on Y with Z` is also assembly's shape, so no shape is disjoint (4).
+#
+# ⭐ Afforded by WHAT IS PASTED — a sheet of paper (`Sheet`'s
+# `commandContributions`), carried or at your feet. The good decides
+# (`Faced.pasteOn`); the glue's own damp-resistance decides how long it
+# stays.
+verbs: [paste]
+category: crafting
+controller: /platform/idea/cmd/crafting/PasteController
+description: "Paste a label onto a thing with glue"
+help: |
+  `paste label on jar with paste` brushes the glue on the back of the
+  label and smooths it onto the jar. What is written on the label goes
+  with it, and the label is part of the jar now — a coat on its face.
+
+  What holds it is the glue: a starch paste lets go when the jar gets
+  wet, and a hide glue holds through the damp. (`fit label on jar` used
+  to do this; `fit` is for parts now.)
+examples:
+  - cmd: paste label on jar with "pot of paste"
+    note: A written label onto a jar
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: sheet
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: MarkedMixin
+  - name: whole
+    prepositionRequired: true
+    type: object
+    required: true
+    prepositions: [on, onto, to]
+    scope: ["reachable"]
+    requires: FacedMixin
+  # The pot the glue is in.
+  - name: pot
+    prepositionRequired: true
+    type: object
+    required: false
+    prepositions: [with, using]
+    scope: ["reachable"]
+    requires: BulkableMixin

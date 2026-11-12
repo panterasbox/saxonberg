@@ -12,7 +12,7 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import { PrintingMixin, type RunOutcome } from '../lib/Printing';
-import type Forme from './Forme';
+import Forme from './Forme';
 
 const PRINT = ['trade/printing/cmd/printing/print.yaml'];
 
@@ -21,6 +21,11 @@ export default class Press extends PrintingMixin(ToolMixin(ContainerMixin(Good))
 
   protected override inkPerPageL(): number {
     return 0.002;
+  }
+
+  /** ⭐ A press prints what is set in a forme, and nothing else. */
+  public override async printFor(what: Stuff | null, _name: string, copies: number, by: Stuff): Promise<RunOutcome | null> {
+    return what instanceof Forme ? this.pull(what, this.runOf(copies), by) : null;
   }
 
   /** Pull `copies` of the forme. */

@@ -26,11 +26,10 @@ args:
     default: "reachable:[mixin.SpliceableMixin]"
     scope: ["reachable"]
     requires: [SpliceableMixin]
-    greedy: true
   - name: other
+    prepositionRequired: true
     type: object
     required: false
     prepositions: [to, into, with]
     scope: ["reachable"]
     requires: [SpliceableMixin]
-    greedy: true

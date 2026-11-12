@@ -55,7 +55,7 @@ export class MqlGroupProvider implements GroupProvider {
    */
   async roleOf(memberKey: string, id: string): Promise<GroupRole | null> {
     const members = await this.members(id);
-    const present = members.some((s) => s.getTemplatePath() === memberKey);
+    const present = members.some((s) => s.getIdentityPath() === memberKey);
     return present ? 'member' : null;
   }
 

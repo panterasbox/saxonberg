@@ -4,10 +4,6 @@
 
 import type { CommandContext } from '../../../../api/command';
 import { Mml } from '../../../../api/mml';
-import { StuffApi } from '../../../../api/stuff';
-import { TemplatePaths } from '../../../../lib/paths';
-import WikiRenderer from '../../WikiRenderer';
-import { WikiPage } from '../../../../lib/wiki/WikiPage';
 import { SourceDiff } from '../../../../lib/wiki/SourceDiff';
 import { WikiControllerBase, type WikiModel } from './WikiControllerBase';
 
@@ -16,9 +12,7 @@ export default class WikiDiffController extends WikiControllerBase {
     const page = await this.requirePage(model, context);
     if (!page) return;
     const registry = await this.registry();
-    const renderer = await StuffApi.singleton<WikiRenderer>(
-      TemplatePaths.wikiRenderer,
-    );
+    const reader = context.commandGiver;
 
     const from = this.parseRev(model.from);
     const to = this.parseRev(model.to);
@@ -27,8 +21,8 @@ export default class WikiDiffController extends WikiControllerBase {
     }
     // Bare `wiki diff <page>` compares the last two — the question
     // somebody scanning a page actually has ("what just changed?").
-    const revs = await registry.history(page._id ?? '');
-    const latest = revs[0]?.getRev() ?? page.getRev();
+    const revs = await registry.historyFor(reader, page._id ?? '');
+    const latest = revs[0]?.rev ?? page.getRev();
     const toRev = to ?? latest;
     const fromRev = from ?? Math.max(1, toRev - 1);
     if (fromRev === toRev) {
@@ -36,23 +30,19 @@ export default class WikiDiffController extends WikiControllerBase {
       return;
     }
 
-    const [a, b] = await Promise.all([
-      this.bodyAt(page, fromRev),
-      this.bodyAt(page, toRev),
+    // Redacted by the registry, THEN diffed (controller-liquidity D9).
+    const [safeA, safeB] = await Promise.all([
+      registry.revisionAtFor(reader, page, fromRev),
+      registry.revisionAtFor(reader, page, toRev),
     ]);
-    if (a === null || b === null) {
+    if (safeA === null || safeB === null) {
       return this.fail(
         context,
-        `no revision ${a === null ? fromRev : toRev} of this page`,
+        `no revision ${safeA === null ? fromRev : toRev} of this page`,
         'no-such-revision',
       );
     }
 
-    // Redact, THEN diff.
-    const [safeA, safeB] = await Promise.all([
-      renderer.redactSource(a),
-      renderer.redactSource(b),
-    ]);
     const ops = SourceDiff.words(safeA, safeB);
     const changed = ops.some((o) => o.kind !== 'same');
     if (!changed) {
@@ -71,16 +61,5 @@ export default class WikiDiffController extends WikiControllerBase {
           `${Mml.escape(SourceDiff.format(ops))}\n`,
       ),
     );
-  }
-
-  /**
-   * The page's body at `rev` — the revision row's, or the page's own
-   * when `rev` is the current one and no row carries it.
-   */
-  private async bodyAt(page: WikiPage, rev: number): Promise<string | null> {
-    const registry = await this.registry();
-    const row = await registry.revisionAt(page._id ?? '', rev);
-    if (row) return row.getBody();
-    return rev === page.getRev() ? page.getBody() : null;
   }
 }

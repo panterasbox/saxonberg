@@ -1,5 +1,6 @@
 /**
- * The wardrobe — named outfits, zero new verbs.
+ * The wardrobe — named outfits, kept by the `outfit` verb (since
+ * controller-liquidity W16; it rode `equip set …` before).
  *
  * ⚠ The last two tests here are **source-shape** tests, and they are the
  * point of the wave as much as the mechanism is: `wear set` had to be a
@@ -106,7 +107,7 @@ describe('WardrobeMixin — the variable-key escape hatch', () => {
   });
 });
 
-describe('the verb shape — sets ride a verb, they are not one', () => {
+describe('the verb shape — `equip` dresses, `outfit` keeps the saved sets', () => {
   /*
    * ⚠⚠ This suite used to assert ZERO NEW VERBS. Two shipped since —
    * `equip` and `unequip` — and that was a deliberate decision rather
@@ -124,9 +125,12 @@ describe('the verb shape — sets ride a verb, they are not one', () => {
    * pin: the narrow `requires:` per verb, which is the whole reason
    * they are still separate views.
    *
-   * What survives untouched, and is what this suite really tested: a
-   * saved set is a SUBCOMMAND of a dressing verb, never a verb of its
-   * own.
+   * ⚠ What this suite used to pin last — *a saved set is a SUBCOMMAND
+   * of a dressing verb, never a verb of its own* — was reversed by the
+   * owner (controller-liquidity W16, 2026-11-10): a command is `verb
+   * subcommand target`, never deeper, so `equip set save <name>` could
+   * not stand, and a diegetic act takes a plain word: `outfit
+   * wear|save|list`.
    */
   function view(name: string): {
     verbs?: string[];
@@ -140,17 +144,19 @@ describe('the verb shape — sets ride a verb, they are not one', () => {
     ) as never;
   }
 
-  it('`equip.yaml` is the orchestrator, with set/sets as subcommands', () => {
+  it('`equip.yaml` is the orchestrator — flat, no subcommands', () => {
     const doc = view('equip');
     expect(doc.verbs).toEqual(['equip']);
-    expect(Object.keys(doc.subcommands ?? {}).sort()).toEqual(['set', 'sets']);
-    // ⚠ `fallthrough` is what keeps bare `equip <item>` working once the
-    // verb has subcommands: an unrecognised first token binds against
-    // `args:` instead of erroring.
-    expect(doc.fallthrough).toBe(true);
+    expect(doc.subcommands).toBeUndefined();
     // ⭐ The target is OPTIONAL — bare `equip` is the whole-kit form and
     // the main path, which is the entire point of the verb.
     expect(doc.args?.[0]?.required).toBe(false);
+  });
+
+  it('⭐ `outfit.yaml` keeps the saved sets: wear · save · list, one level', () => {
+    const doc = view('outfit');
+    expect(doc.verbs).toEqual(['outfit']);
+    expect(Object.keys(doc.subcommands ?? {}).sort()).toEqual(['list', 'save', 'wear']);
   });
 
   it('`unequip.yaml` is the other direction, and only that', () => {
@@ -220,8 +226,8 @@ describe('the verb shape — sets ride a verb, they are not one', () => {
   });
 
   it('nothing under `inventory/` claims a verb this build did not have', () => {
-    // The wardrobe rode an existing view. If a later change reaches for
-    // a verb instead, this is where it shows up.
+    // `outfit` is the wardrobe's own verb since W16; any OTHER new word
+    // for getting dressed shows up here.
     const inventoryVerbs = new Set<string>();
     for (const { doc } of allViews(join(CMD_ROOT, 'inventory'))) {
       for (const v of (doc.verbs as string[] | undefined) ?? []) {
@@ -230,7 +236,7 @@ describe('the verb shape — sets ride a verb, they are not one', () => {
     }
     expect(inventoryVerbs.has('wear')).toBe(true);
     expect(inventoryVerbs.has('dress')).toBe(false);
-    expect(inventoryVerbs.has('outfit')).toBe(false);
+    expect(inventoryVerbs.has('outfit')).toBe(true);
     expect(inventoryVerbs.has('livery')).toBe(false);
   });
 });

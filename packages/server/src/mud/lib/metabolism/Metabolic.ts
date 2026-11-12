@@ -61,6 +61,10 @@ import { MaterialApi } from '../../api/material';
 import { CraftingApi } from '../../api/crafting';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
+import { BulkableApi } from '../../api/bulk';
+import { CompetenceBand } from '../advancement/CompetenceBand';
+import type { Prescription } from '../vitals/Prescription';
+import type { ActPlan, ActRefusal } from '../craft/ActPlan';
 
 /* ─────────────────────────── toxin model (types) ─────────────────────────── */
 //
@@ -498,7 +502,45 @@ export interface Metabolic {
    * toxin's does — this is *how the dose arrives*, not a new toxin model.
    */
   introduceToxin(type: string, amount: number): void;
+  /**
+   * ⭐ `dose` (controller-liquidity W7c): what a dose from `remedy` does
+   * to this body, given by `by`. **The substance decides** — an
+   * `antidote:<toxin>` tag on its matter crashes each matching burden, an
+   * `active` tag is administered as a burden (a controlled active needs a
+   * licensed giver or a matching `Prescription` among `prescriptions`).
+   * An instant act: a plan of `durationMs: 0` whose completion spends the
+   * dose and changes the body. The controller words the answer.
+   */
+  dosePlanFor(by: Stuff, remedy: Stuff, prescriptions: readonly Stuff[]): Promise<DoseAnswer>;
 }
+
+/**
+ * ⭐ Why a dose could not be given — the `dose` verb words each.
+ *  - `no-remedy` — the vessel's matter names no antidote and no active.
+ *  - `empty-vial` — less than a dose left in it.
+ *  - `nothing-to-counter` — an antidote for toxins this body does not carry.
+ *  - `wrong-patient` — the prescriptions in reach are for somebody else.
+ *  - `not-licensed` — a controlled active, no prescription, an unlicensed giver.
+ */
+export type DoseRefusal =
+  | ActRefusal<'no-remedy'>
+  | ActRefusal<'empty-vial'>
+  | ActRefusal<'nothing-to-counter', { counters: readonly string[] }>
+  | ActRefusal<'wrong-patient', { active: string }>
+  | ActRefusal<'not-licensed', { active: string }>;
+
+/** What a given dose did: an antidote's cures, or the active administered. */
+export type DoseFacts =
+  | { kind: 'antidote'; remedy: Stuff; cured: readonly string[] }
+  | { kind: 'active'; remedy: Stuff; active: string };
+
+/** What `dosePlanFor` answers. */
+export type DoseAnswer = ActPlan<DoseFacts, DoseFacts, DoseRefusal> | DoseRefusal;
+
+/** Litres of a remedy one dose spends. */
+const DOSE_LITRES = 0.05;
+const ANTIDOTE_PREFIX = 'antidote:';
+const ACTIVE_TAG = 'active';
 
 function assertFiniteNonNeg(value: number, what: string): void {
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
@@ -1838,6 +1880,74 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       const next = cur * (1 - METABOLIC_DEFAULTS.ANTIDOTE_CRASH_FRACTION);
       if (next <= 1e-9) delete this.toxinBurdens[toxinType];
       else this.toxinBurdens[toxinType] = next;
+    }
+
+    /** @hook See {@link Metabolic.dosePlanFor}. */
+    public async dosePlanFor(by: Stuff, remedy: Stuff, prescriptions: readonly Stuff[]): Promise<DoseAnswer> {
+      const body = this as unknown as Stuff & Metabolic;
+      const slot = MixinApi.isBulkable(remedy) ? BulkableApi.slotFor(remedy, undefined) : null;
+      const matter = slot && !slot.isEmpty() ? slot.getMaterial() : null;
+      if (!slot || !matter) return { ok: false, reason: 'no-remedy' };
+      const tags = matter.getTags();
+      const counters = tags.filter((t) => t.startsWith(ANTIDOTE_PREFIX)).map((t) => t.slice(ANTIDOTE_PREFIX.length));
+      const active = tags.includes(ACTIVE_TAG) && MixinApi.hasToxicity(matter) ? matter.getToxicity()[0] : undefined;
+      if (counters.length === 0 && !active) return { ok: false, reason: 'no-remedy' };
+      if (slot.getAmount().rawValue() < DOSE_LITRES) return { ok: false, reason: 'empty-vial' };
+      const spend = (): void => {
+        slot.setAmount(Quantity.of(slot.getAmount().rawValue() - DOSE_LITRES, 'L'));
+      };
+
+      if (counters.length > 0) {
+        const cured = counters.filter((t) => (this.toxinBurdens[t] ?? 0) > 0);
+        if (cured.length === 0) return { ok: false, reason: 'nothing-to-counter', facts: { counters } };
+        const facts: DoseFacts = { kind: 'antidote', remedy, cured };
+        return {
+          ok: true, durationMs: 0, effortW: 0, facts,
+          onComplete: () => {
+            for (const t of cured) body.applyAntidote(t);
+            spend();
+            return { ok: true, facts };
+          },
+        };
+      }
+
+      const type = active!.type;
+      // ⭐ The prescription gate — the active's Condition row says whether
+      // it is controlled; a licensed giver, or a slip for THIS body.
+      const row = StuffApi.findByTemplatePath<Condition>(TemplatePathPrefixes.metabolismCondition + type);
+      let slip: (Stuff & Prescription) | null = null;
+      if (row?.isPrescriptionOnly() === true) {
+        const licensed =
+          MixinApi.isAdvancing(by) &&
+          CompetenceBand.atOrAbove(await by.competenceBandFor('medicine'), 'competent');
+        if (!licensed) {
+          const slips = prescriptions.filter(
+            (p): p is Stuff & Prescription => MixinApi.isPrescription(p) && p.getActive() === type,
+          );
+          const bodyId = body.getIdentityPath();
+          slip = bodyId === null ? null : (slips.find((p) => p.isFor(bodyId, type)) ?? null);
+          if (slip === null) {
+            return slips.length > 0
+              ? { ok: false, reason: 'wrong-patient', facts: { active: type } }
+              : { ok: false, reason: 'not-licensed', facts: { active: type } };
+          }
+        }
+      }
+      const facts: DoseFacts = { kind: 'active', remedy, active: type };
+      const amount = active!.amount;
+      return {
+        ok: true, durationMs: 0, effortW: 0, facts,
+        onComplete: async () => {
+          slip?.spendDose();
+          // The toxicity amount IS the per-dose amount for a remedy.
+          body.introduceToxin(type, amount);
+          spend();
+          if (MixinApi.isAdvancing(by)) {
+            await by.creditDeed({ discipline: 'nursing', difficulty: 'easy', outcome: 'success' });
+          }
+          return { ok: true, facts };
+        },
+      };
     }
 
     public introduceToxin(type: string, amount: number): void {

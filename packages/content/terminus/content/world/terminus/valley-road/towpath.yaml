@@ -38,7 +38,7 @@ data:
       media: [ground]
       edgeMinutes: 1
     # ⭐ The towpath cottage (paint D20) — the towpath is where it meets the
-    # weather: `look cottage`, `survey cottage`, `paint cottage` from here.
+    # weather: `look cottage`, `measure paint cottage`, `paint cottage` from here.
     # ⚠ The exit is its DOOR, not "cottage": an exit's name is a candidate
     # in the room's pool and would take the word from the building.
     door:

@@ -16,6 +16,31 @@ import type { Container } from "../spatial/Container";
 import type { Containable } from "../spatial/Containable";
 import { MixinApi } from "../../api/mixin";
 import { SecurityApi } from "../../api/security";
+import { BankingApi } from "../../api/banking";
+import { StuffApi } from "../../api/stuff";
+import type { Organization } from "../employment/Organization";
+import { ContainmentApi } from "../../api/containment";
+import type { ActRefusal } from "../craft/ActPlan";
+import type { Chattel } from "../chattel/Chattel";
+
+/** The claim ticket a check-in hands back (`/platform/thing/Ticket`). */
+type ClaimTicket = Stuff & Containable & { setClaim(pointPath: string, number: number): void };
+
+/**
+ * Why a held-goods fixture will not take a good into custody — the
+ * CLOSED union every host's {@link HeldGoodsShelf.accepts} answers in (a
+ * pack host's reasons are kernel words: the `rack check` controller words
+ * them). `not-a-weapon`: a check rack holds arms (a shield is armor);
+ * `fungible`: a loose stack is owned by possession, never checked.
+ */
+export type HoldRefusalReason = "not-a-weapon" | "fungible";
+export type HoldRefusal = ActRefusal<HoldRefusalReason>;
+
+/** A good checked in: the holding and the claim ticket handed back. */
+export interface CheckedIn {
+  ok: true;
+  facts: { holding: HeldGood; ticket: Stuff };
+}
 
 
 /**
@@ -46,6 +71,36 @@ export interface HeldGoodsShelf {
   countHeld(consignorKey: string): number;
   /** A held good on this fixture, matched by keyword. */
   resolveHeld(keyword: string): (Stuff & Containable) | null;
+  /**
+   * The Business `actor` acts as right now — the one whose operating
+   * account is active in the wallet AND that `actor` buys for — or `null`
+   * (acting personally). The principal a consign or reclaim is made as.
+   */
+  actingHouseOf(actor: Stuff): Promise<Stuff | null>;
+  /**
+   * ⭐⭐ May `actor` dispose of `item` here — list it, or take it back?
+   * (controller-liquidity D9, C63.) ONE rule for both acts, so whatever a
+   * hand may put up it may take down: the good is titled to `actor`, to the
+   * house `actor` acts as, or to an organization above that house; or this
+   * fixture's own record says that principal left it here.
+   */
+  mayDisposeOf(actor: Stuff, item: Stuff): Promise<boolean>;
+  /**
+   * ⭐ Will this fixture take `item` into custody? `null` = yes; else the
+   * refusal (controller-liquidity W8, C61 — the controller asked
+   * `isWeapon()` of a good that was not Wieldable and threw).
+   */
+  accepts(item: Stuff): HoldRefusal | null;
+  /**
+   * ⭐ Check `item` in for `by`: what the fixture accepts, the owner-stamp
+   * established (reclaim authorizes on it), custody moved here, the
+   * holding recorded, and a claim ticket handed to `by`. Every refusal
+   * before any write.
+   */
+  checkIn(
+    item: Stuff & Containable & Chattel,
+    by: Stuff & Container,
+  ): Promise<HoldRefusal | CheckedIn>;
 }
 
 /** A pure custody rack (the coat check) — the held-goods base, no sale. */
@@ -95,6 +150,69 @@ export function HeldGoodsMixin<TBase extends MixinConstructor<Stuff>>(
 
     public countHeld(consignorKey: string): number {
       return this.holdingsOf(consignorKey).length;
+    }
+
+    public async actingHouseOf(actor: Stuff): Promise<Stuff | null> {
+      const active = BankingApi.activeCredential()?.getActiveAccount() ?? null;
+      if (!active) return null;
+      const ownerKey = await BankingApi.ownerKeyOf(active);
+      if (!ownerKey || ownerKey === actor.getIdentityPath()) return null;
+      const live = StuffApi.findByTemplatePath(ownerKey);
+      if (!live || !MixinApi.isBusiness(live)) return null;
+      const mine = MixinApi.isEmployed(actor) ? await actor.buysFor() : [];
+      return mine.includes(live) ? live : null;
+    }
+
+    public async mayDisposeOf(actor: Stuff, item: Stuff): Promise<boolean> {
+      const house = await this.actingHouseOf(actor);
+      const keys = new Set<string>();
+      const self = actor.getIdentityPath();
+      if (self) keys.add(self);
+      const housePath = house?.getIdentityPath();
+      if (housePath) keys.add(housePath);
+      // This fixture's own book: who left it here.
+      if (MixinApi.isChattel(item)) {
+        const held = this.holdingFor(item.getChattelId());
+        if (held && keys.has(held.consignorKey)) return true;
+      }
+      const owner = MixinApi.isChattel(item) ? await item.chattelOwner() : null;
+      if (owner?.kind !== "player" && owner?.kind !== "organization") return false;
+      if (keys.has(owner.templatePath)) return true;
+      // A corpo's yard sells the corpo's goods: title held ABOVE the house.
+      if (owner.kind === "organization" && house) {
+        const chain = await (house as Stuff & Organization).organizationChain();
+        return chain.some((o) => o.getOrganizationPath() === owner.templatePath);
+      }
+      return false;
+    }
+
+    /**
+     * @hook The custody base holds any good; a host narrows what it takes
+     * (a check rack: discrete weapons only).
+     */
+    public accepts(_item: Stuff): HoldRefusal | null {
+      return null;
+    }
+
+    public async checkIn(
+      item: Stuff & Containable & Chattel,
+      by: Stuff & Container,
+    ): Promise<HoldRefusal | CheckedIn> {
+      const refusal = this.accepts(item);
+      if (refusal) return refusal;
+      // The owner-stamp stays with the owner — custody is not title.
+      if (!item.getChattelId()) await item.stampChattel(by);
+      const consignorKey = by.getIdentityPath() ?? "";
+      const self = this as unknown as Stuff & Container;
+      ContainmentApi.move(item, self);
+      const holding = this.recordHolding(item.getChattelId(), consignorKey);
+      // The diegetic claim: a carried ticket stamped with this fixture.
+      // The AUTHORITY to reclaim is the owner-stamp, not the ticket — so a
+      // lost ticket never traps the good (it's flavor, not the key).
+      const ticket = await StuffApi.clone<ClaimTicket>("/platform/thing/Ticket");
+      ticket.setClaim(self.getTemplatePath() ?? "", this.countHeld(consignorKey));
+      ContainmentApi.move(ticket, by);
+      return { ok: true, facts: { holding, ticket } };
     }
 
     public resolveHeld(keyword: string): (Stuff & Containable) | null {

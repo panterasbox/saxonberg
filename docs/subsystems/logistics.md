@@ -806,7 +806,7 @@ the contrast is the point.
 
 ## Archetypes
 
-⚠⚠ **A corridor is asked over its LANE, not its zone.** `surveyScope:
+⚠⚠ **A corridor is asked over its LANE, not its zone.** `roomsScope:
 corridor` reports the archetype across a whole way at once, and the
 question *"which rooms are the way?"* was first answered with the room's
 zone — because the kernel could reach a zone and could not import the
@@ -816,11 +816,17 @@ spot, and a city-sized zone would report *the corridor has water*
 because a fountain exists a quarter-mile away. The shipped roads read
 correctly only because they happen to be zoned one-road-per-zone.
 
-⭐ It resolves `LaneCatalogue.lanesAt(here)` **by shape** now — the
-duck-typed singleton lookup `consigns` already uses — so the kernel
-still imports no pack, a crossroads on two ways is asked about both, and
-**outdoor ground that is on no lane is asked nothing at all**, which is
-the behaviour a courtyard should have had from the start.
+⭐ It asks the realm's **`WayIndex`** (`lib/location/WayIndex.ts`, a
+kernel seam mixin; controller-liquidity W21) — the singleton the
+`ways.indexPath` setting names, narrowed by `MixinApi.isWayIndex`. The
+transport pack's `LaneCatalogue` composes it (`waysideOf(here)` — the union
+of every lane's nodes through here) and seeds the setting
+(`content/settings/ways.yaml`). So the kernel still imports no pack and
+probes no shape (it resolved `lanesAt` **by shape** until W21, swallowing
+any error), a crossroads on two ways is asked about both, **outdoor ground
+that is on no lane is asked nothing at all**, and ⚠ **with no index named
+(no transport pack) no corridor archetype is reported** — an absence by
+design; a named path that is not a `WayIndex` throws.
 
 ⭐ `lanesAt` is a **keyed read** off a `byNode` index built during the
 compile (`place → the lanes running through it`). It was a filter over
@@ -834,11 +840,12 @@ Two substrate fields, and the second is not optional:
 - **`materializesOnto`** — ⭐ an archetype builds a **wagon**, not a
   room. `materialize()` always returned `Stuff & Container`; the only
   thing binding archetypes to locations was one constant.
-- **`surveyScope`** — `space` (today's behaviour) · `corridor` (the
-  rooms of the zone you stand in, at once) · `off-room` (never reported
-  from a room). ⚠ Without it, five new industry-less archetypes would
-  print on **every `survey` in the game**, in every bedroom, for every
-  player.
+- **`roomsScope`** (`surveyScope` until controller-liquidity W17, when
+  the `survey` verb became `analyze rooms`) — `space` (today's behaviour)
+  · `corridor` (the rooms of the way you stand on, at once) · `off-room`
+  (never reported from a room). ⚠ Without it, five new industry-less
+  archetypes would print on **every `analyze rooms` in the game**, in
+  every bedroom, for every player.
 
 ⭐ `corridor` scope is gated on **`BiomeApi.isSkyExposed`** rather than a
 zone marker: *outdoors is what makes somewhere a WAY rather than a room*,

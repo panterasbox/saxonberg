@@ -12,7 +12,7 @@
 # world was leather-packed, and the drilling design believed otherwise
 # for a while before somebody checked.
 #
-# ⭐⭐ It is also the thing that AFFORDS `bore`, which is why it has a
+# ⭐⭐ It is also the thing that AFFORDS `spud`, which is why it has a
 # class of its own rather than being a bare `Tool`. A derrick cannot be
 # what affords raising a derrick — the spade/field split the kernel
 # already blessed. See `Bailer.ts`.

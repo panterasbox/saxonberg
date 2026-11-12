@@ -305,7 +305,7 @@ export default class PipeRun extends PipeRunBase {
     return this.burstAt !== null && this.getCondition() < SOUND_CONDITION;
   }
 
-  /** What `survey` and `look` say of it, in words. */
+  /** What `look` says of it, in words. */
   public stateWords(): string {
     if (!this.isComplete()) return 'not yet laid — lengths missing';
     if (this.isBurst()) return this.leaked ? 'burst, and has run out across the floor' : 'burst';

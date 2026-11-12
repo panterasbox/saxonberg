@@ -9,7 +9,7 @@
  * resolves null and is refused; no business parameter exists to spoof),
  * keeping banking↔employment imports one-directional (employment →
  * banking only; this controller is the join point). Solvency refusals
- * come from `BankingApi.payDraw`.
+ * come from `BankingApi.payDraw` as reasons (C32).
  */
 
 import { HouseControllerBase } from "./HouseControllerBase";
@@ -53,12 +53,15 @@ export default class HouseDrawController extends HouseControllerBase<DrawModel> 
         "no-bank",
       );
     }
-    try {
-      await BankingApi.payDraw(account, giverKey, Money.of(minor, BankingApi.compactCurrency()));
-    } catch (err) {
+    const drawn = await BankingApi.payDraw(
+      account,
+      giverKey,
+      Money.of(minor, BankingApi.compactCurrency()),
+    );
+    if (!drawn.ok) {
       return this.refuseDraw(
         context,
-        err instanceof Error && /holds less/.test(err.message)
+        drawn.reason === "business-short"
           ? "The business can't cover that draw."
           : "The draw can't be paid — do you have an account?",
         "draw-refused",

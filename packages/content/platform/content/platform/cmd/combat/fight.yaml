@@ -26,6 +26,8 @@ help: |
   everything: present a false opening and, if they bite it (and don't read
   it — skill sees through a feint), their guard cracks wide for your next
   strike. A reader, or a foe who isn't turtling, isn't fooled.
+  `fight assess <foe>` reads your opponent — guard, arms, how hurt —
+  sharper than the passive read, and it costs you your next exchange.
   Or hold: `fight defend` covers up and recovers your poise (capped by
   your endurance) instead of attacking — the patient defender's game.
   And `fight yield` concedes. To stop without conceding: `fight break`
@@ -114,7 +116,7 @@ subcommands:
       then the new weapon is in your grip. Use it to bring the right tool to
       the range you're at (a dagger once you're inside a spear).
     examples:
-      - cmd: fight switch my dagger
+      - cmd: 'fight switch "my dagger"'
         note: Trade your current weapon for a carried one
     args:
       - name: target
@@ -140,6 +142,25 @@ subcommands:
       (focus-fire, master-apprentice), a downed foe is not finished until
       the captain gives the word. `fight finish` is that word. Withhold it
       and the moment passes — the fallen is spared.
+  assess:
+    controller: /platform/idea/cmd/combat/FightAssessController
+    description: "Read your opponent closely — guard, arms, condition — at the cost of your next exchange"
+    help: |
+      A costed read of the one you are fighting: their guard, whether they
+      are armed, how hurt they look, what has them off balance — bands,
+      never numbers, and sharper than bare `fight`. It spends your next
+      exchange. To examine a body (anyone's, your own included), `assess`.
+    examples:
+      - cmd: fight assess wolf
+        note: Spend an exchange reading the wolf
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["$focus", "reachable"]
+        # ⭐ The arg gate (controller-liquidity W15, reachability link 5): only
+        # a combatant can be read as one; a chair is refused by the binder.
+        requires: [VisibleMixin, CombatantMixin]
   yield:
     controller: /platform/idea/cmd/combat/FightYieldController
     description: "Concede the fight"

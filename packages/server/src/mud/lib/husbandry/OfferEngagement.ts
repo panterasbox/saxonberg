@@ -81,7 +81,7 @@ export class OfferEngagement implements DurativeActivity {
     const holding =
       MixinApi.isContainable(this.food) && this.food.getContainer() === actor;
     const stillHere = !!here && here === animalHere;
-    if (!stillHere || !holding || this.animal.wouldEat(this.food)) {
+    if (!stillHere || !holding || !this.animal.wouldEat(this.food)) {
       this.tellNotCome();
       return;
     }

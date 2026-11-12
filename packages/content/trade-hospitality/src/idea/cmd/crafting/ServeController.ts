@@ -6,25 +6,21 @@
  * agent — only the economic gating (charging for the stock) is deferred.
  */
 
-import { CraftController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/CraftController';
-import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
+import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
-import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import MixController, { type MixModel } from './MixController';
 
 const TOPIC = 'act.deed';
 
-interface ServeModel extends CommandModel {
+interface ServeModel extends MixModel {
   patron: MqlOneResult;
-  cocktail: string;
-  brand?: string;
 }
 
-export default class ServeController extends CraftController<ServeModel> {
-  async execute(model: ServeModel, context: CommandContext): Promise<void> {
+/** `mix`, handed to a patron — the same making (`MixController.mixInto`). */
+export default class ServeController extends MixController<ServeModel> {
+  override async execute(model: ServeModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const patron = model.patron.stuff;
     if (!patron) {
@@ -35,29 +31,8 @@ export default class ServeController extends CraftController<ServeModel> {
       context.note({ kind: 'empty-result', field: 'patron', query: model.patron.raw });
       return;
     }
-
-    // ⭐ The knowledge gate, same as `cook`/`forge`/`bake`: you
-    // cannot serve what you have never made. Reading the menu is a
-    // claim; the first making (by any craft) is the deed. ⚠ `serve` shipped
-    // UNGATED — so a player who had read the board could mix a Negroni
-    // they had never made, while the script runner (then `make`) refused
-    // them the same drink.
-    if (!(await this.requireDeed(context, model.cocktail, 'serve'))) return;
-
-    const outcome = await CraftingApi.craft({
-      recipeRef: model.cocktail,
-      makerMode: 'self',
-      brand: model.brand,
-    });
-    if (!outcome.ok) {
-      this.declineToScene(giver, outcome, context);
-      return;
-    }
-
-    const drink = outcome.output;
-    if (MixinApi.isContainable(drink) && MixinApi.isContainer(patron)) {
-      ContainmentApi.move(drink, patron);
-    }
+    const drink = await this.mixInto(model, context, patron, 'serve');
+    if (!drink) return;
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You make ${Mml.thing(drink)} and hand it to ${Mml.actor(patron)}.`)

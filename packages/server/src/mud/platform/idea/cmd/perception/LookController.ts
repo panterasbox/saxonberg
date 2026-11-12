@@ -29,7 +29,7 @@ import type {
   CommandContext,
   CommandModel,
   } from '../../../../api/command';
-import { MqlApi, type MqlOneResult } from '../../../../api/mql';
+import type { MqlOneResult } from '../../../../api/mql';
 import InventoryController from '../inventory/InventoryController';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
@@ -56,7 +56,6 @@ import type { VisionModality } from '../../modalities/VisionModality';
 import { AppApi } from '../../../../api/app';
 import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import type { Sensor } from '../../../../lib/message/Sensor';
-import type { Perception } from '../../../../lib/perception/Perception';
 import type { Container } from '../../../../lib/spatial/Container';
 import { Placement } from '../../../../lib/spatial/Placement';
 
@@ -67,14 +66,6 @@ interface LookModel extends CommandModel {
 
 /** `look` names this many things inline before it summarises (the `Mml.list` block threshold). */
 const LOOK_INLINE = 4;
-
-/**
- * The room's listing as the viewer sees it — its contents, perceived
- * (honest fog: a concealed thing the actor hasn't discovered is absent
- * from their world), never the room's structure (an adornment routes
- * through its host), never the viewer. The same query `sense` reads.
- */
-const ROOM_LISTING = 'here:i:visible:[not mixin.AdornmentMixin] - me';
 
 export default class LookController extends CommandController<LookModel> {
   /** A segment source for one of `look`'s own sections. */
@@ -110,12 +101,6 @@ export default class LookController extends CommandController<LookModel> {
     // current location — bare `look` on arrival, `look here`.
     if (one === context.location) {
       return this.lookAtLocation(context);
-    }
-    // ⭐ (cleanliness D21) What has been happening to it since it was last
-    // looked at — the sun on a line, the fume in a shut room — settles
-    // before it is described.
-    if (MixinApi.isSoilable(one)) {
-      return one.reconcileAiring().then(() => this.lookAtTarget(one, context));
     }
     return this.lookAtTarget(one, context);
   }
@@ -196,45 +181,20 @@ export default class LookController extends CommandController<LookModel> {
     // "indistinct surroundings" fallback rather than the awkward
     // "You see nothing special." generic.
     const hasVisible = MixinApi.isVisible(location);
-    const hasExits = MixinApi.isExitable(location);
-    const hasName = MixinApi.isNamed(location);
 
-    // ⭐⭐ How much light there is, to THIS actor (envelope D10). The
-    // per-viewer read, so a night-sighted species and a human standing
-    // in the same room get different answers — the one thing a species
-    // vision profile has never been able to affect, because until this
-    // build nowhere was dark.
-    //
-    // ⚠⚠ **The preload is load-bearing, and it is the BOOT link.**
-    // Modality singletons are cloned lazily, and the only thing that
-    // warms them is `preloadForSenseGate` — which `lookAtTarget` calls
-    // and this branch never did, because until now nothing in the
-    // room-level render asked a modality anything. On a fresh world the
-    // band read therefore threw *"no modality 'vision' loaded"*, the
-    // catch swallowed it, and **every room described itself at
-    // midnight**. Found by the drive; no unit test could see it,
-    // because a unit fixture builds its modalities in `beforeEach`.
-    await PerceptionApi.preloadForSenseGate(actor);
-    const band = this.perceivedBandAt(actor, location);
+    // ⭐⭐ THE PERCEPTION MOMENT (controller-liquidity W8). One call: the
+    // senses warm (the boot link — without it a fresh world described
+    // every room at midnight), the light is read for THIS viewer
+    // (envelope D10), the listing is resolved, and the body is told what
+    // it learned — the exits it hands back are the ones rendered below,
+    // so the transcript and the map cannot disagree. The verb's business
+    // is WHEN a place is perceived; what that entails is
+    // `PerceptionApi.observe`'s.
+    const seen = await PerceptionApi.observe(actor, location);
+    const band = seen.band;
+    const visibleContents = seen.seen;
 
-    // Visible-mixin filter mirrors `lookAtTarget`'s structural-only
-    // policy: items that don't compose Visible can't be referenced
-    // anyway, so listing them would be a category error. Adornments
-    // (wall sconces, floors, etc.) are part of the room's
-    // structure, not loose contents, and route through their host's
-    // description rather than the occupant list. The actor never
-    // lists themselves.
-    const visibleContents = MqlApi.resolveMany(ROOM_LISTING, {
-      commandGiver: actor,
-      scope: 'here',
-    }).stuff;
-
-    if (
-      !hasVisible &&
-      !hasExits &&
-      !hasName &&
-      visibleContents.length === 0
-    ) {
+    if (seen.indistinct) {
       MessageApi.scene(actor)
         .topic('sense.survey')
         .toSelf(Mml.compose`Your surroundings are indistinct.`)
@@ -257,24 +217,18 @@ export default class LookController extends CommandController<LookModel> {
     // "withhold the long description" and did not say where the card
     // stood); lens 3 chose it — an honest sim does not show you a room
     // you cannot see.
-    if (band && LIGHT_BANDS_TOO_DARK_TO_DESCRIBE.includes(band)) {
+    if (band && seen.dark) {
       let dark = Mml.compose`${Mml.fromMarkup(LIGHT_BAND_PHRASE[band] ?? '')}`;
-      // ⭐ The perception moment, in the dark too: you cannot describe
-      // the room, but you have been here and you can feel the ways out.
-      // A map of a pitch-black room you stood in is honest knowledge.
-      const perceivedDark = MixinApi.isPerceiver(actor)
-        ? actor.learnSurroundings(location)
-        : [];
       // ⭐ …and a fire is seen in the dark you cannot see BY: the light of a
       // burning clamp next door reaches this place too faintly to light it,
       // and is still a glow on the night (the ceramics drive A, run 31 —
       // the requirement's "at night the clamp glows from the next place").
       const glow = this.glowInTheDark(location);
       if (glow) dark = Mml.compose`${dark}\n${glow}`;
-      if (hasExits) {
-        const exitsLine = this.formatExits(perceivedDark);
-        if (exitsLine) dark = Mml.compose`${dark}\n${exitsLine}`;
-      }
+      // You cannot describe the room, but you have been here and you can
+      // feel the ways out — `observe` told the map so already.
+      const exitsLine = this.formatExits(seen.exits);
+      if (exitsLine) dark = Mml.compose`${dark}\n${exitsLine}`;
       MessageApi.scene(actor).topic('sense.survey').toSelf(dark).send();
       return;
     }
@@ -315,6 +269,13 @@ export default class LookController extends CommandController<LookModel> {
       body = Mml.compose`${body}\n${Mml.fromMarkup(longText)}`;
       segments.push(...long.segments);
     }
+    // ⚠ The per-class self-reports — this puddle, the notices, and on a
+    // thing its placings, owner and screen — stay here: the plan's listed
+    // exception (controller-liquidity W8). The `markupAugmenters` seam is
+    // synchronous, yields only `state` segments folded into the long
+    // before these sections, and also feeds the card projection and every
+    // sense verb, so moving them would change words and order. They READ;
+    // the world writes are all `observe`'s. → one-resolution-rule-slate § 2.
     // Surface-bulk: a puddle pooling on the floor surfaces in the room
     // view (the floor is an Adornment, excluded from the contents list).
     const puddle = BulkableApi.floorPuddleSummary(location);
@@ -351,17 +312,17 @@ export default class LookController extends CommandController<LookModel> {
     // that renders the prose it was handed, which is the card surface's
     // question, recorded on `docs/slates/tails/carded-prose-slate.md`.
     const notices = await EmploymentApi.noticesAt(location);
-    // ⭐⭐ THE PERCEPTION MOMENT. One call: the body runs the
-    // perception gate, tells whatever it keeps (a map, a memory,
-    // nothing), and hands back the exits this viewer may know about —
-    // which are the same ones rendered below, because computing them
-    // twice is how the transcript and the map could ever disagree.
-    // The verb's business is WHEN a place is perceived; what that
-    // entails is the body's. See `Perceiver.learnSurroundings`.
-    const perceived = MixinApi.isPerceiver(actor)
-      ? actor.learnSurroundings(location, visibleContents)
-      : [];
-    if (hasExits) {
+    // ⭐ Hold the light steady while the room is DESCRIBED (the potash
+    // drive's stall, controller-liquidity /finalize): every thing listed
+    // and every name rendered asks `canSee`, and without a hold each one
+    // walked the whole light graph again — quadratic in what the room holds,
+    // so a lean-to piled with ash heaps took more than 30 s of CPU per `look`
+    // and every command behind it queued. The MQL resolve and the card
+    // refresh already hold; this is the same hold, over a synchronous read.
+    let release = LookController.holdLight();
+    try {
+      // The exits `observe` learned — the same list the map was told.
+      const perceived = seen.exits;
       const exitsLine = this.formatExits(perceived);
       if (exitsLine) {
         body = Mml.compose`${body}\n${exitsLine}`;
@@ -378,204 +339,212 @@ export default class LookController extends CommandController<LookModel> {
           })),
         });
       }
-    }
-    if (visibleContents.length > 0) {
-      // Items placed on a listed host (the bottles on the back-bar) are
-      // not loose room contents — they're represented by their host and
-      // discovered by examining it (`look back-bar`). Shared with `sense`
-      // and the inspection card via `Container.getLooseContents`.
-      const topLevel = location.getLooseContents(visibleContents);
-      if (topLevel.length > 0) {
-        // Organism occupants route through the display-lensing formatter
-        // (friends boosted, strangers density-collapsed per the viewer's
-        // `social.verbosity`); inert items stay on the plain item list.
-        // The formatter is async (rule resolution rides GroupApi.isMember)
-        // and returns a Mml already resolved for `actor` — the single known
-        // viewer of this `toSelf` render.
-        const occupants = topLevel.filter((item) => MixinApi.isOrganism(item));
-        // ⭐ A seat somebody is sitting on is named in THEIR line
-        // ("Mara, seated on a bar stool"); only the empty ones are things
-        // here, so "+5 more" counts the stools you could take.
-        const seats = new Set(
-          occupants.flatMap((o) => {
-            const rest = MixinApi.isPosed(o) ? o.currentRest() : null;
-            return rest ? [rest.host.stuffId] : [];
-          }),
-        );
-        const items = topLevel.filter((item) => !MixinApi.isOrganism(item) && !seats.has(item.stuffId));
-        /*
-         * ⭐ PEOPLE and THINGS are two lines (owner, 2026-11-01): the bar's
-         * one "You also see" ran five people into thirteen fixtures. Who is
-         * here is its own question — the place-surfaces slate's
-         * presentation tiers (*who is here* · *what is here*) — and the
-         * terminal and the card get the same two lines.
-         */
-        if (occupants.length > 0) {
-          // ⭐ Both paths render the same FORM now. The rich composer
-          // (players) and the plain list (everyone else) used to differ
-          // in what they showed — status or no status — because only the
-          // eager path could afford it. Which form a surface gets is the
-          // surface's choice, not a consequence of who is looking.
-          const who = MixinApi.isNotifyPolicy(actor)
-            ? await actor.composeOccupants(occupants, occupants.length)
-            : Mml.list(occupants.map((o) => Mml.actor(o, { form: 'presence' })));
-          body = Mml.compose`${body}\n── Here: ${who}.`;
-          segments.push({
-            shape: 'list',
-            heading: 'Here',
-            sources: [LookController.lookSource('Here')],
-            text: this.render(Mml.compose`── Here: ${who}.`, actor),
-            items: occupants.map((o) => this.personOf(o, actor)),
-          });
-        }
-        if (items.length > 0) {
-          // ⚠⚠ **Resolved NOW, viewer-blind — and that is not laziness,
-          // it is the surface refusing to be gated twice.**
-          //
-          // `visibleContents` above already ran `PerceptionApi.perceives`
-          // for this actor, so everything in `items` has been judged
-          // perceivable. Letting the lazy list re-resolve each one
-          // through `describeFor` asks a SECOND gate — vision's
-          // `canSee` — which disagrees: in an unlit interior the
-          // Terminus registry's deed desk came back `something` while
-          // the room's own prose read in full. Every object reading
-          // "something" is the documented tell for exactly this.
-          //
-          // This is a `toSelf` render for one known viewer whose
-          // perception was already resolved, so there is nothing for
-          // late binding to add — an inert thing has no recognition.
-          // ⭐ The two gates disagreeing is a real finding and is
-          // recorded; it is not this build's to settle.
-          // ⭐ Identical things GROUP (client-surface D2, #71/#76): a shelf
-          // of fourteen bottles is "14 bottles of gin", one chip that
-          // expands, not fourteen words.
-          const grouped = this.groupForList(items, actor, (item) => Mml.thing(item));
-          const seen = Mml.fromMarkup(Mml.list(grouped.parts).toString());
-          body = Mml.compose`${body}\n── You also see: ${seen}.`;
-          segments.push({
-            shape: 'list',
-            heading: 'You also see',
-            sources: [LookController.lookSource('You also see')],
-            text: this.render(Mml.compose`── You also see: ${seen}.`, actor),
-            items: grouped.items,
-          });
+      if (visibleContents.length > 0) {
+        // Items placed on a listed host (the bottles on the back-bar) are
+        // not loose room contents — they're represented by their host and
+        // discovered by examining it (`look back-bar`). Shared with `sense`
+        // and the inspection card via `Container.getLooseContents`.
+        const topLevel = location.getLooseContents(visibleContents);
+        if (topLevel.length > 0) {
+          // Organism occupants route through the display-lensing formatter
+          // (friends boosted, strangers density-collapsed per the viewer's
+          // `social.verbosity`); inert items stay on the plain item list.
+          // The formatter is async (rule resolution rides GroupApi.isMember)
+          // and returns a Mml already resolved for `actor` — the single known
+          // viewer of this `toSelf` render.
+          const occupants = topLevel.filter((item) => MixinApi.isOrganism(item));
+          // ⭐ A seat somebody is sitting on is named in THEIR line
+          // ("Mara, seated on a bar stool"); only the empty ones are things
+          // here, so "+5 more" counts the stools you could take.
+          const seats = new Set(
+            occupants.flatMap((o) => {
+              const rest = MixinApi.isPosed(o) ? o.currentRest() : null;
+              return rest ? [rest.host.stuffId] : [];
+            }),
+          );
+          const items = topLevel.filter((item) => !MixinApi.isOrganism(item) && !seats.has(item.stuffId));
+          /*
+           * ⭐ PEOPLE and THINGS are two lines (owner, 2026-11-01): the bar's
+           * one "You also see" ran five people into thirteen fixtures. Who is
+           * here is its own question — the place-surfaces slate's
+           * presentation tiers (*who is here* · *what is here*) — and the
+           * terminal and the card get the same two lines.
+           */
+          if (occupants.length > 0) {
+            // ⭐ Both paths render the same FORM now. The rich composer
+            // (players) and the plain list (everyone else) used to differ
+            // in what they showed — status or no status — because only the
+            // eager path could afford it. Which form a surface gets is the
+            // surface's choice, not a consequence of who is looking.
+            // ⚠ The hold never spans an await (a light may change meanwhile):
+            // released for the composer, taken again after it.
+            release();
+            const who = MixinApi.isNotifyPolicy(actor)
+              ? await actor.composeOccupants(occupants, occupants.length)
+              : Mml.list(occupants.map((o) => Mml.actor(o, { form: 'presence' })));
+            release = LookController.holdLight();
+            body = Mml.compose`${body}\n── Here: ${who}.`;
+            segments.push({
+              shape: 'list',
+              heading: 'Here',
+              sources: [LookController.lookSource('Here')],
+              text: this.render(Mml.compose`── Here: ${who}.`, actor),
+              items: occupants.map((o) => this.personOf(o, actor)),
+            });
+          }
+          if (items.length > 0) {
+            // ⚠⚠ **Resolved NOW, viewer-blind — and that is not laziness,
+            // it is the surface refusing to be gated twice.**
+            //
+            // `visibleContents` above already ran `PerceptionApi.perceives`
+            // for this actor, so everything in `items` has been judged
+            // perceivable. Letting the lazy list re-resolve each one
+            // through `describeFor` asks a SECOND gate — vision's
+            // `canSee` — which disagrees: in an unlit interior the
+            // Terminus registry's deed desk came back `something` while
+            // the room's own prose read in full. Every object reading
+            // "something" is the documented tell for exactly this.
+            //
+            // This is a `toSelf` render for one known viewer whose
+            // perception was already resolved, so there is nothing for
+            // late binding to add — an inert thing has no recognition.
+            // ⭐ The two gates disagreeing is a real finding and is
+            // recorded; it is not this build's to settle.
+            // ⭐ Identical things GROUP (client-surface D2, #71/#76): a shelf
+            // of fourteen bottles is "14 bottles of gin", one chip that
+            // expands, not fourteen words.
+            const grouped = this.groupForList(items, actor, (item) => Mml.thing(item));
+            const seen = Mml.fromMarkup(Mml.list(grouped.parts).toString());
+            body = Mml.compose`${body}\n── You also see: ${seen}.`;
+            segments.push({
+              shape: 'list',
+              heading: 'You also see',
+              sources: [LookController.lookSource('You also see')],
+              text: this.render(Mml.compose`── You also see: ${seen}.`, actor),
+              items: grouped.items,
+            });
+          }
         }
       }
-    }
 
-    // Passive hints (honest fog): a concealed-and-undiscovered thing the
-    // actor *nearly* perceives surfaces its authored "tell" — a draft, a
-    // seam, a stone sitting proud — so attention is *directed*, not
-    // pixel-hunted. A hint names the tell, NEVER the hidden thing's identity
-    // (that would leak concealed data). The candidate set is the full room
-    // contents + every exit (including hidden ones), which `hintsFor`
-    // narrows to the close-but-unperceived.
-    const hintCandidates: Stuff[] = [...location.getContents()];
-    if (MixinApi.isExitable(location)) {
-      for (const exit of location.getExits().values()) {
-        hintCandidates.push(exit as unknown as Stuff);
+      // Passive hints (honest fog): a concealed-and-undiscovered thing the
+      // actor *nearly* perceives surfaces its authored "tell" — a draft, a
+      // seam, a stone sitting proud — so attention is *directed*, not
+      // pixel-hunted. A hint names the tell, NEVER the hidden thing's identity
+      // (that would leak concealed data). `observe` narrowed the room's
+      // contents + every exit (hidden ones included) to the close-but-
+      // unperceived.
+      for (const cand of seen.hints) {
+        const tell = MixinApi.isConcealable(cand)
+          ? cand.getConcealmentHint()
+          : undefined;
+        const hint = tell
+          ? Mml.fromMarkup(tell)
+          : Mml.compose`Something here doesn't sit quite right.`;
+        body = Mml.compose`${body}\n${hint}`;
+        segments.push({ shape: 'notice', sources: [LookController.lookSource('Hints')], text: this.render(hint, actor) });
       }
+
+      // ⭐ The light, the tint and the notices are printed as their own
+      // scenes (below) and are NOTICE segments on the card — every line the
+      // terminal prints, the card says (AC 6), in the order printed.
+      const bandPhrase = band ? LIGHT_BAND_PHRASE[band] : null;
+      const tintLine = this.tintLineAt(location, band);
+      const cardSegments: LookSegment[] = [
+        ...(bandPhrase
+          ? [{ shape: 'notice' as const, sources: [LookController.lookSource('Light')], text: bandPhrase }]
+          : []),
+        ...(tintLine
+          ? [{ shape: 'notice' as const, sources: [LookController.lookSource('Light')], text: this.render(tintLine, actor) }]
+          : []),
+        ...segments,
+        ...notices.map((opening) => ({
+          shape: 'notice' as const,
+          sources: [LookController.lookSource('Notices')],
+          text: this.render(Mml.compose`A notice here: ${opening.describe()}`, actor),
+        })),
+      ];
+
+      /*
+       * ⚠⚠ **Open the card FIRST, then say whether the frame is carded.**
+       * Stamping `carded` before the open is a promise, not a fact: an
+       * open that touches, fails or is filtered leaves the suppressed
+       * prose with nothing to replace it, and `look dave` in Dave's Bar
+       * printed its echo and nothing else. The id also lets
+       * the client re-show the prose when a named view filters this kind
+       * out of the feed.
+       */
+      const opened = CardApi.open(context, 'subject', {
+        prose: body,
+        segments: cardSegments,
+        subjectId: location.stuffId,
+      });
+
+      // ⭐ The light line rides its OWN uncarded scene, AHEAD of the room,
+      // for the same reason the notices below ride one: everything folded
+      // into `body` is handed to the card and then suppressed from the
+      // transcript, and the card is a field projection that never renders
+      // the handed prose. A room's light is not one of its fields, so
+      // folding it in would reach the wire and be invisible in a browser —
+      // the defect the trades-and-labor drive found for the help-wanted
+      // sign, not repeated here.
+      if (bandPhrase) {
+        MessageApi.scene(actor)
+          .topic('sense.survey')
+          .toSelf(Mml.compose`${Mml.fromMarkup(bandPhrase)}`)
+          .send();
+      }
+
+      // ⭐ The light is TINTED — a stained window on the far side colours
+      // what reaches the floor (W0). Its own uncarded scene, like the band
+      // phrase and for the same reason: a room's light is not one of its
+      // authored fields, so folding it into `body` would reach the card
+      // (which never renders handed prose) and vanish from a browser.
+      // Only when the cast is deep enough to be worth a sentence, and only
+      // when the place is light enough to describe at all.
+      if (tintLine) {
+        MessageApi.scene(actor).topic('sense.survey').toSelf(tintLine).send();
+      }
+
+      const scene = MessageApi.scene(actor).topic('sense.survey');
+      // ⭐ Says *this content is also on a card*, so `shell.result` can
+      // filter it. A topic key could not: `sense.survey` is shared by
+      // twelve verbs that open no card at all.
+      if (opened) scene.meta({ carded: opened });
+      scene.toSelf(body).send();
+
+      // ⭐ The notices ride their own scene, UNCARDED, so the transcript
+      // keeps them. A card on a wall is a thing you NOTICE, not part of the
+      // room's own description — which is why this reads correctly rather
+      // than as a workaround.
+      for (const opening of notices) {
+        MessageApi.scene(actor)
+          .topic('sense.survey')
+          .toSelf(Mml.compose`A notice here: ${opening.describe()}`)
+          .send();
+      }
+
+    } finally {
+      release();
     }
-    for (const cand of PerceptionApi.hintsFor(actor, hintCandidates)) {
-      const tell = MixinApi.isConcealable(cand)
-        ? cand.getConcealmentHint()
-        : undefined;
-      const hint = tell
-        ? Mml.fromMarkup(tell)
-        : Mml.compose`Something here doesn't sit quite right.`;
-      body = Mml.compose`${body}\n${hint}`;
-      segments.push({ shape: 'notice', sources: [LookController.lookSource('Hints')], text: this.render(hint, actor) });
-    }
-
-    // ⭐ The light, the tint and the notices are printed as their own
-    // scenes (below) and are NOTICE segments on the card — every line the
-    // terminal prints, the card says (AC 6), in the order printed.
-    const bandPhrase = band ? LIGHT_BAND_PHRASE[band] : null;
-    const tintLine = this.tintLineAt(location, band);
-    const cardSegments: LookSegment[] = [
-      ...(bandPhrase
-        ? [{ shape: 'notice' as const, sources: [LookController.lookSource('Light')], text: bandPhrase }]
-        : []),
-      ...(tintLine
-        ? [{ shape: 'notice' as const, sources: [LookController.lookSource('Light')], text: this.render(tintLine, actor) }]
-        : []),
-      ...segments,
-      ...notices.map((opening) => ({
-        shape: 'notice' as const,
-        sources: [LookController.lookSource('Notices')],
-        text: this.render(Mml.compose`A notice here: ${opening.describe()}`, actor),
-      })),
-    ];
-
-    /*
-     * ⚠⚠ **Open the card FIRST, then say whether the frame is carded.**
-     * Stamping `carded` before the open is a promise, not a fact: an
-     * open that touches, fails or is filtered leaves the suppressed
-     * prose with nothing to replace it, and `look dave` in Dave's Bar
-     * printed its echo and nothing else. The id also lets
-     * the client re-show the prose when a named view filters this kind
-     * out of the feed.
-     */
-    const opened = CardApi.open(context, 'subject', {
-      prose: body,
-      segments: cardSegments,
-      subjectId: location.stuffId,
-    });
-
-    // ⭐ The light line rides its OWN uncarded scene, AHEAD of the room,
-    // for the same reason the notices below ride one: everything folded
-    // into `body` is handed to the card and then suppressed from the
-    // transcript, and the card is a field projection that never renders
-    // the handed prose. A room's light is not one of its fields, so
-    // folding it in would reach the wire and be invisible in a browser —
-    // the defect the trades-and-labor drive found for the help-wanted
-    // sign, not repeated here.
-    if (bandPhrase) {
-      MessageApi.scene(actor)
-        .topic('sense.survey')
-        .toSelf(Mml.compose`${Mml.fromMarkup(bandPhrase)}`)
-        .send();
-    }
-
-    // ⭐ The light is TINTED — a stained window on the far side colours
-    // what reaches the floor (W0). Its own uncarded scene, like the band
-    // phrase and for the same reason: a room's light is not one of its
-    // authored fields, so folding it into `body` would reach the card
-    // (which never renders handed prose) and vanish from a browser.
-    // Only when the cast is deep enough to be worth a sentence, and only
-    // when the place is light enough to describe at all.
-    if (tintLine) {
-      MessageApi.scene(actor).topic('sense.survey').toSelf(tintLine).send();
-    }
-
-    const scene = MessageApi.scene(actor).topic('sense.survey');
-    // ⭐ Says *this content is also on a card*, so `shell.result` can
-    // filter it. A topic key could not: `sense.survey` is shared by
-    // twelve verbs that open no card at all.
-    if (opened) scene.meta({ carded: opened });
-    scene.toSelf(body).send();
-
-    // ⭐ The notices ride their own scene, UNCARDED, so the transcript
-    // keeps them. A card on a wall is a thing you NOTICE, not part of the
-    // room's own description — which is why this reads correctly rather
-    // than as a workaround.
-    for (const opening of notices) {
-      MessageApi.scene(actor)
-        .topic('sense.survey')
-        .toSelf(Mml.compose`A notice here: ${opening.describe()}`)
-        .send();
-    }
-
     return;
   }
 
   /**
-   * The light band at `location` as `actor` perceives it, or `null`
-   * when this actor cannot run vision queries at all (a fixture, a
-   * test double) or the vision singleton is not loaded. `null` degrades
-   * to today's behaviour — describe the room — which is the right
-   * failure: a perception gap must never take `look` down.
+   * A light hold whose release runs at most once — so the `finally` after
+   * a throw across the composer's await can never release a hold some
+   * other command opened in the meantime.
    */
+  protected static holdLight(): () => void {
+    const release = PerceptionApi.holdLightSteady();
+    let done = false;
+    return () => {
+      if (done) return;
+      done = true;
+      release();
+    };
+  }
+
   /**
    * ⭐ One sentence for a light seen in the dark, or `null`: a fire is seen
    * in the dark you cannot see BY. The model finds it
@@ -609,22 +578,6 @@ export default class LookController extends CommandController<LookModel> {
               : 'a pale glow';
     const where = fire.direction ? ` to the ${fire.direction}` : '';
     return Mml.compose`You can see ${hue}${where}.`;
-  }
-
-  private perceivedBandAt(actor: Stuff, location: Stuff): LightBand | null {
-    if (!MixinApi.isSensor(actor) || !MixinApi.isPerception(actor)) {
-      return null;
-    }
-    if (!MixinApi.isContainer(location)) return null;
-    try {
-      const vision = PerceptionApi.modalityByName('vision') as VisionModality;
-      return vision.perceivedBand(
-        actor as Stuff & Sensor & Perception,
-        location as unknown as Stuff & Container,
-      );
-    } catch {
-      return null;
-    }
   }
 
   /**
@@ -674,6 +627,11 @@ export default class LookController extends CommandController<LookModel> {
     context: CommandContext,
   ): Promise<void> {
     const actor = context.commandGiver;
+    // ⭐⭐ THE PERCEPTION MOMENT (controller-liquidity W8): the senses warm,
+    // what has been happening to it settles (cleanliness D21), a person is
+    // tracked, what it visibly holds is read and the close look is taken —
+    // every world write `look` makes, in `PerceptionApi.observe`.
+    const seen = await PerceptionApi.observe(actor, target);
     // Non-Visible targets fall through to a polite refusal rather
     // than rendering "You see nothing special." against the target's
     // name. The `look.yaml` validator stack used to enforce this via
@@ -694,11 +652,6 @@ export default class LookController extends CommandController<LookModel> {
         detail: name,
       });
       return;
-    }
-    // Repeat-perception: a deliberate look at a being tracks it (same
-    // coalescing stranger-record write as the room listing above).
-    if (MixinApi.isOrganism(target) && MixinApi.isBeliefStore(actor)) {
-      actor.learnIdentityOf(target, null);
     }
     // Run the long through `getMarkupLong(viewer)` so detail keywords
     // and any other contributing-mixin augmenters wrap inline —
@@ -787,8 +740,8 @@ export default class LookController extends CommandController<LookModel> {
     // and hold (never their pockets or what is inside their body); in an
     // open container its contents; a shut one shows nothing. Past four it
     // summarises and says how to see the rest — the ledger is `inventory`.
-    if (MixinApi.isContainer(target)) {
-      const v = PerceptionApi.visibleContentsOf(actor, target);
+    const v = seen.holds;
+    if (v) {
       const keyword = MixinApi.isPerceptible(target) ? target.getPrimaryKeyword() ?? '' : '';
       // Resolved now (`Mml.fromMarkup(…toString())`): vision walks up ONE
       // level from the target, so a list left lazy would read every item
@@ -821,30 +774,22 @@ export default class LookController extends CommandController<LookModel> {
     // the cheap `concealment.examineBonus`). Silent unless the glance
     // actually turns something up; a deliberate over-a-place scan
     // that ties up your hands and takes time is `search`.
-    if (MixinApi.isContainer(target)) {
-      const contents = [...target.getContents()];
-      if (contents.length > 0) {
-        // Warm the `awareness` band so the glance reads a live snapshot.
-        await PerceptionApi.preloadForSenseGate(actor);
-        const found = PerceptionApi.resolveSearch(actor, contents, 'glance');
-        if (found.length > 0) {
-          // What a search turns up is very often a HIDING PERSON.
-          const noticed = Mml.list(found.map((f) => Mml.actor(f)));
-          section(Mml.compose`Looking closely, you notice ${noticed}.`, {
-            shape: 'notice',
-            sources: [LookController.lookSource('Hints')],
-          });
-        }
-        for (const cand of PerceptionApi.hintsFor(actor, contents)) {
-          const tell = MixinApi.isConcealable(cand)
-            ? cand.getConcealmentHint()
-            : undefined;
-          section(
-            tell ? Mml.fromMarkup(tell) : Mml.compose`Something here almost catches your eye.`,
-            { shape: 'notice', sources: [LookController.lookSource('Hints')] },
-          );
-        }
-      }
+    if (seen.found.length > 0) {
+      // What a search turns up is very often a HIDING PERSON.
+      const noticed = Mml.list(seen.found.map((f) => Mml.actor(f)));
+      section(Mml.compose`Looking closely, you notice ${noticed}.`, {
+        shape: 'notice',
+        sources: [LookController.lookSource('Hints')],
+      });
+    }
+    for (const cand of seen.hints) {
+      const tell = MixinApi.isConcealable(cand)
+        ? cand.getConcealmentHint()
+        : undefined;
+      section(
+        tell ? Mml.fromMarkup(tell) : Mml.compose`Something here almost catches your eye.`,
+        { shape: 'notice', sources: [LookController.lookSource('Hints')] },
+      );
     }
 
     // Card first — see the room path: `carded` must be a fact.

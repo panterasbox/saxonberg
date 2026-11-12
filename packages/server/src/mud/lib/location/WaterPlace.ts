@@ -47,7 +47,7 @@ import type { Slottable } from '../slot/Slottable';
 import type { Floor } from '../ground/Floor';
 import type { VetoResult } from '../errors';
 import type Exit from '../boundary/Exit';
-import type { Shore } from './Shore';
+import type { Shore, WaterEntryAnswer } from './Shore';
 import type { Swimmable } from '../locomotion/Swimmable';
 import type { MediumRead } from '../../api/biome';
 import type { ColumnBand, WaterColumn } from './WaterColumn';
@@ -63,6 +63,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import type { WaterRead } from './WaterSource';
+import type { PostureAnswer } from '../slot/Postured';
 import { CombatApi } from '../../api/combat';
 import { TemplatePaths } from '../paths';
 import { AppApi } from '../../api/app';
@@ -163,6 +164,23 @@ export interface WaterPlace {
   depthNow(): number;
   /** What this water is like now. */
   stateNow(): WaterState;
+  /**
+   * ⭐ A swim from where this water's surface holds you lets go of it first
+   * (river drive, A3) — the push-off. Nothing when the surface is not
+   * holding `actor` or there is no open water.
+   */
+  pushOff(actor: Stuff): void;
+  /**
+   * ⭐ A body lies back on this water and floats (underwater review) — or
+   * why it cannot: nothing without an airway floats, and the body's own
+   * `float()` says the rest.
+   */
+  floatHere(actor: Stuff): Promise<PostureAnswer>;
+  /**
+   * ⭐ `lie` mid-water, with no ground to name: the water holds you up, or
+   * it is not deep enough to (`null` — the place's ground answers).
+   */
+  lieAdrift(actor: Stuff): Promise<PostureAnswer | null>;
   /**
    * ⭐ The bands of the column under this water now, surface downward —
    * `[]` where you can stand. Derived from the depth and the water's
@@ -668,6 +686,51 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     }
 
     /* ─────────────────────────── swimming ─────────────────────────── */
+
+    /**
+     * ⭐ `swim` with no way named, in or on this water (overriding the shore's,
+     * controller-liquidity W8): off a surface with open water you go in
+     * where you are (the surface gives way, gently — the drop it does
+     * under anybody it stops bearing); on deep water with no surface to
+     * leave there is no way in; shallow water is a bank like any other,
+     * and its shore names the way off the edge.
+     */
+    public async wayIntoWater(actor: Stuff): Promise<WaterEntryAnswer> {
+      const floor = this.waterFloor();
+      if (floor !== null && floor.supportIsSlotted()) {
+        if (!(floor.openWaterAreaM2() > 0)) return { ok: false, reason: 'no-open-water' };
+        if (!floor.supports(actor)) return { ok: false, reason: 'already-in-water' };
+        floor.giveWay(actor, true);
+        return { ok: true, facts: { exit: null } };
+      }
+      if (this.depthNow() > 0) return { ok: false, reason: 'no-open-water' };
+      return super.wayIntoWater(actor);
+    }
+
+    /**
+     * ⭐ A stroke from where the bed holds you is pushing off (river drive,
+     * A3): standing on this water's surface with open water about, a swim
+     * lets go of the floor first — not *"this water's too rough for you"*,
+     * which is what the swim gate says of anybody the bed is holding.
+     */
+    public async floatHere(actor: Stuff): Promise<PostureAnswer> {
+      if (!MixinApi.isRespiration(actor)) return { ok: false, reason: 'not-a-swimmer' };
+      const out = await actor.float();
+      if (!out.ok) return { ok: false, reason: out.reason };
+      return { ok: true, facts: { as: 'float', feetFirst: actor.isFeetFirst() } };
+    }
+
+    public async lieAdrift(actor: Stuff): Promise<PostureAnswer | null> {
+      if (!(this.depthNow() > 0)) return null;
+      return this.floatHere(actor);
+    }
+
+    public pushOff(actor: Stuff): void {
+      const floor = this.waterFloor();
+      if (floor !== null && floor.supportIsSlotted() && floor.supports(actor) && floor.openWaterAreaM2() > 0) {
+        floor.giveWay(actor, true);
+      }
+    }
 
     /** Swimmable while the floor has open water to swim in. */
     public canEngageAxis(direction: string): boolean {

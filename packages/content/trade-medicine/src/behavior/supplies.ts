@@ -19,6 +19,7 @@ import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behav
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { DonationBank } from '@saxonberg/server/mud/lib/commerce/DonationBank';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
+import { CommandLineApi } from '@saxonberg/server/mud/api/command-line';
 
 function windowOf(ctx: BrainContext): (Stuff & DonationBank) | null {
   const path = String(ctx.config.window ?? '');
@@ -63,11 +64,11 @@ export const brain = class SuppliesBrain {
 
     // The door dance: pull one unit off the floor, carry it to the ward,
     // open the cold store, shelve it, close up, return. Each a forced verb.
-    await host.forceCommand(`get 1 ${unit}`);
+    await host.forceCommand(`get 1 ${CommandLineApi.word(unit)}`);
     await host.forceCommand(`go ${out}`);
-    await host.forceCommand(`open ${fridge}`);
-    await host.forceCommand(`put ${unit} in ${fridge}`);
-    await host.forceCommand(`close ${fridge}`);
+    await host.forceCommand(`open ${CommandLineApi.word(fridge)}`);
+    await host.forceCommand(`put ${CommandLineApi.word(unit)} in ${CommandLineApi.word(fridge)}`);
+    await host.forceCommand(`close ${CommandLineApi.word(fridge)}`);
     await host.forceCommand(`go ${back}`);
   }
 } satisfies BrainStatics;

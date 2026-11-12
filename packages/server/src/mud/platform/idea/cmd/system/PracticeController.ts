@@ -59,7 +59,10 @@ export default class PracticeController extends CommandController<PracticeModel>
       );
     }
 
-    if (!MixinApi.isAdvancing(actor)) return;
+    // C84: a body that keeps no Transcript is told so — never a silent no-op.
+    if (!MixinApi.isAdvancing(actor)) {
+      return this.fail(context, "you keep no transcript to practice against", "not-advancing");
+    }
     await actor.creditDeed({ discipline, difficulty, outcome });
     const band = await actor.competenceBandFor(discipline);
 

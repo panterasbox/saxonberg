@@ -81,18 +81,19 @@ describe('CommandApi.preloadAll', () => {
     expect(result.loaded).toBeGreaterThan(0);
 
     // get.yaml's `targets` arg should now have resolved validators.
-    // ⭐ TWO, from two sources: the slot's `requires:` declaration is
-    // synthesised into a validator and PREPENDED, then its one authored
-    // `validators:` entry follows. A count that only matched the
+    // ⭐ THREE, from two sources: the slot's `requires:` declaration is
+    // synthesized into a validator and PREPENDED, then its two authored
+    // `validators:` entries follow. A count that only matched the
     // authored list would pass while the declaration did nothing.
     const get = CommandApi.getCommand('platform/cmd/inventory/get.yaml');
     const arg = get?.args[0];
     expect(arg?.requires).toEqual(['VisibleMixin', 'ContainableMixin']);
     expect(arg?.validators).toEqual([
       '/lib/command/validators/mustBeInLocation',
+      '/lib/command/validators/mustNotBeShutAway',
     ]);
     expect(arg?._resolvedValidators).toBeDefined();
-    expect(arg?._resolvedValidators?.length).toBe(2);
+    expect(arg?._resolvedValidators?.length).toBe(3);
     expect(typeof arg?._resolvedValidators?.[0]).toBe('function');
   });
 });

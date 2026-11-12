@@ -82,7 +82,7 @@ async function lookFor(
   await expect
     .poll(
       async () => {
-        await runCommand(page, `look ${what}`);
+        await runCommand(page, `look "${what}"`);
         body = (await cards(page)).reverse().find((c) => matching.test(c)) ?? '';
         return body;
       },

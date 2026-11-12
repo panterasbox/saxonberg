@@ -9,6 +9,7 @@ import { ParcelApi } from "../../../api/parcel";
 import { ProvenanceApi } from "../../../api/provenance";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import {
+  DocumentRefusal,
   StoredDocument,
   type DocumentKeyQuery,
 } from "../../../lib/document/StoredDocument";
@@ -653,7 +654,7 @@ async function saveImpl(
 ): Promise<void> {
   const actor = actingAuthor();
   const denial = await gateMutation(actor, path);
-  if (denial !== null) throw new Error(denial);
+  if (denial !== null) throw new DocumentRefusal("access-denied", denial);
 
   const existing = await StoredDocument.findByPath(path);
 
@@ -671,7 +672,7 @@ async function saveImpl(
   // Persist (find-or-create). Owner = the acting author's durable path.
   const doc = existing ?? new StoredDocument();
   doc.path = path;
-  doc.owner = actor?.getTemplatePath() ?? "";
+  doc.owner = actor?.getIdentityPath() ?? "";
   doc.kind = kind;
   doc.data = data;
   await doc.save();
@@ -714,7 +715,7 @@ const COMMAND_VIEW_KIND = "command-view";
 async function deleteImpl(path: string): Promise<boolean> {
   const actor = actingAuthor();
   const denial = await gateMutation(actor, path);
-  if (denial !== null) throw new Error(denial);
+  if (denial !== null) throw new DocumentRefusal("access-denied", denial);
   const doc = await StoredDocument.findByPath(path);
   if (!doc) return false;
   const kind = doc.kind;

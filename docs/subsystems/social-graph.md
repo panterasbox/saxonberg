@@ -39,7 +39,7 @@ builds on [contacts.md](./contacts.md),
 | Store mixin (`NotifyPolicyMixin`, `social.verbosity` schema) | `lib/social/NotifyPolicy.ts` |
 | Gated dev-facing face | `api/social.ts` (`SocialApi`) |
 | Hot-reloadable logic singleton | `platform/idea/api/SocialLogic.ts` (`/platform/idea/api/social`) |
-| The `notify` verb | `cmd/social/notify.yaml` + `platform/idea/cmd/social/NotifyController.ts` |
+| The `notify` verb | `cmd/social/notify.yaml` + one controller per subcommand over `platform/idea/cmd/social/NotifyControllerBase.ts` (`NotifyList`/`Show`/`Set`/`Move`/`Remove`) |
 | Presence events | `Avatar.enter` / `Avatar.onLinkdead` (+ `setLeaveIntent`), `lib/events.ts` (`PlayerLoggedIn`/`PlayerLoggedOut`/`PlayerReconnected`/`PlayerDisconnected`) |
 | Country of origin | `api/connection.ts` (`ConnectionApi.originOf`, the read side); capture writes `Interactive.recordOrigin` directly from `backend/Application.ts` (the backend layer, not the mudlib, owns the `geoip-lite` import and the raw request) |
 | Client settings panel | `components/settings/SocialNotificationsPanel.tsx` (presence frames render inline — no bespoke client component) |
@@ -333,22 +333,26 @@ like contacts but with an arbitrary `GroupRef` subject.
 
 ```
 notify                          # list your ordered rules + a compact summary
-notify <ref>                    # show one rule
-notify <ref> --login <s> --disconnect <s> --message <s> \
+notify show <ref>               # show one rule
+notify set <ref> --login <s> --disconnect <s> --message <s> \
        --render <s> --boost --no-boost --color <s>
                                 # set fields (typed options)
-notify <ref> --above <ref>      # reorder above another (order = precedence)
-notify <ref> --below <ref>      # reorder below another
-notify <ref> --remove           # drop the rule (group falls to the tail)
-notify remove <ref>             # …same, via the remove subcommand
+notify move <ref> --above <ref> # reorder above another (order = precedence)
+notify move <ref> --below <ref> # reorder below another
+notify remove <ref>             # drop the rule (group falls to the tail)
 ```
+
+⭐ Each act is its own word (controller-liquidity W7b): the ref-first
+forms (`notify <ref>`, `notify <ref> --login …`, `notify <ref> --above …`,
+`notify <ref> --remove`) decided the act from which flags were present,
+and are gone. `notify set <ref>` with no field is refused, naming them.
 
 The set-fields are typed **options**, not positional `k=v`: the command
 framework forbids an optional `<ref>` positional followed by a greedy
 assignment positional (a greedy arg is implicitly required + last), so an
 optional ref + free-form `k=v` is structurally illegal.
 
-`NotifyController` is a thin caller: it normalizes the typed `<ref>`
+The controllers are thin callers over `NotifyControllerBase`: it normalizes the typed `<ref>`
 (bare label → `contacts:<me>:<label>`; refs containing `:` and the bare
 pseudo-subjects pass through), builds the field patch from whichever typed
 options were provided (validating each value against its vocabulary).
@@ -391,7 +395,7 @@ front over `notify`**:
 
 - **Reads** the server-pushed `clientState['social.rules']` projection
   (`SocialRulesState` in `@saxonberg/types`) reactively. After every
-  mutation — and on a bare `notify` list — `NotifyController` calls
+  mutation — and on a bare `notify` list — the controller calls
   `host.pushClientStateUpdate('social.rules', projection)` (the
   style-overlay precedent; skipped for an NPC host with no connected
   Interactive). `social.rules` is **not** a persisted client-state key —
@@ -405,13 +409,13 @@ front over `notify`**:
   bar uses. Controls are option buttons + color swatches (one command per
   button), so the contract is exact and testable.
 - **Reorder is up/down buttons** (order = precedence): "up" issues
-  `notify <ref> --above <prev>`, "down" issues `notify <ref> --below
-  <next>`. Drag-to-reorder is the ideal, but fiddly in this stack and an
+  `notify move <ref> --above <prev>`, "down" issues `notify move <ref>
+  --below <next>`. Drag-to-reorder is the ideal, but fiddly in this stack and an
   extra dependency; the up/down buttons issue the same `--above`/`--below`
   and the server's ordered store is authoritative, so the projection's
   next push reconciles the order.
 - An "add group" input resolves a typed ref to a default rule
-  (`notify <ref> --render name`, a default-preserving create), and a global
+  (`notify set <ref> --render name`, a default-preserving create), and a global
   `social.verbosity` control issues the `settings set` command.
 
 ## Country of origin

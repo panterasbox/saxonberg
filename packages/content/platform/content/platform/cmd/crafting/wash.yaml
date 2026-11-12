@@ -67,11 +67,13 @@ args:
   # river`. The controller's narrowing (water or brine) is the check, and
   # a frozen water is refused unless there is a hole in it.
   - name: water
+    prepositionRequired: true
     type: objects
     required: false
-    greedy: true
     prepositions: [in, under, at]
-    default: "reachable:[mixin.BulkableMixin],reachable:[mixin.ShoreMixin]"
+    # ⭐ The water answers for itself (`WaterDrawableMixin`, controller-liquidity
+    # W7c): a basin, a tap, a tub, a pail, a shore — the read `rinse` makes.
+    default: "reachable:[mixin.WaterDrawableMixin]"
     scope: ["reachable"]
     requires: any
   # ⭐ WHAT WITH — a cleanser: anything whose material a Cleanser row's
@@ -79,9 +81,9 @@ args:
   # Two may be used at once (`with soap and soda`). A thing that is no
   # cleanser is refused in words.
   - name: cleanser
+    prepositionRequired: true
     type: objects
     required: false
-    greedy: true
     prepositions: [with]
     scope: ["reachable"]
     requires: any
@@ -90,9 +92,9 @@ args:
   # bare hands at half (`wash floor --hard using brush with soap`). It was
   # `scrub`'s slot until `scrub` became this verb's `--hard` (D8c).
   - name: brush
+    prepositionRequired: true
     type: objects
     required: false
-    greedy: true
     prepositions: [using]
     default: "me:i:[capability.scrubbing],reachable:[capability.scrubbing]"
     scope: ["reachable"]

@@ -51,6 +51,7 @@ import type { VetoResult } from "../../lib/errors";
 import type { Stuff } from "../../lib/stuff/Stuff";
 
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
+import type { SubdivisionRefusal } from "../../api/parcel";
 const ParcelRegistryBase = Idea;
 
 // Admit both the Api face module and the logic singleton's template path,
@@ -316,40 +317,17 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     //
     // Unmeasured land (`area: 0`) is not policed — every parcel that
     // predates the field keeps behaving exactly as it did.
-    if (area > 0 && parentExtent.length > 0) {
-      const parent = await ParcelRecord.findByExtent(parentExtent);
-      const ceiling = parent?.getGrossFloorArea() ?? 0;
-      if (ceiling > 0) {
-        const taken = (await this.childAreaTotal(parentExtent, childPath)) + area;
-        if (taken > ceiling) {
-          throw new Error(
-            `ParcelRegistry.subdivide: ${childPath} would take ${taken} m² of ` +
-              `${parentExtent}'s ${ceiling} m² (area ${parent?.getArea() ?? 0} × ` +
-              `${parent?.getStoreys() ?? 1} storeys)`,
-          );
-        }
-      }
-    }
-    // ── zoning: the USE half of the same act (living-world phase 2) ──
-    // The conservation check above asks "does it fit"; this asks "is a
-    // lot this size sane for what it is FOR". The effective use is the
-    // declared one, else whatever the parent's chain already says, and
-    // it is checked BEFORE anything is touched so a refusal leaves
-    // neither a row nor a mutated live record behind.
-    //
-    // ⚠ Measured against `area`, NOT `area × storeys`: the band is a
-    // GROUND-area band, and a four-storey building stands on the same
-    // dirt as a one-storey one. Multiplying would refuse a modest tower
-    // for being a large lot.
-    const effectiveUse =
-      landUse ??
-      (parentExtent.length > 0 ? this.landUseOfImpl(parentExtent) : "wild");
-    if (!LandUses.admitsArea(effectiveUse, area)) {
-      const band = LandUses.areaBandOf(effectiveUse);
-      throw new RangeError(
-        `ParcelRegistry.subdivide: ${area} m² is outside the permissible ` +
-          `area for ${effectiveUse} ground (${band.min}–${band.max} m²)`,
-      );
+    const refusal = await this.refusalToSubdivide(
+      childPath,
+      parentExtent,
+      area,
+      landUse,
+    );
+    if (refusal) {
+      const message = `ParcelRegistry.subdivide: ${refusal.detail}`;
+      throw refusal.reason === "zoning"
+        ? new RangeError(message)
+        : new Error(message);
     }
 
     // Reuse the live trie handle if one already claims this extent (the
@@ -370,6 +348,73 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     await this.appendEvent("subdivide", childPath, null, owner);
     this.reindex(childPath, record);
     return record;
+  }
+
+  /**
+   * ⭐ Would {@link subdivide} refuse this lot? The two checks it makes
+   * BEFORE anything is written — the floor-area ledger and the zoning band —
+   * answered without writing, so a caller with a money leg can ask first and
+   * take the money only for a lot the registry will accept
+   * (controller-liquidity C1: the land sale used to settle, then throw).
+   * `subdivide` itself asks this, so the two can never disagree.
+   */
+  @CallSecurity(ParcelApiCallers)
+  public async subdivisionRefusal(
+    childPath: string,
+    parentExtent: string,
+    area = 0,
+    landUse: LandUse | null = null,
+  ): Promise<SubdivisionRefusal | null> {
+    return this.refusalToSubdivide(childPath, parentExtent, area, landUse);
+  }
+
+  /** The body of {@link subdivisionRefusal}, shared with {@link subdivide}. */
+  private async refusalToSubdivide(
+    childPath: string,
+    parentExtent: string,
+    area: number,
+    landUse: LandUse | null,
+  ): Promise<SubdivisionRefusal | null> {
+    if (area > 0 && parentExtent.length > 0) {
+      const parent = await ParcelRecord.findByExtent(parentExtent);
+      const ceiling = parent?.getGrossFloorArea() ?? 0;
+      if (ceiling > 0) {
+        const taken = (await this.childAreaTotal(parentExtent, childPath)) + area;
+        if (taken > ceiling) {
+          return {
+            reason: "over-area",
+            detail:
+              `${childPath} would take ${taken} m² of ` +
+              `${parentExtent}'s ${ceiling} m² (area ${parent?.getArea() ?? 0} × ` +
+              `${parent?.getStoreys() ?? 1} storeys)`,
+          };
+        }
+      }
+    }
+    // ── zoning: the USE half of the same act (living-world phase 2) ──
+    // The conservation check above asks "does it fit"; this asks "is a
+    // lot this size sane for what it is FOR". The effective use is the
+    // declared one, else whatever the parent's chain already says, and
+    // it is checked BEFORE anything is touched so a refusal leaves
+    // neither a row nor a mutated live record behind.
+    //
+    // ⚠ Measured against `area`, NOT `area × storeys`: the band is a
+    // GROUND-area band, and a four-storey building stands on the same
+    // dirt as a one-storey one. Multiplying would refuse a modest tower
+    // for being a large lot.
+    const effectiveUse =
+      landUse ??
+      (parentExtent.length > 0 ? this.landUseOfImpl(parentExtent) : "wild");
+    if (!LandUses.admitsArea(effectiveUse, area)) {
+      const band = LandUses.areaBandOf(effectiveUse);
+      return {
+        reason: "zoning",
+        detail:
+          `${area} m² is outside the permissible ` +
+          `area for ${effectiveUse} ground (${band.min}–${band.max} m²)`,
+      };
+    }
+    return null;
   }
 
   /**

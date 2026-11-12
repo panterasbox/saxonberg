@@ -9,7 +9,6 @@
 # word. A subcommand is something you operate; that is the tell.
 verbs: [player]
 category: author
-controller: /platform/idea/cmd/author/PlayerController
 description: "Manage your player character settings"
 help: |
   Adjust the basics of who your character is. Use the subcommands
@@ -19,6 +18,7 @@ validators:
   - /lib/command/validators/requiresAvatar
 subcommands:
   name:
+    controller: /platform/idea/cmd/author/PlayerNameController
     description: "Set your character name"
     help: |
       Set the name others see for your character. Pass a single
@@ -36,6 +36,7 @@ subcommands:
         required: false
 
   pronouns:
+    controller: /platform/idea/cmd/author/PlayerPronounsController
     description: "Set your pronouns"
     help: |
       Choose the pronouns the game uses when referring to you in
@@ -50,6 +51,7 @@ subcommands:
         required: true
 
   show:
+    controller: /platform/idea/cmd/author/PlayerShowController
     description: "Show your current player settings"
     help: |
       Print your character's current settings — name and pronouns —

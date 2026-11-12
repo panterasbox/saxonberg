@@ -20,4 +20,3 @@ args:
     required: true
     scope: ["$focus", "reachable"]
     requires: [TieableMixin]
-    greedy: true

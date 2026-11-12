@@ -14,7 +14,7 @@
  * client-side glance list to keep in step, and a test asserts none is
  * stored.
  *
- * ⚠ Every affordance sends a `cockpit shelf …` command and **mutates
+ * ⚠ Every affordance sends a `client-shelf …` command and **mutates
  * nothing locally**. The server writes `cockpit.shelf` and pushes it
  * back; the screen re-renders from that. This is the same rule the
  * desktop widget menu keeps, and the reason is unchanged: a control
@@ -22,7 +22,7 @@
  * model advertises.
  *
  * ⚠ **Identity and connection are absent by design.** They are not
- * shelf rows at all — `cockpit shelf unpin identity` refuses with
+ * shelf rows at all — `client-shelf unpin identity` refuses with
  * *unknown shelf row*, and that refusal is a stronger guarantee than a
  * rule somebody could edit out of this file.
  *

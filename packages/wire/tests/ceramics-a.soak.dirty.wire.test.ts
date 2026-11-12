@@ -716,18 +716,18 @@ suite('⭐ 8 — reduce the draught: blue brick', () => {
     });
     expect(load?.stuffId, 'the second load').toBeDefined();
     const second = `#${load!.stuffId}`;
-    await say(digger, `get ${second}`);
+    await say(digger, `get "${second}"`);
     await say(digger, 'south');
-    await say(digger, `put ${second} on hack`);
+    await say(digger, `put "${second}" on hack`);
     let rows = '';
     for (let week = 0; week < 10 && !/bone-dry/i.test(rows); week++) {
       await advance('7 days');
       rows = await examine(digger, second);
     }
     expect(rows, 'the second load dry').toMatch(/bone-dry/i);
-    await say(digger, `get ${second}`);
+    await say(digger, `get "${second}"`);
     await say(digger, 'east');
-    expect(await say(digger, `put ${second} in clamp`)).toMatch(/put .*brick.* in .*clamp/i);
+    expect(await say(digger, `put "${second}" in clamp`)).toMatch(/put .*brick.* in .*clamp/i);
     await say(digger, 'get coal');
     await say(digger, 'stoke coal into clamp');
     await say(digger, 'light clamp');
@@ -771,7 +771,7 @@ suite('⭐ 9 — measure against the statute brick', () => {
     await say(digger, 'east');
     await say(digger, 'get bricks');
     const sound = await wordOf(/earthenware/i);
-    const statute = await say(digger, `measure size ${sound} brick`);
+    const statute = await say(digger, `measure size "${sound}" brick`);
     expect(statute, `a statute brick: ${statute}`).toMatch(/statute|standard|true/i);
     expect(statute).not.toMatch(/off standard/i);
     await say(digger, 'drop bricks');
@@ -805,26 +805,26 @@ suite('⭐ 9 — measure against the statute brick', () => {
     expect(day, `the old mould: ${day}`).toMatch(/brick/i);
     expect(big?.stuffId, 'the oversize bricks').toBeDefined();
     const oversized = `#${big!.stuffId}`;
-    await say(digger, `get ${oversized}`);
+    await say(digger, `get "${oversized}"`);
     // Dry them in the hacks: old pit → pit → yard → temper → shed → hacks.
     for (const d of ['east', 'north', 'east', 'east', 'south']) await say(digger, d);
-    await say(digger, `put ${oversized} on hack`);
+    await say(digger, `put "${oversized}" on hack`);
     let rows = '';
     for (let week = 0; week < 10 && !/bone-dry/i.test(rows); week++) {
       await advance('7 days');
       rows = await examine(digger, oversized);
     }
     expect(rows, 'the oversize bricks dry').toMatch(/bone-dry/i);
-    await say(digger, `get ${oversized}`);
+    await say(digger, `get "${oversized}"`);
     // Burn them in the clamp ground's firing pit, on their own.
     await say(digger, 'east');
-    expect(await say(digger, `put ${oversized} in pit`)).toMatch(/put .*brick.* in .*pit/i);
+    expect(await say(digger, `put "${oversized}" in pit`)).toMatch(/put .*brick.* in .*pit/i);
     await say(digger, 'light pit');
     await act(digger, 'fire pit for 1 day', '1 day');
     await say(digger, 'douse pit');
     await advance('12 hours');
     await say(digger, 'get bricks from pit');
-    const oversize = await say(digger, `measure size ${oversized}`);
+    const oversize = await say(digger, `measure size "${oversized}"`);
     expect(oversize, `the old mould's brick: ${oversize}`).toMatch(/off standard/i);
     expect(oversize).toMatch(/over/i);
   }, 7_200_000);

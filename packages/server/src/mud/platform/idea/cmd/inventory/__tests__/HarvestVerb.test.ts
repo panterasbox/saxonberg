@@ -708,14 +708,14 @@ describe('harvest <plant>', () => {
       const { giver, bed } = scene();
       const plant = ripe(bed);
       forceStage(plant, 'seedling');
-      const answer = plant.harvestPlanFor({ by: giver, typed: 'carrots', part: null, tool: null });
+      const answer = plant.harvestPlanFor({ by: giver, part: null, tool: null });
       expect(answer.ok).toBe(false);
       if (!answer.ok) expect(answer.reason).toBe('not-mature');
     });
 
     it('naming the ground asks what grows in it', () => {
       const { giver, bed } = scene();
-      const answer = bed.harvestPlanFor({ by: giver, typed: 'bed', part: null, tool: null });
+      const answer = bed.harvestPlanFor({ by: giver, part: null, tool: null });
       expect(answer.ok).toBe(false);
       if (!answer.ok) expect(answer.reason).toBe('nothing-growing');
     });

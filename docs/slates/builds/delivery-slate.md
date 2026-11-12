@@ -372,7 +372,7 @@ three of them ship today:
 
 **So yes — an off-grid structure expresses itself fully.** It keeps its
 fabric and what it is made of, its shell band and weathering clock,
-`survey`/`maintain`, its cost basis, its fire risk, its salvage value, its
+`analyze condition`/`maintain` (`survey` retired), its cost basis, its fire risk, its salvage value, its
 decor and archetype satisfaction, **and its name** — because what a thing is
 *called* is a separate namespace from where it *is* (§ *The realm's scheme*:
 *"whatever a person is called on a channel is a separate namespace, never an

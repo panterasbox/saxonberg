@@ -73,11 +73,11 @@ suite('paint — the soak drive', () => {
     const s = await Session.open(uniqueHandle('pns'), { startLocation: TOWPATH });
     open.push(s);
     await nourish(s).catch(() => {});
-    const before = await say(s, 'survey cottage');
+    const before = await say(s, 'look cottage');
     expect(before, before).toMatch(/limewash/i);
     await days(300);
-    const after = await say(s, 'survey cottage');
-    expect(after, after).toMatch(/no coat left|paint has gone/i);
+    const after = await say(s, 'analyze condition cottage');
+    expect(after, after).toMatch(/paint has gone/i);
   }, 6 * 3_600_000);
 
   it('14. a heap of oily rags warms over days and catches', async () => {
@@ -91,7 +91,7 @@ suite('paint — the soak drive', () => {
     const s = await Session.open(handle, { startLocation: SHOP });
     open.push(s);
     await nourish(s).catch(() => {});
-    await say(s, 'buy pot of ochre paint');
+    await say(s, 'buy "pot of ochre paint"');
     for (let i = 0; i < 6; i++) await say(s, 'buy rag');
     await say(s, 'dip rags in ochre paint');
     await say(s, 'north');

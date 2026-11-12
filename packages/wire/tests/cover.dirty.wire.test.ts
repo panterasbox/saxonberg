@@ -368,8 +368,8 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
   it('2. the general store sells a sickle and seed wheat', async () => {
     await goTo(STORE);
     await doing(p, 'buy sickle');
-    await doing(p, 'buy seed wheat');
-    await doing(p, 'buy seed wheat');
+    await doing(p, 'buy "seed wheat"');
+    await doing(p, 'buy "seed wheat"');
     expect(await read(p, 'inventory')).toMatch(/sickle.*sack of seed wheat.*sack of seed wheat/i);
   }, 600_000);
 
@@ -400,14 +400,14 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     for (const field of ['the gate end', 'the middle']) {
       let said = '';
       for (let i = 0; i < 5 && !/ploughed for the season/i.test(said); i++) {
-        said = (await work(p, `plow at ${field}`)).said + ' ' + (await read(p, `look at ${field}`));
+        said = (await work(p, `plow at "${field}"`)).said + ' ' + (await read(p, `look at "${field}"`));
       }
       expect(said, field).toMatch(/ploughed for the season/i);
     }
     // ⚠ `look at <field>` pins the focus on the field; a bare `look` would
     // then read the field, not the tract. Back to the room.
     await read(p, 'look here');
-    await refused(p, 'plow at the gate end', 'already-ploughed');
+    await refused(p, 'plow at the "gate end"', 'already-ploughed');
   }, 1_200_000);
 
   it('4. sowing takes an area per act and spends the seed in proportion — drilled, on half of it: about two-thirds sown', async () => {
@@ -460,7 +460,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
       if (m) seen.add(m[0].toLowerCase());
       // ⚠ Named by its field: with two stands in the field a bare `look
       // wheat` PROMPTS (field population W2).
-      await read(p, 'look gate end wheat');
+      await read(p, 'look "gate end wheat"');
     }
     note(`stages seen: ${[...seen].join(', ')}`);
     expect(seen.size).toBeGreaterThanOrEqual(3);
@@ -472,7 +472,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await goTo(YARD);
     await act(p, 'get scythe');
     await goTo(HOME_FIELD);
-    mown = /cut it down to the residual/i.test((await act(p, 'mow at the far side')).said);
+    mown = /cut it down to the residual/i.test((await act(p, 'mow at the "far side"')).said);
     expect(mown, 'the long grass was mown for hay').toBe(true);
   }, 1_800_000);
 
@@ -480,7 +480,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     // Seed in hand first: the last of it went into the home field, and
     // with none held `sow wheat` names the standing crop (not plantable).
     await goTo(STORE);
-    await doing(p, 'buy seed wheat');
+    await doing(p, 'buy "seed wheat"');
     // [staged] The bench ripens on the season (the soak file's): set ripe.
     await stageCrops(BENCH, DELIGHT, 'mature');
     await daylight();

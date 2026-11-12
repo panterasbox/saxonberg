@@ -215,6 +215,29 @@ parallel-safe:
    guest logout spilled gear).
 5. **The interior place** — the swallowing creature, when the bestiary arrives.
 
+## 9. Loose ends left by controller-liquidity (2026-11-09) **[OWED]**
+
+The controller-liquidity build ships the reach grammar against today's
+loose-carry model and leaves these to the carrying build, which follows it.
+The owner, 2026-11-09: the carrying flip is its own build, done after.
+
+- **`:held` narrows to the hands.** Controller-liquidity defines `:held` as
+  what you hold under today's model (the wielded slot plus what is loose on
+  your body). When hands become real, `:held` means the hand slots only.
+- **Retune every view's reach default.** Each argument now declares how deep
+  it looks (`depth:`, with the reserved `--top` / `--open` / `--deep`
+  options). Those defaults were chosen against a world where everything you
+  carry is loose; with pockets, packs and belts they want a pass (`drink`
+  from the flask on your belt, `wield` from your hands only).
+- **`reachable` re-measured.** It means what you could lay hands on right
+  now: held · worn · inside open vessels you carry · the room's top level ·
+  inside open things here, never inside shut ones. After the flip its top
+  rung is hands and worn, not loose contents; check that every verb that
+  relies on it still finds what a player expects.
+- **The card's hidden pockets.** The inspection card hides a person's
+  contents because "a person's contents are their pockets"; once pockets are
+  modelled, decide what an onlooker sees.
+
 ## Related
 
 [ships-and-harbors-slate](./ships-and-harbors-slate.md) (craft and harbor

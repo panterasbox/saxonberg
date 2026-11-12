@@ -379,7 +379,7 @@ async function brashOf(handle: string, species: string, bundles: number): Promis
     // bundle in hand later answers to "ash" — MQL's partial match is a
     // substring one, and b-r-ASH (the slate's vocabulary hazard, met).
     // By its wood: the ride still holds the last felling's bundles.
-    await say(r, `get 1 ${species} brash`);
+    await say(r, `get 1 "${species} brash"`);
     r.close();
     const p = await goTo(handle, ASHERY);
     const fed = await say(p, 'stoke brash into pit');
@@ -402,7 +402,7 @@ async function burnAndSweep(handle: string): Promise<{ swept: string; heaps: { l
   s = await goTo(handle, ASHERY);
   const before = await named(s, 'me:i', /wood ash/i);
   await say(s, 'get broom');
-  const swept = await act(s, 'sweep pit');
+  const swept = await act(s, 'rake pit');
   await say(s, 'drop broom');
   const after = await named(s, 'me:i', /wood ash/i);
   s.close();
@@ -435,7 +435,7 @@ suite('⭐ drive 1–4 — brash, the pit, and ash of a strength (AC 2, 3, 10)',
     y.close();
     await brashOf(ashMaker, 'beech', 2);
     const { swept, heaps } = await burnAndSweep(ashMaker);
-    expect(swept, `sweep pit: ${swept}`).toMatch(/rake/i);
+    expect(swept, `rake pit: ${swept}`).toMatch(/rake/i);
     const kg = heaps.reduce((a, h) => a + (h.mass?.value ?? 0), 0);
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ beech: ${heaps.length} heap(s), ${kg.toFixed(3)} kg of ash off two bundles of brash`);
@@ -479,7 +479,7 @@ function eggRank(said: string): number {
 
 /** Read a hopper by egg: the words, and their rank. */
 async function eggOf(s: Session, vessel = 'hopper'): Promise<{ said: string; rank: number }> {
-  const said = await say(s, `analyze density ${vessel}`);
+  const said = await say(s, `analyze density "${vessel}"`);
   expect(said, `the egg in the ${vessel}: ${said}`).toMatch(/egg/i);
   expect(said).not.toMatch(NO_NUMBER);
   return { said, rank: eggRank(said) };

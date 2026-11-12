@@ -21,19 +21,9 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { GroundReading } from './GroundWorkController';
-import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import { StuffApi } from '../../../../api/stuff';
 import { GrammarApi } from '../../../../api/grammar';
-
-/**
- * The material tag a liming agent carries. ⭐ An open vocabulary, like every
- * material tag: marl and quicklime both answer it, and a pack that ships a
- * third sweetener needs no edit here. The VIEW's default asks for it
- * (`[material.liming]`); this only confirms what the binder handed back.
- */
-const LIMING_TAG = 'liming';
 
 /** ⭐ The sweetener is bound by the view, never hunted for here. */
 interface LimeModel extends CommandModel {
@@ -59,8 +49,10 @@ export default class LimeController extends GroundWorkController {
       );
       return;
     }
-    const agent = this.limingAgent(model.agent?.stuff);
-    if (!agent) {
+    // ⭐ The GROUND says what sweetens it (the `liming` tag) — the view's
+    // `[material.liming]` default did the finding.
+    const agent = model.agent?.stuff ?? null;
+    if (!agent || !ground.limesWith(agent)) {
       this.decline(
         context,
         Mml.compose`You have nothing to spread. Marl, off a limy field, is what most people use.`,
@@ -87,9 +79,8 @@ export default class LimeController extends GroundWorkController {
   ): Promise<void> {
     const giver = context.commandGiver;
     const { ground, bill } = reading;
-    // The material is consumed by the spreading, whatever it was.
-    StuffApi.destruct(agent);
-    const after = ground.bankWork('liming', LABOUR_PER_ACT, bill);
+    // ⭐ One dose of it, not the stack (C48): the ground takes one lump.
+    const after = await ground.spreadLime(agent, LABOUR_PER_ACT, bill);
     MessageApi.scene(giver)
       .topic(GROUND_TOPIC)
       .toSelf(
@@ -99,19 +90,5 @@ export default class LimeController extends GroundWorkController {
       )
       .send();
     await this.credit(giver, bill.liming);
-  }
-
-  /**
-   * The bound thing, if it is actually made of something that limes.
-   *
-   * ⚠ It used to walk the giver's contents itself, which meant no player
-   * could ever say WHICH sack — and the walk is exactly what
-   * `lint:controller-resolution` exists to keep at zero. The view's
-   * `[material.liming]` default does the finding now.
-   */
-  private limingAgent(bound: Stuff | null | undefined): Stuff | null {
-    if (!bound) return null;
-    if (!MixinApi.isTangible(bound)) return null;
-    return bound.hasMaterialTag(LIMING_TAG) ? bound : null;
   }
 }

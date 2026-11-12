@@ -70,7 +70,6 @@ function pluralObjectsCmd(): CommandDefinition {
       '  - name: targets',
       '    type: objects',
       '    required: true',
-      '    greedy: true',
       '    scope: inventory',
     ].join('\n'),
     '<test>'

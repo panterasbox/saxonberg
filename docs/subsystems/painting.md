@@ -17,8 +17,8 @@ A structure is an Idea, so a player engages it from a place that touches
 it: *a place that does not hold its own air, with an exit into a member
 that is enclosed or is the entrance — or with the structure lying alongside*
 (construction.md § the landing). Landed structures join the room's `here`
-pool: `look`, `survey`, `paint` and `maintain` bind a building from its
-landing and nowhere else, and refuse elsewhere in words (*"You cannot reach
+pool: `look`, `analyze condition`, `measure paint`, `paint` and
+`maintain` bind a building from its landing and nowhere else, and refuse elsewhere in words (*"You cannot reach
 the outside of the cottage from here."*).
 
 ## 2. The outside: a face and a condition — no new mixins
@@ -49,8 +49,18 @@ where they are painted from. A holding's rooms are keyed clones of shared
 rows, so no path names them (holding.md § Identity): **a place asks its
 warren which building it is in** (`Warren.structureOf`, a hook the holding
 answers from its buildings' room instances; `Place.structureNow` asks it
-first, then the location graph by identity path). So `survey` in a field
-reads no fabric and `maintain` there finds nothing to keep. By path, only
+first, then the location graph by identity path). ⭐ A structure answers
+its outside as facts — `Structure.readOutside()` (coat, band, cause, area,
+litres, and `weatherSurface()`: *wall and roof*, a ship's *hull*) — and
+three reads word them (controller-liquidity W17, when the owner retired
+the `survey` verb): `look <building>` says the coat and the condition
+word; **`analyze condition <building>`** says WHY (*the paint has gone;
+the weather is at what was under it*), to every band; **`measure paint
+<building>`** (a `Reading` row, `PaintReading` — an instrument rung, a
+rule or a gauging rod, unbanded) says the job: the area to the weather
+and the litres one coat takes. `RoomsReading` (`analyze rooms`) asks
+the structure a room is part of for the shell line. So `analyze rooms`
+in a field reads no fabric and `maintain` there finds nothing to keep. By path, only
 the main building (the first named) answers, at the holding's own extent —
 what the ascent gate reads; the others are kept under
 `<extent>@<row leaf>`.
@@ -90,8 +100,8 @@ world; two coats last twice as long; a crazed or run coat goes twice as
 fast. The walk is `BiomeApi.airSegmentsFor` at the thing's `weatherScope`
 (a good's container; a building's standing landing), so a wet day and a dry
 one do different things; a long absence integrates the tail the weather walk
-keeps. It reconciles on read — a look, a read of lettered words, a survey, a
-coat laid. A building with no landing standing leaves its coat unwalked
+keeps. It reconciles on read — a look, a read of lettered words, an
+`analyze condition`, a coat laid. A building with no landing standing leaves its coat unwalked
 until one is (nothing is lost), but a bare one still wears. A thermal good
 sets its own wet coats over its room's air (`Thermal.reconcileCoats`, which
 also takes an oil's heat); everything else sets them in this walk.
@@ -127,8 +137,8 @@ coat's MATERIAL is its binder, so the binder sets and weathers it. There is
 no paint table: a second paint is a pigment row.
 
 **Pigments are items** (a paper of yellow ochre), because a pot's liquid is
-one slot: the binder is poured, the pigment put in, the pot stirred
-(`PaintPot.payloadFor`). An egg in the pot binds as tempera.
+one slot: the binder is poured, the pigment put in, the pot stirred (`stir pot`;
+a paint is runny, so `knead` refuses it — W19) (`PaintPot.payloadFor`). An egg in the pot binds as tempera.
 
 ## 4. `paint` — one verb, the target plans it
 

@@ -458,7 +458,7 @@ suite('⭐ 1. the kit, and ⚠⚠ what the till said about it', () => {
     // and nine lines once shipped stocked-and-unpriced, every `buy`
     // answering `not-priced` — a shelf full of goods nobody could buy.
     for (const line of ['auger', 'spile', 'pail']) {
-      const out = await say(k, `buy ${line}`);
+      const out = await say(k, `buy "${line}"`);
       expect(refusedFor(out), `${line} must be on the shelf AND priced`).toBe(
         'insufficient-funds',
       );
@@ -471,7 +471,7 @@ suite('⭐ 1. the kit, and ⚠⚠ what the till said about it', () => {
   it('⚠ so the kit is laid out on the floor instead, and the drive says so', async () => {
     await stockTheHollow();
     for (const thing of ['jar', 'auger', 'spile', 'spile', 'spile', 'pail']) {
-      await say(k, `get ${thing}`);
+      await say(k, `get "${thing}"`);
     }
     const kit = await carried(k);
     expect(kit, 'the kit must be in hand to drive anything').toMatch(/auger/i);
@@ -549,7 +549,7 @@ suite('⭐⭐ 5–6. six named stems, and the sap is not up', () => {
     // a merge identity, not a naming keyword: three cherries authored
     // that way all answer to *cherry*).
     for (const name of ['birch-north', 'maple-south']) {
-      const tree = await read(k, `look ${name}`);
+      const tree = await read(k, `look "${name}"`);
       expect(tree, name).toMatch(/birch|maple/i);
       // The girth, in words — what decides how many spiles it takes.
       expect(tree, name).toMatch(/spile/i);

@@ -221,7 +221,7 @@ canon replaces; the shape does not change.
 
 ## The gym — `archetypes/gym.yaml`, `LoadDevice`, `lift`
 
-One room archetype (`industry: null`; `survey` reports it anywhere):
+One room archetype (`industry: null`; `analyze rooms` reports it anywhere):
 `load` (a thing offering the `load` capability) and `mat` (any
 surface). ⚠ No `pace` slot yet — `lint:capabilities` treats an
 archetype need as a requirement, and nothing offers `pace` until the

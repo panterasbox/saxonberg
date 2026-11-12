@@ -44,6 +44,15 @@ second glasshouse is rows.
    derived colour becomes the window's, and the window colours the light
    it lets into the room.
 
+⭐ **The cold bench is three acts on the sheet, not a `cut` mode**
+(controller-liquidity D14, W6). `scribe`/`snap`/`groze` each ask one host
+method — `Sheet.scribePlan`/`snapPlan`/`grozePlan`, the reasons and types in
+the host's file — and the kernel `cut` no longer carries a glass key. The hot
+work is the same shape (W12): `crack` asks `Gather.crackPlan`, `reheat`
+`Gather.reheatPlanAt`, `flatten` `Sheet.flattenPlanAt`, and `glaze` refuses
+on `Window.canGlaze` (a window already glazed is refused, not overwritten —
+C14) before `Sheet.glazeInto` writes it.
+
 ## Colour is a grade, never a choice (the firewall)
 
 A glass good's colour is **derived, never stored**. `TintedMixin`

@@ -340,7 +340,8 @@ question 10.
 
 ### Lens 3 · Roleplay & immersion — one practical hole
 
-*Shipped — `equip set <name>`, a stanza, zero new verbs → textiles.md
+*Shipped — `equip set <name>`, a stanza, zero new verbs (now `outfit wear
+<name>`, controller-liquidity W16) → textiles.md
 § The presentation.*
 
 ### Lens 4 · Gamification & self-improvement — the thinnest lens

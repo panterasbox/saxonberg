@@ -12,7 +12,7 @@
 # with danger. It costs one file and it means nobody has to re-derive it.
 label: a passenger conveyance
 materializesOnto: /system/transport/thing/coach
-surveyScope: off-room
+roomsScope: off-room
 capabilities:
   - { key: seating, needs: { seating: 4 } }
   # ⭐ The night coach's lamp. A shut coach is opaque and an unlit

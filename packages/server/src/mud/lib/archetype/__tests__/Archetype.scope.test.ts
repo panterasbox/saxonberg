@@ -2,9 +2,9 @@
  * The two archetype substrate fields (logistics D19 / P6).
  *
  * D19 said "one substrate change". Honest accounting says two, and the
- * second is not optional: without `surveyScope`, five new industry-less
+ * second is not optional: without `roomsScope`, five new industry-less
  * archetypes — corridor, depot, haulage-rig, passenger-conveyance,
- * livery — land on **every `survey` in the game**, in every bedroom, for
+ * livery — land on **every `analyze rooms` in the game**, in every bedroom, for
  * every player.
  *
  * ⭐ The load-bearing assertion is the first one: every shipped
@@ -13,7 +13,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { Archetype, SURVEY_SCOPES } from '../Archetype';
+import { Archetype, ROOMS_SCOPES } from '../Archetype';
 import { StuffApi } from '../../../api/stuff';
 
 const BARE = {
@@ -22,13 +22,13 @@ const BARE = {
   capabilities: [{ key: 'seat', needs: { seating: 1 } }],
 };
 
-describe('Archetype — materializesOnto / surveyScope', () => {
+describe('Archetype — materializesOnto / roomsScope', () => {
   afterEach(() => vi.restoreAllMocks());
 
   it('the shipped shape is unchanged with both fields absent (AC15k)', () => {
     const a = Archetype.fromData({ ...BARE }, '/test/archetypes/test-bare');
     expect(a.getMaterializesOnto()).toBe('/platform/location/venue');
-    expect(a.getSurveyScope()).toBe('space');
+    expect(a.getRoomsScope()).toBe('space');
   });
 
   it('materializesOnto is an authored template path', () => {
@@ -45,13 +45,13 @@ describe('Archetype — materializesOnto / surveyScope', () => {
     ).toThrow(/template path/);
   });
 
-  it('surveyScope takes the three values and nothing else', () => {
-    for (const scope of SURVEY_SCOPES) {
-      expect(Archetype.fromData({ ...BARE, surveyScope: scope }, '/test/archetypes/test-bare').getSurveyScope()).toBe(scope);
+  it('roomsScope takes the three values and nothing else', () => {
+    for (const scope of ROOMS_SCOPES) {
+      expect(Archetype.fromData({ ...BARE, roomsScope: scope }, '/test/archetypes/test-bare').getRoomsScope()).toBe(scope);
     }
     expect(() =>
-      Archetype.fromData({ ...BARE, surveyScope: 'everywhere' }, '/test/archetypes/test-bare'),
-    ).toThrow(/surveyScope/);
+      Archetype.fromData({ ...BARE, roomsScope: 'everywhere' }, '/test/archetypes/test-bare'),
+    ).toThrow(/roomsScope/);
   });
 
   it('the needs vocabulary is unchanged — no ninth need (AC15m)', () => {
@@ -61,7 +61,7 @@ describe('Archetype — materializesOnto / surveyScope', () => {
     const corridor = Archetype.fromData({
       archetypeId: 'corridor',
       label: 'a way',
-      surveyScope: 'corridor',
+      roomsScope: 'corridor',
       capabilities: [
         { key: 'shelter', needs: { seating: 1 } },
         { key: 'water', needs: { bulkSource: 'water' } },

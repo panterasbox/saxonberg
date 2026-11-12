@@ -1,25 +1,25 @@
 /**
  * ScrapeController — `scrape [<patch>]`: clear the snow off the ice so it
- * freezes black. ⭐ The sheet decides (`IceSheet.cutPlan({verb: 'scrape'})`);
- * the words are this controller's (controllers-are-io D4).
+ * freezes black. ⭐ The sheet decides (`IceSheet.scrapePlan` — its own
+ * method, controller-liquidity D14); the words are this controller's (controllers-are-io D4).
  */
 
 import { IceActController } from '../../../lib/IceActController';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { ScrapeDone, ScrapeRefusal } from '@saxonberg/server/mud/lib/craft/Cuttable';
+import type { ActPlan } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import type IceSheet from '@saxonberg/content-water/src/thing/IceSheet';
+import type { ScrapeDone, ScrapeRefusal } from '@saxonberg/content-water/src/thing/IceSheet';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
 export default class ScrapeController extends IceActController<'scrape'> {
-  protected verb(): 'scrape' {
-    return 'scrape';
+  protected planOn(sheet: IceSheet, actor: Stuff, tool: Stuff, patch: string | null): ActPlan<undefined, ScrapeDone, ScrapeRefusal> {
+    return sheet.scrapePlan(actor, tool, patch);
   }
   protected capability(): string {
     return 'scraping';
   }
   protected refusalWords(out: ScrapeRefusal): string {
     switch (out.reason) {
-      case 'not-cuttable':
-        return 'There is no ice here to work.';
       case 'not-on-ice':
         return 'You cannot work the ice from the water.';
       case 'no-snowy-ice':

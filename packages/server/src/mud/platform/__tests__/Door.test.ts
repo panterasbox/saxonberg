@@ -152,7 +152,7 @@ describe('Door — one object, two sides; break/install', () => {
     const [a, b] = await rooms();
     const door = await StuffApi.create(() => new Door());
     await a.addBidirectionalExit(b, 'north', { boundary: door });
-    door.lock();
+    door.setLocked(true);
     expect(a.getExit('north')!.wayState()).toBe('locked');
     expect(b.getExit('south')!.wayState()).toBe('locked');
   });

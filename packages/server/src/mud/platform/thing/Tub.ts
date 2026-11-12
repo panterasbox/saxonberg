@@ -14,8 +14,9 @@ import { ThermalMixin } from '../../lib/thermal/Thermal';
 import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { BulkableApi } from '../../api/bulk';
+import { WaterDrawableMixin } from '../../lib/bulk/WaterDrawable';
 
-const TubBase = BulkableMixin(ThermalMixin(Chair));
+const TubBase = WaterDrawableMixin(BulkableMixin(ThermalMixin(Chair)));
 
 export default class Tub extends TubBase {
   /** Sideways: anyone in the room with the tub can get into it. */

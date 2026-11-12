@@ -24,21 +24,21 @@ args:
   - name: targets
     type: objects
     required: true
-    greedy: true
     scope: "peers"
     requires: [VisibleMixin, ContainableMixin]
     validators:
       - /lib/command/validators/mustBeInLocation
+      - /lib/command/validators/mustNotBeShutAway
   # ⭐ WHERE FROM — optional. `peers` already reaches one level into an
   # open container standing here, so the targets bind without it; naming
   # the holder narrows them to what is IN it or ON it (`get block from
   # hogshead`). Without this arg the words `from hogshead` went to the
   # targets query and MQL refused them as a parse error (sugar, 2026-10-26).
   - name: source
+    prepositionRequired: true
     type: object
     required: false
     # Greedy: `get loaf from the sugar cone` is several words.
-    greedy: true
     prepositions: [from, off]
     scope: "peers"
     requires: [VisibleMixin, ContainerMixin|PlacingMixin]

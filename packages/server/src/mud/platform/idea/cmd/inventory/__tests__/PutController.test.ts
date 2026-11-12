@@ -672,6 +672,33 @@ describe('PutController — put over N placements', () => {
     expect(apple.getContainer()).toBe(chest);
   });
 
+  it('⭐ the world answers `put` with no controller in the way (W8)', async () => {
+    await warmCatalogue();
+    const { loc, giver, apple } = scene();
+    const chest = makeStuff(() => {
+      const c = new TestSealedChest();
+      c.setName('chest');
+      c.setOpen(false);
+      return c;
+    });
+    ContainmentApi.move(chest, loc);
+    expect(ContainmentApi.putPlanFor(apple, chest, { prep: 'in', by: giver })).toEqual({
+      ok: false,
+      reason: 'shut',
+    });
+    expect(apple.getContainer()).toBe(giver);
+    chest.setOpen(true);
+    const plan = ContainmentApi.putPlanFor(apple, chest, { prep: 'in', by: giver });
+    expect(plan.ok).toBe(true);
+    if (!plan.ok) return;
+    expect(plan.facts.route).toEqual({ kind: 'zero' });
+    // Nothing moved until the plan ran.
+    expect(apple.getContainer()).toBe(giver);
+    const done = await plan.onComplete();
+    expect(done.ok).toBe(true);
+    expect(apple.getContainer()).toBe(chest);
+  });
+
   it('⭐ an ENCLOSING member on a shut host is refused by canPlace, and opening lifts it', async () => {
     await warmCatalogue();
     const { loc, giver, apple } = scene();

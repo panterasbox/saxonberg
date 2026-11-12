@@ -57,14 +57,9 @@ args:
   # channels read where you stand, and the Reading's own `scope:` says
   # what a named subject means for it.
   #
-  # ⚠⚠ `greedy: true` IS REQUIRED and is not decoration. Without it
-  # `measure temperature the kettle` binds `the` and `kettle` as two
-  # positionals, answers "too many arguments", falls through the
-  # affordance chain and dies as an unknown command shape — with the
-  # controller never reached. 45 shipped views already carry it; `look`
-  # shipped WITHOUT it, and nobody found out until somebody drove
-  # `look at the ground` in a browser. The MQL desugar drops articles,
-  # so the whole tail resolves as one query.
+  # `measure temperature the kettle`: the binder folds the article into
+  # the next word; a name with a space in it is quoted (controller-
+  # liquidity D3 — no object arg is greedy).
   #
   # ⭐ Unresolved text is a PARAMETER, not a failure: `measure elevation
   # moon` binds `stuff: null, raw: 'moon'`, and a channel that reads the
@@ -73,7 +68,6 @@ args:
   - name: subject
     type: object
     required: false
-    greedy: true
     # ⭐ `horizon` last (maritime R8): a thing in view beyond your room —
     # the light you take a bearing on — is a subject too, after anything
     # within reach of the same name.
@@ -87,16 +81,11 @@ args:
   # Reach, not carry: a bench on the wall and a photometer on the table
   # both count.
   - name: tool
+    prepositionRequired: true
     type: objects
     required: false
-    # ⚠⚠ `greedy: true` on the PREPOSITIONAL arg too, and this one was
-    # found last. `with the photometer` puts `the` and `photometer` after
-    # the preposition, and a non-greedy arg takes one positional — so the
-    # leftover word trips "too many arguments" and the whole command dies
-    # as an unknown shape. ⭐ The general rule the three fixes add up to:
-    # **every object arg a player will put an article in front of needs
-    # `greedy`**, wherever it sits in the view.
-    greedy: true
+    # `with the photometer`: the binder folds the article into the name
+    # (controller-liquidity D3); a two-word name is quoted.
     prepositions: [with, using]
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]

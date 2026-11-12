@@ -115,7 +115,7 @@ async function outfitted(handle: string, goods: string[]): Promise<Session> {
   }
   s.close();
   const t = await session(handle, SHOP);
-  for (const good of goods) expectOk(await t.cmd(`buy ${good}`));
+  for (const good of goods) expectOk(await t.cmd(`buy "${good}"`));
   return t;
 }
 

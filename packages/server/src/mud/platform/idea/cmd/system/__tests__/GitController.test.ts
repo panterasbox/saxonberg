@@ -1,5 +1,5 @@
 /**
- * GitController — the `git` verb maps the bound model onto GitApi
+ * The `git` controllers — the `git` verb maps the bound model onto GitApi
  * status/diff/log/publish/revert, defaults a bare invocation to status,
  * enforces the required message (publish) / sha (revert) with rejection
  * notes, and translates a thrown `GitError` into a `controller-rejected`
@@ -9,7 +9,11 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import GitController from '../GitController';
+import GitStatusController from '../GitStatusController';
+import GitDiffController from '../GitDiffController';
+import GitLogController from '../GitLogController';
+import GitPublishController from '../GitPublishController';
+import GitRevertController from '../GitRevertController';
 import { GitApi, GitError } from '../../../../../api/git';
 import { MessageApi } from '../../../../../api/message';
 import { Mml } from '../../../../../api/mml';
@@ -39,8 +43,7 @@ function status(over: Partial<GitStatusResult> = {}): GitStatusResult {
   };
 }
 
-describe('GitController', () => {
-  let ctrl: GitController;
+describe('git controllers', () => {
   let ctx: CommandContext;
   let output: string[];
   let note: ReturnType<typeof vi.fn>;
@@ -65,7 +68,6 @@ describe('GitController', () => {
       detail: 'reverted',
     });
 
-    ctrl = makeStuff(() => new GitController());
 
     output = [];
     const realEscape = Mml.escape.bind(Mml);
@@ -90,7 +92,9 @@ describe('GitController', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  const run = (m: GitModel) => ctrl.execute(m as never, ctx);
+  // ⭐ The view's routing: each form names its own controller.
+  const run = (m: GitModel) =>
+    makeStuff(() => new (({ diff: GitDiffController, log: GitLogController, publish: GitPublishController, revert: GitRevertController } as Record<string, new () => GitStatusController>)[m.subcommand ?? ''] ?? GitStatusController)()).execute(m as never, ctx);
 
   it('defaults a bare invocation to status', async () => {
     await run({});

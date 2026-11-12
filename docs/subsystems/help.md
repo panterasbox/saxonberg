@@ -285,7 +285,7 @@ the uniform fields.
 
 ## The `help` verb — index-backed, light grammar polish
 
-`HelpController` renders every form off the index through `HelpApi`, on
+The `help` controllers (`HelpTopicController` for bare + topic, `HelpVerbController`, `HelpApiController`, `HelpSearchController`) render every form off the index through `HelpApi`, on
 the existing `shell.result` topic:
 
 - bare `help` → the landing: the verb categories with counts, then the
@@ -383,7 +383,7 @@ the thing it documents, where the wiki is the community's.
 | Directory read for them | `SourceTreeApi.listResource` + `readYamlResource` |
 | Read chokepoint + capability filter | `mud/api/help.ts` |
 | REST surface | `backend/HelpRoutes.ts` (mounted in `services/Server.ts`) |
-| Verb | `content/platform/cmd/system/help.yaml` + `mud/platform/idea/cmd/system/HelpController.ts` |
+| Verb | `content/platform/cmd/system/help.yaml` + `mud/platform/idea/cmd/system/Help*Controller.ts` |
 | Warm wiring | `HelpApi.ready()` (no `boot:` entry since the scan sweep), `mud/lib/paths.ts`, `platform/content/platform/idea/HelpCatalogue.yaml` |
 
 ## ⭐ The help card exists now

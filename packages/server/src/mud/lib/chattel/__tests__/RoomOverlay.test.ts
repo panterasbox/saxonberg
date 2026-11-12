@@ -51,6 +51,8 @@ import type { Slotted } from "../../slot/Slotted";
 import type { Slottable } from "../../slot/Slottable";
 import type { FieldMeta } from "../../mixin";
 import type { Chattel } from '../Chattel';
+import Fitting from "../../../platform/thing/Fitting";
+import { Placements } from "../../spatial/Placement";
 
 const CHAIR_PATH = "/obj/test/Chair";
 const ROOM_PATH = "/world/test/Room";
@@ -291,6 +293,44 @@ describe("the room overlay", () => {
     // the owned good came from Alice's — two scopes, one room.
     expect(contents.length).toBe(2);
     expect(contents.filter((x) => MixinApi.isChattel(x as Stuff)).length).toBe(2);
+  });
+
+  it("⭐ a good left ON a surface comes back on it, not beside it", async () => {
+    const RACK_PATH = "/test/drying-rack";
+    const rack = (): Fitting =>
+      makeStuffAtPath(() => {
+        const f = new Fitting();
+        f.setPlacements([Placements.ON]);
+        return f;
+      }, RACK_PATH);
+    const alice = person(ALICE_PATH);
+    const r = room();
+    const surface = rack();
+    ContainmentApi.move(surface as unknown as Stuff & Containable, r as unknown as Stuff & Container);
+    const shirt = chair();
+    await shirt.stampChattel(alice);
+    ContainmentApi.move(shirt as unknown as Stuff & Containable, surface as never, Placements.ON);
+    await shirt.setChattelPlace(PersistableApi.placeIdOf(r));
+    expect(shirt.getRestingPlace()).toEqual({ on: RACK_PATH, placement: Placements.ON });
+
+    await PersistableApi.capture(r);
+    await PersistableApi.capture(alice);
+    StuffApi.clearAll();
+    await boot();
+    // The room's own record mints its rack; the overlay mints the shirt.
+    vi.spyOn(StuffApi, "clone").mockImplementation(
+      ((path: string) =>
+        Promise.resolve(
+          path === RACK_PATH ? rack() : makeStuffAtPath(() => new Chair(), path),
+        )) as unknown as typeof StuffApi.clone,
+    );
+
+    const reborn = room();
+    await PersistableApi.materialize(reborn);
+    const back = (reborn as unknown as Container)
+      .getContents()
+      .find((x) => x.getTemplatePath() === CHAIR_PATH) as unknown as Stuff & Containable;
+    expect(back.getRestingPlace()).toEqual({ on: RACK_PATH, placement: Placements.ON });
   });
 
   it("is venue-generic — no parcel, no lease, no tenant (D15)", async () => {

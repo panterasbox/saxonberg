@@ -20,7 +20,6 @@ args:
   - name: lime
     type: object
     required: true
-    greedy: true
     prepositions: [with, using]
     scope: ["reachable"]
     requires: [TangibleMixin]

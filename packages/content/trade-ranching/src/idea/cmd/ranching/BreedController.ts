@@ -40,126 +40,74 @@ import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
-import HerdRegistry from '../../HerdRegistry';
-import { RANCHING_TOPIC, HERD_REGISTRY_PATH } from './DraftController';
-import type Livestock from '../../../agent/Livestock';
+import { RANCHING_TOPIC } from './DraftController';
+import Livestock, { type ServeAnswer } from '../../../agent/Livestock';
+
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface BreedModel extends CommandModel {
   target?: MqlOneResult;
 }
 
+/**
+ * ⭐⭐ **She answers** (controller-liquidity W10): her species, her stage,
+ * the daylength, her herd, her sex and the male by her, and the keeper's
+ * book are `Livestock.serveBy`. This file is the words.
+ */
 export default class BreedController extends CommandController<BreedModel> {
   async execute(model: BreedModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const animal = model.target?.stuff as Livestock | undefined;
-    if (!animal || !MixinApi.isOrganism(animal)) {
+    const animal = model.target?.stuff ?? null;
+    if (!(animal instanceof Livestock)) {
       this.decline(context, Mml.compose`That is not an animal you can breed.`, 'not-breedable');
       return;
     }
-    const species = animal.getSpecies();
-    const spec = species?.getBreeding() ?? null;
-    if (!species || !spec) {
-      this.decline(
-        context,
-        Mml.compose`${Mml.thing(animal as unknown as Stuff)} does not breed in anybody's keeping.`,
-        'no-breeding',
-      );
+    const out = await animal.serveBy(giver);
+    if (!out.ok) {
+      this.decline(context, BreedController.refusalWords(out, animal), out.reason);
       return;
     }
-    if (!animal.isMature()) {
-      // ⚠ Named as a stage, not as an age. A player who is told "she is
-      // still a yearling" knows what to do; one told "age 214" does not.
-      this.decline(
-        context,
-        Mml.compose`She is still a ${animal.getLifeStage() ?? 'youngster'}. Not yet.`,
-        'not-mature',
-      );
-      return;
-    }
-
-    const where = (giver as unknown as { getContainer(): Stuff | null }).getContainer();
-    const daylight = where
-      ? await CelestialApi.daylightFractionAt(where)
-      : 0.5;
-    if (!species.breedsAtDaylight(daylight)) {
-      // ⭐ The refusal is in DAYLENGTH, because that is the fact.
-      this.decline(
-        context,
-        daylight > spec.daylightTo
-          ? Mml.compose`The days are still too long. She will not take yet — wait for them to shorten.`
-          : Mml.compose`The days are too short for her yet. She will come into season as they lengthen.`,
-        'out-of-season',
-      );
-      return;
-    }
-
-    const herdId = animal.getHerdId?.() ?? '';
-    if (!herdId) {
-      this.decline(
-        context,
-        Mml.compose`She is not in anybody's herd, so there is nothing to write it in.`,
-        'not-in-herd',
-      );
-      return;
-    }
-    const registry = await this.registry();
-    const herd = await registry.read(herdId);
-    if (!herd) {
-      this.decline(context, Mml.compose`The book has no such herd.`, 'no-herd');
-      return;
-    }
-
-    // ⚠⚠ **The TALLY DOES NOT MOVE.** Nothing is born here, because
-    // nothing has gestated: what happened is that she was served, and
-    // the only honest record of it is the date.
-    const index = animal.getHeadIndex();
-    const key = String(index);
-    const nowS = this.nowSeconds();
-    await registry.update({
-      ...herd,
-      overlay: {
-        ...herd.overlay,
-        [key]: { ...(herd.overlay[key] ?? {}), served: nowS },
-      },
-    });
-
     MessageApi.scene(giver)
       .topic(RANCHING_TOPIC)
       .toSelf(
-        // ⚠ It says what it DID. The gestation figure is the species'
-        // and it is worth telling a keeper, but it is framed as the wait
-        // it is rather than as a delivery that has already happened.
-        Mml.compose`She takes. You write number ${index} in the book as served — ${spec.gestationDays} days, if she holds.`,
+        // ⚠ It says what it DID: the gestation is the wait it is, not a
+        // delivery that has already happened.
+        Mml.compose`She takes. You write number ${out.index} in the book as served — ${out.gestationDays} days, if she holds.`,
       )
-      .toPeers(
-        Mml.compose`${Mml.actor(giver)} puts one of the stock to the male and writes it in the book.`,
-      )
+      .toPeers(Mml.compose`${Mml.actor(giver)} puts one of the stock to the male and writes it in the book.`)
       .send();
   }
 
-  /** Game-seconds now, or `0` when there is no world clock yet. */
-  private nowSeconds(): number {
-    if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return 0;
-    return WorldClockApi.getNow().rawValue();
+  protected static refusalWords(r: Exclude<ServeAnswer, { ok: true }>, animal: Stuff): Composed {
+    switch (r.reason) {
+      case 'no-breeding':
+        return Mml.compose`${Mml.thing(animal)} does not breed in anybody's keeping.`;
+      case 'not-mature':
+        // ⚠ Named as a stage, not as an age.
+        return Mml.compose`She is still a ${r.stage}. Not yet.`;
+      case 'out-of-season':
+        // ⭐ The refusal is in DAYLENGTH, because that is the fact.
+        return r.longDays
+          ? Mml.compose`The days are still too long. She will not take yet — wait for them to shorten.`
+          : Mml.compose`The days are too short for her yet. She will come into season as they lengthen.`;
+      case 'not-in-herd':
+        return Mml.compose`She is not in anybody's herd, so there is nothing to write it in.`;
+      case 'no-herd':
+        return Mml.compose`The book has no such herd.`;
+      case 'not-female':
+        return Mml.compose`That one is not a female. There is nothing to put to the male.`;
+      case 'no-male':
+        return Mml.compose`There is no male here to put her to. Bring her to one, or put her back with the herd.`;
+      case 'not-keeper':
+        return Mml.compose`${r.herdName} is not yours to write in.`;
+      default: {
+        const never: never = r;
+        return Mml.compose`${String(never)}`;
+      }
+    }
   }
 
-  protected async registry(): Promise<HerdRegistry> {
-    // ⭐ `singleton` IS the get-or-create: its first act is this exact
-    // index read, and it clones only on a miss. A resident pre-check in
-    // front of it is the same lookup written twice.
-    return StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
-  }
-
-  protected decline(
-    context: CommandContext,
-    prose: ReturnType<typeof Mml.compose>,
-    reason: string,
-  ): void {
+  protected decline(context: CommandContext, prose: Composed, reason: string): void {
     MessageApi.scene(context.commandGiver).topic(RANCHING_TOPIC).toSelf(prose).send();
     context.note({ kind: 'controller-rejected', reason, detail: reason });
   }

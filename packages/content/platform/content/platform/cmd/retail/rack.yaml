@@ -60,11 +60,10 @@ subcommands:
     - name: thing
       type: string
       required: true
-      greedy: true
     - name: rack
+      prepositionRequired: true
       type: object
       required: false
-      greedy: true
       prepositions:
       - from
       default: reachable:[mixin.HeldGoodsMixin] - reachable:[mixin.ConsignmentShelfMixin]

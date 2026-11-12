@@ -92,4 +92,14 @@ describe('HaulableMixin — cart side', () => {
     StuffApi.destruct(bearer);
     expect(c.getHauledBy()).toBeNull();
   });
+
+  it('⭐ slipHitch releases BOTH sides and names the hauler (C24 — a relocated cart)', () => {
+    const c = cart();
+    const bearer = haulingBearer();
+    bearer.hitch(c);
+    expect(c.slipHitch()).toBe(bearer.getPresentation());
+    expect(c.getHauledBy()).toBeNull();
+    expect(bearer.isHitched()).toBe(false);
+    expect(c.slipHitch()).toBeNull();
+  });
 });

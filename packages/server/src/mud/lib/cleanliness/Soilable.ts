@@ -36,7 +36,7 @@
 
 import { Aroma } from '../perception/Aroma';
 import type { SmellNote } from '../perception/Smell';
-import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { NestingConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { AugmentOpts, MarkupAugmenter } from '../../api/mml';
 import { AppApi } from '../../api/app';
@@ -46,6 +46,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import { Contamination } from '../material/Contaminable';
+import { WashableMixin } from './Washable';
 import { DirtKinds, type DirtKindDescriptor } from './DirtKind';
 import type { CleanserAction, CleanserDescriptor } from '../../platform/idea/Cleanser';
 import { MaterialApi } from '../../api/material';
@@ -326,10 +327,12 @@ export interface Soilable {
   heat: HeatStamp | null;
 }
 
-export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
+export function SoilableMixin<TBase extends NestingConstructor<Stuff>>(
   Base: TBase,
 ) {
-  return class SoilableMixin extends Base implements Soilable {
+  // ⭐ A soilable thing is washed (`WashableMixin`, controller-liquidity W7c):
+  // `wash` asks it the plan, and the default washes the load by `washSite`.
+  return class SoilableMixin extends WashableMixin(Base) implements Soilable {
     static _mixinName: string = 'SoilableMixin';
 
     static fieldMeta: FieldMeta = {

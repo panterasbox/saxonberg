@@ -16,6 +16,13 @@
  *  - {@link ActRefusal} — the act refused: a reason, and the facts its
  *    words need.
  *  - {@link ActOutcome} — an act done: the facts its words need.
+ *  - {@link ActChoices} — ⭐ the THIRD limb (controller-liquidity D8): the
+ *    object cannot decide between several admissible things, so it returns
+ *    the set. The controller picks a default, refuses with the list, or
+ *    asks — and an alternate controller may do any of the three. The
+ *    object never writes the "which one?" sentence and never chooses to
+ *    refuse rather than ask: that was the Harvest lesson (the ground wrote
+ *    *"Which field? Name one: …"* and no controller could make it ask).
  *
  * ⭐ Each protocol file declares its own CLOSED reason union and facts
  * types, and a consuming controller words them in an exhaustive `switch`
@@ -30,6 +37,8 @@
  */
 
 import type { AbortReason } from '@saxonberg/types';
+import type { Stuff } from '../stuff/Stuff';
+import type { EngagementSlot } from '../activity/Engaged';
 
 /**
  * A refused act: the machine reason (the `controller-rejected` note's
@@ -59,8 +68,7 @@ export type ActDone<F = undefined, X extends AnyActRefusal = AnyActRefusal> =
   | X;
 
 /**
- * A planned act: an engaged step (`ManualBuildController.engagePlan`,
- * `EngagedActController.engageAct`).
+ * A planned act: an engaged step (`CommandController.engagePlan`).
  *
  * `B` — the facts the begin words need; `F` — the facts the done words
  * need; `X` — the refusals the completion may still return.
@@ -86,8 +94,66 @@ export interface ActPlan<
   facts: B;
   /** The effect, at completion: done (its facts), or refused after all. */
   onComplete: () => ActDone<F, X> | Promise<ActDone<F, X>>;
+  /**
+   * The step has begun — called once, when the work is actually under way
+   * (the engagement started, or the effect is about to run at once), and
+   * never for a plan that was turned down before it began (too tired,
+   * hands busy). ⭐ The place for a claim the object holds while the act
+   * runs (a saw with a log on it — controller-liquidity W11): taking it in
+   * the planner would leak it whenever the engage refused.
+   */
+  onBegin?: () => void;
   onAbort?: (reason: AbortReason) => void;
+  /**
+   * The body slots the act holds — `['hands']` when absent. ⭐ A WATCHED act
+   * (a three-day charcoal burn) holds `attention`, so the collier's hands
+   * stay free (controller-liquidity W9).
+   */
+  slots?: readonly EngagementSlot[];
+  /**
+   * The thing the act is ABOUT, when it is not the actor — the step's host
+   * (its destruction aborts the step), and what "already doing this"
+   * compares against. Absent = the actor.
+   */
+  host?: Stuff;
 }
 
 /** Any plan — the constraint a generic consumer narrows from. */
 export type AnyActPlan = ActPlan<unknown, unknown, AnyActRefusal>;
+
+/**
+ * ⭐ The act could go several ways and the object will not guess: the set
+ * of admissible `choices`, the machine reason (why there is a choice), and
+ * the facts the controller's words need (a `preferred` member when the
+ * object has a default it would take). A consumer answers by asking the
+ * object again with its pick — the protocol says how (a part named, the
+ * chosen thing asked directly).
+ *
+ * ⚠ `ok` is the string `'choose'`, so `if (!answer.ok)` does NOT catch it:
+ * a consumer narrows `answer.ok === 'choose'` first, and the compiler
+ * refuses a choice handed to an engage routine that wants a plan.
+ */
+export type ActChoices<C, R extends string = string, X = undefined> = {
+  ok: 'choose';
+  reason: R;
+  choices: readonly C[];
+} & ([X] extends [undefined] ? { facts?: undefined } : { facts: X });
+
+/** Any choice — the constraint a generic consumer narrows from. */
+export interface AnyActChoices {
+  ok: 'choose';
+  reason: string;
+  choices: readonly unknown[];
+  facts?: unknown;
+}
+
+/**
+ * Everything a planner may answer: a plan, a refusal, a choice, or `null`
+ * (nothing to say about this act).
+ */
+export type ActAnswer<
+  B = undefined,
+  F = undefined,
+  X extends AnyActRefusal = AnyActRefusal,
+  C extends AnyActChoices = never,
+> = ActPlan<B, F, X> | X | C | null;

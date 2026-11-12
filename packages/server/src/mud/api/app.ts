@@ -32,6 +32,22 @@ import type { SettingTier } from "../lib/config/AppSettings";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
+/**
+ * What {@link AppApi.setSetting} answers: the value it replaced, or a
+ * refusal — `wrong-seat` (the key is not that seat's: Tier C belongs to its
+ * office, Tier B to the Prime Minister, the Schedule's `reserve.*` rows to
+ * the Governor too) or `not-seated` (the actor does not hold the seat).
+ */
+export type SettingWrite =
+  | { ok: true; before: string }
+  | {
+      ok: false;
+      reason: "wrong-seat" | "not-seated";
+      tier: SettingTier;
+      /** Who does set it, in words (`whoSets`), or the seat not held. */
+      whoSets: string;
+    };
+
 const LOGIC_PATH = "/platform/idea/api/app";
 const LOGIC_CLASS_FILE = fileURLToPath(
   new URL("../platform/idea/api/AppLogic", import.meta.url)
@@ -115,13 +131,19 @@ export class AppApi {
   }
 
   /**
-   * Set a setting: write the key into the bag, persist the row, and (by
-   * mutating the very instance the cache holds) refresh the cache. Open
-   * namespace — any key is accepted; the `config` verb surfaces a soft note
-   * for unregistered keys.
+   * Set a setting AS `seat` (default the Prime Minister): the key must be
+   * that seat's to set and the acting principal (derived from the
+   * dispatched context) must hold it (controller-liquidity D9 —
+   * the tier rule is the write's, so a replaced `config` cannot skip it).
+   * Writes the key into the bag, persists the row and refreshes the cache.
+   * Open namespace — an unregistered key is Tier B.
    */
-  static async setSetting(key: string, value: string): Promise<void> {
-    return logic().setSetting(key, value);
+  static async setSetting(
+    key: string,
+    value: string,
+    seat?: string
+  ): Promise<SettingWrite> {
+    return logic().setSetting(key, value, seat);
   }
 
   /**

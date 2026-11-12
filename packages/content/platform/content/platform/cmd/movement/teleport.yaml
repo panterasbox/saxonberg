@@ -14,11 +14,16 @@
 # 4 run on kernel capabilities alone; forks 2 and 3 are handed to
 # whatever travel node is standing here, over the `TravelNode` SHAPE.
 #
+# ⭐ Two SHAPES, each its own view and controller (controller-liquidity
+# W7a): bare `teleport` reads the board (this view,
+# `TeleportBoardController`); `teleport <destination>` is
+# `teleport-destination.yaml`'s (`TeleportController`).
+#
 # ⚠ To relocate an OBJECT, use `goto --subject`. One verb meaning two
 # unrelated things depending on who typed it was the wrong shape.
 verbs: [teleport]
 category: movement
-controller: /platform/idea/cmd/movement/TeleportController
+controller: /platform/idea/cmd/movement/TeleportBoardController
 description: "Teleport — free inside your own extent, by a travel network, or by the working."
 help: |
   Cross the world in a single step.
@@ -44,25 +49,9 @@ examples:
     note: Ride a travel network to a stop it serves
 validators:
   - /lib/command/validators/requiresAnimate
-args:
-  # Where to go. A node reads the RAW token as a local stop keyword;
-  # free movement resolves it as an MQL target; the anchored spell
-  # resolves it through the three anchors.
-  #
-  # ⚠ `onExcess: error` is deliberate: the default `top` SILENTLY picks
-  # a winner, and "which of these did you mean" is the engine admitting
-  # you did not hold the place clearly and then arriving anyway.
-  # Ambiguity is a FAILED SPECIFICATION, never a disambiguation prompt.
-  #
-  # ⓘ The scope list is deliberately narrow and contains no `world`.
-  # The anchored resolver computes its scopes PER ACTOR, which a static
-  # `scope:` cannot express — that is why it is controller-side.
-  - name: destination
-    type: object
-    required: false
-    onExcess: error
-    scope: ["reachable", "here", "peers"]
-    requires: any
+# ⚠ Declared here too, though the board ignores them: an option a view
+# does not declare is a BIND error, which ends the line before the hop's
+# shape (`teleport-destination.yaml`) is tried.
 options:
   # Whose energy pays, for a network that runs on something. Inert at a
   # node that does not — which is the node answering honestly, not the

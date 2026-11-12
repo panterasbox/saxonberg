@@ -108,7 +108,7 @@ suite.skipIf(!isOwnedTestWorld())('the water supply — blocking drive', () => {
     await goTo(BANK);
     const { r, said } = await say('pumphouse');
     expect(refusedFor(r), said).not.toBeNull();
-    const opened = await say('open pump-house door');
+    const opened = await say('open "pump-house door"');
     expect(opened.said).toMatch(/locked/i);
   });
 
@@ -134,10 +134,10 @@ suite.skipIf(!isOwnedTestWorld())('the water supply — blocking drive', () => {
 
   it('7. ⭐ a turnout opens BY AN AMOUNT, and its own record says who set it', async () => {
     await goTo(DITCH_BANK);
-    const set = await say('open furtado turnout to a quarter');
+    const set = await say('open "furtado turnout" to a quarter');
     expect(refusedFor(set.r), set.said).toBeNull();
     expect(set.said).toMatch(/a quarter open/i);
-    const shut = await say('close furtado turnout');
+    const shut = await say('close "furtado turnout"');
     expect(refusedFor(shut.r), shut.said).toBeNull();
   });
 });

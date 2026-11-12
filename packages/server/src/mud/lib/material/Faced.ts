@@ -908,7 +908,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       // ⭐ A thermal body sets its own wet coats over its room's air and
       // takes an oil's heat (`Thermal.reconcileCoats`); anything else —
       // a building, a board — sets them here, and an oil's heat is said,
-      // not felt (the survey says the new oil is curing).
+      // not felt (`analyze condition` says the new oil is curing).
       if (!MixinApi.isThermal(self)) this.airCoats(segments);
       const bareAfter = this.weatherCoats(segments, this.weatherExposureAt(scope), this.skyLightAt(scope));
       const bareAt = bareAfter === null ? null : from + bareAfter;

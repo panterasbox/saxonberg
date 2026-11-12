@@ -299,7 +299,7 @@ suite('⛔ step 0 — the two mixins the register called dead', () => {
     // want a spade for that"*, which is a true and useless refusal for
     // this purpose — it proves the verb exists without reaching the
     // mixin's own narrowing, which is what step 0 is checking.
-    for (const t of ['spade', 'kit']) await farmer.cmd(`get ${t}`);
+    for (const t of ['spade', 'kit']) await farmer.cmd(`get "${t}"`);
     expectOk(await farmer.cmd('go field'));
     await farmer.drainProse();
     expect(await farmer.prose('ditch')).toMatch(

@@ -48,6 +48,7 @@ import { PerceptionApi } from '../../api/perception';
 import type { MarkupAugmenter } from '../../api/mml';
 import { RecipeKnowledge } from '../craft/RecipeKnowledge';
 import type { EditionTeaching } from '../document/Edition';
+import { ReadableMixin, type Readable, type ReadDone, type ReadRefusal } from './Readable';
 
 /** Litres of ink a written character takes (a dip pen's charge writes ~100). */
 const INK_LITRES_PER_CHAR = 0.00001;
@@ -119,7 +120,7 @@ export type MarkScript = keyof typeof MARK_SCRIPTS;
 /** The script every character can read in v1. */
 export const COMMON_SCRIPT: MarkScript = 'common';
 
-export interface Marked {
+export interface Marked extends Readable {
   /** The text the marks carry. Empty = blank. */
   getMarkText(): string;
   setMarkText(text: string): void;
@@ -156,6 +157,17 @@ export interface Marked {
    * your own.
    */
   writeOn(by: Stuff, words: string, medium?: Stuff): { ok: true; line: string } | { ok: false; reason: string; line: string };
+  /**
+   * ⭐ The `write` verb's act (controller-liquidity W8): {@link writeOn}, at
+   * `page` when one is named. A page is a book's — a thing with none
+   * refuses `not-a-book`; `Book` writes the page (the open one when none is
+   * named).
+   */
+  inscribe(
+    by: Stuff,
+    words: string,
+    opts?: { page?: number; medium?: Stuff },
+  ): Promise<{ ok: true; line: string } | { ok: false; reason: string; line: string }>;
   /**
    * ⭐ WHOSE mark this bears — a DEVICE, not words: a potter's stamp on a
    * pot's base, a die's device on a struck token, the device cut in the
@@ -202,7 +214,7 @@ export interface Marked {
    * (`getMarkText`) stays the words alone — it is stack identity. Default:
    * the stored text.
    */
-  readFor(viewer: Stuff): string;
+  textFor(viewer: Stuff): string;
 
   // ---------- storage (public for the applier) ----------
   markText: string;
@@ -242,7 +254,7 @@ const LITRES_PER_LETTER = 0.002;
 const LETTER_FILM_M = 0.00003;
 
 export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class MarkedMixin extends Base implements Marked {
+  return class MarkedMixin extends ReadableMixin(Base) implements Marked {
     static _mixinName = 'MarkedMixin';
 
     /**
@@ -323,9 +335,49 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return null;
     }
 
-    /** @hook See {@link Marked.readFor}. Most marks read the same to everyone. */
-    public readFor(_viewer: Stuff): string {
+    /** @hook See {@link Marked.textFor}. Most marks read the same to everyone. */
+    public textFor(_viewer: Stuff): string {
       return this.getMarkText();
+    }
+
+    /**
+     * ⭐ `read` = perceive + decode (requirements D33), the thing's own
+     * answer (controller-liquidity W8 — it was `ReadController`'s).
+     *
+     * **Perceive.** `canMakeOutMarks` owns the whole intersection — the
+     * reader's channels against the marks' modalities, light gating only
+     * the vision branch; a device is relief (B106), felt where the writing
+     * cannot be read. **Decode.** One script, and everyone reads it — the
+     * literacy seam: when known-scripts land on the reader, the script test
+     * becomes that lookup and nothing else moves. Withheld, never mangled.
+     * Then what reading writes into the reader (`teach`), after the text.
+     *
+     * A page is a book's; a sheet has none (`Book` overrides).
+     */
+    public async readFor(viewer: Stuff, page?: number): Promise<ReadDone | ReadRefusal> {
+      if (page !== undefined) return { ok: false, reason: 'not-a-book' };
+      const self = this as unknown as Stuff & Marked;
+      // Marks derived from a record are read now, so the text is a sync read.
+      await this.refreshMarks(viewer);
+      const device = PerceptionApi.canMakeOutMarks(viewer, self, DEVICE_MODALITIES)
+        ? this.deviceFor(viewer)
+        : null;
+      if (!PerceptionApi.canMakeOutMarks(viewer, self)) {
+        if (device !== null) {
+          return { ok: true, facts: { kind: 'device', device, hasText: this.getMarkText().length > 0 } };
+        }
+        // The refusal names the reason the reader can actually observe.
+        return this.requiresLightToRead()
+          ? { ok: false, reason: 'too-dark-to-read' }
+          : { ok: false, reason: 'no-channel-for-marks' };
+      }
+      const script = this.getMarkScript();
+      if (script !== COMMON_SCRIPT) {
+        return { ok: false, reason: 'script-unknown', facts: { script } };
+      }
+      const text = this.textFor(viewer);
+      const taught = await this.teach(viewer);
+      return { ok: true, facts: { kind: 'marks', text, device, taught } };
     }
 
     /**
@@ -458,6 +510,19 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public setWritingRoom(chars: number): void {
       this.writingRoom = Number.isFinite(chars) && chars > 0 ? Math.floor(chars) : 0;
+    }
+
+    /** @hook See {@link Marked.inscribe}. A page is a book's. */
+    public async inscribe(
+      by: Stuff,
+      words: string,
+      opts?: { page?: number; medium?: Stuff },
+    ): Promise<{ ok: true; line: string } | { ok: false; reason: string; line: string }> {
+      if (opts?.page !== undefined) {
+        const self = this as unknown as Stuff;
+        return { ok: false, reason: 'not-a-book', line: `${self.getPresentation()} has no pages.` };
+      }
+      return this.writeOn(by, words, opts?.medium);
     }
 
     public writeOn(by: Stuff, words: string, medium?: Stuff): { ok: true; line: string } | { ok: false; reason: string; line: string } {

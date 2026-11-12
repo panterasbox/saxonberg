@@ -14,8 +14,8 @@
  *
  * Reclaim: take back a good held in custody — an unsold consignment OR a
  * checked weapon: custody returns to you. There is **no chattel op** — you
- * owned it the whole time (the stamp never left). Authority is
- * `ChattelApi.ownerOf`, not the holding.
+ * owned it the whole time (the stamp never left). Authority is the
+ * fixture's `mayDisposeOf` — the rule `shelf consign` shares.
  */
 
 import { CommandController } from "../../../../lib/command/CommandController";
@@ -23,8 +23,6 @@ import type { CommandContext, CommandModel } from "../../../../api/command";
 import { ContainmentApi } from "../../../../api/containment";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
-import { BankingApi } from "../../../../api/banking";
-import { StuffApi } from "../../../../api/stuff";
 import { Mml } from "../../../../api/mml";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { RackStuff } from "../../../../lib/retail/HeldGoods";
@@ -75,17 +73,11 @@ export abstract class HeldGoodsControllerBase<
       return;
     }
 
-    // You reclaim what you own (custody is with the shop; ownership is
-    // yours) — or what the HOUSE you act for owns (economic bootstrap
-    // D11: a supplier outfit's hand takes an unpaid crate back off a
-    // shop's counter — rung 0's repossession, a query over who owns it).
-    const owner = MixinApi.isChattel(item)
-      ? await item.chattelOwner()
-      : null;
-    const house = await this.activeHouse(giver);
-    const mine =
-      (owner?.kind === "player" && owner.templatePath === giver.getIdentityPath()) ||
-      (owner?.kind === "organization" && house !== null && owner.templatePath === house.getIdentityPath());
+    // ⭐ You reclaim what you own — or what the HOUSE you act for owns, or
+    // what this fixture's book says that principal left here. ONE rule
+    // with consigning (`HeldGoods.mayDisposeOf`, controller-liquidity D9,
+    // C63): whatever a hand may put up, it may take down.
+    const mine = await shelf.mayDisposeOf(giver, item);
     if (!mine) {
       this.reject(giver, context, Mml.compose`${Mml.thing(item)} isn't yours to take.`, {
         kind: "controller-rejected",
@@ -107,22 +99,6 @@ export abstract class HeldGoodsControllerBase<
       .toPeers(Mml.compose`${Mml.actor(giver)} takes ${Mml.thing(item)} back ${words.offPeers}.`)
       .send();
     }
-
-  /**
-   * The Business whose operating account is the wallet's active one, if the
-   * giver buys for it — the house they act (or trade) as right now: the
-   * rule `shelf consign` and both reclaims share. Null = personal.
-   */
-  protected async activeHouse(giver: Stuff): Promise<Stuff | null> {
-    const active = BankingApi.activeCredential()?.getActiveAccount() ?? null;
-    if (!active) return null;
-    const ownerKey = await BankingApi.ownerKeyOf(active);
-    if (!ownerKey || ownerKey === giver.getIdentityPath()) return null;
-    const live = StuffApi.findByTemplatePath(ownerKey);
-    if (!live || !MixinApi.isBusiness(live)) return null;
-    const mine = MixinApi.isEmployed(giver) ? await giver.buysFor() : [];
-    return mine.includes(live) ? live : null;
-  }
 
   protected reject(
     giver: Stuff,

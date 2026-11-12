@@ -112,6 +112,10 @@ export function PlumbedMixin<TBase extends MixinConstructor>(Base: TBase) {
         this._standingUp = (async () => {
           try {
             const run = await StuffApi.clone<Stuff>(row);
+            // ⭐ The premises' own pipe, stood up by the tap's read — a
+            // process, and nobody's: never titled to whoever is standing
+            // here when it first runs (`ChattelLogic.derivedTitle` rung 1).
+            if (MixinApi.isMadeFrom(run)) run.recordMadeBy(null);
             if (MixinApi.isContainer(self) && MixinApi.isContainable(run)) {
               ContainmentApi.move(run, self);
             }

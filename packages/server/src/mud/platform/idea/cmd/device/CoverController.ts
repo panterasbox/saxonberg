@@ -18,25 +18,11 @@ import { MqlApi, type MqlOneResult } from '../../../../api/mql';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import { AppApi } from '../../../../api/app';
-import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Burner } from '../../../../lib/fire/Burner';
 
 interface CoverModel extends CommandModel {
   fire?: MqlOneResult;
-}
-
-/** The banked floor — the same dial `draught banked` reads. */
-function bankedFloor(): number {
-  try {
-    const raw = AppApi.setting(AppSettingKeys.fireDraughtBanked);
-    if (raw == null || raw === '') return 0.05;
-    const n = Number.parseFloat(raw);
-    return Number.isFinite(n) ? n : 0.05;
-  } catch {
-    return 0.05;
-  }
 }
 
 export default class CoverController extends CommandController<CoverModel> {
@@ -61,18 +47,6 @@ export default class CoverController extends CommandController<CoverModel> {
       return;
     }
     const burner = fire as Stuff & Burner;
-    if (!burner.isLit()) {
-      MessageApi.scene(commandGiver)
-        .topic('act.deed')
-        .toSelf(Mml.compose`${Mml.thing(fire)} is already out.`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'not-lit',
-        detail: 'it is already out',
-      });
-      return;
-    }
 
     // ⭐⭐ The name has to be read BEFORE the bank, and as a STRING —
     // and the LIVE drive is what found it. `Mml.thing` is LAZY: it
@@ -88,7 +62,21 @@ export default class CoverController extends CommandController<CoverModel> {
     // and the refusal shape was never in question. Only a rendered
     // transcript shows a sentence naming the wrong noun.
     const fireName = fire.getPresentation();
-    burner.setDraught(bankedFloor());
+    // ⭐ The burner banks itself to its own floor dial (W8).
+    const out = burner.bank();
+    if (!out.ok) {
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`${Mml.thing(fire)} is already out.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'not-lit',
+        detail: 'it is already out',
+      });
+      return;
+    }
+
     MessageApi.scene(commandGiver)
       .topic('act.deed')
       .toSelf(

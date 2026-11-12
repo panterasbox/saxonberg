@@ -1,5 +1,5 @@
 /**
- * ErrorsController — the `errors` verb maps the bound model onto
+ * The `errors` controllers — the `errors` verb maps the bound model onto
  * DiagnosticApi.list / rawTail / clear and gates raw (the Prime Minister's —
  * other players' data, wizard-axis D19) + clear
  * (author-of-path, via the -1 sentinel). Output is captured by spying
@@ -9,8 +9,11 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import ErrorsController from '../ErrorsController';
+import ErrorsListController from '../ErrorsListController';
+import ErrorsRawController from '../ErrorsRawController';
+import ErrorsClearController from '../ErrorsClearController';
 import { DiagnosticApi } from '../../../../../api/diagnostics';
+import { ExecutionContextApi } from '../../../../../api/execution-context';
 import { CompactApi } from '../../../../../api/compact';
 import { MessageApi } from '../../../../../api/message';
 import { Mml } from '../../../../../api/mml';
@@ -48,8 +51,7 @@ function row(over: Partial<DiagnosticDoc>): DiagnosticDoc {
   };
 }
 
-describe('ErrorsController', () => {
-  let ctrl: ErrorsController;
+describe('errors controllers', () => {
   let ctx: CommandContext;
   let output: string[];
   let note: ReturnType<typeof vi.fn>;
@@ -57,11 +59,10 @@ describe('ErrorsController', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.spyOn(DiagnosticApi, 'list').mockResolvedValue([]);
-    vi.spyOn(DiagnosticApi, 'rawTail').mockReturnValue([]);
+    vi.spyOn(DiagnosticApi, 'rawTail').mockResolvedValue(null);
     vi.spyOn(DiagnosticApi, 'clear').mockResolvedValue(0);
     vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(false);
 
-    ctrl = makeStuff(() => new ErrorsController());
 
     output = [];
     const realFromMarkup = Mml.fromMarkup.bind(Mml);
@@ -96,7 +97,9 @@ describe('ErrorsController', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  const run = (m: ErrorsModel) => ctrl.execute(m as never, ctx);
+  // ⭐ The view's routing: each form names its own controller.
+  const run = (m: ErrorsModel) =>
+    makeStuff(() => new (m.subcommand === 'raw' ? ErrorsRawController : m.subcommand === 'clear' ? ErrorsClearController : ErrorsListController)()).execute(m as never, ctx);
 
   it('has no door: a nobody gets an empty list, never a refusal (what you see is what you hold)', async () => {
     await run({});
@@ -132,17 +135,32 @@ describe('ErrorsController', () => {
     expect(output.join('\n')).toContain('No diagnostics match');
   });
 
-  it('raw is the Prime Minister\'s (refuses anyone else, a wizard included)', async () => {
+  it('raw words the read\'s own refusal (the PM gate lives on DiagnosticLogic)', async () => {
     await run({ subcommand: 'raw' });
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ kind: 'controller-rejected', reason: 'pm-only' })
     );
-    expect(DiagnosticApi.rawTail).not.toHaveBeenCalled();
+    expect(CompactApi.holdsOffice).not.toHaveBeenCalled();
+  });
+
+  it('the ring refuses a non-PM reader on a DIRECT call (no controller in the way)', async () => {
+    vi.mocked(DiagnosticApi.rawTail).mockRestore();
+    // No acting principal → refused without asking.
+    expect(await DiagnosticApi.rawTail()).toBeNull();
+    // An acting non-PM → refused by the read itself.
+    const r = await ExecutionContextApi.runRoot(null, 'direct', async () => {
+      ExecutionContextApi.tagActingAuthor(ctx.commandGiver);
+      return DiagnosticApi.rawTail();
+    });
+    expect(r).toBeNull();
+    expect(CompactApi.holdsOffice).toHaveBeenCalledWith(
+      ctx.commandGiver,
+      'prime-minister'
+    );
   });
 
   it('raw tails the ring for the Prime Minister', async () => {
-    vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(true);
-    vi.mocked(DiagnosticApi.rawTail).mockReturnValue([
+    vi.mocked(DiagnosticApi.rawTail).mockResolvedValue([
       { level: 'error', text: 'boom', ts: 1 },
     ]);
     await run({ subcommand: 'raw', grep: 'boo' });

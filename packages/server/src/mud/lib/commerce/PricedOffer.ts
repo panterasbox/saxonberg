@@ -136,6 +136,14 @@ export interface Collected {
   note: string | null;
 }
 
+/**
+ * One line of what a board offers (`menu`): a service the house does at its
+ * price (`null` = no charge), or a recipe on the menu.
+ */
+export type Offering =
+  | { kind: 'service'; key: string; price: number | null }
+  | { kind: 'recipe'; recipeId: string; name: string };
+
 /** The public price-list surface a priced-offer venue exposes. */
 export interface PricedOffer {
   /**
@@ -149,6 +157,14 @@ export interface PricedOffer {
    * and `CommerceMenu` override it.
    */
   orderPlanFor(req: OrderRequest): Promise<OrderAnswer>;
+  /**
+   * ⭐ What this board offers, read by `reader` (controller-liquidity W8 —
+   * `menu` used to decide it). Reading a recipe source marks each recipe
+   * *known-of* for the reader (a chronicle claim, idempotent). The default
+   * offers nothing to read — a shelf or a fare prices without a slate;
+   * `Tariff` and `CommerceMenu` override it.
+   */
+  offerings(reader: Stuff): Promise<readonly Offering[]>;
   /** The ask (minor units) for `key`, or null if unpriced — derived by a Stock's stocking rule, authored elsewhere. */
   priceFor(key: string): number | null;
   /** The AUTHORED base price for `key` (what `priceFor` derives from), or null. */
@@ -222,6 +238,11 @@ export function PricedOfferMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** See {@link PricedOffer.orderPlanFor}. */
     public async orderPlanFor(req: OrderRequest): Promise<OrderAnswer> {
       return { ok: false, reason: 'not-offered', facts: { phrase: req.phrase } };
+    }
+
+    /** See {@link PricedOffer.offerings}. */
+    public async offerings(_reader: Stuff): Promise<readonly Offering[]> {
+      return [];
     }
 
     public priceFor(key: string): number | null {

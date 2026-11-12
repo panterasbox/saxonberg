@@ -14,12 +14,12 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import type { Emote } from '../lib/social/Emote';
 import type { EmoteCatalogueEntry } from '@saxonberg/types';
-import type { EmoteSpec } from '../platform/idea/SoulCatalogue';
+import type { EmotePatch, EmoteSpec } from '../platform/idea/SoulCatalogue';
 import { SoulLogic } from '../platform/idea/api/SoulLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-export type { EmoteSpec } from '../platform/idea/SoulCatalogue';
+export type { EmotePatch, EmoteSpec } from '../platform/idea/SoulCatalogue';
 
 const LOGIC_PATH = '/platform/idea/api/soul';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -60,7 +60,7 @@ export class SoulApi {
     return logic().mint(spec);
   }
 
-  static edit(verb: string, patch: Partial<EmoteSpec>): Promise<Emote> {
+  static edit(verb: string, patch: EmotePatch): Promise<Emote> {
     return logic().edit(verb, patch);
   }
 

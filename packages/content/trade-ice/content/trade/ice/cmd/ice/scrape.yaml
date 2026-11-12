@@ -19,7 +19,6 @@ args:
   - name: tool
     type: objects
     required: false
-    greedy: true
     prepositions: [with, using]
     default: "reachable:[capability.scraping]"
     scope: ["reachable"]

@@ -48,7 +48,6 @@ args:
   - name: fire
     type: object
     required: false
-    greedy: true
     scope: ["here", "peers", "person"]
     default: "reachable:[mixin.BurnerMixin]"
     requires: BurnerMixin

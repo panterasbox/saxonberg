@@ -81,45 +81,70 @@ export default class GotoController extends CommandController<GotoModel> {
       );
     }
 
-    // D14 — the wizard path refuses too. An honest wizard path IS the
-    // ⭐ Coupling no longer refuses the move: `Mobile.teleport` severs
-    // the hitch (or the seat) and announces it on both sides. What the
-    // raw fallback below must NOT do is move a coupled mover without
-    // that severing — which is the defect the refusal was standing in
-    // for — so the fallback checks and detaches too.
-
-    // 1. Polished path.
-    if (MixinApi.isMobile(giver)) {
-      try {
-        giver.teleport(dest);
-        return;
-      } catch (err) {
-        if (this.isSandboxBoundaryDenial(err)) {
-          return this.failWireDestination(context);
-        }
-        if (!(err instanceof ContainmentError)) throw err;
-      }
-    }
-
-    // 2. Raw fallback.
-    try {
-      const op = model.force
-        ? ContainmentApi.forceMove
-        : ContainmentApi.move;
-      op(giver as Stuff & Containable, dest);
-    } catch (err) {
-      if (this.isSandboxBoundaryDenial(err)) {
-        return this.failWireDestination(context);
-      }
-      return this.fail(context, 'move-failed', (err as Error).message);
-    }
+    // ⭐ Coupling does not refuse the move: `Mobile.teleport` severs the
+    // hitch (or the seat) and announces it on both sides — before its own
+    // move, so a teleport the containment layer then vetoes has already
+    // released it. The raw fallback below releases what a mover that never
+    // teleported is coupled to (`moveThere`).
+    const moved = await this.moveThere(model, context, giver, dest);
+    if (moved === null || moved.how === 'teleported') return;
     if (model.look && MixinApi.isMobile(giver)) {
       // Fire-and-forget; same swallow rationale as in `Mobile.teleport`
       // — an auto-sense failure shouldn't cancel an already-completed move.
       void giver.autoLookOnArrival().catch(() => {});
     }
-    this.tell(context, `\narrived at ${destName} (fallback)\n`);
+    this.tell(context, `\narrived at ${destName} (fallback)${this.slipNote(moved.slipped)}\n`);
     return;
+  }
+
+  /**
+   * The relocation itself, for the actor and for `--subject` alike: the
+   * polished `Mobile.teleport` first (announcements + auto-look); on a
+   * containment veto, the raw move (`forceMove` with `-f`). A mover that
+   * is not Mobile never teleported, so nothing released its hitch — a
+   * hauled cart slips it here (C24: the raw move used to leave the hauler
+   * hitched to a cart in another room). Null when the move failed (worded).
+   */
+  private async moveThere(
+    model: GotoModel,
+    context: CommandContext,
+    mover: Stuff & Containable,
+    dest: Stuff & Container,
+  ): Promise<{ how: 'teleported' | 'moved'; slipped: string | null } | null> {
+    if (MixinApi.isMobile(mover)) {
+      try {
+        mover.teleport(dest);
+        return { how: 'teleported', slipped: null };
+      } catch (err) {
+        if (this.isSandboxBoundaryDenial(err)) {
+          this.failWireDestination(context);
+          return null;
+        }
+        if (!(err instanceof ContainmentError)) throw err;
+        // Mobile-level veto: fall through to the raw move.
+      }
+    }
+    const slipped =
+      !MixinApi.isMobile(mover) && MixinApi.isHaulable(mover)
+        ? mover.slipHitch()
+        : null;
+    try {
+      const op = model.force ? ContainmentApi.forceMove : ContainmentApi.move;
+      op(mover, dest);
+    } catch (err) {
+      if (this.isSandboxBoundaryDenial(err)) {
+        this.failWireDestination(context);
+        return null;
+      }
+      this.fail(context, 'move-failed', (err as Error).message);
+      return null;
+    }
+    return { how: 'moved', slipped };
+  }
+
+  /** The hitch that slipped, said after the move. */
+  private slipNote(slipped: string | null): string {
+    return slipped === null ? '' : `; it slipped free of ${slipped}`;
   }
 
   /**
@@ -152,37 +177,19 @@ export default class GotoController extends CommandController<GotoModel> {
     }
 
     // ⭐ Relocating something that is coupled is fine: `teleport` slips
-    // the hitch (or the seat) and tells both sides. An author moving a
-    // hitched cart gets the cart, and the horse is left standing where
-    // it was — which is what "relocate this object" should mean.
+    // the hitch (or the seat) and tells both sides, and a cart that is not
+    // Mobile slips it in `moveThere`. An author moving a hitched cart gets
+    // the cart, and the horse is left standing where it was — which is
+    // what "relocate this object" should mean.
 
     const subjectName = subject.getPresentation();
     const destName = dest.getPresentation();
-
-    if (MixinApi.isMobile(subject)) {
-      try {
-        subject.teleport(dest);
-        this.tell(context, `\nrelocated ${subjectName} to ${destName}\n`);
-        return;
-      } catch (err) {
-        if (this.isSandboxBoundaryDenial(err)) {
-          return this.failWireDestination(context);
-        }
-        if (!(err instanceof ContainmentError)) throw err;
-        // Mobile-level veto: fall through to the raw move.
-      }
-    }
-
-    try {
-      const op = model.force ? ContainmentApi.forceMove : ContainmentApi.move;
-      op(subject, dest);
-    } catch (err) {
-      if (this.isSandboxBoundaryDenial(err)) {
-        return this.failWireDestination(context);
-      }
-      return this.fail(context, 'move-failed', (err as Error).message);
-    }
-    this.tell(context, `\nrelocated ${subjectName} to ${destName}\n`);
+    const moved = await this.moveThere(model, context, subject, dest);
+    if (moved === null) return;
+    this.tell(
+      context,
+      `\nrelocated ${subjectName} to ${destName}${this.slipNote(moved.slipped)}\n`,
+    );
   }
 
   /**

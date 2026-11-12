@@ -141,7 +141,7 @@ describe('the temper pit', () => {
     const p = pit(true);
     await put(p, clayMat, 9, true);
     expect(p.workVerb()).toBe('knead');
-    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()), verb: 'knead' });
+    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()) });
     expect(plan.ok).toBe(true);
   });
 

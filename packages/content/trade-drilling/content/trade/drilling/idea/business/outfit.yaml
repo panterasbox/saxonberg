@@ -37,7 +37,7 @@ data:
   # concern and a seed is not one.
   #
   # ⚠ The mint reads these positions and adds the headcount, so the seat
-  # is defined ONCE. See `BoreController.site`.
+  # is defined ONCE. See `Bailer.spudPlanFor`.
   # ⭐⭐⭐ **A bore crew starts at the beam.** The wage runs from the
   # moment they take hold of it, whether the beam turns or not, and that
   # is the whole of what makes a dry hole expensive rather than merely

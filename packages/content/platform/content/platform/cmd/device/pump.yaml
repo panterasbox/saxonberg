@@ -31,10 +31,7 @@ args:
     required: true
     scope: ["here", "peers", "person"]
     requires: PumpableMixin|PumpSourceMixin
-    # ⚠⚠ `greedy` — found by DRIVING it: `pump village well` answered
-    # *"That doesn't match any known command shape"*, because without it
-    # the two words are two positionals. The target is the whole tail
-    # (the `look.yaml` precedent), so nothing else can be swallowed.
-    greedy: true
+    # A name with a space in it is quoted — `pump "village well"`; the
+    # binder's refusal says so (controller-liquidity D3).
     validators:
       - /lib/command/validators/canReach

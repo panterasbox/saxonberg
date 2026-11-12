@@ -123,43 +123,16 @@ export abstract class PreserveController<
   }
 
   /**
-   * ⭐ The recipe for what the player actually named.
-   *
-   * Among the recipes that move this act's axis, prefer one whose ITEM
-   * slot the target satisfies — matched the way crafting matches it, on
-   * the material's own free-form tags. Falls back to {@link recipeId},
-   * which keeps every shipped call site behaving exactly as before: with
-   * no target, or a target the default already handles, the default wins.
-   *
-   * ⚠ The default is checked FIRST and wins ties, so adding a second row
-   * can never silently steer an existing act somewhere else.
+   * ⭐ The recipe for what the player actually named — the catalogue's
+   * answer (`RecipeCatalogue.curingRecipeFor`, controller-liquidity W10):
+   * a recipe on this act's axis whose item slot the target's material
+   * satisfies, else {@link recipeId}.
    */
   protected async recipeFor(target: Stuff | null): Promise<string> {
     const fallback = this.recipeId();
-    if (!target || !MixinApi.isTangible(target)) return fallback;
-    const material = target.getMaterial();
+    const material = target && MixinApi.isTangible(target) ? target.getMaterial() : null;
     if (!material) return fallback;
-
-    const catalogue = await StuffApi.singleton<RecipeCatalogue>(
-      RECIPE_CATALOGUE,
-    );
-    const axis = this.cureAxis();
-    const satisfies = (recipeId: string): boolean => {
-      const recipe = catalogue.getRecipe(recipeId);
-      if (!recipe) return false;
-      const cure = recipe.getCure();
-      if (!cure || cure[axis] === undefined) return false;
-      for (const slot of recipe.getInputSlots()) {
-        if ((slot.kind ?? 'bulk') !== 'item') continue;
-        if (material.hasTag(slot.category)) return true;
-      }
-      return false;
-    };
-
-    if (satisfies(fallback)) return fallback;
-    for (const recipe of catalogue.allRecipes()) {
-      if (satisfies(recipe.getRecipeId())) return recipe.getRecipeId();
-    }
-    return fallback;
+    const catalogue = await StuffApi.singleton<RecipeCatalogue>(RECIPE_CATALOGUE);
+    return catalogue.curingRecipeFor(this.cureAxis(), material.getTags(), fallback);
   }
 }

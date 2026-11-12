@@ -105,7 +105,7 @@ suite('the money, and the kit', () => {
   it('buys the seed, the soil, the water and the food', async () => {
     await walk(g, ['east', 'north']);
     for (const buy of ['mint', 'sack', 'waterskin', 'rations']) {
-      await g.cmd(`buy ${buy}`);
+      await g.cmd(`buy "${buy}"`);
     }
     // ⚠ Asserted on what is CARRIED. A fresh bed arrives EMPTY — the
     // pour-the-soil trap — so the sack is not optional scenery.

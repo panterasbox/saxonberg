@@ -8,8 +8,8 @@
  * class may never name a pack's view (`Timber` affords only the kernel's
  * `fit`). The bole affords riving the same way it affords felling.
  *
- * ⭐ **And it plans its own riving** (`CuttableMixin`, controllers-are-io
- * D8c): `rive billet [into <what>]` asks the billet, and the billet asks
+ * ⭐ **And it plans its own riving** (`RivableMixin`, controller-liquidity
+ * D14): `rive billet [into <what>]` asks the billet, and the billet asks
  * the recipe catalogue for the recipes that take one piece of its wood
  * under `riving`. This file knows none of them; a second trade that rives
  * something out of a billet is a recipe row.
@@ -28,11 +28,11 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Recipe } from '@saxonberg/server/mud/lib/craft/Recipe';
 import {
-  CuttableMixin,
-  type CutAnswer,
-  type CutAnswerFor,
-  type CutRequest,
-} from '@saxonberg/server/mud/lib/craft/Cuttable';
+  RivableMixin,
+  type RivePlan,
+  type RiveRefusal,
+  type RiveRequest,
+} from '@saxonberg/server/mud/lib/craft/Rivable';
 import RecipeCatalogue from '@saxonberg/server/mud/platform/idea/RecipeCatalogue';
 import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -43,7 +43,7 @@ import { RIVE_FLOOR } from './Bole';
 const RIVING = 'riving';
 const RECIPE_CATALOGUE = '/platform/idea/RecipeCatalogue';
 
-export default class Billet extends CuttableMixin(Timber) {
+export default class Billet extends RivableMixin(Timber) {
   static commandContributions: CommandContributions = {
     // In your hands (`environment` — to the holder; `self` grants nothing
     // to anyone, it is a command giver's own verbs) or at your feet.
@@ -55,9 +55,8 @@ export default class Billet extends CuttableMixin(Timber) {
   };
 
   /** ⭐ `rive` — split again, into the recipe the word (or the catalogue) chooses. */
-  public override async cutPlan(req: CutRequest): Promise<CutAnswer> {
-    if (req.verb === 'rive') return this.rivePlan((req.options.into ?? '').trim().toLowerCase());
-    return super.cutPlan(req);
+  public override async rivePlanFor(req: RiveRequest): Promise<RivePlan | RiveRefusal> {
+    return this.rivePlan(req.into.trim().toLowerCase());
   }
 
   /**
@@ -65,14 +64,13 @@ export default class Billet extends CuttableMixin(Timber) {
    * refusal names the choices. The craft runs NOW (`durationMs: 0`), inside
    * the command frame — it is a craft resolved from the actor's reach.
    */
-  private async rivePlan(word: string): Promise<CutAnswerFor<'rive'>> {
+  private async rivePlan(word: string): Promise<RivePlan | RiveRefusal> {
     const material = this.getMaterial();
     // ⭐ Whether the wood will open at all is the WOOD's — its
     // `cleavability`. Elm's interlock, so a froe will not rive it.
     if ((material && MixinApi.hasSolidity(material) ? material.getCleavability() : 0) < RIVE_FLOOR) {
       return {
         ok: false,
-        verb: 'rive',
         reason: 'will-not-rive',
         facts: { woodName: material?.getName() ?? 'this wood' },
       };
@@ -87,18 +85,16 @@ export default class Billet extends CuttableMixin(Timber) {
       if (recipe === null) {
         return {
           ok: false,
-          verb: 'rive',
           reason: 'not-rivable-into',
           facts: { word, choices: Billet.rivableNames(catalogue, material) },
         };
       }
     } else {
       const choices = Billet.rivableRecipes(catalogue, material);
-      if (choices.length === 0) return { ok: false, verb: 'rive', reason: 'nothing-to-rive' };
+      if (choices.length === 0) return { ok: false, reason: 'nothing-to-rive' };
       if (choices.length > 1) {
         return {
           ok: false,
-          verb: 'rive',
           reason: 'which-rive',
           facts: { names: choices.map((r) => r.getName().toLowerCase()).sort() },
         };
@@ -109,7 +105,6 @@ export default class Billet extends CuttableMixin(Timber) {
     const self = this as unknown as Stuff;
     return {
       ok: true,
-      verb: 'rive',
       durationMs: 0,
       effortW: 0,
       facts: { kind: 'billet' },
@@ -125,7 +120,7 @@ export default class Billet extends CuttableMixin(Timber) {
           target: self,
         });
         if (!outcome.ok) {
-          return { ok: false, verb: 'rive', reason: 'craft-refused', facts: { failure: outcome } };
+          return { ok: false, reason: 'craft-refused', facts: { failure: outcome } };
         }
         return { ok: true, facts: { kind: 'piece', riven, output: outcome.output } };
       },

@@ -23,8 +23,15 @@ export type RigLayer = (typeof RIG_LAYERS)[number];
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
+import { TakesFishMixin, type FishCast, type TakeFishOutcome } from '../lib/TakesFish';
+import { FishingEngagement, FISHING_TYPE } from '../lib/FishingEngagement';
+import Waters, { WATERS_PATH } from '../idea/Waters';
 
-export default class Rod extends Tool {
+export default class Rod extends TakesFishMixin(Tool) {
   static commandContributions: CommandContributions = {
     self: [],
     // `environment` = whoever HOLDS it (the container chain outward); a
@@ -84,5 +91,37 @@ export default class Rod extends Tool {
   }
   public setHookGapeM(value: number): void {
     this.hookGapeM = Number.isFinite(value) && value > 0 ? value : 0;
+  }
+
+  /**
+   * ⭐ **A rod answers `fish` with a cast and a wait** (controller-liquidity
+   * W12: the rod implements `TakesFish`, the spear's protocol). The line
+   * goes out over `cast.reach` with whatever bait — the
+   * `FishingEngagement` decides what a species makes of it, and the bite is
+   * the fish's decision. One line out at a time, and hands that are free.
+   */
+  public override async takeFishBy(by: Stuff, cast: FishCast): Promise<TakeFishOutcome> {
+    if (!MixinApi.isEngaged(by)) return { ok: false, reason: 'not-engageable' };
+    if (by.getEngagementByType(FISHING_TYPE)) return { ok: false, reason: 'already-fishing' };
+    const room = MixinApi.isContainable(by) ? by.getContainer() : null;
+    if (room === null || cast.reach === null) return { ok: false, reason: 'no-water' };
+    const waters = await StuffApi.singleton<Waters>(WATERS_PATH);
+    const registry = await waters.registry();
+    if (registry === null) return { ok: false, reason: 'no-record' };
+    const engagement = new FishingEngagement({
+      actor: by,
+      rod: this,
+      bait: cast.bait,
+      reachRef: cast.reach,
+      room,
+      registry,
+      feedFactors: (r, nowS) => waters.feedFactorsAt(r, nowS),
+    });
+    const result = SchedulerApi.start(engagement);
+    if (result.ok && (result.status === 'started' || result.status === 'replaced')) {
+      return { ok: true, facts: { kind: 'cast', bait: cast.bait, note: result.note } };
+    }
+    if (!result.ok && result.reason === 'engagement-conflict') return { ok: false, reason: 'engagement-conflict' };
+    return { ok: false, reason: 'start-rejected' };
   }
 }

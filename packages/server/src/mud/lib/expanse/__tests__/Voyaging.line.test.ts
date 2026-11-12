@@ -17,6 +17,8 @@ import { SchedulerApi } from '../../../api/scheduler';
 import { MessageApi } from '../../../api/message';
 import { PersistableApi } from '../../../api/persistable';
 import { MixinApi } from '../../../api/mixin';
+import { AccountabilityApi } from '../../../api/accountability';
+import { SpeciesApi } from '../../../api/species';
 import { Quantity } from '../../quantity';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 
@@ -246,6 +248,27 @@ describe('a ship on a river (river D18)', () => {
     expect(await ship.peopleInTheWater()).toEqual([]);
     // Once let go of, coming back into the water is not hers to wait for.
     inWater = true;
+    expect(await ship.peopleInTheWater()).toEqual([]);
+  });
+
+  it('⭐ C52: SHE refuses to sail with her people in the water — and writes who was left only on departure', async () => {
+    const swimmer = { stuffId: 'sw', getIdentityPath: () => '/p/sw', getTemplatePath: () => '/p/sw', isDestroyed: () => false, getPresentation: () => 'Wren' } as unknown as Stuff;
+    vi.spyOn(StuffApi, 'findByIdentityPath').mockImplementation(((p: string) => (p === '/p/sw' ? [swimmer] : [])) as never);
+    vi.spyOn(MixinApi, 'isOrganism').mockReturnValue(false);
+    vi.spyOn(MixinApi, 'isContainable').mockImplementation(((x: unknown) => x === swimmer) as never);
+    vi.spyOn(MixinApi, 'isWaterPlace').mockReturnValue(true as never);
+    vi.spyOn(SpeciesApi, 'isSentient').mockReturnValue(true);
+    (swimmer as unknown as { getContainer(): unknown }).getContainer = () => ({ depthNow: () => 3 });
+    const rows: unknown[] = [];
+    vi.spyOn(AccountabilityApi, 'record').mockImplementation((r) => void rows.push(r));
+    ship.noteOverboard(swimmer);
+    const r = await ship.steer(along('upstream', '/test/landing'));
+    expect(r).toEqual({ refused: expect.stringMatching(/people in the water: Wren/) });
+    expect(rows).toEqual([]);
+    expect(await ship.peopleInTheWater()).toEqual([swimmer]);
+    const go = await ship.steer({ ...along('upstream', '/test/landing'), leavingThem: true });
+    expect('refused' in go).toBe(false);
+    expect(rows).toEqual([expect.objectContaining({ kind: 'abandonment', opponent: '/p/sw' })]);
     expect(await ship.peopleInTheWater()).toEqual([]);
   });
 });

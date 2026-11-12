@@ -14,7 +14,7 @@
 > per-field improvement (`grub`/`ditch`/`lime at <field>`) · a feeder tied
 > to one field · renaming a field in place · `legumeFraction`'s writer ·
 > the venue farms as STANDING holdings (holding.md § Deferred seams) · the
-> farm archetype reached by a verb (`survey` reads one room) · the
+> farm archetype reached by a verb (`analyze rooms` reads one room) · the
 > Registry office's business (a land sale there cannot take money) ·
 > `title buy`'s *"can't cover"* when no business operates the desk · the
 > sweep of persistent places (persistence is the exception — the 34

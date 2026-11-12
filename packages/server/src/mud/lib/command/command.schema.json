@@ -163,6 +163,7 @@
     "subcommand": {
       "type": "object",
       "additionalProperties": false,
+      "description": "\u26d4 A subcommand stanza is a LEAF \u2014 it may not declare `subcommands:` (or `fallthrough:`). A command is `verb target` or `verb subcommand target`, never deeper (owner rule 2026-11-10); a non-diegetic verb that wants a second word takes a hyphenated compound name (`client-layout save <name>`).",
       "properties": {
         "description": {
           "type": "string"
@@ -209,6 +210,33 @@
       "required": [
         "name"
       ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "greedy": {
+                "const": true
+              }
+            },
+            "required": [
+              "greedy"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "string"
+              }
+            }
+          }
+        },
+        {
+          "if": {"properties": {"type": {"const": "enum"}}, "required": ["type"]},
+          "then": {"required": ["values"]},
+          "else": {"not": {"required": ["values"]}}
+        }
+      ],
+      "$comment": "\u2b50 `greedy` is for PROSE only (controller-liquidity D3): an `object` / `objects` slot binds ONE word, and a name with a space in it is quoted (`buy \"dog loaf\"`). A greedy arg must be `type: string` (or untyped).",
       "additionalProperties": false,
       "properties": {
         "requires": {"oneOf":[{"type":"string","minLength":1},{"type":"array","items":{"type":"string","minLength":1},"minItems":1}],"description":"What this object-typed slot ACCEPTS, by mixin composition. `any` = deliberately unconstrained (a wizard's `destruct <anything>`, an MQL selector, a perception verb that refuses nothing by kind). Otherwise a mixin name from the Mixins registry — `SealableMixin` — which the bound Stuff must compose; the framework synthesises the check and the refusal sentence. A LIST means ALL of them; `|` inside one entry means EITHER (`CombustibleMixin|FurnaceMixin`). An unknown name is a load-time error, which is the point: `targetKind: any`, its predecessor, was an unverifiable promise and three of its fifty uses were wrong. Kind only — relation (`canReach`) and state (already open, currently lit) stay in validators and controllers."},
@@ -220,13 +248,15 @@
         "type": {
           "enum": [
             "string",
+            "enum",
             "number",
+            "duration",
             "boolean",
             "object",
             "objects",
             "struct"
           ],
-          "description": "Field value type. `object` runs `MqlApi.resolveOne` (single-cardinality MQL); `objects` runs `MqlApi.resolveMany` (plural-cardinality MQL); `struct` is a structured-input-only blob (Record<string, unknown>) \u2014 text input cannot bind it."
+          "description": "Field value type. `enum` is a closed word list: it REQUIRES `values:`, and `values:` is refused on every other type (controller-liquidity D1, owner 2026-11-10). `number` and `duration` are coerced at bind (a duration's written forms \u2014 `90s`, `15m`, `2h`, `1h30m`, `3d`, `90 seconds`, `2 hours` \u2014 bind as MILLISECONDS) and refused by the view when they do not read. `object` runs `MqlApi.resolveOne` (single-cardinality MQL); `objects` runs `MqlApi.resolveMany` (plural-cardinality MQL); `struct` is a structured-input-only blob (Record<string, unknown>) \u2014 text input cannot bind it."
         },
         "schema": {
           "type": "object",
@@ -237,7 +267,7 @@
         },
         "greedy": {
           "type": "boolean",
-          "description": "Greedy positional: consumes the remainder of input verbatim. Must be the last arg in its array."
+          "description": "Greedy positional: consumes the remainder of input verbatim (prose \u2014 `say`, a forum body, `def`). `type: string` only: an object's name is quoted, never swallowed (controller-liquidity D3). Must be the last arg in its array, or be followed only by prepositioned args."
         },
         "multiple": {
           "type": "boolean",
@@ -287,7 +317,18 @@
         },
         "prepositionRequired": {
           "type": "boolean",
-          "description": "The slot binds ONLY when one of its `prepositions:` is present. Absent, a required slot is a shape error naming the preposition (the chain tries the next view); an optional one stays unbound. Requires `prepositions:`."
+          "description": "The slot binds ONLY when one of its `prepositions:` is present. Absent, a required slot is a shape error naming the preposition (the chain tries the next view); an optional one takes its `default:` (or stays unbound). Requires `prepositions:`."
+        },
+        "values": {
+          "$ref": "#/$defs/values"
+        },
+        "depth": {
+          "enum": [
+            "top",
+            "open",
+            "deep"
+          ],
+          "description": "How deep an `object` / `objects` slot reaches by default: `top` (held, worn, the place's top level) \u00b7 `open` (also inside open vessels you carry and open things here \u2014 the default) \u00b7 `deep` (everything, shut or not). The player overrides it per invocation with the reserved `--top` / `--open` / `--deep`."
         },
         "cardinality": {
           "$ref": "#/$defs/cardinality"
@@ -318,6 +359,16 @@
         }
       }
     },
+    "values": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "\u2b50 The closed set of words a `type: enum` slot accepts \u2014 required on `enum`, refused on every other type. Matched case-insensitively; the canonical spelling (as written here) is what binds. Anything else is refused by the VIEW, before a controller is cloned, with the list named. `default:` must be one of them."
+    },
     "cardinality": {
       "type": "object",
       "additionalProperties": false,
@@ -342,6 +393,13 @@
       "required": [
         "type"
       ],
+      "allOf": [
+        {
+          "if": {"properties": {"type": {"const": "enum"}}, "required": ["type"]},
+          "then": {"required": ["values"]},
+          "else": {"not": {"required": ["values"]}}
+        }
+      ],
       "additionalProperties": false,
       "properties": {
         "requires": {"oneOf":[{"type":"string","minLength":1},{"type":"array","items":{"type":"string","minLength":1},"minItems":1}],"description":"What this object-typed slot ACCEPTS, by mixin composition. `any` = deliberately unconstrained (a wizard's `destruct <anything>`, an MQL selector, a perception verb that refuses nothing by kind). Otherwise a mixin name from the Mixins registry — `SealableMixin` — which the bound Stuff must compose; the framework synthesises the check and the refusal sentence. A LIST means ALL of them; `|` inside one entry means EITHER (`CombustibleMixin|FurnaceMixin`). An unknown name is a load-time error, which is the point: `targetKind: any`, its predecessor, was an unverifiable promise and three of its fifty uses were wrong. Kind only — relation (`canReach`) and state (already open, currently lit) stay in validators and controllers."},
@@ -355,11 +413,16 @@
           "enum": [
             "boolean",
             "string",
+            "enum",
             "number",
+            "duration",
             "object",
             "objects",
             "struct"
           ]
+        },
+        "values": {
+          "$ref": "#/$defs/values"
         },
         "schema": {
           "type": "object",

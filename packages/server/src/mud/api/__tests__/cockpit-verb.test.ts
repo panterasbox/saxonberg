@@ -10,9 +10,18 @@
  *
  * The binder half matters because every controller test in the shell
  * suite hands its controller a pre-built model — so the YAML → model
- * mapping (`cockpit style theme x` → `styleSub='theme', a='x'`) is
+ * mapping (`client-style theme x` → `styleSub='theme', a='x'`) is
  * untested by construction anywhere else, and that mapping is exactly
  * what the absorption changed.
+ *
+ * ⭐ controller-liquidity W16: a command is `verb target` or `verb
+ * subcommand target`, never deeper (owner rule 2026-11-10). `card`,
+ * `shelf`, `layout` and `style` left `cockpit` for verbs of their own —
+ * the non-diegetic compound names `client-card`, `client-shelf`,
+ * `client-layout`, `client-style` — and each action is a subcommand with
+ * its own controller; every closed word is an enum slot the binder
+ * refuses by name. The hyphenated verb is the thing proved here: it
+ * tokenizes as one word, resolves in the registry and binds.
  */
 
 import "../../../test-bootstrap";
@@ -31,6 +40,7 @@ import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { CommandGiver } from '../../lib/command/CommandGiver';
+import { SHELF_ROW_IDS } from '@saxonberg/types';
 
 const COCKPIT_YAML = 'platform/cmd/shell/cockpit.yaml';
 
@@ -44,6 +54,13 @@ class TestGiver extends ContainerMixin(
 
 describe('the cockpit verb', () => {
   let cockpit: CommandDefinition | null;
+
+  /** The one shipped view that answers to `verb`. */
+  function view(verb: string): CommandDefinition {
+    const found = CommandApi.allDefinitions().filter((d) => d.hasVerb(verb));
+    expect(found.map((d) => d.filePath)).toHaveLength(1);
+    return found[0]!;
+  }
 
   beforeAll(async () => {
     CommandApi.clearCache();
@@ -74,34 +91,60 @@ describe('the cockpit verb', () => {
     }
   });
 
-  it('declares the absorbed controls as subcommands, each with a controller', () => {
-    expect(cockpit!.getSubcommandNames().sort()).toEqual([
-      'card',
-      'cli',
-      'layout',
-      'mode',
-      'shelf',
-      'style',
-      'terminal',
-    ]);
-    expect(cockpit!.controllerForSubcommand('card')).toBe(
-      '/platform/idea/cmd/shell/CockpitCardController'
-    );
-    expect(cockpit!.controllerForSubcommand('shelf')).toBe(
-      '/platform/idea/cmd/shell/CockpitShelfController'
-    );
+  it('keeps mode / cli / terminal under cockpit, each with a controller', () => {
+    expect(cockpit!.getSubcommandNames().sort()).toEqual(['cli', 'mode', 'terminal']);
     expect(cockpit!.controllerForSubcommand('mode')).toBe(
       '/platform/idea/cmd/shell/CockpitModeController'
-    );
-    expect(cockpit!.controllerForSubcommand('layout')).toBe(
-      '/platform/idea/cmd/shell/LayoutController'
     );
     expect(cockpit!.controllerForSubcommand('cli')).toBe(
       '/platform/idea/cmd/shell/CliController'
     );
-    expect(cockpit!.controllerForSubcommand('style')).toBe(
-      '/platform/idea/cmd/shell/StyleController'
-    );
+  });
+
+  it('⭐ the client-… verbs exist, one word each, and no subcommand nests', () => {
+    for (const verb of ['client-layout', 'client-card', 'client-shelf', 'client-style']) {
+      const def = view(verb);
+      expect(def.verbs).toEqual([verb]);
+      for (const [, st] of def.allSubcommands()) {
+        expect((st as { subcommands?: unknown }).subcommands).toBeUndefined();
+      }
+    }
+  });
+
+  it('⭐ resolves each action to its own controller', () => {
+    const C = '/platform/idea/cmd/shell/';
+    const at = (verb: string, sub: string) => view(verb).controllerForSubcommand(sub);
+    expect(at('client-layout', 'save')).toBe(`${C}ClientLayoutSaveController`);
+    expect(at('client-layout', 'forget')).toBe(`${C}ClientLayoutForgetController`);
+    expect(at('client-layout', 'list')).toBe(`${C}ClientLayoutListController`);
+    expect(at('client-layout', 'recall')).toBe(`${C}ClientLayoutRecallController`);
+    expect(view('client-layout').resolvedController).toBe(`${C}ClientLayoutRecallController`);
+    expect(at('client-card', 'pin')).toBe(`${C}ClientCardPinController`);
+    expect(at('client-card', 'dismiss')).toBe(`${C}ClientCardUnpinController`);
+    expect(at('client-card', 'grow')).toBe(`${C}ClientCardArrangeController`);
+    expect(at('client-card', 'move')).toBe(`${C}ClientCardMoveController`);
+    expect(view('client-card').resolvedController).toBe(`${C}ClientCardListController`);
+    expect(at('client-shelf', 'first')).toBe(`${C}ClientShelfFirstController`);
+    expect(view('client-shelf').resolvedController).toBe(`${C}ClientShelfListController`);
+    expect(at('client-style', 'theme')).toBe(`${C}ClientStyleThemeController`);
+    expect(at('client-style', 'mention')).toBe(`${C}ClientStyleMentionController`);
+    expect(at('client-style', 'plain')).toBe(`${C}ClientStylePlainController`);
+    expect(at('client-style', 'plain-channel')).toBe(`${C}ClientStylePlainChannelController`);
+    expect(view('client-style').resolvedController).toBe(`${C}ClientStyleShowController`);
+  });
+
+  /*
+   * ⚠ The shelf's enum `values:` is a copy of `SHELF_ROW_IDS` (a view is YAML
+   * and cannot import it). Pinned here so the two cannot drift: a row
+   * added to the catalogue and not to the view would be refused by the
+   * binder with a list that omits it.
+   */
+  it('⚠ the shelf rows the view accepts ARE SHELF_ROW_IDS', () => {
+    for (const leaf of ['pin', 'unpin', 'first']) {
+      const row = view('client-shelf').getSubcommand(leaf)!.args!.find((a) => a.name === 'row')!;
+      expect(row.type).toBe('enum');
+      expect(row.values).toEqual([...SHELF_ROW_IDS]);
+    }
   });
 
   it('routes the bare form to the reporting controller', () => {
@@ -126,10 +169,13 @@ describe('the cockpit verb', () => {
       );
     });
 
-    /** parse → assemble. Every cockpit arg is a string, so no MQL runs. */
+    /**
+     * parse → assemble against the view the line's first word names.
+     * Every cockpit arg is a string, so no MQL runs.
+     */
     function bind(line: string): Record<string, unknown> {
       const parsed = CommandLineApi.parsePipeline(line).commands[0]!;
-      const asm = CommandApi.assemble(parsed, cockpit!, {
+      const asm = CommandApi.assemble(parsed, view(parsed.verb), {
         commandGiver: giver as unknown as Stuff & CommandGiver,
         location: location as unknown as Stuff & Container,
       });
@@ -139,6 +185,17 @@ describe('the cockpit verb', () => {
         );
       }
       return asm.model as unknown as Record<string, unknown>;
+    }
+
+    /** parse → assemble, expecting the binder to refuse; the summary. */
+    function refuse(line: string): { error: string; summary?: string } {
+      const parsed = CommandLineApi.parsePipeline(line).commands[0]!;
+      const asm = CommandApi.assemble(parsed, view(parsed.verb), {
+        commandGiver: giver as unknown as Stuff & CommandGiver,
+        location: location as unknown as Stuff & Container,
+      });
+      expect('error' in asm, `"${line}" should be refused`).toBe(true);
+      return asm as unknown as { error: string; summary?: string };
     }
 
     it('binds bare cockpit with no subcommand', () => {
@@ -157,33 +214,53 @@ describe('the cockpit verb', () => {
       expect(both.arrangement).toBe('streamer');
     });
 
-    it('binds the cockpit layout action words', () => {
-      const save = bind('cockpit layout save wide');
-      expect(save.subcommand).toBe('layout');
-      expect(save.name).toBe('save');
-      expect(save.target).toBe('wide');
+    it('⭐ binds client-layout — and a layout NAMED `list` round-trips', () => {
+      const save = bind('client-layout save wide');
+      expect(save.subcommand).toBe('save');
+      expect(save.name).toBe('wide');
 
-      expect(bind('cockpit layout forget wide').target).toBe('wide');
-      expect(bind('cockpit layout list').name).toBe('list');
+      expect(bind('client-layout forget wide').name).toBe('wide');
+      expect(bind('client-layout list').subcommand).toBe('list');
+
+      // Drive step 9's grammar half: save a layout called `list`, then
+      // recall it — the word that used to be caught before names.
+      const named = bind('client-layout save list');
+      expect(named.subcommand).toBe('save');
+      expect(named.name).toBe('list');
+      const recall = bind('client-layout recall list');
+      expect(recall.subcommand).toBe('recall');
+      expect(recall.name).toBe('list');
+
+      // Bare `client-layout` reaches the recall with no name (it lists).
+      const bare = bind('client-layout');
+      expect(bare.subcommand).toBeUndefined();
+      expect(bare.name).toBeUndefined();
     });
 
-    it('binds the cockpit card override', () => {
-      const pin = bind('cockpit card pin focus');
-      expect(pin.subcommand).toBe('card');
-      expect(pin.action).toBe('pin');
+    it('⛔ the old nested forms are gone: cockpit layout|card|shelf|style is refused', () => {
+      for (const line of ['cockpit layout list', 'cockpit card pin who', 'cockpit shelf list', 'cockpit style show']) {
+        expect(refuse(line).error).toBe('unknown-subcommand');
+      }
+    });
+
+    it('binds client-card; an unknown action is the binder\'s', () => {
+      const pin = bind('client-card pin focus');
+      expect(pin.subcommand).toBe('pin');
       expect(pin.cardId).toBe('focus');
 
-      expect(bind('cockpit card dismiss focus').action).toBe('dismiss');
-      expect(bind('cockpit card').action).toBeUndefined();
+      expect(bind('client-card dismiss focus').subcommand).toBe('dismiss');
+      expect(bind('client-card').subcommand).toBeUndefined();
+      expect(refuse('client-card juggle focus').error).toBe('unknown-subcommand');
     });
 
-    it('binds `cockpit card move <card> <col> <row>` (client-surface D8)', () => {
-      const move = bind('cockpit card move who 1 2');
-      expect(move.action).toBe('move');
+    it('binds `client-card move <card> <col> <row>` (client-surface D8)', () => {
+      const move = bind('client-card move who 1 2');
+      expect(move.subcommand).toBe('move');
       expect(move.cardId).toBe('who');
-      expect(Number(move.col)).toBe(1);
-      expect(Number(move.row)).toBe(2);
-      expect(bind('cockpit card grow who').action).toBe('grow');
+      // A typed positional is coerced now (W1): numbers, not strings.
+      expect(move.col).toBe(1);
+      expect(move.row).toBe(2);
+      expect(bind('client-card grow who').subcommand).toBe('grow');
     });
 
     /*
@@ -207,52 +284,65 @@ describe('the cockpit verb', () => {
 
     /*
      * ⚠ Through the REAL parser, because a controller test binds
-     * nothing: `cockpit shelf pin play` has to survive tokenizing into
+     * nothing: `client-shelf pin play` has to survive tokenizing into
      * two positional slots before the controller ever sees an action.
      */
-    it('binds the cockpit shelf pin', () => {
-      const pin = bind('cockpit shelf pin play');
-      expect(pin.subcommand).toBe('shelf');
-      expect(pin.action).toBe('pin');
+    it('binds the client-shelf pin', () => {
+      const pin = bind('client-shelf pin play');
+      expect(pin.subcommand).toBe('pin');
       expect(pin.row).toBe('play');
 
-      expect(bind('cockpit shelf unpin coin').action).toBe('unpin');
-      const bare = bind('cockpit shelf');
-      expect(bare.action).toBeUndefined();
+      expect(bind('client-shelf unpin coin').subcommand).toBe('unpin');
+      const bare = bind('client-shelf');
+      expect(bare.subcommand).toBeUndefined();
       expect(bare.row).toBeUndefined();
+
+      // ⭐ The closed row set is the view's — refused by name, before a
+      // controller is cloned.
+      const bad = refuse('client-shelf pin nonsense');
+      expect(bad.error).toBe('bind');
+      expect(bad.summary).toContain('docket');
     });
 
-    it('binds cockpit layout <name>', () => {
-      const m = bind('cockpit layout world');
-      expect(m.subcommand).toBe('layout');
+    it('binds client-layout <name> by fallthrough', () => {
+      const m = bind('client-layout world');
+      expect(m.subcommand).toBeUndefined();
       expect(m.name).toBe('world');
     });
 
-    /*
-     * The style tree is two levels deep but command subcommands are one
-     * level framework-wide, so the second level rides positionals. These
-     * are the assertions that would catch a slot being shifted.
-     */
-    it('binds the style tree onto positional slots', () => {
-      const theme = bind('cockpit style theme high-contrast');
-      expect(theme.subcommand).toBe('style');
-      expect(theme.styleSub).toBe('theme');
-      expect(theme.a).toBe('high-contrast');
+    it('⭐ binds client-style, its closed words as enums', () => {
+      const theme = bind('client-style theme high-contrast');
+      expect(theme.subcommand).toBe('theme');
+      expect(theme.theme).toBe('high-contrast');
+      // `default` is retired and refused by the binder, naming the three.
+      const retired = refuse('client-style theme default');
+      expect(retired.error).toBe('bind');
+      expect(retired.summary).toContain('marble');
 
-      const channel = bind('cockpit style channel gossip color blue');
-      expect(channel.styleSub).toBe('channel');
-      expect(channel.a).toBe('gossip');
-      expect(channel.b).toBe('color');
-      expect(channel.c).toBe('blue');
+      const channel = bind('client-style channel gossip color blue');
+      expect(channel.subcommand).toBe('channel');
+      expect(channel.key).toBe('gossip');
+      expect(channel.action).toBe('color');
+      expect(channel.value).toBe('blue');
+      expect(bind('client-style channel gossip clear').action).toBe('clear');
 
-      const plain = bind('cockpit style plain channel gossip on');
-      expect(plain.styleSub).toBe('plain');
-      expect(plain.a).toBe('channel');
-      expect(plain.b).toBe('gossip');
-      expect(plain.c).toBe('on');
+      // ⭐ A compound SUBCOMMAND word (the non-diegetic rule) binds too.
+      const plain = bind('client-style plain-channel gossip on');
+      expect(plain.subcommand).toBe('plain-channel');
+      expect(plain.key).toBe('gossip');
+      expect(plain.state).toBe('on');
+      const global = bind('client-style plain off');
+      expect(global.subcommand).toBe('plain');
+      expect(global.state).toBe('off');
 
-      // Bare `cockpit style` is `show` — the controller's default.
-      expect(bind('cockpit style').styleSub).toBeUndefined();
+      const mention = bind('client-style mention on');
+      expect(mention.subcommand).toBe('mention');
+      expect(mention.state).toBe('on');
+      expect(bind('client-style links ids').choice).toBe('ids');
+      expect(refuse('client-style links names').error).toBe('bind');
+
+      // Bare `client-style` is the verb's own controller — show.
+      expect(bind('client-style').subcommand).toBeUndefined();
     });
 
     /*

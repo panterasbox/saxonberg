@@ -149,10 +149,10 @@ async function daylight(s: Session): Promise<void> {
 
 /** Read `what`, waiting for light good enough to read ink by. */
 async function readInDaylight(s: Session, what: string): Promise<string> {
-  let said = await say(s, `read ${what}`);
+  let said = await say(s, `read "${what}"`);
   for (let i = 0; i < 24 && /cannot make out a word/.test(said); i++) {
     await advanceWorldClock('1 hour');
-    said = await say(s, `read ${what}`);
+    said = await say(s, `read "${what}"`);
   }
   return said;
 }
@@ -169,7 +169,7 @@ async function outfitted(handle: string, goods: string[]): Promise<Session> {
   }
   s.close();
   s = await Session.open(handle, { startLocation: SHOP });
-  for (const good of goods) expectOk(await s.cmd(`buy ${good}`));
+  for (const good of goods) expectOk(await s.cmd(`buy "${good}"`));
   return s;
 }
 

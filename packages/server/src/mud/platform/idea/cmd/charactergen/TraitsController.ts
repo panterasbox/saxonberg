@@ -34,11 +34,15 @@ export default class TraitsController extends CommandController<CommandModel> {
     } else {
       blocks.push(
         Mml.unorderedList(
+          // `Mml.li` per entry — handed bare bodies `unorderedList` runs
+          // them together (C31; chronicle fixed the same).
           axes.map((a) =>
-            Mml.fromMarkup(
-              `${Mml.escape(
-                Disposition.poleLabel(a.disposition, a.position)
-              )} — ${Mml.strong(a.band).toString()}`
+            Mml.li(
+              Mml.fromMarkup(
+                `${Mml.escape(
+                  Disposition.poleLabel(a.disposition, a.position)
+                )} — ${Mml.strong(a.band).toString()}`
+              )
             )
           )
         ).toString()

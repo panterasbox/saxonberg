@@ -41,7 +41,7 @@
 
 import { readFileSync } from "fs";
 import YAML from "yaml";
-import { CONTENT, commandViewFiles } from "./pack-roots";
+import { CONTENT, commandViewFiles, controllerPathOf } from "./pack-roots";
 import { SCRIPT_BUILTINS } from "../src/mud/lib/script/builtins";
 
 interface Claim {
@@ -49,8 +49,12 @@ interface Claim {
   file: string;
   /** The view's top-level positional args — its SHAPE, for D17's disjointness. */
   args?: PositionalShape[];
-  /** A view with subcommands has one shape per subcommand; never proved disjoint. */
+  /** A view with subcommands has one shape per subcommand. */
   hasSubcommands?: boolean;
+  /** `fallthrough: true` — the subcommand view also binds its own args. */
+  fallthrough?: boolean;
+  /** The view's controller, resolved absolute — `null` when it names none. */
+  controller?: string | null;
 }
 
 /** The parts of a positional arg D17's disjointness reads. */
@@ -60,6 +64,32 @@ export interface PositionalShape {
   multiple?: boolean;
   prepositions?: string[];
   prepositionRequired?: boolean;
+  /** A closed word list — a typed word outside it does not bind. */
+  values?: string[];
+}
+
+/**
+ * The words a line binding this view can START with, or `null` when any
+ * word may: a required first `enum` positional starts with one of its `values:`;
+ * a view whose every positional is `prepositionRequired` starts with
+ * one of their prepositions (or is empty, when none is required); a view
+ * with no positionals binds only the empty line (a leftover word is a
+ * shape error). `empty` — whether the empty line binds it.
+ */
+function firstWords(c: Claim): { words: Set<string>; empty: boolean } | null {
+  // A subcommand view's lines start with its words — not read here.
+  if (c.hasSubcommands) return null;
+  const args = c.args ?? [];
+  const lower = (xs: string[] | undefined): string[] => (xs ?? []).map((w) => w.toLowerCase());
+  if (args.length === 0) return { words: new Set(), empty: true };
+  const first = args[0]!;
+  if (isRequired(first) && first.prepositionRequired !== true && Array.isArray(first.values) && first.values.length > 0) {
+    return { words: new Set(lower(first.values)), empty: false };
+  }
+  if (args.every((a) => a.prepositionRequired === true)) {
+    return { words: new Set(args.flatMap((a) => lower(a.prepositions))), empty: !args.some(isRequired) };
+  }
+  return null;
 }
 
 /** Whether a positional binds REQUIRED — `CommandDefinition`'s own rule. */
@@ -82,10 +112,42 @@ function isRequired(a: PositionalShape): boolean {
  *
  * `throw X` · `throw X to Y` · `throw X at Y` is the case it was written
  * for: one word, three views, provably three shapes — so no shadowing to
- * adjudicate. A view with subcommands is
- * never proved disjoint (its shapes are per subcommand).
+ * adjudicate.
+ *
+ * ⭐ A view of subcommands with NO fallthrough beside a shape view
+ * (controller-liquidity W7a): the dispatcher tries the subcommand view
+ * first wherever its host listed it, and hands on any word it does not
+ * know, so its words are its own by precedence. The two are disjoint when
+ * the shape view cannot bind the EMPTY line too (it requires a positional)
+ * — otherwise bare `<verb>` would be claimed by both. Any other view with
+ * subcommands (a fallthrough, or two subcommand views) is never proved
+ * disjoint.
  */
 export function disjointShapes(a: Claim, b: Claim): boolean {
+  // ⭐ Two shapes of ONE act (controller-liquidity W7, build): both views
+  // name the same controller, so whichever binds a line, the act is the
+  // same and neither is unreachable by its own name — the harm this gate
+  // exists for (`draught <setting> [at <fire>]` · `draught <fire> <setting>`).
+  if (a.controller && a.controller === b.controller) return true;
+  // ⭐ A view with no positionals binds only the empty line; a fallthrough
+  // view whose own args require a word cannot (its subcommand lines are
+  // words too) — bare `press` reads, `press <headline>` posts.
+  const onlyEmpty = (c: Claim): boolean => c.hasSubcommands !== true && (c.args ?? []).length === 0;
+  const neverEmpty = (c: Claim): boolean =>
+    c.hasSubcommands === true && c.fallthrough === true && (c.args ?? []).some(isRequired);
+  if ((onlyEmpty(a) && neverEmpty(b)) || (onlyEmpty(b) && neverEmpty(a))) return true;
+  // ⭐ The first word (controller-liquidity W7, build): when both views'
+  // lines must start from closed word sets that do not meet, and the empty
+  // line cannot bind both, no line binds both (`draught at <fire>` reads,
+  // `draught <setting>` sets).
+  const fa = firstWords(a);
+  const fb = firstWords(b);
+  if (fa && fb && !(fa.empty && fb.empty) && ![...fa.words].some((w) => fb.words.has(w))) return true;
+  const subsOnly = (c: Claim): boolean => c.hasSubcommands === true && c.fallthrough !== true;
+  if (a.hasSubcommands !== true && subsOnly(b)) return disjointShapes(b, a);
+  if (subsOnly(a) && b.hasSubcommands !== true) {
+    return (b.args ?? []).filter(isRequired).length > 0;
+  }
   if (a.hasSubcommands || b.hasSubcommands) return false;
   const aa = a.args ?? [];
   const bb = b.args ?? [];
@@ -115,7 +177,7 @@ export function disjointShapes(a: Claim, b: Claim): boolean {
 export function claimsIn(files: string[]): Claim[] {
   const out: Claim[] = [];
   for (const file of files) {
-    type ViewDoc = { verbs?: unknown; args?: unknown; subcommands?: unknown };
+    type ViewDoc = { verbs?: unknown; args?: unknown; subcommands?: unknown; fallthrough?: unknown };
     let doc: ViewDoc | null = null;
     try {
       doc = YAML.parse(readFileSync(file, "utf-8")) as ViewDoc | null;
@@ -126,9 +188,12 @@ export function claimsIn(files: string[]): Claim[] {
     if (!Array.isArray(verbs)) continue;
     const args = Array.isArray(doc?.args) ? (doc!.args as PositionalShape[]) : [];
     const hasSubcommands = !!doc?.subcommands && typeof doc.subcommands === "object";
+    const fallthrough = doc?.fallthrough === true;
+    const rel = file.split("/content/").slice(2).join("/content/") || file;
+    const controller = controllerPathOf(rel, (doc as { controller?: unknown } | null)?.controller);
     for (const v of verbs) {
       if (typeof v === "string" && v.trim()) {
-        out.push({ verb: v.trim().toLowerCase(), file, args, hasSubcommands });
+        out.push({ verb: v.trim().toLowerCase(), file, args, hasSubcommands, fallthrough, controller });
       }
     }
   }

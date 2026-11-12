@@ -25,6 +25,7 @@
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { pathToFileURL } from "url";
+import ts from "typescript";
 import { controllerFiles } from "./pack-roots";
 
 /**
@@ -43,52 +44,119 @@ export interface CompletionThisFinding {
   line: number;
 }
 
-/** Strip block and line comments, keeping line count stable. */
-function stripComments(src: string): string {
-  return src
-    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
-    .replace(/\/\/[^\n]*/g, "");
+/** The completion-time keys: an act's `onComplete`, a plan's `onRefused`/`onDone`. */
+const COMPLETION_KEYS = new Set(["onComplete", "onRefused", "onDone"]);
+
+/** Does `node`'s subtree mention `this` (outside a nested `function`, which rebinds it)? */
+function mentionsThis(node: ts.Node): boolean {
+  let hit = false;
+  const visit = (n: ts.Node): void => {
+    if (hit) return;
+    if (n.kind === ts.SyntaxKind.ThisKeyword) {
+      hit = true;
+      return;
+    }
+    if (ts.isFunctionDeclaration(n) || ts.isFunctionExpression(n) || ts.isClassLike(n)) return;
+    ts.forEachChild(n, visit);
+  };
+  visit(node);
+  return hit;
 }
 
-/** The completion-time closures (`onComplete:`, a plan's `onRefused`/`onDone`) that mention `this.`. */
+/** The function a completion's value names, when the file can say. */
+function isFn(n: ts.Node | undefined): n is ts.ArrowFunction | ts.FunctionExpression {
+  return !!n && (ts.isArrowFunction(n) || ts.isFunctionExpression(n));
+}
+
+/**
+ * ⭐⭐ The completion-time closures that mention `this` — every FORM
+ * (controller-liquidity D12). The inline `onComplete: () => { … }` was the
+ * only form the gate saw until 2026-11-09, and three live completions
+ * called a destroyed controller through the forms it did not:
+ *
+ *   - `onComplete: () => …` / `onComplete() { … }` — the inline closure or
+ *     method, block or expression body;
+ *   - `onComplete: <ident>` and the shorthand `onComplete,` — resolved to
+ *     the `const <ident> = (…) => …` (or `function`) in the same file
+ *     (`SearchController`, `TeleportController`);
+ *   - an `<ident>` that is a PARAMETER of the enclosing method — resolved to
+ *     the arrow every caller in the file passes at that position
+ *     (`TransfuseController.runOrEngage(…, () => { … })`);
+ *   - `onComplete: this.<method>` — a bound reference is `this` by itself.
+ *
+ * Comments never count (the AST has none in its code nodes).
+ */
 export function scanCompletionThis(src: string, file: string): CompletionThisFinding[] {
-  const code = stripComments(src);
+  const sf = ts.createSourceFile(file, src, ts.ScriptTarget.ES2022, true, ts.ScriptKind.TS);
+  const lineOf = (n: ts.Node): number => sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1;
+
+  // Every named function value in the file: `const x = () => …`, `function x`.
+  const named = new Map<string, ts.Node[]>();
+  const remember = (name: string, fn: ts.Node): void => {
+    named.set(name, [...(named.get(name) ?? []), fn]);
+  };
+  // Every call in the file, by the called member's name (`this.m(…)`, `X.m(…)`, `m(…)`).
+  const calls = new Map<string, ts.CallExpression[]>();
+  const walk = (n: ts.Node): void => {
+    if (ts.isVariableDeclaration(n) && ts.isIdentifier(n.name) && isFn(n.initializer)) {
+      remember(n.name.text, n.initializer);
+    } else if (ts.isFunctionDeclaration(n) && n.name && n.body) {
+      remember(n.name.text, n);
+    } else if (ts.isCallExpression(n)) {
+      const callee = n.expression;
+      const name = ts.isPropertyAccessExpression(callee)
+        ? callee.name.text
+        : ts.isIdentifier(callee)
+          ? callee.text
+          : null;
+      if (name) calls.set(name, [...(calls.get(name) ?? []), n]);
+    }
+    ts.forEachChild(n, walk);
+  };
+  walk(sf);
+
+  /** The function bodies an identifier at `site` can stand for. */
+  const resolveIdent = (ident: string, site: ts.Node): ts.Node[] => {
+    // A parameter of the enclosing function → every arrow passed there.
+    for (let p: ts.Node | undefined = site.parent; p; p = p.parent) {
+      if (ts.isFunctionLike(p)) {
+        const idx = p.parameters.findIndex((q) => ts.isIdentifier(q.name) && q.name.text === ident);
+        if (idx >= 0) {
+          const fnName =
+            p.name && (ts.isIdentifier(p.name) || ts.isPrivateIdentifier(p.name)) ? p.name.text : null;
+          if (!fnName) return [];
+          return (calls.get(fnName) ?? [])
+            .map((c) => c.arguments[idx])
+            .filter((a): a is ts.Expression => isFn(a));
+        }
+      }
+    }
+    return named.get(ident) ?? [];
+  };
+
   const out: CompletionThisFinding[] = [];
-  const re = /onComplete:\s*(?:async\s*)?\([^)]*\)\s*=>\s*\{/g;
-  for (const m of code.matchAll(re)) {
-    let i = (m.index ?? 0) + m[0].length;
-    let depth = 1;
-    while (depth > 0 && i < code.length) {
-      if (code[i] === "{") depth++;
-      else if (code[i] === "}") depth--;
-      i++;
+  const flag = (n: ts.Node): void => {
+    out.push({ file, line: lineOf(n) });
+  };
+  const visit = (n: ts.Node): void => {
+    if (ts.isPropertyAssignment(n) && COMPLETION_KEYS.has(n.name.getText(sf))) {
+      const v = n.initializer;
+      if (isFn(v)) {
+        if (mentionsThis(v.body)) flag(n);
+      } else if (ts.isIdentifier(v)) {
+        if (resolveIdent(v.text, n).some((fn) => mentionsThis(fn))) flag(n);
+      } else if (mentionsThis(v)) {
+        // `this.finish`, `this.finish.bind(this)`, `() => …` wrapped in a call.
+        flag(n);
+      }
+    } else if (ts.isShorthandPropertyAssignment(n) && COMPLETION_KEYS.has(n.name.text)) {
+      if (resolveIdent(n.name.text, n).some((fn) => mentionsThis(fn))) flag(n);
+    } else if (ts.isMethodDeclaration(n) && COMPLETION_KEYS.has(n.name.getText(sf)) && ts.isObjectLiteralExpression(n.parent)) {
+      if (n.body && mentionsThis(n.body)) flag(n);
     }
-    const body = code.slice((m.index ?? 0) + m[0].length, i);
-    if (/\bthis\./.test(body)) {
-      out.push({ file, line: code.slice(0, m.index).split("\n").length });
-    }
-  }
-  // ⭐ A plan's `words` land at completion too (controllers-are-io D4): an
-  // `onRefused`/`onDone` that reaches `this` says nothing, just as silently.
-  // The whole arrow body is read, expression or block.
-  const wordsRe = /\b(?:onRefused|onDone):\s*(?:async\s*)?\([^)]*\)\s*=>\s*/g;
-  for (const m of code.matchAll(wordsRe)) {
-    const start = (m.index ?? 0) + m[0].length;
-    let i = start;
-    let depth = 0;
-    while (i < code.length) {
-      const c = code[i];
-      if (c === "(" || c === "{" || c === "[") depth++;
-      else if (c === ")" || c === "}" || c === "]") {
-        if (depth === 0) break;
-        depth--;
-      } else if (c === "," && depth === 0) break;
-      i++;
-    }
-    if (/\bthis\./.test(code.slice(start, i))) {
-      out.push({ file, line: code.slice(0, m.index).split("\n").length });
-    }
-  }
+    ts.forEachChild(n, visit);
+  };
+  visit(sf);
   return out;
 }
 

@@ -32,10 +32,6 @@ export default class ForumVoteController extends ForumControllerBase {
         'vote-not-allowed',
       );
     }
-    // Audience gate — only board members may vote.
-    if (view && !(await actor.isAudienceMemberOf(view.subject))) {
-      return this.fail(context, 'You are not in this board’s audience.', 'not-member');
-    }
     try {
       const updated = await actor.castVote(entry, dir as VoteValue);
       this.send(
@@ -43,7 +39,7 @@ export default class ForumVoteController extends ForumControllerBase {
         Mml.compose`\nVoted. Score now ${String(updated.getScore())}.\n`,
       );
     } catch (err) {
-      return this.fail(context, (err as Error).message, 'vote-failed');
+      return this.failFrom(context, err, 'vote-failed');
     }
   }
 }

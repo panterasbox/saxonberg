@@ -141,13 +141,13 @@ async function daylight(s: Session): Promise<void> {
  * the `bright` band, which outdoors is a clear sky near noon.
  */
 async function readInDaylight(s: Session, what: string): Promise<CommandResult> {
-  let r = await s.cmd(`read ${what}`);
+  let r = await s.cmd(`read "${what}"`);
   // ⛔ A game day at most (soak-harness census).
   for (let i = 0; i < 24 && r.status !== 'ok'; i++) {
     const why = r.notes.find((n) => (n as { reason?: string }).reason === 'too-dark-to-read');
     if (!why) break;
     await advanceWorldClock('1 hour');
-    r = await s.cmd(`read ${what}`);
+    r = await s.cmd(`read "${what}"`);
   }
   return r;
 }
@@ -648,7 +648,7 @@ suite('31 – 39 · the shore as a place, and drawing water', () => {
   async function readOf(what: string, want: RegExp): Promise<string> {
     let said = '';
     for (let i = 0; i < 6; i++) {
-      said = await look(w, `look --peek ${what}`);
+      said = await look(w, `look --peek "${what}"`);
       if (want.test(said)) return said;
       await w.listen(1_500);
     }

@@ -132,10 +132,14 @@ an optional `hint`, `validate` a value, and `job apply` it to the draft.
 - **`embody <field> <value>`** → `FIELDS[field].validate` then `job apply`,
   then re-emit the full state. This is **live-fire**: each field-set is
   its own command, applied and reflected immediately.
-- **`embody confirm`** → gate on `computeMissing(draft, cfg)`
-  (`EmbodyController.ts:272` — the `FIELD_ORDER` fields that are
-  applicable but not yet set). If anything is missing, emit a
-  field-scoped error; otherwise `commit`.
+- **`embody confirm`** → its own stanza and controller
+  (`EmbodyConfirmController`, controller-liquidity W7c: committing is a
+  different act from editing the draft; any other first word falls
+  through to the edit). It gates on `computeMissing(draft, cfg)` (the
+  `FIELD_ORDER` fields that are applicable but not yet set). If anything
+  is missing, emit a field-scoped error; otherwise `commit` — the body is
+  cloned first, the roster written after (C35), and a sex the body will
+  not take is told to the player in the world, never swallowed.
 
 There is **no `currentStep`, `activeStep`, `goBack`, or `promptFor`** —
 those belonged to the retired step model. Navigation is the client's

@@ -21,9 +21,9 @@ args:
     scope: ["here", "peers", "person"]
     requires: any
   - name: midden
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     prepositions: [in, on, onto, into]
     default: "reachable:[mixin.BulkableMixin]"
     scope: ["here", "peers", "person"]

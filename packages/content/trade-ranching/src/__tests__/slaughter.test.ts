@@ -34,6 +34,8 @@ import { SpeciesApi } from '@saxonberg/server/mud/api/species';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { AccountabilityApi } from '@saxonberg/server/mud/api/accountability';
+import { AccessApi } from '@saxonberg/server/mud/api/access';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
@@ -194,12 +196,21 @@ function ctx(giver: Stuff): CommandContext {
   } as unknown as CommandContext;
 }
 
-function model(target: Stuff | null): ModelData {
+/** ⭐ A knife in reach — a `bladed` construction, the edge the kill needs. */
+const KNIFE = { stuffId: 'knife', getConstructionForm: () => 'bladed' } as unknown as Stuff;
+function armKnife(): void {
+  const constructed = MixinApi.isConstructed.bind(MixinApi);
+  vi.spyOn(MixinApi, 'isConstructed').mockImplementation(((s: Stuff) =>
+    s === KNIFE || constructed(s)) as never);
+}
+
+function model(target: Stuff | null, blade: Stuff[] = [KNIFE]): ModelData {
   return {
     target: {
       stuff: target,
       raw: target ? 'ewe' : 'nothing',
     } as unknown as MqlOneResult,
+    blade: { stuff: blade },
   } as unknown as ModelData;
 }
 
@@ -238,6 +249,9 @@ describe('slaughter', () => {
     // `preloadAnatomy` reaches a Clade walk this fixture has no tree for;
     // the species is already resident, which is the state it ensures.
     vi.spyOn(SpeciesApi, 'preloadAnatomy').mockResolvedValue(undefined);
+    armKnife();
+    // ⭐ The giver keeps the herds here (D9: the book asks the keeper).
+    vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue(['/world/test']);
     yard = makeStuff(() => new TestYard());
     giver = makeStuff(() => {
       const g = new TestGiver();
@@ -301,7 +315,7 @@ describe('slaughter', () => {
     sheepSpecies();
     const r = registry();
     await r.file(HERD);
-    await r.draft('delight-flock', 3);
+    await r.draft('delight-flock', 3, giver);
 
     const ewe = await head(SHEEP_PATH, { flesh: 61, herd: ['delight-flock', 3] });
     ContainmentApi.move(ewe, yard);
@@ -325,7 +339,7 @@ describe('slaughter', () => {
     sheepSpecies();
     const r = registry();
     await r.file(HERD);
-    await r.draft('delight-flock', 3);
+    await r.draft('delight-flock', 3, giver);
     vi.spyOn(HerdRegistry.prototype, 'returnHead').mockRejectedValue(
       new Error('the store is down'),
     );
@@ -440,6 +454,31 @@ describe('the three refusals do not read alike', () => {
 
     expect(reasons()).toContain('sentient');
     expect(corpses).toHaveLength(0);
+  });
+
+  it('⭐ C19: no edge, no kill', async () => {
+    sheepSpecies();
+    const ewe = await head(SHEEP_PATH);
+    ContainmentApi.move(ewe, yard);
+    const ctrl = makeStuff(() => new SlaughterController());
+    await ctrl.execute(model(ewe, []), ctx(giver));
+    expect(reasons()).toEqual(['no-blade']);
+    expect(ewe.isAlive()).toBe(true);
+  });
+
+  it('⭐ D9: a head out of a herd you do not keep is refused BEFORE the kill', async () => {
+    sheepSpecies();
+    const r = registry();
+    await r.file(HERD);
+    await r.draft('delight-flock', 3, giver);
+    armKnife();
+    vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue([]);
+    const ewe = await head(SHEEP_PATH, { herd: ['delight-flock', 3] });
+    ContainmentApi.move(ewe, yard);
+    const ctrl = makeStuff(() => new SlaughterController());
+    await ctrl.execute(model(ewe), ctx(giver));
+    expect(reasons()).toEqual(['not-keeper']);
+    expect(ewe.isAlive()).toBe(true);
   });
 
   it('a body is not something you slaughter', async () => {

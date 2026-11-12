@@ -18,6 +18,11 @@
  *
  * Every refusal names what would lift it: the part that has no line, the
  * tool a joint wants, the band it wants.
+ *
+ * ⭐ Assembly only (controller-liquidity W7c): pasting a label onto a
+ * good's face was a head of this verb and is `paste` now (rung 5 — its
+ * own refusals, no joints, a coat for an outcome). The three assembly
+ * forms are one act through one Api (`CraftingApi.fit`).
  */
 
 import { CraftController } from './CraftController';
@@ -27,7 +32,6 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
 import { CraftingApi, type FitReplaced } from '../../../../api/crafting';
 import type { Assembled } from '../../../../lib/craft/Assembled';
-import type { PasteRefusal } from '../../../../lib/material/Faced';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
@@ -57,31 +61,16 @@ export default class FitController extends CraftController<FitModel> {
       return;
     }
 
-    // ⭐ A LABEL is pasted, not fitted into a bill: a sheet onto
-    // a good's face, with the glue in the pot named. The good decides
-    // (`Faced.pasteOn`); the glue's own damp-resistance decides how long it
-    // stays.
-    if (part instanceof Sheet && whole !== null && MixinApi.isFaced(whole) && !MixinApi.isAssembled(whole)) {
-      const pot = (model.tool?.stuff ?? []).find((s) => MixinApi.isBulkable(s)) ?? null;
-      if (pot === null) {
-        return this.refuse(context, TOPIC, `Paste it on with what? Name the pot: \`fit ${raw} to ${whole.getPresentation()} with <pot>\`.`, 'no-glue');
-      }
-      const out = await whole.pasteOn(part, pot);
-      if (!out.ok) {
-        // ⭐ The good answers a reason; the words are this verb's (D4).
-        return this.refuse(context, TOPIC, this.pasteRefusalWords(out, part, pot), out.reason);
-      }
-      const { glue, words } = out.facts;
-      const line =
-        words !== ''
-          ? `You brush ${glue} on the back of the label and smooth it onto ${whole.getPresentation()}: "${words}".`
-          : `You paste the paper onto ${whole.getPresentation()} with ${glue}.`;
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.text(line))
-        .toPeers(Mml.compose`${Mml.actor(giver)} pastes a label onto ${Mml.thing(whole)}.`)
-        .send();
-      return;
+    // ⭐ A LABEL is pasted, not fitted (controller-liquidity W7c): pasting
+    // is its own act and word — `paste` — and this refusal names it for
+    // one build.
+    if (part instanceof Sheet && whole !== null && !MixinApi.isAssembled(whole)) {
+      return this.refuse(
+        context,
+        TOPIC,
+        `A label is pasted, not fitted: \`paste ${raw} on ${whole.getPresentation()} with <pot>\`.`,
+        'use-paste',
+      );
     }
 
     // ⭐ A word that bound a PART, with no whole named, that names a recipe
@@ -164,22 +153,6 @@ export default class FitController extends CraftController<FitModel> {
   }
 
   /** Does `word` name one of `whole`'s lines (`lining`, `staves`)? */
-
-  /** The words for a label that will not paste — every reason (D4). */
-  private pasteRefusalWords(out: PasteRefusal, sheet: Stuff, pot: Stuff): string {
-    switch (out.reason) {
-      case 'not-glue':
-        return `What is in ${pot.getPresentation()} will not stick paper to anything.`;
-      case 'source-too-low':
-        return `There is not enough left in ${pot.getPresentation()} to paste with.`;
-      case 'not-paper':
-        return `${sheet.getPresentation()} is not a thing you paste on.`;
-      default: {
-        const never: never = out;
-        return never;
-      }
-    }
-  }
 
   private namesLine(whole: Stuff & Assembled, word: string): boolean {
     const w = word.trim().toLowerCase();

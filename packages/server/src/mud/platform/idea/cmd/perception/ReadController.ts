@@ -21,6 +21,11 @@
  * disturbing `perceive`, and a spellbook's comprehension floor (wave 6)
  * is already a decoding gate in all but name.
  *
+ * ⭐⭐ **The read is the thing's** (controller-liquidity W8): `Readable.
+ * readFor(viewer, page?)` — a screen answers what it shows, marked things
+ * perceive-then-decode, a book opens at the page first. This controller
+ * words the answer.
+ *
  * ⭐ **`read` never casts** (controllers-are-io D10). A scroll fires from
  * `recite` — a word every scroll affords, whichever working it carries, so
  * the affordance list still says nothing about what you are holding (D34:
@@ -31,11 +36,10 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import { MixinApi } from '../../../../api/mixin';
-import { COMMON_SCRIPT, DEVICE_MODALITIES } from '../../../../lib/description/Marked';
 import { MessageApi } from '../../../../api/message';
-import { PerceptionApi } from '../../../../api/perception';
 import { Mml } from '../../../../api/mml';
-import Book from '../../../thing/Book';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { ReadRefusal } from '../../../../lib/description/Readable';
 
 const TOPIC = 'sense.survey';
 
@@ -64,19 +68,7 @@ export default class ReadController extends CommandController<ReadModel> {
       return;
     }
 
-    // ⭐ One `read`, two faces: a SCREEN is read off what it
-    // shows, live; a written thing (below) by its marks.
-    if (!MixinApi.isMarked(target) && MixinApi.isDisplay(target)) {
-      // A lit screen is its own light: no light gate here.
-      const shown = await target.readScreen(giver);
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(shown === null ? Mml.compose`${Mml.thing(target)} is dark.` : Mml.compose`${Mml.thing(target)} reads: ${shown}`)
-        .send();
-      return;
-    }
-
-    if (!MixinApi.isMarked(target)) {
+    if (!MixinApi.isReadable(target)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`There is nothing written on ${Mml.thing(target)}.`)
@@ -89,115 +81,81 @@ export default class ReadController extends CommandController<ReadModel> {
       return;
     }
 
-    // ⭐ A book opens at the page named.
-    if (model.page !== undefined && model.page !== '') {
-      if (!(target instanceof Book)) {
-        MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`${Mml.thing(target)} has no pages to turn to.`).send();
-        context.note({ kind: 'controller-rejected', reason: 'not-a-book', detail: 'only a book has pages' });
+    const page = model.page !== undefined && model.page !== '' ? Number(model.page) : undefined;
+    const read = await target.readFor(giver, page);
+    if (!read.ok) return ReadController.refused(target, read, context);
+
+    const facts = read.facts;
+    const say = (line: Mml): void => {
+      MessageApi.scene(giver).topic(TOPIC).toSelf(line).send();
+    };
+    switch (facts.kind) {
+      case 'screen':
+        return say(
+          facts.shown === null
+            ? Mml.compose`${Mml.thing(target)} is dark.`
+            : Mml.compose`${Mml.thing(target)} reads: ${facts.shown}`,
+        );
+      case 'device':
+        return say(
+          facts.hasText
+            ? Mml.compose`${Mml.thing(target)} bears ${facts.device}. There is writing on it too, but you cannot make it out.`
+            : Mml.compose`${Mml.thing(target)} bears ${facts.device}.`,
+        );
+      case 'marks': {
+        const { text, device, taught } = facts;
+        say(
+          text.length > 0 && device !== null
+            ? Mml.compose`${Mml.thing(target)} reads: ${text} It bears ${device}.`
+            : text.length > 0
+              ? Mml.compose`${Mml.thing(target)} reads: ${text}`
+              : device !== null
+                ? Mml.compose`${Mml.thing(target)} bears ${device}.`
+                : Mml.compose`${Mml.thing(target)} is blank.`,
+        );
+        // What reading wrote into the reader — after the marks.
+        if (taught !== null) say(Mml.text(taught));
         return;
       }
-      const opened = target.openTo(Number(model.page));
-      if (!opened.ok) {
-        MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.text(opened.line)).send();
-        context.note({ kind: 'controller-rejected', reason: opened.reason, detail: opened.line });
-        return;
+      default: {
+        const never: never = facts;
+        return never;
       }
     }
+  }
 
-    // ⭐ Marks derived from a record (a register's page, a printed sheet's
-    // edition) are read now, so the text below is a sync read.
-    await target.refreshMarks(giver);
-
-    // ── Perceive ──
-    //
-    // One call. `canMakeOutMarks` owns the whole intersection now —
-    // the reader's channels against the marks' modalities, with light
-    // gating only the vision branch. The controller used to pre-filter
-    // on `requiresLightToRead()`, which is what left the touch branch
-    // unconditional.
-    // ⭐ A device is relief (B106): felt where the writing cannot be read,
-    // and said whatever the writing does.
-    const device = PerceptionApi.canMakeOutMarks(giver, target, DEVICE_MODALITIES)
-      ? target.deviceFor(giver)
-      : null;
-    if (!PerceptionApi.canMakeOutMarks(giver, target)) {
-      if (device !== null) {
-        const hasText = target.getMarkText().length > 0;
-        MessageApi.scene(giver)
-          .topic(TOPIC)
-          .toSelf(
-            hasText
-              ? Mml.compose`${Mml.thing(target)} bears ${device}. There is writing on it too, but you cannot make it out.`
-              : Mml.compose`${Mml.thing(target)} bears ${device}.`,
-          )
-          .send();
-        return;
+  /** The words for a refused read, and its note. */
+  protected static refused(target: Stuff, refusal: ReadRefusal, context: CommandContext): void {
+    const it = Mml.thing(target);
+    let line: Mml;
+    let detail: string;
+    switch (refusal.reason) {
+      case 'not-a-book':
+        line = Mml.compose`${it} has no pages to turn to.`;
+        detail = 'only a book has pages';
+        break;
+      case 'no-such-page':
+        line = Mml.text(`${target.getPresentation()} has ${refusal.facts.pages} pages.`);
+        detail = `${target.getPresentation()} has ${refusal.facts.pages} pages.`;
+        break;
+      case 'too-dark-to-read':
+        line = Mml.compose`There is writing on ${it}, but you cannot make out a word of it in this light.`;
+        detail = 'inked marks need light';
+        break;
+      case 'no-channel-for-marks':
+        line = Mml.compose`There is writing on ${it}, but you have no way to make it out.`;
+        detail = 'no sense reaches these marks';
+        break;
+      case 'script-unknown':
+        line = Mml.compose`The marks on ${it} are writing of some kind, but not in any script you know.`;
+        detail = `cannot decode '${refusal.facts.script}'`;
+        break;
+      default: {
+        const never: never = refusal;
+        return never;
       }
-      // The refusal names the reason the reader can actually observe.
-      const lightBound = target.requiresLightToRead();
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(
-          lightBound
-            ? Mml.compose`There is writing on ${Mml.thing(target)}, but you cannot make out a word of it in this light.`
-            : Mml.compose`There is writing on ${Mml.thing(target)}, but you have no way to make it out.`,
-        )
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: lightBound ? 'too-dark-to-read' : 'no-channel-for-marks',
-        detail: lightBound
-          ? 'inked marks need light'
-          : 'no sense reaches these marks',
-      });
-      return;
     }
-
-    // ── Decode ──
-    //
-    // v1 has one script and everyone reads it, so this only fires for
-    // authored braille or cipher. **Withheld, never mangled**: the
-    // medium here IS text, so scrambled output is indistinguishable
-    // from a bug, and "you can tell it is writing but not what it says"
-    // is both honest and the more interesting state to be in.
-    //
-    // ⚠ THE literacy seam. When known-scripts land on the reader, this
-    // condition becomes that lookup and nothing else moves.
-    const script = target.getMarkScript();
-    if (script !== COMMON_SCRIPT) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(
-          Mml.compose`The marks on ${Mml.thing(target)} are writing of some kind, but not in any script you know.`,
-        )
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'script-unknown',
-        detail: `cannot decode '${script}'`,
-      });
-      return;
-    }
-
-    // ⭐ The writing as THIS reader reads it — the hands named as they know
-    // the writers — and whose mark it bears.
-    const text = target.readFor(giver);
-    const body =
-      text.length > 0 && device !== null
-        ? Mml.compose`${Mml.thing(target)} reads: ${text} It bears ${device}.`
-        : text.length > 0
-          ? Mml.compose`${Mml.thing(target)} reads: ${text}`
-          : device !== null
-            ? Mml.compose`${Mml.thing(target)} bears ${device}.`
-            : Mml.compose`${Mml.thing(target)} is blank.`;
-    MessageApi.scene(giver).topic(TOPIC).toSelf(body).send();
-
-    // ⭐ What reading writes into the reader: a chart's places
-    // into the map, a printed recipe's known-of into the chronicle. The
-    // marks show first; the thing read decides what it teaches.
-    const taught = await target.teach(giver);
-    if (taught !== null) {
-      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.text(taught)).send();
-    }
+    MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(line).send();
+    context.note({ kind: 'controller-rejected', reason: refusal.reason, detail });
   }
 }

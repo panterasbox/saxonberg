@@ -86,14 +86,14 @@ export default class LineEnd extends TieableMixin(TetherEndMixin(Good)) {
    */
   public override async tieTo(by: Stuff, load: Stuff, knot: string | null): Promise<TieOutcome> {
     void knot;
-    if (this.getLine() === null) return { ok: false, reason: 'no-line', line: 'The end is not fast to anything.' };
-    if (this.getContainer() !== by) return { ok: false, reason: 'not-holding', line: 'You are not holding the end.' };
+    if (this.getLine() === null) return { ok: false, reason: 'no-line', facts: { gear: this as unknown as Stuff } };
+    if (this.getContainer() !== by) return { ok: false, reason: 'not-holding', facts: { gear: this as unknown as Stuff } };
     if (load === by || load.isAgent?.() || !MixinApi.isContainable(load)) {
-      return { ok: false, reason: 'not-a-load', line: 'You cannot tie the line to that.' };
+      return { ok: false, reason: 'not-a-load', facts: { gear: this as unknown as Stuff, load } };
     }
     const place = MixinApi.isContainable(by) ? by.getContainer() : null;
     if (place === null || load.getContainer() !== place) {
-      return { ok: false, reason: 'out-of-reach', line: `${load.getPresentation()} is not here.` };
+      return { ok: false, reason: 'out-of-reach', facts: { gear: this as unknown as Stuff, load } };
     }
     ContainmentApi.move(this, place as Stuff & Container);
     this._lashedTo = load;
@@ -111,8 +111,8 @@ export default class LineEnd extends TieableMixin(TetherEndMixin(Good)) {
       return { ok: true, line: 'You cast off the end of the line; you are off it.' };
     }
     const load = this.getLashedTo();
-    if (load === null) return { ok: false, reason: 'not-tied', line: 'The end is not tied to anything.' };
-    if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', line: 'You have no hands to take it in.' };
+    if (load === null) return { ok: false, reason: 'not-tied', facts: { gear: this as unknown as Stuff } };
+    if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', facts: { gear: this as unknown as Stuff } };
     this._lashedTo = null;
     ContainmentApi.move(this, by as Stuff & Container);
     if (line !== null) await line.endUntied(by, load);

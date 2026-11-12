@@ -177,14 +177,38 @@ surface (the card's chips, Studio's palette, `help <verb>`'s *answers:*) can
 show it as the verb it serves rather than as a noun. The kernel's:
 `PumpableMixin`, `LiftSourceMixin`, `PumpSourceMixin` (`lib/pump/`),
 `SplittableMixin` (`lib/ground/`), `CuttableMixin` and `CutPlannerMixin`
-(`lib/craft/`), `PourTargetMixin` (`lib/bulk/`, the one `pour`),
+(`lib/craft/`), `RivableMixin` and `ButcherableMixin`
+(`lib/craft/` — the cutting acts that are not `cut`, controller-liquidity
+D14; `SawableMixin` folded into `Bole.sawPlanFor` in W17 — one host; ⭐ a
+protocol with one host is a method on it — `WaterEntryMixin` likewise became
+`Shore.wayIntoWater`, see [architecture.md](../architecture.md)), `PourTargetMixin` (`lib/bulk/`, the one `pour`),
 `TravelNodeMixin` (`lib/travel/`), each with a `MixinApi.isX`; and the
 craft protocols with a null-or-refusing default (`lib/craft/`): `DipBathMixin`
 (`dip`), `CarvableMixin`, `ShapeableMixin`, `KneadVesselMixin`,
 `TurnableMixin`, `ImpressibleMixin`, `HandWorkedMixin`, `StrikingDieMixin`.
+The controller-liquidity build added (each a verb's one act over several
+hosts): `HeatedMixin` (`lib/fire/`, `heat`), `WashableMixin` and
+`SweepableMixin` (`lib/cleanliness/`), `SampleableMixin` (`lib/instrument/`),
+`ReadableMixin` (`lib/description/`), `WaterDrawableMixin` (`lib/bulk/`,
+water in reach), `AnchoringMixin` (`lib/expanse/`) and `LaunchableMixin`
+(`lib/location/`); and in packs' `src/lib/`: `FellableMixin`
+(trade-forestry), `AssayingMixin` (trade-mining), `HammerableMixin` and
+`QuenchableMixin` (trade-smithing). `WayIndexMixin` (`lib/location/`, W21)
+is a capability, not a protocol — no verb calls it. Table:
+[architecture.md § Available Mixins](../architecture.md).
 ⚠ `FormingMixin` is NOT one — it carries authored state (`forms`,
 `formTemplates`) beside its `shapePlanFor`, so it is a fact about the
 instrument as well as a verb's protocol.
+⚠ **A protocol is one act over several hosts — not several acts behind one
+verb** (controller-liquidity W18, owner 2026-11-10). W7c's `AgitatedMixin`
+(`stir` over a build, a compound and a churn) and its three-host
+`SweepableMixin` (a floor, a grate, a flue) each answered a UNION result —
+the tell that the hosts were doing different things. `AgitatedMixin` is
+retired (`stir` → `ManualBuildMixin.stirPlan`, the compound → `knead` if
+stiff and `stir` if runny by its own `workVerb` — W19 — the
+churn → the dairying pack's `churn`); `SweepableMixin` keeps two hosts with
+ONE result shape (a floor, a chimney), and the grate is `rake`'s
+(`Burner.rakePlan`). With one host, the act is a method on that host.
 
 **How it is presented** (D8b): the affordance resolver's `composition` is
 `{ name, kind, verbs? }[]` — a protocol carries the verbs whose views

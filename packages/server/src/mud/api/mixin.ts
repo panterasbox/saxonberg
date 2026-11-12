@@ -48,6 +48,7 @@ import type { Persona } from '../lib/character/Persona';
 import type { Dispositioned } from '../lib/trait/Dispositioned';
 import type { Advancing } from '../lib/advancement/Advancement';
 import type { Sampled } from '../lib/instrument/Sampled';
+import type { Sampleable } from '../lib/instrument/Sampleable';
 import type { Visible } from '../lib/description/Visible';
 import type { Perceptible } from '../lib/description/Perceptible';
 import type { Detailed } from '../lib/description/Detailed';
@@ -229,6 +230,7 @@ import type { Tieable } from '../lib/spatial/Tieable';
 import type { Spliceable } from '../lib/spatial/Spliceable';
 import type { Buoy } from '../lib/location/Buoy';
 import type { WaterSource } from '../lib/location/WaterSource';
+import type { WayIndex } from '../lib/location/WayIndex';
 import type { Improvable } from '../lib/ground/Improvable';
 import type { Posed } from '../lib/character/Posed';
 import type { Mountable } from '../lib/slot/Mountable';
@@ -298,6 +300,15 @@ import type { Splittable } from '../lib/ground/Splittable';
 import type { TravelNode } from '../lib/travel/TravelNode';
 import type { Cuttable } from '../lib/craft/Cuttable';
 import type { CutPlanner } from '../lib/craft/CutPlanner';
+import type { WaterDrawable } from '../lib/bulk/WaterDrawable';
+import type { Rivable } from '../lib/craft/Rivable';
+import type { Butcherable } from '../lib/craft/Butcherable';
+import type { Readable } from '../lib/description/Readable';
+import type { Anchoring } from '../lib/expanse/Anchoring';
+import type { Launchable } from '../lib/location/Launchable';
+import type { Heated } from '../lib/fire/Heated';
+import type { Washable } from '../lib/cleanliness/Washable';
+import type { Sweepable } from '../lib/cleanliness/Sweepable';
 import type { LiftSource } from '../lib/pump/LiftSource';
 import type { PumpSource } from '../lib/pump/PumpSource';
 import type { CapTable } from '../lib/employment/CapTable';
@@ -2174,6 +2185,11 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.WaterSource);
   }
 
+  /** Does this Idea know the realm's ways (the transport pack's lanes)? */
+  public static isWayIndex(obj: Stuff): obj is Stuff & WayIndex {
+    return this.hasMixin(obj, Mixins.WayIndex);
+  }
+
   /**
    * ⭐ Ground somebody could clear, drain and lime — and which reverts if
    * they stop. Promoted out of `trade-farming` by the extraction build; the
@@ -2460,7 +2476,6 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Conduit);
   }
 
-
   /**
    * Carries a blessed/uncursed/cursed band — a potency level on the
    * item's own effect axis (D11). **Opt-in per template**: most things
@@ -2534,6 +2549,56 @@ export class MixinApi {
   /** ⭐ Plans the cut of a thing it knows — `cut` (`CutPlannerMixin`, a protocol). */
   public static isCutPlanner(obj: Stuff): obj is Stuff & CutPlanner {
     return this.hasMixin(obj, Mixins.CutPlanner);
+  }
+
+  /** ⭐ Opens along its grain — `rive` (`RivableMixin`, a protocol; D14). */
+  public static isRivable(obj: Stuff): obj is Stuff & Rivable {
+    return this.hasMixin(obj, Mixins.Rivable);
+  }
+
+  /** ⭐ A body that keeps a carcass ledger — `butcher` (`ButcherableMixin`, a protocol; D14). */
+  public static isButcherable(obj: Stuff): obj is Stuff & Butcherable {
+    return this.hasMixin(obj, Mixins.Butcherable);
+  }
+
+  /** ⭐ A piece can be taken from it — `sample` (`SampleableMixin`, a protocol; controller-liquidity W7c). */
+  public static isSampleable(obj: Stuff): obj is Stuff & Sampleable {
+    return this.hasMixin(obj, Mixins.Sampleable);
+  }
+
+  /** ⭐ A thing you can read — a screen, marks, a book — `read` (`ReadableMixin`, a protocol; W8). */
+  public static isReadable(obj: Stuff): obj is Stuff & Readable {
+    return this.hasMixin(obj, Mixins.Readable);
+  }
+
+  /** ⭐ Water can be drawn from it — `cool`/`rinse` (`WaterDrawableMixin`, a protocol; controller-liquidity W8). */
+  public static isWaterDrawable(obj: Stuff): obj is Stuff & WaterDrawable {
+    return this.hasMixin(obj, Mixins.WaterDrawable);
+  }
+
+  /** ⭐ A craft that lets go an anchor — `anchor` (`AnchoringMixin`, a protocol; controller-liquidity W8). */
+  public static isAnchoring(obj: Stuff): obj is Stuff & Anchoring {
+    return this.hasMixin(obj, Mixins.Anchoring);
+  }
+
+  /** ⭐ Water a boat goes into / comes out of — `launch`/`recover` (`LaunchableMixin`, a protocol; W8). */
+  public static isLaunchable(obj: Stuff): obj is Stuff & Launchable {
+    return this.hasMixin(obj, Mixins.Launchable);
+  }
+
+  /** ⭐ Taken to the fire and held there — `heat` (`HeatedMixin`, a protocol; W7c). */
+  public static isHeated(obj: Stuff): obj is Stuff & Heated {
+    return this.hasMixin(obj, Mixins.Heated);
+  }
+
+  /** ⭐ A thing (or a body's hands) washed at water — `wash` (`WashableMixin`, a protocol; W7c). */
+  public static isWashable(obj: Stuff): obj is Stuff & Washable {
+    return this.hasMixin(obj, Mixins.Washable);
+  }
+
+  /** ⭐ A floor, a chimney — `sweep` (`SweepableMixin`, a protocol; W7c, slimmed W18). */
+  public static isSweepable(obj: Stuff): obj is Stuff & Sweepable {
+    return this.hasMixin(obj, Mixins.Sweepable);
   }
 
   /** Draws a supply that can be on or off (`PoweredMixin`). */

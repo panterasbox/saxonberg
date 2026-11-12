@@ -33,9 +33,6 @@ help: |
   liquid, while a loin or a tenderloin is fine-grained and wants to be
   quick and hot. Get that backwards and you will know.
 
-  ⚠ Bring something to catch the blood in if you want it. Nobody will
-  remind you, and it does not wait.
-
   ⭐ **A live animal is slaughtered, not butchered.** Killing and dressing
   are two acts: `slaughter` leaves a body, and this takes the body apart.
   Any body — a beast killed in a fight, taken by a fox, dead of old age or
@@ -81,7 +78,7 @@ args:
   - name: blade
     type: objects
     required: false
-    prepositions: [with, using]
+    prepositions: [with]
     default: "reachable:[mixin.ConstructedMixin]"
     scope: ["reachable"]
     requires: [ConstructedMixin]
@@ -103,21 +100,18 @@ args:
   # The controller reads `hasCapability('saw')` / `('cleaver')` across the
   # bound set, so the open vocabulary means a later pack's band saw
   # answers with no kernel edit.
+  # ⭐ `using` names the saw / cleaver; `with` names the edge. The two
+  # shared both words, so `butcher ewe with the saw` bound the saw as the
+  # blade (controller-liquidity C3).
   - name: tools
     type: objects
     required: false
-    prepositions: [with, using]
+    prepositions: [using]
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]
     requires: [ToolMixin]
-  # ⭐ WHAT TO CATCH THE BLOOD IN. ⚠ No refusal when it is absent: blood
-  # SPILLS, which is what actually happens, and the pudding becomes
-  # something you only get if you came prepared. Deliberately unlike the
-  # milk rule — milk is a tap you can return to, and a carcass is once.
-  - name: vessel
-    type: objects
-    required: false
-    prepositions: [into, in]
-    default: "reachable:[mixin.BulkableMixin]"
-    scope: ["reachable"]
-    requires: [BulkableMixin]
+  # ⛔ The `vessel` arg ("what to catch the blood in") is GONE
+  # (controller-liquidity C3): nothing ever read it — no butchering caught
+  # any blood — and a help line promising a pudding nobody could make is
+  # the fiction betraying itself. Catching the blood is the blood loop's
+  # to design (`blood.md`), not a dead slot here.

@@ -1,5 +1,5 @@
-# The rubber cement pot (paint D12) — stir rubber and turpentine in it and it comes together as
-# rubber cement.
+# The rubber cement pot (paint D12) — `knead` rubber and turpentine in it (rubber never slakes, so it is
+# milled, not stirred) and it comes together as rubber cement.
 class: /platform/thing/CompoundingVessel
 data:
   shortDescription: cement pot

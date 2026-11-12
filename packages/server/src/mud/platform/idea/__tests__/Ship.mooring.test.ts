@@ -257,7 +257,7 @@ describe('a ship made fast (harbors P4–P6)', () => {
     });
     expect(await ashore.resolveDestination()).toBe(quay);
     // ⭐ The gangway's lock is hers, read by both faces — and leaving never refuses.
-    ashore.lock();
+    ashore.setLocked(true);
     expect(ship.isGangwayLocked()).toBe(true);
     expect((quay.getExit('hesper') as BerthExit).isLocked()).toBe(true);
   });
@@ -275,7 +275,7 @@ describe('a ship made fast (harbors P4–P6)', () => {
     });
     // Never traversed, never warmed: the bolt is still hers.
     expect(ashore.isLocked()).toBe(true);
-    ashore.unlock();
+    ashore.setLocked(false);
     expect(ship.isGangwayLocked()).toBe(false);
   });
 

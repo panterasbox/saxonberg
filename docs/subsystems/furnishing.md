@@ -62,7 +62,7 @@ MET on the strength of an EMPTY ice bin at room temperature.
 
 ⭐ A capability that answers wrongly is worse than one that is
 missing: a missing check is silent, a wrong one is confidently
-misleading, and every survey report that ever named cold storage was
+misleading, and every room report that ever named cold storage was
 reporting on insulation rather than on cold. The repair changed what
 four archetypes say about rooms that already existed — kitchen,
 hospitality, brewhouse and winery were all re-read.
@@ -230,6 +230,19 @@ is stable across restarts and cannot collide with the synthetic
 `get` is how it comes down, and it is the guarded direction: your own
 good comes off freely, anything else needs write authority over the
 room — the bar's neon stays on the bar's wall.
+
+### Goods ON a surface (controller-liquidity finalize, 2026-11-11)
+
+A good can also rest *on* something in the room — a shirt on the drying
+rack, a cup on the table. The estate entry records `rests: { on,
+placement }` (the surface's row and the placement member, read off the
+good by `Containable.getRestingPlace`), and every entry builder writes it:
+the room-capture flush, `ChattelLogic.syncEstate`, and the estate's own
+capture, which re-reads it from the live good. The overlay runs after the
+room's fixtures stand, so it lays the good back on that surface; a surface
+that is gone, or will not take it (`canPlace`), leaves the good standing
+in the room — a skip, never an error. Before this, every placed good came
+back beside its surface, which the cleanliness drive's restart step found.
 
 ## Restore routing
 
@@ -409,8 +422,8 @@ A fifth, **gym** (`generic-objects/archetypes/gym.yaml`, nutrition-and-
 fitness), is a **function** archetype like the bedroom: a room is a gym
 exactly when something in it is a `load` you can lift or a surface you
 can work on — a barbell dropped on a dorm floor makes the corner a gym
-with no code and no second archetype, and `survey` reports it in any
-room. Its `load` slot is met by `platform/thing/LoadDevice` (the smith's
+with no code and no second archetype, and `analyze rooms` reports it in
+any room. Its `load` slot is met by `platform/thing/LoadDevice` (the smith's
 barbell); its `pace` slot waits for the first treadmill. See
 [exertion.md](./exertion.md).
 
@@ -436,7 +449,7 @@ Warren wires) and lists the bundle's fixtures by reference.
 > branch). Hinkley's houses instantiate the generic bedroom, living and
 > bathroom rows directly; Seznick House's units author their own bare
 > rooms and cite the generic bathroom. The four archetypes are content
-> the world now instantiates, and `survey` reads them back
+> the world now instantiates, and `analyze rooms` reads them back
 > ([holding.md](./holding.md)). The warning is kept because the SPINE
 > behaviour it documents is unchanged and still catches people: a bare
 > `clone` of an archetype row still gives you prose and no fixtures, and

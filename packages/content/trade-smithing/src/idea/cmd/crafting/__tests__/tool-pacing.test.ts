@@ -21,7 +21,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/lib/material/Material';
-import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
+import Stock from '../../../../thing/Stock';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CapabilitySpec } from '@saxonberg/server/mud/lib/craft/ToolCapability';
@@ -63,8 +63,8 @@ function makeSpecTool(spec: string | CapabilitySpec): Tool {
   return t;
 }
 
-function makeHotIngot(): Ingot {
-  const i = makeStuff(() => new Ingot());
+function makeHotIngot(): Stock {
+  const i = makeStuff(() => new Stock());
   i.setMass(Quantity.of(0.5, 'kg'));
   i.setMaterial(
     StuffApi.findByTemplatePath<Material>(IRON) as unknown as Material,
@@ -86,7 +86,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-async function hammerWith(anvil: Tool, ingot: Ingot): Promise<void> {
+async function hammerWith(anvil: Tool, ingot: Stock): Promise<void> {
   const striker = makeTool('striking');
   ContainmentApi.move(striker, actor);
   ContainmentApi.move(anvil, room);
@@ -103,7 +103,7 @@ async function hammerWith(anvil: Tool, ingot: Ingot): Promise<void> {
   );
 }
 
-function banked(ingot: Ingot): boolean {
+function banked(ingot: Stock): boolean {
   return ingot.getContributions().some((c) => c.kind === 'item');
 }
 

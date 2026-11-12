@@ -11,7 +11,7 @@
 # already an answer to *what does a livery have to have*, and it did not
 # have to be invented twice.
 label: a livery
-surveyScope: space
+roomsScope: space
 capabilities:
   - { key: shelter, needs: { rest: 1 } }
   - { key: water, needs: { bulkSource: water } }

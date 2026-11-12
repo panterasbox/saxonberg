@@ -51,13 +51,14 @@ import { BulkableApi } from '../../api/bulk';
 import { GrammarApi } from '../../api/grammar';
 import Rope from './Rope';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
+import { WaterDrawableMixin } from '../../lib/bulk/WaterDrawable';
 
 /** What stands at the bottom of a well when the row does not say. */
 const WATER_PATH = '/stuff/idea/material/bulk/water';
 
-const WellBase = LiftSourceMixin(
+const WellBase = WaterDrawableMixin(LiftSourceMixin(
   PumpSourceMixin(StagedMixin(ContainerMixin(BulkableMixin(Thing)))),
-);
+));
 
 export default class Well extends WellBase implements LiftSource, PumpSource {
   /** Metres from the collar down to the standing water. */

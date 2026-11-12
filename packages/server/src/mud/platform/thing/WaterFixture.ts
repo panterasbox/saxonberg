@@ -81,6 +81,7 @@ import type WaterHose from './WaterHose';
 import Street from '../location/Street';
 import WaterStore from './WaterStore';
 import '../../lib/supply/WaterChemistry';
+import { WaterDrawableMixin } from '../../lib/bulk/WaterDrawable';
 import {
   SUPPLY_STATE_GLOSS,
   type SupplyReport,
@@ -149,7 +150,7 @@ const FOULED_WATER_PATH = '/stuff/idea/material/bulk/fouled-water';
 // ⭐ A piped outlet has a VALVE (the browser walk: the public health
 // officer had no way to take a fouled standpipe out of service). `switch
 // standpipe off` shuts it; it reads `off` in the shipped vocabulary.
-const WaterFixtureBase = SwitchableMixin(ThermalMixin(BulkableMixin(Thing)));
+const WaterFixtureBase = WaterDrawableMixin(SwitchableMixin(ThermalMixin(BulkableMixin(Thing))));
 
 export default class WaterFixture
   extends WaterFixtureBase

@@ -575,9 +575,9 @@ reaches one body field three ways:
 Identity + audience own a `subject` verb; surfaces light up separately.
 
 - `subject make <name>` — mint a subject. Default mints a managed group
-  (curated); `--group <ref>` binds an existing ref; `--open` leaves the
+  (curated); `--group <ref>` binds an existing ref; `--public` leaves the
   audience open. `subject list` — visible subjects + their lit surfaces.
-  (`platform/idea/cmd/social/SubjectController.ts` + the platform pack's `content/platform/cmd/social/subject.yaml`.)
+  (`platform/idea/cmd/social/Subject{Make,List}Controller.ts` + the platform pack's `content/platform/cmd/social/subject.yaml`.)
   The three standing subjects (Help / Global / Chat) are the platform
   pack's **`subject` content kind** (`content/subjects/<name>.yaml`:
   `name`, `description`, optional `audience: {group}`, `channel` /
@@ -634,7 +634,7 @@ as curated/open subjects.
 | `ForumSubscriptionRegistry` | `obj/ForumSubscriptionRegistry.ts` | The document-change observer |
 | `ForumsApi` / `ForumsLogic` | `api/forums.ts` / `platform/idea/api/ForumsLogic.ts` | Board/Entry CRUD + voting + promotion + the folded-in subscription surface |
 | `SubjectApi` / `SubjectLogic` | `api/subject.ts` / `platform/idea/api/SubjectLogic.ts` | Subject identity/audience facade |
-| `ForumControllerBase` + `Forum<Sub>Controller` / `SubjectController` | `platform/idea/cmd/social/` | The `forum` / `subject` verbs |
+| `ForumControllerBase` + `Forum<Sub>Controller` / `Subject<Sub>Controller` | `platform/idea/cmd/social/` | The `forum` / `subject` verbs |
 
 `ForumsApi` is the thin gated forwarding facade over `ForumsLogic` (the
 HMR-able logic singleton at `/platform/idea/api/forums`); both follow the

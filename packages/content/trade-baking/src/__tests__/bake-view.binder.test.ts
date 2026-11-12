@@ -73,16 +73,16 @@ describe('bake — the forms the help text promises', () => {
     expect(bind('bake "rye sponge"').loaf).toBe('rye sponge');
   });
 
-  it('⭐ `bake at the brick oven` — the help\'s own example — binds', () => {
-    const m = bind('bake at the brick oven');
+  it('⭐ `bake at the "brick oven"` — the help\'s own example — binds', () => {
+    const m = bind('bake at the "brick oven"');
     expect(m.loaf).toBeUndefined();
-    expect(m.oven).toBe('the brick oven');
+    expect(m.oven).toBe('brick oven');
   });
 
-  it('⭐ a dough AND an oven, both phrases, in one sentence', () => {
-    const m = bind('bake rye sponge at the brick oven');
+  it('⭐ a dough AND an oven, both phrases, in one sentence (the oven quoted, D3)', () => {
+    const m = bind('bake rye sponge at the "brick oven"');
     expect(m.loaf).toBe('rye sponge');
-    expect(m.oven).toBe('the brick oven');
+    expect(m.oven).toBe('brick oven');
   });
 
   it('`bake flatbread` — the one-word form — is unchanged', () => {

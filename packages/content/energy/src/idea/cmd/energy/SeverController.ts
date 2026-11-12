@@ -33,15 +33,15 @@ export default class SeverController extends CommandController<SeverModel> {
       context.note({ kind: 'controller-rejected', reason: 'no-line', detail: 'no-line' });
       return;
     }
-    if (pole.isCut()) {
+    const out = pole.severBy(giver);
+    if (!out.ok) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`The line here is already cut.`)
         .send();
-      context.note({ kind: 'controller-rejected', reason: 'already-cut', detail: 'already-cut' });
+      context.note({ kind: 'controller-rejected', reason: out.reason, detail: out.reason });
       return;
     }
-    pole.sever();
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You sever the line. The lamps down the way go dark.`)

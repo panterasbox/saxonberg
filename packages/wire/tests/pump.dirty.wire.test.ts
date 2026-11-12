@@ -197,7 +197,7 @@ async function carried(s: Session): Promise<string> {
 
 /** One spell at a handle, run to completion; returns the closing prose. */
 async function pumpOnce(s: Session, what: string): Promise<string> {
-  const started = await say(s, `pump ${what}`);
+  const started = await say(s, `pump "${what}"`);
   expect(refusedFor(started), `pump ${what} was refused`).toBeNull();
   return settle(s, started);
 }
@@ -253,7 +253,7 @@ suite('1. the village well reads in words, and no numbers', () => {
   it('⭐ a handle, a barrel, leather — and not a digit', async () => {
     const yard = await read(k, 'look');
     expect(yard, `the yard reads: ${yard}`).toMatch(/village well|well/i);
-    const well = await read(k, 'look village well');
+    const well = await read(k, 'look "village well"');
     note(`look village well → ${well.replace(/\s+/g, ' ').slice(0, 240)}`);
     expect(well).toMatch(/pump|handle/i);
     expect(well).toMatch(/trough/i);
@@ -348,14 +348,14 @@ suite('4. a suction pump at the deep well is told the depth, and nothing else', 
     await k.drainProse();
     expect(refusedFor(put), `put pump in well: ${JSON.stringify(put.notes)}`).toBeNull();
 
-    const { r: tried, said } = await act(k, 'pump deep well');
+    const { r: tried, said } = await act(k, 'pump "deep well"');
     note(`pump deep well (suction) → ${refusedFor(tried)} · ${said.trim()}`);
     expect(refusedFor(tried)).toBe('beyond-suction');
     expect(said).toMatch(/14 metres/);
     expect(said, 'the refusal must not name the ceiling').not.toMatch(/\b10\b/);
     expect(said, 'the refusal must not explain').not.toMatch(/\bair\b|atmospher|pressure|vacuum/i);
 
-    const eye = await read(k, 'analyze pump deep well');
+    const eye = await read(k, 'analyze pump "deep well"');
     note(`analyze pump deep well → ${eye.replace(/\s+/g, ' ').trim()}`);
     expect(eye).toMatch(/leather/i);
     expect(eye, 'the reading must not explain').not.toMatch(/\bair\b|atmospher|pressure|vacuum/i);
@@ -401,7 +401,7 @@ suite('5. a force pump in the same well lifts', () => {
 
 suite('6. pump until the leather goes, and fit the spare', () => {
   async function packingWord(): Promise<string> {
-    const eye = await read(k, 'analyze pump deep well');
+    const eye = await read(k, 'analyze pump "deep well"');
     const m = /leather in the barrel (?:is |has )?(sound|worn|leaking|perished|gone)/i.exec(eye);
     expect(m, `no condition word in: ${eye}`).toBeTruthy();
     return m![1]!.toLowerCase();
@@ -453,7 +453,7 @@ suite('6. pump until the leather goes, and fit the spare', () => {
     await say(k, 'get pump');
     await say(k, 'put pump in well');
     await k.drainProse();
-    const { r: dead, said: deadSaid } = await act(k, 'pump deep well');
+    const { r: dead, said: deadSaid } = await act(k, 'pump "deep well"');
     note(`pump deep well with no packing → ${refusedFor(dead)} · ${deadSaid.trim()}`);
     expect(refusedFor(dead)).toBe('no-packing');
 
@@ -566,7 +566,7 @@ suite('8. the intake draws real power; the aqueduct draws none', () => {
     note(`analyze water aqueduct → ${aqueduct.replace(/\s+/g, ' ').trim()}`);
     expect(aqueduct).toMatch(/runs on gravity, and costs nothing to run/);
 
-    const power = await read(k, 'analyze power intake pump');
+    const power = await read(k, 'analyze power "intake pump"');
     note(`analyze power intake pump → ${power.replace(/\s+/g, ' ').trim()}`);
     expect(power, 'the pump is a real consumer on the Wharfside line').toMatch(/60\.0 kW reaching it/);
     expect(power, 'a running pump turns').toMatch(/kg a minute/);

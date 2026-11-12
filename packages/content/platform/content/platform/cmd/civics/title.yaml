@@ -67,7 +67,6 @@ subcommands:
       - name: desk
         type: object
         required: false
-        greedy: true
         prepositions: [at]
         default: "reachable:[class.DeedDesk]"
         scope: ["here", "peers", "person"]
@@ -92,7 +91,6 @@ subcommands:
       - name: desk
         type: object
         required: false
-        greedy: true
         prepositions: [at]
         default: "reachable:[class.DeedDesk]"
         scope: ["here", "peers", "person"]
@@ -177,20 +175,20 @@ subcommands:
       - name: recipient
         type: object
         required: false
-        greedy: true
         scope: "online"
         prepositions: [to]
         requires: class:Agent
       # ⭐ Shares bought: whose shares — a holder, online, who is
       # asked; and the price you pay them.
       - name: holder
+        prepositionRequired: true
         type: object
         required: false
-        greedy: true
         scope: "online"
         prepositions: [from]
         requires: class:Agent
       - name: price
+        prepositionRequired: true
         type: string
         required: false
         greedy: true

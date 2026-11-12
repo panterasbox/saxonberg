@@ -123,3 +123,25 @@ describe('the bond rule is the animal’s', () => {
     chosen.mockRestore();
   });
 });
+
+describe('the thing takes its name — no controller in the way (W8)', () => {
+  it('a direct takeName refuses a stranger and names for the maker', async () => {
+    const jug = madeBy(potter.getIdentityPath()!);
+    expect(await jug.takeName('Mine', stranger)).toEqual({ ok: false, reason: 'not-nameable' });
+    expect(jug.getName()).toBe('');
+    expect(await jug.takeName('  ', potter)).toEqual({ ok: false, reason: 'no-name-given' });
+    expect(await jug.takeName("Mother's jug", potter)).toEqual({
+      ok: true,
+      facts: { promoted: false },
+    });
+    expect(jug.getName()).toBe("Mother's jug");
+  });
+
+  it('an animal that has not chosen you refuses the promotion', async () => {
+    const cat = makeStuff(() => new TestPet());
+    vi.spyOn(TestPet.prototype, 'hasChosen').mockReturnValue(false);
+    expect(await cat.takeName('Mouse', stranger)).toEqual({ ok: false, reason: 'not-chosen' });
+    cat.setName('Mouse');
+    expect(await cat.takeName('Tom', potter)).toEqual({ ok: false, reason: 'already-named' });
+  });
+});

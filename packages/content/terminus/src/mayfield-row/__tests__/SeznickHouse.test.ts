@@ -14,7 +14,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LeaseController from '../idea/cmd/LeaseController';
 import Walter from '../agent/Walter';
 import UnleaseController from '../idea/cmd/UnleaseController';
-import { AGENCY_PATH } from '../idea/cmd/LeaseController';
+const AGENCY_PATH = '/world/terminus/mayfield-row/idea/agency';
 import OrganizationEntity from '@saxonberg/server/mud/platform/idea/Organization';
 import type BuildingWarren from '@saxonberg/content-residence/src/idea/BuildingWarren';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
@@ -127,6 +127,11 @@ function seedDomain(): void {
     parentExtent: HOUSE,
     capacityKey: 'mayfield.unitCap',
     defaultCapacity: 3,
+    // Who lets, the domicile and the unit branch (the row authors them —
+    // controller-liquidity W13).
+    agencyPath: AGENCY_PATH,
+    domicile: 'terminus/mayfield-row/seznick-house',
+    unitsBranch: 'units',
     plan: { shape: 'linear', frontagesPerNode: 2, frontageLeaf: 'u' },
   });
   // ⭐ The unit's plan, the programme's own (harbors review 3; no

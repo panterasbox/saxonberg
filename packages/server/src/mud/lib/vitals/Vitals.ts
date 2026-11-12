@@ -76,7 +76,20 @@ import { Suppressions } from '../magic/Suppression';
 import { MqlApi } from '../../api/mql';
 import { CompetenceBand } from '../advancement/CompetenceBand';
 import type { Difficulty, Outcome } from '../advancement/ActSignature';
-import type { ActPlan } from '../craft/ActPlan';
+import type { ActPlan, ActOutcome, ActRefusal, ActChoices } from '../craft/ActPlan';
+import { AccountabilityApi } from '../../api/accountability';
+import AccountabilityEvent from '../accountability/AccountabilityEvent';
+import { SpeciesApi } from '../../api/species';
+
+/**
+ * Why a body will not give a unit of blood — the BODY's refusals, in the
+ * order it applies them (controller-liquidity D9). ⚠ Consent is NOT among
+ * them: nothing in vitals decides consent before the act; that gate is a
+ * separate security build (the deferred seam).
+ */
+export type BloodDrawRefusal = ActRefusal<
+  'no-tool' | 'no-blood' | 'not-conscious' | 'too-low' | 'wan'
+>;
 import type { Dressing } from './Dressing';
 import type ConditionCatalogue from '../../platform/idea/ConditionCatalogue';
 import { MagicGrid } from '../magic/Grid';
@@ -181,6 +194,20 @@ export type ConditionBand =
    */
   | 'dying'
   | 'dead';
+
+/**
+ * A looker's words for a body's band, in the third person — *"Ada looks
+ * hurt"*. The medical read (`assess`) and the combat read (`fight assess`)
+ * say a band the same way, so it is said once, here.
+ */
+export const CONDITION_BAND_PHRASE: Readonly<Record<ConditionBand, string>> = {
+  healthy: 'looks unhurt',
+  hurt: 'looks hurt',
+  serious: 'is seriously injured',
+  critical: 'is in critical condition',
+  dying: 'is dying',
+  dead: 'is dead',
+};
 
 /** A second derived state below death; recoverable. */
 export type Consciousness = 'conscious' | 'unconscious' | 'dead';
@@ -344,6 +371,8 @@ export interface TreatmentRequest {
   offered: Stuff | null;
   /** `--for <condition>`: what the medic thinks it is. */
   named?: string;
+  /** Never set on `treat` — the element token is {@link ElementTreatmentRequest}'s. */
+  element?: undefined;
 }
 
 /** Why a treatment was refused. */
@@ -371,6 +400,69 @@ export type TreatmentDone =
 export type TreatmentAnswer =
   | ActPlan<undefined, TreatmentDone, TreatmentRefusal>
   | TreatmentRefusal;
+
+/**
+ * ⭐ What the world itself relieves, brought to a body by hand
+ * (controller-liquidity W8): water on a burn (`cooling`), a fire for a frozen
+ * part (`warmth`), water over a caustic still eating the skin (`rinse`).
+ * The verbs `cool`/`warm`/`rinse` find the water or the fire; the BODY
+ * decides what it has that the element would help, and what it comes to.
+ */
+export type ElementTreatment = 'cooling' | 'warmth' | 'rinse';
+
+/** `cool` / `warm` / `rinse`, asked of the patient. */
+export interface ElementTreatmentRequest {
+  /** The treater. */
+  by: Stuff;
+  /** What they are bringing to it. */
+  element: ElementTreatment;
+}
+
+/** ⭐ The body has nothing the element would help — one reason per verb. */
+export type ElementTreatmentRefusal =
+  | ActRefusal<'nothing-to-cool'>
+  | ActRefusal<'nothing-to-warm'>
+  | ActRefusal<'nothing-to-rinse'>;
+
+/**
+ * ⭐ `undress` (controller-liquidity W8): the dressed wound off, or why not.
+ * `no-dressing` — nothing is dressed; a CHOICE when several are (the
+ * `preferred` is the worst, the shipped default); done — which wound, whether
+ * it had been stitched, and whether it opened again (it had not knitted).
+ */
+export type UndressAnswer =
+  | ActRefusal<'no-dressing'>
+  | ActChoices<Trauma, 'which-wound', { preferred: Trauma }>
+  | ActOutcome<{ wound: Trauma; sutured: boolean; reopened: boolean }>;
+
+/** What an element treatment answers: a plan to run now, or the refusal. */
+export type ElementTreatmentAnswer =
+  | ActPlan<undefined, { element: ElementTreatment }, ElementTreatmentRefusal>
+  | ElementTreatmentRefusal;
+
+/**
+ * How well each element treats what it relieves — the wound's `careQuality`.
+ * Cooling with water is competent, not expert; a fire warms better than a
+ * splash of water cools. A caustic is not graded: rinsing removes the cause.
+ */
+const ELEMENT_EFFICACY: Readonly<Record<'cooling' | 'warmth', number>> = {
+  cooling: 0.7,
+  warmth: 0.75,
+};
+
+/** The trauma each element relieves by hand. */
+const ELEMENT_TRAUMA: Readonly<Record<ElementTreatment, string>> = {
+  cooling: 'burn',
+  warmth: 'frostbite',
+  rinse: 'caustic',
+};
+
+/** Each element's refusal when nothing on the body wants it. */
+const ELEMENT_NOTHING: Readonly<Record<ElementTreatment, ElementTreatmentRefusal['reason']>> = {
+  cooling: 'nothing-to-cool',
+  warmth: 'nothing-to-warm',
+  rinse: 'nothing-to-rinse',
+};
 
 /** How much a single treatment pours into someone. */
 const TREAT_FLUID_LITRES = 0.25;
@@ -640,6 +732,12 @@ export interface TreatmentOpts {
    * a kit only washed carries what it last cut into the next wound.
    */
   instrumentTier?: CleanTier;
+  /**
+   * ⭐ The wound is closed with stitches (D8) — it heals at the sutured rate
+   * and reopens as a stitched wound. The body writes the flag
+   * (controller-liquidity W13: `suture` used to set it on the record).
+   */
+  sutured?: boolean;
 }
 
 /** Outcome of {@link Vitals.applyTreatment}. */
@@ -838,16 +936,39 @@ export interface Vitals {
    * shared system, or (unauthored) the species' own path. Compatibility is
    * judged on this, not the species. */
   bloodSystemOf(): string;
-  /** Draw a unit of blood: spend volume + marrow reserve; return the
-   * stored unit's payload (true type + whether labelled + donor). */
-  drawBlood(litres: number): BloodUnit;
+  /**
+   * Would this body give `litres` of blood to `by`, drawing with `tool`?
+   * `null` when it would; else the body's refusal. A phlebotomy tool is
+   * required; the body must be conscious, above the donor floor and not
+   * wan (the marrow reserve).
+   */
+  bloodDrawRefusal(by: Stuff, tool: Stuff | null): BloodDrawRefusal | null;
+  /**
+   * ⭐⭐ Draw a unit of blood, as `by` with `tool` (controller-liquidity
+   * D9, C10): asks {@link bloodDrawRefusal} itself, spends volume + the
+   * marrow reserve, and — when `by` is not the donor — writes the
+   * accountability harm record (`consented: false` until the consent seam
+   * exists). Returns the stored unit's payload, or the refusal.
+   */
+  drawBlood(
+    litres: number,
+    by: Stuff,
+    tool: Stuff | null,
+  ): ActOutcome<BloodUnit> | BloodDrawRefusal;
   /** Receive blood or a saline expander. Compatible closes the gap to
    * baseline; saline caps at the plasma ceiling; incompatible delivers
-   * plasma only and inflicts the graded transfusion reaction. */
+   * plasma only and inflicts the graded transfusion reaction.
+   *
+   * ⭐ `by` — the hand giving it (controller-liquidity W13): a REACTING unit
+   * forced into another body is harm on the accountability ledger, and a
+   * transfusion that brings a dying body back writes the revival into its
+   * chronicle, naming the donor. The body records both; `transfuse` only
+   * tells it. Self-use records neither. */
   receiveBlood(spec: {
     litres: number;
-    blood: { speciesPath: string; system?: string; type: string } | null;
+    blood: { speciesPath: string; system?: string; type: string; donorIdentityPath?: string } | null;
     expander?: boolean;
+    by?: Stuff | null;
   }): { accepted: number; reaction: 0 | 1 | 2 };
   /** Is the body under anaesthesia (an active `sedation` effect)? (D10) */
   isSedated(): boolean;
@@ -899,6 +1020,28 @@ export interface Vitals {
    * now (`durationMs: 0`), or the refusal with its reason.
    */
   treatmentPlanFor(req: TreatmentRequest): TreatmentAnswer;
+  /**
+   * ⭐ The element token (controller-liquidity W8): `cool`, `warm`, `rinse`
+   * — what this body has that water or a fire would relieve, and the act
+   * that relieves it, run now. A burn or frostbite is treated through
+   * {@link applyTreatment} at the element's efficacy and an affliction that
+   * declares the element relieved; a caustic still working has its cause
+   * washed off.
+   */
+  treatmentPlanFor(req: ElementTreatmentRequest): ElementTreatmentAnswer;
+  /**
+   * ⭐ Take the dressing off a wound — `chosen`, or the only dressed one; a
+   * choice when several are. The wound's own `reopen` decides: a wound above
+   * the clot threshold bleeds again. The bandage is spent, not recovered.
+   */
+  undressWound(chosen?: Trauma): UndressAnswer;
+  /**
+   * ⭐ An interrupted operation leaves `wound` OPEN and worse (clinical
+   * medicine D7): `worsenBy` added to its severity, its sepsis clock
+   * restarted, its care and dressing gone. The body writes its own wound
+   * records (controller-liquidity C39 — the controller used to).
+   */
+  leaveWoundOpen(wound: Trauma, worsenBy: number): void;
   /** The healed-over scars this body keeps (D14) — never a penalty. */
   getScars(): readonly ScarRecord[];
   /** ⭐ D15 — re-break every half-knit fracture under mechanical work
@@ -1370,8 +1513,42 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       return species?.getBloodGroups()?.system || this.speciesPathOf();
     }
 
-    public drawBlood(litres: number): BloodUnit {
+    public bloodDrawRefusal(
+      _by: Stuff,
+      tool: Stuff | null,
+    ): BloodDrawRefusal | null {
       const self = this as unknown as Stuff;
+      if (!tool || !MixinApi.isTool(tool) || !tool.hasCapability('phlebotomy')) {
+        return { ok: false, reason: 'no-tool' };
+      }
+      if (this.bloodType() === null) return { ok: false, reason: 'no-blood' };
+      if (this.getConsciousness() !== 'conscious') {
+        return { ok: false, reason: 'not-conscious' };
+      }
+      const baseline = this.getVitalBand('bloodVolume').baseline;
+      const frac = baseline > 0 ? this._bloodVolume.rawValue() / baseline : 0;
+      if (frac < BLOOD_DEFAULTS.DONOR_MIN_FRAC) return { ok: false, reason: 'too-low' };
+      const marrow = MixinApi.isReserved(self)
+        ? (self.getReserve('marrow')?.current.rawValue() ?? 0)
+        : 0;
+      if (marrow < BLOOD_DEFAULTS.DONATION_MIN_MARROW) return { ok: false, reason: 'wan' };
+      return null;
+    }
+
+    public drawBlood(
+      litres: number,
+      by: Stuff,
+      tool: Stuff | null,
+    ): ActOutcome<BloodUnit> | BloodDrawRefusal {
+      const refused = this.bloodDrawRefusal(by, tool);
+      if (refused) return refused;
+      const self = this as unknown as Stuff;
+      if (by.stuffId !== self.stuffId) {
+        // ⭐ Blood taken from another body is on the ledger, named to the
+        // hand that took it. ⚠ `consented: false` — nothing decides consent
+        // yet (deferred seam).
+        this.recordHarmBy(by, `phlebotomy:${by.stuffId}:${self.stuffId}`);
+      }
       const bv = this._bloodVolume.rawValue();
       this.setVitalSign('bloodVolume', Quantity.of(Math.max(0, bv - litres), 'L'));
       if (MixinApi.isReserved(self) && self.hasReserve('marrow')) {
@@ -1380,7 +1557,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           Quantity.of(-BLOOD_DEFAULTS.MARROW_COST_PCT_PER_L * litres, '%'),
         );
       }
-      return {
+      const unit: BloodUnit = {
         speciesPath: this.speciesPathOf(),
         system: this.bloodSystemOf(),
         type: (this.bloodType() ?? 'O') as BloodTypeLabel,
@@ -1388,9 +1565,76 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         donorIdentityPath:
           self.getIdentityPath() ?? self.getTemplatePath() ?? '',
       };
+      return { ok: true, facts: unit };
     }
 
     public receiveBlood(spec: {
+      litres: number;
+      blood: { speciesPath: string; system?: string; type: string; donorIdentityPath?: string } | null;
+      expander?: boolean;
+      by?: Stuff | null;
+    }): { accepted: number; reaction: 0 | 1 | 2 } {
+      const self = this as unknown as Stuff;
+      const by = spec.by && spec.by.stuffId !== self.stuffId ? spec.by : null;
+      const wasDying = by !== null && this.isDying();
+      const result = this.takeBlood(spec);
+      if (by !== null) {
+        // A reacting unit forced into another body is NON-consented harm (a
+        // transfusion just works — there is no consent ladder).
+        if (result.reaction > 0) this.recordHarmBy(by, `transfusion:${by.stuffId}:${Date.now()}`);
+        // The revival deed (blood D8): whose blood brought them back.
+        if (wasDying && !this.isDying()) {
+          void this.recordRevival(spec.blood?.donorIdentityPath ?? '');
+        }
+      }
+      return result;
+    }
+
+    /** Append a `harm` row naming `by` as the hand (the trap's producer shape). */
+    private recordHarmBy(by: Stuff, sessionId: string): void {
+      const self = this as unknown as Stuff;
+      const victimId = AccountabilityEvent.partyIdOf(self);
+      const byId = AccountabilityEvent.partyIdOf(by);
+      if (!victimId || !byId) return;
+      let sentient = false;
+      try {
+        sentient = SpeciesApi.isSentient(self);
+      } catch {
+        sentient = false;
+      }
+      AccountabilityApi.record({
+        kind: 'harm',
+        sessionId,
+        initiator: byId,
+        opponent: victimId,
+        victim: victimId,
+        killer: byId,
+        consented: false,
+        sentient,
+        victimFor: AccountabilityEvent.partyForOf(self),
+      });
+    }
+
+    /** The chronicle remembers a transfusion that revived this body. */
+    private async recordRevival(donorIdentityPath: string): Promise<void> {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isPersona(self)) return;
+      const live = donorIdentityPath
+        ? StuffApi.findAllByTemplatePath(donorIdentityPath)[0]
+        : undefined;
+      const donorName = live ? live.getPresentation() : 'A donor';
+      await self.recordChronicleOnce(
+        `blood-revival:${donorIdentityPath}:${Date.now()}`,
+        {
+          kind: 'deed',
+          text: `${donorName}'s blood brought you back from the edge.`,
+          tags: ['blood', 'revival'],
+        },
+      );
+    }
+
+    /** The volume and the reaction — the body taking what it is given. */
+    private takeBlood(spec: {
       litres: number;
       blood: { speciesPath: string; system?: string; type: string } | null;
       expander?: boolean;
@@ -3556,7 +3800,60 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** See {@link Vitals.treatmentPlanFor}. */
-    public treatmentPlanFor(req: TreatmentRequest): TreatmentAnswer {
+    public treatmentPlanFor(req: TreatmentRequest): TreatmentAnswer;
+    public treatmentPlanFor(req: ElementTreatmentRequest): ElementTreatmentAnswer;
+    public treatmentPlanFor(
+      req: TreatmentRequest | ElementTreatmentRequest,
+    ): TreatmentAnswer | ElementTreatmentAnswer {
+      if (req.element !== undefined) return this.elementPlanFor(req.by, req.element);
+      return this.remedyPlanFor(req);
+    }
+
+    /** The element token: what the element relieves on this body, run now. */
+    private elementPlanFor(by: Stuff, element: ElementTreatment): ElementTreatmentAnswer {
+      const target = this as unknown as Stuff & Vitals;
+      const type = ELEMENT_TRAUMA[element];
+      const wounds = this
+        .getConditions()
+        .filter(
+          (c): c is Trauma =>
+            c.kind === 'trauma' &&
+            c.type === type &&
+            // A caustic wants its cause removed while it is still working;
+            // a burn or a frozen part wants treating until it is dressed.
+            (element === 'rinse' ? c.agentActive === true : c.dressed !== true),
+        );
+      const afflictions =
+        element === 'rinse'
+          ? []
+          : this
+              .getConditions()
+              .filter((c): c is AfflictionRecord => c.kind === 'affliction' && resolutionOf(c) === element);
+      if (wounds.length === 0 && afflictions.length === 0) {
+        return { ok: false, reason: ELEMENT_NOTHING[element] };
+      }
+      return {
+        ok: true,
+        durationMs: 0,
+        effortW: 0,
+        facts: undefined,
+        onComplete: () => {
+          for (const wound of wounds) {
+            // ⭐ `resolve` on a caustic means *remove the cause*, not *arrest
+            // the bleed* — the same interface, a different act.
+            if (element === 'rinse') TRAUMA_BEHAVIOR.caustic.resolve(target, wound);
+            else this.applyTreatment(wound, { by: element, efficacy: ELEMENT_EFFICACY[element], treater: by });
+          }
+          // A body running too hot (or gone cold) is brought back; if it is
+          // still in the heat it will climb again on the next reconcile.
+          for (const a of afflictions) this.relieve(a);
+          return { ok: true, facts: { element } };
+        },
+      };
+    }
+
+    /** `treat`: the remedy offered, against what is wrong. */
+    private remedyPlanFor(req: TreatmentRequest): TreatmentAnswer {
       const target = this as unknown as Stuff & Vitals;
       const { by } = req;
       // A body in the dying window is treatable even with no wound to
@@ -3667,12 +3964,41 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `mend` heals it at the graded treated rate, and returns what
      * happened. The infection seed (D11) lands in W-A5; the seam is here.
      */
+    /** See {@link Vitals.undressWound}. */
+    public undressWound(chosen?: Trauma): UndressAnswer {
+      const dressed = this.getConditions().filter(
+        (c): c is Trauma => c.kind === 'trauma' && c.dressed === true,
+      );
+      if (dressed.length === 0) return { ok: false, reason: 'no-dressing' };
+      const wound = chosen && dressed.includes(chosen) ? chosen : dressed.length === 1 ? dressed[0]! : null;
+      if (wound === null) {
+        const worst = [...dressed].sort((a, b) => b.severity - a.severity)[0]!;
+        return { ok: 'choose', reason: 'which-wound', choices: dressed, facts: { preferred: worst } };
+      }
+      // ⭐ Stitches read differently from a bandage (D8) — read before
+      // `reopen` clears the flag.
+      const sutured = wound.sutured === true;
+      TRAUMA_BEHAVIOR[wound.type].reopen(this as unknown as Vitals, wound);
+      // A re-opened bleed drains again on the next read (reconcile-on-read).
+      return { ok: true, facts: { wound, sutured, reopened: wound.bleeding === true } };
+    }
+
+    /** See {@link Vitals.leaveWoundOpen}. */
+    public leaveWoundOpen(wound: Trauma, worsenBy: number): void {
+      if (!this.getConditions().includes(wound)) return;
+      wound.severity += Math.max(0, worsenBy);
+      wound.openSince = WorldClockApi.getNow().rawValue();
+      wound.careQuality = undefined;
+      wound.dressed = false;
+    }
+
     public applyTreatment(
       wound: Trauma,
       opts: TreatmentOpts,
     ): TreatmentResult {
       TRAUMA_BEHAVIOR[wound.type].resolve(this, wound);
       wound.careQuality = Math.max(0, Math.min(1, opts.efficacy));
+      if (opts.sutured === true) wound.sutured = true;
       // Dressing a wound resets its open-wound sepsis clock (D11).
       wound.openSince = undefined;
       wound.septicSeeded = false;

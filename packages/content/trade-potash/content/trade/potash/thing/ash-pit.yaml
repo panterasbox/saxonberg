@@ -1,7 +1,7 @@
 # The ash pit (potash D2) — a scraped hollow ringed with stones where an
 # ash-burner keeps a big fire fed with brash and cordwood, the draught wide
 # open, until there is nothing left of it but ash. A big Burner: `stoke`
-# it, `light` it, `sweep` it when it burns down.
+# it, `light` it, `rake` it when it burns down.
 class: /trade/potash/thing/AshPit
 data:
   shortDescription: ash pit

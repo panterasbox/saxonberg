@@ -19,6 +19,7 @@ import "../../../../../../test-bootstrap";
 import { AdvancementMixin } from '../../../../../lib/advancement/Advancement';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import HarvestController from '../HarvestController';
+import HarvestAskingController from '../HarvestAskingController';
 import PlantController from '../PlantController';
 import Plant from '../../../../thing/Plant';
 import Crop from '../../../../thing/Crop';
@@ -862,6 +863,8 @@ describe('the area crop', () => {
       const trial = makeStuffAtPath(() => newPlant(), freshPath(PLANT_PATH));
       trial.setGroundPart('top-end');
       trial.setLabel('trial');
+      // As `label` does: the label is a keyword the binder scores.
+      trial.addKeyword('trial');
       ContainmentApi.move(trial, field);
       (trial as unknown as { growthStage: string }).growthStage = 'mature';
       // The binder handed us the labeled plant (the word names both).
@@ -901,6 +904,75 @@ describe('the area crop', () => {
       expect(noteReasons(ctx)).toContain('part-unnamed');
       expect(JSON.stringify(giver.received)).toContain('Which part?');
       expect(stand.standingAreaM2()).toBe(100);
+    });
+
+    describe('⭐⭐ the third limb: the ground answers its parts as a CHOICE (controller-liquidity D8)', () => {
+      it('the plant hands the controller the parts — no sentence', () => {
+        const { giver, field, parts } = dividedScene([['top-end', 100], ['lane-end', 100]]);
+        const stand = standAt(field, parts[0]!, 0.9);
+        const answer = stand.harvestPlanFor({ by: giver as never, part: null, tool: null });
+        expect(answer.ok).toBe('choose');
+        if (answer.ok === 'choose') {
+          expect(answer.reason).toBe('part-unnamed');
+          expect(answer.choices).toEqual(parts);
+          expect(answer).not.toHaveProperty('line');
+        }
+      });
+
+      it('⭐ `HarvestAskingController` ASKS which field, and cuts the one picked', async () => {
+        const { giver, field, parts } = dividedScene([['top-end', 100], ['lane-end', 100]]);
+        const stand = standAt(field, parts[0]!, 0.9);
+        const ctx = makeContext(giver, field, 'harvest');
+        const asked: Array<{ label: string; offered: Stuff[] }> = [];
+        (ctx as unknown as { requireInteractive: () => unknown }).requireInteractive = () => ({
+          promptMqlObject: async (label: string, offered: Stuff[]) => {
+            asked.push({ label, offered });
+            return parts[0];
+          },
+        });
+        await makeStuff(() => new HarvestAskingController()).execute(
+          { target: one(stand, 'grain'), tool: one(makeSickle(10), 'sickle') } as ModelData as never,
+          ctx,
+        );
+        await settle();
+        expect(asked).toHaveLength(1);
+        expect(asked[0]!.label).toBe('which part');
+        expect(asked[0]!.offered).toEqual(parts);
+        expect(noteReasons(ctx)).not.toContain('part-unnamed');
+        // …and the world is what naming the field would have made.
+        expect(stand.standingAreaM2()).toBe(90);
+      });
+
+      it('with nobody to ask it fails closed, to the shipped refusal with the list', async () => {
+        const { giver, field, parts } = dividedScene([['top-end', 100], ['lane-end', 100]]);
+        const stand = standAt(field, parts[0]!, 0.9);
+        const ctx = makeContext(giver, field, 'harvest');
+        await makeStuff(() => new HarvestAskingController()).execute(
+          { target: one(stand, 'grain') } as ModelData as never,
+          ctx,
+        );
+        await settle();
+        expect(noteReasons(ctx)).toContain('part-unnamed');
+        expect(JSON.stringify(giver.received)).toContain('Which part?');
+        expect(stand.standingAreaM2()).toBe(100);
+      });
+
+      it('a cancelled prompt cuts nothing', async () => {
+        const { giver, field, parts } = dividedScene([['top-end', 100], ['lane-end', 100]]);
+        const stand = standAt(field, parts[0]!, 0.9);
+        const ctx = makeContext(giver, field, 'harvest');
+        (ctx as unknown as { requireInteractive: () => unknown }).requireInteractive = () => ({
+          promptMqlObject: async () => {
+            throw new Error('cancelled');
+          },
+        });
+        await makeStuff(() => new HarvestAskingController()).execute(
+          { target: one(stand, 'grain') } as ModelData as never,
+          ctx,
+        );
+        await settle();
+        expect(stand.standingAreaM2()).toBe(100);
+      });
     });
 
     it('a part with nothing of that sown is refused, naming the part', async () => {

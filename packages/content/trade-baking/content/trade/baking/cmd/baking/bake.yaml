@@ -59,7 +59,6 @@ args:
   - name: oven
     type: object
     required: false
-    greedy: true
     prepositions: [at, in, on]
     default: "reachable:[mixin.BurnerMixin]"
     scope: ["here", "peers", "person"]

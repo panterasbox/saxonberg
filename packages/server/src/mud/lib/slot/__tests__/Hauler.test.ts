@@ -4,7 +4,7 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
@@ -34,10 +34,27 @@ describe('HaulerMixin — hauler side', () => {
       const bearer = haulingBearer();
       const c = cart();
       bearer.hitch(c);
-      bearer.unhitch();
+      bearer.unhitch(bearer);
       expect(bearer.isHitched()).toBe(false);
       expect(bearer.getHauledCart()).toBeNull();
       expect(c.getHauledBy()).toBeNull();
+    });
+
+    it('⭐ D9: the cart refuses a stranger uncoupling it from a PERSON pulling it', () => {
+      const bearer = haulingBearer();
+      const stranger = haulingBearer();
+      const c = cart();
+      bearer.hitch(c);
+      const isPerson = vi
+        .spyOn(MixinApi, 'isCommandGiver')
+        .mockImplementation(((s: { stuffId: string }) => s.stuffId === bearer.stuffId) as never);
+      expect(bearer.unhitch(stranger)).toEqual({ ok: false, reason: 'held-by-another' });
+      expect(c.getHauledBy()).toBe(bearer);
+      // A draft animal's cart is anybody's to unhitch.
+      isPerson.mockReturnValue(false);
+      expect(bearer.unhitch(stranger)).toEqual({ ok: true });
+      expect(c.getHauledBy()).toBeNull();
+      isPerson.mockRestore();
     });
 
     it('hitching a second cart drops the first', () => {
@@ -49,6 +66,35 @@ describe('HaulerMixin — hauler side', () => {
       expect(bearer.getHauledCart()).toBe(b);
       expect(a.getHauledBy()).toBeNull();
       expect(b.getHauledBy()).toBe(bearer);
+    });
+  });
+
+  describe('hitchPlanFor — the hauler decides (controller-liquidity W8)', () => {
+    it('refuses with the actor, from a direct call: already pulling something', async () => {
+      const bearer = haulingBearer();
+      bearer.hitch(cart());
+      const answer = await bearer.hitchPlanFor(cart(), bearer);
+      expect(answer).toEqual({ ok: false, reason: 'already-hitched' });
+    });
+
+    it("carries the cart's own veto", async () => {
+      const bearer = haulingBearer();
+      const c = cart();
+      vi.spyOn(c, 'canHitch').mockReturnValue({ ok: false, reason: 'Too big a rig for you.' });
+      const answer = await bearer.hitchPlanFor(c, bearer);
+      expect(answer).toEqual({ ok: false, reason: 'hitch-refused', facts: { veto: 'Too big a rig for you.' } });
+    });
+
+    it('plans an instant hitch that couples at completion, by hand when the actor is the hauler', async () => {
+      const bearer = haulingBearer();
+      const c = cart();
+      const answer = await bearer.hitchPlanFor(c, bearer);
+      if (!answer.ok) throw new Error(answer.reason);
+      expect(answer.durationMs).toBe(0);
+      expect(answer.facts.byHand).toBe(true);
+      expect(bearer.isHitched()).toBe(false);
+      await answer.onComplete();
+      expect(bearer.getHauledCart()).toBe(c);
     });
   });
 

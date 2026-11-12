@@ -21,9 +21,6 @@ export default class ForumReplyController extends ForumControllerBase {
     const parent = await ForumsApi.getEntry(entryId);
     if (!parent) return this.fail(context, `No entry '${entryId}'.`, 'no-such-entry');
     const view = await this.boardViewFor(parent.getBoard());
-    if (view && !(await actor.isAudienceMemberOf(view.subject))) {
-      return this.fail(context, 'You are not in this board’s audience.', 'not-member');
-    }
 
     const isOrdered = view?.board.getOrganizer() === 'ordered';
     const { relation, count } = this.valence(model);
@@ -44,7 +41,7 @@ export default class ForumReplyController extends ForumControllerBase {
         const entry = await actor.attachClaim(parent, relation, body);
         this.send(context, Mml.compose`\nAttached (#${entry._id ?? '?'}).\n`);
       } catch (err) {
-        return this.fail(context, (err as Error).message, 'reply-failed');
+        return this.failFrom(context, err, 'reply-failed');
       }
       return;
     }
@@ -64,7 +61,7 @@ export default class ForumReplyController extends ForumControllerBase {
       const entry = await actor.replyToEntry(parent, body);
       this.send(context, Mml.compose`\nReplied (#${entry._id ?? '?'}).\n`);
     } catch (err) {
-      return this.fail(context, (err as Error).message, 'reply-failed');
+      return this.failFrom(context, err, 'reply-failed');
     }
   }
 

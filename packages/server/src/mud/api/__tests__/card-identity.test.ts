@@ -197,7 +197,7 @@ describe('the normalized command is what a card re-issues', () => {
         { subjectId: lamp },
       );
     look('look lamp');
-    look('look brass lamp');
+    look('look "brass lamp"');
     expect(h.interactive.listCards().length).toBe(1);
   });
 

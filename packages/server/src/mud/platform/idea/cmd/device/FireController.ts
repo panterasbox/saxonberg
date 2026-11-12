@@ -51,15 +51,6 @@ const FIRE_MS = 60_000;
 /** Metabolic watts of tending a firing — stoking and watching, not swinging. */
 const FIRE_EFFORT_W = 420;
 
-/** The draught ladder's words — the `draught` verb's own (DraughtController). */
-const DRAUGHTS: Readonly<Record<string, number>> = {
-  wide: 1,
-  open: 1,
-  half: 0.5,
-  low: 0.2,
-  banked: 0.05,
-};
-
 export interface FireModel extends CommandModel {
   kiln?: MqlOneResult;
   /** `for 30 minutes` — how long to hold the chamber at heat. */
@@ -85,7 +76,8 @@ export default class FireController extends CommandController<FireModel> {
 
     let draught: number | null = null;
     if (typeof model.draught === 'string' && model.draught.trim() !== '') {
-      draught = DRAUGHTS[model.draught.trim().toLowerCase()] ?? null;
+      // ⭐ The ladder's words are the burner's one vocabulary (W8).
+      draught = kiln.draughtFor(model.draught);
       if (draught === null) {
         this.decline(
           context,

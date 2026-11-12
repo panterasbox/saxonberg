@@ -5,7 +5,8 @@
  * recipient (or to their own hands). Gift-only: the unit is never sold and
  * never a `buy`-able stock line; the window records who got what (D16).
  *
- * ⭐ Seat-gated, NPC-only in v1 BY CONSTRUCTION: the gate is a non-exited
+ * ⭐ Seat-gated, NPC-only in v1 BY CONSTRUCTION: the gate — the window's
+ * own `keptBy`, which `takeUnit` asks itself — is a non-exited
  * on-shift employment at the window's operating business (or its
  * proprietor). The window's roster has no player-fillable seat (D11), so
  * only the NPC registrar passes today — but the verb EXISTS so the
@@ -17,7 +18,6 @@ import { CommandController } from '@saxonberg/server/mud/lib/command/CommandCont
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -46,7 +46,7 @@ export default class IssueController extends CommandController<IssueModel> {
     // ⭐ The seat gate: an on-shift holder of the window's operating
     // business, or its proprietor. No player passes today (the roster has
     // no open seat), which is how v1 stays NPC-run by construction.
-    if (!(await this.keepsTheWindow(giver, window))) {
+    if (!(await window.keptBy(giver))) {
       return this.fail(context, 'You do not keep this window.', 'not-on-the-window');
     }
 
@@ -61,19 +61,6 @@ export default class IssueController extends CommandController<IssueModel> {
       .toSelf(Mml.fromMarkup(Mml.escape(`You issue a unit of ${lot} to ${who}.`)))
       .toPeers(Mml.compose`${Mml.actor(giver)} issues a unit of blood.`)
       .send();
-  }
-
-  /** On-shift at the window's operating business, or its proprietor. */
-  private async keepsTheWindow(giver: Stuff, window: Stuff): Promise<boolean> {
-    const path = window.getIdentityPath() ?? window.getTemplatePath();
-    const business = path ? EmploymentApi.businessAt(path) : null;
-    if (!business) return false;
-    if (await business.hasProprietor(giver)) return true;
-    const orgPath = business.getTemplatePath();
-    if (!orgPath || !MixinApi.isEmployed(giver)) return false;
-    return giver
-      .getActiveEmployments()
-      .some((e) => e.organizationPath === orgPath && e.status === 'on-shift');
   }
 
   private fail(context: CommandContext, line: string, reason: string): void {

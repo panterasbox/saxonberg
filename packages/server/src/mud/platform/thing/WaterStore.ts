@@ -38,6 +38,7 @@ import { AddressApi } from '../../api/address';
 import { WorldClockApi } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
 import '../../lib/supply/WaterChemistry';
+import { WaterDrawableMixin } from '../../lib/bulk/WaterDrawable';
 import {
   type SupplyReport,
   type SupplyState,
@@ -52,7 +53,7 @@ const MAX_FILL_GAP_S = 365 * 86_400;
 
 // Thermal outer of Bulkable, as `Receptacle` and `WaterFixture` compose it:
 // a holder's heat capacity derives from what is in it.
-const WaterStoreBase = ThermalMixin(BulkableMixin(Thing));
+const WaterStoreBase = WaterDrawableMixin(ThermalMixin(BulkableMixin(Thing)));
 
 export default class WaterStore extends WaterStoreBase implements WaterSupply {
   /**

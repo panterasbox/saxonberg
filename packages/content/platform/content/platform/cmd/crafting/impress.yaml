@@ -32,7 +32,6 @@ args:
   - name: medium
     type: object
     required: true
-    greedy: true
     prepositions: [on, in, into]
     scope: ["reachable"]
     requires: any

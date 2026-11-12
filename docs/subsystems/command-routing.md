@@ -1265,15 +1265,31 @@ reads only the resolved form.
 
 ## Stage 5 — Controller execution
 
-`_executeOne` clones the controller, runs it, destructs it:
+`_executeOne` resolves the controller **by path**, clones it, runs it,
+destructs it:
 
 ```ts
-const controller = await StuffApi.clone<CommandController>(
-  `/platform/idea/cmd/${command.controller}`
-);
+// The subcommand's own `controller:` wins, else the view's top-level one;
+// no subcommand → the view's top-level `controller:` (the bare form).
+// ⛔ One level only — a command is `verb subcommand target`, never deeper.
+const sub = model.subcommand;                        // 'recall'
+const controllerPath = sub
+  ? command.controllerForSubcommand(sub)
+  : command.resolvedController;
+if (!controllerPath) { /* command-rejected: missing-subcommand */ }
+const controller = await StuffApi.clone<CommandController>(controllerPath);
 try { return await controller.execute(model, ctx); }
 finally { StuffApi.destruct(controller); }
 ```
+
+A `controller:` value is a **template path** — absolute
+(`/platform/idea/cmd/<cat>/<Name>Controller`) or relative to the view —
+resolved once at load (`resolveController`; `lint:controller-rows` holds
+every one to a row). `model.subcommand` is the one subcommand word; a
+stanza never nests ([command-spec.md § Depth](./command-spec.md) — the
+nested stanzas of controller-liquidity D2 were reversed in W16). One controller
+per subcommand is the rule — a controller reading `model.subcommand` to pick
+an act is what `lint:multi-act` counts (its `subcommand` arm is a hard 0).
 
 The controller is a fresh `Idea` per execution — no state across
 invocations. State lives on the world (the giver, the location, props
@@ -1290,6 +1306,10 @@ Controllers do three things:
    [messaging.md](./messaging.md) for the Scene composer.
 3. **Emit notes via `ctx.note(...)`** for structured outcome signal
    on the dispatch-response envelope.
+4. **Ask the object and engage its plan** — never decide a rule, a
+   permission or a duration themselves; the object does, so the controller
+   can be replaced in other words with nothing in the world changing
+   ([command-spec.md § The liquidity contract](./command-spec.md)).
 
 `execute()` returns `void`. There is no `CommandResult`, no
 `success: boolean`, no `summary` — those retired. The dispatcher
@@ -1454,10 +1474,10 @@ options:
 ```yaml
 verbs: [player]
 category: author
-controller: PlayerController
 description: "Manage your player character settings"
-subcommands:
+subcommands:                 # ⭐ one controller per subcommand (D9; controller-liquidity W7a)
   name:
+    controller: /platform/idea/cmd/author/PlayerNameController
     description: "Set your character name"
     args:
       - name: name
@@ -1467,12 +1487,14 @@ subcommands:
         type: string
         required: false
   pronouns:
+    controller: /platform/idea/cmd/author/PlayerPronounsController
     description: "Set your pronouns"
     args:
       - name: pronouns
         type: string
         required: true
   show:
+    controller: /platform/idea/cmd/author/PlayerShowController
     description: "Show your current player settings"
 ```
 

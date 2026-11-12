@@ -23,8 +23,13 @@
 import { Document } from '../persistence/Document';
 import type { FieldMeta } from '../mixin';
 import { Collections } from '../persistence/Collections';
+import { PlayerApi } from '../../api/player';
+import type { Stuff } from '../stuff/Stuff';
 
 export type GroupRole = 'owner' | 'admin' | 'member';
+
+/** Why {@link Group.rename} refused — a reason the verb words. */
+export type GroupRenameRefusal = { ok: false; reason: 'not-owner' | 'duplicate-name' };
 
 /**
  * Who owns a managed group — a typed principal, the `ParcelOwner`
@@ -152,5 +157,49 @@ export class Group extends Document {
 
   isMember(id: string): boolean {
     return this.memberIds.includes(id);
+  }
+
+  /**
+   * Rename the group, as `by` (controller-liquidity C71). Only its owner
+   * may (`GroupApi.ownsGroup` — the one resolution of the owner field),
+   * and the name stays unique, as `group make` keeps it; both refusals come
+   * before the write. The change is announced to the provider's
+   * subscribers, as every managed write is.
+   */
+  async rename(newName: string, by: Stuff): Promise<{ ok: true } | GroupRenameRefusal> {
+    // Lazy: the Api reaches this class; a static import is a cycle risk.
+    const { GroupApi } = await import('../../api/group');
+    if (!(await GroupApi.ownsGroup(by, this))) return { ok: false, reason: 'not-owner' };
+    const clash = await Group.find({ name: newName });
+    if (clash.some((g) => g._id !== this._id)) {
+      return { ok: false, reason: 'duplicate-name' };
+    }
+    this.name = newName;
+    await this.save();
+    if (this._id) (await GroupApi.registry()).managed().fireChange(this._id);
+    return { ok: true };
+  }
+
+  /**
+   * ⭐ The member key a player TYPED names — matched against the roster,
+   * never taken as the key itself (controller-liquidity D11: the roster
+   * holds identity paths, so a raw string matched nobody). In order: the
+   * key itself; a key whose last segment is it (a player id); a player
+   * member whose stored name is it, case-insensitive. Null when none.
+   */
+  async memberByName(typed: string): Promise<string | null> {
+    const want = typed.trim();
+    if (want === '') return null;
+    if (this.memberIds.includes(want)) return want;
+    const bySegment = this.memberIds.find((id) => id.endsWith(`/${want}`));
+    if (bySegment !== undefined) return bySegment;
+    const lower = want.toLowerCase();
+    for (const id of this.memberIds) {
+      if (!PlayerApi.isAvatarIdentityPath(id)) continue;
+      const playerId = id.slice(id.lastIndexOf('/') + 1);
+      const name = await PlayerApi.storedNameOf(playerId);
+      if (name !== null && name.toLowerCase() === lower) return id;
+    }
+    return null;
   }
 }

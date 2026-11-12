@@ -75,6 +75,11 @@ import {
   SOIL_STRUCTURE_RESERVE_KEY,
 } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import type { ActAnswer, ActDone, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
+import HayBale from './HayBale';
 import Tract, { type FieldSpec } from '../location/Tract';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
@@ -800,6 +805,106 @@ export default class Field extends FieldBase {
     }
     return lines;
   }
+
+  // ---------- ⭐⭐ the cut (controller-liquidity W10) ----------
+
+  /**
+   * ⭐⭐ `mow` — **the whole of D7 in one act**, answered by the field.
+   * Hay and grazing are the same draw on the same reserve; the one thing
+   * a cut does that a mouth does not is EXPORT the nitrogen the crop
+   * carried (crude protein = N × 6.25, so the feed value and the soil
+   * fertility are one accounting, D14). It cuts to the residual and no
+   * further (D9) — a scythe cannot cut below the crowns — and the cut is
+   * made up into bales a person can lift, carrying the field's wetness
+   * into the barn (D48: the hay fire is decided here).
+   */
+  public mowPlanFor(actor: Stuff, scythe: Stuff): MowAnswer {
+    const ceiling = this.swardCeilingKg();
+    const cuttable = this.standingDryMatterKg() - ceiling * SWARD_RESIDUAL_FRACTION;
+    if (cuttable <= MIN_CUT_KG) return { ok: false, reason: 'below-residual', facts: { field: this } };
+    // A scythe is slow and the swathe is the field's size, not yours.
+    const durationMs = Math.round(MOW_BASE_MS + cuttable * MOW_MS_PER_KG);
+    return {
+      ok: true,
+      durationMs,
+      effortW: MixinApi.isExerting(actor) ? actor.wattsForFeltCost(MOW_FELT_COST, durationMs / 1000) : 0,
+      facts: { scythe },
+      onComplete: () => this.cut(actor, cuttable),
+    };
+  }
+
+  /** The cut lands: the sward drawn, the nitrogen exported, the bales laid down. */
+  private async cut(actor: Stuff, cuttable: number): Promise<ActDone<MowDone, MowRefusal>> {
+    const taken = this.drawSward(cuttable);
+    if (taken <= 0) return { ok: false, reason: 'nothing-cut', facts: { field: this } };
+    const nitrogenG = ((taken * HAY_PROTEIN_MG_PER_KG) / 1000) * NITROGEN_PER_PROTEIN;
+    const exported = this.drawNutrient(nitrogenG * RESERVE_POINTS_PER_G_N);
+    const tract = this.getTract();
+    const moisture = this.soilMoistureFraction();
+    const bales = Math.max(1, Math.ceil(taken / BALE_KG));
+    for (let i = 0; i < bales; i++) {
+      const kg = i < bales - 1 ? BALE_KG : taken - BALE_KG * (bales - 1);
+      let hay: Stuff | null = null;
+      try {
+        hay = await StuffApi.clone<Stuff>(HAY_ROW);
+      } catch {
+        hay = null;
+      }
+      if (!hay) break;
+      // The cut IS the mass. Nobody authors how much hay a field gives.
+      if (MixinApi.isTangible(hay)) hay.setMass(Quantity.of(round2(kg), 'kg'));
+      if (moisture !== null && hay instanceof HayBale) {
+        hay.setBaledMoistureFraction(round2(0.1 + moisture * 0.3));
+      }
+      if (tract) await ContainmentApi.move(hay as Stuff & Containable, tract as unknown as Stuff & Container);
+    }
+    // ⭐ Capture the host: the cut sward and the bales on it are the
+    // tract's state now.
+    if (tract) {
+      try {
+        await PersistableApi.captureHostOf(tract as unknown as Stuff);
+      } catch (err) {
+        console.warn('Field: capture after mowing failed:', err);
+      }
+    }
+    await tract?.creditAgriculture(actor, 3);
+    return { ok: true, facts: { takenKg: round2(taken), exported: exported > 0 } };
+  }
+}
+
+/** What a cut of hay comes off the field as. */
+const HAY_ROW = '/trade/farming/thing/hay';
+/** Hay's crude protein, mg/kg — what the cut carries off the field (D14). */
+const HAY_PROTEIN_MG_PER_KG = 120_000;
+/** mg of nitrogen per mg of crude protein (N × 6.25). */
+const NITROGEN_PER_PROTEIN = 1 / 6.25;
+/** Points of the nitrogen reserve one gram of exported N represents. */
+const RESERVE_POINTS_PER_G_N = 0.0004;
+/** Kilograms in a bale — what one person lifts (cover build D11). */
+const BALE_KG = 25;
+/** Below this much standing above the residual there is nothing to cut. */
+const MIN_CUT_KG = 0.5;
+/** The scythe's pace: a fixed start plus the swathe per kilogram. */
+const MOW_BASE_MS = 3_000;
+const MOW_MS_PER_KG = 400;
+/** Felt cost of mowing, percentage points. */
+const MOW_FELT_COST = 8;
+
+/** Why a cut is refused — closed; `mow` words each. */
+export type MowRefusalReason = 'below-residual' | 'nothing-cut';
+export type MowRefusal = ActRefusal<MowRefusalReason, { field: Field }>;
+export interface MowBegin {
+  scythe: Stuff;
+}
+export interface MowDone {
+  takenKg: number;
+  /** The field is the poorer for what was carried off it. */
+  exported: boolean;
+}
+export type MowAnswer = ActAnswer<MowBegin, MowDone, MowRefusal>;
+
+function round2(v: number): number {
+  return Math.round(v * 100) / 100;
 }
 
 function capitalize(text: string): string {

@@ -12,10 +12,10 @@
  *
  * ⭐ **A recipient that holds your bills** (`Payable` — the harbor office's
  * book) is paid what it says you owe, never an amount you
- * type: each bill settles to the venue it names through
- * `EmploymentApi.settleSale` as you (credential, then cash), in its order,
- * and the first that cannot be paid stops the rest — you are told what was
- * paid and what was not.
+ * type: the holder pays its bills (`Payable.payBillsBy`, controller-liquidity
+ * W7c) — each to the venue it names, as you, in its order, the first that
+ * cannot be paid stopping the rest — and this words what was paid and what
+ * was not.
  */
 
 import { BankingControllerBase } from "./BankingControllerBase";
@@ -26,9 +26,8 @@ import type { Charge, SettlementMethod } from "../../../../api/banking";
 import { MessageApi } from "../../../../api/message";
 import { MixinApi } from "../../../../api/mixin";
 import { Mml } from "../../../../api/mml";
-import { EmploymentApi } from "../../../../api/employment";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
-import type { Payable } from "../../../../lib/banking/Payable";
+import type { Payable, PaidBill, PayBillsRefusal } from "../../../../lib/banking/Payable";
 
 const TOPIC = "act.deed";
 
@@ -139,9 +138,8 @@ export default class PayController extends BankingControllerBase<PayModel> {
   }
 
   /**
-   * ⭐ Pay every bill `holder` keeps for the giver, in order, stopping at
-   * the first that fails. A stated amount is refused: what is owed
-   * is the holder's to say.
+   * ⭐ Pay every bill `holder` keeps for the giver — the holder pays them
+   * (`Payable.payBillsBy`, controller-liquidity W7c); this words it.
    */
   private async payBills(
     holder: Stuff & Payable,
@@ -149,44 +147,47 @@ export default class PayController extends BankingControllerBase<PayModel> {
     context: CommandContext
   ): Promise<void> {
     const giver = context.commandGiver;
-    const tell = (text: string): void => {
-      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`${text}`).send();
-    };
-    const where = holder.getPresentation();
-    if (model.amount !== undefined && model.amount !== "") {
-      tell(`${where} takes what is owed, not a sum you name — \`pay ${model.recipient.raw}\`.`);
-      context.note({ kind: "controller-rejected", reason: "amount-at-payable", detail: model.amount });
-      return;
-    }
-    const bills = (await holder.billsFor(giver)).filter((b) => b.amountMinor > 0);
-    if (bills.length === 0) {
-      tell(`You owe nothing at ${where}.`);
-      context.note({ kind: "controller-rejected", reason: "nothing-owed", detail: model.recipient.raw });
-      return;
-    }
-    const currency = BankingApi.compactCurrency();
-    const paid: string[] = [];
-    for (let i = 0; i < bills.length; i++) {
-      const bill = bills[i]!;
-      const money = Money.of(bill.amountMinor, currency).render();
-      const settled = await EmploymentApi.settleSale(bill.to, bill.amountMinor, 0, bill.reason);
-      if (settled === null) {
-        const rest = bills.slice(i).map((b) => `${Money.of(b.amountMinor, currency).render()} ${b.reason}`);
-        const before = paid.length > 0 ? `You pay ${paid.join("; ")}. ` : "";
-        tell(`${before}You cannot cover ${money} ${bill.reason}; still owed: ${rest.join("; ")}.`);
-        context.note({ kind: "controller-rejected", reason: "bill-unpaid", detail: bill.reason });
-        if (paid.length > 0) {
-          MessageApi.scene(giver).topic(TOPIC).toPeers(Mml.compose`${Mml.actor(giver)} pays at ${Mml.thing(holder)}.`).send();
-        }
-        return;
+    const stated = model.amount === undefined || model.amount.trim() === "" ? null : Number(model.amount);
+    const out = await holder.payBillsBy(giver, stated);
+    if (!out.ok) {
+      this.refuse(context, TOPIC, PayController.billsRefusal(out, holder, model.recipient.raw), out.reason,
+        out.reason === "bill-unpaid" ? out.facts.stuck.reason : model.amount ?? model.recipient.raw);
+      if (out.reason === "bill-unpaid" && out.facts.paid.length > 0) {
+        MessageApi.scene(giver).topic(TOPIC).toPeers(Mml.compose`${Mml.actor(giver)} pays at ${Mml.thing(holder)}.`).send();
       }
-      await holder.onPaid(bill, giver);
-      paid.push(`${money} ${bill.reason} ${settled.tail}`);
+      return;
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You pay ${paid.join("; ")}. Nothing more is owed at ${where}.`)
+      .toSelf(Mml.compose`You pay ${PayController.paidLine(out.facts.paid)}. Nothing more is owed at ${holder.getPresentation()}.`)
       .toPeers(Mml.compose`${Mml.actor(giver)} pays at ${Mml.thing(holder)}.`)
       .send();
+  }
+
+  /** The bills paid, as one list. */
+  protected static paidLine(paid: readonly PaidBill[]): string {
+    const currency = BankingApi.compactCurrency();
+    return paid.map((p) => `${Money.of(p.bill.amountMinor, currency).render()} ${p.bill.reason} ${p.tail}`).join("; ");
+  }
+
+  /** Why paying here stopped, in words. */
+  protected static billsRefusal(r: PayBillsRefusal, holder: Stuff, raw: string): string {
+    const where = holder.getPresentation();
+    switch (r.reason) {
+      case "amount-at-payable":
+        return `${where} takes what is owed, not a sum you name — \`pay ${raw}\`.`;
+      case "nothing-owed":
+        return `You owe nothing at ${where}.`;
+      case "bill-unpaid": {
+        const currency = BankingApi.compactCurrency();
+        const rest = r.facts.owed.map((b) => `${Money.of(b.amountMinor, currency).render()} ${b.reason}`);
+        const before = r.facts.paid.length > 0 ? `You pay ${PayController.paidLine(r.facts.paid)}. ` : "";
+        return `${before}You cannot cover ${Money.of(r.facts.stuck.amountMinor, currency).render()} ${r.facts.stuck.reason}; still owed: ${rest.join("; ")}.`;
+      }
+      default: {
+        const unworded: never = r;
+        throw new Error(`PayController: no words for ${String(unworded)}`);
+      }
+    }
   }
 }

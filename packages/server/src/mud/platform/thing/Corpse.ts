@@ -103,11 +103,10 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { PresentationForm } from '../../lib/description/NounPhrase';
 import { MixinApi } from '../../api/mixin';
 import {
-  CuttableMixin,
+  ButcherableMixin,
+  type ButcherPlan,
   type CarcassLine,
-  type CutAnswer,
-  type CutRequest,
-} from '../../lib/craft/Cuttable';
+} from '../../lib/craft/Butcherable';
 
 // The order follows `Creature`'s own reasoning for the overlapping
 // layers, so the two bodies agree about layering even though they
@@ -116,8 +115,8 @@ import {
 // outer of `Reserved`, `Attired` outer of `BodyPlanSlots` outer of
 // `Slotted` outer of `Organism`, and `Concealable` a plain field carrier
 // whose placement is immaterial.
-// ⭐ `Cuttable` innermost, inert but for `butcher` (controllers-are-io
-// D8c): a carcass answers the butcher's knife with its own ledger.
+// ⭐ `Butcherable` innermost (controller-liquidity D14): a carcass answers
+// the butcher's knife with its own ledger.
 const CorpseBase = PostmortemMixin(
   ConcealableMixin(
     ContaminableMixin(
@@ -127,7 +126,7 @@ const CorpseBase = PostmortemMixin(
             ReservedMixin(
               AttiredMixin(
                 BodyPlanSlotsMixin(
-                  SlottedMixin(OrganismMixin(PropertiedMixin(CuttableMixin(Thing)))),
+                  SlottedMixin(OrganismMixin(PropertiedMixin(ButcherableMixin(Thing)))),
                 ),
               ),
             ),
@@ -247,20 +246,17 @@ export default class Corpse extends CorpseBase {
   }
 
   /**
-   * ⭐ `butcher` (D8c): the carcass answers with its ledger — the condition
+   * ⭐ `butcher` (D14): the carcass answers with its ledger — the condition
    * it died in, which lines are still on it, the take — and its
    * `onComplete` says whether every line of the yield the knife asked
-   * about (`options.lines`) is now off it. The butchering is instant and
-   * the verb drives the plan; the cuts it mints are the verb's.
+   * about (`lines`) is now off it. The butchering is instant and the verb
+   * drives the plan; the cuts it mints are the verb's.
    */
-  public override async cutPlan(req: CutRequest): Promise<CutAnswer> {
-    if (req.verb !== 'butcher') return super.cutPlan(req);
-    const lines = req.options.lines ?? [];
+  public override async butcherPlanFor(_actor: Stuff, lines: readonly CarcassLine[]): Promise<ButcherPlan> {
     const stillOn = (line: CarcassLine): boolean =>
       line.tissues.length ? !line.tissues.some((t) => !this.hasTissue(t)) : this.hasLine(line.cut);
     return {
       ok: true,
-      verb: 'butcher',
       durationMs: 0,
       effortW: 0,
       facts: {

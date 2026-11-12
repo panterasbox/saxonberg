@@ -54,12 +54,8 @@ import {
   type CutRefusal,
   type CutRequest,
   type Cuttable,
-  type GrooveDone,
-  type GrooveRefusal,
-  type ScrapeDone,
-  type ScrapeRefusal,
 } from '@saxonberg/server/mud/lib/craft/Cuttable';
-import type { ActDone } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import type { ActDone, ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import WatercourseCatalogue, { OPEN_WATER_BELOW_M, type IceRecord, type IceHistory } from '../idea/WatercourseCatalogue';
 
 /** What a patch of the sheet has been through. */
@@ -96,6 +92,29 @@ interface SweepTool {
   getGridM?(): number;
   getDraught?(): string;
 }
+
+/** `groove`'s done facts: the grid scored, its spacing. */
+export type GrooveDone = { gridCm: number };
+/**
+ * ⭐ Every reason `groove` is refused — trade-ice words each. (It lived on
+ * the kernel's `Cuttable` until controller-liquidity D14: `groove` and
+ * `scrape` have one host, so they are this sheet's METHODS, and their
+ * vocabulary is this file's.)
+ */
+export type GrooveRefusal =
+  | ActRefusal<'not-on-ice'>
+  | ActRefusal<'no-horse'>
+  | ActRefusal<'no-clear-ice'>
+  | ActRefusal<'open'>;
+
+/** `scrape`'s done facts: the area scraped down to the black. */
+export type ScrapeDone = { areaM2: number };
+/** ⭐ Every reason `scrape` is refused — trade-ice words each. */
+export type ScrapeRefusal =
+  | ActRefusal<'not-on-ice'>
+  | ActRefusal<'no-snowy-ice'>
+  | ActRefusal<'open'>
+  | ActRefusal<'nothing-left'>;
 
 const IceSheetBase = CuttableMixin(PersistableMixin(WaterSurface));
 
@@ -285,6 +304,19 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
 
   // ─────────────────────────── the acts ───────────────────────────
 
+  /**
+   * ⭐ `groove` as a plan (controller-liquidity D14 — a method, one host):
+   * an instant act the verb lands at once; {@link markPatch} decides.
+   */
+  public groovePlan(actor: Stuff, tool: Stuff, part: string | null): ActPlan<undefined, GrooveDone, GrooveRefusal> {
+    return { ok: true, durationMs: 0, effortW: 0, facts: undefined, onComplete: () => this.markPatch(actor, tool, part) };
+  }
+
+  /** ⭐ `scrape` as a plan — an instant act; {@link scrapePatch} decides. */
+  public scrapePlan(actor: Stuff, tool: Stuff, part: string | null): ActPlan<undefined, ScrapeDone, ScrapeRefusal> {
+    return { ok: true, durationMs: 0, effortW: 0, facts: undefined, onComplete: () => this.scrapePatch(actor, tool, part) };
+  }
+
   /** `scrape`: clear snow off an area of the field (or of a named patch). */
   public scrapePatch(actor: Stuff, tool: Stuff, raw: string | null): ActDone<ScrapeDone, ScrapeRefusal> {
     if (!this.supports(actor)) return { ok: false, reason: 'not-on-ice' };
@@ -355,19 +387,17 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
   /**
    * ⭐ The cut plan: the kernel `cut` (D16) — a block off the marked grid,
    * or a hole for a line (`cut hole`); it needs an ice saw, a body ON the
-   * ice, and ice there to cut. And the ice trade's `groove` and `scrape`
-   * (controllers-are-io D8c) — instant acts, a zero-length plan that lands
-   * at once; the sheet decides each, the trade-ice controllers word it.
+   * ice, and ice there to cut. (The ice trade's `groove` and `scrape` are
+   * this sheet's own methods — {@link markPatch}, {@link scrapePatch} —
+   * not cuts: controller-liquidity D14.)
    */
   public override async cutPlan(req: CutRequest): Promise<CutAnswer> {
-    if (req.verb === 'groove' || req.verb === 'scrape') return this.workPlan(req.verb, req);
-    if (req.verb !== 'cut') return { ok: false, verb: req.verb, reason: 'not-cuttable' } as CutAnswer;
-    const refuse = (r: CutRefusal): CutAnswer => ({ ...r, verb: 'cut' });
+    const refuse = (r: CutRefusal): CutAnswer => r;
     const saw = req.tools.find((t) => MixinApi.isTool(t) && t.hasCapability('ice-sawing'));
     if (!saw) return refuse({ ok: false, reason: 'no-ice-saw' });
     if (!this.supports(req.actor)) return refuse({ ok: false, reason: 'not-on-ice' });
-    const hole = (req.raw ?? '').trim().toLowerCase() === 'hole';
-    const patch = hole ? this.patchByWord('field') : this.patchByWord(req.raw ?? 'marked');
+    const hole = (req.part ?? '').trim().toLowerCase() === 'hole';
+    const patch = hole ? this.patchByWord('field') : this.patchByWord(req.part ?? 'marked');
     if (patch === null) return refuse({ ok: false, reason: hole ? 'no-ice' : 'no-grid' });
     if (!hole && patch.kind !== 'marked') return refuse({ ok: false, reason: 'no-grid' });
     const ice = this.iceOf(patch);
@@ -375,38 +405,10 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
     const actor = req.actor;
     return {
       ok: true,
-      verb: 'cut',
       durationMs: hole ? 60_000 : 120_000,
       effortW: 500,
       facts: { kind: 'ice', hole },
       onComplete: () => this.finishCut(actor, hole, patch.id),
-    };
-  }
-
-  /** `groove` / `scrape`: the one tool the controller chose, worked at once. */
-  private workPlan(verb: 'groove' | 'scrape', req: CutRequest): CutAnswer {
-    const tool = req.tools[0];
-    if (!this.supports(req.actor)) return { ok: false, verb, reason: 'not-on-ice' };
-    if (tool === undefined) return { ok: false, verb, reason: 'not-cuttable' };
-    const actor = req.actor;
-    const raw = req.raw;
-    if (verb === 'groove') {
-      return {
-        ok: true,
-        verb,
-        durationMs: 0,
-        effortW: 0,
-        facts: undefined,
-        onComplete: () => this.markPatch(actor, tool, raw),
-      };
-    }
-    return {
-      ok: true,
-      verb,
-      durationMs: 0,
-      effortW: 0,
-      facts: undefined,
-      onComplete: () => this.scrapePatch(actor, tool, raw),
     };
   }
 

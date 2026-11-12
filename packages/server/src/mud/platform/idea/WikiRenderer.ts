@@ -223,15 +223,28 @@ export default class WikiRenderer extends Idea {
    * not an optimisation: `parseTree`/`serialize` normalise entities and
    * tag forms, so re-emitting an untouched body would rewrite bodies
    * this was only ever meant to filter (the plan's R-8).
+   *
+   * `reader` (controller-liquidity D9) names the person the source is
+   * filtered FOR. ⚠ Naming somebody cannot raise a ceiling: the walk uses
+   * the LOWER of the named reader's and the acting principal's, so a call
+   * that names a moderator while acting as a player still reads as the
+   * player. Absent, the acting principal alone (the pre-D9 behavior).
    */
   @CallSecurity(RenderCallers)
-  public async redactSource(body: string): Promise<string> {
-    const reader = await this.resolveReader({});
+  public async redactSource(
+    body: string,
+    reader?: Stuff | null,
+  ): Promise<string> {
+    const acting = await this.resolveReader({});
+    const ceiling =
+      reader === undefined
+        ? acting.ceiling
+        : (Math.min(acting.ceiling, await this.ceilingFor(reader)) as SpoilerLevel);
     // A ceiling of 3 admits everything the vocabulary can express, so
     // there is nothing to walk.
-    if (reader.ceiling >= 3) return body;
+    if (ceiling >= 3) return body;
     const nodes = Mml.parseTree(body);
-    const kept = this.redactNodes(nodes, SpoilerLevels.OPEN, reader.ceiling);
+    const kept = this.redactNodes(nodes, SpoilerLevels.OPEN, ceiling);
     if (kept.removed === 0) return body;
     return Mml.serialize(kept.nodes);
   }

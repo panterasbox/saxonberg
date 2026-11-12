@@ -76,9 +76,9 @@ data:
   #     `bulkSource: water` capability slot uses): fouled water FAILS,
   #     because the leaf is `fouled-water`, not `water`.
   #
-  # So a kitchen whose basin held this would survey as short of its
+  # So a kitchen whose basin held this would read as short of its
   # water slot. That is defensible — a kitchen wants potable water, and
-  # naming the gap is what the survey is for — but it is a real design
+  # naming the gap is what `analyze rooms` is for — but it is a real design
   # call rather than an accident, and it is currently LATENT: nothing in
   # shipped content fills a vessel from a fouled reach yet.
   tags: [liquid, water, beverage, drinkable]

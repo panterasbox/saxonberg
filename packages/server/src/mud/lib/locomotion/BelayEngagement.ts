@@ -11,7 +11,7 @@
  * Caught, the climber hangs on the rope and is hauled in unhurt. A person
  * tied on with a clove hitch is not held: it works loose under the jerk.
  *
- * Ends by `belay off`, by the belayer letting go of the rope or the climber
+ * Ends by `untie <rope>` (`Rope.untieBy`), by the belayer letting go of the rope or the climber
  * being cast off it — the engagement reads the rope at the moment of the
  * fall, so a belay nobody is holding any more catches nothing.
  */

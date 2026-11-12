@@ -149,7 +149,7 @@ export function BroadcastMixin<
      * visibility is the host's, its authorization the axis's).
      */
     static commandContributions: CommandContributions = {
-      self: ['platform/cmd/stream/stream.yaml'],
+      self: ['platform/cmd/stream/stream.yaml', 'platform/cmd/stream/stream-rotation.yaml'],
       peers: [],
       environment: [],
     };
@@ -298,7 +298,7 @@ export function BroadcastMixin<
       return { ...this.streamChannels };
     }
 
-    /** `stream rotation pin|skip|clear [<key>]` — steer the lower third. */
+    /** `stream-rotation pin|skip|clear [<key>]` — steer the lower third. */
     public steerRotation(
       action: 'pin' | 'skip' | 'clear',
       key: string | null,

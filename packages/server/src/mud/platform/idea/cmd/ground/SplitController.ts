@@ -3,7 +3,8 @@
  * aggregated thing into usable units.**
  *
  * ⭐⭐ **The verb exists because the shape already had a second member.**
- * `fell bole` cross-cuts a felled trunk a length at a time — under a verb
+ * `fell bole` cross-cut a felled trunk a length at a time (it is `cut bole`
+ * since controller-liquidity D14) — under a verb
  * that means *take a tree down*, as its own view admits (*"Fell a standard
  * with an axe, or cross-cut a felled one"*). A quarried block is the same
  * act: a mass no body can lift, and one carryable piece per swing. A

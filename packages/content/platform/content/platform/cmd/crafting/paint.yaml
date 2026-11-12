@@ -18,7 +18,7 @@ help: |
 
   You need a brush in your hand. A coat takes paint in proportion to how
   much surface there is: a board a cupful, a cottage several litres —
-  `survey <building>` says roughly how much before you start. Two coats
+  `measure paint <building>` says roughly how much before you start. Two coats
   last longer than one.
 
   ⭐ **A coat sets by its binder.** An oil paint dries by taking in the air
@@ -50,18 +50,18 @@ args:
   # ⭐ Every reachable bulk vessel is a candidate; the controller takes the
   # first whose liquid lays a coat (a bucket of water says so).
   - name: pot
+    prepositionRequired: true
     type: objects
     required: false
-    greedy: true
     prepositions: [with, from]
     default: "reachable:[mixin.BulkableMixin]"
     scope: ["reachable"]
     requires: [BulkableMixin]
   # ⭐ WHICH BRUSH, declared rather than hunted for — in hand.
   - name: brush
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     prepositions: [using]
     default: "me:i:[capability.painting]"
     scope: ["reachable"]

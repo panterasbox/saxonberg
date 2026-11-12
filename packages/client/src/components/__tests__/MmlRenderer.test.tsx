@@ -328,6 +328,20 @@ describe("MmlRenderer", () => {
   });
 });
 
+describe("⭐ the quote hint is a tappable suggestion (controller-liquidity D3)", () => {
+  it("a mudcmd link carrying a quoted name runs the quoted line on tap", () => {
+    const line = 'buy "dog loaf"';
+    const { onCommandClick, onCommandPreview } = renderRenderer(
+      `Too many words — quote a name with a space in it: <link href="mudcmd:${encodeURIComponent(line)}">buy &quot;dog loaf&quot;</link>`
+    );
+    const hint = screen.getByText(line);
+    fireEvent.mouseEnter(hint);
+    expect(onCommandPreview).toHaveBeenCalledWith(line);
+    fireEvent.click(hint);
+    expect(onCommandClick).toHaveBeenCalledWith(line);
+  });
+});
+
 describe("⚠⚠ the dye colour vocabulary resolves — no silent grey", () => {
   /*
    * `paletteFor` falls through to `neutral` for a token it does not

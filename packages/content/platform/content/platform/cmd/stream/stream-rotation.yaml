@@ -1,0 +1,42 @@
+# ⭐ A NON-DIEGETIC verb, so its name is a hyphenated compound
+# (controller-liquidity W16, owner rule 2026-11-10): what was `stream
+# rotation pin|skip|clear` is its own verb, because a command is `verb
+# target` or `verb subcommand target`, never deeper. It steers your own
+# broadcast overlay and never anything in the world.
+verbs: [stream-rotation]
+category: stream
+description: "Steer your overlay's lower third: pin a panel, skip one, or clear"
+help: |
+  The lower third of your broadcast overlay rotates through its panels.
+  Steer it:
+
+    stream-rotation pin <panel>    hold one panel there
+    stream-rotation skip <panel>   leave one panel out of the rotation
+    stream-rotation clear          the rotation as authored again
+
+  Restricted to streamers, like `stream`; it changes only your overlay.
+validators:
+  - /lib/command/validators/requiresStreamer
+examples:
+  - cmd: stream-rotation pin agenda
+    note: Hold the agenda panel in the lower third
+  - cmd: stream-rotation clear
+    note: Let the panels rotate as authored again
+subcommands:
+  pin:
+    controller: /platform/idea/cmd/stream/StreamRotationPinController
+    description: "Hold one panel in the lower third"
+    args:
+      - name: panel
+        type: string
+        required: true
+  skip:
+    controller: /platform/idea/cmd/stream/StreamRotationSkipController
+    description: "Leave one panel out of the rotation"
+    args:
+      - name: panel
+        type: string
+        required: true
+  clear:
+    controller: /platform/idea/cmd/stream/StreamRotationClearController
+    description: "The rotation as authored again"

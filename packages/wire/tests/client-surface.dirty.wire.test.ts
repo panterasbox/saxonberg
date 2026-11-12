@@ -74,7 +74,7 @@ const allText = (segs: Seg[] | undefined): string => (segs ?? []).map((g) => g.t
 
 /** A wizard runs `code` against `target` in the bar's parcel (writes are real). */
 async function stage(target: string, code: string): Promise<string> {
-  const f = await Session.open('founder', { startLocation: BAR, wizard: true });
+  const f = await Session.open('founder', { startLocation: BAR, wizard: true, committees: ['/world/lounge'] });
   try {
     const r = await f.cmd(`eval --parcel /world/lounge --on ${target} return ${code}`);
     const said = (await r.said()).trim();
@@ -114,7 +114,11 @@ suite('the room by look (steps 1–4)', () => {
       expect(seg.sources.length).toBeGreaterThan(0);
     }
     expect(card.segments!.some((g) => g.shape === 'prose')).toBe(true);
-    expect(card.segments!.some((g) => g.sources.some((s) => s.name === 'Light'))).toBe(true);
+    // A lit room says nothing of its light (`LIGHT_BAND_PHRASE.lit` is null);
+    // where there is a Light segment it is a notice (finalize: the bar was lit).
+    for (const g of card.segments!.filter((x) => x.sources.some((src) => src.name === 'Light'))) {
+      expect(g.shape).toBe('notice');
+    }
     expect(card.role).toBe('here');
     hereCard = card;
   });
@@ -169,7 +173,7 @@ suite('privacy on the wire (steps 5–8, staged)', () => {
       expect(heldIds.has(c2.stuffId), `pocket item on the wire: ${c2.stuffId}`).toBe(true);
     }
     const presence = (card.segments ?? []).find((g) => g.sources.some((s) => s.name === 'Presence'));
-    expect(presence?.text, allText(card.segments)).toMatch(/^Now: .*sit/);
+    expect(presence?.text, allText(card.segments)).toMatch(/^Now: .*(sit|seated)/);
   });
 
   it('6 · "Owned by" and "Made by" name B as A knows them, not their true name', async () => {
@@ -246,21 +250,21 @@ suite('the card registry (steps 9–11)', () => {
     expect(card.subjectId ?? (card.result?.[0]?.stuffId as string)).toBe(third);
   });
 
-  it('10 · cockpit card actions each change the card and echo; a saved layout restores it', async () => {
+  it('10 · client-card actions each change the card and echo; a saved layout restores it', async () => {
     await a.cmd('who');
     const who = a.lastCard<Card>('card-opened');
     expect(who?.cardId).toBe('who');
     for (const action of ['grow', 'shrink', 'minimize', 'restore', 'pin']) {
-      const r = await a.cmd(`cockpit card ${action} who`);
+      const r = await a.cmd(`client-card ${action} who`);
       expect(r.status, action).toBe('ok');
       expect(a.envelopesOf('card-arranged').length + a.envelopesOf('card-pinned').length, action).toBeGreaterThan(0);
     }
-    const moved = await a.cmd('cockpit card move who 1 0');
+    const moved = await a.cmd('client-card move who 1 0');
     expect(moved.status).toBe('ok');
     expect(a.lastCard<Card>('card-arranged')?.placed).toEqual({ col: 1, row: 0 });
-    expect((await a.cmd('cockpit layout save wide')).status).toBe('ok');
-    expect((await a.cmd('cockpit card close who')).status).toBe('ok');
-    await a.cmd('cockpit layout wide');
+    expect((await a.cmd('client-layout save wide')).status).toBe('ok');
+    expect((await a.cmd('client-card close who')).status).toBe('ok');
+    await a.cmd('client-layout wide');
     const back = a.envelopesOf<Card>('card-opened').find((e) => e.cardId === 'who');
     expect(back?.placed).toEqual({ col: 1, row: 0 });
   });

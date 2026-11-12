@@ -598,6 +598,12 @@ export interface CommandRejectedNote {
      */
     | 'needs-input';
   detail?: string;
+  /**
+   * ⭐ A line that WOULD run — the quote hint's fitted form (`buy "dog
+   * loaf"`, controller-liquidity D3). The shell's prose offers it as a
+   * link the player can tap; a script reads it here.
+   */
+  suggestion?: string;
 }
 
 /**
@@ -1644,7 +1650,7 @@ export interface CardTouchedEnvelope {
 }
 
 /**
- * ⭐ A card's shape or place changed — every `cockpit card` action reports
+ * ⭐ A card's shape or place changed — every `client-card` action reports
  * here (client-surface D8). The client renders; the server decides.
  */
 export interface CardArrangedEnvelope {
@@ -1670,7 +1676,7 @@ export interface CardClosedEnvelope {
 
 /**
  * The pin override took. Mirrored from the server, never set
- * optimistically: `cockpit card pin` is a real command the server may
+ * optimistically: `client-card pin` is a real command the server may
  * refuse, and a local toggle would show a pin that is not there.
  */
 export interface CardPinnedEnvelope {
@@ -3520,7 +3526,7 @@ export const DEFAULT_COCKPIT_MODE: CockpitMode = "explore";
 /**
  * The **arrangement axis** — savable card arrangements *inside* a mode.
  * These are the shipped defaults; a player composes and names their own
- * with `cockpit layout save <name>`, so this is a floor, not a closed
+ * with `client-layout save <name>`, so this is a floor, not a closed
  * vocabulary. The first entry of each list is that mode's default
  * arrangement, the one you land in on entry.
  *

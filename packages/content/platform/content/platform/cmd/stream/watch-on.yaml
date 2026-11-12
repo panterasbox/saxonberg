@@ -1,0 +1,41 @@
+verbs: [watch]
+category: stream
+controller: /platform/idea/cmd/stream/WatchOnController
+description: "Put a livestream up on a shared screen"
+help: |
+  `watch <target> on <screen>` puts the stream up for everyone who can
+  see the screen — the booth TV. Whoever may drive it (the remote in
+  hand, the house's seat, or anyone in reach, by the screen's pairing)
+  may. ⭐ One of two shapes of the stream form; without `on <screen>` it
+  is `watch <target>`, yours alone.
+examples:
+  - cmd: watch shroud --twitch on tv
+    note: Put a Twitch channel up on the booth TV
+validators:
+  - /lib/command/validators/requiresAnimate
+options:
+  twitch:
+    type: boolean
+    field: twitch
+    description: "The target is a Twitch handle"
+  youtube:
+    type: boolean
+    field: youtube
+    description: "The target is a YouTube handle"
+  kick:
+    type: boolean
+    field: kick
+    description: "The target is a Kick channel slug"
+args:
+  - name: target
+    type: string
+    required: true
+  - name: on
+    type: object
+    required: true
+    scope: "peers"
+    prepositions: [on]
+    # ⭐ The slot binds only with its preposition, so this shape and
+    # `watch-stream.yaml` are disjoint (the `throw` trio's rule).
+    prepositionRequired: true
+    requires: DisplayMixin

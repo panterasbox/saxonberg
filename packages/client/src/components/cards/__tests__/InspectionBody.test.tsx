@@ -154,7 +154,7 @@ describe("InspectionBody", () => {
     expect(body.lastElementChild?.getAttribute("data-testid")).toBe("quiet-row");
   });
 
-  it("with `cockpit style links ids`, an action skips the question with the server's exact `#id` command", () => {
+  it("with `client-style links ids`, an action skips the question with the server's exact `#id` command", () => {
     useStore.setState({
       clientState: { "style.overlay": { links: "ids" } },
       affordances: {

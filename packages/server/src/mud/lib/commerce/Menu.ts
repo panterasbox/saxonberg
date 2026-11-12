@@ -18,7 +18,8 @@
  */
 
 import Good from '../stuff/Good';
-import { PricedOfferMixin, type OrderAnswer, type OrderDone, type OrderRefusal, type OrderRequest } from './PricedOffer';
+import { PricedOfferMixin, type Offering, type OrderAnswer, type OrderDone, type OrderRefusal, type OrderRequest } from './PricedOffer';
+import { RecipeKnowledge } from '../craft/RecipeKnowledge';
 import { ContainmentApi } from '../../api/containment';
 import { EmploymentApi } from '../../api/employment';
 import { MixinApi } from '../../api/mixin';
@@ -81,6 +82,25 @@ export default class CommerceMenu extends CommerceMenuBase {
     if (!this.offeredRecipes.includes(path)) {
       this.offeredRecipes.push(path);
     }
+  }
+
+  /**
+   * ⭐ The recipes on the menu. Reading a recipe source marks each one
+   * *known-of* for the reader — a chronicle claim (idempotent: re-reading
+   * doesn't duplicate). Known-of lets you attempt the manual build; making
+   * it is the deed (the ladder).
+   */
+  override async offerings(reader: Stuff): Promise<readonly Offering[]> {
+    const offered = await CraftingApi.offeredRecipes(this);
+    if (MixinApi.isPersona(reader)) {
+      for (const recipe of offered) {
+        await reader.recordChronicleOnce(
+          RecipeKnowledge.knownKey(recipe.recipeId),
+          RecipeKnowledge.knownEntry(recipe.name),
+        );
+      }
+    }
+    return offered.map((r) => ({ kind: 'recipe' as const, recipeId: r.recipeId, name: r.name }));
   }
 
   /**

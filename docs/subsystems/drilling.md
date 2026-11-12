@@ -276,11 +276,12 @@ before they dug it. Only one of those is a public record.
 
 | verb | what it does | afforded by |
 |---|---|---|
-| `bore` | sites a hole and raises a rig, or swings the beam | the bailer (`environment`), the derrick (`peers`) |
+| `spud` | sites a hole on your staked ground and raises a rig over it (mints the wellhead, opens the outfit) | the bailer (`environment`) |
+| `bore` | one stroke of the beam on a hole already spudded | the derrick (`peers`) |
 | `bail` | lifts what is standing, and clears the hole so it can go deeper | the same |
 | `line` | runs tube down so the hole will hold | the same |
 
-⭐⭐ **Three verbs, and the trade ships NO employment verb.** `house appoint` and
+⭐⭐ **Four verbs, and the trade ships NO employment verb.** `house appoint` and
 `house dismiss` were this pack's for one build and should never have been:
 taking somebody on and letting them go are the employment subsystem's
 acts, every house in the realm needs them, and the kernel had the methods
@@ -288,7 +289,7 @@ acts, every house in the realm needs them, and the kernel had the methods
 transactions now — `house appoint` / `house dismiss` (controllers-are-io
 W7; the `hire` alias went with the flat verb) — so both are core and need
 no rig's affordance — which is why the table above is
-the three acts that genuinely need a derrick standing over a hole. See
+the acts that genuinely need a rig standing over a hole. See
 [employment.md](./employment.md) § Appointment and § Dismissal.
 
 ⭐⭐ **The derrick is raised by the SITING ACT**, not by `make`.
@@ -441,3 +442,14 @@ earns a continuous rate in `reconcileRig`, only where the pump's own law
 lets it lift. `bodyKey` is **authorable** now: Rejection ships an old brine
 bore at the spring (25 m, the salt leg's rim) — a venue asserting a history.
 See [pump.md](./pump.md).
+
+## History — `spud` split off `bore` (controller-liquidity, 2026-11)
+
+`bore` used to decide between two acts by world state: with no wellhead it
+sited the hole (a title gate, a bank leg, a minted wellhead, a raised
+rig), with one it swung the beam. The two forms had the same syntax, so no
+subcommand or shape could tell them apart, and the build gave the siting
+act the driller's own word: `spud [with <bailer>]` (`SpudController`);
+`bore` is the engaged stroke alone. One of the build's two rung-5 words
+(see [command-spec.md § The remedy ladder](./command-spec.md)). W12,
+`f971a8654`; build range `14af1e8ba..726c1f195`.

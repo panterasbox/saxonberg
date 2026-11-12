@@ -55,6 +55,29 @@ export type ChannelProcedure = 'open' | 'ordered';
  */
 export type ChannelAnonymity = 'permitted' | 'forbidden';
 
+/**
+ * ⭐ Why a channel act was refused (controller-liquidity D9). The gate is
+ * the catalogue's, asked with the actor — a replaced controller cannot
+ * skip it — and fails closed: a channel with no Subject refuses.
+ *
+ *  - `no-such-channel` — nothing by that name / id.
+ *  - `not-player-created` — only a player-created channel is governed.
+ *  - `no-subject` — an unbound channel has no owner to ask.
+ *  - `not-owner` — the actor neither owns the Subject nor holds the
+ *    `owner` role of its audience group (a party's captain does).
+ *  - `not-member` — the actor is not in the channel's audience.
+ *  - `reserved-name` / `name-taken` — a rename's new name is a
+ *    subcommand word, or another channel's.
+ */
+export type ChannelRefusalReason =
+  | 'no-such-channel'
+  | 'not-player-created'
+  | 'no-subject'
+  | 'not-owner'
+  | 'not-member'
+  | 'reserved-name'
+  | 'name-taken';
+
 export class Channel extends Document {
   static collectionName = Collections.Channels;
   static fieldMeta: FieldMeta = {

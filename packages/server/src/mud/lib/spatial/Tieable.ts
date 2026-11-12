@@ -21,10 +21,66 @@
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 
-/** What a tie did, in the thing's own words. */
+/**
+ * Why a tie (or an untie, or a belay) was refused — the note's reason, and
+ * the census of `TieController.refusalWords`. ⭐ A closed union (the ActPlan
+ * rule): a host with a new way to refuse adds its reason here, and the
+ * compiler finds the controller that must word it.
+ */
+export type TieReason =
+  | 'not-tieable'
+  | 'not-tied'
+  | 'self'
+  | 'out-of-reach'
+  | 'not-holding'
+  | 'already-tied'
+  | 'no-hands'
+  | 'no-such-knot'
+  | 'not-a-load'
+  | 'no-line'
+  | 'not-in-water'
+  | 'no-surface'
+  | 'no-pressure'
+  | 'end-taken'
+  | 'sprinkler-taken'
+  | 'not-a-coupling'
+  | 'not-hers'
+  | 'not-a-fixture'
+  | 'same-room'
+  | 'end-out'
+  | 'not-tied-on'
+  | 'cannot'
+  | 'busy';
+
+/**
+ * ⭐ A refused tie: the reason and the facts its words need — no sentence
+ * (controller-liquidity D8: `line:` leaves every refusal; the words are
+ * `TieController`'s, and an alternate controller words them its own way).
+ */
+export interface TieRefusal {
+  ok: false;
+  reason: TieReason;
+  facts: {
+    /** The thing being tied (the rope, the end, the bag, the hose). */
+    gear: Stuff;
+    /** What it was to be tied to — or the person on its end, for a belay. */
+    load?: Stuff;
+    /** What it is already fast to, or the structure it is not aboard. */
+    on?: Stuff;
+    /** The knot asked for, as asked. */
+    knot?: string;
+  };
+}
+
+/**
+ * What a tie did. ⚠ The DONE limb still carries the thing's own sentence
+ * (`line`, `peers`) — refusals were moved to facts by controller-liquidity W4
+ * and the done words wait for the pack lanes (the Tieable row in the plan's
+ * Appendix B).
+ */
 export type TieOutcome =
   | { ok: true; line: string; peers?: string | null }
-  | { ok: false; reason: string; line: string };
+  | TieRefusal;
 
 /** The protocol: a thing whose end is made fast to something. */
 export interface Tieable {
@@ -45,15 +101,14 @@ export function TieableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
     /** @hook Override on the host: what making it fast to `load` means. */
     public async tieTo(by: Stuff, load: Stuff, knot: string | null): Promise<TieOutcome> {
       void by;
-      void load;
       void knot;
-      return { ok: false, reason: 'not-tieable', line: `${(this as unknown as Stuff).getPresentation()} has no end to tie.` };
+      return { ok: false, reason: 'not-tieable', facts: { gear: this as unknown as Stuff, load } };
     }
 
     /** @hook Override on the host: what casting it off means. */
     public async untieBy(by: Stuff): Promise<TieOutcome> {
       void by;
-      return { ok: false, reason: 'not-tied', line: `${(this as unknown as Stuff).getPresentation()} is not tied to anything.` };
+      return { ok: false, reason: 'not-tied', facts: { gear: this as unknown as Stuff } };
     }
   };
 }

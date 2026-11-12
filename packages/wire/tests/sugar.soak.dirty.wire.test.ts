@@ -219,7 +219,7 @@ async function newPlayer(tag: string, where: string): Promise<Session> {
 async function buy(s: Session, item: string): Promise<void> {
   let said = '';
   for (let attempt = 0; attempt < 3 && !/you buy/i.test(said); attempt++) {
-    said = await say(s, `buy ${item}`).catch(async () => {
+    said = await say(s, `buy "${item}"`).catch(async () => {
       await s.drainProse();
       return '';
     });

@@ -1,0 +1,13 @@
+# transport — the ways' one wiring dial (the `settings` kind:
+# merge-missing — a key the app_settings singleton lacks is merged in; a
+# value the operator changed via `config` is never touched).
+#
+# ⚠ Not in the platform pack's `transport.yaml`: this key NAMES a row only
+# this pack ships, so it must be unset when the pack is absent — the realm
+# then has no ways, and `analyze rooms` reports no corridor archetype
+# (the `water.sourcePath` / `ground.defaultSourcePath` shape).
+settings:
+  # The `WayIndex` the kernel asks for the places along a way — the lane
+  # catalogue. See docs/subsystems/logistics.md § Archetypes.
+  - key: ways.indexPath
+    value: "/system/transport/idea/LaneCatalogue"

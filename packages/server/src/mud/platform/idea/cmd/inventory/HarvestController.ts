@@ -13,6 +13,13 @@
  * ⚠ The word methods are `static`, reached through the instance's class before
  * the act engages: they run at completion, and this controller is destructed
  * the moment `execute` returns.
+ *
+ * ⭐⭐ **The third limb** (controller-liquidity D8): when the plant cannot tell
+ * which was meant it answers the CHOICES (`HarvestChoices`), and this
+ * controller decides what to do about them in {@link HarvestController.choose}
+ * — refuse with the list of fields, take the ripe stand, read the player's
+ * words for a labeled plant. `HarvestAskingController` overrides only that
+ * method, and asks.
  */
 
 import { EngagedActController } from '../../../../lib/command/EngagedActController';
@@ -22,9 +29,12 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import type {
+  HarvestAnswer,
   HarvestBegin,
+  HarvestChoices,
   HarvestDone,
   HarvestRefusal,
+  HarvestRequest,
 } from '../../../../lib/husbandry/Growing';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 
@@ -32,7 +42,7 @@ const TOPIC = 'act.deed';
 
 type Composed = ReturnType<typeof Mml.compose>;
 
-interface HarvestModel extends CommandModel {
+export interface HarvestModel extends CommandModel {
   target: MqlOneResult;
   /** `--at <part>` — which part of a divided field (D5). */
   part?: MqlOneResult;
@@ -75,12 +85,32 @@ export default class HarvestController extends EngagedActController<HarvestModel
       );
       return;
     }
-    const plan = named.harvestPlanFor({
+    const req: HarvestRequest = {
       by: giver,
-      typed: model.target.raw,
       part: patchBound && MixinApi.isSoil(patchBound) ? patchBound : null,
       tool: model.tool?.stuff ?? null,
-    });
+    };
+    let plan: HarvestAnswer = named.harvestPlanFor(req);
+    // ⭐ A choice is answered by asking again with the pick: a field for the
+    // ground's parts, the chosen plant itself for a stand. Each answer
+    // narrows (a part named, then a plant `chosen`), so two rounds settle
+    // it; the bound is a guard, not a rule.
+    for (let round = 0; plan.ok === 'choose'; round += 1) {
+      if (round >= 3) {
+        this.decline(context, Mml.compose`You can't settle which to take.`, plan.reason);
+        return;
+      }
+      const pick = await this.choose(context, plan, model);
+      if (pick === null) return;
+      plan =
+        plan.reason === 'part-unnamed'
+          ? MixinApi.isSoil(pick)
+            ? named.harvestPlanFor({ ...req, part: pick })
+            : plan
+          : MixinApi.isGrowing(pick)
+            ? pick.harvestPlanFor({ ...req, chosen: true })
+            : plan;
+    }
     const words = this.constructor as typeof HarvestController;
     if (!plan.ok) {
       this.decline(context, words.refusalWords(plan), plan.reason, plan.facts.detail);
@@ -94,19 +124,60 @@ export default class HarvestController extends EngagedActController<HarvestModel
     });
   }
 
+  /**
+   * ⭐ What to do when the plant answers choices — the method an asking
+   * controller overrides. Returns the pick to ask again with, or `null`
+   * having said why not.
+   *
+   *  - `part-unnamed` — refuse with the list of fields (the shipped words).
+   *  - `stand-or-labeled` — the player's own words decide, scored by the
+   *    binder over the two (`pickByWords`): `harvest trial` names the
+   *    labeled plant alone; `harvest wheat` names both, and the stand wins.
+   *  - `ripe-elsewhere` — take the ripe one.
+   */
+  protected async choose(
+    context: CommandContext,
+    c: HarvestChoices,
+    model: HarvestModel,
+  ): Promise<Stuff | null> {
+    switch (c.reason) {
+      case 'part-unnamed': {
+        const line = this.partLine(c);
+        this.decline(context, Mml.fromMarkup(line), c.reason, line);
+        return null;
+      }
+      case 'stand-or-labeled':
+        return this.pickByWords(
+          context.commandGiver,
+          model.target.raw,
+          c.choices,
+          c.facts.preferred,
+        );
+      case 'ripe-elsewhere':
+        return c.facts.preferred;
+      default: {
+        const unworded: never = c;
+        throw new Error(`HarvestController: no answer for ${String(unworded)}`);
+      }
+    }
+  }
+
   /** What a refused harvest says. */
   protected static refusalWords(r: HarvestRefusal): Composed {
-    const { subject, part, line, stageWord } = r.facts;
+    const { subject, part, ground, stageWord } = r.facts;
     const it: Stuff = subject ?? part!;
     switch (r.reason) {
       case 'nothing-growing':
         return Mml.compose`There's nothing growing in ${Mml.thing(it)}.`;
-      case 'part-unnamed':
-        return Mml.fromMarkup(line!);
-      case 'not-a-part-here':
-        return line !== undefined
-          ? Mml.fromMarkup(line)
-          : Mml.compose`${Mml.thing(it)} does not stand at ${Mml.thing(part!)}.`;
+      case 'not-a-part-here': {
+        if (!ground) {
+          return Mml.compose`${Mml.thing(it)} does not stand at ${Mml.thing(part!)}.`;
+        }
+        const what = part!.presentationPhrase().definite();
+        return Mml.fromMarkup(
+          `${what.charAt(0).toUpperCase()}${what.slice(1)} is not a part of ${ground.presentationPhrase().definite()}.`,
+        );
+      }
       case 'nothing-sown-there':
         return Mml.compose`Nothing of that stands at ${Mml.thing(part!)}.`;
       case 'not-harvestable':

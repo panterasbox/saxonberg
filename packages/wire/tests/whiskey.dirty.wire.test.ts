@@ -294,7 +294,7 @@ suite('⭐ 0. the still-house floor is reachable and furnished', () => {
   }, 120_000);
 
   it('⭐⭐ the still-book offers the malting steps and the mash', async () => {
-    const book = await read(k, 'look still book');
+    const book = await read(k, 'look "still book"');
     for (const word of ['steep', 'kiln', 'mash']) {
       expect(book.toLowerCase(), `the book does not offer '${word}'`).toContain(
         word,
@@ -403,7 +403,7 @@ suite.skipIf(!isOwnedTestWorld())(
       // `order` that answers `unknown-recipe` means the pack did not
       // install, which is the failure mode a rows-only pack has.
       for (const step of ['steep-barley', 'kiln-malt']) {
-        const r = await say(k, `order ${step}`);
+        const r = await say(k, `order "${step}"`);
         const reason = refusedFor(r);
         expect(
           reason,
@@ -414,7 +414,7 @@ suite.skipIf(!isOwnedTestWorld())(
     }, 300_000);
 
     it('⭐ the malting floor reads as a bed with a clock on it', async () => {
-      const floor = await read(k, 'look malting floor');
+      const floor = await read(k, 'look "malting floor"');
       expect(floor.length).toBeGreaterThan(20);
       // ⭐⭐ And if there is a bed in it, the prose must be the ENZYMATIC
       // lines — never yeast, never bubbles. Nothing is living on a

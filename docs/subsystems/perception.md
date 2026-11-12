@@ -8,18 +8,60 @@ mixin or Api. Concrete users (light, hearing, display-name
 composition, language understanding, faction visibility, vendor
 pricing) reference this doc rather than re-derive the rule.
 
-## ⭐ `canReach` — the ONE definition of reach, and its one-level bound
+## ⭐ `canReach` — the ONE definition of reach, at a rung
 
-An actor reaches: itself; what it carries; what stands in its location;
-a door attached to one of that location's exits; and — **one level** —
-what stands inside an **open container** on either side (the glass
-rack's coupe, the floor stock's keg, a crate's limes, a coin in the open
-pouch you are carrying).
+An actor reaches: itself; what it carries; what stands in its place and
+in the vessel it sits in (`getEnclosingPlace` — in a boat on the river,
+both); a door attached to one of those places' exits, the way itself,
+and the fixtures; and what stands inside **open containers** — on its
+own body all the way down (the coin in the open pouch in your open
+pack), anywhere else **one level** (the glass rack's coupe, a crate's
+limes). That is the `open` rung; `top` stops at the holders' own
+contents and `deep` goes through every lid but never into another body
+(controller-liquidity D4/D5).
 
-**One level, deliberately.** Reach into the open crate, yes; a box
-*inside* that crate must be opened or taken out first. Without a bound,
-"reachable" would mean "anywhere in the room's transitive contents",
-which is not what a hand does.
+⭐⭐⭐ **It is ONE list — `PerceptionApi.reach(actor, {depth, location,
+pools})`** (controller-liquidity W20; the owner: *"I just don't want two
+different algos for the same thing"*). It returns everything to hand,
+each tagged with its pool — `self` · `attached` (slot occupants, the apps
+an implant hosts) · `inventory` · `around` (the place and the vessel that
+hold the actor — MQL's `here` names them; the one pool that is NOT reach,
+since a hand is in the room, not on it) · `here` (the place and the vessel's
+surface: the place itself, the ways the actor can see and their doors,
+the buildings whose landing it is, open ground seen across a way) ·
+`peers` (what stands there, fixtures included) — in MQL's tie-break
+order. `canReach` / `reachableAmong` are **membership** in it (every pool
+but `around`); MQL's
+`person` · `inventory` · `here` · `peers` · `reachable` pools are
+**filters** over it (`api/mql/scope-walk.ts` only builds and scores the
+candidates). `Container.getReachableContents(rung)` is the per-container
+step underneath. `pools` computes only the sections asked for, so an
+`inventory` scope never walks the room; `reachableAmong` is one walk for
+the whole list. `reach.sameSet.test.ts` pins that every MQL `reachable`
+result but the `around` holders is `canReach`-true and vice versa, scene by
+scene and rung by rung.
+
+⚠ History, twice over: before W2 the seed reached the person's top level
+only while `canReach` went one level into an open pouch; after W2 the walk
+was one but the ASSEMBLY (which holders, the fixtures, the ways and their
+doors) was written twice — in the scope walk and in a `reachIds` helper —
+and they disagreed at the edges (the room you stand in, the doors of ways
+you cannot see, hosted apps, the buildings whose landing it is). The
+consequences of the merge (W20): the place you stand in is explicit in the
+list as `around` (named, not reached), and a door is in reach only on a way
+the actor can see.
+
+**One level in the room, deliberately.** Reach into the open crate, yes;
+a box *inside* that crate must be opened or taken out first. Without a
+bound, "reachable" would mean "anywhere in the room's transitive
+contents", which is not what a hand does. What you carry is different:
+an open bag in an open pack is to hand.
+
+**A lid is a refusal with a name.** `Containable.reachRefusal(actor)`
+returns `{reason: 'enclosed-shut', facts: {by}}` for the innermost shut
+thing between a thing and the actor (never a lid that also holds the
+actor, never another person's pockets). MQL *addresses* through shut
+things (`me:I:apple`); the verb asks this and says *the box is shut*.
 
 The openness test is **`MixinApi.isOpenContainer`**, and it is the single
 rule four things ask — `canReach`, the MQL `peers` scope walk,
@@ -325,6 +367,28 @@ would be a behavior change no test proves safe. So `:loose` (the
 predicate, typeable) reads the holder's FULL list, and the listing keeps
 the guard by calling the method on what it can see.
 
+### ⭐⭐ `observe` — a look's world writes are ONE moment (controller-liquidity W8)
+
+`PerceptionApi.observe(actor, target)` is everything a deliberate `look`
+writes, called once, so a player rewriting the verb copies none of it:
+the warm (`preloadForSenseGate` — the boot link below), a thing's
+`reconcileAiring` (cleanliness D21), a place's light band, listing and
+`Perceiver.learnSurroundings` (the `seen` channel; in the dark the ways
+out only, and nothing at all for a place with nothing to perceive), a
+person's `learnIdentityOf`, and a container's close look — what it holds
+read FIRST, then the `glance` `resolveSearch` that records each
+discovery, then the hints. It returns an `Observation` the controller
+only words. ⛔ A glance records DISCOVERY, never a `searched` claim —
+only `search`'s resolve writes `searched`, because only a deliberate
+going-over makes absences evidence ([location-graph.md](./location-graph.md) § 4).
+
+⚠ `look`'s per-class self-reports (the floor puddle, the help-wanted
+notices, a placing host's members, a good's owner, a screen) stay in the
+controller: the `markupAugmenters` seam is synchronous, yields only
+`state` segments folded into the long before `look`'s sections, and also
+feeds the card projection and every sense verb — moving them would
+change words and order. → `one-resolution-rule-slate` § 2.
+
 ### `resolveAmbush` — a hiding read is a perception fact
 
 `PerceptionApi.resolveAmbush(attacker, defender)` answers "does this
@@ -486,3 +550,14 @@ every call with `undefined`, and `look` must not die because of it.
   and held things to their room's light. See
   `docs/plans/client-surface-plan.md` (W0, B6) until it is retired at the
   sweep.
+- **Controller liquidity (MR !561, 2026-11)** — reach is defined once
+  (W20, `985558c4d`): `PerceptionApi.reach` (`PerceptionLogic.reachOf`)
+  lists what an actor can lay hands on, tagged by MQL's pools;
+  `canReach`/`reachableAmong` are membership in it and MQL's seeds filter
+  it. The `reachIds` helper and scope-walk's own holder/fixture/way/door
+  assembly were deleted — they had disagreed on the room itself (now the
+  `around` pool: named, not reached) and on doors of unseen ways. Earlier
+  in the build (W2, `fd81f87e2`) `here` came to mean the enclosing place
+  (`Containable.getEnclosingPlace`), MQL ADDRESSES a thing wherever it is,
+  and a shut lid is the verb's gate (`mustNotBeShutAway` →
+  `Containable.reachRefusal`), not the query's. `look` observes once (W8).

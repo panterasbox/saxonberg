@@ -18,15 +18,15 @@ const SRC = readFileSync(
 describe('the cellars brain — bounded, literal, home in finally', () => {
   it('acts only through literal player verbs', () => {
     for (const verb of [
-      '`get ${vk}`',
-      '`fill ${vk} from vat`',
-      '`close ${vk}`',
+      '`get ${CommandLineApi.word(vk)}`',
+      '`fill ${CommandLineApi.word(vk)} from vat`',
+      '`close ${CommandLineApi.word(vk)}`',
       "'wallet use house'",
-      '`shelf consign ${vk} --ask ${ask}`',
-      '`order ${which}`',
+      '`shelf consign ${CommandLineApi.word(vk)} --ask ${ask}`',
+      '`order ${CommandLineApi.word(which)}`',
       '`pour bucket into vat`',
       '`pour jar into vat`',
-      '`buy ${kw}`',
+      '`buy ${CommandLineApi.word(kw)}`',
       // ⭐ The still leg (W6). `order ${distills.recipe}` USED to be here
       // and is gone with the recipe it named: `distil` retired when the
       // still became a fractionating host, because a still does not have
