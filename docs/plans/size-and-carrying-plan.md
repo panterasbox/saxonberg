@@ -2131,4 +2131,71 @@ lounge/location/bar.yaml`, `$P/cmd/inventory/{put,get,inventory}.yaml`,
 
 ## Drive record
 
-*(appended at build time)*
+**The blocking drive** is `packages/wire/tests/size-and-carrying.dirty.wire.test.ts`
+(the 22 steps, each tagged pace · actor as the requirements tag it; step 1's
+full-hands newcomer split out as 1b; step 22 runs before the restart, 21).
+**The soak drive** — for the soak lane — is
+`packages/wire/tests/size-and-carrying.soak.dirty.wire.test.ts` (a game day at
+12× in real time; not run here). Run against one world on `WIRE_PORT=2014`,
+this worktree's DB dropped before every full run; ten full runs and targeted
+`WIRE_REUSE` reruns of single steps, 2026-11-12.
+
+**Final run (run 11, fresh DB, `8248f6996`):** all 22 steps ✓; 1b ✗ (pre-existing residence defect, below). `pnpm test:near` green after the last source fix (1181 files, 11422 tests); every lint gate touched run individually and green (`controller-decisions` 508/508, `body-moves` 0, `subcommand-words` 49/49, `duck-typing` 474/474, `perceived-surfaces` 0, `controller-resolution` 80/80, `controller-mutations` 137/137, reachability, census, multi-act, graph-walks, lib-statics, combat-dynamics, placement-words, command-views, one-word, instanceable, mixin-clusters).
+
+| step | result | what it found (fixed unless marked) |
+|---|---|---|
+| boot | — | A fresh world would not boot: the mill floor's clone died `canAddContainable veto: no-room` — the tape measure asked a GROWING plant to pass a bed's mouth (hevea tub, coppice panel, silk-house bed). `8632e8432` |
+| 1 | ✓ | Every `get` landed "in hand" ×4: a body is judged only when its species row is resident, and nothing loads `homo/sapiens` in a fresh world or after a restart (`e7e00bf81`, then `d133f3a18` — `Creature.onCreate` for beasts); with it loaded a mug went onto a FINGER — ring slots attach at the hand (`0c69a77ec`). |
+| 1b | ✗ **pre-existing, not this build's** | Duncan Hall's SECOND let throws at `Location.addExit` ("non-cardinal direction 'unit-2' requires the destination to be in a different zone" — corridor and dorm room are members of ONE `DormWarren` frame, master's `crossesHoldingFrame`, `5f54d22e9`); every move-in theme logs the same failure for unit 1. The daypack hand-off no longer voids a let (`fea3fa41a`, `granted` fallback), but the second newcomer is never housed. For the residence owner. |
+| 2 | ✓ | Region headings read "In your a plain student shirt's breast pocket" (`d133f3a18`). |
+| 3 | ✓ | `put`'s target was `peers`: `put key in "coat pocket"` put the key in the lounge's coat-check rack (`aa69a3376`). A coat's four pockets ask "Which —" by name (D26-e). |
+| 4 | ✓ | Readying was silent — the compass just appeared; now *"You put your arming sword in … and pull out your surveyor's brass compass from your leather belt pouch"* (`eb9498a87`). `get X from <a host on you>` could not reach your own belt (`aa69a3376`). A sword was "put away" in a trouser pocket — a pocket has a depth now (`382586085`). The hang rule (W7-d) hangs a pouch on RECEIPT, so `put … on belt` is exercised at the refusal ("no room from a leather belt"). |
+| 5 | ✓ | (Driven with `measure strike with compass`: the default `reachable` tool binding readies nothing when it binds several.) |
+| 6 | ✓ | Beats by `readySeconds` (eval): both hands full 6 s · a free hand 3 s · holster 1.5 s · key in the open pouch 3 s · in the buttoned breast pocket 6 s. In the fight the act runs on the compass where it is and the hands' words land with the switch — recorded, not asserted. |
+| 7 | ✓ | `fight draw` said "no sidearm" for a sword in its belt scabbard (nothing is loose after the flip — `cf1ff059d`), then for any carry refusal (`eb9498a87`); with the right hand on the shield it tried to stow the shield though the left was free — a free hand beats an occupied claimed one (`382586085`); `wield` said "you don't have a greatsword" for the one in the scabbard — `mustBeInInventory` read only direct contents (`b9d3e8e21`). The full-hand words name both things and offer each to drop (`edb57b7b1`). Draconicus holds the greatsword one-handed beside the shield; the gnome's 4 kg shield already takes both its hands. |
+| 8 | ✓ | The transport pack's twelve-foot setting pole had no box — one hand beside a lantern (`3f7c6442e`); "Your hands are full" was said with a hand open (`eb9498a87`). |
+| 9 | ✓ | `remove backpack` left the pack LOOSE on the body (`eb9498a87`, `settleReleased`). |
+| 10 | ✓ | The steading shipped the lookout way with no ladder in either room: `climb` was no verb (`24acb0859`). |
+| 11 | ✓ | No chest in the commons authored a box (`3f7c6442e`: tool chest + barrel in the barn). |
+| 12–13 | ✓ | `reachable` put the giver FIRST, so `i human`/`attack human` bound yourself (`aa69a3376`, giver last); `human` still asks "which?" offering yourself — the drive names people by their card's `#id`. The four probes on the covered letter answer exactly as for a person with none. |
+| 14 | ✓ | Your own shut pack's contents read "something" (`edb57b7b1`); staging tool `testharness vanish` (`382586085`, renamed `b9d3e8e21`). |
+| 15 | ✓ | A search FOUND the inner-pocket letter and nothing showed it (the pocket is its scope, not the body) and `get letter from <them>` could never reach into a body (`382586085`). |
+| 16 | ✓ | The yard and reed bank were plain Locales: `swim` was no verb, and the reed bank stranded a swimmer (`fea3fa41a`). The pack's letter goes to pulp; the oilskin's comes out dry. |
+| 17 | ✓ | Staged twin of the soak drive: the 4 h jump, then the meal out of the satchel; the ration count falls. |
+| 18 | ✓ | A mule could not be tacked — handing a beast its tack now puts it on (`eb9498a87`); a tied lead stayed in the leader's hand slot as a phantom (`f50499b98`, the chokepoint vacates); a handcart had no size (`24acb0859`) and no steading way admitted wheels (`89085579f`), the `wheeled` mode was never loaded so NO hitched cart could be dragged anywhere (`82f122c13`), and a cart was fitted through a gate on its side (`8248f6996`). Handed to a full-handed person, a cup is refused before it moves. ⚠ A ration `put` in the handcart "seats with a click" — it took the cart's `bed` slot (a seat), worth a look. ⚠ The room's reach stops at the mule: its panniers are named through it (`put ration in mule:i:pannier`). |
+| 19 | ✓ | A mug dropped at 0 g "hit the floor hard" — `fallOnto` read 9.81 (`d133f3a18`). ⚠ Requirement vs D19-c: weightless, a body passes a way lengthwise with its pack trailing, so the crawlway is not the test; the pack's SIZE is (a pocket still refuses it). "Still takes both hands" is not met — `handsFor` reads weight × g (D10-b). |
+| 20 | ✓ | The lens labeled a shut chest's contents "something [builder]" (`edb57b7b1`). No staged NPC owns the chest (a content chest in the stager's extent). |
+| 21 | ✓ | Holdings compare as a SET (the restore reorders the worn list). The pre-flip record (`stageLooseSnapshot`) is placed: mug and bowl in hand, key in a pocket, the lantern off the body. ⚠ Its "would not fit anywhere on you" line is spoken during the restore, before the session attaches, and is lost. |
+| 22 | ✓ | `switch` was no verb for a worn headlamp (`97588cd5c`, the Switchable protocol confers it). The pond is looked at from its shore. |
+
+**Runs 3–5 died `JavaScript heap out of memory`** in a long clock jump, the log full
+of keepers' `get 1 cola` refused once per CANDIDATE on every beat; a refused `get`
+stops asking now (`51c08bc74`) and runs 6–10 peaked at ~0.8 GB. ⚠ **Open, for a
+follow-up:** WHY the keepers' hands are full after the flip (the restock shelving
+pass), and Wen Hartley's `shelf consign crate` answering `not-held`; the mule's tack
+does not survive a restart (a cast beast is re-cloned).
+
+**Staging tools built** (`e9c681a12`, `7cd98fb61`, `382586085`): `testharness
+gravity <m/s²|clear>`, `testharness afflict <name> <condition> [stage]` (a toxin
+condition dosed past its top band for an hour), `testharness species <name>
+<species>`, `testharness vanish #<id>`, and `POST /auth/test-snapshot` +
+`stageLooseSnapshot(handle, templates)` (the pre-flip record; the plan's
+`--fixture` file is the template list, a route because a handle maps to its user
+only in the backend).
+
+**B2 — every checkpoint can fail.** `SC_B2=all` swaps each step's key expectation
+for one nothing satisfies (`SC_B2=2,13` runs a list). `SC_B2=all` against the
+run-11 world: 1, 1b, 4–12, 14, 15, 18–22 red at their own `B2 inverted at step N`
+labels (6 and 21 by their inverted comparisons); 2, 3, 13, 16, 17 were reached
+in a targeted `SC_B2=2,3,13,16,17` run on a fresh world (step 1 green, the five
+red at their labels). Every checkpoint has gone red once.
+
+**Reachability** (verb · affordance · data · load · arg gate), each driven:
+stoop/crawl ✓ (step 9); the lens ✓ (20); pockets ✓ (3, 6, 12) — after `put`'s
+target scope fix; belts ✓ (4, 10); readying ✓ (4–6) — the default tool binding
+readies nothing when several tools are in reach (name the tool); the mule and the
+lead ✓ (18) — the **affordance** link was missing (no way to tack a beast) and is
+the `give` path now, and the **arg gate** stops at the animal (MQL names its
+panniers); the tarp ✓ (18 — `close handcart` with the tarpaulin in it); the
+headlamp ✓ (22) — the **verb** link was missing (`switch` conferred by nothing).
+

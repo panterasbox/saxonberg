@@ -269,14 +269,18 @@ afterAll(() => {
 /* ───────────────────────── the steps ───────────────────────── */
 
 /**
- * ⭐ B2 — every checkpoint can fail. `SC_B2=all` swaps each step's key
+ * ⭐ B2 — every checkpoint can fail. `SC_B2=all` (or a list, `SC_B2=2,13`) swaps each step's key
  * expectation for one nothing can satisfy, so the run must go red at
  * every step, each with its own `B2` label — proof the checkpoint asserts
  * something rather than passing on anything.
  */
-const B2 = process.env.SC_B2 === 'all';
+const B2_STEPS = (process.env.SC_B2 ?? '').split(',').map((x) => x.trim()).filter(Boolean);
+/** Is `step`'s key expectation inverted this run (`SC_B2=all` or `SC_B2=2,13`)? */
+function b2(step: string): boolean {
+  return B2_STEPS.includes('all') || B2_STEPS.includes(step);
+}
 function key(step: string, re: RegExp): RegExp {
-  return B2 ? new RegExp(`B2 inverted at step ${step} — ${re.source}`) : re;
+  return b2(step) ? new RegExp(`B2 inverted at step ${step} — ${re.source}`) : re;
 }
 
 /** People who must come back from the restart (step 21) exactly as they were. */
@@ -473,7 +477,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expectDone(await say(f, `put #${key} in "breast pocket"`));
     const buttoned = await secs(key);
     record.push(`ready seconds: both-hands-full ${both}, a free hand ${oneFree}, holster ${fromHolster}, key in the pouch ${keyOpen}, key in the buttoned pocket ${buttoned}`);
-    expect(both, 'putting something away first costs a beat more').toBeGreaterThan(B2 ? both : oneFree);
+    expect(both, 'putting something away first costs a beat more').toBeGreaterThan(b2('6') ? both : oneFree);
     expect(fromHolster, 'a holster is the quick draw').toBeLessThan(oneFree);
     expect(buttoned, 'a buttoned pocket is slower than the open pouch').toBeGreaterThan(keyOpen);
     await give(f, T.sword);
@@ -617,7 +621,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     const withLetter = await probe(OTHER);
     const without = await probe(NONE);
     record.push(`probe answers: bearer ${withLetter.join(' ; ')} | no letter ${without.join(' ; ')}`);
-    expect(withLetter, 'identical to a person with no letter').toEqual(B2 ? [...without, 'B2 inverted at step 13'] : without);
+    expect(withLetter, 'identical to a person with no letter').toEqual(b2('13') ? [...without, 'B2 inverted at step 13'] : without);
     // The same query typed by the bearer finds it.
     expect((await say(v, 'query me:I:letter')).w).toMatch(/letter/i);
   }, 240_000);
@@ -715,7 +719,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     const after = await inv(h, '--weight');
     record.push(`step 17: before ${before} | after ${after}`);
     const count = (t: string): number => (t.match(/ration/g) ?? []).length;
-    expect(count(after)).toBeLessThan(B2 ? count(after) : count(before));
+    expect(count(after)).toBeLessThan(b2('17') ? count(after) : count(before));
   }, 240_000);
 
   it('18. [instant · player] a mule carries in what it wears and is led on a rope; a cart fills your hands, will not pass a narrow gate, and a tarp hides its load', async () => {
@@ -887,7 +891,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     const after = await inv(back, '--flat');
     record.push(`restart: before "${before}" · after "${after}"`);
     const set = (t: string): string[] => t.replace(/^You have: /, '').replace(/\.$/, '').split(/ (?=an? )/).map((x) => x.trim()).sort();
-    expect(set(after), 'the same things, none loose, none duplicated').toEqual(B2 ? [...set(before), 'B2 inverted at step 21'] : set(before));
+    expect(set(after), 'the same things, none loose, none duplicated').toEqual(b2('21') ? [...set(before), 'B2 inverted at step 21'] : set(before));
     expect(await inv(back)).not.toMatch(/Loose:/);
     const p = await Session.open(preFlip, {});
     open.push(p);
