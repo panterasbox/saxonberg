@@ -28,6 +28,10 @@ import type { JointDescriptor } from '../../../lib/craft/Joint';
 import { makeStuff, makeStuffAtPath, seedKernelContentStore } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { rememberJoint } from '../../../lib/craft/__tests__/joint-fixtures';
+import Garment from '../equipment/Garment';
+import { TieableMixin } from '../../../lib/spatial/Tieable';
+import { Placements } from '../../../lib/spatial/Placement';
+import { makeBody } from '../../../lib/slot/__tests__/carrying-fixture';
 
 class Body extends Character {}
 
@@ -236,5 +240,46 @@ describe('rot and tar (D13′)', () => {
     // Laid wet, read set: any read of the faces brings the cooling current.
     expect(r.getCoats('outside')[0]!.state).toBe('set');
     expect(r.isTarred()).toBe(true);
+  });
+});
+
+describe('a lead hangs from the halter (size and carrying W7)', () => {
+  class HalterGear extends TieableMixin(Garment) {}
+
+  async function setup(withFrom: boolean) {
+    const room = makeStuffAtPath(() => new Location(), '/test/rope/yard');
+    const { me, plan } = makeBody();
+    ContainmentApi.move(me as never, room as never);
+    const { me: mule, plan: mulePlan } = makeBody({ mass: 400, stature: 1.5, hands: false });
+    ContainmentApi.move(mule as never, room as never);
+    const halter = makeStuff(() => new HalterGear());
+    halter.setShortDescription('halter');
+    if (withFrom) await halter.setPlacements([Placements.FROM]);
+    halter.setSlotClaims({ [mulePlan]: ['torso'] });
+    ContainmentApi.move(halter as never, mule as never);
+    mule.occupy(halter, 'torso');
+    const r = rope(fiber('hemp', 4), 4, 10);
+    me.receive(r as never);
+    return { me, mule, halter, r };
+  }
+
+  it('⭐ tied to a mule, the rope hangs FROM its halter and the leader holds the end', async () => {
+    const { me, mule, halter, r } = await setup(true);
+    const out = await r.tieTo(me as unknown as Stuff, mule as unknown as Stuff, null);
+    expect(out.ok).toBe(true);
+    expect(r.getContainer()).toBe(mule);
+    expect(r.getPlacement()?.host).toBe(halter);
+    expect(r.getPlacement()?.name).toBe(Placements.FROM);
+    expect(mule.isHonest(r as unknown as Stuff)).toBe(true);
+    expect(me.heldThings().some((h) => h instanceof RopeEnd)).toBe(true);
+  });
+
+  it('a tieable that offers nothing to hang from, on a body with nowhere to carry, is nothing to tie a lead to', async () => {
+    const { me, mule, r } = await setup(false);
+    expect(await r.tieTo(me as unknown as Stuff, mule as unknown as Stuff, null)).toMatchObject({
+      ok: false,
+      reason: 'no-halter',
+    });
+    expect(r.getContainer()).toBe(me);
   });
 });

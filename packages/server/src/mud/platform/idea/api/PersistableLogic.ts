@@ -892,6 +892,35 @@ async function restoreState(
       }
     }
   }
+
+  // (6) ⭐ Placements that name an OWNED good (size and carrying W7, closing
+  // D26-h's gap) — a pouch hung from a bought belt, a bought key in a
+  // pocket. Neither end of such a pair has a content index the (3b) pass
+  // could resolve, so they wait for the estate (4) and the owned goods'
+  // re-wearing (5), then re-place exactly as (3b) does.
+  const pairs: { item: Stuff | null; at: ContentPlacement }[] = [];
+  if (containerSlice) {
+    for (const [i, entry] of containerSlice.contents.entries()) {
+      if (entry.placement.hostChattelId !== undefined) pairs.push({ item: restored[i] ?? null, at: entry.placement });
+    }
+  }
+  if (MixinApi.isEstate(target)) {
+    for (const entry of target.getEstateEntries()) {
+      if (entry.placedOn !== undefined) pairs.push({ item: target.getEstateLive(entry.chattelId), at: entry.placedOn });
+    }
+  }
+  for (const { item, at } of pairs) {
+    const host =
+      at.hostIndex !== undefined
+        ? (restored[at.hostIndex] ?? null)
+        : at.hostChattelId !== undefined && MixinApi.isEstate(target)
+          ? target.getEstateLive(at.hostChattelId)
+          : null;
+    if (!item || !host || !MixinApi.isPlacing(host) || !MixinApi.isContainable(item)) continue;
+    const placement = at.placement ?? Placements.ON;
+    await ContainmentApi.placements().ensure(host.getPlacementEntry(placement)?.member ?? placement);
+    ContainmentApi.move(item as Stuff & Containable, host as Stuff & Placing, placement);
+  }
 }
 
 /**

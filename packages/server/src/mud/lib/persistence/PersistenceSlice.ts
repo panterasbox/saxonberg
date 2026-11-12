@@ -63,6 +63,15 @@ export interface ContentPlacement {
    */
   hostIndex?: number;
   /**
+   * ⭐ The chattel id of the host when it is a good the holder OWNS (an
+   * owner-persisted chattel — a bought belt, a bought coat): such a host is
+   * not in the contents slice (the estate carries it), so it has no index
+   * here. Restored after the estate and the owned goods are re-worn, so a
+   * pouch comes back hung on the bought belt as worn (size and carrying W7;
+   * D26-h's gap).
+   */
+  hostChattelId?: string;
+  /**
    * The placement's PATH (`/platform/placements/on`) the item is placed
    * under — a document's only name. Undefined when it sits loose.
    */
@@ -202,6 +211,14 @@ export interface EstateEntry {
    * drive's shirt came back beside its rack).
    */
   rests?: { on: string; placement: string };
+  /**
+   * Present iff the good is **in the owner's own keeping and placed on a
+   * host there** — a bought pouch hung from the belt, a bought key in a
+   * coat's pocket (size and carrying W7): the host as an index into the
+   * owner's contents slice or as an owned host's chattel id, and the
+   * placement. Without it a placed good came back loose on the body.
+   */
+  placedOn?: ContentPlacement;
 }
 
 /**

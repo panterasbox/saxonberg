@@ -66,6 +66,7 @@ import type { Slotted } from './Slotted';
 import type { ActRefusal } from '../craft/ActPlan';
 import type { CaptureContext, HydrateContext, HomeEnd, HomesSlice, MixinSlice } from '../persistence/PersistenceSlice';
 import { ContainmentApi } from '../../api/containment';
+import { Placements } from '../spatial/Placement';
 import { MixinApi } from '../../api/mixin';
 import { SpeciesApi } from '../../api/species';
 import { CombatApi } from '../../api/combat';
@@ -148,7 +149,6 @@ export type CarryPlace =
   | { host: Stuff & Container; region?: undefined }
   | { host: Stuff & Placing; region: string };
 
-/** A home's host: a container on the body, or a placing host whose region it is. */
 /**
  * ⭐ What is directly on a body, sorted by how it is carried (D28) — the
  * model's half of the tiered `inventory`. Each list is raw: the SURFACE
@@ -169,6 +169,7 @@ export interface CarriedTiers {
   loose: Stuff[];
 }
 
+/** A home's host: a container on the body, or a placing host whose region it is. */
 export type HomeHost = (Stuff & Container) | (Stuff & Placing);
 
 export interface Carrying {
@@ -289,9 +290,9 @@ export interface Carrying {
   holderPhrase(item: Stuff): string | null;
   /** ⭐ What a pack holds, as `inventory` tells it shut (D28): `5 things, 3.2 kg`, or `empty`. */
   tallyWords(things: readonly Stuff[]): string;
-}
   /** ⭐ What is directly on this body, sorted by how it is carried (D28) — raw; a surface perceives it. */
   carriedTiers(): CarriedTiers;
+}
 
 /** A numeric dial with a fallback (the `LoadBearing` shape). */
 function dialSeconds(key: string, fallback: number): number {
@@ -603,12 +604,64 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
         self.seatInSlot(item as Stuff & Containable & Slottable, opts.slot);
         return null;
       }
+      // Put on: the garment's whole claim on this body (`wear`, an outfit).
+      const claim = opts.for === 'wear' ? this.wearClaim(item) : [];
+      if (claim.length > 0) {
+        ContainmentApi.move(item, self);
+        self.occupyAll(item as Stuff & Containable & Slottable, claim);
+        return null;
+      }
+      // ⭐ A thing that hangs (a pouch, a holster: a worn container that
+      // claims no slot of this body) goes onto the first worn host it hangs
+      // from — the belt — before anything else (W7).
+      const hang = this.hangHostFor(item);
+      if (hang !== null) {
+        ContainmentApi.move(item, hang, Placements.FROM);
+        return null;
+      }
       // ⚠ Until the flip (D31): loose, exactly as the direct move did.
       ContainmentApi.move(item, self);
       return null;
     }
 
+    /** The slots `item` claims on this body when put on — empty when it is not worn here. */
+    private wearClaim(item: Stuff): string[] {
+      if (!MixinApi.isWearable(item)) return [];
+      const plan = SpeciesApi.tryGetBodyPlanPath(this as unknown as Stuff);
+      return plan === null ? [] : [...item.getSlotClaim(plan)];
+    }
+
+    /**
+     * ⭐ Where a thing that HANGS goes on this body (size and carrying W7):
+     * a worn container that claims no slot of this body (a belt pouch, a
+     * medic's pouch, a holster) arriving from off the body is hung `from`
+     * the first worn host that offers it and has room — the belt, a
+     * bandolier, a pack's strap. Null for anything else, for a thing
+     * already on this body, or when nothing worn will take it.
+     */
+    private hangHostFor(item: Stuff): (Stuff & Placing) | null {
+      if (!MixinApi.isWearable(item) || !MixinApi.isContainer(item) || !MixinApi.isContainable(item)) return null;
+      if (this.wearClaim(item).length > 0) return null;
+      // Only a thing arriving from off the body: one already on it is being
+      // taken in hand (`get holster from belt`), not hung again.
+      if (this.tierOf(item) !== 'elsewhere') return null;
+      const self = this as unknown as Stuff & Slotted;
+      const hands = new Set(this.handSlots());
+      const seen = new Set<string>();
+      for (const [slot, occ] of self.getAllOccupants()) {
+        if (hands.has(slot)) continue;
+        for (const host of occ) {
+          if (seen.has(host.stuffId) || host.stuffId === item.stuffId) continue;
+          seen.add(host.stuffId);
+          if (!MixinApi.isPlacing(host) || !host.getPlacements().includes(Placements.FROM)) continue;
+          if (host.canPlace(item, Placements.FROM).ok) return host;
+        }
+      }
+      return null;
+    }
+
     public canReceive(item: Stuff, opts: ReceiveOptions = {}): ReceiveRefusal | null {
+      if (this.hangHostFor(item) !== null) return null;
       const hands = this.handsFor(item);
       if (hands === null) return { ok: false, reason: 'too-heavy' };
       const self = this as unknown as Stuff;
@@ -935,6 +988,41 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       return `${n}, ${roundForReading(kg)} kg`;
     }
 
+    public carriedTiers(): CarriedTiers {
+      const self = this as unknown as Stuff & Slotted & Container;
+      const slotOf = new Map<string, string[]>();
+      for (const [slot, occ] of self.getAllOccupants()) {
+        for (const o of occ) slotOf.set(o.stuffId, [...(slotOf.get(o.stuffId) ?? []), slot]);
+      }
+      const out: CarriedTiers = { held: [], regions: [], worn: [], ready: [], packed: [], loose: [] };
+      const regions = new Map<string, CarriedTiers['regions'][number]>();
+      const isHolder = (x: Stuff): x is Stuff & Container => MixinApi.isContainer(x) && !x.isAgent();
+      for (const x of self.getContents()) {
+        const tier = this.tierOf(x);
+        const pair = MixinApi.isContainable(x) ? x.getPlacement() : null;
+        if (tier === 'hand') {
+          out.held.push(x);
+        } else if (pair !== null && pair.host.stuffId !== self.stuffId && MixinApi.isPlacing(pair.host)) {
+          const key = `${pair.host.stuffId}\u0000${pair.name}`;
+          let g = regions.get(key);
+          if (g === undefined) {
+            g = { host: pair.host, region: pair.name, items: [] };
+            regions.set(key, g);
+            out.regions.push(g);
+          }
+          g.items.push(x);
+          if (isHolder(x)) out.ready.push(x);
+        } else if (slotOf.has(x.stuffId)) {
+          if (!isHolder(x)) out.worn.push(x);
+          else if (tier === 'packed' || (slotOf.get(x.stuffId) ?? []).includes(PACKED_SLOT)) out.packed.push(x);
+          else out.ready.push(x);
+        } else {
+          out.loose.push(x);
+        }
+      }
+      return out;
+    }
+
     public holderPhrase(item: Stuff): string | null {
       const self = this as unknown as Stuff & Slotted;
       const placed = MixinApi.isContainable(item) ? item.getPlacement() : null;
@@ -986,41 +1074,6 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
         scene.send();
       }
       return dropped;
-    }
-
-    public carriedTiers(): CarriedTiers {
-      const self = this as unknown as Stuff & Slotted & Container;
-      const slotOf = new Map<string, string[]>();
-      for (const [slot, occ] of self.getAllOccupants()) {
-        for (const o of occ) slotOf.set(o.stuffId, [...(slotOf.get(o.stuffId) ?? []), slot]);
-      }
-      const out: CarriedTiers = { held: [], regions: [], worn: [], ready: [], packed: [], loose: [] };
-      const regions = new Map<string, CarriedTiers['regions'][number]>();
-      const isHolder = (x: Stuff): x is Stuff & Container => MixinApi.isContainer(x) && !x.isAgent();
-      for (const x of self.getContents()) {
-        const tier = this.tierOf(x);
-        const pair = MixinApi.isContainable(x) ? x.getPlacement() : null;
-        if (tier === 'hand') {
-          out.held.push(x);
-        } else if (pair !== null && pair.host.stuffId !== self.stuffId && MixinApi.isPlacing(pair.host)) {
-          const key = `${pair.host.stuffId}\u0000${pair.name}`;
-          let g = regions.get(key);
-          if (g === undefined) {
-            g = { host: pair.host, region: pair.name, items: [] };
-            regions.set(key, g);
-            out.regions.push(g);
-          }
-          g.items.push(x);
-          if (isHolder(x)) out.ready.push(x);
-        } else if (slotOf.has(x.stuffId)) {
-          if (!isHolder(x)) out.worn.push(x);
-          else if (tier === 'packed' || (slotOf.get(x.stuffId) ?? []).includes(PACKED_SLOT)) out.packed.push(x);
-          else out.ready.push(x);
-        } else {
-          out.loose.push(x);
-        }
-      }
-      return out;
     }
 
     // ── shape and sound (D12, D36) ──

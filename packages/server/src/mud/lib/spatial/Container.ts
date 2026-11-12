@@ -614,6 +614,10 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
           if (idx >= 0) {
             placement.hostIndex = idx;
             placement.placement = placed.name;
+          } else if (MixinApi.isChattel(placed.host) && placed.host.isOwnerPersisted()) {
+            // ⭐ An owned host persists in its owner's estate, not here (W7).
+            placement.hostChattelId = placed.host.getChattelId();
+            placement.placement = placed.name;
           }
         }
         return ctx.captureItem(item, placement);
@@ -903,10 +907,6 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       return out;
     }
 
-    /** See the interface docstring (size-and-carrying D17). */
-    getReachableContents(): Stuff[] {
-      const self = this as unknown as Stuff & Container;
-      const out: Stuff[] = [];
     /** See the interface docstring (size-and-carrying W7). */
     getCarriedContents(): (Stuff & Containable)[] {
       const ctxScope = ExecutionContextApi.getCircleScope();
@@ -925,6 +925,10 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       return out;
     }
 
+    /** See the interface docstring (size-and-carrying D17). */
+    getReachableContents(): Stuff[] {
+      const self = this as unknown as Stuff & Container;
+      const out: Stuff[] = [];
       // ⚠ Sandbox hygiene, before anything is asked of an item: a walk in a
       // circle never reads a field object (or one of another circle) — the
       // proxy denies any method on it, the lid read included (the

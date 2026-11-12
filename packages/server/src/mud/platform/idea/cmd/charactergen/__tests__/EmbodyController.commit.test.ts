@@ -230,7 +230,7 @@ describe('EmbodyController.commit', () => {
     expect(avatar.setSex).toHaveBeenCalledWith('female');
     // Healer outfit garments cloned + worn (tolerant loop).
     expect(dressed.length).toBeGreaterThan(0);
-    expect(avatar.occupyAll).toHaveBeenCalled();
+    expect(avatar.receive).toHaveBeenCalledWith(expect.anything(), { for: 'wear' });
     expect(transfer).toHaveBeenCalled();
     expect(avatar.enter).toHaveBeenCalledTimes(1);
     expect(destruct).toHaveBeenCalledWith(login);

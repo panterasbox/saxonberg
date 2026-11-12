@@ -761,16 +761,13 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
     //    casting: a garment that isn't Containable/Wearable is skipped.
     //    The avatar is always a Container + Slotted (it's an `Avatar`).
     if (aspiration && species) {
-      const bodyPlanPath = species.getBodyPlanPath();
       for (const garmentPath of aspiration.outfit) {
         try {
           const garment = await StuffApi.clone(garmentPath);
           if (!MixinApi.isContainable(garment)) continue;
-          avatar.receive(garment);
-          if (bodyPlanPath && MixinApi.isWearable(garment)) {
-            const slots = garment.getSlotClaim(bodyPlanPath);
-            if (slots.length) avatar.occupyAll(garment, slots);
-          }
+          // Put on what is worn; a bag that claims no slot hangs from the
+          // belt listed before it (`receive`'s hang rule, W7).
+          avatar.receive(garment, { for: 'wear' });
         } catch {
           /* skip this garment */
         }

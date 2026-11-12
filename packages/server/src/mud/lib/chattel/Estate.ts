@@ -70,6 +70,7 @@ import {
   type MixinSlice,
   type CaptureContext,
   type HydrateContext,
+  type ContentPlacement,
 } from "../persistence/PersistenceSlice";
 
 /**
@@ -252,13 +253,26 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
           continue;
         }
         // Where it rests NOW — the entry's was written when it was placed.
-        const { rests: _was, ...kept } = entry;
+        const { rests: _was, placedOn: _on, ...kept } = entry;
         const rests = MixinApi.isContainable(live) ? live.getRestingPlace() : null;
+        // ⭐ In the owner's keeping and placed on a host there (a pouch on
+        // the belt): the host by contents index, or by chattel id when the
+        // host is owned too (size and carrying W7).
+        const pair = MixinApi.isContainable(live) ? live.getPlacement() : null;
+        let placedOn: ContentPlacement | null = null;
+        if (pair !== null && MixinApi.isContainable(live) && live.getContainer() === host) {
+          const idx = ctx.indexOf(pair.host);
+          if (idx >= 0) placedOn = { hostIndex: idx, placement: pair.name };
+          else if (MixinApi.isChattel(pair.host) && pair.host.isOwnerPersisted()) {
+            placedOn = { hostChattelId: pair.host.getChattelId(), placement: pair.name };
+          }
+        }
         entries.push({
           ...kept,
           templatePath: live.getTemplatePath() ?? entry.templatePath,
           state: ctx.captureState(live),
           ...(rests ? { rests } : {}),
+          ...(placedOn ? { placedOn } : {}),
         });
       }
       return {

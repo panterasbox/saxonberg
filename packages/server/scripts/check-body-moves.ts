@@ -141,7 +141,8 @@ export const ROSTER: Record<string, RosterRow> = {
   // ── D11's allowlist — the receiving act and what restores one ─────────
   "lib/slot/Carrying.ts :: CarryingMixin.receive :: self": {
     tag: "allow",
-    why: "D11 — receive IS the receiving act",
+    n: 2,
+    why: "D11 — receive IS the receiving act (put on by its claim; the loose landing until the flip)",
   },
   "lib/slot/Carrying.ts :: CarryingMixin.bringToHand :: self": {
     tag: "allow",
@@ -162,7 +163,8 @@ export const ROSTER: Record<string, RosterRow> = {
   },
   "platform/idea/api/PersistableLogic.ts :: restoreState :: host": {
     tag: "allow",
-    why: "D11 — restores a placement pair; a Placing destination rides ContainmentLogic.placeOn",
+    n: 2,
+    why: "D11 — restores a placement pair (3b by content index; 6 onto an owned host, W7); a Placing destination rides ContainmentLogic.placeOn",
   },
   "platform/idea/api/ConditionLogic.ts :: mintCorpseFrom :: corpse": {
     tag: "allow",

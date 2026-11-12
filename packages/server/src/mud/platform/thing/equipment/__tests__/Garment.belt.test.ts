@@ -130,4 +130,33 @@ describe('Garment — the belt (D27)', () => {
     expect(me.reconcilePressing()).toEqual([]);
     expect(p.getPlacement()).toEqual({ host: belt, name: Placements.FROM });
   });
+
+  it('⭐ received, a pouch that claims no slot hangs from the worn belt — the medic\'s pouch in an outfit (W7)', async () => {
+    const { me, plan } = makeBody();
+    const belt = await wornGarment(me, plan, 'belt', 'waist', [Placements.FROM]);
+    const p = pouch();
+    expect(me.canReceive(p)).toBeNull();
+    expect(me.receive(p)).toBeNull();
+    expect(p.getContainer()).toBe(me);
+    expect(p.getPlacement()?.host).toBe(belt);
+    expect(p.getPlacement()?.name).toBe(Placements.FROM);
+    expect(me.isHonest(p)).toBe(true);
+    expect(me.tierOf(p)).toBe('ready');
+  });
+
+  it('a pouch received with no belt worn does not hang (it goes the ordinary way)', () => {
+    const { me } = makeBody();
+    const p = pouch();
+    me.receive(p);
+    expect(p.getContainer()).toBe(me);
+    expect(p.getPlacement()).toBeNull();
+  });
+
+  it('`receive … for: wear` puts a garment on by its whole claim', async () => {
+    const { me, plan } = makeBody();
+    const belt = await garment('belt', [Placements.FROM]);
+    belt.setSlotClaims({ [plan]: ['waist'] });
+    me.receive(belt, { for: 'wear' });
+    expect(me.getOccupants('waist').has(belt)).toBe(true);
+  });
 });

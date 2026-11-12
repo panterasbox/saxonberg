@@ -342,16 +342,16 @@ export default class Login extends LoginBase {
 
     // Dress in the aspiration's themed outfit (tolerant of content gaps).
     if (aspiration && species) {
-      const bodyPlanPath = species.getBodyPlanPath();
       for (const garmentPath of aspiration.outfit) {
         try {
           const garment = await StuffApi.clone(garmentPath);
           if (!MixinApi.isContainable(garment)) continue;
-          if (MixinApi.isCarrying(avatar)) avatar.receive(garment);
-          else ContainmentApi.move(garment, avatar);
-          if (bodyPlanPath && MixinApi.isWearable(garment)) {
-            const slots = garment.getSlotClaim(bodyPlanPath);
-            if (slots.length) avatar.occupyAll(garment, slots);
+          // Put on what is worn; a bag that claims no slot hangs from the
+          // belt listed before it (`receive`'s hang rule, W7).
+          if (MixinApi.isCarrying(avatar)) {
+            avatar.receive(garment, { for: 'wear' });
+          } else {
+            ContainmentApi.move(garment, avatar);
           }
         } catch {
           /* skip this garment */

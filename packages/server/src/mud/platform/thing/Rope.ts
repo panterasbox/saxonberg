@@ -75,6 +75,7 @@ import { AppApi } from '../../api/app';
 import { MixinApi } from '../../api/mixin';
 import { SpeciesApi } from '../../api/species';
 import { ContainmentApi } from '../../api/containment';
+import { Placements } from '../../lib/spatial/Placement';
 import { GrammarApi } from '../../api/grammar';
 import { MessageApi } from '../../api/message';
 import { StuffApi } from '../../api/stuff';
@@ -609,10 +610,19 @@ export default class Rope extends CuttableMixin(
     const halter = MixinApi.isCarrying(animal) ? animal.halter() : null;
     if (halter === null) return { ok: false, reason: 'no-halter', facts: { gear, load: animal } };
     if (!MixinApi.isCarrying(by) || by.freeHands() < 1) return { ok: false, reason: 'hands-full', facts: { gear, load: animal } };
-    // The rope goes with the animal: in its keeping, made fast round the halter.
-    // ⚠ Loose on the animal until the halter's row offers a `from` to hang
-    // it from (W6, with the tack); the flip's veto needs that row.
-    if (MixinApi.isCarrying(animal)) animal.receive(this as unknown as Stuff & Line);
+    // ⭐ The rope goes with the animal, HUNG from the halter it is made fast
+    // round (W7: the halter offers `from`, so it is never loose on the
+    // animal); a tieable that offers no `from` (a bare collar) has the rope
+    // received like anything else — and one that takes it nowhere is
+    // nothing to tie a lead to. Decided before anything moves.
+    const rope = this as unknown as Stuff & Line;
+    const hangs = MixinApi.isPlacing(halter) && halter.getPlacements().includes(Placements.FROM)
+      && halter.canPlace(rope, Placements.FROM).ok;
+    if (!hangs && (!MixinApi.isCarrying(animal) || animal.canReceive(rope) !== null)) {
+      return { ok: false, reason: 'no-halter', facts: { gear, load: animal } };
+    }
+    if (hangs && MixinApi.isPlacing(halter)) ContainmentApi.move(rope, halter, Placements.FROM);
+    else if (MixinApi.isCarrying(animal)) animal.receive(rope);
     this._anchor = halter;
     this.anchorPath = halter.getTemplatePath();
     this.knots = [...this.knots.filter((k) => k.end !== 'fixed'), { ...knot, end: 'fixed' }];
