@@ -63,6 +63,14 @@ export interface Organism {
    * citing a cold species is what the sentience gate fails closed on.
    */
   getSpeciesPath(): string | null;
+  /**
+   * ⭐ Load the cited species row (load on use) and answer it — `null`
+   * when the body cites none or the row does not stand up. Awaited where
+   * a body comes into the world (created, restored), so the sync reads
+   * that hang off it — the body plan, the hands, the frame mass — see a
+   * resident row.
+   */
+  ensureSpecies(): Promise<Species | null>;
   setSpecies(value: Species | null): void;
   getAge(): number;
   /** Back-date the birthday so this body is `value` game days old. */
@@ -262,6 +270,16 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public getSpeciesPath(): string | null {
       return this._speciesPath;
+    }
+
+    public async ensureSpecies(): Promise<Species | null> {
+      if (!this._speciesPath) return null;
+      try {
+        return await StuffApi.singleton<Species>(this._speciesPath);
+      } catch {
+        // No such row in this world: the body stays unplanned.
+        return null;
+      }
     }
 
     public setSpecies(value: Species | null): void {

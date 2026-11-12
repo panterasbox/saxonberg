@@ -716,6 +716,11 @@ export class Creature extends CreatureBase {
    * Chained from `Persistable.onRestored`.
    */
   public async onRestored(): Promise<void> {
+    // ⭐ The species row first (size and carrying drive, step 21): after a
+    // restart nothing has loaded it, and a body whose plan is not known is
+    // not judged — it would keep its loose things loose, and every `get`
+    // after would land loose too.
+    await this.ensureSpecies();
     await this.placeLoose();
   }
 

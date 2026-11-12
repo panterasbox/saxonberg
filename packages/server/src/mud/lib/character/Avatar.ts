@@ -875,6 +875,10 @@ export default abstract class Avatar extends AvatarBase {
     context?: AvatarInitContext,
   ): Promise<void> {
     this.stampContext(context);
+    // ⭐ Load on use (size and carrying drive): the species row before the
+    // loadout — a body whose plan is not known is not judged, so an outfit
+    // received before it would not be worn by claim nor hung from the belt.
+    await this.ensureSpecies();
     await this.installDefaultLoadout();
     await this.chainOnCreate(context);
     // Schedules are never persisted, so a body re-books its reminders.
