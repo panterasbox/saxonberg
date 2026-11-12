@@ -305,6 +305,11 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
     // ⭐ The hands that pulled it off take what was on its outside —
     // unless it was peeled off carefully (cleanliness D5).
     if (!wieldy && MixinApi.isHygienic(giver)) giver.doff(target, { careful });
+    // ⭐ Nothing loose on a body (size and carrying D11): what came off is
+    // held, or put up where it lives (drive step 9's backpack).
+    if (MixinApi.isCarrying(giver) && MixinApi.isContainable(target)) {
+      giver.settleReleased(target, wieldy ? 'put-up' : 'hold');
+    }
 
     if (!quiet) {
       MessageApi.scene(giver)

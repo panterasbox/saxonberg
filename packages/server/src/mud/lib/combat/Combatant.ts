@@ -128,7 +128,8 @@ export interface Combatant {
    * becomes the instrument when it comes to hand.
    */
   beginWeaponSwitch(target: Stuff, opts?: { seconds?: number }): { ok: boolean; reason?: string };
-  drawSidearm(): { ok: boolean; reason?: string };
+  /** `words`: why not, in the carrier's own words, when a carry rule refused it. */
+  drawSidearm(): { ok: boolean; reason?: string; words?: string };
   resolveThrown(
     target: Stuff,
     contents: Parameters<CombatLogic["resolveThrown"]>[2],
@@ -629,7 +630,7 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** Fast-draw a sheathed/carried backup weapon. */
-    public drawSidearm(): { ok: boolean; reason?: string } {
+    public drawSidearm(): { ok: boolean; reason?: string; words?: string } {
       return combatLogic().drawSidearm(this as unknown as Stuff);
     }
 

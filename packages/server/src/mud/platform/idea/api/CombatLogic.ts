@@ -450,7 +450,7 @@ export class CombatLogic extends ApiLogic {
   }
 
   @CallSecurity(CombatantCallers)
-  public drawSidearm(actor: Stuff): { ok: boolean; reason?: string } {
+  public drawSidearm(actor: Stuff): { ok: boolean; reason?: string; words?: string } {
     return drawSidearmImpl(actor);
   }
 
@@ -4377,7 +4377,7 @@ function beginSwitchImpl(
   return { ok: true };
 }
 
-function drawSidearmImpl(actor: Stuff): { ok: boolean; reason?: string } {
+function drawSidearmImpl(actor: Stuff): { ok: boolean; reason?: string; words?: string } {
   const backup = findBackupWeapon(actor);
   if (!backup) return { ok: false, reason: "no-sidearm" };
   // ⭐ `fight draw` is a readying (size and carrying D16): the holder
@@ -4385,7 +4385,9 @@ function drawSidearmImpl(actor: Stuff): { ok: boolean; reason?: string } {
   if (MixinApi.isCarrying(actor) && actor.handSlots().length > 0) {
     if (!sessionForImpl(actor)) return { ok: false, reason: "not-in-combat" };
     const refused = actor.ready(backup);
-    return refused === null ? { ok: true } : { ok: false, reason: refused.reason };
+    // ⭐ The carrier's own words travel with the refusal (size and carrying
+    // drive, step 7: a full hand read "You've no sidearm to draw").
+    return refused === null ? { ok: true } : { ok: false, reason: refused.reason, words: actor.refusalWords(refused) };
   }
   return beginSwitchImpl(actor, backup, true);
 }
