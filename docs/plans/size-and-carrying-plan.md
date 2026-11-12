@@ -1116,6 +1116,8 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   `Carrying.receive.test.ts` exactly as `move` did; nothing behaves differently.
 - Commit: `build(size-and-carrying W0): the receiving act, behaving as today; two censuses cap the callers and the surfaces`.
 
+**✅ Done (39d4ba23e).** `CarryingMixin` lives at `lib/slot/Carrying.ts` (`lib/embodiment/` does not exist — `lib/slot/` owns the body-side affordances), base-constrained on `Slotted` only because `Container` composes *outer* of it on `Creature`; `carry.order` is an `enum` setting. Both gates are syntax-only (a type-checked `ts.Program` costs ~95 s): `lint:body-moves` checks four heuristic rules against a hand-tagged roster keyed `file :: Class.method :: dest` (no line numbers; a stale or unrostered row fails), ceiling **101** = made 38 · handed 20 · granted 16 · inherit 27 (+4 allow, 13 not-body) — above the survey's ≈91 because of same-function duplicates and seven inherit sites the survey missed (`Mould.castInto` ×2/`mintRunner`, `ThrownLanding`, `Plant` seed-fall, `LineEnd.followLoad`, `Colony.mintDeparture`, `reembodyImpl`, `Thermal.setLump`); `get`/`untie`/reclaim are tagged *handed* (the refuse-and-move-nothing idiom). `lint:perceived-surfaces` ceiling **32** (14 controller units, 7 binder, 8 `lib/command`, `Expression.evaluate`, `Container`'s `contents` read, `handleQuery`); `PerceptionApi.perceived` does not exist yet, so W3 adds it. Surprise: stale `packages/types` dist broke `tsc` (rebuilt); the build-phase hook refuses `lint:family`, so the touched gates ran one by one.
+
 ### W1 — size (D1–D7)
 
 - `$S/lib/spatial/Dimensions.ts`; `$S/platform/idea/Form.ts` + five rows at
