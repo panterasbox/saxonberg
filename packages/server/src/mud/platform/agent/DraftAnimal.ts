@@ -2,7 +2,7 @@
  * DraftAnimal — **a beast kept in the shafts: it pulls, and it can be
  * ridden.**
  *
- * Composition: `Mountable(Hauler(Beast))`.
+ * Composition: `Persistable(Mountable(Hauler(Beast)))`.
  *
  * ⚠⚠ **It replaces `platform/agent/HaulingCreature`, which was
  * `Mountable(Character)` — a horse that was a
@@ -45,6 +45,19 @@
  *   else. Two lines if the answer is yes, and `Creature.chattel.test.ts`
  *   is the test that changes.
  *
+ * - ⭐ **`Persistable` outermost — it remembers what it carries.** A draft
+ *   animal is `cast:` (persistence.md § *Props and cast*): never a room's
+ *   content, re-minted from its row when its room is restored. Before
+ *   this, everything a player put ON it — the pack saddle, the panniers
+ *   and what was in them, the yard's own props until somebody tacked the
+ *   mule — went with the old instance and was in nobody's record (the
+ *   size-and-carrying drive: *"a cast mule loses its tack across a
+ *   restart"*). Capture the host, not the thing: the beast keeps its own
+ *   record, keyed by its row (cast is one-per-path — `reseedCast`
+ *   conserves by path), captured at shutdown like every host and
+ *   restored at its re-mint through its hydration source — the
+ *   `Stockpile` / `MarketStalls` shape. The room still never carries it.
+ *
  * ⭐ **A second draft animal is a ROW** — a species, a mass, a brain. An
  * ox you lead but do not ride has no row today and gets no class until
  * it does.
@@ -53,9 +66,39 @@
 import Beast from './Beast';
 import { HaulerMixin } from '../../lib/slot/Hauler';
 import { MountableMixin } from '../../lib/slot/Mountable';
+import { PersistableMixin } from '../../lib/persistence/Persistable';
+import { PersistableApi } from '../../api/persistable';
+import type {
+  HydrationSource,
+  HydrateOutcome,
+} from '../../lib/persistence/PersistenceSlice';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
-const DraftAnimalBase = MountableMixin(HaulerMixin(Beast));
+const DraftAnimalBase = PersistableMixin(MountableMixin(HaulerMixin(Beast)));
 
-export class DraftAnimal extends DraftAnimalBase {}
+export class DraftAnimal extends DraftAnimalBase {
+  /**
+   * What the world remembered about this beast — its tack and its load.
+   * `required: false`: an unreachable store is a recorded skip (every test
+   * run), and the beast still stands, fresh from its row.
+   */
+  static hydrationSource: HydrationSource = {
+    name: 'holder_snapshots',
+    required: false,
+  };
+
+  static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
+    try {
+      // ⭐ Its plan first: worn tack re-seats into the slots the species
+      // names, and a body whose plan is not known is not judged.
+      if (host instanceof DraftAnimal) await host.ensureSpecies();
+      await PersistableApi.materialize(host);
+      return { status: 'hydrated' };
+    } catch (err) {
+      // ⚠ Never throw: a throw unregisters the half-built beast.
+      return { status: 'unreachable', reason: String(err) };
+    }
+  }
+}
 
 export default DraftAnimal;
