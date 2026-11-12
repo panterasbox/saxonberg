@@ -912,7 +912,10 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expect(told, 'the player is told where the lantern went').toMatch(
       key('21', /lantern would not fit anywhere on you; it is (in your room|at your feet)/i),
     );
-    // The cast mule comes back wearing what it wore (its own record).
+    // The cast mule comes back wearing what it wore (its own record) — read
+    // by daylight: the yard is open to the sky, and the restart may land at
+    // night ("someone … wearing something").
+    await toHour(9, 12);
     const tackAfter = (await say(back, 'i mule')).w;
     record.push(`mule after restart: ${tackAfter}`);
     expect(tackAfter, 'the mule keeps its tack across the restart').toMatch(/saddle/i);
