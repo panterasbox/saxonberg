@@ -51,7 +51,6 @@ import type {
   HorizonView, HorizonSighting, HorizonTraffic, Observation, VisibleContents,
 } from '../../../api/perception';
 import { WorldClockApi } from '../../../api/worldclock';
-import { ExecutionContextApi, OMNI_SCOPE } from '../../../api/execution-context';
 import type { SpatialZone } from '../../../lib/zone/SpatialZone';
 import type Place from '../../../lib/stuff/Place';
 import type Structure from '../../../lib/structure/Structure';
@@ -1791,26 +1790,9 @@ function reachOf(actor: Stuff, opts?: ReachOptions): Reached[] {
       if (want('attached')) pushHosted(occ);
     }
     if (MixinApi.isContainer(actor)) {
-      // ⚠ Sandbox hygiene, before anything is asked of an item: a walk in a
-      // circle never reads a field object (the proxy denies any method on
-      // it). Omni sees all.
-      const ctxScope = ExecutionContextApi.getCircleScope();
-      const inScope = (c: Stuff): boolean => ctxScope === OMNI_SCOPE || c.getCircleScope() === ctxScope;
-      // Breadth-first, never into another body; then stable by tier.
-      const tree: Stuff[] = [];
-      let frontier: Stuff[] = [actor];
-      for (let level = 0; frontier.length > 0 && level <= 32; level++) {
-        const next: Stuff[] = [];
-        for (const holder of frontier) {
-          if (!MixinApi.isContainer(holder)) continue;
-          for (const item of holder.getContents()) {
-            if (!inScope(item)) continue;
-            tree.push(item);
-            if (MixinApi.isContainer(item) && !item.isAgent()) next.push(item);
-          }
-        }
-        frontier = next;
-      }
+      // ⭐ The carried tree is the container's own read (breadth-first,
+      // never into another body, sandbox-scoped) — then stable by tier.
+      const tree: Stuff[] = actor.getCarriedContents();
       const ranked = tree
         .map((stuff, i) => ({ stuff, i, rank: TIER_RANK[tierOfImpl(actor, stuff)] }))
         .sort((a, b) => a.rank - b.rank || a.i - b.i);

@@ -148,76 +148,46 @@ export default class InventoryController extends CommandController<InventoryMode
     return Mml.compose`\n${body}\n`;
   }
 
-  /** ⭐ Yourself by tier (D28). */
+  /** ⭐ Yourself by tier (D28) — the sorting is the carrier's (`Carrying.carriedTiers`). */
   private static tiered(viewer: Stuff & Carrying, model: InventoryModel): Mml {
     const carrier = viewer;
     const weight = model.weight === true;
-    const onMe = MixinApi.isContainer(viewer) ? PerceptionApi.perceived(viewer, viewer.getContents()) : [];
 
     if (model.flat === true) {
-      const everything: Stuff[] = [];
-      const seen = new Set<string>();
-      const walk = (xs: readonly Stuff[]): void => {
-        for (const x of xs) {
-          if (seen.has(x.stuffId)) continue;
-          seen.add(x.stuffId);
-          everything.push(x);
-          if (MixinApi.isContainer(x) && !x.isAgent()) walk(PerceptionApi.perceived(viewer, x.getContents()));
-        }
-      };
-      walk(onMe);
+      const everything = MixinApi.isContainer(viewer)
+        ? PerceptionApi.perceived(viewer, viewer.getCarriedContents())
+        : [];
       return everything.length === 0
         ? Mml.compose`\nYou are not carrying anything.\n`
         : Mml.compose`\nYou have: ${InventoryController.list(viewer, everything, weight)}.\n`;
     }
 
-    // Sort what is directly on the body by how it is carried.
-    const slotOf = new Map<string, string[]>();
-    if (MixinApi.isSlotted(viewer)) {
-      for (const [slot, occ] of viewer.getAllOccupants()) {
-        for (const o of occ) slotOf.set(o.stuffId, [...(slotOf.get(o.stuffId) ?? []), slot]);
-      }
-    }
-    const held: Stuff[] = [];
-    const worn: Stuff[] = [];
-    const readyContainers: Stuff[] = [];
-    const packedContainers: Stuff[] = [];
-    const loose: Stuff[] = [];
-    /** Placed things by host and region, in the order met. */
-    const regions = new Map<string, { host: Stuff & Placing; region: string; items: Stuff[] }>();
-    for (const x of onMe) {
-      const tier = carrier.tierOf(x);
-      const pair = MixinApi.isContainable(x) ? x.getPlacement() : null;
-      if (tier === 'hand') {
-        held.push(x);
-      } else if (pair !== null && pair.host.stuffId !== viewer.stuffId && MixinApi.isPlacing(pair.host)) {
-        const key = `${pair.host.stuffId}\u0000${pair.name}`;
-        const g = regions.get(key) ?? { host: pair.host, region: pair.name, items: [] };
-        g.items.push(x);
-        regions.set(key, g);
-        if (MixinApi.isContainer(x) && !x.isAgent()) readyContainers.push(x);
-      } else if (slotOf.has(x.stuffId)) {
-        const isContainer = MixinApi.isContainer(x) && !x.isAgent();
-        if (!isContainer) worn.push(x);
-        else if (tier === 'packed' || (slotOf.get(x.stuffId) ?? []).includes('back')) packedContainers.push(x);
-        else readyContainers.push(x);
-      } else {
-        loose.push(x);
-      }
-    }
+    // What is directly on the body, by how it is carried — each list perceived.
+    const tiers = carrier.carriedTiers();
+    const seen = (xs: readonly Stuff[]): Stuff[] => PerceptionApi.perceived(viewer, xs);
+    const held = seen(tiers.held);
+    const worn = seen(tiers.worn);
+    const readyContainers = seen(tiers.ready);
+    const packedContainers = seen(tiers.packed);
+    const loose = seen(tiers.loose);
+    const regions = tiers.regions
+      .map((g) => ({ ...g, items: seen(g.items) }))
+      .filter((g) => g.items.length > 0);
 
     const only = (['held', 'ready', 'worn', 'packed'] as const).filter((s) => model[s] === true);
     const shows = (s: Section): boolean => only.length === 0 || only.includes(s);
     const list = (xs: Stuff[]): Mml => InventoryController.list(viewer, xs, weight);
-    const contentsOf = (c: Stuff): Stuff[] =>
-      MixinApi.isContainer(c) ? PerceptionApi.perceived(viewer, c.getContents()) : [];
+    const contentsOf = (c: Stuff): Stuff[] => {
+      const v = PerceptionApi.visibleContentsOf(viewer, c);
+      return [...v.held, ...v.worn, ...v.carried];
+    };
     const lines: Mml[] = [];
 
     if (shows('held') && held.length > 0) lines.push(Mml.compose`In hand: ${list(held)}.`);
 
     if (shows('ready')) {
       const ready: Mml[] = [];
-      for (const g of regions.values()) {
+      for (const g of regions) {
         const member = g.host.placementOf(g.region);
         const named = g.host.namedRegions().includes(g.region);
         const where = named
@@ -235,7 +205,8 @@ export default class InventoryController extends CommandController<InventoryMode
             : Mml.compose`  ${Mml.thing(c)}: empty.`,
         );
       }
-      // ⚠ Until the flip (W7), a thing can still be loose on you — ready.
+      // Nothing should be loose on a body after the flip (D11); if a
+      // restore or an old caller left something so, it is shown, not hidden.
       if (loose.length > 0) ready.push(Mml.compose`  Loose: ${list(loose)}.`);
       if (ready.length > 0) {
         lines.push(Mml.compose`Ready:`);

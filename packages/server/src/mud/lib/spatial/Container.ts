@@ -123,6 +123,21 @@ export interface Container {
   getDeepContents(): (Stuff & Containable)[];
 
   /**
+   * ⭐ **Everything a person carries, as one list** — my contents and
+   * theirs, all the way down, breadth-first (the top level first, so a
+   * stable tie-break reads nearest-first), **never into another body** (a
+   * mouse in a pocket is carried; what the mouse ate is not), and only what
+   * the current sandbox circle may read (omni sees all). The person's half
+   * of reach (`PerceptionLogic.reachOf`) and `inventory --flat` read it.
+   *
+   * Unlike {@link getDeepContents} (depth-first, into everything) this is
+   * the CARRIED tree: the containment walk lives on the container, so no
+   * caller grows its own frontier (`lint:graph-walks` — a containment
+   * walk beside a room's exits read as a graph walk; size-and-carrying W7).
+   */
+  getCarriedContents(): (Stuff & Containable)[];
+
+  /**
    * ⭐⭐ **What a hand could take from in here, reaching in from OUTSIDE**
    * — my own contents and one level into every OPEN thing among them
    * (`MixinApi.isOpenContainer`: the crate's limes, not a box inside the
@@ -892,6 +907,24 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     getReachableContents(): Stuff[] {
       const self = this as unknown as Stuff & Container;
       const out: Stuff[] = [];
+    /** See the interface docstring (size-and-carrying W7). */
+    getCarriedContents(): (Stuff & Containable)[] {
+      const ctxScope = ExecutionContextApi.getCircleScope();
+      const inScope = (c: Stuff): boolean => ctxScope === OMNI_SCOPE || c.getCircleScope() === ctxScope;
+      const out: (Stuff & Containable)[] = [];
+      const holders: (Stuff & Container)[] = [this as unknown as Stuff & Container];
+      // `out` grows behind `holders`; containment is acyclic (`setContainer`
+      // refuses an ancestor), so the walk ends with the tree.
+      for (let i = 0; i < holders.length; i++) {
+        for (const item of holders[i]!.getContents()) {
+          if (!inScope(item)) continue;
+          out.push(item);
+          if (MixinApi.isContainer(item) && !item.isAgent()) holders.push(item);
+        }
+      }
+      return out;
+    }
+
       // ⚠ Sandbox hygiene, before anything is asked of an item: a walk in a
       // circle never reads a field object (or one of another circle) — the
       // proxy denies any method on it, the lid read included (the

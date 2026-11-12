@@ -74,15 +74,15 @@ describe('lens — the builder lens', () => {
   beforeEach(() => {
     said = [];
     quietScenes();
-    shop = makeStuffAtPath(() => new Location(), '/world/test/mine/shop');
-    street = makeStuffAtPath(() => new Location(), '/world/test/theirs/street');
+    shop = makeStuffAtPath(() => new Location(), '/test/lens/mine/shop');
+    street = makeStuffAtPath(() => new Location(), '/test/lens/theirs/street');
     me = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/builder');
     me.setPlayerId('builder');
     ContainmentApi.move(me, shop);
     coinInShop = shutBoxWith(shop);
     coinOnStreet = shutBoxWith(street);
     vi.spyOn(AccessApi, 'heldExtents').mockImplementation(async (subject) =>
-      (subject as Stuff | null)?.stuffId === me.stuffId ? ['/world/test/mine'] : [],
+      (subject as Stuff | null)?.stuffId === me.stuffId ? ['/test/lens/mine'] : [],
     );
   });
   afterEach(() => {
@@ -98,7 +98,7 @@ describe('lens — the builder lens', () => {
 
   it('⭐ on: inside a held extent everything is perceived, and labelled builder; outside, plainly', async () => {
     await lens(me, 'on');
-    expect(me.lensExtents()).toEqual(['/world/test/mine']);
+    expect(me.lensExtents()).toEqual(['/test/lens/mine']);
     expect(PerceptionApi.perceives(me, coinInShop)).toBe(true);
     expect(PerceptionApi.perceivedHow(me, coinInShop)).toBe('builder');
     expect(PerceptionApi.perceives(me, coinOnStreet)).toBe(false);
@@ -127,7 +127,7 @@ describe('lens — the builder lens', () => {
 
   it('⛔ the lens is the extents you HOLD — there is no way to hand a character others', async () => {
     expect((me as unknown as Record<string, unknown>).setLensExtents).toBeUndefined();
-    vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue(['/world/test/mine']);
-    expect(await me.lensOn()).toEqual(['/world/test/mine']);
+    vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue(['/test/lens/mine']);
+    expect(await me.lensOn()).toEqual(['/test/lens/mine']);
   });
 });

@@ -149,6 +149,26 @@ export type CarryPlace =
   | { host: Stuff & Placing; region: string };
 
 /** A home's host: a container on the body, or a placing host whose region it is. */
+/**
+ * ⭐ What is directly on a body, sorted by how it is carried (D28) — the
+ * model's half of the tiered `inventory`. Each list is raw: the SURFACE
+ * passes it through `PerceptionApi.perceived`.
+ */
+export interface CarriedTiers {
+  /** In the hands. */
+  held: Stuff[];
+  /** Placed on a worn host, by host and region in the order met (a pocket, a belt's `from`). */
+  regions: { host: Stuff & Placing; region: string; items: Stuff[] }[];
+  /** Worn, and not a container. */
+  worn: Stuff[];
+  /** Containers to hand: worn off the back, or hung from / pocketed on a worn host. */
+  ready: (Stuff & Container)[];
+  /** Containers on the back — what is in them is packed. */
+  packed: (Stuff & Container)[];
+  /** Neither held, worn nor placed — what the flip's veto refuses; empty on an honest body. */
+  loose: Stuff[];
+}
+
 export type HomeHost = (Stuff & Container) | (Stuff & Placing);
 
 export interface Carrying {
@@ -270,6 +290,8 @@ export interface Carrying {
   /** ⭐ What a pack holds, as `inventory` tells it shut (D28): `5 things, 3.2 kg`, or `empty`. */
   tallyWords(things: readonly Stuff[]): string;
 }
+  /** ⭐ What is directly on this body, sorted by how it is carried (D28) — raw; a surface perceives it. */
+  carriedTiers(): CarriedTiers;
 
 /** A numeric dial with a fallback (the `LoadBearing` shape). */
 function dialSeconds(key: string, fallback: number): number {
@@ -964,6 +986,41 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
         scene.send();
       }
       return dropped;
+    }
+
+    public carriedTiers(): CarriedTiers {
+      const self = this as unknown as Stuff & Slotted & Container;
+      const slotOf = new Map<string, string[]>();
+      for (const [slot, occ] of self.getAllOccupants()) {
+        for (const o of occ) slotOf.set(o.stuffId, [...(slotOf.get(o.stuffId) ?? []), slot]);
+      }
+      const out: CarriedTiers = { held: [], regions: [], worn: [], ready: [], packed: [], loose: [] };
+      const regions = new Map<string, CarriedTiers['regions'][number]>();
+      const isHolder = (x: Stuff): x is Stuff & Container => MixinApi.isContainer(x) && !x.isAgent();
+      for (const x of self.getContents()) {
+        const tier = this.tierOf(x);
+        const pair = MixinApi.isContainable(x) ? x.getPlacement() : null;
+        if (tier === 'hand') {
+          out.held.push(x);
+        } else if (pair !== null && pair.host.stuffId !== self.stuffId && MixinApi.isPlacing(pair.host)) {
+          const key = `${pair.host.stuffId}\u0000${pair.name}`;
+          let g = regions.get(key);
+          if (g === undefined) {
+            g = { host: pair.host, region: pair.name, items: [] };
+            regions.set(key, g);
+            out.regions.push(g);
+          }
+          g.items.push(x);
+          if (isHolder(x)) out.ready.push(x);
+        } else if (slotOf.has(x.stuffId)) {
+          if (!isHolder(x)) out.worn.push(x);
+          else if (tier === 'packed' || (slotOf.get(x.stuffId) ?? []).includes(PACKED_SLOT)) out.packed.push(x);
+          else out.ready.push(x);
+        } else {
+          out.loose.push(x);
+        }
+      }
+      return out;
     }
 
     // ── shape and sound (D12, D36) ──
