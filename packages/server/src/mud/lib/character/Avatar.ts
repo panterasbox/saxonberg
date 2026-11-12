@@ -13,7 +13,6 @@
 import { ShelledCharacter } from "../shell/ShelledCharacter";
 import { NamedMixin } from "../description/Named";
 import { PlayerApi } from "../../api/player";
-import { AccessApi } from "../../api/access";
 import { SandboxApi } from "../../api/sandbox";
 import { ConnectionApi } from "../../api/connection";
 import { EventApi } from "../../api/event";
@@ -422,42 +421,6 @@ export default abstract class Avatar extends AvatarBase {
    * name; other Stuff use `getLastSeen` / `markSeen`.
    */
   public lastSeen: number = 0;
-
-  /**
-   * ⭐ **The builder lens** (size-and-carrying D25): the extents this
-   * character held when it last said `lens on`, or `null` with the lens
-   * off. RUNTIME only — never persisted, so a logout (which destructs the
-   * avatar) clears it, and a new session starts plain. Read by
-   * `PerceptionApi.perceives`' rule 0: inside one of these extents the
-   * builder perceives everything (a concealed trap, a hidden way), and the
-   * surfaces label such a line `[builder]`. ⛔ Never a wizard check — the
-   * extents come from `AccessApi.heldExtents`.
-   */
-  private _lensExtents: string[] | null = null;
-
-  /** The builder lens's memoized extents, or `null` when it is off. */
-  public lensExtents(): readonly string[] | null {
-    return this._lensExtents;
-  }
-
-  /**
-   * ⭐ **Look through the builder lens** (D25): read the extents this
-   * character holds NOW (`AccessApi.heldExtents` — title, never the wizard
-   * axis) and keep them for the session. Holding none, the lens stays off.
-   * Returns what it is on over (empty when it stayed off). The extents come
-   * from the access registry and nowhere else, so nobody can hand a
-   * character a lens it does not hold.
-   */
-  public async lensOn(): Promise<readonly string[]> {
-    const held = await AccessApi.heldExtents(this);
-    this._lensExtents = held.length > 0 ? [...held] : null;
-    return held;
-  }
-
-  /** Put the builder lens down — the character perceives plainly again. */
-  public lensOff(): void {
-    this._lensExtents = null;
-  }
 
   /** Epoch ms of the last logout, or `undefined` if never played. */
   public getLastSeen(): number | undefined {

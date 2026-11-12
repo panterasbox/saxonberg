@@ -2,7 +2,8 @@
  * AuthorMixin — object-lifecycle and code-execution verbs on
  * `ShelledCharacter`.
  *
- * The mixin owns no state v1: the verbs are universal in capability,
+ * The mixin's one piece of state is the builder lens (size-and-carrying
+ * D25) — runtime only, never persisted. The verbs are universal in capability,
  * gated by permission (deferred), and the per-target witness seams
  * (`canClone` / `canReload` / `canDestruct` / `canTeleport`) live on
  * the targets themselves rather than as actor-side configuration.
@@ -12,14 +13,19 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { Stuff } from '../stuff/Stuff';
+import { AccessApi } from '../../api/access';
 import type { CommandContributions } from '../../api/command';
 import type { SettingsSchemaEntry } from './Environment';
 import { SettingTypes } from './Environment';
 
 export interface Author {
-  // No public-method surface v1 — the verbs do their own work
-  // through the lower-layer Apis. The mixin's value is the
-  // commandContributions list and the schema declarations.
+  /** The builder lens's memoized extents, or `null` when it is off. */
+  lensExtents(): readonly string[] | null;
+  /** Look through the builder lens over the extents held now. */
+  lensOn(): Promise<readonly string[]>;
+  /** Put the builder lens down. */
+  lensOff(): void;
 }
 
 export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -31,6 +37,37 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
      * schema only, not stored state.
      */
     static fieldMeta: FieldMeta = {};
+
+    /**
+     * ⭐ **The builder lens** (size-and-carrying D25): the extents this
+     * author held when it last said `lens on`, or `null` with the lens off.
+     * RUNTIME only — never persisted, so a logout clears it and a new
+     * session starts plain. Read by `PerceptionApi.perceives`' rule 0:
+     * inside one of these extents the builder perceives everything, and the
+     * surfaces label such a line `[builder]`. It lives on the author shell,
+     * not the avatar: a character with no author shell carries none of it.
+     * ⛔ Never a wizard check — the extents come from `AccessApi.heldExtents`.
+     */
+    private _lensExtents: string[] | null = null;
+
+    public lensExtents(): readonly string[] | null {
+      return this._lensExtents;
+    }
+
+    /**
+     * Read the extents this author holds NOW (`AccessApi.heldExtents` —
+     * title, never the wizard axis) and keep them for the session. Holding
+     * none, the lens stays off. Returns what it is on over.
+     */
+    public async lensOn(): Promise<readonly string[]> {
+      const held = await AccessApi.heldExtents(this as unknown as Stuff);
+      this._lensExtents = held.length > 0 ? [...held] : null;
+      return held;
+    }
+
+    public lensOff(): void {
+      this._lensExtents = null;
+    }
 
     /**
      * Eval-side knobs, session-lifetime so they round-trip through

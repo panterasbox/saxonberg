@@ -977,6 +977,7 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
 
 ### Pockets, gear, inventory, the flip
 
+- **D25-c (owner review, 2026-11-12)** — The lens lives on **`AuthorMixin`**, not `Avatar`: the lens is an author's tool, the verb was already afforded by `AuthorMixin`, and a character with no author shell (a future consumer-only avatar that opts out of the authoring and labor stack) should carry none of it. `_lensExtents`/`lensOn`/`lensOff`/`lensExtents` moved to `lib/shell/Author.ts`; perception's rule 0 and the three lens controllers narrow on `MixinApi.isAuthor`.
 - **D26 — a pocket is a named region offered by the garment, never an object, and the
   garment holds nothing itself.** `Garment` composes `PlacingMixin` only (class default
   `placements: []` — a garment with no pockets offers nothing); a pocketed thing lives in

@@ -1108,7 +1108,7 @@ function onBodyOf(viewer: Stuff, target: Stuff): boolean {
  * lens is for content, not people.
  */
 function lensAdmits(viewer: Stuff, target: Stuff): boolean {
-  if (!PlayerApi.isAvatarStuff(viewer)) return false;
+  if (!MixinApi.isAuthor(viewer)) return false;
   const extents = viewer.lensExtents();
   if (extents === null || extents.length === 0) return false;
   for (const s of [target, ...upward(target)]) {

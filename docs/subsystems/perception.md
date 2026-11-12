@@ -357,7 +357,7 @@ sync at the enumeration seams by warming it into
 `PerceptionApi.perceives(viewer, target)` decides, in order:
 
 0. **the builder lens** — `lens on` memoized the extents the viewer holds
-   (`Avatar.lensOn` ← `AccessApi.heldExtents`; never a wizard check); a
+   (`AuthorMixin.lensOn` ← `AccessApi.heldExtents`; never a wizard check); a
    thing whose enclosing place (an exit: its source) lies under one is
    perceived. ⛔ Never a player's body or what is on one.
 1. **your own body** and everything on it, at any depth.
@@ -389,8 +389,8 @@ A thing also concealed must still clear `resolveSearch`'s awareness
 check. Witnesses hear *"Mara goes through the dead man's pockets."*
 
 ⭐ **The builder lens** is a verb (`lens` reports, `lens on`, `lens off`
-— `author` category, afforded by `AuthorMixin`) and a memo on the avatar
-(`Avatar.lensOn()` / `lensOff()`, no setter — nothing can hand a
+— `author` category, afforded by `AuthorMixin`) and a memo on the author shell
+(`AuthorMixin.lensOn()` / `lensOff()`, no setter — nothing can hand a
 character a lens it does not hold), never a wizard check.
 
 **`PerceptionApi.perceived(viewer, list, ordinal?)`** — the members of a
