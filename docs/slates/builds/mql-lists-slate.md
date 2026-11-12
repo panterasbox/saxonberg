@@ -24,6 +24,6 @@ and how the client teaches it.
 
 ## Related
 
-- [controller-survey/](./controller-survey/README.md) — the survey that found
+- the controller survey (retired with MR !561; read it at `git show 13cece156:docs/slates/builds/controller-survey/README.md`) — the survey that found
   the greedy arguments.
 - [mql-grammar.md](../../mql-grammar.md)

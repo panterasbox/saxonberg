@@ -149,4 +149,4 @@ Each item is a case the conversation should be able to classify.
 - [spatial.md § Writes on a detached subject](../../subsystems/spatial.md): the current written policy.
 - [response-envelope.md](../../subsystems/response-envelope.md), [diagnostics.md](../../subsystems/diagnostics.md), [command-spec.md](../../subsystems/command-spec.md) (the act convention, the quote hint).
 - [call-security-pass-slate.md](./call-security-pass-slate.md) § The actor claim: a refused `ActsAs` is one more failure this model must route.
-- `docs/plans/controller-liquidity-plan.md` (while it lives): Appendix C, the defect ledger, where most of the evidence above is recorded.
+- The controller-liquidity plan's Appendix C, the defect ledger where most of the evidence above is recorded (retired with MR !561; read it at `git show 13cece156:docs/plans/controller-liquidity-plan.md`).
