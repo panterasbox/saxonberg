@@ -4347,6 +4347,17 @@ function findBackupWeapon(actor: Stuff): Stuff | null {
       if (isWeaponItem(occ)) return occ as Stuff;
     }
   }
+  // ⭐ After the flip nothing is loose on a body (size and carrying D11):
+  // a sidearm is in a sheath or scabbard hung from the belt, ready to hand.
+  // `fight draw` with a sword in its scabbard answered "no sidearm" (the
+  // drive, step 7). Any weapon READY on the carrier — not packed, not the
+  // one in hand — is the backup.
+  if (MixinApi.isCarrying(actor) && MixinApi.isContainer(actor)) {
+    for (const item of actor.getCarriedContents()) {
+      if ((item as Stuff) === wielded || !isWeaponItem(item)) continue;
+      if (actor.tierOf(item as Stuff) === 'ready') return item as Stuff;
+    }
+  }
   if (MixinApi.isContainer(actor)) {
     for (const item of actor.getContents()) {
       if ((item as Stuff) !== wielded && isWeaponItem(item)) return item as Stuff;
