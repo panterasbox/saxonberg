@@ -299,6 +299,8 @@ export class TestHarnessLogic extends ApiLogic {
    */
   @CallSecurity(TestHarnessApiCallers)
   public async afflict(handle: string, conditionPath: string, stage = 1): Promise<AfflictReport> {
+    // The stage is the logic's to judge, not the verb's (lint:controller-decisions).
+    if (!(Number.isFinite(stage) && stage > 0)) throw new Error(`testharness afflict: a stage is a number above 0 (got ${stage})`);
     const body = this.residentCharacter(handle, 'afflict');
     const row = await StuffApi.singleton<Stuff>(conditionPath).catch(() => null);
     if (!(row instanceof Condition)) throw new Error(`testharness afflict: '${conditionPath}' is not a condition`);

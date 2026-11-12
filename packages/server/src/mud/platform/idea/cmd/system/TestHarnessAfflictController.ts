@@ -17,7 +17,7 @@ export default class TestHarnessAfflictController extends TestHarnessControllerB
   async execute(model: TestHarnessModel, context: CommandContext): Promise<void> {
     return this.staged(context, async () => {
       const stage = model.cite === undefined || model.cite === '' ? undefined : Number(model.cite);
-      if (!model.op || !model.value || (stage !== undefined && !(stage > 0))) {
+      if (!model.op || !model.value) {
         return this.refuse(
           context,
           TOPIC,
