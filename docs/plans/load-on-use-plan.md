@@ -889,7 +889,7 @@ every biome reader is a host's constituent, as the census said.
 - Drive steps 1–2 at W9.
 - Commit: `refactor(load-on-use): W7 — a biome loads with its place; the catalogue goes`.
 
-### W8 (a + b, landing as one wave) — IN PROGRESS
+### W8 (a + b, landing as one wave) — ✅ DONE (22d9831ab)
 
 ⚠ **W8a and W8b land together**: `MaterialApi.materials()` must be a
 `singletonSync` (D13) before any sync door is loud, and that means the
@@ -958,7 +958,16 @@ alone would leave every production material cold. Done so far:
   rows up as singletons; their material halves want a split field — a
   follow-up, recorded for the docs sweep. Fixture
   `lib/material/__tests__/materials.ts` (`standMaterials`, `TEST_TISSUES`).
-- Still to do: the suite sweep — server `lib/
+- ✅ Post-merge (controller liquidity landed mid-wave): the reads re-applied
+  where the logic moved (`DyeBath.dyestuff()` async over the catalogue,
+  `TrapKit`'s government read, `Trap`/`LayController` water,
+  `SmeltingFurnace`, `TextileWork`'s `WEAVE_FABRIC` map, `Structure`'s coat).
+  `Bottle`/`Potion` lost their constructor glass — the 14 rows that leaned
+  on it author `_materialPath` (`lint:mass` 224 → 210). `BiomeApi.
+  defaultEnclosureMaterial()` (+ `@TestOnly standDefaultEnclosureForTesting`,
+  a blank wall for a suite with no root biome). `test:near` 816 files green;
+  `lint:family` green (controller-resolution 80 → 79, on-create 80 → 78).
+- (historical) Still to do: the suite sweep — server `lib/
   material`, `lib/bulk`, `lib/biome`, `lib/thermal` and the sugar, dairying,
   chandlery, smelting packs are green; the rest waits for a quiet machine
   (build-2 finalizing).
