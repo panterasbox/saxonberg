@@ -520,6 +520,51 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   `north: {destination: …, opening: {width: 0.9, height: 1.4}}`); a site that differs
   from its kind authors `opening:`/`turn:` the same way.
 
+**Decided while building W1** (beyond D1–D8):
+
+- **D1-b** — Tangible's field is `shape` (authored `shape: rod`), not `form`: the glass
+  pack's `Sheet`/`Gather` and `Construction` already own `form`/`getForm()`. The rows stay `Form`.
+- **D1-c** — Forms load on use (P7): `Tangible.ensureShape()` at the async seams (`put`, prop
+  install); a sync `getShape()` miss starts the load (omni scope only — a commons row is never
+  minted in a circle) and answers *unknown* once. No boot entry, no `onCreate`.
+- **D1-d** — `SIZE_DEFAULTS` (packing, interior fraction, hang safety, the room words) live beside
+  `Dimensions`, not in `Carrying.ts`: Tangible importing Carrying cycles through Slotted → Thing.
+- **D2-b** — `Assembled` sums `PartLine.volumeM3`, recorded by `CraftingLogic` as each line goes in
+  (no sync template read exists); a found thing or any unrecorded line answers by its own mass
+  (+ its interior when Bulkable — a cask is its staves and its room).
+- **D2-c** — `getMatterVolumeM3()` (mass ÷ density) is the one promoted rule; `Buoyant`'s walk reads
+  it, not the outer volume (a vessel's room floods or its contents are walked) — displacement is
+  unchanged. Stackable reads `getMass()` as one unit's; `Coin` (mass = the pile's) overrides.
+  Rope packs as a coil (×1.3), not cloth (×2).
+- **D4-b** — A container's ROOM is known only from an authored box (× 0.9), a vessel's
+  `interiorCapacity` (in its rigid form's proportions; a flexible one's as a block) or a place's
+  cube. A hollow thing's derived size measures its walls, so it is never asked — every shipped
+  `Pack`/`Vessel` with no authored box behaves as before. An unknown size (no mass, no material,
+  form not loaded) is never refused. Bodies have no bounds and are never pressed.
+- **D4-c** — The derived mouth of a thing-container is its interior's top face (a bag opens as
+  wide as it is), not the container's own packed cross-section.
+- **D4-d** — `fitRefusal` tries every-side-closed first and reads a place's exposure only when that
+  fails (an open side only lets more in) — so a move into a room never resolves its neighbours.
+  A place's interior is its cube whatever its top (an open top is an open side).
+- **D4-e** — A hanging host takes its FIRST thing whatever its width (a hook is a point); the length
+  bounds the sum from the second. `tensileStrengthMPa` is on base `Material` as planned (on
+  `Solidity` it raised `lint:material-kinds` by 215 gaps).
+- **D4-f** — The specialized `canAddContainable` overrides (well/bilge/wellhead/conduit pumps, Store,
+  Hive, both coppers, rearing tray, envelope) own the whole answer; only the default body asks the
+  tape measure. Open-fronted places: `openSides ≥ 1` opens depth, `≥ 3` width.
+- **D4-g** — `placements` entries: `getPlacements()` returns region keys (`name ?? member`);
+  `Placing.placementOf(key)` is the one read of a region's `Placement` — every reader of a placed
+  pair goes through the host (`getEnclosingScope`, look/sense headings, dry, put, offers).
+- **D5-b** — Arrival pressing fires from the chokepoint (`moveCore` for a thing container, `placeOn`
+  for a placed thing), a tick later — not an `onContainableAdded` default overriders would swallow.
+  It reads the CONTAINER's medium: a cork floats in a bucket's own water and stays.
+  `ContainmentApi.move(placed, itsOwnContainer)` now takes it off its host (was a no-op).
+- **D6-b** — `gravityNow()` answers the scope's own `_gravity` synchronously, else the memo, else
+  9.81 while the first resolution runs (`postRegister` no longer exists); an exposure rebuild
+  re-resolves keeping the last answer.
+- **D8-b** — `Exit.clearanceRefusal` measures the mover's own fit box in W1; W2 swaps in the
+  envelope and the hand occupants. `turn` rides `ExitInstruction`/bidirectional options per site.
+
 ### Hands and carrying
 
 - **D9 — a hand is a slot whose body part serves `manipulation`.** `CarryingMixin.
@@ -1159,6 +1204,8 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   boundary build's; a shipped prop that fails the enclosed-place check is a **finding**,
   resolved by sizing the row, never by widening the rule).
 - Commit: `build(size-and-carrying W1): a thing has a size; a container bounds it on the sides it closes; pressed in, or it leaves`.
+
+**✅ Done (dc645f614).** Size, fit, pressing, ceilings and clearances landed as planned, with fifteen build decisions recorded as D1-b…D8-b above (notably: Tangible's field is `shape`; a container's room is known only from an authored box, a vessel's capacity or a place's cube, so hollow shipped containers are never asked; fit tries all-sides-closed before reading a place's exposure; forms load on use via `ensureShape`). Finding: the generic clothes-line derived to a 19 cm block (two shirts) — authored 2.5 m; a static scan of every `props:` list found no enclosed place over-filled. ⚠ W2: `clearanceRefusal(mover, mode)` measures only the mover's fit box — add the envelope and the hand occupants; await `ensureShape()` at any new async seam that asks a size.
 
 ### W2 — bodies and openings (D8, D19–D22)
 
