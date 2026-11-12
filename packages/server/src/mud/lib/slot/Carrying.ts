@@ -1597,9 +1597,20 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
         case 'packed':
           return `It's packed in ${a(r.facts.by)} — take it off first (\`remove ${r.facts.by.presentationPhrase().bare()}\`).`;
         case 'hands-full': {
-          const held = r.facts.held.presentationPhrase().bare();
-          const where = r.facts.home !== null ? ` — ${a(r.facts.home)} won't take it back` : ' — it has nowhere to go';
-          return `Your hands are full${where}. Drop it (\`drop ${held}\`) or put it away first.`;
+          // ⭐ Name what the hands hold and offer each to drop (the drive,
+          // step 7: a lantern and a shield, and the words named only one).
+          const all = this.heldThings();
+          const kw = (x: Stuff): string =>
+            (MixinApi.isPerceptible(x) ? x.getPrimaryKeyword() : undefined) ?? x.presentationPhrase().bare();
+          const stuck = r.facts.held;
+          const where = r.facts.home !== null
+            ? `${a(stuck)} won't go back in ${a(r.facts.home)}`
+            : `${a(stuck)} has nowhere to go`;
+          if (all.length > 1) {
+            const drops = all.map((h) => `\`drop ${kw(h)}\``).join(' or ');
+            return `Your hands are full — ${GrammarApi.joinList(all.map(a))} — and ${where}. Drop one (${drops}) or put it away first.`;
+          }
+          return `Your hands are full, and ${where}. Drop it (\`drop ${kw(stuck)}\`) or put it away first.`;
         }
         case 'hands-needed': {
           const held = r.facts.held.map((h) => h.presentationPhrase().indefinite());

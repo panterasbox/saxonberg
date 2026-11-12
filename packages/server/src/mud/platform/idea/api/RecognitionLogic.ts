@@ -23,6 +23,7 @@ import { RECOGNITION, IDENTIFICATION } from '../../../lib/belief/BeliefStore';
 import { Appearance } from '../../../lib/identification/Appearance';
 import { DescriptorBank } from '../../../lib/identification/DescriptorBank';
 import { MagicApi } from '../../../api/magic';
+import { PerceptionApi } from '../../../api/perception';
 
 
 
@@ -405,8 +406,14 @@ function describeCore(
   if (!MixinApi.isSensor(viewer) || !MixinApi.isPerception(viewer)) {
     return viewerlessForm(target, form, baseline);
   }
-  // Backstop visibility gate.
-  if (!canSeeGate(viewer, target)) {
+  // Backstop visibility gate. ⭐ Not for what you KNOW without seeing it
+  // (size and carrying drive, steps 14 and 20): what is on your own body —
+  // the mug in your own shut pack, by touch — and what the builder lens
+  // shows its builder read by name, not as "something".
+  const known =
+    (MixinApi.isCarrying(viewer) && viewer.tierOf(target) !== 'elsewhere') ||
+    PerceptionApi.perceivedHow(viewer, target) === 'builder';
+  if (!known && !canSeeGate(viewer, target)) {
     return obscured(target);
   }
 

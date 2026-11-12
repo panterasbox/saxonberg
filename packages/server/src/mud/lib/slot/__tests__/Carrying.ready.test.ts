@@ -104,7 +104,8 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     ContainmentApi.move(compass, wornBag(me, plan, 'satchel', 'waist'));
     const r = me.ready(compass);
     expect(r?.reason).toBe('hands-full');
-    expect(me.refusalWords(r!)).toMatch(/Drop it \(`drop lantern`\) or put it away first/);
+    // Both held things named, each offered to drop (the drive, step 7).
+    expect(me.refusalWords(r!)).toMatch(/Your hands are full — the lantern and the shield — and the lantern won't go back in the pouch\. Drop one \(`drop lantern` or `drop shield`\) or put it away first\./);
     expect(me.tierOf(lantern)).toBe('hand');
   });
 
