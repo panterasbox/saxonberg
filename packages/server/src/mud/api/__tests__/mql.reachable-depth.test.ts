@@ -1,15 +1,18 @@
 /**
- * ⭐ Controller-liquidity W2 — reach has named rungs, `here` is the place,
- * and MQL addresses through shut things while the verb refuses.
+ * ⭐ Reach is ONE rule (size-and-carrying D17, rewritten from
+ * controller-liquidity W2's rungs), `here` is the place, and MQL names
+ * through shut things while the verb refuses.
  *
- *   - D5: `reachable` is what you could lay hands on now — down through the
- *     open vessels you carry, one level into open things here, never into a
- *     shut thing — and `PerceptionApi.canReach` reads the SAME walk
- *     (`Container.getReachableContents`), so they cannot disagree.
- *   - D4: the rung rides `MqlContext.depth` (`top` · `open` · `deep`).
- *   - D6: `:i` / `:I` address through a shut box of yours or the room's;
- *     `Containable.reachRefusal` names the lid; another body's shut things
- *     stay perception's.
+ *   - D17: `reachable` holds your whole carried tree (shut and packed
+ *     included — the binder binds it and the verb says why) and one level
+ *     into open things here; `PerceptionApi.canReach` is membership AND
+ *     the object's `reachRefusal`, so naming and touching cannot disagree
+ *     about the reason. ⚠ Meaning changed: the `top`/`deep` rungs are gone,
+ *     and a thing in your own shut box is now NAMED by `reachable` (it was
+ *     hidden at `open`).
+ *   - D6 / D23: `:i` / `:I` name through any shut box — another body's
+ *     too, now (MQL is universal); what a viewer may see of it is
+ *     `PerceptionApi.perceived`'s.
  *   - D7: `here` is the place — past a boat; `me:e` is the boat.
  *   - `:held`.
  */
@@ -31,7 +34,6 @@ import { Agent } from '../../lib/stuff/Agent';
 import Place from '../../lib/stuff/Place';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { MqlContext } from '../mql/types';
-import type { ReachDepth } from '../command';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
 class River extends VisibleMixin(PerceptibleMixin(ContainerMixin(Place))) {}
@@ -64,15 +66,14 @@ function world() {
   ContainmentApi.move(me, river);
   return { river, me };
 }
-function ctx(me: Person, scope: string, depth?: ReachDepth): MqlContext {
-  return { commandGiver: me as never, scope, ...(depth ? { depth } : {}) };
+function ctx(me: Person, scope: string): MqlContext {
+  return { commandGiver: me as never, scope };
 }
 const ids = (xs: readonly Stuff[]): string[] => xs.map((s) => s.stuffId);
-const find = (me: Person, q: string, depth?: ReachDepth): string[] =>
-  ids(MqlApi.resolveMany(q, ctx(me, 'reachable', depth)).stuff);
+const find = (me: Person, q: string): string[] => ids(MqlApi.resolveMany(q, ctx(me, 'reachable')).stuff);
 
-describe('reachable — the rungs (D4, D5)', () => {
-  it('finds the apple in the open bag in your open pack; not at top; not in a shut box', () => {
+describe('reachable — one rule (D17)', () => {
+  it('names the apple in the bag in your pack, open or shut; a shut bag is the refusal', () => {
     const { me } = world();
     const pack = vessel('pack', true);
     const bag = vessel('bag', true);
@@ -81,10 +82,11 @@ describe('reachable — the rungs (D4, D5)', () => {
     ContainmentApi.move(bag, pack);
     ContainmentApi.move(a, bag);
     expect(find(me, 'apple')).toContain(a.stuffId);
-    expect(find(me, 'apple', 'top')).not.toContain(a.stuffId);
+    expect(PerceptionApi.canReach(me, a)).toBe(true);
     bag.setOpen(false);
-    expect(find(me, 'apple')).not.toContain(a.stuffId);
-    expect(find(me, 'apple', 'deep')).toContain(a.stuffId);
+    expect(find(me, 'apple')).toContain(a.stuffId);
+    expect(PerceptionApi.canReach(me, a)).toBe(false);
+    expect(a.reachRefusal(me)?.reason).toBe('enclosed-shut');
   });
 
   it('reaches one level into an open crate standing here, not into a box inside it', () => {
@@ -98,10 +100,9 @@ describe('reachable — the rungs (D4, D5)', () => {
     ContainmentApi.move(box, crate);
     ContainmentApi.move(b, box);
     expect(find(me, 'apple')).toEqual([a.stuffId]);
-    expect(find(me, 'apple', 'deep').sort()).toEqual([a.stuffId, b.stuffId].sort());
   });
 
-  it('what you can name is what you can touch: canReach reads the same walk', () => {
+  it('canReach is membership in the one walk AND no refusal from the object', () => {
     const { river, me } = world();
     const pack = vessel('pack', true);
     const bag = vessel('bag', true);
@@ -113,16 +114,13 @@ describe('reachable — the rungs (D4, D5)', () => {
     const c = apple();
     ContainmentApi.move(chest, river);
     ContainmentApi.move(c, chest);
-    for (const [thing, rung] of [
-      [a, 'open'],
-      [a, 'top'],
-      [c, 'open'],
-      [c, 'deep'],
-    ] as const) {
-      const named = find(me, 'apple', rung).includes(thing.stuffId);
-      expect(PerceptionApi.canReach(me, thing, { depth: rung })).toBe(named);
-      expect(PerceptionApi.reachableAmong(me, [thing], { depth: rung }).length > 0).toBe(named);
+    for (const thing of [a, c]) {
+      const named = find(me, 'apple').includes(thing.stuffId);
+      const ok = named && thing.reachRefusal(me) === null;
+      expect(PerceptionApi.canReach(me, thing)).toBe(ok);
+      expect(PerceptionApi.reachableAmong(me, [thing]).length > 0).toBe(ok);
     }
+    expect(find(me, 'apple')).not.toContain(c.stuffId);
   });
 });
 
@@ -142,7 +140,7 @@ describe('MQL addresses; the verb refuses (D6)', () => {
     expect(a.reachRefusal(me)).toBeNull();
   });
 
-  it("addresses through the room's shut chest; never another body's shut box", () => {
+  it("names through the room's shut chest AND another body's (MQL is universal — D23); perception hides the latter", () => {
     const { river, me } = world();
     const chest = vessel('chest', false);
     const a = apple();
@@ -156,7 +154,9 @@ describe('MQL addresses; the verb refuses (D6)', () => {
     const b = apple();
     ContainmentApi.move(box, other);
     ContainmentApi.move(b, box);
-    expect(ids(MqlApi.resolveMany('here:I:apple', ctx(me, 'reachable')).stuff)).not.toContain(b.stuffId);
+    const named = MqlApi.resolveMany('here:I:apple', ctx(me, 'reachable')).stuff;
+    expect(ids(named)).toContain(b.stuffId);
+    expect(ids(PerceptionApi.perceived(me, named))).not.toContain(b.stuffId);
   });
 
   it('a lid around the actor is not between the actor and its neighbor', () => {

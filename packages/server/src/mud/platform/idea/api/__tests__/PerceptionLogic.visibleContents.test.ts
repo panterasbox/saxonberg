@@ -68,13 +68,12 @@ afterEach(() => vi.restoreAllMocks());
 const ids = (xs: Stuff[]): string[] => xs.map((x) => x.stuffId).sort();
 
 describe('PerceptionApi.visibleContentsOf', () => {
-  it('⭐⭐ on another person: what they wear (and a pack on their back) and what they hold — never pockets, never an implant', () => {
-    const v = PerceptionApi.visibleContentsOf(stranger, person);
-    expect(ids(v.worn)).toEqual(['pack', 'shirt']);
-    expect(ids(v.held)).toEqual(['sword']);
-    expect(v.carried).toEqual([]);
-  });
-
+  // ⚠ Meaning changed at size-and-carrying W3 (D23): `visibleContentsOf`
+  // is a GROUPING of what `perceives` admits; the person/pockets rule and
+  // the shut-lid rule are `perceives`' rule 2 now, which reads real
+  // containment — `perceives.holders.test.ts` pins them on real bodies
+  // (another person's hands and outer layers, never their pockets; a shut
+  // box; a glass jar), and the grouping over a stranger and a shut chest.
   it('your own: everything, pockets and implant as carried; concealed stays concealed', () => {
     const v = PerceptionApi.visibleContentsOf(person, person);
     expect(ids(v.worn)).toEqual(['pack', 'shirt']);
@@ -82,13 +81,6 @@ describe('PerceptionApi.visibleContentsOf', () => {
     expect(ids(v.carried)).toEqual(['coin', 'implant']);
   });
 
-  it('an open container: its contents; a shut one: nothing, and says so', () => {
-    expect(ids(PerceptionApi.visibleContentsOf(stranger, chest).carried)).toEqual(['coin']);
-    open = false;
-    const shut = PerceptionApi.visibleContentsOf(stranger, chest);
-    expect(shut.shut).toBe(true);
-    expect(shut.carried).toEqual([]);
-  });
 });
 
 describe('PerceptionApi.isAnotherPerson (client-surface W0)', () => {

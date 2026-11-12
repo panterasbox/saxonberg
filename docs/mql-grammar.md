@@ -169,26 +169,18 @@ seed yields a list of Stuff (possibly empty).
 | `/platform/thing/Sword/*` | template path lookup (instances of matching templates) |
 | `#abc123` | direct stuff id lookup |
 
-### ⭐ Reach rungs — `--top` · `--open` · `--deep`
+### ⭐ Reach is one rule — the nearest thing you perceive wins
 
-The giver-anchored pools (`inventory`, `person`, `peers`, `reachable`)
-walk at a **rung**. The grammar has **no word** for it — a plain word
-inside a query is always a name — so the rung is a reserved per-command
-flag and each argument's `depth:` in its view (default `open`):
-
-| Rung | Reaches |
-|---|---|
-| `--top` | what you hold and wear, and the room's top level |
-| `--open` *(default)* | and inside the open vessels you carry, all the way down, and one level into open things here |
-| `--deep` | everything, shut or not — never another person's pockets |
-
-A bare name that finds nothing at its rung is asked once more at `deep`;
-when what answers is behind a shut lid the command says so (*"The box is
-shut."*) rather than *nothing named that*, and binds nothing. A rung you
-type is taken at its word: `eat apple --top` with the apple in your bag
-finds none at hand. The chain transforms are not rungs: `me:I:apple`
-**addresses** the apple wherever it is (below), and the verb decides
-whether a hand can get at it.
+There are no reach rungs (the `--top` / `--open` / `--deep` flags were
+retired 2026-11-11). A bare name binds **the nearest thing you perceive
+that answers to it**: in your hand, then what is ready (worn, hung from
+your belt, in a pocket or an open bag you wear), then what is packed (in
+the pack on your back), then the room — its top level and one level into
+the open things there. Two equally near ask *which one?*. A thing you
+cannot get a hand on is still bound, and the verb says why: *"The box is
+shut."*, *"The rucksack is on your back — take it off first."* The chain
+transforms name things wherever they are (`me:I:apple`, below), and the
+verb decides whether a hand can get at it.
 
 ### ⭐⭐ There is no `world` seed
 
@@ -355,10 +347,15 @@ here:bookcase:e   pops back to (room, no via)
 here:bookcase:E   pops the whole detail path (same Stuff, no via)
 ```
 
-⭐ **MQL addresses; it never decides possibility.** `look me:I:apple`
+⭐ **MQL names; it never decides possibility, and never what you may
+see.** `bob:i` names everything Bob carries — for everyone; the verb that
+shows or binds it shows only what you perceive (his hands, his outer
+coat, an open pocket — never what his clothes cover). `look me:I:apple`
 finds the apple in your shut box and describes it; `eat me:I:apple` is
 refused by the verb — *"The box is shut."* (`Containable.reachRefusal`,
-read by the `mustNotBeShutAway` / `canReach` validators).
+read by the `canReach` validator). A head ordinal (`2nd knife`) counts only
+what you perceive; the chain index `knife:[2]` indexes MQL's list, the
+same for everyone.
 
 Objects without the relevant mixin contribute nothing — the chain
 silent-filters rather than erroring. A Stuff already at the root
@@ -397,7 +394,7 @@ A reserved predicate name keeps members where the predicate holds:
 | `online` | object is connected |
 | `mine` | object is yours — stamped to you as chattel, or standing on an extent you hold title to. ⚠ Not things you *wrote* (authorship is not ownership) and not things your *group* holds; `mine` is first person singular. ⭐ It says **what** is yours, never **where** it is. |
 | `here` | object is (or stands in) the giver's place, or is in the vessel the giver sits in |
-| `visible` | object presents to the eye (composes Visible) and the giver perceives it — concealed-and-undiscovered things are not; the scope says *where* |
+| `visible` | a CLASS word: the object presents to the eye (composes Visible). ⚠ Since 2026-11-11 it does not ask whether the giver perceives it — MQL names the same things for everyone, and the verb that shows the result shows only what you perceive (size-and-carrying D23); the scope says *where* |
 | `loose` | object is its holder's own loose contents — not placed on or in something else there (the back-bar's bottles), not a crop standing over the ground |
 | `worn` | object occupies one of its holder's slots (a coat on a person, a coupe in a rack) |
 | `carried` | object is held as contents and occupies none of its holder's slots — `worn` and `carried` partition a holder |

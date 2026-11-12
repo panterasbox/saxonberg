@@ -802,6 +802,15 @@ export interface Vitals {
   beginDying(cause: string, windowSec?: number, blame?: unknown): void;
   /** Is this body in the rescuable interval before death? */
   isDying(): boolean;
+  /**
+   * ⭐ Will this body stop `by` going through what it carries
+   * (size-and-carrying D24a)? A body that can resist — conscious — refuses
+   * (*"Bob won't let you"*), before any search starts; a dead or
+   * unconscious one cannot, and `null` lets the search go ahead. Bound
+   * bodies and the conscious frisk are policing's (the compulsion gate),
+   * not this.
+   */
+  searchRefusal(by: Stuff): ActRefusal<'resists'> | null;
   /** Game-seconds left before the window expires, or `null` if not dying. */
   getDyingRemainingSec(): number | null;
   /**
@@ -1410,6 +1419,15 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       };
       if (blame) record.accountability = blame;
       this.afflict(record);
+    }
+
+    /** See the interface docstring (D24a). */
+    public searchRefusal(by: Stuff): ActRefusal<'resists'> | null {
+      const self = this as unknown as Stuff;
+      if (self.stuffId === by.stuffId) return null;
+      // A corpse has lost its agency (the Thing branch) — it cannot resist.
+      if (!self.isAgent()) return null;
+      return this.getConsciousness() === 'conscious' ? { ok: false, reason: 'resists' } : null;
     }
 
     public isDying(): boolean {

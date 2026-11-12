@@ -958,12 +958,11 @@ function PlacedList({
 /**
  * What the subject is **wearing**, as its own section.
  *
- * ⚠ Rendered for EVERY kind, `agent` included — which is precisely the
- * hole this fills. `HereList` is suppressed for a person because their
- * contents are their pockets; what they have ON is the opposite, the
- * most public fact about them, and until now the card could not show
- * it at all. The two lists are a partition of one set server-side, so
- * nothing can appear in both.
+ * ⚠ Rendered for EVERY kind, `agent` included. What a person has ON is
+ * the most public fact about them; `HereList` beside it shows what the
+ * viewer perceives of the rest (the server filters, size-and-carrying
+ * D23). The two lists are a partition of one set server-side, so nothing
+ * can appear in both.
  *
  * Outermost-first, capped and counted the way `HereList` is.
  */
@@ -1521,8 +1520,9 @@ function MqlBody(props: CardBodyProps): React.ReactElement {
    * all, and that is a real difference rather than a cosmetic one:
    *
    *  - a **place** has ways out and things in it; it has no mass;
-   *  - an **agent** is a who, not a container to enumerate — listing a
-   *    person's contents in a look card would be reading their pockets;
+   *  - an **agent** is a who — its contents list is what the viewer
+   *    perceives of what it carries (the server filters; D23), never its
+   *    pockets wholesale;
    *  - a **thing** is the one kind whose material and weight are worth
    *    the line, and whose contents you may legitimately see;
    *  - an **idea** is not perceived at all in the usual way — no
@@ -1591,8 +1591,11 @@ function MqlBody(props: CardBodyProps): React.ReactElement {
           onCommandPreview={onCommandPreview}
         />
       )}
-      {/* ⚠ Never for an agent: a person's contents are their pockets. */}
-      {!isAgent && !isIdea && (
+      {/* ⭐ For every kind but an idea: the card shows what the wire sends,
+          and the server sends only what the viewer PERCEIVES of what the
+          subject holds (size-and-carrying D23) — a person's hands, an open
+          pocket of their outer coat, never what their clothes cover. */}
+      {!isIdea && (
         <HereList
           record={record}
           onSendCommand={onSendCommand}

@@ -412,7 +412,7 @@ export default class LookController extends CommandController<LookModel> {
             // ⭐ Identical things GROUP (client-surface D2, #71/#76): a shelf
             // of fourteen bottles is "14 bottles of gin", one chip that
             // expands, not fourteen words.
-            const grouped = this.groupForList(items, actor, (item) => Mml.thing(item));
+            const grouped = this.groupForList(items, actor, (item) => this.builderMark(item, actor, Mml.thing(item)));
             const seen = Mml.fromMarkup(Mml.list(grouped.parts).toString());
             body = Mml.compose`${body}\n── You also see: ${seen}.`;
             segments.push({
@@ -685,11 +685,13 @@ export default class LookController extends CommandController<LookModel> {
     // says "Hanging from it" where a shelf says "On it".
     if (MixinApi.isPlacing(target)) {
       for (const member of target.getPlacements()) {
-        const placed = target.getPlaced(member);
+        // ⭐ What the actor perceives on it (D23): a covered or concealed
+        // thing placed there is not in the list.
+        const placed = PerceptionApi.perceived(actor, target.getPlaced(member));
         if (placed.length === 0) continue;
         // A person sitting on a stool is placed on a host too. Identical
         // things group (D2), so a back-bar of fourteen bottles is one chip.
-        const grouped = this.groupForList(placed, actor, (r) => Mml.actor(r));
+        const grouped = this.groupForList(placed, actor, (r) => this.builderMark(r, actor, Mml.actor(r)));
         const list = Mml.list(grouped.parts);
         // ⭐ The heading is the MEMBER's, off its own `Placement` row —
         // so a hook says "Hanging from it" where a shelf says "On it",
@@ -734,10 +736,11 @@ export default class LookController extends CommandController<LookModel> {
       const screen = (await target.readScreen(actor)) ?? Mml.compose`The screen is dark.`;
       section(Mml.compose`── ${screen}`, { shape: 'state', sources: [LookController.lookSource('Screen')] });
     }
-    // ⭐ What you would NOTICE it holding (maritime revision 2) — the ONE
-    // visibility rule `inventory` reads too: on a person what they wear
-    // and hold (never their pockets or what is inside their body); in an
-    // open container its contents; a shut one shows nothing. Past four it
+    // ⭐ What you would NOTICE it holding (maritime revision 2) — what it
+    // holds that you PERCEIVE (size-and-carrying D23/D24: `observe` ran it
+    // through `PerceptionApi.perceives`' holder rules — on a person what is
+    // in their hands and their outer layers, never what their clothes
+    // cover; in a shut box nothing you cannot see through). Past four it
     // summarises and says how to see the rest — the ledger is `inventory`.
     const v = seen.holds;
     if (v) {
@@ -747,7 +750,7 @@ export default class LookController extends CommandController<LookModel> {
       // in an NPC's hands as `something`.
       const group = (heading: string, xs: Stuff[]): void => {
         if (xs.length === 0) return;
-        const shown = xs.slice(0, LOOK_INLINE).map((c) => Mml.actor(c));
+        const shown = xs.slice(0, LOOK_INLINE).map((c) => this.builderMark(c, actor, Mml.actor(c)));
         const more = xs.length - shown.length;
         const list = Mml.fromMarkup(Mml.list(shown, { style: 'inline' }).toString());
         section(
@@ -844,6 +847,14 @@ export default class LookController extends CommandController<LookModel> {
    * +5 more" — carrying its members so the card expands it in place. A
    * person never groups; every person is somebody.
    */
+  /**
+   * ⭐ The builder lens's mark (size-and-carrying D25): a thing the actor
+   * perceives ONLY through `lens on` reads `[builder]` after its name.
+   */
+  private builderMark(x: Stuff, actor: Stuff, line: Mml): Mml {
+    return PerceptionApi.perceivedHow(actor, x) === 'builder' ? Mml.compose`${line} [builder]` : line;
+  }
+
   private groupForList(
     xs: readonly Stuff[],
     actor: Stuff,

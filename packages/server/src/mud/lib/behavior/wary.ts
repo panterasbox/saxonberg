@@ -26,6 +26,7 @@
  */
 
 import { MixinApi } from '../../api/mixin';
+import { PerceptionApi } from '../../api/perception';
 import { MqlApi } from '../../api/mql';
 import { CombatApi } from '../../api/combat';
 import { CombatTerms } from '../combat/CombatTerms';
@@ -41,21 +42,19 @@ const DEFAULT_ALERTNESS = 4;
 
 /**
  * The intruders the sentry detects sharing its room — the MQL `peers:living`
- * selection (room contents minus the giver, Mobile-only) resolved at the
- * sentry's active `alertness`. The scope-walk's concealment gate runs at
- * that attention (`MqlContext.attention`), so the result is exactly the
- * movers a watch of this intensity picks out — the detection is folded into
- * the query. (A passive `peers` would pre-hide a concealed intruder the
- * alert sentry should still catch, which is why the attention term matters.)
- * Empty for a host that can't anchor a query.
+ * selection (room contents minus the giver, Mobile-only), then the ones the
+ * sentry PERCEIVES at its active `alertness` (`PerceptionApi.perceives` with
+ * the attention term). MQL names the movers for everyone (size-and-carrying
+ * D23); the watch is the perceiving. (A passive read would pre-hide a
+ * concealed intruder the alert sentry should still catch, which is why the
+ * attention term matters.) Empty for a host that can't anchor a query.
  */
 function detectedIntruders(host: Stuff, alertness: number): Stuff[] {
   if (!MixinApi.isCommandGiver(host)) return [];
   return MqlApi.resolveMany('peers:living', {
     commandGiver: host,
     scope: 'reachable',
-    attention: alertness,
-  }).stuff;
+  }).stuff.filter((s) => PerceptionApi.perceives(host, s, alertness));
 }
 
 /** Best-effort: open a fight on a detected intruder (non-lethal). */

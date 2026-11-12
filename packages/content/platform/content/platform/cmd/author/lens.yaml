@@ -1,0 +1,36 @@
+# ⭐ The builder lens (size-and-carrying D25). A verb and a memo, never a
+# wizard check: `lens on` reads the extents you hold
+# (`AccessApi.heldExtents`) once and keeps them on your character for the
+# session; inside them you perceive everything — a concealed trap, a hidden
+# way, what a shut chest holds — and `look`, `inventory`, `query` and
+# `find` label such a line `[builder]`. Outside your extents, and with the
+# lens off, you play plainly. A player's body is never under the lens.
+verbs: [lens]
+category: author
+controller: /platform/idea/cmd/author/LensController
+description: "Turn the builder lens on or off inside the extents you hold"
+help: |
+  The builder lens lets you see your own content as its builder: inside
+  the extents you hold, everything is in view — a concealed trap, a
+  hidden way, what a shut chest holds — and each line you could not have
+  seen plainly is marked `[builder]`.
+
+    lens          say whether the lens is on, and over which extents
+    lens on       turn it on (your extents are read now)
+    lens off      play plainly again
+
+  The lens never reaches another player's body or what they carry, and it
+  lasts until you turn it off or log out. Hold no extent and there is
+  nothing for it to show.
+examples:
+  - cmd: lens on
+    note: See your content as its builder
+  - cmd: lens off
+    note: Play it as a player would
+subcommands:
+  "on":
+    controller: /platform/idea/cmd/author/LensOnController
+    description: "Turn the lens on over the extents you hold"
+  "off":
+    controller: /platform/idea/cmd/author/LensOffController
+    description: "Play plainly again"

@@ -71,7 +71,7 @@ describe('MqlSubscriptionApi — meta-bus dependency index', () => {
       cardinality: 'one',
       fields: 'ref',
     });
-    const spy = vi.spyOn(MqlApi, 'resolveOne');
+    const spy = vi.spyOn(MqlApi, 'resolveMany');
     EventApi.fire(
       new FieldChangedEvent({
         target: avatar.stuffId,
@@ -94,7 +94,7 @@ describe('MqlSubscriptionApi — meta-bus dependency index', () => {
       cardinality: 'one',
       fields: 'ref',
     });
-    const spy = vi.spyOn(MqlApi, 'resolveOne');
+    const spy = vi.spyOn(MqlApi, 'resolveMany');
     // 'field: bogus' value isn't indexed; 'target: stranger-stuff-id'
     // doesn't match the subscribed avatar.
     EventApi.fire(

@@ -75,13 +75,13 @@ describe('`:loose` delegates to the holder\'s getLooseContents()', () => {
   });
 });
 
-describe('`:visible` — composes Visible and the giver perceives it', () => {
+describe('`:visible` — a CLASS word: composes Visible (D23)', () => {
   it('⭐ `me:i:visible` answers (the grammar\'s own example used to be empty)', () => {
     expect(q('me:i:visible')).toEqual(ids([shirt, coin]));
   });
 
-  it('a thing the giver does not perceive is not visible', () => {
+  it('⚠ it does not ask whether the giver perceives it — the surface does (meaning changed at W3)', () => {
     vi.spyOn(PerceptionApi, 'perceives').mockImplementation((_v, t) => t !== desk);
-    expect(q('here:i:visible - me')).toEqual(ids([ledger]));
+    expect(q('here:i:visible - me')).toContain(desk.stuffId);
   });
 });

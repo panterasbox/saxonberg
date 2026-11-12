@@ -3,11 +3,12 @@
 import "../../src/test-bootstrap";
 import { describe, expect, it } from "vitest";
 import { parseTs } from "../pack-roots";
-import { PERCEIVED_SURFACES_CEILING, census, judgeUnit, unitsOf } from "../check-perceived-surfaces";
+import { PERCEIVED_SURFACES_CEILING, census, judgeUnit, localPerceiversOf, unitsOf } from "../check-perceived-surfaces";
 
 const judged = (src: string, returnIsSink = false) => {
   const sf = parseTs("/x.ts", src);
-  return unitsOf(sf).map((u) => ({ name: u.name, ...judgeUnit(u, sf, returnIsSink) }));
+  const local = localPerceiversOf(sf);
+  return unitsOf(sf).map((u) => ({ name: u.name, ...judgeUnit(u, sf, returnIsSink, local) }));
 };
 
 describe("the classifier", () => {
@@ -32,10 +33,20 @@ describe("the classifier", () => {
     expect(u!.surface).toBe(false);
   });
 
-  it("in the binder a return IS the sink", () => {
+  it("in the binder a return IS the sink — when the unit's source is MQL", () => {
     const src = `function bindOne(g) { return MqlApi.resolveOne("x", { commandGiver: g }); }`;
     expect(judged(src, false)[0]!.surface).toBe(false);
     expect(judged(src, true)[0]!.surface).toBe(true);
+    // A containment walk with no MQL in it is bookkeeping (W3's rule).
+    const walk = `function below(s) { return s.getContents(); }`;
+    expect(judged(walk, true)[0]!.surface).toBe(false);
+  });
+
+  it("a call to a same-module helper that perceives is the filter, named (one hop)", () => {
+    const src = `function seen(r, g) { return r.filter((s) => PerceptionApi.perceives(g, s)); }
+      function bindOne(g) { return seen(MqlApi.resolveMany("x", { commandGiver: g }), g); }`;
+    const bind = judged(src, true).find((u) => u.name === "bindOne")!;
+    expect(bind).toMatchObject({ surface: true, perceives: true });
   });
 
   it("a subscribable read(stuff, viewer) is a surface; a mixin factory is not one unit", () => {
@@ -49,9 +60,8 @@ describe("the classifier", () => {
 });
 
 describe("⭐ the live tree", () => {
-  it("at the ceiling, above zero", () => {
-    const n = census().length;
-    expect(n).toBeGreaterThan(0);
-    expect(n).toBe(PERCEIVED_SURFACES_CEILING);
+  it("at the ceiling — zero since W3 (D23)", () => {
+    expect(PERCEIVED_SURFACES_CEILING).toBe(0);
+    expect(census()).toEqual([]);
   });
 });

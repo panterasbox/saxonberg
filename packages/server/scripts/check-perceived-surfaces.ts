@@ -26,13 +26,19 @@
  *       `MessageApi.scene(` / `.toSelf(`, `CardApi.open(`, `onEnvelope(`,
  *       `projectStuffInto(`; or, in the binder and the script interpreter
  *       (`CommandLogic.ts`, `lib/command/**`, `lib/script/**`), a `return`
- *       with a value — the bound argument or the script `Value` IS the
- *       result; or the unit is a subscribable `read` (the wire is its sink).
+ *       with a value **in a unit whose source is MQL** — the bound argument
+ *       or the script `Value` IS the result, and a binding comes from MQL
+ *       (a containment walk there with no MQL in it is the affordance
+ *       bookkeeping, which emits to nobody — W3 fixed the rule rather than
+ *       allowlisting it); or the unit is a subscribable `read` (the wire is
+ *       its sink).
  *
  * It is **unperceived** when no `perceived(` / `perceives(` call appears in
- * the unit. ⚠ The check is the whole unit, not the stretch between (a)
- * and (b) — lenient by design, so a surface that perceives SOMETHING is not
- * counted; W3 tightens the per-list question where it ports.
+ * the unit — nor a call to a function of the SAME module whose own body
+ * makes one (one hop: a binder's local `perceivedOf` helper is the filter,
+ * named). ⚠ The check is the whole unit, not the stretch between (a) and
+ * (b) — lenient by design, so a surface that perceives SOMETHING is not
+ * counted.
  *
  * **Roots**: every controller module (`pack-roots.controllerFiles()` —
  * kernel, packs, domain-local, the bases), `lib/command/**`,
@@ -60,10 +66,10 @@ import { MUD, controllerFiles, packSources, packSrcFiles, parseTs, ratchet } fro
  * ⭐ **The ceiling.** W0 census (2026-11-11): 32 — 14 controller units, 7 in the
  * binder (`CommandLogic`), 8 in `lib/command/**` (`CommandController`,
  * `CommandGiver`, three validators), `Expression.evaluate`, `Container`'s
- * `contents` read, `MqlSubscriptionRegistry.handleQuery`. It may fall; it
- * may never rise.
+ * `contents` read, `MqlSubscriptionRegistry.handleQuery`. **W3 (D23): 0** —
+ * every surface passes `PerceptionApi.perceived`, and it stays there.
  */
-export const PERCEIVED_SURFACES_CEILING = 32;
+export const PERCEIVED_SURFACES_CEILING = 0;
 
 const SOURCE_METHODS = new Set(["getContents", "getDeepContents", "getAllOccupants", "wornStack", "getPlaced"]);
 const SINK_CALLS = new Set(["promptMqlObject", "promptMqlMany", "onEnvelope", "projectStuffInto"]);
@@ -151,9 +157,12 @@ export function judgeUnit(
   u: Unit,
   sf: ts.SourceFile,
   returnIsSink: boolean,
+  localPerceivers: ReadonlySet<string> = new Set(),
 ): { surface: boolean; perceives: boolean } {
   let source = false;
+  let mqlSource = false;
   let sink = u.isRead;
+  let returns = false;
   let perceives = false;
   const walk = (n: ts.Node): void => {
     if (ts.isCallExpression(n)) {
@@ -161,19 +170,46 @@ export function judgeUnit(
       const text = calleeText(n, sf);
       if (text === "MqlApi.resolveOne" || text === "MqlApi.resolveMany") {
         const opts = n.arguments[1]?.getText(sf) ?? "";
-        if (!/commandGiver\s*:\s*null/.test(opts)) source = true;
+        if (!/commandGiver\s*:\s*null/.test(opts)) source = mqlSource = true;
       } else if (name && SOURCE_METHODS.has(name) && ts.isPropertyAccessExpression(n.expression)) {
         source = true;
       }
       if (name === "perceived" || name === "perceives") perceives = true;
+      if (name && ts.isIdentifier(n.expression) && localPerceivers.has(name)) perceives = true;
       if (name && SINK_CALLS.has(name)) sink = true;
       if (text === "MessageApi.scene" || text === "CardApi.open" || name === "toSelf") sink = true;
     }
-    if (returnIsSink && ts.isReturnStatement(n) && n.expression) sink = true;
+    if (returnIsSink && ts.isReturnStatement(n) && n.expression) returns = true;
     ts.forEachChild(n, walk);
   };
   walk(u.node);
+  if (returns && mqlSource) sink = true;
   return { surface: source && sink, perceives };
+}
+
+/**
+ * The module's own free functions whose bodies call `perceived(` /
+ * `perceives(` — a call to one of them is the filter, named (one hop).
+ */
+export function localPerceiversOf(sf: ts.SourceFile): Set<string> {
+  const out = new Set<string>();
+  const callsPerceive = (n: ts.Node): boolean => {
+    let hit = false;
+    const walk = (c: ts.Node): void => {
+      if (hit) return;
+      if (ts.isCallExpression(c)) {
+        const name = calleeName(c);
+        if (name === "perceived" || name === "perceives") hit = true;
+      }
+      ts.forEachChild(c, walk);
+    };
+    walk(n);
+    return hit;
+  };
+  for (const st of sf.statements) {
+    if (ts.isFunctionDeclaration(st) && st.name && st.body && callsPerceive(st.body)) out.add(st.name.text);
+  }
+  return out;
 }
 
 /** `{file, rel, readsOnly, returnIsSink}` for every root module. */
@@ -213,8 +249,9 @@ export function census(): string[] {
   for (const r of roots()) {
     const text = readFileSync(r.file, "utf8");
     const sf = parseTs(r.file, text);
+    const local = localPerceiversOf(sf);
     for (const u of unitsOf(sf, r.readsOnly)) {
-      const { surface, perceives } = judgeUnit(u, sf, r.returnIsSink);
+      const { surface, perceives } = judgeUnit(u, sf, r.returnIsSink, local);
       if (surface && !perceives) findings.push(`${r.rel}:${u.line}  ${u.name}`);
     }
   }

@@ -23,6 +23,7 @@
 import type { Stuff } from '../../stuff/Stuff';
 import type { FieldValidator } from '../../../api/command';
 import { MqlApi } from '../../../api/mql';
+import { PerceptionApi } from '../../../api/perception';
 import { MixinApi } from '../../../api/mixin';
 import type { Containable } from '../../spatial/Containable';
 
@@ -34,8 +35,10 @@ const validator: FieldValidator = (value, field, context) => {
   const location = context.location;
   // No location → nothing is "here", so every bound stuff fails the
   // membership check below and gets the "you don't see X here" message.
+  // What is here, as the giver perceives it (D23) — the binder bound
+  // nothing else, so nothing else may pass.
   const locationIds = new Set(
-    (location ? location.getContents() : []).map(
+    PerceptionApi.perceived(context.commandGiver, location ? location.getContents() : []).map(
       (s) => s.stuffId,
     ),
   );

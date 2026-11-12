@@ -91,6 +91,12 @@ function steadyResolve(
   }
 }
 
+/** The nth (1-based; negative from the end) of a list, as a one-or-none list. */
+function nthOf<T>(xs: readonly T[], n: number): T[] {
+  const i = n > 0 ? n - 1 : xs.length + n;
+  return i >= 0 && i < xs.length ? [xs[i]!] : [];
+}
+
 /**
  * MqlLogic — the hot-reloadable logic singleton behind {@link MqlApi}.
  *
@@ -112,7 +118,14 @@ export class MqlLogic extends ApiLogic {
   /** See {@link MqlApi.resolveOne}. */
   @CallSecurity(MqlApiCallers)
   public resolveOne(query: string, ctx: MqlContext): MqlOne {
-    const { matches, quantity, scan, isSet } = steadyResolve(query, ctx);
+    const resolved = steadyResolve(query, ctx);
+    const { quantity, scan, isSet } = resolved;
+    // ⭐ One-of-N with a head ordinal picks the nth of the UNIVERSAL list
+    // (system semantics). A surface that shows or binds for a viewer uses
+    // `resolveMany`, filters by `PerceptionApi.perceived`, then applies
+    // `MqlMany.ordinal` itself (size-and-carrying D23).
+    const matches =
+      resolved.ordinal === undefined ? resolved.matches : nthOf(resolved.matches, resolved.ordinal);
     if (matches.length === 0) {
       const empty: MqlOne = { stuff: null };
       if (isSet) empty.isSet = true;
@@ -132,7 +145,7 @@ export class MqlLogic extends ApiLogic {
   /** See {@link MqlApi.resolveMany}. */
   @CallSecurity(MqlApiCallers)
   public resolveMany(query: string, ctx: MqlContext): MqlMany {
-    const { matches, quantity, scan, isSet } = steadyResolve(query, ctx);
+    const { matches, quantity, scan, isSet, ordinal } = steadyResolve(query, ctx);
     const stuff: Stuff[] = matches.map((m) => m.stuff);
     const via = consensusVia(matches);
     const out: MqlMany = { stuff };
@@ -142,6 +155,7 @@ export class MqlLogic extends ApiLogic {
     if (matches.length > 0) out.tiers = matches.map((m) => scoreTier(m.score));
     if (quantity) out.quantity = quantity;
     if (scan) out.scan = scan;
+    if (ordinal !== undefined) out.ordinal = ordinal;
     return out;
   }
 

@@ -1066,11 +1066,10 @@ function validateStanzaShape(
  * ⭐ The grammar keys a slot may carry (D1, D4): a `type: enum` slot
  * REQUIRES `values:` and every other type REFUSES it (owner ruling
  * 2026-11-10); the list is non-empty, unique (case-insensitively), with
- * any `default:` among it; a `duration`'s default must read; `depth:`
- * only on an object slot.
+ * any `default:` among it; a `duration`'s default must read.
  */
 function validateGrammar(
-  field: Pick<FieldDefinition, 'type' | 'values' | 'depth'> & {
+  field: Pick<FieldDefinition, 'type' | 'values'> & {
     name?: string;
     default?: unknown;
   },
@@ -1114,15 +1113,6 @@ function validateGrammar(
   ) {
     throw new Error(`${label}: default "${field.default}" is not a duration`);
   }
-  if (
-    field.depth !== undefined &&
-    field.type !== 'object' &&
-    field.type !== 'objects'
-  ) {
-    throw new Error(
-      `${label}: depth: is only valid on an object / objects slot (got type=${field.type ?? 'undefined'})`
-    );
-  }
 }
 
 /**
@@ -1137,15 +1127,9 @@ function validateReservedFlagNames(def: CommandDefinition): void {
   // ⭐ `--strict` / `--loose` (the per-invocation `onFiltered` override,
   // controllers-are-io D23) are reserved the same way.
   const RESERVED = new Set(['async', 'sync', 'strict', 'loose']);
-  // ⭐ `--top` / `--open` / `--deep` (the per-invocation reach rung,
-  // controller-liquidity D4) are reserved as option NAMES — the token the
-  // binder intercepts. A model FIELD may still be called `open` (a
-  // board's open audience binds `--public` onto `field: open`): a field is
-  // a key, never a token.
-  const RESERVED_TOKENS = new Set([...RESERVED, 'top', 'open', 'deep']);
   const refuse = (name: string, where: string): never => {
     throw new Error(
-      `name "${name}" is a reserved framework flag (--async / --sync / --strict / --loose / --top / --open / --deep) and cannot be used as ${where} in ${def.filePath}`
+      `name "${name}" is a reserved framework flag (--async / --sync / --strict / --loose) and cannot be used as ${where} in ${def.filePath}`
     );
   };
   const check = (name: string | undefined, where: string): void => {
@@ -1156,7 +1140,7 @@ function validateReservedFlagNames(def: CommandDefinition): void {
     where: string
   ): void => {
     for (const [name, opt] of Object.entries(opts)) {
-      if (RESERVED_TOKENS.has(name)) refuse(name, `an option name (${where})`);
+      if (RESERVED.has(name)) refuse(name, `an option name (${where})`);
       check(opt.field, `an option field (${where})`);
     }
   };

@@ -7,6 +7,7 @@
  * jar. Per-shift attribution falls out — whoever's on shift empties it. See docs/subsystems/employment.md § Tips.
  */
 
+import { PerceptionApi } from '../../../../api/perception';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
@@ -31,10 +32,14 @@ export default class CollectController extends CommandController<CollectModel> {
     // arg must name a capability mixin (`lint:arg-kinds`) and this
     // class has none — only `DetailedMixin`, which would offer the verb
     // on every detailed thing. Becomes a declared arg the day it gets one.
-    const jar = (MqlApi.resolveOne('reachable:[class.TipJar]', {
-      commandGiver: context.commandGiver,
-      scope: 'reachable',
-    }).stuff as TipJar | null);
+    // The nearest tip jar the giver perceives (D23).
+    const jar = (PerceptionApi.perceived(
+      context.commandGiver,
+      MqlApi.resolveMany('reachable:[class.TipJar]', {
+        commandGiver: context.commandGiver,
+        scope: 'reachable',
+      }).stuff,
+    )[0] ?? null) as TipJar | null;
     if (!jar) {
       MessageApi.scene(giver)
         .topic(TOPIC)

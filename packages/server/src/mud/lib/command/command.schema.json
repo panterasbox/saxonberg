@@ -322,14 +322,6 @@
         "values": {
           "$ref": "#/$defs/values"
         },
-        "depth": {
-          "enum": [
-            "top",
-            "open",
-            "deep"
-          ],
-          "description": "How deep an `object` / `objects` slot reaches by default: `top` (held, worn, the place's top level) \u00b7 `open` (also inside open vessels you carry and open things here \u2014 the default) \u00b7 `deep` (everything, shut or not). The player overrides it per invocation with the reserved `--top` / `--open` / `--deep`."
-        },
         "cardinality": {
           "$ref": "#/$defs/cardinality"
         },

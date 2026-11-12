@@ -90,7 +90,7 @@ describe('CommandApi.preloadAll', () => {
     expect(arg?.requires).toEqual(['VisibleMixin', 'ContainableMixin']);
     expect(arg?.validators).toEqual([
       '/lib/command/validators/mustBeInLocation',
-      '/lib/command/validators/mustNotBeShutAway',
+      '/lib/command/validators/canReach',
     ]);
     expect(arg?._resolvedValidators).toBeDefined();
     expect(arg?._resolvedValidators?.length).toBe(3);

@@ -30,6 +30,7 @@ import { Idea } from '../stuff/Idea';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
+import { PerceptionApi } from '../../api/perception';
 import { MqlApi } from '../../api/mql';
 import { StuffApi } from '../../api/stuff';
 import type { Display } from '../display/Display';
@@ -100,10 +101,14 @@ export abstract class CommandController<
   protected async resolveScreen(
     actor: Stuff & CommandGiver,
   ): Promise<{ display: Stuff & Display; mode: 'hand' | 'mind' } | null> {
-    const reachable = MqlApi.resolveMany('reachable:[mixin.DisplayMixin]', {
-      commandGiver: actor,
-      scope: 'reachable',
-    }).stuff.filter((s): s is Stuff & Display => MixinApi.isDisplay(s));
+    // ⭐ A screen you do not perceive is not one you drive (D23).
+    const reachable = PerceptionApi.perceived(
+      actor,
+      MqlApi.resolveMany('reachable:[mixin.DisplayMixin]', {
+        commandGiver: actor,
+        scope: 'reachable',
+      }).stuff,
+    ).filter((s): s is Stuff & Display => MixinApi.isDisplay(s));
 
     for (const d of reachable) {
       if (d.isCarriedBy(actor)) return { display: d, mode: 'hand' };
@@ -321,9 +326,11 @@ export abstract class CommandController<
     let best: C | null = null;
     let bestTier = -1;
     let tied = false;
+    // ⭐ Only a choice the giver perceives can be what its words meant (D23).
+    const seen = new Set(PerceptionApi.perceived(giver, scored.stuff));
     for (let i = 0; i < scored.stuff.length; i += 1) {
       const c = choices.find((x) => x === scored.stuff[i]);
-      if (!c) continue;
+      if (!c || !seen.has(c)) continue;
       const tier = tiers[i] ?? 0;
       if (tier > bestTier) {
         best = c;
@@ -433,7 +440,8 @@ export abstract class CommandController<
         }
       }
     }
-    return out;
+    // ⭐ A mark the giver does not perceive is no mark of theirs (D23).
+    return PerceptionApi.perceived(giver, out);
   }
 
   /**

@@ -72,6 +72,11 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/author/typecheck.yaml',
         'platform/cmd/author/destruct.yaml',
         'platform/cmd/author/eval.yaml',
+        // ⭐ The builder lens (size-and-carrying D25): `lens on|off` —
+        // inside the extents you HOLD (title, never the wizard axis) you
+        // perceive everything, marked `[builder]`; with nothing held it
+        // has nothing to show.
+        'platform/cmd/author/lens.yaml',
 
         // Soul authoring — emote catalog mint / edit / delete / show /
         // list. Gated identically to the rest of the AuthorMixin suite:

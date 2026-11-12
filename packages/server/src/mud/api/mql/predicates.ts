@@ -24,7 +24,6 @@ import type { CommandGiver } from '../../lib/command/CommandGiver';
 // position on the `command.ts → MqlApi` chain creates with
 // `ConnectionManager → Interactive → Idea`.
 import { MixinApi } from '../mixin';
-import { PerceptionApi } from '../perception';
 import { ParcelApi } from '../parcel';
 import { getOnlineHolders } from './online-provider';
 import type { MqlContext } from './types';
@@ -116,20 +115,15 @@ function isHere(target: Stuff, giver: Stuff & CommandGiver): boolean {
 }
 
 /**
- * ⭐ Visible-to-giver — a thing that presents itself to the eye at all
- * (composes `Visible`) and that the giver actually perceives
- * (`PerceptionApi.perceives`: concealment + per-viewer discovery, true at
- * once for an un-concealed thing). The giver is always visible to itself.
- *
- * ⚠ The SCOPE is the neighborhood, not this predicate: `here:i:visible`
- * is the room's contents as you see them, `me:i:visible` your own. It
- * used to demand the target stand in the giver's room as well, which made
- * `me:i:visible` — the grammar's own example — answer nothing.
+ * ⭐ `visible` is a CLASS word — a thing that presents itself to the eye
+ * at all (composes `Visible`; the giver is one to itself). ⛔ It does not
+ * ask whether the giver perceives it (size-and-carrying D23): MQL names
+ * the same things for everyone, and perceiving is the act's — a surface
+ * filters with `PerceptionApi.perceived`.
  */
 function isVisible(target: Stuff, giver: Stuff & CommandGiver): boolean {
   if (target.stuffId === giver.stuffId) return true;
-  if (!MixinApi.isVisible(target)) return false;
-  return PerceptionApi.perceives(giver, target);
+  return MixinApi.isVisible(target);
 }
 
 /**

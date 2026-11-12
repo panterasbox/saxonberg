@@ -158,7 +158,7 @@ describe('`query --ledger` and a shut holder (maritime revision 2′)', () => {
 
   it('⭐ an empty query into something shut says it is shut — not "nothing there"', async () => {
     visible = { worn: [], held: [], carried: [], shut: true };
-    vi.spyOn(MqlApi, 'resolveOne').mockReturnValue({ stuff: other } as never);
+    vi.spyOn(MqlApi, 'resolveMany').mockReturnValue({ stuff: [other] } as never);
     await query({ set: { stuff: [], raw: 'chest:i' } });
     expect(said.join("\n")).toMatch(/ is shut\./);
   });

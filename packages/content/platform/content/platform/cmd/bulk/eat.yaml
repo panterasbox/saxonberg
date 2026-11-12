@@ -31,7 +31,7 @@ args:
     requires: VisibleMixin
     validators:
       - /lib/command/validators/mustBeEdible
-      - /lib/command/validators/mustNotBeShutAway
+      - /lib/command/validators/canReach
   # ⭐ WHAT WITH — DECLARED, not hunted for (`lint:controller-resolution`).
   # Bare, the binder hands over every reachable piece of cutlery and the
   # controller takes the first CLEAN one in its preference order; there

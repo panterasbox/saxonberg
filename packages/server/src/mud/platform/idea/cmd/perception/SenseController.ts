@@ -156,13 +156,13 @@ export default class SenseController extends CommandController<SenseModel> {
     const hasExits = MixinApi.isExitable(location);
     const hasName = MixinApi.isNamed(location);
 
-    // ⭐ What stands here as the actor sees it — the room listing's rule,
-    // said in MQL (`:visible` is the perception gate, honest fog included;
-    // an adornment is the room's structure, read through its host).
-    const visibleContents = MqlApi.resolveMany(ROOM_LISTING, {
-      commandGiver: actor,
-      scope: 'here',
-    }).stuff;
+    // ⭐ What stands here as the actor sees it — the room listing said in
+    // MQL (an adornment is the room's structure, read through its host),
+    // through the one perception filter, honest fog included (D23).
+    const visibleContents = PerceptionApi.perceived(
+      actor,
+      MqlApi.resolveMany(ROOM_LISTING, { commandGiver: actor, scope: 'here' }).stuff,
+    );
 
     if (
       !hasVisible &&
@@ -262,7 +262,7 @@ export default class SenseController extends CommandController<SenseModel> {
     // placed items out of the room view.
     if (MixinApi.isPlacing(target)) {
       for (const member of target.getPlacements()) {
-        const placed = target.getPlaced(member);
+        const placed = PerceptionApi.perceived(actor, target.getPlaced(member));
         if (placed.length === 0) continue;
         // Someone sitting on a stool is placed on a host like anything
         // else — so this list can hold a person too.

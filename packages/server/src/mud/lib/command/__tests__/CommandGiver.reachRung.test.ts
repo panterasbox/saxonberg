@@ -1,10 +1,12 @@
 /**
- * ⭐⭐ The binder's reach rung (controller-liquidity D4/D6). A slot binds at
- * the line's `--top`/`--open`/`--deep`, else its own `depth:`, else `open`.
- * A bare name that finds nothing at its rung is asked once more at `deep`;
- * when what answers is behind a shut lid the line is refused with the lid
- * (*"A box is shut."*) rather than *nothing named that* — and the deeper
- * find is never bound. A rung the player typed is taken at its word.
+ * ⭐⭐ The binder's ONE rule for reach (size-and-carrying D17, rewritten
+ * from controller-liquidity D4/D6's rungs). The nearest thing the giver
+ * perceives wins — at hand before in a bag; the whole carried tree is in
+ * play, a shut box's contents included; and the refusal fires AFTER
+ * binding, from the `canReach` validator in the object's own words
+ * (*"A box is shut."*). ⚠ Meaning changed: `--top`/`--deep` and `depth:`
+ * are gone (a reserved-flag token is no longer stripped), and the shut-box
+ * refusal is the validator's, not a second binder walk.
  *
  * Fixtures: the shared MQL world (bob in the square), the giver's
  * affordances mocked and `_executeOne` mocked so no controller runs.
@@ -33,26 +35,28 @@ class Box extends SealableMixin(
   ContainerMixin(ContainableMixin(VisibleMixin(PerceptibleMixin(Idea)))),
 ) {}
 
-const view = async (depth?: string): Promise<CommandDefinition> => {
+const view = async (): Promise<CommandDefinition> => {
   const def = CommandDefinition.fromYaml(
     `
 verbs: [eatish]
 controller: NoopController
-description: reach-rung fixture
+description: reach fixture
 args:
   - name: target
     type: object
     scope: reachable
     required: true
     requires: VisibleMixin
-${depth ? `    depth: ${depth}\n` : ''}`,
+    validators:
+      - /lib/command/validators/canReach
+`,
     '<test>',
   );
   await CommandApi.resolveValidators(def);
   return def;
 };
 
-describe('the binder walks at a reach rung', () => {
+describe('the binder binds by one rule; the verb refuses after', () => {
   let world: MqlWorld;
   let models: CommandModel[];
   let last: CommandContext | null;
@@ -113,13 +117,13 @@ describe('the binder walks at a reach rung', () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  it('⭐ binds the apple in the open bag you carry (the new `open`)', async () => {
+  it('⭐ binds the quince in the open bag you carry', async () => {
     const bag = box('bag', true, world.giver);
     const apple = thing('quince', bag);
     expect(await run(await view(), 'eatish quince')).toBe(apple);
   });
 
-  it('⭐ the apple in a shut box: "the box is shut", and nothing is bound', async () => {
+  it('⭐ the quince in a shut box you carry is BOUND, then refused: "the box is shut"', async () => {
     const b = box('box', false, world.giver);
     thing('quince', b);
     expect(await run(await view(), 'eatish quince')).toBeNull();
@@ -127,24 +131,20 @@ describe('the binder walks at a reach rung', () => {
     expect(refusal()).toMatch(/box is shut\.$/);
   });
 
-  it('`--top` is taken at its word: none at hand, no lid named', async () => {
+  it('⭐ the nearest wins: the quince at hand before the one in the bag', async () => {
     const bag = box('bag', true, world.giver);
     thing('quince', bag);
-    expect(await run(await view(), 'eatish quince --top')).toBeNull();
-    expect(refusal() ?? '').not.toMatch(/shut/);
-  });
-
-  it('`--deep` binds through the lid; the verb decides what that means', async () => {
-    const b = box('box', false, world.giver);
-    const apple = thing('quince', b);
-    expect(await run(await view(), 'eatish quince --deep')).toBe(apple);
-  });
-
-  it("a slot's own `depth: top` prefers what is at hand", async () => {
-    const bag = box('bag', true, world.giver);
-    const inBag = thing('quince', bag);
-    expect(await run(await view('top'), 'eatish quince')).not.toBe(inBag);
     const atHand = thing('quince', world.giver);
-    expect(await run(await view('top'), 'eatish quince')).toBe(atHand);
+    expect(await run(await view(), 'eatish quince')).toBe(atHand);
+  });
+
+  it('⭐ the quince in an open crate standing here binds; one in a shut chest here is not perceived, so nothing binds', async () => {
+    const crate = box('crate', true, world.location as unknown as Stuff);
+    const inCrate = thing('quince', crate);
+    expect(await run(await view(), 'eatish quince')).toBe(inCrate);
+    ContainmentApi.move(inCrate as never, world.giver as never);
+    const chest = box('chest', false, world.location as unknown as Stuff);
+    thing('pear', chest);
+    expect(await run(await view(), 'eatish pear')).toBeNull();
   });
 });

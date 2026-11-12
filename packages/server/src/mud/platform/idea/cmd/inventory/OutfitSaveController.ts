@@ -5,6 +5,7 @@
  * set save <name>` (controller-liquidity W7b), then this (W16).
  */
 
+import { PerceptionApi } from '../../../../api/perception';
 import type { CommandContext } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
@@ -25,7 +26,7 @@ export default class OutfitSaveController extends OutfitWearController {
      * walk would sort it anyway; storing it right means the saved set
      * reads correctly to a human too.)
      */
-    const keywords = [...giver.wornStack()]
+    const keywords = PerceptionApi.perceived(giver, [...giver.wornStack()] as unknown as Stuff[])
       .reverse()
       .map((g) => {
         const asStuff = g as unknown as Stuff;

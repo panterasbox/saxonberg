@@ -155,17 +155,22 @@ export interface Containable {
   getEnclosingPlace(): (Stuff & Container) | null;
 
   /**
-   * ⭐ **Why `actor` cannot lay hands on me, if a lid is why** — the
-   * innermost shut thing between me and the actor or the place, as
-   * `{ reason: 'enclosed-shut', facts: { by } }`; `null` when nothing shut
-   * stands in the way. Read upward through `getEnclosingScope()`, so a
-   * steak in a shut cold compartment is enclosed by the compartment
-   * though its container is the room. It never judges another person's
-   * pockets (that is perception's gate, not a lid). MQL ADDRESSES a thing
-   * in a shut box; the verb asks this and says *the box is shut*
-   * (controller-liquidity D6).
+   * ⭐ **Why `actor` cannot lay hands on me, if a holder is why** — read
+   * upward through `getEnclosingScope()`, innermost first:
+   *
+   *   - `packed` — I am inside a pack the actor wears on the `back` slot
+   *     (size-and-carrying D15/D17): *take it off first*. Checked before
+   *     the lid at the same holder, because opening it would not help.
+   *   - `enclosed-shut` — a shut thing between me and the actor or the
+   *     place (a steak in a shut cold compartment is enclosed by the
+   *     compartment though its container is the room): *the box is shut*.
+   *
+   * `null` when nothing stands in the way. It never judges another
+   * person's pockets (perception's gate, not a lid). MQL names a thing in
+   * a shut box; the binder binds it; the verb's `canReach` asks this and
+   * says why (D17 — the refusal fires after binding).
    */
-  reachRefusal(actor: Stuff): ActRefusal<'enclosed-shut', { by: Stuff }> | null;
+  reachRefusal(actor: Stuff): ActRefusal<'enclosed-shut' | 'packed', { by: Stuff }> | null;
 
   /**
    * ⭐ **Bolted down: no agent picks this up or carries it off.** The
@@ -474,10 +479,10 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       return first;
     }
 
-    /** See the interface docstring (controller-liquidity D6). */
+    /** See the interface docstring (controller-liquidity D6; size-and-carrying D17). */
     reachRefusal(
       actor: Stuff,
-    ): ActRefusal<'enclosed-shut', { by: Stuff }> | null {
+    ): ActRefusal<'enclosed-shut' | 'packed', { by: Stuff }> | null {
       // What holds the actor holds the actor's side of the lid too: in a
       // shut wardrobe, the coat beside you is not behind its door.
       const around = new Set<string>([actor.stuffId]);
@@ -492,6 +497,14 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
         const scope = cur.getEnclosingScope();
         if (scope === null || around.has(scope.stuffId)) return null;
         if (scope.isPlace()) return null;
+        // ⭐ In the pack on the actor's back: *take it off first* (D17).
+        if (
+          MixinApi.isSlotted(actor) &&
+          actor.getSlotNames().includes('back') &&
+          [...actor.getOccupants('back')].some((o) => o.stuffId === scope.stuffId)
+        ) {
+          return { ok: false, reason: 'packed', facts: { by: scope } };
+        }
         if (MixinApi.isSealable(scope) && !scope.isOpen()) {
           return { ok: false, reason: 'enclosed-shut', facts: { by: scope } };
         }

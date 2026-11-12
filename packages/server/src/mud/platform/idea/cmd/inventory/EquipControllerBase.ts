@@ -61,6 +61,7 @@
  *   wield <wieldable>          precise: this goes IN HAND
  */
 
+import { PerceptionApi } from '../../../../api/perception';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
@@ -712,7 +713,7 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
   ): Promise<readonly Stuff[] | null> {
     if (!MixinApi.isContainer(giver)) return [];
     const source = model.from?.stuff ?? null;
-    if (source === null) return giver.getContents() as Stuff[];
+    if (source === null) return PerceptionApi.perceived(giver, giver.getContents());
     if (!MixinApi.isContainer(source)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -735,7 +736,7 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     // A piece blocked only by ORDER (the layer under it, a slot a lower
     // layer frees) still comes out, because the ladder dresses it next.
     const mode = this.mode();
-    const wanted = (source.getContents() as Stuff[]).filter((c) => {
+    const wanted = PerceptionApi.perceived(giver, source.getContents()).filter((c) => {
       if (!this.equippable(c)) return false;
       if (model.target?.stuff && c !== model.target.stuff) return false;
       const skip = EquipControllerBase.canEquip(c, giver, mode);
@@ -749,6 +750,6 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
         );
       }
     }
-    return giver.getContents() as Stuff[];
+    return PerceptionApi.perceived(giver, giver.getContents());
   }
 }

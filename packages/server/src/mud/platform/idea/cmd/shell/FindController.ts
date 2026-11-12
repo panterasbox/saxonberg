@@ -50,6 +50,7 @@ import type { MqlManyResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { AccessApi } from '../../../../api/access';
+import { PerceptionApi } from '../../../../api/perception';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 
@@ -61,7 +62,10 @@ export default class FindController extends CommandController<FindModel> {
   async execute(model: FindModel, context: CommandContext): Promise<void> {
     const wrapper = model.query;
     const raw = wrapper?.raw?.trim() ?? '';
-    const matches: Stuff[] = wrapper?.stuff ?? [];
+    // ⭐ What the finder perceives of what the query names (D23) — a
+    // concealed thing turns up only for one who has found it, or through
+    // the builder lens inside an extent they hold.
+    const matches: Stuff[] = PerceptionApi.perceived(context.commandGiver, wrapper?.stuff ?? []);
 
     if (matches.length === 0) {
       // `find.yaml` declares `query` as required, so the dispatcher
@@ -94,7 +98,8 @@ export default class FindController extends CommandController<FindModel> {
     // bootstrap Stuff with no clone-pipeline stamp) renders as
     // bare display name even for admins.
     const rows: Mml[] = matches.map((stuff) => {
-      const item = Mml.thing(stuff);
+      const lens = PerceptionApi.perceivedHow(context.commandGiver, stuff) === 'builder' ? ' [builder]' : '';
+      const item = Mml.compose`${Mml.thing(stuff)}${lens}`;
       const path = stuff.getTemplatePath();
       if (!path || !showTemplatePath(path)) return item;
       return Mml.compose`${item} (${path})`;

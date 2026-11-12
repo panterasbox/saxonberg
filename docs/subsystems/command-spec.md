@@ -734,39 +734,29 @@ out-of-set word itself, or keeps a word→value table for one, is carrying
 the view's job (`StyleController` and `CockpitShelfController` did, until
 controller-liquidity W7b moved both sets onto the view; W22 made them `type: enum`).
 
-### ⭐ `depth:` — how deep an object slot reaches (controller-liquidity D4)
+### ⭐ Reach is one rule — there is no `depth:` (size-and-carrying D17, 2026-11-11)
 
-`depth: top | open | deep` on an `object` / `objects` slot sets its
-default reach rung (`open` when omitted); the player overrides it for one
-invocation with the reserved `--top` / `--open` / `--deep` flags, which
-join `--async`/`--sync`/`--strict`/`--loose` (no view may name an option
-or arg any of them). The binder resolves the slot at `context.depth ??
-def.depth ?? 'open'` (`MqlContext.depth`), and the `inventory` / `person`
-/ `peers` / `reachable` pools walk at it — the one reach walk
-(`Container.getReachableContents`, [mql.md § Reach is one
-walk](./mql.md)):
+⚠ `depth: top | open | deep` and the reserved `--top` / `--open` /
+`--deep` flags (controller-liquidity D4) are **gone**; the reserved
+framework flags are `--async`/`--sync`/`--strict`/`--loose` again. An
+object slot binds by one rule: **the nearest thing the giver perceives
+wins** — the scope tries in order (`person` → `here` → `peers`), and inside
+the person the tiers hand · ready · packed (`PerceptionApi.reach` emits
+them in that order; [mql.md § Reach is one list and ONE
+rule](./mql.md)). Every scope try passes `PerceptionApi.perceived` before
+the cardinality policy, so a covered thing is never a *which one?*; the
+head ordinal (`2nd knife`) counts after it.
 
-| rung | reaches |
-|---|---|
-| `top` | held, worn, the room's top level |
-| `open` | and inside open vessels you carry, and one level into open things here |
-| `deep` | everything, shut or not — never another person's pockets |
-
-A bare name that finds nothing at the slot's rung is probed once at
-`deep`; a find behind a shut lid refuses the line with *"The box is
-shut."* (`validator-failed`, `reach:enclosed-shut`) and binds nothing. A
-rung typed on the line is never second-guessed. Which slots set what:
-
-- **`depth: top`** — a slot whose act needs the thing at hand and carries
-  `mustBeInInventory` (`drop`, `give`, `put`, `hang`, `remove`, `wear`,
-  `wield`, `unwield`): what is in a bag would bind and then be refused as
-  *you don't have it*.
-- **`open` (omitted)** — every other slot, inspection verbs included:
-  `look apple` with the apple in a shut box says the box is shut;
-  `look me:I:apple` addresses it.
-- **`mustNotBeShutAway`** — the validator on the verbs that put a hand on
-  what they name (`get`, `eat`, `drink`, `sip`, `fill`, `pour`, `read`):
-  an explicit chain addresses through a lid, the verb refuses it.
+**The refusal fires after binding**, from the slot's validator: put
+`/lib/command/validators/canReach` on any slot whose act puts a hand on
+what it names (`get`, `eat`, `drink`, `sip`, `fill`, `pour`, `read`, the
+`inventory` verbs). It refuses in the object's own words —
+*"The box is shut."* (`enclosed-shut`), *"The rucksack is on your back —
+take it off first."* (`packed`), else *"you can't reach …"* — and passes a
+feature of the place you stand in (a match through a detail or a held
+substance on the room). `mustNotBeShutAway` is folded into it and
+deleted. Inspection verbs (`look apple`) carry no reach validator: the
+apple in your shut box is yours to look at.
 
 ### `type: struct` — structured-input-only fields
 

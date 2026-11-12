@@ -22,7 +22,6 @@
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
-import type { ReachDepth } from '../command';
 import type { CommandGiver } from '../../lib/command/CommandGiver';
 import type { Unit } from '../../lib/quantity';
 
@@ -41,35 +40,24 @@ import type { Unit } from '../../lib/quantity';
  */
 export interface MqlContext {
   /**
-   * The viewer the query resolves for — perception (honest fog),
-   * recognition-relative naming, and the giver-anchored seeds
-   * (`me`/`here`/`peers`/`reachable`/`inventory`) all key off it.
+   * The asker. ⭐⭐ **MQL names things the same for every viewer**
+   * (size-and-carrying D23, 2026-11-11): the giver anchors only the words
+   * that are the asker's own — the pronouns and seeds (`me`, `here`,
+   * `me:e`, `it`/`them`, `peers`, `reachable`, `inventory`, `person`,
+   * `:mine`) — and is handed to the object's own `getKeywords(viewer)` /
+   * `getDetailIds(…, viewer)` (what a thing answers to is the thing's to
+   * say). The resolver holds NO perception rule: whatever a seed or a
+   * transform yields for a player it yields for system mode. A SURFACE
+   * that binds or shows the result applies `PerceptionApi.perceived`.
    *
-   * `null` is the **code-only system mode** (the `attention`
-   * precedent — the command dispatcher always sets a giver, so
-   * player-typed MQL can never reach it): a viewer-blind enumeration
-   * for engine mechanics (registry sweeps, fixture indexes). Under a
-   * null giver only the viewer-free seeds resolve (`world`, path
-   * globs, `#id`, `online`); giver-anchored seeds and bareword
-   * predicates throw, candidates emit with baseline names and no
-   * perception gate.
+   * `null` is the **code-only system mode** (the command dispatcher
+   * always sets a giver, so player-typed MQL can never reach it): under a
+   * null giver only the viewer-free seeds resolve (`world`, path globs,
+   * `#id`, `online`); giver-anchored seeds and bareword predicates throw,
+   * and candidates answer to their own keywords.
    */
   commandGiver: (Stuff & CommandGiver) | null;
   scope: string;
-  /**
-   * The perception attention the scope-walk resolves concealed candidates
-   * at — the `PerceptionApi.perceives` gate's attention term. A **code-only**
-   * field: the command dispatcher never sets it, so player-typed MQL always
-   * resolves at the passive baseline and honest fog is unchanged. Only
-   * in-code callers opt in — a detection consumer (the `wary` sentry brain)
-   * passes its active `alertness` so `peers:living` enumerates the creatures
-   * it perceives *when actively watching*, not merely what a passing glance
-   * would catch. Absent → the passive baseline (byte-identical to prior
-   * behavior). Applies to direct-seed resolution (`peers` / `reachable` /
-   * `here` / `inventory` / `online` / `world`) and their mid-chain
-   * element-derived forms.
-   */
-  attention?: number;
   /**
    * ⭐ A **code-only** kind filter applied to a bare-word search's pool
    * BEFORE the name tiers cut it. The command
@@ -79,18 +67,6 @@ export interface MqlContext {
    * — the only thing there that locks. Never set by player-typed MQL.
    */
   admits?: (s: Stuff) => boolean;
-  /**
-   * ⭐ The reach rung the giver-anchored pools walk at (controller-
-   * liquidity D4): `top` (held, worn, the room's top level) · `open` (the
-   * default — and inside open vessels you carry and open things here) ·
-   * `deep` (everything, shut or not, never another body's insides). Set
-   * by the command binder from the line's `--top`/`--open`/`--deep` or the
-   * slot's `depth:`; player-typed MQL has no word for it. Read by the
-   * `inventory` · `person` · `peers` · `reachable` pools via
-   * `PerceptionApi.reach` — the one list `PerceptionApi.canReach` reads
-   * too.
-   */
-  depth?: ReachDepth;
 }
 
 /**
@@ -258,6 +234,15 @@ export interface MqlMany {
    * only about a name: a set was asked for whole (maritime revision 2).
    */
   isSet?: true;
+  /**
+   * ⭐ The HEAD ordinal the player typed (`2nd knife` → `2`), 1-based —
+   * NOT applied to `stuff` (size-and-carrying D23). The resolver names the
+   * same list for every viewer; a surface filters it through
+   * `PerceptionApi.perceived` and THEN picks the nth, so an ordinal never
+   * counts a thing the asker does not perceive. The chain index `:[n]` is
+   * different: it indexes the universal list inside the resolver.
+   */
+  ordinal?: number;
 }
 
 /**

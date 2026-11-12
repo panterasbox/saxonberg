@@ -40,8 +40,8 @@ options:
   close:
     type: boolean
     description: "Set it close — less cloth, finer, windproof, longer-wearing"
-  # ⚠ `--coarse`, not `--open`: `--open` is the reserved reach rung
-  # (controller-liquidity D4). The field keeps its name.
+  # ⚠ `--coarse`, not `--open`: `--open` was the reach rung
+  # (controller-liquidity D4, retired by size-and-carrying D17); the word stays.
   coarse:
     type: boolean
     field: open

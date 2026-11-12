@@ -14,6 +14,13 @@
  * On completion it surfaces the discovered secrets AND the passive hints
  * for anything still-hidden-but-close (honest fog — a hint names a tell,
  * never the hidden thing's identity).
+ *
+ * ⭐ `search <body>` (size-and-carrying D24a): a body that can resist
+ * (conscious) refuses before the activity starts (`Vitals.searchRefusal`);
+ * a dead or unconscious one is gone through — everything its clothes cover
+ * from the searcher is found, recorded with the body it was found on, so
+ * the find holds only while that body still holds it. An interrupted
+ * search finds nothing.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -64,6 +71,24 @@ export default class SearchController extends CommandController<SearchModel> {
     await PerceptionApi.preloadForSenseGate(actor);
 
     const targetStuff = model.target?.stuff ?? null;
+    // ⭐ A BODY (size-and-carrying D24a): a conscious one will not let you,
+    // and says so before anything starts; a dead or unconscious one cannot
+    // resist, and the search goes through its pockets.
+    const body: Stuff | null =
+      targetStuff !== null && MixinApi.isAttired(targetStuff) && targetStuff.stuffId !== actor.stuffId
+        ? targetStuff
+        : null;
+    if (body !== null && MixinApi.isVitals(body)) {
+      const refusal = body.searchRefusal(actor);
+      if (refusal !== null) {
+        MessageApi.scene(actor)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`${Mml.actor(body)} won't let you.`)
+          .send();
+        context.note({ kind: 'controller-rejected', reason: refusal.reason, detail: body.getPresentation() });
+        return;
+      }
+    }
     const { scope, depth, subject } = this.buildScope(actor, targetStuff);
 
     const durationMs = this.searchSeconds() * 1000;
@@ -72,7 +97,7 @@ export default class SearchController extends CommandController<SearchModel> {
     // instance's class so a worded replacement's override is the one that
     // runs), never over `this`.
     const words = this.constructor as typeof SearchController;
-    const onComplete = (): void => words.resolveAndRender(actor, scope, depth);
+    const onComplete = (): void => words.resolveAndRender(actor, scope, depth, body ?? undefined);
 
     // No engagement capacity (bare test fixture / sessile NPC) → resolve
     // now (the ManualBuild degenerate-fallback pattern).
@@ -104,7 +129,7 @@ export default class SearchController extends CommandController<SearchModel> {
       MessageApi.scene(actor)
         .topic(TOPIC)
         .toSelf(this.beginLine(subject))
-        .toPeers(this.beginPeers(actor))
+        .toPeers(body !== null ? this.beginPeersOnBody(actor, body) : this.beginPeers(actor))
         .send();
       return;
     }
@@ -181,8 +206,11 @@ export default class SearchController extends CommandController<SearchModel> {
     actor: Stuff,
     scope: readonly Stuff[],
     depth: SearchDepth,
+    onBody?: Stuff,
   ): void {
-    const found = PerceptionApi.resolveSearch(actor, scope, depth);
+    // ⭐ Through a body, what its clothes cover is found too — and kept
+    // only while that body holds it (D24a).
+    const found = PerceptionApi.resolveSearch(actor, scope, depth, onBody);
     const hints = PerceptionApi.hintsFor(actor, scope);
 
     let body: Mml;
@@ -243,6 +271,11 @@ export default class SearchController extends CommandController<SearchModel> {
 
   private beginPeers(actor: Stuff): Mml {
     return Mml.compose`${Mml.actor(actor)} begins searching around.`;
+  }
+
+  /** The witnesses' line for a search through a body (D24a). */
+  private beginPeersOnBody(actor: Stuff, body: Stuff): Mml {
+    return Mml.compose`${Mml.actor(actor)} goes through ${Mml.thing(body)}'s pockets.`;
   }
 
   private searchSeconds(): number {

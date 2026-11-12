@@ -48,7 +48,7 @@ args:
     # whole. The TARGET says what it will take, in its own words.
     requires: VisibleMixin
     validators:
-      - /lib/command/validators/mustNotBeShutAway
+      - /lib/command/validators/canReach
   - name: target
     type: object
     required: false

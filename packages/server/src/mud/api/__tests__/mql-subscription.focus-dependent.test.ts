@@ -102,7 +102,7 @@ describe('MqlSubscriptionApi — focusDependent flag', () => {
       focusDependent: true,
     });
 
-    const spy = vi.spyOn(MqlApi, 'resolveOne');
+    const spy = vi.spyOn(MqlApi, 'resolveMany');
     avatar.setFocus('apple');
     expect(spy).not.toHaveBeenCalled(); // setImmediate hasn't fired yet.
     await MqlSubscriptionApi._drainScheduledForTesting();
@@ -121,7 +121,7 @@ describe('MqlSubscriptionApi — focusDependent flag', () => {
       focusDependent: true,
     });
 
-    const spy = vi.spyOn(MqlApi, 'resolveOne');
+    const spy = vi.spyOn(MqlApi, 'resolveMany');
     avatar.setFocus('apple');
     avatar.setFocus('banana');
     avatar.setFocus('cherry');
@@ -161,7 +161,7 @@ describe('MqlSubscriptionApi — focusDependent flag', () => {
       cardinality: 'one',
       fields: ['displayName'],
     });
-    const spy = vi.spyOn(MqlApi, 'resolveOne');
+    const spy = vi.spyOn(MqlApi, 'resolveMany');
     avatar.setFocus('apple');
     await MqlSubscriptionApi._drainScheduledForTesting();
     expect(spy).not.toHaveBeenCalled();

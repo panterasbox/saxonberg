@@ -6,9 +6,10 @@
  * thing like?*; `inventory` *what does this hold?*; `query` *what does
  * this name?* — any set the query language can say: a seed (`horizon`,
  * `peers`), the player's own how-many (`all brass`), a holder's things
- * (`bob:i`, which already yields only what the viewer may see — the
- * visibility rule is the query language's). Nothing is asked: a set is
- * not an ambiguity.
+ * (`bob:i`). ⭐ MQL names the same things for everyone; this verb lists
+ * what the VIEWER perceives of them (`PerceptionApi.perceived` —
+ * size-and-carrying D23), so `bob:i` shows what Bob holds that you can
+ * see. Nothing is asked: a set is not an ambiguity.
  *
  * The list IS the content. Each entry says how it stands to you; a thing
  * on your horizon says where it lies (*to the north-east, some 3 miles
@@ -40,13 +41,18 @@ interface QueryModel extends CommandModel {
 export default class QueryController extends CommandController<QueryModel> {
   execute(model: QueryModel, context: CommandContext): void {
     const raw = model.set?.raw ?? '';
-    const items = MqlApi.extractStuffs(model.set) ?? [];
+    // ⭐ What the viewer perceives of what the query names (D23). The binder
+    // already filtered the bound set; this is the surface's own guarantee.
+    const named = MqlApi.extractStuffs(model.set) ?? [];
+    const items = PerceptionApi.perceived(context.commandGiver, named);
     if (items.length === 0) return this.nothing(raw, context);
     // ⭐ A FEATURE of a place matched (`query all lamps` on the bank): the
     // query names the feature, not the place that has it — say the
     // feature, where it is (found in the maritime browser walk: it read
     // "You see the bank at the confluence").
-    const vias = model.set?.vias ?? (items.length === 1 ? [model.set?.via] : []);
+    const kept = new Set(items);
+    const allVias = model.set?.vias ?? (named.length === 1 ? [model.set?.via] : []);
+    const vias = named.length === items.length ? allVias : named.flatMap((x, i) => (kept.has(x) ? [allVias[i]] : []));
     const detailPath = vias[0]?.detailPath;
     if (items.length === 1 && detailPath && detailPath.length > 0) {
       const name = detailPath[detailPath.length - 1]!;
@@ -74,10 +80,9 @@ export default class QueryController extends CommandController<QueryModel> {
     const holderQuery = raw.replace(/:[iI]\s*$/, '');
     if (holderQuery !== raw && holderQuery !== '') {
       try {
-        const holder = MqlApi.resolveOne(holderQuery, {
-          commandGiver: viewer,
-          scope: '',
-        }).stuff;
+        const holder =
+          PerceptionApi.perceived(viewer, MqlApi.resolveMany(holderQuery, { commandGiver: viewer, scope: '' }).stuff)[0] ??
+          null;
         if (holder && MixinApi.isContainer(holder) && PerceptionApi.visibleContentsOf(viewer, holder).shut) {
           MessageApi.scene(viewer).topic('sense.survey').toSelf(Mml.compose`${Mml.actor(holder)} is shut.`).send();
           context.note({ kind: 'controller-rejected', reason: 'shut', detail: holder.getPresentation() });
@@ -147,7 +152,9 @@ export default class QueryController extends CommandController<QueryModel> {
       const isFeatured = seen !== undefined && (
         (item instanceof Structure && item.isLandmark()) ||
         featuredPaths.includes(item.getTemplatePath() ?? ''));
-      const line = Mml.compose`${Mml.thing(item, { form: 'presence' })}${seen ? where(seen.bearingDeg, seen.rangeNm) : ''}`;
+      // ⭐ `[builder]`: perceived only through the builder lens (D25).
+      const lens = PerceptionApi.perceivedHow(viewer, item) === 'builder' ? ' [builder]' : '';
+      const line = Mml.compose`${Mml.thing(item, { form: 'presence' })}${seen ? where(seen.bearingDeg, seen.rangeNm) : ''}${lens}`;
       (isFeatured ? featured : rest).push(line);
     }
     // When the set IS what is in view, the passers-by at sea are told too.

@@ -9,6 +9,7 @@
  * (a bound shore's water, else the Locality's) and says what came of it.
  */
 
+import { PerceptionApi } from '@saxonberg/server/mud/api/perception';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -29,7 +30,7 @@ export default class FishController extends FishingController<FishModel> {
     const giver = context.commandGiver;
     const named = model.rod?.stuff as Stuff | undefined;
     // ⭐ The tool named, else one in hand that fishes (a spear).
-    const held: Stuff[] = MixinApi.isContainer(giver) ? giver.getContents() : [];
+    const held: Stuff[] = MixinApi.isContainer(giver) ? PerceptionApi.perceived(giver, giver.getContents()) : [];
     const tool = named ?? held.find((s) => FishController.fishesWith(s)) ?? null;
     if (tool === null) {
       this.decline(context, 'You have nothing to fish with.', 'no-rod');

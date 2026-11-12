@@ -891,15 +891,22 @@ describe('MQL resolver — desugar integration', () => {
     expect(ids(out)).toContain(world.rose.stuffId);
   });
 
-  it('rewrites ordinal-prefix queries', () => {
-    // `first flower` → `flower:[1]`
-    const out = resolve('first flower', ctx);
-    expect(out).toHaveLength(1);
+  // ⚠ Meaning changed at size-and-carrying W3 (D23): a head ordinal rides
+  // the result (`MqlMany.ordinal`) — the resolver names every flower and the
+  // SURFACE picks the nth after perception; `resolveOne` picks it from the
+  // universal list.
+  it('carries an ordinal prefix on the result instead of applying it', () => {
+    const all = MqlApi.resolveMany('flower', ctx);
+    const first = MqlApi.resolveMany('first flower', ctx);
+    expect(first.ordinal).toBe(1);
+    expect(first.stuff).toEqual(all.stuff);
+    expect(MqlApi.resolveOne('first flower', ctx).stuff).toBe(all.stuff[0]);
   });
 
-  it("'last' resolves to the last match", () => {
-    const out = resolve('last flower', ctx);
-    expect(out).toHaveLength(1);
+  it("'last' carries -1; resolveOne picks the last match", () => {
+    const all = MqlApi.resolveMany('flower', ctx);
+    expect(MqlApi.resolveMany('last flower', ctx).ordinal).toBe(-1);
+    expect(MqlApi.resolveOne('last flower', ctx).stuff).toBe(all.stuff[all.stuff.length - 1]);
   });
 });
 

@@ -354,8 +354,8 @@ Seed-shaped chain elements split by whether the seed is
   prior set. `reachable:online` is "of the giver's reachable set,
   which are online."
 
-⭐ **`peers` descends ONE level into an open container** (at the default
-`open` rung — see § Reach is one walk) standing in the
+⭐ **`peers` descends ONE level into an open container** (see § Reach is
+one rule) standing in the
 room — the glass rack's coupes, the floor stock's kegs, a crate's limes —
 so a bare noun can name what is plainly in front of you without a
 `from <holder>` clause. The openness test is `MixinApi.isOpenContainer`,
@@ -603,45 +603,84 @@ Built-in scopes:
 |---|---|
 | `me` | `[giver]` |
 | `here` | the giver's place (its details among its keywords) + exits/doors |
-| `peers` | the place's contents and the vessel the giver sits in, minus the giver, at the rung |
-| `inventory` | giver's contents at the rung (Container check) |
+| `peers` | the place's contents and the vessel the giver sits in, minus the giver, one level into the open things there |
+| `inventory` | the giver's whole carried tree, never into another body, nearest first (hand · ready · packed) |
 | `person` | the **on-person** pool: the giver + their own attunement-hosted updates + installed slot occupants (+ each occupant's hosted updates) + carried inventory (+ each carried attuned host's hosted updates). Bearer semantics — no location leg; the anchor for `presentsKey` / payment-credential / hosted-app resolution (a matching key on the floor is never "presented") |
 | `reachable` | `person` + `here` + `peers`, emitted **on-person-first** (the former `ContainmentApi.findReachable` contract, absorbed into the seed): first-match consumers and tie-broken targeting prefer your own gear over the floor's |
 | `online` | every connected interactive's holder Stuff |
 | `world` | every Stuff — ⚠ gated; see below |
 
-### ⭐⭐ Reach is one list, at a rung (controller-liquidity W2, W20)
+### ⭐⭐ Reach is one list and ONE rule (controller-liquidity W20; size-and-carrying D17, 2026-11-11)
 
 `here` · `inventory` · `person` · `peers` · `reachable` are **filters over
 `PerceptionApi.reach`** — the one definition of what the giver can lay
 hands on, each thing tagged with its pool (`here` = `around` + `here`:
-the holders themselves, then their surface) — and `PerceptionApi.canReach`
-/ `reachableAmong` are membership in the same list (all but `around`), so what a pool names
-is what a hand can touch, by construction (`reach.sameSet.test.ts`). The
-scope walk decides no WHICH; it turns each reached thing into a candidate
-(the perception gate, the keyword face, the facets). Underneath, each
-holder is walked by `Container.getReachableContents(rung)`. The rung is
-`MqlContext.depth`, set only by the binder (the line's `--top` /
-`--open` / `--deep`, else the slot's `depth:`, else `open`):
+the holders themselves, then their surface). The scope walk decides no
+WHICH; it turns each reached thing into a candidate (the keyword face,
+the facets). ⭐ **There are no rungs any more** (`ReachDepth`, `depth:`,
+`--top`/`--open`/`--deep`, `MqlContext.depth` and the binder's
+`refuseIfShutAway` are gone — D17):
 
-- `top` — the holder's own contents;
-- `open` — and inside every open vessel among them: on a **body** all the
-  way down (the apple in the open bag in your pack), anywhere else one
-  level (the crate's limes, not a box in the crate);
-- `deep` — everything, shut or not, never into another body.
+- **the person** — the giver's whole carried tree, never into another
+  body, ordered **nearest first by tier**: *hand* (a hand slot) · *ready*
+  (worn, hung from what is worn, in a pocket or an open worn container;
+  ⚠ W3: also anything carried loose, until the carrying flip) · *packed*
+  (inside a worn container in the `back` slot). The tier read is
+  `PerceptionApi.tierOf` (W4's `Carrying.tierOf` replaces it). A thing
+  behind a shut lid or in the pack on your back **is in the list**;
+- **the place** (and the vessel you sit in, and a named holder) — its top
+  level and one level into the open things there
+  (`Container.getReachableContents()`, breadth-first);
+- the ways you can see, their doors, the buildings whose landing it is,
+  the fixtures.
 
-Breadth-first, so what is at hand outranks what is in a bag. A thing
-placed under an enclosing member of a shut host is behind that lid. A
-mid-chain anchor (`bob:inventory`) is read at `top` — the rung is the
-giver's question, not bob's.
+**`PerceptionApi.canReach` is membership AND the object's own refusal**
+(`Containable.reachRefusal` — `enclosed-shut`: *"The box is shut."*;
+`packed`: *"The rucksack is on your back — take it off first."*), so the
+binder BINDS the apple in your shut box (it is the nearest thing you
+perceive that answers) and the verb's `canReach` validator refuses it in
+the object's words — **after** binding, and only for a thing the giver
+perceives (the validator `mustNotBeShutAway` folded into `canReach`'s
+wording). `reachable` as a scope word is exactly `canReach`'s membership
+pool (`reach.sameSet.test.ts`, `reach.oneRule.test.ts`). A **mid-chain**
+anchor (`bob:inventory`, `crate:person`) is read from OUTSIDE — what it
+holds and wears, its top level and one level into the open things there
+(`candidatesHeldBy`), the same set whoever asks.
 
-**The lid refusal.** A bare name that binds nothing at its rung is asked
-once more at `deep` (`CommandLogic.refuseIfShutAway`); a find behind a
-shut lid (`Containable.reachRefusal`) refuses the line with *"The box is
-shut."* and binds nothing. A typed rung is never second-guessed.
-**Addressing is not reaching**: `:i`/`:I` walk through a shut container
-of the giver's own or the room's (`visibleInside`), so `look me:I:apple`
-works; the verbs that put a hand on a thing carry `mustNotBeShutAway`.
+### ⭐⭐⭐ MQL names; the acts perceive (size-and-carrying D23, 2026-11-11)
+
+*"MQL stays simple — the things and the interfaces make the
+determinations; MQL only asks them, passing whatever information they
+need (the asker)."* The resolver returns, for any non-system giver,
+exactly what it returns in system mode (`mql.system-mode.test.ts` pins it
+for every viewer-free seed, transform and class filter;
+`mql.universal.test.ts` for `them:I:letter` across the bearer, a stranger
+and system mode). It holds **no perception rule of its own**:
+`pushDirect`'s `perceives` gate, the `#id` gate, the `visible` predicate's
+perceives clause and `visibleInside`'s viewer filter are gone, and so is
+`MqlContext.attention` (a detection consumer — the `wary` brain — names
+with MQL, then `PerceptionApi.perceives(viewer, x, attention)`). The asker
+reaches the resolver only (a) through the words that are the asker's
+(`me`, `here`, `me:e`, `it`/`them`, the giver-anchored seeds, `:mine`) and
+(b) as an argument to the OBJECT's own methods — what a thing answers to
+is `Stuff.perceivedKeywordsFor(viewer)` (the recognition face for a
+being, the thing's own `getKeywords(viewer)` otherwise), which detail ids
+it offers is `getDetailIds(…, viewer)`.
+
+**Perception is applied by the SURFACES through one filter,
+`PerceptionApi.perceived(viewer, list, ordinal?)`** (order-preserving, over
+`perceives`), held at zero exceptions by `lint:perceived-surfaces`: the
+binder (each scope try, before tiers, kinds, `--strict` and the
+cardinality policy — so there is no *which one?* over a covered thing),
+`query`, `find`, the script `( )` island, the MQL subscriptions and the
+card query source (before the projection and the diff), `look`,
+`inventory`, `sense`, the card reads (`contents`, `worn`). ⭐ **The head
+ordinal** (`2nd knife`) is no longer desugared into an index: it rides
+`MqlMany.ordinal` and the surface picks the nth AFTER the filter, so an
+ordinal never counts a thing you do not perceive (`resolveOne` alone picks
+it from the universal list — system semantics). The chain index `:[n]` is
+unchanged and universal. The `MqlApi` surface is still exactly
+`resolveOne` + `resolveMany`.
 
 ### ⭐⭐ The registry-read grant
 
@@ -736,7 +775,7 @@ split lets `get` declare the surgical scope it actually wants
 ##### Doors and exits — both candidates, each as itself
 
 The `here` pool (`PerceptionApi.reach`'s `here` section) emits boundaries
-and exits through the same generic `pushDirect` path (harbors review 3
+and exits through the same generic candidate path (harbors review 3
 retired the asymmetry; ⚠ since W20 a boundary is offered only on a way the
 viewer can see, as `canReach` always had it):
 
@@ -892,21 +931,24 @@ The `#`-private slots in `PronounMemory` are fine because the class
 isn't a Stuff and never crosses the call-security proxy. (See
 CLAUDE.md § Member Privacy.)
 
-## ⭐⭐ Descending a holder is a view through the viewer's eyes (maritime revision 2′)
+## ⭐⭐ Descending a holder names everything inside it — for everyone (REVERSED 2026-11-11)
 
-The `:i` / `:I` step yields what the VIEWER may see inside a holder —
-`PerceptionApi.visibleContentsOf(viewer, holder)` (`resolver.ts`,
-`visibleInside`): on a person what they wear and hold, never their
-pockets or what is inside their body; an open container everything; a
-shut one nothing; concealed things stay concealed FROM THAT VIEWER (per-viewer
-discovery, the `perceives` rule — a found dagger stays found; until
-controllers-are-io W2 a bare `isConcealed()` hid it again in every
-listing). Your own things —
-and system mode (`commandGiver: null`) — are everything, as before.
-⭐ The rule lives HERE, not in a verb, because MQL is a view over the
-model: `query bob:i`, `look bob:i:knife`, `inventory bob` and a script
-all ask the same question and must get the same answer. (It sat in two
-controllers for one revision, and `bob:i` listed Bob's pockets.)
+⚠ **Reversed by size-and-carrying D23.** Until 2026-11-11 the `:i` / `:I`
+step yielded what the VIEWER might see inside a holder
+(`PerceptionApi.visibleContentsOf`, maritime revision 2′). It now yields
+the holder's contents — `getContents()` / `getDeepContents()` — for every
+giver: `bob:i` names Bob's pockets, `chest:i` names what is in the shut
+chest. What a viewer may SEE of them is decided where a result is bound or
+shown (`PerceptionApi.perceived`): another body shows its hands, its
+outermost layers, what hangs from what it wears, an open uncovered pocket
+and the inside of an open worn container; a shut container light does not
+pass (Beer–Lambert, `e^(−α·t) < 0.3`) hides what is in it; your own things
+are always yours to perceive (see [perception.md](./perception.md)
+§ *The holder rules*). The reason the rule moved out of the language is
+the reason it was put in: `query bob:i`, `look bob:i:knife`, `inventory
+bob` and a script must get the same answer — they do, because each is a
+surface and each calls the one filter, and MQL can no longer disagree with
+any of them.
 
 ## Resolving is not permission
 
@@ -915,7 +957,8 @@ along with the `core` group and the "author tier" — see
 [access.md](./access.md)). Every seed, scope, namespace filter and
 predicate resolves for every giver: a guest may type `flower:online`,
 `reachable:[mixin.Door]` or `/platform/location/*:fountain` and get the honest
-answer, fogged by perception exactly as `look` is. ⚠ **The one thing
+answer — the same answer anyone gets, which the verb then shows through
+`PerceptionApi.perceived`, exactly as `look` is fogged. ⚠ **The one thing
 that is gated is not a permission tier**: `world:` reads every object
 the realm has ever made, and what gates it is *cost*, not privilege —
 which is why the exception is an office with a receipt rather than a
@@ -947,20 +990,13 @@ What was retired: the `ctx.permission` snapshot (`isAuthor` /
 (`'permission'` vs `'parse'` / `'resolve'`), but no resolver path throws
 it any more.
 
-`ctx.attention` (added by the stealth & deployables build) is the
-perception attention the scope-walk resolves concealed candidates at —
-the `PerceptionApi.perceives` gate's attention term, threaded into
-`pushDirect` across every seed builder (`peers` / `reachable` / `here` /
-`inventory` / `flat`) and their mid-chain element-derived forms. It is a
-**code-only** field: the command dispatcher never sets it, so player-typed
-MQL always resolves at the passive baseline and **honest fog is unchanged**
-(concealed things a player can't passively perceive stay un-targetable).
-Only in-code detection consumers opt in — the `wary` sentry brain passes
-its active `alertness` so `peers:living` enumerates the movers it perceives
-*when actively watching*, folding detection into the query (see
-[stealth.md](./stealth.md)). Absent → the passive baseline (byte-identical
-to prior behavior). No grammar change — it rides the context struct, not the
-query string.
+⚠ `ctx.attention` (added by the stealth & deployables build) is **gone**
+(size-and-carrying D23): it was the attention term of `pushDirect`'s
+per-candidate `perceives` gate, and that gate is gone with it — MQL names
+the same things for everyone. A detection consumer names with MQL and then
+perceives at its own attention: the `wary` sentry brain resolves
+`peers:living` and keeps what `PerceptionApi.perceives(host, x, alertness)`
+admits (see [stealth.md](./stealth.md)).
 
 ## System mode (`commandGiver: null`)
 

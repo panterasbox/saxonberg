@@ -8,19 +8,28 @@ mixin or Api. Concrete users (light, hearing, display-name
 composition, language understanding, faction visibility, vendor
 pricing) reference this doc rather than re-derive the rule.
 
-## ⭐ `canReach` — the ONE definition of reach, at a rung
+## ⭐ `canReach` — the ONE definition of reach, ONE rule
 
-An actor reaches: itself; what it carries; what stands in its place and
-in the vessel it sits in (`getEnclosingPlace` — in a boat on the river,
-both); a door attached to one of those places' exits, the way itself,
-and the fixtures; and what stands inside **open containers** — on its
-own body all the way down (the coin in the open pouch in your open
-pack), anywhere else **one level** (the glass rack's coupe, a crate's
-limes). That is the `open` rung; `top` stops at the holders' own
-contents and `deep` goes through every lid but never into another body
-(controller-liquidity D4/D5).
+An actor reaches (size-and-carrying D17, 2026-11-11 — the rungs `top` ·
+`open` · `deep` are gone): itself; its **whole carried tree**, never into
+another body, nearest first by tier — *hand* · *ready* (worn, hung from
+what is worn, a pocket, an open worn container; W3: also what is carried
+loose) · *packed* (inside a worn container in the `back` slot)
+(`PerceptionApi.tierOf`, replaced by W4's `Carrying.tierOf`); what stands
+in its place and in the vessel it sits in (`getEnclosingPlace` — in a
+boat on the river, both) and **one level** into the open things there (the
+glass rack's coupe, a crate's limes); a door attached to one of those
+places' exits, the way itself, and the fixtures.
 
-⭐⭐⭐ **It is ONE list — `PerceptionApi.reach(actor, {depth, location,
+⭐⭐ **`canReach` is membership AND the object's own refusal.** A thing
+behind a shut lid, or in the pack on your back, IS in the list — the
+binder binds it (it may be the nearest thing you perceive) — and
+`Containable.reachRefusal(actor)` refuses it: `enclosed-shut` (*"The box
+is shut."*) or `packed` (*"The rucksack is on your back — take it off
+first."*, checked before the lid at the same holder because opening it
+would not help). The `canReach` validator words both, after binding.
+
+⭐⭐⭐ **It is ONE list — `PerceptionApi.reach(actor, {location,
 pools})`** (controller-liquidity W20; the owner: *"I just don't want two
 different algos for the same thing"*). It returns everything to hand,
 each tagged with its pool — `self` · `attached` (slot occupants, the apps
@@ -30,16 +39,13 @@ since a hand is in the room, not on it) · `here` (the place and the vessel's
 surface: the place itself, the ways the actor can see and their doors,
 the buildings whose landing it is, open ground seen across a way) ·
 `peers` (what stands there, fixtures included) — in MQL's tie-break
-order. `canReach` / `reachableAmong` are **membership** in it (every pool
-but `around`); MQL's
-`person` · `inventory` · `here` · `peers` · `reachable` pools are
-**filters** over it (`api/mql/scope-walk.ts` only builds and scores the
-candidates). `Container.getReachableContents(rung)` is the per-container
-step underneath. `pools` computes only the sections asked for, so an
-`inventory` scope never walks the room; `reachableAmong` is one walk for
-the whole list. `reach.sameSet.test.ts` pins that every MQL `reachable`
-result but the `around` holders is `canReach`-true and vice versa, scene by
-scene and rung by rung.
+order. `canReach` / `reachableAmong` are membership in it (every pool
+but `around`) plus the refusal; MQL's `person` · `inventory` · `here` ·
+`peers` · `reachable` pools are **filters** over it.
+`Container.getReachableContents()` is the per-holder step for the place
+(top level + one level into open things). `pools` computes only the
+sections asked for; `reachableAmong` is one walk for the whole list.
+`reach.sameSet.test.ts` and `reach.oneRule.test.ts` pin it.
 
 ⚠ History, twice over: before W2 the seed reached the person's top level
 only while `canReach` went one level into an open pouch; after W2 the walk
@@ -57,11 +63,12 @@ bound, "reachable" would mean "anywhere in the room's transitive
 contents", which is not what a hand does. What you carry is different:
 an open bag in an open pack is to hand.
 
-**A lid is a refusal with a name.** `Containable.reachRefusal(actor)`
-returns `{reason: 'enclosed-shut', facts: {by}}` for the innermost shut
-thing between a thing and the actor (never a lid that also holds the
-actor, never another person's pockets). MQL *addresses* through shut
-things (`me:I:apple`); the verb asks this and says *the box is shut*.
+**A lid — or a pack on your back — is a refusal with a name.**
+`Containable.reachRefusal(actor)` returns `{reason: 'packed' |
+'enclosed-shut', facts: {by}}` for the innermost holder that stands in the
+way (never a lid that also holds the actor, never another person's
+pockets). MQL names through shut things (`me:I:apple`); the verb asks this
+and says why.
 
 The openness test is **`MixinApi.isOpenContainer`**, and it is the single
 rule four things ask — `canReach`, the MQL `peers` scope walk,
@@ -344,16 +351,49 @@ sync at the enumeration seams by warming it into
 `PerceptionLogic.preloadForSenseGate`'s per-command snapshot. Full detail in
 [concealment.md](./concealment.md).
 
+### ⭐⭐⭐ The holder rules, and the one filter every surface applies (size-and-carrying D23–D25, 2026-11-11)
+
+**MQL names things the same for every viewer; the acts perceive.**
+`PerceptionApi.perceives(viewer, target)` decides, in order:
+
+0. **the builder lens** — `lens on` memoized the extents the viewer holds
+   (`Avatar.lensOn` ← `AccessApi.heldExtents`; never a wizard check); a
+   thing whose enclosing place (an exit: its source) lies under one is
+   perceived. ⛔ Never a player's body or what is on one.
+1. **your own body** and everything on it, at any depth.
+2. **the holders** — walking up through what encloses the target, to the
+   viewer's place: a SHUT container light does not pass hides it
+   (Beer–Lambert over the holder's material, `e^(−α·t) ≥ 0.3` passes —
+   glass, ice; `t` from the authored box's wall or a 3 mm jar; no
+   `lightAbsorption` is opaque); a placement region that is `covered` (an
+   inner pocket) or `closes` (a buttoned one) hides it; **another body**
+   (anything `Attired` that is not the viewer — a corpse included) shows
+   only what is in its hands, a worn layer nothing covers
+   (`Attired.coveringAt`), what hangs `from` something it wears, and what
+   THIS viewer found on it by searching while it still holds it (D24a —
+   `BeliefPayload.foundOn`); never its loose pockets or an implant. An
+   open pocket of an outer coat shows; under a cloak it does not (the coat
+   is no longer outermost). What holds the viewer is the viewer's side of
+   its lid.
+3. concealment, discovery and light (unchanged).
+
+**`PerceptionApi.perceived(viewer, list, ordinal?)`** — the members of a
+list the viewer perceives, in order, then the head ordinal — is the one
+filter every surface applies (`lint:perceived-surfaces` holds the count at
+0): the binder, `query`, `find`, the script island, the subscriptions and
+cards, `look`, `inventory`, `sense`. **`perceivedHow`** answers `plain` ·
+`builder` · `null`; `look`, `inventory`, `query` and `find` mark a line
+`[builder]` when only the lens shows it. `visibleContentsOf` is now a
+GROUPING (worn · held · carried) of what `perceives` admits.
+
 ### ⭐ The room listing is one query, and the orphan guard stays
 
 `look`, `sense` and the inspection card list a place (or a holder) by ONE
 MQL query since controllers-are-io W2 —
 `here:i:visible:[not mixin.AdornmentMixin] - me` (the card's
 `#<host>:i:visible:carried:…`) — where three verbatim hand-rolled filters
-stood. `:visible` is this face (`perceives`), `:i` is
-`visibleContentsOf`, and ⚠ `visibleContentsOf` now asks `perceives` per
-viewer too: a bare `isConcealed()` there hid a thing the viewer had
-already DISCOVERED the moment it sat in any listing.
+stood. ⚠ Since D23 the query only NAMES (`:visible` is a class word, `:i`
+the raw contents); the listing is that list through `perceives`.
 
 ⚠ **The orphan guard stays.** The listing then calls
 `Container.getLooseContents(visible)`, whose `ids.has(host)` clause is
@@ -412,20 +452,20 @@ PerceptionApi.isAnotherPerson(viewer, target)
 ```
 
 A PERSON is an agent with slots; a rack is slotted and wears nothing, so
-it lists like any container. `PerceptionApi.visibleContentsOf(viewer,
-target)` — the one rule `look`, `inventory` and MQL's `:i` read (see
-[perceiver.md](./perceiver.md)) — reads it: for another person the
-answer is what they **wear** and **hold**, never what they **carry**; for
-yourself it is all three; for a container it is everything inside, once
-open.
+it lists like any container. ⚠ What of another body is IN VIEW is now
+`perceives`' rule 2 (above — its hands, its outermost layers, what hangs
+from them, an open uncovered pocket; never what its clothes cover), read
+the same by every surface; `isAnotherPerson` still names the weight rule
+below.
 
 The card surface follows the same rule, so the wire cannot leak what the
 prose withholds:
 
-- **`contents`** on a card (`Container`'s subscribable read): for
-  another person, only the children `visibleContentsOf` says they
-  **hold** survive the filter (worn stays the `worn` projection's), so a
-  stranger's pocket never reaches a client.
+- **`contents`** on a card (`Container`'s subscribable read): the
+  children the viewer `perceived` (worn stays the `worn` projection's),
+  so a stranger's pocket never reaches a client — and the client no
+  longer hides an agent's contents list itself (`CardBodies`' `HereList`
+  suppression went with D23: the wire carries only what is perceived).
 - **`mass`** (`Tangible`'s read) returns nothing for another person:
   *another person's weight is read by a scale, never by a look.* ⚠ The
   read states `isAnotherPerson`'s three clauses inline rather than
@@ -441,8 +481,8 @@ the light it is seen in is the light **its wearer stands in**
 (`env = env.getContainer() ?? env`), beside the existing lift for a
 thing inside a containable. The light inside a body is no light at all,
 so before this every worn hat on a stranger read *something* (#90).
-Which of their things are in view at all stays `visibleContentsOf`'s
-rule, not this one.
+Which of their things are in view at all is `perceives`' holder rule,
+not this one.
 
 ## Where the pattern is currently used
 
@@ -561,3 +601,10 @@ every call with `undefined`, and `look` must not die because of it.
   (`Containable.getEnclosingPlace`), MQL ADDRESSES a thing wherever it is,
   and a shut lid is the verb's gate (`mustNotBeShutAway` →
   `Containable.reachRefusal`), not the query's. `look` observes once (W8).
+- **Size and carrying W3 (2026-11-11)** — reach is ONE rule (D17): the
+  rungs, `depth:`, `--top/--open/--deep` and `refuseIfShutAway` deleted;
+  the person's whole tree in tier order; `canReach` = membership + the
+  object's refusal, which grew `packed`; `mustNotBeShutAway` folded into
+  the `canReach` validator. MQL made universal (D23) and perception moved
+  to the surfaces through `perceived`; `perceives` gained the holder rules
+  (D24), the body search (D24a) and the builder lens (D25).

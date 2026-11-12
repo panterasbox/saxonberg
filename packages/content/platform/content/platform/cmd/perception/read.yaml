@@ -33,7 +33,7 @@ args:
     updates_focus: extend
     requires: [VisibleMixin, ReadableMixin]
     validators:
-      - /lib/command/validators/mustNotBeShutAway
+      - /lib/command/validators/canReach
   # ⭐ A book reads at a page: `read notebook page 3` opens it
   # there. A positional number reaches the controller raw; it parses.
   - name: page

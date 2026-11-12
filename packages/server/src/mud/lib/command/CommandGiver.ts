@@ -47,6 +47,7 @@ import {
   type CommandModel,
   type ExecuteCommandOpts,
 } from '../../api/command';
+import { PerceptionApi } from '../../api/perception';
 import { MqlApi } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { PromptApi, PromptCancelledError } from '../../api/prompt';
@@ -616,7 +617,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           },
         };
       }
-      const named = [...new Set(resolved.stuff)];
+      // ⭐ Only what the giver perceives can be the source they named (D23).
+      const named = [...new Set(PerceptionApi.perceived(giver, resolved.stuff, resolved.ordinal))];
       if (named.length === 0) {
         return {
           ok: false,
@@ -1405,8 +1407,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           barId: outer.barId,
           // `--strict` / `--loose` on the line (D23).
           ...(built.reservedFiltered ? { filterPolicy: built.reservedFiltered } : {}),
-          // `--top` / `--open` / `--deep` on the line (D4).
-          ...(built.reservedDepth ? { depth: built.reservedDepth } : {}),
         });
         if (outer.aliasExpansion !== undefined) {
           attempt.aliasExpansion = outer.aliasExpansion;
@@ -1710,6 +1710,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       const byId = `#${source.stuffId}`;
       const handle = MixinApi.isPerceptible(source) ? source.getPrimaryKeyword() : null;
       if (!handle) return byId;
+      // A source the giver does not perceive is never offered by its word.
+      // ⚠ The `:[n]` below indexes MQL's UNIVERSAL list (D23), so the proof
+      // resolves unfiltered — the index means the same for everyone.
+      if (!PerceptionApi.perceives(giver, source)) return byId;
       const base = isWithin(source, giver) ? 'me:i:' : here && isWithin(source, here) ? 'here:i:' : '';
       const resolve = (form: string): Stuff[] => {
         try {

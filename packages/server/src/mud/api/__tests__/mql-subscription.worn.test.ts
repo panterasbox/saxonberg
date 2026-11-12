@@ -127,9 +127,10 @@ describe('the `worn` wire field', () => {
     const { avatar, shirt } = await dressedAvatar();
     avatar.occupyAll(shirt, ['torso']);
     // Honest fog on the wire, exactly as `contents` does it.
+    // ⚠ Through the one filter since size-and-carrying W3 (D23).
     const spy = vi
-      .spyOn(PerceptionApi, 'perceives')
-      .mockImplementation((_viewer, target) => target.stuffId !== shirt.stuffId);
+      .spyOn(PerceptionApi, 'perceived')
+      .mockImplementation((_viewer, list) => list.filter((x) => x.stuffId !== shirt.stuffId));
     try {
       expect(ids(project(avatar, avatar).worn)).toEqual([]);
     } finally {

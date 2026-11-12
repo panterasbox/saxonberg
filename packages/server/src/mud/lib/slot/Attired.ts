@@ -581,14 +581,10 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
         name: 'worn',
         read: (stuff, viewer) => {
           const host = stuff as Stuff & Slotted & Attired;
-          return host
-            .wornStack()
-            .filter(
-              (item) =>
-                item.stuffId !== viewer.stuffId &&
-                MixinApi.isVisible(item as unknown as Stuff) &&
-                PerceptionApi.perceives(viewer, item as unknown as Stuff),
-            )
+          // ⭐ The layers the viewer PERCEIVES (D23/D24) — a stranger sees
+          // the outer coat, never the shirt under it.
+          return PerceptionApi.perceived(viewer, host.wornStack() as unknown as Stuff[])
+            .filter((item) => item.stuffId !== viewer.stuffId && MixinApi.isVisible(item))
             .map((item) =>
               MqlSubscriptionApi.projectFields(
                 item as unknown as Stuff,

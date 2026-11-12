@@ -8,6 +8,8 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
+import type { Slotted } from '../../../lib/slot/Slotted';
+import type { Attired } from '../../../lib/slot/Attired';
 import type { Sensor } from '../../../lib/message/Sensor';
 import type { Organism } from '../../../lib/species/Organism';
 import type { Perception } from '../../../lib/perception/Perception';
@@ -41,13 +43,15 @@ import {
 // subsystem into this module's eval.
 import type { VisionModality } from '../modalities/VisionModality';
 import type {
-  ReachOptions, ReachPool, Reached, SearchDepth,
+  PerceivedHow, ReachOptions, ReachPool, ReachTier, Reached, SearchDepth,
 } from '../../../api/perception';
-import type { ReachDepth } from '../../../api/command';
+import { PlayerApi } from '../../../api/player';
+import { SIZE_DEFAULTS } from '../../../lib/spatial/Dimensions';
 import type {
   HorizonView, HorizonSighting, HorizonTraffic, Observation, VisibleContents,
 } from '../../../api/perception';
 import { WorldClockApi } from '../../../api/worldclock';
+import { ExecutionContextApi, OMNI_SCOPE } from '../../../api/execution-context';
 import type { SpatialZone } from '../../../lib/zone/SpatialZone';
 import type Place from '../../../lib/stuff/Place';
 import type Structure from '../../../lib/structure/Structure';
@@ -328,12 +332,13 @@ export class PerceptionLogic extends ApiLogic {
   public canReach(
     actor: Stuff,
     target: Stuff,
-    opts?: { location?: Stuff | null; depth?: ReachDepth },
+    opts?: { location?: Stuff | null },
   ): boolean {
     if (target.stuffId === actor.stuffId) return true;
-    return reachOf(actor, opts).some(
+    const member = reachOf(actor, opts).some(
       (r) => r.pool !== 'around' && r.stuff.stuffId === target.stuffId,
     );
+    return member && !refusesReach(actor, target);
   }
 
   /**
@@ -349,20 +354,42 @@ export class PerceptionLogic extends ApiLogic {
    * trivial HTTP GET taking 17 seconds behind it.
    *
    * One walk, one gate, O(1) per candidate afterwards. The RULE is not
-   * duplicated — both read {@link reachOf}.
+   * duplicated — both read {@link reachOf} and the object's refusal.
    */
   @CallSecurity(PerceptionApiCallers)
   public reachableAmong(
     actor: Stuff,
     candidates: readonly Stuff[],
-    opts?: { location?: Stuff | null; depth?: ReachDepth },
+    opts?: { location?: Stuff | null },
   ): Stuff[] {
     if (candidates.length === 0) return [];
     const ids = new Set<string>();
     for (const r of reachOf(actor, opts)) {
       if (r.pool !== 'around') ids.add(r.stuff.stuffId);
     }
-    return candidates.filter((c) => ids.has(c.stuffId));
+    return candidates.filter((c) => ids.has(c.stuffId) && !refusesReach(actor, c));
+  }
+
+  /** See {@link PerceptionApi.perceived}. */
+  @CallSecurity(PerceptionApiCallers)
+  public perceived(viewer: Stuff, list: readonly Stuff[], ordinal?: number): Stuff[] {
+    const seen = list.filter((s) => perceivesImpl(viewer, s));
+    if (ordinal === undefined) return seen;
+    const i = ordinal > 0 ? ordinal - 1 : seen.length + ordinal;
+    return i >= 0 && i < seen.length ? [seen[i]!] : [];
+  }
+
+  /** See {@link PerceptionApi.perceivedHow}. */
+  @CallSecurity(PerceptionApiCallers)
+  public perceivedHow(viewer: Stuff, target: Stuff): PerceivedHow {
+    if (perceivesImpl(viewer, target, undefined, false)) return 'plain';
+    return lensAdmits(viewer, target) ? 'builder' : null;
+  }
+
+  /** See {@link PerceptionApi.tierOf}. */
+  @CallSecurity(PerceptionApiCallers)
+  public tierOf(carrier: Stuff, thing: Stuff): ReachTier {
+    return tierOfImpl(carrier, thing);
   }
 
   @CallSecurity(PerceptionApiCallers)
@@ -531,8 +558,9 @@ export class PerceptionLogic extends ApiLogic {
     viewer: Stuff,
     scope: readonly Stuff[],
     depth: SearchDepth,
+    onBody?: Stuff,
   ): Stuff[] {
-    return resolveSearchImpl(viewer, scope, depth);
+    return resolveSearchImpl(viewer, scope, depth, onBody);
   }
 
   /** See {@link PerceptionApi._resetModalityCacheForTest}. */
@@ -1006,24 +1034,40 @@ function hasDiscoveredImpl(viewer: Stuff, target: Stuff): boolean {
   return !!viewer.recall(DISCOVERY, referent)?.payload.found;
 }
 
-/** See {@link PerceptionApi.recordDiscovery}. */
-function recordDiscoveryImpl(viewer: Stuff, target: Stuff): void {
+/**
+ * See {@link PerceptionApi.recordDiscovery}. `foundOn` — the body it was
+ * found on by a search through it (D24a), so the find holds only while
+ * that body holds it.
+ */
+function recordDiscoveryImpl(viewer: Stuff, target: Stuff, foundOn?: string): void {
   if (!MixinApi.isBeliefStore(viewer)) return;
   const referent = discoveryReferentOf(target);
   if (!referent) return;
-  viewer.know(DISCOVERY, referent, { found: true });
+  viewer.know(DISCOVERY, referent, foundOn === undefined ? { found: true } : { found: true, foundOn });
 }
 
-/** See {@link PerceptionApi.perceives}. */
+/**
+ * ⭐⭐ See {@link PerceptionApi.perceives} — the rules, in order
+ * (size-and-carrying D24): (0) the builder lens; (1) your own body and
+ * everything on it; (2) the holders; (3) concealment, discovery and light.
+ * `lens: false` asks the plain rules only ({@link PerceptionApi.perceivedHow}).
+ */
 function perceivesImpl(
   viewer: Stuff,
   target: Stuff,
   attention?: number,
+  lens = true,
 ): boolean {
-  // Backcompat: a non-concealable or `obvious` thing is always present —
-  // everything currently visible stays visible.
-  if (!MixinApi.isConcealable(target)) return true;
+  if (lens && lensAdmits(viewer, target)) return true; // rule 0
+  if (onBodyOf(viewer, target)) return true; // rule 1
+  if (!holdersAdmit(viewer, target)) return false; // rule 2
+  return concealmentAdmits(viewer, target, attention); // rule 3
+}
 
+/** Rule 3 — the concealment/discovery/light gate (the shipped rule). */
+function concealmentAdmits(viewer: Stuff, target: Stuff, attention?: number): boolean {
+  // A non-concealable or `obvious` thing is always present.
+  if (!MixinApi.isConcealable(target)) return true;
   const level = target.getConcealment();
   if (!ConcealmentLevels.isConcealed(level)) return true;
   // Once found, always seen (the per-viewer discovery belief sticks).
@@ -1033,6 +1077,224 @@ function perceivesImpl(
     effectivePerceptionImpl(viewer, target, att) >=
     ConcealmentLevels.requirementFor(level)
   );
+}
+
+/**
+ * The containers above `s`, innermost first (the enclosing scope — a
+ * placement member that encloses, else the container), stopping at a Place.
+ */
+function upward(s: Stuff): Stuff[] {
+  const out: Stuff[] = [];
+  let cur: Stuff = s;
+  for (let i = 0; i < 32; i++) {
+    if (!MixinApi.isContainable(cur)) break;
+    const up = cur.getEnclosingScope();
+    if (up === null) break;
+    out.push(up);
+    if (up.isPlace()) break;
+    cur = up;
+  }
+  return out;
+}
+
+/** Rule 1: the viewer itself, or anything on the viewer's body at any depth. */
+function onBodyOf(viewer: Stuff, target: Stuff): boolean {
+  if (target.stuffId === viewer.stuffId) return true;
+  let cur: Stuff | null = target;
+  for (let i = 0; cur !== null && i < 32; i++) {
+    cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+    if (cur !== null && cur.stuffId === viewer.stuffId) return true;
+  }
+  return false;
+}
+
+/**
+ * ⭐ Rule 0 — the builder lens (D25): `lens on` memoized the extents the
+ * viewer holds; a thing whose enclosing place (an exit: its source) lies
+ * under one is perceived. ⛔ Never a player's body or what is on one — the
+ * lens is for content, not people.
+ */
+function lensAdmits(viewer: Stuff, target: Stuff): boolean {
+  if (!PlayerApi.isAvatarStuff(viewer)) return false;
+  const extents = viewer.lensExtents();
+  if (extents === null || extents.length === 0) return false;
+  for (const s of [target, ...upward(target)]) {
+    if (s.stuffId !== viewer.stuffId && PlayerApi.isAvatarStuff(s)) return false;
+  }
+  let place: Stuff | null = null;
+  if (target.isExit()) place = target.getSource();
+  else if (target.isPlace()) place = target;
+  else if (MixinApi.isContainable(target)) place = target.getEnclosingPlace();
+  const path = place?.getTemplatePath();
+  if (!path) return false;
+  return extents.some((e) => path === e || path.startsWith(e.endsWith('/') ? e : `${e}/`));
+}
+
+/** The light a shut container's walls must pass to be seen through (D24). */
+const SEE_THROUGH_T = 0.3;
+/** A shell's thickness when nothing says better — a jar's wall, metres. */
+const DEFAULT_SHELL_M = 0.003;
+
+/**
+ * ⭐ Can light pass a holder's shell (D24)? Beer–Lambert over its material:
+ * `e^(−α·t) ≥` {@link SEE_THROUGH_T}, `t` the wall its authored box implies
+ * (`(1 − INTERIOR_FRACTION)/2` of its least side) or a jar's 3 mm. A
+ * material with no `lightAbsorption` is opaque — glass, mesh and ice are
+ * not.
+ */
+function seeThrough(holder: Stuff): boolean {
+  if (!MixinApi.isTangible(holder)) return false;
+  const material = holder.getMaterial();
+  if (material === null || !MixinApi.hasOptics(material)) return false;
+  const alpha = material.getLightAbsorption()?.rawValue();
+  if (typeof alpha !== 'number' || alpha < 0) return false;
+  const box = holder.hasAuthoredSize() ? holder.getDimensions() : null;
+  const least = box ? Math.min(box.width, box.depth, box.height) : 0;
+  const t = least > 0 ? (least * (1 - SIZE_DEFAULTS.INTERIOR_FRACTION)) / 2 : DEFAULT_SHELL_M;
+  return Math.exp(-alpha * t) >= SEE_THROUGH_T;
+}
+
+/**
+ * ⭐⭐ Rule 2 — the holders (D24). Walk up from the target through what
+ * encloses it, to the viewer's place: a SHUT container light does not pass
+ * hides it; a placement member that is covered or fastened (an inner
+ * pocket, a buttoned one) hides it; ANOTHER BODY shows only what
+ * {@link bodyShows} says. What holds the viewer is the viewer's side of
+ * its lid (in a shut wardrobe, the coat beside you is in view).
+ */
+function holdersAdmit(viewer: Stuff, target: Stuff): boolean {
+  const around = new Set<string>([viewer.stuffId]);
+  let up: Stuff | null = viewer;
+  for (let i = 0; up !== null && i < 32; i++) {
+    up = MixinApi.isContainable(up) ? up.getContainer() : null;
+    if (up !== null) around.add(up.stuffId);
+  }
+  let cur: Stuff = target;
+  for (let i = 0; i < 32; i++) {
+    if (!MixinApi.isContainable(cur)) return true;
+    const scope = cur.getEnclosingScope();
+    if (scope === null || around.has(scope.stuffId) || scope.isPlace()) return true;
+    if (isAnotherBody(viewer, scope)) {
+      if (!bodyShows(viewer, scope, cur)) return false;
+    } else {
+      // ⭐ A covered region (an inner pocket) or one that fastens (a
+      // buttoned breast pocket) hides what sits in it (D24/D26).
+      const placement = cur.getPlacement();
+      if (placement !== null && (placement.host as unknown as Stuff).stuffId === scope.stuffId) {
+        const entry = placement.host.getPlacementEntry(placement.name);
+        if (entry?.covered === true || entry?.closes === true) return false;
+      }
+      if (MixinApi.isSealable(scope) && !scope.isOpen() && !seeThrough(scope)) return false;
+    }
+    cur = scope;
+  }
+  return true;
+}
+
+/**
+ * ⭐ Another BODY — what wears things and is not the viewer: a person, an
+ * animal in tack, a corpse (D24 / D24a: a dead man's pockets are as covered
+ * as a living one's). Reads `Attired` — a rack is slotted and wears nothing.
+ */
+function isAnotherBody(viewer: Stuff, s: Stuff): s is Stuff & Slotted & Attired {
+  return s.stuffId !== viewer.stuffId && MixinApi.isAttired(s);
+}
+
+/**
+ * ⭐ What another body shows of a thing directly on it (D24 rule 2): what is
+ * in its hands; a worn layer nothing covers (`Attired.coveringAt`); what
+ * hangs `from` something it wears (everyone sees the holster); and what
+ * this viewer FOUND on it by searching, while it is still there (D24a).
+ * Never its loose pockets or what is inside the body (an implant's slot
+ * accepts neither a wearable nor a wieldable).
+ */
+function bodyShows(viewer: Stuff, body: Stuff & Slotted & Attired, thing: Stuff): boolean {
+  if (foundOnBy(viewer, thing, body)) return true;
+  const hands = MixinApi.isCarrying(body) ? body.handSlots() : null;
+  for (const [slot, occupants] of body.getAllOccupants()) {
+    if (![...occupants].some((o) => o.stuffId === thing.stuffId)) continue;
+    const spec = body.getSlotSpec(slot);
+    const accepts = spec?.accepts ?? '';
+    if (hands?.includes(slot) || accepts.includes('Wieldable')) return true;
+    if (!accepts.includes('Wearable') && !spec?.userFacingDetail) continue;
+    return uncovered(body, thing);
+  }
+  if (MixinApi.isContainable(thing)) {
+    const placement = thing.getPlacement();
+    if (placement !== null && !placement.host.placementOf(placement.name).getEncloses()) {
+      const host = placement.host as unknown as Stuff;
+      for (const occupants of body.getAllOccupants().values()) {
+        if ([...occupants].some((o) => o.stuffId === host.stuffId)) return true;
+      }
+    }
+  }
+  return false;
+}
+
+/** Is a worn layer outermost wherever it covers (or covers nothing)? */
+function uncovered(body: Stuff & Slotted & Attired, worn: Stuff): boolean {
+  let appears = false;
+  for (const part of body.leafParts()) {
+    const stack = body.coveringAt(part);
+    const at = stack.findIndex((x) => x.stuffId === worn.stuffId);
+    if (at === 0) return true;
+    if (at > 0) appears = true;
+  }
+  return !appears;
+}
+
+/** Did this viewer find `thing` on `body` by searching it (D24a)? */
+function foundOnBy(viewer: Stuff, thing: Stuff, body: Stuff): boolean {
+  if (!MixinApi.isBeliefStore(viewer)) return false;
+  const referent = discoveryReferentOf(thing);
+  const holder = body.getIdentityPath();
+  if (!referent || !holder) return false;
+  return viewer.recall(DISCOVERY, referent)?.payload.foundOn === holder;
+}
+
+/** The slot a pack on the back sits in — its inside is *packed* (D15). */
+const PACKED_SLOT = 'back';
+
+/**
+ * ⭐ D15/D17's tier read — see {@link PerceptionApi.tierOf}. ⚠ W3: a thing
+ * loose in the carrier's contents (today's carrying, before the flip) is
+ * `ready`; `Carrying.tierOf` replaces this read at W4.
+ */
+function tierOfImpl(carrier: Stuff, thing: Stuff): ReachTier {
+  // Walk up to the carrier; `top` is the thing directly on it.
+  let top: Stuff = thing;
+  for (let i = 0; i < 32; i++) {
+    const up: Stuff | null = MixinApi.isContainable(top) ? top.getContainer() : null;
+    if (up === null) return 'elsewhere';
+    if (up.stuffId === carrier.stuffId) break;
+    if (up.isAgent()) return 'elsewhere';
+    top = up;
+    if (i === 31) return 'elsewhere';
+  }
+  const slotted = MixinApi.isSlotted(carrier) ? carrier : null;
+  const slotsOf = (x: Stuff): string[] => {
+    if (slotted === null) return [];
+    const out: string[] = [];
+    for (const [slot, occ] of slotted.getAllOccupants()) {
+      if ([...occ].some((o) => o.stuffId === x.stuffId)) out.push(slot);
+    }
+    return out;
+  };
+  const slots = slotsOf(top);
+  if (top !== thing) {
+    return slots.includes(PACKED_SLOT) ? 'packed' : 'ready';
+  }
+  const hands = MixinApi.isCarrying(carrier) ? carrier.handSlots() : [];
+  if (slots.some((s) => hands.includes(s))) return 'hand';
+  return 'ready';
+}
+
+/** The order the binder ties on, nearest first. */
+const TIER_RANK: Record<ReachTier, number> = { hand: 0, ready: 1, packed: 2, elsewhere: 3 };
+
+/** Would the object refuse a hand right now (`Containable.reachRefusal`)? */
+function refusesReach(actor: Stuff, target: Stuff): boolean {
+  return MixinApi.isContainable(target) && target.reachRefusal(actor) !== null;
 }
 
 /**
@@ -1071,41 +1333,46 @@ function resolveSearchImpl(
   viewer: Stuff,
   scope: readonly Stuff[],
   depth: SearchDepth,
+  onBody?: Stuff,
 ): Stuff[] {
   const attention = passiveBaseline() + activeBonusFor(depth);
+  const holder = onBody?.getIdentityPath() ?? null;
   const found: Stuff[] = [];
   for (const cand of scope) {
-    if (!MixinApi.isConcealable(cand)) continue;
-    const level = cand.getConcealment();
-    if (!ConcealmentLevels.isConcealed(level)) continue;
-    if (hasDiscoveredImpl(viewer, cand)) continue; // already found
-    if (
-      effectivePerceptionImpl(viewer, cand, attention) >=
-      ConcealmentLevels.requirementFor(level)
-    ) {
-      recordDiscoveryImpl(viewer, cand);
-      found.push(cand);
+    const level = MixinApi.isConcealable(cand) ? cand.getConcealment() : null;
+    const concealed = level !== null && ConcealmentLevels.isConcealed(level);
+    // ⭐ D24a: what the body's clothes cover from this viewer — the one
+    // reason rule 2 refuses a thing directly on a body.
+    const covered =
+      onBody !== undefined &&
+      holder !== null &&
+      isAnotherBody(viewer, onBody) &&
+      !bodyShows(viewer, onBody, cand);
+    if (!concealed && !covered) continue;
+    if (concealed && level !== null) {
+      const known = hasDiscoveredImpl(viewer, cand);
+      if (known && !covered) continue; // already found
+      const clears =
+        known || effectivePerceptionImpl(viewer, cand, attention) >= ConcealmentLevels.requirementFor(level);
+      if (!clears) continue;
     }
+    recordDiscoveryImpl(viewer, cand, covered ? holder ?? undefined : undefined);
+    found.push(cand);
   }
   return found;
 }
 
-/** See {@link PerceptionApi.visibleContentsOf}. */
+/**
+ * See {@link PerceptionApi.visibleContentsOf} — a GROUPING of an
+ * already-perceived list (size-and-carrying D23): what `target` holds,
+ * through {@link PerceptionApi.perceived}'s rule, sorted by how it is held.
+ * The person/pockets rule is `perceives`' rule 2 now.
+ */
 function visibleContentsImpl(viewer: Stuff, target: Stuff): VisibleContents {
   const out: VisibleContents = { worn: [], held: [], carried: [], shut: false };
   if (!MixinApi.isContainer(target)) return out;
-  if (MixinApi.isSealable(target) && !target.isOpen()) return { ...out, shut: true };
-  // ⭐ Concealed things stay concealed — FROM THIS VIEWER: one who has
-  // found the hidden dagger, or whose eye is sharp enough, sees it (the
-  // `perceives` rule, and so MQL's `:visible`). A bare `isConcealed()`
-  // hid a discovered thing again the moment it sat in a listing — and
-  // the room listing reads through here since `look` became one query.
-  const seen = (s: Stuff): boolean =>
-    !MixinApi.isConcealable(s) || !s.isConcealed() || perceivesImpl(viewer, s);
-  const own = viewer.stuffId === target.stuffId;
-  const person = own || isAnotherPersonImpl(viewer, target);
-  const slotted = new Set<string>();
-  if (person && MixinApi.isSlotted(target)) {
+  const slotted = new Map<string, 'held' | 'worn' | 'inside'>();
+  if (MixinApi.isSlotted(target)) {
     for (const [slot, occupants] of target.getAllOccupants()) {
       const spec = target.getSlotSpec(slot);
       const accepts = spec?.accepts ?? '';
@@ -1114,23 +1381,21 @@ function visibleContentsImpl(viewer: Stuff, target: Stuff): VisibleContents {
         : accepts.includes('Wearable') || spec?.userFacingDetail
           ? 'worn'
           : 'inside';
-      for (const o of occupants) {
-        // ⭐ Once, however many slots it covers (found by the underwater
-        // browser walk: a diving dress claims torso and legs and was
-        // listed as worn twice).
-        if (slotted.has(o.stuffId)) continue;
-        slotted.add(o.stuffId);
-        if (!seen(o)) continue;
-        if (kind === 'held') out.held.push(o);
-        else if (kind === 'worn') out.worn.push(o);
-        else if (own) out.carried.push(o);
-      }
+      // ⭐ Once, however many slots it covers (a diving dress claims torso
+      // and legs and was listed as worn twice).
+      for (const o of occupants) if (!slotted.has(o.stuffId)) slotted.set(o.stuffId, kind);
     }
   }
-  const loose = target.getContents().filter((c) => !slotted.has(c.stuffId) && seen(c));
-  // A person's pockets are theirs to know; a container's contents are
-  // in view of anybody who can see into it.
-  if (own || !person) out.carried.push(...loose);
+  const all = target.getContents();
+  const seen = all.filter((c) => perceivesImpl(viewer, c));
+  for (const c of seen) {
+    const kind = slotted.get(c.stuffId);
+    if (kind === 'held') out.held.push(c);
+    else if (kind === 'worn') out.worn.push(c);
+    else out.carried.push(c);
+  }
+  // A shut thing that shows this viewer nothing says so.
+  if (seen.length === 0 && MixinApi.isSealable(target) && !target.isOpen()) out.shut = true;
   return out;
 }
 
@@ -1144,10 +1409,10 @@ function isAnotherPersonImpl(viewer: Stuff, target: Stuff): boolean {
 /* ───────────────────────── the look (controller-liquidity W8) ───────────────────────── */
 
 /**
- * The room's listing as the viewer sees it — its contents, perceived
- * (honest fog: a concealed thing the viewer hasn't discovered is absent
- * from their world), never the room's structure (an adornment routes
- * through its host), never the viewer. The same query `sense` reads.
+ * The room's listing — its visible contents, never the room's structure
+ * (an adornment routes through its host), never the viewer. The same
+ * query `sense` reads. ⚠ It NAMES (the same for everyone); the viewer's
+ * listing is this through `perceives` (honest fog — D23).
  */
 const ROOM_LISTING = 'here:i:visible:[not mixin.AdornmentMixin] - me';
 
@@ -1190,10 +1455,13 @@ async function observePlace(
   // Lazily: the MQL pipeline's predicates read perception, so a static
   // import here would close a module cycle through this singleton.
   const { MqlApi } = await import('../../../api/mql');
-  const seen = MqlApi.resolveMany(ROOM_LISTING, {
+  // ⭐ MQL names the room's things for everyone; what this viewer takes in
+  // is the perceived subset (size-and-carrying D23).
+  const named = MqlApi.resolveMany(ROOM_LISTING, {
     commandGiver: viewer as never,
     scope: 'here',
   }).stuff;
+  const seen = named.filter((x) => perceivesImpl(viewer, x));
   // ⭐ Nothing to perceive teaches nothing — the void on a fresh login
   // writes no map claim and tracks nobody.
   const indistinct =
@@ -1479,18 +1747,24 @@ function roomOf(who: Stuff): (Stuff & Container) | null {
  * `reachableAmong` skip it (the vessel is still reached as a `peer` of
  * the place it stands in).
  *
- * Emission order is MQL's tie-break and is kept exactly: the PERSON first
- * (`self`, then what is `attached` — slot occupants and the apps an
- * implant hosts — and the `inventory` at the rung), then `here` (the
- * place's surface, then the vessel's you sit in), then `peers`.
+ * Emission order is MQL's tie-break: the PERSON first — `self`, then its
+ * whole carried tree (never into another body), nearest first by tier,
+ * hand · ready · packed (size-and-carrying D17; a slot occupant is
+ * `attached`, the rest `inventory`, the apps an implant hosts `attached`)
+ * — then `here` (the place's surface, then the vessel's you sit in), then
+ * `peers`. ⭐ A thing behind a shut lid or in the pack on your back IS in
+ * the person's list: the binder binds it and `canReach` refuses with the
+ * object's reason (`Containable.reachRefusal` — *the box is shut*, *take
+ * it off first*).
  *
  * The holders: the actor's person; the place around it
  * (`getEnclosingPlace` — in a boat on the river, the river) AND the vessel
  * it sits in when that is not the place (the passenger beside you in a
  * shut coach is to hand though the coach's lid is between you and the
  * road); and `opts.location` when a caller names one. Each holder's
- * contents are `Container.getReachableContents(rung)` — the per-container
- * walk underneath. Then what lives in no container at all:
+ * contents (the place, the vessel, a named holder) are
+ * `Container.getReachableContents()` — the top level and one level into
+ * open things. Then what lives in no container at all:
  *
  * ⚠ Attached doors ride `exit.getBoundary()` — a containment-only test misses
  * every door in the game (the card hold that omitted them released
@@ -1506,12 +1780,11 @@ function roomOf(who: Stuff): (Stuff & Container) | null {
  * `here` is the surface you never pick up (the place, its ways and their
  * doors, the buildings whose landing it is, open ground seen across a way).
  *
- * ⚠ Reach is not perception: nothing here asks `perceives` (MQL does, per
- * candidate). `opts.pools` computes only the sections asked for, so an
- * `inventory` scope never walks the room.
+ * ⚠ Reach is not perception: nothing here asks `perceives` — a SURFACE
+ * does (`PerceptionApi.perceived`, D23). `opts.pools` computes only the
+ * sections asked for, so an `inventory` scope never walks the room.
  */
 function reachOf(actor: Stuff, opts?: ReachOptions): Reached[] {
-  const rung = opts?.depth ?? 'open';
   const want = (p: ReachPool): boolean => !opts?.pools || opts.pools.includes(p);
   const out: Reached[] = [];
   const push = (stuff: Stuff, pool: ReachPool): void => {
@@ -1525,24 +1798,57 @@ function reachOf(actor: Stuff, opts?: ReachOptions): Reached[] {
     }
   };
 
-  // ── the person ──
+  // ── the person: the whole carried tree, nearest first (D17) ──
   if (want('self') || want('attached') || want('inventory')) {
     push(actor, 'self');
     pushHosted(actor);
+    const occupied = new Map<string, Stuff>();
     if (MixinApi.isSlotted(actor)) {
       for (const occupants of actor.getAllOccupants().values()) {
-        for (const occ of occupants) {
-          push(occ, 'attached');
-          pushHosted(occ);
-        }
+        for (const occ of occupants) occupied.set(occ.stuffId, occ);
       }
     }
+    // A slot occupant that is not in the body's contents (an installed
+    // aug) is still on the person — attached, first.
+    const inContents = new Set(
+      MixinApi.isContainer(actor) ? actor.getContents().map((c) => c.stuffId) : [],
+    );
+    for (const occ of occupied.values()) {
+      if (inContents.has(occ.stuffId)) continue;
+      push(occ, want('attached') ? 'attached' : 'inventory');
+      if (want('attached')) pushHosted(occ);
+    }
     if (MixinApi.isContainer(actor)) {
-      if (want('inventory')) {
-        for (const item of actor.getReachableContents(rung)) push(item, 'inventory');
+      // ⚠ Sandbox hygiene, before anything is asked of an item: a walk in a
+      // circle never reads a field object (the proxy denies any method on
+      // it). Omni sees all.
+      const ctxScope = ExecutionContextApi.getCircleScope();
+      const inScope = (c: Stuff): boolean => ctxScope === OMNI_SCOPE || c.getCircleScope() === ctxScope;
+      // Breadth-first, never into another body; then stable by tier.
+      const tree: Stuff[] = [];
+      let frontier: Stuff[] = [actor];
+      for (let level = 0; frontier.length > 0 && level <= 32; level++) {
+        const next: Stuff[] = [];
+        for (const holder of frontier) {
+          if (!MixinApi.isContainer(holder)) continue;
+          for (const item of holder.getContents()) {
+            if (!inScope(item)) continue;
+            tree.push(item);
+            if (MixinApi.isContainer(item) && !item.isAgent()) next.push(item);
+          }
+        }
+        frontier = next;
       }
-      if (want('attached')) {
-        for (const item of actor.getContents()) pushHosted(item);
+      const ranked = tree
+        .map((stuff, i) => ({ stuff, i, rank: TIER_RANK[tierOfImpl(actor, stuff)] }))
+        .sort((a, b) => a.rank - b.rank || a.i - b.i);
+      for (const { stuff } of ranked) {
+        // A slot occupant is `attached`; with `attached` not asked for it
+        // still counts as carried (`inventory`).
+        const pool: ReachPool =
+          occupied.has(stuff.stuffId) && want('attached') ? 'attached' : 'inventory';
+        push(stuff, pool);
+        if (want('attached')) pushHosted(stuff);
       }
     }
   }
@@ -1599,7 +1905,7 @@ function reachOf(actor: Stuff, opts?: ReachOptions): Reached[] {
   if (want('peers')) {
     const seen = new Set<string>([actor.stuffId]);
     for (const holder of holders) {
-      for (const item of holder.getReachableContents(rung)) {
+      for (const item of holder.getReachableContents()) {
         if (seen.has(item.stuffId)) continue;
         seen.add(item.stuffId);
         push(item, 'peers');

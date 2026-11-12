@@ -20,7 +20,6 @@ import { GrammarApi } from '../grammar';
 import { MixinApi } from '../mixin';
 import { PerceptionApi, type ReachPool } from '../perception';
 import type { MqlMatch, MqlMatchVia } from './types';
-import type { ReachDepth } from '../command';
 
 /**
  * One search target inside a scope. Each candidate represents a
@@ -57,24 +56,23 @@ export interface ScopeFacet {
 /**
  * ⭐⭐ **MQL's reach pools are FILTERS over `PerceptionApi.reach`** — the
  * one definition of what the giver can lay hands on (controller-liquidity
- * W20), the same list `canReach` / `reachableAmong` test membership in.
- * Which things are in a pool is decided there and only there; this file
- * turns each into a candidate (the perception gate, the keyword face,
- * the facets) in the order `reach` emits — the person, then the place's
- * surface, then what stands there. `reach` computes only the pools asked
- * for, so `inventory` never walks the room.
+ * W20; one rule since size-and-carrying D17), the same list `canReach` /
+ * `reachableAmong` test membership in. Which things are in a pool is
+ * decided there and only there; this file turns each into a candidate (the
+ * keyword face, the facets) in the order `reach` emits — the person
+ * nearest first (hand · ready · packed), then the place's surface, then
+ * what stands there.
+ *
+ * ⛔ **No perception here** (D23): the resolver names the same things for
+ * every viewer. A surface that binds or shows the result filters it with
+ * `PerceptionApi.perceived`.
  */
 function candidatesFromReach(
   giver: Stuff,
   pools: readonly ReachPool[],
-  attention?: number,
-  depth?: ReachDepth,
+  viewer: Stuff | null = giver,
 ): ScopeCandidate[] {
-  const out: ScopeCandidate[] = [];
-  for (const r of PerceptionApi.reach(giver, { depth: depth ?? 'open', pools })) {
-    pushDirect(out, r.stuff, giver, attention);
-  }
-  return out;
+  return PerceptionApi.reach(giver, { pools }).map((r) => candidateFor(r.stuff, viewer));
 }
 
 /**
@@ -84,21 +82,19 @@ function candidatesFromReach(
  * a Cartesian zone's cardinals included), the buildings whose landing it
  * is, open ground seen across a way. Never what stands there (`peers`).
  */
-export function candidatesForHere(giver: Stuff, attention?: number): ScopeCandidate[] {
-  return candidatesFromReach(giver, ['around', 'here'], attention);
+export function candidatesForHere(giver: Stuff, viewer: Stuff | null = giver): ScopeCandidate[] {
+  return candidatesFromReach(giver, ['around', 'here'], viewer);
 }
 
 /**
- * The giver's inventory — what it carries, at the reach rung: `top` its
- * own contents, `open` (the default) and inside the open vessels among
- * them, all the way down; `deep` everything, shut or not.
+ * The giver's inventory — everything it carries, its whole carried tree
+ * (never into another body), nearest first: hand · ready · packed (D17).
+ * A thing behind a shut lid or in a pack on the back is IN the pool — the
+ * verb's `canReach` says *the box is shut* / *take it off first* after
+ * binding.
  */
-export function candidatesForInventory(
-  giver: Stuff,
-  attention?: number,
-  depth?: ReachDepth,
-): ScopeCandidate[] {
-  return candidatesFromReach(giver, ['inventory'], attention, depth);
+export function candidatesForInventory(giver: Stuff): ScopeCandidate[] {
+  return candidatesFromReach(giver, ['inventory']);
 }
 
 /**
@@ -108,12 +104,8 @@ export function candidatesForInventory(
  * person hangs and takes down while `here` is the surface you never pick
  * up. Never the giver itself.
  */
-export function candidatesForPeers(
-  giver: Stuff,
-  attention?: number,
-  depth?: ReachDepth,
-): ScopeCandidate[] {
-  return candidatesFromReach(giver, ['peers'], attention, depth);
+export function candidatesForPeers(giver: Stuff, viewer: Stuff | null = giver): ScopeCandidate[] {
+  return candidatesFromReach(giver, ['peers'], viewer);
 }
 
 /**
@@ -123,12 +115,8 @@ export function candidatesForPeers(
  * presented key, a payment credential, a hosted comms app) anchor here so
  * a matching item lying on the floor never counts as "presented".
  */
-export function candidatesForPerson(
-  giver: Stuff,
-  attention?: number,
-  depth?: ReachDepth,
-): ScopeCandidate[] {
-  return candidatesFromReach(giver, ['self', 'attached', 'inventory'], attention, depth);
+export function candidatesForPerson(giver: Stuff): ScopeCandidate[] {
+  return candidatesFromReach(giver, ['self', 'attached', 'inventory']);
 }
 
 /**
@@ -140,19 +128,37 @@ export function candidatesForPerson(
  * it: `look bob` when you are bob finds you. Duplicates across pools are
  * tolerated; the resolver's `finalize` dedupes.
  */
-export function candidatesForReachable(
-  giver: Stuff,
-  attention?: number,
-  depth?: ReachDepth,
-): ScopeCandidate[] {
+export function candidatesForReachable(giver: Stuff): ScopeCandidate[] {
   // ⭐ Its light is walked once per place by the resolution that calls it
   // (`MqlLogic` runs every resolution as a steady read).
-  return candidatesFromReach(
-    giver,
-    ['self', 'attached', 'inventory', 'around', 'here', 'peers'],
-    attention,
-    depth,
-  );
+  return candidatesFromReach(giver, ['self', 'attached', 'inventory', 'around', 'here', 'peers']);
+}
+
+/**
+ * ⭐ **A holder read from OUTSIDE** — the mid-chain seed on somebody or
+ * something else (`bob:inventory`, `crate:person`): what it holds and
+ * wears, its own top level and one level into the open things there, as
+ * the room is read (D17). Never down through another body's bags: those
+ * are the BEARER's tree, not a passer-by's. WHICH things depends on the
+ * anchor alone, so it is the same set for every asker; `viewer` is handed
+ * only to each thing's own keyword face (names are the asker's).
+ */
+export function candidatesHeldBy(anchor: Stuff, withSelf: boolean, viewer: Stuff | null): ScopeCandidate[] {
+  const out: ScopeCandidate[] = [];
+  const seen = new Set<string>();
+  const push = (x: Stuff): void => {
+    if (seen.has(x.stuffId)) return;
+    seen.add(x.stuffId);
+    out.push(candidateFor(x, viewer));
+  };
+  if (withSelf) {
+    push(anchor);
+    if (MixinApi.isSlotted(anchor)) {
+      for (const occupants of anchor.getAllOccupants().values()) for (const o of occupants) push(o);
+    }
+  }
+  if (MixinApi.isContainer(anchor)) for (const x of anchor.getReachableContents()) push(x);
+  return out;
 }
 
 /**
@@ -160,38 +166,8 @@ export function candidatesForReachable(
  * `online` and `world` scopes where each Stuff is a candidate on its
  * own merits (no sub-features expanded).
  */
-export function candidatesForFlat(
-  items: ReadonlyArray<Stuff>,
-  viewer: Stuff | null,
-  attention?: number,
-): ScopeCandidate[] {
-  const out: ScopeCandidate[] = [];
-  for (const item of items) pushDirect(out, item, viewer, attention);
-  return out;
-}
-
-function pushDirect(
-  out: ScopeCandidate[],
-  stuff: Stuff,
-  viewer: Stuff | null,
-  attention?: number,
-): void {
-  // System mode (viewer === null — see MqlContext.commandGiver): a
-  // viewer-blind engine enumeration. No perception gate, the object's own
-  // keywords instead of recognition-relative ones. Unreachable from
-  // player-typed MQL (the dispatcher always sets a giver).
-  if (viewer === null) {
-    out.push(candidateFor(stuff, null));
-    return;
-  }
-  // Honest fog: a concealed thing the viewer hasn't discovered / can't yet
-  // perceive isn't a targetable candidate (it isn't in the viewer's world).
-  // `perceives` short-circuits true for un-concealed things, so the common
-  // path is untouched. `attention` (undefined for player queries → passive
-  // baseline) lets a detection consumer resolve what it perceives when
-  // actively watching (see MqlContext.attention).
-  if (!PerceptionApi.perceives(viewer, stuff, attention)) return;
-  out.push(candidateFor(stuff, viewer));
+export function candidatesForFlat(items: ReadonlyArray<Stuff>, viewer: Stuff | null): ScopeCandidate[] {
+  return items.map((item) => candidateFor(item, viewer));
 }
 
 /**

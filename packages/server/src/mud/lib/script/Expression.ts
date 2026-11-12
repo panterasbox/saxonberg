@@ -27,6 +27,7 @@
  * concept, the home that keeps the evaluator out of a free function.
  */
 
+import { PerceptionApi } from "../../api/perception";
 import { MqlApi } from "../../api/mql";
 import { ScriptValues } from "./Value";
 import type { ScriptValue } from "./Value";
@@ -322,10 +323,12 @@ export class Expression {
 
     // MQL query: emptiness is falsiness (ScriptValues.isTruthy([]) ===
     // false). Resolution is synchronous.
+    // ⭐ What the actor perceives, then the head ordinal (D23): a script
+    // island binds what its author could have typed at the prompt.
     const result = MqlApi.resolveMany(trimmed, {
       commandGiver: actor,
       scope: DEFAULT_MQL_SCOPE,
     });
-    return result.stuff;
+    return PerceptionApi.perceived(actor, result.stuff, result.ordinal);
   }
 }

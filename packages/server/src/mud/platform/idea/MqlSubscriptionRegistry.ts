@@ -232,11 +232,11 @@ function resolveByQuery(
 ): Stuff[] {
   const expanded = ShellApi.expandVariables(query, giver);
   const ctx = { commandGiver: giver, scope: expanded };
-  if (cardinality === 'one') {
-    const one = MqlApi.resolveOne(expanded, ctx);
-    return one.stuff ? [one.stuff] : [];
-  }
-  return MqlApi.resolveMany(expanded, ctx).stuff;
+  // ⭐ An unperceived id never reaches the wire (D23): MQL names, the
+  // subscriber perceives — before the projection and before the diff.
+  const named = MqlApi.resolveMany(expanded, ctx);
+  const seen = PerceptionApi.perceived(giver, named.stuff, named.ordinal);
+  return cardinality === 'one' ? seen.slice(0, 1) : seen;
 }
 
 /** How long one drain may run before it gives the loop back. */
@@ -496,13 +496,10 @@ export default class MqlSubscriptionRegistry extends Idea {
     let stuffList: Stuff[];
     try {
         const ctx = { commandGiver: giver, scope: expandedQuery };
-        if (cardinality === 'one') {
-          const one = MqlApi.resolveOne(expandedQuery, ctx);
-          stuffList = one.stuff ? [one.stuff] : [];
-        } else {
-          const many = MqlApi.resolveMany(expandedQuery, ctx);
-          stuffList = many.stuff;
-        }
+        // ⭐ What the viewer perceives, then the head ordinal (D23).
+        const many = MqlApi.resolveMany(expandedQuery, ctx);
+        const seen = PerceptionApi.perceived(giver, many.stuff, many.ordinal);
+        stuffList = cardinality === 'one' ? seen.slice(0, 1) : seen;
       } catch (err) {
         const reason: MqlSubscriptionErrorReason =
           err instanceof MqlPermissionError ? 'permission' : 'parse';

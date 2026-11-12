@@ -18,6 +18,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import type { FieldValidator } from '../../../api/command';
 import { MixinApi } from '../../../api/mixin';
 import { MqlApi } from '../../../api/mql';
+import { PerceptionApi } from '../../../api/perception';
 
 const validator: FieldValidator = (value, field, context) => {
   const stuffs = MqlApi.extractStuffs(value);
@@ -29,7 +30,7 @@ const validator: FieldValidator = (value, field, context) => {
     return `you have no inventory`;
   }
   const inventoryIds = new Set(
-    giver.getContents().map((s) => s.stuffId),
+    PerceptionApi.perceived(giver, giver.getContents()).map((s) => s.stuffId),
   );
 
   for (const stuff of stuffs) {

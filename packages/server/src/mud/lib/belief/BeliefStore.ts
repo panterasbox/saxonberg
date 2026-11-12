@@ -189,6 +189,15 @@ export interface BeliefPayload {
    * found. Set once via `PerceptionApi.recordDiscovery`.
    */
   found?: boolean;
+  /**
+   * Discovery realm: **the body this viewer found the referent on** — the
+   * holder's identity path, written when a search of a body that cannot
+   * resist turns up what its clothes cover (size-and-carrying D24a). A
+   * VALUE, because it is a planned divergence: perception admits the find
+   * only while the referent is still on that holder, so a move to another
+   * makes it inert with no sweep (checked on read).
+   */
+  foundOn?: string;
 }
 
 /**
@@ -581,6 +590,9 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (update.regard !== undefined) existing.payload.regard = update.regard;
         // Discovery flag: a bare found-flag (flag-by-default).
         if (update.found !== undefined) existing.payload.found = update.found;
+        // The holder a find was made on overwrites: the latest search is
+        // the one that saw where it is now (D24a).
+        if (update.foundOn !== undefined) existing.payload.foundOn = update.foundOn;
         // Identification attributes UNION rather than overwrite — each
         // is a fact some act taught, and a second act teaching a second
         // fact must not erase the first (magic-items D25).
@@ -605,6 +617,7 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (update.typeKnown !== undefined) payload.typeKnown = update.typeKnown;
       if (update.regard !== undefined) payload.regard = update.regard;
       if (update.found !== undefined) payload.found = update.found;
+      if (update.foundOn !== undefined) payload.foundOn = update.foundOn;
       if (update.knownAttributes !== undefined) {
         payload.knownAttributes = [...new Set(update.knownAttributes)];
       }

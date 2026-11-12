@@ -271,9 +271,12 @@ that builds a viewer's world:
    listing consulted by the perception paths (a concealed exit shows iff
    `perceives`). The viewer-blind `getObviousExits()` (`!isHidden()`) stays
    the seam for the physics/propagation walks that have no viewer.
-4. **MQL targeting** — the `isVisible` predicate (`api/mql/predicates.ts`)
-   now calls `perceives` (the refinement its placeholder comment reserved),
-   and `scope-walk.pushDirect` gates every candidate on `perceives`.
+4. **Targeting** — ⚠ since size-and-carrying D23 (2026-11-11) MQL names a
+   concealed thing for everyone (the `isVisible` predicate is a class word
+   and the scope walk gates nothing); every surface that binds or shows a
+   result passes it through `PerceptionApi.perceived`, so a concealed
+   thing still reaches no binding, prompt, listing or card for a viewer
+   who has not found it.
 5. **The client wire** — `Container.contents` (the `subscribableFields`
    projection on `lib/spatial/Container.ts`) filters concealed-undiscovered
    children out of the MQL projection. *(This is the shipped seam — the
@@ -311,11 +314,12 @@ holds in the meantime.
   the viewer-blind physics seams — a concealed thing that makes a noise is
   a *hint channel*, not a leak. Cross-modal concealment (a silence
   discipline) is the reserved actor-face stealth consumer.
-- **MQL deep-chain anchoring is viewer-blind past the direct scope.** The
-  direct-scope enumeration (`pushDirect`) is gated, but a deep MQL chain
-  that anchors on an object through other operators does not re-run the
-  per-viewer gate at every hop. Named so a reviewer reads it as a scoped v1
-  boundary, not a gap.
+- **MQL is viewer-blind by design now** (D23): a deep chain names through
+  anything, and the surfaces apply perception to the RESULT. ⚠ An
+  intermediate anchor is not re-checked — `#hidden-chest:i` names what is
+  in a chest the viewer has not found; the result's members are each
+  checked (`perceives` walks their holders, so a thing in a shut chest is
+  hidden by rule 2 anyway).
 
 ## Passive hints + active search
 

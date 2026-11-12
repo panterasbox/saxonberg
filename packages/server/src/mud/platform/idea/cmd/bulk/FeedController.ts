@@ -33,6 +33,7 @@
  * answer to a player who tries.
  */
 
+import { PerceptionApi } from '../../../../api/perception';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
@@ -95,7 +96,7 @@ export default class FeedController extends CommandController<FeedModel> {
       target: named,
       // Named: taken as named. Bare: what you carry — the ground takes the
       // first sack of compost or a slow amendment.
-      sources: source ? [source] : MixinApi.isContainer(giver) ? giver.getContents() : [],
+      sources: source ? [source] : MixinApi.isContainer(giver) ? PerceptionApi.perceived(giver, giver.getContents()) : [],
       named: source !== null,
       via: model.source?.via,
       part: patch && MixinApi.isSoil(patch) ? patch : null,

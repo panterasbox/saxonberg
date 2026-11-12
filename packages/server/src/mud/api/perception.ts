@@ -31,7 +31,6 @@ import type { SenseChannel } from '../lib/description/Perceiver';
 import type { CompetenceBandName } from '../lib/advancement/CompetenceBand';
 import type { ConcealmentLevel } from '../lib/concealment/ConcealmentLevel';
 import type { Container } from '../lib/spatial/Container';
-import type { ReachDepth } from './command';
 import type { Sensor } from '../lib/message/Sensor';
 import type { LightBand } from '../lib/perception/Light';
 import type Exit from '../lib/boundary/Exit';
@@ -56,7 +55,8 @@ export type SearchDepth = 'broad' | 'narrow' | 'glance';
  * Which pool a reached thing belongs to (see {@link PerceptionApi.reach}) —
  * MQL's pools exactly: `self` the actor; `attached` what is on the person
  * without being carried (slot occupants, the apps an implant hosts);
- * `inventory` what it carries at the rung; `here` the surface of the place
+ * `inventory` its whole carried tree, nearest first (hand · ready ·
+ * packed — size-and-carrying D17); `here` the surface of the place
  * and of the vessel it sits in (the place itself, its ways and their
  * doors, the buildings whose landing it is, open ground seen across a
  * way); `peers` what stands there with it, fixtures included; `around`
@@ -74,10 +74,24 @@ export interface Reached {
   pool: ReachPool;
 }
 
+/**
+ * ⭐ How near a carried thing is to the carrier's hand (size-and-carrying
+ * D15/D17) — the binder's tie-break order, nearest first: `hand` · `ready`
+ * (worn, hung from what is worn, in a pocket or an open worn container) ·
+ * `packed` (inside a worn container in the `back` slot — *take it off
+ * first*) · `elsewhere` (not on the carrier).
+ */
+export type ReachTier = 'hand' | 'ready' | 'packed' | 'elsewhere';
+
+/**
+ * How a viewer perceives a thing ({@link PerceptionApi.perceivedHow}):
+ * `plain` by the ordinary rules, `builder` only through the builder lens
+ * (D25 — a surface labels the line `[builder]`), `null` not at all.
+ */
+export type PerceivedHow = 'plain' | 'builder' | null;
+
 /** The options of {@link PerceptionApi.reach}. */
 export interface ReachOptions {
-  /** The rung (`top` · `open` · `deep`); default `open`. */
-  depth?: ReachDepth;
   /** A further holder to reach into (a command's location), beside the
    *  place and the vessel the actor sits in. */
   location?: Stuff | null;
@@ -390,6 +404,15 @@ export class PerceptionApi {
    * pools are filters over it. Ordered as MQL breaks ties: the person,
    * then the place's surface, then what stands there.
    *
+   * ⭐ **One rule** (size-and-carrying D17): the person's whole carried
+   * tree — hands and what is worn, inside worn containers all the way down,
+   * shut or packed, never another body — ordered nearest first (hand ·
+   * ready · packed); the place's top level and one level into the open
+   * things there. A thing behind a shut lid or in a pack on the back is IN
+   * the list so a verb can bind it and SAY why it cannot be touched;
+   * {@link canReach} is membership AND the object's own
+   * `Containable.reachRefusal` (`enclosed-shut` · `packed`).
+   *
    * Reach is not perception — nothing here is filtered by what the actor
    * perceives; a caller that needs both asks both.
    */
@@ -422,16 +445,17 @@ export class PerceptionApi {
    * unperceived (dark room) or perceived and unreachable (across a
    * chasm). Callers that need both ask both.
    *
-   * At the default rung (`open`) it descends every open vessel you carry
-   * and one level into open things here; never into a shut thing.
+   * ⭐ One rule (size-and-carrying D17): a member of {@link reach} whose
+   * own `Containable.reachRefusal` is `null` — so the apple in the shut box
+   * you carry is named and bound, and refused here (*the box is shut*); a
+   * thing in the pack on your back likewise (*take it off first*).
    *
    * @param opts.location a further holder beside the place and the vessel.
-   * @param opts.depth the rung (`top` · `open` · `deep`); default `open`.
    */
   public static canReach(
     actor: Stuff,
     target: Stuff,
-    opts?: { location?: Stuff | null; depth?: ReachDepth },
+    opts?: { location?: Stuff | null },
   ): boolean {
     return logic().canReach(actor, target, opts);
   }
@@ -450,17 +474,63 @@ export class PerceptionApi {
   public static reachableAmong(
     actor: Stuff,
     candidates: readonly Stuff[],
-    opts?: { location?: Stuff | null; depth?: ReachDepth },
+    opts?: { location?: Stuff | null },
   ): Stuff[] {
     return logic().reachableAmong(actor, candidates, opts);
   }
 
+  /**
+   * ⭐⭐ **Does `viewer` perceive `target`?** The rules, in order
+   * (size-and-carrying D24): (0) the builder lens — inside an extent the
+   * viewer holds with `lens on`, everything (never a player's body or what
+   * is on one); (1) your own body and everything on it, at any depth;
+   * (2) the holders: a shut container that light does not pass (Beer–Lambert
+   * over its material, `e^(−α·t) < 0.3`) hides what is in it; another
+   * body shows what is in its hands, its outermost layers, what hangs from
+   * what it wears, an open uncovered pocket of an outer layer and the inside
+   * of an open worn container — and what this viewer FOUND on it by
+   * searching while it still holds it (D24a); (3) concealment, discovery
+   * and light.
+   */
   public static perceives(
     viewer: Stuff,
     target: Stuff,
     attention?: number,
   ): boolean {
     return logic().perceives(viewer, target, attention);
+  }
+
+  /**
+   * ⭐⭐⭐ **The one filter every surface applies** (size-and-carrying D23):
+   * the members of `list` that `viewer` perceives ({@link perceives}), in
+   * their order. MQL names the same things for everybody; the act that
+   * binds, prompts over, counts or shows a list runs it through here first
+   * (`lint:perceived-surfaces` holds every surface to it).
+   *
+   * `ordinal` — a head ordinal (`MqlMany.ordinal`, 1-based, negative from
+   * the end) — picks the nth AFTER the filter, so `2nd knife` never counts
+   * a knife the viewer does not perceive.
+   */
+  public static perceived(viewer: Stuff, list: readonly Stuff[], ordinal?: number): Stuff[] {
+    return logic().perceived(viewer, list, ordinal);
+  }
+
+  /**
+   * How `viewer` perceives `target` — `plain`, `builder` (only through the
+   * builder lens: a surface labels the line `[builder]`, D25), or `null`.
+   */
+  public static perceivedHow(viewer: Stuff, target: Stuff): PerceivedHow {
+    return logic().perceivedHow(viewer, target);
+  }
+
+  /**
+   * ⭐ How near a carried thing is to `carrier`'s hand (D15/D17) — `hand` ·
+   * `ready` · `packed` · `elsewhere`; the order the binder breaks ties in.
+   * ⚠ W3's read over what exists today; `Carrying.tierOf` replaces it
+   * when hands and homes land (W4).
+   */
+  public static tierOf(carrier: Stuff, thing: Stuff): ReachTier {
+    return logic().tierOf(carrier, thing);
   }
 
   /**
@@ -593,13 +663,21 @@ export class PerceptionApi {
    * or `glance` (the instantaneous close `look <thing>`). Pure + deterministic given
    * the viewer's warmed `awareness` band — no RNG. The `search` / `look`
    * verbs (and `SearchActivity.onComplete`) call this.
+   *
+   * ⭐ `onBody` (size-and-carrying D24a) — the search went through a body
+   * that cannot resist (`scope` is what is on it): every item its clothes
+   * COVER from this viewer is found too, recorded with the body it was found
+   * on (`BeliefPayload.foundOn`), so perception admits it only while that
+   * body still holds it. An item that is also concealed must still clear
+   * the awareness check.
    */
   public static resolveSearch(
     viewer: Stuff,
     scope: readonly Stuff[],
     depth: SearchDepth,
+    onBody?: Stuff,
   ): Stuff[] {
-    return logic().resolveSearch(viewer, scope, depth);
+    return logic().resolveSearch(viewer, scope, depth, onBody);
   }
 
   /**
@@ -628,17 +706,13 @@ export class PerceptionApi {
   }
 
   /**
-   * ⭐ What `viewer` may see of what `target` holds — the one rule `look`
-   * and `inventory` share:
-   * - a PERSON (an agent with slots): what they WEAR and what they HOLD;
-   *   ⛔ never their pockets, packs' insides, or what is inside their body
-   *   (an implant's slot names only a body part). Your OWN: everything,
-   *   pockets as `carried`.
-   * - a CONTAINER: everything if open, nothing if a sealable one is shut
-   *   (`shut`).
-   * Concealed things stay concealed. Which slot is which is read off what
-   * the slot ACCEPTS (a wearable, a wieldable) and whether it has an
-   * outward face — never a list of slot names.
+   * ⭐ What `target` holds that `viewer` perceives, GROUPED — worn · held ·
+   * carried (size-and-carrying D23: a grouping of an already-perceived
+   * list; the person/pockets rule is {@link perceives}' rule 2 now, so
+   * `look` and `inventory` cannot disagree with every other surface).
+   * `shut` when a shut container shows the viewer nothing. Which slot is
+   * which is read off what the slot ACCEPTS (a wearable, a wieldable) and
+   * whether it has an outward face — never a list of slot names.
    */
   public static visibleContentsOf(viewer: Stuff, target: Stuff): VisibleContents {
     return logic().visibleContentsOf(viewer, target);

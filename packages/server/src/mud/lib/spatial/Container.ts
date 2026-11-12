@@ -44,10 +44,10 @@ import { PlacementOffers, type PlacementChoice } from './PlacementOffers';
 import { MqlApi } from '../../api/mql';
 import type { CommandGiver } from '../command/CommandGiver';
 import { StuffApi } from '../../api/stuff';
+import { PerceptionApi } from '../../api/perception';
 import {
   CommandApi,
   type CommandContributions,
-  type ReachDepth,
 } from '../../api/command';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -118,24 +118,19 @@ export interface Container {
   getDeepContents(): (Stuff & Containable)[];
 
   /**
-   * ⭐⭐ **What a hand could take from in here, at a rung** — the one
-   * per-container walk of reach (controller-liquidity D4/D5) — the step
-   * under `PerceptionApi.reach`, the one list MQL's pools and
-   * `PerceptionApi.canReach` / `reachableAmong` all read (W20), so what you
-   * can name at a rung is what you can touch.
-   *
-   *   - `top` — my own contents.
-   *   - `open` (the default) — and inside every OPEN vessel among them
-   *     (`MixinApi.isOpenContainer`): on a body, all the way down through
-   *     open vessels (the apple in the open bag in your pack); anywhere
-   *     else, one level (the crate's limes, not a box inside the crate).
-   *   - `deep` — everything, shut or not, never into another body.
+   * ⭐⭐ **What a hand could take from in here, reaching in from OUTSIDE**
+   * — my own contents and one level into every OPEN thing among them
+   * (`MixinApi.isOpenContainer`: the crate's limes, not a box inside the
+   * crate; never into a body). The step under `PerceptionApi.reach` for a
+   * place, the vessel you sit in and a named holder, and MQL's mid-chain
+   * read of somebody else (`bob:inventory`). One rule (size-and-carrying
+   * D17): the rungs are gone, and a carrier's OWN tree is
+   * `PerceptionApi.reach`'s, nearest first.
    *
    * A thing placed under an ENCLOSING member of a shut host (the steak in
-   * a shut cold compartment) is behind that lid at `top`/`open`.
-   * Breadth-first: what is at hand comes before what is in a bag.
+   * a shut cold compartment) is behind that lid. Breadth-first.
    */
-  getReachableContents(rung?: ReachDepth): Stuff[];
+  getReachableContents(): Stuff[];
 
   /**
    * ⭐ A **presentation** read — the model read is `getContents()`, and
@@ -703,15 +698,18 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
           // use, plus `:carried`: `contents` and `worn` are a PARTITION of
           // one set (wearing something never takes it out of the wearer's
           // contents), so a shirt renders in one projection, not both.
-          // `:i` is what the viewer may see inside (a stranger's pockets
-          // and a shut chest are not), `:visible` the honest fog — a
-          // concealed-undiscovered child never enters the projection.
-          const visible = MqlApi.resolveMany(
-            `#${host.stuffId}:i:visible:carried:[not mixin.AdornmentMixin] - me`,
-            // The card's viewer is a character (a CommandGiver); the static
-            // type at this seam is only `Stuff & Sensor`.
-            { commandGiver: viewer as unknown as Stuff & CommandGiver, scope: 'here' },
-          ).stuff;
+          // MQL names the same children for everyone (D23); the card shows
+          // what THIS viewer perceives — a stranger's pockets, a shut chest
+          // and a concealed-undiscovered child never enter the projection.
+          const visible = PerceptionApi.perceived(
+            viewer,
+            MqlApi.resolveMany(
+              `#${host.stuffId}:i:visible:carried:[not mixin.AdornmentMixin] - me`,
+              // The card's viewer is a character (a CommandGiver); the static
+              // type at this seam is only `Stuff & Sensor`.
+              { commandGiver: viewer as unknown as Stuff & CommandGiver, scope: 'here' },
+            ).stuff,
+          );
           // Placed items (the back-bar's bottles) render under their host,
           // not as loose contents — the same rule `look`/`sense` use, so the
           // inspection card agrees.
@@ -828,12 +826,10 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       return out;
     }
 
-    /** See the interface docstring (controller-liquidity D5). */
-    getReachableContents(rung: ReachDepth = 'open'): Stuff[] {
+    /** See the interface docstring (size-and-carrying D17). */
+    getReachableContents(): Stuff[] {
       const self = this as unknown as Stuff & Container;
       const out: Stuff[] = [];
-      // A body's open vessels are all to hand; a room's, one level.
-      const openLevels = self.isAgent() ? 32 : 1;
       // ⚠ Sandbox hygiene, before anything is asked of an item: a walk in a
       // circle never reads a field object (or one of another circle) — the
       // proxy denies any method on it, the lid read included (the
@@ -848,24 +844,17 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
         return MixinApi.isSealable(scope) && !scope.isOpen();
       };
-      // Breadth-first: everything at one depth before anything deeper,
-      // so a name that answers at hand and in a bag binds the one at hand.
-      let frontier: (Stuff & Container)[] = [self];
-      for (let level = 0; frontier.length > 0 && level <= 32; level++) {
-        const next: (Stuff & Container)[] = [];
-        for (const holder of frontier) {
-          for (const item of holder.getContents()) {
-            if (!inScope(item)) continue;
-            if (rung !== 'deep' && behindLid(item)) continue;
-            out.push(item);
-            if (rung === 'deep') {
-              if (MixinApi.isContainer(item) && !item.isAgent()) next.push(item);
-            } else if (rung === 'open' && level < openLevels) {
-              if (MixinApi.isOpenContainer(item)) next.push(item);
-            }
-          }
+      const open: (Stuff & Container)[] = [];
+      for (const item of self.getContents()) {
+        if (!inScope(item) || behindLid(item)) continue;
+        out.push(item);
+        if (MixinApi.isOpenContainer(item)) open.push(item);
+      }
+      for (const holder of open) {
+        for (const item of holder.getContents()) {
+          if (!inScope(item) || behindLid(item)) continue;
+          out.push(item);
         }
-        frontier = next;
       }
       return out;
     }

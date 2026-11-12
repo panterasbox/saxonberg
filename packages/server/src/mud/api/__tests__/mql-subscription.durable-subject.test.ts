@@ -82,7 +82,7 @@ describe('durable-subject witness', () => {
 
   it('⭐ a poke on the durable subject re-resolves the subscription', async () => {
     await subscribedInteractive(SUBJECT);
-    const spy = vi.spyOn(MqlApi, 'resolveOne');
+    const spy = vi.spyOn(MqlApi, 'resolveMany');
 
     MqlSubscriptionApi.notifyDurableSubject(SUBJECT);
     await MqlSubscriptionApi._drainScheduledForTesting();
@@ -97,7 +97,7 @@ describe('durable-subject witness', () => {
 
   it('a poke on a DIFFERENT subject does not re-resolve — no fan-out', async () => {
     await subscribedInteractive(SUBJECT);
-    const spy = vi.spyOn(MqlApi, 'resolveOne');
+    const spy = vi.spyOn(MqlApi, 'resolveMany');
 
     MqlSubscriptionApi.notifyDurableSubject('/platform/agent/Avatar/somebody-else');
     await MqlSubscriptionApi._drainScheduledForTesting();
@@ -110,7 +110,7 @@ describe('durable-subject witness', () => {
 
   it('coalesces many pokes in one tick into one re-resolve', async () => {
     await subscribedInteractive(SUBJECT);
-    const spy = vi.spyOn(MqlApi, 'resolveOne');
+    const spy = vi.spyOn(MqlApi, 'resolveMany');
 
     MqlSubscriptionApi.notifyDurableSubject(SUBJECT);
     MqlSubscriptionApi.notifyDurableSubject(SUBJECT);
@@ -127,7 +127,7 @@ describe('durable-subject witness', () => {
     // returns undefined and no tuple is installed. Nothing should be
     // pokeable, and nothing should throw.
     await subscribedInteractive(null);
-    const spy = vi.spyOn(MqlApi, 'resolveOne');
+    const spy = vi.spyOn(MqlApi, 'resolveMany');
 
     MqlSubscriptionApi.notifyDurableSubject(SUBJECT);
     await MqlSubscriptionApi._drainScheduledForTesting();
@@ -139,7 +139,7 @@ describe('durable-subject witness', () => {
   it('a torn-down subscription stops receiving pokes', async () => {
     const interactive = await subscribedInteractive(SUBJECT);
     interactive.cancelMqlSubscription('s1');
-    const spy = vi.spyOn(MqlApi, 'resolveOne');
+    const spy = vi.spyOn(MqlApi, 'resolveMany');
 
     MqlSubscriptionApi.notifyDurableSubject(SUBJECT);
     await MqlSubscriptionApi._drainScheduledForTesting();

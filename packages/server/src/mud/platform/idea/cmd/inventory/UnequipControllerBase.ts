@@ -28,6 +28,7 @@
  * itself and says so; everything outside it has already come off.
  */
 
+import { PerceptionApi } from '../../../../api/perception';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
@@ -103,7 +104,7 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
    * and a shirt came off in the time of the shirt.
    */
   private strip(context: CommandContext, giver: Stuff & Slotted & Attired): void {
-    const stack = [...giver.wornStack()] as unknown as Stuff[];
+    const stack = PerceptionApi.perceived(giver, [...giver.wornStack()] as unknown as Stuff[]);
     if (stack.length === 0) {
       MessageApi.scene(giver)
         .topic(TOPIC)

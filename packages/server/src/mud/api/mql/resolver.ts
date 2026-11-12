@@ -44,6 +44,7 @@ import {
   candidatesForFlat,
   candidatesForHere,
   candidatesForInventory,
+  candidatesHeldBy,
   candidatesForPeers,
   candidatesForPerson,
   candidatesForReachable,
@@ -128,7 +129,7 @@ export function resolve(query: string, ctx: MqlContext): MqlMatch[] {
 export function resolveWithQuantity(
   query: string,
   ctx: MqlContext,
-): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan; isSet?: true } {
+): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan; isSet?: true; ordinal?: number } {
   // ⭐ `registryScan` is a COST RECORD, not a permission — what this run
   // read, so whoever was entitled to read it can be told. It lives for
   // exactly one synchronous run; save/restore rather than assign/clear,
@@ -146,7 +147,7 @@ export function resolveWithQuantity(
 function resolveInner(
   query: string,
   ctx: MqlContext
-): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan; isSet?: true } {
+): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan; isSet?: true; ordinal?: number } {
   const desugared = desugar(query);
   if (desugared.error) {
     throw new MqlDesugarError(desugared.error);
@@ -157,9 +158,10 @@ function resolveInner(
   const finalized = finalize(matches);
   const quantity: MqlQuantity | undefined =
     parserQuantity ?? desugared.quantityHint;
-  const out: { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan; isSet?: true } =
+  const out: { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan; isSet?: true; ordinal?: number } =
     { matches: finalized };
   if (quantity) out.quantity = quantity;
+  if (desugared.ordinal !== undefined) out.ordinal = desugared.ordinal;
   if (registryScan) out.scan = registryScan;
   if (namesASet(ast)) out.isSet = true;
   return out;
@@ -392,12 +394,10 @@ function resolveSeed(node: ChainElement, ctx: MqlContext): MqlMatch[] {
     case 'stuffId': {
       const found = StuffApi.findById(node.id);
       if (!found) return [];
-      // ⛔ A player names by id only what they perceive (client-surface
-      // D7): the card's links send `look #<id>`, and an id must not be a
-      // way to reach a concealed thing. A system query stays ungated.
-      if (ctx.commandGiver !== null && !PerceptionApi.perceives(ctx.commandGiver, found)) {
-        return [];
-      }
+      // ⭐ An id names the thing for everyone (size-and-carrying D23). The
+      // card's links send `look #<id>`; the binder's `PerceptionApi.perceived`
+      // is what keeps an id from reaching a concealed thing (client-surface
+      // D7, kept by the surface rather than the resolver).
       return matchesFromStuff([found]);
     }
     case 'lastResult':
@@ -504,17 +504,17 @@ function resolveKeywordSeed(node: KeywordsNode, ctx: MqlContext): MqlMatch[] {
     }
     if (w === 'peers') {
       return candidatesToMatches(
-        candidatesForPeers(requireGiver(ctx, "'peers'"), ctx.attention, ctx.depth),
+        candidatesForPeers(requireGiver(ctx, "'peers'")),
       );
     }
     if (w === 'reachable') {
       return candidatesToMatches(
-        candidatesForReachable(requireGiver(ctx, "'reachable'"), ctx.attention, ctx.depth),
+        candidatesForReachable(requireGiver(ctx, "'reachable'")),
       );
     }
     if (w === 'person') {
       return candidatesToMatches(
-        candidatesForPerson(requireGiver(ctx, "'person'"), ctx.attention, ctx.depth),
+        candidatesForPerson(requireGiver(ctx, "'person'")),
       );
     }
     if (w === 'horizon') {
@@ -587,8 +587,6 @@ export function candidatesForScope(
   if (!trimmed) {
     return candidatesForReachable(
       requireGiver(ctx, "the default 'reachable' scope"),
-      ctx.attention,
-      ctx.depth,
     );
   }
 
@@ -614,8 +612,6 @@ export function candidatesForScope(
   if (slow.length > 0) return slow;
   return candidatesForReachable(
     requireGiver(ctx, "the 'reachable' scope backstop"),
-    ctx.attention,
-    ctx.depth,
   );
 }
 
@@ -637,7 +633,6 @@ function candidatesFromQuery(
     matches = resolve(fragment, {
       commandGiver: ctx.commandGiver,
       scope: 'reachable',
-      ...(ctx.depth ? { depth: ctx.depth } : {}),
     });
   } catch {
     return [];
@@ -734,32 +729,26 @@ function candidatesForScopePart(
   if (lower === 'inventory') {
     return candidatesForInventory(
       requireGiver(ctx, "the 'inventory' scope"),
-      ctx.attention,
-      ctx.depth,
     );
   }
   if (lower === 'peers') {
-    return candidatesForPeers(requireGiver(ctx, "the 'peers' scope"), ctx.attention, ctx.depth);
+    return candidatesForPeers(requireGiver(ctx, "the 'peers' scope"));
   }
   if (lower === 'reachable') {
     return candidatesForReachable(
       requireGiver(ctx, "the 'reachable' scope"),
-      ctx.attention,
-      ctx.depth,
     );
   }
   if (lower === 'person') {
     return candidatesForPerson(
       requireGiver(ctx, "the 'person' scope"),
-      ctx.attention,
-      ctx.depth,
     );
   }
   if (lower === 'horizon') return candidatesForHorizon(ctx);
   if (lower === 'online') {
     // Ungated for the same reason as the seed promotion above —
     // who's online is normal social fabric, not privacy-tier info.
-    return candidatesForFlat(allOnlineCommandGivers(), ctx.commandGiver, ctx.attention);
+    return candidatesForFlat(allOnlineCommandGivers(), ctx.commandGiver);
   }
   if (lower === 'world') {
     // ⚠ The scope keyword is never index-answerable: a scope is a
@@ -768,7 +757,6 @@ function candidatesForScopePart(
     return candidatesForFlat(
       wholeRegistry("scope 'world'"),
       ctx.commandGiver,
-      ctx.attention,
     );
   }
   if (lower === 'me') {
@@ -780,11 +768,11 @@ function candidatesForScopePart(
     const found = /[*?]/.test(part)
       ? StuffApi.findByPathGlob(part)
       : StuffApi.findAllByTemplatePath(part);
-    return candidatesForFlat(found, ctx.commandGiver, ctx.attention);
+    return candidatesForFlat(found, ctx.commandGiver);
   }
   if (part.startsWith('#') && part.length > 1) {
     const found = StuffApi.findById(part.slice(1));
-    return found ? candidatesForFlat([found], ctx.commandGiver, ctx.attention) : [];
+    return found ? candidatesForFlat([found], ctx.commandGiver) : [];
   }
   return null;
 }
@@ -797,7 +785,7 @@ function candidatesForScopePart(
 function candidatesForHorizon(ctx: MqlContext): ScopeCandidate[] {
   const giver = requireGiver(ctx, "the 'horizon' scope");
   const view = PerceptionApi.horizonFor(giver);
-  return candidatesForFlat(view.things.map((t) => t.stuff), giver, ctx.attention);
+  return candidatesForFlat(view.things.map((t) => t.stuff), giver);
 }
 
 function candidatesForHereScope(ctx: MqlContext): ScopeCandidate[] {
@@ -805,7 +793,7 @@ function candidatesForHereScope(ctx: MqlContext): ScopeCandidate[] {
   // surface of the vessel you sit in, when that is not the place: its
   // door and its way `out` are as much to hand as the road's. Which
   // things those are is `PerceptionApi.reach`'s (W20).
-  return candidatesForHere(requireGiver(ctx, "the 'here' scope"), ctx.attention);
+  return candidatesForHere(requireGiver(ctx, "the 'here' scope"));
 }
 
 function scopeKeywordSearch(words: string[], ctx: MqlContext): MqlMatch[] {
@@ -888,7 +876,7 @@ function applyColon(
           return flatMapPlaceStep(input, name, ctx.commandGiver);
         }
         if (ELEMENT_DERIVABLE_SEEDS.has(name)) {
-          return flatMapBySeed(input, name, ctx.attention);
+          return flatMapBySeed(input, name, ctx.commandGiver);
         }
         if (NAMED_SEED_KEYWORDS.has(name)) {
           return intersectWithSeed(input, el, ctx);
@@ -1038,7 +1026,7 @@ function flatMapPlaceStep(input: MqlMatch[], step: string, viewer: Stuff | null)
 function flatMapBySeed(
   input: MqlMatch[],
   seedName: string,
-  attention?: number
+  viewer: Stuff | null
 ): MqlMatch[] {
   if (input.length === 0) return [];
   const excludePriorSet = SEEDS_EXCLUDING_PRIOR.has(seedName);
@@ -1048,11 +1036,7 @@ function flatMapBySeed(
   const out: MqlMatch[] = [];
   const seen = new Set<string>();
   for (const m of input) {
-    const candidates = candidatesForElementDerivable(
-      seedName,
-      m.stuff,
-      attention,
-    );
+    const candidates = candidatesForElementDerivable(seedName, m.stuff, viewer);
     for (const c of candidates) {
       if (priorIds && priorIds.has(c.stuff.stuffId)) continue;
       const key = c.stuff.stuffId + '|' + viaKey(c.via);
@@ -1119,26 +1103,31 @@ function viaKey(via: MqlMatchVia | undefined): string {
 }
 
 /**
- * ⚠ Mid-chain (`bob:inventory`) the anchor is somebody else, and the reach
- * rung is the GIVER's question, not theirs: another body is read at `top`
- * — what it holds and wears and its own top level, never down through its
- * bags (the perception gate for other people's pockets, D6) — while
- * `peers` keeps its one level into open things standing there.
+ * ⚠ Mid-chain (`bob:inventory`) the anchor is somebody — or something —
+ * else, read from OUTSIDE (size-and-carrying D17): what it holds and wears,
+ * its top level and one level into the open things there, as the room is
+ * read — never down through its bags. `peers` is the anchor's place's.
+ * Which things answer depends on the anchor alone (D23); the viewer only
+ * names them.
  */
 function candidatesForElementDerivable(
   seedName: string,
   anchor: Stuff,
-  attention?: number
+  viewer: Stuff | null,
 ): ScopeCandidate[] {
   switch (seedName) {
     case 'peers':
-      return candidatesForPeers(anchor, attention, 'open');
+      return candidatesForPeers(anchor, viewer);
     case 'inventory':
-      return candidatesForInventory(anchor, attention, 'top');
-    case 'reachable':
-      return candidatesForReachable(anchor, attention, 'top');
+      return candidatesHeldBy(anchor, false, viewer);
     case 'person':
-      return candidatesForPerson(anchor, attention, 'top');
+      return candidatesHeldBy(anchor, true, viewer);
+    case 'reachable':
+      return [
+        ...candidatesHeldBy(anchor, true, viewer),
+        ...candidatesForHere(anchor, viewer),
+        ...candidatesForPeers(anchor, viewer),
+      ];
     default:
       return [];
   }
@@ -1173,75 +1162,22 @@ function candidatesForElementDerivable(
  * tree or a Stuff-containment context.
  */
 /**
- * ⭐⭐ **What a viewer may see inside a holder** — the one visibility rule
- * (maritime revision 2′), applied where every way of naming a holder's
- * things passes: the `:i` step. On a person, what they wear and hold —
- * never their pockets or what is inside their body; in an open container,
- * everything; in a shut one, nothing; your own things, everything
- * (`PerceptionApi.visibleContentsOf`). With no viewer (system mode —
- * engine bookkeeping) the raw contents, as before.
+ * ⭐⭐ **What is inside a holder — for everyone** (size-and-carrying D23,
+ * 2026-11-11). `:i` is the holder's contents, raw: on a person their
+ * pockets too, in a shut box everything in it, whoever asks. MQL NAMES;
+ * the act perceives — a surface that binds or shows the result runs it
+ * through `PerceptionApi.perceived`, which is where a stranger's pockets,
+ * a shut chest and a concealed thing drop out. (Before D23 this was the
+ * one visibility rule, applied here; mql.md § *Descending a holder* has
+ * the reversal.)
  */
-function visibleInside(holder: Stuff, viewer: Stuff | null): readonly Stuff[] {
-  if (!MixinApi.isContainer(holder)) return [];
-  // No viewer (system mode), or your own things: everything — what you
-  // concealed on yourself you still know is there.
-  if (viewer === null || viewer.stuffId === holder.stuffId) return holder.getContents();
-  // ⭐ MQL ADDRESSES; it never decides possibility (controller-liquidity
-  // D6). A shut thing of yours or the room's is addressed through — `look
-  // me:I:apple` finds the apple in the shut box — and the VERB says the
-  // box is shut (`Containable.reachRefusal`). Another person's pockets
-  // stay perception's: a shut thing on THEM still yields nothing.
-  if (
-    MixinApi.isSealable(holder) &&
-    !holder.isOpen() &&
-    !holder.isAgent() &&
-    inViewersKeeping(holder, viewer)
-  ) {
-    return holder
-      .getContents()
-      .filter(
-        (c) =>
-          !MixinApi.isConcealable(c) ||
-          !c.isConcealed() ||
-          PerceptionApi.perceives(viewer, c),
-      );
-  }
-  const v = PerceptionApi.visibleContentsOf(viewer, holder);
-  return [...v.worn, ...v.held, ...v.carried];
+function visibleInside(holder: Stuff): readonly Stuff[] {
+  return MixinApi.isContainer(holder) ? holder.getContents() : [];
 }
 
-/**
- * Is `holder` the viewer's own or the room's — reached by walking up its
- * containers to the viewer or to the viewer's place without passing
- * through another body?
- */
-function inViewersKeeping(holder: Stuff, viewer: Stuff): boolean {
-  const place = MixinApi.isContainable(viewer) ? viewer.getEnclosingPlace() : null;
-  let cur: Stuff | null = MixinApi.isContainable(holder) ? holder.getContainer() : null;
-  for (let i = 0; cur !== null && i < 32; i++) {
-    if (cur.stuffId === viewer.stuffId) return true;
-    if (place !== null && cur.stuffId === place.stuffId) return true;
-    if (cur.isAgent()) return false;
-    cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
-  }
-  return false;
-}
-
-/** `:I` — the rule applied at every level of the descent. */
-function visibleInsideDeep(holder: Stuff, viewer: Stuff | null): Stuff[] {
-  if (viewer === null) {
-    return MixinApi.isContainer(holder) ? holder.getDeepContents() : [];
-  }
-  const out: Stuff[] = [];
-  const walk = (h: Stuff, depth: number): void => {
-    if (depth > 32) return;
-    for (const item of visibleInside(h, viewer)) {
-      out.push(item);
-      if (MixinApi.isContainer(item)) walk(item, depth + 1);
-    }
-  };
-  walk(holder, 0);
-  return out;
+/** `:I` — the whole tree under a holder, for everyone. */
+function visibleInsideDeep(holder: Stuff): Stuff[] {
+  return MixinApi.isContainer(holder) ? holder.getDeepContents() : [];
 }
 
 function applyTransform(
@@ -1281,7 +1217,7 @@ function applyTransform(
         }
       } else {
         if (!MixinApi.isContainer(m.stuff)) continue;
-        for (const item of visibleInside(m.stuff, viewer)) {
+        for (const item of visibleInside(m.stuff)) {
           out.push({ stuff: item, score: m.score });
         }
       }
@@ -1303,7 +1239,7 @@ function applyTransform(
         }
       } else {
         if (!MixinApi.isContainer(m.stuff)) continue;
-        for (const item of visibleInsideDeep(m.stuff, viewer)) {
+        for (const item of visibleInsideDeep(m.stuff)) {
           out.push({ stuff: item, score: m.score });
         }
       }

@@ -28,7 +28,6 @@ args:
     # matched no shape of `put` at all (the ceramics drive).
     scope: "inventory"
     requires: ContainableMixin
-    depth: top
     validators:
       - /lib/command/validators/mustBeInInventory
   - name: target

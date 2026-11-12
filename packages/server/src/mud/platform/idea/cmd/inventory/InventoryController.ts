@@ -5,10 +5,13 @@
  * ⭐ `look` answers *what is this like?*; `inventory` answers *what
  * exactly does this hold?* — complete and grouped:
  * - yourself (no argument): what you WEAR, what you HOLD, what you CARRY;
- * - a person: what they wear and hold — ⛔ never their pockets or what is
- *   inside their body (`PerceptionApi.visibleContentsOf`, the one rule
- *   `look` reads too, so the two can never disagree);
- * - a container: everything in it if open; a shut one refuses in words.
+ * - a person: what you PERCEIVE of what they carry — their hands, their
+ *   outer layers, what hangs from them, what you found on them
+ *   (`PerceptionApi.visibleContentsOf`, a grouping of what
+ *   `PerceptionApi.perceived` admits — size-and-carrying D23/D24 — so no
+ *   surface can disagree with another);
+ * - a container: what you perceive in it; a shut one you cannot see into
+ *   refuses in words.
  *
  * `look in <thing>` is the same ledger ({@link InventoryController.ledger}).
  */
@@ -80,7 +83,10 @@ export default class InventoryController extends CommandController<InventoryMode
     // `query --ledger <a narrowed set>` groups just what the query named.
     const keep = (xs: Stuff[]): Stuff[] => (only ? xs.filter((x) => only.has(x.stuffId)) : xs);
     const v = { worn: keep(all.worn), held: keep(all.held), carried: keep(all.carried) };
-    const list = (xs: Stuff[]): Mml => Mml.list(xs.map((x) => Mml.thing(x)));
+    // ⭐ `[builder]`: perceived only through the builder lens (D25).
+    const mark = (x: Stuff): Mml =>
+      PerceptionApi.perceivedHow(viewer, x) === 'builder' ? Mml.compose`${Mml.thing(x)} [builder]` : Mml.thing(x);
+    const list = (xs: Stuff[]): Mml => Mml.list(xs.map(mark));
     const lines: Mml[] = [];
     if (viewer === target) {
       if (v.worn.length) lines.push(Mml.compose`You are wearing: ${list(v.worn)}.`);

@@ -6518,10 +6518,31 @@ two disagreed — on the room itself and on doors of unseen ways. There is one
 list now, `PerceptionApi.reach`, tagged with MQL's pools (`person` ·
 `inventory` · `here` · `peers` · `reachable`; `around` is what holds you —
 named, not touched), and MQL's seeds filter it. Reach is not perception: a
-caller that needs both asks both. A thing behind a shut lid is ADDRESSED by
-MQL (`look me:I:apple`) but not reachable — a verb that puts a hand on it
-declares `mustNotBeShutAway` (`Containable.reachRefusal`). See
-[perception.md](./subsystems/perception.md) (controller-liquidity W20).
+caller that needs both asks both. A thing behind a shut lid is NAMED by
+MQL (`look me:I:apple`) and bound, but `canReach` refuses it in the
+object's words (`Containable.reachRefusal` — `enclosed-shut`, `packed`):
+a verb that puts a hand on what it names declares the `canReach`
+validator. See [perception.md](./subsystems/perception.md)
+(controller-liquidity W20; one rule since size-and-carrying D17).
+
+## Hiding things inside MQL
+
+```typescript
+// WRONG — the resolver decides what a viewer may see
+if (viewer && !PerceptionApi.perceives(viewer, candidate)) return; // in api/mql/**
+
+// CORRECT — MQL names the same list for everyone; the SURFACE perceives
+const named = MqlApi.resolveMany(text, { commandGiver: giver, scope });
+const shown = PerceptionApi.perceived(giver, named.stuff, named.ordinal);
+```
+
+MQL names things the same for every viewer (size-and-carrying D23): the
+only viewer-dependence in the resolver is the asker's own words (`me`,
+`here`, the pronouns) and the object's own methods called with the asker
+(`perceivedKeywordsFor`, `getDetailIds`). Anything that binds, prompts,
+counts or shows a list runs it through `PerceptionApi.perceived` first —
+and a head ordinal counts after it. `lint:perceived-surfaces` holds every
+surface at zero exceptions. See [mql.md](./subsystems/mql.md).
 
 ## A nested subcommand
 

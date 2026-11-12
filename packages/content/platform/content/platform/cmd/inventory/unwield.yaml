@@ -18,6 +18,5 @@ args:
     required: true
     scope: "inventory"
     requires: WieldableMixin
-    depth: top
     validators:
       - /lib/command/validators/mustBeInInventory

@@ -44,14 +44,12 @@ describe('card fields about another person', () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  it('⛔ contents: only what they hold in view — the coin in their pocket never reaches the wire', () => {
-    vi.spyOn(PerceptionApi, 'isAnotherPerson').mockReturnValue(true);
-    vi.spyOn(PerceptionApi, 'visibleContentsOf').mockReturnValue({
-      worn: [],
-      held: [sword],
-      carried: [],
-      shut: false,
-    });
+  it('⛔ contents: only what the viewer perceives — the coin in their pocket never reaches the wire', () => {
+    // ⚠ Since size-and-carrying W3 (D23) the read passes the one filter,
+    // `PerceptionApi.perceived`, whose holder rules hide a pocket.
+    vi.spyOn(PerceptionApi, 'perceived').mockImplementation((_v, list) =>
+      list.filter((x) => x.stuffId !== coin.stuffId),
+    );
     const refs = readOf(holder, 'contents')(holder, viewer as never) as { stuffId: string }[];
     expect(refs.map((r) => r.stuffId)).toEqual([sword.stuffId]);
   });
