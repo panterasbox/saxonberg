@@ -187,9 +187,41 @@ describe('the flip across a restart (drive 21)', () => {
     const reborn = makeAvatar('flip-bob');
     ContainmentApi.move(reborn, room);
     await PersistableApi.materialize(reborn, key);
+    // ⭐ A PLAYER's body places what it finds loose when its session
+    // attaches (`enter`), not mid-restore — so the lines it says are heard.
+    await reborn.placeLoose();
     const k2 = (reborn.getContents() as Stuff[]).find((x) => x.getTemplatePath() === KEY);
     expect(k2).toBeDefined();
     expect(reborn.isHonest(k2!)).toBe(true);
+  });
+
+  /**
+   * ⭐ The drive's step 21: the restore's *"would not fit anywhere on you;
+   * it is in your room"* was spoken mid-restore, before the session
+   * attached, and the player never heard it live. Like the estate touch on
+   * a return (`announceSessionPresence`), what happened while you were
+   * away is settled — and said — when you come back: the restore leaves a
+   * player's loose things for `enter` to place.
+   */
+  it('⭐ a player restore says nothing before the session attaches; `enter` places and says it', async () => {
+    const room = makeStuff(() => new Location());
+    const avatar = makeAvatar('flip-cat');
+    ContainmentApi.move(avatar, room);
+    const k = good(KEY, 'key');
+    const admit = vi.spyOn(avatar, 'isAdmitting').mockReturnValue(true);
+    ContainmentApi.move(k, avatar);
+    admit.mockRestore();
+    const key = Avatar.getTemplatePath('flip-cat');
+    await PersistableApi.capture(avatar, key);
+    logout(avatar);
+
+    const reborn = makeAvatar('flip-cat');
+    ContainmentApi.move(reborn, room);
+    const placeLoose = vi.spyOn(reborn, 'placeLoose');
+    await PersistableApi.materialize(reborn, key);
+    expect(placeLoose).not.toHaveBeenCalled();
+    const k2 = (reborn.getContents() as Stuff[]).find((x) => x.getTemplatePath() === KEY);
+    expect(k2 && reborn.isHonest(k2)).toBe(false);
   });
 });
 

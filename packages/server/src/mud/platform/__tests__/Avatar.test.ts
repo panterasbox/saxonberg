@@ -747,8 +747,12 @@ describe('Avatar', () => {
           }) as never
       );
 
+      const placeLoose = vi.spyOn(avatar, 'placeLoose');
       const ix = fakeInteractive() as unknown as Interactive;
       await avatar.enter(ix);
+      // ⭐ What a restore found loose is placed with the session attached
+      // (size and carrying D32, the drive's step 21) — its lines are heard.
+      expect(placeLoose).toHaveBeenCalledTimes(1);
 
       // enter() is pure ceremony — no template-resolution calls
       // and no teleport. Container placement and default-loadout

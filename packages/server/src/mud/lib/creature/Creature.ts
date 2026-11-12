@@ -732,7 +732,20 @@ export class Creature extends CreatureBase {
     // not judged — it would keep its loose things loose, and every `get`
     // after would land loose too.
     await this.ensureSpecies();
-    await this.placeLoose();
+    if (this.placesLooseOnRestore()) await this.placeLoose();
+  }
+
+  /**
+   * Whether the restore itself places what it finds loose (D32). A body
+   * nobody attaches to places it at once; a PLAYER's body waits for its
+   * session (`Avatar.enter`), so the lines it says — *"…would not fit
+   * anywhere on you; it is in your room"* — are heard live rather than
+   * spoken into a socket that is not there yet (the drive, step 21).
+   *
+   * @hook Default `true`. `Avatar` answers `false` and places at `enter`.
+   */
+  protected placesLooseOnRestore(): boolean {
+    return true;
   }
 
   /**

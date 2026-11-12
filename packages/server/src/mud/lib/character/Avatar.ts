@@ -1002,6 +1002,12 @@ export default abstract class Avatar extends AvatarBase {
     // channel they possess — MobileMixin's auto-sense-on-arrival path,
     // reused rather than re-rendering the description here.
     await this.autoLookOnArrival(interactive);
+    // ⭐ What the restore found loose on this body is placed NOW, with the
+    // session attached (size and carrying D32, the drive's step 21) — so
+    // *"…would not fit anywhere on you; it is in your room"* is heard, the
+    // way the estate touch on a return is. Nothing loose: nothing happens
+    // (every reconnect, every session after the first load).
+    await this.placeLoose();
     this.openArrangementGuarded(interactive);
     this.markSessionStarted(interactive);
     if (opts.firstArrival === true) this.announceFirstArrival(interactive);
@@ -1064,6 +1070,14 @@ export default abstract class Avatar extends AvatarBase {
     // contributions; the refreshConferrals mirror). Species-fixed
     // in-session, so once at enter suffices.
     this.refreshCastingAffordance();
+  }
+
+  /**
+   * A player's body places what its restore found loose at `enter`, with
+   * the session attached — see {@link Creature.placesLooseOnRestore}.
+   */
+  protected override placesLooseOnRestore(): boolean {
+    return false;
   }
 
   /** Mint the once-ever first-arrival deed. */
