@@ -41,6 +41,9 @@ interface GetPayload {
 }
 
 export default class GetController extends CommandController<GetModel> {
+  /** The body refused one candidate this dispatch; the rest are not asked. */
+  private bodyRefused = false;
+
   async execute(
     model: GetModel,
     context: CommandContext
@@ -474,8 +477,15 @@ export default class GetController extends CommandController<GetModel> {
     // where it would not fit, and the next command in your own pockets'
     // names. A cart's handles in your hands say so too.
     if (MixinApi.isCarrying(giver)) {
+      // ⭐ Once the body has said it has nowhere for one, it is not asked
+      // for the next of the same name (the drive's runs 3 and 4: a
+      // keeper's `get 1 cola` against a full stock refused EVERY can in
+      // turn, each with a note and a scene, on every brain beat of a long
+      // clock jump — and the server ran out of heap).
+      if (this.bodyRefused) return false;
       const refused = giver.canReceive(operand);
       if (refused !== null) {
+        this.bodyRefused = true;
         context.note({
           kind: 'controller-rejected',
           reason: refused.reason === 'hands-on-cart' ? 'hands-hauling' : refused.reason,
