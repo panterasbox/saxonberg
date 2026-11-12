@@ -1215,6 +1215,18 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   asks them (skip reasons `heavy`, `hands`; notes `too-heavy`, `hands-needed`); a full hand
   names what holds it (the `slot-occupied` note kept); equip-all takes up what is wielded
   after what is worn (the "claimed after both hands are freed" ordering).
+- **D10-d — hands by MASS; weight only on the burden line** (owner, lens 1 — *mass versus
+  weight is a lesson the game teaches by being right*). `Carrying.handsFor` judges the
+  thing's **laden mass** — `LoadBearing.ladenMassOf(item)`: the thing and everything in it
+  (a Vessel's transmission still applies), with no gravity in it — against the holder's
+  capacity, so one hand / two / too heavy read the same at 9.81 and at 0 (inertia: it still
+  takes effort to stop). Before, it read the item's OWN mass — a 2 kg pack holding 13 kg took
+  one hand at any gravity — and weightless an OPEN pack's load drifts out of it (W1), so a
+  full pack is a shut one. The burden line and the lift gate (`wouldExceedCeiling`) keep
+  weight × `gravityNow / 9.81`. And what a body wears goes through a way after it by its
+  **own cross-section** (`Exit.clearanceRefusal`, after the envelope): weightless or
+  lengthwise a body passes a way its pack trails behind it in, but a pack bigger than the
+  gap is refused by name (`pack` — *won't go through — `remove backpack`*), however held.
 - **D35-c / D36-b** — `run`'s `awkwardLoad` gate (new `TraversalGate`) is a mode-name check
   (`run`) in `LocomotionLogic.awkwardGate`; `gearNoise` lifts `emissionAt`'s `noiseLevel` one
   band (`LOUDER`), clanking = rigid and `ringSound().rings` (else a `metal` material tag).
@@ -2164,7 +2176,7 @@ this worktree's DB dropped before every full run; ten full runs and targeted
 | 16 | ✓ | The yard and reed bank were plain Locales: `swim` was no verb, and the reed bank stranded a swimmer (`fea3fa41a`). The pack's letter goes to pulp; the oilskin's comes out dry. |
 | 17 | ✓ | Staged twin of the soak drive: the 4 h jump, then the meal out of the satchel; the ration count falls. |
 | 18 | ✓ | A mule could not be tacked — handing a beast its tack now puts it on (`eb9498a87`); a tied lead stayed in the leader's hand slot as a phantom (`f50499b98`, the chokepoint vacates); a handcart had no size (`24acb0859`) and no steading way admitted wheels (`89085579f`), the `wheeled` mode was never loaded so NO hitched cart could be dragged anywhere (`82f122c13`), and a cart was fitted through a gate on its side (`8248f6996`). Handed to a full-handed person, a cup is refused before it moves. ⚠ A ration `put` in the handcart "seats with a click" — it took the cart's `bed` slot (a seat) — ✅ fixed `ace03e229` (`put` is offered a posture-bearing slot only for a `Posed` body). ⚠ The room's reach stops at the mule: its panniers are named through it (`put ration in mule:i:pannier`). |
-| 19 | ✓ | A mug dropped at 0 g "hit the floor hard" — `fallOnto` read 9.81 (`d133f3a18`). ⚠ Requirement vs D19-c: weightless, a body passes a way lengthwise with its pack trailing, so the crawlway is not the test; the pack's SIZE is (a pocket still refuses it). "Still takes both hands" is not met — `handsFor` reads weight × g (D10-b). |
+| 19 | ✓ | A mug dropped at 0 g "hit the floor hard" — `fallOnto` read 9.81 (`d133f3a18`). "Still takes both hands" was not met — `handsFor` read the pack's OWN 2 kg, never what was in it (and weightless an open pack's load drifts out of it); D10-d judges the LADEN mass with no gravity in it. Re-driven alone (2026-11-12, cold world, port 2014): a shut canvas pack staged bigger than the crawlway (0.85 × 0.5 × 0.9 m) holding a mail hauberk and six rations (13 kg) — burden line empty at 0 g; `go east`/`crawl east` refused *"Your canvas backpack won't go through — `remove backpack`"* (the pack goes through after the body by its own cross-section, D10-d); a pocket refuses it; with a lantern held `get` refuses *"The canvas backpack takes both hands — you're holding the punched-tin lantern"*. |
 | 20 | ✓ | The lens labeled a shut chest's contents "something [builder]" (`edb57b7b1`). No staged NPC owns the chest (a content chest in the stager's extent). |
 | 21 | ✓ | Holdings compare as a SET (the restore reorders the worn list). The pre-flip record (`stageLooseSnapshot`) is placed: mug and bowl in hand, key in a pocket, the lantern off the body. ⚠ Its "would not fit anywhere on you" line is spoken during the restore, before the session attaches, and is lost — ✅ fixed `7cf954317` (a player's body places what it found loose at `enter`, the estate-touch shape). |
 | 22 | ✓ | `switch` was no verb for a worn headlamp (`97588cd5c`, the Switchable protocol confers it). The pond is looked at from its shore. |

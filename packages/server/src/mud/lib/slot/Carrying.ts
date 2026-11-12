@@ -537,9 +537,15 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
 
     public handsFor(item: Stuff): 1 | 2 | null {
       const self = this as unknown as Stuff;
-      const mass = MixinApi.isTangible(item) ? item.getMass().rawValue() : 0;
-      // A body whose capacity is unknown (no mass yet) is not asked by weight.
-      const capacity = MixinApi.isLoadBearing(self) ? self.getCarryCapacity().rawValue() : 0;
+      // ⭐ The grip judges MASS, never weight (D10-d): a thing and all that
+      // is in it, at any gravity — a full pack takes both hands weightless,
+      // because it still takes effort to stop. Weight is the burden line's.
+      const loadBearing = MixinApi.isLoadBearing(self);
+      const mass = loadBearing
+        ? self.ladenMassOf(item).rawValue()
+        : MixinApi.isTangible(item) ? item.getMass().rawValue() : 0;
+      // A body whose capacity is unknown (no mass yet) is not asked by mass.
+      const capacity = loadBearing ? self.getCarryCapacity().rawValue() : 0;
       if (capacity > 0 && MixinApi.isLoadBearing(self)) {
         if (mass > self.getStrainCeiling().rawValue()) return null;
         if (mass > capacity * CARRYING_DEFAULTS.ONE_HAND_FRACTION) return 2;

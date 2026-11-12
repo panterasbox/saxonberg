@@ -141,6 +141,32 @@ describe('Exit.clearanceRefusal — bodies meet openings', () => {
     );
   });
 
+  it('D10-d: weightless, a pack bigger than the hatch is refused by name; a smaller one passes trailing', async () => {
+    here.setGravity(Quantity.of(0, 'm/s²'));
+    const north = await way('north');
+    north.setOpening({ width: 0.5, height: 0.5 });
+    const big = makeStuff(() => new Pack());
+    big.setShortDescription('frame pack');
+    big.setKeywords(['pack', 'frame']);
+    big.setDimensions({ width: 0.6, depth: 0.3, height: 0.8 });
+    big.setSlotClaims({ [PLAN_PATH]: ['torso'] });
+    body.seatInSlot(big, 'torso');
+    const refused = await north.clearanceRefusal(body, 'walk');
+    expect(refused?.reason).toBe('too-big-for-way');
+    expect(refused?.facts.pack).toBe(big);
+    expect((await gate(north, 'walk')).reason).toMatch(/frame pack won't go through — `remove pack`/);
+    // Off, the body alone goes through.
+    ContainmentApi.move(big, there);
+    expect(await north.clearanceRefusal(body, 'walk')).toBeNull();
+    const small = makeStuff(() => new Pack());
+    small.setShortDescription('belt pack');
+    small.setKeywords(['pack', 'belt']);
+    small.setDimensions({ width: 0.2, depth: 0.1, height: 0.15 });
+    small.setSlotClaims({ [PLAN_PATH]: ['torso'] });
+    body.seatInSlot(small, 'torso');
+    expect(await north.clearanceRefusal(body, 'walk')).toBeNull();
+  });
+
   it('a hung hatch bounds the way; through a way down a body goes lengthwise', async () => {
     const north = await way('north');
     const hatch = await StuffApi.create(() => new Door());

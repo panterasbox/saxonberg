@@ -138,6 +138,13 @@ export interface LoadBearing {
   burdenWords(): string | null;
   /** Would lifting `candidate` (as loose carry) push burden past the ceiling? */
   wouldExceedCeiling(candidate: Stuff): boolean;
+  /**
+   * ⭐ The MASS a hand must control to hold `item` — the thing and
+   * everything in it (a Vessel's transmission still applies), with **no
+   * gravity in it** (size and carrying D10-d). Weight is the burden line's;
+   * the grip judges inertia, so a full pack takes both hands at zero g.
+   */
+  ladenMassOf(item: Stuff): Quantity<'kg'>;
 }
 
 /**
@@ -386,6 +393,10 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
           new Set<string>(),
         ) * this.gravityShare();
       return prospective > this.getStrainCeiling().rawValue();
+    }
+
+    public ladenMassOf(item: Stuff): Quantity<'kg'> {
+      return Quantity.of(Math.max(0, walk(item, 1.0, 1.0, 0, new Set<string>())), 'kg');
     }
 
   };

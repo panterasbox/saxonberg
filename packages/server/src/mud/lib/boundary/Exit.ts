@@ -916,6 +916,20 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
         if (pair !== null) return { ok: false, reason: 'too-big-for-way', facts: { ...base, dismount: true } };
         return { ok: false, reason: 'too-big-for-way', facts: { ...base, ...(await this.whatWouldPass(mover, current, lengthwise, gap)) } };
       }
+      // ⭐ What it wears goes through after it, by its OWN cross-section
+      // (D10-d): weightless or lengthwise a body may pass a way its pack
+      // trails behind it in, but a pack bigger than the gap never fits,
+      // however it is carried.
+      if (gap !== null && pair === null) {
+        const bulk = mover.wornBulk();
+        for (const worn of [...bulk.things, ...bulk.hung]) {
+          if (!MixinApi.isTangible(worn)) continue;
+          const box = worn.hasAuthoredSize() ? worn.getDimensions() : worn.getFitBox();
+          if (box !== null && !box.fitsThrough(gap)) {
+            return { ok: false, reason: 'too-big-for-way', facts: { ...base, pack: worn } };
+          }
+        }
+      }
       const bodies: Creature[] = pair !== null ? [pair.mount, pair.rider] : [mover];
       for (const body of bodies) {
         if (!MixinApi.isCarrying(body)) continue;

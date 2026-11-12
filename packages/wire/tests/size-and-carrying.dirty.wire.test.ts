@@ -98,6 +98,7 @@ const T = {
   oilskin: '/trade/tanning/thing/oilskin-pouch',
   saddlebags: '/trade/tanning/thing/saddlebags',
   backpack: '/stuff/thing/gear/backpack',
+  hauberk: '/stuff/thing/armor/mail-hauberk',
   sword: '/stuff/thing/arms/sword',
   longsword: '/stuff/thing/arms/longsword',
   greatsword: '/stuff/thing/arms/greatsword',
@@ -789,17 +790,25 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expect((await say(m, 'look in handcart')).w).not.toMatch(/ration/i);
   }, 360_000);
 
-  it('19. [instant · staged] no gravity: a dropped cup floats, a cup on the table drifts off, a full pack weighs nothing yet will not pass the crawlway', async () => {
+  it('19. [instant · staged] no gravity: a dropped cup floats, a cup on the table drifts off, a full pack weighs nothing yet still takes both hands and will not pass the crawlway', async () => {
     const z = await person('scfloat', COTTAGE);
     await give(z, T.mug);
     expectDone(await say(z, 'put mug on table'));
-    const pack = await give(z, T.backpack);
+    // ⭐ A pack BIGGER than the crawlway (0.8 × 0.8 m): the requirement's
+    // "won't fit the hatch" is about the pack's own size, which no gravity
+    // changes (D10-d). Full — a mail hauberk and six rations, 15 kg — so
+    // it takes both hands by its mass.
+    const pack = await give(z, T.backpack, { dimensions: { width: 0.85, depth: 0.5, height: 0.9 } });
+    const mail = await give(z, T.hauberk);
+    expectDone(await say(z, `put #${mail} in #${pack}`));
     for (let i = 0; i < 6; i++) {
       await give(z, T.rations);
       await say(z, `put ration in #${pack}`);
     }
     const w = await say(z, `wear #${pack}`);
     await finish(z, w.r);
+    // Shut, or weightless its load drifts out of it.
+    expectDone(await say(z, `close #${pack}`));
     const set = await say(z, 'testharness gravity 0');
     expectDone(set);
     expect(set.w + squash(await z.listen(1500))).toMatch(/mug drifts away from (a|the) plain deal table/i);
@@ -809,13 +818,18 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expect(`${dropped.w} ${squash(await z.listen(2500))}`).toMatch(key('19', /floats where you let it go/i));
     const tiers = await inv(z);
     expect(tiers, 'no weight on the burden line').not.toMatch(/fair load|well laden|heavily|more than you/i);
-    // ⚠ The requirement's "still won't pass the hatch" meets the plan's
-    // D19-c: weightless, a body passes a way LENGTHWISE with its pack
-    // trailing, so the crawlway is no longer the test. What gravity does
-    // not change is the pack's SIZE: it is still too big for a pocket.
+    // Still won't pass the crawlway: weightless the body goes lengthwise,
+    // but the pack follows it by its own size.
+    expectRefused(await say(z, 'go east'), key('19', /backpack won't go through/i));
+    expectRefused(await say(z, 'crawl east'), /backpack won't go through/i);
+    // Still too big for a pocket.
     const off = await say(z, 'remove backpack');
     await finish(z, off.r);
     expectRefused(await say(z, `put #${pack} in "left pocket"`), /too big/i);
+    // Still takes both hands: a lantern in one, and the pack is refused.
+    expectDone(await say(z, `drop #${pack}`));
+    await give(z, T.lantern);
+    expectRefused(await say(z, `get #${pack}`), key('19', /takes both hands — you're holding (a|an|the) [^,]*lantern/i));
     expectDone(await say(z, 'testharness gravity clear'));
   }, 180_000);
 
