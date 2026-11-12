@@ -127,17 +127,15 @@ the Registry (not the stateless logic singleton) so it survives a
 reload of `api/address.ts`; a reload of the Registry re-clones and
 `onCreate` rebuilds idempotently.
 
-⭐ **The index builds on the first address question, never at boot**
-(load-on-use round two). `AddressApi.needs = [addressRegistry]` (and
-`GovernmentApi.needs` carries it too, for its sync chain read under async
-statics), so the Api's security wrapper stands the Registry up before any
-async static runs. Every READ door in `AddressLogic` goes through the
+⭐ **The index stands at boot as the Api's `needs`** (load-on-use W10;
+round two built it on the first address question).
+`AddressApi.needs = [addressRegistry]` (and `GovernmentApi.needs` carries
+it too), and `AppBootstrap` readies every Api's needs once, before the
+manifest; the security wrapper still awaits them for async statics. Every READ door in `AddressLogic` goes through the
 registry and **throws `DocumentNotResidentError('address-index', …)` when
 it is cold** — the fall-open `?? null` that let a cold index answer "no
 locality" is gone. The write doors (a Locality registering itself before
-the index exists) stay no-ops; the rebuild picks it up. A sync caller
-follows an awaited resolve (`Perceiver`, `PublicLighting`) or readies
-`GovernmentApi` first (`ArmController.mayPlaceIn`). Suites have no
+the index exists) stay no-ops; the rebuild picks it up. No caller readies it (W10 deleted the hand-readying). Suites have no
 locality rows, so `test-bootstrap` stands an EMPTY index
 (`lib/address/__tests__/address-index.ts`) whenever the registry is needed
 and not live — empty meaning "no locality covers this".
@@ -334,4 +332,5 @@ simplification.
   address question, a cold index throws instead of answering `null`, and
   `resolvePlace` became async so the job verbs and the haulage `ship`
   verb are gated by the Api's own `needs` rather than readying it by hand
-  (§ The coverage index).
+  (§ The coverage index). Its review (W10) moved the index to boot, as the
+  Api's `needs`.

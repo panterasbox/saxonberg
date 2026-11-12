@@ -273,11 +273,11 @@ behind one `ActiveCondition` collection (`getConditions` / `afflict` /
   > that **authored `Condition` behavior is inert**: signs, names,
   > progression and `toxinBehavior` are all read off an object that isn't
   > there. ✅ **`ConditionCatalogue` closed it**, and since load-on-use
-  > round two it does so **with the first body, not at boot**: the
-  > catalogue is a `singletonSync` door (`ConditionApi.conditions()` — no
-  > `onCreate`, no row, no boot line), and `VitalsMixin.onCreate` and
-  > `ContaminableMixin.onCreate` await its `ensureRoster()`, which stands
-  > every condition row up once per process — so the sync seams a scheduler
+  > round two it is a `singletonSync` door (`ConditionApi.conditions()` — no
+  > `onCreate`, no row, no boot line) whose `ensureRoster()` is
+  > `ConditionApi`'s declared `needs`, so `AppBootstrap` stands every
+  > condition row up once, at boot (load-on-use W10; no body's `onCreate`
+  > readies it) — so the sync seams a scheduler
   > tick or an `inflict` reaches (which cannot wait) always find their row.
   > The roster is every root's `/idea/Condition/` infix filtered to rows
   > whose class extends `Condition`, so **a capability pack may now ship a
@@ -289,8 +289,8 @@ behind one `ActiveCondition` collection (`getConditions` / `afflict` /
   > dead subsystem**. Suites stand rows with
   > `lib/vitals/__tests__/conditions.ts` (`standShippedConditions` /
   > `standBlankConditions`); `test-bootstrap` calls the `@TestOnly`
-  > `ConditionApi.standRosterForTesting()` so a body's `onCreate` never
-  > reaches for a store.
+  > `ConditionApi.standRosterForTesting()` so the Api's `needs` never
+  > reach for a store.
 - **Kind B — trauma** (the `Trauma` value in `platform/idea/Condition.ts`):
   a parameterized value `{ kind: 'trauma', type, site, severity, bleeding?, dressed? }`
   with a closed `TraumaType` union (`laceration | fracture | contusion |
@@ -509,6 +509,8 @@ The transition driver this doc deferred now exists — see
 - **2026-11-11 — load-on-use round two (MR !575).** The condition roster
   left the boot: `ConditionCatalogue` became the `singletonSync` door
   `ConditionApi.conditions()` (`ensure`/`need`/`peek`/`ensureRoster`/
-  `roster`), every body's and contaminable provision's `onCreate` loads it,
+  `roster`), every body's and contaminable provision's `onCreate` loaded it
+  (until W10 in the same review: the roster is now `ConditionApi`'s
+  `needs`, stood at boot),
   the warm selects by infix + class so a pack may ship a condition, and the
   sync reads throw on a cold row (§ Conditions, kind A).

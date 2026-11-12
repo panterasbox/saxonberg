@@ -727,8 +727,8 @@ Two properties the diminishment must keep, and a service's must too:
 
   > **⚠ HISTORICAL — closed by `ConditionCatalogue`.** This paragraph used
   > to say "no Condition Idea is live at any path today," which was true
-  > when written and is not any more: the condition rows load with the
-  > first body (load-on-use round two, MR !575 — never at boot), so
+  > when written and is not any more: the condition roster is
+  > `ConditionApi`'s declared `needs`, stood at boot (load-on-use W10), so
   > `ConditionApi.conditions().need` resolves `recovering` (and every
   > other condition) by the time anyone can be hurt. See vitals.md
   > § Conditions for the full account — the degrade-to-the-path-leaf

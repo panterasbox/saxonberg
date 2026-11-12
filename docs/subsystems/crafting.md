@@ -247,13 +247,12 @@ a **`Document`** managed by a catalogue singleton — the
   martini` → one recipe) and by path (`getRecipeAt` — an authored
   citation such as a menu's `offeredRecipes:` names a path), `warm()` on
   `onCreate`, re-warmed as the installer's go-live after a live
-  `pack sync`. ⭐ A **lazy dictionary**, never booted (documents path
-  identity, 2026-11-09): reached through `StuffApi.singleton`, and the
-  sync readers (`BlendIdentity`, `ThermalDose`, `Archetype.effectiveRows`)
-  go through `CraftingApi.recipes()`, which throws
-  `DocumentNotResidentError` when it is cold — `Crafted.setRecipe` and
-  `Bulkable`'s `setInteriorPayload`/`setSurfacePayload` restore doors
-  return `StuffApi.ready(TemplatePaths.recipeCatalogue)` for the applier to await. ⚠ A runtime
+  `pack sync`. ⭐ **Stood at boot as `CraftingApi`'s declared `needs`**
+  (with the discipline dictionary; load-on-use W10 — no pack `boot:`
+  line): the sync readers (`BlendIdentity`, `ThermalDose`,
+  `Archetype.effectiveRows`) go through `CraftingApi.recipes()`, which
+  throws `DocumentNotResidentError` if it is ever cold; `Crafted.setRecipe`
+  and the bulk payload's recipe are plain setters, and no act readies it. ⚠ A runtime
   record (`BulkPayload.recipeId`, `Crafted.recipe`, a thermal dose) keeps
   the recipe's WORD, not its path — the word is derived from the path and
   unique, and a player types it. The `SoulCatalogue` shape. **Read methods

@@ -59,7 +59,7 @@ fraction is drawn — the lees-style swap.
 | piece | where | what it is |
 |---|---|---|
 | `FractionSchedule` | `lib/fractionation/FractionSchedule.ts` | the value class, no statics. A `fraction-schedule` **document** per schedule (any pack's `content/fraction-schedules/<key>.yaml`, at `<root>/fraction-schedules/<key>`; the leaf is the key), matched to a charge by the charge material's TAGS against `inputCategory`. |
-| `FractionScheduleCatalogue` | `platform/idea/`, a `DocumentCatalogue` reached as `BulkableApi.fractionSchedules()` | `ensureAll()` (every schedule, once per process), `forMaterial(material)` over the resident ones (lowest key on a double match, warned), `need`/`ensure` by path. Its `afterRead` loads each schedule's product, residue and span materials. No boot line: ⚠ a schedule nothing reads matches nothing — so `FractionatingMixin.onCreate` loads the whole kind with the first still. |
+| `FractionScheduleCatalogue` | `platform/idea/`, a `DocumentCatalogue` reached as `BulkableApi.fractionSchedules()` | `ensureAll()` (every schedule, once per process), `forMaterial(material)` over the resident ones (lowest key on a double match, warned), `need`/`ensure` by path. Its `afterRead` loads each schedule's product, residue and span materials. No `boot:` line: ⚠ a schedule nothing reads matches nothing — so the whole kind is `BulkableApi`'s declared `needs` (`fractionSchedules().ensureAll()`), stood once at boot; no still's `onCreate` readies it. |
 | `FractionatingMixin` | `lib/fractionation/Fractionating.ts` | the host face. Requires `BulkableMixin`; probes `ThermalMixin`. |
 | `BulkPayload.dissolvedToxins` | declared from `lib/metabolism/DissolvedToxins.ts` | the dose a draw carries, per litre. |
 
@@ -93,9 +93,9 @@ not a gauge.
 ### The state machine
 
 ⭐ **The still holds the schedule's PATH** (`runSchedulePath`, runtime
-state), read with `need(path)`; `setRunSchedulePath` is the restore door —
-it returns `ensure(path)` — so a still restored after a restart finds its
-schedule resident (load-on-use round two).
+state), read with `need(path)`; `setRunSchedulePath` is a plain setter —
+every schedule is resident from boot (`BulkableApi`'s `needs`, load-on-use
+W10), so a still restored after a restart finds its schedule.
 
 Four words, all persistent runtime state on the host:
 
@@ -381,8 +381,9 @@ scans the whole content tree for that clash.
 `content/fraction-schedules/`, no `class:` or `key:` line); the
 instanceable twin, the `byKey`/`forMaterial` statics and the boot line
 went; the still stores `runSchedulePath` behind a restore door and loads
-the kind in `onCreate`; `lint:fraction-schedules` reads the new dirs
-(§ The pieces).
+the kind in `onCreate` (W10, same review: the kind became `BulkableApi`'s
+`needs`, stood at boot, and that load went); `lint:fraction-schedules`
+reads the new dirs (§ The pieces).
 
 ## ⭐⭐⭐ `separation` — grades of one thing, or different things (the drilling build, 2026-10)
 

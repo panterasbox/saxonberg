@@ -1200,7 +1200,10 @@ did).
 each is loaded by whatever reaches it (a citing row's setter, a host's
 `onCreate`, a verb's first async read, the message pipeline's first
 scene for topics). `TopicCatalogue` and `PlacementCatalogue` are deleted
-outright; the rest are lazy dictionaries.
+outright; the rest are lazy dictionaries. ⚠ Since load-on-use W10 the
+ones an Api reads stand at boot as that Api's `static needs` (the
+kernel's `AppBootstrap` loop — still no pack `boot:` line), and no setter,
+`onCreate` or act readies them.
 
 ⭐ **And no material-adjacent roster either** (load-on-use round two,
 2026-11-11). Six more lines left the platform pack —
@@ -1209,8 +1212,9 @@ outright; the rest are lazy dictionaries.
 `FractionScheduleCatalogue` — with `LocationGraphRegistry`'s stale
 `dependsOn` on the material catalogue. A material loads with its holder, a
 relation, the act or the restore door; a biome with its place; the
-conditions with the first body; the address index on the first address
-question; profiles and schedules with the first vat or still. The one
+conditions, the address index, profiles and schedules as their Api's
+boot `needs` (W10 — round two first loaded them with the first body,
+address question, vat or still). The one
 material-adjacent row still booted is base-library's root
 `/stuff/idea/biome/universe`, the one biome nothing cites. **A pack adds a
 member of any of these families with no boot line**: a material or
@@ -1701,8 +1705,9 @@ tail, `reload` on a class path, the lint family over pack trees. Magic
 proves it: **arcana** (the item classes, Ring/Amulet/Potion new, the
 disciplines, the verbs, the banks — `arcane-descriptors` folded in) and
 **arcane-library** (the spells, every clonable magic item, the two loci
-named by `locus:`). The catalogues warm by class; `MaterialLogic.boot`
-keeps a row by `instanceof Material`. Nineteen packs. The MR round
+named by `locus:`). The catalogues warm by class (then, `MaterialLogic.boot`
+kept a row by `instanceof Material`; today the material roster keeps it by
+class with no boot). Nineteen packs. The MR round
 (MR !205) removed three hand-kept lists the build had grown: the
 title roots now DERIVE from the claims (a template row is always
 title-checked; a document only under a claimed root), `StuffApi` has

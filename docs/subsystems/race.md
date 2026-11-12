@@ -243,8 +243,10 @@ material becomes resident by one of four doors:
    returns `ensureCited(paths)` / `ensureCitedIn(value)` — `undefined`
    when nothing is cold, never a rejection;
 4. **the roster** — the few reads that ask for every material (the wiki's
-   `<materials>` listing, a pattern's metal match) await
-   `ensureRoster()`, then `roster()` / `byTag(tag)`. The roster is every
+   `<materials>` listing, a pattern's metal match) call async
+   `MaterialApi.all()` / `findByTag(tag)`, which load the roster
+   themselves (`ensureRoster()` → `roster()` / `byTag`); no caller
+   readies it, and it is NOT among `MaterialApi`'s boot `needs`. The roster is every
    root's `/idea/material/` subtree filtered to rows whose class extends
    `Material` — never an allowlist of roots.
 
@@ -356,10 +358,10 @@ an explicit `initProp` call from the host.
 - `containsElement(material, symbol)` — "does this material's
   recursive composition contain element `symbol`?" Walks
   `compositionOf` and matches against leaf-element symbols.
-- `all()` / `findByTag(tag)` — the roster reads; they forward to
-  `MaterialApi.materials().roster()` / `byTag(tag)` and throw unless the
-  caller's async parent awaited `ensureRoster()` (load-on-use round two —
-  `findByElement` had no caller and was retired).
+- `all()` / `findByTag(tag)` — the roster reads, **async**: each awaits
+  `MaterialApi.materials().ensureRoster()` itself, then reads `roster()` /
+  `byTag(tag)` (load-on-use W10; `findByElement` had no caller and was
+  retired in round two).
 
 Future surfaces land as their consumers do. Thermal heat-flow reads
 `thermalConductivity` when the Thermal capability arrives; per-material
@@ -1202,4 +1204,6 @@ than a loin in a fight. See [butchery.md](./butchery.md).
   (`ensure`/`need`/`peek`/`ensureCited`/`ensureRoster`). Every material
   loads by its holder, a constituent relation, the act that names it, or
   the roster (§ A material loads when something reaches it); class
-  constants became authored row fields; `findByElement` was retired.
+  constants became authored row fields; `findByElement` was retired. In
+  its review (W10) `all()` / `findByTag()` became async and load the
+  roster themselves; the roster is deliberately not a boot `needs`.

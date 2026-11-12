@@ -66,8 +66,9 @@ record the path, a recipe's `soils[].kind` cites it (`SoilSpec` refuses a
 bare word), and the kernel's own literals are the `DirtKinds` constants
 (`DirtKinds.GREASE = '/platform/dirt/grease'`). Prose speaks the dirt's
 word (`MaterialApi.dirtKinds().wordOf`, the path's leaf). **Resident by construction**:
-`SoilableMixin.onCreate` awaits `MaterialApi.dirtKinds().ensureKernel()` (one prefix
-read of `/platform/dirt/`, once per process), restored deposits and stains
+the kernel's kinds are `MaterialApi`'s declared `needs`
+(`dirtKinds().ensureKernel()`, one prefix read of `/platform/dirt/`, stood at
+boot — no `onCreate` readies them), restored deposits and stains
 load through the `setDeposits`/`setStains` restore doors, and a pack
 soiling with its own kind loads it in the act that lands it (the worked
 act, `hew`, `scutch` for `dust`); so `soil()` and the sync read

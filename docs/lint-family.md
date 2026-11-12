@@ -2320,3 +2320,6 @@ file — not a constructor, and not a setter.
   `ON_CREATE_CEILING` 80 → 78, `MASS_CEILING` 224 → 210,
   `SELF_RESOLUTION_CEILING` (controller-resolution) 80 → 79.
   `lint:fraction-schedules` reads `content/fraction-schedules/`.
+  In its review (W10, every Api's `static needs` stood at boot) seven
+  hosts stopped readying an Api's dictionary in `onCreate`:
+  `ON_CREATE_CEILING` 78 → 71, `ON_CREATE_LOADING_CEILING` 32 → 25.

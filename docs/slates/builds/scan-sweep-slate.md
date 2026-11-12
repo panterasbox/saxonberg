@@ -338,7 +338,7 @@ Reading, Placement), and `LocationGraphRegistry`'s own boot reason says
 
 ## Reuse ledger for the plan — load on use, round two (2026-11-11)
 
-For [load-on-use-requirements](../../requirements/load-on-use-requirements.md).
+For the load-on-use round-two build (MR !575; its requirements and plan are retired — the decisions live in document-store.md § History).
 Every row is one the plan must account for.
 
 | concept | already does it | reuse / generalize |

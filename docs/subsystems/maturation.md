@@ -283,19 +283,18 @@ all about the CORNS, and a world test refuses prose containing *yeast*,
 *bubble*, *ferment*, *microbe* or *breath*. First consumer:
 `trade-malting`'s floor.
 
-⭐ **Profiles are documents, and they load with the first vessel**
-(load-on-use round two). Nothing boots them: `MaturingMixin`,
-`RipeningMixin` and textiles' `FinishingMixin` each await
-`BulkableApi.maturationProfiles().ensureAll()` in `onCreate` — one
-`listOfKind` per process, coalesced — because the match runs inside sync
-reconcile-on-read, which cannot wait. The catalogue's `afterRead` loads
-each profile's materials (product, turned, lees, transforms, off-gas), so a
+⭐ **Profiles are documents, stood at boot as `BulkableApi`'s `needs`**
+(load-on-use round two; W10): `() =>
+BulkableApi.maturationProfiles().ensureAll()` — one `listOfKind`, readied
+by `AppBootstrap` — because the match runs inside sync reconcile-on-read,
+which cannot wait. No vessel's `onCreate` and no path setter readies them.
+The catalogue's `afterRead` loads each profile's materials (product, turned, lees, transforms, off-gas), so a
 sync reconcile finds them too. `forMaterial(material)` (the tag match) and
 `cultureForStrain(strain)` run over the resident profiles. ⭐ **The vessel
 holds the profile's PATH**, not a key: `maturationProfilePath`,
 `ripeningProfilePath`, `finishingProfilePath`, each read with `need(path)`
-and restored through a setter that returns `ensure(path)` — the restore
-door, so a vessel restored after a restart finds its profile resident.
+and restored through a plain setter — the whole kind is already resident
+from boot, so a vessel restored after a restart finds its profile.
 `Hopper` and `GluePot` cite their profiles by path. The catalogue's
 `parse` is `new MaturationProfile(path).applyData(data)`, so every
 authored field still runs through its validating setter. Fixture:
@@ -617,4 +616,5 @@ plateau, not to an `evaporative` profile. The lye hopper still runs
   `content/maturation-profiles/`); the instanceable twin, the statics and
   the boot line went; vessels store the profile's path behind a restore
   door and load the kind in `onCreate` (§ Profiles are the whole authoring
-  surface).
+  surface). ⭐ W10 (same review): the kind became `BulkableApi`'s `needs`,
+  stood at boot; the `onCreate` loads went and the path setters are plain.
