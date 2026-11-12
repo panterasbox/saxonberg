@@ -61,13 +61,16 @@ export default class ProvisionController extends CommandController<ProvisionMode
   }
 
   /** What the newcomer is told about their daypack. */
-  protected static daypackWords(where: 'handed' | 'in-room' | 'none', giver: string): string | null {
+  protected static daypackWords(where: 'handed' | 'in-room' | 'granted' | 'none', giver: string): string | null {
     const who = giver.charAt(0).toUpperCase() + giver.slice(1);
     switch (where) {
       case 'handed':
         return `${who} hands you an Eternal U daypack. Every first-year gets one.`;
       case 'in-room':
         return `${who} has an Eternal U daypack for you, but you have nowhere to put it — it will be waiting in your room.`;
+      case 'granted':
+        // The body said where it went (its room, or at your feet).
+        return `${who} has an Eternal U daypack for you, but you have nowhere to put it.`;
       case 'none':
         return null;
     }

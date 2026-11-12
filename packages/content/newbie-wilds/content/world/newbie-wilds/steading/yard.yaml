@@ -4,7 +4,10 @@
 # (south), the paddock's narrow gate (north), the lookout ladder (up) and
 # the pond (west). Southeast climbs back to the treeline — the one
 # cross-zone way; its partner is authored on the treeline.
-class: /platform/location/Locale
+# ⭐ A Shore (size and carrying drive, step 16): the pond is a water the
+# yard stands beside, so `swim` is sayable here and `swim west` takes the
+# way in. As a plain Locale the yard told you to swim and offered no verb.
+class: /platform/location/Shore
 data:
   shortDescription: yard of an old steading
   keywords: [yard, steading, farmstead]
@@ -18,7 +21,13 @@ data:
     A farmyard the wood is taking back. Nettles stand in the old dung heap and a birch has come up through the cart track, but the stone walls still hold their shape, and so do the ways out of them.
 
     East, a roofless cottage with a door so low its last owner must have been short or used to bowing. South, a barn with its big doors gone and a wide doorway left. North, a paddock behind a narrow gate. A ladder climbs a post to a lookout platform, and west the ground runs down to a pond. Southeast, a path goes back through the pines to the treeline.
+  waters:
+    pond: steading:pond
   details:
+    pond:
+      keywords: [pond, water]
+      description: |
+        The stock pond below the yard, brown and still, with lilies on it.
     post:
       keywords: [post, lookout, platform]
       description: |

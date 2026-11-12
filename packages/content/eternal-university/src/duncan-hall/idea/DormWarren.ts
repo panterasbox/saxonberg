@@ -54,11 +54,13 @@ type MemberStuff = Stuff & Container;
  * What a dorm let answers: the residence pack's answer, and — on a let —
  * where the newcomer's daypack went (size and carrying D29): `handed` (it
  * came onto them), `in-room` (they could not take it, so it waits in the
- * new room) or `none` (the row did not stand up; the let stands).
+ * new room), `granted` (the room would not stand up, so the body's own
+ * overflow took it, with its line) or `none` (the row did not stand up;
+ * the let stands).
  */
 export type DormLetAnswer =
   | Extract<LetAnswer, { ok: false }>
-  | { ok: true; unitExtent: string; daypack: 'handed' | 'in-room' | 'none' };
+  | { ok: true; unitExtent: string; daypack: 'handed' | 'in-room' | 'granted' | 'none' };
 type ExitableContainer = Stuff & Container & Exitable;
 
 const DormWarrenBase = SingletonMixin(LettingWarren);
@@ -211,7 +213,7 @@ export default class DormWarren extends DormWarrenBase {
   protected async handDaypack(
     tenant: Stuff,
     unitExtent: string,
-  ): Promise<'handed' | 'in-room' | 'none'> {
+  ): Promise<'handed' | 'in-room' | 'granted' | 'none'> {
     let pack: Stuff & Containable;
     try {
       pack = await StuffApi.clone<Stuff & Containable>(DormWarren.DAYPACK_PATH);
@@ -223,9 +225,21 @@ export default class DormWarren extends DormWarrenBase {
       tenant.receive(pack);
       return 'handed';
     }
-    const room = await this.admit(unitExtent);
-    ContainmentApi.move(pack, room);
-    return 'in-room';
+    // ⚠ Standing the room up can fail (the size-and-carrying drive found
+    // `admit` refusing the unit's own door — "non-cardinal direction
+    // 'unit-2' requires the destination to be in a different zone", the
+    // same failure the move-in theme logs): the daypack must never void a
+    // let that has already happened. It is then GRANTED — the body's own
+    // overflow (its room when that stands, else at its feet, said so).
+    try {
+      const room = await this.admit(unitExtent);
+      ContainmentApi.move(pack, room);
+      return 'in-room';
+    } catch (err) {
+      console.warn(`DormWarren: the daypack could not wait in ${unitExtent}: ${(err as Error).message}`);
+      if (MixinApi.isCarrying(tenant)) await tenant.receiveGranted(pack);
+      return 'granted';
+    }
   }
 
   // ─────────────── LettingWarren policy hooks ─────────────────────────

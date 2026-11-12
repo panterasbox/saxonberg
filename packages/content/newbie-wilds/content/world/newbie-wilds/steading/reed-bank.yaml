@@ -1,6 +1,9 @@
 # The reed bank — the far side of the steading pond (size and carrying
 # W6, drive 16). Reached only by swimming.
-class: /platform/location/Locale
+# ⭐ A Shore (size and carrying drive, step 16): the only way off the reed
+# bank is back across the pond, so `swim` must be sayable here. As a plain
+# Locale anyone who swam over was stranded — no verb took them back.
+class: /platform/location/Shore
 data:
   shortDescription: reed bank
   keywords: [bank, reeds, reed]
@@ -10,6 +13,13 @@ data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   enclosure: none
   roof: none
+  waters:
+    pond: steading:pond
+  details:
+    pond:
+      keywords: [pond, water]
+      description: |
+        The pond lies between the reeds and the steading, brown and still.
   longDescription: |
     A muddy strip of bank between the pond and the pines, the reeds taller than your head and rattling when the wind gets into them. There is no path from here but the water.
 

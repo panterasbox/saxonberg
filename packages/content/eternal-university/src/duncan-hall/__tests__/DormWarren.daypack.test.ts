@@ -18,7 +18,7 @@ import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/_
 
 /** The warren with its gift step reachable (it is the policy under test). */
 class Probe extends DormWarren {
-  public give(tenant: Stuff, unit: string): Promise<'handed' | 'in-room' | 'none'> {
+  public give(tenant: Stuff, unit: string): Promise<'handed' | 'in-room' | 'granted' | 'none'> {
     return this.handDaypack(tenant, unit);
   }
 }
