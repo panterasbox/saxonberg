@@ -898,6 +898,83 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   body is never inside your extent for this rule (rule 2's person test runs first on a
   person; the lens applies to content, not people — Non-goals).
 
+**Decided while building W3** (beyond D17, D23–D25):
+
+- **D17-b** — *"`reachable` = `canReach` membership"* is read as **membership pool +
+  the object's refusal**: `PerceptionApi.reach` lists the person's WHOLE carried tree
+  (shut boxes and the packed pack included) so the binder can bind the nearest perceived
+  thing and the verb can say why it cannot be touched; `canReach`/`reachableAmong` =
+  member (not `around`) AND `Containable.reachRefusal(actor) === null`. The room stays
+  top level + one level into OPEN things (a shut glass jar standing in the room keeps
+  its contents out of the pool — literal D17).
+- **D17-c** — The tier read is `PerceptionApi.tierOf` (`PerceptionLogic.tierOfImpl`),
+  exposed so W4's `Carrying.tierOf` can replace it in one place. W3 interim: a thing
+  loose in the carrier's contents (today's carrying) is `ready`; inside a non-`back`
+  worn/held container → `ready`; inside a container in the slot named **`back`** →
+  `packed`. A slot occupant that is not in the body's contents (an installed aug) is
+  emitted first, `attached`. `reachRefusal('packed')` reads the actor's `back`
+  occupants and is checked before the lid at the same holder.
+- **D17-d** — A mid-chain anchor is read from outside by scope-walk's
+  `candidatesHeldBy(anchor)` (occupants + `Container.getReachableContents()`, which is
+  now one level into open things for ANY holder, a body included). Which things answer
+  depends on the anchor only; the asker only names them.
+- **D17-e** — The `canReach` validator asks the object's refusal FIRST (its words:
+  *"X is shut."* / *"X is on your back — take it off first."*), then membership; a match
+  that arrived through a detail or held-substance via on the room/vessel around the giver
+  passes (`fill skin from sea`, `read plaque`) — needed because the 7 views that carried
+  `mustNotBeShutAway` (`get`, `eat`, `drink`, `sip`, `fill`, `pour`, `read`) now carry
+  `canReach`'s membership too.
+- **D23-b** — `MqlContext.attention` is deleted with `pushDirect`'s gate; the `wary`
+  brain names `peers:living` and keeps what `PerceptionApi.perceives(host, x,
+  alertness)` admits.
+- **D23-c** — `PerceptionApi.perceived(viewer, list, ordinal?)` takes the head ordinal,
+  so *perceive, then pick the nth* cannot be done in the wrong order; the binder keeps
+  its own index-aligned form (`perceivedOf` + `withOrdinal`, vias/tiers aligned).
+  `resolveOne` applies an ordinal to the universal list (system semantics); every
+  viewer surface that wants one thing calls `resolveMany` → `perceived` → first
+  (subscriptions, the card source, `query`'s holder probe, the tip jar, the screen).
+  MqlApi is unchanged: `resolveOne` + `resolveMany` (+ the pre-existing helpers).
+- **D23-d** — Keyword matching already IS a method on the object called with the
+  asker: `Stuff.perceivedKeywordsFor(viewer)` (the recognition face for a being, the
+  thing's own `getKeywords(viewer)` otherwise). MQL calls it and holds no rule. Not
+  renamed to `getKeywords(viewer)`: that name is the Named/Perceptible OWN face the
+  method reads, and collapsing them would lose disguise. Detail ids likewise
+  (`getDetailIds(…, viewer)`); `obviousExitsFor(viewer)` stays the room's own read.
+- **D23-e** — The binder perceives inside `scopedMany` (every try, the world-read retry,
+  `--strict`'s candidates); when the name's top tier was ALL unperceived it asks once
+  more with perception as the `admits` pre-filter (so a covered `knife` cannot cut a held
+  `hunting knife`). The cheap no-`requires:` path is first-try-with-anything-perceived.
+- **D23-f** — `lint:perceived-surfaces` reached 0 by fixing every surface plus two rule
+  corrections, no allowlist: a binder `return` is a sink only in a unit whose source is
+  MQL (the affordance bookkeeping in `CommandLogic` walks containment and emits to
+  nobody), and a call to a same-module function whose body perceives counts as
+  perceiving (one hop). `BroadcastController`'s audience is a system-mode `online`
+  roster (shown to nobody). `_scopedFormFor` keeps the universal list (its `:[n]` must
+  index what everyone gets) behind a `perceives(source)` check.
+- **D24-b** — Rule 2's person branch is **another body = `Attired` and not the
+  viewer** (a corpse included — D24a needs its pockets covered); `isAnotherPerson`
+  (agent + slotted) is unchanged and still names the weight rule. Hands: the
+  `Carrying.handSlots()` occupants, else a slot that accepts a Wieldable. Worn:
+  outermost = first in `Attired.coveringAt` for some leaf part (a layer that covers no
+  part is uncovered); a slot accepting neither a wearable nor a wieldable (an implant)
+  shows nothing. `covered`/`closes` are read from `Placing.getPlacementEntry` (the
+  entries W1 already widened), so W5's pocket rows activate the rule with no code.
+- **D24-c** — A worn container on another body follows D24 literally (shows when open,
+  hides when shut); *packed* is a REACH tier, not a perception rule. The test's
+  "packed pack's contents: no" stages the rucksack shut.
+- **D24a-b** — The find is `resolveSearch(viewer, scope, depth, onBody)`; the record is
+  the discovery realm with `BeliefPayload.foundOn` (the holder's identity path,
+  overwritten by the latest search). `Vitals.searchRefusal(by)` is the body's: a
+  non-agent (a `Corpse`) cannot resist, a conscious agent refuses `'resists'`. The
+  witnesses' line: *"Mara goes through the dead man's pockets."*
+- **D25-b** — The lens is the avatar's act: `Avatar.lensOn()` reads
+  `AccessApi.heldExtents(this)` and memoizes (none held → stays off), `lensOff()`
+  clears; there is no setter (nothing can hand a character a lens it does not hold, and
+  `lint:controller-mutations` stays flat). Three controllers (bare `lens` reports,
+  `lens on`, `lens off` as subcommands) keep `lint:multi-act` flat; `lens.yaml` is
+  afforded by `AuthorMixin`'s `self` list. Rule 0 never applies to a player avatar or
+  anything on one (`PlayerApi.isAvatarStuff` up the chain).
+
 ### Pockets, gear, inventory, the flip
 
 - **D26 — a pocket is a named region offered by the garment, never an object, and the
@@ -1332,6 +1409,8 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   with the commit saying so); `lint:perceived-surfaces` at 0. (Drive steps 12–15 need
   W5's pockets and W6's rows and are W7's to run — § Acceptance-criteria coverage.)
 - Commit: `build(size-and-carrying W3): MQL names things for everyone; the acts apply perception; one rule for reach; the builder lens`.
+
+**✅ Done (d032d3edd).** The reach grammar is gone and reach is one rule (person tree in tier order, the room one level into open things; `canReach` = membership + the object's refusal, which grew `packed`; `mustNotBeShutAway` folded into the `canReach` validator). MQL is universal (raw `:i`/`:I`, no `#id`/`pushDirect`/`visible` perception, `attention` removed, the head ordinal on `MqlMany.ordinal`), and every surface passes `PerceptionApi.perceived` — `lint:perceived-surfaces` at **0** (two census-rule corrections, no allowlist). `perceives` rules 0–2, `visibleContentsOf` as a grouping, the body search, the `lens` verb and `[builder]` labels landed; decisions D17-b…D25-b above. Client `HereList` shows an agent's contents. Tests whose meaning changed are listed in the commit. ⚠ W4: replace `PerceptionApi.tierOf` with `Carrying.tierOf` (loose carried = `ready` is the interim) and keep the person-tree order in `reachOf`; the back slot's name is `back`. ⚠ W5: the pocket rows' `covered`/`closes` entries already drive perception; an outer pocket is covered when its garment is not outermost. ⚠ W7: the controller-liquidity wire step 4 still types `eat orange --top` (now an unknown flag — its `not ok` assertion holds; re-record it).
 
 ### W4 — hands, homes, readying, weight, leading; the kernel callers port (D9–D18 kernel side)
 
