@@ -25,6 +25,7 @@
  * See `docs/subsystems/magic.md`.
  */
 
+import type { ApiNeed } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { TemplatePaths } from '../lib/paths';
@@ -71,11 +72,10 @@ function logic(): MagicLogic {
 
 export class MagicApi {
   /**
-   * ⭐ What this Api's reads stand on (documents D7, W5c): every async
-   * static awaits it in the call gate; a sync reach calls
-   * `StuffApi.ready(MagicApi)`. Loaded on reach, never at boot.
+   * ⭐ What this Api's reads stand on — stood ONCE at boot with every Api's
+   * needs (`AppBootstrap`, load-on-use W10), so no caller ever readies it.
    */
-  static readonly needs: readonly string[] = [TemplatePaths.spellCatalogue];
+  static readonly needs: readonly ApiNeed[] = [TemplatePaths.spellCatalogue];
 
 
   /**

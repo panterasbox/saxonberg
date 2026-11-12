@@ -818,16 +818,20 @@ export class StuffApi {
    * ⛔ Not for callers. The boot readies every Api's `needs` once
    * (`AppBootstrap`), and an Api's async statics await theirs in the call
    * gate; a class that reaches for this is doing its Api's job.
-   * @internal
    */
   public static ready(
     ...needs: ReadonlyArray<ApiNeed | { readonly needs?: readonly ApiNeed[] }>
   ): Promise<void> {
     // `singleton` resolves at once for a resident one — no pre-check
     // (lint:get-or-create).
-    const flat = needs.flatMap((n) =>
-      typeof n === 'string' || typeof n === 'function' ? [n] : [...(n.needs ?? [])],
-    );
+    // ⚠ An Api is a CLASS — a function — so it is told from a loader by the
+    // `needs` it declares, never by `typeof` (the drive's boot found it).
+    const flat = needs.flatMap((n): ApiNeed[] => {
+      if (typeof n === 'string') return [n];
+      const declared = (n as { needs?: readonly ApiNeed[] }).needs;
+      if (Array.isArray(declared)) return [...declared];
+      return typeof n === 'function' ? [n as ApiNeed] : [];
+    });
     return Promise.all(
       flat.map((n) => (typeof n === 'function' ? n() : StuffApi.singleton(n))),
     ).then(() => undefined);

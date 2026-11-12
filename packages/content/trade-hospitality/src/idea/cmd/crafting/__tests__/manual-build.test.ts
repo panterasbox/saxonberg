@@ -41,6 +41,7 @@ import GradedReceptacle from "@saxonberg/server/mud/platform/thing/GradedRecepta
 import CraftVessel from "@saxonberg/server/mud/platform/thing/CraftVessel";
 import CocktailShaker from "@saxonberg/server/mud/platform/thing/CocktailShaker";
 import RecipeCatalogue from "@saxonberg/server/mud/platform/idea/RecipeCatalogue";
+import { rememberDisciplines } from "@saxonberg/server/mud/lib/advancement/__tests__/discipline-fixtures";
 import { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import {
   makeStuff,
@@ -166,6 +167,10 @@ beforeEach(async () => {
     "/platform/idea/RecipeCatalogue",
   );
   await catalogue.warm();
+  // CraftingApi's other need, the discipline dictionary — stood at boot
+  // in a running world. Left cold, the Api gate stands it on the strain's
+  // completion, which lands the mint after the test has looked.
+  await rememberDisciplines();
 
   room = makeStuff(() => new TestActor());
   actor = makeStuff(() => new TestActor());

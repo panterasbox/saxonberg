@@ -19,6 +19,7 @@
  * its own read path) then does covering lookups synchronously.
  */
 
+import type { ApiNeed } from './security';
 import { StuffApi } from './stuff';
 import { TemplatePaths } from '../lib/paths';
 import { HotReloadApi } from './hot-reload';
@@ -78,12 +79,10 @@ export interface AddressTrace extends AddressResolution {
 
 export class AddressApi {
   /**
-   * ⭐ What this Api's reads stand on (load-on-use W5): the locality
-   * index, built on the first address question — every async static
-   * awaits it in the call gate; a sync reach's async parent calls
-   * `StuffApi.ready(AddressApi)`. Never booted.
+   * ⭐ What this Api's reads stand on — stood ONCE at boot with every Api's
+   * needs (`AppBootstrap`, load-on-use W10), so no caller ever readies it.
    */
-  static readonly needs: readonly string[] = [TemplatePaths.addressRegistry];
+  static readonly needs: readonly ApiNeed[] = [TemplatePaths.addressRegistry];
 
   /**
    * The load-bearing read. Returns the most-specific Locality covering

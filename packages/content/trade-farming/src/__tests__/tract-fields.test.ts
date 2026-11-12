@@ -44,7 +44,8 @@ import {
   installV1QuantityTagTables,
 } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
-import GroundCharacter from '@saxonberg/content-ground/src/idea/GroundCharacter';
+import GroundCharacter, { TEXTURE_MATERIALS } from '@saxonberg/content-ground/src/idea/GroundCharacter';
+import { standMaterials } from '@saxonberg/server/mud/lib/material/__tests__/materials';
 import type { GrowthProfileData } from '@saxonberg/server/mud/lib/husbandry/Growing';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Reserved } from '@saxonberg/server/mud/lib/reserve/Reserved';
@@ -92,8 +93,14 @@ function profile(): GrowthProfileData {
   };
 }
 
-/** `StuffApi.clone` of the field row mints a bare `Field`. */
+/**
+ * `StuffApi.clone` of the field row mints a bare `Field`. ⭐ And the soils
+ * a field can become stand in, blank: `ensureFields` loads the sample's
+ * texture material by `ensure` (load-on-use D2 c) from the content store,
+ * which a suite does not have.
+ */
 function mockFieldClone(): void {
+  standMaterials(Object.values(TEXTURE_MATERIALS));
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
     if (path !== '/trade/farming/thing/field') throw new Error(`no row ${path}`);
     return makeStuffAtPath(() => new Field(), path);

@@ -60,31 +60,37 @@ describe('the iron pot', () => {
     return p;
   }
   const strength = (p: IronPot): number => p.getBulkPayload('interior')?.dissolvedSolidsKgPerL ?? 0;
-  /** The plateau's work, between two reads: water off as steam, the alkali kept. */
-  const boilTo = (p: IronPot, litres: number): void => {
+  /**
+   * The plateau's work, between two reads: water off as steam, the alkali
+   * kept. ⭐ Awaited: the cast is an act that names its material and loads
+   * it first (load-on-use D2 c), so the salts land a tick after the read
+   * that set them.
+   */
+  const boilTo = async (p: IronPot, litres: number): Promise<void> => {
     const was = p.getBulkAmount('interior').rawValue();
     const payload = p.getBulkPayload('interior') ?? {};
     const kg = (payload.dissolvedSolidsKgPerL ?? 0) * was;
     p.setBulkAmount('interior', Quantity.of(litres, 'L'));
     p.setBulkPayload('interior', { ...payload, dissolvedSolidsKgPerL: kg / litres });
     p.getContents();
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
   };
 
-  it('⭐ the alkali stays as the water goes — the strength climbs', () => {
+  it('⭐ the alkali stays as the water goes — the strength climbs', async () => {
     const p = pot(30, 0.06);
     expect(p.getAlkaliKg()).toBeCloseTo(1.8, 6);
-    boilTo(p, 15);
+    await boilTo(p, 15);
     expect(p.getAlkaliKg()).toBeCloseTo(1.8, 6);
     expect(strength(p)).toBeCloseTo(0.12, 6);
-    boilTo(p, 5);
+    await boilTo(p, 5);
     expect(strength(p)).toBeCloseTo(0.36, 6);
   });
 
-  it('⭐⭐ boiled down, it casts black salts of the alkali over the purity, graded as the lye', () => {
+  it('⭐⭐ boiled down, it casts black salts of the alkali over the purity, graded as the lye', async () => {
     const p = pot(30, 0.06);
     p.getContents();
-    boilTo(p, 10);
-    boilTo(p, 1.5);
+    await boilTo(p, 10);
+    await boilTo(p, 1.5);
     expect(cast).toHaveBeenCalledTimes(1);
     const pool = cast.mock.calls[0]![0] as { material: Material; massKg: number };
     expect(pool.material.getTemplatePath()).toBe(SALTS);
@@ -92,31 +98,31 @@ describe('the iron pot', () => {
     expect(p.getAlkaliKg()).toBe(0);
   });
 
-  it('⭐ boiled down to SATURATION the salts set — it need not reach dry', () => {
+  it('⭐ boiled down to SATURATION the salts set — it need not reach dry', async () => {
     const p = pot(30, 0.06); // 1.8 kg of alkali
     p.getContents();
-    boilTo(p, 2); // 0.9 kg/L — not yet
+    await boilTo(p, 2); // 0.9 kg/L — not yet
     expect(cast).not.toHaveBeenCalled();
-    boilTo(p, 1.5); // 1.2 kg/L — past saturation
+    await boilTo(p, 1.5); // 1.2 kg/L — past saturation
     expect(cast).toHaveBeenCalledTimes(1);
     expect((cast.mock.calls[0]![0] as { massKg: number }).massKg).toBeCloseTo(1.8 / 0.65, 6);
     expect(p.getBulkAmount('interior').rawValue()).toBe(0);
   });
 
-  it('⭐⭐ the cake is whose the LYE was — the communal oven — and nobody\'s when it was nobody\'s', () => {
+  it('⭐⭐ the cake is whose the LYE was — the communal oven — and nobody\'s when it was nobody\'s', async () => {
     const mine = { kind: 'player' as const, templatePath: '/platform/agent/Avatar/alice' };
     const p = pot(30, 0.06);
     p.setBulkPayload('interior', { dissolvedSolidsKgPerL: 0.06, contentsOwner: mine });
     p.getContents();
-    boilTo(p, 1.5);
+    await boilTo(p, 1.5);
     expect((cast.mock.calls[0]![0] as { madeBy?: unknown }).madeBy).toEqual(mine);
     const q = pot(30, 0.06); // rain and nobody's ash
     q.getContents();
-    boilTo(q, 1.5);
+    await boilTo(q, 1.5);
     expect((cast.mock.calls[0]![0] as { madeBy?: unknown }).madeBy).toBeNull();
   });
 
-  it('⭐ WATER carrying dissolved alkali (a hopper drawn early) still sets its salts — the alkali is not lost with the steam', () => {
+  it('⭐ WATER carrying dissolved alkali (a hopper drawn early) still sets its salts — the alkali is not lost with the steam', async () => {
     const p = pot(30, 0.06);
     const water = makeStuffAtPath(() => {
       const m = new Material();
@@ -127,30 +133,30 @@ describe('the iron pot', () => {
     p.setBulkMaterial('interior', water);
     p.setBulkPayload('interior', { dissolvedSolidsKgPerL: 0.06 });
     p.getContents();
-    boilTo(p, 1.5);
+    await boilTo(p, 1.5);
     expect(cast).toHaveBeenCalledTimes(1);
     expect((cast.mock.calls[0]![0] as { massKg: number }).massKg).toBeCloseTo(1.8 / 0.65, 6);
   });
 
-  it('⭐ a weak lye boiled the same way leaves a third of the cake (AC 5, AC 6)', () => {
+  it('⭐ a weak lye boiled the same way leaves a third of the cake (AC 5, AC 6)', async () => {
     const p = pot(30, 0.02);
     p.getContents();
-    boilTo(p, 0.5); // 0.6 kg in half a litre: past saturation
+    await boilTo(p, 0.5); // 0.6 kg in half a litre: past saturation
     const pool = cast.mock.calls[0]![0] as { massKg: number };
     expect(pool.massKg).toBeCloseTo(0.6 / 0.65, 6);
   });
 
-  it('a pour INTO a working pot reads the blended strength (the pour folds it)', () => {
+  it('a pour INTO a working pot reads the blended strength (the pour folds it)', async () => {
     const p = pot(20, 0.06);
     p.getContents();
-    boilTo(p, 10); // 1.2 kg in 10 L: 0.12
+    await boilTo(p, 10); // 1.2 kg in 10 L: 0.12
     // A second pour, blended by the pour to (10·0.12 + 10·0.03)/20.
     p.setBulkAmount('interior', Quantity.of(20, 'L'));
     p.setBulkPayload('interior', { dissolvedSolidsKgPerL: 0.075 });
     expect(p.getAlkaliKg()).toBeCloseTo(1.5, 6);
   });
 
-  it('an empty pot with nothing counted casts nothing', () => {
+  it('an empty pot with nothing counted casts nothing', async () => {
     const p = makeStuff(() => new IronPot());
     const spy = vi.spyOn(p, 'castInto');
     p.getContents();

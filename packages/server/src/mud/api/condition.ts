@@ -260,10 +260,10 @@ export class ConditionApi {
 
   /**
    * Mark the condition roster stood with whatever conditions a suite has
-   * made — a suite has no rows to read, and a body's `onCreate` awaits the
-   * roster (load-on-use W6). The test harness calls it once.
+   * made — a suite has no rows to read, and this Api's needs stand the
+   * roster (load-on-use W10). The test harness calls it once.
    */
-  @TestOnly('Nothing in the game stands the condition roster in by hand — a body loads it.')
+  @TestOnly('Nothing in the game stands the condition roster in by hand — the boot stands it with every Api\'s needs.')
   public static standRosterForTesting(): void {
     ConditionApi.conditions().standRosterAsLive();
   }

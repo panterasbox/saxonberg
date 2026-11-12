@@ -1,7 +1,7 @@
 /**
  * ⭐⭐ **Load on use, round two — the blocking drive** (the load-on-use
- * build; requirements `docs/requirements/load-on-use-requirements.md`
- * § The drive, steps 0–12), against the real socket.
+ * build, MR !575 — its requirements and plan are retired; the decisions live
+ * in document-store.md § History), steps 0–12, against the real socket.
  *
  * The drive in one sentence: *nothing the nine rosters hold stands up at
  * boot — and every read a player makes reaches its row anyway: a room's
@@ -10,7 +10,7 @@
  * still's fractions, a part-ripened vat, a soap, a garment's fabric and a
  * dye — and a restart reads the same.*
  *
- * Adapted from the requirements, recorded in the plan's drive record:
+ * Adapted from the requirements, recorded here:
  * - step 4: no reading reports a good's MASS (there is no mass channel); the
  *   drive measures DENSITY on a bowl of brine, which is the same material
  *   read (a row reached for its figures);
@@ -107,10 +107,11 @@ const WIZARD = { wizard: true, committees: ['/world/terminus'] };
 const PARCEL = '--parcel /world/terminus';
 
 /**
- * The material roster's warm line. ⚠ Conditions are NOT in it: they load
- * with the first BODY (plan D7), and a world stands bodies up at boot (its
- * cast) — so `ConditionCatalogue: n condition singleton(s) live` in the
- * boot log is D7 working, not a roster booted.
+ * The material roster's warm line — the one roster that must NOT stand at
+ * boot (materials load per row). ⚠ Conditions DO stand at boot, as
+ * `ConditionApi`'s declared needs (W10, the owner's call: the boot stands
+ * every Api's dictionaries), so `ConditionCatalogue: n … live` beside
+ * `AppBootstrap: n Api(s)' needs stood` is the design, not a regression.
  */
 const ROSTER_WARM = /MaterialCatalogue: \d+ material singleton\(s\) live/;
 
@@ -264,13 +265,15 @@ suite('load on use: nothing stands at boot, everything answers', () => {
     expect(looked).toMatch(/linen|wool|cotton|silk|fustian|cloth/i);
   }
 
-  it.skipIf(!isOwnedTestWorld())('0. the boot stood none of the rosters up', () => {
+  it.skipIf(!isOwnedTestWorld())('0. the boot stood the Apis\' needs and not the material roster', () => {
     // Read before any session opens (step 0 runs first): the boot's own lines.
     const path = process.env.WIRE_SERVER_LOG;
     expect(path && existsSync(path), 'the owned world wrote its boot log').toBeTruthy();
     const bootLog = readFileSync(path!, 'utf8');
     expect(bootLog.length).toBeGreaterThan(1000);
     expect(bootLog).not.toMatch(ROSTER_WARM);
+    // …and every Api's dictionaries stood once, by the boot (W10).
+    expect(bootLog).toMatch(/AppBootstrap: \d+ Api\(s\)' needs stood/);
   });
 
   it('1. the first look reads the room and its floor', step1);

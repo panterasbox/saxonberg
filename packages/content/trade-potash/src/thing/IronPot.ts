@@ -105,7 +105,12 @@ export default class IronPot extends IronPotBase {
       this.setBulkAmount('interior', Quantity.of(0, 'L'));
       this.setBulkMaterial('interior', null);
       this.setBulkPayload('interior', null);
-      void this.setCake(kg, owner);
+      // Fired from a sync reconcile: a cake that cannot set (its row will not
+      // load) is said loudly, never left to reject unheard — an unhandled
+      // rejection ends the process.
+      this.setCake(kg, owner).catch((err: unknown) => {
+        console.error('IronPot: the black salts did not set:', err);
+      });
     } finally {
       this.boiling = false;
     }

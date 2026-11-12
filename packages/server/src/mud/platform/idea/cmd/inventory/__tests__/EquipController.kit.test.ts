@@ -230,10 +230,10 @@ describe('bare `equip` — the whole kit', () => {
 
   it('⭐ C44: what is already on is not pooled — no "nowhere left to put it" for your own coat', async () => {
     const { body, loc, plan } = standUp();
-    const shirt = garment(plan, 'woven', 'shirt');
+    const shirt = garment(plan, fabricPath('woven'), 'shirt');
     ContainmentApi.move(shirt as never, body as never);
     body.occupyAll(shirt as never, ['torso']);
-    const cloak = garment(plan, 'woven', 'cloak');
+    const cloak = garment(plan, fabricPath('woven'), 'cloak');
     ContainmentApi.move(cloak as never, body as never);
     const lines: string[] = [];
     const spy = vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
@@ -256,7 +256,7 @@ describe('bare `equip` — the whole kit', () => {
 
   it('⭐ C43: `wear` of a thing already on says so', async () => {
     const { body, loc, plan } = standUp();
-    const shirt = garment(plan, 'woven', 'shirt');
+    const shirt = garment(plan, fabricPath('woven'), 'shirt');
     ContainmentApi.move(shirt as never, body as never);
     body.occupyAll(shirt as never, ['torso']);
     const c = ctx(body, loc, 'wear');
@@ -306,7 +306,7 @@ describe('⭐ `--from` — dressing out of a container', () => {
     const chest = makeStuff(() => new Chest());
     ContainmentApi.move(chest as never, loc as never);
     // Cut for a body plan this one does not have: no slot for it.
-    const odd = garment('/stuff/idea/bodyplan/_test/elsewhere', 'woven', 'tabard');
+    const odd = garment('/stuff/idea/bodyplan/_test/elsewhere', fabricPath('woven'), 'tabard');
     ContainmentApi.move(odd as never, chest as never);
     const c = ctx(body, loc);
     await makeStuff(() => new EquipController()).execute(
@@ -326,7 +326,7 @@ describe('`unequip`', () => {
   it('⭐ C53: the strip CHAINS — each layer takes its own time', async () => {
     const { body, loc, plan } = standUp();
     for (const kw of ['shirt', 'jerkin', 'cloak']) {
-      const g = garment(plan, 'woven', kw);
+      const g = garment(plan, fabricPath('woven'), kw);
       ContainmentApi.move(g as never, body as never);
       body.occupyAll(g as never, ['torso']);
     }

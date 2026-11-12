@@ -18,6 +18,7 @@
  * viewer shape stays server-internal; it is not yet a wire DTO.
  */
 
+import type { ApiNeed } from './security';
 import type {
   HelpKind,
   HelpTopic,
@@ -60,11 +61,10 @@ function catalogue(): HelpCatalogue | null {
 
 export class HelpApi {
   /**
-   * ⭐ What this Api's reads stand on (W5c): the rulebook warms on first
-   * use, never at boot. Its reads are sync, so every entry point (the
-   * `help` verb, the REST routes) calls `StuffApi.ready(HelpApi)` first.
+   * ⭐ What this Api's reads stand on — stood ONCE at boot with every Api's
+   * needs (`AppBootstrap`, load-on-use W10), so no caller ever readies it.
    */
-  static readonly needs: readonly string[] = [TemplatePaths.helpCatalogue];
+  static readonly needs: readonly ApiNeed[] = [TemplatePaths.helpCatalogue];
 
   /** Light index slice + the category descriptors. */
   static index(viewer: HelpViewer = FLOOR): HelpIndexResult {

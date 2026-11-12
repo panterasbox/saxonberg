@@ -21,6 +21,7 @@
  * `GovernmentCatalogue`. `dest /platform/idea/api/government` reloads it.
  */
 
+import type { ApiNeed } from './security';
 import type { Stuff } from "../lib/stuff/Stuff";
 import type { Container } from "../lib/spatial/Container";
 import type {
@@ -62,11 +63,10 @@ function logic(): GovernmentLogic {
 
 export class GovernmentApi {
   /**
-   * ⭐ What this Api's reads stand on (documents D7, W5c): every async
-   * static awaits it in the call gate, so a caller never readies it.
-   * Loaded on reach, never at boot.
+   * ⭐ What this Api's reads stand on — stood ONCE at boot with every Api's
+   * needs (`AppBootstrap`, load-on-use W10), so no caller ever readies it.
    */
-  static readonly needs: readonly string[] = [
+  static readonly needs: readonly ApiNeed[] = [
     TemplatePaths.governmentCatalogue,
     // A government is found by the address chain (load-on-use W5).
     TemplatePaths.addressRegistry,

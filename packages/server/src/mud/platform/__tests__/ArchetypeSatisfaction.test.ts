@@ -31,6 +31,7 @@ import {
   makeStuffAtPath,
 } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { standMaterials } from '../../lib/material/__tests__/materials';
 import ArchetypeCatalogue from '../idea/ArchetypeCatalogue';
 import { Archetype } from '../../lib/archetype/Archetype';
 import Vat from '../thing/Vat';
@@ -176,6 +177,10 @@ function tap(): UnboundedReceptacle {
   };
   authored.interiorBulk = true;
   authored.interiorMaterial = '/stuff/idea/material/bulk/water';
+  // The field is a constituent (`identity:constituent`): the applier loads
+  // its material with the row. Writing it by name skips that door, so the
+  // material is stood in here.
+  standMaterials(['/stuff/idea/material/bulk/water']);
   t.setShortDescription('a cold tap');
   return t;
 }
@@ -205,7 +210,12 @@ describe('archetype satisfaction', () => {
     );
     await catalogue.warm();
   });
-  afterEach(() => {
+  afterEach(async () => {
+    // ⚠ A move restamps a Thermal arrival in the background (it awaits the
+    // scope's ambient, then reads the tap's water for evaporation). Let it
+    // land before the registry — and the water with it — is cleared, or
+    // it reads a material this teardown just took away.
+    await new Promise((r) => setTimeout(r, 0));
     vi.restoreAllMocks();
     StuffApi.clearAll();
   });

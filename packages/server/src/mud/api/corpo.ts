@@ -18,6 +18,7 @@
  * surface is read-only canon + mark resolution.
  */
 
+import type { ApiNeed } from './security';
 import type { Stuff } from "../lib/stuff/Stuff";
 import type { CorpoDescriptor } from "../platform/idea/corpo/Corpo";
 import type { BrandDescriptor } from "../platform/idea/corpo/Brand";
@@ -49,11 +50,10 @@ function logic(): CorpoLogic {
 
 export class CorpoApi {
   /**
-   * ⭐ What this Api's reads stand on (documents D7, W5c): every async
-   * static awaits it in the call gate; a sync reach calls
-   * `StuffApi.ready(CorpoApi)`. Loaded on reach, never at boot.
+   * ⭐ What this Api's reads stand on — stood ONCE at boot with every Api's
+   * needs (`AppBootstrap`, load-on-use W10), so no caller ever readies it.
    */
-  static readonly needs: readonly string[] = [TemplatePaths.corpoCatalogue];
+  static readonly needs: readonly ApiNeed[] = [TemplatePaths.corpoCatalogue];
 
   /**
    * Resolve a brand `key` to its owning corpo. An independent brand

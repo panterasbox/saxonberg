@@ -1,8 +1,8 @@
 /**
  * The shipped condition roster, stood in for a suite (load-on-use W6).
  *
- * A running world loads every condition row with its first body
- * (`VitalsMixin.onCreate` → `ConditionApi.conditions().ensureRoster()`), and
+ * A running world loads every condition row once, at boot, with
+ * `ConditionApi`'s declared needs (`AppBootstrap`, load-on-use W10), and
  * every sync condition read throws when its row is cold. A suite has no
  * store, so one that lets a body starve, drown or take a chill stands the
  * PLATFORM's shipped rows in from disk — the same rows, hydrated by the
