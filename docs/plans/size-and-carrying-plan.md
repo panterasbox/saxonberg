@@ -1139,6 +1139,89 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   [{member: on, name: roof rack}]`: open, exposed (rain reaches it, D24 sees it,
   zero-g drifts it off). A row. W6.
 
+**Decided while building W4** (beyond D9–D18, D35, D36):
+
+- **D10-b — the `CARRYING_DEFAULTS` numbers** (the open in § Risks): `ONE_HAND_FRACTION` 0.3
+  (of the holder's carry capacity — a 70 kg human: 10.5 kg one-handed, 11 kg two),
+  `TWO_HAND_LENGTH` 0.6 (of stature — a 1.75 m human's 1.05 m; the 1.2 m staff takes two),
+  `AWKWARD_LENGTH` 0.5, `AWKWARD_BULK` 1.0, `RUN_AWKWARD` 1.0, `RUN_AWKWARD_FACTOR` 1.5. A
+  27 kg, 1.0 m gnome needs both hands past 4 kg / 0.6 m (unit-tested). A body whose carry
+  capacity reads 0 (no mass yet — a fixture) is not judged by weight.
+- **D9-b — a carrier's hand takes any wieldable.** `Wieldable.fitsSlot` answers yes for any
+  `Carrying.handSlots()` slot: the authored claim says where `wield` puts a thing, not which
+  hands may close on it — the second hand by weight, a readied compass and a lead's end all
+  need it. `LineEnd` composes `Wieldable(Slottable(…))` so a hand can hold it. A body whose plan
+  names no hand parts (older fixtures, a beast before W6's `canid`) has `handSlots()` empty and
+  every hands gate gives it all it has; `ready` in a fight falls back to the shipped switch.
+- **D11-b — `receive` without a slot still lands loose at W4** (D31: the veto, the tier walk
+  and `held` flip at W7). `canReceive` already resolves D11's order dry (a free hand, else
+  the worn containers ready-then-packed by `fitRefusal`, else `hands-on-cart` /
+  `cannot-grip` / `nowhere-to-carry` in words), so W7 swaps one line in `receive`.
+- **D11-c — the port idiom** is `if (MixinApi.isCarrying(dest)) dest.receive(x); else
+  ContainmentApi.move(x, dest);` at every site whose destination may or may not be a body; the
+  lint learned `inCarrierElse` (a move in the `else`/false arm of an `isCarrying(<same dest
+  text>)` test is not a body move). Where the destination is typed a body (Embody's `avatar`),
+  `receive` is called directly — a controller's `if` on the giver counted as a second act
+  (`lint:multi-act`). Every kernel row ported: **101 → 40**, all 40 pack rows (W5). Carrying's
+  own moves are D11 `allow` rows; `releaseHeld`'s is `not-body` (the place the body stands in).
+- **D13-b — "going under" is a transition read in `Vitals.reconcileConditions`.**
+  Consciousness is derived on read, so there is no event: the reconcile now ends by reading
+  consciousness (without reconciling again) and, on a fall from conscious (dying and
+  sedation read unconscious), calls `releaseHeld()`. `_wasConscious` is runtime — a restored
+  body that comes back under lets go on its first read. Severance passes the severed slots to
+  `releaseHeld(slots)`; a non-carrier keeps the shipped loop. The room hears it (`toSelf` only
+  for a Sensor).
+- **D14-b — homes are forgotten lazily.** `homeOf` drops a home when either end has left the
+  body, so `drop`/`give`/a sale need no hook. `put` into a container the putter carries sets
+  it (`ContainmentLogic.putPlanFor`'s completion); `bringToHand` remembers where a thing came
+  from when it had no home. Persisted as `HomesSlice` ends — `{kind:'chattel', chattelId}` or
+  `{kind:'path', path, templatePath}` (the first index in the body's captured order, the
+  Container slice's three skips; the template path guards a path that no longer resolves);
+  restored in pass 4 (`hydrateSlice`, after contents and the estate), not `onRestored`.
+- **D16-b — a homeless held thing stows LOOSE until the flip** (today's carrying — it is
+  still on you); `hands-full` fires when the held thing's home will not take it back. W7 makes
+  the homeless case refuse too. `ready` on a thing in the room the binder let through is
+  **used where it stands** whether or not it is fixed (a tape on the floor) — `not-on-you`
+  only for a thing in another body — until W7, when `get` means `receive`. A thing a hand
+  cannot take (not `Wieldable`) is used where it is.
+- **D16-c — `readies:` on an `objects` arg readies only a single bound thing**, so a default
+  that binds every tool in reach readies none. The dispatcher's step is in
+  `CommandGiver._executeOne` (every dispatch path runs it, after the validators), not
+  `CommandLogic.resolveModel`'s tail (which runs before the validators, so a reach refusal
+  would have come second). Views: measure/analyze `tool`, read, light/douse, pour `source`,
+  fill/drink `target`, shape `instrument`, fit `tool`, cut `tools`.
+- **D16-d — in a fight the act does not wait for the switch.** `ready` starts the guarded
+  switch (`beginWeaponSwitch(item, {seconds})`) and the readied act runs on the thing where it
+  is (it is reachable); the beats are the price. The completion (`performSwap`) is the
+  carrier's `bringToHand`, so a non-weapon is held and never the instrument. Holder pricing
+  before W5's `shapedTo`: a non-hand slot occupant (a sheath) or a `from` clip is the draw;
+  loose, an open container or a homeless put-away is a reach; a shut `Sealable` adds the
+  undoing. `isCarrying` joined `lint:combat-dynamics`' physics allowlist (hands are slots).
+- **D18-b — leading is decided by the far end's hands.** `crossExit` leads the body at the
+  far end of a held `TetherEnd` when that body is a handless carrier in the same place (a
+  diver or climber on a line walks their own way); the pre-check is `exit.canTraverse(animal,
+  defaultModeFor(animal))`, the refusal reads *"The mule won't follow you: …"*, and the
+  follow is `traverseWithDefault`. `Rope.tieTo` leads only a body whose plan is known and has
+  no hands; the rope goes into the animal's keeping (loose — ⚠ W6's halter row should offer a
+  `from` to hang it from, or the flip's veto refuses it), the halter is any worn `Tieable`.
+- **D18-c — hitch keeps its reason name `hands-on-cart`** (the plan's) for the hands the
+  handles take; `need = min(handedness, handSlots)`, worded by `Carrying.refusalWords`'
+  `hands-needed`. `Drivable.getDriveHands()` = a hauled host's `handedness`, else
+  `driveHands` (new authorable field, default 2 — reins); `driveRefusal` gates the drive in
+  `LocomotionLogic.canTraverseExit` after enablement.
+- **D10-c — equip.** `Carrying.wieldSlots(item, claim)` widens a claim by the hand weight takes;
+  `wieldRefusal` answers `too-heavy` / `hands-on-cart` / `hands-needed`. `EquipControllerBase`
+  asks them (skip reasons `heavy`, `hands`; notes `too-heavy`, `hands-needed`); a full hand
+  names what holds it (the `slot-occupied` note kept); equip-all takes up what is wielded
+  after what is worn (the "claimed after both hands are freed" ordering).
+- **D35-c / D36-b** — `run`'s `awkwardLoad` gate (new `TraversalGate`) is a mode-name check
+  (`run`) in `LocomotionLogic.awkwardGate`; `gearNoise` lifts `emissionAt`'s `noiseLevel` one
+  band (`LOUDER`), clanking = rigid and `ringSound().rings` (else a `metal` material tag).
+- **W4-e — the load gauge.** Slots before the loose pass; a held (hand-slot) load × its
+  awkwardness; the total and the lift gate's prospective walk × `gravityNow / 9.81` of the
+  enclosing place. `PerceptionApi.tierOf` is deleted (`Carrying.tierOf` is the read;
+  `PerceptionLogic.tierOfImpl` asks the carrier, a non-carrier holder's things are `ready`).
+
 ## ⭐⭐ Host placement
 
 | what | host | what composing it claims — and why every host means it |
@@ -1447,6 +1530,8 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   0.38, the water as shipped), `Carrying.release.test.ts` (unconscious drops the sword,
   keeps the belt), `Mobile.lead.test.ts` (the mule follows; its own refusal stops you).
 - Commit: `build(size-and-carrying W4): hands, homes and readying; weight by the place's gravity; a held rope leads; the kernel callers receive`.
+
+**✅ Done (0bbc7eccf).** `Carrying` has hands (`handSlots`/`freeHands` less a cart's handles/`handsFor`/`wieldSlots`/`wieldRefusal`), `tierOf` (`PerceptionApi.tierOf` deleted), homes (lazy, `put` sets them, `HomesSlice` by chattel id or contents path), `ready`/`stow`/`bringToHand`/`readySeconds`/`holderPhrase`, `canReceive`, `releaseHeld` (Vitals: going under, severance), `gearNoise`, `awkwardnessOf`, `refusalWords`, `CARRYING_DEFAULTS` (D10-b). `readies:` rides `FieldDefinition`/schema and is readied in `CommandGiver._executeOne` on eleven view args; the fight switch is any item priced by holder (new dials `combat.reach.seconds`/`combat.unfasten.seconds`); `LoadBearing` walks slots first, × awkwardness on held loads, × `gravityNow/9.81`; hitch/drive read hands; `crossExit` leads; `Rope.tieTo` leads a handless body by its halter; equip consults the body; D35/D36 landed. Every kernel caller ported — `lint:body-moves` **101 → 40** (all pack rows). Decisions D9-b…W4-e above (notably: `receive` still lands loose; a homeless held thing stows loose until the flip; a room thing is used where it stands; the act does not wait for a fight's switch; a hand takes any wieldable). `test:near` + the new suites green; full suite not run (code-complete runs it). ⚠ W5: port the 40 pack rows with the same idiom; `holderSeconds` wants `shapedTo` (a holster is the draw); pockets' placement pairs are already `ready` in `tierOf` (a placement on a non-body host). ⚠ W6: the halter row must be a worn `Tieable` and should offer a `from` for the lead rope (it lands loose in the animal today); `canid`'s mouth makes a dog's `handSlots` non-empty — check `Rope.tieTo`'s handless rule (a dog with a mouth-hand would take the end, not be led) and `crossExit`'s lead rule against it; `greatsword`/`longsword` audit reads `handsFor`. ⚠ W7: `receive` → the `canReceive` order (one line), the homeless-stow and room-`ready` relaxations end, `held` flips, pass (a) retires.
 
 ### W5 — pockets, worn containers, tiers, inventory; the pack callers port (D15, D26–D28)
 
