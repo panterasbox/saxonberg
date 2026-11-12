@@ -207,8 +207,59 @@ The early per-cocktail / per-dish rows (`cocktail/martini`,
   (numeric, tag string, alt-unit literal, JSON `{value,unit}`) at
   the persistence boundary.
 
-`getMaterial()` resolves on each call via
-`StuffApi.findByTemplatePath` — HMR-safe.
+`getMaterial()` resolves on each call against live Stuff — HMR-safe —
+and is **loud when cold**: a non-empty path whose row nothing loaded throws
+`DocumentNotResidentError('material', path)`; `null` means only an empty
+path (load-on-use round two).
+
+### ⭐⭐ A material loads when something reaches it, never at boot
+
+`MaterialCatalogue` (`platform/idea/`, reached as `MaterialApi.materials()`
+by `singletonSync` — no `onCreate`, no row, no boot line) is the one door
+every material read goes through: `need(path)` (sync, throws cold),
+`peek(path)` (a read that may honestly miss), `ensure(path)` (async). A
+material becomes resident by one of four doors:
+
+1. **its holder** — a thing's own material (`Tangible._materialPath`,
+   `_detailMaterialPaths`, a bulk slot's) is `identity:constituent`, so the
+   template applier loads it before the setter runs, on mint, go-live and
+   restore;
+2. **a relation on a row** — a melt product (`Kinetic.kinetics`,
+   `drainSetting`, `Fusion.chillsTo`), a mixture's parts
+   (`Mixture.composition`), `Solution`'s products, `Steepable.steepsInto`,
+   `Composition.makeup`, `Compounding.productMaterial`,
+   `Comminuting.productMaterial/residueMaterial`, a body plan's tissues,
+   a deposit's lode/zones/gas/fluids, a place's `enclosure`/`roof` — is
+   declared `identity:constituent`, and the applier's path walk reads
+   nested values, so a list of records loads too. A maturation profile's
+   or fraction schedule's materials load in its catalogue's `afterRead`.
+   A material-to-material cycle (water ↔ ice) is safe: an in-flight load
+   is returned, not awaited;
+3. **an act** — a runtime-chosen path (a smelt's product, a draw of
+   water, a conjured matter) is `ensure`d by the act that names it; a
+   runtime FIELD that carries material paths (a bulk payload's makeup and
+   `madeFrom`, a face's coats, a joint's glue, a fuel bed, a strewn floor,
+   a kinetic record's origin) is reloaded by its restoring setter, which
+   returns `ensureCited(paths)` / `ensureCitedIn(value)` — `undefined`
+   when nothing is cold, never a rejection;
+4. **the roster** — the few reads that ask for every material (the wiki's
+   `<materials>` listing, a pattern's metal match) await
+   `ensureRoster()`, then `roster()` / `byTag(tag)`. The roster is every
+   root's `/idea/material/` subtree filtered to rows whose class extends
+   `Material` — never an allowlist of roots.
+
+⭐ **A material a class used to hard-code is content now** (owner,
+2026-11-11): `PipeRun.carries`, the sugar copper's `boilsTo`/`skimsTo`,
+`SugarLoaf.drainsTo`, `Churn.churnsTo`, `SoapKettle.slakesTo`, a cellar's
+`wallMaterial`, a bottle's or potion's glass — each an authored row field
+(each `identity:constituent`; the glass is the row's own `_materialPath`), so an author can make a copper
+that boils something else. The universe's default wall is the root biome's
+`_enclosureMaterial` ([biome.md](./biome.md)).
+
+⚠ **Left on `peek`, deliberately:** fields that mix material and thing rows
+— `Species.production[].yieldRow`, `Comminuting.products`,
+`Deposit.stratigraphy`. Declaring them constituent would stand thing rows
+up as singletons; their material halves want a split field (a follow-up).
 
 `stuff.getMaterial(detailKey?)` is the direct read for "what is this
 made of?" — callers narrow with `MixinApi.isTangible(stuff)` first
@@ -305,9 +356,10 @@ an explicit `initProp` call from the host.
 - `containsElement(material, symbol)` — "does this material's
   recursive composition contain element `symbol`?" Walks
   `compositionOf` and matches against leaf-element symbols.
-- `findByTag(tag)` — every registered Material carrying the tag.
-- `findByElement(symbol)` — every registered Material whose
-  composition contains the element. Combines the above.
+- `all()` / `findByTag(tag)` — the roster reads; they forward to
+  `MaterialApi.materials().roster()` / `byTag(tag)` and throw unless the
+  caller's async parent awaited `ensureRoster()` (load-on-use round two —
+  `findByElement` had no caller and was retired).
 
 Future surfaces land as their consumers do. Thermal heat-flow reads
 `thermalConductivity` when the Thermal capability arrives; per-material
@@ -1019,8 +1071,9 @@ follow the same locked shape:
 
 - The persistent field is the **path string**, not a serialized
   instance.
-- The getter resolves on each call via `StuffApi.findByTemplatePath`
-  — sync, HMR-safe, no instance cache.
+- The getter resolves on each call against live Stuff — sync,
+  HMR-safe, no instance cache (a material through
+  `MaterialApi.materials().need`, loud when cold).
 - The setter accepts the resolved Stuff (or `null`) and stores
   `value?.getTemplatePath() ?? null`.
 - No marshaller required — the persistent value IS a string.
@@ -1143,3 +1196,10 @@ than a loin in a fight. See [butchery.md](./butchery.md).
   `appearance`) — kept as a YAML comment.
 - **D23 gate (d)** measured 6,057 composed-but-unauthored fields at the cut; ceiling pinned there.
 
+- **2026-11-11 — load-on-use round two (MR !575).** The material roster
+  left the boot: `MaterialCatalogue` lost its `onCreate`, its row and its
+  boot line and became the `singletonSync` door `MaterialApi.materials()`
+  (`ensure`/`need`/`peek`/`ensureCited`/`ensureRoster`). Every material
+  loads by its holder, a constituent relation, the act that names it, or
+  the roster (§ A material loads when something reaches it); class
+  constants became authored row fields; `findByElement` was retired.

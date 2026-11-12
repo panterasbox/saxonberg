@@ -364,46 +364,39 @@ the mixin sat on `Vessel` for so long without anyone noticing: it cost
 nothing and did nothing, and the only surface that would have SHOWN it
 (`wiki atmospheric`'s *composed by* panel) was scanning a dead root.
 
-### ⚠⚠ `getBiome()` is a REGISTRY read, and the roster must be warmed
+### ⚠⚠ `getBiome()` reads a constituent, and it is loud when cold
 
 `getBiome()` resolves the authored `_biomePath` through
 `BiomeApi.findByPath` → `StuffApi.findByTemplatePath` — an **identity ref
 resolved on read**, which answers only with instances that are *already
-live*. A room whose row cites a biome nobody stood up therefore answers
-`null` **forever**, and every consequence of that room's biome goes quietly
-inert: `isSkyExposed` returns its documented false-when-nothing-resolves, the
-outward chain walk never gets past the room, and the ground build's on-grade
-derivation hands an interior default to open country.
+live*. ⭐ So the biome a room cites must be live whenever the room is, and
+it is: `_biomePath` is `identity:constituent`, so the template applier
+loads the row before the setter runs (mint, go-live, restore), and its
+`extends:` ancestors load first. A place's `enclosure`/`roof` layers are
+constituents too, so their materials load with it.
 
-⭐ **`BiomeCatalogue` (`platform/idea/BiomeCatalogue.ts`) is what warms it** —
-the `MaterialCatalogue` shape, self-warming at `onCreate`, eager through
-the platform pack's `boot:` manifest (role `sync-read`) — kept by the scan
-sweep's READER RULE: the chain walk is synchronous with no act-shaped seam.
-⭐ But a room's own `_biomePath` is a CONSTITUENT since that sweep, so the
-biome a room cites loads with the room regardless. The roster is
-**derived**: every root's `idea/biome/` subtree filtered to rows whose `class`
-extends `Biome`, so a realm pack shipping
-`/world/<place>/idea/biome/cavern` is warmed with nothing to edit — never an
-allowlist of roots.
+⭐ **There is no biome catalogue** (load-on-use round two, owner
+2026-11-11). `BiomeCatalogue` — which stood every `idea/biome/` row up at
+boot — was deleted with its row, its boot line and its `biome.unresolved`
+diagnostic: nothing enumerates biomes, every read is a host's own
+constituent. A row whose class does not load is `lint:census` (f)'s catch
+at build time.
 
-⭐ **And it is loud** (the climate build): `warm()` returns `{ stood,
-failed }`. A row whose class does not LOAD, or that fails to stand up,
-logs at `console.error` and files a `biome.unresolved` author diagnostic
-(`errors`) naming it; the boot line counts the failures. A row whose
-class loads and is not a Biome (the `outdoor`/`indoor` FolderZones) is
-the folder it looks like, and is skipped quietly.
+⭐ **And it is loud**: a non-empty `_biomePath` with no live row throws
+`DocumentNotResidentError('biome', path)` naming the path — never the
+`null` that once let a room's biome go quietly inert (`isSkyExposed` false,
+the chain walk stuck at the room, open country read as an interior).
+`null` means only that the room names no biome.
 
-⚠ **Twice now.** `base-library/pack.yaml` still carries a `boot:` line for
-`/stuff/idea/biome/universe` alone, with the note that it *"was never cloned
-by anything … so `analyze power <thing>` threw 'root universe biome is not
-loaded' in every fresh world, found by the grain-chain wire flow."* That fixed
-the ROOT and left every other biome cold — which the ground build's drive
-found by reading *"It is oak, laid as boards"* in a wood, a concrete apron and
-a mine adit. The root's line stays: `getRootBiome()` **throws** when it is
-cold, and belt and braces for the one row whose absence is fatal rather than
-silent costs one line. ⭐ The general lesson is the one
-[lint-family.md](../lint-family.md)'s census-then-ratchet section keeps making:
-**an enumerated boot list is a list somebody has to remember to extend.**
+⭐ **The root is the one booted biome.** `base-library/pack.yaml` keeps a
+`boot:` line for `/stuff/idea/biome/universe` — the one biome nothing
+cites; `getRootBiome()` **throws** when it is cold. The root also carries
+the realm's **default wall**: `_enclosureMaterial` (`identity:constituent`,
+granite), read as `BiomeApi.defaultEnclosureMaterial()`, which replaced the
+retired AppSettings dial `enclosure.defaultMaterial` (*constants are
+content*). A suite with no root biome stands a blank wall with the
+`@TestOnly` `BiomeApi.standDefaultEnclosureForTesting()` (or
+`lib/biome/__tests__/root-biome.ts`'s `standRootBiome`).
 
 ⚠ A room that cites **no** `_biomePath` at all is a different thing and is not
 this mechanism's problem — nothing resolves because nothing was named. Two of
@@ -414,7 +407,7 @@ the interior default as a result; `pnpm lint:ground --report` counts them.
 
 ```ts
 interface Atmospheric {
-  getBiome(): Biome | null;   // ⚠ registry read — see above
+  getBiome(): Biome | null;   // ⚠ throws on a cold non-empty path — see above
   setBiome(value: Biome | null): void;
 
   getTemperature(detailKey?: string): Promise<Quantity<'K'>>;
@@ -856,6 +849,12 @@ The `extends:` walk + `FolderZone` separation is the
 shape that survives. Future biome content authoring extends from
 `/stuff/idea/biome/universe` (or any other biome) via the explicit ref;
 the path tree organizes ownership, not inheritance.
+
+**2026-11-11 — load-on-use round two (MR !575).** `BiomeCatalogue` was
+deleted (nothing enumerated biomes); a biome loads as its place's
+constituent, `getBiome()` throws on a cold non-empty path, and the root
+biome's `_enclosureMaterial` replaced the `enclosure.defaultMaterial` dial
+(§ `getBiome()` reads a constituent).
 
 ---
 

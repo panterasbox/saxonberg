@@ -11,7 +11,8 @@
 > water, species and the typed-word dictionaries loaded on use;
 > `container:` made runtime-only and producers' stocks naming their lines
 > (review round 2); `lint:get-or-create` widened to every pre-check form.
-> **Left:** the fourteen sync-read catalogues still booted · where
+> **Left:** ~~the fourteen sync-read catalogues still booted~~ (done —
+> !560 and load-on-use round two, MR !575) · where
 > singleton-ness lives · AC 7 (log back in to a keyed room after a
 > restart) merged unverified · unstaged content · vessel lines count by
 > template · six drives red on master too — see § What remains.
@@ -24,13 +25,18 @@ for stupid reasons."*
 
 ## What remains (after MR !362)
 
-- ⚠ **Fourteen catalogues still booted under the READER RULE** —
-  Material, Biome, Condition, Topic, Recipe, Archetype, Spell,
-  Discipline, Placement, Corpo, Government, AddressRegistry,
-  MaturationProfile, FractionSchedule: each is read synchronously with
-  no act-shaped async seam (74 sync material lookups, most of them
-  relations no holder loads). Making those readers async is its own
-  build; AC 1 is only partly met until it lands.
+- ~~⚠ **Fourteen catalogues still booted under the READER RULE**~~ —
+  ✅ **done.** Documents path identity (!560) took Topic, Recipe,
+  Archetype, Spell, Discipline, Placement, Corpo and Government off the
+  boot; load-on-use round two (MR !575, 2026-11-11) took the other six —
+  Material, Biome (deleted), Condition, AddressRegistry,
+  MaturationProfile, FractionSchedule. The sync readers were not made
+  async; each row is made resident before its reader runs (holder,
+  relation, act, restore door — [race.md](../../subsystems/race.md),
+  [document-store.md](../../subsystems/document-store.md) § Resident by
+  construction). ⚠ Still on `peek`: fields that mix material and thing
+  rows (`Species.production[].yieldRow`, `Comminuting.products`,
+  `Deposit.stratigraphy`) — their material halves want a split field.
 - ⚠⚠ **Where singleton-ness lives** — competing authorities:
   `SingletonMixin` on the class, `StuffApi.singleton()` chosen by the
   caller, `singletonOrClone`; and one class backs both unique rows (the

@@ -257,7 +257,7 @@ at **339, three below where the build found it.**
   World-level logic (`Freshness.growthRate`, `CombatNarration.narrate`)
   belongs on a `platform/idea/api/<X>Logic.ts` logic singleton with the
   subsystem's Api forwarding — the split `CLAUDE.md` already calls
-  mandatory. Census-then-ratchet, **ceiling 339** (opened at 563; the 2026-09 sweep drove it down, and see the worked example above — `LIB_STATICS_CEILING`) across the kernel's
+  mandatory. Census-then-ratchet, **ceiling 334** (opened at 563; 339 → 334 in load-on-use round two, when the profile and schedule lookups moved onto their catalogues; the 2026-09 sweep drove it down, and see the worked example above — `LIB_STATICS_CEILING`) across the kernel's
   `lib/` and `platform/` plus every pack's `src/`: the population may not
   grow while the sweep moves the world-level half out. ⚠ Statics inside a
   mixin factory's returned class expression are out of scope by
@@ -447,7 +447,20 @@ which `pour gin into glass` binds both of — so the gate compares ranges.
 - **`lint:census`** — every template-path-valued field in every shipped
   row resolves to a real row, and `clone()`'s `asTemplatePath` channel
   stays retired. A path naming no row cannot be edited, addressed or
-  zoned.
+  zoned. Clause **(f)** reads every field a `fieldMeta` declares on the
+  identity axis and resolves it on every row, and refuses a constituent
+  CYCLE — ⭐ narrowed by load-on-use round two to cycles that **leave the
+  Material family** (a melt and its freeze cite each other, and
+  `ensureConstituent` never awaits a load in flight, so such a pair waits
+  on nothing; the old prose was stricter than the runtime). Clause **(g)**
+  checks fields that name DOCUMENTS by path (`DOCUMENT_PATH_FIELDS`; since
+  round two `cleanser` and the path-shaped values of `constructionForm`).
+  ⭐ Clause **(h)** (round two) checks the other direction: a row a
+  material-citing DOCUMENT names — a maturation profile's product, a
+  schedule's spans, a dyestuff's material (`DOCUMENT_ROW_CITATIONS`) —
+  is a row some pack ships, so a misspelled `redd` fails before merge.
+  Clause **(c)** exempts a `TemplatePaths` catalogue an Api stands up by
+  `singletonSync` (it has no row by design).
 - **`lint:untitled`** — every shipped template path under a claimed
   root lies within some pack's `requires.title` claim. The title roots
   are **derived** from the claims themselves, so a new root needs no
@@ -1764,7 +1777,9 @@ configured**.
   stating **neither** `mass` nor `_materialPath` is matter made of
   nothing, weighing nothing — and it fails closed and silent: `getMass()`
   answers 0 kg and no test anywhere says a word. Census-then-ratchet,
-  **ceiling 242** across 83 classes (`Seed` 24, `Stock` 17, `Receptacle`
+  **ceiling 210** today (242 at landing, 224 after the boundary build,
+  210 when load-on-use round two made the bottle and potion rows author
+  the glass a constructor used to set), first measured across 83 classes (`Seed` 24, `Stock` 17, `Receptacle`
   15, `SpiritBottle` 15, `Crate` 12, `Bottle` 11); writing the masses is
   content work row by row, and what the gate buys is that the number
   cannot grow while nobody has time for it.
@@ -2004,9 +2019,10 @@ authors `_defaultTemperature`.** Under the sky the temperature is
 derived — latitude, elevation, continentality, offset — and a flat
 number on an outdoor biome would override the climate for every room
 that cites it, in every season. The honest tool for *this place is warm
-for its latitude* is the zone's `climateOffsetK`. (The runtime half:
-`BiomeCatalogue.warm()` now COUNTS a row that fails to stand up and
-files an author diagnostic for it, rather than a `console.warn`.)
+for its latitude* is the zone's `climateOffsetK`. (The runtime half was `BiomeCatalogue.warm()` counting a row that
+failed to stand up; the catalogue was deleted by load-on-use round two —
+a biome loads as its place's constituent, a cold read throws naming the
+path, and a row whose class does not load is `lint:census` (f)'s.)
 
 ### ⭐⭐ `lint:boot-entries` + `lint:template-scans` — load on use (the scan sweep, 2026-10)
 
@@ -2016,7 +2032,9 @@ searching the template table, and never at boot unless the reason is
 written down and holds.** Two gates hold the two ways round it.
 
 - **`lint:boot-entries`** reads every pack's manifest `boot:` list. (a)
-  The total is a ceiling (128 at landing, 79 when the sweep shipped). (b) Every entry has a
+  The total is a ceiling (128 at landing, 79 when the sweep shipped, 75
+  before load-on-use round two, **69** after it —
+  the material, biome, condition, address, profile and schedule lines). (b) Every entry has a
   `reason`. (c) An entry whose template is CONTENT (`/world/`,
   `/trade/`, `/corpo/`, `/compact/`) must cite `unobserved-economy` —
   the houses whose NPCs act with nobody present are the only content
@@ -2290,3 +2308,15 @@ rule an AUTHORING rule?** A player cannot fix it, it cannot vary at run
 time, and the person who needs to hear about it is reading a YAML file
 right now. When all three are true, the home is build time and named by
 file — not a constructor, and not a setter.
+
+## History
+
+- **2026-11-11 — load-on-use round two (MR !575).** Census clause (h)
+  added and (f) narrowed (§ `lint:census`); clause (c) exempts
+  `singletonSync` catalogues. Ceilings moved: `BOOT_ENTRY_CEILING` 75 → 69,
+  `LIB_STATICS_CEILING` 340 → 334, `COMMONS_CEILING` 30 → 36 (the
+  material, condition, cleanser, fabric, dyestuff and fraction-schedule
+  catalogues are commons, each with its caller audit in the gate),
+  `ON_CREATE_CEILING` 80 → 78, `MASS_CEILING` 224 → 210,
+  `SELF_RESOLUTION_CEILING` (controller-resolution) 80 → 79.
+  `lint:fraction-schedules` reads `content/fraction-schedules/`.

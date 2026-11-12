@@ -116,13 +116,11 @@ it**; it steers only what the thing looks like while it works.
 phase. They are mechanism-neutral or belong to the microbial case, and
 renaming them would have been churn without a claim behind it.
 
-Kernel: `lib/maturation/` (`Maturing.ts`, `MaturationProfile.ts`),
-`platform/idea/maturation/MaturationProfile` (the instanceable concrete —
-the Material split), `platform/thing/Vat` (the one concrete every
+Kernel: `lib/maturation/` (`Maturing.ts`, `MaturationProfile.ts` — a
+value class, no statics), `platform/thing/Vat` (the one concrete every
 trade's vessel rows name), `platform/idea/MaturationProfileCatalogue`
-(the self-warming roster — **no MaturationApi**: the queries are statics
-on the owning class, and an operator-shaped warm does not belong on a
-consumer Api). Zero new verbs: crush/mash/distil are
+(a `DocumentCatalogue` reached as `BulkableApi.maturationProfiles()` — the
+profile lookups live there, never on the value class). Zero new verbs: crush/mash/distil are
 recipes `order`ed off unpriced work boards (the kitchen-menu shape);
 rack = `pour`, seal = `close`, bottle = `fill`, pitch/feed = `pour`.
 
@@ -235,7 +233,9 @@ or price reads it.
 
 ## Profiles are the whole authoring surface (D1/D4)
 
-`MaturationProfile` rows (any root's `idea/maturation/` subtree; matched by
+`maturation-profile` **documents** (any pack's `content/maturation-profiles/<key>.yaml`,
+at `<root>/maturation-profiles/<key>`; the leaf is the key, no `class:`, no
+`key:` line; matched by
 the must's material TAGS against `inputCategory`; a double match is a
 warned authoring error resolved by lowest key — never a roll):
 temperature band (`stallBelowK`/`happyK`/`damageAboveK`), `ratePerDay`,
@@ -283,13 +283,25 @@ all about the CORNS, and a world test refuses prose containing *yeast*,
 *bubble*, *ferment*, *microbe* or *breath*. First consumer:
 `trade-malting`'s floor.
 
-`MaturationProfileCatalogue.onCreate` stands the roster up, eager via
-the platform pack's `boot:` manifest (`sync-read`) — the
-reference-Ideas-inert-at-boot rule, self-warming (the
-Discipline/Recipe catalogue shape rather than an `Api.boot()`
-sequencer line). `MaturationProfile.forMaterial`/`.byKey`/`.all` read the
-live population (the `everyMaterial` shape, no cache — statics on the
-owning class, no Api).
+⭐ **Profiles are documents, and they load with the first vessel**
+(load-on-use round two). Nothing boots them: `MaturingMixin`,
+`RipeningMixin` and textiles' `FinishingMixin` each await
+`BulkableApi.maturationProfiles().ensureAll()` in `onCreate` — one
+`listOfKind` per process, coalesced — because the match runs inside sync
+reconcile-on-read, which cannot wait. The catalogue's `afterRead` loads
+each profile's materials (product, turned, lees, transforms, off-gas), so a
+sync reconcile finds them too. `forMaterial(material)` (the tag match) and
+`cultureForStrain(strain)` run over the resident profiles. ⭐ **The vessel
+holds the profile's PATH**, not a key: `maturationProfilePath`,
+`ripeningProfilePath`, `finishingProfilePath`, each read with `need(path)`
+and restored through a setter that returns `ensure(path)` — the restore
+door, so a vessel restored after a restart finds its profile resident.
+`Hopper` and `GluePot` cite their profiles by path. The catalogue's
+`parse` is `new MaturationProfile(path).applyData(data)`, so every
+authored field still runs through its validating setter. Fixture:
+`lib/maturation/__tests__/profiles.ts` (`rememberProfile`,
+`rememberShipped`, `forgetProfiles` — the memory outlives
+`StuffApi.clearAll()`).
 
 ## The numbers are derived and discoverable (D4)
 
@@ -437,10 +449,10 @@ the analysis instead of rediscovering it:
 
 - `lib/maturation/Fermenting.ts` — the mixin: reconcile, batch detection,
   strain/culture/lees, the cellar air, the sensory augmenter
-- `lib/maturation/MaturationProfile.ts` (+ the query statics) →
-  `platform/idea/maturation/MaturationProfile`
-- `platform/idea/MaturationProfileCatalogue.ts` (the roster's
-  self-warming boot home; platform pack row + `boot:` entry)
+- `lib/maturation/MaturationProfile.ts` — the value class (no statics)
+- `platform/idea/MaturationProfileCatalogue.ts` — the `maturation-profile`
+  `DocumentCatalogue` (`ensureAll`, `forMaterial`, `cultureForStrain`);
+  rows in each pack's `content/maturation-profiles/`
 - `platform/thing/Vat.ts` — the concrete; seal/move window events
   (+ ⭐ an emptying `debitBulk` ends the batch NOW, not at the next read —
   a cask spilled and refilled unread kept its batch; assembly drive 17)
@@ -597,3 +609,12 @@ potash, never washing soda — and a fire-heated boil belongs to the thermal
 plateau, not to an `evaporative` profile. The lye hopper still runs
 `lye-leach`, but its STRENGTH is derived at the fill (`Hopper.leach`). See
 [potash.md](potash.md).
+
+## History
+
+- **2026-11-11 — load-on-use round two (MR !575).** Maturation profiles
+  became `maturation-profile` documents (37 rows across 12 packs moved to
+  `content/maturation-profiles/`); the instanceable twin, the statics and
+  the boot line went; vessels store the profile's path behind a restore
+  door and load the kind in `onCreate` (§ Profiles are the whole authoring
+  surface).

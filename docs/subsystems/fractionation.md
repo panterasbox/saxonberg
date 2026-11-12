@@ -58,40 +58,44 @@ fraction is drawn — the lees-style swap.
 
 | piece | where | what it is |
 |---|---|---|
-| `FractionSchedule` | `lib/fractionation/FractionSchedule.ts`, concrete twin at `platform/idea/fractionation/` | the row. A singleton `Idea` per schedule, under any root's `idea/fractionation/` subtree, matched to a charge by the charge material's TAGS against `inputCategory`. Statics `byKey` / `forMaterial`; `all()` private. |
-| `FractionScheduleCatalogue` | `platform/idea/`, + a platform-pack row and a `boot:` entry at role `sync-read` | the roster warm. ⚠ A schedule row nothing stands up matches nothing, **silently** — a charged still would simply never start. The reference-Ideas-inert-at-boot rule, which this repo has broken three separate times. |
+| `FractionSchedule` | `lib/fractionation/FractionSchedule.ts` | the value class, no statics. A `fraction-schedule` **document** per schedule (any pack's `content/fraction-schedules/<key>.yaml`, at `<root>/fraction-schedules/<key>`; the leaf is the key), matched to a charge by the charge material's TAGS against `inputCategory`. |
+| `FractionScheduleCatalogue` | `platform/idea/`, a `DocumentCatalogue` reached as `BulkableApi.fractionSchedules()` | `ensureAll()` (every schedule, once per process), `forMaterial(material)` over the resident ones (lowest key on a double match, warned), `need`/`ensure` by path. Its `afterRead` loads each schedule's product, residue and span materials. No boot line: ⚠ a schedule nothing reads matches nothing — so `FractionatingMixin.onCreate` loads the whole kind with the first still. |
 | `FractionatingMixin` | `lib/fractionation/Fractionating.ts` | the host face. Requires `BulkableMixin`; probes `ThermalMixin`. |
 | `BulkPayload.dissolvedToxins` | declared from `lib/metabolism/DissolvedToxins.ts` | the dose a draw carries, per litre. |
 
 ### The row
 
 ```yaml
-class: /platform/idea/fractionation/FractionSchedule
-data:
-  key: wash
-  inputCategory: wash          # a TAG on the charge material
-  discipline: distilling       # what a draw credits
-  requiresHeatK: 351           # 0 = runs the moment it is charged
-  productMaterial: …/new-make
-  residueMaterial: …/stillage
-  readBlur: 0.02               # how late an untrained nose reads it
-  gradeStretch: 0.0075         # how much a poorer charge grows the head
-  fractions:
-    - { key: foreshots, upTo: 0.005, gradeBand: poor, character: "…",
-        toxins: [{ type: methanol, amount: 12000 }], aromaticCarry: 0 }
-    - { key: heads,     upTo: 0.03,  gradeBand: fair, character: "…",
-        aromaticCarry: 0.5 }
-    # … strictly ascending in (0, 1]; the last one's complement is residue
+# content/fraction-schedules/wash.yaml — data only; the leaf is the key
+inputCategory: wash          # a TAG on the charge material
+discipline: distilling       # what a draw credits
+requiresHeatK: 351           # 0 = runs the moment it is charged
+productMaterial: …/new-make
+residueMaterial: …/stillage
+readBlur: 0.02               # how late an untrained nose reads it
+gradeStretch: 0.0075         # how much a poorer charge grows the head
+fractions:
+  - { key: foreshots, upTo: 0.005, gradeBand: poor, character: "…",
+      toxins: [{ type: methanol, amount: 12000 }], aromaticCarry: 0 }
+  - { key: heads,     upTo: 0.03,  gradeBand: fair, character: "…",
+      aromaticCarry: 0.5 }
+  # … strictly ascending in (0, 1]; the last one's complement is residue
 ```
 
 `setFractions` validates the whole schedule and **refuses** an incoherent
-one at the row: boundaries out of order, a band the grade vocabulary has
+one at the document (the catalogue's `parse` runs every authored field
+through its setter, at install and on first read): boundaries out of order, a band the grade vocabulary has
 never heard, an empty character, a last fraction that claims the whole
 charge (a pot that gives up everything it holds is not a still) — and
 ⭐ **a character containing a digit**, because the cut is a judgement and
 not a gauge.
 
 ### The state machine
+
+⭐ **The still holds the schedule's PATH** (`runSchedulePath`, runtime
+state), read with `need(path)`; `setRunSchedulePath` is the restore door —
+it returns `ensure(path)` — so a still restored after a restart finds its
+schedule resident (load-on-use round two).
 
 Four words, all persistent runtime state on the host:
 
@@ -372,6 +376,14 @@ not carry `wash` or two schedules claim one charge, and `forMaterial`
 resolves a double match by taking the lowest key — silently. A test now
 scans the whole content tree for that clash.
 
+**2026-11-11 — load-on-use round two (MR !575).** Schedules became
+`fraction-schedule` documents (10 rows across 4 packs moved to
+`content/fraction-schedules/`, no `class:` or `key:` line); the
+instanceable twin, the `byKey`/`forMaterial` statics and the boot line
+went; the still stores `runSchedulePath` behind a restore door and loads
+the kind in `onCreate`; `lint:fraction-schedules` reads the new dirs
+(§ The pieces).
+
 ## ⭐⭐⭐ `separation` — grades of one thing, or different things (the drilling build, 2026-10)
 
 A schedule now declares what KIND of separation it performs, and the
@@ -403,7 +415,7 @@ validation that depends on authoring whitespace. The convention already
 says a cross-field rule lives in the host's `onCreate`.
 
 ⭐ And `FractionSpec.requiresHeatK` is exercised for the first time by
-`/trade/fuel/idea/fractionation/crude`: naphtha comes over at 350 K and
+`/trade/fuel/fraction-schedules/crude`: naphtha comes over at 350 K and
 gas oil does not, so a cold column gives the light ends and stops. That
 is the seam this doc's own header predicted *a refinery column is built
 on and a pot still never exercises.*

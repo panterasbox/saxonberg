@@ -46,6 +46,11 @@ concepts have no value class):
 | `formation` | `formations` | `lib/combat/Formation.ts` | a party's path; `party adopt <word>` | the leaf |
 | `placement` | `placements` | `lib/spatial/Placement.ts` | a host's `placements:` paths | the primary preposition |
 | `topic` | `topics` | `lib/message/Topic.ts` | code (`.topic('act.combat')`); the dotted key is the leaf | the leaf |
+| `cleanser` | `cleansers` | `lib/cleanliness/Cleanser.ts` | a material's `cleanser:` path ([cleanliness.md](./cleanliness.md)) | — |
+| `fabric` | `fabrics` | `FabricSpec` in `lib/material/Construction.ts` | a garment's `constructionForm:` path (kernel forms stay words — [textiles.md](./textiles.md)) | — |
+| `maturation-profile` | `maturation-profiles` | `lib/maturation/MaturationProfile.ts` | a vessel's charge by tag; the vessel keeps the path ([maturation.md](./maturation.md)) | — |
+| `fraction-schedule` | `fraction-schedules` | `lib/fractionation/FractionSchedule.ts` | a still's charge by tag; the still keeps the path ([fractionation.md](./fractionation.md)) | — |
+| `dyestuff` | `dyestuffs` | trade-dyeing's `src/lib/Dyestuff.ts` | the card key `material` (the dye bath's material) | — |
 
 `emote`, `recipe` and `archetype` declare the leaf as their typed word;
 a `blueprint` is named by its leaf too. ⭐ None of the four carries a key
@@ -196,7 +201,10 @@ domain Api** — `CraftingApi.joints()`, `ContainmentApi.placements()`,
 `MaterialApi.dirtKinds()`, `PartyApi.formations()`,
 `ConditionApi.operations()`, `BulkableApi.pumpMechanisms()`,
 `CraftingApi.forms()` / `.recipes()`, `MessageApi.topics()`,
-`PerceptionApi.aromas()`. The catalogue at `/platform/idea/<X>Catalogue` is
+`PerceptionApi.aromas()`, `MaterialApi.cleansers()` / `.fabrics()`,
+`BulkableApi.maturationProfiles()` / `.fractionSchedules()` (the
+`dyestuff` catalogue is the dyeing pack's, reached by its own controller —
+a pack owns no Api). The catalogue at `/platform/idea/<X>Catalogue` is
 the one place that family's documents are looked up; the value class keeps
 only what the thing IS (no statics). The per-path families extend
 `lib/document/DocumentCatalogue` (its `parse` is the installer's validator
@@ -251,6 +259,24 @@ lazy dictionaries that stay Stuff (`RecipeCatalogue`, `SoulCatalogue`,
 their first async use and are never booted; the ones read synchronously
 throw `DocumentNotResidentError` when read cold rather than answering
 empty.
+
+⭐ **Two Idea families serve the same doors by hand** (load-on-use round
+two): `MaterialApi.materials()` and `ConditionApi.conditions()` reach
+`platform/idea/MaterialCatalogue` / `ConditionCatalogue` by `singletonSync`
+— no `onCreate`, no yaml row, no boot line — and answer `ensure` · `need` ·
+`peek` over **live Stuff** (the rows stay Ideas: query links, class-varying
+behavior). A cold `need` throws `DocumentNotResidentError('material' |
+'condition', path)` — the error's message says *"not a missing row"*, so an
+Idea kind reads right. The roster (`ensureRoster()` → `roster()` /
+`byTag`) is only for the few reads that ask for every row, and its state
+is the class's, so a suite's `clearAll` cannot un-stand it. The material
+catalogue adds `ensureCited(paths)` / `ensureCitedIn(value)`, the load a
+restoring setter returns for a runtime field that carries material paths
+(it answers `undefined` when nothing is cold and never rejects). How each
+material reaches residence — holder, relation, act, roster — is
+[race.md](./race.md)'s; conditions load with the first body
+([vitals.md](./vitals.md)). Two implementers by hand, not a shared base:
+the third promotes it.
 
 ## What a record is
 
@@ -649,3 +675,11 @@ pack-installed kinds, and releases ride it today.
   | D14 | the aroma folder is the tree | senses.md |
   | D15 | the lints follow the rows | lint-family.md |
   | D16 | a CMS edit reaches the catalogue (`catalogueFor(kind)?.forget`) | § CMS |
+- 2026-11-11 — load-on-use round two (MR !575): five material-adjacent
+  families became document kinds — `cleanser`, `fabric`,
+  `maturation-profile`, `fraction-schedule`, `dyestuff` (the last keyed by
+  its `material` card) — and their Idea classes and boot lines went; the
+  material and condition catalogues gained the sync doors and stopped
+  booting (§ Resident by construction). `DocumentNotResidentError`'s
+  message now says *row*, not *document*. The plan's decisions are cited in
+  code as `(load-on-use Dn)`.
