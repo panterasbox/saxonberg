@@ -88,6 +88,23 @@ describe('the flip — nothing loose on a body', () => {
     expect(words).toMatch(/`drop lantern`/);
   });
 
+  /**
+   * ⭐ The browser walk: Dave's back-bar holds three mugs, and `get mug`
+   * takes them all — the third is refused "Your hands are full — the mug
+   * and the mug — and the mug won't fit". Identical things are counted,
+   * and the refused one is another of them.
+   */
+  it('⭐ three alike: "both mugs", and another mug won\'t fit', async () => {
+    const { room, me } = await newcomer();
+    const mugs = [0, 1, 2].map(() => good('mug', 0.35, [0.09, 0.09, 0.1]));
+    for (const x of mugs) ContainmentApi.move(x, room);
+    expect(me.receive(mugs[0]!)).toBeNull();
+    expect(me.receive(mugs[1]!)).toBeNull();
+    const refused = me.receive(mugs[2]!);
+    expect(refused?.reason).toBe('nowhere-to-carry');
+    expect(me.refusalWords(refused!)).toMatch(/^Your hands are full — both mugs — and another mug won't fit in your pockets\. Set something down \(`drop mug`\)\.$/);
+  });
+
   it('⭐ a held thing that leaves the body leaves its hand (no phantom occupant — the lead rope)', async () => {
     const { room, me } = await newcomer();
     const rope = good('rope', 0.5, [0.2, 0.2, 0.05]);

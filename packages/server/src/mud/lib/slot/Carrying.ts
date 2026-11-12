@@ -1587,7 +1587,11 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       const def = (x: Stuff): string => x.presentationPhrase().definite();
       const kw = (x: Stuff): string =>
         (MixinApi.isPerceptible(x) ? x.getPrimaryKeyword() : undefined) ?? x.presentationPhrase().bare();
-      const it = item !== null ? def(item) : 'it';
+      // ⭐ Things alike are counted, and the refused one is ANOTHER of them
+      // (the browser walk: `get mug` at a back-bar of three read "the mug
+      // and the mug — and the mug won't fit").
+      const alike = item !== null && held.some((h) => def(h) === def(item));
+      const it = item === null ? 'it' : alike ? `another ${item.presentationPhrase().bare()}` : def(item);
       const where = [
         ...new Set(
           tried.map((h) =>
@@ -1602,8 +1606,8 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       // was untrue with a hand open.
       const need = item !== null ? this.handsFor(item) : null;
       const hands = need !== null && need > held.length && this.freeHands() > 0
-        ? `${cap(it)} takes both hands — you're holding ${GrammarApi.joinList(held.map(def))} —`
-        : `Your hands are full — ${GrammarApi.joinList(held.map(def))} —`;
+        ? `${cap(it)} takes both hands — you're holding ${this.heldList(held)} —`
+        : `Your hands are full — ${this.heldList(held)} —`;
       // The next command, in this body's own words: a held thing that WOULD
       // go away somewhere, and one to set down.
       let away: string | null = null;
@@ -1622,6 +1626,16 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
         ? `Put something away (\`${away}\`) or set it down (\`${drop}\`).`
         : `Set something down (\`${drop}\`).`;
       return `${hands} and ${need !== null && need > held.length && this.freeHands() > 0 ? 'it' : it}${fit}. ${next}`;
+    }
+
+    /** What the hands hold, in words — two alike are "both mugs". */
+    private heldList(held: Stuff[]): string {
+      const def = (x: Stuff): string => x.presentationPhrase().definite();
+      const first = held[0];
+      if (held.length === 2 && first !== undefined && held.every((h) => def(h) === def(first))) {
+        return `both ${GrammarApi.pluralize(first, first.presentationPhrase().bare())}`;
+      }
+      return GrammarApi.joinList(held.map(def));
     }
 
     public refusalWords(r: CarryRefusal): string {
@@ -1650,8 +1664,8 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
             ? `${a(stuck)} won't go back in ${a(r.facts.home)}`
             : `${a(stuck)} has nowhere to go`;
           if (all.length > 1) {
-            const drops = all.map((h) => `\`drop ${kw(h)}\``).join(' or ');
-            return `Your hands are full — ${GrammarApi.joinList(all.map(a))} — and ${where}. Drop one (${drops}) or put it away first.`;
+            const drops = [...new Set(all.map(kw))].map((k) => `\`drop ${k}\``).join(' or ');
+            return `Your hands are full — ${this.heldList(all)} — and ${where}. Drop one (${drops}) or put it away first.`;
           }
           return `Your hands are full, and ${where}. Drop it (\`drop ${kw(stuck)}\`) or put it away first.`;
         }
