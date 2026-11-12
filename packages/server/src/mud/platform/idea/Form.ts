@@ -20,9 +20,11 @@
  *
  * A thing names its form by its `shape:` field (`TangibleMixin`); the
  * class default is `block`, `flexible` for garments, lines, sacks and
- * packs, `sheet` for paper. Resident with every place (`Place.onCreate`
- * loads the rows once for the process) — a thing whose form is not loaded
- * has no known size, and nothing asks it to fit.
+ * packs, `sheet` for paper. A form row loads ON USE, never at boot: a
+ * sync `getShape()` that misses starts the load and answers unknown this
+ * once, and a path that must know the size awaits `Tangible.ensureShape()`
+ * first — a thing whose form is not loaded has no known size, and nothing
+ * asks it to fit.
  */
 
 import { Idea } from '../../lib/stuff/Idea';

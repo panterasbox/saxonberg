@@ -490,7 +490,10 @@ function blankComments(src: string): string {
  */
 function harvestFieldLevels(): Record<string, string> {
   const levels: Record<string, string> = {};
-  const CLASS_RE = /(?:class|const)\s+(\w+)/g;
+  // A `class` anywhere (a mixin factory's class is indented), a `const`
+  // only at the top level — a method's local (`const atWaist = …` above a
+  // fieldMeta) is not an owner.
+  const CLASS_RE = /\bclass\s+(\w+)|^(?:export\s+)?const\s+(\w+)/gm;
   const META_RE = /static\s+fieldMeta\s*:?[^=]*=\s*\{/g;
 
   for (const file of sourceFiles(MUD_ROOT)) {
@@ -503,7 +506,7 @@ function harvestFieldLevels(): Record<string, string> {
       CLASS_RE.lastIndex = 0;
       let owner = '(anonymous)';
       let c: RegExpExecArray | null;
-      while ((c = CLASS_RE.exec(before)) !== null) owner = c[1]!;
+      while ((c = CLASS_RE.exec(before)) !== null) owner = (c[1] ?? c[2])!;
 
       const body = braceBody(src, m.index + m[0].length - 1);
       for (const [field, level] of entriesOf(body)) {

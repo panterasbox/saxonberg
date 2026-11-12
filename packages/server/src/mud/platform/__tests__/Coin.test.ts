@@ -154,12 +154,16 @@ describe("Coin — mass → encumbrance coupling (AC#1)", () => {
   afterEach(() => StuffApi.clearAll());
 
   it("a large stack measurably reduces carry capacity headroom", () => {
+    // ⭐ Nothing sits loose on a body (size and carrying, the W7 flip): a
+    // raw move onto a body is the `loose-on-body` veto. Each stack is
+    // received into a hand — the seat asks no weight, so the 200 kg stack
+    // is held and charged like the small one.
     const small = bearerCreature(70);
-    ContainmentApi.move(makeCoins(10), small);
+    small.receive(makeCoins(10), { slot: "hand:left" });
     const smallRatio = small.getLoadRatio();
 
     const big = bearerCreature(70);
-    ContainmentApi.move(makeCoins(100_000), big); // 200 kg of coin
+    big.receive(makeCoins(100_000), { slot: "hand:left" }); // 200 kg of coin
     const bigRatio = big.getLoadRatio();
 
     // Same bearer physiology; only the coin count differs. The heavy stack

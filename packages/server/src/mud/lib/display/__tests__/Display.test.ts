@@ -28,6 +28,7 @@ import Interactive from '../../../platform/idea/Interactive';
 import Avatar from '../../../platform/agent/PrimaryAvatar';
 import Locale from '../../../platform/location/Locale';
 import Tablet from '../../../platform/thing/Tablet';
+import { makeBody } from '../../slot/__tests__/carrying-fixture';
 // ⭐ `Tablet` is the SHIPPED `Display` — two rows name it (the lounge's
 // and trade-hospitality's house tablet), and it is what these cases used
 // to reach through `Screen`, a class no row has ever named. The wall-TV
@@ -273,7 +274,12 @@ describe('DisplayMixin — a display drives itself', () => {
       const c = await makeViewer('Cy', cellar);
       const tablet = await StuffApi.create(() => new Tablet());
       tablet.setPairing('held');
-      ContainmentApi.move(tablet, a.avatar);
+      // ⭐ Another body shows what is in its HANDS (size and carrying D24
+      // rule 2), never what sits loose on it — and nothing sits loose on a
+      // body any more (the W7 flip). Ann is given hands and holds it.
+      a.avatar.setSpecies(makeBody().me.getSpecies()!);
+      a.avatar.receive(tablet);
+      expect(a.avatar.handSlots().some((h) => a.avatar.getOccupants(h).has(tablet as never))).toBe(true);
       tablet.show({ kind: 'card', cardId: 'who', key: 'who' });
       expect(a.cards().length).toBe(1);
       expect(b.cards().length).toBe(1);

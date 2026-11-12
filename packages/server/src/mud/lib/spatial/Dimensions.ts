@@ -14,7 +14,7 @@
  * non-positive side throws (P3 — a zero-size box is an authoring error,
  * never a default).
  *
- * See `docs/subsystems/spatial.md` § Size.
+ * See `docs/subsystems/size.md`.
  */
 
 import type { BoundaryOpening } from '../boundary/Conduit';
