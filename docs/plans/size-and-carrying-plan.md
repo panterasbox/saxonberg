@@ -2162,18 +2162,37 @@ this worktree's DB dropped before every full run; ten full runs and targeted
 | 15 | ✓ | A search FOUND the inner-pocket letter and nothing showed it (the pocket is its scope, not the body) and `get letter from <them>` could never reach into a body (`382586085`). |
 | 16 | ✓ | The yard and reed bank were plain Locales: `swim` was no verb, and the reed bank stranded a swimmer (`fea3fa41a`). The pack's letter goes to pulp; the oilskin's comes out dry. |
 | 17 | ✓ | Staged twin of the soak drive: the 4 h jump, then the meal out of the satchel; the ration count falls. |
-| 18 | ✓ | A mule could not be tacked — handing a beast its tack now puts it on (`eb9498a87`); a tied lead stayed in the leader's hand slot as a phantom (`f50499b98`, the chokepoint vacates); a handcart had no size (`24acb0859`) and no steading way admitted wheels (`89085579f`), the `wheeled` mode was never loaded so NO hitched cart could be dragged anywhere (`82f122c13`), and a cart was fitted through a gate on its side (`8248f6996`). Handed to a full-handed person, a cup is refused before it moves. ⚠ A ration `put` in the handcart "seats with a click" — it took the cart's `bed` slot (a seat), worth a look. ⚠ The room's reach stops at the mule: its panniers are named through it (`put ration in mule:i:pannier`). |
+| 18 | ✓ | A mule could not be tacked — handing a beast its tack now puts it on (`eb9498a87`); a tied lead stayed in the leader's hand slot as a phantom (`f50499b98`, the chokepoint vacates); a handcart had no size (`24acb0859`) and no steading way admitted wheels (`89085579f`), the `wheeled` mode was never loaded so NO hitched cart could be dragged anywhere (`82f122c13`), and a cart was fitted through a gate on its side (`8248f6996`). Handed to a full-handed person, a cup is refused before it moves. ⚠ A ration `put` in the handcart "seats with a click" — it took the cart's `bed` slot (a seat) — ✅ fixed `ace03e229` (`put` is offered a posture-bearing slot only for a `Posed` body). ⚠ The room's reach stops at the mule: its panniers are named through it (`put ration in mule:i:pannier`). |
 | 19 | ✓ | A mug dropped at 0 g "hit the floor hard" — `fallOnto` read 9.81 (`d133f3a18`). ⚠ Requirement vs D19-c: weightless, a body passes a way lengthwise with its pack trailing, so the crawlway is not the test; the pack's SIZE is (a pocket still refuses it). "Still takes both hands" is not met — `handsFor` reads weight × g (D10-b). |
 | 20 | ✓ | The lens labeled a shut chest's contents "something [builder]" (`edb57b7b1`). No staged NPC owns the chest (a content chest in the stager's extent). |
-| 21 | ✓ | Holdings compare as a SET (the restore reorders the worn list). The pre-flip record (`stageLooseSnapshot`) is placed: mug and bowl in hand, key in a pocket, the lantern off the body. ⚠ Its "would not fit anywhere on you" line is spoken during the restore, before the session attaches, and is lost. |
+| 21 | ✓ | Holdings compare as a SET (the restore reorders the worn list). The pre-flip record (`stageLooseSnapshot`) is placed: mug and bowl in hand, key in a pocket, the lantern off the body. ⚠ Its "would not fit anywhere on you" line is spoken during the restore, before the session attaches, and is lost — ✅ fixed `7cf954317` (a player's body places what it found loose at `enter`, the estate-touch shape). |
 | 22 | ✓ | `switch` was no verb for a worn headlamp (`97588cd5c`, the Switchable protocol confers it). The pond is looked at from its shore. |
 
 **Runs 3–5 died `JavaScript heap out of memory`** in a long clock jump, the log full
 of keepers' `get 1 cola` refused once per CANDIDATE on every beat; a refused `get`
-stops asking now (`51c08bc74`) and runs 6–10 peaked at ~0.8 GB. ⚠ **Open, for a
-follow-up:** WHY the keepers' hands are full after the flip (the restock shelving
-pass), and Wen Hartley's `shelf consign crate` answering `not-held`; the mule's tack
-does not survive a restart (a cast beast is re-cloned).
+stops asking now (`51c08bc74`) and runs 6–10 peaked at ~0.8 GB. **The open findings, fixed after the drive (2026-11-12)** — each reproduced in an
+isolated unit test that failed first; not yet re-driven:
+
+- ✅ **The keepers' hands full** — `e143d028a`. Every card `issueCard` dealt took
+  `receive`'s hands-first order, and a purchasing NPC never puts its house card away
+  (the brains skip it), so one hand was gone for good: one good per beat, the second
+  `get 1 cola` refused `nowhere-to-carry` every beat. A card is kept in a pocket now
+  (`prefer: 'pockets'`, a hand only when no pocket takes it); the house card's
+  idempotence reads the carried tree.
+- ✅ **`shelf consign` and the brains' goods** — `da84ff4d4`. After the flip a body's
+  contents are everything on it, worn included: consign moved a worn shirt onto the
+  counter, `stocks` shelved the keeper's apron, `consigns` offered the hand's costume,
+  and a dressed keeper was never idle. Consign takes what you CARRY and refuses `worn`
+  (*take it off first*); the brains read `Carrying.carriedThings()`; `Carrying.wears`
+  is the model read MQL's `:worn` uses. ⚠ The `not-held` line itself was not
+  reproduced in isolation (a held crate binds through the real `shelf.yaml`) — the
+  next drive confirms Wen Hartley's beat.
+- ✅ **The mule's tack across a restart** — `b7b6b9216`. Cast is never a room's
+  content, so everything a player put ON the re-minted mule was in no record at all.
+  `DraftAnimal` keeps its own record (`PersistableMixin` + a `holder_snapshots`
+  hydration source, the `Stockpile` shape; keyed by its row — cast is one-per-path).
+- ✅ **The handcart's bed** — `ace03e229` (step 18 above).
+- ✅ **The restore's lost line** — `7cf954317` (step 21 above).
 
 **Staging tools built** (`e9c681a12`, `7cd98fb61`, `382586085`): `testharness
 gravity <m/s²|clear>`, `testharness afflict <name> <condition> [stage]` (a toxin
