@@ -1,0 +1,19 @@
+# Crawl — on hands and knees (size and carrying D20). Slow and quiet; a
+# body crawls at `prone`, 0.4 of its stature, so a 1.75 m body clears the
+# 0.8 m crawlway bare — and a pack on its back does not. What you hold
+# goes through ahead of you, measured on its own. A biped's plan lists
+# it (and, in W6, a dog's); a horse does not crawl.
+class: /platform/idea/LocomotionMode
+data:
+  name: crawl
+  speed: 0.3
+  noiseLevel: quiet
+  bodyProfile: prone
+  groundContact: full
+  requiresBodyPlanMode: [crawl]
+  requiresPosture: []
+  costMultiplier: 1.5
+  passthrough: false
+  conveyanceMixin: null
+  enablementMixin: null
+  medium: ground

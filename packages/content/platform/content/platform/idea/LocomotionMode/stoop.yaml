@@ -1,0 +1,21 @@
+# Stoop — bent under a low lintel (size and carrying D20). Lower than a
+# walk and a little slower, but NOT quieter: stooping is not sneaking
+# (sneak crouches too, and clears a low door as well). A body stoops at
+# `crouched` — 0.6 of its stature — so a 1.75 m body clears a 1.4 m door.
+# The plan decides who can stoop (`requiresBodyPlanMode: [stoop]`): a
+# biped lists it, a horse never stoops.
+class: /platform/idea/LocomotionMode
+data:
+  name: stoop
+  speed: 0.8
+  noiseLevel: normal
+  bodyProfile: crouched
+  groundContact: full
+  requiresBodyPlanMode: [stoop]
+  requiresPosture: []
+  # Bent over, a body works a little harder than walking upright.
+  costMultiplier: 1.1
+  passthrough: false
+  conveyanceMixin: null
+  enablementMixin: null
+  medium: ground

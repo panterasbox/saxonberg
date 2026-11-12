@@ -27,6 +27,7 @@ import { Mml } from '../../../../api/mml';
 import { Postures, type PostureAnswer, type PostureRefusal } from '../../../../lib/slot/Postured';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import Place from '../../../../lib/stuff/Place';
+import { Creature } from '../../../../lib/creature/Creature';
 
 interface StandModel extends CommandModel {
   target?: MqlOneResult;
@@ -37,6 +38,12 @@ export default class StandController extends CommandController<StandModel> {
     const giver = context.commandGiver;
     if (!MixinApi.isPosed(giver)) {
       throw new Error(`StandController: requiresPosed validator should have caught ${giver.stuffId}`);
+    }
+    // ⭐ Under a ceiling lower than you, you cannot stand (size and carrying
+    // D21) — wherever you would stand on. The body asks; nothing changes.
+    const low = giver instanceof Creature ? giver.acceptPosture(Postures.Stand) : null;
+    if (low !== null) {
+      return this.refuse(context, 'act.deed', 'The ceiling is too low to stand up here.', low.reason);
     }
 
     // The host stood on: the named one, else a floor where standing is a

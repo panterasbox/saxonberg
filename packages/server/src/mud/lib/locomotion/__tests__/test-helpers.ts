@@ -46,6 +46,7 @@ interface ModeData {
   conveyanceMixin?: string | null;
   enablementMixin?: string | null;
   medium?: string | null;
+  hands?: number;
 }
 
 const MODE_DEFAULTS: Record<string, ModeData> = {
@@ -72,6 +73,31 @@ const MODE_DEFAULTS: Record<string, ModeData> = {
     passthrough: false,
     enablementMixin: 'ClimbableMixin',
     medium: 'vertical',
+    hands: 2,
+  },
+  stoop: {
+    name: 'stoop',
+    speed: 0.8,
+    noiseLevel: 'normal',
+    bodyProfile: 'crouched',
+    groundContact: 'full',
+    requiresBodyPlanMode: ['stoop'],
+    costMultiplier: 1.1,
+    passthrough: false,
+    enablementMixin: null,
+    medium: 'ground',
+  },
+  crawl: {
+    name: 'crawl',
+    speed: 0.3,
+    noiseLevel: 'quiet',
+    bodyProfile: 'prone',
+    groundContact: 'full',
+    requiresBodyPlanMode: ['crawl'],
+    costMultiplier: 1.5,
+    passthrough: false,
+    enablementMixin: null,
+    medium: 'ground',
   },
   swim: {
     name: 'swim',
@@ -188,10 +214,11 @@ export function buildMode(
   if (data.medium !== undefined) {
     mode.setMedium(data.medium);
   }
+  if (data.hands !== undefined) mode.setHands(data.hands);
   return mode;
 }
 
-/** Build all nine v1 modes; returns a name → singleton record. */
+/** Build every mode in the table; returns a name → singleton record. */
 export function buildAllModes(): Record<string, LocomotionMode> {
   const out: Record<string, LocomotionMode> = {};
   for (const name of Object.keys(MODE_DEFAULTS)) {

@@ -47,7 +47,7 @@ export interface AdmissibleWay {
 }
 
 /** The ground pace family — what an empty `media` list admits. */
-const GROUND_PACES: readonly string[] = ['walk', 'sneak', 'run'];
+const GROUND_PACES: readonly string[] = ['walk', 'sneak', 'run', 'stoop', 'crawl'];
 
 /**
  * A declared traveller. ⚠ `medium` is resolved by the CALLER (through

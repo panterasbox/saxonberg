@@ -301,6 +301,8 @@ function mapGate(gate: string | undefined): LocomotionGateFailedNote['gate'] {
     case 'locked': return 'locked';
     case 'unbuilt': return 'unbuilt';
     case 'unpublished': return 'unpublished';
+    case 'clearance': return 'clearance';
+    case 'handsNeeded': return 'hands-needed';
     default: return gate ?? 'unnamed';
   }
 }

@@ -16,6 +16,7 @@ import { StuffApi } from '../../../api/stuff';
 import { BiomeApi } from '../../../api/biome';
 import { MixinApi } from '../../../api/mixin';
 import { SpeciesApi } from '../../../api/species';
+import { GrammarApi } from '../../../api/grammar';
 import type { MixinName } from '../../../lib/mixin';
 import { LOAD_BEARING_DEFAULTS } from '../../../lib/encumbrance/LoadBearing';
 import { Postures } from '../../../lib/slot/Postured';
@@ -236,9 +237,11 @@ export class LocomotionLogic extends ApiLogic {
         reason: `You can't ${mode.getName()} from this posture.`,
       };
     }
+    const hands = this.handsGate(actor, mode);
+    if (hands !== null) return hands;
     const exitGuard = await exit.canTraverse(actor, mode.getName());
     if (!exitGuard.ok) return exitGuard;
-    const deep = this.overYourHead(exit, mode);
+    const deep = this.overYourHead(actor, exit, mode);
     if (deep !== null) return deep;
     let enablement = this.checkEnablement(actor, mode, direction);
     // ⭐ The far side: an exit whose DESTINATION is the medium (the
@@ -257,16 +260,43 @@ export class LocomotionLogic extends ApiLogic {
   }
 
   /**
+   * ⭐ A mode that takes hands (a climb takes both — size and carrying
+   * D20) refuses a body with fewer free, naming what it holds. A body with
+   * fewer hands than the mode asks gives all it has: the plan said it can
+   * move this way at all. ⚠ Free hands are `Carrying.freeHands` — W4
+   * subtracts a hitched cart's.
+   */
+  private handsGate(actor: Stuff, mode: LocomotionMode): TraversalGuard | null {
+    const wanted = mode.getHands();
+    if (wanted <= 0 || !MixinApi.isCarrying(actor)) return null;
+    const need = Math.min(wanted, actor.handSlots().length);
+    if (actor.freeHands() >= need) return null;
+    const held = actor.heldThings().map((t) => t.presentationPhrase().indefinite());
+    const verb = mode.getName();
+    const hands = need >= 2 ? 'both hands' : 'a free hand';
+    return {
+      ok: false,
+      gate: 'handsNeeded',
+      mode: verb,
+      reason: held.length > 0
+        ? `You need ${hands} to ${verb} — you're holding ${GrammarApi.joinList(held)}.`
+        : `You need ${hands} to ${verb}.`,
+      context: { hands: need, free: actor.freeHands() },
+    };
+  }
+
+  /**
    * ⭐ You do not WALK into water over your head (underwater D29 seam 10):
    * a ground mode into a water place whose water is deeper than wading is
    * refused, in the water's words — swim in, or go down to it. A frozen
    * water is the floor's question (the ice bears you or breaks).
    */
-  private overYourHead(exit: Exit, mode: LocomotionMode): TraversalGuard | null {
+  private overYourHead(actor: Stuff, exit: Exit, mode: LocomotionMode): TraversalGuard | null {
     if (mode.getMedium() !== 'ground') return null;
     const dest = exit.peekDestination();
     if (!dest || !MixinApi.isWaterPlace(dest)) return null;
-    if (dest.stateNow() !== 'swimming') return null;
+    // ⭐ Over YOUR head (size and carrying D22): by the body's stature.
+    if (dest.stateFor(actor) !== 'swimming') return null;
     return {
       ok: false,
       gate: 'blocked',

@@ -68,6 +68,9 @@ function crossing(): IceCrossingExit {
 function body(kg: number): Stuff & Containable {
   const s = makeStuff(() => new Idea()) as unknown as Stuff & { getMass(): Quantity<'kg'> };
   (s as unknown as { getMass: () => Quantity<'kg'> }).getMass = () => Quantity.of(kg, 'kg');
+  // The traverse gate measures what comes through (size and carrying D21):
+  // this mover has no size, so it is never refused for one.
+  Object.assign(s, { ensureShape: async () => null, getFitBox: () => null, getShape: () => null });
   return s as unknown as Stuff & Containable;
 }
 

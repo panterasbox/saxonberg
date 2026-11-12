@@ -68,6 +68,7 @@ import { CombatApi } from '../../api/combat';
 import { TemplatePaths } from '../paths';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
+import { CLOSURE_ORDER } from '../bulk/Bulkable';
 
 /** The key a place's own water is registered under in `waters`. */
 export const WATER_KEY = 'water';
@@ -83,6 +84,13 @@ const WATER_DENSITY = 1000;
 
 /** How deep an adult stands in water before it is over their head, m. */
 const DEFAULT_WADE_M = 1.5;
+
+/**
+ * ⭐ How deep a body stands in water, as a share of its stature (size and
+ * carrying D22, slate § 6.2): to the chin, 0.85 — 1.49 m for a 1.75 m
+ * body, the adult the `water.column.wadeM` dial still answers for.
+ */
+const WADE_FRACTION = 0.85;
 
 /** The thinnest a band of a column may be, m. */
 const DEFAULT_MIN_BAND_M = 2;
@@ -162,8 +170,15 @@ export interface WaterPlace {
   levelNow(): number;
   /** How deep the water is over this place's floor now, m (≤ 0 = dry). */
   depthNow(): number;
-  /** What this water is like now. */
+  /** What this water is like now — for a grown adult (the `water.column.wadeM` dial). */
   stateNow(): WaterState;
+  /**
+   * ⭐ What this water is like now for `body` (size and carrying D22): it
+   * wades while the water is under `stature × WADE_FRACTION` (a gnome is
+   * swimming where a human stands); a body with no stature reads as
+   * {@link stateNow}.
+   */
+  stateFor(body: Stuff): WaterState;
   /**
    * ⭐ A swim from where this water's surface holds you lets go of it first
    * (river drive, A3) — the push-off. Nothing when the surface is not
@@ -474,6 +489,16 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       if (depth <= 0) return 'dry';
       if (depth <= wadeDepthM()) return 'wading';
       return 'swimming';
+    }
+
+    public stateFor(body: Stuff): WaterState {
+      const state = this.stateNow();
+      if (state !== 'wading' && state !== 'swimming') return state;
+      const stature = MixinApi.isPosed(body) ? body.getStature() : null;
+      const depth = this.depthNow();
+      // A water nobody cited has no depth to read: over your head, as it says.
+      if (stature === null || !(depth > 0)) return state;
+      return depth <= stature * WADE_FRACTION ? 'wading' : 'swimming';
     }
 
     /* ─────────────────────────── the column ─────────────────────────── */
@@ -894,6 +919,10 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
             if (!holder.isDestroyed()) holder.reconcilePressing();
           });
         }
+        // ⭐ A shut container tight against liquid keeps what it holds dry
+        // (size and carrying D22): the oilskin pouch with its flap down, the
+        // rubber bag. A shut canvas pack does not — its cloth takes water.
+        if (keepsWaterOut(s)) return;
         // ⭐ An air pocket (a bell) keeps the water out of what it holds.
         const ownAir = MixinApi.isAtmospheric(s) ? s.getInlineAtmosphere() : null;
         if (MixinApi.isContainer(s) && (ownAir === null || ownAir === 'water')) {
@@ -984,6 +1013,20 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
 
 /** Half a lunar day, game-seconds: high water to high water (a 30-day month). */
 const HALF_LUNAR_DAY_S = (86_400 * 30) / 29 / 2;
+
+/**
+ * ⭐ Does `holder` keep the water out of what it holds? Shut, and tight
+ * against liquid on the closure ladder (`Container.closureLevel` — a
+ * `Bulkable` vessel's own `closure`, else a shut `Sealable` whose material
+ * takes no water). ⚠ A liquid-tight vessel standing open is not: its
+ * closure says it holds water IN, not that it has a lid. A body is never a
+ * holder here — the water reaches what you wear.
+ */
+function keepsWaterOut(holder: Stuff): boolean {
+  if (holder.isAgent() || !MixinApi.isContainer(holder)) return false;
+  if (!MixinApi.isSealable(holder) || holder.isOpen()) return false;
+  return CLOSURE_ORDER[holder.closureLevel()] >= CLOSURE_ORDER.liquidTight;
+}
 
 /** The wading depth dial (`water.column.wadeM`). */
 function wadeDepthM(): number {

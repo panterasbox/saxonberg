@@ -50,6 +50,7 @@ import { NavigationApi } from '../../api/navigation';
 import { CommandApi, type CommandContributions } from '../../api/command';
 import type { DefaultAliasEntry } from '../shell/Alias';
 import { LocomotionApi } from '../../api/locomotion';
+import { GrammarApi } from '../../api/grammar';
 import type { CommandGiver } from '../command/CommandGiver';
 import type Interactive from '../../platform/idea/Interactive';
 import {
@@ -253,6 +254,11 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         // `enablementMixin: null` — nothing gates it, nothing conferred
         // it, and `go` was the only way out.
         'platform/cmd/movement/walk.yaml',
+        // ⭐ How a body gets through an opening is a mode (size and carrying
+        // D20): under a low lintel, on hands and knees. Anybody whose plan
+        // lists them may use them anywhere, so the mover confers them.
+        'platform/cmd/movement/stoop.yaml',
+        'platform/cmd/movement/crawl.yaml',
         'platform/cmd/boundary/open.yaml',
         'platform/cmd/boundary/close.yaml',
         // ⭐⭐ `lock`/`unlock` — **beside open/close, because they are the
@@ -964,6 +970,24 @@ function arriveDirection(exit: Exit): string | undefined {
  * the only callers are `traverse` itself (inside its engagement) and the
  * carried branch.
  */
+/**
+ * ⭐ On hands and knees, what you hold goes ahead of you (size and carrying
+ * D19/D21): a body moving `prone` with things in its hands is told it
+ * pushes them along, and so is the room. Narration, not a verb.
+ */
+function pushAhead(mover: Stuff & Containable & Mobile, mode: string): void {
+  if (LocomotionApi.modeOf(mode)?.getBodyProfile() !== 'prone') return;
+  if (!MixinApi.isCarrying(mover)) return;
+  const held = mover.heldThings();
+  if (held.length === 0) return;
+  const words = GrammarApi.joinList(held.map((t) => t.presentationPhrase().definite()));
+  const scene = MessageApi.scene(mover)
+    .topic('act.move')
+    .toPeers(Mml.compose`${Mml.actor(mover)} pushes ${words} ahead.`);
+  if (MixinApi.isSensor(mover)) scene.toSelf(Mml.compose`You push ${words} ahead of you.`);
+  scene.send();
+}
+
 async function crossExit(
   mover: Stuff & Containable & Mobile,
   exit: Exit,
@@ -1005,6 +1029,7 @@ async function crossExit(
   }
 
   mover.announceDeparture(source, exit);
+  pushAhead(mover, mode);
   ContainmentApi.move(mover, destination);
   mover.announceArrival(destination, exit);
 

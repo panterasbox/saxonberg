@@ -68,6 +68,11 @@ import { AttiredMixin } from '../slot/Attired';
 import { CarryingMixin } from '../slot/Carrying';
 import { PostmortemMixin } from '../mortality/Postmortem';
 import { Quantity } from '../quantity';
+import { Postures } from '../slot/Postured';
+import type { ActRefusal } from '../craft/ActPlan';
+import { Dimensions, SIZE_DEFAULTS } from '../spatial/Dimensions';
+import type { BoundaryOpening } from '../boundary/Conduit';
+import { BODY_PROFILE_HEIGHT, type BodyProfile } from '../../platform/idea/LocomotionMode';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
@@ -268,6 +273,15 @@ export type BodyConditionBand = (typeof BODY_CONDITION_BANDS)[number];
  * reviewer's test: *can a reader who does not know the number tell this
  * band from the one on either side of it?*
  */
+/** A rider sits this share of its stature above its mount's back (D19). */
+const SEATED_SHARE = 0.6;
+
+/** The slots whose worn containers make a body deeper (a pack; D19). */
+const WORN_BULK_SLOTS: readonly string[] = ['back', 'torso'];
+
+/** Why a body cannot take a posture where it is (size and carrying D21). */
+export type PoseRefusal = ActRefusal<'ceiling-too-low', { ceilingM: number; statureM: number }>;
+
 const BODY_CONDITION_PHRASE: Readonly<Record<BodyConditionBand, string>> = {
   emaciated: 'wasted — every rib and the points of the hips standing out, and the coat gone staring',
   thin: 'thin; you can count the ribs at a glance and the backbone is a ridge',
@@ -640,6 +654,143 @@ export class Creature extends CreatureBase {
     const kg = this.getMass().rawValue();
     const rho = this.getBodyDensity().rawValue();
     return kg > 0 && rho > 0 ? kg / rho : null;
+  }
+
+  /**
+   * The body's height standing, m — the species' stature (own, else its
+   * plan's); `null` for a body with none to read. Overrides `Posed`'s hook:
+   * the ceiling `stand` is asked against.
+   */
+  public override getStature(): number | null {
+    const stature = this.getSpecies()?.getStature() ?? 0;
+    return stature > 0 ? stature : null;
+  }
+
+  /**
+   * ⭐ May this body take `posture` where it is? (size and carrying D21)
+   * `stand` is refused `ceiling-too-low` under a ceiling lower than its
+   * stature; open sky has no ceiling, so never there. Asks, never changes
+   * the posture. On the body, not on `Posed`: posture-as-held and
+   * posture-as-allowed-here are two ideas (`lint:mixin-clusters`).
+   */
+  public acceptPosture(posture: string): PoseRefusal | null {
+    if (posture !== Postures.Stand) return null;
+    const statureM = this.getStature();
+    if (statureM === null) return null;
+    const room = this.getContainer();
+    if (room === null || !MixinApi.isAtmospheric(room)) return null;
+    const ceilingM = room.getCeilingHeight()?.rawValue() ?? null;
+    if (ceilingM === null || ceilingM + 1e-9 >= statureM) return null;
+    return { ok: false, reason: 'ceiling-too-low', facts: { ceilingM, statureM } };
+  }
+
+  /**
+   * ⭐ **The body's envelope** (size and carrying D19) — the gap it needs
+   * to pass, `{ width, height }` m, moving with `profile`:
+   *
+   * - height = stature × `BODY_PROFILE_HEIGHT[profile]` (upright 1.0,
+   *   crouched 0.6, prone and horizontal 0.4);
+   * - width = girth = `2·√(mass / (π · stature · density))`, a cylinder of
+   *   the body's own density;
+   * - what it wears on its back or torso (a pack — {@link wornBulk}) rides
+   *   on top when it goes low (prone, horizontal), and trails behind it
+   *   upright, where a way's face does not see it;
+   * - mounted, the pair: the mount's height plus the rider's seated share
+   *   (`stature × 0.6`), as wide as the wider of them.
+   *
+   * With no gravity — or through a way UP or DOWN (`lengthwise`), where the
+   * body's length runs along the way — it fits by its narrowest way round.
+   * What the hands hold is NOT here: each held thing is measured on its own
+   * (`Exit.clearanceRefusal`). `bare` leaves the worn bulk out (would it
+   * pass without the pack?). `null` when the body has no size to read.
+   */
+  public envelope(
+    profile: BodyProfile,
+    opts: { lengthwise?: boolean; bare?: boolean } = {},
+  ): BoundaryOpening | null {
+    const pair = this.mountedPair();
+    if (pair !== null) {
+      const mount = pair.mount.ownEnvelope('upright', { lengthwise: opts.lengthwise === true });
+      const rider = pair.rider.ownEnvelope('upright', opts);
+      const riderStature = pair.rider.getStature();
+      if (mount === null || rider === null || riderStature === null) return null;
+      return {
+        width: Math.max(mount.width, rider.width),
+        height: mount.height + riderStature * SEATED_SHARE,
+      };
+    }
+    return this.ownEnvelope(profile, opts);
+  }
+
+  /**
+   * The mount and its rider when this body is either (the rider in a
+   * mount's slot); `null` on foot.
+   */
+  public mountedPair(): { mount: Creature; rider: Creature } | null {
+    const self = this as unknown as Stuff;
+    if (MixinApi.isMountable(self)) {
+      const rider = self.getMountOccupant();
+      return rider instanceof Creature ? { mount: this, rider } : null;
+    }
+    if (MixinApi.isSlottable(self)) {
+      const host = self.getOccupiedHost();
+      if (host instanceof Creature && MixinApi.isMountable(host) && host.getMountOccupant() === self) {
+        return { mount: host, rider: this };
+      }
+    }
+    return null;
+  }
+
+  /**
+   * ⭐ What the body wears that makes it deeper (D19): the containers
+   * occupying its back or torso (a pack), and the depth they add — the
+   * cube root of their bulk, each the most of its packed self, its
+   * authored box, or its walls and what is in it (a hollow thing's derived
+   * size measures only its walls, D4-b).
+   */
+  public wornBulk(): { things: Stuff[]; depthM: number } {
+    const things: Stuff[] = [];
+    let volume = 0;
+    for (const slot of WORN_BULK_SLOTS) {
+      if (!this.getSlotSpec(slot)) continue;
+      for (const worn of this.getOccupants(slot)) {
+        if (things.includes(worn) || !MixinApi.isContainer(worn) || !MixinApi.isTangible(worn)) continue;
+        let inside = worn.getMatterVolumeM3() ?? 0;
+        for (const c of worn.getContents()) {
+          if (MixinApi.isTangible(c)) inside += c.getFitBox()?.boxVolume() ?? 0;
+        }
+        const authored = worn.hasAuthoredSize() ? (worn.getDimensions()?.boxVolume() ?? 0) : 0;
+        const bulk = Math.max(worn.getPackedVolumeM3() ?? 0, authored, inside);
+        if (bulk > 0) {
+          things.push(worn);
+          volume += bulk;
+        }
+      }
+    }
+    return { things, depthM: volume > 0 ? Math.cbrt(volume) : 0 };
+  }
+
+  /** This body's own envelope — on foot, no mount. */
+  private ownEnvelope(
+    profile: BodyProfile,
+    opts: { lengthwise?: boolean; bare?: boolean },
+  ): BoundaryOpening | null {
+    const stature = this.getStature();
+    const mass = this.getMass().rawValue();
+    const rho = this.getBodyDensity().rawValue();
+    if (stature === null || !(mass > 0) || !(rho > 0)) return null;
+    const girth = 2 * Math.sqrt(mass / (Math.PI * stature * rho));
+    const pack = opts.bare === true ? 0 : this.wornBulk().depthM;
+    const place = this.getEnclosingPlace();
+    const g = place !== null && MixinApi.isAtmospheric(place)
+      ? place.gravityNow().rawValue()
+      : SIZE_DEFAULTS.STANDARD_GRAVITY;
+    if (opts.lengthwise === true || !(g > 0)) {
+      return new Dimensions(girth, girth + pack, stature).crossSection();
+    }
+    const height = stature * BODY_PROFILE_HEIGHT[profile];
+    const low = profile === 'prone' || profile === 'horizontal';
+    return { width: girth, height: low ? height + pack : height };
   }
 
   /**

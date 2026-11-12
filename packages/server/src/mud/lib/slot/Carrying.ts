@@ -45,6 +45,7 @@ import type { Slottable } from './Slottable';
 import type { Slotted } from './Slotted';
 import type { ActRefusal } from '../craft/ActPlan';
 import { ContainmentApi } from '../../api/containment';
+import { MixinApi } from '../../api/mixin';
 import { SettingTypes, type SettingsSchemaEntry } from '../shell/Environment';
 
 /** The order a carrier tries its places in (`carry.order`, D11). */
@@ -75,6 +76,20 @@ export interface Carrying {
    * it is seated there (`seatInSlot`). It never refuses yet.
    */
   receive(item: Stuff & Containable, opts?: ReceiveOptions): ReceiveRefusal | null;
+  /**
+   * ⭐ The body's hands (D9): the slots whose body part serves
+   * `manipulation` — a biped's `hand:left` and `hand:right`. None for a
+   * body with nothing to hold with.
+   */
+  handSlots(): string[];
+  /** What the hands hold, each thing once (a two-handed grip is one thing). */
+  heldThings(): (Stuff & Slottable)[];
+  /**
+   * How many hands are empty and can close on something (`Vitals.canGrip`
+   * — a lost or failing hand is not free). ⚠ W2's minimal read for the
+   * ladder's gate; W4 subtracts a hitched cart's handedness.
+   */
+  freeHands(): number;
 }
 
 // ⚠ The base constraint is `Slotted` only: `Container` composes OUTER of
@@ -104,6 +119,36 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
           'fits you are told so and nothing moves.',
       },
     ];
+
+    public handSlots(): string[] {
+      const self = this as unknown as Stuff & Slotted;
+      if (!MixinApi.isAttired(self)) return [];
+      const sites = new Set(self.handSites());
+      if (sites.size === 0) return [];
+      return self.getSlotNames().filter((name) => {
+        const part = self.getSlotSpec(name)?.bodyPart;
+        return part !== undefined && sites.has(part);
+      });
+    }
+
+    public heldThings(): (Stuff & Slottable)[] {
+      const self = this as unknown as Stuff & Slotted;
+      const out: (Stuff & Slottable)[] = [];
+      for (const slot of this.handSlots()) {
+        for (const held of self.getOccupants(slot)) {
+          if (!out.includes(held)) out.push(held);
+        }
+      }
+      return out;
+    }
+
+    public freeHands(): number {
+      const self = this as unknown as Stuff & Slotted;
+      const vitals = MixinApi.isVitals(self) ? self : null;
+      return this.handSlots().filter(
+        (slot) => !self.isSlotOccupied(slot) && (vitals === null || vitals.canGrip(slot)),
+      ).length;
+    }
 
     public receive(item: Stuff & Containable, opts: ReceiveOptions = {}): ReceiveRefusal | null {
       const self = this as unknown as Stuff & Container & Slotted;

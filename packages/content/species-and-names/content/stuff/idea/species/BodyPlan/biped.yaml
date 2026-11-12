@@ -57,6 +57,10 @@ data:
     - walk
     - climb
     - swim
+    # ⭐ Bent under a low lintel, and on hands and knees (size and
+    # carrying D20). The plan decides: a quadruped lists neither.
+    - stoop
+    - crawl
   defaultLocomotionMode: walk
   sensoryPorts:
     - { modality: vision, count: 2, position: frontal }
