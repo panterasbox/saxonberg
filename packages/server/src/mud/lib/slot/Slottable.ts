@@ -254,5 +254,20 @@ export function SlottableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
   }
+  // ⭐ Slottable once (size and carrying W7): every good is slottable — a
+  // hand holds any good — so a class that composes it again over a good (a
+  // garment, a pack, a weapon) gets the good's own layer, not a second one
+  // (two would redeclare its `@Final` methods).
+  if (composesSlottable(Base)) return Base as unknown as typeof SlottableMixin;
   return SlottableMixin;
+}
+
+/** Does a constructor's chain already compose `SlottableMixin`? */
+function composesSlottable(ctor: unknown): boolean {
+  for (let c = ctor; typeof c === 'function'; c = Object.getPrototypeOf(c)) {
+    if (Object.prototype.hasOwnProperty.call(c, '_mixinName') && (c as { _mixinName?: string })._mixinName === 'SlottableMixin') {
+      return true;
+    }
+  }
+  return false;
 }

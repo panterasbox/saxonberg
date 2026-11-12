@@ -422,6 +422,12 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
     private fitsSlotSpec(candidate: Stuff & Slottable, slot: string): boolean {
       const spec = this.getSlotSpec(slot);
       if (!spec) return false;
+      // ⭐ A carrier's hand closes on any slottable thing (size and carrying
+      // W7): its `accepts` and the thing's claim say where `wield`/`wear`
+      // put it, not what a hand may hold — the grip decides
+      // (`Carrying.handsFor`).
+      const host = this as unknown as Stuff;
+      if (MixinApi.isCarrying(host) && host.handSlots().includes(slot)) return true;
       // Part 1 — slot-side mixin check. `accepts` is validated to be
       // a Mixins-registry value at setStaticSlots() time; safe cast.
       if (!MixinApi.hasMixin(candidate, spec.accepts as MixinName)) {

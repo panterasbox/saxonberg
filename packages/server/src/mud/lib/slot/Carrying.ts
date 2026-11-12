@@ -827,9 +827,9 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
 
     /** The hand slots `item` would take: its own claim's hands, else the first free ones. */
     private gripSlotsFor(item: Stuff): string[] | null {
-      // A hand takes what can be wielded (the hand slots' `accepts`); a
-      // thing that cannot is used where it is.
-      if (!MixinApi.isSlottable(item) || !MixinApi.isWieldable(item)) return null;
+      // A hand takes any slottable thing — every good (W7); a fixture or a
+      // place cannot be held and is used where it is.
+      if (!MixinApi.isSlottable(item)) return null;
       const self = this as unknown as Stuff & Slotted;
       const hands = this.handSlots();
       if (hands.length === 0) return null;

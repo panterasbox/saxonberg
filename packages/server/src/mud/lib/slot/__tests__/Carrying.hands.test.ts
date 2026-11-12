@@ -15,6 +15,10 @@ import { cart } from './haulage-fixtures';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { HaulerMixin } from '../Hauler';
 import { Body } from './carrying-fixture';
+import Good from '../../../platform/thing/Good';
+import Garment from '../../../platform/thing/equipment/Garment';
+import { MixinApi } from '../../../api/mixin';
+import { Quantity } from '../../quantity';
 
 class HaulingBody extends HaulerMixin(Body) {}
 
@@ -84,5 +88,37 @@ describe('Carrying — hands (D9/D10)', () => {
     const r = me.canReceive(tool('cup', 0.2));
     expect(r?.reason).toBe('nowhere-to-carry');
     expect(me.refusalWords(r!)).toMatch(/hands are full \(a knife and a torch\)|hands are full \(a torch and a knife\)/);
+  });
+});
+
+describe('Carrying — a hand holds any good (W7)', () => {
+  beforeEach(() => installV1QuantityMarshallers());
+  afterEach(() => StuffApi.clearAll());
+
+  it('⭐ a plain good (a mug: not wieldable, not worn) is slottable, and a hand closes on it', () => {
+    const { me } = makeBody();
+    const mug = makeStuff(() => new Good());
+    mug.setShortDescription('mug');
+    mug.setMass(Quantity.of(0.35, 'kg'));
+    expect(MixinApi.isSlottable(mug)).toBe(true);
+    expect(MixinApi.isWieldable(mug)).toBe(false);
+    expect(me.canOccupy(mug, 'hand:right')).toBe(true);
+    me.receive(mug, { slot: 'hand:right' });
+    expect(me.heldThings()).toContain(mug);
+    expect(me.tierOf(mug)).toBe('hand');
+  });
+
+  it('a good that is also worn composes Slottable once (no second layer)', () => {
+    const chain: string[] = [];
+    for (let c: unknown = Garment; typeof c === 'function'; c = Object.getPrototypeOf(c)) {
+      if (Object.prototype.hasOwnProperty.call(c, '_mixinName')) chain.push((c as { _mixinName: string })._mixinName);
+    }
+    expect(chain.filter((n) => n === 'SlottableMixin')).toHaveLength(1);
+  });
+
+  it('a non-hand slot still asks its accepts (a mug is not worn on the torso)', () => {
+    const { me } = makeBody();
+    const mug = makeStuff(() => new Good());
+    expect(me.canOccupy(mug, 'torso')).toBe(false);
   });
 });
