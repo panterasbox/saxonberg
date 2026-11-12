@@ -132,6 +132,11 @@ export interface LoadBearing {
   /** Burden / capacity (dimensionless; `0` capacity → `0`/`Infinity`). */
   /** Burden over capacity; in the water when `waterDensityKgM3` is given. */
   getLoadRatio(waterDensityKgM3?: number): number;
+  /**
+   * ⭐ How the load sits on this body, in words — never a number (size and
+   * carrying D28's burden line): `null` when it carries next to nothing.
+   */
+  burdenWords(): string | null;
   /** Would lifting `candidate` (as loose carry) push burden past the ceiling? */
   wouldExceedCeiling(candidate: Stuff): boolean;
 }
@@ -368,6 +373,17 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
           LOAD_BEARING_DEFAULTS.OVERLOAD_FACTOR,
         'kg',
       );
+    }
+
+    public burdenWords(): string | null {
+      const ratio = this.getLoadRatio();
+      if (!Number.isFinite(ratio)) return 'You are carrying more than you can bear.';
+      if (ratio < 0.05) return null;
+      if (ratio < LOAD_BEARING_DEFAULTS.LIGHT_LOAD_FLOOR) return 'Your load is light.';
+      if (ratio < 0.75) return 'You are carrying a fair load.';
+      if (ratio <= LOAD_BEARING_DEFAULTS.HEAVY_LOAD_THRESHOLD) return 'You are well laden.';
+      if (ratio <= LOAD_BEARING_DEFAULTS.OVERLOAD_FACTOR) return 'You are heavily burdened.';
+      return 'You are carrying more than you can bear.';
     }
 
     public getLoadRatio(waterDensityKgM3?: number): number {

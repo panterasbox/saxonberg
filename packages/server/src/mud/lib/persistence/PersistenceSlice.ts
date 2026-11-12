@@ -259,7 +259,8 @@ export type HomeEnd =
  * go back to (D14). Never a stuffId (it does not survive a restart).
  */
 export interface HomesSlice {
-  homes: Array<{ item: HomeEnd; home: HomeEnd }>;
+  /** `region` names the home's pocket when the home is a placing host's region (D26). */
+  homes: Array<{ item: HomeEnd; home: HomeEnd; region?: string }>;
 }
 
 /** The tagged union stored under each layer key in a record's `state`. */

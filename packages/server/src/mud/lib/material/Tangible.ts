@@ -74,6 +74,14 @@ const FORM_ROOT = '/platform/idea/Form/';
 const FORM_LOADS = new Set<string>();
 
 /** One numeric dial read, falling back to the literal when unseeded. */
+/** Two significant places for a reading off a list — `0.42`, `3.2`, `12`. */
+function roundForReading(n: number): number {
+  if (!(n > 0)) return 0;
+  if (n >= 10) return Math.round(n);
+  if (n >= 1) return Math.round(n * 10) / 10;
+  return Math.round(n * 100) / 100;
+}
+
 function tangibleDial(key: string, fallback: number): number {
   try {
     const raw = AppApi.setting(key);
@@ -239,6 +247,12 @@ export interface Tangible {
    * an assembly its parts, a body its own density). `null` = unknown.
    */
   getVolumeM3(): number | null;
+  /**
+   * ⭐ Its mass and its bulk as a person reads them off a list —
+   * `0.4 kg, 0.2 L` (`inventory --weight`, size and carrying D28). The bulk
+   * is left off when it is not known.
+   */
+  massAndBulkWords(): string;
   /**
    * The volume of the MATTER itself — mass over the bulk material's
    * density: a hollow thing's walls, never its room. `null` with no mass
@@ -512,6 +526,12 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       const rho = this.getMaterial()?.getDensity().rawValue() ?? 0;
       if (!(rho > 0)) return null;
       return kg / rho;
+    }
+
+    public massAndBulkWords(): string {
+      const mass = `${roundForReading(this.getMass().rawValue())} kg`;
+      const m3 = this.getVolumeM3();
+      return m3 === null ? mass : `${mass}, ${roundForReading(m3 * 1000)} L`;
     }
 
     public getVolumeM3(): number | null {

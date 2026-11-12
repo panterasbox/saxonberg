@@ -784,21 +784,6 @@ async function restoreState(
     for (const entry of containerSlice.contents) {
       restored.push(await restoreItem(entry, target, principal));
     }
-    // Placement pass — a placed item re-`place`s onto its `Placing`
-    // sibling, under the placement (a path) the slice recorded. ⭐ The
-    // placement loads first (documents D7), so the restored thing's sync
-    // reads — its enclosing scope, `look`'s drill-in — find it.
-    for (const [i, entry] of containerSlice.contents.entries()) {
-      const idx = entry.placement.hostIndex;
-      if (idx === undefined) continue;
-      const item = restored[i];
-      const host = restored[idx];
-      if (item && host && MixinApi.isPlacing(host)) {
-        const placement = entry.placement.placement ?? Placements.ON;
-        await ContainmentApi.placements().ensure(placement);
-        ContainmentApi.move(item as Stuff & Containable, host as Stuff & Placing, placement);
-      }
-    }
   }
 
   // (3) Slotted occupancy — re-wear each worn item into its slots via the
@@ -830,6 +815,27 @@ async function restoreState(
           slots,
           { restoring: true },
         );
+      }
+    }
+  }
+
+  // (3b) Placement pass — a placed item re-`place`s onto its `Placing`
+  // sibling, under the placement the slice recorded: a member path, or a
+  // host's own region name (`left pocket` — size and carrying D26). ⭐ The
+  // member loads first (documents D7), so the restored thing's sync reads —
+  // its enclosing scope, `look`'s drill-in — find it. ⭐ AFTER the slotted
+  // pass: a worn belt's hanging length is its wearer's waist (D27), so its
+  // pouches are re-hung on the belt as worn, not as a strap lying flat.
+  if (containerSlice) {
+    for (const [i, entry] of containerSlice.contents.entries()) {
+      const idx = entry.placement.hostIndex;
+      if (idx === undefined) continue;
+      const item = restored[i];
+      const host = restored[idx];
+      if (item && host && MixinApi.isPlacing(host)) {
+        const placement = entry.placement.placement ?? Placements.ON;
+        await ContainmentApi.placements().ensure(host.getPlacementEntry(placement)?.member ?? placement);
+        ContainmentApi.move(item as Stuff & Containable, host as Stuff & Placing, placement);
       }
     }
   }

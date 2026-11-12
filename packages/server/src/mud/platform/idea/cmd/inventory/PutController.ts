@@ -101,20 +101,22 @@ export default class PutController extends CommandController<PutModel> {
 
     // The consumed preposition, lowercased by the binder, or undefined.
     const prep = model.target.prep;
+    // ⭐ A region the words named (`inner pocket`, D26) — the binder's facet.
+    const region = model.target.via?.region;
 
     // ⭐ A count (`put 1 clay in tub`) splits it off the stack first — the
     // `drop` path: the helper walks the operands, and a put refused here
     // restacks what it split (the ceramics drive: `put` had no count).
     const quantity = model.item.quantity;
     if (!quantity || !MixinApi.isStackable(item)) {
-      await this.putOne(item, target, prep, context);
+      await this.putOne(item, target, prep, context, region);
       return;
     }
     await StackableApi.applyQuantity<Stuff>(
       [item],
       quantity,
       async (operand) =>
-        (await this.putOne(operand, target, prep, context))
+        (await this.putOne(operand, target, prep, context, region))
           ? { ok: true, payload: operand }
           : { ok: false, reason: 'refused' },
       { field: 'item', query: model.item.raw },
@@ -122,7 +124,13 @@ export default class PutController extends CommandController<PutModel> {
   }
 
   /** Put ONE item (or one split-off stack) into the target; `true` when it went. */
-  private async putOne(item: Stuff, target: Stuff, prep: string | undefined, context: CommandContext): Promise<boolean> {
+  private async putOne(
+    item: Stuff,
+    target: Stuff,
+    prep: string | undefined,
+    context: CommandContext,
+    region?: string,
+  ): Promise<boolean> {
     const giver = context.commandGiver;
     // ⭐ Where it would go, and every refusal before any write, is the
     // world's (`ContainmentApi.putPlanFor` — the slot, the interior, the
@@ -130,7 +138,11 @@ export default class PutController extends CommandController<PutModel> {
     // Sizes load on use (size and carrying P7): the forms the tape measure
     // reads, before the sync plan asks it.
     for (const s of [item, target]) if (MixinApi.isTangible(s)) await s.ensureShape();
-    const plan = ContainmentApi.putPlanFor(item as Stuff & Containable, target, { prep, by: giver });
+    const plan = ContainmentApi.putPlanFor(item as Stuff & Containable, target, {
+      prep,
+      by: giver,
+      ...(region !== undefined ? { region } : {}),
+    });
     if (!plan.ok) {
       PutController.refused(item, target, plan, context);
       return false;
@@ -178,6 +190,7 @@ export default class PutController extends CommandController<PutModel> {
             actor: Mml.compose`You`,
             item: what,
             host: Mml.thing(target),
+            name: route.kind === 'region' ? route.name : name,
             s: '',
             es: '',
           }),
@@ -187,6 +200,7 @@ export default class PutController extends CommandController<PutModel> {
             actor: Mml.actor(giver),
             item: what,
             host: Mml.thing(target),
+            name: route.kind === 'region' ? route.name : name,
             s: 's',
             es: 'es',
           }),
@@ -211,7 +225,13 @@ export default class PutController extends CommandController<PutModel> {
     switch (r.reason) {
       case 'wrong-preposition':
       case 'preposition-ambiguous': {
-        const { takes, got } = r.facts;
+        const { takes, got, regions } = r.facts;
+        // ⭐ Regions that share a word are asked for by NAME (D26).
+        if (regions !== undefined) {
+          line = Mml.compose`Which — ${PutController.joinOr(regions.map((n) => `the ${n}`))} of ${Mml.thing(target)}?`;
+          detail = `target offers ${regions.join(', ')}`;
+          break;
+        }
         // ⚠ A target that offers nothing at all (a person — you do not
         // put things IN the bartender) has no list to give (finalize: the
         // line read *"it takes ."*).
@@ -249,7 +269,11 @@ export default class PutController extends CommandController<PutModel> {
             ? Mml.compose`There's no room ${r.facts.word} ${Mml.thing(target)} for ${Mml.thing(item)}.`
             : r.facts.why === 'too-heavy-for'
               ? Mml.compose`${Mml.thing(target)} won't take the weight of ${Mml.thing(item)}.`
-              : Mml.compose`${Mml.thing(item)} won't go ${r.facts.word} ${Mml.thing(target)}.`;
+              : r.facts.why === 'too-big-for-mouth'
+                ? Mml.compose`${Mml.thing(item)} is too big to go ${r.facts.word} ${Mml.thing(target)}.`
+                : r.facts.why === 'no-room'
+                  ? Mml.compose`There's no room left ${r.facts.word} ${Mml.thing(target)} for ${Mml.thing(item)}.`
+                  : Mml.compose`${Mml.thing(item)} won't go ${r.facts.word} ${Mml.thing(target)}.`;
         detail = `host rejected item (${r.facts.why})`;
         break;
       case 'wont-fit':
@@ -259,7 +283,9 @@ export default class PutController extends CommandController<PutModel> {
             ? Mml.compose`${Mml.thing(item)} won't go through the mouth of ${Mml.thing(target)}.`
             : r.facts.why === 'too-big-inside'
               ? Mml.compose`${Mml.thing(item)} is too big to go in ${Mml.thing(target)}.`
-              : Mml.compose`There's no room left in ${Mml.thing(target)} for ${Mml.thing(item)}.`;
+              : r.facts.why === 'not-shaped-for'
+                ? Mml.compose`${Mml.thing(target)} isn't made to take ${Mml.thing(item)}.`
+                : Mml.compose`There's no room left in ${Mml.thing(target)} for ${Mml.thing(item)}.`;
         detail = `it won't fit (${r.facts.why})`;
         break;
       case 'cursed-will-not-release':

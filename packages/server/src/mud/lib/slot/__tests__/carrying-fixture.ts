@@ -18,6 +18,10 @@ import { WieldableMixin } from '../Wieldable';
 import { SlottableMixin } from '../Slottable';
 import { Quantity } from '../../quantity';
 import { ContainmentApi } from '../../../api/containment';
+import Garment from '../../../platform/thing/equipment/Garment';
+import Pack from '../../../platform/thing/equipment/Pack';
+import type { PlacementEntry } from '../../spatial/Placing';
+import { material } from '../../spatial/__tests__/size-fixture';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 
 /** An acting body (Mobile, a Combatant, a Sensor) — what a player's is. */
@@ -47,6 +51,8 @@ export function makeBody(spec: BodySpec = {}): { me: Body; plan: string } {
   plan.setSlots([
     { name: 'torso', accepts: 'WearableMixin', capacity: 4, covers: ['body'] },
     { name: 'back', accepts: 'WearableMixin', capacity: 1 },
+    { name: 'waist', accepts: 'WearableMixin', capacity: 4 },
+    { name: 'legs', accepts: 'WearableMixin', capacity: 4 },
     { name: 'sidearm', accepts: 'WieldableMixin', capacity: 1 },
     ...(hands
       ? [
@@ -102,4 +108,47 @@ export function hold(me: Body, plan: string, t: Tool, hand = 'hand:right'): Tool
   t.setSlotClaims({ [plan]: [hand] });
   me.seatInSlot(t, hand);
   return t;
+}
+
+/** A garment of `kg` (default 0.4) offering `placements`, unworn and nowhere. */
+export async function garment(
+  name: string,
+  placements: (string | PlacementEntry)[] = [],
+  kg = 0.4,
+): Promise<Garment> {
+  const g = makeStuff(() => new Garment());
+  g.setShortDescription(name);
+  g.setKeywords([name]);
+  g.setMass(Quantity.of(kg, 'kg'));
+  if (placements.length > 0) await g.setPlacements(placements);
+  return g;
+}
+
+/** A garment worn in `slot` on `me` (W5's pockets and belts). */
+export async function wornGarment(
+  me: Body,
+  plan: string,
+  name: string,
+  slot: string,
+  placements: (string | PlacementEntry)[] = [],
+  kg = 0.4,
+): Promise<Garment> {
+  const g = await garment(name, placements, kg);
+  g.setSlotClaims({ [plan]: [slot] });
+  ContainmentApi.move(g, me);
+  me.occupy(g, slot);
+  return g;
+}
+
+/** A `Pack` — a pouch, a holster — of `kg` with an authored box (m), optionally shaped. */
+export function pack(name: string, kg: number, box: [number, number, number], shapedTo?: string): Pack {
+  const p = makeStuff(() => new Pack());
+  p.setShortDescription(name);
+  p.setKeywords([name]);
+  p.setMass(Quantity.of(kg, 'kg'));
+  p.setDimensions({ width: box[0], depth: box[1], height: box[2] });
+  // Leather: a flexible thing's size is its packed matter (D1), so it needs one.
+  p.setMaterial(material('/stuff/idea/material/_carrying/leather', 860));
+  if (shapedTo !== undefined) p.setShapedTo(shapedTo);
+  return p;
 }

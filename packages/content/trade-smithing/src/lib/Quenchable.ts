@@ -164,7 +164,10 @@ export function QuenchableMixin<TBase extends MixinConstructor>(Base: TBase) {
       for (const half of halves) {
         if (MixinApi.isTangible(half)) half.setMass(halfKg);
         if (MixinApi.isComposition(half)) half.setMakeup(makeup);
-        if (MixinApi.isContainable(half)) ContainmentApi.move(half, where);
+        if (MixinApi.isContainable(half)) {
+          if (MixinApi.isCarrying(where)) where.receive(half);
+          else ContainmentApi.move(half, where);
+        }
       }
     }
   };

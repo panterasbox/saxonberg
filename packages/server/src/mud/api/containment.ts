@@ -130,7 +130,7 @@ export type PlaceRefusal =
   | {
       ok: false;
       reason: 'wrong-preposition' | 'preposition-ambiguous';
-      facts: { takes: readonly string[]; got?: string };
+      facts: { takes: readonly string[]; got?: string; regions?: readonly string[] };
     }
   | { ok: false; reason: 'slot-host-not-container'; facts?: undefined }
   | { ok: false; reason: 'shut'; facts?: undefined }
@@ -140,7 +140,7 @@ export type PlaceRefusal =
   | {
       ok: false;
       reason: 'wont-fit';
-      facts: { why: 'too-big-for-mouth' | 'too-big-inside' | 'no-room' };
+      facts: { why: 'too-big-for-mouth' | 'too-big-inside' | 'no-room' | 'not-shaped-for' };
     };
 
 /**
@@ -224,7 +224,10 @@ export class ContainmentApi {
    * container), the word against the host's offers, a shut lid (refused
    * HERE, never in `move`, which brains and restocks use to fill closed
    * cupboards), the container's own say, the region's `canPlace`. The plan's
-   * completion releases the item from `by`'s body and moves it.
+   * completion releases the item from `by`'s body and moves it. `region`
+   * names one of a placing host's own regions (`inner pocket` — the
+   * binder's `via.region`, size and carrying D26); several regions sharing
+   * the word, unnamed, refuse `preposition-ambiguous` with their `regions`.
    *
    * Orchestration across three hosts (the putter, the item, the target), so
    * it is the Api's — the one movement case the act convention routes here.
@@ -232,7 +235,7 @@ export class ContainmentApi {
   public static putPlanFor(
     item: ContainableStuff,
     target: Stuff,
-    opts: { prep?: string; by: Stuff },
+    opts: { prep?: string; by: Stuff; region?: string },
   ): PutPlan | PlaceRefusal {
     return logic().putPlanFor(item, target, opts);
   }

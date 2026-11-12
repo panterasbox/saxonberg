@@ -205,6 +205,12 @@ export function candidateFor(stuff: Stuff, viewer: Stuff | null): ScopeCandidate
       facets.push({ keywords: [id.toLowerCase()], via: { detailPath: [id] } });
     }
   }
+  if (MixinApi.isPlacing(stuff)) {
+    // ⭐ A named region (a coat's `inner pocket`) is a facet of its host.
+    for (const name of stuff.namedRegions()) {
+      facets.push({ keywords: [name.toLowerCase()], via: { region: name } });
+    }
+  }
   if (MixinApi.isBulkable(stuff)) {
     for (const affordance of ['interior', 'surface'] as const) {
       const held = stuff.getHeldKeywords(affordance);

@@ -659,8 +659,8 @@ export abstract class Template extends Document {
                 path: host.getTemplatePath() ?? host.stuffId,
                 severity: 'error',
                 message:
-                  `prop ${path} (${d.width.toFixed(2)} × ${d.depth.toFixed(2)} × ` +
-                  `${d.height.toFixed(2)} m) does not fit ${host.getTemplatePath() ?? host.stuffId} ` +
+                  `prop ${path} (${d ? `${d.width.toFixed(2)} × ${d.depth.toFixed(2)} × ${d.height.toFixed(2)} m` : 'unshaped'}) ` +
+                  `does not fit ${host.getTemplatePath() ?? host.stuffId} ` +
                   `(${refusal.reason}); it is not placed. Size the row, or the place.`,
                 channel: 'location-graph',
               });

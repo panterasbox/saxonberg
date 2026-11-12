@@ -16,17 +16,31 @@
  * bag of holding worn on the back) is content + composition, not
  * subclassing.
  *
+ * ⭐ The ONE class of every worn or hung container (size and carrying D27):
+ * a satchel (`[torso]`, ready), a rucksack (`[back]`, packed), and the
+ * rows that claim no body slot and HANG from a belt or a strap — a belt
+ * pouch, a purse, a canteen clip, a saddlebag — and the shaped ones
+ * (`shapedTo:` — a holster, a sheath, a quiver; drawn fast).
+ *
  * Seeded as `domain` content (e.g. `/stuff/thing/gear/backpack`) with
- * `data.slotClaims: { /stuff/idea/species/BodyPlan/biped: [torso] }`.
+ * `data.slotClaims: { /stuff/idea/species/BodyPlan/biped: [back] }`.
  */
 
 import { Vessel } from '../../../lib/stuff/Vessel';
 import { SlottableMixin } from '../../../lib/slot/Slottable';
 import { WearableMixin } from '../../../lib/slot/Wearable';
+import { PlacingMixin } from '../../../lib/spatial/Placing';
 
-const PackBase = WearableMixin(SlottableMixin(Vessel));
+// ⭐ Placing outermost (size and carrying D27): a pack's straps and
+// carabiners are a hanging length (`placements: [from]` on the row) — a
+// canteen clipped to the strap is ready while the pack's inside is packed.
+// A pack whose row says nothing offers nothing but its inside.
+const PackBase = PlacingMixin(WearableMixin(SlottableMixin(Vessel)));
 
 export default class Pack extends PackBase {
   /** ⭐ A pack is cloth or leather: it gives, packs and squeezes (size and carrying D1). */
   static defaultShape = 'flexible';
+
+  /** ⭐ Its inside, and nothing to hang from until the row names straps (D27). */
+  static override defaultPlacements: readonly string[] = [];
 }

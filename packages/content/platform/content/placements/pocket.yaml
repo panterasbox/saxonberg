@@ -1,0 +1,21 @@
+# pocket — sitting in a pocket of something worn (size and carrying D26).
+#
+# ⭐ A pocket is a REGION of its garment, never an object: a coat names its
+# pockets on its own row (`placements: [{member: /platform/placements/pocket,
+# name: left pocket, mouth: {width: 0.16, height: 0.05}, volumeM3: 0.0015}]`)
+# and the key put in one lives in the WEARER's contents with the pair
+# `(coat, left pocket)` — the ham on the hook, worn. The entry's mouth and
+# volume are the tape measure (a key goes in a trouser pocket, a mug does
+# not); `covered` hides it, `closes` fastens it.
+#
+# `encloses: true` — a pocket puts a thing inside its garment's cloth.
+#
+# ⚠ `into` is the PRIMARY word and `in` a secondary, deliberately: `in` is
+# `in`'s own primary (`lint:placement-words` refuses two members sharing
+# one), and the secondary pass is exactly what lets `put key in coat`
+# reach a coat's pockets — and lets a pack with pockets keep `in` for its
+# main compartment while `put map in side pocket` names the pocket.
+prepositions: [into, in]
+encloses: true
+prose: "{{ actor }} put{{ s }} {{ item }} in the {{ name }} of {{ host }}."
+heading: In its pockets

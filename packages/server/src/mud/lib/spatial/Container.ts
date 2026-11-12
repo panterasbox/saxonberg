@@ -80,10 +80,15 @@ export interface ContainerBounds {
   mouth: BoundaryOpening | null;
 }
 
-/** Why a thing will not go in — the tape measure's three answers. */
+/**
+ * Why a thing will not go in — the tape measure's three answers, and a
+ * shaped container's own (`not-shaped-for`: a holster takes a pistol, never
+ * a cup — size and carrying D27). `dims` is `null` only for the shape
+ * refusal, which asks no tape measure.
+ */
 export type FitRefusal = ActRefusal<
-  'too-big-for-mouth' | 'too-big-inside' | 'no-room',
-  { container: Stuff; item: Stuff; dims: Dimensions }
+  'too-big-for-mouth' | 'too-big-inside' | 'no-room' | 'not-shaped-for',
+  { container: Stuff; item: Stuff; dims: Dimensions | null }
 >;
 
 /** The form a container's interior takes when its own form gives (a sack, filled, is a block). */
@@ -163,6 +168,18 @@ export interface Container {
   /** Author the way in (`{width, height}` m); `null` derives it. Throws on a non-positive side. */
   setMouth(value: BoundaryOpening | null): void;
   /**
+   * ⭐ What this container is shaped to (D27) — a mixin name
+   * (`WieldableMixin`) or a template path (`/trade/smithing/thing/pistol`,
+   * which admits that row and every row under it) — or `null`, unshaped. A
+   * quiver, a holster, a knife block, a cup rack: it admits only that, and a
+   * thing drawn out of it is drawn fast.
+   */
+  getShapedTo(): string | null;
+  /** Author the shape (`null` = unshaped). */
+  setShapedTo(value: string | null): void;
+  /** Is this container shaped for `item`? An unshaped one is shaped for everything. */
+  isShapedFor(item: Stuff): boolean;
+  /**
    * ⭐ The box inside, the sides closed, the way in — or `null` when this
    * container's room is unknown (a hollow thing with no authored size: its
    * mass measures its walls, never its room) or it is a body (a body
@@ -230,9 +247,35 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⭐ The way in, authored only where it is the point (a sheath, a
       // holster, a bottle's neck); unset derives (D4).
       mouth: { persistent: true, authorable: true },
+      // ⭐ The one kind of thing it admits (D27) — a holster, a quiver.
+      shapedTo: { persistent: true, authorable: true },
     };
 
     private _mouth: BoundaryOpening | null = null;
+
+    /** See {@link Container.getShapedTo}. Public so the applier can reflect into it. */
+    public shapedTo: string | null = null;
+
+    public getShapedTo(): string | null {
+      return typeof this.shapedTo === 'string' && this.shapedTo !== '' ? this.shapedTo : null;
+    }
+
+    public setShapedTo(value: string | null): void {
+      if (value !== null && value !== undefined && (typeof value !== 'string' || value.trim() === '')) {
+        throw new TypeError(`Container.shapedTo must be a mixin name or a template path; got ${JSON.stringify(value)}.`);
+      }
+      this.shapedTo = value ?? null;
+    }
+
+    public isShapedFor(item: Stuff): boolean {
+      const shape = this.getShapedTo();
+      if (shape === null) return true;
+      if (shape.startsWith('/')) {
+        const path = item.getTemplatePath() ?? '';
+        return path === shape || path.startsWith(`${shape}/`);
+      }
+      return MixinApi.hasMixin(item, shape);
+    }
 
     protected get mouth(): BoundaryOpening | null {
       return this._mouth ? { ...this._mouth } : null;
@@ -284,6 +327,10 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff & Container;
       // A destroyed piece (merged into a stack on arrival) has no size to fit.
       if (item.stuffId === self.stuffId || self.isAgent() || item.isDestroyed()) return null;
+      // ⭐ A shaped container admits its one kind, whatever its size (D27).
+      if (!this.isShapedFor(item)) {
+        return { ok: false, reason: 'not-shaped-for', facts: { container: self as Stuff, item, dims: null } };
+      }
       const box = (MixinApi.isTangible(item) ? item.getFitBox() : null);
       if (box === null) return null;
       const interior = interiorOf(self);
@@ -356,9 +403,13 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** See {@link Container.reconcilePressing}. */
     public reconcilePressing(only?: Stuff): Stuff[] {
       const self = this as unknown as Stuff & Container;
-      // A body carries; what it holds is not pressed in by sides.
-      if (self.isAgent() || self.isDestroyed()) return [];
-      const closed = closedSidesOf(self);
+      if (self.isDestroyed()) return [];
+      // ⭐ A body carries; what it holds is not pressed in by sides — except
+      // what is in a POCKET (D26), which has a pocket's sides: a bottom and
+      // walls, and a top only when it `closes` (a buttoned breast pocket
+      // keeps the cork; an open side pocket lets it float away).
+      const agent = self.isAgent();
+      const closed = agent ? { width: false, depth: false, height: false } : closedSidesOf(self);
       if (closed === null) return [];
       const place: Stuff | null = self.isPlace()
         ? self
@@ -405,12 +456,21 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         const placed = c.getPlacement();
         let sides: ClosedSides;
         if (placed !== null) {
+          const member = placed.host.placementOf(placed.name);
           // A hung thing is fastened — clipped or tied — and stays put.
-          if (placed.host.placementOf(placed.name).getFastens()) continue;
-          sides = { width: false, depth: false, height: false };
+          if (member.getFastens()) continue;
+          if (agent) {
+            // On a body only a pocket presses: its walls, and a top if it closes.
+            if (!member.getEncloses()) continue;
+            const shut = placed.host.getPlacementEntry(placed.name)?.closes === true;
+            sides = { width: true, depth: true, height: shut };
+          } else {
+            sides = { width: false, depth: false, height: false };
+          }
         } else {
-          // Loose in a place, there is nowhere further to go.
-          if (self.isPlace()) continue;
+          // Loose in a place, there is nowhere further to go — and loose on
+          // a body is the body's (until the flip, W7).
+          if (self.isPlace() || agent) continue;
           sides = closed;
         }
         let leaves: boolean;
@@ -425,7 +485,8 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
           how = 'drifts';
         }
         if (!leaves) continue;
-        const dest: Stuff | null = placed !== null ? self : place;
+        // Out of a pocket it is gone from the body, into the place around it.
+        const dest: Stuff | null = placed !== null && !agent ? self : place;
         if (dest === null || !MixinApi.isContainer(dest)) continue;
         if (placed === null && dest.stuffId === self.stuffId) continue;
         try {

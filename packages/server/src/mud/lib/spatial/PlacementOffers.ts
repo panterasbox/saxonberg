@@ -37,6 +37,12 @@ export type PlacementChoice =
       takes: readonly string[];
       /** The word that was typed, when one was. */
       got?: string;
+      /**
+       * ⭐ When the offers that answered share their word and differ by
+       * NAME (a coat's `left pocket` and `right pocket`), the names — so
+       * the verb asks *which pocket?*, not *into or into?* (D26).
+       */
+      regions?: readonly string[];
     };
 
 export class PlacementOffers {
@@ -98,10 +104,13 @@ export class PlacementOffers {
     // to say which. (Two members sharing a primary word is an authoring
     // collision `lint:placement-words` refuses, so a typed word reaching
     // here is a claim about content, and content changes.)
+    const takes = matches.map(primary);
+    const named = new Set(takes).size < takes.length;
     return {
       ok: false,
       reason: matches.length === 0 ? 'wrong-preposition' : 'preposition-ambiguous',
-      takes: matches.map(primary),
+      takes,
+      ...(named ? { regions: matches.map((o) => o.name) } : {}),
     };
   }
 }

@@ -354,6 +354,9 @@ export default class RopeJack extends TurnableMixin(Tool) {
   /** Into the layer's hands, else where they stand. */
   private deliver(actor: Stuff, made: Rope): void {
     const into = MixinApi.isContainer(actor) ? actor : (MixinApi.isContainable(actor) ? (actor.getContainer() as Stuff | null) : null);
-    if (into !== null && MixinApi.isContainer(into)) ContainmentApi.move(made as unknown as Stuff & Rope, into as Stuff & Container);
+    if (into !== null && MixinApi.isContainer(into)) {
+      if (MixinApi.isCarrying(into)) into.receive(made as unknown as Stuff & Rope);
+      else ContainmentApi.move(made as unknown as Stuff & Rope, into as Stuff & Container);
+    }
   }
 }

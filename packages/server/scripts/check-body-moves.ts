@@ -90,8 +90,11 @@ import { MUD, SERVER_SRC, packSources, packSrcFiles, parseTs, ratchet } from "./
  * The idiom is `if (isCarrying(dest)) dest.receive(x) else move(x, dest)`
  * (`inCarrierElse` skips the else). Two keys whose other branch was
  * ported became `not-body` (a Placing route).
+ *
+ * W5: the 40 pack rows ported with the same idiom → **0**. Only `allow`
+ * and `not-body` rows remain; a new counted row fails the gate.
  */
-export const BODY_MOVES_CEILING = 40;
+export const BODY_MOVES_CEILING = 0;
 
 export type BodyMoveTag = "made" | "handed" | "granted" | "inherit";
 export type Disposition = BodyMoveTag | "allow" | "not-body";
@@ -184,58 +187,16 @@ export const ROSTER: Record<string, RosterRow> = {
     why: "the cocoons are laid in a tray/holder container, not a hand",
   },
 
-  // ── handed — a counterparty offers, or the carrier takes ─────────────
+  // ── the other branch of a ported site: a Placing route ───────────────
   "platform/idea/api/ContainmentLogic.ts :: ContainmentLogic.putPlanFor :: target": {
     tag: "not-body",
     why: "the region route: a Placing host, which a body is not (the zero route is ported, W4)",
   },
-  "trade-diving:thing/AirBag.ts :: AirBag.untieBy :: by": { tag: "handed" },
-  "terminus:market/thing/MarketStalls.ts :: MarketStalls.giveUp :: to": { tag: "handed", survey: true },
-  "trade-sericulture:behavior/tends.ts :: handMoves :: to": { tag: "handed", survey: true },
-
-  // ── granted — the world gives it to you ──────────────────────────────
   "lib/stuff/Template.ts :: Template._stageEntries :: host": {
     tag: "not-body",
     why: "the named-placement route: a Placing host, which a body is not (the unnamed route is ported, W4)",
   },
-  "tpa:idea/cmd/tpa/ProcureCardController.ts :: ProcureCardController.execute :: giver": { tag: "granted" },
 
-  // ── made — what an act produces lands on the maker ───────────────────
-  "trade-fishing:lib/FishingEngagement.ts :: FishingEngagement.mint :: this.actor": { tag: "made" },
-  "trade-fishing:thing/Trap.ts :: Trap.pullBy :: puller": { tag: "made", n: 3 },
-  "trade-diving:thing/Spear.ts :: Spear.takeFishBy :: by": { tag: "made" },
-  "trade-forestry:thing/Bole.ts :: Bole.crosscutPlan :: actor": { tag: "made" },
-  "trade-forestry:thing/Standard.ts :: Standard.fellHere :: actor": { tag: "made" },
-  "trade-forestry:lib/Fellable.ts :: FellableMixin.dropStandard :: giver": { tag: "made" },
-  "trade-tailoring:thing/CuttingTool.ts :: finishCut :: giver": { tag: "made", n: 2 },
-  "trade-tailoring:thing/CutPieces.ts :: CutPieces.sewPlan :: actor": { tag: "made" },
-  "trade-printing:lib/Printing.ts :: PrintingMixin.runOff :: req.by": { tag: "made" },
-  "trade-chandlery:thing/DipPot.ts :: DipPot.dipPlanFor :: giver": { tag: "made" },
-  "trade-textiles:lib/TextileWork.ts :: TextileWork.handTo :: actor": { tag: "made" },
-  "trade-carpentry:lib/PatternStock.ts :: PatternStockMixin.carvePlanFor :: actor": { tag: "made" },
-  "trade-medicine:idea/cmd/medical/PrescribeController.ts :: PrescribeController.execute :: giver": {
-    tag: "made",
-  },
-  "trade-apiculture:thing/Hive.ts :: Hive.mintTake :: by": { tag: "made" },
-  "trade-apiculture:thing/Hive.ts :: Hive.completeSplit :: by": { tag: "made" },
-  "trade-sericulture:thing/Cocoons.ts :: mint :: by": { tag: "made" },
-  "trade-sericulture:behavior/reels.ts :: brain.act :: hand": { tag: "made" },
-  "trade-potash:behavior/ashes.ts :: brain.act :: hand": { tag: "made" },
-  "trade-hospitality:idea/cmd/crafting/MixController.ts :: MixController.mixInto :: holder": { tag: "made" },
-  "trade-sugar:thing/SugarLoaf.ts :: nipLoaf :: into": { tag: "made" },
-  "trade-cordage:thing/RopeJack.ts :: RopeJack.deliver :: into": { tag: "made", survey: true },
-  "trade-quarrying:thing/Clay.ts :: Clay.yieldPieces :: into": { tag: "made", survey: true },
-  "trade-smelting:thing/Die.ts :: Die.strikeWith :: into": { tag: "made", survey: true },
-  "trade-glass:thing/Gather.ts :: Gather.crackOff :: where": { tag: "made", n: 2 },
-
-  // ── inherit — the residue lands where its source was ─────────────────
-  "trade-smithing:lib/Quenchable.ts :: QuenchableMixin.crack :: where": { tag: "inherit" },
-  "trade-glass:thing/Sheet.ts :: Sheet.openFlat :: where": { tag: "inherit" },
-  "trade-glass:thing/Sheet.ts :: Sheet.snapInTwo :: where": { tag: "inherit" },
-  "trade-glass:thing/Gather.ts :: Gather.loseToCullet :: dest": { tag: "inherit" },
-  "trade-dairying:thing/Wheel.ts :: Wheel.completeSplit :: where": { tag: "inherit" },
-  "trade-quarrying:thing/Block.ts :: Block.completeSplit :: where": { tag: "inherit" },
-  "trade-smelting:thing/Bloom.ts :: place :: where": { tag: "inherit" },
   // ── rule-3 hits: a body's own container is the place it stands in ────
   "lib/locomotion/BelayEngagement.ts :: BelayEngagement.catches :: room": {
     tag: "not-body",
@@ -275,8 +236,6 @@ export const ROSTER: Record<string, RosterRow> = {
     tag: "not-body",
     why: "a boat stands in water; a thing you get into is never carried",
   },
-  // ── rule-3 hits that ARE inherit (the source may be carried) ─────────
-  "trade-apiculture:lib/Colony.ts :: ColonyMixin.mintDeparture :: env": { tag: "inherit" },
 };
 
 export interface MoveSite {

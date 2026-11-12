@@ -11,7 +11,6 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePathPrefixes } from '@saxonberg/server/mud/lib/paths';
 import type Condition from '@saxonberg/server/mud/platform/idea/Condition';
@@ -19,7 +18,6 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Prescription } from '@saxonberg/server/mud/lib/vitals/Prescription';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 
 const TOPIC = 'act.deed';
@@ -78,7 +76,12 @@ export default class PrescribeController extends CommandController<PrescribeMode
         (giver as Stuff).getIdentityPath?.() ?? (giver as Stuff).getTemplatePath?.() ?? '',
       writtenAtS: WorldClockApi.getNow().rawValue(),
     });
-    ContainmentApi.move(slip as unknown as Stuff & Containable, giver as unknown as Stuff & Container);
+    // The slip is the act's product — into the prescriber's keeping. The
+    // view's `requiresEmbodied` admits only a body, and every body carries.
+    if (!MixinApi.isCarrying(giver)) {
+      throw new Error('prescribe: requiresEmbodied admitted a giver that cannot carry');
+    }
+    giver.receive(slip as unknown as Stuff & Containable);
 
     if (MixinApi.isAdvancing(giver)) {
       await giver.creditDeed({

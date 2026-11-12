@@ -60,6 +60,7 @@ import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Containable } from '../spatial/Containable';
 import type { Container } from '../spatial/Container';
+import type { Placing } from '../spatial/Placing';
 import type { Slottable } from './Slottable';
 import type { Slotted } from './Slotted';
 import type { ActRefusal } from '../craft/ActPlan';
@@ -138,6 +139,18 @@ export type ReadyRefusal =
 /** Every refusal a carrier words. */
 export type CarryRefusal = ReceiveRefusal | ReadyRefusal;
 
+/**
+ * Where a thing can go on a body short of a hand (D11/D15): a container
+ * (a worn satchel, a pouch hung from the belt, the pack on the back), or a
+ * named region of a worn host (a coat's `left pocket`).
+ */
+export type CarryPlace =
+  | { host: Stuff & Container; region?: undefined }
+  | { host: Stuff & Placing; region: string };
+
+/** A home's host: a container on the body, or a placing host whose region it is. */
+export type HomeHost = (Stuff & Container) | (Stuff & Placing);
+
 export interface Carrying {
   /**
    * **Take `item` onto this body.** `null` when it came on; a refusal
@@ -172,10 +185,33 @@ export interface Carrying {
   handsFor(item: Stuff): 1 | 2 | null;
   /** ⭐ How near `thing` is to the hand (D15); `elsewhere` when it is not on this body. */
   tierOf(thing: Stuff): CarryTier;
-  /** Where `item` goes back to on this body, or null (D14). Forgotten when either end has left. */
-  homeOf(item: Stuff): (Stuff & Container) | null;
-  /** Remember `home` (a container on this body) as where `item` goes back to. */
-  setHome(item: Stuff, home: Stuff & Container): void;
+  /**
+   * Where `item` goes back to on this body, or null (D14). Forgotten when
+   * either end has left. A pocket home answers its garment;
+   * {@link homeRegionOf} names the pocket.
+   */
+  homeOf(item: Stuff): HomeHost | null;
+  /** The named region of `item`'s home (`left pocket`), or null for a container home. */
+  homeRegionOf(item: Stuff): string | null;
+  /**
+   * Remember `home` (a container on this body, or — with `region` — a
+   * placing host's region: a coat's pocket) as where `item` goes back to.
+   */
+  setHome(item: Stuff, home: HomeHost, region?: string): void;
+  /**
+   * ⭐ Is `item` honestly on this body (D11)? A slot occupant (held, worn);
+   * or placed on a host that is itself honest here (a key in a worn coat's
+   * pocket, a pouch hung from a worn belt); or inside such a thing. Loose in
+   * the contents — what the flip's veto refuses — is not; nor is a thing
+   * that is not on this body at all.
+   */
+  isHonest(item: Stuff): boolean;
+  /**
+   * ⭐ The places a thing handed to this body may go short of a hand, in
+   * D11's order: the ready tier (worn pockets, containers hung from a worn
+   * host, worn containers off the back), then the packed tier (the back).
+   */
+  carryPlaces(): CarryPlace[];
   /**
    * ⭐ Bring `item` to hand (D16). In hand already → ok; on you → the hand
    * it needs is freed (what is in it goes home; never dropped for you) and
@@ -224,6 +260,8 @@ export interface Carrying {
   refusalWords(r: CarryRefusal): string;
   /** The noun of where `item` sits on this body (*your coat pocket*, *your sidearm sheath*), or null. */
   holderPhrase(item: Stuff): string | null;
+  /** ⭐ What a pack holds, as `inventory` tells it shut (D28): `5 things, 3.2 kg`, or `empty`. */
+  tallyWords(things: readonly Stuff[]): string;
 }
 
 /** A numeric dial with a fallback (the `LoadBearing` shape). */
@@ -269,7 +307,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
      * stuffId, persisted by contents path. ⚠ Not a field: a stuffId does
      * not survive a restart; the slice is the durable form.
      */
-    private _homes = new Map<string, Stuff & Container>();
+    private _homes = new Map<string, { host: HomeHost; region?: string }>();
 
     // ── persistence (D14): the carrier persists what it knows, by path ──
 
@@ -286,8 +324,10 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
         const item = c.homeItemById(id);
         if (item === null || self.homeOf(item) === null) continue;
         const a = endOf(host, item, ctx);
-        const b = endOf(host, home, ctx);
-        if (a !== null && b !== null) homes.push({ item: a, home: b });
+        const b = endOf(host, home.host, ctx);
+        if (a !== null && b !== null) {
+          homes.push({ item: a, home: b, ...(home.region !== undefined ? { region: home.region } : {}) });
+        }
       }
       return { homes };
     }
@@ -297,10 +337,12 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       const homes = (slice as Partial<HomesSlice>).homes;
       if (!Array.isArray(homes)) return;
       const self = host as unknown as Stuff & Carrying;
-      for (const { item, home } of homes) {
+      for (const { item, home, region } of homes) {
         const i = resolveEnd(host, item);
         const h = resolveEnd(host, home);
-        if (i !== null && h !== null && MixinApi.isContainer(h)) self.setHome(i, h);
+        if (i === null || h === null) continue;
+        if (typeof region === 'string' && MixinApi.isPlacing(h)) self.setHome(i, h, region);
+        else if (MixinApi.isContainer(h)) self.setHome(i, h);
       }
     }
 
@@ -463,22 +505,54 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
 
     // ── homes (D14) ──
 
-    public homeOf(item: Stuff): (Stuff & Container) | null {
+    public homeOf(item: Stuff): HomeHost | null {
       const home = this._homes.get(item.stuffId) ?? null;
       if (home === null) return null;
       // Lazily forgotten: a home is knowledge of THIS body's things, so
       // either end leaving the body (dropped, given, the pouch sold)
       // retires it. No hook on `drop`/`give` is needed.
-      if (this.tierOf(item) === 'elsewhere' || this.tierOf(home) === 'elsewhere') {
+      if (this.tierOf(item) === 'elsewhere' || this.tierOf(home.host) === 'elsewhere') {
         this._homes.delete(item.stuffId);
         return null;
       }
-      return home;
+      return home.host;
     }
 
-    public setHome(item: Stuff, home: Stuff & Container): void {
+    public homeRegionOf(item: Stuff): string | null {
+      return this.homeOf(item) === null ? null : (this._homes.get(item.stuffId)?.region ?? null);
+    }
+
+    public setHome(item: Stuff, home: HomeHost, region?: string): void {
       if (item.stuffId === home.stuffId) return;
-      this._homes.set(item.stuffId, home);
+      this._homes.set(item.stuffId, region !== undefined ? { host: home, region } : { host: home });
+    }
+
+    // ── honesty (D11) ──
+
+    public isHonest(item: Stuff): boolean {
+      const self = this as unknown as Stuff & Slotted;
+      const seen = new Set<string>();
+      let cur: Stuff = item;
+      for (let i = 0; i < 32; i++) {
+        if (seen.has(cur.stuffId)) return false;
+        seen.add(cur.stuffId);
+        const up: Stuff | null = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+        if (up === null) return false;
+        if (up.stuffId !== self.stuffId) {
+          // Inside something else: honest when that is, and it is not a body.
+          if (up.isAgent()) return false;
+          cur = up;
+          continue;
+        }
+        // Directly on this body: a slot occupant, or placed on an honest host.
+        for (const [, occ] of self.getAllOccupants()) {
+          if ([...occ].some((o) => o.stuffId === cur.stuffId)) return true;
+        }
+        const placed = MixinApi.isContainable(cur) ? cur.getPlacement() : null;
+        if (placed === null || placed.host.stuffId === self.stuffId) return false;
+        cur = placed.host;
+      }
+      return false;
     }
 
     // ── receiving (D11) ──
@@ -505,8 +579,8 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
             ? 'hands-first'
             : this.carryOrder();
       const handOk = this.freeHands() >= hands && MixinApi.isSlottable(item);
-      const containers = this.wornContainers();
-      const fits = containers.find((c) => c.fitRefusal(item) === null) ?? null;
+      const places = this.carryPlaces();
+      const fits = places.find((p) => this.placeTakes(p, item)) ?? null;
       if (order === 'hands-first' ? handOk || fits !== null : fits !== null || handOk) return null;
       const cart = this.cartInHand();
       if (cart !== null && this.openHands().length >= hands) {
@@ -520,7 +594,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       return {
         ok: false,
         reason: 'nowhere-to-carry',
-        facts: { held: this.heldThings(), tried: containers },
+        facts: { held: this.heldThings(), tried: [...new Set(places.map((p) => p.host))] },
       };
     }
 
@@ -532,22 +606,50 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       return v === 'pockets-first' ? 'pockets-first' : 'hands-first';
     }
 
-    /** The containers this body wears, ready tier first, then packed (D15). */
-    private wornContainers(): (Stuff & Container)[] {
-      const self = this as unknown as Stuff & Slotted;
+    public carryPlaces(): CarryPlace[] {
+      const self = this as unknown as Stuff & Slotted & Container;
       const hands = new Set(this.handSlots());
-      const ready: (Stuff & Container)[] = [];
-      const packed: (Stuff & Container)[] = [];
+      const pockets: CarryPlace[] = [];
+      const hung: CarryPlace[] = [];
+      const ready: CarryPlace[] = [];
+      const packed: CarryPlace[] = [];
       const seen = new Set<string>();
+      const worn: Stuff[] = [];
       for (const [slot, occ] of self.getAllOccupants()) {
         if (hands.has(slot)) continue;
         for (const o of occ) {
-          if (seen.has(o.stuffId) || !MixinApi.isContainer(o) || o.isAgent()) continue;
+          if (seen.has(o.stuffId)) continue;
           seen.add(o.stuffId);
-          (slot === PACKED_SLOT ? packed : ready).push(o);
+          worn.push(o);
+          // A worn host's pockets — the regions whose way of sitting encloses.
+          if (MixinApi.isPlacing(o)) {
+            for (const name of o.getPlacements()) {
+              const member = o.placementOf(name);
+              if (member.getEncloses() && !member.getHangs()) pockets.push({ host: o, region: name });
+            }
+          }
+          if (MixinApi.isContainer(o) && !o.isAgent()) (slot === PACKED_SLOT ? packed : ready).push({ host: o });
         }
       }
-      return [...ready, ...packed];
+      // What hangs from (or is pocketed on) a worn host and holds things: a
+      // pouch on the belt, a canteen clip on the pack's strap.
+      const wornIds = new Set(worn.map((w) => w.stuffId));
+      for (const c of self.getContents()) {
+        if (seen.has(c.stuffId) || !MixinApi.isContainer(c) || c.isAgent()) continue;
+        const placed = MixinApi.isContainable(c) ? c.getPlacement() : null;
+        if (placed === null || !wornIds.has(placed.host.stuffId)) continue;
+        seen.add(c.stuffId);
+        hung.push({ host: c });
+      }
+      return [...pockets, ...hung, ...ready, ...packed];
+    }
+
+    /** Would `place` take `item` — the region's `canPlace`, the container's tape measure? */
+    private placeTakes(place: CarryPlace, item: Stuff): boolean {
+      if (place.region !== undefined) {
+        return MixinApi.isContainable(item) && place.host.canPlace(item, place.region).ok;
+      }
+      return place.host.fitRefusal(item) === null;
     }
 
     // ── readying (D16) ──
@@ -666,8 +768,17 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
     private stowRefusal(held: Stuff): ReadyRefusal | null {
       const home = this.homeOf(held);
       if (home === null) return null; // ⚠ until the flip: loose on you
-      if (home.fitRefusal(held) === null || this.tierOf(held) !== 'hand') return null;
+      if (this.homeTakes(held) || this.tierOf(held) !== 'hand') return null;
       return { ok: false, reason: 'hands-full', facts: { held, home } };
+    }
+
+    /** Would `held`'s home take it back — its pocket's `canPlace`, its container's tape measure? */
+    private homeTakes(held: Stuff): boolean {
+      const home = this.homeOf(held);
+      if (home === null) return false;
+      const region = this.homeRegionOf(held);
+      if (region !== null && MixinApi.isPlacing(home)) return this.placeTakes({ host: home, region }, held);
+      return MixinApi.isContainer(home) && this.placeTakes({ host: home }, held);
     }
 
     public stow(held: Stuff): ReadyRefusal | null {
@@ -680,7 +791,11 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
         }
       }
       const home = this.homeOf(held);
-      if (home !== null && MixinApi.isContainable(held)) ContainmentApi.move(held, home);
+      const region = this.homeRegionOf(held);
+      if (home !== null && MixinApi.isContainable(held)) {
+        if (region !== null && MixinApi.isPlacing(home)) ContainmentApi.move(held, home, region);
+        else if (MixinApi.isContainer(home)) ContainmentApi.move(held, home);
+      }
       return null;
     }
 
@@ -705,8 +820,13 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       }
       // It remembers where it came from — that is where it goes back.
       const from = MixinApi.isContainable(it) ? it.getContainer() : null;
-      if (from !== null && from.stuffId !== self.stuffId && MixinApi.isContainer(from) && !this.homeOf(it)) {
-        this.setHome(it, from);
+      const pair = it.getPlacement();
+      if (!this.homeOf(it)) {
+        if (from !== null && from.stuffId !== self.stuffId && MixinApi.isContainer(from)) this.setHome(it, from);
+        else if (pair !== null && pair.host.stuffId !== self.stuffId && MixinApi.isPlacing(pair.host)) {
+          // Out of a pocket (or off a clip): that is where it goes back.
+          this.setHome(it, pair.host, pair.name);
+        }
       }
       if (slots.length === 1) this.receive(it, { slot: slots[0]! });
       else {
@@ -723,7 +843,14 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       const reach = dialSeconds(AppSettingKeys.combatReachSeconds, 3);
       const unfasten = dialSeconds(AppSettingKeys.combatUnfastenSeconds, 3);
       const placed = MixinApi.isContainable(item) ? item.getPlacement() : null;
-      if (placed !== null && placed.host.stuffId !== self.stuffId) return draw; // a clip, a hook
+      if (placed !== null && placed.host.stuffId !== self.stuffId) {
+        // A clip, a hook: the draw. A pocket: a reach — and a fastened one
+        // is undone first (D26's `closes`).
+        if (!MixinApi.isPlacing(placed.host)) return draw;
+        const member = placed.host.placementOf(placed.name);
+        if (!member.getEncloses()) return draw;
+        return reach + (placed.host.getPlacementEntry(placed.name)?.closes === true ? unfasten : 0);
+      }
       const at = MixinApi.isContainable(item) ? item.getContainer() : null;
       if (at === null || at.stuffId === self.stuffId) {
         // On the body: a sheath slot is a shaped holder; loose is a reach.
@@ -733,7 +860,8 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
         }
         return reach;
       }
-      // ⚠ W5: a container `shapedTo` the thing (a holster) is `draw`.
+      // ⭐ A container shaped to the thing (a holster, a scabbard) is the draw (D27).
+      if (MixinApi.isContainer(at) && at.getShapedTo() !== null) return draw;
       const fastened = MixinApi.isSealable(at) && !at.isOpen();
       return reach + (fastened ? unfasten : 0);
     }
@@ -749,18 +877,33 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       return away + this.holderSeconds(item);
     }
 
-    /** Putting a thing INTO `home`: a reach, plus the undoing of a fastened one. */
+    /** Putting a thing INTO `home`: a reach (a shaped one is the draw), plus the undoing of a fastened one. */
     private holderSecondsInto(home: Stuff): number {
       const reach = dialSeconds(AppSettingKeys.combatReachSeconds, 3);
       const unfasten = dialSeconds(AppSettingKeys.combatUnfastenSeconds, 3);
+      if (MixinApi.isContainer(home) && home.getShapedTo() !== null) {
+        return dialSeconds(AppSettingKeys.combatDrawSeconds, 1.5);
+      }
       return reach + (MixinApi.isSealable(home) && !home.isOpen() ? unfasten : 0);
+    }
+
+    public tallyWords(things: readonly Stuff[]): string {
+      if (things.length === 0) return 'empty';
+      let kg = 0;
+      for (const x of things) if (MixinApi.isTangible(x)) kg += x.getMass().rawValue();
+      const n = things.length === 1 ? 'one thing' : `${things.length} things`;
+      return `${n}, ${roundForReading(kg)} kg`;
     }
 
     public holderPhrase(item: Stuff): string | null {
       const self = this as unknown as Stuff & Slotted;
       const placed = MixinApi.isContainable(item) ? item.getPlacement() : null;
       if (placed !== null && placed.host.stuffId !== self.stuffId) {
-        return `your ${placed.host.presentationPhrase().bare()}`;
+        // A named region is the place (*your coat's breast pocket*).
+        const named = MixinApi.isPlacing(placed.host) && placed.host.namedRegions().includes(placed.name);
+        return named
+          ? `your ${placed.host.presentationPhrase().bare()}'s ${placed.name}`
+          : `your ${placed.host.presentationPhrase().bare()}`;
       }
       const at = MixinApi.isContainable(item) ? item.getContainer() : null;
       if (at !== null && at.stuffId !== self.stuffId) return `your ${at.presentationPhrase().bare()}`;
@@ -879,6 +1022,14 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       }
     }
   };
+}
+
+/** Two significant places for a reading off a list — `0.42`, `3.2`, `12`. */
+function roundForReading(n: number): number {
+  if (!(n > 0)) return 0;
+  if (n >= 10) return Math.round(n);
+  if (n >= 1) return Math.round(n * 10) / 10;
+  return Math.round(n * 100) / 100;
 }
 
 function cap(s: string): string {

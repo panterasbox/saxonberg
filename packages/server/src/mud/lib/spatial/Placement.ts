@@ -49,6 +49,8 @@ export const Placements = {
   IN: '/platform/placements/in',
   /** Hanging from a hook. */
   FROM: '/platform/placements/from',
+  /** In a pocket — a named region of a garment (size and carrying D26). */
+  POCKET: '/platform/placements/pocket',
 } as const;
 
 /** One way of sitting — see the module header. */

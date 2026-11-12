@@ -34,6 +34,8 @@ export const SIZE_DEFAULTS = {
   INTERIOR_FRACTION: 0.9,
   /** A hanging host bears its breaking load over this factor. */
   HANG_SAFETY: 4,
+  /** A worn belt's length, of the trunk's circumference — the waist is a little narrower (D27). */
+  WAIST_FRACTION: 0.9,
   /** Standard gravity, m/s² — what a weight is read against before a place says otherwise. */
   STANDARD_GRAVITY: 9.81,
   /** The words for room left along a hanging length (m), smallest first. */

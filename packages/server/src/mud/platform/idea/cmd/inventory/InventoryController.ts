@@ -1,19 +1,30 @@
 /**
- * InventoryController — `inventory [<thing>]`: the itemised LEDGER of what
- * something holds (maritime revision 2).
+ * InventoryController — `inventory [<thing>] [--all --flat --held --ready
+ * --worn --packed --weight]`: the itemised LEDGER of what something holds
+ * (maritime revision 2), walked by TIER on yourself (size and carrying D28).
  *
  * ⭐ `look` answers *what is this like?*; `inventory` answers *what
  * exactly does this hold?* — complete and grouped:
- * - yourself (no argument): what you WEAR, what you HOLD, what you CARRY;
+ * - yourself (no argument): the whole tree by how near it is to your hand
+ *   (`Carrying.tierOf`) — *in hand* · *ready* (each pocket, each thing
+ *   hung from a worn host, each worn container with what is in it) ·
+ *   *worn* · *packed* (each pack on the back as *N things, M kg*; `--all`
+ *   opens them) · the burden in words. `--flat` is one list of everything;
+ *   `--held`/`--ready`/`--worn`/`--packed` one section; `--weight` adds the
+ *   mass and the bulk of each thing.
  * - a person: what you PERCEIVE of what they carry — their hands, their
  *   outer layers, what hangs from them, what you found on them
  *   (`PerceptionApi.visibleContentsOf`, a grouping of what
  *   `PerceptionApi.perceived` admits — size-and-carrying D23/D24 — so no
  *   surface can disagree with another);
  * - a container: what you perceive in it; a shut one you cannot see into
- *   refuses in words.
+ *   refuses in words;
+ * - ⭐ a thing things are placed on, in or hung from (a belt, a coat): each
+ *   of its regions with what you perceive there, and — for a length things
+ *   hang from — the room left, in words (`Placing.roomFor`; D27's `i belt`).
  *
  * `look in <thing>` is the same ledger ({@link InventoryController.ledger}).
+ * Every list passes `PerceptionApi.perceived` (`lint:perceived-surfaces`).
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -24,10 +35,29 @@ import { MessageApi } from '../../../../api/message';
 import { PerceptionApi } from '../../../../api/perception';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Placing } from '../../../../lib/spatial/Placing';
+import type { Carrying } from '../../../../lib/slot/Carrying';
 
 interface InventoryModel extends CommandModel {
   target?: MqlOneResult;
+  /** `--all` — open the packed containers too. */
+  all?: boolean;
+  /** `--flat` — one list of everything, no tiers. */
+  flat?: boolean;
+  /** `--held` — only what is in your hands. */
+  held?: boolean;
+  /** `--ready` — only what is ready to hand. */
+  ready?: boolean;
+  /** `--worn` — only what you wear. */
+  worn?: boolean;
+  /** `--packed` — only what is packed away. */
+  packed?: boolean;
+  /** `--weight` — the mass and bulk of each thing. */
+  weight?: boolean;
 }
+
+/** One rendered section of the tiered view. */
+type Section = 'held' | 'ready' | 'worn' | 'packed';
 
 /**
  * The ledger controller. `ledger` is a public static for exactly three
@@ -52,6 +82,20 @@ export default class InventoryController extends CommandController<InventoryMode
       context.note({ kind: 'empty-result', field: 'target', query: raw });
       return;
     }
+    const weight = model.weight === true;
+    // ⭐ Yourself, by tier (D28) — when you are a carrier.
+    if (target === viewer && MixinApi.isCarrying(viewer)) {
+      MessageApi.scene(viewer).topic('sense.survey').toSelf(InventoryController.tiered(viewer, model)).send();
+      return;
+    }
+    // ⭐ A thing that offers regions and holds nothing itself (a belt, a coat).
+    if (MixinApi.isPlacing(target) && !MixinApi.isContainer(target)) {
+      MessageApi.scene(viewer)
+        .topic('sense.survey')
+        .toSelf(InventoryController.regions(viewer, target, weight))
+        .send();
+      return;
+    }
     if (!MixinApi.isContainer(target)) {
       const line = target === viewer
         ? Mml.compose`You have no inventory.`
@@ -60,7 +104,7 @@ export default class InventoryController extends CommandController<InventoryMode
       context.note({ kind: 'mixin-missing', mixin: 'ContainerMixin' });
       return;
     }
-    const body = InventoryController.ledger(viewer, target);
+    const body = InventoryController.ledger(viewer, target, undefined, weight);
     if (body === null) {
       MessageApi.scene(viewer)
         .topic('sense.survey')
@@ -69,7 +113,10 @@ export default class InventoryController extends CommandController<InventoryMode
       context.note({ kind: 'controller-rejected', reason: 'shut', detail: target.getPresentation() });
       return;
     }
-    MessageApi.scene(viewer).topic('sense.survey').toSelf(body).send();
+    // A container that also offers regions (a pack's straps) lists them too.
+    const hung = MixinApi.isPlacing(target) ? InventoryController.regionLines(viewer, target, weight) : [];
+    const all = hung.length !== 0 ? hung.reduce((acc, line) => Mml.compose`${acc}${line}\n`, body) : body;
+    MessageApi.scene(viewer).topic('sense.survey').toSelf(all).send();
   }
 
   /**
@@ -77,16 +124,13 @@ export default class InventoryController extends CommandController<InventoryMode
    * complete (no summary). `null` when `target` is a container that is
    * shut. Shared by `inventory` and `look in <thing>`.
    */
-  public static ledger(viewer: Stuff, target: Stuff, only?: ReadonlySet<string>): Mml | null {
+  public static ledger(viewer: Stuff, target: Stuff, only?: ReadonlySet<string>, weight = false): Mml | null {
     const all = PerceptionApi.visibleContentsOf(viewer, target);
     if (all.shut) return null;
     // `query --ledger <a narrowed set>` groups just what the query named.
     const keep = (xs: Stuff[]): Stuff[] => (only ? xs.filter((x) => only.has(x.stuffId)) : xs);
     const v = { worn: keep(all.worn), held: keep(all.held), carried: keep(all.carried) };
-    // ⭐ `[builder]`: perceived only through the builder lens (D25).
-    const mark = (x: Stuff): Mml =>
-      PerceptionApi.perceivedHow(viewer, x) === 'builder' ? Mml.compose`${Mml.thing(x)} [builder]` : Mml.thing(x);
-    const list = (xs: Stuff[]): Mml => Mml.list(xs.map(mark));
+    const list = (xs: Stuff[]): Mml => InventoryController.list(viewer, xs, weight);
     const lines: Mml[] = [];
     if (viewer === target) {
       if (v.worn.length) lines.push(Mml.compose`You are wearing: ${list(v.worn)}.`);
@@ -102,5 +146,174 @@ export default class InventoryController extends CommandController<InventoryMode
     }
     const body = lines.reduce((acc, line) => Mml.compose`${acc}\n${line}`);
     return Mml.compose`\n${body}\n`;
+  }
+
+  /** ⭐ Yourself by tier (D28). */
+  private static tiered(viewer: Stuff & Carrying, model: InventoryModel): Mml {
+    const carrier = viewer;
+    const weight = model.weight === true;
+    const onMe = MixinApi.isContainer(viewer) ? PerceptionApi.perceived(viewer, viewer.getContents()) : [];
+
+    if (model.flat === true) {
+      const everything: Stuff[] = [];
+      const seen = new Set<string>();
+      const walk = (xs: readonly Stuff[]): void => {
+        for (const x of xs) {
+          if (seen.has(x.stuffId)) continue;
+          seen.add(x.stuffId);
+          everything.push(x);
+          if (MixinApi.isContainer(x) && !x.isAgent()) walk(PerceptionApi.perceived(viewer, x.getContents()));
+        }
+      };
+      walk(onMe);
+      return everything.length === 0
+        ? Mml.compose`\nYou are not carrying anything.\n`
+        : Mml.compose`\nYou have: ${InventoryController.list(viewer, everything, weight)}.\n`;
+    }
+
+    // Sort what is directly on the body by how it is carried.
+    const slotOf = new Map<string, string[]>();
+    if (MixinApi.isSlotted(viewer)) {
+      for (const [slot, occ] of viewer.getAllOccupants()) {
+        for (const o of occ) slotOf.set(o.stuffId, [...(slotOf.get(o.stuffId) ?? []), slot]);
+      }
+    }
+    const held: Stuff[] = [];
+    const worn: Stuff[] = [];
+    const readyContainers: Stuff[] = [];
+    const packedContainers: Stuff[] = [];
+    const loose: Stuff[] = [];
+    /** Placed things by host and region, in the order met. */
+    const regions = new Map<string, { host: Stuff & Placing; region: string; items: Stuff[] }>();
+    for (const x of onMe) {
+      const tier = carrier.tierOf(x);
+      const pair = MixinApi.isContainable(x) ? x.getPlacement() : null;
+      if (tier === 'hand') {
+        held.push(x);
+      } else if (pair !== null && pair.host.stuffId !== viewer.stuffId && MixinApi.isPlacing(pair.host)) {
+        const key = `${pair.host.stuffId}\u0000${pair.name}`;
+        const g = regions.get(key) ?? { host: pair.host, region: pair.name, items: [] };
+        g.items.push(x);
+        regions.set(key, g);
+        if (MixinApi.isContainer(x) && !x.isAgent()) readyContainers.push(x);
+      } else if (slotOf.has(x.stuffId)) {
+        const isContainer = MixinApi.isContainer(x) && !x.isAgent();
+        if (!isContainer) worn.push(x);
+        else if (tier === 'packed' || (slotOf.get(x.stuffId) ?? []).includes('back')) packedContainers.push(x);
+        else readyContainers.push(x);
+      } else {
+        loose.push(x);
+      }
+    }
+
+    const only = (['held', 'ready', 'worn', 'packed'] as const).filter((s) => model[s] === true);
+    const shows = (s: Section): boolean => only.length === 0 || only.includes(s);
+    const list = (xs: Stuff[]): Mml => InventoryController.list(viewer, xs, weight);
+    const contentsOf = (c: Stuff): Stuff[] =>
+      MixinApi.isContainer(c) ? PerceptionApi.perceived(viewer, c.getContents()) : [];
+    const lines: Mml[] = [];
+
+    if (shows('held') && held.length !== 0) lines.push(Mml.compose`In hand: ${list(held)}.`);
+
+    if (shows('ready')) {
+      const ready: Mml[] = [];
+      for (const g of regions.values()) {
+        const member = g.host.placementOf(g.region);
+        const named = g.host.namedRegions().includes(g.region);
+        const where = named
+          ? Mml.compose`In your ${Mml.thing(g.host)}'s ${g.region}`
+          : member.getHangs()
+            ? Mml.compose`Hanging from your ${Mml.thing(g.host)}`
+            : Mml.compose`${member.getHeading() || 'With'} your ${Mml.thing(g.host)}`;
+        ready.push(Mml.compose`  ${where}: ${list(g.items)}.`);
+      }
+      for (const c of readyContainers) {
+        const inside = contentsOf(c);
+        ready.push(
+          inside.length !== 0
+            ? Mml.compose`  ${Mml.thing(c)}: ${list(inside)}.`
+            : Mml.compose`  ${Mml.thing(c)}: empty.`,
+        );
+      }
+      // ⚠ Until the flip (W7), a thing can still be loose on you — ready.
+      if (loose.length !== 0) ready.push(Mml.compose`  Loose: ${list(loose)}.`);
+      if (ready.length !== 0) {
+        lines.push(Mml.compose`Ready:`);
+        lines.push(...ready);
+      }
+    }
+
+    if (shows('worn') && worn.length !== 0) lines.push(Mml.compose`Worn: ${list(worn)}.`);
+
+    if (shows('packed') && packedContainers.length !== 0) {
+      lines.push(Mml.compose`Packed:`);
+      for (const c of packedContainers) {
+        const inside = contentsOf(c);
+        if (model.all === true || only.includes('packed')) {
+          lines.push(
+            inside.length !== 0
+              ? Mml.compose`  ${Mml.thing(c)}: ${list(inside)}.`
+              : Mml.compose`  ${Mml.thing(c)}: empty.`,
+          );
+        } else {
+          lines.push(Mml.compose`  ${Mml.thing(c)}: ${carrier.tallyWords(inside)}.`);
+        }
+      }
+    }
+
+    if (lines.length === 0) {
+      return only.length === 0
+        ? Mml.compose`\nYou are not carrying anything.\n`
+        : Mml.compose`\nNothing.\n`;
+    }
+    if (only.length === 0 && MixinApi.isLoadBearing(viewer)) {
+      const burden = viewer.burdenWords();
+      if (burden !== null) lines.push(Mml.compose`${burden}`);
+    }
+    const out = lines.reduce((acc, line) => Mml.compose`${acc}\n${line}`);
+    return Mml.compose`\n${out}\n`;
+  }
+
+  /** ⭐ A placing host's regions and what is perceived in each (D27's `i belt`). */
+  private static regions(viewer: Stuff, host: Stuff & Placing, weight: boolean): Mml {
+    const lines = InventoryController.regionLines(viewer, host, weight);
+    if (lines.length === 0) {
+      return host.getPlacements().length === 0
+        ? Mml.compose`\n${Mml.thing(host)} holds nothing.\n`
+        : Mml.compose`\nNothing you can see on ${Mml.thing(host)}.\n`;
+    }
+    const body = lines.reduce((acc, line) => Mml.compose`${acc}${line}\n`, Mml.compose`\n${Mml.thing(host)}\n`);
+    return body;
+  }
+
+  /** One line per region of `host` with something perceived in it, plus a hanging length's room. */
+  private static regionLines(viewer: Stuff, host: Stuff & Placing, weight: boolean): Mml[] {
+    const lines: Mml[] = [];
+    for (const region of host.getPlacements()) {
+      const member = host.placementOf(region);
+      const items = PerceptionApi.perceived(viewer, [...host.getPlaced(region)]);
+      const named = host.namedRegions().includes(region);
+      const heading = named
+        ? region.charAt(0).toUpperCase() + region.slice(1)
+        : member.getHeading() || 'With it';
+      if (items.length !== 0) lines.push(Mml.compose`── ${heading}: ${InventoryController.list(viewer, items, weight)}.`);
+      else if (named) lines.push(Mml.compose`── ${heading}: empty.`);
+      // ⭐ The room along a length, in words — never a number (D27).
+      if (member.getHangs()) lines.push(Mml.compose`── Room left: ${host.roomFor(region)}.`);
+    }
+    return lines;
+  }
+
+  /** A list of things, each marked `[builder]` when seen only through the lens, with its weight when asked. */
+  private static list(viewer: Stuff, xs: Stuff[], weight: boolean): Mml {
+    return Mml.list(
+      xs.map((x) => {
+        const named = PerceptionApi.perceivedHow(viewer, x) === 'builder'
+          ? Mml.compose`${Mml.thing(x)} [builder]`
+          : Mml.thing(x);
+        if (!weight) return named;
+        return Mml.compose`${named} (${MixinApi.isTangible(x) ? x.massAndBulkWords() : 'weightless'})`;
+      }),
+    );
   }
 }

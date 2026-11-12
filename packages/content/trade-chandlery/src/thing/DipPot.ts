@@ -95,7 +95,8 @@ export default class DipPot extends DipBathMixin(CraftVessel) {
           candle.adoptMaterialFuel();
         }
         if (MixinApi.isContainable(candle) && MixinApi.isContainer(giver)) {
-          ContainmentApi.move(candle, giver);
+          if (MixinApi.isCarrying(giver)) giver.receive(candle);
+          else ContainmentApi.move(candle, giver);
         }
         return { ok: true, facts: { kind: 'candle', candle, melted } };
       },

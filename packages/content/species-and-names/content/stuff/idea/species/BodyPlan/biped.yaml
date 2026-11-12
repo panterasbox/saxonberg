@@ -48,6 +48,13 @@ data:
     # broad SlottableMixin so a weapon can be sheathed here without claiming
     # it as a wield slot. See docs/subsystems/combat.md (hand-slot economy).
     - { name: 'sidearm',      accepts: SlottableMixin }
+    # ⭐ Size and carrying D15/D27: the BACK takes one thing — a pack, whose
+    # inside is *packed* (take it off to reach in), or a slung shield — and
+    # the WAIST takes a belt (or four: a belt, a sash, a bumbag's strap…),
+    # whose length is the wearer's waist and whose attachments are *ready*.
+    # Carry slots, not coverings: neither has `covers`.
+    - { name: back,           accepts: SlottableMixin }
+    - { name: waist,          accepts: WearableMixin, capacity: 4 }
     # Cranial implant slot — accepts SlottableMixin (the broad
     # interface every augment composes). The "implant" semantic
     # lives in the slot's name and the augment's targetSlot field,

@@ -113,7 +113,8 @@ export default class AirBag extends TieableMixin(BuoyMixin(BulkableMixin(Good)))
     if (load === null) return { ok: false, reason: 'not-tied', facts: { gear: this as unknown as Stuff } };
     if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', facts: { gear: this as unknown as Stuff } };
     this._lashedTo = null;
-    ContainmentApi.move(this as never, by as Stuff & Container);
+    if (MixinApi.isCarrying(by)) by.receive(this as never);
+    else ContainmentApi.move(this as never, by as Stuff & Container);
     return { ok: true, line: `You cast the bag off ${load.getPresentation()} and take it up.` };
   }
 }

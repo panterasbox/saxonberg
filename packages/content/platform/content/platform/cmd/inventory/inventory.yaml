@@ -2,23 +2,58 @@ verbs: [inventory]
 category: inventory
 defaultAliases: [{name: i}]
 controller: /platform/idea/cmd/inventory/InventoryController
-description: "List what you — or a person, or an open container — hold"
+description: "List what you — or a person, a belt, or an open container — hold"
 help: |
   Take stock of what something holds — a complete, itemised list.
 
-  With no target, it is you: what you are WEARING, what you are
-  HOLDING, and what you are CARRYING. Name a person and you see what
-  they wear and hold (never what is in their pockets); name an open
-  container and you see everything in it. A shut one is shut.
+  With no target, it is you, by how near each thing is to your hand:
+  what is IN HAND; what is READY (your pockets, what hangs from your
+  belt, the satchel at your side and what is in each); what you WEAR;
+  and what is PACKED away on your back (each pack as how many things
+  and how heavy — `--all` opens them). Then how heavy your load is.
+
+  Name a person and you see what you can see of what they carry (never
+  what is in their pockets); name an open container and you see
+  everything in it — a shut one is shut. Name a belt, a bandolier or a
+  coat and you see what hangs from it or is in each pocket, and how much
+  room is left along it.
 
   `look` tells you what a thing is like, and mentions what you would
   notice there; `inventory` is the full list. `look in <thing>` is the
   same as `inventory <thing>`. Short on typing? Plain `i`.
 examples:
   - cmd: inventory
-    note: What you wear, hold and carry
+    note: What is in hand, ready, worn and packed
   - cmd: i crate
     note: Everything in the open crate
+  - cmd: i belt
+    note: What hangs from your belt, and the room left on it
+  - cmd: inventory --packed
+    note: Only what is packed away, opened
+  - cmd: inventory --weight
+    note: The weight and bulk of each thing
+options:
+  all:
+    type: boolean
+    description: "Open the packs on your back too"
+  flat:
+    type: boolean
+    description: "One list of everything, not by tier"
+  held:
+    type: boolean
+    description: "Only what is in your hands"
+  ready:
+    type: boolean
+    description: "Only what is ready to hand"
+  worn:
+    type: boolean
+    description: "Only what you wear"
+  packed:
+    type: boolean
+    description: "Only what is packed away"
+  weight:
+    type: boolean
+    description: "The weight and bulk of each thing"
 validators:
   - /lib/command/validators/requiresAnimate
 args:

@@ -27,6 +27,14 @@
  * - `DyedMixin` — the dye application stack and its fastness, so a
  *   garment can be coloured, washed, and faded. Undyed is the sparse
  *   default (an empty stack), so this costs a shipped row nothing.
+ * - ⭐ `PlacingMixin` (size and carrying D26/D27) — a garment OFFERS
+ *   regions and holds nothing itself: a pocket is a named region (`left
+ *   pocket`, `{member: /platform/placements/pocket, mouth, volumeM3}`), and
+ *   a belt or a bandolier offers `from` along its worn length. What is put
+ *   in a pocket or hung from a belt lives in the WEARER's contents with the
+ *   placement pair `(garment, name)` — the ham on the hook, worn. The class
+ *   default is `[]`: a shirt with no pockets offers nothing. Not a
+ *   `Container` — the wearer holds; the garment says where.
  *
  * Variety stays content + composition, never subclassing: *type* is
  * `slotClaims` + description; *added behavior* is a mixin layered on
@@ -66,6 +74,9 @@ import type { FieldMeta } from '../../../lib/mixin';
 import type { DirtKindDescriptor } from '../../../lib/cleanliness/DirtKind';
 import type { WashPolicy, WashSubject } from '../../../lib/cleanliness/WashPolicy';
 import { DirtKinds } from '../../../lib/cleanliness/DirtKind';
+import { PlacingMixin } from '../../../lib/spatial/Placing';
+import { SIZE_DEFAULTS } from '../../../lib/spatial/Dimensions';
+import { Creature } from '../../../lib/creature/Creature';
 
 // ⭐ Soilable and Labelled OUTERMOST (cleanliness D3, D9): every garment
 // may carry dirt by kind and be washed — a shirt, an apron, a pair of
@@ -75,13 +86,15 @@ import { DirtKinds } from '../../../lib/cleanliness/DirtKind';
 // one piece. One class.
 // ⭐ Tearable: an old shirt tears into rags — the mill's raw
 // stuff — mass for mass, and not while somebody is wearing it.
-const GarmentBase = TearableMixin(LabelledMixin(SoilableMixin(WearableMixin(
+// ⭐ Placing outermost of all (size and carrying D26): pockets and a hanging
+// length are regions OF the garment, offered whatever else it is.
+const GarmentBase = PlacingMixin(TearableMixin(LabelledMixin(SoilableMixin(WearableMixin(
   SlottableMixin(
     AssembledMixin(
       CraftedMixin(DurableMixin(ConstructedMixin(DyedMixin(Good)))),
     ),
   ),
-))));
+)))));
 
 /** The commons' clean rag a torn garment becomes. */
 const RAG_TEMPLATE = '/stuff/thing/rag';
@@ -113,6 +126,30 @@ const FUME_DOSE_PER_FRACTION_HOUR = 20;
 export default class Garment extends GarmentBase {
   /** ⭐ Cloth: it gives, packs with air and folds (size and carrying D1). */
   static defaultShape = 'flexible';
+
+  /** ⭐ A garment offers nothing until its row names pockets or a hanging length (D26). */
+  static override defaultPlacements: readonly string[] = [];
+
+  /**
+   * ⭐ Worn, a garment's hanging length is its WEARER (size and carrying
+   * D27): the body's circumference where it is worn — π × the girth of the
+   * envelope (D19) — and a waist a little less than the trunk
+   * (`SIZE_DEFAULTS.WAIST_FRACTION`). So a gnome's belt takes fewer pouches
+   * than an ogre's, and neither row says how many. Off the body it is its
+   * own longest side, as any length is.
+   */
+  public override hangingLengthM(): number {
+    const host = this.getOccupiedHost();
+    if (host instanceof Creature) {
+      const env = host.envelope('upright', { bare: true });
+      if (env !== null) {
+        const slots = this.occupiedSlots().get(host) ?? [];
+        const atWaist = slots.some((s) => s.split(':')[0] === 'waist');
+        return Math.PI * env.width * (atWaist ? SIZE_DEFAULTS.WAIST_FRACTION : 1);
+      }
+    }
+    return super.hangingLengthM();
+  }
 
 
   // ── airing (cleanliness D21): the sun and the fumes ──

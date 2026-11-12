@@ -245,7 +245,8 @@ export default class Bole extends BoleBase {
           madeFrom: bole,
         });
         if (wood && MixinApi.isTangible(timber)) timber.setMaterial(wood);
-        if (MixinApi.isContainer(actor)) ContainmentApi.move(timber, actor);
+        if (MixinApi.isCarrying(actor)) actor.receive(timber);
+        else if (MixinApi.isContainer(actor)) ContainmentApi.move(timber, actor);
         else if (room) ContainmentApi.move(timber, room);
         const boleName = this.getPresentation();
         const left = this.takeLength();

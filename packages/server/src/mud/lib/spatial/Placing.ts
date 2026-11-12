@@ -115,6 +115,13 @@ export interface Placing {
    * (`breast pocket`) is not a path.
    */
   placementOf(key: string): Placement;
+  /**
+   * ⭐ The regions this host names for itself (`left pocket`, `back plate`)
+   * — the entries that carry a `name` — in offer order. A host offering only
+   * bare members names none. Each is a word the host answers to, so `put
+   * cup in inner pocket` binds the coat with `via.region` (D26).
+   */
+  namedRegions(): readonly string[];
 
   /**
    * ⭐ How long this host's hanging edge is, m (size and carrying D4): its
@@ -207,6 +214,7 @@ export interface Placing {
 }
 
 export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
+  let inheritsKeywords: boolean | undefined;
   return class PlacingMixin extends Base {
     // Mixin marker for detection by MixinApi
     static _mixinName: string = 'PlacingMixin';
@@ -251,9 +259,12 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
             );
             if (items.length === 0) continue;
             const row = host.placementOf(member);
+            // ⭐ A named region is its own group (a coat's `left pocket`,
+            // `inner pocket` — D26), headed by its name.
+            const named = host.namedRegions().includes(member);
             groups.push({
-              name: row.getName(),
-              heading: row.getHeading() || 'With it',
+              name: named ? member : row.getName(),
+              heading: named ? member.charAt(0).toUpperCase() + member.slice(1) : row.getHeading() || 'With it',
               items: items.map(
                 (c) =>
                   MqlSubscriptionApi.projectFields(
@@ -301,24 +312,40 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** `[0, 1]` — how much of a placed thing the air reaches. Default airy. */
     public airExposure = 1;
 
-    /** The offered regions — paths or entries — primary first. A bare host is a surface. */
-    public placements: (string | PlacementEntry)[] = [Placements.ON];
+    /**
+     * ⭐ What a host whose row names no placements offers — a surface, which
+     * is what every shipped host was before the relation had a name. A class
+     * whose honest count is zero says so (`Garment`: `[]` — a shirt with no
+     * pockets offers no region, size and carrying D26).
+     */
+    static defaultPlacements: readonly string[] = [Placements.ON];
+
+    /** The offered regions — paths or entries — primary first; the class default until a row says. */
+    public placements: (string | PlacementEntry)[] = [
+      ...((this.constructor as { defaultPlacements?: readonly string[] }).defaultPlacements ?? [Placements.ON]),
+    ];
 
     placementFor(word: string | undefined): PlacementChoice {
       return new PlacementOffers(this as unknown as Stuff).choose(word);
     }
 
     getPlacements(): readonly string[] {
+      return this.offeredEntries().map((e) => (typeof e === 'string' ? e : (e.name ?? e.member)));
+    }
+
+    /**
+     * The row's entries, else the class default ({@link defaultPlacements}):
+     * a host whose row says nothing is a surface, and a garment whose row
+     * says nothing offers nothing.
+     */
+    private offeredEntries(): readonly (string | PlacementEntry)[] {
       const v = this.placements;
-      if (!Array.isArray(v) || v.length === 0) return [Placements.ON];
-      return v.map((e) => (typeof e === 'string' ? e : (e.name ?? e.member)));
+      if (Array.isArray(v) && v.length > 0) return v;
+      return (this.constructor as { defaultPlacements?: readonly string[] }).defaultPlacements ?? [Placements.ON];
     }
 
     getPlacementEntry(key: string): PlacementEntry | null {
-      const v = Array.isArray(this.placements) && this.placements.length > 0
-        ? this.placements
-        : [Placements.ON];
-      for (const e of v) {
+      for (const e of this.offeredEntries()) {
         if (typeof e === 'string') {
           if (e === key) return { member: e };
         } else if ((e.name ?? e.member) === key) {
@@ -326,6 +353,36 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
       }
       return null;
+    }
+
+    namedRegions(): readonly string[] {
+      const out: string[] = [];
+      for (const e of this.offeredEntries()) {
+        if (typeof e !== 'string' && typeof e.name === 'string' && e.name !== '') out.push(e.name);
+      }
+      return out;
+    }
+
+    /**
+     * ⭐ A host answers to the names of its regions (D26) — the
+     * `DetailedMixin.getKeywords` pattern: the inherited face, then the
+     * region names, lowercased and deduped.
+     */
+    getKeywords(viewer?: Stuff): string[] {
+      inheritsKeywords ??=
+        MixinApi.hasMixin(Base, Mixins.Perceptible) || MixinApi.hasMixin(Base, Mixins.Named);
+      const out: string[] = inheritsKeywords
+        ? (Base.prototype as unknown as { getKeywords(v?: Stuff): string[] }).getKeywords.call(this, viewer)
+        : [];
+      const seen = new Set(out);
+      for (const name of this.namedRegions()) {
+        const word = name.toLowerCase();
+        if (!seen.has(word)) {
+          seen.add(word);
+          out.push(word);
+        }
+      }
+      return out;
     }
 
     placementOf(key: string): Placement {
@@ -527,4 +584,13 @@ function hangingWidthOf(item: Stuff): number | null {
   return (MixinApi.isTangible(item) ? item.getFitBox() : null)?.hangingWidthM() ?? null;
 }
 
-
+// `via.region` facet — declaration-merged onto MqlMatchVia beside its owner
+// (the `via.bulk` / `via.detailPath` pattern): set when a placing host bound
+// through the name of one of its regions (`inner pocket`), so the verb puts
+// into THAT region and never asks which.
+declare module '../../api/mql/types' {
+  interface MqlMatchVia {
+    /** The named region of the matched placing host the words named. */
+    region?: string;
+  }
+}

@@ -9,6 +9,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { Placing } from '../../../lib/spatial/Placing';
+import type { PlacementChoice } from '../../../lib/spatial/PlacementOffers';
 import type { Slotted } from '../../../lib/slot/Slotted';
 import type { Slottable } from '../../../lib/slot/Slottable';
 import type { VetoResult } from '../../../lib/errors';
@@ -148,27 +149,52 @@ export class ContainmentLogic extends ApiLogic {
   public putPlanFor(
     item: ContainableStuff,
     target: Stuff,
-    opts: { prep?: string; by: Stuff },
+    opts: { prep?: string; by: Stuff; region?: string },
   ): PutPlan | PlaceRefusal {
     const { prep, by } = opts;
     let route: PutRoute;
+    // ⭐ A region named by its own words (`put cup in inner pocket` — the
+    // binder's `via.region`, D26) is the destination; the word must still be
+    // one that region answers to.
+    const named =
+      opts.region !== undefined && MixinApi.isPlacing(target) && target.getPlacements().includes(opts.region)
+        ? opts.region
+        : null;
     // ⭐ The slot rule stays first: a slot is more specific than a
     // container, so an item that fits an open slot goes in the slot.
-    const slot = MixinApi.isSlotted(target) ? target.openSlotFor(item, prep) : null;
-    if (slot !== null) {
+    const slot = named === null && MixinApi.isSlotted(target) ? target.openSlotFor(item, prep) : null;
+    if (named !== null) {
+      const placing = target as PlacingStuff;
+      const words = placing.placementOf(named).getPrepositions();
+      if (prep !== undefined && !words.includes(prep)) {
+        return { ok: false, reason: 'wrong-preposition', facts: { takes: [words[0] ?? named], got: prep } };
+      }
+      const veto = placing.canPlace(item, named);
+      const word = words[0] ?? named;
+      if (!veto.ok) {
+        return veto.reason === 'shut'
+          ? { ok: false, reason: 'shut' }
+          : { ok: false, reason: 'cannot-rest', facts: { word, why: veto.reason ?? '' } };
+      }
+      route = { kind: 'region', name: named, word };
+    } else if (slot !== null) {
       // A part that goes into a machine has to physically BE somewhere.
       if (!MixinApi.isContainer(target)) return { ok: false, reason: 'slot-host-not-container' };
       route = { kind: 'slot', slot };
     } else {
-      const choice =
+      const choice: PlacementChoice =
         MixinApi.isPlacing(target) || MixinApi.isContainer(target)
           ? target.placementFor(prep)
-          : ({ ok: false, reason: 'wrong-preposition', takes: [], ...(prep ? { got: prep } : {}) } as const);
+          : { ok: false, reason: 'wrong-preposition', takes: [], ...(prep ? { got: prep } : {}) };
       if (!choice.ok) {
         return {
           ok: false,
           reason: choice.reason,
-          facts: { takes: choice.takes, ...(choice.got !== undefined ? { got: choice.got } : {}) },
+          facts: {
+            takes: choice.takes,
+            ...(choice.got !== undefined ? { got: choice.got } : {}),
+            ...(choice.regions !== undefined ? { regions: choice.regions } : {}),
+          },
         };
       }
       const offer = choice.offer;
@@ -312,7 +338,9 @@ function placeOn(
  * to speak of answers at once and moves nothing.
  */
 function pressAfterArrival(item: ContainableStuff, to: ContainerStuff): void {
-  if (to.isAgent()) return;
+  // A body presses only what is in a pocket (D26) — anything else on it is
+  // held, worn or (until the flip) loose, and nothing is asked.
+  if (to.isAgent() && item.getPlacement() === null) return;
   void Promise.resolve().then(() => {
     if (item.isDestroyed() || to.isDestroyed() || item.getContainer() !== to) return;
     try {
@@ -332,7 +360,8 @@ function pressAfterArrival(item: ContainableStuff, to: ContainerStuff): void {
 function moveCore(
   item: ContainableStuff,
   to: ContainerStuff | null,
-  force: boolean
+  force: boolean,
+  following?: Set<string>,
 ): void {
   if (to !== null) {
     // PRE-FLIGHT (1): Exitables may only land in Exitables.
@@ -378,6 +407,22 @@ function moveCore(
   const from = item.getContainer();
   if (from === to) return;
 
+  // ⭐⭐ What travels with it (size and carrying D33): everything placed on,
+  // in or from this thing — a coat's pocketed key, a tray's cups, a belt's
+  // pouches — lives in its OLD environment with a pair naming it, and goes
+  // where it goes, pair kept. The whole bring-along is gathered (recursive,
+  // one cycle guard) and asked of the destination FIRST, so a refusal moves
+  // nothing; then each is moved after the host, by this function, keeping
+  // its pair (witnesses fire, custody follows).
+  const top = following === undefined;
+  const visited = following ?? new Set<string>([item.stuffId]);
+  const followers = from !== null && from !== to ? directFollowers(item, from) : [];
+  if (top && to !== null && !force && followers.length > 0) {
+    for (const f of bringAlong(item, from as ContainerStuff)) {
+      assertVetoOk(callHook<VetoResult>(to, 'canAddContainable', [f]), 'canAddContainable');
+    }
+  }
+
   // VETO HOOKS — invoked uniformly; only the assert is conditional.
   // Witnesses fire on every call (observability) so the force path
   // matches the polished path's side effects.
@@ -403,7 +448,7 @@ function moveCore(
   // whatever desk it was on can't still be holding it). Clearing here
   // keeps the move-as-container-change contract clean. `place`
   // re-stamps after this move() call, so the placed case is unaffected.
-  if (from !== to && item.getPlacement() !== null) {
+  if (from !== to && item.getPlacement() !== null && following === undefined) {
     item._setPlacement(null);
     // Rung 1: the placement is gone — wake the cards that showed it.
     MqlSubscriptionApi.fireFieldChange(
@@ -444,6 +489,24 @@ function moveCore(
     pressAfterArrival(item, to);
   }
 
+  // ⭐ The host-follow (D33): each thing placed on the moved host follows
+  // it, pair kept — and brings its own (a cup on a tray in a pocket).
+  for (const f of followers) {
+    if (visited.has(f.stuffId)) {
+      throw new ContainmentError(`move: placement cycle at ${f.stuffId} while moving ${item.stuffId}`);
+    }
+    visited.add(f.stuffId);
+    if (f.isAgent() || to === null) {
+      // A creature steps off what is carried away; a host gone from the
+      // world drops what was on it where it stood.
+      const was = f.getPlacement()?.name ?? '';
+      f._setPlacement(null);
+      MqlSubscriptionApi.fireFieldChange(f as unknown as Stuff, 'placement', was, '');
+      continue;
+    }
+    moveCore(f, to, force, visited);
+  }
+
   // ⭐⭐ CUSTODY is derived here, for every move by anyone: where an owned
   // good now is gets recorded (so it is where it was left after a
   // restart), and a fresh good — arriving from nowhere — is titled to
@@ -454,6 +517,45 @@ function moveCore(
       .followCustody({ fresh: from === null, to })
       .catch((err: unknown) => console.warn('ContainmentApi.move: custody record failed:', err));
   }
+}
+
+/**
+ * The things placed on `host` that live in `env` — what moves with it
+ * (D33). A host that offers no placements has none.
+ */
+function directFollowers(host: ContainableStuff, env: ContainerStuff): ContainableStuff[] {
+  if (!MixinApi.isPlacing(host)) return [];
+  const out: ContainableStuff[] = [];
+  for (const c of env.getContents()) {
+    if (c.stuffId === host.stuffId || !MixinApi.isContainable(c)) continue;
+    const pair = c.getPlacement();
+    if (pair !== null && (pair.host as Stuff).stuffId === host.stuffId) out.push(c);
+  }
+  return out;
+}
+
+/**
+ * The whole bring-along of moving `host` out of `env` — followers, their
+ * followers, … — creatures excluded (they step off). Throws on a cycle,
+ * before anything has moved.
+ */
+function bringAlong(host: ContainableStuff, env: ContainerStuff): ContainableStuff[] {
+  const out: ContainableStuff[] = [];
+  const seen = new Set<string>([host.stuffId]);
+  const queue: ContainableStuff[] = [host];
+  while (queue.length > 0) {
+    const h = queue.shift()!;
+    for (const f of directFollowers(h, env)) {
+      if (seen.has(f.stuffId)) {
+        throw new ContainmentError(`move: placement cycle at ${f.stuffId} while moving ${host.stuffId}`);
+      }
+      seen.add(f.stuffId);
+      if (f.isAgent()) continue;
+      out.push(f);
+      queue.push(f);
+    }
+  }
+  return out;
 }
 
 /**
