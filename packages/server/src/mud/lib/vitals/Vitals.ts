@@ -3104,6 +3104,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     private noticeGripLost(): void {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self) || self.getLifecycleState() === 'dead') return;
+      // Empty hands have nothing to let go: no consciousness read (it reads
+      // every active affliction's condition row) for a body holding nothing.
+      if (!MixinApi.isCarrying(self) || self.heldThings().length === 0) return;
       // The read must not reconcile again: we just did.
       this._reconcilingConditions = true;
       let state: Consciousness;
@@ -3114,7 +3117,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       const was = this._wasConscious;
       this._wasConscious = state === 'conscious';
-      if (state !== 'conscious' && was !== false && MixinApi.isCarrying(self)) {
+      if (state !== 'conscious' && was !== false) {
         self.releaseHeld();
       }
     }

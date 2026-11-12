@@ -127,6 +127,8 @@ function contentRows(): Row[] {
     // loaded with their holders from the content store (load-on-use door a).
     ...yamlDir('base-library', 'stuff/idea/material/alloy', '/stuff/idea/material/alloy'),
     ...yamlDir('base-library', 'stuff/idea/material/textile', '/stuff/idea/material/textile'),
+    // The mug's earthenware (size and carrying W6 gave it a material).
+    ...yamlDir('base-library', 'stuff/idea/material/ceramic', '/stuff/idea/material/ceramic'),
     ...yamlDir('generic-objects', 'stuff/thing/fixture', '/stuff/thing/fixture'),
     ...yamlDir('trade-hospitality', 'trade/hospitality/thing', `${ROOT}/thing`),
     ...yamlDir('trade-hospitality', 'trade/hospitality/idea/material', `${ROOT}/idea/material`),
