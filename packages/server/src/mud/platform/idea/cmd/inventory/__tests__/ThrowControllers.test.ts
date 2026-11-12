@@ -150,4 +150,47 @@ describe('what becomes of the thing', () => {
     expect(await out.spatter()).toEqual([]);
     expect(rock.isDestroyed()).toBe(true);
   });
+
+  it('a throw that goes wide or strikes leaves the hand and lands by the target (C50)', async () => {
+    const { room, giver, rock } = scene();
+    const post = makeStuff(() => new Rock());
+    ContainmentApi.move(post, room);
+    new ThrownLanding(rock, post, { profile: { energyJ: 1 }, shares: [], spilled: 0 }).settle();
+    expect(rock.getContainer()).toBe(room);
+    expect(rock.getContainer()).not.toBe(giver);
+  });
+});
+
+describe('letting go (C51)', () => {
+  it('a thing the body will not release is not thrown', async () => {
+    const { room, giver, rock } = scene();
+    (giver as unknown as Record<string, unknown>).tryReleaseFromSlots = vi.fn(
+      () => ({ released: false, dumpedTau: 0 }),
+    );
+    const { MixinApi } = await import('../../../../../api/mixin');
+    vi.spyOn(MixinApi, 'isSlotted').mockReturnValue(true);
+    vi.spyOn(MixinApi, 'isSlottable').mockReturnValue(true);
+    await makeStuff(() => new ThrowController()).execute(
+      { item: { stuff: rock, raw: 'rock' } } as never,
+      context(giver),
+    );
+    expect(notes.map((n) => n.reason)).toEqual(['cursed-will-not-release']);
+    expect(rock.getContainer()).toBe(giver);
+    expect(rock.getContainer()).not.toBe(room);
+  });
+
+  it('a released thing leaves its slot before it flies', async () => {
+    const { room, giver, rock } = scene();
+    const release = vi.fn(() => ({ released: true, vacated: 1 }));
+    (giver as unknown as Record<string, unknown>).tryReleaseFromSlots = release;
+    const { MixinApi } = await import('../../../../../api/mixin');
+    vi.spyOn(MixinApi, 'isSlotted').mockReturnValue(true);
+    vi.spyOn(MixinApi, 'isSlottable').mockReturnValue(true);
+    await makeStuff(() => new ThrowController()).execute(
+      { item: { stuff: rock, raw: 'rock' } } as never,
+      context(giver),
+    );
+    expect(release).toHaveBeenCalledWith(rock);
+    expect(rock.getContainer()).toBe(room);
+  });
 });

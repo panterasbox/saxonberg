@@ -14,7 +14,7 @@ import { MeltableMixin } from "@saxonberg/server/mud/lib/thermal/Meltable";
 import { ThermalMixin } from "@saxonberg/server/mud/lib/thermal/Thermal";
 import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 import type { CommandContributions } from "@saxonberg/server/mud/api/command";
-import { CuttableMixin, type CutAnswer, type CutRequest } from "@saxonberg/server/mud/lib/craft/Cuttable";
+import type { ActPlan, ActRefusal } from "@saxonberg/server/mud/lib/craft/ActPlan";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Container } from "@saxonberg/server/mud/lib/spatial/Container";
 import type { Containable } from "@saxonberg/server/mud/lib/spatial/Containable";
@@ -24,6 +24,8 @@ import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
 import { Quantity } from "@saxonberg/server/mud/lib/quantity";
 import { TintedMixin } from "../lib/Tinted";
+import type Window from "@saxonberg/server/mud/platform/thing/Window";
+import type { ActOutcome } from "@saxonberg/server/mud/lib/craft/ActPlan";
 
 /** The pane row a snapped sheet parts into. */
 const PANE_ROW = "/trade/glass/thing/pane";
@@ -31,12 +33,32 @@ const PANE_ROW = "/trade/glass/thing/pane";
 /** Which flat form the sheet is in. */
 export type SheetForm = "cylinder" | "pane";
 
+/** The snap: the sheet that parted (named before it went). */
+export interface GlassSnapDone {
+  sheetName: string;
+}
+/** ⭐ Every reason the sheet refuses a cold-bench act — the glass controllers word each. */
+export type GlassCutRefusal = ActRefusal<"unscribed">;
+/** Why a cylinder will not open flat — worded by `flatten`. */
+export type FlattenRefusal = ActRefusal<"not-a-cylinder" | "unscribed" | "no-furnace">;
+/** Why a pane will not go in a window — worded by `glaze`. */
+export type GlazeRefusal = ActRefusal<"not-a-pane" | "already-glazed">;
+
+/** How long opening a cylinder flat at the furnace takes, game-ms. */
+const FLATTEN_MS = 6_000;
+/** What it costs the body, W. */
+const FLATTEN_W = 150;
+
+/** A cold-bench act's plan — instant (`durationMs: 0`), landed by the verb. */
+export type GlassCutPlan<F = undefined> = ActPlan<undefined, F, GlassCutRefusal>;
+
 // ⭐ A pane remelts because it is WARM (ceramics W0, ruling C): put in a
 // hot kiln it melts by phase change, pooling into the pot beside it with
 // its iron — there is no remelt recipe. So it needs a temperature.
-// ⭐ And it plans its own cold-bench cuts (`CuttableMixin`, controllers-are-io
-// D8c): `scribe`, `snap`, `groze` ask the sheet what the cut does to it.
-const SheetBase = CuttableMixin(TintedMixin(AlloyedMixin(MeltableMixin(ThermalMixin(Good)))));
+// ⭐ And it plans its own cold-bench cuts — METHODS, not a protocol: one host
+// each (controller-liquidity D14). `scribe`, `snap`, `groze` ask the sheet
+// what the cut does to it.
+const SheetBase = TintedMixin(AlloyedMixin(MeltableMixin(ThermalMixin(Good))));
 
 export default class Sheet extends SheetBase {
   // ⭐ A pane affords `glaze` to whoever holds it (environment = carrier).
@@ -87,73 +109,149 @@ export default class Sheet extends SheetBase {
   }
 
   /**
-   * ⭐ The cold-bench cuts (D8c). The instrument (a wheel, pliers) is the
-   * verb's to find; what the cut does to the glass is the sheet's:
+   * ⭐ The cold-bench cuts (D14 — host methods; one host each). The
+   * instrument (a wheel, pliers) is the verb's to find; what the cut does
+   * to the glass is the sheet's:
    *
-   *  - `scribe` — a score line; it will part along it now.
-   *  - `snap` — parts a scribed sheet into two panes at half the mass each,
-   *    carrying the same glass (and so the same color); `unscribed` refuses.
-   *  - `groze` — nibbles the edge: `grozeKg` comes away as dust.
+   *  - {@link scribePlan} — a score line; it will part along it now.
+   *  - {@link snapPlan} — parts a scribed sheet into two panes at half the
+   *    mass each, carrying the same glass (and so the same color);
+   *    `unscribed` refuses.
+   *  - {@link grozePlan} — nibbles the edge: `grozeKg` comes away as dust.
    *
    * Instant acts (`durationMs: 0`), each crediting an easy deed in glasswork.
    */
-  public override async cutPlan(req: CutRequest): Promise<CutAnswer> {
-    const actor = req.actor;
-    const credit = (): void => {
-      if (MixinApi.isAdvancing(actor)) {
-        void actor.creditDeed({ discipline: "glasswork", difficulty: "easy", outcome: "success" });
-      }
+  public scribePlan(actor: Stuff): GlassCutPlan {
+    return {
+      ok: true,
+      durationMs: 0,
+      effortW: 0,
+      facts: undefined,
+      onComplete: () => {
+        this.setScribed(true);
+        Sheet.credit(actor);
+        return { ok: true, facts: undefined };
+      },
     };
-    switch (req.verb) {
-      case "scribe":
-        return {
-          ok: true,
-          verb: "scribe",
-          durationMs: 0,
-          effortW: 0,
-          facts: undefined,
-          onComplete: () => {
-            this.setScribed(true);
-            credit();
-            return { ok: true, facts: undefined };
-          },
-        };
-      case "snap":
-        if (!this.isScribed()) return { ok: false, verb: "snap", reason: "unscribed" };
-        return {
-          ok: true,
-          verb: "snap",
-          durationMs: 0,
-          effortW: 0,
-          facts: undefined,
-          onComplete: async () => {
-            // ⚠ Awaited by the verb: the panes are LANDED (custody +
-            // capture), so the act finishes when they are recorded.
-            const sheetName = this.getPresentation();
-            await this.snapInTwo(actor);
-            credit();
-            return { ok: true, facts: { sheetName } };
-          },
-        };
-      case "groze": {
-        const off = Sheet.grozeKg();
-        return {
-          ok: true,
-          verb: "groze",
-          durationMs: 0,
-          effortW: 0,
-          facts: undefined,
-          onComplete: () => {
-            const left = Math.max(0, this.getMass().rawValue() - off);
-            this.setMass(Quantity.of(left, "kg"));
-            this.setGrozed(true);
-            credit();
-            return { ok: true, facts: undefined };
-          },
-        };
-      }
-      default:
-        return super.cutPlan(req);
+  }
+
+  /** ⭐ `snap` — a scribed sheet parts in two; an unscribed one refuses. */
+  public snapPlan(actor: Stuff): GlassCutPlan<GlassSnapDone> | GlassCutRefusal {
+    if (!this.isScribed()) return { ok: false, reason: "unscribed" };
+    return {
+      ok: true,
+      durationMs: 0,
+      effortW: 0,
+      facts: undefined,
+      onComplete: async () => {
+        // ⚠ Awaited by the verb: the panes are LANDED (custody +
+        // capture), so the act finishes when they are recorded.
+        const sheetName = this.getPresentation();
+        await this.snapInTwo(actor);
+        Sheet.credit(actor);
+        return { ok: true, facts: { sheetName } };
+      },
+    };
+  }
+
+  /** ⭐ `groze` — the edge nibbled to a line; `grozeKg` comes away as dust. */
+  public grozePlan(actor: Stuff): GlassCutPlan {
+    const off = Sheet.grozeKg();
+    return {
+      ok: true,
+      durationMs: 0,
+      effortW: 0,
+      facts: undefined,
+      onComplete: () => {
+        const left = Math.max(0, this.getMass().rawValue() - off);
+        this.setMass(Quantity.of(left, "kg"));
+        this.setGrozed(true);
+        Sheet.credit(actor);
+        return { ok: true, facts: undefined };
+      },
+    };
+  }
+
+  /**
+   * ⭐ **Open a scribed cylinder flat at a furnace** (the `flatten` verb's
+   * act, controller-liquidity W12): softened, it opens out into a pane of
+   * the same glass and mass where it lay. Wants the cylinder scored down
+   * its length first, and a lit furnace at `glass.cold.flattenK`.
+   */
+  public flattenPlanAt(furnaces: readonly Stuff[], by: Stuff): ActPlan<undefined, undefined, FlattenRefusal> | FlattenRefusal {
+    if (this.form !== "cylinder") return { ok: false, reason: "not-a-cylinder" };
+    if (!this.scribed) return { ok: false, reason: "unscribed" };
+    const minK = Sheet.setting("glass.cold.flattenK", 900);
+    const hot = furnaces.some((f) => MixinApi.isBurner(f) && f.isLit() && f.getHeldTemperatureK() >= minK);
+    if (!hot) return { ok: false, reason: "no-furnace" };
+    return {
+      ok: true,
+      durationMs: FLATTEN_MS,
+      effortW: FLATTEN_W,
+      facts: undefined,
+      onComplete: async () => {
+        if (this.isDestroyed()) return { ok: false, reason: "not-a-cylinder" };
+        await this.openFlat(by);
+        if (MixinApi.isAdvancing(by)) {
+          void by.creditDeed({ discipline: "glasswork", difficulty: "standard", outcome: "success" });
+        }
+        return { ok: true, facts: undefined };
+      },
+    };
+  }
+
+  /** The cylinder, opened: one pane of the same glass where it lay; the cylinder is gone. */
+  private async openFlat(by: Stuff): Promise<void> {
+    const self = this as unknown as Stuff;
+    const alloying = this.getMakeup().map((e) => ({ ...e }));
+    const where = MixinApi.isContainable(self)
+      ? self.getContainer()
+      : MixinApi.isContainer(by)
+        ? (by as unknown as Stuff & Container)
+        : null;
+    const pane = await StuffApi.clone<Sheet>(PANE_ROW, undefined, { madeFrom: self });
+    pane.setMass(Quantity.of(this.getMass().rawValue(), "kg"));
+    pane.setForm("pane");
+    if (MixinApi.isComposition(pane) && alloying.length > 0) pane.setMakeup(alloying);
+    if (where && MixinApi.isContainer(where) && MixinApi.isContainable(pane)) {
+      ContainmentApi.move(pane as unknown as Stuff & Containable, where as Stuff & Container);
+    }
+    await StuffApi.destruct(self);
+  }
+
+  /**
+   * ⭐ **Set this pane in `window`** (the `glaze` verb's act): the window
+   * takes the pane's own derived transmittance — a green pane colours the
+   * room green — and the pane is consumed into it. ⚠ A window already
+   * glazed refuses (`Window.canGlaze`, C14); it was overwritten in silence.
+   */
+  public glazeInto(window: Window, by: Stuff): ActOutcome<undefined> | GlazeRefusal {
+    if (this.form !== "pane") return { ok: false, reason: "not-a-pane" };
+    if (!window.canGlaze()) return { ok: false, reason: "already-glazed" };
+    window.setGlazing(this.lightTransmittance());
+    void StuffApi.destruct(this as unknown as Stuff);
+    if (MixinApi.isAdvancing(by)) {
+      void by.creditDeed({ discipline: "glasswork", difficulty: "standard", outcome: "success" });
+    }
+    return { ok: true, facts: undefined };
+  }
+
+  /** A numeric `glass.*` dial, else `fallback`. */
+  private static setting(key: string, fallback: number): number {
+    try {
+      const raw = AppApi.setting(key);
+      if (raw === "" || raw == null) return fallback;
+      const n = Number.parseFloat(raw);
+      return Number.isFinite(n) ? n : fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
+  /** An easy deed in glasswork, for a cold-bench act. */
+  private static credit(actor: Stuff): void {
+    if (MixinApi.isAdvancing(actor)) {
+      void actor.creditDeed({ discipline: "glasswork", difficulty: "easy", outcome: "success" });
     }
   }
 

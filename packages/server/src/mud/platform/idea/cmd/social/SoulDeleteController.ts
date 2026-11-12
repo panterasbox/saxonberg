@@ -9,10 +9,15 @@ import { SoulControllerBase, type SoulModel } from './SoulControllerBase';
 
 export default class SoulDeleteController extends SoulControllerBase {
   async execute(model: SoulModel, context: CommandContext): Promise<void> {
-    if (await this.refuseUnlessCommittee(model, context)) return;
     const verb = (model.verb ?? '').toLowerCase().trim();
     if (!verb) return this.fail(context, 'verb required', 'verb-required');
-    const ok = await SoulApi.delete(verb);
+    let ok: boolean;
+    try {
+      ok = await SoulApi.delete(verb);
+    } catch (err) {
+      if (this.refusedByCommittee(context, err)) return;
+      throw err;
+    }
     if (!ok) {
       return this.fail(context, `No emote '${verb}'.`, 'no-such-emote');
     }

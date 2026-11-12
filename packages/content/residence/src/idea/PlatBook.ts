@@ -16,14 +16,54 @@ import { SingletonMixin } from "@saxonberg/server/mud/lib/stuff/Singleton";
 import { LandUses, type LandUse } from "@saxonberg/server/mud/lib/parcel/LandUse";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { ParcelApi } from "@saxonberg/server/mud/api/parcel";
+import { BankingApi, type Charge } from "@saxonberg/server/mud/api/banking";
+import { BoundaryApi } from "@saxonberg/server/mud/api/boundary";
+import { EmploymentApi } from "@saxonberg/server/mud/api/employment";
+import { MixinApi } from "@saxonberg/server/mud/api/mixin";
+import { Money } from "@saxonberg/server/mud/lib/banking/Money";
+import { Lock } from "@saxonberg/server/mud/lib/lock/Lock";
+import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { VetoResult } from "@saxonberg/server/mud/lib/errors";
 import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
+import { Ascent, type AscentRefusal } from "../lib/Ascent";
+import PlatWarren from "./PlatWarren";
 
-/** The holder surface the book consults (capacity + the plan's order). */
-interface HolderView {
-  capacity(): number;
-  nextFreeLeaf(taken: ReadonlySet<string>): string | null;
-}
+/**
+ * Why a land sale refused (`PlatBook.sell`). Every one is decided BEFORE the
+ * money moves, so a refusal leaves the buyer's money where it was
+ * (controller-liquidity C1).
+ */
+export type SaleRefusal =
+  | "unknown-lot"
+  | "already-sold"
+  | "no-durable-identity"
+  | "ascent-condition"
+  | "no-district-owner"
+  | "zoning"
+  | "insufficient-funds";
+
+/** What `PlatBook.sell` answers: the lot that is now yours, or why not. */
+export type SaleAnswer =
+  | {
+      ok: true;
+      extent: string;
+      /** A first provisioning (`false` = the ground was already there). */
+      firstTime: boolean;
+      /** The compass side of the road the lot's gate hangs on, if known. */
+      gateSide: string | null;
+    }
+  | {
+      ok: false;
+      reason: SaleRefusal;
+      detail: string;
+      /** The price asked, in minor units (for the refusal's words). */
+      priceMinor: number;
+      /** The holding that failed the ascent gate (`ascent-condition`). */
+      ascent?: AscentRefusal;
+    };
+
+/** The lock fitted to a sold lot's door. */
+const LOT_LOCK_TECH = "pin-tumbler" as const;
 
 const PlatBookBase = SingletonMixin(Idea);
 
@@ -155,21 +195,174 @@ export default class PlatBook extends PlatBookBase {
     this.holderPath = value;
   }
 
-  /** The provisioner, resolved live (null when not registered). */
-  private holderView(): HolderView | null {
+  /**
+   * Has `extent` sold? A title row at exactly that extent — the parcel
+   * registry is the book of record, the plat book only offers.
+   */
+  public async isSold(extent: string): Promise<boolean> {
+    const existing = await ParcelApi.coveringParcelOf(extent);
+    return existing !== null && existing.getExtent() === extent;
+  }
+
+  /**
+   * ⭐ **Sell a lot to whoever is acting**, over `desk` — the whole land
+   * sale, check-then-act (controller-liquidity W13, C1):
+   *
+   *  1. every refusal first — an offered lot, unsold, a buyer with a
+   *     durable identity, the ascent gate ({@link Ascent}), a district
+   *     owner to subdivide under, and the registry's own area/zoning
+   *     checks (`ParcelApi.subdivisionRefusal`);
+   *  2. the money leg, through banking's settle chokepoint, to the venue
+   *     the desk stands in (credential, then cash);
+   *  3. the writes — subdivide, the water citation, the transfer, the
+   *     keyway and the buyer's key;
+   *  4. the ground, best-effort (the title is real whatever the ground
+   *     does — an offer with a broken provisioner is a content bug the sale
+   *     must not amplify by throwing after taking the money).
+   *
+   * The title goes to `buyer`; the money is drawn by the settle chokepoint
+   * from whoever is acting (a purchase for somebody else is a gift).
+   */
+  public async sell(extent: string, buyer: Stuff, desk: Stuff): Promise<SaleAnswer> {
+    const price = this.priceMinor;
+    const refuse = (
+      reason: SaleRefusal,
+      detail: string,
+      ascent?: AscentRefusal,
+    ): SaleAnswer => ({ ok: false, reason, detail, priceMinor: price, ascent });
+
+    if (!this.governs(extent)) {
+      return refuse("unknown-lot", `${extent} is not a lot this book offers`);
+    }
+    if (await this.isSold(extent)) {
+      return refuse("already-sold", `${extent} already has a title row`);
+    }
+    const buyerPath = buyer.getIdentityPath();
+    if (!buyerPath) {
+      return refuse("no-durable-identity", "the buyer has no identity to hold title with");
+    }
+    const ascent = await new Ascent().refusalFor(buyerPath);
+    if (ascent) {
+      return refuse("ascent-condition", `${ascent.extent} is ${ascent.band}`, ascent);
+    }
+    // The district must have an owner to subdivide under (inherited by the
+    // minted lot — a second subdivision's owner rides its own parcel row).
+    const district = await ParcelApi.coveringParcelOf(this.parentExtent);
+    const districtOwner = district?.getOwner() ?? null;
+    if (!districtOwner) {
+      return refuse("no-district-owner", `${this.parentExtent} has no covering parcel owner`);
+    }
+    const zoning = await ParcelApi.subdivisionRefusal(
+      extent,
+      this.parentExtent,
+      this.areaM2,
+      this.landUse,
+    );
+    if (zoning) return refuse("zoning", zoning.detail);
+
+    // The money leg. Nothing changes hands until the money has.
+    if (!(await this.takePayment(extent, desk))) {
+      return refuse("insufficient-funds", `could not settle ${price} for ${extent}`);
+    }
+
+    // Mint the row, stamping the use and the area the subdivision declares;
+    // then the lot's water posture (water-supply D1); then hand the title
+    // over — two steps, so the chain of title reads "subdivided, then
+    // transferred", which is what happened.
+    await ParcelApi.subdivide(
+      extent,
+      this.parentExtent,
+      districtOwner,
+      this.areaM2,
+      1,
+      this.landUse,
+    );
+    if (this.lotWaterSource !== "") {
+      await ParcelApi.citeWaterSource(extent, this.lotWaterSource);
+    }
+    await ParcelApi.transfer(extent, { kind: "player", templatePath: buyerPath });
+
+    // Key the house and hand the buyer the key (D7): a fresh keyway on the
+    // lot's row, a brass key in hand plus an implant-keychain entry. The
+    // door checks the KEY, never identity.
+    const keyway = BoundaryApi.mintKeyway();
+    await ParcelApi.setKeyway(extent, keyway);
+    try {
+      await new Lock(keyway, LOT_LOCK_TECH).issueKeyTo(buyer);
+    } catch (err) {
+      console.warn(`PlatBook: key issue failed for ${extent}:`, err);
+    }
+
+    // Stand the ground up — the book's own provisioner, whatever model it
+    // implements — and hang the gate off the street. The gate is outside
+    // `provision` on purpose: that method is the `@hook` a different
+    // provisioning model replaces wholesale, and the way in must survive it.
+    const holder = this.provisioner();
+    let firstTime = true;
+    if (holder) {
+      try {
+        firstTime = (await holder.provision(extent)).firstTime;
+        await holder.ensureGate(extent);
+      } catch (err) {
+        console.warn(`PlatBook: provisioning ${extent} failed (title stands):`, err);
+      }
+    }
+    return {
+      ok: true,
+      extent,
+      firstTime,
+      gateSide: holder?.gateDirectionFor(extent) ?? null,
+    };
+  }
+
+  /** The book's provisioner as the class it is, or null. */
+  private provisioner(): PlatWarren | null {
     if (!this.holderPath) return null;
-    const holder = StuffApi.findByTemplatePath(this.holderPath);
-    if (!holder) return null;
-    const h = holder as unknown as Partial<HolderView>;
-    return typeof h.capacity === "function" &&
-      typeof h.nextFreeLeaf === "function"
-      ? (h as HolderView)
-      : null;
+    const holder = StuffApi.findByTemplatePath<Stuff>(this.holderPath) ?? null;
+    return holder instanceof PlatWarren ? holder : null;
+  }
+
+  /**
+   * Move the price through banking's settle chokepoint, to the Business
+   * operating the room the desk stands in. The district has no treasury —
+   * it is a government on paper — so the records office takes the payment
+   * on its behalf.
+   */
+  private async takePayment(extent: string, desk: Stuff): Promise<boolean> {
+    let account: string;
+    try {
+      const here = MixinApi.isContainable(desk) ? desk.getContainer() : null;
+      const venue = here?.getTemplatePath();
+      if (!venue) return false;
+      const business = await EmploymentApi.ensureOperatorAt(venue);
+      if (!business) return false;
+      account = await EmploymentApi.operatingAccountOf(business);
+    } catch {
+      return false;
+    }
+    const charge: Charge = {
+      amount: Money.of(this.priceMinor, BankingApi.compactCurrency()),
+      reason: `title to ${extent}`,
+      presented: true,
+      payeeAccountId: account,
+      category: "sales",
+    };
+    try {
+      await BankingApi.settle(charge, { kind: "credential" });
+      return true;
+    } catch {
+      try {
+        await BankingApi.settle(charge, { kind: "cash" });
+        return true;
+      } catch {
+        return false;
+      }
+    }
   }
 
   /** The operator's capacity (the holder's D10 dial; 40 with no holder). */
   public capacity(): number {
-    return this.holderView()?.capacity() ?? 40;
+    return this.provisioner()?.capacity() ?? 40;
   }
 
   /**
@@ -197,7 +390,7 @@ export default class PlatBook extends PlatBookBase {
     // ⭐ Load on use: the book names its holder, so the listing stands it
     // up rather than reading only one something else happened to load
     // (a plat that is not booted listed nothing — tracts build W4).
-    if (this.holderPath && !this.holderView()) {
+    if (this.holderPath && !this.provisioner()) {
       try {
         await StuffApi.singleton(this.holderPath);
       } catch (err) {
@@ -215,7 +408,7 @@ export default class PlatBook extends PlatBookBase {
     sold.sort(
       (a, b) => (this.lotNumberOf(leafOf(a)) ?? 0) - (this.lotNumberOf(leafOf(b)) ?? 0),
     );
-    const next = this.holderView()?.nextFreeLeaf(takenLeafs) ?? null;
+    const next = this.provisioner()?.nextFreeLeaf(takenLeafs) ?? null;
     if (next && this.lotNumberOf(next) !== null) {
       sold.push(this.extentOfLeaf(next));
     }

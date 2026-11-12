@@ -4,7 +4,6 @@
 
 import type { CommandContext } from '../../../../api/command';
 import { Mml } from '../../../../api/mml';
-import { GroupApi } from '../../../../api/group';
 import { GroupControllerBase, type GroupModel } from './GroupControllerBase';
 
 export default class GroupRenameController extends GroupControllerBase {
@@ -18,14 +17,12 @@ export default class GroupRenameController extends GroupControllerBase {
     }
     const g = await this.findGroupByName(oldName);
     if (!g) return this.fail(context, `No group '${oldName}'.`, 'no-such-group');
-    if (!(await GroupApi.ownsGroup(avatar, g))) {
-      return this.fail(context, 'Only the owner may rename.', 'not-owner');
-    }
-    g.name = newName;
-    await g.save();
-    if (g._id) {
-      const reg = await GroupApi.registry();
-      reg.managed().fireChange(g._id);
+    // The owner rule and the unique name are the group's (C71).
+    const renamed = await g.rename(newName, avatar);
+    if (!renamed.ok) {
+      return renamed.reason === 'not-owner'
+        ? this.fail(context, 'Only the owner may rename.', 'not-owner')
+        : this.fail(context, `A group named '${newName}' already exists.`, 'duplicate-name');
     }
     this.send(context, Mml.compose`\nRenamed '${oldName}' to '${newName}'.\n`);
   }

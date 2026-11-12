@@ -64,11 +64,22 @@ import { Traversal } from '@saxonberg/server/mud/lib/location/Traversal';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Atmospheric } from '@saxonberg/server/mud/lib/biome/Atmospheric';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import type { SampleAnswer, SampleRequest } from '@saxonberg/server/mud/lib/instrument/Sampleable';
 import { NavigationApi, type CardinalDirection } from '@saxonberg/server/mud/api/navigation';
-import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import type { NestingConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Durable } from '@saxonberg/server/mud/lib/material/Durable';
+import type { Bulkable } from '@saxonberg/server/mud/lib/bulk/Bulkable';
+import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import type { ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord';
+import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
+import { ConditionApi } from '@saxonberg/server/mud/api/condition';
+import MineWarren, { type WorkingType } from '../idea/MineWarren';
+import Ore from '../thing/Ore';
 import Deposit, {
   type Point,
   type GroundSample,
@@ -148,7 +159,19 @@ export interface Stability {
   support: number;
   /** Wetness, 0–1. */
   water: number;
+  /**
+   * ⭐ When the ground is `bad`, WHICH term is to blame — the refusal names
+   * the state, so the player knows what lifts it. `null` when it stands.
+   */
+  cause: GroundCause | null;
 }
+
+/** What makes bad ground bad: running wet, too wide a span, or a working back. */
+export type GroundCause = 'wet' | 'span' | 'back';
+/** Wetter than this, and the water is what is bringing the ground in. */
+const WET_ABOVE = 0.5;
+/** This many open sides, and it is the span you are holding up. */
+const WIDE_SPAN = 4;
 
 /** Below this the ground is `bad` and work refuses. */
 const BAD_BELOW = 0.35;
@@ -210,6 +233,43 @@ const FIREDAMP_RECHARGE_HALF_LIFE_S = 6 * 3600;
 /** How many lumps a fresh face holds before it is worked out. */
 const FACE_LUMPS = 8;
 
+// ───────────────────────── the labour acts' prices ─────────────────────────
+// ⭐ Each act's metabolic watts were chosen to reproduce its old felt cost at
+// its reference duration on a fresh body; harder ground takes longer and so
+// costs proportionally more (controller-liquidity W9 moved them off the
+// controllers).
+
+/** Hardness (MPa) at which a step takes its reference time. */
+const PACE_REFERENCE_MPA = 200;
+/** No step is quicker than this, however soft the rock. */
+const MIN_STEP_MS = 500;
+/** One cut, game ms, at reference hardness. */
+const HEW_MS = 9000;
+/** Swinging a pick: (967 − 300) × 9 s / 1500 = the old 4 %. */
+const HEW_EFFORT_W = 967;
+/** Condition one hew takes off the pick — fifty good swings to the haft. */
+const PICK_WEAR_PER_HEW = 0.02;
+/** Lumps one cut wins. */
+const HEW_LUMPS = 1;
+/** A running face's blow, J — a bruise, far below anything serious. */
+const BRUISE_J = 40;
+/** Rock this hard credits the hewer a `hard` cut, MPa. */
+const HARD_ROCK_MPA = 250;
+/** …and this hard, a `standard` one; softer is `easy`. */
+const STANDARD_ROCK_MPA = 150;
+/** One cell of heading, game ms, at reference hardness. */
+const DRIVE_MS = 40000;
+/** Driving a heading: (750 − 300) × 40 s / 1500 = the old 12 %. */
+const DRIVE_EFFORT_W = 750;
+/** Setting one timber, game ms. */
+const SHORE_MS = 20000;
+/** Setting timber: (900 − 300) × 20 s / 1500 = the old 8 %. */
+const SHORE_EFFORT_W = 900;
+/** Piping a charge off a face, game ms. */
+const DRAIN_MS = 30000;
+/** Working a hand pump. */
+const DRAIN_EFFORT_W = 600;
+
 /**
  * The public shape {@link WorkingMixin} provides — what a *working*
  * affords, whether it was carved or hand-authored. Consumers narrow with
@@ -257,6 +317,22 @@ export interface Working extends Strata {
   firedampReservoirL(): number;
   /** `f(span, ground, support, water)` — a threshold, never a roll. */
   stabilityAt(): Promise<Stability>;
+  /**
+   * ⭐ `hew`: win ore from the named face (or the richest unopened seam) with
+   * `tool` — or bar down the fall that blocks it. The plan, or why not.
+   */
+  hewPlanFor(actor: Stuff, tool: Stuff | null, named?: string): Promise<HewPlan | HewRefusal>;
+  /**
+   * ⭐ `drift`/`sink`/`raise`: drive a heading `direction`; the vertical pair
+   * passes the medium the fresh edges admit (a winze is climbed).
+   */
+  drivePlanFor(actor: Stuff, direction: string, medium: string | null): Promise<DrivePlan | DriveRefusal>;
+  /** How long a step takes in this rock: `baseMs` scaled by hardness. */
+  paceFor(baseMs: number, hardnessMPa: number): number;
+  /** ⭐ `shore`: stand `set` under the back and secure the working. */
+  shorePlanFor(actor: Stuff, set: Stuff | null): ShorePlan | ShoreRefusal;
+  /** ⭐ `drain`: pipe the standing gas off into `vessel` — refused before the pump, never after. */
+  drainPlanFor(actor: Stuff, vessel: Stuff | null): Promise<DrainPlan | DrainRefusal>;
   /** Condition-weighted timber support standing in this room. */
   supportHere(): number;
   /** The free warning, off the same threshold as the refusal. `null` when sound. */
@@ -267,7 +343,7 @@ export interface Working extends Strata {
   refreshAir(): Promise<void>;
 }
 
-export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
+export function WorkingMixin<TBase extends NestingConstructor<Stuff & Container>>(
   Base: TBase,
 ): TBase & MixinCtor<Working> {
   // ⭐ Composed over `StrataMixin` (`/system/ground`), which owns the five
@@ -456,10 +532,9 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
      * ground, and authored ground is Spine by definition.
      */
     public getTier(): WorkingTier {
-      const warren = (this as unknown as { getWarren?(): unknown }).getWarren?.();
+      const warren = this.mineWarren();
       if (!warren) return 'spine';
-      const tierOf = (warren as { tierOf?(c: Cell): WorkingTier | null }).tierOf;
-      return (typeof tierOf === 'function' ? tierOf.call(warren, this.ground.getCell()) : null) ?? 'spine';
+      return warren.tierOf(this.ground.getCell()) ?? 'spine';
     }
 
     // ───────────────────────── the three reads ─────────────────────
@@ -474,7 +549,19 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
      * hand-authored mine work.
      */
     /**
-     * ⭐⭐ **A working overrides the ground's `sampleFace`**: it has
+     * ⭐ The `sample` act in a working (controller-liquidity W7c — the
+     * ground's `samplePiece`, overridden): a lump of the face named (or the
+     * richest), set down here; the verb stamps it with where you stand.
+     */
+    public override async samplePiece(actor: Stuff, req: SampleRequest): Promise<SampleAnswer> {
+      const piece = await this.sampleFace(actor, req.face);
+      if (!piece) return { ok: false, reason: 'nothing-to-take' };
+      if (MixinApi.isContainable(piece)) ContainmentApi.move(piece, this as unknown as Stuff & Container);
+      return { ok: true, facts: { piece, from: 'face', at: null, part: null } };
+    }
+
+    /**
+     * ⭐⭐ **A working's lump of its face** (what `samplePiece` takes): it has
      * faces, an ore row and a grade, none of which plain ground knows
      * about. One lump, no engagement, no tool — a sample is a piece you
      * knock off with whatever is in your hand, and the JUDGEMENT is
@@ -579,14 +666,10 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
           SPAN_COST * span -
           WATER_COST * water,
       );
-      return {
-        value,
-        state: value < BAD_BELOW ? 'bad' : value < WORKING_BELOW ? 'working' : 'sound',
-        span,
-        groundMPa,
-        support,
-        water,
-      };
+      const state: GroundState = value < BAD_BELOW ? 'bad' : value < WORKING_BELOW ? 'working' : 'sound';
+      const cause: GroundCause | null =
+        state !== 'bad' ? null : water > WET_ABOVE ? 'wet' : span >= WIDE_SPAN ? 'span' : 'back';
+      return { value, state, span, groundMPa, support, water, cause };
     }
 
     /**
@@ -787,6 +870,30 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
      * the room.
      */
     public async drain(vessel: Stuff | null): Promise<DrainOutcome> {
+      const found = await this.drainable(vessel);
+      if (!found.ok) return found;
+      const { atm, material, litres } = found;
+      const into = vessel as Stuff & Bulkable;
+      const slot = into.getBulk('interior');
+      if (found.fresh) into.setBulkMaterial('interior', material);
+      into.setBulkAmount('interior', Quantity.of(slot.getAmount().rawValue() + litres, 'L'));
+      // ⭐ Out of the air AND off the reservoir. The first makes the
+      // heading workable; the second is what makes draining it twice
+      // give less the second time.
+      atm.drawAtmosphereContent(found.gasPath, litres);
+      this.reconcileFiredampDrawn();
+      this.firedampDrawnL += litres;
+      return { ok: true, litres, material: material.getName() };
+    }
+
+    /**
+     * What `drain` would draw, or why it would not — every refusal, nothing
+     * written. Read before the pump starts AND again as it lands.
+     */
+    protected async drainable(vessel: Stuff | null): Promise<
+      | Exclude<DrainOutcome, { ok: true }>
+      | { ok: true; atm: Atmospheric; material: Material; litres: number; fresh: boolean; gasPath: string }
+    > {
       const self = this as unknown as Stuff & Container;
       if (!MixinApi.isAtmospheric(self)) return { ok: false, reason: 'no-gas' };
       const atm = self as unknown as Atmospheric;
@@ -831,19 +938,252 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
       }
       const litres = Math.min(standingL, slot.remaining());
       if (!(litres > 0)) return { ok: false, reason: 'no-room' };
+      return { ok: true, atm, material, litres, fresh: existing === null, gasPath: gas.materialPath };
+    }
 
-      if (existing === null) vessel.setBulkMaterial('interior', material);
-      vessel.setBulkAmount(
-        'interior',
-        Quantity.of(slot.getAmount().rawValue() + litres, 'L'),
-      );
-      // ⭐ Out of the air AND off the reservoir. The first makes the
-      // heading workable; the second is what makes draining it twice
-      // give less the second time.
-      atm.drawAtmosphereContent(gas.materialPath, litres);
-      this.reconcileFiredampDrawn();
-      this.firedampDrawnL += litres;
-      return { ok: true, litres, material: material.getName() };
+    // ───────────────────────── the labour acts ─────────────────────────
+    //
+    // ⚠⚠ **None of these carries a deed gate, and that is a decision.**
+    // They are LABOUR, not craft: a Discipline changes what you LEARN,
+    // never what the ground GIVES. A miner with no transcript cuts exactly
+    // as much ore out of a face as a master does.
+
+    /** The warren that carved this room, or `null` for authored ground. */
+    protected mineWarren(): MineWarren | null {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isWarrenMember(self)) return null;
+      const warren = self.getWarren();
+      return warren instanceof MineWarren ? warren : null;
+    }
+
+    /** How long a step takes in this rock: the reference time, scaled by hardness. */
+    public paceFor(baseMs: number, hardnessMPa: number): number {
+      return Math.max(MIN_STEP_MS, Math.round(baseMs * (hardnessMPa / PACE_REFERENCE_MPA)));
+    }
+
+    /**
+     * ⚠ The ground refusal, and it **names the state**: neglecting support
+     * costs you ACCESS to your ore, never your life.
+     */
+    protected async groundRefusal(): Promise<GroundRefusal | null> {
+      const s = await this.stabilityAt();
+      return s.cause === null ? null : { ok: false, reason: 'bad-ground', facts: { cause: s.cause } };
+    }
+
+    public async hewPlanFor(actor: Stuff, tool: Stuff | null, named?: string): Promise<HewPlan | HewRefusal> {
+      // ⚠⚠ The pick, asked for: a tool that is not required is a number
+      // with no referent. Bare-handed and wrong-tool are different
+      // refusals — the delve's NPC hewers log which one they are.
+      if (tool === null) return { ok: false, reason: 'no-tool' };
+      if (!MixinApi.isTool(tool) || !tool.hasCapability('winning')) return { ok: false, reason: 'no-pick' };
+      const pick = tool;
+      const face = this.faceNamed(await this.facesOf(), named);
+      if (!face) return { ok: false, reason: 'no-such-face', facts: { named: named ?? null } };
+      if (face.open) return { ok: false, reason: 'face-is-open' };
+      if (face.kind !== 'seam' || face.remaining === null) return { ok: false, reason: 'barren-face' };
+      if (face.remaining <= 0) return { ok: false, reason: 'face-worked-out' };
+      const bad = await this.groundRefusal();
+      if (bad) return bad;
+      const durationMs = this.paceFor(HEW_MS, face.hardnessMPa);
+      // ⚠ A blocked face is cleared before it is worked — the same swing,
+      // spent on the wrong rock. Neglect costs you a shift, not a life.
+      if (face.blocked) {
+        return {
+          ok: true,
+          durationMs,
+          effortW: HEW_EFFORT_W,
+          facts: { direction: face.direction, barring: true },
+          onComplete: () => {
+            // The rock does not care who barred it down.
+            this.clearFace(face.direction);
+            return { ok: true, facts: { kind: 'barred' } };
+          },
+        };
+      }
+      const oreRow = this.oreRow;
+      if (oreRow.length === 0) return { ok: false, reason: 'no-ore-row' };
+      return {
+        ok: true,
+        durationMs,
+        effortW: HEW_EFFORT_W,
+        facts: { direction: face.direction, barring: false },
+        onComplete: async () => {
+          // ⭐ The swing JARS the pick, and the haft gives first.
+          if (MixinApi.isDurable(pick) && !pick.isDestroyed()) pick.wear(PICK_WEAR_PER_HEW, 'shock');
+          // ⚠ The hewer may be GONE: a barge-in leaves the rock standing.
+          if (actor.isDestroyed()) return { ok: true, facts: { kind: 'gone' } };
+          return { ok: true, facts: await this.winOre(actor, face, oreRow) };
+        },
+      };
+    }
+
+    /** The named face, or the richest unopened seam when none is named. */
+    protected faceNamed(faces: readonly Face[], named?: string): Face | null {
+      if (named) {
+        const dir = NavigationApi.normalizeDirection(named);
+        return faces.find((f) => f.direction === dir) ?? null;
+      }
+      const workable = faces
+        .filter((f) => !f.open && f.kind === 'seam' && (f.remaining ?? 0) > 0)
+        .sort((a, b) => b.grade - a.grade);
+      return workable[0] ?? null;
+    }
+
+    /**
+     * Mint the lump at the deposit's grade (⭐ competence never multiplies
+     * yield), stamp its owner, record the face, let an undercut face run,
+     * credit the Discipline.
+     */
+    protected async winOre(hewer: Stuff, face: Face, oreRow: string): Promise<HewDone> {
+      const room = this as unknown as Stuff & Container;
+      // ⭐ Rock dust on the hewer — the pack's `dust` DirtKind row.
+      if (MixinApi.isHygienic(hewer)) {
+        // The act loads the pack's own dirt it lands (documents D7).
+        await MaterialApi.dirtKinds().ensure('/trade/mining/dirt/dust');
+        hewer.soilFrom([
+          { kind: '/trade/mining/dirt/dust', amount: 0.2, where: 'hands' },
+          { kind: '/trade/mining/dirt/dust', amount: 0.1, where: 'apron' },
+        ]);
+      }
+      const lump = await StuffApi.clone<Stuff>(oreRow);
+      if (lump instanceof Ore) lump.setGrade(face.grade);
+      // ⭐ Title is stamped BEFORE it arrives: a titled good is not fresh.
+      if (MixinApi.isChattel(lump)) await lump.stampChattel(this.winningOwner(hewer));
+      ContainmentApi.move(lump as Stuff & Containable, room);
+      this.recordWinning(face.direction, HEW_LUMPS);
+      const ran = await this.maybeRun(hewer, face);
+      if (MixinApi.isAdvancing(hewer)) {
+        // World-derived difficulty: the rock decides how hard the cut was.
+        const mpa = face.hardnessMPa;
+        await hewer.creditDeed({
+          discipline: 'geology',
+          difficulty: mpa >= HARD_ROCK_MPA ? 'hard' : mpa >= STANDARD_ROCK_MPA ? 'standard' : 'easy',
+          outcome: 'success',
+        });
+      }
+      return { kind: 'won', lump, ran, direction: face.direction };
+    }
+
+    /**
+     * ⭐ Loose falling — a THRESHOLD, never a roll: unquiet ground (the free
+     * telegraph, off the same number) and the LAST cut off an undercut face.
+     * ⚠⚠ It blocks the FACE, never the room; the cost is a shift and a
+     * bruise through the harm system. Ground cannot kill.
+     */
+    protected async maybeRun(hewer: Stuff, face: Face): Promise<boolean> {
+      const stability = await this.stabilityAt();
+      if (stability.state === 'sound') return false;
+      if ((face.remaining ?? 0) > HEW_LUMPS) return false;
+      this.blockFace(face.direction);
+      if (MixinApi.isVitals(hewer)) {
+        ConditionApi.inflict(hewer, { mechanism: 'blunt', site: 'body.torso', energy: BRUISE_J });
+      }
+      return true;
+    }
+
+    /**
+     * Who the lump belongs to: the house the hewer is on shift for here —
+     * that is what tutwork MEANS (*the business keeps the ground and the
+     * ore*) — otherwise the hewer.
+     */
+    protected winningOwner(hewer: Stuff): Stuff {
+      if (this.mineWarren() === null || !MixinApi.isEmployed(hewer)) return hewer;
+      const house = EmploymentApi.businessAt((this as unknown as Stuff).getTemplatePath() ?? '');
+      return house && hewer.isOnShiftFor(house.getOrganizationPath()) ? house : hewer;
+    }
+
+    public async drivePlanFor(actor: Stuff, direction: string, medium: string | null): Promise<DrivePlan | DriveRefusal> {
+      const dir = NavigationApi.normalizeDirection(direction);
+      if (!dir) return { ok: false, reason: 'no-direction' };
+      const warren = this.mineWarren();
+      if (!warren) return { ok: false, reason: 'no-warren' };
+      const face = (await this.facesOf()).find((f) => f.direction === dir);
+      if (!face) return { ok: false, reason: 'no-such-face' };
+      if (face.open) return { ok: false, reason: 'already-driven' };
+      const bad = await this.groundRefusal();
+      if (bad) return bad;
+      // ⭐ Which type row the new cell clones from is the GROUND's call: a
+      // cell in the seam opens out into a stope; barren rock stays a face.
+      const type: WorkingType = face.kind === 'seam' ? 'stope' : 'face';
+      // ⭐ Who cut it, as a title-shaped holder keyed by IDENTITY (D11 —
+      // it was the lineage path every player shares).
+      const holder: ParcelOwner = { kind: 'player', templatePath: actor.getIdentityPath() ?? '' };
+      return {
+        ok: true,
+        durationMs: this.paceFor(DRIVE_MS, face.hardnessMPa),
+        effortW: DRIVE_EFFORT_W,
+        facts: { direction: dir },
+        onComplete: async () => {
+          if (actor.isDestroyed()) return { ok: true, facts: { kind: 'gone' } };
+          const room = await warren.carve(face.cell, type, holder);
+          if (!room) return { ok: true, facts: { kind: 'wont-take' } };
+          if (medium !== null) this.widenEdge(room as unknown as Stuff, dir, medium);
+          return { ok: true, facts: { kind: 'through', seam: face.kind === 'seam', direction: dir } };
+        },
+      };
+    }
+
+    /** Let the fresh exit pair at `room` admit `medium`, both sides. */
+    protected widenEdge(room: Stuff, direction: string, medium: string): void {
+      if (!MixinApi.isExitable(room)) return;
+      const back = NavigationApi.invertDirection(direction);
+      for (const [dir, exit] of room.getExits()) {
+        if (dir !== back) continue;
+        exit.setMedia([...new Set([...exit.getMedia(), medium])]);
+        const other = exit.getDestination();
+        if (other && MixinApi.isExitable(other)) {
+          const inverse = other.getExit(direction);
+          if (inverse) inverse.setMedia([...new Set([...inverse.getMedia(), medium])]);
+        }
+      }
+    }
+
+    public shorePlanFor(actor: Stuff, set: Stuff | null): ShorePlan | ShoreRefusal {
+      if (!set || !isTimberSet(set)) return { ok: false, reason: 'no-timber' };
+      const room = this as unknown as Stuff & Container;
+      return {
+        ok: true,
+        durationMs: SHORE_MS,
+        effortW: SHORE_EFFORT_W,
+        facts: { set },
+        onComplete: async () => {
+          if (actor.isDestroyed()) return { ok: true, facts: { kind: 'gone' } };
+          if (MixinApi.isContainable(set) && set.getContainer() !== room) {
+            ContainmentApi.move(set as Stuff & Containable, room);
+          }
+          // ⭐ The promotion — the warren secures (and keeps) its own member.
+          // A working with no warren is already Spine.
+          const warren = this.mineWarren();
+          const holder: ParcelOwner = { kind: 'player', templatePath: actor.getIdentityPath() ?? '' };
+          if (warren && (await warren.secure(this.ground.getCell(), holder))) {
+            return { ok: true, facts: { kind: 'secured' } };
+          }
+          const after = await this.stabilityAt();
+          return { ok: true, facts: { kind: after.state === 'sound' ? 'sound' : 'not-enough' } };
+        },
+      };
+    }
+
+    public async drainPlanFor(actor: Stuff, vessel: Stuff | null): Promise<DrainPlan | DrainRefusal> {
+      // ⭐ Refused BEFORE the pump (survey C20 — the refusals came after
+      // thirty seconds of pumping), and read again as it lands.
+      const found = await this.drainable(vessel);
+      if (!found.ok) return found;
+      return {
+        ok: true,
+        durationMs: DRAIN_MS,
+        effortW: DRAIN_EFFORT_W,
+        facts: undefined,
+        onComplete: async () => {
+          if (actor.isDestroyed()) return { ok: true, facts: { kind: 'gone' } };
+          const out = await this.drain(vessel);
+          if (!out.ok) return out;
+          if (MixinApi.isAdvancing(actor)) {
+            await actor.creditDeed({ discipline: 'mining', difficulty: 'standard', outcome: 'success' });
+          }
+          return { ok: true, facts: { kind: 'drawn', material: out.material, litres: out.litres } };
+        },
+      };
     }
 
     /**
@@ -893,6 +1233,78 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
 export type DrainOutcome =
   | { ok: true; litres: number; material: string }
   | { ok: false; reason: 'no-gas' | 'no-vessel' | 'not-sealed' | 'no-room' };
+
+// ───────────────────────── the acts' answers ─────────────────────────
+//
+// ⭐ controller-liquidity W9: the five labour acts (`hew`, `drift`/`sink`/
+// `raise`, `shore`, `drain`) are the WORKING's — its plans decide every
+// refusal before anything is written, and their completions do the work.
+// The controllers word what these say.
+
+/** Bad ground refuses, and names which term is to blame. */
+export type GroundRefusal = ActRefusal<'bad-ground', { cause: GroundCause }>;
+
+/** ⭐ Every reason `hew` will not swing. */
+export type HewRefusal =
+  /** Bare-handed — a different refusal from the wrong tool, and a diagnostic. */
+  | ActRefusal<'no-tool'>
+  /** Something in hand that does not win rock. */
+  | ActRefusal<'no-pick'>
+  | ActRefusal<'no-such-face', { named: string | null }>
+  | ActRefusal<'face-is-open'>
+  | ActRefusal<'barren-face'>
+  | ActRefusal<'face-worked-out'>
+  /** The locality authored no ore row for this working. */
+  | ActRefusal<'no-ore-row'>
+  | GroundRefusal;
+export interface HewBegin {
+  direction: string;
+  /** Clearing a fall rather than cutting ore — the same swing on the wrong rock. */
+  barring: boolean;
+}
+export type HewDone =
+  | { kind: 'barred' }
+  /** A lump won; `ran` when the undercut face let go after it. */
+  | { kind: 'won'; lump: Stuff; ran: boolean; direction: string }
+  /** The hewer left mid-swing: a barge-in leaves the rock standing. */
+  | { kind: 'gone' };
+export type HewPlan = ActPlan<HewBegin, HewDone, never>;
+
+/** ⭐ Every reason a heading will not be driven. */
+export type DriveRefusal =
+  | ActRefusal<'no-direction'>
+  /** Cut and finished workings — nobody drives here any more. */
+  | ActRefusal<'no-warren'>
+  | ActRefusal<'no-such-face'>
+  | ActRefusal<'already-driven'>
+  | GroundRefusal;
+export interface DriveBegin {
+  direction: string;
+}
+export type DriveDone =
+  | { kind: 'through'; seam: boolean; direction: string }
+  /** The warren would not carve there. */
+  | { kind: 'wont-take' }
+  | { kind: 'gone' };
+export type DrivePlan = ActPlan<DriveBegin, DriveDone, never>;
+
+export type ShoreRefusal = ActRefusal<'no-timber'>;
+export interface ShoreBegin {
+  set: Stuff;
+}
+export type ShoreDone =
+  /** Promoted: held ground, kept with its contents. */
+  | { kind: 'secured' }
+  /** Authored ground needs no admitting; the back went quiet. */
+  | { kind: 'sound' }
+  /** It took some of the weight, not enough. */
+  | { kind: 'not-enough' }
+  | { kind: 'gone' };
+export type ShorePlan = ActPlan<ShoreBegin, ShoreDone, never>;
+
+export type DrainRefusal = Exclude<DrainOutcome, { ok: true }>;
+export type DrainDone = { kind: 'drawn'; material: string; litres: number } | { kind: 'gone' };
+export type DrainPlan = ActPlan<undefined, DrainDone, DrainRefusal>;
 
 /** In-session game-time (seconds), or null when no world clock runs. */
 function workingNowSeconds(): number | null {

@@ -209,39 +209,39 @@ suite.skipIf(!isOwnedTestWorld())('10 · testharness — the clock and the weath
 
   it('`clock advance 2h` moves it; `clock advance 3d` is the span rule, unmoved', async () => {
     const before = await worldClockNow();
-    expect(await say(runner, 'testharness clock advance 2h')).toMatch(/The clock moved 2 hours/);
+    expect(await say(runner, 'testharness clock-advance 2h')).toMatch(/The clock moved 2 hours/);
     const mid = await worldClockNow();
     expect(mid - before).toBeGreaterThanOrEqual(7_200);
-    const r = await runner.cmd('testharness clock advance 3d');
+    const r = await runner.cmd('testharness clock-advance 3d');
     expect(rejected(r)?.detail).toMatch(/SPAN step.*\.soak\./s);
     expect((await worldClockNow()) - mid).toBeLessThan(600);
   }, 300_000);
 
   it('`weather pin rain` holds rain here until `unpin`', async () => {
-    expect(await say(runner, 'testharness weather pin rain')).toMatch(/held at rain/);
+    expect(await say(runner, 'testharness weather-pin rain')).toMatch(/held at rain/);
     const pinned = await say(runner, 'analyze weather');
     expect(pinned, `pinned: ${pinned}`).toMatch(/type:\s*rain/i);
     expect(await say(runner, 'testharness weather')).toMatch(/pinned rain \(frozen\)/);
     // ⭐ Applied at once, as a boundary applies it: what does a body out
     // in it read? (Recorded — clothes take rain first.)
     console.log(`  [drive] the runner under a pinned rain: ${(await say(runner, 'look me')).slice(-200)}`);
-    expect(await say(runner, 'testharness weather unpin')).toMatch(/runs free again/);
+    expect(await say(runner, 'testharness weather-unpin')).toMatch(/runs free again/);
     expect(await say(runner, 'testharness weather')).toMatch(/no pin/);
   }, 300_000);
 
   it('a kind that is not a weather is refused naming the model\'s kinds', async () => {
-    const r = await runner.cmd('testharness weather pin sideways');
+    const r = await runner.cmd('testharness weather-pin sideways');
     expect(rejected(r)?.detail).toMatch(/not a weather kind .*clear.*snow/);
   });
 
   it('eval reaching the clock or the pin is pointed at the verb', async () => {
     expect(await say(runner, "eval WorldClockApi.advance('1 hour')")).toMatch(
-      /test seam.*testharness clock advance/,
+      /test seam.*testharness clock-advance/,
     );
     const pin = await say(
       runner,
       `eval --parcel ${TERMINUS} (await AddressApi.resolveLocalityFor(self)).setWeatherPin({ type: 'snow', mode: 'frozen' })`,
     );
-    expect(pin, `eval setWeatherPin: ${pin}`).toMatch(/testharness weather pin|denied|not callable/);
+    expect(pin, `eval setWeatherPin: ${pin}`).toMatch(/testharness weather-pin|denied|not callable/);
   }, 120_000);
 });

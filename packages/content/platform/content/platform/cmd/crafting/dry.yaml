@@ -9,6 +9,9 @@
 # (`dry <thing> [on <rack>]`). ⚠ The alias bought nothing and shadowed
 # something. `hang` is still the right word in the PROSE, which is where
 # it belongs: *you hang a cut up to dry.*
+# ⭐ Two shapes of one word (controller-liquidity W7c, D13 rung 4 — the
+# `throw` trio's rule): this view hangs a thing up; `dry-rub.yaml` is
+# `dry <thing> with <cloth>`, with `with` required, and its own controller.
 verbs: [dry]
 category: crafting
 controller: /platform/idea/cmd/crafting/DryController
@@ -17,9 +20,9 @@ help: |
   `dry <thing> [on <rack>]` — hang something up where the air can get at
   it. Costs nothing but the time, and the time is the weather's to set.
 
-  `dry <thing> with <cloth>` — rub it dry: a towel takes the water into
-  itself, as much as it has room for (`dry me with towel` after a bath). A
-  sodden towel dries like anything else — hang it up.
+  `dry <thing> with <cloth>` — rub it dry instead: a towel takes the water
+  into itself, as much as it has room for (`dry me with towel` after a
+  bath). A sodden towel dries like anything else — hang it up.
 
   ⭐ **Drying is a RATE, not a treatment.** Hanging a cut up does not dry
   it; it puts it somewhere it *can* dry. What happens then is the air's
@@ -60,6 +63,9 @@ args:
     validators:
       - /lib/command/validators/canReach
   - name: rack
+    # ⭐ Required preposition: `on`/`onto`/`from` here and `with` on
+    # `dry-rub.yaml` make the two shapes of `dry` disjoint (D17).
+    prepositionRequired: true
     type: object
     required: false
     # ⭐ One word per placement member this argument accepts. `from`
@@ -74,17 +80,5 @@ args:
     # simply slower. When one IS named it carries the exposure fraction.
     default: "reachable:[class.DryingRack]"
     requires: [PlacingMixin]
-    validators:
-      - /lib/command/validators/canReach
-  - name: cloth
-    type: object
-    required: false
-    prepositions: [with]
-    # The tail after `with` — `dry me with the linen towel`.
-    greedy: true
-    scope: "reachable"
-    # Any wet-able thing will rub something dry (a shirt in a pinch); a
-    # towel is simply good at it. The controller narrows.
-    requires: any
     validators:
       - /lib/command/validators/canReach

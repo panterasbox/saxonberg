@@ -35,7 +35,6 @@ args:
   - name: screen
     type: object
     required: false
-    greedy: true
     prepositions: [on]
     scope: ["inventory", "reachable"]
     requires: [DisplayMixin]

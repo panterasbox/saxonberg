@@ -46,6 +46,11 @@ export default class Blowpipe extends FormingMixin(ContainerMixin(Tool)) {
     return GLASSWORK_TYPE;
   }
 
+  /** ⭐ The gather on this pipe, or `null` — what `crack` and `reheat` work. */
+  public getGather(): Gather | null {
+    return (this.getContents().find((c: Stuff) => c instanceof Gather) as Gather | undefined) ?? null;
+  }
+
   /** The mass a pipe works is the gather ON it — nothing else. */
   protected override formingMass(_req: ShapeRequest): Gather | null {
     return (this.getContents().find((c: Stuff) => c instanceof Gather) as Gather | undefined) ?? null;

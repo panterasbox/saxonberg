@@ -8,7 +8,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, afterEach } from 'vitest';
-import AssayBench from '../thing/instrument/AssayBench';
+import AssayBench, { type AssayBatch } from '../thing/instrument/AssayBench';
 import ReadingRecord from '@saxonberg/server/mud/platform/thing/ReadingRecord';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
@@ -18,17 +18,14 @@ function bench(): AssayBench {
   return makeStuff(() => new AssayBench());
 }
 
-function batch(n: number, who = 'p1'): {
-  samples: Stuff[];
-  customer: string;
-  customerLabel: string;
-  seconds: number;
-} {
+function batch(n: number, who = 'p1'): AssayBatch {
   return {
     samples: Array.from({ length: n }, () => ({}) as Stuff),
     customer: who,
     customerLabel: who,
     seconds: 100,
+    readBy: null,
+    room: {} as AssayBatch['room'],
   };
 }
 

@@ -48,7 +48,7 @@ test.describe('wizard-axis walk', () => {
         await runCommand(page, 'look');
         await page.waitForTimeout(2500);
         if (!/pitch dark/i.test((await transcript(page)).slice(before.length))) break;
-        await sayAwaiting(page, 'testharness clock advance 2h', /clock moved/i);
+        await sayAwaiting(page, 'testharness clock-advance 2h', /clock moved/i);
       }
       // A newcomer knows her as "the super" until she has introduced
       // herself, and her maintenance round takes her out of the lobby now

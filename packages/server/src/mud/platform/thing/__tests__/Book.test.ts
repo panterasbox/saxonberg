@@ -88,7 +88,7 @@ describe('⭐ a notebook', () => {
     expect(b.getLeaf(3)!.passages).toEqual([{ text: 'galls, copperas, gum', hand: '/platform/agent/Avatar/ann' }]);
     await b.refreshMarks(ann);
     expect(b.getMarkText()).toBe('Page 3 of 4: galls, copperas, gum');
-    expect(b.readFor(ann)).toBe('Page 3 of 4: (in your hand) galls, copperas, gum');
+    expect(b.textFor(ann)).toBe('Page 3 of 4: (in your hand) galls, copperas, gum');
   });
 
   it('⭐ a borrower can write in it too, and each reader sees the hands as they know them', async () => {
@@ -102,9 +102,9 @@ describe('⭐ a notebook', () => {
     ContainmentApi.move(inkPot(), bob);
     expect(await b.writePage(bob, 'and mine', 1)).toMatchObject({ ok: true });
     await b.refreshMarks(bob);
-    expect(b.readFor(bob)).toBe('Page 1 of 4: (in a hand you do not know) mine / (in your hand) and mine');
+    expect(b.textFor(bob)).toBe('Page 1 of 4: (in a hand you do not know) mine / (in your hand) and mine');
     await b.refreshMarks(ann);
-    expect(b.readFor(ann)).toBe('Page 1 of 4: (in your hand) mine / (in a hand you do not know) and mine');
+    expect(b.textFor(ann)).toBe('Page 1 of 4: (in your hand) mine / (in a hand you do not know) and mine');
   });
 
   it('refuses a writer who is not holding it, and a full page', async () => {
@@ -135,8 +135,8 @@ describe('⭐ a notebook', () => {
     expect(page.getContainer()).toBe(ann);
     expect(page.getMarkText()).toBe('the recipe');
     expect(page.getPassages()).toEqual([{ text: 'the recipe', hand: '/platform/agent/Avatar/ann' }]);
-    expect(page.readFor(ann)).toBe('(in your hand) the recipe');
-    expect(page.readFor(bob)).toBe('(in a hand you do not know) the recipe');
+    expect(page.textFor(ann)).toBe('(in your hand) the recipe');
+    expect(page.textFor(bob)).toBe('(in a hand you do not know) the recipe');
     expect(page.paperWords()).toMatch(/It is a page torn from .+; one edge is ragged\./);
     expect(page.paperWords()).not.toMatch(/torn half/);
     expect(page.getKeywords()).toContain('torn-out page');

@@ -1,0 +1,27 @@
+verbs: [config]
+category: system
+controller: /platform/idea/cmd/system/ConfigSetController
+description: "Set one of the world's settings (the Prime Minister's)"
+help: |
+  `config <key> <value>` changes one application-wide setting. A value is
+  a single token with no spaces (a path or a scalar). ⭐ One of three
+  shapes of `config`: bare `config` lists every setting, `config <key>`
+  shows one.
+
+  A political dial — a tax, a levy, a capital control — is Tier C and is
+  not set here: the seat sets it through its own verb (the Minister of
+  Finance's `treasury set`, the Governor's `reserve set`), on the record.
+examples:
+  - cmd: config defaultStartLocation /world/lounge/location/lounge
+    note: Set a setting to a new value
+validators:
+  - /lib/command/validators/requiresPrimeMinister
+args:
+  # `value` is a single token (a setting value is a path / scalar, no
+  # spaces) — NOT greedy.
+  - name: key
+    type: string
+    required: true
+  - name: value
+    type: string
+    required: true

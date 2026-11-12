@@ -222,6 +222,14 @@ describe('⭐ apply — the player moves first', () => {
     expect(biz.holdersOf('hand')).toEqual([]);
   });
 
+  it('⭐ D9: `Organization.apply` called direct cannot hire past the criteria', async () => {
+    biz.positions = [seat({ requires: { gigs: 2 } })] as never;
+    vi.spyOn(ContractApi, 'settledGigsBy').mockResolvedValue(0);
+    const verdict = await biz.apply(alice as never, 'hand');
+    expect(verdict).toMatchObject({ ok: false, kind: 'gigs' });
+    expect(biz.holdersOf('hand')).toEqual([]);
+  });
+
   it('⭐⭐ a band refusal names the discipline, both bands, and the lift', async () => {
     biz.positions = [
       seat({ key: 'tailor', noun: 'tailor', requires: { discipline: 'tailoring', band: 'competent' } }),

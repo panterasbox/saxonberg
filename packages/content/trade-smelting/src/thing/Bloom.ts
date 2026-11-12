@@ -43,24 +43,22 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import { HammerableMixin, type HammerDone } from '@saxonberg/content-trade-smithing/src/lib/Hammerable';
+import { QuenchableMixin } from '@saxonberg/content-trade-smithing/src/lib/Quenchable';
+import IronCarbon from '@saxonberg/content-trade-smithing/src/lib/IronCarbon';
 
-const BloomBase = AlloyedMixin(ManualBuildMixin(MeltableMixin(ThermalMixin(Good))));
+// ⭐ It answers the smith's two verbs itself (controller-liquidity W9): a
+// bloom's first blow consolidates it ({@link Bloom.firstBlow}); a quench
+// treats it on its own carbon like any hot iron.
+const BloomBase = QuenchableMixin(
+  HammerableMixin(AlloyedMixin(ManualBuildMixin(MeltableMixin(ThermalMixin(Good))))),
+);
 
 /** The two bars a consolidated bloom can become, and the slag it leaves. */
 const IRON_BAR = '/trade/smithing/thing/iron-ingot';
 const STEEL_BAR = '/trade/smelting/thing/steel-ingot';
 const SLAG_ROW = '/trade/smelting/thing/slag';
-const CARBON = '/stuff/idea/material/element/carbon';
 
-/**
- * ⭐⭐ The bottom of the steel band. A bloom off a rich charge comes out
- * carrying enough carbon to beat straight into steel without ever being
- * carburized — **natural steel**, which is how most pre-modern steel was
- * actually made. Nobody designed that rung in; it falls out of the
- * smelt's own arithmetic, and honouring it here is what stops the bar
- * lying about what it is.
- */
-const C_STEEL_FLOOR = 0.002;
 
 /** What a consolidation actually did, for the verb to narrate. */
 export interface Consolidation {
@@ -75,6 +73,16 @@ export interface Consolidation {
 }
 
 export default class Bloom extends BloomBase {
+  /**
+   * ⭐⭐ The first blow on a bloom is not the forming work — it is the
+   * consolidation: the slag squeezed out, the bar in hand. Only the first,
+   * because the build banks exactly once.
+   */
+  public override async firstBlow(by: Stuff): Promise<HammerDone> {
+    const done = await this.consolidate(by);
+    return done === null ? { kind: 'formed' } : { kind: 'consolidated', ...done };
+  }
+
   static fieldMeta: FieldMeta = {
     slagFraction: { persistent: true, authorable: true },
   };
@@ -130,10 +138,10 @@ export default class Bloom extends BloomBase {
     const where = this.getContainer();
     // ⭐ The bar's KIND is the bloom's own carbon, read at the anvil. A
     // lean bloom beats into wrought iron; a rich one beats into steel.
-    const carbon = this.fractionOf(CARBON);
+    const steel = this.fractionOf(IronCarbon.CARBON) >= IronCarbon.C_STEEL_FLOOR;
     // Made FROM this bloom: the bar is the bloom's owner's.
     const bar = await StuffApi.clone<Stuff>(
-      carbon >= C_STEEL_FLOOR ? STEEL_BAR : IRON_BAR,
+      steel ? STEEL_BAR : IRON_BAR,
       undefined,
       { madeFrom: this as unknown as Stuff },
     );
@@ -155,7 +163,7 @@ export default class Bloom extends BloomBase {
     }
 
     StuffApi.destruct(this as unknown as Stuff);
-    return { bar, steel: carbon >= C_STEEL_FLOOR, slagKg: round3(slagKg), barKg: round3(barKg) };
+    return { bar, steel, slagKg: round3(slagKg), barKg: round3(barKg) };
   }
 }
 

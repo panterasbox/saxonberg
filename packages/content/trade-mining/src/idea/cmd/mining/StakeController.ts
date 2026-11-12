@@ -1,42 +1,28 @@
 /**
- * StakeController — `stake [<block>]`.
+ * StakeController — `stake [<block>] [at <register>]`.
  *
- * ⭐⭐ **A claim is STAKED, not bought.**
+ * ⭐⭐ **A claim is STAKED, not bought.** You find ground, you post a
+ * notice, and the recorder writes it down: a title and no room, which is
+ * what a claim IS. A surface working is staked by name (`stake pit`); a
+ * block of underground by its centre cell (`stake -4,-8,-2`).
  *
- * `title buy <lot>` is buying from a catalogue — lots somebody laid out,
- * with prices, terms and a provisioner that builds you a house. A mining
- * claim has none of that. You find ground, you post a notice, and the
- * recorder writes it down.
- *
- * So this calls the gated `ParcelApi` directly: `subdivide` beneath the
- * mine's extent, then `transfer` to the staker. **A pack calling a kernel
- * Api is sanctioned**; there is no residence-pack dependency; and the
- * security invariant is untouched — parcels stay written only by
- * `ParcelApi` and are never declared in content, which is precisely why
- * ⚠ **a content edit cannot forge a title.** That is not incidental
- * here: a claim field in an editable collection is exactly the attack
- * this layer exists to refuse.
- *
- * ⭐ It mints **a title and no room**, which is what a claim IS. What
- * stands on the ground afterwards is whatever you cut.
+ * ⭐ I/O over {@link ClaimsRegister.stakePlanFor} (controller-liquidity W9,
+ * Appendix A rung 1): which of the two it is, the overlap, whose the ground
+ * already is (yours included — survey C21), and the title written through
+ * the gated `ParcelApi` are the register's. This file words them.
  */
 
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
-import MineWarren from '../../MineWarren';
-import type { ClaimBlock } from '../../MineWarren';
+import ClaimsRegister, { type StakeDone, type StakeRefusal } from '../../../thing/ClaimsRegister';
+
+type Composed = ReturnType<typeof Mml.compose>;
 
 const TOPIC = 'act.deed';
-
-/** How big a staked block is, in cells, in each direction. */
-const BLOCK_HALF = 3;
 
 interface StakeModel extends CommandModel {
   block?: string;
@@ -47,258 +33,68 @@ interface StakeModel extends CommandModel {
 export default class StakeController extends CommandController<StakeModel> {
   async execute(model: StakeModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    // ⭐ Read, never hunted. ⚠ The duck-type check stays: a register is
-    // recognised by answering `getWarrenPath`, which no mixin declares
-    // and therefore no predicate can express.
-    const bound = model.register?.stuff ?? null;
-    const counter = bound && isRegister(bound) ? bound : undefined;
-    if (!counter) {
-      this.decline(
-        context,
-        Mml.compose`Claims are recorded at the claims office, not out here.`,
-        'no-register',
-      );
+    const register = model.register?.stuff ?? null;
+    if (!(register instanceof ClaimsRegister)) {
+      StakeController.decline(context, Mml.compose`Claims are recorded at the claims office, not out here.`, 'no-register');
       return;
     }
-    // ⭐⭐ **The second fork, taken before the warren is ever resolved.** A
-    // surface working — a quarry, a chalk pit, a turf bank — is an authored
-    // ROOM with a real parcel path, so longest-prefix title resolution
-    // answers about it directly: no warren, no block of cells, no
-    // arithmetic. The counter keeps a book of them and the player names one
-    // by the word they would actually use (`stake pit`).
-    //
-    // ⚠ It runs FIRST because the three-number fork's own refusals
-    // (*"the register names no diggings"*, *"which block?"*) would otherwise
-    // shadow it at a counter that records both.
-    const named = model.block?.trim() ?? '';
-    if (named !== '' && parseBlock(named) === null) {
-      const surface = (
-        counter as unknown as { surfaceWorkingFor?(w: string): string | null }
-      ).surfaceWorkingFor?.(named) ?? null;
-      if (surface !== null) {
-        await this.stakeSurface(context, surface, named);
-        return;
-      }
-    }
-
-    const warrenPath = (counter as unknown as { getWarrenPath?(): string }).getWarrenPath?.() ?? '';
-    if (!warrenPath) {
-      // The register names nothing — a real, diegetic answer.
-      this.decline(context, Mml.compose`The register names no diggings.`, 'no-diggings');
+    const plan = await register.stakePlanFor(giver, model.block ?? '');
+    if (!plan.ok) {
+      StakeController.decline(context, StakeController.refusalWords(plan), plan.reason);
       return;
     }
-    // ⚠⚠ **Get-or-create, and `singleton` IS the get-or-create.** A
-    // `MineWarren` is a reference Idea and nothing warms a roster of
-    // them, so on a fresh process the index is empty and a bare
-    // `findByTemplatePath` reads null forever — which is why `stake`
-    // answered *"the register names no diggings"* to every claim ever
-    // attempted in a booted world. `singleton` reads the same index
-    // bucket first and clones only on a miss.
-    let warren: MineWarren;
-    try {
-      warren = await StuffApi.singleton<MineWarren>(warrenPath);
-    } catch (err) {
-      // ⚠ A register that names diggings which will not resolve is an
-      // AUTHORING fault, and it must not borrow the refusal above. That
-      // sentence is what a player sees when nobody has recorded a mine
-      // here; reusing it for a broken row is how the original bug hid —
-      // the message was true-sounding and the cause was unfindable.
-      // ⚠ `decline` files the `controller-rejected` note itself, so the
-      // cause goes to the log rather than to a second note (the
-      // `QuenchController` mint-failure precedent).
-      console.error(`StakeController: warren '${warrenPath}' did not resolve`, err);
-      this.decline(
-        context,
-        Mml.compose`The register names diggings the recorder cannot find — ${warrenPath}. That is a fault in the books, not in your claim; nobody can stake here until somebody fixes it.`,
-        'warren-unresolvable',
-      );
-      return;
-    }
-
-    const centre = parseBlock(model.block);
-    if (!centre) {
-      this.decline(
-        context,
-        Mml.compose`Which block? Name it as three numbers — the cell at its centre, like ${'-4,-8,-2'}.`,
-        'no-block',
-      );
-      return;
-    }
-
-    // ⚠⚠ Does the BLOCK overlap one already recorded? Not *is my centre
-    // inside one* — a block is `BLOCK_HALF` cells each way, so two
-    // centres four apart pass a centre test while sharing nine columns
-    // of ground, and the register would then hold two claims over the
-    // same rock. *First come is the whole rule* only survives if the
-    // whole block is clear.
-    const existing = warren.overlappingClaim(
-      [centre[0] - BLOCK_HALF, centre[1] - BLOCK_HALF, centre[2] - 1],
-      [centre[0] + BLOCK_HALF, centre[1] + BLOCK_HALF, centre[2] + 1],
-    );
-    if (existing) {
-      const owner = await ParcelApi.ownerOf(existing.parcelExtent);
-      this.decline(
-        context,
-        owner
-          ? Mml.compose`A block already recorded runs into that one, and it is not yours to record over. Stand further off and try again.`
-          : Mml.compose`A block already in the register runs into that one. Stand further off and try again.`,
-        'already-claimed',
-      );
-      return;
-    }
-
-    const mine = warren.getMineExtent();
-    const number = warren.getClaimBlocks().length + 1;
-    const extent = `${mine}/claims/${number}`;
-
-    // ⭐ The gated Api, called from a pack. Ownership lives OUTSIDE the
-    // editable collection, which is the point.
-    const record = await ParcelApi.subdivide(
-      extent,
-      mine,
-      // ⚠⚠ The IDENTITY path, never the template path. Every player
-      // Avatar shares one `templatePath`, so keying the title on it
-      // made every claim in the mine owned by every player at once —
-      // invisibly, because every fixture authors a distinct owner path.
-      // `ParcelOwner.templatePath` is an identity path by the kernel's
-      // own convention (`TitleBuyController`, `TitleTransferController`,
-      // `ChattelLogic`, `EmploymentLogic` all write one); this pack
-      // simply never got the MR !251 sweep. `lint:person-keys` holds
-      // the shape at zero now.
-      { kind: 'player', templatePath: giver.getIdentityPath() ?? '' },
-      0,
-      1,
-      'industrial',
-    );
-    if (!record) {
-      this.decline(
-        context,
-        Mml.compose`The recorder cannot enter that. Something is wrong with the register.`,
-        'subdivide-failed',
-      );
-      return;
-    }
-
-    const block: ClaimBlock = {
-      parcelExtent: extent,
-      from: [centre[0] - BLOCK_HALF, centre[1] - BLOCK_HALF, centre[2] - 1],
-      to: [centre[0] + BLOCK_HALF, centre[1] + BLOCK_HALF, centre[2] + 1],
-    };
-    warren.addClaimBlock(block);
-
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(
-        Mml.compose`The recorder turns the ledger round, writes the block and the date, and turns it back for your mark. Claim ${String(number)} is yours — the ground, and nothing standing on it.`,
-      )
-      .toPeers(Mml.compose`${Mml.actor(giver)} records a claim.`)
-      .send();
+    await this.engagePlan(context, plan, {
+      beginSelf: () => Mml.compose``,
+      onRefused: (r) => StakeController.refusalWords(r),
+      onDone: (d) => StakeController.doneWords(d, giver),
+    });
   }
 
-  /**
-   * Record a claim over a **surface** working: one `subdivide` against the
-   * room's own parcel path, because the room already has one.
-   *
-   * ⚠ `ownerOf` first, and a refusal rather than a silent overwrite — *first
-   * come is the whole rule* on the surface exactly as underground.
-   */
-  private async stakeSurface(
-    context: CommandContext,
-    path: string,
-    word: string,
-  ): Promise<void> {
-    const giver = context.commandGiver;
-    // ⭐⭐⭐ **EXACTLY this ground, not whatever covers it** — and that
-    // one word is the difference between a claims office that works and
-    // one that cannot record anything.
-    //
-    // ⚠⚠ This was `ownerOf(path)`, which is **longest-prefix**: every
-    // room in a venue sits inside the venue's own title (Rejection is
-    // claimed wholesale by the town's group), so the covering owner is
-    // always somebody and `stake` always refused `already-claimed`.
-    // Surface staking has therefore never once succeeded anywhere in the
-    // realm since the fork shipped — and the extraction drive could not
-    // see it, because its checkpoint accepted `already-claimed` as proof
-    // that the fork had run. *Either it was recorded, or somebody
-    // already holds it — both prove the fork ran* is true about the
-    // fork and blind about the act.
-    //
-    // ⭐ And the fiction is the reason the fix is this and not a wider
-    // grant: **the register LISTING the ground is the town saying it is
-    // open to claim.** That is what a claims office is for. What the
-    // refusal must still catch is somebody who already staked this
-    // exact ground, which is an exact record and not an ancestor's.
-    const existing = await ParcelApi.coveringParcelOf(path);
-    const held = existing !== null && existing.extent === path;
-    if (held) {
-      this.decline(
-        context,
-        Mml.compose`The ${word} is already in the register, and it is not yours to record over.`,
-        'already-claimed',
-      );
-      return;
-    }
-    const parent = parentExtentOf(path);
-    const record = await ParcelApi.subdivide(
-      path,
-      parent,
-      // ⚠⚠ The IDENTITY path, never the template path — every player Avatar
-      // shares one `templatePath`.
-      { kind: 'player', templatePath: giver.getIdentityPath() ?? '' },
-      0,
-      1,
-      'industrial',
-    );
-    if (!record) {
-      this.decline(
-        context,
-        Mml.compose`The recorder cannot enter that. Something is wrong with the register.`,
-        'subdivide-failed',
-      );
-      return;
-    }
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(
-        Mml.compose`The recorder turns the ledger round, writes the ${word} and the date, and turns it back for your mark. The ground is yours — the ground, and nothing standing on it.`,
-      )
-      .toPeers(Mml.compose`${Mml.actor(giver)} records a claim.`)
-      .send();
-  }
-
-  private decline(
-    context: CommandContext,
-    prose: ReturnType<typeof Mml.compose>,
-    reason: string,
-  ): void {
+  protected static decline(context: CommandContext, prose: Composed, reason: string): void {
     MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(prose).send();
     context.note({ kind: 'controller-rejected', reason, detail: reason });
   }
-}
 
-/** `-4,-8,-2` → a cell. */
-function parseBlock(raw?: string): [number, number, number] | null {
-  if (!raw) return null;
-  const parts = raw.split(',').map((n) => Number(n.trim()));
-  if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) return null;
-  return [parts[0]!, parts[1]!, parts[2]!];
-}
+  /** ⭐ Every reason the recorder will not write it (D4). */
+  protected static refusalWords(r: StakeRefusal): Composed {
+    switch (r.reason) {
+      case 'no-diggings':
+        return Mml.compose`The register names no diggings.`;
+      case 'warren-unresolvable':
+        return Mml.compose`The register names diggings the recorder cannot find — ${r.facts.path}. That is a fault in the books, not in your claim; nobody can stake here until somebody fixes it.`;
+      case 'no-block':
+        return Mml.compose`Which block? Name it as three numbers — the cell at its centre, like ${'-4,-8,-2'}.`;
+      case 'already-claimed':
+        if (r.facts.yours) {
+          return r.facts.surface !== null
+            ? Mml.compose`The ${r.facts.surface} is already in the register in your name.`
+            : Mml.compose`That block runs into a claim already in the register in your name.`;
+        }
+        if (r.facts.surface !== null) {
+          return Mml.compose`The ${r.facts.surface} is already in the register, and it is not yours to record over.`;
+        }
+        return r.facts.held
+          ? Mml.compose`A block already recorded runs into that one, and it is not yours to record over. Stand further off and try again.`
+          : Mml.compose`A block already in the register runs into that one. Stand further off and try again.`;
+      case 'subdivide-failed':
+        return Mml.compose`The recorder cannot enter that. Something is wrong with the register.`;
+      default: {
+        const never: never = r;
+        return never;
+      }
+    }
+  }
 
-/**
- * The parent extent a surface working's claim subdivides FROM — everything
- * up to the last path segment.
- *
- * ⚠ Derived rather than authored, because the alternative is a second field
- * that can disagree with the first. `/world/terminus/rejection/quarry/pit`
- * subdivides from `/world/terminus/rejection/quarry`, and
- * longest-prefix resolution does the rest.
- */
-function parentExtentOf(path: string): string {
-  const cut = path.lastIndexOf('/');
-  return cut > 0 ? path.slice(0, cut) : path;
-}
-
-/** The claims register: a fixture that names the diggings it records for. */
-function isRegister(item: Stuff): boolean {
-  return typeof (item as unknown as { getWarrenPath?: unknown }).getWarrenPath === 'function';
+  protected static doneWords(d: StakeDone, giver: Stuff): { self: Composed; peers: Composed } {
+    const peers = Mml.compose`${Mml.actor(giver)} records a claim.`;
+    return d.kind === 'block'
+      ? {
+          self: Mml.compose`The recorder turns the ledger round, writes the block and the date, and turns it back for your mark. Claim ${String(d.number)} is yours — the ground, and nothing standing on it.`,
+          peers,
+        }
+      : {
+          self: Mml.compose`The recorder turns the ledger round, writes the ${d.word} and the date, and turns it back for your mark. The ground is yours — the ground, and nothing standing on it.`,
+          peers,
+        };
+  }
 }

@@ -4,10 +4,9 @@
  *
  * It is a `Tool` with the `derrick` capability: a frame over the hole, a
  * walking beam, a rope and a sheave. A hole with no derrick over it is a
- * hole nobody can work, and a derrick with no hole under it is where
- * `bore` **sites** one — which is why the siting act and the deepening
- * act are one verb. To a person they are one thing: you go to the rig
- * and you work the rig.
+ * hole nobody can work. Siting a hole is `spud`, afforded by the bailer
+ * in your hands (a derrick cannot afford raising itself); `bore`, `bail`
+ * and `line` are the acts at a hole, and this rig affords them.
  *
  * ⚠⚠ **The affordance is a STATIC ON THIS CLASS and nothing else makes
  * these verbs exist.** A row's `commandContributions:` is dead

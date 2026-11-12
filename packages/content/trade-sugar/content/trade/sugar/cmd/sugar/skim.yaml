@@ -19,7 +19,6 @@ args:
   - name: pail
     type: object
     required: true
-    greedy: true
     prepositions: [into, in]
     scope: ["reachable"]
     requires: [BulkableMixin]

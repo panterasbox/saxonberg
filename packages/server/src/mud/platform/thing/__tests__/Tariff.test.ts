@@ -58,6 +58,17 @@ describe("Tariff — what a priced key MEANS", () => {
     expect(tariff.serviceKeys().sort()).toEqual(["repair", "treatment"]);
   });
 
+  it("⭐ offers its services in key order, each at its price (`menu`)", async () => {
+    const { tariff, room } = slate();
+    const offered = await tariff.offerings(room);
+    expect(offered.map((o) => o.kind)).toEqual(["service", "service"]);
+    expect(offered.map((o) => (o.kind === "service" ? o.key : ""))).toEqual([
+      "repair",
+      "treatment",
+    ]);
+    expect(offered[0]).toMatchObject({ key: "repair", price: tariff.priceFor("repair") });
+  });
+
   it("⚠ an unknown service kind is refused, not trusted", () => {
     const { tariff } = slate();
     tariff.services.seance = "seance";

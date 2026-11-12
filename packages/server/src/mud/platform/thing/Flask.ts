@@ -26,8 +26,9 @@ import Good from '../../lib/stuff/Good';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { SealableMixin } from '../../lib/spatial/Sealable';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
+import { WaterDrawableMixin } from '../../lib/bulk/WaterDrawable';
 
-const FlaskBase = ThermalMixin(SealableMixin(BulkableMixin(Good)));
+const FlaskBase = WaterDrawableMixin(ThermalMixin(SealableMixin(BulkableMixin(Good))));
 
 export default class Flask extends FlaskBase {
   /**

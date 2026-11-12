@@ -17,9 +17,13 @@ import { ToolMixin } from "../Tool";
 import { Grade } from "../Grade";
 import { Quantity } from "../../quantity";
 import { StuffApi } from "../../../api/stuff";
+import { WorldClockApi } from "../../../api/worldclock";
+import { EventApi } from "../../../api/event";
+import EventRegistry from "../../../platform/idea/EventRegistry";
 import {
   makeStuff,
   makeStuffAtPath,
+  stampTemplatePathForTest,
 } from "../../security/__tests__/test-setup";
 
 const FLOUR = "/stuff/idea/material/food/test-flour";
@@ -265,6 +269,39 @@ describe("throughput — the power seam is a hole the kernel does not fill", () 
     // persists it; a mill that claimed to be grinding forever would be
     // stranded with no way back.
     expect(Object.keys(TestMill.fieldMeta)).not.toContain("_grinding");
+  });
+
+  it("⭐ a POWERED grind in the hopper is persisted, and restoring it re-arms the landing", async () => {
+    // The water path takes the grain at the start; a closure timer alone
+    // lost it with the process (controller-liquidity step 14, after W20).
+    expect(Object.keys(TestMill.fieldMeta)).toContain("pendingGrind");
+    const reg = await StuffApi.create(() => new EventRegistry());
+    stampTemplatePathForTest(reg, "/platform/idea/EventRegistry");
+    EventApi._setRegistryForTesting(reg);
+    WorldClockApi._resetForTesting();
+    WorldClockApi.setScale(1);
+    try {
+      const m = mill({ kgPerMinPerKw: 0.5 });
+      const now = WorldClockApi.getNow().rawValue();
+      // What the restore's setter receives: the record of a grind under way.
+      m.setPendingGrind({
+        dueAtS: now + 60,
+        kg: 10,
+        materialPath: "/stuff/idea/material/food/test-wheat",
+        gradeBand: "fair",
+        extraction: 0.75,
+        makerPath: "/platform/agent/Avatar/x",
+        payload: null,
+      });
+      expect(m.isGrinding()).toBe(true);
+      WorldClockApi.advance("2 minutes");
+      await new Promise((r) => setTimeout(r, 0));
+      await new Promise((r) => setTimeout(r, 0));
+      expect(m.getPendingGrind()).toBeNull();
+      expect(m.isGrinding()).toBe(false);
+    } finally {
+      WorldClockApi._resetForTesting();
+    }
   });
 });
 

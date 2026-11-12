@@ -36,6 +36,25 @@ import { ProseApi } from '../../api/prose';
 import { WorldClockApi } from '../../api/worldclock';
 import { PersistApi } from '../../api/persist';
 import { Final, Unshadowable } from '../security/decorators';
+import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
+
+/**
+ * ⭐ A chronicle as `viewer` may read it (controller-liquidity W8): the bio,
+ * the prologue claims in authored order and the deeds by game time —
+ * partitioned, never interleaved. `self` says the viewer reads their own.
+ */
+export type ChronicleRecord = ActOutcome<{
+  bio: string;
+  claims: readonly ChronicleEntry[];
+  deeds: readonly ChronicleEntry[];
+  self: boolean;
+}>;
+/**
+ * `their-own`: a PLAYER's history is theirs to tell — the same rule the
+ * competence subscription gate keeps (`getPlayerId()`: player-controlled is
+ * self-only; an authored character's history is a fact about the world).
+ */
+export type ChronicleRefusal = ActRefusal<'their-own'>;
 
 /** Public shape provided by PersonaMixin. */
 export interface Persona {
@@ -50,6 +69,8 @@ export interface Persona {
     fields: ChronicleEntryFields,
   ): Promise<void>;
   chronicleEntries(): Promise<ChronicleEntry[]>;
+  /** ⭐ The chronicle as `viewer` may read it — `chronicle`'s read. */
+  recordFor(viewer: Stuff): Promise<ChronicleRecord | ChronicleRefusal>;
   hasClaimed(key: string): Promise<boolean>;
   hasDone(key: string): Promise<boolean>;
   seedChronicleClaims(seeds: ChronicleClaimSeed[]): Promise<void>;
@@ -325,6 +346,21 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
       const ownerId = ownerKey(this as unknown as Stuff);
       if (!ownerId) return [];
       return ChronicleEntry.find({ owner: ownerId });
+    }
+
+    /** See {@link Persona.recordFor}. */
+    public async recordFor(viewer: Stuff): Promise<ChronicleRecord | ChronicleRefusal> {
+      const self = this as unknown as Stuff;
+      const own = viewer.stuffId === self.stuffId;
+      if (!own && self.getPlayerId() !== null) return { ok: false, reason: 'their-own' };
+      const entries = await this.chronicleEntries();
+      const claims = entries
+        .filter((e) => e.kind === 'claim')
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      const deeds = entries
+        .filter((e) => e.kind === 'deed')
+        .sort((a, b) => (a.when ?? 0) - (b.when ?? 0));
+      return { ok: true, facts: { bio: this.getBio(), claims, deeds, self: own } };
     }
 
     /**

@@ -173,7 +173,7 @@ recognition is v2"*). This is **belief v2**:
    two disguised appearances of one person would touch the same card, which leaks that they
    are one.* A persona is **its own referent** in others' memories — "Tom the tinker" and
    "Bob" are two people to a witness until **unmasking merges** them. A persona is worn —
-   name, outfit, claimed facts — like the wardrobe's `equip set`; **while it is on,
+   name, outfit, claimed facts — like the wardrobe's `outfit`; **while it is on,
    `introduce` and auto-introduce use its name.**
 2. ⭐⭐ **What a witness remembers** — beyond a name: species, stature, build (the
    [size slate](./size-slate.md)'s envelope), face if seen, ⭐ **voice** (a gap — voice

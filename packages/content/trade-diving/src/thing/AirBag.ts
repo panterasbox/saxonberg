@@ -72,17 +72,17 @@ export default class AirBag extends TieableMixin(BuoyMixin(BulkableMixin(Good)))
   public override async tieTo(by: Stuff, load: Stuff, knot: string | null): Promise<TieOutcome> {
     void knot;
     if (this.getContainer() !== by) {
-      return { ok: false, reason: 'not-holding', line: 'You need the air bag in your hands.' };
+      return { ok: false, reason: 'not-holding', facts: { gear: this as unknown as Stuff } };
     }
     if (load === by || !MixinApi.isContainable(load)) {
-      return { ok: false, reason: 'not-a-load', line: 'You cannot lash it to that.' };
+      return { ok: false, reason: 'not-a-load', facts: { gear: this as unknown as Stuff, load } };
     }
     const place = MixinApi.isContainable(by) ? by.getContainer() : null;
     if (place === null || load.getContainer() !== place) {
-      return { ok: false, reason: 'out-of-reach', line: `${load.getPresentation()} is not here.` };
+      return { ok: false, reason: 'out-of-reach', facts: { gear: this as unknown as Stuff, load } };
     }
     if (!MixinApi.isWaterPlace(place) || place.depthNow() <= 0) {
-      return { ok: false, reason: 'not-in-water', line: 'It would only lift in the water.' };
+      return { ok: false, reason: 'not-in-water', facts: { gear: this as unknown as Stuff, load } };
     }
     const depthM = Math.max(0, BiomeApi.mediumFor(by).depthM);
     // The others already on it lift too.
@@ -98,7 +98,7 @@ export default class AirBag extends TieableMixin(BuoyMixin(BulkableMixin(Good)))
       return { ok: true, line: `You lash it to ${load.getPresentation()}, which does not stir. It needs more air.` };
     }
     const top = place.surfacePlace();
-    if (top === null) return { ok: false, reason: 'no-surface', line: 'There is nowhere for it to rise to.' };
+    if (top === null) return { ok: false, reason: 'no-surface', facts: { gear: this as unknown as Stuff, load } };
     // The bags go up FIRST: a water asks what buoys a thing the moment it
     // arrives, and an anchor that reached the surface before its bags was
     // sunk straight back to the bed (the finalize drive, run 43).
@@ -110,8 +110,8 @@ export default class AirBag extends TieableMixin(BuoyMixin(BulkableMixin(Good)))
   /** `untie bag` — cast it off its load and take it up. */
   public override async untieBy(by: Stuff): Promise<TieOutcome> {
     const load = this.getLashedTo();
-    if (load === null) return { ok: false, reason: 'not-tied', line: 'It is not lashed to anything.' };
-    if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', line: 'You have no hands to take it in.' };
+    if (load === null) return { ok: false, reason: 'not-tied', facts: { gear: this as unknown as Stuff } };
+    if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', facts: { gear: this as unknown as Stuff } };
     this._lashedTo = null;
     ContainmentApi.move(this as never, by as Stuff & Container);
     return { ok: true, line: `You cast the bag off ${load.getPresentation()} and take it up.` };

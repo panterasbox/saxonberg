@@ -35,8 +35,6 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { ChattelApi } from '../../../../api/chattel';
-import { AppApi } from '../../../../api/app';
-import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 
 interface DropModel extends CommandModel {
   targets: MqlManyResult;
@@ -231,53 +229,32 @@ export default class DropController extends CommandController<DropModel> {
     // ⚠ Detached, so it must never throw out: an unhandled rejection here
     // took a whole world down (the ceramics drive, run 16).
     if (context.location !== null) {
-      landDrop(operand, context.location, giver).catch((err: unknown) =>
+      DropController.landDrop(operand, context.location, giver).catch((err: unknown) =>
         console.warn('DropController: the fall failed:', err),
       );
     }
     return true;
   }
-}
 
-/**
- * The fall: `m·g·h` against the floor's material. A module function — the
- * controller is one ephemeral clone and the blow is async.
- */
-async function landDrop(item: Stuff, room: Stuff, by: Stuff): Promise<void> {
-  // ⭐ A dropped piece can MERGE into a like stack on the floor and be gone
-  // by now (a brick onto the hacks' brick stack): the stack it joined did
-  // not fall, so there is nothing to land.
-  if (item.isDestroyed() || !MixinApi.isIntegrity(item)) return;
-  const kg = item.getMass()?.rawValue();
-  if (typeof kg !== 'number' || !(kg > 0)) return;
-  const floor = (MixinApi.isAdornable(room) ? room.getFloor() : null) as Stuff | null;
-  const surface = floor !== null && MixinApi.isTangible(floor) ? floor.getMaterial() : null;
-  const heightM = dropDial(AppSettingKeys.impactDropHeightM, 1);
-  const out = await item.sufferImpact({
-    energyJ: kg * 9.81 * heightM,
-    surface,
-    cause: 'drop',
-  });
-  if (!out.broke && !out.flawed) return;
-  if (by.isDestroyed()) return;
-  MessageApi.scene(by)
-    .topic('sense.survey')
-    .toSelf(
-      out.broke
-        ? Mml.compose`It hits the floor and breaks.`
-        : Mml.compose`It hits the floor hard.`,
-    )
-    .toPeers(out.broke ? Mml.compose`Something breaks on the floor.` : Mml.compose`Something hits the floor hard.`)
-    .send();
-}
-
-function dropDial(key: string, fallback: number): number {
-  try {
-    const raw = AppApi.setting(key);
-    if (raw == null || raw === '') return fallback;
-    const n = Number.parseFloat(raw);
-    return Number.isFinite(n) ? n : fallback;
-  } catch {
-    return fallback;
+  /**
+   * ⭐ The fall's words: the thing falls onto the floor itself
+   * (`Integrity.fallOnto`, controller-liquidity W8 — the height dial and
+   * the floor's material are its own). A static, because the controller is
+   * one ephemeral clone and the blow is async.
+   */
+  protected static async landDrop(item: Stuff, room: Stuff, by: Stuff): Promise<void> {
+    if (item.isDestroyed() || !MixinApi.isIntegrity(item)) return;
+    const out = await item.fallOnto(room);
+    if (out === null || (!out.broke && !out.flawed)) return;
+    if (by.isDestroyed()) return;
+    MessageApi.scene(by)
+      .topic('sense.survey')
+      .toSelf(
+        out.broke
+          ? Mml.compose`It hits the floor and breaks.`
+          : Mml.compose`It hits the floor hard.`,
+      )
+      .toPeers(out.broke ? Mml.compose`Something breaks on the floor.` : Mml.compose`Something hits the floor hard.`)
+      .send();
   }
 }

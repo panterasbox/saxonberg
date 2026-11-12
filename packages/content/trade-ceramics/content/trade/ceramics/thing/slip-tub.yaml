@@ -1,5 +1,5 @@
 # The slip tub (ceramics W7) — a compounding vessel for slip: clay and
-# water stirred together until it pours like cream (`stir tub`). ⭐
+# water stirred together until it pours like cream (`stir tub` — a slurry is stirred). ⭐
 # Combining is one rule (R1): the tub names the product, the clay and water
 # you put in decide what is in it.
 class: /platform/thing/GlazeTub

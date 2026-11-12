@@ -36,7 +36,7 @@ settings:
   - key: cleanliness.pests.ratePerHour
     value: "0.1"
 
-  # The row a hearth's grate is raked out into (`sweep hearth`) — the
+  # The row a hearth's grate is raked out into (`rake hearth`) — the
   # lye-maker's ash: wood ash, the hearth's own row (a failed clamp's ash is
   # the other one, the same material).
   - key: cleanliness.ashTemplate

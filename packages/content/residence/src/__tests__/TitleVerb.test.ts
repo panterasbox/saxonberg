@@ -483,6 +483,21 @@ describe('title', () => {
     expect(owner?.kind).toBe('group');
   });
 
+  it('⭐ a lot the registry would refuse takes NO money (controller-liquidity C1)', async () => {
+    // A lot far outside the residential band: `subdivide` would throw, and
+    // the sale used to settle first. The book asks the registry before the
+    // money leg now.
+    StuffApi.findByTemplatePath<PlatBook>(BOOK_PATH)!.setAreaM2(10_000_000);
+    const room = registryRoom();
+    const buyer = buyerIn(room);
+
+    const ctx = await run(buyer, room, model('buy', 'lot 2'));
+
+    expect(reasons(ctx)).toContain('zoning');
+    expect(settled).toHaveLength(0);
+    expect(await ParcelEvent.findByExtent(LOT2)).toHaveLength(0);
+  });
+
   it('the same lot cannot be sold twice', async () => {
     const room = registryRoom();
     const first = buyerIn(room);

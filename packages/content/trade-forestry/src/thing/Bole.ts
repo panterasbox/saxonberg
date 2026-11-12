@@ -6,13 +6,14 @@
  * exceeds a body. Felling drops ONE bole where the tree stood — mass =
  * the species' wood density × 0.9 m³ (oak ≈ 675 kg; can't-budge is
  * emergent from mass, never a flag) — and cross-cutting is a second act
- * on it: `fell bole` takes one length of green timber off per
- * engagement until `lengthsLeft` reaches zero, when the butt and the
+ * on it: `cut bole` (with a felling axe) takes one length of green
+ * timber off per engagement until `lengthsLeft` reaches zero, when the butt and the
  * brash are the wood's again. The bole on the ground IS the seam
  * `trade-sawing` attaches to (boards, not lengths), and it is what the
  * transport pack's sledge and dray exist to move.
  *
- * ⭐ **It affords its own cross-cut** (`commandContributions.peers`), so a
+ * ⭐ **It affords its own cross-cut** (`commandContributions.peers` — the
+ * kernel's `cut`, since controller-liquidity D14 retired `fell bole`), so a
  * bole dragged to the yard one day is still cross-cuttable there with no
  * stand in the room. A bole in a `Wood` room survives a restart in the
  * room's container slice; a bole dragged into a transient room is lost
@@ -33,16 +34,45 @@ import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { Final } from '@saxonberg/server/mud/lib/security/decorators';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import { CuttableMixin, type CutAnswer, type CutRequest } from '@saxonberg/server/mud/lib/craft/Cuttable';
 import {
-  CuttableMixin,
-  type CutAnswer,
-  type CutAnswerFor,
-  type CutRequest,
-} from '@saxonberg/server/mud/lib/craft/Cuttable';
+  RivableMixin,
+  type RivePlan,
+  type RiveRefusal,
+  type RiveRequest,
+} from '@saxonberg/server/mud/lib/craft/Rivable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
+import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import type Material from '@saxonberg/server/mud/lib/material/Material';
+
+/** What a length off the bole puts on the saw carriage, and how green it is. */
+export interface SawCharge {
+  kg: number;
+  /** The wood. */
+  material: Material | null;
+  /** Seasoned fraction of what went on (a bole is green: 0). */
+  seasoned: number;
+}
+
+/** What the saw's take left of the bole. */
+export interface SawTaken {
+  /** Lengths still in it; 0 = the butt, and it is gone. */
+  left: number;
+}
+
+/** ⭐ Every reason the saw is refused — `SawController` words each. */
+export type SawRefusal = ActRefusal<'not-sawable'> | ActRefusal<'bole-spent'>;
+
+/**
+ * The saw's plan: the charge, and the take at the moment the cut is
+ * through. ⚠ Never engaged by itself — the SAW paces the cut (a sawmill's
+ * race, a pit saw's two pairs of hands), so the verb drives the plan and
+ * its `onComplete` is the take.
+ */
+export type SawPlan = ActPlan<SawCharge, SawTaken, SawRefusal>;
 
 /** Kilograms one cross-cut length of timber takes off the bole. */
 export const TIMBER_MASS_KG = 24;
@@ -52,6 +82,13 @@ export const BOLE_M3 = 0.9;
 
 /** Cross-cut lengths a standard's bole carries. */
 export const BOLE_LENGTHS = 6;
+
+/** The capability a cross-cut asks of a tool — the felling axe's. */
+const FELLING = 'felling';
+/** Endurance points a cross-cut costs. */
+export const CROSSCUT_COST = 5;
+/** Endurance points riving a length costs — a mallet being lighter than a saw. */
+export const RIVE_COST = 5;
 
 /** Game-ms one cross-cut takes. */
 export const CROSSCUT_MS = 15_000;
@@ -86,10 +123,11 @@ export const RIVE_FLOOR = 0.3;
  */
 export const CLEAN_CLEAVE = 0.8;
 
-// ⭐ It plans its own cuts (`CuttableMixin`, controllers-are-io D8c): the
-// cross-cut, the froe and the saw each ask the bole what one length off it
-// comes to.
-const BoleBase = CuttableMixin(Good);
+// ⭐ It plans its own cuts — one small protocol per act (controller-liquidity
+// D14): the cross-cut is a `cut`, the froe asks `Rivable`, and the saw asks
+// the bole itself (`sawPlanFor` — the one-host `Sawable` protocol folded into
+// its host, W17); each asks the bole what one length off it comes to.
+const BoleBase = RivableMixin(CuttableMixin(Good));
 
 /** *"six lengths in it yet"* / *"one length left"* — appended on `look`. */
 function lengthsAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
@@ -121,7 +159,8 @@ export default class Bole extends BoleBase {
   // walk). Too heavy to carry, so no `environment`.
   static commandContributions: CommandContributions = {
     peers: [
-      'trade/forestry/cmd/forestry/fell.yaml',
+      // ⭐ The cross-cut is the kernel's `cut` (D14) — `fell` is for trees.
+      'platform/cmd/crafting/cut.yaml',
       'trade/forestry/cmd/forestry/rive.yaml',
     ],
   };
@@ -153,9 +192,10 @@ export default class Bole extends BoleBase {
   }
 
   /**
-   * ⭐ The bole's cuts (D8c) — one length off it, whichever tool takes it:
+   * ⭐ The bole's cuts (D14) — one length off it, whichever tool takes it:
    *
-   *  - `crosscut` (`fell bole`) — a length of round timber, to hand;
+   *  - `cut` — the cross-cut: a length of round timber, to hand; it wants a
+   *    felling axe among the bound tools;
    *  - `rive` — a length split into a stack of green billets, as many as
    *    the wood's grain lets it open clean into; a wood whose fibres
    *    interlock (`cleavability` under {@link RIVE_FLOOR}) will not rive;
@@ -163,32 +203,42 @@ export default class Bole extends BoleBase {
    *    SAW paces the cut, so the plan is driven by the verb and its
    *    `onComplete` is the take.
    *
-   * Every one refuses a spent bole. The instrument is the verb's to check.
+   * Every one refuses a spent bole. ⭐ The endurance a length costs is spent
+   * when the work LANDS, never before the engagement could refuse
+   * (controller-liquidity C12).
    */
   public override async cutPlan(req: CutRequest): Promise<CutAnswer> {
-    switch (req.verb) {
-      case 'crosscut':
-        return this.crosscutPlan(req.actor);
-      case 'rive':
-        return this.rivePlan(req.actor);
-      case 'saw':
-        return this.sawPlan();
-      default:
-        return super.cutPlan(req);
+    if (!req.tools.some((t) => MixinApi.isTool(t) && t.hasCapability(FELLING))) {
+      return { ok: false, reason: 'no-felling-axe' };
     }
+    return this.crosscutPlan(req.actor);
   }
 
-  private crosscutPlan(actor: Stuff): CutAnswerFor<'crosscut'> {
-    if (this.lengthsLeft <= 0) return { ok: false, verb: 'crosscut', reason: 'bole-spent' };
+  public override async rivePlanFor(req: RiveRequest): Promise<RivePlan | RiveRefusal> {
+    return this.rivePlan(req.actor);
+  }
+
+  /**
+   * ⭐ The saw's plan for one length off the bole (controller-liquidity
+   * D14): the charge on the carriage and the take when the cut is through.
+   * The sawmill asks a `Bole` this by class; any other wood it weighs as it
+   * is.
+   */
+  public async sawPlanFor(_actor: Stuff, _saw: Stuff): Promise<SawPlan | SawRefusal> {
+    return this.sawPlan();
+  }
+
+  private crosscutPlan(actor: Stuff): CutAnswer {
+    if (this.lengthsLeft <= 0) return { ok: false, reason: 'bole-spent' };
     const bole = this as unknown as Stuff;
     return {
       ok: true,
-      verb: 'crosscut',
       durationMs: CROSSCUT_MS,
       effortW: CROSSCUT_EFFORT_W,
-      facts: { bole },
+      facts: { kind: 'length', bole },
       onComplete: async () => {
         if (actor.isDestroyed() || this.isDestroyed()) return { ok: true, facts: { kind: 'gone' } };
+        Bole.spend(actor, CROSSCUT_COST);
         const room = this.getContainer();
         const wood = this.getMaterial();
         const timber = await StuffApi.clone<Stuff & Containable>(TIMBER_PATH, undefined, {
@@ -204,27 +254,25 @@ export default class Bole extends BoleBase {
         await Bole.capture(actor);
         await Bole.credit(actor, 'easy');
         return left <= 0
-          ? { ok: true, facts: { kind: 'last', boleName } }
+          ? { ok: true, facts: { kind: 'last-length', boleName } }
           : { ok: true, facts: { kind: 'length', timber, bole, left } };
       },
     };
   }
 
-  private rivePlan(actor: Stuff): CutAnswerFor<'rive'> {
+  private rivePlan(actor: Stuff): RivePlan | RiveRefusal {
     const wood = this.getMaterial();
     if ((wood && MixinApi.hasSolidity(wood) ? wood.getCleavability() : 0) < RIVE_FLOOR) {
       return {
         ok: false,
-        verb: 'rive',
         reason: 'will-not-rive',
         facts: { woodName: wood?.getName() ?? 'this wood' },
       };
     }
-    if (this.lengthsLeft <= 0) return { ok: false, verb: 'rive', reason: 'bole-spent' };
+    if (this.lengthsLeft <= 0) return { ok: false, reason: 'bole-spent' };
     const bole = this as unknown as Stuff;
     return {
       ok: true,
-      verb: 'rive',
       durationMs: RIVE_MS,
       effortW: RIVE_EFFORT_W,
       facts: { kind: 'bole', bole },
@@ -233,6 +281,8 @@ export default class Bole extends BoleBase {
         if (actor.isDestroyed() || this.isDestroyed()) return { ok: true, facts: { kind: 'gone' } };
         const room = this.getContainer();
         if (room === null || !MixinApi.isContainer(room)) return { ok: true, facts: { kind: 'gone' } };
+        // The work was done whether or not the wood opened well.
+        Bole.spend(actor, RIVE_COST);
         const material = this.getMaterial();
         const boleName = this.getPresentation();
         const left = this.takeLength();
@@ -259,13 +309,12 @@ export default class Bole extends BoleBase {
     };
   }
 
-  private sawPlan(): CutAnswerFor<'saw'> {
+  private sawPlan(): SawPlan | SawRefusal {
     const material = this.getMaterial();
-    if (!material || !material.hasTag('wood')) return { ok: false, verb: 'saw', reason: 'not-sawable' };
-    if (this.lengthsLeft <= 0) return { ok: false, verb: 'saw', reason: 'bole-spent' };
+    if (!material || !material.hasTag('wood')) return { ok: false, reason: 'not-sawable' };
+    if (this.lengthsLeft <= 0) return { ok: false, reason: 'bole-spent' };
     return {
       ok: true,
-      verb: 'saw',
       // ⚠ Never engaged: the SAW paces the cut (the verb drives this plan).
       durationMs: 0,
       effortW: 0,
@@ -287,6 +336,13 @@ export default class Bole extends BoleBase {
     } catch (err) {
       console.warn('Bole: capture failed:', err);
     }
+  }
+
+  /** Spend endurance. A no-op on a body that carries no reserves. */
+  private static spend(actor: Stuff, points: number): void {
+    if (points <= 0 || !MixinApi.isReserved(actor)) return;
+    if (!actor.hasReserve('endurance')) return;
+    actor.adjustReserve('endurance', Quantity.of(-points, '%'));
   }
 
   /** The deed a cut credits, in silviculture. */

@@ -25,9 +25,9 @@ args:
     scope: "reachable"
     requires: SoilableMixin
   - name: tool
+    prepositionRequired: true
     type: objects
     required: false
-    greedy: true
     prepositions: [with, using]
     default: "me:i:[capability.brushing or capability.sweeping],reachable:[capability.brushing or capability.sweeping]"
     scope: ["reachable"]

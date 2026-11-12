@@ -8,7 +8,7 @@
  * makes, at the hearth. At the counter he types `sell`, and is paid the
  * same bid: the round is a LIVING only by volume, never by margin, which
  * is the drive's question (AC 9). ⭐ Nothing here is unavailable to a
- * player: sweep your own hearth and walk the ash in, and you are paid the
+ * player: rake your own hearth and walk the ash in, and you are paid the
  * same. The chandlery stays vacant — he supplies it; he is not its hand.
  *
  * Where it is: the roster tick relocates him from stop to stop
@@ -18,9 +18,8 @@
  *
  * ⚠ What nobody can be paid for — a hearth whose owner has no account (a
  * commons fixture, a committee) — is taken and SAID, never silently: the
- * scene names it. And he sweeps with his hands, the act the `sweep` verb's
- * controller performs (`Burner.rakeGrate`): a broom is a player's
- * convenience, not the round's gate.
+ * scene names it. And he rakes with his hands, the act the `rake` verb's
+ * controller performs (`Burner.rakeGrate`) — nothing is a gate on it.
  *
  * config: `{ counter: string, minKg?: number }` — `counter` the house's
  * `Stock` (template path); `minKg` the least ash worth raking (default
@@ -80,7 +79,7 @@ export const brain = class {
     if (counter.getContainer() === room) {
       // ⭐ Back at the counter: sell it, with the verb anybody uses.
       if (!MixinApi.isCommandGiver(hand)) return;
-      for (let i = brain.heapsHeld(hand).length; i > 0; i -= 1) await hand.forceCommand('sell wood ash');
+      for (let i = brain.heapsHeld(hand).length; i > 0; i -= 1) await hand.forceCommand('sell "wood ash"');
       return;
     }
 

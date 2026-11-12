@@ -31,14 +31,14 @@ const SRC = readFileSync(
 
 describe('the farms beat is bounded and literal', () => {
   it('drives the literal verbs, nothing else', () => {
-    expect(SRC).toContain('`fill can from ${from}`');
+    expect(SRC).toContain('`fill can from ${CommandLineApi.word(from)}`');
     expect(SRC).toContain('`water ${kw}`');
     expect(SRC).toContain('`water ${kw} at ${part}`');
     expect(SRC).toContain('`feed ${kw} with sack`');
     expect(SRC).toContain('`feed ${kw} at ${part} with sack`');
     expect(SRC).toContain('`harvest ${kw}`');
     expect(SRC).toContain("'wallet use house'");
-    expect(SRC).toContain('`shelf consign ${kw} --ask ${ask}`');
+    expect(SRC).toContain('`shelf consign ${CommandLineApi.word(kw)} --ask ${ask}`');
     expect(SRC).toContain('`house draw ${amount}`');
   });
 

@@ -36,26 +36,28 @@ export abstract class FishingController<M extends CommandModel = CommandModel> e
   protected async reachFor(
     giver: Stuff,
     shore: MqlOneResult | undefined,
-  ): Promise<{ reach: string } | { refusal: string; reason: string } | null> {
+  ): Promise<{ ok: true; reach: string; water: string | null } | { ok: false; refusal: string; reason: string } | null> {
     const room = this.roomOf(giver);
     if (shore?.stuff) {
       const name = shore.via?.detailPath?.[0];
       if (MixinApi.isShore(shore.stuff)) {
         const pick = await shore.stuff.waterRefFor(name);
-        if ('refusal' in pick) return pick;
+        if ('refusal' in pick) return { ok: false, refusal: pick.refusal, reason: pick.reason };
         // ⭐ Frozen water is fished only through a hole (storage-and-ice
         // D15): THE gate is the shore's, shared with washing.
         const gate = shore.stuff.drawAt(pick.key, room ?? shore.stuff);
-        if ('refusal' in gate && gate.refusal === 'frozen') {
-          return { refusal: gate.line, reason: 'frozen' };
+        if ('refusal' in gate) {
+          if (gate.refusal === 'frozen') return { ok: false, refusal: gate.line, reason: 'frozen' };
+          return { ok: true, reach: pick.ref, water: null };
         }
-        return { reach: pick.ref };
+        // ⭐ The water the shore draws here — what a laid trap fills with.
+        return { ok: true, reach: pick.ref, water: gate.draw.materialPath };
       }
-      return { refusal: `There is no water in the ${shore.raw ?? 'that'}.`, reason: 'not-water' };
+      return { ok: false, refusal: `There is no water in the ${shore.raw ?? 'that'}.`, reason: 'not-water' };
     }
     if (room === null) return null;
     const reach = await (await this.waters()).reachAt(room);
-    return reach === null ? null : { reach };
+    return reach === null ? null : { ok: true, reach, water: null };
   }
 
   protected async registry(): Promise<FisheryRegistry | null> {

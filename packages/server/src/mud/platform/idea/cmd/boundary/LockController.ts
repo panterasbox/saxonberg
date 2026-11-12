@@ -7,9 +7,8 @@
  * exits, else the door hung in it. `MqlApi.effectiveTarget` is that one
  * rule.
  *
- * v1 carries no key/credential model — the crossing gate is seeded
- * permanently locked and soft-walled in dialogue, so lock/unlock are
- * minimal no-key verbs. A key model is a future phase.
+ * The authority is the door's: `Lockable.lock(by)` refuses
+ * `already-locked`, then `no-key`; this controller words the refusal.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -74,60 +73,24 @@ export default class LockController extends CommandController<LockModel> {
       return;
     }
 
-    // ⭐⭐ **Observable state first, the secret second** — and the order
-    // is the whole point, corrected by a lens pass after the first
-    // version shipped it the other way round.
-    //
-    // The first version asked for the key before reading the bolt, on
-    // the reasoning that a stranger should not learn the door's state.
-    // ⚠ That is wrong on immersion (3a): **a character can SEE a thrown
-    // bolt.** Hiding something visible is the engine lying about the
-    // world, which is a betrayal exactly like prose the model does not
-    // back — and it bought nothing, because the door already announces
-    // `locked` in the room's exit listing.
-    //
-    // So: already-locked is reported to anybody, because anybody can see
-    // it. The KEY is the secret, and it is asked only once the act would
-    // otherwise go through.
-    if (lockable.isLocked()) {
-      MessageApi.scene(commandGiver)
-        .topic('act.deed')
-        .toSelf(Mml.compose`It is already locked.`)
-        .send();
+    // ⭐⭐ The door decides (controller-liquidity D9): `lock(by)` asks
+    // the visible state first and the keyway second, so a replaced
+    // controller or a script meets the same order. This controller words
+    // the refusal.
+    const answer = lockable.lock(commandGiver);
+    if (!answer.ok) {
+      const line =
+        answer.reason === 'no-key'
+          ? Mml.compose`You have no key that fits ${Mml.thing(lockable)}.`
+          : Mml.compose`It is already locked.`;
+      MessageApi.scene(commandGiver).topic('act.deed').toSelf(line).send();
       context.note({
         kind: 'controller-rejected',
-        reason: 'already-locked',
-        detail: 'already locked',
+        reason: answer.reason,
+        detail: answer.reason === 'no-key' ? 'no key that fits' : 'already locked',
       });
       return;
     }
-
-    // ⭐⭐⭐ **The authority, and it did not exist.** This controller
-    // checked no key, no credential and no title, so conferring `lock`
-    // over the old boolean mixin would have let any player alive lock
-    // the university gate and a hall's front doors. The door answers for
-    // itself now: `opensFor` is a synchronous scan of the mover's
-    // reachable wallet (implant keychain, then a carried physical `Key`
-    // — never one lying on the floor).
-    //
-    // ⚠ The bolt's STATE and the keyway's AUTHORITY are deliberately two
-    // calls. `lock()` moves the bolt and asks nobody; this is the ask.
-    if (!lockable.opensFor(commandGiver)) {
-      MessageApi.scene(commandGiver)
-        .topic('act.deed')
-        .toSelf(
-          Mml.compose`You have no key that fits ${Mml.thing(lockable)}.`,
-        )
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'no-key',
-        detail: 'no key that fits',
-      });
-      return;
-    }
-
-    lockable.lock();
 
     MessageApi.scene(commandGiver)
       .topic('act.deed')

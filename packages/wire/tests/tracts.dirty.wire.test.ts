@@ -201,7 +201,7 @@ suite.skipIf(!isOwnedTestWorld())('the valley farmstead — tracts and fields', 
   }, 600_000);
 
   it('2. `look upper bench` from the yard: rough ground, nothing marked yet', async () => {
-    const seen = await read(p, 'look upper bench');
+    const seen = await read(p, 'look "upper bench"');
     expect(seen).toMatch(/Nobody has marked a field on it/i);
   }, 300_000);
 
@@ -228,7 +228,7 @@ suite.skipIf(!isOwnedTestWorld())('the valley farmstead — tracts and fields', 
   it('6. [staged seedbed] wheat sown on the wheat field; the line will not move through it', async () => {
     p.close();
     p = await goTo(farmer, STORE);
-    await doing(p, 'buy seed wheat');
+    await doing(p, 'buy "seed wheat"');
     p.close();
     // ⭐ The farmstead's plough lies at the bench's headland: the wheat
     // field is ploughed by the farmer, for real.
@@ -238,7 +238,7 @@ suite.skipIf(!isOwnedTestWorld())('the valley farmstead — tracts and fields', 
     await doing(p, 'go up');
     let said = '';
     for (let i = 0; i < 6 && !/ploughed for the season/i.test(said); i++) {
-      said = (await act(p, 'plow at the wheat field')).said + ' ' + (await read(p, 'look at the wheat field'));
+      said = (await act(p, 'plow at the "wheat field"')).said + ' ' + (await read(p, 'look at the "wheat field"'));
     }
     expect(said, 'the wheat field is ploughed').toMatch(/ploughed for the season/i);
     const sown = await act(p, 'plant wheat --at "the wheat field"');
@@ -278,7 +278,7 @@ suite.skipIf(!isOwnedTestWorld())('the authored farms, and the house lot', () =>
   it("8. Quist's bench, read from his yard: its three fields", async () => {
     const q = await goTo(farmer, QUIST_YARD);
     try {
-      const seen = await read(q, 'look upper bench');
+      const seen = await read(q, 'look "upper bench"');
       expect(seen).toMatch(/top end/i);
       expect(seen).toMatch(/lane end/i);
     } finally {
@@ -336,8 +336,8 @@ suite.skipIf(!isOwnedTestWorld())('the authored farms, and the house lot', () =>
   it("11. the farm archetype, asked at Quist's farm", async () => {
     const q = await goTo(farmer, QUIST_YARD);
     try {
-      const said = await read(q, 'survey');
-      note(`survey at Quist's yard (D36 — a finding if it names no farm): ${said.slice(0, 300)}`);
+      const said = await read(q, 'analyze rooms');
+      note(`analyze rooms at Quist's yard (D36 — a finding if it names no farm): ${said.slice(0, 300)}`);
     } finally {
       q.close();
     }

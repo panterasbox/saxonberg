@@ -9,12 +9,12 @@
 
 import type { Stuff } from '../stuff/Stuff';
 import type { MixinConstructor } from '../mixin';
-import type { CutAnswerFor, CutRequest } from './Cuttable';
+import type { CutAnswer, CutRequest } from './Cuttable';
 
 /** A tool that plans the cut of a target it knows how to cut. */
 export interface CutPlanner {
   /** The plan, a refusal, or `null` when this tool has nothing to say about `target`. */
-  cutPlanFor(target: Stuff, req: CutRequest<'cut'>): Promise<CutAnswerFor<'cut'> | null>;
+  cutPlanFor(target: Stuff, req: CutRequest): Promise<CutAnswer | null>;
 }
 
 /**
@@ -38,7 +38,7 @@ export function CutPlannerMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
     static _mixinKind = 'protocol' as const;
 
     /** @hook Plan the cut of `target`, or `null` when this tool has nothing to say. */
-    public async cutPlanFor(_target: Stuff, _req: CutRequest<'cut'>): Promise<CutAnswerFor<'cut'> | null> {
+    public async cutPlanFor(_target: Stuff, _req: CutRequest): Promise<CutAnswer | null> {
       return null;
     }
   };

@@ -192,6 +192,16 @@ export interface EstateEntry {
    * marker existed.
    */
   mounted?: { slot: string };
+  /**
+   * Present iff the good **rests on a surface** in the place — a shirt on
+   * the drying rack, a cup on the table: the surface's row and the
+   * placement member (`Containable.getRestingPlace`). The room overlay
+   * restores the room's own fixtures first, then lays the good back on
+   * that surface; a surface that is gone, or will not take it, leaves it
+   * standing in the room (finalize, controller liquidity — the cleanliness
+   * drive's shirt came back beside its rack).
+   */
+  rests?: { on: string; placement: string };
 }
 
 /**

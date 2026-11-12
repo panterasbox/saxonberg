@@ -1,6 +1,6 @@
 verbs: [config]
 category: system
-controller: /platform/idea/cmd/system/ConfigController
+controller: /platform/idea/cmd/system/ConfigListController
 description: "View or set the world's settings (the Prime Minister's)"
 help: |
   Inspects and changes the game's application-wide settings. Plain
@@ -23,14 +23,8 @@ examples:
     note: Set a setting to a new value
 validators:
   - /lib/command/validators/requiresPrimeMinister
-args:
-  # Both optional: `config` lists, `config <key>` shows, `config <key>
-  # <value>` sets. `value` is a single token (a setting value is a path /
-  # scalar, no spaces) — it is NOT greedy, because a greedy arg is treated
-  # as required and a required arg cannot follow the optional `key`.
-  - name: key
-    type: string
-    required: false
-  - name: value
-    type: string
-    required: false
+# ⭐ One of three SHAPES of `config`, told apart by arity (controller-
+# liquidity W7a, D13 rung 4): this bare form lists, `config-show.yaml`
+# (`config <key>`) shows one, `config-set.yaml` (`config <key> <value>`)
+# sets one. A leftover word or a missing required arg is a SHAPE error,
+# so each line binds exactly one view.

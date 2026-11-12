@@ -211,7 +211,7 @@ async function goTo(handle: string, where: string): Promise<Session> {
 
 async function buy(s: Session, item: string, n = 1): Promise<void> {
   for (let i = 0; i < n; i++) {
-    const said = await say(s, `buy ${item}`);
+    const said = await say(s, `buy "${item}"`);
     // ⚠ Asserted as the SALE, not as the absence of three refusals: the
     // counter has six ways to say no and the old check knew three.
     expect(said, `buy ${item} (#${i + 1}): ${said}`).toMatch(/you buy/i);
@@ -329,7 +329,7 @@ suite('⭐⭐ the pick is a head on a haft (drive 2, 10, 16; AC 2, 3, 10, 12)', 
   // refused — the clone gate reads the first live instance's zone.
   it('⭐ D16 — a dowel carved from a SAWN board is sawn, and its end grain says so', async () => {
     await buy(smith, 'sawn board');
-    const carved = await say(smith, 'carve dowel from sawn board --with billhook');
+    const carved = await say(smith, 'carve dowel from "sawn board"');
     expect(carved, `carve dowel: ${carved}`).toMatch(/dowel/i);
     const dowel = await examine(smith, 'dowel');
     expect(dowel, `dowel: ${dowel}`).toMatch(/It was sawn/i);
@@ -642,7 +642,7 @@ suite('⭐⭐ the cut — glue wants a flat board (plan D16)', () => {
     await buy(wright, 'quartered board');
     wright.close();
     wright = await goTo(handle, SMITHY);
-    const refit = await say(wright, 'fit quartered board to shield');
+    const refit = await say(wright, 'fit "quartered board" to shield');
     expect(refit, `fit quartered board: ${refit}`).toMatch(/fit a new/i);
     const flat = await examine(wright, 'shield');
     expect(flat, `shield on a quartered board: ${flat}`).not.toMatch(/never held|slack/i);

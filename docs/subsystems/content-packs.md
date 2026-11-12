@@ -924,10 +924,12 @@ see below):
   means claiming); `--export` (serialize the DB row back to the pack's
   **workspace** source file; the conflict stays open until the next
   `sync` observes file == DB, the converged cell, and clears it — the
-  git round-trip). A `sync` of an **unstaffed** pack ends with the
-  staffing prompt (D7): *This pack has no maintainers. You, or who?* —
-  `PromptApi.text`, enter for yourself, a name for somebody else, decline
-  and it stays unstaffed (and `status` says so). `PackApi.staff` adds the
+  git round-trip). A `sync` of an **unstaffed** pack ends by saying
+  so and naming the act (D7): *Staff it with `pack staff <id>` (you) or
+  `pack staff <id> <person>`* — the person an object arg keyed on
+  identity (controller-liquidity W7b; it was a `PromptApi.text` prompt
+  whose typed answer went in as a raw member path and so never matched);
+  left unstaffed, `status` says so. `PackApi.staff` adds the
   member to the maintainers **group**; an organization-maintained pack
   refuses (*appoint through the organization, not the pack*). `--export` writes are workspace-only by construction;
   in a dist deployment the write fails loudly. A text kind exports its
@@ -1121,7 +1123,11 @@ deleted. No resident registry → unbounded (a unit test).
   `errors` list shows a pack's channel to whoever maintains that pack —
   no author tier.
 - **`pack status`** prints the staffing line per pack; **`pack sync`**
-  prompts to staff (above); `PackApi.staff` is the one write.
+  says when a pack is unstaffed and names **`pack staff <packId>
+  [<person>]`** — its own subcommand since controller-liquidity W7b (the
+  person an object arg keyed on `getIdentityPath()`; it used to be a
+  prompt that passed the typed text as the member path, so the member
+  never matched); `PackApi.staff` is the one write.
 
 ### Orphans
 
@@ -1569,10 +1575,12 @@ a manifest declares which, so the script still says).
   boot entries moved into terminus; the trade packs no longer depend on
   it. A second venue for a trade is rows in another locality and zero
   pack code.
-- A pack's `src/lib/` base for a family of controllers (terminus's
-  `LettingController`, the University's `HallController`) carries its
-  shared authority read as a **protected** static — `lint:lib-statics` is
-  a ratchet.
+- A pack's `src/lib/` base for a family of controllers carries any
+  shared read as a **protected** static — `lint:lib-statics` is a ratchet.
+  ⚠ The two exemplars that stood here (terminus's `LettingController`, the
+  University's `HallController`) are gone (controller-liquidity W13): who
+  may let is the warren's, `LettingWarren.mayLetFor` in the residence
+  pack's `lib/`, asked by the act itself ([residence.md](./residence.md)).
 
 ## History
 

@@ -38,6 +38,15 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import type { ActOutcome, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import Waters, { WATERS_PATH } from '../idea/Waters';
+
+/** What a release came to: the fish's common name, for the words. */
+export interface ReleaseDone {
+  name: string;
+}
 
 const FishBase = ContaminableMixin(KeptAnimal);
 
@@ -73,6 +82,49 @@ export default class Fish extends FishBase {
   public effectiveLengthM(): number {
     if (this.lengthM > 0) return this.lengthM;
     return this.getSpecies()?.getStature() ?? 0;
+  }
+
+  /**
+   * Will the water have this fish back? Not a dead one — asked
+   * synchronously (the reconciling read), so a verb can ask it in its own
+   * frame before anything else happens to the fish.
+   */
+  public releaseRefusal(): ActRefusal<'dead'> | null {
+    const remaining = this.getDyingRemainingSec();
+    return this.isDead() || (remaining !== null && remaining <= 0) ? { ok: false, reason: 'dead' } : null;
+  }
+
+  /**
+   * ⭐ **Back into the water and back into the record** (the `release`
+   * verb's act, controller-liquidity W12): the reach's count gets it back,
+   * the fish is gone, and releasing an apex is a chronicle deed for `by`.
+   *
+   * ⚠ Death is LAZY: the dying clock advances only when somebody reads it
+   * (`getDyingRemainingSec` reconciles; `isDead()` does not). Asked first,
+   * or a fish ten minutes dead in the hand goes "back" as a live count —
+   * the drive found it (run 23). A window with nothing left IS dead.
+   */
+  public async releaseInto(by: Stuff, reachRef: string): Promise<ActOutcome<ReleaseDone> | ActRefusal<'dead'>> {
+    const refused = this.releaseRefusal();
+    if (refused !== null) return refused;
+    const species = this.getSpecies();
+    const speciesPath = species?.getTemplatePath() ?? '';
+    const name = species?.getCommonNames()[0] ?? 'fish';
+    const registry = await (await StuffApi.singleton<Waters>(WATERS_PATH)).registry();
+    if (registry !== null && speciesPath) {
+      await registry.release(reachRef, speciesPath, 1, WorldClockApi.getNow().rawValue());
+    }
+    if (species?.getHabitat()?.role === 'apex' && MixinApi.isPersona(by)) {
+      void by
+        .recordDeed({
+          template: 'Released a {{ species }} at {{ reach }}.',
+          vars: { species: name, reach: reachRef },
+          tags: ['fishing', 'landmark'],
+        })
+        .catch(() => {});
+    }
+    void StuffApi.destruct(this as unknown as Stuff);
+    return { ok: true, facts: { name } };
   }
 
   /**

@@ -54,7 +54,6 @@ export type PlantReason =
   | 'no-ground'
   | 'land-use-forbids-cultivation'
   | 'not-held'
-  | 'part-unnamed'
   | 'not-a-part-here'
   | 'other-crop-stands'
   | 'ground-refuses-sowing'
@@ -79,7 +78,11 @@ export interface PlantRefusal {
     part?: Stuff;
     standing?: Stuff;
     zoned?: ZonedAgainst;
-    /** The ground's own sentence, when it refused. */
+    /**
+     * The ground's own sentence for `ground-refuses-sowing` (`sowingRefusal`
+     * — a hook a pack's ground overrides). ⚠ Prose on the model: listed in
+     * controller-liquidity W4's audit for the pack lanes.
+     */
     line?: string;
   };
 }

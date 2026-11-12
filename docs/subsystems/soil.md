@@ -356,9 +356,9 @@ reaches a field without importing the farming pack:
 |---|---|
 | `soilParts()` | the ground's parts (`[]` = one piece) — a `Tract` returns its fields |
 | `soilPartKey()` · `soilDepthM()` | a part's key, and its topsoil depth (the roots read) |
-| `soilPart(key)` · `soilPartRefusal()` · `soilPartNoun()` | find a part; the *"Which field? Name one: …"* line (the host names its parts) |
+| `soilPart(key)` · `soilPartNoun()` | find a part; the host's word for one (*field*) |
 | `soilRemainderAreaM2()` | the host's own soil between its parts — counted as one more term when it has area and a reserve |
-| `resolvePartFor(named)` | the GROUND decides: the named part, the only part, or a refusal (`part-unnamed`, `not-a-part-here`) |
+| `resolvePartFor(named)` | the GROUND decides: the named part, the only part, a CHOICE of its parts when none was named (`PartChoices`, `part-unnamed` — controller-liquidity D8: the controller words *"Which field? Name one: …"* with `CommandController.partLine`, or asks with `chooseAmong`), or a refusal with facts (`not-a-part-here`) — never a sentence |
 | `rootedAreaCrop(part)` | the area crop rooted in that part (asked of a part, it asks its ground) |
 | `soilMoistureHeadroomL()` · `soilNutrientHeadroom()` | litres (the SUM of the parts), points (the area-weighted MEAN) |
 

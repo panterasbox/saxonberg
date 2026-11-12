@@ -10,8 +10,9 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import WearController from '../WearController';
-import EquipSetController from '../EquipSetController';
-import EquipSetsController from '../EquipSetsController';
+import OutfitWearController from '../OutfitWearController';
+import OutfitSaveController from '../OutfitSaveController';
+import OutfitListController from '../OutfitListController';
 import { WearableMixin } from '../../../../../lib/slot/Wearable';
 import { SlottableMixin } from '../../../../../lib/slot/Slottable';
 import { WardrobeMixin } from '../../../../../lib/slot/Wardrobe';
@@ -342,7 +343,7 @@ describe('the impossible fit', () => {
   });
 });
 
-describe('the wardrobe stanza — getting dressed is one command', () => {
+describe('the outfit verb — getting dressed is one command', () => {
   afterEach(() => {
     Construction.clearFabrics();
     StuffApi.clearAll();
@@ -382,28 +383,32 @@ describe('the wardrobe stanza — getting dressed is one command', () => {
     const ctx = context(body, location);
     const sub = (model as { subcommand?: string }).subcommand;
     await makeStuff(() =>
-      sub === 'sets' ? new EquipSetsController() : new EquipSetController(),
+      sub === 'list'
+        ? new OutfitListController()
+        : sub === 'save'
+          ? new OutfitSaveController()
+          : new OutfitWearController(),
     ).execute(model as never, ctx);
     await settle();
     return ctx;
   }
 
-  it('⭐ `--save` captures the worn stack in WEAR ORDER (innermost first)', async () => {
+  it('⭐ `outfit save` captures the worn stack in WEAR ORDER (innermost first)', async () => {
     const { body, location, shirt, coat } = dressed();
     body.occupyAll(shirt, ['torso']);
     body.occupyAll(coat, ['torso']);
 
-    await run(body, location, { subcommand: 'set', name: 'daily', save: true });
+    await run(body, location, { subcommand: 'save', name: 'daily' });
     // Worn shirt-then-coat, so the saved order is shirt-then-coat —
     // which is exactly the order a replay must dress in.
     expect(body.getWardrobe('daily')).toEqual(['shirt', 'coat']);
   });
 
-  it('replays the set in one command, innermost-first', async () => {
+  it('replays the outfit in one command, innermost-first', async () => {
     const { body, location, shirt, coat } = dressed();
     body.setWardrobe('daily', ['shirt', 'coat']);
 
-    await run(body, location, { subcommand: 'set', name: 'daily' });
+    await run(body, location, { subcommand: 'wear', name: 'daily' });
     expect(body.getOccupants('torso').has(shirt)).toBe(true);
     expect(body.getOccupants('torso').has(coat)).toBe(true);
     // …and the ladder is satisfied: the coat went on second, so it is
@@ -417,7 +422,7 @@ describe('the wardrobe stanza — getting dressed is one command', () => {
     const { body, location, shirt } = dressed();
     body.setWardrobe('daily', ['shirt', 'hat-i-sold', 'coat']);
 
-    const ctx = await run(body, location, { subcommand: 'set', name: 'daily' });
+    const ctx = await run(body, location, { subcommand: 'wear', name: 'daily' });
     expect(body.getOccupants('torso').has(shirt)).toBe(true);
     // No rejection note — a partial dress is a success with a caveat.
     expect(
@@ -425,23 +430,22 @@ describe('the wardrobe stanza — getting dressed is one command', () => {
     ).toBe(false);
   });
 
-  it('an unknown set is refused by name', async () => {
+  it('an unknown outfit is refused by name', async () => {
     const { body, location } = dressed();
-    const ctx = await run(body, location, { subcommand: 'set', name: 'nope' });
+    const ctx = await run(body, location, { subcommand: 'wear', name: 'nope' });
     const rejection = ctx
       .getNotes()
       .find((n) => n.kind === 'controller-rejected') as
       | { reason?: string }
       | undefined;
-    expect(rejection?.reason).toBe('unknown-set');
+    expect(rejection?.reason).toBe('unknown-outfit');
   });
 
-  it('`--save` with nothing on refuses rather than saving an empty set', async () => {
+  it('`outfit save` with nothing on refuses rather than saving an empty outfit', async () => {
     const { body, location } = dressed();
     const ctx = await run(body, location, {
-      subcommand: 'set',
+      subcommand: 'save',
       name: 'empty',
-      save: true,
     });
     const rejection = ctx
       .getNotes()
@@ -452,10 +456,10 @@ describe('the wardrobe stanza — getting dressed is one command', () => {
     expect(body.getWardrobeNames()).toEqual([]);
   });
 
-  it('`wear sets` lists what is saved', async () => {
+  it('`outfit list` lists what is saved', async () => {
     const { body, location } = dressed();
     body.setWardrobe('daily', ['shirt', 'coat']);
-    const ctx = await run(body, location, { subcommand: 'sets' });
+    const ctx = await run(body, location, { subcommand: 'list' });
     expect(
       ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
     ).toBe(false);

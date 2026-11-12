@@ -20,6 +20,20 @@ import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persiste
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import Packet from '../thing/Packet';
+import { CommandApi, type CommandContext } from '@saxonberg/server/mud/api/command';
+import PasteController from '@saxonberg/server/mud/platform/idea/cmd/crafting/PasteController';
+import FitController from '@saxonberg/server/mud/platform/idea/cmd/crafting/FitController';
+import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
+import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
+import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
+import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+
+class PasteGiver extends SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(Idea)))) {
+  static _mixinName = 'PaperGoodsTestGiver';
+  protected handleMessage(_msg: unknown): void {}
+}
 
 class Pot extends BulkableMixin(Good) {
   static _mixinName = 'PaperGoodsTestPot';
@@ -125,5 +139,63 @@ describe('⭐ a pasted label stands the damp as its glue does', () => {
     const empty = makeStuff(() => new Pot());
     const label = makeStuff(() => new Sheet());
     expect(await jar.pasteOn(label, empty)).toMatchObject({ ok: false, reason: 'not-glue' });
+  });
+});
+
+describe('⭐ `paste` is its own word; `fit` names it (controller-liquidity W7c)', () => {
+  function ctxFor(verb: string): CommandContext {
+    return CommandApi.createCommandContext({
+      commandGiver: makeStuff(() => new PasteGiver()) as never,
+      location: null as never,
+      commandText: verb,
+      executionId: 't',
+      commandId: 't',
+      verb,
+      command: CommandDefinition.fromYaml(`verbs: [${verb}]\ncontroller: NoopController\ndescription: stub\n`, '<test>'),
+    });
+  }
+  function gluePot(): Stuff {
+    return makeStuff(() => {
+      const p = new Pot();
+      p.interiorBulk = true;
+      p.setInteriorCapacity(Quantity.of(1, 'L'));
+      p.setBulkMaterial('interior', StuffApi.findByTemplatePath<Glue>(PASTE)!);
+      p.setBulkAmount('interior', Quantity.of(0.5, 'L'));
+      return p;
+    });
+  }
+
+  it('paste puts the label on the jar; with no pot it asks for one', async () => {
+    const jar = makeStuff(() => new Good());
+    const label = makeStuff(() => new Sheet());
+    label.setMarkText('quince');
+    const none = ctxFor('paste');
+    await makeStuff(() => new PasteController()).execute(
+      { sheet: { stuff: label, raw: 'label' }, whole: { stuff: jar, raw: 'jar' } } as never,
+      none,
+    );
+    expect(none.getNotes()).toContainEqual(expect.objectContaining({ reason: 'no-glue' }));
+    expect(label.isDestroyed()).toBe(false);
+    await makeStuff(() => new PasteController()).execute(
+      {
+        sheet: { stuff: label, raw: 'label' },
+        whole: { stuff: jar, raw: 'jar' },
+        pot: { stuff: gluePot(), raw: 'pot' },
+      } as never,
+      ctxFor('paste'),
+    );
+    expect(jar.getCoats('outside')[0]?.marks).toBe('quince');
+  });
+
+  it('fit label on jar refuses, naming paste', async () => {
+    const jar = makeStuff(() => new Good());
+    const label = makeStuff(() => new Sheet());
+    const ctx = ctxFor('fit');
+    await makeStuff(() => new FitController()).execute(
+      { thing: { stuff: label, raw: 'label' }, whole: { stuff: jar, raw: 'jar' } } as never,
+      ctx,
+    );
+    expect(ctx.getNotes()).toContainEqual(expect.objectContaining({ reason: 'use-paste' }));
+    expect(label.isDestroyed()).toBe(false);
   });
 });

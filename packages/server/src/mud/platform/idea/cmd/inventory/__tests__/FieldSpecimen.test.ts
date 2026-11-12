@@ -443,7 +443,7 @@ describe('sample <crop> at <patch> / label <crop> [text] at <patch>', () => {
     expect(mine!.getLabel()).toBe(giver.getPresentation());
   });
 
-  it('any other target is the shipped label — and `at …` is part of what you wrote', async () => {
+  it('any other target is the shipped label — and `at …` names only a field part (W7c: no re-glue)', async () => {
     const { giver, field } = scene();
     const jar = makeStuffAtPath(() => newPlant(), freshPath('/trade/farming/thing/plant/_jar'));
     ContainmentApi.move(jar, giver);
@@ -455,6 +455,13 @@ describe('sample <crop> at <patch> / label <crop> [text] at <patch>', () => {
         part: one(null, 'noon', 'at'),
       } as ModelData as unknown as LabelModel,
       ctx,
+    );
+    expect(jar.getLabel()).toBe('');
+    expect(ctx.getNotes()).toContainEqual(expect.objectContaining({ kind: 'empty-result', field: 'part' }));
+    // Quoted, the phrase is the label.
+    await makeStuff(() => new LabelController()).execute(
+      { target: one(jar, 'jar'), text: 'meet at noon' } as ModelData as unknown as LabelModel,
+      makeContext(giver, field, 'label'),
     );
     expect(jar.getLabel()).toBe('meet at noon');
     expect(labeled(field)).toHaveLength(0);

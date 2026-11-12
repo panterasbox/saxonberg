@@ -137,3 +137,38 @@ describe('the perceive gate is an INTERSECTION, both directions', () => {
     expect(PerceptionApi.canMakeOutMarks(reader, s)).toBe(true);
   });
 });
+
+describe('the read is the thing’s (Readable, controller-liquidity W8)', () => {
+  beforeEach(() => {
+    ShadowApi._clearAllForTesting();
+    StuffApi.clearAll();
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it('reads its marks to a reader who can make them out', async () => {
+    const s = makeStuff(() => new Signpost());
+    s.setMarkText('here lies nobody');
+    vi.spyOn(PerceptionApi, 'canMakeOutMarks').mockReturnValue(true);
+    const reader = makeStuff(() => new Good());
+    expect(await s.readFor(reader)).toEqual({
+      ok: true,
+      facts: { kind: 'marks', text: 'here lies nobody', device: null, taught: null },
+    });
+  });
+
+  it('refuses in the dark, an unknown script, and a page it does not have', async () => {
+    const s = makeStuff(() => new Signpost());
+    s.setMarkText('here lies nobody');
+    const reader = makeStuff(() => new Good());
+    vi.spyOn(PerceptionApi, 'canMakeOutMarks').mockReturnValue(false);
+    expect(await s.readFor(reader)).toEqual({ ok: false, reason: 'too-dark-to-read' });
+    vi.spyOn(PerceptionApi, 'canMakeOutMarks').mockReturnValue(true);
+    s.setMarkScript('braille');
+    expect(await s.readFor(reader)).toEqual({
+      ok: false,
+      reason: 'script-unknown',
+      facts: { script: 'braille' },
+    });
+    expect(await s.readFor(reader, 3)).toEqual({ ok: false, reason: 'not-a-book' });
+  });
+});

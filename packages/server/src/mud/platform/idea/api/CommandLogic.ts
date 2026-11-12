@@ -93,6 +93,7 @@ import {
   type PhaseEffect,
   type FieldDefinition,
   type PositionalDefinition,
+  type SubcommandDefinition,
   type OptionDefinition,
   type CommandSchemaPayload,
   type AssembleSuccess,
@@ -100,8 +101,9 @@ import {
   type AssembleOptions,
   type ResolveModelOptions,
 } from '../../../api/command';
-import type { OnFilteredPolicy } from '../../../api/command';
+import type { OnFilteredPolicy, ReachDepth } from '../../../api/command';
 import { GrammarApi } from '../../../api/grammar';
+import { QuantityApi } from '../../../api/quantity';
 import { MessageApi } from '../../../api/message';
 
 const CommandApiCallers = SecurityPolicies.AnyOf(
@@ -283,6 +285,7 @@ class CommandContextImpl implements CommandContext {
   public bodyFields?: Record<string, unknown>;
   public barId?: string;
   public filterPolicy?: OnFilteredPolicy;
+  public depth?: ReachDepth;
 
   private _notes: Note[] = [];
   private _status: Status = 'ok';
@@ -303,6 +306,7 @@ class CommandContextImpl implements CommandContext {
     if (args.bodyFields !== undefined) this.bodyFields = args.bodyFields;
     if (args.barId !== undefined) this.barId = args.barId;
     if (args.filterPolicy !== undefined) this.filterPolicy = args.filterPolicy;
+    if (args.depth !== undefined) this.depth = args.depth;
   }
 
   requireInteractive(what: string): Interactive | null {
@@ -523,6 +527,7 @@ async function walkScopes(
   field: string,
   context: CommandContext,
   admissible: (s: Stuff) => boolean,
+  depth: ReachDepth,
 ): Promise<{ result: MqlMany; discarded: Stuff[] }> {
   let firstRaw: MqlMany | null = null;
   let isSet = false;
@@ -535,7 +540,7 @@ async function walkScopes(
   // focus beat the thing named outright in the room.
   let best: { result: MqlMany; tier: number; discardedUpTo: number } | null = null;
   for (const scope of tries) {
-    let got = await scopedMany(raw, giver, scope, field, context);
+    let got = await scopedMany(raw, giver, scope, field, context, depth);
     if (got.isSet) isSet = true;
     if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
     // ⭐ Nothing of the kind survived the name tiers: ask again with the
@@ -546,7 +551,7 @@ async function walkScopes(
     // discarded, and a second empty answer leaves the 0-of-N fallback.
     if (got.stuff.length > 0 && !got.stuff.some(admissible)) {
       for (const s of got.stuff) discarded.push(s);
-      const narrowed = await scopedMany(raw, giver, scope, field, context, admissible);
+      const narrowed = await scopedMany(raw, giver, scope, field, context, depth, admissible);
       if (narrowed.stuff.length === 0) continue;
       got = narrowed;
     }
@@ -581,13 +586,63 @@ async function strictCandidates(
   field: string,
   context: CommandContext,
   admissible: (s: Stuff) => boolean,
+  depth: ReachDepth,
 ): Promise<Stuff[]> {
   const out = new Set<Stuff>();
   for (const scope of tries) {
-    const got = await scopedMany(raw, giver, scope, field, context);
+    const got = await scopedMany(raw, giver, scope, field, context, depth);
     for (const s of got.stuff) if (admissible(s)) out.add(s);
   }
   return [...out];
+}
+
+/**
+ * ⭐ **The slot's reach rung** (controller-liquidity D4): the line's
+ * `--top` / `--open` / `--deep`, else the slot's own `depth:`, else `open`.
+ */
+function rungFor(def: object, context: CommandContext): ReachDepth {
+  return context.depth ?? (def as { depth?: ReachDepth }).depth ?? 'open';
+}
+
+/**
+ * ⭐ **The box is shut** (controller-liquidity D6). A name that found
+ * nothing at the slot's rung is asked once more at `deep`; when what
+ * answers is behind a shut lid (`Containable.reachRefusal`), the binder
+ * says so instead of *you have no apple*. It never binds the deeper find —
+ * MQL addressed it, the act is not possible — and a rung the player typed
+ * (`--top`) is taken at its word, so `eat apple --top` stays *none at
+ * hand*. Returns `true` when it refused.
+ */
+async function refuseIfShutAway(
+  raw: string,
+  giver: Stuff & CommandGiver,
+  tries: readonly string[],
+  field: string,
+  context: CommandContext,
+  admissible: (s: Stuff) => boolean,
+  rung: ReachDepth,
+): Promise<boolean> {
+  if (context.depth !== undefined || rung === 'deep') return false;
+  let found: Stuff[];
+  try {
+    found = (await walkScopes(raw, giver, tries, field, context, admissible, 'deep')).result.stuff;
+  } catch {
+    return false;
+  }
+  for (const s of found) {
+    if (!MixinApi.isContainable(s)) continue;
+    const refusal = s.reachRefusal(giver);
+    if (refusal === null) continue;
+    const by = refusal.facts.by.describeFor(giver);
+    context.note({
+      kind: 'validator-failed',
+      field,
+      validator: 'reach:enclosed-shut',
+      detail: `${GrammarApi.cap(by)} is shut.`,
+    });
+    return true;
+  }
+  return false;
 }
 
 /** The highest keyword tier a match can reach (`MqlMany.tiers`). */
@@ -629,10 +684,11 @@ async function scopedMany(
   scope: string,
   field: string,
   context: CommandContext,
+  depth: ReachDepth,
   admits?: (s: Stuff) => boolean,
 ): Promise<MqlMany> {
   try {
-    return MqlApi.resolveMany(raw, { commandGiver: giver, scope, ...(admits ? { admits } : {}) });
+    return MqlApi.resolveMany(raw, { commandGiver: giver, scope, depth, ...(admits ? { admits } : {}) });
   } catch (err) {
     const wide = await worldRetry(err, raw, giver, scope, field, context);
     if (wide) return wide;
@@ -647,9 +703,10 @@ async function scopedOne(
   scope: string,
   field: string,
   context: CommandContext,
+  depth: ReachDepth,
 ): Promise<MqlOne> {
   try {
-    return MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+    return MqlApi.resolveOne(raw, { commandGiver: giver, scope, depth });
   } catch (err) {
     const wide = await worldRetry(err, raw, giver, scope, field, context);
     if (!wide) throw err;
@@ -1006,6 +1063,9 @@ export class CommandLogic extends ApiLogic {
     // `--async`: they force every slot's `onFiltered` to `error` / `take`
     // for this one invocation.
     let reservedFiltered: OnFilteredPolicy | undefined;
+    // ⭐ `--top` / `--open` / `--deep` — the reach rung for this one
+    // invocation (controller-liquidity D4), reserved the same way.
+    let reservedDepth: ReachDepth | undefined;
     const reserved = (t: RawToken): boolean => {
       if (t.kind !== 'long-flag') return false;
       if (t.name === 'async' || t.name === 'sync') {
@@ -1014,6 +1074,10 @@ export class CommandLogic extends ApiLogic {
       }
       if (t.name === 'strict' || t.name === 'loose') {
         reservedFiltered = t.name === 'strict' ? 'error' : 'take';
+        return true;
+      }
+      if (t.name === 'top' || t.name === 'open' || t.name === 'deep') {
+        reservedDepth = t.name;
         return true;
       }
       return false;
@@ -1038,33 +1102,38 @@ export class CommandLogic extends ApiLogic {
       i = r.nextIndex;
     }
 
-    // Phase 2: subcommand (if the verb has them).
+    // Phase 2: the subcommand word (if the verb has them). ⛔ ONE level:
+    // a command is `verb target` or `verb subcommand target`, never
+    // deeper (owner rule 2026-11-10 — the nested walk of controller-
+    // liquidity W1 was reversed in W16).
     let subcommand: string | undefined;
     let scope: 'verb' | string = 'verb';
+    // The node the bind targets — the verb, or the matched stanza.
+    let nodeArgs: PositionalDefinition[] = command.args;
     // Phase 3a fallthrough bookkeeping. When set, Phase 4 binds against
-    // `command.args` instead of erroring; `fallthroughCandidate`
+    // the verb's `args` instead of erroring; `fallthroughCandidate`
     // surfaces in the unknown-subcommand error if Phase 4 bind fails.
     let fallthroughActive = false;
     let fallthroughCandidate: string | undefined;
     if (command.hasSubcommands() && i < tokens.length && !stopped) {
       const t = tokens[i]!;
       if (t.kind === 'word') {
-        const sName = t.value;
-        const sDef = command.getSubcommand(sName);
+        const sDef = command.getSubcommand(t.value);
         if (sDef) {
-          subcommand = sName;
-          scope = sName;
+          subcommand = t.value;
+          scope = t.value;
+          nodeArgs = sDef.args ?? [];
           i++;
         } else if (command.fallthrough && command.args.length > 0) {
           // Phase 3a: opt-in fallthrough. Don't consume the token —
           // leave it for Phase 3 to collect as a positional. Remember
           // it for the bind-failure → unknown-subcommand error surface.
           fallthroughActive = true;
-          fallthroughCandidate = sName;
+          fallthroughCandidate = t.value;
         } else {
           return {
             error: 'unknown-subcommand',
-            subcommand: sName,
+            subcommand: t.value,
             available: command.getSubcommandNames(),
           };
         }
@@ -1100,7 +1169,7 @@ export class CommandLogic extends ApiLogic {
       i++;
     }
 
-    // Phase 4: bind positionals against the active args array(s).
+    // Phase 4: bind positionals against the node's args.
     // ⭐ `verb@source`: the named source fills the slot it fits (D2).
     const bindPositionals = (
       ps: WordToken[],
@@ -1113,18 +1182,13 @@ export class CommandLogic extends ApiLogic {
         ? bindWithSource(ps, args, p, ex, exDefault, opts.scopeSource, ctx.commandGiver)
         : bindPositionalsImpl(ps, args, p, ex, exDefault);
     let prep: Record<string, string> = {};
-    if (subcommand) {
-      const sub = command.getSubcommand(subcommand)!;
-      const r = bindPositionals(positionals, sub.args ?? [], parsed, expand, expandDefault);
-      if (r.error !== undefined) return r;
-      Object.assign(fields, r.bound);
-      prep = r.prep;
-    } else if (fallthroughActive) {
-      // Phase 3a — verb opted into fallthrough. Bind the un-consumed
-      // candidate + remaining tokens against the top-level args. On
+    const nodeHasSubs = subcommand === undefined && command.hasSubcommands();
+    if (fallthroughActive) {
+      // Phase 3a — the verb opted into fallthrough. Bind the un-consumed
+      // candidate + remaining tokens against the verb's args. On
       // bind failure, surface the ORIGINAL unknown-subcommand error
       // pointing at the candidate — the slate's required behavior.
-      const r = bindPositionals(positionals, command.args, parsed, expand, expandDefault);
+      const r = bindPositionals(positionals, nodeArgs, parsed, expand, expandDefault);
       if ('error' in r) {
         return {
           error: 'unknown-subcommand',
@@ -1134,33 +1198,10 @@ export class CommandLogic extends ApiLogic {
       }
       Object.assign(fields, r.bound);
       prep = r.prep;
-    } else if (command.fallthrough && command.args.length > 0) {
-      // ⭐⭐ The ZERO-TOKEN fallthrough case, and the fire drive is why
-      // it exists. Phase 3a only fires when there IS a first word to
-      // fall through WITH, so a bare `draught` reached the branch below
-      // and bound nothing at all — not even its top-level args'
-      // `default:`. The verb opted into the flat path; with no
-      // subcommand matched, the flat path owns the invocation, and
-      // binding an empty positional list against `command.args` is
-      // exactly how a defaulted slot gets filled.
-      //
-      // ⚠ Inert for every other fallthrough verb today (`equip`,
-      // `forum`, `git`, `help`, `errors`, `watch`) — none declares a
-      // top-level `default:`, so an empty bind adds nothing.
-      const r = bindPositionals(
-        positionals,
-        command.args,
-        parsed,
-        expand,
-        expandDefault
-      );
-      if (r.error !== undefined) return r;
-      Object.assign(fields, r.bound);
-      prep = r.prep;
-    } else if (command.hasSubcommands()) {
-      // Subcommanded verb without a subcommand — still legal; the
-      // controller decides what to do with `model.subcommand ===
-      // undefined`. Leftover positionals fail shape.
+    } else if (nodeHasSubs && !(command.fallthrough && command.args.length > 0)) {
+      // A subcommanded verb with no word for one — still legal; the
+      // controller decides what an absent `model.subcommand` means.
+      // Leftover positionals fail shape.
       if (positionals.length > 0) {
         return {
           error: 'shape',
@@ -1168,8 +1209,14 @@ export class CommandLogic extends ApiLogic {
         };
       }
     } else {
-      // Flat verb — single bind against the top-level args.
-      const r = bindPositionals(positionals, command.args, parsed, expand, expandDefault);
+      // ⭐⭐ A stanza, a flat verb, or a fallthrough verb with no word
+      // to fall through WITH — the fire drive is why the last one
+      // binds: a bare `draught` reached the subcommand branch and bound
+      // nothing at all, not even its top-level args' `default:`. The
+      // verb opted into the flat path; with no subcommand matched it
+      // owns the invocation, and binding an empty positional list
+      // against its args is exactly how a defaulted slot gets filled.
+      const r = bindPositionals(positionals, nodeArgs, parsed, expand, expandDefault);
       if (r.error !== undefined) return r;
       Object.assign(fields, r.bound);
       prep = r.prep;
@@ -1177,9 +1224,8 @@ export class CommandLogic extends ApiLogic {
 
     // Apply option defaults that didn't fire.
     applyOptionDefaults(command.verbOptions, fields);
-    if (subcommand) {
-      const subDef = command.getSubcommand(subcommand);
-      applyOptionDefaults(subDef?.options ?? {}, fields);
+    if (subcommand !== undefined) {
+      applyOptionDefaults(command.getSubcommandOptions(subcommand), fields);
       fields[SUBCOMMAND_FIELD] = subcommand;
     }
 
@@ -1187,6 +1233,7 @@ export class CommandLogic extends ApiLogic {
     if (Object.keys(prep).length > 0) out.prep = prep;
     if (reservedAsync !== undefined) out.reservedAsync = reservedAsync;
     if (reservedFiltered !== undefined) out.reservedFiltered = reservedFiltered;
+    if (reservedDepth !== undefined) out.reservedDepth = reservedDepth;
     return out;
   }
 
@@ -1212,7 +1259,7 @@ export class CommandLogic extends ApiLogic {
       const odef = lookupOptionDefinition(command, payload.subcommand, k);
       const type = fdef?.type ?? odef?.type;
       const schema = fdef?.schema ?? odef?.schema;
-      const coerceResult = coerceStructuredValue(type, v, schema, k);
+      const coerceResult = coerceStructuredValue(type, v, schema, k, fdef?.values ?? odef?.values);
       if (!coerceResult.ok) {
         return { error: `field ${k}: ${coerceResult.error}` };
       }
@@ -1251,10 +1298,7 @@ export class CommandLogic extends ApiLogic {
     fields: Record<string, unknown>,
     command: CommandDefinition,
   ): void {
-    const subcommand =
-      typeof model[SUBCOMMAND_FIELD] === 'string'
-        ? (model[SUBCOMMAND_FIELD] as string)
-        : undefined;
+    const subcommand = model.subcommand;
     for (const [k, v] of Object.entries(fields)) {
       // Structural narrowness: `fields` may ONLY reach the command's
       // `payload:`-block fields (structured-only) or a designated body
@@ -1271,7 +1315,7 @@ export class CommandLogic extends ApiLogic {
 
       const type = payloadDef?.type ?? argDef?.type;
       const schema = payloadDef?.schema ?? argDef?.schema;
-      const coerced = coerceStructuredValue(type, v, schema, k);
+      const coerced = coerceStructuredValue(type, v, schema, k, payloadDef?.values ?? argDef?.values);
       if (!coerced.ok) continue; // leave unset → downstream validation rejects.
       // Lean `fields` wins when both inline-greedy and the side-channel
       // supply the body.
@@ -1361,7 +1405,7 @@ export class CommandLogic extends ApiLogic {
       collectField(opt._resolvedValidators, fname);
     }
     if (subcommand) {
-      const subOpts = command.getSubcommand(subcommand)?.options ?? {};
+      const subOpts = command.getSubcommandOptions(subcommand);
       for (const [name, opt] of Object.entries(subOpts)) {
         const fname = opt.field ?? name;
         collectField(opt._resolvedValidators, fname);
@@ -1506,10 +1550,7 @@ export class CommandLogic extends ApiLogic {
     opts: ResolveModelOptions = {}
   ): Promise<{ resolved: CommandModel; result?: undefined } | { result: 'failed' }> {
     const command = context.command;
-    const subcommand =
-      typeof model[SUBCOMMAND_FIELD] === 'string'
-        ? (model[SUBCOMMAND_FIELD] as string)
-        : undefined;
+    const subcommand = model.subcommand;
     const fieldDefs = collectActiveFieldDefs(subcommand, command);
     const resolved: ModelData = { ...model };
 
@@ -1568,6 +1609,7 @@ export class CommandLogic extends ApiLogic {
         (def as { _requirementTerms?: RequirementTerm[] })._requirementTerms ?? [];
       const admissible = admitsAll(terms);
 
+      const rung = rungFor(def, context);
       if (def.type === 'objects') {
         let r: MqlMany;
         try {
@@ -1578,8 +1620,15 @@ export class CommandLogic extends ApiLogic {
             fname,
             context,
             admissible,
+            rung,
           );
           r = walked.result;
+          if (
+            r.stuff.length === 0 &&
+            (await refuseIfShutAway(raw, giver, tries, fname, context, admissible, rung))
+          ) {
+            return { result: 'failed' };
+          }
           if (
             !applyFilteredPolicy(
               def,
@@ -1637,7 +1686,7 @@ export class CommandLogic extends ApiLogic {
             // ⭐ The cheap path, unchanged: with no `requires:` there is
             // nothing to discard, so nothing to have a policy about.
             for (const scope of tries) {
-              const r: MqlOne = await scopedOne(raw, giver, scope, fname, context);
+              const r: MqlOne = await scopedOne(raw, giver, scope, fname, context, rung);
               if (r.stuff !== null) {
                 stuff = [r.stuff];
                 via = r.via;
@@ -1657,6 +1706,7 @@ export class CommandLogic extends ApiLogic {
               fname,
               context,
               admissible,
+              rung,
             );
             const got = walked.result;
             if (got.stuff.length > 0) {
@@ -1693,10 +1743,16 @@ export class CommandLogic extends ApiLogic {
           });
           return { result: 'failed' };
         }
+        if (
+          stuff.length === 0 &&
+          (await refuseIfShutAway(raw, giver, tries, fname, context, admissible, rung))
+        ) {
+          return { result: 'failed' };
+        }
         // ⭐ `--strict`: read the name literally. A second thing it could mean
         // is a question, not a preference the scope order may settle.
         if (context.filterPolicy === 'error' && !isSet && !quantity && stuff.length > 0) {
-          const named = await strictCandidates(raw, giver, tries, fname, context, admissible);
+          const named = await strictCandidates(raw, giver, tries, fname, context, admissible, rung);
           if (named.length > 1) {
             context.note({
               kind: 'validator-failed',
@@ -1782,6 +1838,7 @@ export class CommandLogic extends ApiLogic {
         (def as { _requirementTerms?: RequirementTerm[] })._requirementTerms ?? [];
       const admissible = admitsAll(terms);
 
+      const rung = rungFor(def, context);
       if (def.type === 'objects') {
         let r: MqlMany;
         try {
@@ -1792,8 +1849,15 @@ export class CommandLogic extends ApiLogic {
             fname,
             context,
             admissible,
+            rung,
           );
           r = walked.result;
+          if (
+            r.stuff.length === 0 &&
+            (await refuseIfShutAway(raw, giver, tries, fname, context, admissible, rung))
+          ) {
+            return { result: 'failed' };
+          }
           if (
             !applyFilteredPolicy(
               def,
@@ -1842,7 +1906,7 @@ export class CommandLogic extends ApiLogic {
             // ⭐ The cheap path, unchanged: with no `requires:` there is
             // nothing to discard, so nothing to have a policy about.
             for (const scope of tries) {
-              const r: MqlOne = await scopedOne(raw, giver, scope, fname, context);
+              const r: MqlOne = await scopedOne(raw, giver, scope, fname, context, rung);
               if (r.stuff !== null) {
                 stuff = [r.stuff];
                 via = r.via;
@@ -1862,6 +1926,7 @@ export class CommandLogic extends ApiLogic {
               fname,
               context,
               admissible,
+              rung,
             );
             const got = walked.result;
             if (got.stuff.length > 0) {
@@ -1890,6 +1955,12 @@ export class CommandLogic extends ApiLogic {
             stage: 'resolve',
             detail: err instanceof Error ? err.message : String(err),
           });
+          return { result: 'failed' };
+        }
+        if (
+          stuff.length === 0 &&
+          (await refuseIfShutAway(raw, giver, tries, fname, context, admissible, rung))
+        ) {
           return { result: 'failed' };
         }
         const filtered = await this.applyCardinalityPolicy(def, stuff, fname, context, {
@@ -1923,10 +1994,7 @@ export class CommandLogic extends ApiLogic {
     preloads?: ValidatorPreloads,
   ): { ok: true; result?: undefined } | { result: 'failed' } {
     const command = context.command;
-    const subcommand =
-      typeof resolved[SUBCOMMAND_FIELD] === 'string'
-        ? (resolved[SUBCOMMAND_FIELD] as string)
-        : undefined;
+    const subcommand = resolved.subcommand;
     const fieldDefs = collectActiveFieldDefs(subcommand, command);
 
     // Verb-level validators run BEFORE field validators. They guard
@@ -1955,8 +2023,7 @@ export class CommandLogic extends ApiLogic {
     // an authority gate the verb's other subcommands don't — e.g. a
     // founder-only `assign` under a verb whose bare roster is public.
     if (subcommand) {
-      const subValidators = command.getSubcommand(subcommand)
-        ?._resolvedValidators;
+      const subValidators = command.getSubcommand(subcommand)?._resolvedValidators;
       if (subValidators) {
         for (const v of subValidators) {
           const err = v(
@@ -2031,7 +2098,7 @@ export class CommandLogic extends ApiLogic {
       }
     }
     if (subcommand) {
-      const subOpts = command.getSubcommand(subcommand)?.options ?? {};
+      const subOpts = command.getSubcommandOptions(subcommand);
       for (const [name, opt] of Object.entries(subOpts)) {
         const fname = opt.field ?? name;
         const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context, preloads);
@@ -2059,11 +2126,7 @@ export class CommandLogic extends ApiLogic {
   ): Promise<{ resolved: CommandModel; result?: undefined } | { result: 'failed' }> {
     const resolved = await this.resolveModel(model, context, prep);
     if ('result' in resolved) return resolved;
-    const subcommand =
-      typeof (resolved.resolved as { subcommand?: unknown }).subcommand ===
-      'string'
-        ? ((resolved.resolved as { subcommand?: string }).subcommand)
-        : undefined;
+    const subcommand = resolved.resolved.subcommand;
     const preloads = await this.preloadValidatorDeps(
       context.command,
       context,
@@ -2242,7 +2305,7 @@ const OBJECT_FIELD_TYPES = new Set(['object', 'objects']);
  * ⭐ The exact command an affordance stands for (#91): the verb and the
  * target by `#id` — never a word, which could quietly resolve to some
  * other thing in reach. The client sends it only when the player asked
- * to skip the question (`cockpit style links ids`); by default a click
+ * to skip the question (`client-style links ids`); by default a click
  * sends the verb alone and the dispatcher asks "Ring what?".
  *
  * Only when the bound field is the verb's FIRST positional: a target in
@@ -2562,7 +2625,7 @@ function bindOptionToken(
         value = next.value;
         nextI = i + 2;
       }
-      const coerced = coerceOptionValue(opt.def.type, value);
+      const coerced = coerceOptionValue(opt.def, value);
       if (!coerced.ok) {
         return { ok: false, summary: `option -${ch}: ${coerced.error}` };
       }
@@ -2588,13 +2651,22 @@ function bindOptionToken(
     if (!next || next.kind !== 'word') {
       return { ok: false, summary: `option --${t.name} requires a value` };
     }
-    const coerced = coerceOptionValue(opt.def.type, next.value);
+    // ⭐ A duration may be written as two words (`--for 2 hours`): a
+    // number followed by a unit is one value.
+    const unit = tokens[i + 2];
+    const twoWord =
+      opt.def.type === 'duration' &&
+      isNumericToken(next.value) &&
+      unit?.kind === 'word' &&
+      CommandDefinition.isDurationUnit(unit.value);
+    const text = twoWord ? `${next.value} ${(unit as WordToken).value}` : next.value;
+    const coerced = coerceOptionValue(opt.def, text);
     if (!coerced.ok) {
       return { ok: false, summary: `option --${t.name}: ${coerced.error}` };
     }
     const r = applyOptionValue(fields, fname, opt.def, coerced.value, opt.name);
     if (!r.ok) return r;
-    return { ok: true, nextIndex: i + 2 };
+    return { ok: true, nextIndex: i + (twoWord ? 3 : 2) };
   }
 
   if (t.kind === 'long-with-value') {
@@ -2609,7 +2681,7 @@ function bindOptionToken(
         summary: `boolean option --${t.name} cannot take a value`,
       };
     }
-    const coerced = coerceOptionValue(opt.def.type, t.value);
+    const coerced = coerceOptionValue(opt.def, t.value);
     if (!coerced.ok) {
       return { ok: false, summary: `option --${t.name}: ${coerced.error}` };
     }
@@ -2659,11 +2731,15 @@ interface CoerceErr {
 }
 
 function coerceOptionValue(
-  type: OptionDefinition['type'],
+  def: Pick<OptionDefinition, 'type' | 'values'>,
   raw: string
 ): CoerceOk | CoerceErr {
-  switch (type) {
+  switch (def.type) {
     case 'string':
+      return { ok: true, value: raw };
+    case 'enum':
+      // ⭐ A closed word set is the VIEW's refusal (D1), naming the set.
+      return coerceValues(def.values ?? [], raw);
     case 'object':
     case 'objects':
       // object/objects keep the raw text — the matcher's
@@ -2674,8 +2750,18 @@ function coerceOptionValue(
       return { ok: true, value: raw };
     case 'number': {
       const n = Number(raw);
-      if (!Number.isFinite(n)) return { ok: false, error: `not a number: ${raw}` };
+      if (raw.trim() === '' || !Number.isFinite(n)) return { ok: false, error: `not a number: ${raw}` };
       return { ok: true, value: n };
+    }
+    case 'duration': {
+      const ms = CommandDefinition.parseDuration(raw);
+      if (ms === null) {
+        return {
+          ok: false,
+          error: `'${raw}' is not a duration (write it like 90s, 15m, 2h, 1h30m or 2 hours)`,
+        };
+      }
+      return { ok: true, value: ms };
     }
     case 'boolean':
       // Boolean options never take a value via this path (long-with-
@@ -2692,11 +2778,19 @@ function coerceOptionValue(
   }
 }
 
+/** ⭐ A typed word against an enum slot's `values:`: the canonical spelling, or the refusal naming the list. */
+function coerceValues(values: readonly string[], raw: string): CoerceOk | CoerceErr {
+  const hit = CommandDefinition.matchValue(values, raw);
+  if (hit !== undefined) return { ok: true, value: hit };
+  return { ok: false, error: `'${raw}' is not one of ${values.join(', ')}` };
+}
+
 function coerceStructuredValue(
   type: FieldDefinition['type'] | OptionDefinition['type'] | undefined,
   raw: unknown,
   schema?: Record<string, unknown>,
-  fieldName?: string
+  fieldName?: string,
+  values?: readonly string[]
 ): CoerceOk | CoerceErr {
   if (type === undefined) {
     // No declared type — accept as-is.
@@ -2708,11 +2802,24 @@ function coerceStructuredValue(
     }
     return { ok: true, value: raw };
   }
+  if (type === 'enum') {
+    // A structured client is held to the same closed list as a typed line.
+    if (typeof raw !== 'string') {
+      return { ok: false, error: `expected one of ${(values ?? []).join(', ')}, got ${typeof raw}` };
+    }
+    return coerceValues(values ?? [], raw);
+  }
   if (type === 'number') {
     if (typeof raw !== 'number' || !Number.isFinite(raw)) {
       return { ok: false, error: `expected number, got ${typeof raw}` };
     }
     return { ok: true, value: raw };
+  }
+  if (type === 'duration') {
+    // A structured client may send milliseconds or the written form.
+    if (typeof raw === 'number' && Number.isFinite(raw)) return { ok: true, value: raw };
+    if (typeof raw === 'string') return coerceOptionValue({ type: 'duration' }, raw);
+    return { ok: false, error: `expected duration, got ${typeof raw}` };
   }
   if (type === 'boolean') {
     if (typeof raw !== 'boolean') {
@@ -2820,12 +2927,45 @@ function bindPositionalsImpl(
   parsed: ParsedCommand,
   expand: (text: string) => string,
   expandDefault: (text: string) => string = expand,
+  hint = true,
 ):
   | { bound: ModelData; prep: Record<string, string>; error?: undefined }
-  | { error: 'shape'; summary: string; missing?: string } {
+  | { error: 'shape'; summary: string; missing?: string; quoteHint?: string; quoteLine?: string }
+  | { error: 'bind'; summary: string } {
   const bound: ModelData = {};
   const prep: Record<string, string> = {};
+  // The line as typed — the determiner fold rewrites `positionals` as it
+  // binds, and the quote hint must join the words the player typed.
+  const typedWords = positionals;
   let pi = 0;
+  /**
+   * ⭐ A typed word that does not read (an enum word out of its set, a
+   * number that is not one) is the VIEW's refusal — but only once the
+   * line's SHAPE fits this view (controller-liquidity W7b). It is held
+   * here and said at the end, so a missing slot or a leftover word still
+   * moves the chain on to the next shape: `draught low at forge` is not
+   * `draught <fire> <setting>` with the setting `at`; it is the next view's
+   * `draught <setting> at <fire>`.
+   */
+  let unread: { error: 'bind'; summary: string } | undefined;
+  /**
+   * ⭐ A typed slot's value (controller-liquidity D1): a `number` or
+   * `duration` is coerced, an `enum` word canonicalized — the same
+   * coercion an option gets. Everything else binds as typed.
+   */
+  const typed = (
+    def: PositionalDefinition,
+    text: string
+  ): CoerceOk | CoerceErr =>
+    def.type === 'number' || def.type === 'duration' || def.type === 'enum'
+      ? coerceOptionValue({ type: def.type, values: def.values }, text)
+      : { ok: true, value: text };
+  /** A defaulted value, coerced like a typed one (a default is the author's word). */
+  const defaulted = (def: PositionalDefinition): FieldValue => {
+    const text = expandDefault(def.default!);
+    const c = typed(def, text);
+    return c.ok ? c.value : text;
+  };
 
   for (let ai = 0; ai < args.length; ai++) {
     const def = args[ai]!;
@@ -2852,11 +2992,25 @@ function bindPositionalsImpl(
     // to ann` is not `throw ball at ann`); an optional one stays unbound.
     if (def.prepositionRequired && def.prepositions && prep[name] === undefined) {
       if (def.required === true || (def.greedy === true && def.required !== false)) {
+        // ⭐ `put mooring line on bitts`: the second word of the name took
+        // the preposition's place — say the quoted line (D3).
+        const quoteLine =
+          hint && pi < positionals.length
+            ? quoteHintFor(typedWords, args, parsed, expand, expandDefault)
+            : undefined;
         return {
           error: 'shape',
           summary: `missing '${def.prepositions.join("' or '")}' before ${name}`,
+          ...(quoteLine !== undefined
+            ? { quoteHint: `too many words — quote a name with a space in it: ${quoteLine}`, quoteLine }
+            : {}),
         };
       }
+      // ⭐ Unnamed, an optional slot takes its `default:` — `buy loaf` still
+      // finds the counter in reach (controller-liquidity W5: every slot
+      // after a phrase is `prepositionRequired` now, so this is the path
+      // the bare form walks).
+      if (def.default !== undefined) bound[name] = defaulted(def);
       continue;
     }
 
@@ -3064,6 +3218,38 @@ function bindPositionalsImpl(
       continue;
     }
 
+    // ⭐⭐ The article fold (controller-liquidity D3): an object slot
+    // takes ONE word, and `eat the apple` must not bind `the`. A leading
+    // unquoted article with a word after it folds away — MQL strips one
+    // inside a name anyway, so the slot loses nothing it could use.
+    // ⭐ A `string` slot that names a GOOD the next object offers
+    // (`buy <good> from <counter>`, `shelf reclaim <good> from <shelf>`)
+    // is a name too, and folds the same way (controller-liquidity W5).
+    const isObject = def.type === 'object' || def.type === 'objects' || namesAnOfferedGood(args, ai);
+    if (isObject && pi + 1 < positionals.length) {
+      const head = positionals[pi]!;
+      if (head.raw === head.value && FOLDED_ARTICLES.has(head.value.toLowerCase())) pi++;
+    }
+
+    // ⭐⭐ The determiner fold (W5): a leading count, measure, `all` or
+    // ordinal is part of the NAME MQL reads — `get 1 gin`, `look 2nd
+    // greywater`, `pour 2 cups water into bucket`, `get all coins`. The
+    // greedy slot used to hand MQL the whole phrase; the one-word slot
+    // keeps the determiner with the word it counts, so a brain's `get 1
+    // coupe` and a player's `look first hive` read as they always did.
+    if ((def.type === 'object' || def.type === 'objects') && pi + 1 < positionals.length) {
+      const width = determinerWidth(positionals, pi, collectLaterPrepositions(args, ai));
+      if (width > 1) {
+        const span = positionals.slice(pi, pi + width);
+        const joined = span.map((t) => t.value).join(' ');
+        positionals = [
+          ...positionals.slice(0, pi),
+          { kind: 'word', value: joined, raw: span.map((t) => t.raw).join(' '), pos: span[0]!.pos },
+          ...positionals.slice(pi + width),
+        ];
+      }
+    }
+
     // Boundary lookahead extends to non-greedy fields too: if the
     // next available token belongs to a later field's `prepositions`
     // list, this field has no input — apply the default (or fail
@@ -3073,10 +3259,26 @@ function bindPositionalsImpl(
       pi < positionals.length &&
       laterPreps.has(positionals[pi]!.value.toLowerCase());
 
+    // ⭐ A duration may be written as two words (`2 hours`): a number
+    // followed by a unit is one value.
+    const tokenText = (): { text: string; width: number } => {
+      const tok = positionals[pi]!;
+      const unit = positionals[pi + 1];
+      if (
+        def.type === 'duration' &&
+        isNumericToken(tok.value) &&
+        unit !== undefined &&
+        CommandDefinition.isDurationUnit(unit.value)
+      ) {
+        return { text: `${tok.value} ${unit.value}`, width: 2 };
+      }
+      return { text: tok.value, width: 1 };
+    };
+
     if (def.required) {
       if (pi >= positionals.length || nextBelongsToLater) {
         if (def.default !== undefined) {
-          bound[name] = expandDefault(def.default);
+          bound[name] = defaulted(def);
           continue;
         }
         return {
@@ -3094,8 +3296,11 @@ function bindPositionalsImpl(
           summary: `field '${name}' requires structured input; cannot bind from text`,
         };
       }
-      bound[name] = expand(positionals[pi]!.value);
-      pi++;
+      const { text, width } = tokenText();
+      const c = typed(def, expand(text));
+      if (!c.ok) unread ??= { error: 'bind', summary: `${name}: ${c.error}` };
+      bound[name] = c.ok ? c.value : text;
+      pi += width;
       continue;
     }
 
@@ -3107,20 +3312,179 @@ function bindPositionalsImpl(
           summary: `field '${name}' requires structured input; cannot bind from text`,
         };
       }
-      bound[name] = expand(positionals[pi]!.value);
-      pi++;
+      const { text, width } = tokenText();
+      const c = typed(def, expand(text));
+      if (c.ok) {
+        bound[name] = c.value;
+        pi += width;
+      } else if (def.type === 'enum') {
+        // A closed word set refuses, naming the set — once the shape fits.
+        unread ??= { error: 'bind', summary: `${name}: ${c.error}` };
+        bound[name] = text;
+        pi += width;
+      } else if (def.default !== undefined) {
+        // ⭐ An optional NUMBER that is not one leaves the word for the
+        // next slot (`mill wheat at quern` — the extraction is not given).
+        bound[name] = defaulted(def);
+      }
     } else if (def.default !== undefined) {
-      bound[name] = expandDefault(def.default);
+      bound[name] = defaulted(def);
     }
   }
 
   if (pi < positionals.length) {
     // Leftover positionals — this verb's grammar didn't fit, let
-    // the chain try another match.
-    return { error: 'shape', summary: 'too many arguments' };
+    // the chain try another match. ⭐ If quoting one multi-word name
+    // would have made it fit, say so (D3) — said only when no other
+    // view claims the line.
+    const quoteLine = hint ? quoteHintFor(typedWords, args, parsed, expand, expandDefault) : undefined;
+    return {
+      error: 'shape',
+      summary: 'too many arguments',
+      ...(quoteLine !== undefined
+        ? { quoteHint: `too many words — quote a name with a space in it: ${quoteLine}`, quoteLine }
+        : {}),
+    };
   }
+  if (unread !== undefined) return unread;
 
   return { bound, prep };
+}
+
+/** The words the article fold drops before an object slot's name (D3). */
+const FOLDED_ARTICLES: ReadonlySet<string> = new Set([...GrammarApi.ARTICLES, 'some']);
+
+/**
+ * ⭐ How many unquoted words at `pi` are ONE name because they lead with
+ * a determiner MQL reads (W5, D3): `<n> <unit> <name>` (a measure — 3),
+ * `<n> <name>` · `all <name>` · `<ordinal> <name>` (2), else 1. A word
+ * that opens a later slot (`drop 2 in box`) is never swallowed.
+ */
+function determinerWidth(positionals: WordToken[], pi: number, laterPreps: ReadonlySet<string>): number {
+  const at = (k: number): WordToken | undefined => positionals[k];
+  const plain = (t: WordToken | undefined): t is WordToken =>
+    t !== undefined && t.raw === t.value && !laterPreps.has(t.value.toLowerCase());
+  // The name after the determiner may be quoted: `get 1 "mooring line"`.
+  const name = (t: WordToken | undefined): t is WordToken => t !== undefined && (t.raw !== t.value || plain(t));
+  const head = at(pi);
+  if (!head || head.raw !== head.value) return 1;
+  const lower = head.value.toLowerCase();
+  const integer = /^\d+$/.test(lower);
+  if (integer && plain(at(pi + 1)) && QuantityApi.isUnitToken(at(pi + 1)!.value) && name(at(pi + 2))) return 3;
+  return isDeterminer(lower) && name(at(pi + 1)) ? 2 : 1;
+}
+
+/** A count, `all`, or an ordinal — a word MQL reads as counting the name after it. */
+function isDeterminer(lower: string): boolean {
+  return /^\d+$/.test(lower) || lower === 'all' || GrammarApi.ORDINAL_WORDS.has(lower) || GrammarApi.ORDINAL_NUMERIC.test(lower);
+}
+
+/**
+ * ⭐ Does the slot at `ai` take a NAME — one word, or a quoted phrase?
+ * An `object` / `objects` slot always does; so does a non-greedy `string`
+ * slot (a key, a good's name, a variable) — never an `enum`, whose words are closed.
+ * The quote hint joins words into exactly these (controller-liquidity D3).
+ */
+function takesAName(def: PositionalDefinition): boolean {
+  if (def.greedy) return false;
+  if (def.type === 'object' || def.type === 'objects') return true;
+  return (def.type ?? 'string') === 'string';
+}
+
+/**
+ * ⭐ A non-greedy `string` slot followed by a prepositioned OBJECT slot
+ * names a good that object offers or keeps — `buy <good> from <counter>`,
+ * `order <drink> from <counter>`, `shelf reclaim <good> from <shelf>`,
+ * `store withdraw <good> from <book>`. The good is matched by the
+ * counter's own book, not by MQL, so the slot stays a string; but it is a
+ * name, and an article before it is not part of it (W5, D3). A bare
+ * string slot (`var set a 5`) is not one: `a` may be the name.
+ */
+function namesAnOfferedGood(args: PositionalDefinition[], ai: number): boolean {
+  const def = args[ai]!;
+  if (!takesAName(def) || def.type === 'object' || def.type === 'objects') return false;
+  return args
+    .slice(ai + 1)
+    .some((a) => (a.type === 'object' || a.type === 'objects') && (a.prepositions?.length ?? 0) > 0);
+}
+
+/**
+ * ⭐ The quote hint (controller-liquidity D3). A line that left words over
+ * is tried again with each run of two or more words joined into ONE quoted
+ * name; the first that binds a NAME slot to the joined name is the line
+ * the player meant — returned as that line (`buy "dog loaf"`), which the
+ * hint says and the client offers to run. Undefined when no join fits —
+ * the line is wrong some other way, and the plain shape error stands.
+ */
+function quoteHintFor(
+  positionals: WordToken[],
+  args: PositionalDefinition[],
+  parsed: ParsedCommand,
+  expand: (text: string) => string,
+  expandDefault: (text: string) => string,
+): string | undefined {
+  if (!args.some(takesAName)) return undefined;
+  const n = positionals.length;
+  // A word that opens a slot (`with`, `from`, `at`) or an article is never
+  // INSIDE the name the hint quotes: `paint cottage with ochre paint` is
+  // `paint cottage with "ochre paint"`, not one long name.
+  const boundary = new Set<string>([...FOLDED_ARTICLES]);
+  for (const a of args) for (const p of a.prepositions ?? []) boundary.add(p.toLowerCase());
+  // Shortest join first, leftmost first: the fewest words quoted that make
+  // the line fit — and a join an OBJECT slot takes before one a string slot
+  // takes (`analyze pump "deep well"`, not `analyze "pump deep" well`).
+  const objectSlot = (a: PositionalDefinition): boolean => a.type === 'object' || a.type === 'objects';
+  for (const lands of [objectSlot, takesAName]) {
+    for (let width = 2; width <= n; width++) {
+      for (let start = 0; start + width <= n; start++) {
+        const end = start + width;
+        const span = positionals.slice(start, end);
+        if (span.some((t) => t.raw === t.value && boundary.has(t.value.toLowerCase()))) continue;
+        // A count or an ordinal stays outside the quotes: `get 1 "mooring line"`.
+        if (span[0]!.raw === span[0]!.value && isDeterminer(span[0]!.value.toLowerCase())) continue;
+        const joined = span.map((t) => t.value).join(' ');
+        const merged: WordToken = { kind: 'word', value: joined, raw: `"${joined}"`, pos: span[0]!.pos };
+        const tried = [...positionals.slice(0, start), merged, ...positionals.slice(end)];
+        const r = bindPositionalsImpl(tried, args, parsed, expand, expandDefault, false);
+        if (r.error !== undefined) continue;
+        // The slot holds the joined name — after a count or an ordinal the
+        // determiner fold put in front of it (`1 "mooring line"`).
+        const holds = (v: unknown): boolean =>
+          v === expand(joined) || (typeof v === 'string' && v.endsWith(` ${expand(joined)}`));
+        const named = args.some((a) => takesAName(a) && lands(a) && holds(r.bound[a.name]));
+        if (!named) continue;
+        const head = parsed.source.substring(0, positionals[0]!.pos - parsed.start).trimEnd();
+        const line = [head, ...tried.map((t) => t.raw)].filter((x) => x.length > 0).join(' ');
+        return line;
+      }
+    }
+  }
+  // ⭐ Two names in one line (`fit oak haft to old pick`): quote EVERY run
+  // of two or more words between the slot words at once, and offer that
+  // if it fits.
+  const isWord = (t: WordToken | undefined): boolean =>
+    t !== undefined && !(t.raw === t.value && boundary.has(t.value.toLowerCase()));
+  const runs: WordToken[] = [];
+  let quoted = 0;
+  for (let k = 0; k < n; ) {
+    let e = k;
+    while (e < n && isWord(positionals[e])) e++;
+    if (e - k >= 2) {
+      const span = positionals.slice(k, e);
+      const joined = span.map((t) => t.value).join(' ');
+      runs.push({ kind: 'word', value: joined, raw: `"${joined}"`, pos: span[0]!.pos });
+      quoted++;
+      k = e;
+    } else {
+      runs.push(positionals[k]!);
+      k++;
+    }
+  }
+  if (quoted >= 2 && bindPositionalsImpl(runs, args, parsed, expand, expandDefault, false).error === undefined) {
+    const head = parsed.source.substring(0, positionals[0]!.pos - parsed.start).trimEnd();
+    return [head, ...runs.map((t) => t.raw)].filter((x) => x.length > 0).join(' ');
+  }
+  return undefined;
 }
 
 /**
@@ -3241,8 +3605,7 @@ function lookupOptionDefinition(
     if ((def.field ?? name) === fname) return def;
   }
   if (subcommand) {
-    const sub = command.getSubcommand(subcommand);
-    for (const [name, def] of Object.entries(sub?.options ?? {})) {
+    for (const [name, def] of Object.entries(command.getSubcommandOptions(subcommand))) {
       if ((def.field ?? name) === fname) return def;
     }
   }
@@ -3328,7 +3691,7 @@ function collectActiveOptionDefs(
     out[def.field ?? name] = def;
   }
   if (subcommand) {
-    const subOpts = command.getSubcommand(subcommand)?.options ?? {};
+    const subOpts = command.getSubcommandOptions(subcommand);
     for (const [name, def] of Object.entries(subOpts)) {
       out[def.field ?? name] = def;
     }
@@ -3668,7 +4031,7 @@ async function resolveCommandValidators(
   };
 
   for (const a of cmd.args) await resolveOne(a, `${yamlPath} arg \`${a.name}\``);
-  for (const [subName, sub] of Object.entries(cmd.subcommands)) {
+  for (const [subName, sub] of cmd.allSubcommands()) {
     for (const a of sub.args ?? []) {
       await resolveOne(a, `${yamlPath} ${subName} arg \`${a.name}\``);
     }
@@ -3745,7 +4108,7 @@ function validateCommandEffects(cmd: CommandDefinition): void {
   };
   checkOptions(cmd.verbOptions, cmd.filePath);
   checkOptions(cmd.payload, `${cmd.filePath} (payload)`);
-  for (const [subName, sub] of Object.entries(cmd.subcommands)) {
+  for (const [subName, sub] of cmd.allSubcommands()) {
     if (sub.options) {
       checkOptions(sub.options, `${cmd.filePath}#${subName}`);
     }

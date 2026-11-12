@@ -30,7 +30,6 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
-import { RECOGNITION } from '../../../../lib/belief/BeliefStore';
 import type { MqlOneResult } from '../../../../api/mql';
 import { Mml } from '../../../../api/mml';
 
@@ -72,11 +71,12 @@ export default class IntroduceController extends CommandController<IntroduceMode
       name = MixinApi.isNamed(actor) ? actor.getName() || null : null;
     } else {
       // Third-party: the actor can only vouch for a name they know.
-      const referent = introducee.getTemplatePath();
-      name =
-        referent && MixinApi.isBeliefStore(actor)
-          ? (actor.recall(RECOGNITION, referent)?.knownAs ?? null)
-          : null;
+      // ⚠ Keyed on the PERSON (`getIdentityPath()`), as the belief store
+      // writes it — every player shares one lineage (controller-liquidity
+      // D11), so a template-path read found nobody's name.
+      name = MixinApi.isBeliefStore(actor)
+        ? actor.knownNameOf(introducee.getIdentityPath() ?? '')
+        : null;
       if (!name) {
         MessageApi.scene(actor)
           .topic(TOPIC)

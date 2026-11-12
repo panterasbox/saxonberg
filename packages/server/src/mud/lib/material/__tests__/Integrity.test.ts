@@ -133,3 +133,15 @@ describe('a fault in the making is a ceiling on the grade', () => {
     expect(porous.getGrade().getBand()).toBe('fair');
   });
 });
+
+describe('⭐ W8: a dropped thing falls onto the floor by itself', () => {
+  it('lands with m·g·h against the place it falls onto; a massless thing does not land', async () => {
+    const j = jug();
+    const floorless = makeStuff(() => new Good());
+    const out = await j.fallOnto(floorless);
+    expect(out).not.toBeNull();
+    expect(out!.broke).toBe(false);
+    j.setMass(Quantity.of(0, 'kg'));
+    expect(await j.fallOnto(floorless)).toBeNull();
+  });
+});

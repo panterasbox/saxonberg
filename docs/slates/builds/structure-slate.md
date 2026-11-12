@@ -5,7 +5,7 @@
 > no referent, no construction verb exists (`build`/`construct`/`erect` are
 > all absent; `raise` is mining's), **nothing in the repo consumes a building
 > material**, `ParcelRecord` carries no value field, and the shell
-> (condition + weathering + `UPKEEP_TERMS` + `survey`/`maintain`) is scoped
+> (condition + weathering + `UPKEEP_TERMS` + `survey` (now `analyze rooms`)/`maintain`) is scoped
 > to residence holdings and describes condition, never composition.
 > **Left:** ⭐ the structure tier (membership-primary, thresholds derived) ·
 > fabric · the shell promoted out of `/system/residence` into the kernel ·
@@ -175,7 +175,7 @@ make one; the materials sink arrives as a one-off, per building, for whoever
 bothers. Lens 6 asks *was the demand there first*.
 
 Invert it. **Generalize the shell first and every authored building in the
-realm starts weathering.** `survey` and `maintain` already ship. That is
+realm starts weathering.** `analyze condition`/`measure paint` (once `survey`) and `maintain` already ship. That is
 ~20 buildings creating *continuous, recurring* demand for lime, timber,
 thatch and stone, forever, with **no new verb**. Repair is construction's
 sentence with a smaller number — *this structure consumes these materials* —

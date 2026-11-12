@@ -24,14 +24,13 @@ args:
   - name: mould
     type: object
     required: true
-    greedy: true
     scope: ["inventory", "reachable"]
     requires: [PlacingMixin]
   # ⭐ The post: the press here (a turned press bed), unless you name one.
   - name: post
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     prepositions: [on, onto]
     default: "reachable:[mixin.TurnableMixin]"
     scope: ["here", "peers", "person"]

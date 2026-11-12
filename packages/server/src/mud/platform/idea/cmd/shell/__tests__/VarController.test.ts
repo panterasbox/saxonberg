@@ -1,12 +1,14 @@
 /**
- * VarController tests — list / set / unset against an
+ * Var controller tests (one controller per subcommand) — list / set / unset against an
  * Environment-equipped host. The declared-key rejection path is the
  * D3 back-door close.
  */
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
-import VarController from '../VarController';
+import VarListController from '../VarListController';
+import VarSetController from '../VarSetController';
+import VarUnsetController from '../VarUnsetController';
 import { Idea } from '../../../../../lib/stuff/Idea';
 import {
   EnvironmentMixin,
@@ -87,16 +89,24 @@ function makeContext(host: Host, location: Place): CommandContext {
   });
 }
 
-describe('VarController', () => {
+describe('Var controllers', () => {
   let host: Host;
   let location: Location;
-  let controller: VarController;
+  let controller: { execute: (model: CommandModel, ctx: CommandContext) => unknown };
 
   beforeEach(() => {
     location = makeStuff(() => new Location());
     host = makeStuff(() => new Host());
     ContainmentApi.move(host, location);
-    controller = makeStuff(() => new VarController());
+    // ⭐ The view's routing: each subcommand names its own controller;
+    // bare `var` is the list's.
+    const bySub = { list: VarListController, set: VarSetController, unset: VarUnsetController } as const;
+    controller = {
+      execute: (model, ctx) =>
+        makeStuff(
+          () => new bySub[(model.subcommand ?? 'list') as keyof typeof bySub](),
+        ).execute(model, ctx),
+    };
   });
 
   describe('list', () => {

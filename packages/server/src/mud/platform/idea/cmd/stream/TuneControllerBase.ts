@@ -1,10 +1,11 @@
 /**
  * TuneControllerBase — what every `tune` subcommand shares
  * (controllers-are-io W7, D9: one controller per subcommand over a base per
- * noun). `tune` is chat-follow, cardinality N, with `fallthrough: true`: an
- * unknown first token (`tune shroud --twitch hello`) falls through to the
- * bare form — {@link TuneInController} (tune-in, or post when a trailing
- * message is present; with no target at all, the list).
+ * noun). `tune` is chat-follow, cardinality N. Bare `tune` lists
+ * (`TuneListController`); a first word that is no subcommand is one of two
+ * more SHAPES of the verb, each its own view (controller-liquidity W7a):
+ * `tune <target>` follows ({@link TuneFollowController}) and `tune <target>
+ * <message>` posts ({@link TunePostController}).
  *
  * The target is platform-agnostic — a URL, a bare handle + `--twitch` /
  * `--youtube`, or an in-game character — parsed by the pure

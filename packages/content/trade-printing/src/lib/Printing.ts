@@ -31,13 +31,33 @@ export interface RunRequest {
   by: Stuff;
 }
 
+/** ⭐ The most one run turns out — the instrument's rule, not the verb's. */
+export const MAX_RUN = 500;
+
 export interface Printing {
   runOff(req: RunRequest): Promise<RunOutcome>;
+  /**
+   * ⭐ `print <what> [n]` (controller-liquidity W11): print `what` (a bound
+   * thing) or the document called `name` (nothing bound), `copies` of it —
+   * or `null` when this instrument does not print that kind of thing (a
+   * press prints a forme; a printer a ledger's page or a document).
+   */
+  printFor(what: Stuff | null, name: string, copies: number, by: Stuff): Promise<RunOutcome | null>;
 }
 
 export function PrintingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class PrintingMixin extends Base implements Printing {
     static _mixinName = 'PrintingMixin';
+
+    /** @hook What this instrument prints; the default prints nothing (`null`). */
+    public async printFor(_what: Stuff | null, _name: string, _copies: number, _by: Stuff): Promise<RunOutcome | null> {
+      return null;
+    }
+
+    /** The run clamped to what one run turns out. */
+    protected runOf(copies: number): number {
+      return Math.min(MAX_RUN, Math.max(1, Math.floor(Number.isFinite(copies) ? copies : 1)));
+    }
 
     /** @hook Litres of ink a printed page takes; 0 = none drawn (a printer's toner is its own). */
     protected inkPerPageL(): number {

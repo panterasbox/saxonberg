@@ -118,7 +118,7 @@ async function act(s: Session, line: string, timeoutMs = 240_000): Promise<strin
 /** `look`, answering a "which one?" with the first. */
 async function look(s: Session, what = 'here'): Promise<string> {
   await s.drainProse();
-  const r = await run(s, `look ${what}`);
+  const r = await run(s, `look "${what}"`);
   return squash(await r.said());
 }
 
@@ -225,10 +225,10 @@ suite('cordage — the blocking drive', () => {
   it('2. buy hemp yarn (and a knife) from the ropekeeper', async () => {
     const s = await session(maker, WALK);
     for (let i = 0; i < 16; i++) {
-      const b = await say(s, 'buy hemp yarn');
+      const b = await say(s, 'buy "hemp yarn"');
       expect(b, b).not.toMatch(/bare|cannot|can't|no one/i);
     }
-    const k = await say(s, 'buy rigging knife');
+    const k = await say(s, 'buy "rigging knife"');
     expect(k, k).not.toMatch(/bare|cannot|can't/i);
     expect(await carried(s, 'yarn')).toBeGreaterThanOrEqual(16);
     expect(await carried(s, 'knife')).toBe(1);
@@ -304,8 +304,8 @@ suite('cordage — the blocking drive', () => {
     // make "rope" a question.
     const marker = await funded('cdr', 60);
     const s = await session(marker, WALK);
-    for (let i = 0; i < 4; i++) await say(s, 'buy hemp yarn');
-    await say(s, 'buy rigging knife');
+    for (let i = 0; i < 4; i++) await say(s, 'buy "hemp yarn"');
+    await say(s, 'buy "rigging knife"');
     await act(s, 'twist yarn --yarns 20 --length 6 --mark red', 900_000);
     await act(s, 'twist yarn --yarns 20 --length 6', 900_000);
     await act(s, 'twist yarn --yarns 20 --length 6', 900_000);
@@ -377,7 +377,7 @@ suite('cordage — the blocking drive', () => {
     const loader = await funded('cdl', 80);
     const w = await session(loader, WALK);
     await say(w, 'buy rope');
-    for (let i = 0; i < 28; i++) await say(w, 'buy hemp yarn');
+    for (let i = 0; i < 28; i++) await say(w, 'buy "hemp yarn"');
     const s = await atTheLip(loader);
     const tied = await say(s, 'tie rope to post with reef knot');
     expect(tied, tied).toMatch(/reef knot/);
@@ -390,8 +390,8 @@ suite('cordage — the blocking drive', () => {
   it('13. splice two lengths into one, nearly as strong', async () => {
     const splicer = await funded('cdp', 60);
     const s = await session(splicer, WALK);
-    for (let i = 0; i < 4; i++) await say(s, 'buy hemp yarn');
-    await say(s, 'buy rigging knife');
+    for (let i = 0; i < 4; i++) await say(s, 'buy "hemp yarn"');
+    await say(s, 'buy "rigging knife"');
     for (let i = 0; i < 3; i++) await act(s, 'twist yarn --yarns 20 --length 10', 900_000);
     await act(s, 'twist strands', 900_000);
     await act(s, 'cut rope at 4 m');
@@ -406,7 +406,7 @@ suite('cordage — the blocking drive', () => {
     const holder = await funded('cdb', 80);
     const w = await session(holder, WALK);
     await say(w, 'buy rope');
-    for (let i = 0; i < 2; i++) await say(w, 'buy hemp yarn');
+    for (let i = 0; i < 2; i++) await say(w, 'buy "hemp yarn"');
     // A fresh body may still be shrugging its coat on (hands busy) — step
     // 8's race: both strands must be twisted, or the unbelayed half has
     // nothing to tie.
@@ -427,9 +427,9 @@ suite('cordage — the blocking drive', () => {
     const known = met.match(/introduces themselves as ([^.]+)\./)?.[1]?.trim() ?? climber;
     const tieThin = await say(belayer, 'tie first strand to post with bowline');
     expect(tieThin, tieThin).toMatch(/hangs down/);
-    const tieOn = await say(belayer, `tie rope to ${known}`);
+    const tieOn = await say(belayer, `tie rope to "${known}"`);
     expect(tieOn, tieOn).toMatch(/round/);
-    const bel = await say(belayer, `belay ${known} with rope`);
+    const bel = await say(belayer, `belay "${known}" with rope`);
     expect(bel, bel).toMatch(/hold the rope/);
     const fall = await say(c, 'climb down');
     const after = fall + ' ' + squash(await c.listen(1_500).catch(() => ''));
@@ -438,7 +438,7 @@ suite('cordage — the blocking drive', () => {
     expect(await where(c), after).toBe(await where(belayer));
 
     // Unbelayed: the second strand, and nobody holding.
-    await say(belayer, 'belay off');
+    await say(belayer, 'untie rope'); // off the belay (W7c: `belay off` retired)
     await say(belayer, `untie rope`);
     const tie2 = await say(belayer, 'tie strand to post with bowline');
     expect(tie2, tie2).toMatch(/hangs down/);
@@ -458,7 +458,7 @@ suite('cordage — the blocking drive', () => {
     const heave = await look(bank, 'heaving line');
     expect(heave, heave).toMatch(/15 meters of hemp rope/);
     const putIn = await session(maker, PUT_IN);
-    await say(putIn, 'buy bow line');
+    await say(putIn, 'buy "bow line"');
     // Two are in view (the one bought and the counter's) — the first, as
     // the lifeline above.
     const painter = await look(putIn, 'first bow line');

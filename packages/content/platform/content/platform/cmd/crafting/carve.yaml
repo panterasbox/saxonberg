@@ -62,23 +62,22 @@ args:
   - name: thing
     type: object
     required: false
-    greedy: true
     scope: ["reachable"]
     requires: any
   # ⭐ WHAT TO CARVE IT ON — a thing that plans its own carving (a
   # leather-hard pot, a sand mould, a board's pattern).
   - name: target
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     prepositions: [on, into]
     scope: ["reachable"]
     requires: CarvableMixin
   # The piece to carve it from, when you want a particular one.
   - name: stock
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     prepositions: [from, out]
     scope: ["reachable"]
     requires: TangibleMixin

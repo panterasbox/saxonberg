@@ -29,7 +29,7 @@
  * recurring sweep over the whole set — the `ResidencyLogic` shape. A
  * timer per card would be N clocks; the client's own husk `setInterval`
  * is deleted in the same build for the same reason. There is exactly
- * one clock and the server owns it, so `cockpit card list` and the
+ * one clock and the server owns it, so `client-card list` and the
  * client agree.
  */
 
@@ -167,7 +167,7 @@ export interface CardState {
   private?: boolean;
 }
 
-/** One open card as `cockpit card list` and `cockpit layout save` see it. */
+/** One open card as `client-card list` and `client-layout save` see it. */
 export interface CardListing {
   instanceId: string;
   cardId: CardId;
@@ -184,7 +184,7 @@ export interface CardListing {
   terminal?: { filter: TerminalFilter; barId: string; primary: boolean };
 }
 
-/** The `cockpit card` actions that change a card's shape or place (D8). */
+/** The `client-card` actions that change a card's shape or place (D8). */
 export type CardArrangeAction =
   | 'close'
   | 'minimize'
@@ -564,14 +564,14 @@ export default class CardRegistry extends CardRegistryBase {
    * Two `who` cards can be open at once (`who` and `who --here` are
    * different commands, so they are different cards). Resolving by
    * catalogue name first meant both cards' pin controls sent
-   * `cockpit card pin who`, and the server acted on whichever it found
+   * `client-card pin who`, and the server acted on whichever it found
    * first: **two controls, identical labels, acting on one thing.** A
    * control that does not act on the card it is on is worse than a
    * missing one.
    *
    * The KEY is the card's identity and is unique by construction, so it
    * is the ref the client sends. The catalogue name still resolves —
-   * `cockpit card pin subject` is the form the verb's own help shows,
+   * `client-card pin subject` is the form the verb's own help shows,
    * and
    * it is unambiguous whenever only one card of that kind is open. The
    * instance id resolves last and is never SHOWN: it is a server-minted
@@ -635,7 +635,7 @@ export default class CardRegistry extends CardRegistryBase {
     return true;
   }
 
-  /** The open cards for one interactive — the `cockpit card list` report. */
+  /** The open cards for one interactive — the `client-card list` report. */
   @CallSecurity(CardApiCallers)
   public list(interactive: Interactive): CardListing[] {
     const bucket = this.cards.get(interactive);
@@ -1043,7 +1043,7 @@ export default class CardRegistry extends CardRegistryBase {
 
   /**
    * ⭐⭐ Change one card's shape or place (client-surface D8) — the one
-   * door every `cockpit card` action other than pin/list goes through.
+   * door every `client-card` action other than pin/list goes through.
    * Returns the refusal reason, or `null` when it changed. Every change
    * reports a `card-arranged`.
    *

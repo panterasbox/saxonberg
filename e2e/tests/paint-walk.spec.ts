@@ -8,7 +8,7 @@ import { openWorldAs, runCommand } from './helpers';
  * The wire tier (`packages/wire/tests/paint.dirty.wire.test.ts`) asserts the
  * ENVELOPE. This is a real Chromium against the real client: the forms a
  * person types parse at the binder (`mill flax`, `pour … into me:i:kettle`,
- * `stir`, `paint cottage with …`, `survey cottage`, `write … on … with …`,
+ * `stir`, `paint cottage with …`, `analyze condition cottage`, `write … on … with …`,
  * `dip rags in pot`, `maintain cottage`), the card renders a pot of paint, a
  * building seen from its landing, a lettered board and a glued brush in
  * words, and the colorman's counter sells.
@@ -47,7 +47,7 @@ async function lookFor(page: Page, what: string, matching: RegExp, timeout = 30_
   await expect
     .poll(
       async () => {
-        await runCommand(page, `look ${what}`);
+        await runCommand(page, `look "${what}"`);
         body = (await cards(page)).reverse().find((c) => matching.test(c)) ?? '';
         return body;
       },
@@ -109,7 +109,7 @@ test.describe('the paint build, in a browser', () => {
       await page.screenshot({ path: 'test-results/paint-walk/02-pot.png', fullPage: true });
 
       // ── A sign lettered in paint, read back ──
-      expect(await sayAwaiting(page, 'write PELL on board with ochre paint', /letter|cannot|need/i)).not.toMatch(NOT_UNDERSTOOD);
+      expect(await sayAwaiting(page, 'write PELL on board with "ochre paint"', /letter|cannot|need/i)).not.toMatch(NOT_UNDERSTOOD);
       expect(await sayAwaiting(page, 'read board', /PELL|cannot make out/i)).not.toMatch(NOT_UNDERSTOOD);
 
       // ── The brush is an assembly: bristle glued into a handle ──
@@ -119,21 +119,22 @@ test.describe('the paint build, in a browser', () => {
       await sayAwaiting(page, 'go towpath', /You leave/i);
       const cottage = await lookFor(page, 'cottage', /cottage/i);
       expect(cottage).toMatch(/limewashed|painted|coat/i);
-      const survey = await sayAwaiting(page, 'survey cottage', /from outside[\s\S]*litres/i);
-      expect(survey).toMatch(/square meters/);
-      await page.screenshot({ path: 'test-results/paint-walk/03-survey.png', fullPage: true });
+      // `survey` retired (W17): the why is `analyze condition`'s.
+      const condition = await sayAwaiting(page, 'analyze condition cottage', /It is /i);
+      expect(condition).not.toMatch(NOT_UNDERSTOOD);
+      await page.screenshot({ path: 'test-results/paint-walk/03-condition.png', fullPage: true });
 
       // ── Paint it ──
-      const painted = await sayAwaiting(page, 'paint cottage with ochre paint', /stands under a wet coat|not enough|cannot|runs dry/i, 600_000);
+      const painted = await sayAwaiting(page, 'paint cottage with "ochre paint"', /stands under a wet coat|not enough|cannot|runs dry/i, 600_000);
       expect(painted).not.toMatch(NOT_UNDERSTOOD);
-      expect(await sayAwaiting(page, 'survey cottage', /from outside/i)).toMatch(/wet coat|painted|ran|crazed/i);
+      expect(await lookFor(page, 'cottage', /wet coat|painted|run|crazed/i)).toMatch(/wet coat|painted|run|crazed/i);
 
       // ── maintain from the landing: the fabric, never the coat ──
       expect(await sayAwaiting(page, 'maintain cottage', /sound again|nothing that needs doing|brush's work/i)).not.toMatch(NOT_UNDERSTOOD);
 
-      // ── Inside: survey reads the same building ──
+      // ── Inside: `analyze rooms` reads the same building ──
       await sayAwaiting(page, 'go door', /You leave/i);
-      expect(await sayAwaiting(page, 'survey', /fabric of the place/i)).not.toMatch(NOT_UNDERSTOOD);
+      expect(await sayAwaiting(page, 'analyze rooms', /fabric of the place/i)).not.toMatch(NOT_UNDERSTOOD);
       await sayAwaiting(page, 'go towpath', /You leave/i);
 
       // ── A rag dipped in the pot ──
@@ -175,7 +176,7 @@ test.describe('the paint build, in a browser', () => {
       expect(hull).toMatch(/ketch|Hesper/i);
 
       // Paint her hull: the job is priced by her hull, from the quay.
-      const painted = await sayAwaiting(page, 'paint hesper with ochre paint', /start laying|wet coat|not enough|cannot|runs dry/i, 300_000);
+      const painted = await sayAwaiting(page, 'paint hesper with "ochre paint"', /start laying|wet coat|not enough|cannot|runs dry/i, 300_000);
       expect(painted).not.toMatch(NOT_UNDERSTOOD);
       expect(painted).not.toMatch(/cannot reach the outside/i);
       await page.screenshot({ path: 'test-results/paint-walk/11-hull.png', fullPage: true });

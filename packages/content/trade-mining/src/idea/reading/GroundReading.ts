@@ -20,7 +20,7 @@
  * showing a blank. That is the requirements' *"a barren survey returns an
  * informative negative"* applied to knowledge as well as to ground.
  *
- * ⚠ `survey` already answers *what is this place* for free. This verb is
+ * ⚠ `analyze rooms` already answers *what is this place* for free. This verb is
  * therefore clearly the interpretive read rather than a place-identity
  * one — three layers, not one.
  */

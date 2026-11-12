@@ -111,7 +111,7 @@ async function groundAt(
   what = 'floor',
   matching = /It is /,
 ): Promise<{ card: string; line: string }> {
-  await runCommand(page, `look ${what}`);
+  await runCommand(page, `look "${what}"`);
   let body = '';
   await expect
     .poll(
@@ -132,7 +132,7 @@ async function lookFor(
   what: string,
   matching: RegExp,
 ): Promise<string> {
-  await runCommand(page, `look ${what}`);
+  await runCommand(page, `look "${what}"`);
   let body = '';
   await expect
     .poll(

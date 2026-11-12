@@ -349,9 +349,9 @@ export function PhoneShell(props: PhoneShellProps): React.ReactElement {
                   key={c.instanceId}
                   type="button"
                   data-testid="tray-card"
-                  onClick={() => onCommandClick(`cockpit card restore ${quoteKey(c.key)}`)}
+                  onClick={() => onCommandClick(`client-card restore ${quoteKey(c.key)}`)}
                 >
-                  {c.title ?? c.cardId} <code>cockpit card restore {quoteKey(c.key)}</code>
+                  {c.title ?? c.cardId} <code>client-card restore {quoteKey(c.key)}</code>
                 </TrayItem>
               ))}
             </>

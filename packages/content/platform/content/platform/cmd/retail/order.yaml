@@ -35,8 +35,8 @@ args:
     # Menu names are multi-word — "Old fashioned", "Gin & tonic",
     # "Glass of red". Greedy, stopping at `with` (the brand's
     # preposition) so `order martini with bombay` still splits.
-    greedy: true
   - name: brand
+    prepositionRequired: true
     type: string
     required: false
     prepositions: [with]
@@ -44,9 +44,9 @@ args:
   # used to cut it off the tail of the phrase and resolve it itself.
   # `requires: any`: the board that takes the order says what it will act on.
   - name: subject
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     prepositions: [for]
     scope: ["reachable"]
     requires: any
@@ -59,6 +59,7 @@ args:
   # both a tariff and a menu ARE price lists, which is what
   # `PricedOfferMixin` already names.
   - name: counter
+    prepositionRequired: true
     type: objects
     required: false
     prepositions: [from]
@@ -70,6 +71,7 @@ args:
   # addressable. `requires:` is the honest kind gate: both a tariff and a
   # menu ARE price lists, which is what `PricedOfferMixin` already names.
   - name: menu
+    prepositionRequired: true
     type: object
     required: false
     prepositions: [off]

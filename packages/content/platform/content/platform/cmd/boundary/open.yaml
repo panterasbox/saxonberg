@@ -5,7 +5,7 @@ description: "Open a door (by direction or by name)"
 help: |
   Open anything that can be sealed — a door blocking an exit, a
   chest, a cabinet. Name a direction to open the door on that exit
-  (`open north`), or name the thing directly (`open oak door`,
+  (`open north`), or name the thing directly (`open "oak door"`,
   `open chest`).
 
   A gate with a setting opens BY AN AMOUNT: `open the headgate to a
@@ -28,7 +28,6 @@ args:
     # bound `the` and handed `headgate to half` to the setting (the
     # `measure … with the photometer` finding). Greedy, the name runs to
     # `to`; `open the door with the key` stays ONE name, never a setting.
-    greedy: true
     updates_focus: extend
     requires: SealableMixin
     validators:
@@ -36,6 +35,7 @@ args:
   # ⭐ How far (water-supply D12) — after `to`, so `open the door with the
   # key` can never bind as a setting. Greedy and last: `three quarters`.
   - name: setting
+    prepositionRequired: true
     type: string
     required: false
     prepositions: [to]

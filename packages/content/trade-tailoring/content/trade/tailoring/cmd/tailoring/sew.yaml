@@ -38,5 +38,6 @@ args:
     requires: [ToolMixin]
 options:
   pattern:
-    type: string
+    type: enum
+    values: [shirt, trousers, coat, apron]
     description: "Which pattern — shirt, trousers, coat or apron"

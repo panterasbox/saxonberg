@@ -35,12 +35,11 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
-  # ⚠ `greedy: true` — the article defect. Without it `drain the bladder`
-  # binds "the" and refuses, silently, at the binder.
+  # `drain the bladder`: the binder folds the article (controller-
+  # liquidity D3).
   - name: vessel
     type: object
     required: false
-    greedy: true
     scope: ["reachable"]
     default: "me:i:[mixin.BulkableMixin]"
     requires: [BulkableMixin]

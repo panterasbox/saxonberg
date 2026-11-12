@@ -75,7 +75,7 @@ suite('3 · ⭐ the words that worked still work', () => {
   // The step that catches the real risk: a thing whose addressable
   // words silently stopped resolving. It fails closed and silent.
   it.each(['bartender', 'bar'])('`look %s` resolves', async (word) => {
-    const said = plain(await (await bar.cmd(`look ${word}`)).said());
+    const said = plain(await (await bar.cmd(`look "${word}"`)).said());
     expect(said).not.toMatch(/don't see|can't see|don't understand/i);
   });
 });
@@ -88,7 +88,7 @@ suite('⚠ the body of a look — the regression the suite could not see', () =>
   ])(
     '`look %s` renders the article in its BODY, not a bare stem',
     async (word, pattern) => {
-      const said = plain(await (await lobby.cmd(`look ${word}`)).said());
+      const said = plain(await (await lobby.cmd(`look "${word}"`)).said());
       expect(said).not.toMatch(/don't see|can't see/i);
       // ⚠ Twice over: once in the identity tag, once in the body that
       // falls back to the description because nobody wrote a long one.

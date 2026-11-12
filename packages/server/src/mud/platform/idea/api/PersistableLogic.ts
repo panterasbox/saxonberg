@@ -569,6 +569,7 @@ async function flushSkippedOwnedGoods(goods: Iterable<Stuff>): Promise<void> {
     // A hung good keeps its wall: the mount slot rides the entry so the
     // room's next overlay re-attaches it as a fixture (residences D11).
     const mountSlot = MixinApi.isAdornment(good) ? good.getMountSlot() : null;
+    const rests = MixinApi.isContainable(good) ? good.getRestingPlace() : null;
     // ⭐ A good that persists ITSELF rides as a reference: its own record
     // is authoritative, and copying its state here would make a second
     // copy of a live creature that is still writing the first.
@@ -583,6 +584,7 @@ async function flushSkippedOwnedGoods(goods: Iterable<Stuff>): Promise<void> {
       place: good.getPlace(),
       ...(ownKey ? { key: ownKey } : {}),
       ...(mountSlot ? { mounted: { slot: mountSlot } } : {}),
+      ...(rests ? { rests } : {}),
     };
     const live = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
     if (live && MixinApi.isEstate(live)) {
@@ -1254,6 +1256,15 @@ async function overlayOwnedGoods(host: Stuff): Promise<void> {
     if (good && entry.mounted && MixinApi.isAdornable(host)) {
       if (MixinApi.isContainable(good)) ContainmentApi.move(good, null);
       host.addFixture(good as Stuff & Adornment, entry.mounted.slot);
+    } else if (good && entry.rests && MixinApi.isContainable(good)) {
+      // ⭐ A good left ON something goes back on it: the room's fixtures
+      // are already restored, so the surface is here — or it is gone, or
+      // will not take it, and the good stands in the room (a skip).
+      const { on, placement } = entry.rests;
+      const surface = host.getContents().find((c) => c.getTemplatePath() === on);
+      if (surface && MixinApi.isPlacing(surface) && surface.canPlace(good, placement).ok) {
+        ContainmentApi.move(good, surface, placement);
+      }
     }
     if (good && ownerHost && MixinApi.isEstate(ownerHost)) {
       ownerHost._putEstateEntry(entry, good);

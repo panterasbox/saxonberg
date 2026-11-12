@@ -874,7 +874,7 @@ and settlement never checks that the payer *owns* the routing account
 - **`actor.buysFor(): Promise<BusinessStuff[]>`** — every
   Business where the actor holds a non-exited `purchases` position, plus
   the one whose proprietor they are.
-- **`wallet use house`** (`WalletController`) — resolves the house via
+- **`wallet use house`** (`WalletUseController`) — resolves the house via
   `buysFor`: the business operating **here** (`businessAt`), else the
   single one, else `ambiguous-house` (names them); links its operating
   account into the holder's credential and makes it active
@@ -902,7 +902,7 @@ and settlement never checks that the payer *owns* the routing account
   number). Same credential kind, same `wallet use house`, same `buy`.
   Players get nothing minted.
 
-**`house`** (`HouseController`) no longer carries `requiresWizard` — that
+**`house`** (`HouseBookController` · `HousePnlController` · `HousePayrollController` · `HouseRosterController`, over `HouseControllerBase`) no longer carries `requiresWizard` — that
 is the TypeScript code-trust axis and nothing else; venue authority is
 the SEAT (`resolveHouse`: the business here if the giver `holdsPosition`
 or `isProprietorOf`, else `buysFor(giver)[0]`, else `not-staff`).
@@ -984,7 +984,9 @@ Tips are **physical cash**, two routes, never the bar's P&L:
 - **`tip <amount> [--eft]`** — **cash** (default): `BankingApi.settle` cash
   moves coin patron→jar, off every ledger (anonymous, the under-the-counter
   take). **EFT** (`--eft`, or the automatic fallback when the patron lacks
-  coin): `BankingApi.transfer` patron→the on-shift server's account —
+  coin — and only then: `settle` throws a typed `SettleRefused`, and any
+  other reason is said, never its exception text; C46, controller-liquidity
+  W7c): `BankingApi.transfer` patron→the on-shift server's account —
   recorded on the *server's* ledger, the bar account untouched. The patron
   is never blocked; the cash/EFT choice is the anonymous-vs-recorded story.
 - **`collect`** — the on-shift bartender scoops the whole jar into their

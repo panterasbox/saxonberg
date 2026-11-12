@@ -14,6 +14,7 @@ import DormRoom from '../location/DormRoom';
 import Desk from '../thing/Desk';
 import ProvisionController from '../idea/cmd/ProvisionController';
 import UnprovisionController from '../idea/cmd/UnprovisionController';
+import { ChattelApi } from '@saxonberg/server/mud/api/chattel';
 import RemodelController from '../idea/cmd/RemodelController';
 import DormThemes from '../idea/DormThemes';
 import type Interactive from '@saxonberg/server/mud/platform/idea/Interactive';
@@ -507,6 +508,9 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
     // delete record + retire slot.
     const op = makeAvatar('op');
     const ctx = ctxFor(op, 'unprovision');
+    // ⭐ C4 (controller-liquidity W13): the tenant's goods go to storage
+    // BEFORE the room is dropped — the dorm's end-let used to skip it.
+    const evict = vi.spyOn(ChattelApi, 'evictToStorage');
     await run(
       makeStuff(() => new UnprovisionController()),
       op,
@@ -514,6 +518,7 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
       ctx,
     );
     expect(rejectionReason(ctx)).toBeNull();
+    expect(evict).toHaveBeenCalledWith(`${DormRoom.SCOPE}#${k1}`);
     expect(snapshots().filter((s) => s.owner === k1)).toHaveLength(0); // record cleared
     expect(await ParcelApi.hasUseGrant(k1, '/platform/agent/Avatar/iris')).toBe(false);
     expect(await ParcelRecordFor(k1)).toBeNull(); // slot freed

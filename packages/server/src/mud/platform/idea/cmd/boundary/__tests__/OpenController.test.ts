@@ -292,12 +292,12 @@ describe('OpenController / CloseController / doors integration', () => {
       .map((f) => (f as { body?: string }).body ?? '');
 
   it('⭐ a LOCKED door does not open (water-supply D12) — unlock it first', async () => {
-    door.lock();
+    door.setLocked(true);
     avatar.received.length = 0;
     await openCmd(makeStuff(() => new OpenController()), avatar, locA, 'oak');
     expect(door.isOpen()).toBe(false);
     expect(bodiesOf().some((b) => /locked/i.test(b))).toBe(true);
-    door.unlock();
+    door.setLocked(false);
     await openCmd(makeStuff(() => new OpenController()), avatar, locA, 'oak');
     expect(door.isOpen()).toBe(true);
   });

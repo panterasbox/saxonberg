@@ -8,7 +8,7 @@
  * already sprung or already disarmed needs nothing.
  *
  * The act is a short, costed {@link HazardActivity} holding the disarmer's
- * `hands` slot for `hazard.disarmSeconds` game-time and resolving at
+ * `hands` slot for the hazard's own `hazard.disarmSeconds` game-time and resolving at
  * completion (the `search` precedent) — so a barge-in mid-work aborts it
  * and the trap stays live. On completion it flips the hazard to
  * `disarmed` and mints an `awareness`-graded `ActSignature` deed (the act
@@ -26,15 +26,10 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { PerceptionApi } from '../../../../api/perception';
 import { SchedulerApi } from '../../../../api/scheduler';
-import { AppApi } from '../../../../api/app';
-import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import { Mml } from '../../../../api/mml';
 import { HazardActivity, HAZARD_DISARM_TYPE } from '../../../../lib/hazard/HazardActivity';
 
 const TOPIC = 'act.deed';
-
-/** `hazard.disarmSeconds` fallback (game-seconds). */
-const DEFAULT_DISARM_SECONDS = 5;
 
 interface DisarmModel extends CommandModel {
   target?: MqlOneResult;
@@ -101,7 +96,8 @@ export default class DisarmController extends CommandController<DisarmModel> {
     // live competence snapshot.
     await PerceptionApi.preloadForSenseGate(actor);
 
-    const durationMs = this.disarmSeconds() * 1000;
+    // ⭐ The hazard reads its own dial (W8).
+    const durationMs = hazard.getDisarmDurationMs();
     const onComplete = (): void => {
       // Re-check: another party may have sprung / defused it meanwhile.
       if (!hazard.isArmed()) return;
@@ -184,16 +180,5 @@ export default class DisarmController extends CommandController<DisarmModel> {
   ): void {
     MessageApi.scene(actor).topic(TOPIC).toSelf(line).send();
     context.note({ kind: 'controller-rejected', reason, detail: reason });
-  }
-
-  private disarmSeconds(): number {
-    try {
-      const raw = AppApi.setting(AppSettingKeys.hazardDisarmSeconds);
-      if (raw === '' || raw == null) return DEFAULT_DISARM_SECONDS;
-      const n = Number.parseFloat(raw);
-      return Number.isFinite(n) && n > 0 ? n : DEFAULT_DISARM_SECONDS;
-    } catch {
-      return DEFAULT_DISARM_SECONDS;
-    }
   }
 }

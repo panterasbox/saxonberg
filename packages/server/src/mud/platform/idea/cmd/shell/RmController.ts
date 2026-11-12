@@ -20,11 +20,9 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../../../api/source-tree';
-import { StuffApi } from '../../../../api/stuff';
 import { Template } from '../../../../lib/stuff/Template';
-import { Zone } from '../../../../lib/zone/Zone';
+import { TemplateApi } from '../../../../api/template';
 import { AccessApi } from '../../../../api/access';
-import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { MqlOneResult } from '../../../../api/mql';
 
 interface RmModel extends CommandModel {
@@ -76,39 +74,40 @@ export default class RmController extends CommandController<RmModel> {
     if (!target) return this.fail(context, 'no target');
 
     if (tree === 'content') {
-      const liveAtTarget = StuffApi.findByTemplatePath<Stuff>(target) ?? null;
-      const accessOk =
-        liveAtTarget instanceof Zone
-          ? await AccessApi.canMutateZone(giver, liveAtTarget)
-          : await AccessApi.can(giver, 'rm', liveAtTarget);
-      if (!accessOk) {
-        return this.fail(
-          context,
-          "you don't have permission to remove that",
-          'access-denied',
-        );
-      }
-      const tpl = await Template.findByPath(target);
-      if (!tpl) return this.fail(context, `no template at ${target}`);
-      // Recursive: delete descendants first.
-      if (model.recursive) {
-        const descendants = await Template.findDescendants(target);
-        // Deepest first so leaves go before their folder ancestors.
-        descendants.sort(
-          (a, b) => b.path.split('/').length - a.path.split('/').length,
-        );
-        for (const d of descendants) {
-          try {
-            await d.delete();
-          } catch (err) {
-            return this.fail(context, (err as Error).message);
-          }
-        }
-      }
+      // Title over EVERY row it removes, and every refusal before the
+      // first delete, are the delete's own (`TemplateApi.deleteSubtree`,
+      // D9 — C65: `-r` asked the root's title only; C62).
+      let removed;
       try {
-        await tpl.delete();
+        removed = await TemplateApi.deleteSubtree(target, model.recursive === true);
       } catch (err) {
         return this.fail(context, (err as Error).message);
+      }
+      if (!removed.ok) {
+        switch (removed.reason) {
+          case 'access-denied':
+            return this.fail(
+              context,
+              removed.path === target
+                ? "you don't have permission to remove that"
+                : `you don't have permission to remove ${removed.path}`,
+              'access-denied',
+            );
+          case 'no-template':
+            return this.fail(context, `no template at ${target}`, 'no-template');
+          case 'has-descendants':
+            return this.fail(
+              context,
+              `${target} still holds rows — remove them first, or rm -r`,
+              'has-descendants',
+            );
+          default:
+            return this.fail(
+              context,
+              `${removed.path} is extended by rows outside it — re-parent them first`,
+              'extended',
+            );
+        }
       }
       this.tell(context, `\nremoved ${target}\n`);
       return;

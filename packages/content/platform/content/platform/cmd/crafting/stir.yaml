@@ -1,20 +1,27 @@
 verbs: [stir]
 category: crafting
 controller: /platform/idea/cmd/crafting/StirController
-description: "Work a build in progress or a charge — the vessel decides how"
+description: "Stir something runny — the drink you're building, a paint, a glaze"
 help: |
-  Work the drink you're building — `stir shaker`. The tool is what knows:
-  a shaker shakes it and a mixing glass stirs it, and it records how the
-  build was mixed and takes a moment. Name the vessel (`stir mixing glass`)
-  or leave it to the one you're building in.
+  `stir` works what is RUNNY. ⭐ What is in the vessel decides:
 
-  `stir churn` works a butter churn's cream: at the right warmth it
-  breaks into butter and buttermilk; too cold and it will not come.
+  - **the drink you're building** — `stir shaker`. The tool is what
+    knows: a shaker shakes it and a mixing glass stirs it, and it records
+    how the build was mixed and takes a moment.
+  - **a runny compound** — a paint pot, a glaze or slip tub, a plaster
+    tub, a glass batch pot: a few light minutes fold what is in it into
+    one blend, its make-up the inputs' by mass. Nothing is a recipe.
 
-  ⭐ `stir` a mixing vessel — a batch pot, a glaze bucket — and what is in
-  it becomes one blend, its make-up the inputs' by mass. No recipe: a
-  little more sand is a leaner batch. `knead` is the same act for a
-  plastic mass.
+  ⭐ Stiff stuff is kneaded, never stirred: a pot of clay, raw rubber or a
+  dough is refused — "too stiff to stir — knead it" (`knead`). And a
+  butter churn is `churn`ed.
+examples:
+  - cmd: stir
+    note: Work the drink you are building
+  - cmd: stir pot
+    note: Stir the paint pot's oil and pigment into one paint
+  - cmd: stir "ash tub"
+    note: Stir ash, clay and water into an ash glaze
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -28,6 +35,7 @@ args:
     # resolves it (held first) instead of the controller walking for it
     # (`lint:controller-resolution`).
     default: "reachable:[mixin.ManualBuildMixin],reachable:[mixin.CompoundingMixin]"
-    # ⭐ `any`, narrowed by the controller: a build vessel records the
-    # method; a hand-worked vessel (a churn — dairy D5) works its charge.
+    # ⚠ `any`, narrowed by the controller (W19): two hosts asked by method
+    # — a build vessel (`ManualBuildMixin.stirPlan`) and a compounding one
+    # (`Compounding.stirPlanFor`, refused when what is in it is stiff).
     requires: any

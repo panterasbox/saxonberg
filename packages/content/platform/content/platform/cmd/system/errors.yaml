@@ -1,6 +1,6 @@
 verbs: [errors]
 category: system
-controller: /platform/idea/cmd/system/ErrorsController
+controller: /platform/idea/cmd/system/ErrorsListController
 description: "Show compile / runtime / console diagnostics from the dev tooling"
 help: |
   Read the author-diagnostics store: TypeScript compile errors, runtime
@@ -21,8 +21,8 @@ help: |
 
   Restricted to authors and wizards; others are told they lack permission.
 fallthrough: true
-# The bare form `errors [<path>]` falls through here → list (the controller
-# defaults an absent subcommand to list); an explicit subcommand uses its
+# The bare form `errors [<path>]` falls through here → list (the verb-level
+# controller is the list's); an explicit subcommand uses its
 # own args. fallthrough:true requires both `args` and `subcommands`.
 args:
   - name: path
@@ -56,6 +56,7 @@ options:
     description: "Substring filter for `errors raw`"
 subcommands:
   list:
+    controller: /platform/idea/cmd/system/ErrorsListController
     description: "List recent diagnostics matching your filters (default)"
     args:
       - name: path
@@ -63,8 +64,10 @@ subcommands:
         required: false
         greedy: true
   raw:
+    controller: /platform/idea/cmd/system/ErrorsRawController
     description: "Tail the raw console ring (the Prime Minister's)"
   clear:
+    controller: /platform/idea/cmd/system/ErrorsClearController
     description: "Drop diagnostics for a path (wizard, or author of the path)"
     args:
       - name: path

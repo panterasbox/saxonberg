@@ -298,6 +298,8 @@ export default abstract class Avatar extends AvatarBase {
        * everyone opens nothing else.
        */
       "platform/cmd/system/press.yaml",
+      // ⭐ Bare `press` — the read — is a shape of its own (W7a).
+      "platform/cmd/system/press-read.yaml",
       "platform/cmd/system/clear.yaml",
       "platform/cmd/system/affordances.yaml",
       "platform/cmd/author/player.yaml",
@@ -343,6 +345,10 @@ export default abstract class Avatar extends AvatarBase {
       // `playerId`, which nothing without one has.
       "platform/cmd/shell/recall.yaml",
       "platform/cmd/stream/tune.yaml",
+      // ⭐ `tune <target>` and `tune <target> <message>` — two more shapes,
+      // AFTER `tune.yaml` so its subcommand words are tried first (W7a).
+      "platform/cmd/stream/tune-follow.yaml",
+      "platform/cmd/stream/tune-post.yaml",
       // ⭐ `fit`'s RAISE arm builds a thing made of parts, and its hand rung
       // (a wedge, a friction fit) has no instrument — so it is the
       // person's. Afforded by the parts it was not: a

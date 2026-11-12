@@ -55,6 +55,13 @@ beforeEach(() => {
   other = makeStuff(() => { const b = new Body(); b.setName('Ruth'); return b; });
   visible = { worn: [], held: [], carried: [], shut: false };
   vi.spyOn(PerceptionApi, 'visibleContentsOf').mockImplementation(() => visible);
+  // `look` reads what a thing holds inside its one perception moment
+  // (controller-liquidity W8), so the same pinned rule rides `observe`.
+  const observe = PerceptionApi.observe.bind(PerceptionApi);
+  vi.spyOn(PerceptionApi, 'observe').mockImplementation(async (a, t) => {
+    const seen = await observe(a, t);
+    return { ...seen, holds: seen.holds ? visible : null };
+  });
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const b: Record<string, unknown> = {};
     b.topic = () => b;

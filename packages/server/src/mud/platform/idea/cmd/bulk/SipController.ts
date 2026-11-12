@@ -28,7 +28,7 @@ interface SipModel extends CommandModel {
 }
 
 export default class SipController extends CommandController<SipModel> {
-  execute(model: SipModel, context: CommandContext): void {
+  async execute(model: SipModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const target = model.target.stuff;
 
@@ -47,10 +47,15 @@ export default class SipController extends CommandController<SipModel> {
       if (!airway.ok) return this.refuse(context, TOPIC, airway.line, airway.reason);
     }
     const fromSlot = BulkableApi.slotFor(target, model.target.via);
+    // ⭐ Bring what it holds current before reading it (C36) — `drink` and
+    // `fill` settle; a tap or a butt read unsettled said "nothing to sip"
+    // from a source that had water in it.
+    await fromSlot?.settle();
     if (fromSlot === null || fromSlot.isEmpty()) {
+      const why = fromSlot?.whyEmpty() ?? null;
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`There's nothing to sip in ${Mml.thing(target)}.`)
+        .toSelf(why !== null ? Mml.compose`${why}` : Mml.compose`There's nothing to sip in ${Mml.thing(target)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',

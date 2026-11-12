@@ -33,19 +33,20 @@ validators:
   - /lib/command/validators/requiresEmbodied
 args:
   # A bole or a billet. They share no class (a bole is a plain good, a
-  # billet is converted stock) but both are physical matter; the
-  # controller narrows and refuses in its own words. `greedy` so `rive
-  # the oak bole` is one name — safe, every later arg declares a
+  # billet is converted stock) but both open along their grain: ⭐ the
+  # protocol is what binds (`RivableMixin`, controller-liquidity D14), so
+  # a thing that does not rive is refused by the binder. `greedy` so
+  # `rive the oak bole` is one name — safe, every later arg declares a
   # preposition to stop at.
   - name: target
     type: object
     required: true
-    greedy: true
     scope: ["here", "peers", "person"]
-    requires: TangibleMixin
+    requires: RivableMixin
   # What to rive a billet INTO — a recipe word. Optional: with one answer
   # installed there is nothing to choose.
   - name: into
+    prepositionRequired: true
     type: string
     required: false
     greedy: true
@@ -53,9 +54,9 @@ args:
   # ⭐ WHICH FROE — declared, not hunted for (`lint:controller-resolution`). The
   # CAPABILITY, never a class: a froe is a `Tool` row.
   - name: froe
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     prepositions: [with, using]
     default: "reachable:[capability.riving]"
     scope: ["reachable"]

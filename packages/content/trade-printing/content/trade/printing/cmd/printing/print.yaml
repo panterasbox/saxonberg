@@ -23,14 +23,24 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
+  # ⭐ WHAT — a forme or a ledger in reach, or the name of a document you
+  # hold (which binds nothing and arrives as the raw word; the printer
+  # calls it up). The instrument decides which it prints
+  # (`PrintingMixin.printFor` — controller-liquidity W11); the controller
+  # no longer splits a count off a greedy string and resolves it itself.
+  # A name with a space in it is quoted: `print "price list" 2`.
   - name: what
-    type: string
-    required: true
-    greedy: true
-  - name: on
+    type: object
+    required: false
+    scope: ["reachable"]
+    requires: any
+  - name: copies
+    type: number
+    required: false
+  # ⭐ WHICH PRESS — it was `on`, a preposition for a name (renamed W11).
+  - name: press
     type: objects
     required: false
-    greedy: true
     prepositions: [on, with]
     default: "reachable:[mixin.ToolMixin]"
     scope: ["here", "peers", "person"]

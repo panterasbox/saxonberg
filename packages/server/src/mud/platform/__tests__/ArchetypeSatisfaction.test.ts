@@ -375,10 +375,13 @@ describe('archetype satisfaction', () => {
       }
     };
     walk(root);
+    // `RoomsReading` gathers and words it (`analyze rooms`; the read sat on
+    // `Place` from W17 until controller-liquidity W21 moved it off every
+    // location); still reported, never spent.
     expect(hits.sort()).toEqual([
       'lib/archetype/Archetype.ts',
       'platform/__tests__/ArchetypeSatisfaction.test.ts',
-      'platform/idea/cmd/perception/SurveyController.ts',
+      'platform/idea/reading/RoomsReading.ts',
     ]);
   });
 });

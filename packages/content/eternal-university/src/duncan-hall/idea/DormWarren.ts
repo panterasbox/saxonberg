@@ -17,7 +17,7 @@
  * `docs/subsystems/residence.md`.
  */
 
-import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
+import { LettingWarren } from '@saxonberg/content-residence/src/lib/LettingWarren';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -30,6 +30,7 @@ import Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import FloorStairExit from './FloorStairExit';
 import DormDoor from './DormDoor';
 import DormRoom from '../location/DormRoom';
+import DormThemes from './DormThemes';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
@@ -48,7 +49,7 @@ const DORM_DOOR_KIND =
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
-const DormWarrenBase = SingletonMixin(CirculationWarren);
+const DormWarrenBase = SingletonMixin(LettingWarren);
 
 export default class DormWarren extends DormWarrenBase {
   /** Seeded Warren-definition path (the singleton). */
@@ -63,6 +64,10 @@ export default class DormWarren extends DormWarrenBase {
   static readonly PROGRAMME_PATH = '/world/terminus/eternal/duncan-hall/idea/dorm-programme';
   /** The parent parcel the unit parcels subdivide under. */
   static readonly DORMS_EXTENT = '/world/terminus/eternal/duncan-hall/dorms';
+  /** The hall's extent — the committee that owns it. */
+  static readonly HALL_EXTENT = '/world/terminus/eternal/duncan-hall';
+  /** The college — the Organization whose `hall-manager` position is Katie's job. */
+  static readonly COLLEGE_PATH = '/world/terminus/eternal/duncan-hall/idea/college';
   /** Units per floor — the AUTHORED default under the operator's
    *  `dorm.roomsPerFloor` dial (D10: the graduated knob). */
   static readonly ROOMS_PER_FLOOR = 12;
@@ -164,6 +169,65 @@ export default class DormWarren extends DormWarrenBase {
     opts: { revert?: boolean } = {},
   ): Promise<void> {
     return this.dropHolding(unitKey, opts);
+  }
+
+  // ─────────────── LettingWarren policy hooks ─────────────────────────
+
+  /** Katie's college lets the rooms. */
+  protected lettingOrganizationPath(): string {
+    return DormWarren.COLLEGE_PATH;
+  }
+
+  /** The committee over the HALL owns the dorms (the wing is a child of it). */
+  protected override committeeExtent(): string {
+    return DormWarren.HALL_EXTENT;
+  }
+
+  protected domicileAddress(): string {
+    return DormRoom.ADDRESS;
+  }
+
+  protected programmeRowPath(): string {
+    return DormWarren.PROGRAMME_PATH;
+  }
+
+  /** A dorm is the ladder's bottom rung: no ascent gate. */
+  protected override ascentGated(): boolean {
+    return false;
+  }
+
+  /** One dorm per tenant, and none for somebody already housed anywhere. */
+  protected override tenancyScope(): string | undefined {
+    return undefined;
+  }
+
+  protected override lockTech(): LockType {
+    return DormWarren.DORM_LOCK_TECH;
+  }
+
+  /**
+   * Hang the door if its floor is materialized, refresh reach and the
+   * keyway cache; then the move-in shell commit — the chosen style set as
+   * the room's initial look, as the institution. Best-effort: a bad style
+   * never voids the let.
+   */
+  protected override async afterLet(
+    unitExtent: string,
+    opts: { theme?: string },
+  ): Promise<void> {
+    await this.ensureUnitDoor(unitExtent);
+    await this.refreshProvisioned();
+    const themeId = (opts.theme ?? '').trim();
+    if (!themeId) return;
+    try {
+      const room = await this.admit(unitExtent);
+      const themes = await StuffApi.singleton<DormThemes>(DormThemes.CATALOGUE_PATH);
+      await themes.applyTo(room, themeId);
+    } catch (err) {
+      console.warn(
+        `DormWarren: move-in theme "${themeId}" failed for ${unitExtent}: ${(err as Error).message}`,
+      );
+    }
   }
 
   // ─────────────── CirculationWarren policy hooks ─────────────────────

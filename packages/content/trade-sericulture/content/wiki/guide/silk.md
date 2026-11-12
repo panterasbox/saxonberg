@@ -17,7 +17,7 @@ not reel.
 ## Rearing {#rearing}
 
 A tray of worms starts from an egg lot set on a warm tray
-(`put egg lot in tray`). The worms age by the warmth of the room, not by
+(`put "egg lot" in tray`). The worms age by the warmth of the room, not by
 the calendar, so a cold room is a slow tray. They eat cut mulberry leaf
 put on the tray; a hungry tray does not die, it grows slowly and spins
 light cocoons. Give the wandering worms a brush to climb and they spin on

@@ -33,7 +33,7 @@ import { StuffApi } from '../../../../../api/stuff';
 import { ExecutionContextApi } from '../../../../../api/execution-context';
 import { TemplatePaths } from '../../../../../lib/paths';
 import { installWikiTestDb, type WikiTestDb } from '../../../../../lib/wiki/__tests__/wiki-test-db';
-import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import type { WikiPageFrame } from '@saxonberg/types';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 
@@ -116,7 +116,8 @@ beforeEach(() => {
     };
     return b as never;
   });
-  registry = makeStuff(() => new WikiRegistry());
+  // At its template path: the renderer's gate admits the registry by it.
+  registry = makeStuffAtPath(() => new WikiRegistry(), TemplatePaths.wikiRegistry);
   renderer = makeStuff(() => new WikiRenderer());
   zone = makeStuff(() => new WikiNamespaceZone());
   giver = makeStuff(() => new Principal()) as unknown as Stuff;

@@ -59,6 +59,7 @@ import { MixinApi } from '../../api/mixin';
 import type { EngagementSlot } from '../activity/Engaged';
 import type { TaskKind } from './Urgency';
 import { Urgency } from './Urgency';
+import { CommandLineApi } from '../../api/command-line';
 
 const DEFAULT_BATCH = 4;
 /**
@@ -273,7 +274,7 @@ export const brain = class {
         // has, so every crush declined `no-maker` (the vermouth winery's
         // hand, fifteen times a run; found by the sugar drive, whose rum
         // runs through this brain). `prints`' precedent.
-        await hand.executeCommand(`order ${which}`);
+        await hand.executeCommand(`order ${CommandLineApi.word(which)}`);
         await hand.forceCommand(`pour bucket into vat`);
         if (ctx.config.pitchJar === true) {
           await hand.forceCommand(`pour jar into vat`);
@@ -313,9 +314,9 @@ export const brain = class {
     const empties = emptyVessels(home, category).slice(0, batch);
     const filled: Stuff[] = [];
     for (let i = 0; i < empties.length; i++) {
-      await hand.forceCommand(`get ${vk}`);
-      await hand.forceCommand(`fill ${vk} from vat`);
-      await hand.forceCommand(`close ${vk}`);
+      await hand.forceCommand(`get ${CommandLineApi.word(vk)}`);
+      await hand.forceCommand(`fill ${CommandLineApi.word(vk)} from vat`);
+      await hand.forceCommand(`close ${CommandLineApi.word(vk)}`);
       // Verify by state, not hope: an empty fill (vat ran dry) stops the leg.
       const held = hand
         .getContents()
@@ -337,7 +338,7 @@ export const brain = class {
       await hand.forceCommand('wallet use house');
       for (const vessel of filled) {
         const ask = askFor(ctx.config, vessel);
-        await hand.forceCommand(`shelf consign ${vk} --ask ${ask}`);
+        await hand.forceCommand(`shelf consign ${CommandLineApi.word(vk)} --ask ${ask}`);
       }
     } finally {
       hand.teleport(home);
@@ -358,7 +359,7 @@ export const brain = class {
     if (!cold || !MixinApi.isContainer(cold)) return;
     // The row cites the recipe by PATH; the hand orders it the way a
     // player would, by its word (the path's leaf).
-    await hand.forceCommand(`order ${leg.recipe.slice(leg.recipe.lastIndexOf('/') + 1)}`);
+    await hand.forceCommand(`order ${CommandLineApi.word(leg.recipe.slice(leg.recipe.lastIndexOf('/') + 1))}`);
     hand.teleport(cold as Stuff & Container);
     try {
       await hand.forceCommand(`pour bucket into vat`);
@@ -472,7 +473,7 @@ export const brain = class {
     // 5. Compound off the board and consign the take — spirit included,
     // the intermediate good the vintner's fortification buys.
     for (const c of distills.compounds ?? []) {
-      await hand.forceCommand(`order ${c}`);
+      await hand.forceCommand(`order ${CommandLineApi.word(c)}`);
     }
     await this.consignHeld(ctx, hand, home, counterRoomPath);
   }
@@ -494,7 +495,7 @@ export const brain = class {
     compounds: string[],
   ): Promise<boolean> {
     for (const c of compounds) {
-      await hand.forceCommand(`order ${c}`);
+      await hand.forceCommand(`order ${CommandLineApi.word(c)}`);
     }
     return this.consignHeld(ctx, hand, home, counterRoomPath);
   }
@@ -520,7 +521,7 @@ export const brain = class {
       await hand.forceCommand('wallet use house');
       for (const vessel of filled) {
         const ask = askFor(ctx.config, vessel);
-        await hand.forceCommand(`shelf consign ${vk} --ask ${ask}`);
+        await hand.forceCommand(`shelf consign ${CommandLineApi.word(vk)} --ask ${ask}`);
       }
     } finally {
       hand.teleport(home);
@@ -556,8 +557,8 @@ export const brain = class {
         if (!kw) continue;
         const count = positiveInt(b.count, DEFAULT_BUY_COUNT);
         for (let i = 0; i < count; i++) {
-          await hand.forceCommand(`buy ${kw}`);
-          await hand.forceCommand(`get ${kw}`);
+          await hand.forceCommand(`buy ${CommandLineApi.word(kw)}`);
+          await hand.forceCommand(`get ${CommandLineApi.word(kw)}`);
         }
       }
     } finally {
@@ -566,7 +567,7 @@ export const brain = class {
       for (const c of [...hand.getContents()]) {
         const kw = keywordOf(c);
         if (kw !== null && keywords.includes(kw)) {
-          await hand.forceCommand(`drop ${kw}`);
+          await hand.forceCommand(`drop ${CommandLineApi.word(kw)}`);
         }
       }
     }

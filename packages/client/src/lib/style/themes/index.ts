@@ -13,7 +13,7 @@
  * moment there were two grounds — the design doc calls the dark ground
  * Ink and so does the verb. `pickTheme('default')` therefore falls
  * through to Ink like any other unknown string, and the server's
- * `cockpit style theme` refuses the word outright rather than quietly
+ * `client-style theme` refuses the word outright rather than quietly
  * accepting it. (The S2 precedent governs: no playerbase to protect, the
  * demo wipes nightly, and an alias keeps a dead vocabulary alive for
  * nobody.)

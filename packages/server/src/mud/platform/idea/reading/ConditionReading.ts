@@ -17,6 +17,13 @@
  * build specialized retail and was read by nothing. An eye rung only: no
  * instrument tells you who mended a pick.
  *
+ * ⭐ **A building, from where it meets the weather** (paint D13; the WHY
+ * half of the retired `survey <building>`, controller-liquidity W17): the
+ * condition word carries its cause — the weather's work on the coat (*the
+ * paint has gone; the weather is at what was under it*), said to every
+ * band, because a passer-by sees a coat going. The structure binds only
+ * from its landing, as `look <building>` does.
+ *
  * See [docs/subsystems/instrumentation.md] and [docs/subsystems/assembly.md].
  */
 
@@ -32,6 +39,7 @@ import type { Durable, MendRecord } from '../../../lib/material/Durable';
 import { MixinApi } from '../../../api/mixin';
 import { GrammarApi } from '../../../api/grammar';
 import { Mml } from '../../../api/mml';
+import StructureBase from '../../../lib/structure/Structure';
 
 /** A hand's band, as an appraiser would say it of the work. */
 const HAND_WORDS: Record<string, string> = {
@@ -77,8 +85,11 @@ export default class ConditionReading extends Reading {
     const mends = thing.getMends();
     const at = (b: CompetenceBandName): boolean => CompetenceBand.atOrAbove(band, b);
 
-    // untrained — the word, and whether it has been mended.
-    lines.push(Mml.compose`${GrammarApi.cap(`it is ${thing.getConditionWord()}.`)}`);
+    // untrained — the word (on a building, and why), and whether it has
+    // been mended.
+    const outside = thing instanceof StructureBase ? await thing.readOutside() : null;
+    const cause = outside?.cause ? ` — ${outside.cause}` : '';
+    lines.push(Mml.compose`${GrammarApi.cap(`it is ${thing.getConditionWord()}${cause}.`)}`);
     if (mends.length === 0) {
       lines.push(Mml.compose`It has never been mended.`);
     } else if (!at('novice')) {

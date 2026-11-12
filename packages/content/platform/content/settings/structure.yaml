@@ -13,6 +13,6 @@ settings:
     value: "0.00005"
 
   # Below about ten microns a coat no longer keeps the weather out: the
-  # survey says the paint is going.
+  # `analyze condition` says the paint is going.
   - key: structure.coat.thinM
     value: "0.00001"

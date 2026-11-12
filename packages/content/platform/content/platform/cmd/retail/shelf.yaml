@@ -64,20 +64,19 @@ subcommands:
       Take back a good you consigned that hasn't sold yet — `shelf reclaim
       lantern`. Custody returns to you; you owned it the whole time.
 
-      A two-word name works bare — `shelf reclaim dog loaf` — and quoting works
-      too (`shelf reclaim "dog loaf"`). Where more than one shelf is in reach,
-      say which: `shelf reclaim lantern from the second shelf`.
+      A name with a space in it is quoted — `shelf reclaim "dog loaf"`. Where
+      more than one shelf is in reach, say which: `shelf reclaim lantern from
+      the second shelf`.
     validators:
     - /lib/command/validators/requiresEmbodied
     args:
     - name: thing
       type: string
       required: true
-      greedy: true
     - name: shelf
+      prepositionRequired: true
       type: object
       required: false
-      greedy: true
       prepositions:
       - from
       default: reachable:[mixin.ConsignmentShelfMixin]

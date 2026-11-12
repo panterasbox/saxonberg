@@ -1,7 +1,10 @@
 verbs: [press]
 category: system
-controller: /platform/idea/cmd/system/PressController
-opens_card: news
+# ⭐ One controller per subcommand (controller-liquidity W7a). The
+# verb-level controller is the bare `press <headline>` fallthrough's — the
+# publish shorthand; bare `press` with nothing after it is the READ, a
+# shape of its own in `press-read.yaml`.
+controller: /platform/idea/cmd/system/PressPostController
 description: "The news ticker — the staff→player broadcast feed (post / edit / retract)"
 help: |
   Put something out under a publisher's name, and manage what is
@@ -35,8 +38,9 @@ help: |
   `--kind` classifies it: `changelog`, `decision`, `event`, `notice`
   (default), or `repost` — something somebody else put out, with
   `--source` saying whose. `--pin` sticks it to the top of the
-  window. `--expires` sets a shell-style lifetime (`2h`, `7d`,
-  `1h30m`); without one it never expires.
+  window. `--expires` sets a lifetime with its unit (`2h`, `7d`,
+  `1h30m`, `90 minutes`); without one it never expires. A bare
+  number is refused — a duration names its unit.
 
   `press edit <id> …` revises an existing release; `press
   retract <id>` soft-deletes it (the document stays in the archive
@@ -84,11 +88,12 @@ options:
     field: pin
     description: "Pin to the top of the ticker window"
   expires:
-    type: string
+    type: duration
     field: expires
-    description: "Shell-style lifetime (e.g. 2h, 7d, 1h30m); omit for never"
+    description: "Lifetime with its unit (e.g. 2h, 7d, 1h30m); omit for never"
 subcommands:
   post:
+    controller: /platform/idea/cmd/system/PressPostController
     description: "Publish a new release to the ticker"
     # ⚠ The publisher gate lives HERE, not on the verb.
     #
@@ -109,6 +114,7 @@ subcommands:
         required: true
         greedy: true
   edit:
+    controller: /platform/idea/cmd/system/PressEditController
     description: "Edit an existing release in place (by id)"
     validators:
       - /lib/command/validators/requiresPublisher
@@ -126,6 +132,7 @@ subcommands:
         required: false
         greedy: true
   retract:
+    controller: /platform/idea/cmd/system/PressRetractController
     description: "Retract a release (soft delete — kept in the archive)"
     validators:
       - /lib/command/validators/requiresPublisher
@@ -143,6 +150,5 @@ args:
   # greedy — it consumes the whole inline phrase (a multi-word ticker line).
   - name: headline
     type: string
-    # Not required: bare `press` (no headline) is the READ (PressController).
-    required: false
+    required: true
     greedy: true

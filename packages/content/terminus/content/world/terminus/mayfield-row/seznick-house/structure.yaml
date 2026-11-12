@@ -1,7 +1,7 @@
 # ⭐ Seznick House as ONE building (paint build D6): every unit under it
 # reads this house's fabric, and Mayfield Row — the street before its door
-# — is where it meets the weather, so `look seznick house`, `survey house`
-# and `paint house` answer from the pavement. Its walls and roof stay the
+# — is where it meets the weather, so `look seznick house`, `analyze
+# condition house` and `paint house` answer from the pavement. Its walls and roof stay the
 # places' own (`lint:envelope`).
 class: /platform/idea/Building
 data:

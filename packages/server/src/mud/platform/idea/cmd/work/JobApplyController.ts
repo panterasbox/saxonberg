@@ -81,7 +81,9 @@ export default class JobApplyController extends JobControllerBase<ApplyModel> {
       return this.fail(context, "That house isn't hiring.", 'no-opening');
     }
 
-    const verdict = await house.considerApplicant(giver, opening.position.key);
+    // ⭐ The house decides and hires in one act (D9): the criteria are the
+    // model's, so a replaced controller cannot hire past them.
+    const verdict = await house.apply(giver, opening.position.key);
     if (!verdict.ok) {
       return this.fail(
         context,
@@ -90,7 +92,6 @@ export default class JobApplyController extends JobControllerBase<ApplyModel> {
       );
     }
 
-    await house.appoint(giver, opening.position.key);
     // Being taken on is not being on shift: the chart, not the clock.
     const noun = opening.position.noun ?? opening.position.key;
     MessageApi.scene(giver)

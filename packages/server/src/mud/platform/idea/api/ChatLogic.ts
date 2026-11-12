@@ -12,8 +12,11 @@ import type { ChannelAnonymity } from '../../../lib/social/Channel';
 import type Subject from '../../../lib/forum/Subject';
 import type { AdHocChannel } from '../../../lib/social/AdHocChannel';
 import type ChannelCatalogue from '../ChannelCatalogue';
-import type { ChannelSubscription } from '../ChannelCatalogue';
-import type { MessageFrame } from '@saxonberg/types';
+import type {
+  ChannelActResult,
+  ChannelHistoryResult,
+  ChannelSubscription,
+} from '../ChannelCatalogue';
 import { TemplatePaths } from '../../../lib/paths';
 
 const CATALOGUE_PATH = TemplatePaths.channelCatalogue;
@@ -112,42 +115,57 @@ export class ChatLogic extends ApiLogic {
   /** See {@link ChatApi.attachChatToSubject}. */
   @CallSecurity(ChatApiCallers)
   public async attachChatToSubject(
+    actor: Stuff,
     subject: Subject,
     procedure?: 'open' | 'ordered'
-  ): Promise<Channel> {
-    return (await requireCatalogue()).attachChatToSubject(subject, procedure);
+  ): Promise<ChannelActResult> {
+    return (await requireCatalogue()).attachChatToSubject(
+      actor,
+      subject,
+      procedure
+    );
   }
 
   /** See {@link ChatApi.disbandPlayerChannel}. */
   @CallSecurity(ChatApiCallers)
-  public async disbandPlayerChannel(name: string): Promise<boolean> {
-    return (await requireCatalogue()).disbandPlayerChannel(name);
+  public async disbandPlayerChannel(
+    actor: Stuff,
+    name: string
+  ): Promise<ChannelActResult> {
+    return (await requireCatalogue()).disbandPlayerChannel(actor, name);
   }
 
   /** See {@link ChatApi.setAnonymity}. */
   @CallSecurity(ChatApiCallers)
   public async setAnonymity(
+    actor: Stuff,
     name: string,
     anonymity: ChannelAnonymity
-  ): Promise<Channel> {
-    return (await requireCatalogue()).setAnonymity(name, anonymity);
+  ): Promise<ChannelActResult> {
+    return (await requireCatalogue()).setAnonymity(actor, name, anonymity);
   }
 
   /** See {@link ChatApi.renamePlayerChannel}. */
   @CallSecurity(ChatApiCallers)
   public async renamePlayerChannel(
+    actor: Stuff,
     oldName: string,
     newName: string
-  ): Promise<Channel> {
-    return (await requireCatalogue()).renamePlayerChannel(oldName, newName);
+  ): Promise<ChannelActResult> {
+    return (await requireCatalogue()).renamePlayerChannel(
+      actor,
+      oldName,
+      newName
+    );
   }
 
   /** See {@link ChatApi.historyFor}. */
   @CallSecurity(ChatApiCallers)
   public async historyFor(
+    reader: Stuff,
     channelId: string
-  ): Promise<readonly MessageFrame[]> {
-    return (await requireCatalogue()).historyFor(channelId);
+  ): Promise<ChannelHistoryResult> {
+    return (await requireCatalogue()).historyFor(reader, channelId);
   }
 
   /** See {@link ChatApi.visibleChannels}. */

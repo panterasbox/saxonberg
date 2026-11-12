@@ -67,7 +67,7 @@ export default class ChronicleController extends RecordControllerBase<ChronicleM
     const asked = (model.subject ?? '').trim();
 
     if (!asked) {
-      await this.renderChronicle(actor, actor, context, true);
+      await this.renderChronicle(actor, actor, context);
       return;
     }
 
@@ -88,16 +88,7 @@ export default class ChronicleController extends RecordControllerBase<ChronicleM
       await this.renderInstitution(subject.stuff, actor, context);
       return;
     }
-    const person = subject.stuff;
-    if (person !== actor && person.getPlayerId() !== null) {
-      this.say(
-        context,
-        `${person.getPresentation()}'s story is theirs to tell.`,
-        'chronicle-is-their-own',
-      );
-      return;
-    }
-    await this.renderChronicle(person, actor, context, person === actor);
+    await this.renderChronicle(subject.stuff, actor, context);
   }
 
   private say(context: CommandContext, message: string, reason: string): void {
@@ -108,7 +99,6 @@ export default class ChronicleController extends RecordControllerBase<ChronicleM
     subject: Stuff,
     actor: Stuff,
     context: CommandContext,
-    isSelf: boolean,
   ): Promise<void> {
     if (!MixinApi.isPersona(subject)) {
       this.say(
@@ -118,18 +108,18 @@ export default class ChronicleController extends RecordControllerBase<ChronicleM
       );
       return;
     }
-    const entries = await subject.chronicleEntries();
-
-    // Partition — never interleave. Claims by authored prologue order,
-    // deeds by the game-time witness.
-    const claims = entries
-      .filter((e) => e.kind === 'claim')
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-    const deeds = entries
-      .filter((e) => e.kind === 'deed')
-      .sort((a, b) => (a.when ?? 0) - (b.when ?? 0));
-
-    const bio = subject.getBio();
+    // ⭐ Who may read it is the chronicle's (`Persona.recordFor`): a
+    // player's story is theirs to tell. Partitioned and ordered there.
+    const record = await subject.recordFor(actor);
+    if (!record.ok) {
+      this.say(
+        context,
+        `${subject.getPresentation()}'s story is theirs to tell.`,
+        'chronicle-is-their-own',
+      );
+      return;
+    }
+    const { bio, claims, deeds, self: isSelf } = record.facts;
 
     const blocks: string[] = [];
     if (!isSelf) {

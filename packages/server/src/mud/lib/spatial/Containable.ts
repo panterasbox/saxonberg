@@ -44,6 +44,7 @@ import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { Container } from './Container';
 import type { Placing } from './Placing';
 import type { VetoResult } from '../errors';
+import type { ActRefusal } from '../craft/ActPlan';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { MixinApi } from '../../api/mixin';
@@ -105,6 +106,14 @@ export interface Containable {
   getPlacement(): { host: Stuff & Placing; name: string } | null;
 
   /**
+   * Where this rests, as a record can keep it — the surface's row and the
+   * placement member — or `null` when it rests on nothing. An owner's
+   * estate carries it so the room overlay lays a good back on the rack it
+   * was left on, not on the floor beside it.
+   */
+  getRestingPlace(): { on: string; placement: string } | null;
+
+  /**
    * Privileged setter — only `ContainmentApi.move` may call. Runtime-rejected by the
    * call-security gate otherwise. Authors don't touch this directly;
    * the Api maintains the invariant that a placement is only set when
@@ -134,6 +143,29 @@ export interface Containable {
    * stopped pretending to be weather.
    */
   getEnclosingScope(): Stuff | null;
+
+  /**
+   * ⭐ **The place I am in** — the first container up my chain that is a
+   * Place, walking past a boat, a cart, a bed or a bag (at most eight
+   * hops); my immediate container when no Place is found; `null` when I
+   * am in nothing. `here` in MQL is this, and so are the room a sound is
+   * heard in and the room a horizon is seen from. What IMMEDIATELY holds
+   * me is still `getContainer()` (`me:e`). Controller-liquidity D7.
+   */
+  getEnclosingPlace(): (Stuff & Container) | null;
+
+  /**
+   * ⭐ **Why `actor` cannot lay hands on me, if a lid is why** — the
+   * innermost shut thing between me and the actor or the place, as
+   * `{ reason: 'enclosed-shut', facts: { by } }`; `null` when nothing shut
+   * stands in the way. Read upward through `getEnclosingScope()`, so a
+   * steak in a shut cold compartment is enclosed by the compartment
+   * though its container is the room. It never judges another person's
+   * pockets (that is perception's gate, not a lid). MQL ADDRESSES a thing
+   * in a shut box; the verb asks this and says *the box is shut*
+   * (controller-liquidity D6).
+   */
+  reachRefusal(actor: Stuff): ActRefusal<'enclosed-shut', { by: Stuff }> | null;
 
   /**
    * ⭐ **Bolted down: no agent picks this up or carries it off.** The
@@ -407,6 +439,13 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       return { host, name: this._placementName || Placements.ON };
     }
 
+    /** See the interface docstring. */
+    getRestingPlace(): { on: string; placement: string } | null {
+      const placed = this.getPlacement();
+      const on = placed?.host.getTemplatePath() ?? null;
+      return placed && on ? { on, placement: placed.name } : null;
+    }
+
     /**
      * See the interface docstring. Whether a member encloses is the
      * member's own claim, carried on its `Placement` row — so a pack
@@ -422,6 +461,45 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
       }
       return this.getContainer();
+    }
+
+    /** See the interface docstring (controller-liquidity D7). */
+    getEnclosingPlace(): (Stuff & Container) | null {
+      const first = this.getContainer();
+      let cur: Stuff | null = first;
+      for (let i = 0; cur !== null && i < 8; i++) {
+        if (cur.isPlace() && MixinApi.isContainer(cur)) return cur;
+        cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+      }
+      return first;
+    }
+
+    /** See the interface docstring (controller-liquidity D6). */
+    reachRefusal(
+      actor: Stuff,
+    ): ActRefusal<'enclosed-shut', { by: Stuff }> | null {
+      // What holds the actor holds the actor's side of the lid too: in a
+      // shut wardrobe, the coat beside you is not behind its door.
+      const around = new Set<string>([actor.stuffId]);
+      let up: Stuff | null = actor;
+      for (let i = 0; up !== null && i < 32; i++) {
+        up = MixinApi.isContainable(up) ? up.getContainer() : null;
+        if (up !== null) around.add(up.stuffId);
+      }
+      let cur: Stuff = this as unknown as Stuff;
+      for (let i = 0; i < 32; i++) {
+        if (!MixinApi.isContainable(cur)) return null;
+        const scope = cur.getEnclosingScope();
+        if (scope === null || around.has(scope.stuffId)) return null;
+        if (scope.isPlace()) return null;
+        if (MixinApi.isSealable(scope) && !scope.isOpen()) {
+          return { ok: false, reason: 'enclosed-shut', facts: { by: scope } };
+        }
+        // Another body's insides are perception's question, not a lid's.
+        if (scope.isAgent()) return null;
+        cur = scope;
+      }
+      return null;
     }
 
     /**

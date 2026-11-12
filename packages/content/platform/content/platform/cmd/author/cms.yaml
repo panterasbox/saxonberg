@@ -7,7 +7,7 @@ help: |
   The content editor: the three-tree explorer (workspace, content,
   publications) beside a Monaco pane. It opens as a CARD, so it lives
   in the same feed as everything else you have open and obeys the same
-  pin — `cockpit card pin cms` keeps it, `cockpit card dismiss cms`
+  pin — `client-card pin cms` keeps it, `client-card dismiss cms`
   drops it.
 
   ⚠ It is pinned by default, because an editor that aged out of a

@@ -44,6 +44,7 @@ import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 import Grog from '../thing/Grog';
+import { CommandLineApi } from '@saxonberg/server/mud/api/command-line';
 
 type Moulder = Stuff & Mobile & Containable & Container & CommandGiver;
 
@@ -173,7 +174,7 @@ export const brain = class {
         const word = OPENER_WORDS.find((w) =>
           (yard.getContents() as Stuff[]).some((s) => isOpener(s) && !isPlayers(s) && hasWord(s, w)),
         );
-        if (word) await m.forceCommand(`put ${word} in pit`);
+        if (word) await m.forceCommand(`put ${CommandLineApi.word(word)} in pit`);
       }
       await m.forceCommand('knead pit');
       return;

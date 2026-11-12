@@ -1,6 +1,6 @@
 # A token blank (ceramics S16) — a little flat disc of soft metal, ready to
 # be struck on a die (`hammer blank on die`).
-class: /platform/thing/Ingot
+class: /trade/smithing/thing/Stock
 data:
   shortDescription: token blank
   keywords: [blank, "token blank", flan, disc]

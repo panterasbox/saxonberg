@@ -42,7 +42,6 @@ import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context
 import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import { PersistApi } from '@saxonberg/server/mud/api/persist';
 import {
   TestActor,
   standUpBranchHarness,
@@ -96,7 +95,11 @@ const PRODUCT_ROWS: ReadonlyArray<[string, string]> = [
 ];
 
 let seq = 0;
-let templateRows: Array<Record<string, unknown>> = [];
+
+/** Author a material's `castTemplate` — what it sets as, and what a solid smelt makes. */
+function castsAs(m: Material, row: string): void {
+  (m as unknown as { castTemplate: string }).castTemplate = row;
+}
 let room: TestActor;
 let actor: TestActor;
 let furnace: SmeltingFurnace;
@@ -211,24 +214,6 @@ function productsIn(f: SmeltingFurnace): Map<string, Massed[]> {
 
 beforeEach(async () => {
   await standUpBranchHarness();
-  // ⭐ The product rows the smelt DISCOVERS. `Template.findDescendants`
-  // reads the content collection, so the fixture seeds it — and the
-  // lookup under test is by `_materialPath`, never by a listed name.
-  templateRows = PRODUCT_ROWS.map(([path, materialPath]) => ({
-    path,
-    class: '/platform/thing/Ingot',
-    data: { _materialPath: materialPath },
-  }));
-  // ⚠ Through `PersistApi`, not the PersistenceManager: a pack imports
-  // the kernel only by package specifier, and `backend/` is outside the
-  // server's exports map on purpose (the import boundary `lint:imports`
-  // holds).
-  const realFind = PersistApi.find.bind(PersistApi);
-  vi.spyOn(PersistApi, 'find').mockImplementation(
-    async (collection: string, query: Record<string, unknown>) =>
-      (collection === 'content' ? templateRows : await realFind(collection, query)) as never,
-  );
-
   vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
     if (path === SOUR_ROW) {
       const b = makeStuff(() => new Bloom());
@@ -302,16 +287,15 @@ beforeEach(async () => {
   const castIron = makeStuffAtPath(() => new Alloy(), CAST_IRON);
   castIron.setTags(['alloy', 'metal', 'ferrous', 'brittle']);
   castIron.setDensity(Quantity.of(7200, 'kg/m³'));
-  makeStuffAtPath(() => new Material(), BLOOM_IRON).setTags(['metal', 'ferrous', 'bloom']);
+  const bloomIron = makeStuffAtPath(() => new Alloy(), BLOOM_IRON);
+  bloomIron.setTags(['metal', 'ferrous', 'bloom']);
+  castsAs(bloomIron, BLOOM_ROW);
+  castsAs(steel, STEEL_ROW);
   // ⚠⚠ Hot-short iron: still ferrous, and BRITTLE — which is the tag the
   // smith's own verbs already refuse.
-  makeStuffAtPath(() => new Material(), SOUR_IRON).setTags([
-    'alloy',
-    'metal',
-    'ferrous',
-    'brittle',
-    'sulfurous',
-  ]);
+  const sourIron = makeStuffAtPath(() => new Alloy(), SOUR_IRON);
+  sourIron.setTags(['alloy', 'metal', 'ferrous', 'brittle', 'sulfurous']);
+  castsAs(sourIron, SOUR_ROW);
   makeStuffAtPath(() => new Material(), CARBON).setTags(['element', 'non-metal']);
   const charcoal = makeStuffAtPath(() => new Material(), CHARCOAL_M);
   charcoal.setTags(['fuel', 'carbon', 'organic']);
@@ -717,17 +701,22 @@ describe('⭐⭐ the ferrous ladder — the charge decides the metal', () => {
     expect(declinedFor(await smelt())).not.toBe('mixed-charge');
   });
 
-  it('⭐ the product row is DISCOVERED by material, never listed by name', async () => {
-    // The smelt computes a material and then looks for the row whose
-    // `_materialPath` is that material. ⚠ Asserted by taking the row
-    // AWAY: an author who adds tin adds a row, so a run whose material
-    // has no row must fail loudly rather than eat the charge.
+  it('⭐ the product row is the MATERIAL\'s to name, never listed by the smelt', async () => {
+    // The smelt computes a material and asks it what it sets as
+    // (`getCastTemplate`, controller-liquidity W9 — it used to scan the
+    // trade's rows for a `_materialPath` match). ⚠ Asserted by taking the
+    // name AWAY: a material that names no row of its own sets as the
+    // generic metal casting.
     furnace.setBellowsActive(true);
-    templateRows = templateRows.filter((r) => r['path'] !== BLOOM_ROW);
+    castsAs(StuffApi.findByTemplatePath<Material>(BLOOM_IRON) as Material, '');
     chargeIron(3, 2);
     const context = await smelt();
     await tap();
-    expect(declinedFor(context)).toBe('no-product-row');
+    // No row of its own: it sets as the generic metal casting, which is
+    // what any metal names by default — never a row the smelt listed.
+    expect(declinedFor(context)).toBeUndefined();
+    expect(productsIn(furnace).has(BLOOM_ROW)).toBe(false);
+    expect(productsIn(furnace).has(LUMP_ROW)).toBe(true);
   });
 });
 

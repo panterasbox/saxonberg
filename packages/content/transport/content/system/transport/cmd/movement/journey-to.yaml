@@ -1,0 +1,37 @@
+# `journey to <place> [via <lane>]` — plan a route and set off. The bare
+# read is `journey.yaml`'s; naming a place is what makes it this shape
+# (controller-liquidity W7a).
+verbs: [journey]
+category: movement
+controller: /system/transport/idea/cmd/movement/JourneyController
+description: "Take a vehicle along a lane to somewhere."
+help: |
+  `journey to <place>` plans the route and sets off; `via <lane>` keeps
+  to one lane. Name a stop on the roads from here — the refusal lists
+  them when you name something they do not reach. ⭐ One of two shapes of
+  `journey`: bare `journey` reads the trip you are on.
+examples:
+  - cmd: journey to the crossroads
+    note: Plan the way and set off
+  - cmd: journey to crossroads via spine
+    note: Keep to one lane
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: destination
+    type: string
+    required: true
+    greedy: true
+    prepositions: [to]
+  # ⚠ An ARG with a preposition, not an option. `journey to the depot via
+  # spine` reads the way somebody would say it — and the greedy
+  # destination swallows everything up to the next preposition, so a
+  # bare `via` with nothing to bind it to is a parse error ("unexpected
+  # bareword 'via' after query"). Found by driving, on a help example
+  # this file was already advertising.
+  - name: via
+    type: string
+    required: false
+    prepositions: [via]

@@ -1,0 +1,22 @@
+# rooms — what the place you are standing in answers to, as a PLACE
+# (residences D15/D4, paint D13; the retired `survey`, controller-liquidity
+# W17). `analyze rooms`, no subject: it reads where you stand.
+#
+# ⭐ An eye rung only (`instrument: ""`) and UNBANDED (`discipline: ""`):
+# nothing in it is competence-resolved — whether a room has a bed in it,
+# and what that makes it, is the same answer for everybody. Free and
+# ungated. ⭐ A mirror, never a score: bands and words, no digit, and
+# nothing in the game is gated on it.
+class: /platform/idea/reading/RoomsReading
+data:
+  channel: rooms
+  kind: fact
+  scope: [here]
+  discipline: ""
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    what a place is short of before you furnish it — which room it already
+    is, by what, and who owes its upkeep
+  stakes: >-
+    a kitchen bought for a bedroom; a landlord's roof mended at your cost

@@ -3,19 +3,19 @@
  * `wash` (your own hands). `wash … --hard` scrubs — the same act with more
  * time in it (controllers-are-io D8c: `scrub` was a manner, not a verb).
  *
- * ⭐⭐ **The mixin is the authority; this controller is dumb**
- * (cleanliness D10). It binds the targets, settles the water and reads what
- * it is — its temperature (from what holds it) and its hardness (the water
- * carries its source's) — finds the cleanser rows the named cleansers'
- * materials answer to, and hands every target ONE `WashSpec`. What a wash
- * does — mud out in water and time, grease only to soap or an alkali, blood
- * SET by hot water, a wool jumper felted, a red sock bleeding into the
- * whites — is each target's own `washSite`. This file renders the outcome
- * and nothing else.
+ * ⭐⭐ **One act, and the thing washed is the authority** (cleanliness D10;
+ * `WashableMixin`, controller-liquidity W7c). This controller binds the
+ * targets, asks the water in reach what it is (`WaterDrawable` — its heat
+ * and its hardness, the source's), finds the cleanser rows the named
+ * cleansers' materials answer to, and asks the first thing named for ONE
+ * wash plan with the rest of the load beside it. What a wash does — mud out
+ * in water and time, grease only to soap or an alkali, blood SET by hot
+ * water, a wool jumper felted, a red sock bleeding into the whites — is
+ * each thing's own `washSite`. This file renders the outcome.
  *
- * ⭐ **Bare `wash` washes your hands** — the layer at each hand: the
- * gloves, when you wear them (they come clean; the hands under them are
- * untouched). The recovery build's `scrub` folded in, and kept.
+ * ⭐ **Bare `wash` washes your hands** — your own body asked the same plan
+ * answers with the layer at each hand (`HygieneMixin`): the gloves when you
+ * wear them (they come clean; the hands under them are untouched).
  *
  * Afforded by the water: a `WaterFixture`'s `peers` bucket, a shore's
  * `inventory` bucket — you learn `wash` by standing at water.
@@ -25,26 +25,20 @@ import { ManualBuildController } from "./ManualBuildController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import type { MqlManyResult } from "../../../../api/mql";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
+import type { ActWords } from "../../../../lib/command/EngagedActController";
+import type { WaterDrawRefusal } from "../../../../lib/bulk/WaterDrawable";
+import type { WashBegin, WashFacts, WashRefusal } from "../../../../lib/cleanliness/Washable";
 import { MixinApi } from "../../../../api/mixin";
-import { MessageApi } from "../../../../api/message";
-import { CraftingApi } from '../../../../api/crafting';
 import { Mml } from "../../../../api/mml";
 import { BulkableApi } from "../../../../api/bulk";
-import { StuffApi } from "../../../../api/stuff";
-import { BiomeApi } from "../../../../api/biome";
-import { TemplatePaths } from "../../../../lib/paths";
-import { Quantity } from "../../../../lib/quantity";
 import type {
   WashCleanser,
   WashOutcome,
   WashSpec,
 } from "../../../../lib/cleanliness/Soilable";
 
-const TOPIC = "act.deed";
-/** One plain wash, real milliseconds; a hard one (`--hard`) is three of them. */
-export const WASH_MS = 3000;
-/** Water nobody has measured: a basin at a cool room's warmth. */
-const UNKNOWN_WATER_K = 285;
+type Composed = ReturnType<typeof Mml.compose>;
+
 /** Water hardness nobody has stated — moderately hard (the realm's default seed). */
 const UNKNOWN_HARDNESS_DGH = 8;
 
@@ -66,38 +60,8 @@ export interface WashWater {
 }
 
 export default class WashController extends ManualBuildController<WashModel> {
-  /**
-   * How hard this act works the thing: `1` a wash; `--hard` three washes'
-   * worth with a brush, half that with bare hands (cleanliness D10 — time
-   * is the wash's third contribution, so a scrub is a wash with more of it).
-   */
-  private effort(model?: WashModel): number {
-    if (model?.hard !== true) return 1;
-    return (model.brush?.stuff ?? []).length > 0 ? 3 : 1.5;
-  }
-
-  /** The act's own word, in the scenes — a hard wash is a scrub. */
-  private act(): { self: string; peers: string } {
-    return this.currentModel?.hard === true
-      ? { self: "scrub", peers: "scrubs" }
-      : { self: "wash", peers: "washes" };
-  }
-
-  /** The model of the act in flight (the effort reads its brush). */
-  protected currentModel: WashModel | undefined;
-
   async execute(model: WashModel, context: CommandContext): Promise<void> {
-    this.currentModel = model;
-    // ⭐ A source that has to read itself first (a shore's water, a tap's
-    // main) settles before anything is looked for in it.
-    // ⚠ Bounded (found by the drive: a wash never answered, and the player
-    // could do nothing else). A source that cannot settle in time washes
-    // with what it already knows; the bound is logged so the slow one is
-    // named.
-    for (const c of model.water?.stuff ?? []) {
-      const slot = BulkableApi.slotFor(c, undefined);
-      if (slot) await bounded(slot.settle(), `settle ${c.getTemplatePath()}`);
-    }
+    const giver = context.commandGiver;
     // ⭐ No catalogue (B50): a cleanser is what its MATERIAL names, loaded
     // with it; a dirt kind's row loaded when the dirt was made.
     const found = this.findCleansers(model.cleanser);
@@ -105,131 +69,115 @@ export default class WashController extends ManualBuildController<WashModel> {
       this.declineStep(context, Mml.compose`${found.refusal}`, "not-a-cleanser");
       return;
     }
-    const water = await this.findWater(model.water, context);
-    if ("refusal" in water) {
-      this.declineStep(context, Mml.compose`${water.refusal}`, water.reason);
+    const water = await this.findWater(model.water, giver);
+    if ("reason" in water) {
+      this.declineStep(context, WashController.waterWords(water.reason), water.reason);
       return;
     }
-    const targets = (model.target?.stuff ?? []).filter(
-      (t) => t !== context.commandGiver,
-    );
-    if (targets.length === 0) {
-      this.washHands(water, found.cleansers, context);
-      return;
-    }
-    this.washThings(targets, water, found.cleansers, context);
-  }
-
-  /**
-   * ⭐ The things — every target takes ONE spec, and every other target in
-   * the same water is its co-wash (where an unfast dye's colour goes).
-   */
-  private washThings(
-    targets: Stuff[],
-    water: WashWater,
-    cleansers: WashCleanser[],
-    context: CommandContext,
-  ): void {
-    const giver = context.commandGiver;
-    const soilable = targets.filter((t) => MixinApi.isSoilable(t));
-    // ⭐ The thing says why it is not washed (a strewn earth floor); the
-    // verb only renders it.
-    const refusals = soilable
-      .map((t) => (MixinApi.isSoilable(t) ? t.washRefusal() : null))
-      .filter((r): r is string => r !== null);
-    const washable = soilable.filter(
-      (t) => MixinApi.isSoilable(t) && t.washRefusal() === null,
-    );
-    if (washable.length === 0) {
-      this.declineStep(
-        context,
-        refusals.length > 0
-          ? Mml.compose`${refusals[0]!}`
-          : Mml.compose`You can't wash ${Mml.thing(targets[0]!)} clean.`,
-        refusals.length > 0 ? "not-washed-so" : "not-washable",
-      );
-      return;
-    }
-    const act = this.act();
-    const effort = this.effort(this.currentModel);
-    const names = washable.map((t) => t.getPresentation());
-    this.engageStep(context, {
-      durationMs: WASH_MS * effort,
-      effortW: effort > 1 ? 350 : 200,
-      // ⭐ In the water already (a swimmer, a diver): it is round you, not
-      // somewhere to take things to (found by the underwater browser walk).
-      beginSelf: water.source === context.location
-        ? Mml.compose`You wash ${names.join(", ")} in the water round you${withWords(cleansers)}.${this.fibreWarning(washable, water)}`
-        : Mml.compose`You take ${names.join(", ")} to ${Mml.thing(water.source)}${withWords(cleansers)}.${this.fibreWarning(washable, water)}`,
-      onComplete: () => {
-        // ⭐ One water, several things: the orchestration no one thing
-        // owns (`CraftingApi.wash`, repair's upkeep twin) — each thing's own wash.
-        const results = CraftingApi.wash({
-          items: washable,
-          spec: { waterK: water.waterK, hardnessDgh: water.hardnessDgh, cleansers, effort },
-        });
-        const lines = results.map((r) => describeOutcome(r.item.getPresentation(), r.outcome, act.self));
-        if (MixinApi.isAdvancing(giver)) {
-          // The deed `analyze cleanliness` reads (B57).
-          void giver.creditDeed({ discipline: 'domestic-services', difficulty: 'easy', outcome: 'success' });
-        }
-        MessageApi.scene(giver)
-          .topic(TOPIC)
-          .toSelf(Mml.compose`${lines.join(" ")}`)
-          .toPeers(
-            Mml.compose`${Mml.actor(giver)} ${act.peers} ${names.join(", ")}.`,
-          )
-          .send();
-      },
-    });
-  }
-
-  /**
-   * Bare `wash` — the hands, on the layer each hand wears: the gloves come
-   * clean and the hands under them stay as they were.
-   */
-  private washHands(
-    water: WashWater,
-    cleansers: WashCleanser[],
-    context: CommandContext,
-  ): void {
-    const giver = context.commandGiver;
-    if (!MixinApi.isHygienic(giver) || giver.handSites().length === 0) {
+    const spec: WashSpec = {
+      waterK: water.waterK,
+      hardnessDgh: water.hardnessDgh,
+      cleansers: found.cleansers,
+      effort: WashController.effortOf(model),
+    };
+    // ⭐ Your own body, asked, washes its hands: bare `wash`, or `wash me`.
+    const things = (model.target?.stuff ?? []).filter((t) => t !== giver);
+    const lead: Stuff = things[0] ?? giver;
+    if (!MixinApi.isWashable(lead)) {
       this.declineStep(context, Mml.compose`Wash what?`, "no-hands");
       return;
     }
-    const effort = this.effort(this.currentModel);
-    const gloved = giver.handSites().some((h) => giver.outermostAt(h) !== null);
-    this.engageStep(context, {
-      durationMs: WASH_MS * effort,
-      effortW: effort > 1 ? 350 : 200,
-      beginSelf: water.source === context.location
-        ? Mml.compose`You wash your ${gloved ? "gloves" : "hands"} in the water round you${withWords(cleansers)}.`
-        : Mml.compose`You step to ${Mml.thing(water.source)} to wash your ${gloved ? "gloves" : "hands"}${withWords(cleansers)}.`,
-      onComplete: () => {
-        giver.washHands({
-          waterK: water.waterK,
-          hardnessDgh: water.hardnessDgh,
-          cleansers,
-          effort,
-        });
-        const clean = giver.handCleanliness() >= 0.9;
+    const plan = lead.washPlanFor({ actor: giver, spec, alongside: things.slice(1) });
+    const words = WashController.washWords(giver, water, found.cleansers, model.hard === true, context.location === water.source);
+    if (!plan.ok) {
+      this.declineStep(context, words.onRefused(plan), plan.reason);
+      return;
+    }
+    await this.engagePlan(context, plan, words);
+  }
+
+  /**
+   * How hard this act works the thing: `1` a wash; `--hard` three washes'
+   * worth with a brush, half that with bare hands (cleanliness D10 — time
+   * is the wash's third contribution, so a scrub is a wash with more of it).
+   */
+  protected static effortOf(model: WashModel): number {
+    if (model.hard !== true) return 1;
+    return (model.brush?.stuff ?? []).length > 0 ? 3 : 1.5;
+  }
+
+  /** ⭐ The words for one wash (D4) — the things, or the hands. */
+  protected static washWords(
+    giver: Stuff,
+    water: WashWater,
+    cleansers: readonly WashCleanser[],
+    hard: boolean,
+    inIt: boolean,
+  ): ActWords<WashBegin, WashFacts, WashRefusal> {
+    const act = hard ? { self: "scrub", peers: "scrubs" } : { self: "wash", peers: "washes" };
+    const soap = withWords(cleansers);
+    return {
+      beginSelf: (b) => {
+        if (b.kind === "hands") {
+          const what = b.gloved ? "gloves" : "hands";
+          // ⭐ In the water already (a swimmer, a diver): it is round you, not
+          // somewhere to take things to (found by the underwater browser walk).
+          return inIt
+            ? Mml.compose`You wash your ${what} in the water round you${soap}.`
+            : Mml.compose`You step to ${Mml.thing(water.source)} to wash your ${what}${soap}.`;
+        }
+        const names = b.items.map((t) => t.getPresentation()).join(", ");
+        const warn = WashController.fibreWarning(b.items, water);
+        return inIt
+          ? Mml.compose`You wash ${names} in the water round you${soap}.${warn}`
+          : Mml.compose`You take ${names} to ${Mml.thing(water.source)}${soap}.${warn}`;
+      },
+      onRefused: (r) => WashController.refusalWords(r),
+      onDone: (f) => {
         if (MixinApi.isAdvancing(giver)) {
           // The deed `analyze cleanliness` reads (B57).
-          void giver.creditDeed({ discipline: 'domestic-services', difficulty: 'easy', outcome: 'success' });
+          void giver.creditDeed({ discipline: "domestic-services", difficulty: "easy", outcome: "success" });
         }
-        const what = gloved ? "gloves" : "hands";
-        MessageApi.scene(giver)
-          .topic(TOPIC)
-          .toSelf(
-            clean
+        if (f.kind === "hands") {
+          const what = f.gloved ? "gloves" : "hands";
+          return {
+            self: f.clean
               ? Mml.compose`You scrub your ${what} clean under the water.`
               : Mml.compose`You wash your ${what}, but they are not clean yet.`,
-          )
-          .toPeers(Mml.compose`${Mml.actor(giver)} washes their ${what}.`)
-          .send();
+            peers: Mml.compose`${Mml.actor(giver)} washes their ${what}.`,
+          };
+        }
+        const lines = f.results.map((r) => describeOutcome(r.item.getPresentation(), r.outcome, act.self));
+        const names = f.results.map((r) => r.item.getPresentation()).join(", ");
+        return {
+          self: Mml.compose`${lines.join(" ")}`,
+          peers: Mml.compose`${Mml.actor(giver)} ${act.peers} ${names}.`,
+        };
       },
-    });
+    };
+  }
+
+  /** ⭐ Every reason, exhaustively. */
+  protected static refusalWords(r: WashRefusal): Composed {
+    switch (r.reason) {
+      case "not-washed-so":
+        return Mml.compose`${r.facts.why}`;
+      case "not-washable":
+        return Mml.compose`That won't wash clean.`;
+      case "no-hands":
+        return Mml.compose`Wash what?`;
+      default: {
+        const never: never = r;
+        return never;
+      }
+    }
+  }
+
+  /** Why there is no water to wash in. */
+  protected static waterWords(reason: WaterDrawRefusal["reason"]): Composed {
+    return reason === "frozen"
+      ? Mml.compose`The water is frozen over. You would need a hole in the ice.`
+      : Mml.compose`There's no water here to wash in.`;
   }
 
   /**
@@ -237,7 +185,7 @@ export default class WashController extends ManualBuildController<WashModel> {
    * access) — the textiles band tells you *wool — it will felt if boiled*.
    * An untrained hand finds out after.
    */
-  private fibreWarning(targets: Stuff[], water: WashWater): string {
+  protected static fibreWarning(targets: readonly Stuff[], water: WashWater): string {
     if (water.waterK < 363) return "";
     for (const t of targets) {
       if (!MixinApi.isTangible(t)) continue;
@@ -268,51 +216,35 @@ export default class WashController extends ManualBuildController<WashModel> {
   }
 
   /**
-   * The water: a bulk holder of water or brine in reach (a basin, a tap, a
-   * tub, a pail), or the water a shore is beside — read through the
-   * shore's one answer, which refuses a frozen water unless there is a
-   * hole in it.
+   * ⭐ The water: the first of the bound sources that gives any
+   * (`WaterDrawable.drawWaterFor` — a vessel's water or brine, settled; a
+   * shore's, which refuses a frozen water unless there is a hole in it).
+   * Its heat and hardness are the draw's.
+   *
+   * ⚠ Bounded (found by the drive: a wash never answered, and the player
+   * could do nothing else). A source that cannot settle in time is passed
+   * over; the bound is logged so the slow one is named.
    */
   protected async findWater(
     bound: MqlManyResult | undefined,
-    context: CommandContext,
-  ): Promise<WashWater | { refusal: string; reason: string }> {
-    const room = context.location ?? null;
-    let frozenLine: string | null = null;
+    actor: Stuff,
+  ): Promise<WashWater | { reason: WaterDrawRefusal["reason"] }> {
+    let why: WaterDrawRefusal["reason"] = "no-water";
     for (const c of bound?.stuff ?? []) {
-      if (MixinApi.isShore(c)) {
-        const pick = c.waterFor();
-        if ("refusal" in pick) continue;
-        // Settle the read first: the shore's gate answers from the read.
-        await c.settleWater(pick.key);
-        const drawn = c.drawAt(pick.key, room ?? c);
-        if ("refusal" in drawn) {
-          if (drawn.refusal === "frozen") frozenLine = drawn.line;
-          continue;
-        }
-        return {
-          source: c,
-          waterK: drawn.draw.temperatureK,
-          hardnessDgh: drawn.draw.hardnessDgh ?? UNKNOWN_HARDNESS_DGH,
-        };
+      if (!MixinApi.isWaterDrawable(c)) continue;
+      const drawn = await bounded(c.drawWaterFor(actor), `draw ${c.getTemplatePath()}`);
+      if (drawn === undefined) continue;
+      if (!drawn.ok) {
+        if (drawn.reason === "frozen") why = "frozen";
+        continue;
       }
-      // A crafted vessel's contents are a product, not wash water.
-      if (MixinApi.isCrafted(c) && !MixinApi.isSoilable(c)) continue;
-      if (!MixinApi.isBulkable(c)) continue;
-      const slot = BulkableApi.slotFor(c, undefined);
-      if (!slot || slot.isEmpty()) continue;
-      const m = slot.getMaterial();
-      // ⭐ Water is the material's `water` tag; salt water washes by its
-      // own `brine` tag (a deck at sea) — never by giving it `water`.
-      if (!m || !(m.hasTag("water") || m.hasTag("brine"))) continue;
       return {
         source: c,
-        waterK: slot.getTemperatureK() ?? ambientK(c),
-        hardnessDgh: slot.getHardnessDgh() ?? UNKNOWN_HARDNESS_DGH,
+        waterK: drawn.facts.draw.temperatureK,
+        hardnessDgh: drawn.facts.draw.hardnessDgh ?? UNKNOWN_HARDNESS_DGH,
       };
     }
-    if (frozenLine) return { refusal: frozenLine, reason: "frozen" };
-    return { refusal: "There's no water here to wash in.", reason: "no-water" };
+    return { reason: why };
   }
 }
 
@@ -341,17 +273,8 @@ function materialOf(c: Stuff) {
   return MixinApi.isTangible(c) ? c.getMaterial() : null;
 }
 
-function ambientK(c: Stuff): number {
-  try {
-    const room = MixinApi.isContainable(c) ? c.getContainer() : null;
-    if (room && MixinApi.isContainer(room)) return BiomeApi.airFor(room).tempK;
-  } catch {
-    // fall through
-  }
-  return UNKNOWN_WATER_K;
-}
 
-function withWords(cleansers: WashCleanser[]): string {
+function withWords(cleansers: readonly WashCleanser[]): string {
   if (cleansers.length === 0) return "";
   const keys = cleansers.map((c) => c.row.key.replace(/-/g, " "));
   return ` with ${keys.join(" and ")}`;

@@ -11,17 +11,13 @@ import { parse } from 'yaml';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import Livestock from '../agent/Livestock';
-import DraftController from '../idea/cmd/ranching/DraftController';
 
 const named = (sex: string): string[] => {
   const species = makeStuff(() => new Species());
   species.setCommonNames(['cow', 'cattle', 'heifer', 'bull', 'calf', 'ox', 'beast']);
   species.setMaleNames(['bull', 'ox']);
   const head = makeStuff(() => new Livestock());
-  const draft = makeStuff(() => new DraftController()) as unknown as {
-    nameAfterSpecies(animal: Livestock, species: Species, sex: string): void;
-  };
-  draft.nameAfterSpecies(head, species, sex);
+  head.answerToSpecies(species, sex);
   return head.getKeywords();
 };
 

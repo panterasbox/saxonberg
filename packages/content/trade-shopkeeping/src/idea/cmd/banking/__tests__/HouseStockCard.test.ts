@@ -20,7 +20,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { CARDS } from '@saxonberg/server/mud/lib/connection/Cards';
 import { CARD_IDS } from '@saxonberg/types';
-import HouseShopController from '../HouseShopController';
+import HouseStockController from '../HouseStockController';
 import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Receptacle from '@saxonberg/server/mud/platform/thing/Receptacle';
@@ -88,7 +88,7 @@ describe('the stock card', () => {
     });
     await withRootContext(null, 'stock-card.test', () => {
       ExecutionContextApi.tagActingAuthor(h.avatar);
-      return makeStuff(() => new HouseShopController()).execute({ subcommand: 'stock' } as never, ctx);
+      return makeStuff(() => new HouseStockController()).execute({ subcommand: 'stock' } as never, ctx);
     });
 
     const opened = h.ofType('card-opened');

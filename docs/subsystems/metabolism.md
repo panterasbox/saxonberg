@@ -407,6 +407,16 @@ condition clears on the next reconcile. It is the minimal consumer of the
 vitals `ResolutionSpec` treatment seam (the toxin conditions author
 `resolution.by`); no treatment verb is required by this build.
 
+⭐ **`dose` asks the body, and the substance decides**
+(`Metabolic.dosePlanFor(by, remedy, prescriptions)`, controller-liquidity
+W7c): an `antidote:<toxin>` tag on the vial's matter crashes each matching
+burden; an `active` tag is introduced as a burden — a controlled active
+(its Condition row's `prescriptionOnly`) only by a `competent` medic or
+against a `Prescription` for THIS body. A closed `DoseRefusal`
+(`no-remedy` · `empty-vial` · `nothing-to-counter` · `wrong-patient` ·
+`not-licensed`) is what the verb words; the plan is instant
+(`durationMs: 0`) and spends the dose at completion.
+
 ## Deliberately not modeled
 
 **Waste** (defecation/urination as a tracked reserve) is not a mechanic

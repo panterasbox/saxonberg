@@ -107,8 +107,8 @@ suite('the workings — the ground answers, and remembers', () => {
   }, 120_000);
   afterAll(() => m?.close());
 
-  it('⭐ `survey` — the MIRROR — answers in a working for free', async () => {
-    const said = await m.prose('survey');
+  it('⭐ `analyze rooms` — the MIRROR — answers in a working for free', async () => {
+    const said = await m.prose('analyze rooms');
     expect(said.length).toBeGreaterThan(0);
   });
 

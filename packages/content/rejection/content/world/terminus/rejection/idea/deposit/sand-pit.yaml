@@ -11,7 +11,7 @@
 # outright over everything, so the clean/dirty split is deterministic and
 # needs no lode geometry:
 #   - clean-face room at cell (0,0) → "0,0,-3"  → iron 0.0003 (clear ware)
-#   - dirty-face room at cell (2,0) → "20,0,-3" → iron 0.012  (green only)
+#   - dirty-face room at cell (1,0) → "10,0,-3" → iron 0.012  (green only)
 # Through the batch's dilution these land clear and bottle-green in the
 # finished ware — the colour the glassmaker reads off the sand with
 # `analyze iron` before ever firing it.
@@ -25,4 +25,4 @@ data:
   features:
     pins:
       "0,0,-3": { mineral: /stuff/idea/material/element/iron, grade: 0.0003 }
-      "20,0,-3": { mineral: /stuff/idea/material/element/iron, grade: 0.012 }
+      "10,0,-3": { mineral: /stuff/idea/material/element/iron, grade: 0.012 }

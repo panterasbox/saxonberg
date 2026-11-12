@@ -6,9 +6,9 @@
  * clientState keyspace. They are now subcommands of one verb:
  *
  *   - `cockpit mode <name>`     — the activity axis (CockpitModeController)
- *   - `cockpit layout <name>`   — the arrangement (LayoutController)
+ *   - `client-layout <name>`   — the arrangement (LayoutController)
  *   - `cockpit cli [id] --prefix …` — per-line input prefix (CliController)
- *   - `cockpit style <sub> …`   — appearance (StyleController)
+ *   - `client-style <sub> …`   — appearance (StyleController)
  *
  * Each subcommand declares its own `controller:` (Option E), so this
  * controller handles exactly one case: **bare `cockpit`**, which reports
@@ -74,7 +74,7 @@ export default class CockpitController extends CommandController<CommandModel> {
   /**
    * How much of the shelf is pinned. A count rather than the row list:
    * the bare report answers "how is my cockpit set up right now" at a
-   * glance, and `cockpit shelf list` is one keystroke away for the
+   * glance, and `client-shelf list` is one keystroke away for the
    * detail. The denominator is named so the count means something.
    */
   private describeShelf(host: CockpitHost): string {
@@ -101,7 +101,7 @@ export default class CockpitController extends CommandController<CommandModel> {
   /** Theme plus a count of the remaining overlay rules. */
   private describeStyle(host: CockpitHost): string {
     const overlay = host.getClientState<StyleOverlay>(STYLE_KEY) ?? {};
-    // ⚠ The fallback must be a theme `cockpit style theme` ACCEPTS. It
+    // ⚠ The fallback must be a theme `client-style theme` ACCEPTS. It
     // read 'default' until the civic rename, which meant `cockpit`
     // reported a theme name the verb refuses — the report and the verb
     // have to agree on the vocabulary or the round trip is a lie.

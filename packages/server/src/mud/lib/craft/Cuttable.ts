@@ -22,127 +22,37 @@
  * cloth). The second exists because the trade that knows how to cut a thing
  * is not always the trade that made it: the bolt is the weaver's, the
  * pattern the tailor's, and the instrument affords the verb.
+ *
+ * ⭐⭐ **`cut` is ONE act, and the other cutting acts are not it**
+ * (controller-liquidity D14). This protocol once answered ten verbs by a
+ * verb string on the request; a target narrowed on the string and a
+ * controller narrowed on the answer's tag. Now each act that has more than
+ * one host is its own small protocol — `RivableMixin` (the froe),
+ * `ButcherableMixin` (the butcher's knife) — and an act with one host is a
+ * method on it (the bole's `sawPlanFor`, the ice sheet's
+ * `groovePlan`/`scrapePlan`, the glass sheet's
+ * `scribePlan`/`snapPlan`/`grozePlan`). The cross-cut of a
+ * felled bole IS a cut — one length of round timber off it — so the bole
+ * answers here, and `fell` stopped cross-cutting.
  */
 
 import type { Stuff } from '../stuff/Stuff';
 import type { ActPlan, ActRefusal } from './ActPlan';
 import type { MixinConstructor } from '../mixin';
-import type { CraftingFailure } from './CraftingDecline';
-import type Material from '../material/Material';
-
-/**
- * ⭐ Every cutting act a target may be asked to plan (controllers-are-io
- * D8c): the kernel's `cut`, and the trade cuts that ask the same target —
- * the saw, the froe, the cross-cut, the butcher's knife, the glazier's
- * wheel and pliers, the ice plough and scraper. Each verb's answers are an
- * entry in {@link CutAnswers}; the request names the verb, the answer
- * carries it back, and the asking controller narrows on it.
- */
-export type CutVerb = keyof CutAnswers;
-
-/**
- * ── The trade cuts that ask a target (controllers-are-io D8c): the saw and
- * the froe and the cross-cut on a felled bole or a billet, the butcher's
- * knife on a carcass, the glazier's wheel and pliers on flat glass. ⭐ Only
- * the cut's DECISION is the target's — will it cut, what the cut takes off
- * it, what it makes; the instrument checks stay with each verb.
- *
- * ⚠ `saw` and `butcher` answer a plan the CONTROLLER drives
- * (`durationMs: 0`, never engaged by `engagePlan`): a sawmill paces the cut
- * by the log's mass and the race, and a butchering is instant — the target
- * answers the facts (the charge; the carcass ledger) and its `onComplete`
- * is the take, called by the verb at the moment the cut consumes it.
- */
-
-/** What a log puts on the saw carriage, and how green it is. */
-export interface SawCharge {
-  kg: number;
-  /** The wood. */
-  material: Material | null;
-  /** Seasoned fraction of what went on (a bole is green: 0). */
-  seasoned: number;
-}
-/** What the saw's take left of the log. */
-export interface SawTaken {
-  /** Lengths still in it; 0 = the butt, and it is gone. */
-  left: number;
-}
-export type SawRefusal =
-  | ActRefusal<'not-cuttable'>
-  | ActRefusal<'not-sawable'>
-  | ActRefusal<'bole-spent'>;
-
-/** `rive` — a length off a bole into billets, or a billet into a recipe's piece. */
-export type RiveBegin = { kind: 'bole'; bole: Stuff } | { kind: 'billet' };
-export type RiveDone =
-  /** Billets off a bole; `left` lengths still in it (0: the butt, gone — `boleName`). */
-  | { kind: 'billets'; count: number; wandered: boolean; left: number; bole: Stuff; boleName: string }
-  /** A billet riven into a recipe's piece (`riven` — the billet, named before it went). */
-  | { kind: 'piece'; riven: string; output: Stuff }
-  /** The bole or the rover was gone when it landed. */
-  | { kind: 'gone' };
-export type RiveRefusal =
-  | ActRefusal<'not-cuttable'>
-  | ActRefusal<'will-not-rive', { woodName: string }>
-  | ActRefusal<'bole-spent'>
-  | ActRefusal<'not-rivable-into', { word: string; choices: readonly string[] }>
-  | ActRefusal<'nothing-to-rive'>
-  | ActRefusal<'which-rive', { names: readonly string[] }>
-  /** The craft refused — `failure` is the crafting failure, said as a craft says it. */
-  | ActRefusal<'craft-refused', { failure: CraftingFailure }>;
-
-/** `fell bole` — one length of timber off the trunk. */
-export interface CrosscutBegin {
-  bole: Stuff;
-}
-export type CrosscutDone =
-  | { kind: 'length'; timber: Stuff; bole: Stuff; left: number }
-  /** The last length: the bole is gone (`boleName`, named before it went). */
-  | { kind: 'last'; boleName: string }
-  | { kind: 'gone' };
-export type CrosscutRefusal = ActRefusal<'not-cuttable'> | ActRefusal<'bole-spent'>;
-
-/** One line of a species' yield, as the butcher asks the carcass about it. */
-export interface CarcassLine {
-  /** The cut row's path. */
-  cut: string;
-  /** The muscles it claims (empty = a whole line, kept by its path). */
-  tissues: readonly string[];
-}
-/**
- * ⭐ The carcass ledger a body answers `butcher` with: the condition it
- * died in, and which lines are still on it. A line taken is marked here.
- */
-export interface ButcherCarcass {
-  /** The condition frozen at the kill, or `null` when none was stamped. */
-  fleshPct: number | null;
-  /** Is this line still on the body? */
-  stillOn(line: CarcassLine): boolean;
-  /** Mark this line taken off the body. */
-  take(line: CarcassLine): void;
-}
-/** Every line of the species' yield is off the body — it goes. */
-export interface ButcherDone {
-  spent: boolean;
-}
-
-/** The snap: the sheet that parted (named before it went). */
-export interface GlassSnapDone {
-  sheetName: string;
-}
-/** The cold-bench cuts on flat glass. */
-export type GlassCutRefusal = ActRefusal<'not-cuttable'> | ActRefusal<'unscribed'>;
 
 /** What the cut verb hands the target. */
-export interface CutRequest<V extends CutVerb = CutVerb> {
-  /** ⭐ Which cut is asked — the target answers this verb only. */
-  verb: V;
+export interface CutRequest {
   /** Who is cutting. */
   actor: Stuff;
   /** The tools the binder bound (the target narrows them by capability). */
   tools: readonly Stuff[];
-  /** The raw word when the target was a word rather than a thing (`hole`, `marked`). */
-  raw: string | null;
+  /**
+   * The word naming a PART of the target when the target was a word rather
+   * than a thing (`cut hole`, `cut marked` — a patch of the ice underfoot),
+   * else `null`. (controller-liquidity D14: it was `raw`, the typed text;
+   * only a part word survives.)
+   */
+  part: string | null;
   /**
    * ⭐ How much to cut off, as the player wrote it (`cut rope at 10 m`), or
    * `null` (cordage D4). The target parses it; most targets ignore it.
@@ -152,34 +62,11 @@ export interface CutRequest<V extends CutVerb = CutVerb> {
   options: CutOptions;
 }
 
-/** The options any cut verb carries through; a target reads the ones it knows. */
+/** The options `cut` carries through; a target reads the ones it knows (cloth's). */
 export interface CutOptions {
   for?: Stuff | null;
   tight?: boolean;
   generous?: boolean;
-  /** The word for what to cut it into (`rive billet into shakes`). */
-  into?: string;
-  /** `butcher`: every line of the species' yield, for the carcass's spent check. */
-  lines?: readonly CarcassLine[];
-}
-
-/**
- * ⭐ The answers of each cut verb, by verb: what its begin words need, what
- * its done words need, and every reason it refuses. ⚠ Every entry's refusal
- * includes `not-cuttable` — {@link CuttableMixin}'s default.
- */
-export interface CutAnswers {
-  cut: { begin: CutBegin; done: CutDone; refusal: CutRefusal };
-  groove: { begin: undefined; done: GrooveDone; refusal: GrooveRefusal };
-  scrape: { begin: undefined; done: ScrapeDone; refusal: ScrapeRefusal };
-  // ── the wood, the carcass and the cold glass bench (F4 section below)
-  saw: { begin: SawCharge; done: SawTaken; refusal: SawRefusal };
-  rive: { begin: RiveBegin; done: RiveDone; refusal: RiveRefusal };
-  crosscut: { begin: CrosscutBegin; done: CrosscutDone; refusal: CrosscutRefusal };
-  butcher: { begin: ButcherCarcass; done: ButcherDone; refusal: ActRefusal<'not-cuttable'> };
-  scribe: { begin: undefined; done: undefined; refusal: GlassCutRefusal };
-  snap: { begin: undefined; done: GlassSnapDone; refusal: GlassCutRefusal };
-  groze: { begin: undefined; done: undefined; refusal: GlassCutRefusal };
 }
 
 /** The kernel `cut`'s begin facts — by what is being cut. */
@@ -191,7 +78,9 @@ export type CutBegin =
   /** A pattern chalked on cloth — to `subject`'s measure or stock; `waste` = no bench under it. */
   | { kind: 'pattern'; cloth: Stuff; subject: Stuff | null; waste: boolean }
   /** The ice saw set to the ice — a hole for a line, or the grid. */
-  | { kind: 'ice'; hole: boolean };
+  | { kind: 'ice'; hole: boolean }
+  /** ⭐ A felled bole cross-cut — one length of round timber off it (D14: it was `fell bole`). */
+  | { kind: 'length'; bole: Stuff };
 
 /** The kernel `cut`'s done facts. */
 export type CutDone =
@@ -203,6 +92,10 @@ export type CutDone =
   | { kind: 'ice-hole' }
   /** A block off the grid (`null` — the ice would not give one). */
   | { kind: 'ice-block'; block: Stuff | null; kg: number }
+  /** A length of timber off a bole; `left` lengths still in it. */
+  | { kind: 'length'; timber: Stuff; bole: Stuff; left: number }
+  /** The last length: the bole is gone (`boleName`, named before it went). */
+  | { kind: 'last-length'; boleName: string }
   /** The thing was gone by the time the cut landed — nothing to say. */
   | { kind: 'gone' };
 
@@ -226,36 +119,15 @@ export type CutRefusal =
   | ActRefusal<'not-on-ice'>
   | ActRefusal<'no-ice'>
   | ActRefusal<'no-grid'>
-  | ActRefusal<'open'>;
-
-/** `groove`'s done facts: the grid scored, its spacing. */
-export type GrooveDone = { gridCm: number };
-/** ⭐ Every reason `groove` is refused (water `IceSheet`) — trade-ice words each. */
-export type GrooveRefusal =
-  | ActRefusal<'not-cuttable'>
-  | ActRefusal<'not-on-ice'>
-  | ActRefusal<'no-horse'>
-  | ActRefusal<'no-clear-ice'>
-  | ActRefusal<'open'>;
-
-/** `scrape`'s done facts: the area scraped down to the black. */
-export type ScrapeDone = { areaM2: number };
-/** ⭐ Every reason `scrape` is refused (water `IceSheet`) — trade-ice words each. */
-export type ScrapeRefusal =
-  | ActRefusal<'not-cuttable'>
-  | ActRefusal<'not-on-ice'>
-  | ActRefusal<'no-snowy-ice'>
   | ActRefusal<'open'>
-  | ActRefusal<'nothing-left'>;
+  // a felled bole (trade-forestry `Bole`)
+  | ActRefusal<'no-felling-axe'>
+  | ActRefusal<'bole-spent'>;
 
-/** One verb's answer: its plan or its refusal, tagged with the verb. */
-export type CutAnswerFor<V extends CutVerb> = (
-  | ActPlan<CutAnswers[V]['begin'], CutAnswers[V]['done'], CutAnswers[V]['refusal']>
-  | CutAnswers[V]['refusal']
-) & { verb: V };
-
-/** Any cut verb's answer — narrowed by the asking controller on `verb`. */
-export type CutAnswer = { [V in CutVerb]: CutAnswerFor<V> }[CutVerb];
+/** The kernel `cut`'s plan. */
+export type CutPlan = ActPlan<CutBegin, CutDone, CutRefusal>;
+/** A cut's answer: its plan, or its refusal. */
+export type CutAnswer = CutPlan | CutRefusal;
 
 /** A thing that can plan a cut for an actor with a tool. */
 export interface Cuttable {
@@ -279,8 +151,8 @@ export function CuttableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
     static _mixinKind = 'protocol' as const;
 
     /** @hook Plan the cut, or refuse; the default refuses. */
-    public async cutPlan(req: CutRequest): Promise<CutAnswer> {
-      return { ok: false, verb: req.verb, reason: 'not-cuttable' } as CutAnswer;
+    public async cutPlan(_req: CutRequest): Promise<CutAnswer> {
+      return { ok: false, reason: 'not-cuttable' };
     }
   };
 }

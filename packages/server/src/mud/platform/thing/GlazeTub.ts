@@ -2,7 +2,7 @@
  * GlazeTub — ⭐ a compounding vessel that is also a coat BATH: a glaze tub,
  * a slip tub. What a tub of glaze IS is a bath you dip a pot in (B101): it
  * affords `dip` and plans it, and it mixes its glaze like any compounding
- * vessel (`stir`). ⚠ Its own kind because an affordance is a static on the
+ * vessel (`knead` — a slurry, so stirred). ⚠ Its own kind because an affordance is a static on the
  * CLASS: the temper pit, the glass batch pot, the rubber mixing tub and the
  * plaster tub are compounding vessels and are NOT baths, and they no longer
  * claim `dip` only to decline it.

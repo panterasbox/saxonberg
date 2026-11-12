@@ -8,9 +8,11 @@
  * re-emits the FULL state (`session.identity`) — every field's
  * options + the current picks + what's missing. There is no server-side
  * "current step"; layout/flow is entirely the client's (so single-page
- * vs multi-step is a pure client change). `embody confirm` gates on
- * nothing-missing, then runs the atomic commit: fork the per-character
- * template, register ownership, clone + dress the Avatar, hand off.
+ * vs multi-step is a pure client change). `embody confirm` is its own
+ * controller (`EmbodyConfirmController`, controller-liquidity W7c — the
+ * commit is a different act from editing the draft): it gates on
+ * nothing-missing, then runs the atomic commit here ({@link commit}):
+ * clone + dress the Avatar, register ownership, hand off.
  *
  * The rosters (species / pronouns / aspirations) are CONTENT
  * (`config/char-gen.yaml`), loaded + cached here — not a switch. The
@@ -91,7 +93,7 @@ const PRONOUN_OPTIONS: CharGenOption[] = PLAYER_PRONOUNS.map((v) => ({
   label: PRONOUN_LABELS[v] ?? v,
 }));
 
-interface EmbodyModel extends CommandModel {
+export interface EmbodyModel extends CommandModel {
   /** The raw `<field> <value...>` tail; split inside execute. */
   rest?: string;
 }
@@ -532,17 +534,7 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
   private ctx!: CommandContext;
 
   async execute(model: EmbodyModel, context: CommandContext): Promise<void> {
-    this.ctx = context;
-    const login = context.commandGiver as unknown as Login;
-    let draft = login.getCharacterDraft();
-    if (!draft) {
-      draft = {};
-      login.setCharacterDraft(draft);
-    }
-    const cfg = EmbodyController.loadConfig();
-    // Pre-warm the species presentation cache so the sync `options()`
-    // builder can read it. Cheap after the first call.
-    await EmbodyController.ensureSpeciesCards(cfg);
+    const { login, draft, cfg } = await this.prepare(context);
 
     // Split the raw tail into `<field> <value...>`.
     const rest = (model.rest ?? "").trim();
@@ -553,26 +545,6 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
     if (!field) {
       // Bare `embody` → emit the current draft state.
       this.emitState(login, draft, cfg);
-      return;
-    }
-
-    if (field === "confirm") {
-      const missing = computeMissing(draft, cfg);
-      if (missing.length) {
-        this.emitState(login, draft, cfg, {
-          field: missing[0]!,
-          message: `Still to choose: ${missing.join(", ")}.`,
-        });
-        context.note({
-          kind: "controller-rejected",
-          reason: "embody-incomplete",
-          detail: missing.join(","),
-        });
-        return;
-      }
-      // Atomic commit + hand off; commit fires its own final frames, so
-      // no state frame here.
-      await this.commit(draft, cfg);
       return;
     }
 
@@ -613,6 +585,33 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
     this.emitState(login, draft, cfg);
   }
 
+  /**
+   * The login, its draft (made on first use) and the char-gen config, with
+   * the species presentation pre-warmed — what every `embody` form starts
+   * from (the edit here, the commit in {@link EmbodyConfirmController}).
+   */
+  protected async prepare(
+    context: CommandContext,
+  ): Promise<{ login: Login; draft: CharacterDraft; cfg: CharGenConfig }> {
+    this.ctx = context;
+    const login = context.commandGiver as unknown as Login;
+    let draft = login.getCharacterDraft();
+    if (!draft) {
+      draft = {};
+      login.setCharacterDraft(draft);
+    }
+    const cfg = EmbodyController.loadConfig();
+    // Pre-warm the species presentation cache so the sync `options()`
+    // builder can read it. Cheap after the first call.
+    await EmbodyController.ensureSpeciesCards(cfg);
+    return { login, draft, cfg };
+  }
+
+  /** What is still to choose before the draft can be committed. */
+  protected missingOf(draft: CharacterDraft, cfg: CharGenConfig): CharGenField[] {
+    return computeMissing(draft, cfg);
+  }
+
   /** (Re)generate the species-themed name suggestion onto the draft. */
   public async refreshSuggestion(
     draft: CharacterDraft,
@@ -626,7 +625,7 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
   }
 
   /** Emit the full char-gen draft state (the whole picture, every time). */
-  private emitState(
+  protected emitState(
     login: Login,
     draft: CharacterDraft,
     cfg: CharGenConfig,
@@ -710,12 +709,7 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
     // has to be defended against being farmed.
     overlay.bornAt = WorldClockApi.getNow().rawValue();
 
-    // 2. Register ownership — THE atomicity boundary. Nothing before
-    //    this persisted into the user's roster.
-    user.playerIds.push(playerId);
-    await user.save();
-
-    // 3. Clone the runtime Avatar from the SHARED seed, overlaying the
+    // 2. Clone the runtime Avatar from the SHARED seed, overlaying the
     //    picks and minting the identity path (onCreate stamps +
     //    installs the baseline implant + captures the first snapshot).
     const avatar = await StuffApi.clone<Avatar>(
@@ -729,13 +723,36 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
       { dataOverlay: overlay, asIdentityPath: path },
     );
 
+    // 3. Register ownership — THE atomicity boundary, and it comes AFTER
+    //    the body exists (controller-liquidity D10, C35): a clone that
+    //    throws leaves the roster untouched, where the old order left a
+    //    character listed in the select screen with no body to load. A
+    //    roster write that fails takes the fresh body back down.
+    user.playerIds.push(playerId);
+    try {
+      await user.save();
+    } catch (err) {
+      user.playerIds = user.playerIds.filter((id) => id !== playerId);
+      try {
+        StuffApi.destruct(avatar);
+      } catch {
+        /* the roster error is the one worth reporting */
+      }
+      throw err;
+    }
+
     // 4. Sex is species-constrained, so set it on the live avatar after
     //    species is in place (avoids hydration-order coupling).
+    // ⚠ A body that will not take it is SAID (C35), never swallowed: the
+    //    commit goes on (the roster is written), the sex stays unset, and
+    //    the player is told once they are in the world.
+    let sexRefused: string | null = null;
     if (draft.sex) {
       try {
         avatar.setSex(draft.sex);
-      } catch {
-        /* species rejected the value — leave unset */
+      } catch (err) {
+        sexRefused = draft.sex;
+        console.warn(`EmbodyController.commit: the body refused sex '${draft.sex}':`, err);
       }
     }
 
@@ -804,6 +821,12 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
     // 6. Hand off to the avatar's session, then destruct Login.
     interactive.transferTo(avatar);
     await avatar.enter(interactive, { firstArrival: true });
+    if (sexRefused !== null) {
+      MessageApi.scene(avatar)
+        .topic("act.deed")
+        .toSelf(Mml.compose`Your body would not take the sex you chose (${sexRefused}); it is left unset.`)
+        .send();
+    }
     if (note) {
       MessageApi.scene(avatar)
         .topic("act.deed")

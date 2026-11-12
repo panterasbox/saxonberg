@@ -33,11 +33,48 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
+import type { Stuff } from '../stuff/Stuff';
+import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
+import type { PartChoices, PartRefusal, Soil } from '../husbandry/Soil';
 
 /** Longest label we will store. Long enough for a sentence, not a novel. */
 const MAX_LABEL_LENGTH = 120;
 
+/** What `label` asks: the words to write (`''` clears) and the part of a field named (`at`). */
+export interface LabelRequest {
+  text: string;
+  part: (Stuff & Soil) | null;
+}
+
+/** What the label act did — the controller words each. */
+export type LabelFacts =
+  | { kind: 'cleared'; had: boolean }
+  | { kind: 'written'; label: string }
+  /** ⭐ A crop in a field: ONE plant marked out of the stand, named by the label. */
+  | { kind: 'marked'; called: string; label: string; part: (Stuff & Soil) | null; ground: Stuff };
+
+/**
+ * Every reason a label act refuses (controller-liquidity W7c) — closed.
+ * `part-not-ground` — `at <part>` names a part of a field, and this is not a
+ * crop standing in one; `not-rooted` — the crop stands in nothing;
+ * `nothing-sown-there` — nothing of its kind stands at the part named.
+ */
+export type LabelRefusal =
+  | ActRefusal<'part-not-ground'>
+  | ActRefusal<'not-rooted'>
+  | ActRefusal<'nothing-sown-there', { part: (Stuff & Soil) | null }>
+  | PartRefusal;
+
+/** What `labelBy` answers. */
+export type LabelAnswer = ActOutcome<LabelFacts> | LabelRefusal | PartChoices;
+
 export interface Labelled {
+  /**
+   * ⭐ The `label` act (controller-liquidity W7c): write `req.text` on this
+   * (or clear it), or — a crop standing in a field (`Plant` overrides) —
+   * mark one plant of it out under the label. The thing decides which.
+   */
+  labelBy(actor: Stuff, req: LabelRequest): Promise<LabelAnswer>;
   /** The player's own name for this thing. `''` = unlabelled. */
   getLabel(): string;
   /**
@@ -94,6 +131,20 @@ export function LabelledMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public isLabelled(): boolean {
       return this.label.length > 0;
+    }
+
+    /** @hook The label act. Default: write it on this (or rub it off); a part names nothing here. */
+    public async labelBy(_actor: Stuff, req: LabelRequest): Promise<LabelAnswer> {
+      if (req.part !== null) return { ok: false, reason: 'part-not-ground' };
+      const text = req.text.trim();
+      if (text.length === 0) {
+        const had = this.isLabelled();
+        this.setLabel('');
+        return { ok: true, facts: { kind: 'cleared', had } };
+      }
+      this.setLabel(text);
+      // What was STORED, not what was typed: the setter trims and caps.
+      return { ok: true, facts: { kind: 'written', label: this.getLabel() } };
     }
   };
 }

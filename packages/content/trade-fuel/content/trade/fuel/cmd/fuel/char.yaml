@@ -1,12 +1,13 @@
 verbs: [char]
 category: fuel
 controller: /trade/fuel/idea/cmd/fuel/CharController
-description: "Run a charcoal burn, and set the draught it runs at"
+description: "Run a charcoal burn"
 help: |
-  `char` starts a burn in the clamp you are standing at; `char 0.45` sets
-  the draught first. It runs over game time and you can come back to it —
-  `char` again while it is running re-sets the draught, which is the whole
-  of the craft.
+  `char` starts a burn in the clamp you are standing at (`char at clamp`
+  when there are two). It runs over game time and you can come back to
+  it. The air is the fire's own dial — `draught clamp low`, `draught clamp
+  half`, `draught banked at clamp` — and working it while the burn runs
+  is the whole of the craft.
 
   ⭐ Airflow is the decision. Too much air and the charge burns all the
   way through and you open a clamp full of ash; too little and the middle
@@ -33,6 +34,3 @@ args:
     default: "reachable:[class.CharcoalPit]"
     scope: ["here", "peers", "person"]
     requires: [BurnerMixin]
-  - name: draught
-    type: number
-    required: false

@@ -67,9 +67,9 @@ describe('saw — the view binds what a sawyer says', () => {
   });
 
   it('⭐ `saw the length at the pit saw` — a second saw is addressable, article and all', () => {
-    const m = bind('saw length at the pit saw');
+    const m = bind('saw length at the "pit saw"');
     expect(m.log).toBe('length');
-    expect(m.saw).toBe('the pit saw');
+    expect(m.saw).toBe('pit saw');
   });
 
   it('the saw arg is the capability, never a class', () => {

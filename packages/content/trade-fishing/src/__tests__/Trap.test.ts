@@ -73,3 +73,20 @@ describe('the expectation', () => {
     expect(t.getTakesRoles()).toEqual(['bait']);
   });
 });
+
+describe('laying (controller-liquidity W12)', () => {
+  it('⭐ a trap is laid only out of the layer\'s own hand, and never twice', () => {
+    const t = pot();
+    const hand = makeStuff(() => new Trap());
+    const room = makeStuff(() => new Trap());
+    expect(t.layIn(hand as never, room as never, 'kestrel:confluence', '/stuff/idea/material/bulk/salt-water')).toMatchObject({
+      ok: false,
+      reason: 'not-held',
+    });
+    t.markSet(1000, 'kestrel:confluence', '/platform/agent/Avatar/x');
+    expect(t.layIn(hand as never, room as never, 'kestrel:confluence', '/stuff/idea/material/bulk/water')).toMatchObject({
+      ok: false,
+      reason: 'already-set',
+    });
+  });
+});

@@ -18,7 +18,6 @@ import { MessageApi } from '../../../../../api/message';
 import {
   CuttableMixin,
   type CutAnswer,
-  type CutAnswerFor,
   type CutBegin,
   type CutRequest,
 } from '../../../../../lib/craft/Cuttable';
@@ -34,10 +33,9 @@ const BEGIN: CutBegin = { kind: 'ice', hole: false };
 
 class Block extends CuttableMixin(Good) {
   public override async cutPlan(req: CutRequest): Promise<CutAnswer> {
-    if (req.tools.length === 0) return { ok: false, verb: 'cut', reason: 'no-knife' };
+    if (req.tools.length === 0) return { ok: false, reason: 'no-knife' };
     return {
       ok: true,
-      verb: 'cut',
       durationMs: 50,
       effortW: 100,
       facts: BEGIN,
@@ -50,11 +48,10 @@ class Block extends CuttableMixin(Good) {
 }
 class Bolt extends Good {}
 class Shears extends CutPlannerMixin(Good) {
-  public override async cutPlanFor(target: Stuff, _req: CutRequest<'cut'>): Promise<CutAnswerFor<'cut'> | null> {
+  public override async cutPlanFor(target: Stuff, _req: CutRequest): Promise<CutAnswer | null> {
     if (!(target instanceof Bolt)) return null;
     return {
       ok: true,
-      verb: 'cut',
       durationMs: 50,
       effortW: 100,
       facts: BEGIN,
@@ -132,7 +129,6 @@ describe('one cut — the planner decides', () => {
   it('a bare word asks the floor underfoot, and with no floor to ask it is "Cut what?"', async () => {
     const floorPlan = vi.fn(async (): Promise<CutAnswer> => ({
       ok: true,
-      verb: 'cut',
       durationMs: 50,
       effortW: 100,
       facts: { kind: 'ice', hole: true },
@@ -147,7 +143,7 @@ describe('one cut — the planner decides', () => {
     vi.spyOn(room, 'getFloor').mockReturnValue(floor as never);
     const ctx = await run({ target: ref(null, 'hole'), tools: many() });
     expect(rejected(ctx)).toBeNull();
-    expect(floorPlan).toHaveBeenCalledWith(expect.objectContaining({ raw: 'hole' }));
+    expect(floorPlan).toHaveBeenCalledWith(expect.objectContaining({ part: 'hole' }));
     expect(made).toEqual(['hole']);
     vi.restoreAllMocks();
     const none = await run({ target: ref(null, ''), tools: many() });

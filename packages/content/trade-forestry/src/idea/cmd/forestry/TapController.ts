@@ -85,7 +85,7 @@ export default class TapController extends TapActController {
     }
     // Nothing bound. If we are standing in a Wood, the WOOD answers —
     // and this is the line the drive checks.
-    if (inAWood(giver)) {
+    if (TapController.inAWood(giver)) {
       return Mml.compose`A stand is a number of trees, not a stem. A spile goes into one tree you can put your hand on.`;
     }
     return Mml.compose`There is nothing here that takes a spile.`;
@@ -131,14 +131,11 @@ export default class TapController extends TapActController {
       },
     };
   }
-}
 
-/** Is the actor standing in a `Wood`? */
-function inAWood(giver: Stuff): boolean {
-  const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-  if (!room) return false;
-  return MixinApi.hasMixin(
-    room.constructor as never,
-    STAND_MIXIN as never,
-  );
+  /** Is the actor standing in a `Wood`? */
+  protected static inAWood(giver: Stuff): boolean {
+    const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+    if (!room) return false;
+    return MixinApi.isActive(room, STAND_MIXIN);
+  }
 }

@@ -136,7 +136,7 @@ beforeAll(async () => {
 afterAll(async () => {
   if (p) {
     for (const thing of ['shears', 'needle', 'book']) {
-      await p.cmd(`drop ${thing}`).catch(() => undefined);
+      await p.cmd(`drop "${thing}"`).catch(() => undefined);
     }
     p.close();
   }

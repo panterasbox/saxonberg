@@ -46,7 +46,6 @@ args:
   - name: part
     type: object
     required: false
-    greedy: true
     scope: ["here", "peers", "person"]
     prepositions: [at]
     requires: SoilMixin

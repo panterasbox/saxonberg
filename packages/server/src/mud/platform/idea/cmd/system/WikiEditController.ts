@@ -4,10 +4,7 @@
 
 import type { CommandContext } from '../../../../api/command';
 import { Mml } from '../../../../api/mml';
-import { StuffApi } from '../../../../api/stuff';
-import { TemplatePaths } from '../../../../lib/paths';
 import WikiRegistry, { WikiConflict } from '../../WikiRegistry';
-import WikiRenderer from '../../WikiRenderer';
 import { WikiPage } from '../../../../lib/wiki/WikiPage';
 import { SpoilerLevels } from '../../../../lib/wiki/render';
 import { Sections } from '../../../../lib/wiki/Section';
@@ -44,9 +41,6 @@ export default class WikiEditController extends WikiControllerBase {
       patch.spoilerLevel = SpoilerLevels.parse(model.reveal);
     }
     const frontmatterOnly = Object.keys(patch).length > 0;
-    if (frontmatterOnly) {
-      await registry.setFrontmatter(page, patch);
-    }
 
     // ⭐ `wiki edit oak --reveal 2` changes the level and stops. Asking
     // for the body too would mean an author who wanted to retitle a
@@ -57,6 +51,7 @@ export default class WikiEditController extends WikiControllerBase {
     // the author came to write, so open the editor. An explicit
     // `--section` always means prose, whatever else was passed.
     if (frontmatterOnly && model.body === undefined && !model.section) {
+      await registry.setFrontmatter(page, patch);
       this.send(context, Mml.compose`\nUpdated '${page.getTitle()}'.\n`);
       return;
     }
@@ -105,6 +100,11 @@ export default class WikiEditController extends WikiControllerBase {
       }
       throw err;
     }
+    // ⭐ Every refusal before every write (controller-liquidity D10, C81):
+    // the frontmatter rides the SAME edit, written only once the body was
+    // composed and accepted — a cancelled editor, a bad --rev or a
+    // conflict leaves the page exactly as it was.
+    if (frontmatterOnly) await registry.setFrontmatter(page, patch);
     const what = model.draft === true ? 'Drafted' : 'Edited';
     const tail =
       model.draft === true
@@ -117,8 +117,8 @@ export default class WikiEditController extends WikiControllerBase {
   }
 
   /**
-   * Emit the three-way conflict. **All three bodies go through
-   * `redactSource`** — a conflict response is a revision-facing
+   * Emit the three-way conflict. **All three bodies are the registry's
+   * reader-filtered reads** (`redactSource` under it) — a conflict response is a revision-facing
    * surface, so without that a reader could read past their ceiling by
    * provoking one (criteria 67, 68).
    */
@@ -128,15 +128,12 @@ export default class WikiEditController extends WikiControllerBase {
     err: WikiConflict,
     submitted: string,
   ): Promise<void> {
-    const renderer = await StuffApi.singleton<WikiRenderer>(
-      TemplatePaths.wikiRenderer,
-    );
     const registry = await this.registry();
-    const baseRow = await registry.revisionAt(page._id ?? '', err.baseRev);
+    const reader = context.commandGiver;
     const [base, current, submittedSafe] = await Promise.all([
-      renderer.redactSource(baseRow?.getBody() ?? ''),
-      renderer.redactSource(page.getBody()),
-      renderer.redactSource(submitted),
+      registry.revisionAtFor(reader, page, err.baseRev).then((b) => b ?? ''),
+      registry.redactFor(reader, page.getBody()),
+      registry.redactFor(reader, submitted),
     ]);
     context.note({
       kind: 'wiki-edit-conflict',

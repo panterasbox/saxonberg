@@ -19,6 +19,7 @@ import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
+import { CommandLineApi } from '@saxonberg/server/mud/api/command-line';
 
 function thinM(): number {
   try {
@@ -58,6 +59,6 @@ export const brain = class {
     if (!target) return;
     const word = MixinApi.isPerceptible(target) ? target.getKeywords()[0] : null;
     if (!word) return;
-    await host.executeCommand(`paint ${word}`);
+    await host.executeCommand(`paint ${CommandLineApi.word(word)}`);
   }
 };

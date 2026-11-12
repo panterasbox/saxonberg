@@ -21,19 +21,10 @@ help: |
   Where there is more than one — a quern in your hands and a mill in the
   room — say which: `mill wheat at the quern`.
 
-  ⚠⚠ **A multi-word name needs quotes here**, and this verb is the one
-  place in the trade where that is true: `mill "sack of wheat"`. The
-  number after the grain is the extraction, and a bare number declares
-  no preposition that could mark where the name ends — so the name has
-  to say so itself. (`buy dog loaf` needs no quotes because every slot
-  after the good's name declares a preposition to stop at; `mill` has a
-  naked number in the middle, and that is the whole difference.)
-
-  Say it without the quotes and it does not refuse you — it mills the
-  wrong thing. `mill sack of wheat` reads `sack` as the grain, `of` as
-  the extraction and `wheat` as the stones. That is the one place in this
-  trade where the grammar can take a sentence you did not mean, and the
-  quotes are how you keep it from happening.
+  A name with a space in it is quoted, here as everywhere: `mill "sack of
+  wheat"`, `mill "sack of wheat" 0.6`. Typed bare, `mill sack of wheat` is
+  refused with the quoted line to run — the stones are only ever named
+  behind `at`, so the grammar cannot take a sentence you did not mean.
 
   ⭐ **The extraction is the decision.** It is how much of the grain you
   keep as flour, and it is not a choice between three options — every
@@ -109,17 +100,14 @@ args:
   # ancestor in common — so a class check would silently refuse to find
   # the very thing the mixin was lifted to the kernel for.
   #
-  # ⭐⭐ `greedy: true` — and this comment's own example is why. `mill
-  # wheat at the hand quern` is the form the paragraph above promises,
-  # and it did not bind: a non-greedy arg takes exactly ONE token, so
-  # `the` and `quern` were two more positionals with nowhere to go and
-  # the answer was *"that doesn't match any known command shape"*. The
-  # `look at the ground` defect, on a verb that invites you to name the
-  # stones. Safe because this arg is LAST.
+  # ⭐ `prepositionRequired` — the stones are named only behind `at` /
+  # `with` / `on` (`mill wheat at the "hand quern"`), so an unquoted
+  # multi-word grain is left over and refused with the quoted line, never
+  # read as grain + extraction + stones (controller-liquidity W5).
   - name: mill
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     prepositions: [at, with, on]
     default: "reachable:[mixin.ComminutingMixin]"
     scope: ["here", "peers", "person"]

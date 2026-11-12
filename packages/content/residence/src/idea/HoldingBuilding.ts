@@ -9,7 +9,8 @@
  * face, and a `Durable` condition the weather wears once the coat is gone),
  * so a holding stands its buildings up at its wake. Walk around a Hinkley
  * lot's house from the lane and it is a building like any other: you can
- * `look` at it, `survey` it, `paint` it, `maintain` it.
+ * `look` at it, `analyze condition` it, `measure paint` it, `paint` it,
+ * `maintain` it.
  *
  * ⭐ A building is AUTHORED: the holding's
  * programme row names its buildings (`buildings:`, the main one first,

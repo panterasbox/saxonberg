@@ -72,10 +72,36 @@ describe("the category half (warning until W6)", () => {
   });
 });
 
+describe("⛔ the depth half (hard, zero — controller-liquidity W16)", () => {
+  const NESTED =
+    "verbs: [cockpit]\ncategory: shell\ndescription: d\ncontroller: /x/C\n" +
+    "subcommands:\n  layout:\n    subcommands:\n      save: { controller: /x/S }\n";
+  it("⭐ FINDS a subcommand stanza that nests another level, by name", () => {
+    const r = run(tree([{ where: "platform/cmd/shell", name: "cockpit", body: NESTED }]));
+    expect(r.nested).toHaveLength(1);
+    expect(r.nested[0]!.detail).toContain("'layout'");
+    // The schema refuses the key as well — two readers, one rule.
+    expect(r.schema).toHaveLength(1);
+  });
+
+  it("a one-level verb (hyphenated compound name included) is clean", () => {
+    const body =
+      "verbs: [client-layout]\ncategory: shell\ndescription: d\ncontroller: /x/C\n" +
+      "subcommands:\n  save: { controller: /x/S }\n";
+    const r = run(tree([{ where: "platform/cmd/shell", name: "client-layout", body }]));
+    expect(r.nested).toEqual([]);
+    expect(r.schema).toEqual([]);
+  });
+});
+
 describe("⭐ the live tree", () => {
   it("every shipped view conforms to the command schema", () => {
     const r = run();
     expect(r.views).toBeGreaterThan(300);
     expect(r.schema).toEqual([]);
+  });
+
+  it("⛔ no shipped view nests a subcommand", () => {
+    expect(run().nested).toEqual([]);
   });
 });

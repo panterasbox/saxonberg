@@ -5,7 +5,7 @@
 name: Spear Head
 keywords: [spear-head]
 inputSlots:
-  - { slot: stock, category: forgeable, minGrade: good, kind: item, count: 1 }
+  - { slot: stock, category: forgeable, minGrade: fine, kind: item, count: 1 }
 toolCapabilities: [striking, anvil]
 outputTemplate: /trade/smithing/thing/spear-head
 outputMaterial: ''

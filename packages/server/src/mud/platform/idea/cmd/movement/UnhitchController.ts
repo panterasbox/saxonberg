@@ -5,7 +5,9 @@
  * pulls it. Graceful no-op decline when nothing is hitched.
  *
  * Validation surface (from `cmd/movement/unhitch.yaml`):
- *   - requiresAnimate (verb-level); `requires: VisibleMixin` (target, optional)
+ *   - requiresAnimate (verb-level); `requires: VisibleMixin` (target,
+ *     optional) — a hauler OR a cart binds, and this asks which (C59:
+ *     `requires: HaulableMixin` refused `unhitch horse` at bind).
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -65,7 +67,21 @@ export default class UnhitchController extends CommandController<UnhitchModel> {
     }
 
     const cart = hauler.getHauledCart()!;
-    hauler.unhitch();
+    // ⭐ The cart answers whether YOU may uncouple it (D9): a cart another
+    // person is pulling by hand is not yours to take out of their hands.
+    const veto = hauler.unhitch(giver);
+    if (!veto.ok) {
+      MessageApi.scene(giver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`${Mml.actor(hauler)} has hold of ${Mml.thing(cart)}.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: veto.reason,
+        detail: 'unhitch',
+      });
+      return;
+    }
     if (hauler.stuffId === giver.stuffId) {
       MessageApi.scene(giver)
         .topic('act.deed')

@@ -44,13 +44,13 @@
 
 import Line from '../../lib/spatial/Line';
 import LineEnd from './LineEnd';
-import { TieableMixin, type TieOutcome } from '../../lib/spatial/Tieable';
+import { TieableMixin, type TieOutcome, type TieRefusal } from '../../lib/spatial/Tieable';
 import Structure from '../../lib/structure/Structure';
 import { SpliceableMixin, type SpliceOutcome } from '../../lib/spatial/Spliceable';
 import { ClimbableMixin } from '../../lib/locomotion/Climbable';
 import { GradedMixin } from '../../lib/craft/Graded';
 import { Grade, type GradeBand } from '../../lib/craft/Grade';
-import { BelayEngagement } from '../../lib/locomotion/BelayEngagement';
+import { BelayEngagement, BELAY_TYPE } from '../../lib/locomotion/BelayEngagement';
 import type { Engaged } from '../../lib/activity/Engaged';
 import type Exit from '../../lib/boundary/Exit';
 import { HazardDelivery } from '../../lib/hazard/HazardDelivery';
@@ -517,21 +517,21 @@ export default class Rope extends CuttableMixin(
    */
   public override async tieTo(by: Stuff, load: Stuff, knot: string | null): Promise<TieOutcome> {
     const self = this as unknown as Stuff;
-    if (load === self) return { ok: false, reason: 'self', line: 'You cannot tie a rope to itself.' };
+    if (load === self) return { ok: false, reason: 'self', facts: { gear: this as unknown as Stuff, load } };
     if (by instanceof Structure) return this.tieAcross(by, load, knot);
     const place = MixinApi.isContainable(by) ? by.getContainer() : null;
     const there = MixinApi.isContainable(load) ? load.getContainer() : null;
     if (place === null || there !== place) {
-      return { ok: false, reason: 'out-of-reach', line: `${GrammarApi.cap(load.describeFor(by))} is not here.` };
+      return { ok: false, reason: 'out-of-reach', facts: { gear: this as unknown as Stuff, load } };
     }
     if (this.getHolder() !== by) {
-      return { ok: false, reason: 'not-holding', line: `You are not holding ${this.getPresentation()}.` };
+      return { ok: false, reason: 'not-holding', facts: { gear: this as unknown as Stuff } };
     }
     const made = await this.makeKnot(by, knot);
     if (!made.ok) return made;
     const name = made.knot.label;
     if (load.isAgent?.()) {
-      if (load === by) return { ok: false, reason: 'self', line: 'You keep hold of your own end; somebody else ties you on.' };
+      if (load === by) return { ok: false, reason: 'self', facts: { gear: this as unknown as Stuff, load } };
       await this.makeFast(load);
       this.knots = [...this.knots.filter((k) => k.end !== 'free'), { ...made.knot, end: 'free' }];
       this.coiledDown = false;
@@ -551,7 +551,7 @@ export default class Rope extends CuttableMixin(
     }
     const already = this.getAnchor();
     if (already !== null) {
-      return { ok: false, reason: 'already-tied', line: `It is already tied round ${already.getPresentation()}.` };
+      return { ok: false, reason: 'already-tied', facts: { gear: this as unknown as Stuff, load, on: already } };
     }
     ContainmentApi.move(self as Stuff & Line, place as Stuff & Container);
     this._anchor = load;
@@ -571,9 +571,20 @@ export default class Rope extends CuttableMixin(
    * the free end off whoever is on it.
    */
   public override async untieBy(by: Stuff): Promise<TieOutcome> {
+    // ⭐ Held as a belay, the first `untie` takes the rope off the belay —
+    // the climber stays tied on (controller-liquidity W7c: `belay off`
+    // retired into `untie`); a second casts them off.
+    if (this._belay !== null && this.getHolder() === by && MixinApi.isEngaged(by)) {
+      const belay = this._belay;
+      SchedulerApi.cancelByType(by as Stuff & Engaged, BELAY_TYPE);
+      // Idempotent — the scheduler's terminate has told it already when it
+      // held the engagement; this ends one it did not (a test's bare body).
+      belay.onAbort('cancelled');
+      return { ok: true, line: `You take ${this.getPresentation()} off the belay and let it go slack.` };
+    }
     const anchor = this.getAnchor();
     if (anchor !== null) {
-      if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', line: 'You have no hands to take it in.' };
+      if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', facts: { gear: this as unknown as Stuff } };
       if (this.hungVia !== null) {
         this.hungVia = null;
         await this.castOff();
@@ -598,7 +609,7 @@ export default class Rope extends CuttableMixin(
       await this.castOff();
       return { ok: true, line: `You cast off the end of ${this.getPresentation()}.` };
     }
-    return { ok: false, reason: 'not-tied', line: `${GrammarApi.cap(this.getPresentation())} is not tied to anything.` };
+    return { ok: false, reason: 'not-tied', facts: { gear: this as unknown as Stuff } };
   }
 
   /**
@@ -638,15 +649,15 @@ export default class Rope extends CuttableMixin(
   private async tieAcross(by: Structure, load: Stuff, knot: string | null): Promise<TieOutcome> {
     const here = this.getContainer() as Stuff | null;
     if (here === null || here.isAgent?.() || !this.isRoomOf(by, here)) {
-      return { ok: false, reason: 'not-hers', line: `${GrammarApi.cap(this.getPresentation())} is not aboard ${by.getName() || 'her'}.` };
+      return { ok: false, reason: 'not-hers', facts: { gear: this as unknown as Stuff, load, on: by } };
     }
     const there = MixinApi.isContainable(load) ? load.getContainer() : null;
     if (load.isAgent?.() || !MixinApi.isContainable(load) || !load.isFixedInPlace() || there === null || !MixinApi.isContainer(there)) {
-      return { ok: false, reason: 'not-a-fixture', line: `${GrammarApi.cap(this.getPresentation())} cannot be made fast round that.` };
+      return { ok: false, reason: 'not-a-fixture', facts: { gear: this as unknown as Stuff, load } };
     }
-    if (there === here) return { ok: false, reason: 'same-room', line: 'That is not across from her.' };
+    if (there === here) return { ok: false, reason: 'same-room', facts: { gear: this as unknown as Stuff, load } };
     if (this.hungVia !== null || this.getEnd() !== null) {
-      return { ok: false, reason: 'end-out', line: `The end of ${this.getPresentation()} is out already.` };
+      return { ok: false, reason: 'end-out', facts: { gear: this as unknown as Stuff, load } };
     }
     const made = await this.makeKnot(by, knot);
     if (!made.ok) return made;
@@ -680,10 +691,10 @@ export default class Rope extends CuttableMixin(
    * ⭐ The knot the tier named, dressed by their `ropework` band (D7), and
    * credited to it. A knot nobody knows is refused by name.
    */
-  private async makeKnot(by: Stuff, asked: string | null): Promise<{ ok: true; knot: KnotRecord } | { ok: false; reason: string; line: string }> {
+  private async makeKnot(by: Stuff, asked: string | null): Promise<{ ok: true; knot: KnotRecord } | TieRefusal> {
     const key = (asked ?? 'bowline').trim().toLowerCase().replace(/^an? /, '').replace(/\s+/g, '-');
     if (!(KNOTS as readonly string[]).includes(key)) {
-      return { ok: false, reason: 'no-such-knot', line: `You know no knot called a ${asked ?? key}.` };
+      return { ok: false, reason: 'no-such-knot', facts: { gear: this as unknown as Stuff, knot: asked ?? key } };
     }
     // The act loads the knot it ties (documents D7: the act holds it). A
     // listed knot with no document is a defect, thrown — never "no such knot".
@@ -880,14 +891,14 @@ export default class Rope extends CuttableMixin(
    * free end, here or one way from here, round a post if there is one.
    */
   public belayFor(by: Stuff, climber: Stuff): TieOutcome {
-    if (this.getHolder() !== by) return { ok: false, reason: 'not-holding', line: `You are not holding ${this.getPresentation()}.` };
+    if (this.getHolder() !== by) return { ok: false, reason: 'not-holding', facts: { gear: this as unknown as Stuff } };
     if (this.getOnEnd() !== climber) {
-      return { ok: false, reason: 'not-tied-on', line: `${GrammarApi.cap(climber.describeFor(by))} is not tied on the end of it — \`tie rope to\` them first.` };
+      return { ok: false, reason: 'not-tied-on', facts: { gear: this as unknown as Stuff, load: climber } };
     }
-    if (!MixinApi.isEngaged(by)) return { ok: false, reason: 'cannot', line: 'You cannot hold a belay.' };
+    if (!MixinApi.isEngaged(by)) return { ok: false, reason: 'cannot', facts: { gear: this as unknown as Stuff, load: climber } };
     const belay = new BelayEngagement(by as Stuff & Engaged, this, climber);
     const started = SchedulerApi.start(belay);
-    if (!started.ok) return { ok: false, reason: 'busy', line: 'Your hands are on something else.' };
+    if (!started.ok) return { ok: false, reason: 'busy', facts: { gear: this as unknown as Stuff, load: climber } };
     return {
       ok: true,
       line: `You take in the slack and hold the rope for ${climber.describeFor(by)}, ${belay.holdWords()}.`,
@@ -904,8 +915,7 @@ export default class Rope extends CuttableMixin(
    * to both, and a knot goes with the end it was on.
    */
   public override async cutPlan(req: CutRequest): Promise<CutAnswer> {
-    if (req.verb !== 'cut') return { ok: false, verb: req.verb, reason: 'not-cuttable' } as CutAnswer;
-    const refuse = (r: CutRefusal): CutAnswer => ({ ...r, verb: 'cut' });
+    const refuse = (r: CutRefusal): CutAnswer => r;
     const knife = req.tools.find((t) => MixinApi.isTool(t) && t.hasCapability('cutting'));
     if (!knife) return refuse({ ok: false, reason: 'no-knife' });
     if (this.isTied()) return refuse({ ok: false, reason: 'tied' });
@@ -916,7 +926,6 @@ export default class Rope extends CuttableMixin(
     const actor = req.actor;
     return {
       ok: true,
-      verb: 'cut',
       durationMs: 5_000,
       effortW: 60,
       facts: { kind: 'rope', rope: this as unknown as Stuff, takeM: take },

@@ -32,8 +32,7 @@ args:
   - name: water
     type: objects
     required: false
-    greedy: true
     prepositions: [in, under, with, at]
-    default: "reachable:[mixin.BulkableMixin],reachable:[mixin.ShoreMixin]"
+    default: "reachable:[mixin.WaterDrawableMixin]"
     scope: ["reachable"]
     requires: any

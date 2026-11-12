@@ -83,13 +83,16 @@ export function MadeFromMixin<TBase extends MixinConstructor<Stuff>>(
 
     // ⚠ A declared maker titles a fresh good, so only a process mint may
     // declare one — a mould setting its cast (a firing hands the mould
-    // its owner through `castInto`).
+    // its owner through `castInto`), or a plumbed room standing up its own
+    // pipe run, which is NOBODY's (controller-liquidity W15: the drive found
+    // the bar's run titled to whoever ordered the drink that first read
+    // the tap — rung 3, the acting person where they stand).
     // ⭐ And only of a thing not yet placed anywhere (controllers-are-io
     // D25): a class merely declaring the mould marker can name the maker
     // of what it just minted, never of a good already in the world.
     @CallSecurity(
       SecurityPolicies.AllOf(
-        SecurityPolicies.FromMixin(Mixins.Mould),
+        SecurityPolicies.AnyOf(SecurityPolicies.FromMixin(Mixins.Mould), SecurityPolicies.FromMixin(Mixins.Plumbed)),
         SecurityPolicies.Custom(
           (_caller, target) =>
             !MixinApi.isContainable(target as Stuff) ||

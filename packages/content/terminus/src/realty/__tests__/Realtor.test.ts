@@ -22,8 +22,8 @@ import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import Realtor from "../agent/Realtor";
 import PlatBook from "@saxonberg/content-residence/src/idea/PlatBook";
+import PlatWarren from "@saxonberg/content-residence/src/idea/PlatWarren";
 import Avatar from "@saxonberg/server/mud/platform/agent/PrimaryAvatar";
-import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { ParcelApi } from "@saxonberg/server/mud/api/parcel";
 import { DialogueEffectRegistry } from "@saxonberg/server/mud/lib/npc/DialogueEffects";
@@ -31,14 +31,15 @@ import { makeStuffAtPath } from "@saxonberg/server/mud/lib/security/__tests__/te
 import { PersistenceManager } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 
-/** The provisioner half a book asks for capacity and the next free leaf. */
-class TestHolder extends Idea {
+/** The provisioner half a book asks for capacity and the next free leaf
+ * (a `PlatWarren` — the book names its provisioner by class now). */
+class TestHolder extends PlatWarren {
   public cap = 40;
   public next: string | null = "lot-1";
-  capacity(): number {
+  override capacity(): number {
     return this.cap;
   }
-  nextFreeLeaf(taken: ReadonlySet<string>): string | null {
+  override nextFreeLeaf(taken: ReadonlySet<string>): string | null {
     return this.next && taken.has(this.next) ? null : this.next;
   }
 }

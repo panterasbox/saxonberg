@@ -1027,8 +1027,9 @@ working.
 ⭐⭐ **Retired as a verb 2026-10-19.** Boiling is heating something to its
 boiling point; it does not need a verb of its own, and having one taught
 the opposite of the cooking lesson. It rode `heat`'s view as an alias until
-controllers-are-io deleted the word: `heat pail` sets the vessel on the lit fire in
-reach, and the **phase engine** does the rest
+controllers-are-io deleted the word: `put pail on <hearth>` sets the vessel on
+the lit fire (`heat pail` did, until controller-liquidity W7c gave `heat` one
+act), and the **phase engine** does the rest
 ([thermal.md](./thermal.md) § the boil plateau):
 
 - the liquid climbs to its own boiling point and **holds there** while the

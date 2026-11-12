@@ -223,6 +223,18 @@ describe("taking it down", () => {
     ).toBe(true);
   });
 
+  it("the fixture says who may take it down, with no controller in the way (W8)", async () => {
+    const { giver, sconce } = await hung();
+    vi.spyOn(ChattelLogic.prototype, "ownerOf").mockResolvedValue({
+      kind: "player",
+      templatePath: "/platform/agent/Avatar/somebody-else",
+    });
+    vi.spyOn(AccessApi, "can").mockResolvedValue(false);
+    expect(await sconce.mayTakeDown(giver as unknown as Stuff)).toBe(false);
+    vi.spyOn(AccessApi, "can").mockResolvedValue(true);
+    expect(await sconce.mayTakeDown(giver as unknown as Stuff)).toBe(true);
+  });
+
   it("write authority over the room takes it down even without title", async () => {
     const { loc, giver, sconce } = await hung();
     vi.spyOn(ChattelLogic.prototype, "ownerOf").mockResolvedValue({

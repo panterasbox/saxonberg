@@ -12,8 +12,9 @@
  *     word as the gambit (`queueGambit(name)`).
  *   - `fight defend` — `DefendController`, the same act as bare `defend`
  *     (the twelfth gambit word, routed to the verb that owns it).
- *   - `break`, `rush`, `switch`, `draw`, `finish`, `yield` — one
- *     controller each.
+ *   - `break`, `rush`, `switch`, `draw`, `finish`, `assess`, `yield` —
+ *     one controller each (`fight assess` is the costed read of your
+ *     opponent; `assess` itself only examines a body).
  */
 
 import { CommandController } from "../../../../lib/command/CommandController";

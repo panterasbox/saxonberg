@@ -19,15 +19,16 @@
  *
  * | | Verb | What it is |
  * |---|---|---|
- * | the mirror | `survey` — shipped, free, ungated | *what is this place* |
+ * | the mirror | `analyze rooms` — shipped, free, ungated | *what is this place* |
  * | the measurement | `measure <channel>` | instrumented, banded, load-bearing |
  * | the interpretation | `analyze ground` | route-gated synthesis with error bands |
  *
- * ⭐⭐ **`survey` is a MIRROR. The mine's read is a MEASUREMENT.** The
- * geological read is instrument-mediated, competence-banded, and the
+ * ⭐⭐ **`analyze rooms` is a MIRROR. The mine's read is a MEASUREMENT.**
+ * The geological read is instrument-mediated, competence-banded, and the
  * thing a player pays for and acts on — the opposite of a read nothing
- * is gated on. It does not fold into `survey`, and `survey` still works
- * in a working for free.
+ * is gated on. It does not fold into `analyze rooms`, and that still
+ * works in a working for free. (The mirror was the `survey` verb until
+ * controller-liquidity W17; the word went back to the surveyors.)
  *
  * ## What competence buys
  *

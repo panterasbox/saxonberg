@@ -1,10 +1,10 @@
 /**
  * LightController — `light <thing>` / bare `light`.
  *
- * Sets fire to any Combustible in reach. The controller narrows the target
- * with `MixinApi.isCombustible` and routes the actual ignition through the
- * gated `FireApi.ignite`, which runs the fire-triangle checks (flammable +
- * dry-enough + fuel) and reports why it didn't catch.
+ * Sets fire to any Combustible (or furnace) in reach. ⭐ The thing decides
+ * (`ignitePlanFor`, controller-liquidity W8): the fire-triangle checks
+ * (flammable + dry-enough + fuel + air) and a burner's firing starting
+ * are the object's; this binds the target and words the answer.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -13,9 +13,11 @@ import { MqlApi, type MqlOneResult } from '../../../../api/mql';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import { FireApi } from '../../../../api/fire';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Combustible } from '../../../../lib/fire/Combustible';
+import type { Combustible, IgniteRefusal } from '../../../../lib/fire/Combustible';
+import type { Burner } from '../../../../lib/fire/Burner';
+
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface LightModel extends CommandModel {
   target?: MqlOneResult;
@@ -48,7 +50,7 @@ export default class LightController extends CommandController<LightModel> {
 
     const ignitable = MqlApi.effectiveTarget(
       target,
-      (s): s is Stuff => MixinApi.isCombustible(s) || MixinApi.isBurner(s),
+      (s): s is Stuff & (Combustible | Burner) => MixinApi.isCombustible(s) || MixinApi.isBurner(s),
     );
     if (!ignitable) {
       MessageApi.scene(commandGiver)
@@ -63,48 +65,45 @@ export default class LightController extends CommandController<LightModel> {
       return;
     }
 
-    const outcome = (ignitable as Stuff & Combustible).ignite();
-    if (!outcome.lit) {
-      // ⭐⭐ `no-fuel` is a DIFFERENT refusal from `not-flammable`, and the
-      // difference is the whole progression: a forge with an empty bed is
-      // a fire waiting for somebody to stoke it, and the sentence has to
-      // say so or the player has no way to find out what lifts it.
-      const detail =
-        outcome.reason === 'already-burning'
-          ? 'It is already burning.'
-          : outcome.reason === 'too-wet'
-            ? "It's too wet to catch."
-            : outcome.reason === 'no-fuel'
-              ? 'There is no fuel in it. Stoke it first.'
-              : outcome.reason === 'no-air'
-                ? 'The flame dies as you strike it. There is no air here for a flame.'
-                : outcome.reason === 'lining-burnt-through'
-                  ? 'Its lining has burnt through — the heat would go straight into the casing. Reline it with firebrick first.'
-                  : "That won't burn.";
-      MessageApi.scene(commandGiver)
-        .topic('act.deed')
-        .toSelf(Mml.compose`${detail}`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: outcome.reason ?? 'not-flammable',
-        detail,
-      });
-      return;
+    const plan = await ignitable.ignitePlanFor(commandGiver);
+    await this.engagePlan(context, plan, {
+      beginSelf: () => LightController.litSelf(ignitable),
+      onRefused: (r) => LightController.refusalWords(r),
+      onDone: () => ({
+        self: LightController.litSelf(ignitable),
+        peers: Mml.compose`${Mml.actor(commandGiver)} sets ${Mml.thing(ignitable)} alight.`,
+      }),
+    });
+  }
+
+  protected static litSelf(ignitable: Stuff): Composed {
+    return Mml.compose`You set ${Mml.thing(ignitable)} alight.`;
+  }
+
+  /**
+   * ⭐⭐ `no-fuel` is a DIFFERENT refusal from `not-flammable`, and the
+   * difference is the whole progression: a forge with an empty bed is a
+   * fire waiting for somebody to stoke it, and the sentence has to say so
+   * or the player has no way to find out what lifts it.
+   */
+  protected static refusalWords(r: IgniteRefusal): Composed {
+    switch (r.reason) {
+      case 'already-burning':
+        return Mml.compose`It is already burning.`;
+      case 'too-wet':
+        return Mml.compose`It's too wet to catch.`;
+      case 'no-fuel':
+        return Mml.compose`There is no fuel in it. Stoke it first.`;
+      case 'no-air':
+        return Mml.compose`The flame dies as you strike it. There is no air here for a flame.`;
+      case 'lining-burnt-through':
+        return Mml.compose`Its lining has burnt through — the heat would go straight into the casing. Reline it with firebrick first.`;
+      case 'not-flammable':
+        return Mml.compose`That won't burn.`;
+      default: {
+        const never: never = r.reason;
+        return never;
+      }
     }
-
-    // ⭐ Lighting a burner STARTS its firing: what it sets up at the start
-    // (a clamp's channel, middle and skin) is fixed now, not when somebody
-    // later says `fire`. A clamp lit at noon and fired at dusk had burnt
-    // every brick to one middle body by then (ceramics drive A, run 38).
-    if (MixinApi.isBurner(ignitable)) await ignitable.onFireStart(commandGiver);
-
-    MessageApi.scene(commandGiver)
-      .topic('act.deed')
-      .toSelf(Mml.compose`You set ${Mml.thing(ignitable)} alight.`)
-      .toPeers(
-        Mml.compose`${Mml.actor(commandGiver)} sets ${Mml.thing(ignitable)} alight.`,
-      )
-      .send();
   }
 }

@@ -32,7 +32,7 @@
  *     (`fuelEnergyJ / burnPowerW`), which is the whole claim.
  *   - AC 5's middle — *bank it and come back* is twenty times the
  *     duration by construction. The ratio is asserted in
- *     `DraughtController.test.ts`; what this file can see is that the
+ *     `draught.test.ts`; what this file can see is that the
  *     fire is still lit and its draught is at the floor.
  *   - AC 12's *burns until doused or empty* — a lamp's 16 game hours.
  *     `Lamp.test.ts` walks it in game-hour steps.
@@ -405,8 +405,8 @@ suite('⭐⭐⭐ 20–25. the third damp, the lamp, and the gas you can carry ou
     // ⭐ The reachability link that makes the hazard a mechanic rather
     // than a prohibition: a remedy nobody can reach is not a remedy, and
     // the hazard would ship with no counter but *do not go in there*.
-    const got = await say(m, 'get safety lamp');
-    understood(got, 'get safety lamp');
+    const got = await say(m, 'get "safety lamp"');
+    understood(got, 'get "safety lamp"');
     expect(refusedFor(got), 'no safety lamp at the lamp station').toBeNull();
 
     const lit = await say(m, 'light lamp');

@@ -9,13 +9,15 @@
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import { AudibleMixin } from '@saxonberg/server/mud/lib/perception/Audible';
 import { SoilableMixin } from '@saxonberg/server/mud/lib/cleanliness/Soilable';
+import { HeatedMixin } from '@saxonberg/server/mud/lib/fire/Heated';
 import { ContaminableMixin } from '@saxonberg/server/mud/lib/material/Contaminable';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 // ⭐ Soilable and Contaminable (cleanliness D14): instruments can be
 // washed, boiled, flamed — and a kit that is merely washed seeds the wound
 // a sterile one does not. The kernel `Tool` stays uncontaminable.
-const SurgicalKitBase = AudibleMixin(SoilableMixin(ContaminableMixin(Tool)));
+// ⭐ Held in the flame (`heat kit`) it is sterilized — `HeatedMixin` (controller-liquidity W7c).
+const SurgicalKitBase = HeatedMixin(AudibleMixin(SoilableMixin(ContaminableMixin(Tool))));
 
 export default class SurgicalKit extends SurgicalKitBase {
   /** Carried, never sideways — the personal-capital rule. */

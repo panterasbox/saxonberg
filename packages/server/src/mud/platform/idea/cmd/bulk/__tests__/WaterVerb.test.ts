@@ -595,10 +595,11 @@ describe('water.yaml — a plant, a bed, a patch or a field', () => {
     expect(MixinApi.hasMixin(Plant, Mixins.Visible)).toBe(true);
   });
 
-  it('declares `at <patch>` — optional, greedy, gated on SoilMixin', () => {
+  it('declares `at <patch>` — optional, behind its preposition, gated on SoilMixin', () => {
     const patch = args().find((a) => a.name === 'part')!;
     expect(patch.required).toBe(false);
-    expect(patch.greedy).toBe(true);
+    expect(patch.greedy).toBeUndefined();
+    expect((patch as { prepositionRequired?: boolean }).prepositionRequired).toBe(true);
     expect(patch.prepositions).toEqual(['at']);
     expect([patch.requires].flat()).toEqual(['SoilMixin']);
     expect(() => CommandDefinition.fromYaml(readFileSync(VIEW, 'utf8'), VIEW)).not.toThrow();

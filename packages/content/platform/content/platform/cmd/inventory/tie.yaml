@@ -27,17 +27,17 @@ args:
   - name: gear
     type: object
     required: true
-    greedy: true
     scope: "inventory"
     requires: [TieableMixin]
   - name: load
+    prepositionRequired: true
     type: object
     required: true
     scope: "reachable"
     requires: any
     prepositions: [to, round, around]
-    greedy: true
   - name: knot
+    prepositionRequired: true
     type: string
     required: false
     prepositions: [with]

@@ -35,6 +35,8 @@ import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { VoyagingMixin } from '../../lib/expanse/Voyaging';
 import { MovingMixin } from '../../lib/expanse/Moving';
 import { StuffApi } from '../../api/stuff';
+import { AccountabilityApi } from '../../api/accountability';
+import { SpeciesApi } from '../../api/species';
 import { MixinApi } from '../../api/mixin';
 import { WorldClockApi } from '../../api/worldclock';
 import { DocumentApi } from '../../api/document';
@@ -53,6 +55,7 @@ import ShipWarren, { AUTHORED_SHIP_WARREN } from './ShipWarren';
 import type { Positioned } from '../../lib/expanse/Positioned';
 import Rope from '../thing/Rope';
 import { BilgeMixin } from '../../lib/expanse/Bilge';
+import { AnchoringMixin, type AnchorPlan, type AnchorRefusal } from '../../lib/expanse/Anchoring';
 import type { Exitable } from '../../lib/boundary/Exitable';
 import type { Berthing } from '../../lib/expanse/Berthing';
 import type { LineFrame } from '../../lib/expanse/LineFrame';
@@ -79,6 +82,12 @@ import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import { Quantity } from '../../lib/quantity';
 import type { FramePos } from '../../lib/expanse/Frame';
 import type { CoatReachRefusal } from '../../lib/material/Faced';
+import {
+  UPKEEP_KIT_WEAR,
+  type FabricKind,
+  type Maintainable,
+  type MaintainAnswer,
+} from '../../lib/structure/Maintainable';
 
 /** A ship's hull (river D28): how deep she floats, how wide, how long. */
 export interface ShipHull {
@@ -238,9 +247,9 @@ export interface BilgeState {
 
 export const SHIP_CLASS_PATH = '/platform/idea/Ship';
 
-export default class Ship extends BilgeMixin(PersistableMixin(
+export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
   VoyagingMixin(MovingMixin(EngagedMixin(PositionedMixin(DurableMixin(FacedMixin(Structure)))))),
-)) {
+))) implements Maintainable {
   static fieldMeta: FieldMeta = {
     deckHeightM: { persistent: true, authorable: true },
     mastheadHeightM: { persistent: true, authorable: true },
@@ -262,6 +271,25 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     shipRegister: { persistent: true, authorable: true, ref: 'identity:relation' },
     registeredName: { persistent: true, authorable: true },
   };
+
+  /** ⭐ A ship's fabric is her hull: seams, oakum, hot pitch (`maintain`). */
+  public fabricKind(): FabricKind {
+    return 'hull';
+  }
+
+  /** Caulking a hull is seamanship. */
+  public upkeepDiscipline(): string | null {
+    return 'seamanship';
+  }
+
+  /** Make the hull sound with a caulker's kit; a sound hull spares the kit. */
+  public maintainWith(kit: Stuff): MaintainAnswer {
+    const before = this.getConditionWord();
+    if (before === 'sound') return { ok: false, reason: 'already-sound' };
+    this.setCondition(1);
+    if (MixinApi.isDurable(kit)) kit.wear(UPKEEP_KIT_WEAR);
+    return { ok: true, before };
+  }
 
   // ── her hull's outside ───────────────
   // A hull takes coats — tar, paint — and the weather works on them
@@ -380,6 +408,11 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     return h.lengthM * (h.beamM + 2 * h.draftM);
   }
 
+  /** What the weather meets on her — `measure paint` says *hull* (controller-liquidity W7c, W17). */
+  public override weatherSurface(): string {
+    return "hull";
+  }
+
   /** ⭐ Her hull is painted from where she lies — the quay alongside (paint D9). */
   public override coatReachRefusal(actor: Stuff): CoatReachRefusal | null {
     return this.landingRefusal(actor);
@@ -428,8 +461,12 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     return still;
   }
 
-  /** The master sails without them, on purpose: they are no longer hers to wait for. */
-  public leaveThem(): void {
+  /**
+   * The master sails without them, on purpose: they are no longer hers to
+   * wait for. ⚠ `protected` — only her own departure does it (`steer` with
+   * `leavingThem`), and only after the record is written (D10, C52).
+   */
+  protected leaveThem(): void {
     this.overboard = [];
   }
 
@@ -1131,6 +1168,25 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    */
   public override mayBeSteeredBy(who: Stuff): boolean {
     return this.isChartererOf(who) || this.holdsMasterSeat(who);
+  }
+
+  /**
+   * ⭐ `anchor` aboard her (controller-liquidity W8): only her master takes
+   * the helm, and she must be under way; then she stops where she lies.
+   */
+  public override async anchorPlanFor(actor: Stuff): Promise<AnchorPlan | AnchorRefusal> {
+    if (!this.mayBeSteeredBy(actor)) return { ok: false, reason: 'not-her-master' };
+    if (this.getCourse() === null) return { ok: false, reason: 'not-under-way' };
+    return {
+      ok: true,
+      durationMs: 0,
+      effortW: 0,
+      facts: undefined,
+      onComplete: async () => {
+        await this.anchorHere();
+        return { ok: true, facts: { line: null } };
+      },
+    };
   }
 
   /** Does `who` hold her company's `master` seat? */
@@ -2292,14 +2348,43 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     const toward = req.toward ?? null;
     const refused = await this.courseRefusal(toward ? await this.landingFor(toward) : null, { admit: this.getLine() !== null });
     if (refused !== null) return { refused };
+    // ⭐⭐ Her own people in the water (river D30) — asked LAST of the
+    // refusals and written only on departure (controller-liquidity D10,
+    // C52): the abandonment record and the cleared list used to be written
+    // by the verb before the heading had even resolved. A stop the water
+    // makes (no way on) is not a departure.
+    const left = req.speedKn > 0 ? await this.peopleInTheWater() : [];
+    if (left.length > 0 && req.leavingThem !== true) {
+      const names = left.map((x) => x.getPresentation()).join(', ');
+      return {
+        refused: `You have people in the water: ${names}. Get them aboard first — or sail \`--leaving-them\`, and own it.`,
+      };
+    }
     this.weighedKg = await this.cargoKg();
     const started = await super.steer(req);
+    if (!('refused' in started) && left.length > 0) this.recordLeaving(left, req.by ?? null);
     // ⭐ Under way from a berth: her lines come in and the way aboard goes.
     if (!('refused' in started) && this.moored) {
       await this.castOff();
       await this.creditHands('easy'); // casting off is seamanship
     }
     return started;
+  }
+
+  /** The abandonment record, one row per soul left in the water — her master named. */
+  private recordLeaving(left: readonly Stuff[], by: Stuff | null): void {
+    const master = by?.getIdentityPath() ?? '';
+    for (const who of left) {
+      AccountabilityApi.record({
+        kind: 'abandonment',
+        sessionId: `abandonment:${this.getIdentityPath() ?? this.getTemplatePath()}:${Date.now()}`,
+        initiator: master,
+        opponent: who.getIdentityPath() ?? '',
+        consented: false,
+        sentient: SpeciesApi.isSentient(who),
+      });
+    }
+    this.leaveThem();
   }
 
   /**

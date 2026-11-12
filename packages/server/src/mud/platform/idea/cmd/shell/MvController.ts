@@ -15,12 +15,8 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../../../api/source-tree';
-import { StuffApi } from '../../../../api/stuff';
 import { TemplateApi } from '../../../../api/template';
 import { AccessApi } from '../../../../api/access';
-import { Template } from '../../../../lib/stuff/Template';
-import { Zone } from '../../../../lib/zone/Zone';
-import type { Stuff } from '../../../../lib/stuff/Stuff';
 
 interface MvModel extends CommandModel {
   src?: string;
@@ -47,47 +43,16 @@ export default class MvController extends CommandController<MvModel> {
     if (tree === 'content') {
       const src = SourceTreeApi.joinLogical(cwd, model.src, { home });
       const dst = SourceTreeApi.joinLogical(cwd, model.dst, { home });
-      // mv REMOVES source after write — so both endpoints are WRITE
-      // ops in terms of authority. Zone-target detection on both.
-      const srcResource = StuffApi.findByTemplatePath<Stuff>(src) ?? null;
-      const dstResource = StuffApi.findByTemplatePath<Stuff>(dst) ?? null;
-      const srcAllowed =
-        srcResource instanceof Zone
-          ? await AccessApi.canMutateZone(giver, srcResource)
-          : await AccessApi.can(giver, 'rm', srcResource);
-      if (!srcAllowed) {
-        return this.fail(
-          context,
-          "you don't have permission to move from there",
-          'access-denied',
-        );
-      }
-      const dstAllowed =
-        dstResource instanceof Zone
-          ? await AccessApi.canMutateZone(giver, dstResource)
-          : await AccessApi.can(giver, 'write', dstResource);
-      if (!dstAllowed) {
-        return this.fail(
-          context,
-          "you don't have permission to move there",
-          'access-denied',
-        );
-      }
-      const tpl = await Template.findByPath(src);
-      if (!tpl) return this.fail(context, `no template at ${src}`);
+      // mv REMOVES the source after writing the destination: title over
+      // both ends and every refusal before the first write are the move's
+      // own (`TemplateApi.move`, D9/D10 — C62, C66).
+      let moved;
       try {
-        // ⭐ The RAW row travels, never the effective one: a copy of a
-        // child is a child, and a `cp` that flattened the chain would
-        // silently fork the content away from its parent.
-        await TemplateApi.saveTemplate(dst, {
-          class: tpl.own.class,
-          extends: tpl.extends,
-          data: tpl.own.data ?? {},
-        });
-        await tpl.delete();
+        moved = await TemplateApi.move(src, dst);
       } catch (err) {
         return this.fail(context, (err as Error).message);
       }
+      if (!moved.ok) return this.fail(context, ...this.refusalOf(moved, src));
       this.tell(context, `\nmoved ${src} → ${dst}\n`);
       return;
     }
@@ -118,6 +83,28 @@ export default class MvController extends CommandController<MvModel> {
       `\nmoved ${SourceTreeApi.toDisplayPath(absSrc)} → ${SourceTreeApi.toDisplayPath(absDst)}\n`,
     );
     return;
+  }
+
+  /** Word a move's refusal: the detail and the envelope reason. */
+  private refusalOf(
+    r: { reason: string; path: string },
+    src: string,
+  ): [string, string] {
+    switch (r.reason) {
+      case 'access-denied':
+        return [
+          r.path === src
+            ? "you don't have permission to move from there"
+            : "you don't have permission to move there",
+          'access-denied',
+        ];
+      case 'no-template':
+        return [`no template at ${r.path}`, 'no-template'];
+      case 'has-descendants':
+        return [`${r.path} still holds rows — move them first`, 'has-descendants'];
+      default:
+        return [`${r.path} is extended by other rows — re-parent them first`, 'extended'];
+    }
   }
 
   private tell(context: CommandContext, text: string): void {

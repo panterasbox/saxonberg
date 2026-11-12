@@ -64,6 +64,9 @@ export default class ThrowAtController extends ThrowControllerBase<ThrowAtModel>
       }
     }
 
+    // It leaves your hand: committed only once the fight (if any) opened.
+    if (!this.letGo(item, context)) return;
+
     // ⚠ `toTarget` requires a Sensor — and you can throw things at OBJECTS,
     // not just at people. A terminal has nothing to be told.
     const hurl = MessageApi.scene(giver)

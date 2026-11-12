@@ -16,7 +16,11 @@
  * A companion `OperationPatientHold` occupies the PATIENT's `body` so they
  * cannot act while under the knife — `cancelable` iff they read conscious
  * (the thrash: a conscious patient can end it; an anaesthetised one
- * cannot). The controller wires the hold's abort to end the operation.
+ * cannot). ⭐ The operation OWNS its hold (controller-liquidity C38): it
+ * starts the hold when it starts, ends the operation when the patient ends
+ * the hold, and frees the patient when it finishes either way. The
+ * controller used to start the hold itself with a no-op abort, so a patient
+ * who thrashed free left the surgeon operating on air.
  */
 
 import type { DurativeActivity, SustainedEngagement } from '../../api/scheduler';
@@ -25,6 +29,7 @@ import type { Engaged } from '../activity/Engaged';
 import type { AbortReason } from '@saxonberg/types';
 import type { Stuff } from '../stuff/Stuff';
 import { COMBAT_PARTICIPANT_TYPE } from '../combat/CombatSession';
+import { SchedulerApi } from '../../api/scheduler';
 
 declare module '@saxonberg/types' {
   interface AbortReasonRegistry {
@@ -52,6 +57,10 @@ export interface OperationOptions {
   onComplete: () => void;
   /** The left-open-worse path, on any interruption. */
   onAbort: (reason: AbortReason) => void;
+  /** The patient, held still for the duration (absent: operating on yourself). */
+  patient?: (Stuff & Engaged) | null;
+  /** True iff the patient reads conscious — they may thrash free, ending the operation. */
+  patientCancelable?: boolean;
 }
 
 export class OperationEngagement implements DurativeActivity {
@@ -69,24 +78,56 @@ export class OperationEngagement implements DurativeActivity {
 
   private readonly _onComplete: () => void;
   private readonly _onAbort: (reason: AbortReason) => void;
+  private readonly patient: (Stuff & Engaged) | null;
+  private readonly patientCancelable: boolean;
+  private hold: OperationPatientHold | null = null;
+  private finished = false;
 
   constructor(opts: OperationOptions) {
     this.actor = opts.surgeon;
     this.duration = opts.durationMs;
     this._onComplete = opts.onComplete;
     this._onAbort = opts.onAbort;
+    this.patient =
+      opts.patient && (opts.patient as unknown) !== (opts.surgeon as unknown) ? opts.patient : null;
+    this.patientCancelable = opts.patientCancelable ?? false;
   }
 
   onStart(): void {
     this.startedAt = Date.now();
+    if (!this.patient) return;
+    const hold = new OperationPatientHold({
+      patient: this.patient,
+      cancelable: this.patientCancelable,
+      // The patient ending the hold (a thrash) ends the operation.
+      onAbort: () => {
+        if (this.finished) return;
+        SchedulerApi.cancel(this, 'operation-interrupted');
+      },
+    });
+    const started = SchedulerApi.start(hold);
+    if (started.ok && (started.status === 'started' || started.status === 'replaced')) {
+      this.hold = hold;
+    }
   }
 
   onComplete(): void {
+    this.finished = true;
+    this.releasePatient();
     this._onComplete();
   }
 
   onAbort(reason: AbortReason): void {
+    this.finished = true;
+    this.releasePatient();
     this._onAbort(reason);
+  }
+
+  /** End the patient's hold — the operation is over either way. */
+  private releasePatient(): void {
+    const hold = this.hold;
+    this.hold = null;
+    if (hold) hold.release();
   }
 
   getHost(): Stuff | null {
@@ -99,8 +140,8 @@ export interface OperationHoldOptions {
   patient: Stuff & Engaged;
   /** True iff the patient reads conscious — then they may end it (thrash). */
   cancelable: boolean;
-  /** Wired by the controller to end the operation when the patient ends
-   * the hold (a conscious patient thrashing free). */
+  /** Wired by the operation to end itself when the patient ends the hold
+   * (a conscious patient thrashing free). */
   onAbort: (reason: AbortReason) => void;
 }
 
@@ -130,6 +171,13 @@ export class OperationPatientHold implements SustainedEngagement {
     if (this.ended) return;
     this.ended = true;
     this._onAbort(reason);
+  }
+
+  /** The operation is over: free the patient's body without reporting a thrash. */
+  release(): void {
+    if (this.ended) return;
+    this.ended = true;
+    SchedulerApi.complete(this);
   }
 
   getHost(): Stuff | null {

@@ -17,6 +17,7 @@
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { ActOutcome, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -99,6 +100,20 @@ export default class LineAccess
   /** Cut the line here — the lineman's `sever` and the storm's fault. */
   public sever(): void {
     if (this.nodeRef) this.catalogue()?.sever(this.nodeRef);
+  }
+
+  /**
+   * ⭐ **The lineman cuts the line here** (the `sever` verb's act,
+   * controller-liquidity W12): refused when it is cut already. `by` is the
+   * hand on the cutters — not title-gated: a line is cut where you can
+   * reach it, and what that does to the lamps down the way is the act's
+   * whole meaning.
+   */
+  public severBy(by: Stuff): ActOutcome<undefined> | ActRefusal<'already-cut'> {
+    void by;
+    if (this.isCut()) return { ok: false, reason: 'already-cut' };
+    this.sever();
+    return { ok: true, facts: undefined };
   }
 
   /** Splice the line here back together — the lineman's `splice`. */

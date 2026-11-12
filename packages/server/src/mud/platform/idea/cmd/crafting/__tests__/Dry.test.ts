@@ -24,6 +24,8 @@
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DryController, { type DryModel } from '../DryController';
+import DryRubController, { type DryRubModel } from '../DryRubController';
+import Cloth from '../../../../thing/Cloth';
 import DryingRack from '../../../../thing/DryingRack';
 import Fitting from '../../../../../platform/thing/Fitting';
 import { Template } from '../../../../../lib/stuff/Template';
@@ -176,9 +178,11 @@ describe('`dry` — hang it where the air can reach it', () => {
   it('⭐ the prospect is words: a span in dry air, a refusal in wet', async () => {
     // Read through a subclass rather than by intercepting the router: the
     // claim is about the SENTENCE, and a message spy would test delivery.
+    // ⭐ The forecast is the THING's (`Moist.hoursToDry`, W7c); the
+    // controller only words the hours it is told.
     class Probe extends DryController {
-      public prospect(target: Stuff, scope: Stuff): string | null {
-        return this.prospectFor(target, scope as never);
+      public prospect(target: Stuff, _scope: Stuff): string | null {
+        return Probe.prospectWords(MixinApi.isMoist(target) ? target.hoursToDry() : null);
       }
     }
     const probe = makeStuff(() => new Probe()) as unknown as Probe;
@@ -193,15 +197,15 @@ describe('`dry` — hang it where the air can reach it', () => {
 
     const wet = scene(100, 0);
     ContainmentApi.move(wet.cut as never, wet.rack as never, Placements.ON);
-    expect(probe.prospect(wet.cut, wet.room)).toBe(
-      'Nothing will dry in this air.',
-    );
+    expect(probe.prospect(wet.cut, wet.room)).toBe('Nothing will dry here.');
   });
 
   it('a wetter room reads as a LONGER wait than a dry one', async () => {
+    // ⭐ The forecast is the THING's (`Moist.hoursToDry`, W7c); the
+    // controller only words the hours it is told.
     class Probe extends DryController {
-      public prospect(target: Stuff, scope: Stuff): string | null {
-        return this.prospectFor(target, scope as never);
+      public prospect(target: Stuff, _scope: Stuff): string | null {
+        return Probe.prospectWords(MixinApi.isMoist(target) ? target.hoursToDry() : null);
       }
     }
     const probe = makeStuff(() => new Probe()) as unknown as Probe;
@@ -289,21 +293,16 @@ describe('`dry` — hang it where the air can reach it', () => {
     });
 
     it('⭐ a hung thing is FULLY exposed — the exposure is the row\'s number', async () => {
-      // `exposureOf` is host-internal; the observation seam is a cast
-      // with a reason, as the prospect probes above do with a subclass.
-      class Probe extends DryController {
-        public exposure(target: Stuff): number {
-          return (
-            this as unknown as { exposureOf(t: Stuff): number }
-          ).exposureOf(target);
-        }
-      }
-      const probe = makeStuff(() => new Probe()) as unknown as Probe;
-      const { room, cook, cut } = scene(40);
+      // ⭐ The exposure is the SUPPORT's own claim (`Moisture`'s exposure
+      // read, W7c — the controller no longer computes it): hung from the
+      // hook, the thing sits on the hook, and the hook says 1.
+      const { room, cut } = scene(40);
       const h = hook();
       ContainmentApi.move(h as never, room as never);
       ContainmentApi.move(cut as never, h as never, Placements.FROM);
-      expect(probe.exposure(cut)).toBe(1);
+      const support = MixinApi.isContainable(cut) ? (cut.getPlacement()?.host ?? null) : null;
+      expect(support).toBe(h);
+      expect(h.getAirExposure()).toBe(1);
     });
 
     it('the rack is unchanged — `on` still resolves, and still reads `on`', async () => {
@@ -330,5 +329,61 @@ describe('`dry` — hang it where the air can reach it', () => {
         MixinApi.isContainable(cut) && (cut.getPlacement()?.host ?? null),
       ).toBe(null);
     });
+  });
+});
+
+describe('`dry <thing> with <cloth>` — the second shape, its own controller (W7c)', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+    installV1QuantityMarshallers();
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  function rubScene() {
+    const room = makeStuff(() => new Location());
+    const cook = makeStuff(() => {
+      const a = new Cook();
+      a.setName('the cook');
+      return a;
+    });
+    const towel = makeStuff(() => {
+      const c = new Cloth();
+      c.setMass(Quantity.of(0.5, 'kg'));
+      return c;
+    });
+    const thing = makeStuff(() => {
+      const g = new Good();
+      g.setMass(Quantity.of(0.5, 'kg'));
+      return g;
+    });
+    ContainmentApi.move(cook as never, room as never);
+    ContainmentApi.move(towel as never, cook as never);
+    ContainmentApi.move(thing as never, cook as never);
+    return { room, cook, towel, thing };
+  }
+
+  it('a dry thing is refused — there is no water in it to take out', async () => {
+    const { room, cook, towel, thing } = rubScene();
+    const c = ctx(cook, room);
+    await makeStuff(() => new DryRubController()).execute(
+      { target: bound(thing, 'thing'), cloth: bound(towel, 'towel') } as DryRubModel,
+      c,
+    );
+    expect(c.getNotes().map((n) => JSON.stringify(n)).join(' ')).toContain('not-dryable');
+  });
+
+  it('a wet thing rubbed with a towel gives its water to the towel', async () => {
+    const { room, cook, towel, thing } = rubScene();
+    if (!MixinApi.isWet(thing) || !MixinApi.isWet(towel)) throw new Error('both should take water');
+    thing.wet(0.9);
+    const before = thing.getWetness();
+    const c = ctx(cook, room);
+    await makeStuff(() => new DryRubController()).execute(
+      { target: bound(thing, 'thing'), cloth: bound(towel, 'towel') } as DryRubModel,
+      c,
+    );
+    expect(c.getNotes().filter((n) => n.kind === 'controller-rejected').map((n) => JSON.stringify(n))).toEqual([]);
+    expect(thing.getWetness()).toBeLessThan(before);
+    expect(towel.getWetness()).toBeGreaterThan(0);
   });
 });

@@ -230,6 +230,21 @@ describe('SearchController + SearchActivity — costed & interruptible', () => {
     );
   });
 
+  it('⭐ the scheduled search resolves after the dispatcher has destructed its controller', async () => {
+    // The dispatcher destructs the controller in its `finally` while the
+    // search is still pending; a completion that called `this` would land
+    // on a dead proxy and discover nothing, silently (controller-liquidity D12).
+    const controller = makeStuff(() => new SearchController());
+    await controller.execute({} as CommandModel, ctx());
+    await StuffApi.destruct(controller);
+    expect(controller.isDestroyed()).toBe(true);
+    WorldClockApi._advanceForTesting(6000);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(PerceptionApi.hasDiscovered(actor as never, hidden as never)).toBe(
+      true,
+    );
+  });
+
   it('an interrupted search finds nothing (ambushed mid-rummage)', async () => {
     const controller = makeStuff(() => new SearchController());
     await controller.execute({} as CommandModel, ctx());

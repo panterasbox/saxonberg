@@ -35,7 +35,7 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { CutPlannerMixin } from '@saxonberg/server/mud/lib/craft/CutPlanner';
 import {
-  type CutAnswerFor,
+  type CutAnswer,
   type CutDone,
   type CutRefusal,
   type CutRequest,
@@ -77,7 +77,7 @@ export default class CuttingTool extends CutPlannerMixin(Tool) {
    * stamps a body's measurements; nobody is stock. `null` for anything
    * that is not cloth: these shears have nothing to say about it.
    */
-  public override async cutPlanFor(target: Stuff, req: CutRequest<'cut'>): Promise<CutAnswerFor<'cut'> | null> {
+  public override async cutPlanFor(target: Stuff, req: CutRequest): Promise<CutAnswer | null> {
     if (!MixinApi.isStackable(target)) return null;
     if (!MixinApi.isConstructed(target) || !target.getConstruction()?.isCovering()) return null;
     const cloth = target;
@@ -91,7 +91,7 @@ export default class CuttingTool extends CutPlannerMixin(Tool) {
     const spoilage = fine ? 0 : 1;
     const units = pattern + spoilage;
     if (cloth.getQuantity() < units) {
-      return { ok: false, verb: 'cut', reason: 'too-little-cloth', facts: { pattern, units, waste: spoilage > 0 } };
+      return { ok: false, reason: 'too-little-cloth', facts: { pattern, units, waste: spoilage > 0 } };
     }
     const subject = req.options.for ?? null;
     const measured = subject ? measurementsOf(subject) : null;
@@ -100,7 +100,6 @@ export default class CuttingTool extends CutPlannerMixin(Tool) {
     const actor = req.actor;
     return {
       ok: true,
-      verb: 'cut',
       durationMs,
       effortW: 250,
       facts: { kind: 'pattern', cloth, subject: measured ? subject : null, waste: spoilage > 0 },

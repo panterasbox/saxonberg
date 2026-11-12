@@ -43,7 +43,7 @@ data:
   # ⚠⚠ The rename is better WRITING and it did **not** fix what it was
   # first reached for. Three herdbooks hang on this shelf now, and
   # `look flock book` raises a disambiguation prompt whichever way they
-  # are named: `look`'s target is greedy and its matcher scores loosely
+  # are named: `look`'s matcher scores loosely
   # across three near-identical records, so narrowing keywords and
   # renaming display names both left the prompt exactly where it was.
   # Measured, twice, with the props removed as the counterfactual.

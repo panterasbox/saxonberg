@@ -22,8 +22,24 @@ describe('⭐ Login affords exactly the pre-world verb set', () => {
       .flatMap((d) => d.verbs)
       .sort();
 
-  it('the self bucket is embody, play, cockpit and prompt — and nothing else', () => {
-    expect(selfVerbs()).toEqual(['cockpit', 'embody', 'play', 'prompt']);
+  /*
+   * ⭐ The four `client-…` verbs are NOT a gain: they are what were
+   * `cockpit layout|card|shelf|style`, split off when the owner ruled a
+   * command is never deeper than `verb subcommand target`
+   * (controller-liquidity W16). Same affordance, same mixin, same reach
+   * before a body — only the word moved.
+   */
+  it('the self bucket is embody, play, cockpit (+ its client-… verbs) and prompt — and nothing else', () => {
+    expect(selfVerbs()).toEqual([
+      'client-card',
+      'client-layout',
+      'client-shelf',
+      'client-style',
+      'cockpit',
+      'embody',
+      'play',
+      'prompt',
+    ]);
   });
 
   /**

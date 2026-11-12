@@ -36,6 +36,13 @@ import { HaulableMixin } from '@saxonberg/server/mud/lib/slot/Haulable';
 import { PullableMixin, type PullOutcome, type PullSense } from '@saxonberg/server/mud/lib/spatial/Pullable';
 import { StagedMixin } from '@saxonberg/server/mud/lib/stuff/Staged';
 import { SmallCraftMixin, type SmallCraft } from '@saxonberg/server/mud/lib/expanse/SmallCraft';
+import type { ActOutcome, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import {
+  AnchoringMixin,
+  type Anchoring,
+  type AnchorPlan,
+  type AnchorRefusal,
+} from '@saxonberg/server/mud/lib/expanse/Anchoring';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -55,6 +62,7 @@ import Propulsion from './Propulsion';
 import { Propel, type PropelHeading } from '../lib/Propel';
 import Killick from './Killick';
 import type ReachWarren from '@saxonberg/content-water/src/idea/ReachWarren';
+import ReachExit from '@saxonberg/content-water/src/idea/exits/ReachExit';
 import WaterExpanse from '@saxonberg/content-water/src/idea/WaterExpanse';
 import { HirableMixin, type Hirable } from '@saxonberg/server/mud/lib/retail/Hirable';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
@@ -70,7 +78,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 
-type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable & Engaged & Tangible & SmallCraft & Hirable & Faced & Bilge &
+type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable & Engaged & Tangible & SmallCraft & Anchoring & Hirable & Faced & Bilge &
   { entryMediaIn(env: Stuff & Container): string[]; onMoved(from: (Stuff & Container) | null, to: (Stuff & Container) | null): void };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -80,7 +88,7 @@ const BoatBase = BilgeMixin(
   FacedMixin(
     HirableMixin(
       PullableMixin(
-        HaulableMixin(SmallCraftMixin(StagedMixin(EngagedMixin(MobileMixin(ExitableVessel)))) as unknown as MixinConstructor<BoatShape>),
+        HaulableMixin(AnchoringMixin(SmallCraftMixin(StagedMixin(EngagedMixin(MobileMixin(ExitableVessel))))) as unknown as MixinConstructor<BoatShape>),
       ) as unknown as MixinConstructor<BoatShape>,
     ) as unknown as MixinConstructor<BoatShape>,
   ) as unknown as MixinConstructor<BoatShape>,
@@ -118,6 +126,39 @@ const SAIL_MIN_WIND_MPS = 1.5;
 
 /** Where the river's warren lives — what a boat asks about the water it is in. */
 const WARREN_PATH = '/system/water/idea/ReachWarren';
+
+/** The direction words `paddle` takes. */
+const PADDLE_WORDS: Readonly<Record<string, PropelHeading>> = {
+  downstream: 'downstream',
+  down: 'downstream',
+  on: 'downstream',
+  upstream: 'upstream',
+  up: 'upstream',
+  left: 'left',
+  right: 'right',
+};
+
+/** Why she will not be paddled — worded by `paddle`. */
+export type PaddleRefusal = ActRefusal<
+  'no-propulsion' | 'capsized' | 'not-engaged' | 'no-river' | 'which-way' | 'engagement-conflict'
+>;
+/** Under way: what she is propelled with, and which way. */
+export interface PaddleDone {
+  kind: string;
+  heading: PropelHeading;
+}
+
+/** Where the sea's warren lives. */
+const SEA_PATH = '/system/water/idea/SeaWarren';
+
+/** ⭐ Every reason a boat will not go into the water — `LaunchController` words each. */
+export type LaunchRefusal =
+  /** No water beside here; `ashore` false = she lies in nothing at all. */
+  | ActRefusal<'no-water', { ashore: boolean }>
+  | ActRefusal<'already-launched'>;
+
+/** ⭐ Every reason a boat will not come out of the water — `RecoverController` words each. */
+export type RecoverRefusal = ActRefusal<'not-afloat'> | ActRefusal<'nowhere'>;
 
 /**
  * How much of the water's roughness comes over a gunwale — the river's rule
@@ -209,6 +250,48 @@ export default class Boat extends LiftSourceMixin(BoatBase) implements LiftSourc
       if (c instanceof Propulsion && c.getNeeds() === 'wind') return c;
     }
     return null;
+  }
+
+  /**
+   * ⭐ **Paddle her** (the `paddle` verb's act, river D21; moved off the
+   * controller in controller-liquidity W12): `word` is a direction
+   * (`downstream`/`down`/`on`, `upstream`/`up`, `left`, `right`), `bar`
+   * (whichever bank is gravel here), or a landing within hail by the way's
+   * own name — ⚠ direction words first, and a landing matched against the
+   * room's own ways, never a scan. The boat and the water decide the rest
+   * (`Propel`, on the paddler's hands).
+   */
+  public async paddleBy(
+    by: Stuff,
+    word: string,
+    manner: { inside: boolean; hard: boolean },
+  ): Promise<ActOutcome<PaddleDone> | PaddleRefusal> {
+    const part = this.propulsion();
+    if (part === null) return { ok: false, reason: 'no-propulsion' };
+    if (this._capsized) return { ok: false, reason: 'capsized' };
+    if (!MixinApi.isEngaged(by)) return { ok: false, reason: 'not-engaged' };
+    const water = await StuffApi.singleton<ReachWarren>(WARREN_PATH).catch(() => null);
+    if (!water) return { ok: false, reason: 'no-river' };
+    const said = word.trim().toLowerCase() || 'downstream';
+    const room = this.getContainer();
+    let heading: PropelHeading | undefined = PADDLE_WORDS[said];
+    let target = '';
+    if (heading === undefined && room !== null && MixinApi.isExitable(room)) {
+      const exit = room.getExit(said);
+      if (exit instanceof ReachExit && exit.getWay() === 'place') {
+        heading = 'place';
+        target = exit.getTarget();
+      } else if (said === 'bar' || said === 'bank' || said === 'ashore') {
+        const river = await water.riverAt(room);
+        heading = river?.barSide ?? (river ? 'left' : undefined);
+      }
+    }
+    if (heading === undefined) return { ok: false, reason: 'which-way' };
+    const started = SchedulerApi.start(
+      new Propel({ actor: by as Stuff & Engaged, boat: this, heading, target, inside: manner.inside, hard: manner.hard, water }),
+    );
+    if (!started.ok) return { ok: false, reason: 'engagement-conflict' };
+    return { ok: true, facts: { kind: part.getPropulsionKind(), heading } };
   }
 
   /**
@@ -470,6 +553,48 @@ export default class Boat extends LiftSourceMixin(BoatBase) implements LiftSourc
   }
 
   /**
+   * ⭐ `launch` (river D30, controller-liquidity W8): put her into the water
+   * beside where she lies. Which water, and whether there is any, is the
+   * water's (`Launchable`) — the river's warren is asked first, then the
+   * sea's.
+   */
+  public async launch(): Promise<LaunchRefusal | ActOutcome<undefined>> {
+    const from = this.getContainer();
+    if (from === null) return { ok: false, reason: 'no-water', facts: { ashore: false } };
+    if (MixinApi.isWaterPlace(from) && from.depthNow() > 0) return { ok: false, reason: 'already-launched' };
+    for (const path of [WARREN_PATH, SEA_PATH]) {
+      const water = await StuffApi.singleton<Stuff>(path).catch(() => null);
+      if (water === null || !MixinApi.isLaunchable(water)) continue;
+      const into = await water.launchPlaceFor(from);
+      if (into === null) continue;
+      ContainmentApi.move(this, into);
+      return { ok: true, facts: undefined };
+    }
+    return { ok: false, reason: 'no-water', facts: { ashore: true } };
+  }
+
+  /**
+   * ⭐ `recover` (river D30, W8): take her out of the water — onto the deck
+   * of a ship lying alongside, or up onto the bank she is beached against.
+   * The sea's warren is asked first, then the river's.
+   */
+  public async recover(): Promise<RecoverRefusal | ActOutcome<undefined>> {
+    const from = this.getContainer();
+    if (from === null || !MixinApi.isWaterPlace(from) || from.depthNow() <= 0) {
+      return { ok: false, reason: 'not-afloat' };
+    }
+    for (const path of [SEA_PATH, WARREN_PATH]) {
+      const water = await StuffApi.singleton<Stuff>(path).catch(() => null);
+      if (water === null || !MixinApi.isLaunchable(water)) continue;
+      const onto = await water.recoverPlaceFor(from);
+      if (onto === null) continue;
+      ContainmentApi.move(this, onto);
+      return { ok: true, facts: undefined };
+    }
+    return { ok: false, reason: 'nowhere' };
+  }
+
+  /**
    * ⭐ The killick's question (D23): hold the boat where it is, if the water
    * there is slack enough to hold in.
    */
@@ -495,9 +620,25 @@ export default class Boat extends LiftSourceMixin(BoatBase) implements LiftSourc
     return this.getContents().some((c) => c instanceof Killick);
   }
 
-  /** ⭐ `anchor` in a boat (D23): over goes her killick, if she carries one. */
-  public override async letGoAnchor(by: Stuff): Promise<{ ok: boolean; line: string } | null> {
-    return this.carriesKedge() ? this.holdAt(by) : null;
+  /**
+   * ⭐ `anchor` in a boat (D23): over goes her killick, if she carries one
+   * (`null` without one — the verb asks the craft she lies in next). The
+   * water says whether it held (`holdAt`), in its own line.
+   */
+  public override async anchorPlanFor(by: Stuff): Promise<AnchorPlan | AnchorRefusal | null> {
+    if (!this.carriesKedge()) return null;
+    return {
+      ok: true,
+      durationMs: 0,
+      effortW: 0,
+      facts: undefined,
+      onComplete: async () => {
+        const out = await this.holdAt(by);
+        return out.ok
+          ? { ok: true, facts: { line: out.line } }
+          : { ok: false, reason: 'anchor-drags', facts: { line: out.line } };
+      },
+    };
   }
 
   /**

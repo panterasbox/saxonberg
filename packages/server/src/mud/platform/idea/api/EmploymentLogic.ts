@@ -2452,6 +2452,8 @@ export class EmploymentLogic extends ApiLogic {
       payeeAccountId: account,
       category: 'sales',
       splits: splits.length > 0 ? splits : undefined,
+      // The tax remitted below comes out of what the house keeps (#128).
+      taxableMinor,
     };
     // Credential first, then cash — a coin-holder pays with coin; the float
     // is the last resort (no funds → the venue floats it).

@@ -32,6 +32,7 @@ import type { Trauma } from '@saxonberg/server/mud/platform/idea/Condition';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import { CommandLineApi } from '@saxonberg/server/mud/api/command-line';
 
 const NURSING = 'nursing';
 const BLEED = new Set(['laceration', 'puncture', 'avulsion']);
@@ -223,7 +224,7 @@ export const brain = class NursesBrain {
       const kw = keywordOf(dressing as unknown as Stuff);
       const giver = host as unknown as Partial<CommandGiver>;
       if (kw && typeof giver.forceCommand === 'function') {
-        await giver.forceCommand(`put ${kw} in pot`);
+        await giver.forceCommand(`put ${CommandLineApi.word(kw)} in pot`);
         return;
       }
     }

@@ -6,33 +6,22 @@
  * so a slate heading is roughly half a granite one and the deposit's own
  * stratigraphy is what a player is really budgeting against.
  *
- * ⚠ It refuses on bad ground, and the refusal **names the state**
- * ({@link MiningActController.groundPermits}), because neglect costs you
- * access to your ore and never your life.
+ * ⭐ I/O over {@link Working.drivePlanFor} (controller-liquidity W9): the
+ * face, the ground's refusal (which names the state), the type row the new
+ * cell clones from, the holder (keyed by identity — D11) and the carve are
+ * the working's and the warren's.
  *
- * ⚠ The word is `drift`, the miner's term of art. The view used to claim
- * `drive` too, colliding with the vehicle's `drive` at the same arity; the
- * vehicle keeps the plain word (`drift.yaml`'s header has the ladder), and
- * since controllers-are-io D20 the file, the class and the row say `drift`
- * as well.
+ * ⚠ The word is `drift`, the miner's term of art; the vehicle keeps the
+ * plain `drive` (`drift.yaml`'s header has the ladder).
  */
 
-import { MiningActController, MINING_TOPIC } from './MiningActController';
+import { MiningActController } from './MiningActController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import type MineWarren from '../../MineWarren';
-import type { WorkingType } from '../../MineWarren';
-import type { Cell, Face } from '../../../lib/Working';
+import type { DriveDone, DriveRefusal } from '../../../lib/Working';
 
-/** Reference time to cut one cell, in game ms, at reference hardness. */
-const DRIVE_MS = 40000;
-/** Endurance one heading costs, in percentage points. */
-/** Metabolic watts of driving a heading: (750 − 300) × 40 s / 1500 = the old 12 %. */
-const DRIVE_EFFORT_W = 750;
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface DriftModel extends CommandModel {
   direction?: string;
@@ -44,170 +33,78 @@ export default class DriftController extends MiningActController<DriftModel> {
   }
 
   /**
-   * The shared body `sink` and `raise` reuse with a fixed direction —
-   * the vertical pair is the same act pointed down and up.
+   * The shared body `sink` and `raise` reuse with a fixed direction — the
+   * vertical pair is the same act pointed down and up.
    */
-  protected async driveIn(context: CommandContext, rawDirection: string): Promise<void> {
+  protected async driveIn(context: CommandContext, direction: string): Promise<void> {
     const giver = context.commandGiver;
-    const direction = NavigationApi.normalizeDirection(rawDirection);
-    if (!direction) {
-      this.decline(
-        context,
-        Mml.compose`Drive which way? Name a direction.`,
-        'no-direction',
-      );
-      return;
-    }
     const working = this.workingOf(giver);
     if (!working) {
-      this.decline(context, Mml.compose`There is nothing to cut into here.`, 'not-a-working');
+      DriftController.decline(context, Mml.compose`There is nothing to cut into here.`, 'not-a-working');
       return;
     }
-    const warren = (working as unknown as { getWarren?(): unknown }).getWarren?.() as
-      | MineWarren
-      | null;
-    if (!warren || typeof warren.carve !== 'function') {
-      // ⭐ The honest static-mine answer: a hand-authored mine is a mine
-      // that does not GROW. Every read still works; this one act does not.
-      this.decline(
-        context,
-        Mml.compose`These workings are cut and finished — nobody drives here any more.`,
-        'no-warren',
-      );
+    const plan = await working.drivePlanFor(giver, direction, this.edgeMedium());
+    if (!plan.ok) {
+      DriftController.decline(context, DriftController.refusalWords(plan), plan.reason);
       return;
     }
-
-    const faces = await working.facesOf();
-    const face = faces.find((f) => f.direction === direction);
-    if (!face) {
-      this.decline(context, Mml.compose`You can't cut that way.`, 'no-such-face');
-      return;
-    }
-    if (face.open) {
-      this.decline(
-        context,
-        Mml.compose`That way is already driven.`,
-        'already-driven',
-      );
-      return;
-    }
-
-    const stability = await working.stabilityAt();
-    if (!this.groundPermits(context, stability, 'drive')) return;
-
-    // Resolved at DISPATCH time, while the controller is alive.
-    const cell = face.cell;
-    const type = this.typeFor(face);
-    const medium = this.edgeMedium();
-    this.engageAct(context, {
-      durationMs: this.paceForGround(DRIVE_MS, face.hardnessMPa),
-      effortW: DRIVE_EFFORT_W,
-      beginSelf: Mml.compose`You start driving a heading ${direction}.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} starts driving a heading ${direction}.`,
-      // ⚠⚠ **Nothing in here touches `this`.** The controller is
-      // ephemeral — one clone per execution, destructed the moment
-      // `execute` returns — and an engaged act completes long after
-      // that, so a completion reaching back into it runs on a DESTROYED
-      // Stuff and the proxy answers with a silent no-op: the swing
-      // lands, the prose prints, and nothing happens. Found by driving.
-      //
-      // ⭐ Which is also why the vertical pair passes a VALUE rather than
-      // overriding a hook the completion would have to call: `medium`
-      // was `afterCut()`, and a bound method is still a method on a
-      // corpse. A subclass that has to be consulted AFTER the act is a
-      // subclass that cannot be consulted at all.
-      onComplete: () => {
-        void cutHeading(context, warren, cell, face, direction, type, medium);
-      },
+    await this.engagePlan(context, plan, {
+      beginSelf: (b) => Mml.compose`You start driving a heading ${b.direction}.`,
+      beginPeers: (b) => Mml.compose`${Mml.actor(giver)} starts driving a heading ${b.direction}.`,
+      onRefused: (r) => r,
+      onDone: (d) => DriftController.doneWords(d, giver),
     });
   }
 
   /**
    * The locomotion medium the fresh exit pair admits, or `null` for an
-   * ordinary ground heading.
+   * ordinary ground heading. ⭐ A VALUE read at dispatch, never a hook the
+   * completion calls back into (that would be a call on a destroyed
+   * controller).
    *
-   * ⭐ The vertical pair overrides this to `'vertical'` — a winze is
-   * CLIMBED, not walked. It is a VALUE and it is read at dispatch time
-   * on purpose: a hook the completion had to call back into would be a
-   * call on a destroyed controller.
-   *
-   * @hook Override to say what the fresh edges admit.
+   * @hook The vertical pair says `vertical` — a winze is CLIMBED.
    */
   protected edgeMedium(): string | null {
     return null;
   }
 
-  /**
-   * Which of the venue's four type rows the new cell clones from —
-   * ⭐ decided by the GROUND, not by the verb. A cell in the seam opens
-   * out into a stope; barren rock stays a face.
-   */
-  protected typeFor(face: Face): WorkingType {
-    return face.kind === 'seam' ? 'stope' : 'face';
-  }
-}
-
-/** Carve the cell at completion, and say what the new ground is like. */
-async function cutHeading(
-  context: CommandContext,
-  warren: MineWarren,
-  cell: Cell,
-  face: Face,
-  direction: string,
-  type: WorkingType,
-  medium: string | null,
-): Promise<void> {
-  // ⚠⚠ **The actor may be GONE.** An engaged act completes long after
-  // dispatch, and a player can log out mid-swing — at which point
-  // `Mml.actor(giver)` renders `undefined` and the scene composer throws
-  // an UNHANDLED REJECTION that takes the process down. (It did.) A
-  // completion is the one place in a controller where the actor is not
-  // guaranteed, so it is the one place that has to check.
-  //
-  // ⭐ Returning is the honest answer, not narrating to nobody: the
-  // engagement was the actor's, and *a barge-in leaves the rock
-  // standing* is already the rule for an interrupted cut.
-  if (context.commandGiver.isDestroyed()) return;
-  const giver = context.commandGiver;
-  const room = await warren.carve(cell, type, ownerKeyOf(giver));
-  if (!room) {
-    MessageApi.scene(giver)
-      .topic(MINING_TOPIC)
-      .toSelf(Mml.compose`The ground will not take a heading there.`)
-      .send();
-    return;
-  }
-    MessageApi.scene(giver)
-      .topic(MINING_TOPIC)
-      .toSelf(
-        face.kind === 'seam'
-          ? Mml.compose`The heading breaks through into ore — the seam runs on ${direction}.`
-          : Mml.compose`The heading is through. Country rock, and no sign of a seam.`,
-      )
-      .toPeers(Mml.compose`${Mml.actor(giver)} breaks a heading through ${direction}.`)
-      .send();
-  // ⭐ A winze is climbed. `climb` and `ClimbableMixin` already ship, so
-  // the vertical needed no new locomotion — only an edge that declares
-  // what it is, on BOTH sides of the pair.
-  if (medium !== null) widenEdge(room as unknown as Stuff, direction, medium);
-}
-
-/** Let the fresh exit pair admit `medium`, both sides. */
-function widenEdge(room: Stuff, direction: string, medium: string): void {
-  if (!MixinApi.isExitable(room)) return;
-  const back = NavigationApi.invertDirection(direction);
-  for (const [dir, exit] of room.getExits()) {
-    if (dir !== back) continue;
-    exit.setMedia([...new Set([...exit.getMedia(), medium])]);
-    const other = exit.getDestination();
-    if (other && MixinApi.isExitable(other)) {
-      const inverse = other.getExit(direction);
-      if (inverse) inverse.setMedia([...new Set([...inverse.getMedia(), medium])]);
+  /** ⭐ Every reason the working will not take a heading (D4). */
+  protected static refusalWords(r: DriveRefusal): Composed {
+    switch (r.reason) {
+      case 'no-direction':
+        return Mml.compose`Drive which way? Name a direction.`;
+      case 'no-warren':
+        return Mml.compose`These workings are cut and finished — nobody drives here any more.`;
+      case 'no-such-face':
+        return Mml.compose`You can't cut that way.`;
+      case 'already-driven':
+        return Mml.compose`That way is already driven.`;
+      case 'bad-ground':
+        return DriftController.groundWords(r.facts.cause, 'drive');
+      default: {
+        const never: never = r;
+        return never;
+      }
     }
   }
-}
 
-/** The chattel/ledger key for whoever cut it. */
-function ownerKeyOf(giver: Stuff): string | null {
-  return giver.getTemplatePath() ?? null;
+  protected static doneWords(d: DriveDone, giver: Stuff): { self: Composed; peers?: Composed } | null {
+    switch (d.kind) {
+      case 'gone':
+        return null;
+      case 'wont-take':
+        return { self: Mml.compose`The ground will not take a heading there.` };
+      case 'through':
+        return {
+          self: d.seam
+            ? Mml.compose`The heading breaks through into ore — the seam runs on ${d.direction}.`
+            : Mml.compose`The heading is through. Country rock, and no sign of a seam.`,
+          peers: Mml.compose`${Mml.actor(giver)} breaks a heading through ${d.direction}.`,
+        };
+      default: {
+        const never: never = d;
+        return never;
+      }
+    }
+  }
 }

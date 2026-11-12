@@ -15,6 +15,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
@@ -208,5 +209,23 @@ describe('a lane induces its edges from the exits', () => {
     ]);
     const at = await catalogue().lanesAt('/test/road/1');
     expect(at.map((l) => l.key)).toEqual(['road']);
+  });
+
+  it("⭐ answers the kernel's WayIndex question — the places along every way through here", async () => {
+    const c = corridor(3);
+    installRooms(c.rooms);
+    installGraph(c);
+    installRows([
+      { key: 'road', mode: 'walk', seeds: ['/test/road/0'] },
+      { key: 'elsewhere', mode: 'walk', edges: [{ from: '/test/far/a', to: '/test/far/b' }] },
+    ]);
+    const cat = catalogue();
+    expect(MixinApi.isWayIndex(cat as never)).toBe(true);
+    expect((await cat.waysideOf('/test/road/1')).sort()).toEqual([
+      '/test/road/0',
+      '/test/road/1',
+      '/test/road/2',
+    ]);
+    expect(await cat.waysideOf('/test/nowhere')).toEqual([]);
   });
 });

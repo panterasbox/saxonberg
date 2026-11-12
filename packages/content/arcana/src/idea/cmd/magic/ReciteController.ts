@@ -93,7 +93,7 @@ export default class ReciteController extends CommandController<ReciteModel> {
     // working consumes the scroll out from under them.
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You say ${Mml.thing(scroll)} aloud: ${scroll.readFor(giver)}`)
+      .toSelf(Mml.compose`You say ${Mml.thing(scroll)} aloud: ${scroll.textFor(giver)}`)
       .toPeers(Mml.compose`${Mml.actor(giver)} reads something aloud from ${Mml.thing(scroll)}.`)
       .send();
     const outcome = await scroll.dischargeAt(mark, { source: giver });

@@ -1,20 +1,14 @@
 verbs: [bore]
 category: drilling
 controller: /trade/drilling/idea/cmd/drilling/BoreController
-description: "Site a hole on your own ground, or work the beam on one"
+description: "Work the beam on a hole: one stroke toward the next yard"
 help: |
-  `bore` at a derrick does one of two things, and which one depends on
-  whether there is a hole under the rig yet.
-
-  **With no hole**, it SITES one: the rig is committed to this ground,
-  an outfit is opened to pay for it, and from that moment the hole is
-  capital you cannot pick up and carry somewhere better. ⚠ The ground
-  has to be yours — `stake` it at the claims counter first.
-
-  **With a hole**, it is one stroke of the beam. A yard of rock takes
+  `bore` at a derrick is one stroke of the beam. A yard of rock takes
   several strokes and hard rock takes more of them: the number is the
   rock's hardness, so a driller who has read the column knows what the
   next ten yards cost before paying for it.
+
+  A hole is started with `spud`, on ground you have staked.
 
   ⭐ **You are not meant to do this by hand.** A hole deep enough to be
   worth anything is weeks of beam work, and the way it gets done is a
@@ -28,21 +22,12 @@ help: |
   it — and says so, and the remedy is `line`.
 examples:
   - cmd: bore
-    note: Site a rig on ground you have staked, or take a stroke
+    note: Take a stroke at the beam
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
-  # ⚠⚠ **ARG ORDER: the positional `hole` comes FIRST, and that is a
-  # boot-fatal rule rather than a style.** Every prepositional object arg
-  # below carries `greedy: true` (`lint:reachability` arm G — a
-  # prepositional object arg that is not greedy takes ONE token, so
-  # `at the brick oven` is a shape error and `command-spec.md` says they
-  # all want greedy). But *a greedy arg must be last, or be followed only
-  # by prepositional args* — so a greedy `rig` standing before the
-  # positional `hole` would fail `CommandApi.preloadAll` and take the
-  # whole server down. Moving `hole` to the front satisfies both.
   - name: hole
     type: object
     required: false
@@ -50,10 +35,10 @@ args:
     scope: ["here", "peers", "person"]
     requires: [GroundPointMixin]
   - name: rig
+    prepositionRequired: true
     type: object
     required: false
     prepositions: [at, with, using]
-    greedy: true
     default: "reachable:[capability.derrick]"
     scope: ["here", "peers", "person"]
     requires: [ToolMixin]

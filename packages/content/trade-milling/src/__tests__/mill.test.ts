@@ -409,6 +409,13 @@ describe('⭐⭐ the rung buys back TIME (D27)', () => {
     // No engagement at all. The driver may leave, log out, or start
     // something else — the river does not need them.
     expect(actor.getEngagements()).toHaveLength(0);
+    // ⭐ The hopper took the grain as the stones started (C17) — it is not
+    // left in the driver's hands to spend twice while the flour comes.
+    expect(sack.isDestroyed()).toBe(true);
+    // ⭐ And the stones are turning: a second grind waits.
+    const again = cropSack(WHEAT, 5, 'fine');
+    await ContainmentApi.move(again as never, room as never);
+    expect(refusal(await mill(again, 0.75, m))).toBe('already-milling');
   });
 
   it('a mill with no water will not turn, and says so', async () => {

@@ -5,7 +5,7 @@ description: "Close a door (by direction or by name)"
 help: |
   Close anything that can be sealed — a door blocking an exit, a
   chest, a cabinet. Name a direction to close the door on that exit
-  (`close south`), or name the thing directly (`close oak door`,
+  (`close south`), or name the thing directly (`close "oak door"`,
   `close chest`).
 
   The target has to be within reach. If it's already closed, or it
@@ -19,7 +19,6 @@ args:
     type: object
     required: true
     scope: "reachable"
-    greedy: true
     updates_focus: extend
     requires: SealableMixin
     validators:

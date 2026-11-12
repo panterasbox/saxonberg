@@ -90,7 +90,7 @@ export class GroupApi {
 
   /**
    * Hard reference for callers that need the registry instance
-   * directly — the ContactsController uses this to fire change
+   * directly — the contacts controllers use this to fire change
    * notifications after CRUD verbs.
    */
   static async registry(): Promise<GroupRegistry> {

@@ -214,8 +214,11 @@ binder's lookahead skips when the next token is the bath's preposition.
 The paint slate's reservation is honored: `dip` is the coat-from-bath
 primitive; `paint` will be the brush. `knead` (W0) is the same promotion:
 the VESSEL plans (`KneadVesselMixin.kneadPlanFor`, `lib/craft/KneadVessel.ts`
-— a trough, a compounding tub, a temper pit), and `stir` on a compounding
-vessel asks the same plan with its own word (`req.verb`).
+— a trough, a compounding tub, a temper pit); what is in the vessel
+decides whether it is kneaded (stiff) or `stir`red (runny), never the
+word: a compounding vessel answers both verbs (`kneadPlanFor` /
+`stirPlanFor`) and refuses the wrong one `wrong-work`, naming the right
+one (controller-liquidity W19).
 
 ⭐⭐ **One vocabulary for every act protocol** (`lib/craft/ActPlan.ts`,
 ceramics review 2026-10-28). A planned act answers an `ActPlan` (duration —
@@ -223,12 +226,12 @@ ceramics review 2026-10-28). A planned act answers an `ActPlan` (duration —
 need, and an `onComplete` that may itself return a refusal), an
 `ActRefusal` (`{ ok: false, reason, facts? }`), or `null` = *nothing to
 say*, and the controller asks the next candidate or words a refusal from
-what is there. An instant act (`impress`, `turn`, the hand-worked `stir`)
+what is there. An instant act (`impress`, `turn`)
 answers an `ActOutcome` (`{ ok: true, facts }`) or an `ActRefusal`.
 ⭐ **No `Mml` on any of them** (controllers-are-io D4): each protocol
 declares a closed reason union, and the controller words it in an
 exhaustive `switch`. Every controller engages a plan through ONE routine,
-`ManualBuildController.engagePlan(context, plan, words)`. Each protocol is a registered marker
+`CommandController.engagePlan(context, plan, words)`. Each protocol is a registered marker
 mixin named for what the object IS — `DipBathMixin`, `KneadVesselMixin`,
 `ShapeableMixin` (and `FormingMixin` for an instrument), `CarvableMixin`,
 `ImpressibleMixin`, `TurnableMixin`, `HandWorkedMixin`, `StrikingDieMixin`
@@ -574,7 +577,7 @@ with a brush, half that by hand, and the `brush` slot is `wash`'s.
 ## Help content — `description` / `help` / `examples`
 
 Three authored fields feed the in-game `help` browser
-(`HelpController` → `CommandDefinition.getHelpText()`). The governing
+(`HelpTopicController` → `CommandDefinition.getHelpText()`). The governing
 rule: **author intent, generate mechanics.** Anything the spec already
 encodes — syntax, options, prepositions, aliases, the subcommand list
 — is rendered automatically; authored prose must not restate it.
@@ -683,8 +686,10 @@ Three load-time invariants enforced by `CommandDefinition.validate`:
 
 | Type | Bound value | Notes |
 |---|---|---|
-| `string` | the raw token text | no coercion |
-| `number` | `Number(token)` | non-finite input fails the bind |
+| `string` | the raw token text | no coercion; an open word (a key, a name, prose when `greedy`) |
+| `enum` | one of the slot's `values:`, in its canonical spelling | ⭐ a closed word list — see below; `values:` is REQUIRED here and REFUSED on every other type |
+| `number` | `Number(token)` | coerced for options AND positionals (since controller-liquidity W1); a required one refuses a non-number at bind, an optional one leaves the word for the next slot |
+| `duration` | milliseconds | ⭐ written `90s` · `15m` · `2h` · `1h30m` · `3d` · `90 seconds` · `2 hours`; a bare number is NOT a duration (seconds or minutes? the view refuses to guess) |
 | `boolean` | `true` / `false` | usually used on options, not positionals |
 | `object` | an `MqlOneResult` wrapper around a single Stuff | runs `MqlApi.resolveOne` |
 | `objects` | an `MqlManyResult` wrapper around a Stuff list | runs `MqlApi.resolveMany` |
@@ -700,6 +705,68 @@ means in its domain (see the example controllers).
 `multiple: true` is for non-MQL fields where repeated occurrences
 should accumulate. Don't combine it with `type: objects` — the
 plurality is the type.
+
+### ⭐ `type: enum` — a closed word list (controller-liquidity D1)
+
+An arg or option that accepts only certain words is `type: enum`, and
+lists them in `values:`:
+
+```yaml
+- name: setting
+  type: enum
+  values: [wide, open, half, low, banked]
+```
+
+⭐ A closed word list is a **type**, not a string with a constraint
+(owner ruling 2026-11-10 — D1 first shipped it as `values:` on a
+`type: string` slot; *"isn't that just an enum type?"*). So the schema
+(and `CommandDefinition.validate()` behind it) requires `values:` on
+`enum` and refuses it on every other type, and an enum slot is never
+greedy and never takes a quoted name.
+
+The match is case-insensitive and the canonical spelling written here is
+what binds. Anything else is refused **by the view**, before a controller
+is cloned, with the set named — *option --width: 'medium' is not one of
+wide, open, half, low, banked*. `default:` must be one of the values
+(load-time). `help` renders the set in place of the placeholder
+(`--width <wide|open|half|low|banked>`). A controller that refuses an
+out-of-set word itself, or keeps a word→value table for one, is carrying
+the view's job (`StyleController` and `CockpitShelfController` did, until
+controller-liquidity W7b moved both sets onto the view; W22 made them `type: enum`).
+
+### ⭐ `depth:` — how deep an object slot reaches (controller-liquidity D4)
+
+`depth: top | open | deep` on an `object` / `objects` slot sets its
+default reach rung (`open` when omitted); the player overrides it for one
+invocation with the reserved `--top` / `--open` / `--deep` flags, which
+join `--async`/`--sync`/`--strict`/`--loose` (no view may name an option
+or arg any of them). The binder resolves the slot at `context.depth ??
+def.depth ?? 'open'` (`MqlContext.depth`), and the `inventory` / `person`
+/ `peers` / `reachable` pools walk at it — the one reach walk
+(`Container.getReachableContents`, [mql.md § Reach is one
+walk](./mql.md)):
+
+| rung | reaches |
+|---|---|
+| `top` | held, worn, the room's top level |
+| `open` | and inside open vessels you carry, and one level into open things here |
+| `deep` | everything, shut or not — never another person's pockets |
+
+A bare name that finds nothing at the slot's rung is probed once at
+`deep`; a find behind a shut lid refuses the line with *"The box is
+shut."* (`validator-failed`, `reach:enclosed-shut`) and binds nothing. A
+rung typed on the line is never second-guessed. Which slots set what:
+
+- **`depth: top`** — a slot whose act needs the thing at hand and carries
+  `mustBeInInventory` (`drop`, `give`, `put`, `hang`, `remove`, `wear`,
+  `wield`, `unwield`): what is in a bag would bind and then be refused as
+  *you don't have it*.
+- **`open` (omitted)** — every other slot, inspection verbs included:
+  `look apple` with the apple in a shut box says the box is shut;
+  `look me:I:apple` addresses it.
+- **`mustNotBeShutAway`** — the validator on the verbs that put a hand on
+  what they name (`get`, `eat`, `drink`, `sip`, `fill`, `pour`, `read`):
+  an explicit chain addresses through a lid, the verb refuses it.
 
 ### `type: struct` — structured-input-only fields
 
@@ -787,118 +854,94 @@ was unreachable from the moment it was written. If the controller has a
 sentence for the empty case, the binder must be able to reach it. See
 [antipatterns.md § A required arg with no default](../antipatterns.md).
 
-### `greedy:` — slurp the remainder
+### `greedy:` — slurp the remainder — PROSE only
 
 `greedy: true` consumes everything from the field's first token to
 end-of-input verbatim — whitespace runs, escapes, single-quote
-literals all preserved. Common for chat verbs (`say`, `dm`) and
-scope-shaped verbs (`focus`).
+literals all preserved. It is for **prose**: chat verbs (`say`, `dm`),
+`press post`, a forum body, `def`, and scope-shaped verbs (`focus`).
 
-⭐⭐ **THE ARTICLE DEFECT — every object arg a player may put an article
-in front of needs this, INCLUDING plural and prepositional ones.**
-Without it `measure temperature the kettle` binds `the` and `kettle` as
-two positionals, answers *"too many arguments"*, falls through the chain
-and dies as an unknown shape; `assay the ore` binds the literal token
-`the` on a **plural** arg and refuses about an object nobody mentioned;
-`assay the ore at the bench` does the same on a **prepositional** one.
-⚠ 45 shipped views already carry it and `look` shipped without it —
-nobody noticed until somebody drove it.
+⛔ **No greedy object args (controller-liquidity D3).** An `object` /
+`objects` slot takes ONE word, and a name with a space in it is quoted
+(`buy "dog loaf"`). `lint:greedy-object` ratchets the greedy object args
+down (133 at W0) to zero, after which the schema refuses one. ⚠ This
+REVERSES the rule this section used to state — *"every object arg a
+player may put an article in front of needs `greedy`"* — and the binder
+now does that job itself, below.
 
-⚠ A second binder defect lived beside it: the greedy branch `return`ed
+⚠ A binder defect lived beside the old rule: the greedy branch `return`ed
 when the positional list ran out instead of `continue`ing, so **any
 greedy arg that was not last silently lost its default**. `measure light`
 simply had no instrument.
 
 When a *later* field declares `prepositions:`, the greedy field
-**stops at the boundary**: `give the red flower to bob` slices `gift`
-at `to` because `recipient.prepositions: [to]`. See
+**stops at the boundary**: `press post Some headline --as …` slices at
+the option, and a greedy body stops at a later field's preposition. See
 [Multi-positional verbs](#multi-positional-verbs) below.
 
 ⭐ **A preposition that opens only `number` fields ends the span only when a
-number follows it** (the paper build, 2026-11-05). `read`'s target is
-greedy, bounded by `page <n>`: `read notebook page 3` binds `notebook` and
-page 3, while `read torn-out page` binds the whole name, because "page" is
-a word in names too. Before this rule a trailing number field turned its
-preposition into a word no name could end in (`collectNumericOnlyPrepositions`
-in `CommandLogic`).
+number follows it** (the paper build, 2026-11-05). `read notebook page 3`
+binds `notebook` and page 3, while `read torn-out page` binds the whole
+name, because "page" is a word in names too
+(`collectNumericOnlyPrepositions` in `CommandLogic`).
 
-### ⭐⭐⭐ The phrase ladder — a name with a space in it
+### ⭐⭐⭐ Names with a space in them — one word binds bare, a phrase is quoted, prose is greedy
 
-A good's name is a **phrase**, not a word. Thirty-four of the ninety-three
-stock goods carry an authored multi-word keyword, and for most of them it
-is the only name they answer to: the dog loaf is `[loaf, "dog loaf", "dog
-bread", "horse bread", dogbread]`, the seed packets answer to `orange
-seed`, the cell to `mana cell`. `Stock.resolveBuy` →
-`Perceptible.hasKeyword` is an exact `includes`, so the phrase **is** the
-purchase name.
+A good's name is often a **phrase** (`dog loaf`, `orange seed`, `mana
+cell`). The ladder this section used to carry — make the field greedy,
+bound it with a preposition, change the syntax so a preposition applies,
+and quote only as a last resort — collapsed in controller-liquidity W1 to
+three sentences:
 
-A non-greedy positional takes **exactly one token**, and the binder
-consumes that token *before* `default:` is considered. So `buy dog loaf`
-bound `thing = "dog"`, handed `loaf` to the optional `counter` slot, and
-threw that slot's MQL default away on the way past — and then refused the
-player in the name of a counter they had never mentioned.
+1. **One word binds bare.** An object slot takes one token: `buy loaf`,
+   `get apple`.
+2. **A phrase is quoted.** `buy "dog loaf"`, `get "latex cup" from kiln`.
+   Quoting is the tokenizer's (`command-parsing.md` § quoting) and a
+   non-greedy positional binds the token's unquoted value.
+3. **Prose is greedy.** Only a `string` field that is the rest of the
+   line.
 
-⚠ **`greedy:` is not the universal remedy, and quoting already exists.**
-`command-parsing.md:84-96` documents `"…"` as the way to make one token
-out of several, and it works: `mill "sack of wheat"` binds the whole
-phrase today. The question a view has to answer is which rung it is on.
+Two binder rules make rule 1 livable, both for a **non-greedy object
+positional**:
 
-**Rung 1 — the syntax already says where the name ends.** A greedy field
-whose every later field declares a `prepositions:` boundary. The
-load-time invariant (`validateArgOrdering`) permits greedy before other
-args only in this case, and it is the common one: `buy`/`shelf reclaim` stop at
-`from`, `bake` at `at`/`in`/`on`, `ship` at `to`, `order` at `from`.
-Nothing is ambiguous, so nothing needs quoting — `buy dog loaf` just
-works. **Reach for this first.**
+- ⭐ **The article fold.** A leading unquoted `the` / `a` / `an` / `some`
+  with a word after it folds away before the slot binds — `eat the apple`,
+  `throw the rock`, `put the apple in the box`. (Before W1 the slot bound
+  the literal `the` and the line died as *"too many arguments"*: the
+  ARTICLE DEFECT, which `greedy` used to paper over.)
+- ⭐ **The quote hint.** A line with words left over is retried with each
+  run of two or more words joined into one quoted name; when one join
+  binds an object slot to it, and no other view of the word claims the
+  line, the player is told exactly that:
+  *too many words — quote a name with a space in it: buy "dog loaf"*.
+  The fitted line rides the note as `suggestion` and the shell prints it
+  as a `mudcmd:` link — the player taps the line that would have run.
+  A slot word (`with`, `from`, `at`), an article or a count is never
+  inside the quotes (`paint cottage with "ochre paint"`, `get 1 "mooring
+  line"`); two names in one line are both quoted (`fit the "oak haft" to
+  the "old pick"`); and a missing preposition that word two took says
+  it too (`put "mooring line" on bitts`). Lists (`get apple and pear`)
+  are out of scope (the lists conversation).
+- ⭐ **The determiner fold** (W5). A leading count, measure, `all` or
+  ordinal stays with the name MQL reads: `get 1 gin`, `look 2nd
+  greywater`, `pour 2 cups water into the pot`, `get all coins`, `get 1
+  "mooring line"`. A brain's `get 1 ${kw}` reads as it always did.
 
-**Rung 2 — one argument, and the rest of the line is it.** A trailing
-greedy field: `say`, `dm`, `focus`, `press post`. Dialogue and free
-text live here. The field is last, so there is nothing to collide with.
+⭐ **No greedy object, anywhere (W5).** `command.schema.json` refuses
+`greedy: true` on any arg that is not `type: string`, and
+`lint:greedy-object` holds the census at zero. A `string` slot that names
+a GOOD the next object offers (`buy <thing> from <counter>`, `shelf
+reclaim <thing>`, `order <cocktail>`) is a name too: it is non-greedy and
+takes the article fold. Every slot after a name behind a preposition is
+`prepositionRequired: true`, so word two of an unquoted name is LEFT OVER
+(and the hint fires) instead of being taken for the next slot. A line a
+brain or a controller builds from a keyword names it through
+`CommandLineApi.word(kw)`, which quotes a name with a space in it.
 
-**Rung 3 — change the syntax so rung 1 applies.** A preposition or a
-subcommand added deliberately, to give the greedy field something to stop
-at. This is a real option and sometimes the best one; `order`'s `from`
-exists for it.
-
-**Rung 4 — quote it, and SAY SO in `help:`.** When a later field declares
-no preposition the binder can see, the name has to mark its own end.
-`mill` is the shipped case: its `extraction` is a bare `number`, so
-`greedy` on `grain` is **refused at load time**, and
-`mill "sack of wheat"` is the only form that can work. ⚠⚠ Quoting is a
-power-user feature and a burden on the player, so a view on this rung
-owes them a sentence in its `help:` — and an honest one. Unquoted,
-`mill sack of wheat` does not refuse: it reads `sack` as the grain, `of`
-as the extraction and `wheat` as the stones, because the binder applies
-**no type gate to a positional**. A help text that says *"you will get an
-error"* would be the second lie on top of the first.
-
-⛔ **Not a rung: leave it and hope.** A view in the
-`string`-then-optional-`object`-with-a-`default` shape is counted by
-`lint:reachability`'s arm G and the count may fall, never rise.
-
-#### ⭐⭐ And the other half: every prepositional object arg wants `greedy`
-
-The article defect above is the same problem wearing the other hat. A
-player who *does* name the instrument types an article with it, and a
-non-greedy prepositional arg has one slot for `the brick oven`:
-
-```
-buy torch from the counter      → "that doesn't match any known command shape"
-bake at the brick oven          → the same
-mill wheat at the quern         → the same
-```
-
-⚠⚠ **All three of those were promised by the view's own help text or its
-own arg comment.** A help text that documents a form the binder refuses
-is the same failure class as a verb nothing confers — closed, silent, and
-discovered only by a player who believed the documentation. The four
-views this ladder was written for are greedy on both arms now, and
-`lint:reachability`'s arm G ratchets the hundred-odd that are not
-(`ARTICLE_SHAPE_CEILING`).
-
-⭐ The rule for a new verb, then: **a prepositional object arg is born
-`greedy: true`.** There is no case where you want the article to be a
-separate argument.
+`lint:reachability` arm G keeps its **phrase shape** ratchet (a `string`
+positional followed by an optional defaulted `object` that is NOT
+`prepositionRequired`); its article-shape
+ratchet (`ARTICLE_SHAPE_CEILING`) was retired with the rule it enforced.
 
 #### Quoting and greedy, together
 
@@ -1033,7 +1076,7 @@ So a verb whose target is a room-level thing (a direction, an exit) must
 "north" inside it, finds no exit, and fails with "you can't walk that
 way." The movement verbs (`go`/`walk`/`climb`/`swim`/`fly`/`ride`/
 `drive`, joining `mount`) therefore scope to WAYS — `go.yaml` declares
-`scope: ["here:exits", "reachable:[class.ExitableVessel]"]` (harbors
+`scope: ["me:e:exits", "reachable:[class.ExitableVessel]"]` (harbors
 review 3; the seven locomotion views share it) — so a direction word can
 only mean a way and a focused object never swallows it. (They declared
 `["$focus", "reachable"]` before that; the drill-first form is still
@@ -1210,7 +1253,8 @@ args:
 (controllers-are-io D17): the slot binds only when one of its
 `prepositions:` is present. Absent, a required slot is a **shape error
 naming the preposition** (*"missing 'to' before recipient"*), so the
-chain tries the next view of the verb; an optional one stays unbound.
+chain tries the next view of the verb; an optional one takes its
+`default:` (or stays unbound).
 It is what makes two views of one word provably disjoint — `throw ball
 to ann` cannot bind `throw-at`, and `throw ball at ann` cannot bind
 `throw-to`. A load-time error without `prepositions:`. The usage line
@@ -1571,7 +1615,7 @@ each subcommand can declare its own `args:` and `options:`:
 > ⭐ **A stanza on a shipped view is how you avoid minting a verb.**
 > Two shipped instances now: the metal chain's `measure strike` / `dip`
 > (whose controllers live in a *pack* while the view is the platform's),
-> and textiles' `equip set <name>` / `equip sets`, which put a whole
+> and textiles' `outfit wear <name>` / `outfit list`, which put a whole
 > wardrobe affordance on an existing dressing view and added **zero**
 > verbs. The second one is the pattern to copy when a feature wants a
 > noun-shaped operation on a verb that already exists: reach for
@@ -1582,10 +1626,10 @@ each subcommand can declare its own `args:` and `options:`:
 ```yaml
 verbs: [player]
 category: author
-controller: PlayerController
 description: "Manage your player character settings"
-subcommands:
+subcommands:                 # ⭐ one controller per subcommand (D9; controller-liquidity W7a)
   name:
+    controller: /platform/idea/cmd/author/PlayerNameController
     description: "Set your character name"
     args:
       - name: name
@@ -1595,12 +1639,14 @@ subcommands:
         type: string
         required: false
   pronouns:
+    controller: /platform/idea/cmd/author/PlayerPronounsController
     description: "Set your pronouns"
     args:
       - name: pronouns
         type: string
         required: true
   show:
+    controller: /platform/idea/cmd/author/PlayerShowController
     description: "Show your current player settings"
 ```
 
@@ -1609,9 +1655,13 @@ The matcher stamps `model.subcommand` with the chosen subcommand name
 `api/command.ts`). YAMLs with `subcommands:` cannot declare a field
 or option named `subcommand` — caught at load time.
 
-Subcommanded verbs invoked without a subcommand reach the controller
-with `model.subcommand === undefined`. The controller decides what
-that means (`settings list`-style default, error, etc.).
+A subcommanded verb invoked without a subcommand runs the view's
+top-level `controller:` (the bare form — `contacts` lists), with
+`model.subcommand === undefined`. ⭐ Each subcommand names its own
+`controller:` (a shared `*ControllerBase.ts` holds what they share); a
+controller that reads `model.subcommand` to pick an act is counted by
+`lint:multi-act`, whose ceiling is a hard **0** for the `subcommand` arm
+(controller-liquidity W7, W14).
 
 ### Unknown subcommand — framework-side rejection
 
@@ -1624,8 +1674,8 @@ and the list of valid subcommand names. The dispatcher
 emits a `command-rejected { reason: 'unknown-subcommand', detail:
 "unknown subcommand 'foo'; valid: bar, baz" }` note on the outer
 context before any controller is cloned. Controllers therefore
-don't need (and shouldn't ship) a `default:` case in their
-subcommand switch — that path is dead, and the framework's prose
+don't need (and shouldn't ship) a fallback for it — that path is
+dead, and the framework's prose
 mapping says "Command rejected: unknown subcommand 'foo'; valid:
 bar, baz" out of the box.
 
@@ -1736,7 +1786,7 @@ reads and words as **protected methods**, never module functions
 subcommand, each with its row (`lint:controller-rows`). The verb-level
 `controller:` is whatever the bare form runs (`SoulListController`,
 `JobBrowseController`, `ChatPostController` for the fallthrough post,
-`WikiReadController` for bare `wiki <page>`, `TuneInController`); a noun
+`WikiReadController` for bare `wiki <page>`, `TuneListController`); a noun
 with no bare form (`pack`) names none. The gating a switch did once
 before dispatch moves onto the base and every subcommand calls it
 (`SoulControllerBase.refuseUnlessCommittee`); a `FromModule` gate that
@@ -1787,6 +1837,61 @@ matcher detail and [chat.md](./chat.md) for the worked example.
 A YAML that declares both fields without the flag is a load-time
 schema error; a YAML that declares the flag without both fields
 is also a schema error.
+
+### ⛔⭐⭐ Depth — `verb target` or `verb subcommand target`, never deeper
+
+**Owner rule, 2026-11-10.** A command is `verb target` or `verb
+subcommand target`. There is no third level: a subcommand stanza may not
+declare `subcommands:` (nor `fallthrough:` — that key is the verb's).
+Nested stanzas shipped in controller-liquidity W1 (D2: `cockpit layout
+save <name>`, `equip set save <name>`) and were **reversed by the owner**
+in W16. Three readers hold the line, and none has a ceiling to raise:
+
+- the **schema** — `$defs.subcommand` is `additionalProperties: false`
+  and has no `subcommands` key;
+- `CommandDefinition.validate()` — the same refusal for a view built in
+  code;
+- `lint:command-views`' **depth** half — names the nesting stanza in its
+  own finding (hard, zero).
+
+The binder walks exactly one subcommand word; `model.subcommand` is that
+word.
+
+**When a noun wants a second word, it becomes a VERB.** Two cases, and
+the line between them is the fiction:
+
+- ⭐ **A non-diegetic verb takes a hyphenated compound NAME.** A verb that
+  acts on the player's interface or tooling — mostly sent by the client,
+  never an act in the world — is named `<surface>-<noun>`: `client-layout`,
+  `client-card`, `client-shelf`, `client-style` (what were `cockpit
+  layout|card|shelf|style`), `stream-rotation` (was `stream rotation`).
+  The same rule names a non-diegetic **subcommand** word that would
+  otherwise nest: `testharness clock-advance`, `weather-pin`,
+  `weather-unpin`; `client-style plain-channel`. A hyphenated word
+  tokenizes, aliases, binds and shows in `help` as one word (no gate
+  rejected one — `lint:one-word`, `lint:verb-collisions` and
+  `lint:subcommand-words` read the word as a string). Every `client-…`
+  verb is exempt from a bar's input prefix, as `cockpit` is
+  (`CommandApi.applyInputMode`).
+- **A diegetic verb stays a plain word.** An act in the world gets the
+  noun the player groups the acts under: `equip set save <name>` became
+  **`outfit save <name>`** / `outfit wear <name>` / `outfit list`, never
+  `equip-set`.
+
+```yaml
+verbs: [client-layout]          # was `cockpit layout …`
+controller: …/ClientLayoutRecallController
+fallthrough: true               # `client-layout <name>` still recalls
+args:
+  - { name: name, type: string, required: false }
+subcommands:
+  save:   { controller: …/ClientLayoutSaveController, args: [{ name: name, type: string, required: true }] }
+  recall: { controller: …/ClientLayoutRecallController, args: [{ name: name, type: string, required: true }] }
+  list:   { controller: …/ClientLayoutListController }
+```
+
+A layout named `list` is recalled with `client-layout recall list` — the
+control word comes first, so a name never hides one.
 
 ## Options (`options:`)
 
@@ -2145,25 +2250,82 @@ when the giver has X" example: it lives on `FocusedMixin`, so an NPC scripted
 without `FocusedMixin` simply doesn't see `focus` on its recency
 stack.
 
-## ⭐⭐ Alternate controllers — the same act in other words
+## ⭐⭐ The liquidity contract — any controller can be replaced
 
-A controller that only does input and output can be swapped without touching the
-world (D14). Re-point the view's `controller:` at another class and every state
-change, reason and duration is what it was, because the object decided them. The
-exemplar is `HarvestWordedController`:
+A controller is the act's **input and output and nothing else** (controllers-are-io
+D14, controller-liquidity). Re-point the view's `controller:` at another class and
+every state change, reason, gate, duration and money leg is what it was, because
+the object decided them. What that takes, and the gate that holds each line:
+
+| the controller may | the controller may not | held by |
+|---|---|---|
+| read the bound model; ask the object for a plan (`fooPlanFor(actor, …)`) | decide a rule, a threshold or a duration | `lint:controller-decisions` (pinned at its floor) |
+| engage the plan (`engagePlan`) and render its reasons and facts | write the world (`set*`/`add*`/`record*` on another Stuff) | `lint:controller-mutations` |
+| — | ask a permission — `AccessApi.can*`, `holdsOffice`, `mayKeep`, … | `lint:controller-gates` (the remaining sites are named in its header) |
+| — | pick WHICH act the player meant | `lint:multi-act` (see the ladder below) |
+| — | search the world for its own instrument | `lint:controller-resolution` |
+| — | close a completion over `this` | `lint:completion-this` (**0**) |
+| — | key a person on `getTemplatePath()` | `lint:lineage-keys` (**0**) |
+
+⭐ **The permission is the method's.** A model method that reads or writes
+something protected takes the actor (`by`) and asks the predicate itself
+(`LettingWarren.let(…, by)`, `Bailer.spudPlanFor(actor)` asking `AccessApi.can`
+on the room, `Organization.apply`); every other caller — a worded replacement, a
+brain, a script — goes through the same door (D9; call-security.md § *the method
+asks who*).
+
+⭐ **Every refusal before every write; no money before a refusable write** (D10).
+A plan IS the statement that nothing refuses: the mint, the accountability record
+and the settle live in the plan's `onComplete`/`run`. An instant act is
+check-then-act in one model method (`PlatBook.sell`, `Pilot.sellWaterTo`).
+
+⭐ **A planner that cannot decide returns choices** (`ActChoices`, `ok:
+'choose'`) and the controller picks a default, refuses with the list
+(`choiceLine`) or asks (`chooseAmong`) — and a replacement may do any of the three.
+
+The exemplar replacement is `HarvestWordedController`:
 
 ```typescript
 export default class HarvestWordedController extends HarvestController {
-  static override refusalWords(r: HarvestRefusal): Composed { /* … */ }
-  static override beginWords(f: HarvestBegin, giver: Stuff) { /* … */ }
-  static override doneWords(f: HarvestDone, giver: Stuff) { /* … */ }
+  protected static override refusalWords(r: HarvestRefusal): Composed { /* … */ }
+  protected static override beginWords(f: HarvestBegin, giver: Stuff) { /* … */ }
+  protected static override doneWords(f: HarvestDone, giver: Stuff) { /* … */ }
 }
 ```
 
-⚠ **Word methods are `static`, and read off the instance's class before the act
-engages** (`const words = this.constructor as typeof HarvestController`). They run
-at completion, after the dispatcher destructed the controller, and a destroyed Stuff
-answers a method call with a silent no-op. `lint:completion-this` reads the closures.
+⚠ **Word methods are `protected static`, read off the instance's class before the
+act engages** (`const words = this.constructor as typeof HarvestController`), so a
+replacement's override is the one that runs. They run at completion, after the
+dispatcher destructed the controller, and a destroyed Stuff answers a method call
+with a silent no-op. *A completion closes over values and the class, never over
+`this`* — `lint:completion-this` reads every form one can be written in.
+
+## ⭐⭐ The remedy ladder — one controller, one act
+
+A controller that is several acts (it switches on a subcommand, on a typed word,
+or on what kind of thing its target turned out to be) takes the **first rung
+that fits**:
+
+1. **One act on several kinds of thing** → each thing answers the same act
+   behind one protocol; one controller (`heat` → `Heated.takeHeat` on three
+   hosts; `fell` → `Fellable`). A head that was really another verb's act
+   retires into that verb (`heat pot` → `put pot on hearth`, `fell log` →
+   `cut`, `belay off` → `untie`, `char 0.5` → `draught`, `tan hide` as a check
+   → `look pit`).
+2. **A manner of the same act** → an option (`wash --hard`).
+3. **Different acts the player already groups** → subcommands of a noun, one
+   controller each over a shared `<Noun>ControllerBase` (`notify show|set|move|
+   remove`, `fight assess`, `berth roads`, `client-layout recall`). ⛔ Never a
+   second level: a noun that needs one becomes a verb (§ Depth — `outfit
+   save`, `client-layout save`).
+4. **Different shapes of one sentence** → separate shapes of one word, each with
+   its own controller (`throw`, `watch <stream>` vs `watch <stream> on <screen>`).
+5. **None fits** → a new word, with the four failures written down (`spud`
+   beside `bore`; `paste` beside `fit`).
+
+`lint:multi-act` counts the shapes a controller shows; its `subcommand` arm is a
+hard **0**, and each remaining `arg-word`/`target-kind` site is named, with why it
+is one act, in the gate's header.
 
 ## Controller template row
 
@@ -2285,8 +2447,8 @@ levels:
   resolve → validators → execute → auto-emit).
 
 `FocusController.test.ts`, `GoController.test.ts`,
-`OpenController.test.ts`, `SettingsController.test.ts`, and
-`VarController.test.ts` are good integration-test references.
+`OpenController.test.ts`, `SettingsController.test.ts` (the `settings`
+controllers), and `VarController.test.ts` are good integration-test references.
 
 ## Cross-references
 
@@ -2315,3 +2477,29 @@ rarer word held the file it moved (`ignite` → `light`, `plough` → `plow`);
 `drive` became `drift`. Institution transactions became subcommands of
 their noun (`house appoint`, `job apply`, `shelf consign`, `rack check`,
 `bank …`, `title transfer`) — W7–W8, `848adc897^..76e2d22b6`.
+
+## History — controller liquidity (MR !561, 2026-11)
+
+Build range `14af1e8ba..726c1f195`. What shifted between design and code:
+
+- **Quoting replaced greedy for object names** (D3, W5 `ca1547ca8`,
+  `a64187aee`). The binder folds a leading article; a name with a space in
+  it is quoted; greedy survives on prose only. The shipped doctrine *"a
+  prepositional object arg is born `greedy: true`"* and `lint:reachability`
+  arm G (which ratcheted toward MORE greedy) were reversed;
+  `lint:greedy-object` is a hard 0.
+- **Nested `subcommands:` shipped and were reversed** (W1 `e21135a65` →
+  W16 `8c41a78a4`). A command is `verb target` or `verb subcommand target`;
+  the five nested forms became verbs (`client-layout|card|shelf|style`,
+  `stream-rotation`, `outfit`), and `model.subcommandPath` /
+  `subcommandKey` / `getSubcommandChain` are gone. See § Depth.
+- **`values:` became `type: enum`** (W1 → W22 `726c1f195`): the closed
+  word list was first a field on any arg, then its own type; the schema
+  refuses `values:` elsewhere and requires it on `enum`.
+- **One controller, one act** (W6–W13): every multi-act controller walked
+  the remedy ladder (§ The remedy ladder); two rung-5 words were minted
+  (`spud`, `paste`), and five heads retired into existing verbs (`heat
+  <pot>` → `put … on`, `fell <bole>` → `cut`, `belay off` → `untie`,
+  `char <n>` → `draught`, `tan` as a check → `look`). W18–W19 undid two
+  false unifications (`stir`/`knead`/`churn`, `sweep`/`rake`). `survey`
+  retired in W17 (`analyze rooms`, `measure paint`).

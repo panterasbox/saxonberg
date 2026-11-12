@@ -81,21 +81,28 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
     }
     if (model.target?.stuff) {
       const careful = /^careful/i.test(manner);
-      await this.takeOff(model.target.stuff, context, giver, false, careful);
+      const target = model.target.stuff;
+      UnequipControllerBase.takeOff(target, this.heldSpeak(target), careful, false, context, giver, {
+        onDone: () => {},
+        onAbort: () => {},
+      });
       return;
     }
-    await this.strip(context, giver);
+    this.strip(context, giver);
   }
 
   /**
    * ⭐ Outermost-first, straight down `wornStack()`. A cursed layer
    * stops the walk AT itself — everything outside it is already off,
    * which is the honest outcome and reads correctly.
+   *
+   * ⚠⚠ Layers CHAIN (C53): each layer's step occupies `hands`, so the next
+   * starts from the previous one's completion — the mirror of `equip`'s
+   * `dressNext`. A loop that started them back to back spent ONE layer's
+   * clock and ignored the rest's refused starts, so a hauberk, a gambeson
+   * and a shirt came off in the time of the shirt.
    */
-  private async strip(
-    context: CommandContext,
-    giver: Stuff & Slotted & Attired,
-  ): Promise<void> {
+  private strip(context: CommandContext, giver: Stuff & Slotted & Attired): void {
     const stack = [...giver.wornStack()] as unknown as Stuff[];
     if (stack.length === 0) {
       MessageApi.scene(giver)
@@ -109,12 +116,50 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
       });
       return;
     }
-    const off: Stuff[] = [];
-    for (const item of stack) {
-      const ok = await this.takeOff(item, context, giver, true);
-      if (!ok) break; // cursed, or the hands are busy — stop here
+    // The wording each layer would take, read now: the chain runs on after
+    // this controller is gone.
+    const wieldy = new Map(stack.map((item) => [item, this.heldSpeak(item)] as const));
+    UnequipControllerBase.stripNext(stack, [], wieldy, context, giver);
+  }
+
+  private static stripNext(
+    stack: Stuff[],
+    off: Stuff[],
+    wieldy: ReadonlyMap<Stuff, boolean>,
+    context: CommandContext,
+    giver: Stuff & Slotted & Attired,
+  ): void {
+    while (stack.length > 0) {
+      const item = stack.shift()!;
+      const begun = UnequipControllerBase.takeOff(
+        item,
+        wieldy.get(item) ?? false,
+        false,
+        true,
+        context,
+        giver,
+        {
+          onDone: () => {
+            off.push(item);
+            UnequipControllerBase.stripNext(stack, off, wieldy, context, giver);
+          },
+          // ⭐ What came off stays off — the strap undone is undone; the
+          // rest never got its turn.
+          onAbort: () => {
+            off.push(item);
+            stack.length = 0;
+            UnequipControllerBase.stripReport(off, giver);
+          },
+        },
+      );
+      if (begun === 'refused') break; // cursed, or the hands are busy — stop here
+      if (begun === 'later') return; // the chain resumes at completion
       off.push(item);
     }
+    UnequipControllerBase.stripReport(off, giver);
+  }
+
+  private static stripReport(off: readonly Stuff[], giver: Stuff): void {
     const names = off.map((o) => o.getPresentation()).join(', ');
     MessageApi.scene(giver)
       .topic(TOPIC)
@@ -142,15 +187,61 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
     return MixinApi.isWieldable(target) && !MixinApi.isWearable(target);
   }
 
-  /** One layer. Returns whether it actually came off. */
-  private async takeOff(
+  /**
+   * One layer. `'now'` — off, and no clock in play; `'later'` — off, its
+   * step under way (`then.onDone` runs at its completion, `then.onAbort`
+   * if it is cut short); `'refused'` — it stays on (the refusal is said).
+   *
+   * ⚠⚠ The step is STARTED before the release (C53: its start result was
+   * ignored, so a layer came off with the hands busy elsewhere and no clock
+   * at all). Busy hands refuse with nothing written; a release the body
+   * refuses then cancels the step it just began.
+   */
+  private static takeOff(
     target: Stuff,
+    wieldy: boolean,
+    careful: boolean,
+    quiet: boolean,
     context: CommandContext,
     giver: Stuff & Slotted & Attired,
-    quiet: boolean,
-    careful = false,
-  ): Promise<boolean> {
-    const wieldy = this.heldSpeak(target);
+    then: { onDone: () => void; onAbort: () => void },
+  ): 'now' | 'later' | 'refused' {
+    let armed = false;
+    let early = false;
+    let dropped = false;
+    let step: DressingStep | null = null;
+    if (MixinApi.isEngaged(giver)) {
+      step = new DressingStep({
+        actor: giver,
+        durationMs: giver.donDurationMs(target) * (careful ? CAREFUL_DOFF_FACTOR : 1),
+        onComplete: () => {
+          if (!armed) {
+            early = true;
+            return;
+          }
+          then.onDone();
+        },
+        onAbort: () => {
+          if (!dropped) then.onAbort();
+        },
+      });
+      const result = SchedulerApi.start(step);
+      if (!result.ok) {
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`Your hands are busy with something else.`)
+          .send();
+        context.note({ kind: 'controller-rejected', reason: 'busy', detail: target.getPresentation() });
+        return 'refused';
+      }
+      if (result.status === 'completed-sync') early = true;
+      else if (!quiet) context.note(result.note);
+    }
+    const drop = (): void => {
+      if (step === null || early) return;
+      dropped = true;
+      SchedulerApi.cancel(step, 'preconditions-changed');
+    };
     /*
      * ⚠ The cursed gate, preserved verbatim from `remove`/`unwield`:
      * `tryReleaseFromSlots` refuses a cursed item AND dumps its charge
@@ -163,6 +254,7 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
       target as Parameters<typeof giver.tryReleaseFromSlots>[0],
     );
     if (!release.released) {
+      drop();
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
@@ -180,9 +272,10 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
         reason: 'cursed-will-not-release',
         detail: `${target.getPresentation()} refuses release`,
       });
-      return false;
+      return 'refused';
     }
     if (release.vacated === 0) {
+      drop();
       if (!quiet) {
         MessageApi.scene(giver)
           .topic(TOPIC)
@@ -198,31 +291,20 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
           detail: target.getPresentation(),
         });
       }
-      return false;
+      return 'refused';
     }
 
     /*
-     * ⚠⚠ The release has ALREADY happened by the time the step starts,
-     * because the cursed gate and the slot vacate are the same call. So
-     * the step here is the time the act TAKES, not a gate on whether it
-     * lands — which is right for undressing (a strap undone is undone)
-     * and is the mirror of `equip`, where the claim lands at completion
-     * because a garment half-on is not on.
+     * ⚠⚠ The release lands as the step STARTS, because the cursed gate and
+     * the slot vacate are the same call. So the step is the time the act
+     * TAKES, not a gate on whether it lands — right for undressing (a strap
+     * undone is undone), the mirror of `equip`, where the claim lands at
+     * completion because a garment half-on is not on.
      */
     // ⭐ The hands that pulled it off take what was on its outside —
     // unless it was peeled off carefully (cleanliness D5).
     if (!wieldy && MixinApi.isHygienic(giver)) giver.doff(target, { careful });
 
-    if (MixinApi.isEngaged(giver)) {
-      SchedulerApi.start(
-        new DressingStep({
-          actor: giver,
-          durationMs:
-            giver.donDurationMs(target) * (careful ? CAREFUL_DOFF_FACTOR : 1),
-          onComplete: () => {},
-        }),
-      );
-    }
     if (!quiet) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -240,6 +322,7 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
         )
         .send();
     }
-    return true;
+    armed = true;
+    return step === null || early ? 'now' : 'later';
   }
 }

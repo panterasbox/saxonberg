@@ -2316,12 +2316,12 @@ execute(model, ctx) {
 // CORRECT — validator in the YAML
 // var.yaml
 verbs: [var]
-controller: VarController
+controller: /platform/idea/cmd/shell/VarListController
 validators:
   - /lib/command/validators/requiresEnvironment
-subcommands: …
+subcommands: …   # each names its own controller
 
-// VarController.ts
+// VarListController.ts
 execute(model, ctx) {
   const avatar = ctx.commandGiver as EnvHost;  // validator guarantees this
   // …
@@ -2366,8 +2366,9 @@ no authority.
 controller** (`controller:` on the subcommand in the view, over a shared
 `<Noun>ControllerBase`) — `house appoint` → `HouseAppointController`,
 `wiki edit` → `WikiEditController`. A new subcommanded verb does not
-switch on `model.subcommand` at all. The rule below still holds for the
-few that do (`WalletController`'s three arms).
+switch on `model.subcommand` at all — and since controller-liquidity
+W7 none does: `lint:multi-act`'s `subcommand` arm is a hard 0. The rule
+below is kept for the history of why.
 
 A subcommanded controller's `execute()` should NOT have a
 `default:` case in its subcommand `switch` that emits
@@ -4641,8 +4642,9 @@ one of the three that does. Do not merge them.
 | `ContainmentApi.reachableFrom(actor)` | ✅ | ✅ | ✅ | — | — | — |
 | `reachable:[…]` (MQL, viewer-gated) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-⚠ The seed also reaches **through a passable exit** (`candidatesForPeers`)
-and carries hosted updates; the two code-side pools stop at the room. So
+⚠ The seed also carries the place's surface (its ways, their doors, open
+ground seen across a way — `PerceptionApi.reach`'s `here` pool) and
+hosted updates; the two code-side pools stop at the room. So
 the query is not merely the same set with fog applied — it is a wider
 question, and that is another reason not to treat any of the three as a
 drop-in for another.
@@ -6225,8 +6227,9 @@ back into the controller:
 `void SomeApi.slowThing().then((r) => this.tell(context, this.format(r)))`.
 
 **Do:** capture what the continuation needs (the giver, the plain
-values) before `execute` returns. Do the work in module functions that
-touch no instance, and tell the result from a fresh scheduler root:
+values) before `execute` returns. Do the work in `protected static`
+methods reached through `this.constructor` (never module functions —
+`lint:controller-functions`), and tell the result from a fresh scheduler root:
 `ScheduleApi.schedule(0, () => tellGiver(giver, text), { propagateAttribution: false })`.
 
 **Why.** A controller instance is destroyed when its command returns, so
@@ -6383,7 +6386,7 @@ return { ok: false, reason: 'too-green', facts: { moisture } };
 An object PLANS an act (`ActPlan` / `ActRefusal` / `ActOutcome` in
 `lib/craft/ActPlan.ts`): a closed reason union and the facts per protocol,
 no `Mml` anywhere. The words live on the controller, which is the I/O
-layer — `ManualBuildController.engagePlan(context, plan, words)` takes
+layer — `CommandController.engagePlan(context, plan, words)` takes
 `beginSelf`/`beginPeers`/`onRefused`/`onDone`, and the wording switch is
 exhaustive (a `never` arm), so a new reason fails to compile until
 somebody words it. The decision itself (durations, effort, grade, what
@@ -6455,3 +6458,137 @@ list who answers it. Fewer than three implementers is a method on the one
 host. See [mixins.md § protocol mixins](./subsystems/mixins.md) and
 `lint:duck-typing` (controllers-are-io D8).
 
+## A permission decided in a controller
+
+```ts
+// NOT ALLOWED — the gate protects one door
+if (!(await AccessApi.can(giver, 'let', room))) return this.fail(context, …);
+await warren.let(unit, giver);
+
+// CORRECT — the method that writes asks who, with the actor as an argument
+const answer = await warren.let(unit, giver);   // refuses `not-yours` itself
+if (!answer.ok) return this.refuse(context, words(answer.reason), answer.reason);
+```
+
+A gate in a controller protects that controller. Every other caller of the
+same model method — a worded replacement controller, a brain, a script, the
+next verb — walks past it. The permission lives on the method that does the
+read or write, taking `by`, and the controller's copy is deleted
+(controller-liquidity D9; call-security.md § *the method asks who*).
+`lint:controller-gates` counts what is left; each remaining site is a verb's
+door onto a primitive the world itself must call ungated, named in the gate's
+header.
+
+## `greedy: true` on an object arg
+
+```yaml
+# NOT ALLOWED — the slot swallows every word after it
+- name: thing
+  type: object
+  greedy: true
+
+# CORRECT — one word binds bare; a name with a space in it is quoted
+- name: thing
+  type: object        # `buy apple`, `buy the apple`, `buy "dog loaf"`
+```
+
+A greedy object slot made every later word part of the name, so a
+preposition or a second arg after it could never bind, and `the` became a
+thing you could look at. The binder folds a leading article into the next
+token, and words left over refuse with the quote hint (*too many words —
+quote a name with a space in it*). The schema refuses `greedy` on
+`object`/`objects`; greedy stays for PROSE (`say`, `dm`, a forum body).
+`lint:greedy-object` is a hard 0 (controller-liquidity D3, W5).
+
+## A hand-rolled reach walk
+
+```ts
+// NOT ALLOWED — a second definition of "what can I lay hands on"
+const near = [...actor.getContents(), ...room.getContents(), ...exitDoors];
+const ok = near.some((s) => s === target);
+
+// CORRECT — ask the one walk, or membership in it
+const ok = PerceptionApi.canReach(actor, target);
+const reached = PerceptionApi.reach(actor);          // each tagged by its pool
+const hits = PerceptionApi.reachableAmong(actor, candidates);
+```
+
+Reach was written twice (the MQL scope walk and a `reachIds` helper) and the
+two disagreed — on the room itself and on doors of unseen ways. There is one
+list now, `PerceptionApi.reach`, tagged with MQL's pools (`person` ·
+`inventory` · `here` · `peers` · `reachable`; `around` is what holds you —
+named, not touched), and MQL's seeds filter it. Reach is not perception: a
+caller that needs both asks both. A thing behind a shut lid is ADDRESSED by
+MQL (`look me:I:apple`) but not reachable — a verb that puts a hand on it
+declares `mustNotBeShutAway` (`Containable.reachRefusal`). See
+[perception.md](./subsystems/perception.md) (controller-liquidity W20).
+
+## A nested subcommand
+
+```yaml
+# NOT ALLOWED — a subcommand of a subcommand
+verbs: [cockpit]
+subcommands:
+  layout:
+    subcommands:
+      save: { controller: … }
+
+# CORRECT — a command is `verb target` or `verb subcommand target`
+verbs: [client-layout]       # non-diegetic: a hyphenated compound name
+subcommands:
+  save: { controller: ../shell/ClientLayoutSaveController }
+```
+
+Depth is one. A second level is a noun that wants to be its own verb: a
+diegetic one takes a plain word (`equip set save` → `outfit save`), an
+interface or tooling one a compound name (`cockpit layout` →
+`client-layout`, `stream rotation` → `stream-rotation`). The schema and
+`CommandDefinition.validate()` refuse a nested stanza, and the depth half
+of `lint:command-views` is a structural zero (controller-liquidity W16,
+reversing W1's D2). See [command-spec.md § Depth](./subsystems/command-spec.md).
+
+## `values:` on a slot that is not `type: enum`
+
+```yaml
+# NOT ALLOWED — a closed word list wearing a string's type
+- name: setting
+  type: string
+  values: [wide, open, half, low, banked]
+
+# CORRECT — a closed word list is its own type
+- name: setting
+  type: enum
+  values: [wide, open, half, low, banked]
+```
+
+A closed list is a different type from a name: the binder refuses a word
+outside it with the list, `help` prints it, and the quote hint never joins
+words into it (`takesAName` is plain `type === 'string'`). The schema
+requires `values:` on `enum` and refuses it everywhere else; a structured
+client is held to the same list (controller-liquidity W22).
+
+## A controller that decides between acts
+
+```ts
+// NOT ALLOWED — one word, several acts, picked by what the target is
+if (MixinApi.isManualBuild(t)) return this.latchHeat(t);
+if (isTool(t)) return this.sterilize(t);
+return ContainmentApi.move(t, hearth, 'on');   // a third act: setting it on
+
+// CORRECT — one act; each host answers it (a protocol mixin), and the
+// act that was never this word goes to the verb that already does it
+const plan = t.heatPlanFor(actor);   // HeatedMixin: a plan or a refusal; its
+                                     // completion is the host's `takeHeat`
+// `put <pot> on <hearth>` sets a vessel on the fire
+```
+
+A word names one act. When a controller forks on the target's kind, a
+typed word (`switch (model.x)`), or `model.subcommand`, walk the remedy
+ladder: (1) one act over several hosts — a protocol mixin or one planner,
+retiring a stray head into the verb that already does it; (2) a manner —
+an option; (3) subcommands of a noun the player groups the acts under,
+each its own view entry and controller; (4) disjoint shapes of one word,
+each its own controller (`dry <thing> with <cloth>` vs `dry <thing> on
+<rack>`); (5) only then a new word (`spud`, `paste`). The protocol answers
+facts and a reason; the controller words them. `lint:multi-act` counts what
+is left (controller-liquidity D13; [command-spec.md](./subsystems/command-spec.md)).

@@ -185,7 +185,7 @@ async function goTo(handle: string, where: string): Promise<Session> {
 }
 
 async function buy(s: Session, item: string): Promise<void> {
-  const said = await say(s, `buy ${item}`);
+  const said = await say(s, `buy "${item}"`);
   expect(said, `buy ${item}: ${said}`).toMatch(/you buy/i);
 }
 

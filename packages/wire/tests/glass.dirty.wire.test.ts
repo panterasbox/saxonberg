@@ -158,7 +158,9 @@ suite('⭐ glass — the glasshouse in the woods', () => {
     expect(verbUnderstood(out)).toBe(true);
     // No fluid melt in a cold glasshouse → refused in words (`melt-cold`
     // from a stiff melt, or no bath at all), proving the verb is wired.
-    expect(refusedFor(out)).toMatch(/melt|pipe|gather/i);
+    // (A cold house has no melt at all, so it is `no-target`: "dip what,
+    // in what?" — finalize, the expectation was wrong since gob → dip.)
+    expect(refusedFor(out)).toMatch(/no-target|melt|pipe|gather/i);
   }, 60_000);
 });
 
@@ -199,8 +201,8 @@ suite('⭐⭐ glass — the batch is MIXED in a pot, then FIRED (ceramics W0)', 
       expect(refusedFor(put)).toBeNull();
     }
     for (const thing of ['ash', 'lime']) {
-      expectOk(await b.cmd(`get ${thing}`));
-      const put = await b.cmd(`put ${thing} in pot`);
+      expectOk(await b.cmd(`get "${thing}"`));
+      const put = await b.cmd(`put "${thing}" in pot`);
       expect(verbUnderstood(put)).toBe(true);
       expect(refusedFor(put)).toBeNull();
     }
@@ -228,6 +230,10 @@ suite('⭐⭐ glass — the batch is MIXED in a pot, then FIRED (ceramics W0)', 
     const fired = await b.cmd('fire kiln for 30 minutes');
     expect(verbUnderstood(fired)).toBe(true);
     expect(refusedFor(fired)).toBeNull();
+    // The hold is 30 GAME minutes — 150 s real at scale 12, past
+    // `settle`'s wait — so the clock is advanced through it, as every
+    // other firing drive does (finalize).
+    await advanceWorldClock('30 minutes');
     await settle(b, fired);
     // ⭐ The same piece: still batch if the kiln never reached the
     // liquidus, glass if it did — never gone, never a new row.

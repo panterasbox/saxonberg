@@ -21,7 +21,8 @@ export default class GroupRemoveController extends GroupControllerBase {
     if (!(await this.ownerOrAdmin(avatar, g))) {
       return this.fail(context, 'Only owners and admins may remove.', 'not-permitted');
     }
-    const removed = g.removeMember(targetId);
+    const key = await g.memberByName(targetId);
+    const removed = key !== null && g.removeMember(key);
     if (!removed) {
       return this.fail(context, `${targetId} isn't in '${name}'.`, 'not-a-member');
     }

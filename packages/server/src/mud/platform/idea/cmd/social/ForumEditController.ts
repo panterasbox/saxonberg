@@ -19,13 +19,6 @@ export default class ForumEditController extends ForumControllerBase {
     if (!entryId) return this.fail(context, 'entry required', 'entry-required');
     const entry = await ForumsApi.getEntry(entryId);
     if (!entry) return this.fail(context, `No entry '${entryId}'.`, 'no-such-entry');
-    // Authorization: the author, or the board-subject owner.
-    const view = await this.boardViewFor(entry.getBoard());
-    const isAuthor = entry.getAuthor() === this.actorId(actor);
-    const isOwner = view ? this.ownsSubject(actor, view.subject) : false;
-    if (!isAuthor && !isOwner) {
-      return this.fail(context, 'Only the author or board owner may edit.', 'not-author');
-    }
     const body = await this.resolveBody(model, context, 'Edit the body:');
     if (body === null) return; // needs-input, noted (a script has no editor)
     if (!body) return this.fail(context, 'body required', 'body-required');
@@ -33,7 +26,7 @@ export default class ForumEditController extends ForumControllerBase {
       await actor.editEntryBody(entry, body);
       this.send(context, Mml.compose`\nEdited (#${entry._id ?? '?'}).\n`);
     } catch (err) {
-      return this.fail(context, (err as Error).message, 'edit-failed');
+      return this.failFrom(context, err, 'edit-failed');
     }
   }
 }

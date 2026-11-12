@@ -22,6 +22,7 @@
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type { ReachDepth } from '../command';
 import type { CommandGiver } from '../../lib/command/CommandGiver';
 import type { Unit } from '../../lib/quantity';
 
@@ -78,6 +79,18 @@ export interface MqlContext {
    * — the only thing there that locks. Never set by player-typed MQL.
    */
   admits?: (s: Stuff) => boolean;
+  /**
+   * ⭐ The reach rung the giver-anchored pools walk at (controller-
+   * liquidity D4): `top` (held, worn, the room's top level) · `open` (the
+   * default — and inside open vessels you carry and open things here) ·
+   * `deep` (everything, shut or not, never another body's insides). Set
+   * by the command binder from the line's `--top`/`--open`/`--deep` or the
+   * slot's `depth:`; player-typed MQL has no word for it. Read by the
+   * `inventory` · `person` · `peers` · `reachable` pools via
+   * `PerceptionApi.reach` — the one list `PerceptionApi.canReach` reads
+   * too.
+   */
+  depth?: ReachDepth;
 }
 
 /**

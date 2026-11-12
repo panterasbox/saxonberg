@@ -196,7 +196,6 @@ describe('SoilMixin — a soil made of parts', () => {
     expect(ground.soilPartKey()).toBe('');
     expect(ground.soilDepthM()).toBeNull();
     expect(ground.soilPart('top-end')).toBeNull();
-    expect(ground.soilPartRefusal()).toBeNull();
     expect(ground.resolvePartFor(null)).toEqual({ ok: true, part: null });
   });
 
@@ -261,13 +260,15 @@ describe('SoilMixin — a soil made of parts', () => {
     expect(field.soilNutrientHeadroom()).toBeCloseTo(64, 6);
   });
 
-  it('⭐ naming no part on a divided ground is refused — by the GROUND, in words', () => {
+  it('⭐ naming no part on a divided ground is a CHOICE — the parts, and no sentence', () => {
     const { field, top } = makeDivided();
     const unnamed = field.resolvePartFor(null);
-    expect(unnamed.ok).toBe(false);
-    if (!unnamed.ok) {
+    expect(unnamed.ok).toBe('choose');
+    if (unnamed.ok === 'choose') {
       expect(unnamed.reason).toBe('part-unnamed');
-      expect(unnamed.line).toMatch(/^Which part\? Name one: .+ or .+\.$/);
+      expect(unnamed.choices).toEqual(field.soilParts());
+      expect(unnamed.facts.noun).toBe('part');
+      expect(unnamed).not.toHaveProperty('line');
     }
     expect(field.resolvePartFor(top)).toEqual({ ok: true, part: top });
   });
@@ -277,7 +278,10 @@ describe('SoilMixin — a soil made of parts', () => {
     const stranger = makePart('top-end', 100, 0, 100, 0);
     const elsewhere = field.resolvePartFor(stranger);
     expect(elsewhere.ok).toBe(false);
-    if (!elsewhere.ok) expect(elsewhere.reason).toBe('not-a-part-here');
+    if (elsewhere.ok === false) {
+      expect(elsewhere.reason).toBe('not-a-part-here');
+      expect(elsewhere.facts).toEqual({ part: stranger, ground: field });
+    }
     const itself = field.resolvePartFor(field);
     expect(itself.ok).toBe(false);
   });
@@ -286,7 +290,6 @@ describe('SoilMixin — a soil made of parts', () => {
     const only = makePart('whole', 100, 0, 100, 0);
     const field = makeStuff(() => new DividedGround());
     field.parts = [only];
-    expect(field.soilPartRefusal()).toBeNull();
     expect(field.resolvePartFor(null)).toEqual({ ok: true, part: only });
   });
 });
@@ -369,10 +372,10 @@ describe('SoilMixin — the remainder between the parts', () => {
     expect(tract.soilMoistureFraction()).toBeCloseTo(1, 6);
   });
 
-  it('the refusal names the part by the host noun', () => {
+  it('the choice carries the host noun for the controller to word', () => {
     const { tract } = makeTract();
     const r = tract.resolvePartFor(null);
-    expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.line).toMatch(/^Which field\? Name one: /);
+    expect(r.ok).toBe('choose');
+    if (r.ok === 'choose') expect(r.facts.noun).toBe('field');
   });
 });

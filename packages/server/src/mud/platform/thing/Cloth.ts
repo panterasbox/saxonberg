@@ -21,8 +21,10 @@ import type { FieldMeta } from '../../lib/mixin';
 
 export default class Cloth extends SoilableMixin(Good) {
   static commandContributions: CommandContributions = {
-    // `environment` — to whoever HOLDS it.
-    environment: ['platform/cmd/crafting/dry.yaml'],
+    // `environment` — to whoever HOLDS it: rub a thing dry with it
+    // (`dry-rub.yaml`), or hang it up when it is sodden (`dry.yaml`) — the
+    // two shapes of `dry` (controller-liquidity W7c).
+    environment: ['platform/cmd/crafting/dry.yaml', 'platform/cmd/crafting/dry-rub.yaml'],
   };
 
   static fieldMeta: FieldMeta = {

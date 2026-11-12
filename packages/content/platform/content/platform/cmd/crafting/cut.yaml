@@ -2,12 +2,17 @@
 # protocol. The verb binds what you cut and the tools in reach; the TARGET
 # (or the tool that knows how to cut it) plans the cut — how long, what is
 # made — or refuses in its own words. Cloth is cut to a pattern by a
-# tailor's shears; ice is cut off a marked grid with an ice saw. A second
-# cuttable thing is a class that answers the protocol, never a second verb.
+# tailor's shears; ice is cut off a marked grid with an ice saw; a felled
+# bole is cross-cut a length at a time. A second cuttable thing is a class
+# that answers the protocol, never a second verb.
+# ⚠ `--for`/`--tight`/`--generous` stay HERE though only cloth reads them
+# (controller-liquidity W6): a pack cannot contribute options to a kernel
+# view, and moving them under a `cut pattern` stanza would change what a
+# tailor types — a visible break the owner's read does not list.
 verbs: [cut]
 category: crafting
 controller: /platform/idea/cmd/crafting/CutController
-description: "Cut something — cloth to a pattern, ice off the grid"
+description: "Cut something — cloth to a pattern, ice off the grid, a length off a bole"
 help: |
   `cut <thing>` cuts it with the right tool in reach, and what that means
   belongs to the thing.
@@ -24,6 +29,13 @@ help: |
   **Ice** (`cut marked`): standing on a frozen pool with an ice
   saw, you cut a block along the grid you marked; its weight follows the
   ice's thickness and the grid. `cut hole` saws a hole for a line instead.
+
+  **A felled trunk** (`cut bole`): with a felling axe in reach, you
+  cross-cut one length of green timber off it, until nothing is left but
+  the butt. (It was `fell bole`; a bole is cut, not felled.)
+
+  Sawing, riving and butchering are their own verbs (`saw`, `rive`,
+  `butcher`) — each is a different act on the thing, not a kind of cut.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -34,17 +46,19 @@ args:
   - name: target
     type: object
     required: false
-    greedy: true
-    # A world act names no `inventory` scope of its own. ⚠ `reachable` still
-    # puts your own gear first (person ∪ here ∪ peers), so `cut ice` while
-    # carrying a block binds the block — the seed's order is the
-    # command-taxonomy slate's question, not this view's.
-    scope: ["$focus", "here", "peers", "person"]
+    # A world act names no `inventory` scope of its own. ⚠ Your own gear
+    # first (person, then here, then peers), so `cut ice` while carrying a
+    # block binds the block — and, since `here` is the PLACE (controller
+    # liquidity W20), `cut rope` at the ropewalk binds the rope you hold,
+    # not the walk whose keywords say "rope walk" (finalize, the cordage
+    # drive). The seed's order is the command-taxonomy slate's question.
+    scope: ["$focus", "person", "here", "peers"]
     requires: any
   # ⭐ How much to cut off (cordage D4): `cut rope at 10 m`. A preposition,
   # because a greedy target may be followed only by prepositional args
   # (`CommandDefinition.validateArgOrder`); the target parses the words.
   - name: length
+    prepositionRequired: true
     type: string
     required: false
     greedy: true
@@ -53,9 +67,9 @@ args:
   # target (or the tool that plans the cut) narrows them by the capability
   # it needs.
   - name: tools
+    prepositionRequired: true
     type: objects
     required: false
-    greedy: true
     prepositions: [with, using, on]
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]

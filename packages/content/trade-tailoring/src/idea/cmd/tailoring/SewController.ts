@@ -22,27 +22,10 @@ import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/c
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { AppApi } from '@saxonberg/server/mud/api/app';
-import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
+import CutPieces, { PATTERNS, type SewDone, type SewRefusal } from '../../../thing/CutPieces';
 
-const TOPIC = 'act.deed';
-
-/** What a pattern makes. ⚠ A pattern is a RECIPE; these are its rows. */
-const PATTERNS: ReadonlyMap<string, string> = new Map([
-  ['shirt', '/trade/tailoring/thing/shirt'],
-  ['trousers', '/trade/tailoring/thing/trousers'],
-  ['coat', '/trade/tailoring/thing/coat'],
-  ['apron', '/trade/tailoring/thing/apron'],
-]);
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface SewModel extends CommandModel {
   kit?: MqlManyResult;
@@ -50,122 +33,61 @@ interface SewModel extends CommandModel {
   pattern?: string;
 }
 
+/**
+ * ⭐ The pattern's row, the carry and the mark are the pieces'
+ * (`CutPieces.sewPlan` — controller-liquidity W11); the pattern words are
+ * the view's closed list; this controller picks the best kit and words
+ * the plan.
+ */
 export default class SewController extends ManualBuildController<SewModel> {
-  static readonly BASE_MS_KEY = 'tailoring.sew.baseMs';
-  static readonly BASE_MS = 90 * 60 * 1000;
-
-  execute(model: SewModel, context: CommandContext): void {
+  async execute(model: SewModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const pieces = model.pieces?.stuff ?? null;
-    if (!pieces || !MixinApi.isWearable(pieces)) {
+    if (!pieces) {
       this.declineStep(context, Mml.compose`Sew what?`, 'no-pieces');
       return;
     }
-    const pattern = (model.pattern ?? 'shirt').trim().toLowerCase();
-    const row = PATTERNS.get(pattern);
-    if (!row) {
+    if (!(pieces instanceof CutPieces)) {
       this.declineStep(
         context,
-        Mml.compose`There is no pattern for '${pattern}'. There are ${[...PATTERNS.keys()].join(', ')}.`,
-        'unknown-pattern',
+        Mml.compose`${Mml.thing(pieces)} is not cut cloth. Cut the pieces first, then sew them.`,
+        'no-pieces',
       );
       return;
     }
-
-    const instrument = this.bestInstrument(model.kit, 'mending');
-    const durationMs = this.paceMs(
-      dial(SewController.BASE_MS_KEY, SewController.BASE_MS),
-      instrument as Stuff | null,
-      ['mending'],
-    );
-
-    this.engageStep(context, {
-      durationMs,
-      effortW: 250,
-      beginSelf: Mml.compose`You thread a needle and begin putting ${Mml.thing(pieces)} together.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} settles down to sew.`,
-      onComplete: () => {
-        void finish(context, pieces, row, pattern);
-      },
+    const pattern = (model.pattern ?? 'shirt').trim().toLowerCase();
+    const plan = pieces.sewPlan(giver, pattern, this.bestInstrument(model.kit, 'mending'));
+    if (!plan.ok) {
+      this.declineStep(context, SewController.refusalWords(plan), plan.reason);
+      return;
+    }
+    await this.engagePlan(context, plan, {
+      beginSelf: () =>
+        Mml.compose`You thread a needle and begin putting ${Mml.thing(pieces)} together.`,
+      beginPeers: () => Mml.compose`${Mml.actor(giver)} settles down to sew.`,
+      onRefused: (r: SewRefusal) => SewController.refusalWords(r),
+      onDone: (f: SewDone) => SewController.doneWords(giver, f),
     });
   }
-}
 
-async function finish(
-  context: CommandContext,
-  pieces: Stuff,
-  row: string,
-  pattern: string,
-): Promise<void> {
-  const giver = context.commandGiver;
-  // ⚠⚠ A module function — the controller is destructed by now.
-  const watching = !giver.isDestroyed();
-  try {
-    // Made FROM the pieces: the garment is whoever's the cut cloth was.
-    const garment = await StuffApi.clone<Stuff>(row, undefined, { madeFrom: pieces });
-
-    // Everything the pieces knew travels: the cloth's material and
-    // form, its grade, and the measurements it was cut to.
-    if (MixinApi.isTangible(garment) && MixinApi.isTangible(pieces)) {
-      const mat = pieces.getMaterial();
-      if (mat) garment.setMaterial(mat);
-    }
-    if (MixinApi.isConstructed(garment) && MixinApi.isConstructed(pieces)) {
-      const form = pieces.getConstructionForm();
-      if (form) await garment.setConstructionForm(form);
-    }
-    if (MixinApi.isWearable(garment) && MixinApi.isWearable(pieces)) {
-      const cut = pieces.getCutTo();
-      if (cut.bodyPlanPath) {
-        garment.setCutTo(cut.bodyPlanPath, cut.statureM, cut.girthIndex);
+  protected static refusalWords(r: SewRefusal): Composed {
+    switch (r.reason) {
+      case 'unknown-pattern':
+        return Mml.compose`There is no pattern for '${r.facts.pattern}'. There are ${[...PATTERNS.keys()].join(', ')}.`;
+      case 'not-made':
+        return Mml.compose`It will not come together. You set the pieces aside unspoiled.`;
+      default: {
+        const never: never = r;
+        return never;
       }
     }
-    // ⚠⚠ The allowance must SURVIVE the sew — this is the seam that was
-    // broken. It was an optional call through a structural cast onto a
-    // `Garment` that had no such method, so the cloth folded in at `cut`
-    // silently vanished and `alter` could never let anything out.
-    if (MixinApi.isWearable(pieces) && MixinApi.isWearable(garment)) {
-      garment.setSeamAllowance(pieces.getSeamAllowance());
-    }
-
-    // ⭐ The maker's mark. The maker is NEVER a parameter — it derives
-    // from who is acting, through the authoring context.
-    const maker =
-      (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? giver;
-    if (MixinApi.isCrafted(garment)) {
-      garment.stamp({
-        maker: maker.getTemplatePath() ?? '',
-        grade: Grade.of(
-          MixinApi.isGraded(pieces) ? pieces.getGradeBand() : 'fair',
-        ),
-        recipe: row,
-        craftedAt: Math.floor(WorldClockApi.getNow().rawValue()),
-      });
-    }
-
-    if (MixinApi.isContainable(garment) && MixinApi.isContainer(giver)) {
-      ContainmentApi.move(garment as Stuff & Containable, giver as Stuff & Container);
-    }
-    StuffApi.destruct(pieces);
-
-    if (!watching) return;
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(Mml.compose`You finish ${Mml.thing(garment)}.`)
-      .toPeers(Mml.compose`${Mml.actor(giver)} finishes a ${pattern}.`)
-      .send();
-  } catch (err) {
-    console.warn(`SewController: could not mint '${row}':`, err);
   }
-}
 
-function dial(key: string, fallback: number): number {
-  try {
-    const raw = AppApi.setting(key);
-    if (raw === '' || raw == null) return fallback;
-    const n = Number.parseFloat(raw);
-    return Number.isFinite(n) ? n : fallback;
-  } catch {
-    return fallback;
+  protected static doneWords(giver: Stuff, f: SewDone): { self: Composed; peers: Composed } | null {
+    if (f.kind === 'gone') return null;
+    return {
+      self: Mml.compose`You finish ${Mml.thing(f.garment)}.`,
+      peers: Mml.compose`${Mml.actor(giver)} finishes a ${f.pattern}.`,
+    };
   }
 }
