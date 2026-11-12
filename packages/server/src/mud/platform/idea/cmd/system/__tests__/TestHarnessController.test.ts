@@ -79,7 +79,7 @@ describe('testharness controllers', () => {
     gravity: TestHarnessGravityController,
     afflict: TestHarnessAfflictController,
     species: TestHarnessSpeciesController,
-    remove: TestHarnessRemoveController,
+    vanish: TestHarnessRemoveController,
   } as const;
   const run = (m: Record<string, unknown>) => {
     const Ctrl = BY_WORD[m.subcommand as keyof typeof BY_WORD];
@@ -221,12 +221,12 @@ describe('testharness controllers', () => {
       expect(rejected()?.reason).toBe('test-usage');
     });
 
-    it('`remove #<id>` forwards the id; with none, the usage', async () => {
+    it('`vanish #<id>` forwards the id; with none, the usage', async () => {
       const rm = vi.spyOn(TestHarnessApi, 'removeThing').mockResolvedValue({ removed: 'a bowl' });
-      await run({ subcommand: 'remove', op: '#abc' });
+      await run({ subcommand: 'vanish', op: '#abc' });
       expect(rm).toHaveBeenCalledWith('#abc');
       expect(said.join('\n')).toMatch(/Removed a bowl/);
-      await run({ subcommand: 'remove' });
+      await run({ subcommand: 'vanish' });
       expect(rejected()?.reason).toBe('test-usage');
     });
 

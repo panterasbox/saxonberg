@@ -44,7 +44,7 @@ help: |
   dosed to its top band, so it takes them under at once and their hands
   let go.
 
-  `testharness remove #<id>` takes a thing out of the world wherever it
+  `testharness vanish #<id>` takes a thing out of the world wherever it
   is — a wizard reaching into a character's shut pack.
 
   `testharness species <name> <species path>` stages a resident character
@@ -150,9 +150,9 @@ subcommands:
       - name: value
         type: string
         required: false
-  remove:
+  vanish:
     controller: /platform/idea/cmd/system/TestHarnessRemoveController
-    description: "Take a thing out of the world by id, wherever it is: `remove #<id>`"
+    description: "Take a thing out of the world by id, wherever it is: `vanish #<id>`"
     args:
       - name: op
         type: string
