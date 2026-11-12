@@ -49,5 +49,6 @@ export {
   unpinWeather,
   stage,
   stageShip,
+  stageLooseSnapshot,
 } from './world';
 export type { ShipStagePlace, ShipStageSpec, ShipStageResult } from './world';

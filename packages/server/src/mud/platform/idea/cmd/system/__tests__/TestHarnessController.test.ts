@@ -17,6 +17,9 @@ import TestHarnessWeatherController from '../TestHarnessWeatherController';
 import TestHarnessWeatherPinController from '../TestHarnessWeatherPinController';
 import TestHarnessWeatherUnpinController from '../TestHarnessWeatherUnpinController';
 import TestHarnessShipController from '../TestHarnessShipController';
+import TestHarnessGravityController from '../TestHarnessGravityController';
+import TestHarnessAfflictController from '../TestHarnessAfflictController';
+import TestHarnessSpeciesController from '../TestHarnessSpeciesController';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { CommandApi } from '../../../../../api/command';
@@ -72,6 +75,9 @@ describe('testharness controllers', () => {
     'weather-pin': TestHarnessWeatherPinController,
     'weather-unpin': TestHarnessWeatherUnpinController,
     ship: TestHarnessShipController,
+    gravity: TestHarnessGravityController,
+    afflict: TestHarnessAfflictController,
+    species: TestHarnessSpeciesController,
   } as const;
   const run = (m: Record<string, unknown>) => {
     const Ctrl = BY_WORD[m.subcommand as keyof typeof BY_WORD];
@@ -175,6 +181,52 @@ describe('testharness controllers', () => {
     });
   });
 
+  describe('gravity · afflict · species (size and carrying drive 7, 15, 19)', () => {
+    beforeEach(() => {
+      vi.spyOn(MixinApi, 'isContainable').mockReturnValue(true);
+      (ctx as unknown as { commandGiver: unknown }).commandGiver = {
+        getTemplatePath: () => '/platform/agent/Avatar/t',
+        getContainer: () => ({ getTemplatePath: () => '/test/here' }),
+      };
+    });
+
+    it('`gravity 0` sets the room the giver stands in; `clear` inherits', async () => {
+      const set = vi
+        .spyOn(TestHarnessApi, 'setGravity')
+        .mockResolvedValue({ place: '/test/here', own: 0, now: 0 });
+      await run({ subcommand: 'gravity', value: '0' });
+      expect(set).toHaveBeenCalledWith('/test/here', 0);
+      expect(said.join('\n')).toMatch(/Gravity at \/test\/here is 0 m\/s²/);
+      await run({ subcommand: 'gravity', value: 'clear', at: '/test/there' });
+      expect(set).toHaveBeenLastCalledWith('/test/there', null);
+    });
+
+    it('`gravity` with no number is the usage, nothing set', async () => {
+      const set = vi.spyOn(TestHarnessApi, 'setGravity');
+      await run({ subcommand: 'gravity', value: 'heavy' });
+      expect(rejected()?.reason).toBe('test-usage');
+      expect(set).not.toHaveBeenCalled();
+    });
+
+    it('`afflict <name> <condition> [stage]` forwards, and reports how the body reads', async () => {
+      const aff = vi
+        .spyOn(TestHarnessApi, 'afflict')
+        .mockResolvedValue({ character: 'Mara', condition: '/c/x', consciousness: 'unconscious' });
+      await run({ subcommand: 'afflict', op: 'Mara', value: '/c/x', cite: '2' });
+      expect(aff).toHaveBeenCalledWith('Mara', '/c/x', 2);
+      expect(said.join('\n')).toMatch(/unconscious/);
+      await run({ subcommand: 'afflict', op: 'Mara' });
+      expect(rejected()?.reason).toBe('test-usage');
+    });
+
+    it('`species <name> <species>` forwards; a refusal comes back in its own words', async () => {
+      vi.spyOn(TestHarnessApi, 'setSpecies').mockRejectedValue(new Error("testharness species: '/x' is not a species"));
+      await run({ subcommand: 'species', op: 'Mara', value: '/x' });
+      expect(rejected()?.reason).toBe('test-refused');
+      expect(rejected()?.detail).toMatch(/is not a species/);
+    });
+  });
+
   describe('the shipped view routes each form to its controller', () => {
     const view = (() => {
       const path = fileURLToPath(
@@ -207,6 +259,18 @@ describe('testharness controllers', () => {
       expect(pin.controller).toBe(`${P}TestHarnessWeatherPinController`);
       expect(pin.model).toMatchObject({ value: 'fog', at: '/test/there', alive: true });
       expect(bind('testharness weather-unpin').controller).toBe(`${P}TestHarnessWeatherUnpinController`);
+    });
+
+    it('gravity · afflict · species', () => {
+      const g = bind('testharness gravity 0 --at /test/there');
+      expect(g.controller).toBe(`${P}TestHarnessGravityController`);
+      expect(g.model).toMatchObject({ value: '0', at: '/test/there' });
+      const a = bind('testharness afflict Mara /c/anaesthesia 2');
+      expect(a.controller).toBe(`${P}TestHarnessAfflictController`);
+      expect(a.model).toMatchObject({ op: 'Mara', value: '/c/anaesthesia', cite: '2' });
+      const sp = bind('testharness species Mara /s/gnomus');
+      expect(sp.controller).toBe(`${P}TestHarnessSpeciesController`);
+      expect(sp.model).toMatchObject({ op: 'Mara', value: '/s/gnomus' });
     });
 
     it('ship', () => {

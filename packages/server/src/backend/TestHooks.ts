@@ -59,6 +59,7 @@ import {
   type WeatherPinReport,
   type ShipStageSpec,
   type ShipStageReport,
+  type LooseSnapshotReport,
 } from '../mud/api/test-harness';
 import type { WeatherPinMode } from '../mud/lib/weather/WeatherType';
 import { ParcelApi } from '../mud/api/parcel';
@@ -448,6 +449,35 @@ export class TestHooks {
   public static async stage(path: string, method: string, args: readonly unknown[]): Promise<StageReport> {
     TestHooks.#assertTestMode('stage');
     return ExecutionContextApi.runRoot(TestHooks, 'stage', () => TestHarnessApi.stage(path, method, args));
+  }
+
+  /**
+   * TEST-ONLY: stage a PRE-FLIP record for a character (size and carrying
+   * R4, drive 21) — things appended LOOSE to its stored snapshot, as a
+   * body carried them before the flip, so its next load is that body's
+   * first. By handle: the user is the one `test-login` mints for it.
+   * Refused while the character is resident — a live body's next capture
+   * would write over the edit (stage it after a restart, before the login).
+   */
+  public static async stageLooseSnapshot(
+    app: Application,
+    handle: string,
+    templates: readonly string[],
+  ): Promise<LooseSnapshotReport> {
+    TestHooks.#assertTestMode('stageLooseSnapshot');
+    return ExecutionContextApi.runRoot(TestHooks, 'stageLooseSnapshot', async () => {
+      const userId = await app.findOrCreateUserFromProvider('google', TestHooks.syntheticProfile(handle));
+      const user = await User.findById(userId);
+      const playerId = user?.playerIds[0];
+      if (playerId === undefined) throw new Error(`'${handle}' has no character`);
+      if (PlayerApi.findAvatarByPlayerId(playerId)) {
+        throw new Error(
+          `'${handle}' is resident — its next capture would write over a staged record. ` +
+            'Stage it after a restart, before the character logs in.',
+        );
+      }
+      return TestHarnessApi.stageLooseSnapshot(Avatar.getTemplatePath(playerId), templates);
+    });
   }
 
   /**

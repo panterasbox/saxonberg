@@ -6,7 +6,7 @@ category: system
 # verb — not in help, not in the affordances — and `requiresTestWorld`
 # keeps the gate in the view's own data too.
 testOnly: true
-description: "Test-world staging: read and move the clock, pin the weather, stage a ship"
+description: "Test-world staging: read and move the clock, pin the weather, stage a ship, a room's gravity, a condition, a body"
 help: |
   Scaffolding for drives and staging, in a test world only. Subcommands
   and options, never phrases; a bare subcommand reads.
@@ -35,6 +35,18 @@ help: |
   she goes down at once), at a mud berth she settles onto the bottom.
   Options in any order; an `at <frame> <cite>` goes last.
 
+  `testharness gravity <m/s²>` sets the gravity of the place you stand in
+  (or `--at <place>`) — `0` for none, `clear` to inherit again. What is
+  no longer pressed into an open container leaves it at once.
+
+  `testharness afflict <name> <condition path> [stage]` puts a resident
+  character under a condition: one with a toxin behind it (anaesthesia) is
+  dosed to its top band, so it takes them under at once and their hands
+  let go.
+
+  `testharness species <name> <species path>` stages a resident character
+  as a body of another species, its mass re-seeded from it.
+
   The same rules as the wire harness's routes — one implementation
   (TestHarnessApi) behind both.
 examples:
@@ -48,6 +60,10 @@ examples:
     note: Stage the Hesper lying off the bar
   - cmd: testharness ship /world/terminus/hesper/structure hull worn slept 0.25
     note: Stage her hull worn, six hours' water in her bilge
+  - cmd: testharness gravity 0
+    note: No gravity in the room you stand in
+  - cmd: testharness afflict Mara /platform/idea/Condition/metabolism/anaesthesia
+    note: Take Mara under
 validators:
   - /lib/command/validators/requiresTestWorld
 options:
@@ -101,3 +117,33 @@ subcommands:
         type: string
         required: false
         greedy: true
+  gravity:
+    controller: /platform/idea/cmd/system/TestHarnessGravityController
+    description: "Set the gravity here (or `--at`): m/s², 0 for none, `clear` to inherit"
+    args:
+      - name: value
+        type: string
+        required: false
+  afflict:
+    controller: /platform/idea/cmd/system/TestHarnessAfflictController
+    description: "Put a resident character under a condition: `afflict <name> <condition path> [stage]`"
+    args:
+      - name: op
+        type: string
+        required: false
+      - name: value
+        type: string
+        required: false
+      - name: cite
+        type: string
+        required: false
+  species:
+    controller: /platform/idea/cmd/system/TestHarnessSpeciesController
+    description: "Stage a resident character as another species: `species <name> <species path>`"
+    args:
+      - name: op
+        type: string
+        required: false
+      - name: value
+        type: string
+        required: false

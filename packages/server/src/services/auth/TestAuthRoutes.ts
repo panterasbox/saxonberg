@@ -370,9 +370,34 @@ export class TestAuthRoutes {
         });
     });
 
+    // ⭐ A pre-flip record (size and carrying R4): things appended loose to
+    // a stored character's snapshot, staged after a restart and before the
+    // character logs in — the shape a body carried before the flip.
+    app.post('/auth/test-snapshot', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const body = req.body as { handle?: unknown; loose?: unknown } | undefined;
+      const loose = body?.loose;
+      if (
+        typeof body?.handle !== 'string' || body.handle === '' ||
+        !Array.isArray(loose) || !loose.every((t): t is string => typeof t === 'string')
+      ) {
+        res.status(400).json({ error: 'test-snapshot wants {handle, loose: [template paths]}' });
+        return;
+      }
+      TestHooks.stageLooseSnapshot(application, body.handle, loose)
+        .then((report) => res.json(report))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-snapshot failed:', err);
+          res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+        });
+    });
+
     console.warn(
       'TestAuthRoutes: ⚠  /auth/test-login, /auth/test-clock, /auth/test-weather, ' +
-        '/auth/test-ship, /auth/test-stage, /auth/test-nourish, /auth/test-arrive and /auth/test-hand are MOUNTED (test seams). Never in production.'
+        '/auth/test-ship, /auth/test-stage, /auth/test-nourish, /auth/test-arrive, /auth/test-hand and /auth/test-snapshot are MOUNTED (test seams). Never in production.'
     );
   }
 }

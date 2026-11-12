@@ -500,6 +500,23 @@ export async function stage(path: string, method: string, ...args: unknown[]): P
   return out.result ?? null;
 }
 
+/**
+ * ⭐ Stage a PRE-FLIP record (size and carrying R4): append things LOOSE
+ * to a stored character's snapshot — no worn entry, no placement, the way
+ * a body carried them before the flip — so its next load is that body's
+ * first (`placeLoose` puts each where a carried thing goes). Posts to
+ * `/auth/test-snapshot`. The character must not be resident: stage it
+ * after a restart, before it logs in. Only in a world this run owns.
+ */
+export async function stageLooseSnapshot(handle: string, loose: readonly string[]): Promise<{ scope: string; loose: string[] }> {
+  const res = await postTestRoute('/auth/test-snapshot', { handle, loose });
+  const out = (await res.json()) as { scope?: string; loose?: string[]; error?: string };
+  if (!res.ok || typeof out.scope !== 'string') {
+    throw new Error(`stageLooseSnapshot(${handle}) failed (${res.status}): ${out.error ?? JSON.stringify(out)}`);
+  }
+  return { scope: out.scope, loose: out.loose ?? [] };
+}
+
 /* ──────────────────────── a ship ──────────────────────── */
 
 /** Where a staged ship is put: a sea's node by path, or a citation on a frame. */
