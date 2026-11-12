@@ -34,6 +34,7 @@ data:
   exits:
     west:
       destination: /world/newbie-wilds/steading/yard
+      media: [ground]
       opening: { width: 0.9, height: 1.4 }
     east:
       destination: /world/newbie-wilds/steading/charcoal-pit

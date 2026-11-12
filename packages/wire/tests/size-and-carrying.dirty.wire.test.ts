@@ -771,9 +771,9 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
 
     // A cart: hitched, your hands are on it.
     const h = await person('sccart', YARD);
+    await lay(h, T.lantern);
     await lay(h, T.handcart);
     expectDone(await say(h, 'hitch handcart'));
-    await lay(m, T.lantern);
     expectRefused(await say(h, 'get lantern'), /hands are on (a|the) wooden handcart/i);
     expectRefused(await say(h, 'go north'), /handcart won't fit/i);
     expectDone(await say(h, 'unhitch'));

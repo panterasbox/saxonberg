@@ -32,20 +32,28 @@ data:
       keywords: [post, lookout, platform]
       description: |
         A stout post set in the yard with a ladder nailed up it to a little platform at the top, where someone once kept watch over the stock.
+  # ⭐ `media: [ground]` on the yard's ways (size and carrying drive, step
+  # 18): a way with no media admits feet only, so a hitched handcart was
+  # refused "You can't drag the cart that way" at every door and never met
+  # the paddock gate's SIZE. A farmyard's ways take a cart; the gate's
+  # opening is what stops it.
   exits:
     east:
       destination: /world/newbie-wilds/steading/cottage
+      media: [ground]
       # ⭐ The low door is the WAY's, authored on this entry, no kind
       # (size and carrying D8): a person stoops through it, a rider must
       # dismount.
       opening: { width: 0.9, height: 1.4 }
     south:
       destination: /world/newbie-wilds/steading/barn
+      media: [ground]
       # The barn's doorway: wide and full height — a long crate goes
       # through it end-on (drive 11's comparison with the barn stair).
       opening: { width: 1, height: 2 }
     north:
       destination: /world/newbie-wilds/steading/paddock
+      media: [ground]
       # A narrow gate: a person walks through, a mule with panniers does not.
       opening: { width: 0.8, height: 2 }
     up:

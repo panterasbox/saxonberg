@@ -27,6 +27,7 @@ data:
   exits:
     north:
       destination: /world/newbie-wilds/steading/yard
+      media: [ground]
       opening: { width: 1, height: 2 }
     up:
       destination: /world/newbie-wilds/steading/hayloft

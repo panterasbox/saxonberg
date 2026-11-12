@@ -23,4 +23,5 @@ data:
   exits:
     south:
       destination: /world/newbie-wilds/steading/yard
+      media: [ground]
       opening: { width: 0.8, height: 2 }
