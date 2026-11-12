@@ -1222,6 +1222,84 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   enclosing place. `PerceptionApi.tierOf` is deleted (`Carrying.tierOf` is the read;
   `PerceptionLogic.tierOfImpl` asks the carrier, a non-carrier holder's things are `ready`).
 
+**Decided while building W5** (beyond D15, D26–D28, D33):
+
+- **D26-b — the class default is a static, and the field starts from it.**
+  `PlacingMixin.defaultPlacements` (`[on]`) is what a host whose row names nothing offers;
+  `Garment` and `Pack` say `[]`. The `placements` field initializes from it, so an empty
+  list is honest (*offers nothing*), never silently `on`.
+- **D26-c — the pocket's primary word is `into`, `in` its secondary.** `lint:placement-words`
+  refuses two members sharing a primary, and `in` is `in`'s. The secondary pass is what
+  makes `put key in coat` reach the pockets — and a pack with pockets keeps `in` for its
+  main compartment while `put map in side pocket` names the pocket. Prose: *"You put the
+  key in the left pocket of the coat."* (the prose gets `{{ name }}`).
+- **D26-d — a region's name is a word its host answers to.** `Placing.namedRegions()` (the
+  entries carrying a `name`), folded into `getKeywords` (the `Detailed` pattern), and a
+  `via.region` facet in `scope-walk.candidateFor` (the `via.bulk` pattern, declaration-merged
+  in `Placing.ts`). `put cup in inner pocket` binds the coat with `via.region`, and
+  `putPlanFor(…, {region})` takes it. A bare `pocket` binds the first pocket of the nearest
+  garment (the nearest-perceived rule) — it does not ask.
+- **D26-e — several regions sharing a word refuse by NAME.** `PlacementChoice` /
+  `PlaceRefusal` carry `regions` when the matched offers share their primary word;
+  `PutController` asks *"Which — the left pocket or the right pocket of the coat?"*.
+- **D26-f — homes can be pockets.** `setHome(item, host, region?)`, `homeRegionOf`, the
+  `HomesSlice` row gains `region`; `stow` puts a thing back in its pocket; `bringToHand`
+  remembers a pocket (or a clip) as where the thing came from.
+- **D26-g — a body presses only its pockets.** `Container.reconcilePressing` on an agent
+  considers pocketed things only — a pocket has walls and a bottom, and a top when its entry
+  `closes`; what leaves goes to the PLACE (never loose on the body). `pressAfterArrival` asks
+  a body when the arrival is placed. A hung thing is fastened, as before.
+- **D26-h — the restore re-places after re-wearing.** `PersistableLogic.restoreState`'s
+  placement pass moved after the slotted pass (a worn belt's length is its wearer's waist,
+  so pouches re-hang on the belt as worn), and ensures the region's MEMBER path (a pair names
+  `left pocket`, not a path). ⚠ W7: a placed thing whose host is an owner-persisted
+  (estate) good has no `hostIndex` in the container slice and comes back unplaced — D32's
+  restore hook must cover it before the veto.
+- **D27-b — `Pack` composes `Placing` too** (default `[]`): the backpack row's straps are
+  `placements: [from]`, so a canteen clipped to a strap is ready while the inside is packed.
+- **D27-c — the worn length.** `Garment.hangingLengthM()` worn on a `Creature` = π × the
+  bare envelope's width × (`SIZE_DEFAULTS.WAIST_FRACTION` 0.9 when a claimed slot is
+  `waist`); off the body, its own longest side. A 27 kg / 1.0 m gnome's belt is ≈ 0.52 m, a
+  250 kg / 2.6 m ogre's ≈ 0.98 m (unit-tested as "fewer pouches").
+- **D27-d — `shapedTo` is a `fitRefusal` answer**, first and size-blind: `'not-shaped-for'`
+  joins `FitRefusal` (`dims` is `null` for it), so the default veto, `putPlanFor`'s
+  `wont-fit` and the receive walk all see it; a template path admits that row and every row
+  under it, else a mixin name. Draw-fast: `holderSeconds` and `holderSecondsInto` read a
+  shaped container as the draw; a pocket is a reach (+ the unfastening when it `closes`), a
+  `from` clip the draw.
+- **D11-d — the receive walk is `Carrying.carryPlaces()`**: worn pockets (regions whose member
+  encloses), then containers hung from (or pocketed on) a worn host, then worn containers off
+  the back, then the back. `canReceive` reads it; `receive` still lands loose (W7 swaps it).
+  `isHonest` is the D11 walk.
+- **D28-b — the inventory's shape.** Self (a carrier): *In hand* · *Ready* (each region of a
+  worn host — *In your coat's left pocket*, *Hanging from your belt* —, each ready
+  container with its perceived contents, and *Loose* until the flip) · *Worn* (slot
+  occupants that are not containers) · *Packed* (each back container as *N things, M kg*;
+  `--all` or `--packed` opens them) · the burden line in words off `getLoadRatio` (light ·
+  a fair load · well laden · heavily burdened · more than you can bear; nothing under 5%).
+  `--flat` walks every perceived thing; `--weight` adds `kg, L` per thing. A `Placing` host
+  that is not a container (`i belt`, `i coat`) lists each region, a named one even empty,
+  and *Room left:* in `roomFor`'s words for a hanging member. A non-carrier self and
+  `look in`/`query --ledger` keep the shipped ledger. The card: a garment is a `Placing`
+  host, so its `placed` field groups pocketed things per named region (headed by the name);
+  the `contents` read was already perceived (W3) — no wire change.
+- **D33-b — the host-follow is `moveCore` recursing on itself**, not `ContainmentApi.move`
+  (which would clear the pair): followers are the things in the host's OLD environment whose
+  pair names it; the whole bring-along (`bringAlong`, one cycle guard) is asked of the
+  destination's `canAddContainable` first, each follower on its own (not cumulatively — a
+  key in a pocket takes no room of the chest beyond the coat's); a creature placed on a
+  host steps off (pair cleared, stays); a host moved to `null` drops what was on it where
+  it stood. So there is no `ContainmentApi.move` site to allowlist in `lint:body-moves` —
+  ⚠ W7's `_receiving` flag must admit the followers (a coat handed to a body brings its key).
+- **W5-gate — `lint:controller-decisions`.** The tiered inventory's arithmetic went onto the
+  model (`LoadBearing.burdenWords`, `Tangible.massAndBulkWords`, `Carrying.tallyWords`), and
+  its emptiness tests read `length !== 0` (an emptiness test is not a threshold; the census
+  counts `> 0` as one) — 614 held, no rise.
+- **W5-port — the 40 pack rows** take the W4 idiom; `PrescribeController` calls
+  `giver.receive` directly after a thrown guard (its view `requiresEmbodied`, and an `if`
+  arm calling a second mutator on `giver` read as a multi-act). `lint:body-moves` **40 → 0**
+  counted; the ceiling is 0, the roster is allowlist + not-body rows only.
+
 ## ⭐⭐ Host placement
 
 | what | host | what composing it claims — and why every host means it |
@@ -1569,6 +1647,8 @@ Stage A is kernel (W0–W5), Stage B content and the flip (W6–W7). Each wave l
   container; a person; `i belt`'s room line), `Container.shapedTo.test.ts` (a holster
   row refuses a cup; draw fast).
 - Commit: `build(size-and-carrying W5): pockets as regions of the garment, worn containers as rows, the tiered inventory; the pack callers receive`.
+
+**✅ Done (2203bd637).** `Garment` and `Pack` compose `Placing` (class default `[]` through `PlacingMixin.defaultPlacements`); a worn garment's hanging length is its wearer (π × girth, × 0.9 at the waist); the `pocket` document (`into`/`in`); named regions are words their host answers to (`via.region`), so `put key in inner pocket` takes and `put cup in coat` asks by name; `Container.shapedTo` + `'not-shaped-for'`, a shaped holder is the draw; `PortableLight` wears; biped `back`/`waist`; the backpack on `[back]` with `from` straps; `Carrying.carryPlaces`/`isHonest`/pocket homes/`tallyWords`; a body presses its pockets (`closes` keeps the cork); D33's host-follow in `moveCore`; the tiered `inventory` with its seven options and `i belt`'s room line; the restore re-places after re-wearing. All 40 pack rows ported — `lint:body-moves` **40 → 0** counted (ceiling 0; roster is allow + not-body only). Decisions D26-b…W5-port above. Verified: server typecheck; `test:near` (1144 files / 11028 tests green except `check-controller-decisions`' ceiling, then fixed and re-run with the touched suites: 84 files / 738 tests); the 22 touched packs' typecheck + vitest and generic-objects' vitest green; the lint gates listed in the brief plus anatomy, multi-act, controller-decisions green individually. Full suite not run (code-complete runs it). ⚠ W6: pocket rows must use `member: /platform/placements/pocket` with a `name`; a pouch/holster row is a `Pack` (flexible — its hanging width is its packed matter, so give it a material; a `shapedTo` path admits that row and its subtree); the belt row claims `[waist]` with `placements: [from]`. ⚠ W7: `receive` → `carryPlaces`' first fit (one line); the flip's `_receiving` flag must admit D33's followers (moved by `moveCore` itself, not `ContainmentApi.move`); an estate-owned host's placed things lose their pair on restore (D26-h).
 
 ### W6 — gear rows, tack, kinds, places, the starter kit (Stage B content; D27, D29)
 
