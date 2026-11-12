@@ -26,7 +26,7 @@ describe('Carrying — hands (D9/D10)', () => {
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => StuffApi.clearAll());
 
-  it('the hands are the slots whose part serves manipulation; a horse has none', () => {
+  it('the hands are the slots whose part serves manipulation — a ring slot at the hand is worn, not a hand; a horse has none', () => {
     const { me } = makeBody();
     expect(me.handSlots().sort()).toEqual(['hand:left', 'hand:right']);
     expect(me.freeHands()).toBe(2);

@@ -61,6 +61,11 @@ export function makeBody(spec: BodySpec = {}): { me: Body; plan: string } {
     { name: 'sidearm', accepts: 'WieldableMixin', capacity: 1 },
     ...(hands
       ? [
+          // ⭐ The ring slots attach at the hand too, as the shipped biped's
+          // do — and a ring is worn there, not held (the drive's mug on a
+          // finger: four "hands").
+          { name: 'finger:left', accepts: 'WearableMixin', bodyPart: 'body.hand.left' },
+          { name: 'finger:right', accepts: 'WearableMixin', bodyPart: 'body.hand.right' },
           { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.hand.left' },
           { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.hand.right' },
         ]

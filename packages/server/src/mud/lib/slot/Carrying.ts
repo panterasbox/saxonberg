@@ -59,7 +59,7 @@
  * until the flip graduates `docs/subsystems/carrying.md`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import { Mixins, type MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Containable } from '../spatial/Containable';
 import type { Container } from '../spatial/Container';
@@ -438,9 +438,15 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       if (!MixinApi.isAttired(self)) return [];
       const sites = new Set(self.handSites());
       if (sites.size === 0) return [];
+      // ⭐ A slot AT a hand is not always a hand (size and carrying drive,
+      // step 1): the biped's ring slots attach at the hand too, and a mug
+      // went onto a finger — four "hands". What is worn at a hand (a ring,
+      // a glove) accepts a wearable; what a hand HOLDS is the slot that
+      // does not.
       return self.getSlotNames().filter((name) => {
-        const part = self.getSlotSpec(name)?.bodyPart;
-        return part !== undefined && sites.has(part);
+        const spec = self.getSlotSpec(name);
+        const part = spec?.bodyPart;
+        return part !== undefined && sites.has(part) && spec?.accepts !== Mixins.Wearable;
       });
     }
 
