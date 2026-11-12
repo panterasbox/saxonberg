@@ -59,9 +59,28 @@ export default class GetController extends CommandController<GetModel> {
       context.note({ kind: 'empty-result', field: 'source', query: model.source.raw });
       return;
     }
-    const stuff = source
+    let stuff = source
       ? model.targets.stuff.filter((s) => GetController.heldBy(s, source))
       : model.targets.stuff;
+    // ⭐ From ANOTHER body (size and carrying D24a, the drive's step 15):
+    // the room's pool never reaches into a person, so what you name on
+    // them is looked for among what you perceive on them — what they hold
+    // and show, and what you FOUND there by searching. A body that can
+    // resist (conscious) will not be robbed; one that cannot is.
+    if (source && source.isAgent() && source.stuffId !== giver.stuffId && stuff.length === 0) {
+      const word = raw.toLowerCase();
+      const shown = PerceptionApi.visibleContentsOf(giver, source);
+      stuff = [...shown.held, ...shown.worn, ...shown.carried].filter((t) =>
+        t.perceivedKeywordsFor(giver).some((k) => k.toLowerCase() === word),
+      );
+      const resists = MixinApi.isVitals(source) ? source.searchRefusal(giver) : null;
+      if (resists !== null && stuff.length > 0) {
+        MessageApi.scene(giver).topic('sense.survey').toSelf(Mml.compose`${Mml.actor(source)} won't let you.`).send();
+        context.note({ kind: 'controller-rejected', reason: resists.reason, detail: source.getPresentation() });
+        return;
+      }
+      if (stuff.length > 0 && MixinApi.isCarrying(giver)) return this.takeFromBody(giver, source, stuff, context);
+    }
     if (source && stuff.length === 0) {
       MessageApi.scene(giver)
         .topic('sense.survey')
@@ -206,6 +225,25 @@ export default class GetController extends CommandController<GetModel> {
       return;
     }
     return;
+  }
+
+  /** `get X from <a body that cannot stop you>`: each is received, or the carrier says why not. */
+  private takeFromBody(giver: Stuff & Carrying, body: Stuff, things: readonly Stuff[], context: CommandContext): void {
+    for (const thing of things) {
+      if (!MixinApi.isContainable(thing)) continue;
+      const refused = giver.canReceive(thing);
+      if (refused !== null) {
+        MessageApi.scene(giver).topic('act.deed').toSelf(Mml.text(giver.refusalWords(refused))).send();
+        context.note({ kind: 'controller-rejected', reason: refused.reason, detail: thing.getPresentation() });
+        return;
+      }
+      giver.receive(thing);
+      MessageApi.scene(giver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`You take ${Mml.thing(thing)} from ${Mml.actor(body)}.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} takes something from ${Mml.actor(body)}.`)
+        .send();
+    }
   }
 
   /** `get X from <a thing on you>`: each comes to hand, or the body says why not. */

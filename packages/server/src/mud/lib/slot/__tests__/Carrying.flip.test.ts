@@ -88,6 +88,15 @@ describe('the flip — nothing loose on a body', () => {
     expect(words).toMatch(/`drop lantern`/);
   });
 
+  it('⭐ a pocket is as deep as its volume over its mouth: a pencil stands out of it, a sword does not go in', async () => {
+    const { room, me, trousers } = await newcomer();
+    const pencil = good('pencil', 0.01, [0.008, 0.008, 0.18]);
+    const sword = good('sword', 1, [0.05, 0.01, 0.9]);
+    for (const x of [pencil, sword]) ContainmentApi.move(x, room);
+    expect(trousers.canPlace(pencil, 'left pocket').ok).toBe(true);
+    expect(trousers.canPlace(sword, 'left pocket')).toEqual({ ok: false, reason: 'too-big-inside' });
+  });
+
   it('⭐ the veto: a direct move onto a body is refused loose-on-body; placed or received it comes on', async () => {
     const { room, me, trousers } = await newcomer();
     const coin = good('coin', 0.01, [0.02, 0.02, 0.002]);

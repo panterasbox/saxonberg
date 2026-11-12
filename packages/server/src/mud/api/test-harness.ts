@@ -215,6 +215,12 @@ export class TestHarnessApi {
     );
   }
 
+  /** ⭐ Take a thing out of the world by id, wherever it is (a wizard's reach into a shut pack). */
+  @TestOnly('In a test world, remove a thing with `testharness remove #<id>`.')
+  public static removeThing(stuffId: string): Promise<{ removed: string }> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'removeThing', () => logic().removeThing(stuffId));
+  }
+
   /** The pin on the Locality covering `scope`, if any. */
   @TestOnly('In a test world, read the pin with `testharness weather`.')
   public static weatherPinAt(scope: string): Promise<WeatherPinReport> {

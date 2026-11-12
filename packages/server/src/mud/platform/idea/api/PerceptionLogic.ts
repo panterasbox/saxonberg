@@ -1175,7 +1175,15 @@ function holdersAdmit(viewer: Stuff, target: Stuff): boolean {
       const placement = cur.getPlacement();
       if (placement !== null && (placement.host as unknown as Stuff).stuffId === scope.stuffId) {
         const entry = placement.host.getPlacementEntry(placement.name);
-        if (entry?.covered === true || entry?.closes === true) return false;
+        if (entry?.covered === true || entry?.closes === true) {
+          // ⭐ …unless this viewer FOUND it there by searching the body that
+          // wears the pocket, and that body still holds it (D24a). The
+          // pocket is the thing's scope, not the body, so the body's own
+          // rule never asked (the drive, step 15: a search turned up the
+          // letter, and nothing showed it).
+          const wearer = MixinApi.isContainable(scope) ? scope.getContainer() : null;
+          if (!(wearer !== null && isAnotherBody(viewer, wearer) && foundOnBy(viewer, cur, wearer))) return false;
+        }
       }
       if (MixinApi.isSealable(scope) && !scope.isOpen() && !seeThrough(scope)) return false;
     }

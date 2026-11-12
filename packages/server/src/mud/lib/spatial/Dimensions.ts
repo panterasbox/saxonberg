@@ -32,6 +32,13 @@ export const SIZE_DEFAULTS = {
   COIL_PACKING: 1.3,
   /** A rigid container's interior, per side, of its outside (the walls). */
   INTERIOR_FRACTION: 0.9,
+  /**
+   * ⭐ How far past its own depth a thing may stand out of a pocket (a
+   * pencil, a folded glove): the depth is the pocket's volume over its
+   * mouth. Past it, the pocket refuses (the drive: a sword "put away" in a
+   * trouser pocket).
+   */
+  POCKET_STICK_OUT: 1.5,
   /** A hanging host bears its breaking load over this factor. */
   HANG_SAFETY: 4,
   /** A worn belt's length, of the trunk's circumference — the waist is a little narrower (D27). */

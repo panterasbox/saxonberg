@@ -523,6 +523,13 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
         const box = (MixinApi.isTangible(item) ? item.getFitBox() : null);
         if (entry === null || box === null) return null;
         if (entry.mouth && !box.fitsThrough(entry.mouth)) return 'too-big-for-mouth';
+        // ⭐ …and no longer than the pocket is deep, give or take what stands
+        // out of its mouth (a sword would pass a trouser pocket's mouth
+        // end-on and its volume, and was put away there — the drive).
+        if (entry.mouth && typeof entry.volumeM3 === 'number' && entry.volumeM3 > 0) {
+          const depth = entry.volumeM3 / (entry.mouth.width * entry.mouth.height);
+          if (box.longest() > depth * SIZE_DEFAULTS.POCKET_STICK_OUT + 1e-9) return 'too-big-inside';
+        }
         if (typeof entry.volumeM3 === 'number' && entry.volumeM3 > 0) {
           let used = 0;
           for (const c of this.getPlaced(name)) {

@@ -1203,10 +1203,15 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
         const plan = SpeciesApi.tryGetBodyPlanPath(self);
         if (plan !== null) claim = item.getSlotClaim(plan).filter((s) => hands.includes(s));
       }
-      if (claim.length >= n) return claim.slice(0, n);
-      // Free hands first, then the occupied ones (their holders go home).
-      const order = [...this.openHands(), ...hands.filter((h) => self.isSlotOccupied(h))];
-      const picked = [...new Set([...claim, ...order])].slice(0, n);
+      // ⭐ The claim names where `wield` puts a thing when the hand is free;
+      // a FREE hand beats an occupied claimed one (D9-b — the drive, step
+      // 7: with the right hand on a shield and the left empty, `fight draw`
+      // tried to put the shield away to draw into the right).
+      const open = this.openHands();
+      if (claim.length >= n && claim.slice(0, n).every((h) => open.includes(h))) return claim.slice(0, n);
+      // Free hands first (claimed ones before the rest), then the occupied ones (their holders go home).
+      const order = [...claim.filter((h) => open.includes(h)), ...open, ...claim, ...hands.filter((h) => self.isSlotOccupied(h))];
+      const picked = [...new Set(order)].slice(0, n);
       return picked.length >= n ? picked : null;
     }
 
@@ -1454,9 +1459,10 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       if (placed !== null && placed.host.stuffId !== self.stuffId) {
         // A named region is the place (*your coat's breast pocket*).
         const named = MixinApi.isPlacing(placed.host) && placed.host.namedRegions().includes(placed.name);
+        const host = placed.host.presentationPhrase().bare();
         return named
-          ? `your ${placed.host.presentationPhrase().bare()}'s ${placed.name}`
-          : `your ${placed.host.presentationPhrase().bare()}`;
+          ? `your ${host}${host.endsWith('s') ? "'" : "'s"} ${placed.name}`
+          : `your ${host}`;
       }
       const at = MixinApi.isContainable(item) ? item.getContainer() : null;
       if (at !== null && at.stuffId !== self.stuffId) return `your ${at.presentationPhrase().bare()}`;

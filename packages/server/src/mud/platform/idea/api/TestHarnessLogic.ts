@@ -376,6 +376,22 @@ export class TestHarnessLogic extends ApiLogic {
     return { scope, loose: [...templates] };
   }
 
+  /**
+   * See {@link TestHarnessApi.removeThing}: a thing taken out of the world
+   * by id wherever it is — a wizard reaching into a character's shut pack
+   * (size and carrying drive, step 14). The thing is destructed.
+   */
+  @CallSecurity(TestHarnessApiCallers)
+  public async removeThing(stuffId: string): Promise<{ removed: string }> {
+    const id = stuffId.replace(/^#/, '');
+    const thing = StuffApi.findById(id);
+    if (!thing || thing.isDestroyed()) throw new Error(`testharness remove: nothing has the id '${id}'`);
+    if (thing.isAgent()) throw new Error('testharness remove: a body is not a thing to remove');
+    const name = thing.getPresentation();
+    await StuffApi.destruct(thing);
+    return { removed: name };
+  }
+
   /** A resident character by name — what the staging verbs act on. */
   private residentCharacter(handle: string, verb: string): Stuff {
     const avatar = PlayerApi.findAvatarByName(handle);
