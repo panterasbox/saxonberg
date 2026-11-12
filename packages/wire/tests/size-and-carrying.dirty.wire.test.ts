@@ -879,6 +879,10 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     const before = await inv(keep, '--flat');
     const pre = await person('scpreflip', YARD);
     preFlip = pre.handle;
+    // The steading mule step 18 tacked: what it wears is its own record.
+    const tackBefore = (await say(keep, 'i mule')).w;
+    record.push(`mule before restart: ${tackBefore}`);
+    expect(tackBefore, 'the mule wears its tack').toMatch(/saddle/i);
     const keepHandle = keep.handle;
     for (const s of open.splice(0)) s.close();
     await new Promise((r) => setTimeout(r, 3_000));
@@ -895,17 +899,24 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expect(await inv(back)).not.toMatch(/Loose:/);
     const p = await Session.open(preFlip, {});
     open.push(p);
-    const told = squash(await p.listen(4_000));
+    const told = squash(`${p.arrival()} ${await p.listen(4_000)}`);
     const placed = await inv(p);
     record.push(`pre-flip: told "${told}" · ${placed}`);
     expect(placed).not.toMatch(/Loose:/);
     expect(placed).toMatch(/In hand:/);
     expect(placed).toMatch(/pocket: a key/i);
     // What fits nowhere (the lantern: both hands are full, no pocket takes
-    // it) is not on the body — it waits at home or at the feet. ⚠ Its line
-    // ("would not fit anywhere on you; it is …") is spoken during the
-    // restore, before the session attaches, and is lost (drive record).
+    // it) is not on the body — it waits at home or at the feet, and the
+    // player hears where (said at `enter`, with the session attached).
     expect(await inv(p, '--flat')).not.toMatch(/lantern/i);
+    expect(told, 'the player is told where the lantern went').toMatch(
+      key('21', /lantern would not fit anywhere on you; it is (in your room|at your feet)/i),
+    );
+    // The cast mule comes back wearing what it wore (its own record).
+    const tackAfter = (await say(back, 'i mule')).w;
+    record.push(`mule after restart: ${tackAfter}`);
+    expect(tackAfter, 'the mule keeps its tack across the restart').toMatch(/saddle/i);
+    expect(tackAfter).toMatch(/pannier/i);
   }, 900_000);
 
 });

@@ -900,13 +900,19 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
     public async receiveGranted(item: Stuff & Containable, opts: ReceiveOptions = {}): Promise<'carried' | 'home' | 'here'> {
       if (this.receive(item, opts) === null) return 'carried';
       const self = this as unknown as Stuff & Containable;
+      // ⭐ Named as its owner knows it, never "something" (the drive, step
+      // 21: a restored player arriving in the dark heard "something would
+      // not fit anywhere on you"). The line is said once the thing is OFF
+      // the body, so the sight gate would obscure it; `bare` consults no
+      // perception gate (presentation.md) — it is yours, you know what it is.
+      const yours = `Your ${item.presentationPhrase().bare()}`;
       const home = await this.residenceRoom();
       if (home !== null) {
         ContainmentApi.move(item, home);
         if (MixinApi.isSensor(self)) {
           MessageApi.scene(self)
             .topic('act.deed')
-            .toSelf(Mml.compose`${Mml.thing(item)} would not fit anywhere on you; it is in your room.`)
+            .toSelf(Mml.compose`${yours} would not fit anywhere on you; it is in your room.`)
             .send();
         }
         return 'home';
@@ -916,7 +922,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Stuff & Slotted>>(B
       if (MixinApi.isSensor(self) && MixinApi.isHasInteractive(self)) {
         MessageApi.scene(self)
           .topic('act.deed')
-          .toSelf(Mml.compose`${Mml.thing(item)} would not fit anywhere on you; it is at your feet.`)
+          .toSelf(Mml.compose`${yours} would not fit anywhere on you; it is at your feet.`)
           .send();
       } else {
         const { DiagnosticApi } = await import('../../api/diagnostics');

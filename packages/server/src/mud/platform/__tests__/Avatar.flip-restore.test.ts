@@ -20,6 +20,7 @@ import { PersistenceManager } from '../../../backend/PersistenceManager';
 import Garment from '../thing/equipment/Garment';
 import Good from '../thing/Good';
 import { ContainmentApi } from '../../api/containment';
+import { MessageApi } from '../../api/message';
 import Location from '../../lib/location/Location';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import {
@@ -222,6 +223,31 @@ describe('the flip across a restart (drive 21)', () => {
     expect(placeLoose).not.toHaveBeenCalled();
     const k2 = (reborn.getContents() as Stuff[]).find((x) => x.getTemplatePath() === KEY);
     expect(k2 && reborn.isHonest(k2)).toBe(false);
+  });
+
+  /**
+   * ⭐ The drive's step 21, run 12: a restored player arriving in the DARK
+   * heard "something would not fit anywhere on you" — the line is said once
+   * the thing is off the body, so the sight gate obscured the player's own
+   * lantern. It is named as its owner knows it, with no perception gate.
+   */
+  it('⭐ what fits nowhere is named as yours, never "something"', async () => {
+    const room = makeStuff(() => new Location());
+    const avatar = makeAvatar('flip-dee');
+    ContainmentApi.move(avatar, room);
+    vi.spyOn(avatar, 'receive').mockReturnValue({ kind: 'nowhere' } as never);
+    const told: string[] = [];
+    vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
+      const b: Record<string, unknown> = {};
+      b.topic = () => b;
+      b.toSelf = (m: { toString(): string }) => { told.push(m.toString()); return b; };
+      b.send = () => {};
+      return b as never;
+    });
+    const cup = good(CUP, 'tin cup');
+    expect(await avatar.receiveGranted(cup)).toBe('here');
+    expect(cup.getContainer()).toBe(room);
+    expect(told.join(' ')).toMatch(/Your tin cup would not fit anywhere on you; it is at your feet\./);
   });
 });
 
