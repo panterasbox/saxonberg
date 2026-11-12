@@ -39,11 +39,12 @@ async function sayAwaiting(page: Page, cmd: string, reply: RegExp, timeout = 60_
   return said;
 }
 
-async function hand(handle: string, template: string, data?: Record<string, unknown>): Promise<void> {
+async function hand(handle: string, template: string, data?: Record<string, unknown>): Promise<string> {
   const ctx = await request.newContext({ baseURL: SERVER_URL });
   try {
     const res = await ctx.post('/auth/test-hand', { data: data ? { handle, template, data } : { handle, template } });
     expect(res.ok(), `hand ${template}: ${await res.text()}`).toBe(true);
+    return ((await res.json()) as { id: string }).id;
   } finally {
     await ctx.dispose();
   }
@@ -54,7 +55,7 @@ async function toDaylight(page: Page): Promise<void> {
   for (let i = 0; i < 12; i++) {
     const said = await sayAwaiting(page, 'look here', /\S/);
     if (!/pitch dark|something/i.test(said)) return;
-    await sayAwaiting(page, 'testharness clock advance 2h', /\S/);
+    await sayAwaiting(page, 'testharness clock-advance 2h', /clock moved/i);
   }
 }
 
@@ -94,11 +95,12 @@ test('a person reaches every roster this build stopped booting', async ({ browse
   const ward = await openWorldAs(browser, 'lou-ward', { startLocation: WARD });
   try {
     for (let i = 0; i < 4; i++) {
-      await hand(ward.handle, '/trade/distilling/thing/whiskey');
-      await sayAwaiting(ward.page, 'open me:i:whiskey', /\S/);
-      await sayAwaiting(ward.page, 'drink me:i:whiskey', /\S/);
+      // By id: `me:i:whiskey` would bind the first (emptied) bottle again.
+      const bottle = await hand(ward.handle, '/trade/distilling/thing/whiskey');
+      await sayAwaiting(ward.page, `open #${bottle}`, /You open/);
+      await sayAwaiting(ward.page, `drink #${bottle}`, /You drink/);
     }
-    await sayAwaiting(ward.page, 'testharness clock advance 1h', /\S/);
+    await sayAwaiting(ward.page, 'testharness clock-advance 1h', /clock moved/i);
     await sayAwaiting(ward.page, 'assess', /You have intoxicated/);
   } finally {
     await ward.close();
@@ -106,20 +108,24 @@ test('a person reaches every roster this build stopped booting', async ({ browse
 
   const tailor = await openWorldAs(browser, 'lou-tailor', { startLocation: TAILOR });
   try {
-    await hand(tailor.handle, '/trade/tailoring/thing/shirt');
-    await sayAwaiting(tailor.page, 'look me:i:shirt', /linen|wool|cotton|silk|fustian|cloth/i);
+    // By id: a new body already wears a student shirt.
+    const shirt = await hand(tailor.handle, '/trade/tailoring/thing/shirt');
+    await sayAwaiting(tailor.page, `look #${shirt}`, /linen|wool|cotton|silk|fustian|cloth/i);
   } finally {
     await tailor.close();
   }
 
   const dyer = await openWorldAs(browser, 'lou-dyer', { startLocation: DYEHOUSE });
   try {
-    await hand(dyer.handle, '/trade/dyeing/thing/household-vat', {
+    const pot = await hand(dyer.handle, '/trade/dyeing/thing/household-vat', {
       interiorMaterial: '/trade/farming/idea/material/madder',
       interiorAmount: 10,
     });
-    await hand(dyer.handle, '/trade/textiles/thing/bolt');
-    await sayAwaiting(dyer.page, 'dye bolt in pot', /comes up a red that will not hold/, 180_000);
+    const bolt = await hand(dyer.handle, '/trade/textiles/thing/bolt');
+    await sayAwaiting(dyer.page, `dye #${bolt} in #${pot}`, /You work a bolt of linen down into/);
+    await sayAwaiting(dyer.page, 'testharness clock-advance 1h', /clock moved/i);
+    // The take is madder's unmordanted row: dyed, and already washing out.
+    await sayAwaiting(dyer.page, `look #${bolt}`, /Dyed \w+.*washing out/s, 180_000);
   } finally {
     await dyer.close();
   }

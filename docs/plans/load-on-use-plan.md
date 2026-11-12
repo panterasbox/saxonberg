@@ -1297,3 +1297,11 @@ a wrong expected sentence); the build needed no code change. The first boot
 of all failed on a **stale DB** (a `turn` command view kept on a pack
 conflict) — dropped, and the drive ran on a fresh world as the requirements
 ask.
+
+**The walk** (`e2e/tests/load-on-use-walk.spec.ts`, server 2019 with
+`CLIENT_URL=http://localhost:5179`, vite 5179): **1 passed** (39.8 s) — the
+lobby and its floor, a government in each locality, brine tasted, the
+square's weather, a strong drink read by `assess`, a garment's fabric, a dye
+taking. It needed the drive's own fixes (by `#id`; the rows' sentences) and
+`testharness clock-advance` (one word — the walk first copied the retired
+two-word form, which answered nothing it asserted).
