@@ -280,7 +280,8 @@ export class ChattelLogic extends ApiLogic {
    * 1. **what it was made FROM**: the owner of its inputs, when the titled
    *    ones agree (the log's owner owns the boards, the customer's sample
    *    makes the customer's paper) — whoever is acting, whenever it lands;
-   * 2. **the hands it lands in**: a person's;
+   * 2. **the hands it lands in**: a person's — a body that keeps an
+   *    estate, or an organization (never a beast's or a cast role's);
    * 3. **the acting person**, inside a live command, where they stand (a
    *    room's `props:` laid down while somebody walks in are not theirs);
    *    or, with no command running, **the person whose act this is the
@@ -307,7 +308,17 @@ export class ChattelLogic extends ApiLogic {
       if (made) return made;
       if (item.isMadeByProcess()) return null;
     }
-    if (to !== null && to.isAgent()) return ownerKeyOf(to);
+    // ⭐ The hands it lands in — a PERSON's: a body whose own record carries
+    // its goods (an estate), or an organization. A beast or a cast role
+    // keeps no estate, so a good titled to it was skipped by its own capture
+    // as somebody else's and carried by nobody (size and carrying, run 12:
+    // the steading mule's restore re-minted its tack into it, titled it to
+    // the mule, and the next restart lost the saddle). Such a good stays
+    // untitled and rides the body's own record, or falls to the acting
+    // person below.
+    if (to !== null && to.isAgent() && (MixinApi.isEstate(to) || MixinApi.isOrganization(to))) {
+      return ownerKeyOf(to);
+    }
     if (ExecutionContextApi.getCommandStack().length > 0) {
       const actor = ExecutionContextApi.getActingAuthor() as Stuff | null;
       if (actor && to !== null && isWhere(actor, to)) return ownerKeyOf(actor);
