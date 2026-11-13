@@ -127,30 +127,17 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     expect(carryWords(me, r!)).toMatch(/shield/);
   });
 
-  it('in a fight it is a switch priced by the holders: a sheath is fast, a shut pouch slow', () => {
+  it('in a fight, `ready` starts the switch (combat prices it — CombatLogic.switch-pricing)', () => {
     const { me, plan } = makeBody();
     const dagger = tool('dagger', 0.4);
     dagger.setSlotClaims({ [plan]: ['sidearm'] });
     me.seatInSlot(dagger, 'sidearm');
-    // Hands empty: only the draw half. A sheath slot is the draw dial.
-    expect(me.readySeconds(dagger)).toBeCloseTo(1.5);
-    const pouch = wornBag(me, plan, 'pouch', 'torso');
-    const bandage = tool('bandage', 0.1);
-    ContainmentApi.move(bandage, pouch);
-    pouch.setOpen(false);
-    // A flapped pouch: a reach and the undoing.
-    expect(me.readySeconds(bandage)).toBeCloseTo(6);
-    // Something in the hand with no home goes loose (a reach) first.
-    hold(me, plan, tool('torch', 0.5), 'hand:right');
-    hold(me, plan, tool('club', 1), 'hand:left');
-    expect(me.readySeconds(dagger)).toBeCloseTo(3 + 1.5);
-
     // In a session, `ready` starts the switch with those seconds, and
     // the dagger is not in hand until it completes.
     vi.spyOn(CombatApi, 'sessionFor').mockReturnValue({} as CombatSession);
     const begin = vi.spyOn(me, 'beginWeaponSwitch').mockReturnValue({ ok: true });
     expect(me.ready(dagger)?.ok ?? true).toBe(true);
-    expect(begin).toHaveBeenCalledWith(dagger, { seconds: 4.5 });
+    expect(begin).toHaveBeenCalledWith(dagger);
     expect(me.tierOf(dagger)).toBe('ready');
   });
 });

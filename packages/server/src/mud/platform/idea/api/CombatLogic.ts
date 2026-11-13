@@ -1,7 +1,7 @@
 // CombatLogic — the hot-reloadable logic singleton behind CombatApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import type { ReadyRefusal } from '../../../lib/slot/Carrying';
+import type { Carrying, ReadyRefusal } from '../../../lib/slot/Carrying';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { ApiLogic } from "../../../lib/stuff/ApiLogic";
@@ -447,9 +447,8 @@ export class CombatLogic extends ApiLogic {
   public beginSwitch(
     actor: Stuff,
     target: Stuff,
-    seconds?: number,
   ): { ok: boolean; reason?: string } {
-    return beginSwitchImpl(actor, target, false, seconds);
+    return beginSwitchImpl(actor, target, false);
   }
 
   @CallSecurity(CombatantCallers)
@@ -4382,7 +4381,6 @@ function beginSwitchImpl(
   actor: Stuff,
   target: Stuff,
   fast: boolean,
-  priced?: number,
 ): { ok: boolean; reason?: string } {
   const session = sessionForImpl(actor);
   const state = session?.getState(actor);
@@ -4391,13 +4389,61 @@ function beginSwitchImpl(
   if (state.weaponSwitch && !state.weaponSwitch.isReady()) {
     return { ok: false, reason: "already-switching" };
   }
-  // ⭐ A readying prices itself by its holders (size and carrying D16);
-  // the two dials are the shipped switch's own prices.
-  const seconds = priced ?? (fast
-    ? dial(AppSettingKeys.combatDrawSeconds, 1.5)
-    : dial(AppSettingKeys.combatSwitchSeconds, 6));
+  // ⭐ A carrier's switch is priced by its holders (size and carrying D16;
+  // W8 — combat prices its own switch); a body with no hands pays the
+  // shipped switch's two dials.
+  const seconds = MixinApi.isCarrying(actor) && actor.handSlots().length > 0
+    ? switchSecondsFor(actor, target)
+    : fast
+      ? dial(AppSettingKeys.combatDrawSeconds, 1.5)
+      : dial(AppSettingKeys.combatSwitchSeconds, 6);
   state.weaponSwitch = new WeaponSwitch(target, beatsForSeconds(seconds), fast);
   return { ok: true };
+}
+
+/**
+ * ⭐ The game-seconds a carrier's switch to `item` costs (size and carrying
+ * D16): each held thing in the way going home (a reach, or a draw into a
+ * shaped holder; plus the undoing of a fastened one), then `item` coming
+ * out of where it is (a clip, a sheath slot or a shaped holder is the draw;
+ * a pocket or a pouch a reach, plus the unfastening). The dials are
+ * `combat.*`.
+ */
+function switchSecondsFor(actor: Stuff & Carrying, item: Stuff): number {
+  const draw = dial(AppSettingKeys.combatDrawSeconds, 1.5);
+  const reach = dial(AppSettingKeys.combatReachSeconds, 3);
+  const unfasten = dial(AppSettingKeys.combatUnfastenSeconds, 3);
+  if (actor.tierOf(item) === 'hand') return 0;
+  const into = (home: Stuff): number => {
+    if (MixinApi.isContainer(home) && home.getShapedTo() !== null) return draw;
+    return reach + (MixinApi.isSealable(home) && !home.isOpen() ? unfasten : 0);
+  };
+  let away = 0;
+  for (const held of actor.handsToFree(item)) {
+    const home = actor.homeOf(held);
+    away += home === null ? reach : into(home.host);
+  }
+  return away + outOf(actor, item, { draw, reach, unfasten });
+}
+
+/** One half of a switch: `item` coming out of where it sits on `actor`, in seconds. */
+function outOf(actor: Stuff, item: Stuff, d: { draw: number; reach: number; unfasten: number }): number {
+  const placed = MixinApi.isContainable(item) ? item.getPlacement() : null;
+  if (placed !== null && placed.host.stuffId !== actor.stuffId) {
+    // A clip, a hook: the draw. A pocket: a reach — a fastened one undone first.
+    if (!MixinApi.isPlacing(placed.host)) return d.draw;
+    if (!placed.host.placementOf(placed.name).getEncloses()) return d.draw;
+    return d.reach + (placed.host.getPlacementEntry(placed.name)?.closes === true ? d.unfasten : 0);
+  }
+  const at = MixinApi.isContainable(item) ? item.getContainer() : null;
+  if (at === null || at.stuffId === actor.stuffId) {
+    // On the body: a sheath slot is a shaped holder; loose is a reach.
+    if (MixinApi.isAttired(actor) && actor.wears(item)) return d.draw;
+    return d.reach;
+  }
+  // ⭐ A container shaped to the thing (a holster, a scabbard) is the draw (D27).
+  if (MixinApi.isContainer(at) && at.getShapedTo() !== null) return d.draw;
+  return d.reach + (MixinApi.isSealable(at) && !at.isOpen() ? d.unfasten : 0);
 }
 
 function drawSidearmImpl(actor: Stuff): { ok: boolean; reason?: string; refusal?: ReadyRefusal } {

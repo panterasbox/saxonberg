@@ -128,7 +128,7 @@ export interface Combatant {
    * two halves its holders cost, and a thing that is not a weapon never
    * becomes the instrument when it comes to hand.
    */
-  beginWeaponSwitch(target: Stuff, opts?: { seconds?: number }): { ok: boolean; reason?: string };
+  beginWeaponSwitch(target: Stuff): { ok: boolean; reason?: string };
   /** `words`: why not, in the carrier's own words, when a carry rule refused it. */
   drawSidearm(): { ok: boolean; reason?: string; refusal?: ReadyRefusal };
   resolveThrown(
@@ -626,8 +626,8 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** Begin a guarded weapon switch against `target`. */
-    public beginWeaponSwitch(target: Stuff, opts?: { seconds?: number }): { ok: boolean; reason?: string } {
-      return combatLogic().beginSwitch(this as unknown as Stuff, target, opts?.seconds);
+    public beginWeaponSwitch(target: Stuff): { ok: boolean; reason?: string } {
+      return combatLogic().beginSwitch(this as unknown as Stuff, target);
     }
 
     /** Fast-draw a sheathed/carried backup weapon. */

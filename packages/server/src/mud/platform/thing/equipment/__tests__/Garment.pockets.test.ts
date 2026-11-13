@@ -153,8 +153,9 @@ describe('Garment — pockets as regions (D26)', () => {
     expect(left).toEqual([loose]);
     expect(loose.getContainer()).toBe(room);
     expect(buttoned.getPlacement()).toEqual({ host: coat, name: 'breast pocket' });
-    // Reaching into a buttoned pocket costs the undoing of it.
-    expect(me.readySeconds(buttoned)).toBeGreaterThan(me.readySeconds(key()));
+    // Reaching into a buttoned pocket costs the undoing of it — combat's
+    // price (CombatLogic.switch-pricing reads `closes` off the region).
+    expect(coat.getPlacementEntry('breast pocket')?.closes).toBe(true);
   });
 
   it('the placement pair is what persists — the shipped restore puts it back', async () => {

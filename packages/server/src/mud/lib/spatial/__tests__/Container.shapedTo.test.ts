@@ -63,6 +63,9 @@ describe('Container — shapedTo (D27)', () => {
     const knife = tool('knife', 0.2, [0.03, 0.02, 0.1]);
     ContainmentApi.move(knife, pouch);
     expect(me.tierOf(pistol)).toBe('ready');
-    expect(me.readySeconds(pistol)).toBeLessThan(me.readySeconds(knife));
+    // Drawn fast from the shaped holster, reached for in the pouch: combat
+    // prices the switch (CombatLogic.switch-pricing).
+    expect(pistol.getContainer()).toBe(holster);
+    expect(knife.getContainer()).toBe(pouch);
   });
 });

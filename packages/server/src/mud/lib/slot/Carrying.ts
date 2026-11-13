@@ -51,11 +51,9 @@ import { Placements } from '../spatial/Placement';
 import { MixinApi } from '../../api/mixin';
 import { SpeciesApi } from '../../api/species';
 import { CombatApi } from '../../api/combat';
-import { AppApi } from '../../api/app';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { GrammarApi } from '../../api/grammar';
-import { AppSettingKeys } from '../config/AppSettings';
 import { SettingTypes, type SettingsSchemaEntry } from '../shell/Environment';
 
 /**
@@ -178,8 +176,11 @@ export interface Carrying {
    * {@link readySeconds}.
    */
   ready(item: Stuff): ReadyRefusal | ReadiedOutcome | null;
-  /** The game-seconds readying `item` would cost in a fight: put away + draw (D16). */
-  readySeconds(item: Stuff): number;
+  /**
+   * What must leave the hands for `item` to come to hand (D16) — the
+   * held things in the way of its grip. Combat prices a switch by them.
+   */
+  handsToFree(item: Stuff): Stuff[];
   /**
    * Put `held` away — to its home if it still takes it; homeless, to the
    * first place on you it fits (which becomes its home). Refuses
@@ -217,17 +218,6 @@ export interface Carrying {
    * guest stands. What it wears (the guest's own outfit) goes with it.
    */
   returnBorrowed(): Stuff[];
-}
-
-/** A numeric dial with a fallback (the `LoadBearing` shape). */
-function dialSeconds(key: string, fallback: number): number {
-  try {
-    const raw = AppApi.setting(key);
-    const n = raw === '' || raw == null ? NaN : Number.parseFloat(raw);
-    return Number.isFinite(n) ? n : fallback;
-  } catch {
-    return fallback;
-  }
 }
 
 // ⭐ The base constraint is `Creature` (size and carrying W8): only a body
@@ -903,7 +893,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       // ⭐ In a fight it is the switch, generalized (D16): guard down, no
       // instrument, for the seconds the two halves cost.
       if (MixinApi.isCombatant(self) && CombatApi.sessionFor(self)) {
-        const started = self.beginWeaponSwitch(item, { seconds: this.readySeconds(item) });
+        const started = self.beginWeaponSwitch(item);
         if (!started.ok) {
           return started.reason === 'already-switching'
             ? { ok: false, reason: 'already-switching' }
@@ -992,6 +982,10 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       const order = [...claim.filter((h) => open.includes(h)), ...open, ...claim, ...hands.filter((h) => self.isSlotOccupied(h))];
       const picked = [...new Set(order)].slice(0, n);
       return picked.length >= n ? picked : null;
+    }
+
+    public handsToFree(item: Stuff): Stuff[] {
+      return this.inTheWay(item, this.handsFor(item) ?? 1);
     }
 
     /** What must leave the hands for `item` to take `hands` of them. */
@@ -1123,57 +1117,6 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
         }
       }
       return at;
-    }
-
-    /** One half of a readying: where `item` goes to or comes from, in seconds (D16). */
-    private holderSeconds(item: Stuff): number {
-      const self = this as unknown as Stuff & Slotted;
-      const draw = dialSeconds(AppSettingKeys.combatDrawSeconds, 1.5);
-      const reach = dialSeconds(AppSettingKeys.combatReachSeconds, 3);
-      const unfasten = dialSeconds(AppSettingKeys.combatUnfastenSeconds, 3);
-      const placed = MixinApi.isContainable(item) ? item.getPlacement() : null;
-      if (placed !== null && placed.host.stuffId !== self.stuffId) {
-        // A clip, a hook: the draw. A pocket: a reach — and a fastened one
-        // is undone first (D26's `closes`).
-        if (!MixinApi.isPlacing(placed.host)) return draw;
-        const member = placed.host.placementOf(placed.name);
-        if (!member.getEncloses()) return draw;
-        return reach + (placed.host.getPlacementEntry(placed.name)?.closes === true ? unfasten : 0);
-      }
-      const at = MixinApi.isContainable(item) ? item.getContainer() : null;
-      if (at === null || at.stuffId === self.stuffId) {
-        // On the body: a sheath slot is a shaped holder; loose is a reach.
-        const hands = new Set(this.asBody().handSlots());
-        for (const [slot, occ] of self.getAllOccupants()) {
-          if (!hands.has(slot) && [...occ].some((o) => o.stuffId === item.stuffId)) return draw;
-        }
-        return reach;
-      }
-      // ⭐ A container shaped to the thing (a holster, a scabbard) is the draw (D27).
-      if (MixinApi.isContainer(at) && at.getShapedTo() !== null) return draw;
-      const fastened = MixinApi.isSealable(at) && !at.isOpen();
-      return reach + (fastened ? unfasten : 0);
-    }
-
-    public readySeconds(item: Stuff): number {
-      if (this.tierOf(item) === 'hand') return 0;
-      const hands = this.handsFor(item) ?? 1;
-      let away = 0;
-      for (const held of this.inTheWay(item, hands)) {
-        const home = this.homeOf(held);
-        away += home === null ? dialSeconds(AppSettingKeys.combatReachSeconds, 3) : this.holderSecondsInto(home.host);
-      }
-      return away + this.holderSeconds(item);
-    }
-
-    /** Putting a thing INTO `home`: a reach (a shaped one is the draw), plus the undoing of a fastened one. */
-    private holderSecondsInto(home: Stuff): number {
-      const reach = dialSeconds(AppSettingKeys.combatReachSeconds, 3);
-      const unfasten = dialSeconds(AppSettingKeys.combatUnfastenSeconds, 3);
-      if (MixinApi.isContainer(home) && home.getShapedTo() !== null) {
-        return dialSeconds(AppSettingKeys.combatDrawSeconds, 1.5);
-      }
-      return reach + (MixinApi.isSealable(home) && !home.isOpen() ? unfasten : 0);
     }
 
     // ── letting go (D13) ──

@@ -67,6 +67,13 @@ export const COMBAT_DYNAMICS_ALLOWLIST: ReadonlySet<string> = new Set([
   // own hands — what is held goes home, the thing comes out of its holder.
   // Hands are slots; this is the slot substrate's next rung, not a dynamic.
   "isCarrying",
+  // ⭐ `isPlacing` + `isSealable` (size and carrying W8 — combat prices its
+  // own switch): the switch's seconds read the HOLDER the thing comes out of
+  // or goes back to — a clip or a pocket region, a flap or a lid to undo.
+  // The shape of a holder on the body, the same rung as `isCarrying`; it
+  // moved here from Carrying with the `combat.*` dials, not a dynamic.
+  "isPlacing",
+  "isSealable",
   // ⭐ `isHygienic` is the same move again (the cleanliness review, !380): a blow's
   // blood on the struck site and on the striker's hands was `Attired`'s
   // `soilHands` until hygiene left the clothes module for `HygieneMixin`.
