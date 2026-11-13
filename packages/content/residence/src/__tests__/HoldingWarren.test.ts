@@ -11,6 +11,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
+import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
 import { Lock } from "@saxonberg/server/mud/lib/lock/Lock";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import HoldingBuilding from '../idea/HoldingBuilding';
@@ -426,7 +427,7 @@ describe('the residential programme (D16)', () => {
     const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
     const bedroom = holding.roomForLeaf('bedroom')!;
 
-    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    const iris = withHands(makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris'));
     iris.setPlayerId('iris');
     ContainmentApi.move(iris, bedroom);
 
@@ -471,7 +472,7 @@ describe('the residential programme (D16)', () => {
     await w.hangFrontDoorOn(LOT1, door as unknown as Exit);
     expect(w.entryDoorOf(LOT1)).not.toBeNull();
 
-    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    const iris = withHands(makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris'));
     iris.setPlayerId('iris');
 
     // No keyway on the lot → locked to everyone.
@@ -480,7 +481,7 @@ describe('the residential programme (D16)', () => {
     await ParcelApi.setKeyway(LOT1, 'kw-77');
     await w.refreshProvisioned();
     // Keyless still refused; a presented key admits.
-    const bob = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/bob');
+    const bob = withHands(makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/bob'));
     bob.setPlayerId('bob');
     await new Lock('kw-77', 'pin-tumbler').issueKeyTo(iris);
     expect((await door.canTraverse(iris as never)).ok).toBe(true);
@@ -698,7 +699,7 @@ describe('the maintenance act (D4/D5)', () => {
 
   it('⭐ restores a worn shell to sound, and wears the kit doing it', async () => {
     const { holding, hall } = await wornHolding();
-    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    const iris = withHands(makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris'));
     ContainmentApi.move(iris as unknown as Stuff & Containable, hall);
     const k = kit();
     ContainmentApi.move(
@@ -717,7 +718,7 @@ describe('the maintenance act (D4/D5)', () => {
 
   it('⭐ a house credits no Discipline — keeping one is nobody\'s yet (harbors P24)', async () => {
     const { holding, hall } = await wornHolding();
-    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    const iris = withHands(makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris'));
     ContainmentApi.move(iris as unknown as Stuff & Containable, hall);
     ContainmentApi.move(
       kit() as unknown as Stuff & Containable,
@@ -733,7 +734,7 @@ describe('the maintenance act (D4/D5)', () => {
 
   it('⭐ a named thing that is not a building is refused as such (paint B33)', async () => {
     const { hall } = await wornHolding();
-    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    const iris = withHands(makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris'));
     ContainmentApi.move(iris as unknown as Stuff & Containable, hall);
     const notABuilding = makeStuffAtPath(() => new Tool(), '/world/prog-test/oar');
     const ctx = await maintain(iris as unknown as Stuff, hall as unknown as Stuff, notABuilding as unknown as Stuff);
@@ -742,7 +743,7 @@ describe('the maintenance act (D4/D5)', () => {
 
   it('refuses without a kit — the shell is untouched', async () => {
     const { holding, hall } = await wornHolding();
-    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    const iris = withHands(makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris'));
     ContainmentApi.move(iris as unknown as Stuff & Containable, hall);
 
     const ctx = await maintain(iris as unknown as Stuff, hall as unknown as Stuff);
@@ -755,7 +756,7 @@ describe('the maintenance act (D4/D5)', () => {
     await bootRegistries();
     await institution();
     const street = await StuffApi.clone<MemberStuff>(STREET);
-    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    const iris = withHands(makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris'));
     ContainmentApi.move(iris as unknown as Stuff & Containable, street);
     ContainmentApi.move(
       kit() as unknown as Stuff & Containable,
@@ -771,7 +772,7 @@ describe('the maintenance act (D4/D5)', () => {
     await bootRegistries();
     const w = await institution();
     const hall = await w.admit(LOT1);
-    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    const iris = withHands(makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris'));
     ContainmentApi.move(iris as unknown as Stuff & Containable, hall);
     const k = kit();
     ContainmentApi.move(
@@ -791,10 +792,10 @@ describe('the maintenance act (D4/D5)', () => {
     // her window frames right, and the world lets them. Refusing would
     // be modelling permission where the world models work.
     const { holding, hall } = await wornHolding();
-    const stranger = makeStuffAtPath(
+    const stranger = withHands(makeStuffAtPath(
       () => new Avatar(),
       '/platform/agent/Avatar/passerby',
-    );
+    ));
     ContainmentApi.move(stranger as unknown as Stuff & Containable, hall);
     ContainmentApi.move(
       kit() as unknown as Stuff & Containable,

@@ -17,6 +17,8 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withHands, handsSpecies, wornGarment } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
+import { Placements } from '@saxonberg/server/mud/lib/spatial/Placement';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { readdirSync, readFileSync, existsSync } from 'fs';
@@ -533,8 +535,15 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     vi.restoreAllMocks();
   });
 
-  function makeHand(): TestHand {
+  async function makeHand(): Promise<TestHand> {
     const hand = makeStuffAtPath(() => new TestHand(), `/stuff/test/distilling/hand-${seq++}`);
+    // Two hands and an apron pocket (size and carrying W8): the house card
+    // dealt at hire goes into the pocket, and the hands carry the stock.
+    const { species, plan } = handsSpecies();
+    hand.setSpecies(species);
+    await wornGarment(hand as never, plan, 'apron', 'torso', [
+      { member: Placements.POCKET, name: 'pocket', mouth: { width: 0.2, height: 0.2 }, volumeM3: 0.01 },
+    ]);
     ContainmentApi.move(hand as never, floorRoom as never);
     return hand;
   }
@@ -614,7 +623,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
   }
 
   it('hire into a purchases position deals the house card, once', async () => {
-    const hand = makeHand();
+    const hand = await makeHand();
     await outfit.appoint(hand, 'hand');
     const cards = () => hand.getContents().filter((c) => MixinApi.isCredentialWallet(c));
     expect(cards().length).toBe(1);
@@ -627,7 +636,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
   });
 
   it('a hand that has lost its card (it persists with the hand; this is the one-off) is dealt one on the next roster tick', async () => {
-    const hand = makeHand();
+    const hand = await makeHand();
     await outfit.appoint(hand, 'hand');
     const cards = () => hand.getContents().filter((c) => MixinApi.isCredentialWallet(c));
     expect(cards().length).toBe(1);
@@ -643,7 +652,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
   });
 
   it('a lift that declines (too heavy) stops the beat — the rest of the floor waits for the next one', async () => {
-    const hand = makeHand();
+    const hand = await makeHand();
     await outfit.appoint(hand, 'hand');
     const gin = bottle('spirit:gin', 'gin');
     const vodka = bottle('spirit:vodka', 'vodka');
@@ -683,7 +692,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
   it('the hand consigns only up to its outfit\'s headroom under the listing cap — never at an over-cap decline', async () => {
     const settings: Record<string, string> = { 'retail.consignment.listingCap': '1' };
     vi.spyOn(AppApi, 'setting').mockImplementation((key: string) => settings[key] ?? '');
-    const hand = makeHand();
+    const hand = await makeHand();
     await outfit.appoint(hand, 'hand');
     const gin = bottle('spirit:gin', 'gin');
     const vodka = bottle('spirit:vodka', 'vodka');
@@ -720,7 +729,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
   });
 
   it('one beat: the floor stock is carried to the counter and listed AS the outfit; a buy splits to its account', async () => {
-    const hand = makeHand();
+    const hand = await makeHand();
     await outfit.appoint(hand, 'hand');
     const gin = bottle('spirit:gin', 'gin');
     const vodka = bottle('spirit:vodka', 'vodka');
@@ -768,7 +777,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     expect(lines).toEqual([]);
 
     // A funded buyer at the counter: the ask splits to the outfit's account.
-    const buyer = makeStuffAtPath(() => new TestHand(), '/platform/agent/Avatar/pat');
+    const buyer = withHands(makeStuffAtPath(() => new TestHand(), '/platform/agent/Avatar/pat'));
     ContainmentApi.move(buyer as never, counterRoom as never);
     const card = makeStuff(() => new PaymentCard());
     ContainmentApi.move(card as never, buyer as never);
