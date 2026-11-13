@@ -261,6 +261,16 @@ export default class PutController extends CommandController<PutModel> {
           : Mml.compose`${Mml.thing(item)} won't go in ${Mml.thing(target)}.`;
         detail = `host rejected item (${r.facts.said ?? ''})`;
         break;
+      case 'refused-by-carrier': {
+        // ⭐ Their body's facts, this verb's words — never the reason code
+        // (size and carrying W8; it used to render `nowhere-to-carry`).
+        const c = r.facts.carry;
+        line = c.reason === 'nowhere-to-carry' && c.facts.held.length > 0
+          ? Mml.compose`${Mml.actor(target)} has nowhere to take ${Mml.thing(item)} — their hands are full.`
+          : Mml.compose`${Mml.actor(target)} has nowhere to take ${Mml.thing(item)}.`;
+        detail = `carrier refused (${c.reason})`;
+        break;
+      }
       case 'cannot-rest':
         // ⭐ The hanging rule's two refusals (size and carrying D4) — a
         // length used up, a weight it will not bear.

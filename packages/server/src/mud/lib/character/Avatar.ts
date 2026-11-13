@@ -1036,7 +1036,7 @@ export default abstract class Avatar extends AvatarBase {
 
   /**
    * A player's body places what its restore found loose at `enter`, with
-   * the session attached — see {@link Creature.placesLooseOnRestore}.
+   * the session attached — see `Carrying.placesLooseOnRestore`.
    */
   protected override placesLooseOnRestore(): boolean {
     return false;

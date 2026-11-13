@@ -29,6 +29,7 @@
  * boundary.
  */
 
+import type { ArrivalRefusal } from '../lib/spatial/Container';
 import type { ApiNeed } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
@@ -146,6 +147,8 @@ export type PlaceRefusal =
   | { ok: false; reason: 'slot-host-not-container'; facts?: undefined }
   | { ok: false; reason: 'shut'; facts?: undefined }
   | { ok: false; reason: 'refused-by-container'; facts: { said: string | null } }
+  /** A person handed it and their body refused (size and carrying W8) — facts for the verb to word. */
+  | { ok: false; reason: 'refused-by-carrier'; facts: { carry: ArrivalRefusal } }
   | { ok: false; reason: 'cannot-rest'; facts: { word: string; why: string } }
   | { ok: false; reason: 'cursed-will-not-release'; facts: { dumpedTau: number } }
   | {

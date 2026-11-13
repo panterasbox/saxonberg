@@ -243,7 +243,9 @@ export class ContainmentLogic extends ApiLogic {
             case 'refused-by-container':
               return { ok: false, reason: 'refused-by-container', facts: { said: refused.facts.said } };
             default:
-              return { ok: false, reason: 'refused-by-container', facts: { said: refused.reason } };
+              // A body's refusal travels as facts — never a reason code
+              // rendered as a sentence (size and carrying W8).
+              return { ok: false, reason: 'refused-by-carrier', facts: { carry: refused } };
           }
         }
         route = { kind: 'zero' };
