@@ -2442,6 +2442,85 @@ is the receiving act`.
    answers the invariant's refusal for a non-carrier through `arrivalFor`; `Carrying` overrides
    `arrivalFor` only.
 
+#### W8i — a carrier routes (owner rulings, 2026-11-13) — amendment
+
+**✅ Done — W8i (c261eb460 code · the W8i docs commit).** W8's body branch turned `move(item, body)` into `move(item, bag)`
+(`arrivalFor` → `into` → `this.move(item, bag)`): the move to the body never happened and the body's
+witnesses never fired — the lie. Four owner messages the same day, final form: *"I don't want people to
+have to care what they're moving to determine which method to use. if it's a Carrying composer then use
+the special routing and if it's not then just move the object. this shouldn't be on the caller — it
+should be on move(). the only time you go around move() is when you need to go around the routing."*
+
+- **`move` routes for a carrier.** `Arrival` loses `into` (every kind is IN the destination).
+  `Carrying.arrivalFor` answers the routing's first choice (`resolveReceive(item, bags)`); a bag, or
+  nothing, answers `refuse`, and `ContainmentLogic.move` hands a carrier's refusal to
+  **`Carrying.routeArrival(item, refusal)`** (gated `FromModule(ContainmentLogic)`, `@internal`) — the
+  onward move is issued THERE, by the carrier's arrival handling: where it goes on is decided first (no
+  bag and nowhere to stand → `ContainmentError`, nothing moved); then a true move onto the body under
+  `admitWhile` (the body's `onContainableAdded` fires), then a second true move into the bag, else to
+  `getEnclosingPlace()` with the one line (*Your hands are full — you set the cup down.* / peers *Mara
+  sets the cup down.*; worded per reason: too heavy, cannot grip, hands on the cart). A non-carrier
+  throws as before.
+- **The bypass: `Carrying.directMove(item, route?)`** → `ArrivalRefusal | null`, the routing made
+  explicit in `Arrival`'s vocabulary (`CarryRoute`: `seat {slots}` · `pair {host, region}` ·
+  `into {container}` · `carried` — on the body, else the first bag, `get`'s). No route = ON the body
+  (`arrivalFor(item, { onBody: true })`). Never the floor.
+- **`canReceive` deleted** from `Container` (interface + default). **Kept: none.** The `put X in
+  <person>` plan reads the destination's own answer dry before the putter's release (module-private
+  `arrivalRefusal` in `ContainmentLogic`, `onBody: true`) and moves with `directMove` at completion
+  (a stale refusal there puts it back in the putter's hands) — the release gate is a write the plan
+  must not make before it knows.
+- **Counts.** Plain `move` where a fallback or pre-check was: **79** (70 two-line made fallbacks
+  collapsed, the five owners that wrote their own *you set it down* line — `landOutput`,
+  `Producing.mintTake`, `Growing` ×2, `Menu.orderPlanFor` — plus `unequip`, `returnBorrowed`, the
+  forestry bole cut, the prescription slip). **`directMove`: 15 sites** — `get` ×2 (`carried`), `give`,
+  `equip` out of the wardrobe (`carried`), shelf/rack reclaim, the shelf's `handOver` (consignment +
+  stock), the store's unique-good withdrawal, the tip jar, `untie` ×3 (line end, rope, air bag), a lead
+  tied onto a carrier, `props:` onto a body, the daypack, `put X in <person>`. **Could not order the
+  goods first: 7**, plain (routed) `move` — the thing does not exist until after the write: coins moved
+  by the ledger (`moveCoins`), coins dispensed (`dispenseCoin`), the issued card, a minted key, a store
+  receipt, a claim ticket, the TPA card (nothing charged, but minted by the act).
+- **The shelf reorders** (`ConsignmentShelf.handOver` → `settleSale` → `handBack` on a failed settle):
+  goods first, then money; `Stock` splits one off the heap before the hand-over and puts a refused piece
+  back on its heap; the buyer's stamp lands after the hand-over (on nothing if it merged into their
+  like, whose title is theirs).
+
+#### Decided while building W8i
+
+- **W8i-1 — `seatInSlots` is not folded into `directMove`.** It is `Slotted`'s primitive (a rack, a
+  battery bay, `put`'s slot route, the chokepoint's own `seat`), so routing body loadouts (`Login`,
+  `EmbodyController`, `Character.wearGarments`, `Gus`, the implant, `arms`) through
+  `directMove(item, { kind: 'seat' })` removes no entry point — and a loadout that cannot seat should
+  throw loudly, which `seatInSlots` does and `directMove` (a refusal) would not. Lens 2.
+- **W8i-2 — `get` uses `{ kind: 'carried' }`**, the routing short of the floor: picking a thing up
+  that routes to the floor would set it down where it lay (or off a table onto the floor). A refused
+  `get` puts back what its own release did — a slot re-seated. A FIXTURE is asked before it comes down
+  (the body's own answer read dry, `arrivalFor(…, { onBody: true })`): re-hanging it after a refusal
+  was a new controller mutation (`lint:controller-mutations` 137 → 138), and a fixture is a thing for
+  the hands. `give` puts a refused thing back by `move(item, giver)` (routed to the hand it just left)
+  rather than re-occupying slots in the controller (`lint:multi-act`, `lint:perceived-surfaces`).
+- **W8i-8 — a recipient that is no body takes a handed thing plainly** (`give` to an `Agent` that is not
+  a `Creature`): its own arrival answer read dry first — a non-carrying BODY refuses (*has nowhere to
+  take it*), anything else is moved exactly.
+- **W8i-9 — the shelf reads a terms ask BEFORE the hand-over** (a terms price reads the stock on hand),
+  and a broke buyer at a heap is told the heap's one-piece price (the split piece merged back into it).
+- **W8i-10 — the restore asks the body's own hook** (`placeLoose` → `arrivalFor`, as W8-a9), then a bag
+  it carries, then the overflow; and `routeArrival` refuses to re-enter itself for one item (an arrival
+  rule that ignored the admission would recurse — a test stub did).
+- **W8i-7 — `directMove`'s `into` route asks the bag's tape measure only** (`fitRefusal`, as the
+  routing's `placeTakes` does), not its optional veto (`lint:duck-typing` would rise by one); a bag that
+  vetoes still throws from `move`.
+- **W8i-3 — a handless body's unequipped tack is set down explicitly** (`unequip`): routed, a mule's
+  halter would go straight back on (the tack rule).
+- **W8i-4 — `pockets-first` keeps meaning pockets AND packs first**: the routing's first choice may be
+  a bag over a free hand; `move` then lands it on the body and the body packs it (a true two-step).
+- **W8i-5 — the made sites write `move(made, w)` even where `w` may be a non-carrier container** (a
+  bench, a crate): exact there, as before W8. Grounded: no shipped made path mints onto a non-carrying
+  BODY (a catch goes to the fisher, a lead hangs from the halter, tack is seated), so the non-carrier
+  throw stays the invariant's fail-closed answer.
+- **W8i-6 — `unequip`'s set-down line now comes from the routing**, so it precedes *You take off the
+  coat* rather than following it.
+
 **Still the owner's:** nothing in W8. Two notes for the sweep, not questions: `Carrying.ts` could move
 to `lib/creature/` now that its base is `Creature` (≈100 imports); and the `ForSale` reshape to facts
 (3 implementers, one in `transport`) is retail's build.

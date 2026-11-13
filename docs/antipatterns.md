@@ -6555,9 +6555,9 @@ surface at zero exceptions. See [mql.md](./subsystems/mql.md).
 
 | Don't | Do |
 |---|---|
-| A synonym for `move` (`receive`, `deliver`, a `receive*` family, a helper that "puts it on a body properly") | `ContainmentApi.move(x, body)` — **a body is a destination that places what arrives** (a hand, a pocket, a hook on the belt, a worn bag, the pack) through `Container.arrivalFor`, or `move` throws a `ContainmentError` naming why. It never lands the thing anywhere but the body. |
-| Narrowing `isCarrying(dest)` before asking, or a `try/catch` around `move` to find out | `dest.canReceive(x)` first when you want a refusal instead of a throw — **every container answers** (a chest by its fit, a canary *nowhere to carry that*, a person by hand → pocket → pack) |
-| Letting a made thing throw at a full body after the inputs are spent | the mint path's owner writes the two calls: `if (maker.canReceive(made) === null) move(made, maker); else move(made, here)` (+ its *you set it down* line) |
+| A synonym for `move` (`receive`, `deliver`, `routeMove`, a `receive*` family, a helper that "puts it on a body properly") | `ContainmentApi.move(x, dest)` — **`move` is the one call; a carrier routes what arrives** (owner, 2026-11-13): it reaches the body — a hand, a pocket, a hook — and, when nothing on it takes the thing, the body moves it on into a bag it carries, else sets it down at its feet with a line; every step a true move with its own witnesses, nothing retargeted. A non-carrier destination is exact. |
+| Choosing a method by what the destination is (`isCarrying(dest) ? … : move(…)`), a pre-check (`canReceive`, deleted), or a `try/catch` around `move` to find out | just `move`. **`carrier.directMove(x, route?)` only to go around the routing** — exactly onto the body (or the named hand / pocket / bag), or nothing moves and the `ArrivalRefusal` comes back. A handed act (`buy`, `give`, a withdrawal) moves the goods that way FIRST, words a refusal, and writes the money after (moving the goods back if the write fails). |
+| Hand-writing a made thing's fallback (`move to the maker, else move here` + a *you set it down* line) | plain `move(made, maker)` — the routing sets it down and says so; a path that wants somewhere else (the bench) moves it there explicitly |
 | `move` then `occupyAll` to put a garment on | `body.seatInSlots(garment, claim)` — *wear it* is a seating, said exactly |
 
 Owner (size and carrying W8): *"every time you invent a synonym for

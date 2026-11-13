@@ -167,22 +167,26 @@ Detach is `ContainmentApi.move(item, null)`. A direct
   `fitRefusal(item)` — the mouth, the sides the container closes and its
   room ([size.md](./size.md)). Specialized overrides (a pump's well, a
   store, a hive) own their whole answer.
-- ⭐⭐ **A body places what arrives — `arrivalFor`** (size and carrying W8).
-  Beside `canAddContainable`, every container has `arrivalFor(item, how?)`
-  — where inside it an arrival goes — and `move` asks it of a destination
-  that is an agent: `contents` (admitted — placed, an agent, being seated,
-  admitted by the restore), `seat` (a hand, a mule's tack →
-  `Slotted.seatInSlots`), `pair` (a worn host's pocket or hook →
-  `placeOn`), `into` (a bag the body carries), or `refuse` → **`move`
-  throws** a `ContainmentError` (`reason`, `facts`). This is the `Placing`
+- ⭐⭐ **A body places what arrives — `arrivalFor`; a carrier ROUTES** (size
+  and carrying W8; owner, 2026-11-13). Beside `canAddContainable`, every
+  container has `arrivalFor(item, how?)` — where IN it an arrival goes —
+  and `move` asks it of a destination that is an agent: `contents`
+  (admitted — placed, an agent, being seated, admitted by the restore),
+  `seat` (a hand, a mule's tack → `Slotted.seatInSlots`), `pair` (a worn
+  host's pocket or hook → `placeOn`), or `refuse`. This is the `Placing`
   precedent again: the destination decides where inside it the thing sits.
-  ⭐ **`move` never lies** — it never lands the thing anywhere but the body.
-  `Container.canReceive(item)` is the same answer read dry (then the tape
-  measure and the container's own veto): **every container answers**, so
-  a caller asks it first when it wants a refusal instead of a throw. The
-  rule that nothing sits loose is every `Creature`'s and fails closed (no
-  species row is no escape); the capability that places is `Carrying`'s,
-  on the carrier classes — see [carrying.md](./carrying.md).
+  ⭐⭐ A `refuse` on a **carrier** is the carrier's: `Carrying.routeArrival`
+  (gated to the chokepoint) lands the thing ON the body — a true move, the
+  body's witnesses fire — and then moves it on with a second true move,
+  into the first bag it carries that fits, else down where the body
+  stands, with a line. Nothing is retargeted; no caller chooses. On a
+  non-carrier `move` **throws** a `ContainmentError` (`reason`, `facts`):
+  the rule that nothing sits loose is every `Creature`'s and fails closed.
+  ⭐ The one way **around** the routing is `carrier.directMove(item,
+  route?)` — exactly onto the body (or the named hand / pocket / bag), or
+  nothing moves and the refusal is returned; a handed act moves its goods
+  this way FIRST and writes the money after. See
+  [carrying.md](./carrying.md).
 
 Witness hooks are optional methods on the relevant interface — declare
 the ones you want, omit the rest. `containment.ts:157-165` dispatches
@@ -858,12 +862,13 @@ share a primary word); `put key in left pocket` names it. `put` into a
 container the putter carries sets that thing's **home**. `put X in
 <person>` is handing, not putting.
 
-`give X to Y` is the **handed** idiom: `Y.canReceive(X)` is asked before
-anything moves (on the recipient as a container — no narrowing), and a
-refusal is worded to the giver (*"Bob has nowhere to take it — their
-hands are full. You keep it."*); otherwise `ContainmentApi.move(X, Y)` —
-the body places it in a hand, a pocket or a bag. The recipient is
-gated by the `mustBeAgent` validator. See [carrying.md](./carrying.md).
+`give X to Y` is the **handed** idiom: after the giver's release gate,
+`Y.directMove(X)` — onto them (a hand, a pocket), never routed on to their
+bag or their feet — or nothing changes hands and the refusal is worded to
+the giver (*"Bob has nowhere to take it — their hands are full. You keep
+it."*), the thing back in the hand it left. A recipient that does not
+carry takes nothing. The recipient is gated by the `mustBeAgent`
+validator. See [carrying.md](./carrying.md).
 
 ## Locations, Coordinates, Zones
 
@@ -1339,9 +1344,11 @@ load-on-use W10 the boot, as `ContainmentApi`'s `needs` — the
 `39d4ba23e..50f562ed4`. Containers bound what goes in them
 (`fitRefusal` in the default `canAddContainable`); a body places what
 arrives (`arrivalFor`, W8 — the W7 `loose-on-body` veto and the
-`receive` family it guarded are gone) and `move` throws when it cannot; placement
+`receive` family it guarded are gone), a carrier routes the rest (W8i —
+onto the body, then a bag or the floor, every step a true move) and
+`move` throws on a non-carrier; placement
 entries became named regions (`pocket` the fourth member, `from` gained
 `hangs`/`fastens`, the member fit in `canPlace`, the hanging length);
 `moveCore` carries a host's placed things with it (D33); `put` names
-pockets and `give` asks `canReceive` first. See [carrying.md](./carrying.md)
+pockets and `give` hands over with `directMove`. See [carrying.md](./carrying.md)
 and [size.md](./size.md).
