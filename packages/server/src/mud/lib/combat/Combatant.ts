@@ -22,6 +22,7 @@
  * See docs/subsystems/combat.md.
  */
 
+import type { ReadyRefusal } from '../slot/Carrying';
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { ActOutcome, ActRefusal } from "../craft/ActPlan";
 import type { CommandContributions } from "../../api/command";
@@ -129,7 +130,7 @@ export interface Combatant {
    */
   beginWeaponSwitch(target: Stuff, opts?: { seconds?: number }): { ok: boolean; reason?: string };
   /** `words`: why not, in the carrier's own words, when a carry rule refused it. */
-  drawSidearm(): { ok: boolean; reason?: string; words?: string };
+  drawSidearm(): { ok: boolean; reason?: string; refusal?: ReadyRefusal };
   resolveThrown(
     target: Stuff,
     contents: Parameters<CombatLogic["resolveThrown"]>[2],
@@ -630,7 +631,7 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** Fast-draw a sheathed/carried backup weapon. */
-    public drawSidearm(): { ok: boolean; reason?: string; words?: string } {
+    public drawSidearm(): { ok: boolean; reason?: string; refusal?: ReadyRefusal } {
       return combatLogic().drawSidearm(this as unknown as Stuff);
     }
 

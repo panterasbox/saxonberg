@@ -37,6 +37,9 @@ import type { Display } from '../display/Display';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandGiver } from '../command/CommandGiver';
 import { SchedulerApi } from '../../api/scheduler';
+import { GrammarApi } from '../../api/grammar';
+import type { CarriedAt, CarryRefusal, ReadiedOutcome } from '../slot/Carrying';
+import type { ArrivalRefusal } from '../spatial/Container';
 import { ManualBuildStep } from '../craft/ManualBuildStep';
 import type { ActDone, ActPlan, AnyActRefusal } from '../craft/ActPlan';
 import type { ActWords } from './EngagedActController';
@@ -464,5 +467,172 @@ export abstract class CommandController<
       return undefined;
     }
     return source.getPresentation();
+  }
+
+  // ── carrying words (size and carrying W8: the body decides, the controller words) ──
+
+  /**
+   * ⭐ The words for a carrying refusal — in the second person, each naming
+   * what works. The body returns facts (`canReceive`, `ready`,
+   * `wieldPlanFor`); this is where they become a sentence, in one place,
+   * for every verb that readies or hands. Exhaustive: a new reason does not
+   * compile until it is worded.
+   */
+  public carryRefusalWords(giver: Stuff, r: CarryRefusal | ArrivalRefusal): string {
+    const a = (s: Stuff): string => s.presentationPhrase().definite();
+    const kw = (x: Stuff): string =>
+      (MixinApi.isPerceptible(x) ? x.getPrimaryKeyword() : undefined) ?? x.presentationPhrase().bare();
+    const held = (): Stuff[] => (MixinApi.isAttired(giver) ? giver.heldThings() : []);
+    switch (r.reason) {
+      case 'too-big-for-mouth':
+      case 'too-big-inside':
+      case 'no-room':
+      case 'not-shaped-for':
+        return `${this.capFirst(a(r.facts.item))} won't fit.`;
+      case 'refused-by-container':
+        return `That won't go — ${r.facts.said}.`;
+      case 'too-heavy':
+        return "That's more than you can lift.";
+      case 'cannot-grip':
+        return `You can't hold it — ${r.facts.why}.`;
+      case 'hands-on-cart':
+        return `Your hands are on ${a(r.facts.cart)} — \`unhitch\` it first.`;
+      case 'nowhere-to-carry': {
+        if (!MixinApi.isAttired(giver) || giver.handSlots().length === 0) return 'You have nowhere to carry that.';
+        return this.nowhereWords(r.facts);
+      }
+      case 'packed':
+        return `It's packed in ${a(r.facts.by)} — take it off first (\`remove ${r.facts.by.presentationPhrase().bare()}\`).`;
+      case 'hands-full': {
+        // ⭐ Name what the hands hold and offer each to drop (the drive,
+        // step 7: a lantern and a shield, and the words named only one).
+        const all = held();
+        const [, ...others] = all;
+        const stuck = r.facts.held;
+        const where = r.facts.home !== null
+          ? `${a(stuck)} won't go back in ${a(r.facts.home)}`
+          : `${a(stuck)} has nowhere to go`;
+        if (others.length > 0) {
+          const drops = [...new Set(all.map(kw))].map((k) => `\`drop ${k}\``).join(' or ');
+          return `Your hands are full — ${this.heldList(all)} — and ${where}. Drop one (${drops}) or put it away first.`;
+        }
+        return `Your hands are full, and ${where}. Drop it (\`drop ${kw(stuck)}\`) or put it away first.`;
+      }
+      case 'hands-needed': {
+        const list = r.facts.held.map((h) => h.presentationPhrase().indefinite());
+        const need = r.facts.hands === 1 ? 'a free hand' : 'both hands';
+        return list.length > 0
+          ? `That takes ${need} — you're holding ${GrammarApi.joinList(list)}.`
+          : `That takes ${need}.`;
+      }
+      case 'not-on-you':
+        return "That isn't yours to use.";
+      case 'pick-up': {
+        const it = r.facts.item;
+        return `You'd have to pick ${it.presentationPhrase().definite()} up first (\`get ${kw(it)}\`).`;
+      }
+      case 'already-switching':
+        return "You're already reaching for something.";
+      default: {
+        const never: never = r;
+        return never;
+      }
+    }
+  }
+
+  /**
+   * ⭐ The hands-full refusal is the tutorial (requirements § Collisions):
+   * what is in the hands, what did not fit and where it was tried, and the
+   * next command in this body's OWN names — *"Your hands are full — the cup
+   * and the lantern — and the map won't fit in your pockets. Put something
+   * away (`put cup in left pocket`) or set it down (`drop lantern`)."*
+   */
+  private nowhereWords(f: Extract<ArrivalRefusal, { reason: 'nowhere-to-carry' }>['facts']): string {
+    const def = (x: Stuff): string => x.presentationPhrase().definite();
+    const kw = (x: Stuff): string =>
+      (MixinApi.isPerceptible(x) ? x.getPrimaryKeyword() : undefined) ?? x.presentationPhrase().bare();
+    const { item, held, tried } = f;
+    // ⭐ Things alike are counted, and the refused one is ANOTHER of them
+    // (the browser walk: three mugs read "the mug and the mug").
+    const alike = held.some((h) => def(h) === def(item));
+    const it = alike ? `another ${item.presentationPhrase().bare()}` : def(item);
+    const where = [
+      ...new Set(
+        tried.map((h) =>
+          MixinApi.isPlacing(h) && h.namedRegions().length > 0 ? 'your pockets' : `your ${h.presentationPhrase().bare()}`,
+        ),
+      ),
+    ];
+    const fit = where.length > 0 ? ` won't fit in ${GrammarApi.joinList(where)}` : ' has nowhere to go';
+    if (held.length === 0) return `${this.capFirst(it)}${fit}, and your hands can't take it.`;
+    // ⭐ A thing that takes both hands while one is still free (drive step
+    // 8's pole beside a lantern) says so — "your hands are full" was untrue.
+    const both = f.needsBoth === true;
+    const hands = both
+      ? `${this.capFirst(it)} takes both hands — you're holding ${this.heldList(held)} —`
+      : `Your hands are full — ${this.heldList(held)} —`;
+    const away = f.away ?? null;
+    const awayCmd = away === null
+      ? null
+      : away.region !== undefined && MixinApi.isPlacing(away.host) && away.host.namedRegions().includes(away.region)
+        ? `put ${kw(away.held)} in ${away.region}`
+        : `put ${kw(away.held)} in ${kw(away.host)}`;
+    const drop = `drop ${kw(held.at(-1)!)}`;
+    const next = awayCmd !== null
+      ? `Put something away (\`${awayCmd}\`) or set it down (\`${drop}\`).`
+      : `Set something down (\`${drop}\`).`;
+    return `${hands} and ${both ? 'it' : it}${fit}. ${next}`;
+  }
+
+  /**
+   * ⭐ A readying, in words (D16): to the giver and to the room — *"You
+   * sheathe your sword and pull out your compass."* `null` when nothing moved.
+   */
+  public readiedWords(giver: Stuff, out: ReadiedOutcome): { self: string; peer: string } | null {
+    if (!out.moved) return null;
+    const bare = (x: Stuff): string => x.presentationPhrase().bare();
+    const sheathed = (at: CarriedAt): boolean =>
+      at.container !== null && MixinApi.isContainer(at.container) && !at.container.isAgent() && at.container.getShapedTo() !== null;
+    const away = out.stowed.map(({ held, at }) => {
+      if (sheathed(at)) return `sheathe your ${bare(held)}`;
+      const where = this.whereWords(at);
+      return where !== null ? `put your ${bare(held)} in ${where}` : `put your ${bare(held)} away`;
+    });
+    const where = this.whereWords(out.from);
+    const draw = sheathed(out.from)
+      ? { self: `draw your ${bare(out.item)}`, peer: `draws ${out.item.presentationPhrase().indefinite()}` }
+      : {
+          self: where !== null ? `pull out your ${bare(out.item)} from ${where}` : `pull out your ${bare(out.item)}`,
+          peer: `pulls out ${out.item.presentationPhrase().indefinite()}`,
+        };
+    void giver;
+    return { self: `You ${[...away, draw.self].join(' and ')}.`, peer: draw.peer };
+  }
+
+  /** What the hands hold, in words — two alike are "both mugs". */
+  private heldList(held: readonly Stuff[]): string {
+    const def = (x: Stuff): string => x.presentationPhrase().definite();
+    const first = held[0];
+    if (held.length === 2 && first !== undefined && held.every((h) => def(h) === def(first))) {
+      return `both ${GrammarApi.pluralize(first, first.presentationPhrase().bare())}`;
+    }
+    return GrammarApi.joinList(held.map(def));
+  }
+
+  /** Where a thing sits on its body, in words: *your coat's breast pocket*, *your scabbard*, *your sidearm*. */
+  private whereWords(at: CarriedAt): string | null {
+    if (at.host !== null) {
+      const host = at.host.presentationPhrase().bare();
+      const named = at.region !== null && MixinApi.isPlacing(at.host) && at.host.namedRegions().includes(at.region);
+      return named ? `your ${host}${host.endsWith('s') ? "'" : "'s"} ${at.region}` : `your ${host}`;
+    }
+    if (at.container !== null) return `your ${at.container.presentationPhrase().bare()}`;
+    if (at.slot !== null) return `your ${at.slot.split(':')[0]}`;
+    return null;
+  }
+
+  /** `the cup` → `The cup`. */
+  private capFirst(s: string): string {
+    return s.charAt(0).toUpperCase() + s.slice(1);
   }
 }

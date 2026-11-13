@@ -1,6 +1,9 @@
 // CombatLogic — the hot-reloadable logic singleton behind CombatApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
+import type { ReadyRefusal } from '../../../lib/slot/Carrying';
+import { MessageApi } from '../../../api/message';
+import { Mml } from '../../../api/mml';
 import { ApiLogic } from "../../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
@@ -450,7 +453,7 @@ export class CombatLogic extends ApiLogic {
   }
 
   @CallSecurity(CombatantCallers)
-  public drawSidearm(actor: Stuff): { ok: boolean; reason?: string; words?: string } {
+  public drawSidearm(actor: Stuff): { ok: boolean; reason?: string; refusal?: ReadyRefusal } {
     return drawSidearmImpl(actor);
   }
 
@@ -4243,7 +4246,16 @@ function performSwap(actor: Stuff, target: Stuff | null): void {
   // thing that is not a weapon is held, never the instrument
   // (`wieldedWeapon` reads weapons only).
   if (MixinApi.isCarrying(actor) && actor.handSlots().length > 0) {
-    actor.bringToHand(target);
+    const out = actor.bringToHand(target);
+    // ⭐ The switch lands — combat's own beat to narrate (size and carrying
+    // W8: the body reports facts; the readying's sentence is a verb's).
+    if (out.ok && out.moved && MixinApi.isSensor(actor)) {
+      MessageApi.scene(actor)
+        .topic('act.deed')
+        .toSelf(Mml.compose`You have ${Mml.thing(target)} in hand.`)
+        .toPeers(Mml.compose`${Mml.actor(actor)} has ${Mml.thing(target)} in hand.`)
+        .send();
+    }
     return;
   }
   const grip = gripSlotFor(actor, target);
@@ -4388,7 +4400,7 @@ function beginSwitchImpl(
   return { ok: true };
 }
 
-function drawSidearmImpl(actor: Stuff): { ok: boolean; reason?: string; words?: string } {
+function drawSidearmImpl(actor: Stuff): { ok: boolean; reason?: string; refusal?: ReadyRefusal } {
   const backup = findBackupWeapon(actor);
   if (!backup) return { ok: false, reason: "no-sidearm" };
   // ⭐ `fight draw` is a readying (size and carrying D16): the holder
@@ -4396,9 +4408,10 @@ function drawSidearmImpl(actor: Stuff): { ok: boolean; reason?: string; words?: 
   if (MixinApi.isCarrying(actor) && actor.handSlots().length > 0) {
     if (!sessionForImpl(actor)) return { ok: false, reason: "not-in-combat" };
     const refused = actor.ready(backup);
-    // ⭐ The carrier's own words travel with the refusal (size and carrying
-    // drive, step 7: a full hand read "You've no sidearm to draw").
-    return refused === null ? { ok: true } : { ok: false, reason: refused.reason, words: actor.refusalWords(refused) };
+    // ⭐ The carrier's refusal travels with the answer, as facts (size and
+    // carrying drive, step 7: a full hand read "You've no sidearm to
+    // draw"); `fight draw` words it.
+    return refused === null || refused.ok ? { ok: true } : { ok: false, reason: refused.reason, refusal: refused };
   }
   return beginSwitchImpl(actor, backup, true);
 }

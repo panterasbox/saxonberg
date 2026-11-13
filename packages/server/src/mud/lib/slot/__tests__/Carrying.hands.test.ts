@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { CARRYING_DEFAULTS } from '../Carrying';
-import { makeBody, tool, hold, handsOf } from './carrying-fixture';
+import { makeBody, tool, hold, handsOf, carryWords } from './carrying-fixture';
 import { cart } from './haulage-fixtures';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { HaulerMixin } from '../Hauler';
@@ -78,7 +78,7 @@ describe('Carrying — hands (D9/D10)', () => {
     expect(me.freeHands()).toBe(0);
     const r = me.canReceive(tool('cup', 0.2));
     expect(r?.reason).toBe('hands-on-cart');
-    expect(me.refusalWords(r!)).toMatch(/hands are on/);
+    expect(carryWords(me, r!)).toMatch(/hands are on/);
   });
 
   it('nowhere to carry: the refusal names the hands and what was tried', () => {
@@ -89,7 +89,7 @@ describe('Carrying — hands (D9/D10)', () => {
     expect(r?.reason).toBe('nowhere-to-carry');
     // ⭐ The refusal is the tutorial (the flip, W7): the hands' contents,
     // what did not fit, and the next command.
-    expect(me.refusalWords(r!)).toMatch(/^Your hands are full — the (knife and the torch|torch and the knife) — and the cup has nowhere to go\. Set something down \(`drop (knife|torch)`\)\.$/);
+    expect(carryWords(me, r!)).toMatch(/^Your hands are full — the (knife and the torch|torch and the knife) — and the cup has nowhere to go\. Set something down \(`drop (knife|torch)`\)\.$/);
   });
 });
 

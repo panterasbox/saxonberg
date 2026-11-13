@@ -86,7 +86,7 @@ describe('Garment — the belt (D27)', () => {
     ContainmentApi.move(pistol, holster);
     expect(me.tierOf(pistol)).toBe('ready');
     expect(me.isHonest(pistol)).toBe(true);
-    expect(me.holderPhrase(pistol)).toBe('your holster');
+    expect(pistol.getContainer()).toBe(holster);
     // `get holster from belt`: the receiving act takes it off its host.
     ContainmentApi.move(holster, me);
     expect(holster.getPlacement()).toBeNull();

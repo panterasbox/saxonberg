@@ -244,6 +244,20 @@ const ASYNC_BODY_TARGET = { module: 'CommandGiverMixin' } as const;
  * (late) envelope carries the body's accumulated notes + final status.
  */
 /**
+ * A clone of the verb's controller, to word what the body reported (size
+ * and carrying W8), or `null` when there is none to clone. The caller
+ * destructs it.
+ */
+async function wordsOf(controllerPath: string | undefined): Promise<CommandController | null> {
+  if (!controllerPath) return null;
+  try {
+    return await StuffApi.clone<CommandController>(controllerPath);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Author-diagnostics: record a controller throw (store row + author push).
  * `controllerPath` is the already-resolved `/`-rooted controller template
  * path (see `CommandDefinition.resolvedController` /
@@ -1769,7 +1783,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // ⭐ The instruments come to hand before the act (size and carrying
       // D16): a `readies:` arg is readied by the giver, and a refusal is
       // the answer — the controller never runs.
-      if (!(await this._readyInstruments(command, model, context))) return;
+      if (!(await this._readyInstruments(command, model, context, controllerPath))) return;
 
       // Async: spawn the controller body detached (a fresh root frame,
       // NOT awaited) so the giver's input chain frees at accept-time.
@@ -1833,6 +1847,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       command: CommandDefinition,
       model: CommandModel,
       context: CommandContext,
+      controllerPath?: string,
     ): Promise<boolean> {
       const giver = this as unknown as Stuff;
       if (!MixinApi.isCarrying(giver)) return true;
@@ -1850,15 +1865,35 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         if (list.length !== 1) continue;
         const item = list[0]!;
         if (MixinApi.isTangible(item)) await item.ensureShape();
-        const refused = giver.ready(item);
-        if (refused === null) continue;
-        MessageApi.scene(giver).topic('act.deed').toSelf(Mml.text(giver.refusalWords(refused))).send();
-        context.note({
-          kind: 'controller-rejected',
-          reason: refused.reason,
-          detail: item.getPresentation(),
-        });
-        return false;
+        const readied = giver.ready(item);
+        if (readied === null) continue;
+        // ⭐ The body reports facts; the verb's controller words them (size
+        // and carrying W8) — cloned only when there is something to say,
+        // and destructed as every early return destructs it.
+        const words = await wordsOf(controllerPath);
+        try {
+          if (readied.ok) {
+            const line = words?.readiedWords(giver, readied) ?? null;
+            if (line !== null && MixinApi.isSensor(giver)) {
+              MessageApi.scene(giver)
+                .topic('act.deed')
+                .toSelf(Mml.text(line.self))
+                .toPeers(Mml.compose`${Mml.actor(giver)} ${Mml.text(line.peer)}.`)
+                .send();
+            }
+            continue;
+          }
+          const said = words?.carryRefusalWords(giver, readied) ?? "You can't ready that.";
+          MessageApi.scene(giver).topic('act.deed').toSelf(Mml.text(said)).send();
+          context.note({
+            kind: 'controller-rejected',
+            reason: readied.reason,
+            detail: item.getPresentation(),
+          });
+          return false;
+        } finally {
+          if (words !== null) StuffApi.destruct(words);
+        }
       }
       return true;
     }

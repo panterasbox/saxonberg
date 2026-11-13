@@ -104,7 +104,18 @@ export type FitRefusal = ActRefusal<
 export type ArrivalRefusal =
   | FitRefusal
   | ActRefusal<'refused-by-container', { said: string }>
-  | ActRefusal<'nowhere-to-carry', { item: Stuff; held: Stuff[]; tried: Stuff[] }>
+  | ActRefusal<
+      'nowhere-to-carry',
+      {
+        item: Stuff;
+        held: Stuff[];
+        tried: Stuff[];
+        /** A held thing that WOULD go away, and where — the next command's facts. */
+        away?: { held: Stuff; host: Stuff; region?: string } | null;
+        /** `item` takes both hands while one is still free (a pole beside a lantern). */
+        needsBoth?: boolean;
+      }
+    >
   | ActRefusal<'too-heavy'>
   | ActRefusal<'cannot-grip', { why: string }>
   | ActRefusal<'hands-on-cart', { cart: Stuff }>;

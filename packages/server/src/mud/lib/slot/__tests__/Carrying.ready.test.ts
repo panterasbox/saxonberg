@@ -5,7 +5,7 @@
  * the switch, priced in two halves by holder.
  */
 import '../../../../test-bootstrap';
-import { carry, handsOf } from './carrying-fixture';
+import { carry, handsOf, carryWords } from './carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -55,7 +55,7 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     ContainmentApi.move(sword, scabbard);
     hold(me, plan, tool('torch', 0.5), 'hand:left');
     // Draw the sword from its scabbard: its home is remembered.
-    expect(me.ready(sword)).toBeNull();
+    expect(me.ready(sword)?.ok ?? true).toBe(true);
     expect(me.tierOf(sword)).toBe('hand');
     expect(me.homeOf(sword)?.host).toBe(scabbard);
     // Now the compass from the satchel: the sword must go home.
@@ -63,7 +63,7 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     const compass = tool('compass', 0.2);
     compass.setSlotClaims({ [plan]: ['hand:right'] });
     ContainmentApi.move(compass, satchel);
-    expect(me.ready(compass)).toBeNull();
+    expect(me.ready(compass)?.ok ?? true).toBe(true);
     expect(me.tierOf(compass)).toBe('hand');
     expect(sword.getContainer()).toBe(scabbard);
   });
@@ -73,9 +73,9 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     const pack = wornBag(me, plan, 'rucksack', 'back');
     const map = tool('map', 0.1);
     ContainmentApi.move(map, pack);
-    const r = me.ready(map);
+    const r = me.ready(map) as { ok: boolean; reason?: string } | null;
     expect(r?.reason).toBe('packed');
-    expect(me.refusalWords(r!)).toMatch(/packed in the rucksack — take it off first \(`remove rucksack`\)/);
+    expect(carryWords(me, r!)).toMatch(/packed in the rucksack — take it off first \(`remove rucksack`\)/);
     expect(me.tierOf(map)).toBe('packed');
   });
 
@@ -86,7 +86,7 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     const bench = tool('bench', 30, [1.5, 0.5, 0.8]);
     ContainmentApi.move(bench, room);
     bench.setFixedInPlace(true);
-    expect(me.ready(bench)).toBeNull();
+    expect(me.ready(bench)?.ok ?? true).toBe(true);
     expect(bench.getContainer()).toBe(room);
   });
 
@@ -102,10 +102,10 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     const compass = tool('compass', 0.2);
     // In a satchel at the waist — on you, not in hand (the flip, W7).
     ContainmentApi.move(compass, wornBag(me, plan, 'satchel', 'waist'));
-    const r = me.ready(compass);
+    const r = me.ready(compass) as { ok: boolean; reason?: string } | null;
     expect(r?.reason).toBe('hands-full');
     // Both held things named, each offered to drop (the drive, step 7).
-    expect(me.refusalWords(r!)).toMatch(/Your hands are full — the lantern and the shield — and the lantern won't go back in the pouch\. Drop one \(`drop lantern` or `drop shield`\) or put it away first\./);
+    expect(carryWords(me, r!)).toMatch(/Your hands are full — the lantern and the shield — and the lantern won't go back in the pouch\. Drop one \(`drop lantern` or `drop shield`\) or put it away first\./);
     expect(me.tierOf(lantern)).toBe('hand');
   });
 
@@ -122,9 +122,9 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     // Slung in a bag at the waist — on you, not in hand (the flip, W7).
     ContainmentApi.move(maul, wornBag(me, plan, 'sling', 'waist'));
     expect(handsOf(me, maul)).toBe(2);
-    const r = me.ready(maul);
+    const r = me.ready(maul) as { ok: boolean; reason?: string } | null;
     expect(r?.reason).toBe('hands-full');
-    expect(me.refusalWords(r!)).toMatch(/shield/);
+    expect(carryWords(me, r!)).toMatch(/shield/);
   });
 
   it('in a fight it is a switch priced by the holders: a sheath is fast, a shut pouch slow', () => {
@@ -149,7 +149,7 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     // the dagger is not in hand until it completes.
     vi.spyOn(CombatApi, 'sessionFor').mockReturnValue({} as CombatSession);
     const begin = vi.spyOn(me, 'beginWeaponSwitch').mockReturnValue({ ok: true });
-    expect(me.ready(dagger)).toBeNull();
+    expect(me.ready(dagger)?.ok ?? true).toBe(true);
     expect(begin).toHaveBeenCalledWith(dagger, { seconds: 4.5 });
     expect(me.tierOf(dagger)).toBe('ready');
   });

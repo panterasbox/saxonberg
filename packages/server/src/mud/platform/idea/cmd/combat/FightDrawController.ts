@@ -21,7 +21,7 @@ export default class FightDrawController extends FightControllerBase {
     if (!result.ok) {
       return this.fail(
         context,
-        result.words ?? "You've no sidearm to draw.",
+        result.refusal !== undefined ? this.carryRefusalWords(giver, result.refusal) : "You've no sidearm to draw.",
         result.reason ?? "no-sidearm",
       );
     }

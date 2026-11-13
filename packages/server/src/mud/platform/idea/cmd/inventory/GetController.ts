@@ -237,7 +237,7 @@ export default class GetController extends CommandController<GetModel> {
       if (!MixinApi.isContainable(thing)) continue;
       const refused = giver.canReceive(thing);
       if (refused !== null) {
-        MessageApi.scene(giver).topic('act.deed').toSelf(Mml.text(giver.refusalWords(refused))).send();
+        MessageApi.scene(giver).topic('act.deed').toSelf(Mml.text(this.carryRefusalWords(giver, refused))).send();
         context.note({ kind: 'controller-rejected', reason: refused.reason, detail: thing.getPresentation() });
         return;
       }
@@ -253,10 +253,20 @@ export default class GetController extends CommandController<GetModel> {
   /** `get X from <a thing on you>`: each comes to hand, or the body says why not. */
   private bringOut(giver: Stuff & Carrying, things: readonly Stuff[], context: CommandContext): void {
     for (const thing of things) {
-      const refused = giver.bringToHand(thing);
-      if (refused === null) continue;
-      MessageApi.scene(giver).topic('act.deed').toSelf(Mml.text(giver.refusalWords(refused))).send();
-      context.note({ kind: 'controller-rejected', reason: refused.reason, detail: thing.getPresentation() });
+      const out = giver.bringToHand(thing);
+      if (out.ok) {
+        const words = this.readiedWords(giver, out);
+        if (words !== null && MixinApi.isSensor(giver)) {
+          MessageApi.scene(giver)
+            .topic('act.deed')
+            .toSelf(Mml.text(words.self))
+            .toPeers(Mml.compose`${Mml.actor(giver)} ${Mml.text(words.peer)}.`)
+            .send();
+        }
+        continue;
+      }
+      MessageApi.scene(giver).topic('act.deed').toSelf(Mml.text(this.carryRefusalWords(giver, out))).send();
+      context.note({ kind: 'controller-rejected', reason: out.reason, detail: thing.getPresentation() });
       return;
     }
   }
@@ -492,7 +502,7 @@ export default class GetController extends CommandController<GetModel> {
           reason: refused.reason === 'hands-on-cart' ? 'hands-hauling' : refused.reason,
           detail: `${operand.getPresentation()}: ${refused.reason}`,
         });
-        MessageApi.scene(giver).topic('sense.survey').toSelf(Mml.text(giver.refusalWords(refused))).send();
+        MessageApi.scene(giver).topic('sense.survey').toSelf(Mml.text(this.carryRefusalWords(giver, refused))).send();
         return false;
       }
     } else if (MixinApi.isHauling(giver) && giver.isHitched()) {

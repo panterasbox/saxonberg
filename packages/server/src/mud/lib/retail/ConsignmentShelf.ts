@@ -433,10 +433,12 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
       if (!MixinApi.isContainer(giver)) return null;
       const refused = giver.canReceive(item);
       if (refused === null) return null;
-      const why = refused.reason === "nowhere-to-carry" || refused.reason === "hands-on-cart" || !MixinApi.isCarrying(giver)
-        ? Mml.compose`Your hands are full — ${Mml.thing(item)} stays on the shelf until you have one free. Nothing is charged.`
-        : Mml.text(`${giver.refusalWords(refused)} Nothing is charged.`);
-      return this.refused(why, "buyer-cannot-take", word);
+      // ⭐ The shelf words only its own half (size and carrying W8): the
+      // good stays, nothing is charged. Why the buyer cannot take it rides
+      // as facts (`facts.carry`) for the verb to word.
+      const why = Mml.compose`${Mml.thing(item)} stays on the shelf until you have a free hand. Nothing is charged.`;
+      const out = this.refused(why, "buyer-cannot-take", word);
+      return out.ok ? out : { ...out, facts: { carry: refused } };
     }
 
     /** Custody → the buyer: into their hands (asked first — `handOverRefusal`). */

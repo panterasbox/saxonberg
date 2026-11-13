@@ -34,10 +34,10 @@ export default class FightSwitchController extends FightControllerBase {
       const tier = giver.tierOf(item);
       if (tier === "hand") return this.fail(context, "You're already holding that.", "already-held");
       if (tier === "elsewhere") return this.fail(context, "You don't have that on you.", "not-on-you");
-      const holder = giver.holderPhrase(item);
+      const holder = FightSwitchController.holderPhrase(giver, item);
       const refused = giver.ready(item);
-      if (refused !== null) {
-        return this.fail(context, giver.refusalWords(refused), refused.reason);
+      if (refused !== null && !refused.ok) {
+        return this.fail(context, this.carryRefusalWords(giver, refused), refused.reason);
       }
       const from = holder === null ? "" : ` at ${holder}`;
       MessageApi.scene(giver)
@@ -66,5 +66,23 @@ export default class FightSwitchController extends FightControllerBase {
       .toSelf(Mml.fromMarkup("You start to change weapons — your guard drops."))
       .toPeers(Mml.compose`${Mml.actor(giver)} moves to change weapons.`)
       .send();
+  }
+
+  /** The noun of where `item` sits on `body` (*your coat pocket*, *your sidearm*), or null. */
+  private static holderPhrase(body: Stuff, item: Stuff): string | null {
+    const placed = MixinApi.isContainable(item) ? item.getPlacement() : null;
+    if (placed !== null && placed.host.stuffId !== body.stuffId) {
+      const host = placed.host.presentationPhrase().bare();
+      const named = MixinApi.isPlacing(placed.host) && placed.host.namedRegions().includes(placed.name);
+      return named ? `your ${host}${host.endsWith("s") ? "'" : "'s"} ${placed.name}` : `your ${host}`;
+    }
+    const at = MixinApi.isContainable(item) ? item.getContainer() : null;
+    if (at !== null && at.stuffId !== body.stuffId) return `your ${at.presentationPhrase().bare()}`;
+    if (!MixinApi.isAttired(body)) return null;
+    const hands = new Set(body.handSlots());
+    for (const [slot, occ] of body.getAllOccupants()) {
+      if (!hands.has(slot) && [...occ].some((o) => o.stuffId === item.stuffId)) return `your ${slot.split(":")[0]}`;
+    }
+    return null;
   }
 }

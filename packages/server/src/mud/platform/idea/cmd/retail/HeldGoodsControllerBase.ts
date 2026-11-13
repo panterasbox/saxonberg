@@ -88,10 +88,9 @@ export abstract class HeldGoodsControllerBase<
     }
 
     // ⭐ Handed back (D-W7a): if you cannot take it, it stays where it is.
-    const refused = MixinApi.isCarrying(giver) ? giver.canReceive(item) : null;
-    const cannot = refused !== null && MixinApi.isCarrying(giver) ? giver.refusalWords(refused) : null;
-    if (refused !== null && cannot !== null) {
-      this.reject(giver, context, Mml.text(cannot), {
+    const refused = MixinApi.isContainer(giver) ? giver.canReceive(item) : null;
+    if (refused !== null) {
+      this.reject(giver, context, Mml.text(this.carryRefusalWords(giver, refused)), {
         kind: "controller-rejected",
         reason: refused.reason,
         detail: thing,

@@ -37,6 +37,18 @@ import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Placing } from '../../../../lib/spatial/Placing';
 import type { Carrying } from '../../../../lib/slot/Carrying';
+import type { Slotted } from '../../../../lib/slot/Slotted';
+import type { Container } from '../../../../lib/spatial/Container';
+
+/** What is directly on a body, by how it is carried (D28) — `inventory`'s bucketing. */
+interface CarriedTiers {
+  held: Stuff[];
+  regions: { host: Stuff & Placing; region: string; items: Stuff[] }[];
+  worn: Stuff[];
+  ready: (Stuff & Container)[];
+  packed: (Stuff & Container)[];
+  loose: Stuff[];
+}
 
 interface InventoryModel extends CommandModel {
   target?: MqlOneResult;
@@ -151,7 +163,56 @@ export default class InventoryController extends CommandController<InventoryMode
     return Mml.compose`\n${body}\n`;
   }
 
-  /** ⭐ Yourself by tier (D28) — the sorting is the carrier's (`Carrying.carriedTiers`). */
+  /**
+   * ⭐ What is directly on a body, sorted by how it is carried (D28) — the
+   * bucketing for this one view, over the body's own `tierOf`. Each list
+   * is raw: the caller perceives it.
+   */
+  private static tiersOf(carrier: Stuff & Carrying): CarriedTiers {
+    const self = carrier as unknown as Stuff & Slotted & Container;
+    const slotOf = new Map<string, string[]>();
+    for (const [slot, occ] of self.getAllOccupants()) {
+      for (const o of occ) slotOf.set(o.stuffId, [...(slotOf.get(o.stuffId) ?? []), slot]);
+    }
+    const out: CarriedTiers = { held: [], regions: [], worn: [], ready: [], packed: [], loose: [] };
+    const regions = new Map<string, CarriedTiers['regions'][number]>();
+    const isHolder = (x: Stuff): x is Stuff & Container => MixinApi.isContainer(x) && !x.isAgent();
+    for (const x of self.getContents()) {
+      const tier = carrier.tierOf(x);
+      const pair = MixinApi.isContainable(x) ? x.getPlacement() : null;
+      if (tier === 'hand') {
+        out.held.push(x);
+      } else if (pair !== null && pair.host.stuffId !== self.stuffId && MixinApi.isPlacing(pair.host)) {
+        const key = `${pair.host.stuffId}\u0000${pair.name}`;
+        let g = regions.get(key);
+        if (g === undefined) {
+          g = { host: pair.host, region: pair.name, items: [] };
+          regions.set(key, g);
+          out.regions.push(g);
+        }
+        g.items.push(x);
+        if (isHolder(x)) out.ready.push(x);
+      } else if (slotOf.has(x.stuffId)) {
+        if (!isHolder(x)) out.worn.push(x);
+        else if (tier === 'packed' || (slotOf.get(x.stuffId) ?? []).includes('back')) out.packed.push(x);
+        else out.ready.push(x);
+      } else {
+        out.loose.push(x);
+      }
+    }
+    return out;
+  }
+
+  /** ⭐ What a pack holds, told shut (D28): `5 things, 3.2 kg`, or `empty`. */
+  private static tallyWords(things: readonly Stuff[]): string {
+    if (things.length === 0) return 'empty';
+    const kg = things.reduce((sum, x) => sum + (MixinApi.isTangible(x) ? x.getMass().rawValue() : 0), 0);
+    const n = things.length === 1 ? 'one thing' : `${things.length} things`;
+    // Two significant figures — a reading off a list, not a weighing.
+    return `${n}, ${Number(kg.toPrecision(2))} kg`;
+  }
+
+  /** ⭐ Yourself by tier (D28) — the body reports each thing's tier (`Carrying.tierOf`); this view buckets them. */
   private static tiered(viewer: Stuff & Carrying, model: InventoryModel): Mml {
     const carrier = viewer;
     const weight = model.weight === true;
@@ -166,7 +227,7 @@ export default class InventoryController extends CommandController<InventoryMode
     }
 
     // What is directly on the body, by how it is carried — each list perceived.
-    const tiers = carrier.carriedTiers();
+    const tiers = InventoryController.tiersOf(carrier);
     const seen = (xs: readonly Stuff[]): Stuff[] => PerceptionApi.perceived(viewer, xs);
     const held = seen(tiers.held);
     const worn = seen(tiers.worn);
@@ -230,7 +291,7 @@ export default class InventoryController extends CommandController<InventoryMode
               : Mml.compose`  ${Mml.thing(c)}: empty.`,
           );
         } else {
-          lines.push(Mml.compose`  ${Mml.thing(c)}: ${carrier.tallyWords(inside)}.`);
+          lines.push(Mml.compose`  ${Mml.thing(c)}: ${InventoryController.tallyWords(inside)}.`);
         }
       }
     }

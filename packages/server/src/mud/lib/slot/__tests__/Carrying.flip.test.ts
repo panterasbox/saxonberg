@@ -15,7 +15,7 @@ import Good from '../../../platform/thing/Good';
 import Location from '../../location/Location';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { installForms } from '../../spatial/__tests__/size-fixture';
-import { makeBody, tool, wornGarment, wornBag } from './carrying-fixture';
+import { makeBody, tool, wornGarment, wornBag, carryWords } from './carrying-fixture';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 const POCKET = { member: '/platform/placements/pocket', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 };
@@ -83,7 +83,7 @@ describe('the flip — nothing loose on a body', () => {
     const refused = me.canReceive(map);
     expect(refused?.reason).toBe('nowhere-to-carry');
     expect(map.getContainer()).toBe(room);
-    const words = me.refusalWords(refused!);
+    const words = carryWords(me, refused!);
     expect(words).toMatch(/^Your hands are full — the mug and the lantern — and the map won't fit in your pockets\./);
     expect(words).toMatch(/`drop lantern`/);
   });
@@ -102,7 +102,7 @@ describe('the flip — nothing loose on a body', () => {
     ContainmentApi.move(mugs[1]!, me);
     const refused = me.canReceive(mugs[2]!);
     expect(refused?.reason).toBe('nowhere-to-carry');
-    expect(me.refusalWords(refused!)).toMatch(/^Your hands are full — both mugs — and another mug won't fit in your pockets\. Set something down \(`drop mug`\)\.$/);
+    expect(carryWords(me, refused!)).toMatch(/^Your hands are full — both mugs — and another mug won't fit in your pockets\. Set something down \(`drop mug`\)\.$/);
   });
 
   it('⭐ a held thing that leaves the body leaves its hand (no phantom occupant — the lead rope)', async () => {

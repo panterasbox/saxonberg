@@ -22,6 +22,7 @@
  * the price map a menu, a tariff and a counter share; this is the act.
  */
 
+import type { ArrivalRefusal } from '../spatial/Container';
 import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Note } from "@saxonberg/types";
@@ -47,7 +48,16 @@ export interface SaleRequest {
 /** How a sale ended: what the buyer and the room are told, or the refusal. */
 export type SaleOutcome =
   | { ok: true; self: Mml; peers: Mml }
-  | { ok: false; line: Mml; note: Note };
+  | {
+      ok: false;
+      line: Mml;
+      note: Note;
+      /**
+       * Why the BUYER could not take the good, as the body reported it
+       * (size and carrying W8) — the verb words it before the seller's line.
+       */
+      facts?: { carry?: ArrivalRefusal };
+    };
 
 export interface ForSale {
   /** ⭐ Does this offer what `word` names — even if none is left to sell today? */

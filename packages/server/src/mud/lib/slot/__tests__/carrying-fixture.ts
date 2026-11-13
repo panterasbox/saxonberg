@@ -9,6 +9,7 @@
 
 import { Actor } from '../../creature/Actor';
 import { CarryingMixin, type Carrying } from '../Carrying';
+import { CommandController } from '../../command/CommandController';
 import { MixinApi } from '../../../api/mixin';
 import { SpeciesApi } from '../../../api/species';
 import Species from '../../../platform/idea/species/Species';
@@ -200,4 +201,19 @@ export function handsOf(me: Stuff & Carrying, item: Stuff): 1 | 2 | null {
   const p = me.wieldPlanFor(item, claim);
   if (!p.ok) return p.reason === 'too-heavy' ? null : 2;
   return p.slots.filter((s) => s.startsWith('hand:')).length >= 2 ? 2 : 1;
+}
+
+/** A bare controller — the carrying words are every verb's (size and carrying W8). */
+class WordsProbe extends CommandController {
+  async execute(): Promise<void> {}
+}
+
+/** The words a verb's controller gives a carrying refusal (`CommandController.carryRefusalWords`). */
+export function carryWords(giver: Stuff, r: unknown): string {
+  return makeStuff(() => new WordsProbe()).carryRefusalWords(giver, r as never);
+}
+
+/** The words a verb's controller gives a readying (`CommandController.readiedWords`). */
+export function readiedWords(giver: Stuff, out: unknown): { self: string; peer: string } | null {
+  return makeStuff(() => new WordsProbe()).readiedWords(giver, out as never);
 }

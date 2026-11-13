@@ -658,11 +658,13 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
       return;
     }
     if ((reason === 'hands' || reason === 'heavy') && MixinApi.isCarrying(giver)) {
-      const words = giver.refusalWords(
-        reason === 'heavy'
-          ? { ok: false, reason: 'too-heavy' }
-          : { ok: false, reason: 'hands-needed', facts: { hands: 2, held: giver.heldThings() } },
-      );
+      // ⭐ The body's own refusal, worded — never one made up to be worded.
+      const plan = SpeciesApi.tryGetBodyPlanPath(giver) ?? '';
+      const as = EquipControllerBase.claimAs(item, mode) ?? 'wield';
+      const planned = giver.wieldPlanFor(item, EquipControllerBase.slotsFor(item, plan, as));
+      const words = planned.ok
+        ? (reason === 'heavy' ? "That's more than you can lift." : 'That takes both hands.')
+        : this.carryRefusalWords(giver, planned);
       MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.text(words)).send();
       context.note({
         kind: 'controller-rejected',
