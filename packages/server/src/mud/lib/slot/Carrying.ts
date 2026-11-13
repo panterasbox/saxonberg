@@ -147,55 +147,19 @@ export interface CarriedTiers {
 export type HomeHost = (Stuff & Container) | (Stuff & Placing);
 
 export interface Carrying {
-  /** ⭐ The body's hands (D9): the slots whose body part serves manipulation. */
-  handSlots(): string[];
-  /** What the hands hold, each thing once (a two-handed grip is one thing). */
-  heldThings(): (Stuff & Slottable)[];
-  /**
-   * ⭐ Does this body WEAR `item` — does it occupy one of its slots other
-   * than a hand? What a hand holds is carried, not worn (D12, the flip);
-   * what is pocketed or hung is placed on a worn host, not in a slot. The
-   * model read behind MQL's `:worn` for a carrier.
-   */
-  wears(item: Stuff): boolean;
-  /**
-   * ⭐ What this body CARRIES, directly: in a hand, pocketed, hung from a
-   * belt — and, on a body whose plan is not known yet, loose — never what
-   * it wears (a garment, the bag on its back; what is IN that bag is the
-   * bag's). The goods a body has to hand over, sell or shelve: since the
-   * flip its clothes are in its contents too, and a read of the whole
-   * contents offered them up (a keeper put her apron on the counter).
-   */
-  carriedThings(): Stuff[];
-  /**
-   * ⭐ What a lead is made fast to (size and carrying D18, W6): the first
-   * worn `Tieable` off the hands — a halter, a dog's collar. A body that
-   * wears one is LED by a rope tied to it, hands or no hands (a dog's mouth
-   * is a hand, and a dog on a lead is still led). `null` = nothing to tie.
-   */
-  halter(): Stuff | null;
   /**
    * How many hands are empty and can close on something (`Vitals.canGrip`),
    * less the handles of a cart this body pulls (D18).
    */
   freeHands(): number;
-  /**
-   * ⭐ How many hands `item` takes in THIS body's grip (D10): `2` when its
-   * use needs two (an authored two-hand claim) or it is heavy or long
-   * against this body; `null` when it is past what the body can lift at
-   * all; else `1`.
-   */
-  handsFor(item: Stuff): 1 | 2 | null;
   /** ⭐ How near `thing` is to the hand (D15); `elsewhere` when it is not on this body. */
   tierOf(thing: Stuff): CarryTier;
   /**
-   * Where `item` goes back to on this body, or null (D14). Forgotten when
-   * either end has left. A pocket home answers its garment;
-   * {@link homeRegionOf} names the pocket.
+   * Where `item` goes back to on this body, or null (D14): the host (a
+   * container on the body, or a placing host) and, for a pocket, the
+   * region. Forgotten when either end has left.
    */
-  homeOf(item: Stuff): HomeHost | null;
-  /** The named region of `item`'s home (`left pocket`), or null for a container home. */
-  homeRegionOf(item: Stuff): string | null;
+  homeOf(item: Stuff): { host: HomeHost; region?: string } | null;
   /**
    * Remember `home` (a container on this body, or — with `region` — a
    * placing host's region: a coat's pocket) as where `item` goes back to.
@@ -209,12 +173,6 @@ export interface Carrying {
    * that is not on this body at all.
    */
   isHonest(item: Stuff): boolean;
-  /**
-   * ⭐ The places a thing handed to this body may go short of a hand, in
-   * D11's order: the ready tier (worn pockets, containers hung from a worn
-   * host, worn containers off the back), then the packed tier (the back).
-   */
-  carryPlaces(): CarryPlace[];
   /**
    * ⭐ Bring `item` to hand (D16). In hand already → ok; on you → the hand
    * it needs is freed (what is in it goes home; never dropped for you) and
@@ -243,18 +201,14 @@ export interface Carrying {
    */
   releaseHeld(slots?: readonly string[]): Stuff[];
   /**
-   * ⭐ The slots `item` takes when wielded by THIS body (D10): its authored
-   * `claim`, widened by a free hand when its weight or length takes two
-   * here (the gnome's longsword; the ogre's greatsword stays one).
+   * ⭐ Wielding `item` by `claim` on THIS body (D10): the slots it takes —
+   * its authored claim, widened by a free hand when its weight or length
+   * takes two here (the gnome's longsword; the ogre's greatsword stays
+   * one) — or why not now: `too-heavy`, the cart's handles
+   * (`hands-on-cart`), or two hands by weight with the other holding
+   * something (`hands-needed`). A claim that is not a hand's is its slots.
    */
-  wieldSlots(item: Stuff, claim: readonly string[]): string[];
-  /**
-   * May this body wield `item` by `claim` now: `too-heavy`, the cart's
-   * handles (`hands-on-cart`), or two hands by weight with the other
-   * holding something (`hands-needed`, naming what is held). `null` when
-   * it may — or when the claim is not a hand's.
-   */
-  wieldRefusal(item: Stuff, claim: readonly string[]): ReadyRefusal | null;
+  wieldPlanFor(item: Stuff, claim: readonly string[]): { ok: true; slots: string[] } | ReadyRefusal;
   /** D12's awkwardness of holding `item`: 1 for a compact load, more for a long or bulky one. */
   awkwardnessOf(item: Stuff): number;
   /** ⭐ D36: 1 when something held or hung on this body clanks (rigid and ringing), else 0. */
@@ -324,6 +278,11 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
      */
     private _homes = new Map<string, { host: HomeHost; region?: string }>();
 
+    /** This carrier as the body it is (its hands are the slot substrate's — `Attired`). */
+    private asBody(): Creature {
+      return this as unknown as Creature;
+    }
+
     // ── persistence (D14): the carrier persists what it knows, by path ──
 
     /**
@@ -375,65 +334,11 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
 
     // ── hands (D9–D10) ──
 
-    public handSlots(): string[] {
-      const self = this as unknown as Stuff & Slotted;
-      if (!MixinApi.isAttired(self)) return [];
-      const sites = new Set(self.handSites());
-      if (sites.size === 0) return [];
-      // ⭐ A slot AT a hand is not always a hand (size and carrying drive,
-      // step 1): the biped's ring slots attach at the hand too, and a mug
-      // went onto a finger — four "hands". What is worn at a hand (a ring,
-      // a glove) accepts a wearable; what a hand HOLDS is the slot that
-      // does not.
-      return self.getSlotNames().filter((name) => {
-        const spec = self.getSlotSpec(name);
-        const part = spec?.bodyPart;
-        return part !== undefined && sites.has(part) && spec?.accepts !== Mixins.Wearable;
-      });
-    }
-
-    public wears(item: Stuff): boolean {
-      const self = this as unknown as Stuff & Slotted;
-      const hands = new Set(this.handSlots());
-      for (const [slot, occupants] of self.getAllOccupants()) {
-        if (hands.has(slot)) continue;
-        for (const o of occupants) if (o.stuffId === item.stuffId) return true;
-      }
-      return false;
-    }
-
-    public carriedThings(): Stuff[] {
-      const self = this as unknown as Stuff & Container;
-      return self.getContents().filter((x) => !this.wears(x));
-    }
-
-    public heldThings(): (Stuff & Slottable)[] {
-      const self = this as unknown as Stuff & Slotted;
-      const out: (Stuff & Slottable)[] = [];
-      for (const slot of this.handSlots()) {
-        for (const held of self.getOccupants(slot)) {
-          if (!out.includes(held)) out.push(held);
-        }
-      }
-      return out;
-    }
-
-    public halter(): Stuff | null {
-      const self = this as unknown as Stuff & Slotted;
-      const hands = new Set(this.handSlots());
-      for (const name of self.getSlotNames()) {
-        if (hands.has(name)) continue;
-        const worn = [...self.getOccupants(name)].find((o) => MixinApi.isTieable(o));
-        if (worn !== undefined) return worn;
-      }
-      return null;
-    }
-
     /** Hand slots that are empty and can close on something. */
     private openHands(): string[] {
       const self = this as unknown as Stuff & Slotted;
       const vitals = MixinApi.isVitals(self) ? self : null;
-      return this.handSlots().filter(
+      return this.asBody().handSlots().filter(
         (slot) => !self.isSlotOccupied(slot) && (vitals === null || vitals.canGrip(slot)),
       );
     }
@@ -452,7 +357,12 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       return Math.max(0, this.openHands().length - onCart);
     }
 
-    public handsFor(item: Stuff): 1 | 2 | null {
+    /**
+     * ⭐ How many hands `item` takes in THIS body's grip (D10): `2` when its
+     * use needs two (an authored two-hand claim) or it is heavy or long
+     * against this body; `null` when it is past what it can lift; else `1`.
+     */
+    private handsFor(item: Stuff): 1 | 2 | null {
       const self = this as unknown as Stuff;
       // ⭐ The grip judges MASS, never weight (D10-d): a thing and all that
       // is in it, at any gravity — a full pack takes both hands weightless,
@@ -477,26 +387,27 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       if (MixinApi.isWieldable(item)) {
         const plan = SpeciesApi.tryGetBodyPlanPath(self);
         if (plan !== null) {
-          const hands = new Set(this.handSlots());
+          const hands = new Set(this.asBody().handSlots());
           if (item.getSlotClaim(plan).filter((s) => hands.has(s)).length >= 2) return 2;
         }
       }
       return 1;
     }
 
-    public wieldSlots(item: Stuff, claim: readonly string[]): string[] {
-      const hands = this.handSlots();
+    /** The slots `item` takes wielded by `claim` here: the claim, widened by a free hand. */
+    private wieldSlots(item: Stuff, claim: readonly string[]): string[] {
+      const hands = this.asBody().handSlots();
       const held = claim.filter((sl) => hands.includes(sl));
       const need = this.handsFor(item) ?? 1;
       if (held.length === 0 || held.length >= need) return [...claim];
       return [...claim, ...hands.filter((h) => !claim.includes(h)).slice(0, need - held.length)];
     }
 
-    public wieldRefusal(item: Stuff, claim: readonly string[]): ReadyRefusal | null {
+    public wieldPlanFor(item: Stuff, claim: readonly string[]): { ok: true; slots: string[] } | ReadyRefusal {
       const self = this as unknown as Stuff & Slotted;
       const need = this.handsFor(item);
       if (need === null) return { ok: false, reason: 'too-heavy' };
-      const hands = this.handSlots();
+      const hands = this.asBody().handSlots();
       const slots = this.wieldSlots(item, claim);
       const gripped = slots.filter((sl) => hands.includes(sl));
       // The handles first: taking anything up takes at least a hand.
@@ -504,19 +415,19 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       if (cart !== null && this.freeHands() < Math.max(1, gripped.length)) {
         return { ok: false, reason: 'hands-on-cart', facts: { cart: cart.cart } };
       }
-      if (gripped.length === 0) return null; // not a hand's question
+      if (gripped.length === 0) return { ok: true, slots }; // not a hand's question
       const extra = slots.filter((sl) => !claim.includes(sl));
       if (extra.some((sl) => self.isSlotFull(sl)) || need > gripped.length) {
-        return { ok: false, reason: 'hands-needed', facts: { hands: need, held: this.heldThings() } };
+        return { ok: false, reason: 'hands-needed', facts: { hands: need, held: this.asBody().heldThings() } };
       }
-      return null;
+      return { ok: true, slots };
     }
 
     /** Why no hand can take a thing: the hurt hand's own words, or null. */
     private gripWhy(): string | null {
       const self = this as unknown as Stuff & Slotted;
       if (!MixinApi.isVitals(self)) return null;
-      for (const slot of this.handSlots()) {
+      for (const slot of this.asBody().handSlots()) {
         if (self.isSlotOccupied(slot)) continue;
         const why = self.slotRefusalReason(slot);
         if (why !== null) return why;
@@ -550,7 +461,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       if (placed !== null && placed.host.stuffId !== self.stuffId) return 'ready';
       const slots = slotsOf(top);
       if (top !== thing) return slots.includes(PACKED_SLOT) ? 'packed' : 'ready';
-      const hands = this.handSlots();
+      const hands = this.asBody().handSlots();
       if (slots.some((s) => hands.includes(s))) return 'hand';
       // Worn itself (or, never after the flip, loose on the body): one draw.
       return 'ready';
@@ -558,7 +469,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
 
     // ── homes (D14) ──
 
-    public homeOf(item: Stuff): HomeHost | null {
+    public homeOf(item: Stuff): { host: HomeHost; region?: string } | null {
       const home = this._homes.get(item.stuffId) ?? null;
       if (home === null) return null;
       // Lazily forgotten: a home is knowledge of THIS body's things, so
@@ -568,11 +479,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
         this._homes.delete(item.stuffId);
         return null;
       }
-      return home.host;
-    }
-
-    public homeRegionOf(item: Stuff): string | null {
-      return this.homeOf(item) === null ? null : (this._homes.get(item.stuffId)?.region ?? null);
+      return home;
     }
 
     public setHome(item: Stuff, home: HomeHost, region?: string): void {
@@ -663,7 +570,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       // carrying drive, step 18): a mule carries only in what it wears, and
       // `put pack saddle in mule` had nowhere to go — no hand, no pocket.
       // The claim's slots must be free; worn already is nothing to do.
-      if (this.handSlots().length === 0 && MixinApi.isSlottable(item)) {
+      if (this.asBody().handSlots().length === 0 && MixinApi.isSlottable(item)) {
         const claim = this.wearClaim(item);
         const self = this as unknown as Stuff & Slotted;
         if (claim.length > 0 && claim.every((slot) => self.canOccupy(item as Stuff & Slottable, slot))) {
@@ -696,7 +603,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
         return { kind: 'refused', refusal: { ok: false, reason: 'hands-on-cart', facts: { cart: cart.cart } } };
       }
       const why = this.gripWhy();
-      if (why !== null && this.heldThings().length === 0) {
+      if (why !== null && this.asBody().heldThings().length === 0) {
         return { kind: 'refused', refusal: { ok: false, reason: 'cannot-grip', facts: { why } } };
       }
       return {
@@ -704,7 +611,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
         refusal: {
           ok: false,
           reason: 'nowhere-to-carry',
-          facts: { item, held: this.heldThings(), tried: [...new Set(places.map((p) => p.host))] },
+          facts: { item, held: this.asBody().heldThings(), tried: [...new Set(places.map((p) => p.host))] },
         },
       };
     }
@@ -747,7 +654,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       const self = this as unknown as Stuff & Container & Slotted;
       const me = self.getIdentityPath() ?? self.getTemplatePath() ?? '';
       const place = (self as unknown as Stuff & Containable).getContainer();
-      const hands = new Set(this.handSlots());
+      const hands = new Set(this.asBody().handSlots());
       const worn = new Set<string>();
       for (const [slot, occ] of self.getAllOccupants()) {
         if (hands.has(slot)) continue;
@@ -778,7 +685,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
           // A thing in the guest's own pocket, or held: found, so dropped.
           if (onWorn || this.tierOf(item) === 'hand') {
             if (MixinApi.isSlottable(item)) {
-              for (const slot of this.handSlots()) if (self.getOccupants(slot).has(item)) self.vacate(slot, item);
+              for (const slot of this.asBody().handSlots()) if (self.getOccupants(slot).has(item)) self.vacate(slot, item);
             }
             ContainmentApi.move(item, place as Stuff & Container);
             out.push(item);
@@ -901,7 +808,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       // taken in hand (`get holster from belt`), not hung again.
       if (this.tierOf(item) !== 'elsewhere') return null;
       const self = this as unknown as Stuff & Slotted;
-      const hands = new Set(this.handSlots());
+      const hands = new Set(this.asBody().handSlots());
       const seen = new Set<string>();
       for (const [slot, occ] of self.getAllOccupants()) {
         if (hands.has(slot)) continue;
@@ -923,9 +830,14 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       return v === 'pockets-first' ? 'pockets-first' : 'hands-first';
     }
 
-    public carryPlaces(): CarryPlace[] {
+    /**
+     * ⭐ The places a thing may go on this body short of a hand, in D11's
+     * order: worn pockets, what hangs from a worn host, worn containers off
+     * the back, then the pack on the back.
+     */
+    private carryPlaces(): CarryPlace[] {
       const self = this as unknown as Stuff & Slotted & Container;
-      const hands = new Set(this.handSlots());
+      const hands = new Set(this.asBody().handSlots());
       const pockets: CarryPlace[] = [];
       const hung: CarryPlace[] = [];
       const ready: CarryPlace[] = [];
@@ -975,7 +887,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       const self = this as unknown as Stuff;
       // A body whose plan names no hands (an old fixture, a beast's
       // mouth before W6) switches the shipped way in a fight.
-      if (this.handSlots().length === 0) {
+      if (this.asBody().handSlots().length === 0) {
         if (!MixinApi.isCombatant(self) || !CombatApi.sessionFor(self)) return null;
         const started = self.beginWeaponSwitch(item);
         return started.ok ? null : { ok: false, reason: 'already-switching' };
@@ -1022,14 +934,14 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       const hands = this.handsFor(item);
       if (hands === null) return { ok: false, reason: 'too-heavy' };
       const cart = this.cartInHand();
-      const grip = this.openHands().length + this.heldThings().length - (cart?.hands ?? 0);
+      const grip = this.openHands().length + this.asBody().heldThings().length - (cart?.hands ?? 0);
       if (cart !== null && this.openHands().length >= hands && this.freeHands() < hands) {
         return { ok: false, reason: 'hands-on-cart', facts: { cart: cart.cart } };
       }
       if (grip < hands) {
         const why = this.gripWhy();
         if (why !== null) return { ok: false, reason: 'cannot-grip', facts: { why } };
-        return { ok: false, reason: 'hands-needed', facts: { hands, held: this.heldThings() } };
+        return { ok: false, reason: 'hands-needed', facts: { hands, held: this.asBody().heldThings() } };
       }
       // What has to come out of the hands, and will it go?
       for (const held of this.inTheWay(item, hands)) {
@@ -1057,7 +969,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       // place cannot be held and is used where it is.
       if (!MixinApi.isSlottable(item)) return null;
       const self = this as unknown as Stuff & Slotted;
-      const hands = this.handSlots();
+      const hands = this.asBody().handSlots();
       if (hands.length === 0) return null;
       const n = this.handsFor(item) ?? 1;
       let claim: string[] = [];
@@ -1098,7 +1010,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       const home = this.homeOf(held);
       if (home !== null && this.homeTakes(held)) return null;
       if (home === null && this.stowPlaceFor(held) !== null) return null;
-      return { ok: false, reason: 'hands-full', facts: { held, home } };
+      return { ok: false, reason: 'hands-full', facts: { held, home: home?.host ?? null } };
     }
 
     /** Where a homeless held thing would be put away: the first carry place it fits. */
@@ -1110,9 +1022,9 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
     private homeTakes(held: Stuff): boolean {
       const home = this.homeOf(held);
       if (home === null) return false;
-      const region = this.homeRegionOf(held);
-      if (region !== null && MixinApi.isPlacing(home)) return this.placeTakes({ host: home, region }, held);
-      return MixinApi.isContainer(home) && this.placeTakes({ host: home }, held);
+      const { host, region } = home;
+      if (region !== undefined && MixinApi.isPlacing(host)) return this.placeTakes({ host, region }, held);
+      return MixinApi.isContainer(host) && this.placeTakes({ host }, held);
     }
 
     public stow(held: Stuff): ReadyRefusal | null {
@@ -1120,16 +1032,16 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       if (refusal !== null) return refusal;
       const self = this as unknown as Stuff & Slotted;
       if (MixinApi.isSlottable(held)) {
-        for (const slot of this.handSlots()) {
+        for (const slot of this.asBody().handSlots()) {
           if ([...self.getOccupants(slot)].some((o) => o.stuffId === held.stuffId)) self.vacate(slot, held);
         }
       }
       const home = this.homeOf(held);
-      const region = this.homeRegionOf(held);
       if (!MixinApi.isContainable(held)) return null;
       if (home !== null) {
-        if (region !== null && MixinApi.isPlacing(home)) ContainmentApi.move(held, home, region);
-        else if (MixinApi.isContainer(home)) ContainmentApi.move(held, home);
+        const { host, region } = home;
+        if (region !== undefined && MixinApi.isPlacing(host)) ContainmentApi.move(held, host, region);
+        else if (MixinApi.isContainer(host)) ContainmentApi.move(held, host);
         return null;
       }
       // Homeless: the first place it fits — and that becomes its home.
@@ -1233,7 +1145,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       const at = MixinApi.isContainable(item) ? item.getContainer() : null;
       if (at === null || at.stuffId === self.stuffId) {
         // On the body: a sheath slot is a shaped holder; loose is a reach.
-        const hands = new Set(this.handSlots());
+        const hands = new Set(this.asBody().handSlots());
         for (const [slot, occ] of self.getAllOccupants()) {
           if (!hands.has(slot) && [...occ].some((o) => o.stuffId === item.stuffId)) return draw;
         }
@@ -1251,7 +1163,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       let away = 0;
       for (const held of this.inTheWay(item, hands)) {
         const home = this.homeOf(held);
-        away += home === null ? dialSeconds(AppSettingKeys.combatReachSeconds, 3) : this.holderSecondsInto(home);
+        away += home === null ? dialSeconds(AppSettingKeys.combatReachSeconds, 3) : this.holderSecondsInto(home.host);
       }
       return away + this.holderSeconds(item);
     }
@@ -1322,7 +1234,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       }
       const at = MixinApi.isContainable(item) ? item.getContainer() : null;
       if (at !== null && at.stuffId !== self.stuffId) return `your ${at.presentationPhrase().bare()}`;
-      const hands = new Set(this.handSlots());
+      const hands = new Set(this.asBody().handSlots());
       for (const [slot, occ] of self.getAllOccupants()) {
         if (!hands.has(slot) && [...occ].some((o) => o.stuffId === item.stuffId)) {
           return `your ${slot.split(':')[0]}`;
@@ -1335,7 +1247,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
 
     public releaseHeld(slots?: readonly string[]): Stuff[] {
       const self = this as unknown as Stuff & Slotted;
-      const which = slots ?? this.handSlots();
+      const which = slots ?? this.asBody().handSlots();
       const place = MixinApi.isContainable(self) ? self.getContainer() : null;
       const dropped: Stuff[] = [];
       for (const slot of which) {
@@ -1384,7 +1296,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
         if (MixinApi.isIntegrity(x)) return x.ringSound().rings;
         return x.getMaterial()?.hasTag('metal') ?? false;
       };
-      if (this.heldThings().some(loud)) return 1;
+      if (this.asBody().heldThings().some(loud)) return 1;
       for (const item of self.getContents()) {
         const placed = MixinApi.isContainable(item) ? item.getPlacement() : null;
         if (placed !== null && placed.name === 'from' && loud(item)) return 1;
@@ -1474,7 +1386,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
         case 'hands-on-cart':
           return `Your hands are on ${a(r.facts.cart)} — \`unhitch\` it first.`;
         case 'nowhere-to-carry': {
-          if (this.handSlots().length === 0) return 'You have nowhere to carry that.';
+          if (this.asBody().handSlots().length === 0) return 'You have nowhere to carry that.';
           return this.nowhereWords(r.facts.item ?? null, r.facts.held, r.facts.tried);
         }
         case 'packed':
@@ -1482,7 +1394,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
         case 'hands-full': {
           // ⭐ Name what the hands hold and offer each to drop (the drive,
           // step 7: a lantern and a shield, and the words named only one).
-          const all = this.heldThings();
+          const all = this.asBody().heldThings();
           const kw = (x: Stuff): string =>
             (MixinApi.isPerceptible(x) ? x.getPrimaryKeyword() : undefined) ?? x.presentationPhrase().bare();
           const stuck = r.facts.held;

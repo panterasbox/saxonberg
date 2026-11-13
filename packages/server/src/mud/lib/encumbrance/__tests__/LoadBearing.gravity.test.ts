@@ -13,7 +13,7 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 import { makeStuff } from '../../security/__tests__/test-setup';
 import Location from '../../location/Location';
 import { LOAD_BEARING_DEFAULTS } from '../LoadBearing';
-import { makeBody, tool, hold, wornBag, pack } from '../../slot/__tests__/carrying-fixture';
+import { makeBody, tool, hold, wornBag, pack, handsOf } from '../../slot/__tests__/carrying-fixture';
 
 describe('LoadBearing — weight by the place (W4)', () => {
   beforeEach(() => installV1QuantityMarshallers());
@@ -37,7 +37,7 @@ describe('LoadBearing — weight by the place (W4)', () => {
     room.setGravity(Quantity.of(0, 'm/s²'));
     expect(me.getBorneBurden().rawValue()).toBe(0);
     expect(kb.getMass().rawValue()).toBe(12);
-    expect(me.handsFor(kb)).toBe(2);
+    expect(handsOf(me, kb)).toBe(2);
   });
 
   it('D10-d: the hands judge MASS — a full pack takes both at 9.81 and at zero g; only the burden goes to 0', () => {
@@ -53,13 +53,13 @@ describe('LoadBearing — weight by the place (W4)', () => {
     const empty = pack('daysack', 2, [0.35, 0.25, 0.55]);
     ContainmentApi.move(empty, room);
     expect(me.ladenMassOf(full).rawValue()).toBeCloseTo(14, 5);
-    const atEarth = me.handsFor(full);
+    const atEarth = handsOf(me, full);
     expect(atEarth).toBe(2);
-    expect(me.handsFor(empty)).toBe(1);
+    expect(handsOf(me, empty)).toBe(1);
     room.setGravity(Quantity.of(0, 'm/s²'));
     expect(me.ladenMassOf(full).rawValue()).toBeCloseTo(14, 5);
-    expect(me.handsFor(full)).toBe(atEarth);
-    expect(me.handsFor(empty)).toBe(1);
+    expect(handsOf(me, full)).toBe(atEarth);
+    expect(handsOf(me, empty)).toBe(1);
     hold(me, plan, tool('kettlebell', 12, [0.2, 0.2, 0.2]));
     expect(me.getBorneBurden().rawValue()).toBe(0);
   });

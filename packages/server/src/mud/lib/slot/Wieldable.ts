@@ -109,7 +109,7 @@ export function WieldableMixin<
       // D9/D16): readying a compass, a lead's end, a pole's second hand by
       // weight — the claim says where it goes when you `wield` it, not
       // which hands may close on it.
-      if (MixinApi.isCarrying(host) && host.handSlots().includes(slot)) return true;
+      if (MixinApi.isAttired(host) && host.handSlots().includes(slot)) return true;
       const bodyPlanPath = SpeciesApi.tryGetBodyPlanPath(host);
       if (!bodyPlanPath) return false;
       return this.getSlotClaim(bodyPlanPath).includes(slot);

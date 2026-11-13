@@ -236,7 +236,7 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
       // (a hand, a pocket, a belt, a bag) — the shirt on your back you take
       // off first. Since the flip `inventory` is everything on you, and a
       // consignor's whole outfit was one `shelf consign` from the counter.
-      if (MixinApi.isCarrying(actor) && actor.wears(item)) return { ok: false, reason: "worn" };
+      if (MixinApi.isAttired(actor) && actor.wears(item)) return { ok: false, reason: "worn" };
       // ⭐ A stack goes up ONE UNIT at a time (a stack cannot bear title, a
       // lot of one can) — the split comes LAST, after every gate.
       const stack = MixinApi.isStackable(item) ? item : null;

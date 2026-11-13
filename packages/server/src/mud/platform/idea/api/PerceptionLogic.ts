@@ -1211,7 +1211,7 @@ function isAnotherBody(viewer: Stuff, s: Stuff): s is Stuff & Slotted & Attired 
  */
 function bodyShows(viewer: Stuff, body: Stuff & Slotted & Attired, thing: Stuff): boolean {
   if (foundOnBy(viewer, thing, body)) return true;
-  const hands = MixinApi.isCarrying(body) ? body.handSlots() : null;
+  const hands = MixinApi.isAttired(body) ? body.handSlots() : null;
   for (const [slot, occupants] of body.getAllOccupants()) {
     if (![...occupants].some((o) => o.stuffId === thing.stuffId)) continue;
     const spec = body.getSlotSpec(slot);
@@ -1353,7 +1353,7 @@ function visibleContentsImpl(viewer: Stuff, target: Stuff): VisibleContents {
   const slotted = new Map<string, 'held' | 'worn' | 'inside'>();
   if (MixinApi.isSlotted(target)) {
     // Held = a hand slot (size and carrying D12, the flip).
-    const hands = MixinApi.isCarrying(target) ? target.handSlots() : null;
+    const hands = MixinApi.isAttired(target) ? target.handSlots() : null;
     for (const [slot, occupants] of target.getAllOccupants()) {
       const spec = target.getSlotSpec(slot);
       const accepts = spec?.accepts ?? '';

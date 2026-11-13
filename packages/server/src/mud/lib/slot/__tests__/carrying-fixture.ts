@@ -8,7 +8,9 @@
  */
 
 import { Actor } from '../../creature/Actor';
-import { CarryingMixin } from '../Carrying';
+import { CarryingMixin, type Carrying } from '../Carrying';
+import { MixinApi } from '../../../api/mixin';
+import { SpeciesApi } from '../../../api/species';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import Thing from '../../../platform/thing/Thing';
@@ -184,4 +186,18 @@ export function carry(body: unknown, item: unknown): void {
 export function withHands<T extends { setSpecies(s: Species | null): void }>(b: T, spec: BodySpec = {}): T {
   b.setSpecies(handsSpecies(spec).species);
   return b;
+}
+
+/**
+ * How many hands `item` takes in `me`'s grip — read through the public
+ * `wieldPlanFor` (size and carrying W8: `handsFor` is the carrier's private
+ * knowledge): `null` past what it can lift, else the hands the plan takes.
+ */
+export function handsOf(me: Stuff & Carrying, item: Stuff): 1 | 2 | null {
+  const plan = SpeciesApi.tryGetBodyPlanPath(me);
+  const own = plan !== null && MixinApi.isWieldable(item) ? item.getSlotClaim(plan) : [];
+  const claim = own.some((s) => s.startsWith('hand')) ? own : ['hand:right'];
+  const p = me.wieldPlanFor(item, claim);
+  if (!p.ok) return p.reason === 'too-heavy' ? null : 2;
+  return p.slots.filter((s) => s.startsWith('hand:')).length >= 2 ? 2 : 1;
 }

@@ -1006,8 +1006,8 @@ function ledAnimals(mover: Stuff): Array<Stuff & Mobile & Containable> {
     // Led, not hauled: a body with no hands of its own, or one that wears
     // a halter (a dog's mouth is a hand; on its collar it is still led). A
     // person on a line's end — a diver, a climber — walks their own way.
-    if (!MixinApi.isCarrying(far)) continue;
-    if (far.handSlots().length > 0 && far.halter() === null) continue;
+    if (!MixinApi.isAttired(far)) continue;
+    if (far.handSlots().length > 0 && !far.wornStack().some((w) => MixinApi.isTieable(w))) continue;
     if (!out.includes(far)) out.push(far);
   }
   return out;

@@ -102,8 +102,13 @@ describe('Garment — the belt (D27)', () => {
     const coin = tool('coin', 0.01, [0.02, 0.02, 0.002]);
     ContainmentApi.move(coin, p);
     expect(me.tierOf(coin)).toBe('ready');
-    // A hung pouch is somewhere a handed thing can go (D11's walk).
-    expect(me.carryPlaces().map((c) => c.host)).toContain(p);
+    // A hung pouch is somewhere a handed thing can go (D11's walk): with
+    // both hands full, a coin moved onto the body lands in it.
+    carry(me, tool('hammer', 1, [0.3, 0.05, 0.03]));
+    carry(me, tool('saw', 1, [0.5, 0.15, 0.02]));
+    const another = tool('coin', 0.01, [0.02, 0.02, 0.002]);
+    carry(me, another);
+    expect(another.getContainer()).toBe(p);
   });
 
   it('an overloaded belt refuses — the weight its leather will not bear', async () => {

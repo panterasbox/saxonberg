@@ -18,7 +18,9 @@ import { WieldableMixin } from '../../slot/Wieldable';
 import { SlottableMixin } from '../../slot/Slottable';
 import Thing from '../../../platform/thing/Thing';
 import type { Stuff } from '../../stuff/Stuff';
-import { makeBody } from '../../slot/__tests__/carrying-fixture';
+import { makeBody, handsSpecies } from '../../slot/__tests__/carrying-fixture';
+import { MixinApi } from '../../../api/mixin';
+import Beast from '../../../platform/agent/Beast';
 import { TieableMixin } from '../Tieable';
 import { WearableMixin } from '../../slot/Wearable';
 
@@ -99,6 +101,22 @@ describe('Mobile.traverse — leading (D18)', () => {
     expect(diver.getContainer()).toBe(locA);
   });
 
+  it('⭐ a haltered hog — a body that does not carry — is led by the halter it wears (W8)', async () => {
+    const { locA, locB, exit, me, end } = setup();
+    const hog = makeStuff(() => new Beast());
+    const { species, plan } = handsSpecies({ mass: 90, stature: 0.9, hands: false });
+    hog.setSpecies(species);
+    ContainmentApi.move(hog, locA);
+    const halter = makeStuff(() => new Collar());
+    halter.setSlotClaims({ [plan]: ['torso'] });
+    hog.seatInSlot(halter, 'torso');
+    expect(MixinApi.isCarrying(hog)).toBe(false);
+    expect(hog.wornStack().find((w) => MixinApi.isTieable(w))).toBe(halter);
+    end.animal = hog;
+    await me.traverse(exit, 'walk');
+    expect(hog.getContainer()).toBe(locB);
+  });
+
   it('⭐ a body with a hand of its own is still LED on a halter (W6: a dog\'s mouth is a hand)', async () => {
     const { locA, locB, exit, me, end } = setup();
     const { me: dog, plan } = makeBody({ mass: 30, stature: 0.6 });
@@ -107,7 +125,7 @@ describe('Mobile.traverse — leading (D18)', () => {
     collar.setSlotClaims({ [plan]: ['torso'] });
     dog.seatInSlot(collar, 'torso');
     expect(dog.handSlots().length).toBeGreaterThan(0);
-    expect(dog.halter()).toBe(collar);
+    expect(dog.wornStack().find((w) => MixinApi.isTieable(w))).toBe(collar);
     end.animal = dog;
     await me.traverse(exit, 'walk');
     expect(me.getContainer()).toBe(locB);

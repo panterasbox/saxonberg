@@ -510,9 +510,9 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     if (as === 'wield' && MixinApi.isCarrying(giver)) {
       // ⭐ Two hands by weight or length: the other hand must be free too,
       // and what holds it is named (a shield, a lantern) — the body's call.
-      const no = giver.wieldRefusal(item, EquipControllerBase.slotsFor(item, plan, as));
-      if (no?.reason === 'too-heavy') return 'heavy';
-      if (no?.reason === 'hands-needed') return 'hands';
+      const no = giver.wieldPlanFor(item, EquipControllerBase.slotsFor(item, plan, as));
+      if (!no.ok && no.reason === 'too-heavy') return 'heavy';
+      if (!no.ok && no.reason === 'hands-needed') return 'hands';
     }
     // ⚠ The impossible fit is a HARD refusal, independent of the ladder:
     // a coat cut for a halfling fails on a NUMBER, so a heavy human and
@@ -568,7 +568,8 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     // carrying D10 — heavy or long against this body) claims a second
     // hand beside the authored one: the ogre's greatsword is one hand,
     // the gnome's longsword two.
-    return holder !== undefined && MixinApi.isCarrying(holder) ? holder.wieldSlots(item, claim) : claim;
+    const planned = holder !== undefined && MixinApi.isCarrying(holder) ? holder.wieldPlanFor(item, claim) : null;
+    return planned !== null && planned.ok ? planned.slots : claim;
   }
 
   /**
@@ -581,7 +582,8 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     if (!MixinApi.isHauling(giver) || !giver.isHitched()) return false;
     if (!MixinApi.isCarrying(giver)) return true;
     const plan = SpeciesApi.tryGetBodyPlanPath(giver) ?? '';
-    return giver.wieldRefusal(item, EquipControllerBase.slotsFor(item, plan, 'wield'))?.reason === 'hands-on-cart';
+    const planned = giver.wieldPlanFor(item, EquipControllerBase.slotsFor(item, plan, 'wield'));
+    return !planned.ok && planned.reason === 'hands-on-cart';
   }
 
   /**

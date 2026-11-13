@@ -559,9 +559,9 @@ export default class Rope extends CuttableMixin(
       // that WEARS a halter is led whatever its hands (W6: a dog's mouth
       // serves manipulation, and a dog on a lead is still led).
       if (
-        MixinApi.isCarrying(load) &&
+        MixinApi.isAttired(load) &&
         SpeciesApi.tryGetBodyPlanPath(load) !== null &&
-        (load.handSlots().length === 0 || load.halter() !== null)
+        (load.handSlots().length === 0 || load.wornStack().some((w) => MixinApi.isTieable(w)))
       ) {
         return this.tieLead(by, load, made.knot);
       }
@@ -607,7 +607,8 @@ export default class Rope extends CuttableMixin(
    */
   private async tieLead(by: Stuff, animal: Stuff, knot: KnotRecord): Promise<TieOutcome> {
     const gear = this as unknown as Stuff;
-    const halter = MixinApi.isCarrying(animal) ? animal.halter() : null;
+    // What a lead is made fast to: the first worn tieable (a halter, a collar).
+    const halter = MixinApi.isAttired(animal) ? (animal.wornStack().find((w) => MixinApi.isTieable(w)) ?? null) : null;
     if (halter === null) return { ok: false, reason: 'no-halter', facts: { gear, load: animal } };
     if (!MixinApi.isCarrying(by) || by.freeHands() < 1) return { ok: false, reason: 'hands-full', facts: { gear, load: animal } };
     // ⭐ The rope goes with the animal, HUNG from the halter it is made fast

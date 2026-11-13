@@ -5,7 +5,7 @@
  * the switch, priced in two halves by holder.
  */
 import '../../../../test-bootstrap';
-import { carry } from './carrying-fixture';
+import { carry, handsOf } from './carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -57,7 +57,7 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     // Draw the sword from its scabbard: its home is remembered.
     expect(me.ready(sword)).toBeNull();
     expect(me.tierOf(sword)).toBe('hand');
-    expect(me.homeOf(sword)).toBe(scabbard);
+    expect(me.homeOf(sword)?.host).toBe(scabbard);
     // Now the compass from the satchel: the sword must go home.
     const satchel = wornBag(me, plan, 'satchel', 'torso');
     const compass = tool('compass', 0.2);
@@ -121,7 +121,7 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     const maul = tool('maul', 12);
     // Slung in a bag at the waist — on you, not in hand (the flip, W7).
     ContainmentApi.move(maul, wornBag(me, plan, 'sling', 'waist'));
-    expect(me.handsFor(maul)).toBe(2);
+    expect(handsOf(me, maul)).toBe(2);
     const r = me.ready(maul);
     expect(r?.reason).toBe('hands-full');
     expect(me.refusalWords(r!)).toMatch(/shield/);

@@ -46,7 +46,7 @@ describe('Carrying — homes (D14)', () => {
     expect(plan2.ok).toBe(true);
     if (plan2.ok) plan2.onComplete();
     expect(compass.getContainer()).toBe(pouch);
-    expect(me.homeOf(compass)).toBe(pouch);
+    expect(me.homeOf(compass)?.host).toBe(pouch);
   });
 
   it('forgotten when the thing leaves the body', () => {
@@ -92,6 +92,6 @@ describe('Carrying — homes (D14)', () => {
       expect(a.getTemplatePath()).toBe(b.getTemplatePath());
     }
     await hooks.hydrateSlice!(back, slice, {} as HydrateContext);
-    expect(back.homeOf(compass2)).toBe(pouch2);
+    expect(back.homeOf(compass2)?.host).toBe(pouch2);
   });
 });

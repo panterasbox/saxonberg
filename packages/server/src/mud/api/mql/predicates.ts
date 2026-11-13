@@ -147,7 +147,7 @@ function occupiesHolderSlot(target: Stuff): boolean {
   // ⭐ A carrier's HAND is not worn (size and carrying D12, the flip): what
   // a hand holds is `held` and, with the rest of what is on you, `carried`.
   // The body's own read (`Carrying.wears`) — MQL is a view over the model.
-  if (MixinApi.isCarrying(holder)) return holder.wears(target);
+  if (MixinApi.isAttired(holder)) return holder.wears(target);
   for (const occupants of holder.getAllOccupants().values()) {
     for (const o of occupants) if ((o as unknown as Stuff).stuffId === target.stuffId) return true;
   }

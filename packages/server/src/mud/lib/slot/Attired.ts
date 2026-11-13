@@ -163,6 +163,20 @@ export interface Attired {
   partsServing(capacity: string): string[];
   /** The hand sites — the parts that serve manipulation. */
   handSites(): string[];
+  /**
+   * ⭐ The body's hands (size and carrying D9; W8 — the slot substrate's
+   * fact): the slots at a hand site that HOLD rather than wear (a ring slot
+   * attaches at the hand too, and a mug went onto a finger).
+   */
+  handSlots(): string[];
+  /** What the hands hold, each thing once (a two-handed grip is one thing). */
+  heldThings(): (Stuff & Slottable)[];
+  /**
+   * ⭐ Does this body WEAR `item` — occupy one of its slots other than a
+   * hand? What a hand holds is carried, not worn; what is pocketed or hung
+   * is placed on a worn host. The model read behind MQL's `:worn`.
+   */
+  wears(item: Stuff): boolean;
   /** The foot sites — the leaf parts below what serves locomotion (a
    * biped's feet; a quadruped's legs, which have no foot part). */
   footSites(): string[];
@@ -626,9 +640,9 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
        */
       // ⭐ A garment in a HAND is held, not worn (size and carrying W7: a
       // hand holds any good) — it covers nothing until it is put on.
-      const hands = MixinApi.isCarrying(this) ? new Set(this.handSlots()) : null;
+      const hands = new Set(this.handSlots());
       for (const [slot, occupants] of this.getAllOccupants()) {
-        if (hands?.has(slot)) continue;
+        if (hands.has(slot)) continue;
         for (const occupant of occupants) {
           if (seen.has(occupant)) continue;
           seen.add(occupant);
@@ -747,6 +761,43 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public handSites(): string[] {
       return this.partsServing('manipulation');
+    }
+
+    public handSlots(): string[] {
+      const self = this as unknown as Stuff & Slotted & Attired;
+      const sites = new Set(self.handSites());
+      if (sites.size === 0) return [];
+      // ⭐ A slot AT a hand is not always a hand (size and carrying drive,
+      // step 1): the biped's ring slots attach at the hand too, and a mug
+      // went onto a finger — four "hands". What is worn at a hand (a ring,
+      // a glove) accepts a wearable; what a hand HOLDS is the slot that
+      // does not.
+      return self.getSlotNames().filter((name) => {
+        const spec = self.getSlotSpec(name);
+        const part = spec?.bodyPart;
+        return part !== undefined && sites.has(part) && spec?.accepts !== Mixins.Wearable;
+      });
+    }
+
+    public heldThings(): (Stuff & Slottable)[] {
+      const self = this as unknown as Stuff & Slotted & Attired;
+      const out: (Stuff & Slottable)[] = [];
+      for (const slot of self.handSlots()) {
+        for (const held of self.getOccupants(slot)) {
+          if (!out.includes(held)) out.push(held);
+        }
+      }
+      return out;
+    }
+
+    public wears(item: Stuff): boolean {
+      const self = this as unknown as Stuff & Slotted & Attired;
+      const hands = new Set(self.handSlots());
+      for (const [slot, occupants] of self.getAllOccupants()) {
+        if (hands.has(slot)) continue;
+        for (const o of occupants) if (o.stuffId === item.stuffId) return true;
+      }
+      return false;
     }
 
     public footSites(): string[] {

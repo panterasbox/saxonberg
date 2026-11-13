@@ -303,16 +303,15 @@ export const brain = class {
 
 /**
  * ⭐ The goods `holder` has to sell — what a body CARRIES
- * (`Carrying.carriedThings`: a hand, a pocket, a belt — never what it
+ * (`getContents()` less what `Attired.wears`: a hand, a pocket, a belt — never what it
  * wears, since the flip put its costume in its contents too), chattel, and
  * never the house card (chattel too — not for sale).
  */
 function goodsOn(holder: Stuff): Stuff[] {
-  const things = MixinApi.isCarrying(holder)
-    ? holder.carriedThings()
-    : MixinApi.isContainer(holder)
-      ? (holder.getContents() as Stuff[])
-      : [];
+  const worn = MixinApi.isAttired(holder) ? holder : null;
+  const things = MixinApi.isContainer(holder)
+    ? (holder.getContents() as Stuff[]).filter((x) => worn === null || !worn.wears(x))
+    : [];
   return things.filter((g) => MixinApi.isChattel(g) && !MixinApi.isCredentialWallet(g));
 }
 

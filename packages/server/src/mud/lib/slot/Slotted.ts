@@ -488,7 +488,7 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       // put it, not what a hand may hold — the grip decides
       // (`Carrying.handsFor`).
       const host = this as unknown as Stuff;
-      if (MixinApi.isCarrying(host) && host.handSlots().includes(slot)) return true;
+      if (MixinApi.isAttired(host) && host.handSlots().includes(slot)) return true;
       // Part 1 — slot-side mixin check. `accepts` is validated to be
       // a Mixins-registry value at setStaticSlots() time; safe cast.
       if (!MixinApi.hasMixin(candidate, spec.accepts as MixinName)) {

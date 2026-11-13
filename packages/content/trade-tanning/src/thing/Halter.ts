@@ -3,8 +3,8 @@
  *
  * A strap harness on an animal's head (a halter) or a band round its neck
  * (a dog's collar): a worn garment that is also `Tieable`, so the rope's
- * `tie rope to mule` finds it (`Carrying.halter()` — the first worn
- * Tieable off the hands) and makes its fixed end fast round it, the free
+ * `tie rope to mule` finds it (the first Tieable in `Attired.wornStack()` — worn,
+ * off the hands) and makes its fixed end fast round it, the free
  * end coming to the tier's hand. The rope does the tying; the halter
  * keeps the protocol's default refusal for being tied itself to anything
  * (`tie halter to post` is not a thing a halter does — tie the rope).

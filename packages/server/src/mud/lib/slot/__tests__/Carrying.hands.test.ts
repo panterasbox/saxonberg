@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { CARRYING_DEFAULTS } from '../Carrying';
-import { makeBody, tool, hold } from './carrying-fixture';
+import { makeBody, tool, hold, handsOf } from './carrying-fixture';
 import { cart } from './haulage-fixtures';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { HaulerMixin } from '../Hauler';
@@ -37,28 +37,28 @@ describe('Carrying — hands (D9/D10)', () => {
 
   it('a human holds 10 kg in one hand and needs both for 11 kg or a 1.2 m staff', () => {
     const { me } = makeBody();
-    expect(me.handsFor(tool('kettlebell', 10))).toBe(1);
-    expect(me.handsFor(tool('anvil-horn', 11))).toBe(2);
-    expect(me.handsFor(tool('staff', 1.5, [0.04, 0.04, 1.2]))).toBe(2);
-    expect(me.handsFor(tool('knife', 0.3, [0.03, 0.02, 0.25]))).toBe(1);
+    expect(handsOf(me, tool('kettlebell', 10))).toBe(1);
+    expect(handsOf(me, tool('anvil-horn', 11))).toBe(2);
+    expect(handsOf(me, tool('staff', 1.5, [0.04, 0.04, 1.2]))).toBe(2);
+    expect(handsOf(me, tool('knife', 0.3, [0.03, 0.02, 0.25]))).toBe(1);
   });
 
   it("the gnome's threshold sits below the human's: 4 kg / 0.6 m", () => {
     const { me: gnome } = makeBody({ mass: 27, stature: 1.0 });
-    expect(gnome.handsFor(tool('sack', 3.9))).toBe(1);
-    expect(gnome.handsFor(tool('sack', 4.2))).toBe(2);
-    expect(gnome.handsFor(tool('shortsword', 1, [0.05, 0.02, 0.65]))).toBe(2);
+    expect(handsOf(gnome, tool('sack', 3.9))).toBe(1);
+    expect(handsOf(gnome, tool('sack', 4.2))).toBe(2);
+    expect(handsOf(gnome, tool('shortsword', 1, [0.05, 0.02, 0.65]))).toBe(2);
     const { me: human } = makeBody();
-    expect(human.handsFor(tool('shortsword', 1, [0.05, 0.02, 0.65]))).toBe(1);
+    expect(handsOf(human, tool('shortsword', 1, [0.05, 0.02, 0.65]))).toBe(1);
     expect(CARRYING_DEFAULTS.TWO_HAND_LENGTH).toBe(0.6);
   });
 
   it('past the strain ceiling nothing can lift it; an authored two-hand claim is honored', () => {
     const { me, plan } = makeBody();
-    expect(me.handsFor(tool('boulder', 200))).toBeNull();
+    expect(handsOf(me, tool('boulder', 200))).toBeNull();
     const bow = tool('bow', 1, [0.05, 0.03, 0.9]);
     bow.setSlotClaims({ [plan]: ['hand:left', 'hand:right'] });
-    expect(me.handsFor(bow)).toBe(2);
+    expect(handsOf(me, bow)).toBe(2);
   });
 
   it('a held thing takes its hand', () => {
