@@ -145,7 +145,9 @@ move into a room never reads its exposure unless the strict case fails.
 ⭐ **It is asked at the chokepoint.** `Container.canAddContainable`'s
 default body is `fitRefusal`, so every `ContainmentApi.move` into a
 container meets it and a programmatic violation throws `ContainmentError`.
-The verbs (`put`, `receive`) word it before anything moves. Specialized
+The verbs word it before anything moves, through
+`Container.canReceive(item)` — the dry read every container answers (the
+tape measure, the container's own veto, and a body's `arrivalFor`). Specialized
 overrides (a pump's well, a store, a hive, a copper, a rearing tray) own
 their whole answer. **A body has no bounds** — it is sized by its
 envelope, and what it carries is [carrying.md](./carrying.md)'s question.

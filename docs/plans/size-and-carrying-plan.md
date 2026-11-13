@@ -2344,6 +2344,95 @@ is the receiving act`.
   `canAddContainable`), `canReceive` (its dry read, the common word), `seatInSlots`, `wieldPlanFor`,
   `handsToFree`, `poseRefusal`, `carryRefusalWords`/`readiedWords`. No class renamed.
 
+**✅ Done — W8 (659326d57 · 2b5601309 W8a · e5d38ba48 W8b · db8cee2da W8c · 6d2253c0b W8d · 0a105fd65 W8e · 6e26e10cd W8f · 7f9ba899a W8g · W8h the docs commit).** `ContainmentApi.move(item, body)` is the receiving act: `Container.arrivalFor` (three implementers — the default, `Creature`, `Carrying`) and `Container.canReceive` on every container; the body branch in `move` throws a worded `ContainmentError` when there is no honest place; `Creature.arrivalFor` fails closed (`isJudged` gone); `Carrying` on `Character`, `DraftAnimal`, `KeptAnimal`, `WorkingAnimal`; the `receive` family deleted; `lint:body-moves` retired. The sweep: ~30 port-idiom and 15 handed sites → `move` (`canReceive` first where a write sits between); the made sites → the two calls on their owners; 4 loadouts → `seatInSlots`. `Carrying`'s interface: **14** (`freeHands` · `tierOf` · `homeOf` · `setHome` · `isHonest` · `ready` · `handsToFree` · `stow` · `bringToHand` · `releaseHeld` · `wieldPlanFor` · `gearNoise` · `placeLoose` · `returnBorrowed`). W8-x1: `lint:on-create` back to **71**. W8-x2: forms recorded, not moved (below). Verified per sub-commit: server tsc (every pack's `src` included), `test:near`, the touched packs' vitest, the named gates; after the last: every pack's vitest and every `lint:*` individually (see the W8 report). The drive and the walk are /finalize's.
+
+#### Decided while building W8
+
+- **W8-a1 — the made fallback is written inline, on each mint path's owner, as the two calls**:
+  `if (w.canReceive(x) === null) move(x, w); else move(x, (isContainable(w) ? w.getContainer() : null) ?? w)`.
+  For a body that refuses, "here" is where it stands; for a non-body `w` that refuses (a full crate) the
+  thing goes to the crate's own place — never refused after the inputs are spent, and `move` still throws
+  if even that will not take it. The *you set it down* line is on the owners that narrate an act
+  (crafting's `landOutput`, `Producing.mintTake`, `Growing` ×2, `Menu.orderPlanFor`, `unequip`); the
+  mechanism sites with no actor (a breakage's residue, crystals, a destroyed container's evacuation,
+  a thrown landing, ash, soot, a sweep) set down silently, the thing visible where it lands.
+  Lens 2 (one verb, no rolodex) + the owner's ruling (no helper, no new name).
+- **W8-a2 — `MarketStalls.giveUp` keeps the made form** (the plan listed it as handed, pre-checked):
+  nothing pre-checks it — a stall given up hands back many goods with no `canReceive` before — so the
+  two calls are what keep a full renter from a throw. `ConsignmentShelf.handOver` is plain `move`
+  (its `handOverRefusal` ran first). `ConditionLogic.reembody` is plain `move` (an arriving body is an
+  agent; every container admits it).
+- **W8-a3 — the seven minted-after-a-write sites take the made form, not a pre-check before the
+  write.** The thing does not exist before the write (coins dispensed after the ledger posts, a
+  receipt's paper, a claim ticket, a key, a card), so a pre-check means minting before the ledger and
+  destructing on refusal — a banking restructure. The requirement the plan names — *a thing minted after
+  money moved must not throw* — holds: to you, else set down where you stand. The cash pre-check stays
+  the follow-up W7 recorded. The card and Gus's carried gear go into a pocket by `stow` after they
+  arrive (the retired `prefer: 'pockets'` — a keeper's card must not take a hand for good).
+- **W8-a4 — outfits seat by claim, the rest move** (`Login`, `EmbodyController`, `Character.wearGarments`,
+  `EquipControllerBase` out of the wardrobe): `seatInSlots(garment, claim)` when the garment claims slots
+  on this body; a bag that claims none is `move`d and the body hangs it from the belt (D11's hang rule).
+- **W8-a5 — `seatInSlots` rolls a failed claim back** (back where it came from; a fresh thing,
+  nowhere) so a seating that throws leaves nothing loose behind.
+- **W8-a6 — props into a body**: the applier asks `canReceive` of an agent host and, refused, records
+  the diagnostic and does not place the prop (P3: skip, say so) — not a throw out of the clone.
+- **W8-a7 — `Estate`'s keyed re-place admits through `Creature.admitWhile`** (the restore path, as
+  `restoreItem`), any body, not only a carrier.
+- **W8-a8 — `Creature.onRestored` has no `super` to chain** (no mixin under it defines one); the chain
+  the plan meant is `Carrying.onRestored` → `super` (Persistable's → Creature's) → `placeLoose`.
+- **W8-a9 — `Carrying.placeLoose` asks the body's own `arrivalFor`** (not `canReceive`): the same answer
+  read dry, and it keeps the restore one idea with the arrival (`lint:mixin-clusters` read the overflow
+  as a second cluster otherwise).
+- **W8-a10 — the made test is the idiom, not a `landOutput` case**: the crafting fixture's maker is a
+  bare `Idea` (no hands, no body), so a full-hands craft needs a new fixture; the flip test pins the
+  two calls (`move` throws; the second call sets down) and the drive's made steps at /finalize pin
+  `landOutput` itself.
+- **W8-a11 — test fixtures that held things gain hands** (`carrying-fixture`'s `handsSpecies` /
+  `withHands`) or the carrier mixin (`CarryingMixin(Creature)` fixtures); a bare `Thing` (no good a
+  hand closes on) staged "on" a body is admitted by a spy on `isAdmitting`, as W7's restore tests did.
+- **W8-x1 — the on-create audit, confirmed and retired.** The cause: `StuffApi.ensureConstituent`
+  returned without awaiting a row load already in flight, so a clone minted while another body's load
+  of its species was pending set `_speciesPath` on a cold row. It now awaits an in-flight load when the
+  holder is a clone (its own path not loading) and still returns at once when the holder is a row
+  loading (the deadlock case). `Creature.onCreate` deleted; `lint:on-create` 72 → **71**.
+- **W8-x2 — forms stay on D1-c; recorded, not moved.** Three things stop a clean move onto the
+  constituent applier: (1) `Tangible.shape` stores a leaf word (`rod`), not a path, and 25 content rows
+  author it as a word; (2) the class default (`static defaultShape`, 7 classes) is cited by no row, so
+  the applier has nothing to load — master's two answers are a field on every row (the default stated
+  N times) or a boot line (the doctrine forbids it); (3) a loud cold `getShape` would fire on every
+  Tangible not born through the applier — 31 `StuffApi.create` sites and the suite's `makeStuff`
+  fixtures — and every `move` asks the tape measure, which reads the form. Authored shapes already load
+  with their content (the applier awaits the async `setShape`). Moving forms is a birth-path build of
+  its own.
+- **W8-b1 — the hands tests stay in `Carrying.hands.test`** (not moved to an `Attired.hands.test.ts`):
+  the cases read a carrier's grip beside the hands; the move to `Attired` is pinned by the narrowing
+  changes (`wornStack`, `fitsSlotSpec`, `Wieldable.fitsSlot`, MQL `:worn`, the shelf's worn gate all
+  read `isAttired`) and by the haltered-hog case in `Mobile.lead.test`. The grip is read through the
+  public `wieldPlanFor` in tests (`handsOf`), since `handsFor` is private.
+- **W8-d1 — the dispatcher clones the verb's controller only when there is something to word**
+  (a refusal, or a readying that moved something), and destructs it at once — not "clone before
+  `_readyInstruments`": the async-detached path clones its own controller later, and a clone for every
+  dispatch to word nothing is waste. Same contract: the body decides, the controller words, the
+  refusal path destructs what it cloned.
+- **W8-d2 — a fight's switch landing narrates its own beat** (*You have the sword in hand* —
+  `CombatLogic.performSwap`): the readying sentence is a verb's, and the switch completes on combat's
+  tick with no verb in hand. Combat narrating its own event is the `releaseHeld` precedent.
+- **W8-d3 — the both-hands decision moved to the body** (`nowhere-to-carry`'s `needsBoth` fact) and
+  the hands-full branch reads "is there a second held thing" as an emptiness test — so the words moved
+  into `CommandController` with `lint:controller-decisions` at 508 and `lint:controller-functions` at 63
+  (the word helpers are private methods, not module functions).
+- **W8-d4 — retail's carry facts landed in W8d with the words** (the shelf could no longer word a
+  carrying sentence once `refusalWords` left the model): `SaleOutcome`'s refusal arm carries
+  `facts.carry`, the shelf words only *stays on the shelf … Nothing is charged*, `buy` prefixes the
+  carry words. `drawSidearm` → `refusal` and Equip's re-asked `wieldPlanFor` landed there too.
+- **W8-e1 — `lint:combat-dynamics` allowlists `isPlacing` + `isSealable`** (an allowlist with a reason
+  per the gate's own rule, not a ratchet): the switch's seconds read the holder the thing comes out of —
+  a clip or a pocket region, a flap or a lid — which moved into `CombatLogic` with the `combat.*` dials.
+- **W8-g1 — `put X in <person>` words a carrier refusal in the third person** (*Bob has nowhere to take
+  the cup — their hands are full*), from `putPlanFor`'s new `refused-by-carrier { carry }` arm — never
+  the reason code it used to render through `Mml.fromMarkup`. `carryRefusalWords` is second person (the
+  giver's own body), so it is not the words for someone else's.
+
 #### Owner rulings on the two questions (2026-11-12) — folded in
 
 1. **No `ContainmentApi.deliver`.** *"Every time you invent a synonym for `move()` you're making it

@@ -6551,16 +6551,21 @@ counts or shows a list runs it through `PerceptionApi.perceived` first —
 and a head ordinal counts after it. `lint:perceived-surfaces` holds every
 surface at zero exceptions. See [mql.md](./subsystems/mql.md).
 
-## Moving a thing onto a body with `ContainmentApi.move`
+## Moving a thing onto a body — `move` just works; a synonym for it does not exist
 
 | Don't | Do |
 |---|---|
-| `ContainmentApi.move(x, body)` — a thing put on a body by the move primitive | `body.receive(x)`, or the idiom for the counterparty: `canReceive` before any write for a **handed** thing (buy, give, take, untie — refuse in words, move nothing), `receiveOrSetDown` for a **made** thing (output, yield, catch — never refused after the inputs are spent), `receiveGranted` for a **granted** one (loadout, key, card, cash already posted — the residence or the feet as overflow). Where the destination may or may not be a body: `if (MixinApi.isCarrying(dest)) dest.receive(x); else ContainmentApi.move(x, dest);` |
+| A synonym for `move` (`receive`, `deliver`, a `receive*` family, a helper that "puts it on a body properly") | `ContainmentApi.move(x, body)` — **a body is a destination that places what arrives** (a hand, a pocket, a hook on the belt, a worn bag, the pack) through `Container.arrivalFor`, or `move` throws a `ContainmentError` naming why. It never lands the thing anywhere but the body. |
+| Narrowing `isCarrying(dest)` before asking, or a `try/catch` around `move` to find out | `dest.canReceive(x)` first when you want a refusal instead of a throw — **every container answers** (a chest by its fit, a canary *nowhere to carry that*, a person by hand → pocket → pack) |
+| Letting a made thing throw at a full body after the inputs are spent | the mint path's owner writes the two calls: `if (maker.canReceive(made) === null) move(made, maker); else move(made, here)` (+ its *you set it down* line) |
+| `move` then `occupyAll` to put a garment on | `body.seatInSlots(garment, claim)` — *wear it* is a seating, said exactly |
 
-Since the carrying flip (size and carrying W7) a direct move onto a body
-throws: `Creature.canAddContainable` vetoes `loose-on-body` for anything
-not arriving placed or admitted by the body itself. `lint:body-moves`
-holds the census at zero. See [carrying.md](./subsystems/carrying.md).
+Owner (size and carrying W8): *"every time you invent a synonym for
+`move()` you're making it harder for everyone else in the game"* — and
+*"the one thing I don't want is for move to lie."* Nothing sits loose on a
+body (`Creature.arrivalFor`, every body, fail closed); a body that does
+not carry (a fish, a wolf) has no honest place, so `move` throws. See
+[carrying.md](./subsystems/carrying.md).
 
 ## A nested subcommand
 

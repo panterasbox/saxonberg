@@ -1,17 +1,21 @@
 # Carrying
 
 The carrying subsystem answers **where a thing goes on a body, and what
-the body knows about the things it carries**. A thing comes onto a body
-one way — it is *received* — and the body decides where: a hand, a
-pocket, a pouch on the belt, the bag at its side, the pack on its back.
-Everything on a body is **held**, **worn**, or **placed** on something
-worn. Nothing sits loose.
+the body knows about the things it carries**. ⭐⭐ **`ContainmentApi.move(item,
+body)` is the receiving act** (size and carrying W8): a body is a
+destination that places what arrives — a hand, a pocket, a pouch on the
+belt, the bag at its side, the pack on its back. Everything on a body is
+**held**, **worn**, or **placed** on something worn. Nothing sits loose.
 
 That one invariant is what makes hands mean something. A full hand is a
 choice that costs you — what you hold is what you can use now, what is
 in a pocket or on the belt is a moment away, what is in the pack is
-packed — and the same body that receives a thing knows where it lives
-and how long it takes to get it out in a fight.
+packed — and the same body knows where each thing lives and how long it
+takes to get it out in a fight.
+
+An author needs two calls and nothing else: **`move` to stage**,
+**`container.canReceive(item)` to ask first**. Both are on every
+container.
 
 The tape measure every placement asks is [size.md](./size.md). The
 weight is [encumbrance.md](./encumbrance.md). The slots are
@@ -21,95 +25,96 @@ weight is [encumbrance.md](./encumbrance.md). The slots are
 
 | Piece | Where | What it is |
 |---|---|---|
-| `CarryingMixin` | `lib/slot/Carrying.ts` | the receiving act, the hands, the tiers, the homes, readying, letting go |
-| `CARRYING_DEFAULTS` | top of `Carrying.ts` | the dials (one-hand fraction, two-hand length, awkwardness, the run limits) — the `LOAD_BEARING_DEFAULTS` precedent |
-| `carry.order` | `Carrying`'s `static settings` | `hands-first` (default) · `pockets-first` — a per-character setting |
-| the veto | `Creature.canAddContainable` | refuses `loose-on-body` |
+| **the hook** — `arrivalFor(item, how?)` | `ContainerMixin` (`lib/spatial/Container.ts`), beside `canAddContainable` | where an arrival goes in this container: `contents` (the default, every ordinary container) · `seat` (slots) · `pair` (a worn host's region) · `into` (a carried bag) · `refuse` |
+| **the dry read** — `canReceive(item)` | `ContainerMixin` | `null`, or an `ArrivalRefusal` — the hook's answer read dry, then the tape measure and the container's own veto. **Every container answers**: a chest by its fit, a canary *nowhere to carry that*, a person by hand → pocket → pack. No caller narrows before asking |
+| **the chokepoint** | `ContainmentLogic.move` | a destination that is an agent is asked `arrivalFor`; `move` performs the answer (`seatInSlots`, `placeOn`, the bag's own move) or **throws** a `ContainmentError` (`reason`, `facts`, a message naming the body, the item, the hands and what was tried) |
+| **the invariant** — nothing loose | `Creature.arrivalFor` (every body) | admits only what arrives placed, an agent, a thing being seated (`Slotted.isSeating`), or one the body is admitting (`Creature.admitWhile`, gated `AnyOf(SelfOnly, FromModule(PersistableLogic))` — the restore). Else `refuse` `nowhere-to-carry`. **Fails closed**: no species row loaded is no escape |
+| **the seating mark** | `Slotted.seatInSlot` / `seatInSlots` | contents first, then the slots, under a mark (`try/finally`, a failed claim rolled back out) |
+| **the capability** — `CarryingMixin` | `lib/slot/Carrying.ts`, composed on `Character`, `DraftAnimal`, `KeptAnimal` and ranching's `WorkingAnimal` | overrides `arrivalFor` with D11's order; homes, tiers, readying, letting go, the restore's overflow |
+| the hands | `Attired` (`handSlots`, `heldThings`, `wears`) | the slot substrate's fact — any body's hands by its plan |
+| `CARRYING_DEFAULTS` | top of `Carrying.ts` | the grip dials (one-hand fraction, two-hand length); the awkwardness dials are `LOAD_BEARING_DEFAULTS`' |
+| `carry.order` | `Carrying`'s `static settings` | `hands-first` (default) · `pockets-first` |
 | pockets | `PlacingMixin` named regions + the `/platform/placements/pocket` document | a region of a garment, never an object |
 | the belt | `PlacingMixin`'s `from` member + its hanging length | a `Garment` row with `placements: [from]` — no belt class |
 | worn and hung containers | `Pack` (`Wearable(Slottable(Vessel))`, composes `Placing` and `Sealable`) | a satchel, a rucksack, a belt pouch, a pannier, a holster (`shapedTo:`) |
-| the two gates | `lint:body-moves` · `lint:perceived-surfaces` | the census of ways onto a body; the surfaces that must perceive |
+| the words | `CommandController.carryRefusalWords` · `readiedWords` | the body reports facts; the verb words them |
 
-`CarryingMixin` is composed on **`Creature`**, outer of `Attired` and
-inner of `LoadBearing` — it reads the slot substrate beneath it, and the
-burden gauge reads it (awkwardness, hands). Not on `Actor`/`Agent` (a
-shade carries nothing); not on `LoadBearing` (the gauge is weight, not
-where). A `Corpse` is a Thing: it does not receive. Narrow with
-`MixinApi.isCarrying(x)`. No Api: every act is the body's own method.
+**Who carries.** `Carrying` composes only where a body carries: a person
+(`Character` → every Avatar, NPC, Extra, Cast), a draft animal (a mule's
+pack saddle — panniers hang), a kept animal (the dog's mouth is a hand;
+the cat answers `nowhere-to-carry` *by its plan*), a working animal. A
+`Beast`, ranching's `Livestock`, a `Fish`, a bare `Creature` do **not**:
+`move(item, <any of these>)` throws unless the arrival is placed, seated,
+an agent or admitted — a hog's halter is *seated* (`equip`), and it is
+led by it. A `Corpse` is a Thing. Narrow with `MixinApi.isCarrying(x)`
+(`Creature & Carrying`). No Api.
 
-## ⭐⭐ `receive` — the one way onto a body
+## ⭐⭐ `move` — the one way onto a body
 
 ```typescript
-body.receive(item, { prefer?, slot?, slots?, for?: 'hold' | 'wear' })
-  // → null when it came on; a ReceiveRefusal (and nothing moved) when not
+ContainmentApi.move(item, body);          // placed, or throws
+const refused = body.canReceive(item);    // null, or why — ask first for a refusal
 ```
 
-`receive` is one resolution (`resolveReceive`), which `canReceive`
-reports dry — so the pre-check and the act cannot disagree. In order:
+`Carrying.arrivalFor` is one resolution (`resolveReceive`), which
+`canReceive` reads dry — so the pre-check and the act cannot disagree. In
+order, after the body's admissions (`super.arrivalFor`):
 
-1. **Already in a hand** — nothing to do.
-2. **The hang rule.** A worn container that claims no slot of this body
+1. **Already in a hand** — `contents`, nothing to do.
+2. **A handless body handed its tack** puts it on (`seat` its claim) —
+   `put pack saddle in mule`.
+3. **The hang rule.** A worn container that claims no slot of this body
    (a belt pouch, the medic's pouch, a holster) **arriving from off the
-   body** goes onto the first worn host that offers `from` with room —
-   *you clip the holster to your belt* — before hands or pockets. One
-   already on the body (`get holster from belt`) is taken in hand.
-3. **A stack meets its like** in a hand, a pocket or a ready container
+   body** is hung `from` the first worn host that offers it with room
+   (`pair`) — *you clip the holster to your belt*.
+4. **A stack meets its like** in a hand, a pocket or a ready container
    and merges — it takes no hand.
-4. **`carry.order`** between a free hand (or two, by `handsFor`) and the
-   first **carry place** that fits (`carryPlaces()`, below) — never into
-   itself or something inside it.
-5. Else a refusal: `too-heavy` · `hands-on-cart` · `cannot-grip` ·
-   `nowhere-to-carry`.
+5. **`carry.order`** between a free hand (or two — the grip) and the
+   first **carry place** that fits — a worn pocket (`pair`), a hung or worn
+   container (`into`), the pack on the back — never into itself.
+6. Else `refuse`: `too-heavy` · `hands-on-cart` · `cannot-grip` ·
+   `nowhere-to-carry` — with facts: what the hands hold, what was tried, a
+   held thing that **would** go away and where (`away`), and whether the
+   thing takes both hands while one is free (`needsBoth`).
 
-`slot:` pins a slot (`seatInSlot` — equip's claim), `slots:` several (an
-NPC's wielded kit, `occupyAll`), `for: 'wear'` puts a garment on by its
-claim. A body with no hands (a horse) tries only its worn containers; a
-cat is told *it has nowhere to carry that*.
+⭐ **`move` never lies.** With no honest place it throws — it never lands
+the thing at the feet or anywhere but the body. A non-carrier (a fish, a
+canary) has no honest place for anything: a fish's inside is a stomach,
+not a pocket. A key moved out of its pocket onto its owner asks the hook
+like any arrival and goes to a hand.
 
-⭐ **The refusal is the tutorial.** `refusalWords` names what the hands
-hold, what did not fit, and the next command in the actor's own pocket
-names: *"Your hands are full — the mug and the lantern — and the map
-won't fit in your pockets. Put something away (`put mug in left pocket`)
-or set it down (`drop lantern`)."*
+⭐ **The refusal is the tutorial**, worded by the verb's controller
+(`carryRefusalWords`): *"Your hands are full — the mug and the lantern —
+and the map won't fit in your pockets. Put something away (`put mug in
+left pocket`) or set it down (`drop lantern`)."*
 
-### The three counterparty idioms
+### The idioms — two calls, no synonym
 
-Who is on the other side of the act decides what happens when the body
-cannot take the thing (requirements' *made · handed · granted*):
+There is exactly one movement verb (owner: *"every time you invent a
+synonym for `move()` you're making it harder for everyone else in the
+game"*). What differs is whether the caller wants a refusal:
 
-| idiom | method | used by | when it will not fit |
-|---|---|---|---|
-| **made** | `receiveOrSetDown(item, at?)` | crafting output, harvest and tap yields, a catch, the pieces a cut or tear leaves, a drink made for you, a store's paid-out goods | set down where the body stands (or on `at`), with a line — **never refused after the inputs are spent** |
-| **handed** | `canReceive(item)` before any write, then `receive` | `buy` (the counter, the consignment shelf), `give`, `put X in <person>`, reclaiming from a rack or shelf, a store withdrawal, untying a rope or line end, a tip jar, `get` itself | refused in words, **nothing moves and nothing is charged**: *"…stays on the shelf until you have one free. Nothing is charged."* · *"Bob has nowhere to take it — their hands are full. You keep it."* |
-| **granted** | `await receiveGranted(item, opts?)` | the loadout and outfits, `props:` into a body, Gus's kit, a minted key, a bank card, a travel card, a claim ticket, a store receipt, the testharness hand, cash the ledger has already moved | the player's **residence** (a live room at `ParcelApi.heldUnitOf`), with a line; else at their feet, said so. An NPC's overflow is also `DiagnosticApi.record`ed (fix the loadout) |
+| idiom | written as | used by |
+|---|---|---|
+| **stage it** | `ContainmentApi.move(item, body)` | the harness `hand`, `props:` (a refused prop is a diagnostic), `get`, a kit, an NPC arming itself |
+| **handed** — a write sits between | `canReceive(item)` before any write, then `move` | `buy`, `give`, `put X in <person>`, a rack or shelf reclaim, a store withdrawal, untying a line, a tip jar — refused in words, **nothing moves and nothing is charged** |
+| **made** — never refused after the inputs are spent | on the **mint path's owner**: `if (maker.canReceive(made) === null) move(made, maker); else move(made, here)` (+ that owner's *you set it down* line) | crafting's `landOutput`, the taps, the harvests, a catch, the cuts, the casts, the tears, a drink made for you, a minted card or key or receipt, cash the ledger has moved |
+| **wear it** | `body.seatInSlots(garment, claim)` | outfits, loadouts, `equip` out of a wardrobe; a bag that claims no slot is `move`d and hung |
 
-A site whose destination may or may not be a body uses the port idiom:
+The made fallback is written on each owner (68 of them), never on
+containment — the cost of one movement verb, chosen by the owner.
 
-```typescript
-if (MixinApi.isCarrying(dest)) dest.receive(item);
-else ContainmentApi.move(item, dest);
-```
+### The one overflow — the restore
 
-⚠ Cash is *granted*, not handed: the ledger post precedes the coins, so a
-pre-check would belong to the ledger (a follow-up).
-
-### ⛔ The veto — `loose-on-body`
-
-`Creature.canAddContainable(item, how?)` runs the default tape measure
-and then refuses `loose-on-body` unless:
-
-- the thing arrives **placed** (`how.placed` — passed by `placeOn` and by
-  the host-follow's followers), or
-- it is an **agent**, or
-- the body is **admitting** it — `Carrying.admitWhile(item, fn)`, gated
-  `AnyOf(SelfOnly, FromModule(PersistableLogic))`: `receive`,
-  `seatInSlot`, readying, and the restore's `restoreItem`.
-
-A direct `ContainmentApi.move(x, body)` therefore throws. Taking a placed
-thing off its host *into the same body* (`move(key, me)` with the key in
-my pocket) asks the veto too — it was a way to loose. ⭐ **A body whose
-plan is not known yet is not judged** (a fixture, a body mid-mint): it
-takes a thing as the pre-flip body did.
+`Carrying.onRestored` (after `Creature`'s, which stands the species row
+up) → `placeLoose()`: anything a restore finds loose goes through the
+body's own `arrivalFor`, else to a player's **residence** (a live room at
+`ParcelApi.heldUnitOf`) with a line (*"your crate would not fit anywhere
+on you; it is in your room"*), else at their feet, said so; an NPC's is a
+diagnostic. This is the carrier's explicit choice, never `move`'s
+behavior. A restored **non-carrier** with loose contents is admitted and
+reported (`Creature.onRestored` → a diagnostic). The restore itself
+admits every body (`PersistableLogic.restoreItem` → `admitWhile`).
 
 `Carrying.isHonest(item)` is the walk the invariant means: a slot
 occupant, or placed on a host that is itself honest on the body, or
@@ -117,13 +122,16 @@ inside such a thing.
 
 ## Hands and grip
 
-- **`handSlots()`** — the body plan's slots whose `bodyPart` serves
+The hands are `Attired`'s (W8) — the slot substrate's fact, so any body
+answers them by its plan; the grip and the free hands are the carrier's.
+
+- **`handSlots()`** (`Attired`) — the body plan's slots whose `bodyPart` serves
   `manipulation`: the biped's `hand:left`/`hand:right`, the `canid` plan's
   `mouth` (a dog carries a stick, a lead's end — one thing). A horse has
   none.
 - **`freeHands()`** — hand slots that are empty and can grip
   (`Vitals.canGrip`), **less a hitched cart's `handedness`**.
-- **`heldThings()`** — what the hands hold. `held` means a hand slot,
+- **`heldThings()`** (`Attired`) — what the hands hold. `held` means a hand slot,
   everywhere: the load gauge, MQL's `:held`, `wornStack` (which skips
   hands — a coat in your hand is held, not worn), `equip`.
 - **A hand takes any good** — `Good` and `Vessel` are slottable, and a
@@ -132,7 +140,8 @@ inside such a thing.
 
 ### ⭐ Two hands by weight, two hands by use
 
-`handsFor(item): 1 | 2 | null`:
+The grip (the carrier's private `handsFor`, read through
+`wieldPlanFor`):
 
 - `null` — heavier than the strain ceiling (`too-heavy`);
 - `2` **by weight** — mass over `ONE_HAND_FRACTION` (0.3) of the holder's
@@ -146,9 +155,10 @@ inside such a thing.
   holder decides;
 - else `1`.
 
-`wieldSlots(item, claim)` widens a one-hand claim to two when the weight
-or the reach says so; `wieldRefusal` answers `too-heavy` /
-`hands-on-cart` / `hands-needed`. `equip` asks both.
+`wieldPlanFor(item, claim)` is the one question (the `*PlanFor` shape):
+the slots it takes — a one-hand claim widened to two when the weight or
+the reach says so — or `too-heavy` / `hands-on-cart` / `hands-needed`.
+`equip` asks it, and words the body's own refusal.
 
 ## The tiers — hand · ready · packed
 
@@ -164,11 +174,11 @@ slots and the placement pairs, never stored:
 
 The slot named `back` is what makes a pack's inside packed: a satchel
 row claims `[torso]` and is ready, a rucksack claims `[back]`. Two rows,
-no flag. `carriedTiers()` sorts what is directly on a body (held ·
-regions · worn · ready containers · packed containers) — the model's half
-of the tiered `inventory`; `carryPlaces()` is the receive walk's order:
-worn pockets, then containers hung from or pocketed on a worn host, then
-worn containers off the back, then the back.
+no flag. `inventory` buckets what is directly on a body by `tierOf`
+(held · regions · worn · ready containers · packed containers — the
+controller's `tiersOf`); the carrier's private `carryPlaces()` is the
+arrival walk's order: worn pockets, then containers hung from or pocketed
+on a worn host, then worn containers off the back, then the back.
 
 ## Homes
 
@@ -176,7 +186,8 @@ A home is **the carrier's knowledge** of where a thing lives — no field
 on the thing (a brick has no home). `put <thing> in/on <container on
 me>` sets it (`ContainmentLogic.putPlanFor`'s completion), and so does
 `bringToHand` when a thing had none. `setHome(item, host, region?)` —
-a home can be a pocket by name. Homes are forgotten **lazily**: `homeOf`
+a home can be a pocket by name, and `homeOf(item)` answers
+`{ host, region? }`. Homes are forgotten **lazily**: `homeOf`
 drops one when either end has left the body, so `drop`, `give` and a
 sale need no hook. Persisted by `captureSlice` as `HomesSlice` ends —
 `{kind: 'chattel', chattelId}` or `{kind: 'path', path, templatePath}`
@@ -192,8 +203,10 @@ sale need no hook. Persisted by `captureSlice` as `HomesSlice` ends —
   home if it still fits (a homeless held thing goes to the first carry
   place it fits, which becomes its home), else refuse **`hands-full`**,
   naming the held thing and both ways out — *drop it* or *put it away
-  first*. **Never dropped for the player.** Then `bringToHand` and the
-  scene line (*you sheathe your sword and pull out your compass*);
+  first*. **Never dropped for the player.** Then `bringToHand`, which
+  returns a `ReadiedOutcome` — where the thing came from and where each
+  held thing went (`CarriedAt` facts) — that the verb words
+  (`readiedWords`: *you sheathe your sword and pull out your compass*);
 - **packed** → refuse `packed` (*"It's packed in the backpack — take it
   off first (`remove backpack`)."*);
 - in the room: a fixture is used where it stands; a portable thing
@@ -203,7 +216,8 @@ sale need no hook. Persisted by `captureSlice` as `HomesSlice` ends —
 ⭐ **A verb asks for it with one arg field.** A view's object arg
 declaring `readies: true` is readied by the dispatcher
 (`CommandGiver._executeOne`, after the validators) before the controller
-runs, and the refusal is rendered there — the controller is dumb. Only a
+runs, and the outcome or refusal is worded there by a clone of the verb's
+controller (`carryRefusalWords` / `readiedWords`) — the body decides. Only a
 single bound thing is readied. The views: `measure`/`analyze` `tool`,
 `read`, `light`/`douse`, `pour` `source`, `fill`/`drink` `target`,
 `shape` `instrument`, `fit` `tool`, `cut` `tools`. See
@@ -212,8 +226,10 @@ single bound thing is readied. The views: `measure`/`analyze` `tool`,
 ### Readying in a fight is priced by holder
 
 In a live combat session `ready` is the weapon switch generalized to any
-item (`Combatant.beginWeaponSwitch(item, {seconds})`): guard down, no
-instrument, for `readySeconds(item)` — **two halves**, each priced by
+item (`Combatant.beginWeaponSwitch(item)`): guard down, no instrument,
+for the seconds **combat prices** (W8 — `CombatLogic`'s module-private
+`switchSecondsFor`, by the `combat.*` dials; the carrier reports what is
+in the way through `handsToFree(item)`) — **two halves**, each priced by
 where the thing goes or comes from:
 
 | holder | seconds (dial) |
@@ -227,8 +243,9 @@ where the thing goes or comes from:
 `beatsForSeconds` rounds the sum up. The act does not wait for the
 switch: the readied act runs on the thing where it is, and the beats are
 the price. `fight draw`/`fight switch` are callers of `ready`. The start
-line names the holder (`holderPhrase` — *fumbles at her coat pocket*,
-*her hand drops to her holster*). No competence term yet. See
+line names the holder (`FightSwitchController`'s — *fumbles at her coat
+pocket*, *her hand drops to her holster*); the landing is combat's own
+beat (*you have the sword in hand*). No competence term yet. See
 [combat.md](./combat.md).
 
 ## Pockets — named placement regions
@@ -295,25 +312,27 @@ host into the host's new environment **with its pair kept** — a coat
 taken off, given away or hung in a wardrobe keeps its pocketed key; a
 belt taken off brings its pouches. The followers arrive *placed*, so a
 body receiving a coat admits them; the whole bring-along is asked of the
-destination first, so a refusal moves nothing. See
+destination first, so a refusal moves nothing (a body's `arrivalFor`
+admits a placed arrival). See
 [spatial.md](./spatial.md).
 
 ## Leading and hitching
 
 - **Hitching takes hands.** `hitch` refuses `hands-on-cart` when
   `freeHands()` is fewer than the cart's `handedness`; while hitched,
-  `freeHands()` is reduced by it and `receive`/`ready` say so (*"Your
+  `freeHands()` is reduced by it and an arrival or `ready` says so (*"Your
   hands are on the handcart — `unhitch` it first."*).
   `Drivable.getDriveHands()` is a hauled host's `handedness`, else its
   authorable `driveHands` (default 2 — reins). See
   [conveyance.md](./conveyance.md).
-- **Leading.** `tie rope to mule` resolves to the **halter**
-  (`Carrying.halter()` — the first worn `Tieable` off the hands; the
-  `/trade/tanning/thing/Halter` class): the rope's end hangs `from` the
-  halter and the free end is received into the leader's hand. A tieable
-  with no `from` has the rope received; none → `no-halter` (*"the mule
-  wears nothing to tie to"*). `Rope.tieTo` leads a body that is handless
-  **or wears a halter** — so a dog (whose mouth is a hand) is led on its
+- **Leading.** `tie rope to mule` resolves to the **halter** — the first
+  `Tieable` in `Attired.wornStack()` (the `/trade/tanning/thing/Halter`
+  class; `Carrying.halter()` retired, W8): the rope's end hangs `from` the
+  halter and the free end comes to the leader's hand. A tieable with no
+  `from` has the rope moved onto the animal, which places it; none →
+  `no-halter` (*"the mule wears nothing to tie to"*). `Rope.tieTo` leads a
+  body that is handless **or wears a halter** — any body, carrier or not
+  (a haltered hog is led)  — so a dog (whose mouth is a hand) is led on its
   collar, and a person handed a rope takes it in their hands.
   `Mobile.crossExit` leads: for each held line end whose far end is on a
   led body in the same place, it pre-checks `exit.canTraverse(animal,
@@ -332,9 +351,10 @@ Death still moves everything to the corpse. Logout drops nothing.
 ## Restores and guests
 
 - **First-load placement** (D32) is code on the restore hook, never a
-  script: `Creature.onRestored()` → `placeLoose()`, which takes each loose
-  thing out of the body and `receiveGranted`s it — hands, pockets, packs,
-  else the residence, else the feet.
+  script: `Carrying.onRestored()` → `placeLoose()`, which takes each loose
+  thing out of the body and lets the body place it (its `arrivalFor`) —
+  hands, pockets, packs — else the residence, else the feet (the one
+  overflow, above).
 - **An owned host keeps its pairs across a restart**: a pair whose host
   is an owner-persisted good is captured as `hostChattelId`, and an owned
   good placed on a host records `placedOn` on its estate entry; the
@@ -353,9 +373,9 @@ Death still moves everything to the corpse. Logout drops nothing.
   tag): a sword on a belt, a lantern in hand, a key ring. A thing in a
   pocket or a shut pouch is silent. `LocomotionLogic.emissionAt` lifts the
   mode's `noiseLevel` one band — what `sneak` and stealth read.
-- **`awkwardnessOf(item)`** — `1 + AWKWARD_LENGTH × max(0, longest/stature
-  − 1) + AWKWARD_BULK × volume/bodyVolume`, multiplying a held load in
-  the gauge.
+- **`awkwardnessOf(item)`** — the burden gauge's (`LoadBearing`, W8):
+  `1 + AWKWARD_LENGTH × max(0, longest/stature − 1) + AWKWARD_BULK ×
+  volume/bodyVolume`, multiplying a held load.
 - **`run` refuses `awkward-load`** naming the thing when a held thing is
   longer than `RUN_AWKWARD` (1.0) × stature or more awkward than
   `RUN_AWKWARD_FACTOR` (1.5): you walk the pole. See
@@ -375,12 +395,12 @@ a conscious one refuses (*"Bob won't let you"*).
 
 | verb | what it does here |
 |---|---|
-| `get` | the receiving act (handed): a hand, then a pocket or bag it fits; a no-slot pouch onto the belt |
+| `get` | `canReceive`, then `move` — a hand, then a pocket or bag it fits; a no-slot pouch onto the belt |
 | `put X in/on/from Y` | onto a host or into a container; pockets by name; sets the thing's home when `Y` is on you |
-| `give X to Y` | `canReceive` first, then `receive` |
+| `give X to Y` | `canReceive` first (on the recipient as a container — no narrowing), then `move` |
 | `drop` | to the place; instant, and free in a fight |
 | `inventory` (`i`) | by tier — *In hand* · *Ready* (each pocket and hanging member by name, each ready container with its perceived contents) · *Worn* · *Packed* (each pack as *N things, M kg*) — then the burden in words. `--all` `--flat` `--held` `--ready` `--worn` `--packed` `--weight`; `i <container>`, `i belt` (what hangs and the room left), `i <person>` |
-| `wear` / `wield` / `equip` | through `receive`'s `for: 'wear'` / slots and `wieldSlots` |
+| `wear` / `wield` / `equip` | `seatInSlots` by the claim; the grip by `wieldPlanFor` |
 | `fight draw` / `fight switch` | `ready` in a session |
 | any `readies:` verb | readies its tool first |
 | `stoop` / `crawl` | lower profiles through low ways ([size.md](./size.md)) |
@@ -388,13 +408,12 @@ a conscious one refuses (*"Bob won't let you"*).
 The player's guide is the `carrying` wiki guide (base-library
 `guide/carrying`).
 
-## ⭐ The two census gates
+## ⭐ The census gates
 
-- **`lint:body-moves`** counts every `ContainmentApi.move` whose
-  destination may be a body, against a hand-kept roster tagged by idiom
-  (`made` · `handed` · `granted` · `inherit`, plus `allow` and
-  `not-body`). Census 101 at W0, **0** since W5; the runtime veto is the
-  backstop for its one blind spot (a parameter named `into`/`to`).
+- ~~**`lint:body-moves`**~~ — **retired W8**: it counted the moves onto a
+  body so each could be ported to `receive`; with `move` the receiving act
+  there is nothing to port, and a body with no honest place throws at run
+  time, naming why.
 - **`lint:perceived-surfaces`** counts every surface that shows a viewer
   a list it never asked `PerceptionApi.perceived` about. 32 → **0** at W3.
 
@@ -404,15 +423,17 @@ See [lint-family.md](../lint-family.md).
 
 `ONE_HAND_FRACTION` 0.3 (of carry capacity — a 70 kg human holds 10.5 kg
 in one hand) · `TWO_HAND_LENGTH` 0.6 (of stature — a 1.75 m human's
-1.05 m) · `AWKWARD_LENGTH` 0.5 · `AWKWARD_BULK` 1.0 · `RUN_AWKWARD` 1.0 ·
-`RUN_AWKWARD_FACTOR` 1.5. A body whose carry capacity reads 0 (no mass
+1.05 m). The awkwardness dials (`AWKWARD_LENGTH` 0.5 · `AWKWARD_BULK` 1.0 ·
+`RUN_AWKWARD` 1.0 · `RUN_AWKWARD_FACTOR` 1.5) are `LOAD_BEARING_DEFAULTS`'. A body whose carry capacity reads 0 (no mass
 yet) is not judged by weight. The combat seconds are app settings
 (`combat.draw.seconds`, `combat.reach.seconds`, `combat.unfasten.seconds`,
 `combat.switch.seconds`).
 
 ## Deferred
 
-- **The ledger's pre-check for cash** — coins are granted after the post.
+- **The ledger's pre-check for cash** — coins minted after the post take
+  the made fallback (to you, else at your feet); a pre-check before the
+  write would mint first and destruct on refusal.
 - **A competence term in readying** (the combat slate).
 - **Autocomplete** must obey the perception filter when it exists.
 - **The roof rack** (an outside surface on an `Exitable` host).
@@ -430,3 +451,15 @@ yet) is not judged by weight. The combat seconds are app settings
   in the body's contents and paid a held surcharge
   ([encumbrance.md](./encumbrance.md)), and *hand slots were for
   activities, not storage* ([embodiment.md](./embodiment.md)).
+- **W8 — `move` just works (owner review, 2026-11-12).** The owner read
+  `Carrying` (35 members) as *"a camel or hydra or blind man's elephant"*
+  and set the shape: *"if I'm a content author and I need to just move
+  something into someone's inventory … I can call `move(item, whoever)`
+  and I don't really have to worry about anything else"* — and *"the one
+  thing I don't want is for move to lie."* So: the body places what
+  arrives through `Container.arrivalFor`, or `move` throws; `canReceive` is
+  on every container; the `receive` family is deleted (no synonym for
+  `move`); the invariant is every `Creature`'s and fails closed; the
+  capability composes on the four carrier classes; the hands are
+  `Attired`'s, awkwardness the gauge's, the switch's seconds combat's, and
+  the words the controller's. `Carrying`'s interface is 14 members.
