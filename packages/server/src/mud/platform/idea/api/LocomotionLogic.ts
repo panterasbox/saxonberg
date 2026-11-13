@@ -21,7 +21,6 @@ import type { MixinName } from '../../../lib/mixin';
 import { LOAD_BEARING_DEFAULTS } from '../../../lib/encumbrance/LoadBearing';
 import { Postures } from '../../../lib/slot/Postured';
 import type { EmissionData } from '../../../api/locomotion';
-import { CARRYING_DEFAULTS } from '../../../lib/slot/Carrying';
 import type { NoiseLevel } from '../LocomotionMode';
 
 /** Hard depth cap for the passthrough chain walk; matches the conveyance ripple. */
@@ -328,16 +327,16 @@ export class LocomotionLogic extends ApiLogic {
   /**
    * ⭐ An awkward held load limits running (size and carrying D35): a
    * thing longer than you are tall, or awkward past
-   * `CARRYING_DEFAULTS.RUN_AWKWARD_FACTOR`, refuses `run` naming it — you
+   * `LOAD_BEARING_DEFAULTS.RUN_AWKWARD_FACTOR`, refuses `run` naming it — you
    * walk the pole. Walking and sneaking are not gated.
    */
   private awkwardGate(actor: Stuff, mode: LocomotionMode): TraversalGuard | null {
-    if (mode.getName() !== 'run' || !MixinApi.isCarrying(actor)) return null;
+    if (mode.getName() !== 'run' || !MixinApi.isLoadBearing(actor) || !MixinApi.isAttired(actor)) return null;
     const stature = MixinApi.isPosed(actor) ? actor.getStature() : null;
     for (const held of actor.heldThings()) {
       const longest = MixinApi.isTangible(held) ? held.getDimensions()?.longest() ?? 0 : 0;
-      const tooLong = stature !== null && stature > 0 && longest > stature * CARRYING_DEFAULTS.RUN_AWKWARD;
-      if (!tooLong && actor.awkwardnessOf(held) <= CARRYING_DEFAULTS.RUN_AWKWARD_FACTOR) continue;
+      const tooLong = stature !== null && stature > 0 && longest > stature * LOAD_BEARING_DEFAULTS.RUN_AWKWARD;
+      if (!tooLong && actor.awkwardnessOf(held) <= LOAD_BEARING_DEFAULTS.RUN_AWKWARD_FACTOR) continue;
       return {
         ok: false,
         gate: 'awkwardLoad',

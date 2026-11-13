@@ -70,14 +70,6 @@ export const CARRYING_DEFAULTS = {
   ONE_HAND_FRACTION: 0.3,
   /** Longer than this share of the holder's stature, a load takes both hands. */
   TWO_HAND_LENGTH: 0.6,
-  /** Awkwardness per stature-length a held load runs past the holder's height. */
-  AWKWARD_LENGTH: 0.5,
-  /** Awkwardness per body-volume of bulk a held load has. */
-  AWKWARD_BULK: 1.0,
-  /** A held load longer than this share of stature will not be run with (D35). */
-  RUN_AWKWARD: 1.0,
-  /** A held load more awkward than this factor will not be run with (D35). */
-  RUN_AWKWARD_FACTOR: 1.5,
 } as const;
 
 /** The order a carrier tries its places in (`carry.order`, D11). */
@@ -209,8 +201,6 @@ export interface Carrying {
    * something (`hands-needed`). A claim that is not a hand's is its slots.
    */
   wieldPlanFor(item: Stuff, claim: readonly string[]): { ok: true; slots: string[] } | ReadyRefusal;
-  /** D12's awkwardness of holding `item`: 1 for a compact load, more for a long or bulky one. */
-  awkwardnessOf(item: Stuff): number;
   /** ⭐ D36: 1 when something held or hung on this body clanks (rigid and ringing), else 0. */
   gearNoise(): 0 | 1;
   /** The words for a carrying refusal, in the second person, each naming what works. */
@@ -1275,19 +1265,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       return dropped;
     }
 
-    // ── shape and sound (D12, D36) ──
-
-    public awkwardnessOf(item: Stuff): number {
-      const self = this as unknown as Stuff;
-      const stature = MixinApi.isPosed(self) ? self.getStature() : null;
-      if (!MixinApi.isTangible(item) || !MixinApi.isTangible(self)) return 1;
-      const longest = item.getDimensions()?.longest() ?? 0;
-      const vol = item.getVolumeM3() ?? 0;
-      const body = self.getVolumeM3() ?? 0;
-      const length = stature !== null && stature > 0 ? Math.max(0, longest / stature - 1) : 0;
-      const bulk = body > 0 ? vol / body : 0;
-      return 1 + CARRYING_DEFAULTS.AWKWARD_LENGTH * length + CARRYING_DEFAULTS.AWKWARD_BULK * bulk;
-    }
+    // ── sound (D36) ──
 
     public gearNoise(): 0 | 1 {
       const self = this as unknown as Stuff & Container;

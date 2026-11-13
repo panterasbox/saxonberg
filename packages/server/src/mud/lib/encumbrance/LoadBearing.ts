@@ -112,10 +112,24 @@ export const LOAD_BEARING_DEFAULTS = {
   } satisfies Record<ConditionBand, number>,
   /** Recursion guard for the burden walk (matches locomotion/conveyance). */
   MAX_DEPTH: 16,
+  /** Awkwardness per stature-length a held load runs past the holder's height (D12). */
+  AWKWARD_LENGTH: 0.5,
+  /** Awkwardness per body-volume of bulk a held load has (D12). */
+  AWKWARD_BULK: 1.0,
+  /** A held load longer than this share of stature will not be run with (D35). */
+  RUN_AWKWARD: 1.0,
+  /** A held load more awkward than this factor will not be run with (D35). */
+  RUN_AWKWARD_FACTOR: 1.5,
 } as const;
 
 /** The public surface added by LoadBearingMixin. */
 export interface LoadBearing {
+  /**
+   * ⭐ D12's awkwardness of holding `item` (size and carrying W8 — the
+   * gauge's multiplier, so the gauge's): 1 for a compact load, more for one
+   * long against this body's stature or bulky against its volume.
+   */
+  awkwardnessOf(item: Stuff): number;
   /** Total weighted weight this body bears (carried + worn + held). */
   /**
    * ⭐ With `waterDensityKgM3`, the burden IN THE WATER (underwater
@@ -259,14 +273,25 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
+    public awkwardnessOf(item: Stuff): number {
+      const self = this as unknown as Stuff;
+      const stature = MixinApi.isPosed(self) ? self.getStature() : null;
+      if (!MixinApi.isTangible(item) || !MixinApi.isTangible(self)) return 1;
+      const longest = item.getDimensions()?.longest() ?? 0;
+      const vol = item.getVolumeM3() ?? 0;
+      const body = self.getVolumeM3() ?? 0;
+      const length = stature !== null && stature > 0 ? Math.max(0, longest / stature - 1) : 0;
+      const bulk = body > 0 ? vol / body : 0;
+      return 1 + LOAD_BEARING_DEFAULTS.AWKWARD_LENGTH * length + LOAD_BEARING_DEFAULTS.AWKWARD_BULK * bulk;
+    }
+
     public getBorneBurden(waterDensityKgM3?: number): Quantity<'kg'> {
       this.requireBearerSurface();
       const bearer = this as unknown as Stuff & Container & Slotted;
       const visited = new Set<string>();
       let total = 0;
       const self0 = this as unknown as Stuff;
-      const carrier = MixinApi.isCarrying(self0) ? self0 : null;
-      const hands = new Set(carrier?.handSlots() ?? []);
+      const hands = new Set(MixinApi.isAttired(self0) ? self0.handSlots() : []);
 
       // a) Slot occupants FIRST — worn / held; placement from the slot
       // kind. ⭐ Slots before the loose pass (size and carrying W4): an
@@ -296,7 +321,7 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
           if (MixinApi.isWearable(asStuff)) {
             coupling += asStuff.fitOn(self0).tightness * tightSurcharge;
           }
-          if (carrier !== null && hands.has(slotName)) coupling *= carrier.awkwardnessOf(asStuff);
+          if (hands.has(slotName)) coupling *= this.awkwardnessOf(asStuff);
           total += walk(asStuff, 1.0, coupling, 0, visited, waterDensityKgM3);
         }
       }
