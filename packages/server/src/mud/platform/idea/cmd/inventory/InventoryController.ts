@@ -177,7 +177,10 @@ export default class InventoryController extends CommandController<InventoryMode
     const out: CarriedTiers = { held: [], regions: [], worn: [], ready: [], packed: [], loose: [] };
     const regions = new Map<string, CarriedTiers['regions'][number]>();
     const isHolder = (x: Stuff): x is Stuff & Container => MixinApi.isContainer(x) && !x.isAgent();
-    for (const x of self.getContents()) {
+    // What is directly on the body, as its owner perceives it (rule 1: your
+    // own things, always) — the view's read, not a search of the body.
+    const own = PerceptionApi.visibleContentsOf(carrier, carrier);
+    for (const x of [...new Set([...own.held, ...own.worn, ...own.carried])]) {
       const tier = carrier.tierOf(x);
       const pair = MixinApi.isContainable(x) ? x.getPlacement() : null;
       if (tier === 'hand') {
