@@ -74,14 +74,6 @@ export interface Reached {
   pool: ReachPool;
 }
 
-/**
- * ⭐ How near a carried thing is to the carrier's hand (size-and-carrying
- * D15/D17) — the binder's tie-break order, nearest first: `hand` · `ready`
- * (worn, hung from what is worn, in a pocket or an open worn container) ·
- * `packed` (inside a worn container in the `back` slot — *take it off
- * first*) · `elsewhere` (not on the carrier).
- */
-export type ReachTier = 'hand' | 'ready' | 'packed' | 'elsewhere';
 
 /**
  * How a viewer perceives a thing ({@link PerceptionApi.perceivedHow}):

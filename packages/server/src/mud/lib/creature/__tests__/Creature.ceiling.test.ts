@@ -31,7 +31,7 @@ function body(statureM: number): Creature {
   return c;
 }
 
-describe('Creature.acceptPosture — the ceiling', () => {
+describe('Creature.poseRefusal — the ceiling', () => {
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => {
     vi.restoreAllMocks();
@@ -42,33 +42,33 @@ describe('Creature.acceptPosture — the ceiling', () => {
     const cellar = place(1.5, 'ceiling', 'walled');
     const human = body(1.75);
     ContainmentApi.move(human, cellar);
-    const refused = human.acceptPosture(Postures.Stand);
+    const refused = human.poseRefusal(Postures.Stand);
     expect(refused?.reason).toBe('ceiling-too-low');
     expect(refused?.facts).toEqual({ ceilingM: 1.5, statureM: 1.75 });
     // Asking changes nothing.
     expect(human.getPosture()).toBe(Postures.Stand);
     // Sitting is not standing.
-    expect(human.acceptPosture(Postures.Sit)).toBeNull();
+    expect(human.poseRefusal(Postures.Sit)).toBeNull();
   });
 
   it('a gnome stands where a human cannot', () => {
     const cellar = place(1.5, 'ceiling', 'walled');
     const gnome = body(1.0);
     ContainmentApi.move(gnome, cellar);
-    expect(gnome.acceptPosture(Postures.Stand)).toBeNull();
+    expect(gnome.poseRefusal(Postures.Stand)).toBeNull();
   });
 
   it('under the open sky there is no ceiling', () => {
     const pit = place(1.5, 'open', 'walled');
     const human = body(1.75);
     ContainmentApi.move(human, pit);
-    expect(human.acceptPosture(Postures.Stand)).toBeNull();
+    expect(human.poseRefusal(Postures.Stand)).toBeNull();
   });
 
   it('a body with no stature is never refused', () => {
     const cellar = place(1.5, 'ceiling', 'walled');
     const nobody = body(0);
     ContainmentApi.move(nobody, cellar);
-    expect(nobody.acceptPosture(Postures.Stand)).toBeNull();
+    expect(nobody.poseRefusal(Postures.Stand)).toBeNull();
   });
 });

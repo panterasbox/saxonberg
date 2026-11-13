@@ -2,6 +2,7 @@
 // PerceptionApi. (Doc comment lives on the class declaration below so
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
+import type { CarryTier } from '../../../lib/slot/Carrying';
 import { NavigationApi } from '../../../api/navigation';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
@@ -43,7 +44,7 @@ import {
 // subsystem into this module's eval.
 import type { VisionModality } from '../modalities/VisionModality';
 import type {
-  PerceivedHow, ReachOptions, ReachPool, ReachTier, Reached, SearchDepth,
+  PerceivedHow, ReachOptions, ReachPool, Reached, SearchDepth,
 } from '../../../api/perception';
 import { PlayerApi } from '../../../api/player';
 import { SIZE_DEFAULTS } from '../../../lib/spatial/Dimensions';
@@ -1258,7 +1259,7 @@ function foundOnBy(viewer: Stuff, thing: Stuff, body: Stuff): boolean {
  * carrier answers how near its own things are. A holder that does not
  * carry (a cart, a chest) has nothing in a hand: what is in it is ready.
  */
-function tierOfImpl(carrier: Stuff, thing: Stuff): ReachTier {
+function tierOfImpl(carrier: Stuff, thing: Stuff): CarryTier {
   if (MixinApi.isCarrying(carrier)) return carrier.tierOf(thing);
   let up: Stuff | null = MixinApi.isContainable(thing) ? thing.getContainer() : null;
   for (let i = 0; up !== null && i < 32; i++) {
@@ -1269,7 +1270,7 @@ function tierOfImpl(carrier: Stuff, thing: Stuff): ReachTier {
 }
 
 /** The order the binder ties on, nearest first. */
-const TIER_RANK: Record<ReachTier, number> = { hand: 0, ready: 1, packed: 2, elsewhere: 3 };
+const TIER_RANK: Record<CarryTier, number> = { hand: 0, ready: 1, packed: 2, elsewhere: 3 };
 
 /** Would the object refuse a hand right now (`Containable.reachRefusal`)? */
 function refusesReach(actor: Stuff, target: Stuff): boolean {

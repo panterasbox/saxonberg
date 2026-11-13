@@ -36,7 +36,7 @@
 
 import { Mixins, type MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { Containable } from '../spatial/Containable';
+import type { Containable, PackedRefusal } from '../spatial/Containable';
 import type { Container } from '../spatial/Container';
 import type { Placing } from '../spatial/Placing';
 import type { Slottable } from './Slottable';
@@ -91,7 +91,7 @@ export type ReceiveRefusal = Extract<
 
 /** Why readying a thing failed (D16) — every one names a way out. */
 export type ReadyRefusal =
-  | ActRefusal<'packed', { by: Stuff }>
+  | PackedRefusal
   | ActRefusal<'hands-full', { held: Stuff; home: Stuff | null }>
   | ActRefusal<'hands-needed', { hands: number; held: Stuff[] }>
   | ActRefusal<'hands-on-cart', { cart: Stuff }>

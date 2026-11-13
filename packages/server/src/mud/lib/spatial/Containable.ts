@@ -63,6 +63,9 @@ import { Placements } from './Placement';
  * The optional Witness methods fire from `ContainmentApi.move`.
  * Implement only the ones you care about.
  */
+/** It is packed in `by` — the pack on a back, take it off first (size and carrying D15). */
+export type PackedRefusal = ActRefusal<'packed', { by: Stuff }>;
+
 export interface Containable {
   setContainer(container: (Stuff & Container) | null): void;
   getContainer(): (Stuff & Container) | null;
@@ -170,7 +173,7 @@ export interface Containable {
    * a shut box; the binder binds it; the verb's `canReach` asks this and
    * says why (D17 — the refusal fires after binding).
    */
-  reachRefusal(actor: Stuff): ActRefusal<'enclosed-shut' | 'packed', { by: Stuff }> | null;
+  reachRefusal(actor: Stuff): ActRefusal<'enclosed-shut', { by: Stuff }> | PackedRefusal | null;
 
   /**
    * ⭐ **Bolted down: no agent picks this up or carries it off.** The
@@ -482,7 +485,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** See the interface docstring (controller-liquidity D6; size-and-carrying D17). */
     reachRefusal(
       actor: Stuff,
-    ): ActRefusal<'enclosed-shut' | 'packed', { by: Stuff }> | null {
+    ): ActRefusal<'enclosed-shut', { by: Stuff }> | PackedRefusal | null {
       // What holds the actor holds the actor's side of the lid too: in a
       // shut wardrobe, the coat beside you is not behind its door.
       const around = new Set<string>([actor.stuffId]);

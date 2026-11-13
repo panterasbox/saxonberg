@@ -675,7 +675,7 @@ export class Creature extends CreatureBase {
    * the posture. On the body, not on `Posed`: posture-as-held and
    * posture-as-allowed-here are two ideas (`lint:mixin-clusters`).
    */
-  public acceptPosture(posture: string): PoseRefusal | null {
+  public poseRefusal(posture: string): PoseRefusal | null {
     if (posture !== Postures.Stand) return null;
     const statureM = this.getStature();
     if (statureM === null) return null;

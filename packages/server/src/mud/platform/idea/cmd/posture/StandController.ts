@@ -41,7 +41,7 @@ export default class StandController extends CommandController<StandModel> {
     }
     // ⭐ Under a ceiling lower than you, you cannot stand (size and carrying
     // D21) — wherever you would stand on. The body asks; nothing changes.
-    const low = giver instanceof Creature ? giver.acceptPosture(Postures.Stand) : null;
+    const low = giver instanceof Creature ? giver.poseRefusal(Postures.Stand) : null;
     if (low !== null) {
       return this.refuse(context, 'act.deed', 'The ceiling is too low to stand up here.', low.reason);
     }
